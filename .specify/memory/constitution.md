@@ -1,12 +1,14 @@
 <!--
 SYNC IMPACT REPORT (temporary; remove before commit)
-Version change: template (unversioned) → 1.0.0
-Modified principles: none renamed (initial adoption; all placeholders filled)
-Added sections: Core Principles I–VII, Technical Constraints, Development Workflow & Quality
-  Gates, Governance
-Removed sections: none
-Deferred items: none. Ratification date set to first adoption date (2026-09-20).
-Sources: user_input/raw_idea/{START_HERE,raw-constitution,tech-stack}.md, agents/{ba,crawler,qa}.md
+Version change: 1.0.0 → 1.1.0 (MINOR: materially expanded guidance, one new constraint block)
+Modified principles:
+  - III. Strict Role Separation: crawler defined as a single LLM + Playwright agent with `map`
+    and `trace` modes (no separate explorer); records only, stores ranked locator descriptors.
+  - IV. Replay Verification Before Promotion: verification is a QA-generated spec run.
+  - V. Safety-First Exploration: added explicit production policy.
+Added sections: Technical Constraints → "Portals and personas" bullet
+Removed sections: none (replay-verifier step removed from Development Workflow build order)
+Deferred items: none
 -->
 # Pathfinder AI Constitution
 
@@ -32,20 +34,28 @@ emails, third-party integrations, manual workarounds) MUST be flagged "not obser
 guessed.
 
 ### III. Strict Role Separation
-- The Crawler records and does not interpret: it emits facts (steps, states, network calls,
-  outcomes), a few flagged `rule_candidates`, and open questions.
+- The Crawler is a single LLM + Playwright agent with two modes: `map` (site capability and
+  route mapping) and `trace` (documenting one named process). There is no separate explorer.
+  It records and does not interpret: it emits facts (steps, states, network calls, outcomes),
+  a few flagged `rule_candidates`, and open questions. It records processes at status
+  `recorded` only and MUST NOT verify them or write tests. For every recorded action it stores
+  ranked candidate locator descriptors (role + name, label/text, `data-testid`, container,
+  ARIA snapshot reference) that QA can reuse. Its deterministic pieces (fingerprinting, safety
+  classification, scope checks, PII scrubbing, DB access via MCP) are tools it calls and MUST
+  NOT be overridable by the agent.
 - The BA never browses: it works only from recorded evidence and requests more via follow-up
   tasks to the crawler. It owns requirements, the glossary, and the assumptions and
   open-questions log.
 - QA generates acceptance tests only from human-confirmed requirements. Characterization tests
-  MAY come from replay-verified recordings alone. QA owns and reuses the helper library.
+  MAY come from recorded processes and BA documentation alone. QA owns and reuses the helper
+  library and validates crawler locators before relying on them.
 A role MUST NOT perform another role's duties. Its output is validated against schemas.
 
 ### IV. Replay Verification Before Promotion
-A recorded process MUST be deterministically replayed from a reset state and match per-step
-state fingerprints and expected outcomes before it reaches `replay_verified`. Status promotion
-(recorded → replay_verified → documented; draft → confirmed → tested) is performed by
-deterministic orchestrator code, never by an agent claiming success.
+A recorded process MUST be verified by running the QA-generated deterministic specs for it from
+a reset state, matching per-step expected outcomes, before it reaches `replay_verified`. Status
+promotion (recorded → replay_verified → documented; draft → confirmed → tested) is performed by
+deterministic orchestrator code from run results, never by an agent claiming success.
 
 ### V. Safety-First Exploration (NON-NEGOTIABLE)
 Every action MUST be classified read-only, mutating, destructive, or external-side-effect;
@@ -53,6 +63,18 @@ ambiguity is treated as unsafe. Mutating and destructive actions MUST run only a
 sandbox or staging environment with resettable seed data, enforced by an environment guard.
 CAPTCHAs MUST NOT be solved by automation; they are removed or bypassed in the test
 environment. PII in traces and screenshots MUST be scrubbed or access-restricted.
+
+Production policy:
+- A production target MUST be declared with `environment: production` in its portal config;
+  without that flag the environment guard refuses to run against it.
+- On production the environment guard MUST allow only read-only actions, enforced in code.
+- A production run MUST use a conservative rate limit, low concurrency, and an identifiable
+  User-Agent or header.
+- `robots.txt` and the site's terms MUST be checked before the first run against a portal.
+- Anti-bot or CAPTCHA defenses MUST NOT be worked around. A block is recorded as a run-level
+  warning and the run stops.
+Rationale: read-only crawling of a live site is acceptable only when it cannot change the
+site's data and cannot degrade or evade its protections.
 
 ### VI. Human-in-the-Loop Validation
 Requirements enter as `draft` and become `confirmed` only through explicit human BA approval.
@@ -76,6 +98,12 @@ Markdown, Mermaid and Gherkin are rendered from it. Generated tests MUST be plai
 - **Schemas**: Zod is the single source of truth for agent output, MCP inputs, and DB writes.
 - **Agent interface**: agents access the DB only through the MCP server (`@modelcontextprotocol/sdk`)
   and never write raw SQL or invent IDs. Tasks have a narrow prompt, budget, and stop condition.
+- **Portals and personas**: a portal config (`portals/<portal>/portal.yaml`) describes where to
+  crawl (base URL, `environment`, scope, denylist, obstacles). A persona
+  (`personas/<portal>/[<process>/]<persona>.yaml`, with shared pieces in `personas/_mixins/`)
+  describes who acts. Personas MUST be composable via `extends`, validated by Zod, and MUST
+  reference secrets by reference only, never inline. The effective safety ceiling of a run is
+  the minimum of the portal's and the persona's: a persona can only restrict, never widen.
 - **Data model**: two layers, A (mechanical UI state graph) and B (semantic process graph);
   Layer B is the BA deliverable and Layer A is its evidence.
 - **Generated test rules**: locator priority is getByRole, getByLabel, getByText, getByTestId,
@@ -88,10 +116,12 @@ Markdown, Mermaid and Gherkin are rendered from it. Generated tests MUST be plai
 ## Development Workflow & Quality Gates
 
 - Development follows the build order: fingerprint → core schemas and migrations → safety
-  classifier → crawler on a controlled demo app → MCP server → replay verifier → downstream
-  docs, testgen and runner.
+  classifier → portal and persona loaders → MCP server → crawler agent on the first target
+  portal (rendering the graph to Mermaid) → QA helper library, spec generation and runner (whose
+  runs verify processes) → downstream docs.
 - Pure-function packages MUST have Vitest unit tests before dependent packages build on them.
-- Exploration and mutating tests MUST target the resettable local demo app or a sandbox.
+- Mutating tests and exploration MUST target a resettable demo app or a sandbox. Production
+  targets are read-only under the production policy in Principle V.
 - Failures are triaged rules-first (brittleness, environment, defect, requirement drift), and
   only ambiguous cases go to a triager agent. A repeated failure pattern is fixed by extending
   the shared obstacle library, not by editing individual tests.
@@ -110,4 +140,4 @@ pull request review MUST verify compliance; any violation MUST be justified in w
 plan's complexity-tracking section or be corrected. Runtime guidance for agents lives in
 `user_input/raw_idea/agents/` until moved into the `agents/` and `skills/` packages.
 
-**Version**: 1.0.0 | **Ratified**: 2026-09-20 | **Last Amended**: 2026-09-20
+**Version**: 1.1.0 | **Ratified**: 2026-09-20 | **Last Amended**: 2026-09-20
