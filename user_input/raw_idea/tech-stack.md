@@ -5,6 +5,7 @@ I'm assuming TypeScript, since Playwright, the Test Agents and the MCP SDK are T
 Stack
 Concern	Choice	Notes
 Runtime	Node 22+, TypeScript (strict), pnpm workspaces	Monorepo, one package per module
+Python tooling	uv (Python 3.12+, `pyproject.toml`, `uv.lock`)	Python side only, under `python/`: offline scripts and optional NLP/embedding work such as glossary consolidation. Never on the crawler's runtime path, and not used to manage the Node/TypeScript monorepo
 Browser automation	playwright (library) for the crawler, @playwright/test for generated tests	Two uses, kept separate
 Storage	SQLite (better-sqlite3) with Kysely or Drizzle	Single file, transactional, easy to snapshot per run. Move to Postgres only if multiple writers are needed
 Graph queries	Relational tables plus recursive CTEs, with an in-memory graph for algorithms	Neo4j/Kuzu only if CTEs become painful
@@ -31,7 +32,7 @@ packages/
   testgen-kit/   helper library: components, fixtures, flow helpers
   runner/        executes specs, ingests JSON reporter into DB
   docs/          Markdown + Mermaid renderers
-agents/          subagent definitions (explorer, ba, qa, triager)
+agents/          subagent definitions (crawler, ba, qa, triager)
 skills/          role rules and conventions
 
 The rule to keep: fingerprint, safety and analysis are pure functions with no browser or LLM dependency, so you can unit-test them against saved data.
@@ -95,7 +96,7 @@ Analysis
 
 Graph diff between crawls. Match by fingerprint or cluster, then report added, removed and changed states and edges. This is what powers "requirement drift" detection.
 Permission matrix. For each persona, a set of reachable route templates and actions. The matrix is a set difference and intersection across personas, and it's a very cheap and useful BA artifact.
-Process discovery from trajectories. Ordered lists of edges recorded by the explorer are the event log. Apply lightweight process mining: build a directly-follows graph, cluster identical variants, and separate the happy path (most frequent or goal-reaching variant) from alternates and exceptions.
+Process discovery from trajectories. Ordered lists of edges recorded by the crawler are the event log. Apply lightweight process mining: build a directly-follows graph, cluster identical variants, and separate the happy path (most frequent or goal-reaching variant) from alternates and exceptions.
 Process linking. Match one process's postconditions to another's preconditions (set containment over normalized conditions such as authenticated, cart_nonempty). Then run cycle detection and topological sort on the resulting DAG. Use strongly connected components if loops are legitimate.
 Glossary consolidation. Normalize terms (lowercase, lemmatize) and cluster near-duplicates with edit distance, and optionally embeddings. Flag candidate synonyms for a human, and don't auto-merge.
 
@@ -107,7 +108,7 @@ Failure triage. Rules first, model second. Deterministic classifiers (timeout on
 Replay verification. Deterministically re-execute the recorded path from a reset state, and compare per-step state fingerprints (cluster level) plus expected outcomes. Promote to replay_verified only if all steps match.
 Pipeline and job flow
 crawl job ──► states/edges/frontier
-explorer job (per frontier goal) ──► trajectory ──► replay job ──► verified process
+crawler job (per frontier goal) ──► trajectory ──► replay job ──► verified process
 process-analyst/ba job ──► rules, requirements (draft) ──► [human confirm]
 qa job ──► specs ──► lint job ──► run job ──► results ──► triage job
 

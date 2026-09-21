@@ -1,13 +1,10 @@
 <!--
 SYNC IMPACT REPORT (temporary; remove before commit)
-Version change: 1.0.0 → 1.1.0 (MINOR: materially expanded guidance, one new constraint block)
-Modified principles:
-  - III. Strict Role Separation: crawler defined as a single LLM + Playwright agent with `map`
-    and `trace` modes (no separate explorer); records only, stores ranked locator descriptors.
-  - IV. Replay Verification Before Promotion: verification is a QA-generated spec run.
-  - V. Safety-First Exploration: added explicit production policy.
-Added sections: Technical Constraints → "Portals and personas" bullet
-Removed sections: none (replay-verifier step removed from Development Workflow build order)
+Version change: 1.1.0 → 1.2.0 (MINOR: one new Technical Constraints bullet)
+Modified principles: none
+Added sections: Technical Constraints → "Python tooling" bullet (uv, Python side only)
+Removed sections: none
+Templates/specs checked: specs/001-crawler-map-mode (no Python work in this feature; no change needed)
 Deferred items: none
 -->
 # Pathfinder AI Constitution
@@ -92,6 +89,11 @@ Markdown, Mermaid and Gherkin are rendered from it. Generated tests MUST be plai
 
 - **Stack**: Node 22+, TypeScript (strict), pnpm workspaces monorepo with one package per module;
   Playwright library for the crawler and `@playwright/test` for generated tests, kept separate.
+- **Python tooling**: `uv` manages any Python code (`pyproject.toml` and `uv.lock`, under
+  `python/`), for example offline scripts or NLP/embedding work such as glossary consolidation.
+  Python is an addition, not a replacement: the crawler, MCP server, schemas, generated tests
+  and the monorepo stay Node/TypeScript with pnpm. Python code MUST NOT sit on the crawler's
+  runtime path and MUST NOT write to the DB except through the same schemas and migrations.
 - **Storage**: SQLite (better-sqlite3 with Kysely or Drizzle) including a `jobs` table for the
   queue; evidence on the filesystem under content-addressed (sha256) names. Postgres or a graph
   DB requires a documented justification.
@@ -140,4 +142,4 @@ pull request review MUST verify compliance; any violation MUST be justified in w
 plan's complexity-tracking section or be corrected. Runtime guidance for agents lives in
 `user_input/raw_idea/agents/` until moved into the `agents/` and `skills/` packages.
 
-**Version**: 1.1.0 | **Ratified**: 2026-09-20 | **Last Amended**: 2026-09-20
+**Version**: 1.2.0 | **Ratified**: 2026-09-20 | **Last Amended**: 2026-09-21
