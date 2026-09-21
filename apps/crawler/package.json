@@ -12,13 +12,17 @@
     "typecheck": "pnpm -r exec tsc --noEmit",
     "lint": "eslint .",
     "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "format:check": "prettier --check .",
+    "audit:pii": "tsx scripts/pii-audit.ts",
+    "stability": "tsx scripts/stability-check.ts"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
+    "@pathfinder/core": "workspace:*",
     "@types/node": "^22.20.4",
     "eslint": "^10.11.0",
     "prettier": "^3.9.8",
+    "tsx": "^4.23.15",
     "typescript": "^6.0.3",
     "typescript-eslint": "^8.70.1",
     "vitest": "^5.0.1"

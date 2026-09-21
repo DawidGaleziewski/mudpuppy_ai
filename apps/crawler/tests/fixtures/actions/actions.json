@@ -1,0 +1,450 @@
+[
+  {
+    "id": "nav-link-category",
+    "expected": "read",
+    "descriptor": {
+      "role": "link",
+      "name": "Elektronika",
+      "href": "/oferty/elektronika"
+    }
+  },
+  {
+    "id": "nav-link-home",
+    "expected": "read",
+    "descriptor": {
+      "role": "link",
+      "name": "MarketSite",
+      "href": "/"
+    }
+  },
+  {
+    "id": "nav-link-help-en",
+    "expected": "read",
+    "descriptor": {
+      "role": "link",
+      "name": "Help",
+      "href": "/pomoc"
+    }
+  },
+  {
+    "id": "nav-link-login-page",
+    "expected": "read",
+    "descriptor": {
+      "role": "link",
+      "name": "Zaloguj się",
+      "href": "/konto/zaloguj"
+    }
+  },
+  {
+    "id": "search-box",
+    "expected": "read",
+    "descriptor": {
+      "role": "searchbox",
+      "name": "Szukaj ofert"
+    }
+  },
+  {
+    "id": "search-button",
+    "expected": "read",
+    "descriptor": {
+      "role": "button",
+      "name": "Szukaj",
+      "form": {
+        "method": "GET",
+        "purpose": "search"
+      }
+    }
+  },
+  {
+    "id": "search-button-en",
+    "expected": "read",
+    "descriptor": {
+      "role": "button",
+      "name": "Search",
+      "form": {
+        "method": "GET",
+        "purpose": "search"
+      }
+    }
+  },
+  {
+    "id": "filter-checkbox",
+    "expected": "read",
+    "descriptor": {
+      "role": "checkbox",
+      "name": "Tylko z darmową dostawą"
+    }
+  },
+  {
+    "id": "filter-combobox-sort",
+    "expected": "read",
+    "descriptor": {
+      "role": "combobox",
+      "name": "Sortuj: cena rosnąco"
+    }
+  },
+  {
+    "id": "filter-apply",
+    "expected": "read",
+    "descriptor": {
+      "role": "button",
+      "name": "Zastosuj filtry",
+      "form": {
+        "method": "GET",
+        "purpose": "filter"
+      }
+    }
+  },
+  {
+    "id": "pagination-next",
+    "expected": "read",
+    "descriptor": {
+      "role": "link",
+      "name": "Następna strona",
+      "href": "/oferty?page=2"
+    }
+  },
+  {
+    "id": "pagination-prev-en",
+    "expected": "read",
+    "descriptor": {
+      "role": "link",
+      "name": "Previous page",
+      "href": "/oferty?page=1"
+    }
+  },
+  {
+    "id": "pagination-page-number",
+    "expected": "read",
+    "descriptor": {
+      "role": "link",
+      "name": "3",
+      "href": "/oferty?page=3"
+    }
+  },
+  {
+    "id": "tab",
+    "expected": "read",
+    "descriptor": {
+      "role": "tab",
+      "name": "Opis"
+    }
+  },
+  {
+    "id": "expand-details",
+    "expected": "read",
+    "descriptor": {
+      "role": "button",
+      "name": "Pokaż więcej",
+      "attributes": {
+        "aria-expanded": "false"
+      }
+    }
+  },
+  {
+    "id": "item-link",
+    "expected": "read",
+    "descriptor": {
+      "role": "link",
+      "name": "Laptop Dell Latitude 5520",
+      "href": "/oferta/laptop-dell-latitude-5520-ID1234"
+    }
+  },
+  {
+    "id": "menu-item",
+    "expected": "read",
+    "descriptor": {
+      "role": "menuitem",
+      "name": "Moda",
+      "href": "/oferty/moda"
+    }
+  },
+  {
+    "id": "submit-profile-form",
+    "expected": "mutating",
+    "descriptor": {
+      "role": "button",
+      "name": "Zapisz zmiany",
+      "form": {
+        "method": "POST"
+      }
+    }
+  },
+  {
+    "id": "add-favourite",
+    "expected": "mutating",
+    "descriptor": {
+      "role": "button",
+      "name": "Dodaj do ulubionych"
+    }
+  },
+  {
+    "id": "follow-seller",
+    "expected": "mutating",
+    "descriptor": {
+      "role": "button",
+      "name": "Obserwuj sprzedawcę"
+    }
+  },
+  {
+    "id": "add-favourite-en",
+    "expected": "mutating",
+    "descriptor": {
+      "role": "button",
+      "name": "Add to favourites"
+    }
+  },
+  {
+    "id": "add-to-cart",
+    "expected": "mutating",
+    "descriptor": {
+      "role": "button",
+      "name": "Dodaj do koszyka"
+    }
+  },
+  {
+    "id": "login-submit",
+    "expected": "mutating",
+    "descriptor": {
+      "role": "button",
+      "name": "Zaloguj",
+      "form": {
+        "method": "POST",
+        "hasPassword": true
+      }
+    }
+  },
+  {
+    "id": "post-form-unnamed",
+    "expected": "mutating",
+    "descriptor": {
+      "role": "button",
+      "form": {
+        "method": "POST"
+      }
+    }
+  },
+  {
+    "id": "unknown-button",
+    "expected": "mutating",
+    "descriptor": {
+      "role": "button",
+      "name": "Dalej"
+    }
+  },
+  {
+    "id": "post-link-method",
+    "expected": "mutating",
+    "descriptor": {
+      "role": "link",
+      "name": "Zgłoś",
+      "href": "/zglos",
+      "method": "POST"
+    }
+  },
+  {
+    "id": "delete-offer",
+    "expected": "destructive",
+    "descriptor": {
+      "role": "button",
+      "name": "Usuń ofertę"
+    }
+  },
+  {
+    "id": "delete-en",
+    "expected": "destructive",
+    "descriptor": {
+      "role": "button",
+      "name": "Delete listing"
+    }
+  },
+  {
+    "id": "remove-favourite",
+    "expected": "destructive",
+    "descriptor": {
+      "role": "button",
+      "name": "Usuń z ulubionych"
+    }
+  },
+  {
+    "id": "logout-link",
+    "expected": "destructive",
+    "descriptor": {
+      "role": "link",
+      "name": "Wyloguj się",
+      "href": "/wyloguj"
+    }
+  },
+  {
+    "id": "logout-button-en",
+    "expected": "destructive",
+    "descriptor": {
+      "role": "button",
+      "name": "Log out"
+    }
+  },
+  {
+    "id": "delete-method",
+    "expected": "destructive",
+    "descriptor": {
+      "role": "button",
+      "name": "Anuluj",
+      "method": "DELETE"
+    }
+  },
+  {
+    "id": "delete-path-link",
+    "expected": "destructive",
+    "descriptor": {
+      "role": "link",
+      "name": "Anuluj",
+      "href": "/konto/oferty/123/usun"
+    }
+  },
+  {
+    "id": "message-seller",
+    "expected": "external-side-effect",
+    "descriptor": {
+      "role": "button",
+      "name": "Napisz do sprzedawcy"
+    }
+  },
+  {
+    "id": "contact-seller-en",
+    "expected": "external-side-effect",
+    "descriptor": {
+      "role": "button",
+      "name": "Contact seller"
+    }
+  },
+  {
+    "id": "send-message",
+    "expected": "external-side-effect",
+    "descriptor": {
+      "role": "button",
+      "name": "Wyślij wiadomość",
+      "form": {
+        "method": "POST"
+      }
+    }
+  },
+  {
+    "id": "show-phone",
+    "expected": "external-side-effect",
+    "descriptor": {
+      "role": "button",
+      "name": "Pokaż numer telefonu"
+    }
+  },
+  {
+    "id": "show-phone-en",
+    "expected": "external-side-effect",
+    "descriptor": {
+      "role": "button",
+      "name": "Show phone number"
+    }
+  },
+  {
+    "id": "place-bid",
+    "expected": "external-side-effect",
+    "descriptor": {
+      "role": "button",
+      "name": "Licytuj"
+    }
+  },
+  {
+    "id": "place-bid-en",
+    "expected": "external-side-effect",
+    "descriptor": {
+      "role": "button",
+      "name": "Place bid"
+    }
+  },
+  {
+    "id": "buy-now",
+    "expected": "external-side-effect",
+    "descriptor": {
+      "role": "button",
+      "name": "Kup teraz"
+    }
+  },
+  {
+    "id": "buy-now-en",
+    "expected": "external-side-effect",
+    "descriptor": {
+      "role": "button",
+      "name": "Buy now"
+    }
+  },
+  {
+    "id": "pay",
+    "expected": "external-side-effect",
+    "descriptor": {
+      "role": "button",
+      "name": "Zapłać"
+    }
+  },
+  {
+    "id": "pay-en",
+    "expected": "external-side-effect",
+    "descriptor": {
+      "role": "button",
+      "name": "Pay now"
+    }
+  },
+  {
+    "id": "checkout-link",
+    "expected": "external-side-effect",
+    "descriptor": {
+      "role": "link",
+      "name": "Przejdź do płatności",
+      "href": "/zamowienie/platnosc"
+    }
+  },
+  {
+    "id": "ambiguous-remove-filters",
+    "expected": "destructive",
+    "descriptor": {
+      "role": "button",
+      "name": "Usuń filtry"
+    }
+  },
+  {
+    "id": "ambiguous-conflict-send-buy",
+    "expected": "external-side-effect",
+    "descriptor": {
+      "role": "button",
+      "name": "Kup teraz i usuń z ulubionych"
+    }
+  },
+  {
+    "id": "ambiguous-nav-link-to-logout",
+    "expected": "destructive",
+    "descriptor": {
+      "role": "link",
+      "name": "Moje konto",
+      "href": "/wyloguj"
+    }
+  },
+  {
+    "id": "ambiguous-read-looking-payment-url",
+    "expected": "external-side-effect",
+    "descriptor": {
+      "role": "link",
+      "name": "Dalej",
+      "href": "/koszyk/platnosc"
+    }
+  },
+  {
+    "id": "ambiguous-search-post",
+    "expected": "mutating",
+    "descriptor": {
+      "role": "button",
+      "name": "Szukaj",
+      "form": {
+        "method": "POST",
+        "purpose": "search"
+      }
+    }
+  }
+]

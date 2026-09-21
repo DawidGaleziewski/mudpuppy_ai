@@ -21,8 +21,10 @@ main one; a hook limits you to docs edits and plain `git` commands.
 
 ## Starting a task
 1. `git status` must be clean; if not, stop and report what is dirty.
-2. Create the branch from master: `<NNN>-<slug>` matching the spec folder (or `chore/<slug>` with no
-   spec). Refuse to work on master.
+2. Create the branch from master, named `feature/<NNN>-<item-id>-<descriptive-slug>`: `<NNN>` is the
+   spec number, `<item-id>` the lowercase roadmap id without the dash (R-04 → `r04`), and the slug
+   describes the work and the feature (e.g. `feature/001-r04-core-crawler-map-mode`). Work with no spec uses `chore/<slug>`. Refuse to work on
+   master.
 3. Ensure the roadmap item is `in progress` and its spec/plan/tasks exist and agree; list gaps.
 
 ## Closing an item

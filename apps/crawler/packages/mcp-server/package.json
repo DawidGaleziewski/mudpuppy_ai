@@ -15,5 +15,8 @@
     "@pathfinder/fingerprint": "workspace:*",
     "@pathfinder/safety": "workspace:*",
     "zod": "^4.6.5"
+  },
+  "scripts": {
+    "start": "tsx src/main.ts"
   }
 }

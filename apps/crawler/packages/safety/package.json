@@ -8,6 +8,7 @@
     ".": "./src/index.ts"
   },
   "dependencies": {
+    "@pathfinder/config": "workspace:*",
     "@pathfinder/core": "workspace:*"
   }
 }

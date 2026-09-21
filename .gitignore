@@ -24,3 +24,6 @@ data/evidence/*
 
 # Editor / OS
 .DS_Store
+
+# Windows download markers (WSL)
+*:Zone.Identifier

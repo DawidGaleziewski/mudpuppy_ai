@@ -10,8 +10,8 @@ rather than editing this folder ad hoc.
   ERD/markdown doc), regenerated with every migration (tracked in git).
 - `db/` — actual SQLite database files, one per environment/run context. Generated artifacts,
   not source (git-ignored).
-- `evidence/` — content-addressed (`sha256`) evidence blobs: ARIA snapshots, screenshots,
-  network/HAR records referenced by `evidence_ref` columns. Generated, not source
+- `evidence/` — content-addressed (`sha256`) evidence blobs: ARIA snapshots,
+  network shape records referenced by `evidence_ref` columns. Generated, not source
   (git-ignored).
 
 See `.specify/memory/constitution.md` (Technical Constraints, Principle II, Principle VII) for

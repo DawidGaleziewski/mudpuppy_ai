@@ -34,7 +34,10 @@ no tool to write them, so it cannot fabricate an `observed` fact. The agent can 
 - **Errors**: `ENV_GUARD_REFUSED` (production without the explicit flag, missing
   `compliance` values, or a placeholder User-Agent contact — completes in <5s,
   nothing opened), `CONFIG_INVALID` (names the file and problem, FR-017), `PORTAL_NOT_FOUND`,
-  `RUN_NOT_RESUMABLE`
+  `RUN_NOT_RESUMABLE` (only an `interrupted` run of the same portal and persona resumes)
+- **Database**: the server records into `data/db/<env>.sqlite`, `<env>` fixed at server start
+  (`PATHFINDER_ENV`, default `production`); a portal of another environment is refused with
+  `ENV_GUARD_REFUSED`.
 
 ### `get_known_states`
 
@@ -82,7 +85,7 @@ to hold it in context.
 
 - **Input**: `{ run_id, text: string, about_ref: string }`
 - **Output**: `{ open_question_id: string }`
-- **Errors**: `SCHEMA_INVALID`, `RUN_STOPPED`
+- **Errors**: `SCHEMA_INVALID`, `UNKNOWN_REF` (`about_ref` is not a state, edge or form of this run), `RUN_STOPPED`
 
 ### `add_rule_candidate`
 
@@ -120,8 +123,10 @@ directly.
   Idempotent by fingerprint (`created: false` if it exists). Errors: `MISSING_EVIDENCE`,
   `INVALID_CONFIDENCE`, `SCHEMA_INVALID`.
 - **`record_transition`** — `{ run_id, from_state, to_state | null, action: { role, accessible_name, locators: Array<{ kind: "role"|"label"|"text"|"test_id"|"container", value, rank }> }, safety_class, status: "executed"|"skipped", evidence_ref, confidence, error? }`.
-  Re-derives `safety_class` with the `safety` package and rejects a mismatch. Errors:
-  `MISSING_EVIDENCE`, `UNSAFE_ACTION_EXECUTED` (status `executed` with `safety_class != "read"`
+  Re-derives `safety_class` with the `safety` package and rejects a mismatch. `action` also carries
+  the classifier's signals (`href`, `method`, `form`, `attributes`). Errors:
+  `MISSING_EVIDENCE`, `SAFETY_CLASS_MISMATCH` (supplied class differs from the re-derived one, any
+  status), `UNSAFE_ACTION_EXECUTED` (status `executed` with `safety_class != "read"`
   on a production run — hard reject; last line of defense behind the action gate), `SCHEMA_INVALID`.
 - **`record_form`** — `{ run_id, state_id, fields: FieldSchema[], evidence_ref, confidence }`. Errors:
   `MISSING_EVIDENCE`, `SCHEMA_INVALID`.
@@ -136,7 +141,7 @@ directly.
 
 - All tools are stateless request/response calls (run state lives in the DB); none accept or
   return raw SQL.
-- Ids are always server-generated (uuid); no tool accepts a client-chosen id for a new row.
+- Ids are always server-generated (UUIDv7); no tool accepts a client-chosen id for a new row.
 - The agent's tool allowlist contains only the agent-facing tools above. A test asserts
   `.claude/agents/crawler.md` lists no other tool (no Bash, Edit, Write, WebFetch, WebSearch,
   or any other MCP server).

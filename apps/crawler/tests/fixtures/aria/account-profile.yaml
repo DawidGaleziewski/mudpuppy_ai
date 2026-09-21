@@ -1,0 +1,18 @@
+- banner:
+    - link "MarketSite":
+        - /url: /
+    - text: 'Cześć, Jan Kowalski'
+- main:
+    - heading "Moje dane" [level=1]
+    - text: 'Imię i nazwisko: Anna Nowak-Wiśniewska'
+    - text: 'E-mail: anna.nowak+lokalnie@example.com'
+    - text: 'Telefon: +48 601 234 567'
+    - text: 'Telefon dodatkowy: 512-345-678'
+    - link "Zadzwoń 601 234 567":
+        - /url: /tel
+    - text: 'Token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIn0.dozjgNryP4J3jVmNHl0w5N_XgL0n5dQxmZ8xgB4hW7k'
+    - text: 'Klucz: 3f2a9c1e7b6d4a58a1c2e3f4b5a69788'
+    - text: 'Karta: 4111 1111 1111 1111'
+    - text: 'Cena: 1 299 zł'
+    - link "Laptop Dell 15\"":
+        - /url: /oferty/123456789

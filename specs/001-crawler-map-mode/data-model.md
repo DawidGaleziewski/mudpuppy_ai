@@ -5,12 +5,18 @@ two-layer model. Layer B (processes, rules, requirements, tests — the BA/QA de
 out of scope for this feature and is not created here. All records are written through the
 `mcp-server` (agent-facing tools and the server-internal recording services in
 `contracts/mcp-tools.md`), never by raw SQL from the agent (constitution Technical Constraints).
-The agent cannot write State/Transition/Form/API Call records at all; the server writes them
+The agent cannot write State/Transition/Form/API Call/Frontier/Action records at all; the server writes them
 from its own observation.
 
-Every entity below that is a *record* (State, Transition, Form, API Call) carries the two
-fields Principle II makes non-negotiable: `confidence` and `evidence_ref`. A write missing
-either MUST be rejected by the MCP tool, not merely discouraged.
+Every semantic *record* (State, Transition, Form) carries the two fields Principle II makes
+non-negotiable: `confidence` and `evidence_ref`. A write missing either MUST be rejected by
+the MCP tool and is also impossible at the schema level (NOT NULL + CHECK). API Call is a
+shape-only observation and carries neither (decision R-04); Rule Candidate carries `evidence_ref`
+and a fixed `inferred` confidence.
+
+Storage conventions (ids = UUIDv7 text, timestamps = UTC ISO 8601 text with ms, JSON = TEXT with
+`json_valid`) and the generated DDL live in `data/schema/` (`README.md`, `schema.sql`); migration
+`data/migrations/0001_init.*`. Types below are logical; the DDL is authoritative for storage.
 
 ## Portal (config, not a DB row)
 
@@ -31,6 +37,7 @@ a run stores the resolved portal id/version alongside its config snapshot (see R
 | `obstacles` | object[] | Known cookie banner / popup / chat widget selectors and handler ids — FR-019 |
 | `rate_limit` | object | `requests_per_second`, `max_concurrency`, `user_agent`/`header` — FR-006 |
 | `item_view_cap` | integer | Max individual item/listing page visits — FR-024 |
+| `block_signatures` | string[] | Optional extra case-insensitive response-body substrings that mean the portal is blocking the crawler — FR-008 |
 
 **Validation**: rejected with a file-naming, problem-naming error if it fails the Zod schema
 (FR-017). `environment: production` is the only value that permits a production run (FR-005).
@@ -62,7 +69,7 @@ Table `runs`. One row per `map` invocation.
 
 | Field | Type | Notes |
 |---|---|---|
-| `id` | string (uuid) | |
+| `id` | string (UUIDv7) | |
 | `portal_id` | string | |
 | `persona_id` | string | |
 | `mode` | `"map"` | `"trace"` is a future value (FR-022) — schema must not need to change to add it |
@@ -72,7 +79,11 @@ Table `runs`. One row per `map` invocation.
 | `viewport`, `locale`, `browser` | string | FR-020 |
 | `config_snapshot` | JSON | Fully resolved portal + persona config used, for reproducibility |
 | `status` | `"running" \| "completed" \| "stopped_warning" \| "interrupted"` | `stopped_warning` = FR-008 block/CAPTCHA stop |
-| `started_at`, `ended_at` | timestamp | |
+| `warning` | string \| null | Run-level warning text (block/CAPTCHA, FR-008); required when `status = stopped_warning` (CHECK) |
+| `steps_used` | integer | Persisted step counter for budget enforcement and resume (FR-020) |
+| `elapsed_ms` | integer | Accumulated active run time in ms (excludes downtime between resumes) |
+| `max_depth_reached` | integer | Deepest navigation depth so far |
+| `started_at`, `ended_at` | timestamp | UTC ISO 8601 text; `ended_at` null while running |
 | `coverage` | JSON | states, actions executed, actions skipped by class, API endpoints seen — FR-021 |
 
 **State transitions**: `running → completed`; `running → stopped_warning` (block/CAPTCHA,
@@ -85,19 +96,21 @@ Table `states`.
 
 | Field | Type | Notes |
 |---|---|---|
-| `id` | string (uuid) | |
+| `id` | string (UUIDv7) | |
 | `fingerprint` | string (sha256) | Unique — Level 1 fingerprint, see `research.md` §1 |
 | `cluster_id` | string | Level 2 grouping for near-duplicates (FR-009) |
 | `route_template` | string | e.g. `/oferty/:id` |
 | `title` | string | |
-| `evidence_ref` | string (sha256 path) | ARIA snapshot / screenshot — required, Principle II |
+| `evidence_ref` | string (sha256 path) | masked ARIA snapshot (`<sha256>.<ext>`) — required, Principle II |
 | `confidence` | `"observed" \| "inferred" \| "needs_confirmation"` | FR-003 |
 | `stabilization` | `"settled" \| "never_stabilized"` | Set by the stabilizer (research §3); a `never_stabilized` state is still recorded with evidence |
 | `first_seen_run` | string (run id) | |
 
-Relationship table `state_observations(state_id, run_id, persona_id, evidence_ref)` records
-which run/persona saw a state, supporting cross-run and cross-persona comparison (FR-020, and
-the future permission-matrix use case named in `tech-stack.md`, not built here).
+States are global by fingerprint. Relationship table
+`state_observations(run_id, state_id, persona_id, evidence_ref, observed_at)` (PK `run_id, state_id`,
+FKs to `runs` and `states`) records which run/persona saw a state. It answers
+`get_known_states(run_id)` and supports cross-run and cross-persona comparison (FR-020, and the
+future permission-matrix use case named in `tech-stack.md`, not built here).
 
 **Merge/split**: every fingerprint merge or split decision is written to the decision log
 (FR-021), not silently applied.
@@ -108,8 +121,9 @@ Table `edges`.
 
 | Field | Type | Notes |
 |---|---|---|
-| `id` | string (uuid) | |
-| `from_state`, `to_state` | string (state id) | |
+| `id` | string (UUIDv7) | |
+| `from_state` | string (state id) | Required, FK |
+| `to_state` | string (state id) \| null | Nullable: skipped edges and actions that lead to no new state |
 | `action_json` | JSON | Action descriptor: role, accessible name, ranked candidate locators (role+name, label/text, `data-testid`, container) — FR-013 |
 | `safety_class` | `"read" \| "mutating" \| "destructive" \| "external-side-effect"` | FR-004; only `read` transitions are ever executed on production |
 | `run_id` | string | |
@@ -125,8 +139,9 @@ Table `forms`.
 
 | Field | Type | Notes |
 |---|---|---|
-| `id` | string (uuid) | |
-| `state_id` | string | |
+| `id` | string (UUIDv7) | |
+| `run_id` | string | FK |
+| `state_id` | string | FK |
 | `fields_json` | JSON | Per field: name, type, required, constraints, options, validation messages — FR-011 |
 | `evidence_ref`, `confidence` | — | Required, Principle II |
 
@@ -134,38 +149,77 @@ Forms are recorded, never submitted (FR-011); there is no `submitted` state in t
 
 ## API Call
 
-Table `network_calls`.
+Table `network_calls`. Carries no `evidence_ref`/`confidence`: it is a shape-only observation, and
+its `run_id` FK plus optional `edge_id` provide traceability.
 
 | Field | Type | Notes |
 |---|---|---|
-| `id` | string (uuid) | |
+| `id` | string (UUIDv7) | |
+| `run_id` | string | FK; `record_api_call` takes a `run_id` |
 | `edge_id` | string \| null | Null when observed passively on state load rather than tied to one action |
 | `method` | string | |
 | `url_template` | string | Same route-templating rules as page routes (FR-012) |
 | `status` | integer | |
 | `req_schema`, `res_schema` | JSON | Shape only — no PII payloads (FR-012, FR-014) |
-| `console_errors` | JSON[] | Captured alongside |
+| `console_errors` | JSON array (text column, default `[]`) | Captured alongside |
 
 **Constraint**: FR-025 — this table only ever holds calls *observed being made by the
 portal's own pages*; the crawler itself never calls the portal's API directly.
 
-## Frontier Item
+## Action
 
-Table `frontier`.
+Table `actions`. Persists every server-issued `action_id` (from `navigate`, `act`, and the action
+extractor); `act` accepts only ids present here whose `state_id` is the current state, else
+`UNKNOWN_ACTION`.
 
 | Field | Type | Notes |
 |---|---|---|
-| `id` | string (uuid) | |
-| `run_id`, `state_id` | string | |
-| `action_json` | JSON | Same shape as an edge's action descriptor |
-| `safety_class` | string | |
-| `status` | `"skipped_unsafe" \| "out_of_scope" \| "denylisted" \| "budget_reached" \| "unreachable"` | FR-010 |
-| `reason` | string | Human-readable, references the specific rule/cap that applied (FR-010, FR-021) |
+| `id` | string (UUIDv7) | This is the `action_id` |
+| `run_id`, `state_id` | string | FKs; state the action was extracted from |
+| `role`, `accessible_name` | string, string \| null | |
+| `action_json` | JSON | Ranked locators (FR-013) |
+| `safety_class` | enum | Computed by `safety` |
+| `allowed` | boolean | Whether it may be executed under scope/denylist/ceiling |
+| `skip_reason` | string \| null | Required when `allowed` is false (CHECK) |
+| `created_at` | timestamp | |
 
-**Open item for `db-admin` (task T014)**: `get_next_frontier_item` and resume (FR-020) need
-the server to persist not-yet-processed frontier entries (pending queue, priority, visited
-set) as well as skipped ones. The status enum above only covers skipped items; db-admin decides
-whether to add a `pending` status, a separate queue table, or both, and updates this document.
+## Frontier Item
+
+Table `frontier`. Server-owned queue plus history for a run; one table, no separate queue or visited
+table.
+
+| Field | Type | Notes |
+|---|---|---|
+| `id` | string (UUIDv7) | Time-ordered, so it doubles as FIFO tie-break |
+| `run_id`, `state_id` | string | FKs |
+| `action_id` | string \| null | FK to `actions`; null for `navigate` refusals with no extracted action |
+| `action_json` | JSON | Same shape as an edge's action descriptor (for navigate refusals: `{kind:"navigate", url}`) |
+| `safety_class` | string | |
+| `status` | `"pending" \| "done" \| "skipped_unsafe" \| "out_of_scope" \| "denylisted" \| "budget_reached" \| "unreachable"` | `pending` = queued, `done` = executed; the rest are FR-010 skips |
+| `priority` | integer | Higher first |
+| `depth` | integer | Navigation depth of the item (for the depth budget) |
+| `reason` | string \| null | Required for every skip status (CHECK); references the rule/cap (FR-010, FR-021) |
+| `created_at`, `updated_at` | timestamp | |
+
+`get_next_frontier_item` selects the `pending` row with the highest `priority`, then smallest `id`,
+without mutating it; `act` moves it to `done` or a skip status. Resume (FR-020) continues from
+`pending` rows. Visited set = `state_observations` of the run plus `done` frontier rows.
+
+## Decision Log Entry
+
+Table `decision_log` (FR-021). Persisted in SQLite so it is queryable across runs; the pino logger
+mirrors entries but the table is the record.
+
+| Field | Type | Notes |
+|---|---|---|
+| `id` | string (UUIDv7) | |
+| `run_id` | string | FK |
+| `kind` | `"skip" \| "refuse" \| "merge" \| "split" \| "warning"` | |
+| `rule` | string \| null | Rule or cap that applied |
+| `reason` | string | |
+| `subject_ref` | string \| null | State/edge/frontier/action id concerned |
+| `detail_json` | JSON \| null | |
+| `created_at` | timestamp | |
 
 ## Open Question
 
@@ -173,9 +227,10 @@ Table `open_questions`.
 
 | Field | Type | Notes |
 |---|---|---|
-| `id` | string (uuid) | |
+| `id` | string (UUIDv7) | |
+| `run_id` | string | FK |
 | `text` | string | e.g. "why is this button disabled for guests?" |
-| `about_ref` | string | State/edge/form id it concerns |
+| `about_ref` | string | State/edge/form id it concerns (polymorphic, validated by the tool, no FK) |
 | `status` | `"open" \| "addressed"` | Addressed only by a later BA action, out of scope here |
 
 ## Rule Candidate
@@ -185,8 +240,8 @@ Principle III); never a fact.
 
 | Field | Type | Notes |
 |---|---|---|
-| `id` | string (uuid) | |
-| `run_id` | string | |
+| `id` | string (UUIDv7) | |
+| `run_id` | string | FK |
 | `text` | string | e.g. "guests appear to see max 24 results per page" |
 | `about_ref` | string | State/edge/form id; the server copies that record's `evidence_ref` |
 | `evidence_ref` | string | Required, Principle II |
@@ -195,16 +250,16 @@ Principle III); never a fact.
 ## Evidence
 
 Not a table — a filesystem convention: `data/evidence/<sha256>.<ext>` (masked ARIA snapshot
-JSON, network shape record). Screenshots are NOT stored in this feature (research §9), content-addressed so identical evidence is stored once.
+JSON, network shape record), content-addressed so identical evidence is stored once.
 Every `evidence_ref` field above stores this path/hash. PII masking (FR-014) happens before
 the file is written. Layout and lifecycle owned by the `db-admin` subagent
 (`.claude/agents/db-admin.md`); see `data/README.md`.
 
 ## Cross-cutting validation rules
 
-- No record (State, Transition, Form, API Call) may be written without both `confidence` and
-  `evidence_ref` populated — enforced in the `mcp-server` write tools, not just by convention
-  (Principle II, FR-003).
+- No record (State, Transition, Form) may be written without both `confidence` and
+  `evidence_ref` populated — enforced in the `mcp-server` write tools and by NOT NULL/CHECK
+  constraints in the schema (Principle II, FR-003). API Call is exempt (shape-only, no PII).
 - `safety_class` on a Transition is always computed by the `safety` package, never supplied
   by the agent as free text (FR-004).
 - A Run's `config_snapshot` always reflects the fully resolved (post-`extends`,

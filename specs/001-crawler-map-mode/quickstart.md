@@ -6,7 +6,8 @@ Run these after implementation, in order — later checks assume earlier ones pa
 ## Prerequisites
 
 - Node 22+, pnpm installed
-- Repo dependencies installed: `pnpm install`
+- Repo dependencies installed: `pnpm --dir apps/crawler install`, plus a browser once:
+  `pnpm --dir apps/crawler exec playwright install --with-deps chromium`
 - `portals/marketsite/portal.yaml` present with `environment: production` (see
   `contracts/config-schema.md`)
 - `personas/marketsite/guest.yaml` present (`auth: none`, `max_action_class: read`)
@@ -19,7 +20,8 @@ Run these after implementation, in order — later checks assume earlier ones pa
 - `.mcp.json` registers the `pathfinder` MCP server and `.claude/agents/crawler.md` exists with
   a `tools:` list of only `mcp__pathfinder__*` tools. Runs are started by asking the main
   Claude Code session to invoke the `crawler` subagent for a portal and persona (there is no
-  crawler CLI).
+  crawler CLI). The server records into `data/db/<PATHFINDER_ENV>.sqlite` (default `production`, set in
+  `.mcp.json`) and refuses portals of another environment.
 
 ## 1. Production guard refuses without the flag (User Story 2, SC-006)
 
@@ -95,8 +97,8 @@ explores via `navigate` / `act` / `get_next_frontier_item` until `finish_run`.
 ## 9. PII spot-check (SC-004)
 
 - Sample evidence files under `data/evidence/` (ARIA snapshots, network shape records) from a
-  completed run.
-- **Expect**: zero unmasked names, emails, phone numbers or tokens.
+  completed run, then run `pnpm --dir apps/crawler audit:pii`.
+- **Expect**: zero unmasked names, emails, phone numbers or tokens (the audit prints `OK` and exits 0).
 
 If all nine checks pass, the feature satisfies its acceptance scenarios and success criteria
 as written in `spec.md`.

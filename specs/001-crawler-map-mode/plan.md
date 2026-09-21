@@ -32,10 +32,10 @@ in-process by `mcp-server`,
 `@modelcontextprotocol/sdk` for the agent-facing MCP server, `pino` for structured logging,
 `yaml` for portal/persona config parsing
 
-**Storage**: SQLite (`better-sqlite3`, one file per environment) under `data/db/` for states,
+**Storage**: SQLite (`better-sqlite3`, one file per environment, chosen by `PATHFINDER_ENV` at server start) under `data/db/` for states,
 transitions, forms, API calls, frontier items, open questions and run metadata (Layer A only —
-this feature does not touch Layer B/BA/QA tables); evidence (ARIA snapshots, screenshots, HAR/
-network records) under `data/evidence/`, content-addressed (`sha256`), referenced by the DB.
+this feature does not touch Layer B/BA/QA tables); evidence (masked ARIA snapshots and network shape
+records; no screenshots in v1) under `data/evidence/`, content-addressed (`sha256`), referenced by the DB.
 Schema, migrations (`data/migrations/`) and the `data/schema/` snapshot are owned by the
 `db-admin` subagent (`.claude/agents/db-admin.md`); see `data/README.md`.
 
@@ -131,7 +131,7 @@ data/                 # owned by the db-admin subagent — see data/README.md
 ├── migrations/        # versioned, reversible SQLite migrations (tracked)
 ├── schema/            # current schema snapshot, regenerated per migration (tracked)
 ├── db/                # actual .sqlite files, one per environment (git-ignored)
-└── evidence/          # content-addressed (sha256) ARIA snapshots, screenshots, HARs (git-ignored)
+└── evidence/          # content-addressed (sha256) masked ARIA snapshots and network shape records (git-ignored)
 
 tests/
 ├── fixtures/        # saved ARIA snapshots, HARs, labeled action descriptors

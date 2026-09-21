@@ -48,6 +48,7 @@ rate_limit:
 item_view_cap: 25                 # FR-024
 item_route_templates:             # which route templates count as individual item pages (FR-024)
   - "/oferta/:id"                 # placeholder — verify against the live site
+block_signatures: []              # optional: extra case-insensitive body substrings that mean "blocked" (FR-008)
 ```
 
 **Zod-level rules**:

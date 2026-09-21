@@ -1,0 +1,18 @@
+{
+  "mcpServers": {
+    "pathfinder": {
+      "type": "stdio",
+      "command": "pnpm",
+      "args": [
+        "--dir",
+        "apps/crawler",
+        "--filter",
+        "@pathfinder/mcp-server",
+        "start"
+      ],
+      "env": {
+        "PATHFINDER_ENV": "production"
+      }
+    }
+  }
+}
