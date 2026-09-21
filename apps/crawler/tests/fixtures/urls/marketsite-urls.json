@@ -1,0 +1,104 @@
+{
+  "normalization": [
+    {
+      "input": "HTTPS://marketsite.example:443/oferty/komputery/laptopy/?utm_source=fb&page=2&b=1#opinie",
+      "expected": "https://marketsite.example/oferty/komputery/laptopy?b=1&page=2"
+    },
+    {
+      "input": "https://marketsite.example/oferta/etui%7Eiphone?fbclid=abc",
+      "expected": "https://marketsite.example/oferta/etui~iphone"
+    },
+    {
+      "input": "https://marketsite.example/szukaj?string=laptop&order=price&utm_campaign=x&gclid=1",
+      "expected": "https://marketsite.example/szukaj?order=price&string=laptop"
+    },
+    {
+      "input": "https://marketsite.example/oferty/./komputery/../telefony//",
+      "expected": "https://marketsite.example/oferty/telefony"
+    },
+    {
+      "input": "https://marketsite.example/uzytkownik/jan%c5%82",
+      "expected": "https://marketsite.example/uzytkownik/jan%C5%82"
+    },
+    {
+      "input": "https://marketsite.example/#/konto/ustawienia",
+      "expected": "https://marketsite.example/#/konto/ustawienia"
+    }
+  ],
+  "urls": [
+    "https://marketsite.example/oferta/lenovo-thinkpad-t480-6501234",
+    "https://marketsite.example/oferta/dell-latitude-7490-6501250",
+    "https://marketsite.example/oferta/apple-macbook-air-m1-6502001",
+    "https://marketsite.example/oferta/hp-elitebook-840-g5-6502117",
+    "https://marketsite.example/oferta/asus-zenbook-14-oled-6503342",
+    "https://marketsite.example/oferta/iphone-13-128gb-czarny-6504410",
+    "https://marketsite.example/oferta/samsung-galaxy-s21-6504599",
+    "https://marketsite.example/oferta/rower-gorski-kross-level-6505021",
+    "https://marketsite.example/oferta/sofa-narozna-szara-6505333",
+    "https://marketsite.example/oferta/kurtka-zimowa-north-face-6505870",
+    "https://marketsite.example/oferta/konsola-ps5-z-padem-6506002",
+    "https://marketsite.example/oferta/ekspres-do-kawy-delonghi-6506444",
+    "https://marketsite.example/oferta/lenovo-thinkpad-t480-6501234?utm_source=facebook&utm_medium=cpc&fbclid=IwAR0x",
+    "https://marketsite.example/oferta/dell-latitude-7490-6501250#opinie",
+    "https://marketsite.example/oferta/6507001",
+    "https://marketsite.example/oferta/0b9f2c1e-7d4a-4c1b-9a3e-5f6d7c8b9a01",
+    "https://marketsite.example/oferty/komputery",
+    "https://marketsite.example/oferty/telefony",
+    "https://marketsite.example/oferty/dom-i-ogrod",
+    "https://marketsite.example/oferty/komputery/laptopy",
+    "https://marketsite.example/oferty/komputery/laptopy?page=2",
+    "https://marketsite.example/oferty/komputery/laptopy?page=1&order=price",
+    "https://marketsite.example/oferty/komputery/monitory",
+    "https://marketsite.example/oferty/telefony/smartfony",
+    "https://marketsite.example/uzytkownik/jan_k",
+    "https://marketsite.example/uzytkownik/anna.nowak",
+    "https://marketsite.example/uzytkownik/tech-outlet",
+    "https://marketsite.example/uzytkownik/sklep24",
+    "https://marketsite.example/uzytkownik/marta88",
+    "https://marketsite.example/uzytkownik/kolekcjoner",
+    "https://marketsite.example/uzytkownik/dom-i-ogrod-pl",
+    "https://marketsite.example/uzytkownik/gadzety",
+    "https://marketsite.example/uzytkownik/retro-gry",
+    "https://marketsite.example/uzytkownik/piotr_w",
+    "https://marketsite.example/uzytkownik/biuro-serwis",
+    "https://marketsite.example/uzytkownik/jan_k/oceny",
+    "https://marketsite.example/uzytkownik/anna.nowak/oceny",
+    "https://marketsite.example/szukaj?string=macbook",
+    "https://marketsite.example/szukaj?order=price&string=laptop&utm_campaign=x",
+    "https://marketsite.example/konto/zaloguj"
+  ],
+  "templates": [
+    {
+      "url": "https://marketsite.example/oferta/hp-elitebook-840-g5-6502117",
+      "expected": "/oferta/:param"
+    },
+    {
+      "url": "https://marketsite.example/oferta/6507001",
+      "expected": "/oferta/:param"
+    },
+    {
+      "url": "https://marketsite.example/oferty/komputery",
+      "expected": "/oferty/komputery"
+    },
+    {
+      "url": "https://marketsite.example/oferty/komputery/laptopy?page=2&utm_source=x",
+      "expected": "/oferty/komputery/laptopy"
+    },
+    {
+      "url": "https://marketsite.example/uzytkownik/marta88",
+      "expected": "/uzytkownik/:param"
+    },
+    {
+      "url": "https://marketsite.example/uzytkownik/anna.nowak/oceny",
+      "expected": "/uzytkownik/:param/oceny"
+    },
+    {
+      "url": "https://marketsite.example/szukaj?string=macbook",
+      "expected": "/szukaj"
+    },
+    {
+      "url": "https://marketsite.example/",
+      "expected": "/"
+    }
+  ]
+}

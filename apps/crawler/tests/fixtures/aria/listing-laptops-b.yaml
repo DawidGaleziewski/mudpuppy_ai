@@ -1,0 +1,90 @@
+- banner:
+    - link "MarketSite":
+        - /url: /
+    - search:
+        - searchbox "Szukaj ofert"
+        - button "Szukaj"
+    - navigation "Główna nawigacja":
+        - list:
+            - listitem:
+                - link "Elektronika":
+                    - /url: /oferty/elektronika
+            - listitem:
+                - link "Moda":
+                    - /url: /oferty/moda
+            - listitem:
+                - link "Dom i ogród":
+                    - /url: /oferty/dom-i-ogrod
+    - link "Zaloguj się":
+        - /url: /konto/zaloguj
+- main:
+    - navigation "Ścieżka nawigacji":
+        - list:
+            - listitem:
+                - link "Komputery"
+            - listitem:
+                - link "Laptopy"
+    - heading "Laptopy" [level=1]
+    - text: Znaleziono 987 ofert
+    - complementary "Filtry":
+        - group "Cena":
+            - textbox "Cena od"
+            - textbox "Cena do"
+        - group "Stan":
+            - checkbox "Nowy"
+            - checkbox "Używany"
+        - button "Zastosuj filtry"
+    - combobox "Sortuj według":
+        - option "Trafność" [selected]
+        - option "Cena: od najniższej"
+    - list "Oferty":
+        - listitem:
+            - article:
+                - img "Zdjęcie: HP EliteBook 840 G5 stan bardzo dobry"
+                - link "HP EliteBook 840 G5 stan bardzo dobry":
+                    - /url: /oferta/hp-elitebook-840-g5-6502117
+                - text: 980,00 zł
+                - text: Dodano 12 minut temu
+                - button "Obserwuj"
+        - listitem:
+            - article:
+                - img "Zdjęcie: ASUS Zenbook 14 OLED nowy"
+                - link "ASUS Zenbook 14 OLED nowy":
+                    - /url: /oferta/asus-zenbook-14-oled-6503342
+                - text: 3 799,00 zł
+                - text: Dodano 3 dni temu
+                - button "Obserwuj"
+        - listitem:
+            - article:
+                - img "Zdjęcie: Acer Aspire 5 do biura"
+                - link "Acer Aspire 5 do biura":
+                    - /url: /oferta/acer-aspire-5-6503401
+                - text: 1 199,99 zł
+                - text: Dodano 1 godzinę temu
+                - button "Obserwuj"
+        - listitem:
+            - article:
+                - img "Zdjęcie: Microsoft Surface Pro 7"
+                - link "Microsoft Surface Pro 7":
+                    - /url: /oferta/microsoft-surface-pro-7-6503555
+                - text: 2 250,00 zł
+                - text: Dodano 4 dni temu
+                - button "Obserwuj"
+    - navigation "Paginacja":
+        - list:
+            - listitem:
+                - link "1":
+                    - /url: ?page=1
+            - listitem:
+                - link "2":
+                    - /url: ?page=2
+- contentinfo:
+    - navigation "Stopka":
+        - list:
+            - listitem:
+                - link "Regulamin":
+                    - /url: /pomoc/regulamin
+            - listitem:
+                - link "Pomoc":
+                    - /url: /pomoc
+    - text: © 2026 MarketSite

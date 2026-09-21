@@ -1,0 +1,86 @@
+- banner:
+    - link "MarketSite":
+        - /url: /
+    - search:
+        - searchbox "Szukaj ofert"
+        - button "Szukaj"
+    - navigation "Główna nawigacja":
+        - list:
+            - listitem:
+                - link "Elektronika":
+                    - /url: /oferty/elektronika
+            - listitem:
+                - link "Moda":
+                    - /url: /oferty/moda
+            - listitem:
+                - link "Dom i ogród":
+                    - /url: /oferty/dom-i-ogrod
+    - link "Zaloguj się":
+        - /url: /konto/zaloguj
+- main:
+    - navigation "Ścieżka nawigacji":
+        - list:
+            - listitem:
+                - link "Komputery"
+            - listitem:
+                - link "Laptopy"
+    - heading "Laptopy" [level=1]
+    - text: Znaleziono 1 234 oferty
+    - complementary "Filtry":
+        - group "Cena":
+            - textbox "Cena od"
+            - textbox "Cena do"
+        - group "Stan":
+            - checkbox "Nowy"
+            - checkbox "Używany"
+        - button "Zastosuj filtry"
+    - combobox "Sortuj według":
+        - option "Trafność" [selected]
+        - option "Cena: od najniższej"
+    - list "Oferty":
+        - listitem:
+            - article:
+                - img "Zdjęcie: Lenovo ThinkPad T480 14 i5 16GB"
+                - link "Lenovo ThinkPad T480 14 i5 16GB":
+                    - /url: /oferta/lenovo-thinkpad-t480-6501234
+                - text: 1 299,00 zł
+                - text: Dodano 5 minut temu
+                - button "Obserwuj"
+        - listitem:
+            - article:
+                - img "Zdjęcie: Dell Latitude 7490 laptop biznesowy"
+                - link "Dell Latitude 7490 laptop biznesowy":
+                    - /url: /oferta/dell-latitude-7490-6501250
+                - text: 1 450,00 zł
+                - text: Dodano 2 godziny temu
+                - button "Obserwuj"
+        - listitem:
+            - article:
+                - img "Zdjęcie: Apple MacBook Air M1 256GB"
+                - link "Apple MacBook Air M1 256GB":
+                    - /url: /oferta/apple-macbook-air-m1-6502001
+                - text: 3 100,00 zł
+                - text: Dodano wczoraj
+                - button "Obserwuj"
+    - navigation "Paginacja":
+        - list:
+            - listitem:
+                - link "1":
+                    - /url: ?page=1
+            - listitem:
+                - link "2":
+                    - /url: ?page=2
+- contentinfo:
+    - navigation "Stopka":
+        - list:
+            - listitem:
+                - link "Regulamin":
+                    - /url: /pomoc/regulamin
+            - listitem:
+                - link "Pomoc":
+                    - /url: /pomoc
+    - text: © 2026 MarketSite
+- dialog "Ustawienia prywatności":
+    - heading "Szanujemy Twoją prywatność" [level=2]
+    - button "Akceptuję"
+    - button "Ustawienia"

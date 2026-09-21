@@ -1,0 +1,57 @@
+- banner:
+    - link "MarketSite":
+        - /url: /
+    - search:
+        - searchbox "Szukaj ofert"
+        - button "Szukaj"
+    - navigation "Główna nawigacja":
+        - list:
+            - listitem:
+                - link "Elektronika":
+                    - /url: /oferty/elektronika
+            - listitem:
+                - link "Moda":
+                    - /url: /oferty/moda
+            - listitem:
+                - link "Dom i ogród":
+                    - /url: /oferty/dom-i-ogrod
+    - link "Zaloguj się":
+        - /url: /konto/zaloguj
+- main:
+    - heading "Wyniki wyszukiwania: macbook" [level=1]
+    - text: 42 wyniki
+    - list "Oferty":
+        - listitem:
+            - article:
+                - img "Zdjęcie: Apple MacBook Pro 13 2020 M1"
+                - link "Apple MacBook Pro 13 2020 M1":
+                    - /url: /oferta/apple-macbook-pro-13-6508001
+                - text: 4 200,00 zł
+                - text: Dodano 30 minut temu
+                - button "Obserwuj"
+        - listitem:
+            - article:
+                - img "Zdjęcie: Apple MacBook Air 2017"
+                - link "Apple MacBook Air 2017":
+                    - /url: /oferta/apple-macbook-air-2017-6508044
+                - text: 1 700,00 zł
+                - text: Dodano 6 dni temu
+                - button "Obserwuj"
+    - navigation "Paginacja":
+        - list:
+            - listitem:
+                - link "1":
+                    - /url: ?page=1
+            - listitem:
+                - link "2":
+                    - /url: ?page=2
+- contentinfo:
+    - navigation "Stopka":
+        - list:
+            - listitem:
+                - link "Regulamin":
+                    - /url: /pomoc/regulamin
+            - listitem:
+                - link "Pomoc":
+                    - /url: /pomoc
+    - text: © 2026 MarketSite

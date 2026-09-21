@@ -1,0 +1,38 @@
+- banner:
+    - link "MarketSite":
+        - /url: /
+    - search:
+        - searchbox "Szukaj ofert"
+        - button "Szukaj"
+    - navigation "Główna nawigacja":
+        - list:
+            - listitem:
+                - link "Elektronika":
+                    - /url: /oferty/elektronika
+            - listitem:
+                - link "Moda":
+                    - /url: /oferty/moda
+            - listitem:
+                - link "Dom i ogród":
+                    - /url: /oferty/dom-i-ogrod
+    - link "Zaloguj się":
+        - /url: /konto/zaloguj
+- main:
+    - heading "Zaloguj się" [level=1]
+    - form "Logowanie":
+        - textbox "Adres e-mail"
+        - textbox "Hasło"
+        - checkbox "Zapamiętaj mnie"
+        - button "Zaloguj"
+        - link "Nie pamiętasz hasła?":
+            - /url: /konto/reset
+- contentinfo:
+    - navigation "Stopka":
+        - list:
+            - listitem:
+                - link "Regulamin":
+                    - /url: /pomoc/regulamin
+            - listitem:
+                - link "Pomoc":
+                    - /url: /pomoc
+    - text: © 2026 MarketSite
