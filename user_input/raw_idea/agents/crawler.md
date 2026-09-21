@@ -1,6 +1,6 @@
 The crawler for this harness
 
-The crawler's job is narrow: build Layer A (the UI state graph) cheaply, safely and deterministically, with no LLM in the loop. It answers "what exists and how is it connected?", and the explorer answers "what do people do with it?" A good crawler also leaves the explorer a worklist of what it deliberately didn't do.
+The crawler is a single LLM + Playwright agent with two modes: `map` (what exists and how is it connected? routes, capabilities, forms, API calls) and `trace` (what do people do with it? one named process, step by step). It records and does not interpret. Its deterministic pieces (fingerprinting, safety classification, scope checks, PII scrubbing, DB access through MCP) are tools it calls and cannot override; the LLM decides where to go, the tools decide what is safe and what counts as a new state. A good crawler also leaves a worklist of what it deliberately didn't do. The rest of this document describes those deterministic modules and the crawl loop they support.
 
 The academic term for this is model-based GUI crawling. Crawljax is the classic prior art (state-flow graphs for AJAX apps), and it's worth skimming for the terminology. For URL queues, sessions and retries you can build on Crawlee's Playwright crawler, but plain URL-frontier crawlers assume page = URL, which is false for SPAs, so the state layer will be your own code.
 
@@ -24,7 +24,7 @@ mutating (add to cart, save, comment)
 destructive (delete, cancel, logout, unsubscribe)
 external (pay, send email, invite)
 
-Classify from role, label text, HTTP method of the triggered request, and form semantics. Default policy: the crawler executes only read. Mutating and destructive actions are recorded as frontier items for the explorer along with their preconditions. A logout link in a deep crawl kills your session, so it belongs on a hard denylist.
+Classify from role, label text, HTTP method of the triggered request, and form semantics. Default policy: the crawler executes only read. Mutating and destructive actions are recorded as frontier items for a later trace run (sandbox only) along with their preconditions. A logout link in a deep crawl kills your session, so it belongs on a hard denylist.
 
 5. Scope and policy. Domain and path allowlists, an external-link policy (record but don't follow), max depth, max states, per-state action caps, request rate limits, and a hard environment check (refuse to run against production unless explicitly flagged).
 
@@ -32,7 +32,7 @@ Classify from role, label text, HTTP method of the triggered request, and form s
 
 7. UI structure beyond pages. Modals, drawers, dropdowns, tabs, and accordions are states too. Handle iframes (frameLocator), new tabs and popups, downloads, dialogs (alert/confirm), and file inputs. Infinite scroll and pagination need caps and detection (same fingerprint after scroll = stop). Calendars and date pickers are infinite-state traps, so cap or skip.
 
-8. Forms. Record field schema (name, type, required, constraints, validation messages, options) without submitting. Client-side validation messages are cheap business-rule evidence. Submission is an explorer job.
+8. Forms. Record field schema (name, type, required, constraints, validation messages, options) without submitting. Client-side validation messages are cheap business-rule evidence. Submission is a trace-mode job, allowed only in a sandbox.
 
 9. Network capture per state and per action. Record method, URL template, status, request/response shape (schema, not payloads with PII), and headers of interest. API calls often reveal entities and rules that the UI hides. Also record console errors and failed requests.
 
@@ -71,7 +71,7 @@ async function crawl(persona: Persona, policy: Policy) {
   while (!frontier.empty() && budget.ok()) {
     const { state, action } = frontier.next();          // BFS by default
     if (!await navigateTo(ctx, state)) { store.markUnreachable(state); continue; } // replay path to reach state
-    if (action.safety !== 'read') { store.addToExplorerBacklog(state, action); continue; }
+    if (action.safety !== 'read') { store.addToTraceBacklog(state, action); continue; }
 
     const before = state.fingerprint;
     const net = await network.capture(() => executor.run(ctx, action));
@@ -94,12 +94,12 @@ Outputs the rest of the harness needs
 States: fingerprint, route template, title, ARIA snapshot ref, overlays, persona visibility
 Edges: action descriptor, safety class, from and to state, network calls, and any error observed
 Forms and API catalog: field schemas, endpoint templates, and methods
-Frontier report: the explorer's worklist (mutating actions, forms to submit, states behind preconditions, caps hit, unreachable states)
+Frontier report: the crawler's worklist for trace runs (mutating actions, forms to submit, states behind preconditions, caps hit, unreachable states)
 Coverage stats: states per persona, unexplored actions, and fingerprint churn (a health metric for your fingerprint design)
 Limits to design around
 DOM isn't the whole state. Cart contents, permissions and server data change what the same page means. The graph is an approximation, so record the seed data ID and treat state as "UI state given this data."
 Fingerprint quality decides everything. Log every merge and split decision, and plan to tune it against a real app. Regression-test the fingerprinter on saved snapshots.
-Crawlers find structure, not intent. A completed crawl tells you nothing about why a page exists. That's the explorer's and BA's job.
+Crawlers find structure, not intent. A completed crawl tells you nothing about why a page exists. That's the crawler's trace mode and the BA's job.
 
 If you tell me your target stack, I can sketch the state and edge schema plus the fingerprint function next. That's the piece worth prototyping before anything else, because it will show quickly whether your target apps produce a sane graph.
 
@@ -191,7 +191,7 @@ Feature flags and A/B tests. The same persona can see different UIs between runs
 Incomplete personas. A crawl as admin shows structure the customer never sees. Keep graphs per persona, then compare.
 Overtrusting the graph. It only knows what it reached. Unreached is not the same as nonexistent, so publish coverage numbers and the frontier report alongside the graph.
 PII in evidence. Snapshots and HARs often contain names, emails, and tokens. Scrub at capture time, not later.
-Treating the crawl as a deliverable. Structure without intent is not documentation. The crawler's output is input to the explorer and BA.
+Treating the crawl as a deliverable. Structure without intent is not documentation. The crawler's output is input to trace runs and the BA.
 Practical takeaways for your build
 Study Crawljax's state-abstraction and crawl-strategy ideas and ZAP's authenticated-scan practices. They're the most relevant prior art.
 Use Crawlee or your own frontier code for queue mechanics, but expect to write the state layer yourself.

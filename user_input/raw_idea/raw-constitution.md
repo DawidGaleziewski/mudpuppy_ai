@@ -177,7 +177,7 @@ Track flakiness (run N times, quarantine unstable tests) so results stay trustwo
 The harness owns state and orchestration (queue, DB, safety rules). Claude is a stateless worker per task.
 Run Claude in headless mode (claude -p) or via the Agent SDK, with JSON-schema structured output for step and process records.
 Give it Playwright MCP for browsing and a small custom MCP (or CLI tools) for your DB (record_step, link_process, get_known_states). This keeps Claude from writing raw SQL or inventing IDs.
-Use subagents or skills per role: Explorer, Process Analyst, Test Writer, Failure Triager.
+Use subagents or skills per role: Crawler, Process Analyst, Test Writer, Failure Triager.
 Give each task a narrow prompt, a budget (max steps and tokens), and a stop condition ("stop when you reach an order confirmation or 30 steps").
 6. Pitfalls to plan for early
 Auth, MFA, and CAPTCHAs: pre-bake the auth state, and use test accounts and disabled MFA in staging
@@ -191,7 +191,7 @@ Rules that don't show in the UI (backend jobs, emails, integrations): flag as "n
 Suggested build order
 Schema (nodes and edges) plus the step record format
 Deterministic crawler → state graph for one persona
-Claude explorer for a single goal, with recording and replay verification
+Claude crawler for a single goal, with recording and replay verification
 Process entity plus generated Markdown/Mermaid docs from the DB
 Test generator (characterization first)
 Runner ingestion plus a results dashboard or report
@@ -348,7 +348,7 @@ What this means for your harness
 Generate into your architecture, not into flat scripts. The Test Writer should emit specs that use existing fixtures, components, and flow helpers, and create new ones only when none fit. Give it an index of the existing helper library as context.
 Encode this document as rules. Put the locator priority, banned patterns (waitForTimeout, CSS selectors, conditionals), and assertion style into a skill or CLAUDE.md, and enforce them mechanically with eslint-plugin-playwright and a CI check. Don't rely on the model to remember.
 Separate helper generation from spec generation. Components and page objects are generated once from the state graph (Layer A), while specs are generated per process (Layer B). Specs stay short because the helpers exist.
-Make the obstacle library a first-class harness concept. Explorer runs will hit cookie banners and CAPTCHAs constantly. Give it a tool like register_obstacle_handler so a fix, once made, applies to discovery and generated tests.
+Make the obstacle library a first-class harness concept. Crawler runs will hit cookie banners and CAPTCHAs constantly. Give it a tool like register_obstacle_handler so a fix, once made, applies to discovery and generated tests.
 Map rule types to test techniques. A decision table becomes a data-driven test, a state machine becomes transition tests, and a boundary rule becomes boundary cases. Claude can do this systematically if you tell it to.
 
 I can also turn this into a file, such as a CLAUDE.md-style ruleset for the Test Writer subagent, if that would be useful. And if you tell me your stack (TypeScript or Python), I can sketch the fixture layout and a sample spec that uses all the layers.

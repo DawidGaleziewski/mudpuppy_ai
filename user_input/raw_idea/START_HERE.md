@@ -6,7 +6,7 @@ Project uses BA domain expertiese and good practices to document existing brownf
 
 ## subagents and separation of cocnerns
 ### BA
-BA never browses. It works only from what the explorer recorded. If it needs more evidence, it writes a follow-up task for the explorer ("check what happens when the cart is empty at checkout"). That keeps every claim traceable to a recorded step. BA also owns the assumptions and open-questions log.
+BA never browses. It works only from what the crawler recorded. If it needs more evidence, it writes a follow-up task for the crawler ("check what happens when the cart is empty at checkout"). That keeps every claim traceable to a recorded step. BA also owns the assumptions and open-questions log.
 More on what good BA should look like. What knowladge he should posses in /agents/ba.md
 
 ### crawler

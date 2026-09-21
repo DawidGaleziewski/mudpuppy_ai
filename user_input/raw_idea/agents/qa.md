@@ -147,7 +147,7 @@ What this means for your harness
 Generate into your architecture, not into flat scripts. The Test Writer should emit specs that use existing fixtures, components, and flow helpers, and create new ones only when none fit. Give it an index of the existing helper library as context.
 Encode this document as rules. Put the locator priority, banned patterns (waitForTimeout, CSS selectors, conditionals), and assertion style into a skill or CLAUDE.md, and enforce them mechanically with eslint-plugin-playwright and a CI check. Don't rely on the model to remember.
 Separate helper generation from spec generation. Components and page objects are generated once from the state graph (Layer A), while specs are generated per process (Layer B). Specs stay short because the helpers exist.
-Make the obstacle library a first-class harness concept. Explorer runs will hit cookie banners and CAPTCHAs constantly. Give it a tool like register_obstacle_handler so a fix, once made, applies to discovery and generated tests.
+Make the obstacle library a first-class harness concept. Crawler runs will hit cookie banners and CAPTCHAs constantly. Give it a tool like register_obstacle_handler so a fix, once made, applies to discovery and generated tests.
 Map rule types to test techniques. A decision table becomes a data-driven test, a state machine becomes transition tests, and a boundary rule becomes boundary cases. Claude can do this systematically if you tell it to.
 
 I can also turn this into a file, such as a CLAUDE.md-style ruleset for the Test Writer subagent, if that would be useful. And if you tell me your stack (TypeScript or Python), I can sketch the fixture layout and a sample spec that uses all the layers.
