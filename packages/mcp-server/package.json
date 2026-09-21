@@ -1,0 +1,19 @@
+{
+  "name": "@pathfinder/mcp-server",
+  "version": "0.0.0",
+  "private": true,
+  "description": "The `pathfinder` stdio MCP server: the crawler subagent's only tools",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.30.0",
+    "@pathfinder/config": "workspace:*",
+    "@pathfinder/core": "workspace:*",
+    "@pathfinder/crawler": "workspace:*",
+    "@pathfinder/fingerprint": "workspace:*",
+    "@pathfinder/safety": "workspace:*",
+    "zod": "^4.6.5"
+  }
+}

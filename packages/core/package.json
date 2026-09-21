@@ -1,0 +1,19 @@
+{
+  "name": "@pathfinder/core",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Zod record schemas, SQLite access, evidence store, PII scrubber, logging",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "better-sqlite3": "^13.0.3",
+    "kysely": "^0.29.6",
+    "pino": "^10.3.1",
+    "zod": "^4.6.5"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^9.6.0"
+  }
+}

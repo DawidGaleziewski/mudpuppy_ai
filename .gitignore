@@ -1,0 +1,26 @@
+# Dependencies / build output
+node_modules/
+dist/
+*.tsbuildinfo
+
+# Env / secrets
+.env
+.env.*
+!.env.example
+
+# Generated data artifacts (see data/README.md — migrations/ and schema/ stay tracked)
+data/db/*
+!data/db/.gitkeep
+data/evidence/*
+!data/evidence/.gitkeep
+
+# SQLite side files, wherever a DB ends up
+*.sqlite
+*.sqlite-wal
+*.sqlite-shm
+*.db
+*.db-wal
+*.db-shm
+
+# Editor / OS
+.DS_Store

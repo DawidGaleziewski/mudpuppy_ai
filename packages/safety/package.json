@@ -1,0 +1,13 @@
+{
+  "name": "@pathfinder/safety",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Pure action classifier, denylist, scope checks, environment guard, block detector",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "@pathfinder/core": "workspace:*"
+  }
+}

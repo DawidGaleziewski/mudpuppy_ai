@@ -1,0 +1,19 @@
+{
+  "name": "@pathfinder/crawler",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Browser runtime library used in-process by mcp-server: gates, session, stabilizer, observer, frontier",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "@pathfinder/config": "workspace:*",
+    "@pathfinder/core": "workspace:*",
+    "@pathfinder/fingerprint": "workspace:*",
+    "@pathfinder/obstacles": "workspace:*",
+    "@pathfinder/safety": "workspace:*",
+    "pino": "^10.3.1",
+    "playwright": "^1.63.0"
+  }
+}
