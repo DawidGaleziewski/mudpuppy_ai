@@ -8,7 +8,7 @@ the MCP server process owns the only Playwright instance, the DB and the evidenc
 agent never writes raw SQL, invents ids, chooses selectors or URLs outside the scope checks,
 or records facts by hand.
 
-Every tool validates its input and output against the Zod schemas in `packages/core`, matching
+Every tool validates its input and output against the Zod schemas in `apps/crawler/packages/core`, matching
 `data-model.md`. Principle II and V are enforced inside the tools, not by prompt instructions.
 
 ## Design rule: the agent proposes, the server observes and records
@@ -141,7 +141,7 @@ directly.
   `.claude/agents/crawler.md` lists no other tool (no Bash, Edit, Write, WebFetch, WebSearch,
   or any other MCP server).
 - Every write path enforces `confidence` + `evidence_ref` in the tool implementation, in
-  `packages/mcp-server`, not by agent discipline (Principle II).
+  `apps/crawler/packages/mcp-server`, not by agent discipline (Principle II).
 - The checks "outside the agent's control" (Principle III/V) hold because the agent has no path
   to the browser, network or DB except through these tools: even if prompted to claim a
   mutating action is read-only, the server re-derives the class before executing.

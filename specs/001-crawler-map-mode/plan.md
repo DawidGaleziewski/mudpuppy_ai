@@ -102,7 +102,7 @@ specs/001-crawler-map-mode/
 ### Source Code (repository root)
 
 ```text
-packages/
+apps/crawler/packages/
 ├── core/            # Zod record schemas, SQLite access (Kysely), id generation, in-memory graph model
 ├── fingerprint/     # ARIA canonicalization, two-level fingerprint (exact + SimHash/MinHash), clustering — pure
 ├── safety/          # action classifier, denylist, environment guard — pure
@@ -135,7 +135,7 @@ data/                 # owned by the db-admin subagent — see data/README.md
 
 tests/
 ├── fixtures/        # saved ARIA snapshots, HARs, labeled action descriptors
-└── (per-package Vitest suites live alongside each package under packages/*/tests)
+└── (per-package Vitest suites live alongside each package under apps/crawler/packages/*/tests)
 ```
 
 **Structure Decision**: Single pnpm-workspace monorepo (Option 1: single project), following

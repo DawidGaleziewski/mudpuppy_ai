@@ -1,6 +1,6 @@
 # Contract: Portal & Persona Configuration Schema
 
-Both file kinds are validated by the same Zod schema set in `packages/config`, which is the
+Both file kinds are validated by the same Zod schema set in `apps/crawler/packages/config`, which is the
 single source of truth (constitution Technical Constraints). Invalid, circular, or
 secret-leaking files are rejected with an error naming the file and the specific problem
 (FR-017).

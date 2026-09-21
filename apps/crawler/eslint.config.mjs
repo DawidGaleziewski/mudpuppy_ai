@@ -7,11 +7,6 @@ export default defineConfig(
   globalIgnores([
     '**/node_modules/',
     '**/dist/',
-    'data/',
-    'specs/',
-    'user_input/',
-    '.specify/',
-    '.claude/',
   ]),
   {
     files: ['**/*.{js,mjs,cjs,ts,mts}'],
