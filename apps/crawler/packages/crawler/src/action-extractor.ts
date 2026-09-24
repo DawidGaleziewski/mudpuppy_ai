@@ -1,4 +1,4 @@
-import { classifyAction, type ActionDescriptor } from '@pathfinder/safety';
+import { classifyAction, type ActionDescriptor, type RuleSet } from '@pathfinder/safety';
 import type { SafetyClass } from '@pathfinder/core';
 import { buildLocators, type RankedLocator } from './locators.js';
 import type { DomForm, DomTestId } from './observer.js';
@@ -110,9 +110,12 @@ export function extractCandidates(
 }
 
 /** Classify each candidate with the `safety` package. The class always comes from the server-side rules. */
-export function classifyCandidates(cands: readonly CandidateAction[]): ClassifiedAction[] {
+export function classifyCandidates(
+  cands: readonly CandidateAction[],
+  rules: RuleSet,
+): ClassifiedAction[] {
   return cands.map((c) => {
-    const r = classifyAction(c.descriptor);
+    const r = classifyAction(c.descriptor, rules);
     return { ...c, safetyClass: r.safetyClass, rules: r.rules, reasons: r.reasons };
   });
 }

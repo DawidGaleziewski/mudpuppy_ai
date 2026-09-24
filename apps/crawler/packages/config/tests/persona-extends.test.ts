@@ -1,6 +1,7 @@
+import { symlinkSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { loadPersona } from '../src/index.js';
+import { ConfigError, loadPersona } from '../src/index.js';
 import { tmpTree } from './helpers.js';
 
 const MIXIN = `
@@ -73,5 +74,73 @@ describe('persona extends', () => {
       auth: 'none',
       max_action_class: 'read',
     });
+  });
+});
+
+describe('persona fence (spec 002 FR-024, FR-025)', () => {
+  const fenced = (root: string, portal: string) => ({
+    fence: [join(root, 'personas/_mixins'), join(root, `personas/${portal}`)],
+  });
+  const tree = () =>
+    tmpTree({
+      'personas/_mixins/anonymous-base.yaml': MIXIN,
+      'personas/liveinsurer/_mixins/pl.yaml': 'locale: pl-PL\n',
+      'personas/marketsite/guest.yaml': `id: guest\n${MIXIN}`,
+      'personas/liveinsurer/ok.yaml':
+        'id: ok\nextends: ["../_mixins/anonymous-base.yaml", "_mixins/pl.yaml"]\n',
+      'personas/liveinsurer/cross.yaml': 'id: cross\nextends: ["../marketsite/guest.yaml"]\n',
+      'personas/liveinsurer/escape.yaml': 'id: escape\nextends: ["../../outside.yaml"]\n',
+      'outside.yaml': MIXIN,
+    });
+
+  it('allows shared mixins and the portal own mixins', () => {
+    const root = tree();
+    const p = loadPersona(join(root, 'personas/liveinsurer/ok.yaml'), fenced(root, 'liveinsurer'));
+    expect(p).toMatchObject({ id: 'ok', locale: 'pl-PL', auth: 'none' });
+  });
+
+  it('refuses extending another portal, naming both files', () => {
+    const root = tree();
+    let err: ConfigError | undefined;
+    try {
+      loadPersona(join(root, 'personas/liveinsurer/cross.yaml'), fenced(root, 'liveinsurer'));
+    } catch (e) {
+      err = e as ConfigError;
+    }
+    expect(err).toBeInstanceOf(ConfigError);
+    expect(err!.file).toBe(join(root, 'personas/liveinsurer/cross.yaml'));
+    expect(err!.message).toContain('extends "../marketsite/guest.yaml"');
+    expect(err!.message).toContain(join(root, 'personas/marketsite/guest.yaml'));
+    expect(err!.message).toContain('leaves the allowed folders');
+  });
+
+  it('refuses a .. path out of both roots and a symlink pointing outside', () => {
+    const root = tree();
+    expect(() =>
+      loadPersona(join(root, 'personas/liveinsurer/escape.yaml'), fenced(root, 'liveinsurer')),
+    ).toThrow(/leaves the allowed folders/);
+    symlinkSync(join(root, 'outside.yaml'), join(root, 'personas/liveinsurer/_mixins/link.yaml'));
+    writeFileSync(
+      join(root, 'personas/liveinsurer/sym.yaml'),
+      'id: sym\nextends: ["_mixins/link.yaml"]\n',
+    );
+    expect(() => loadPersona(join(root, 'personas/liveinsurer/sym.yaml'), fenced(root, 'liveinsurer'))).toThrow(
+      /leaves the allowed folders/,
+    );
+  });
+
+  it('checks nested extends too', () => {
+    const root = tree();
+    writeFileSync(
+      join(root, 'personas/liveinsurer/_mixins/bad.yaml'),
+      'extends: ["../../marketsite/guest.yaml"]\n',
+    );
+    writeFileSync(
+      join(root, 'personas/liveinsurer/nested.yaml'),
+      'id: nested\nextends: ["_mixins/bad.yaml"]\n',
+    );
+    expect(() =>
+      loadPersona(join(root, 'personas/liveinsurer/nested.yaml'), fenced(root, 'liveinsurer')),
+    ).toThrow(/leaves the allowed folders/);
   });
 });

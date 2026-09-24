@@ -6,7 +6,10 @@ import {
   classifyAction,
   classifyUrl,
   narrowScope,
+  builtinRuleSet,
+  extendRuleSet,
 } from '../src/index.js';
+import { BUILTIN_RULE_CLASSES, resolveRuleId } from '@pathfinder/config';
 
 const scope = {
   allowed_domains: ['marketsite.example'],
@@ -98,10 +101,14 @@ describe('checkDenylist', () => {
     ['logout', { role: 'button', name: 'Wyloguj się' }],
     ['delete', { role: 'button', name: 'Usuń ofertę' }],
     ['payment', { role: 'button', name: 'Zapłać' }],
-    ['bidding', { role: 'button', name: 'Licytuj' }],
-    ['buy_now', { role: 'button', name: 'Kup teraz' }],
-    ['message_or_contact_seller', { role: 'button', name: 'Napisz do sprzedawcy' }],
-    ['reveal_seller_contact', { role: 'button', name: 'Pokaż numer telefonu' }],
+    // aliases resolve to the generic id; the first listed alias of that id is reported (FR-013)
+    ['bidding→purchase', { role: 'button', name: 'Licytuj' }],
+    ['bidding→purchase', { role: 'button', name: 'Kup teraz' }],
+    [
+      'message_or_contact_seller→contact_or_message',
+      { role: 'button', name: 'Napisz do sprzedawcy' },
+    ],
+    ['reveal_seller_contact→reveal_contact', { role: 'button', name: 'Pokaż numer telefonu' }],
   ])('refuses %s actions and names the rule', (rule, descriptor) => {
     const r = checkDenylist(DENYLIST, { classification: classifyAction(descriptor) });
     expect(r).toMatchObject({ status: 'denylisted', rule });
@@ -122,8 +129,8 @@ describe('checkDenylist', () => {
     ['/konto/oferty/5/usun', 'delete'],
     ['/zamowienie/platnosc', 'payment'],
     ['/payment/start', 'payment'],
-    ['/oferta/1/licytuj', 'bidding'],
-    ['/oferta/1/kup-teraz', 'buy_now'],
+    ['/oferta/1/licytuj', 'bidding→purchase'],
+    ['/oferta/1/kup-teraz', 'bidding→purchase'],
   ])('refuses built-in path %s (%s) on navigate', (path, rule) => {
     expect(checkDenylist(DENYLIST, { url: `https://marketsite.example${path}` })).toMatchObject({
       rule,
@@ -138,5 +145,98 @@ describe('checkDenylist', () => {
       }),
     ).toBeNull();
     expect(checkDenylist(['payment'], { url: 'https://marketsite.example/wyloguj' })).toBeNull();
+  });
+});
+
+describe('url: denylist entries (spec 002 FR-010, FR-011)', () => {
+  const base = 'https://www.example.pl';
+  it('matches path plus query and reports the entry as the rule', () => {
+    expect(
+      checkDenylist(['url:*itm_campaign=*'], { url: `${base}/emerytura/?itm_campaign=boks&x=1` }),
+    ).toMatchObject({ status: 'denylisted', rule: 'url:*itm_campaign=*' });
+    expect(checkDenylist(['url:*itm_campaign=*'], { url: `${base}/emerytura/` })).toBeNull();
+  });
+
+  it('refuses only the URL carrying the parameter (US2 independent test)', () => {
+    const list = ['url:/*?*sessionId=*'];
+    expect(checkDenylist(list, { url: `${base}/porady/?sessionId=abc` })).toMatchObject({
+      status: 'denylisted',
+      rule: 'url:/*?*sessionId=*',
+    });
+    expect(checkDenylist(list, { url: `${base}/porady/?a=1&sessionId=abc` })).not.toBeNull();
+    expect(checkDenylist(list, { url: `${base}/porady/` })).toBeNull();
+    expect(checkDenylist(list, { url: `${base}/porady/sessionId=abc` })).toBeNull();
+  });
+
+  it('path: entries keep ignoring the query (US2 scenario 2)', () => {
+    expect(checkDenylist(['path:/porady/'], { url: `${base}/porady/?sessionId=1` })).toMatchObject({
+      rule: 'path:/porady/',
+    });
+    expect(checkDenylist(['path:*sessionId*'], { url: `${base}/porady/?sessionId=1` })).toBeNull();
+  });
+});
+
+describe('generic rule ids and aliases (spec 002 FR-012, FR-013)', () => {
+  it.each([
+    ['buy_now', 'Kup teraz', 'buy_now→purchase'],
+    ['bidding', 'Licytuj', 'bidding→purchase'],
+    [
+      'message_or_contact_seller',
+      'Napisz do sprzedawcy',
+      'message_or_contact_seller→contact_or_message',
+    ],
+    ['reveal_seller_contact', 'Pokaż numer telefonu', 'reveal_seller_contact→reveal_contact'],
+    ['purchase', 'Kup polisę', 'purchase'],
+    ['submit_request', 'Wyślij zapytanie', 'submit_request'],
+  ])('denylist %s refuses "%s" as %s', (entry, name, shown) => {
+    const classification = classifyAction({ role: 'button', name });
+    expect(checkDenylist([entry], { classification })).toMatchObject({
+      status: 'denylisted',
+      rule: shown,
+    });
+  });
+
+  it('resolveRuleId maps each alias and passes other ids through', () => {
+    expect(resolveRuleId('buy_now')).toEqual({ id: 'purchase', alias: 'buy_now' });
+    expect(resolveRuleId('bidding')).toEqual({ id: 'purchase', alias: 'bidding' });
+    expect(resolveRuleId('message_or_contact_seller')).toEqual({
+      id: 'contact_or_message',
+      alias: 'message_or_contact_seller',
+    });
+    expect(resolveRuleId('reveal_seller_contact')).toEqual({
+      id: 'reveal_contact',
+      alias: 'reveal_seller_contact',
+    });
+    expect(resolveRuleId('logout')).toEqual({ id: 'logout' });
+  });
+
+  it('config and safety agree on every built-in denylist id and its class', () => {
+    for (const [id, cls] of Object.entries(BUILTIN_RULE_CLASSES))
+      expect(builtinRuleSet().get(id)?.safetyClass, id).toBe(cls);
+    const denylistable = builtinRuleSet()
+      .rules.map((r) => r.id)
+      .filter((id) => !id.startsWith('mutating:'));
+    expect(denylistable.sort()).toEqual(Object.keys(BUILTIN_RULE_CLASSES).sort());
+  });
+});
+
+describe('portal rule ids in the denylist (spec 002 US4 scenario 4)', () => {
+  it('refuses matching actions as denylisted, like a built-in id', () => {
+    const set = extendRuleSet(builtinRuleSet(), [
+      {
+        id: 'renew_policy',
+        class: 'external-side-effect',
+        keywords: ['przedłuż polisę'],
+        paths: ['/przedluzenie/*'],
+      },
+    ]);
+    const classification = classifyAction({ role: 'button', name: 'Przedłuż polisę' }, set);
+    expect(checkDenylist(['renew_policy'], { classification }, set)).toMatchObject({
+      status: 'denylisted',
+      rule: 'renew_policy',
+    });
+    expect(
+      checkDenylist(['renew_policy'], { url: 'https://x.pl/przedluzenie/start' }, set),
+    ).toMatchObject({ status: 'denylisted', rule: 'renew_policy' });
   });
 });

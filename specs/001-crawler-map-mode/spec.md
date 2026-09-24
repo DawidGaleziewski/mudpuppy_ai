@@ -1,4 +1,4 @@
-# Feature Specification: Crawler Map Mode (MarketSite MVP)
+# Feature Specification: Crawler Map Mode
 
 **Feature Branch**: `001-crawler-map-mode`
 
@@ -21,9 +21,10 @@ deliberately did not do.
 **Why this priority**: This is the core value of the tool. Without a recorded map of what
 exists there is nothing for the BA to document or for QA to test.
 
-**Independent Test**: Run one `map` run for the guest persona on the MarketSite portal
-config within its budget. Verify that a map of states, transitions, forms and observed API
-calls exists, that every record cites evidence, and that no non-read-only action was executed.
+**Independent Test**: Run one `map` run for the guest persona on a configured portal (example:
+`liveinsurer`; `marketsite` is on hold for legal reasons — see Assumptions) within its budget.
+Verify that a map of states, transitions, forms and observed API calls exists, that every
+record cites evidence, and that no non-read-only action was executed.
 
 **Acceptance Scenarios**:
 
@@ -84,9 +85,10 @@ added without changing the crawler.
 **Why this priority**: The MVP needs one portal and one persona, but personas must be
 composable from the start so later personas and processes need no redesign.
 
-**Independent Test**: Load the MarketSite portal config and the guest persona, then load
-a second sample persona that extends the guest and a shared piece; verify both resolve into
-valid effective configurations and that an invalid file is rejected with a clear message.
+**Independent Test**: Load a configured portal's config (example: `liveinsurer`) and its guest
+persona, then load a second sample persona that extends the guest and a shared piece; verify
+both resolve into valid effective configurations and that an invalid file is rejected with a
+clear message.
 
 **Acceptance Scenarios**:
 
@@ -132,10 +134,10 @@ and verify each has ranked candidate locators with the fields listed below.
   states; known obstacles must be handled before a page is recorded.
 - Infinite scroll, endless pagination, calendars or faceted filters could create unlimited
   states; the crawler stops expanding after per-template and total caps and reports it.
-- A "read" action has a hidden side effect on the site. On MarketSite, opening a listing
-  counts as a view that feeds the portal's popularity ranking, so visits to listing pages are
-  capped (FR-024) and the report states how many were made. The run is still read-only by
-  class.
+- A "read" action has a hidden side effect on the site. For example, on MarketSite,
+  opening a listing counts as a view that feeds the portal's popularity ranking, so visits to
+  listing pages are capped (FR-024) and the report states how many were made. The run is still
+  read-only by class.
 - A page offers actions that look harmless but are binding or reveal personal data: placing a
   bid (a bid in the last 60 seconds extends an auction), "buy now", payment, messaging or
   contacting a seller, or showing a seller's phone number. These are never executed and appear
@@ -176,7 +178,9 @@ and verify each has ranked candidate locators with the fields listed below.
   maximum depth, maximum states, per-state action cap, run time and step budget) and a denylist
   (including logout, delete, payment, bidding, buy-now, messaging or contacting a seller,
   revealing a seller's contact details, and the listing-creation path disallowed by the
-  portal's robots rules).
+  portal's robots rules). Spec 002 generalized `bidding`/`buy-now` into `purchase`, messaging
+  or contacting a seller into `contact_or_message`, and revealing a seller's contact details
+  into `reveal_contact`; the old ids remain accepted as aliases (spec 002 FR-013).
 - **FR-008**: On detecting a CAPTCHA, block page or rate-limit response, the crawler MUST record
   a run-level warning and stop, and MUST NOT attempt to circumvent it.
 - **FR-009**: The system MUST identify states by a fingerprint of the route template plus the
@@ -250,9 +254,9 @@ and verify each has ranked candidate locators with the fields listed below.
 
 ### Measurable Outcomes
 
-- **SC-001**: A single `map` run on the MarketSite guest configuration completes within
-  its configured budget and produces a map covering the portal's main navigation areas,
-  verified by a BA against the live site.
+- **SC-001**: A single `map` run on a configured portal's guest configuration (example:
+  `liveinsurer`) completes within its configured budget and produces a map covering the portal's
+  main navigation areas, verified by a BA against the live site.
 - **SC-002**: 100% of executed actions in production runs are read-only class, verified from
   the decision log across all runs.
 - **SC-003**: 100% of recorded states, transitions, forms and API calls have evidence and a
@@ -274,8 +278,13 @@ and verify each has ranked candidate locators with the fields listed below.
 
 ## Assumptions
 
-- The MVP targets one portal (MarketSite) and one persona (a guest who browses without
-  logging in); `trace` mode and other personas are out of scope for this feature.
+- The MVP targets one configured portal and one persona (a guest who browses without logging
+  in); `trace` mode and other personas are out of scope for this feature. The portal was
+  originally MarketSite; it is on hold for legal reasons (Regulamin MarketSite art. 10.10)
+  and the current practice target is `liveinsurer` (spec 002 FR-022). The marketsite-specific
+  assumptions below (robots rules, terms review) are kept as the historical record of what was
+  checked for that portal and are not re-derived for `liveinsurer`; `liveinsurer`'s own compliance sign-off
+  is tracked at T072.
 - The portal's robots rules (fetched 2026-09-20) disallow only the listing-creation path
   (`/oferty/wystaw/*`) for generic crawlers.
 - Terms review, partial: the MarketSite annex (Załącznik nr 13) was reviewed on

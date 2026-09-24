@@ -4,7 +4,12 @@ import { registerObstacleHandlers, type ObstacleHandlers } from '@pathfinder/obs
 import type { Refusal } from '@pathfinder/safety';
 import { NetworkRecorder } from './network-recorder.js';
 import { createRateLimiter, type RateLimiter } from './rate-limiter.js';
-import { createRequestGate, type RequestGate, type StopEvent } from './request-gate.js';
+import {
+  createRequestGate,
+  type RequestGate,
+  type RequestGateOptions,
+  type StopEvent,
+} from './request-gate.js';
 import {
   settle,
   trackNetworkActivity,
@@ -19,13 +24,17 @@ export interface SessionOptions {
   onStop: (e: StopEvent) => void;
   /** Scope/denylist policy for browser-initiated main-frame navigations. */
   navigationPolicy?: (url: string) => Refusal | null;
-  onNavigationRefused?: (url: string, refusal: Refusal) => void;
+  onNavigationRefused?: RequestGateOptions['onNavigationRefused'];
+  /** The run's limiter, shared with the robots.txt fetches (spec 002 FR-001); created here if absent. */
+  limiter?: RateLimiter;
+  /** robots.txt enforcement for every request of the session (spec 002). */
+  robots: NonNullable<RequestGateOptions['robots']>;
   headless?: boolean;
   stabilizer?: StabilizerOptions;
 }
 
 /** Non-production portals may omit `rate_limit`; be gentle anyway. */
-const DEFAULT_RATE = {
+export const DEFAULT_RATE_LIMIT = {
   requests_per_second: 2,
   max_concurrency: 2,
   user_agent: 'PathfinderAI-Crawler/0.1',
@@ -53,7 +62,7 @@ export class BrowserSession {
 
   static async launch(opts: SessionOptions): Promise<BrowserSession> {
     const { portal, persona } = opts.effective;
-    const rate = portal.rate_limit ?? DEFAULT_RATE;
+    const rate = portal.rate_limit ?? DEFAULT_RATE_LIMIT;
     const browser = await chromium.launch({ headless: opts.headless ?? true });
     try {
       const context = await browser.newContext({
@@ -64,10 +73,12 @@ export class BrowserSession {
         acceptDownloads: false,
         serviceWorkers: 'block',
       });
-      const limiter = createRateLimiter({
-        requestsPerSecond: rate.requests_per_second,
-        maxConcurrency: rate.max_concurrency,
-      });
+      const limiter =
+        opts.limiter ??
+        createRateLimiter({
+          requestsPerSecond: rate.requests_per_second,
+          maxConcurrency: rate.max_concurrency,
+        });
       const gate = createRequestGate({
         limiter,
         userAgent: rate.user_agent,
@@ -75,6 +86,7 @@ export class BrowserSession {
         onStop: opts.onStop,
         ...(opts.navigationPolicy ? { navigationPolicy: opts.navigationPolicy } : {}),
         ...(opts.onNavigationRefused ? { onNavigationRefused: opts.onNavigationRefused } : {}),
+        robots: opts.robots,
       });
       await gate.install(context);
       const page = await context.newPage();

@@ -2,11 +2,15 @@ import { FingerprintIndex } from '@pathfinder/fingerprint';
 import { inferRouteTemplates, type RouteTemplater } from '@pathfinder/fingerprint';
 import type { EffectiveConfig, Scope } from '@pathfinder/config';
 import { FrontierPolicy, type BrowserSession } from '@pathfinder/crawler';
+import { portalRuleSet, type RuleSet } from '@pathfinder/safety';
+import type { RunRobots } from '../services/robots.js';
 
 /** In-memory, per-run browser-side state. Everything durable lives in the database. */
 export class RunState {
   readonly index = new FingerprintIndex();
   readonly policy: FrontierPolicy;
+  /** Built once per run from the portal file; every classification of this run uses it. */
+  readonly ruleSet: RuleSet;
   readonly depthByState = new Map<string, number>();
   private readonly urls: string[] = [];
   private templater: RouteTemplater | null = null;
@@ -20,8 +24,10 @@ export class RunState {
     readonly session: BrowserSession,
     readonly effective: EffectiveConfig,
     readonly scope: Scope,
+    readonly robots: RunRobots,
   ) {
     const { portal } = effective;
+    this.ruleSet = portalRuleSet(portal);
     this.policy = new FrontierPolicy({
       itemRouteTemplates: portal.item_route_templates,
       ...(portal.item_view_cap !== undefined ? { itemViewCap: portal.item_view_cap } : {}),

@@ -158,4 +158,16 @@ describe('preflight', () => {
     });
     expect(preflight('shop', 'guest', { root }).ok).toBe(true);
   });
+
+  it('refuses a persona extending another portal folder before any browser starts (spec 002 FR-025)', () => {
+    const root = repo({
+      'portals/shop/portal.yaml': PORTAL(),
+      'personas/other/guest.yaml': PERSONA,
+      'personas/shop/guest.yaml': 'id: guest\nextends: ["../other/guest.yaml"]\n',
+    });
+    const r = preflight('shop', 'guest', { root });
+    expect(r).toMatchObject({ ok: false, code: 'CONFIG_INVALID' });
+    expect(JSON.stringify(r)).toContain('leaves the allowed folders');
+    expect(playwrightTouched).not.toHaveBeenCalled();
+  });
 });

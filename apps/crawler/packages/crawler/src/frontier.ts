@@ -182,7 +182,13 @@ export async function settleFrontierItem(
   db: PathfinderDb,
   frontierId: string,
   status:
-    'done' | 'skipped_unsafe' | 'out_of_scope' | 'denylisted' | 'budget_reached' | 'unreachable',
+    | 'done'
+    | 'skipped_unsafe'
+    | 'out_of_scope'
+    | 'denylisted'
+    | 'robots_disallowed'
+    | 'budget_reached'
+    | 'unreachable',
   reason: string | null,
 ): Promise<void> {
   await db

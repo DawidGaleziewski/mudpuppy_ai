@@ -3,6 +3,7 @@ import { Confidence, EvidenceRef, Id, Stabilization, Timestamp } from './common.
 
 export const State = z.object({
   id: Id,
+  portal_id: z.string().min(1),
   fingerprint: z.string().regex(/^[0-9a-f]{64}$/, 'sha256 hex'),
   cluster_id: z.string().min(1),
   route_template: z.string().min(1),

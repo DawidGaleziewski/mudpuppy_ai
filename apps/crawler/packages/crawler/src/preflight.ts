@@ -70,7 +70,10 @@ export function preflight(
 
   let effective: EffectiveConfig;
   try {
-    effective = loadEffectiveConfig(portalPath, personaPath);
+    // A persona may extend shared mixins and its own portal's files only (spec 002 FR-025).
+    effective = loadEffectiveConfig(portalPath, personaPath, {
+      fence: [join(opts.root, 'personas', '_mixins'), join(opts.root, 'personas', portalId)],
+    });
   } catch (e) {
     if (e instanceof ConfigError) return refuse('CONFIG_INVALID', [e.message]);
     throw e;

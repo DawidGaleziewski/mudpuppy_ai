@@ -1,0 +1,256 @@
+{
+  "_source": "Links on https://www.liveinsurer.example/ (homepage incl. mega menu and footer), fetched 2026-09-24 with UA PathfinderAI-Crawler/0.1. Expected verdicts from a manual reading of robots/liveinsurer.example.txt (User-agent: * group; longest match wins, Allow wins ties). rule = the deciding line, null when no rule matches.",
+  "robots": "robots/liveinsurer.example.txt",
+  "urls": [
+    {
+      "url": "https://www.liveinsurer.example/formularze-online/?itm_campaign=widget_formularze_online&cHash=02e3d5d3fa0ec3b15f115f081679446e",
+      "expected": "refuse",
+      "rule": "Disallow: *cHash*"
+    },
+    {
+      "url": "https://www.liveinsurer.example/pomoc-i-obsluga/ubezpieczenia-komunikacyjne/obsluga-polisy/sprawdz-oferte-przedluzenia-polisy/?itm_campaign=boks_odnowienie_polisy&cHash=294e2b42dc002899c8c1d8e90039cb35",
+      "expected": "refuse",
+      "rule": "Disallow: *cHash*"
+    },
+    {
+      "url": "https://www.liveinsurer.example/pomoc-i-obsluga/ubezpieczenia-komunikacyjne/wroc-do-wyliczenia/?itm_campaign=wroc_do_wyliczenia&cHash=a9e6d51317e7e214e62b3fee5b4633c5",
+      "expected": "refuse",
+      "rule": "Disallow: *cHash*"
+    },
+    {
+      "url": "https://www.liveinsurer.example/emerytura/ike/?itm_campaign=boks_ike_szczegoly&cHash=a8d0e747893bfb977d4230c789491c0a",
+      "expected": "refuse",
+      "rule": "Disallow: *cHash*"
+    },
+    {
+      "url": "https://www.liveinsurer.example/emerytura/ikze/?itm_campaign=boks_ikze_szczegoly&cHash=829f61b848ee9b2caf4fae7a5709fe20",
+      "expected": "refuse",
+      "rule": "Disallow: *cHash*"
+    },
+    {
+      "url": "https://www.liveinsurer.example/ubezpieczenie-dziecka/?itm_campaign=boks_szczegoly_ubezpieczenie_dziecka&cHash=18b0d0be6d81ad7d35c5c96a3548c5cf",
+      "expected": "refuse",
+      "rule": "Disallow: *cHash*"
+    },
+    {
+      "url": "https://www.liveinsurer.example/ubezpieczenie-na-zycie/?itm_campaign=boks_lead_zycie_zdrowie_szczegoly&cHash=a21f7d68bc8a208af6b5fb5e4f8a92ab",
+      "expected": "refuse",
+      "rule": "Disallow: *cHash*"
+    },
+    {
+      "url": "https://www.liveinsurer.example/ubezpieczenie-szkolne/?itm_campaign=boks_szczegoly_ubezpieczenie_szkolne&cHash=f99ea8411bb1d07a1a18832a61351b2e",
+      "expected": "refuse",
+      "rule": "Disallow: *cHash*"
+    },
+    {
+      "url": "https://www.liveinsurer.example/ubezpieczenie-zycia-i-zdrowia/ubezpieczenie-hejt-w-internecie/?itm_campaign=boks_szczegoly_hejt&cHash=70cdd15d0c74314698313c74aec0b193",
+      "expected": "refuse",
+      "rule": "Disallow: *cHash*"
+    },
+    {
+      "url": "https://www.liveinsurer.example/quote/start?itm_campaign=boks_oblicz_skladke_HP_samochod",
+      "expected": "allow",
+      "rule": "Allow: /quote/start*"
+    },
+    {
+      "url": "https://www.liveinsurer.example/quote/start?itm_campaign=menu_inne_pojazdy_CTA",
+      "expected": "allow",
+      "rule": "Allow: /quote/start*"
+    },
+    {
+      "url": "https://www.liveinsurer.example/quote/start?itm_campaign=menu_inne_pojazdy_link_ciagniki",
+      "expected": "allow",
+      "rule": "Allow: /quote/start*"
+    },
+    {
+      "url": "https://www.liveinsurer.example/quote/start?itm_campaign=menu_motocykl_CTA",
+      "expected": "allow",
+      "rule": "Allow: /quote/start*"
+    },
+    {
+      "url": "https://www.liveinsurer.example/quote/start?itm_campaign=menu_motocykl_link_AC",
+      "expected": "allow",
+      "rule": "Allow: /quote/start*"
+    },
+    {
+      "url": "https://www.liveinsurer.example/quote/start?itm_campaign=menu_motocykl_link_OC",
+      "expected": "allow",
+      "rule": "Allow: /quote/start*"
+    },
+    {
+      "url": "https://www.liveinsurer.example/quote/start?itm_campaign=menu_samochod_CTA",
+      "expected": "allow",
+      "rule": "Allow: /quote/start*"
+    },
+    {
+      "url": "https://www.liveinsurer.example/quote/start?itm_campaign=menu_samochod_link_AC",
+      "expected": "allow",
+      "rule": "Allow: /quote/start*"
+    },
+    {
+      "url": "https://www.liveinsurer.example/quote/start?itm_campaign=menu_samochod_link_OC",
+      "expected": "allow",
+      "rule": "Allow: /quote/start*"
+    },
+    {
+      "url": "https://www.liveinsurer.example/quote/start?itm_campaign=okazje_assistance_midi",
+      "expected": "allow",
+      "rule": "Allow: /quote/start*"
+    },
+    {
+      "url": "https://www.liveinsurer.example/quote/start?itm_campaign=okazje_nnw",
+      "expected": "allow",
+      "rule": "Allow: /quote/start*"
+    },
+    {
+      "url": "https://www.liveinsurer.example/quote/start?itm_campaign=okazje_ubezpieczenie_OC",
+      "expected": "allow",
+      "rule": "Allow: /quote/start*"
+    },
+    {
+      "url": "https://www.liveinsurer.example/quote/start?itm_campaign=okazje_ubezpieczenie_opon",
+      "expected": "allow",
+      "rule": "Allow: /quote/start*"
+    },
+    {
+      "url": "https://www.liveinsurer.example/dokumenty/2510_OWU_Ubezpieczenie_podrozy_Supertravel.pdf#page=14",
+      "expected": "allow",
+      "rule": "Allow: /dokumenty/*.pdf"
+    },
+    {
+      "url": "https://www.liveinsurer.example/",
+      "expected": "allow",
+      "rule": null
+    },
+    {
+      "url": "https://www.liveinsurer.example/assistance-w-podrozy/#zalety",
+      "expected": "allow",
+      "rule": null
+    },
+    {
+      "url": "https://www.liveinsurer.example/dom-i-mieszkanie/ubezpieczenia-u-wybranych-agentow/",
+      "expected": "allow",
+      "rule": null
+    },
+    {
+      "url": "https://www.liveinsurer.example/emerytura-i-inwestycje/abc-inwestowania/",
+      "expected": "allow",
+      "rule": null
+    },
+    {
+      "url": "https://www.liveinsurer.example/emerytura-i-inwestycje/komentarze-inwestycyjne-i-rynkowe/",
+      "expected": "allow",
+      "rule": null
+    },
+    {
+      "url": "https://www.liveinsurer.example/emerytura-i-inwestycje/ppk-strefa-klienta/",
+      "expected": "allow",
+      "rule": null
+    },
+    {
+      "url": "https://www.liveinsurer.example/emerytura/ofe/dziedziczenie-srodkow-z-ofe/",
+      "expected": "allow",
+      "rule": null
+    },
+    {
+      "url": "https://www.liveinsurer.example/emerytura/ofe/wszystko-o-ofe/",
+      "expected": "allow",
+      "rule": null
+    },
+    {
+      "url": "https://www.liveinsurer.example/emerytura/ppk-dla-pracodawcy/",
+      "expected": "allow",
+      "rule": null
+    },
+    {
+      "url": "https://www.liveinsurer.example/emerytura/wycena-ufk/sprawozdania-ufk-liveinsurer/",
+      "expected": "allow",
+      "rule": null
+    },
+    {
+      "url": "https://www.liveinsurer.example/firmy-i-pracownicy/dla-agentow/kontakt-dla-agentow/",
+      "expected": "allow",
+      "rule": null
+    },
+    {
+      "url": "https://www.liveinsurer.example/firmy-i-pracownicy/dla-brokerow-i-agentow-korporacyjnych/kontakt-dla-brokerow/#jaksi%C4%99znamiskontaktowa%C4%87%E2%80%93grupoweubezpieczeniana%C5%BCycie",
+      "expected": "allow",
+      "rule": null
+    },
+    {
+      "url": "https://www.liveinsurer.example/firmy-i-pracownicy/floty/assistance-pojazdow-osobowych/",
+      "expected": "allow",
+      "rule": null
+    },
+    {
+      "url": "https://www.liveinsurer.example/firmy-i-pracownicy/gwarancja-turystyczna/#jaksi%C4%99znamiskontaktowa%C4%87",
+      "expected": "allow",
+      "rule": null
+    },
+    {
+      "url": "https://www.liveinsurer.example/firmy-i-pracownicy/gwarancje/gwarancje-kontraktowe/",
+      "expected": "allow",
+      "rule": null
+    },
+    {
+      "url": "https://www.liveinsurer.example/firmy-i-pracownicy/male-i-srednie-firmy/#jaksi%C4%99znamiskontaktowa%C4%87",
+      "expected": "allow",
+      "rule": null
+    },
+    {
+      "url": "https://www.liveinsurer.example/firmy-i-pracownicy/oc-samochodu-firmowego/",
+      "expected": "allow",
+      "rule": null
+    },
+    {
+      "url": "https://www.liveinsurer.example/firmy-i-pracownicy/transport/ubezpieczenie-oc-przewoznika-drogowego-i-kolejowego/",
+      "expected": "allow",
+      "rule": null
+    },
+    {
+      "url": "https://www.liveinsurer.example/firmy-i-pracownicy/ubezpieczenia-majatkowe/hub-international-programmes/",
+      "expected": "allow",
+      "rule": null
+    },
+    {
+      "url": "https://www.liveinsurer.example/firmy-i-pracownicy/ubezpieczenia-techniczne/ubezpieczenie-budowlano-montazowe/",
+      "expected": "allow",
+      "rule": null
+    },
+    {
+      "url": "https://www.liveinsurer.example/firmy-i-pracownicy/ubezpieczenie-mienia/ubezpieczenie-sprzetu-elektronicznego-od-uszkodzen-i-awarii/",
+      "expected": "allow",
+      "rule": null
+    },
+    {
+      "url": "https://www.liveinsurer.example/firmy-i-pracownicy/ubezpieczenie-nnw-dla-dzieci-i-pracownikow-oswiaty/",
+      "expected": "allow",
+      "rule": null
+    },
+    {
+      "url": "https://www.liveinsurer.example/firmy-i-pracownicy/ubezpieczenie-oc-firmy/ubezpieczenie-oc-firmy/",
+      "expected": "allow",
+      "rule": null
+    },
+    {
+      "url": "https://www.liveinsurer.example/firmy-i-pracownicy/ubezpieczenie-wystaw/",
+      "expected": "allow",
+      "rule": null
+    },
+    {
+      "url": "https://www.liveinsurer.example/formularze-online/dom-i-mieszkanie/",
+      "expected": "allow",
+      "rule": null
+    },
+    {
+      "url": "https://www.liveinsurer.example/gwarancje-wadialne/",
+      "expected": "allow",
+      "rule": null
+    },
+    {
+      "url": "https://www.liveinsurer.example/informacje-tfi/zmiana-opodatkowania/",
+      "expected": "allow",
+      "rule": null
+    }
+  ]
+}

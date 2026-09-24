@@ -267,6 +267,12 @@ describe('complete_run / finish_run', () => {
       actions_skipped_by_class: { 'external-side-effect': 1 },
       api_endpoints: 1,
       item_page_visits: 0,
+      robots: {
+        hosts: [],
+        refused_navigations: 0,
+        page_requests_blocked: 0,
+        page_requests_allowed: 0,
+      },
     });
     const row = await ctx.db.selectFrom('runs').selectAll().executeTakeFirstOrThrow();
     expect(row.status).toBe('completed');

@@ -9,3 +9,5 @@ export * from './open-question.js';
 export * from './rule-candidate.js';
 export * from './action.js';
 export * from './decision-log.js';
+export * from './robots-policy.js';
+export * from './portal-data-log.js';

@@ -7,9 +7,13 @@ secret-leaking files are rejected with an error naming the file and the specific
 
 ## Portal — `portals/<portal>/portal.yaml`
 
+Example below uses a configured portal's id and base URL; in the repo see
+`portals/liveinsurer/portal.yaml` (current practice target) and `portals/marketsite/portal.yaml`
+(on hold for legal reasons).
+
 ```yaml
-id: marketsite
-base_url: https://marketsite.example/
+id: <portal>                      # e.g. liveinsurer
+base_url: https://example.org/    # the portal's base address
 environment: production          # required to unlock a run against this address — FR-005
 max_action_class: read           # optional portal ceiling; defaults to `read` when production
 compliance:                      # FR-026: production is refused while any value is null
@@ -17,7 +21,7 @@ compliance:                      # FR-026: production is refused while any value
   terms_reviewed_on: null        # ISO date, filled after reviewing the portal's terms
   terms_reviewed_by: null        # who reviewed
 scope:
-  allowed_domains: [marketsite.example]
+  allowed_domains: [example.org]
   allowed_paths: ["/*"]
   external_link_policy: record    # record | follow
   max_depth: 6
@@ -29,10 +33,10 @@ denylist:
   - logout
   - delete
   - payment
-  - bidding
-  - buy_now
-  - message_or_contact_seller
-  - reveal_seller_contact
+  - bidding                      # spec 002 alias of `purchase` (spec 002 FR-013)
+  - buy_now                      # spec 002 alias of `purchase`
+  - message_or_contact_seller    # spec 002 alias of `contact_or_message`
+  - reveal_seller_contact        # spec 002 alias of `reveal_contact`
   - path:/oferty/wystaw/*        # listing-creation path disallowed by robots — FR-007
   # built-in rule ids also carry PL/EN path patterns (e.g. logout: /wyloguj, /logout) so a
   # direct `navigate` to such a URL is refused; portals may add `path:` entries

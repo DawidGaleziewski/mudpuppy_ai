@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { Id, JsonValue, Timestamp } from './common.js';
 
-export const DecisionKind = z.enum(['skip', 'refuse', 'merge', 'split', 'warning']);
+export const DecisionKind = z.enum(['skip', 'refuse', 'merge', 'split', 'warning', 'note']);
 export type DecisionKind = z.infer<typeof DecisionKind>;
 
 export const DecisionLogEntry = z.object({

@@ -6,7 +6,8 @@ import {
   newId,
   nowIso,
 } from '@pathfinder/core';
-import { classifyAction, type ActionDescriptor } from '@pathfinder/safety';
+import { classifyAction, portalRuleSet, type ActionDescriptor } from '@pathfinder/safety';
+import type { PortalConfig } from '@pathfinder/config';
 import { z } from 'zod';
 import type { ServerContext } from '../context.js';
 import { ToolError, parseInput } from '../errors.js';
@@ -89,7 +90,9 @@ export async function recordTransition(
   const input = parseInput(RecordTransitionInput, raw);
   const run = await getRun(ctx, input.run_id);
 
-  const derived = classifyAction(descriptorOf(input.action)).safetyClass;
+  // The run's own rule set, rebuilt from the portal file captured in its config snapshot.
+  const { portal } = JSON.parse(run.config_snapshot) as { portal: PortalConfig };
+  const derived = classifyAction(descriptorOf(input.action), portalRuleSet(portal)).safetyClass;
   if (derived !== input.safety_class) {
     throw new ToolError(
       'SAFETY_CLASS_MISMATCH',
@@ -113,8 +116,13 @@ export async function recordTransition(
       .selectFrom('states')
       .select('id')
       .where('id', '=', id)
+      .where('portal_id', '=', run.portal_id)
       .executeTakeFirst();
-    if (!s) throw new ToolError('UNKNOWN_REF', `${field} ${id} does not exist`);
+    if (!s)
+      throw new ToolError(
+        'UNKNOWN_REF',
+        `${field} ${id} is not a state of portal ${run.portal_id}`,
+      );
   }
 
   const id = newId();

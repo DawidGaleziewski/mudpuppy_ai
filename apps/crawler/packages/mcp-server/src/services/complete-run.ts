@@ -5,6 +5,10 @@ import { ToolError, parseInput } from '../errors.js';
 import { computeCoverage, type Coverage } from '@pathfinder/crawler';
 import { getRun, type RunRow } from './common.js';
 import { isBudgetExhausted } from './run-budget.js';
+import { robotsCoverage } from './robots.js';
+
+/** Live robots counters of the request gate, when the session is still open. */
+export type LiveRobotsStats = { pageRequestsBlocked: number; pageRequestsAllowed: number };
 
 function itemTemplatesOf(run: RunRow): string[] {
   try {
@@ -26,13 +30,16 @@ const CompleteRunInput = z
   .strict();
 
 /** Server-internal: computes coverage and sets the final status. The agent never calls this. */
-export async function completeRun(ctx: ServerContext, raw: unknown) {
+export async function completeRun(ctx: ServerContext, raw: unknown, live?: LiveRobotsStats) {
   const input = parseInput(CompleteRunInput, raw);
   const run = await getRun(ctx, input.run_id);
   if (input.status === 'stopped_warning' && input.warning === null) {
     throw new ToolError('SCHEMA_INVALID', 'warning is required when status is stopped_warning');
   }
-  const coverage = await computeCoverage(ctx.db, run.id, itemTemplatesOf(run));
+  const coverage = {
+    ...(await computeCoverage(ctx.db, run.id, itemTemplatesOf(run))),
+    robots: await robotsCoverage(ctx, run.id, live),
+  };
   await ctx.db
     .updateTable('runs')
     .set({
@@ -50,7 +57,7 @@ export async function completeRun(ctx: ServerContext, raw: unknown) {
  * Agent-facing `finish_run`: only requests completion. The server verifies the frontier is empty or a
  * budget is exhausted; the agent can never set `status` or `warning`.
  */
-export async function finishRun(ctx: ServerContext, raw: unknown) {
+export async function finishRun(ctx: ServerContext, raw: unknown, live?: LiveRobotsStats) {
   const input = parseInput(
     z.object({ run_id: z.string().min(1), summary: z.string().max(4000).optional() }).strict(),
     raw,
@@ -78,5 +85,5 @@ export async function finishRun(ctx: ServerContext, raw: unknown) {
       `${Number(pending.n)} frontier items are still pending and no budget is exhausted`,
     );
   }
-  return completeRun(ctx, { run_id: run.id, status: 'completed' });
+  return completeRun(ctx, { run_id: run.id, status: 'completed' }, live);
 }

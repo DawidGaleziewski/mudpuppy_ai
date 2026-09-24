@@ -1,5 +1,7 @@
 export * from './types.js';
 export * from './rules.js';
+export * from './rule-set.js';
+export * from './robots.js';
 export * from './classifier.js';
 export * from './scope.js';
 export * from './denylist.js';

@@ -1,4 +1,5 @@
-import { dirname, resolve } from 'node:path';
+import { realpathSync } from 'node:fs';
+import { dirname, relative, resolve, isAbsolute } from 'node:path';
 import { ConfigError, zodProblems } from './errors.js';
 import { PersonaConfig, PersonaFile } from './persona-schema.js';
 import { readYaml } from './read.js';
@@ -32,7 +33,28 @@ function loadFragment(file: string): PersonaFile {
  * override earlier ones. `stack` holds the files currently being resolved: hitting one again is a
  * cycle, detected before anything is merged.
  */
-function resolveFile(file: string, stack: string[]): Plain {
+export interface LoadPersonaOptions {
+  /**
+   * Folders every file reached through `extends` must stay inside after resolving `..` and
+   * symlinks (spec 002 FR-025): the shared `personas/_mixins` and the portal's own folder.
+   */
+  fence?: readonly string[];
+}
+
+function real(path: string): string {
+  try {
+    return realpathSync(path);
+  } catch {
+    return resolve(path); // a missing file fails later, when it is read
+  }
+}
+
+function inside(file: string, root: string): boolean {
+  const rel = relative(real(root), real(file));
+  return rel !== '' && !rel.startsWith('..') && !isAbsolute(rel);
+}
+
+function resolveFile(file: string, stack: string[], opts: LoadPersonaOptions, top: string): Plain {
   const abs = resolve(file);
   if (stack.includes(abs)) {
     throw new ConfigError(file, [`circular extends: ${[...stack, abs].join(' -> ')}`]);
@@ -41,14 +63,20 @@ function resolveFile(file: string, stack: string[]): Plain {
   const { extends: parents, ...own } = fragment;
   let merged: Plain = {};
   for (const parent of parents) {
-    merged = merge(merged, resolveFile(resolve(dirname(abs), parent), [...stack, abs]));
+    const target = resolve(dirname(abs), parent);
+    if (opts.fence && !opts.fence.some((root) => inside(target, root))) {
+      throw new ConfigError(top, [
+        `extends "${parent}" (${real(target)}${abs === resolve(top) ? '' : `, via ${abs}`}) leaves the allowed folders (${opts.fence.join(', ')})`,
+      ]);
+    }
+    merged = merge(merged, resolveFile(target, [...stack, abs], opts, top));
   }
   return merge(merged, own as Plain);
 }
 
 /** Resolve a persona through `extends` and validate the merged result with the full schema. */
-export function loadPersona(file: string): PersonaConfig {
-  const merged = resolveFile(file, []);
+export function loadPersona(file: string, opts: LoadPersonaOptions = {}): PersonaConfig {
+  const merged = resolveFile(file, [], opts, file);
   const parsed = PersonaConfig.safeParse({
     ...merged,
     extends: loadFragment(resolve(file)).extends,

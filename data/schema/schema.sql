@@ -1,4 +1,4 @@
--- GENERATED from data/migrations/*.up.sql applied in order (currently through 0001_init). Do not edit by hand.
+-- GENERATED from data/migrations/*.up.sql applied in order (currently through 0002_portal_workspaces). Do not edit by hand.
 -- Regenerate after every migration; see data/schema/README.md.
 
 CREATE TABLE runs (
@@ -24,21 +24,6 @@ CREATE TABLE runs (
   coverage            TEXT CHECK (coverage IS NULL OR json_valid(coverage)),
   CHECK (status <> 'stopped_warning' OR warning IS NOT NULL)
 ) STRICT;
-
-CREATE TABLE states (
-  id             TEXT PRIMARY KEY,
-  fingerprint    TEXT NOT NULL,
-  cluster_id     TEXT NOT NULL,
-  route_template TEXT NOT NULL,
-  title          TEXT NOT NULL,
-  evidence_ref   TEXT NOT NULL CHECK (length(evidence_ref) > 0),
-  confidence     TEXT NOT NULL CHECK (confidence IN ('observed','inferred','needs_confirmation')),
-  stabilization  TEXT NOT NULL CHECK (stabilization IN ('settled','never_stabilized')),
-  first_seen_run TEXT NOT NULL REFERENCES runs(id),
-  created_at     TEXT NOT NULL
-) STRICT;
-CREATE UNIQUE INDEX ux_states_fingerprint ON states(fingerprint);
-CREATE INDEX ix_states_cluster_id ON states(cluster_id);
 
 CREATE TABLE state_observations (
   run_id       TEXT NOT NULL REFERENCES runs(id),
@@ -102,23 +87,6 @@ CREATE TABLE network_calls (
   created_at     TEXT NOT NULL
 ) STRICT;
 
-CREATE TABLE frontier (
-  id           TEXT PRIMARY KEY,
-  run_id       TEXT NOT NULL REFERENCES runs(id),
-  state_id     TEXT NOT NULL REFERENCES states(id),
-  action_id    TEXT REFERENCES actions(id),  -- null for navigate() refusals that have no extracted action
-  action_json  TEXT NOT NULL CHECK (json_valid(action_json)),
-  safety_class TEXT NOT NULL CHECK (safety_class IN ('read','mutating','destructive','external-side-effect')),
-  status       TEXT NOT NULL CHECK (status IN ('pending','done','skipped_unsafe','out_of_scope','denylisted','budget_reached','unreachable')),
-  priority     INTEGER NOT NULL DEFAULT 0,   -- higher first; ties broken by id (UUIDv7 = FIFO)
-  depth        INTEGER NOT NULL DEFAULT 0 CHECK (depth >= 0),
-  reason       TEXT,
-  created_at   TEXT NOT NULL,
-  updated_at   TEXT NOT NULL,
-  CHECK (status IN ('pending','done') OR reason IS NOT NULL)
-) STRICT;
-CREATE INDEX ix_frontier_queue ON frontier(run_id, status, priority DESC, id);
-
 CREATE TABLE open_questions (
   id         TEXT PRIMARY KEY,
   run_id     TEXT NOT NULL REFERENCES runs(id),
@@ -138,13 +106,89 @@ CREATE TABLE rule_candidates (
   created_at   TEXT NOT NULL
 ) STRICT;
 
+-- Rebuilt by 0002_portal_workspaces: portal_id added, fingerprint uniqueness and the cluster index
+-- rescoped per portal (FR-026, FR-027).
+CREATE TABLE states (
+  id             TEXT PRIMARY KEY,
+  portal_id      TEXT NOT NULL,
+  fingerprint    TEXT NOT NULL,
+  cluster_id     TEXT NOT NULL,
+  route_template TEXT NOT NULL,
+  title          TEXT NOT NULL,
+  evidence_ref   TEXT NOT NULL CHECK (length(evidence_ref) > 0),
+  confidence     TEXT NOT NULL CHECK (confidence IN ('observed','inferred','needs_confirmation')),
+  stabilization  TEXT NOT NULL CHECK (stabilization IN ('settled','never_stabilized')),
+  first_seen_run TEXT NOT NULL REFERENCES runs(id),
+  created_at     TEXT NOT NULL
+) STRICT;
+CREATE UNIQUE INDEX ux_states_portal_fingerprint ON states(portal_id, fingerprint);
+CREATE INDEX ix_states_portal_cluster ON states(portal_id, cluster_id);
+
+-- Rebuilt by 0002_portal_workspaces: status CHECK adds 'robots_disallowed' (FR-003).
+-- Server-owned frontier: pending queue + done + skipped in one table. Visited set = state_observations + status 'done'.
+CREATE TABLE frontier (
+  id           TEXT PRIMARY KEY,
+  run_id       TEXT NOT NULL REFERENCES runs(id),
+  state_id     TEXT NOT NULL REFERENCES states(id),
+  action_id    TEXT REFERENCES actions(id),  -- null for navigate() refusals that have no extracted action
+  action_json  TEXT NOT NULL CHECK (json_valid(action_json)),
+  safety_class TEXT NOT NULL CHECK (safety_class IN ('read','mutating','destructive','external-side-effect')),
+  status       TEXT NOT NULL CHECK (status IN ('pending','done','skipped_unsafe','out_of_scope','denylisted','robots_disallowed','budget_reached','unreachable')),
+  priority     INTEGER NOT NULL DEFAULT 0,   -- higher first; ties broken by id (UUIDv7 = FIFO)
+  depth        INTEGER NOT NULL DEFAULT 0 CHECK (depth >= 0),
+  reason       TEXT,
+  created_at   TEXT NOT NULL,
+  updated_at   TEXT NOT NULL,
+  CHECK (status IN ('pending','done') OR reason IS NOT NULL)
+) STRICT;
+-- get_next_frontier_item: WHERE run_id=? AND status='pending' ORDER BY priority DESC, id; also covers run_id lookups.
+CREATE INDEX ix_frontier_queue ON frontier(run_id, status, priority DESC, id);
+
+-- Rebuilt by 0002_portal_workspaces: kind CHECK adds 'note' (FR-009), for the page's own requests to
+-- robots-disallowed URLs and other observations that did not change the run's course.
+-- FR-021 decision log (persisted in SQLite; pino also mirrors each entry to stdout).
 CREATE TABLE decision_log (
   id          TEXT PRIMARY KEY,
   run_id      TEXT NOT NULL REFERENCES runs(id),
-  kind        TEXT NOT NULL CHECK (kind IN ('skip','refuse','merge','split','warning')),
+  kind        TEXT NOT NULL CHECK (kind IN ('skip','refuse','merge','split','warning','note')),
   rule        TEXT,             -- rule/cap that applied
   reason      TEXT NOT NULL,
   subject_ref TEXT,             -- state/edge/frontier/action id concerned
   detail_json TEXT CHECK (detail_json IS NULL OR json_valid(detail_json)),
+  created_at  TEXT NOT NULL
+) STRICT;
+
+-- Added by 0002_portal_workspaces: one fetched robots.txt per host per fetch (FR-001 to FR-007). The
+-- latest row per (run_id, host) is the policy in force. evidence_ref always points at a record, even
+-- for a 404 or a failed fetch.
+CREATE TABLE robots_policies (
+  id             TEXT PRIMARY KEY,
+  run_id         TEXT NOT NULL REFERENCES runs(id),
+  host           TEXT NOT NULL,
+  source_url     TEXT NOT NULL,
+  final_url      TEXT,           -- after redirects; null when unreachable before a response
+  outcome        TEXT NOT NULL CHECK (outcome IN ('rules','no_rules','unreachable')),
+  http_status    INTEGER,        -- null on network error or timeout
+  product_token  TEXT NOT NULL,
+  group_used     TEXT,           -- the User-Agent line of the applied group ('*' or the token); null unless 'rules'
+  crawl_delay_s  REAL,           -- from the applied group; null if absent
+  ignored_lines  INTEGER NOT NULL DEFAULT 0,
+  truncated      INTEGER NOT NULL CHECK (truncated IN (0,1)),
+  content_sha256 TEXT,           -- null when there is no body
+  evidence_ref   TEXT NOT NULL CHECK (length(evidence_ref) > 0),
+  fetched_at     TEXT NOT NULL
+) STRICT;
+CREATE INDEX ix_robots_policies_run_host_fetched ON robots_policies(run_id, host, fetched_at);
+
+-- Added by 0002_portal_workspaces: operator exports and deletions (FR-028). No FK on portal_id: it
+-- must outlive a delete of that portal's runs. Never touched by portal:delete.
+CREATE TABLE portal_data_log (
+  id          TEXT PRIMARY KEY,
+  portal_id   TEXT NOT NULL,
+  environment TEXT NOT NULL,
+  action      TEXT NOT NULL CHECK (action IN ('export','delete')),
+  operator    TEXT NOT NULL,
+  counts_json TEXT NOT NULL CHECK (json_valid(counts_json)),
+  target      TEXT,             -- export directory; null for delete
   created_at  TEXT NOT NULL
 ) STRICT;

@@ -26,7 +26,7 @@ export function createBrowserRuntime(opts: BrowserRuntimeOptions = {}): Runtime 
   };
 
   return {
-    async openSession(ctx: ServerContext, run, approved) {
+    async openSession(ctx: ServerContext, run, approved, robots) {
       await closeRun(run.id); // a resumed run replaces any earlier session
       const holder: { rs?: RunState } = {};
       const session = await BrowserSession.launch({
@@ -40,6 +40,30 @@ export function createBrowserRuntime(opts: BrowserRuntimeOptions = {}): Runtime 
               .catch((err: unknown) => ctx.logger.error({ err }, 'failed to persist run stop'));
           }
         },
+        limiter: robots.limiter,
+        robots: {
+          registry: robots.registry,
+          pageRequests: robots.pageRequests,
+          templateFor: (url) => {
+            try {
+              return holder.rs ? holder.rs.routeTemplateFor(url) : new URL(url).pathname;
+            } catch {
+              return url;
+            }
+          },
+          onNote: (n) => {
+            void ctx.decisions
+              .record({
+                run_id: run.id,
+                kind: 'note',
+                rule: n.rule,
+                reason: `the page requested a robots.txt-disallowed URL (${n.action})`,
+                subject_ref: n.template,
+                detail: { url_template: n.template, action: n.action, first_url: n.url },
+              })
+              .catch((err: unknown) => ctx.logger.error({ err }, 'failed to log robots note'));
+          },
+        },
         navigationPolicy: (url) => (holder.rs ? navigationPolicy(holder.rs)(url) : null),
         onNavigationRefused: (url, refusal) => {
           void ctx.decisions
@@ -49,19 +73,24 @@ export function createBrowserRuntime(opts: BrowserRuntimeOptions = {}): Runtime 
               rule: refusal.rule,
               reason: refusal.reason,
               subject_ref: url,
-              detail: { via: 'request_gate' },
+              detail: {
+                via: 'request_gate',
+                status: refusal.status,
+                ...(refusal.policyId ? { policy_id: refusal.policyId } : {}),
+              },
             })
             .catch((err: unknown) => ctx.logger.error({ err }, 'failed to log navigation refusal'));
         },
       });
-      const rs = new RunState(run.id, session, approved.effective, approved.scope);
+      const rs = new RunState(run.id, session, approved.effective, approved.scope, robots);
       holder.rs = rs;
 
-      // Clusters are global: rebuild the fingerprint index from every recorded state's masked snapshot, in
-      // creation order, so cluster ids stay consistent across runs and restarts.
+      // Clusters are per portal (spec 002 FR-027): rebuild the fingerprint index from this portal's
+      // recorded states only, in creation order, so cluster ids stay consistent across its runs.
       const all = await ctx.db
         .selectFrom('states')
         .select(['route_template', 'evidence_ref'])
+        .where('portal_id', '=', run.portal_id)
         .orderBy('created_at')
         .orderBy('id')
         .execute();
@@ -103,6 +132,7 @@ export function createBrowserRuntime(opts: BrowserRuntimeOptions = {}): Runtime 
     navigate: (ctx, input) => navigate(ctx, runs.get(input.run_id), input),
     act: (ctx, input) => act(ctx, runs.get(input.run_id), input),
     closeRun,
+    robotsStats: (runId) => runs.get(runId)?.session.gate.robotsStats(),
     async closeAll() {
       await Promise.all([...runs.keys()].map(closeRun));
     },

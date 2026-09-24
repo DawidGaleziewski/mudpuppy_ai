@@ -53,6 +53,34 @@ export function appliedVersions(raw: BetterSqlite3.Database): string[] {
   ).map((r) => r.version);
 }
 
+/**
+ * Apply one migration's SQL in a transaction, with bookkeeping done inside the same transaction.
+ *
+ * `PRAGMA foreign_keys` is a no-op inside a transaction in SQLite, and with it ON, `DROP TABLE` of a
+ * table other tables reference by foreign key fails as if every child row were orphaned (SQLite runs
+ * FK enforcement against the implicit delete-all a DROP performs). Table-rebuild migrations (the
+ * "12 steps" CREATE-copy-DROP-RENAME dance) need it OFF for the duration. So: turn it off before the
+ * transaction starts, run the migration and a `PRAGMA foreign_key_check` inside the transaction (a
+ * plain integrity query, unaffected by the pragma's own transaction restriction) so a dangling
+ * reference aborts the whole migration instead of committing broken data, then always restore the
+ * pragma to what it was.
+ */
+function applyMigration(raw: BetterSqlite3.Database, sql: string, bookkeeping: () => void): void {
+  const wasOn = raw.pragma('foreign_keys', { simple: true }) === 1;
+  if (wasOn) raw.pragma('foreign_keys = OFF');
+  try {
+    raw.transaction(() => {
+      raw.exec(sql);
+      const violations = raw.pragma('foreign_key_check') as unknown[];
+      if (violations.length > 0)
+        throw new Error(`migration left dangling foreign keys: ${JSON.stringify(violations)}`);
+      bookkeeping();
+    })();
+  } finally {
+    if (wasOn) raw.pragma('foreign_keys = ON');
+  }
+}
+
 /** Apply every pending migration, each in its own transaction. Returns the versions applied. */
 export function migrateUp(raw: BetterSqlite3.Database, migrationsDir: string): string[] {
   const migrations = loadMigrations(migrationsDir);
@@ -64,12 +92,11 @@ export function migrateUp(raw: BetterSqlite3.Database, migrationsDir: string): s
   const applied: string[] = [];
   for (const m of migrations) {
     if (done.has(m.version)) continue;
-    raw.transaction(() => {
-      raw.exec(m.up);
+    applyMigration(raw, m.up, () => {
       raw
         .prepare('INSERT INTO schema_migrations (version, name, applied_at) VALUES (?, ?, ?)')
         .run(m.version, m.name, nowIso());
-    })();
+    });
     applied.push(m.version);
   }
   return applied;
@@ -81,9 +108,8 @@ export function migrateDown(raw: BetterSqlite3.Database, migrationsDir: string):
   if (last === undefined) return null;
   const m = loadMigrations(migrationsDir).find((x) => x.version === last);
   if (!m) throw new Error(`applied migration ${last} not found in ${migrationsDir}`);
-  raw.transaction(() => {
-    raw.exec(m.down);
+  applyMigration(raw, m.down, () => {
     raw.prepare('DELETE FROM schema_migrations WHERE version = ?').run(last);
-  })();
+  });
   return last;
 }

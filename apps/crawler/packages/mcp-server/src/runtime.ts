@@ -2,6 +2,7 @@ import type { ServerContext } from './context.js';
 import type { StartRunOutput } from './services/start-run.js';
 import type { RunRow } from './services/common.js';
 import type { PreflightResult } from '@pathfinder/crawler';
+import type { RunRobots } from './services/robots.js';
 
 /** What `navigate`/`act` return (contracts/mcp-tools.md). */
 export interface PageResult {
@@ -33,7 +34,12 @@ export interface Runtime {
     ctx: ServerContext,
     run: RunRow,
     approved: Extract<PreflightResult, { ok: true }>,
+    robots: RunRobots,
   ): Promise<void>;
+  /** Live robots counters of an open session, for `finish_run` coverage. */
+  robotsStats?(
+    runId: string,
+  ): { pageRequestsBlocked: number; pageRequestsAllowed: number } | undefined;
   navigate(ctx: ServerContext, input: { run_id: string; url: string }): Promise<PageResult>;
   act(ctx: ServerContext, input: { run_id: string; action_id: string }): Promise<PageResult>;
   /** Release the browser of a run that has ended (finished, stopped or interrupted). */

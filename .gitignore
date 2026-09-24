@@ -13,6 +13,8 @@ data/db/*
 !data/db/.gitkeep
 data/evidence/*
 !data/evidence/.gitkeep
+data/exports/*
+!data/exports/.gitkeep
 
 # SQLite side files, wherever a DB ends up
 *.sqlite

@@ -1,5 +1,5 @@
 import { minSafetyClass, type SafetyClass } from '@pathfinder/core';
-import { loadPersona } from './load-persona.js';
+import { loadPersona, type LoadPersonaOptions } from './load-persona.js';
 import { loadPortal } from './load-portal.js';
 import type { PersonaConfig } from './persona-schema.js';
 import type { PortalConfig } from './portal-schema.js';
@@ -16,9 +16,13 @@ export function portalCeiling(portal: PortalConfig): SafetyClass {
   return portal.max_action_class ?? 'read';
 }
 
-export function loadEffectiveConfig(portalPath: string, personaPath: string): EffectiveConfig {
+export function loadEffectiveConfig(
+  portalPath: string,
+  personaPath: string,
+  personaOptions: LoadPersonaOptions = {},
+): EffectiveConfig {
   const portal = loadPortal(portalPath);
-  const persona = loadPersona(personaPath);
+  const persona = loadPersona(personaPath, personaOptions);
   return {
     portal,
     persona,

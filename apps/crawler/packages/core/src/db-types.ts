@@ -7,6 +7,8 @@ import type {
 } from './schemas/common.js';
 import type { DecisionKind } from './schemas/decision-log.js';
 import type { FrontierItemStatus } from './schemas/frontier.js';
+import type { PortalDataLogAction } from './schemas/portal-data-log.js';
+import type { RobotsOutcome } from './schemas/robots-policy.js';
 
 /** Kysely table types mirroring data/schema/schema.sql. JSON columns are TEXT (stringified JSON). */
 export interface RunsTable {
@@ -33,6 +35,7 @@ export interface RunsTable {
 
 export interface StatesTable {
   id: string;
+  portal_id: string;
   fingerprint: string;
   cluster_id: string;
   route_template: string;
@@ -148,6 +151,35 @@ export interface DecisionLogTable {
   created_at: string;
 }
 
+export interface RobotsPoliciesTable {
+  id: string;
+  run_id: string;
+  host: string;
+  source_url: string;
+  final_url: string | null;
+  outcome: RobotsOutcome;
+  http_status: number | null;
+  product_token: string;
+  group_used: string | null;
+  crawl_delay_s: number | null;
+  ignored_lines: number;
+  truncated: 0 | 1;
+  content_sha256: string | null;
+  evidence_ref: string;
+  fetched_at: string;
+}
+
+export interface PortalDataLogTable {
+  id: string;
+  portal_id: string;
+  environment: string;
+  action: PortalDataLogAction;
+  operator: string;
+  counts_json: string;
+  target: string | null;
+  created_at: string;
+}
+
 export interface Database {
   runs: RunsTable;
   states: StatesTable;
@@ -160,4 +192,6 @@ export interface Database {
   open_questions: OpenQuestionsTable;
   rule_candidates: RuleCandidatesTable;
   decision_log: DecisionLogTable;
+  robots_policies: RobotsPoliciesTable;
+  portal_data_log: PortalDataLogTable;
 }

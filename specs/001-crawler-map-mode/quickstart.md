@@ -8,12 +8,14 @@ Run these after implementation, in order — later checks assume earlier ones pa
 - Node 22+, pnpm installed
 - Repo dependencies installed: `pnpm --dir apps/crawler install`, plus a browser once:
   `pnpm --dir apps/crawler exec playwright install --with-deps chromium`
-- `portals/marketsite/portal.yaml` present with `environment: production` (see
-  `contracts/config-schema.md`)
-- `personas/marketsite/guest.yaml` present (`auth: none`, `max_action_class: read`)
-- A person has confirmed the manual precondition in the spec's Assumptions (main Regulamin
-  reviewed for automated-access terms) before the *first* production run — this is not
-  something the tool can check for you
+- `portals/<portal>/portal.yaml` present with `environment: production` (see
+  `contracts/config-schema.md`); example: `portals/liveinsurer/portal.yaml` (the current practice
+  target — `marketsite` is on hold for legal reasons)
+- `personas/<portal>/guest.yaml` present (`auth: none`, `max_action_class: read`); example:
+  `personas/liveinsurer/guest.yaml`
+- A person has confirmed the manual precondition in the spec's Assumptions (main Regulamin, or
+  the equivalent terms for the configured portal, reviewed for automated-access terms) before
+  the *first* production run — this is not something the tool can check for you
 
 ## 0. Registering the crawler
 
@@ -32,9 +34,9 @@ Run these after implementation, in order — later checks assume earlier ones pa
 
 ## 2. Map run against the real target (User Story 1, SC-001–SC-003)
 
-Ask the main session: "Use the crawler subagent to map `marketsite` as `guest`". The
-subagent calls `start_run { portal_id: "marketsite", persona_id: "guest" }` and then
-explores via `navigate` / `act` / `get_next_frontier_item` until `finish_run`.
+Ask the main session: "Use the crawler subagent to map `<portal>` as `guest`" (example:
+`liveinsurer`). The subagent calls `start_run { portal_id: "<portal>", persona_id: "guest" }` and
+then explores via `navigate` / `act` / `get_next_frontier_item` until `finish_run`.
 
 - **Expect**: the run completes within the portal's configured budget (`scope.max_run_time_minutes`
   / `max_steps`), then:
@@ -73,7 +75,7 @@ explores via `navigate` / `act` / `get_next_frontier_item` until `finish_run`.
 
 ## 6. Config composition (User Story 3, SC-008)
 
-- Add a second persona file, e.g. `personas/marketsite/guest-mobile.yaml`, with
+- Add a second persona file, e.g. `personas/<portal>/guest-mobile.yaml`, with
   `extends: ["guest.yaml"]` and only a different `viewport`.
 - **Expect**: it resolves to a valid effective config with no crawler code changes, and a
   minimal invalid file (e.g. inline credential, or a circular `extends`) fails to load with an

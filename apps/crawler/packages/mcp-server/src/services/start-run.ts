@@ -7,6 +7,8 @@ import type { ServerContext } from '../context.js';
 import { ToolError, parseInput } from '../errors.js';
 import { getRun, type RunRow } from './common.js';
 import { scopeOf } from './run-budget.js';
+import { portalRuleSet, ruleSetSummary } from '@pathfinder/safety';
+import { createRunRobots, robotsSnapshot, type RunRobots } from './robots.js';
 
 const StartRunInput = z
   .object({
@@ -35,6 +37,22 @@ function remainingBudgets(run: RunRow): StartRunOutput['budgets'] {
 }
 
 /**
+ * Fetch the base host's robots.txt (FR-001, FR-004). Unreachable or 5xx refuses the run before any
+ * page opens; the other in-scope hosts are fetched on first use by the request gate.
+ */
+async function loadBaseRobots(robots: RunRobots, baseUrl: string): Promise<void> {
+  const policy = await robots.registry.ensure(baseUrl);
+  if (policy?.outcome === 'unreachable') {
+    const source = new URL('/robots.txt', baseUrl).toString();
+    throw new ToolError(
+      'ROBOTS_UNAVAILABLE',
+      `${source} could not be read (${policy.failure ?? 'unreachable'}); no page is opened until it can`,
+      { url: source },
+    );
+  }
+}
+
+/**
  * Database part of `start_run`, done AFTER `preflight` and BEFORE any browser is launched. Creates the
  * run row with the resolved `config_snapshot`, or resumes an interrupted run from persisted state
  * (FR-020) without re-recording anything. Returns what the browser session needs.
@@ -42,7 +60,7 @@ function remainingBudgets(run: RunRow): StartRunOutput['budgets'] {
 export async function startRunRecord(
   ctx: ServerContext,
   raw: unknown,
-): Promise<{ output: StartRunOutput; run: RunRow; approved: Approved }> {
+): Promise<{ output: StartRunOutput; run: RunRow; approved: Approved; robots: RunRobots }> {
   const input = parseInput(StartRunInput, raw);
 
   if (
@@ -80,6 +98,9 @@ export async function startRunRecord(
         `run ${run.id} is ${run.status}; only an interrupted run can be resumed`,
       );
     }
+    // A resumed run reads robots.txt again; a change is logged by the policy writer (FR-006).
+    const robots = createRunRobots(ctx, run.id, portal, { buffer: false });
+    await loadBaseRobots(robots, portal.base_url);
     await ctx.db
       .updateTable('runs')
       .set({ status: 'running', ended_at: null })
@@ -95,10 +116,13 @@ export async function startRunRecord(
       },
       run: resumed,
       approved: pre,
+      robots,
     };
   }
 
   const id = newId();
+  const robots = createRunRobots(ctx, id, portal, { buffer: true });
+  await loadBaseRobots(robots, portal.base_url);
   await ctx.db
     .insertInto('runs')
     .values({
@@ -117,6 +141,8 @@ export async function startRunRecord(
         persona,
         effective_max_action_class: effectiveMaxActionClass,
         scope: pre.scope,
+        robots: robotsSnapshot(robots),
+        rule_set: ruleSetSummary(portalRuleSet(portal)),
       }),
       status: 'running',
       warning: null,
@@ -128,6 +154,7 @@ export async function startRunRecord(
       coverage: null,
     })
     .execute();
+  await robots.flush();
   const run = await getRun(ctx, id);
   return {
     output: {
@@ -138,5 +165,6 @@ export async function startRunRecord(
     },
     run,
     approved: pre,
+    robots,
   };
 }

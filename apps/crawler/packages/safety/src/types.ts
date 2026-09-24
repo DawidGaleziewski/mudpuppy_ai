@@ -31,13 +31,20 @@ export interface Classification {
 }
 
 export type RefusalStatus =
-  'skipped_unsafe' | 'out_of_scope' | 'denylisted' | 'budget_reached' | 'unreachable';
+  | 'skipped_unsafe'
+  | 'out_of_scope'
+  | 'denylisted'
+  | 'robots_disallowed'
+  | 'budget_reached'
+  | 'unreachable';
 
 export interface Refusal {
   status: RefusalStatus;
   /** The rule or cap that caused the refusal (denylist id, `path:` glob, `scope:domain`, `budget:max_steps`...). */
   rule: string;
   reason: string;
+  /** The `robots_policies` row behind a `robots_disallowed` refusal. */
+  policyId?: string;
 }
 
 export type Decision = { allowed: true } | ({ allowed: false } & Refusal);

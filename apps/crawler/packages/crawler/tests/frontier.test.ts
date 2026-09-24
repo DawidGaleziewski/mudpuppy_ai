@@ -1,6 +1,7 @@
 import { fileURLToPath } from 'node:url';
 import { afterEach, describe, expect, it } from 'vitest';
 import { migrateUp, newId, nowIso, openDb, type OpenedDb } from '@pathfinder/core';
+import { builtinRuleSet } from '@pathfinder/safety';
 import { classifyCandidates, extractCandidates } from '../src/action-extractor.js';
 import type { GateContext } from '../src/action-gate.js';
 import {
@@ -52,6 +53,7 @@ async function addState(d: Awaited<ReturnType<typeof db>>, fp: string, template 
     .insertInto('states')
     .values({
       id,
+      portal_id: 'p',
       fingerprint: fp.repeat(64).slice(0, 64),
       cluster_id: 'c',
       route_template: template,
@@ -88,6 +90,8 @@ const gate = (over: Partial<GateContext> = {}): GateContext => ({
     max_steps: 2000,
   },
   denylist: ['bidding', 'buy_now', 'logout', 'reveal_seller_contact'],
+  rules: builtinRuleSet(),
+  robots: { check: () => ({ state: 'allowed', rule: null }) },
   effectiveMaxActionClass: 'read',
   usage: { depth: 1, states: 0, actionsInState: 0, elapsedMs: 0, steps: 0 },
   ...over,
@@ -169,7 +173,7 @@ describe('enqueueActions + report', () => {
   ].join('\n');
 
   async function enqueue(d: Awaited<ReturnType<typeof db>>, stateId: string, g = gate()) {
-    const actions = classifyCandidates(extractCandidates(snap)).map((a) => ({
+    const actions = classifyCandidates(extractCandidates(snap), builtinRuleSet()).map((a) => ({
       ...a,
       actionId: newId(),
       actionJson: { role: a.role, accessible_name: a.name },
@@ -220,7 +224,7 @@ describe('enqueueActions + report', () => {
         .filter((x) => x.status === 'denylisted')
         .map((x) => x.reason?.split(':')[0])
         .sort(),
-    ).toEqual(['bidding', 'logout', 'reveal_seller_contact']);
+    ).toEqual(['bidding→purchase', 'logout', 'reveal_seller_contact→reveal_contact']);
     expect(rows.find((x) => x.status === 'out_of_scope')!.reason).toContain('scope:domain');
     expect(rows.find((x) => x.status === 'skipped_unsafe')!.reason).toContain('ceiling:read');
     expect(rows.every((x) => x.status === 'pending' || x.status === 'done' || !!x.reason)).toBe(

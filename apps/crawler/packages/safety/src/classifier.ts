@@ -1,5 +1,6 @@
 import { maxSafetyClass, type SafetyClass } from '@pathfinder/core';
-import { ACTION_RULES, LINK_ROLES, READ_KEYWORDS, READ_ROLES, normalize } from './rules.js';
+import { LINK_ROLES, READ_KEYWORDS, READ_ROLES, normalize } from './rules.js';
+import { builtinRuleSet, type RuleSet } from './rule-set.js';
 import type { ActionDescriptor, Classification } from './types.js';
 
 const SAFE_METHODS = new Set(['GET', 'HEAD']);
@@ -22,12 +23,12 @@ function fromMethod(method: string | undefined): { cls: SafetyClass; reason: str
 }
 
 /** Path signals only (built-in PL/EN patterns). Used for `navigate` and for hrefs / form targets. */
-export function classifyUrl(url: string): Classification {
+export function classifyUrl(url: string, ruleSet: RuleSet = builtinRuleSet()): Classification {
   const path = normalize(decodeURIComponentSafe(pathOf(url)));
   let cls: SafetyClass = 'read';
   const rules: string[] = [];
   const reasons: string[] = [];
-  for (const rule of ACTION_RULES) {
+  for (const rule of ruleSet.rules) {
     if (rule.paths.some((p) => p.test(path))) {
       cls = maxSafetyClass(cls, rule.safetyClass);
       rules.push(rule.id);
@@ -50,7 +51,10 @@ function decodeURIComponentSafe(s: string): string {
  * only ever the result of positive evidence; unknown controls resolve to non-read. A class claimed
  * by a persona or the agent can raise the result but never lower it.
  */
-export function classifyAction(d: ActionDescriptor): Classification {
+export function classifyAction(
+  d: ActionDescriptor,
+  ruleSet: RuleSet = builtinRuleSet(),
+): Classification {
   let cls: SafetyClass = 'read';
   const rules: string[] = [];
   const reasons: string[] = [];
@@ -61,16 +65,16 @@ export function classifyAction(d: ActionDescriptor): Classification {
   };
 
   const text = normalize([d.name, d.text].filter((s): s is string => !!s).join(' '));
-  for (const rule of ACTION_RULES) {
+  for (const rule of ruleSet.rules) {
     if (rule.keywords.some((k) => k.test(text)))
       raise(rule.safetyClass, rule.id, `label matches ${rule.id}`);
   }
 
   for (const url of [d.href, d.form?.action]) {
     if (url === undefined) continue;
-    const u = classifyUrl(url);
+    const u = classifyUrl(url, ruleSet);
     for (const r of u.rules) {
-      const rule = ACTION_RULES.find((x) => x.id === r)!;
+      const rule = ruleSet.get(r)!;
       raise(rule.safetyClass, r, `target url matches ${r}`);
     }
   }

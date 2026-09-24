@@ -1,5 +1,19 @@
 import { describe, expect, it } from 'vitest';
+import { builtinRuleSet } from '@pathfinder/safety';
 import { decide, type GateContext } from '../src/action-gate.js';
+import type { RobotsCheck } from '../src/robots-registry.js';
+
+/** A robots stub: refuses URLs containing `cHash` or under `/quote/`, `unknown` for other hosts. */
+const robots = {
+  check(url: string): RobotsCheck {
+    if (!url.startsWith('https://marketsite.example')) return { state: 'unknown' };
+    if (url.includes('cHash'))
+      return { state: 'refused', rule: 'robots:Disallow: *cHash*', policyId: 'p1' };
+    if (url.includes('/quote/'))
+      return { state: 'refused', rule: 'robots:Disallow: /quote/', policyId: 'p1' };
+    return { state: 'allowed', rule: null };
+  },
+};
 
 const ctx = (over: Partial<GateContext> = {}): GateContext => ({
   scope: {
@@ -13,6 +27,8 @@ const ctx = (over: Partial<GateContext> = {}): GateContext => ({
     max_steps: 2000,
   },
   denylist: ['logout', 'payment', 'bidding', 'buy_now', 'path:/oferty/wystaw/*'],
+  rules: builtinRuleSet(),
+  robots,
   effectiveMaxActionClass: 'read',
   usage: { depth: 1, states: 0, actionsInState: 0, elapsedMs: 0, steps: 0 },
   ...over,
@@ -37,7 +53,7 @@ describe('action gate', () => {
       { kind: 'act', currentUrl: here, descriptor: { role: 'button', name: 'Kup teraz' } },
       ctx(),
     );
-    expect(r).toMatchObject({ allowed: false, status: 'denylisted', rule: 'buy_now' });
+    expect(r).toMatchObject({ allowed: false, status: 'denylisted', rule: 'bidding→purchase' });
   });
 
   it('refuses a mutating action above the ceiling as skipped_unsafe', () => {
@@ -116,5 +132,53 @@ describe('action gate', () => {
   it('returns the classification so callers can record it', () => {
     const r = decide({ kind: 'navigate', url: 'https://marketsite.example/oferty' }, ctx());
     expect(r.classification.safetyClass).toBe('read');
+  });
+
+  it('refuses a robots-disallowed link as robots_disallowed with the robots rule (FR-003)', () => {
+    const r = decide(
+      {
+        kind: 'act',
+        currentUrl: here,
+        descriptor: {
+          role: 'link',
+          name: 'Formularze',
+          href: '/oferty/?itm_campaign=x&cHash=02e3',
+        },
+      },
+      ctx(),
+    );
+    expect(r).toMatchObject({
+      allowed: false,
+      status: 'robots_disallowed',
+      rule: 'robots:Disallow: *cHash*',
+      policyId: 'p1',
+    });
+  });
+
+  it('treats a direct navigate URL exactly like a link (US1 scenario 7)', () => {
+    const r = decide({ kind: 'navigate', url: 'https://marketsite.example/oferty/quote/x' }, ctx());
+    expect(r).toMatchObject({
+      allowed: false,
+      status: 'robots_disallowed',
+      rule: 'robots:Disallow: /quote/',
+    });
+  });
+
+  it('checks robots after scope and before the denylist', () => {
+    const outOfScope = decide(
+      { kind: 'navigate', url: 'https://marketsite.example/quote/x' },
+      ctx({ scope: { ...ctx().scope, allowed_paths: ['/oferty/*'] } }),
+    );
+    expect(outOfScope).toMatchObject({ status: 'out_of_scope' });
+    const both = decide(
+      { kind: 'navigate', url: 'https://marketsite.example/oferty/quote/x' },
+      ctx({ denylist: ['path:/oferty/quote/*'] }),
+    );
+    expect(both).toMatchObject({ status: 'robots_disallowed' });
+  });
+
+  it('lets an unknown robots verdict through to the later checks (the request gate decides)', () => {
+    const r = decide({ kind: 'navigate', url: 'https://m.marketsite.example/oferty' }, ctx());
+    expect(r).toMatchObject({ allowed: true });
   });
 });

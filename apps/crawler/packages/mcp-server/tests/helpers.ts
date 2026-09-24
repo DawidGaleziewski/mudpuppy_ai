@@ -39,6 +39,8 @@ export async function makeCtx(): Promise<ServerContext & { dir: string; opened: 
     logger,
     root: dir,
     dbEnvironment: 'production',
+    // No test reaches the network: robots.txt answers 404 (no rules) unless a test overrides it.
+    fetch: (async () => new Response('', { status: 404 })) as typeof fetch,
     dir,
     opened,
   };
@@ -51,6 +53,7 @@ export async function seedRun(
     status: 'running' | 'completed' | 'stopped_warning' | 'interrupted';
     warning: string | null;
     scope: object;
+    portal: string;
   }> = {},
 ): Promise<string> {
   const id = newId();
@@ -58,7 +61,7 @@ export async function seedRun(
     .insertInto('runs')
     .values({
       id,
-      portal_id: 'shop',
+      portal_id: over.portal ?? 'shop',
       persona_id: 'guest',
       mode: 'map',
       environment: over.environment ?? 'production',

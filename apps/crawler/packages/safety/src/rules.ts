@@ -3,8 +3,8 @@ import type { SafetyClass } from '@pathfinder/core';
 /**
  * Keywords and path patterns are data, not special-cased logic. Text is matched after
  * {@link normalize} (lower-case, diacritics stripped, `ł`→`l`), so patterns are written without
- * Polish diacritics. Rule ids that are denylist ids (see `DENYLIST_RULE_IDS` in `config`) can be
- * listed in a portal's `denylist`.
+ * Polish diacritics. Rule ids that are denylist ids (see `BUILTIN_RULE_CLASSES` in `config`) can be
+ * listed in a portal's `denylist`, as can their aliases (`RULE_ALIASES`).
  */
 export interface ActionRule {
   id: string;
@@ -13,6 +13,8 @@ export interface ActionRule {
   keywords: RegExp[];
   /** Matched against the normalized URL path (PL + EN). */
   paths: RegExp[];
+  /** Where the rule comes from; built-in when absent (spec 002 config snapshot). */
+  origin?: 'builtin' | 'portal' | 'builtin+portal';
 }
 
 export const ACTION_RULES: readonly ActionRule[] = [
@@ -43,7 +45,8 @@ export const ACTION_RULES: readonly ActionRule[] = [
     paths: [/\/platnos/, /\/zaplac/, /\/payment/, /\/checkout/, /\/zamowieni/, /\/pay\b/],
   },
   {
-    id: 'bidding',
+    // Generic (spec 002 FR-012): buy now, bid, order, buy a policy or ticket. Aliases: bidding, buy_now.
+    id: 'purchase',
     safetyClass: 'external-side-effect',
     keywords: [
       /\blicytuj/,
@@ -52,17 +55,19 @@ export const ACTION_RULES: readonly ActionRule[] = [
       /\bbid\b/,
       /\bzaproponuj cene\b/,
       /\bmake (an )?offer\b/,
+      /\bkup teraz\b/,
+      /\bkup\b/,
+      /\bkup polise\b/,
+      /\bkup bilet\b/,
+      /\bbuy now\b/,
+      /\bbuy\b/,
+      /\bbuy (a )?(policy|ticket)\b/,
     ],
-    paths: [/\/licytuj/, /\/licytacj/, /\/bid\b/],
+    paths: [/\/licytuj/, /\/licytacj/, /\/bid\b/, /\/kup-teraz/, /\/kup\b/, /\/buy-now/, /\/buy\b/],
   },
   {
-    id: 'buy_now',
-    safetyClass: 'external-side-effect',
-    keywords: [/\bkup teraz\b/, /\bkup\b/, /\bbuy now\b/, /\bbuy\b/],
-    paths: [/\/kup-teraz/, /\/kup\b/, /\/buy-now/, /\/buy\b/],
-  },
-  {
-    id: 'message_or_contact_seller',
+    // Generic: send a message, contact form, ask a question. Alias: message_or_contact_seller.
+    id: 'contact_or_message',
     safetyClass: 'external-side-effect',
     keywords: [
       /\bnapisz do sprzedawcy\b/,
@@ -74,11 +79,14 @@ export const ACTION_RULES: readonly ActionRule[] = [
       /\bwyslij wiadomosc\b/,
       /\bsend\b/,
       /\bzadaj pytanie\b/,
+      /\bsend (a )?message\b/,
+      /\bask a question\b/,
     ],
     paths: [/\/wiadomosci\/nowa/, /\/messages\/new/, /\/napisz\b/, /\/kontakt-ze-sprzedawca/],
   },
   {
-    id: 'reveal_seller_contact',
+    // Generic: show a phone number or address. Alias: reveal_seller_contact.
+    id: 'reveal_contact',
     safetyClass: 'external-side-effect',
     keywords: [
       /\bpokaz (numer|telefon|kontakt)/,
@@ -88,6 +96,24 @@ export const ACTION_RULES: readonly ActionRule[] = [
       /\bwyswietl numer\b/,
     ],
     paths: [/\/pokaz-numer/, /\/show-phone/, /\/reveal-contact/],
+  },
+  {
+    // Generic: quote requests, applications, sign-ups, callbacks, newsletter sign-ups (spec 002).
+    id: 'submit_request',
+    safetyClass: 'external-side-effect',
+    keywords: [
+      /\bwyslij zapytanie\b/,
+      /\bpopros o oferte\b/,
+      /\bzamow rozmowe\b/,
+      /\bzamow kontakt\b/,
+      /\bzapisz sie\b/,
+      /\baplikuj\b/,
+      /\brequest a (quote|callback)\b/,
+      /\bsign me up\b/,
+      /\bsubscribe\b/,
+      /\bapply (now|for)\b/,
+    ],
+    paths: [/\/zapytanie\b/, /\/request-a-quote/, /\/newsletter\/(zapisz|subscribe)/],
   },
   {
     id: 'mutating:favourite',

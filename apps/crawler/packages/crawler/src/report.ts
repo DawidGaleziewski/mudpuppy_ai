@@ -142,6 +142,7 @@ const REASON_LABEL: Record<string, string> = {
   skipped_unsafe: 'not read-only',
   out_of_scope: 'out of scope',
   denylisted: 'denylisted',
+  robots_disallowed: 'disallowed by robots.txt',
   budget_reached: 'budget reached',
   unreachable: 'unreachable',
 };

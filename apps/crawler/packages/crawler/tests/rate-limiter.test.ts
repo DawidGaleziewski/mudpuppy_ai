@@ -94,4 +94,22 @@ describe('rate limiter', () => {
     expect(() => createRateLimiter({ requestsPerSecond: 0, maxConcurrency: 1 })).toThrow();
     expect(() => createRateLimiter({ requestsPerSecond: 1, maxConcurrency: 0 })).toThrow();
   });
+
+  it('slowTo lowers the rate and never raises it (FR-007)', async () => {
+    const c = clock();
+    const l = createRateLimiter({ requestsPerSecond: 2, maxConcurrency: 10, ...c });
+    const times: number[] = [];
+    const take = async () => {
+      const r = await l.acquire();
+      times.push(c.now());
+      r();
+    };
+    await take(); // 0
+    l.slowTo(1); // 1000 ms spacing from now on
+    await take();
+    l.slowTo(10); // faster: ignored
+    await take();
+    expect(times).toEqual([0, 1000, 2000]);
+    expect(l.requestsPerSecond).toBe(1);
+  });
 });

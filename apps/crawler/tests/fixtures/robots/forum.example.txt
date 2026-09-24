@@ -1,0 +1,13 @@
+User-agent: facebookexternalhit
+Allow: /
+Disallow: /api/
+
+User-agent: Facebot
+Allow: /
+Disallow: /api/
+
+User-agent: *
+Allow: /
+Disallow: /api/
+
+Sitemap: https://forum.example/sitemap.xml

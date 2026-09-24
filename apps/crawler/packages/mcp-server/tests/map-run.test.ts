@@ -58,6 +58,7 @@ type Body = Record<string, any>; // eslint-disable-line @typescript-eslint/no-ex
 async function setup(files: { portal?: string } = {}) {
   const ctx = await makeCtx();
   ctx.dbEnvironment = 'sandbox';
+  ctx.fetch = fetch; // the mock portal serves its own robots.txt on localhost
   const put = (rel: string, c: string) => {
     mkdirSync(dirname(join(ctx.root, rel)), { recursive: true });
     writeFileSync(join(ctx.root, rel), c);
@@ -199,7 +200,7 @@ describe.skipIf(!available)('map run against the mock portal', () => {
       const r = await call('act', { run_id: runId, action_id: bid.action_id });
       expect(r).toMatchObject({
         isError: true,
-        body: { error: { code: 'ACTION_REFUSED', rule: 'bidding' } },
+        body: { error: { code: 'ACTION_REFUSED', rule: 'bidding→purchase' } },
       });
     } finally {
       await cleanup();
@@ -470,7 +471,15 @@ describe.skipIf(!available)('map run against the mock portal', () => {
     for (const f of files) {
       const text = readFileSync(f, 'utf8')
         .replace(/\/\*[\s\S]*?\*\//g, '')
-        .replace(/\/\/.*$/gm, '');
+        .replace(/\/\/.*$/gm, '')
+        // Spec 002 exceptions, both deliberate: the request gate fetches the browser's own main-frame
+        // navigation without following redirects (FR-003), and the robots registry reads only
+        // `/robots.txt` (FR-001). Neither calls the operator's APIs.
+        .replace(/\(route as Route\)\.fetch\(/g, '');
+      if (f.endsWith('robots-registry.ts')) {
+        expect(text).toMatch(/`\$\{origin\}\/robots\.txt`/);
+        continue;
+      }
       for (const re of forbidden) expect(text, `${f} matches ${re}`).not.toMatch(re);
     }
     expect(files.length).toBeGreaterThan(10);

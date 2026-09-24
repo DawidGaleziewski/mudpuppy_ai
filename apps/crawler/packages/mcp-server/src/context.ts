@@ -11,4 +11,6 @@ export interface ServerContext {
   root: string;
   /** Environment whose database file this server records into (`data/db/<env>.sqlite`). */
   dbEnvironment: string;
+  /** Used only for robots.txt (spec 002 FR-001); injectable so tests never reach the network. */
+  fetch?: typeof fetch;
 }

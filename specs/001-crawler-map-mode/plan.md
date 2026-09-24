@@ -1,4 +1,4 @@
-# Implementation Plan: Crawler Map Mode (MarketSite MVP)
+# Implementation Plan: Crawler Map Mode
 
 **Branch**: `001-crawler-map-mode` | **Date**: 2026-09-21 | **Spec**: [spec.md](./spec.md)
 
@@ -7,8 +7,9 @@
 ## Summary
 
 Build the Crawler's `map` mode: a single LLM + Playwright agent, implemented as the Claude
-Code subagent `.claude/agents/crawler.md`, that explores `marketsite.example` as an anonymous
-guest, executing only read-only actions, and records observed states, transitions, forms and
+Code subagent `.claude/agents/crawler.md`, that explores a configured portal (example:
+`liveinsurer.example`; `marketsite.example` is on hold for legal reasons) as an anonymous guest, executing
+only read-only actions, and records observed states, transitions, forms and
 API calls with evidence and a confidence label. The subagent's only tools are those of our
 `pathfinder` MCP server, which owns the sole Playwright instance and the DB: the agent
 proposes where to go, the server classifies, executes, observes, fingerprints and records. The
@@ -58,9 +59,10 @@ without the `environment: production` flag (SC-006), stopped within one detectio
 CAPTCHA/block with no bypass attempt (FR-008, SC-007), and MUST cap item-listing view visits
 (FR-024) and total states/depth/time/steps (FR-007)
 
-**Scale/Scope**: One portal (MarketSite), one persona (anonymous guest), single `map`
-run per invocation; `trace` mode and additional personas are out of scope but MUST NOT
-require record-format or config-format changes later (FR-022)
+**Scale/Scope**: One configured portal (example: `liveinsurer`; `marketsite` on hold for legal
+reasons), one persona (anonymous guest), single `map` run per invocation; `trace` mode and
+additional personas are out of scope but MUST NOT require record-format or config-format
+changes later (FR-022)
 
 ## Constitution Check
 
@@ -119,12 +121,12 @@ apps/crawler/packages/
 .mcp.json            # registers the `pathfinder` MCP server
 
 portals/
-└── marketsite/
-    └── portal.yaml
+└── <portal>/             # per-portal config; example: liveinsurer/ (practice target),
+    └── portal.yaml       #   marketsite/ (on hold for legal reasons)
 
 personas/
 ├── _mixins/
-└── marketsite/
+└── <portal>/              # example: liveinsurer/, marketsite/
     └── guest.yaml
 
 data/                 # owned by the db-admin subagent — see data/README.md

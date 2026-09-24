@@ -1,0 +1,16 @@
+User-agent: *
+
+Disallow: *no_cache*
+Disallow: *debug*
+Disallow: /*?id=*
+Disallow: *cHash*
+Allow: /sitemap.xml*cHash*
+
+Disallow: /*.pdf
+Allow: /dokumenty/*.pdf
+Disallow: /dokumenty/archiwum/*.pdf
+Disallow: /quote/
+Allow: /quote/data*
+Allow: /quote/start*
+
+Sitemap: https://www.liveinsurer.example/sitemap.xml

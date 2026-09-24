@@ -76,8 +76,8 @@ export function registerTools(server: McpServer, ctx: ServerContext, runtime: Ru
     'Start (or resume with resume_run_id) a read-only mapping run. Validates config and the production guard before any browser opens.',
     { portal_id: z.string(), persona_id: z.string(), resume_run_id: z.string().optional() },
     async (args) => {
-      const { output, run, approved } = await startRunRecord(ctx, args);
-      await runtime.openSession(ctx, run, approved);
+      const { output, run, approved, robots } = await startRunRecord(ctx, args);
+      await runtime.openSession(ctx, run, approved, robots);
       return output;
     },
   );
@@ -122,7 +122,7 @@ export function registerTools(server: McpServer, ctx: ServerContext, runtime: Ru
     'Request completion; succeeds only when the frontier is empty or a budget is exhausted.',
     { run_id: z.string(), summary: z.string().optional() },
     async (a) => {
-      const out = await finishRun(ctx, a);
+      const out = await finishRun(ctx, a, runtime.robotsStats?.(a.run_id));
       await runtime.closeRun?.(a.run_id);
       return out;
     },

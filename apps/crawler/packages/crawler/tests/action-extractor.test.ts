@@ -1,5 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
+import { builtinRuleSet } from '@pathfinder/safety';
 import { attachLocators, classifyCandidates, extractCandidates } from '../src/action-extractor.js';
 
 const aria = (n: string) =>
@@ -60,6 +61,7 @@ describe('extractCandidates', () => {
           fields: [],
         },
       ]),
+      builtinRuleSet(),
     );
     expect(withDom[0]!.safetyClass).toBe('mutating');
   });
@@ -85,7 +87,10 @@ describe('classifyCandidates', () => {
       '        - /url: /wyloguj',
     ].join('\n');
     const r = Object.fromEntries(
-      classifyCandidates(extractCandidates(snap)).map((c) => [c.name, c.safetyClass]),
+      classifyCandidates(extractCandidates(snap), builtinRuleSet()).map((c) => [
+        c.name,
+        c.safetyClass,
+      ]),
     );
     expect(r).toEqual({
       Elektronika: 'read',

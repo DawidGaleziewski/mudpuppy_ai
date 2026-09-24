@@ -9,8 +9,18 @@ export interface PiiFinding {
   kinds: string[];
 }
 
+/**
+ * Our own identifiers: evidence refs (`<sha256>.<ext>`), state fingerprints (bare sha256) and record
+ * ids (UUIDs, e.g. a decision's `subject_ref`).
+ */
+const OWN_IDS =
+  /\b(?:[0-9a-f]{64}(?:\.[a-z0-9]{1,8})?|[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})\b/g;
+
 /** Which kinds of PII `maskText` would have masked in `text`, without returning the values. */
-function kindsIn(text: string): string[] {
+function kindsIn(raw: string): string[] {
+  // Our own hashes and ids (an edge's `snapshot_ref`, a merge decision's fingerprint, a frontier
+  // id) are not tokens from the portal; without this they match the long-token pattern.
+  const text = raw.replace(OWN_IDS, '');
   const masked = maskText(text);
   if (masked === text) return [];
   const kinds = new Set<string>();

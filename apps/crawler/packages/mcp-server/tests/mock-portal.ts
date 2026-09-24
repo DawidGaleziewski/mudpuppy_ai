@@ -1,5 +1,6 @@
 import { createServer, type IncomingMessage, type Server } from 'node:http';
 import type { AddressInfo } from 'node:net';
+import { SHARED_COOKIE_PAGE } from './shared-pages.js';
 
 export interface LoggedRequest {
   method: string;
@@ -64,6 +65,12 @@ export async function startMockPortal(): Promise<MockPortal> {
       res.end(JSON.stringify(o));
     };
     const p = url.pathname;
+    if (p === '/robots.txt') {
+      // Disallows nothing the spec 001 checks visit, so the robots `rules` path runs on every map run.
+      res.setHeader('content-type', 'text/plain');
+      return void res.end('User-agent: *\nDisallow: /admin/\n');
+    }
+    if (p === '/cookies') return html(SHARED_COOKIE_PAGE);
     if (p === '/')
       return html(layout('Start', '<h1>Witamy</h1><p>Zobacz <a href="/oferty">oferty</a>.</p>'));
     if (p === '/oferty')

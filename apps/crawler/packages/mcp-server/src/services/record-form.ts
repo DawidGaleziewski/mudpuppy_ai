@@ -29,13 +29,18 @@ export const RecordFormInput = z
 export async function recordForm(ctx: ServerContext, raw: unknown): Promise<{ form_id: string }> {
   requireEvidenceAndConfidence(raw);
   const input = parseInput(RecordFormInput, raw);
-  await getRun(ctx, input.run_id);
+  const run = await getRun(ctx, input.run_id);
   const state = await ctx.db
     .selectFrom('states')
     .select('id')
     .where('id', '=', input.state_id)
+    .where('portal_id', '=', run.portal_id)
     .executeTakeFirst();
-  if (!state) throw new ToolError('UNKNOWN_REF', `state ${input.state_id} does not exist`);
+  if (!state)
+    throw new ToolError(
+      'UNKNOWN_REF',
+      `state ${input.state_id} is not a state of portal ${run.portal_id}`,
+    );
   const id = newId();
   await ctx.db
     .insertInto('forms')

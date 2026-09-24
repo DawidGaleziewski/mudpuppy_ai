@@ -13,6 +13,7 @@ export const FrontierStatus = z.enum([
   'skipped_unsafe',
   'out_of_scope',
   'denylisted',
+  'robots_disallowed',
   'budget_reached',
   'unreachable',
 ]);

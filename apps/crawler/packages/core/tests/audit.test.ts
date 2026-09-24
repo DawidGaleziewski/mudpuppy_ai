@@ -62,6 +62,7 @@ async function seed() {
         .insertInto('states')
         .values({
           id,
+          portal_id: 'p',
           fingerprint: fp.repeat(64),
           cluster_id: 'c',
           route_template: tpl,
@@ -114,6 +115,26 @@ describe('auditPii', () => {
     expect(byWhere['evidence/leak.yaml']).toEqual(expect.arrayContaining(['email', 'phone']));
     expect(byWhere['states.title']).toContain('name');
     expect(JSON.stringify(r)).not.toMatch(/anna@example|601 234|Kowalski/);
+  });
+
+  it('does not flag our own evidence references, but still flags a real token next to one', async () => {
+    const { db, run, state } = await seed();
+    dir = mkdtempSync(join(tmpdir(), 'pf-audit-'));
+    const ref = `${'ab12'.repeat(16)}.yaml`;
+    writeFileSync(join(dir, 'e.json'), JSON.stringify({ snapshot_ref: ref }));
+    await state(
+      await run(),
+      'c',
+      '/x',
+      `Snapshot ${ref} of ${'cd34'.repeat(16)}, item 01a0d72d-f62e-7003-80d7-4c52c1848616`,
+    );
+    expect((await auditPii({ evidenceDir: dir, db })).findings).toEqual([]);
+    writeFileSync(
+      join(dir, 'f.json'),
+      JSON.stringify({ snapshot_ref: ref, t: 'Qm7vR2xK9pL4wT8nZ3cH6yB1dF5gJ0sA' }),
+    );
+    const r = await auditPii({ evidenceDir: dir });
+    expect(r.findings.map((f) => f.kinds)).toEqual([['token']]);
   });
 
   it('tolerates a missing evidence directory', async () => {

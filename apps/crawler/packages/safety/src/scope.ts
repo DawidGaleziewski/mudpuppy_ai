@@ -14,7 +14,8 @@ export function matchesGlob(glob: string, path: string): boolean {
   return globToRegExp(glob).test(path);
 }
 
-function domainAllowed(host: string, allowed: readonly string[]): boolean {
+/** `host` equals an allowed domain or is a subdomain of one. */
+export function domainAllowed(host: string, allowed: readonly string[]): boolean {
   const h = host.toLowerCase();
   return allowed.some((d) => {
     const a = d.toLowerCase();

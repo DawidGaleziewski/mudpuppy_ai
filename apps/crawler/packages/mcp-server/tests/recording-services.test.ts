@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { ToolError, recordForm, recordState } from '../src/index.js';
+import { ToolError, recordForm, recordState, recordTransition } from '../src/index.js';
 import { FP, REF, makeCtx, seedRun } from './helpers.js';
 
 const state = (run_id: string, over: Record<string, unknown> = {}) => ({
@@ -142,5 +142,62 @@ describe('record_form', () => {
           .fields_json,
       ),
     ).toEqual([{ name: 'email', type: 'email', required: true }]);
+  });
+});
+
+describe('portal workspaces (spec 002 FR-026, FR-027)', () => {
+  it('keeps one state per portal for the same fingerprint, each with its portal', async () => {
+    const ctx = await makeCtx();
+    const shop = await seedRun(ctx, { portal: 'shop' });
+    const insurer = await seedRun(ctx, { portal: 'insurer' });
+    const a = await recordState(ctx, state(shop));
+    const b = await recordState(ctx, state(insurer));
+    const again = await recordState(ctx, state(insurer));
+    expect(a.created && b.created).toBe(true);
+    expect(b.state_id).not.toBe(a.state_id);
+    expect(again).toEqual({ state_id: b.state_id, created: false });
+    const rows = await ctx.db.selectFrom('states').select(['id', 'portal_id']).execute();
+    expect(Object.fromEntries(rows.map((r) => [r.id, r.portal_id]))).toEqual({
+      [a.state_id]: 'shop',
+      [b.state_id]: 'insurer',
+    });
+  });
+
+  it('refuses a form or transition that points at another portal state', async () => {
+    const ctx = await makeCtx();
+    const shop = await seedRun(ctx, { portal: 'shop' });
+    const insurer = await seedRun(ctx, { portal: 'insurer' });
+    const foreign = await recordState(ctx, state(shop));
+    const own = await recordState(ctx, state(insurer, { fingerprint: FP('b') }));
+    expect(
+      await code(
+        recordForm(ctx, {
+          run_id: insurer,
+          state_id: foreign.state_id,
+          fields: [{ name: 'q', type: 'text', required: false }],
+          evidence_ref: REF,
+          confidence: 'observed',
+        }),
+      ),
+    ).toBe('UNKNOWN_REF');
+    expect(
+      await code(
+        recordTransition(ctx, {
+          run_id: insurer,
+          from_state: own.state_id,
+          to_state: foreign.state_id,
+          action: {
+            role: 'link',
+            accessible_name: 'x',
+            href: '/x',
+            locators: [{ kind: 'role', value: 'role=link[name="x"]', rank: 0 }],
+          },
+          safety_class: 'read',
+          status: 'executed',
+          evidence_ref: REF,
+          confidence: 'observed',
+        }),
+      ),
+    ).toBe('UNKNOWN_REF');
   });
 });

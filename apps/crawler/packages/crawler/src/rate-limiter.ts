@@ -19,6 +19,9 @@ export interface RateLimiter {
   /** Permanently deny further permits (a block was detected — SC-007). Waiting acquirers are rejected. */
   halt(): void;
   readonly halted: boolean;
+  /** Lower the rate (robots `Crawl-delay`, FR-007); a faster value is ignored. */
+  slowTo(requestsPerSecond: number): void;
+  readonly requestsPerSecond: number;
 }
 
 /**
@@ -30,7 +33,8 @@ export function createRateLimiter(opts: RateLimiterOptions): RateLimiter {
   if (!(opts.maxConcurrency >= 1)) throw new Error('maxConcurrency must be >= 1');
   const now = opts.now ?? Date.now;
   const sleep = opts.sleep ?? ((ms: number) => new Promise<void>((r) => setTimeout(r, ms)));
-  const interval = 1000 / opts.requestsPerSecond;
+  let rps = opts.requestsPerSecond;
+  let interval = 1000 / rps;
 
   let halted = false;
   let inFlight = 0;
@@ -58,6 +62,17 @@ export function createRateLimiter(opts: RateLimiterOptions): RateLimiter {
   return {
     get halted() {
       return halted;
+    },
+    get requestsPerSecond() {
+      return rps;
+    },
+    slowTo(next: number) {
+      if (next > 0 && next < rps) {
+        const slower = 1000 / next;
+        if (nextAt > 0) nextAt += slower - interval; // the slot already booked moves back too
+        rps = next;
+        interval = slower;
+      }
     },
     halt() {
       halted = true;
