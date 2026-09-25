@@ -1,0 +1,56 @@
+{% import "partials/macros.html" as m %}
+{% set v = section %}
+{% call m.region("actions", v.self_url, "Actions") %}
+  <div class="section-head">
+    <div>
+      <h2>Actions extracted <span class="muted mono-num">{{ v.page.total }}</span></h2>
+      <ul class="chips" aria-label="Actions by safety class">
+        {%- for (cls, ok), n in v.counts.items() %}
+        <li>{{ m.safety(cls) }} · {{ "allowed" if ok else "skipped" }} <span class="mono-num">{{ n }}</span></li>
+        {%- endfor %}
+      </ul>
+    </div>
+    {% call m.filter_form(v, c, {"tab": "actions"}) %}
+      <label class="field"><span>safety class</span>
+        <select class="select" name="safety_class">
+          <option value="" {% if not v.filters.safety_class %}selected{% endif %}>any</option>
+          {%- for sc in SAFETY_CLASSES %}<option value="{{ sc }}" {% if v.filters.safety_class == sc %}selected{% endif %}>{{ sc }}</option>{% endfor %}
+        </select>
+      </label>
+      <label class="field"><span>decision</span>
+        <select class="select" name="allowed">
+          <option value="" {% if not v.filters.allowed %}selected{% endif %}>any</option>
+          <option value="1" {% if v.filters.allowed == "1" %}selected{% endif %}>allowed</option>
+          <option value="0" {% if v.filters.allowed == "0" %}selected{% endif %}>skipped</option>
+        </select>
+      </label>
+    {% endcall %}
+  </div>
+  {%- if not v.page["items"] %}
+    {{ m.empty("No actions" ~ (" match these filters" if v.filters.safety_class or v.filters.allowed else " extracted in this run"),
+               "Actions are the controls the crawler found on each state, classified before anything is clicked.") }}
+  {%- else %}
+  <div class="table-wrap">
+    <table class="data stack">
+      <caption class="visually-hidden">Actions extracted in this run</caption>
+      <thead><tr>
+        <th scope="col">Accessible name</th><th scope="col">Role</th><th scope="col">Safety class</th>
+        <th scope="col">Decision</th><th scope="col">Top locator</th><th scope="col">Target</th>
+      </tr></thead>
+      <tbody>
+        {%- for a in v.page["items"] %}
+        <tr>
+          <td>{{ a.accessible_name or "—" }}</td>
+          <td data-label="role">{{ a.role }}</td>
+          <td data-label="safety">{{ m.safety(a.safety_class) }}</td>
+          <td data-label="decision">{{ m.allowed(a.allowed) }}{% if a.skip_reason %}<div class="muted">{{ a.skip_reason }}</div>{% endif %}</td>
+          <td data-label="locator"><code>{{ a.action_json | top_locator or "—" }}</code></td>
+          <td data-label="target"><code>{{ a.action_json | jget("href") or "—" }}</code></td>
+        </tr>
+        {%- endfor %}
+      </tbody>
+    </table>
+    {{ m.pager(v, v.page.total, v.page["items"] | length) }}
+  </div>
+  {%- endif %}
+{% endcall %}

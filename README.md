@@ -29,6 +29,19 @@ start_run  ->  navigate / act  <-  get_next_frontier_item   ...   finish_run
 
 `specs/001-crawler-map-mode/quickstart.md` lists the checks that prove a run behaved.
 
+## Seeing the results: the dashboard
+
+`apps/dashboard/` is a local, read-only web dashboard over the same database (Python, FastAPI + htmx,
+managed with `uv`). It shows each portal's runs and why they ended, and per run the states, actions and their
+safety class, the frontier, forms, network shapes, robots.txt policies and the decision log, updating live while
+the crawler writes:
+
+```bash
+cd apps/dashboard && uv sync && uv run pathfinder-dashboard   # http://127.0.0.1:8765
+```
+
+See [`apps/dashboard/README.md`](apps/dashboard/README.md) (spec `specs/003-dashboard-ui/`).
+
 ## Configuration
 
 | File | Purpose |
@@ -66,11 +79,14 @@ These guarantees are enforced in code, outside the agent:
 
 ## Repository layout
 
-- `apps/crawler/` — the TypeScript workspace (`packages/*`: core, fingerprint, safety, config, obstacles, crawler, mcp-server)
+- `apps/<name>/` — every app, whatever its language, self-contained with its own manifest, lockfile and tests
+  - `apps/crawler/` — the TypeScript workspace (`packages/*`: core, fingerprint, safety, config, obstacles, crawler, mcp-server)
+  - `apps/dashboard/` — the read-only operator dashboard (Python, uv, FastAPI + htmx)
 - `data/` — migrations, the schema snapshot, and generated databases and evidence
 - `specs/` — spec-driven development documents (spec, plan, tasks, contracts, quickstart)
-- `.claude/agents/` — subagents (crawler, db-admin, governor, po)
+- `.claude/agents/` — subagents (crawler, db-admin, frontend-dev, governor, po); `.claude/skills/revamp-dashboard/` holds the UI design system
 - `roadmap.md`, `CHANGELOG.md` — status and history, maintained by the `po` agent
 
-Develop with `pnpm --dir apps/crawler test`, `typecheck`, `lint`. Tests that need a browser skip themselves when
+Develop with `pnpm --dir apps/crawler test`, `typecheck`, `lint`, and in `apps/dashboard` with `uv run pytest` and
+`uv run ruff check .`. Tests that need a browser skip themselves when
 Chromium cannot start.

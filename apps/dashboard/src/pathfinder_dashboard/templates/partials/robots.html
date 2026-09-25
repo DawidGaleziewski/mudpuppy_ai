@@ -1,0 +1,29 @@
+{% import "partials/macros.html" as m %}
+{% set v = section %}
+{% call m.region("robots", v.self_url, "Robots") %}
+  <div class="section-head"><h2>robots.txt policies <span class="muted mono-num">{{ v["items"] | length }}</span></h2></div>
+  {%- if not v["items"] %}
+    {{ m.empty("No robots.txt fetched in this run", "The policy is fetched per host before the first page loads.") }}
+  {%- else %}
+  <div class="table-wrap">
+    <table class="data stack">
+      <caption class="visually-hidden">robots.txt policies</caption>
+      <thead><tr><th scope="col">Host</th><th scope="col">Outcome</th><th scope="col">Group</th><th scope="col">Crawl delay</th><th scope="col">Fetched (UTC)</th><th scope="col">Evidence</th></tr></thead>
+      <tbody>
+        {%- for p in v["items"] %}
+        <tr>
+          <td>{{ p.host }}<div class="muted">{{ p.final_url or p.source_url }}</div></td>
+          <td data-label="outcome">
+            {%- if p.outcome == "unreachable" %}<span class="st st-fail">[FAIL]</span>{% else %}<span class="st st-ok">[ OK ]</span>{% endif %}
+            {{ p.outcome | replace("_", " ") }}{% if p.http_status %} · HTTP {{ p.http_status }}{% endif %}{% if p.truncated %} · truncated{% endif %}</td>
+          <td data-label="group">{{ p.group_used or "—" }} <span class="muted">as {{ p.product_token }}</span></td>
+          <td data-label="delay">{{ (p.crawl_delay_s ~ "s") if p.crawl_delay_s is not none else "—" }}</td>
+          <td data-label="fetched">{{ p.fetched_at | when }}</td>
+          <td data-label="evidence">{{ m.evidence(p.evidence_ref) }}</td>
+        </tr>
+        {%- endfor %}
+      </tbody>
+    </table>
+  </div>
+  {%- endif %}
+{% endcall %}

@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block title %}Overview{% endblock %}
+{% block content %}
+<div class="page-head">
+  <h1>Overview</h1>
+  <p class="caption">store {{ store.path }} · {{ store.size_bytes | kb }} · read-only</p>
+</div>
+{% include "partials/portal_cards.html" %}
+<div class="section">
+  {% include "partials/runs_table.html" %}
+</div>
+{% endblock %}

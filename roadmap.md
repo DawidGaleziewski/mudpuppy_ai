@@ -2,7 +2,7 @@
 
 Maintained by the `po` agent. Order follows the build order in the constitution. An item is `done`
 only when every task in its range in its linked spec's `tasks.md` is `[X]`.
-Status: `todo`, `in progress`, `done`. Last reviewed: 2026-09-25.
+Status: `todo`, `in progress`, `done`. Last reviewed: 2026-09-26.
 
 | ID | Item | Tasks | Status |
 | --- | --- | --- | --- |
@@ -17,6 +17,7 @@ Status: `todo`, `in progress`, `done`. Last reviewed: 2026-09-25.
 | R-09 | US4 Hand locators to QA | T067–T069 | done |
 | R-10 | Polish and cross-cutting concerns | T070–T074 | in progress |
 | R-11 | Portal-agnostic safety and portal workspaces: robots.txt enforcement, generic rule ids, per-portal rules, per-portal data | `specs/002-portal-agnostic-safety` T001–T065 | done |
+| R-12 | Dashboard UI: read-only FastAPI + htmx dashboard over the crawl DB, live updates, frontend-dev agent and revamp-dashboard skill | `specs/003-dashboard-ui` T001–T029 | done |
 
 ## Notes
 
@@ -28,7 +29,7 @@ Status: `todo`, `in progress`, `done`. Last reviewed: 2026-09-25.
 - R-06 is built before R-07 (safety first, Principle V); R-04 and R-05 block both.
 - Commits: R-02 `02e17b7`, R-03 `b1639fc` and `348fac0`, R-04 `5633dc4`, R-05 `17f1187`, R-06 `eee48a9`,
   R-07 `dfe3f40` and `23c8a9b` (open), R-08 `412ed19`, R-09 `d4907a4`, R-10 partial `6f1b0d8` (open), deps `59807cb`,
-  R-11 `3d4ed21`, T072 sign-off `50662f4`.
+  R-11 `3d4ed21`, T072 sign-off `50662f4`, R-12 `2132b2f`, `ee6519a` and `8989790`.
   None of these hashes exist on `master` any more: the `feature/001-r04-core-crawler-map-mode` branch
   they were made on was squash-merged into `master` as a single commit, `2799c96` ("docs(roadmap): start
   R-04, record R-03 as out-of-spec work"). Kept here only as the historical record of when each item
@@ -49,6 +50,11 @@ Status: `todo`, `in progress`, `done`. Last reviewed: 2026-09-25.
   T074) target `liveinsurer` (`portals/liveinsurer/portal.yaml`, `personas/liveinsurer/guest.yaml`) instead of
   `marketsite`. R-11's robots.txt enforcement (spec 002 US1), needed to close the `cHash` denylist
   gap, is done on `master`.
+- R-12 is inserted before the BA agent at the user's request (2026-09-25) so recorded crawl data
+  (liveinsurer runs, states, actions, forms, decision log) can be inspected; it is a Python app under
+  `apps/dashboard/` managed with uv (FastAPI, Pydantic, Jinja + htmx), strictly read-only on
+  `data/db/*.sqlite`. Resolved by constitution 1.3.0 (commit `2132b2f`), which states every app,
+  whatever its language, lives in its own self-contained `apps/<name>/`.
 - T072 (manual compliance sign-off for liveinsurer) is done: commit `50662f4` set
   `compliance.robots_checked_on`/`terms_reviewed_on` to 2026-09-25, `terms_reviewed_by: Randal
   Chopirik`, and replaced the placeholder `rate_limit.user_agent` contact with `tester@example.test`. The

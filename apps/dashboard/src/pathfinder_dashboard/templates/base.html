@@ -1,0 +1,50 @@
+{% import "partials/macros.html" as m -%}
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Overview{% endblock %} · pathfinder://console</title>
+  <meta name="htmx-config" content='{"includeIndicatorCSS": false}'>
+  <link rel="preload" href="/static/fonts/jetbrains-mono-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="/static/css/tokens.css">
+  <link rel="stylesheet" href="/static/css/app.css">
+  <script src="/static/vendor/htmx.min.js" defer></script>
+  <script src="/static/vendor/hx-sse.min.js" defer></script>
+  <script src="/static/js/live.js" defer></script>
+</head>
+<body{% if dev %} data-dev="1"{% endif %} data-boot="{{ BOOT_ID }}">
+  <a class="skip-link" href="#main">Skip to content</a>
+  <header class="topbar">
+    <a class="wordmark" href="{{ c.url('/') }}">{{ m.mark(bounce=true) }}<span>pathfinder://console</span></a>
+    <nav aria-label="Main">
+      <ul class="nav">
+        <li><a href="{{ c.url('/') }}"{% if nav_current | default('overview') == 'overview' and not s %} aria-current="page"{% endif %}>Overview</a></li>
+      </ul>
+    </nav>
+    <div class="topbar-end">
+      <span id="live-status" class="live-status" role="status"><span class="st st-muted">[ .. ]</span> connecting</span>
+      <form class="env-form" method="get" action="{{ request.url.path }}">
+        <label class="field">
+          <span>environment</span>
+          <select class="select" name="env" data-autosubmit>
+            {%- for e in envs %}
+            <option value="{{ e }}"{% if e == env %} selected{% endif %}>{{ e }}</option>
+            {%- else %}
+            <option value="{{ env }}" selected>{{ env }}</option>
+            {%- endfor %}
+          </select>
+        </label>
+        <noscript><button class="btn btn-bracket" type="submit">[switch]</button></noscript>
+      </form>
+    </div>
+  </header>
+  <div id="live" hx-sse:connect="{{ c.url('/events') }}" hidden></div>
+  <main id="main" class="shell">
+    {% block content %}{% endblock %}
+  </main>
+  <div id="stale" class="banner" role="status" hidden>
+    <span class="st st-fail">[FAIL]</span> Live connection lost. The view may be stale; reconnecting…
+  </div>
+</body>
+</html>

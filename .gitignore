@@ -29,3 +29,9 @@ data/exports/*
 
 # Windows download markers (WSL)
 *:Zone.Identifier
+
+# Python (uv apps under apps/)
+__pycache__/
+.venv/
+.ruff_cache/
+.pytest_cache/

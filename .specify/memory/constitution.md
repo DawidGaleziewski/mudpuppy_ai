@@ -1,10 +1,13 @@
 <!--
 SYNC IMPACT REPORT (temporary; remove before commit)
-Version change: 1.1.0 → 1.2.0 (MINOR: one new Technical Constraints bullet)
+Version change: 1.2.0 → 1.3.0 (MINOR: new "App layout" Technical Constraints bullet; Python
+tooling bullet no longer names a `python/` folder; read-only dashboard access to the store)
 Modified principles: none
-Added sections: Technical Constraints → "Python tooling" bullet (uv, Python side only)
+Added sections: Technical Constraints → "App layout" bullet
 Removed sections: none
-Templates/specs checked: specs/001-crawler-map-mode (no Python work in this feature; no change needed)
+Templates/specs checked: specs/003-dashboard-ui (plan Constitution Check updated); specs/001 and
+002 (apps/crawler already follows the layout; no change needed); .claude/agents/governor.md (already
+states the same layout)
 Deferred items: none
 -->
 # Pathfinder AI Constitution
@@ -89,11 +92,18 @@ Markdown, Mermaid and Gherkin are rendered from it. Generated tests MUST be plai
 
 - **Stack**: Node 22+, TypeScript (strict), pnpm workspaces monorepo with one package per module;
   Playwright library for the crawler and `@playwright/test` for generated tests, kept separate.
-- **Python tooling**: `uv` manages any Python code (`pyproject.toml` and `uv.lock`, under
-  `python/`), for example offline scripts or NLP/embedding work such as glossary consolidation.
+- **App layout**: every app, whatever its language (TypeScript, Python or other), lives in its
+  own `apps/<name>/` folder and is self-contained: its own manifest, lockfile, lint, type and test
+  config, and tests. The repo root holds no language manifest (`package.json`, `pyproject.toml`,
+  …), so languages never compete for it.
+- **Python tooling**: `uv` manages any Python app (`pyproject.toml` and `uv.lock` inside its
+  `apps/<name>/`), for example the operator dashboard, offline scripts or NLP/embedding work such
+  as glossary consolidation.
   Python is an addition, not a replacement: the crawler, MCP server, schemas, generated tests
   and the monorepo stay Node/TypeScript with pnpm. Python code MUST NOT sit on the crawler's
-  runtime path and MUST NOT write to the DB except through the same schemas and migrations.
+  runtime path and MUST NOT write to the DB except through the same schemas and migrations. A
+  read-only operator dashboard MAY read the SQLite store directly over a read-only connection
+  (`mode=ro`); its read models MUST be tested against the migrations for drift.
 - **Storage**: SQLite (better-sqlite3 with Kysely or Drizzle) including a `jobs` table for the
   queue; evidence on the filesystem under content-addressed (sha256) names. Postgres or a graph
   DB requires a documented justification.
@@ -142,4 +152,4 @@ pull request review MUST verify compliance; any violation MUST be justified in w
 plan's complexity-tracking section or be corrected. Runtime guidance for agents lives in
 `user_input/raw_idea/agents/` until moved into the `agents/` and `skills/` packages.
 
-**Version**: 1.2.0 | **Ratified**: 2026-09-20 | **Last Amended**: 2026-09-21
+**Version**: 1.3.0 | **Ratified**: 2026-09-20 | **Last Amended**: 2026-09-25

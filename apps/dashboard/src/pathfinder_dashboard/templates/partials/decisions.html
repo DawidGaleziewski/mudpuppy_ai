@@ -1,0 +1,64 @@
+{% import "partials/macros.html" as m %}
+{% set v = section %}
+{% call m.region("decisions", v.self_url, "Decisions") %}
+  <div class="section-head">
+    <h2>Decision log <span class="muted mono-num">{{ v.groups | sum(attribute="count") }}</span></h2>
+    {% call m.filter_form(v, c, {"tab": "decisions"}) %}
+      <label class="field"><span>kind</span>
+        <select class="select" name="kind">
+          <option value="" {% if not v.filters.kind %}selected{% endif %}>any</option>
+          {%- for k in DECISION_KINDS %}<option value="{{ k }}" {% if v.filters.kind == k %}selected{% endif %}>{{ k }}</option>{% endfor %}
+        </select>
+      </label>
+      <label class="field"><span>rule</span>
+        <select class="select" name="rule">
+          <option value="" {% if not v.filters.rule %}selected{% endif %}>any</option>
+          {%- for r in v.rules %}<option value="{{ r }}" {% if v.filters.rule == r %}selected{% endif %}>{{ r }}</option>{% endfor %}
+        </select>
+      </label>
+    {% endcall %}
+  </div>
+  {%- if v.groups %}
+  <div class="table-wrap">
+    <table class="data stack">
+      <caption>By rule</caption>
+      <thead><tr><th scope="col">Kind</th><th scope="col">Rule</th><th scope="col" class="num">Count</th><th scope="col">Example reason</th></tr></thead>
+      <tbody>
+        {%- for g in v.groups %}
+        <tr>
+          <td>{{ m.decision_kind(g.kind) }}</td>
+          <td data-label="rule"><code>{{ g.rule or "—" }}</code></td>
+          <td data-label="count" class="num">{{ g.count }}</td>
+          <td data-label="example">{{ g.example_reason }}</td>
+        </tr>
+        {%- endfor %}
+      </tbody>
+    </table>
+  </div>
+  {%- endif %}
+  <div class="section">
+  {%- if not v.page["items"] %}
+    {{ m.empty("No decisions" ~ (" match these filters" if v.filters.kind or v.filters.rule else " logged in this run"),
+               "Every skip, refusal, merge, split and warning is logged with the rule that applied.") }}
+  {%- else %}
+  <div class="table-wrap">
+    <table class="data stack">
+      <caption>Entries</caption>
+      <thead><tr><th scope="col">Kind</th><th scope="col">Rule</th><th scope="col">Reason</th><th scope="col">Subject</th><th scope="col">At (UTC)</th></tr></thead>
+      <tbody>
+        {%- for d in v.page["items"] %}
+        <tr>
+          <td>{{ m.decision_kind(d.kind) }}</td>
+          <td data-label="rule"><code>{{ d.rule or "—" }}</code></td>
+          <td data-label="reason">{{ d.reason }}{% if d.detail_json is not none %}{{ m.json_block(d.detail_json, "detail") }}{% endif %}</td>
+          <td data-label="subject"><code>{{ d.subject_ref or "—" }}</code></td>
+          <td data-label="at">{{ d.created_at | when }}</td>
+        </tr>
+        {%- endfor %}
+      </tbody>
+    </table>
+    {{ m.pager(v, v.page.total, v.page["items"] | length) }}
+  </div>
+  {%- endif %}
+  </div>
+{% endcall %}

@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}Run {{ s.run.id }}{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <p class="crumbs"><a href="{{ c.url('/') }}">Overview</a> / {{ s.run.portal_id }} / run</p>
+    <h1>Run <span class="mono-num">{{ s.run.id }}</span></h1>
+  </div>
+  <p class="caption">store {{ store.path }} · read-only</p>
+</div>
+{% include "partials/run_header.html" %}
+<div class="section">
+  {% include "partials/" ~ tab ~ ".html" %}
+</div>
+{% endblock %}

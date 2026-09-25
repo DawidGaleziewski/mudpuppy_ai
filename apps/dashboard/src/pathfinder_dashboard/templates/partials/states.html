@@ -1,0 +1,32 @@
+{% import "partials/macros.html" as m %}
+{% set v = section %}
+{% call m.region("states", v.self_url, "States") %}
+  <div class="section-head"><h2>States observed <span class="muted mono-num">{{ v["items"] | length }}</span></h2></div>
+  {%- if not v["items"] %}
+    {{ m.empty("No states observed in this run", "The run ended before the first page was recorded; see the header for why.") }}
+  {%- else %}
+  <div class="table-wrap">
+    <table class="data stack">
+      <caption class="visually-hidden">States observed in this run</caption>
+      <thead><tr>
+        <th scope="col">Title</th><th scope="col">Route template</th><th scope="col">Confidence</th>
+        <th scope="col">Stabilization</th><th scope="col">Cluster</th><th scope="col">Evidence</th>
+        <th scope="col">Observed (UTC)</th>
+      </tr></thead>
+      <tbody>
+        {%- for o in v["items"] %}
+        <tr>
+          <td>{{ o.state.title }}</td>
+          <td data-label="route"><code>{{ o.state.route_template }}</code></td>
+          <td data-label="confidence">{{ m.confidence(o.state.confidence) }}</td>
+          <td data-label="stabilization">{{ o.state.stabilization | replace("_", " ") }}</td>
+          <td data-label="cluster">{{ o.state.cluster_id }}</td>
+          <td data-label="evidence">{{ m.evidence(o.observation.evidence_ref) }}</td>
+          <td data-label="observed">{{ o.observation.observed_at | when }}</td>
+        </tr>
+        {%- endfor %}
+      </tbody>
+    </table>
+  </div>
+  {%- endif %}
+{% endcall %}

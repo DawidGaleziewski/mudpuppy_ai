@@ -1,0 +1,137 @@
+{#- Status language and shared patterns. The ONE place labels are defined
+    (specs/003-dashboard-ui/contracts/ui-conventions.md, references/pathfinder-console.md). -#}
+
+{%- set RUN_LABELS = {
+  "completed": ("[ OK ]", "st-ok"),
+  "running": ("[RUN.]", "st-run"),
+  "stopped_warning": ("[STOP]", "st-fail"),
+  "interrupted": ("[INT.]", "st-muted"),
+} -%}
+{%- set FRONTIER_LABELS = {
+  "done": ("[DONE]", "st-ok"),
+  "pending": ("[PEND]", "st-muted"),
+  "skipped_unsafe": ("[SKIP]", "st-muted"),
+  "denylisted": ("[SKIP]", "st-muted"),
+  "robots_disallowed": ("[SKIP]", "st-muted"),
+  "out_of_scope": ("[SKIP]", "st-muted"),
+  "budget_reached": ("[SKIP]", "st-muted"),
+  "unreachable": ("[FAIL]", "st-fail"),
+} -%}
+{%- set DECISION_LABELS = {
+  "warning": ("[WARN]", "st-fail"),
+  "skip": ("[SKIP]", "st-muted"),
+  "refuse": ("[RFSE]", "st-muted"),
+  "merge": ("[MRGE]", "st-plain"),
+  "split": ("[SPLT]", "st-plain"),
+  "note": ("[NOTE]", "st-plain"),
+} -%}
+
+{% macro run_status(status, with_text=true) -%}
+  {%- set label, cls = RUN_LABELS.get(status, ("[ ?? ]", "st-muted")) -%}
+  <span class="st {{ cls }}">{% if status == "running" %}<span class="live-dot" aria-hidden="true"></span>{% endif %}{{ label }}</span>
+  {%- if with_text %} <span class="status-text">{{ status | replace("_", " ") }}</span>{% endif %}
+{%- endmacro %}
+
+{% macro frontier_status(status) -%}
+  {%- set label, cls = FRONTIER_LABELS.get(status, ("[ ?? ]", "st-muted")) -%}
+  <span class="st {{ cls }}">{{ label }}</span> <span class="status-text">{{ status | replace("_", " ") }}</span>
+{%- endmacro %}
+
+{% macro decision_kind(kind) -%}
+  {%- set label, cls = DECISION_LABELS.get(kind, ("[ ?? ]", "st-muted")) -%}
+  <span class="st {{ cls }}">{{ label }}</span> <span class="status-text">{{ kind }}</span>
+{%- endmacro %}
+
+{% macro allowed(flag) -%}
+  {%- if flag %}<span class="st st-ok">[ OK ]</span> allowed{% else %}<span class="st st-muted">[SKIP]</span> skipped{% endif -%}
+{%- endmacro %}
+
+{% macro confidence(value) -%}
+  <span class="conf conf-{{ value }}">{{ value | replace("_", " ") }}</span>
+{%- endmacro %}
+
+{% macro safety(value) -%}
+  <span class="safety-{{ value }}">{{ value }}</span>
+{%- endmacro %}
+
+{% macro evidence(ref) -%}
+  <span class="evidence" title="evidence: data/evidence/{{ ref }}">{{ ref }}</span>
+{%- endmacro %}
+
+{% macro json_block(value, label="json") -%}
+  <details>
+    <summary>{{ label }}</summary>
+    <pre class="json">{{ value | pretty_json }}</pre>
+  </details>
+{%- endmacro %}
+
+{#- A region that re-fetches itself when the store changes (live region pattern). -#}
+{% macro region(id, self_url, label=none) -%}
+  <section id="region-{{ id }}" class="region" hx-get="{{ self_url }}"
+           hx-trigger="store-changed from:body" hx-swap="outerHTML"
+           {%- if label %} aria-label="{{ label }}"{% endif %}>
+    {{ caller() }}
+  </section>
+{%- endmacro %}
+
+{#- Filter form: htmx swaps the region in place and pushes the page URL; without JS it is a
+    plain GET to the page. -#}
+{% macro filter_form(v, c, hidden={}) -%}
+  <form class="filters" method="get" action="{{ v.form_action }}"
+        hx-get="{{ v.fragment_url }}" hx-trigger="change" hx-target="closest section"
+        hx-swap="outerHTML">
+    {%- if c.env_param %}<input type="hidden" name="env" value="{{ c.env_param }}">{% endif %}
+    <input type="hidden" name="push" value="1">
+    {%- for k, val in hidden.items() %}<input type="hidden" name="{{ k }}" value="{{ val }}">{% endfor %}
+    {{ caller() }}
+    <noscript><button class="btn btn-bracket" type="submit">[apply]</button></noscript>
+    <span class="htmx-indicator caret muted" aria-hidden="true">loading</span>
+  </form>
+{%- endmacro %}
+
+{% macro select(name, label, options, current, any_label="any") -%}
+  <label class="field">
+    <span>{{ label }}</span>
+    <select class="select" name="{{ name }}">
+      <option value="" {% if not current %}selected{% endif %}>{{ any_label }}</option>
+      {%- for value, text in options %}
+      <option value="{{ value }}" {% if current == value %}selected{% endif %}>{{ text }}</option>
+      {%- endfor %}
+    </select>
+  </label>
+{%- endmacro %}
+
+{#- Keyset pager: position, rectangular ticks, first/next. -#}
+{% macro pager(v, total, shown) -%}
+  {%- if total > shown or v.first_url -%}
+  <nav class="pager" aria-label="Pagination">
+    <span class="muted mono-num">{{ v.offset + 1 if shown else 0 }}–{{ v.offset + shown }} of {{ total }}</span>
+    {%- if v.pages > 1 %}
+    <span class="ticks" aria-hidden="true">
+      {%- for i in range(1, [v.pages, 12] | min + 1) %}<span class="tick{% if i == v.page_no %} tick-on{% endif %}"></span>{% endfor %}
+    </span>
+    {%- endif %}
+    <span>
+      {%- if v.first_url %}<a class="btn btn-bracket" href="{{ v.first_url }}" hx-get="{{ v.first_fragment }}" hx-target="closest section" hx-swap="outerHTML">[first]</a>{% endif %}
+      {%- if v.next_url %} <a class="btn btn-bracket" href="{{ v.next_url }}" hx-get="{{ v.next_fragment }}" hx-target="closest section" hx-swap="outerHTML">[next]</a>{% endif %}
+    </span>
+  </nav>
+  {%- endif -%}
+{%- endmacro %}
+
+{% macro empty(title, line, icon="[ -- ]") -%}
+  <div class="state state-empty">
+    <span class="state-icon st" aria-hidden="true">{{ icon }}</span>
+    <p class="state-title">{{ title }}</p>
+    <p class="muted">{{ line }}</p>
+  </div>
+{%- endmacro %}
+
+{% macro mark(bounce=false) -%}
+  <svg class="mark{% if bounce %} mark-bounce{% endif %}" viewBox="0 0 22 22" aria-hidden="true" focusable="false">
+    <path d="M4 18 L4 11 L18 4" fill="none" stroke="currentColor" stroke-width="1"/>
+    <rect x="1.5" y="15.5" width="5" height="5" fill="currentColor"/>
+    <rect x="1.5" y="8.5" width="5" height="5" fill="currentColor"/>
+    <rect x="15.5" y="1.5" width="5" height="5" fill="currentColor"/>
+  </svg>
+{%- endmacro %}

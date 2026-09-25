@@ -1,0 +1,68 @@
+{% import "partials/macros.html" as m %}
+{% set v = runs %}
+{% call m.region("runs", v.self_url, "Runs") %}
+  <div class="section-head">
+    <h2>Runs <span class="muted mono-num">{{ v.page.total }}</span></h2>
+    {% call m.filter_form(v, c) %}
+      <label class="field">
+        <span>portal</span>
+        <select class="select" name="portal">
+          <option value="" {% if not v.filters.portal %}selected{% endif %}>any</option>
+          {%- for p in v.portals %}<option value="{{ p }}" {% if v.filters.portal == p %}selected{% endif %}>{{ p }}</option>{% endfor %}
+        </select>
+      </label>
+      <label class="field">
+        <span>status</span>
+        <select class="select" name="status">
+          <option value="" {% if not v.filters.status %}selected{% endif %}>any</option>
+          {%- for st in RUN_STATUSES %}<option value="{{ st }}" {% if v.filters.status == st %}selected{% endif %}>{{ st | replace("_", " ") }}</option>{% endfor %}
+        </select>
+      </label>
+    {% endcall %}
+  </div>
+  {%- if not v.page["items"] %}
+    {%- if v.filters.portal or v.filters.status %}
+      {{ m.empty("No runs match these filters", "Clear the portal or status filter to see all runs.") }}
+    {%- else %}
+      {{ m.empty("No runs recorded yet", "Runs appear here as the crawler records them.") }}
+    {%- endif %}
+  {%- else %}
+  <div class="table-wrap">
+    <table class="data stack">
+      <caption class="visually-hidden">Runs, newest first</caption>
+      <thead>
+        <tr>
+          <th scope="col">Status</th>
+          <th scope="col">Run</th>
+          <th scope="col">Portal</th>
+          <th scope="col">Persona</th>
+          <th scope="col">Mode</th>
+          <th scope="col">Environment</th>
+          <th scope="col" class="num">Steps</th>
+          <th scope="col">Started (UTC)</th>
+          <th scope="col" class="num">Duration</th>
+        </tr>
+      </thead>
+      <tbody>
+        {%- for item in v.page["items"] %}{% set r = item.run %}
+        <tr>
+          <td>
+            {{ m.run_status(r.status) }}
+            {%- if r.warning %}<div class="warning-text measure">{{ r.warning }}</div>{% endif %}
+          </td>
+          <td data-label="run"><a href="{{ c.url('/runs/' ~ r.id) }}" class="mono-num nowrap" title="{{ r.id }}" aria-label="run {{ r.id }}">{{ r.id | short_id }}</a></td>
+          <td data-label="portal">{{ r.portal_id }}</td>
+          <td data-label="persona">{{ r.persona_id }}</td>
+          <td data-label="mode">{{ r.mode }}</td>
+          <td data-label="env">{{ r.environment }}</td>
+          <td data-label="steps" class="num">{{ r.steps_used }}</td>
+          <td data-label="started" class="nowrap">{{ r.started_at | when }}</td>
+          <td data-label="duration" class="num">{{ item.duration_ms | duration }}</td>
+        </tr>
+        {%- endfor %}
+      </tbody>
+    </table>
+    {{ m.pager(v, v.page.total, v.page["items"] | length) }}
+  </div>
+  {%- endif %}
+{% endcall %}

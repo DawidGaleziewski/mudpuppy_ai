@@ -1,0 +1,26 @@
+{% import "partials/macros.html" as m %}
+{% set v = section %}
+{% call m.region("network", v.self_url, "Network") %}
+  <div class="section-head"><h2>Network call shapes <span class="muted mono-num">{{ v.page.total }}</span></h2></div>
+  {%- if not v.page["items"] %}
+    {{ m.empty("No network calls recorded in this run", "Only request and response shapes are stored, never values.") }}
+  {%- else %}
+  <div class="table-wrap">
+    <table class="data stack">
+      <caption class="visually-hidden">Network call shapes</caption>
+      <thead><tr><th scope="col">Call</th><th scope="col" class="num">Status</th><th scope="col">Shapes</th><th scope="col">Console errors</th></tr></thead>
+      <tbody>
+        {%- for n in v.page["items"] %}
+        <tr>
+          <td><code>{{ n.method }} {{ n.url_template }}</code>{% if n.edge_id %}<div class="muted">edge {{ n.edge_id }}</div>{% else %}<div class="muted">on state load</div>{% endif %}</td>
+          <td data-label="status" class="num"><span class="{{ 'st-fail' if n.status >= 400 else '' }}">{{ n.status }}</span></td>
+          <td data-label="shapes">{{ m.json_block(n.req_schema, "request") }}{{ m.json_block(n.res_schema, "response") }}</td>
+          <td data-label="console">{% if n.console_errors %}{{ m.json_block(n.console_errors, (n.console_errors | length) ~ " errors") }}{% else %}<span class="muted">none</span>{% endif %}</td>
+        </tr>
+        {%- endfor %}
+      </tbody>
+    </table>
+    {{ m.pager(v, v.page.total, v.page["items"] | length) }}
+  </div>
+  {%- endif %}
+{% endcall %}

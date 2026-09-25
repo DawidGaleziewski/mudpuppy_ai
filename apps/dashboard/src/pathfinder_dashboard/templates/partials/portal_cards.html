@@ -1,0 +1,41 @@
+{% import "partials/macros.html" as m %}
+{% call m.region("summary", summary.self_url, "Portals") %}
+  {%- if not summary["items"] %}
+    {{ m.empty("No runs recorded yet",
+               "Start a map run with the crawler agent (specs/001-crawler-map-mode/quickstart.md); it shows up here as soon as it is recorded.") }}
+  {%- endif %}
+  {%- for p in summary["items"] %}
+  <article class="panel portal-card" aria-labelledby="portal-{{ loop.index }}">
+    <div class="portal-card-head">
+      <h2 id="portal-{{ loop.index }}">{{ p.portal_id }}</h2>
+      <span class="caption">last run {{ p.last_run_at | when }}</span>
+    </div>
+    <div class="stats">
+      <div class="stat">
+        <span class="stat-label">Runs</span>
+        <span class="stat-value">{{ p.runs }}</span>
+        <ul class="status-counts stat-meta">
+          {%- for st in RUN_STATUSES if p.runs_by_status.get(st) %}
+          <li>{{ m.run_status(st, with_text=false) }} {{ p.runs_by_status[st] }} {{ st | replace("_", " ") }}</li>
+          {%- endfor %}
+        </ul>
+      </div>
+      <div class="stat">
+        <span class="stat-label">States recorded</span>
+        <span class="stat-value">{{ p.states }}</span>
+        <span class="stat-meta">{{ p.forms }} forms · {{ p.network_calls }} network call shapes</span>
+      </div>
+      <div class="stat">
+        <span class="stat-label">Actions allowed</span>
+        <span class="stat-value">{{ p.actions_allowed }}</span>
+        <span class="stat-meta">{{ p.actions_skipped }} skipped by safety</span>
+      </div>
+      <div class="stat">
+        <span class="stat-label">Open questions</span>
+        <span class="stat-value">{{ p.open_questions_open }}</span>
+        <span class="stat-meta">{{ p.rule_candidates }} rule candidates (inferred)</span>
+      </div>
+    </div>
+  </article>
+  {%- endfor %}
+{% endcall %}

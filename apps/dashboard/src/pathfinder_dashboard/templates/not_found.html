@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block title %}Run not found{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <p class="crumbs"><a href="{{ c.url('/') }}">Overview</a> / run</p>
+    <h1>Run not found</h1>
+  </div>
+</div>
+{% include "partials/states/not_found.html" %}
+{% endblock %}

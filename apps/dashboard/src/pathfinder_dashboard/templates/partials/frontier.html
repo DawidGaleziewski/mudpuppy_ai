@@ -1,0 +1,48 @@
+{% import "partials/macros.html" as m %}
+{% set v = section %}
+{% call m.region("frontier", v.self_url, "Frontier") %}
+  <div class="section-head">
+    <div>
+      <h2>Frontier <span class="muted mono-num">{{ v.counts.values() | sum }}</span></h2>
+      <ul class="chips" aria-label="Frontier by status">
+        {%- for st, n in v.counts.items() %}<li>{{ m.frontier_status(st) }} <span class="mono-num">{{ n }}</span></li>{% endfor %}
+      </ul>
+    </div>
+    {% call m.filter_form(v, c, {"tab": "frontier"}) %}
+      <label class="field"><span>status</span>
+        <select class="select" name="status">
+          <option value="" {% if not v.filters.status %}selected{% endif %}>any</option>
+          {%- for st in FRONTIER_STATUSES %}<option value="{{ st }}" {% if v.filters.status == st %}selected{% endif %}>{{ st | replace("_", " ") }}</option>{% endfor %}
+        </select>
+      </label>
+    {% endcall %}
+  </div>
+  {%- if not v.page["items"] %}
+    {{ m.empty("No frontier items" ~ (" with this status" if v.filters.status else " in this run"),
+               "The frontier is the queue of actions the crawler planned, did, or refused.") }}
+  {%- else %}
+  <div class="table-wrap">
+    <table class="data stack">
+      <caption class="visually-hidden">Frontier items</caption>
+      <thead><tr>
+        <th scope="col">Status</th><th scope="col">Action</th><th scope="col">Safety class</th>
+        <th scope="col" class="num">Depth</th><th scope="col" class="num">Priority</th><th scope="col">Reason</th>
+      </tr></thead>
+      <tbody>
+        {%- for f in v.page["items"] %}
+        <tr{% if f.status == "pending" %} class="pending"{% endif %}>
+          <td>{{ m.frontier_status(f.status) }}</td>
+          <td data-label="action">{{ f.action_json | jget("role") or "" }} {{ f.action_json | jget("accessible_name") or "" }}
+            {%- set href = f.action_json | jget("href") %}{% if href %} <code class="muted">→ {{ href }}</code>{% endif %}</td>
+          <td data-label="safety">{{ m.safety(f.safety_class) }}</td>
+          <td data-label="depth" class="num">{{ f.depth }}</td>
+          <td data-label="priority" class="num">{{ f.priority }}</td>
+          <td data-label="reason">{{ f.reason or "—" }}</td>
+        </tr>
+        {%- endfor %}
+      </tbody>
+    </table>
+    {{ m.pager(v, v.page.total, v.page["items"] | length) }}
+  </div>
+  {%- endif %}
+{% endcall %}

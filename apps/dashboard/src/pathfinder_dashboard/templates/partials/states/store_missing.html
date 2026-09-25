@@ -1,0 +1,7 @@
+<div class="state state-error" role="alert">
+  <span class="state-icon st" aria-hidden="true">[FAIL]</span>
+  <p class="state-title">No crawl store for environment “{{ env }}”</p>
+  <p class="muted">Expected a SQLite file at <code>{{ path }}</code>. Start a crawler run for this
+    environment, or pick another environment above.</p>
+  <p><a class="btn btn-bracket" href="{{ c.url(request.url.path) }}">[retry]</a></p>
+</div>

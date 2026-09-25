@@ -1,0 +1,31 @@
+{% import "partials/macros.html" as m %}
+{% set v = section %}
+{% call m.region("forms", v.self_url, "Forms") %}
+  <div class="section-head"><h2>Forms <span class="muted mono-num">{{ v["items"] | length }}</span></h2></div>
+  {%- if not v["items"] %}
+    {{ m.empty("No forms recorded in this run", "Forms are recorded with their fields; nothing is ever submitted.") }}
+  {%- else %}
+  <div class="table-wrap">
+    <table class="data stack">
+      <caption class="visually-hidden">Forms recorded in this run</caption>
+      <thead><tr><th scope="col">Fields</th><th scope="col">State</th><th scope="col">Confidence</th><th scope="col">Evidence</th></tr></thead>
+      <tbody>
+        {%- for f in v["items"] %}
+        <tr>
+          <td>
+            {%- if f.fields_json is iterable and f.fields_json is not string %}
+            <ul class="chips">
+              {%- for fld in f.fields_json %}<li>{{ fld | jget("name") or "?" }} <span class="muted">{{ fld | jget("type") or "" }}{% if fld | jget("required") %} · required{% endif %}</span></li>{% endfor %}
+            </ul>
+            {%- else %}{{ m.json_block(f.fields_json, "fields") }}{% endif %}
+          </td>
+          <td data-label="state"><code>{{ f.state_id }}</code></td>
+          <td data-label="confidence">{{ m.confidence(f.confidence) }}</td>
+          <td data-label="evidence">{{ m.evidence(f.evidence_ref) }}</td>
+        </tr>
+        {%- endfor %}
+      </tbody>
+    </table>
+  </div>
+  {%- endif %}
+{% endcall %}

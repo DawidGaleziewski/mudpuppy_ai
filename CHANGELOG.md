@@ -6,6 +6,9 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Added
+- R-12 read-only FastAPI + htmx dashboard over the crawl store (`apps/dashboard`, uv, live SSE
+  updates, Console design system), `frontend-dev` agent and `revamp-dashboard` skill, constitution
+  1.3.0 app layout (`specs/003-dashboard-ui`, T001–T029). Commit: 8989790.
 - R-11 portal-agnostic safety and portal workspaces: robots.txt enforcement, generic rule ids, per-portal
   rules, per-portal data (`specs/002-portal-agnostic-safety`, T001–T065). Commit: 3d4ed21.
 - R-02 fingerprint package (route template, ARIA canonicalization, two-level fingerprint). Commit: 02e17b7.

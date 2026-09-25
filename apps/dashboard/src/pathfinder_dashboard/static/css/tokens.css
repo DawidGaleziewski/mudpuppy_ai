@@ -1,0 +1,141 @@
+/* Console design system tokens (.claude/skills/revamp-dashboard/references/console-design-system.md)
+   plus Pathfinder's aliases (references/pathfinder-console.md). The ONLY file with literal values:
+   app.css uses var(--…) exclusively (tests/test_tokens.py). */
+
+@font-face {
+  font-family: "JetBrains Mono";
+  font-style: normal;
+  font-display: swap;
+  font-weight: 400;
+  src: url("../fonts/jetbrains-mono-latin-400-normal.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304,
+    U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "JetBrains Mono";
+  font-style: normal;
+  font-display: swap;
+  font-weight: 400;
+  src: url("../fonts/jetbrains-mono-latin-ext-400-normal.woff2") format("woff2");
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308,
+    U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113,
+    U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: "JetBrains Mono";
+  font-style: normal;
+  font-display: swap;
+  font-weight: 500;
+  src: url("../fonts/jetbrains-mono-latin-500-normal.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304,
+    U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "JetBrains Mono";
+  font-style: normal;
+  font-display: swap;
+  font-weight: 500;
+  src: url("../fonts/jetbrains-mono-latin-ext-500-normal.woff2") format("woff2");
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308,
+    U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113,
+    U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: "JetBrains Mono";
+  font-style: normal;
+  font-display: swap;
+  font-weight: 700;
+  src: url("../fonts/jetbrains-mono-latin-700-normal.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304,
+    U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "JetBrains Mono";
+  font-style: normal;
+  font-display: swap;
+  font-weight: 700;
+  src: url("../fonts/jetbrains-mono-latin-ext-700-normal.woff2") format("woff2");
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308,
+    U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113,
+    U+2C60-2C7F, U+A720-A7FF;
+}
+
+:root {
+  color-scheme: dark;
+
+  /* colour */
+  --surface-0: #0a0a08;
+  --surface-100: #131310;
+  --surface-200: #1a1a14;
+  --border: #2b2a20;
+  --ink-100: #e8d9ae;
+  --ink-500: #8a7f5c;
+  --brand: #ffb000;
+  --accent-2: #33ff66;
+  --accent-3: #00e5ff;
+  --accent-4: #ff66c4;
+  --signal-error: #ff3b30;
+  --glow: rgba(255, 176, 0, 0.35);
+  --scrim: rgba(10, 10, 8, 0.8);
+  --scanline: rgba(255, 176, 0, 0.04);
+
+  /* Pathfinder aliases: intent at the call site (tokens-to-code.md) */
+  --status-ok: var(--brand);
+  --status-running: var(--accent-3);
+  --status-failed: var(--signal-error);
+  --status-muted: var(--ink-500);
+  --safety-read: var(--accent-2);
+  --safety-risky: var(--accent-4);
+  --confidence-unverified: var(--accent-4);
+
+  /* type */
+  --font-mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  --text-display: 20px;
+  --text-h1: 18px;
+  --text-h2: 15px;
+  --text-body: 13px;
+  --text-body-sm: 12px;
+  --text-label: 11px;
+  --text-caption: 10px;
+  --text-stat: 28px;
+  --weight-regular: 400;
+  --weight-medium: 500;
+  --weight-bold: 700;
+  --leading: 1.5;
+
+  /* spacing (4px root) */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-7: 28px;
+  --space-9: 36px;
+
+  /* shape and lines */
+  --radius-none: 0px;
+  --radius-full: 9999px;
+  --hairline: 1px;
+  --rule: 2px;
+  --accent-bar: 3px;
+  --dot: 8px;
+  --touch: 44px;
+  --mark: 22px;
+  --tick-w: 16px;
+  --tick-h: 3px;
+  --content-max: 1280px;
+
+  /* effects and motion (three sanctioned animations only) */
+  --glow-shadow: 0 0 8px var(--glow);
+  --scanline-pitch: 3px;
+  --pulse-duration: 1.3s;
+  --caret-duration: 1s;
+  --bounce-duration: 600ms;
+  --disabled-opacity: 0.35;
+  --pulse-low-opacity: 0.35;
+
+  /* breakpoints (documentation; media queries cannot read custom properties) */
+  --bp-tablet: 640px;
+  --bp-desktop: 1024px;
+}

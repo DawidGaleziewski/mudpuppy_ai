@@ -1,0 +1,30 @@
+{% import "partials/macros.html" as m %}
+{% set r = s.run %}
+{% call m.region("header", header.self_url, "Run summary") %}
+  <div class="panel">
+    <p>{{ m.run_status(r.status) }}{% if r.warning %} <span class="warning-text">{{ r.warning }}</span>{% endif %}</p>
+    <dl class="facts">
+      <div><dt>portal</dt><dd>{{ r.portal_id }}</dd></div>
+      <div><dt>persona</dt><dd>{{ r.persona_id }}</dd></div>
+      <div><dt>mode · environment</dt><dd>{{ r.mode }} · {{ r.environment }} ({{ r.env_version_or_date }})</dd></div>
+      <div><dt>browser</dt><dd>{{ r.browser }} · {{ r.viewport }} · {{ r.locale }}</dd></div>
+      <div><dt>started (UTC)</dt><dd>{{ r.started_at | when }}</dd></div>
+      <div><dt>ended (UTC)</dt><dd>{{ r.ended_at | when }}</dd></div>
+      <div><dt>duration</dt><dd class="mono-num">{{ s.duration_ms | duration }}{% if r.status != "running" %} <span class="muted">({{ r.elapsed_ms | duration }} active)</span>{% endif %}</dd></div>
+      <div><dt>steps · max depth</dt><dd class="mono-num">{{ r.steps_used }} · {{ r.max_depth_reached }}</dd></div>
+      <div><dt>edges</dt><dd class="mono-num">{{ s.edges }}</dd></div>
+      <div><dt>open questions</dt><dd class="mono-num">{{ s.open_questions }}</dd></div>
+      <div><dt>rule candidates</dt><dd class="mono-num">{{ s.rule_candidates }} <span class="muted">inferred</span></dd></div>
+      <div><dt>seed</dt><dd>{{ r.seed_id or "—" }}</dd></div>
+    </dl>
+    {{ m.json_block(r.config_snapshot, "config snapshot") }}
+    {%- if r.coverage is not none %}{{ m.json_block(r.coverage, "coverage") }}{% endif %}
+  </div>
+  <nav aria-label="Run sections">
+    <ul class="tabs">
+      {%- for sid, label, count, url in header.tabs %}
+      <li><a href="{{ url }}"{% if sid == header.tab %} aria-current="page"{% endif %}>{{ label }} <span class="tab-count">{{ count }}</span></a></li>
+      {%- endfor %}
+    </ul>
+  </nav>
+{% endcall %}
