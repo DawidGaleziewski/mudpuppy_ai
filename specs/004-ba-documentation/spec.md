@@ -242,7 +242,8 @@ same store produces byte-identical output.
 - **FR-001**: The system MUST store BA documentation (Layer B) as structured records of these kinds:
   capability, screen, process, process step, use case, functional requirement, non-functional
   requirement, business rule, glossary term, data item (entity/field), assumption, open question
-  (shared with the crawler's), crawler follow-up task, and analysis session.
+  (the BA's own; crawler questions stay run-bound and are linked), crawler follow-up task, and
+  analysis session.
 - **FR-002**: Every documentation record MUST have a stable, human-readable id unique per portal and
   kind (e.g. `CAP-003`, `SCR-012`, `PROC-002`, `UC-004`, `REQ-017`, `NFR-002`, `BR-009`, `GL-021`,
   `DI-030`, `ASM-004`, `FUP-006`), assigned by the system, never by the agent.
@@ -407,8 +408,9 @@ same store produces byte-identical output.
 - The BA is an LLM subagent run in Claude Code like the crawler; its model and budget are set in its
   definition. It reaches the store only through the documentation tools of the existing MCP server
   (constitution: agents access the DB only through MCP).
-- The shared `open_questions` table stays the single open-questions log; the BA answers or links
-  crawler questions rather than duplicating them. Its `addressed` status is set by the BA's tools.
+- Open questions come from two sources shown as one log: the crawler's run-bound questions (kept as
+  they are) and the BA's own questions, which are documentation records so they get ids, revisions
+  and review. The BA marks a crawler question addressed by citing it from the record that answers it.
 - NFRs are limited to what is observable from recorded evidence (e.g. response status patterns,
   robots policy, accessibility of labels, languages offered); everything else is listed as not
   observable.
