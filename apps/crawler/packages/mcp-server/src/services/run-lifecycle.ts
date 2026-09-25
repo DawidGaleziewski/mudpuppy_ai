@@ -20,3 +20,13 @@ export async function interruptStaleRuns(ctx: ServerContext): Promise<string[]> 
     .execute();
   return stale.map((r) => r.id);
 }
+
+/** Mark one run `interrupted`, e.g. when its browser never started; it can be resumed later. */
+export async function interruptRun(ctx: ServerContext, runId: string): Promise<void> {
+  await ctx.db
+    .updateTable('runs')
+    .set({ status: 'interrupted', ended_at: nowIso() })
+    .where('id', '=', runId)
+    .where('status', '=', 'running')
+    .execute();
+}

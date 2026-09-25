@@ -35,6 +35,8 @@ no tool to write them, so it cannot fabricate an `observed` fact. The agent can 
   `compliance` values, or a placeholder User-Agent contact — completes in <5s,
   nothing opened), `CONFIG_INVALID` (names the file and problem, FR-017), `PORTAL_NOT_FOUND`,
   `RUN_NOT_RESUMABLE` (only an `interrupted` run of the same portal and persona resumes)
+  `BROWSER_UNAVAILABLE` (the run row was created but the browser did not launch; the run is
+  left `interrupted` with its `run_id` in the error so it can be resumed once the host is fixed)
 - **Database**: the server records into `data/db/<env>.sqlite`, `<env>` fixed at server start
   (`PATHFINDER_ENV`, default `production`); a portal of another environment is refused with
   `ENV_GUARD_REFUSED`.

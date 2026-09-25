@@ -19,6 +19,7 @@ export const ERROR_CODES = [
   'SAFETY_CLASS_MISMATCH',
   'PII_SUSPECTED',
   'ROBOTS_UNAVAILABLE',
+  'BROWSER_UNAVAILABLE',
 ] as const;
 export type ErrorCode = (typeof ERROR_CODES)[number];
 

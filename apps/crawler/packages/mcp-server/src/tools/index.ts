@@ -10,6 +10,7 @@ import {
   finishRun,
   getKnownStates,
   getNextFrontierItem,
+  interruptRun,
   startRunRecord,
 } from '../services/index.js';
 
@@ -77,7 +78,18 @@ export function registerTools(server: McpServer, ctx: ServerContext, runtime: Ru
     { portal_id: z.string(), persona_id: z.string(), resume_run_id: z.string().optional() },
     async (args) => {
       const { output, run, approved, robots } = await startRunRecord(ctx, args);
-      await runtime.openSession(ctx, run, approved, robots);
+      try {
+        await runtime.openSession(ctx, run, approved, robots);
+      } catch (err) {
+        // The run row exists but no browser does: leave it resumable instead of stuck `running`.
+        ctx.logger.error({ err, run_id: run.id }, 'browser session failed to launch');
+        await interruptRun(ctx, run.id);
+        throw new ToolError(
+          'BROWSER_UNAVAILABLE',
+          'the browser could not be launched; see server log (on Linux, missing system libraries: `playwright install-deps chromium`)',
+          { run_id: run.id },
+        );
+      }
       return output;
     },
   );

@@ -112,6 +112,29 @@ describe('pathfinder tools', () => {
     expect(runtime.openSession).toHaveBeenCalledOnce();
   });
 
+  it('start_run interrupts the run and names the failure when the browser does not launch', async () => {
+    const { ctx, runtime, call } = await connect();
+    runtime.openSession.mockRejectedValueOnce(new Error('libnspr4.so: cannot open shared object'));
+    const files: Record<string, string> = {
+      'portals/shop/portal.yaml': `id: shop\nbase_url: https://shop.pl/\nenvironment: production\ncompliance: { robots_checked_on: 2026-09-20, terms_reviewed_on: 2026-09-21, terms_reviewed_by: me }\nscope: { allowed_domains: [shop.pl], allowed_paths: ["/*"], max_depth: 3, max_states: 10, max_actions_per_state: 5, max_run_time_minutes: 5, max_steps: 50 }\nrate_limit: { requests_per_second: 1, max_concurrency: 1, user_agent: "Bot (+ops@corp.pl)" }\n`,
+      'personas/shop/guest.yaml': 'id: guest\nviewport: { width: 1, height: 1 }\nlocale: pl-PL\n',
+    };
+    for (const [rel, c] of Object.entries(files)) {
+      mkdirSync(dirname(join(ctx.root, rel)), { recursive: true });
+      writeFileSync(join(ctx.root, rel), c);
+    }
+    const r = await call('start_run', { portal_id: 'shop', persona_id: 'guest' });
+    expect(r).toMatchObject({ isError: true, body: { error: { code: 'BROWSER_UNAVAILABLE' } } });
+    expect(JSON.stringify(r.body)).not.toContain('libnspr4');
+    const run = await ctx.db
+      .selectFrom('runs')
+      .select(['status', 'ended_at'])
+      .where('id', '=', r.body.error.run_id)
+      .executeTakeFirstOrThrow();
+    expect(run.status).toBe('interrupted');
+    expect(run.ended_at).not.toBeNull();
+  });
+
   it('serves the read tools end to end', async () => {
     const { ctx, call } = await connect();
     const run = await seedRun(ctx);
