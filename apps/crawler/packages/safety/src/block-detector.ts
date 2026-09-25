@@ -15,18 +15,31 @@ export interface BlockVerdict {
   warning?: string;
 }
 
-/** Vendor markers of a CAPTCHA / bot challenge page. Matched case-insensitively in the body. */
+/**
+ * Markers of a CAPTCHA / bot challenge actually shown to the visitor (widget or challenge iframe).
+ * Matched case-insensitively in the body, on any status.
+ */
 export const CAPTCHA_MARKERS: readonly string[] = [
   'g-recaptcha',
+  'recaptcha/api2/anchor',
+  'recaptcha/enterprise/anchor',
+  'hcaptcha.com/captcha',
+  'h-captcha',
+  'cf-turnstile',
+  'px-captcha',
+  'geo.captcha-delivery.com',
+];
+
+/**
+ * Vendor loader scripts that also sit on normal pages (invisible reCAPTCHA v3 scoring forms, a DataDome
+ * or Turnstile tag). They count as a block only on a non-2xx response, never on a normal page.
+ */
+export const CAPTCHA_SCRIPT_MARKERS: readonly string[] = [
   'google.com/recaptcha',
   'recaptcha/api',
   'hcaptcha.com',
-  'h-captcha',
   'challenges.cloudflare.com',
-  'cf-turnstile',
   'datadome',
-  'px-captcha',
-  'geo.captcha-delivery.com',
 ];
 
 /** Detect a block (never a normal 200 or a plain 404). No bypass is ever attempted (FR-008). */
@@ -51,7 +64,10 @@ export function detectBlock(
   }
   const body = res.body?.toLowerCase();
   if (body) {
-    const marker = CAPTCHA_MARKERS.find((m) => body.includes(m));
+    const ok = res.status >= 200 && res.status < 300;
+    const marker =
+      CAPTCHA_MARKERS.find((m) => body.includes(m)) ??
+      (ok ? undefined : CAPTCHA_SCRIPT_MARKERS.find((m) => body.includes(m)));
     if (marker) {
       return {
         blocked: true,
