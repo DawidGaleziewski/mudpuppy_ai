@@ -203,3 +203,67 @@ Written with the `subagent-authoring` skill.
 **Model**: `ba` runs on `opus` (synthesis quality and consistency across passes matter more than
 cost; it never browses so token use is bounded by evidence size). Budget: stop condition per pass,
 the session summary lists what was skipped.
+
+## 15. Reference portal (goal measurement, D8)
+
+**Decision**: New TS package `apps/crawler/packages/reference-portal` (`@pathfinder/reference-portal`):
+a dependency-free `node:http` server with server-rendered Polish HTML, run by `pnpm reference-portal
+[--port 4010]` from `apps/crawler/`, also importable by tests (`startReferencePortal({port: 0})`).
+State (quotes, contact requests) is in memory and reset on every start and by `resetState()` in
+tests; no randomness, a fixed "today" (2026-01-15) so age and date rules are stable. `robots.txt`
+allows everything except `/__admin/`. Configured as `portals/reference-insurer/portal.yaml`
+(`environment: sandbox`, base URL `http://127.0.0.1:4010`) with `personas/reference-insurer/guest.yaml`,
+plus `portals/reference-insurer-readonly/portal.yaml` (`environment: production` on the same URL) to
+exercise the trace boundary.
+
+Content (ground truth is authoritative; this is the design target):
+- Screens: home, car insurance, home insurance, travel insurance, product comparison, quote step 1
+  (vehicle), step 2 (driver), step 3 (options), quote result, contact form, contact thanks, FAQ,
+  glossary page, login, "Moje polisy" (login wall).
+- Rules, mixed kinds: driver age 18–75 (validation); `Kod pocztowy` format `NN-NNN` (format);
+  vehicle production year ≥ 1990 (range); premium = base × age factor × engine factor − 10% when
+  "Bezszkodowa jazda" ≥ 5 lat (computation, shown in the result breakdown); AC option only for
+  vehicles < 15 years (eligibility, option disabled with a hint); "Dalej" disabled until consents are
+  ticked (UI enablement); travel insurance max 90 days (validation); contact phone or e-mail required
+  (either-or); discount code must match `[A-Z]+[0-9]{2}`, e.g. `WIOSNA10` (format, message on
+  error); **not observable as guest**: renewal allowed only 30 days before expiry (behind login),
+  claims payout limits (backend only), agent commission (never shown).
+- Processes: "Oblicz składkę OC/AC" (3 steps → result; the final "Kup polisę" is a POST = mutating),
+  "Wyślij zapytanie kontaktowe" (POST), "Porównaj produkty" (read-only), "Przedłuż polisę" (login
+  wall → not observable).
+
+**Rationale**: the product goal can only be measured where the truth is known. A dedicated package
+keeps it out of `src/` of the crawler/BA (the `no-portal-names` test still holds) and gives trace
+tests a realistic multi-step flow. liveinsurer stays a live test bed only.
+
+**Alternatives considered**: extending `mcp-server/tests/mock-insurer.ts` (a safety-test fixture;
+growing it into a product mock would couple two purposes and it is not runnable standalone); a
+separate app under `apps/` (TS already has a workspace; a package is enough — governor may move it
+later if it grows).
+
+## 16. Goal evaluation (`docs:evaluate`)
+
+**Decision**: `@pathfinder/docs/src/evaluate.ts`, pure over (records, resolved evidence, ground truth)
+→ report; script `pnpm docs:evaluate <portal> --ground-truth <file> [--env] [--min <category>=<pct>]…`.
+Deterministic matching, documented in [contracts/ground-truth.md](contracts/ground-truth.md):
+- screen: a `screen` record whose `route_templates` contains the ground-truth route template;
+- field: a `data_item` whose `name_verbatim` equals the field label (case/whitespace-normalised);
+- constraint: that `data_item`'s `constraints` state the same kind (required, format, min/max,
+  allowed values) with equal values;
+- rule: a `business_rule` or `requirement` whose evidence cites the rule's anchor screen/form **and**
+  whose text quotes the anchor label verbatim (D6 makes this a fair test); or that relates to the
+  matched `data_item`;
+- process: a `process` record citing a traced process whose visited route templates include the
+  ground-truth first and last observable routes, or flagged `until_boundary`/not observable where the
+  ground truth says it ends in a mutation or login wall;
+- glossary: a `glossary_term` whose `term_verbatim` equals a ground-truth term (normalised);
+- over-claim: a matched rule/process the ground truth marks not guest-observable whose latest
+  revision is `observed`.
+Output: JSON report + Markdown summary (scores, missing items by id, over-claims), byte-stable.
+
+**Rationale**: an LLM judge would be cheaper to write but non-deterministic (Principle VII) and
+itself unverified. The deterministic rules are strict; misses they cause are visible in the report
+and can be checked by a human.
+
+**Alternatives considered**: LLM-as-judge (non-deterministic); a round-trip rebuild of the portal from
+the export and a crawl diff (strongest proof, much more work; declined for now by the user).

@@ -12,14 +12,16 @@ Adds Layer B, the BA deliverable, and the pieces around it, delivered as four ro
   immutable revisions, evidence links resolved to runs, typed relations, reviews, follow-up
   status); a pure `@pathfinder/docs` package (status engine, observed rule, evidence resolution,
   audit); a browserless `pathfinder-ba` MCP server; the `ba` subagent with a `ba-practice` skill
-  derived from `user_input/raw_idea/agents/ba.md`.
+  derived from `user_input/raw_idea/agents/ba.md`; a runnable reference portal with a ground-truth
+  manifest, so the BA's goal can be measured (D8).
 - **R-14**: crawler `trace` mode on the existing runtime and safety gates: fill actions,
   server-recorded process steps, boundary stop on production, follow-up task lifecycle.
 - **R-15**: a Docs tab in the dashboard (SRS sections, record pages with diagrams, evidence → run
   links, revision history, run → docs reverse view) and review actions that write only through a TS
   `docs:review` command; constitution 1.4.0.
 - **R-16**: deterministic SRS export (Markdown + Mermaid + `records.json`) with a traceability matrix
-  and an Unknowns chapter.
+  and an Unknowns chapter; `docs:evaluate` scores the documentation against the reference portal's
+  ground truth (coverage per category, missing items, over-claims) and gates on the SC-008 targets.
 
 Design decisions: [research.md](research.md). Tables: [data-model.md](data-model.md).
 
@@ -36,7 +38,7 @@ Docs pages only). No new TS runtime dependency.
 `0003_ba_documentation`, `0004_trace_processes`; evidence files unchanged
 
 **Testing**: Vitest (pure `@pathfinder/docs` functions against fixtures; BA server via in-memory MCP
-client like `harness.ts`; trace mode against the mock insurer with a real browser); pytest for the
+client like `harness.ts`; trace mode against the reference portal with a real browser); pytest for the
 dashboard (fixture stores from migrations, drift, read-only, POST path, diagram parity); golden files
 for export
 
@@ -51,8 +53,8 @@ for export
 agents never set statuses; dashboard process opens the store read-only; production traces never send
 a non-read request (SC-005); export byte-deterministic
 
-**Scale/Scope**: 1 operator/reviewer; per portal up to ~2 000 records; 12 record kinds; 4 new
-dashboard pages, 2 new run tabs; 15 BA tools; 3 operator commands
+**Scale/Scope**: 1 operator/reviewer; reference portal ≈ 15 screens, 3 forms, ≥ 10 rules, 4 processes; per portal up to ~2 000 records; 12 record kinds; 4 new
+dashboard pages, 2 new run tabs; 15 BA tools; 4 operator commands
 
 ## Constitution Check
 
@@ -92,6 +94,7 @@ specs/004-ba-documentation/
 │   ├── operator-cli.md          # docs:review, docs:export, docs:audit
 │   ├── http-routes-docs.md      # Docs tab, run tabs, review POST (R-15)
 │   ├── srs-export.md            # export layout (R-16)
+│   ├── ground-truth.md          # reference portal truth + docs:evaluate (R-13, R-16)
 │   └── diagram-fixtures/        # shared records→Mermaid goldens (added in R-15)
 ├── checklists/requirements.md
 └── tasks.md                     # /speckit-tasks
@@ -121,6 +124,7 @@ apps/crawler/
     │   ├── src/evidence.ts         # resolve targets → {portal, run, confidence}
     │   ├── src/audit.ts            # docs:audit checks
     │   ├── src/render/             # SRS chapters, Mermaid builders, traceability, records.json
+    │   ├── src/evaluate.ts         # ground-truth scoring (R-16)
     │   └── tests/                  # fixtures + goldens
     ├── mcp-server/
     │   ├── src/ba-main.ts          # NEW entry: pathfinder-ba server, no runtime
@@ -129,6 +133,10 @@ apps/crawler/
     │   ├── src/services/trace.ts   # process + step recording, boundary, followup transitions
     │   ├── src/services/start-run.ts, runtime/*   # mode/intent/value plumbing
     │   └── tests/ba-*.test.ts, trace-run.test.ts, ba-lockdown.test.ts
+    ├── reference-portal/           # NEW @pathfinder/reference-portal: node:http Polish insurer,
+    │   ├── src/server.ts, src/pages/*.ts, src/ground-truth.ts (Zod)
+    │   ├── ground-truth.json
+    │   └── tests/ground-truth.test.ts   # truth ⇔ served HTML
     ├── crawler/src/action-extractor.ts  # fillable controls in trace mode
     └── config/                     # persona trace_inputs (+ PII check)
 
@@ -144,6 +152,8 @@ apps/dashboard/src/pathfinder_dashboard/
 apps/dashboard/tests/test_docs_*.py, test_review.py, test_diagrams.py
 
 .mcp.json                           # + pathfinder-ba server
+portals/reference-insurer/portal.yaml, portals/reference-insurer-readonly/portal.yaml
+personas/reference-insurer/guest.yaml
 .claude/agents/ba.md                # NEW (subagent-authoring)
 .claude/agents/crawler.md           # + Trace section; description covers trace mode
 .claude/skills/ba-practice/         # NEW SKILL.md + references/
@@ -159,10 +169,10 @@ through `frontend-dev`, agent/skill files through the `subagent-authoring` skill
 
 | Item | Stories | Contents | Depends on |
 |---|---|---|---|
-| R-13 | US1 | 0003 migration, schemas, `@pathfinder/docs` (keys, status engine, observed rule, relations, evidence, audit), `pathfinder-ba` server + tools, `docs:audit`, portal export/delete partition, `ba` agent + `ba-practice` skill, `.mcp.json` | — |
+| R-13 | US1 | reference portal + ground truth + portal configs, 0003 migration, schemas, `@pathfinder/docs` (keys, status engine, observed rule, relations, evidence, audit), `pathfinder-ba` server + tools, `docs:audit`, portal export/delete partition, `ba` agent + `ba-practice` skill, `.mcp.json` | — |
 | R-14 | US4 | 0004 migration, RunMode `trace`, start_run/navigate/act/finish_run changes, fill actions, persona `trace_inputs`, process step recording, boundary, follow-up lifecycle, crawler.md Trace section, BA process reads (`list_processes`, `get_process`) | R-13 (follow-ups) |
 | R-15 | US2, US3 | constitution 1.4.0, `docs:review`, dashboard read models + drift, Docs pages/fragments, run `docs`/`process` tabs, diagrams + fixtures, review POST + guards, live updates | R-13 (R-14 for process views) |
-| R-16 | US5 | renderer chapters, traceability, `records.json`, `docs:export`, determinism and golden tests | R-13, R-14 |
+| R-16 | US5, US6 | renderer chapters, traceability, `records.json`, `docs:export`, determinism and golden tests; `docs:evaluate` and the full-pipeline goal run on the reference portal | R-13, R-14 |
 
 ## Complexity Tracking
 

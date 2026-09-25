@@ -27,8 +27,11 @@ feature turns that into a working role, a place to keep its output, a way for a 
 and an export that another team or agent could use to re-create the portal.
 
 Two gaps must close for the documentation to cover processes. The crawler only has `map` mode, so
-there are no ordered process recordings yet. The live store is thin: as of 2026-09-26 it holds
-9 liveinsurer runs, 1 state, 6 forms and 600 actions. The feature therefore also adds crawler `trace` mode.
+there are no ordered process recordings yet, so the feature also adds crawler `trace` mode. Second,
+nothing can yet tell whether documentation is *good enough to re-create the portal*. Real portals
+(liveinsurer) are only a test bed: we cannot know their full truth, so they cannot measure the BA. The
+feature therefore adds a local **reference portal** whose screens, fields, rules and processes are
+known and written down as ground truth, and an evaluation that scores the BA's output against it.
 
 Decisions taken with the user on 2026-09-26:
 
@@ -40,13 +43,14 @@ Decisions taken with the user on 2026-09-26:
 | D4 | Living records: stable ids, every revision kept, each revision linked to its exact evidence and so to its runs. |
 | D5 | Crawler `trace` mode is in scope; on a production portal a trace stops at the first mutating action. |
 | D6 | Documentation is in English; portal UI labels, field names and domain terms are quoted verbatim in the portal's language, with English definitions. |
-| D7 | One spec, four roadmap items: R-13 (store, BA tools, BA agent on map evidence), R-14 (trace mode and processes), R-15 (Docs tab with review), R-16 (SRS export). |
+| D7 | One spec, four roadmap items: R-13 (store, BA tools, BA agent on map evidence, reference portal), R-14 (trace mode and processes), R-15 (Docs tab with review), R-16 (SRS export and goal evaluation). |
+| D8 | Whether the BA achieves its goal is measured, not assumed: a reference portal with a ground-truth manifest, and a deterministic evaluation of the BA's output against it. Existing liveinsurer data is irrelevant to acceptance. |
 
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - BA documents a portal from recorded evidence (Priority: P1) — R-13
 
-The operator asks the BA agent to document a portal (e.g. `liveinsurer`). The BA opens an analysis
+The operator asks the BA agent to document a portal (e.g. the reference portal). The BA opens an analysis
 session, names the crawl runs it will read, and works in passes that mirror BA practice:
 inventory (screens, entry points, forms, API shapes) → capability map → business rules → data
 dictionary and glossary → observable NFRs → synthesis. Every record it writes (capability, screen,
@@ -59,7 +63,7 @@ quote form shows when the postcode is invalid"). It never browses.
 on today's map evidence, before trace mode or UI exist.
 
 **Independent Test**: Run the BA agent against a fixture store holding one completed map run of the
-mock insurer portal. Check that it produces at least an inventory, draft requirements, glossary terms
+reference portal. Check that it produces at least an inventory, draft requirements, glossary terms
 and open questions; that every record has a confidence label and resolvable evidence; that attempts
 to write a record without evidence, or with a confidence of `observed` on an unsupported claim type,
 are refused; and that the BA had no browsing tools.
@@ -162,7 +166,7 @@ ask for more traces via follow-up tasks.
 **Why this priority**: Processes and use cases (D1) cannot be evidence-backed without it. It is
 independent of the UI stories and builds on the existing map runtime and safety gates.
 
-**Independent Test**: Trace a quote process against the local mock insurer portal configured as
+**Independent Test**: Trace a quote process against the local reference portal configured as
 `environment: sandbox` and check that all steps to confirmation are recorded; repeat with it
 configured as `production` and check that the trace stops at the submit action with a
 `not observable` remainder and an open question, and that no mutating request was sent.
@@ -206,6 +210,37 @@ same store produces byte-identical output.
    and diffable).
 3. **Given** records with `needs_confirmation` confidence or `not observable` flags, **When**
    exported, **Then** they are visibly marked and also listed in the "Unknowns" section.
+
+---
+
+### User Story 6 - Know whether the documentation is enough to re-create the portal (Priority: P2) — R-16
+
+The operator runs the whole pipeline on the reference portal (crawler map, traces the BA asks for,
+BA sessions) and then evaluates the documentation against the portal's ground truth. The report
+says how much of the portal the documentation covers (screens, form fields and their constraints,
+business rules, processes, domain terms), lists every ground-truth item that is missing, and lists
+every place where the documentation claims more certainty than the evidence allows (e.g. a rule
+that cannot be seen as a guest documented as `observed`). The operator uses the report to improve
+the BA's guidance and the crawler, and re-runs it to see the effect.
+
+**Why this priority**: It is the only direct measure of the product goal ("so if needed the whole
+portal could be recreated"). Structural checks prove the docs are traceable, not that they are
+complete or honest.
+
+**Independent Test**: Evaluate a hand-built fixture set of records against a small ground truth and
+check each score, missing item and over-claim; then run the full pipeline on the reference portal and
+check the scores meet SC-008.
+
+**Acceptance Scenarios**:
+
+1. **Given** documentation that covers 9 of 10 ground-truth screens, **When** evaluated, **Then** the
+   screen score is 90% and the missing screen is named.
+2. **Given** a ground-truth rule marked "not observable as guest" and a BA record claiming it as
+   `observed`, **When** evaluated, **Then** it is reported as an over-claim.
+3. **Given** scores below the configured thresholds, **When** evaluated, **Then** the command reports
+   failure, so it can gate a pipeline run.
+4. **Given** the same store and ground truth, **When** evaluated twice, **Then** the reports are
+   identical.
 
 ---
 
@@ -315,7 +350,7 @@ same store produces byte-identical output.
   later status.
 - **FR-023**: A trace run MAY be started from a BA follow-up task; the run MUST be linked to that
   task, and the task status MUST be updated from the run outcome by deterministic code.
-- **FR-024**: Trace mode MUST be testable end to end against the local mock insurer portal with both
+- **FR-024**: Trace mode MUST be testable end to end against the local reference portal with both
   a sandbox and a production configuration.
 
 **Docs tab and review (R-15)**
@@ -361,6 +396,26 @@ same store produces byte-identical output.
 - **FR-053**: Export MUST be deterministic: the same store produces byte-identical output.
 - **FR-054**: The export MUST NOT include raw evidence files or unscrubbed data, only references.
 
+**Reference portal and goal evaluation (R-13, R-16)**
+
+- **FR-060**: The project MUST include a runnable local reference portal (insurer-like, Polish UI) with
+  known content: at least 10 screens, 3 forms with at least 15 fields in total including required
+  fields, format and range validations, at least 10 business rules of mixed types (validation,
+  computation, eligibility, UI enablement), at least 3 multi-step processes of which at least one ends
+  in a data-changing submit, a login-only area, and domain terms. It MUST be resettable to the same
+  state and deterministic (no randomness, fixed dates).
+- **FR-061**: The reference portal MUST ship a machine-readable ground truth listing its screens,
+  forms and fields with constraints, business rules (with where they show and whether a guest can
+  observe them), processes with their steps, and glossary terms. An automated check MUST keep the
+  ground truth consistent with what the portal actually serves.
+- **FR-062**: The reference portal MUST be configured as a portal with a guest persona so the crawler
+  and BA use it exactly like any other portal; nothing in the crawler or BA code may know it by name.
+- **FR-063**: The system MUST evaluate a portal's documentation against a ground truth and report,
+  per category (screens, fields, field constraints, business rules, processes, glossary terms), the
+  share of ground-truth items documented, the missing items, and over-claims (documentation more
+  certain than the ground truth allows). Matching MUST be deterministic and documented.
+- **FR-064**: The evaluation MUST accept minimum scores and report failure when any is not met.
+
 ### Key Entities
 
 - **Analysis Session**: one BA pass over a portal; input runs, passes completed, records
@@ -390,7 +445,7 @@ same store produces byte-identical output.
   record exists.
 - **SC-003**: From any requirement in the Docs tab, the operator reaches the run it came from in at
   most 2 clicks; from any run, the records citing it are listed on the run page.
-- **SC-004**: On the mock insurer portal, one BA session over one map run and one trace run produces
+- **SC-004**: On the reference portal, one BA session over one map run and one trace run produces
   every SRS section listed in FR-030 with at least one record each (or an explicit "nothing observed"
   note), and every section gap appears as an open question or follow-up task.
 - **SC-005**: On a production-configured trace, 0 mutating, destructive or external-side-effect
@@ -398,8 +453,12 @@ same store produces byte-identical output.
 - **SC-006**: A reviewer can confirm or reject a draft in under 30 seconds from opening it.
 - **SC-007**: Exporting the same store twice produces identical files; every id and evidence
   reference in the export exists in the store.
-- **SC-008**: A reader who has never seen the portal can list its capabilities, screens, processes,
-  fields and known unknowns from the export alone (checked by review against the mock portal).
+- **SC-008**: On the reference portal, after one map run, the traces the BA requests and at most three
+  BA sessions, the documentation covers at least 90% of guest-visible screens, 90% of form fields,
+  80% of field constraints, 70% of guest-observable business rules, 100% of processes (documented, or
+  flagged as not observable beyond a boundary), and 80% of glossary terms, with 0 over-claims.
+- **SC-009**: Every ground-truth rule a guest cannot observe is either absent from the documentation
+  or recorded as `needs_confirmation`/`not observable`, never as `observed`.
 
 ## Assumptions
 
@@ -414,9 +473,11 @@ same store produces byte-identical output.
 - NFRs are limited to what is observable from recorded evidence (e.g. response status patterns,
   robots policy, accessibility of labels, languages offered); everything else is listed as not
   observable.
-- The liveinsurer production store will stay thin until a host with browser libraries is available
-  (roadmap note on T073); acceptance of every story is therefore demonstrated on the mock insurer
-  portal, and liveinsurer output is a best-effort bonus.
+- Acceptance of every story is demonstrated on the reference portal. Existing liveinsurer data is a test
+  bed only; it is not needed, not migrated specially, and may be deleted with `portal:delete`.
+- The SC-008 thresholds are starting targets; if the first full run falls short, the gap analysis
+  drives changes to the BA guidance or the crawler, not a silent lowering of thresholds (any change
+  is recorded in the roadmap notes).
 - Process discovery by the crawler itself (proposing which processes exist) is out of scope; the BA
   proposes processes from map evidence and asks for traces via follow-up tasks.
 - QA test generation, replay verification and statuses beyond `confirmed` (`tested`,

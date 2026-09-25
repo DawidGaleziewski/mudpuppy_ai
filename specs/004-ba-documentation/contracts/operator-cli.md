@@ -8,7 +8,7 @@ export or audit. All take `--env <env>` (default `production`, DB `data/db/<env>
 Used by the dashboard (subprocess) and by hand. Input: one JSON object on stdin, or flags.
 
 ```json
-{ "portal_id": "liveinsurer", "key": "REQ-007", "rev_no": 3,
+{ "portal_id": "reference-insurer", "key": "REQ-007", "rev_no": 3,
   "action": "confirm" | "reject" | "comment", "text": "…", "reviewer": "Jane Doe" }
 ```
 
@@ -36,3 +36,7 @@ existing row of the right portal (and its `run_id` matches); every `observed` re
 observed rule; every non-draft revision status is explained by a review; denormalised
 `doc_records` columns match revisions; every `followup` record has a `followup_tasks` row. Prints a
 JSON report; exit 1 on any finding. Also run by the test suite on every fixture store.
+
+## `pnpm docs:evaluate <portal> --ground-truth <file>` (R-16)
+
+Scores documentation against a ground truth. See [ground-truth.md](ground-truth.md). Read-only.
