@@ -13,9 +13,18 @@ export interface RateLimiterOptions {
   sleep?: (ms: number) => Promise<void>;
 }
 
+export interface AcquireOptions {
+  /**
+   * Wait for a slot ahead of every non-priority waiter (FIFO among priority waiters). Pacing is
+   * unchanged. For main-frame navigations, which would otherwise queue behind every pending
+   * subresource of the page being left.
+   */
+  priority?: boolean;
+}
+
 export interface RateLimiter {
   /** Resolves with a `release` function once a request may go out; rejects with RateLimiterHalted after `halt()`. */
-  acquire(): Promise<() => void>;
+  acquire(opts?: AcquireOptions): Promise<() => void>;
   /** Permanently deny further permits (a block was detected — SC-007). Waiting acquirers are rejected. */
   halt(): void;
   readonly halted: boolean;
@@ -26,7 +35,8 @@ export interface RateLimiter {
 
 /**
  * Spacing limiter (a token bucket with burst 1): permits are at least 1000/requestsPerSecond ms
- * apart, and at most `maxConcurrency` are outstanding. Permits are issued in FIFO order.
+ * apart, and at most `maxConcurrency` are outstanding. Slots are handed out in FIFO order, priority
+ * acquirers first.
  */
 export function createRateLimiter(opts: RateLimiterOptions): RateLimiter {
   if (!(opts.requestsPerSecond > 0)) throw new Error('requestsPerSecond must be > 0');
@@ -39,14 +49,19 @@ export function createRateLimiter(opts: RateLimiterOptions): RateLimiter {
   let halted = false;
   let inFlight = 0;
   let nextAt = 0;
-  const waiters: { resolve: () => void; reject: (e: Error) => void }[] = [];
+  const waiters: { resolve: () => void; reject: (e: Error) => void; priority: boolean }[] = [];
 
-  const takeSlot = (): Promise<void> => {
+  const takeSlot = (priority: boolean): Promise<void> => {
     if (inFlight < opts.maxConcurrency) {
       inFlight += 1;
       return Promise.resolve();
     }
-    return new Promise<void>((resolve, reject) => waiters.push({ resolve, reject }));
+    return new Promise<void>((resolve, reject) => {
+      const w = { resolve, reject, priority };
+      const at = priority ? waiters.findIndex((x) => !x.priority) : -1;
+      if (at === -1) waiters.push(w);
+      else waiters.splice(at, 0, w);
+    });
   };
 
   const release = (): void => {
@@ -78,9 +93,9 @@ export function createRateLimiter(opts: RateLimiterOptions): RateLimiter {
       halted = true;
       for (const w of waiters.splice(0)) w.reject(new RateLimiterHalted());
     },
-    async acquire() {
+    async acquire(acquireOpts: AcquireOptions = {}) {
       if (halted) throw new RateLimiterHalted();
-      await takeSlot();
+      await takeSlot(acquireOpts.priority ?? false);
       const paced = chain.then(async () => {
         if (halted) throw new RateLimiterHalted();
         const wait = nextAt - now();

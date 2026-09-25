@@ -29,11 +29,15 @@ export function captureAria(page: Page): Promise<string> {
  * Extract forms and their field schemas WITHOUT submitting or reading any value (FR-011): only
  * attributes, option labels and the browser's own validation message are read. `checkValidity()`
  * fires `invalid` events but never submits.
+ *
+ * The callbacks passed to `page.evaluate` must not bind functions to names (`const f = () => ...`):
+ * the MCP server runs under tsx, whose keepNames transform wraps them in a `__name(...)` helper that
+ * does not exist in the page, so the evaluate throws `__name is not defined`.
  */
 export function extractForms(page: Page): Promise<DomForm[]> {
   return page.evaluate(() => {
     const SKIP = new Set(['hidden', 'submit', 'button', 'image', 'reset']);
-    const nameOf = (f: HTMLFormElement): string => {
+    return [...document.querySelectorAll('form')].map((f) => {
       const labelled = f.getAttribute('aria-labelledby');
       const fromLabelled = labelled
         ? labelled
@@ -42,9 +46,6 @@ export function extractForms(page: Page): Promise<DomForm[]> {
             .join(' ')
             .trim()
         : '';
-      return f.getAttribute('aria-label') ?? (fromLabelled || f.getAttribute('name') || f.id || '');
-    };
-    return [...document.querySelectorAll('form')].map((f) => {
       const fields = (
         [...f.elements] as (HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement)[]
       )
@@ -83,7 +84,8 @@ export function extractForms(page: Page): Promise<DomForm[]> {
         !!f.querySelector('input[type=search]') ||
         !!f.closest('[role=search]');
       return {
-        name: nameOf(f),
+        name:
+          f.getAttribute('aria-label') ?? (fromLabelled || f.getAttribute('name') || f.id || ''),
         method: (f.getAttribute('method') || 'get').toUpperCase(),
         action: f.action || '',
         hasPassword: !!f.querySelector('input[type=password]'),
@@ -124,22 +126,27 @@ export function extractTestIds(page: Page): Promise<DomTestId[]> {
       range: 'slider',
       number: 'spinbutton',
     };
-    const collapse = (s: string | null | undefined): string =>
-      (s ?? '').replace(/\s+/g, ' ').trim();
     return [...document.querySelectorAll('[data-testid]')].slice(0, 500).map((el) => {
       const tag = el.tagName.toLowerCase();
       const type = (el as HTMLInputElement).type;
       const role =
         el.getAttribute('role') ??
         (tag === 'input' ? (INPUT[type] ?? 'textbox') : (IMPLICIT[tag] ?? 'generic'));
-      const labelEl = (el as HTMLInputElement).labels?.[0];
-      const label = collapse(labelEl?.textContent);
-      const name =
-        collapse(el.getAttribute('aria-label')) ||
-        label ||
-        collapse(el.textContent) ||
-        collapse(el.getAttribute('title')) ||
-        collapse(el.getAttribute('placeholder'));
+      // Whitespace-collapsed, in order: label, aria-label, text, title, placeholder.
+      const [label, ariaLabel, text, title, placeholder] = [
+        (el as HTMLInputElement).labels?.[0]?.textContent,
+        el.getAttribute('aria-label'),
+        el.textContent,
+        el.getAttribute('title'),
+        el.getAttribute('placeholder'),
+      ].map((s) => (s ?? '').replace(/\s+/g, ' ').trim()) as [
+        string,
+        string,
+        string,
+        string,
+        string,
+      ];
+      const name = ariaLabel || label || text || title || placeholder;
       return {
         testId: el.getAttribute('data-testid') ?? '',
         role,

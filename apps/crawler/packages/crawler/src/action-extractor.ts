@@ -75,7 +75,11 @@ export function extractCandidates(
     while (stack.length && stack[stack.length - 1]!.depth >= depth) stack.pop();
     stack.push({ depth, label: name ? `${role} "${name}"` : role, role, name });
 
-    if (!CLICKABLE.has(role)) {
+    // A native <select>'s options sit directly under its combobox. Choosing one only sets the field
+    // (its labels are already in the form schema) and they are not clickable; left in, a long list
+    // (a city picker) floods the frontier and the per-state cap. Options of a custom listbox stay.
+    const isSelectOption = role === 'option' && stack[stack.length - 2]?.role === 'combobox';
+    if (!CLICKABLE.has(role) || isSelectOption) {
       last = null;
       continue;
     }

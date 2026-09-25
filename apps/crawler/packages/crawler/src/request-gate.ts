@@ -79,6 +79,16 @@ interface FetchedLike {
 
 const TEXTUAL = /^(text\/|application\/(json|xhtml|xml))/i;
 
+/** A main-frame document response (not a script, XHR or iframe). */
+function isPageDocument(response: Response): boolean {
+  try {
+    const req = response.request();
+    return req.resourceType() === 'document' && req.frame().parentFrame() === null;
+  } catch {
+    return false; // service-worker requests have no frame
+  }
+}
+
 /**
  * The single request choke point (FR-006, FR-008). Every request the browser makes passes through
  * the rate limiter and carries the configured User-Agent; every response is checked for a block, and
@@ -178,7 +188,9 @@ export function createRequestGate(opts: RequestGateOptions): RequestGate {
         }
         let release: (() => void) | undefined;
         try {
-          release = await opts.limiter.acquire();
+          // A main-frame navigation jumps the queue: at a low rate it would otherwise wait behind every
+          // pending subresource of the page it leaves, and the click that started it times out.
+          release = await opts.limiter.acquire({ priority: mainNav });
         } catch (e) {
           if (e instanceof RateLimiterHalted) return route.abort('blockedbyclient');
           throw e;
@@ -228,8 +240,14 @@ export function createRequestGate(opts: RequestGateOptions): RequestGate {
       ctx.on('response', async (response) => {
         const headers = response.headers();
         const status = response.status();
+        // Body markers are checked on top-level documents only: vendor bundles (recaptcha__pl.js) and
+        // third-party iframes contain the same strings on perfectly normal pages.
         let body: string | undefined;
-        if (status < 400 && TEXTUAL.test(headers['content-type'] ?? '')) {
+        if (
+          status < 400 &&
+          isPageDocument(response) &&
+          TEXTUAL.test(headers['content-type'] ?? '')
+        ) {
           body = await response.text().catch(() => undefined);
         }
         stop(
