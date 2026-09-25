@@ -1,3 +1,5 @@
+> Live guidance: `.claude/agents/ba.md` and `.claude/skills/ba-practice/` (spec 004, R-13). This file is the original input they were derived from.
+
 ### BA domain knowladge
 This project should fallow principles of BA domain knowledge. Best tractices etc. Such as:
 
