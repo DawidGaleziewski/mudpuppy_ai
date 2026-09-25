@@ -1,0 +1,16 @@
+{
+  "name": "@pathfinder/reference-portal",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Local Polish insurer reference portal with a ground-truth manifest (spec 004 D8)",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "zod": "^4.6.5"
+  },
+  "scripts": {
+    "start": "tsx src/main.ts"
+  }
+}

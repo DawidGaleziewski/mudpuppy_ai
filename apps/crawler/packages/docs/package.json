@@ -1,0 +1,16 @@
+{
+  "name": "@pathfinder/docs",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Layer B documentation core: keys, status engine, observed rule, relations, evidence resolution, audit, SRS rendering",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./testing": "./src/testing/index.ts"
+  },
+  "dependencies": {
+    "@pathfinder/core": "workspace:*",
+    "kysely": "^0.29.6",
+    "zod": "^4.6.5"
+  }
+}

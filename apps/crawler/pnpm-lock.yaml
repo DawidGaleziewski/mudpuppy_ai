@@ -249,6 +249,18 @@ importers:
         specifier: ^1.63.0
         version: 1.63.0
 
+  packages/docs:
+    dependencies:
+      '@pathfinder/core':
+        specifier: workspace:*
+        version: link:../core
+      kysely:
+        specifier: ^0.29.6
+        version: 0.29.6
+      zod:
+        specifier: ^4.6.5
+        version: 4.6.5
+
   packages/fingerprint: {}
 
   packages/mcp-server:
@@ -265,6 +277,9 @@ importers:
       '@pathfinder/crawler':
         specifier: workspace:*
         version: link:../crawler
+      '@pathfinder/docs':
+        specifier: workspace:*
+        version: link:../docs
       '@pathfinder/fingerprint':
         specifier: workspace:*
         version: link:../fingerprint
@@ -280,6 +295,12 @@ importers:
       playwright:
         specifier: ^1.63.0
         version: 1.63.0
+
+  packages/reference-portal:
+    dependencies:
+      zod:
+        specifier: ^4.6.5
+        version: 4.6.5
 
   packages/safety:
     dependencies:

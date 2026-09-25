@@ -14,9 +14,11 @@
     "@pathfinder/crawler": "workspace:*",
     "@pathfinder/fingerprint": "workspace:*",
     "@pathfinder/safety": "workspace:*",
-    "zod": "^4.6.5"
+    "zod": "^4.6.5",
+    "@pathfinder/docs": "workspace:*"
   },
   "scripts": {
-    "start": "tsx src/main.ts"
+    "start": "tsx src/main.ts",
+    "start:ba": "tsx src/ba-main.ts"
   }
 }
