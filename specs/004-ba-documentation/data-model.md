@@ -141,12 +141,10 @@ Every revision has ≥ 1 link (enforced by the tool in the same transaction and 
 |---|---|---|
 | `from_revision_id` | TEXT FK → doc_revisions | Relations are versioned with the revision that asserts them |
 | `to_record_id` | TEXT FK → doc_records | Points at a record (its current revision at read time) |
-| `type` | TEXT NOT NULL | `contains, has_step, describes, refines, enforces, appears_on, uses_term, synonym_of, performs, answers, depends_on` |
+| `type` | TEXT NOT NULL | `contains, describes, refines, enforces, appears_on, uses_term, synonym_of, answers, depends_on` (process steps and personas are not records: steps live in `process_steps`, the persona in `process` content) |
 | PK | (`from_revision_id`, `to_record_id`, `type`) | |
 
-Allowed (from kind, type, to kind) triples are a table in `@pathfinder/docs` (e.g. `capability
-contains process`, `requirement refines use_case|capability`, `requirement enforces
-business_rule`, `data_item appears_on screen`, `assumption|requirement answers open_question`).
+Allowed (from kind, type, to kind) triples are a table in `@pathfinder/docs` (tasks.md T009).
 
 ## Review — `doc_reviews`
 
