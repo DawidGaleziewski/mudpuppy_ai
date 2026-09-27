@@ -31,6 +31,11 @@ export interface SessionOptions {
   robots: NonNullable<RequestGateOptions['robots']>;
   headless?: boolean;
   stabilizer?: StabilizerOptions;
+  /** Observability hooks handed to the request gate (spec 005); they never change its behaviour. */
+  observe?: Pick<
+    RequestGateOptions,
+    'onRequestDecision' | 'onRobotsCheck' | 'onResponse' | 'onBlockVerdict'
+  >;
 }
 
 /** Non-production portals may omit `rate_limit`; be gentle anyway. */
@@ -87,6 +92,7 @@ export class BrowserSession {
         ...(opts.navigationPolicy ? { navigationPolicy: opts.navigationPolicy } : {}),
         ...(opts.onNavigationRefused ? { onNavigationRefused: opts.onNavigationRefused } : {}),
         robots: opts.robots,
+        ...opts.observe,
       });
       await gate.install(context);
       const page = await context.newPage();

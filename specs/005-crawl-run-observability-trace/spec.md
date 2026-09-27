@@ -134,7 +134,8 @@ opens that step's browser trace.
 4. **Given** a non-production run, **When** a step is expanded, **Then** a browser trace for exactly
    that step can be opened.
 5. **Given** an obstacle (cookie banner, popup) dismissed during a step, **Then** it appears in that
-   step. (Only once obstacle handlers are wired into live sessions, R-07 T059.)
+   step, with the configured obstacle id and whether the pre-settle sweep or Playwright's
+   locator handler dismissed it.
 
 ---
 
@@ -254,7 +255,8 @@ only" narrows to errors, refusals, never-stabilized pages, slow steps and unmatc
 - Claude Code (≥ 2.1.283, verified) sends `claudecode/toolUseId` in each MCP call's metadata and
   stores subagent transcripts as JSONL with visible text, tool-use ids and usage; thinking content is
   not stored (signature only), which is why FR-006 asks for a rationale.
-- Obstacle handlers are not yet wired into live sessions (R-07 T059); this feature records obstacle
-  events once they exist but does not do that wiring.
+- Obstacle handlers already run in every live session (`BrowserSession` registers them and sweeps
+  around each settle); the portal selectors are still placeholders until R-07 T059's supervised
+  run, so obstacle events may be rare until then.
 - The BA server (R-13) is out of scope; its calls can reuse the same mechanism later.
 - No backfill for earlier runs.

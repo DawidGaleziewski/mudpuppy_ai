@@ -84,12 +84,20 @@ A shaped URL is `{origin, route, query_keys}` from `shapeUrl()`; raw URLs are ne
 ## Callbacks added to `@pathfinder/crawler` (trace-agnostic)
 
 ```ts
-// request-gate.ts
-onRequestDecision?: (d: { url: string; method: string; resourceType: string; mainFrame: boolean;
-  decision: 'continue' | 'abort' | 'fulfill'; reason?: string; robotsRule?: string;
-  limiterWaitMs: number; status?: number; redirectTo?: string; failed?: string }) => void;
+// request-gate.ts (RequestGateOptions; BrowserSession passes them via SessionOptions.observe)
+interface RequestDecision { url: string; method: string; resourceType: string; mainFrame: boolean;
+  decision: 'continue' | 'abort' | 'fulfill';
+  reason?: 'navigation_policy' | 'robots' | 'redirect_refused' | 'limiter_halted';
+  rule?: string; robotsRule?: string; limiterWaitMs: number;
+  status?: number; redirectTo?: string; failed?: string }
+onRequestDecision?: (d: RequestDecision) => void;                    // every routed request
 onRobotsCheck?: (c: { url: string; rule: string; action: 'blocked' | 'allowed' }) => void; // every occurrence
-onBlockVerdict?: (v: { signature: string; status: number; url: string }) => void;
+onResponse?: (r: { url: string; status: number; resourceType: string }) => void;          // every response
+onBlockVerdict?: (v: { kind: string; warning: string; status: number; url: string }) => void;
+now?: () => number;                                                  // limiter-wait clock
+// A throwing hook is swallowed; hooks never change the gate's behaviour.
+// `status` on a `continue` request comes from `onResponse` (the route handler cannot see it);
+// failed requests (`requestfailed`) come from the network activity tracker (§9).
 
 // stabilizer.ts
 settleWithDiagnostics(page, net, opts): Promise<{ result: StabilizationResult;

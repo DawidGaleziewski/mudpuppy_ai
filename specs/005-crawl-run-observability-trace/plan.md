@@ -82,7 +82,7 @@ golden-trace test with injected clock and id generator; pytest + `TestClient` fo
 | Agent interface: DB only via MCP | Pass | Agents never touch the trace. The importer is an operator script in `apps/crawler/scripts/` writing through core schemas, like `portal:export`. |
 | App layout / Python read-only | Pass | Changes stay inside the two apps; the dashboard only reads (`mode=ro`). |
 
-Post-design re-check: unchanged. See Complexity Tracking for two deliberate scope lines.
+Post-design re-check: unchanged. See Complexity Tracking for the one deliberate scope line.
 
 ## Project Structure
 
@@ -178,5 +178,4 @@ when it resumes. Also recorded in `roadmap.md` notes when this plan is committed
 
 | Scope line | Why | Rejected alternative |
 | --- | --- | --- |
-| Obstacle handlers are not wired into live sessions here | That is R-07 T059, blocked on a host with browser libraries. This feature ships the `obstacle` event and a `recordObstacles` helper tested on fixtures. | Wiring it here would silently absorb a blocked task of another item. |
 | Playwright traces stored unscrubbed | Their value is the raw page; scrubbing would destroy it. Principle V allows "scrubbed **or** access-restricted": local-only, production opt-in, deleted with portal, never exported. | Scrubbing DOM snapshots in zips: not feasible without rewriting Playwright's format. |

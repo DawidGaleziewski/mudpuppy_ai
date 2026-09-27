@@ -47,6 +47,42 @@ export interface RequestGateOptions {
     /** Called once per (template, rule, action); later occurrences only raise the count. */
     onNote?: (note: RobotsPageNote) => void;
   };
+  /**
+   * Observability hooks (spec 005). Called for every routed request, every robots check of a page
+   * request, every response and every block verdict. They only observe: a hook that throws is
+   * ignored and never changes what the gate does.
+   */
+  onRequestDecision?: (d: RequestDecision) => void;
+  onRobotsCheck?: (c: { url: string; rule: string; action: 'blocked' | 'allowed' }) => void;
+  onResponse?: (r: { url: string; status: number; resourceType: string }) => void;
+  onBlockVerdict?: (v: { kind: string; warning: string; status: number; url: string }) => void;
+  /** Clock for limiter waits; injectable for tests. */
+  now?: () => number;
+}
+
+export interface RequestDecision {
+  url: string;
+  method: string;
+  resourceType: string;
+  mainFrame: boolean;
+  decision: 'continue' | 'abort' | 'fulfill';
+  reason?: 'navigation_policy' | 'robots' | 'redirect_refused' | 'limiter_halted';
+  rule?: string;
+  /** Set when a robots-disallowed page request was let through (`allow_and_record`). */
+  robotsRule?: string;
+  limiterWaitMs: number;
+  status?: number;
+  redirectTo?: string;
+  failed?: string;
+}
+
+function safely<A>(fn: ((a: A) => void) | undefined, arg: A): void {
+  if (!fn) return;
+  try {
+    fn(arg);
+  } catch {
+    // observers must never affect the gate
+  }
 }
 
 /** A page's own request to a robots-disallowed URL (decision-log `note`, research §11). */
@@ -85,6 +121,7 @@ const TEXTUAL = /^(text\/|application\/(json|xhtml|xml))/i;
  * on detection the limiter is halted for good — no retry, no bypass.
  */
 export function createRequestGate(opts: RequestGateOptions): RequestGate {
+  const clock = opts.now ?? (() => performance.now());
   let stopped: StopEvent | null = null;
   const stats: RobotsStats = {
     refusedNavigations: 0,
@@ -118,6 +155,7 @@ export function createRequestGate(opts: RequestGateOptions): RequestGate {
 
   const notePageRequest = (url: string, rule: string, action: 'blocked' | 'allowed'): void => {
     const r = opts.robots!;
+    safely(opts.onRobotsCheck, { url, rule, action });
     if (action === 'blocked') stats.pageRequestsBlocked += 1;
     else stats.pageRequestsAllowed += 1;
     let template: string;
@@ -154,10 +192,35 @@ export function createRequestGate(opts: RequestGateOptions): RequestGate {
       await ctx.route('**/*', async (route, request) => {
         const url = request.url();
         const mainNav = request.isNavigationRequest() && request.frame().parentFrame() === null;
+        let limiterWaitMs = 0;
+        let robotsRule: string | undefined;
+        const report = (
+          d: Omit<
+            RequestDecision,
+            'url' | 'method' | 'resourceType' | 'mainFrame' | 'limiterWaitMs'
+          >,
+        ): void => {
+          if (!opts.onRequestDecision) return;
+          safely(opts.onRequestDecision, {
+            url,
+            method: request.method(),
+            resourceType: request.resourceType(),
+            mainFrame: mainNav,
+            ...d,
+            ...(robotsRule !== undefined ? { robotsRule } : {}),
+            limiterWaitMs,
+          });
+        };
+        const halted = (): Promise<void> => {
+          report({ decision: 'abort', reason: 'limiter_halted' });
+          return route.abort('blockedbyclient');
+        };
+
         if (mainNav && opts.navigationPolicy) {
           const refusal = opts.navigationPolicy(url);
           if (refusal) {
             refuseNavigation(url, refusal);
+            report({ decision: 'abort', reason: 'navigation_policy', rule: refusal.rule });
             return route.abort('blockedbyclient');
           }
         }
@@ -165,31 +228,43 @@ export function createRequestGate(opts: RequestGateOptions): RequestGate {
           const robots = await robotsRefusal(url);
           if (robots && mainNav) {
             refuseNavigation(url, robots);
+            report({ decision: 'abort', reason: 'robots', rule: robots.rule });
             return route.abort('blockedbyclient');
           }
           if (robots) {
             const allow = opts.robots!.pageRequests === 'allow_and_record';
             notePageRequest(url, robots.rule, allow ? 'allowed' : 'blocked');
-            if (!allow) return route.abort('blockedbyclient');
+            if (!allow) {
+              report({ decision: 'abort', reason: 'robots', rule: robots.rule });
+              return route.abort('blockedbyclient');
+            }
+            robotsRule = robots.rule;
           }
         } catch (e) {
-          if (e instanceof RateLimiterHalted) return route.abort('blockedbyclient');
+          if (e instanceof RateLimiterHalted) return halted();
           throw e;
         }
         let release: (() => void) | undefined;
+        const waitStart = clock();
         try {
           release = await opts.limiter.acquire();
         } catch (e) {
-          if (e instanceof RateLimiterHalted) return route.abort('blockedbyclient');
+          limiterWaitMs = clock() - waitStart;
+          if (e instanceof RateLimiterHalted) return halted();
           throw e;
         }
+        limiterWaitMs = clock() - waitStart;
         const headers = { ...request.headers(), 'user-agent': opts.userAgent };
         if (!(mainNav && opts.robots)) {
           try {
             await route.continue({ headers });
+          } catch (e) {
+            report({ decision: 'continue', failed: (e as Error).message });
+            throw e;
           } finally {
             release();
           }
+          report({ decision: 'continue' });
           return;
         }
         // Playwright calls route handlers only for the first URL of a redirect chain, so a
@@ -198,43 +273,71 @@ export function createRequestGate(opts: RequestGateOptions): RequestGate {
         let response: FetchedLike;
         try {
           response = (await (route as Route).fetch({ headers, maxRedirects: 0 })) as FetchedLike;
+        } catch (e) {
+          report({ decision: 'fulfill', failed: (e as Error).message });
+          throw e;
         } finally {
           release();
         }
         const location = response.headers()['location'];
         const status = response.status();
+        let redirectTo: string | undefined;
         if (status >= 300 && status < 400 && location) {
-          let target: string;
           try {
-            target = new URL(location, url).toString();
+            redirectTo = new URL(location, url).toString();
           } catch {
-            target = location;
+            redirectTo = location;
           }
           let refusal: (Refusal & { via?: 'request_gate' }) | null =
-            opts.navigationPolicy?.(target) ?? null;
+            opts.navigationPolicy?.(redirectTo) ?? null;
           try {
-            refusal ??= await robotsRefusal(target);
+            refusal ??= await robotsRefusal(redirectTo);
           } catch (e) {
-            if (e instanceof RateLimiterHalted) return route.abort('blockedbyclient');
+            if (e instanceof RateLimiterHalted) return halted();
             throw e;
           }
           if (refusal) {
-            refuseNavigation(target, refusal);
+            refuseNavigation(redirectTo, refusal);
+            report({
+              decision: 'abort',
+              reason: 'redirect_refused',
+              rule: refusal.rule,
+              status,
+              redirectTo,
+            });
             return route.abort('blockedbyclient');
           }
         }
         await (route as Route).fulfill({ response: response as never });
+        report({ decision: 'fulfill', status, ...(redirectTo ? { redirectTo } : {}) });
       });
       ctx.on('response', async (response) => {
         const headers = response.headers();
         const status = response.status();
+        if (opts.onResponse) {
+          safely(opts.onResponse, {
+            url: response.url(),
+            status,
+            resourceType: response.request().resourceType(),
+          });
+        }
         let body: string | undefined;
         if (status < 400 && TEXTUAL.test(headers['content-type'] ?? '')) {
           body = await response.text().catch(() => undefined);
         }
-        stop(
-          detectBlock({ url: response.url(), status, headers, body }, opts.blockSignatures ?? []),
+        const verdict = detectBlock(
+          { url: response.url(), status, headers, body },
+          opts.blockSignatures ?? [],
         );
+        if (verdict.blocked && verdict.kind && verdict.warning) {
+          safely(opts.onBlockVerdict, {
+            kind: verdict.kind,
+            warning: verdict.warning,
+            status,
+            url: response.url(),
+          });
+        }
+        stop(verdict);
       });
     },
   };

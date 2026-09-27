@@ -135,7 +135,7 @@ stored unscrubbed). Attribute names avoid the sensitive key `name`: accessible n
 | `response` listener → `detectBlock` | `event block_verdict` when blocked | signature id, status, url shape; followed by `event run_stop` |
 | rate limiter `acquire` | `limiter_wait` summed per call; individual event when wait > 1 s or halted | ms, halted |
 | `ctx.decisions.record` (decorator, §2) | `event decision` | `decision_id`, kind, rule |
-| `packages/obstacles` events | `event obstacle` via `recordObstacles` | id, selector, via — no live call site yet (plan Complexity Tracking) |
+| `BrowserSession.settle` obstacle sweeps + `obstacles.events` (handler-fired) | `event obstacle` via `recordObstacles` | `obstacle_id`, selector, `via` (`sweep`/`handler`); the session reports new entries of `obstacles.events` per call (§16) |
 
 The crawler package gets **callbacks only** (`onRequestDecision`, settle diagnostics) so it keeps
 no dependency on the trace schema.
@@ -222,5 +222,10 @@ confirms the tool list is unchanged and the field is required.
 
 ## §16. Obstacles
 
-`recordObstacles(tracer, runId, events)` ships with fixture tests; wiring `registerObstacleHandlers`
-into live sessions stays with R-07 T059.
+Correction (2026-09-27, found while implementing T026): obstacle handlers **are** wired —
+`BrowserSession.launch` calls `registerObstacleHandlers(page, portal.obstacles)` and `settle()`
+sweeps before and after waiting. (The earlier claim came from searching `mcp-server` only.) Both
+sources append to `session.obstacles.events`, so the pipeline records every entry added since the
+call started (`recordObstacles(tracer, events.slice(before))`) at the end of `settle` and at call
+end (handler-fired dismissals happen during clicks). R-07 T059 is only about replacing placeholder
+selectors after a supervised run; it does not block this.
