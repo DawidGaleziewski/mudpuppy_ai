@@ -169,6 +169,14 @@ interface Pending {
 }
 
 const INSERT_CHUNK = 400;
+const NOOP_HANDLE: SpanHandle = {
+  id: '',
+  setRunId() {},
+  set() {},
+  setStatus() {},
+  setOutput() {},
+  setSummary() {},
+};
 const errorsSeen = new WeakSet<object>();
 
 function statusFor(e: unknown): SpanStatus {
@@ -604,13 +612,9 @@ export function createTracer(deps: TracerDeps): Tracer {
 
     async phase(name, fn, attrs) {
       const ctx = als.getStore();
-      if (!ctx || ctx.call.closed) {
-        if (process.env.NODE_ENV === 'test')
-          throw new Error(`trace phase "${name}" outside a call`);
-        healthOf(ctx?.call.runId ?? null).dropped += 1;
-        return fn(handleFor(newSpan('phase', name, null), null));
-      }
-      if (!recording) return fn(handleFor(newSpan('phase', name, null), null));
+      // Services also run outside a tool call (direct tests, scripts): run untraced.
+      if (!ctx || ctx.call.closed) return fn(NOOP_HANDLE);
+      if (!recording) return fn(NOOP_HANDLE);
       const span = newSpan('phase', name, ctx.span.id, attrs);
       ctx.call.children.push(span);
       try {

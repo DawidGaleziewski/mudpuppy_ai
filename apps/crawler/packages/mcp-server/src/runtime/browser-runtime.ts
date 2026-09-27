@@ -27,106 +27,8 @@ export function createBrowserRuntime(opts: BrowserRuntimeOptions = {}): Runtime 
 
   return {
     async openSession(ctx: ServerContext, run, approved, robots) {
-      await closeRun(run.id); // a resumed run replaces any earlier session
-      const holder: { rs?: RunState } = {};
-      const session = await BrowserSession.launch({
-        effective: approved.effective,
-        headless: opts.headless ?? true,
-        ...(opts.stabilizer ? { stabilizer: opts.stabilizer } : {}),
-        onStop: (e) => {
-          if (holder.rs) {
-            persistStop(ctx, holder.rs, e.warning)
-              .then(() => holder.rs?.session.limiter.halt())
-              .catch((err: unknown) => ctx.logger.error({ err }, 'failed to persist run stop'));
-          }
-        },
-        limiter: robots.limiter,
-        robots: {
-          registry: robots.registry,
-          pageRequests: robots.pageRequests,
-          templateFor: (url) => {
-            try {
-              return holder.rs ? holder.rs.routeTemplateFor(url) : new URL(url).pathname;
-            } catch {
-              return url;
-            }
-          },
-          onNote: (n) => {
-            void ctx.decisions
-              .record({
-                run_id: run.id,
-                kind: 'note',
-                rule: n.rule,
-                reason: `the page requested a robots.txt-disallowed URL (${n.action})`,
-                subject_ref: n.template,
-                detail: { url_template: n.template, action: n.action, first_url: n.url },
-              })
-              .catch((err: unknown) => ctx.logger.error({ err }, 'failed to log robots note'));
-          },
-        },
-        navigationPolicy: (url) => (holder.rs ? navigationPolicy(holder.rs)(url) : null),
-        onNavigationRefused: (url, refusal) => {
-          void ctx.decisions
-            .record({
-              run_id: run.id,
-              kind: 'refuse',
-              rule: refusal.rule,
-              reason: refusal.reason,
-              subject_ref: url,
-              detail: {
-                via: 'request_gate',
-                status: refusal.status,
-                ...(refusal.policyId ? { policy_id: refusal.policyId } : {}),
-              },
-            })
-            .catch((err: unknown) => ctx.logger.error({ err }, 'failed to log navigation refusal'));
-        },
-      });
-      const rs = new RunState(run.id, session, approved.effective, approved.scope, robots);
-      holder.rs = rs;
-
-      // Clusters are per portal (spec 002 FR-027): rebuild the fingerprint index from this portal's
-      // recorded states only, in creation order, so cluster ids stay consistent across its runs.
-      const all = await ctx.db
-        .selectFrom('states')
-        .select(['route_template', 'evidence_ref'])
-        .where('portal_id', '=', run.portal_id)
-        .orderBy('created_at')
-        .orderBy('id')
-        .execute();
-      for (const s of all) {
-        try {
-          const snapshot = await readFile(ctx.evidence.resolve(s.evidence_ref), 'utf8');
-          rs.index.assign(
-            computeFingerprint({ routeTemplate: s.route_template, ariaSnapshot: snapshot }),
-          );
-        } catch (err) {
-          ctx.logger.warn(
-            { err, evidence_ref: s.evidence_ref },
-            'could not restore a state into the fingerprint index',
-          );
-        }
-      }
-
-      // Resume (FR-020): rebuild the in-memory policy window and depths from what is already recorded.
-      const seen = await ctx.db
-        .selectFrom('state_observations')
-        .innerJoin('states', 'states.id', 'state_observations.state_id')
-        .select(['states.id', 'states.cluster_id', 'states.route_template'])
-        .where('state_observations.run_id', '=', run.id)
-        .orderBy('state_observations.observed_at')
-        .execute();
-      rs.policy.restore(
-        seen.map((s) => ({ clusterId: s.cluster_id, routeTemplate: s.route_template })),
-      );
-      const depths = await ctx.db
-        .selectFrom('frontier')
-        .select(['state_id', 'depth'])
-        .where('run_id', '=', run.id)
-        .execute();
-      for (const d of depths)
-        if (!rs.depthByState.has(d.state_id) || rs.depthByState.get(d.state_id)! > d.depth)
-          rs.depthByState.set(d.state_id, d.depth);
+      const rs = await ctx.tracer.phase('open_session', () => launch(ctx, run, approved, robots));
+      await ctx.tracer.phase('restore_index', () => restore(ctx, run, rs));
       runs.set(run.id, rs);
     },
     navigate: (ctx, input) => navigate(ctx, runs.get(input.run_id), input),
@@ -137,4 +39,119 @@ export function createBrowserRuntime(opts: BrowserRuntimeOptions = {}): Runtime 
       await Promise.all([...runs.keys()].map(closeRun));
     },
   };
+
+  async function launch(
+    ctx: ServerContext,
+    run: Parameters<Runtime['openSession']>[1],
+    approved: Parameters<Runtime['openSession']>[2],
+    robots: Parameters<Runtime['openSession']>[3],
+  ): Promise<RunState> {
+    await closeRun(run.id); // a resumed run replaces any earlier session
+    const holder: { rs?: RunState } = {};
+    const session = await BrowserSession.launch({
+      effective: approved.effective,
+      headless: opts.headless ?? true,
+      ...(opts.stabilizer ? { stabilizer: opts.stabilizer } : {}),
+      onStop: (e) => {
+        if (holder.rs) {
+          persistStop(ctx, holder.rs, e.warning)
+            .then(() => holder.rs?.session.limiter.halt())
+            .catch((err: unknown) => ctx.logger.error({ err }, 'failed to persist run stop'));
+        }
+      },
+      limiter: robots.limiter,
+      robots: {
+        registry: robots.registry,
+        pageRequests: robots.pageRequests,
+        templateFor: (url) => {
+          try {
+            return holder.rs ? holder.rs.routeTemplateFor(url) : new URL(url).pathname;
+          } catch {
+            return url;
+          }
+        },
+        onNote: (n) => {
+          void ctx.decisions
+            .record({
+              run_id: run.id,
+              kind: 'note',
+              rule: n.rule,
+              reason: `the page requested a robots.txt-disallowed URL (${n.action})`,
+              subject_ref: n.template,
+              detail: { url_template: n.template, action: n.action, first_url: n.url },
+            })
+            .catch((err: unknown) => ctx.logger.error({ err }, 'failed to log robots note'));
+        },
+      },
+      navigationPolicy: (url) => (holder.rs ? navigationPolicy(holder.rs)(url) : null),
+      onNavigationRefused: (url, refusal) => {
+        void ctx.decisions
+          .record({
+            run_id: run.id,
+            kind: 'refuse',
+            rule: refusal.rule,
+            reason: refusal.reason,
+            subject_ref: url,
+            detail: {
+              via: 'request_gate',
+              status: refusal.status,
+              ...(refusal.policyId ? { policy_id: refusal.policyId } : {}),
+            },
+          })
+          .catch((err: unknown) => ctx.logger.error({ err }, 'failed to log navigation refusal'));
+      },
+    });
+    const rs = new RunState(run.id, session, approved.effective, approved.scope, robots);
+    holder.rs = rs;
+    return rs;
+  }
+
+  async function restore(
+    ctx: ServerContext,
+    run: Parameters<Runtime['openSession']>[1],
+    rs: RunState,
+  ): Promise<void> {
+    // Clusters are per portal (spec 002 FR-027): rebuild the fingerprint index from this portal's
+    // recorded states only, in creation order, so cluster ids stay consistent across its runs.
+    const all = await ctx.db
+      .selectFrom('states')
+      .select(['route_template', 'evidence_ref'])
+      .where('portal_id', '=', run.portal_id)
+      .orderBy('created_at')
+      .orderBy('id')
+      .execute();
+    for (const s of all) {
+      try {
+        const snapshot = await readFile(ctx.evidence.resolve(s.evidence_ref), 'utf8');
+        rs.index.assign(
+          computeFingerprint({ routeTemplate: s.route_template, ariaSnapshot: snapshot }),
+        );
+      } catch (err) {
+        ctx.logger.warn(
+          { err, evidence_ref: s.evidence_ref },
+          'could not restore a state into the fingerprint index',
+        );
+      }
+    }
+
+    // Resume (FR-020): rebuild the in-memory policy window and depths from what is already recorded.
+    const seen = await ctx.db
+      .selectFrom('state_observations')
+      .innerJoin('states', 'states.id', 'state_observations.state_id')
+      .select(['states.id', 'states.cluster_id', 'states.route_template'])
+      .where('state_observations.run_id', '=', run.id)
+      .orderBy('state_observations.observed_at')
+      .execute();
+    rs.policy.restore(
+      seen.map((s) => ({ clusterId: s.cluster_id, routeTemplate: s.route_template })),
+    );
+    const depths = await ctx.db
+      .selectFrom('frontier')
+      .select(['state_id', 'depth'])
+      .where('run_id', '=', run.id)
+      .execute();
+    for (const d of depths)
+      if (!rs.depthByState.has(d.state_id) || rs.depthByState.get(d.state_id)! > d.depth)
+        rs.depthByState.set(d.state_id, d.depth);
+  }
 }

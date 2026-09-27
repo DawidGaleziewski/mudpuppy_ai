@@ -33,8 +33,8 @@ Rules:
   `RUN_STOPPED` → `stopped`; any other throw → `error`. Every throw also emits `event error`
   (`code`, message masked, `stack_top` for non-`ToolError`). The original error is rethrown
   unchanged.
-- `phase` outside a `call` is a programming error in tests (throws under `NODE_ENV=test`), a no-op
-  with a `trace_health` count in production.
+- `phase` outside a `call` runs its function untraced (services are also called directly by tests
+  and scripts); nothing is written.
 - `event` inside a call attaches to the innermost open span; `eventForRun` attaches to the run's
   active call or, if none, writes `between_calls = 1`.
 - All writes are wrapped: a failure increments `dropped` for the run, logs via pino, never throws.

@@ -1,5 +1,6 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import type { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
+import type { CallStart, SpanHandle } from '@pathfinder/core';
 import { z } from 'zod';
 import type { ServerContext } from '../context.js';
 import { ToolError } from '../errors.js';
@@ -54,18 +55,41 @@ function fail(e: unknown, ctx: ServerContext): CallToolResult {
   };
 }
 
+/** What the SDK passes a tool callback besides its arguments (RequestHandlerExtra, the part we read). */
+interface ToolExtra {
+  _meta?: Record<string, unknown>;
+  requestId?: string | number;
+}
+
 export function registerTools(server: McpServer, ctx: ServerContext, runtime: Runtime): void {
   const tool = <S extends z.ZodRawShape>(
     name: AgentToolName,
     description: string,
     shape: S,
-    handler: (args: z.infer<z.ZodObject<S>>) => Promise<unknown>,
+    handler: (args: z.infer<z.ZodObject<S>>, span: SpanHandle) => Promise<unknown>,
   ): void => {
     server.registerTool(name, { description, inputSchema: shape }, (async (
       args: z.infer<z.ZodObject<S>>,
+      extra?: ToolExtra,
     ) => {
+      // `rationale` is agent-stated context for the trace only; no service ever sees it.
+      const { rationale, ...input } = args as z.infer<z.ZodObject<S>> & { rationale?: unknown };
+      const runId = (input as { run_id?: unknown }).run_id;
+      const start: CallStart = {
+        tool: name,
+        runId: typeof runId === 'string' ? runId : null,
+        args: input,
+      };
+      if (extra?._meta) start.meta = extra._meta;
+      if (extra?.requestId !== undefined) start.requestId = extra.requestId;
+      if (typeof rationale === 'string') start.rationale = rationale;
       try {
-        return ok(await handler(args));
+        const out = await ctx.tracer.call(start, async (span) => {
+          const value = await handler(input as z.infer<z.ZodObject<S>>, span);
+          span.setOutput(value);
+          return value;
+        });
+        return ok(out);
       } catch (e) {
         return fail(e, ctx);
       }
@@ -76,8 +100,9 @@ export function registerTools(server: McpServer, ctx: ServerContext, runtime: Ru
     'start_run',
     'Start (or resume with resume_run_id) a read-only mapping run. Validates config and the production guard before any browser opens.',
     { portal_id: z.string(), persona_id: z.string(), resume_run_id: z.string().optional() },
-    async (args) => {
+    async (args, span) => {
       const { output, run, approved, robots } = await startRunRecord(ctx, args);
+      span.setRunId(run.id);
       try {
         await runtime.openSession(ctx, run, approved, robots);
       } catch (err) {
@@ -134,7 +159,9 @@ export function registerTools(server: McpServer, ctx: ServerContext, runtime: Ru
     'Request completion; succeeds only when the frontier is empty or a budget is exhausted.',
     { run_id: z.string(), summary: z.string().optional() },
     async (a) => {
-      const out = await finishRun(ctx, a, runtime.robotsStats?.(a.run_id));
+      const out = await ctx.tracer.phase('complete_run', () =>
+        finishRun(ctx, a, runtime.robotsStats?.(a.run_id)),
+      );
       await runtime.closeRun?.(a.run_id);
       return out;
     },

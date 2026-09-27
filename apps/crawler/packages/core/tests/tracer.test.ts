@@ -316,9 +316,10 @@ describe('context propagation', () => {
     );
   });
 
-  it('throws on a phase outside any call under NODE_ENV=test', async () => {
-    const { tracer } = await setup();
-    await expect(tracer.phase('goto', async () => 1)).rejects.toThrow(/outside a call/);
+  it('runs a phase outside any call untraced', async () => {
+    const { tracer, spans } = await setup();
+    await expect(tracer.phase('goto', async () => 1)).resolves.toBe(1);
+    expect(spans()).toEqual([]);
   });
 });
 
