@@ -100,9 +100,16 @@ now?: () => number;                                                  // limiter-
 // failed requests (`requestfailed`) come from the network activity tracker (§9).
 
 // stabilizer.ts
-settleWithDiagnostics(page, net, opts): Promise<{ result: StabilizationResult;
+trackNetworkActivity(page, now?, { onRequestFailed?: (f: { url; resourceType; failure }) => void })
+  // NetworkActivity gains inFlightRequests(): { url; resourceType; ageMs }[]
+settleWithDiagnostics(page, net, opts): Promise<{ result: StabilizationResult; waitedMs: number;
   diagnostics?: { inFlight: { url: string; resourceType: string; ageMs: number }[];
-                  sinceMutationMs: number; runningAnimations: number } }>;
+                  sinceMutationMs: number | null; runningAnimations: number | null;
+                  msSinceNetworkActivity: number } }>;   // diagnostics only on timeout
+
+// session.ts
+BrowserSession.settleTraced(): Promise<SettleOutcome & { obstacles: ObstacleEvent[] }>;
+SessionOptions.observe: gate hooks above + onRequestFailed
 ```
 
 Existing callbacks and `settle()` keep their current behaviour.
