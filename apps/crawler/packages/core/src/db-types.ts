@@ -9,6 +9,13 @@ import type { DecisionKind } from './schemas/decision-log.js';
 import type { FrontierItemStatus } from './schemas/frontier.js';
 import type { PortalDataLogAction } from './schemas/portal-data-log.js';
 import type { RobotsOutcome } from './schemas/robots-policy.js';
+import type { AnalysisSessionStatus } from './schemas/analysis-session.js';
+import type { DocKind } from './schemas/doc-record.js';
+import type { RevisionChange, RevisionStatus } from './schemas/doc-revision.js';
+import type { EvidenceTargetKind } from './schemas/evidence-link.js';
+import type { RelationType } from './schemas/doc-relation.js';
+import type { ReviewAction } from './schemas/doc-review.js';
+import type { FollowupStatus } from './schemas/followup-task.js';
 
 /** Kysely table types mirroring data/schema/schema.sql. JSON columns are TEXT (stringified JSON). */
 export interface RunsTable {
@@ -180,6 +187,83 @@ export interface PortalDataLogTable {
   created_at: string;
 }
 
+export interface AnalysisSessionsTable {
+  id: string;
+  portal_id: string;
+  status: AnalysisSessionStatus;
+  passes_json: string;
+  summary: string | null;
+  gaps_json: string;
+  started_at: string;
+  ended_at: string | null;
+}
+
+export interface AnalysisSessionRunsTable {
+  session_id: string;
+  run_id: string;
+}
+
+export interface DocRecordsTable {
+  id: string;
+  portal_id: string;
+  kind: DocKind;
+  key: string;
+  seq: number;
+  title: string;
+  latest_rev: number;
+  confirmed_rev: number | null;
+  withdrawn: 0 | 1;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface DocRevisionsTable {
+  id: string;
+  record_id: string;
+  rev_no: number;
+  session_id: string;
+  change: RevisionChange;
+  content_json: string;
+  confidence: Confidence;
+  not_observable: 0 | 1;
+  status: RevisionStatus;
+  change_note: string | null;
+  responds_to_review: string | null;
+  created_at: string;
+}
+
+export interface DocEvidenceLinksTable {
+  id: string;
+  revision_id: string;
+  target_kind: EvidenceTargetKind;
+  target_id: string;
+  run_id: string | null;
+  note: string | null;
+}
+
+export interface DocRelationsTable {
+  from_revision_id: string;
+  to_record_id: string;
+  type: RelationType;
+}
+
+export interface DocReviewsTable {
+  id: string;
+  revision_id: string;
+  action: ReviewAction;
+  reviewer: string;
+  text: string | null;
+  created_at: string;
+}
+
+export interface FollowupTasksTable {
+  record_id: string;
+  status: FollowupStatus;
+  run_id: string | null;
+  blocked_reason: string | null;
+  updated_at: string;
+}
+
 export interface Database {
   runs: RunsTable;
   states: StatesTable;
@@ -194,4 +278,12 @@ export interface Database {
   decision_log: DecisionLogTable;
   robots_policies: RobotsPoliciesTable;
   portal_data_log: PortalDataLogTable;
+  analysis_sessions: AnalysisSessionsTable;
+  analysis_session_runs: AnalysisSessionRunsTable;
+  doc_records: DocRecordsTable;
+  doc_revisions: DocRevisionsTable;
+  doc_evidence_links: DocEvidenceLinksTable;
+  doc_relations: DocRelationsTable;
+  doc_reviews: DocReviewsTable;
+  followup_tasks: FollowupTasksTable;
 }

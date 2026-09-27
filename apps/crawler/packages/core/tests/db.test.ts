@@ -28,15 +28,15 @@ const tables = (o: OpenedDb) =>
     .sort();
 
 describe('migrations', () => {
-  it('finds 0001_init and 0002_portal_workspaces, each with an up and a down', () => {
-    expect(loadMigrations(MIGRATIONS).map((m) => m.version)).toEqual(['0001', '0002']);
+  it('finds 0001_init, 0002_portal_workspaces and 0003_ba_documentation, each with an up and a down', () => {
+    expect(loadMigrations(MIGRATIONS).map((m) => m.version)).toEqual(['0001', '0002', '0003']);
   });
 
   it('applies up in order, is idempotent, and reverts down to empty', () => {
     opened = openDb(':memory:');
-    expect(migrateUp(opened.raw, MIGRATIONS)).toEqual(['0001', '0002']);
+    expect(migrateUp(opened.raw, MIGRATIONS)).toEqual(['0001', '0002', '0003']);
     expect(migrateUp(opened.raw, MIGRATIONS)).toEqual([]);
-    expect(appliedVersions(opened.raw)).toEqual(['0001', '0002']);
+    expect(appliedVersions(opened.raw)).toEqual(['0001', '0002', '0003']);
     expect(tables(opened)).toEqual(
       expect.arrayContaining([
         'states',
@@ -44,8 +44,17 @@ describe('migrations', () => {
         'decision_log',
         'robots_policies',
         'portal_data_log',
+        'analysis_sessions',
+        'analysis_session_runs',
+        'doc_records',
+        'doc_revisions',
+        'doc_evidence_links',
+        'doc_relations',
+        'doc_reviews',
+        'followup_tasks',
       ]),
     );
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0003');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0002');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0001');
     expect(tables(opened)).toEqual(['schema_migrations']);
@@ -54,12 +63,60 @@ describe('migrations', () => {
 
   it('0002 applies and reverts on a DB holding 0001 data (up, up, down, down, up: round-trips cleanly)', () => {
     opened = openDb(':memory:');
-    expect(migrateUp(opened.raw, MIGRATIONS)).toEqual(['0001', '0002']);
+    expect(migrateUp(opened.raw, MIGRATIONS)).toEqual(['0001', '0002', '0003']);
     expect(migrateUp(opened.raw, MIGRATIONS)).toEqual([]);
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0003');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0002');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0001');
-    expect(migrateUp(opened.raw, MIGRATIONS)).toEqual(['0001', '0002']);
-    expect(appliedVersions(opened.raw)).toEqual(['0001', '0002']);
+    expect(migrateUp(opened.raw, MIGRATIONS)).toEqual(['0001', '0002', '0003']);
+    expect(appliedVersions(opened.raw)).toEqual(['0001', '0002', '0003']);
+  });
+
+  it('0003 round-trips (up, down, up) on a DB holding Layer B data (T007)', async () => {
+    opened = openDb(':memory:');
+    expect(migrateUp(opened.raw, MIGRATIONS)).toEqual(['0001', '0002', '0003']);
+    const ts = nowIso();
+    const { runId, stateId } = await seedRunAndState(opened, 'p', 'b'.repeat(64));
+    const sessionId = newId();
+    opened.raw
+      .prepare(
+        `INSERT INTO analysis_sessions (id, portal_id, status, passes_json, summary, gaps_json, started_at, ended_at)
+         VALUES (?, 'p', 'running', '[]', NULL, '[]', ?, NULL)`,
+      )
+      .run(sessionId, ts);
+    opened.raw
+      .prepare(`INSERT INTO analysis_session_runs (session_id, run_id) VALUES (?, ?)`)
+      .run(sessionId, runId);
+    const recordId = newId();
+    opened.raw
+      .prepare(
+        `INSERT INTO doc_records (id, portal_id, kind, key, seq, title, latest_rev, confirmed_rev, withdrawn, created_at, updated_at)
+         VALUES (?, 'p', 'capability', 'CAP-001', 1, 'Compare products', 1, NULL, 0, ?, ?)`,
+      )
+      .run(recordId, ts, ts);
+    const revisionId = newId();
+    opened.raw
+      .prepare(
+        `INSERT INTO doc_revisions (id, record_id, rev_no, session_id, change, content_json, confidence, not_observable, status, change_note, responds_to_review, created_at)
+         VALUES (?, ?, 1, ?, 'create', '{"kind":"capability","title":"Compare products","description":"..."}', 'observed', 0, 'draft', NULL, NULL, ?)`,
+      )
+      .run(revisionId, recordId, sessionId, ts);
+    opened.raw
+      .prepare(
+        `INSERT INTO doc_evidence_links (id, revision_id, target_kind, target_id, run_id, note) VALUES (?, ?, 'state', ?, ?, NULL)`,
+      )
+      .run(newId(), revisionId, stateId, runId);
+    opened.raw
+      .prepare(
+        `INSERT INTO doc_reviews (id, revision_id, action, reviewer, text, created_at) VALUES (?, ?, 'comment', 'dawid', 'looks good', ?)`,
+      )
+      .run(newId(), revisionId, ts);
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0003');
+    expect(tables(opened)).not.toEqual(expect.arrayContaining(['doc_records', 'doc_revisions']));
+    expect(migrateUp(opened.raw, MIGRATIONS)).toEqual(['0003']);
+    expect(
+      opened.raw.prepare('SELECT count(*) AS n FROM doc_records').get(),
+    ).toEqual({ n: 0 });
   });
 });
 
