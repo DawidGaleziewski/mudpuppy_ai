@@ -154,6 +154,67 @@ describe.skipIf(!available)('trace of a map run against the mock portal', () => 
       await cleanup();
     }
   });
+
+  it('explains mapping and page behaviour: settle timeouts, fingerprints, frontier, run status (US4)', async () => {
+    const { call, spans, cleanup } = await setup(10);
+    try {
+      const start = await call('start_run', { portal_id: 'mock', persona_id: 'guest' });
+      const runId = start.body.run_id as string;
+      await call('navigate', { run_id: runId, url: `${portal.origin}/` });
+      const next = await call('get_next_frontier_item', { run_id: runId });
+      await call('act', { run_id: runId, action_id: next.body.item.action_id });
+      await call('navigate', { run_id: runId, url: `${portal.origin}/polling` });
+      const rows = spans();
+      const attrs = (r: Record<string, unknown>) => JSON.parse(r.attrs_json as string);
+      const byName = (n: string) => rows.filter((r) => r.name === n);
+
+      const polling = rows.filter((r) => r.kind === 'call' && r.name === 'navigate')[1]!;
+      const timeout = byName('stabilization_timeout').find((r) => isUnder(rows, r, polling.id))!;
+      expect(timeout).toBeDefined();
+      const t = attrs(timeout);
+      expect(t.in_flight.map((f: { url: { route: string } }) => f.url.route)).toContain(
+        '/api/poll',
+      );
+      expect(t).toMatchObject({
+        timeout_ms: expect.any(Number),
+        running_animations: expect.anything(),
+      });
+      expect(rows.find((r) => r.id === timeout.parent_id)!.name).toBe('settle');
+
+      const fp = attrs(byName('fingerprint_assign')[0]!);
+      expect(fp).toMatchObject({
+        route_template: '/',
+        level1: expect.stringMatching(/^[0-9a-f]{64}$/),
+        decision: expect.any(String),
+        cluster_id: expect.any(String),
+        similarity: expect.any(Number),
+        threshold: expect.any(Number),
+      });
+      expect(attrs(byName('state_recorded')[0]!)).toMatchObject({
+        created: true,
+        evidence_ref: expect.stringMatching(/\.yaml$/),
+      });
+      const enq = byName('frontier_enqueue');
+      expect(enq.length).toBeGreaterThan(0);
+      expect(attrs(enq[0]!)).toMatchObject({
+        frontier_id: expect.any(String),
+        action: { role: expect.any(String) },
+        safety_class: 'read',
+        priority: expect.any(Number),
+        depth: expect.any(Number),
+      });
+      const skips = byName('frontier_skip').map(attrs);
+      expect(skips.some((a) => a.rule && a.reason)).toBe(true);
+      expect(attrs(byName('frontier_pick')[0]!)).toMatchObject({
+        frontier_id: next.body.item.frontier_id,
+        pending: expect.any(Number),
+      });
+      const status = byName('run_status').map(attrs);
+      expect(status[0]).toMatchObject({ status: 'running', steps_used: 1 });
+    } finally {
+      await cleanup();
+    }
+  });
 });
 
 /** Whether span `row` is a descendant of span `ancestorId`. */

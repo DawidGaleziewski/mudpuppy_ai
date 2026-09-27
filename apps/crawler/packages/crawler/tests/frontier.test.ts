@@ -214,6 +214,9 @@ describe('enqueueActions + report', () => {
     const s = await addState(d, 'a');
     const r = await enqueue(d, s);
     expect(r.queued).toBe(1);
+    expect(r.enqueued).toEqual([
+      { frontierId: expect.any(String), actionId: expect.any(String), safetyClass: 'read' },
+    ]);
     const rows = await d.db
       .selectFrom('frontier')
       .select(['status', 'safety_class', 'reason'])

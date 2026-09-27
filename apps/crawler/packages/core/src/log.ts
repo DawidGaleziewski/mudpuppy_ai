@@ -3,7 +3,7 @@ import type { PathfinderDb } from './db.js';
 import { newId, nowIso } from './ids.js';
 import { maskText, scrubJson } from './pii.js';
 import { DecisionKind, DecisionLogEntry } from './schemas/decision-log.js';
-import type { Tracer } from './trace/tracer.js';
+import { emitForRun, type Tracer } from './trace/tracer.js';
 
 /**
  * Structured JSON logger. The MCP server speaks stdio, so logs go to stderr (fd 2) by default,
@@ -70,8 +70,7 @@ export function linkDecisions(decisions: DecisionLog, tracer: Tracer): DecisionL
       const entry = await decisions.record(input);
       const attrs = { decision_id: entry.id, kind: entry.kind, rule: entry.rule };
       const opts = { decisionId: entry.id, summary: `${entry.kind}: ${entry.reason}` };
-      if (tracer.inCall()) tracer.event('decision', attrs, opts);
-      else tracer.eventForRun(entry.run_id, 'decision', attrs, opts);
+      emitForRun(tracer, entry.run_id, 'decision', attrs, opts);
       return entry;
     },
   };

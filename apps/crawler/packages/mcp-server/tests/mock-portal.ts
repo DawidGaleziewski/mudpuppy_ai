@@ -93,10 +93,12 @@ export async function startMockPortal(options: MockPortalOptions = {}): Promise<
         layout(
           'Polling',
           '<h1>Polling</h1>',
-          `<script>(function poll(){fetch('/api/poll').finally(()=>setTimeout(poll,200))})()</script>`,
+          // overlapping slow polls: a request is always in flight, so the page never settles
+          `<script>setInterval(()=>fetch('/api/poll'),100)</script>`,
         ),
       );
-    if (MOCK_TRACE_PAGES && p === '/api/poll') return json({ ok: true });
+    if (MOCK_TRACE_PAGES && p === '/api/poll')
+      return void setTimeout(() => json({ ok: true }), 250);
     if (MOCK_TRACE_PAGES && p === '/with-disallowed-asset')
       return html(
         layout(

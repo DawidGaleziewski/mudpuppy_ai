@@ -1,4 +1,4 @@
-import { RunStatus, nowIso } from '@pathfinder/core';
+import { RunStatus, emitForRun, nowIso } from '@pathfinder/core';
 import { z } from 'zod';
 import type { ServerContext } from '../context.js';
 import { ToolError, parseInput } from '../errors.js';
@@ -50,6 +50,12 @@ export async function completeRun(ctx: ServerContext, raw: unknown, live?: LiveR
     })
     .where('id', '=', run.id)
     .execute();
+  emitForRun(ctx.tracer, run.id, 'run_status', {
+    status: input.status,
+    steps_used: run.steps_used,
+    elapsed_ms: run.elapsed_ms,
+    max_depth_reached: run.max_depth_reached,
+  });
   return { run_id: run.id, status: input.status, coverage };
 }
 

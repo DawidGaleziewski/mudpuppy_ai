@@ -19,12 +19,6 @@ export interface RunTraceHooks {
   endCall(): void;
 }
 
-/** Emit inside the current call when there is one, else under the run's open browser call. */
-export function emitForRun(tracer: Tracer, runId: string, name: EventName, attrs: Attrs): void {
-  if (tracer.inCall()) tracer.event(name, attrs);
-  else tracer.eventForRun(runId, name, attrs);
-}
-
 /**
  * Request-gate and network callbacks of one run turned into trace events (contracts/trace-spans.md):
  * `request` for notable requests (all at `verbose`), `request_aggregate` per browser call,

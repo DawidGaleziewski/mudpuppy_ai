@@ -2,8 +2,8 @@ import {
   maskText,
   newId,
   nowIso,
+  emitForRun,
   shapeUrl,
-  type PathfinderDb,
   type PhaseName,
 } from '@pathfinder/core';
 import {
@@ -17,6 +17,7 @@ import {
   settleFrontierItem,
   type ClassifiedAction,
   type GateContext,
+  type SettleOutcome,
 } from '@pathfinder/crawler';
 import { computeFingerprint } from '@pathfinder/fingerprint';
 import { classifyAction, type ActionDescriptor, type Refusal } from '@pathfinder/safety';
@@ -34,7 +35,6 @@ import {
   type RunRow,
 } from '../services/index.js';
 import type { RunState } from './run-state.js';
-import { emitForRun } from './trace-hooks.js';
 
 /** A timed stage of the current tool call (contracts/trace-spans.md); untraced outside a call. */
 function phase<T>(ctx: ServerContext, name: PhaseName, fn: () => Promise<T>): Promise<T> {
@@ -194,20 +194,34 @@ export async function beginStep(
 }
 
 async function bumpRun(
-  db: PathfinderDb,
+  ctx: ServerContext,
   run: RunRow,
   startedAt: number,
   depth: number,
 ): Promise<void> {
-  await db
-    .updateTable('runs')
-    .set({
-      steps_used: run.steps_used + 1,
-      elapsed_ms: run.elapsed_ms + (Date.now() - startedAt),
-      max_depth_reached: Math.max(run.max_depth_reached, depth),
-    })
-    .where('id', '=', run.id)
-    .execute();
+  const counters = {
+    steps_used: run.steps_used + 1,
+    elapsed_ms: run.elapsed_ms + (Date.now() - startedAt),
+    max_depth_reached: Math.max(run.max_depth_reached, depth),
+  };
+  await ctx.db.updateTable('runs').set(counters).where('id', '=', run.id).execute();
+  ctx.tracer.event('run_status', { status: run.status, ...counters });
+}
+
+/** `event stabilization_timeout` when the page never settled (research §9). */
+function traceSettle(ctx: ServerContext, rs: RunState, outcome: SettleOutcome): void {
+  if (!outcome.diagnostics) return;
+  const d = outcome.diagnostics;
+  ctx.tracer.event('stabilization_timeout', {
+    timeout_ms: Math.round(outcome.waitedMs),
+    in_flight: d.inFlight.map((r) => ({
+      url: shapeUrl(r.url, (u) => rs.peekRouteTemplate(u)),
+      resource_type: r.resourceType,
+      age_ms: Math.round(r.ageMs),
+    })),
+    since_mutation_ms: d.sinceMutationMs === null ? null : Math.round(d.sinceMutationMs),
+    running_animations: d.runningAnimations,
+  });
 }
 
 export interface ActionRow {
@@ -276,7 +290,9 @@ async function processPage(
 ): Promise<PageResult> {
   const { session } = rs;
   const stabilization = await phase(ctx, 'settle', async () => {
-    const result = await session.settle();
+    const outcome = await session.settleTraced();
+    traceSettle(ctx, rs, outcome);
+    const result = outcome.result;
     await throwIfStopped(ctx, rs);
     return result;
   });
@@ -300,6 +316,15 @@ async function processPage(
       reason: `${assignment.decision.kind} into ${assignment.clusterId} (similarity ${assignment.decision.similarity.toFixed(2)}, threshold ${assignment.decision.threshold})`,
       subject_ref: fp.level1,
       detail: { matched: assignment.decision.matchedFingerprint, route_template: routeTemplate },
+    });
+    ctx.tracer.event('fingerprint_assign', {
+      route_template: routeTemplate,
+      level1: fp.level1,
+      decision: assignment.decision.kind,
+      cluster_id: assignment.clusterId,
+      matched: assignment.decision.matchedFingerprint ?? null,
+      similarity: assignment.decision.similarity,
+      threshold: assignment.decision.threshold,
     });
     return { masked, routeTemplate, fp, assignment };
   });
@@ -331,6 +356,7 @@ async function processPage(
         .select(['cluster_id', 'title', 'route_template'])
         .where('id', '=', state_id)
         .executeTakeFirstOrThrow();
+      ctx.tracer.event('state_recorded', { state_id, created, evidence_ref: evidenceRef });
       return { evidenceRef, alreadyInRun, state_id, created, stateRow };
     },
   );
@@ -541,17 +567,39 @@ async function issueAndEnqueue(
     const isNew = rs.policy.isNewCluster(page.clusterId);
     const admission = rs.policy.admit({ clusterId: page.clusterId, routeTemplate, created });
     if (admission.expand) {
+      const priority = rs.policy.priorityFor(depth, isNew);
       const r = await enqueueActions({
         db: ctx.db,
         runId: run.id,
         stateId: state_id,
         depth,
-        priority: rs.policy.priorityFor(depth, isNew),
+        priority,
         currentUrl: observed.url,
         actions: issued,
         gate: g,
       });
+      const described = (actionId: string) => {
+        const a = issued.find((x) => x.actionId === actionId);
+        return a ? { role: a.role, accessible_name: a.name, nth: a.nth } : { action_id: actionId };
+      };
+      for (const q of r.enqueued)
+        ctx.tracer.event('frontier_enqueue', {
+          frontier_id: q.frontierId,
+          action: described(q.actionId),
+          safety_class: q.safetyClass,
+          priority,
+          depth,
+        });
       for (const s of r.skipped) {
+        ctx.tracer.event('frontier_skip', {
+          frontier_id: s.frontierId,
+          action: described(s.actionId),
+          safety_class: s.safetyClass,
+          priority,
+          depth,
+          rule: s.refusal.rule,
+          reason: s.refusal.reason,
+        });
         await ctx.decisions.record({
           run_id: run.id,
           kind: 'skip',
@@ -566,10 +614,20 @@ async function issueAndEnqueue(
         });
       }
     } else {
+      const frontierId = newId();
+      ctx.tracer.event('frontier_skip', {
+        frontier_id: frontierId,
+        action: { kind: 'expand', route_template: routeTemplate },
+        safety_class: 'read',
+        priority: 0,
+        depth,
+        rule: admission.rule,
+        reason: admission.reason,
+      });
       await ctx.db
         .insertInto('frontier')
         .values({
-          id: newId(),
+          id: frontierId,
           run_id: run.id,
           state_id,
           action_id: null,
@@ -715,7 +773,7 @@ async function navigateStep(
   });
   const depth = g.usage.depth;
   const result = await processPage(ctx, run, state, { kind: 'navigate' }, depth);
-  await phase(ctx, 'run_bookkeeping', () => bumpRun(ctx.db, run, started, depth));
+  await phase(ctx, 'run_bookkeeping', () => bumpRun(ctx, run, started, depth));
   return result;
 }
 
@@ -759,7 +817,7 @@ async function actStep(
         );
       await state.session.goto(to);
       await throwIfStopped(ctx, state);
-      await state.session.settle();
+      traceSettle(ctx, state, await state.session.settleTraced());
       await state.session.recorder.drain();
     });
   }
@@ -861,7 +919,7 @@ async function actStep(
   await phase(ctx, 'run_bookkeeping', async () => {
     const pending = await pendingItemForAction(ctx.db, run.id, action.id);
     if (pending) await settleFrontierItem(ctx.db, pending.id, 'done', null);
-    await bumpRun(ctx.db, run, started, fromDepth + 1);
+    await bumpRun(ctx, run, started, fromDepth + 1);
   });
   return result;
 }

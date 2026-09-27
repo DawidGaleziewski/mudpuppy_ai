@@ -129,6 +129,18 @@ export interface Tracer {
   shutdown(): Promise<void>;
 }
 
+/** Emit inside the current call when there is one, else under the run's open browser call. */
+export function emitForRun(
+  tracer: Tracer,
+  runId: string,
+  name: EventName,
+  attrs: Attrs,
+  opts?: EventOpts,
+): void {
+  if (tracer.inCall()) tracer.event(name, attrs, opts);
+  else tracer.eventForRun(runId, name, attrs, opts);
+}
+
 interface SpanRec {
   id: string;
   seq: number;

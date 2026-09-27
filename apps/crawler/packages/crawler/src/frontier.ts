@@ -145,6 +145,7 @@ export interface EnqueueParams {
 
 export interface EnqueueResult {
   queued: number;
+  enqueued: { frontierId: string; actionId: string; safetyClass: SafetyClass }[];
   skipped: { frontierId: string; actionId: string; refusal: Refusal; safetyClass: SafetyClass }[];
 }
 
@@ -153,7 +154,7 @@ export interface EnqueueResult {
  * refuses as a skipped row carrying the rule and reason, so the report can list it (FR-010).
  */
 export async function enqueueActions(p: EnqueueParams): Promise<EnqueueResult> {
-  const result: EnqueueResult = { queued: 0, skipped: [] };
+  const result: EnqueueResult = { queued: 0, enqueued: [], skipped: [] };
   const ts = nowIso();
   for (const a of p.actions) {
     const d = decide({ kind: 'act', descriptor: a.descriptor, currentUrl: p.currentUrl }, p.gate);
@@ -176,6 +177,11 @@ export async function enqueueActions(p: EnqueueParams): Promise<EnqueueResult> {
         .values({ ...base, status: 'pending', reason: null })
         .execute();
       result.queued += 1;
+      result.enqueued.push({
+        frontierId,
+        actionId: a.actionId,
+        safetyClass: d.classification.safetyClass,
+      });
     } else {
       await p.db
         .insertInto('frontier')
