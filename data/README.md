@@ -13,6 +13,10 @@ rather than editing this folder ad hoc.
 - `evidence/` — content-addressed (`sha256`) evidence blobs: ARIA snapshots,
   network shape records referenced by `evidence_ref` columns. Generated, not source
   (git-ignored).
+- `traces/` — raw per-call Playwright trace zips at `traces/<portal>/<run_id>/<seq>-<tool>.zip`,
+  referenced by `trace_spans.pw_trace_path`; unlike `evidence/` these are not content-addressed and
+  are never scrubbed, so viewing them is local-only (`npx playwright show-trace <path>`, never
+  served by the dashboard). Generated, not source (git-ignored).
 
 See `.specify/memory/constitution.md` (Technical Constraints, Principle II, Principle VII) for
 the rules this layout enforces, and the active feature's `specs/<feature>/data-model.md` /
