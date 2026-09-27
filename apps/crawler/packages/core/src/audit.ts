@@ -47,6 +47,8 @@ const SCANNED: Record<string, string[]> = {
   open_questions: ['text'],
   rule_candidates: ['text'],
   decision_log: ['reason', 'detail_json', 'subject_ref'],
+  trace_spans: ['summary', 'rationale', 'attrs_json'],
+  agent_turns: ['text'],
 };
 
 /**

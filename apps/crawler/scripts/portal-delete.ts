@@ -35,11 +35,12 @@ if (
 }
 const root = resolve(arg('root') ?? join(import.meta.dirname, '../../..'));
 const evidenceDir = join(root, 'data/evidence');
+const tracesDir = join(root, 'data/traces');
 const opened = openDb(dbPathFor(join(root, 'data'), env));
 try {
   migrateUp(opened.raw, join(root, 'data/migrations'));
   const plan = process.argv.includes('--yes')
-    ? deletePortal({ raw: opened.raw, evidenceDir, portal, environment: env, operator })
+    ? deletePortal({ raw: opened.raw, evidenceDir, tracesDir, portal, environment: env, operator })
     : planPortalDelete({ raw: opened.raw, evidenceDir, portal });
   const verb = process.argv.includes('--yes') ? 'deleted' : 'would delete (dry run, add --yes)';
   console.log(`${verb}: ${portal} (${env})`);

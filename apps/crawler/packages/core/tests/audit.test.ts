@@ -140,6 +140,84 @@ describe('auditPii', () => {
   it('tolerates a missing evidence directory', async () => {
     expect((await auditPii({ evidenceDir: '/no/such/dir' })).findings).toEqual([]);
   });
+
+  it('flags unmasked PII planted in trace_spans and agent_turns', async () => {
+    const { db, run, ts } = await seed();
+    const runId = await run();
+    const bootId = newId();
+    await db
+      .insertInto('trace_boots')
+      .values({
+        id: bootId,
+        started_at: ts,
+        ended_at: null,
+        environment: 'sandbox',
+        server: 'pathfinder',
+        pid: 1,
+        version: '0.1.0',
+        trace_level: 'standard',
+        pw_trace: 'non_production',
+      })
+      .execute();
+    await db
+      .insertInto('trace_spans')
+      .values({
+        id: newId(),
+        boot_id: bootId,
+        seq: 1,
+        run_id: runId,
+        parent_id: null,
+        kind: 'call',
+        name: 'navigate',
+        status: 'ok',
+        started_at: ts,
+        ended_at: ts,
+        duration_ms: 1,
+        attrs_json: '{}',
+        payload_ref: null,
+        summary: 'contact: anna@example.com',
+        decision_id: null,
+        tool_use_id: null,
+        agent_id: null,
+        rationale: null,
+        pw_trace_path: null,
+        between_calls: 0,
+      })
+      .execute();
+    await db
+      .insertInto('agent_turns')
+      .values({
+        id: newId(),
+        agent_id: 'ag_1',
+        agent_type: 'crawler',
+        session_id: null,
+        message_uuid: 'm1',
+        block_index: 0,
+        api_message_id: null,
+        run_id: runId,
+        role: 'assistant',
+        kind: 'text',
+        tool_use_id: null,
+        tool_name: null,
+        text: 'reach out at anna@example.com',
+        payload_ref: null,
+        is_error: null,
+        model: null,
+        input_tokens: null,
+        output_tokens: null,
+        cache_read_tokens: null,
+        cache_creation_tokens: null,
+        matched: 0,
+        created_at: ts,
+        imported_at: ts,
+      })
+      .execute();
+    const r = await auditPii({ db });
+    const byWhere = Object.fromEntries(r.findings.map((f) => [f.where.split('#')[0], f.kinds]));
+    expect(byWhere['trace_spans.summary']).toContain('email');
+    expect(byWhere['agent_turns.text']).toContain('email');
+    expect(JSON.stringify(r)).not.toMatch(/anna@example/);
+  });
 });
 
 describe('compareRuns (SC-005)', () => {

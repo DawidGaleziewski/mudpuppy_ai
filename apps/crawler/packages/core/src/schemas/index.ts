@@ -11,3 +11,6 @@ export * from './action.js';
 export * from './decision-log.js';
 export * from './robots-policy.js';
 export * from './portal-data-log.js';
+export * from './trace-boot.js';
+export * from './trace-span.js';
+export * from './agent-turn.js';
