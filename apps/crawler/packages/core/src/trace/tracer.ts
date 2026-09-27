@@ -34,6 +34,7 @@ export const PHASE_NAMES = [
   'enqueue_frontier',
   'run_bookkeeping',
   'complete_run',
+  'pw_trace',
 ] as const;
 export type PhaseName = (typeof PHASE_NAMES)[number];
 
@@ -97,6 +98,15 @@ export interface SpanHandle {
   setSummary(s: string): void;
 }
 
+export interface CallInfo {
+  readonly id: string;
+  readonly seq: number;
+  readonly name: string;
+  readonly runId: string | null;
+  /** Path of the call's Playwright trace, relative to `data/`. */
+  setPwTracePath(path: string): void;
+}
+
 export interface EventOpts {
   status?: SpanStatus;
   summary?: string;
@@ -124,6 +134,10 @@ export interface Tracer {
   eventForRun(runId: string, name: EventName, attrs: Attrs, opts?: EventOpts): void;
   /** True inside a still-open traced call's async context (where `event` attaches). */
   inCall(): boolean;
+  /** The open call of the current async context (for per-call artefacts like Playwright traces). */
+  currentCall(): CallInfo | undefined;
+  /** Count a failure of trace-side work (e.g. a Playwright trace chunk) in the run's health. */
+  countFailure(runId: string | null): void;
   health(runId: string): TraceHealth;
   flush(): Promise<void>;
   shutdown(): Promise<void>;
@@ -164,6 +178,7 @@ interface CallRec extends SpanRec {
   toolUseId: string | null;
   agentId: string | null;
   rationale: string | null;
+  pwTracePath: string | null;
   output: { value: unknown } | null;
   inserted: boolean;
   closed: boolean;
@@ -435,7 +450,12 @@ export function createTracer(deps: TracerDeps): Tracer {
   }
 
   function callExtra(call: CallRec): Partial<TraceSpansTable> {
-    return { tool_use_id: call.toolUseId, agent_id: call.agentId, rationale: call.rationale };
+    return {
+      tool_use_id: call.toolUseId,
+      agent_id: call.agentId,
+      rationale: call.rationale,
+      pw_trace_path: call.pwTracePath,
+    };
   }
 
   async function insertRows(rows: TraceSpansTable[], trx: PathfinderDb): Promise<void> {
@@ -596,6 +616,7 @@ export function createTracer(deps: TracerDeps): Tracer {
         toolUseId: str(c.meta?.['claudecode/toolUseId']),
         agentId: str(c.meta?.['claudecode/agentId']),
         rationale: c.rationale ? fitText(c.rationale, 300).text : null,
+        pwTracePath: null,
         output: null,
         inserted: false,
         closed: false,
@@ -670,6 +691,25 @@ export function createTracer(deps: TracerDeps): Tracer {
           ? { ...attrs, overlapping_calls: open.filter((c) => c !== target).map((c) => c.id) }
           : attrs;
       attachToCall(target, target, name, withOverlap, opts);
+    },
+
+    currentCall() {
+      const ctx = als.getStore();
+      if (!ctx || ctx.call.closed) return undefined;
+      const call = ctx.call;
+      return {
+        id: call.id,
+        seq: call.seq,
+        name: call.name,
+        runId: call.runId,
+        setPwTracePath(path: string) {
+          call.pwTracePath = path;
+        },
+      };
+    },
+
+    countFailure(runId) {
+      healthOf(runId).dropped += 1;
     },
 
     inCall() {

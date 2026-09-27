@@ -1,11 +1,4 @@
-import {
-  maskText,
-  newId,
-  nowIso,
-  emitForRun,
-  shapeUrl,
-  type PhaseName,
-} from '@pathfinder/core';
+import { maskText, newId, nowIso, emitForRun, shapeUrl, type PhaseName } from '@pathfinder/core';
 import {
   classifyCandidates,
   decide,
@@ -34,18 +27,19 @@ import {
   recordTransition,
   type RunRow,
 } from '../services/index.js';
+import { inPwGroup } from './pw-trace.js';
 import type { RunState } from './run-state.js';
 
 /** A timed stage of the current tool call (contracts/trace-spans.md); untraced outside a call. */
 function phase<T>(ctx: ServerContext, name: PhaseName, fn: () => Promise<T>): Promise<T> {
-  return ctx.tracer.phase(name, fn);
+  return ctx.tracer.phase(name, () => inPwGroup(name, fn));
 }
 
 /** Count the browser's requests for this call and emit their `request_aggregate` when it ends. */
 async function counted<T>(rs: RunState, fn: () => Promise<T>): Promise<T> {
   rs.trace.beginCall();
   try {
-    return await fn();
+    return await (rs.pw ? rs.pw.chunk(fn) : fn());
   } finally {
     rs.trace.endCall();
   }

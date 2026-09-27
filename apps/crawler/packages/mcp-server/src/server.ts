@@ -51,6 +51,7 @@ export async function main(opts: BootOptions): Promise<void> {
     decisions: linkDecisions(createDecisionLog(opened.db, logger), tracer),
     logger,
     tracer,
+    pwTrace: trace.pwTrace,
     root,
     dbEnvironment: opts.environment,
   };

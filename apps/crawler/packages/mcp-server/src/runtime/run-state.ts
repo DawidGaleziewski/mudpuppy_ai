@@ -4,6 +4,7 @@ import type { EffectiveConfig, Scope } from '@pathfinder/config';
 import { FrontierPolicy, type BrowserSession } from '@pathfinder/crawler';
 import { portalRuleSet, type RuleSet } from '@pathfinder/safety';
 import type { RunRobots } from '../services/robots.js';
+import type { PwTrace } from './pw-trace.js';
 import type { RunTraceHooks } from './trace-hooks.js';
 
 /** In-memory, per-run browser-side state. Everything durable lives in the database. */
@@ -17,6 +18,8 @@ export class RunState {
   private templater: RouteTemplater | null = null;
   currentStateId: string | null = null;
   currentUrl: string | null = null;
+  /** Per-call Playwright trace chunks; null when not recorded for this run (research §13). */
+  pw: PwTrace | null = null;
   /** Resolves when a detected block has been persisted; undefined until one is detected. */
   stopPersisted: Promise<void> | undefined;
 

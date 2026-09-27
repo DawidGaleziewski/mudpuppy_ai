@@ -423,6 +423,23 @@ describe('stale call context', () => {
   });
 });
 
+describe('currentCall', () => {
+  it('exposes the open call and stores its Playwright trace path', async () => {
+    const { tracer, spans } = await setup();
+    expect(tracer.currentCall()).toBeUndefined();
+    await tracer.call({ tool: 'navigate', runId: RUN, args: {} }, async () => {
+      await tracer.phase('goto', async () => {
+        const c = tracer.currentCall()!;
+        expect(c).toMatchObject({ name: 'navigate', runId: RUN, seq: 1 });
+        c.setPwTracePath(`traces/shop/${RUN}/1-navigate.zip`);
+      });
+    });
+    expect(spans()[0]!.pw_trace_path).toBe(`traces/shop/${RUN}/1-navigate.zip`);
+    tracer.countFailure(RUN);
+    expect(tracer.health(RUN).dropped).toBe(1);
+  });
+});
+
 describe('ordering, sweeping and failure', () => {
   it('assigns strictly increasing seq per boot', async () => {
     const { tracer, spans } = await setup();

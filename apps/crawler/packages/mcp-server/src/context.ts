@@ -4,6 +4,7 @@ import type {
   Logger,
   OpenedDb,
   PathfinderDb,
+  PwTraceMode,
   Tracer,
 } from '@pathfinder/core';
 
@@ -16,6 +17,8 @@ export interface ServerContext {
   logger: Logger;
   /** Observability trace (spec 005); never read by a service to decide anything. */
   tracer: Tracer;
+  /** `all` = record Playwright traces even on production portals (`PATHFINDER_PW_TRACE=1`). */
+  pwTrace: PwTraceMode;
   /** Repo root holding `portals/` and `personas/`. */
   root: string;
   /** Environment whose database file this server records into (`data/db/<env>.sqlite`). */

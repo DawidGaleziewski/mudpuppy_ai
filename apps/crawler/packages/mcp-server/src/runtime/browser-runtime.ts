@@ -1,10 +1,12 @@
 import { readFile } from 'node:fs/promises';
+import { join } from 'node:path';
 import { BrowserSession, type StabilizerOptions } from '@pathfinder/crawler';
 import { computeFingerprint } from '@pathfinder/fingerprint';
 import type { ServerContext } from '../context.js';
 import type { Runtime } from '../runtime.js';
 import { act, navigate, navigationPolicy, persistStop } from './pipeline.js';
 import { RunState } from './run-state.js';
+import { pwTraceEnabled, startPwTrace } from './pw-trace.js';
 import { createRunTraceHooks } from './trace-hooks.js';
 
 export interface BrowserRuntimeOptions {
@@ -113,6 +115,15 @@ export function createBrowserRuntime(opts: BrowserRuntimeOptions = {}): Runtime 
     });
     const rs = new RunState(run.id, session, approved.effective, approved.scope, robots, trace);
     holder.rs = rs;
+    if (pwTraceEnabled(approved.effective.portal.environment, ctx.pwTrace))
+      rs.pw = await startPwTrace({
+        context: session.context,
+        tracer: ctx.tracer,
+        logger: ctx.logger,
+        dataDir: join(ctx.root, 'data'),
+        portal: run.portal_id,
+        runId: run.id,
+      });
     return rs;
   }
 

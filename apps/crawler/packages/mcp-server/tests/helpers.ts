@@ -55,6 +55,7 @@ export async function makeCtx(
     decisions: linkDecisions(createDecisionLog(opened.db, logger), tracer),
     logger,
     tracer,
+    pwTrace: 'non_production',
     root: dir,
     dbEnvironment: 'production',
     // No test reaches the network: robots.txt answers 404 (no rules) unless a test overrides it.
