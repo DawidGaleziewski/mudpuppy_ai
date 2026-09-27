@@ -52,9 +52,17 @@ timestamps at read time (ms collisions, async callbacks). A link written at reco
 `tracer.call(...)`; phases use `tracer.phase(name, fn)`; events use `tracer.event(name, attrs)` and
 attach to the current span. Playwright callbacks (route handler, `response` listener, `onStop`)
 run on Playwright's event loop, not inside the tool call's async chain, so they use
-`tracer.eventForRun(runId, …)`, which attaches to the run's **active call span** (`RunState` keeps
-it; tool calls per run are sequential). With no active call the event gets `parent_id = NULL` and
-`between_calls = 1` (e.g. a page's background polling between steps).
+`tracer.eventForRun(runId, …)`, which attaches to the run's **active browser call** (`start_run`,
+`navigate`, `act`). With no active call the event gets `parent_id = NULL` and `between_calls = 1`
+(e.g. a page's background polling between steps).
+
+Calls are **not** guaranteed sequential: an assistant message can carry several `tool_use` blocks
+(seen in other agents' transcripts, 2–4 per message), and the server does not serialise
+`navigate`/`act` per run. The tracer therefore keeps a per-run list of open browser calls; a
+browser event attaches to the most recently started one, and when more than one is open it also
+records `overlapping_calls: [span ids]` on the event and emits `event concurrent_calls` once per
+overlap on each call involved. Overlap is a "problem" in the dashboard filter — two calls driving one
+page at once is a crawler defect the trace should expose, not hide.
 
 ## §4. Ordering, ids, determinism
 
@@ -88,8 +96,17 @@ inline, `truncated` counted in health. Agent turn text ≤ 4 KB inline, same off
 
 ## §7. Scrubbing
 
-`scrubJson` for attributes and payloads, `maskText` for rationale, summaries and agent text (the
-writer applies them; call sites cannot forget). URLs are never stored raw: `shapeUrl(url, templateFor)`
+`scrubTraceJson` for attributes and payloads, `maskText` for rationale, summaries and agent text
+(the writer applies them; call sites cannot forget). The project's `scrubJson` masks **every** UUID
+and sha256 as `[token]` (verified: `{"run_id": "<uuidv7>"}` → `{"run_id": "[token]"}`), which would
+erase every run/action/state/frontier id from the trace. `scrubTraceJson`
+(`core/src/trace/scrub.ts`) keeps a value only when its key is id-like (`id`, `*_id`, `*_ids`,
+`evidence_ref`, `payload_ref`, `level1`, `matched`, `fingerprint`) **and** the value is exactly a UUID
+or a hex hash (optionally `.ext`); sensitive keys (`session_id`, `token`, …) still win and are
+redacted; everything else goes through `scrubJson` unchanged. Offloaded payloads use the same
+scrubber through `EvidenceStore.storeJson(value, scrub)` (new optional argument; evidence is never
+stored unscrubbed). Attribute names avoid the sensitive key `name`: accessible names are
+`accessible_name`. URLs are never stored raw: `shapeUrl(url, templateFor)`
 → `{origin, route: rs.routeTemplateFor(url), query_keys: [...] }` (values dropped). Existing
 `looksLikeRawPayload` guards request bodies.
 
@@ -157,7 +174,11 @@ confirms the tool list is unchanged and the field is required.
   transcript's `tool_use` ids in `trace_spans` of every `data/db/*.sqlite` and writes to each store
   that has matches; none → report "no matching run" and exit 0.
 - Rows: one per content block (`text`, `tool_use`, `tool_result`, `thinking` recorded as present /
-  empty), with model and usage on the first block of each assistant message (no double counting).
+  empty). **Each block is its own transcript entry** (`apiBlockIndex`), and every entry of one API
+  message (`message.id`) repeats `message.usage`, with `output_tokens` growing as the message
+  streams (seen: 8 → 8 → 185). Tokens are therefore stored once per API message, on the row of its
+  highest `apiBlockIndex`, taking `output_tokens` as the maximum over that message's entries;
+  summing per entry would multiply input and cache tokens by the block count.
   Key `(agent_id, message_uuid, block_index)` unique → re-import is an upsert (idempotent).
 - Run assignment: a turn gets the `run_id` of the nearest following matched call in the same
   transcript, else the nearest preceding one.

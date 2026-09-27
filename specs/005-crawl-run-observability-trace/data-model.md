@@ -62,8 +62,9 @@ earlier boot → `unfinished` (swept on server start). No other transition.
 | `agent_id` | TEXT NOT NULL | |
 | `agent_type` | TEXT NOT NULL | `crawler` |
 | `session_id` | TEXT | parent Claude Code session |
-| `message_uuid` | TEXT NOT NULL | transcript entry `uuid` |
-| `block_index` | INTEGER NOT NULL | position in the message's content; UNIQUE(`agent_id`,`message_uuid`,`block_index`) |
+| `message_uuid` | TEXT NOT NULL | transcript entry `uuid` (one entry per content block) |
+| `block_index` | INTEGER NOT NULL | entry `apiBlockIndex` (else position in `content`); UNIQUE(`agent_id`,`message_uuid`,`block_index`) |
+| `api_message_id` | TEXT | assistant `message.id`; groups the blocks of one API response |
 | `run_id` | TEXT → `runs(id)` | assignment rule in research §12; NULL if no match |
 | `role` | TEXT NOT NULL CHECK IN (`assistant`,`user`) | |
 | `kind` | TEXT NOT NULL CHECK IN (`text`,`thinking`,`tool_use`,`tool_result`) | `thinking` stored as presence only (content is empty in transcripts) |
@@ -73,7 +74,7 @@ earlier boot → `unfinished` (swept on server start). No other transition.
 | `payload_ref` | TEXT | evidence file when over the cap |
 | `is_error` | INTEGER CHECK IN (0,1) | `tool_result` |
 | `model` | TEXT | assistant messages |
-| `input_tokens`, `output_tokens`, `cache_read_tokens`, `cache_creation_tokens` | INTEGER | only on block 0 of an assistant message |
+| `input_tokens`, `output_tokens`, `cache_read_tokens`, `cache_creation_tokens` | INTEGER | once per `api_message_id`, on its highest `block_index` row; `output_tokens` = max over the message's entries (research §12) |
 | `matched` | INTEGER NOT NULL DEFAULT 0 CHECK IN (0,1) | `tool_use` of `mcp__pathfinder__*` with a matching span |
 | `created_at` | TEXT NOT NULL | transcript `timestamp` |
 | `imported_at` | TEXT NOT NULL | |

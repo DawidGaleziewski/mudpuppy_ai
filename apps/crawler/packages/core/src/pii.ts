@@ -72,6 +72,10 @@ export function maskText(text: string): string {
 const SENSITIVE_KEY =
   /^(?:e-?mail|phone|tel(?:ephone)?|mobile|password|passwd|pass|token|access_?token|refresh_?token|id_?token|secret|api_?key|authorization|cookie|session(?:_?id)?|first_?name|last_?name|full_?name|name|pesel|iban|card(?:_?number)?)$/i;
 
+export function isSensitiveKey(key: string): boolean {
+  return SENSITIVE_KEY.test(key);
+}
+
 /** Type tags a shape record may legitimately hold as leaves (`string`, `number`, `array<string>`, ...). */
 const TYPE_TAG =
   /^(?:string|number|integer|boolean|null|object|unknown|any|array(?:<.*>)?|\[\]|\{\})$/;

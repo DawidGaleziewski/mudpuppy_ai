@@ -39,7 +39,8 @@ Rules:
   active call or, if none, writes `between_calls = 1`.
 - All writes are wrapped: a failure increments `dropped` for the run, logs via pino, never throws.
 - Level `off`: only `call` spans; `standard`/`verbose` differ only in `request` events (§10).
-- Scrubbing and caps are applied inside the tracer (`scrubJson`, `maskText`, `limits.ts`).
+- Scrubbing and caps are applied inside the tracer (`scrubTraceJson`, `maskText`, `limits.ts`);
+  never plain `scrubJson`, which masks every id (research §7).
 
 ## Names
 
@@ -54,9 +55,9 @@ Rules:
 
 | Event | Attributes |
 | --- | --- |
-| `gate_decision` | `input_kind` (`navigate`/`act`), `url` (shaped) or `action` {role, name, nth}, `safety_class`, `allowed`, `rule`, `reason`, `policy_id?` |
+| `gate_decision` | `input_kind` (`navigate`/`act`), `url` (shaped) or `action` {role, accessible_name, nth}, `safety_class`, `allowed`, `rule`, `reason`, `policy_id?` |
 | `item_cap` | `route_template`, `count`, `cap`, `allowed` |
-| `locator` | `role`, `name`, `nth`, `matches`, `outcome` (`clicked`/`absent`/`click_failed`), `error?` |
+| `locator` | `role`, `accessible_name`, `nth`, `matches`, `outcome` (`clicked`/`absent`/`click_failed`), `error?` |
 | `stabilization_timeout` | `timeout_ms`, `in_flight` [{url, resource_type, age_ms}], `since_mutation_ms`, `running_animations` |
 | `fingerprint_assign` | `route_template`, `level1`, `decision` (kind), `cluster_id`, `matched`, `similarity`, `threshold` |
 | `state_recorded` | `state_id`, `created`, `evidence_ref` |
@@ -73,6 +74,10 @@ Rules:
 | `obstacle` | `obstacle_id`, `selector`, `via` |
 | `error` | `code`, `message`, `stack_top?` |
 | `trace_health` | `dropped`, `truncated` |
+| `concurrent_calls` | `overlapping_calls` [span ids], `run_id` — once per overlap, on each call involved (research §3) |
+
+Any event attached through `eventForRun` while more than one browser call of the run is open also
+carries `overlapping_calls`.
 
 A shaped URL is `{origin, route, query_keys}` from `shapeUrl()`; raw URLs are never stored.
 

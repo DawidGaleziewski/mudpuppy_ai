@@ -12,8 +12,11 @@ export interface EvidenceStore {
   readonly root: string;
   /** Mask PII, hash the masked bytes, write once, return the `evidence_ref`. */
   storeText(content: string, ext: string): Promise<string>;
-  /** Deep-scrub a JSON value (network shape records), then store it as canonical JSON. */
-  storeJson(value: unknown): Promise<string>;
+  /**
+   * Deep-scrub a JSON value (network shape records), then store it as canonical JSON. `scrub` swaps
+   * the scrubber (the trace keeps server-issued ids); a value is never stored unscrubbed.
+   */
+  storeJson(value: unknown, scrub?: (value: unknown) => unknown): Promise<string>;
   /** Absolute path for a ref; throws on anything that is not `<sha256>.<ext>` (no traversal). */
   resolve(ref: string): string;
 }
@@ -59,6 +62,6 @@ export function createEvidenceStore(root: string): EvidenceStore {
     root,
     resolve,
     storeText: (content, ext) => write(maskText(content), ext),
-    storeJson: (value) => write(canonicalJson(scrubJson(value)), 'json'),
+    storeJson: (value, scrub = scrubJson) => write(canonicalJson(scrub(value)), 'json'),
   };
 }

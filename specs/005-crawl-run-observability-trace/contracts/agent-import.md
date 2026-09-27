@@ -27,10 +27,13 @@ Merged into the existing file; the existing PostToolUse/PreToolUse hooks stay.
 
 `parseTranscript(lines: string[], meta?: {agentType}) → AgentTurn[]`:
 
-- Entries with `type: "assistant"`: one row per `message.content` block; `model` and `usage`
-  (`input_tokens`, `output_tokens`, `cache_read_input_tokens`, `cache_creation_input_tokens`) on
-  block 0 only. `thinking` → row with `text = NULL`. `tool_use` → `tool_use_id`, `tool_name`,
-  scrubbed `input` as `text`.
+- Entries with `type: "assistant"`: one row per `message.content` block (normally one block per
+  entry); `block_index` = `apiBlockIndex` when present, else the position in `content`;
+  `api_message_id` = `message.id`; `model` on every row. Usage (`input_tokens`, `output_tokens`,
+  `cache_read_input_tokens`, `cache_creation_input_tokens`) is attached **once per
+  `api_message_id`**, to the row with the highest `block_index`, with `output_tokens` = max over the
+  message's entries (usage repeats on every entry and output grows while streaming). `thinking` →
+  row with `text = NULL`. `tool_use` → `tool_use_id`, `tool_name`, scrubbed `input` as `text`.
 - Entries with `type: "user"` whose content is an array: one row per `tool_result` block
   (`tool_use_id`, `is_error`, scrubbed content as `text`); string content (the prompt) → one `text`
   row.
