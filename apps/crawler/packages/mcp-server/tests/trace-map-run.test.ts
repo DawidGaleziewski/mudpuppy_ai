@@ -1,9 +1,16 @@
+import { writeFileSync } from 'node:fs';
+import { join } from 'node:path';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { PHASE_NAMES } from '@pathfinder/core';
 import { canLaunchBrowser } from '@pathfinder/crawler';
 import { startMockPortal, type MockPortal } from './mock-portal.js';
 import { normaliseRows } from './trace-normalise.js';
-import { scriptedTraceRun, setupTraceRun, type TraceCall } from './trace-run-harness.js';
+import {
+  portalYaml,
+  scriptedTraceRun,
+  setupTraceRun,
+  type TraceCall,
+} from './trace-run-harness.js';
 
 const available = await canLaunchBrowser();
 
@@ -215,6 +222,56 @@ describe.skipIf(!available)('trace of a map run against the mock portal', () => 
       await cleanup();
     }
   });
+
+  it.skipIf(process.env.CI === '1')(
+    'adds less than 10% to the median step time at standard vs off (SC-008)',
+    async () => {
+      // Production-declared so no Playwright trace is recorded in either run: this measures the span trace only.
+      const median = async (level: 'off' | 'standard') => {
+        const { ctx, call, spans, cleanup } = await setupTraceRun(portal, {
+          maxSteps: 12,
+          trace: { level },
+        });
+        try {
+          ctx.dbEnvironment = 'production';
+          writeFileSync(
+            join(ctx.root, 'portals/mock/portal.yaml'),
+            portalYaml(portal.origin, 12).replace(
+              'environment: sandbox',
+              'environment: production',
+            ),
+          );
+          const start = await call('start_run', { portal_id: 'mock', persona_id: 'guest' });
+          const runId = start.body.run_id as string;
+          await call('navigate', { run_id: runId, url: `${portal.origin}/` });
+          for (let i = 0; i < 10; i++) {
+            const next = await call('get_next_frontier_item', { run_id: runId });
+            if (!next.body.item) break;
+            await call('act', { run_id: runId, action_id: next.body.item.action_id });
+          }
+          const d = spans()
+            .filter(
+              (r) =>
+                r.kind === 'call' &&
+                (r.name === 'navigate' || r.name === 'act') &&
+                r.status === 'ok',
+            )
+            .map((r) => r.duration_ms as number)
+            .sort((a, b) => a - b);
+          return d[Math.floor(d.length / 2)]!;
+        } finally {
+          await cleanup();
+        }
+      };
+      const off = await median('off');
+      const standard = await median('standard');
+      const increase = (standard - off) / off;
+      const report = `SC-008: median step ${off} ms (off) vs ${standard} ms (standard): ${(increase * 100).toFixed(1)}%`;
+      process.stderr.write(`${report}\n`);
+      expect(increase, report).toBeLessThan(0.1);
+    },
+    120_000,
+  );
 });
 
 /** Whether span `row` is a descendant of span `ancestorId`. */

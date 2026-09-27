@@ -133,7 +133,8 @@ test**: quickstart scenarios 6, 7.
 
 - [ ] T041 [US5] [sonnet] `trace_summary(conn, run_id)` in `queries.py` (time per phase sum/p50/p95, counts by kind/status, slowest 5 calls, tokens, health: dropped, truncated, unfinished, unmatched both ways, boot level/flag) + `partials/trace_summary.html` + `problems=1` filter (errors, refused, stopped, unfinished, stabilization timeouts, > run p95, unmatched agent calls, concurrent calls); tests
 - [ ] T042 [US5] [sonnet] Perf fixture generator (500 calls / 20 000 spans) in `apps/dashboard/tests/conftest.py` and `tests/test_perf.py`: summary + first page < 1 s (SC-005)
-- [ ] T043 [US5] [opus] Overhead check in `trace-map-run.test.ts` (SC-008): same scripted run at `off` and `standard`, median step time increase < 10% (skipped under `CI=1` if timing is noisy; result logged)
+- [X] T043 [US5] [opus] Overhead check in `trace-map-run.test.ts` (SC-008): same scripted run at `off` and `standard`, median step time increase < 10% (skipped under `CI=1` if timing is noisy; result logged)
+  - Note: measured on a production-declared mock portal so no Playwright trace is recorded in either run (the span trace alone): median step 434 ms (off) vs 413 ms (standard), -4.8%, i.e. within noise (2026-09-27). Writing it exposed a latent hang in `NetworkRecorder.drain` (a body read that never settles after navigating away from a polling page), fixed in the crawler.
 
 ---
 
