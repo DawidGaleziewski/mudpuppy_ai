@@ -1,0 +1,756 @@
+{
+  "portal_id": "reference-insurer",
+  "today": "2026-01-15",
+  "screens": [
+    {
+      "id": "S01",
+      "route_template": "/",
+      "title": "Ubezpieczenia dla Ciebie",
+      "guest_visible": true,
+      "reached_by": "navigation"
+    },
+    {
+      "id": "S02",
+      "route_template": "/ubezpieczenia/samochod",
+      "title": "Ubezpieczenie samochodu",
+      "guest_visible": true,
+      "reached_by": "navigation"
+    },
+    {
+      "id": "S03",
+      "route_template": "/ubezpieczenia/dom",
+      "title": "Ubezpieczenie domu",
+      "guest_visible": true,
+      "reached_by": "navigation"
+    },
+    {
+      "id": "S04",
+      "route_template": "/ubezpieczenia/podroze",
+      "title": "Ubezpieczenie turystyczne",
+      "guest_visible": true,
+      "reached_by": "navigation"
+    },
+    {
+      "id": "S05",
+      "route_template": "/ubezpieczenia/podroze/wynik",
+      "title": "Twoja składka podróżna",
+      "guest_visible": true,
+      "reached_by": "navigation"
+    },
+    {
+      "id": "S06",
+      "route_template": "/porownanie",
+      "title": "Porównanie produktów",
+      "guest_visible": true,
+      "reached_by": "navigation"
+    },
+    {
+      "id": "S07",
+      "route_template": "/porownanie/wynik",
+      "title": "Wynik porównania",
+      "guest_visible": true,
+      "reached_by": "navigation"
+    },
+    {
+      "id": "S08",
+      "route_template": "/kalkulator/pojazd",
+      "title": "Kalkulator OC/AC — dane pojazdu",
+      "guest_visible": true,
+      "reached_by": "navigation"
+    },
+    {
+      "id": "S09",
+      "route_template": "/kalkulator/kierowca",
+      "title": "Kalkulator OC/AC — dane kierowcy",
+      "guest_visible": true,
+      "reached_by": "navigation"
+    },
+    {
+      "id": "S10",
+      "route_template": "/kalkulator/opcje",
+      "title": "Kalkulator OC/AC — opcje",
+      "guest_visible": true,
+      "reached_by": "navigation"
+    },
+    {
+      "id": "S11",
+      "route_template": "/kalkulator/wynik",
+      "title": "Twoja składka",
+      "guest_visible": true,
+      "reached_by": "navigation"
+    },
+    {
+      "id": "S12",
+      "route_template": "/kalkulator/zakup",
+      "title": "Wniosek przyjęty",
+      "guest_visible": true,
+      "reached_by": "mutation"
+    },
+    {
+      "id": "S13",
+      "route_template": "/kontakt",
+      "title": "Kontakt",
+      "guest_visible": true,
+      "reached_by": "navigation"
+    },
+    {
+      "id": "S14",
+      "route_template": "/kontakt/dziekujemy",
+      "title": "Dziękujemy za wiadomość",
+      "guest_visible": true,
+      "reached_by": "mutation"
+    },
+    {
+      "id": "S15",
+      "route_template": "/faq",
+      "title": "Najczęściej zadawane pytania",
+      "guest_visible": true,
+      "reached_by": "navigation"
+    },
+    {
+      "id": "S16",
+      "route_template": "/slowniczek",
+      "title": "Słowniczek pojęć",
+      "guest_visible": true,
+      "reached_by": "navigation"
+    },
+    {
+      "id": "S17",
+      "route_template": "/logowanie",
+      "title": "Logowanie",
+      "guest_visible": true,
+      "reached_by": "navigation"
+    },
+    {
+      "id": "S18",
+      "route_template": "/moje-polisy",
+      "title": "Moje polisy",
+      "guest_visible": false,
+      "reached_by": "login"
+    },
+    {
+      "id": "S19",
+      "route_template": "/moje-polisy/przedluz",
+      "title": "Przedłuż polisę",
+      "guest_visible": false,
+      "reached_by": "login"
+    }
+  ],
+  "forms": [
+    {
+      "id": "F01",
+      "screen": "S08",
+      "label": "Dane pojazdu",
+      "method": "get",
+      "fields": [
+        {
+          "id": "F01.1",
+          "label": "Marka",
+          "type": "select",
+          "constraints": {
+            "required": true,
+            "allowed_values": [
+              "Toyota",
+              "Skoda",
+              "Volkswagen",
+              "Fiat",
+              "Inna"
+            ]
+          }
+        },
+        {
+          "id": "F01.2",
+          "label": "Model",
+          "type": "text",
+          "constraints": {
+            "required": true,
+            "max_length": 40
+          }
+        },
+        {
+          "id": "F01.3",
+          "label": "Rok produkcji",
+          "type": "number",
+          "constraints": {
+            "required": true,
+            "min": 1990,
+            "max": 2026
+          }
+        },
+        {
+          "id": "F01.4",
+          "label": "Pojemność silnika (cm³)",
+          "type": "number",
+          "constraints": {
+            "required": true,
+            "min": 50,
+            "max": 8000
+          }
+        },
+        {
+          "id": "F01.5",
+          "label": "Kod pocztowy",
+          "type": "text",
+          "constraints": {
+            "required": true,
+            "pattern": "[0-9]{2}-[0-9]{3}"
+          }
+        }
+      ]
+    },
+    {
+      "id": "F02",
+      "screen": "S09",
+      "label": "Dane kierowcy",
+      "method": "get",
+      "fields": [
+        {
+          "id": "F02.1",
+          "label": "Data urodzenia",
+          "type": "date",
+          "constraints": {
+            "required": true,
+            "min": "1950-01-16",
+            "max": "2008-01-15"
+          }
+        },
+        {
+          "id": "F02.2",
+          "label": "Rok uzyskania prawa jazdy",
+          "type": "number",
+          "constraints": {
+            "required": true,
+            "min": 1968,
+            "max": 2026
+          }
+        },
+        {
+          "id": "F02.3",
+          "label": "Lata bezszkodowej jazdy",
+          "type": "number",
+          "constraints": {
+            "required": true,
+            "min": 0,
+            "max": 60
+          }
+        },
+        {
+          "id": "F02.4",
+          "label": "Zgoda na przetwarzanie danych osobowych",
+          "type": "checkbox",
+          "constraints": {
+            "required": true
+          }
+        },
+        {
+          "id": "F02.5",
+          "label": "Oświadczam, że zapoznałem się z OWU",
+          "type": "checkbox",
+          "constraints": {
+            "required": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "F03",
+      "screen": "S10",
+      "label": "Opcje",
+      "method": "get",
+      "fields": [
+        {
+          "id": "F03.1",
+          "label": "Zakres",
+          "type": "radio",
+          "constraints": {
+            "required": true,
+            "allowed_values": [
+              "Tylko OC",
+              "OC + Autocasco (AC)"
+            ]
+          }
+        },
+        {
+          "id": "F03.2",
+          "label": "Assistance",
+          "type": "checkbox",
+          "constraints": {}
+        },
+        {
+          "id": "F03.3",
+          "label": "Kod rabatowy",
+          "type": "text",
+          "constraints": {
+            "pattern": "[A-Z]+[0-9]{2}",
+            "max_length": 12
+          }
+        }
+      ]
+    },
+    {
+      "id": "F04",
+      "screen": "S13",
+      "label": "Formularz kontaktowy",
+      "method": "post",
+      "fields": [
+        {
+          "id": "F04.1",
+          "label": "Imię",
+          "type": "text",
+          "constraints": {
+            "required": true,
+            "max_length": 60
+          }
+        },
+        {
+          "id": "F04.2",
+          "label": "Temat",
+          "type": "select",
+          "constraints": {
+            "required": true,
+            "allowed_values": [
+              "Oferta",
+              "Szkoda",
+              "Moja polisa",
+              "Inne"
+            ]
+          }
+        },
+        {
+          "id": "F04.3",
+          "label": "Wiadomość",
+          "type": "textarea",
+          "constraints": {
+            "required": true,
+            "max_length": 1000
+          }
+        },
+        {
+          "id": "F04.4",
+          "label": "Telefon",
+          "type": "tel",
+          "constraints": {
+            "pattern": "\\+?[0-9 ]{9,15}"
+          }
+        },
+        {
+          "id": "F04.5",
+          "label": "E-mail",
+          "type": "email",
+          "constraints": {}
+        }
+      ]
+    },
+    {
+      "id": "F05",
+      "screen": "S04",
+      "label": "Kalkulator podróży",
+      "method": "get",
+      "fields": [
+        {
+          "id": "F05.1",
+          "label": "Kraj docelowy",
+          "type": "select",
+          "constraints": {
+            "required": true,
+            "allowed_values": [
+              "Europa",
+              "Świat"
+            ]
+          }
+        },
+        {
+          "id": "F05.2",
+          "label": "Data wyjazdu",
+          "type": "date",
+          "constraints": {
+            "required": true,
+            "min": "2026-01-15"
+          }
+        },
+        {
+          "id": "F05.3",
+          "label": "Data powrotu",
+          "type": "date",
+          "constraints": {
+            "required": true,
+            "min": "2026-01-15"
+          }
+        },
+        {
+          "id": "F05.4",
+          "label": "Liczba podróżnych",
+          "type": "number",
+          "constraints": {
+            "required": true,
+            "min": 1,
+            "max": 9
+          }
+        }
+      ]
+    },
+    {
+      "id": "F06",
+      "screen": "S06",
+      "label": "Porównanie produktów",
+      "method": "get",
+      "fields": [
+        {
+          "id": "F06.1",
+          "label": "Pierwszy produkt",
+          "type": "select",
+          "constraints": {
+            "required": true,
+            "allowed_values": [
+              "OC",
+              "Autocasco (AC)",
+              "Assistance",
+              "NNW"
+            ]
+          }
+        },
+        {
+          "id": "F06.2",
+          "label": "Drugi produkt",
+          "type": "select",
+          "constraints": {
+            "required": true,
+            "allowed_values": [
+              "OC",
+              "Autocasco (AC)",
+              "Assistance",
+              "NNW"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "F07",
+      "screen": "S17",
+      "label": "Logowanie",
+      "method": "post",
+      "fields": [
+        {
+          "id": "F07.1",
+          "label": "Login",
+          "type": "text",
+          "constraints": {
+            "required": true
+          }
+        },
+        {
+          "id": "F07.2",
+          "label": "Hasło",
+          "type": "password",
+          "constraints": {
+            "required": true
+          }
+        }
+      ]
+    }
+  ],
+  "rules": [
+    {
+      "id": "R01",
+      "statement": "The driver must be between 18 and 75 years old on the calculation date.",
+      "type": "validation",
+      "anchor": {
+        "screen": "S09",
+        "label": "Data urodzenia"
+      },
+      "guest_observable": true
+    },
+    {
+      "id": "R02",
+      "statement": "The postcode must have the format NN-NNN.",
+      "type": "format",
+      "anchor": {
+        "screen": "S08",
+        "label": "Kod pocztowy"
+      },
+      "guest_observable": true
+    },
+    {
+      "id": "R03",
+      "statement": "The vehicle production year must be between 1990 and the current year.",
+      "type": "range",
+      "anchor": {
+        "screen": "S08",
+        "label": "Rok produkcji"
+      },
+      "guest_observable": true
+    },
+    {
+      "id": "R04",
+      "statement": "The base premium is 800 PLN for OC, plus 1200 PLN when AC is chosen, multiplied by an age factor (up to 25: 1.5; 26-65: 1.0; 66-75: 1.3) and the engine factor.",
+      "type": "computation",
+      "anchor": {
+        "screen": "S11",
+        "label": "Składka bazowa"
+      },
+      "guest_observable": true
+    },
+    {
+      "id": "R05",
+      "statement": "The engine factor is 0.9 up to 1400 cm3, 1.0 for 1401-2000 cm3 and 1.25 above 2000 cm3.",
+      "type": "computation",
+      "anchor": {
+        "screen": "S11",
+        "label": "Współczynnik silnika"
+      },
+      "guest_observable": true
+    },
+    {
+      "id": "R06",
+      "statement": "Drivers with at least 5 years without claims get a 10% discount on the premium.",
+      "type": "computation",
+      "anchor": {
+        "screen": "S11",
+        "label": "Zniżka za bezszkodową jazdę"
+      },
+      "guest_observable": true
+    },
+    {
+      "id": "R07",
+      "statement": "AC cover can be chosen only for vehicles younger than 15 years.",
+      "type": "eligibility",
+      "anchor": {
+        "screen": "S10",
+        "label": "OC + Autocasco (AC)"
+      },
+      "guest_observable": true
+    },
+    {
+      "id": "R08",
+      "statement": "The Next button on the driver step is enabled only after both consents are ticked.",
+      "type": "ui_enablement",
+      "anchor": {
+        "screen": "S09",
+        "label": "Zgoda na przetwarzanie danych osobowych"
+      },
+      "guest_observable": true
+    },
+    {
+      "id": "R09",
+      "statement": "Assistance adds 99 PLN to the premium.",
+      "type": "computation",
+      "anchor": {
+        "screen": "S11",
+        "label": "Assistance"
+      },
+      "guest_observable": true
+    },
+    {
+      "id": "R10",
+      "statement": "A discount code must be capital letters followed by two digits.",
+      "type": "format",
+      "anchor": {
+        "screen": "S10",
+        "label": "Kod rabatowy"
+      },
+      "guest_observable": true
+    },
+    {
+      "id": "R11",
+      "statement": "The active discount code WIOSNA10 takes 10% off the premium after the no-claims discount; other well-formed codes are reported as inactive.",
+      "type": "computation",
+      "anchor": {
+        "screen": "S11",
+        "label": "Kod rabatowy"
+      },
+      "guest_observable": true
+    },
+    {
+      "id": "R12",
+      "statement": "Travel insurance covers at most 90 days including the departure and return days.",
+      "type": "validation",
+      "anchor": {
+        "screen": "S04",
+        "label": "Data powrotu"
+      },
+      "guest_observable": true
+    },
+    {
+      "id": "R13",
+      "statement": "The travel departure date cannot be earlier than today.",
+      "type": "validation",
+      "anchor": {
+        "screen": "S04",
+        "label": "Data wyjazdu"
+      },
+      "guest_observable": true
+    },
+    {
+      "id": "R14",
+      "statement": "The travel premium is days x daily rate (Europe 12 PLN, World 25 PLN) x number of travellers.",
+      "type": "computation",
+      "anchor": {
+        "screen": "S05",
+        "label": "Stawka dzienna"
+      },
+      "guest_observable": true
+    },
+    {
+      "id": "R15",
+      "statement": "A contact request needs a phone number or an e-mail address.",
+      "type": "validation",
+      "anchor": {
+        "screen": "S13",
+        "label": "Telefon"
+      },
+      "guest_observable": true
+    },
+    {
+      "id": "R16",
+      "statement": "Two different products must be chosen to compare them.",
+      "type": "validation",
+      "anchor": {
+        "screen": "S06",
+        "label": "Drugi produkt"
+      },
+      "guest_observable": true
+    },
+    {
+      "id": "R17",
+      "statement": "A policy can be renewed online only within 30 days before it expires.",
+      "type": "eligibility",
+      "anchor": {
+        "screen": "S19",
+        "label": "Przedłuż polisę"
+      },
+      "guest_observable": false
+    },
+    {
+      "id": "R18",
+      "statement": "Claim payouts above 50 000 PLN need a second adjuster's approval.",
+      "type": "validation",
+      "anchor": {
+        "screen": "S15",
+        "label": "Zgłoszenie szkody"
+      },
+      "guest_observable": false
+    },
+    {
+      "id": "R19",
+      "statement": "An agent commission of 12% is included in the total premium.",
+      "type": "computation",
+      "anchor": {
+        "screen": "S11",
+        "label": "Składka łączna"
+      },
+      "guest_observable": false
+    }
+  ],
+  "processes": [
+    {
+      "id": "P01",
+      "name": "Oblicz składkę OC/AC",
+      "steps": [
+        "/kalkulator/pojazd",
+        "/kalkulator/kierowca",
+        "/kalkulator/opcje",
+        "/kalkulator/wynik",
+        "/kalkulator/zakup"
+      ],
+      "first_route": "/kalkulator/pojazd",
+      "last_observable_route": "/kalkulator/wynik",
+      "ends_with": "mutation"
+    },
+    {
+      "id": "P02",
+      "name": "Oblicz składkę podróżną",
+      "steps": [
+        "/ubezpieczenia/podroze",
+        "/ubezpieczenia/podroze/wynik"
+      ],
+      "first_route": "/ubezpieczenia/podroze",
+      "last_observable_route": "/ubezpieczenia/podroze/wynik",
+      "ends_with": "result"
+    },
+    {
+      "id": "P03",
+      "name": "Porównaj produkty",
+      "steps": [
+        "/porownanie",
+        "/porownanie/wynik"
+      ],
+      "first_route": "/porownanie",
+      "last_observable_route": "/porownanie/wynik",
+      "ends_with": "result"
+    },
+    {
+      "id": "P04",
+      "name": "Wyślij zapytanie kontaktowe",
+      "steps": [
+        "/kontakt",
+        "/kontakt/dziekujemy"
+      ],
+      "first_route": "/kontakt",
+      "last_observable_route": "/kontakt",
+      "ends_with": "mutation"
+    },
+    {
+      "id": "P05",
+      "name": "Przedłuż polisę",
+      "steps": [
+        "/moje-polisy/przedluz"
+      ],
+      "first_route": "/moje-polisy/przedluz",
+      "last_observable_route": "/moje-polisy/przedluz",
+      "ends_with": "login_wall"
+    }
+  ],
+  "terms": [
+    {
+      "id": "T01",
+      "term": "OC",
+      "lang": "pl"
+    },
+    {
+      "id": "T02",
+      "term": "Autocasco (AC)",
+      "lang": "pl"
+    },
+    {
+      "id": "T03",
+      "term": "Assistance",
+      "lang": "pl"
+    },
+    {
+      "id": "T04",
+      "term": "Bezszkodowa jazda",
+      "lang": "pl"
+    },
+    {
+      "id": "T05",
+      "term": "Składka",
+      "lang": "pl"
+    },
+    {
+      "id": "T06",
+      "term": "Suma ubezpieczenia",
+      "lang": "pl"
+    },
+    {
+      "id": "T07",
+      "term": "OWU",
+      "lang": "pl"
+    },
+    {
+      "id": "T08",
+      "term": "Ubezpieczający",
+      "lang": "pl"
+    },
+    {
+      "id": "T09",
+      "term": "Ubezpieczony",
+      "lang": "pl"
+    },
+    {
+      "id": "T10",
+      "term": "Kod rabatowy",
+      "lang": "pl"
+    }
+  ]
+}

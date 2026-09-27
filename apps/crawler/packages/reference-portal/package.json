@@ -10,7 +10,10 @@
   "dependencies": {
     "zod": "^4.6.5"
   },
+  "devDependencies": {
+    "@types/node": "^22.20.4"
+  },
   "scripts": {
-    "start": "tsx src/main.ts"
+    "start": "tsx src/main.ts --host 127.0.0.1"
   }
 }

@@ -20,6 +20,7 @@ import {
   deletePortal,
   exportPortal,
   planPortalDelete,
+  where,
 } from '../src/portal-data.js';
 
 const MIGRATIONS = fileURLToPath(new URL('../../../../../data/migrations', import.meta.url));
@@ -138,11 +139,7 @@ function seed() {
 function snapshotOf(raw: OpenedDb['raw'], portal: string): string {
   const out: Record<string, unknown[]> = {};
   for (const t of PORTAL_TABLES) {
-    const sql =
-      t === 'runs' || t === 'states'
-        ? `SELECT * FROM ${t} WHERE portal_id = ? ORDER BY 1`
-        : `SELECT * FROM ${t} WHERE run_id IN (SELECT id FROM runs WHERE portal_id = ?) ORDER BY 1`;
-    out[t] = raw.prepare(sql).all(portal);
+    out[t] = raw.prepare(`SELECT * FROM ${t} WHERE ${where(t, 'mine')} ORDER BY 1, 2`).all(portal);
   }
   return JSON.stringify(out);
 }
