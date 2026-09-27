@@ -17,6 +17,27 @@ export interface Observation {
 }
 
 const MAX_BODY = 1_000_000;
+/**
+ * Playwright can leave `response.text()` pending forever when the page navigates away mid-read
+ * (seen with a polling page); without a bound, `drain()` would hang the tool call.
+ */
+const BODY_TIMEOUT_MS = 2000;
+
+class BodyTimeout extends Error {}
+
+async function withTimeout<T>(p: Promise<T>, ms: number): Promise<T> {
+  let timer: NodeJS.Timeout | undefined;
+  try {
+    return await Promise.race([
+      p,
+      new Promise<never>((_, reject) => {
+        timer = setTimeout(() => reject(new BodyTimeout()), ms);
+      }),
+    ]);
+  } finally {
+    clearTimeout(timer);
+  }
+}
 
 /** Path-only template (same rules as page routes, FR-012); PII in a path segment is masked. */
 export function apiUrlTemplate(url: string): string {
@@ -33,7 +54,10 @@ export class NetworkRecorder {
   private pending = new Set<Promise<void>>();
   private readonly listeners: [string, (...a: never[]) => void][] = [];
 
-  constructor(private readonly page: Page) {
+  constructor(
+    private readonly page: Page,
+    private readonly opts: { bodyTimeoutMs?: number } = {},
+  ) {
     this.on('response', ((res: Response) => this.track(this.onResponse(res))) as never);
     this.on('requestfailed', ((req: Request) => {
       if (this.isApi(req))
@@ -72,11 +96,11 @@ export class NetworkRecorder {
     try {
       const ct = res.headers()['content-type'] ?? '';
       if (/json|text|xml/i.test(ct)) {
-        const text = await res.text();
+        const text = await withTimeout(res.text(), this.opts.bodyTimeoutMs ?? BODY_TIMEOUT_MS);
         resBody = text.length <= MAX_BODY ? text : null;
       }
     } catch {
-      /* body unavailable (redirect, aborted): shape unknown */
+      /* body unavailable (redirect, aborted, never delivered): shape unknown */
     }
     this.calls.push({
       method: req.method().toUpperCase(),
