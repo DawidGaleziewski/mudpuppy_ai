@@ -14,6 +14,7 @@ describe('scrubTraceJson', () => {
         evidence_ref: `${SHA}.yaml`,
         level1: SHA,
         matched: SHA,
+        overlapping_calls: [RUN],
       }),
     ).toEqual({
       run_id: RUN,
@@ -22,6 +23,7 @@ describe('scrubTraceJson', () => {
       evidence_ref: `${SHA}.yaml`,
       level1: SHA,
       matched: SHA,
+      overlapping_calls: [RUN],
     });
   });
 

@@ -254,7 +254,9 @@ export function deletePortal(opts: {
       );
     // Clear trace_spans' self-reference first so children never outlive the parent row they
     // point at within this single-statement-per-table delete pass.
-    raw.prepare(`UPDATE trace_spans SET parent_id = NULL WHERE ${where('trace_spans', 'mine')}`).run(portal);
+    raw
+      .prepare(`UPDATE trace_spans SET parent_id = NULL WHERE ${where('trace_spans', 'mine')}`)
+      .run(portal);
     for (const t of DELETE_ORDER)
       raw.prepare(`DELETE FROM ${t} WHERE ${where(t, 'mine')}`).run(portal);
     log(raw, {

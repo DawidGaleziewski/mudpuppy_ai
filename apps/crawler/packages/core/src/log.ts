@@ -3,6 +3,7 @@ import type { PathfinderDb } from './db.js';
 import { newId, nowIso } from './ids.js';
 import { maskText, scrubJson } from './pii.js';
 import { DecisionKind, DecisionLogEntry } from './schemas/decision-log.js';
+import type { Tracer } from './trace/tracer.js';
 
 /**
  * Structured JSON logger. The MCP server speaks stdio, so logs go to stderr (fd 2) by default,
@@ -53,6 +54,24 @@ export function createDecisionLog(db: PathfinderDb, logger: Logger): DecisionLog
         .values({ ...entry, detail_json: detail === null ? null : JSON.stringify(detail) })
         .execute();
       logger.info({ decision: entry.kind, ...entry }, `decision:${entry.kind}`);
+      return entry;
+    },
+  };
+}
+
+/**
+ * Link every recorded decision to the trace (research §2): an `event decision` under the current
+ * span, or, from a Playwright callback outside any call, under the run's open browser call. The
+ * entry and the `decision_log` row are unchanged.
+ */
+export function linkDecisions(decisions: DecisionLog, tracer: Tracer): DecisionLog {
+  return {
+    async record(input) {
+      const entry = await decisions.record(input);
+      const attrs = { decision_id: entry.id, kind: entry.kind, rule: entry.rule };
+      const opts = { decisionId: entry.id, summary: `${entry.kind}: ${entry.reason}` };
+      if (tracer.inCall()) tracer.event('decision', attrs, opts);
+      else tracer.eventForRun(entry.run_id, 'decision', attrs, opts);
       return entry;
     },
   };

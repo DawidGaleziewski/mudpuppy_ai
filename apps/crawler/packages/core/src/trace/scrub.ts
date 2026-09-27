@@ -6,7 +6,7 @@ import { isSensitiveKey, maskText, scrubJson } from '../pii.js';
  * hash (optionally `.ext`) are server-issued references, not secrets, and are kept (research §7).
  */
 const ID_KEY =
-  /^(?:id|ids|[a-z0-9_]+_ids?|evidence_ref|payload_ref|level1|matched|fingerprint|matched_fingerprint)$/i;
+  /^(?:id|ids|[a-z0-9_]+_ids?|evidence_ref|payload_ref|level1|matched|fingerprint|matched_fingerprint|overlapping_calls)$/i;
 const ID_VALUE =
   /^(?:[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}|[0-9a-f]{64}(?:\.[a-z0-9]{1,8})?)$/i;
 

@@ -280,9 +280,9 @@ describe('trace schemas (R-17)', () => {
       TraceSpan.safeParse({ ...span, status: 'running', duration_ms: null, ended_at: null })
         .success,
     ).toBe(true);
-    expect(
-      TraceSpan.safeParse({ ...span, status: 'unfinished', duration_ms: null }).success,
-    ).toBe(true);
+    expect(TraceSpan.safeParse({ ...span, status: 'unfinished', duration_ms: null }).success).toBe(
+      true,
+    );
   });
   it('rejects a rationale over 300 chars', () => {
     expect(TraceSpan.safeParse({ ...span, rationale: 'x'.repeat(301) }).success).toBe(false);
