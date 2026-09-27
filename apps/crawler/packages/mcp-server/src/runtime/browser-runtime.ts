@@ -5,6 +5,7 @@ import type { ServerContext } from '../context.js';
 import type { Runtime } from '../runtime.js';
 import { act, navigate, navigationPolicy, persistStop } from './pipeline.js';
 import { RunState } from './run-state.js';
+import { createRunTraceHooks } from './trace-hooks.js';
 
 export interface BrowserRuntimeOptions {
   headless?: boolean;
@@ -48,7 +49,16 @@ export function createBrowserRuntime(opts: BrowserRuntimeOptions = {}): Runtime 
   ): Promise<RunState> {
     await closeRun(run.id); // a resumed run replaces any earlier session
     const holder: { rs?: RunState } = {};
+    const templateFor = (url: string): string => {
+      try {
+        return holder.rs ? holder.rs.peekRouteTemplate(url) : new URL(url).pathname;
+      } catch {
+        return '<unparseable>';
+      }
+    };
+    const trace = createRunTraceHooks(ctx.tracer, run.id, templateFor);
     const session = await BrowserSession.launch({
+      observe: trace.observe,
       effective: approved.effective,
       headless: opts.headless ?? true,
       ...(opts.stabilizer ? { stabilizer: opts.stabilizer } : {}),
@@ -101,7 +111,7 @@ export function createBrowserRuntime(opts: BrowserRuntimeOptions = {}): Runtime 
           .catch((err: unknown) => ctx.logger.error({ err }, 'failed to log navigation refusal'));
       },
     });
-    const rs = new RunState(run.id, session, approved.effective, approved.scope, robots);
+    const rs = new RunState(run.id, session, approved.effective, approved.scope, robots, trace);
     holder.rs = rs;
     return rs;
   }

@@ -1,4 +1,11 @@
-import { maskText, newId, nowIso, type PathfinderDb, type PhaseName } from '@pathfinder/core';
+import {
+  maskText,
+  newId,
+  nowIso,
+  shapeUrl,
+  type PathfinderDb,
+  type PhaseName,
+} from '@pathfinder/core';
 import {
   classifyCandidates,
   decide,
@@ -27,10 +34,65 @@ import {
   type RunRow,
 } from '../services/index.js';
 import type { RunState } from './run-state.js';
+import { emitForRun } from './trace-hooks.js';
 
 /** A timed stage of the current tool call (contracts/trace-spans.md); untraced outside a call. */
 function phase<T>(ctx: ServerContext, name: PhaseName, fn: () => Promise<T>): Promise<T> {
   return ctx.tracer.phase(name, fn);
+}
+
+/** Count the browser's requests for this call and emit their `request_aggregate` when it ends. */
+async function counted<T>(rs: RunState, fn: () => Promise<T>): Promise<T> {
+  rs.trace.beginCall();
+  try {
+    return await fn();
+  } finally {
+    rs.trace.endCall();
+  }
+}
+
+/** `event gate_decision` for an agent input (navigate URL or issued action). */
+function traceGate(
+  ctx: ServerContext,
+  rs: RunState,
+  input: { kind: 'navigate'; url: string } | { kind: 'act'; action: ActionRow },
+  d: ReturnType<typeof decide>,
+): void {
+  ctx.tracer.event('gate_decision', {
+    input_kind: input.kind,
+    ...(input.kind === 'navigate'
+      ? { url: shapeUrl(input.url, (u) => rs.peekRouteTemplate(u)) }
+      : {
+          action: {
+            role: input.action.role,
+            accessible_name: input.action.accessible_name,
+            nth: input.action.json.nth,
+          },
+        }),
+    safety_class: d.classification.safetyClass,
+    allowed: d.allowed,
+    rule: d.allowed ? null : d.rule,
+    reason: d.allowed ? null : d.reason,
+    ...(!d.allowed && d.policyId ? { policy_id: d.policyId } : {}),
+  });
+}
+
+/** The item-view cap (FR-024) with an `event item_cap` whenever the cap applies to the template. */
+async function itemCapChecked(
+  ctx: ServerContext,
+  rs: RunState,
+  runId: string,
+  routeTemplate: string,
+): Promise<Refusal | null> {
+  const cap = await rs.policy.itemCap(ctx.db, runId, routeTemplate);
+  if (!cap) return null;
+  ctx.tracer.event('item_cap', {
+    route_template: routeTemplate,
+    count: cap.count,
+    cap: cap.cap,
+    allowed: cap.refusal === null,
+  });
+  return cap.refusal;
 }
 
 async function usage(
@@ -85,6 +147,7 @@ export function navigationPolicy(rs: RunState): (url: string) => Refusal | null 
 /** Persist a detected block: `stopped_warning`, a decision-log warning, and nothing more (FR-008). Idempotent. */
 export function persistStop(ctx: ServerContext, rs: RunState, warning: string): Promise<void> {
   rs.stopPersisted ??= (async () => {
+    emitForRun(ctx.tracer, rs.runId, 'run_stop', { warning: maskText(warning) });
     await completeRun(
       ctx,
       { run_id: rs.runId, status: 'stopped_warning', warning },
@@ -597,11 +660,20 @@ export async function navigate(
   input: { run_id: string; url: string },
 ): Promise<PageResult> {
   const run = await phase(ctx, 'begin_step', () => beginStep(ctx, rs, input.run_id));
-  const state = rs!;
+  return counted(rs!, () => navigateStep(ctx, run, rs!, input));
+}
+
+async function navigateStep(
+  ctx: ServerContext,
+  run: RunRow,
+  state: RunState,
+  input: { run_id: string; url: string },
+): Promise<PageResult> {
   const started = Date.now();
   const g = await phase(ctx, 'gate', async () => {
     const g = gateContext(state, await usage(ctx, run, state, 0));
     const d = decide({ kind: 'navigate', url: input.url }, g);
+    traceGate(ctx, state, { kind: 'navigate', url: input.url }, d);
     if (!d.allowed) {
       return refuse(
         ctx,
@@ -621,7 +693,7 @@ export async function navigate(
     } catch {
       routeTemplate = '/';
     }
-    const cap = await state.policy.checkItemCap(ctx.db, run.id, routeTemplate);
+    const cap = await itemCapChecked(ctx, state, run.id, routeTemplate);
     if (cap)
       return refuse(
         ctx,
@@ -653,7 +725,15 @@ export async function act(
   input: { run_id: string; action_id: string },
 ): Promise<PageResult> {
   const run = await phase(ctx, 'begin_step', () => beginStep(ctx, rs, input.run_id));
-  const state = rs!;
+  return counted(rs!, () => actStep(ctx, run, rs!, input));
+}
+
+async function actStep(
+  ctx: ServerContext,
+  run: RunRow,
+  state: RunState,
+  input: { run_id: string; action_id: string },
+): Promise<PageResult> {
   const started = Date.now();
   const { action, g, d } = await phase(ctx, 'gate', () =>
     gateAct(ctx, run, state, input.action_id),
@@ -664,6 +744,7 @@ export async function act(
     await phase(ctx, 'reach_state', async () => {
       const to = action.json.page_url;
       const nav = decide({ kind: 'navigate', url: to }, g);
+      traceGate(ctx, state, { kind: 'navigate', url: to }, nav);
       if (!nav.allowed)
         return refuse(
           ctx,
@@ -693,7 +774,7 @@ export async function act(
         /* unparseable href: no item-cap check, the gate already vetted the action */
       }
       if (!target) return;
-      const cap = await state.policy.checkItemCap(ctx.db, run.id, state.routeTemplateFor(target));
+      const cap = await itemCapChecked(ctx, state, run.id, state.routeTemplateFor(target));
       if (cap) {
         return refuse(
           ctx,
@@ -710,14 +791,20 @@ export async function act(
     });
   }
 
-  const locator = await phase(ctx, 'locate', async () => {
-    const locator = state.session.page
-      .getByRole(
-        action.role as never,
-        action.accessible_name ? { name: action.accessible_name, exact: true } : {},
-      )
-      .nth(action.json.nth);
+  const locatorAttrs = {
+    role: action.role,
+    accessible_name: action.accessible_name,
+    nth: action.json.nth,
+  };
+  const { locator, matches } = await phase(ctx, 'locate', async () => {
+    const all = state.session.page.getByRole(
+      action.role as never,
+      action.accessible_name ? { name: action.accessible_name, exact: true } : {},
+    );
+    const matches = await all.count();
+    const locator = all.nth(action.json.nth);
     if ((await locator.count()) === 0) {
+      ctx.tracer.event('locator', { ...locatorAttrs, matches, outcome: 'absent' });
       const refusal: Refusal = {
         status: 'unreachable',
         rule: 'unreachable',
@@ -735,12 +822,19 @@ export async function act(
         action.id,
       );
     }
-    return locator;
+    return { locator, matches };
   });
   await phase(ctx, 'click', async () => {
     try {
       await locator.click({ timeout: 5000 });
+      ctx.tracer.event('locator', { ...locatorAttrs, matches, outcome: 'clicked' });
     } catch (e) {
+      ctx.tracer.event('locator', {
+        ...locatorAttrs,
+        matches,
+        outcome: 'click_failed',
+        error: maskText((e as Error).message.split('\n')[0] ?? ''),
+      });
       await throwIfStopped(ctx, state);
       const refusal: Refusal = {
         status: 'unreachable',
@@ -791,6 +885,7 @@ async function gateAct(
     .executeTakeFirstOrThrow();
   const g = gateContext(state, await usage(ctx, run, state, Number(priorActions.n)));
   const d = decide({ kind: 'act', descriptor, currentUrl: action.json.page_url }, g);
+  traceGate(ctx, state, { kind: 'act', action }, d);
   if (!d.allowed) {
     const stateEvidence = await ctx.db
       .selectFrom('states')

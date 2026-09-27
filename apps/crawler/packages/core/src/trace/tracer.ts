@@ -122,7 +122,7 @@ export interface Tracer {
   phase<T>(name: PhaseName, fn: (span: SpanHandle) => Promise<T>, attrs?: Attrs): Promise<T>;
   event(name: EventName, attrs: Attrs, opts?: EventOpts): void;
   eventForRun(runId: string, name: EventName, attrs: Attrs, opts?: EventOpts): void;
-  /** True inside a traced call's async context (where `event` attaches). */
+  /** True inside a still-open traced call's async context (where `event` attaches). */
   inCall(): boolean;
   health(runId: string): TraceHealth;
   flush(): Promise<void>;
@@ -636,7 +636,9 @@ export function createTracer(deps: TracerDeps): Tracer {
         return;
       }
       if (ctx.call.closed) {
-        if (ctx.call.runId) queueBetween(ctx.call.runId, name, attrs, opts);
+        // A callback still carrying a finished call's context (e.g. Playwright's connection was
+        // opened inside start_run): route it like a browser callback.
+        if (ctx.call.runId) tracer.eventForRun(ctx.call.runId, name, attrs, opts);
         else healthOf(null).dropped += 1;
         return;
       }
@@ -659,7 +661,8 @@ export function createTracer(deps: TracerDeps): Tracer {
     },
 
     inCall() {
-      return als.getStore() !== undefined;
+      const ctx = als.getStore();
+      return ctx !== undefined && !ctx.call.closed;
     },
 
     health(runId) {

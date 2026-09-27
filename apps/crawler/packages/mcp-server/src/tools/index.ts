@@ -1,6 +1,6 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import type { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
-import type { CallStart, SpanHandle } from '@pathfinder/core';
+import { shapeUrl, type CallStart, type SpanHandle } from '@pathfinder/core';
 import { z } from 'zod';
 import type { ServerContext } from '../context.js';
 import { ToolError } from '../errors.js';
@@ -74,11 +74,12 @@ export function registerTools(server: McpServer, ctx: ServerContext, runtime: Ru
     ) => {
       // `rationale` is agent-stated context for the trace only; no service ever sees it.
       const { rationale, ...input } = args as z.infer<z.ZodObject<S>> & { rationale?: unknown };
-      const runId = (input as { run_id?: unknown }).run_id;
+      const { run_id: runId, url } = input as { run_id?: unknown; url?: unknown };
       const start: CallStart = {
         tool: name,
         runId: typeof runId === 'string' ? runId : null,
-        args: input,
+        // URLs are never stored raw in the trace (research §7).
+        args: typeof url === 'string' ? { ...input, url: shapeUrl(url) } : input,
       };
       if (extra?._meta) start.meta = extra._meta;
       if (extra?.requestId !== undefined) start.requestId = extra.requestId;

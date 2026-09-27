@@ -146,6 +146,8 @@ describe('FrontierPolicy', () => {
       rule: 'cap:item_view_cap',
     });
     expect(await p.checkItemCap(d.db, d.runId, '/oferty')).toBeNull();
+    expect(await p.itemCap(d.db, d.runId, '/oferta/:id')).toMatchObject({ count: 2, cap: 2 });
+    expect(await p.itemCap(d.db, d.runId, '/oferty')).toBeNull();
   });
 
   it('restores its window after a resume', () => {

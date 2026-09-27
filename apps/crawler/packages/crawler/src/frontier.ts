@@ -105,15 +105,30 @@ export class FrontierPolicy {
     runId: string,
     routeTemplate: string,
   ): Promise<Refusal | null> {
+    return (await this.itemCap(db, runId, routeTemplate))?.refusal ?? null;
+  }
+
+  /** The item-view cap check with its numbers; null when no cap applies to the template. */
+  async itemCap(
+    db: PathfinderDb,
+    runId: string,
+    routeTemplate: string,
+  ): Promise<{ count: number; cap: number; refusal: Refusal | null } | null> {
     if (this.o.itemViewCap === undefined || !this.isItemTemplate(routeTemplate)) return null;
+    const cap = this.o.itemViewCap;
     const visited = await countItemPageVisits(db, runId, this.o.itemRouteTemplates);
-    return visited >= this.o.itemViewCap
-      ? {
-          status: 'budget_reached',
-          rule: 'cap:item_view_cap',
-          reason: `item_view_cap ${this.o.itemViewCap} reached (${visited} item pages visited)`,
-        }
-      : null;
+    return {
+      count: visited,
+      cap,
+      refusal:
+        visited >= cap
+          ? {
+              status: 'budget_reached',
+              rule: 'cap:item_view_cap',
+              reason: `item_view_cap ${cap} reached (${visited} item pages visited)`,
+            }
+          : null,
+    };
   }
 }
 

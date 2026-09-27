@@ -150,7 +150,10 @@ describe('call spans for the agent tools (US1)', () => {
     const [nav] = calls();
     expect(attrs(nav!).output).toMatchObject({ state_id: 's', route_template: '/' });
     expect(JSON.stringify(attrs(nav!).args)).not.toContain('test.user@example.test');
-    expect(attrs(nav!).args).toMatchObject({ run_id: run });
+    expect(attrs(nav!).args).toEqual({
+      run_id: run,
+      url: { origin: 'https://shop.pl', route: '/', query_keys: ['mail'] },
+    });
   });
 
   it('keeps a start_run refused in preflight run-less, with an error event', async () => {

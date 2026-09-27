@@ -398,6 +398,31 @@ describe('eventForRun', () => {
   });
 });
 
+describe('stale call context', () => {
+  it("routes an event from a finished call's context to the run's open browser call", async () => {
+    const { tracer, spans } = await setup();
+    const fire = deferred();
+    let fired!: Promise<void>;
+    await tracer.call({ tool: 'start_run', runId: RUN, args: {} }, async () => {
+      // a continuation registered during start_run, run later (like Playwright's connection)
+      fired = fire.promise.then(() => tracer.event('robots_check', { action: 'blocked' }));
+    });
+    const gate = deferred();
+    const p = tracer.call({ tool: 'navigate', runId: RUN, args: {} }, async () => gate.promise);
+    await tick();
+    expect(tracer.inCall()).toBe(false);
+    fire.resolve();
+    await fired;
+    gate.resolve();
+    await p;
+    const nav = spans().find((r) => r.name === 'navigate')!;
+    expect(spans().find((r) => r.name === 'robots_check')).toMatchObject({
+      parent_id: nav.id,
+      between_calls: 0,
+    });
+  });
+});
+
 describe('ordering, sweeping and failure', () => {
   it('assigns strictly increasing seq per boot', async () => {
     const { tracer, spans } = await setup();

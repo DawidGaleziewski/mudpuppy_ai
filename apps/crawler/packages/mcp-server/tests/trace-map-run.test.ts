@@ -102,4 +102,70 @@ describe.skipIf(!available)('trace of a map run against the mock portal', () => 
     expect(first.length).toBeGreaterThan(20);
     expect(await tree()).toEqual(first);
   });
+
+  it('links every decision to one decision span and shows safety events inside their calls (US2)', async () => {
+    const { ctx, call, spans, cleanup } = await setup(10);
+    try {
+      const start = await call('start_run', { portal_id: 'mock', persona_id: 'guest' });
+      const runId = start.body.run_id as string;
+      await call('navigate', { run_id: runId, url: `${portal.origin}/` });
+      await call('navigate', { run_id: runId, url: `${portal.origin}/with-disallowed-asset` });
+      const refused = await call('navigate', { run_id: runId, url: `${portal.origin}/wyloguj` });
+      expect(refused.body.error.code).toBe('ACTION_REFUSED');
+      await ctx.tracer.flush();
+      const rows = spans();
+
+      // SC-002: every decision_log row of the run has exactly one decision span.
+      const decisions = ctx.raw
+        .prepare('SELECT id FROM decision_log WHERE run_id = ?')
+        .all(runId) as { id: string }[];
+      const linked = rows.filter((r) => r.name === 'decision' && r.run_id === runId);
+      expect(linked.map((r) => r.decision_id).sort()).toEqual(decisions.map((d) => d.id).sort());
+
+      const navs = rows.filter((r) => r.kind === 'call' && r.name === 'navigate');
+      const assetCall = navs[1]!;
+      const robots = rows.filter((r) => r.name === 'robots_check');
+      expect(robots).toHaveLength(2);
+      for (const r of robots) {
+        expect(r.parent_id).toBe(assetCall.id);
+        expect(JSON.parse(r.attrs_json as string)).toMatchObject({
+          url: { route: expect.stringMatching(/^\/admin\//), query_keys: [] },
+        });
+      }
+
+      const refusedCall = navs[2]!;
+      expect(refusedCall.status).toBe('refused');
+      const gate = rows.find(
+        (r) => r.name === 'gate_decision' && r.run_id === runId && isUnder(rows, r, refusedCall.id),
+      )!;
+      expect(JSON.parse(gate.attrs_json as string)).toMatchObject({
+        input_kind: 'navigate',
+        allowed: false,
+      });
+
+      const agg = rows.filter((r) => r.name === 'request_aggregate');
+      expect(agg.length).toBeGreaterThan(0);
+      const mainFrame = rows.filter(
+        (r) => r.name === 'request' && JSON.parse(r.attrs_json as string).main_frame === true,
+      );
+      expect(mainFrame.length).toBeGreaterThan(0);
+      expect(JSON.stringify(rows)).not.toContain(portal.origin + '/with');
+    } finally {
+      await cleanup();
+    }
+  });
 });
+
+/** Whether span `row` is a descendant of span `ancestorId`. */
+function isUnder(
+  rows: Record<string, unknown>[],
+  row: Record<string, unknown>,
+  ancestorId: unknown,
+): boolean {
+  let cur: Record<string, unknown> | undefined = row;
+  while (cur && cur.parent_id) {
+    if (cur.parent_id === ancestorId) return true;
+    cur = rows.find((r) => r.id === cur!.parent_id);
+  }
+  return false;
+}

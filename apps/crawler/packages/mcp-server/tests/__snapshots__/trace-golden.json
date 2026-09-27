@@ -187,7 +187,7 @@
     "started_at": "<ts:16>",
     "ended_at": "<ts:17>",
     "duration_ms": 5,
-    "attrs_json": "{\"args\":{\"run_id\":\"<id:6>\",\"url\":\"https://shop.pl/\"},\"request_id\":4,\"output\":{\"state_id\":\"s\",\"created\":true,\"cluster_id\":\"c\",\"title\":\"Start\",\"route_template\":\"/\",\"forms\":0,\"actions\":[{\"action_id\":\"a1\",\"role\":\"link\",\"accessible_name\":\"Usuń konto\",\"safety_class\":\"destructive\",\"allowed\":false}]}}",
+    "attrs_json": "{\"args\":{\"run_id\":\"<id:6>\",\"url\":{\"origin\":\"https://shop.pl\",\"route\":\"/\",\"query_keys\":[]}},\"request_id\":4,\"output\":{\"state_id\":\"s\",\"created\":true,\"cluster_id\":\"c\",\"title\":\"Start\",\"route_template\":\"/\",\"forms\":0,\"actions\":[{\"action_id\":\"a1\",\"role\":\"link\",\"accessible_name\":\"Usuń konto\",\"safety_class\":\"destructive\",\"allowed\":false}]}}",
     "payload_ref": null,
     "summary": "navigate ok",
     "decision_id": null,
