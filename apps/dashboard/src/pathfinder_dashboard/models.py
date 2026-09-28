@@ -376,6 +376,48 @@ class RunSummary(BaseModel):
     rule_candidates: int
 
 
+class PhaseStat(BaseModel):
+    """One phase name's timing across a run's calls (`trace_summary`, T041)."""
+
+    name: str
+    count: int
+    sum_ms: int
+    p50_ms: int
+    p95_ms: int
+
+
+class TraceTokens(BaseModel):
+    turns: int
+    input_tokens: int
+    output_tokens: int
+    cache_read_tokens: int
+    cache_creation_tokens: int
+
+
+class TraceHealth(BaseModel):
+    dropped: int
+    truncated: int
+    unfinished: int
+    unmatched_agent_calls: int
+    unmatched_server_calls: int
+
+
+class TraceSummary(BaseModel):
+    """A run's trace at a glance (T041, contracts/dashboard-routes.md)."""
+
+    run_id: str
+    calls_total: int
+    calls_by_tool: dict[str, int]
+    calls_by_status: dict[str, int]
+    phases: list[PhaseStat]
+    slowest_calls: list[TraceSpan]
+    tokens: TraceTokens
+    health: TraceHealth
+    trace_levels: list[TraceLevel]
+    pw_trace_modes: list[PwTraceMode]
+    agent_imported: bool
+
+
 class Page[T](BaseModel):
     items: list[T]
     total: int

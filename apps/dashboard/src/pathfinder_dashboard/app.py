@@ -281,6 +281,22 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         except db.StoreMissing as err:
             return missing(c, err, fragment=True)
 
+    @app.get("/fragments/runs/{run_id}/trace/summary", response_class=HTMLResponse)
+    def fragment_trace_summary(
+        request: Request, run_id: str, env: str | None = None
+    ) -> HTMLResponse:
+        c = ctx(request, env)
+        try:
+            with c.conn() as conn:
+                run = queries.get_run(conn, run_id)
+                if run is None:
+                    return not_found(c, run_id, fragment=True)
+                return render(
+                    c, "partials/trace_summary.html", section=trace_summary_section(c, conn, run)
+                )
+        except db.StoreMissing as err:
+            return missing(c, err, fragment=True)
+
     @app.get("/fragments/spans/{span_id}/children", response_class=HTMLResponse)
     def fragment_span_children(
         request: Request,
@@ -513,32 +529,76 @@ def _multi(params: Any, key: str) -> list[str]:
     return [value] if value else []
 
 
-def trace_calls_values(c: Ctx, conn: sqlite3.Connection, run: Run, params: Any) -> dict[str, Any]:
-    """Values for the trace tab / `/fragments/runs/{run_id}/trace` (contracts/dashboard-routes.md).
+def agent_context_for_run(conn: sqlite3.Connection, run_id: str) -> dict[str, Any]:
+    """Per-call agent context for the trace tab (T034, contracts/agent-import.md "Join"):
+    the agent's visible text before a call and the issuing turn's token usage, keyed by
+    `tool_use_id`; and the agent's own tool calls that never reached the server."""
+    turns = queries.agent_turns_for_run(conn, run_id)
+    # usage repeats on every entry of an API message; contracts/agent-import.md attaches it
+    # once, to the row with the highest `block_index` for that `api_message_id`
+    usage_by_message: dict[str, Any] = {}
+    for t in turns:
+        if t.api_message_id and (t.input_tokens is not None or t.output_tokens is not None):
+            usage_by_message[t.api_message_id] = t
+    by_tool_use_id: dict[str, dict[str, Any]] = {}
+    unmatched: list[dict[str, Any]] = []
+    preceding_text: str | None = None
+    for t in turns:
+        if t.role == "assistant" and t.kind == "text" and t.text:
+            preceding_text = t.text
+        if t.kind == "tool_use":
+            usage = usage_by_message.get(t.api_message_id) if t.api_message_id else None
+            if t.tool_use_id:
+                by_tool_use_id[t.tool_use_id] = {"text": preceding_text, "usage": usage}
+            if not t.matched and t.tool_name and t.tool_name.startswith("mcp__pathfinder__"):
+                unmatched.append({"turn": t, "text": preceding_text})
+            preceding_text = None
+    return {
+        "imported": bool(turns),
+        "by_tool_use_id": by_tool_use_id,
+        "unmatched_agent_calls": unmatched,
+    }
 
-    `problems=1` and the health/phase summary belong to a later task (trace_summary, T041); this
-    covers the call list with its `tool`/`status` filters.
-    """
+
+def trace_summary_section(c: Ctx, conn: sqlite3.Connection, run: Run) -> dict[str, Any]:
+    """Values shared by the summary's own live region and the trace tab's combined page (T041)."""
+    return {
+        "summary": queries.trace_summary(conn, run.id),
+        "summary_self_url": c.url(f"/fragments/runs/{run.id}/trace/summary"),
+        "problems_url": c.url(f"/runs/{run.id}", tab="trace", problems="1"),
+    }
+
+
+def trace_calls_values(c: Ctx, conn: sqlite3.Connection, run: Run, params: Any) -> dict[str, Any]:
+    """Values for the trace tab / `/fragments/runs/{run_id}/trace` (contracts/dashboard-routes.md):
+    the call list with its `tool`/`status`/`problems` filters, and agent context (T034)."""
     limit = c.settings.page_size
     cursor = params.get("cursor") or None
     page_no = max(int(params.get("page", "1") or 1), 1)
     tools = _multi(params, "tool") or None
     statuses = [s for s in _multi(params, "status") if s in SPAN_STATUSES] or None
+    problems = (params.get("problems") or "") in ("1", "true")
     base = f"/fragments/runs/{run.id}/trace"
     page_base = f"/runs/{run.id}"
     result = queries.trace_calls(
-        conn, run.id, tools=tools, statuses=statuses, cursor=cursor, limit=limit
+        conn, run.id, tools=tools, statuses=statuses, problems=problems, cursor=cursor, limit=limit
     )
     # every call name seen in this run, for the tool filter's options
     tool_options = sorted({s.name for s in queries.trace_calls(conn, run.id, limit=10_000).items})
-    filters = {"tool": tools or [], "status": statuses or []}
+    filters = {"tool": tools or [], "status": statuses or [], "problems": "1" if problems else ""}
     page_arg = page_no if cursor else None
+    agent_ctx = agent_context_for_run(conn, run.id)
+    if cursor:  # "never reached server" calls are shown once, on the first page only
+        agent_ctx = {**agent_ctx, "unmatched_agent_calls": []}
     return {
         "id": "trace",
         "run": run,
         "filters": filters,
+        "problems": problems,
         "tool_options": tool_options,
         "status_options": SPAN_STATUSES,
+        "agent_ctx": agent_ctx,
+        **trace_summary_section(c, conn, run),
         "page": result,
         "page_no": page_no,
         "pages": max(1, -(-result.total // limit)),
@@ -575,11 +635,13 @@ def span_children_values(
     ]
     top_events = [child for child in children if child.kind == "event"]
     total_ms = sum(p["span"].duration_ms or 0 for p in phases)
+    call = queries.get_span(conn, span_id)
     return {
         "span_id": span_id,
         "phases": phases,
         "top_events": top_events,
         "total_ms": total_ms or None,
+        "run_id": call.run_id if call else None,
     }
 
 

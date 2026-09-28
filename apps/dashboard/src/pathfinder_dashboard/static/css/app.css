@@ -708,6 +708,19 @@ table.data th.num {
   border-style: dashed;
 }
 
+.trace-call-unmatched {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-3);
+}
+
+.trace-call-unmatched p {
+  flex-basis: 100%;
+  margin: 0;
+}
+
 .trace-detail {
   padding: var(--space-3);
   border-top: var(--hairline) solid var(--border);

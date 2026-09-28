@@ -83,6 +83,98 @@
   <span class="evidence" title="evidence: data/evidence/{{ ref }}">{{ ref }}</span>
 {%- endmacro %}
 
+{#- A trace event's `url`/`redirect_to` attr: {origin, route, query_keys} (shapeUrl, never raw). -#}
+{% macro shaped_url(u) -%}
+  {%- if u %}<code>{{ u.route }}</code>{% if u.query_keys %}<span class="muted">?{{ u.query_keys | join(",") }}</span>{% endif %}{% if u.origin %} <span class="muted">{{ u.origin }}</span>{% endif %}{% else %}<span class="muted">—</span>{% endif -%}
+{%- endmacro %}
+
+{#- Structured detail for a trace event, by name (contracts/005-crawl-run-observability-trace/
+    trace-spans.md "Names"); falls back to nothing (the caller already shows kind, name, summary)
+    for event names with no dedicated layout. `c` and `run_id` come from the calling template's
+    context. -#}
+{% macro trace_event_detail(e, c, run_id) -%}
+  {%- set a = e.attrs_json -%}
+  {%- if e.name == "gate_decision" %}
+    <dl class="facts">
+      <div><dt>input</dt><dd>{{ a.input_kind }}{% if a.url %} · {{ shaped_url(a.url) }}{% elif a.action %} · <code>{{ a.action.role }}</code> “{{ a.action.accessible_name }}”{% endif %}</dd></div>
+      <div><dt>safety class</dt><dd>{{ safety(a.safety_class) }}</dd></div>
+      <div><dt>verdict</dt><dd>{{ allowed(a.allowed) }}{% if a.rule %} — <code>{{ a.rule }}</code>{% endif %}</dd></div>
+      {%- if a.reason %}<div><dt>reason</dt><dd>{{ a.reason }}</dd></div>{% endif %}
+    </dl>
+  {%- elif e.name == "robots_check" %}
+    <dl class="facts">
+      <div><dt>url</dt><dd>{{ shaped_url(a.url) }}</dd></div>
+      <div><dt>rule</dt><dd><code>{{ a.rule or "—" }}</code></dd></div>
+      <div><dt>action</dt><dd>{{ allowed(a.action == "allowed") }}</dd></div>
+    </dl>
+  {%- elif e.name == "request" %}
+    <dl class="facts">
+      <div><dt>request</dt><dd><code>{{ a.method }}</code> {{ a.resource_type }} {{ shaped_url(a.url) }}{% if a.main_frame %} <span class="muted">main frame</span>{% endif %}</dd></div>
+      <div><dt>decision</dt><dd>{{ a.decision }}{% if a.reason %} — {{ a.reason }}{% endif %}{% if a.status %} · <span class="mono-num">{{ a.status }}</span>{% endif %}{% if a.failed %} · <span class="st st-fail">[FAIL]</span>{% endif %}</dd></div>
+      {%- if a.robots_rule %}<div><dt>robots rule</dt><dd><code>{{ a.robots_rule }}</code></dd></div>{% endif %}
+      {%- if a.redirect_to %}<div><dt>redirect to</dt><dd>{{ shaped_url(a.redirect_to) }}</dd></div>{% endif %}
+      {%- if a.limiter_wait_ms %}<div><dt>limiter wait</dt><dd class="mono-num">{{ a.limiter_wait_ms }} ms</dd></div>{% endif %}
+    </dl>
+  {%- elif e.name == "block_verdict" %}
+    <dl class="facts">
+      <div><dt>signature</dt><dd><code>{{ a.signature }}</code></dd></div>
+      <div><dt>response status</dt><dd class="mono-num">{{ a.status }}</dd></div>
+      <div><dt>url</dt><dd>{{ shaped_url(a.url) }}</dd></div>
+    </dl>
+  {%- elif e.name == "decision" %}
+    <dl class="facts">
+      <div><dt>kind</dt><dd>{{ decision_kind(a.kind) }}</dd></div>
+      <div><dt>rule</dt><dd><code>{{ a.rule or "—" }}</code></dd></div>
+      <div><dt>decision log</dt><dd>
+        {%- if run_id and a.rule -%}
+        <a class="btn btn-bracket" href="{{ c.url('/runs/' ~ run_id, tab='decisions', rule=a.rule) }}">[view <code>{{ a.decision_id | short_id }}</code>]</a>
+        {%- else -%}<code>{{ a.decision_id or "—" }}</code>{%- endif -%}
+      </dd></div>
+    </dl>
+  {%- elif e.name == "fingerprint_assign" %}
+    <dl class="facts">
+      <div><dt>route</dt><dd><code>{{ a.route_template }}</code></dd></div>
+      <div><dt>decision</dt><dd>{{ a.decision }}{% if a.matched %} — matched existing{% else %} — new state{% endif %}</dd></div>
+      <div><dt>cluster</dt><dd><code>{{ a.cluster_id or "—" }}</code></dd></div>
+      <div><dt>similarity</dt><dd class="mono-num">{{ "%.3f" | format(a.similarity) if a.similarity is not none else "—" }} <span class="muted">(threshold {{ "%.3f" | format(a.threshold) if a.threshold is not none else "—" }})</span></dd></div>
+    </dl>
+  {%- elif e.name in ("frontier_enqueue", "frontier_skip") %}
+    <dl class="facts">
+      <div><dt>action</dt><dd><code>{{ a.action }}</code> {{ safety(a.safety_class) }}</dd></div>
+      <div><dt>priority / depth</dt><dd class="mono-num">{{ a.priority }} / {{ a.depth }}</dd></div>
+      {%- if a.rule %}<div><dt>rule</dt><dd><code>{{ a.rule }}</code>{% if a.reason %} — {{ a.reason }}{% endif %}</dd></div>{% endif %}
+    </dl>
+  {%- elif e.name == "frontier_pick" %}
+    <dl class="facts">
+      {%- if a.frontier_id %}
+      <div><dt>picked</dt><dd class="mono-num">priority {{ a.priority }}, depth {{ a.depth }}</dd></div>
+      {%- else %}
+      <div><dt>picked</dt><dd class="muted">nothing{% if a.reason %} — {{ a.reason }}{% endif %}</dd></div>
+      {%- endif %}
+      <div><dt>pending</dt><dd class="mono-num">{{ a.pending }}</dd></div>
+    </dl>
+  {%- elif e.name == "stabilization_timeout" %}
+    <dl class="facts">
+      <div><dt>timeout</dt><dd class="mono-num">{{ a.timeout_ms }} ms</dd></div>
+      <div><dt>since last mutation</dt><dd class="mono-num">{{ a.since_mutation_ms }} ms</dd></div>
+      <div><dt>running animations</dt><dd class="mono-num">{{ a.running_animations }}</dd></div>
+    </dl>
+    {%- if a.in_flight %}
+    <ul class="phase-events">
+      {%- for r in a.in_flight %}
+      <li><code>{{ r.resource_type }}</code> {{ r.url }} <span class="muted mono-num">{{ r.age_ms }} ms in flight</span></li>
+      {%- endfor %}
+    </ul>
+    {%- endif %}
+  {%- elif e.name == "obstacle" %}
+    <dl class="facts">
+      <div><dt>obstacle</dt><dd><code>{{ a.obstacle_id }}</code></dd></div>
+      <div><dt>selector</dt><dd><code>{{ a.selector }}</code></dd></div>
+      <div><dt>dismissed by</dt><dd>{{ a.via }}</dd></div>
+    </dl>
+  {%- endif -%}
+{%- endmacro %}
+
 {% macro json_block(value, label="json") -%}
   <details>
     <summary>{{ label }}</summary>

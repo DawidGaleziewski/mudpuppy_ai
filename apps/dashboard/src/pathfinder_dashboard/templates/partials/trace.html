@@ -1,5 +1,7 @@
 {#- The `trace` tab's page content. It is a passthrough so the page (which includes
-    "partials/<tab>.html") and the live fragment (which renders "partials/trace_calls.html"
-    directly, per contracts/005-crawl-run-observability-trace/dashboard-routes.md) render
-    identical markup for the call list; the summary panel (trace_summary.html) is T041. -#}
+    "partials/<tab>.html") and the live fragment `/fragments/runs/{run_id}/trace` (routed through
+    the same `partials/<section>.html` lookup, per contracts/dashboard-routes.md) render identical
+    markup for the call list. The summary panel is a separate region with its own fragment route
+    (`/fragments/runs/{run_id}/trace/summary`, T041) — it is included once by `run_detail.html`,
+    not here, so this fragment (re-fetched by the call list's own live region) never nests it. -#}
 {% include "partials/trace_calls.html" %}

@@ -22,7 +22,10 @@
       {%- if p.events %}
       <ul class="phase-events">
         {%- for e in p.events %}
-        <li>{{ m.span_kind(e.kind) }} <strong>{{ e.name }}</strong> — {{ e.summary }}</li>
+        <li>
+          {{ m.span_kind(e.kind) }} <strong>{{ e.name }}</strong> — {{ e.summary }}
+          {{ m.trace_event_detail(e, c, run_id) }}
+        </li>
         {%- endfor %}
       </ul>
       {%- endif %}
@@ -33,7 +36,10 @@
   {%- if top_events %}
   <ul class="phase-events">
     {%- for e in top_events %}
-    <li>{{ m.span_kind(e.kind) }} <strong>{{ e.name }}</strong> — {{ e.summary }}</li>
+    <li>
+      {{ m.span_kind(e.kind) }} <strong>{{ e.name }}</strong> — {{ e.summary }}
+      {{ m.trace_event_detail(e, c, run_id) }}
+    </li>
     {%- endfor %}
   </ul>
   {%- endif %}

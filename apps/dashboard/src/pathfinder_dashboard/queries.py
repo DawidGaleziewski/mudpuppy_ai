@@ -6,12 +6,14 @@ the runs list on `(started_at, id)` newest first. Cursors are opaque strings to 
 
 from __future__ import annotations
 
+import json
 import sqlite3
 from datetime import datetime
 from typing import Any
 
 from .models import (
     Action,
+    AgentTurn,
     DecisionGroup,
     DecisionLogEntry,
     Form,
@@ -19,6 +21,7 @@ from .models import (
     NetworkCall,
     ObservedState,
     Page,
+    PhaseStat,
     PortalSummary,
     RobotsPolicy,
     Run,
@@ -26,7 +29,10 @@ from .models import (
     RunSummary,
     State,
     StateObservation,
+    TraceHealth,
     TraceSpan,
+    TraceSummary,
+    TraceTokens,
 )
 
 DEFAULT_LIMIT = 50
@@ -361,6 +367,10 @@ def _problem_sql(p95: int | None) -> str:
         "(s.status IN ('error','refused','stopped','unfinished')"
         " OR EXISTS (SELECT 1 FROM trace_spans c WHERE c.parent_id = s.id"
         "   AND c.name IN ('stabilization_timeout','concurrent_calls'))"
+        " OR (s.tool_use_id IS NOT NULL"
+        "   AND EXISTS (SELECT 1 FROM agent_turns WHERE run_id = s.run_id)"
+        "   AND NOT EXISTS (SELECT 1 FROM agent_turns t"
+        "     WHERE t.tool_use_id = s.tool_use_id AND t.kind = 'tool_use'))"
     )
     if p95 is not None:
         clause += " OR (s.duration_ms IS NOT NULL AND s.duration_ms > ?)"
@@ -412,6 +422,21 @@ def trace_calls(
     return Page[TraceSpan](items=items, total=total, next_cursor=next_cursor)
 
 
+def agent_turns_for_run(conn: sqlite3.Connection, run_id: str) -> list[AgentTurn]:
+    """A run's agent turns in transcript order (contracts/agent-import.md "Join")."""
+    rows = _rows(
+        conn,
+        "SELECT * FROM agent_turns WHERE run_id = ? ORDER BY created_at, block_index, id",
+        (run_id,),
+    )
+    return [AgentTurn.model_validate(dict(r)) for r in rows]
+
+
+def get_span(conn: sqlite3.Connection, span_id: str) -> TraceSpan | None:
+    rows = _rows(conn, "SELECT * FROM trace_spans WHERE id = ?", (span_id,))
+    return TraceSpan.model_validate(dict(rows[0])) if rows else None
+
+
 def span_children(
     conn: sqlite3.Connection,
     span_id: str,
@@ -459,3 +484,148 @@ def server_activity(
         last = items[-1]
         next_cursor = f"{last.started_at}{_SEP}{last.id}"
     return Page[TraceSpan](items=items, total=total, next_cursor=next_cursor)
+
+
+def _percentile(sorted_values: list[int], p: float) -> int:
+    """Nearest-rank percentile of an already-sorted list (empty → 0)."""
+    if not sorted_values:
+        return 0
+    idx = min(len(sorted_values) - 1, round(p * (len(sorted_values) - 1)))
+    return sorted_values[idx]
+
+
+def _trace_health(conn: sqlite3.Connection, run_id: str) -> tuple[int, int]:
+    """`dropped`/`truncated` are cumulative counters; `trace_health` is only re-emitted when they
+    change (tracer.ts), so the run's last one (by `seq`) holds the totals
+    (contracts/trace-spans.md)."""
+    rows = _rows(
+        conn,
+        "SELECT s.attrs_json FROM trace_spans s JOIN trace_boots b ON b.id = s.boot_id"
+        " WHERE s.run_id = ? AND s.kind = 'event' AND s.name = 'trace_health'"
+        " ORDER BY b.started_at DESC, s.seq DESC LIMIT 1",
+        (run_id,),
+    )
+    if not rows:
+        return 0, 0
+    attrs = json.loads(rows[0]["attrs_json"])
+    return int(attrs.get("dropped", 0)), int(attrs.get("truncated", 0))
+
+
+def trace_summary(conn: sqlite3.Connection, run_id: str) -> TraceSummary | None:
+    """A run's trace summary (T041, contracts/dashboard-routes.md "Summary"): `None` when the run
+    has no trace at all (predates tracing, or never reached the server)."""
+    calls = _rows(
+        conn,
+        "SELECT name, status, duration_ms FROM trace_spans WHERE run_id = ? AND kind = 'call'",
+        (run_id,),
+    )
+    if not calls:
+        return None
+    calls_by_tool: dict[str, int] = {}
+    calls_by_status: dict[str, int] = {}
+    for r in calls:
+        calls_by_tool[r["name"]] = calls_by_tool.get(r["name"], 0) + 1
+        calls_by_status[r["status"]] = calls_by_status.get(r["status"], 0) + 1
+
+    phase_rows = _rows(
+        conn,
+        "SELECT name, duration_ms FROM trace_spans"
+        " WHERE run_id = ? AND kind = 'phase' AND duration_ms IS NOT NULL",
+        (run_id,),
+    )
+    by_phase: dict[str, list[int]] = {}
+    for r in phase_rows:
+        by_phase.setdefault(r["name"], []).append(r["duration_ms"])
+    phases = []
+    for name in sorted(by_phase):
+        durations = sorted(by_phase[name])
+        phases.append(
+            PhaseStat(
+                name=name,
+                count=len(durations),
+                sum_ms=sum(durations),
+                p50_ms=_percentile(durations, 0.50),
+                p95_ms=_percentile(durations, 0.95),
+            )
+        )
+
+    slowest_rows = _rows(
+        conn,
+        "SELECT * FROM trace_spans WHERE run_id = ? AND kind = 'call' AND duration_ms IS NOT NULL"
+        " ORDER BY duration_ms DESC LIMIT 5",
+        (run_id,),
+    )
+    slowest_calls = [TraceSpan.model_validate(dict(r)) for r in slowest_rows]
+
+    tok = _rows(
+        conn,
+        "SELECT count(*) AS turns, coalesce(sum(input_tokens), 0) AS input_tokens,"
+        " coalesce(sum(output_tokens), 0) AS output_tokens,"
+        " coalesce(sum(cache_read_tokens), 0) AS cache_read_tokens,"
+        " coalesce(sum(cache_creation_tokens), 0) AS cache_creation_tokens"
+        " FROM agent_turns WHERE run_id = ? AND kind = 'tool_use'",
+        (run_id,),
+    )[0]
+    tokens = TraceTokens(
+        turns=tok["turns"],
+        input_tokens=tok["input_tokens"],
+        output_tokens=tok["output_tokens"],
+        cache_read_tokens=tok["cache_read_tokens"],
+        cache_creation_tokens=tok["cache_creation_tokens"],
+    )
+
+    dropped, truncated = _trace_health(conn, run_id)
+    unfinished = _count(
+        conn,
+        "SELECT count(*) FROM trace_spans"
+        " WHERE run_id = ? AND kind = 'call' AND status = 'unfinished'",
+        (run_id,),
+    )
+    agent_imported = (
+        _count(conn, "SELECT count(*) FROM agent_turns WHERE run_id = ?", (run_id,)) > 0
+    )
+    unmatched_agent_calls = 0
+    unmatched_server_calls = 0
+    if agent_imported:
+        unmatched_agent_calls = _count(
+            conn,
+            "SELECT count(*) FROM agent_turns"
+            " WHERE run_id = ? AND kind = 'tool_use' AND matched = 0"
+            " AND substr(tool_name, 1, 17) = 'mcp__pathfinder__'",
+            (run_id,),
+        )
+        unmatched_server_calls = _count(
+            conn,
+            "SELECT count(*) FROM trace_spans s"
+            " WHERE s.run_id = ? AND s.kind = 'call' AND s.tool_use_id IS NOT NULL"
+            " AND NOT EXISTS (SELECT 1 FROM agent_turns t"
+            "   WHERE t.tool_use_id = s.tool_use_id AND t.kind = 'tool_use')",
+            (run_id,),
+        )
+    health = TraceHealth(
+        dropped=dropped,
+        truncated=truncated,
+        unfinished=unfinished,
+        unmatched_agent_calls=unmatched_agent_calls,
+        unmatched_server_calls=unmatched_server_calls,
+    )
+
+    boots = _rows(
+        conn,
+        "SELECT DISTINCT b.trace_level, b.pw_trace FROM trace_spans s"
+        " JOIN trace_boots b ON b.id = s.boot_id WHERE s.run_id = ?",
+        (run_id,),
+    )
+    return TraceSummary(
+        run_id=run_id,
+        calls_total=len(calls),
+        calls_by_tool=calls_by_tool,
+        calls_by_status=calls_by_status,
+        phases=phases,
+        slowest_calls=slowest_calls,
+        tokens=tokens,
+        health=health,
+        trace_levels=[b["trace_level"] for b in boots],
+        pw_trace_modes=[b["pw_trace"] for b in boots],
+        agent_imported=agent_imported,
+    )
