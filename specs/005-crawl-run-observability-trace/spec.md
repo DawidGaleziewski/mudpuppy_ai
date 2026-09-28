@@ -177,7 +177,8 @@ only" narrows to errors, refusals, never-stabilized pages, slow steps and unmatc
   them, and the agent-stated rationale.
 - **FR-002**: Each browser-touching call MUST be broken into timed phases (gate check, page load,
   settle, observe, network drain, fingerprint, record state/forms/transition/API calls, action
-  extraction, frontier update, run bookkeeping); the phases of a completed call MUST cover its
+  extraction and frontier update, run bookkeeping, browser-trace write; the exact names are in
+  contracts/trace-spans.md); the phases of a completed call MUST cover its
   duration with no unexplained gap larger than 5%.
 - **FR-003**: The system MUST record every decision inside a call as an entry nested under it:
   action-gate and scope/denylist verdicts (with class, rule, reason), robots.txt checks, item-cap

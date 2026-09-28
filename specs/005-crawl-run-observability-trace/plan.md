@@ -109,19 +109,22 @@ specs/005-crawl-run-observability-trace/
 ```text
 data/migrations/0003_trace.{up,down}.sql            # [DB] trace_boots, trace_spans, agent_turns
 data/schema/{schema.sql,README.md}                   # regenerated + trace conventions
-.claude/settings.json                                # SubagentStop hook, matcher "crawler"
+.claude/settings.json                                # new, committed: SubagentStop hook, matcher "crawler"
+                                                     # (only the gitignored settings.local.json exists today)
 .claude/agents/crawler.md                            # rationale instruction (subagent-authoring lint)
 .gitignore                                           # add data/traces/* (+ .gitkeep): unscrubbed zips must
                                                      # never be committable; not a DB/seed file (research §13)
 
 apps/crawler/packages/core/src/
-├── schemas/trace-span.ts, schemas/agent-turn.ts, schemas/index.ts
+├── schemas/trace-boot.ts, schemas/trace-span.ts, schemas/agent-turn.ts, schemas/index.ts
 ├── db-types.ts                                      # 3 tables
 ├── trace/tracer.ts                                  # Tracer: boot, spans, ALS context, buffer, flush, health
 ├── trace/url-shape.ts                               # pure: URL → {origin, route pattern, query keys}
+├── trace/scrub.ts                                   # id-preserving scrubTraceJson / scrubTraceText
 ├── trace/limits.ts                                  # inline cap, preview, payload offload
 ├── trace/transcript.ts                              # pure: JSONL → AgentTurn[]
 ├── trace/join.ts                                    # pure: turns × spans → matches, unmatched, run assignment
+├── trace/import-agent.ts                            # importAgent: read transcript, find stores, upsert, set matched
 ├── log.ts                                           # decisions decorator links decision → span
 └── portal-data.ts                                   # partition: 3 tables + data/traces dir on delete
 
@@ -135,7 +138,10 @@ apps/crawler/packages/mcp-server/src/
 ├── tools/index.ts                                   # call span per tool, _meta, rationale, errors
 ├── runtime/pipeline.ts                              # phase spans + events (research §8)
 ├── runtime/browser-runtime.ts                       # request/robots/stop/note callbacks → events; PW chunks
-├── runtime/run-state.ts                             # activeCallSpan, PW trace state
+├── runtime/run-state.ts                             # peekRouteTemplate for URL shaping (no activeCallSpan:
+│                                                    # the tracer's AsyncLocalStorage carries the call)
+├── runtime/trace-hooks.ts                           # session observe callbacks → events via eventForRun
+├── runtime/obstacles-trace.ts                       # recordObstacles: ObstacleEvent → event obstacle
 ├── runtime/pw-trace.ts                              # enable rule, chunk start/stop, paths
 └── services/{frontier,robots,start-run,complete-run}.ts  # events listed in research §8
 
@@ -172,7 +178,7 @@ agents: migration → `db-admin`; dashboard templates/CSS → `frontend-dev`; ag
 
 `master` ends at `0002_portal_workspaces`; R-13's unmerged branch added `0003_ba_documentation`.
 R-17 lands first (R-13 is paused until then), so it takes `0003_trace`; R-13 renumbers to `0004`
-when it resumes. Also recorded in `roadmap.md` notes when this plan is committed.
+when it resumes. Recorded in `roadmap.md` notes by T044.
 
 ## Complexity Tracking
 

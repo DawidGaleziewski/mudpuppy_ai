@@ -93,7 +93,7 @@ quickstart scenario 3.
 - [X] T026 [US2] [opus] Implement the callbacks (`onRequestDecision`, `onRobotsCheck`, `onResponse`, `onBlockVerdict`, injectable `now`) in `packages/crawler/src/request-gate.ts` and pass them through `packages/crawler/src/session.ts` (`SessionOptions.observe`). T025 passes
 - [X] T027 [US2] [opus] Events in `packages/mcp-server/src/runtime/pipeline.ts` and `browser-runtime.ts`: `gate_decision`, `item_cap`, `locator`, `request` (notable only at `standard`: main frame, abort, redirect, status ≥ 400, failed, limiter wait > 1 s; all at `verbose`), `request_aggregate` per call, `robots_check`, `limiter_wait`, `block_verdict`, `run_stop` — browser callbacks via `eventForRun`. Extend `trace-map-run.test.ts`: `decision_log` count equals `decision` span count (SC-002); `/with-disallowed-asset` yields two `robots_check` events; a refused action shows `gate_decision` with `allowed=false`
   - Note: trace URL shaping uses `RunState.peekRouteTemplate` (never feeds route-template inference, so tracing cannot change recorded templates); tool-call `url` args are shaped too; limiter waits are integer ms (float fractions tripped the PII audit as card/phone numbers). Requests between calls are recorded individually when notable but not aggregated. Stale Playwright async context (from the closed `start_run`) is routed via `eventForRun`.
-- [ ] T028 [US2] [FE] [sonnet] Dashboard: status filter chips and event rendering for `gate_decision`, `robots_check`, `request`, `block_verdict`, `decision` (rule, reason, linked decision id) in `partials/trace_children.html`; route test for `status=refused`
+- [ ] T028 [US2] [FE] [sonnet] Dashboard (the status filter itself shipped with T024): event rendering for `gate_decision`, `robots_check`, `request`, `block_verdict`, `decision` (rule, reason, linked decision id) in `partials/trace_children.html`; route test for `status=refused`
 
 ---
 
@@ -106,7 +106,7 @@ scenario 5.
 - [X] T030 [US3] [opus] Implement `packages/core/src/trace/transcript.ts` (`parseTranscript`, pure; masks text, scrubs tool inputs/results, tokens on block 0 only). T029 passes
 - [X] T031 [P] [US3] [opus] Failing tests then `packages/core/src/trace/join.ts` (`joinTurns`, pure) per contracts/agent-import.md "Join": exact tool-use match, run assignment (following, else preceding), `unmatchedAgentCalls` for `mcp__pathfinder__*` only, `unmatchedServerCalls` scoped to the agent id
 - [X] T032 [US3] [sonnet] `packages/core/src/trace/import-agent.ts` (`importAgent({transcriptPath | agentId, dataDir})`: reads the file, finds stores whose `trace_spans.tool_use_id` match, upserts on (`agent_id`,`message_uuid`,`block_index`), sets `matched`) + thin `apps/crawler/scripts/trace-import-agent.ts` (`--hook` stdin, `--transcript`, `--agent-id`, `--data-dir`; `--hook` always exits 0) + `"trace:import-agent"` in `apps/crawler/package.json`; idempotency test (import twice → identical rows)
-- [ ] T033 [US3] [sonnet] Merge the `SubagentStop` hook (matcher `crawler`, command `pnpm --silent --dir apps/crawler trace:import-agent --hook`) into `.claude/settings.json`, keeping the existing hooks
+- [ ] T033 [US3] [sonnet] Create the committed `.claude/settings.json` (none exists; `settings.local.json` is gitignored and stays as is) with the `SubagentStop` hook (matcher `crawler`, command `pnpm --silent --dir apps/crawler trace:import-agent --hook`); the `po` agent's frontmatter hook is unaffected
 - [ ] T034 [US3] [FE] [sonnet] Dashboard: preceding agent text, tokens and "agent-stated" rationale on call rows; "never reached server" rows; "not imported" state with the CLI command; queries `agent_turns_for_run`; tests
 
 ---
@@ -123,7 +123,7 @@ test**: quickstart scenarios 6, 7.
 - [X] T038 [US4] [opus] `packages/mcp-server/src/runtime/pw-trace.ts`: pure `pwTraceEnabled(environment, bootFlag)`; in `openSession` `tracing.start({screenshots: true, snapshots: true})`; per browser-touching call `startChunk({title: "<tool> <span id>"})` / `stopChunk({path})` to `data/traces/<portal>/<run_id>/<seq>-<tool>.zip`, phases wrapped in `tracing.group`; `pw_trace_path` on the call span; failures counted as trace health, never thrown. Unit test for the enable rule; `skipIf` e2e: sandbox run writes one zip per browser call, `environment: production` without the flag writes none
   - Note: chunks cover `navigate`/`act` (start_run opens no page). Chunk start/stop I/O is its own `pw_trace` phase (added to the vocabulary) so SC-003 still holds; the call is found through `tracer.currentCall()`, and failures go to `tracer.countFailure()`. `ServerContext.pwTrace` carries the boot flag.
 - [X] T039 [US4] [sonnet] `recordObstacles(tracer, events)` in `packages/mcp-server/src/runtime/obstacles-trace.ts` + fixture test (one `obstacle` event per `ObstacleEvent`); call it from `pipeline.ts` with the entries of `session.obstacles.events` added since the call started, after `settle` and at call end (research §16); mock portal gains an `obstacles` config with a dismissible banner and `trace-map-run.test.ts` asserts the event
-- [ ] T040 [US4] [FE] [sonnet] Dashboard: proportional phase bar, rendering for `fingerprint_assign`, `frontier_*`, `stabilization_timeout`, `obstacle`, and the copyable `npx playwright show-trace data/<path>` block; tests
+- [ ] T040 [US4] [FE] [sonnet] Dashboard (the proportional phase bar shipped with T024): rendering for `fingerprint_assign`, `frontier_*`, `stabilization_timeout`, `obstacle`, and the copyable `npx playwright show-trace data/<path>` block; tests
 
 ---
 
@@ -131,7 +131,7 @@ test**: quickstart scenarios 6, 7.
 
 **Goal**: summary and problems filter at 20 000 spans. **Independent test**: quickstart scenario 8.
 
-- [ ] T041 [US5] [sonnet] `trace_summary(conn, run_id)` in `queries.py` (time per phase sum/p50/p95, counts by kind/status, slowest 5 calls, tokens, health: dropped, truncated, unfinished, unmatched both ways, boot level/flag) + `partials/trace_summary.html` + `problems=1` filter (errors, refused, stopped, unfinished, stabilization timeouts, > run p95, unmatched agent calls, concurrent calls); tests
+- [ ] T041 [US5] [sonnet] `trace_summary(conn, run_id)` in `queries.py` (time per phase sum/p50/p95, counts by kind/status, slowest 5 calls, tokens, health: dropped, truncated, unfinished, unmatched both ways, boot level/flag) + `partials/trace_summary.html` + `problems=1` filter: `queries.trace_calls(problems=True)` already covers errors, refused, stopped, unfinished, stabilization timeouts, > run p95 and concurrent calls (T023) — pass `problems` through `app.trace_calls_values` and add unmatched agent calls (`agent_turns.matched = 0`, needs T032); tests
 - [ ] T042 [US5] [sonnet] Perf fixture generator (500 calls / 20 000 spans) in `apps/dashboard/tests/conftest.py` and `tests/test_perf.py`: summary + first page < 1 s (SC-005)
 - [X] T043 [US5] [opus] Overhead check in `trace-map-run.test.ts` (SC-008): same scripted run at `off` and `standard`, median step time increase < 10% (skipped under `CI=1` if timing is noisy; result logged)
   - Note: measured on a production-declared mock portal so no Playwright trace is recorded in either run (the span trace alone): median step 434 ms (off) vs 413 ms (standard), -4.8%, i.e. within noise (2026-09-27). Writing it exposed a latent hang in `NetworkRecorder.drain` (a body read that never settles after navigating away from a polling page), fixed in the crawler.
@@ -141,7 +141,7 @@ test**: quickstart scenarios 6, 7.
 ## Phase 8: Polish
 
 - [ ] T044 [sonnet] `roadmap.md`: R-17 row → `specs/005-crawl-run-observability-trace` T001–T046, status `in progress`; note that R-13's `0003_ba_documentation` must become `0004` when R-13 resumes
-- [ ] T045 [opus] Run skill `speckit-analyze` over spec/plan/tasks and fix any inconsistency it reports
+- [X] T045 [opus] Run skill `speckit-analyze` over spec/plan/tasks and fix any inconsistency it reports
 - [ ] T046 [sonnet] Manual validation: quickstart scenarios 1–10 on a sandbox portal (browser libraries installed); record results and any gaps in `roadmap.md` notes
 
 ---
@@ -153,7 +153,7 @@ test**: quickstart scenarios 6, 7.
 - US2 needs T019 (phases exist). T025 → T026 → T027 → T028.
 - US3 needs T017 (call spans with tool-use ids). T029 → T030; T031; T030, T031 → T032 → T033; T032 → T034.
 - US4 needs T019. T035 → T036; T037; T038; T039; T040 after T024.
-- US5 needs T024. T041 → T042; T043 needs T027.
+- US5 needs T024 and T032 (unmatched agent calls). T041 → T042; T043 needs T027.
 - Polish last.
 
 ## Parallel examples
