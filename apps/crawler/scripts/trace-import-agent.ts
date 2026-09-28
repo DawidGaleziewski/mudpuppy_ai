@@ -51,6 +51,18 @@ async function main(): Promise<void> {
   }
 
   if (!transcriptPath && !agentId) {
+    if (isHook) {
+      // A SubagentStop payload with neither field (e.g. a non-crawler agent under a broader
+      // matcher) is not an error: report it and exit 0, never blocking the session.
+      console.log(
+        JSON.stringify({
+          agent_id: null,
+          stores: [],
+          skipped: 'no transcript_path or agent_id in hook payload',
+        }),
+      );
+      return;
+    }
     console.error('usage: pnpm trace:import-agent --hook | --transcript <path> | --agent-id <id>');
     process.exitCode = 1;
     return;
