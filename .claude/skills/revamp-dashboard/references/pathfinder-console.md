@@ -30,6 +30,12 @@ together with this file.
 | decision | `warning` | `[WARN]` | `signal-error` | |
 | decision | `skip` / `refuse` | `[SKIP]` / `[RFSE]` | `ink-500` | rule column |
 | decision | `merge` / `split` / `note` | `[MRGE]` / `[SPLT]` / `[NOTE]` | `ink-100` | |
+| trace span | `ok` | `[ OK ]` | `brand` | |
+| trace span | `running` | `[RUN.]` | `accent-3` | live dot (pulse) |
+| trace span | `refused` | `[RFSE]` | `ink-500` | |
+| trace span | `stopped` / `error` | `[STOP]` / `[FAIL]` | `signal-error` | |
+| trace span | `unfinished` | `[INCM]` | `signal-error` | crashed/earlier-boot span |
+| trace span kind | `phase` / `event` | `[PHSE]` / `[EVNT]` | `ink-100` | expanded call detail only |
 
 Red only where the crawl failed or stopped (rule 5). A safety skip is the system working: muted.
 The mapping lives in one Jinja macro (`templates/partials/macros.html`); never inline a label.

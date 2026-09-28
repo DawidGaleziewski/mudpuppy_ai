@@ -14,7 +14,7 @@ URLS = [
     f"/runs/{BIG}",
     *(
         f"/runs/{BIG}?tab={tab}"
-        for tab in ("actions", "frontier", "forms", "network", "robots", "decisions")
+        for tab in ("actions", "frontier", "forms", "network", "robots", "decisions", "trace")
     ),
     f"/fragments/runs/{BIG}/frontier?status=pending",
     f"/fragments/runs/{BIG}/decisions?kind=skip",

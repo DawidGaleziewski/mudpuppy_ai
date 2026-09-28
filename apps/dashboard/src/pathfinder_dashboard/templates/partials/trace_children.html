@@ -1,0 +1,40 @@
+{#- Not a live region (contracts/005-crawl-run-observability-trace/dashboard-routes.md): loaded
+    once, when a call row is expanded. `phases` and `top_events` are already split server-side. -#}
+{% import "partials/macros.html" as m %}
+{%- if not phases and not top_events %}
+  {{ m.empty("No phase or event detail recorded for this call",
+             "It predates phase tracing, or ran at trace level “off”.") }}
+{%- else %}
+  {%- if phases %}
+  <div class="phase-bar" role="img" aria-label="Time per phase">
+    {%- for p in phases %}
+    <span class="phase-bar-seg{% if p.span.status != 'ok' %} problem{% endif %}"
+          style="width: {{ ((p.span.duration_ms or 0) / total_ms * 100) if total_ms else 0 }}%"
+          title="{{ p.span.name }} · {{ p.span.duration_ms | duration }}"></span>
+    {%- endfor %}
+  </div>
+  <ul class="phase-list">
+    {%- for p in phases %}
+    <li>
+      <span class="trace-call-tool">{{ p.span.name }}</span>
+      {{ m.span_status(p.span.status) }}
+      <span class="mono-num">{{ p.span.duration_ms | duration }}</span>
+      {%- if p.events %}
+      <ul class="phase-events">
+        {%- for e in p.events %}
+        <li>{{ m.span_kind(e.kind) }} <strong>{{ e.name }}</strong> — {{ e.summary }}</li>
+        {%- endfor %}
+      </ul>
+      {%- endif %}
+    </li>
+    {%- endfor %}
+  </ul>
+  {%- endif %}
+  {%- if top_events %}
+  <ul class="phase-events">
+    {%- for e in top_events %}
+    <li>{{ m.span_kind(e.kind) }} <strong>{{ e.name }}</strong> — {{ e.summary }}</li>
+    {%- endfor %}
+  </ul>
+  {%- endif %}
+{%- endif %}

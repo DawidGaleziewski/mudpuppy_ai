@@ -25,6 +25,20 @@
   "split": ("[SPLT]", "st-plain"),
   "note": ("[NOTE]", "st-plain"),
 } -%}
+{#- Trace span status/kind (contracts/005-crawl-run-observability-trace/dashboard-routes.md);
+    `refused`/`stopped` reuse the decision/run vocabulary's muted and stop colours. -#}
+{%- set SPAN_STATUS_LABELS = {
+  "ok": ("[ OK ]", "st-ok"),
+  "running": ("[RUN.]", "st-run"),
+  "refused": ("[RFSE]", "st-muted"),
+  "stopped": ("[STOP]", "st-fail"),
+  "error": ("[FAIL]", "st-fail"),
+  "unfinished": ("[INCM]", "st-fail"),
+} -%}
+{%- set SPAN_KIND_LABELS = {
+  "phase": ("[PHSE]", "st-plain"),
+  "event": ("[EVNT]", "st-plain"),
+} -%}
 
 {% macro run_status(status, with_text=true) -%}
   {%- set label, cls = RUN_LABELS.get(status, ("[ ?? ]", "st-muted")) -%}
@@ -39,6 +53,17 @@
 
 {% macro decision_kind(kind) -%}
   {%- set label, cls = DECISION_LABELS.get(kind, ("[ ?? ]", "st-muted")) -%}
+  <span class="st {{ cls }}">{{ label }}</span> <span class="status-text">{{ kind }}</span>
+{%- endmacro %}
+
+{% macro span_status(status) -%}
+  {%- set label, cls = SPAN_STATUS_LABELS.get(status, ("[ ?? ]", "st-muted")) -%}
+  <span class="st {{ cls }}">{% if status == "running" %}<span class="live-dot" aria-hidden="true"></span>{% endif %}{{ label }}</span>
+  <span class="status-text">{{ status }}</span>
+{%- endmacro %}
+
+{% macro span_kind(kind) -%}
+  {%- set label, cls = SPAN_KIND_LABELS.get(kind, ("[ ?? ]", "st-muted")) -%}
   <span class="st {{ cls }}">{{ label }}</span> <span class="status-text">{{ kind }}</span>
 {%- endmacro %}
 

@@ -285,6 +285,155 @@ def test_unknown_tab_falls_back_to_states(client: TestClient) -> None:
     assert 'id="region-states"' in html
 
 
+# --- US1 (R-17): trace tab and activity -------------------------------------------------------
+
+
+def seed_trace(w: object) -> None:
+    """One traced call on `BIG_RUN` (with a phase and a nested event) plus a run-less call."""
+    insert(w, "trace_boots", id="boot-1", started_at="2026-09-25T19:44:00.000Z")
+    insert(
+        w,
+        "trace_spans",
+        id="span-call-1",
+        boot_id="boot-1",
+        seq=1,
+        run_id=BIG_RUN,
+        name="pf_extract",
+        status="ok",
+        rationale="need to see the page contents",
+        attrs_json='{"input": {"role": "link"}}',
+        payload_ref="d" * 64 + ".json",
+        pw_trace_path="traces/liveinsurer/span-call-1.zip",
+    )
+    insert(
+        w,
+        "trace_spans",
+        id="span-call-2",
+        boot_id="boot-1",
+        seq=2,
+        run_id=BIG_RUN,
+        name="pf_click",
+        status="error",
+        summary="click failed",
+    )
+    insert(
+        w,
+        "trace_spans",
+        id="span-phase-1",
+        boot_id="boot-1",
+        seq=3,
+        run_id=BIG_RUN,
+        parent_id="span-call-1",
+        kind="phase",
+        name="goto",
+        status="ok",
+        duration_ms=5,
+    )
+    insert(
+        w,
+        "trace_spans",
+        id="span-event-1",
+        boot_id="boot-1",
+        seq=4,
+        run_id=BIG_RUN,
+        parent_id="span-phase-1",
+        kind="event",
+        name="request",
+        status="ok",
+        duration_ms=None,
+        summary="GET /api",
+    )
+    insert(
+        w,
+        "trace_spans",
+        id="span-runless-1",
+        boot_id="boot-1",
+        seq=5,
+        run_id=None,
+        name="pf_status",
+        status="ok",
+        summary="<script>alert(1)</script>",
+    )
+
+
+def test_trace_tab_renders_calls_with_rationale_status_and_count(liveinsurer_store: Store) -> None:
+    w = liveinsurer_store.connect()
+    seed_trace(w)
+    w.commit()
+    with make_client(liveinsurer_store) as c:
+        html = c.get(f"/runs/{BIG_RUN}?tab=trace").text
+    t = text(html)
+    assert "Trace 2" in t  # tab bar count = call spans for this run
+    assert "pf_extract" in t and "pf_click" in t
+    assert "agent-stated: need to see the page contents" in t
+    assert "[ OK ]" in html and "[FAIL]" in html  # ok / error call statuses
+    assert 'id="region-trace"' in html
+
+
+def test_trace_fragment_filters_by_tool_and_status(liveinsurer_store: Store) -> None:
+    w = liveinsurer_store.connect()
+    seed_trace(w)
+    w.commit()
+    def calls_list(html: str) -> str:
+        return html.split('<ul class="trace-calls">')[1]
+
+    with make_client(liveinsurer_store) as c:
+        only_click = c.get(f"/fragments/runs/{BIG_RUN}/trace?tool=pf_click&push=1")
+        rows = calls_list(only_click.text)
+        assert "pf_click" in rows and "pf_extract" not in rows
+        assert only_click.headers["HX-Push-Url"] == f"/runs/{BIG_RUN}?tab=trace&tool=pf_click"
+        only_errors = c.get(f"/fragments/runs/{BIG_RUN}/trace?status=error&status=refused")
+        rows = calls_list(only_errors.text)
+        assert "pf_click" in rows and "pf_extract" not in rows
+
+
+def test_trace_expand_loads_phases_and_events(liveinsurer_store: Store) -> None:
+    w = liveinsurer_store.connect()
+    seed_trace(w)
+    w.commit()
+    with make_client(liveinsurer_store) as c:
+        html = c.get(f"/runs/{BIG_RUN}?tab=trace").text
+        assert 'hx-get="/fragments/spans/span-call-1/children"' in html
+        children = c.get("/fragments/spans/span-call-1/children").text
+    t = text(children)
+    assert "goto" in t and "request" in t and "GET /api" in t
+    assert "phase-bar-seg" in children
+
+
+def test_trace_children_not_found_shows_empty_state(liveinsurer_store: Store) -> None:
+    with make_client(liveinsurer_store) as c:
+        r = c.get("/fragments/spans/nope/children")
+    assert "No phase or event detail recorded" in r.text
+
+
+def test_trace_empty_state_when_run_never_reached_the_server(client: TestClient) -> None:
+    html = client.get(f"/runs/{BIG_RUN}?tab=trace").text
+    assert "No trace recorded for this run" in text(html)
+    assert "predates tracing" in text(html)
+    filtered = client.get(f"/fragments/runs/{BIG_RUN}/trace?status=error").text
+    assert "No calls match these filters" in text(filtered)
+
+
+def test_activity_page_and_fragment_show_run_less_calls(liveinsurer_store: Store) -> None:
+    w = liveinsurer_store.connect()
+    seed_trace(w)
+    w.commit()
+    with make_client(liveinsurer_store) as c:
+        html = c.get("/activity").text
+        assert "pf_status" in html
+        assert "pf_extract" not in html  # that one belongs to a run
+        assert "<script>alert(1)</script>" not in html
+        assert "&lt;script&gt;alert(1)&lt;/script&gt;" in html
+        frag = c.get("/fragments/activity").text
+    assert 'id="region-activity"' in frag
+    assert "pf_status" in frag
+
+
+def test_activity_empty_state(client: TestClient) -> None:
+    t = text(client.get("/activity").text)
+    assert "No run-less calls recorded" in t
+
+
 def test_only_running_runs_carry_the_live_dot(liveinsurer_store: Store) -> None:
     w = liveinsurer_store.connect()
     insert(w, "runs", id="run-live", status="running", started_at="2026-09-26T00:00:00.000Z")

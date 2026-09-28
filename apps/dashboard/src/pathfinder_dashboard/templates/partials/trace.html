@@ -1,0 +1,5 @@
+{#- The `trace` tab's page content. It is a passthrough so the page (which includes
+    "partials/<tab>.html") and the live fragment (which renders "partials/trace_calls.html"
+    directly, per contracts/005-crawl-run-observability-trace/dashboard-routes.md) render
+    identical markup for the call list; the summary panel (trace_summary.html) is T041. -#}
+{% include "partials/trace_calls.html" %}
