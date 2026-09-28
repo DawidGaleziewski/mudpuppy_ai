@@ -49,7 +49,11 @@ export async function crawl(call: Call, runId: string, maxSteps = 60): Promise<v
   for (let i = 0; i < maxSteps; i++) {
     const next = await call('get_next_frontier_item', { run_id: runId });
     if (next.isError || !next.body.item) return;
-    await call('act', { run_id: runId, action_id: next.body.item.action_id });
+    await call('act', {
+      run_id: runId,
+      action_id: next.body.item.action_id,
+      rationale: 'exploring the next frontier item',
+    });
   }
 }
 
@@ -63,9 +67,9 @@ export async function mapPortal(
   const start = await call('start_run', { portal_id: portalId, persona_id: personaId });
   if (start.isError) throw new Error(`start_run failed: ${JSON.stringify(start.body)}`);
   const runId = start.body.run_id as string;
-  await call('navigate', { run_id: runId, url: baseUrl });
+  await call('navigate', { run_id: runId, url: baseUrl, rationale: 'exploring the base URL' });
   await crawl(call, runId, 300);
-  const fin = await call('finish_run', { run_id: runId });
+  const fin = await call('finish_run', { run_id: runId, rationale: 'frontier exhausted' });
   if (fin.isError) throw new Error(`finish_run failed: ${JSON.stringify(fin.body)}`);
   return runId;
 }

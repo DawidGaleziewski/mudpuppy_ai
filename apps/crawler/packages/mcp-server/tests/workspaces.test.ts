@@ -86,7 +86,11 @@ describe.skipIf(!available)('portal workspaces (spec 002 US5, SC-008, SC-009)', 
       const cookieRun = async (portal: string, origin: string) => {
         const id = (await call('start_run', { portal_id: portal, persona_id: 'guest' })).body
           .run_id as string;
-        const page = await call('navigate', { run_id: id, url: origin + '/cookies' });
+        const page = await call('navigate', {
+          run_id: id,
+          url: origin + '/cookies',
+          rationale: 'exploring the target URL',
+        });
         return { id, stateId: page.body.state_id as string };
       };
       const a = await cookieRun('shop', shop.origin);
@@ -99,7 +103,9 @@ describe.skipIf(!available)('portal workspaces (spec 002 US5, SC-008, SC-009)', 
         .execute();
       expect(pair.map((s) => s.portal_id).sort()).toEqual(['insurer', 'shop']);
       expect(pair[0]!.fingerprint).toBe(pair[1]!.fingerprint);
-      await call('finish_run', { run_id: a.id }).catch(() => undefined);
+      await call('finish_run', { run_id: a.id, rationale: 'frontier exhausted' }).catch(
+        () => undefined,
+      );
 
       // leave the insurer run interrupted, to prove it stays resumable after the delete
       await runtime.closeAll();

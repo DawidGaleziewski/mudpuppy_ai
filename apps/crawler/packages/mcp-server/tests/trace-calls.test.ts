@@ -89,11 +89,19 @@ describe('call spans for the agent tools (US1)', () => {
     });
     await call('get_known_states', { run_id: run });
     await call('get_next_frontier_item', { run_id: run });
-    await call('navigate', { run_id: run, url: 'https://shop.pl/' });
-    await call('act', { run_id: run, action_id: 'a1' });
+    await call('navigate', {
+      run_id: run,
+      url: 'https://shop.pl/',
+      rationale: 'exploring the target URL',
+    });
+    await call('act', {
+      run_id: run,
+      action_id: 'a1',
+      rationale: 'exploring the next frontier item',
+    });
     await call('add_open_question', { run_id: run, text: 'why', about_ref: s.state_id });
     await call('add_rule_candidate', { run_id: run, text: 'rule', about_ref: s.state_id });
-    await call('finish_run', { run_id: run });
+    await call('finish_run', { run_id: run, rationale: 'frontier exhausted' });
     const rows = calls();
     expect(rows.map((r) => r.name)).toEqual([
       'start_run',
@@ -119,11 +127,19 @@ describe('call spans for the agent tools (US1)', () => {
   it('maps outcomes to statuses: ok, refused, stopped, error', async () => {
     const { ctx, call, calls, spans } = await connect();
     const run = await seedRun(ctx);
-    await call('navigate', { run_id: run, url: 'https://shop.pl/' });
-    const refused = await call('act', { run_id: run, action_id: 'a1' });
+    await call('navigate', {
+      run_id: run,
+      url: 'https://shop.pl/',
+      rationale: 'exploring the target URL',
+    });
+    const refused = await call('act', {
+      run_id: run,
+      action_id: 'a1',
+      rationale: 'exploring the next frontier item',
+    });
     expect(refused.body.error.code).toBe('ACTION_REFUSED');
     await call('get_known_states', { run_id: 'ghost' });
-    await call('finish_run', { run_id: run });
+    await call('finish_run', { run_id: run, rationale: 'frontier exhausted' });
     await call('get_next_frontier_item', { run_id: run });
     expect(calls().map((r) => [r.name, r.status])).toEqual([
       ['navigate', 'ok'],
@@ -146,7 +162,11 @@ describe('call spans for the agent tools (US1)', () => {
   it('stores the tool output and the scrubbed args on the call', async () => {
     const { ctx, call, calls } = await connect();
     const run = await seedRun(ctx);
-    await call('navigate', { run_id: run, url: 'https://shop.pl/?mail=test.user@example.test' });
+    await call('navigate', {
+      run_id: run,
+      url: 'https://shop.pl/?mail=test.user@example.test',
+      rationale: 'exploring the target URL',
+    });
     const [nav] = calls();
     expect(attrs(nav!).output).toMatchObject({ state_id: 's', route_template: '/' });
     expect(JSON.stringify(attrs(nav!).args)).not.toContain('test.user@example.test');
@@ -180,5 +200,16 @@ describe('call spans for the agent tools (US1)', () => {
     expect(calls()[0]).toMatchObject({ tool_use_id: null, agent_id: null, status: 'ok' });
   });
 
-  it.todo('stores the rationale masked (needs the rationale input field, T015)');
+  it('stores the rationale masked', async () => {
+    const { ctx, call, calls } = await connect();
+    const run = await seedRun(ctx);
+    await call('navigate', {
+      run_id: run,
+      url: 'https://shop.pl/',
+      rationale: 'checking for test.user@example.test in the confirm dialog',
+    });
+    const [nav] = calls();
+    expect(nav!.rationale).not.toContain('test.user@example.test');
+    expect(nav!.rationale).toContain('[email]');
+  });
 });

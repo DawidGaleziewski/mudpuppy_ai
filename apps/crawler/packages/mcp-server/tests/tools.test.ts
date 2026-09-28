@@ -70,7 +70,11 @@ describe('pathfinder tools', () => {
   it('does not leak internal error details', async () => {
     const { ctx, call } = await connect();
     const run = await seedRun(ctx);
-    const r = await call('navigate', { run_id: run, url: 'https://x.pl/' });
+    const r = await call('navigate', {
+      run_id: run,
+      url: 'https://x.pl/',
+      rationale: 'exploring the target URL',
+    });
     expect(r.isError).toBe(true);
     expect(JSON.stringify(r.body)).not.toContain('secret internals');
     expect(r.body.error.code).toBe('INTERNAL');
@@ -155,7 +159,9 @@ describe('pathfinder tools', () => {
       item: null,
       reason: 'empty',
     });
-    expect((await call('finish_run', { run_id: run })).body.status).toBe('completed');
+    expect(
+      (await call('finish_run', { run_id: run, rationale: 'frontier exhausted' })).body.status,
+    ).toBe('completed');
     expect((await call('get_next_frontier_item', { run_id: run })).body.error.code).toBe(
       'RUN_STOPPED',
     );

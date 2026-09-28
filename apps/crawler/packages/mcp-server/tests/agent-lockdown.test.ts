@@ -64,6 +64,60 @@ describe('crawler subagent lockdown', () => {
     expect(names.filter((n) => /^(record_|add_frontier_item|complete_run)/.test(n))).toEqual([]);
   });
 
+  it('requires rationale on navigate, act and finish_run (contracts/tool-rationale.md)', async () => {
+    const ctx = await makeCtx();
+    const runtime = {
+      openSession: async () => {},
+      navigate: async () => ({}),
+      act: async () => ({}),
+      closeAll: async () => {},
+    } as unknown as Runtime;
+    const server = createServer(ctx, runtime);
+    const client = new Client({ name: 't', version: '0' });
+    const [a, b] = InMemoryTransport.createLinkedPair();
+    await Promise.all([server.connect(a), client.connect(b)]);
+    for (const [name, args] of [
+      ['navigate', { run_id: 'r', url: 'https://shop.pl/' }],
+      ['act', { run_id: 'r', action_id: 'a1' }],
+      ['finish_run', { run_id: 'r' }],
+    ] as const) {
+      const r = await client.callTool({ name, arguments: args });
+      expect(r.isError).toBe(true);
+      expect((r.content as { text: string }[])[0]!.text).toMatch(/rationale/i);
+    }
+  });
+
+  it('never passes rationale through to the service layer', async () => {
+    const ctx = await makeCtx();
+    const seen: Record<string, unknown>[] = [];
+    const runtime = {
+      openSession: async () => {},
+      navigate: async (args: Record<string, unknown>) => {
+        seen.push(args);
+        return {};
+      },
+      act: async (args: Record<string, unknown>) => {
+        seen.push(args);
+        return {};
+      },
+      closeAll: async () => {},
+    } as unknown as Runtime;
+    const server = createServer(ctx, runtime);
+    const client = new Client({ name: 't', version: '0' });
+    const [a, b] = InMemoryTransport.createLinkedPair();
+    await Promise.all([server.connect(a), client.connect(b)]);
+    await client.callTool({
+      name: 'navigate',
+      arguments: { run_id: 'r', url: 'https://shop.pl/', rationale: 'checking the listing' },
+    });
+    await client.callTool({
+      name: 'act',
+      arguments: { run_id: 'r', action_id: 'a1', rationale: 'checking the dialog' },
+    });
+    expect(seen).toHaveLength(2);
+    for (const args of seen) expect(args).not.toHaveProperty('rationale');
+  });
+
   it('.mcp.json registers only the pathfinder server for the crawler to reach', () => {
     const mcp = JSON.parse(readFileSync(repoFile('.mcp.json'), 'utf8')) as {
       mcpServers: Record<string, { type?: string; command: string }>;

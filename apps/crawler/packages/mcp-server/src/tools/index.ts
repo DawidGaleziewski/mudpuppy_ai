@@ -134,13 +134,21 @@ export function registerTools(server: McpServer, ctx: ServerContext, runtime: Ru
   tool(
     'navigate',
     'Navigate to a URL (checked against scope, denylist and the read-only ceiling). The server records what it observes.',
-    { run_id: z.string(), url: z.string() },
+    {
+      run_id: z.string(),
+      url: z.string(),
+      rationale: z.string().trim().min(1).max(300),
+    },
     (a) => runtime.navigate(ctx, a),
   );
   tool(
     'act',
     'Perform an action_id the server issued for the current state. The server re-checks safety before executing.',
-    { run_id: z.string(), action_id: z.string() },
+    {
+      run_id: z.string(),
+      action_id: z.string(),
+      rationale: z.string().trim().min(1).max(300),
+    },
     (a) => runtime.act(ctx, a),
   );
   tool(
@@ -158,7 +166,11 @@ export function registerTools(server: McpServer, ctx: ServerContext, runtime: Ru
   tool(
     'finish_run',
     'Request completion; succeeds only when the frontier is empty or a budget is exhausted.',
-    { run_id: z.string(), summary: z.string().optional() },
+    {
+      run_id: z.string(),
+      summary: z.string().optional(),
+      rationale: z.string().trim().min(1).max(300),
+    },
     async (a) => {
       const out = await ctx.tracer.phase('complete_run', () =>
         finishRun(ctx, a, runtime.robotsStats?.(a.run_id)),

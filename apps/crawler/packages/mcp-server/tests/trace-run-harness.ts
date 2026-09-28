@@ -78,12 +78,20 @@ export async function scriptedTraceRun(
   if (start.isError) throw new Error(JSON.stringify(start.body));
   const runId = start.body.run_id as string;
   hooks.afterStart?.(runId);
-  await call('navigate', { run_id: runId, url: `${origin}/` });
+  await call('navigate', {
+    run_id: runId,
+    url: `${origin}/`,
+    rationale: 'exploring the home page',
+  });
   for (let i = 0; i < 3; i++) {
     const next = await call('get_next_frontier_item', { run_id: runId });
     if (!next.body.item) break;
-    await call('act', { run_id: runId, action_id: next.body.item.action_id });
+    await call('act', {
+      run_id: runId,
+      action_id: next.body.item.action_id,
+      rationale: 'exploring the next frontier item',
+    });
   }
-  await call('finish_run', { run_id: runId });
+  await call('finish_run', { run_id: runId, rationale: 'frontier exhausted' });
   return runId;
 }

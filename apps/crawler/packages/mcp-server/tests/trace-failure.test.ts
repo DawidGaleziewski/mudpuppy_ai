@@ -81,7 +81,7 @@ describe('a crashed server leaves its in-flight call unfinished', () => {
     await Promise.all([createServer(ctx, runtime).connect(a), client.connect(b)]);
     const inFlight = client.callTool({
       name: 'navigate',
-      arguments: { run_id: run, url: 'https://shop.pl/' },
+      arguments: { run_id: run, url: 'https://shop.pl/', rationale: 'exploring the target URL' },
     });
     await vi.waitFor(() =>
       expect(

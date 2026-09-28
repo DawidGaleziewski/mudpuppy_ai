@@ -78,10 +78,18 @@ async function runScript(): Promise<Record<string, unknown>[]> {
   if (!start.run_id) throw new Error(JSON.stringify(start));
   const run = start.run_id as string;
   await call('get_known_states', { run_id: run });
-  await call('navigate', { run_id: run, url: 'https://shop.pl/' });
+  await call('navigate', {
+    run_id: run,
+    url: 'https://shop.pl/',
+    rationale: 'exploring the target URL',
+  });
   await call('get_next_frontier_item', { run_id: run });
-  await call('act', { run_id: run, action_id: 'a1' });
-  await call('finish_run', { run_id: run });
+  await call('act', {
+    run_id: run,
+    action_id: 'a1',
+    rationale: 'exploring the next frontier item',
+  });
+  await call('finish_run', { run_id: run, rationale: 'frontier exhausted' });
   await call('get_known_states', { run_id: 'ghost' });
   const rows = ctx.raw.prepare('SELECT * FROM trace_spans ORDER BY seq').all() as Record<
     string,

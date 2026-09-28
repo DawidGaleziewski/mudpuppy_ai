@@ -193,7 +193,7 @@
     "decision_id": null,
     "tool_use_id": "toolu_4",
     "agent_id": "agent-golden",
-    "rationale": null,
+    "rationale": "exploring the target URL",
     "pw_trace_path": null,
     "between_calls": 0
   },
@@ -259,7 +259,7 @@
     "decision_id": null,
     "tool_use_id": "toolu_6",
     "agent_id": "agent-golden",
-    "rationale": null,
+    "rationale": "exploring the next frontier item",
     "pw_trace_path": null,
     "between_calls": 0
   },
@@ -303,7 +303,7 @@
     "decision_id": null,
     "tool_use_id": "toolu_7",
     "agent_id": "agent-golden",
-    "rationale": null,
+    "rationale": "frontier exhausted",
     "pw_trace_path": null,
     "between_calls": 0
   },
