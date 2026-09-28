@@ -13,6 +13,7 @@
     "@pathfinder/core": "workspace:*",
     "@pathfinder/crawler": "workspace:*",
     "@pathfinder/fingerprint": "workspace:*",
+    "@pathfinder/obstacles": "workspace:*",
     "@pathfinder/safety": "workspace:*",
     "zod": "^4.6.5"
   },

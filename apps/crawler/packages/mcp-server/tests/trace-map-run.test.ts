@@ -115,9 +115,21 @@ describe.skipIf(!available)('trace of a map run against the mock portal', () => 
     try {
       const start = await call('start_run', { portal_id: 'mock', persona_id: 'guest' });
       const runId = start.body.run_id as string;
-      await call('navigate', { run_id: runId, url: `${portal.origin}/` });
-      await call('navigate', { run_id: runId, url: `${portal.origin}/with-disallowed-asset` });
-      const refused = await call('navigate', { run_id: runId, url: `${portal.origin}/wyloguj` });
+      await call('navigate', {
+        run_id: runId,
+        url: `${portal.origin}/`,
+        rationale: 'exploring the home page',
+      });
+      await call('navigate', {
+        run_id: runId,
+        url: `${portal.origin}/with-disallowed-asset`,
+        rationale: 'checking a robots-disallowed asset',
+      });
+      const refused = await call('navigate', {
+        run_id: runId,
+        url: `${portal.origin}/wyloguj`,
+        rationale: 'checking whether logout is reachable',
+      });
       expect(refused.body.error.code).toBe('ACTION_REFUSED');
       await ctx.tracer.flush();
       const rows = spans();
@@ -167,13 +179,34 @@ describe.skipIf(!available)('trace of a map run against the mock portal', () => 
     try {
       const start = await call('start_run', { portal_id: 'mock', persona_id: 'guest' });
       const runId = start.body.run_id as string;
-      await call('navigate', { run_id: runId, url: `${portal.origin}/` });
+      await call('navigate', {
+        run_id: runId,
+        url: `${portal.origin}/`,
+        rationale: 'exploring the home page',
+      });
       const next = await call('get_next_frontier_item', { run_id: runId });
-      await call('act', { run_id: runId, action_id: next.body.item.action_id });
-      await call('navigate', { run_id: runId, url: `${portal.origin}/polling` });
+      await call('act', {
+        run_id: runId,
+        action_id: next.body.item.action_id,
+        rationale: 'exploring the next frontier item',
+      });
+      await call('navigate', {
+        run_id: runId,
+        url: `${portal.origin}/polling`,
+        rationale: 'checking a page that never settles',
+      });
       const rows = spans();
       const attrs = (r: Record<string, unknown>) => JSON.parse(r.attrs_json as string);
       const byName = (n: string) => rows.filter((r) => r.name === n);
+
+      const home = rows.filter((r) => r.kind === 'call' && r.name === 'navigate')[0]!;
+      const banner = byName('obstacle').find((r) => isUnder(rows, r, home.id))!;
+      expect(banner).toBeDefined();
+      expect(attrs(banner)).toEqual({
+        obstacle_id: 'cookie_banner',
+        selector: '#cookie button.accept',
+        via: expect.stringMatching(/^(sweep|handler)$/),
+      });
 
       const polling = rows.filter((r) => r.kind === 'call' && r.name === 'navigate')[1]!;
       const timeout = byName('stabilization_timeout').find((r) => isUnder(rows, r, polling.id))!;
@@ -243,11 +276,19 @@ describe.skipIf(!available)('trace of a map run against the mock portal', () => 
           );
           const start = await call('start_run', { portal_id: 'mock', persona_id: 'guest' });
           const runId = start.body.run_id as string;
-          await call('navigate', { run_id: runId, url: `${portal.origin}/` });
+          await call('navigate', {
+            run_id: runId,
+            url: `${portal.origin}/`,
+            rationale: 'exploring the home page',
+          });
           for (let i = 0; i < 10; i++) {
             const next = await call('get_next_frontier_item', { run_id: runId });
             if (!next.body.item) break;
-            await call('act', { run_id: runId, action_id: next.body.item.action_id });
+            await call('act', {
+              run_id: runId,
+              action_id: next.body.item.action_id,
+              rationale: 'exploring the next frontier item',
+            });
           }
           const d = spans()
             .filter(

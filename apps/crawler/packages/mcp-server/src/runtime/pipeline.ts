@@ -27,12 +27,21 @@ import {
   recordTransition,
   type RunRow,
 } from '../services/index.js';
+import { recordObstacles } from './obstacles-trace.js';
 import { inPwGroup } from './pw-trace.js';
 import type { RunState } from './run-state.js';
 
 /** A timed stage of the current tool call (contracts/trace-spans.md); untraced outside a call. */
 function phase<T>(ctx: ServerContext, name: PhaseName, fn: () => Promise<T>): Promise<T> {
   return ctx.tracer.phase(name, () => inPwGroup(name, fn));
+}
+
+/** `event obstacle` for every dismissal since the last flush (research §16). */
+function flushObstacles(ctx: ServerContext, state: RunState): void {
+  const events = state.session.obstacles.events;
+  const fresh = events.slice(state.obstacleCursor);
+  state.obstacleCursor = events.length;
+  if (fresh.length) recordObstacles(ctx.tracer, fresh);
 }
 
 /** Count the browser's requests for this call and emit their `request_aggregate` when it ends. */
@@ -286,6 +295,7 @@ async function processPage(
   const stabilization = await phase(ctx, 'settle', async () => {
     const outcome = await session.settleTraced();
     traceSettle(ctx, rs, outcome);
+    flushObstacles(ctx, rs);
     const result = outcome.result;
     await throwIfStopped(ctx, rs);
     return result;
@@ -722,6 +732,7 @@ async function navigateStep(
   input: { run_id: string; url: string },
 ): Promise<PageResult> {
   const started = Date.now();
+  state.obstacleCursor = state.session.obstacles.events.length;
   const g = await phase(ctx, 'gate', async () => {
     const g = gateContext(state, await usage(ctx, run, state, 0));
     const d = decide({ kind: 'navigate', url: input.url }, g);
@@ -768,6 +779,7 @@ async function navigateStep(
   const depth = g.usage.depth;
   const result = await processPage(ctx, run, state, { kind: 'navigate' }, depth);
   await phase(ctx, 'run_bookkeeping', () => bumpRun(ctx, run, started, depth));
+  flushObstacles(ctx, state);
   return result;
 }
 
@@ -787,6 +799,7 @@ async function actStep(
   input: { run_id: string; action_id: string },
 ): Promise<PageResult> {
   const started = Date.now();
+  state.obstacleCursor = state.session.obstacles.events.length;
   const { action, g, d } = await phase(ctx, 'gate', () =>
     gateAct(ctx, run, state, input.action_id),
   );
@@ -915,6 +928,7 @@ async function actStep(
     if (pending) await settleFrontierItem(ctx.db, pending.id, 'done', null);
     await bumpRun(ctx, run, started, fromDepth + 1);
   });
+  flushObstacles(ctx, state);
   return result;
 }
 

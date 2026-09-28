@@ -22,6 +22,8 @@ export class RunState {
   pw: PwTrace | null = null;
   /** Resolves when a detected block has been persisted; undefined until one is detected. */
   stopPersisted: Promise<void> | undefined;
+  /** `session.obstacles.events` already reported for the current call (research §16). */
+  obstacleCursor = 0;
 
   constructor(
     readonly runId: string,
