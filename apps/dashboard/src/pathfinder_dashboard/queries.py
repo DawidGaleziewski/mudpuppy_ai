@@ -26,6 +26,7 @@ from .models import (
     RunSummary,
     State,
     StateObservation,
+    TraceSpan,
 )
 
 DEFAULT_LIMIT = 50
@@ -334,3 +335,127 @@ def run_decisions(
 ) -> Page[DecisionLogEntry]:
     filters = {"run_id": run_id, "kind": kind, "rule": rule}
     return _page(conn, DecisionLogEntry, "decision_log", filters, cursor, limit)
+
+
+# --- trace (US1/US2) --------------------------------------------------------------------------
+
+
+def _p95_call_duration(conn: sqlite3.Connection, run_id: str) -> int | None:
+    """p95 duration of the run's completed call spans, or None with fewer than 2 of them."""
+    durations = [
+        r[0]
+        for r in _rows(
+            conn,
+            "SELECT duration_ms FROM trace_spans WHERE run_id = ? AND kind = 'call'"
+            " AND status = 'ok' AND duration_ms IS NOT NULL ORDER BY duration_ms",
+            (run_id,),
+        )
+    ]
+    if len(durations) < 2:
+        return None
+    return durations[int(0.95 * len(durations))]
+
+
+def _problem_sql(p95: int | None) -> str:
+    clause = (
+        "(s.status IN ('error','refused','stopped','unfinished')"
+        " OR EXISTS (SELECT 1 FROM trace_spans c WHERE c.parent_id = s.id"
+        "   AND c.name IN ('stabilization_timeout','concurrent_calls'))"
+    )
+    if p95 is not None:
+        clause += " OR (s.duration_ms IS NOT NULL AND s.duration_ms > ?)"
+    return clause + ")"
+
+
+def trace_calls(
+    conn: sqlite3.Connection,
+    run_id: str,
+    tools: list[str] | None = None,
+    statuses: list[str] | None = None,
+    problems: bool = False,
+    cursor: str | None = None,
+    limit: int = DEFAULT_LIMIT,
+) -> Page[TraceSpan]:
+    """A run's call spans, ordered by boot start then seq (a run's spans may span boots)."""
+    where = ["s.run_id = ?", "s.kind = 'call'"]
+    args: list[Any] = [run_id]
+    if tools:
+        where.append(f"s.name IN ({','.join('?' * len(tools))})")
+        args.extend(tools)
+    if statuses:
+        where.append(f"s.status IN ({','.join('?' * len(statuses))})")
+        args.extend(statuses)
+    if problems:
+        p95 = _p95_call_duration(conn, run_id)
+        where.append(_problem_sql(p95))
+        if p95 is not None:
+            args.append(p95)
+    where_sql = " AND ".join(where)
+    joined = "trace_spans s JOIN trace_boots b ON b.id = s.boot_id"
+    total = _count(conn, f"SELECT count(*) FROM {joined} WHERE {where_sql}", tuple(args))
+    keyset, kargs = "", ()
+    if cursor:
+        started, _, seq = cursor.partition(_SEP)
+        keyset = " AND (b.started_at > ? OR (b.started_at = ? AND s.seq > ?))"
+        kargs = (started, started, int(seq))
+    rows = _rows(
+        conn,
+        f"SELECT s.*, b.started_at AS boot_started_at FROM {joined}"
+        f" WHERE {where_sql}{keyset} ORDER BY b.started_at, s.seq LIMIT ?",
+        (*args, *kargs, limit + 1),
+    )
+    items = [TraceSpan.model_validate(dict(r)) for r in rows[:limit]]
+    next_cursor = None
+    if len(rows) > limit:
+        last = rows[limit - 1]
+        next_cursor = f"{last['boot_started_at']}{_SEP}{last['seq']}"
+    return Page[TraceSpan](items=items, total=total, next_cursor=next_cursor)
+
+
+def span_children(
+    conn: sqlite3.Connection,
+    span_id: str,
+    kinds: list[str] | None = None,
+    names: list[str] | None = None,
+) -> list[TraceSpan]:
+    where = ["parent_id = ?"]
+    args: list[Any] = [span_id]
+    if kinds:
+        where.append(f"kind IN ({','.join('?' * len(kinds))})")
+        args.extend(kinds)
+    if names:
+        where.append(f"name IN ({','.join('?' * len(names))})")
+        args.extend(names)
+    rows = _rows(
+        conn,
+        f"SELECT * FROM trace_spans WHERE {' AND '.join(where)} ORDER BY seq",
+        tuple(args),
+    )
+    return [TraceSpan.model_validate(dict(r)) for r in rows]
+
+
+def server_activity(
+    conn: sqlite3.Connection,
+    cursor: str | None = None,
+    limit: int = DEFAULT_LIMIT,
+) -> Page[TraceSpan]:
+    """Run-less calls (FR-016), newest first."""
+    where = "kind = 'call' AND run_id IS NULL"
+    total = _count(conn, f"SELECT count(*) FROM trace_spans WHERE {where}")
+    keyset, kargs = "", ()
+    if cursor:
+        started, _, span_id = cursor.partition(_SEP)
+        keyset = " AND (started_at < ? OR (started_at = ? AND id < ?))"
+        kargs = (started, started, span_id)
+    rows = _rows(
+        conn,
+        f"SELECT * FROM trace_spans WHERE {where}{keyset}"
+        " ORDER BY started_at DESC, id DESC LIMIT ?",
+        (*kargs, limit + 1),
+    )
+    items = [TraceSpan.model_validate(dict(r)) for r in rows[:limit]]
+    next_cursor = None
+    if len(rows) > limit:
+        last = items[-1]
+        next_cursor = f"{last.started_at}{_SEP}{last.id}"
+    return Page[TraceSpan](items=items, total=total, next_cursor=next_cursor)

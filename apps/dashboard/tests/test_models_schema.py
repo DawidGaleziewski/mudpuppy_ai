@@ -60,7 +60,8 @@ def test_model_literals_equal_table_checks(empty_store: Store, table: str) -> No
     for name, field in TABLE_MODELS[table].model_fields.items():
         checked = allowed_values(sql, name)
         literal = literal_values(field.annotation)
-        if checked is None or name in {"allowed", "truncated"}:
+        bool_flags = {"allowed", "truncated", "between_calls", "matched", "is_error"}
+        if checked is None or name in bool_flags:
             continue  # unconstrained text, or a 0/1 flag mapped to bool
         assert literal == checked, f"{table}.{name}: model {literal} != CHECK {checked}"
 

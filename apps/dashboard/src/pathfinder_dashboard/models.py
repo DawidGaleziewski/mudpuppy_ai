@@ -40,6 +40,13 @@ FrontierStatus = Literal[
     "unreachable",
 ]
 DecisionKind = Literal["skip", "refuse", "merge", "split", "warning", "note"]
+TraceServer = Literal["pathfinder"]
+TraceLevel = Literal["off", "standard", "verbose"]
+PwTraceMode = Literal["non_production", "all"]
+SpanKind = Literal["call", "phase", "event"]
+SpanStatus = Literal["running", "ok", "refused", "stopped", "error", "unfinished"]
+AgentTurnRole = Literal["assistant", "user"]
+AgentTurnKind = Literal["text", "thinking", "tool_use", "tool_result"]
 
 RUN_STATUSES: tuple[RunStatus, ...] = ("running", "completed", "stopped_warning", "interrupted")
 FRONTIER_STATUSES: tuple[FrontierStatus, ...] = (
@@ -237,6 +244,67 @@ class PortalDataLog(Row):
     created_at: str
 
 
+class TraceBoot(Row):
+    id: str
+    started_at: str
+    ended_at: str | None
+    environment: str
+    server: TraceServer
+    pid: int
+    version: str
+    trace_level: TraceLevel
+    pw_trace: PwTraceMode
+
+
+class TraceSpan(Row):
+    id: str
+    boot_id: str
+    seq: int
+    run_id: str | None
+    parent_id: str | None
+    kind: SpanKind
+    name: str
+    status: SpanStatus
+    started_at: str
+    ended_at: str | None
+    duration_ms: int | None
+    attrs_json: Json
+    payload_ref: str | None
+    summary: str
+    decision_id: str | None
+    tool_use_id: str | None
+    agent_id: str | None
+    rationale: str | None
+    pw_trace_path: str | None
+    between_calls: bool
+
+
+class AgentTurn(Row):
+    id: str
+    agent_id: str
+    agent_type: str
+    session_id: str | None
+    message_uuid: str
+    block_index: int
+    api_message_id: str | None
+    run_id: str | None
+    role: AgentTurnRole
+    kind: AgentTurnKind
+    tool_use_id: str | None
+    tool_name: str | None
+    text: str | None
+    payload_ref: str | None
+    is_error: bool | None
+    model: str | None
+    input_tokens: int | None
+    output_tokens: int | None
+    cache_read_tokens: int | None
+    cache_creation_tokens: int | None
+    matched: bool
+    created_at: str
+    imported_at: str
+
+
 TABLE_MODELS: dict[str, type[Row]] = {
     "runs": Run,
     "state_observations": StateObservation,
@@ -251,6 +319,9 @@ TABLE_MODELS: dict[str, type[Row]] = {
     "decision_log": DecisionLogEntry,
     "robots_policies": RobotsPolicy,
     "portal_data_log": PortalDataLog,
+    "trace_boots": TraceBoot,
+    "trace_spans": TraceSpan,
+    "agent_turns": AgentTurn,
 }
 
 

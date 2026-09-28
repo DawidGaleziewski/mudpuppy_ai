@@ -192,3 +192,143 @@ def test_get_run(conn: sqlite3.Connection) -> None:
     assert run is not None and run.steps_used == 3
     assert run.config_snapshot == {"portal": {"id": "liveinsurer"}}
     assert queries.get_run(conn, "missing") is None
+
+
+# --- trace (US1/US2) --------------------------------------------------------------------------
+
+
+def seed_trace(conn: sqlite3.Connection) -> None:
+    insert(conn, "trace_boots", id="boot-1", started_at=ts(0))
+    insert(
+        conn,
+        "trace_spans",
+        id="call-1",
+        boot_id="boot-1",
+        seq=1,
+        run_id=BIG_RUN,
+        name="navigate",
+        status="ok",
+        started_at=ts(0),
+        duration_ms=100,
+    )
+    insert(
+        conn,
+        "trace_spans",
+        id="call-2",
+        boot_id="boot-1",
+        seq=2,
+        run_id=BIG_RUN,
+        name="act",
+        status="error",
+        started_at=ts(1),
+        duration_ms=50,
+    )
+    insert(
+        conn,
+        "trace_spans",
+        id="call-3",
+        boot_id="boot-1",
+        seq=3,
+        run_id=BIG_RUN,
+        name="navigate",
+        status="ok",
+        started_at=ts(2),
+        duration_ms=200,
+    )
+    insert(
+        conn,
+        "trace_spans",
+        id="ev-1",
+        boot_id="boot-1",
+        seq=4,
+        run_id=BIG_RUN,
+        parent_id="call-3",
+        kind="event",
+        name="stabilization_timeout",
+        status="ok",
+        started_at=ts(2),
+        duration_ms=None,
+    )
+    insert(
+        conn,
+        "trace_spans",
+        id="phase-1",
+        boot_id="boot-1",
+        seq=5,
+        run_id=BIG_RUN,
+        parent_id="call-3",
+        kind="phase",
+        name="settle",
+        status="ok",
+        started_at=ts(2),
+        duration_ms=150,
+    )
+    insert(
+        conn,
+        "trace_spans",
+        id="run-less-1",
+        boot_id="boot-1",
+        seq=6,
+        run_id=None,
+        name="start_run",
+        status="error",
+        started_at=ts(3),
+        duration_ms=5,
+    )
+
+
+@pytest.fixture
+def trace_conn(liveinsurer_store: Store) -> sqlite3.Connection:
+    w = liveinsurer_store.connect()
+    seed_trace(w)
+    w.commit()
+    w.close()
+    return db.connect(liveinsurer_store.data_dir, liveinsurer_store.env)
+
+
+def test_trace_calls_ordered_by_boot_then_seq(trace_conn: sqlite3.Connection) -> None:
+    page = queries.trace_calls(trace_conn, BIG_RUN)
+    assert [s.id for s in page.items] == ["call-1", "call-2", "call-3"]
+    assert page.total == 3
+
+
+def test_trace_calls_filters_tools_and_statuses(trace_conn: sqlite3.Connection) -> None:
+    assert [s.id for s in queries.trace_calls(trace_conn, BIG_RUN, tools=["act"]).items] == [
+        "call-2"
+    ]
+    assert [
+        s.id for s in queries.trace_calls(trace_conn, BIG_RUN, statuses=["error"]).items
+    ] == ["call-2"]
+
+
+def test_trace_calls_problems_filter(trace_conn: sqlite3.Connection) -> None:
+    problems = {s.id for s in queries.trace_calls(trace_conn, BIG_RUN, problems=True).items}
+    # call-2 errored; call-3 has a stabilization_timeout child
+    assert problems == {"call-2", "call-3"}
+
+
+def test_trace_calls_pagination(trace_conn: sqlite3.Connection) -> None:
+    first = queries.trace_calls(trace_conn, BIG_RUN, limit=2)
+    assert [s.id for s in first.items] == ["call-1", "call-2"]
+    assert first.next_cursor
+    second = queries.trace_calls(trace_conn, BIG_RUN, limit=2, cursor=first.next_cursor)
+    assert [s.id for s in second.items] == ["call-3"]
+    assert second.next_cursor is None
+
+
+def test_span_children_filters(trace_conn: sqlite3.Connection) -> None:
+    children = queries.span_children(trace_conn, "call-3")
+    assert {c.id for c in children} == {"ev-1", "phase-1"}
+    assert [c.id for c in queries.span_children(trace_conn, "call-3", kinds=["phase"])] == [
+        "phase-1"
+    ]
+    assert [c.id for c in queries.span_children(trace_conn, "call-3", names=["settle"])] == [
+        "phase-1"
+    ]
+    assert queries.span_children(trace_conn, "call-1") == []
+
+
+def test_server_activity_lists_run_less_calls(trace_conn: sqlite3.Connection) -> None:
+    page = queries.server_activity(trace_conn)
+    assert [s.id for s in page.items] == ["run-less-1"]
+    assert page.total == 1
