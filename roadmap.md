@@ -18,6 +18,7 @@ Status: `todo`, `in progress`, `done`. Last reviewed: 2026-09-26.
 | R-10 | Polish and cross-cutting concerns | T070–T074 | in progress |
 | R-11 | Portal-agnostic safety and portal workspaces: robots.txt enforcement, generic rule ids, per-portal rules, per-portal data | `specs/002-portal-agnostic-safety` T001–T065 | done |
 | R-12 | Dashboard UI: read-only FastAPI + htmx dashboard over the crawl DB, live updates, frontend-dev agent and revamp-dashboard skill | `specs/003-dashboard-ui` T001–T029 | done |
+| R-17 | Crawl run observability trace: per-run technical trace of the crawler's own machinery (calls, phases, decisions, requests, fingerprinting, frontier, agent transcript), inspectable from the R-12 dashboard | `specs/005-crawl-run-observability-trace` T001–T046 | in progress |
 
 ## Notes
 
@@ -63,3 +64,10 @@ Status: `todo`, `in progress`, `done`. Last reviewed: 2026-09-26.
   `libasound2`); only `robots.txt` was fetched (4×200). 4 run rows were left `running` in
   `data/db/production.sqlite`, to be swept to `interrupted` by the existing `interruptStaleRuns` on next
   server start. T059, T073, T074 stay open pending a host with the required browser libraries.
+- R-17 spec folder: `specs/005-crawl-run-observability-trace`, built on
+  `feature/005-r17-crawl-run-observability-trace`. Migration `0003_trace` lands first (R-13,
+  `feature/004-r13-ba-documentation`, is paused with an unmerged `0003_ba_documentation` migration
+  on its own branch); when R-13 resumes it must renumber that migration to `0004_ba_documentation`
+  and regenerate `data/schema/schema.sql`/`README.md` accordingly. T001–T045 are done. Open: T046
+  (manual quickstart validation on a sandbox portal) needs a host with browser libraries installed,
+  same blocker as R-07/R-10's T059/T073/T074.
