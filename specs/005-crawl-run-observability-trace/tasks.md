@@ -149,7 +149,8 @@ test**: quickstart scenarios 6, 7.
 - [X] T044 [sonnet] `roadmap.md`: R-17 row → `specs/005-crawl-run-observability-trace` T001–T046, status `in progress`; note that R-13's `0003_ba_documentation` must become `0004` when R-13 resumes
   - Note: added the R-17 row and a Notes bullet with the migration-numbering warning and the T046 blocker (host with browser libraries, same as R-07/R-10's open tasks). No R-13 row exists in `roadmap.md` yet (it's early-stage, 7/32 tasks, on its own unmerged branch) — adding one is out of this task's scope.
 - [X] T045 [opus] Run skill `speckit-analyze` over spec/plan/tasks and fix any inconsistency it reports
-- [ ] T046 [sonnet] Manual validation: quickstart scenarios 1–10 on a sandbox portal (browser libraries installed); record results and any gaps in `roadmap.md` notes
+- [X] T046 [sonnet] Manual validation: quickstart scenarios 1–10 on a sandbox portal (browser libraries installed); record results and any gaps in `roadmap.md` notes
+  - Note: run against a temporary sandbox portal over the real `tsx src/main.ts` entrypoint and real stdio (not the automated tests' `InMemoryTransport`); results and the one gap (scenario 5, no live agent transcript available) in `roadmap.md`. Surfaced and fixed a real, pre-existing, non-R-17 bug: `page.evaluate()` throws under the real (`tsx`) entrypoint on any closure with a named local, because `tsx` hardcodes esbuild's `keepNames: true`; see `packages/crawler/src/pw-eval.ts` and `roadmap.md` for the full note. Without this fix no real crawl step could have completed via `.mcp.json`/`pnpm start`.
 
 ---
 
