@@ -115,6 +115,16 @@ interface FetchedLike {
 
 const TEXTUAL = /^(text\/|application\/(json|xhtml|xml))/i;
 
+/** True for the top-level document, false for sub-resources and iframe documents. Unknown → true. */
+function isMainFrameDocument(response: {
+  request?: () => { resourceType?: () => string; frame?: () => { parentFrame?: () => unknown } };
+}): boolean {
+  const req = response.request?.();
+  if (!req) return true;
+  if (req.resourceType && req.resourceType() !== 'document') return false;
+  return req.frame?.().parentFrame?.() == null;
+}
+
 /**
  * The single request choke point (FR-006, FR-008). Every request the browser makes passes through
  * the rate limiter and carries the configured User-Agent; every response is checked for a block, and
@@ -322,7 +332,13 @@ export function createRequestGate(opts: RequestGateOptions): RequestGate {
           });
         }
         let body: string | undefined;
-        if (status < 400 && TEXTUAL.test(headers['content-type'] ?? '')) {
+        // Only the visited page can be a challenge page. A third-party script or a vendor iframe (the
+        // reCAPTCHA loader that sits on every liveinsurer form) mentions the very markers we look for.
+        if (
+          status < 400 &&
+          TEXTUAL.test(headers['content-type'] ?? '') &&
+          isMainFrameDocument(response)
+        ) {
           body = await response.text().catch(() => undefined);
         }
         const verdict = detectBlock(

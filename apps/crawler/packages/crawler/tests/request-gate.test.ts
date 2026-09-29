@@ -25,6 +25,7 @@ interface FakeResponse {
   status(): number;
   url(): string;
   text(): Promise<string>;
+  request?(): unknown;
 }
 type RouteHandler = (route: FakeRoute, request: FakeRequest) => Promise<void>;
 function fakeContext() {
@@ -45,6 +46,7 @@ function fakeContext() {
       });
       return route;
     },
+    raw: (r: FakeResponse) => responseHandler(r),
     respond: (status: number, body = '', ct = 'text/html') =>
       responseHandler({
         headers: () => ({ 'content-type': ct }),
@@ -98,6 +100,24 @@ describe('request gate', () => {
     await gate.install(f.ctx as never);
     await f.respond(200, '<div class="g-recaptcha"></div>');
     expect(stops[0]!.kind).toBe('captcha');
+  });
+
+  it('does not read a vendor script or iframe body as a CAPTCHA page', async () => {
+    const { gate, stops } = make();
+    const f = fakeContext();
+    await gate.install(f.ctx as never);
+    const body = 'var a="g-recaptcha";';
+    const res = (resourceType: string, parent: unknown) =>
+      f.raw({
+        headers: () => ({ 'content-type': 'text/javascript' }),
+        status: () => 200,
+        url: () => 'https://www.gstatic.com/recaptcha/releases/x/recaptcha__pl.js',
+        text: async () => body,
+        request: () => ({ resourceType: () => resourceType, frame: () => ({ parentFrame: () => parent }) }),
+      });
+    await res('script', null);
+    await res('document', {});
+    expect(stops).toHaveLength(0);
   });
 
   it('ignores normal pages and non-text bodies', async () => {
