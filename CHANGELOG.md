@@ -6,6 +6,9 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Added
+- R-17 crawl run observability trace: per-run technical trace of the crawler's own machinery
+  (calls, phases, decisions, requests, fingerprinting, frontier, agent transcript), inspectable
+  from the R-12 dashboard (`specs/005-crawl-run-observability-trace`, T001–T046). Commit: 89c3530.
 - R-12 read-only FastAPI + htmx dashboard over the crawl store (`apps/dashboard`, uv, live SSE
   updates, Console design system), `frontend-dev` agent and `revamp-dashboard` skill, constitution
   1.3.0 app layout (`specs/003-dashboard-ui`, T001–T029). Commit: 8989790.

@@ -2,7 +2,7 @@
 
 Maintained by the `po` agent. Order follows the build order in the constitution. An item is `done`
 only when every task in its range in its linked spec's `tasks.md` is `[X]`.
-Status: `todo`, `in progress`, `done`. Last reviewed: 2026-09-26.
+Status: `todo`, `in progress`, `done`. Last reviewed: 2026-09-29.
 
 | ID | Item | Tasks | Status |
 | --- | --- | --- | --- |
@@ -30,7 +30,7 @@ Status: `todo`, `in progress`, `done`. Last reviewed: 2026-09-26.
 - R-06 is built before R-07 (safety first, Principle V); R-04 and R-05 block both.
 - Commits: R-02 `02e17b7`, R-03 `b1639fc` and `348fac0`, R-04 `5633dc4`, R-05 `17f1187`, R-06 `eee48a9`,
   R-07 `dfe3f40` and `23c8a9b` (open), R-08 `412ed19`, R-09 `d4907a4`, R-10 partial `6f1b0d8` (open), deps `59807cb`,
-  R-11 `3d4ed21`, T072 sign-off `50662f4`, R-12 `2132b2f`, `ee6519a` and `8989790`.
+  R-11 `3d4ed21`, T072 sign-off `50662f4`, R-12 `2132b2f`, `ee6519a` and `8989790`, R-17 `89c3530`.
   None of these hashes exist on `master` any more: the `feature/001-r04-core-crawler-map-mode` branch
   they were made on was squash-merged into `master` as a single commit, `2799c96` ("docs(roadmap): start
   R-04, record R-03 as out-of-spec work"). Kept here only as the historical record of when each item
