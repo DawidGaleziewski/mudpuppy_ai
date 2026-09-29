@@ -1,0 +1,90 @@
+{#- `/fragments/runs/{run_id}/trace/summary` (T041, contracts/005-crawl-run-observability-trace/
+    dashboard-routes.md "Summary"): totals, phase timing, slowest calls, tokens, trace health. -#}
+{% import "partials/macros.html" as m %}
+{% set v = section %}
+{% call m.region("trace-summary", v.summary_self_url, "Trace summary") %}
+  {%- set sm = v.summary %}
+  {%- if not sm %}
+    {{ m.empty("No trace recorded for this run",
+               "It predates tracing, or never reached the server.") }}
+  {%- else %}
+  <div class="panel">
+    <dl class="facts">
+      <div><dt>calls</dt><dd class="mono-num">{{ sm.calls_total }}</dd></div>
+      <div><dt>by tool</dt><dd>{%- for t, n in sm.calls_by_tool.items() %}<code>{{ t }}</code> <span class="mono-num">{{ n }}</span>{% if not loop.last %}, {% endif %}{% endfor %}</dd></div>
+      <div><dt>by status</dt><dd>{%- for st, n in sm.calls_by_status.items() %}{{ m.span_status(st) }} <span class="mono-num">{{ n }}</span>{% if not loop.last %}, {% endif %}{% endfor %}</dd></div>
+      <div><dt>tokens</dt><dd>
+        {%- if sm.tokens.turns -%}
+        <span class="mono-num">{{ sm.tokens.input_tokens }} in / {{ sm.tokens.output_tokens }} out</span>
+        {%- if sm.tokens.cache_read_tokens %} <span class="muted mono-num">({{ sm.tokens.cache_read_tokens }} cache read)</span>{% endif %}
+        <span class="muted">({{ sm.tokens.turns }} turns)</span>
+        {%- else -%}
+        <span class="muted">{{ "not imported" if not sm.agent_imported else "no tool-use turns" }}</span>
+        {%- endif -%}
+      </dd></div>
+      <div><dt>trace level</dt><dd>{{ sm.trace_levels | join(", ") }}{% if sm.pw_trace_modes %} <span class="muted">· pw trace: {{ sm.pw_trace_modes | join(", ") }}</span>{% endif %}</dd></div>
+    </dl>
+  </div>
+
+  {%- if sm.phases %}
+  <div class="table-wrap">
+    <table class="data stack">
+      <caption>Time per phase</caption>
+      <thead>
+        <tr><th scope="col">Phase</th><th scope="col" class="num">Count</th><th scope="col" class="num">Sum</th><th scope="col" class="num">p50</th><th scope="col" class="num">p95</th></tr>
+      </thead>
+      <tbody>
+        {%- for p in sm.phases %}
+        <tr>
+          <td data-label="phase"><code>{{ p.name }}</code></td>
+          <td data-label="count" class="num mono-num">{{ p.count }}</td>
+          <td data-label="sum" class="num mono-num">{{ p.sum_ms | duration }}</td>
+          <td data-label="p50" class="num mono-num">{{ p.p50_ms | duration }}</td>
+          <td data-label="p95" class="num mono-num">{{ p.p95_ms | duration }}</td>
+        </tr>
+        {%- endfor %}
+      </tbody>
+    </table>
+  </div>
+  {%- endif %}
+
+  {%- if sm.slowest_calls %}
+  <div class="table-wrap">
+    <table class="data stack">
+      <caption>Slowest calls</caption>
+      <thead>
+        <tr><th scope="col">Seq</th><th scope="col">Tool</th><th scope="col" class="num">Duration</th><th scope="col">Status</th></tr>
+      </thead>
+      <tbody>
+        {%- for s in sm.slowest_calls %}
+        <tr>
+          <td data-label="seq"><a class="mono-num" href="{{ c.url('/runs/' ~ sm.run_id, tab='trace') }}#trace-call-{{ s.id }}">#{{ s.seq }}</a></td>
+          <td data-label="tool">{{ s.name }}</td>
+          <td data-label="duration" class="num mono-num">{{ s.duration_ms | duration }}</td>
+          <td data-label="status">{{ m.span_status(s.status) }}</td>
+        </tr>
+        {%- endfor %}
+      </tbody>
+    </table>
+  </div>
+  {%- endif %}
+
+  <div class="panel">
+    <p>
+      trace health:
+      {%- set clean = not sm.health.dropped and not sm.health.truncated and not sm.health.unfinished
+        and (not sm.agent_imported or (not sm.health.unmatched_agent_calls and not sm.health.unmatched_server_calls)) %}
+      {%- if clean %}
+      <span class="st st-ok">[ OK ]</span> clean
+      {%- else %}
+      {%- if sm.health.dropped %} <span class="st st-fail">[FAIL]</span> <span class="mono-num">{{ sm.health.dropped }}</span> dropped{% endif %}
+      {%- if sm.health.truncated %} · <span class="mono-num">{{ sm.health.truncated }}</span> truncated{% endif %}
+      {%- if sm.health.unfinished %} · <span class="mono-num">{{ sm.health.unfinished }}</span> unfinished{% endif %}
+      {%- if sm.agent_imported and sm.health.unmatched_agent_calls %} · <span class="mono-num">{{ sm.health.unmatched_agent_calls }}</span> agent calls never reached server{% endif %}
+      {%- if sm.agent_imported and sm.health.unmatched_server_calls %} · <span class="mono-num">{{ sm.health.unmatched_server_calls }}</span> server calls unmatched to the agent{% endif %}
+      {%- endif %}
+    </p>
+    <p><a class="btn btn-bracket" href="{{ v.problems_url }}">[problems only]</a></p>
+  </div>
+  {%- endif %}
+{% endcall %}

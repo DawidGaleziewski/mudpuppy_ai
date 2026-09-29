@@ -86,6 +86,58 @@ function seed() {
       )
       .run(newId(), runId, ts);
 
+  const bootId = newId();
+  raw
+    .prepare(
+      `INSERT INTO trace_boots (id, started_at, ended_at, environment, server, pid, version, trace_level, pw_trace)
+       VALUES (?, ?, NULL, 'sandbox', 'pathfinder', 1, '0.1.0', 'standard', 'non_production')`,
+    )
+    .run(bootId, ts);
+  let seq = 0;
+  /** A `call` span with one `phase` child, for a run; exercises the self-referencing `parent_id`. */
+  const spans = (runId: string) => {
+    const callId = newId();
+    raw
+      .prepare(
+        `INSERT INTO trace_spans (id, boot_id, seq, run_id, parent_id, kind, name, status, started_at, ended_at,
+         duration_ms, attrs_json, payload_ref, summary, decision_id, tool_use_id, agent_id, rationale,
+         pw_trace_path, between_calls)
+         VALUES (?, ?, ?, ?, NULL, 'call', 'navigate', 'ok', ?, ?, 1, '{}', NULL, 'navigated', NULL, NULL, NULL,
+         NULL, NULL, 0)`,
+      )
+      .run(callId, bootId, ++seq, runId, ts, ts);
+    raw
+      .prepare(
+        `INSERT INTO trace_spans (id, boot_id, seq, run_id, parent_id, kind, name, status, started_at, ended_at,
+         duration_ms, attrs_json, payload_ref, summary, decision_id, tool_use_id, agent_id, rationale,
+         pw_trace_path, between_calls)
+         VALUES (?, ?, ?, ?, ?, 'phase', 'settle', 'ok', ?, ?, 1, '{}', NULL, 'settled', NULL, NULL, NULL, NULL,
+         NULL, 0)`,
+      )
+      .run(newId(), bootId, ++seq, runId, callId, ts, ts);
+  };
+  const agentTurn = (runId: string) =>
+    raw
+      .prepare(
+        `INSERT INTO agent_turns (id, agent_id, agent_type, session_id, message_uuid, block_index, api_message_id,
+         run_id, role, kind, tool_use_id, tool_name, text, payload_ref, is_error, model, input_tokens,
+         output_tokens, cache_read_tokens, cache_creation_tokens, matched, created_at, imported_at)
+         VALUES (?, 'ag_1', 'crawler', NULL, ?, 0, NULL, ?, 'assistant', 'text', NULL, NULL, 'thinking', NULL,
+         NULL, NULL, NULL, NULL, NULL, NULL, 0, ?, ?)`,
+      )
+      .run(newId(), newId(), runId, ts, ts);
+  /** Never belongs to any portal (FR-016); untouched by every export/delete. */
+  const runlessSpan = () =>
+    raw
+      .prepare(
+        `INSERT INTO trace_spans (id, boot_id, seq, run_id, parent_id, kind, name, status, started_at, ended_at,
+         duration_ms, attrs_json, payload_ref, summary, decision_id, tool_use_id, agent_id, rationale,
+         pw_trace_path, between_calls)
+         VALUES (?, ?, ?, NULL, NULL, 'call', 'navigate', 'error', ?, ?, 1, '{}', NULL, 'refused preflight',
+         NULL, NULL, NULL, NULL, NULL, 0)`,
+      )
+      .run(newId(), bootId, ++seq, ts, ts);
+
   const shopRun = run('shop');
   const shopState = state('shop', shopRun, SHARED);
   const shopState2 = state2('shop', shopRun, SHOP_ONLY);
@@ -113,11 +165,16 @@ function seed() {
     )
     .run(newId(), shopRun, SHOP_ROBOTS, ts);
   note(shopRun);
+  spans(shopRun);
+  agentTurn(shopRun);
 
   const insurerRun = run('insurer');
   state('insurer', insurerRun, SHARED);
   state2('insurer', insurerRun, INSURER_ONLY);
   note(insurerRun);
+  spans(insurerRun);
+  agentTurn(insurerRun);
+  runlessSpan();
 
   function state2(portal: string, runId: string, evidenceRef: string) {
     const id = newId();
@@ -131,7 +188,7 @@ function seed() {
     return id;
   }
 
-  return { raw, evidence, shopRun, insurerRun, run };
+  return { raw, evidence, shopRun, insurerRun, bootId, run };
 }
 
 /** Every row of a portal, per table, as JSON, for byte-identity checks. */
@@ -166,6 +223,8 @@ describe('portal export (spec 002 FR-028, contracts/operator-cli.md)', () => {
       edges: 1,
       decision_log: 1,
       robots_policies: 1,
+      trace_spans: 2,
+      agent_turns: 1,
     });
     const manifest = JSON.parse(readFileSync(join(out, 'manifest.json'), 'utf8'));
     expect(manifest).toMatchObject({
@@ -173,7 +232,7 @@ describe('portal export (spec 002 FR-028, contracts/operator-cli.md)', () => {
       environment: 'sandbox',
       counts: r.counts,
       evidence_files: 4,
-      schema_version: '0002',
+      schema_version: '0003',
     });
     expect(typeof manifest.exported_at).toBe('string');
     for (const t of PORTAL_TABLES) expect(existsSync(join(out, `${t}.ndjson`))).toBe(true);
@@ -258,6 +317,11 @@ describe('portal delete (spec 002 FR-028, SC-008)', () => {
     const gone = JSON.parse(snapshotOf(s.raw, 'shop')) as Record<string, unknown[]>;
     for (const rows of Object.values(gone)) expect(rows).toEqual([]);
     expect(snapshotOf(s.raw, 'insurer')).toBe(before);
+    // run-less spans and trace_boots belong to no portal; never exported or deleted (FR-016)
+    expect(s.raw.prepare('SELECT count(*) AS n FROM trace_boots').get()).toEqual({ n: 1 });
+    expect(
+      s.raw.prepare('SELECT count(*) AS n FROM trace_spans WHERE run_id IS NULL').get(),
+    ).toEqual({ n: 1 });
     expect(readdirSync(s.evidence).sort()).toEqual([SHARED, INSURER_ONLY].sort());
     expect([SHARED, INSURER_ONLY].map((f) => readFileSync(join(s.evidence, f), 'utf8'))).toEqual(
       insurerFiles,

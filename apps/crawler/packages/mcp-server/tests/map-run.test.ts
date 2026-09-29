@@ -94,7 +94,11 @@ async function crawl(
   for (let i = 0; i < maxSteps; i++) {
     const next = await call('get_next_frontier_item', { run_id: runId });
     if (next.isError || !next.body.item) return;
-    await call('act', { run_id: runId, action_id: next.body.item.action_id });
+    await call('act', {
+      run_id: runId,
+      action_id: next.body.item.action_id,
+      rationale: 'exploring the next frontier item',
+    });
   }
 }
 
@@ -109,11 +113,15 @@ describe.skipIf(!available)('map run against the mock portal', () => {
       });
       const runId = start.body.run_id as string;
 
-      const home = await call('navigate', { run_id: runId, url: portal.origin + '/' });
+      const home = await call('navigate', {
+        run_id: runId,
+        url: portal.origin + '/',
+        rationale: 'exploring the target URL',
+      });
       expect(home.isError).toBe(false);
       expect(home.body.actions.length).toBeGreaterThan(5);
       await crawl(call, runId);
-      const fin = await call('finish_run', { run_id: runId });
+      const fin = await call('finish_run', { run_id: runId, rationale: 'frontier exhausted' });
       expect(fin).toMatchObject({ isError: false, body: { status: 'completed' } });
 
       const states = await ctx.db.selectFrom('states').selectAll().execute();
@@ -154,8 +162,16 @@ describe.skipIf(!available)('map run against the mock portal', () => {
     try {
       const runId = (await call('start_run', { portal_id: 'mock', persona_id: 'guest' })).body
         .run_id as string;
-      const a = await call('navigate', { run_id: runId, url: portal.origin + '/oferty' });
-      const b = await call('navigate', { run_id: runId, url: portal.origin + '/oferty/laptopy' });
+      const a = await call('navigate', {
+        run_id: runId,
+        url: portal.origin + '/oferty',
+        rationale: 'exploring the target URL',
+      });
+      const b = await call('navigate', {
+        run_id: runId,
+        url: portal.origin + '/oferty/laptopy',
+        rationale: 'exploring the target URL',
+      });
       expect(a.body.state_id).not.toBe(b.body.state_id);
       expect(b.body.cluster_id).toBe(a.body.cluster_id);
       const decisions = await ctx.db.selectFrom('decision_log').select(['kind', 'rule']).execute();
@@ -163,7 +179,11 @@ describe.skipIf(!available)('map run against the mock portal', () => {
         decisions.some((d) => d.kind === 'merge' && d.rule === 'fingerprint:similar-structure'),
       ).toBe(true);
 
-      const item = await call('navigate', { run_id: runId, url: portal.origin + '/oferta/1' });
+      const item = await call('navigate', {
+        run_id: runId,
+        url: portal.origin + '/oferta/1',
+        rationale: 'exploring the target URL',
+      });
       const byName = Object.fromEntries(item.body.actions.map((x: Body) => [x.accessible_name, x]));
       for (const name of ['Licytuj', 'Kup teraz', 'Pokaż numer telefonu']) {
         expect(byName[name]).toMatchObject({ allowed: false });
@@ -192,12 +212,26 @@ describe.skipIf(!available)('map run against the mock portal', () => {
     try {
       const runId = (await call('start_run', { portal_id: 'mock', persona_id: 'guest' })).body
         .run_id as string;
-      const item = await call('navigate', { run_id: runId, url: portal.origin + '/oferta/1' });
-      expect((await call('act', { run_id: runId, action_id: 'made-up-id' })).body.error.code).toBe(
-        'UNKNOWN_ACTION',
-      );
+      const item = await call('navigate', {
+        run_id: runId,
+        url: portal.origin + '/oferta/1',
+        rationale: 'exploring the target URL',
+      });
+      expect(
+        (
+          await call('act', {
+            run_id: runId,
+            action_id: 'made-up-id',
+            rationale: 'exploring the next frontier item',
+          })
+        ).body.error.code,
+      ).toBe('UNKNOWN_ACTION');
       const bid = item.body.actions.find((x: Body) => x.accessible_name === 'Licytuj');
-      const r = await call('act', { run_id: runId, action_id: bid.action_id });
+      const r = await call('act', {
+        run_id: runId,
+        action_id: bid.action_id,
+        rationale: 'exploring the next frontier item',
+      });
       expect(r).toMatchObject({
         isError: true,
         body: { error: { code: 'ACTION_REFUSED', rule: 'bidding→purchase' } },
@@ -239,9 +273,17 @@ describe.skipIf(!available)('map run against the mock portal', () => {
     try {
       const runId = (await call('start_run', { portal_id: 'mock', persona_id: 'guest' })).body
         .run_id as string;
-      await call('navigate', { run_id: runId, url: portal.origin + '/' });
+      await call('navigate', {
+        run_id: runId,
+        url: portal.origin + '/',
+        rationale: 'exploring the target URL',
+      });
       const before = portal.hits('/wyloguj').length;
-      const r = await call('navigate', { run_id: runId, url: portal.origin + '/wyloguj' });
+      const r = await call('navigate', {
+        run_id: runId,
+        url: portal.origin + '/wyloguj',
+        rationale: 'exploring the target URL',
+      });
       expect(r).toMatchObject({
         isError: true,
         body: { error: { code: 'ACTION_REFUSED', rule: 'logout' } },
@@ -249,12 +291,17 @@ describe.skipIf(!available)('map run against the mock portal', () => {
       const wystaw = await call('navigate', {
         run_id: runId,
         url: portal.origin + '/oferty/wystaw/nowa',
+        rationale: 'exploring the target URL',
       });
       expect(wystaw.body.error).toMatchObject({
         code: 'ACTION_REFUSED',
         rule: 'path:/oferty/wystaw/*',
       });
-      const ext = await call('navigate', { run_id: runId, url: 'http://ads.invalid/promo' });
+      const ext = await call('navigate', {
+        run_id: runId,
+        url: 'http://ads.invalid/promo',
+        rationale: 'exploring the target URL',
+      });
       expect(ext.body.error).toMatchObject({ code: 'ACTION_REFUSED', rule: 'scope:domain' });
       expect(portal.hits('/wyloguj').length).toBe(before);
     } finally {
@@ -268,9 +315,21 @@ describe.skipIf(!available)('map run against the mock portal', () => {
     try {
       const runId = (await call('start_run', { portal_id: 'mock', persona_id: 'guest' })).body
         .run_id as string;
-      await call('navigate', { run_id: runId, url: portal.origin + '/' });
-      await call('navigate', { run_id: runId, url: portal.origin + '/oferty' });
-      await call('navigate', { run_id: runId, url: portal.origin + '/oferta/2' });
+      await call('navigate', {
+        run_id: runId,
+        url: portal.origin + '/',
+        rationale: 'exploring the target URL',
+      });
+      await call('navigate', {
+        run_id: runId,
+        url: portal.origin + '/oferty',
+        rationale: 'exploring the target URL',
+      });
+      await call('navigate', {
+        run_id: runId,
+        url: portal.origin + '/oferta/2',
+        rationale: 'exploring the target URL',
+      });
       const mine = portal.requests.slice(from);
       expect(mine.length).toBeGreaterThanOrEqual(4);
       expect(mine.every((r) => r.userAgent === UA)).toBe(true);
@@ -286,11 +345,19 @@ describe.skipIf(!available)('map run against the mock portal', () => {
     try {
       const runId = (await call('start_run', { portal_id: 'mock', persona_id: 'guest' })).body
         .run_id as string;
-      const home = await call('navigate', { run_id: runId, url: portal.origin + '/' });
+      const home = await call('navigate', {
+        run_id: runId,
+        url: portal.origin + '/',
+        rationale: 'exploring the target URL',
+      });
       const first = await call('get_next_frontier_item', { run_id: runId });
       expect(first.body.item).toBeTruthy();
 
-      const blocked = await call('navigate', { run_id: runId, url: portal.origin + '/blocked' });
+      const blocked = await call('navigate', {
+        run_id: runId,
+        url: portal.origin + '/blocked',
+        rationale: 'exploring the target URL',
+      });
       expect(blocked).toMatchObject({ isError: true, body: { error: { code: 'RUN_STOPPED' } } });
       const run = await ctx.db
         .selectFrom('runs')
@@ -310,8 +377,18 @@ describe.skipIf(!available)('map run against the mock portal', () => {
       const count = portal.requests.length;
       for (let i = 0; i < 3; i++) {
         for (const [tool, args] of [
-          ['navigate', { run_id: runId, url: portal.origin + '/oferty' }],
-          ['act', { run_id: runId, action_id: home.body.actions[0].action_id }],
+          [
+            'navigate',
+            { run_id: runId, url: portal.origin + '/oferty', rationale: 'exploring the target URL' },
+          ],
+          [
+            'act',
+            {
+              run_id: runId,
+              action_id: home.body.actions[0].action_id,
+              rationale: 'exploring the next frontier item',
+            },
+          ],
           ['get_next_frontier_item', { run_id: runId }],
           ['add_open_question', { run_id: runId, text: 'x', about_ref: home.body.state_id }],
         ] as const) {
@@ -337,10 +414,18 @@ describe.skipIf(!available)('map run against the mock portal', () => {
     try {
       const runId = (await call('start_run', { portal_id: 'mock', persona_id: 'guest' })).body
         .run_id as string;
-      await call('navigate', { run_id: runId, url: portal.origin + '/' });
+      await call('navigate', {
+        run_id: runId,
+        url: portal.origin + '/',
+        rationale: 'exploring the target URL',
+      });
       for (let i = 0; i < 4; i++) {
         const next = await call('get_next_frontier_item', { run_id: runId });
-        await call('act', { run_id: runId, action_id: next.body.item.action_id });
+        await call('act', {
+          run_id: runId,
+          action_id: next.body.item.action_id,
+          rationale: 'exploring the next frontier item',
+        });
       }
       const edgesBefore = await ctx.db.selectFrom('edges').select('id').execute();
       const statesBefore = await ctx.db.selectFrom('states').select('id').execute();
@@ -377,7 +462,9 @@ describe.skipIf(!available)('map run against the mock portal', () => {
       ).toBe(pendingBefore.length);
 
       await crawl(call, runId);
-      expect((await call('finish_run', { run_id: runId })).body.status).toBe('completed');
+      expect(
+        (await call('finish_run', { run_id: runId, rationale: 'frontier exhausted' })).body.status,
+      ).toBe('completed');
 
       const edges = await ctx.db.selectFrom('edges').selectAll().execute();
       const keys = edges.map((e) => `${e.from_state}|${e.action_json}`);
@@ -397,14 +484,28 @@ describe.skipIf(!available)('map run against the mock portal', () => {
     try {
       const runId = (await call('start_run', { portal_id: 'mock', persona_id: 'guest' })).body
         .run_id as string;
-      const item = await call('navigate', { run_id: runId, url: portal.origin + '/oferta/1' });
+      const item = await call('navigate', {
+        run_id: runId,
+        url: portal.origin + '/oferta/1',
+        rationale: 'exploring the target URL',
+      });
       const act = (name: string) =>
         item.body.actions.find((x: Body) => x.accessible_name === name).action_id as string;
 
-      expect((await call('act', { run_id: runId, action_id: act('Wróć do listy') })).isError).toBe(
-        false,
-      );
-      await call('act', { run_id: runId, action_id: act('Licytuj') }); // refused, still recorded as a skipped transition
+      expect(
+        (
+          await call('act', {
+            run_id: runId,
+            action_id: act('Wróć do listy'),
+            rationale: 'exploring the next frontier item',
+          })
+        ).isError,
+      ).toBe(false);
+      await call('act', {
+        run_id: runId,
+        action_id: act('Licytuj'),
+        rationale: 'exploring the next frontier item',
+      }); // refused, still recorded as a skipped transition
 
       const edges = await ctx.db.selectFrom('edges').selectAll().execute();
       const byName = (name: string) =>

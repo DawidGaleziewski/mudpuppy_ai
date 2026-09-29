@@ -28,15 +28,15 @@ const tables = (o: OpenedDb) =>
     .sort();
 
 describe('migrations', () => {
-  it('finds 0001_init and 0002_portal_workspaces, each with an up and a down', () => {
-    expect(loadMigrations(MIGRATIONS).map((m) => m.version)).toEqual(['0001', '0002']);
+  it('finds 0001_init, 0002_portal_workspaces and 0003_trace, each with an up and a down', () => {
+    expect(loadMigrations(MIGRATIONS).map((m) => m.version)).toEqual(['0001', '0002', '0003']);
   });
 
   it('applies up in order, is idempotent, and reverts down to empty', () => {
     opened = openDb(':memory:');
-    expect(migrateUp(opened.raw, MIGRATIONS)).toEqual(['0001', '0002']);
+    expect(migrateUp(opened.raw, MIGRATIONS)).toEqual(['0001', '0002', '0003']);
     expect(migrateUp(opened.raw, MIGRATIONS)).toEqual([]);
-    expect(appliedVersions(opened.raw)).toEqual(['0001', '0002']);
+    expect(appliedVersions(opened.raw)).toEqual(['0001', '0002', '0003']);
     expect(tables(opened)).toEqual(
       expect.arrayContaining([
         'states',
@@ -44,8 +44,12 @@ describe('migrations', () => {
         'decision_log',
         'robots_policies',
         'portal_data_log',
+        'trace_boots',
+        'trace_spans',
+        'agent_turns',
       ]),
     );
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0003');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0002');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0001');
     expect(tables(opened)).toEqual(['schema_migrations']);
@@ -54,12 +58,174 @@ describe('migrations', () => {
 
   it('0002 applies and reverts on a DB holding 0001 data (up, up, down, down, up: round-trips cleanly)', () => {
     opened = openDb(':memory:');
-    expect(migrateUp(opened.raw, MIGRATIONS)).toEqual(['0001', '0002']);
+    expect(migrateUp(opened.raw, MIGRATIONS)).toEqual(['0001', '0002', '0003']);
     expect(migrateUp(opened.raw, MIGRATIONS)).toEqual([]);
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0003');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0002');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0001');
-    expect(migrateUp(opened.raw, MIGRATIONS)).toEqual(['0001', '0002']);
-    expect(appliedVersions(opened.raw)).toEqual(['0001', '0002']);
+    expect(migrateUp(opened.raw, MIGRATIONS)).toEqual(['0001', '0002', '0003']);
+    expect(appliedVersions(opened.raw)).toEqual(['0001', '0002', '0003']);
+  });
+
+  it('0003_trace applies and reverts on a DB holding 0001/0002 data (up, down, up round-trips cleanly)', () => {
+    opened = openDb(':memory:');
+    migrateUp(opened.raw, MIGRATIONS);
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0003');
+    expect(tables(opened)).not.toEqual(
+      expect.arrayContaining(['trace_boots', 'trace_spans', 'agent_turns']),
+    );
+    expect(tables(opened)).toEqual(expect.arrayContaining(['states', 'frontier', 'decision_log']));
+    expect(migrateUp(opened.raw, MIGRATIONS)).toEqual(['0003']);
+    expect(appliedVersions(opened.raw)).toEqual(['0001', '0002', '0003']);
+    expect(tables(opened)).toEqual(
+      expect.arrayContaining(['trace_boots', 'trace_spans', 'agent_turns']),
+    );
+  });
+});
+
+describe('trace tables (0003_trace)', () => {
+  // Raw better-sqlite3 statements throughout (not the Kysely `db` builder): these tables' Zod
+  // schemas and Kysely types land in a separate task; this test only exercises the migration's
+  // own CHECK/FK/UNIQUE constraints.
+  it('enforces Principle II-style CHECKs: enums, json shape, rationale length, duration requirement', () => {
+    opened = openDb(':memory:');
+    migrateUp(opened.raw, MIGRATIONS);
+    const { raw } = opened;
+    const ts = nowIso();
+    const bootId = newId();
+
+    raw
+      .prepare(
+        `INSERT INTO trace_boots (id, started_at, ended_at, environment, server, pid, version, trace_level, pw_trace)
+         VALUES (?, ?, NULL, 'sandbox', 'pathfinder', 1234, '0.0.0-test', 'standard', 'non_production')`,
+      )
+      .run(bootId, ts);
+
+    // bad enum on trace_boots.server
+    expect(() =>
+      raw
+        .prepare(
+          `INSERT INTO trace_boots (id, started_at, environment, server, pid, version, trace_level, pw_trace)
+           VALUES (?, ?, 'sandbox', 'other', 1, 'v', 'standard', 'non_production')`,
+        )
+        .run(newId(), ts),
+    ).toThrow();
+
+    const insertSpan = raw.prepare(
+      `INSERT INTO trace_spans
+         (id, boot_id, seq, run_id, parent_id, kind, name, status, started_at, ended_at,
+          duration_ms, attrs_json, payload_ref, summary, decision_id, tool_use_id, agent_id,
+          rationale, pw_trace_path, between_calls)
+       VALUES (@id, @boot_id, @seq, @run_id, @parent_id, @kind, @name, @status, @started_at, @ended_at,
+               @duration_ms, @attrs_json, @payload_ref, @summary, @decision_id, @tool_use_id, @agent_id,
+               @rationale, @pw_trace_path, @between_calls)`,
+    );
+    const baseSpan = {
+      id: undefined as unknown as string,
+      boot_id: bootId,
+      seq: undefined as unknown as number,
+      run_id: null,
+      parent_id: null as string | null,
+      kind: 'call',
+      name: 'navigate',
+      status: 'ok',
+      started_at: ts,
+      ended_at: ts as string | null,
+      duration_ms: 5 as number | null,
+      attrs_json: '{}',
+      payload_ref: null,
+      summary: 'ok',
+      decision_id: null,
+      tool_use_id: 'tu_1',
+      agent_id: null,
+      rationale: null as string | null,
+      pw_trace_path: null,
+      between_calls: 0,
+    };
+
+    const spanId = newId();
+    insertSpan.run({ ...baseSpan, id: spanId, seq: 1, rationale: 'checking the home page' });
+
+    // duration_ms required on a completed call
+    expect(() =>
+      insertSpan.run({
+        ...baseSpan,
+        id: newId(),
+        seq: 2,
+        tool_use_id: 'tu_2',
+        duration_ms: null,
+      }),
+    ).toThrow();
+
+    // rationale over 300 chars
+    expect(() =>
+      insertSpan.run({
+        ...baseSpan,
+        id: newId(),
+        seq: 3,
+        tool_use_id: 'tu_3',
+        status: 'running',
+        ended_at: null,
+        duration_ms: null,
+        rationale: 'x'.repeat(301),
+      }),
+    ).toThrow();
+
+    // duplicate (boot_id, seq)
+    expect(() =>
+      insertSpan.run({
+        ...baseSpan,
+        id: newId(),
+        seq: 1,
+        tool_use_id: 'tu_4',
+        status: 'running',
+        ended_at: null,
+        duration_ms: null,
+      }),
+    ).toThrow();
+
+    // attrs_json must be a JSON object, not just valid JSON
+    expect(() =>
+      insertSpan.run({
+        ...baseSpan,
+        id: newId(),
+        seq: 5,
+        parent_id: spanId,
+        kind: 'event',
+        name: 'note',
+        tool_use_id: null,
+        attrs_json: '[]',
+      }),
+    ).toThrow();
+
+    // agent_turns: bad role enum
+    expect(() =>
+      raw
+        .prepare(
+          `INSERT INTO agent_turns
+             (id, agent_id, agent_type, message_uuid, block_index, role, kind, matched, created_at, imported_at)
+           VALUES (?, 'a', 'crawler', 'm1', 0, 'system', 'text', 0, ?, ?)`,
+        )
+        .run(newId(), ts, ts),
+    ).toThrow();
+
+    // agent_turns: duplicate (agent_id, message_uuid, block_index)
+    raw
+      .prepare(
+        `INSERT INTO agent_turns
+           (id, agent_id, agent_type, message_uuid, block_index, role, kind, text, matched, created_at, imported_at)
+         VALUES (?, 'a', 'crawler', 'm1', 0, 'assistant', 'text', 'hi', 0, ?, ?)`,
+      )
+      .run(newId(), ts, ts);
+    expect(() =>
+      raw
+        .prepare(
+          `INSERT INTO agent_turns
+             (id, agent_id, agent_type, message_uuid, block_index, role, kind, text, matched, created_at, imported_at)
+           VALUES (?, 'a', 'crawler', 'm1', 0, 'user', 'text', 'dup', 0, ?, ?)`,
+        )
+        .run(newId(), ts, ts),
+    ).toThrow();
   });
 });
 

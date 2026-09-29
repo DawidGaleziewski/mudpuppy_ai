@@ -10,6 +10,9 @@
 </div>
 {% include "partials/run_header.html" %}
 <div class="section">
+  {%- if tab == "trace" %}
+  {% include "partials/trace_summary.html" %}
+  {%- endif %}
   {% include "partials/" ~ tab ~ ".html" %}
 </div>
 {% endblock %}

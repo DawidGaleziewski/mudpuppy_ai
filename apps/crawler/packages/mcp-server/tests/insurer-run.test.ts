@@ -128,6 +128,7 @@ describe.skipIf(!available)('insurer mock: robots.txt (spec 002 US1, SC-001, SC-
       const r = await call('navigate', {
         run_id: runId,
         url: mock.origin + '/formularze-online/?itm_campaign=x&cHash=02e3',
+        rationale: 'exploring the target URL',
       });
       expect(r).toMatchObject({
         isError: true,
@@ -223,6 +224,7 @@ describe.skipIf(!available)('insurer mock: configuration only, generic ids (spec
       const page = await call('navigate', {
         run_id: runId,
         url: mock.origin + '/ubezpieczenia/dom',
+        rationale: 'exploring the target URL',
       });
       const byName = Object.fromEntries(
         (page.body.actions as Body[]).map((a) => [a.accessible_name, a]),
@@ -236,7 +238,9 @@ describe.skipIf(!available)('insurer mock: configuration only, generic ids (spec
         skip_reason: expect.stringMatching(/^submit_request: /),
       });
       await crawl(call, runId, 300);
-      expect((await call('finish_run', { run_id: runId })).body.status).toBe('completed');
+      expect(
+        (await call('finish_run', { run_id: runId, rationale: 'frontier exhausted' })).body.status,
+      ).toBe('completed');
 
       const forms = await ctx.db.selectFrom('forms').select('fields_json').execute();
       const fields = forms.flatMap((f) => (JSON.parse(f.fields_json) as Body[]).map((x) => x.name));
@@ -286,15 +290,28 @@ describe.skipIf(!available)('insurer mock: spec 001 end-to-end checks (spec 002 
     try {
       const runId = (await call('start_run', { portal_id: 'insurer', persona_id: 'guest' })).body
         .run_id as string;
-      const home = await call('navigate', { run_id: runId, url: mock.origin + '/' });
-      const blocked = await call('navigate', { run_id: runId, url: mock.origin + '/blocked' });
+      const home = await call('navigate', {
+        run_id: runId,
+        url: mock.origin + '/',
+        rationale: 'exploring the target URL',
+      });
+      const blocked = await call('navigate', {
+        run_id: runId,
+        url: mock.origin + '/blocked',
+        rationale: 'exploring the target URL',
+      });
       expect(blocked.body.error.code).toBe('RUN_STOPPED');
       const run = await ctx.db.selectFrom('runs').selectAll().executeTakeFirstOrThrow();
       expect(run.status).toBe('stopped_warning');
       const count = mock.requests.length;
       expect(
-        (await call('act', { run_id: runId, action_id: home.body.actions[0].action_id })).body.error
-          .code,
+        (
+          await call('act', {
+            run_id: runId,
+            action_id: home.body.actions[0].action_id,
+            rationale: 'exploring the next frontier item',
+          })
+        ).body.error.code,
       ).toBe('RUN_STOPPED');
       expect(
         (
@@ -316,10 +333,18 @@ describe.skipIf(!available)('insurer mock: spec 001 end-to-end checks (spec 002 
     try {
       const runId = (await call('start_run', { portal_id: 'insurer', persona_id: 'guest' })).body
         .run_id as string;
-      await call('navigate', { run_id: runId, url: mock.origin + '/' });
+      await call('navigate', {
+        run_id: runId,
+        url: mock.origin + '/',
+        rationale: 'exploring the target URL',
+      });
       for (let i = 0; i < 3; i++) {
         const next = await call('get_next_frontier_item', { run_id: runId });
-        await call('act', { run_id: runId, action_id: next.body.item.action_id });
+        await call('act', {
+          run_id: runId,
+          action_id: next.body.item.action_id,
+          rationale: 'exploring the next frontier item',
+        });
       }
       const edgesBefore = (await ctx.db.selectFrom('edges').select('id').execute()).length;
       await runtime.closeAll();
@@ -332,7 +357,9 @@ describe.skipIf(!available)('insurer mock: spec 001 end-to-end checks (spec 002 
       expect(resumed.body).toMatchObject({ run_id: runId, resumed: true });
       expect(mock.hits('/robots.txt').length).toBe(2); // fetched again on resume
       await crawl(call, runId, 300);
-      expect((await call('finish_run', { run_id: runId })).body.status).toBe('completed');
+      expect(
+        (await call('finish_run', { run_id: runId, rationale: 'frontier exhausted' })).body.status,
+      ).toBe('completed');
       const edges = await ctx.db.selectFrom('edges').selectAll().execute();
       const keys = edges.map((e) => `${e.from_state}|${e.action_json}`);
       expect(new Set(keys).size).toBe(keys.length);
@@ -366,6 +393,7 @@ describe.skipIf(!available)('insurer mock: portal action rules (spec 002 US4)', 
       const page = await call('navigate', {
         run_id: runId,
         url: mock.origin + '/ubezpieczenia/dom',
+        rationale: 'exploring the target URL',
       });
       const byName = Object.fromEntries(
         (page.body.actions as Body[]).map((a) => [a.accessible_name, a]),
@@ -382,6 +410,7 @@ describe.skipIf(!available)('insurer mock: portal action rules (spec 002 US4)', 
       const direct = await call('navigate', {
         run_id: runId,
         url: mock.origin + '/przedluzenie/start',
+        rationale: 'exploring the target URL',
       });
       expect(direct.body.error).toMatchObject({ code: 'ACTION_REFUSED', rule: 'renew_policy' });
       expect(mock.hits('/przedluzenie')).toEqual([]);

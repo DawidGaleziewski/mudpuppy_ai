@@ -29,6 +29,13 @@ mapping) plus the status vocabulary for Pathfinder's records. It is mirrored in
 | decision | `warning` | `[WARN]` | `signal-error` | |
 | decision | `skip`, `refuse` | `[SKIP]`, `[RFSE]` | `ink-500` | rule column |
 | decision | `merge`, `split`, `note` | `[MRGE]`, `[SPLT]`, `[NOTE]` | `ink-100` | |
+| trace span | `ok` | `[ OK ]` | `brand` | |
+| trace span | `running` | `[RUN.]` | `accent-3` | live dot (pulse) |
+| trace span | `refused` | `[RFSE]` | `ink-500` | |
+| trace span | `stopped` | `[STOP]` | `signal-error` | |
+| trace span | `error` | `[FAIL]` | `signal-error` | |
+| trace span | `unfinished` | `[INCM]` | `signal-error` | crashed/earlier-boot span, swept at startup |
+| trace span kind | `phase`, `event` | `[PHSE]`, `[EVNT]` | `ink-100` | shown only in the expanded call detail |
 
 Red (`signal-error`) is used only where the crawl failed or stopped (rule 5); a safety skip is the
 system working, so it is muted, not red.

@@ -1,4 +1,4 @@
-import { maskText, newId, nowIso, type PathfinderDb } from '@pathfinder/core';
+import { maskText, newId, nowIso, emitForRun, shapeUrl, type PhaseName } from '@pathfinder/core';
 import {
   classifyCandidates,
   decide,
@@ -10,6 +10,7 @@ import {
   settleFrontierItem,
   type ClassifiedAction,
   type GateContext,
+  type SettleOutcome,
 } from '@pathfinder/crawler';
 import { computeFingerprint } from '@pathfinder/fingerprint';
 import { classifyAction, type ActionDescriptor, type Refusal } from '@pathfinder/safety';
@@ -26,7 +27,76 @@ import {
   recordTransition,
   type RunRow,
 } from '../services/index.js';
+import { recordObstacles } from './obstacles-trace.js';
+import { inPwGroup } from './pw-trace.js';
 import type { RunState } from './run-state.js';
+
+/** A timed stage of the current tool call (contracts/trace-spans.md); untraced outside a call. */
+function phase<T>(ctx: ServerContext, name: PhaseName, fn: () => Promise<T>): Promise<T> {
+  return ctx.tracer.phase(name, () => inPwGroup(name, fn));
+}
+
+/** `event obstacle` for every dismissal since the last flush (research §16). */
+function flushObstacles(ctx: ServerContext, state: RunState): void {
+  const events = state.session.obstacles.events;
+  const fresh = events.slice(state.obstacleCursor);
+  state.obstacleCursor = events.length;
+  if (fresh.length) recordObstacles(ctx.tracer, fresh);
+}
+
+/** Count the browser's requests for this call and emit their `request_aggregate` when it ends. */
+async function counted<T>(rs: RunState, fn: () => Promise<T>): Promise<T> {
+  rs.trace.beginCall();
+  try {
+    return await (rs.pw ? rs.pw.chunk(fn) : fn());
+  } finally {
+    rs.trace.endCall();
+  }
+}
+
+/** `event gate_decision` for an agent input (navigate URL or issued action). */
+function traceGate(
+  ctx: ServerContext,
+  rs: RunState,
+  input: { kind: 'navigate'; url: string } | { kind: 'act'; action: ActionRow },
+  d: ReturnType<typeof decide>,
+): void {
+  ctx.tracer.event('gate_decision', {
+    input_kind: input.kind,
+    ...(input.kind === 'navigate'
+      ? { url: shapeUrl(input.url, (u) => rs.peekRouteTemplate(u)) }
+      : {
+          action: {
+            role: input.action.role,
+            accessible_name: input.action.accessible_name,
+            nth: input.action.json.nth,
+          },
+        }),
+    safety_class: d.classification.safetyClass,
+    allowed: d.allowed,
+    rule: d.allowed ? null : d.rule,
+    reason: d.allowed ? null : d.reason,
+    ...(!d.allowed && d.policyId ? { policy_id: d.policyId } : {}),
+  });
+}
+
+/** The item-view cap (FR-024) with an `event item_cap` whenever the cap applies to the template. */
+async function itemCapChecked(
+  ctx: ServerContext,
+  rs: RunState,
+  runId: string,
+  routeTemplate: string,
+): Promise<Refusal | null> {
+  const cap = await rs.policy.itemCap(ctx.db, runId, routeTemplate);
+  if (!cap) return null;
+  ctx.tracer.event('item_cap', {
+    route_template: routeTemplate,
+    count: cap.count,
+    cap: cap.cap,
+    allowed: cap.refusal === null,
+  });
+  return cap.refusal;
+}
 
 async function usage(
   ctx: ServerContext,
@@ -80,6 +150,7 @@ export function navigationPolicy(rs: RunState): (url: string) => Refusal | null 
 /** Persist a detected block: `stopped_warning`, a decision-log warning, and nothing more (FR-008). Idempotent. */
 export function persistStop(ctx: ServerContext, rs: RunState, warning: string): Promise<void> {
   rs.stopPersisted ??= (async () => {
+    emitForRun(ctx.tracer, rs.runId, 'run_stop', { warning: maskText(warning) });
     await completeRun(
       ctx,
       { run_id: rs.runId, status: 'stopped_warning', warning },
@@ -126,20 +197,34 @@ export async function beginStep(
 }
 
 async function bumpRun(
-  db: PathfinderDb,
+  ctx: ServerContext,
   run: RunRow,
   startedAt: number,
   depth: number,
 ): Promise<void> {
-  await db
-    .updateTable('runs')
-    .set({
-      steps_used: run.steps_used + 1,
-      elapsed_ms: run.elapsed_ms + (Date.now() - startedAt),
-      max_depth_reached: Math.max(run.max_depth_reached, depth),
-    })
-    .where('id', '=', run.id)
-    .execute();
+  const counters = {
+    steps_used: run.steps_used + 1,
+    elapsed_ms: run.elapsed_ms + (Date.now() - startedAt),
+    max_depth_reached: Math.max(run.max_depth_reached, depth),
+  };
+  await ctx.db.updateTable('runs').set(counters).where('id', '=', run.id).execute();
+  ctx.tracer.event('run_status', { status: run.status, ...counters });
+}
+
+/** `event stabilization_timeout` when the page never settled (research §9). */
+function traceSettle(ctx: ServerContext, rs: RunState, outcome: SettleOutcome): void {
+  if (!outcome.diagnostics) return;
+  const d = outcome.diagnostics;
+  ctx.tracer.event('stabilization_timeout', {
+    timeout_ms: Math.round(outcome.waitedMs),
+    in_flight: d.inFlight.map((r) => ({
+      url: shapeUrl(r.url, (u) => rs.peekRouteTemplate(u)),
+      resource_type: r.resourceType,
+      age_ms: Math.round(r.ageMs),
+    })),
+    since_mutation_ms: d.sinceMutationMs === null ? null : Math.round(d.sinceMutationMs),
+    running_animations: d.runningAnimations,
+  });
 }
 
 export interface ActionRow {
@@ -207,54 +292,84 @@ async function processPage(
   depth: number,
 ): Promise<PageResult> {
   const { session } = rs;
-  const stabilization = await session.settle();
-  await throwIfStopped(ctx, rs);
-
-  const observed = await observePage(session.page);
-  const net = await session.recorder.drain();
-  await throwIfStopped(ctx, rs);
-
-  const masked = maskText(observed.ariaSnapshot);
-  const routeTemplate = rs.routeTemplateFor(observed.url);
-  const fp = computeFingerprint({ routeTemplate, ariaSnapshot: masked });
-  const assignment = rs.index.assign(fp);
-  await ctx.decisions.record({
-    run_id: run.id,
-    kind: assignment.decision.kind,
-    rule: `fingerprint:${assignment.decision.reason}`,
-    reason: `${assignment.decision.kind} into ${assignment.clusterId} (similarity ${assignment.decision.similarity.toFixed(2)}, threshold ${assignment.decision.threshold})`,
-    subject_ref: fp.level1,
-    detail: { matched: assignment.decision.matchedFingerprint, route_template: routeTemplate },
+  const stabilization = await phase(ctx, 'settle', async () => {
+    const outcome = await session.settleTraced();
+    traceSettle(ctx, rs, outcome);
+    flushObstacles(ctx, rs);
+    const result = outcome.result;
+    await throwIfStopped(ctx, rs);
+    return result;
   });
 
-  const evidenceRef = await ctx.evidence.storeText(masked, 'yaml');
-  const alreadyInRun = await ctx.db
-    .selectFrom('state_observations')
-    .innerJoin('states', 'states.id', 'state_observations.state_id')
-    .select('states.id')
-    .where('state_observations.run_id', '=', run.id)
-    .where('states.fingerprint', '=', fp.level1)
-    .executeTakeFirst();
-  const { state_id, created } = await recordState(ctx, {
-    run_id: run.id,
-    fingerprint: fp.level1,
-    cluster_id: assignment.clusterId,
-    route_template: routeTemplate,
-    title: maskText(observed.title),
-    evidence_ref: evidenceRef,
-    confidence: 'observed',
-    stabilization,
+  const observed = await phase(ctx, 'observe', () => observePage(session.page));
+  const net = await phase(ctx, 'net_drain', async () => {
+    const drained = await session.recorder.drain();
+    await throwIfStopped(ctx, rs);
+    return drained;
   });
-  const stateRow = await ctx.db
-    .selectFrom('states')
-    .select(['cluster_id', 'title', 'route_template'])
-    .where('id', '=', state_id)
-    .executeTakeFirstOrThrow();
+
+  const { masked, routeTemplate, fp, assignment } = await phase(ctx, 'fingerprint', async () => {
+    const masked = maskText(observed.ariaSnapshot);
+    const routeTemplate = rs.routeTemplateFor(observed.url);
+    const fp = computeFingerprint({ routeTemplate, ariaSnapshot: masked });
+    const assignment = rs.index.assign(fp);
+    await ctx.decisions.record({
+      run_id: run.id,
+      kind: assignment.decision.kind,
+      rule: `fingerprint:${assignment.decision.reason}`,
+      reason: `${assignment.decision.kind} into ${assignment.clusterId} (similarity ${assignment.decision.similarity.toFixed(2)}, threshold ${assignment.decision.threshold})`,
+      subject_ref: fp.level1,
+      detail: { matched: assignment.decision.matchedFingerprint, route_template: routeTemplate },
+    });
+    ctx.tracer.event('fingerprint_assign', {
+      route_template: routeTemplate,
+      level1: fp.level1,
+      decision: assignment.decision.kind,
+      cluster_id: assignment.clusterId,
+      matched: assignment.decision.matchedFingerprint ?? null,
+      similarity: assignment.decision.similarity,
+      threshold: assignment.decision.threshold,
+    });
+    return { masked, routeTemplate, fp, assignment };
+  });
+
+  const { evidenceRef, alreadyInRun, state_id, created, stateRow } = await phase(
+    ctx,
+    'record_state',
+    async () => {
+      const evidenceRef = await ctx.evidence.storeText(masked, 'yaml');
+      const alreadyInRun = await ctx.db
+        .selectFrom('state_observations')
+        .innerJoin('states', 'states.id', 'state_observations.state_id')
+        .select('states.id')
+        .where('state_observations.run_id', '=', run.id)
+        .where('states.fingerprint', '=', fp.level1)
+        .executeTakeFirst();
+      const { state_id, created } = await recordState(ctx, {
+        run_id: run.id,
+        fingerprint: fp.level1,
+        cluster_id: assignment.clusterId,
+        route_template: routeTemplate,
+        title: maskText(observed.title),
+        evidence_ref: evidenceRef,
+        confidence: 'observed',
+        stabilization,
+      });
+      const stateRow = await ctx.db
+        .selectFrom('states')
+        .select(['cluster_id', 'title', 'route_template'])
+        .where('id', '=', state_id)
+        .executeTakeFirstOrThrow();
+      ctx.tracer.event('state_recorded', { state_id, created, evidence_ref: evidenceRef });
+      return { evidenceRef, alreadyInRun, state_id, created, stateRow };
+    },
+  );
   if (!rs.depthByState.has(state_id)) rs.depthByState.set(state_id, depth);
 
   // Forms: recorded once per state, never submitted (FR-011).
-  let formCount = 0;
-  if (created) {
+  const formCount = await phase(ctx, 'record_forms', async () => {
+    let n = 0;
+    if (!created) return n;
     for (const f of observed.forms) {
       if (f.fields.length === 0) continue;
       await recordForm(ctx, {
@@ -264,30 +379,79 @@ async function processPage(
         evidence_ref: evidenceRef,
         confidence: 'observed',
       });
-      formCount += 1;
+      n += 1;
     }
-  }
+    return n;
+  });
 
   // Edge (for act) first: API calls observed during an action hang off it.
   let edgeId: string | undefined;
   if (via.kind === 'act') {
     const a = via.action;
     const transitionJson = withoutPageUrl(a.json);
-    edgeId = (
-      await recordTransition(ctx, {
-        run_id: run.id,
-        from_state: a.state_id,
-        to_state: state_id,
-        action: { role: a.role, accessible_name: a.accessible_name, ...transitionJson },
-        safety_class: classifyAction(descriptorOf(a), rs.ruleSet).safetyClass,
-        status: 'executed',
-        evidence_ref: evidenceRef,
-        confidence: 'observed',
-        stabilization,
-      })
-    ).edge_id;
+    edgeId = await phase(
+      ctx,
+      'record_transition',
+      async () =>
+        (
+          await recordTransition(ctx, {
+            run_id: run.id,
+            from_state: a.state_id,
+            to_state: state_id,
+            action: { role: a.role, accessible_name: a.accessible_name, ...transitionJson },
+            safety_class: classifyAction(descriptorOf(a), rs.ruleSet).safetyClass,
+            status: 'executed',
+            evidence_ref: evidenceRef,
+            confidence: 'observed',
+            stabilization,
+          })
+        ).edge_id,
+    );
   }
 
+  await phase(ctx, 'record_api_calls', () => recordNetwork(ctx, run, net, edgeId, state_id));
+
+  const issued = await phase(ctx, 'enqueue_frontier', () =>
+    issueAndEnqueue(ctx, run, rs, observed, {
+      state_id,
+      created,
+      evidenceRef,
+      alreadyInRun: alreadyInRun !== undefined,
+      routeTemplate,
+      clusterId: assignment.clusterId,
+      depth,
+    }),
+  );
+
+  rs.currentStateId = state_id;
+  rs.currentUrl = observed.url;
+
+  return {
+    state_id,
+    created,
+    cluster_id: stateRow.cluster_id,
+    title: stateRow.title,
+    route_template: stateRow.route_template,
+    forms: formCount,
+    actions: issued.map((a) => ({
+      action_id: a.actionId,
+      role: a.role,
+      accessible_name: a.name,
+      safety_class: a.safetyClass,
+      allowed: a.allowed,
+      ...(a.skip_reason ? { skip_reason: a.skip_reason } : {}),
+    })),
+    ...(edgeId ? { edge_id: edgeId } : {}),
+  };
+}
+
+async function recordNetwork(
+  ctx: ServerContext,
+  run: RunRow,
+  net: Awaited<ReturnType<RunState['session']['recorder']['drain']>>,
+  edgeId: string | undefined,
+  state_id: string,
+): Promise<void> {
   for (const call of net.calls) {
     try {
       await recordApiCall(ctx, {
@@ -317,7 +481,32 @@ async function processPage(
       detail: { errors: net.console_errors },
     });
   }
+}
 
+type IssuedAction = ClassifiedAction & {
+  actionId: string;
+  actionJson: unknown;
+  allowed: boolean;
+  skip_reason?: string;
+};
+
+/** Issue server action ids for the page's candidates and queue them for exploration (first visit only). */
+async function issueAndEnqueue(
+  ctx: ServerContext,
+  run: RunRow,
+  rs: RunState,
+  observed: Awaited<ReturnType<typeof observePage>>,
+  page: {
+    state_id: string;
+    created: boolean;
+    evidenceRef: string;
+    alreadyInRun: boolean;
+    routeTemplate: string;
+    clusterId: string;
+    depth: number;
+  },
+): Promise<IssuedAction[]> {
+  const { state_id, created, evidenceRef, alreadyInRun, routeTemplate, depth } = page;
   // Actions: server-issued ids, stable per (state, role, name, nth) so a revisit reuses them.
   const extracted = extractCandidates(observed.ariaSnapshot, observed.forms);
   const candidates = classifyCandidates(extracted, rs.ruleSet);
@@ -337,12 +526,7 @@ async function processPage(
     )?.id;
 
   const g = gateContext(rs, await usage(ctx, run, rs, 0));
-  const issued: (ClassifiedAction & {
-    actionId: string;
-    actionJson: unknown;
-    allowed: boolean;
-    skip_reason?: string;
-  })[] = [];
+  const issued: IssuedAction[] = [];
   for (const [ci, c] of candidates.entries()) {
     const d = decide({ kind: 'act', descriptor: c.descriptor, currentUrl: observed.url }, g);
     const json = {
@@ -384,20 +568,42 @@ async function processPage(
 
   // Queue for exploration only the first time this run sees the state, and only if the policy admits it.
   if (!alreadyInRun) {
-    const isNew = rs.policy.isNewCluster(assignment.clusterId);
-    const admission = rs.policy.admit({ clusterId: assignment.clusterId, routeTemplate, created });
+    const isNew = rs.policy.isNewCluster(page.clusterId);
+    const admission = rs.policy.admit({ clusterId: page.clusterId, routeTemplate, created });
     if (admission.expand) {
+      const priority = rs.policy.priorityFor(depth, isNew);
       const r = await enqueueActions({
         db: ctx.db,
         runId: run.id,
         stateId: state_id,
         depth,
-        priority: rs.policy.priorityFor(depth, isNew),
+        priority,
         currentUrl: observed.url,
         actions: issued,
         gate: g,
       });
+      const described = (actionId: string) => {
+        const a = issued.find((x) => x.actionId === actionId);
+        return a ? { role: a.role, accessible_name: a.name, nth: a.nth } : { action_id: actionId };
+      };
+      for (const q of r.enqueued)
+        ctx.tracer.event('frontier_enqueue', {
+          frontier_id: q.frontierId,
+          action: described(q.actionId),
+          safety_class: q.safetyClass,
+          priority,
+          depth,
+        });
       for (const s of r.skipped) {
+        ctx.tracer.event('frontier_skip', {
+          frontier_id: s.frontierId,
+          action: described(s.actionId),
+          safety_class: s.safetyClass,
+          priority,
+          depth,
+          rule: s.refusal.rule,
+          reason: s.refusal.reason,
+        });
         await ctx.decisions.record({
           run_id: run.id,
           kind: 'skip',
@@ -412,10 +618,20 @@ async function processPage(
         });
       }
     } else {
+      const frontierId = newId();
+      ctx.tracer.event('frontier_skip', {
+        frontier_id: frontierId,
+        action: { kind: 'expand', route_template: routeTemplate },
+        safety_class: 'read',
+        priority: 0,
+        depth,
+        rule: admission.rule,
+        reason: admission.reason,
+      });
       await ctx.db
         .insertInto('frontier')
         .values({
-          id: newId(),
+          id: frontierId,
           run_id: run.id,
           state_id,
           action_id: null,
@@ -439,26 +655,7 @@ async function processPage(
     }
   }
 
-  rs.currentStateId = state_id;
-  rs.currentUrl = observed.url;
-
-  return {
-    state_id,
-    created,
-    cluster_id: stateRow.cluster_id,
-    title: stateRow.title,
-    route_template: stateRow.route_template,
-    forms: formCount,
-    actions: issued.map((a) => ({
-      action_id: a.actionId,
-      role: a.role,
-      accessible_name: a.name,
-      safety_class: a.safetyClass,
-      allowed: a.allowed,
-      ...(a.skip_reason ? { skip_reason: a.skip_reason } : {}),
-    })),
-    ...(edgeId ? { edge_id: edgeId } : {}),
-  };
+  return issued;
 }
 
 async function refuse(
@@ -524,49 +721,65 @@ export async function navigate(
   rs: RunState | undefined,
   input: { run_id: string; url: string },
 ): Promise<PageResult> {
-  const run = await beginStep(ctx, rs, input.run_id);
-  const state = rs!;
-  const started = Date.now();
-  const g = gateContext(state, await usage(ctx, run, state, 0));
-  const d = decide({ kind: 'navigate', url: input.url }, g);
-  if (!d.allowed) {
-    return refuse(
-      ctx,
-      run,
-      state,
-      d,
-      input.url,
-      { kind: 'navigate', url: input.url },
-      d.classification.safetyClass,
-      state.currentStateId,
-      null,
-    );
-  }
-  let routeTemplate: string;
-  try {
-    routeTemplate = state.routeTemplateFor(input.url);
-  } catch {
-    routeTemplate = '/';
-  }
-  const cap = await state.policy.checkItemCap(ctx.db, run.id, routeTemplate);
-  if (cap)
-    return refuse(
-      ctx,
-      run,
-      state,
-      cap,
-      input.url,
-      { kind: 'navigate', url: input.url },
-      'read',
-      state.currentStateId,
-      null,
-    );
+  const run = await phase(ctx, 'begin_step', () => beginStep(ctx, rs, input.run_id));
+  return counted(rs!, () => navigateStep(ctx, run, rs!, input));
+}
 
-  await state.session.goto(input.url);
-  await throwIfStopped(ctx, state);
+async function navigateStep(
+  ctx: ServerContext,
+  run: RunRow,
+  state: RunState,
+  input: { run_id: string; url: string },
+): Promise<PageResult> {
+  const started = Date.now();
+  state.obstacleCursor = state.session.obstacles.events.length;
+  const g = await phase(ctx, 'gate', async () => {
+    const g = gateContext(state, await usage(ctx, run, state, 0));
+    const d = decide({ kind: 'navigate', url: input.url }, g);
+    traceGate(ctx, state, { kind: 'navigate', url: input.url }, d);
+    if (!d.allowed) {
+      return refuse(
+        ctx,
+        run,
+        state,
+        d,
+        input.url,
+        { kind: 'navigate', url: input.url },
+        d.classification.safetyClass,
+        state.currentStateId,
+        null,
+      );
+    }
+    let routeTemplate: string;
+    try {
+      routeTemplate = state.routeTemplateFor(input.url);
+    } catch {
+      routeTemplate = '/';
+    }
+    const cap = await itemCapChecked(ctx, state, run.id, routeTemplate);
+    if (cap)
+      return refuse(
+        ctx,
+        run,
+        state,
+        cap,
+        input.url,
+        { kind: 'navigate', url: input.url },
+        'read',
+        state.currentStateId,
+        null,
+      );
+    return g;
+  });
+
+  await phase(ctx, 'goto', async () => {
+    await state.session.goto(input.url);
+    await throwIfStopped(ctx, state);
+  });
   const depth = g.usage.depth;
   const result = await processPage(ctx, run, state, { kind: 'navigate' }, depth);
-  await bumpRun(ctx.db, run, started, depth);
+  await phase(ctx, 'run_bookkeeping', () => bumpRun(ctx, run, started, depth));
+  flushObstacles(ctx, state);
   return result;
 }
 
@@ -575,10 +788,158 @@ export async function act(
   rs: RunState | undefined,
   input: { run_id: string; action_id: string },
 ): Promise<PageResult> {
-  const run = await beginStep(ctx, rs, input.run_id);
-  const state = rs!;
+  const run = await phase(ctx, 'begin_step', () => beginStep(ctx, rs, input.run_id));
+  return counted(rs!, () => actStep(ctx, run, rs!, input));
+}
+
+async function actStep(
+  ctx: ServerContext,
+  run: RunRow,
+  state: RunState,
+  input: { run_id: string; action_id: string },
+): Promise<PageResult> {
   const started = Date.now();
-  const action = await getAction(ctx, run.id, input.action_id);
+  state.obstacleCursor = state.session.obstacles.events.length;
+  const { action, g, d } = await phase(ctx, 'gate', () =>
+    gateAct(ctx, run, state, input.action_id),
+  );
+
+  // Reach the state the action belongs to (through the same gates) when the browser is elsewhere.
+  if (state.currentStateId !== action.state_id) {
+    await phase(ctx, 'reach_state', async () => {
+      const to = action.json.page_url;
+      const nav = decide({ kind: 'navigate', url: to }, g);
+      traceGate(ctx, state, { kind: 'navigate', url: to }, nav);
+      if (!nav.allowed)
+        return refuse(
+          ctx,
+          run,
+          state,
+          nav,
+          to,
+          { kind: 'navigate', url: to },
+          nav.classification.safetyClass,
+          action.state_id,
+          action.id,
+        );
+      await state.session.goto(to);
+      await throwIfStopped(ctx, state);
+      traceSettle(ctx, state, await state.session.settleTraced());
+      await state.session.recorder.drain();
+    });
+  }
+
+  // FR-024: a link to another item page is refused once the item view cap is reached.
+  if (action.json.href) {
+    await phase(ctx, 'gate', async () => {
+      let target: string | undefined;
+      try {
+        target = new URL(action.json.href!, action.json.page_url).toString();
+      } catch {
+        /* unparseable href: no item-cap check, the gate already vetted the action */
+      }
+      if (!target) return;
+      const cap = await itemCapChecked(ctx, state, run.id, state.routeTemplateFor(target));
+      if (cap) {
+        return refuse(
+          ctx,
+          run,
+          state,
+          cap,
+          action.id,
+          { role: action.role, accessible_name: action.accessible_name },
+          'read',
+          action.state_id,
+          action.id,
+        );
+      }
+    });
+  }
+
+  const locatorAttrs = {
+    role: action.role,
+    accessible_name: action.accessible_name,
+    nth: action.json.nth,
+  };
+  const { locator, matches } = await phase(ctx, 'locate', async () => {
+    const all = state.session.page.getByRole(
+      action.role as never,
+      action.accessible_name ? { name: action.accessible_name, exact: true } : {},
+    );
+    const matches = await all.count();
+    const locator = all.nth(action.json.nth);
+    if ((await locator.count()) === 0) {
+      ctx.tracer.event('locator', { ...locatorAttrs, matches, outcome: 'absent' });
+      const refusal: Refusal = {
+        status: 'unreachable',
+        rule: 'unreachable',
+        reason: `${action.role} ${JSON.stringify(action.accessible_name)} is no longer present on ${action.json.page_url}`,
+      };
+      return refuse(
+        ctx,
+        run,
+        state,
+        refusal,
+        action.id,
+        { role: action.role, accessible_name: action.accessible_name },
+        d.classification.safetyClass,
+        action.state_id,
+        action.id,
+      );
+    }
+    return { locator, matches };
+  });
+  await phase(ctx, 'click', async () => {
+    try {
+      await locator.click({ timeout: 5000 });
+      ctx.tracer.event('locator', { ...locatorAttrs, matches, outcome: 'clicked' });
+    } catch (e) {
+      ctx.tracer.event('locator', {
+        ...locatorAttrs,
+        matches,
+        outcome: 'click_failed',
+        error: maskText((e as Error).message.split('\n')[0] ?? ''),
+      });
+      await throwIfStopped(ctx, state);
+      const refusal: Refusal = {
+        status: 'unreachable',
+        rule: 'click_failed',
+        reason: `click failed: ${(e as Error).message.split('\n')[0]}`,
+      };
+      return refuse(
+        ctx,
+        run,
+        state,
+        refusal,
+        action.id,
+        { role: action.role, accessible_name: action.accessible_name },
+        d.classification.safetyClass,
+        action.state_id,
+        action.id,
+      );
+    }
+    await throwIfStopped(ctx, state);
+  });
+
+  const fromDepth = state.depthByState.get(action.state_id) ?? 0;
+  const result = await processPage(ctx, run, state, { kind: 'act', action }, fromDepth + 1);
+  await phase(ctx, 'run_bookkeeping', async () => {
+    const pending = await pendingItemForAction(ctx.db, run.id, action.id);
+    if (pending) await settleFrontierItem(ctx.db, pending.id, 'done', null);
+    await bumpRun(ctx, run, started, fromDepth + 1);
+  });
+  flushObstacles(ctx, state);
+  return result;
+}
+
+/** Load the issued action and re-check it; refuses (and records a skipped edge) when not allowed. */
+async function gateAct(
+  ctx: ServerContext,
+  run: RunRow,
+  state: RunState,
+  actionId: string,
+): Promise<{ action: ActionRow; g: GateContext; d: ReturnType<typeof decide> }> {
+  const action = await getAction(ctx, run.id, actionId);
   const descriptor = descriptorOf(action);
 
   // The server re-derives the class and re-checks everything; nothing the agent says is trusted.
@@ -590,6 +951,7 @@ export async function act(
     .executeTakeFirstOrThrow();
   const g = gateContext(state, await usage(ctx, run, state, Number(priorActions.n)));
   const d = decide({ kind: 'act', descriptor, currentUrl: action.json.page_url }, g);
+  traceGate(ctx, state, { kind: 'act', action }, d);
   if (!d.allowed) {
     const stateEvidence = await ctx.db
       .selectFrom('states')
@@ -623,105 +985,5 @@ export async function act(
     );
   }
 
-  // Reach the state the action belongs to (through the same gates) when the browser is elsewhere.
-  if (state.currentStateId !== action.state_id) {
-    const to = action.json.page_url;
-    const nav = decide({ kind: 'navigate', url: to }, g);
-    if (!nav.allowed)
-      return refuse(
-        ctx,
-        run,
-        state,
-        nav,
-        to,
-        { kind: 'navigate', url: to },
-        nav.classification.safetyClass,
-        action.state_id,
-        action.id,
-      );
-    await state.session.goto(to);
-    await throwIfStopped(ctx, state);
-    await state.session.settle();
-    await state.session.recorder.drain();
-  }
-
-  // FR-024: a link to another item page is refused once the item view cap is reached.
-  if (action.json.href) {
-    let target: string | undefined;
-    try {
-      target = new URL(action.json.href, action.json.page_url).toString();
-    } catch {
-      /* unparseable href: no item-cap check, the gate already vetted the action */
-    }
-    if (target) {
-      const cap = await state.policy.checkItemCap(ctx.db, run.id, state.routeTemplateFor(target));
-      if (cap) {
-        return refuse(
-          ctx,
-          run,
-          state,
-          cap,
-          action.id,
-          { role: action.role, accessible_name: action.accessible_name },
-          'read',
-          action.state_id,
-          action.id,
-        );
-      }
-    }
-  }
-
-  const locator = state.session.page
-    .getByRole(
-      action.role as never,
-      action.accessible_name ? { name: action.accessible_name, exact: true } : {},
-    )
-    .nth(action.json.nth);
-  if ((await locator.count()) === 0) {
-    const refusal: Refusal = {
-      status: 'unreachable',
-      rule: 'unreachable',
-      reason: `${action.role} ${JSON.stringify(action.accessible_name)} is no longer present on ${action.json.page_url}`,
-    };
-    return refuse(
-      ctx,
-      run,
-      state,
-      refusal,
-      action.id,
-      { role: action.role, accessible_name: action.accessible_name },
-      d.classification.safetyClass,
-      action.state_id,
-      action.id,
-    );
-  }
-  try {
-    await locator.click({ timeout: 5000 });
-  } catch (e) {
-    await throwIfStopped(ctx, state);
-    const refusal: Refusal = {
-      status: 'unreachable',
-      rule: 'click_failed',
-      reason: `click failed: ${(e as Error).message.split('\n')[0]}`,
-    };
-    return refuse(
-      ctx,
-      run,
-      state,
-      refusal,
-      action.id,
-      { role: action.role, accessible_name: action.accessible_name },
-      d.classification.safetyClass,
-      action.state_id,
-      action.id,
-    );
-  }
-  await throwIfStopped(ctx, state);
-
-  const fromDepth = state.depthByState.get(action.state_id) ?? 0;
-  const result = await processPage(ctx, run, state, { kind: 'act', action }, fromDepth + 1);
-  const pending = await pendingItemForAction(ctx.db, run.id, action.id);
-  if (pending) await settleFrontierItem(ctx.db, pending.id, 'done', null);
-  await bumpRun(ctx.db, run, started, fromDepth + 1);
-  return result;
+  return { action, g, d };
 }

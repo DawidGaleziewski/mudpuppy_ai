@@ -45,7 +45,13 @@ const item = (id: number): string =>
     `<script>fetch('/api/offers/${id}').then(r=>r.json())</script>`,
   );
 
-export async function startMockPortal(): Promise<MockPortal> {
+export interface MockPortalOptions {
+  /** Adds `/polling` (never-settling fetch loop) and `/with-disallowed-asset` (robots-blocked asset), linked from `/`. */
+  MOCK_TRACE_PAGES?: boolean;
+}
+
+export async function startMockPortal(options: MockPortalOptions = {}): Promise<MockPortal> {
+  const { MOCK_TRACE_PAGES = false } = options;
   const requests: LoggedRequest[] = [];
   const server: Server = createServer((req: IncomingMessage, res) => {
     const url = new URL(req.url ?? '/', 'http://x');
@@ -72,7 +78,39 @@ export async function startMockPortal(): Promise<MockPortal> {
     }
     if (p === '/cookies') return html(SHARED_COOKIE_PAGE);
     if (p === '/')
-      return html(layout('Start', '<h1>Witamy</h1><p>Zobacz <a href="/oferty">oferty</a>.</p>'));
+      return html(
+        layout(
+          'Start',
+          `<h1>Witamy</h1><p>Zobacz <a href="/oferty">oferty</a>.</p>${
+            MOCK_TRACE_PAGES
+              ? '<p><a href="/polling">Polling</a> <a href="/with-disallowed-asset">Zasób zablokowany</a></p>'
+              : ''
+          }`,
+        ),
+      );
+    if (MOCK_TRACE_PAGES && p === '/polling')
+      return html(
+        layout(
+          'Polling',
+          '<h1>Polling</h1>',
+          // overlapping slow polls: a request is always in flight, so the page never settles
+          `<script>setInterval(()=>fetch('/api/poll'),100)</script>`,
+        ),
+      );
+    if (MOCK_TRACE_PAGES && p === '/api/poll')
+      return void setTimeout(() => json({ ok: true }), 250);
+    if (MOCK_TRACE_PAGES && p === '/with-disallowed-asset')
+      return html(
+        layout(
+          'Zasób zablokowany',
+          '<h1>Zasób zablokowany</h1>',
+          `<script>fetch('/admin/pixel.gif');fetch('/admin/pixel.gif')</script>`,
+        ),
+      );
+    if (MOCK_TRACE_PAGES && p === '/admin/pixel.gif') {
+      res.setHeader('content-type', 'image/gif');
+      return void res.end(Buffer.from('R0lGODlhAQABAAAAACw=', 'base64'));
+    }
     if (p === '/oferty')
       return html(
         url.searchParams.get('page') === '2'

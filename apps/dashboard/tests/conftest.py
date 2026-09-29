@@ -156,6 +156,58 @@ DEFAULTS: dict[str, dict[str, object]] = {
         "evidence_ref": EVIDENCE,
         "fetched_at": T0,
     },
+    "trace_boots": {
+        "started_at": T0,
+        "ended_at": None,
+        "environment": "production",
+        "server": "pathfinder",
+        "pid": 1,
+        "version": "0.0.0",
+        "trace_level": "standard",
+        "pw_trace": "non_production",
+    },
+    "trace_spans": {
+        "seq": 1,
+        "run_id": None,
+        "parent_id": None,
+        "kind": "call",
+        "status": "ok",
+        "started_at": T0,
+        "ended_at": T0,
+        "duration_ms": 10,
+        "attrs_json": "{}",
+        "payload_ref": None,
+        "summary": "",
+        "decision_id": None,
+        "tool_use_id": None,
+        "agent_id": None,
+        "rationale": None,
+        "pw_trace_path": None,
+        "between_calls": 0,
+    },
+    "agent_turns": {
+        "agent_id": "agent-1",
+        "agent_type": "crawler",
+        "session_id": None,
+        "block_index": 0,
+        "api_message_id": None,
+        "run_id": None,
+        "role": "assistant",
+        "kind": "text",
+        "tool_use_id": None,
+        "tool_name": None,
+        "text": None,
+        "payload_ref": None,
+        "is_error": None,
+        "model": None,
+        "input_tokens": None,
+        "output_tokens": None,
+        "cache_read_tokens": None,
+        "cache_creation_tokens": None,
+        "matched": 0,
+        "created_at": T0,
+        "imported_at": T0,
+    },
 }
 
 
@@ -165,6 +217,61 @@ def insert(conn: sqlite3.Connection, table: str, **row: object) -> None:
     cols = ", ".join(full)
     marks = ", ".join("?" for _ in full)
     conn.execute(f"INSERT INTO {table} ({cols}) VALUES ({marks})", tuple(full.values()))
+
+
+TRACE_SPAN_COLUMNS = (
+    "id", "boot_id", "seq", "run_id", "parent_id", "kind", "name", "status",
+    "started_at", "ended_at", "duration_ms", "attrs_json", "payload_ref", "summary",
+    "decision_id", "tool_use_id", "agent_id", "rationale", "pw_trace_path", "between_calls",
+)
+
+
+def make_trace_fixture(
+    conn: sqlite3.Connection, run_id: str, calls: int = 500, spans_per_call: int = 40
+) -> None:
+    """~`calls * spans_per_call` trace_spans (default 500 * 40 = 20 000) on one run, bulk-inserted
+    for speed: SC-005's perf shape (T042)."""
+    insert(conn, "trace_boots", id="perf-boot", started_at=T0)
+    tools = ("navigate", "act", "extract", "finish_run")
+    phase_names = ("gate", "goto", "settle", "observe", "fingerprint")
+    rows: list[tuple[object, ...]] = []
+    seq = 0
+
+    def row(
+        id_: str,
+        parent_id: str | None,
+        kind: str,
+        name: str,
+        duration_ms: int | None,
+        tool_use_id: str | None = None,
+    ) -> tuple[object, ...]:
+        return (
+            id_, "perf-boot", seq, run_id, parent_id, kind, name, "ok",
+            T0, T0 if duration_ms is not None else None, duration_ms, "{}", None, name,
+            None, tool_use_id, None, None, None, 0,
+        )
+
+    for i in range(calls):
+        seq += 1
+        call_id = f"perf-call-{i:05d}"
+        rows.append(row(call_id, None, "call", tools[i % len(tools)], 100, f"perf-tu-{i:05d}"))
+        for j in range(spans_per_call - 1):
+            seq += 1
+            is_phase = j % 2 == 0
+            rows.append(
+                row(
+                    f"{call_id}-c{j:02d}",
+                    call_id,
+                    "phase" if is_phase else "event",
+                    phase_names[j % len(phase_names)] if is_phase else "request",
+                    2 if is_phase else None,
+                )
+            )
+    conn.executemany(
+        f"INSERT INTO trace_spans ({', '.join(TRACE_SPAN_COLUMNS)})"
+        f" VALUES ({', '.join('?' for _ in TRACE_SPAN_COLUMNS)})",
+        rows,
+    )
 
 
 @dataclass

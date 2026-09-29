@@ -10,3 +10,4 @@ export type { Logger } from 'pino';
 export type { Selectable, Insertable } from 'kysely';
 export * from './audit.js';
 export * from './portal-data.js';
+export * from './trace/index.js';

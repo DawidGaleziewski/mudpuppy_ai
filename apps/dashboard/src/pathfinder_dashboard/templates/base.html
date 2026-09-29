@@ -20,6 +20,7 @@
     <nav aria-label="Main">
       <ul class="nav">
         <li><a href="{{ c.url('/') }}"{% if nav_current | default('overview') == 'overview' and not s %} aria-current="page"{% endif %}>Overview</a></li>
+        <li><a href="{{ c.url('/activity') }}"{% if nav_current == 'activity' %} aria-current="page"{% endif %}>Activity</a></li>
       </ul>
     </nav>
     <div class="topbar-end">

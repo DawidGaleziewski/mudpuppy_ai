@@ -90,15 +90,28 @@ export async function getNextFrontierItem(ctx: ServerContext, raw: unknown) {
     .orderBy('id', 'asc')
     .limit(1)
     .executeTakeFirst();
+  const pick = async (attrs: Record<string, unknown>): Promise<void> => {
+    if (ctx.tracer.level === 'off') return;
+    const { n } = await ctx.db
+      .selectFrom('frontier')
+      .select((eb) => eb.fn.countAll<number>().as('n'))
+      .where('run_id', '=', input.run_id)
+      .where('status', '=', 'pending')
+      .executeTakeFirstOrThrow();
+    ctx.tracer.event('frontier_pick', { ...attrs, pending: Number(n) });
+  };
   if (!row) {
-    return {
-      item: null,
-      reason: (await isBudgetExhausted(ctx, run))
-        ? ('budget_exhausted' as const)
-        : ('empty' as const),
-    };
+    const reason = (await isBudgetExhausted(ctx, run))
+      ? ('budget_exhausted' as const)
+      : ('empty' as const);
+    await pick({ reason });
+    return { item: null, reason };
   }
-  if (await isBudgetExhausted(ctx, run)) return { item: null, reason: 'budget_exhausted' as const };
+  if (await isBudgetExhausted(ctx, run)) {
+    await pick({ reason: 'budget_exhausted' });
+    return { item: null, reason: 'budget_exhausted' as const };
+  }
+  await pick({ frontier_id: row.id, priority: row.priority, depth: row.depth });
   return {
     item: {
       frontier_id: row.id,

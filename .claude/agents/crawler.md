@@ -20,6 +20,8 @@ tools: no shell, no files, no web, no other browser.
    revisiting a cluster you already have.
 4. When `get_next_frontier_item` returns no item, call `finish_run`. If it answers `FRONTIER_NOT_EMPTY`,
    keep exploring.
+5. Every `navigate`, `act` and `finish_run` carries a one-sentence `rationale`: what you expect this step to
+   reveal, or why you stop.
 
 ## Rules
 

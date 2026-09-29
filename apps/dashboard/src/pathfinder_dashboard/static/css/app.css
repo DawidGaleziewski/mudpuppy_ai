@@ -149,6 +149,32 @@ h2 {
   color: var(--ink-500);
 }
 
+fieldset.field {
+  display: inline-flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  border: none;
+  padding: 0;
+}
+
+fieldset.field > legend {
+  font-size: var(--text-label);
+  font-weight: var(--weight-medium);
+  color: var(--ink-500);
+  padding: 0;
+}
+
+.chip-check {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  min-height: var(--touch);
+  padding: 0 var(--space-1);
+  font-size: var(--text-body-sm);
+}
+
 /* status language: bracket text at body size, reads as data (ui-conventions.md) */
 .st {
   white-space: pre;
@@ -628,6 +654,129 @@ table.data th.num {
 .chips li {
   padding: var(--space-1) var(--space-2);
   border: var(--hairline) solid var(--border);
+  font-size: var(--text-body-sm);
+}
+
+/* trace: one call per <details> card (native disclosure = the expand control) */
+.trace-calls {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.trace-call {
+  border: var(--hairline) solid var(--border);
+  background: var(--surface-100);
+}
+
+.trace-call[open] {
+  background: var(--surface-200);
+}
+
+.trace-call > summary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  cursor: pointer;
+  min-height: var(--touch);
+}
+
+.trace-call > summary::-webkit-details-marker {
+  display: none;
+}
+
+.trace-call-seq {
+  color: var(--ink-500);
+  font-variant-numeric: tabular-nums;
+}
+
+.trace-call-tool {
+  font-weight: var(--weight-medium);
+}
+
+.trace-call-rationale {
+  flex: 1 1 20em;
+  color: var(--ink-100);
+}
+
+.trace-call-between {
+  border-style: dashed;
+}
+
+.trace-call-unmatched {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-3);
+}
+
+.trace-call-unmatched p {
+  flex-basis: 100%;
+  margin: 0;
+}
+
+.trace-detail {
+  padding: var(--space-3);
+  border-top: var(--hairline) solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.pw-cmd {
+  margin: 0;
+  padding: var(--space-2) var(--space-3);
+  background: var(--surface-0);
+  border: var(--hairline) solid var(--border);
+  overflow-x: auto;
+}
+
+.phase-bar {
+  display: flex;
+  height: var(--space-3);
+  border: var(--hairline) solid var(--border);
+  overflow: hidden;
+}
+
+.phase-bar-seg {
+  height: 100%;
+  border-right: var(--hairline) solid var(--surface-0);
+  background: var(--ink-500);
+}
+
+.phase-bar-seg.problem {
+  background: var(--signal-error);
+}
+
+.phase-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.phase-list > li {
+  padding: var(--space-1) var(--space-2);
+  border: var(--hairline) solid var(--border);
+}
+
+.phase-events {
+  margin: var(--space-1) 0 0;
+  padding: 0 0 0 var(--space-4);
+  list-style: none;
+  border-left: var(--hairline) dashed var(--border);
+}
+
+.phase-events > li {
+  padding: var(--space-1) 0 var(--space-1) var(--space-2);
   font-size: var(--text-body-sm);
 }
 

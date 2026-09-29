@@ -5,7 +5,9 @@ import {
   createDecisionLog,
   createEvidenceStore,
   createLogger,
+  createTracer,
   dbPathFor,
+  linkDecisions,
   migrateUp,
   openDb,
 } from '@pathfinder/core';
@@ -13,6 +15,7 @@ import type { ServerContext } from './context.js';
 import type { Runtime } from './runtime.js';
 import { interruptStaleRuns } from './services/index.js';
 import { createServer } from './tools/index.js';
+import { serverVersion, traceConfigFromEnv } from './trace-config.js';
 
 export interface BootOptions {
   /** Repo root holding `portals/`, `personas/`, `data/`, `.mcp.json`. */
@@ -30,22 +33,37 @@ export async function main(opts: BootOptions): Promise<void> {
   const opened = openDb(dbPathFor(dataDir, opts.environment));
   migrateUp(opened.raw, join(dataDir, 'migrations'));
   const logger = createLogger(); // stderr: stdout belongs to the MCP protocol
+  const evidence = createEvidenceStore(join(dataDir, 'evidence'));
+  const trace = traceConfigFromEnv(process.env);
+  if (trace.invalidLevel)
+    logger.warn({ value: trace.invalidLevel }, 'unknown PATHFINDER_TRACE_LEVEL, using standard');
+  const tracer = createTracer({ db: opened.db, logger, evidence, level: trace.level });
+  await tracer.start({
+    environment: opts.environment,
+    server: 'pathfinder',
+    version: serverVersion(root),
+    pwTrace: trace.pwTrace,
+  });
   const ctx: ServerContext = {
     db: opened.db,
     raw: opened.raw,
-    evidence: createEvidenceStore(join(dataDir, 'evidence')),
-    decisions: createDecisionLog(opened.db, logger),
+    evidence,
+    decisions: linkDecisions(createDecisionLog(opened.db, logger), tracer),
     logger,
+    tracer,
+    pwTrace: trace.pwTrace,
     root,
     dbEnvironment: opts.environment,
   };
   // No browser survives a restart: anything still marked running is resumable, not live.
   await interruptStaleRuns(ctx);
+  await tracer.sweepUnfinished();
   const server = createServer(ctx, opts.runtime);
   await server.connect(new StdioServerTransport());
   const shutdown = async (): Promise<void> => {
     await opts.runtime.closeAll();
     await interruptStaleRuns(ctx);
+    await tracer.shutdown();
     await opened.close();
     process.exit(0);
   };

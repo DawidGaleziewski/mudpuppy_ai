@@ -4,6 +4,8 @@ import type { EffectiveConfig, Scope } from '@pathfinder/config';
 import { FrontierPolicy, type BrowserSession } from '@pathfinder/crawler';
 import { portalRuleSet, type RuleSet } from '@pathfinder/safety';
 import type { RunRobots } from '../services/robots.js';
+import type { PwTrace } from './pw-trace.js';
+import type { RunTraceHooks } from './trace-hooks.js';
 
 /** In-memory, per-run browser-side state. Everything durable lives in the database. */
 export class RunState {
@@ -16,8 +18,12 @@ export class RunState {
   private templater: RouteTemplater | null = null;
   currentStateId: string | null = null;
   currentUrl: string | null = null;
+  /** Per-call Playwright trace chunks; null when not recorded for this run (research §13). */
+  pw: PwTrace | null = null;
   /** Resolves when a detected block has been persisted; undefined until one is detected. */
   stopPersisted: Promise<void> | undefined;
+  /** `session.obstacles.events` already reported for the current call (research §16). */
+  obstacleCursor = 0;
 
   constructor(
     readonly runId: string,
@@ -25,6 +31,8 @@ export class RunState {
     readonly effective: EffectiveConfig,
     readonly scope: Scope,
     readonly robots: RunRobots,
+    /** Request-level trace events of this run's browser (spec 005). */
+    readonly trace: RunTraceHooks,
   ) {
     const { portal } = effective;
     this.ruleSet = portalRuleSet(portal);
@@ -39,6 +47,28 @@ export class RunState {
    * for any URL it matches; otherwise it is inferred from every URL seen so far (research §2).
    */
   routeTemplateFor(url: string): string {
+    const item = this.itemTemplateOf(url);
+    if (item) return item;
+    if (!this.urls.includes(url)) {
+      this.urls.push(url);
+      this.templater = null;
+    }
+    this.templater ??= inferRouteTemplates(this.urls);
+    return this.templater.templateFor(url);
+  }
+
+  /**
+   * Route template for trace URL shaping only: never adds the URL to the inference set, so tracing
+   * cannot change the templates the crawl records (FR-014).
+   */
+  peekRouteTemplate(url: string): string {
+    const item = this.itemTemplateOf(url);
+    if (item) return item;
+    this.templater ??= inferRouteTemplates(this.urls);
+    return this.templater.templateFor(url);
+  }
+
+  private itemTemplateOf(url: string): string | undefined {
     const path = new URL(url).pathname;
     for (const t of this.effective.portal.item_route_templates) {
       const re = new RegExp(
@@ -51,11 +81,6 @@ export class RunState {
       );
       if (re.test(path)) return t;
     }
-    if (!this.urls.includes(url)) {
-      this.urls.push(url);
-      this.templater = null;
-    }
-    this.templater ??= inferRouteTemplates(this.urls);
-    return this.templater.templateFor(url);
+    return undefined;
   }
 }

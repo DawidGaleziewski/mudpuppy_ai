@@ -1,7 +1,13 @@
 import { describe, expect, it, vi } from 'vitest';
 import { createRateLimiter } from '../src/rate-limiter.js';
 import type { Refusal } from '@pathfinder/safety';
-import { createRequestGate, type RobotsPageNote, type StopEvent } from '../src/request-gate.js';
+import {
+  createRequestGate,
+  type RequestDecision,
+  type RequestGateOptions,
+  type RobotsPageNote,
+  type StopEvent,
+} from '../src/request-gate.js';
 import type { RobotsCheck } from '../src/robots-registry.js';
 
 interface FakeRoute {
@@ -327,5 +333,190 @@ describe('request gate: robots (FR-003, FR-009)', () => {
     expect(m.gate.robotsStats().pageRequestsAllowed).toBe(1);
     const nav = await m.c.request('https://www.x.pl/api/page', 'main');
     expect(nav.abort).toHaveBeenCalled();
+  });
+});
+
+describe('request gate: trace callbacks', () => {
+  type Reply = { status: number; location?: string };
+  const robotsReg = {
+    inScope: (url: string) => new URL(url).hostname.endsWith('x.pl'),
+    ensure: async () => null,
+    check: (url: string): RobotsCheck =>
+      url.includes('/api/')
+        ? { state: 'refused', rule: 'robots:Disallow: /api/', policyId: 'p1' }
+        : { state: 'allowed', rule: null },
+  };
+
+  function setup(over: Partial<RequestGateOptions> = {}, replies: Record<string, Reply> = {}) {
+    const decisions: RequestDecision[] = [];
+    const checks: { url: string; rule: string; action: string }[] = [];
+    const responses: { url: string; status: number; resourceType: string }[] = [];
+    const verdicts: { kind: string; status: number; url: string }[] = [];
+    let t = 0;
+    const limiter = createRateLimiter({ requestsPerSecond: 1000, maxConcurrency: 4 });
+    const gate = createRequestGate({
+      limiter,
+      userAgent: 'UA',
+      onStop: () => {},
+      now: () => (t += 7),
+      onRequestDecision: (d) => decisions.push(d),
+      onRobotsCheck: (c) => checks.push(c),
+      onResponse: (r) => responses.push(r),
+      onBlockVerdict: (v) => verdicts.push(v),
+      ...over,
+    });
+    let routeHandler!: (route: unknown, request: unknown) => Promise<void>;
+    let responseHandler!: (r: unknown) => Promise<void>;
+    const ctx = {
+      route: async (_p: string, h: typeof routeHandler) => void (routeHandler = h),
+      on: (_e: string, h: typeof responseHandler) => void (responseHandler = h),
+    };
+    const request = async (url: string, kind: 'main' | 'resource', method = 'GET') => {
+      const route = {
+        continue: vi.fn(async () => {}),
+        abort: vi.fn(async () => {}),
+        fulfill: vi.fn(async () => {}),
+        fetch: vi.fn(async () => {
+          const r = replies[url] ?? { status: 200 };
+          return {
+            status: () => r.status,
+            headers: () => (r.location ? { location: r.location } : {}),
+          };
+        }),
+      };
+      await routeHandler(route, {
+        headers: () => ({}),
+        isNavigationRequest: () => kind === 'main',
+        frame: () => ({ parentFrame: () => null }),
+        url: () => url,
+        method: () => method,
+        resourceType: () => (kind === 'main' ? 'document' : 'xhr'),
+      });
+      return route;
+    };
+    const respond = (url: string, status: number, body = '') =>
+      responseHandler({
+        url: () => url,
+        status: () => status,
+        headers: () => ({ 'content-type': 'text/html' }),
+        text: async () => body,
+        request: () => ({ resourceType: () => 'document' }),
+      });
+    return { gate, ctx, request, respond, decisions, checks, responses, verdicts, limiter };
+  }
+
+  it('reports a continued request with method, type, frame and limiter wait', async () => {
+    const s = setup();
+    await s.gate.install(s.ctx as never);
+    await s.request('https://cdn.test/a.js', 'resource', 'POST');
+    expect(s.decisions).toEqual([
+      {
+        url: 'https://cdn.test/a.js',
+        method: 'POST',
+        resourceType: 'xhr',
+        mainFrame: false,
+        decision: 'continue',
+        limiterWaitMs: 7,
+      },
+    ]);
+  });
+
+  it('reports a navigation-policy refusal with its rule', async () => {
+    const s = setup({
+      navigationPolicy: (u) =>
+        u.includes('/wyloguj') ? { status: 'denylisted', rule: 'logout', reason: 'no' } : null,
+    });
+    await s.gate.install(s.ctx as never);
+    await s.request('https://x.pl/wyloguj', 'main');
+    expect(s.decisions[0]).toMatchObject({
+      decision: 'abort',
+      reason: 'navigation_policy',
+      rule: 'logout',
+      mainFrame: true,
+      limiterWaitMs: 0,
+    });
+  });
+
+  it('reports every robots check, not only the first per template', async () => {
+    const s = setup({
+      robots: { registry: robotsReg, pageRequests: 'block', onNote: () => {} },
+    });
+    await s.gate.install(s.ctx as never);
+    await s.request('https://www.x.pl/api/items/1', 'resource');
+    await s.request('https://www.x.pl/api/items/1', 'resource');
+    expect(s.checks).toEqual([
+      { url: 'https://www.x.pl/api/items/1', rule: 'robots:Disallow: /api/', action: 'blocked' },
+      { url: 'https://www.x.pl/api/items/1', rule: 'robots:Disallow: /api/', action: 'blocked' },
+    ]);
+    expect(s.decisions.map((d) => [d.decision, d.reason, d.rule])).toEqual([
+      ['abort', 'robots', 'robots:Disallow: /api/'],
+      ['abort', 'robots', 'robots:Disallow: /api/'],
+    ]);
+    expect(s.gate.robotsStats().notes).toHaveLength(1);
+  });
+
+  it('marks an allowed-and-recorded robots request on the continue decision', async () => {
+    const s = setup({
+      robots: { registry: robotsReg, pageRequests: 'allow_and_record' },
+    });
+    await s.gate.install(s.ctx as never);
+    await s.request('https://www.x.pl/api/items/1', 'resource');
+    expect(s.decisions[0]).toMatchObject({
+      decision: 'continue',
+      robotsRule: 'robots:Disallow: /api/',
+    });
+  });
+
+  it('reports fulfilled navigations with status and refused redirects with their target', async () => {
+    const s = setup(
+      { robots: { registry: robotsReg, pageRequests: 'block' } },
+      {
+        'https://www.x.pl/go': { status: 302, location: '/api/x' },
+        'https://www.x.pl/moved': { status: 301, location: '/oferty' },
+      },
+    );
+    await s.gate.install(s.ctx as never);
+    await s.request('https://www.x.pl/oferty', 'main');
+    await s.request('https://www.x.pl/go', 'main');
+    await s.request('https://www.x.pl/moved', 'main');
+    expect(s.decisions.map((d) => [d.decision, d.status, d.reason, d.redirectTo])).toEqual([
+      ['fulfill', 200, undefined, undefined],
+      ['abort', 302, 'redirect_refused', 'https://www.x.pl/api/x'],
+      ['fulfill', 301, undefined, 'https://www.x.pl/oferty'],
+    ]);
+  });
+
+  it('reports requests aborted because the limiter is halted', async () => {
+    const s = setup();
+    await s.gate.install(s.ctx as never);
+    s.limiter.halt();
+    const r = await s.request('https://cdn.test/a.js', 'resource');
+    expect(r.abort).toHaveBeenCalled();
+    expect(s.decisions[0]).toMatchObject({ decision: 'abort', reason: 'limiter_halted' });
+  });
+
+  it('reports responses and block verdicts', async () => {
+    const s = setup();
+    await s.gate.install(s.ctx as never);
+    await s.respond('https://x.pl/', 200, '<h1>ok</h1>');
+    await s.respond('https://x.pl/', 403);
+    expect(s.responses).toEqual([
+      { url: 'https://x.pl/', status: 200, resourceType: 'document' },
+      { url: 'https://x.pl/', status: 403, resourceType: 'document' },
+    ]);
+    expect(s.verdicts).toEqual([
+      { kind: 'http_403', status: 403, url: 'https://x.pl/', warning: expect.any(String) },
+    ]);
+  });
+
+  it('never lets a throwing callback change what the gate does', async () => {
+    const s = setup({
+      onRequestDecision: () => {
+        throw new Error('trace broke');
+      },
+    });
+    await s.gate.install(s.ctx as never);
+    const r = await s.request('https://cdn.test/a.js', 'resource');
+    expect(r.continue).toHaveBeenCalled();
   });
 });

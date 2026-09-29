@@ -1,0 +1,19 @@
+{
+  "hooks": {
+    "PreToolUse": [],
+    "PostToolUse": [],
+    "SessionStart": [],
+    "SessionEnd": [],
+    "SubagentStop": [
+      {
+        "matcher": "crawler",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "pnpm --silent --dir apps/crawler trace:import-agent --hook"
+          }
+        ]
+      }
+    ]
+  }
+}

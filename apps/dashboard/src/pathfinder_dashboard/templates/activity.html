@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block title %}Activity{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <p class="crumbs"><a href="{{ c.url('/') }}">Overview</a> / activity</p>
+    <h1>Server activity</h1>
+  </div>
+  <p class="caption">tool calls made outside any run (FR-016) · read-only</p>
+</div>
+<div class="section">
+  {% include "partials/activity_rows.html" %}
+</div>
+{% endblock %}

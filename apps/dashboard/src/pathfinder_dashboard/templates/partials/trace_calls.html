@@ -1,0 +1,116 @@
+{% import "partials/macros.html" as m %}
+{% set v = section %}
+{% call m.region("trace", v.self_url, "Trace") %}
+  <div class="section-head">
+    <h2>Tool calls <span class="muted mono-num">{{ v.page.total }}</span></h2>
+    {% call m.filter_form(v, c, {"tab": "trace"}) %}
+      <fieldset class="field">
+        <legend>tool</legend>
+        {%- for t in v.tool_options %}
+        <label class="chip-check">
+          <input type="checkbox" name="tool" value="{{ t }}" {% if t in v.filters.tool %}checked{% endif %}>
+          {{ t }}
+        </label>
+        {%- endfor %}
+      </fieldset>
+      <fieldset class="field">
+        <legend>status</legend>
+        {%- for st in v.status_options %}
+        <label class="chip-check">
+          <input type="checkbox" name="status" value="{{ st }}" {% if st in v.filters.status %}checked{% endif %}>
+          {{ st }}
+        </label>
+        {%- endfor %}
+      </fieldset>
+      <fieldset class="field">
+        <legend>&nbsp;</legend>
+        <label class="chip-check">
+          <input type="checkbox" name="problems" value="1" {% if v.problems %}checked{% endif %}>
+          problems only
+        </label>
+      </fieldset>
+    {% endcall %}
+  </div>
+  {%- if not v.page["items"] %}
+    {{ m.empty(
+      "No trace recorded for this run"
+        if not v.filters.tool and not v.filters.status and not v.problems
+        else "No problems in this run" if v.problems and not v.filters.tool and not v.filters.status
+        else "No calls match these filters",
+      "It predates tracing or never reached the server."
+        if not v.filters.tool and not v.filters.status and not v.problems
+        else "Every call and decision completed as expected." if v.problems and not v.filters.tool and not v.filters.status
+        else "Try clearing the tool, status or problems filters."
+    ) }}
+  {%- else %}
+  <ul class="trace-calls">
+    {%- for s in v.page["items"] %}
+    <li>
+      <details id="trace-call-{{ s.id }}" class="trace-call{% if s.between_calls %} trace-call-between{% endif %}"
+                hx-get="{{ c.url('/fragments/spans/' ~ s.id ~ '/children') }}"
+                hx-trigger="toggle once" hx-target="find .trace-phases" hx-swap="innerHTML">
+        <summary>
+          <span class="trace-call-seq mono-num">#{{ s.seq }}</span>
+          <span class="trace-call-tool">{{ s.name }}</span>
+          {{ m.span_status(s.status) }}
+          <span class="mono-num">{{ s.duration_ms | duration }}</span>
+          <span class="trace-call-rationale">{% if s.rationale %}<em>agent-stated:</em> {{ s.rationale }}{% else %}<span class="muted">no rationale recorded</span>{% endif %}</span>
+        </summary>
+        <div class="trace-detail">
+          {%- set ac = v.agent_ctx.by_tool_use_id.get(s.tool_use_id) if s.tool_use_id else none %}
+          <dl class="facts">
+            <div><dt>agent tokens</dt><dd>
+              {%- if not v.agent_ctx.imported -%}
+                <span class="muted">not imported — run <code>pnpm trace:import-agent --agent-id &lt;id&gt;</code></span>
+              {%- elif ac and ac.usage -%}
+                <span class="mono-num">{{ ac.usage.input_tokens or 0 }} in / {{ ac.usage.output_tokens or 0 }} out</span>
+                {%- if ac.usage.cache_read_tokens %} <span class="muted">({{ ac.usage.cache_read_tokens }} cache read)</span>{% endif %}
+              {%- else -%}
+                <span class="muted">no matching agent turn</span>
+              {%- endif -%}
+            </dd></div>
+            <div><dt>preceding agent text</dt><dd>
+              {%- if not v.agent_ctx.imported -%}
+                <span class="muted">not imported — run <code>pnpm trace:import-agent --agent-id &lt;id&gt;</code></span>
+              {%- elif ac and ac.text -%}
+                {{ ac.text }}
+              {%- else -%}
+                <span class="muted">none</span>
+              {%- endif -%}
+            </dd></div>
+            <div><dt>tool_use_id</dt><dd><code>{{ s.tool_use_id or "—" }}</code></dd></div>
+          </dl>
+          {{ m.json_block(s.attrs_json, "input / attrs") }}
+          <p>{% if s.payload_ref %}payload <span class="evidence">{{ s.payload_ref }}</span>{% else %}<span class="muted">no payload stored</span>{% endif %}</p>
+          {%- if s.pw_trace_path %}
+          <div>
+            <p class="muted">Playwright trace</p>
+            <pre class="pw-cmd"><code>npx playwright show-trace data/{{ s.pw_trace_path }}</code></pre>
+          </div>
+          {%- endif %}
+          <div class="trace-phases">
+            <span class="muted caret" aria-hidden="true">loading phases</span>
+          </div>
+        </div>
+      </details>
+    </li>
+    {%- endfor %}
+  </ul>
+  {{ m.pager(v, v.page.total, v.page["items"] | length) }}
+  {%- endif %}
+  {%- if v.agent_ctx.unmatched_agent_calls %}
+  <div class="section-head">
+    <h3>Never reached server <span class="muted mono-num">{{ v.agent_ctx.unmatched_agent_calls | length }}</span></h3>
+  </div>
+  <ul class="trace-calls">
+    {%- for u in v.agent_ctx.unmatched_agent_calls %}
+    <li class="trace-call trace-call-unmatched">
+      <span class="st st-fail">[N/SRV]</span> <span class="status-text">never reached server</span>
+      <span class="trace-call-tool">{{ u.turn.tool_name }}</span>
+      <span class="mono-num">{{ u.turn.created_at | when }}</span>
+      {%- if u.text %}<p class="muted">{{ u.text }}</p>{% endif %}
+    </li>
+    {%- endfor %}
+  </ul>
+  {%- endif %}
+{% endcall %}

@@ -1,0 +1,32 @@
+{% import "partials/macros.html" as m %}
+{% set v = activity %}
+{% call m.region("activity", v.self_url, "Server activity") %}
+  <div class="section-head"><h2>Run-less calls <span class="muted mono-num">{{ v.page.total }}</span></h2></div>
+  {%- if not v.page["items"] %}
+    {{ m.empty("No run-less calls recorded", "Every tool call so far happened inside a run.") }}
+  {%- else %}
+  <div class="table-wrap">
+    <table class="data stack">
+      <caption class="visually-hidden">Run-less tool calls, newest first</caption>
+      <thead><tr>
+        <th scope="col">Tool</th><th scope="col">Status</th><th scope="col">Summary</th>
+        <th scope="col">Rationale</th>
+        <th scope="col" class="num">Duration</th><th scope="col">Started (UTC)</th>
+      </tr></thead>
+      <tbody>
+        {%- for s in v.page["items"] %}
+        <tr>
+          <td data-label="tool">{{ s.name }}</td>
+          <td data-label="status">{{ m.span_status(s.status) }}</td>
+          <td data-label="summary">{{ s.summary or "—" }}</td>
+          <td data-label="rationale">{% if s.rationale %}<em>agent-stated:</em> {{ s.rationale }}{% else %}<span class="muted">—</span>{% endif %}</td>
+          <td data-label="duration" class="num mono-num">{{ s.duration_ms | duration }}</td>
+          <td data-label="started" class="nowrap">{{ s.started_at | when }}</td>
+        </tr>
+        {%- endfor %}
+      </tbody>
+    </table>
+    {{ m.pager(v, v.page.total, v.page["items"] | length) }}
+  </div>
+  {%- endif %}
+{% endcall %}

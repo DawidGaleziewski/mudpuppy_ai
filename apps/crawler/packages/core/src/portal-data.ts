@@ -22,11 +22,20 @@ export const PORTAL_TABLES = [
   'rule_candidates',
   'decision_log',
   'robots_policies',
+  'trace_spans',
+  'agent_turns',
 ] as const;
 export type PortalTable = (typeof PORTAL_TABLES)[number];
 
-/** Children before parents, so every foreign key still holds at each step. */
+/**
+ * Children before parents, so every foreign key still holds at each step. `trace_spans` and
+ * `agent_turns` come before `decision_log` (spans reference it) and `runs`; `trace_spans`'
+ * self-reference (`parent_id`) is cleared first (see `deletePortal`), so its own position in this
+ * list only has to precede `decision_log` and `runs`.
+ */
 const DELETE_ORDER: readonly PortalTable[] = [
+  'trace_spans',
+  'agent_turns',
   'decision_log',
   'network_calls',
   'frontier',
@@ -230,6 +239,8 @@ export function planPortalDelete(opts: {
 export function deletePortal(opts: {
   raw: Raw;
   evidenceDir: string;
+  /** `data/traces` (portal-scoped Playwright trace zips); its `<portal>/` subdir is removed too. */
+  tracesDir?: string;
   portal: string;
   environment: string;
   operator: string;
@@ -241,6 +252,11 @@ export function deletePortal(opts: {
       throw new PortalDataError(
         `portal "${portal}" has a running run (${p.running.join(', ')}); finish or interrupt it first`,
       );
+    // Clear trace_spans' self-reference first so children never outlive the parent row they
+    // point at within this single-statement-per-table delete pass.
+    raw
+      .prepare(`UPDATE trace_spans SET parent_id = NULL WHERE ${where('trace_spans', 'mine')}`)
+      .run(portal);
     for (const t of DELETE_ORDER)
       raw.prepare(`DELETE FROM ${t} WHERE ${where(t, 'mine')}`).run(portal);
     log(raw, {
@@ -264,5 +280,6 @@ export function deletePortal(opts: {
       rmSync(join(opts.evidenceDir, ref), { force: true });
     }
   }
+  if (opts.tracesDir) rmSync(join(opts.tracesDir, portal), { recursive: true, force: true });
   return plan;
 }

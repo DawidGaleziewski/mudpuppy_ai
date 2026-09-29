@@ -15,6 +15,9 @@ data/evidence/*
 !data/evidence/.gitkeep
 data/exports/*
 !data/exports/.gitkeep
+# Unscrubbed per-call Playwright traces (research §13 of specs/005-crawl-run-observability-trace)
+data/traces/*
+!data/traces/.gitkeep
 
 # SQLite side files, wherever a DB ends up
 *.sqlite

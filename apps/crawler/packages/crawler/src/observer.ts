@@ -1,5 +1,6 @@
 /// <reference lib="dom" />
 import type { Page } from 'playwright';
+import { evalInPage } from './pw-eval.js';
 
 export interface DomFormField {
   name: string;
@@ -31,7 +32,7 @@ export function captureAria(page: Page): Promise<string> {
  * fires `invalid` events but never submits.
  */
 export function extractForms(page: Page): Promise<DomForm[]> {
-  return page.evaluate(() => {
+  return evalInPage(page, () => {
     const SKIP = new Set(['hidden', 'submit', 'button', 'image', 'reset']);
     const nameOf = (f: HTMLFormElement): string => {
       const labelled = f.getAttribute('aria-labelledby');
@@ -105,7 +106,7 @@ export interface DomTestId {
 
 /** Elements exposing `data-testid`, with the role and name needed to join them to ARIA candidates. */
 export function extractTestIds(page: Page): Promise<DomTestId[]> {
-  return page.evaluate(() => {
+  return evalInPage(page, () => {
     const IMPLICIT: Record<string, string> = {
       a: 'link',
       button: 'button',

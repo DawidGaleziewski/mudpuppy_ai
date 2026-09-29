@@ -7,11 +7,14 @@ import {
   createDecisionLog,
   createEvidenceStore,
   createLogger,
+  createTracer,
+  linkDecisions,
   migrateUp,
   newId,
   nowIso,
   openDb,
   type OpenedDb,
+  type TracerDeps,
 } from '@pathfinder/core';
 import type { ServerContext } from '../src/context.js';
 
@@ -22,21 +25,37 @@ afterEach(async () => {
   for (const c of cleanups.splice(0)) await c();
 });
 
-export async function makeCtx(): Promise<ServerContext & { dir: string; opened: OpenedDb }> {
+/** Tracer options for a test context: fixed clock/ids for golden tests, or a level. */
+export type TraceOverrides = Partial<Pick<TracerDeps, 'now' | 'monotonic' | 'newId' | 'level'>>;
+
+export async function makeCtx(
+  trace: TraceOverrides = {},
+): Promise<ServerContext & { dir: string; opened: OpenedDb }> {
   const dir = mkdtempSync(join(tmpdir(), 'pf-mcp-'));
   const opened = openDb(':memory:');
   migrateUp(opened.raw, MIGRATIONS);
   const logger = createLogger({ level: 'silent' });
+  const evidence = createEvidenceStore(join(dir, 'evidence'));
+  const tracer = createTracer({ db: opened.db, logger, evidence, level: 'standard', ...trace });
+  await tracer.start({
+    environment: 'sandbox',
+    server: 'pathfinder',
+    version: 'test',
+    pwTrace: 'non_production',
+  });
   cleanups.push(async () => {
+    await tracer.shutdown();
     await opened.close();
     rmSync(dir, { recursive: true, force: true });
   });
   return {
     db: opened.db,
     raw: opened.raw,
-    evidence: createEvidenceStore(join(dir, 'evidence')),
-    decisions: createDecisionLog(opened.db, logger),
+    evidence,
+    decisions: linkDecisions(createDecisionLog(opened.db, logger), tracer),
     logger,
+    tracer,
+    pwTrace: 'non_production',
     root: dir,
     dbEnvironment: 'production',
     // No test reaches the network: robots.txt answers 404 (no rules) unless a test overrides it.

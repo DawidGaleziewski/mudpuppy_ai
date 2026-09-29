@@ -1,6 +1,10 @@
 import { chromium, type Browser, type BrowserContext, type Page } from 'playwright';
 import type { EffectiveConfig } from '@pathfinder/config';
-import { registerObstacleHandlers, type ObstacleHandlers } from '@pathfinder/obstacles';
+import {
+  registerObstacleHandlers,
+  type ObstacleEvent,
+  type ObstacleHandlers,
+} from '@pathfinder/obstacles';
 import type { Refusal } from '@pathfinder/safety';
 import { NetworkRecorder } from './network-recorder.js';
 import { createRateLimiter, type RateLimiter } from './rate-limiter.js';
@@ -11,9 +15,11 @@ import {
   type StopEvent,
 } from './request-gate.js';
 import {
-  settle,
+  settleWithDiagnostics,
   trackNetworkActivity,
   type NetworkActivity,
+  type NetworkActivityOptions,
+  type SettleOutcome,
   type StabilizationResult,
   type StabilizerOptions,
 } from './stabilizer.js';
@@ -31,6 +37,12 @@ export interface SessionOptions {
   robots: NonNullable<RequestGateOptions['robots']>;
   headless?: boolean;
   stabilizer?: StabilizerOptions;
+  /** Observability hooks handed to the request gate (spec 005); they never change its behaviour. */
+  observe?: Pick<
+    RequestGateOptions,
+    'onRequestDecision' | 'onRobotsCheck' | 'onResponse' | 'onBlockVerdict'
+  > &
+    NetworkActivityOptions;
 }
 
 /** Non-production portals may omit `rate_limit`; be gentle anyway. */
@@ -87,10 +99,20 @@ export class BrowserSession {
         ...(opts.navigationPolicy ? { navigationPolicy: opts.navigationPolicy } : {}),
         ...(opts.onNavigationRefused ? { onNavigationRefused: opts.onNavigationRefused } : {}),
         robots: opts.robots,
+        ...(opts.observe?.onRequestDecision
+          ? { onRequestDecision: opts.observe.onRequestDecision }
+          : {}),
+        ...(opts.observe?.onRobotsCheck ? { onRobotsCheck: opts.observe.onRobotsCheck } : {}),
+        ...(opts.observe?.onResponse ? { onResponse: opts.observe.onResponse } : {}),
+        ...(opts.observe?.onBlockVerdict ? { onBlockVerdict: opts.observe.onBlockVerdict } : {}),
       });
       await gate.install(context);
       const page = await context.newPage();
-      const net = trackNetworkActivity(page);
+      const net = trackNetworkActivity(
+        page,
+        Date.now,
+        opts.observe?.onRequestFailed ? { onRequestFailed: opts.observe.onRequestFailed } : {},
+      );
       const recorder = new NetworkRecorder(page);
       const obstacles = await registerObstacleHandlers(page, portal.obstacles);
       const session = new BrowserSession(
@@ -129,10 +151,15 @@ export class BrowserSession {
 
   /** Dismiss obstacles, then wait for the page to settle. */
   async settle(): Promise<StabilizationResult> {
-    await this.obstacles.sweep();
-    const result = await settle(this.page, this.net, this.stabilizerOptions);
-    await this.obstacles.sweep();
-    return result;
+    return (await this.settleTraced()).result;
+  }
+
+  /** {@link settle}, plus settle diagnostics and the obstacles the two sweeps dismissed. */
+  async settleTraced(): Promise<SettleOutcome & { obstacles: ObstacleEvent[] }> {
+    const before = await this.obstacles.sweep();
+    const outcome = await settleWithDiagnostics(this.page, this.net, this.stabilizerOptions);
+    const after = await this.obstacles.sweep();
+    return { ...outcome, obstacles: [...before, ...after] };
   }
 
   async close(): Promise<void> {

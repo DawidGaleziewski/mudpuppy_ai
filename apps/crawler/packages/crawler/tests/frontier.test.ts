@@ -146,6 +146,8 @@ describe('FrontierPolicy', () => {
       rule: 'cap:item_view_cap',
     });
     expect(await p.checkItemCap(d.db, d.runId, '/oferty')).toBeNull();
+    expect(await p.itemCap(d.db, d.runId, '/oferta/:id')).toMatchObject({ count: 2, cap: 2 });
+    expect(await p.itemCap(d.db, d.runId, '/oferty')).toBeNull();
   });
 
   it('restores its window after a resume', () => {
@@ -212,6 +214,9 @@ describe('enqueueActions + report', () => {
     const s = await addState(d, 'a');
     const r = await enqueue(d, s);
     expect(r.queued).toBe(1);
+    expect(r.enqueued).toEqual([
+      { frontierId: expect.any(String), actionId: expect.any(String), safetyClass: 'read' },
+    ]);
     const rows = await d.db
       .selectFrom('frontier')
       .select(['status', 'safety_class', 'reason'])
