@@ -1,5 +1,6 @@
 /// <reference lib="dom" />
 import type { Page, Request } from 'playwright';
+import { evalInPage } from './pw-eval.js';
 
 export interface InFlightRequest {
   url: string;
@@ -134,7 +135,7 @@ export async function settleWithDiagnostics(
 
   // Install a mutation clock once per document; it survives until the next navigation.
   const installClock = () =>
-    page.evaluate(() => {
+    evalInPage(page, () => {
       const w = window as unknown as { __pfLastMutation?: number };
       if (w.__pfLastMutation === undefined) {
         w.__pfLastMutation = performance.now();
@@ -150,7 +151,7 @@ export async function settleWithDiagnostics(
     });
 
   const domState = () =>
-    page.evaluate(() => {
+    evalInPage(page, () => {
       const w = window as unknown as { __pfLastMutation?: number };
       const running = document
         .getAnimations()
