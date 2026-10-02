@@ -6,6 +6,12 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Added
+- R-13 BA documentation store and BA agent: Layer B records with stable keys, revisions and
+  evidence links in SQLite (migration `0004_ba_documentation`), `pathfinder-ba` MCP server with
+  13 tools, `ba` subagent and `ba-practice` skill, `pnpm docs:audit`, and the local
+  `reference-insurer` portal with a ground-truth manifest; validated by a guest map run and three
+  BA sessions (102 records, audit clean) (`specs/004-ba-documentation`, T001–T032).
+  Commits: 4666e02, 6a90a6d.
 - R-17 crawl run observability trace: per-run technical trace of the crawler's own machinery
   (calls, phases, decisions, requests, fingerprinting, frontier, agent transcript), inspectable
   from the R-12 dashboard (`specs/005-crawl-run-observability-trace`, T001–T046). Commit: 89c3530.

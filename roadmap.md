@@ -2,7 +2,7 @@
 
 Maintained by the `po` agent. Order follows the build order in the constitution. An item is `done`
 only when every task in its range in its linked spec's `tasks.md` is `[X]`.
-Status: `todo`, `in progress`, `done`. Last reviewed: 2026-10-02.
+Status: `todo`, `in progress`, `done`. Last reviewed: 2026-10-03.
 
 | ID | Item | Tasks | Status |
 | --- | --- | --- | --- |
@@ -19,7 +19,7 @@ Status: `todo`, `in progress`, `done`. Last reviewed: 2026-10-02.
 | R-11 | Portal-agnostic safety and portal workspaces: robots.txt enforcement, generic rule ids, per-portal rules, per-portal data | `specs/002-portal-agnostic-safety` T001–T065 | done |
 | R-12 | Dashboard UI: read-only FastAPI + htmx dashboard over the crawl DB, live updates, frontend-dev agent and revamp-dashboard skill | `specs/003-dashboard-ui` T001–T029 | done |
 | R-17 | Crawl run observability trace: per-run technical trace of the crawler's own machinery (calls, phases, decisions, requests, fingerprinting, frontier, agent transcript), inspectable from the R-12 dashboard | `specs/005-crawl-run-observability-trace` T001–T046 | done |
-| R-13 | BA documentation store and BA agent: Layer B records with revisions and evidence links, BA MCP tools, `ba` subagent and BA skill, works on map evidence; reference portal with ground truth | `specs/004-ba-documentation` US1, T001–T032 | in progress |
+| R-13 | BA documentation store and BA agent: Layer B records with revisions and evidence links, BA MCP tools, `ba` subagent and BA skill, works on map evidence; reference portal with ground truth | `specs/004-ba-documentation` US1, T001–T032 | done |
 | R-14 | Crawler trace mode: record one named process as ordered steps, stop at the submit boundary on production, follow-up tasks drive trace runs | `specs/004-ba-documentation` US4, T033–T050 | todo |
 | R-15 | Docs tab: SRS view per portal with evidence and run links, revision history, review actions (confirm/reject/comment), constitution amendment for the review write path | `specs/004-ba-documentation` US2 + US3, T051–T071 | todo |
 | R-16 | SRS export and goal evaluation: deterministic Markdown + Mermaid + machine-readable export with traceability matrix and Unknowns section; `docs:evaluate` scores the docs against the reference portal's ground truth | `specs/004-ba-documentation` US5 + US6 + polish, T072–T082 | todo |
@@ -226,6 +226,10 @@ Status: `todo`, `in progress`, `done`. Last reviewed: 2026-10-02.
     (login plus renewal; needs the customer account asked for in OQ-001). Read back and checked in
     the store. `docs:audit` exits 0: 102 records, 136 revisions, 454 links. FUP-001 rev 2's change
     note claims a target that the bug had emptied.
+- R-13 closed 2026-10-03: the user tested the whole flow and signed it off. All work is on `master`
+  (squash `4666e02`, fix `6a90a6d`); `feature/004-r13-ba-documentation` is deleted. R-14 and R-15
+  are built together on `feature/004-r14-r15-trace-mode-docs-tab` so trace results can be seen in
+  the dashboard.
 - R-18 added 2026-10-02 at the user's request, to discuss later; nothing is decided or specified.
   Starting points: (1) the crawler already records page-made `xhr`/`fetch` calls as method, path
   template, status and body shapes linked to the triggering action
