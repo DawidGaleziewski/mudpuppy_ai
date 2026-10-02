@@ -333,7 +333,7 @@ export function createRequestGate(opts: RequestGateOptions): RequestGate {
         }
         let body: string | undefined;
         // Only the visited page can be a challenge page. A third-party script or a vendor iframe (the
-        // reCAPTCHA loader that sits on every liveinsurer form) mentions the very markers we look for.
+        // reCAPTCHA loader that sits on every form of some portals) mentions the very markers we look for.
         if (
           status < 400 &&
           TEXTUAL.test(headers['content-type'] ?? '') &&

@@ -36,6 +36,9 @@ function phase<T>(ctx: ServerContext, name: PhaseName, fn: () => Promise<T>): Pr
   return ctx.tracer.phase(name, () => inPwGroup(name, fn));
 }
 
+/** Terminal styling Playwright puts in its error call logs. */
+const ANSI_STYLE = new RegExp(`${String.fromCharCode(27)}\\[\\d+m`, 'g');
+
 /** `event obstacle` for every dismissal since the last flush (research §16). */
 function flushObstacles(ctx: ServerContext, state: RunState): void {
   const events = state.session.obstacles.events;
@@ -899,7 +902,22 @@ async function actStep(
         matches,
         outcome: 'click_failed',
         error: maskText((e as Error).message.split('\n')[0] ?? ''),
+        // Playwright's call log says why the click never became actionable (an element that
+        // "intercepts pointer events", "not visible", "not stable"); the first line never does.
+        // The reason is at the end of the log, so the tail is kept.
+        call_log: maskText(
+          (e as Error).message
+            .replace(ANSI_STYLE, '')
+            .split('\n')
+            .slice(1)
+            .map((l) => l.trim().slice(0, 200))
+            .filter(Boolean)
+            .slice(-10)
+            .join(' | '),
+        ),
       });
+      // A handler may have fired during the failed click; without this the trace would hide it.
+      flushObstacles(ctx, state);
       await throwIfStopped(ctx, state);
       const refusal: Refusal = {
         status: 'unreachable',

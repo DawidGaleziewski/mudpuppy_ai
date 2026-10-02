@@ -1,0 +1,6 @@
+$ vitest run
+
+ RUN  v5.0.1 /home/dawid/projects/pathfinder-ai/apps/crawler
+
+SC-008: median step 414 ms (off) vs 422 ms (standard): 1.9%
+[ELIFECYCLE] Test failed. See above for more details.

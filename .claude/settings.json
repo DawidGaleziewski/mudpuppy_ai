@@ -1,9 +1,5 @@
 {
   "hooks": {
-    "PreToolUse": [],
-    "PostToolUse": [],
-    "SessionStart": [],
-    "SessionEnd": [],
     "SubagentStop": [
       {
         "matcher": "crawler",
