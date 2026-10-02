@@ -47,6 +47,45 @@ SpanKind = Literal["call", "phase", "event"]
 SpanStatus = Literal["running", "ok", "refused", "stopped", "error", "unfinished"]
 AgentTurnRole = Literal["assistant", "user"]
 AgentTurnKind = Literal["text", "thinking", "tool_use", "tool_result"]
+DocKind = Literal[
+    "capability",
+    "screen",
+    "process",
+    "use_case",
+    "requirement",
+    "nfr",
+    "business_rule",
+    "glossary_term",
+    "data_item",
+    "assumption",
+    "open_question",
+    "followup",
+]
+EvidenceTargetKind = Literal[
+    "state",
+    "edge",
+    "action",
+    "form",
+    "network_call",
+    "rule_candidate",
+    "open_question",
+    "decision",
+    "process",
+    "process_step",
+    "doc_record",
+    "review",
+]
+RelationType = Literal[
+    "contains",
+    "describes",
+    "refines",
+    "enforces",
+    "appears_on",
+    "uses_term",
+    "synonym_of",
+    "answers",
+    "depends_on",
+]
 
 RUN_STATUSES: tuple[RunStatus, ...] = ("running", "completed", "stopped_warning", "interrupted")
 FRONTIER_STATUSES: tuple[FrontierStatus, ...] = (
@@ -305,6 +344,83 @@ class AgentTurn(Row):
     imported_at: str
 
 
+class AnalysisSession(Row):
+    id: str
+    portal_id: str
+    status: Literal["running", "completed", "interrupted"]
+    passes_json: Json
+    summary: str | None
+    gaps_json: Json
+    started_at: str
+    ended_at: str | None
+
+
+class AnalysisSessionRun(Row):
+    session_id: str
+    run_id: str
+
+
+class DocRecord(Row):
+    id: str
+    portal_id: str
+    kind: DocKind
+    key: str
+    seq: int
+    title: str
+    latest_rev: int
+    confirmed_rev: int | None
+    withdrawn: bool
+    created_at: str
+    updated_at: str
+
+
+class DocRevision(Row):
+    id: str
+    record_id: str
+    rev_no: int
+    session_id: str
+    change: Literal["create", "revise", "withdraw"]
+    content_json: Json
+    confidence: Confidence
+    not_observable: bool
+    status: Literal["draft", "confirmed", "rejected", "superseded"]
+    change_note: str | None
+    responds_to_review: str | None
+    created_at: str
+
+
+class DocEvidenceLink(Row):
+    id: str
+    revision_id: str
+    target_kind: EvidenceTargetKind
+    target_id: str
+    run_id: str | None
+    note: str | None
+
+
+class DocRelation(Row):
+    from_revision_id: str
+    to_record_id: str
+    type: RelationType
+
+
+class DocReview(Row):
+    id: str
+    revision_id: str
+    action: Literal["confirm", "reject", "comment"]
+    reviewer: str
+    text: str | None
+    created_at: str
+
+
+class FollowupTask(Row):
+    record_id: str
+    status: Literal["open", "in_progress", "done", "blocked", "cancelled"]
+    run_id: str | None
+    blocked_reason: str | None
+    updated_at: str
+
+
 TABLE_MODELS: dict[str, type[Row]] = {
     "runs": Run,
     "state_observations": StateObservation,
@@ -322,6 +438,14 @@ TABLE_MODELS: dict[str, type[Row]] = {
     "trace_boots": TraceBoot,
     "trace_spans": TraceSpan,
     "agent_turns": AgentTurn,
+    "analysis_sessions": AnalysisSession,
+    "analysis_session_runs": AnalysisSessionRun,
+    "doc_records": DocRecord,
+    "doc_revisions": DocRevision,
+    "doc_evidence_links": DocEvidenceLink,
+    "doc_relations": DocRelation,
+    "doc_reviews": DocReview,
+    "followup_tasks": FollowupTask,
 }
 
 

@@ -17,7 +17,8 @@
     "stability": "tsx scripts/stability-check.ts",
     "portal:export": "tsx scripts/portal-export.ts",
     "portal:delete": "tsx scripts/portal-delete.ts",
-    "trace:import-agent": "tsx scripts/trace-import-agent.ts"
+    "trace:import-agent": "tsx scripts/trace-import-agent.ts",
+    "reference-portal": "pnpm --filter @pathfinder/reference-portal start"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

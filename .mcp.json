@@ -13,6 +13,20 @@
       "env": {
         "PATHFINDER_ENV": "production"
       }
+    },
+    "pathfinder-ba": {
+      "type": "stdio",
+      "command": "pnpm",
+      "args": [
+        "--dir",
+        "apps/crawler",
+        "--filter",
+        "@pathfinder/mcp-server",
+        "start:ba"
+      ],
+      "env": {
+        "PATHFINDER_ENV": "production"
+      }
     }
   }
 }

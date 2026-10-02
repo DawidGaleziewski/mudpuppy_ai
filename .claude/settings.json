@@ -10,6 +10,28 @@
           }
         ]
       }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "f=$(node -e \"let d='';process.stdin.on('data',c=>d+=c);process.stdin.on('end',()=>{try{process.stdout.write(JSON.parse(d).tool_input.file_path||'')}catch{process.stdout.write('')}})\"); case \"$f\" in apps/crawler/*) rel=\"${f#apps/crawler/}\"; (cd apps/crawler && pnpm exec prettier --write \"$rel\" 2>/dev/null); ;; esac; true"
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "cmd=$(node -e \"let d='';process.stdin.on('data',c=>d+=c);process.stdin.on('end',()=>{try{process.stdout.write(JSON.parse(d).tool_input.command||'')}catch{process.stdout.write('')}})\"); case \"$cmd\" in *\"git commit\"*) (cd apps/crawler && pnpm --silent typecheck && pnpm --silent lint && pnpm --silent test) || exit 2 ;; esac"
+          }
+        ]
+      }
     ]
   }
 }

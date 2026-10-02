@@ -1,6 +1,6 @@
 ---
 name: governor
-description: Makes structural changes to the Pathfinder repo: creates or moves apps under apps/, wires tooling (pnpm, uv, lint, test), keeps the root clean. Not for feature code inside an app, schema changes (db-admin) or SDD docs (po).
+description: Makes structural changes to the Pathfinder repo creates or moves apps under apps/, wires tooling (pnpm, uv, lint, test), keeps the root clean. Not for feature code inside an app, schema changes (db-admin) or SDD docs (po).
 tools: Read, Grep, Glob, Edit, Write, Bash, Skill
 model: sonnet
 ---

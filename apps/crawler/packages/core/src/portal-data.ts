@@ -24,16 +24,37 @@ export const PORTAL_TABLES = [
   'robots_policies',
   'trace_spans',
   'agent_turns',
+  'analysis_sessions',
+  'analysis_session_runs',
+  'doc_records',
+  'doc_revisions',
+  'doc_evidence_links',
+  'doc_relations',
+  'doc_reviews',
+  'followup_tasks',
 ] as const;
 export type PortalTable = (typeof PORTAL_TABLES)[number];
 
 /**
- * Children before parents, so every foreign key still holds at each step. `trace_spans` and
- * `agent_turns` come before `decision_log` (spans reference it) and `runs`; `trace_spans`'
- * self-reference (`parent_id`) is cleared first (see `deletePortal`), so its own position in this
- * list only has to precede `decision_log` and `runs`.
+ * Children before parents, so every foreign key still holds at each step. Layer B
+ * (`0004_ba_documentation`, data-model.md "Portal data partition") goes first: reviews, relations and
+ * evidence links are children of doc_revisions; followup_tasks and doc_revisions are children of
+ * doc_records; doc_revisions is also a child of analysis_sessions, so it must precede
+ * analysis_sessions too. doc_evidence_links and followup_tasks reference runs (nullable), so both must
+ * be dropped before `runs`, which they are. `trace_spans` and `agent_turns` come before
+ * `decision_log` (spans reference it) and `runs`; `trace_spans`' self-reference (`parent_id`) is
+ * cleared first (see `deletePortal`), so its own position in this list only has to precede
+ * `decision_log` and `runs`.
  */
 const DELETE_ORDER: readonly PortalTable[] = [
+  'doc_reviews',
+  'doc_relations',
+  'doc_evidence_links',
+  'followup_tasks',
+  'doc_revisions',
+  'doc_records',
+  'analysis_session_runs',
+  'analysis_sessions',
   'trace_spans',
   'agent_turns',
   'decision_log',
@@ -64,12 +85,33 @@ type Raw = BetterSqlite3.Database;
 type Row = Record<string, unknown>;
 export type RowCounts = Record<PortalTable, number>;
 
+const DOC_RECORDS_OF_PORTAL = (op: string) => `SELECT id FROM doc_records WHERE portal_id ${op} ?`;
+const DOC_REVISIONS_OF_PORTAL = (op: string) =>
+  `SELECT id FROM doc_revisions WHERE record_id IN (${DOC_RECORDS_OF_PORTAL(op)})`;
+
 /** `mine`: rows of the portal; `others`: rows of every other portal. */
-function where(table: PortalTable, side: 'mine' | 'others'): string {
+export function where(table: PortalTable, side: 'mine' | 'others'): string {
   const op = side === 'mine' ? '=' : '<>';
-  return table === 'runs' || table === 'states'
-    ? `portal_id ${op} ?`
-    : `run_id IN (SELECT id FROM runs WHERE portal_id ${op} ?)`;
+  switch (table) {
+    case 'runs':
+    case 'states':
+    case 'analysis_sessions':
+    case 'doc_records':
+      return `portal_id ${op} ?`;
+    case 'analysis_session_runs':
+      return `session_id IN (SELECT id FROM analysis_sessions WHERE portal_id ${op} ?)`;
+    case 'doc_revisions':
+      return `record_id IN (${DOC_RECORDS_OF_PORTAL(op)})`;
+    case 'doc_evidence_links':
+    case 'doc_reviews':
+      return `revision_id IN (${DOC_REVISIONS_OF_PORTAL(op)})`;
+    case 'doc_relations':
+      return `from_revision_id IN (${DOC_REVISIONS_OF_PORTAL(op)})`;
+    case 'followup_tasks':
+      return `record_id IN (${DOC_RECORDS_OF_PORTAL(op)})`;
+    default:
+      return `run_id IN (SELECT id FROM runs WHERE portal_id ${op} ?)`;
+  }
 }
 
 function rowsOf(raw: Raw, table: PortalTable, portal: string, side: 'mine' | 'others'): Row[] {
