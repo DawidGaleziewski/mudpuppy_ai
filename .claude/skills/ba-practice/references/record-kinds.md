@@ -11,10 +11,10 @@ Portal-language text goes in `*_verbatim` fields with a `lang` code (e.g. `pl`).
 | `process` (PROC) | `goal`, `persona`, `trigger`, `outcome`, `observed_extent` (`full`, `until_boundary`, `map_only`) | trace process, steps | "Calculate an OC/AC premium" |
 | `use_case` (UC) | `primary_actor`, `preconditions[]`, `trigger`, `main_flow[]` `{n, actor_or_system, text}`, `alternate_flows[]`, `exception_flows[]`, `postconditions[]` | process steps | "Guest calculates a car premium" |
 | `requirement` (REQ) | `statement`, `rationale?` + `rationale_confidence`, `acceptance_criteria[]` `{given[], when[], then[]}`, `priority` (`unset` unless a reviewer said) | forms, edges, steps | "Reject invalid postcode" |
-| `nfr` (NFR) | `category`, `statement`, `measured?` `{value, unit, how}` | network calls, robots, states | "Pages served in Polish" |
+| `nfr` (NFR) | `category` (`performance`, `security`, `accessibility`, `availability`, `compliance`, `usability`, `localisation`), `statement`, `measured?` `{value, unit, how}`, all three strings (`value: "200"`, not `200`) | network calls, robots, states | "Pages served in Polish" |
 | `business_rule` (BR) | `statement`, `rule_type` (`constraint`, `computation`, `inference`, `action_enabler`), `decision_table?` | forms, states, validation messages | "Driver age limits" |
 | `glossary_term` (GL) | `term_verbatim`, `lang`, `definition` (English), `synonyms_verbatim[]` | states where the term appears | "Bezszkodowa jazda" |
-| `data_item` (DI) | `name_verbatim` (= field label exactly), `lang`, `name_en`, `data_type`, `constraints` `{required?, format?, min_length?, max_length?, allowed_values[]?, pattern_observed?}`, `seen_in[]` | form, network call | "Kod pocztowy" |
+| `data_item` (DI) | `name_verbatim` (= field label exactly), `lang`, `name_en`, `data_type`, `constraints` `{required?, format?, min_length?, max_length?, allowed_values[]?, pattern_observed?}`, `seen_in[]` `{kind, target_id}` with `kind` `form` or `network_call` and `target_id` that form's or call's id | form, network call | "Kod pocztowy" |
 | `assumption` (ASM) | `statement`, `impact_if_wrong` | records, reviews | "Premium shown is final" |
 | `open_question` (OQ) | `question`, `why_it_matters`, `answer_needed_from` (`sme`, `crawler`, `either`) | anything unexplained | — |
 | `followup` (FUP) | `question`, `suggested_mode` (`map`, `trace`), `target` (`{url}` or `{process_name, goal}`), `persona`, `reason` | the state with the entry point | — |

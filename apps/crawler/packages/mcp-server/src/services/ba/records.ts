@@ -509,6 +509,7 @@ export function withdrawRecord(ctx: BaContext, raw: unknown): WriteOutput {
       change: 'withdraw',
       title: content.title,
     });
+    const ts = nowIso();
     writeRevision(
       ctx,
       {
@@ -526,8 +527,16 @@ export function withdrawRecord(ctx: BaContext, raw: unknown): WriteOutput {
         relations: [],
         status,
       },
-      nowIso(),
+      ts,
     );
+    // A withdrawn follow-up must not be picked up by the crawler; a task already started keeps its status.
+    if (record.kind === 'followup')
+      ctx.raw
+        .prepare(
+          `UPDATE followup_tasks SET status = 'cancelled', updated_at = ?
+           WHERE record_id = ? AND status = 'open'`,
+        )
+        .run(ts, record.id);
     return { key: record.key, rev_no: revNo };
   });
 }

@@ -574,6 +574,14 @@ describe('Layer B schemas (R-13)', () => {
           reason: 'r',
         },
         { title: 't', question: 'q', suggested_mode: 'map', target: { url: '/x' }, reason: 'r' },
+        {
+          title: 't',
+          question: 'q',
+          suggested_mode: 'trace',
+          target: { process_name: 'p' },
+          persona: 'guest',
+          reason: 'r',
+        },
       ],
     },
   };
@@ -588,6 +596,15 @@ describe('Layer B schemas (R-13)', () => {
         expect(DocContent.safeParse({ kind, ...(bad as object) }).success).toBe(false);
     });
   }
+
+  it('keeps a follow-up target intact, in either form', () => {
+    const base = { ...samples.followup.valid, kind: 'followup' };
+    for (const target of [
+      { process_name: 'Oblicz składkę OC/AC', goal: 'Reach the premium result' },
+      { url: '/kalkulator/pojazd' },
+    ])
+      expect(DocContent.parse({ ...base, target })).toMatchObject({ target });
+  });
 
   it('rejects content whose kind is not a doc kind', () => {
     expect(DocContent.safeParse({ kind: 'epic', title: 't' }).success).toBe(false);

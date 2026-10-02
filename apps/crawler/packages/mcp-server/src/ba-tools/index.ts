@@ -116,12 +116,15 @@ export function registerBaTools(server: McpServer, ctx: BaContext): void {
   );
   tool(
     'get_run_evidence',
-    'One page of what a run recorded, of one kind, with ids, confidence and a compact summary. Pass next_cursor back as cursor for the next page.',
+    'One page of what a run recorded, of one kind, with ids, confidence and a compact summary. Pass next_cursor back as cursor for the next page, until it is null.',
     {
       run_id: z.string(),
       kind: z.string().describe(`One of: ${oneOf(RunEvidenceKind.options)}`),
       cursor: z.string().optional(),
-      limit: z.number().optional().describe('1–200, default 50'),
+      limit: z
+        .number()
+        .optional()
+        .describe('1–200, default 50. Leave unset: a larger page can exceed your output limit'),
     },
     (a) => getRunEvidence(ctx, a),
   );

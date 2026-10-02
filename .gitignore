@@ -41,3 +41,6 @@ __pycache__/
 
 # Scratch test output
 .tmp-*.log
+
+# Local request logs written by claude-trace
+.claude-trace/

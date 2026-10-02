@@ -50,7 +50,8 @@ function previousSessionEnd(ctx: BaContext, portalId: string): string | null {
 
 /**
  * What humans and the crawler did since the BA last finished: reviews (rejections and comments to
- * answer, confirmations to know about) and follow-up tasks that left `open`.
+ * answer, confirmations to know about) and follow-up tasks that left `open`. The bound is inclusive:
+ * feedback written in the very millisecond a session ended is shown again rather than lost.
  */
 export function pendingFeedback(ctx: BaContext, portalId: string): PendingFeedback {
   const since = previousSessionEnd(ctx, portalId);
@@ -62,7 +63,7 @@ export function pendingFeedback(ctx: BaContext, portalId: string): PendingFeedba
        FROM doc_reviews v
        JOIN doc_revisions rev ON rev.id = v.revision_id
        JOIN doc_records r ON r.id = rev.record_id
-       WHERE r.portal_id = ? AND (? IS NULL OR v.created_at > ?)
+       WHERE r.portal_id = ? AND (? IS NULL OR v.created_at >= ?)
        ORDER BY v.created_at, v.id`,
     )
     .all(portalId, since, since) as PendingReview[];
@@ -71,7 +72,7 @@ export function pendingFeedback(ctx: BaContext, portalId: string): PendingFeedba
       `SELECT r.key, r.title, t.status, t.run_id, t.blocked_reason, t.updated_at
        FROM followup_tasks t
        JOIN doc_records r ON r.id = t.record_id
-       WHERE r.portal_id = ? AND t.status <> 'open' AND (? IS NULL OR t.updated_at > ?)
+       WHERE r.portal_id = ? AND t.status <> 'open' AND (? IS NULL OR t.updated_at >= ?)
        ORDER BY r.seq`,
     )
     .all(portalId, since, since) as FollowupChange[];

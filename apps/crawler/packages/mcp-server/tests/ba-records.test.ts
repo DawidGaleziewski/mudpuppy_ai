@@ -247,6 +247,7 @@ describe('create_record', () => {
     ).toEqual([{ status: 'open', run_id: null, blocked_reason: null }]);
     const record = await h.must('get_record', { portal_id: h.fx.portalId, key });
     expect(record.followup).toMatchObject({ status: 'open' });
+    expect(record.revisions[0].content.target).toEqual(CONTENT.followup.target);
     // No other kind gets a task row.
     await h.must('create_record', create(h, s));
     expect(layerBCounts(h.fx).followup_tasks).toBe(1);
@@ -532,6 +533,50 @@ describe('withdraw_record', () => {
       (await h.must('list_records', { portal_id: h.fx.portalId, include_withdrawn: true })).records,
     ).toHaveLength(1);
     expect((await h.must('create_record', create(h, s))).key).toBe('REQ-002');
+  });
+
+  it('cancels the open task of a withdrawn follow-up and leaves a started one alone', async () => {
+    const h = await startBa();
+    const s = await h.session();
+    const followup = create(h, s, {
+      kind: 'followup',
+      content: CONTENT.followup,
+      confidence: 'needs_confirmation',
+      evidence: [{ target_kind: 'open_question', target_id: h.fx.openQuestions[0] }],
+    });
+    const taskStatus = (key: string) =>
+      (
+        h.fx.raw
+          .prepare(
+            `SELECT t.status FROM followup_tasks t JOIN doc_records r ON r.id = t.record_id
+             WHERE r.key = ?`,
+          )
+          .get(key) as { status: string }
+      ).status;
+    const withdraw = (key: string) =>
+      h.must('withdraw_record', {
+        session_id: s,
+        key,
+        base_rev: 1,
+        change_note: 'No longer worth tracing.',
+        evidence: stateEvidence(h),
+      });
+
+    await h.must('create_record', followup);
+    await withdraw('FUP-001');
+    expect(taskStatus('FUP-001')).toBe('cancelled');
+    const record = await h.must('get_record', { portal_id: h.fx.portalId, key: 'FUP-001' });
+    expect(record.followup).toMatchObject({ status: 'cancelled' });
+
+    await h.must('create_record', followup);
+    h.fx.raw
+      .prepare(
+        `UPDATE followup_tasks SET status = 'done'
+         WHERE record_id = (SELECT id FROM doc_records WHERE key = 'FUP-002')`,
+      )
+      .run();
+    await withdraw('FUP-002');
+    expect(taskStatus('FUP-002')).toBe('done');
   });
 
   it('refuses a stale base_rev, missing evidence, a missing note and a second withdraw', async () => {

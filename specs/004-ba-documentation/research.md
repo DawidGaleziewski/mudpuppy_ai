@@ -173,7 +173,8 @@ reason) with an operational row in `followup_tasks(record_id, status, run_id, bl
 `status` ∈ `open, in_progress, done, blocked, cancelled`, driven by deterministic code:
 `start_run(followup_key)` → `in_progress` + `run_id`; run completes → `done`; trace boundary before
 the goal or run `stopped_warning` → `blocked` with the rule/warning; operator
-`docs:review --cancel-followup` → `cancelled`. The BA cannot set it.
+`docs:review --cancel-followup` → `cancelled`; `withdraw_record` on the `FUP` → `cancelled` when the
+task is still `open` (a started task keeps its status). The BA cannot set it directly.
 
 ## 12. SRS export layout
 

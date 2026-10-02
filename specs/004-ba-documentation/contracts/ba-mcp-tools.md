@@ -37,7 +37,7 @@ row, or `run_id` on an evidence link (the server resolves it).
 |---|---|---|
 | `create_record` | `session_id`, `kind`, `content` (per-kind schema), `confidence`, `not_observable?`, `evidence[]` (`{target_kind, target_id, run_id?, note?}` — `run_id` only to pick the observation run for a `state`), `relations[]` (`{type, to_key}`) | allocates key, revision 1 `draft`; returns `{ key, rev_no }` |
 | `revise_record` | `session_id`, `key`, `base_rev` (must equal latest), `content`, `confidence`, `not_observable?`, `evidence[]`, `relations[]`, `change_note`, `responds_to_review?` | new revision `draft`, status engine applied; returns `{ key, rev_no }` |
-| `withdraw_record` | `session_id`, `key`, `base_rev`, `change_note`, `evidence[]` | revision with `change = withdraw` (content copied), record `withdrawn = 1` |
+| `withdraw_record` | `session_id`, `key`, `base_rev`, `change_note`, `evidence[]` | revision with `change = withdraw` (content copied), record `withdrawn = 1`; for a `followup`, an `open` task becomes `cancelled` |
 | `address_crawler_question` | `session_id`, `open_question_id`, `by_key` | sets the crawler `open_questions` row `addressed`; `by_key`'s latest revision must cite it |
 
 `followup` and `open_question` records are created with `create_record` (kind `followup` also

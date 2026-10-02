@@ -206,9 +206,10 @@ export type OpenQuestionContent = z.infer<typeof OpenQuestionContent>;
 export const FollowupSuggestedMode = z.enum(['map', 'trace']);
 export type FollowupSuggestedMode = z.infer<typeof FollowupSuggestedMode>;
 
+// Both strict: a non-strict `{ url? }` matches any object and strips `process_name`/`goal`.
 export const FollowupTarget = z.union([
-  z.object({ url: z.string().min(1).optional() }),
-  z.object({ process_name: z.string().min(1), goal: z.string().min(1) }),
+  z.object({ url: z.string().min(1).optional() }).strict(),
+  z.object({ process_name: z.string().min(1), goal: z.string().min(1) }).strict(),
 ]);
 export type FollowupTarget = z.infer<typeof FollowupTarget>;
 

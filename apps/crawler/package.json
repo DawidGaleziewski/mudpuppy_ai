@@ -18,11 +18,13 @@
     "portal:export": "tsx scripts/portal-export.ts",
     "portal:delete": "tsx scripts/portal-delete.ts",
     "trace:import-agent": "tsx scripts/trace-import-agent.ts",
+    "docs:audit": "tsx scripts/docs-audit.ts",
     "reference-portal": "pnpm --filter @pathfinder/reference-portal start"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "@pathfinder/core": "workspace:*",
+    "@pathfinder/docs": "workspace:*",
     "@types/node": "^22.20.4",
     "eslint": "^10.11.0",
     "prettier": "^3.9.8",

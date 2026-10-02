@@ -43,6 +43,17 @@ over-claims. Complete, verbatim and honest beats elegant.
 4. Run the seven passes below in order; after each call `record_pass` with a 1–3 line summary.
 5. `finish_session` with a summary and `gaps` (what you could not document and why).
 
+**Read every page of evidence.** `get_run_evidence` returns 50 items per call. Leave `limit` unset and
+call again with `cursor` = the returned `next_cursor` until it is `null`, for every kind you read. A
+larger `limit` can exceed your output limit, and then you see nothing of that page. Documenting from
+a partial list (e.g. edges from one page only) hides entry points and navigation; if you had to stop
+early, say which kind and how many items you read in the session gaps.
+
+**No ids in prose.** Run, state and record ids belong in `evidence[]`, relations and
+`data_item.seen_in`, never in titles, statements, notes, pass summaries or the session summary. The
+PII check reads an id in prose as a token and refuses the write (`PII_SUSPECTED`). Refer to a run as
+"the map run" and to a record by its key (`BR-008`).
+
 ## The seven passes
 
 | # | Pass | Read | Write |
