@@ -199,7 +199,9 @@ export async function importAgent(opts: ImportAgentOptions): Promise<ImportAgent
         for (const r of batch) upsert.run(r);
       })(rows);
 
-      const runIds = [...new Set(turns.filter((t: JoinedTurn) => t.run_id).map((t) => t.run_id as string))];
+      const runIds = [
+        ...new Set(turns.filter((t: JoinedTurn) => t.run_id).map((t) => t.run_id as string)),
+      ];
       results.push({
         env,
         run_ids: runIds,

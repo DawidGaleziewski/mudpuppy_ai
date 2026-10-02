@@ -60,15 +60,20 @@ describe('ground truth ⇔ served HTML', () => {
       if (c.min !== undefined) expect(ctl!.attrs.min, field.label).toBe(String(c.min));
       if (c.max !== undefined) expect(ctl!.attrs.max, field.label).toBe(String(c.max));
       if (c.pattern !== undefined) expect(ctl!.attrs.pattern, field.label).toBe(c.pattern);
-      if (c.max_length !== undefined) expect(ctl!.attrs.maxlength, field.label).toBe(String(c.max_length));
-      if (c.allowed_values !== undefined) expect(ctl!.options, field.label).toEqual(c.allowed_values);
+      if (c.max_length !== undefined)
+        expect(ctl!.attrs.maxlength, field.label).toBe(String(c.max_length));
+      if (c.allowed_values !== undefined)
+        expect(ctl!.options, field.label).toEqual(c.allowed_values);
     }
   });
 
-  it.each(gt.rules.map((r) => [r.id, r] as const))('rule %s anchor label is on its screen', async (_id, r) => {
-    const screen = gt.screens.find((s) => s.id === r.anchor.screen)!;
-    expect(text(await screenHtml(portal, screen.route_template))).toContain(r.anchor.label);
-  });
+  it.each(gt.rules.map((r) => [r.id, r] as const))(
+    'rule %s anchor label is on its screen',
+    async (_id, r) => {
+      const screen = gt.screens.find((s) => s.id === r.anchor.screen)!;
+      expect(text(await screenHtml(portal, screen.route_template))).toContain(r.anchor.label);
+    },
+  );
 
   it('every term appears on some guest page', async () => {
     const pages = await Promise.all(

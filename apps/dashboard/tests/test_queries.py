@@ -296,9 +296,9 @@ def test_trace_calls_filters_tools_and_statuses(trace_conn: sqlite3.Connection) 
     assert [s.id for s in queries.trace_calls(trace_conn, BIG_RUN, tools=["act"]).items] == [
         "call-2"
     ]
-    assert [
-        s.id for s in queries.trace_calls(trace_conn, BIG_RUN, statuses=["error"]).items
-    ] == ["call-2"]
+    assert [s.id for s in queries.trace_calls(trace_conn, BIG_RUN, statuses=["error"]).items] == [
+        "call-2"
+    ]
 
 
 def test_trace_calls_problems_filter(trace_conn: sqlite3.Connection) -> None:

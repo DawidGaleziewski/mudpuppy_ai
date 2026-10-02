@@ -76,7 +76,12 @@ async function formBody(req: IncomingMessage): Promise<Params> {
   return out;
 }
 
-function send(res: ServerResponse, status: number, body: string, type = 'text/html; charset=utf-8') {
+function send(
+  res: ServerResponse,
+  status: number,
+  body: string,
+  type = 'text/html; charset=utf-8',
+) {
   res.writeHead(status, { 'content-type': type, 'cache-control': 'no-store' });
   res.end(body);
 }

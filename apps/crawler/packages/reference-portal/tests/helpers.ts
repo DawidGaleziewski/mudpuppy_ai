@@ -31,7 +31,10 @@ export const TRAVEL = {
 export const qs = (p: Record<string, string>) => new URLSearchParams(p).toString();
 
 /** A request that shows each route's own content (result pages need valid earlier answers). */
-export const SAMPLE_REQUEST: Record<string, { method?: 'POST'; path: string; body?: Record<string, string> }> = {
+export const SAMPLE_REQUEST: Record<
+  string,
+  { method?: 'POST'; path: string; body?: Record<string, string> }
+> = {
   '/kalkulator/kierowca': { path: `/kalkulator/kierowca?${qs(VEHICLE)}` },
   '/kalkulator/opcje': { path: `/kalkulator/opcje?${qs({ ...VEHICLE, ...DRIVER })}` },
   '/kalkulator/wynik': { path: `/kalkulator/wynik?${qs({ ...VEHICLE, ...DRIVER, ...OPTIONS })}` },

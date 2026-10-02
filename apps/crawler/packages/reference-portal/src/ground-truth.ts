@@ -35,7 +35,18 @@ export const GtField = z
   .object({
     id: Id,
     label: z.string().min(1),
-    type: z.enum(['text', 'number', 'date', 'email', 'tel', 'password', 'select', 'textarea', 'checkbox', 'radio']),
+    type: z.enum([
+      'text',
+      'number',
+      'date',
+      'email',
+      'tel',
+      'password',
+      'select',
+      'textarea',
+      'checkbox',
+      'radio',
+    ]),
     constraints: GtConstraints,
   })
   .strict();
@@ -102,10 +113,14 @@ export const GroundTruth = z
       ids.add(x.id);
     }
     for (const f of gt.forms)
-      if (!screens.has(f.screen)) ctx.addIssue({ code: 'custom', message: `form ${f.id}: unknown screen ${f.screen}` });
+      if (!screens.has(f.screen))
+        ctx.addIssue({ code: 'custom', message: `form ${f.id}: unknown screen ${f.screen}` });
     for (const r of gt.rules)
       if (!screens.has(r.anchor.screen))
-        ctx.addIssue({ code: 'custom', message: `rule ${r.id}: unknown screen ${r.anchor.screen}` });
+        ctx.addIssue({
+          code: 'custom',
+          message: `rule ${r.id}: unknown screen ${r.anchor.screen}`,
+        });
   });
 export type GroundTruth = z.infer<typeof GroundTruth>;
 

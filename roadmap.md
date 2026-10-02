@@ -2,7 +2,7 @@
 
 Maintained by the `po` agent. Order follows the build order in the constitution. An item is `done`
 only when every task in its range in its linked spec's `tasks.md` is `[X]`.
-Status: `todo`, `in progress`, `done`. Last reviewed: 2026-09-29.
+Status: `todo`, `in progress`, `done`. Last reviewed: 2026-10-02.
 
 | ID | Item | Tasks | Status |
 | --- | --- | --- | --- |
@@ -129,36 +129,20 @@ Status: `todo`, `in progress`, `done`. Last reviewed: 2026-09-29.
   constitution MINOR amendment for a review-only write path, R-15), docs in English with portal terms
   verbatim. Acceptance and goal measurement run on a local reference portal with a ground-truth
   manifest (D8, 2026-09-26); liveinsurer data is a test bed only and not needed. Task ranges come from `specs/004-ba-documentation/tasks.md` (82 tasks).
-- R-17 added 2026-09-27 at the user's request and inserted before R-13, the same way R-12 was
-  inserted before the BA agent: the user wants a deeper look at what happens under the hood during a
-  crawl run — every MCP tool call with its inputs/outputs, safety/action-gate and robots/denylist
-  decisions, fingerprinting and state-matching, frontier picks, obstacles, timings and errors — each
-  inspectable per run. It has no spec yet (needs `005-…` via `speckit-specify`). It is distinct from
-  R-14 "Crawler trace mode": R-14 records a named business process as steps for the BA to document;
-  R-17 is a technical, per-run debug/observability trace of the crawler's own machinery, independent of
-  any business process. R-13 (BA documentation) is paused (`in progress`, not being advanced) until
-  R-17 is done.
-- R-13 progress/handover as of 2026-09-27: done — T007, T008 (migration 0003, Zod schemas + db-types,
-  round-trip test; commit `3d71724`), T029–T031 (`ba-practice` skill and `ba` agent; commit `c19b454`),
-  and the `@pathfinder/docs`/`@pathfinder/reference-portal` scaffold plus the `pathfinder-ba` server
-  entry (T001, T002; commit `ce9322e`). Uncommitted WIP on disk (not committed, left for the next
-  session): reference portal T003–T005 (server, pages, rules, `ground-truth.json` + Zod + tests) —
-  typecheck fails because the reference-portal `tsconfig.json` lacks Node types, plus
-  `src/pages/forms.ts:108` has an `x` possibly undefined; 2 server tests fail because they expect the
-  contiguous text "Składka łączna 1 719,00 zł" / "240,00 zł" but the total renders as a `<th>`/`<td>`
-  table row. T017 (Layer B partition in `core/src/portal-data.ts`) is written but
-  `tests/portal-data.test.ts`'s `snapshotOf` filters all non-`runs`/`states` tables by `run_id`, and the
-  Layer B tables have no such column, so that test and `mcp-server/tests/workspaces.test.ts` fail for
-  the same reason. Not started: T006, T009, T010–T016, T018–T028, T032. Model plan for the rest:
-  mechanical tasks continue on Sonnet; T024, T026–T028 and T032 are better done on Opus.
-- Commits since the previous review: `1dd2e57` (governor agent description fix, no roadmap item),
-  `3d71724` (R-13 T007/T008, see above).
-- 2026-10-02: `feature/004-r13-ba-documentation` merged into `master` so R-13 continues there. The
-  branch's notes above are kept as written on 2026-09-27 and are stale where they say R-17 is `todo`
-  with no spec (it is `done`, see the table) and where they call the reference portal uncommitted WIP
-  (T003–T005 landed in `00fac20`). Done in the merge: the Layer B migration is renumbered to
-  `0004_ba_documentation` (R-14's planned one becomes `0005_trace_processes`; spec 004 docs updated),
-  `data/schema/schema.sql` and `README.md` carry both `0003_trace` and `0004`, `portal:delete` drops
-  Layer B before the trace tables, and the dashboard got read models for the eight Layer B tables
-  (its schema-drift test requires one per table; no screens yet, that is R-15). R-13 stays
-  `in progress`.
+- R-17 was added 2026-09-27 at the user's request and inserted before R-13, the same way R-12 was
+  inserted before the BA agent. It is distinct from R-14 "Crawler trace mode": R-14 records a named
+  business process as steps for the BA to document; R-17 is a technical, per-run debug trace of the
+  crawler's own machinery. R-13 was paused while R-17 was built.
+- R-13 status as of 2026-10-02 (11 of T001–T032 done): T001, T002 (`@pathfinder/docs` and
+  `@pathfinder/reference-portal` scaffold), T003–T005 (reference portal server, pages, rules,
+  `ground-truth.json`), T007, T008 (Layer B migration, Zod schemas, db-types), T017 (Layer B in the
+  portal data partition), T029–T031 (`ba-practice` skill and `ba` agent). Not started: T006, T009–T016,
+  T018–T028, T032. The `pathfinder-ba` entry is left out of `.mcp.json` until T026 adds
+  `mcp-server/src/ba-main.ts` (the `start:ba` script already points at it); add it back then. Model
+  plan for the rest: mechanical tasks on Sonnet; T024, T026–T028 and T032 on Opus.
+- 2026-10-02: `feature/004-r13-ba-documentation` merged into `master` so R-13 continues there. Done
+  in the merge: the Layer B migration is renumbered to `0004_ba_documentation` (R-14's planned one
+  becomes `0005_trace_processes`; spec 004 docs updated), `data/schema/schema.sql` and `README.md`
+  carry both `0003_trace` and `0004`, `portal:delete` drops Layer B before the trace tables, and the
+  dashboard got read models for the eight Layer B tables (its schema-drift test requires one per
+  table; no screens yet, that is R-15). All feature branches are merged and deleted.

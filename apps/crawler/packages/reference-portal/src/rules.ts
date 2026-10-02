@@ -34,7 +34,10 @@ export function ageOn(birthIso: string, todayIso: string = TODAY): number {
 /** Birth-date bounds for the `min`/`max` attributes of the date input. */
 export function birthDateBounds(): { min: string; max: string } {
   // Oldest allowed: turns 76 tomorrow → born the day after TODAY minus 76 years.
-  return { min: `${CURRENT_YEAR - MAX_DRIVER_AGE - 1}-01-16`, max: `${CURRENT_YEAR - MIN_DRIVER_AGE}-01-15` };
+  return {
+    min: `${CURRENT_YEAR - MAX_DRIVER_AGE - 1}-01-16`,
+    max: `${CURRENT_YEAR - MIN_DRIVER_AGE}-01-15`,
+  };
 }
 
 export function ageFactor(age: number): number {

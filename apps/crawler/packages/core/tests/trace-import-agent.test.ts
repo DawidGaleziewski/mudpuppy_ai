@@ -11,7 +11,9 @@ const MIGRATIONS = fileURLToPath(new URL('../../../../../data/migrations', impor
 const AGENT_ID = 'agent-test-0001';
 const RUN = 'run-1';
 
-const transcriptPath = fileURLToPath(new URL('./fixtures/crawler-transcript.jsonl', import.meta.url));
+const transcriptPath = fileURLToPath(
+  new URL('./fixtures/crawler-transcript.jsonl', import.meta.url),
+);
 
 let dataDir: string;
 
@@ -29,9 +31,13 @@ beforeEach(() => {
        'chromium', '{}', 'completed', NULL, 4, 0, 0, '2026-01-15T10:00:00.000Z', NULL, NULL)`,
     )
     .run(RUN);
-  opened.raw.prepare(`INSERT INTO trace_boots (id, started_at, environment, server, pid, version,
+  opened.raw
+    .prepare(
+      `INSERT INTO trace_boots (id, started_at, environment, server, pid, version,
        trace_level, pw_trace) VALUES ('boot-1', '2026-01-15T10:00:00.000Z', 'sandbox', 'pathfinder',
-       1, '0.0.0', 'standard', 'non_production')`).run();
+       1, '0.0.0', 'standard', 'non_production')`,
+    )
+    .run();
   const insertSpan = opened.raw.prepare(
     `INSERT INTO trace_spans (id, boot_id, seq, run_id, kind, name, status, started_at, ended_at,
       duration_ms, summary, tool_use_id, agent_id)

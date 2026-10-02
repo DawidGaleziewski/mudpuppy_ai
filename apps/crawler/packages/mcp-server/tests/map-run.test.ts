@@ -379,7 +379,11 @@ describe.skipIf(!available)('map run against the mock portal', () => {
         for (const [tool, args] of [
           [
             'navigate',
-            { run_id: runId, url: portal.origin + '/oferty', rationale: 'exploring the target URL' },
+            {
+              run_id: runId,
+              url: portal.origin + '/oferty',
+              rationale: 'exploring the target URL',
+            },
           ],
           [
             'act',

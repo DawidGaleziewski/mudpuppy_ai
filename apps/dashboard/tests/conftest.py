@@ -220,9 +220,26 @@ def insert(conn: sqlite3.Connection, table: str, **row: object) -> None:
 
 
 TRACE_SPAN_COLUMNS = (
-    "id", "boot_id", "seq", "run_id", "parent_id", "kind", "name", "status",
-    "started_at", "ended_at", "duration_ms", "attrs_json", "payload_ref", "summary",
-    "decision_id", "tool_use_id", "agent_id", "rationale", "pw_trace_path", "between_calls",
+    "id",
+    "boot_id",
+    "seq",
+    "run_id",
+    "parent_id",
+    "kind",
+    "name",
+    "status",
+    "started_at",
+    "ended_at",
+    "duration_ms",
+    "attrs_json",
+    "payload_ref",
+    "summary",
+    "decision_id",
+    "tool_use_id",
+    "agent_id",
+    "rationale",
+    "pw_trace_path",
+    "between_calls",
 )
 
 
@@ -246,9 +263,26 @@ def make_trace_fixture(
         tool_use_id: str | None = None,
     ) -> tuple[object, ...]:
         return (
-            id_, "perf-boot", seq, run_id, parent_id, kind, name, "ok",
-            T0, T0 if duration_ms is not None else None, duration_ms, "{}", None, name,
-            None, tool_use_id, None, None, None, 0,
+            id_,
+            "perf-boot",
+            seq,
+            run_id,
+            parent_id,
+            kind,
+            name,
+            "ok",
+            T0,
+            T0 if duration_ms is not None else None,
+            duration_ms,
+            "{}",
+            None,
+            name,
+            None,
+            tool_use_id,
+            None,
+            None,
+            None,
+            0,
         )
 
     for i in range(calls):

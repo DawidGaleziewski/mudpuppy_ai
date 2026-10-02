@@ -149,13 +149,7 @@
           "type": "select",
           "constraints": {
             "required": true,
-            "allowed_values": [
-              "Toyota",
-              "Skoda",
-              "Volkswagen",
-              "Fiat",
-              "Inna"
-            ]
+            "allowed_values": ["Toyota", "Skoda", "Volkswagen", "Fiat", "Inna"]
           }
         },
         {
@@ -264,10 +258,7 @@
           "type": "radio",
           "constraints": {
             "required": true,
-            "allowed_values": [
-              "Tylko OC",
-              "OC + Autocasco (AC)"
-            ]
+            "allowed_values": ["Tylko OC", "OC + Autocasco (AC)"]
           }
         },
         {
@@ -308,12 +299,7 @@
           "type": "select",
           "constraints": {
             "required": true,
-            "allowed_values": [
-              "Oferta",
-              "Szkoda",
-              "Moja polisa",
-              "Inne"
-            ]
+            "allowed_values": ["Oferta", "Szkoda", "Moja polisa", "Inne"]
           }
         },
         {
@@ -353,10 +339,7 @@
           "type": "select",
           "constraints": {
             "required": true,
-            "allowed_values": [
-              "Europa",
-              "Świat"
-            ]
+            "allowed_values": ["Europa", "Świat"]
           }
         },
         {
@@ -401,12 +384,7 @@
           "type": "select",
           "constraints": {
             "required": true,
-            "allowed_values": [
-              "OC",
-              "Autocasco (AC)",
-              "Assistance",
-              "NNW"
-            ]
+            "allowed_values": ["OC", "Autocasco (AC)", "Assistance", "NNW"]
           }
         },
         {
@@ -415,12 +393,7 @@
           "type": "select",
           "constraints": {
             "required": true,
-            "allowed_values": [
-              "OC",
-              "Autocasco (AC)",
-              "Assistance",
-              "NNW"
-            ]
+            "allowed_values": ["OC", "Autocasco (AC)", "Assistance", "NNW"]
           }
         }
       ]
@@ -660,10 +633,7 @@
     {
       "id": "P02",
       "name": "Oblicz składkę podróżną",
-      "steps": [
-        "/ubezpieczenia/podroze",
-        "/ubezpieczenia/podroze/wynik"
-      ],
+      "steps": ["/ubezpieczenia/podroze", "/ubezpieczenia/podroze/wynik"],
       "first_route": "/ubezpieczenia/podroze",
       "last_observable_route": "/ubezpieczenia/podroze/wynik",
       "ends_with": "result"
@@ -671,10 +641,7 @@
     {
       "id": "P03",
       "name": "Porównaj produkty",
-      "steps": [
-        "/porownanie",
-        "/porownanie/wynik"
-      ],
+      "steps": ["/porownanie", "/porownanie/wynik"],
       "first_route": "/porownanie",
       "last_observable_route": "/porownanie/wynik",
       "ends_with": "result"
@@ -682,10 +649,7 @@
     {
       "id": "P04",
       "name": "Wyślij zapytanie kontaktowe",
-      "steps": [
-        "/kontakt",
-        "/kontakt/dziekujemy"
-      ],
+      "steps": ["/kontakt", "/kontakt/dziekujemy"],
       "first_route": "/kontakt",
       "last_observable_route": "/kontakt",
       "ends_with": "mutation"
@@ -693,9 +657,7 @@
     {
       "id": "P05",
       "name": "Przedłuż polisę",
-      "steps": [
-        "/moje-polisy/przedluz"
-      ],
+      "steps": ["/moje-polisy/przedluz"],
       "first_route": "/moje-polisy/przedluz",
       "last_observable_route": "/moje-polisy/przedluz",
       "ends_with": "login_wall"

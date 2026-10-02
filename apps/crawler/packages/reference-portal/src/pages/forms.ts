@@ -20,7 +20,8 @@ export function travelErrors(p: Params): string[] {
   if (okFrom && okTo) {
     const days = travelDays(p.data_wyjazdu!, p.data_powrotu!);
     if (days < 1) e.push('Data powrotu nie może być wcześniejsza niż data wyjazdu.');
-    else if (days > MAX_TRAVEL_DAYS) e.push(`Maksymalny okres ubezpieczenia to ${MAX_TRAVEL_DAYS} dni.`);
+    else if (days > MAX_TRAVEL_DAYS)
+      e.push(`Maksymalny okres ubezpieczenia to ${MAX_TRAVEL_DAYS} dni.`);
   }
   const n = /^\d+$/.test(p.liczba_osob ?? '') ? Number(p.liczba_osob) : 0;
   if (n < 1 || n > 9) e.push('Liczba podróżnych musi wynosić od 1 do 9.');
@@ -70,9 +71,24 @@ export function travelResult(p: Params): PageResult {
 
 const PRODUCTS: Record<string, { name: string; scope: string; price: string; optional: string }> = {
   oc: { name: 'OC', scope: 'Szkody wyrządzone innym', price: 'od 800 zł', optional: 'nie' },
-  ac: { name: 'Autocasco (AC)', scope: 'Szkody własne i kradzież', price: 'od 1200 zł', optional: 'tak' },
-  assistance: { name: 'Assistance', scope: 'Holowanie i auto zastępcze', price: '99 zł', optional: 'tak' },
-  nnw: { name: 'NNW', scope: 'Następstwa nieszczęśliwych wypadków', price: 'od 60 zł', optional: 'tak' },
+  ac: {
+    name: 'Autocasco (AC)',
+    scope: 'Szkody własne i kradzież',
+    price: 'od 1200 zł',
+    optional: 'tak',
+  },
+  assistance: {
+    name: 'Assistance',
+    scope: 'Holowanie i auto zastępcze',
+    price: '99 zł',
+    optional: 'tak',
+  },
+  nnw: {
+    name: 'NNW',
+    scope: 'Następstwa nieszczęśliwych wypadków',
+    price: 'od 60 zł',
+    optional: 'tak',
+  },
 };
 
 function compareForm(p: Params, errors: string[]): string {
@@ -86,7 +102,10 @@ ${select({ id: 'produkt_2', label: 'Drugi produkt', options: opts, value: p.prod
 }
 
 export function comparePage(): string {
-  return layout('Porównanie produktów', `<p>Wybierz dwa różne produkty, aby je porównać.</p>${compareForm({}, [])}`);
+  return layout(
+    'Porównanie produktów',
+    `<p>Wybierz dwa różne produkty, aby je porównać.</p>${compareForm({}, [])}`,
+  );
 }
 
 export function compareResult(p: Params): PageResult {
@@ -125,8 +144,10 @@ export function contactErrors(p: Params): string[] {
   if (!p.wiadomosc) e.push('Wpisz wiadomość.');
   else if (p.wiadomosc.length > 1000) e.push('Wiadomość może mieć najwyżej 1000 znaków.');
   if (!p.telefon && !p.email) e.push('Podaj telefon lub e-mail.');
-  if (p.telefon && !/^\+?[0-9 ]{9,15}$/.test(p.telefon)) e.push('Numer telefonu jest nieprawidłowy.');
-  if (p.email && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(p.email)) e.push('Adres e-mail jest nieprawidłowy.');
+  if (p.telefon && !/^\+?[0-9 ]{9,15}$/.test(p.telefon))
+    e.push('Numer telefonu jest nieprawidłowy.');
+  if (p.email && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(p.email))
+    e.push('Adres e-mail jest nieprawidłowy.');
   return e;
 }
 
@@ -146,7 +167,10 @@ ${input({ id: 'email', label: 'E-mail', type: 'email', value: p.email })}
 }
 
 export function contactThanks(): string {
-  return layout('Dziękujemy za wiadomość', '<p role="status">Odpowiemy w ciągu 2 dni roboczych.</p><p><a href="/">Wróć na stronę główną</a></p>');
+  return layout(
+    'Dziękujemy za wiadomość',
+    '<p role="status">Odpowiemy w ciągu 2 dni roboczych.</p><p><a href="/">Wróć na stronę główną</a></p>',
+  );
 }
 
 export function loginPage(error = false): string {

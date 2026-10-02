@@ -29,7 +29,12 @@ const tables = (o: OpenedDb) =>
 
 describe('migrations', () => {
   it('finds 0001_init, 0002_portal_workspaces, 0003_trace and 0004_ba_documentation, each with an up and a down', () => {
-    expect(loadMigrations(MIGRATIONS).map((m) => m.version)).toEqual(['0001', '0002', '0003', '0004']);
+    expect(loadMigrations(MIGRATIONS).map((m) => m.version)).toEqual([
+      '0001',
+      '0002',
+      '0003',
+      '0004',
+    ]);
   });
 
   it('applies up in order, is idempotent, and reverts down to empty', () => {
@@ -283,9 +288,7 @@ describe('Layer B tables (0004_ba_documentation)', () => {
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0004');
     expect(tables(opened)).not.toEqual(expect.arrayContaining(['doc_records', 'doc_revisions']));
     expect(migrateUp(opened.raw, MIGRATIONS)).toEqual(['0004']);
-    expect(
-      opened.raw.prepare('SELECT count(*) AS n FROM doc_records').get(),
-    ).toEqual({ n: 0 });
+    expect(opened.raw.prepare('SELECT count(*) AS n FROM doc_records').get()).toEqual({ n: 0 });
   });
 });
 

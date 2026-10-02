@@ -74,5 +74,8 @@ export function glossary(): string {
 }
 
 export function notFound(): string {
-  return layout('Nie znaleziono strony', '<p>Strona nie istnieje. <a href="/">Wróć na stronę główną</a>.</p>');
+  return layout(
+    'Nie znaleziono strony',
+    '<p>Strona nie istnieje. <a href="/">Wróć na stronę główną</a>.</p>',
+  );
 }

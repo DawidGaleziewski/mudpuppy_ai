@@ -374,6 +374,7 @@ def test_trace_fragment_filters_by_tool_and_status(liveinsurer_store: Store) -> 
     w = liveinsurer_store.connect()
     seed_trace(w)
     w.commit()
+
     def calls_list(html: str) -> str:
         return html.split('<ul class="trace-calls">')[1]
 

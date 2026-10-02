@@ -32,7 +32,13 @@ const MAKES: [string, string][] = [
 ];
 
 const VEHICLE = ['marka', 'model', 'rok_produkcji', 'pojemnosc', 'kod_pocztowy'] as const;
-const DRIVER = ['data_urodzenia', 'rok_prawa_jazdy', 'lata_bezszkodowe', 'zgoda_dane', 'zgoda_owu'] as const;
+const DRIVER = [
+  'data_urodzenia',
+  'rok_prawa_jazdy',
+  'lata_bezszkodowe',
+  'zgoda_dane',
+  'zgoda_owu',
+] as const;
 const OPTIONS = ['zakres', 'assistance', 'kod_rabatowy'] as const;
 
 function pick(p: Params, keys: readonly string[]): Params {
@@ -57,7 +63,8 @@ export function vehicleErrors(p: Params): string[] {
   if (year === null || year < MIN_PRODUCTION_YEAR || year > CURRENT_YEAR)
     e.push(`Rok produkcji musi być z przedziału ${MIN_PRODUCTION_YEAR}–${CURRENT_YEAR}.`);
   const cc = int(p.pojemnosc);
-  if (cc === null || cc < 50 || cc > 8000) e.push('Pojemność silnika musi wynosić od 50 do 8000 cm³.');
+  if (cc === null || cc < 50 || cc > 8000)
+    e.push('Pojemność silnika musi wynosić od 50 do 8000 cm³.');
   if (!p.kod_pocztowy || !matches(POSTCODE_PATTERN, p.kod_pocztowy))
     e.push('Kod pocztowy musi mieć format NN-NNN.');
   return e;

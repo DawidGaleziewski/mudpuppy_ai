@@ -119,7 +119,12 @@ export const NfrContent = z.object({
 });
 export type NfrContent = z.infer<typeof NfrContent>;
 
-export const BusinessRuleType = z.enum(['constraint', 'computation', 'inference', 'action_enabler']);
+export const BusinessRuleType = z.enum([
+  'constraint',
+  'computation',
+  'inference',
+  'action_enabler',
+]);
 export type BusinessRuleType = z.infer<typeof BusinessRuleType>;
 
 export const DecisionTable = z.object({
