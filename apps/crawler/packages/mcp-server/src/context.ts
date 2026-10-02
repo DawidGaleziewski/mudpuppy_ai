@@ -8,6 +8,17 @@ import type {
   Tracer,
 } from '@pathfinder/core';
 
+/**
+ * What the BA server's services need: the store and the evidence files, nothing that can reach a
+ * portal. A `ServerContext` satisfies it, so tests may pass either.
+ */
+export interface BaContext {
+  db: PathfinderDb;
+  raw: OpenedDb['raw'];
+  evidence: EvidenceStore;
+  logger: Logger;
+}
+
 /** Everything a service needs. Run-scoped browser state lives elsewhere (session registry). */
 export interface ServerContext {
   db: PathfinderDb;

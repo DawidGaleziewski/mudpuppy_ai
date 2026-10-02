@@ -1,0 +1,31 @@
+# Local reference portal (apps/crawler/packages/reference-portal): a fake Polish insurer whose full
+# truth is in its ground-truth.json, used to measure the crawler and the BA (spec 004 D8).
+# Start it with `pnpm reference-portal` from apps/crawler/ before a run.
+id: reference-insurer
+base_url: http://127.0.0.1:4010/
+environment: sandbox
+# max_action_class omitted: the guest persona caps runs at `read`.
+
+# Our own local test server: nothing to review, filled so the config is complete.
+compliance:
+  robots_checked_on: 2026-10-02
+  terms_reviewed_on: 2026-10-02
+  terms_reviewed_by: local test portal, no terms
+
+scope:
+  allowed_domains: ["127.0.0.1"]
+  allowed_paths: ["/*"]
+  external_link_policy: record
+  max_depth: 6
+  max_states: 100
+  max_actions_per_state: 40
+  max_run_time_minutes: 30
+  max_steps: 400
+
+denylist:
+  - path:/__admin/* # state reset endpoint, also disallowed by the portal's robots.txt
+
+rate_limit:
+  requests_per_second: 5
+  max_concurrency: 2
+  user_agent: "PathfinderAI-Crawler/0.1 (local reference portal)"

@@ -5,3 +5,6 @@ export * from './services/index.js';
 export * from './tools/index.js';
 export * from './server.js';
 export * from './runtime/index.js';
+export * from './services/ba/index.js';
+export * from './ba-tools/index.js';
+export * from './ba-server.js';

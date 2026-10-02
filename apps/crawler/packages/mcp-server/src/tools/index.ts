@@ -1,5 +1,4 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
-import type { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
 import { shapeUrl, type CallStart, type SpanHandle } from '@pathfinder/core';
 import { z } from 'zod';
 import type { ServerContext } from '../context.js';
@@ -14,6 +13,7 @@ import {
   interruptRun,
   startRunRecord,
 } from '../services/index.js';
+import { fail, ok } from './result.js';
 
 /**
  * The ONLY tools the crawler subagent may use (as `mcp__pathfinder__<name>`). Recording services and
@@ -30,30 +30,6 @@ export const AGENT_TOOL_NAMES = [
   'finish_run',
 ] as const;
 export type AgentToolName = (typeof AGENT_TOOL_NAMES)[number];
-
-function ok(value: unknown): CallToolResult {
-  return {
-    content: [{ type: 'text', text: JSON.stringify(value) }],
-    structuredContent: value as Record<string, unknown>,
-  };
-}
-
-function fail(e: unknown, ctx: ServerContext): CallToolResult {
-  if (e instanceof ToolError) {
-    return {
-      isError: true,
-      content: [{ type: 'text', text: JSON.stringify(e.toJSON()) }],
-      structuredContent: e.toJSON(),
-    };
-  }
-  ctx.logger.error({ err: e }, 'unhandled tool error');
-  const body = { error: { code: 'INTERNAL', message: 'internal error; see server log' } };
-  return {
-    isError: true,
-    content: [{ type: 'text', text: JSON.stringify(body) }],
-    structuredContent: body,
-  };
-}
 
 /** What the SDK passes a tool callback besides its arguments (RequestHandlerExtra, the part we read). */
 interface ToolExtra {

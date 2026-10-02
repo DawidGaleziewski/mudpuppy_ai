@@ -20,6 +20,15 @@ export const ERROR_CODES = [
   'PII_SUSPECTED',
   'ROBOTS_UNAVAILABLE',
   'BROWSER_UNAVAILABLE',
+  // BA server (specs/004-ba-documentation/contracts/ba-mcp-tools.md).
+  'SESSION_NOT_ACTIVE',
+  'SESSION_INCOMPLETE',
+  'RUN_NOT_IN_SESSION',
+  'PORTAL_MISMATCH',
+  'RECORD_NOT_FOUND',
+  'STALE_REVISION',
+  'RELATION_NOT_ALLOWED',
+  'NOT_OBSERVABLE_NEEDS_QUESTION',
 ] as const;
 export type ErrorCode = (typeof ERROR_CODES)[number];
 

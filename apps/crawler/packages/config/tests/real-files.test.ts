@@ -23,6 +23,20 @@ describe('repository config files', () => {
     expect(e.portal.robots_page_requests).toBe('block');
   });
 
+  it('portals/reference-insurer (sandbox) and -readonly (production) + guest load', () => {
+    const guest = root('personas/reference-insurer/guest.yaml');
+    const sandbox = loadEffectiveConfig(root('portals/reference-insurer/portal.yaml'), guest);
+    expect(sandbox.portal.environment).toBe('sandbox');
+    expect(sandbox.effectiveMaxActionClass).toBe('read');
+    expect(sandbox.portal.denylist).toContain('path:/__admin/*');
+    const readonly = loadEffectiveConfig(
+      root('portals/reference-insurer-readonly/portal.yaml'),
+      guest,
+    );
+    expect(readonly.portal.environment).toBe('production');
+    expect(readonly.portal.base_url).toBe(sandbox.portal.base_url);
+  });
+
   it('accepts generic ids and the old aliases side by side', () => {
     for (const id of ['purchase', 'contact_or_message', 'reveal_contact', 'submit_request'])
       expect(DENYLIST_RULE_IDS).toContain(id);

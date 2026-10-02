@@ -23,6 +23,7 @@ Status: `todo`, `in progress`, `done`. Last reviewed: 2026-10-02.
 | R-14 | Crawler trace mode: record one named process as ordered steps, stop at the submit boundary on production, follow-up tasks drive trace runs | `specs/004-ba-documentation` US4, T033–T050 | todo |
 | R-15 | Docs tab: SRS view per portal with evidence and run links, revision history, review actions (confirm/reject/comment), constitution amendment for the review write path | `specs/004-ba-documentation` US2 + US3, T051–T071 | todo |
 | R-16 | SRS export and goal evaluation: deterministic Markdown + Mermaid + machine-readable export with traceability matrix and Unknowns section; `docs:evaluate` scores the docs against the reference portal's ground truth | `specs/004-ba-documentation` US5 + US6 + polish, T072–T082 | todo |
+| R-18 | To discuss: API discovery depth and browser tooling (richer network capture in the crawler; Playwright MCP and Chrome DevTools MCP as developer debugging tools only) | — (no spec yet) | todo |
 
 ## Notes
 
@@ -146,3 +147,36 @@ Status: `todo`, `in progress`, `done`. Last reviewed: 2026-10-02.
   carry both `0003_trace` and `0004`, `portal:delete` drops Layer B before the trace tables, and the
   dashboard got read models for the eight Layer B tables (its schema-drift test requires one per
   table; no screens yet, that is R-15). All feature branches are merged and deleted.
+- 2026-10-02, R-13 continues on `feature/004-r13-ba-documentation` again (reset to `master`), at the
+  user's request. T006 done: `portals/reference-insurer` (sandbox), `portals/reference-insurer-readonly`
+  (production, same server), `personas/reference-insurer/guest.yaml`, loaded by `real-files.test.ts`.
+  `.mcp.json` now starts the `pathfinder` server with `PATHFINDER_ENV=sandbox`; the user keeps it
+  sandboxed while testing, so switch it back before any live run. Still open before the BA server:
+  T009–T016, T018, T019, then T020–T028.
+- T032, map half only (2026-10-02): guest map run `01a0fe67-3a93-7000-9fc4-035a144567ff` on
+  `reference-insurer` in `data/db/sandbox.sqlite`, status `completed`, frontier empty. 12 states (`/`,
+  the three product pages, `/porownanie`, `/kalkulator/pojazd`, `/kontakt`, `/faq`, `/slowniczek`,
+  `/moje-polisy`, `/moje-polisy/przedluz`, `/logowanie`), 195 actions executed, 6 skipped at the read
+  ceiling (5 mutating, 1 external-side-effect), 2 rule candidates (both login walls), 3 open
+  questions. Dashboard: `/runs/<id>?env=sandbox` (the dashboard opens on `production` by default).
+  The BA half, `docs:audit` and the session id / record counts / FUPs are still owed; T032 stays `[ ]`.
+  Findings from the run:
+  - `api_endpoints: 0` is correct: the reference portal is server-rendered HTML only, with no JSON
+    route and no `fetch`/XHR (its one inline script toggles the `Dalej` button).
+  - Five of the portal's eight forms are `method="get"` (three calculator steps, travel quote,
+    comparison) but map mode classes their submit buttons as mutating and skips them, so
+    `/kalkulator/kierowca`, `/kalkulator/opcje`, `/kalkulator/wynik`, `/ubezpieczenia/podroze/wynik`
+    and `/porownanie/wynik` are unmapped. Decided with the user: keep it this way; trace mode (R-14)
+    is what reaches them.
+  - Unexplained: `/faq` and `/ubezpieczenia/dom` got the same cluster id; each state reports its
+    form only on the first visit (`forms: 0` on revisits). Not investigated.
+- R-18 added 2026-10-02 at the user's request, to discuss later; nothing is decided or specified.
+  Starting points: (1) the crawler already records page-made `xhr`/`fetch` calls as method, path
+  template, status and body shapes linked to the triggering action
+  (`packages/crawler/src/network-recorder.ts`); it does not record classic form POSTs or WebSockets,
+  drops bodies over the size cap, and never interprets what a call means (that is the BA's job).
+  (2) Idea from https://stevekinney.com/writing/driving-vs-debugging-the-browser: Playwright MCP
+  drives a browser, Chrome DevTools MCP debugs one. Position so far: neither goes to the crawler
+  agent, because a second browser would bypass the `pathfinder` server's scope, denylist, robots,
+  rate-limit, read-ceiling and PII gates; DevTools MCP may be useful to developers for checking what
+  the recorder missed; richer capture belongs in the recorder itself.
