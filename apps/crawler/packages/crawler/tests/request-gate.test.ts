@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { createRateLimiter } from '../src/rate-limiter.js';
+import { createRateLimiter, type AcquireOptions } from '../src/rate-limiter.js';
 import type { Refusal } from '@pathfinder/safety';
 import {
   createRequestGate,
@@ -47,12 +47,21 @@ function fakeContext() {
       return route;
     },
     raw: (r: FakeResponse) => responseHandler(r),
-    respond: (status: number, body = '', ct = 'text/html') =>
+    respond: (
+      status: number,
+      body = '',
+      ct = 'text/html',
+      from: { resourceType?: string; mainFrame?: boolean } = {},
+    ) =>
       responseHandler({
         headers: () => ({ 'content-type': ct }),
         status: () => status,
         url: () => 'https://x.pl/',
         text: async () => body,
+        request: () => ({
+          resourceType: () => from.resourceType ?? 'document',
+          frame: () => ({ parentFrame: () => (from.mainFrame === false ? {} : null) }),
+        }),
       }),
   };
 }
@@ -113,7 +122,10 @@ describe('request gate', () => {
         status: () => 200,
         url: () => 'https://www.gstatic.com/recaptcha/releases/x/recaptcha__pl.js',
         text: async () => body,
-        request: () => ({ resourceType: () => resourceType, frame: () => ({ parentFrame: () => parent }) }),
+        request: () => ({
+          resourceType: () => resourceType,
+          frame: () => ({ parentFrame: () => parent }),
+        }),
       });
     await res('script', null);
     await res('document', {});
@@ -128,6 +140,18 @@ describe('request gate', () => {
     await f.respond(404, 'nie ma');
     await f.respond(200, 'g-recaptcha', 'image/png');
     expect(stops).toHaveLength(0);
+  });
+
+  it('ignores CAPTCHA markers inside vendor scripts and third-party iframes', async () => {
+    const { gate, stops } = make();
+    const f = fakeContext();
+    await gate.install(f.ctx as never);
+    // Google's recaptcha__pl.js bundle contains "g-recaptcha" on a normal page with invisible v3.
+    await f.respond(200, 'var c="g-recaptcha";', 'text/javascript', { resourceType: 'script' });
+    await f.respond(200, '<div class="g-recaptcha">', 'text/html', { mainFrame: false });
+    expect(stops).toHaveLength(0);
+    await f.respond(403, '', 'text/javascript', { resourceType: 'script' });
+    expect(stops[0]!.kind).toBe('http_403');
   });
 
   it('aborts a main-frame navigation the navigation policy refuses, and reports it', async () => {
@@ -254,6 +278,27 @@ describe('request gate: robots (FR-003, FR-009)', () => {
     expect(m.ensured).toEqual(['https://www.x.pl/logo.png']);
     await m.c.request('https://cdn.fonts.com/a.woff', 'resource');
     expect(m.ensured).toHaveLength(1); // off-domain hosts are not robots-checked
+  });
+
+  it('lets only a main-frame navigation jump the rate limiter queue', async () => {
+    const base = createRateLimiter({ requestsPerSecond: 1000, maxConcurrency: 1 });
+    const priorities: (boolean | undefined)[] = [];
+    const r = registry();
+    const gate = createRequestGate({
+      limiter: {
+        ...base,
+        acquire: (o?: AcquireOptions) => (priorities.push(o?.priority), base.acquire(o)),
+      },
+      userAgent: UA,
+      onStop: () => {},
+      robots: { registry: r.reg, pageRequests: 'block', templateFor: (u) => u, onNote: () => {} },
+    });
+    const c = ctxWith();
+    await gate.install(c.ctx as never);
+    await c.request('https://www.x.pl/', 'main');
+    await c.request('https://www.x.pl/frame', 'sub');
+    await c.request('https://www.x.pl/app.js', 'resource');
+    expect(priorities).toEqual([true, false, false]);
   });
 
   it('aborts a disallowed main-frame navigation with a robots refusal', async () => {

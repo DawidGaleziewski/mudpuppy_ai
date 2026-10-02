@@ -893,8 +893,15 @@ async function actStep(
     return { locator, matches };
   });
   await phase(ctx, 'click', async () => {
+    // Reachability first (trial: actionability only, nothing is clicked), then the click itself with
+    // the budget of a page load: a click that starts a navigation waits for it, and at a low rate
+    // limit that request can queue for a while. A slow navigation must not read as an unreachable
+    // element.
+    let stage = 'click failed';
     try {
-      await locator.click({ timeout: 5000 });
+      await locator.click({ trial: true, timeout: 5000 });
+      stage = 'navigation after click did not start';
+      await locator.click({ timeout: 30_000 });
       ctx.tracer.event('locator', { ...locatorAttrs, matches, outcome: 'clicked' });
     } catch (e) {
       ctx.tracer.event('locator', {
@@ -922,7 +929,7 @@ async function actStep(
       const refusal: Refusal = {
         status: 'unreachable',
         rule: 'click_failed',
-        reason: `click failed: ${(e as Error).message.split('\n')[0]}`,
+        reason: `${stage}: ${(e as Error).message.split('\n')[0]}`,
       };
       return refuse(
         ctx,

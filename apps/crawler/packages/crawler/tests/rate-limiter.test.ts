@@ -90,6 +90,27 @@ describe('rate limiter', () => {
     (await p)();
   });
 
+  it('hands a freed slot to priority waiters first, FIFO among them', async () => {
+    const c = clock();
+    const l = createRateLimiter({ requestsPerSecond: 1000, maxConcurrency: 1, ...c });
+    const first = await l.acquire();
+    const order: string[] = [];
+    const wait = (name: string, priority: boolean) =>
+      l.acquire({ priority }).then((release) => {
+        order.push(name);
+        release();
+      });
+    const all = Promise.all([
+      wait('script', false),
+      wait('image', false),
+      wait('nav1', true),
+      wait('nav2', true),
+    ]);
+    first();
+    await all;
+    expect(order).toEqual(['nav1', 'nav2', 'script', 'image']);
+  });
+
   it('rejects invalid configuration', () => {
     expect(() => createRateLimiter({ requestsPerSecond: 0, maxConcurrency: 1 })).toThrow();
     expect(() => createRateLimiter({ requestsPerSecond: 1, maxConcurrency: 0 })).toThrow();

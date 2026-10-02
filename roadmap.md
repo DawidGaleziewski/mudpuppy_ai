@@ -105,3 +105,15 @@ Status: `todo`, `in progress`, `done`. Last reviewed: 2026-09-29.
     `page.evaluate` call sites (`observer.ts`, `stabilizer.ts`). Regression test:
     `packages/crawler/tests/pw-eval.test.ts` (reproduces the exact `__name`-referencing source
     shape via `new Function`, independent of tsx).
+- 2026-09-25, commit `d8cff2a` (branch `feature/001-r07-liveinsurer-live-run-fixes`): the Chromium launch
+  blocker above is resolved (commit `6e26bf6`, already on `master`). A fresh live guest run against
+  liveinsurer got 8 steps in before being deliberately paused (not finished, not failed) after fixing five
+  further blockers found in order: a CAPTCHA-detector false positive on vendor script bodies, an
+  `__name is not defined` crash unique to the real tsx-run server (untested by Vitest), liveinsurer's
+  two-step Cookiebot banner needing a `cookie_manage` obstacle before `cookie_banner`, click timeouts
+  from strict-FIFO rate limiting (fixed with a priority lane for main-frame navigations), and ~200
+  native `<select>` options flooding the frontier and starving footer links. Full detail and
+  not-yet-implemented follow-ups (step latency at 1 rps, error diagnosability, decision-log gaps for
+  obstacle dismissals, liveinsurer's hidden skip links) are in `specs/001-crawler-map-mode/tasks.md` under
+  T059 and T073. T059, T073, T074 stay open: the next live run needs a fresh MCP reconnect and a
+  supervised `crawler` subagent session to actually complete §2–§9 of the quickstart.

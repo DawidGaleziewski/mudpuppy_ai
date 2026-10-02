@@ -257,7 +257,9 @@ export function createRequestGate(opts: RequestGateOptions): RequestGate {
         let release: (() => void) | undefined;
         const waitStart = clock();
         try {
-          release = await opts.limiter.acquire();
+          // A main-frame navigation jumps the queue: at a low rate it would otherwise wait behind every
+          // pending subresource of the page it leaves, and the click that started it times out.
+          release = await opts.limiter.acquire({ priority: mainNav });
         } catch (e) {
           limiterWaitMs = clock() - waitStart;
           if (e instanceof RateLimiterHalted) return halted();

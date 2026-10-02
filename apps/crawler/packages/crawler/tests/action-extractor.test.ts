@@ -66,6 +66,21 @@ describe('extractCandidates', () => {
     expect(withDom[0]!.safetyClass).toBe('mutating');
   });
 
+  it("skips a native select's options but keeps the select and a custom listbox's options", () => {
+    const snap = [
+      '- combobox "Miasto":',
+      '  - option "Wybierz miasto" [selected]',
+      '  - option "Kraków"',
+      '- combobox "Produkt" [expanded]',
+      '- listbox "Produkt":',
+      '  - option "OC/AC"',
+      '- link "Kontakt":',
+      '  - /url: /kontakt',
+    ].join('\n');
+    const c = extractCandidates(snap).map((x) => `${x.role}:${x.name}`);
+    expect(c).toEqual(['combobox:Miasto', 'combobox:Produkt', 'option:OC/AC', 'link:Kontakt']);
+  });
+
   it('caps the number of candidates per state', () => {
     const many = Array.from({ length: 500 }, (_, i) => `- link "L${i}":\n    - /url: /x/${i}`).join(
       '\n',

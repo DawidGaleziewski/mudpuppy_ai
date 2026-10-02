@@ -1,5 +1,6 @@
 import { createServer, type Server } from 'node:http';
 import type { AddressInfo } from 'node:net';
+import { tsImport } from 'tsx/esm/api';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import type { Browser } from 'playwright';
 import { NetworkRecorder } from '../src/network-recorder.js';
@@ -21,7 +22,9 @@ const FORM_PAGE = `<!doctype html><title>Konto</title>
   <input type="hidden" name="csrf" value="tok">
   <button type="submit">Załóż konto</button>
 </form>
-<form role="search" action="/szukaj"><input name="q" type="search"><button>Szukaj</button></form>`;
+<form role="search" action="/szukaj"><input name="q" type="search"><button>Szukaj</button></form>
+<a data-testid="help-link" href="/pomoc">  Pomoc
+  i obsługa </a>`;
 
 beforeAll(async () => {
   if (!available) return;
@@ -98,6 +101,22 @@ describe.skipIf(!available)('observer', () => {
     expect(JSON.stringify(obs.forms)).not.toContain('secret.user@example.com');
     expect(obs.forms.find((f) => f.purpose === 'search')).toBeDefined();
     expect(obs.ariaSnapshot).toContain('button "Załóż konto"');
+    await page.close();
+  });
+
+  it('runs its in-page callbacks when loaded through tsx, as the MCP server loads it', async () => {
+    // tsx keeps function names by wrapping them in `__name(...)`, which the page does not define;
+    // vitest's transform does not, so only a tsx-loaded copy exercises what the server runs.
+    const viaTsx = (await tsImport('../src/observer.ts', import.meta.url)) as {
+      observePage: typeof observePage;
+    };
+    const page = await browser.newPage();
+    await page.goto(`${base}/form`);
+    const obs = await viaTsx.observePage(page);
+    expect(obs.forms.map((f) => f.name)).toContain('Rejestracja');
+    expect(obs.testIds).toEqual([
+      { testId: 'help-link', role: 'link', name: 'Pomoc i obsługa', label: '' },
+    ]);
     await page.close();
   });
 
