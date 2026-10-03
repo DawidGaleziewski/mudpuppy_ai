@@ -27,7 +27,8 @@ describe('repository config files', () => {
     const guest = root('personas/reference-insurer/guest.yaml');
     const sandbox = loadEffectiveConfig(root('portals/reference-insurer/portal.yaml'), guest);
     expect(sandbox.portal.environment).toBe('sandbox');
-    expect(sandbox.effectiveMaxActionClass).toBe('read');
+    // Our own local server: traces may submit there.
+    expect(sandbox.effectiveMaxActionClass).toBe('external-side-effect');
     expect(sandbox.portal.denylist).toContain('path:/__admin/*');
     const readonly = loadEffectiveConfig(
       root('portals/reference-insurer-readonly/portal.yaml'),
@@ -35,6 +36,14 @@ describe('repository config files', () => {
     );
     expect(readonly.portal.environment).toBe('production');
     expect(readonly.portal.base_url).toBe(sandbox.portal.base_url);
+    // The production twin caps even the sandbox persona at read, and its own persona is read too.
+    expect(readonly.effectiveMaxActionClass).toBe('read');
+    expect(
+      loadEffectiveConfig(
+        root('portals/reference-insurer-readonly/portal.yaml'),
+        root('personas/reference-insurer-readonly/guest.yaml'),
+      ).effectiveMaxActionClass,
+    ).toBe('read');
   });
 
   it('accepts generic ids and the old aliases side by side', () => {

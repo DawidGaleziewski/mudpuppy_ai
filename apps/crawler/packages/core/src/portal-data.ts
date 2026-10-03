@@ -32,11 +32,15 @@ export const PORTAL_TABLES = [
   'doc_relations',
   'doc_reviews',
   'followup_tasks',
+  'processes',
+  'process_steps',
 ] as const;
 export type PortalTable = (typeof PORTAL_TABLES)[number];
 
 /**
- * Children before parents, so every foreign key still holds at each step. Layer B
+ * Children before parents, so every foreign key still holds at each step. `process_steps` then
+ * `processes` (`0005_trace_processes`) go first of all: steps reference actions, edges and states,
+ * and processes reference runs, actions and doc_records. Layer B
  * (`0004_ba_documentation`, data-model.md "Portal data partition") goes first: reviews, relations and
  * evidence links are children of doc_revisions; followup_tasks and doc_revisions are children of
  * doc_records; doc_revisions is also a child of analysis_sessions, so it must precede
@@ -47,6 +51,8 @@ export type PortalTable = (typeof PORTAL_TABLES)[number];
  * `decision_log` and `runs`.
  */
 const DELETE_ORDER: readonly PortalTable[] = [
+  'process_steps',
+  'processes',
   'doc_reviews',
   'doc_relations',
   'doc_evidence_links',
@@ -97,6 +103,7 @@ export function where(table: PortalTable, side: 'mine' | 'others'): string {
     case 'states':
     case 'analysis_sessions':
     case 'doc_records':
+    case 'processes':
       return `portal_id ${op} ?`;
     case 'analysis_session_runs':
       return `session_id IN (SELECT id FROM analysis_sessions WHERE portal_id ${op} ?)`;
@@ -109,6 +116,8 @@ export function where(table: PortalTable, side: 'mine' | 'others'): string {
       return `from_revision_id IN (${DOC_REVISIONS_OF_PORTAL(op)})`;
     case 'followup_tasks':
       return `record_id IN (${DOC_RECORDS_OF_PORTAL(op)})`;
+    case 'process_steps':
+      return `process_id IN (SELECT id FROM processes WHERE portal_id ${op} ?)`;
     default:
       return `run_id IN (SELECT id FROM runs WHERE portal_id ${op} ?)`;
   }

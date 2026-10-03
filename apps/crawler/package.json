@@ -19,6 +19,8 @@
     "portal:delete": "tsx scripts/portal-delete.ts",
     "trace:import-agent": "tsx scripts/trace-import-agent.ts",
     "docs:audit": "tsx scripts/docs-audit.ts",
+    "docs:review": "tsx scripts/docs-review.ts",
+    "trace:smoke": "tsx packages/mcp-server/scripts/trace-smoke.ts",
     "reference-portal": "pnpm --filter @pathfinder/reference-portal start"
   },
   "devDependencies": {

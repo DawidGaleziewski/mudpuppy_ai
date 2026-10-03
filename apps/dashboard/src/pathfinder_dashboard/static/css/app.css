@@ -957,3 +957,162 @@ table.data .evidence {
 .measure {
   max-width: 48ch;
 }
+
+/* ---------- docs tab (spec 004, R-15) ---------- */
+
+/* side index of SRS sections: a scrolling strip below 1024px, a column beside the content above */
+.docs-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-4);
+}
+
+.docs-main {
+  min-width: 0;
+}
+
+.docs-index ul {
+  display: flex;
+  gap: var(--space-1);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  overflow-x: auto;
+}
+
+.docs-index a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  min-height: var(--touch);
+  padding: 0 var(--space-3);
+  color: var(--ink-500);
+  text-decoration: none;
+  white-space: nowrap;
+  border: var(--hairline) solid var(--border);
+}
+
+.docs-index a:hover {
+  color: var(--ink-100);
+  background: var(--surface-200);
+}
+
+.docs-index a[aria-current="page"] {
+  color: var(--brand);
+  border-color: var(--brand);
+}
+
+/* one-column definition list for record content (the run header's .facts is a grid) */
+.facts.facts-1 {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.docs-list {
+  margin: 0;
+  padding-left: var(--space-4);
+}
+
+pre.gherkin {
+  max-height: none;
+}
+
+/* Mermaid diagrams: the source text is the no-JS fallback; the rendered SVG scrolls, never clips */
+.diagram {
+  margin: 0;
+  padding: var(--space-4);
+  overflow-x: auto;
+  background: var(--surface-100);
+  border: var(--hairline) solid var(--border);
+}
+
+.diagram figcaption {
+  margin-bottom: var(--space-3);
+  font-size: var(--text-body-sm);
+  color: var(--ink-500);
+}
+
+.diagram pre.mermaid {
+  margin: 0;
+  font: inherit;
+  font-size: var(--text-body-sm);
+  color: var(--ink-100);
+  white-space: pre-wrap;
+}
+
+.diagram svg {
+  max-width: 100%;
+  height: auto;
+}
+
+/* review panel: confirm / reject / comment on the latest revision */
+.textarea {
+  display: block;
+  width: 100%;
+  min-height: var(--textarea-min-h);
+  padding: var(--space-2) var(--space-3);
+  font: inherit;
+  font-size: var(--text-body-sm);
+  color: var(--ink-100);
+  background: var(--surface-0);
+  border: var(--hairline) solid var(--border);
+  resize: vertical;
+}
+
+.textarea[disabled] {
+  opacity: var(--disabled-opacity);
+  cursor: not-allowed;
+}
+
+.review-forms {
+  display: grid;
+  gap: var(--space-3);
+  margin: var(--space-4) 0;
+}
+
+.review-form {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: var(--space-3);
+}
+
+.review-form .field {
+  flex: 1 1 calc(var(--docs-index-w) + var(--space-9));
+}
+
+.review-result {
+  margin: var(--space-3) 0;
+}
+
+.review-list {
+  margin: var(--space-3) 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.review-list li {
+  padding: var(--space-2) 0;
+  border-bottom: var(--hairline) dashed var(--border);
+}
+
+/* the revision on screen in the history table */
+table.data tr[aria-current="true"] td {
+  background: var(--surface-200);
+}
+
+@media (min-width: 1024px) {
+  .docs-layout {
+    grid-template-columns: var(--docs-index-w) minmax(0, 1fr);
+    gap: var(--space-6);
+  }
+
+  .docs-index ul {
+    flex-direction: column;
+    overflow-x: visible;
+  }
+
+  .docs-index a {
+    width: 100%;
+  }
+}

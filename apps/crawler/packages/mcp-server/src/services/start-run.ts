@@ -9,17 +9,43 @@ import { getRun, type RunRow } from './common.js';
 import { scopeOf } from './run-budget.js';
 import { portalRuleSet, ruleSetSummary } from '@pathfinder/safety';
 import { createRunRobots, robotsSnapshot, type RunRobots } from './robots.js';
+import { createProcess, openFollowup, processOfRun } from './trace.js';
 
 const StartRunInput = z
   .object({
     portal_id: z.string().min(1),
     persona_id: z.string().min(1),
     resume_run_id: z.string().min(1).optional(),
+    mode: z.enum(['map', 'trace']).default('map'),
+    process: z
+      .object({ name: z.string().trim().min(1).max(200), goal: z.string().trim().min(1).max(500) })
+      .strict()
+      .optional(),
+    followup_key: z.string().min(1).optional(),
   })
-  .strict();
+  .strict()
+  .superRefine((v, c) => {
+    // A resumed run keeps its own mode and process.
+    if (v.resume_run_id !== undefined) return;
+    if (v.mode === 'trace' && v.process === undefined)
+      c.addIssue({ code: 'custom', path: ['process'], message: 'required when mode is trace' });
+    if (v.mode === 'map' && v.process !== undefined)
+      c.addIssue({ code: 'custom', path: ['process'], message: 'only allowed when mode is trace' });
+    if (v.mode === 'map' && v.followup_key !== undefined)
+      c.addIssue({
+        code: 'custom',
+        path: ['followup_key'],
+        message: 'only allowed when mode is trace',
+      });
+  });
 
 export interface StartRunOutput {
   run_id: string;
+  mode: 'map' | 'trace';
+  /** The trace run's process; absent for map runs. */
+  process_id?: string;
+  /** The portal's start URL: a trace has no frontier, so its first `navigate` goes here. */
+  base_url: string;
   resumed: boolean;
   effective_max_action_class: SafetyClass;
   budgets: { steps: number; run_time_minutes: number; states: number };
@@ -101,9 +127,13 @@ export async function startRunRecord(
         .execute();
       return getRun(ctx, run.id);
     });
+    const resumedProcess = await processOfRun(ctx, run.id);
     return {
       output: {
         run_id: run.id,
+        mode: resumedProcess ? 'trace' : 'map',
+        ...(resumedProcess ? { process_id: resumedProcess.id } : {}),
+        base_url: portal.base_url,
         resumed: true,
         effective_max_action_class: effectiveMaxActionClass,
         budgets: remainingBudgets(resumed),
@@ -114,6 +144,10 @@ export async function startRunRecord(
     };
   }
 
+  const followupRecordId =
+    input.followup_key === undefined
+      ? null
+      : await openFollowup(ctx, portal.id, input.followup_key);
   const id = newId();
   const robots = await ctx.tracer.phase('robots_fetch', async () => {
     const robots = createRunRobots(ctx, id, portal, { buffer: true });
@@ -127,7 +161,7 @@ export async function startRunRecord(
         id,
         portal_id: portal.id,
         persona_id: persona.id,
-        mode: 'map',
+        mode: input.mode,
         environment: portal.environment,
         env_version_or_date: nowIso().slice(0, 10),
         seed_id: null,
@@ -155,9 +189,23 @@ export async function startRunRecord(
     await robots.flush();
     return getRun(ctx, id);
   });
+  const processId =
+    input.mode === 'trace' && input.process
+      ? await createProcess(ctx, {
+          run_id: id,
+          portal_id: portal.id,
+          persona_id: persona.id,
+          name: input.process.name,
+          goal: input.process.goal,
+          followup_record_id: followupRecordId,
+        })
+      : undefined;
   return {
     output: {
       run_id: id,
+      mode: input.mode,
+      ...(processId ? { process_id: processId } : {}),
+      base_url: portal.base_url,
       resumed: false,
       effective_max_action_class: effectiveMaxActionClass,
       budgets: remainingBudgets(run),

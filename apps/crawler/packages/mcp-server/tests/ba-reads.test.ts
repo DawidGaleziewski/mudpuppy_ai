@@ -484,3 +484,119 @@ describe('get_pending_feedback', () => {
     ).toEqual([]);
   });
 });
+
+describe('list_processes, get_process', () => {
+  it('lists the trace processes of the portal with outcome, step count and boundary', async () => {
+    const h = await startBa();
+    expect((await h.must('list_processes', { portal_id: h.fx.portalId })).processes).toEqual([]);
+    const done = h.fx.addTraceRun();
+    const boundary = h.fx.addBoundaryTrace();
+
+    const { processes } = await h.must('list_processes', { portal_id: h.fx.portalId });
+    expect(processes).toEqual([
+      {
+        process_id: done.processId,
+        run_id: done.runId,
+        name: 'Calculate a car premium',
+        goal: 'See an OC/AC premium for a car',
+        persona_id: 'guest',
+        outcome: 'goal_reached',
+        step_count: 3,
+        boundary_action_id: null,
+      },
+      {
+        process_id: boundary.processId,
+        run_id: boundary.runId,
+        name: 'Buy a car policy',
+        goal: 'Reach the purchase confirmation',
+        persona_id: 'guest',
+        outcome: 'boundary_reached',
+        step_count: 2,
+        boundary_action_id: boundary.boundaryActionId,
+      },
+    ]);
+    expect((await h.must('list_processes', { portal_id: h.fx.otherPortalId })).processes).toEqual(
+      [],
+    );
+  });
+
+  it('names the process of a trace run in list_runs', async () => {
+    const h = await startBa();
+    const t = h.fx.addTraceRun();
+    const { runs } = await h.must('list_runs', { portal_id: h.fx.portalId });
+    expect(runs.find((r: { run_id: string }) => r.run_id === t.runId)).toMatchObject({
+      mode: 'trace',
+      process_name: 'Calculate a car premium',
+    });
+    expect(runs.find((r: { run_id: string }) => r.run_id === h.fx.runId).process_name).toBeNull();
+  });
+
+  it('returns the process with its ordered steps', async () => {
+    const h = await startBa();
+    const t = h.fx.addTraceRun();
+    const p = await h.must('get_process', { process_id: t.processId });
+    expect(p).toMatchObject({
+      process_id: t.processId,
+      run_id: t.runId,
+      portal_id: h.fx.portalId,
+      name: 'Calculate a car premium',
+      outcome: 'goal_reached',
+      boundary: null,
+    });
+    expect(p.observed_result).toContain('Dane pojazdu');
+    expect(p.steps.map((s: { ord: number }) => s.ord)).toEqual([1, 2, 3]);
+    expect(p.steps[0]).toMatchObject({
+      step_id: t.stepIds[0],
+      intent: 'Open the car insurance page',
+      kind: 'navigate',
+      action: null,
+      state_before: null,
+      state_after: { state_id: h.fx.states.car, route_template: '/ubezpieczenia/samochod' },
+    });
+    expect(p.steps[1]).toMatchObject({
+      kind: 'click',
+      action: { role: 'link', name: 'Oblicz składkę' },
+      edge_id: t.edgeIds[1],
+      state_before: { state_id: h.fx.states.car },
+      state_after: { state_id: h.fx.states.vehicle, title: expect.stringContaining('Kalkulator') },
+      outcomes: ['navigated to /kalkulator/pojazd'],
+      confidence: 'observed',
+    });
+    expect(p.steps[1].evidence_ref).toEqual(expect.any(String));
+    expect(p.steps[2]).toMatchObject({ kind: 'fill', value: 'Test Model', state_after: null });
+  });
+
+  it('attaches the network calls of a step through its edge', async () => {
+    const h = await startBa();
+    const t = h.fx.addTraceRun();
+    h.fx.raw
+      .prepare(
+        `INSERT INTO network_calls (id, run_id, edge_id, method, url_template, status, req_schema,
+         res_schema, console_errors, created_at) VALUES (?, ?, ?, 'GET', '/api/x', 200, '{}', '{}', '[]', ?)`,
+      )
+      .run(newId(), t.runId, t.edgeIds[1], FIXTURE_TS);
+    const p = await h.must('get_process', { process_id: t.processId });
+    expect(p.steps[1].network_calls).toMatchObject([{ method: 'GET', url_template: '/api/x' }]);
+    expect(p.steps[0].network_calls).toEqual([]);
+  });
+
+  it('returns the boundary of a boundary trace', async () => {
+    const h = await startBa();
+    const t = h.fx.addBoundaryTrace();
+    const p = await h.must('get_process', { process_id: t.processId });
+    expect(p.outcome).toBe('boundary_reached');
+    expect(p.boundary).toMatchObject({
+      action_id: t.boundaryActionId,
+      role: 'button',
+      name: 'Dalej',
+      safety_class: 'mutating',
+      skip_reason: expect.stringContaining('ceiling:read'),
+      not_observable: expect.stringContaining('Dalej'),
+    });
+  });
+
+  it('refuses an unknown process', async () => {
+    const h = await startBa();
+    expect((await h.refused('get_process', { process_id: 'nope' })).code).toBe('UNKNOWN_REF');
+  });
+});

@@ -37,6 +37,7 @@ const persona = (max: PersonaConfig['max_action_class'] = 'read'): PersonaConfig
   consent: {},
   viewport: { width: 1, height: 1 },
   locale: 'pl-PL',
+  trace_inputs: {},
 });
 
 describe('assertRunAllowed', () => {

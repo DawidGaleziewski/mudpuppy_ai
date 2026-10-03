@@ -47,7 +47,7 @@
       <thead><tr><th scope="col">Kind</th><th scope="col">Rule</th><th scope="col">Reason</th><th scope="col">Subject</th><th scope="col">At (UTC)</th></tr></thead>
       <tbody>
         {%- for d in v.page["items"] %}
-        <tr>
+        <tr id="{{ d.id }}">
           <td>{{ m.decision_kind(d.kind) }}</td>
           <td data-label="rule"><code>{{ d.rule or "—" }}</code></td>
           <td data-label="reason">{{ d.reason }}{% if d.detail_json is not none %}{{ m.json_block(d.detail_json, "detail") }}{% endif %}</td>

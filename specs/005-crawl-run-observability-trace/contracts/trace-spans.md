@@ -49,7 +49,7 @@ Rules:
 **Phases**: `preflight`, `resume_check`, `robots_fetch`, `insert_run`, `open_session`,
 `restore_index`, `begin_step`, `gate`, `reach_state`, `locate`, `click`, `goto`, `settle`,
 `observe`, `net_drain`, `fingerprint`, `record_state`, `record_forms`, `record_transition`,
-`record_api_calls`, `enqueue_frontier`, `run_bookkeeping`, `complete_run`, `pw_trace` (writing
+`record_api_calls`, `enqueue_frontier`, `record_step` (trace runs, spec 004 R-14), `run_bookkeeping`, `complete_run`, `pw_trace` (writing
 the call's Playwright trace chunk, so its cost shows in the phase breakdown).
 
 **Events** and their required attributes:

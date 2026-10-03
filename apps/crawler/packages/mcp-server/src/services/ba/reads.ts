@@ -35,13 +35,25 @@ export function listRuns(ctx: BaContext, raw: unknown): { runs: Row[] } {
     .join(', ');
   const rows = ctx.raw
     .prepare(
-      `SELECT id, mode, persona_id, environment, status, warning, started_at, ended_at, ${counts}
+      `SELECT id, mode, persona_id, environment, status, warning, started_at, ended_at,
+              (SELECT p.name FROM processes p WHERE p.run_id = runs.id) AS process_name, ${counts}
        FROM runs WHERE portal_id = ? ORDER BY id`,
     )
     .all(input.portal_id) as Row[];
   return {
     runs: rows.map((r) => {
-      const { id, mode, persona_id, environment, status, warning, started_at, ended_at, ...n } = r;
+      const {
+        id,
+        mode,
+        persona_id,
+        environment,
+        status,
+        warning,
+        started_at,
+        ended_at,
+        process_name,
+        ...n
+      } = r;
       return {
         run_id: id,
         mode,
@@ -52,8 +64,8 @@ export function listRuns(ctx: BaContext, raw: unknown): { runs: Row[] } {
         started_at,
         ended_at,
         counts: n,
-        // Trace runs name their process; none are recorded until trace mode exists.
-        process_name: null,
+        // Trace runs name their process; map runs have none.
+        process_name: process_name ?? null,
       };
     }),
   };
@@ -409,5 +421,105 @@ export function getRecord(ctx: BaContext, raw: unknown): Row {
     ...(followup !== undefined ? { followup } : {}),
     revisions,
     related_from: relatedFrom,
+  };
+}
+
+// ---------------------------------------------------------------------------------------------------
+// list_processes, get_process (trace mode)
+
+export const ListProcessesInput = z.object({ portal_id: z.string().min(1) }).strict();
+
+/** The trace processes of a portal, oldest first, one line each. */
+export function listProcesses(ctx: BaContext, raw: unknown): { processes: Row[] } {
+  const input = parseInput(ListProcessesInput, raw);
+  const rows = ctx.raw
+    .prepare(
+      `SELECT p.id AS process_id, p.run_id, p.name, p.goal, p.persona_id, p.outcome,
+              (SELECT COUNT(*) FROM process_steps s WHERE s.process_id = p.id) AS step_count,
+              p.boundary_action_id
+       FROM processes p WHERE p.portal_id = ? ORDER BY p.run_id`,
+    )
+    .all(input.portal_id) as Row[];
+  return { processes: rows };
+}
+
+export const GetProcessInput = z.object({ process_id: z.string().min(1) }).strict();
+
+/** A state reduced to what a process step needs to name it. */
+function stateRef(ctx: BaContext, stateId: unknown): Row | null {
+  if (typeof stateId !== 'string') return null;
+  const s = ctx.raw
+    .prepare('SELECT id, title, route_template FROM states WHERE id = ?')
+    .get(stateId) as Row | undefined;
+  return s ? { state_id: s.id, title: s.title, route_template: s.route_template } : null;
+}
+
+/** One process with its ordered steps and, when a production trace stopped early, its boundary. */
+export function getProcess(ctx: BaContext, raw: unknown): Row {
+  const input = parseInput(GetProcessInput, raw);
+  const p = ctx.raw.prepare('SELECT * FROM processes WHERE id = ?').get(input.process_id) as
+    Row | undefined;
+  if (!p)
+    throw new ToolError('UNKNOWN_REF', `no process with id ${input.process_id}`, {
+      process_id: input.process_id,
+    });
+
+  const calls = ctx.raw.prepare(
+    `SELECT id, method, url_template, status FROM network_calls WHERE edge_id = ? ORDER BY id`,
+  );
+  const steps = (
+    ctx.raw
+      .prepare(
+        `SELECT s.*, a.role AS action_role, a.accessible_name AS action_name
+         FROM process_steps s LEFT JOIN actions a ON a.id = s.action_id
+         WHERE s.process_id = ? ORDER BY s.ord`,
+      )
+      .all(p.id) as Row[]
+  ).map((s) => ({
+    step_id: s.id,
+    ord: s.ord,
+    intent: s.intent,
+    kind: s.kind,
+    action: s.action_id === null ? null : { role: s.action_role, name: s.action_name },
+    value: s.value,
+    state_before: stateRef(ctx, s.state_before),
+    state_after: stateRef(ctx, s.state_after),
+    edge_id: s.edge_id,
+    network_calls: s.edge_id === null ? [] : calls.all(s.edge_id),
+    outcomes: json<string[]>(s.outcomes_json as string),
+    evidence_ref: s.evidence_ref,
+    confidence: s.confidence,
+  }));
+
+  let boundary: Row | null = null;
+  if (p.boundary_action_id !== null) {
+    const a = ctx.raw
+      .prepare(
+        'SELECT id, role, accessible_name, safety_class, skip_reason FROM actions WHERE id = ?',
+      )
+      .get(p.boundary_action_id) as Row | undefined;
+    boundary = {
+      action_id: p.boundary_action_id,
+      role: a?.role ?? null,
+      name: a?.accessible_name ?? null,
+      safety_class: a?.safety_class ?? null,
+      skip_reason: a?.skip_reason ?? null,
+      not_observable: p.not_observable,
+    };
+  }
+
+  return {
+    process_id: p.id,
+    run_id: p.run_id,
+    portal_id: p.portal_id,
+    persona_id: p.persona_id,
+    name: p.name,
+    goal: p.goal,
+    status: p.status,
+    outcome: p.outcome,
+    observed_result: p.observed_result,
+    boundary,
+    followup_record_id: p.followup_record_id,
+    steps,
   };
 }

@@ -1,0 +1,30 @@
+# Trace-mode inputs for the local reference portal (label verbatim as the portal shows it ->
+# synthetic value), shared by `reference-insurer` and `reference-insurer-readonly` personas. The
+# loader refuses anything the PII scrubber would change, except an e-mail on a reserved test TLD
+# (.invalid, .test, .example). No "Telefon": the form needs only one of "Telefon" / "E-mail".
+trace_inputs:
+  # Kalkulator OC/AC: Dane pojazdu
+  Marka: Toyota
+  Model: Testowy
+  Rok produkcji: "2020"
+  Pojemność silnika (cm³): "1600"
+  Kod pocztowy: 00-950
+  # Kalkulator OC/AC: Dane kierowcy
+  Data urodzenia: "1990-01-01"
+  Rok uzyskania prawa jazdy: "2010"
+  Lata bezszkodowej jazdy: "6"
+  # Kalkulator OC/AC: Opcje
+  Kod rabatowy: WIOSNA10
+  # Kalkulator podróży
+  Kraj docelowy: Europa
+  Data wyjazdu: "2026-03-01"
+  Data powrotu: "2026-03-10"
+  Liczba podróżnych: "2"
+  # Porównanie produktów
+  Pierwszy produkt: OC
+  Drugi produkt: Autocasco (AC)
+  # Formularz kontaktowy
+  Imię: Testowy
+  Temat: Oferta
+  Wiadomość: Testowa wiadomość, proszę zignorować.
+  E-mail: test@example.invalid

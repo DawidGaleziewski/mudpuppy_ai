@@ -40,6 +40,70 @@
   "event": ("[EVNT]", "st-plain"),
 } -%}
 
+{#- Docs tab vocabulary (specs/004-ba-documentation, R-15): revision/record status, follow-up
+    task status, review action, trace-process outcome. A reviewer's rejection or a safety boundary
+    is the system working, so it is muted, never red (rule 5). -#}
+{%- set DOC_STATUS_LABELS = {
+  "confirmed": ("[ OK ]", "st-ok"),
+  "draft": ("[DRFT]", "st-plain"),
+  "rejected": ("[RJCT]", "st-muted"),
+  "superseded": ("[OLD.]", "st-muted"),
+  "withdrawn": ("[WDRN]", "st-muted"),
+} -%}
+{%- set FOLLOWUP_LABELS = {
+  "open": ("[OPEN]", "st-plain"),
+  "in_progress": ("[WORK]", "st-run"),
+  "done": ("[DONE]", "st-ok"),
+  "blocked": ("[BLKD]", "st-muted"),
+  "cancelled": ("[CNCL]", "st-muted"),
+} -%}
+{%- set REVIEW_LABELS = {
+  "confirm": ("[ OK ]", "st-ok"),
+  "reject": ("[RJCT]", "st-muted"),
+  "comment": ("[NOTE]", "st-plain"),
+} -%}
+{%- set OUTCOME_LABELS = {
+  "goal_reached": ("[ OK ]", "st-ok"),
+  "boundary_reached": ("[BNDY]", "st-muted"),
+  "stopped": ("[STOP]", "st-fail"),
+  "abandoned": ("[ABND]", "st-muted"),
+} -%}
+
+{% macro doc_status(status) -%}
+  {%- set label, cls = DOC_STATUS_LABELS.get(status, ("[ ?? ]", "st-muted")) -%}
+  <span class="st {{ cls }}">{{ label }}</span> <span class="status-text">{{ status }}</span>
+{%- endmacro %}
+
+{% macro followup_status(status) -%}
+  {%- set label, cls = FOLLOWUP_LABELS.get(status, ("[ ?? ]", "st-muted")) -%}
+  <span class="st {{ cls }}">{{ label }}</span> <span class="status-text">{{ status | replace("_", " ") }}</span>
+{%- endmacro %}
+
+{% macro review_action(action) -%}
+  {%- set label, cls = REVIEW_LABELS.get(action, ("[ ?? ]", "st-muted")) -%}
+  <span class="st {{ cls }}">{{ label }}</span> <span class="status-text">{{ action }}</span>
+{%- endmacro %}
+
+{% macro process_outcome(outcome) -%}
+  {%- if outcome -%}
+  {%- set label, cls = OUTCOME_LABELS.get(outcome, ("[ ?? ]", "st-muted")) -%}
+  <span class="st {{ cls }}">{{ label }}</span> <span class="status-text">{{ outcome | replace("_", " ") }}</span>
+  {%- else -%}<span class="st st-run"><span class="live-dot" aria-hidden="true"></span>[RUN.]</span> <span class="status-text">running</span>{%- endif -%}
+{%- endmacro %}
+
+{#- Text is the signal: a gap in what the crawler could observe (spec 004 FR-006). -#}
+{% macro not_observable() -%}
+  <span class="conf conf-needs_confirmation">not observable</span>
+{%- endmacro %}
+
+{#- A Mermaid diagram: the source is the no-JS fallback and the text alternative. -#}
+{% macro diagram(source, caption) -%}
+  <figure class="diagram">
+    <figcaption>{{ caption }}</figcaption>
+    <pre class="mermaid">{{ source }}</pre>
+  </figure>
+{%- endmacro %}
+
 {% macro run_status(status, with_text=true) -%}
   {%- set label, cls = RUN_LABELS.get(status, ("[ ?? ]", "st-muted")) -%}
   <span class="st {{ cls }}">{% if status == "running" %}<span class="live-dot" aria-hidden="true"></span>{% endif %}{{ label }}</span>
@@ -183,9 +247,10 @@
 {%- endmacro %}
 
 {#- A region that re-fetches itself when the store changes (live region pattern). -#}
-{% macro region(id, self_url, label=none) -%}
+{% macro region(id, self_url, label=none, guard=none, oob=false) -%}
   <section id="region-{{ id }}" class="region" hx-get="{{ self_url }}"
-           hx-trigger="store-changed from:body" hx-swap="outerHTML"
+           hx-trigger="store-changed{% if guard %}[{{ guard }}]{% endif %} from:body" hx-swap="outerHTML"
+           {%- if oob %} hx-swap-oob="true"{% endif %}
            {%- if label %} aria-label="{{ label }}"{% endif %}>
     {{ caller() }}
   </section>

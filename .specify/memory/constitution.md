@@ -1,13 +1,17 @@
 <!--
 SYNC IMPACT REPORT (temporary; remove before commit)
-Version change: 1.2.0 → 1.3.0 (MINOR: new "App layout" Technical Constraints bullet; Python
-tooling bullet no longer names a `python/` folder; read-only dashboard access to the store)
-Modified principles: none
-Added sections: Technical Constraints → "App layout" bullet
+Version change: 1.3.0 → 1.4.0 (MINOR: materially expanded guidance for human review of
+documentation, spec 004 research §2)
+Modified principles: VI. Human-in-the-Loop Validation (review decisions are stored records; status
+is derived from them by deterministic code)
+Modified sections: Technical Constraints → "Python tooling" bullet (the dashboard MAY record review
+decisions only by invoking the TypeScript review command; its own process stays read-only)
+Added sections: none
 Removed sections: none
-Templates/specs checked: specs/003-dashboard-ui (plan Constitution Check updated); specs/001 and
-002 (apps/crawler already follows the layout; no change needed); .claude/agents/governor.md (already
-states the same layout)
+Templates/specs checked: specs/004-ba-documentation/plan.md (Constitution Check rows VI and Python
+tooling changed from Amend to Pass); specs/003-dashboard-ui (read-only dashboard unchanged: GET
+routes still never write); .claude/agents/ba.md and .claude/skills/ba-practice/ (BA never sets a
+status, unchanged)
 Deferred items: none
 -->
 # Pathfinder AI Constitution
@@ -80,6 +84,9 @@ site's data and cannot degrade or evade its protections.
 Requirements enter as `draft` and become `confirmed` only through explicit human BA approval.
 Open questions are a first-class deliverable. Test self-healing is proposal-only: a locator or
 requirement fix is presented as a diff and applied only after human approval.
+Review decisions (confirm, reject, comment) are stored as records with reviewer, time, action and
+the revision they apply to; a record's status is derived from them by deterministic code, never
+set directly by an agent or a UI.
 
 ### VII. Deterministic Core, Pure Functions, Static Outputs
 Fingerprinting, safety classification, and analysis MUST be pure functions with no browser or
@@ -103,7 +110,10 @@ Markdown, Mermaid and Gherkin are rendered from it. Generated tests MUST be plai
   and the monorepo stay Node/TypeScript with pnpm. Python code MUST NOT sit on the crawler's
   runtime path and MUST NOT write to the DB except through the same schemas and migrations. A
   read-only operator dashboard MAY read the SQLite store directly over a read-only connection
-  (`mode=ro`); its read models MUST be tested against the migrations for drift.
+  (`mode=ro`); its read models MUST be tested against the migrations for drift. The dashboard
+  MAY record human review decisions only by invoking the TypeScript review command
+  (`docs:review`), which validates with Zod and writes through the same schemas; the dashboard
+  process itself opens the store read-only.
 - **Storage**: SQLite (better-sqlite3 with Kysely or Drizzle) including a `jobs` table for the
   queue; evidence on the filesystem under content-addressed (sha256) names. Postgres or a graph
   DB requires a documented justification.
@@ -152,4 +162,4 @@ pull request review MUST verify compliance; any violation MUST be justified in w
 plan's complexity-tracking section or be corrected. Runtime guidance for agents lives in
 `user_input/raw_idea/agents/` until moved into the `agents/` and `skills/` packages.
 
-**Version**: 1.3.0 | **Ratified**: 2026-09-20 | **Last Amended**: 2026-09-25
+**Version**: 1.4.0 | **Ratified**: 2026-09-20 | **Last Amended**: 2026-10-03

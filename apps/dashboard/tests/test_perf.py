@@ -122,3 +122,121 @@ def test_trace_summary_and_first_page_render_under_one_second(
         elapsed = time.perf_counter() - start
     assert response.status_code == 200
     assert elapsed < 1.0, f"{url} took {elapsed:.3f}s"
+
+
+# --- T056: every Docs page < 1 s on 2 000 records x 3 revisions x 3 links (SC-005) -------------
+
+DOC_PORTAL = "perf-portal"
+DOC_RUN = "run-docs-perf"
+DOC_KIND_PREFIX = (
+    ("capability", "CAP"),
+    ("screen", "SCR"),
+    ("process", "PROC"),
+    ("use_case", "UC"),
+    ("requirement", "REQ"),
+    ("business_rule", "BR"),
+    ("glossary_term", "GL"),
+    ("data_item", "DI"),
+    ("nfr", "NFR"),
+    ("assumption", "ASM"),
+)
+
+
+@pytest.fixture(scope="module")
+def docs_perf_store(tmp_path_factory: pytest.TempPathFactory) -> Store:
+    import json
+
+    from .conftest import make_store
+
+    data_dir = tmp_path_factory.mktemp("docs-perf") / "data"
+    store = Store(data_dir, "test", make_store(data_dir))
+    w = store.connect()
+    insert(w, "runs", id=DOC_RUN, portal_id=DOC_PORTAL, status="completed")
+    insert(w, "states", id="perf-state", portal_id=DOC_PORTAL, first_seen_run=DOC_RUN)
+    w.execute(
+        "INSERT INTO analysis_sessions (id, portal_id, status, passes_json, summary, gaps_json,"
+        " started_at, ended_at) VALUES ('perf-sess', ?, 'completed', '[]', 's', '[]', 't', 't')",
+        (DOC_PORTAL,),
+    )
+    records, revisions, links, relations = [], [], [], []
+    n = 2_000
+    for i in range(n):
+        kind, prefix = DOC_KIND_PREFIX[i % len(DOC_KIND_PREFIX)]
+        seq = i // len(DOC_KIND_PREFIX) + 1
+        rid = f"rec-{i:05d}"
+        records.append((rid, DOC_PORTAL, kind, f"{prefix}-{seq:04d}", seq, f"Title {i}", 3, 1, 0))
+        for rev in (1, 2, 3):
+            vid = f"{rid}-r{rev}"
+            content = json.dumps({"kind": kind, "title": f"Title {i}", "statement": "s"})
+            revisions.append(
+                (vid, rid, rev, "perf-sess", "create" if rev == 1 else "revise", content,
+                 "inferred" if i % 3 == 0 else "observed", int(i % 7 == 0),
+                 "confirmed" if rev == 1 else "draft", None if rev == 1 else "n")
+            )  # fmt: skip
+            for j in range(3):
+                links.append((f"{vid}-e{j}", vid, "state", "perf-state", DOC_RUN, "note"))
+        relations.append((f"{rid}-r3", f"rec-{(i + 1) % n:05d}", "refines"))
+    w.executemany(
+        "INSERT INTO doc_records (id, portal_id, kind, key, seq, title, latest_rev, confirmed_rev,"
+        " withdrawn, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 't', 't')",
+        records,
+    )
+    w.executemany(
+        "INSERT INTO doc_revisions (id, record_id, rev_no, session_id, change, content_json,"
+        " confidence, not_observable, status, change_note, created_at)"
+        " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 't')",
+        revisions,
+    )
+    w.executemany(
+        "INSERT INTO doc_evidence_links (id, revision_id, target_kind, target_id, run_id, note)"
+        " VALUES (?, ?, ?, ?, ?, ?)",
+        links,
+    )
+    w.executemany("INSERT INTO doc_relations VALUES (?, ?, ?)", relations)
+    w.execute("INSERT INTO analysis_session_runs VALUES ('perf-sess', ?)", (DOC_RUN,))
+    w.commit()
+    w.close()
+    return store
+
+
+DOC_URLS = [
+    "/docs",
+    "/fragments/docs/portals",
+    f"/docs/{DOC_PORTAL}",
+    *(
+        f"/docs/{DOC_PORTAL}?section={s}"
+        for s in ("capabilities", "screens", "processes", "requirements", "traceability", "data")
+    ),
+    f"/docs/{DOC_PORTAL}?section=requirements&status=confirmed",
+    f"/docs/{DOC_PORTAL}?section=requirements&confidence=inferred",
+    f"/docs/{DOC_PORTAL}?section=traceability&flag=not_observable",
+    f"/docs/{DOC_PORTAL}?section=traceability&flag=open_question",
+    f"/fragments/docs/{DOC_PORTAL}/index",
+    f"/fragments/docs/{DOC_PORTAL}/section/requirements",
+    f"/docs/{DOC_PORTAL}/REQ-0001",
+    f"/docs/{DOC_PORTAL}/REQ-0001?rev=1",
+    f"/fragments/docs/{DOC_PORTAL}/REQ-0001/header",
+    f"/fragments/docs/{DOC_PORTAL}/REQ-0001/body",
+    f"/fragments/docs/{DOC_PORTAL}/REQ-0001/reviews",
+    f"/docs/{DOC_PORTAL}/sessions/perf-sess",
+    f"/runs/{DOC_RUN}?tab=docs",
+    f"/fragments/runs/{DOC_RUN}/docs",
+]
+
+
+def test_docs_fixture_has_2000_records_x_3_revisions_x_3_links(docs_perf_store: Store) -> None:
+    conn = docs_perf_store.connect()
+    assert conn.execute("SELECT count(*) FROM doc_records").fetchone()[0] == 2_000
+    assert conn.execute("SELECT count(*) FROM doc_revisions").fetchone()[0] == 6_000
+    assert conn.execute("SELECT count(*) FROM doc_evidence_links").fetchone()[0] == 18_000
+
+
+@pytest.mark.parametrize("url", DOC_URLS)
+def test_docs_page_renders_under_one_second(docs_perf_store: Store, url: str) -> None:
+    with make_client(docs_perf_store) as client:
+        client.get(url)  # warm templates
+        start = time.perf_counter()
+        response = client.get(url)
+        elapsed = time.perf_counter() - start
+    assert response.status_code == 200, url
+    assert elapsed < 1.0, f"{url} took {elapsed:.3f}s"

@@ -1,0 +1,14 @@
+{
+  "screens": [
+    { "key": "SCR-010", "title": "Kalkulator OC/AC — dane pojazdu" },
+    { "key": "SCR-001", "title": "Home" },
+    { "key": "SCR-002", "title": "Car insurance & assistance" }
+  ],
+  "transitions": [
+    { "from": "SCR-002", "to": "SCR-010", "label": "Oblicz składkę" },
+    { "from": "SCR-001", "to": "SCR-002", "label": "Ubezpieczenie samochodu" },
+    { "from": "SCR-001", "to": "SCR-002", "label": "Ubezpieczenie samochodu" },
+    { "from": "SCR-001", "to": "SCR-010", "label": "Oblicz składkę OC/AC" },
+    { "from": "SCR-001", "to": "SCR-999", "label": "Unknown target is dropped" }
+  ]
+}

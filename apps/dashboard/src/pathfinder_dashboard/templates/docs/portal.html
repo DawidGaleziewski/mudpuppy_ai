@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block title %}Docs · {{ portal }}{% endblock %}
+{% block head_extra %}<script src="/static/js/diagrams.js" defer></script>{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <p class="crumbs"><a href="{{ c.url('/docs') }}">Docs</a> / {{ portal }}</p>
+    <h1>{{ portal }} <span class="muted">documentation</span></h1>
+  </div>
+  <p class="caption">store {{ store.path }} · read-only</p>
+</div>
+<div class="docs-layout">
+  {% include "partials/docs/index.html" %}
+  <div class="docs-main">
+    {% include "partials/docs/section.html" %}
+  </div>
+</div>
+{% endblock %}

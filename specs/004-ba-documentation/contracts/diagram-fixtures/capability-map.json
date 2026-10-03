@@ -1,0 +1,13 @@
+{
+  "capabilities": [
+    {
+      "key": "CAP-002",
+      "title": "Quote a car policy",
+      "contains": [
+        { "key": "PROC-002", "title": "Buy a car policy" },
+        { "key": "PROC-001", "title": "Calculate a car premium" }
+      ]
+    },
+    { "key": "CAP-001", "title": "Browse products", "contains": [] }
+  ]
+}

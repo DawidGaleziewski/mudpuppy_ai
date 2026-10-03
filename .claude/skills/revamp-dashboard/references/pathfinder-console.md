@@ -36,6 +36,14 @@ together with this file.
 | trace span | `stopped` / `error` | `[STOP]` / `[FAIL]` | `signal-error` | |
 | trace span | `unfinished` | `[INCM]` | `signal-error` | crashed/earlier-boot span |
 | trace span kind | `phase` / `event` | `[PHSE]` / `[EVNT]` | `ink-100` | expanded call detail only |
+| doc revision | `confirmed` / `draft` | `[ OK ]` / `[DRFT]` | `brand` / `ink-100` | Docs tab |
+| doc revision | `rejected` / `superseded` / `withdrawn` | `[RJCT]` / `[OLD.]` / `[WDRN]` | `ink-500` | reviewer decision, never red |
+| follow-up task | `open` / `in_progress` / `done` | `[OPEN]` / `[WORK]` / `[DONE]` | `ink-100` / `accent-3` / `brand` | no pulse |
+| follow-up task | `blocked` / `cancelled` | `[BLKD]` / `[CNCL]` | `ink-500` | blocked reason beside it |
+| review action | `confirm` / `reject` / `comment` | `[ OK ]` / `[RJCT]` / `[NOTE]` | `brand` / `ink-500` / `ink-100` | |
+| trace process outcome | `goal_reached` / `boundary_reached` / `stopped` / `abandoned` | `[ OK ]` / `[BNDY]` / `[STOP]` / `[ABND]` | `brand` / `ink-500` / `signal-error` / `ink-500` | boundary = system working |
+| evidence link | target missing / kind unsupported | `[ ?? ]` | `ink-500` | text "broken link" / "unresolved" |
+| not observable | flag on a revision | text `not observable` | `accent-4` + dashed | like `needs_confirmation` |
 
 Red only where the crawl failed or stopped (rule 5). A safety skip is the system working: muted.
 The mapping lives in one Jinja macro (`templates/partials/macros.html`); never inline a label.

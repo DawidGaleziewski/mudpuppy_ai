@@ -166,3 +166,89 @@ describe('attachLocators', () => {
     for (const l of attachLocators(cands)) expect(l.length).toBeGreaterThan(0);
   });
 });
+
+describe('extractCandidates in trace mode (R-14)', () => {
+  const snap = [
+    '- main:',
+    '  - form "Dane pojazdu":',
+    '    - combobox "Marka" [required]:',
+    '      - option "Toyota"',
+    '      - option "Skoda"',
+    '    - textbox "Model" [required]',
+    '    - searchbox "Szukaj w pomocy"',
+    '    - spinbutton "Rok produkcji": "2020"',
+    '    - checkbox "Assistance"',
+    '    - radio "Tylko OC" [checked]',
+    '    - button "Dalej"',
+    '  - link "Kontakt":',
+    '    - /url: /kontakt',
+  ].join('\n');
+
+  it('turns fillable controls into fill/check/select actions', () => {
+    const c = extractCandidates(snap, [], { mode: 'trace' });
+    const kinds = Object.fromEntries(c.map((x) => [`${x.role}:${x.name}`, x.input]));
+    expect(kinds).toEqual({
+      'combobox:Marka': 'select',
+      'textbox:Model': 'fill',
+      'searchbox:Szukaj w pomocy': 'fill',
+      'spinbutton:Rok produkcji': 'fill',
+      'checkbox:Assistance': 'check',
+      'radio:Tylko OC': 'check',
+      'button:Dalej': undefined,
+      'link:Kontakt': undefined,
+    });
+    // native select options stay out
+    expect(c.some((x) => x.role === 'option')).toBe(false);
+    // the safety descriptor carries the input kind
+    expect(c.find((x) => x.name === 'Model')!.descriptor.input).toBe('fill');
+    expect(c.find((x) => x.name === 'Dalej')!.descriptor.input).toBeUndefined();
+  });
+
+  it('classifies fillable controls as read and gives them ranked locators', () => {
+    const c = classifyCandidates(extractCandidates(snap, [], { mode: 'trace' }), builtinRuleSet());
+    for (const x of c.filter((y) => y.input)) expect(x.safetyClass).toBe('read');
+    const cands = extractCandidates(snap, [], { mode: 'trace' });
+    const locs = attachLocators(cands);
+    const model = cands.findIndex((x) => x.name === 'Model');
+    expect(locs[model]!.length).toBeGreaterThan(0);
+    expect(locs[model]![0]).toMatchObject({ kind: 'role' });
+  });
+
+  it('keeps a control of a POST form read; the submit button of that form is not', () => {
+    const post = ['- form "Formularz kontaktowy":', '  - textbox "Imię"', '  - button "Wyślij"'];
+    const c = classifyCandidates(
+      extractCandidates(
+        post.join('\n'),
+        [
+          {
+            name: 'Formularz kontaktowy',
+            method: 'POST',
+            action: '/kontakt',
+            hasPassword: false,
+            purpose: 'other',
+            fields: [],
+          },
+        ],
+        { mode: 'trace' },
+      ),
+      builtinRuleSet(),
+    );
+    expect(c.find((x) => x.name === 'Imię')!.safetyClass).toBe('read');
+    expect(c.find((x) => x.name === 'Wyślij')!.safetyClass).not.toBe('read');
+  });
+
+  it('keeps map mode unchanged: typing roles are skipped, checkbox and combobox stay plain clicks', () => {
+    for (const opts of [undefined, { mode: 'map' as const }]) {
+      const c = extractCandidates(snap, [], opts);
+      expect(c.map((x) => `${x.role}:${x.name}`)).toEqual([
+        'combobox:Marka',
+        'checkbox:Assistance',
+        'radio:Tylko OC',
+        'button:Dalej',
+        'link:Kontakt',
+      ]);
+      expect(c.every((x) => x.input === undefined)).toBe(true);
+      expect(c.every((x) => x.descriptor.input === undefined)).toBe(true);
+    }
+  });
+});

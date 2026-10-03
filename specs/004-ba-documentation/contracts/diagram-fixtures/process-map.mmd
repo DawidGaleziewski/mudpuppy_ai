@@ -1,0 +1,14 @@
+flowchart TD
+  start(["Buy a car policy (#quot;OC/AC#quot;)"])
+  s1["1. navigate: Open the car insurance calculator"]
+  s2["2. fill: Enter the car model"]
+  s3["3. click: Go to the #lt;driver#gt; step"]
+  s4["4. click: Calculate the premium"]
+  boundary{{"Kup polisę: What happens after 'Kup polisę'? Not observable: mutating on production"}}
+  start --> s1
+  s1 --> s2
+  s2 --> s3
+  s3 --> s4
+  s4 -.-> boundary
+  classDef notObservable stroke-dasharray: 4 3
+  class boundary notObservable

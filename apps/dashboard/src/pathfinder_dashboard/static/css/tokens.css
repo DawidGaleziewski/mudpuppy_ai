@@ -125,6 +125,8 @@
   --tick-w: 16px;
   --tick-h: 3px;
   --content-max: 1280px;
+  --docs-index-w: 240px;
+  --textarea-min-h: 64px;
 
   /* effects and motion (three sanctioned animations only) */
   --glow-shadow: 0 0 8px var(--glow);

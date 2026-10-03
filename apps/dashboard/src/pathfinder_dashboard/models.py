@@ -421,6 +421,40 @@ class FollowupTask(Row):
     updated_at: str
 
 
+class Process(Row):
+    id: str
+    run_id: str
+    portal_id: str
+    persona_id: str
+    name: str
+    goal: str
+    followup_record_id: str | None
+    status: Literal["recorded", "replay_verified", "documented"]
+    outcome: Literal["goal_reached", "boundary_reached", "stopped", "abandoned"] | None
+    boundary_action_id: str | None
+    observed_result: str | None
+    not_observable: str | None
+    created_at: str
+    ended_at: str | None
+
+
+class ProcessStep(Row):
+    id: str
+    process_id: str
+    ord: int
+    intent: str
+    kind: Literal["navigate", "click", "fill", "check", "select"]
+    action_id: str | None
+    edge_id: str | None
+    value: str | None
+    state_before: str | None
+    state_after: str | None
+    outcomes_json: Json
+    evidence_ref: str
+    confidence: Confidence
+    created_at: str
+
+
 TABLE_MODELS: dict[str, type[Row]] = {
     "runs": Run,
     "state_observations": StateObservation,
@@ -446,6 +480,8 @@ TABLE_MODELS: dict[str, type[Row]] = {
     "doc_relations": DocRelation,
     "doc_reviews": DocReview,
     "followup_tasks": FollowupTask,
+    "processes": Process,
+    "process_steps": ProcessStep,
 }
 
 
@@ -560,6 +596,96 @@ class ObservedState(BaseModel):
 
     state: State
     observation: StateObservation
+
+
+# --- Docs tab view models (spec 004, R-15) -----------------------------------------------------
+
+DocStatus = Literal["draft", "confirmed", "rejected", "superseded", "withdrawn"]
+
+
+class DocPortalSummary(BaseModel):
+    """One portal on `/docs`: record counts by displayed status and its last analysis session."""
+
+    portal_id: str
+    records: int
+    by_status: dict[str, int]
+    sessions: int
+    last_session_at: str | None
+    open_followups: int
+
+
+class DocRecordRow(BaseModel):
+    """A record as listed: the record plus what its latest revision says."""
+
+    record: DocRecord
+    rev_no: int
+    status: DocStatus
+    confidence: Confidence
+    not_observable: bool
+    summary: str | None
+    followup_status: str | None = None
+    blocked_reason: str | None = None
+    evidence_count: int = 0
+    run_count: int = 0
+    related: list[str] = []
+
+
+class ResolvedEvidence(BaseModel):
+    """An evidence link with its target looked up in Layer A (or the Docs tables)."""
+
+    link: DocEvidenceLink
+    label: str | None
+    resolved: bool  # the target row was found
+    broken: bool  # the target's table exists but the row is gone
+    run_mode: str | None
+    run_started_at: str | None
+    tab: str | None  # run page tab holding the target, None for doc_record/review
+    doc_key: str | None = None  # for doc_record targets
+
+
+class RelationRow(BaseModel):
+    type: RelationType
+    record_id: str
+    key: str
+    title: str
+    kind: DocKind
+    status: DocStatus
+
+
+class RevisionEntry(BaseModel):
+    """One revision in the history, with the session that wrote it and its review decisions."""
+
+    revision: DocRevision
+    reviews: list[DocReview]
+
+
+class DocRecordDetail(BaseModel):
+    record: DocRecord
+    status: DocStatus  # of the latest revision (or withdrawn)
+    shown: DocRevision  # the revision on screen (`?rev=`, default latest)
+    is_latest: bool
+    history: list[RevisionEntry]
+    evidence: list[ResolvedEvidence]
+    relations_out: list[RelationRow]
+    relations_in: list[RelationRow]
+    followup: FollowupTask | None
+    session_started_at: str | None
+
+
+class SessionDetail(BaseModel):
+    session: AnalysisSession
+    runs: list[Run]
+    written: list[DocRecordRow]  # one page of the records this session created or revised
+    written_total: int
+    next_cursor: str | None
+    changes: dict[str, str]  # record id -> "create" / "revise" / "withdraw" (this page)
+
+
+class RunCitingRecord(BaseModel):
+    """A record citing a run's evidence (FR-033): what it cites and from which revision."""
+
+    row: DocRecordRow
+    cites: list[DocEvidenceLink]
 
 
 class LiveEvent(BaseModel):

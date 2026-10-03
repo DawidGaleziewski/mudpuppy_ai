@@ -20,6 +20,8 @@ export const ERROR_CODES = [
   'PII_SUSPECTED',
   'ROBOTS_UNAVAILABLE',
   'BROWSER_UNAVAILABLE',
+  // Trace mode (specs/004-ba-documentation/contracts/crawler-trace-tools.md).
+  'TRACE_BOUNDARY_REACHED',
   // BA server (specs/004-ba-documentation/contracts/ba-mcp-tools.md).
   'SESSION_NOT_ACTIVE',
   'SESSION_INCOMPLETE',
@@ -29,6 +31,8 @@ export const ERROR_CODES = [
   'STALE_REVISION',
   'RELATION_NOT_ALLOWED',
   'NOT_OBSERVABLE_NEEDS_QUESTION',
+  // Operator review command (shared with @pathfinder/docs DocsErrorCode).
+  'NOT_CANCELLABLE',
 ] as const;
 export type ErrorCode = (typeof ERROR_CODES)[number];
 

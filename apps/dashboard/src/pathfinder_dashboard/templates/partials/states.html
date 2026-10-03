@@ -15,7 +15,7 @@
       </tr></thead>
       <tbody>
         {%- for o in v["items"] %}
-        <tr>
+        <tr id="{{ o.state.id }}">
           <td>{{ o.state.title }}</td>
           <td data-label="route"><code>{{ o.state.route_template }}</code></td>
           <td data-label="confidence">{{ m.confidence(o.state.confidence) }}</td>

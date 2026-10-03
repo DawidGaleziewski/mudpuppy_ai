@@ -71,3 +71,23 @@ def test_every_route_leaves_the_store_unchanged(liveinsurer_store: Store) -> Non
             assert client.get(url).status_code == 200, url
     assert digest(liveinsurer_store.path) == before
     assert sorted(p.name for p in liveinsurer_store.path.parent.iterdir()) == files_before
+
+
+def test_every_docs_route_leaves_the_store_unchanged(ba_fixture: Store) -> None:
+    """T055: the Docs pages, fragments and run tabs are GET-only and never write."""
+    from .test_docs_routes import ALL_PAGES
+
+    ba_fixture.connect().execute("PRAGMA wal_checkpoint(TRUNCATE)").close()
+    before = digest(ba_fixture.path)
+    files_before = sorted(p.name for p in ba_fixture.path.parent.iterdir())
+    extra = [
+        "/docs/nope",
+        "/docs/reference-insurer/REQ-404",
+        "/docs/reference-insurer?section=processes&flag=open_question&status=draft",
+        "/fragments/docs/reference-insurer/section/traceability?push=1",
+    ]
+    with make_client(ba_fixture) as client:
+        for url in (*ALL_PAGES, *extra):
+            assert client.get(url).status_code in (200, 404), url
+    assert digest(ba_fixture.path) == before
+    assert sorted(p.name for p in ba_fixture.path.parent.iterdir()) == files_before

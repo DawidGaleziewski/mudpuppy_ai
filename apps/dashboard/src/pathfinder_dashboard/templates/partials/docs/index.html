@@ -1,0 +1,10 @@
+{% import "partials/macros.html" as m %}
+{% call m.region("docs-index", index.self_url, "Documentation sections") %}
+  <nav class="docs-index" aria-label="Documentation sections">
+    <ul>
+      {%- for sid, label, count, url in index["items"] %}
+      <li><a href="{{ url }}"{% if sid == index.current %} aria-current="page"{% endif %}>{{ label }} <span class="tab-count">{{ count }}</span></a></li>
+      {%- endfor %}
+    </ul>
+  </nav>
+{% endcall %}

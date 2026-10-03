@@ -19,6 +19,7 @@ describe('real persona files', () => {
       consent: { decline_location: true, decline_marketing: true, decline_personalization: true },
       viewport: { width: 1366, height: 768 },
       locale: 'pl-PL',
+      trace_inputs: {},
     });
   });
 

@@ -1,2 +1,5 @@
 id: guest
-extends: ["../_mixins/anonymous-base.yaml"]
+# Synthetic trace-mode inputs live in the shared mixin (also used by reference-insurer-readonly).
+extends: ["../_mixins/anonymous-base.yaml", "../_mixins/reference-insurer-trace-inputs.yaml"]
+# Overrides the mixin's `read`: the sandbox reference portal may be submitted to (see its portal.yaml).
+max_action_class: external-side-effect

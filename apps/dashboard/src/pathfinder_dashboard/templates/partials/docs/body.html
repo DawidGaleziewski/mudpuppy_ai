@@ -1,0 +1,104 @@
+{% import "partials/macros.html" as m %}
+{% import "partials/docs/content.html" as ct %}
+{% set dt = r.detail %}
+{% set rec = dt.record %}
+{% call m.region("doc-body", r.body_url, "Record content") %}
+  <div class="panel">
+    <h2>Content</h2>
+    {{ ct.render(dt.shown) }}
+  </div>
+  {%- if r.diagram %}
+  <div class="section">{{ m.diagram(r.diagram, "Process map from the recorded trace steps") }}</div>
+  {%- endif %}
+
+  <div class="section">
+    <div class="section-head"><h2>Evidence <span class="muted mono-num">{{ dt.evidence | length }}</span></h2></div>
+    {%- if not dt.evidence %}
+      {{ m.empty("No evidence on this revision", "Every revision must cite at least one record; run the docs audit.") }}
+    {%- else %}
+    <div class="table-wrap">
+      <table class="data stack">
+        <caption class="visually-hidden">Evidence cited by revision {{ dt.shown.rev_no }}</caption>
+        <thead><tr><th scope="col">Target</th><th scope="col">What it supports</th><th scope="col">Run</th></tr></thead>
+        <tbody>
+          {%- for e in dt.evidence %}
+          <tr id="evidence-{{ e.link.id }}">
+            <td>
+              <span class="muted">{{ e.link.target_kind | replace("_", " ") }}</span>
+              {% if e.broken %}<span class="st st-muted">[ ?? ]</span> <span class="status-text">broken link: <code>{{ e.link.target_id | short_id }}</code> no longer exists</span>
+              {%- elif not e.resolved %}<span class="st st-muted">[ ?? ]</span> <span class="status-text">unresolved: this store cannot look up {{ e.link.target_kind | replace("_", " ") }} targets</span>
+                {%- if e.link.run_id %} <a href="{{ c.url('/runs/' ~ e.link.run_id, tab='process' if e.link.target_kind in ('process', 'process_step') else none) }}">[open run]</a>{% endif %}
+              {%- elif e.link.target_kind == "doc_record" %}<a href="{{ c.url('/docs/' ~ portal ~ '/' ~ e.doc_key) }}">{{ e.label }}</a>
+              {%- elif e.link.target_kind == "review" %}<a href="#review-{{ e.link.target_id }}">{{ e.label }}</a>
+              {%- else %}<a href="{{ c.url('/runs/' ~ e.link.run_id, tab=e.tab) }}#{{ e.link.target_id }}">{{ e.label }}</a>{% endif %}
+            </td>
+            <td data-label="note">{{ e.link.note or "—" }}</td>
+            <td data-label="run">
+              {%- if e.link.run_id %}<a href="{{ c.url('/runs/' ~ e.link.run_id) }}"><code>{{ e.link.run_id | short_id }}</code></a> <span class="muted">{{ e.run_mode or "run missing" }} · {{ e.run_started_at | when }}</span>
+              {%- else %}<span class="muted">not run-bound</span>{% endif -%}
+            </td>
+          </tr>
+          {%- endfor %}
+        </tbody>
+      </table>
+    </div>
+    {%- endif %}
+  </div>
+
+  <div class="section">
+    <div class="section-head"><h2>Relations</h2></div>
+    <div class="table-wrap">
+      <table class="data stack">
+        <caption class="visually-hidden">Relations of {{ rec.key }}</caption>
+        <thead><tr><th scope="col">Direction</th><th scope="col">Type</th><th scope="col">Record</th><th scope="col">Status</th></tr></thead>
+        <tbody>
+          {%- for rel in dt.relations_out %}
+          <tr>
+            <td>out <span class="muted">this revision points to</span></td>
+            <td data-label="type">{{ rel.type | replace("_", " ") }}</td>
+            <td data-label="record"><a href="{{ c.url('/docs/' ~ portal ~ '/' ~ rel.key) }}"><code>{{ rel.key }}</code></a> {{ rel.title }}</td>
+            <td data-label="status">{{ m.doc_status(rel.status) }}</td>
+          </tr>
+          {%- endfor %}
+          {%- for rel in dt.relations_in %}
+          <tr>
+            <td>in <span class="muted">points to this record</span></td>
+            <td data-label="type">{{ rel.type | replace("_", " ") }}</td>
+            <td data-label="record"><a href="{{ c.url('/docs/' ~ portal ~ '/' ~ rel.key) }}"><code>{{ rel.key }}</code></a> {{ rel.title }}</td>
+            <td data-label="status">{{ m.doc_status(rel.status) }}</td>
+          </tr>
+          {%- endfor %}
+          {%- if not dt.relations_out and not dt.relations_in %}
+          <tr><td colspan="4" class="muted">No relations to other records.</td></tr>
+          {%- endif %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-head"><h2>Revision history <span class="muted mono-num">{{ dt.history | length }}</span></h2></div>
+    <div class="table-wrap">
+      <table class="data stack">
+        <caption class="visually-hidden">Every revision of {{ rec.key }}, newest first</caption>
+        <thead><tr><th scope="col" class="num">Rev</th><th scope="col">Status</th><th scope="col">Confidence</th><th scope="col">Change</th><th scope="col">Session</th><th scope="col">Reviews</th></tr></thead>
+        <tbody>
+          {%- for h in dt.history %}
+          {%- set v = h.revision %}
+          <tr id="rev-{{ v.rev_no }}"{% if v.rev_no == dt.shown.rev_no %} aria-current="true"{% endif %}>
+            <td class="num">{% if v.rev_no == dt.shown.rev_no %}{{ v.rev_no }} <span class="muted">shown</span>{% else %}<a href="{{ c.url('/docs/' ~ portal ~ '/' ~ rec.key, rev=v.rev_no) }}">{{ v.rev_no }} [view]</a>{% endif %}</td>
+            <td data-label="status">{{ m.doc_status("withdrawn" if rec.withdrawn and v.rev_no == rec.latest_rev else v.status) }}</td>
+            <td data-label="confidence">{{ m.confidence(v.confidence) }}{% if v.not_observable %} {{ m.not_observable() }}{% endif %}</td>
+            <td data-label="change">{{ v.change }} · {{ v.created_at | when }}{% if v.change_note %}<div class="muted">{{ v.change_note }}</div>{% endif %}</td>
+            <td data-label="session"><a href="{{ c.url('/docs/' ~ portal ~ '/sessions/' ~ v.session_id) }}"><code>{{ v.session_id | short_id }}</code></a></td>
+            <td data-label="reviews">
+              {%- for rv in h.reviews %}<div id="review-{{ rv.id }}">{{ m.review_action(rv.action) }} <span class="muted">{{ rv.reviewer }} · {{ rv.created_at | when }}</span>{% if rv.text %}<div>{{ rv.text }}</div>{% endif %}</div>
+              {%- else %}<span class="muted">none</span>{% endfor -%}
+            </td>
+          </tr>
+          {%- endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+{% endcall %}

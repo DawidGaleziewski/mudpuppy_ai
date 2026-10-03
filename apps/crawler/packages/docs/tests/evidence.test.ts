@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { newId } from '@pathfinder/core';
 import { DocsError } from '../src/errors.js';
 import { resolveTargets, type EvidenceLinkInput } from '../src/evidence.js';
+import { qualifiesAsObserved } from '../src/observed-rule.js';
 import { FIXTURE_TS, makeFixtureStore, type FixtureStore } from '../src/testing/index.js';
 
 let fx: FixtureStore;
@@ -244,8 +245,72 @@ describe('resolveTargets', () => {
     );
   });
 
-  it('defers process targets to trace mode (UNKNOWN_REF for now)', () => {
+  it('answers UNKNOWN_REF for a process or step that does not exist', () => {
     for (const target_kind of ['process', 'process_step'] as const)
       expect(failure(() => resolve([{ target_kind, target_id: 'p1' }])).code).toBe('UNKNOWN_REF');
+  });
+
+  it('resolves a process and a process step to their trace run', () => {
+    const t = fx.addTraceRun();
+    const [process, step] = resolve(
+      [
+        { target_kind: 'process', target_id: t.processId },
+        { target_kind: 'process_step', target_id: t.stepIds[1]! },
+      ],
+      [t.runId],
+    );
+    expect(process).toMatchObject({
+      target_kind: 'process',
+      run_id: t.runId,
+      portal_id: fx.portalId,
+      confidence: null,
+    });
+    expect(step).toMatchObject({
+      target_kind: 'process_step',
+      run_id: t.runId,
+      portal_id: fx.portalId,
+      confidence: 'observed',
+    });
+  });
+
+  it('refuses a process step of a run outside the session, or of another portal', () => {
+    const t = fx.addTraceRun();
+    const link: EvidenceLinkInput = { target_kind: 'process_step', target_id: t.stepIds[0]! };
+    const outside = failure(() => resolve([link]));
+    expect(outside.code).toBe('RUN_NOT_IN_SESSION');
+    expect(outside.details).toMatchObject({ run_id: t.runId });
+    expect(failure(() => resolve([link], [t.runId], fx.otherPortalId)).code).toBe(
+      'PORTAL_MISMATCH',
+    );
+  });
+
+  it('lets a process step, but not a process, qualify for observed', () => {
+    const t = fx.addTraceRun();
+    const targets = resolve(
+      [
+        { target_kind: 'process', target_id: t.processId },
+        { target_kind: 'process_step', target_id: t.stepIds[0]! },
+      ],
+      [t.runId],
+    );
+    expect(qualifiesAsObserved(targets[0]!)).toBe(false);
+    expect(qualifiesAsObserved(targets[1]!)).toBe(true);
+  });
+
+  it('records the boundary trace as a production run ended by a refused action', () => {
+    const t = fx.addBoundaryTrace();
+    const p = fx.raw
+      .prepare('SELECT outcome, boundary_action_id, not_observable FROM processes WHERE id = ?')
+      .get(t.processId) as Record<string, string>;
+    expect(p.outcome).toBe('boundary_reached');
+    expect(p.boundary_action_id).toBe(t.boundaryActionId);
+    expect(p.not_observable).toBeTruthy();
+    expect(
+      (
+        fx.raw.prepare('SELECT environment FROM runs WHERE id = ?').get(t.runId) as {
+          environment: string;
+        }
+      ).environment,
+    ).toBe('production');
   });
 });

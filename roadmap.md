@@ -20,10 +20,14 @@ Status: `todo`, `in progress`, `done`. Last reviewed: 2026-10-03.
 | R-12 | Dashboard UI: read-only FastAPI + htmx dashboard over the crawl DB, live updates, frontend-dev agent and revamp-dashboard skill | `specs/003-dashboard-ui` T001–T029 | done |
 | R-17 | Crawl run observability trace: per-run technical trace of the crawler's own machinery (calls, phases, decisions, requests, fingerprinting, frontier, agent transcript), inspectable from the R-12 dashboard | `specs/005-crawl-run-observability-trace` T001–T046 | done |
 | R-13 | BA documentation store and BA agent: Layer B records with revisions and evidence links, BA MCP tools, `ba` subagent and BA skill, works on map evidence; reference portal with ground truth | `specs/004-ba-documentation` US1, T001–T032 | done |
-| R-14 | Crawler trace mode: record one named process as ordered steps, stop at the submit boundary on production, follow-up tasks drive trace runs | `specs/004-ba-documentation` US4, T033–T050 | todo |
-| R-15 | Docs tab: SRS view per portal with evidence and run links, revision history, review actions (confirm/reject/comment), constitution amendment for the review write path | `specs/004-ba-documentation` US2 + US3, T051–T071 | todo |
+| R-14 | Crawler trace mode: record one named process as ordered steps, stop at the submit boundary on production, follow-up tasks drive trace runs | `specs/004-ba-documentation` US4, T033–T050 | done |
+| R-15 | Docs tab: SRS view per portal with evidence and run links, revision history, review actions (confirm/reject/comment), constitution amendment for the review write path | `specs/004-ba-documentation` US2 + US3, T051–T071 | done |
 | R-16 | SRS export and goal evaluation: deterministic Markdown + Mermaid + machine-readable export with traceability matrix and Unknowns section; `docs:evaluate` scores the docs against the reference portal's ground truth | `specs/004-ba-documentation` US5 + US6 + polish, T072–T082 | todo |
 | R-18 | To discuss: API discovery depth and browser tooling (richer network capture in the crawler; Playwright MCP and Chrome DevTools MCP as developer debugging tools only) | — (no spec yet) | todo |
+| R-19 | To discuss: pan and zoom for Docs diagrams (large maps are too small to read) | — (no spec yet) | todo |
+| R-20 | To discuss: screenshots as evidence, with the described elements highlighted, shown on record pages | — (no spec yet) | todo |
+| R-21 | To discuss: low-fidelity wireframes per screen, drawn from recorded evidence in one style | — (no spec yet) | todo |
+| R-22 | To discuss: glossary of Pathfinder and BA terms in one place, shown as dashboard tooltips, kept in sync per feature, with a local BA wiki citing its sources | — (no spec yet) | todo |
 
 ## Notes
 
@@ -230,6 +234,86 @@ Status: `todo`, `in progress`, `done`. Last reviewed: 2026-10-03.
   (squash `4666e02`, fix `6a90a6d`); `feature/004-r13-ba-documentation` is deleted. R-14 and R-15
   are built together on `feature/004-r14-r15-trace-mode-docs-tab` so trace results can be seen in
   the dashboard.
+- R-14 + R-15 built 2026-10-03 on `feature/004-r14-r15-trace-mode-docs-tab` (Opus for the trace
+  core, review path, constitution and diagram parity; Sonnet agents for the foundation, agent/skill
+  docs and the Docs tab). Commits: `c66de2c` (R-14 T033–T049), `cfda2d0` (R-15 T054, T059 TS,
+  T064–T066, T070), `b5ea41a` (R-15 T051–T063, T067–T069). Constitution is 1.4.0. Open: T050
+  (trace each open FUP on `reference-insurer`, one on `reference-insurer-readonly`, re-run the BA)
+  and T071 (browser review incl. two-tab stale case). T050 needs a NEW Claude Code session so the
+  `pathfinder` server starts with the trace tools; the server migrates `sandbox.sqlite` to 0005 on
+  start.
+  - 2026-10-03 sandbox test run (`fa41957`): `/docs` returned 404 because the dashboard on :8765
+    was started before the Docs code (no `--dev` reload); restarted. `/healthz` now reports a code
+    fingerprint and `uv run pathfinder-dashboard-smoke --env <env>` flags a stale server and GETs
+    every reachable page/fragment (4 000 per env, all 200 on sandbox and production).
+    `pnpm trace:smoke` (scripted, real stdio server, no LLM) ran: sandbox calculator (15 steps),
+    travel (6), comparison (4) reach their goal pages; `reference-insurer-readonly` stops at
+    "Kup polisę" (`external-side-effect`, run completed, open question added). Found and fixed: a
+    trace acting with an action id from an earlier page reloaded it and lost the typed values;
+    now refused. Added the missing persona for `reference-insurer-readonly` (shared inputs mixin).
+    T050 still needs the `crawler` agent itself (new session) and a `ba` re-run; FUP-001..003 were
+    not linked (`--followups` does that) so they stay `open` for that run.
+  - 2026-10-03 T050 agent run (new session, sandbox): `crawler` agent traced FUP-001 (OC/AC,
+    20 steps, `goal_reached`, "Kup polisę" refused), FUP-002 (travel, both date errors and the
+    result), FUP-003 (comparison, same-product error and the result) → all `done`; FUP-004 stopped
+    with `TRACE_BOUNDARY_REACHED` on "Wyślij zapytanie" (ceiling `read`) → `blocked`; FUP-005 not
+    run (needs a customer account). `reference-insurer-readonly` via the agent was refused with
+    `ENV_GUARD_REFUSED` (`.mcp.json` has only a sandbox server); covered by `trace:smoke` above.
+    `ba` re-run (session `01a1014a-3b57`): PROC-001..003 fully observed, PROC-004 up to the
+    boundary, UC-001..004, SCR-013..017, BR-017..023, new FUP-006/007, OQ-008; `docs:audit` ok
+    (137 records, 0 findings). FUP-001 needed two retries, reset to `open` by hand in the sandbox
+    store (a failed trace leaves the FUP `blocked`). Found (the prompts above carried workarounds
+    for 1 and 2), fixed afterwards on this branch:
+    1. `start_run` returned no `base_url`; in trace mode there is no frontier, so the agent guessed
+       URLs and abandoned. Now `start_run` returns `base_url` and `crawler.md` says to start there.
+    2. An action's `value` (the persona's `trace_inputs` suggestion) was read as the field's
+       current content; the agent filled only one field and "Dalej" did nothing. Renamed to
+       `suggested_value`; a held-back click now also records one "Browser validation on <field>:
+       <message>" outcome per invalid field.
+    3. Forms were recorded only for a newly created state, so a trace over states an earlier run
+       created recorded none and the BA left DI-019..026 without attributes. Now recorded once per
+       state per run.
+    Ceiling raised at the user's request: `reference-insurer` (portal and its guest persona) is
+    `external-side-effect`; `reference-insurer-readonly` stays `read`. FUP-004 still cannot reach
+    the confirmation: any phone or e-mail value is masked by the PII scrubber, so `act` refuses it
+    (`PII_SUSPECTED`); only the "both empty" error is reachable. Not fixed: the step result gives
+    counts only, not table text (the BA reads the premium from evidence); a failed trace leaves
+    its FUP `blocked` with no way to retry.
+  - 2026-10-03 T071: the user reviewed the Docs tab in a browser on sandbox (quickstart R-15
+    steps 1–3) and accepted it; remarks became R-19..R-21.
+  - 2026-10-03 T050 re-run (new session, server started after `3ee745f`): `crawler` agent with no
+    workarounds in the prompt traced FUP-004 (run `01a10202-84e0`, `completed`, `goal_reached`,
+    13 steps, FUP-004 `done`). With `Telefon` and `E-mail` empty, the portal showed "Podaj telefon
+    lub e-mail."; then it reached `/kontakt/dziekujemy` "Dziękujemy za wiadomość". No boundary on
+    the raised ceiling. Found, not fixed: `act` refused every e-mail value with `@` as
+    `PII_SUSPECTED` (4 tries, incl. `test@example.invalid`) and also `000-000-000`, but accepted
+    `Telefon` `000000000`, which the agent chose itself (the persona has no `Telefon`). So the
+    decision below ("can only reach validation") no longer holds. T050 is `[X]`.
+    Fixed in `1462cb0`: an e-mail on a reserved test TLD (`.invalid`, `.test`, `.example`) is now a
+    synthetic input for `act` and `trace_inputs`; evidence still masks it as `[email]`.
+    `ba` re-run (session `01a102cb-ade7`, `completed`): PROC-004 `observed_extent: full`, UC-004 to
+    the confirmation with three exception flows, new SCR-018 (`/kontakt/dziekujemy`) and FUP-008
+    (e-mail only; too short `Telefon`), 12 revisions (BR-012/013, REQ-006, SCR-007, CAP-005,
+    DI-015/016, NFR-003, OQ-002, ASM-002, ...). `docs:audit` ok: 139 records, 220 revisions,
+    869 links, 0 findings. Gaps: no network call recorded for the POST to `/kontakt`: it is a
+    classic HTML form POST + redirect, and the recorder takes only `xhr`/`fetch` by design (R-18).
+    The shared trace-inputs mixin now has `E-mail: test@example.invalid` (no `Telefon`).
+  Decisions taken by default, confirmed by the user 2026-10-03:
+  - Trace runs only: a submit whose form declares GET/HEAD counts as read (the calculator's
+    "Dalej"/"Oblicz składkę"); POST and label/target rules still raise; map mode unchanged.
+  - Every trace step records a state and an edge; fill/check/select do not add depth.
+  - `trace_inputs` in `personas/reference-insurer/guest.yaml` first had no `Telefon`/`E-mail`
+    (the scrubber refused any e-mail), so FUP-004 could only reach validation. Superseded by
+    `1462cb0`: it now has `E-mail: test@example.invalid` and FUP-004 reaches the confirmation.
+  - New Docs status labels (`[DRFT]`, `[RJCT]`, `[OLD.]`, `[WDRN]`, `[OPEN]`, `[WORK]`, `[BLKD]`,
+    `[CNCL]`, `[BNDY]`, `[ABND]`) added to the Console vocabulary; extra live fragments beyond
+    `http-routes-docs.md`; the screen-navigation diagram omits global-menu targets.
+- R-14 and R-15 closed 2026-10-03: the user signed off both. The Layer B spec docs
+  (`specs/004-ba-documentation`: tasks checkpoints, quickstart, research, trace-tools contract) are
+  updated to match. FUP-008 (contact form with e-mail only; too short `Telefon`) stays `open` in the
+  store, deliberately not traced; so does FUP-005 (needs a customer account, OQ-001). Merged into
+  `master` as one squash commit, like R-13; `feature/004-r14-r15-trace-mode-docs-tab` is deleted.
+  Next: R-16 (T072–T082).
 - R-18 added 2026-10-02 at the user's request, to discuss later; nothing is decided or specified.
   Starting points: (1) the crawler already records page-made `xhr`/`fetch` calls as method, path
   template, status and body shapes linked to the triggering action
@@ -240,3 +324,40 @@ Status: `todo`, `in progress`, `done`. Last reviewed: 2026-10-03.
   agent, because a second browser would bypass the `pathfinder` server's scope, denylist, robots,
   rate-limit, read-ceiling and PII gates; DevTools MCP may be useful to developers for checking what
   the recorder missed; richer capture belongs in the recorder itself.
+- R-19..R-21 added 2026-10-03 from the user's notes after the first sandbox review of the Docs tab
+  (`user_input/raw_idea/raw_dashboard_and_documentation.md`); nothing is decided or specified.
+  None is on the roadmap yet in another form; R-20/R-21 would feed R-16's export.
+  - R-19 diagrams: Mermaid already renders SVG in the dashboard (`static/js/diagrams.js`), so pan,
+    zoom and a full-screen view need only a small vendored script (e.g. `svg-pan-zoom`, about 30 KB,
+    same vendoring as Mermaid; check its licence) or a few dozen lines of our own JS; no new tool, no server
+    change. Smallest of the three; fits a dashboard polish task.
+  - R-20 screenshots: deliberately left out of v1 (`observer.ts`: "regex masking cannot redact
+    pixels"); the constitution allows them only if PII is scrubbed or access-restricted. Precedent:
+    R-17 already stores Playwright traces with screenshots for non-production portals, locally,
+    never exported. Fit: capture one screenshot per new state at observation time (same moment as
+    the ARIA snapshot, so it matches the fingerprint), using Playwright's `mask` option to paint
+    over every input and any element whose text the PII scrubber would change; production only with
+    an operator opt-in. Highlights: record each action's/field's bounding box with the state and
+    draw the highlight in the dashboard over the image, instead of baking it into the pixels, so
+    one image serves every record that cites it (SCR, DI, BR). Needs: a migration (screenshot ref
+    + boxes, `db-admin`), evidence store for binary files, a BA evidence kind for "screen region",
+    and a constitution check. No new external tool (Playwright is already there). Capturing during
+    map/trace runs beats a separate screenshot run, which would revisit pages and could drift from
+    the recorded state; a re-capture option for old states can come later. Highest value for human
+    readers; biggest of the three.
+  - R-21 wireframes: an AI drawing freely in Excalidraw would invent layout, which breaks the
+    facts-only rule. Better: generate the wireframe deterministically from the recorded ARIA
+    snapshot (headings, fields, buttons, tables in page order) as SVG in one fixed style, and
+    optionally export Excalidraw's open `.excalidraw` JSON so a person can edit it. PII-safe by
+    construction (labels only, already masked), so it is the fallback where screenshots are not
+    allowed (production) and suits the R-16 export. Do after R-20, or instead of it for production.
+- R-22 added 2026-10-03 from `user_input/raw_idea/raw_glossary_help.md`; nothing is decided. Terms
+  the user named: run, route template, confidence, settled, cluster, evidence (what it consists
+  of, per run), action, persona, safety class, top locator, target, frontier, decision, trace,
+  process. Fit: one source file (e.g. a YAML glossary under `docs/`) that the dashboard loads for
+  tooltips and a glossary page, and that a README renders; a "glossary sync" line in the SDD
+  close-out checklist (beside changelog) keeps it current per feature. BA wiki: local pages
+  linking to and citing recognised sources (IIBA BABOK, IREB CPRE, ISO/IEC/IEEE 29148); write
+  them in our own words with short quotes and the original link, since BABOK and similar texts are
+  copyrighted and cannot be copied wholesale. No new tool needed. Distinct from the BA agent's
+  `GL` records, which describe the portal's terms, not Pathfinder's.

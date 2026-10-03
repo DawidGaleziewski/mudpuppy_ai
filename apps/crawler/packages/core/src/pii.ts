@@ -69,6 +69,19 @@ export function maskText(text: string): string {
     .replace(NAME_AFTER_LABEL, `$1${MASK.name}`);
 }
 
+// Top-level domains reserved for testing (RFC 2606, RFC 6761): no address on them is a real mailbox.
+const RESERVED_TLD = /\.(?:invalid|test|example)$/i;
+
+/**
+ * True when a value an agent or persona types into a form is synthetic: {@link maskText} leaves it
+ * unchanged, except that e-mail addresses on a reserved test TLD (`a@b.invalid`) are allowed.
+ * Evidence is still scrubbed with {@link maskText}, so such an address shows as `[email]` there.
+ */
+export function isSyntheticInput(value: string): boolean {
+  const rest = value.replace(EMAIL, (m) => (RESERVED_TLD.test(m) ? ' ' : m));
+  return maskText(rest) === rest;
+}
+
 const SENSITIVE_KEY =
   /^(?:e-?mail|phone|tel(?:ephone)?|mobile|password|passwd|pass|token|access_?token|refresh_?token|id_?token|secret|api_?key|authorization|cookie|session(?:_?id)?|first_?name|last_?name|full_?name|name|pesel|iban|card(?:_?number)?)$/i;
 

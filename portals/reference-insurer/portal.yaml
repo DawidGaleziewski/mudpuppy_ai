@@ -4,7 +4,9 @@
 id: reference-insurer
 base_url: http://127.0.0.1:4010/
 environment: sandbox
-# max_action_class omitted: the guest persona caps runs at `read`.
+# Our own local test server, so traces may submit (contact form POST, "Kup polisę"); the
+# production twin `reference-insurer-readonly` stays at `read`. The persona must allow it too.
+max_action_class: external-side-effect
 
 # Our own local test server: nothing to review, filled so the config is complete.
 compliance:

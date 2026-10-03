@@ -1,0 +1,37 @@
+{% import "partials/macros.html" as m %}
+{% set v = section %}
+{% call m.region("docs", v.self_url, "Documentation citing this run") %}
+  <div class="section-head">
+    <h2>Documentation citing this run <span class="muted mono-num">{{ v.page.total }}</span></h2>
+  </div>
+  {%- if not v.page["items"] %}
+    {{ m.empty("No documentation cites this run",
+               "Records appear here once the BA agent cites this run's states, actions, forms, calls or decisions as evidence.") }}
+  {%- else %}
+  <div class="table-wrap">
+    <table class="data stack">
+      <caption class="visually-hidden">Records whose latest revision cites this run</caption>
+      <thead><tr><th scope="col">Record</th><th scope="col">Status</th><th scope="col">Confidence</th><th scope="col">Cites</th></tr></thead>
+      <tbody>
+        {%- for item in v.page["items"] %}
+        {%- set row = item.row %}
+        <tr id="{{ row.record.key }}">
+          <td><a href="{{ c.url('/docs/' ~ row.record.portal_id ~ '/' ~ row.record.key) }}"><code>{{ row.record.key }}</code></a> {{ row.record.title }}
+            <div class="muted">{{ row.record.kind | replace("_", " ") }} · rev {{ row.rev_no }}</div></td>
+          <td data-label="status">{{ m.doc_status(row.status) }}</td>
+          <td data-label="confidence">{{ m.confidence(row.confidence) }}</td>
+          <td data-label="cites">
+            <ul class="docs-list">
+              {%- for link in item.cites %}
+              <li>{% if EVIDENCE_TABS.get(link.target_kind) %}<a href="{{ c.url('/runs/' ~ v.run.id, tab=EVIDENCE_TABS[link.target_kind]) }}#{{ link.target_id }}">{{ link.target_kind | replace("_", " ") }} <code>{{ link.target_id | short_id }}</code></a>{% else %}{{ link.target_kind | replace("_", " ") }} <code>{{ link.target_id | short_id }}</code>{% endif %}{% if link.note %} <span class="muted">— {{ link.note }}</span>{% endif %}</li>
+              {%- endfor %}
+            </ul>
+          </td>
+        </tr>
+        {%- endfor %}
+      </tbody>
+    </table>
+    {{ m.pager(v, v.page.total, v.page["items"] | length) }}
+  </div>
+  {%- endif %}
+{% endcall %}

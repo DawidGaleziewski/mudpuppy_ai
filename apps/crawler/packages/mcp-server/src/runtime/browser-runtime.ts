@@ -6,6 +6,7 @@ import type { ServerContext } from '../context.js';
 import type { Runtime } from '../runtime.js';
 import { act, navigate, navigationPolicy, persistStop } from './pipeline.js';
 import { RunState } from './run-state.js';
+import { processOfRun } from '../services/trace.js';
 import { pwTraceEnabled, startPwTrace } from './pw-trace.js';
 import { createRunTraceHooks } from './trace-hooks.js';
 
@@ -114,6 +115,7 @@ export function createBrowserRuntime(opts: BrowserRuntimeOptions = {}): Runtime 
       },
     });
     const rs = new RunState(run.id, session, approved.effective, approved.scope, robots, trace);
+    rs.processId = (await processOfRun(ctx, run.id))?.id ?? null;
     holder.rs = rs;
     if (pwTraceEnabled(approved.effective.portal.environment, ctx.pwTrace))
       rs.pw = await startPwTrace({

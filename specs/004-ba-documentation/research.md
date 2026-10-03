@@ -150,6 +150,9 @@ truth, stale on re-render changes); server-side SVG rendering (needs a headless 
   `act` takes `value` for them. Values must be synthetic: the persona may declare
   `trace_inputs` (field label → value); agent-supplied values go through the PII scrubber and are
   refused with `PII_SUSPECTED` if it would change them. Stored values are the scrubbed ones.
+  Exception (`1462cb0`, 2026-10-03): an e-mail on a reserved test TLD (`.invalid`, `.test`,
+  `.example`) is a synthetic input, accepted by `act` and `trace_inputs`; evidence still masks it
+  as `[email]`. The reference persona declares `E-mail: test@example.invalid`.
 - Boundary: when `act` is refused by the action gate **for its safety class** in trace mode, the
   server closes the process with `outcome = 'boundary_reached'`, records `boundary_action_id`, adds a
   crawler open question ("What happens after '<name>'? Not observable: <class> on <environment>"),

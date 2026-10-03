@@ -32,6 +32,7 @@ export const PHASE_NAMES = [
   'record_transition',
   'record_api_calls',
   'enqueue_frontier',
+  'record_step',
   'run_bookkeeping',
   'complete_run',
   'pw_trace',

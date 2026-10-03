@@ -1,5 +1,6 @@
 import { realpathSync } from 'node:fs';
 import { dirname, relative, resolve, isAbsolute } from 'node:path';
+import { isSyntheticInput } from '@pathfinder/core';
 import { ConfigError, zodProblems } from './errors.js';
 import { PersonaConfig, PersonaFile } from './persona-schema.js';
 import { readYaml } from './read.js';
@@ -19,12 +20,27 @@ function merge(base: Plain, over: Plain): Plain {
   return out;
 }
 
+/**
+ * `trace_inputs` must be synthetic: a value the PII scrubber would change (e-mail, phone, token, name
+ * after a label, ...) is refused, except an e-mail on a reserved test TLD (`.invalid`, `.test`,
+ * `.example`). Names the label only, never the value.
+ */
+function findPiiTraceInputs(inputs: Record<string, string> | undefined): string[] {
+  return Object.entries(inputs ?? {})
+    .filter(([, value]) => !isSyntheticInput(value))
+    .map(
+      ([label]) => `trace_inputs.${label}: value looks like personal data; use a synthetic value`,
+    );
+}
+
 /** Load one file, validate it as a persona/mixin fragment and reject inline secrets. */
 function loadFragment(file: string): PersonaFile {
   const parsed = PersonaFile.safeParse(readYaml(file));
   if (!parsed.success) throw new ConfigError(file, zodProblems(parsed.error));
   const secrets = findInlineSecrets(parsed.data.auth);
   if (secrets.length > 0) throw new ConfigError(file, secrets);
+  const pii = findPiiTraceInputs(parsed.data.trace_inputs);
+  if (pii.length > 0) throw new ConfigError(file, pii);
   return parsed.data;
 }
 

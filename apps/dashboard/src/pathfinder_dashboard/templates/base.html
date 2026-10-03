@@ -12,6 +12,7 @@
   <script src="/static/vendor/htmx.min.js" defer></script>
   <script src="/static/vendor/hx-sse.min.js" defer></script>
   <script src="/static/js/live.js" defer></script>
+  {% block head_extra %}{% endblock %}
 </head>
 <body{% if dev %} data-dev="1"{% endif %} data-boot="{{ BOOT_ID }}">
   <a class="skip-link" href="#main">Skip to content</a>
@@ -20,6 +21,7 @@
     <nav aria-label="Main">
       <ul class="nav">
         <li><a href="{{ c.url('/') }}"{% if nav_current | default('overview') == 'overview' and not s %} aria-current="page"{% endif %}>Overview</a></li>
+        <li><a href="{{ c.url('/docs') }}"{% if nav_current == 'docs' %} aria-current="page"{% endif %}>Docs</a></li>
         <li><a href="{{ c.url('/activity') }}"{% if nav_current == 'activity' %} aria-current="page"{% endif %}>Activity</a></li>
       </ul>
     </nav>

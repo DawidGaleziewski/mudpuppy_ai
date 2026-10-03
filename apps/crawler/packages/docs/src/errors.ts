@@ -6,6 +6,9 @@ export const DOCS_ERROR_CODES = [
   'RUN_NOT_IN_SESSION',
   'STALE_REVISION',
   'RELATION_NOT_ALLOWED',
+  // Operator review command (contracts/operator-cli.md).
+  'RECORD_NOT_FOUND',
+  'NOT_CANCELLABLE',
 ] as const;
 export type DocsErrorCode = (typeof DOCS_ERROR_CODES)[number];
 

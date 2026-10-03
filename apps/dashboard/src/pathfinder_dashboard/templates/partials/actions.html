@@ -39,7 +39,7 @@
       </tr></thead>
       <tbody>
         {%- for a in v.page["items"] %}
-        <tr>
+        <tr id="{{ a.id }}">
           <td>{{ a.accessible_name or "—" }}</td>
           <td data-label="role">{{ a.role }}</td>
           <td data-label="safety">{{ m.safety(a.safety_class) }}</td>

@@ -46,6 +46,14 @@ function decodeURIComponentSafe(s: string): string {
   }
 }
 
+export interface ClassifyOptions {
+  /**
+   * Trace runs (spec 004 R-14): a control whose form declares GET/HEAD counts as positive read
+   * evidence. Map mode keeps such submits non-read; label and target rules still raise either way.
+   */
+  safeFormSubmitIsRead?: boolean;
+}
+
 /**
  * Pure rules engine (research §4). Returns the MOST dangerous class across all signals. Read is
  * only ever the result of positive evidence; unknown controls resolve to non-read. A class claimed
@@ -54,6 +62,7 @@ function decodeURIComponentSafe(s: string): string {
 export function classifyAction(
   d: ActionDescriptor,
   ruleSet: RuleSet = builtinRuleSet(),
+  opts: ClassifyOptions = {},
 ): Classification {
   let cls: SafetyClass = 'read';
   const rules: string[] = [];
@@ -88,6 +97,10 @@ export function classifyAction(
     const positiveRead =
       (LINK_ROLES.has(d.role) && d.href !== undefined) ||
       READ_ROLES.has(d.role) ||
+      d.input !== undefined ||
+      (opts.safeFormSubmitIsRead === true &&
+        d.form?.method !== undefined &&
+        SAFE_METHODS.has(d.form.method.toUpperCase())) ||
       READ_KEYWORDS.some((k) => k.test(text)) ||
       (d.form?.purpose !== undefined && d.form.purpose !== 'other') ||
       d.attributes?.['aria-expanded'] !== undefined ||

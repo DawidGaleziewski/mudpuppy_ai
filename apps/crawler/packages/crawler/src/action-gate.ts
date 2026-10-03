@@ -9,6 +9,7 @@ import {
   type ActionDescriptor,
   type BudgetUsage,
   type Classification,
+  type ClassifyOptions,
   type Decision,
   type RuleSet,
 } from '@pathfinder/safety';
@@ -31,6 +32,8 @@ export interface GateContext {
   /** min(portal, persona) from `assertRunAllowed` / `loadEffectiveConfig`. */
   effectiveMaxActionClass: SafetyClass;
   usage: BudgetUsage;
+  /** Classifier options of the run's mode (trace runs read GET form submits as read). */
+  classify?: ClassifyOptions;
 }
 
 export type GateResult = Decision & { classification: Classification };
@@ -58,7 +61,7 @@ function targetUrl(p: Proposal): string | undefined {
 export function decide(proposal: Proposal, ctx: GateContext): GateResult {
   const classification =
     proposal.kind === 'act'
-      ? classifyAction(proposal.descriptor, ctx.rules)
+      ? classifyAction(proposal.descriptor, ctx.rules, ctx.classify)
       : classifyUrl(proposal.url, ctx.rules);
   const url = targetUrl(proposal);
 

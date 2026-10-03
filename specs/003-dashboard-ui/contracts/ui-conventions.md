@@ -36,6 +36,15 @@ mapping) plus the status vocabulary for Pathfinder's records. It is mirrored in
 | trace span | `error` | `[FAIL]` | `signal-error` | |
 | trace span | `unfinished` | `[INCM]` | `signal-error` | crashed/earlier-boot span, swept at startup |
 | trace span kind | `phase`, `event` | `[PHSE]`, `[EVNT]` | `ink-100` | shown only in the expanded call detail |
+| doc revision | `confirmed` | `[ OK ]` | `brand` | spec 004 (Docs tab) |
+| doc revision | `draft` | `[DRFT]` | `ink-100` | |
+| doc revision | `rejected`, `superseded`, `withdrawn` | `[RJCT]`, `[OLD.]`, `[WDRN]` | `ink-500` | a reviewer's decision is not a crawl failure: never red |
+| follow-up task | `open`, `in_progress`, `done` | `[OPEN]`, `[WORK]`, `[DONE]` | `ink-100`, `accent-3`, `brand` | no pulse on `[WORK]` |
+| follow-up task | `blocked`, `cancelled` | `[BLKD]`, `[CNCL]` | `ink-500` | blocked reason beside it |
+| review action | `confirm`, `reject`, `comment` | `[ OK ]`, `[RJCT]`, `[NOTE]` | `brand`, `ink-500`, `ink-100` | reviewer and time beside it |
+| trace process outcome | `goal_reached`, `boundary_reached`, `stopped`, `abandoned` | `[ OK ]`, `[BNDY]`, `[STOP]`, `[ABND]` | `brand`, `ink-500`, `signal-error`, `ink-500` | a safety boundary is the system working: muted |
+| evidence link | target missing / kind unsupported | `[ ?? ]` | `ink-500` | text says "broken link" or "unresolved" |
+| not observable | `not_observable = 1` | text `not observable` | `accent-4` + dashed border | same treatment as `needs_confirmation` |
 
 Red (`signal-error`) is used only where the crawl failed or stopped (rule 5); a safety skip is the
 system working, so it is muted, not red.

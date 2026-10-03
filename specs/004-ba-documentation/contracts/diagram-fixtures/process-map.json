@@ -1,0 +1,13 @@
+{
+  "process": { "key": "PROC-002", "title": "Buy a car policy (\"OC/AC\")" },
+  "steps": [
+    { "ord": 2, "kind": "fill", "intent": "Enter the car model" },
+    { "ord": 1, "kind": "navigate", "intent": "Open the car insurance calculator" },
+    { "ord": 3, "kind": "click", "intent": "Go to the <driver> step" },
+    { "ord": 4, "kind": "click", "intent": "Calculate   the premium" }
+  ],
+  "boundary": {
+    "action": "Kup polisę",
+    "not_observable": "What happens after 'Kup polisę'? Not observable: mutating on production"
+  }
+}

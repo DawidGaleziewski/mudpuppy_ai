@@ -12,3 +12,4 @@ export * from './frontier.js';
 export * from './report.js';
 export * from './session.js';
 export * from './locators.js';
+export * from './step-outcomes.js';

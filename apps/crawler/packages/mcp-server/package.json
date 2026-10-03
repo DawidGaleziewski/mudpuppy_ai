@@ -18,6 +18,9 @@
     "zod": "^4.6.5",
     "@pathfinder/docs": "workspace:*"
   },
+  "devDependencies": {
+    "@pathfinder/reference-portal": "workspace:*"
+  },
   "scripts": {
     "start": "tsx src/main.ts",
     "start:ba": "tsx src/ba-main.ts"

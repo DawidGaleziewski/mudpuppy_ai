@@ -1,0 +1,61 @@
+{% import "partials/macros.html" as m %}
+{#- Do not swap the panel under a reviewer who has started typing. -#}
+{% set busy = "![...document.querySelectorAll('#region-reviews textarea')].some(t => t.value.trim())" %}
+{% call m.region("reviews", panel.self_url, "Review", guard=busy) %}
+  <div class="panel review-panel">
+    <h2>Review</h2>
+    {%- set res = panel.result %}
+    {%- if res %}
+    <p class="review-result" role="status">
+      {%- if res.ok %}<span class="st st-ok">[ OK ]</span> {{ res.message }}
+      {%- else %}<span class="st st-muted">[RFSE]</span> <code>{{ res.code }}</code> {{ res.message }}{% endif -%}
+    </p>
+    {%- endif %}
+    {%- if not panel.enabled %}
+    <p class="warning-text measure">Review actions are disabled: no reviewer is configured. Start the
+      dashboard with <code>PATHFINDER_REVIEWER</code> set to your name (it is stored with every review).</p>
+    {%- endif %}
+    <p class="muted measure">Reviews apply to the latest revision, {{ panel.latest.rev_no }}
+      ({{ panel.latest.status }}).{% if not panel.viewing_latest %} You are looking at an older revision.{% endif %}
+      {%- if not panel.can_decide %} Only a draft can be confirmed or rejected; a comment is always possible.{% endif %}</p>
+    {%- set decide_off = not panel.enabled or not panel.can_decide %}
+    <div class="review-forms">
+      <form class="review-form" method="post" action="{{ panel.post_url }}"
+            hx-post="{{ panel.post_url }}" hx-target="#region-reviews" hx-swap="outerHTML">
+        <input type="hidden" name="rev_no" value="{{ panel.latest.rev_no }}">
+        <input type="hidden" name="action" value="confirm">
+        <button class="btn btn-bracket" type="submit"{% if decide_off %} disabled{% endif %}>[confirm rev {{ panel.latest.rev_no }}]</button>
+      </form>
+      <form class="review-form" method="post" action="{{ panel.post_url }}"
+            hx-post="{{ panel.post_url }}" hx-target="#region-reviews" hx-swap="outerHTML">
+        <input type="hidden" name="rev_no" value="{{ panel.latest.rev_no }}">
+        <input type="hidden" name="action" value="reject">
+        <label class="field">
+          <span>reason (required to reject)</span>
+          <textarea class="textarea" name="text" rows="2"{% if decide_off %} disabled{% endif %}></textarea>
+        </label>
+        <button class="btn btn-bracket" type="submit"{% if decide_off %} disabled{% endif %}>[reject rev {{ panel.latest.rev_no }}]</button>
+      </form>
+      <form class="review-form" method="post" action="{{ panel.post_url }}"
+            hx-post="{{ panel.post_url }}" hx-target="#region-reviews" hx-swap="outerHTML">
+        <input type="hidden" name="rev_no" value="{{ panel.latest.rev_no }}">
+        <input type="hidden" name="action" value="comment">
+        <label class="field">
+          <span>comment (required)</span>
+          <textarea class="textarea" name="text" rows="2"{% if not panel.enabled %} disabled{% endif %}></textarea>
+        </label>
+        <button class="btn btn-bracket" type="submit"{% if not panel.enabled %} disabled{% endif %}>[comment]</button>
+      </form>
+    </div>
+    <h3>Decisions on revision {{ panel.latest.rev_no }}</h3>
+    {%- if not panel.reviews %}
+    {{ m.empty("No review yet", "Confirm, reject with a reason, or comment; the decision is recorded with your name.", "[ -- ]") }}
+    {%- else %}
+    <ul class="review-list">
+      {%- for rv in panel.reviews %}
+      <li>{{ m.review_action(rv.action) }} <span class="muted">{{ rv.reviewer }} · {{ rv.created_at | when }}</span>{% if rv.text %}<div>{{ rv.text }}</div>{% endif %}</li>
+      {%- endfor %}
+    </ul>
+    {%- endif %}
+  </div>
+{% endcall %}

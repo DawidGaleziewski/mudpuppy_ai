@@ -24,6 +24,14 @@ export class RunState {
   stopPersisted: Promise<void> | undefined;
   /** `session.obstacles.events` already reported for the current call (research §16). */
   obstacleCursor = 0;
+  /** Trace runs (spec 004 R-14): the run's process; null for map runs. */
+  processId: string | null = null;
+  /** The page as last observed, compared with the next one for a trace step's outcomes. */
+  lastObserved: { url: string; title: string; snapshot: string } | null = null;
+
+  get isTrace(): boolean {
+    return this.processId !== null;
+  }
 
   constructor(
     readonly runId: string,

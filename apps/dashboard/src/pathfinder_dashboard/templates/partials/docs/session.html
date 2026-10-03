@@ -1,0 +1,96 @@
+{% import "partials/macros.html" as m %}
+{% set s = v.detail.session %}
+{% call m.region("docs-session", v.self_url, "Analysis session") %}
+  <div class="panel">
+    <p>{{ m.run_status(s.status) }}</p>
+    <dl class="facts">
+      <div><dt>id</dt><dd><code>{{ s.id }}</code></dd></div>
+      <div><dt>portal</dt><dd><a href="{{ c.url('/docs/' ~ portal) }}">{{ portal }}</a></dd></div>
+      <div><dt>started (UTC)</dt><dd>{{ s.started_at | when }}</dd></div>
+      <div><dt>ended (UTC)</dt><dd>{{ s.ended_at | when }}</dd></div>
+    </dl>
+    {%- if s.summary %}<p class="measure">{{ s.summary }}</p>{% endif %}
+  </div>
+
+  <div class="section">
+    <div class="section-head"><h2>Input runs <span class="muted mono-num">{{ v.detail.runs | length }}</span></h2></div>
+    {%- if not v.detail.runs %}
+      {{ m.empty("No input runs recorded", "A session lists the runs it read when it starts.") }}
+    {%- else %}
+    <div class="table-wrap">
+      <table class="data stack">
+        <caption class="visually-hidden">Runs this session read</caption>
+        <thead><tr><th scope="col">Run</th><th scope="col">Mode</th><th scope="col">Persona</th><th scope="col">Status</th><th scope="col">Started (UTC)</th></tr></thead>
+        <tbody>
+          {%- for r in v.detail.runs %}
+          <tr>
+            <td><a href="{{ c.url('/runs/' ~ r.id) }}"><code>{{ r.id | short_id }}</code></a></td>
+            <td data-label="mode">{{ r.mode }}</td>
+            <td data-label="persona">{{ r.persona_id }}</td>
+            <td data-label="status">{{ m.run_status(r.status) }}</td>
+            <td data-label="started">{{ r.started_at | when }}</td>
+          </tr>
+          {%- endfor %}
+        </tbody>
+      </table>
+    </div>
+    {%- endif %}
+  </div>
+
+  <div class="section">
+    <div class="section-head"><h2>Passes <span class="muted mono-num">{{ s.passes_json | length if s.passes_json is sequence else 0 }}</span></h2></div>
+    {%- if s.passes_json is sequence and s.passes_json %}
+    <div class="table-wrap">
+      <table class="data stack">
+        <caption class="visually-hidden">Analysis passes completed</caption>
+        <thead><tr><th scope="col">Pass</th><th scope="col">Summary</th><th scope="col">Completed (UTC)</th></tr></thead>
+        <tbody>
+          {%- for p in s.passes_json %}
+          <tr>
+            <td>{{ p | jget("pass") }}</td>
+            <td data-label="summary">{{ p | jget("summary") or "—" }}</td>
+            <td data-label="completed">{{ (p | jget("completed_at")) | when }}</td>
+          </tr>
+          {%- endfor %}
+        </tbody>
+      </table>
+    </div>
+    {%- else %}
+      {{ m.empty("No pass completed yet", "The seven passes are recorded as the BA finishes them.") }}
+    {%- endif %}
+  </div>
+
+  <div class="section">
+    <div class="section-head"><h2>Records written <span class="muted mono-num">{{ v.detail.written_total }}</span></h2></div>
+    {%- if not v.detail.written %}
+      {{ m.empty("This session has written no record", "Creates and revisions made in this session are listed here.") }}
+    {%- else %}
+    <div class="table-wrap">
+      <table class="data stack">
+        <caption class="visually-hidden">Records this session created or revised</caption>
+        <thead><tr><th scope="col">Record</th><th scope="col">Change</th><th scope="col">Status now</th><th scope="col">Confidence</th></tr></thead>
+        <tbody>
+          {%- for row in v.detail.written %}
+          <tr>
+            <td><a href="{{ c.url('/docs/' ~ portal ~ '/' ~ row.record.key) }}"><code>{{ row.record.key }}</code></a> {{ row.record.title }}</td>
+            <td data-label="change">{{ v.detail.changes[row.record.id] }}</td>
+            <td data-label="status">{{ m.doc_status(row.status) }}</td>
+            <td data-label="confidence">{{ m.confidence(row.confidence) }}</td>
+          </tr>
+          {%- endfor %}
+        </tbody>
+      </table>
+      {{ m.pager(v, v.detail.written_total, v.detail.written | length) }}
+    </div>
+    {%- endif %}
+  </div>
+
+  <div class="section">
+    <div class="section-head"><h2>Gaps <span class="muted mono-num">{{ s.gaps_json | length if s.gaps_json is sequence else 0 }}</span></h2></div>
+    {%- if s.gaps_json is sequence and s.gaps_json %}
+    <ul class="docs-list">{% for g in s.gaps_json %}<li>{{ g }}</li>{% endfor %}</ul>
+    {%- else %}
+      {{ m.empty("No gaps reported", "What was not observable or skipped is listed here when the session ends.") }}
+    {%- endif %}
+  </div>
+{% endcall %}

@@ -1,7 +1,7 @@
 ---
 name: ba
 description: Documents a portal from recorded crawl evidence into keyed, evidence-linked documentation records (screens, requirements, rules, data items, glossary, questions) through the pathfinder-ba server. Use when a portal's runs should be analysed or reviewer feedback answered. Never browses; not for crawling, testing or UI work.
-tools: mcp__pathfinder-ba__list_runs, mcp__pathfinder-ba__get_run_evidence, mcp__pathfinder-ba__get_evidence, mcp__pathfinder-ba__list_records, mcp__pathfinder-ba__get_record, mcp__pathfinder-ba__get_pending_feedback, mcp__pathfinder-ba__start_session, mcp__pathfinder-ba__record_pass, mcp__pathfinder-ba__finish_session, mcp__pathfinder-ba__create_record, mcp__pathfinder-ba__revise_record, mcp__pathfinder-ba__withdraw_record, mcp__pathfinder-ba__address_crawler_question, Read
+tools: mcp__pathfinder-ba__list_runs, mcp__pathfinder-ba__get_run_evidence, mcp__pathfinder-ba__get_evidence, mcp__pathfinder-ba__list_records, mcp__pathfinder-ba__get_record, mcp__pathfinder-ba__list_processes, mcp__pathfinder-ba__get_process, mcp__pathfinder-ba__get_pending_feedback, mcp__pathfinder-ba__start_session, mcp__pathfinder-ba__record_pass, mcp__pathfinder-ba__finish_session, mcp__pathfinder-ba__create_record, mcp__pathfinder-ba__revise_record, mcp__pathfinder-ba__withdraw_record, mcp__pathfinder-ba__address_crawler_question, Read
 model: opus
 skills:
   - ba-practice

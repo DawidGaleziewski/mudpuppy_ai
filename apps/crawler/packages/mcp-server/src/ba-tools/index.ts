@@ -14,8 +14,10 @@ import {
   EvidenceReadKind,
   RunEvidenceKind,
   getEvidence,
+  getProcess,
   getRecord,
   getRunEvidence,
+  listProcesses,
   listRecords,
   listRuns,
 } from '../services/ba/reads.js';
@@ -31,7 +33,7 @@ import { fail, ok } from '../tools/result.js';
 /**
  * The ONLY tools the `ba` subagent may use (as `mcp__pathfinder-ba__<name>`): reads over recorded
  * evidence and Layer B writes. No browser, no crawler tool, and nothing that sets a status, a key or
- * an id (contracts/ba-mcp-tools.md). `list_processes` and `get_process` join with trace mode.
+ * an id (contracts/ba-mcp-tools.md).
  */
 export const BA_TOOL_NAMES = [
   'list_runs',
@@ -39,6 +41,8 @@ export const BA_TOOL_NAMES = [
   'get_evidence',
   'list_records',
   'get_record',
+  'list_processes',
+  'get_process',
   'get_pending_feedback',
   'start_session',
   'record_pass',
@@ -159,6 +163,18 @@ export function registerBaTools(server: McpServer, ctx: BaContext): void {
     'One record with all its revisions (content, confidence, evidence links, relations, change note, status) and reviews.',
     { portal_id: z.string(), key: z.string() },
     (a) => getRecord(ctx, a),
+  );
+  tool(
+    'list_processes',
+    'Processes recorded by trace runs of a portal: id, run, name, goal, persona, outcome, step count and the boundary action when a production trace stopped early.',
+    { portal_id: z.string() },
+    (a) => listProcesses(ctx, a),
+  );
+  tool(
+    'get_process',
+    'One process with its ordered steps (intent, kind, action, value, state before/after, network calls, outcomes, edge, evidence ref) and its boundary. Cite a process or step with target_kind process / process_step.',
+    { process_id: z.string() },
+    (a) => getProcess(ctx, a),
   );
   tool(
     'get_pending_feedback',

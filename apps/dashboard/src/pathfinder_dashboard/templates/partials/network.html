@@ -11,7 +11,7 @@
       <thead><tr><th scope="col">Call</th><th scope="col" class="num">Status</th><th scope="col">Shapes</th><th scope="col">Console errors</th></tr></thead>
       <tbody>
         {%- for n in v.page["items"] %}
-        <tr>
+        <tr id="{{ n.id }}">
           <td><code>{{ n.method }} {{ n.url_template }}</code>{% if n.edge_id %}<div class="muted">edge {{ n.edge_id }}</div>{% else %}<div class="muted">on state load</div>{% endif %}</td>
           <td data-label="status" class="num"><span class="{{ 'st-fail' if n.status >= 400 else '' }}">{{ n.status }}</span></td>
           <td data-label="shapes">{{ m.json_block(n.req_schema, "request") }}{{ m.json_block(n.res_schema, "response") }}</td>

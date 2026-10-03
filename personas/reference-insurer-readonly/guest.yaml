@@ -1,0 +1,4 @@
+# Same guest as the sandbox reference portal; this portal is the same server declared
+# `production`, used to exercise the trace boundary (spec 004 R-14).
+id: guest
+extends: ["../_mixins/anonymous-base.yaml", "../_mixins/reference-insurer-trace-inputs.yaml"]

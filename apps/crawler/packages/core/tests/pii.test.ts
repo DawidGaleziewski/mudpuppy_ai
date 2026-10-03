@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import { looksLikeRawPayload, maskText, scrubJson } from '../src/pii.js';
+import { isSyntheticInput, looksLikeRawPayload, maskText, scrubJson } from '../src/pii.js';
 
 const fixture = (n: string) =>
   readFileSync(new URL(`../../../tests/fixtures/aria/${n}`, import.meta.url), 'utf8');
@@ -48,6 +48,34 @@ describe('maskText', () => {
 
   it('does not treat a card-shaped number that fails Luhn as a card', () => {
     expect(maskText('Nr 1234 5678 9012 3456')).not.toContain('[card]');
+  });
+});
+
+describe('isSyntheticInput', () => {
+  it.each([
+    'test@example.invalid',
+    'test@test.test',
+    'nobody@synthetic-placeholder.invalid',
+    'a@b.EXAMPLE',
+  ])('accepts an e-mail on a reserved test TLD (%s)', (value) => {
+    expect(isSyntheticInput(value)).toBe(true);
+    expect(maskText(value)).toBe('[email]');
+  });
+
+  it.each([
+    'jan.kowalski@example.com',
+    'jan@gmail.com',
+    'a@invalid.com',
+    'test@example.invalid tel. +48 601 234 567',
+    '601-234-567',
+    'Imię: Jan Kowalski',
+  ])('refuses a value with real-looking PII (%s)', (value) => {
+    expect(isSyntheticInput(value)).toBe(false);
+  });
+
+  it('accepts plain values', () => {
+    expect(isSyntheticInput('Testowy')).toBe(true);
+    expect(isSyntheticInput('1600')).toBe(true);
   });
 });
 

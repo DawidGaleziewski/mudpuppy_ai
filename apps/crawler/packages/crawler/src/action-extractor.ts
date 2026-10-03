@@ -1,4 +1,9 @@
-import { classifyAction, type ActionDescriptor, type RuleSet } from '@pathfinder/safety';
+import {
+  classifyAction,
+  type ActionDescriptor,
+  type ClassifyOptions,
+  type RuleSet,
+} from '@pathfinder/safety';
 import type { SafetyClass } from '@pathfinder/core';
 import { buildLocators, type RankedLocator } from './locators.js';
 import type { DomForm, DomTestId } from './observer.js';
@@ -19,11 +24,33 @@ const CLICKABLE = new Set([
   'combobox',
 ]);
 
+/**
+ * Trace mode only: fillable controls become `fill` (type into), `select` (pick an option) or `check`
+ * (tick a checkbox/radio) actions instead of plain clicks or being skipped.
+ */
+const TRACE_INPUT: Readonly<Record<string, TraceInput>> = {
+  textbox: 'fill',
+  searchbox: 'fill',
+  spinbutton: 'fill',
+  combobox: 'select',
+  checkbox: 'check',
+  radio: 'check',
+};
+
+export type TraceInput = 'fill' | 'check' | 'select';
+
+export interface ExtractOptions {
+  /** `map` (default) is unchanged; `trace` also extracts fillable controls as input actions. */
+  mode?: 'map' | 'trace';
+}
+
 export const MAX_ACTIONS_PER_STATE = 200;
 
 export interface CandidateAction {
   role: string;
   name: string | null;
+  /** Trace mode only: the kind of input this control takes; absent for clicks. */
+  input?: TraceInput;
   /** Index among elements with the same role and name in document order; disambiguates repeats. */
   nth: number;
   href?: string;
@@ -52,7 +79,9 @@ const unescape = (s: string): string => s.replace(/\\(.)/g, '$1');
 export function extractCandidates(
   snapshot: string,
   forms: readonly DomForm[] = [],
+  opts: ExtractOptions = {},
 ): CandidateAction[] {
+  const trace = opts.mode === 'trace';
   const out: CandidateAction[] = [];
   const stack: { depth: number; label: string; role: string; name: string | null }[] = [];
   const seen = new Map<string, number>();
@@ -79,7 +108,8 @@ export function extractCandidates(
     // (its labels are already in the form schema) and they are not clickable; left in, a long list
     // (a city picker) floods the frontier and the per-state cap. Options of a custom listbox stay.
     const isSelectOption = role === 'option' && stack[stack.length - 2]?.role === 'combobox';
-    if (!CLICKABLE.has(role) || isSelectOption) {
+    const input = trace ? TRACE_INPUT[role] : undefined;
+    if (!(CLICKABLE.has(role) || input) || isSelectOption) {
       last = null;
       continue;
     }
@@ -98,14 +128,31 @@ export function extractCandidates(
         (forms.length === 1 ? forms[0] : undefined))
       : undefined;
 
-    const descriptor: ActionDescriptor = { role, ...(name ? { name } : {}) };
+    const descriptor: ActionDescriptor = {
+      role,
+      ...(name ? { name } : {}),
+      ...(input ? { input } : {}),
+    };
     if (formNode || inSearch) {
+      // A fill/check/select sends nothing by itself, so the form's method and target belong to its
+      // submit button, not to the control; a password field still raises the class.
       descriptor.form = {
-        ...(dom ? { method: dom.method, action: dom.action, hasPassword: dom.hasPassword } : {}),
+        ...(dom
+          ? input
+            ? { hasPassword: dom.hasPassword }
+            : { method: dom.method, action: dom.action, hasPassword: dom.hasPassword }
+          : {}),
         purpose: inSearch || dom?.purpose === 'search' ? 'search' : 'other',
       };
     }
-    const cand: CandidateAction = { role, name, nth, ancestors, descriptor };
+    const cand: CandidateAction = {
+      role,
+      name,
+      ...(input ? { input } : {}),
+      nth,
+      ancestors,
+      descriptor,
+    };
     out.push(cand);
     last = cand;
     if (out.length >= MAX_ACTIONS_PER_STATE) break;
@@ -117,9 +164,10 @@ export function extractCandidates(
 export function classifyCandidates(
   cands: readonly CandidateAction[],
   rules: RuleSet,
+  opts: ClassifyOptions = {},
 ): ClassifiedAction[] {
   return cands.map((c) => {
-    const r = classifyAction(c.descriptor, rules);
+    const r = classifyAction(c.descriptor, rules, opts);
     return { ...c, safetyClass: r.safetyClass, rules: r.rules, reasons: r.reasons };
   });
 }

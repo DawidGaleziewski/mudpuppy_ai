@@ -20,13 +20,15 @@ async function baTools() {
 }
 
 describe('BA server lockdown (contracts/ba-mcp-tools.md)', () => {
-  it('lists exactly the 13 BA tools of R-13', async () => {
+  it('lists exactly the 15 BA tools (13 of R-13 plus the R-14 process reads)', async () => {
     expect(BA_TOOL_NAMES).toEqual([
       'list_runs',
       'get_run_evidence',
       'get_evidence',
       'list_records',
       'get_record',
+      'list_processes',
+      'get_process',
       'get_pending_feedback',
       'start_session',
       'record_pass',

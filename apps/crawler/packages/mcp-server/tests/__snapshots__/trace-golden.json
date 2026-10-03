@@ -77,7 +77,7 @@
     "started_at": "<ts:6>",
     "ended_at": "<ts:7>",
     "duration_ms": 35,
-    "attrs_json": "{\"args\":{\"portal_id\":\"shop\",\"persona_id\":\"guest\"},\"request_id\":2,\"output\":{\"run_id\":\"<id:6>\",\"resumed\":false,\"effective_max_action_class\":\"read\",\"budgets\":{\"steps\":50,\"run_time_minutes\":5,\"states\":10}}}",
+    "attrs_json": "{\"args\":{\"portal_id\":\"shop\",\"persona_id\":\"guest\"},\"request_id\":2,\"output\":{\"run_id\":\"<id:6>\",\"mode\":\"map\",\"base_url\":\"https://shop.pl/\",\"resumed\":false,\"effective_max_action_class\":\"read\",\"budgets\":{\"steps\":50,\"run_time_minutes\":5,\"states\":10}}}",
     "payload_ref": null,
     "summary": "start_run ok",
     "decision_id": null,

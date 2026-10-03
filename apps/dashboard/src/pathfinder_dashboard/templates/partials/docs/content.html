@@ -1,0 +1,145 @@
+{% import "partials/macros.html" as m %}
+
+{#- Rendered content per record kind (data-model.md "Content per kind"). Portal-language fields
+    (`*_verbatim`) carry `lang`; an unknown kind or a malformed shape falls back to the raw JSON so
+    nothing the BA wrote is hidden. -#}
+
+{% macro bullets(items) -%}
+  {%- if items %}<ul class="docs-list">{% for i in items %}<li>{{ i }}</li>{% endfor %}</ul>{% else %}<span class="muted">none</span>{% endif -%}
+{%- endmacro %}
+
+{% macro flow(steps) -%}
+  <ol class="docs-list">
+    {%- for s in steps %}<li value="{{ s.n }}"><strong>{{ s.actor_or_system }}</strong>: {{ s.text }}</li>{% endfor %}
+  </ol>
+{%- endmacro %}
+
+{% macro render(rev) -%}
+  {%- set x = rev.content_json -%}
+  {%- if x is not mapping %}
+    {{ m.json_block(x, "content (unrecognised shape)") }}
+  {%- else %}
+  {%- if x.summary %}<p class="measure">{{ x.summary }}</p>{% endif %}
+  {%- set kind = x.kind -%}
+  {%- if kind == "capability" %}
+    <p class="measure">{{ x.description }}</p>
+  {%- elif kind == "screen" %}
+    <dl class="facts facts-1">
+      <div><dt>purpose</dt><dd>{{ x.purpose }}</dd></div>
+      <div><dt>route templates</dt><dd>{% for r in x.route_templates or [] %}<code>{{ r }}</code>{% if not loop.last %}, {% endif %}{% endfor %}</dd></div>
+      <div><dt>entry points</dt><dd>{{ bullets(x.entry_points) }}</dd></div>
+    </dl>
+    {%- if x.elements %}
+    <div class="table-wrap">
+      <table class="data">
+        <caption>Elements (portal wording)</caption>
+        <thead><tr><th scope="col">Role</th><th scope="col">Label as shown</th></tr></thead>
+        <tbody>{% for e in x.elements %}<tr><td>{{ e.role }}</td><td lang="{{ x.lang or 'pl' }}">{{ e.label_verbatim }}</td></tr>{% endfor %}</tbody>
+      </table>
+    </div>
+    {%- endif %}
+  {%- elif kind == "process" %}
+    <dl class="facts facts-1">
+      <div><dt>goal</dt><dd>{{ x.goal }}</dd></div>
+      <div><dt>persona</dt><dd>{{ x.persona }}</dd></div>
+      <div><dt>trigger</dt><dd>{{ x.trigger }}</dd></div>
+      <div><dt>outcome</dt><dd>{{ x.outcome }}</dd></div>
+      <div><dt>observed extent</dt><dd>{{ (x.observed_extent or "unknown") | replace("_", " ") }}</dd></div>
+    </dl>
+  {%- elif kind == "use_case" %}
+    <dl class="facts facts-1">
+      <div><dt>primary actor</dt><dd>{{ x.primary_actor }}</dd></div>
+      <div><dt>preconditions</dt><dd>{{ bullets(x.preconditions) }}</dd></div>
+      <div><dt>trigger</dt><dd>{{ x.trigger }}</dd></div>
+      <div><dt>main flow</dt><dd>{{ flow(x.main_flow or []) }}</dd></div>
+      {%- for alt in x.alternate_flows or [] %}<div><dt>alternate flow {{ loop.index }}</dt><dd>{{ flow(alt) }}</dd></div>{% endfor %}
+      {%- for exc in x.exception_flows or [] %}<div><dt>exception flow {{ loop.index }}</dt><dd>{{ flow(exc) }}</dd></div>{% endfor %}
+      <div><dt>postconditions</dt><dd>{{ bullets(x.postconditions) }}</dd></div>
+    </dl>
+  {%- elif kind == "requirement" %}
+    <p class="measure"><strong>{{ x.statement }}</strong></p>
+    <dl class="facts facts-1">
+      <div><dt>priority</dt><dd>{{ x.priority or "unset" }}</dd></div>
+      {%- if x.rationale %}<div><dt>rationale</dt><dd>{{ x.rationale }}{% if x.rationale_confidence %} <span class="muted">(</span>{{ m.confidence(x.rationale_confidence) }}<span class="muted">)</span>{% endif %}</dd></div>{% endif %}
+    </dl>
+    {%- if x.acceptance_criteria %}
+    <h3>Acceptance criteria</h3>
+    <pre class="json gherkin"><code>
+      {%- for ac in x.acceptance_criteria -%}
+Scenario {{ loop.index }}
+{% for g in ac.given %}  {{ "Given" if loop.first else "And" }} {{ g }}
+{% endfor %}{% for w in ac.when %}  {{ "When" if loop.first else "And" }} {{ w }}
+{% endfor %}{% for t in ac.then %}  {{ "Then" if loop.first else "And" }} {{ t }}
+{% endfor %}
+{% endfor -%}
+    </code></pre>
+    {%- endif %}
+  {%- elif kind == "nfr" %}
+    <p class="measure"><strong>{{ x.statement }}</strong></p>
+    <dl class="facts facts-1">
+      <div><dt>category</dt><dd>{{ x.category }}</dd></div>
+      {%- if x.measured %}<div><dt>measured</dt><dd><span class="mono-num">{{ x.measured.value }}</span> {{ x.measured.unit }} <span class="muted">— {{ x.measured.how }}</span></dd></div>{% endif %}
+    </dl>
+  {%- elif kind == "business_rule" %}
+    <p class="measure"><strong>{{ x.statement }}</strong></p>
+    <dl class="facts facts-1"><div><dt>rule type</dt><dd>{{ (x.rule_type or "unknown") | replace("_", " ") }}</dd></div></dl>
+    {%- if x.decision_table %}
+    {%- set t = x.decision_table %}
+    <div class="table-wrap">
+      <table class="data">
+        <caption>Decision table</caption>
+        <thead><tr>
+          {%- for h in t.conditions %}<th scope="col">if {{ h }}</th>{% endfor %}
+          {%- for h in t.actions %}<th scope="col">then {{ h }}</th>{% endfor %}
+        </tr></thead>
+        <tbody>{% for row in t.rows %}<tr>{% for cell in row %}<td>{{ cell }}</td>{% endfor %}</tr>{% endfor %}</tbody>
+      </table>
+    </div>
+    {%- endif %}
+  {%- elif kind == "glossary_term" %}
+    <dl class="facts facts-1">
+      <div><dt>term as shown</dt><dd><span lang="{{ x.lang }}">{{ x.term_verbatim }}</span> <span class="muted">({{ x.lang }})</span></dd></div>
+      <div><dt>definition</dt><dd>{{ x.definition }}</dd></div>
+      <div><dt>synonyms as shown</dt><dd>{% for s in x.synonyms_verbatim or [] %}<span lang="{{ x.lang }}">{{ s }}</span>{% if not loop.last %}, {% endif %}{% else %}<span class="muted">none</span>{% endfor %}</dd></div>
+    </dl>
+  {%- elif kind == "data_item" %}
+    {%- set k = x.constraints or {} %}
+    <dl class="facts facts-1">
+      <div><dt>name as shown</dt><dd><span lang="{{ x.lang }}">{{ x.name_verbatim }}</span> <span class="muted">({{ x.lang }})</span></dd></div>
+      <div><dt>name</dt><dd>{{ x.name_en }}</dd></div>
+      <div><dt>type</dt><dd><code>{{ x.data_type }}</code></dd></div>
+      <div><dt>constraints</dt><dd>
+        {%- if k.required %}required{% else %}optional{% endif %}
+        {%- if k.format %} · format <code>{{ k.format }}</code>{% endif %}
+        {%- if k.pattern_observed %} · pattern <code>{{ k.pattern_observed }}</code>{% endif %}
+        {%- if k.min_length is not none %} · min length {{ k.min_length }}{% endif %}
+        {%- if k.max_length is not none %} · max length {{ k.max_length }}{% endif %}
+        {%- if k.allowed_values %} · allowed: {% for a in k.allowed_values %}<code>{{ a }}</code>{% if not loop.last %}, {% endif %}{% endfor %}{% endif %}
+      </dd></div>
+      <div><dt>seen in</dt><dd>{% for s in x.seen_in or [] %}{{ s.kind | replace("_", " ") }} <code>{{ s.target_id | short_id }}</code>{% if not loop.last %}, {% endif %}{% else %}<span class="muted">nowhere recorded</span>{% endfor %}</dd></div>
+    </dl>
+  {%- elif kind == "assumption" %}
+    <p class="measure"><strong>{{ x.statement }}</strong></p>
+    <dl class="facts facts-1"><div><dt>impact if wrong</dt><dd>{{ x.impact_if_wrong }}</dd></div></dl>
+  {%- elif kind == "open_question" %}
+    <p class="measure"><strong>{{ x.question }}</strong></p>
+    <dl class="facts facts-1">
+      <div><dt>why it matters</dt><dd>{{ x.why_it_matters }}</dd></div>
+      <div><dt>answer needed from</dt><dd>{{ x.answer_needed_from }}</dd></div>
+    </dl>
+  {%- elif kind == "followup" %}
+    <p class="measure"><strong>{{ x.question }}</strong></p>
+    <dl class="facts facts-1">
+      <div><dt>suggested mode</dt><dd>{{ x.suggested_mode }}</dd></div>
+      <div><dt>target</dt><dd>
+        {%- if x.target and x.target.process_name %}process “{{ x.target.process_name }}”: {{ x.target.goal }}
+        {%- elif x.target and x.target.url %}<code>{{ x.target.url }}</code>
+        {%- else %}<span class="muted">unspecified</span>{% endif %}</dd></div>
+      <div><dt>persona</dt><dd>{{ x.persona }}</dd></div>
+      <div><dt>reason</dt><dd>{{ x.reason }}</dd></div>
+    </dl>
+  {%- else %}
+    {{ m.json_block(x, "content (" ~ (kind or "unknown kind") ~ ")") }}
+  {%- endif %}
+  {%- endif %}
+{%- endmacro %}

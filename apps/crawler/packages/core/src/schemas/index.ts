@@ -22,3 +22,5 @@ export * from './evidence-link.js';
 export * from './doc-relation.js';
 export * from './doc-review.js';
 export * from './followup-task.js';
+export * from './process.js';
+export * from './process-step.js';

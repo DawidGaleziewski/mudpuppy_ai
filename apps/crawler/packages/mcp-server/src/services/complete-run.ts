@@ -6,6 +6,7 @@ import { computeCoverage, type Coverage } from '@pathfinder/crawler';
 import { getRun, type RunRow } from './common.js';
 import { isBudgetExhausted } from './run-budget.js';
 import { robotsCoverage } from './robots.js';
+import { closeProcess, processOfRun } from './trace.js';
 
 /** Live robots counters of the request gate, when the session is still open. */
 export type LiveRobotsStats = { pageRequestsBlocked: number; pageRequestsAllowed: number };
@@ -65,20 +66,36 @@ export async function completeRun(ctx: ServerContext, raw: unknown, live?: LiveR
  */
 export async function finishRun(ctx: ServerContext, raw: unknown, live?: LiveRobotsStats) {
   const input = parseInput(
-    z.object({ run_id: z.string().min(1), summary: z.string().max(4000).optional() }).strict(),
+    z
+      .object({
+        run_id: z.string().min(1),
+        summary: z.string().max(4000).optional(),
+        outcome: z.enum(['goal_reached', 'abandoned']).optional(),
+        observed_result: z.string().trim().min(1).max(1000).optional(),
+      })
+      .strict(),
     raw,
   );
   const run = await getRun(ctx, input.run_id);
-  if (run.status !== 'running') {
-    // Already ended (block, earlier finish): report it, never change it.
-    return {
-      run_id: run.id,
-      status: run.status,
-      coverage: run.coverage
-        ? (JSON.parse(run.coverage) as Coverage)
-        : await computeCoverage(ctx.db, run.id, itemTemplatesOf(run)),
-    };
+  const proc = await processOfRun(ctx, run.id);
+  if (proc) {
+    // Trace run (spec 004 R-14): no frontier is used, the agent states the outcome it observed.
+    if (input.outcome === undefined || input.observed_result === undefined)
+      throw new ToolError(
+        'SCHEMA_INVALID',
+        'outcome and observed_result are required to finish a trace run',
+      );
+    if (run.status !== 'running') return finishedRun(ctx, run);
+    await closeProcess(ctx, proc.id, {
+      outcome: input.outcome,
+      observed_result: input.observed_result,
+      blocked_reason: `abandoned: ${input.observed_result}`,
+    });
+    return completeRun(ctx, { run_id: run.id, status: 'completed' }, live);
   }
+  if (input.outcome !== undefined || input.observed_result !== undefined)
+    throw new ToolError('SCHEMA_INVALID', 'outcome and observed_result are for trace runs only');
+  if (run.status !== 'running') return finishedRun(ctx, run);
   const pending = await ctx.db
     .selectFrom('frontier')
     .select((eb) => eb.fn.countAll<number>().as('n'))
@@ -92,4 +109,15 @@ export async function finishRun(ctx: ServerContext, raw: unknown, live?: LiveRob
     );
   }
   return completeRun(ctx, { run_id: run.id, status: 'completed' }, live);
+}
+
+/** A run that already ended (block, boundary, earlier finish): report it, never change it. */
+async function finishedRun(ctx: ServerContext, run: RunRow) {
+  return {
+    run_id: run.id,
+    status: run.status,
+    coverage: run.coverage
+      ? (JSON.parse(run.coverage) as Coverage)
+      : await computeCoverage(ctx.db, run.id, itemTemplatesOf(run)),
+  };
 }

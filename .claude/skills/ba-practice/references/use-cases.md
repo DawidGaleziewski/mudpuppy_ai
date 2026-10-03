@@ -3,6 +3,12 @@
 Write use cases only from trace evidence (`get_process`); from map data alone, write a `followup`
 (mode `trace`) instead.
 
+Steps come from `get_process`: each has `intent`, `kind` (`navigate`, `click`, `fill`, `check`,
+`select`), the action's role and label, the `value` typed, `state_before` and `state_after` (title and
+route) and the recorded `outcomes`. Cite the process and the steps you turn into flow entries
+(`process`, `process_step`). Values are synthetic test inputs: quote them only as examples ("e.g.
+\"Test Model\""), never as portal facts.
+
 | Field | From |
 |---|---|
 | `primary_actor` | the trace persona (e.g. `guest`) |
@@ -22,7 +28,13 @@ Example main flow (process "Oblicz składkę OC/AC"):
 
 Boundary: when the trace ended with `boundary_reached` (a mutating action refused on production), set
 the process `observed_extent: until_boundary`, mark the remainder `not_observable` with an
-`open_question` ("What happens after "Kup polisę"?"), and do not invent the rest of the flow.
+`open_question` ("What happens after "Kup polisę"?"), and do not invent the rest of the flow. End the
+main flow at the last observed step; put the refused action in `postconditions[]` ("the trace stopped
+before pressing "Kup polisę"") and let the `open_question` carry what is unknown.
+
+Follow-up: when a flow is only known from map data (`observed_extent: map_only`) or stopped at a
+boundary that a sandbox run could pass, add a `followup` with `suggested_mode: trace` and
+`target: {process_name, goal}`; do not write a use case from map data alone.
 
 Relate: `use_case describes process`; `capability contains process`; requirements `refine` the use
 case.

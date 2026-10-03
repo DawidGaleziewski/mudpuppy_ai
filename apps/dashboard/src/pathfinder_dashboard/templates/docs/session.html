@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block title %}Session {{ v.detail.session.id | short_id }}{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <p class="crumbs"><a href="{{ c.url('/docs') }}">Docs</a> / <a href="{{ c.url('/docs/' ~ portal) }}">{{ portal }}</a> / session</p>
+    <h1>Analysis session <span class="mono-num">{{ v.detail.session.id | short_id }}</span></h1>
+  </div>
+  <p class="caption">store {{ store.path }} · read-only</p>
+</div>
+{% include "partials/docs/session.html" %}
+{% endblock %}

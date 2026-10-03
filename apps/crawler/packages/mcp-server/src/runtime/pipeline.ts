@@ -1,4 +1,12 @@
-import { maskText, newId, nowIso, emitForRun, shapeUrl, type PhaseName } from '@pathfinder/core';
+import {
+  isSyntheticInput,
+  maskText,
+  newId,
+  nowIso,
+  emitForRun,
+  shapeUrl,
+  type PhaseName,
+} from '@pathfinder/core';
 import {
   classifyCandidates,
   decide,
@@ -8,6 +16,7 @@ import {
   observePage,
   pendingItemForAction,
   settleFrontierItem,
+  stepOutcomes,
   type ClassifiedAction,
   type GateContext,
   type SettleOutcome,
@@ -16,7 +25,8 @@ import { computeFingerprint } from '@pathfinder/fingerprint';
 import { classifyAction, type ActionDescriptor, type Refusal } from '@pathfinder/safety';
 import type { ServerContext } from '../context.js';
 import { ToolError } from '../errors.js';
-import type { PageResult } from '../runtime.js';
+import type { ActInput, NavigateInput, PageResult } from '../runtime.js';
+import { appendStep, closeProcess, stepCount, type StepKind } from '../services/trace.js';
 import {
   assertRunActive,
   completeRun,
@@ -130,8 +140,12 @@ function gateContext(rs: RunState, u: GateContext['usage']): GateContext {
     robots: rs.robots.registry,
     effectiveMaxActionClass: rs.effective.effectiveMaxActionClass,
     usage: u,
+    ...(rs.isTrace ? { classify: TRACE_CLASSIFY } : {}),
   };
 }
+
+/** Trace runs submit GET forms (quote calculators); label and target rules still raise. */
+const TRACE_CLASSIFY = { safeFormSubmitIsRead: true } as const;
 
 /** The navigation policy handed to the request gate: the same `decide` as `navigate`, minus budgets. */
 export function navigationPolicy(rs: RunState): (url: string) => Refusal | null {
@@ -154,6 +168,8 @@ export function navigationPolicy(rs: RunState): (url: string) => Refusal | null 
 export function persistStop(ctx: ServerContext, rs: RunState, warning: string): Promise<void> {
   rs.stopPersisted ??= (async () => {
     emitForRun(ctx.tracer, rs.runId, 'run_stop', { warning: maskText(warning) });
+    if (rs.processId)
+      await closeProcess(ctx, rs.processId, { outcome: 'stopped', blocked_reason: warning });
     await completeRun(
       ctx,
       { run_id: rs.runId, status: 'stopped_warning', warning },
@@ -190,6 +206,11 @@ export async function beginStep(
     );
   await throwIfStopped(ctx, rs);
   if (await isBudgetExhausted(ctx, run)) {
+    if (rs.processId)
+      await closeProcess(ctx, rs.processId, {
+        outcome: 'stopped',
+        blocked_reason: 'a step, time or state budget is exhausted',
+      });
     await completeRun(ctx, { run_id: run.id, status: 'completed' }, rs.session.gate.robotsStats());
     throw new ToolError(
       'RUN_STOPPED',
@@ -237,6 +258,8 @@ export interface ActionRow {
   accessible_name: string | null;
   json: {
     nth: number;
+    /** Trace runs: a fill/check/select control. */
+    input?: 'fill' | 'check' | 'select';
     href?: string;
     method?: string;
     form?: ActionDescriptor['form'];
@@ -262,6 +285,7 @@ function descriptorOf(a: ActionRow): ActionDescriptor {
     ...(a.json.method ? { method: a.json.method } : {}),
     ...(a.json.form ? { form: a.json.form } : {}),
     ...(a.json.attributes ? { attributes: a.json.attributes } : {}),
+    ...(a.json.input ? { input: a.json.input } : {}),
   };
 }
 
@@ -293,6 +317,8 @@ async function processPage(
   rs: RunState,
   via: { kind: 'navigate' } | { kind: 'act'; action: ActionRow },
   depth: number,
+  /** Trace runs: the step this call is, recorded once the page is observed. */
+  step?: TraceStep,
 ): Promise<PageResult> {
   const { session } = rs;
   const stabilization = await phase(ctx, 'settle', async () => {
@@ -369,10 +395,11 @@ async function processPage(
   );
   if (!rs.depthByState.has(state_id)) rs.depthByState.set(state_id, depth);
 
-  // Forms: recorded once per state, never submitted (FR-011).
+  // Forms: recorded once per state per run, never submitted (FR-011). Per run, not per state: a
+  // trace over states an earlier run created still carries the forms the BA reads from its runs.
   const formCount = await phase(ctx, 'record_forms', async () => {
     let n = 0;
-    if (!created) return n;
+    if (alreadyInRun !== undefined) return n;
     for (const f of observed.forms) {
       if (f.fields.length === 0) continue;
       await recordForm(ctx, {
@@ -402,7 +429,11 @@ async function processPage(
             from_state: a.state_id,
             to_state: state_id,
             action: { role: a.role, accessible_name: a.accessible_name, ...transitionJson },
-            safety_class: classifyAction(descriptorOf(a), rs.ruleSet).safetyClass,
+            safety_class: classifyAction(
+              descriptorOf(a),
+              rs.ruleSet,
+              rs.isTrace ? TRACE_CLASSIFY : {},
+            ).safetyClass,
             status: 'executed',
             evidence_ref: evidenceRef,
             confidence: 'observed',
@@ -426,9 +457,42 @@ async function processPage(
     }),
   );
 
+  let recordedStep: PageResult['step'];
+  if (step && rs.processId) {
+    const processId = rs.processId;
+    recordedStep = await phase(ctx, 'record_step', async () => {
+      const after = { url: observed.url, title: observed.title, snapshot: masked };
+      const outcomes = rs.lastObserved ? stepOutcomes(rs.lastObserved, after) : [];
+      // A click that changes nothing visible is a fact worth recording (e.g. a submit the
+      // browser's own form validation held back, which the ARIA snapshot does not show).
+      if (outcomes.length === 0 && step.kind === 'click') {
+        outcomes.push('No visible change after the step');
+        // The browser's own message for each field that holds the submit back, e.g. an empty
+        // required field or a value that misses its pattern.
+        for (const form of observed.forms)
+          for (const field of form.fields)
+            for (const msg of field.validation_messages ?? [])
+              outcomes.push(`Browser validation on ${field.name}: ${maskText(msg)}`);
+      }
+      const ord = await appendStep(ctx, processId, {
+        intent: step.intent,
+        kind: step.kind,
+        action_id: step.action_id,
+        edge_id: edgeId ?? null,
+        value: step.value,
+        state_before: rs.currentStateId,
+        state_after: state_id,
+        outcomes,
+        evidence_ref: evidenceRef,
+      });
+      return { ord, outcomes };
+    });
+  }
+  rs.lastObserved = { url: observed.url, title: observed.title, snapshot: masked };
   rs.currentStateId = state_id;
   rs.currentUrl = observed.url;
 
+  const inputs = rs.effective.persona.trace_inputs ?? {};
   return {
     state_id,
     created,
@@ -443,9 +507,21 @@ async function processPage(
       safety_class: a.safetyClass,
       allowed: a.allowed,
       ...(a.skip_reason ? { skip_reason: a.skip_reason } : {}),
+      ...(a.input && a.input !== 'check' && a.name !== null && inputs[a.name] !== undefined
+        ? { suggested_value: inputs[a.name] }
+        : {}),
     })),
     ...(edgeId ? { edge_id: edgeId } : {}),
+    ...(recordedStep ? { step: recordedStep } : {}),
   };
+}
+
+/** What a trace call adds to its step row; the server fills in everything it observed. */
+interface TraceStep {
+  intent: string;
+  kind: StepKind;
+  action_id: string | null;
+  value: string | null;
 }
 
 async function recordNetwork(
@@ -511,8 +587,10 @@ async function issueAndEnqueue(
 ): Promise<IssuedAction[]> {
   const { state_id, created, evidenceRef, alreadyInRun, routeTemplate, depth } = page;
   // Actions: server-issued ids, stable per (state, role, name, nth) so a revisit reuses them.
-  const extracted = extractCandidates(observed.ariaSnapshot, observed.forms);
-  const candidates = classifyCandidates(extracted, rs.ruleSet);
+  const extracted = extractCandidates(observed.ariaSnapshot, observed.forms, {
+    mode: rs.isTrace ? 'trace' : 'map',
+  });
+  const candidates = classifyCandidates(extracted, rs.ruleSet, rs.isTrace ? TRACE_CLASSIFY : {});
   const locatorSets = attachLocators(extracted, observed.testIds);
   const existing = await ctx.db
     .selectFrom('actions')
@@ -534,6 +612,7 @@ async function issueAndEnqueue(
     const d = decide({ kind: 'act', descriptor: c.descriptor, currentUrl: observed.url }, g);
     const json = {
       nth: c.nth,
+      ...(c.input ? { input: c.input } : {}),
       ...(c.href ? { href: c.href } : {}),
       ...(c.descriptor.form ? { form: c.descriptor.form } : {}),
       locators: locatorSets[ci] ?? [],
@@ -570,7 +649,8 @@ async function issueAndEnqueue(
   }
 
   // Queue for exploration only the first time this run sees the state, and only if the policy admits it.
-  if (!alreadyInRun) {
+  // A trace run follows one process and uses no frontier.
+  if (!alreadyInRun && !rs.isTrace) {
     const isNew = rs.policy.isNewCluster(page.clusterId);
     const admission = rs.policy.admit({ clusterId: page.clusterId, routeTemplate, created });
     if (admission.expand) {
@@ -722,17 +802,24 @@ async function refuse(
 export async function navigate(
   ctx: ServerContext,
   rs: RunState | undefined,
-  input: { run_id: string; url: string },
+  input: NavigateInput,
 ): Promise<PageResult> {
   const run = await phase(ctx, 'begin_step', () => beginStep(ctx, rs, input.run_id));
+  requireIntent(rs!, input.intent);
   return counted(rs!, () => navigateStep(ctx, run, rs!, input));
+}
+
+/** Trace calls must say what the step is for (contracts/crawler-trace-tools.md). */
+function requireIntent(rs: RunState, intent: string | undefined): void {
+  if (rs.isTrace && (intent === undefined || intent.trim() === ''))
+    throw new ToolError('SCHEMA_INVALID', 'intent: required in a trace run');
 }
 
 async function navigateStep(
   ctx: ServerContext,
   run: RunRow,
   state: RunState,
-  input: { run_id: string; url: string },
+  input: NavigateInput,
 ): Promise<PageResult> {
   const started = Date.now();
   state.obstacleCursor = state.session.obstacles.events.length;
@@ -780,7 +867,16 @@ async function navigateStep(
     await throwIfStopped(ctx, state);
   });
   const depth = g.usage.depth;
-  const result = await processPage(ctx, run, state, { kind: 'navigate' }, depth);
+  const result = await processPage(
+    ctx,
+    run,
+    state,
+    { kind: 'navigate' },
+    depth,
+    state.isTrace
+      ? { intent: input.intent!, kind: 'navigate', action_id: null, value: null }
+      : undefined,
+  );
   await phase(ctx, 'run_bookkeeping', () => bumpRun(ctx, run, started, depth));
   flushObstacles(ctx, state);
   return result;
@@ -789,23 +885,65 @@ async function navigateStep(
 export async function act(
   ctx: ServerContext,
   rs: RunState | undefined,
-  input: { run_id: string; action_id: string },
+  input: ActInput,
 ): Promise<PageResult> {
   const run = await phase(ctx, 'begin_step', () => beginStep(ctx, rs, input.run_id));
+  requireIntent(rs!, input.intent);
   return counted(rs!, () => actStep(ctx, run, rs!, input));
+}
+
+/**
+ * The value a fill/select step types or picks: the agent's, else the persona's `trace_inputs` value
+ * for the field's label. Values must be synthetic ({@link isSyntheticInput}): one the PII scrubber
+ * would change is refused, except an e-mail on a reserved test TLD.
+ */
+function inputValue(rs: RunState, action: ActionRow, value: string | undefined): string | null {
+  const kind = action.json.input;
+  if (kind !== 'fill' && kind !== 'select') {
+    if (value !== undefined)
+      throw new ToolError('SCHEMA_INVALID', 'value: only for fill and select actions');
+    return null;
+  }
+  const v =
+    value ??
+    (action.accessible_name !== null
+      ? rs.effective.persona.trace_inputs?.[action.accessible_name]
+      : undefined);
+  if (v === undefined)
+    throw new ToolError(
+      'SCHEMA_INVALID',
+      `value: required for ${kind} "${action.accessible_name ?? action.role}" (no trace_inputs value for it)`,
+    );
+  if (!isSyntheticInput(v))
+    throw new ToolError(
+      'PII_SUSPECTED',
+      'value looks like personal data; use an obviously synthetic value (e-mail on .invalid, .test or .example)',
+    );
+  return v;
 }
 
 async function actStep(
   ctx: ServerContext,
   run: RunRow,
   state: RunState,
-  input: { run_id: string; action_id: string },
+  input: ActInput,
 ): Promise<PageResult> {
   const started = Date.now();
   state.obstacleCursor = state.session.obstacles.events.length;
+  if (state.isTrace) {
+    // A trace acts on the page as it is now. Re-opening an earlier page would silently drop what
+    // the previous steps typed, so an action id from another state is refused instead.
+    const issued = await getAction(ctx, run.id, input.action_id);
+    if (issued.state_id !== state.currentStateId)
+      throw new ToolError(
+        'UNKNOWN_ACTION',
+        `action_id ${input.action_id} belongs to an earlier page state; in a trace use the action ids from the latest navigate/act result`,
+      );
+  }
   const { action, g, d } = await phase(ctx, 'gate', () =>
     gateAct(ctx, run, state, input.action_id),
   );
+  const value = inputValue(state, action, input.value);
 
   // Reach the state the action belongs to (through the same gates) when the browser is elsewhere.
   if (state.currentStateId !== action.state_id) {
@@ -901,8 +1039,18 @@ async function actStep(
     try {
       await locator.click({ trial: true, timeout: 5000 });
       stage = 'navigation after click did not start';
-      await locator.click({ timeout: 30_000 });
-      ctx.tracer.event('locator', { ...locatorAttrs, matches, outcome: 'clicked' });
+      const kind = action.json.input;
+      if (kind === 'fill') {
+        stage = 'fill failed';
+        await locator.fill(value!, { timeout: 5000 });
+      } else if (kind === 'select') {
+        stage = 'select failed';
+        await locator.selectOption(value!, { timeout: 5000 });
+      } else if (kind === 'check') {
+        stage = 'check failed';
+        await locator.check({ timeout: 5000 });
+      } else await locator.click({ timeout: 30_000 });
+      ctx.tracer.event('locator', { ...locatorAttrs, matches, outcome: kind ?? 'clicked' });
     } catch (e) {
       ctx.tracer.event('locator', {
         ...locatorAttrs,
@@ -947,11 +1095,22 @@ async function actStep(
   });
 
   const fromDepth = state.depthByState.get(action.state_id) ?? 0;
-  const result = await processPage(ctx, run, state, { kind: 'act', action }, fromDepth + 1);
+  // Typing into a form stays on the same page: only clicks take the trace one level deeper.
+  const toDepth = action.json.input ? fromDepth : fromDepth + 1;
+  const result = await processPage(
+    ctx,
+    run,
+    state,
+    { kind: 'act', action },
+    toDepth,
+    state.isTrace
+      ? { intent: input.intent!, kind: action.json.input ?? 'click', action_id: action.id, value }
+      : undefined,
+  );
   await phase(ctx, 'run_bookkeeping', async () => {
     const pending = await pendingItemForAction(ctx.db, run.id, action.id);
     if (pending) await settleFrontierItem(ctx.db, pending.id, 'done', null);
-    await bumpRun(ctx, run, started, fromDepth + 1);
+    await bumpRun(ctx, run, started, toDepth);
   });
   flushObstacles(ctx, state);
   return result;
@@ -997,7 +1156,7 @@ async function gateAct(
       evidence_ref: stateEvidence.evidence_ref,
       confidence: 'observed',
     });
-    return refuse(
+    const refused = refuse(
       ctx,
       run,
       state,
@@ -1008,7 +1167,61 @@ async function gateAct(
       action.state_id,
       action.id,
     );
+    // A trace stops where the safety class does (production, or any ceiling below the action):
+    // robots, denylist and scope refusals stay plain ACTION_REFUSED.
+    if (state.isTrace && d.status === 'skipped_unsafe') {
+      await refused.catch(() => undefined);
+      return traceBoundary(ctx, run, state, action, d);
+    }
+    return refused;
   }
 
   return { action, g, d };
+}
+
+/**
+ * Close the trace at the first action the run may not execute (contracts/crawler-trace-tools.md):
+ * process `boundary_reached` with what stays unobserved, a crawler open question about it, run
+ * `completed`, a linked follow-up `blocked`, then TRACE_BOUNDARY_REACHED for the agent to report.
+ */
+async function traceBoundary(
+  ctx: ServerContext,
+  run: RunRow,
+  state: RunState,
+  action: ActionRow,
+  d: Extract<ReturnType<typeof decide>, { allowed: false }>,
+): Promise<never> {
+  const processId = state.processId!;
+  const name = action.accessible_name ?? action.role;
+  const cls = d.classification.safetyClass;
+  const environment = state.effective.portal.environment;
+  const notObservable = `What happens after '${name}'? Not observable: ${cls} on ${environment}`;
+  await ctx.db
+    .insertInto('open_questions')
+    .values({
+      id: newId(),
+      run_id: run.id,
+      text: maskText(notObservable),
+      about_ref: action.state_id,
+      status: 'open',
+      created_at: nowIso(),
+    })
+    .execute();
+  await closeProcess(ctx, processId, {
+    outcome: 'boundary_reached',
+    boundary_action_id: action.id,
+    not_observable: notObservable,
+    blocked_reason: `${d.rule}: ${d.reason}`,
+  });
+  await completeRun(ctx, { run_id: run.id, status: 'completed' }, state.session.gate.robotsStats());
+  throw new ToolError(
+    'TRACE_BOUNDARY_REACHED',
+    `'${name}' is ${cls}, above what this run may execute on ${environment}; the trace stopped and the run is completed. Report the steps so far and stop.`,
+    {
+      process_id: processId,
+      steps: await stepCount(ctx, processId),
+      action: { role: action.role, name: action.accessible_name, safety_class: cls },
+      rule: d.rule,
+    },
+  );
 }

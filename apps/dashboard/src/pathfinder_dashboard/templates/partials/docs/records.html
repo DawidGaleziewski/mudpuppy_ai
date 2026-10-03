@@ -1,0 +1,125 @@
+{% import "partials/macros.html" as m %}
+
+{#- Scope view: what is documented, how far it is reviewed, the latest sessions and their gaps. -#}
+{% macro overview(v, c, portal) -%}
+  {%- if not v.statuses and not v.sessions %}
+    {{ m.empty("Nothing documented for " ~ portal ~ " yet",
+               "Start an analysis session with the BA agent (skill ba-practice); its records and sessions appear here as they are written.") }}
+  {%- else %}
+  <div class="panel">
+    <h3>Scope</h3>
+    <p class="measure">Documentation of <strong>{{ portal }}</strong> reconstructed from recorded crawl evidence.
+      Every statement cites evidence; anything the crawler could not observe is marked
+      {{ m.not_observable() }} and has an open question.</p>
+    <ul class="status-counts">
+      {%- for st in DOC_STATUSES if v.statuses.get(st) %}
+      <li>{{ m.doc_status(st) }} {{ v.statuses[st] }}</li>
+      {%- endfor %}
+    </ul>
+  </div>
+  <div class="section">
+    <div class="table-wrap">
+      <table class="data stack">
+        <caption>Records by section</caption>
+        <thead><tr><th scope="col">Section</th><th scope="col" class="num">Records</th></tr></thead>
+        <tbody>
+          {%- for sid, label, count, url in v.counts %}
+          <tr>
+            <td><a href="{{ url }}">{{ label }}</a></td>
+            <td data-label="records" class="num">{{ count }}</td>
+          </tr>
+          {%- endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <div class="section">
+    <div class="table-wrap">
+      <table class="data stack">
+        <caption>Analysis sessions</caption>
+        <thead><tr><th scope="col">Session</th><th scope="col">Status</th><th scope="col">Started (UTC)</th><th scope="col">Summary</th></tr></thead>
+        <tbody>
+          {%- for s in v.sessions %}
+          <tr>
+            <td><a href="{{ c.url('/docs/' ~ portal ~ '/sessions/' ~ s.id) }}"><code>{{ s.id | short_id }}</code></a></td>
+            <td data-label="status">{{ m.run_status(s.status) }}</td>
+            <td data-label="started">{{ s.started_at | when }}</td>
+            <td data-label="summary">{{ s.summary or "—" }}</td>
+          </tr>
+          {%- else %}
+          <tr><td colspan="4" class="muted">No session recorded.</td></tr>
+          {%- endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  {%- endif %}
+{%- endmacro %}
+
+{% macro record_link(c, portal, row) -%}
+  <a href="{{ c.url('/docs/' ~ portal ~ '/' ~ row.record.key) }}"><code>{{ row.record.key }}</code></a>
+{%- endmacro %}
+
+{% macro notes(row) -%}
+  {%- if row.not_observable %}{{ m.not_observable() }} {% endif -%}
+  {%- if row.followup_status %}{{ m.followup_status(row.followup_status) }}{% if row.blocked_reason %}: {{ row.blocked_reason }}{% endif %} {% endif -%}
+  {%- if row.record.confirmed_rev and row.record.confirmed_rev != row.rev_no %}<span class="muted">confirmed at rev {{ row.record.confirmed_rev }}</span>{% endif -%}
+{%- endmacro %}
+
+{% macro record_table(v, c, portal) -%}
+  {%- set rows = v.page["items"] -%}
+  {%- set filtered = v.filters.kind or v.filters.status or v.filters.confidence or v.filters.flag -%}
+  {%- if not rows %}
+    {{ m.empty("No " ~ v.label | lower ~ (" match these filters" if filtered else " documented yet"),
+               "Records appear here once the BA agent has written them from the recorded runs." if not filtered else "Clear a filter to see more.") }}
+  {%- elif v.id == "traceability" %}
+  <div class="table-wrap">
+    <table class="data stack">
+      <caption>Requirement, rule, NFR and use-case traceability: each row's evidence and linked records</caption>
+      <thead><tr>
+        <th scope="col">Record</th><th scope="col">Status</th><th scope="col">Confidence</th>
+        <th scope="col" class="num">Evidence</th><th scope="col" class="num">Runs</th><th scope="col">Linked records</th>
+      </tr></thead>
+      <tbody>
+        {%- for row in rows %}
+        <tr>
+          <td>{{ record_link(c, portal, row) }} {{ row.record.title }}<div class="muted">{{ row.record.kind | replace("_", " ") }}</div></td>
+          <td data-label="status">{{ m.doc_status(row.status) }}</td>
+          <td data-label="confidence">{{ m.confidence(row.confidence) }}</td>
+          <td data-label="evidence" class="num">{{ row.evidence_count }}</td>
+          <td data-label="runs" class="num">{{ row.run_count }}</td>
+          <td data-label="linked">
+            {%- for k in row.related %}<a href="{{ c.url('/docs/' ~ portal ~ '/' ~ k) }}"><code>{{ k }}</code></a>{% if not loop.last %}, {% endif %}{% else %}<span class="muted">none</span>{% endfor -%}
+          </td>
+        </tr>
+        {%- endfor %}
+      </tbody>
+    </table>
+    {{ m.pager(v, v.page.total, rows | length) }}
+  </div>
+  {%- else %}
+  <div class="table-wrap">
+    <table class="data stack">
+      <caption class="visually-hidden">{{ v.label }}</caption>
+      <thead><tr>
+        <th scope="col">Record</th><th scope="col">Status</th><th scope="col">Confidence</th>
+        <th scope="col" class="num">Rev</th><th scope="col">Notes</th>
+      </tr></thead>
+      <tbody>
+        {%- for row in rows %}
+        <tr>
+          <td>{{ record_link(c, portal, row) }} {{ row.record.title }}
+            {%- if v.kind_options %}<div class="muted">{{ row.record.kind | replace("_", " ") }}</div>{% endif %}
+            {%- if row.summary %}<div class="muted measure">{{ row.summary }}</div>{% endif %}</td>
+          <td data-label="status">{{ m.doc_status(row.status) }}</td>
+          <td data-label="confidence">{{ m.confidence(row.confidence) }}</td>
+          <td data-label="rev" class="num">{{ row.rev_no }}</td>
+          <td data-label="notes">{{ notes(row) }}</td>
+        </tr>
+        {%- endfor %}
+      </tbody>
+    </table>
+    {{ m.pager(v, v.page.total, rows | length) }}
+  </div>
+  {%- endif %}
+{%- endmacro %}

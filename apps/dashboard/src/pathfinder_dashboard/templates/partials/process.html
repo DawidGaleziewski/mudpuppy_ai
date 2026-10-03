@@ -1,0 +1,52 @@
+{% import "partials/macros.html" as m %}
+{% set v = section %}
+{% set p = v.process %}
+{% call m.region("process", v.self_url, "Recorded process") %}
+  {%- if not p %}
+    {{ m.empty("No process recorded for this run",
+               "A trace run records one process: its goal, ordered steps, and where it stopped. Map runs have none.") }}
+  {%- else %}
+  <div class="section-head"><h2>Process <span class="muted">{{ p.name }}</span></h2></div>
+  <div class="panel" id="{{ p.id }}">
+    <p>{{ m.process_outcome(p.outcome) }}</p>
+    <dl class="facts">
+      <div><dt>goal</dt><dd>{{ p.goal }}</dd></div>
+      <div><dt>persona</dt><dd>{{ p.persona_id }}</dd></div>
+      <div><dt>observed result</dt><dd>{{ p.observed_result or "—" }}</dd></div>
+      <div><dt>boundary action</dt><dd>{% if p.boundary_action_id %}<a href="{{ c.url('/runs/' ~ v.run.id, tab='actions') }}#{{ p.boundary_action_id }}"><code>{{ p.boundary_action_id | short_id }}</code></a>{% else %}—{% endif %}</dd></div>
+      {%- if p.followup_record_id %}<div><dt>follow-up</dt><dd><code>{{ p.followup_record_id | short_id }}</code></dd></div>{% endif %}
+      <div><dt>started · ended (UTC)</dt><dd>{{ p.created_at | when }} · {{ p.ended_at | when }}</dd></div>
+    </dl>
+    {%- if p.not_observable %}<p>{{ m.not_observable() }} <span class="measure">{{ p.not_observable }}</span></p>{% endif %}
+  </div>
+  {%- if v.diagram %}
+  <div class="section">{{ m.diagram(v.diagram, "Process map from the recorded steps") }}</div>
+  {%- endif %}
+  <div class="section">
+    <div class="section-head"><h2>Steps <span class="muted mono-num">{{ v.steps | length }}</span></h2></div>
+    {%- if not v.steps %}
+      {{ m.empty("No step recorded yet", "Steps appear as the crawler agent acts in the trace run.") }}
+    {%- else %}
+    <div class="table-wrap">
+      <table class="data stack">
+        <caption class="visually-hidden">Recorded steps in order</caption>
+        <thead><tr><th scope="col" class="num">#</th><th scope="col">Intent</th><th scope="col">Kind</th><th scope="col">Value</th><th scope="col">Outcomes</th><th scope="col">Confidence</th><th scope="col">Evidence</th></tr></thead>
+        <tbody>
+          {%- for s in v.steps %}
+          <tr id="{{ s.id }}">
+            <td class="num">{{ s.ord }}</td>
+            <td>{{ s.intent }}{% if s.action_id %}<div class="muted"><a href="{{ c.url('/runs/' ~ v.run.id, tab='actions') }}#{{ s.action_id }}">action <code>{{ s.action_id | short_id }}</code></a></div>{% endif %}</td>
+            <td data-label="kind">{{ s.kind }}</td>
+            <td data-label="value">{% if s.value %}<code>{{ s.value }}</code>{% else %}<span class="muted">—</span>{% endif %}</td>
+            <td data-label="outcomes">{% if s.outcomes_json %}<ul class="docs-list">{% for o in s.outcomes_json %}<li>{{ o }}</li>{% endfor %}</ul>{% else %}<span class="muted">none observed</span>{% endif %}</td>
+            <td data-label="confidence">{{ m.confidence(s.confidence) }}</td>
+            <td data-label="evidence">{{ m.evidence(s.evidence_ref) }}</td>
+          </tr>
+          {%- endfor %}
+        </tbody>
+      </table>
+    </div>
+    {%- endif %}
+  </div>
+  {%- endif %}
+{% endcall %}

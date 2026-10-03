@@ -14,6 +14,7 @@ dependencies = [
 
 [project.scripts]
 pathfinder-dashboard = "pathfinder_dashboard.__main__:main"
+pathfinder-dashboard-smoke = "pathfinder_dashboard.smoke:main"
 
 [build-system]
 requires = ["uv_build>=0.12.10,<0.13.0"]

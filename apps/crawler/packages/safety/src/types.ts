@@ -19,6 +19,11 @@ export interface ActionDescriptor {
     hasPassword?: boolean;
   };
   attributes?: Record<string, string>;
+  /**
+   * Trace mode only: the action types into, ticks or picks a value in a form control. It changes
+   * page-local state and sends no request by itself, which counts as positive read evidence.
+   */
+  input?: 'fill' | 'check' | 'select';
   /** A class supplied by a persona or agent. It can only raise the derived class, never lower it. */
   claimedClass?: SafetyClass;
 }

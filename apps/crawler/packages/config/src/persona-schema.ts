@@ -16,6 +16,12 @@ export const Viewport = z.object({
   height: z.number().int().positive(),
 });
 
+/**
+ * Trace-mode form input: control label (verbatim, as the portal shows it) -> synthetic value.
+ * The persona loader refuses any value the PII scrubber would change (see `load-persona.ts`).
+ */
+export const TraceInputs = z.record(z.string().min(1), z.string());
+
 const shape = {
   id: z.string().regex(/^[a-z0-9][a-z0-9_-]*$/, 'must be a lowercase slug'),
   extends: z.array(z.string().min(1)).default([]),
@@ -26,6 +32,7 @@ const shape = {
   consent: Consent,
   viewport: Viewport,
   locale: z.string().min(1),
+  trace_inputs: TraceInputs,
 };
 
 /** A single persona or mixin file: everything is optional because mixins are partial. */
@@ -40,6 +47,7 @@ export const PersonaFile = z
     consent: shape.consent.optional(),
     viewport: shape.viewport.optional(),
     locale: shape.locale.optional(),
+    trace_inputs: shape.trace_inputs.optional(),
   })
   .strict();
 export type PersonaFile = z.infer<typeof PersonaFile>;
@@ -56,6 +64,7 @@ export const PersonaConfig = z
     consent: shape.consent.default({}),
     viewport: shape.viewport,
     locale: shape.locale,
+    trace_inputs: shape.trace_inputs.default({}),
   })
   .strict();
 export type PersonaConfig = z.infer<typeof PersonaConfig>;

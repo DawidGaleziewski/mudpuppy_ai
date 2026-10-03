@@ -32,3 +32,8 @@ class Settings(BaseSettings):
     page_size: int = 50
     # Ends each event stream after this many seconds; None in normal use (tests set it).
     sse_max_s: float | None = None
+    # Review actions in the Docs tab (spec 004 US3): disabled unless a reviewer name is set.
+    reviewer: str | None = None
+    # Where `pnpm docs:review` runs; the dashboard never writes the store (constitution 1.4.0).
+    crawler_dir: Path = Field(default_factory=lambda: find_data_dir().parent / "apps" / "crawler")
+    review_timeout_s: float = 10.0

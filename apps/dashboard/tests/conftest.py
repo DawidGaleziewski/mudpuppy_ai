@@ -465,3 +465,539 @@ def client(liveinsurer_store: Store) -> Iterator[TestClient]:
 def empty_client(empty_store: Store) -> Iterator[TestClient]:
     with make_client(empty_store) as c:
         yield c
+
+
+# --- Layer B (BA documentation) and process rows: test-only seed helpers (spec 004, T051) -------
+
+PORTAL = "reference-insurer"
+KIND_BY_PREFIX = {
+    "CAP": "capability",
+    "SCR": "screen",
+    "PROC": "process",
+    "UC": "use_case",
+    "REQ": "requirement",
+    "NFR": "nfr",
+    "BR": "business_rule",
+    "GL": "glossary_term",
+    "DI": "data_item",
+    "ASM": "assumption",
+    "OQ": "open_question",
+    "FUP": "followup",
+}
+
+
+def add_session(
+    conn: sqlite3.Connection,
+    id: str,
+    runs: tuple[str, ...] = (),
+    portal: str = PORTAL,
+    status: str = "completed",
+    started: int = 30,
+    gaps: tuple[str, ...] = (),
+    passes: tuple[str, ...] = ("inventory", "synthesis"),
+) -> None:
+    conn.execute(
+        "INSERT INTO analysis_sessions (id, portal_id, status, passes_json, summary, gaps_json,"
+        " started_at, ended_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+        (
+            id,
+            portal,
+            status,
+            json.dumps(
+                [{"pass": p, "summary": f"{p} done", "completed_at": ts(started)} for p in passes]
+            ),
+            f"summary of {id}" if status == "completed" else None,
+            json.dumps(list(gaps)),
+            ts(started),
+            ts(started + 5) if status != "running" else None,
+        ),
+    )
+    for run_id in runs:
+        conn.execute("INSERT INTO analysis_session_runs VALUES (?, ?)", (id, run_id))
+
+
+def add_record(
+    conn: sqlite3.Connection,
+    key: str,
+    title: str,
+    revisions: list[dict[str, object]],
+    portal: str = PORTAL,
+    content: dict[str, object] | None = None,
+) -> str:
+    """Insert a record and its revisions; `revisions` items take `session`, `status`,
+    `confidence`, `change`, `change_note`, `not_observable`, `content` and `evidence`
+    (`(target_kind, target_id, run_id, note)` tuples). Returns the record id."""
+    prefix, _, seq = key.partition("-")
+    kind = KIND_BY_PREFIX[prefix]
+    record_id = f"rec-{key}"
+    latest = revisions[-1]
+    confirmed = [n for n, r in enumerate(revisions, start=1) if r.get("status") == "confirmed"]
+    conn.execute(
+        "INSERT INTO doc_records (id, portal_id, kind, key, seq, title, latest_rev, confirmed_rev,"
+        " withdrawn, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+        (
+            record_id,
+            portal,
+            kind,
+            key,
+            int(seq),
+            title,
+            len(revisions),
+            confirmed[-1] if confirmed else None,
+            1 if latest.get("change") == "withdraw" else 0,
+            T0,
+            ts(40),
+        ),
+    )
+    for n, rev in enumerate(revisions, start=1):
+        body = {"kind": kind, "title": title, **(content or {}), **(rev.get("content") or {})}  # type: ignore[arg-type]
+        change = str(rev.get("change") or ("create" if n == 1 else "revise"))
+        rev_id = f"{key}-r{n}"
+        conn.execute(
+            "INSERT INTO doc_revisions (id, record_id, rev_no, session_id, change, content_json,"
+            " confidence, not_observable, status, change_note, responds_to_review, created_at)"
+            " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NULL, ?)",
+            (
+                rev_id,
+                record_id,
+                n,
+                rev.get("session", "sess-1"),
+                change,
+                json.dumps(body),
+                rev.get("confidence", "observed"),
+                1 if rev.get("not_observable") else 0,
+                rev.get("status", "draft"),
+                rev.get("change_note") or (None if change == "create" else "revised"),
+                ts(30 + n),
+            ),
+        )
+        for i, (tk, target, run, note) in enumerate(rev.get("evidence", [])):  # type: ignore[attr-defined]
+            conn.execute(
+                "INSERT INTO doc_evidence_links"
+                " (id, revision_id, target_kind, target_id, run_id, note)"
+                " VALUES (?, ?, ?, ?, ?, ?)",
+                (f"ev-{key}-{n}-{i}", rev_id, tk, target, run, note),
+            )
+    return record_id
+
+
+def add_relation(
+    conn: sqlite3.Connection, from_key: str, to_key: str, type_: str, rev_no: int | None = None
+) -> None:
+    """`from_key`'s revision `rev_no` (default latest) asserts `type_` towards `to_key`."""
+    if rev_no is None:
+        rev_no = conn.execute(
+            "SELECT latest_rev FROM doc_records WHERE key = ?", (from_key,)
+        ).fetchone()[0]
+    conn.execute(
+        "INSERT INTO doc_relations VALUES (?, ?, ?)",
+        (f"{from_key}-r{rev_no}", f"rec-{to_key}", type_),
+    )
+
+
+def add_review(
+    conn: sqlite3.Connection, key: str, rev_no: int, action: str, text: str | None = None
+) -> None:
+    conn.execute(
+        "INSERT INTO doc_reviews (id, revision_id, action, reviewer, text, created_at)"
+        " VALUES (?, ?, ?, ?, ?, ?)",
+        (f"rv-{key}-{rev_no}-{action}", f"{key}-r{rev_no}", action, "Test Reviewer", text, ts(50)),
+    )
+
+
+def seed_process(conn: sqlite3.Connection, run_id: str, boundary_action: str) -> None:
+    """A trace run's process (boundary reached on a mutating action) with three steps."""
+    conn.execute(
+        "INSERT INTO processes (id, run_id, portal_id, persona_id, name, goal, followup_record_id,"
+        " status, outcome, boundary_action_id, observed_result, not_observable, created_at,"
+        " ended_at)"
+        " VALUES ('proc-1', ?, ?, 'guest', 'Buy a car policy', 'Reach the purchase confirmation',"
+        " NULL, 'recorded', 'boundary_reached', ?, 'Premium shown: 1 234 PLN',"
+        " 'What happens after Kup polisę is not observable: mutating on production', ?, ?)",
+        (run_id, PORTAL, boundary_action, ts(20), ts(25)),
+    )
+    steps = [
+        (1, "Open the calculator", "navigate", None, None),
+        (2, "Enter the car model", "fill", "act-model", "Octavia"),
+        (3, "Calculate the premium", "click", "act-calc", None),
+    ]
+    for ord_, intent, kind, action, value in steps:
+        conn.execute(
+            "INSERT INTO process_steps (id, process_id, ord, intent, kind, action_id, edge_id,"
+            " value, state_before, state_after, outcomes_json, evidence_ref, confidence,"
+            " created_at)"
+            " VALUES (?, 'proc-1', ?, ?, ?, ?, NULL, ?, NULL, NULL, ?, ?, 'observed', ?)",
+            (
+                f"step-{ord_}",
+                ord_,
+                intent,
+                kind,
+                action,
+                value,
+                json.dumps([f"outcome {ord_}"]),
+                EVIDENCE,
+                ts(20, ord_),
+            ),
+        )
+
+
+def seed_ba(conn: sqlite3.Connection) -> None:
+    """Portal `reference-insurer`: a map run and a trace run, two sessions, and records of every
+    kind covering every state of the Docs tab (see tasks.md T051)."""
+    for run_id, mode, minute in (("run-map", "map", 10), ("run-trace", "trace", 20)):
+        insert(
+            conn,
+            "runs",
+            id=run_id,
+            portal_id=PORTAL,
+            mode=mode,
+            status="completed",
+            started_at=ts(minute),
+            ended_at=ts(minute + 5),
+            persona_id="guest",
+        )
+    for sid, title, route in (
+        ("st-home", "Home", "/"),
+        ("st-calc", "Kalkulator OC/AC", "/kalkulator/pojazd"),
+    ):
+        insert(
+            conn,
+            "states",
+            id=sid,
+            portal_id=PORTAL,
+            first_seen_run="run-map",
+            title=title,
+            route_template=route,
+            fingerprint=f"fp-{sid}",
+            cluster_id=f"cl-{sid}",
+        )
+        insert(conn, "state_observations", run_id="run-map", state_id=sid)
+    insert(
+        conn,
+        "actions",
+        id="act-calc",
+        run_id="run-map",
+        state_id="st-calc",
+        role="button",
+        accessible_name="Oblicz składkę",
+    )
+    insert(
+        conn,
+        "actions",
+        id="act-model",
+        run_id="run-map",
+        state_id="st-calc",
+        role="textbox",
+        accessible_name="Model",
+    )
+    insert(
+        conn,
+        "actions",
+        id="act-buy",
+        run_id="run-trace",
+        state_id="st-calc",
+        role="button",
+        accessible_name="Kup polisę",
+        safety_class="mutating",
+        allowed=0,
+        skip_reason="mutating",
+    )
+    insert(
+        conn,
+        "edges",
+        id="edge-1",
+        run_id="run-map",
+        from_state="st-home",
+        to_state="st-calc",
+        action_json=json.dumps({"accessible_name": "Oblicz składkę"}),
+    )
+    insert(conn, "forms", id="form-vehicle", run_id="run-map", state_id="st-calc")
+    insert(conn, "network_calls", id="net-quote", run_id="run-map")
+    insert(
+        conn,
+        "decision_log",
+        id="dec-1",
+        run_id="run-map",
+        kind="skip",
+        rule="ceiling:read",
+        reason="mutating above ceiling",
+    )
+    insert(
+        conn,
+        "open_questions",
+        id="oq-1",
+        run_id="run-map",
+        about_ref="st-calc",
+        text="Why is Model required?",
+    )
+    insert(
+        conn,
+        "rule_candidates",
+        id="rc-1",
+        run_id="run-map",
+        about_ref="st-calc",
+        text="Model is required",
+    )
+    seed_process(conn, "run-trace", "act-buy")
+
+    add_session(conn, "sess-1", runs=("run-map",), started=30, gaps=("Login pages not observable",))
+    add_session(
+        conn,
+        "sess-2",
+        runs=("run-map", "run-trace"),
+        started=60,
+        passes=("processes", "rules", "synthesis"),
+    )
+
+    obs = ("state", "st-calc", "run-map", "Page title Kalkulator")
+    add_record(
+        conn,
+        "CAP-001",
+        "Premium calculation",
+        [
+            {"status": "confirmed", "evidence": [obs]},
+        ],
+        content={"description": "Guests can calculate a car premium."},
+    )
+    add_record(
+        conn,
+        "SCR-001",
+        "Home page",
+        [{"evidence": [("state", "st-home", "run-map", None)]}],
+        content={
+            "purpose": "Landing page",
+            "route_templates": ["/"],
+            "elements": [{"role": "link", "label_verbatim": "Oblicz składkę"}],
+            "entry_points": [],
+        },
+    )
+    add_record(
+        conn,
+        "SCR-002",
+        "Calculator, vehicle step",
+        [{"evidence": [obs, ("edge", "edge-1", "run-map", None)]}],
+        content={
+            "purpose": "Vehicle data",
+            "route_templates": ["/kalkulator/pojazd"],
+            "elements": [],
+            "entry_points": ["SCR-001"],
+        },
+    )
+    add_record(
+        conn,
+        "REQ-001",
+        "Premium form requires the model",
+        [
+            {"status": "confirmed", "session": "sess-1", "evidence": [obs]},
+            {
+                "status": "draft",
+                "session": "sess-2",
+                "confidence": "inferred",
+                "change_note": "Added the form field evidence",
+                "evidence": [
+                    ("form", "form-vehicle", "run-map", "field Model marked required"),
+                    ("action", "act-calc", "run-map", None),
+                    ("network_call", "net-quote", "run-map", None),
+                    ("decision", "dec-1", "run-map", None),
+                    ("rule_candidate", "rc-1", "run-map", None),
+                    ("open_question", "oq-1", "run-map", None),
+                    ("state", "st-deleted", "run-map", "target removed by a portal delete"),
+                    ("process_step", "step-2", "run-trace", "step 2 enters the model"),
+                    ("doc_record", "rec-SCR-002", None, "see the screen"),
+                ],
+            },
+        ],
+        content={
+            "statement": 'The system shall require the field "Model".',
+            "rationale": "Form validation",
+            "rationale_confidence": "inferred",
+            "priority": "must",
+            "acceptance_criteria": [
+                {
+                    "given": ["the calculator is open"],
+                    "when": ["Model is empty"],
+                    "then": ["the form reports an error"],
+                }
+            ],
+        },
+    )
+    add_review(conn, "REQ-001", 1, "confirm")
+    add_record(
+        conn,
+        "BR-001",
+        "Postal code format",
+        [{"status": "rejected", "evidence": [("form", "form-vehicle", "run-map", None)]}],
+        content={
+            "statement": "Postal code is NN-NNN",
+            "rule_type": "constraint",
+            "decision_table": {
+                "conditions": ["format"],
+                "actions": ["accept"],
+                "rows": [["NN-NNN", "yes"], ["other", "no"]],
+            },
+        },
+    )
+    add_review(conn, "BR-001", 1, "reject", "Not evidenced: only a hint was seen")
+    add_record(
+        conn,
+        "GL-001",
+        "Premium",
+        [
+            {"status": "confirmed", "evidence": [obs]},
+            {"change": "withdraw", "change_note": "term not used", "evidence": [obs]},
+        ],
+        content={
+            "term_verbatim": "Składka",
+            "lang": "pl",
+            "definition": "Price of a policy",
+            "synonyms_verbatim": [],
+        },
+    )
+    add_record(
+        conn,
+        "PROC-001",
+        "Buy a car policy",
+        [
+            {
+                "confidence": "inferred",
+                "not_observable": True,
+                "session": "sess-2",
+                "evidence": [
+                    ("process", "proc-1", "run-trace", "trace run"),
+                    ("process_step", "step-3", "run-trace", None),
+                ],
+            }
+        ],
+        content={
+            "goal": "Buy a policy",
+            "persona": "guest",
+            "trigger": "Oblicz składkę",
+            "outcome": "Stopped at Kup polisę",
+            "observed_extent": "until_boundary",
+        },
+    )
+    add_record(
+        conn,
+        "PROC-002",
+        "Renew a policy",
+        [{"confidence": "needs_confirmation", "evidence": [obs]}],
+        content={
+            "goal": "Renew",
+            "persona": "customer",
+            "trigger": "Przedłuż",
+            "outcome": "unknown",
+            "observed_extent": "map_only",
+        },
+    )
+    add_record(
+        conn,
+        "UC-001",
+        "Calculate a premium",
+        [{"evidence": [obs]}],
+        content={
+            "primary_actor": "guest",
+            "preconditions": ["none"],
+            "trigger": "open calculator",
+            "main_flow": [
+                {"n": 1, "actor_or_system": "guest", "text": "Enter the model"},
+                {"n": 2, "actor_or_system": "system", "text": "Shows the premium"},
+            ],
+            "alternate_flows": [
+                [{"n": 1, "actor_or_system": "guest", "text": "Picks another model"}]
+            ],
+            "exception_flows": [],
+            "postconditions": ["premium shown"],
+        },
+    )
+    add_record(
+        conn,
+        "NFR-001",
+        "Content in Polish",
+        [{"evidence": [obs]}],
+        content={
+            "category": "localisation",
+            "statement": "All content is Polish",
+            "measured": {"value": "2 of 2", "unit": "pages", "how": "read snapshots"},
+        },
+    )
+    add_record(
+        conn,
+        "DI-001",
+        "Kod pocztowy",
+        [{"evidence": [("form", "form-vehicle", "run-map", None)]}],
+        content={
+            "name_verbatim": "Kod pocztowy",
+            "lang": "pl",
+            "name_en": "Postal code",
+            "data_type": "string",
+            "constraints": {"required": True, "format": "NN-NNN"},
+            "seen_in": [{"kind": "form", "target_id": "form-vehicle"}],
+        },
+    )
+    add_record(
+        conn,
+        "ASM-001",
+        "Logged-in users renew online",
+        [{"confidence": "needs_confirmation", "not_observable": True, "evidence": [obs]}],
+        content={
+            "statement": "Customers can renew online",
+            "impact_if_wrong": "CAP-002 mis-scoped",
+        },
+    )
+    add_record(
+        conn,
+        "OQ-001",
+        "Account pages",
+        [
+            {
+                "confidence": "needs_confirmation",
+                "evidence": [("open_question", "oq-1", "run-map", None)],
+            }
+        ],
+        content={
+            "question": "What is behind the login?",
+            "why_it_matters": "Rules are missing",
+            "answer_needed_from": "sme",
+        },
+    )
+    add_record(
+        conn,
+        "FUP-001",
+        "Trace the calculator",
+        [{"confidence": "needs_confirmation", "evidence": [obs]}],
+        content={
+            "question": "What are steps 2-4?",
+            "suggested_mode": "trace",
+            "target": {"process_name": "Calc", "goal": "Reach the premium"},
+            "persona": "guest",
+            "reason": "Only step 1 observed",
+        },
+    )
+    conn.execute(
+        "INSERT INTO followup_tasks"
+        " VALUES ('rec-FUP-001', 'blocked', NULL, 'mutating on production', ?)",
+        (ts(45),),
+    )
+    add_relation(conn, "CAP-001", "SCR-002", "contains")
+    add_relation(conn, "CAP-001", "PROC-001", "contains")
+    add_relation(conn, "REQ-001", "CAP-001", "refines")
+    add_relation(conn, "REQ-001", "SCR-002", "appears_on")
+    add_relation(conn, "BR-001", "REQ-001", "enforces")
+    add_relation(conn, "OQ-001", "PROC-001", "answers")
+    add_relation(conn, "PROC-001", "OQ-001", "depends_on")
+
+
+@pytest.fixture
+def ba_fixture(empty_store: Store) -> Store:
+    """`reference-insurer` with Layer B records of every kind; see `seed_ba`."""
+    conn = empty_store.connect()
+    seed_ba(conn)
+    conn.commit()
+    conn.close()
+    return empty_store
+
+
+@pytest.fixture
+def ba_client(ba_fixture: Store) -> Iterator[TestClient]:
+    with make_client(ba_fixture) as c:
+        yield c

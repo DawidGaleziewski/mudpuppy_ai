@@ -295,6 +295,10 @@ importers:
       zod:
         specifier: ^4.6.5
         version: 4.6.5
+    devDependencies:
+      '@pathfinder/reference-portal':
+        specifier: workspace:*
+        version: link:../reference-portal
 
   packages/obstacles:
     dependencies:

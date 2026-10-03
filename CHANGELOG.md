@@ -6,6 +6,16 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Added
+- R-14 crawler trace mode and R-15 Docs tab: `trace` runs record one named process as ordered
+  steps (fill/check/select actions, persona `trace_inputs`, submit boundary on production,
+  follow-up lifecycle `open → in_progress → done|blocked`, migration `0005_trace_processes`), BA
+  process reads (`list_processes`, `get_process`); dashboard Docs tab with SRS view, record pages,
+  Mermaid diagrams, run docs/process tabs and a review panel (confirm/reject/comment through
+  `docs:review`, constitution 1.4.0); `/healthz` code fingerprint and `pathfinder-dashboard-smoke`.
+  Validated by agent traces of FUP-001..004 on `reference-insurer` (FUP-004 to the confirmation
+  after accepting reserved-TLD e-mails as synthetic input), BA re-runs (139 records, audit clean)
+  and a browser review. FUP-008 left open (`specs/004-ba-documentation`, T033–T071).
+  Commits: c66de2c, cfda2d0, b5ea41a, 1462cb0 (squash-merged on master).
 - R-13 BA documentation store and BA agent: Layer B records with stable keys, revisions and
   evidence links in SQLite (migration `0004_ba_documentation`), `pathfinder-ba` MCP server with
   13 tools, `ba` subagent and `ba-practice` skill, `pnpm docs:audit`, and the local

@@ -19,8 +19,31 @@ export interface PageResult {
     safety_class: string;
     allowed: boolean;
     skip_reason?: string;
+    /**
+     * Trace runs: the persona's `trace_inputs` value for this field's label, when declared. It is
+     * what to type, NOT what the field holds: forms start as the portal renders them.
+     */
+    suggested_value?: string;
   }[];
   edge_id?: string;
+  /** Trace runs: the step this call recorded. */
+  step?: { ord: number; outcomes: string[] };
+}
+
+export interface NavigateInput {
+  run_id: string;
+  url: string;
+  /** Required in trace runs. */
+  intent?: string;
+}
+
+export interface ActInput {
+  run_id: string;
+  action_id: string;
+  /** Required in trace runs. */
+  intent?: string;
+  /** Trace runs, fill/select actions only. */
+  value?: string;
 }
 
 /**
@@ -40,8 +63,8 @@ export interface Runtime {
   robotsStats?(
     runId: string,
   ): { pageRequestsBlocked: number; pageRequestsAllowed: number } | undefined;
-  navigate(ctx: ServerContext, input: { run_id: string; url: string }): Promise<PageResult>;
-  act(ctx: ServerContext, input: { run_id: string; action_id: string }): Promise<PageResult>;
+  navigate(ctx: ServerContext, input: NavigateInput): Promise<PageResult>;
+  act(ctx: ServerContext, input: ActInput): Promise<PageResult>;
   /** Release the browser of a run that has ended (finished, stopped or interrupted). */
   closeRun?(runId: string): Promise<void>;
   closeAll(): Promise<void>;

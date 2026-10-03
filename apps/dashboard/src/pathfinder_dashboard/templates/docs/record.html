@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block title %}{{ r.key }} · {{ r.detail.record.title }}{% endblock %}
+{% block head_extra %}<script src="/static/js/diagrams.js" defer></script>{% endblock %}
+{% block content %}
+{% set panel = r.panel %}
+<div class="page-head">
+  <div>
+    <p class="crumbs"><a href="{{ c.url('/docs') }}">Docs</a> / <a href="{{ c.url('/docs/' ~ portal) }}">{{ portal }}</a> / {{ r.key }}</p>
+    <h1><span class="mono-num">{{ r.key }}</span> {{ r.detail.record.title }}</h1>
+  </div>
+  <p class="caption">store {{ store.path }} · read-only</p>
+</div>
+{% include "partials/docs/header.html" %}
+<div class="section">
+  {% include "partials/docs/body.html" %}
+</div>
+<div class="section">
+  {% include "partials/docs/reviews.html" %}
+</div>
+{% endblock %}

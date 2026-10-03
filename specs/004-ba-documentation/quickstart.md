@@ -33,6 +33,11 @@ full truth is in its `ground-truth.json`. Existing liveinsurer data plays no par
 2. Run the crawler agent in trace mode for each open `FUP` the BA created (`followup_key`); each moves
    `open → in_progress → done|blocked`. Re-run the ba agent: it builds `PROC` and `UC` records from
    the traces.
+   Validated 2026-10-03 (T050, R-14 done): FUP-001..004 traced to their goal pages on
+   `reference-insurer`; FUP-004 reaches the confirmation using the persona's synthetic
+   `E-mail: test@example.invalid` (reserved test TLDs are accepted as synthetic since `1462cb0`).
+   FUP-005 needs a customer account (OQ-001); FUP-008 (e-mail only; too short `Telefon`) is open,
+   not traced.
 
 ## R-15 — Docs tab and review
 
@@ -43,6 +48,7 @@ full truth is in its `ground-truth.json`. Existing liveinsurer data plays no par
 3. Confirm a draft: status becomes `confirmed` without reload; reject without text is refused; a
    second tab confirming the same (now stale) revision gets `STALE_REVISION`.
 4. Automated: `uv run pytest`.
+   Validated 2026-10-03 (T071, R-15 done): steps 1–3 reviewed in a browser on sandbox.
 
 ## R-16 — Export and goal evaluation
 

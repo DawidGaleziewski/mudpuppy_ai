@@ -9,6 +9,8 @@ import { newId, nowIso } from '../src/ids.js';
 
 const MIGRATIONS = fileURLToPath(new URL('../../../../../data/migrations', import.meta.url));
 
+const ALL = ['0001', '0002', '0003', '0004', '0005'];
+
 let opened: OpenedDb | undefined;
 let tmp: string | undefined;
 afterEach(async () => {
@@ -28,20 +30,21 @@ const tables = (o: OpenedDb) =>
     .sort();
 
 describe('migrations', () => {
-  it('finds 0001_init, 0002_portal_workspaces, 0003_trace and 0004_ba_documentation, each with an up and a down', () => {
+  it('finds 0001_init, 0002_portal_workspaces, 0003_trace, 0004_ba_documentation and 0005_trace_processes, each with an up and a down', () => {
     expect(loadMigrations(MIGRATIONS).map((m) => m.version)).toEqual([
       '0001',
       '0002',
       '0003',
       '0004',
+      '0005',
     ]);
   });
 
   it('applies up in order, is idempotent, and reverts down to empty', () => {
     opened = openDb(':memory:');
-    expect(migrateUp(opened.raw, MIGRATIONS)).toEqual(['0001', '0002', '0003', '0004']);
+    expect(migrateUp(opened.raw, MIGRATIONS)).toEqual(ALL);
     expect(migrateUp(opened.raw, MIGRATIONS)).toEqual([]);
-    expect(appliedVersions(opened.raw)).toEqual(['0001', '0002', '0003', '0004']);
+    expect(appliedVersions(opened.raw)).toEqual(ALL);
     expect(tables(opened)).toEqual(
       expect.arrayContaining([
         'states',
@@ -60,8 +63,11 @@ describe('migrations', () => {
         'doc_relations',
         'doc_reviews',
         'followup_tasks',
+        'processes',
+        'process_steps',
       ]),
     );
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0005');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0004');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0003');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0002');
@@ -72,27 +78,29 @@ describe('migrations', () => {
 
   it('0002 applies and reverts on a DB holding 0001 data (up, up, down, down, up: round-trips cleanly)', () => {
     opened = openDb(':memory:');
-    expect(migrateUp(opened.raw, MIGRATIONS)).toEqual(['0001', '0002', '0003', '0004']);
+    expect(migrateUp(opened.raw, MIGRATIONS)).toEqual(ALL);
     expect(migrateUp(opened.raw, MIGRATIONS)).toEqual([]);
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0005');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0004');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0003');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0002');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0001');
-    expect(migrateUp(opened.raw, MIGRATIONS)).toEqual(['0001', '0002', '0003', '0004']);
-    expect(appliedVersions(opened.raw)).toEqual(['0001', '0002', '0003', '0004']);
+    expect(migrateUp(opened.raw, MIGRATIONS)).toEqual(ALL);
+    expect(appliedVersions(opened.raw)).toEqual(ALL);
   });
 
   it('0003_trace applies and reverts on a DB holding 0001/0002 data (up, down, up round-trips cleanly)', () => {
     opened = openDb(':memory:');
     migrateUp(opened.raw, MIGRATIONS);
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0005');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0004');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0003');
     expect(tables(opened)).not.toEqual(
       expect.arrayContaining(['trace_boots', 'trace_spans', 'agent_turns']),
     );
     expect(tables(opened)).toEqual(expect.arrayContaining(['states', 'frontier', 'decision_log']));
-    expect(migrateUp(opened.raw, MIGRATIONS)).toEqual(['0003', '0004']);
-    expect(appliedVersions(opened.raw)).toEqual(['0001', '0002', '0003', '0004']);
+    expect(migrateUp(opened.raw, MIGRATIONS)).toEqual(['0003', '0004', '0005']);
+    expect(appliedVersions(opened.raw)).toEqual(ALL);
     expect(tables(opened)).toEqual(
       expect.arrayContaining(['trace_boots', 'trace_spans', 'agent_turns']),
     );
@@ -248,7 +256,7 @@ describe('trace tables (0003_trace)', () => {
 describe('Layer B tables (0004_ba_documentation)', () => {
   it('0004 round-trips (up, down, up) on a DB holding Layer B data (T007)', async () => {
     opened = openDb(':memory:');
-    expect(migrateUp(opened.raw, MIGRATIONS)).toEqual(['0001', '0002', '0003', '0004']);
+    expect(migrateUp(opened.raw, MIGRATIONS)).toEqual(ALL);
     const ts = nowIso();
     const { runId, stateId } = await seedRunAndState(opened, 'p', 'b'.repeat(64));
     const sessionId = newId();
@@ -285,10 +293,74 @@ describe('Layer B tables (0004_ba_documentation)', () => {
         `INSERT INTO doc_reviews (id, revision_id, action, reviewer, text, created_at) VALUES (?, ?, 'comment', 'dawid', 'looks good', ?)`,
       )
       .run(newId(), revisionId, ts);
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0005');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0004');
     expect(tables(opened)).not.toEqual(expect.arrayContaining(['doc_records', 'doc_revisions']));
-    expect(migrateUp(opened.raw, MIGRATIONS)).toEqual(['0004']);
+    expect(migrateUp(opened.raw, MIGRATIONS)).toEqual(['0004', '0005']);
     expect(opened.raw.prepare('SELECT count(*) AS n FROM doc_records').get()).toEqual({ n: 0 });
+  });
+});
+
+describe('process tables (0005_trace_processes)', () => {
+  it('enforces process and step CHECK/UNIQUE constraints (T037)', async () => {
+    opened = openDb(':memory:');
+    migrateUp(opened.raw, MIGRATIONS);
+    const { raw } = opened;
+    const ts = nowIso();
+    const { runId, stateId } = await seedRunAndState(opened, 'p', 'c'.repeat(64));
+    const actionId = newId();
+    raw
+      .prepare(
+        `INSERT INTO actions (id, run_id, state_id, role, accessible_name, action_json, safety_class, allowed, skip_reason, created_at)
+         VALUES (?, ?, ?, 'button', 'Kup polisę', '{}', 'external-side-effect', 0, 'boundary', ?)`,
+      )
+      .run(actionId, runId, stateId, ts);
+    const insertProcess = (
+      id: string,
+      run: string,
+      status: string,
+      outcome: string | null,
+      boundary: string | null,
+      notObservable: string | null,
+    ) =>
+      raw
+        .prepare(
+          `INSERT INTO processes (id, run_id, portal_id, persona_id, name, goal, followup_record_id, status, outcome,
+             boundary_action_id, observed_result, not_observable, created_at, ended_at)
+           VALUES (?, ?, 'p', 'guest', 'Calc', 'Get a premium', NULL, ?, ?, ?, NULL, ?, ?, NULL)`,
+        )
+        .run(id, run, status, outcome, boundary, notObservable, ts);
+    const pid = newId();
+    insertProcess(pid, runId, 'recorded', null, null, null);
+    // one process per run
+    expect(() => insertProcess(newId(), runId, 'recorded', null, null, null)).toThrow();
+    // enums
+    expect(() => insertProcess(newId(), newId(), 'weird', null, null, null)).toThrow();
+    expect(() => insertProcess(newId(), newId(), 'recorded', 'won', null, null)).toThrow();
+    // boundary_reached needs boundary_action_id and not_observable
+    expect(() =>
+      insertProcess(newId(), newId(), 'recorded', 'boundary_reached', null, 'x'),
+    ).toThrow(/CHECK/);
+    expect(() =>
+      insertProcess(newId(), newId(), 'recorded', 'boundary_reached', actionId, null),
+    ).toThrow(/CHECK/);
+
+    const insertStep = (ord: number, kind: string, outcomes: string, ref: string, conf: string) =>
+      raw
+        .prepare(
+          `INSERT INTO process_steps (id, process_id, ord, intent, kind, action_id, edge_id, value, state_before,
+             state_after, outcomes_json, evidence_ref, confidence, created_at)
+           VALUES (?, ?, ?, 'Open it', ?, NULL, NULL, NULL, ?, NULL, ?, ?, ?, ?)`,
+        )
+        .run(newId(), pid, ord, kind, stateId, outcomes, ref, conf, ts);
+    insertStep(1, 'fill', '[]', 'a.json', 'observed');
+    expect(() => insertStep(1, 'click', '[]', 'a.json', 'observed')).toThrow(); // UNIQUE(process_id, ord)
+    expect(() => insertStep(2, 'hover', '[]', 'a.json', 'observed')).toThrow();
+    expect(() => insertStep(2, 'click', '{}', 'a.json', 'observed')).toThrow();
+    expect(() => insertStep(2, 'click', 'nope', 'a.json', 'observed')).toThrow();
+    expect(() => insertStep(2, 'click', '[]', '', 'observed')).toThrow();
+    expect(() => insertStep(2, 'click', '[]', 'a.json', 'sure')).toThrow();
+    expect(() => insertStep(0, 'click', '[]', 'a.json', 'observed')).toThrow();
   });
 });
 

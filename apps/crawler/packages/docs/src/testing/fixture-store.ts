@@ -51,7 +51,29 @@ export interface FixtureStore {
    * recorded one edge of its own; for RUN_NOT_IN_SESSION and multi-run sessions.
    */
   addRun(portalId?: string): { runId: string; edgeId: string };
+  /**
+   * A completed sandbox trace run of `portalId`: process "Calculate a car premium", outcome
+   * `goal_reached`, three steps (navigate, click, fill). Added on demand so the default fixture
+   * keeps its single map run.
+   */
+  addTraceRun(): TraceFixture;
+  /**
+   * A completed production-style trace run: two steps, then the mutating "Dalej" action refused,
+   * outcome `boundary_reached` with `not_observable` and `boundary_action_id` set.
+   */
+  addBoundaryTrace(): TraceFixture;
   close(): Promise<void>;
+}
+
+export interface TraceFixture {
+  runId: string;
+  processId: string;
+  /** Step ids in `ord` order (1..n). */
+  stepIds: string[];
+  /** The edge each click step executed as, by step index (undefined for navigate/fill). */
+  edgeIds: (string | undefined)[];
+  /** Set on the boundary trace: the refused action that ended it. */
+  boundaryActionId: string | null;
 }
 
 const page = (heading: string, body: string): string =>
@@ -169,14 +191,14 @@ export async function makeFixtureStore(opts: FixtureStoreOptions = {}): Promise<
       .run(...cols.map((c) => row[c]));
   };
 
-  const run = (portal: string): string => {
+  const run = (portal: string, over: { mode?: string; environment?: string } = {}): string => {
     const id = newId();
     insert('runs', {
       id,
       portal_id: portal,
       persona_id: 'guest',
-      mode: 'map',
-      environment: 'sandbox',
+      mode: over.mode ?? 'map',
+      environment: over.environment ?? 'sandbox',
       env_version_or_date: '2026-01-15',
       seed_id: null,
       viewport: '1366x768',
@@ -463,6 +485,84 @@ export async function makeFixtureStore(opts: FixtureStoreOptions = {}): Promise<
   const otherRunId = run(otherPortalId);
   const otherState = state(otherPortalId, otherRunId, '/', 'Start', refs.other);
 
+  interface StepSpec {
+    intent: string;
+    kind: 'navigate' | 'click' | 'fill' | 'check' | 'select';
+    actionId: string | null;
+    edgeId: string | null;
+    value: string | null;
+    before: string | null;
+    after: string | null;
+    outcomes: string[];
+    ref: string;
+  }
+  /** A trace run, its process row and ordered steps, written the way the crawler server writes them. */
+  const trace = (
+    environment: string,
+    name: string,
+    goal: string,
+    build: (runId: string) => {
+      steps: StepSpec[];
+      outcome: 'goal_reached' | 'boundary_reached';
+      boundaryActionId: string | null;
+      observedResult: string;
+      notObservable: string | null;
+    },
+  ): TraceFixture => {
+    const traceRun = run(portalId, { mode: 'trace', environment });
+    for (const [s, ref] of [
+      [states.home, refs.home],
+      [states.car, refs.car],
+      [states.vehicle, refs.vehicle],
+    ] as const)
+      observe(traceRun, s, ref);
+    const built = build(traceRun);
+    const processId = newId();
+    insert('processes', {
+      id: processId,
+      run_id: traceRun,
+      portal_id: portalId,
+      persona_id: 'guest',
+      name,
+      goal,
+      followup_record_id: null,
+      status: 'recorded',
+      outcome: built.outcome,
+      boundary_action_id: built.boundaryActionId,
+      observed_result: built.observedResult,
+      not_observable: built.notObservable,
+      created_at: FIXTURE_TS,
+      ended_at: FIXTURE_TS,
+    });
+    const stepIds = built.steps.map((s, i) => {
+      const id = newId();
+      insert('process_steps', {
+        id,
+        process_id: processId,
+        ord: i + 1,
+        intent: s.intent,
+        kind: s.kind,
+        action_id: s.actionId,
+        edge_id: s.edgeId,
+        value: s.value,
+        state_before: s.before,
+        state_after: s.after,
+        outcomes_json: JSON.stringify(s.outcomes),
+        evidence_ref: s.ref,
+        confidence: 'observed',
+        created_at: FIXTURE_TS,
+      });
+      return id;
+    });
+    return {
+      runId: traceRun,
+      processId,
+      stepIds,
+      edgeIds: built.steps.map((s) => s.edgeId ?? undefined),
+      boundaryActionId: built.boundaryActionId,
+    };
+  };
+
   return {
     opened,
     db: opened.db,
@@ -487,6 +587,98 @@ export async function makeFixtureStore(opts: FixtureStoreOptions = {}): Promise<
       const home = portal === portalId ? states.home : otherState;
       observe(id, home, portal === portalId ? refs.home : refs.other);
       return { runId: id, edgeId: edge(id, home, home, link('Start', '/', refs.home), refs.home) };
+    },
+    addTraceRun() {
+      return trace('sandbox', 'Calculate a car premium', 'See an OC/AC premium for a car', (r) => {
+        const calc = action(r, states.car, calculate, 'read', null);
+        const model = action(
+          r,
+          states.vehicle,
+          { role: 'textbox', accessible_name: 'Model' },
+          'read',
+          null,
+        );
+        const toVehicle = edge(r, states.car, states.vehicle, calculate, refs.vehicle);
+        return {
+          outcome: 'goal_reached',
+          boundaryActionId: null,
+          notObservable: null,
+          observedResult:
+            'The calculator form "Dane pojazdu" is shown; no premium is displayed yet.',
+          steps: [
+            {
+              intent: 'Open the car insurance page',
+              kind: 'navigate',
+              actionId: null,
+              edgeId: null,
+              value: null,
+              before: null,
+              after: states.car,
+              outcomes: ['page "Ubezpieczenie samochodu" opened'],
+              ref: refs.car,
+            },
+            {
+              intent: 'Open the premium calculator',
+              kind: 'click',
+              actionId: calc,
+              edgeId: toVehicle,
+              value: null,
+              before: states.car,
+              after: states.vehicle,
+              outcomes: ['navigated to /kalkulator/pojazd'],
+              ref: refs.vehicle,
+            },
+            {
+              intent: 'Enter the vehicle model',
+              kind: 'fill',
+              actionId: model,
+              edgeId: null,
+              value: 'Test Model',
+              before: states.vehicle,
+              after: null,
+              outcomes: ['field "Model" accepted the value'],
+              ref: refs.vehicle,
+            },
+          ],
+        };
+      });
+    },
+    addBoundaryTrace() {
+      return trace('production', 'Buy a car policy', 'Reach the purchase confirmation', (r) => {
+        const calc = action(r, states.car, calculate, 'read', null);
+        const dalej = action(r, states.vehicle, next, 'mutating', ceiling);
+        const toVehicle = edge(r, states.car, states.vehicle, calculate, refs.vehicle);
+        return {
+          outcome: 'boundary_reached',
+          boundaryActionId: dalej,
+          notObservable: 'What follows "Dalej": the next calculator step and the premium.',
+          observedResult: 'The calculator form is shown; the next step needs a mutating action.',
+          steps: [
+            {
+              intent: 'Open the car insurance page',
+              kind: 'navigate',
+              actionId: null,
+              edgeId: null,
+              value: null,
+              before: null,
+              after: states.car,
+              outcomes: ['page "Ubezpieczenie samochodu" opened'],
+              ref: refs.car,
+            },
+            {
+              intent: 'Open the premium calculator',
+              kind: 'click',
+              actionId: calc,
+              edgeId: toVehicle,
+              value: null,
+              before: states.car,
+              after: states.vehicle,
+              outcomes: ['navigated to /kalkulator/pojazd'],
+              ref: refs.vehicle,
+            },
+          ],
+        };
+      });
     },
     async close() {
       await opened.close();

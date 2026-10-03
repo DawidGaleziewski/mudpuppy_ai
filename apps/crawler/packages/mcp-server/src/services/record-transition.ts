@@ -36,6 +36,8 @@ export const ActionInput = z
     /** Index among same role+name elements, so the action can be located again. */
     nth: z.number().int().nonnegative().optional(),
     // Signals the classifier re-derives the class from.
+    /** Trace runs: a fill/check/select control (spec 004 R-14). */
+    input: z.enum(['fill', 'check', 'select']).optional(),
     href: z.string().optional(),
     method: z.string().optional(),
     form: z
@@ -74,6 +76,7 @@ export function descriptorOf(action: z.infer<typeof ActionInput>): ActionDescrip
     ...(action.method !== undefined ? { method: action.method } : {}),
     ...(action.form !== undefined ? { form: action.form } : {}),
     ...(action.attributes !== undefined ? { attributes: action.attributes } : {}),
+    ...(action.input !== undefined ? { input: action.input } : {}),
   };
 }
 
@@ -92,7 +95,12 @@ export async function recordTransition(
 
   // The run's own rule set, rebuilt from the portal file captured in its config snapshot.
   const { portal } = JSON.parse(run.config_snapshot) as { portal: PortalConfig };
-  const derived = classifyAction(descriptorOf(input.action), portalRuleSet(portal)).safetyClass;
+  // Trace runs read GET form submits as read (spec 004 R-14); the gate used the same option.
+  const derived = classifyAction(
+    descriptorOf(input.action),
+    portalRuleSet(portal),
+    run.mode === 'trace' ? { safeFormSubmitIsRead: true } : {},
+  ).safetyClass;
   if (derived !== input.safety_class) {
     throw new ToolError(
       'SAFETY_CLASS_MISMATCH',

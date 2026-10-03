@@ -38,8 +38,7 @@ function runPortal(raw: RawDb, runId: string): string | undefined {
 
 /**
  * Resolve one link to its row, portal and run **without** judging it: used by the audit, which
- * reports what it finds. Returns null when the target does not exist (or its kind cannot be resolved
- * yet: `process`, `process_step` arrive with trace mode).
+ * reports what it finds. Returns null when the target does not exist.
  */
 export function lookupTarget(raw: RawDb, link: EvidenceLinkInput): ResolvedTarget | null {
   const { target_kind: kind, target_id: id } = link;
@@ -107,7 +106,38 @@ export function lookupTarget(raw: RawDb, link: EvidenceLinkInput): ResolvedTarge
     };
   }
 
-  // process, process_step: no tables until trace mode (T048).
+  // A process is run-bound through its trace run; it carries no confidence of its own. A step is
+  // recorded by the server as it observes the page, so its own confidence column decides.
+  if (kind === 'process') {
+    const row = raw.prepare('SELECT run_id, portal_id FROM processes WHERE id = ?').get(id) as
+      { run_id: string; portal_id: string } | undefined;
+    if (!row) return null;
+    return {
+      target_kind: kind,
+      target_id: id,
+      run_id: row.run_id,
+      portal_id: row.portal_id,
+      confidence: null,
+    };
+  }
+
+  if (kind === 'process_step') {
+    const row = raw
+      .prepare(
+        `SELECT p.run_id, p.portal_id, s.confidence FROM process_steps s
+         JOIN processes p ON p.id = s.process_id WHERE s.id = ?`,
+      )
+      .get(id) as { run_id: string; portal_id: string; confidence: Confidence } | undefined;
+    if (!row) return null;
+    return {
+      target_kind: kind,
+      target_id: id,
+      run_id: row.run_id,
+      portal_id: row.portal_id,
+      confidence: row.confidence,
+    };
+  }
+
   return null;
 }
 
@@ -149,9 +179,7 @@ export function resolveTargets(
     if (!found)
       throw new DocsError(
         'UNKNOWN_REF',
-        link.target_kind === 'process' || link.target_kind === 'process_step'
-          ? `evidence[${index}]: ${link.target_kind} targets are not recorded yet (trace mode)`
-          : `evidence[${index}]: no ${link.target_kind} with id ${link.target_id}`,
+        `evidence[${index}]: no ${link.target_kind} with id ${link.target_id}`,
         where,
       );
     if (found.portal_id !== portalId)

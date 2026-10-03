@@ -19,6 +19,8 @@ import type { EvidenceTargetKind } from './schemas/evidence-link.js';
 import type { RelationType } from './schemas/doc-relation.js';
 import type { ReviewAction } from './schemas/doc-review.js';
 import type { FollowupStatus } from './schemas/followup-task.js';
+import type { ProcessOutcome, ProcessStatus } from './schemas/process.js';
+import type { ProcessStepKind } from './schemas/process-step.js';
 
 /** Kysely table types mirroring data/schema/schema.sql. JSON columns are TEXT (stringified JSON). */
 export interface RunsTable {
@@ -328,6 +330,40 @@ export interface FollowupTasksTable {
   updated_at: string;
 }
 
+export interface ProcessesTable {
+  id: string;
+  run_id: string;
+  portal_id: string;
+  persona_id: string;
+  name: string;
+  goal: string;
+  followup_record_id: string | null;
+  status: ProcessStatus;
+  outcome: ProcessOutcome | null;
+  boundary_action_id: string | null;
+  observed_result: string | null;
+  not_observable: string | null;
+  created_at: string;
+  ended_at: string | null;
+}
+
+export interface ProcessStepsTable {
+  id: string;
+  process_id: string;
+  ord: number;
+  intent: string;
+  kind: ProcessStepKind;
+  action_id: string | null;
+  edge_id: string | null;
+  value: string | null;
+  state_before: string | null;
+  state_after: string | null;
+  outcomes_json: string;
+  evidence_ref: string;
+  confidence: Confidence;
+  created_at: string;
+}
+
 export interface Database {
   runs: RunsTable;
   states: StatesTable;
@@ -353,4 +389,6 @@ export interface Database {
   doc_relations: DocRelationsTable;
   doc_reviews: DocReviewsTable;
   followup_tasks: FollowupTasksTable;
+  processes: ProcessesTable;
+  process_steps: ProcessStepsTable;
 }

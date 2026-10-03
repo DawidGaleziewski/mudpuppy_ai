@@ -1,0 +1,22 @@
+{% import "partials/macros.html" as m %}
+{% import "partials/docs/records.html" as d %}
+{% set v = section %}
+{% call m.region("docs-section", v.self_url, v.label) %}
+  <div class="section-head">
+    <h2>{{ v.label }}{% if v.page %} <span class="muted mono-num">{{ v.page.total }}</span>{% endif %}</h2>
+    {%- if v.id != "overview" %}
+    {% call m.filter_form(v, c, {"section": v.id}) %}
+      {%- if v.kind_options %}{{ m.select("kind", "kind", v.kind_options, v.filters.kind) }}{% endif %}
+      {{ m.select("status", "status", v.status_options, v.filters.status) }}
+      {{ m.select("confidence", "confidence", v.confidence_options, v.filters.confidence) }}
+      {{ m.select("flag", "flag", v.flag_options, v.filters.flag) }}
+    {% endcall %}
+    {%- endif %}
+  </div>
+  {%- if v.id == "overview" %}
+    {{ d.overview(v, c, portal) }}
+  {%- else %}
+    {%- if v.diagram %}{{ m.diagram(v.diagram, v.diagram_caption) }}{% endif %}
+    {{ d.record_table(v, c, portal) }}
+  {%- endif %}
+{% endcall %}

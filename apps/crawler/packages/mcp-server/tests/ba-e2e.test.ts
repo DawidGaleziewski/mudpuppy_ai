@@ -1,5 +1,5 @@
 import { AnalysisPass, DocKind, KEY_PREFIX } from '@pathfinder/core';
-import { audit } from '@pathfinder/docs';
+import { applyReview, audit } from '@pathfinder/docs';
 import { describe, expect, it } from 'vitest';
 import { CONTENT, seedReview, startBa } from './ba-harness.js';
 
@@ -286,4 +286,85 @@ describe('BA end to end on the fixture store', () => {
     expect(report.links).toBeGreaterThanOrEqual(12);
     expect(audit(fx.raw).ok).toBe(true);
   });
+
+  it('a review written by docs:review reaches the next session; the confirmed baseline stays (US3 scenario 2)', async () => {
+    const h = await startBa();
+    const { fx, must } = h;
+    const portal_id = fx.portalId;
+    const rule = {
+      title: 'AC eligibility',
+      statement: 'The portal offers "Autocasco (AC)" only for vehicles up to 15 years old.',
+      rule_type: 'constraint',
+    };
+    const evidence = [{ target_kind: 'rule_candidate', target_id: fx.ruleCandidate }];
+
+    // Session 1 writes the rule; a reviewer confirms it (rev 1 is the baseline).
+    const s1 = await h.session();
+    await must('create_record', {
+      session_id: s1,
+      kind: 'business_rule',
+      content: rule,
+      confidence: 'inferred',
+      evidence,
+    });
+    await must('record_pass', { session_id: s1, pass: 'synthesis', summary: 'One rule.' });
+    await must('finish_session', { session_id: s1, summary: 'One rule.', gaps: [] });
+    applyReview(fx.raw, { ...REVIEWER, portal_id, key: 'BR-001', rev_no: 1, action: 'confirm' });
+
+    // Session 2 revises it; the reviewer rejects the new draft through the operator command.
+    const s2 = await h.session();
+    await must('revise_record', {
+      session_id: s2,
+      key: 'BR-001',
+      base_rev: 1,
+      content: { ...rule, statement: `${rule.statement} Older vehicles get "Tylko OC".` },
+      confidence: 'inferred',
+      evidence,
+      change_note: 'Added what older vehicles are offered.',
+    });
+    await must('record_pass', { session_id: s2, pass: 'synthesis', summary: 'Revised.' });
+    await must('finish_session', { session_id: s2, summary: 'Revised.', gaps: [] });
+    const rejected = applyReview(fx.raw, {
+      ...REVIEWER,
+      portal_id,
+      key: 'BR-001',
+      rev_no: 2,
+      action: 'reject',
+      text: 'Older vehicles are not mentioned on the page.',
+    });
+    expect(rejected.status).toBe('rejected');
+
+    // Session 3: the rejection is pending feedback; the BA answers it with a new draft.
+    const feedback = await must('get_pending_feedback', { portal_id });
+    expect(feedback.reviews).toMatchObject([
+      { review_id: rejected.review_id, action: 'reject', key: 'BR-001' },
+    ]);
+    const s3 = await h.session();
+    await must('revise_record', {
+      session_id: s3,
+      key: 'BR-001',
+      base_rev: 2,
+      content: rule,
+      confidence: 'inferred',
+      evidence: [...evidence, { target_kind: 'review', target_id: rejected.review_id }],
+      change_note: 'Removed the unsupported sentence, as the reviewer asked.',
+      responds_to_review: rejected.review_id,
+    });
+
+    const record = await must('get_record', { portal_id, key: 'BR-001' });
+    expect(record.revisions.map((r: { status: string }) => r.status)).toEqual([
+      'confirmed',
+      'rejected',
+      'draft',
+    ]);
+    expect(record).toMatchObject({ latest_rev: 3, confirmed_rev: 1 });
+    expect(record.revisions[2]).toMatchObject({ responds_to_review: rejected.review_id });
+    // Shown as answered while the answering session is still open.
+    expect((await must('get_pending_feedback', { portal_id })).reviews).toMatchObject([
+      { review_id: rejected.review_id, answered_by_rev: 3 },
+    ]);
+    expect(audit(fx.raw, portal_id).findings).toEqual([]);
+  });
 });
+
+const REVIEWER = { reviewer: 'Test Reviewer' };

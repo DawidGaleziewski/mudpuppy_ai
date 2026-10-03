@@ -124,3 +124,42 @@ describe('generic vocabulary (spec 002 US3)', () => {
     ).toBe('read');
   });
 });
+
+describe('classifyAction in trace runs (spec 004 R-14)', () => {
+  const dalej = {
+    role: 'button',
+    name: 'Dalej',
+    form: { method: 'get', action: '/kalkulator/pojazd' },
+  };
+
+  it('keeps a GET form submit non-read in map mode', () => {
+    expect(classifyAction(dalej).safetyClass).toBe('mutating');
+  });
+
+  it('reads a GET form submit as read only when the trace option is set', () => {
+    expect(classifyAction(dalej, undefined, { safeFormSubmitIsRead: true }).safetyClass).toBe(
+      'read',
+    );
+  });
+
+  it('never lowers a POST submit or a matching label rule', () => {
+    const opts = { safeFormSubmitIsRead: true };
+    const post = { role: 'button', name: 'Wyślij', form: { method: 'post', action: '/kontakt' } };
+    expect(classifyAction(post, undefined, opts).safetyClass).not.toBe('read');
+    const buy = { role: 'button', name: 'Kup polisę', form: { method: 'get', action: '/x' } };
+    expect(classifyAction(buy, undefined, opts).safetyClass).not.toBe('read');
+  });
+
+  it('reads a fill, check or select as read, but a password form still raises', () => {
+    expect(classifyAction({ role: 'textbox', name: 'Model', input: 'fill' }).safetyClass).toBe(
+      'read',
+    );
+    expect(classifyAction({ role: 'spinbutton', name: 'Rok', input: 'fill' }).safetyClass).toBe(
+      'read',
+    );
+    expect(
+      classifyAction({ role: 'textbox', name: 'Login', input: 'fill', form: { hasPassword: true } })
+        .safetyClass,
+    ).toBe('mutating');
+  });
+});

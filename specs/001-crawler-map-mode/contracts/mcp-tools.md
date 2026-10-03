@@ -30,7 +30,7 @@ no tool to write them, so it cannot fabricate an `observed` fact. The agent can 
   `config_snapshot` (or resumes `resume_run_id` from persisted frontier/visited state,
   FR-020), launches the browser with the persona's viewport/locale, applies obstacle handlers
   and the request gate.
-- **Output**: `{ run_id, resumed: boolean, effective_max_action_class, budgets: {…remaining} }`
+- **Output**: `{ run_id, mode, process_id? (trace), base_url, resumed: boolean, effective_max_action_class, budgets: {…remaining} }`
 - **Errors**: `ENV_GUARD_REFUSED` (production without the explicit flag, missing
   `compliance` values, or a placeholder User-Agent contact — completes in <5s,
   nothing opened), `CONFIG_INVALID` (names the file and problem, FR-017), `PORTAL_NOT_FOUND`,

@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block title %}Docs{% endblock %}
+{% block head_extra %}{% endblock %}
+{% block content %}
+<div class="page-head">
+  <h1>Documentation</h1>
+  <p class="caption">store {{ store.path }} · BA records, read-only (reviews go through the operator command)</p>
+</div>
+{% include "partials/docs/portals.html" %}
+{% endblock %}

@@ -75,8 +75,15 @@ export function registerTools(server: McpServer, ctx: ServerContext, runtime: Ru
 
   tool(
     'start_run',
-    'Start (or resume with resume_run_id) a read-only mapping run. Validates config and the production guard before any browser opens.',
-    { portal_id: z.string(), persona_id: z.string(), resume_run_id: z.string().optional() },
+    'Start (or resume with resume_run_id) a read-only run: mode "map" (default) explores the portal; mode "trace" records one named process (process {name, goal}, optional followup_key of an open FUP). Validates config and the production guard before any browser opens.',
+    {
+      portal_id: z.string(),
+      persona_id: z.string(),
+      resume_run_id: z.string().optional(),
+      mode: z.enum(['map', 'trace']).optional(),
+      process: z.object({ name: z.string(), goal: z.string() }).optional(),
+      followup_key: z.string().optional(),
+    },
     async (args, span) => {
       const { output, run, approved, robots } = await startRunRecord(ctx, args);
       span.setRunId(run.id);
@@ -109,23 +116,35 @@ export function registerTools(server: McpServer, ctx: ServerContext, runtime: Ru
   );
   tool(
     'navigate',
-    'Navigate to a URL (checked against scope, denylist and the read-only ceiling). The server records what it observes.',
+    "Navigate to a URL (checked against scope, denylist and the read-only ceiling). The server records what it observes. Trace runs require `intent` (the step's purpose).",
     {
       run_id: z.string(),
       url: z.string(),
       rationale: z.string().trim().min(1).max(300),
+      intent: z.string().trim().min(1).max(200).optional(),
     },
     (a) => runtime.navigate(ctx, a),
   );
   tool(
     'act',
-    'Perform an action_id the server issued for the current state. The server re-checks safety before executing.',
+    'Perform an action_id the server issued for the current state. The server re-checks safety before executing. Trace runs require `intent`; fill/select actions take a synthetic `value`. TRACE_BOUNDARY_REACHED ends the run: stop and report.',
     {
       run_id: z.string(),
       action_id: z.string(),
       rationale: z.string().trim().min(1).max(300),
+      intent: z.string().trim().min(1).max(200).optional(),
+      value: z.string().max(500).optional(),
     },
-    (a) => runtime.act(ctx, a),
+    async (a) => {
+      try {
+        return await runtime.act(ctx, a);
+      } catch (e) {
+        // The boundary ended the run: release its browser like finish_run does.
+        if (e instanceof ToolError && e.code === 'TRACE_BOUNDARY_REACHED')
+          await runtime.closeRun?.(a.run_id);
+        throw e;
+      }
+    },
   );
   tool(
     'add_open_question',
@@ -141,10 +160,12 @@ export function registerTools(server: McpServer, ctx: ServerContext, runtime: Ru
   );
   tool(
     'finish_run',
-    'Request completion; succeeds only when the frontier is empty or a budget is exhausted.',
+    'Request completion. Map runs: succeeds only when the frontier is empty or a budget is exhausted. Trace runs: pass outcome (goal_reached | abandoned) and a facts-only observed_result.',
     {
       run_id: z.string(),
       summary: z.string().optional(),
+      outcome: z.enum(['goal_reached', 'abandoned']).optional(),
+      observed_result: z.string().optional(),
       rationale: z.string().trim().min(1).max(300),
     },
     async (a) => {

@@ -108,6 +108,21 @@ keyed, revisioned, evidence-linked draft records inside analysis sessions.
 
 ---
 
+## Model split and order for R-14 + R-15 (2026-10-03)
+
+R-14 and R-15 are built together on `feature/004-r14-r15-trace-mode-docs-tab` so trace results show
+in the Docs tab. Suggested model per task:
+
+| Model | R-14 | R-15 |
+|---|---|---|
+| `[sonnet]` | T033, T034, T035, T037, T038, T039, T041, T046, T047, T048, T049 | T051, T052, T053, T055, T056, T057, T058, T060, T061, T062, T063, T069 |
+| `[opus]` | T036, T040, T042, T043, T044, T045, T050 | T054, T059, T064, T065, T066, T067, T068, T070, T071 |
+
+Order: R-14 foundation (T033–T035, T037–T039, T041) → trace core (T036, T040, T042–T045) → agent,
+BA reads, skill (T046–T049). R-15 starts once T037 is committed (the dashboard fixture store is built
+from the migrations): read side (T051–T063), then review (T064–T070). Manual runs (T050, T071) last:
+T050 needs a Claude Code session started after the trace tools exist (MCP servers load at start).
+
 ## Phase 4: User Story 4 — Crawler traces a named process (P2, R-14)
 
 **Goal**: `trace` mode records one process as server-observed steps; production stops at the first
@@ -118,29 +133,29 @@ non-read action with a not-observable remainder.
 
 ### Tests for User Story 4 (write first, must fail)
 
-- [ ] T033 [P] [US4] `apps/crawler/packages/config/tests/persona-trace-inputs.test.ts`: `trace_inputs` map (label verbatim → value) accepted; a value the PII scrubber would change (e-mail, PESEL-like, phone) → `CONFIG_INVALID`; inherited through `extends`
-- [ ] T034 [P] [US4] `apps/crawler/packages/crawler/tests/action-extractor.test.ts` (extend): with `{ mode: 'trace' }` textbox, searchbox, combobox, spinbutton, checkbox, radio become `fill`/`check`/`select` actions with safety class `read` and ranked locators; map mode unchanged (existing expectations stay)
-- [ ] T035 [P] [US4] `apps/crawler/packages/crawler/tests/step-outcomes.test.ts`: pure `stepOutcomes(before, after)` over two ARIA snapshots + URLs → strings for title change, route change, new dialog/alert, new validation messages, element count changes; deterministic order
-- [ ] T036 [P] [US4] `apps/crawler/packages/mcp-server/tests/trace-run.test.ts` with `startReferencePortal({port: 0})`: sandbox trace "Oblicz składkę OC/AC" → steps with fills, `finish_run(goal_reached)`, process `recorded` whose steps reach the result page; `reference-insurer-readonly` (production) → `TRACE_BOUNDARY_REACHED` at `Kup polisę` with `{process_id, steps, action, rule}`, process `boundary_reached` with `boundary_action_id` and `not_observable`, one crawler open question, run `completed`, portal request log has no POST (SC-005); missing `intent` or `process` → `SCHEMA_INVALID`; `get_next_frontier_item` → null; map runs unchanged; `followup_key`: `open → in_progress → done` and `→ blocked` with the rule
+- [X] T033 [P] [US4] `apps/crawler/packages/config/tests/persona-trace-inputs.test.ts`: `trace_inputs` map (label verbatim → value) accepted; a value the PII scrubber would change (real-looking e-mail, PESEL-like, phone) → `CONFIG_INVALID`, except an e-mail on a reserved test TLD (`.invalid`, `.test`, `.example`, accepted since `1462cb0`); inherited through `extends`
+- [X] T034 [P] [US4] `apps/crawler/packages/crawler/tests/action-extractor.test.ts` (extend): with `{ mode: 'trace' }` textbox, searchbox, combobox, spinbutton, checkbox, radio become `fill`/`check`/`select` actions with safety class `read` and ranked locators; map mode unchanged (existing expectations stay)
+- [X] T035 [P] [US4] `apps/crawler/packages/crawler/tests/step-outcomes.test.ts`: pure `stepOutcomes(before, after)` over two ARIA snapshots + URLs → strings for title change, route change, new dialog/alert, new validation messages, element count changes; deterministic order
+- [X] T036 [P] [US4] `apps/crawler/packages/mcp-server/tests/trace-run.test.ts` with `startReferencePortal({port: 0})`: sandbox trace "Oblicz składkę OC/AC" → steps with fills, `finish_run(goal_reached)`, process `recorded` whose steps reach the result page; `reference-insurer-readonly` (production) → `TRACE_BOUNDARY_REACHED` at `Kup polisę` with `{process_id, steps, action, rule}`, process `boundary_reached` with `boundary_action_id` and `not_observable`, one crawler open question, run `completed`, portal request log has no POST (SC-005); missing `intent` or `process` → `SCHEMA_INVALID`; `get_next_frontier_item` → null; map runs unchanged; `followup_key`: `open → in_progress → done` and `→ blocked` with the rule
 
 ### Implementation for User Story 4
 
-- [ ] T037 [DB] [US4] Migration `data/migrations/0005_trace_processes.{up,down}.sql` per data-model.md: `processes` (`run_id` UNIQUE FK; `status` CHECK `recorded, replay_verified, documented`; `outcome` CHECK `goal_reached, boundary_reached, stopped, abandoned` or NULL; `boundary_action_id` and `not_observable` required when `boundary_reached`), `process_steps` (UNIQUE(`process_id`,`ord`); `kind` CHECK `navigate, click, fill, check, select`; `outcomes_json` JSON array; `evidence_ref` non-empty; `confidence` enum); regenerate `schema.sql`; add both tables to the portal partition in `core/src/portal-data.ts` before `runs`
-- [ ] T038 [P] [US4] Zod `apps/crawler/packages/core/src/schemas/process.ts`, `process-step.ts`; `RunMode` in `run.ts` → `['map','trace']`; `db-types.ts`; schema tests
-- [ ] T039 [US4] `trace_inputs` in `apps/crawler/packages/config/src/persona-schema.ts` + PII check in `load-persona.ts`; add synthetic `trace_inputs` for the calculator and contact fields to `personas/reference-insurer/guest.yaml`. T033 passes
-- [ ] T040 [US4] Trace-mode fillable controls in `apps/crawler/packages/crawler/src/action-extractor.ts` (option `mode`), `fill/check/select` execution with `value` in `apps/crawler/packages/mcp-server/src/runtime/browser-runtime.ts`. T034 passes
-- [ ] T041 [P] [US4] `apps/crawler/packages/crawler/src/step-outcomes.ts`. T035 passes
-- [ ] T042 [US4] `apps/crawler/packages/mcp-server/src/services/trace.ts`: create process on trace `start_run`; `appendStep` (ord, intent, kind, action/edge, scrubbed value, state before/after, `stepOutcomes`, evidence ref, `observed`); `closeProcess(outcome, …)`; follow-up transitions `open → in_progress → done|blocked` (research §11)
-- [ ] T043 [US4] Tool/input plumbing per contracts/crawler-trace-tools.md in `apps/crawler/packages/mcp-server/src/tools/index.ts`, `services/start-run.ts`, `services/frontier.ts`, `runtime/pipeline.ts`: `mode`, `process`, `followup_key` (must be an `open` FUP of the portal), `intent` (required in trace), `value` (fill/select only, `PII_SUSPECTED`), no frontier in trace, `step` in results
-- [ ] T044 [US4] Boundary in `apps/crawler/packages/mcp-server/src/runtime/pipeline.ts`: on an action-gate refusal for safety class in a trace run → `closeProcess(boundary_reached)`, crawler open question "What happens after '<name>'? Not observable: <class> on <environment>", run `completed`, follow-up `blocked`, error `TRACE_BOUNDARY_REACHED` (add to `errors.ts`); robots/denylist/scope refusals unchanged
-- [ ] T045 [US4] `finish_run` trace variant (`outcome` `goal_reached|abandoned` required, `observed_result` ≤ 1000, no frontier check) in `services/run-lifecycle.ts` / `tools/index.ts`. T036 passes
-- [ ] T046 [AG] [US4] `.claude/agents/crawler.md`: description covers both modes ("maps a portal or traces one named process…; never interprets business intent or tests"); new "Trace" section (start_run with mode/process[/followup_key], pass `intent` on every call, use `trace_inputs` values or obvious synthetic values, stop and report on `TRACE_BOUNDARY_REACHED`, `finish_run` with outcome + facts-only `observed_result`); lint with `lint_agent.py`; existing lockdown test unchanged
-- [ ] T047 [P] [US4] Failing tests then BA tools `list_processes`, `get_process` in `apps/crawler/packages/mcp-server/src/services/ba/reads.ts` + registration; `BA_TOOL_NAMES` → 15 (update T018's test)
-- [ ] T048 [P] [US4] Process targets in `apps/crawler/packages/docs/src/evidence.ts` (`process`, `process_step` resolve to their run; `process_step` qualifies for `observed`) with tests; fixture store gains a trace run (sandbox, goal reached) and a boundary trace (production)
-- [ ] T049 [US4] `.claude/skills/ba-practice/SKILL.md` + `references/use-cases.md`: process pass uses `get_process`; `PROC` `observed_extent` (`full | until_boundary | map_only`); use-case main flow from steps; boundary → not_observable + OQ; request traces with `FUP` (`suggested_mode: trace`, target `{process_name, goal}`)
-- [ ] T050 [US4] Manual validation quickstart.md R-14: crawler agent traces each open FUP from T032 on `reference-insurer` and one on `reference-insurer-readonly`; ba agent re-run builds `PROC`/`UC`; note results in `roadmap.md`
+- [X] T037 [DB] [US4] Migration `data/migrations/0005_trace_processes.{up,down}.sql` per data-model.md: `processes` (`run_id` UNIQUE FK; `status` CHECK `recorded, replay_verified, documented`; `outcome` CHECK `goal_reached, boundary_reached, stopped, abandoned` or NULL; `boundary_action_id` and `not_observable` required when `boundary_reached`), `process_steps` (UNIQUE(`process_id`,`ord`); `kind` CHECK `navigate, click, fill, check, select`; `outcomes_json` JSON array; `evidence_ref` non-empty; `confidence` enum); regenerate `schema.sql`; add both tables to the portal partition in `core/src/portal-data.ts` before `runs`
+- [X] T038 [P] [US4] Zod `apps/crawler/packages/core/src/schemas/process.ts`, `process-step.ts`; `RunMode` in `run.ts` → `['map','trace']`; `db-types.ts`; schema tests
+- [X] T039 [US4] `trace_inputs` in `apps/crawler/packages/config/src/persona-schema.ts` + PII check in `load-persona.ts`; add synthetic `trace_inputs` for the calculator and contact fields to `personas/reference-insurer/guest.yaml`. T033 passes
+- [X] T040 [US4] Trace-mode fillable controls in `apps/crawler/packages/crawler/src/action-extractor.ts` (option `mode`), `fill/check/select` execution with `value` in `apps/crawler/packages/mcp-server/src/runtime/browser-runtime.ts`. T034 passes
+- [X] T041 [P] [US4] `apps/crawler/packages/crawler/src/step-outcomes.ts`. T035 passes
+- [X] T042 [US4] `apps/crawler/packages/mcp-server/src/services/trace.ts`: create process on trace `start_run`; `appendStep` (ord, intent, kind, action/edge, scrubbed value, state before/after, `stepOutcomes`, evidence ref, `observed`); `closeProcess(outcome, …)`; follow-up transitions `open → in_progress → done|blocked` (research §11)
+- [X] T043 [US4] Tool/input plumbing per contracts/crawler-trace-tools.md in `apps/crawler/packages/mcp-server/src/tools/index.ts`, `services/start-run.ts`, `services/frontier.ts`, `runtime/pipeline.ts`: `mode`, `process`, `followup_key` (must be an `open` FUP of the portal), `intent` (required in trace), `value` (fill/select only, `PII_SUSPECTED`), no frontier in trace, `step` in results
+- [X] T044 [US4] Boundary in `apps/crawler/packages/mcp-server/src/runtime/pipeline.ts`: on an action-gate refusal for safety class in a trace run → `closeProcess(boundary_reached)`, crawler open question "What happens after '<name>'? Not observable: <class> on <environment>", run `completed`, follow-up `blocked`, error `TRACE_BOUNDARY_REACHED` (add to `errors.ts`); robots/denylist/scope refusals unchanged
+- [X] T045 [US4] `finish_run` trace variant (`outcome` `goal_reached|abandoned` required, `observed_result` ≤ 1000, no frontier check) in `services/run-lifecycle.ts` / `tools/index.ts`. T036 passes
+- [X] T046 [AG] [US4] `.claude/agents/crawler.md`: description covers both modes ("maps a portal or traces one named process…; never interprets business intent or tests"); new "Trace" section (start_run with mode/process[/followup_key], pass `intent` on every call, use `trace_inputs` values or obvious synthetic values, stop and report on `TRACE_BOUNDARY_REACHED`, `finish_run` with outcome + facts-only `observed_result`); lint with `lint_agent.py`; existing lockdown test unchanged
+- [X] T047 [P] [US4] Failing tests then BA tools `list_processes`, `get_process` in `apps/crawler/packages/mcp-server/src/services/ba/reads.ts` + registration; `BA_TOOL_NAMES` → 15 (update T018's test)
+- [X] T048 [P] [US4] Process targets in `apps/crawler/packages/docs/src/evidence.ts` (`process`, `process_step` resolve to their run; `process_step` qualifies for `observed`) with tests; fixture store gains a trace run (sandbox, goal reached) and a boundary trace (production)
+- [X] T049 [US4] `.claude/skills/ba-practice/SKILL.md` + `references/use-cases.md`: process pass uses `get_process`; `PROC` `observed_extent` (`full | until_boundary | map_only`); use-case main flow from steps; boundary → not_observable + OQ; request traces with `FUP` (`suggested_mode: trace`, target `{process_name, goal}`)
+- [X] T050 [US4] Manual validation quickstart.md R-14: crawler agent traces each open FUP from T032 on `reference-insurer` and one on `reference-insurer-readonly`; ba agent re-run builds `PROC`/`UC`; note results in `roadmap.md`
 
-**Checkpoint**: R-14 closable.
+**Checkpoint**: R-14 closable. Closed 2026-10-03 (FUP-008 left open, not traced).
 
 ---
 
@@ -153,22 +168,22 @@ links, run → docs reverse tab; live.
 
 ### Tests for User Story 2 (write first, must fail)
 
-- [ ] T051 [P] [US2] `apps/dashboard/tests/conftest.py`: seed helpers for Layer B and process rows (inserting directly into the fixture store built from migrations, test-only) and a `ba_fixture` store: portal `reference-insurer` with records of every kind, a REQ with 2 revisions (rev 1 confirmed, rev 2 draft), a rejected BR with reason, a withdrawn GL, a not-observable PROC with OQ, FUP `blocked`, evidence links to states/forms/network calls/process steps across 2 runs, one link to a deleted target (broken link)
-- [ ] T052 [P] [US2] `apps/dashboard/tests/test_models_schema.py` passes for the 10 new tables once models exist (TABLE_MODELS must equal the table set — fails now)
-- [ ] T053 [P] [US2] `apps/dashboard/tests/test_docs_queries.py`: portal list with counts by status; section listings with filters (`kind`, `status`, `confidence`, `flag`); record detail with revisions/links/relations in and out/reviews; resolved evidence rows carry run id, mode, date; broken links flagged; run → citing records; session detail
-- [ ] T054 [P] [US2] Diagram goldens `specs/004-ba-documentation/contracts/diagram-fixtures/` (`process-map.json`/`.mmd` incl. a boundary node, `screen-nav.json`/`.mmd`, `capability-map.json`/`.mmd`) and `apps/dashboard/tests/test_diagrams.py` asserting byte equality
-- [ ] T055 [P] [US2] `apps/dashboard/tests/test_docs_routes.py`: every page/fragment of contracts/http-routes-docs.md renders on `ba_fixture` (200), empty state on a store with no records, unknown key → 404, evidence link hrefs point to `/runs/{run_id}?tab=…#id` (SC-003: requirement page → run page is one link), run `docs` tab lists citing records, `process` tab on trace runs, `?rev=1` shows the older revision; `test_readonly.py` route sweep includes all new GET routes
-- [ ] T056 [P] [US2] `apps/dashboard/tests/test_perf.py`: every Docs page < 1 s on a synthetic store with 2 000 records × 3 revisions × 3 links
+- [X] T051 [P] [US2] `apps/dashboard/tests/conftest.py`: seed helpers for Layer B and process rows (inserting directly into the fixture store built from migrations, test-only) and a `ba_fixture` store: portal `reference-insurer` with records of every kind, a REQ with 2 revisions (rev 1 confirmed, rev 2 draft), a rejected BR with reason, a withdrawn GL, a not-observable PROC with OQ, FUP `blocked`, evidence links to states/forms/network calls/process steps across 2 runs, one link to a deleted target (broken link)
+- [X] T052 [P] [US2] `apps/dashboard/tests/test_models_schema.py` passes for the 10 new tables once models exist (TABLE_MODELS must equal the table set — fails now)
+- [X] T053 [P] [US2] `apps/dashboard/tests/test_docs_queries.py`: portal list with counts by status; section listings with filters (`kind`, `status`, `confidence`, `flag`); record detail with revisions/links/relations in and out/reviews; resolved evidence rows carry run id, mode, date; broken links flagged; run → citing records; session detail
+- [X] T054 [P] [US2] Diagram goldens `specs/004-ba-documentation/contracts/diagram-fixtures/` (`process-map.json`/`.mmd` incl. a boundary node, `screen-nav.json`/`.mmd`, `capability-map.json`/`.mmd`) and `apps/dashboard/tests/test_diagrams.py` asserting byte equality
+- [X] T055 [P] [US2] `apps/dashboard/tests/test_docs_routes.py`: every page/fragment of contracts/http-routes-docs.md renders on `ba_fixture` (200), empty state on a store with no records, unknown key → 404, evidence link hrefs point to `/runs/{run_id}?tab=…#id` (SC-003: requirement page → run page is one link), run `docs` tab lists citing records, `process` tab on trace runs, `?rev=1` shows the older revision; `test_readonly.py` route sweep includes all new GET routes
+- [X] T056 [P] [US2] `apps/dashboard/tests/test_perf.py`: every Docs page < 1 s on a synthetic store with 2 000 records × 3 revisions × 3 links
 
 ### Implementation for User Story 2
 
-- [ ] T057 [US2] Read models for the 10 new tables in `apps/dashboard/src/pathfinder_dashboard/models.py` (+ view models `DocPortalSummary`, `DocRecordRow`, `DocRecordDetail`, `ResolvedEvidence`, `SessionDetail`). T052 passes
-- [ ] T058 [US2] `apps/dashboard/src/pathfinder_dashboard/queries_docs.py` (pure over a ro connection; evidence resolution by `run_id` + `target_kind` table lookup; keyset pagination as in `queries.py`). T053 passes
-- [ ] T059 [P] [US2] TS Mermaid builders `apps/crawler/packages/docs/src/render/mermaid.ts` (process map, screen navigation, capability map) tested against the same goldens in `packages/docs/tests/mermaid.test.ts`; Python twin `apps/dashboard/src/pathfinder_dashboard/diagrams.py`. T054 passes in both apps
-- [ ] T060 [FE] [US2] Vendor `mermaid.min.js` (pinned version, URL + sha256 in `static/vendor/README.md`) and `static/js/diagrams.js` (render `pre.mermaid` after htmx swaps; theme from Console tokens; loaded only by Docs templates)
-- [ ] T061 [FE] [US2] Nav tab **Docs**; pages `/docs`, `/docs/{portal}` (section index with counts, section list, filters with `push=1`), live fragments; templates in `templates/docs/` and `templates/partials/docs/`; status/confidence/not-observable badges per `revamp-dashboard` conventions (text, not colour alone); routes in `app.py`
-- [ ] T062 [FE] [US2] Record page `/docs/{portal}/{key}`: header, rendered content per kind (use case flows, Gherkin blocks, decision tables, verbatim terms with `lang`), diagram, evidence list (links, notes, broken-link state), relations in/out, revision history with `?rev=`, review list (read-only here)
-- [ ] T063 [FE] [US2] Session page `/docs/{portal}/sessions/{id}`; run page tabs `docs` and `process` (`/fragments/runs/{run_id}/docs|process`) in `run_detail.html` / `partials/`. T055, T056 pass
+- [X] T057 [US2] Read models for the 10 new tables in `apps/dashboard/src/pathfinder_dashboard/models.py` (+ view models `DocPortalSummary`, `DocRecordRow`, `DocRecordDetail`, `ResolvedEvidence`, `SessionDetail`). T052 passes
+- [X] T058 [US2] `apps/dashboard/src/pathfinder_dashboard/queries_docs.py` (pure over a ro connection; evidence resolution by `run_id` + `target_kind` table lookup; keyset pagination as in `queries.py`). T053 passes
+- [X] T059 [P] [US2] TS Mermaid builders `apps/crawler/packages/docs/src/render/mermaid.ts` (process map, screen navigation, capability map) tested against the same goldens in `packages/docs/tests/mermaid.test.ts`; Python twin `apps/dashboard/src/pathfinder_dashboard/diagrams.py`. T054 passes in both apps
+- [X] T060 [FE] [US2] Vendor `mermaid.min.js` (pinned version, URL + sha256 in `static/vendor/README.md`) and `static/js/diagrams.js` (render `pre.mermaid` after htmx swaps; theme from Console tokens; loaded only by Docs templates)
+- [X] T061 [FE] [US2] Nav tab **Docs**; pages `/docs`, `/docs/{portal}` (section index with counts, section list, filters with `push=1`), live fragments; templates in `templates/docs/` and `templates/partials/docs/`; status/confidence/not-observable badges per `revamp-dashboard` conventions (text, not colour alone); routes in `app.py`
+- [X] T062 [FE] [US2] Record page `/docs/{portal}/{key}`: header, rendered content per kind (use case flows, Gherkin blocks, decision tables, verbatim terms with `lang`), diagram, evidence list (links, notes, broken-link state), relations in/out, revision history with `?rev=`, review list (read-only here)
+- [X] T063 [FE] [US2] Session page `/docs/{portal}/sessions/{id}`; run page tabs `docs` and `process` (`/fragments/runs/{run_id}/docs|process`) in `run_detail.html` / `partials/`. T055, T056 pass
 
 **Checkpoint**: Docs readable end to end; still read-only.
 
@@ -181,16 +196,16 @@ derived by the status engine.
 
 **Independent Test**: quickstart.md R-15 step 3; `test_review.py`; `docs/tests/review.test.ts`.
 
-- [ ] T064 [US3] Amend `.specify/memory/constitution.md` to 1.4.0 per research §2 (Python tooling bullet: dashboard may record review decisions only by invoking the TS review command, its process opens the store read-only; Principle VI: review decisions are records and status is derived from them by deterministic code); update Sync Impact Report and Last Amended; update plan.md Constitution Check rows from **Amend** to Pass
-- [ ] T065 [P] [US3] Failing tests `apps/crawler/packages/docs/tests/review.test.ts` for `applyReview(db, input)`: Zod input (`portal_id, key, rev_no, action, text?, reviewer`); confirm/reject only latest `draft` else `STALE_REVISION` (details latest rev + status); reject/comment need `text`; one transaction (review row + status engine + denormalised record); `cancelFollowup` → `cancelled`; result shape of contracts/operator-cli.md
-- [ ] T066 [US3] Implement `apps/crawler/packages/docs/src/review.ts` and thin `apps/crawler/scripts/docs-review.ts` + `"docs:review"` script (stdin JSON or flags, one JSON line on stdout, exit 0/2/1). T065 passes
-- [ ] T067 [P] [US3] Failing tests `apps/dashboard/tests/test_review.py`: POST without `PATHFINDER_REVIEWER` → 403; foreign `Origin` → 403; confirm on the latest draft → 200, panel + header fragments show `confirmed` (runs the real `docs:review` against the fixture store; marked `integration`, skipped with a reason when `pnpm` is absent); stale → 409 inline message; reject without text → 422; the store diff after POST is exactly the reported review + status rows; GET routes still leave the hash unchanged
-- [ ] T068 [US3] `apps/dashboard/src/pathfinder_dashboard/settings.py` (+ `reviewer: str | None`, `crawler_dir` default `<repo>/apps/crawler`) and `review.py` (subprocess `pnpm --dir <crawler_dir> docs:review --env <env>` with JSON on stdin, 10 s timeout, map exit codes/errors to HTTP 200/409/422/500; never opens a writable connection)
-- [ ] T069 [FE] [US3] Review panel on the record page: confirm / reject (reason required) / comment forms for the latest revision, disabled with a hint when reviewer unset; `POST /docs/{portal}/{key}/reviews` in `app.py` with the same-origin guard, returning panel + header via htmx OOB swap; inline refusal messages. T067 passes
-- [ ] T070 [US3] Extend `apps/crawler/packages/mcp-server/tests/ba-e2e.test.ts`: after `applyReview(reject)` the next session's `get_pending_feedback` returns it, the BA revises with `responds_to_review`, the new revision is `draft` and the confirmed baseline stays visible (US3 scenario 2)
-- [ ] T071 [US3] Manual validation quickstart.md R-15 steps 1–3 in a browser (two tabs for the stale case); note in `roadmap.md`
+- [X] T064 [US3] Amend `.specify/memory/constitution.md` to 1.4.0 per research §2 (Python tooling bullet: dashboard may record review decisions only by invoking the TS review command, its process opens the store read-only; Principle VI: review decisions are records and status is derived from them by deterministic code); update Sync Impact Report and Last Amended; update plan.md Constitution Check rows from **Amend** to Pass
+- [X] T065 [P] [US3] Failing tests `apps/crawler/packages/docs/tests/review.test.ts` for `applyReview(db, input)`: Zod input (`portal_id, key, rev_no, action, text?, reviewer`); confirm/reject only latest `draft` else `STALE_REVISION` (details latest rev + status); reject/comment need `text`; one transaction (review row + status engine + denormalised record); `cancelFollowup` → `cancelled`; result shape of contracts/operator-cli.md
+- [X] T066 [US3] Implement `apps/crawler/packages/docs/src/review.ts` and thin `apps/crawler/scripts/docs-review.ts` + `"docs:review"` script (stdin JSON or flags, one JSON line on stdout, exit 0/2/1). T065 passes
+- [X] T067 [P] [US3] Failing tests `apps/dashboard/tests/test_review.py`: POST without `PATHFINDER_REVIEWER` → 403; foreign `Origin` → 403; confirm on the latest draft → 200, panel + header fragments show `confirmed` (runs the real `docs:review` against the fixture store; marked `integration`, skipped with a reason when `pnpm` is absent); stale → 409 inline message; reject without text → 422; the store diff after POST is exactly the reported review + status rows; GET routes still leave the hash unchanged
+- [X] T068 [US3] `apps/dashboard/src/pathfinder_dashboard/settings.py` (+ `reviewer: str | None`, `crawler_dir` default `<repo>/apps/crawler`) and `review.py` (subprocess `pnpm --dir <crawler_dir> docs:review --env <env>` with JSON on stdin, 10 s timeout, map exit codes/errors to HTTP 200/409/422/500; never opens a writable connection)
+- [X] T069 [FE] [US3] Review panel on the record page: confirm / reject (reason required) / comment forms for the latest revision, disabled with a hint when reviewer unset; `POST /docs/{portal}/{key}/reviews` in `app.py` with the same-origin guard, returning panel + header via htmx OOB swap; inline refusal messages. T067 passes
+- [X] T070 [US3] Extend `apps/crawler/packages/mcp-server/tests/ba-e2e.test.ts`: after `applyReview(reject)` the next session's `get_pending_feedback` returns it, the BA revises with `responds_to_review`, the new revision is `draft` and the confirmed baseline stays visible (US3 scenario 2)
+- [X] T071 [US3] Manual validation quickstart.md R-15 steps 1–3 in a browser (two tabs for the stale case); note in `roadmap.md`
 
-**Checkpoint**: R-15 closable.
+**Checkpoint**: R-15 closable. Closed 2026-10-03.
 
 ---
 

@@ -14,3 +14,13 @@ Fetched 2026-09-25; do not edit. Update by re-downloading and replacing the hash
 | `fonts/jetbrains-mono-latin-ext-700-normal.woff2` | https://cdn.jsdelivr.net/npm/@fontsource/jetbrains-mono@5.3.0/files/jetbrains-mono-latin-ext-700-normal.woff2 | `45a606d88f72bc0afae4d1a6988e3dba3a5e77ee51aa3b550e37c31c728f4d2d` |
 
 JetBrains Mono is licensed under the SIL Open Font License 1.1 (`fonts/OFL.txt`). htmx is BSD Zero Clause.
+
+## Mermaid (Docs tab diagrams, loaded only by `static/js/diagrams.js` when a page holds a diagram)
+
+Fetched 2026-10-03; do not edit.
+
+| File | Source | sha256 |
+| --- | --- | --- |
+| `mermaid.min.js` | https://cdn.jsdelivr.net/npm/mermaid@11.4.1/dist/mermaid.min.js | `a43bc1afd446f9c4cc66ac5dd45d02e8d65e26fc5344ec0ef787f88d6ddb6f9e` |
+
+Mermaid is MIT licensed. Pinned to 11.4.1 (exposes the `mermaid` global); bump by re-downloading and replacing the hash.

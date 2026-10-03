@@ -1,0 +1,25 @@
+{% import "partials/macros.html" as m %}
+{% set dt = r.detail %}
+{% set rec = dt.record %}
+{% call m.region("doc-header", r.header_url, "Record header", oob=oob | default(false)) %}
+  <div class="panel">
+    <p>{{ m.doc_status(dt.status) }} {{ m.confidence(dt.shown.confidence) }}
+      {%- if dt.shown.not_observable %} {{ m.not_observable() }}{% endif %}
+      {%- if dt.followup %} {{ m.followup_status(dt.followup.status) }}{% if dt.followup.blocked_reason %} <span class="warning-text">{{ dt.followup.blocked_reason }}</span>{% endif %}{% endif %}</p>
+    {%- if not dt.is_latest %}
+    <p class="warning-text">Showing revision {{ dt.shown.rev_no }} of {{ rec.latest_rev }}, an older revision.
+      <a class="btn btn-bracket" href="{{ c.url('/docs/' ~ portal ~ '/' ~ rec.key) }}">[view latest]</a></p>
+    {%- endif %}
+    <dl class="facts">
+      <div><dt>id</dt><dd><code>{{ rec.key }}</code></dd></div>
+      <div><dt>kind</dt><dd>{{ rec.kind | replace("_", " ") }}</dd></div>
+      <div><dt>revision</dt><dd class="mono-num">{{ dt.shown.rev_no }} of {{ rec.latest_rev }}{% if rec.confirmed_rev %} <span class="muted">· confirmed at rev {{ rec.confirmed_rev }}</span>{% endif %}</dd></div>
+      <div><dt>change</dt><dd>{{ dt.shown.change }}</dd></div>
+      <div><dt>analysis session</dt><dd><a href="{{ c.url('/docs/' ~ portal ~ '/sessions/' ~ dt.shown.session_id) }}"><code>{{ dt.shown.session_id | short_id }}</code></a></dd></div>
+      <div><dt>written (UTC)</dt><dd>{{ dt.shown.created_at | when }}</dd></div>
+      <div><dt>portal</dt><dd><a href="{{ c.url('/docs/' ~ portal) }}">{{ portal }}</a></dd></div>
+      <div><dt>review</dt><dd><a class="btn btn-bracket" href="#region-reviews">[go to review]</a></dd></div>
+    </dl>
+    {%- if dt.shown.change_note %}<p class="muted measure">change note: {{ dt.shown.change_note }}</p>{% endif %}
+  </div>
+{% endcall %}

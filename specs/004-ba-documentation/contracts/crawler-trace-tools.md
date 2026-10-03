@@ -16,19 +16,21 @@ New inputs:
 | `followup_key` | string | optional, trace only; must be an `open` `FUP` record of the portal (`UNKNOWN_REF` otherwise); sets it `in_progress` with this run |
 
 Trace runs create a `processes` row (`status = recorded`). No frontier is seeded; `get_next_frontier_item`
-returns `null` in trace mode.
+returns `null` in trace mode. The output carries the portal's `base_url`, where the trace starts.
 
 ## `navigate`, `act`
 
 | Field | Type | Notes |
 |---|---|---|
 | `intent` | string (≤ 200) | required in trace mode (`SCHEMA_INVALID` if missing), ignored in map mode |
-| `value` | string (≤ 500) | `act` only, only for `fill`/`select` actions; PII-checked (`PII_SUSPECTED`) |
+| `value` | string (≤ 500) | `act` only, only for `fill`/`select` actions; PII-checked (`PII_SUSPECTED`); an e-mail on a reserved test TLD (`.invalid`, `.test`, `.example`) counts as synthetic and is accepted |
 
 In trace mode the state's action list also contains fillable controls (`fill`, `check`, `select`;
 safety class `read`) with their label and, when the persona declares one, the
-`trace_inputs[<label>]` value to use. Every executed call appends one `process_steps` row and the
-result gains `step: { ord, outcomes[] }`.
+`trace_inputs[<label>]` value to use as `suggested_value` (what to type, not the field's content).
+Every executed call appends one `process_steps` row and the result gains `step: { ord, outcomes[] }`.
+A click that changes nothing visible records "No visible change after the step" and one
+"Browser validation on <field>: <message>" per field whose browser validation message is set.
 
 ### Boundary (production or any ceiling below the action's class)
 

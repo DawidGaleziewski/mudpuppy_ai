@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block title %}Docs: not found{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <p class="crumbs"><a href="{{ c.url('/docs') }}">Docs</a></p>
+    <h1>Not found</h1>
+  </div>
+</div>
+{% include "partials/docs/not_found.html" %}
+{% endblock %}

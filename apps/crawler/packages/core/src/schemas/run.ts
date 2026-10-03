@@ -1,8 +1,8 @@
 import { z } from 'zod';
 import { Id, JsonValue, RunStatus, Timestamp } from './common.js';
 
-/** `mode` is a plain string constrained here only: `trace` must not need a schema change (FR-022). */
-export const RunMode = z.enum(['map']);
+/** `mode` is a plain string in SQL (no CHECK, FR-022); Zod is the only place the values are enforced. */
+export const RunMode = z.enum(['map', 'trace']);
 
 export const Run = z
   .object({

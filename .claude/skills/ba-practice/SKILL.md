@@ -60,11 +60,27 @@ PII check reads an id in prose as a token and refuses the write (`PII_SUSPECTED`
 |---|---|---|---|
 | 1 | `inventory` | `get_run_evidence` states, forms, network_calls, actions, decisions | one `screen` per distinct page/UI state cluster: purpose, **route templates exactly as recorded**, elements (role + verbatim label), entry points |
 | 2 | `capabilities` | your screens, nav labels | `capability` records (what the business offers, e.g. "Car insurance quoting"); relations `capability contains screen|process` |
-| 3 | `processes` | trace processes (when available), edges between screens | `process` (goal, persona, trigger, outcome, `observed_extent`) and `use_case` (Cockburn, see `references/use-cases.md`); if no trace exists, a `followup` asking for one |
+| 3 | `processes` | `list_processes`, then `get_process` per process (ordered steps), edges between screens | `process` (goal, persona, trigger, outcome, `observed_extent`) and `use_case` (Cockburn, see `references/use-cases.md`); if no trace exists, a `followup` asking for one |
 | 4 | `rules` | forms (required, pattern, min/max), disabled controls and their hints, validation messages, computed values, refused actions, rule candidates | `business_rule` and `requirement` records (`references/business-rules.md`, `references/requirements-writing.md`) |
 | 5 | `data` | form fields, network call shapes, labels | one `data_item` per field (`name_verbatim` = the label exactly, constraints observed); `glossary_term` per domain term (`references/glossary.md`) |
 | 6 | `nfr` | status codes, console errors, robots policy, languages, accessibility of labels | `nfr` records only for what was measured; everything else goes to gaps |
 | 7 | `synthesis` | your records | `assumption` records, remaining `open_question`s, gap list; check every screen has data items and rules linked, every rule cites its form/screen |
+
+### Pass 3 in detail: processes from traces
+
+- Read each trace with `get_process`: its steps (intent, kind, action label, value, states before and
+  after, outcomes) are the evidence. Cite the `process` and the `process_step`s that show each claim
+  (`target_kind` `process` / `process_step`); a step is a server-observed fact and can carry `observed`.
+- `PROC` field `observed_extent`: `full` when the process ended `goal_reached`; `until_boundary` when it
+  ended `boundary_reached` (a production trace stopped at a mutating action); `map_only` when you
+  know the process only from map data (screens and edges, no trace).
+- Write each `use_case` main flow from the steps, one entry per step: actor steps quote the verbatim
+  label and value, system steps state the recorded outcome (`references/use-cases.md`).
+- A boundary is a `not_observable` gap: record what lies beyond it with `not_observable: true`,
+  `needs_confirmation`, and a linked `open_question` naming the refused action and what could not be
+  seen (the process's `boundary.not_observable` says it). Never write the flow past the boundary.
+- To see more than the traces show (a process you only know as a link, or one that stopped at a
+  boundary and could run in a sandbox), write a `followup` (below) rather than guessing.
 
 Record fields per kind: `references/record-kinds.md`. Document order and what a re-creating team
 needs: `references/srs-outline.md`.
@@ -89,8 +105,11 @@ needs: `references/srs-outline.md`.
 | Behaviour the crawler could record but has not (a flow's steps, a page not visited, the error shown for a bad postcode) | `followup` with `suggested_mode: trace` and `target: {process_name, goal}` for a process, or `map` with `target: {url}`; `reason` says what record it will unblock |
 | Both | a `followup` and an `open_question`, related |
 
-Processes and use cases need trace evidence: request one `followup` (mode `trace`) per process you can
-see an entry point for (e.g. "Oblicz składkę" link), before writing use cases from map data alone.
+Processes and use cases need trace evidence: request one `followup` per process you can see an entry
+point for (e.g. "Oblicz składkę" link), before writing use cases from map data alone. Shape:
+`suggested_mode: trace`, `target: {process_name, goal}` (the name in the portal's words, the goal in
+one English sentence), `persona`, and a `reason` saying which `PROC` and `UC` it will unblock. The
+crawler picks it up, traces it and links the run; the next session reads it with `get_process`.
 
 ## Not observable
 

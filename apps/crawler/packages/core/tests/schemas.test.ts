@@ -34,6 +34,12 @@ import {
   ReviewAction,
   RevisionChange,
   RevisionStatus,
+  Process,
+  ProcessOutcome,
+  ProcessStatus,
+  ProcessStep,
+  ProcessStepKind,
+  RunMode,
 } from '../src/index.js';
 
 const ts = '2026-01-01T00:00:00.000Z';
@@ -608,5 +614,76 @@ describe('Layer B schemas (R-13)', () => {
 
   it('rejects content whose kind is not a doc kind', () => {
     expect(DocContent.safeParse({ kind: 'epic', title: 't' }).success).toBe(false);
+  });
+});
+
+describe('process schemas (R-14)', () => {
+  it('Zod enums equal the CHECK lists in schema.sql', () => {
+    const list = (table: string, column: string) => checkList(table, column, SCHEMA_SQL);
+    expect(ProcessStatus.options).toEqual(list('processes', 'status'));
+    expect(ProcessOutcome.options).toEqual(list('processes', 'outcome'));
+    expect(ProcessStepKind.options).toEqual(list('process_steps', 'kind'));
+    expect(Confidence.options).toEqual(list('process_steps', 'confidence'));
+  });
+
+  it('accepts trace as a run mode', () => {
+    expect(RunMode.options).toEqual(['map', 'trace']);
+  });
+
+  const process = {
+    id: 'p1',
+    run_id: 'r1',
+    portal_id: 'shop',
+    persona_id: 'guest',
+    name: 'Oblicz składkę OC/AC',
+    goal: 'Reach the premium result',
+    followup_record_id: null,
+    status: 'recorded',
+    outcome: null,
+    boundary_action_id: null,
+    observed_result: null,
+    not_observable: null,
+    created_at: ts,
+    ended_at: null,
+  };
+  it('accepts a running process; boundary_reached needs boundary_action_id and not_observable', () => {
+    expect(Process.safeParse(process).success).toBe(true);
+    expect(Process.safeParse({ ...process, outcome: 'goal_reached' }).success).toBe(true);
+    expect(Process.safeParse({ ...process, outcome: 'won' }).success).toBe(false);
+    expect(Process.safeParse({ ...process, status: 'weird' }).success).toBe(false);
+    const boundary = { ...process, outcome: 'boundary_reached' };
+    expect(Process.safeParse(boundary).success).toBe(false);
+    expect(Process.safeParse({ ...boundary, boundary_action_id: 'a1' }).success).toBe(false);
+    expect(Process.safeParse({ ...boundary, not_observable: 'Payment' }).success).toBe(false);
+    expect(
+      Process.safeParse({ ...boundary, boundary_action_id: 'a1', not_observable: 'Payment' })
+        .success,
+    ).toBe(true);
+  });
+
+  const step = {
+    id: 's1',
+    process_id: 'p1',
+    ord: 1,
+    intent: 'Open the calculator',
+    kind: 'navigate',
+    action_id: null,
+    edge_id: null,
+    value: null,
+    state_before: null,
+    state_after: 'st2',
+    outcomes_json: ['Route changed to /kalkulator'],
+    evidence_ref: 'abc.json',
+    confidence: 'observed',
+    created_at: ts,
+  };
+  it('accepts a valid step and rejects bad kind, ord, outcomes, evidence_ref or confidence', () => {
+    expect(ProcessStep.safeParse(step).success).toBe(true);
+    expect(ProcessStep.safeParse({ ...step, kind: 'hover' }).success).toBe(false);
+    expect(ProcessStep.safeParse({ ...step, ord: 0 }).success).toBe(false);
+    expect(ProcessStep.safeParse({ ...step, outcomes_json: 'x' }).success).toBe(false);
+    expect(ProcessStep.safeParse({ ...step, evidence_ref: '' }).success).toBe(false);
+    expect(ProcessStep.safeParse({ ...step, confidence: 'sure' }).success).toBe(false);
+    expect(ProcessStep.safeParse({ ...step, intent: '' }).success).toBe(false);
   });
 });
