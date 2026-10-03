@@ -1,6 +1,7 @@
 {% import "partials/macros.html" as m %}
 {% set s = v.detail.session %}
 {% call m.region("docs-session", v.self_url, "Analysis session") %}
+  {{ m.intro("analysis-session") }}
   <div class="panel">
     <p>{{ m.run_status(s.status) }}</p>
     <dl class="facts">
@@ -20,7 +21,7 @@
     <div class="table-wrap">
       <table class="data stack">
         <caption class="visually-hidden">Runs this session read</caption>
-        <thead><tr><th scope="col">Run</th><th scope="col">Mode</th><th scope="col">Persona</th><th scope="col">Status</th><th scope="col">Started (UTC)</th></tr></thead>
+        <thead><tr><th scope="col">{{ m.term("run", "Run") }}</th><th scope="col">{{ m.term("mode", "Mode") }}</th><th scope="col">{{ m.term("persona", "Persona") }}</th><th scope="col">{{ m.term("status-codes", "Status") }}</th><th scope="col">Started (UTC)</th></tr></thead>
         <tbody>
           {%- for r in v.detail.runs %}
           <tr>
@@ -38,7 +39,7 @@
   </div>
 
   <div class="section">
-    <div class="section-head"><h2>Passes <span class="muted mono-num">{{ s.passes_json | length if s.passes_json is sequence else 0 }}</span></h2></div>
+    <div class="section-head"><h2>{{ m.term("analysis-pass", "Passes") }} <span class="muted mono-num">{{ s.passes_json | length if s.passes_json is sequence else 0 }}</span></h2></div>
     {%- if s.passes_json is sequence and s.passes_json %}
     <div class="table-wrap">
       <table class="data stack">
@@ -87,6 +88,7 @@
 
   <div class="section">
     <div class="section-head"><h2>Gaps <span class="muted mono-num">{{ s.gaps_json | length if s.gaps_json is sequence else 0 }}</span></h2></div>
+    {{ m.intro("gaps") }}
     {%- if s.gaps_json is sequence and s.gaps_json %}
     <ul class="docs-list">{% for g in s.gaps_json %}<li>{{ g }}</li>{% endfor %}</ul>
     {%- else %}

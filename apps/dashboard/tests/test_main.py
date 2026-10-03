@@ -9,8 +9,12 @@ from pathfinder_dashboard import __main__
 def captured(monkeypatch: pytest.MonkeyPatch) -> dict:
     calls: dict = {}
     monkeypatch.setattr(__main__.uvicorn, "run", lambda *a, **kw: calls.update(kw))
-    for var in ("PATHFINDER_DEV", "PATHFINDER_PORT", "PATHFINDER_DEFAULT_ENV"):
-        monkeypatch.delenv(var, raising=False)
+    # setenv first so monkeypatch records the variable and removes what main() sets afterwards;
+    # a bare delenv(raising=False) on an unset variable records nothing and leaks into later tests.
+    names = ("PATHFINDER_DEV", "PATHFINDER_PORT", "PATHFINDER_DEFAULT_ENV", "PATHFINDER_DATA_DIR")
+    for var in names:
+        monkeypatch.setenv(var, "")
+        monkeypatch.delenv(var)
     return calls
 
 

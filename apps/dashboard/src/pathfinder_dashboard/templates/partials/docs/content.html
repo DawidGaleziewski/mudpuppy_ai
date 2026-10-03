@@ -63,7 +63,7 @@
       {%- if x.rationale %}<div><dt>rationale</dt><dd>{{ x.rationale }}{% if x.rationale_confidence %} <span class="muted">(</span>{{ m.confidence(x.rationale_confidence) }}<span class="muted">)</span>{% endif %}</dd></div>{% endif %}
     </dl>
     {%- if x.acceptance_criteria %}
-    <h3>Acceptance criteria</h3>
+    <h3>{{ m.term("acceptance-criteria", "Acceptance criteria") }}</h3>
     <pre class="json gherkin"><code>
       {%- for ac in x.acceptance_criteria -%}
 Scenario {{ loop.index }}

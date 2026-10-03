@@ -29,10 +29,14 @@ main one; a hook limits you to docs edits and plain `git` commands.
 
 ## Closing an item
 1. Confirm every task for it is `[X]` and the working tree is committed; else report and stop.
-2. Set the item `done` in `roadmap.md`. Add a `CHANGELOG.md` entry (Keep a Changelog style, newest
+2. Glossary sync: for every term the item added or changed (new column, status label, record
+   kind, concept), add or update its entry in `docs/glossary/glossary.yaml` with `changed_in`
+   = the item id and `changed_on` = today, then run `uv run pathfinder-glossary --write` in
+   `apps/dashboard`. Nothing changed: say so in the report.
+3. Set the item `done` in `roadmap.md`. Add a `CHANGELOG.md` entry (Keep a Changelog style, newest
    first) naming the item id and the short SHA of the last work commit.
-3. Commit as `docs(changelog): close <item-id> — <title>` with the work SHA in the body.
-4. `git switch master` then `git merge --no-ff <branch>`. Never push.
+4. Commit as `docs(changelog): close <item-id> — <title>` with the work SHA in the body.
+5. `git switch master` then `git merge --no-ff <branch>`. Never push.
 
 ## Rules
 - Don't edit code; record spec/code contradictions as gaps. Unlinked changelog entries can't be traced.

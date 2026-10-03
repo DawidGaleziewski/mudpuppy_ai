@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block title %}{{ page.front.title }} · BA wiki{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <p class="crumbs"><a href="{{ c.url('/glossary') }}">Glossary</a> / <a href="{{ c.url('/glossary/wiki') }}">BA wiki</a> / page</p>
+  </div>
+  <p class="caption">Last changed in {{ page.front.changed_in }}, {{ page.front.changed_on }}</p>
+</div>
+<article class="gl-prose">
+  {{ body }}
+
+  <h2 id="sources">Sources</h2>
+  <ol class="wiki-sources">
+    {%- for s in page.front.citations %}
+    <li>
+      <p>{{ s.source }}, {{ s.edition }}{% if s.section %}, {{ s.section }}{% endif %}.
+        <a href="{{ s.url }}" rel="noopener noreferrer">{{ s.url }}</a>
+        <span class="muted">· checked {{ s.checked_on }}</span></p>
+      {%- if s.quote %}<blockquote>“{{ s.quote }}”</blockquote>{% endif %}
+    </li>
+    {%- endfor %}
+  </ol>
+
+  <p class="gl-meta"><span class="muted">Glossary</span>
+    {%- for gid in page.front.glossary %}{% set e = g.get(gid) %} <a href="{{ c.url('/glossary') }}#{{ gid }}">{{ e.term if e else gid }}</a>{% if not loop.last %} ·{% endif %}{% endfor %}
+  </p>
+</article>
+{% endblock %}

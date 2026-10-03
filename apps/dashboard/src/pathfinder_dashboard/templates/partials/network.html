@@ -1,7 +1,7 @@
 {% import "partials/macros.html" as m %}
 {% set v = section %}
 {% call m.region("network", v.self_url, "Network") %}
-  <div class="section-head"><h2>Network call shapes <span class="muted mono-num">{{ v.page.total }}</span></h2></div>
+  <div class="section-head"><h2>{{ m.term("network-call-shape", "Network call shapes") }} <span class="muted mono-num">{{ v.page.total }}</span></h2></div>
   {%- if not v.page["items"] %}
     {{ m.empty("No network calls recorded in this run", "Only request and response shapes are stored, never values.") }}
   {%- else %}

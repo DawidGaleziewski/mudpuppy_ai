@@ -127,6 +127,8 @@
   --content-max: 1280px;
   --docs-index-w: 240px;
   --textarea-min-h: 64px;
+  --prose-max: 72ch; /* running text: glossary and wiki pages (spec 006) */
+  --tip-w: 32ch; /* glossary tooltip width */
 
   /* effects and motion (three sanctioned animations only) */
   --glow-shadow: 0 0 8px var(--glow);

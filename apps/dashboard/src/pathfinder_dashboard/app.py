@@ -6,6 +6,7 @@ live region re-fetching itself and a full page load produce identical markup.
 
 from __future__ import annotations
 
+import itertools
 import sqlite3
 from collections.abc import AsyncIterable, Iterator
 from contextlib import contextmanager
@@ -22,7 +23,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from starlette.exceptions import HTTPException
 
-from . import db, diagrams, live, queries, queries_docs, review
+from . import db, diagrams, glossary, live, queries, queries_docs, review
 from .models import DECISION_KINDS, FRONTIER_STATUSES, RUN_STATUSES, SAFETY_CLASSES, Run
 from .settings import Settings
 from .version import STARTUP_FINGERPRINT
@@ -108,6 +109,26 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     templates.env.filters["jget"] = jget
     templates.env.filters["short_id"] = short_id
     templates.env.filters["top_locator"] = top_locator
+    templates.env.filters["markdown"] = glossary.markdown_html
+
+    # Glossary (spec 006): loaded once; re-read per request in dev so edits show on reload.
+    loaded: list[glossary.Glossary | glossary.GlossaryError] = [
+        glossary.load_glossary(settings.docs_dir)
+    ]
+
+    def current_glossary() -> glossary.Glossary | glossary.GlossaryError:
+        if settings.dev:
+            loaded[0] = glossary.load_glossary(settings.docs_dir)
+        return loaded[0]
+
+    def glossary_or_none() -> glossary.Glossary | None:
+        g = current_glossary()
+        return g if isinstance(g, glossary.Glossary) else None
+
+    # Templates call GLOSSARY() so the macros see a reload; None means "no tooltips" (FR-011).
+    templates.env.globals["GLOSSARY"] = glossary_or_none
+    # Tooltip ids must be unique on a page even when a term repeats; a process-wide counter is.
+    templates.env.globals["GL_UID"] = itertools.count(1).__next__
 
     class StaticWithCache(StaticFiles):
         async def get_response(self, path: str, scope: Any) -> Response:
@@ -578,6 +599,66 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         except db.StoreMissing as err:
             return missing(c, err, fragment=True)
 
+    # ---- glossary (spec 006; contracts/dashboard-ui.md). No store needed. ------------------
+
+    def glossary_not_found(c: Ctx, what: str) -> HTMLResponse:
+        return render(c, "glossary_not_found.html", 404, what=what, nav_current="glossary")
+
+    @app.get("/glossary", response_class=HTMLResponse)
+    def glossary_index(request: Request, env: str | None = None, q: str = "") -> HTMLResponse:
+        c = ctx(request, env)
+        g = current_glossary()
+        if isinstance(g, glossary.GlossaryError):
+            return render(c, "glossary.html", nav_current="glossary", error=g, q=q, groups=[])
+        return render(
+            c,
+            "glossary.html",
+            nav_current="glossary",
+            g=g,
+            q=q.strip(),
+            groups=glossary_groups(g, q),
+            error=None,
+        )
+
+    @app.get("/glossary/pages/{slug}", response_class=HTMLResponse)
+    def glossary_page(request: Request, slug: str, env: str | None = None) -> HTMLResponse:
+        c = ctx(request, env)
+        g = glossary_or_none()
+        if g is None or slug not in g.pages:
+            return glossary_not_found(c, f"glossary page {slug}")
+        return render(
+            c,
+            "glossary_page.html",
+            nav_current="glossary",
+            title=g.page_title(slug),
+            body=glossary.markdown_html(g.pages[slug], base="pages"),
+        )
+
+    @app.get("/glossary/wiki", response_class=HTMLResponse)
+    def wiki_index(request: Request, env: str | None = None) -> HTMLResponse:
+        c = ctx(request, env)
+        g = glossary_or_none()
+        if g is None:
+            return glossary_not_found(c, "BA wiki (the glossary could not be loaded)")
+        pages = sorted(g.wiki.values(), key=lambda p: p.front.title.casefold())
+        return render(c, "wiki.html", nav_current="glossary", g=g, pages=pages)
+
+    @app.get("/glossary/wiki/{slug}", response_class=HTMLResponse)
+    def wiki_page(request: Request, slug: str, env: str | None = None) -> HTMLResponse:
+        c = ctx(request, env)
+        g = glossary_or_none()
+        if g is None or slug not in g.wiki:
+            return glossary_not_found(c, f"wiki page {slug}")
+        page = g.wiki[slug]
+        return render(
+            c,
+            "wiki_page.html",
+            nav_current="glossary",
+            g=g,
+            page=page,
+            body=glossary.markdown_html(page.body, base="wiki"),
+        )
+
     # ---- live -------------------------------------------------------------------------------
 
     @app.get("/events", response_class=EventSourceResponse)
@@ -604,6 +685,22 @@ def create_app(settings: Settings | None = None) -> FastAPI:
 
 
 # ---- view values: what each partial needs, built once for page and fragment ----------------
+
+
+def glossary_groups(g: glossary.Glossary, q: str) -> list[tuple[str, str, list[glossary.Entry]]]:
+    """Groups in reading order, keeping entries whose term, labels or short text contain `q`."""
+    needle = q.strip().casefold()
+
+    def match(e: glossary.Entry) -> bool:
+        haystack = " ".join((e.term, e.short, *e.labels)).casefold()
+        return not needle or needle in haystack
+
+    out = []
+    for category, group, entries in g.groups():
+        kept = [e for e in entries if match(e)]
+        if kept:
+            out.append((category, group, kept))
+    return out
 
 
 def summary_values(c: Ctx, conn: sqlite3.Connection, portal: str | None) -> dict[str, Any]:

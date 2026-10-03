@@ -9,7 +9,9 @@ from .conftest import BIG_RUN, CAPTCHA_1, CAPTCHA_2, Store, insert, make_client,
 
 
 def text(html: str) -> str:
-    """Visible text, tags stripped and whitespace collapsed (for assertions on content)."""
+    """Visible text, tags stripped and whitespace collapsed (for assertions on content).
+    Glossary tooltips (hidden tip + [?] mark) are left out, as a reader sees the page at rest."""
+    html = re.sub(r'<a class="gl-mark"[^>]*>.*?</a><span class="gl-tip"[^>]*>.*?</span>', "", html)
     return re.sub(r"\s+", " ", re.sub(r"<[^>]+>", " ", html))
 
 

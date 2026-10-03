@@ -87,6 +87,12 @@ The mapping lives in one Jinja macro (`templates/partials/macros.html`); never i
 4. Route tests: labels + counts, filter + `HX-Push-Url`, filter survives reload, empty and
    filtered-empty, escaping of untrusted strings, not-found. Add the tab URL to `tests/test_perf.py`.
 
+**Explain a label** (glossary, spec 006): wrap a column header or section title as
+`{{ m.term("<glossary id>", "Label") }}` for a `[?]` tooltip, or add `{{ m.intro("<id>") }}` under a
+heading for an always-visible line (only for entries with `placement: intro`). The id must exist
+in `docs/glossary/glossary.yaml`; add the entry first (then `uv run pathfinder-glossary --write`),
+or `tests/test_glossary_templates.py` fails. Never change the label text itself.
+
 **New status label**: add it to `macros.html`, the table above and
 `specs/003-dashboard-ui/contracts/ui-conventions.md` in the same change, and list it in your
 report; the user owns the design system and approves new vocabulary.

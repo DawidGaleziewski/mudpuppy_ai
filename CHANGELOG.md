@@ -6,6 +6,16 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Added
+- R-22 glossary and BA wiki: one source (`docs/glossary/glossary.yaml`) explaining 59 Pathfinder
+  and BA terms chosen by the user's term review, long pages for frontier and evidence, generated
+  `docs/glossary/README.md` (`uv run pathfinder-glossary`); dashboard Glossary tab with filter,
+  `[?]` tooltips on ~40 labels and one-line intros on Run, States, Analysis session and Gaps;
+  14 local BA wiki pages citing the IREB CPRE glossary 2.2.0, BABOK v3 sections and ISO/IEC/IEEE
+  29148:2018; a test fails on any template term missing from the glossary; glossary-sync step in
+  the `po` close-out and `CLAUDE.md`. The Actions column "Target" is renamed "Links to"
+  (`specs/006-glossary-ba-wiki`, T001–T030). Also fixed: `apps/dashboard/tests/test_main.py`
+  leaked `PATHFINDER_*` environment variables into later tests.
+  Commits: 502e13d, 1217667, a5a4f62, 1b72bf5, 8b0cf28 (squash-merged on master).
 - R-14 crawler trace mode and R-15 Docs tab: `trace` runs record one named process as ordered
   steps (fill/check/select actions, persona `trace_inputs`, submit boundary on production,
   follow-up lifecycle `open → in_progress → done|blocked`, migration `0005_trace_processes`), BA

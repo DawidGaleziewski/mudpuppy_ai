@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block title %}Glossary: not found{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <p class="crumbs"><a href="{{ c.url('/glossary') }}">Glossary</a></p>
+    <h1>Not found</h1>
+  </div>
+</div>
+{{ m.empty("No " ~ what, "It may have been renamed. The glossary lists every page it links to.", "[ ?? ]") }}
+<p><a class="btn-bracket" href="{{ c.url('/glossary') }}">[back to the glossary]</a></p>
+{% endblock %}

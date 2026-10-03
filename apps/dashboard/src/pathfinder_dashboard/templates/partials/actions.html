@@ -34,8 +34,8 @@
     <table class="data stack">
       <caption class="visually-hidden">Actions extracted in this run</caption>
       <thead><tr>
-        <th scope="col">Accessible name</th><th scope="col">Role</th><th scope="col">Safety class</th>
-        <th scope="col">Decision</th><th scope="col">Top locator</th><th scope="col">Target</th>
+        <th scope="col">{{ m.term("accessible-name", "Accessible name") }}</th><th scope="col">{{ m.term("role", "Role") }}</th><th scope="col">{{ m.term("safety-class", "Safety class") }}</th>
+        <th scope="col">{{ m.term("decision", "Decision") }}</th><th scope="col">{{ m.term("top-locator", "Top locator") }}</th><th scope="col">Links to</th>
       </tr></thead>
       <tbody>
         {%- for a in v.page["items"] %}

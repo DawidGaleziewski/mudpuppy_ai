@@ -1,6 +1,7 @@
 {% import "partials/macros.html" as m %}
 {% set r = s.run %}
 {% call m.region("header", header.self_url, "Run summary") %}
+  {{ m.intro("run") }}
   <div class="panel">
     <p>{{ m.run_status(r.status) }}{% if r.warning %} <span class="warning-text">{{ r.warning }}</span>{% endif %}</p>
     <dl class="facts">

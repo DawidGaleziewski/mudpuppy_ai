@@ -2,7 +2,7 @@
 {% set v = section %}
 {% call m.region("trace", v.self_url, "Trace") %}
   <div class="section-head">
-    <h2>Tool calls <span class="muted mono-num">{{ v.page.total }}</span></h2>
+    <h2>{{ m.term("tool-call", "Tool calls") }} <span class="muted mono-num">{{ v.page.total }}</span></h2>
     {% call m.filter_form(v, c, {"tab": "trace"}) %}
       <fieldset class="field">
         <legend>tool</legend>

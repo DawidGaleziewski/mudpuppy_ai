@@ -31,7 +31,7 @@
     <table class="data stack">
       <caption>Time per phase</caption>
       <thead>
-        <tr><th scope="col">Phase</th><th scope="col" class="num">Count</th><th scope="col" class="num">Sum</th><th scope="col" class="num">p50</th><th scope="col" class="num">p95</th></tr>
+        <tr><th scope="col">{{ m.term("tool-call", "Phase") }}</th><th scope="col" class="num">Count</th><th scope="col" class="num">Sum</th><th scope="col" class="num">{{ m.term("percentiles", "p50") }}</th><th scope="col" class="num">{{ m.term("percentiles", "p95") }}</th></tr>
       </thead>
       <tbody>
         {%- for p in sm.phases %}

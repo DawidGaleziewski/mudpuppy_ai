@@ -77,8 +77,8 @@
     <table class="data stack">
       <caption>Requirement, rule, NFR and use-case traceability: each row's evidence and linked records</caption>
       <thead><tr>
-        <th scope="col">Record</th><th scope="col">Status</th><th scope="col">Confidence</th>
-        <th scope="col" class="num">Evidence</th><th scope="col" class="num">Runs</th><th scope="col">Linked records</th>
+        <th scope="col">Record</th><th scope="col">{{ m.term("record-status", "Status") }}</th><th scope="col">{{ m.term("confidence", "Confidence") }}</th>
+        <th scope="col" class="num">{{ m.term("evidence-link", "Evidence") }}</th><th scope="col" class="num">Runs</th><th scope="col">{{ m.term("relations", "Linked records") }}</th>
       </tr></thead>
       <tbody>
         {%- for row in rows %}
@@ -102,8 +102,8 @@
     <table class="data stack">
       <caption class="visually-hidden">{{ v.label }}</caption>
       <thead><tr>
-        <th scope="col">Record</th><th scope="col">Status</th><th scope="col">Confidence</th>
-        <th scope="col" class="num">Rev</th><th scope="col">Notes</th>
+        <th scope="col">{{ m.term("record-key", "Record") }}</th><th scope="col">{{ m.term("record-status", "Status") }}</th><th scope="col">{{ m.term("confidence", "Confidence") }}</th>
+        <th scope="col" class="num">{{ m.term("revision", "Rev") }}</th><th scope="col">Notes</th>
       </tr></thead>
       <tbody>
         {%- for row in rows %}

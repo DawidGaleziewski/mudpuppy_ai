@@ -6,7 +6,7 @@
 1. Every roadmap item (R-xx) gets a feature branch named per the saved branch naming convention.
 2. Spec → plan → tasks (speckit/po agent) before implementation. Clarify open questions first.
 3. Commit per completed task group with the task IDs (e.g. T007–T011) in the message.
-4. Before merging: tick the validation checkboxes, update roadmap/spec/ledger docs, run the changelog skill (changelog BEFORE merge), merge to master, delete the branch.
+4. Before merging: tick the validation checkboxes, update roadmap/spec/ledger docs, glossary sync (add or update `docs/glossary/glossary.yaml` entries for terms the item added or changed, then `uv run pathfinder-glossary --write` in `apps/dashboard`), run the changelog skill (changelog BEFORE merge), merge to master, delete the branch.
 5. When stopping mid-work, write a session dump listing done/uncommitted/blocked tasks.
 
 

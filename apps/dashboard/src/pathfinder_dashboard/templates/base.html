@@ -23,6 +23,7 @@
         <li><a href="{{ c.url('/') }}"{% if nav_current | default('overview') == 'overview' and not s %} aria-current="page"{% endif %}>Overview</a></li>
         <li><a href="{{ c.url('/docs') }}"{% if nav_current == 'docs' %} aria-current="page"{% endif %}>Docs</a></li>
         <li><a href="{{ c.url('/activity') }}"{% if nav_current == 'activity' %} aria-current="page"{% endif %}>Activity</a></li>
+        <li><a href="{{ c.url('/glossary') }}"{% if nav_current == 'glossary' %} aria-current="page"{% endif %}>Glossary</a></li>
       </ul>
     </nav>
     <div class="topbar-end">

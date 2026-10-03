@@ -7,14 +7,17 @@ requires-python = ">=3.13"
 dependencies = [
     "fastapi>=0.141.1",
     "jinja2>=3.1.6",
+    "markdown-it-py>=4.2.0",
     "pydantic>=2.13.5",
     "pydantic-settings>=2.15.0",
+    "pyyaml>=6.0.3",
     "uvicorn[standard]>=0.54.0",
 ]
 
 [project.scripts]
 pathfinder-dashboard = "pathfinder_dashboard.__main__:main"
 pathfinder-dashboard-smoke = "pathfinder_dashboard.smoke:main"
+pathfinder-glossary = "pathfinder_dashboard.glossary_cli:main"
 
 [build-system]
 requires = ["uv_build>=0.12.10,<0.13.0"]

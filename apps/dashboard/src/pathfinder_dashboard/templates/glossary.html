@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+{% block title %}Glossary{% endblock %}
+{% block head_extra %}<script src="/static/js/glossary.js" defer></script>{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <p class="crumbs"><a href="{{ c.url('/') }}">Overview</a> / glossary</p>
+    <h1>Glossary</h1>
+  </div>
+  <p class="caption">Pathfinder and business-analysis terms · <a href="{{ c.url('/glossary/wiki') }}">[BA wiki]</a></p>
+</div>
+
+{%- if error %}
+<div class="state state-error" role="status">
+  <span class="state-icon st st-fail" aria-hidden="true">[WARN]</span>
+  <p class="state-title">The glossary could not be loaded</p>
+  <p class="muted">Labels show without explanations until docs/glossary/glossary.yaml is fixed. Run <code>uv run pathfinder-glossary</code> in apps/dashboard for the full list.</p>
+  <ul class="docs-list muted">{% for p in error.problems[:10] %}<li><code>{{ p }}</code></li>{% endfor %}</ul>
+</div>
+{%- else %}
+<p class="gl-scope">{{ g.scope }}</p>
+
+<div class="docs-layout gl-layout">
+  <nav class="docs-index" aria-label="Glossary groups">
+    <ul>
+      {%- for category, group, entries in groups %}
+      <li><a href="#group-{{ loop.index }}">{{ group }} <span class="tab-count">{{ entries | length }}</span></a></li>
+      {%- endfor %}
+    </ul>
+  </nav>
+
+  <div class="docs-main">
+    <form class="filters gl-filter" method="get" action="{{ c.url('/glossary') }}" role="search">
+      {%- if c.env_param %}<input type="hidden" name="env" value="{{ c.env_param }}">{% endif %}
+      <label class="field">
+        <span>filter terms</span>
+        <input class="input" type="search" name="q" value="{{ q }}" placeholder="e.g. frontier" data-gl-filter autocomplete="off">
+      </label>
+      <noscript><button class="btn btn-bracket" type="submit">[filter]</button></noscript>
+    </form>
+
+    {%- if not groups %}
+    {{ m.empty("No term matches “" ~ q ~ "”", "Try a shorter word, or clear the filter to see all terms.") }}
+    {%- endif %}
+    <p class="muted gl-none" hidden data-gl-none>No term matches the filter.</p>
+
+    {%- set ns = namespace(category=none) %}
+    {%- for category, group, entries in groups %}
+      {%- if category != ns.category %}
+        {%- set ns.category = category %}
+        <h2 class="gl-category">{{ "Pathfinder terms" if category == "pathfinder" else "Business-analysis terms" }}</h2>
+      {%- endif %}
+      <section class="section gl-group" id="group-{{ loop.index }}" aria-labelledby="group-{{ loop.index }}-title" data-gl-group>
+        <div class="section-head"><h3 id="group-{{ loop.index }}-title">{{ group }}</h3></div>
+        {%- for e in entries %}
+        <article class="panel gl-entry" id="{{ e.id }}" data-gl-text="{{ (e.term ~ ' ' ~ e.short ~ ' ' ~ (e.labels | join(' '))) | lower }}">
+          <header class="gl-entry-head">
+            <h4>{{ e.term }}{% if e.retired %} <span class="muted">(retired)</span>{% endif %}</h4>
+            <span class="caption">{{ "Pathfinder term" if e.category == "pathfinder" else "BA term" }} · <a href="#{{ e.id }}" aria-label="link to {{ e.term }}">#{{ e.id }}</a></span>
+          </header>
+          <p class="gl-short">{{ e.short }}</p>
+          <div class="gl-body">{{ e.explanation | markdown }}</div>
+          {%- if e.example %}<p class="gl-meta"><span class="muted">Example</span> {{ e.example }}</p>{% endif %}
+          {%- if e.appears_in %}<p class="gl-meta"><span class="muted">Seen in</span> {{ e.appears_in | join(" · ") }}</p>{% endif %}
+          {%- if e.related %}
+          <p class="gl-meta"><span class="muted">Related</span>
+            {%- for r in e.related %}{% set t = g.get(r) %} <a href="#{{ r }}">{{ t.term if t else r }}</a>{% if not loop.last %} ·{% endif %}{% endfor %}
+          </p>
+          {%- endif %}
+          {%- if e.page or (e.wiki and e.wiki in g.wiki) %}
+          <p class="gl-meta"><span class="muted">Read more</span>
+            {%- if e.page %} <a href="{{ c.url('/glossary/pages/' ~ e.page) }}">[{{ g.page_title(e.page) }}]</a>{% endif %}
+            {%- if e.wiki and e.wiki in g.wiki %} <a href="{{ c.url('/glossary/wiki/' ~ e.wiki) }}">[BA wiki: {{ g.wiki[e.wiki].front.title }}]</a>{% endif %}
+          </p>
+          {%- endif %}
+          {%- if e.retired %}
+          <p class="gl-meta"><span class="muted">Retired {{ e.retired.since }}</span> {{ e.retired.note }}{% if e.retired.replaced_by %} Replaced by <a href="#{{ e.retired.replaced_by }}">{{ g.get(e.retired.replaced_by).term }}</a>.{% endif %}</p>
+          {%- endif %}
+          <p class="caption">Last changed in {{ e.changed_in }}, {{ e.changed_on }}.</p>
+        </article>
+        {%- endfor %}
+      </section>
+    {%- endfor %}
+  </div>
+</div>
+{%- endif %}
+{% endblock %}

@@ -42,6 +42,10 @@ cd apps/dashboard && uv sync && uv run pathfinder-dashboard   # http://127.0.0.1
 
 See [`apps/dashboard/README.md`](apps/dashboard/README.md) (spec `specs/003-dashboard-ui/`).
 
+New to the vocabulary (run, frontier, evidence, settled, …)? Read the
+[Pathfinder glossary](docs/glossary/README.md), also in the dashboard's Glossary tab, and the
+[BA wiki](docs/wiki/README.md) for the business-analysis concepts behind the documentation.
+
 ## Configuration
 
 | File | Purpose |
@@ -83,6 +87,7 @@ These guarantees are enforced in code, outside the agent:
   - `apps/crawler/` — the TypeScript workspace (`packages/*`: core, fingerprint, safety, config, obstacles, crawler, mcp-server)
   - `apps/dashboard/` — the read-only operator dashboard (Python, uv, FastAPI + htmx)
 - `data/` — migrations, the schema snapshot, and generated databases and evidence
+- `docs/` — the Pathfinder glossary (`docs/glossary/glossary.yaml` is the source) and the BA wiki
 - `specs/` — spec-driven development documents (spec, plan, tasks, contracts, quickstart)
 - `.claude/agents/` — subagents (crawler, db-admin, frontend-dev, governor, po); `.claude/skills/revamp-dashboard/` holds the UI design system
 - `roadmap.md`, `CHANGELOG.md` — status and history, maintained by the `po` agent

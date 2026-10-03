@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block title %}{{ title }}{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <p class="crumbs"><a href="{{ c.url('/glossary') }}">Glossary</a> / page</p>
+  </div>
+</div>
+<article class="gl-prose">
+  {{ body }}
+</article>
+{% endblock %}

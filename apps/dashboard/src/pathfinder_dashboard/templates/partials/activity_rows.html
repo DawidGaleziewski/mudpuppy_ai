@@ -1,7 +1,7 @@
 {% import "partials/macros.html" as m %}
 {% set v = activity %}
 {% call m.region("activity", v.self_url, "Server activity") %}
-  <div class="section-head"><h2>Run-less calls <span class="muted mono-num">{{ v.page.total }}</span></h2></div>
+  <div class="section-head"><h2>{{ m.term("run-less-call", "Run-less calls") }} <span class="muted mono-num">{{ v.page.total }}</span></h2></div>
   {%- if not v.page["items"] %}
     {{ m.empty("No run-less calls recorded", "Every tool call so far happened inside a run.") }}
   {%- else %}

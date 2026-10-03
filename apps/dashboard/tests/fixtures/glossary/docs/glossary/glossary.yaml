@@ -1,0 +1,35 @@
+scope: Test glossary of made-up terms.
+entries:
+  - id: alpha
+    term: Alpha
+    category: pathfinder
+    group: Crawling
+    short: The first test term.
+    explanation: Alpha is explained at length, see [the long page](pages/alpha-long.md).
+    changed_in: R-22
+    changed_on: 2026-10-03
+    labels: [Alpha, Alphas]
+    related: [gamma]
+    page: alpha-long
+    placement: intro
+  - id: beta
+    term: Beta
+    category: ba
+    group: Statements
+    short: A BA test term, e.g. a rule.
+    explanation: Beta comes from business analysis.
+    changed_in: R-22
+    changed_on: 2026-10-03
+    wiki: beta-concept
+  - id: gamma
+    term: Gamma
+    category: pathfinder
+    group: Crawling
+    short: A retired test term.
+    explanation: Gamma was replaced by alpha.
+    changed_in: R-22
+    changed_on: 2026-10-03
+    retired:
+      since: 2026-10-03
+      replaced_by: alpha
+      note: Merged into alpha.

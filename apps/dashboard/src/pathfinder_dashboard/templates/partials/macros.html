@@ -317,3 +317,42 @@
     <rect x="15.5" y="1.5" width="5" height="5" fill="currentColor"/>
   </svg>
 {%- endmacro %}
+
+{#- Glossary (spec 006, contracts/dashboard-ui.md). Labels stay exactly as they were; a known term
+    adds a [?] link to its glossary entry whose short definition shows on hover and keyboard
+    focus. Unknown id or no glossary loaded: the plain label (FR-011). No JavaScript. -#}
+{%- set DOC_SECTION_TERMS = {
+  "capabilities": "capability",
+  "screens": "screen",
+  "processes": "process-record",
+  "requirements": "requirement",
+  "rules": "business-rule",
+  "data": "data-item",
+  "glossary": "glossary-term",
+  "nfr": "nfr",
+  "assumptions": "assumption",
+  "followups": "follow-up-task",
+  "traceability": "traceability",
+} -%}
+
+{% macro term(id, label) -%}
+  {%- set g = GLOSSARY() -%}
+  {%- set e = g.get(id) if g else none -%}
+  {%- if e -%}
+  {%- set tip = "gl-tip-" ~ id ~ "-" ~ GL_UID() -%}
+  <span class="gl">{{ label }}<a class="gl-mark" href="/glossary#{{ id }}" aria-describedby="{{ tip }}" aria-label="What is {{ e.term }}?">[?]</a><span class="gl-tip" role="tooltip" id="{{ tip }}">{{ e.short }}</span></span>
+  {%- else -%}{{ label }}{%- endif -%}
+{%- endmacro %}
+
+{% macro intro(id) -%}
+  {%- set g = GLOSSARY() -%}
+  {%- set e = g.get(id) if g else none -%}
+  {%- if e -%}
+  <p class="section-intro">{{ e.short }} <a class="btn-bracket" href="/glossary#{{ id }}" aria-label="More about {{ e.term }}">[more]</a></p>
+  {%- endif -%}
+{%- endmacro %}
+
+{#- A docs section heading's term, if it has one (DOC_SECTION_TERMS). -#}
+{% macro section_term(section_id, label) -%}
+  {%- if section_id in DOC_SECTION_TERMS -%}{{ term(DOC_SECTION_TERMS[section_id], label) }}{%- else -%}{{ label }}{%- endif -%}
+{%- endmacro %}

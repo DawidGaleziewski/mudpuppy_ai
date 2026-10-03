@@ -12,14 +12,14 @@
   {%- endif %}
 
   <div class="section">
-    <div class="section-head"><h2>Evidence <span class="muted mono-num">{{ dt.evidence | length }}</span></h2></div>
+    <div class="section-head"><h2>{{ m.term("evidence-link", "Evidence") }} <span class="muted mono-num">{{ dt.evidence | length }}</span></h2></div>
     {%- if not dt.evidence %}
       {{ m.empty("No evidence on this revision", "Every revision must cite at least one record; run the docs audit.") }}
     {%- else %}
     <div class="table-wrap">
       <table class="data stack">
         <caption class="visually-hidden">Evidence cited by revision {{ dt.shown.rev_no }}</caption>
-        <thead><tr><th scope="col">Target</th><th scope="col">What it supports</th><th scope="col">Run</th></tr></thead>
+        <thead><tr><th scope="col">{{ m.term("target", "Target") }}</th><th scope="col">What it supports</th><th scope="col">{{ m.term("run", "Run") }}</th></tr></thead>
         <tbody>
           {%- for e in dt.evidence %}
           <tr id="evidence-{{ e.link.id }}">
@@ -46,11 +46,11 @@
   </div>
 
   <div class="section">
-    <div class="section-head"><h2>Relations</h2></div>
+    <div class="section-head"><h2>{{ m.term("relations", "Relations") }}</h2></div>
     <div class="table-wrap">
       <table class="data stack">
         <caption class="visually-hidden">Relations of {{ rec.key }}</caption>
-        <thead><tr><th scope="col">Direction</th><th scope="col">Type</th><th scope="col">Record</th><th scope="col">Status</th></tr></thead>
+        <thead><tr><th scope="col">Direction</th><th scope="col">Type</th><th scope="col">Record</th><th scope="col">{{ m.term("record-status", "Status") }}</th></tr></thead>
         <tbody>
           {%- for rel in dt.relations_out %}
           <tr>
@@ -77,11 +77,11 @@
   </div>
 
   <div class="section">
-    <div class="section-head"><h2>Revision history <span class="muted mono-num">{{ dt.history | length }}</span></h2></div>
+    <div class="section-head"><h2>{{ m.term("revision", "Revision history") }} <span class="muted mono-num">{{ dt.history | length }}</span></h2></div>
     <div class="table-wrap">
       <table class="data stack">
         <caption class="visually-hidden">Every revision of {{ rec.key }}, newest first</caption>
-        <thead><tr><th scope="col" class="num">Rev</th><th scope="col">Status</th><th scope="col">Confidence</th><th scope="col">Change</th><th scope="col">Session</th><th scope="col">Reviews</th></tr></thead>
+        <thead><tr><th scope="col" class="num">Rev</th><th scope="col">{{ m.term("record-status", "Status") }}</th><th scope="col">{{ m.term("confidence", "Confidence") }}</th><th scope="col">Change</th><th scope="col">{{ m.term("analysis-session", "Session") }}</th><th scope="col">{{ m.term("review", "Reviews") }}</th></tr></thead>
         <tbody>
           {%- for h in dt.history %}
           {%- set v = h.revision %}

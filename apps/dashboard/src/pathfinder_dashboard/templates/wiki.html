@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block title %}BA wiki{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <p class="crumbs"><a href="{{ c.url('/glossary') }}">Glossary</a> / BA wiki</p>
+    <h1>BA wiki</h1>
+  </div>
+  <p class="caption">business-analysis concepts behind the documentation · cited sources</p>
+</div>
+<p class="gl-scope">Short explanations in our own words, how Pathfinder applies each concept, and citations to recognised sources (IREB CPRE glossary, IIBA BABOK Guide, ISO/IEC/IEEE 29148). Pages are local, so they stay readable when a source link breaks.</p>
+<div class="section">
+  <div class="table-wrap">
+    <table class="data stack">
+      <caption class="visually-hidden">BA wiki pages</caption>
+      <thead><tr><th scope="col">Page</th><th scope="col">Glossary terms</th><th scope="col">Sources</th></tr></thead>
+      <tbody>
+        {%- for p in pages %}
+        <tr>
+          <td><a href="{{ c.url('/glossary/wiki/' ~ p.slug) }}">{{ p.front.title }}</a></td>
+          <td data-label="terms">{% for gid in p.front.glossary %}{% set e = g.get(gid) %}<a href="{{ c.url('/glossary') }}#{{ gid }}">{{ e.term if e else gid }}</a>{% if not loop.last %} · {% endif %}{% endfor %}</td>
+          <td data-label="sources" class="muted">{{ p.front.citations | length }}</td>
+        </tr>
+        {%- endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

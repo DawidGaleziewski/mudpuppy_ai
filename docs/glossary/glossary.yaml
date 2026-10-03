@@ -1,0 +1,1030 @@
+# Pathfinder glossary: the single source for the dashboard Glossary page, its [?] tooltips and
+# section intros, and the generated README.md next to this file (spec 006).
+# After editing, run `uv run pathfinder-glossary --write` in apps/dashboard to refresh README.md.
+# Field rules: specs/006-glossary-ba-wiki/data-model.md.
+
+scope: >-
+  This glossary explains Pathfinder's own vocabulary: the words the dashboard, the specs and the
+  agents use for runs, evidence and documentation. It is not the portal glossary the BA agent
+  writes (GL records in the Docs tab), which explains the documented website's business terms,
+  such as "Składka" or "OC".
+
+entries:
+  # ---- Pathfinder: runs and setup ---------------------------------------------------------------
+  - id: run
+    term: Run
+    category: pathfinder
+    group: Runs and setup
+    placement: intro
+    short: One session of the crawler against one portal, as one persona, in one mode, and everything it recorded on the way.
+    explanation: |
+      A run starts when the crawler agent calls `start_run` and ends with `finish_run` or when
+      something stops it. Every state, action, form, network call shape, decision and question
+      it records belongs to that run, so the run is the unit you open to see "what happened".
+
+      Status codes on runs: `[ OK ]` completed, `[RUN.]` running, `[STOP]` stopped on a warning
+      (for example an anti-bot block), `[INT.]` interrupted (the process died or was stopped; it
+      can be resumed without repeating recorded work).
+    example: The map run 01a0fe67… on reference-insurer completed with 12 states and 201 frontier items.
+    appears_in: [Overview → Runs table, Run page header]
+    labels: [Run, Runs]
+    related: [mode, persona, environment, frontier]
+    changed_in: R-22
+    changed_on: 2026-10-03
+
+  - id: mode
+    term: Mode (map / trace)
+    category: pathfinder
+    group: Runs and setup
+    short: What a run is for, either map mode, which explores the whole portal, or trace mode, which records one named process step by step.
+    explanation: |
+      **Map** mode explores broadly: it visits every reachable state within scope and budget and
+      records what is there. It never fills or submits forms.
+
+      **Trace** mode follows one named business process, such as "Oblicz składkę OC/AC", with
+      inputs from the persona, and records the ordered steps and what the portal did after each.
+      On production it stops at the submit boundary. The BA asks for trace runs through
+      follow-up tasks when a map run is not enough.
+    appears_in: [Runs table → Mode]
+    labels: [Mode, map, trace]
+    related: [run, trace-process, submit-boundary, follow-up-task]
+    changed_in: R-22
+    changed_on: 2026-10-03
+
+  - id: environment
+    term: Environment (sandbox / production)
+    category: pathfinder
+    group: Runs and setup
+    short: Whether a portal is a live production site, where only read-only actions are allowed, or a sandbox with resettable data, where forms may be submitted.
+    explanation: |
+      The portal config declares `environment: production` or `sandbox`. On production the
+      environment guard allows only `read` actions, enforced in code, plus a conservative rate
+      limit and an identifying User-Agent. Each environment has its own database file
+      (`data/db/<environment>.sqlite`); the environment selector in the dashboard's top bar
+      switches between them.
+    example: reference-insurer is a sandbox; its twin reference-insurer-readonly is treated as production.
+    appears_in: [Top bar → environment, Runs table → Environment]
+    labels: [Environment, sandbox, production]
+    related: [safety-class, portal-scope]
+    changed_in: R-22
+    changed_on: 2026-10-03
+
+  - id: persona
+    term: Persona
+    category: pathfinder
+    group: Runs and setup
+    short: Who the crawler acts as during a run, such as an anonymous guest, defined in a persona file that can only narrow what the portal config allows.
+    explanation: |
+      A persona file (`personas/<portal>/<persona>.yaml`) says who is acting: logged in or not,
+      which inputs to type in trace mode, its own budgets and safety ceiling. Personas can extend
+      shared pieces (`personas/_mixins/`). The run's effective safety ceiling is the lower of the
+      portal's and the persona's, so a persona can restrict but never widen. Secrets are referenced,
+      never written in the file.
+    example: reference-insurer/guest extends the anonymous base mixin and the trace-input mixin.
+    appears_in: [Runs table → Persona]
+    labels: [Persona]
+    related: [run, safety-class, budget]
+    changed_in: R-22
+    changed_on: 2026-10-03
+
+  - id: reference-portal
+    term: Reference portal / ground truth
+    category: pathfinder
+    group: Runs and setup
+    short: A practice insurance website that Pathfinder runs locally, with a written answer key (the ground truth) used to measure how good the crawler's and the BA's results are.
+    explanation: |
+      The reference portal is a fake Polish insurer, "Towarzystwo Ubezpieczeń Wzorcowych",
+      served on `http://127.0.0.1:4010` by `pnpm reference-portal` in `apps/crawler`. Because we
+      wrote it, we know everything it contains: its screens, fields, rules and processes are listed
+      in a ground-truth file. Comparing the BA's documentation with that file shows what was
+      found, what was missed and what was over-claimed (the planned `docs:evaluate`, R-16). Its
+      data is safe to show and stable, which is why glossary examples come from it.
+    appears_in: [Docs tab → reference-insurer, portals/reference-insurer]
+    labels: [reference-insurer, ground truth]
+    related: [run, documentation-record]
+    changed_in: R-22
+    changed_on: 2026-10-03
+
+  # ---- Pathfinder: crawling -----------------------------------------------------------------------
+  - id: state
+    term: State
+    category: pathfinder
+    group: Crawling
+    placement: intro
+    short: One distinct condition of a portal screen that the crawler recognised and recorded, identified by its fingerprint.
+    explanation: |
+      A state is "a screen as it looked", not a URL. One URL can hold several states (a form
+      before and after a validation error), and many URLs can be one state (product pages that
+      differ only by an id). Each state has a route template, a title, a fingerprint, a cluster,
+      a stabilization result and an evidence snapshot. States are shared across runs; each run
+      records which states it observed.
+    example: "The reference map run observed 12 states, from / (\"Ubezpieczenia dla Ciebie\") to /moje-polisy/przedluz."
+    appears_in: [Run page → States observed]
+    labels: [State, States, States observed]
+    related: [fingerprint, cluster, settled, transition]
+    changed_in: R-22
+    changed_on: 2026-10-03
+
+  - id: fingerprint
+    term: Fingerprint
+    category: pathfinder
+    group: Crawling
+    short: A hash of a page's route template and its accessible structure, so two observations with the same fingerprint count as the same state.
+    explanation: |
+      The fingerprint is computed by pure code, not by the AI agent: the route template plus a
+      canonical form of the page's accessibility tree (roles and names, with volatile text
+      removed), hashed with sha256. Identical fingerprint means the same state. Near-identical
+      pages are grouped one level up, in a cluster. Every merge or split decision is written to
+      the decision log with its similarity score.
+    appears_in: [Run page → Decision log (merge, split), Run trace → fingerprint phase]
+    labels: [Fingerprint]
+    related: [state, cluster]
+    changed_in: R-22
+    changed_on: 2026-10-03
+
+  - id: cluster
+    term: Cluster
+    category: pathfinder
+    group: Crawling
+    short: A group of states that look almost the same, so near-duplicate pages are kept together instead of being documented as unrelated screens.
+    explanation: |
+      Each state has one exact fingerprint and belongs to one cluster. When a new page arrives,
+      its structure is compared with existing clusters; at a similarity of 0.9 or more it joins
+      that cluster ("merge"), otherwise it starts a new one ("split"). Both outcomes are logged.
+      The BA usually documents one screen per cluster.
+    example: The reference map run found 12 states in 10 clusters.
+    appears_in: [States observed → Cluster]
+    labels: [Cluster]
+    related: [fingerprint, state, screen]
+    changed_in: R-22
+    changed_on: 2026-10-03
+
+  - id: settled
+    term: Settled / never stabilized
+    category: pathfinder
+    group: Crawling
+    short: Whether the page had stopped changing when it was recorded, meaning network requests, DOM changes and animations had all gone quiet.
+    explanation: |
+      Before recording, the crawler waits for the page to stabilise. `settled` means it did.
+      `never_stabilized` means the wait ran out while something was still moving, so the record
+      may show a half-loaded page; it is still recorded, with evidence, and the run trace shows
+      what was still moving.
+    example: All 12 states of the reference map run are settled.
+    appears_in: [States observed → Stabilization, Run trace → settle phase]
+    labels: [Stabilization, settled, never_stabilized]
+    related: [state, tool-call]
+    changed_in: R-22
+    changed_on: 2026-10-03
+
+  - id: transition
+    term: Transition (edge)
+    category: pathfinder
+    group: Crawling
+    short: An action that leads from one state to another, such as clicking a menu link, recorded with its safety class and locators.
+    explanation: |
+      States are the dots of the portal map and transitions are the arrows. A transition records
+      the state it started from, the state it led to (or none), the action that caused it, its
+      safety class and whether it was executed or skipped. Skipped transitions are kept so the
+      map shows what exists even where the crawler did not go.
+    appears_in: [Map diagrams, Run trace]
+    labels: [Transition, Edge]
+    related: [state, safety-class, top-locator]
+    changed_in: R-22
+    changed_on: 2026-10-03
+
+  - id: portal-scope
+    term: Scope / denylist
+    category: pathfinder
+    group: Crawling
+    short: The part of a site the crawler may visit (domains and paths in the portal config) and the URLs or actions it must never touch.
+    explanation: |
+      The portal config lists `allowed_domains` and `allowed_paths`; anything else is out of
+      scope and skipped with the reason `out_of_scope`. The `denylist` names paths or controls that
+      are forbidden even inside scope, such as logout, payment or an admin reset page; those are
+      skipped as `denylisted`. Both appear as skip reasons on the frontier.
+    example: "reference-insurer allows 127.0.0.1 with paths /* and denylists path:/__admin/*."
+    appears_in: [Frontier → Status, skip reasons]
+    labels: [Scope, Denylist, out_of_scope, denylisted]
+    related: [frontier, budget, environment]
+    changed_in: R-22
+    changed_on: 2026-10-03
+
+  - id: budget
+    term: Budget
+    category: pathfinder
+    group: Crawling
+    short: A limit a run must stay within, such as the number of states, click depth, actions per state, running time or steps.
+    explanation: |
+      Five budgets exist: `max_depth`, `max_states`, `max_actions_per_state`,
+      `max_run_time_minutes` and `max_steps`. The portal config sets them and a persona may lower
+      them. When a budget runs out, remaining frontier items are marked `budget_reached` and
+      listed, never silently dropped, so you can see what a bigger budget would have explored.
+    example: reference-insurer allows depth 6, 100 states, 40 actions per state, 30 minutes and 400 steps.
+    appears_in: [Frontier → budget_reached]
+    labels: [Budget, budget_reached]
+    related: [frontier, priority-depth, persona]
+    changed_in: R-22
+    changed_on: 2026-10-03
+
+  # ---- Pathfinder: actions and safety -------------------------------------------------------------
+  - id: accessible-name
+    term: Accessible name
+    category: pathfinder
+    group: Actions and safety
+    short: The text a screen reader announces for an element, such as a button's caption or a field's label, which Pathfinder uses to name elements.
+    explanation: |
+      Pathfinder identifies elements the way assistive technology does: by role plus accessible
+      name. That keeps the documentation in the portal's own words and gives stable locators
+      for tests. An empty accessible name (shown as "—") is itself a finding: the control has no
+      label a screen reader could read.
+    example: A link named "Start" in the main menu.
+    appears_in: [Actions → Accessible name]
+    labels: [Accessible name]
+    related: [role, top-locator]
+    changed_in: R-22
+    changed_on: 2026-10-03
+
+  - id: role
+    term: Role
+    category: pathfinder
+    group: Actions and safety
+    short: What kind of element something is in accessibility terms, such as link, button, textbox or checkbox, not a user role.
+    explanation: |
+      Roles come from the page's accessibility tree (ARIA roles, explicit or implied by HTML).
+      Together with the accessible name they identify an element. Do not confuse it with a
+      persona or a business role.
+    appears_in: [Actions → Role]
+    labels: [Role]
+    related: [accessible-name, persona]
+    changed_in: R-22
+    changed_on: 2026-10-03
+
+  - id: safety-class
+    term: Safety class
+    category: pathfinder
+    group: Actions and safety
+    short: How risky an action is, either read, mutating, destructive or external side effect, with unclear cases treated as unsafe.
+    explanation: |
+      Every action is classified by pure code before it may run:
+
+      - `read`: only looks (a navigation link).
+      - `mutating`: changes data (submitting a form).
+      - `destructive`: deletes or cancels something.
+      - `external-side-effect`: does something outside the site, such as sending an e-mail or
+        making a payment.
+
+      If the code cannot prove an action is read-only it does not assume it is. On production
+      only `read` actions run. The effective ceiling of a run is the lower of the portal's and
+      the persona's.
+    example: On the reference map run the "Porównaj" button was classified mutating (no evidence it is read-only) and skipped.
+    appears_in: [Actions → Safety class, Frontier → Safety class]
+    labels: [Safety class, read, mutating, destructive, external-side-effect]
+    related: [decision, environment, persona]
+    changed_in: R-22
+    changed_on: 2026-10-03
+
+  - id: decision
+    term: Decision (allowed / skipped)
+    category: pathfinder
+    group: Actions and safety
+    short: Whether the crawler was permitted to perform an action and, if not, the rule that stopped it.
+    explanation: |
+      Each extracted action is checked against the safety ceiling, scope, denylist, robots.txt and
+      budgets. The Decision column shows "allowed" or the skip reason, which names the rule, so you
+      can tell a deliberate safety skip from a gap in coverage.
+    example: "ceiling:read: classified mutating (no evidence that this control is read-only), above the effective ceiling read."
+    appears_in: [Actions → Decision]
+    labels: [Decision]
+    related: [safety-class, portal-scope, budget]
+    changed_in: R-22
+    changed_on: 2026-10-03
+
+  - id: top-locator
+    term: Top locator
+    category: pathfinder
+    group: Actions and safety
+    short: The best of the ranked ways the crawler found to point at an element, which QA can reuse when writing tests.
+    explanation: |
+      For each action the crawler stores several candidate locators, ranked: role + accessible name
+      first, then visible text, then container path, then `data-testid` if present. The top one is
+      shown in the table; the rest are fallbacks. Generated tests follow the same priority, and QA
+      validates a locator before relying on it.
+    example: role=link[name="Start"], with fallbacks text "Start" and the container path.
+    appears_in: [Actions → Top locator]
+    labels: [Top locator, Locator]
+    related: [accessible-name, role, transition]
+    changed_in: R-22
+    changed_on: 2026-10-03
+
+  # ---- Pathfinder: frontier -----------------------------------------------------------------------
+  - id: frontier
+    term: Frontier
+    category: pathfinder
+    group: Frontier
+    page: frontier
+    short: The edge of what the crawler has explored, every action it has seen but not yet followed, plus a record of what happened to each one.
+    explanation: |
+      "Frontier" is the standard name for this in web crawlers and graph search; it is not a BA
+      term. Picture fog of war: each visited page reveals new links and buttons, which join the
+      frontier. The crawler keeps taking the next item, following it and adding what it finds,
+      until nothing is left or a budget stops it.
+
+      Pathfinder's Frontier table also keeps history: each item ends `done` (followed) or skipped
+      with a reason (`skipped_unsafe`, `out_of_scope`, `denylisted`, `robots_disallowed`,
+      `budget_reached`, `unreachable`). An empty list of `pending` items means the map is complete
+      within the rules.
+    example: The reference map run queued 201 items, followed 195 and skipped 6 as unsafe.
+    appears_in: [Run page → Frontier]
+    labels: [Frontier]
+    related: [priority-depth, budget, decision, portal-scope]
+    changed_in: R-22
+    changed_on: 2026-10-03
+
+  - id: priority-depth
+    term: Priority / depth
+    category: pathfinder
+    group: Frontier
+    short: Priority decides which frontier item is followed next (higher first, then oldest first), and depth is how many clicks away from the start page it is.
+    explanation: |
+      The server, not the AI agent, decides the order: the pending item with the highest priority,
+      and among equals the one queued first. Depth counts navigation steps from the start page and
+      is limited by the `max_depth` budget.
+    appears_in: [Frontier → Priority, Frontier → Depth]
+    labels: [Priority, Depth]
+    related: [frontier, budget]
+    changed_in: R-22
+    changed_on: 2026-10-03
+
+  # ---- Pathfinder: recorded evidence -------------------------------------------------------------
+  - id: evidence
+    term: Evidence
+    category: pathfinder
+    group: Recorded evidence
+    page: evidence
+    short: What the crawler saved as proof of what it saw, such as masked page snapshots, form fields, locators and network shapes, which every documentation statement must cite.
+    explanation: |
+      Pathfinder never asks you to trust a statement on its own: the crawler stores proof, and
+      every BA record points at it. Evidence includes a masked accessibility snapshot per observed
+      state, the fields of each form, the ranked locators and safety class of each action, the
+      shape (not the content) of network calls, process steps, decisions and, on sandbox only, a
+      Playwright trace. Personal data is masked before anything is stored, and request bodies and
+      production screenshots are never stored. The long page explains each kind, where it lives
+      and how the BA uses it.
+    appears_in: [Run page sections, Docs record → Evidence]
+    labels: [Evidence]
+    related: [evidence-link, target, network-call-shape, layers]
+    changed_in: R-22
+    changed_on: 2026-10-03
+
+  - id: network-call-shape
+    term: Network call shape
+    category: pathfinder
+    group: Recorded evidence
+    short: A request the portal's own page made, recorded as method, URL template, status and the structure of its request and response, without the actual values.
+    explanation: |
+      Pathfinder records what the page asked its server for, not what it sent. The structure
+      (field names and types) shows what data the screen exchanges, while the absence of values
+      keeps personal data out. Only background `fetch`/XHR requests are captured; a classic form
+      POST followed by a redirect is not. The crawler never calls a portal's API itself.
+    appears_in: [Run page → Network call shapes]
+    labels: [Network call shapes, Shapes]
+    related: [evidence, data-item]
+    changed_in: R-22
+    changed_on: 2026-10-03
+
+  - id: crawler-open-question
+    term: Open question (crawler)
+    category: pathfinder
+    group: Recorded evidence
+    short: Something the crawler noticed but cannot explain from the screen, handed to the BA instead of guessed.
+    explanation: |
+      The crawler records facts and does not interpret them. When it meets something puzzling,
+      such as a button that is disabled for guests, it adds an open question with
+      `add_open_question` and moves on. The BA picks these up and either answers them from the
+      evidence or turns them into an open question record for a person.
+    appears_in: [Run page → open questions, Docs evidence → open question]
+    labels: [Open question]
+    related: [rule-candidate]
+    changed_in: R-22
+    changed_on: 2026-10-03
+
+  - id: rule-candidate
+    term: Rule candidate
+    category: pathfinder
+    group: Recorded evidence
+    short: A possible business rule the crawler spotted, such as a limit stated in an error message, recorded as a hint for the BA and never as a fact.
+    explanation: |
+      The crawler may flag a few patterns that look like rules with `add_rule_candidate`. It does
+      not decide whether they are rules. The BA checks each against the evidence and writes a
+      business rule record only when the evidence supports it.
+    appears_in: [Run page, Docs evidence → rule candidate]
+    labels: [Rule candidate]
+    related: [business-rule, crawler-open-question]
+    changed_in: R-22
+    changed_on: 2026-10-03
+
+  # ---- Pathfinder: traced processes ---------------------------------------------------------------
+  - id: trace-process
+    term: Process (trace mode)
+    category: pathfinder
+    group: Traced processes
+    short: The ordered steps the crawler recorded while following one named process in trace mode, the raw material for the BA's process record.
+    explanation: |
+      "Process" has two meanings in Pathfinder. Here it is what a trace run recorded: a name, the
+      persona, the ordered steps and an outcome. The BA turns it into a PROC documentation record
+      (see Process (PROC)), which is the documented business process.
+
+      Outcomes: `[ OK ]` goal reached, `[BNDY]` stopped at the submit boundary on purpose,
+      `[STOP]` stopped by a problem, `[ABND]` abandoned.
+    example: The trace "Oblicz składkę OC/AC" on reference-insurer reached its goal.
+    appears_in: [Run page → Process tab]
+    labels: [Process]
+    related: [process-step, submit-boundary, process-record, mode]
+    changed_in: R-22
+    changed_on: 2026-10-03
+
+  - id: process-step
+    term: Step / intent / outcome
+    category: pathfinder
+    group: Traced processes
+    short: One move in a traced process, where intent is what the crawler meant to do and outcome is what the portal did in response.
+    explanation: |
+      Each step records its intent in plain words ("fill in the vehicle's year"), the kind of move
+      (click, fill, select…), the value used, and the observed outcomes, such as a new screen, a
+      validation message or a changed price. Steps are evidence the BA cites in process and use
+      case records.
+    appears_in: [Process tab → Steps (Intent, Kind, Value, Outcomes)]
+    labels: [Steps, Intent, Outcome, Outcomes]
+    related: [trace-process, submit-boundary]
+    changed_in: R-22
+    changed_on: 2026-10-03
+
+  - id: submit-boundary
+    term: Submit boundary
+    category: pathfinder
+    group: Traced processes
+    short: The point in a process where continuing would submit, buy or send something, where a trace on production stops on purpose.
+    explanation: |
+      On production only read-only actions are allowed, so a trace fills the steps it safely can
+      and stops before the final submit. The outcome `[BNDY]` means the run worked as intended,
+      not that it failed. On a sandbox the same process may continue past the boundary.
+    appears_in: ["Process tab → Outcome [BNDY]"]
+    labels: [BNDY, boundary_reached]
+    related: [trace-process, safety-class, environment]
+    changed_in: R-22
+    changed_on: 2026-10-03
+
+  # ---- Pathfinder: run trace (debugging) ---------------------------------------------------------
+  - id: tool-call
+    term: Tool call / phase / span
+    category: pathfinder
+    group: Run trace
+    short: A tool call is one request the crawler agent made to Pathfinder's server, a phase is one stage inside it, and a span is one timed block in that tree.
+    explanation: |
+      The crawler agent works only through tools such as `start_run`, `navigate`, `act`,
+      `get_next_frontier_item` and `finish_run`. Inside each call the server runs phases, for
+      example `gate` (safety checks), `settle`, `observe`, `fingerprint`, `record_state`,
+      `record_forms`, `record_api_calls` and `enqueue_frontier`. The Trace tab shows these as
+      nested, timed spans, which is how you debug a slow or failing run. This trace describes
+      the crawler's machinery, not the portal.
+    appears_in: [Run page → Trace tab]
+    labels: [Tool calls, Call, Phase, Tool]
+    related: [run-less-call, percentiles]
+    changed_in: R-22
+    changed_on: 2026-10-03
+
+  - id: run-less-call
+    term: Run-less calls
+    category: pathfinder
+    group: Run trace
+    short: Tool calls that happened outside any run, such as a refused start_run, kept so that nothing the server did is invisible.
+    explanation: |
+      Most tool calls belong to a run. A few cannot: a `start_run` that was refused (for example
+      because the portal's compliance check is missing) never created a run. These calls are
+      listed on the Activity page so a refusal is visible rather than silently lost.
+    appears_in: [Activity → Run-less calls]
+    labels: [Run-less calls]
+    related: [tool-call]
+    changed_in: R-22
+    changed_on: 2026-10-03
+
+  - id: percentiles
+    term: p50 / p95
+    category: pathfinder
+    group: Run trace
+    short: Timing percentiles, where half of the measured calls were faster than p50 and 95 in 100 were faster than p95.
+    explanation: |
+      The trace summary lists each phase with how often it ran, the total time and two
+      percentiles. p50 (the median) shows the typical time; p95 shows the slow tail. A large gap
+      between them means a phase is usually fast but sometimes very slow, which is often a page
+      that takes long to settle.
+    appears_in: [Trace tab → summary (p50, p95)]
+    labels: [p50, p95]
+    related: [tool-call]
+    changed_in: R-22
+    changed_on: 2026-10-03
+
+  # ---- Pathfinder: BA workflow --------------------------------------------------------------------
+  - id: layers
+    term: Layer A / Layer B
+    category: pathfinder
+    group: BA workflow
+    short: Layer A is the mechanical map the crawler records (states, actions, forms), and Layer B is the BA's documentation built on top of it.
+    explanation: |
+      Layer A answers "what is on the screen and what happens when you click". Layer B answers
+      "what does the business do here": capabilities, processes, requirements, rules, data and
+      terms. Layer B is the deliverable; Layer A is its evidence, and every Layer B statement cites
+      Layer A.
+    appears_in: [Specs and data docs]
+    labels: [Layer A, Layer B]
+    related: [evidence, documentation-record]
+    changed_in: R-22
+    changed_on: 2026-10-03
+
+  - id: follow-up-task
+    term: Follow-up task (FUP)
+    category: pathfinder
+    group: BA workflow
+    short: A request from the BA to the crawler to go and record something specific, because the BA never browses itself.
+    explanation: |
+      When the evidence is not enough, for example a process was never traced, the BA writes a
+      follow-up task. A person then runs the crawler (usually in trace mode) to fulfil it, and the
+      BA reads the new run. Status codes: `[OPEN]` open, `[WORK]` in progress, `[DONE]` done,
+      `[BLKD]` blocked, `[CNCL]` cancelled.
+    example: FUP-001 "Trace the OC/AC calculator through all four steps".
+    appears_in: [Docs tab → follow-ups]
+    labels: [Follow-up, FUP]
+    related: [mode, analysis-session, crawler-open-question]
+    changed_in: R-22
+    changed_on: 2026-10-03
+
+  - id: analysis-session
+    term: Analysis session
+    category: pathfinder
+    group: BA workflow
+    placement: intro
+    short: One sitting of the BA agent, showing which runs it read, which passes it made, which records it wrote and which gaps it left.
+    explanation: |
+      The BA agent starts a session with the runs it will analyse, works through its seven passes,
+      and finishes with a summary and a list of gaps. The session page is the BA's work log: it
+      tells you what the documentation is based on and what it does not cover.
+    appears_in: [Docs tab → Session page]
+    labels: [Analysis session, Session, Input runs]
+    related: [analysis-pass, gaps, documentation-record]
+    changed_in: R-22
+    changed_on: 2026-10-03
+
+  - id: analysis-pass
+    term: Pass
+    category: pathfinder
+    group: BA workflow
+    short: One of the BA agent's seven read-throughs of the evidence, each looking for one kind of thing.
+    explanation: |
+      The passes run in order: 1 inventory (screens), 2 capabilities, 3 processes and use cases,
+      4 rules and requirements, 5 data items and glossary terms, 6 non-functional requirements,
+      7 synthesis (assumptions, remaining open questions, gaps). Each pass records a one-to-three
+      line summary on the session page.
+    appears_in: [Session page → Passes]
+    labels: [Pass, Passes]
+    related: [analysis-session, gaps]
+    changed_in: R-22
+    changed_on: 2026-10-03
+
+  - id: gaps
+    term: Gaps
+    category: pathfinder
+    group: BA workflow
+    placement: intro
+    short: What the BA could not document from the evidence it had, listed so nobody assumes it was covered.
+    explanation: |
+      A gap is an honest "not known": a screen never reached, a rule that would need a submit,
+      behaviour that cannot be observed from the outside (back-office work, e-mails). Gaps usually
+      lead to a follow-up task or an open question.
+    appears_in: [Session page → Gaps]
+    labels: [Gaps]
+    related: [analysis-session, follow-up-task]
+    changed_in: R-22
+    changed_on: 2026-10-03
+
+  - id: record-key
+    term: Record key
+    category: pathfinder
+    group: Records and review
+    short: The stable id of a documentation record, a kind prefix plus a number such as REQ-007 or BR-012, never reused even after the record is withdrawn.
+    explanation: |
+      Prefixes: CAP capability, SCR screen, PROC process, UC use case, REQ requirement, NFR
+      non-functional requirement, BR business rule, GL glossary term, DI data item, ASM assumption,
+      OQ open question, FUP follow-up. Numbers count up per portal and kind. Use the key when you
+      refer to a record in a comment or a test tag.
+    example: 'BR-012 "Contact form: required fields, lengths and formats".'
+    appears_in: [Docs tab, everywhere a record is listed]
+    labels: [Key, Record]
+    related: [documentation-record, revision]
+    changed_in: R-22
+    changed_on: 2026-10-03
+
+  - id: revision
+    term: Revision (Rev)
+    category: pathfinder
+    group: Records and review
+    short: A numbered version of a record, created each time the BA changes it, with older revisions kept and reviews applying to one exact revision.
+    explanation: |
+      A record never changes in place. Every change adds revision n+1; you can read the full
+      history on the record page. A review always names the revision it judged, so a confirmation
+      cannot silently carry over to text nobody approved.
+    appears_in: [Record page → Revision history, Rev column]
+    labels: [Rev, Revision, Revision history]
+    related: [record-status, review, record-key]
+    changed_in: R-22
+    changed_on: 2026-10-03
+
+  - id: record-status
+    term: Record status
+    category: pathfinder
+    group: Records and review
+    short: The state of a record's revision, either draft, confirmed, rejected, superseded or withdrawn, worked out by code from the revisions and reviews.
+    explanation: |
+      - `[DRFT]` draft: written, not yet reviewed.
+      - `[ OK ]` confirmed: a person approved this revision.
+      - `[RJCT]` rejected: a person sent it back.
+      - `[OLD.]` superseded: a newer revision replaced this draft, or a newer revision was
+        confirmed.
+      - `[WDRN]` withdrawn: the BA retracted the record.
+
+      Only the latest draft can be confirmed or rejected. Nobody sets a status by hand, not the
+      BA agent and not the dashboard; it follows from the reviews.
+    appears_in: [Docs tab → Status, Record page]
+    labels: [Status, Status now, DRFT, RJCT, OLD., WDRN]
+    related: [revision, review, status-codes]
+    changed_in: R-22
+    changed_on: 2026-10-03
+
+  - id: status-codes
+    term: Four-letter status codes
+    category: pathfinder
+    group: Reading the dashboard
+    short: The bracketed labels such as [DRFT] or [BNDY], a fixed-width short form of the status word printed next to them.
+    explanation: |
+      The dashboard prints every status as a four-character code in brackets, followed by the full
+      word, so columns line up. Muted codes mean "the system did what it should" (a safety skip,
+      a boundary), and red ones mean something needs attention.
+
+      | Where | Codes |
+      |---|---|
+      | Runs | `[ OK ]` completed, `[RUN.]` running, `[STOP]` stopped on a warning, `[INT.]` interrupted |
+      | Frontier | `[PEND]` pending, `[DONE]` done, `[SKIP]` skipped (unsafe, out of scope, denylisted, robots, budget), `[FAIL]` unreachable |
+      | Decision log | `[SKIP]` skip, `[RFSE]` refuse, `[MRGE]` merge, `[SPLT]` split, `[WARN]` warning, `[NOTE]` note |
+      | Trace | `[ OK ]` ok, `[RUN.]` running, `[RFSE]` refused, `[STOP]` stopped, `[FAIL]` error, `[INCM]` unfinished, `[PHSE]` phase, `[EVNT]` event |
+      | Records | `[DRFT]` draft, `[ OK ]` confirmed, `[RJCT]` rejected, `[OLD.]` superseded, `[WDRN]` withdrawn |
+      | Reviews | `[ OK ]` confirm, `[RJCT]` reject, `[NOTE]` comment |
+      | Follow-ups | `[OPEN]` open, `[WORK]` in progress, `[DONE]` done, `[BLKD]` blocked, `[CNCL]` cancelled |
+      | Process outcome | `[ OK ]` goal reached, `[BNDY]` boundary reached, `[STOP]` stopped, `[ABND]` abandoned |
+    appears_in: [Every status column]
+    labels: ["[ OK ]", "[DRFT]", "[BNDY]", "[SKIP]"]
+    related: [record-status, run, frontier, submit-boundary]
+    changed_in: R-22
+    changed_on: 2026-10-03
+
+  - id: target
+    term: Target
+    category: pathfinder
+    group: Reading the dashboard
+    short: In a record's evidence table, the piece of recorded data the record cites, such as a state, form, action, network call or process step.
+    explanation: |
+      Each evidence link on a record points at one target and says what it supports. Target kinds
+      are state, edge (transition), action, form, network call, rule candidate, open question,
+      decision, process, process step, another documentation record, or a review. Click the target
+      to open it on its run page.
+
+      Until R-22 the Actions table also had a "Target" column for a link's address; it is now
+      called "Links to", so "Target" has only this meaning.
+    appears_in: [Record page → Evidence → Target]
+    labels: [Target]
+    related: [evidence-link, evidence]
+    changed_in: R-22
+    changed_on: 2026-10-03
+
+  # ---- BA: statements and traceability ------------------------------------------------------------
+  - id: confidence
+    term: Confidence (observed / inferred / needs confirmation)
+    category: ba
+    group: Statements and traceability
+    short: How sure a statement is, either observed in the evidence, inferred as a reasonable deduction, or needing confirmation from someone who knows the business.
+    explanation: |
+      - `observed`: seen in the UI, network traffic or data.
+      - `inferred`: deduced from what was seen, but not directly visible.
+      - `needs_confirmation`: about intent or the reason behind behaviour, which only a person can
+        confirm.
+
+      The app shows what it does, never why. Keeping the three apart is the main protection against
+      documentation that reads as fact but is a guess.
+    appears_in: [Confidence column on states, actions and records]
+    labels: [Confidence, observed, inferred, needs_confirmation]
+    related: [documentation-record, evidence-link, assumption]
+    changed_in: R-22
+    changed_on: 2026-10-03
+
+  - id: documentation-record
+    term: Documentation record
+    category: ba
+    group: Statements and traceability
+    short: One unit of the BA's documentation, such as a screen, requirement or rule, with a key, revisions, evidence links and a status.
+    explanation: |
+      Pathfinder's documentation is a set of small linked records rather than one long document.
+      There are twelve kinds (see Record key for the prefixes). The SRS export (R-16) will render
+      them into a readable document.
+    appears_in: [Docs tab]
+    labels: [Records, Record]
+    related: [record-key, revision, relations, layers]
+    changed_in: R-22
+    changed_on: 2026-10-03
+
+  - id: evidence-link
+    wiki: traceability
+    term: Evidence link / cites
+    category: ba
+    group: Statements and traceability
+    short: The link from a record to the recorded data that supports it, and a record without at least one is not allowed.
+    explanation: |
+      Each revision cites its evidence: a target plus a note on what it supports. The "Cites"
+      column counts them and the record page lists them, so any statement can be checked against
+      what the crawler actually recorded.
+    appears_in: [Records → Cites, Record page → Evidence]
+    labels: [Cites, Evidence, What it supports]
+    related: [target, evidence, traceability]
+    changed_in: R-22
+    changed_on: 2026-10-03
+
+  - id: relations
+    wiki: traceability
+    term: Relations / linked records
+    category: ba
+    group: Statements and traceability
+    short: Typed links between records, such as a rule that enforces a requirement or a field that appears on a screen.
+    explanation: |
+      Relation types: `contains`, `describes`, `refines`, `enforces`, `appears_on`, `uses_term`,
+      `synonym_of`, `answers`, `depends_on`. Relations belong to the revision that states them, so
+      they change with the record.
+    example: On reference-insurer the most common are uses_term (44), appears_on (41) and contains (39).
+    appears_in: [Record page → Relations, Linked records]
+    labels: [Relations, Linked records]
+    related: [documentation-record, traceability]
+    changed_in: R-22
+    changed_on: 2026-10-03
+
+  - id: traceability
+    wiki: traceability
+    term: Traceability
+    category: ba
+    group: Statements and traceability
+    short: Being able to follow a requirement back to where it came from and forward to what depends on or tests it.
+    explanation: |
+      In Pathfinder, backward traceability is built in: every record cites evidence and the
+      evidence names its run. Forward traceability runs through relations (rule → requirement →
+      use case) and, later, through test tags such as `@REQ-007`. The SRS export (R-16) will
+      include a traceability matrix.
+    appears_in: [Record page, SRS export (R-16)]
+    labels: [Traceability]
+    related: [evidence-link, relations, srs]
+    changed_in: R-22
+    changed_on: 2026-10-03
+
+  - id: review
+    wiki: requirements-validation
+    term: Review (confirm / reject / comment)
+    category: ba
+    group: Statements and traceability
+    short: A person's decision on one revision of a record, where confirm approves it, reject sends it back and comment adds a note without deciding.
+    explanation: |
+      Reviews are stored with the reviewer, time, action and revision. Reject and comment need a
+      text. Only the latest draft can be confirmed or rejected; comments can go on any revision.
+      The BA agent reads rejections and comments as feedback in its next session. In the
+      dashboard, review buttons appear only when a reviewer name is configured.
+    appears_in: [Record page → Review, Reviews]
+    labels: [Review, Reviews, Decisions on revision]
+    related: [record-status, revision]
+    changed_in: R-22
+    changed_on: 2026-10-03
+
+  # ---- BA: record kinds ---------------------------------------------------------------------------
+  - id: capability
+    wiki: business-capability
+    term: Capability (CAP)
+    category: ba
+    group: Record kinds
+    short: Something the business offers its users at a high level, such as quoting car insurance, grouping the screens and processes that deliver it.
+    explanation: |
+      Capabilities give the big picture before the details. The BA writes them in pass 2 and links
+      them to screens and processes with `contains`.
+    example: CAP-001 "Product information and help content".
+    appears_in: [Docs tab → Capabilities]
+    labels: [Capability, CAP]
+    related: [screen, process-record]
+    changed_in: R-22
+    changed_on: 2026-10-03
+
+  - id: screen
+    term: Screen (SCR)
+    category: ba
+    group: Record kinds
+    short: One page or view of the portal as the BA documents it, with its purpose, route templates, elements and how you reach it.
+    explanation: |
+      A screen usually corresponds to one cluster of states. It lists the elements by role and
+      verbatim label, so it doubles as a description a developer could rebuild the page from.
+    example: SCR-001 "Home page with global header and footer".
+    appears_in: [Docs tab → Screens]
+    labels: [Screen, SCR]
+    related: [cluster, state, data-item]
+    changed_in: R-22
+    changed_on: 2026-10-03
+
+  - id: process-record
+    wiki: process-modelling-as-is
+    term: Process (PROC)
+    category: ba
+    group: Record kinds
+    short: A business process as the BA documents it, with its goal, persona, trigger, steps and outcome, based on trace runs.
+    explanation: |
+      The documented counterpart of a traced process. It also records how far the evidence goes
+      (`observed_extent`), for example "up to the submit boundary", so nobody assumes the end of the
+      process was seen.
+    example: PROC-001 "Calculate an OC/AC premium".
+    appears_in: [Docs tab → Processes]
+    labels: [Process, PROC]
+    related: [trace-process, use-case, capability]
+    changed_in: R-22
+    changed_on: 2026-10-03
+
+  - id: use-case
+    wiki: use-case
+    term: Use case (UC)
+    category: ba
+    group: Record kinds
+    short: One actor's goal told as a flow, with a main path and the alternative and exception paths, written in Cockburn style.
+    explanation: |
+      Use cases turn a process into something a team can build and test against: who wants what,
+      the steps that work, and every way it can go differently.
+    example: UC-001 "Guest calculates an OC/AC premium".
+    appears_in: [Docs tab → Use cases]
+    labels: [Use case, UC]
+    related: [process-record, requirement, acceptance-criteria]
+    changed_in: R-22
+    changed_on: 2026-10-03
+
+  - id: requirement
+    wiki: requirement
+    term: Requirement (REQ)
+    category: ba
+    group: Record kinds
+    short: A statement of what the system must do, written so that it can be tested.
+    explanation: |
+      Requirements describe behaviour the rebuilt system must keep. Each has acceptance criteria
+      and cites the evidence it was derived from. They become `confirmed` only through a person's
+      review.
+    example: REQ-001 "Global menu and footer on every page".
+    appears_in: [Docs tab → Requirements]
+    labels: [Requirement, REQ]
+    related: [nfr, acceptance-criteria, business-rule]
+    changed_in: R-22
+    changed_on: 2026-10-03
+
+  - id: nfr
+    wiki: non-functional-requirement
+    term: Non-functional requirement (NFR)
+    category: ba
+    group: Record kinds
+    short: A quality the system must have rather than a function it performs, such as speed, accessibility or reliable navigation.
+    explanation: |
+      Pathfinder writes NFRs only for what it actually measured (status codes, console errors,
+      labels, robots policy). Qualities it could not measure go to the gaps instead.
+    example: NFR-004 "No broken internal navigation for a guest".
+    appears_in: [Docs tab → NFRs]
+    labels: [NFR]
+    related: [requirement, gaps]
+    changed_in: R-22
+    changed_on: 2026-10-03
+
+  - id: acceptance-criteria
+    wiki: acceptance-criteria
+    term: Acceptance criteria
+    category: ba
+    group: Record kinds
+    short: The concrete conditions that show a requirement is met, written as Given, When, Then.
+    explanation: |
+      Each criterion is a small scenario: given a starting situation, when the user does something,
+      then the system responds in a stated way. They are what QA turns into tests.
+    appears_in: [Requirement page → Acceptance criteria]
+    labels: [Acceptance criteria]
+    related: [requirement, use-case]
+    changed_in: R-22
+    changed_on: 2026-10-03
+
+  - id: business-rule
+    wiki: business-rule
+    term: Business rule (BR)
+    category: ba
+    group: Record kinds
+    short: A rule the business imposes regardless of screen layout, such as which fields are required or which values are allowed.
+    explanation: |
+      Rules are written once and linked to every requirement, data item and screen they affect
+      (`enforces`, `appears_on`). Complex rules use a decision table.
+    example: 'BR-012 "Contact form: required fields, lengths and formats".'
+    appears_in: [Docs tab → Business rules]
+    labels: [Business rule, BR, Rule]
+    related: [decision-table, rule-candidate, data-item]
+    changed_in: R-22
+    changed_on: 2026-10-03
+
+  - id: decision-table
+    wiki: decision-table
+    term: Decision table
+    category: ba
+    group: Record kinds
+    short: A table listing combinations of conditions and the outcome for each, used for rules with several inputs.
+    explanation: |
+      In a business rule, the "if" columns are conditions and the "then" columns are results; each
+      row is one combination. It makes missing or contradictory cases easy to spot.
+    appears_in: [Business rule page → if / then columns]
+    labels: [if, then]
+    related: [business-rule]
+    changed_in: R-22
+    changed_on: 2026-10-03
+
+  - id: data-item
+    wiki: data-dictionary
+    term: Data item (DI)
+    category: ba
+    group: Record kinds
+    short: One piece of data the portal handles, such as a phone number field, with its verbatim label, type, format and observed constraints.
+    explanation: |
+      Data items form the data dictionary. The label is kept exactly as the portal shows it, and
+      the constraints are those observed (required, pattern, length, options). `seen_in` says where
+      it appears.
+    example: DI-015 "Telefon".
+    appears_in: [Docs tab → Data items]
+    labels: [Data item, DI]
+    related: [business-rule, glossary-term, network-call-shape]
+    changed_in: R-22
+    changed_on: 2026-10-03
+
+  - id: glossary-term
+    wiki: glossary
+    term: Glossary term (GL)
+    category: ba
+    group: Record kinds
+    short: A business word the documented portal uses, kept verbatim with its meaning, such as "OC".
+    explanation: |
+      These are the portal's terms, written by the BA agent. They are a different thing from this
+      glossary, which explains Pathfinder's own words.
+    example: GL-001 "OC".
+    appears_in: [Docs tab → Glossary]
+    labels: [Glossary term, GL]
+    related: [data-item]
+    changed_in: R-22
+    changed_on: 2026-10-03
+
+  - id: assumption
+    wiki: assumption
+    term: Assumption (ASM)
+    category: ba
+    group: Record kinds
+    short: Something the BA treats as true without proof, written down so it can be checked later.
+    explanation: |
+      An assumption is honest about its uncertainty and lets the work continue. Each one should be
+      confirmed or replaced once someone who knows the business has looked at it.
+    example: ASM-002 "Contact enquiries are answered by phone or e-mail".
+    appears_in: [Docs tab → Assumptions]
+    labels: [Assumption, ASM]
+    related: [confidence]
+    changed_in: R-22
+    changed_on: 2026-10-03
+
+  - id: srs
+    wiki: software-requirements-specification
+    term: SRS
+    category: ba
+    group: Record kinds
+    short: Software Requirements Specification, the complete requirements document a team could rebuild the system from.
+    explanation: |
+      Pathfinder keeps requirements as linked records; the planned SRS export (R-16) renders them
+      into one document with chapters, diagrams, a traceability matrix and an Unknowns section.
+    appears_in: [SRS export (R-16)]
+    labels: [SRS]
+    related: [traceability, documentation-record, as-is-documentation]
+    changed_in: R-22
+    changed_on: 2026-10-03
+
+  - id: as-is-documentation
+    wiki: process-modelling-as-is
+    term: As-is documentation
+    category: ba
+    group: Record kinds
+    short: A description of how an existing system works today, as opposed to a to-be design of how it should work.
+    explanation: |
+      Pathfinder only documents the as-is system, from the outside, so that it can be rebuilt. It
+      never proposes improvements in the documentation; those belong in a separate to-be design.
+    appears_in: [Overall purpose of the Docs tab]
+    labels: [As-is]
+    related: [srs, layers]
+    changed_in: R-22
+    changed_on: 2026-10-03

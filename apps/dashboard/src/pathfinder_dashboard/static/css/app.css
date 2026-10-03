@@ -1116,3 +1116,214 @@ table.data tr[aria-current="true"] td {
     width: 100%;
   }
 }
+
+/* ---------- glossary and BA wiki (spec 006, R-22) ---------- */
+
+.input {
+  min-height: var(--touch);
+  padding: 0 var(--space-3);
+  font: inherit;
+  font-size: var(--text-body-sm);
+  color: var(--ink-100);
+  background: var(--surface-100);
+  border: var(--hairline) solid var(--border);
+}
+
+.input:hover {
+  background: var(--surface-200);
+}
+
+/* running text keeps a readable measure; tables on long pages may use the full width */
+.gl-scope,
+.gl-prose > :not(table) {
+  max-width: var(--prose-max);
+}
+
+.gl-scope {
+  color: var(--ink-500);
+}
+
+.gl-filter {
+  margin-bottom: var(--space-4);
+}
+
+.gl-category {
+  margin-top: var(--space-6);
+  font-size: var(--text-h2);
+}
+
+.gl-group h3 {
+  font-size: var(--text-body);
+  color: var(--ink-500);
+}
+
+.gl-entry {
+  display: grid;
+  gap: var(--space-2);
+  margin-top: var(--space-3);
+  scroll-margin-top: var(--space-6);
+}
+
+/* a followed #anchor marks its entry with the identity colour */
+.gl-entry:target {
+  border-color: var(--brand);
+}
+
+.gl-entry-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-1) var(--space-3);
+}
+
+.gl-entry-head h4 {
+  margin: 0;
+  font-size: var(--text-h2);
+}
+
+.gl-short {
+  margin: 0;
+  font-weight: var(--weight-medium);
+}
+
+/* long paths and ids break only when they cannot fit, never mid-word otherwise */
+.gl-body,
+.gl-prose {
+  overflow-wrap: break-word;
+}
+
+.gl-body > :first-child {
+  margin-top: 0;
+}
+
+.gl-body > :last-child {
+  margin-bottom: 0;
+}
+
+.gl-body table,
+.gl-prose table {
+  display: block;
+  max-width: 100%;
+  overflow-x: auto;
+  border-collapse: collapse;
+}
+
+.gl-body th,
+.gl-body td,
+.gl-prose th,
+.gl-prose td {
+  padding: var(--space-1) var(--space-2);
+  text-align: left;
+  vertical-align: top;
+  border: var(--hairline) solid var(--border);
+}
+
+.gl-body th,
+.gl-prose th {
+  font-size: var(--text-label);
+  font-weight: var(--weight-medium);
+  color: var(--ink-500);
+}
+
+.gl-meta {
+  margin: 0;
+  font-size: var(--text-body-sm);
+}
+
+.gl-meta > .muted {
+  margin-right: var(--space-2);
+}
+
+.gl-prose h1 {
+  margin-bottom: var(--space-4);
+}
+
+.gl-prose h2 {
+  margin-top: var(--space-6);
+  font-size: var(--text-h2);
+}
+
+/* glossary tooltip: label + [?]; the tip shows on hover or keyboard focus, never on its own.
+   Tapping [?] on a touch screen follows the link to the glossary entry instead. */
+.gl {
+  position: relative;
+  display: inline-flex;
+  align-items: baseline;
+  gap: var(--space-1);
+}
+
+.gl-mark {
+  position: relative;
+  font-size: var(--text-caption);
+  font-weight: var(--weight-regular);
+  color: var(--ink-500);
+  text-decoration: none;
+}
+
+/* the mark is small; its hit area is a full touch target centred on it */
+.gl-mark::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: var(--touch);
+  height: var(--touch);
+  transform: translate(-50%, -50%);
+}
+
+.gl-mark:hover,
+.gl-mark:focus-visible {
+  color: var(--brand);
+}
+
+.gl-tip {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  z-index: 4;
+  display: none;
+  width: max-content;
+  max-width: min(var(--tip-w), calc(100vw - var(--space-9)));
+  /* flush under the label: no gap the pointer could fall through on its way into the tip */
+  margin-top: 0;
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--text-body-sm);
+  font-weight: var(--weight-regular);
+  line-height: var(--leading);
+  color: var(--ink-100);
+  white-space: normal;
+  text-align: left;
+  background: var(--surface-200);
+  border: var(--hairline) solid var(--brand);
+}
+
+.gl:hover > .gl-tip,
+.gl:focus-within > .gl-tip {
+  display: block;
+}
+
+/* the always-visible one-liner under a section heading (Run, States, Session, Gaps) */
+.section-intro {
+  max-width: var(--prose-max);
+  margin: 0 0 var(--space-3);
+  font-size: var(--text-body-sm);
+  color: var(--ink-500);
+}
+
+/* BA wiki: citations under the page body */
+.wiki-sources {
+  padding-left: var(--space-5);
+  overflow-wrap: anywhere;
+}
+
+.wiki-sources p {
+  margin: 0 0 var(--space-1);
+}
+
+.gl-prose blockquote {
+  margin: var(--space-2) 0 var(--space-3);
+  padding-left: var(--space-3);
+  color: var(--ink-500);
+  border-left: var(--rule) solid var(--border);
+}

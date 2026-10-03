@@ -13,6 +13,8 @@ P = "reference-insurer"
 
 
 def text(html: str) -> str:
+    """Visible text at rest: glossary tooltips (hidden tip + [?] mark) are left out."""
+    html = re.sub(r'<a class="gl-mark"[^>]*>.*?</a><span class="gl-tip"[^>]*>.*?</span>', "", html)
     return re.sub(r"\s+", " ", re.sub(r"<[^>]+>", " ", html))
 
 

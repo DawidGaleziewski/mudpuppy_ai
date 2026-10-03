@@ -27,7 +27,7 @@ Status: `todo`, `in progress`, `done`. Last reviewed: 2026-10-03.
 | R-19 | To discuss: pan and zoom for Docs diagrams (large maps are too small to read) | — (no spec yet) | todo |
 | R-20 | To discuss: screenshots as evidence, with the described elements highlighted, shown on record pages | — (no spec yet) | todo |
 | R-21 | To discuss: low-fidelity wireframes per screen, drawn from recorded evidence in one style | — (no spec yet) | todo |
-| R-22 | To discuss: glossary of Pathfinder and BA terms in one place, shown as dashboard tooltips, kept in sync per feature, with a local BA wiki citing its sources | — (no spec yet) | todo |
+| R-22 | Glossary and BA wiki: one source for Pathfinder and BA terms, dashboard Glossary page, `[?]` tooltips and section intros, local BA wiki with cited sources, glossary-sync step in the close-out | `specs/006-glossary-ba-wiki` T001–T030 | done |
 
 ## Notes
 
@@ -361,3 +361,32 @@ Status: `todo`, `in progress`, `done`. Last reviewed: 2026-10-03.
   them in our own words with short quotes and the original link, since BABOK and similar texts are
   copyrighted and cannot be copied wholesale. No new tool needed. Distinct from the BA agent's
   `GL` records, which describe the portal's terms, not Pathfinder's.
+- 2026-10-03: R-22 moved ahead of R-16 at the user's request (the terms block understanding the
+  UI). Spec, plan and tasks in `specs/006-glossary-ba-wiki` on `feature/006-r22-glossary-ba-wiki`.
+  Scope is the user's rating of 71 proposed terms (`term-review.md`): 59 Must/Nice in v1, 12
+  skipped. Decided: Claude writes all entries; tooltips by default, section intros for Run,
+  State, Analysis session, Gaps; Actions column "Target" renamed "Links to"; longer pages for
+  frontier and evidence. R-16 stays next after R-22.
+- R-22 built 2026-10-03: `1217667` (US1 T001–T011: glossary source, README, Glossary page),
+  `a5a4f62` (US2–US4 T012–T024: tooltips and intros, BA wiki, glossary sync step), then polish
+  T025–T028. Quickstart results (T028): gates green (dashboard 376 tests, crawler 1030); a planted
+  unknown term in a template fails `test_glossary_templates.py` naming template and id (SC-005);
+  `docs/glossary/README.md` equals the rendered source (SC-006, test); Glossary page, long pages,
+  wiki pages, run and Docs tooltips checked in Chromium at 1280 and 375 px with no horizontal
+  page scroll; a broken `glossary.yaml` shows a `[WARN]` state and plain labels everywhere else.
+  Open: T029 (user sign-off, SC-002) and T030 (close).
+  - Findings while building: (1) `data/README.md` says network shape records are stored in
+    `data/evidence/`; the code keeps them in `network_calls` columns and writes evidence JSON only
+    for robots.txt policies and large trace payloads. Not fixed here (outside R-22). (2)
+    `tests/test_main.py` leaked `PATHFINDER_*` env vars into later tests (`delenv` on an unset
+    variable records nothing); fixed, because with the glossary's dev-mode reload it made the full
+    suite take 6+ minutes. (3) Below 1024 px stacked tables hide their header row, so column
+    tooltips are desktop only; heading tooltips and intros show at every width. (4) BABOK v3
+    technique pages are members-only, so wiki pages cite them by section and never quote them;
+    the IREB glossary is quoted; ISO 29148 is cited via IEEE's public page.
+  - Not done (suggestions): Escape to dismiss a hovered tooltip (needs JS; focus moves away
+    already dismiss it); `?env=` is not carried on `[?]` links (macros have no request context).
+- R-22 closed 2026-10-03: the user reviewed the Glossary, the frontier and evidence pages in the
+  dashboard and signed off (T029). `speckit-analyze` found no critical issues; one medium (SC-003
+  on stacked tables, accepted and noted in the spec) and three low wording items, all resolved
+  (`8b0cf28`). Glossary sync: every entry is new in R-22, nothing else to update. Next: R-16.

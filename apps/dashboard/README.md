@@ -4,9 +4,11 @@ A local, **read-only** operator dashboard over the crawler's SQLite store
 (`data/db/<env>.sqlite`). It shows every portal's runs, how they ended and why, and for each run
 the states, actions (with safety class), frontier, forms, network call shapes, robots.txt policies
 and the decision log, with confidence and evidence on every record. Open pages update live while
-the crawler writes.
+the crawler writes. The **Glossary** tab explains Pathfinder's terms, and `[?]` marks next to
+labels show a term's definition on hover or keyboard focus.
 
-Spec: [`specs/003-dashboard-ui/`](../../specs/003-dashboard-ui/) (R-12).
+Spec: [`specs/003-dashboard-ui/`](../../specs/003-dashboard-ui/) (R-12); glossary and BA wiki
+[`specs/006-glossary-ba-wiki/`](../../specs/006-glossary-ba-wiki/) (R-22).
 
 ## Run
 
@@ -22,6 +24,22 @@ Settings can also come from the environment: `PATHFINDER_DATA_DIR`, `PATHFINDER_
 `PATHFINDER_PORT`, `PATHFINDER_DEV`. The data dir defaults to the repo's `data/` (the nearest
 ancestor holding `data/migrations`). Every `data/db/*.sqlite` file is an environment; switch in
 the top bar (`?env=` on any URL).
+
+## Glossary and BA wiki
+
+The glossary source is `docs/glossary/glossary.yaml` (long pages in `docs/glossary/pages/`, BA wiki
+pages in `docs/wiki/`); `PATHFINDER_DOCS_DIR` points elsewhere. The dashboard serves it at
+`/glossary`, `/glossary/pages/<slug>`, `/glossary/wiki` and `/glossary/wiki/<slug>`, and templates
+mark labels with `{{ m.term("<id>", "Label") }}` (tooltip) or `{{ m.intro("<id>") }}` (one line
+under a heading). After editing the source:
+
+```bash
+uv run pathfinder-glossary --write   # validate and regenerate docs/glossary/README.md
+uv run pathfinder-glossary           # validate only; fails if README.md is out of date
+```
+
+A broken source never breaks the dashboard: labels render without `[?]` and `/glossary` shows the
+problems. `tests/test_glossary_templates.py` fails when a template uses a term the glossary lacks.
 
 ## Test
 
@@ -55,6 +73,7 @@ src/pathfinder_dashboard/
   settings.py   db.py (read-only connection)   models.py (read models)
   queries.py    (pure SQL → models, keyset pagination)
   live.py       (SSE watcher)   app.py (routes)   __main__.py (CLI)
+  glossary.py   (load, validate, render the glossary and wiki)   glossary_cli.py
   templates/    pages + partials/ (one partial per live region; macros.html holds status labels)
   static/       css/tokens.css (the only literal values), css/app.css, js/live.js,
                 vendor/ (htmx 4 + hx-sse, pinned, see vendor/README.md), fonts/ (JetBrains Mono)

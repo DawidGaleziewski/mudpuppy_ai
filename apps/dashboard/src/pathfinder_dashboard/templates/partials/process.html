@@ -6,7 +6,7 @@
     {{ m.empty("No process recorded for this run",
                "A trace run records one process: its goal, ordered steps, and where it stopped. Map runs have none.") }}
   {%- else %}
-  <div class="section-head"><h2>Process <span class="muted">{{ p.name }}</span></h2></div>
+  <div class="section-head"><h2>{{ m.term("trace-process", "Process") }} <span class="muted">{{ p.name }}</span></h2></div>
   <div class="panel" id="{{ p.id }}">
     <p>{{ m.process_outcome(p.outcome) }}</p>
     <dl class="facts">
@@ -23,14 +23,14 @@
   <div class="section">{{ m.diagram(v.diagram, "Process map from the recorded steps") }}</div>
   {%- endif %}
   <div class="section">
-    <div class="section-head"><h2>Steps <span class="muted mono-num">{{ v.steps | length }}</span></h2></div>
+    <div class="section-head"><h2>{{ m.term("process-step", "Steps") }} <span class="muted mono-num">{{ v.steps | length }}</span></h2></div>
     {%- if not v.steps %}
       {{ m.empty("No step recorded yet", "Steps appear as the crawler agent acts in the trace run.") }}
     {%- else %}
     <div class="table-wrap">
       <table class="data stack">
         <caption class="visually-hidden">Recorded steps in order</caption>
-        <thead><tr><th scope="col" class="num">#</th><th scope="col">Intent</th><th scope="col">Kind</th><th scope="col">Value</th><th scope="col">Outcomes</th><th scope="col">Confidence</th><th scope="col">Evidence</th></tr></thead>
+        <thead><tr><th scope="col" class="num">#</th><th scope="col">Intent</th><th scope="col">Kind</th><th scope="col">Value</th><th scope="col">Outcomes</th><th scope="col">{{ m.term("confidence", "Confidence") }}</th><th scope="col">{{ m.term("evidence", "Evidence") }}</th></tr></thead>
         <tbody>
           {%- for s in v.steps %}
           <tr id="{{ s.id }}">

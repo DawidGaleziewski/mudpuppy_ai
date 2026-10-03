@@ -3,7 +3,7 @@
 {% call m.region("frontier", v.self_url, "Frontier") %}
   <div class="section-head">
     <div>
-      <h2>Frontier <span class="muted mono-num">{{ v.counts.values() | sum }}</span></h2>
+      <h2>{{ m.term("frontier", "Frontier") }} <span class="muted mono-num">{{ v.counts.values() | sum }}</span></h2>
       <ul class="chips" aria-label="Frontier by status">
         {%- for st, n in v.counts.items() %}<li>{{ m.frontier_status(st) }} <span class="mono-num">{{ n }}</span></li>{% endfor %}
       </ul>
@@ -25,8 +25,8 @@
     <table class="data stack">
       <caption class="visually-hidden">Frontier items</caption>
       <thead><tr>
-        <th scope="col">Status</th><th scope="col">Action</th><th scope="col">Safety class</th>
-        <th scope="col" class="num">Depth</th><th scope="col" class="num">Priority</th><th scope="col">Reason</th>
+        <th scope="col">{{ m.term("status-codes", "Status") }}</th><th scope="col">Action</th><th scope="col">{{ m.term("safety-class", "Safety class") }}</th>
+        <th scope="col" class="num">{{ m.term("priority-depth", "Depth") }}</th><th scope="col" class="num">{{ m.term("priority-depth", "Priority") }}</th><th scope="col">{{ m.term("decision", "Reason") }}</th>
       </tr></thead>
       <tbody>
         {%- for f in v.page["items"] %}

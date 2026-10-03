@@ -11,7 +11,7 @@
   <div class="table-wrap">
     <table class="data stack">
       <caption class="visually-hidden">Records whose latest revision cites this run</caption>
-      <thead><tr><th scope="col">Record</th><th scope="col">Status</th><th scope="col">Confidence</th><th scope="col">Cites</th></tr></thead>
+      <thead><tr><th scope="col">{{ m.term("documentation-record", "Record") }}</th><th scope="col">{{ m.term("record-status", "Status") }}</th><th scope="col">{{ m.term("confidence", "Confidence") }}</th><th scope="col">{{ m.term("evidence-link", "Cites") }}</th></tr></thead>
       <tbody>
         {%- for item in v.page["items"] %}
         {%- set row = item.row %}

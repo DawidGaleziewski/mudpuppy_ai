@@ -3,7 +3,7 @@
 {% set busy = "![...document.querySelectorAll('#region-reviews textarea')].some(t => t.value.trim())" %}
 {% call m.region("reviews", panel.self_url, "Review", guard=busy) %}
   <div class="panel review-panel">
-    <h2>Review</h2>
+    <h2>{{ m.term("review", "Review") }}</h2>
     {%- set res = panel.result %}
     {%- if res %}
     <p class="review-result" role="status">

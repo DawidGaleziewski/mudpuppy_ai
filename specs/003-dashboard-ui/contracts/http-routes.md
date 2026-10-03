@@ -12,6 +12,7 @@ still returns the full page (htmx boosts are not used), so every URL is bookmark
 | `/` | `overview.html` | store info, one `PortalSummary` card per portal, runs table | `portal`, `status`, `cursor`, `page` |
 | `/runs/{run_id}` | `run_detail.html` | run header + one section tab (states, actions, frontier, forms, network, robots, decisions) | `tab` (default `states`) plus that section's filters, `cursor`, `page` |
 | `/healthz` | JSON | `{"ok": true, "store": StoreInfo}` | — |
+| `/glossary`, `/glossary/pages/{slug}`, `/glossary/wiki`, `/glossary/wiki/{slug}` | `glossary*.html`, `wiki*.html` | Pathfinder glossary and BA wiki, no store needed (added by R-22, see `specs/006-glossary-ba-wiki/contracts/dashboard-ui.md`) | `q` on `/glossary` |
 
 Unknown `run_id` → 404 page with the not-found state (spec US2 scenario 4). Missing store → 200 page
 with the error state naming the path (spec edge case); `/healthz` returns 503.

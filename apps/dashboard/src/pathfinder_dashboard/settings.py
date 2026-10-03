@@ -37,3 +37,5 @@ class Settings(BaseSettings):
     # Where `pnpm docs:review` runs; the dashboard never writes the store (constitution 1.4.0).
     crawler_dir: Path = Field(default_factory=lambda: find_data_dir().parent / "apps" / "crawler")
     review_timeout_s: float = 10.0
+    # Glossary, its long pages and the BA wiki (spec 006): authored content, read-only here.
+    docs_dir: Path = Field(default_factory=lambda: find_data_dir().parent / "docs")
