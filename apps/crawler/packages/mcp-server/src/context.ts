@@ -7,6 +7,7 @@ import type {
   PwTraceMode,
   Tracer,
 } from '@pathfinder/core';
+import type { captureVisuals } from '@pathfinder/crawler';
 
 /**
  * What the BA server's services need: the store and the evidence files, nothing that can reach a
@@ -36,4 +37,6 @@ export interface ServerContext {
   dbEnvironment: string;
   /** Used only for robots.txt (spec 002 FR-001); injectable so tests never reach the network. */
   fetch?: typeof fetch;
+  /** Screenshot + layout of a new state (spec 008); injectable so tests can force a failure. */
+  captureVisuals?: typeof captureVisuals;
 }

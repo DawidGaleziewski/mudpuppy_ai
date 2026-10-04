@@ -50,7 +50,21 @@ another origin are refused.
 
 To hand the documentation to another team, export it from `apps/crawler`:
 `pnpm docs:export <portal> --env <env> [--confirmed-only]` writes Markdown chapters with Mermaid
-diagrams, a traceability matrix and `records.json` to `data/exports/<portal>-<env>-srs/`.
+diagrams, a traceability matrix, `records.json` and `images/` to
+`data/exports/<portal>-<env>-srs/`.
+
+## Screenshots and wireframes (spec 008)
+
+Each recorded state has a page at `/states/<id>` (titles in a run's States table link to it, with a
+thumbnail): the screenshot as first recorded, a **show elements** toggle that outlines every
+element the layout placed, a Wireframe tab with SVG and Excalidraw downloads, and the records that
+cite the state. A record page's **Screens** panel shows each cited state with that record's screen
+regions outlined and numbered, and a legend that names regions not visible on the screenshot.
+
+Images come from `GET /evidence/<sha256>.<png|svg|excalidraw>`, which serves only those three
+kinds by content address (never snapshots, layouts or paths), with an immutable cache header.
+The dashboard never draws a wireframe or computes element keys: it serves the files the crawler
+wrote and matches cited keys against the keys stored in each layout.
 
 ## Glossary and BA wiki
 

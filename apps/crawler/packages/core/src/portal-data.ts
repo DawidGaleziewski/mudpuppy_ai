@@ -12,6 +12,7 @@ import { newId, nowIso } from './ids.js';
 export const PORTAL_TABLES = [
   'runs',
   'states',
+  'state_wireframes',
   'state_observations',
   'actions',
   'edges',
@@ -73,12 +74,13 @@ const DELETE_ORDER: readonly PortalTable[] = [
   'rule_candidates',
   'robots_policies',
   'state_observations',
+  'state_wireframes',
   'states',
   'runs',
 ];
 
 /** An evidence reference (`<sha256>.<ext>`), in a `*_ref` column or inside JSON (`snapshot_ref`). */
-const EVIDENCE_REF = /\b[0-9a-f]{64}\.[a-z0-9]{1,8}\b/g;
+const EVIDENCE_REF = /\b[0-9a-f]{64}\.[a-z0-9]{1,10}\b/g;
 
 export class PortalDataError extends Error {
   constructor(message: string) {
@@ -118,6 +120,8 @@ export function where(table: PortalTable, side: 'mine' | 'others'): string {
       return `record_id IN (${DOC_RECORDS_OF_PORTAL(op)})`;
     case 'process_steps':
       return `process_id IN (SELECT id FROM processes WHERE portal_id ${op} ?)`;
+    case 'state_wireframes':
+      return `state_id IN (SELECT id FROM states WHERE portal_id ${op} ?)`;
     default:
       return `run_id IN (SELECT id FROM runs WHERE portal_id ${op} ?)`;
   }

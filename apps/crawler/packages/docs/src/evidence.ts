@@ -1,4 +1,11 @@
-import type { Confidence, EvidenceTargetKind } from '@pathfinder/core';
+import { readFileSync } from 'node:fs';
+import {
+  createEvidenceStore,
+  elementKeys,
+  parseAriaYaml,
+  type Confidence,
+  type EvidenceTargetKind,
+} from '@pathfinder/core';
 import { DocsError } from './errors.js';
 import type { RawDb } from './keys.js';
 import type { ResolvedTarget } from './observed-rule.js';
@@ -6,10 +13,63 @@ import type { ResolvedTarget } from './observed-rule.js';
 /** An evidence link as a writer states it; the server resolves the run. */
 export interface EvidenceLinkInput {
   target_kind: EvidenceTargetKind;
-  /** Row id; a `doc_record` may also be named by its key. */
+  /** Row id; a `doc_record` may also be named by its key; a `screen_region` names its state. */
   target_id: string;
-  /** Only for `state`: which run's observation of the state is meant. */
+  /** Only for `state` and `screen_region`: which run's observation of the state is meant. */
   run_id?: string | undefined;
+  /** Only for `screen_region`: the cited element key (spec 008, contracts/element-key.md). */
+  region?: string | undefined;
+}
+
+/** Element keys of a state from its stored snapshot; null when the snapshot cannot be read. */
+export type ElementKeysOf = (stateId: string) => readonly string[] | null;
+
+/** Kinds whose target is a state row: the state itself, or a region of its screenshot. */
+const STATE_KINDS: readonly EvidenceTargetKind[] = ['state', 'screen_region'];
+
+/** {@link ElementKeysOf} reading each state's ARIA snapshot from the evidence store. */
+export function elementKeysReader(raw: RawDb, evidenceRoot: string): ElementKeysOf {
+  const store = createEvidenceStore(evidenceRoot);
+  const refOf = raw.prepare('SELECT evidence_ref FROM states WHERE id = ?');
+  const cache = new Map<string, readonly string[] | null>();
+  return (stateId) => {
+    if (cache.has(stateId)) return cache.get(stateId)!;
+    const row = refOf.get(stateId) as { evidence_ref: string } | undefined;
+    let keys: readonly string[] | null = null;
+    try {
+      if (row) {
+        const yaml = readFileSync(store.resolve(row.evidence_ref), 'utf8');
+        keys = elementKeys(parseAriaYaml(yaml)).map((e) => e.key);
+      }
+    } catch {
+      keys = null;
+    }
+    cache.set(stateId, keys);
+    return keys;
+  };
+}
+
+/** Up to `n` keys most like `wanted` (edit distance on lower case), for a refusal message. */
+export function closestKeys(wanted: string, keys: readonly string[], n = 10): string[] {
+  const a = wanted.toLowerCase();
+  const distance = (b: string): number => {
+    const prev = Array.from({ length: b.length + 1 }, (_, j) => j);
+    for (let i = 1; i <= a.length; i++) {
+      let diag = prev[0]!;
+      prev[0] = i;
+      for (let j = 1; j <= b.length; j++) {
+        const up = prev[j]!;
+        prev[j] = Math.min(up + 1, prev[j - 1]! + 1, diag + (a[i - 1] === b[j - 1] ? 0 : 1));
+        diag = up;
+      }
+    }
+    return prev[b.length]!;
+  };
+  return keys
+    .map((k, i) => ({ k, i, d: distance(k.toLowerCase()) }))
+    .sort((x, y) => x.d - y.d || x.i - y.i)
+    .slice(0, n)
+    .map((x) => x.k);
 }
 
 /**
@@ -43,7 +103,7 @@ function runPortal(raw: RawDb, runId: string): string | undefined {
 export function lookupTarget(raw: RawDb, link: EvidenceLinkInput): ResolvedTarget | null {
   const { target_kind: kind, target_id: id } = link;
 
-  if (kind === 'state') {
+  if (STATE_KINDS.includes(kind)) {
     const state = raw
       .prepare('SELECT portal_id, confidence, first_seen_run FROM states WHERE id = ?')
       .get(id) as { portal_id: string; confidence: Confidence; first_seen_run: string } | undefined;
@@ -54,6 +114,7 @@ export function lookupTarget(raw: RawDb, link: EvidenceLinkInput): ResolvedTarge
       run_id: link.run_id ?? null,
       portal_id: state.portal_id,
       confidence: state.confidence,
+      ...(kind === 'screen_region' && link.region !== undefined ? { region: link.region } : {}),
     };
   }
 
@@ -161,15 +222,30 @@ export function resolveTargets(
   portalId: string,
   sessionRunIds: readonly string[],
   links: readonly EvidenceLinkInput[],
+  /** Checks a `screen_region` key against the state's snapshot; skipped when absent. */
+  opts: { elementKeysOf?: ElementKeysOf } = {},
 ): ResolvedTarget[] {
   const inSession = new Set(sessionRunIds);
   return links.map((link, index) => {
     const where = { index, target_kind: link.target_kind, target_id: link.target_id };
-    if (link.run_id !== undefined && link.target_kind !== 'state')
+    const onState = STATE_KINDS.includes(link.target_kind);
+    if (link.run_id !== undefined && !onState)
       throw new DocsError(
         'SCHEMA_INVALID',
-        `evidence[${index}].run_id is only accepted on a state link; the server resolves the run of a ${link.target_kind}`,
+        `evidence[${index}].run_id is only accepted on a state or screen_region link; the server resolves the run of a ${link.target_kind}`,
         where,
+      );
+    if (link.target_kind === 'screen_region' && !link.region)
+      throw new DocsError(
+        'SCHEMA_INVALID',
+        `evidence[${index}].region is required on a screen_region link: an element key of the state, as listed by get_evidence`,
+        { ...where, field: 'region' },
+      );
+    if (link.target_kind !== 'screen_region' && link.region !== undefined)
+      throw new DocsError(
+        'SCHEMA_INVALID',
+        `evidence[${index}].region is only accepted on a screen_region link`,
+        { ...where, field: 'region' },
       );
 
     const found =
@@ -189,7 +265,17 @@ export function resolveTargets(
         { ...where, portal_id: found.portal_id },
       );
 
-    if (link.target_kind === 'state') {
+    if (link.target_kind === 'screen_region') {
+      const keys = opts.elementKeysOf?.(found.target_id);
+      if (keys && !keys.includes(link.region!))
+        throw new DocsError(
+          'UNKNOWN_REF',
+          `evidence[${index}]: state ${link.target_id} has no element ${JSON.stringify(link.region)}; closest keys: ${closestKeys(link.region!, keys).join(' | ') || '(none)'}`,
+          { ...where, region: link.region, closest: closestKeys(link.region!, keys) },
+        );
+    }
+
+    if (onState) {
       const observedIn = (
         raw
           .prepare('SELECT run_id FROM state_observations WHERE state_id = ? ORDER BY run_id')

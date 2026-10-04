@@ -66,13 +66,22 @@ The whole flow, with the agents named in `.claude/agents/`:
    the BA as feedback in its next session.
 5. **Export.** `pnpm --dir apps/crawler docs:export <portal> --env <env> [--confirmed-only]` writes
    the SRS: Markdown chapters along ISO/IEC/IEEE 29148, Mermaid diagrams, a traceability matrix,
-   an Unknowns chapter and `records.json`, byte-identical for the same store.
+   an Unknowns chapter, `records.json` and `images/` (each screen's screenshot and wireframe, and
+   crops with the elements a record cites outlined), byte-identical for the same store.
 6. **Evaluate.** `pnpm --dir apps/crawler docs:evaluate <portal> --env <env> --ground-truth <file>`
    scores the documentation per category (screens, fields, constraints, rules, processes, terms),
    lists every miss and every over-claim, and fails below the targets.
 
 `pnpm --dir apps/crawler docs:audit <portal> --env <env>` checks that every revision has resolvable
-evidence and every status is explained by a review.
+evidence (screen-region keys included) and every status is explained by a review.
+
+**Pictures.** Every new state is recorded with a screenshot and a wireframe (an SVG plus an editable
+`.excalidraw` file, drawn from the page's accessibility snapshot in one fixed style). The BA cites
+the field or button a record is about as a *screen region*, and the dashboard and the export outline
+it on the screenshot. `pnpm --dir apps/crawler wireframes:build <portal> --env <env> [--all]`
+redraws wireframes, for example for states recorded before screenshots existed. States from before
+migration 0006 have no screenshot; to get them, wipe the store and re-crawl
+(`specs/008-screenshots-wireframes/quickstart.md` §0).
 
 The **reference portal** (`apps/crawler/packages/reference-portal`, portal `reference-insurer`) is a
 local fake Polish insurer whose full truth is written down in `ground-truth.json`. Start it with
@@ -112,10 +121,15 @@ These guarantees are enforced in code, outside the agent:
 - **Polite.** Identifiable `User-Agent`, a rate limit and a concurrency cap on every request.
 - **Stops on a block.** A 403/429, CAPTCHA or portal-specific block page ends the run (`stopped_warning`); every later
   call returns `RUN_STOPPED` and no further request is made. There is no way to resume past a block.
-- **No PII stored.** Names, emails, phone numbers and tokens are masked before anything is written; network calls
-  are recorded as shapes only; screenshots are not stored.
+- **Test data off production (constitution 2.0.0).** On sandbox and staging, map mode fills a form with
+  deterministic test data before pressing its submit button (form autofill), so the pages behind forms are
+  recorded too. On production nothing is filled or submitted.
+- **Evidence as recorded.** Every new state gets an unmasked full-page screenshot and a layout (element keys
+  with boxes). Text evidence is masked only when the portal sets `pii_scrub: true`; network calls are recorded
+  as shapes only either way.
 
-`pnpm --dir apps/crawler audit:pii` scans the evidence and database for anything that slipped through, and
+`pnpm --dir apps/crawler audit:pii` scans the evidence and database for personal data (it reports findings
+for every portal that does not set `pii_scrub`, which is expected since constitution 2.0.0), and
 `pnpm --dir apps/crawler stability <runA> <runB>` measures how stable state identity is between two runs.
 
 ## Repository layout

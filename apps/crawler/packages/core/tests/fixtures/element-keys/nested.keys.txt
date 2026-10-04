@@ -1,0 +1,15 @@
+banner
+navigation
+link "Start"
+main
+region "Sekcja A"
+heading "A \"cytat\""
+navigation#2
+link "Link z spacjami"
+complementary
+heading "Boczne"
+table
+dialog "Cookies"
+button "Akceptuj"
+contentinfo
+button "Na dole"

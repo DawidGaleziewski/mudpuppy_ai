@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}State not found{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <p class="crumbs"><a href="{{ c.url('/') }}">Overview</a> / state</p>
+    <h1>State not found</h1>
+  </div>
+</div>
+<div class="state state-empty">
+  <span class="state-icon st" aria-hidden="true">[ ?? ]</span>
+  <p class="state-title">No state with id “{{ state_id }}” in environment “{{ env }}”</p>
+  <p class="muted">It may belong to another environment, or its portal data was deleted.</p>
+  <p><a class="btn btn-bracket" href="{{ c.url('/') }}">[back to overview]</a></p>
+</div>
+{% endblock %}

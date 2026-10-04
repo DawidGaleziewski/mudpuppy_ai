@@ -64,12 +64,20 @@ const evidenceItem = z.looseObject({
   target_kind: z.string().describe(`One of: ${oneOf(EvidenceTargetKind.options)}`),
   target_id: z
     .string()
-    .describe('Id from get_run_evidence / get_record; a doc_record may be given by its key'),
+    .describe(
+      'Id from get_run_evidence / get_record; a doc_record may be given by its key; a screen_region gives the state id',
+    ),
   run_id: z
     .string()
     .optional()
     .describe(
-      'Only on a state link: the run whose observation of the state you read. Never on other kinds; the server resolves their run',
+      'Only on a state or screen_region link: the run whose observation of the state you read. Never on other kinds; the server resolves their run',
+    ),
+  region: z
+    .string()
+    .optional()
+    .describe(
+      'Only on a screen_region link (required there): one element key of the state, copied verbatim from get_evidence elements, e.g. textbox "Pojemność silnika"',
     ),
   note: z.string().optional().describe('What in the target supports the claim'),
 });
@@ -134,7 +142,7 @@ export function registerBaTools(server: McpServer, ctx: BaContext): void {
   );
   tool(
     'get_evidence',
-    'The full recorded item and the content of its evidence file (masked ARIA snapshot or shape), cut at 60 kB with truncated: true.',
+    'The full recorded item and the content of its evidence file (ARIA snapshot or shape), cut at 60 kB with truncated: true. For a state also: screenshot (true when one was recorded) and elements, the element keys you can cite as a screen_region (box: true means it can be outlined on the screenshot).',
     {
       target_kind: z.string().describe(`One of: ${oneOf(EvidenceReadKind.options)}`),
       target_id: z.string(),

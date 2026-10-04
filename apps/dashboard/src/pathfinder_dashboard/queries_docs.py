@@ -421,6 +421,8 @@ def _edge_label(row: sqlite3.Row) -> str:
 # kind -> (table, run tab, label from the row). `doc_record` and `review` are handled apart.
 _TARGETS: dict[str, tuple[str, str, Callable[[sqlite3.Row], str]]] = {
     "state": ("states", "states", lambda r: f"{r['title']} ({r['route_template']})"),
+    # spec 008: a region of a state's screenshot; the element key is on the link (`region`).
+    "screen_region": ("states", "states", lambda r: f"{r['title']} ({r['route_template']})"),
     "edge": ("edges", "states", _edge_label),
     "action": ("actions", "actions", _action_label),
     "form": ("forms", "forms", _form_label),

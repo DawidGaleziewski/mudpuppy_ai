@@ -1,5 +1,13 @@
 import { readFile } from 'node:fs/promises';
-import { DocKind, RevisionStatus, isEvidenceRef } from '@pathfinder/core';
+import {
+  DocKind,
+  Layout,
+  MAX_KEYED_ELEMENTS,
+  RevisionStatus,
+  elementKeys,
+  isEvidenceRef,
+  parseAriaYaml,
+} from '@pathfinder/core';
 import { z } from 'zod';
 import type { BaContext } from '../../context.js';
 import { ToolError, parseInput } from '../../errors.js';
@@ -265,11 +273,62 @@ async function readEvidenceFile(ctx: BaContext, ref: string): Promise<EvidenceFi
   return { ref, content, truncated, bytes: buf.byteLength };
 }
 
+/** One element of a state the BA can cite as a screen region (contracts/ba-tools-delta.md). */
+export interface StateElement {
+  key: string;
+  role: string;
+  name: string;
+  /** True when the layout has a box for it, so it can be outlined on the screenshot. */
+  box: boolean;
+}
+
+/**
+ * The element keys of a state, from its whole snapshot (not the cut evidence content), marked with
+ * whether the layout placed them on the screenshot.
+ */
+async function stateElements(
+  ctx: BaContext,
+  row: Row,
+): Promise<{ screenshot: boolean; elements: StateElement[]; elements_truncated: boolean }> {
+  const read = async (ref: unknown): Promise<string | null> => {
+    if (typeof ref !== 'string' || !isEvidenceRef(ref)) return null;
+    try {
+      return await readFile(ctx.evidence.resolve(ref), 'utf8');
+    } catch {
+      return null;
+    }
+  };
+  const yaml = await read(row.evidence_ref);
+  const keyed = yaml === null ? [] : elementKeys(parseAriaYaml(yaml));
+  const layoutText = await read(row.layout_ref);
+  let layout: ReturnType<typeof Layout.safeParse> | null;
+  try {
+    layout = layoutText === null ? null : Layout.safeParse(json(layoutText));
+  } catch {
+    layout = null; // an unreadable layout only means no boxes
+  }
+  const boxed = new Set(
+    layout?.success ? layout.data.elements.filter((e) => e.box !== null).map((e) => e.key) : [],
+  );
+  return {
+    screenshot: typeof row.screenshot_ref === 'string',
+    elements: keyed.map((e) => ({ key: e.key, role: e.role, name: e.name, box: boxed.has(e.key) })),
+    elements_truncated: keyed.length >= MAX_KEYED_ELEMENTS,
+  };
+}
+
 /** The full Layer A record, with the content of its evidence file when it has one. */
 export async function getEvidence(
   ctx: BaContext,
   raw: unknown,
-): Promise<{ target_kind: EvidenceReadKind; record: Row; evidence: EvidenceFile | null }> {
+): Promise<{
+  target_kind: EvidenceReadKind;
+  record: Row;
+  evidence: EvidenceFile | null;
+  screenshot?: boolean;
+  elements?: StateElement[];
+  elements_truncated?: boolean;
+}> {
   const input = parseInput(GetEvidenceInput, raw);
   const row = ctx.raw
     .prepare(`SELECT * FROM ${EVIDENCE_TABLE[input.target_kind]} WHERE id = ?`)
@@ -296,6 +355,13 @@ export async function getEvidence(
     (record.action_json as { snapshot_ref?: unknown } | undefined)?.snapshot_ref;
   const evidence =
     typeof ref === 'string' && isEvidenceRef(ref) ? await readEvidenceFile(ctx, ref) : null;
+  if (input.target_kind === 'state')
+    return {
+      target_kind: input.target_kind,
+      record,
+      evidence,
+      ...(await stateElements(ctx, row)),
+    };
   return { target_kind: input.target_kind, record, evidence };
 }
 
@@ -359,8 +425,13 @@ export function getRecord(ctx: BaContext, raw: unknown): Row {
     });
 
   const links = ctx.raw.prepare(
-    'SELECT target_kind, target_id, run_id, note FROM doc_evidence_links WHERE revision_id = ? ORDER BY id',
+    'SELECT target_kind, target_id, run_id, note, region FROM doc_evidence_links WHERE revision_id = ? ORDER BY id',
   );
+  // `region` only on screen_region links (spec 008); other links read as before.
+  const linksOf = (revisionId: unknown): Row[] =>
+    (links.all(revisionId) as Row[]).map(({ region, ...l }) =>
+      region === null ? l : { ...l, region },
+    );
   const relations = ctx.raw.prepare(
     `SELECT l.type, r.key AS to_key, r.kind AS to_kind, r.title AS to_title
      FROM doc_relations l JOIN doc_records r ON r.id = l.to_record_id
@@ -385,7 +456,7 @@ export function getRecord(ctx: BaContext, raw: unknown): Row {
     responds_to_review: rev.responds_to_review,
     session_id: rev.session_id,
     created_at: rev.created_at,
-    evidence: links.all(rev.id),
+    evidence: linksOf(rev.id),
     relations: relations.all(rev.id),
     reviews: reviews.all(rev.id),
   }));

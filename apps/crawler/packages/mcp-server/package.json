@@ -15,6 +15,7 @@
     "@pathfinder/fingerprint": "workspace:*",
     "@pathfinder/obstacles": "workspace:*",
     "@pathfinder/safety": "workspace:*",
+    "@pathfinder/wireframe": "workspace:*",
     "zod": "^4.6.5",
     "@pathfinder/docs": "workspace:*"
   },

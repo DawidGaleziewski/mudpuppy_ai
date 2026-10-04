@@ -1,4 +1,4 @@
-import type { Page } from 'playwright';
+import type { Locator, Page } from 'playwright';
 
 /**
  * `page.evaluate(fn)` serialises `fn` via `Function.prototype.toString()` and runs the resulting
@@ -31,4 +31,15 @@ export function evalInPage<R>(page: Page, fn: () => R): Promise<R> {
   // resolve against the shim defined right above them, in one evaluate() round trip.
   const wrapped = new Function(`${NAME_SHIM} return (${fn.toString()})();`);
   return page.evaluate(wrapped as () => R);
+}
+
+/** `locator.evaluate(fn, arg)` with the same `__name` shim as {@link evalInPage}. */
+export function evalOnElement<A, R>(
+  locator: Locator,
+  fn: (el: Element, arg: A) => R,
+  arg: A,
+): Promise<R> {
+  const wrapped = new Function('el', 'arg', `${NAME_SHIM} return (${fn.toString()})(el, arg);`);
+  // Playwright's PageFunctionOn typing cannot see through `new Function`; the call is the same.
+  return locator.evaluate(wrapped as never, arg as never) as Promise<R>;
 }

@@ -93,11 +93,15 @@ describe('BA server lockdown (contracts/ba-mcp-tools.md)', () => {
       const item = schema.properties!.evidence!.items!;
       expect(Object.keys(item.properties!).sort()).toEqual([
         'note',
+        'region',
         'run_id',
         'target_id',
         'target_kind',
       ]);
-      expect(item.properties!.run_id!.description).toMatch(/only on a state link/i);
+      expect(item.properties!.run_id!.description).toMatch(
+        /only on a state or screen_region link/i,
+      );
+      expect(item.properties!.region!.description).toMatch(/only on a screen_region link/i);
     }
     // And the server enforces it.
     const { fx, session, refused } = await startBa();

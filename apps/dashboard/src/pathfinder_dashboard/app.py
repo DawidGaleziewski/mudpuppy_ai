@@ -7,6 +7,7 @@ live region re-fetching itself and a full page load produce identical markup.
 from __future__ import annotations
 
 import itertools
+import re
 import sqlite3
 from collections.abc import AsyncIterable, Iterator
 from contextlib import contextmanager
@@ -23,7 +24,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from starlette.exceptions import HTTPException
 
-from . import db, diagrams, glossary, live, queries, queries_docs, review
+from . import db, diagrams, glossary, live, queries, queries_docs, review, visuals
 from .models import DECISION_KINDS, FRONTIER_STATUSES, RUN_STATUSES, SAFETY_CLASSES, Run
 from .settings import Settings
 from .version import STARTUP_FINGERPRINT
@@ -219,6 +220,50 @@ def create_app(settings: Settings | None = None) -> FastAPI:
                 )
         except db.StoreMissing as err:
             return missing(c, err)
+
+    @app.get("/states/{state_id}", response_class=HTMLResponse)
+    def state_detail(
+        request: Request,
+        state_id: str,
+        env: str | None = None,
+        view: str = "screenshot",
+        elements: bool = False,
+    ) -> HTMLResponse:
+        """A recorded state's screenshot, wireframe and the records citing it (spec 008)."""
+        c = ctx(request, env)
+        try:
+            with c.conn() as conn:
+                page = visuals.state_page(conn, settings.data_dir, state_id)
+                if page is None:
+                    return render(c, "state_not_found.html", status_code=404, state_id=state_id)
+                if not page.figure.has_screenshot:
+                    view = "wireframe"
+                return render(
+                    c,
+                    "state.html",
+                    p=page,
+                    view="wireframe" if view == "wireframe" else "screenshot",
+                    show_elements=elements,
+                )
+        except db.StoreMissing as err:
+            return missing(c, err)
+
+    @app.get("/evidence/{ref}")
+    def evidence_file(ref: str, download: str | None = None) -> Response:
+        """Screenshots and wireframes only, by content address (contracts/dashboard-routes.md)."""
+        match = visuals.EVIDENCE_IMAGE.match(ref)
+        path = visuals.evidence_path(settings.data_dir, ref) if match else None
+        if match is None or path is None or not path.is_file():
+            raise HTTPException(404)
+        ext = match.group(1)
+        headers = {"Cache-Control": "public, max-age=31536000, immutable"}
+        media = {"png": "image/png", "svg": "image/svg+xml", "excalidraw": "application/json"}[ext]
+        if ext == "svg":
+            headers["Content-Security-Policy"] = "default-src 'none'; style-src 'unsafe-inline'"
+        if download:
+            name = re.sub(r"[^A-Za-z0-9._-]+", "-", download).strip("-")[:80] or "file"
+            headers["Content-Disposition"] = f'attachment; filename="{name}.{ext}"'
+        return Response(path.read_bytes(), media_type=media, headers=headers)
 
     @app.get("/healthz")
     def healthz(request: Request, env: str | None = None) -> JSONResponse:
@@ -1268,6 +1313,8 @@ def record_values(
         "key": key,
         "detail": detail,
         "diagram": diagram,
+        "figures": visuals.record_figures(conn, c.settings.data_dir, detail.evidence),
+        "figures_open": visuals.FIGURES_OPEN,
         "panel": panel,
         "header_url": c.url(f"{base}/header", rev=rev_arg),
         "body_url": c.url(f"{base}/body", rev=rev_arg),

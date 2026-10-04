@@ -1,0 +1,88 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="694" viewBox="0 0 960 694" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">
+<title>Wireframe: Sekcje</title>
+<rect x="0" y="0" width="960" height="694" fill="#FFFFFF"/>
+<g data-key="navigation">
+<rect x="40" y="72" width="880" height="58" fill="none" stroke="#D0D7DE" stroke-width="1" stroke-dasharray="4 3"/>
+</g>
+<g data-key="banner">
+<rect x="24" y="48" width="912" height="94" fill="none" stroke="#D0D7DE" stroke-width="1" stroke-dasharray="4 3"/>
+</g>
+<g data-key="navigation#2">
+<rect x="56" y="245" width="848" height="58" fill="none" stroke="#D0D7DE" stroke-width="1" stroke-dasharray="4 3"/>
+</g>
+<g data-key="region &quot;Sekcja A&quot;">
+<rect x="40" y="178" width="880" height="137" fill="none" stroke="#D0D7DE" stroke-width="1" stroke-dasharray="4 3"/>
+</g>
+<g data-key="complementary">
+<rect x="40" y="327" width="880" height="137" fill="none" stroke="#D0D7DE" stroke-width="1" stroke-dasharray="4 3"/>
+</g>
+<g data-key="dialog &quot;Cookies&quot;">
+<rect x="40" y="476" width="880" height="72" fill="none" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="main">
+<rect x="24" y="154" width="912" height="406" fill="none" stroke="#D0D7DE" stroke-width="1" stroke-dasharray="4 3"/>
+</g>
+<g data-key="contentinfo">
+<rect x="24" y="572" width="912" height="50" fill="none" stroke="#D0D7DE" stroke-width="1" stroke-dasharray="4 3"/>
+</g>
+<g data-key="page">
+<text x="24" y="36" font-size="12" fill="#6E7781">Sekcje</text>
+</g>
+<g data-key="banner">
+<text x="32" y="63" font-size="11" fill="#6E7781">banner</text>
+</g>
+<g data-key="navigation">
+<text x="48" y="87" font-size="11" fill="#6E7781">navigation</text>
+</g>
+<g data-key="link &quot;Start&quot;">
+<text x="56" y="110" font-size="14" fill="#1F2328">Start</text>
+<line x1="56" y1="114" x2="96" y2="114" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="main">
+<text x="32" y="169" font-size="11" fill="#6E7781">main</text>
+</g>
+<g data-key="region &quot;Sekcja A&quot;">
+<text x="48" y="193" font-size="11" fill="#6E7781">region · Sekcja A</text>
+</g>
+<g data-key="heading &quot;A \&quot;cytat\&quot;&quot;">
+<text x="56" y="224" font-size="22" font-weight="600" fill="#1F2328">A &quot;cytat&quot;</text>
+</g>
+<g data-key="navigation#2">
+<text x="64" y="260" font-size="11" fill="#6E7781">navigation</text>
+</g>
+<g data-key="link &quot;Link z spacjami&quot;">
+<text x="72" y="283" font-size="14" fill="#1F2328">Link z spacjami</text>
+<line x1="72" y1="287" x2="192" y2="287" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="complementary">
+<text x="48" y="342" font-size="11" fill="#6E7781">complementary</text>
+</g>
+<g data-key="heading &quot;Boczne&quot;">
+<text x="56" y="369" font-size="18" font-weight="600" fill="#1F2328">Boczne</text>
+</g>
+<g data-key="table">
+<rect x="56" y="388" width="180" height="32" fill="#F6F8FA" stroke="#8C959F" stroke-width="1"/>
+<text x="64" y="409" font-size="12" font-weight="600" fill="#1F2328">K</text>
+<rect x="236" y="388" width="180" height="32" fill="#F6F8FA" stroke="#8C959F" stroke-width="1"/>
+<text x="244" y="409" font-size="12" font-weight="600" fill="#1F2328">V</text>
+<rect x="56" y="420" width="180" height="32" fill="#FFFFFF" stroke="#8C959F" stroke-width="1"/>
+<text x="64" y="441" font-size="12" fill="#1F2328">1</text>
+<rect x="236" y="420" width="180" height="32" fill="#FFFFFF" stroke="#8C959F" stroke-width="1"/>
+<text x="244" y="441" font-size="12" fill="#1F2328">2</text>
+</g>
+<g data-key="dialog &quot;Cookies&quot;">
+<text x="48" y="491" font-size="11" fill="#6E7781">dialog · Cookies</text>
+</g>
+<g data-key="button &quot;Akceptuj&quot;">
+<rect x="56" y="500" width="96" height="36" rx="6" fill="#F6F8FA" stroke="#1F2328" stroke-width="1"/>
+<text x="104" y="524" font-size="14" font-weight="600" text-anchor="middle" fill="#1F2328">Akceptuj</text>
+</g>
+<g data-key="contentinfo">
+<text x="32" y="587" font-size="11" fill="#6E7781">contentinfo</text>
+<rect x="40" y="596" width="66" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="button &quot;Na dole&quot;">
+<rect x="24" y="634" width="88" height="36" rx="6" fill="#F6F8FA" stroke="#1F2328" stroke-width="1"/>
+<text x="68" y="658" font-size="14" font-weight="600" text-anchor="middle" fill="#1F2328">Na dole</text>
+</g>
+</svg>

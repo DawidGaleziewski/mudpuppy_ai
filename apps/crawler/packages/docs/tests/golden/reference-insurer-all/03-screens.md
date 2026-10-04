@@ -36,6 +36,14 @@ _none recorded_
 
 - Main menu link "Samochód"
 
+**Screenshot:**
+
+_No screenshot recorded._
+
+**Wireframe:**
+
+_No wireframe recorded._
+
 Related: uses term [GL-001](08-glossary.md#GL-001)
 
 Evidence:
@@ -75,6 +83,14 @@ Evidence:
 
 - Link "Oblicz składkę" on the car insurance page
 
+**Screenshot:**
+
+_No screenshot recorded._
+
+**Wireframe:**
+
+_No wireframe recorded._
+
 Evidence:
 
 - form `00000000-0000-7000-8000-000000000006` — form: marka, model, rok_produkcji, pojemnosc (run `00000000-0000-7000-8000-000000000001`, map, 2026-01-15)
@@ -106,6 +122,14 @@ _none recorded_
 **Entry points:**
 
 - Main menu link "Kontakt"
+
+**Screenshot:**
+
+_No screenshot recorded._
+
+**Wireframe:**
+
+_No wireframe recorded._
 
 Evidence:
 

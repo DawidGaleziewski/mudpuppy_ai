@@ -19,7 +19,10 @@ rather than editing this folder ad hoc.
   (each revision → Layer A rows and runs), `doc_relations`, `doc_reviews` and `followup_tasks`.
   Shapes: `specs/004-ba-documentation/data-model.md`.
 - `evidence/` — content-addressed (`sha256`) evidence blobs: ARIA snapshots, robots.txt
-  policies and trace payloads too large for their column, referenced by `evidence_ref` columns.
+  policies and trace payloads too large for their column, referenced by `evidence_ref` columns;
+  since spec 008 also state screenshots (`.png`, unmasked), layouts (`.json`: element keys and
+  boxes) and derived wireframes (`.svg`, `.excalidraw`), referenced by `states.screenshot_ref`,
+  `states.layout_ref` and `state_wireframes`.
   Network call shapes are stored in `network_calls` columns, not here. Generated, not source
   (git-ignored).
 - `exports/` — operator exports (git-ignored): `portal:export` copies everything one portal

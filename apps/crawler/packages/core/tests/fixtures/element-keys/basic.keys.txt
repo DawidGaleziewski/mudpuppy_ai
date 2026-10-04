@@ -1,0 +1,16 @@
+banner
+navigation "Główna"
+link "Strona główna"
+link "Kalkulator"
+main
+heading "Kalkulator OC/AC"
+form "Dane pojazdu"
+spinbutton "Pojemność silnika"
+textbox "Rok produkcji"
+checkbox "Zgoda na regulamin"
+combobox "Rodzaj paliwa"
+option "Benzyna"
+option "Diesel"
+button "Oblicz składkę"
+contentinfo
+link "Kontakt"

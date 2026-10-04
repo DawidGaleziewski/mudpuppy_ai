@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { newId, type DocKind } from '@pathfinder/core';
 import { AUDIT_CHECKS, audit, type AuditCheck } from '../src/audit.js';
+import { elementKeysReader } from '../src/evidence.js';
 import { formatKey, nextSeq } from '../src/keys.js';
 import { FIXTURE_TS, makeFixtureStore, type FixtureStore } from '../src/testing/index.js';
 
@@ -25,6 +26,7 @@ interface Link {
   target_kind: string;
   target_id: string;
   run_id: string | null;
+  region?: string;
 }
 
 /** A consistent record written directly, the way the BA tools would leave it. */
@@ -75,10 +77,10 @@ function record(kind: DocKind = 'business_rule', title = 'Postcode format') {
     for (const l of links)
       fx.raw
         .prepare(
-          `INSERT INTO doc_evidence_links (id, revision_id, target_kind, target_id, run_id, note)
-           VALUES (?, ?, ?, ?, ?, NULL)`,
+          `INSERT INTO doc_evidence_links (id, revision_id, target_kind, target_id, run_id, note, region)
+           VALUES (?, ?, ?, ?, ?, NULL, ?)`,
         )
-        .run(newId(), revisionId, l.target_kind, l.target_id, l.run_id);
+        .run(newId(), revisionId, l.target_kind, l.target_id, l.run_id, l.region ?? null);
     fx.raw
       .prepare('UPDATE doc_records SET latest_rev = ?, title = ?, withdrawn = ? WHERE id = ?')
       .run(revNo, over.title ?? title, change === 'withdraw' ? 1 : 0, id);
@@ -139,6 +141,7 @@ describe('docs audit', () => {
       'status_unexplained',
       'denormalised_mismatch',
       'followup_without_task',
+      'unknown_region',
     ]);
   });
 
@@ -293,6 +296,38 @@ describe('docs audit', () => {
       )
       .run(f.id, FIXTURE_TS);
     expect(checks()).toEqual([]);
+  });
+
+  it('finds a screen region whose element key the state does not have (spec 008)', () => {
+    const regionLink = (region: string): Link => ({
+      target_kind: 'screen_region',
+      target_id: fx.states.vehicle,
+      run_id: fx.runId,
+      region,
+    });
+    const keysOf = elementKeysReader(fx.raw, fx.evidenceDir);
+    const regionChecks = () =>
+      audit(fx.raw, undefined, { elementKeysOf: keysOf }).findings.map((f) => f.check);
+    record().revise({ links: [regionLink('button "Dalej"')] });
+    expect(regionChecks()).toEqual([]);
+    record().revise({ links: [regionLink('button "Wstecz"')], confidence: 'inferred' });
+    expect(regionChecks()).toEqual(['unknown_region']);
+    // Without a key reader the key is not checked (other checks still run).
+    expect(checks()).toEqual([]);
+  });
+
+  it('checks the observation run of a screen region like a state link', () => {
+    record().revise({
+      links: [
+        {
+          target_kind: 'screen_region',
+          target_id: fx.states.vehicle,
+          run_id: fx.otherRunId,
+          region: 'button "Dalej"',
+        },
+      ],
+    });
+    expect(checks()).toEqual(['link_run_mismatch', 'observed_rule']);
   });
 
   it('audits one portal when asked', () => {

@@ -271,6 +271,8 @@ EXPECTED_IDS = {
     "analysis-session", "analysis-pass", "gaps", "record-key", "revision", "record-status",
     "status-codes", "reference-portal",
     "coverage-score", "over-claim", "srs-export", "confirmed-only-mode",  # R-16
+    "screenshot", "element-key", "screen-region", "wireframe", "form-autofill",  # R-20/R-21
+    "pii-scrubbing",
     # BA (22)
     "confidence", "documentation-record", "evidence-link", "relations", "traceability", "review",
     "capability", "screen", "process-record", "use-case", "requirement", "nfr",
@@ -283,7 +285,7 @@ EXPECTED_IDS = {
 def test_real_glossary_is_valid_and_complete() -> None:
     g = load_ok(REPO_DOCS)
     assert {e.id for e in g.entries} == EXPECTED_IDS
-    assert len(EXPECTED_IDS) == 65
+    assert len(EXPECTED_IDS) == 71
     assert sum(e.category == "ba" for e in g.entries) == 22
 
 

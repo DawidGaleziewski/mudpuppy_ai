@@ -2,4 +2,6 @@ node_modules
 pnpm-lock.yaml
 pnpm-workspace.yaml
 tests/fixtures
+packages/*/tests/fixtures
+packages/wireframe/tests/golden
 packages/docs/tests/golden

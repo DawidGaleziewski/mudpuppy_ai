@@ -1,0 +1,57 @@
+{#- Screenshots, wireframes and highlights of recorded states (spec 008, contracts/dashboard-routes.md).
+    Highlights are drawn over the stored image in percent of its size; the image is never changed.
+    Import "with context" (the macros use `c`). -#}
+{% import "partials/macros.html" as m %}
+
+{#- One state's picture. `hl` = the highlights to draw; `legend` lists them under the image. -#}
+{% macro figure(fig, hl=none, legend=true, caption=none, view="screenshot") -%}
+  {%- set marks = hl if hl is not none else fig.highlights -%}
+  {%- set st = fig.state -%}
+  {%- set show_shot = view == "screenshot" and fig.has_screenshot -%}
+  <figure class="shot">
+    {%- if show_shot %}
+    <div class="shot-frame">
+      <a href="/evidence/{{ st.screenshot_ref }}" target="_blank" rel="noopener" aria-label="Open the screenshot of {{ st.title }} at full size">
+        <img src="/evidence/{{ st.screenshot_ref }}" alt="Screenshot of {{ st.title }} ({{ st.route_template }}) as first recorded" loading="lazy"
+             {%- if fig.page_width %} width="{{ fig.page_width }}" height="{{ fig.page_height }}"{% endif %}>
+      </a>
+      {%- for h in marks if h.visible %}
+      <span class="hl" style="left: {{ h.left }}%; top: {{ h.top }}%; width: {{ h.width }}%; height: {{ h.height }}%;" title="{{ h.key }}"><span class="hl-n">{{ h.n }}</span></span>
+      {%- endfor %}
+    </div>
+    {%- elif fig.wireframe %}
+    <div class="shot-frame shot-wireframe">
+      <img src="/evidence/{{ fig.wireframe.svg_ref }}" alt="Wireframe of {{ st.title }} ({{ st.route_template }}), drawn from its recorded page structure" loading="lazy">
+    </div>
+    {%- else %}
+    <div class="shot-frame shot-none"><p class="muted">No screenshot and no wireframe recorded for this state.</p></div>
+    {%- endif %}
+    <figcaption>
+      {%- if caption %}{{ caption }}{% else %}<a href="{{ c.url('/states/' ~ st.id) }}">{{ st.title }}</a> <code>{{ st.route_template }}</code>{% endif %}
+      {%- if not show_shot and fig.wireframe %} <span class="st st-muted">[ wireframe ]</span>{% if not fig.has_screenshot %} <span class="muted">no screenshot recorded</span>{% endif %}{% endif %}
+      {%- if fig.cut and show_shot %} <span class="muted">· cut at {{ fig.page_height }} px</span>{% endif %}
+    </figcaption>
+    {%- if legend and marks %}
+    <ol class="hl-legend">
+      {%- for h in marks %}
+      <li value="{{ h.n }}"><code>{{ h.key }}</code>{% if h.note %} <span class="muted">{{ h.note }}</span>{% endif %}
+        {%- if not h.visible %} <span class="st st-muted">[ not visible on the screenshot ]</span>{% endif %}</li>
+      {%- endfor %}
+    </ol>
+    {%- endif %}
+  </figure>
+{%- endmacro %}
+
+{#- The record page's Screens panel: every cited state with this revision's regions. -#}
+{% macro panel(figures, open_max) -%}
+  {%- if figures %}
+  <div class="section">
+    <details class="screens"{% if figures | length <= open_max %} open{% endif %}>
+      <summary><h2>{{ m.term("screenshot", "Screens") }} <span class="muted mono-num">{{ figures | length }}</span></h2></summary>
+      <div class="shot-grid">
+        {%- for f in figures %}{{ figure(f) }}{% endfor %}
+      </div>
+    </details>
+  </div>
+  {%- endif %}
+{%- endmacro %}

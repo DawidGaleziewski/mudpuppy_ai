@@ -8,7 +8,7 @@ import { isSensitiveKey, maskText, scrubJson } from '../pii.js';
 const ID_KEY =
   /^(?:id|ids|[a-z0-9_]+_ids?|evidence_ref|payload_ref|level1|matched|fingerprint|matched_fingerprint|overlapping_calls)$/i;
 const ID_VALUE =
-  /^(?:[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}|[0-9a-f]{64}(?:\.[a-z0-9]{1,8})?)$/i;
+  /^(?:[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}|[0-9a-f]{64}(?:\.[a-z0-9]{1,10})?)$/i;
 
 const keepsIds = (key: string): boolean => ID_KEY.test(key) && !isSensitiveKey(key);
 

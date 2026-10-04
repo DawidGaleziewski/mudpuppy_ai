@@ -76,6 +76,10 @@ export function readme(m: ExportModel): string {
     '',
     ...CHAPTERS.map(([file, title]) => `- [${title}](${file})`),
     '- [records.json](records.json): machine-readable copy of the same records',
+    '- `images/`: screenshots of the screens as first recorded (`screens/`), their wireframes',
+    '  (`wireframes/`, `.svg` plus an editable `.excalidraw` file for excalidraw.com or the',
+    '  Excalidraw VS Code extension) and crops with the elements a record cites outlined and',
+    '  numbered (`highlights/`)',
   ]);
 }
 

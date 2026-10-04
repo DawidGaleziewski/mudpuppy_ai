@@ -4,13 +4,18 @@ import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
   createEvidenceStore,
+  elementKeys,
   migrateUp,
   newId,
   openDb,
+  parseAriaYaml,
+  type Box,
   type EvidenceStore,
+  type Layout,
   type OpenedDb,
   type PathfinderDb,
 } from '@pathfinder/core';
+import { PNG } from 'pngjs';
 
 // packages/docs/src/testing -> repo root is six levels up.
 const MIGRATIONS = fileURLToPath(new URL('../../../../../../data/migrations', import.meta.url));
@@ -58,6 +63,8 @@ export interface FixtureStore {
   otherPortalId: string;
   otherRunId: string;
   otherState: string;
+  /** The calculator state's screenshot and layout (spec 008); other states have none. */
+  visuals: { vehicle: { screenshot_ref: string; layout_ref: string; layout: Layout } };
   /**
    * Another completed run (of `portalId` unless told otherwise) that saw the home state again and
    * recorded one edge of its own; for RUN_NOT_IN_SESSION and multi-run sessions.
@@ -147,6 +154,31 @@ const SNAPSHOTS = {
   ),
   other: '- main:\n  - heading "Start" [level=1]',
 } as const;
+
+/** Size and element boxes of the calculator page's fixture screenshot (keys from its snapshot). */
+const VEHICLE_PNG = { width: 400, height: 300 };
+const VEHICLE_BOXES: Record<string, Box> = {
+  'heading "Kalkulator OC/AC — dane pojazdu"': { x: 20, y: 60, width: 300, height: 24 },
+  'combobox "Marka"': { x: 20, y: 100, width: 160, height: 20 },
+  'textbox "Model"': { x: 200, y: 100, width: 160, height: 20 },
+  'spinbutton "Rok produkcji"': { x: 20, y: 140, width: 160, height: 20 },
+  'spinbutton "Pojemność silnika (cm³)"': { x: 200, y: 140, width: 160, height: 20 },
+  'textbox "Kod pocztowy"': { x: 20, y: 180, width: 160, height: 20 },
+  'button "Dalej"': { x: 20, y: 240, width: 80, height: 28 },
+};
+
+/** A deterministic PNG: white page, grey boxes where the layout says the elements are. */
+function fixturePng(width: number, height: number, boxes: Record<string, Box>): Uint8Array {
+  const png = new PNG({ width, height });
+  png.data.fill(255);
+  for (const b of Object.values(boxes))
+    for (let y = b.y; y < b.y + b.height; y++)
+      for (let x = b.x; x < b.x + b.width; x++) {
+        const i = (y * width + x) * 4;
+        png.data[i] = png.data[i + 1] = png.data[i + 2] = 210;
+      }
+  return new Uint8Array(PNG.sync.write(png, { deflateLevel: 9, filterType: 4 }));
+}
 
 const VEHICLE_FIELDS = [
   {
@@ -361,6 +393,31 @@ export async function makeFixtureStore(opts: FixtureStoreOptions = {}): Promise<
     ),
     contact: state(portalId, runId, '/kontakt', `Kontakt${suffix}`, refs.contact),
   };
+
+  // The calculator page has a screenshot and a layout (spec 008); the other states predate them.
+  const vehiclePng = fixturePng(VEHICLE_PNG.width, VEHICLE_PNG.height, VEHICLE_BOXES);
+  const vehicleLayout: Layout = {
+    version: 1,
+    viewport: { width: VEHICLE_PNG.width, height: VEHICLE_PNG.height },
+    page: { width: VEHICLE_PNG.width, height: VEHICLE_PNG.height },
+    cut: false,
+    elements: elementKeys(parseAriaYaml(SNAPSHOTS.vehicle)).map((e) => ({
+      key: e.key,
+      role: e.role,
+      name: e.name,
+      box: VEHICLE_BOXES[e.key] ?? null,
+    })),
+  };
+  const visuals = {
+    vehicle: {
+      screenshot_ref: await evidence.storeBinary(vehiclePng, 'png'),
+      layout_ref: await evidence.storeJson(vehicleLayout),
+      layout: vehicleLayout,
+    },
+  };
+  raw
+    .prepare('UPDATE states SET screenshot_ref = ?, layout_ref = ? WHERE id = ?')
+    .run(visuals.vehicle.screenshot_ref, visuals.vehicle.layout_ref, states.vehicle);
 
   const form = (stateId: string, fields: object, ref: string): string => {
     const id = nextId();
@@ -597,6 +654,7 @@ export async function makeFixtureStore(opts: FixtureStoreOptions = {}): Promise<
     otherPortalId,
     otherRunId,
     otherState,
+    visuals,
     addRun(portal = portalId) {
       const id = run(portal);
       const home = portal === portalId ? states.home : otherState;

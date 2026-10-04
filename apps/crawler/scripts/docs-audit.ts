@@ -6,7 +6,7 @@
 import { existsSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { dbPathFor, openDb } from '@pathfinder/core';
-import { audit } from '@pathfinder/docs';
+import { audit, elementKeysReader } from '@pathfinder/docs';
 
 const arg = (name: string, fallback: string): string => {
   const i = process.argv.indexOf(`--${name}`);
@@ -37,7 +37,9 @@ try {
     console.error(`${path} has no documentation tables yet; start a server once to migrate it`);
     process.exitCode = 2;
   } else {
-    const report = audit(opened.raw, portal);
+    const report = audit(opened.raw, portal, {
+      elementKeysOf: elementKeysReader(opened.raw, join(root, 'data', 'evidence')),
+    });
     console.log(JSON.stringify(report, null, 2));
     if (!report.ok) process.exitCode = 1;
   }

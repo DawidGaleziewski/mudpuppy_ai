@@ -27,8 +27,12 @@ let confirmed: Map<string, string>;
 beforeAll(async () => {
   fx = await makeFixtureStore({ portalId: 'reference-insurer', deterministicIds: true });
   seeded = seedDocRecords(fx);
-  all = exportSrs(fx.raw, fx.portalId, { environment: 'sandbox' });
-  confirmed = exportSrs(fx.raw, fx.portalId, { environment: 'sandbox', confirmedOnly: true });
+  // No evidenceRoot: text files only (images are covered by export-images.test.ts).
+  all = exportSrs(fx.raw, fx.portalId, { environment: 'sandbox' }) as Map<string, string>;
+  confirmed = exportSrs(fx.raw, fx.portalId, {
+    environment: 'sandbox',
+    confirmedOnly: true,
+  }) as Map<string, string>;
 });
 afterAll(() => fx.close());
 

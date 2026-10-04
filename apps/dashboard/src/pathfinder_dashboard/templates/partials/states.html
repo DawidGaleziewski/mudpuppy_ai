@@ -10,14 +10,18 @@
     <table class="data stack">
       <caption class="visually-hidden">States observed in this run</caption>
       <thead><tr>
-        <th scope="col">Title</th><th scope="col">Route template</th><th scope="col">{{ m.term("confidence", "Confidence") }}</th>
+        <th scope="col">{{ m.term("screenshot", "Picture") }}</th><th scope="col">Title</th><th scope="col">Route template</th><th scope="col">{{ m.term("confidence", "Confidence") }}</th>
         <th scope="col">{{ m.term("settled", "Stabilization") }}</th><th scope="col">{{ m.term("cluster", "Cluster") }}</th><th scope="col">{{ m.term("evidence", "Evidence") }}</th>
         <th scope="col">Observed (UTC)</th>
       </tr></thead>
       <tbody>
         {%- for o in v["items"] %}
         <tr id="{{ o.state.id }}">
-          <td>{{ o.state.title }}</td>
+          <td data-label="picture">
+            {%- if o.state.screenshot_ref %}<a href="{{ c.url('/states/' ~ o.state.id) }}" aria-label="Screenshot of {{ o.state.title }}"><img class="thumb" src="/evidence/{{ o.state.screenshot_ref }}" alt="" loading="lazy"></a>
+            {%- else %}<a href="{{ c.url('/states/' ~ o.state.id, view='wireframe') }}"><span class="st st-muted">[ wireframe ]</span></a>{% endif -%}
+          </td>
+          <td><a href="{{ c.url('/states/' ~ o.state.id) }}">{{ o.state.title }}</a></td>
           <td data-label="route"><code>{{ o.state.route_template }}</code></td>
           <td data-label="confidence">{{ m.confidence(o.state.confidence) }}</td>
           <td data-label="stabilization">{{ o.state.stabilization | replace("_", " ") }}</td>

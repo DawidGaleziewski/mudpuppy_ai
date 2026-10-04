@@ -1,4 +1,4 @@
--- GENERATED from data/migrations/*.up.sql applied in order (currently through 0005_trace_processes). Do not edit by hand.
+-- GENERATED from data/migrations/*.up.sql applied in order (currently through 0006_screenshots_wireframes). Do not edit by hand.
 -- Regenerate after every migration; see data/schema/README.md.
 
 CREATE TABLE runs (
@@ -107,7 +107,7 @@ CREATE TABLE rule_candidates (
 ) STRICT;
 
 -- Rebuilt by 0002_portal_workspaces: portal_id added, fingerprint uniqueness and the cluster index
--- rescoped per portal (FR-026, FR-027).
+-- rescoped per portal (FR-026, FR-027). screenshot_ref and layout_ref added by 0006 (ALTER TABLE).
 CREATE TABLE states (
   id             TEXT PRIMARY KEY,
   portal_id      TEXT NOT NULL,
@@ -119,7 +119,10 @@ CREATE TABLE states (
   confidence     TEXT NOT NULL CHECK (confidence IN ('observed','inferred','needs_confirmation')),
   stabilization  TEXT NOT NULL CHECK (stabilization IN ('settled','never_stabilized')),
   first_seen_run TEXT NOT NULL REFERENCES runs(id),
-  created_at     TEXT NOT NULL
+  created_at     TEXT NOT NULL,
+  -- 0006: captured once when the state is first recorded; NULL when capture failed or pre-0006.
+  screenshot_ref TEXT CHECK (screenshot_ref IS NULL OR length(screenshot_ref) > 0),
+  layout_ref     TEXT CHECK (layout_ref IS NULL OR length(layout_ref) > 0)
 ) STRICT;
 CREATE UNIQUE INDEX ux_states_portal_fingerprint ON states(portal_id, fingerprint);
 CREATE INDEX ix_states_portal_cluster ON states(portal_id, cluster_id);
@@ -337,18 +340,21 @@ CREATE TABLE doc_revisions (
 
 -- Evidence for a revision. target_id is polymorphic (resolved by the tool; no FK). run_id is the run the
 -- evidence came from, resolved at write time; NULL only for target_kind IN ('doc_record','review') since
--- a human answer or another doc is not run-bound (research.md §5).
+-- a human answer or another doc is not run-bound (research.md §5). Rebuilt by 0006: 'screen_region'
+-- (target_id = state id) carries the cited element key in region (spec 008).
 CREATE TABLE doc_evidence_links (
   id          TEXT PRIMARY KEY,
   revision_id TEXT NOT NULL REFERENCES doc_revisions(id),
   target_kind TEXT NOT NULL CHECK (target_kind IN (
                  'state','edge','action','form','network_call','rule_candidate','open_question',
-                 'decision','process','process_step','doc_record','review'
+                 'decision','process','process_step','doc_record','review','screen_region'
                )),
   target_id   TEXT NOT NULL,
   run_id      TEXT REFERENCES runs(id),
   note        TEXT,
-  CHECK (run_id IS NOT NULL OR target_kind IN ('doc_record','review'))
+  region      TEXT CHECK (region IS NULL OR length(region) > 0),  -- element key; screen_region only
+  CHECK (run_id IS NOT NULL OR target_kind IN ('doc_record','review')),
+  CHECK ((target_kind = 'screen_region') = (region IS NOT NULL))
 ) STRICT;
 -- run_id -> records reverse lookups (FR-033).
 CREATE INDEX ix_doc_evidence_links_run_id ON doc_evidence_links(run_id);
@@ -427,4 +433,14 @@ CREATE TABLE process_steps (
   confidence     TEXT NOT NULL CHECK (confidence IN ('observed','inferred','needs_confirmation')),
   created_at     TEXT NOT NULL,
   UNIQUE (process_id, ord)
+) STRICT;
+
+-- Added by 0006_screenshots_wireframes (spec 008): derived wireframes, rebuilt from the state's ARIA
+-- snapshot whenever generator_version is stale. Never cited as evidence.
+CREATE TABLE state_wireframes (
+  state_id          TEXT PRIMARY KEY REFERENCES states(id),
+  generator_version TEXT NOT NULL CHECK (length(generator_version) > 0),
+  svg_ref           TEXT NOT NULL CHECK (length(svg_ref) > 0),
+  excalidraw_ref    TEXT NOT NULL CHECK (length(excalidraw_ref) > 0),
+  created_at        TEXT NOT NULL
 ) STRICT;

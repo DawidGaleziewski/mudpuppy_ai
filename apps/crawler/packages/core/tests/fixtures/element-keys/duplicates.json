@@ -1,0 +1,151 @@
+[
+  {
+    "role": "main",
+    "box": {
+      "x": 8,
+      "y": 8,
+      "width": 1264,
+      "height": 142
+    },
+    "children": [
+      {
+        "role": "heading",
+        "name": "Oferty",
+        "level": 2,
+        "box": {
+          "x": 8,
+          "y": 8,
+          "width": 1264,
+          "height": 28
+        }
+      },
+      {
+        "role": "list",
+        "box": {
+          "x": 8,
+          "y": 56,
+          "width": 1264,
+          "height": 57
+        },
+        "children": [
+          {
+            "role": "listitem",
+            "box": {
+              "x": 48,
+              "y": 56,
+              "width": 1224,
+              "height": 19
+            },
+            "children": [
+              {
+                "role": "link",
+                "name": "Więcej",
+                "box": {
+                  "x": 48,
+                  "y": 56,
+                  "width": 53,
+                  "height": 19
+                },
+                "url": "/1"
+              }
+            ]
+          },
+          {
+            "role": "listitem",
+            "box": {
+              "x": 48,
+              "y": 75,
+              "width": 1224,
+              "height": 19
+            },
+            "children": [
+              {
+                "role": "link",
+                "name": "Więcej",
+                "box": {
+                  "x": 48,
+                  "y": 75,
+                  "width": 53,
+                  "height": 19
+                },
+                "url": "/2"
+              }
+            ]
+          },
+          {
+            "role": "listitem",
+            "box": {
+              "x": 48,
+              "y": 94,
+              "width": 1224,
+              "height": 19
+            },
+            "children": [
+              {
+                "role": "link",
+                "name": "Więcej",
+                "box": {
+                  "x": 48,
+                  "y": 94,
+                  "width": 53,
+                  "height": 19
+                },
+                "url": "/3"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "role": "button",
+        "name": "Dalej",
+        "box": {
+          "x": 8,
+          "y": 129,
+          "width": 50,
+          "height": 21
+        }
+      },
+      {
+        "role": "button",
+        "name": "Dalej",
+        "box": {
+          "x": 58,
+          "y": 129,
+          "width": 50,
+          "height": 21
+        }
+      },
+      {
+        "role": "link",
+        "box": {
+          "x": 108,
+          "y": 129,
+          "width": 0,
+          "height": 19
+        },
+        "url": "#"
+      },
+      {
+        "role": "link",
+        "box": {
+          "x": 108,
+          "y": 129,
+          "width": 0,
+          "height": 19
+        },
+        "url": "#"
+      },
+      {
+        "role": "img",
+        "name": "Logo",
+        "box": {
+          "x": 108,
+          "y": 129,
+          "width": 55,
+          "height": 19
+        }
+      }
+    ]
+  }
+]

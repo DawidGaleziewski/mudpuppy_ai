@@ -13,8 +13,11 @@ import {
   enqueueActions,
   extractCandidates,
   attachLocators,
+  autofillForm,
+  captureVisuals,
   observePage,
   pendingItemForAction,
+  pendingNavigateItems,
   settleFrontierItem,
   stepOutcomes,
   type ClassifiedAction,
@@ -35,6 +38,8 @@ import {
   recordForm,
   recordState,
   recordTransition,
+  saveWireframe,
+  setStateVisuals,
   type RunRow,
 } from '../services/index.js';
 import { recordObstacles } from './obstacles-trace.js';
@@ -361,6 +366,8 @@ async function processPage(
   });
 
   const { masked, routeTemplate, fp, assignment } = await phase(ctx, 'fingerprint', async () => {
+    // Masking normalises personal values for the fingerprint either way, so clusters stay stable;
+    // whether the stored snapshot is masked is the portal's `pii_scrub` (constitution 2.0.0).
     const masked = maskText(observed.ariaSnapshot);
     const routeTemplate = rs.routeTemplateFor(observed.url);
     const fp = computeFingerprint({ routeTemplate, ariaSnapshot: masked });
@@ -385,11 +392,13 @@ async function processPage(
     return { masked, routeTemplate, fp, assignment };
   });
 
+  const scrub = rs.effective.portal.pii_scrub;
+  const storedSnapshot = scrub ? masked : observed.ariaSnapshot;
   const { evidenceRef, alreadyInRun, state_id, created, stateRow } = await phase(
     ctx,
     'record_state',
     async () => {
-      const evidenceRef = await ctx.evidence.storeText(masked, 'yaml');
+      const evidenceRef = await ctx.evidence.storeText(storedSnapshot, 'yaml');
       const alreadyInRun = await ctx.db
         .selectFrom('state_observations')
         .innerJoin('states', 'states.id', 'state_observations.state_id')
@@ -402,7 +411,7 @@ async function processPage(
         fingerprint: fp.level1,
         cluster_id: assignment.clusterId,
         route_template: routeTemplate,
-        title: maskText(observed.title),
+        title: scrub ? maskText(observed.title) : observed.title,
         evidence_ref: evidenceRef,
         confidence: 'observed',
         stabilization,
@@ -416,6 +425,26 @@ async function processPage(
       return { evidenceRef, alreadyInRun, state_id, created, stateRow };
     },
   );
+  // A new state's picture, before anything acts on the page (spec 008 FR-005, FR-008), and its
+  // wireframe, drawn from the snapshot just stored (FR-014).
+  if (created) {
+    await captureStateVisuals(ctx, rs, run.id, state_id);
+    await phase(ctx, 'wireframe', async () => {
+      try {
+        await saveWireframe(ctx, { id: state_id, title: stateRow.title, ariaYaml: storedSnapshot });
+      } catch (e) {
+        const error = maskText(e instanceof Error ? e.message : String(e)).slice(0, 300);
+        ctx.tracer.event('capture_failed', { state_id, stage: 'wireframe', error });
+        await ctx.decisions.record({
+          run_id: run.id,
+          kind: 'warning',
+          rule: 'wireframe_failed',
+          reason: `wireframe of the new state not drawn: ${error}`,
+          subject_ref: state_id,
+        });
+      }
+    });
+  }
   const knownDepth = rs.depthByState.get(state_id);
   if (knownDepth === undefined || knownDepth > depth) rs.depthByState.set(state_id, depth);
   // A shorter path to a state already queued: its depth-skipped items are within budget again.
@@ -589,6 +618,92 @@ async function recordNetwork(
       detail: { errors: net.console_errors },
     });
   }
+}
+
+/**
+ * Fill the form `submit` belongs to with test data before map mode presses it (spec 008 FR-002,
+ * research R9). A control that submits no form is left alone. A failure here never stops the
+ * click: the portal then answers with its own validation, as before.
+ */
+async function autofillBeforeSubmit(
+  ctx: ServerContext,
+  run: RunRow,
+  state: RunState,
+  action: ActionRow,
+  submit: Parameters<typeof autofillForm>[0],
+): Promise<void> {
+  const mask = (v: string): string => (state.effective.portal.pii_scrub ? maskText(v) : v);
+  try {
+    const result = await autofillForm(submit, state.effective.persona.trace_inputs ?? {});
+    if (result === null) return;
+    const filled = result.filled.map((f) => ({ ...f, value: mask(f.value) }));
+    ctx.tracer.event('form_autofill', {
+      action_id: action.id,
+      filled,
+      skipped: result.skipped,
+    });
+    if (filled.length > 0)
+      await ctx.decisions.record({
+        run_id: run.id,
+        kind: 'note',
+        rule: 'form_autofill',
+        reason: `filled ${filled.length} field(s) with test data before pressing ${action.role} ${JSON.stringify(action.accessible_name ?? '')}`,
+        subject_ref: action.id,
+        detail: { filled, skipped: result.skipped },
+      });
+  } catch (e) {
+    ctx.tracer.event('form_autofill', {
+      action_id: action.id,
+      filled: [],
+      skipped: [],
+      error: maskText((e as Error).message.split('\n')[0] ?? '').slice(0, 300),
+    });
+  }
+}
+
+/**
+ * Screenshot and layout of a newly created state (spec 008 research R3). Never fails the state or
+ * the run: a failed capture is a decision-log warning and a `capture_failed` event (FR-009).
+ */
+async function captureStateVisuals(
+  ctx: ServerContext,
+  rs: RunState,
+  runId: string,
+  stateId: string,
+): Promise<void> {
+  await phase(ctx, 'capture', async () => {
+    try {
+      const capture = ctx.captureVisuals ?? captureVisuals;
+      const { png, layout } = await capture(
+        rs.session.page,
+        rs.effective.portal.pii_scrub ? { mask: maskText } : {},
+      );
+      const screenshot_ref = await ctx.evidence.storeBinary(png, 'png');
+      const layout_ref = await ctx.evidence.storeJson(layout);
+      await setStateVisuals(ctx, stateId, { screenshot_ref, layout_ref });
+      ctx.tracer.event('visuals_captured', {
+        state_id: stateId,
+        screenshot_ref,
+        layout_ref,
+        bytes: png.byteLength,
+        elements: layout.elements.length,
+        boxed: layout.elements.filter((e) => e.box !== null).length,
+        cut: layout.cut,
+      });
+    } catch (e) {
+      const error = maskText(e instanceof Error ? e.message : String(e))
+        .replace(ANSI_STYLE, '')
+        .slice(0, 300);
+      ctx.tracer.event('capture_failed', { state_id: stateId, stage: 'screenshot', error });
+      await ctx.decisions.record({
+        run_id: runId,
+        kind: 'warning',
+        rule: 'capture_failed',
+        reason: `screenshot of the new state not recorded: ${error}`,
+        subject_ref: stateId,
+      });
+    }
+  });
 }
 
 type IssuedAction = ClassifiedAction & {
@@ -854,10 +969,7 @@ async function navigateStep(
   const started = Date.now();
   state.obstacleCursor = state.session.obstacles.events.length;
   const g = await phase(ctx, 'gate', async () => {
-    const g = gateContext(
-      state,
-      await usage(ctx, run, state, 0, state.depthByUrl.get(input.url)),
-    );
+    const g = gateContext(state, await usage(ctx, run, state, 0, state.depthByUrl.get(input.url)));
     const d = decide({ kind: 'navigate', url: input.url }, g);
     traceGate(ctx, state, { kind: 'navigate', url: input.url }, d);
     if (!d.allowed) {
@@ -910,7 +1022,11 @@ async function navigateStep(
       ? { intent: input.intent!, kind: 'navigate', action_id: null, value: null }
       : undefined,
   );
-  await phase(ctx, 'run_bookkeeping', () => bumpRun(ctx, run, started, depth));
+  await phase(ctx, 'run_bookkeeping', async () => {
+    for (const pending of await pendingNavigateItems(ctx.db, run.id, input.url))
+      await settleFrontierItem(ctx.db, pending.id, 'done', null);
+    await bumpRun(ctx, run, started, depth);
+  });
   flushObstacles(ctx, state);
   return result;
 }
@@ -927,8 +1043,9 @@ export async function act(
 
 /**
  * The value a fill/select step types or picks: the agent's, else the persona's `trace_inputs` value
- * for the field's label. Values must be synthetic ({@link isSyntheticInput}): one the PII scrubber
- * would change is refused, except an e-mail on a reserved test TLD.
+ * for the field's label. On a portal with `pii_scrub`, values must be synthetic
+ * ({@link isSyntheticInput}): one the PII scrubber would change is refused, except an e-mail on a
+ * reserved test TLD.
  */
 function inputValue(rs: RunState, action: ActionRow, value: string | undefined): string | null {
   const kind = action.json.input;
@@ -947,7 +1064,8 @@ function inputValue(rs: RunState, action: ActionRow, value: string | undefined):
       'SCHEMA_INVALID',
       `value: required for ${kind} "${action.accessible_name ?? action.role}" (no trace_inputs value for it)`,
     );
-  if (!isSyntheticInput(v))
+  // Since constitution 2.0.0 the check guards only portals that still scrub PII (`pii_scrub`).
+  if (rs.effective.portal.pii_scrub && !isSyntheticInput(v))
     throw new ToolError(
       'PII_SUSPECTED',
       'value looks like personal data; use an obviously synthetic value (e-mail on .invalid, .test or .example)',
@@ -1063,6 +1181,9 @@ async function actStep(
     }
     return { locator, matches };
   });
+  // Off production, map mode fills a form before pressing its submit control (spec 008 FR-002).
+  if (!state.isTrace && !action.json.input && state.effective.portal.environment !== 'production')
+    await phase(ctx, 'autofill', () => autofillBeforeSubmit(ctx, run, state, action, locator));
   await phase(ctx, 'click', async () => {
     // Reachability first (trial: actionability only, nothing is clicked), then the click itself with
     // the budget of a page load: a click that starts a navigation waits for it, and at a low rate
@@ -1168,10 +1289,7 @@ async function gateAct(
     .executeTakeFirstOrThrow();
   // Depth counts from the action's own state: the browser may be elsewhere (reach_state goes back).
   const fromDepth = state.depthByState.get(action.state_id) ?? 0;
-  const g = gateContext(
-    state,
-    await usage(ctx, run, state, Number(priorActions.n), fromDepth + 1),
-  );
+  const g = gateContext(state, await usage(ctx, run, state, Number(priorActions.n), fromDepth + 1));
   const d = decide({ kind: 'act', descriptor, currentUrl: action.json.page_url }, g);
   traceGate(ctx, state, { kind: 'act', action }, d);
   if (!d.allowed) {

@@ -1,17 +1,18 @@
 <!--
 SYNC IMPACT REPORT (temporary; remove before commit)
-Version change: 1.3.0 → 1.4.0 (MINOR: materially expanded guidance for human review of
-documentation, spec 004 research §2)
-Modified principles: VI. Human-in-the-Loop Validation (review decisions are stored records; status
-is derived from them by deterministic code)
-Modified sections: Technical Constraints → "Python tooling" bullet (the dashboard MAY record review
-decisions only by invoking the TypeScript review command; its own process stays read-only)
+Version change: 1.4.0 → 2.0.0 (MAJOR: removes the PII scrubbing requirement and redefines what
+non-production runs may do; spec 008)
+Modified principles: V. Safety-First Exploration (sandbox/staging no longer need resettable seed
+data; map and trace runs MAY fill and submit forms there; traces and screenshots stored unmasked
+on every environment; PII scrubbing optional per portal). III. Strict Role Separation (PII
+scrubbing listed as optional). Production policy unchanged (read-only, robots.txt, rate limit,
+no CAPTCHA/anti-bot work-arounds).
+Modified sections: Development Workflow & Quality Gates ("resettable demo app" bullet)
 Added sections: none
 Removed sections: none
-Templates/specs checked: specs/004-ba-documentation/plan.md (Constitution Check rows VI and Python
-tooling changed from Amend to Pass); specs/003-dashboard-ui (read-only dashboard unchanged: GET
-routes still never write); .claude/agents/ba.md and .claude/skills/ba-practice/ (BA never sets a
-status, unchanged)
+Templates/specs checked: specs/001-crawler-map-mode FR-011 (superseded by spec 008 FR-002);
+specs/004-ba-documentation T082 finding I1 (superseded); crawler observer comment on screenshots
+(to update in spec 008 implementation)
 Deferred items: none
 -->
 # Pathfinder AI Constitution
@@ -45,7 +46,7 @@ guessed.
   `recorded` only and MUST NOT verify them or write tests. For every recorded action it stores
   ranked candidate locator descriptors (role + name, label/text, `data-testid`, container,
   ARIA snapshot reference) that QA can reuse. Its deterministic pieces (fingerprinting, safety
-  classification, scope checks, PII scrubbing, DB access via MCP) are tools it calls and MUST
+  classification, scope checks, optional PII scrubbing, DB access via MCP) are tools it calls and MUST
   NOT be overridable by the agent.
 - The BA never browses: it works only from recorded evidence and requests more via follow-up
   tasks to the crawler. It owns requirements, the glossary, and the assumptions and
@@ -64,9 +65,11 @@ deterministic orchestrator code from run results, never by an agent claiming suc
 ### V. Safety-First Exploration (NON-NEGOTIABLE)
 Every action MUST be classified read-only, mutating, destructive, or external-side-effect;
 ambiguity is treated as unsafe. Mutating and destructive actions MUST run only against a
-sandbox or staging environment with resettable seed data, enforced by an environment guard.
-CAPTCHAs MUST NOT be solved by automation; they are removed or bypassed in the test
-environment. PII in traces and screenshots MUST be scrubbed or access-restricted.
+sandbox or staging environment, enforced by an environment guard. On sandbox and staging,
+map and trace runs MAY fill forms with test data and submit them; data on those targets is
+disposable. CAPTCHAs MUST NOT be solved by automation; they are removed or bypassed in the
+test environment. Traces and screenshots are stored as recorded, unmasked, on every
+environment; PII scrubbing of text evidence is optional per portal.
 
 Production policy:
 - A production target MUST be declared with `environment: production` in its portal config;
@@ -142,7 +145,7 @@ Markdown, Mermaid and Gherkin are rendered from it. Generated tests MUST be plai
   portal (rendering the graph to Mermaid) → QA helper library, spec generation and runner (whose
   runs verify processes) → downstream docs.
 - Pure-function packages MUST have Vitest unit tests before dependent packages build on them.
-- Mutating tests and exploration MUST target a resettable demo app or a sandbox. Production
+- Mutating tests and exploration MUST target a demo app, a sandbox or staging. Production
   targets are read-only under the production policy in Principle V.
 - Failures are triaged rules-first (brittleness, environment, defect, requirement drift), and
   only ambiguous cases go to a triager agent. A repeated failure pattern is fixed by extending
@@ -162,4 +165,4 @@ pull request review MUST verify compliance; any violation MUST be justified in w
 plan's complexity-tracking section or be corrected. Runtime guidance for agents lives in
 `user_input/raw_idea/agents/` until moved into the `agents/` and `skills/` packages.
 
-**Version**: 1.4.0 | **Ratified**: 2026-09-20 | **Last Amended**: 2026-10-03
+**Version**: 2.0.0 | **Ratified**: 2026-09-20 | **Last Amended**: 2026-10-04

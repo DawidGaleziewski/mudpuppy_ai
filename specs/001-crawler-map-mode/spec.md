@@ -190,7 +190,10 @@ and verify each has ranked candidate locators with the fields listed below.
   preconditions, reached caps and unreachable states MUST be listed in a frontier report with
   the reason each was skipped.
 - **FR-011**: Forms MUST be recorded with their fields, types, requirements, constraints,
-  options and any validation messages, without being submitted.
+  options and any validation messages, without being submitted. *(Superseded in part on
+  2026-10-04 by constitution 2.0.0 and `specs/008-screenshots-wireframes` FR-002: recording a
+  form still never submits it, but off production map mode may fill a form with test data and
+  submit it as an action. Production is unchanged.)*
 - **FR-012**: The system MUST capture, per state and per action, the API calls made (method,
   URL template, status, and request and response shape), and console errors and failed
   requests, without storing personal data payloads.

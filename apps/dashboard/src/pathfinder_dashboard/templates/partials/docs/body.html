@@ -1,5 +1,6 @@
 {% import "partials/macros.html" as m %}
 {% import "partials/docs/content.html" as ct %}
+{% import "partials/screens.html" as sc with context %}
 {% set dt = r.detail %}
 {% set rec = dt.record %}
 {% call m.region("doc-body", r.body_url, "Record content") %}
@@ -10,6 +11,7 @@
   {%- if r.diagram %}
   <div class="section">{{ m.diagram(r.diagram, "Process map from the recorded trace steps") }}</div>
   {%- endif %}
+  {{ sc.panel(r.figures, r.figures_open) }}
 
   <div class="section">
     <div class="section-head"><h2>{{ m.term("evidence-link", "Evidence") }} <span class="muted mono-num">{{ dt.evidence | length }}</span></h2></div>
@@ -30,6 +32,8 @@
                 {%- if e.link.run_id %} <a href="{{ c.url('/runs/' ~ e.link.run_id, tab='process' if e.link.target_kind in ('process', 'process_step') else none) }}">[open run]</a>{% endif %}
               {%- elif e.link.target_kind == "doc_record" %}<a href="{{ c.url('/docs/' ~ portal ~ '/' ~ e.doc_key) }}">{{ e.label }}</a>
               {%- elif e.link.target_kind == "review" %}<a href="#review-{{ e.link.target_id }}">{{ e.label }}</a>
+              {%- elif e.link.target_kind in ("state", "screen_region") %}<a href="{{ c.url('/states/' ~ e.link.target_id) }}">{{ e.label }}</a>
+                {%- if e.link.region %} <code>{{ e.link.region }}</code>{% endif %}
               {%- else %}<a href="{{ c.url('/runs/' ~ e.link.run_id, tab=e.tab) }}#{{ e.link.target_id }}">{{ e.label }}</a>{% endif %}
             </td>
             <td data-label="note">{{ e.link.note or "—" }}</td>

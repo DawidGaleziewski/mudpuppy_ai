@@ -14,7 +14,7 @@ export interface PiiFinding {
  * ids (UUIDs, e.g. a decision's `subject_ref`).
  */
 const OWN_IDS =
-  /\b(?:[0-9a-f]{64}(?:\.[a-z0-9]{1,8})?|[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})\b/g;
+  /\b(?:[0-9a-f]{64}(?:\.[a-z0-9]{1,10})?|[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})\b/g;
 
 /** Which kinds of PII `maskText` would have masked in `text`, without returning the values. */
 function kindsIn(raw: string): string[] {

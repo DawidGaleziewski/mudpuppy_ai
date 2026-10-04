@@ -1,7 +1,12 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { newId } from '@pathfinder/core';
 import { DocsError } from '../src/errors.js';
-import { resolveTargets, type EvidenceLinkInput } from '../src/evidence.js';
+import {
+  closestKeys,
+  elementKeysReader,
+  resolveTargets,
+  type EvidenceLinkInput,
+} from '../src/evidence.js';
 import { qualifiesAsObserved } from '../src/observed-rule.js';
 import { FIXTURE_TS, makeFixtureStore, type FixtureStore } from '../src/testing/index.js';
 
@@ -312,5 +317,55 @@ describe('resolveTargets', () => {
         }
       ).environment,
     ).toBe('production');
+  });
+});
+
+describe('screen regions (spec 008)', () => {
+  const keysOf = () => elementKeysReader(fx.raw, fx.evidenceDir);
+
+  it('resolves a region like a state link and keeps its key', () => {
+    const [t] = resolveTargets(
+      fx.raw,
+      fx.portalId,
+      [fx.runId],
+      [{ target_kind: 'screen_region', target_id: fx.states.vehicle, region: 'button "Dalej"' }],
+      { elementKeysOf: keysOf() },
+    );
+    expect(t).toEqual({
+      target_kind: 'screen_region',
+      target_id: fx.states.vehicle,
+      run_id: fx.runId,
+      portal_id: fx.portalId,
+      confidence: 'observed',
+      region: 'button "Dalej"',
+    });
+    expect(qualifiesAsObserved(t!)).toBe(true);
+  });
+
+  it('refuses an unknown key with the closest keys first', () => {
+    const e = failure(() =>
+      resolveTargets(
+        fx.raw,
+        fx.portalId,
+        [fx.runId],
+        [{ target_kind: 'screen_region', target_id: fx.states.vehicle, region: 'button "dalej"' }],
+        { elementKeysOf: keysOf() },
+      ),
+    );
+    expect(e.code).toBe('UNKNOWN_REF');
+    expect((e.details.closest as string[])[0]).toBe('button "Dalej"');
+  });
+
+  it('reads element keys from each state snapshot, and null for a missing file', () => {
+    const read = keysOf();
+    expect(read(fx.states.vehicle)).toContain('spinbutton "Pojemność silnika (cm³)"');
+    expect(read('no-such-state')).toBeNull();
+  });
+
+  it('orders closest keys by edit distance, then by page order', () => {
+    expect(closestKeys('link "B"', ['link "A"', 'button "B"', 'link "B"#2'], 2)).toEqual([
+      'link "A"',
+      'link "B"#2',
+    ]);
   });
 });

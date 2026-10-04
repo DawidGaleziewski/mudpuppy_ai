@@ -9,7 +9,7 @@ import { newId, nowIso } from '../src/ids.js';
 
 const MIGRATIONS = fileURLToPath(new URL('../../../../../data/migrations', import.meta.url));
 
-const ALL = ['0001', '0002', '0003', '0004', '0005'];
+const ALL = ['0001', '0002', '0003', '0004', '0005', '0006'];
 
 let opened: OpenedDb | undefined;
 let tmp: string | undefined;
@@ -30,14 +30,8 @@ const tables = (o: OpenedDb) =>
     .sort();
 
 describe('migrations', () => {
-  it('finds 0001_init, 0002_portal_workspaces, 0003_trace, 0004_ba_documentation and 0005_trace_processes, each with an up and a down', () => {
-    expect(loadMigrations(MIGRATIONS).map((m) => m.version)).toEqual([
-      '0001',
-      '0002',
-      '0003',
-      '0004',
-      '0005',
-    ]);
+  it('finds 0001_init through 0006_screenshots_wireframes, each with an up and a down', () => {
+    expect(loadMigrations(MIGRATIONS).map((m) => m.version)).toEqual(ALL);
   });
 
   it('applies up in order, is idempotent, and reverts down to empty', () => {
@@ -65,8 +59,10 @@ describe('migrations', () => {
         'followup_tasks',
         'processes',
         'process_steps',
+        'state_wireframes',
       ]),
     );
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0006');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0005');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0004');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0003');
@@ -80,6 +76,7 @@ describe('migrations', () => {
     opened = openDb(':memory:');
     expect(migrateUp(opened.raw, MIGRATIONS)).toEqual(ALL);
     expect(migrateUp(opened.raw, MIGRATIONS)).toEqual([]);
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0006');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0005');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0004');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0003');
@@ -92,6 +89,7 @@ describe('migrations', () => {
   it('0003_trace applies and reverts on a DB holding 0001/0002 data (up, down, up round-trips cleanly)', () => {
     opened = openDb(':memory:');
     migrateUp(opened.raw, MIGRATIONS);
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0006');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0005');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0004');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0003');
@@ -99,7 +97,7 @@ describe('migrations', () => {
       expect.arrayContaining(['trace_boots', 'trace_spans', 'agent_turns']),
     );
     expect(tables(opened)).toEqual(expect.arrayContaining(['states', 'frontier', 'decision_log']));
-    expect(migrateUp(opened.raw, MIGRATIONS)).toEqual(['0003', '0004', '0005']);
+    expect(migrateUp(opened.raw, MIGRATIONS)).toEqual(['0003', '0004', '0005', '0006']);
     expect(appliedVersions(opened.raw)).toEqual(ALL);
     expect(tables(opened)).toEqual(
       expect.arrayContaining(['trace_boots', 'trace_spans', 'agent_turns']),
@@ -293,11 +291,97 @@ describe('Layer B tables (0004_ba_documentation)', () => {
         `INSERT INTO doc_reviews (id, revision_id, action, reviewer, text, created_at) VALUES (?, ?, 'comment', 'dawid', 'looks good', ?)`,
       )
       .run(newId(), revisionId, ts);
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0006');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0005');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0004');
     expect(tables(opened)).not.toEqual(expect.arrayContaining(['doc_records', 'doc_revisions']));
-    expect(migrateUp(opened.raw, MIGRATIONS)).toEqual(['0004', '0005']);
+    expect(migrateUp(opened.raw, MIGRATIONS)).toEqual(['0004', '0005', '0006']);
     expect(opened.raw.prepare('SELECT count(*) AS n FROM doc_records').get()).toEqual({ n: 0 });
+  });
+});
+
+describe('screenshots and wireframes (0006_screenshots_wireframes)', () => {
+  /** A revision of one record, ready for evidence links. */
+  async function seedRevision(o: OpenedDb): Promise<{
+    runId: string;
+    stateId: string;
+    revisionId: string;
+  }> {
+    const ts = nowIso();
+    const { runId, stateId } = await seedRunAndState(o, 'p', 'd'.repeat(64));
+    const sessionId = newId();
+    o.raw
+      .prepare(
+        `INSERT INTO analysis_sessions (id, portal_id, status, passes_json, summary, gaps_json, started_at, ended_at)
+         VALUES (?, 'p', 'running', '[]', NULL, '[]', ?, NULL)`,
+      )
+      .run(sessionId, ts);
+    const recordId = newId();
+    o.raw
+      .prepare(
+        `INSERT INTO doc_records (id, portal_id, kind, key, seq, title, latest_rev, confirmed_rev, withdrawn, created_at, updated_at)
+         VALUES (?, 'p', 'data_item', 'DI-001', 1, 'Engine capacity', 1, NULL, 0, ?, ?)`,
+      )
+      .run(recordId, ts, ts);
+    const revisionId = newId();
+    o.raw
+      .prepare(
+        `INSERT INTO doc_revisions (id, record_id, rev_no, session_id, change, content_json, confidence, not_observable, status, change_note, responds_to_review, created_at)
+         VALUES (?, ?, 1, ?, 'create', '{"kind":"data_item","title":"Engine capacity"}', 'observed', 0, 'draft', NULL, NULL, ?)`,
+      )
+      .run(revisionId, recordId, sessionId, ts);
+    return { runId, stateId, revisionId };
+  }
+  const link = (
+    o: OpenedDb,
+    revisionId: string,
+    kind: string,
+    target: string,
+    run: string,
+    region: string | null,
+  ) =>
+    o.raw
+      .prepare(
+        `INSERT INTO doc_evidence_links (id, revision_id, target_kind, target_id, run_id, note, region) VALUES (?, ?, ?, ?, ?, 'n', ?)`,
+      )
+      .run(newId(), revisionId, kind, target, run, region);
+
+  it('requires region exactly for screen_region links and keeps screenshot refs nullable', async () => {
+    opened = openDb(':memory:');
+    migrateUp(opened.raw, MIGRATIONS);
+    const { runId, stateId, revisionId } = await seedRevision(opened);
+    link(opened, revisionId, 'screen_region', stateId, runId, 'textbox "Pojemność silnika"');
+    expect(() => link(opened!, revisionId, 'screen_region', stateId, runId, null)).toThrow(/CHECK/);
+    expect(() => link(opened!, revisionId, 'state', stateId, runId, 'button "x"')).toThrow(/CHECK/);
+    expect(() => link(opened!, revisionId, 'screen_region', stateId, runId, '')).toThrow(/CHECK/);
+    const s = opened.raw
+      .prepare('SELECT screenshot_ref, layout_ref FROM states WHERE id = ?')
+      .get(stateId);
+    expect(s).toEqual({ screenshot_ref: null, layout_ref: null });
+    expect(() =>
+      opened!.raw
+        .prepare(`INSERT INTO state_wireframes VALUES (?, '', 'a.svg', 'a.excalidraw', ?)`)
+        .run(stateId, nowIso()),
+    ).toThrow(/CHECK/);
+  });
+
+  it('round-trips (up, down, up): screen_region links become state links with the key in note', async () => {
+    opened = openDb(':memory:');
+    migrateUp(opened.raw, MIGRATIONS);
+    const { runId, stateId, revisionId } = await seedRevision(opened);
+    link(opened, revisionId, 'screen_region', stateId, runId, 'button "Oblicz"');
+    opened.raw
+      .prepare(`INSERT INTO state_wireframes VALUES (?, '1', 'a.svg', 'a.excalidraw', ?)`)
+      .run(stateId, nowIso());
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0006');
+    expect(tables(opened)).not.toContain('state_wireframes');
+    expect(opened.raw.prepare('SELECT target_kind, note FROM doc_evidence_links').all()).toEqual([
+      { target_kind: 'state', note: 'region button "Oblicz": n' },
+    ]);
+    expect(migrateUp(opened.raw, MIGRATIONS)).toEqual(['0006']);
+    expect(opened.raw.prepare('SELECT target_kind, region FROM doc_evidence_links').all()).toEqual([
+      { target_kind: 'state', region: null },
+    ]);
   });
 });
 

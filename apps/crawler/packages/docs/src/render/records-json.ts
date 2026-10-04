@@ -1,4 +1,5 @@
-import type { ExportModel } from './model.js';
+import { highlightFiles, screenFiles } from './images.js';
+import type { ExportModel, ExportRecord } from './model.js';
 
 /** Recursively sort object keys; arrays keep their (already canonical) order. */
 export function canonical(value: unknown): unknown {
@@ -13,6 +14,34 @@ export function canonical(value: unknown): unknown {
 }
 
 export const EXPORT_SCHEMA = 'pathfinder-srs-export/1';
+
+/** A record's pictures with export-relative paths (spec 008 FR-021); null when it has none. */
+function visualsJson(r: ExportRecord) {
+  if (r.visuals.screens.length === 0) return null;
+  const own = screenFiles(r);
+  const highlights = highlightFiles(r);
+  return {
+    screens: r.visuals.screens.map((s) => ({
+      state_id: s.state_id,
+      title: s.title,
+      route_template: s.route_template,
+      screenshot: own && own.screen.state_id === s.state_id ? own.screenshot : null,
+      wireframe_svg: own && own.screen.state_id === s.state_id ? own.wireframe_svg : null,
+      wireframe_excalidraw:
+        own && own.screen.state_id === s.state_id ? own.wireframe_excalidraw : null,
+    })),
+    regions: highlights.flatMap((h) =>
+      h.regions.map((g) => ({
+        state_id: g.state_id,
+        n: g.n,
+        key: g.key,
+        note: g.note,
+        box: g.box,
+        image: g.box ? h.path : null,
+      })),
+    ),
+  };
+}
 
 /**
  * `records.json`: the machine-readable copy of exactly what the Markdown renders: records with the
@@ -47,6 +76,7 @@ export function recordsJson(m: ExportModel): string {
       reviews: r.reviews,
       followup: r.followup,
       trace: r.trace,
+      visuals: visualsJson(r),
     })),
     change_log: m.change_log,
     runs: m.runs,

@@ -1,0 +1,24 @@
+- banner:
+  - navigation:
+    - link "Start":
+      - /url: /
+- main:
+  - region "Sekcja A":
+    - heading "A \"cytat\"" [level=2]
+    - navigation:
+      - link "Link z spacjami":
+        - /url: /a
+  - complementary:
+    - heading "Boczne" [level=3]
+    - table:
+      - rowgroup:
+        - row "K V":
+          - columnheader "K"
+          - columnheader "V"
+        - row "1 2":
+          - cell "1"
+          - cell "2"
+  - dialog "Cookies":
+    - button "Akceptuj"
+- contentinfo: Stopka
+- button "Na dole"

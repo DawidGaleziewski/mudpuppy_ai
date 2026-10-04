@@ -1,0 +1,11 @@
+main
+heading "Oferty"
+list
+link "Więcej"
+link "Więcej"#2
+link "Więcej"#3
+button "Dalej"
+button "Dalej"#2
+link
+link#2
+img "Logo"

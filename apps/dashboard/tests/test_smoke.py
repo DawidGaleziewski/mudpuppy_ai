@@ -79,6 +79,10 @@ def real_sandbox(tmp_path: Path) -> Iterator[TestClient]:
         src = REAL_SANDBOX.with_name(REAL_SANDBOX.name + suffix)
         if src.exists():
             shutil.copy(src, data / "db" / src.name)
+    # Screenshots and wireframes are linked as /evidence/<ref> (R-20/R-21).
+    evidence = REAL_SANDBOX.parents[1] / "evidence"
+    if evidence.exists():
+        shutil.copytree(evidence, data / "evidence")
     store = Store(data, "sandbox", data / "db" / "sandbox.sqlite")
     with make_client(store) as c:
         yield c

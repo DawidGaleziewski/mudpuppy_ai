@@ -21,15 +21,19 @@ export interface DomForm {
   fields: DomFormField[];
 }
 
-/** ARIA snapshot of the whole page (no screenshots in v1: regex masking cannot redact pixels). */
+/**
+ * ARIA snapshot of the whole page. Screenshots and element boxes of new states are taken by
+ * `captureVisuals` (capture.ts) since spec 008; they are not masked (constitution 2.0.0).
+ */
 export function captureAria(page: Page): Promise<string> {
   return page.locator('body').ariaSnapshot();
 }
 
 /**
- * Extract forms and their field schemas WITHOUT submitting or reading any value (FR-011): only
- * attributes, option labels and the browser's own validation message are read. `checkValidity()`
- * fires `invalid` events but never submits.
+ * Extract forms and their field schemas without submitting or reading any value: only attributes,
+ * option labels and the browser's own validation message are read. `checkValidity()` fires
+ * `invalid` events but never submits. (Observation never submits; since spec 008 map mode may
+ * submit a form as an action off production, superseding spec 001 FR-011.)
  */
 export function extractForms(page: Page): Promise<DomForm[]> {
   return evalInPage(page, () => {

@@ -266,6 +266,7 @@
           "doc_key": null,
           "label": "Ubezpieczenie samochodu | Towarzystwo Ubezpieczeń Wzorcowych (/ubezpieczenia/samochod)",
           "note": null,
+          "region": null,
           "run_date": "2026-01-15",
           "run_id": "00000000-0000-7000-8000-000000000001",
           "run_mode": "map",
@@ -277,6 +278,7 @@
           "doc_key": null,
           "label": "Kalkulator OC/AC — dane pojazdu | Towarzystwo Ubezpieczeń Wzorcowych (/kalkulator/pojazd)",
           "note": null,
+          "region": null,
           "run_date": "2026-01-15",
           "run_id": "00000000-0000-7000-8000-000000000001",
           "run_mode": "map",
@@ -318,7 +320,28 @@
       ],
       "status": "confirmed",
       "title": "Car insurance quote",
-      "trace": null
+      "trace": null,
+      "visuals": {
+        "regions": [],
+        "screens": [
+          {
+            "route_template": "/ubezpieczenia/samochod",
+            "screenshot": null,
+            "state_id": "00000000-0000-7000-8000-000000000003",
+            "title": "Ubezpieczenie samochodu | Towarzystwo Ubezpieczeń Wzorcowych",
+            "wireframe_excalidraw": null,
+            "wireframe_svg": null
+          },
+          {
+            "route_template": "/kalkulator/pojazd",
+            "screenshot": null,
+            "state_id": "00000000-0000-7000-8000-000000000004",
+            "title": "Kalkulator OC/AC — dane pojazdu | Towarzystwo Ubezpieczeń Wzorcowych",
+            "wireframe_excalidraw": null,
+            "wireframe_svg": null
+          }
+        ]
+      }
     },
     {
       "baseline_rev": null,
@@ -354,6 +377,7 @@
           "doc_key": null,
           "label": "Ubezpieczenie samochodu | Towarzystwo Ubezpieczeń Wzorcowych (/ubezpieczenia/samochod)",
           "note": null,
+          "region": null,
           "run_date": "2026-01-15",
           "run_id": "00000000-0000-7000-8000-000000000001",
           "run_mode": "map",
@@ -387,7 +411,20 @@
       ],
       "status": "confirmed",
       "title": "Car insurance page",
-      "trace": null
+      "trace": null,
+      "visuals": {
+        "regions": [],
+        "screens": [
+          {
+            "route_template": "/ubezpieczenia/samochod",
+            "screenshot": null,
+            "state_id": "00000000-0000-7000-8000-000000000003",
+            "title": "Ubezpieczenie samochodu | Towarzystwo Ubezpieczeń Wzorcowych",
+            "wireframe_excalidraw": null,
+            "wireframe_svg": null
+          }
+        ]
+      }
     },
     {
       "baseline_rev": null,
@@ -431,6 +468,7 @@
           "doc_key": null,
           "label": "form: marka, model, rok_produkcji, pojemnosc",
           "note": null,
+          "region": null,
           "run_date": "2026-01-15",
           "run_id": "00000000-0000-7000-8000-000000000001",
           "run_mode": "map",
@@ -442,6 +480,7 @@
           "doc_key": null,
           "label": "Kalkulator OC/AC — dane pojazdu | Towarzystwo Ubezpieczeń Wzorcowych (/kalkulator/pojazd)",
           "note": null,
+          "region": null,
           "run_date": "2026-01-15",
           "run_id": "00000000-0000-7000-8000-000000000001",
           "run_mode": "map",
@@ -470,7 +509,20 @@
       ],
       "status": "confirmed",
       "title": "Vehicle calculator",
-      "trace": null
+      "trace": null,
+      "visuals": {
+        "regions": [],
+        "screens": [
+          {
+            "route_template": "/kalkulator/pojazd",
+            "screenshot": null,
+            "state_id": "00000000-0000-7000-8000-000000000004",
+            "title": "Kalkulator OC/AC — dane pojazdu | Towarzystwo Ubezpieczeń Wzorcowych",
+            "wireframe_excalidraw": null,
+            "wireframe_svg": null
+          }
+        ]
+      }
     },
     {
       "baseline_rev": null,
@@ -490,6 +542,7 @@
           "doc_key": null,
           "label": "Calculate a car premium",
           "note": null,
+          "region": null,
           "run_date": "2026-01-15",
           "run_id": "00000000-0000-7000-8000-000000000018",
           "run_mode": "trace",
@@ -501,6 +554,7 @@
           "doc_key": null,
           "label": "step 2: Open the premium calculator",
           "note": null,
+          "region": null,
           "run_date": "2026-01-15",
           "run_id": "00000000-0000-7000-8000-000000000018",
           "run_mode": "trace",
@@ -552,7 +606,8 @@
             "ord": 3
           }
         ]
-      }
+      },
+      "visuals": null
     },
     {
       "baseline_rev": null,
@@ -583,6 +638,7 @@
           "doc_key": null,
           "label": "form: marka, model, rok_produkcji, pojemnosc",
           "note": "field \"Marka\" marked required",
+          "region": null,
           "run_date": "2026-01-15",
           "run_id": "00000000-0000-7000-8000-000000000001",
           "run_mode": "map",
@@ -611,7 +667,8 @@
       ],
       "status": "confirmed",
       "title": "Vehicle make is required",
-      "trace": null
+      "trace": null,
+      "visuals": null
     },
     {
       "baseline_rev": null,
@@ -644,6 +701,7 @@
           "doc_key": null,
           "label": "form: marka, model, rok_produkcji, pojemnosc",
           "note": null,
+          "region": null,
           "run_date": "2026-01-15",
           "run_id": "00000000-0000-7000-8000-000000000001",
           "run_mode": "map",
@@ -677,7 +735,8 @@
       ],
       "status": "confirmed",
       "title": "Vehicle make",
-      "trace": null
+      "trace": null,
+      "visuals": null
     },
     {
       "baseline_rev": null,
@@ -698,6 +757,7 @@
           "doc_key": null,
           "label": "Ubezpieczenie samochodu | Towarzystwo Ubezpieczeń Wzorcowych (/ubezpieczenia/samochod)",
           "note": null,
+          "region": null,
           "run_date": "2026-01-15",
           "run_id": "00000000-0000-7000-8000-000000000001",
           "run_mode": "map",
@@ -726,7 +786,20 @@
       ],
       "status": "confirmed",
       "title": "Autocasco",
-      "trace": null
+      "trace": null,
+      "visuals": {
+        "regions": [],
+        "screens": [
+          {
+            "route_template": "/ubezpieczenia/samochod",
+            "screenshot": null,
+            "state_id": "00000000-0000-7000-8000-000000000003",
+            "title": "Ubezpieczenie samochodu | Towarzystwo Ubezpieczeń Wzorcowych",
+            "wireframe_excalidraw": null,
+            "wireframe_svg": null
+          }
+        ]
+      }
     },
     {
       "baseline_rev": null,
@@ -748,6 +821,7 @@
           "doc_key": null,
           "label": "Start | Towarzystwo Ubezpieczeń Wzorcowych (/)",
           "note": null,
+          "region": null,
           "run_date": "2026-01-15",
           "run_id": "00000000-0000-7000-8000-000000000001",
           "run_mode": "map",
@@ -759,6 +833,7 @@
           "doc_key": null,
           "label": "Ubezpieczenie samochodu | Towarzystwo Ubezpieczeń Wzorcowych (/ubezpieczenia/samochod)",
           "note": null,
+          "region": null,
           "run_date": "2026-01-15",
           "run_id": "00000000-0000-7000-8000-000000000001",
           "run_mode": "map",
@@ -787,7 +862,28 @@
       ],
       "status": "confirmed",
       "title": "Polish user interface",
-      "trace": null
+      "trace": null,
+      "visuals": {
+        "regions": [],
+        "screens": [
+          {
+            "route_template": "/",
+            "screenshot": null,
+            "state_id": "00000000-0000-7000-8000-000000000002",
+            "title": "Start | Towarzystwo Ubezpieczeń Wzorcowych",
+            "wireframe_excalidraw": null,
+            "wireframe_svg": null
+          },
+          {
+            "route_template": "/ubezpieczenia/samochod",
+            "screenshot": null,
+            "state_id": "00000000-0000-7000-8000-000000000003",
+            "title": "Ubezpieczenie samochodu | Towarzystwo Ubezpieczeń Wzorcowych",
+            "wireframe_excalidraw": null,
+            "wireframe_svg": null
+          }
+        ]
+      }
     },
     {
       "baseline_rev": null,
@@ -810,6 +906,7 @@
           "doc_key": null,
           "label": "skip ceiling:read: classified mutating, above the effective ceiling read",
           "note": null,
+          "region": null,
           "run_date": "2026-01-15",
           "run_id": "00000000-0000-7000-8000-000000000001",
           "run_mode": "map",
@@ -842,7 +939,8 @@
       ],
       "status": "confirmed",
       "title": "Trace the purchase",
-      "trace": null
+      "trace": null,
+      "visuals": null
     }
   ],
   "runs": [

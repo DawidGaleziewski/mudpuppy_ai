@@ -229,3 +229,18 @@ export async function pendingItemForAction(db: PathfinderDb, runId: string, acti
     .where('status', '=', 'pending')
     .executeTakeFirst();
 }
+
+/**
+ * Pending `navigate` rows for a URL. A refused navigate is stored without an action id, and
+ * `budget:max_depth` refusals can be reopened, so `navigate` must settle them by URL.
+ */
+export async function pendingNavigateItems(db: PathfinderDb, runId: string, url: string) {
+  return db
+    .selectFrom('frontier')
+    .selectAll()
+    .where('run_id', '=', runId)
+    .where('action_id', 'is', null)
+    .where('action_json', '=', JSON.stringify({ kind: 'navigate', url }))
+    .where('status', '=', 'pending')
+    .execute();
+}

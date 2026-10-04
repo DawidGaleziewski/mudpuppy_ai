@@ -48,7 +48,8 @@ Rules:
 
 **Phases**: `preflight`, `resume_check`, `robots_fetch`, `insert_run`, `open_session`,
 `restore_index`, `begin_step`, `gate`, `reach_state`, `locate`, `click`, `goto`, `settle`,
-`observe`, `net_drain`, `fingerprint`, `record_state`, `record_forms`, `record_transition`,
+`observe`, `net_drain`, `fingerprint`, `record_state`, `capture`, `wireframe`, `autofill` (the
+last three added by spec 008), `record_forms`, `record_transition`,
 `record_api_calls`, `enqueue_frontier`, `record_step` (trace runs, spec 004 R-14), `run_bookkeeping`, `complete_run`, `pw_trace` (writing
 the call's Playwright trace chunk, so its cost shows in the phase breakdown).
 
@@ -62,6 +63,9 @@ the call's Playwright trace chunk, so its cost shows in the phase breakdown).
 | `stabilization_timeout` | `timeout_ms`, `in_flight` [{url, resource_type, age_ms}], `since_mutation_ms`, `running_animations` |
 | `fingerprint_assign` | `route_template`, `level1`, `decision` (kind), `cluster_id`, `matched`, `similarity`, `threshold` |
 | `state_recorded` | `state_id`, `created`, `evidence_ref` |
+| `visuals_captured` (spec 008) | `state_id`, `screenshot_ref`, `layout_ref`, `bytes`, `elements`, `boxed`, `cut` |
+| `capture_failed` (spec 008) | `state_id`, `stage` (`screenshot`/`wireframe`), `error` |
+| `form_autofill` (spec 008) | `action_id`, `filled` [{field, type, value}], `skipped` [{field, reason}], `error?` |
 | `frontier_enqueue` / `frontier_skip` | `frontier_id`, `action`, `safety_class`, `priority`, `depth`, `rule?`, `reason?` |
 | `frontier_pick` | `frontier_id?`, `priority?`, `depth?`, `pending`, `reason?` (`empty`/`budget_exhausted`) |
 | `request` | `method`, `resource_type`, `url` (shaped), `main_frame`, `decision` (`continue`/`abort`/`fulfill`), `reason?`, `robots_rule?`, `limiter_wait_ms`, `status?`, `redirect_to?` (shaped), `failed?` |

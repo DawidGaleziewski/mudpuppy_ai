@@ -6,7 +6,7 @@ import type {
   RevisionChange,
   RevisionStatus,
 } from '@pathfinder/core';
-import { lookupTarget } from './evidence.js';
+import { lookupTarget, type ElementKeysOf } from './evidence.js';
 import type { RawDb } from './keys.js';
 import { checkObserved, type ResolvedTarget } from './observed-rule.js';
 import { recordColumns } from './status-engine.js';
@@ -29,6 +29,8 @@ export const AUDIT_CHECKS = [
   'denormalised_mismatch',
   /** A `followup` record has no `followup_tasks` row. */
   'followup_without_task',
+  /** A `screen_region` link names an element key the state's snapshot does not have (spec 008). */
+  'unknown_region',
 ] as const;
 export type AuditCheck = (typeof AUDIT_CHECKS)[number];
 
@@ -73,6 +75,7 @@ interface LinkRow {
   target_kind: EvidenceTargetKind;
   target_id: string;
   run_id: string | null;
+  region: string | null;
 }
 
 /**
@@ -95,8 +98,15 @@ function expectedStatus(
   return revNo === latest ? 'draft' : 'superseded';
 }
 
-/** Read-only integrity check of the Layer B rows of one portal, or of the whole store. */
-export function audit(raw: RawDb, portalId?: string): AuditReport {
+/**
+ * Read-only integrity check of the Layer B rows of one portal, or of the whole store. With
+ * `elementKeysOf`, screen-region keys are checked against their state's snapshot.
+ */
+export function audit(
+  raw: RawDb,
+  portalId?: string,
+  opts: { elementKeysOf?: ElementKeysOf } = {},
+): AuditReport {
   const findings: AuditFinding[] = [];
   const records = raw
     .prepare(
@@ -109,7 +119,7 @@ export function audit(raw: RawDb, portalId?: string): AuditReport {
      FROM doc_revisions WHERE record_id = ? ORDER BY rev_no`,
   );
   const linksOf = raw.prepare(
-    'SELECT target_kind, target_id, run_id FROM doc_evidence_links WHERE revision_id = ? ORDER BY id',
+    'SELECT target_kind, target_id, run_id, region FROM doc_evidence_links WHERE revision_id = ? ORDER BY id',
   );
   const reviewsOf = raw.prepare(
     `SELECT rev.rev_no, v.action FROM doc_reviews v JOIN doc_revisions rev ON rev.id = v.revision_id
@@ -158,19 +168,30 @@ export function audit(raw: RawDb, portalId?: string): AuditReport {
           add('link_portal_mismatch', rev.rev_no, `${name} belongs to portal ${target.portal_id}`);
           continue;
         }
-        const runOk =
-          link.target_kind === 'state'
-            ? link.run_id !== null && observed.get(link.target_id, link.run_id) !== undefined
-            : target.run_id === link.run_id;
+        const onState = link.target_kind === 'state' || link.target_kind === 'screen_region';
+        const runOk = onState
+          ? link.run_id !== null && observed.get(link.target_id, link.run_id) !== undefined
+          : target.run_id === link.run_id;
         if (!runOk) {
           add(
             'link_run_mismatch',
             rev.rev_no,
-            link.target_kind === 'state'
+            onState
               ? `run ${link.run_id} did not observe ${name}`
               : `${name} comes from run ${target.run_id}, the link says ${link.run_id}`,
           );
           continue;
+        }
+        if (link.target_kind === 'screen_region') {
+          const keys = opts.elementKeysOf?.(link.target_id);
+          if (keys && (link.region === null || !keys.includes(link.region))) {
+            add(
+              'unknown_region',
+              rev.rev_no,
+              `${name} has no element ${JSON.stringify(link.region)}`,
+            );
+            continue;
+          }
         }
         targets.push(target);
       }

@@ -25,10 +25,11 @@ Status: `todo`, `in progress`, `done`. Last reviewed: 2026-10-03.
 | R-16 | SRS export and goal evaluation: deterministic Markdown + Mermaid + machine-readable export with traceability matrix and Unknowns section; `docs:evaluate` scores the docs against the reference portal's ground truth | `specs/004-ba-documentation` US5 + US6 + polish, T072–T082 | done |
 | R-18 | To discuss: API discovery depth and browser tooling (richer network capture in the crawler; Playwright MCP and Chrome DevTools MCP as developer debugging tools only) | — (no spec yet) | todo |
 | R-19 | To discuss: pan and zoom for Docs diagrams (large maps are too small to read) | — (no spec yet) | todo |
-| R-20 | To discuss: screenshots as evidence, with the described elements highlighted, shown on record pages | — (no spec yet) | todo |
-| R-21 | To discuss: low-fidelity wireframes per screen, drawn from recorded evidence in one style | — (no spec yet) | todo |
+| R-20 | Screenshots as evidence: one unmasked screenshot per new state on every environment, element boxes, BA "screen region" citations highlighted on record pages and in the export; constitution 2.0.0 lowers the safety level (no PII scrubbing requirement, forms may be filled and submitted off production) | `specs/008-screenshots-wireframes` | done |
+| R-21 | Wireframes: deterministic low-fidelity SVG per state from the ARIA snapshot plus an editable `.excalidraw` file; fallback where no screenshot exists; in the dashboard and export | `specs/008-screenshots-wireframes` | done |
 | R-22 | Glossary and BA wiki: one source for Pathfinder and BA terms, dashboard Glossary page, `[?]` tooltips and section intros, local BA wiki with cited sources, glossary-sync step in the close-out | `specs/006-glossary-ba-wiki` T001–T030 | done |
 | R-23 | MudPuppy rebrand (brand only): new logo and favicon set in the dashboard, `mudpuppy://console` wordmark, product name in READMEs and glossary labels; code identifiers (`@pathfinder/*`, `pathfinder_dashboard`, MCP server names, `PATHFINDER_*`) stay for a later item | `user_input/MudPuppyRebrand/mudpuppy.md` | done |
+| R-24 | Token usage optimisation: collect token-cost problems found while building or validating features and fix them in one place. Start set: slim `act`/`navigate` result for a known state (P1), one frontier item per link target with inferred edges for shared navigation (P2), compact `elements` in BA `get_evidence` (P3), leaner `get_run_evidence` pages (P4) | `specs/008-screenshots-wireframes/token-usage.md` | todo |
 
 ## Notes
 
@@ -437,7 +438,9 @@ Status: `todo`, `in progress`, `done`. Last reviewed: 2026-10-03.
   - I1 (HIGH, cross-spec): map mode presses submit buttons when the persona's class allows it
     (F-10), against spec 001 FR-011 ("without being submitted"). Allowed by the constitution (sandbox
     only), but an open defect against R-04; to fix in the crawler in a later item. Nothing was sent in
-    the goal run (browser validation held every empty form).
+    the goal run (browser validation held every empty form). **Superseded 2026-10-04** by
+    constitution 2.0.0 and spec 008 FR-002: submitting off production is now intended, and map
+    mode fills the form first (form autofill).
   - U1 (MEDIUM): `docs:evaluate` matching is deterministic and documented (FR-063), but a rule counts
     when any one claim marker appears (F-13), so the rules score is generous (R05 counts with the 0.9
     band unobserved). Accepted for R-16; stricter matching (all-of and negative markers, partial
@@ -458,3 +461,38 @@ Status: `todo`, `in progress`, `done`. Last reviewed: 2026-10-03.
 - R-23 closed 2026-10-04: the user signed it off; origin moved to
   `git@github.com:DawidGaleziewski/MudPuppy-AI.git`. Squash-merged into `master`;
   `feature/007-r23-mudpuppy-rebrand` is deleted.
+- R-20 + R-21 started 2026-10-04 on `feature/008-r20-r21-screenshots-wireframes`, one spec
+  (`specs/008-screenshots-wireframes`). Decided with the user: screenshots on every environment
+  including production, unmasked; screenshots and wireframes in the dashboard and in `docs:export`;
+  Excalidraw (MIT) as the editable wireframe format, written directly; no backfill (existing data
+  may be wiped and re-crawled); constitution 2.0.0 lowers the safety level (no PII scrubbing
+  requirement, forms may be filled and submitted on sandbox/staging, production stays read-only).
+- R-20 + R-21 built 2026-10-04 (T001–T039, T042; T040 part 1): commits `3e42eb2` (foundation),
+  `d97436f` (US1 screenshots + dashboard), `2c297ac` (US2 screen regions), `cf17633` (US5 autofill
+  + opt-in scrubbing), `d821e98` (US3 wireframes), `5e0c4db` (US4 export images), `b8b3082` (docs).
+  Scripted map of the reference portal: 21/21 states with screenshot, layout and wireframe;
+  autofill reached `/kalkulator/wynik`, `/porownanie/wynik` and five more pages behind forms.
+  Open: wipe stores and re-crawl with the agent after restarting the MCP servers, BA session
+  (SC-002), dashboard spot check and Excalidraw open (SC-003/004), export on real data (SC-005),
+  user review (SC-007), close-out (T040 part 2, T041, T043).
+- T042 speckit-analyze (2026-10-04, spec 008): no CRITICAL. I1 (MEDIUM) spec US5 AS4 says traces
+  are stored unmasked; as built only the snapshot and title follow `pii_scrub` (research R9). U1
+  (MEDIUM) no wireframe highlight for regions below the screenshot cut (edge case promised a
+  fallback). C1 (MEDIUM) agent-driven success criteria not yet run. I2/I3 (LOW) data-model says
+  ULID ids (UUIDv7); spec assumes a fixed 1280 viewport (persona viewport as built).
+- R-24 added 2026-10-05 from the token analysis of the R-20/R-21 build and validation
+  (`specs/008-screenshots-wireframes/token-usage.md`). Screenshots and wireframes cost ~0 tokens;
+  the cost was one 680k-token build context (~63%, workflow: one context per task group) and the
+  crawler re-walking shared navigation (~20%: 319 `act` calls for 13 distinct link targets). Rule
+  from the user: when a feature hits a similar token problem, add it here as a numbered entry
+  (P5, P6, …) with the measured numbers and a link to its analysis, instead of fixing it inside
+  that feature.
+- R-20 + R-21 closed 2026-10-05: the user reviewed the dashboard (region highlights and docs,
+  "10/10"), so SC-003 and SC-007 are met; SC-001, SC-002, SC-005 and SC-006 were met in T040.
+  Squash-merged into `master` as one commit and tagged `v1.0.8`;
+  R-16 and R-23 were tagged afterwards as `v1.0.6` and `v1.0.7`;
+  `feature/008-r20-r21-screenshots-wireframes` is deleted. Spec 008 is complete (T001–T043).
+  - Pinned for later verification (user, nice to have): SC-004, open an exported `.excalidraw`
+    file on excalidraw.com and check it loads without errors, matches the layout and is editable.
+  - Open findings carried over: F-02, F-07, F-13 (flaky browser tests under full-suite load),
+    F-03 (latent YAML masking), F-06 (worked around), F-12 (highlight crop cuts off labels) in `specs/008-screenshots-wireframes/findings.md`.

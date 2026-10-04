@@ -75,6 +75,14 @@ describe('loadPortal', () => {
     expect(allow.robots_page_requests).toBe('allow_and_record');
   });
 
+  it('defaults pii_scrub to false and accepts true (constitution 2.0.0, spec 008 FR-004)', () => {
+    expect(load(PORTAL_YAML).run().pii_scrub).toBe(false);
+    expect(load(PORTAL_YAML + 'pii_scrub: true\n').run().pii_scrub).toBe(true);
+    expect(problems(load(PORTAL_YAML + 'pii_scrub: yes-please\n').run).problems.join()).toContain(
+      'pii_scrub',
+    );
+  });
+
   it('rejects any other robots_page_requests value, naming the file and field', () => {
     const t = load(PORTAL_YAML + 'robots_page_requests: ignore\n');
     const e = problems(t.run);

@@ -1,4 +1,5 @@
 import type { DocKind } from '@pathfinder/core';
+import { highlightFiles, screenFiles } from './images.js';
 import type { ExportEvidence, ExportMode, ExportRecord } from './model.js';
 
 /** Which chapter file renders each kind (contracts/srs-export.md "Files"). */
@@ -86,7 +87,7 @@ export function evidenceLine(e: ExportEvidence, fromFile: string): string {
   const target =
     e.target_kind === 'doc_record' && e.doc_key
       ? `record ${keyLink(e.doc_key, fromFile)}`
-      : `${e.target_kind.replace(/_/g, ' ')} \`${e.target_id}\``;
+      : `${e.target_kind.replace(/_/g, ' ')} \`${e.target_id}\`${e.region ? ` \`${e.region}\`` : ''}`;
   const what = e.broken ? '**broken: the target no longer exists**' : inline(e.label);
   const run = e.run_id
     ? ` (run \`${e.run_id}\`${e.run_mode ? `, ${e.run_mode}` : ''}${e.run_date ? `, ${e.run_date}` : ''})`
@@ -95,9 +96,43 @@ export function evidenceLine(e: ExportEvidence, fromFile: string): string {
   return `- ${target} — ${what}${run}${note}`;
 }
 
+/** Alt text for an image: one line, no Markdown brackets. */
+const alt = (text: string): string => inline(text).replace(/[[\]]/g, '');
+
+/**
+ * Pictures of a record (spec 008 contracts/srs-export-delta.md): a screen's screenshot and
+ * wireframe, and for any record its cited screen regions on a highlighted crop with a legend.
+ */
+export function visualLines(r: ExportRecord): string[] {
+  const out: string[] = [];
+  const s = screenFiles(r);
+  if (s) {
+    const name = `${s.screen.title} (${s.screen.route_template})`;
+    out.push('', '**Screenshot:**', '');
+    out.push(
+      s.screenshot ? `![Screenshot of ${alt(name)}](${s.screenshot})` : '_No screenshot recorded._',
+    );
+    out.push('', '**Wireframe:**', '');
+    if (s.wireframe_svg) {
+      out.push(`![Wireframe of ${alt(name)}](${s.wireframe_svg})`);
+      if (s.wireframe_excalidraw) out.push('', `[edit in Excalidraw](${s.wireframe_excalidraw})`);
+    } else out.push('_No wireframe recorded._');
+  }
+  for (const h of highlightFiles(r)) {
+    const name = `${h.screen.title} (${h.screen.route_template})`;
+    out.push('', `**On screen:** ${inline(name)}`, '');
+    if (h.path) out.push(`![Highlighted elements on ${alt(name)}](${h.path})`, '');
+    for (const g of h.regions)
+      out.push(
+        `${g.n}. \`${g.key}\`${g.note ? ` — ${inline(g.note)}` : ''}${g.box ? '' : ' _(not visible on the screenshot)_'}`,
+      );
+  }
+  return out;
+}
+
 /**
  * A rendered record: anchored heading, statement line, draft/baseline callouts, the kind-specific
- * body, related records, evidence.
+ * body, pictures, related records, evidence.
  */
 export function recordBlock(
   r: ExportRecord,
@@ -118,7 +153,7 @@ export function recordBlock(
   if (r.baseline_rev !== null)
     out.push(r.status === 'draft' ? '>' : '', `> confirmed baseline: rev ${r.baseline_rev}`);
   if (typeof r.content.summary === 'string') out.push('', inline(r.content.summary));
-  out.push('', ...body);
+  out.push('', ...body, ...visualLines(r));
   if (relations.length > 0)
     out.push(
       '',

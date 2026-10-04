@@ -6,6 +6,23 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Added
+- R-20 screenshots as evidence and R-21 wireframes: every new state gets an unmasked screenshot
+  and a layout of element boxes with stable element keys on every environment (migration
+  `0006`, binary evidence); the BA cites "screen regions" that the audit resolves and the
+  dashboard highlights on record pages, with a state page and Screens panel; each state also
+  gets a deterministic low-fidelity SVG wireframe and an editable `.excalidraw` file; `docs:export`
+  includes screenshots, wireframes and highlight crops. Constitution 2.0.0 lowers the safety
+  level: PII scrubbing is opt-in (`pii_scrub`), and forms are autofilled and submitted on
+  sandbox/staging while production stays read-only. Validated on a fresh crawler-agent map of
+  `reference-insurer` (21/21 states with screenshot, layout and wireframe; 8 states behind
+  submitted forms), a BA session (all DI and 32/33 BR cite a region, audit clean), a
+  byte-identical export with working image links, and the user's dashboard review. The
+  `.excalidraw` open check on excalidraw.com (SC-004) is deferred for later verification.
+  Fixed: a reopened `navigate` frontier item could never be settled and blocked `finish_run`
+  (F-10). Bugs and open findings (F-01…F-13) are in `specs/008-screenshots-wireframes/findings.md`;
+  the token analysis of this build started R-24 (`specs/008-screenshots-wireframes`, T001–T043).
+  Commits: 0360a6a, 3e42eb2, d97436f, 2c297ac, cf17633, d821e98, 5e0c4db, b8b3082, eb1e746,
+  075bbd1, d5bfb96, 4296c6f (squash-merged on master, tag v1.0.8).
 - R-23 MudPuppy rebrand (brand only): the product is now MudPuppy. Dashboard top bar shows the
   pixel salamander head as its mark and the `mudpuppy://console` wordmark; full favicon set and web
   manifest under `static/brand/`; READMEs and glossary labels use the new name; the GitHub origin is

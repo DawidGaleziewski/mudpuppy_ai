@@ -128,6 +128,15 @@
   --docs-index-w: 240px;
   --textarea-min-h: 64px;
   --prose-max: 72ch; /* running text: glossary and wiki pages (spec 006) */
+
+  /* screenshots and wireframes (spec 008) */
+  --paper: #ffffff; /* behind wireframes and transparent screenshots, which are drawn for light paper */
+  --highlight: var(--brand);
+  --highlight-halo: var(--surface-0);
+  --thumb-w: 64px;
+  --thumb-h: 40px;
+  --shot-col: 420px; /* minimum column of the Screens grid */
+  --badge: 18px;
   --tip-w: 32ch; /* glossary tooltip width */
 
   /* effects and motion (three sanctioned animations only) */

@@ -35,6 +35,14 @@ _none recorded_
 
 - Main menu link "Samochód"
 
+**Screenshot:**
+
+_No screenshot recorded._
+
+**Wireframe:**
+
+_No wireframe recorded._
+
 Related: uses term [GL-001](08-glossary.md#GL-001)
 
 Evidence:
@@ -68,6 +76,14 @@ Evidence:
 **Entry points:**
 
 - Link "Oblicz składkę" on the car insurance page
+
+**Screenshot:**
+
+_No screenshot recorded._
+
+**Wireframe:**
+
+_No wireframe recorded._
 
 Evidence:
 

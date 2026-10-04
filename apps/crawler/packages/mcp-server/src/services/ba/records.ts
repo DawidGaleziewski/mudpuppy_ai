@@ -14,6 +14,7 @@ import {
 import {
   applyStatusEvent,
   checkObserved,
+  elementKeysReader,
   formatKey,
   isAllowed,
   nextSeq,
@@ -39,8 +40,10 @@ const EvidenceInput = z
   .object({
     target_kind: EvidenceTargetKind,
     target_id: z.string().min(1),
-    /** Only on a `state` link: the run whose observation was read. */
+    /** Only on a `state` or `screen_region` link: the run whose observation was read. */
     run_id: z.string().min(1).optional(),
+    /** Only on a `screen_region` link: the cited element key (spec 008). */
+    region: z.string().trim().min(1).max(200).optional(),
     note: z.string().trim().min(1).max(1000).optional(),
   })
   .strict();
@@ -254,8 +257,8 @@ function writeRevision(ctx: BaContext, w: RevisionWrite, ts: string): void {
     );
 
   const addLink = ctx.raw.prepare(
-    `INSERT INTO doc_evidence_links (id, revision_id, target_kind, target_id, run_id, note)
-     VALUES (?, ?, ?, ?, ?, ?)`,
+    `INSERT INTO doc_evidence_links (id, revision_id, target_kind, target_id, run_id, note, region)
+     VALUES (?, ?, ?, ?, ?, ?, ?)`,
   );
   w.targets.forEach((t, i) =>
     addLink.run(
@@ -265,6 +268,7 @@ function writeRevision(ctx: BaContext, w: RevisionWrite, ts: string): void {
       t.target_id,
       t.run_id,
       w.evidence[i]!.note ?? null,
+      t.region ?? null,
     ),
   );
 
@@ -300,13 +304,14 @@ function validateWrite(
     session.portal_id,
     sessionRunIds(ctx, session.id),
     args.evidence,
+    { elementKeysOf: elementKeysReader(ctx.raw, ctx.evidence.root) },
   );
   if (args.confidence === 'observed') {
     const check = checkObserved(targets);
     if (!check.ok)
       throw new ToolError(
         'INVALID_CONFIDENCE',
-        'observed needs evidence that was itself observed: a state, edge, form, action or network call. Rule candidates, questions, decisions, records and reviews do not count; use inferred or needs_confirmation',
+        'observed needs evidence that was itself observed: a state, screen region, edge, form, action or network call. Rule candidates, questions, decisions, records and reviews do not count; use inferred or needs_confirmation',
         { checked: check.checked },
       );
   }
@@ -501,6 +506,7 @@ export function withdrawRecord(ctx: BaContext, raw: unknown): WriteOutput {
       session.portal_id,
       sessionRunIds(ctx, session.id),
       input.evidence,
+      { elementKeysOf: elementKeysReader(ctx.raw, ctx.evidence.root) },
     );
     const revNo = record.latest_rev + 1;
     const status = applyStatusEvent(revisionStates(ctx, record.id), {

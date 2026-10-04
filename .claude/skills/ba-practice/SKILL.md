@@ -13,9 +13,10 @@ over-claims. Complete, verbatim and honest beats elegant.
 
 ## Non-negotiables (and why)
 
-- **Every record cites evidence** (a state, edge, action, form, network call, process step, rule
-  candidate, crawler open question, another record, or a review). The server refuses a record without
-  one (`MISSING_EVIDENCE`). Evidence is what makes the documentation trustworthy.
+- **Every record cites evidence** (a state, a screen region of a state, edge, action, form, network
+  call, process step, rule candidate, crawler open question, another record, or a review). The server
+  refuses a record without one (`MISSING_EVIDENCE`). Evidence is what makes the documentation
+  trustworthy.
 - **Confidence is earned.** `observed` = you can point at a recorded observed item that shows it.
   `inferred` = a reasonable deduction from observed items (say what from). `needs_confirmation` =
   business intent or anything only a human can know. `observed` citing only rule candidates or
@@ -62,7 +63,7 @@ PII check reads an id in prose as a token and refuses the write (`PII_SUSPECTED`
 | 2 | `capabilities` | your screens, nav labels | `capability` records (what the business offers, e.g. "Car insurance quoting"); relations `capability contains screen|process` |
 | 3 | `processes` | `list_processes`, then `get_process` per process (ordered steps), edges between screens | `process` (goal, persona, trigger, outcome, `observed_extent`) and `use_case` (Cockburn, see `references/use-cases.md`); if no trace exists, a `followup` asking for one |
 | 4 | `rules` | forms (required, pattern, min/max), disabled controls and their hints, validation messages, computed values, refused actions, rule candidates | `business_rule` and `requirement` records (`references/business-rules.md`, `references/requirements-writing.md`) |
-| 5 | `data` | form fields, network call shapes, labels | one `data_item` per field (`name_verbatim` = the label exactly, constraints observed); `glossary_term` per domain term (`references/glossary.md`) |
+| 5 | `data` | form fields, network call shapes, labels, state `elements` | one `data_item` per field (`name_verbatim` = the label exactly, constraints observed, evidence includes the field's screen region); `glossary_term` per domain term (`references/glossary.md`) |
 | 6 | `nfr` | status codes, console errors, robots policy, languages, accessibility of labels | `nfr` records only for what was measured; everything else goes to gaps |
 | 7 | `synthesis` | your records | `assumption` records, remaining `open_question`s, gap list; check every screen has data items and rules linked, every rule cites its form/screen |
 
@@ -92,6 +93,18 @@ needs: `references/srs-outline.md`.
   Example: `data_item` "Kod pocztowy" (evidence: form; relation `appears_on` → its `screen`) and
   `business_rule` `The "Kod pocztowy" field accepts only the format NN-NNN.` (evidence: the same form,
   plus the validation message step if a trace recorded one).
+- **Point at the element on the screenshot.** States recorded since spec 008 have a screenshot, and
+  `get_evidence` on a state lists its `elements`: keys such as `textbox "Pojemność silnika"` or
+  `button "Dalej"`, with `box: true` when the element can be outlined. Readers see a screenshot with
+  the cited elements outlined, so cite a **screen region** (`target_kind` `screen_region`,
+  `target_id` the state id, `region` the key) in addition to the form or state:
+  - every `data_item` cites the region of its field;
+  - a `business_rule` or `requirement` about one control or message cites that control's region;
+  - a `screen` cites the whole `state`, plus regions for the elements its content names when useful.
+  Copy keys verbatim from `elements` (the `#2` suffix included); the server refuses a key the state
+  does not have (`UNKNOWN_REF`) and lists the closest ones. A region counts as observed evidence like
+  its state. A key with `box: false` is still valid (it is in the snapshot but not visible on the
+  screenshot); prefer a visible one when both describe the same thing.
 - A `data_item` relates to its screen with `appears_on`; any record using a domain term relates to the
   `glossary_term` with `uses_term`.
 - A `requirement` `refines` a `use_case` or `capability` and `enforces` a `business_rule`.

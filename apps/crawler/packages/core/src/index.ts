@@ -2,6 +2,8 @@ export * from './schemas/index.js';
 export * from './ids.js';
 export * from './pii.js';
 export * from './evidence.js';
+export * from './element-key.js';
+export * from './layout.js';
 export * from './db.js';
 export * from './db-types.js';
 export * from './migrate.js';

@@ -39,7 +39,9 @@ entries:
     short: What a run is for, either map mode, which explores the whole portal, or trace mode, which records one named process step by step.
     explanation: |
       **Map** mode explores broadly: it visits every reachable state within scope and budget and
-      records what is there. It never fills or submits forms.
+      records what is there. Off production it fills a form with test data before pressing its
+      submit button (form autofill), so the pages behind forms are mapped too; on production it
+      never submits.
 
       **Trace** mode follows one named business process, such as "Oblicz składkę OC/AC", with
       inputs from the persona, and records the ordered steps and what the portal did after each.
@@ -47,27 +49,28 @@ entries:
       follow-up tasks when a map run is not enough.
     appears_in: [Runs table → Mode]
     labels: [Mode, map, trace]
-    related: [run, trace-process, submit-boundary, follow-up-task]
-    changed_in: R-22
-    changed_on: 2026-10-03
+    related: [run, trace-process, submit-boundary, follow-up-task, form-autofill]
+    changed_in: R-20
+    changed_on: 2026-10-04
 
   - id: environment
     term: Environment (sandbox / production)
     category: pathfinder
     group: Runs and setup
-    short: Whether a portal is a live production site, where only read-only actions are allowed, or a sandbox with resettable data, where forms may be submitted.
+    short: Whether a portal is a live production site, where only read-only actions are allowed, or a sandbox or staging site with disposable data, where forms may be filled and submitted.
     explanation: |
-      The portal config declares `environment: production` or `sandbox`. On production the
-      environment guard allows only `read` actions, enforced in code, plus a conservative rate
-      limit and an identifying User-Agent. Each environment has its own database file
+      The portal config declares `environment: production`, `staging` or `sandbox`. On production
+      the environment guard allows only `read` actions, enforced in code, plus a conservative rate
+      limit and an identifying User-Agent. On sandbox and staging, map and trace runs may fill and
+      submit forms with test data (constitution 2.0.0). Each environment has its own database file
       (`data/db/<environment>.sqlite`); the environment selector in the dashboard's top bar
       switches between them.
     example: reference-insurer is a sandbox; its twin reference-insurer-readonly is treated as production.
     appears_in: [Top bar → environment, Runs table → Environment]
     labels: [Environment, sandbox, production]
-    related: [safety-class, portal-scope]
-    changed_in: R-22
-    changed_on: 2026-10-03
+    related: [safety-class, portal-scope, form-autofill]
+    changed_in: R-20
+    changed_on: 2026-10-04
 
   - id: persona
     term: Persona
@@ -400,20 +403,21 @@ entries:
     category: pathfinder
     group: Recorded evidence
     page: evidence
-    short: What the crawler saved as proof of what it saw, such as masked page snapshots, form fields, locators and network shapes, which every documentation statement must cite.
+    short: What the crawler saved as proof of what it saw, such as page snapshots, screenshots, form fields, locators and network shapes, which every documentation statement must cite.
     explanation: |
       Pathfinder never asks you to trust a statement on its own: the crawler stores proof, and
-      every BA record points at it. Evidence includes a masked accessibility snapshot per observed
-      state, the fields of each form, the ranked locators and safety class of each action, the
-      shape (not the content) of network calls, process steps, decisions and, on sandbox only, a
-      Playwright trace. Personal data is masked before anything is stored, and request bodies and
-      production screenshots are never stored. The long page explains each kind, where it lives
-      and how the BA uses it.
+      every BA record points at it. Evidence includes an accessibility snapshot, a screenshot and
+      a layout (element keys with their boxes) per new state, the fields of each form, the ranked
+      locators and safety class of each action, the shape (not the content) of network calls,
+      process steps, decisions and, on sandbox only, a Playwright trace. A record can cite a whole
+      state or one screen region of it. Text evidence is masked only when the portal turns on
+      `pii_scrub`; screenshots are never masked; request bodies are never stored. The long page
+      explains each kind, where it lives and how the BA uses it.
     appears_in: [Run page sections, Docs record → Evidence]
     labels: [Evidence]
-    related: [evidence-link, target, network-call-shape, layers]
-    changed_in: R-22
-    changed_on: 2026-10-03
+    related: [evidence-link, target, network-call-shape, layers, screenshot, screen-region]
+    changed_in: R-20
+    changed_on: 2026-10-04
 
   - id: network-call-shape
     term: Network call shape
@@ -430,6 +434,117 @@ entries:
     related: [evidence, data-item]
     changed_in: R-22
     changed_on: 2026-10-03
+
+  - id: screenshot
+    term: Screenshot
+    category: pathfinder
+    group: Recorded evidence
+    short: A full-page picture of a state, taken once when the crawler first records it, with no masking.
+    explanation: |
+      When a map or trace run records a new state, the crawler takes one PNG of the whole page at
+      the persona's viewport width, at the same moment as the accessibility snapshot, before
+      anything clicks or types on the page. A state seen again keeps its first picture. Very long
+      pages are cut at 10 000 px, and the cut is noted under the image. If the capture fails, the
+      state is still recorded, a warning goes to the decision log, and the dashboard shows the
+      state's wireframe instead. Screenshots are taken on every environment, production
+      included, and are not masked (constitution 2.0.0).
+    example: The Kalkulator OC/AC state shows its screenshot on the state page and on every record that cites it.
+    appears_in: [Run page → States → Picture, State page → Screenshot, Docs record → Screens]
+    labels: [Screenshot, Screens, Picture]
+    related: [state, element-key, screen-region, wireframe]
+    changed_in: R-20
+    changed_on: 2026-10-04
+
+  - id: element-key
+    term: Element key
+    category: pathfinder
+    group: Recorded evidence
+    short: The name Pathfinder gives one notable element of a recorded page, its role and accessible name plus a number when the same pair repeats, such as textbox "Pojemność silnika".
+    explanation: |
+      Headings, fields, buttons, links, images, tables, lists, forms and landmarks each get a key
+      in page order: `role "name"`, or just `role` when there is no name, with `#2`, `#3` for
+      repeats (`link "Więcej"#2`). The same rule runs on the stored snapshot and on the page's
+      **layout**, the list of keys with their position and size on the screenshot, so a key
+      always points at the same element in the snapshot, the screenshot and the wireframe. The BA
+      copies keys from the state's evidence when it cites a screen region.
+    example: 'button "Oblicz składkę" is the calculator''s submit button; navigation#2 is the second unnamed navigation landmark.'
+    appears_in: [State page → Show elements, Docs record → Screens legend]
+    labels: [Element key, elements, layout]
+    related: [screen-region, accessible-name, role, screenshot]
+    changed_in: R-20
+    changed_on: 2026-10-04
+
+  - id: screen-region
+    term: Screen region
+    category: pathfinder
+    group: Recorded evidence
+    short: Evidence that points at one element of a state's screenshot, so the dashboard and the export can outline exactly what a record talks about.
+    explanation: |
+      A screen region is a kind of evidence link: a state plus an element key, with an optional
+      note. A data item cites the field it describes, a rule or requirement about one control
+      cites that control, and a screen record cites the whole state. The dashboard draws each
+      cited region as a numbered outline over the screenshot and lists the keys underneath; an
+      element that has no position on the screenshot (hidden or below the cut) is listed as "not
+      visible on the screenshot". The image itself is never changed, so one screenshot serves
+      every record that cites it.
+    example: DI-004 Pojemność silnika cites the region textbox "Pojemność silnika" on the calculator state.
+    appears_in: [Docs record → Screens, Docs record → Evidence]
+    labels: [Screen region, screen_region, region]
+    related: [element-key, evidence-link, screenshot, data-item]
+    changed_in: R-20
+    changed_on: 2026-10-04
+
+  - id: wireframe
+    term: Wireframe
+    category: pathfinder
+    group: Recorded evidence
+    short: A plain sketch of a recorded page, drawn in one fixed style from its accessibility snapshot, shown where there is no screenshot and downloadable as an editable Excalidraw file.
+    explanation: |
+      Pathfinder draws headings, labelled fields, buttons, links, tables, lists and landmarks in
+      page order, one under the other, and nothing that is not in the recorded snapshot: it does
+      not guess the real layout (the screenshot shows that). The same snapshot always gives the
+      same drawing. Each wireframe comes as an SVG image and as a `.excalidraw` file you can open
+      on excalidraw.com or in the Excalidraw VS Code extension and edit. `wireframes:build`
+      redraws them when the style changes.
+    appears_in: [State page → Wireframe, Run page → States → Picture, SRS export → Screens]
+    labels: [Wireframe, Excalidraw]
+    related: [screenshot, state, srs-export]
+    changed_in: R-21
+    changed_on: 2026-10-04
+
+  - id: form-autofill
+    term: Form autofill
+    category: pathfinder
+    group: Crawling
+    short: In map mode off production, the crawler fills a form with test data just before it presses the form's submit button, so it can reach the page behind the form.
+    explanation: |
+      Values come from the persona's inputs when it has one for the field's label, otherwise from
+      a fixed generator per field type (an e-mail on a test domain, a number inside the field's
+      limits, the first real option of a list). Each autofill is written to the trace and the
+      decision log with the field names and values. On production the submit itself is refused,
+      so nothing is filled or sent there.
+    appears_in: [Run page → Trace → form_autofill, Run page → Decisions]
+    labels: [Autofill, form_autofill]
+    related: [mode, environment, persona, safety-class]
+    changed_in: R-20
+    changed_on: 2026-10-04
+
+  - id: pii-scrubbing
+    term: PII scrubbing
+    category: pathfinder
+    group: Recorded evidence
+    short: Masking personal data such as e-mails and phone numbers in stored text evidence, off by default and turned on per portal with pii_scrub.
+    explanation: |
+      Until constitution 2.0.0 every snapshot, title, form field and network shape was masked
+      before it was stored. Pathfinder now runs almost only against test portals with disposable
+      data, so text evidence is stored as recorded unless the portal config sets
+      `pii_scrub: true`. Screenshots are never masked. Developer logs and trace error messages
+      stay masked either way.
+    appears_in: [Portal config → pii_scrub]
+    labels: [pii_scrub, masked]
+    related: [evidence, environment]
+    changed_in: R-20
+    changed_on: 2026-10-04
 
   - id: crawler-open-question
     term: Open question (crawler)

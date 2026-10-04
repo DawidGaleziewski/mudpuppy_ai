@@ -1328,3 +1328,114 @@ table.data tr[aria-current="true"] td {
   color: var(--ink-500);
   border-left: var(--rule) solid var(--border);
 }
+
+/* screenshots, wireframes and highlights of recorded states (spec 008). Highlights sit over the
+   stored image in percent of its size, so they scale with it and the image stays unchanged. */
+.shot {
+  margin: 0;
+  padding: var(--space-3);
+  background: var(--surface-100);
+  border: var(--hairline) solid var(--border);
+}
+
+.shot-frame {
+  position: relative;
+  line-height: 0;
+  background: var(--paper);
+}
+
+.shot-frame img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.shot-none {
+  padding: var(--space-4);
+  line-height: var(--leading);
+  background: var(--surface-200);
+}
+
+.shot figcaption {
+  margin-top: var(--space-2);
+  font-size: var(--text-body-sm);
+  color: var(--ink-500);
+}
+
+.hl {
+  position: absolute;
+  box-sizing: border-box;
+  border: var(--rule) solid var(--highlight);
+  outline: var(--hairline) solid var(--highlight-halo);
+  pointer-events: none;
+}
+
+.hl-n {
+  position: absolute;
+  top: calc(-1 * var(--badge));
+  left: calc(-1 * var(--rule));
+  min-width: var(--badge);
+  height: var(--badge);
+  padding: 0 var(--space-1);
+  font-size: var(--text-label);
+  font-weight: var(--weight-bold);
+  line-height: var(--badge);
+  text-align: center;
+  color: var(--surface-0);
+  background: var(--highlight);
+}
+
+.hl-legend {
+  margin: var(--space-2) 0 0;
+  padding-left: var(--space-5);
+  font-size: var(--text-body-sm);
+}
+
+.hl-legend li {
+  margin-bottom: var(--space-1);
+  overflow-wrap: anywhere;
+}
+
+.shot-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, var(--shot-col)), 1fr));
+  gap: var(--space-4);
+  margin-top: var(--space-3);
+}
+
+details.screens > summary {
+  cursor: pointer;
+  list-style-position: inside;
+}
+
+details.screens > summary h2 {
+  display: inline;
+}
+
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+  margin: 0 0 var(--space-3);
+}
+
+.thumb {
+  display: block;
+  width: var(--thumb-w);
+  height: var(--thumb-h);
+  object-fit: cover;
+  object-position: top;
+  background: var(--paper);
+  border: var(--hairline) solid var(--border);
+}
+
+.cited-list {
+  margin: 0;
+  padding-left: var(--space-5);
+}
+
+.cited-list li {
+  margin-bottom: var(--space-1);
+  overflow-wrap: anywhere;
+}

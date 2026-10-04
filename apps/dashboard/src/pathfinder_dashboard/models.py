@@ -74,6 +74,7 @@ EvidenceTargetKind = Literal[
     "process_step",
     "doc_record",
     "review",
+    "screen_region",
 ]
 RelationType = Literal[
     "contains",
@@ -225,6 +226,18 @@ class State(Row):
     confidence: Confidence
     stabilization: Stabilization
     first_seen_run: str
+    created_at: str
+    screenshot_ref: str | None = None  # spec 008: PNG, set when the state was first recorded
+    layout_ref: str | None = None  # spec 008: Layout JSON (element keys and boxes)
+
+
+class StateWireframe(Row):
+    """Derived wireframe of a state (spec 008); rebuilt when `generator_version` is stale."""
+
+    state_id: str
+    generator_version: str
+    svg_ref: str
+    excalidraw_ref: str
     created_at: str
 
 
@@ -396,6 +409,7 @@ class DocEvidenceLink(Row):
     target_id: str
     run_id: str | None
     note: str | None
+    region: str | None = None  # element key; screen_region only (spec 008)
 
 
 class DocRelation(Row):
@@ -465,6 +479,7 @@ TABLE_MODELS: dict[str, type[Row]] = {
     "open_questions": OpenQuestion,
     "rule_candidates": RuleCandidate,
     "states": State,
+    "state_wireframes": StateWireframe,
     "frontier": FrontierItem,
     "decision_log": DecisionLogEntry,
     "robots_policies": RobotsPolicy,

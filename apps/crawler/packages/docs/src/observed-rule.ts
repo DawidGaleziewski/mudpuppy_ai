@@ -10,11 +10,14 @@ export interface ResolvedTarget {
   portal_id: string;
   /** The target's own confidence; null where the kind carries none (questions, decisions, records, reviews). */
   confidence: Confidence | null;
+  /** `screen_region` only: the cited element key (spec 008). */
+  region?: string;
 }
 
 /** Layer A kinds that can show behaviour. Notes, questions, decisions, records and reviews never can. */
 export const OBSERVABLE_KINDS: readonly EvidenceTargetKind[] = [
   'state',
+  'screen_region',
   'edge',
   'form',
   'action',

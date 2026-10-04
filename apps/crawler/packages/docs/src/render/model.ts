@@ -1,11 +1,15 @@
-import type {
-  Confidence,
-  DocKind,
-  EvidenceTargetKind,
-  RelationType,
-  ReviewAction,
-  RevisionChange,
-  RevisionStatus,
+import { existsSync, readFileSync } from 'node:fs';
+import { join } from 'node:path';
+import {
+  Layout,
+  isEvidenceRef,
+  type Confidence,
+  type DocKind,
+  type EvidenceTargetKind,
+  type RelationType,
+  type ReviewAction,
+  type RevisionChange,
+  type RevisionStatus,
 } from '@pathfinder/core';
 import type { RawDb } from '../keys.js';
 import type { ProcessMapInput, ScreenNavInput } from './mermaid.js';
@@ -57,6 +61,29 @@ export interface ExportEvidence {
   broken: boolean;
   /** For a `doc_record` target: its key, when that record is part of the export. */
   doc_key: string | null;
+  /** For a `screen_region` target: the cited element key (spec 008). */
+  region: string | null;
+}
+
+/** A state a record cites (as a state or a region), with its pictures (spec 008 US4). */
+export interface ExportScreen {
+  state_id: string;
+  title: string;
+  route_template: string;
+  /** Evidence refs; null when the state has none. */
+  screenshot_ref: string | null;
+  wireframe_svg_ref: string | null;
+  wireframe_excalidraw_ref: string | null;
+  /** Screenshot size from the layout; null without a layout or without `evidenceRoot`. */
+  page: { width: number; height: number } | null;
+}
+
+export interface ExportRegion {
+  state_id: string;
+  key: string;
+  note: string | null;
+  /** Page-coordinate box from the layout; null when the element is not on the screenshot. */
+  box: { x: number; y: number; width: number; height: number } | null;
 }
 
 export interface ExportRelation {
@@ -92,6 +119,8 @@ export interface ExportRecord {
   trace: ProcessMapInput | null;
   /** The trace's boundary, for the Unknowns chapter. */
   boundary: { action: string; not_observable: string } | null;
+  /** Cited states in link order (deduplicated) and the cited screen regions (spec 008). */
+  visuals: { screens: ExportScreen[]; regions: ExportRegion[] };
 }
 
 export interface ChangeLogEntry {
@@ -181,9 +210,25 @@ interface LinkRow {
   target_id: string;
   run_id: string | null;
   note: string | null;
+  region: string | null;
 }
 
 const cmp = (a: string, b: string): number => (a < b ? -1 : a > b ? 1 : 0);
+
+/** A state's layout boxes by element key, read from the evidence store; empty when unreadable. */
+function layoutBoxes(evidenceRoot: string | undefined, layoutRef: string | null) {
+  const out = new Map<string, ExportRegion['box']>();
+  let page: ExportScreen['page'] = null;
+  if (!evidenceRoot || !layoutRef || !isEvidenceRef(layoutRef)) return { page, boxes: out };
+  try {
+    const layout = Layout.parse(JSON.parse(readFileSync(join(evidenceRoot, layoutRef), 'utf8')));
+    page = layout.page;
+    for (const e of layout.elements) out.set(e.key, e.box);
+  } catch {
+    // an unreadable layout only means no boxes
+  }
+  return { page, boxes: out };
+}
 const json = (text: string | null): unknown => {
   if (text === null) return null;
   try {
@@ -204,6 +249,10 @@ const TARGET_LABEL: Partial<
   Record<EvidenceTargetKind, { table: string; label: (r: Record<string, unknown>) => string }>
 > = {
   state: { table: 'states', label: (r) => `${String(r.title)} (${String(r.route_template)})` },
+  screen_region: {
+    table: 'states',
+    label: (r) => `${String(r.title)} (${String(r.route_template)})`,
+  },
   edge: {
     table: 'edges',
     label: (r) => {
@@ -273,7 +322,8 @@ function selectRevision(
 export function loadExportModel(
   raw: RawDb,
   portalId: string,
-  opts: { environment: string; mode: ExportMode },
+  /** `evidenceRoot`: where layouts are read from, for region boxes (spec 008); optional. */
+  opts: { environment: string; mode: ExportMode; evidenceRoot?: string },
 ): ExportModel {
   const records = raw
     .prepare(
@@ -364,8 +414,8 @@ export function loadExportModel(
     links.push(
       ...(raw
         .prepare(
-          `SELECT revision_id, target_kind, target_id, run_id, note FROM doc_evidence_links
-           WHERE revision_id = ? ORDER BY target_kind, target_id, id`,
+          `SELECT revision_id, target_kind, target_id, run_id, note, region FROM doc_evidence_links
+           WHERE revision_id = ? ORDER BY target_kind, target_id, region, id`,
         )
         .all(id) as LinkRow[]),
     );
@@ -414,8 +464,76 @@ export function loadExportModel(
           broken: label === null,
           doc_key:
             docKey && (renderedIds.has(l.target_id) || changeLogKeys.has(docKey)) ? docKey : null,
+          region: l.target_kind === 'screen_region' ? l.region : null,
         };
       });
+
+  // Pictures of the cited states (spec 008 US4): one entry per state, in link order.
+  const screenCache = new Map<
+    string,
+    { screen: ExportScreen; boxes: Map<string, ExportRegion['box']> } | null
+  >();
+  const screenOf = (stateId: string) => {
+    if (screenCache.has(stateId)) return screenCache.get(stateId)!;
+    const row = raw
+      .prepare(
+        `SELECT s.title, s.route_template, s.screenshot_ref, s.layout_ref,
+                w.svg_ref, w.excalidraw_ref
+         FROM states s LEFT JOIN state_wireframes w ON w.state_id = s.id WHERE s.id = ?`,
+      )
+      .get(stateId) as
+      | {
+          title: string;
+          route_template: string;
+          screenshot_ref: string | null;
+          layout_ref: string | null;
+          svg_ref: string | null;
+          excalidraw_ref: string | null;
+        }
+      | undefined;
+    // A picture is exported only when its file is there, so no image link can dangle.
+    const present = (ref: string | null): string | null =>
+      ref && opts.evidenceRoot && isEvidenceRef(ref) && existsSync(join(opts.evidenceRoot, ref))
+        ? ref
+        : null;
+    const value = row
+      ? (() => {
+          const { page, boxes } = layoutBoxes(opts.evidenceRoot, row.layout_ref);
+          return {
+            screen: {
+              state_id: stateId,
+              title: row.title,
+              route_template: row.route_template,
+              screenshot_ref: present(row.screenshot_ref),
+              wireframe_svg_ref: present(row.svg_ref),
+              wireframe_excalidraw_ref: present(row.excalidraw_ref),
+              page,
+            },
+            boxes,
+          };
+        })()
+      : null;
+    screenCache.set(stateId, value);
+    return value;
+  };
+  const visualsOf = (evidence: readonly ExportEvidence[]): ExportRecord['visuals'] => {
+    const screens: ExportScreen[] = [];
+    const regions: ExportRegion[] = [];
+    for (const e of evidence) {
+      if ((e.target_kind !== 'state' && e.target_kind !== 'screen_region') || e.broken) continue;
+      const s = screenOf(e.target_id);
+      if (!s) continue;
+      if (!screens.some((x) => x.state_id === e.target_id)) screens.push(s.screen);
+      if (e.target_kind === 'screen_region' && e.region)
+        regions.push({
+          state_id: e.target_id,
+          key: e.region,
+          note: e.note,
+          box: s.boxes.get(e.region) ?? null,
+        });
+    }
+    return { screens, regions };
+  };
 
   const relationsOf = (revisionId: string): ExportRelation[] =>
     (
@@ -504,6 +622,7 @@ export function loadExportModel(
       ...(record.kind === 'process'
         ? traceOf(record.key, title, content, evidence)
         : { trace: null, boundary: null }),
+      visuals: visualsOf(evidence),
     });
   }
   rendered.sort((a, b) => KIND_ORDER.indexOf(a.kind) - KIND_ORDER.indexOf(b.kind) || a.seq - b.seq);

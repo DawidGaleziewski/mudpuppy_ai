@@ -58,7 +58,7 @@ describe.skipIf(!available)('a broken trace never changes the crawl (FR-014)', (
       await traced.cleanup();
       await broken.cleanup();
     }
-  });
+  }, 30_000); // two browser runs; new states also take a screenshot (spec 008)
 });
 
 describe('a crashed server leaves its in-flight call unfinished', () => {

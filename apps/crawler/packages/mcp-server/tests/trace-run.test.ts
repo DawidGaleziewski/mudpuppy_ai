@@ -348,22 +348,14 @@ describe.skipIf(!available)('trace mode on the reference portal (spec 004 R-14, 
       intent: 'Open the calculator',
       rationale: 'x',
     });
-    // An agent-supplied value the PII scrubber would change is refused.
-    expect(
-      await refused('act', {
-        run_id: runId,
-        action_id: find(page, 'textbox', 'Model').action_id,
-        value: 'jan.kowalski@example.com',
-        intent: 'Enter the model',
-        rationale: 'x',
-      }),
-    ).toMatchObject({ code: 'PII_SUSPECTED' });
+    // A value the PII scrubber would change is accepted since constitution 2.0.0: this portal does
+    // not set `pii_scrub` (the refusal on a scrubbing portal is covered in pii-scrub.test.ts).
     // After a step changed the page, an action id from the earlier page is refused instead of
     // re-opening that page (which would drop what was typed).
     const filled = await ok('act', {
       run_id: runId,
       action_id: find(page, 'textbox', 'Model').action_id,
-      value: 'Octavia',
+      value: 'jan.kowalski@example.com',
       intent: 'Enter the model',
       rationale: 'x',
     });

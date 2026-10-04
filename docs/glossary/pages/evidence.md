@@ -9,10 +9,14 @@ and every piece of evidence belongs to a run. Back to the
 
 | Kind | What it contains | Where it is stored | Gathered by |
 |---|---|---|---|
-| **State snapshot** | A masked accessibility snapshot (ARIA) of the page: headings, landmarks, links, buttons and fields with their roles and names, as text. Plus the route template, title, fingerprint, cluster and stabilization result. | Snapshot file `data/evidence/<sha256>.yaml`; the state row in the database | Map and trace runs, every state |
+| **State snapshot** | An accessibility snapshot (ARIA) of the page: headings, landmarks, links, buttons and fields with their roles and names, as text. Plus the route template, title, fingerprint, cluster and stabilization result. Masked only when the portal sets `pii_scrub`. | Snapshot file `data/evidence/<sha256>.yaml`; the state row in the database | Map and trace runs, every state |
+| **Screenshot** | A full-page PNG of the state as first recorded, unmasked, cut at 10 000 px. | `data/evidence/<sha256>.png`, referenced by the state | Map and trace runs, every new state, every environment |
+| **Layout** | Every [element key](../README.md#element-key) of the state with its position and size on the screenshot. | `data/evidence/<sha256>.json`, referenced by the state | With the screenshot |
+| **Screen region** | Not a file: an evidence link naming a state and one element key, which the dashboard outlines on the screenshot. | Database (`doc_evidence_links`, `region`) | Written by the BA |
+| **Wireframe** | A sketch of the state drawn from its snapshot, as SVG and as an editable `.excalidraw` file. Derived, not proof on its own. | `data/evidence/<sha256>.svg` / `.excalidraw`, `state_wireframes` | Every new state; `wireframes:build` redraws |
 | **Transition (edge)** | Which state an action started from and which it led to, whether it was executed or skipped, and any error. | Database (`edges`), with a snapshot reference | Map and trace runs |
 | **Action** | Role, accessible name, ranked candidate locators, the link address if any, safety class, and whether it was allowed or why not. | Database (`actions`) | Map and trace runs, every action on every state |
-| **Form** | Each field's name, type, whether it is required, constraints, options and validation messages. Forms are recorded, never submitted in map mode. | Database (`forms`) | Map and trace runs |
+| **Form** | Each field's name, type, whether it is required, constraints, options and validation messages. Off production, map mode fills a form with test data before pressing its submit button ([form autofill](../README.md#form-autofill)). | Database (`forms`) | Map and trace runs |
 | **Network call shape** | Method, URL template, status code, and the structure of the request and response (field names and types, not values), plus console errors. | Database (`network_calls`) | Map and trace runs; only background `fetch`/XHR calls |
 | **Frontier item and decision** | What was queued or skipped and the rule behind each skip, refusal, merge or split. | Database (`frontier`, `decision_log`) | Map runs mostly |
 | **Open question / rule candidate** | Something the crawler could not explain, or a possible rule it spotted. | Database | Map and trace runs, when the agent flags one |
@@ -23,21 +27,21 @@ and every piece of evidence belongs to a run. Back to the
 
 Everything under `data/` is generated and git-ignored. Each environment has its own database
 file, `data/db/<environment>.sqlite`. Files in `data/evidence/` are named by the sha256 hash of
-their masked content, so identical content is stored once and a file can never be changed
-without its name changing.
+their content, so identical content is stored once and a file can never be changed without its
+name changing.
 
 ## What is never gathered, and why
 
-- **Personal data.** Before anything is written, a scrubber masks e-mail addresses, phone numbers,
-  card numbers, tokens and names (for example as `[email]`). It runs on every snapshot and
-  network shape.
+- **Personal data, when the portal asks for it.** Since constitution 2.0.0 Pathfinder runs almost
+  only against test portals with disposable data, so text evidence is stored as recorded. A
+  portal config with `pii_scrub: true` turns the scrubber back on for snapshots, titles, form
+  fields and network shapes (e-mail addresses, phone numbers, card numbers, tokens become
+  `[email]` and so on). Screenshots are never masked.
 - **Request and response bodies.** Only their structure is kept. The structure tells the BA what
-  data a screen exchanges; the values could contain personal data and are not needed.
-- **Screenshots on production.** Regex masking cannot clean an image, so screenshots exist only
-  inside Playwright traces, and those are made only on a sandbox. The dashboard never serves them;
-  you open them locally with `npx playwright show-trace <path>`.
+  data a screen exchanges; the values are not needed.
 - **Anything behind a submit on production.** Only read-only actions run there, so what a form
-  does after submitting is unknown until traced on a sandbox. It appears as a gap, not a guess.
+  does after submitting is unknown until mapped or traced on a sandbox. It appears as a gap, not
+  a guess.
 - **Anything the crawler cannot see from a browser**, such as back-office work, e-mails sent or
   scheduled jobs. These are flagged "not observable".
 
@@ -48,7 +52,8 @@ The BA agent never browses. It reads evidence through its own read-only tools:
 1. `list_runs` and `get_run_evidence` give it one kind of evidence at a time for a run (states,
    forms, network calls, actions, decisions), with ids and a short summary.
 2. `get_evidence` returns one full item, including the content of its snapshot file (cut at
-   60 kB).
+   60 kB). For a state it also lists the element keys and whether each has a box on the
+   screenshot, so the BA can cite a screen region.
 3. `list_processes` and `get_process` give it traced processes step by step.
 
 When it writes or revises a record, it attaches **evidence links**: each one names a

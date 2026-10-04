@@ -114,7 +114,7 @@ describe.skipIf(!available)('portal workspaces (spec 002 US5, SC-008, SC-009)', 
 
       const insurerBefore = rowsOf(ctx.raw, 'insurer');
       const evidenceDir = join(ctx.dir, 'evidence');
-      const insurerRefs = new Set(insurerBefore.match(/[0-9a-f]{64}\.[a-z0-9]{1,8}/g) ?? []);
+      const insurerRefs = new Set(insurerBefore.match(/[0-9a-f]{64}\.[a-z0-9]{1,10}/g) ?? []);
       const insurerFiles = Object.fromEntries(
         [...insurerRefs].map((r) => [r, readFileSync(join(evidenceDir, r), 'utf8')]),
       );

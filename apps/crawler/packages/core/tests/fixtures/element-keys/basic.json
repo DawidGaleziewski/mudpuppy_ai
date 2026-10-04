@@ -1,0 +1,189 @@
+[
+  {
+    "role": "banner",
+    "box": {
+      "x": 8,
+      "y": 8,
+      "width": 1264,
+      "height": 19
+    },
+    "children": [
+      {
+        "role": "navigation",
+        "name": "Główna",
+        "box": {
+          "x": 8,
+          "y": 8,
+          "width": 1264,
+          "height": 19
+        },
+        "children": [
+          {
+            "role": "link",
+            "name": "Strona główna",
+            "box": {
+              "x": 8,
+              "y": 8,
+              "width": 116,
+              "height": 19
+            },
+            "url": "/"
+          },
+          {
+            "role": "link",
+            "name": "Kalkulator",
+            "box": {
+              "x": 124,
+              "y": 8,
+              "width": 81,
+              "height": 19
+            },
+            "url": "/kalkulator"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "role": "main",
+    "box": {
+      "x": 8,
+      "y": 48,
+      "width": 1264,
+      "height": 116
+    },
+    "children": [
+      {
+        "role": "heading",
+        "name": "Kalkulator OC/AC",
+        "level": 1,
+        "box": {
+          "x": 8,
+          "y": 48,
+          "width": 1264,
+          "height": 38
+        }
+      },
+      {
+        "role": "form",
+        "name": "Dane pojazdu",
+        "box": {
+          "x": 8,
+          "y": 108,
+          "width": 1264,
+          "height": 22
+        },
+        "children": [
+          "Pojemność silnika",
+          {
+            "role": "spinbutton",
+            "name": "Pojemność silnika",
+            "box": {
+              "x": 153,
+              "y": 109,
+              "width": 179,
+              "height": 21
+            }
+          },
+          "Rok produkcji",
+          {
+            "role": "textbox",
+            "name": "Rok produkcji",
+            "box": {
+              "x": 449,
+              "y": 109,
+              "width": 179,
+              "height": 21
+            }
+          },
+          {
+            "role": "checkbox",
+            "name": "Zgoda na regulamin",
+            "box": {
+              "x": 632,
+              "y": 111,
+              "width": 13,
+              "height": 13
+            }
+          },
+          "Zgoda na regulamin",
+          {
+            "role": "combobox",
+            "name": "Rodzaj paliwa",
+            "box": {
+              "x": 820,
+              "y": 110,
+              "width": 78,
+              "height": 19
+            },
+            "children": [
+              {
+                "role": "option",
+                "name": "Benzyna",
+                "selected": true,
+                "box": {
+                  "x": 0,
+                  "y": 0,
+                  "width": 0,
+                  "height": 0
+                }
+              },
+              {
+                "role": "option",
+                "name": "Diesel",
+                "box": {
+                  "x": 0,
+                  "y": 0,
+                  "width": 0,
+                  "height": 0
+                }
+              }
+            ]
+          },
+          {
+            "role": "button",
+            "name": "Oblicz składkę",
+            "box": {
+              "x": 898,
+              "y": 109,
+              "width": 111,
+              "height": 21
+            }
+          }
+        ]
+      },
+      {
+        "role": "paragraph",
+        "box": {
+          "x": 8,
+          "y": 146,
+          "width": 1264,
+          "height": 19
+        },
+        "text": "Składka zależy od pojemności silnika."
+      }
+    ]
+  },
+  {
+    "role": "contentinfo",
+    "box": {
+      "x": 8,
+      "y": 181,
+      "width": 1264,
+      "height": 19
+    },
+    "children": [
+      {
+        "role": "link",
+        "name": "Kontakt",
+        "box": {
+          "x": 8,
+          "y": 181,
+          "width": 61,
+          "height": 19
+        },
+        "url": "/kontakt"
+      }
+    ]
+  }
+]

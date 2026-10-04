@@ -134,6 +134,14 @@ export async function startMockPortal(options: MockPortalOptions = {}): Promise<
       return void res.end();
     }
     if (p === '/blocked') return html('<html><body>Forbidden</body></html>', 403);
+    // Linked from nowhere (crawl tests never reach it): PII-shaped text for pii_scrub tests.
+    if (p === '/sprzedawca')
+      return html(
+        layout(
+          'Sprzedawca jan.kowalski@example.com',
+          '<h1>Sprzedawca</h1><p>E-mail: jan.kowalski@example.com</p><p>Telefon: 601 234 567</p>',
+        ),
+      );
     if (p === '/api/offers') return json({ items: [{ id: 1, title: 'Laptop', price: 1111.5 }] });
     if (/^\/api\/offers\/\d+$/.test(p))
       return json({

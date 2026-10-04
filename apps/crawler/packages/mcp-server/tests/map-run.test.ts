@@ -4,6 +4,7 @@ import { mkdirSync, readdirSync, readFileSync, statSync, writeFileSync } from 'n
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { newId, nowIso } from '@pathfinder/core';
 import { canLaunchBrowser } from '@pathfinder/crawler';
 import { createBrowserRuntime, createServer, interruptStaleRuns } from '../src/index.js';
 import { makeCtx } from './helpers.js';
@@ -381,6 +382,51 @@ describe.skipIf(!available)('map run against the mock portal', () => {
         .where('action_id', '=', item.action_id)
         .executeTakeFirstOrThrow();
       expect(row).toEqual({ status: 'pending', depth: 2 });
+    } finally {
+      await cleanup();
+    }
+  }, 60_000);
+
+  it('a navigate settles the pending navigate item for its URL (a reopened depth refusal)', async () => {
+    const { ctx, call, cleanup } = await setup();
+    try {
+      const runId = (await call('start_run', { portal_id: 'mock', persona_id: 'guest' })).body
+        .run_id as string;
+      const home = await call('navigate', {
+        run_id: runId,
+        url: portal.origin + '/',
+        rationale: 'exploring the target URL',
+      });
+      // the row a refused navigate leaves (no action id) after reopenDepthSkipped set it pending
+      const url = portal.origin + '/oferty';
+      await ctx.db
+        .insertInto('frontier')
+        .values({
+          id: newId(),
+          run_id: runId,
+          state_id: home.body.state_id as string,
+          action_id: null,
+          action_json: JSON.stringify({ kind: 'navigate', url }),
+          safety_class: 'read',
+          status: 'pending',
+          priority: 0,
+          depth: 1,
+          reason: null,
+          created_at: nowIso(),
+          updated_at: nowIso(),
+        })
+        .execute();
+
+      const nav = await call('navigate', { run_id: runId, url, rationale: 'next frontier item' });
+      expect(nav.isError).toBe(false);
+      const rows = await ctx.db
+        .selectFrom('frontier')
+        .select('status')
+        .where('run_id', '=', runId)
+        .where('action_id', 'is', null)
+        .where('action_json', '=', JSON.stringify({ kind: 'navigate', url }))
+        .execute();
+      expect(rows).toEqual([{ status: 'done' }]);
     } finally {
       await cleanup();
     }

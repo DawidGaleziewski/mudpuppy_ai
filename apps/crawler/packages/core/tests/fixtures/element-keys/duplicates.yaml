@@ -1,0 +1,19 @@
+- main:
+  - heading "Oferty" [level=2]
+  - list:
+    - listitem:
+      - link "Więcej":
+        - /url: /1
+    - listitem:
+      - link "Więcej":
+        - /url: /2
+    - listitem:
+      - link "Więcej":
+        - /url: /3
+  - button "Dalej"
+  - button "Dalej"
+  - link:
+    - /url: "#"
+  - link:
+    - /url: "#"
+  - img "Logo"

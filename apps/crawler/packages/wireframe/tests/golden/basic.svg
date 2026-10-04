@@ -1,0 +1,76 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="707" viewBox="0 0 960 707" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">
+<title>Wireframe: Kalkulator OC/AC</title>
+<rect x="0" y="0" width="960" height="707" fill="#FFFFFF"/>
+<g data-key="navigation &quot;Główna&quot;">
+<rect x="40" y="72" width="880" height="92" fill="none" stroke="#D0D7DE" stroke-width="1" stroke-dasharray="4 3"/>
+</g>
+<g data-key="banner">
+<rect x="24" y="48" width="912" height="128" fill="none" stroke="#D0D7DE" stroke-width="1" stroke-dasharray="4 3"/>
+</g>
+<g data-key="form &quot;Dane pojazdu&quot;">
+<rect x="40" y="263" width="880" height="312" fill="none" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="main">
+<rect x="24" y="188" width="912" height="425" fill="none" stroke="#D0D7DE" stroke-width="1" stroke-dasharray="4 3"/>
+</g>
+<g data-key="contentinfo">
+<rect x="24" y="625" width="912" height="58" fill="none" stroke="#D0D7DE" stroke-width="1" stroke-dasharray="4 3"/>
+</g>
+<g data-key="page">
+<text x="24" y="36" font-size="12" fill="#6E7781">Kalkulator OC/AC</text>
+</g>
+<g data-key="banner">
+<text x="32" y="63" font-size="11" fill="#6E7781">banner</text>
+</g>
+<g data-key="navigation &quot;Główna&quot;">
+<text x="48" y="87" font-size="11" fill="#6E7781">navigation · Główna</text>
+</g>
+<g data-key="link &quot;Strona główna&quot;">
+<text x="56" y="110" font-size="14" fill="#1F2328">Strona główna</text>
+<line x1="56" y1="114" x2="160" y2="114" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="link &quot;Kalkulator&quot;">
+<text x="56" y="144" font-size="14" fill="#1F2328">Kalkulator</text>
+<line x1="56" y1="148" x2="136" y2="148" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="main">
+<text x="32" y="203" font-size="11" fill="#6E7781">main</text>
+</g>
+<g data-key="heading &quot;Kalkulator OC/AC&quot;">
+<text x="40" y="240" font-size="28" font-weight="600" fill="#1F2328">Kalkulator OC/AC</text>
+</g>
+<g data-key="form &quot;Dane pojazdu&quot;">
+<text x="48" y="278" font-size="11" fill="#6E7781">form · Dane pojazdu</text>
+</g>
+<g data-key="spinbutton &quot;Pojemność silnika&quot;">
+<text x="56" y="300" font-size="13" fill="#6E7781">Pojemność silnika</text>
+<rect x="56" y="305" width="360" height="34" fill="#FFFFFF" stroke="#8C959F" stroke-width="1"/>
+</g>
+<g data-key="textbox &quot;Rok produkcji&quot;">
+<text x="56" y="368" font-size="13" fill="#6E7781">Rok produkcji</text>
+<rect x="56" y="373" width="360" height="34" fill="#FFFFFF" stroke="#8C959F" stroke-width="1"/>
+</g>
+<g data-key="checkbox &quot;Zgoda na regulamin&quot;">
+<rect x="56" y="427" width="14" height="14" fill="#FFFFFF" stroke="#8C959F" stroke-width="1"/>
+<text x="78" y="439" font-size="13" fill="#1F2328">Zgoda na regulamin</text>
+</g>
+<g data-key="combobox &quot;Rodzaj paliwa&quot;">
+<text x="56" y="472" font-size="13" fill="#6E7781">Rodzaj paliwa</text>
+<rect x="56" y="477" width="360" height="34" fill="#FFFFFF" stroke="#8C959F" stroke-width="1"/>
+<text x="396" y="499" font-size="14" fill="#6E7781">▾</text>
+</g>
+<g data-key="button &quot;Oblicz składkę&quot;">
+<rect x="56" y="527" width="144" height="36" rx="6" fill="#F6F8FA" stroke="#1F2328" stroke-width="1"/>
+<text x="128" y="551" font-size="14" font-weight="600" text-anchor="middle" fill="#1F2328">Oblicz składkę</text>
+</g>
+<g data-key="paragraph#t1">
+<rect x="40" y="587" width="407" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="contentinfo">
+<text x="32" y="640" font-size="11" fill="#6E7781">contentinfo</text>
+</g>
+<g data-key="link &quot;Kontakt&quot;">
+<text x="40" y="663" font-size="14" fill="#1F2328">Kontakt</text>
+<line x1="40" y1="667" x2="96" y2="667" stroke="#1F2328" stroke-width="1"/>
+</g>
+</svg>

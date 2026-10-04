@@ -1,0 +1,241 @@
+[
+  {
+    "role": "banner",
+    "box": {
+      "x": 8,
+      "y": 8,
+      "width": 1264,
+      "height": 19
+    },
+    "children": [
+      {
+        "role": "navigation",
+        "box": {
+          "x": 8,
+          "y": 8,
+          "width": 1264,
+          "height": 19
+        },
+        "children": [
+          {
+            "role": "link",
+            "name": "Start",
+            "box": {
+              "x": 8,
+              "y": 8,
+              "width": 39,
+              "height": 19
+            },
+            "url": "/"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "role": "main",
+    "box": {
+      "x": 8,
+      "y": 47,
+      "width": 1264,
+      "height": 194
+    },
+    "children": [
+      {
+        "role": "region",
+        "name": "Sekcja A",
+        "box": {
+          "x": 8,
+          "y": 47,
+          "width": 1264,
+          "height": 67
+        },
+        "children": [
+          {
+            "role": "heading",
+            "name": "A \"cytat\"",
+            "level": 2,
+            "box": {
+              "x": 8,
+              "y": 47,
+              "width": 1264,
+              "height": 28
+            }
+          },
+          {
+            "role": "navigation",
+            "box": {
+              "x": 8,
+              "y": 95,
+              "width": 1264,
+              "height": 19
+            },
+            "children": [
+              {
+                "role": "link",
+                "name": "Link z spacjami",
+                "box": {
+                  "x": 8,
+                  "y": 95,
+                  "width": 121,
+                  "height": 19
+                },
+                "url": "/a"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "role": "complementary",
+        "box": {
+          "x": 8,
+          "y": 133,
+          "width": 1264,
+          "height": 88
+        },
+        "children": [
+          {
+            "role": "heading",
+            "name": "Boczne",
+            "level": 3,
+            "box": {
+              "x": 8,
+              "y": 133,
+              "width": 1264,
+              "height": 21
+            }
+          },
+          {
+            "role": "table",
+            "box": {
+              "x": 8,
+              "y": 172,
+              "width": 34,
+              "height": 48
+            },
+            "children": [
+              {
+                "role": "rowgroup",
+                "box": {
+                  "x": 10,
+                  "y": 174,
+                  "width": 30,
+                  "height": 44
+                },
+                "children": [
+                  {
+                    "role": "row",
+                    "name": "K V",
+                    "box": {
+                      "x": 10,
+                      "y": 174,
+                      "width": 30,
+                      "height": 21
+                    },
+                    "children": [
+                      {
+                        "role": "columnheader",
+                        "name": "K",
+                        "box": {
+                          "x": 10,
+                          "y": 174,
+                          "width": 14,
+                          "height": 21
+                        }
+                      },
+                      {
+                        "role": "columnheader",
+                        "name": "V",
+                        "box": {
+                          "x": 26,
+                          "y": 174,
+                          "width": 14,
+                          "height": 21
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "role": "row",
+                    "name": "1 2",
+                    "box": {
+                      "x": 10,
+                      "y": 197,
+                      "width": 30,
+                      "height": 21
+                    },
+                    "children": [
+                      {
+                        "role": "cell",
+                        "name": "1",
+                        "box": {
+                          "x": 10,
+                          "y": 197,
+                          "width": 14,
+                          "height": 21
+                        }
+                      },
+                      {
+                        "role": "cell",
+                        "name": "2",
+                        "box": {
+                          "x": 26,
+                          "y": 197,
+                          "width": 14,
+                          "height": 21
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "role": "dialog",
+        "name": "Cookies",
+        "box": {
+          "x": 8,
+          "y": 220,
+          "width": 1264,
+          "height": 21
+        },
+        "children": [
+          {
+            "role": "button",
+            "name": "Akceptuj",
+            "box": {
+              "x": 8,
+              "y": 220,
+              "width": 73,
+              "height": 21
+            }
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "role": "contentinfo",
+    "box": {
+      "x": 8,
+      "y": 241,
+      "width": 1264,
+      "height": 19
+    },
+    "text": "Stopka"
+  },
+  {
+    "role": "button",
+    "name": "Na dole",
+    "box": {
+      "x": 8,
+      "y": 1760,
+      "width": 66,
+      "height": 21
+    }
+  }
+]

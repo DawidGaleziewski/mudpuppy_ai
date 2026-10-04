@@ -19,6 +19,24 @@ export const RecordStateInput = z
   .strict();
 export type RecordStateInput = z.input<typeof RecordStateInput>;
 
+/**
+ * Attach the screenshot and layout captured when the state was first recorded (spec 008 FR-008).
+ * Write-once: a state that already has a screenshot keeps it.
+ */
+export async function setStateVisuals(
+  ctx: ServerContext,
+  stateId: string,
+  refs: { screenshot_ref: string; layout_ref: string },
+): Promise<boolean> {
+  const r = await ctx.db
+    .updateTable('states')
+    .set(refs)
+    .where('id', '=', stateId)
+    .where('screenshot_ref', 'is', null)
+    .executeTakeFirst();
+  return Number(r.numUpdatedRows) === 1;
+}
+
 /** Idempotent by fingerprint: an existing state is reused (`created: false`) and the run's sighting recorded. */
 export async function recordState(
   ctx: ServerContext,

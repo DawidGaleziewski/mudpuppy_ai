@@ -134,6 +134,11 @@ export const PortalConfig = z
      */
     robots_page_requests: z.enum(['block', 'allow_and_record']).default('block'),
     action_rules: z.array(ActionRuleConfig).default([]),
+    /**
+     * Mask PII in stored text evidence (ARIA snapshots, titles, form fields, network shapes, agent
+     * notes). Off by default since constitution 2.0.0 (spec 008); screenshots are never masked.
+     */
+    pii_scrub: z.boolean().default(false),
   })
   .strict()
   .superRefine((p, ctx) => {

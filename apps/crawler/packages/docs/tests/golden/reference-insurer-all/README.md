@@ -55,3 +55,7 @@ BA's note. Record keys are stable across revisions.
 - [12. Traceability matrix](12-traceability.md)
 - [Appendix: change log](appendix-change-log.md)
 - [records.json](records.json): machine-readable copy of the same records
+- `images/`: screenshots of the screens as first recorded (`screens/`), their wireframes
+  (`wireframes/`, `.svg` plus an editable `.excalidraw` file for excalidraw.com or the
+  Excalidraw VS Code extension) and crops with the elements a record cites outlined and
+  numbered (`highlights/`)

@@ -1,3 +1,4 @@
+import type { ColumnType } from 'kysely';
 import type {
   Confidence,
   EdgeStatus,
@@ -56,6 +57,19 @@ export interface StatesTable {
   confidence: Confidence;
   stabilization: Stabilization;
   first_seen_run: string;
+  created_at: string;
+  /** 0006: `<sha256>.png`, set once when the state is first recorded; NULL if capture failed. */
+  screenshot_ref: ColumnType<string | null, string | null | undefined, string | null>;
+  /** 0006: Layout JSON ref (element keys and page boxes); NULL if capture failed. */
+  layout_ref: ColumnType<string | null, string | null | undefined, string | null>;
+}
+
+/** 0006: derived wireframe of a state, rebuilt when `generator_version` is stale. */
+export interface StateWireframesTable {
+  state_id: string;
+  generator_version: string;
+  svg_ref: string;
+  excalidraw_ref: string;
   created_at: string;
 }
 
@@ -305,6 +319,8 @@ export interface DocEvidenceLinksTable {
   target_id: string;
   run_id: string | null;
   note: string | null;
+  /** 0006: element key; set iff `target_kind = 'screen_region'`. */
+  region: ColumnType<string | null, string | null | undefined, string | null>;
 }
 
 export interface DocRelationsTable {
@@ -367,6 +383,7 @@ export interface ProcessStepsTable {
 export interface Database {
   runs: RunsTable;
   states: StatesTable;
+  state_wireframes: StateWireframesTable;
   state_observations: StateObservationsTable;
   actions: ActionsTable;
   edges: EdgesTable;

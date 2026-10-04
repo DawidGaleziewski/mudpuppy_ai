@@ -22,6 +22,9 @@ tools: no shell, no files, no web, no other browser.
    keep exploring.
 5. Every `navigate`, `act` and `finish_run` carries a one-sentence `rationale`: what you expect this step to
    reveal, or why you stop.
+6. Off production, pressing a form's submit button is allowed when the server issues it: the server first
+   fills the form's empty fields with test data (form autofill) and records the page behind the form.
+   You do not type anything in map mode. On production the server refuses submits; that is final.
 
 ## Trace
 

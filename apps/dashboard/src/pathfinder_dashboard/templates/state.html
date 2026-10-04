@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% import "partials/macros.html" as m %}
+{% import "partials/screens.html" as sc with context %}
+{% set f = p.figure %}
+{% set st = f.state %}
+{% block title %}{{ st.title }} · state{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <p class="crumbs"><a href="{{ c.url('/') }}">Overview</a> / {{ st.portal_id }} / <a href="{{ c.url('/runs/' ~ st.first_seen_run) }}">run</a> / state</p>
+    <h1>{{ st.title or "(untitled page)" }}</h1>
+  </div>
+  <p class="caption">store {{ store.path }} · read-only</p>
+</div>
+
+<div class="panel">
+  <dl class="facts">
+    <div><dt>Route template</dt><dd><code>{{ st.route_template }}</code></dd></div>
+    <div><dt>{{ m.term("cluster", "Cluster") }}</dt><dd>{{ st.cluster_id }}</dd></div>
+    <div><dt>{{ m.term("confidence", "Confidence") }}</dt><dd>{{ m.confidence(st.confidence) }}</dd></div>
+    <div><dt>{{ m.term("settled", "Stabilization") }}</dt><dd>{{ st.stabilization | replace("_", " ") }}</dd></div>
+    <div><dt>First seen</dt><dd><a href="{{ c.url('/runs/' ~ st.first_seen_run) }}"><code>{{ st.first_seen_run | short_id }}</code></a> <span class="muted">{{ st.created_at | when }}</span></dd></div>
+    <div><dt>{{ m.term("evidence", "Snapshot") }}</dt><dd>{{ m.evidence(st.evidence_ref) }}</dd></div>
+  </dl>
+</div>
+
+<ul class="tabs" aria-label="Picture">
+  {%- if f.has_screenshot %}
+  <li><a href="{{ c.url('/states/' ~ st.id) }}"{% if view == "screenshot" %} aria-current="page"{% endif %}>{{ m.term("screenshot", "Screenshot") }}</a></li>
+  {%- endif %}
+  <li><a href="{{ c.url('/states/' ~ st.id, view='wireframe') }}"{% if view == "wireframe" %} aria-current="page"{% endif %}>{{ m.term("wireframe", "Wireframe") }}</a></li>
+</ul>
+
+<div class="section">
+  {%- if view == "screenshot" %}
+    <p class="toolbar">
+      {%- if show_elements %}
+      <a class="btn btn-bracket" href="{{ c.url('/states/' ~ st.id) }}">[hide elements]</a>
+      {%- else %}
+      <a class="btn btn-bracket" href="{{ c.url('/states/' ~ st.id, elements=1) }}">[show elements]</a>
+      {%- endif %}
+      <a class="btn btn-bracket" href="/evidence/{{ st.screenshot_ref }}" target="_blank" rel="noopener">[full size]</a>
+      <span class="muted">{{ p.elements | length }} of {{ p.element_count }} {{ m.term("element-key", "elements") }} visible on the screenshot</span>
+    </p>
+    {{ sc.figure(f, hl=p.elements if show_elements else [], legend=show_elements, caption="As first recorded") }}
+  {%- else %}
+    {%- if not f.has_screenshot %}
+    <p class="muted">No screenshot recorded; wireframe shown.</p>
+    {%- endif %}
+    {%- if f.wireframe %}
+    <p class="toolbar">
+      <a class="btn btn-bracket" href="/evidence/{{ f.wireframe.svg_ref }}?download={{ st.title or 'wireframe' }}">[download SVG]</a>
+      <a class="btn btn-bracket" href="/evidence/{{ f.wireframe.excalidraw_ref }}?download={{ st.title or 'wireframe' }}">[download Excalidraw]</a>
+      <span class="muted">opens on excalidraw.com or in the Excalidraw VS Code extension</span>
+    </p>
+    {%- endif %}
+    {{ sc.figure(f, hl=[], legend=false, caption="Drawn from the recorded page structure", view="wireframe") }}
+  {%- endif %}
+</div>
+
+<div class="section">
+  <div class="section-head"><h2>Cited by <span class="muted mono-num">{{ p.citing | length }}</span></h2></div>
+  {%- if not p.citing %}
+    {{ m.empty("No documentation record cites this state", "Records cite a state or a region of its screenshot as evidence.") }}
+  {%- else %}
+  <ul class="cited-list">
+    {%- for r in p.citing %}
+    <li><a href="{{ c.url('/docs/' ~ r.portal_id ~ '/' ~ r.key) }}"><code>{{ r.key }}</code></a> {{ r.title }}
+      {%- if r.regions %} <span class="muted">regions:</span> {% for k in r.regions %}<code>{{ k }}</code>{% if not loop.last %}, {% endif %}{% endfor %}{% endif %}</li>
+    {%- endfor %}
+  </ul>
+  {%- endif %}
+</div>
+{% endblock %}

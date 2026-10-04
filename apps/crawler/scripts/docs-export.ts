@@ -34,10 +34,15 @@ if (!existsSync(path)) {
 
 const opened = openDb(path);
 try {
-  const files = exportSrs(opened.raw, portal, { environment: env, confirmedOnly });
+  const files = exportSrs(opened.raw, portal, {
+    environment: env,
+    confirmedOnly,
+    evidenceRoot: join(root, 'data', 'evidence'),
+  });
   writeExport(out, files);
-  const records = (JSON.parse(files.get('records.json')!) as { records: { kind: string }[] })
-    .records;
+  const records = (
+    JSON.parse(files.get('records.json') as string) as { records: { kind: string }[] }
+  ).records;
   const counts: Record<string, number> = {};
   for (const r of records) counts[r.kind] = (counts[r.kind] ?? 0) + 1;
   // The only write: the operator log row, as portal:export and portal:delete leave.

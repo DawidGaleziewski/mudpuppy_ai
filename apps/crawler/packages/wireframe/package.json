@@ -1,0 +1,13 @@
+{
+  "name": "@pathfinder/wireframe",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Pure, deterministic low-fidelity wireframes (SVG + .excalidraw) from recorded ARIA snapshots",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "@pathfinder/core": "workspace:*"
+  }
+}

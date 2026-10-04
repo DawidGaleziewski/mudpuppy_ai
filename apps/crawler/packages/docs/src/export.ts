@@ -1,5 +1,6 @@
 import { existsSync, mkdirSync, readdirSync, rmSync, statSync, writeFileSync } from 'node:fs';
-import { join } from 'node:path';
+import { dirname, join } from 'node:path';
+import { imageFiles } from './render/images.js';
 import type { RawDb } from './keys.js';
 import { introduction, readme } from './render/chapters/front.js';
 import { assumptionsAndQuestions, changeLog, unknowns } from './render/chapters/open.js';
@@ -31,6 +32,11 @@ export interface ExportOptions {
   environment: string;
   /** Render only confirmed revisions (FR-051). Default: all, drafts marked. */
   confirmedOnly?: boolean;
+  /**
+   * The evidence store (`data/evidence`): screenshots, layouts and wireframes are read from it into
+   * `images/` (spec 008 US4). Without it the export has no pictures.
+   */
+  evidenceRoot?: string;
 }
 
 const RENDERERS: readonly [string, (m: ExportModel) => string][] = [
@@ -56,7 +62,11 @@ const RENDERERS: readonly [string, (m: ExportModel) => string][] = [
  * apart from reading the store: no wall-clock time, so the same store gives byte-identical files
  * (FR-053). Throws `ExportError('NO_RECORDS')` when the portal has no documentation records.
  */
-export function exportSrs(raw: RawDb, portalId: string, opts: ExportOptions): Map<string, string> {
+export function exportSrs(
+  raw: RawDb,
+  portalId: string,
+  opts: ExportOptions,
+): Map<string, string | Uint8Array> {
   const count = (
     raw.prepare('SELECT count(*) AS n FROM doc_records WHERE portal_id = ?').get(portalId) as {
       n: number;
@@ -67,8 +77,16 @@ export function exportSrs(raw: RawDb, portalId: string, opts: ExportOptions): Ma
   const model = loadExportModel(raw, portalId, {
     environment: opts.environment,
     mode: opts.confirmedOnly ? 'confirmed' : 'all',
+    ...(opts.evidenceRoot ? { evidenceRoot: opts.evidenceRoot } : {}),
   });
-  return new Map(RENDERERS.map(([file, render]) => [file, render(model)]));
+  const files = new Map<string, string | Uint8Array>(
+    RENDERERS.map(([file, render]) => [file, render(model)]),
+  );
+  if (opts.evidenceRoot) {
+    const images = imageFiles(model, opts.evidenceRoot);
+    for (const path of [...images.keys()].sort()) files.set(path, images.get(path)!);
+  }
+  return files;
 }
 
 /** True when `dir` is missing, empty, or holds a previous export (`records.json` + `README.md`). */
@@ -86,7 +104,7 @@ export function isReplaceableExportDir(dir: string): boolean {
  * (`ExportError('OUT_DIR_NOT_EXPORT')`) and deletes nothing when `dir` exists and is neither empty
  * nor an earlier export.
  */
-export function writeExport(dir: string, files: Map<string, string>): void {
+export function writeExport(dir: string, files: Map<string, string | Uint8Array>): void {
   if (!isReplaceableExportDir(dir))
     throw new ExportError(
       'OUT_DIR_NOT_EXPORT',
@@ -94,5 +112,9 @@ export function writeExport(dir: string, files: Map<string, string>): void {
     );
   rmSync(dir, { recursive: true, force: true });
   mkdirSync(dir, { recursive: true });
-  for (const [file, text] of files) writeFileSync(join(dir, file), text);
+  for (const [file, content] of files) {
+    const path = join(dir, file);
+    mkdirSync(dirname(path), { recursive: true });
+    writeFileSync(path, content);
+  }
 }

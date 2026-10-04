@@ -1,6 +1,6 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import type { Browser } from 'playwright';
-import { evalInPage } from '../src/pw-eval.js';
+import { evalInPage, evalOnElement } from '../src/pw-eval.js';
 import { browserAvailable, launch } from './browser.js';
 
 const available = await browserAvailable();
@@ -51,4 +51,23 @@ describe.skipIf(!available)('evalInPage', () => {
       await page.close();
     },
   );
+});
+
+describe.skipIf(!available)('evalOnElement (spec 008 autofill)', () => {
+  it('passes the element and the argument, and survives the __name helper', async () => {
+    const page = await browser.newPage();
+    await page.setContent('<button data-n="40">Go</button>');
+    const buggy = new Function(
+      'el',
+      'arg',
+      'return (function (el, arg) {' +
+        ' const add = __name(function (x) { return x + arg; }, "add");' +
+        ' return add(Number(el.getAttribute("data-n")));' +
+        '})(el, arg);',
+    ) as (el: Element, arg: number) => number;
+    const button = page.getByRole('button', { name: 'Go' });
+    await expect(button.evaluate(buggy, 2)).rejects.toThrow(/__name/);
+    await expect(evalOnElement(button, buggy, 2)).resolves.toBe(42);
+    await page.close();
+  });
 });
