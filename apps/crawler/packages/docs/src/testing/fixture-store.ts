@@ -21,6 +21,16 @@ export const FIXTURE_TS = '2026-01-15T10:00:00.000Z';
 export interface FixtureStoreOptions {
   /** Portal the map run belongs to. Tests pass the reference portal's id; the default is neutral. */
   portalId?: string;
+  /**
+   * Counter-based UUIDv7-shaped ids (`00000000-0000-7000-8000-000000000001`, …) instead of random
+   * ones, so rendered output that prints ids (the SRS export goldens) is byte-stable across runs.
+   */
+  deterministicIds?: boolean;
+}
+
+/** The n-th fixed id: valid UUID shape (version 7, variant 8), sorted in creation order. */
+export function fixedId(n: number): string {
+  return `00000000-0000-7000-8000-${n.toString(16).padStart(12, '0')}`;
 }
 
 export interface FixtureStore {
@@ -31,6 +41,8 @@ export interface FixtureStore {
   evidenceDir: string;
   evidence: EvidenceStore;
   portalId: string;
+  /** The id source rows were written with (fixed or random, per `deterministicIds`). */
+  nextId: () => string;
   /** The completed map run of `portalId`. */
   runId: string;
   states: { home: string; car: string; vehicle: string; contact: string };
@@ -176,6 +188,8 @@ const CONTACT_FIELDS = [
 export async function makeFixtureStore(opts: FixtureStoreOptions = {}): Promise<FixtureStore> {
   const portalId = opts.portalId ?? 'fixture-insurer';
   const otherPortalId = 'other';
+  let idCount = 0;
+  const nextId = opts.deterministicIds ? () => fixedId(++idCount) : () => newId();
   const opened = openDb(':memory:');
   migrateUp(opened.raw, MIGRATIONS);
   const { raw } = opened;
@@ -192,7 +206,7 @@ export async function makeFixtureStore(opts: FixtureStoreOptions = {}): Promise<
   };
 
   const run = (portal: string, over: { mode?: string; environment?: string } = {}): string => {
-    const id = newId();
+    const id = nextId();
     insert('runs', {
       id,
       portal_id: portal,
@@ -234,7 +248,7 @@ export async function makeFixtureStore(opts: FixtureStoreOptions = {}): Promise<
     title: string,
     ref: string,
   ): string => {
-    const id = newId();
+    const id = nextId();
     fingerprints += 1;
     insert('states', {
       id,
@@ -278,7 +292,7 @@ export async function makeFixtureStore(opts: FixtureStoreOptions = {}): Promise<
     ref: string,
     over: { safety_class?: string; status?: string } = {},
   ): string => {
-    const id = newId();
+    const id = nextId();
     insert('edges', {
       id,
       run_id: runId,
@@ -303,7 +317,7 @@ export async function makeFixtureStore(opts: FixtureStoreOptions = {}): Promise<
     safetyClass: string,
     skipReason: string | null,
   ): string => {
-    const id = newId();
+    const id = nextId();
     insert('actions', {
       id,
       run_id: runId,
@@ -349,7 +363,7 @@ export async function makeFixtureStore(opts: FixtureStoreOptions = {}): Promise<
   };
 
   const form = (stateId: string, fields: object, ref: string): string => {
-    const id = newId();
+    const id = nextId();
     insert('forms', {
       id,
       run_id: runId,
@@ -407,7 +421,7 @@ export async function makeFixtureStore(opts: FixtureStoreOptions = {}): Promise<
     req: object,
     res: object,
   ): string => {
-    const id = newId();
+    const id = nextId();
     insert('network_calls', {
       id,
       run_id: runId,
@@ -440,7 +454,7 @@ export async function makeFixtureStore(opts: FixtureStoreOptions = {}): Promise<
   };
 
   const question = (text: string, aboutRef: string): string => {
-    const id = newId();
+    const id = nextId();
     insert('open_questions', {
       id,
       run_id: runId,
@@ -459,7 +473,7 @@ export async function makeFixtureStore(opts: FixtureStoreOptions = {}): Promise<
     question('What happens after "Kup polisę"? It was refused as mutating.', states.car),
   ];
 
-  const ruleCandidate = newId();
+  const ruleCandidate = nextId();
   insert('rule_candidates', {
     id: ruleCandidate,
     run_id: runId,
@@ -470,7 +484,7 @@ export async function makeFixtureStore(opts: FixtureStoreOptions = {}): Promise<
     created_at: FIXTURE_TS,
   });
 
-  const decision = newId();
+  const decision = nextId();
   insert('decision_log', {
     id: decision,
     run_id: runId,
@@ -517,7 +531,7 @@ export async function makeFixtureStore(opts: FixtureStoreOptions = {}): Promise<
     ] as const)
       observe(traceRun, s, ref);
     const built = build(traceRun);
-    const processId = newId();
+    const processId = nextId();
     insert('processes', {
       id: processId,
       run_id: traceRun,
@@ -535,7 +549,7 @@ export async function makeFixtureStore(opts: FixtureStoreOptions = {}): Promise<
       ended_at: FIXTURE_TS,
     });
     const stepIds = built.steps.map((s, i) => {
-      const id = newId();
+      const id = nextId();
       insert('process_steps', {
         id,
         process_id: processId,
@@ -570,6 +584,7 @@ export async function makeFixtureStore(opts: FixtureStoreOptions = {}): Promise<
     evidenceDir,
     evidence,
     portalId,
+    nextId,
     runId,
     states,
     forms,

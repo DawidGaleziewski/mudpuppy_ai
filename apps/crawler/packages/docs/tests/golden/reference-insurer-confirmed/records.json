@@ -1,0 +1,875 @@
+{
+  "as_of": "2026-01-15T10:37:00.000Z",
+  "change_log": [
+    {
+      "excluded": null,
+      "key": "CAP-001",
+      "kind": "capability",
+      "revisions": [
+        {
+          "change": "create",
+          "change_note": null,
+          "confidence": "observed",
+          "created_at": "2026-01-15T10:01:00.000Z",
+          "not_observable": false,
+          "rev": 1,
+          "reviews": [
+            {
+              "action": "confirm",
+              "created_at": "2026-01-15T10:02:00.000Z",
+              "reviewer": "Test Reviewer",
+              "text": null
+            }
+          ],
+          "status": "confirmed"
+        }
+      ],
+      "title": "Car insurance quote",
+      "withdrawn": false
+    },
+    {
+      "excluded": null,
+      "key": "SCR-001",
+      "kind": "screen",
+      "revisions": [
+        {
+          "change": "create",
+          "change_note": null,
+          "confidence": "observed",
+          "created_at": "2026-01-15T10:04:00.000Z",
+          "not_observable": false,
+          "rev": 1,
+          "reviews": [
+            {
+              "action": "confirm",
+              "created_at": "2026-01-15T10:05:00.000Z",
+              "reviewer": "Test Reviewer",
+              "text": null
+            }
+          ],
+          "status": "confirmed"
+        }
+      ],
+      "title": "Car insurance page",
+      "withdrawn": false
+    },
+    {
+      "excluded": null,
+      "key": "SCR-002",
+      "kind": "screen",
+      "revisions": [
+        {
+          "change": "create",
+          "change_note": null,
+          "confidence": "observed",
+          "created_at": "2026-01-15T10:06:00.000Z",
+          "not_observable": false,
+          "rev": 1,
+          "reviews": [
+            {
+              "action": "confirm",
+              "created_at": "2026-01-15T10:07:00.000Z",
+              "reviewer": "Test Reviewer",
+              "text": null
+            }
+          ],
+          "status": "confirmed"
+        }
+      ],
+      "title": "Vehicle calculator",
+      "withdrawn": false
+    },
+    {
+      "excluded": null,
+      "key": "PROC-001",
+      "kind": "process",
+      "revisions": [
+        {
+          "change": "create",
+          "change_note": null,
+          "confidence": "observed",
+          "created_at": "2026-01-15T10:12:00.000Z",
+          "not_observable": false,
+          "rev": 1,
+          "reviews": [
+            {
+              "action": "confirm",
+              "created_at": "2026-01-15T10:13:00.000Z",
+              "reviewer": "Test Reviewer",
+              "text": null
+            }
+          ],
+          "status": "confirmed"
+        }
+      ],
+      "title": "Calculate a car premium",
+      "withdrawn": false
+    },
+    {
+      "excluded": null,
+      "key": "REQ-001",
+      "kind": "requirement",
+      "revisions": [
+        {
+          "change": "create",
+          "change_note": null,
+          "confidence": "observed",
+          "created_at": "2026-01-15T10:16:00.000Z",
+          "not_observable": false,
+          "rev": 1,
+          "reviews": [
+            {
+              "action": "confirm",
+              "created_at": "2026-01-15T10:17:00.000Z",
+              "reviewer": "Test Reviewer",
+              "text": null
+            }
+          ],
+          "status": "confirmed"
+        }
+      ],
+      "title": "Vehicle make is required",
+      "withdrawn": false
+    },
+    {
+      "excluded": null,
+      "key": "DI-001",
+      "kind": "data_item",
+      "revisions": [
+        {
+          "change": "create",
+          "change_note": null,
+          "confidence": "observed",
+          "created_at": "2026-01-15T10:27:00.000Z",
+          "not_observable": false,
+          "rev": 1,
+          "reviews": [
+            {
+              "action": "confirm",
+              "created_at": "2026-01-15T10:28:00.000Z",
+              "reviewer": "Test Reviewer",
+              "text": null
+            }
+          ],
+          "status": "confirmed"
+        }
+      ],
+      "title": "Vehicle make",
+      "withdrawn": false
+    },
+    {
+      "excluded": null,
+      "key": "GL-001",
+      "kind": "glossary_term",
+      "revisions": [
+        {
+          "change": "create",
+          "change_note": null,
+          "confidence": "observed",
+          "created_at": "2026-01-15T10:24:00.000Z",
+          "not_observable": false,
+          "rev": 1,
+          "reviews": [
+            {
+              "action": "confirm",
+              "created_at": "2026-01-15T10:25:00.000Z",
+              "reviewer": "Test Reviewer",
+              "text": null
+            }
+          ],
+          "status": "confirmed"
+        }
+      ],
+      "title": "Autocasco",
+      "withdrawn": false
+    },
+    {
+      "excluded": null,
+      "key": "NFR-001",
+      "kind": "nfr",
+      "revisions": [
+        {
+          "change": "create",
+          "change_note": null,
+          "confidence": "observed",
+          "created_at": "2026-01-15T10:20:00.000Z",
+          "not_observable": false,
+          "rev": 1,
+          "reviews": [
+            {
+              "action": "confirm",
+              "created_at": "2026-01-15T10:21:00.000Z",
+              "reviewer": "Test Reviewer",
+              "text": null
+            }
+          ],
+          "status": "confirmed"
+        }
+      ],
+      "title": "Polish user interface",
+      "withdrawn": false
+    },
+    {
+      "excluded": null,
+      "key": "FUP-002",
+      "kind": "followup",
+      "revisions": [
+        {
+          "change": "create",
+          "change_note": null,
+          "confidence": "needs_confirmation",
+          "created_at": "2026-01-15T10:36:00.000Z",
+          "not_observable": false,
+          "rev": 1,
+          "reviews": [
+            {
+              "action": "confirm",
+              "created_at": "2026-01-15T10:37:00.000Z",
+              "reviewer": "Test Reviewer",
+              "text": null
+            }
+          ],
+          "status": "confirmed"
+        }
+      ],
+      "title": "Trace the purchase",
+      "withdrawn": false
+    }
+  ],
+  "crawler_questions": [
+    {
+      "id": "00000000-0000-7000-8000-000000000012",
+      "run_id": "00000000-0000-7000-8000-000000000001",
+      "text": "\"Dalej\" is classified mutating and blocked at the read ceiling. How many calculator steps follow?"
+    },
+    {
+      "id": "00000000-0000-7000-8000-000000000013",
+      "run_id": "00000000-0000-7000-8000-000000000001",
+      "text": "What happens after \"Kup polisę\"? It was refused as mutating."
+    }
+  ],
+  "environment": "sandbox",
+  "mode": "confirmed",
+  "portal_id": "reference-insurer",
+  "records": [
+    {
+      "baseline_rev": null,
+      "confidence": "observed",
+      "content": {
+        "description": "A guest finds car insurance and calculates an OC/AC premium.",
+        "kind": "capability",
+        "title": "Car insurance quote"
+      },
+      "evidence": [
+        {
+          "broken": false,
+          "doc_key": null,
+          "label": "Ubezpieczenie samochodu | Towarzystwo Ubezpieczeń Wzorcowych (/ubezpieczenia/samochod)",
+          "note": null,
+          "run_date": "2026-01-15",
+          "run_id": "00000000-0000-7000-8000-000000000001",
+          "run_mode": "map",
+          "target_id": "00000000-0000-7000-8000-000000000003",
+          "target_kind": "state"
+        },
+        {
+          "broken": false,
+          "doc_key": null,
+          "label": "Kalkulator OC/AC — dane pojazdu | Towarzystwo Ubezpieczeń Wzorcowych (/kalkulator/pojazd)",
+          "note": null,
+          "run_date": "2026-01-15",
+          "run_id": "00000000-0000-7000-8000-000000000001",
+          "run_mode": "map",
+          "target_id": "00000000-0000-7000-8000-000000000004",
+          "target_kind": "state"
+        }
+      ],
+      "followup": null,
+      "key": "CAP-001",
+      "kind": "capability",
+      "not_observable": false,
+      "relations": [
+        {
+          "to_key": "PROC-001",
+          "type": "contains"
+        },
+        {
+          "to_key": "SCR-001",
+          "type": "contains"
+        },
+        {
+          "to_key": "SCR-002",
+          "type": "contains"
+        }
+      ],
+      "rev": 1,
+      "review_summary": {
+        "comment": 0,
+        "confirm": 1,
+        "reject": 0
+      },
+      "reviews": [
+        {
+          "action": "confirm",
+          "created_at": "2026-01-15T10:02:00.000Z",
+          "reviewer": "Test Reviewer",
+          "text": null
+        }
+      ],
+      "status": "confirmed",
+      "title": "Car insurance quote",
+      "trace": null
+    },
+    {
+      "baseline_rev": null,
+      "confidence": "observed",
+      "content": {
+        "elements": [
+          {
+            "label_verbatim": "Ubezpieczenie samochodu",
+            "role": "heading"
+          },
+          {
+            "label_verbatim": "Oblicz składkę",
+            "role": "link"
+          },
+          {
+            "label_verbatim": "Kup polisę",
+            "role": "button"
+          }
+        ],
+        "entry_points": [
+          "Main menu link \"Samochód\""
+        ],
+        "kind": "screen",
+        "purpose": "Presents OC and Autocasco (AC) and links to the premium calculator.",
+        "route_templates": [
+          "/ubezpieczenia/samochod"
+        ],
+        "title": "Car insurance page"
+      },
+      "evidence": [
+        {
+          "broken": false,
+          "doc_key": null,
+          "label": "Ubezpieczenie samochodu | Towarzystwo Ubezpieczeń Wzorcowych (/ubezpieczenia/samochod)",
+          "note": null,
+          "run_date": "2026-01-15",
+          "run_id": "00000000-0000-7000-8000-000000000001",
+          "run_mode": "map",
+          "target_id": "00000000-0000-7000-8000-000000000003",
+          "target_kind": "state"
+        }
+      ],
+      "followup": null,
+      "key": "SCR-001",
+      "kind": "screen",
+      "not_observable": false,
+      "relations": [
+        {
+          "to_key": "GL-001",
+          "type": "uses_term"
+        }
+      ],
+      "rev": 1,
+      "review_summary": {
+        "comment": 0,
+        "confirm": 1,
+        "reject": 0
+      },
+      "reviews": [
+        {
+          "action": "confirm",
+          "created_at": "2026-01-15T10:05:00.000Z",
+          "reviewer": "Test Reviewer",
+          "text": null
+        }
+      ],
+      "status": "confirmed",
+      "title": "Car insurance page",
+      "trace": null
+    },
+    {
+      "baseline_rev": null,
+      "confidence": "observed",
+      "content": {
+        "elements": [
+          {
+            "label_verbatim": "Kalkulator OC/AC — dane pojazdu",
+            "role": "heading"
+          },
+          {
+            "label_verbatim": "Marka",
+            "role": "combobox"
+          },
+          {
+            "label_verbatim": "Model",
+            "role": "textbox"
+          },
+          {
+            "label_verbatim": "Rok produkcji",
+            "role": "spinbutton"
+          },
+          {
+            "label_verbatim": "Dalej",
+            "role": "button"
+          }
+        ],
+        "entry_points": [
+          "Link \"Oblicz składkę\" on the car insurance page"
+        ],
+        "kind": "screen",
+        "purpose": "First step of the premium calculator: vehicle data.",
+        "route_templates": [
+          "/kalkulator/pojazd"
+        ],
+        "title": "Vehicle calculator"
+      },
+      "evidence": [
+        {
+          "broken": false,
+          "doc_key": null,
+          "label": "form: marka, model, rok_produkcji, pojemnosc",
+          "note": null,
+          "run_date": "2026-01-15",
+          "run_id": "00000000-0000-7000-8000-000000000001",
+          "run_mode": "map",
+          "target_id": "00000000-0000-7000-8000-000000000006",
+          "target_kind": "form"
+        },
+        {
+          "broken": false,
+          "doc_key": null,
+          "label": "Kalkulator OC/AC — dane pojazdu | Towarzystwo Ubezpieczeń Wzorcowych (/kalkulator/pojazd)",
+          "note": null,
+          "run_date": "2026-01-15",
+          "run_id": "00000000-0000-7000-8000-000000000001",
+          "run_mode": "map",
+          "target_id": "00000000-0000-7000-8000-000000000004",
+          "target_kind": "state"
+        }
+      ],
+      "followup": null,
+      "key": "SCR-002",
+      "kind": "screen",
+      "not_observable": false,
+      "relations": [],
+      "rev": 1,
+      "review_summary": {
+        "comment": 0,
+        "confirm": 1,
+        "reject": 0
+      },
+      "reviews": [
+        {
+          "action": "confirm",
+          "created_at": "2026-01-15T10:07:00.000Z",
+          "reviewer": "Test Reviewer",
+          "text": null
+        }
+      ],
+      "status": "confirmed",
+      "title": "Vehicle calculator",
+      "trace": null
+    },
+    {
+      "baseline_rev": null,
+      "confidence": "observed",
+      "content": {
+        "goal": "See an OC/AC premium for a car",
+        "kind": "process",
+        "observed_extent": "full",
+        "outcome": "The vehicle data form is shown.",
+        "persona": "guest",
+        "title": "Calculate a car premium",
+        "trigger": "The guest opens \"Oblicz składkę\"."
+      },
+      "evidence": [
+        {
+          "broken": false,
+          "doc_key": null,
+          "label": "Calculate a car premium",
+          "note": null,
+          "run_date": "2026-01-15",
+          "run_id": "00000000-0000-7000-8000-000000000018",
+          "run_mode": "trace",
+          "target_id": "00000000-0000-7000-8000-00000000001c",
+          "target_kind": "process"
+        },
+        {
+          "broken": false,
+          "doc_key": null,
+          "label": "step 2: Open the premium calculator",
+          "note": null,
+          "run_date": "2026-01-15",
+          "run_id": "00000000-0000-7000-8000-000000000018",
+          "run_mode": "trace",
+          "target_id": "00000000-0000-7000-8000-00000000001e",
+          "target_kind": "process_step"
+        }
+      ],
+      "followup": null,
+      "key": "PROC-001",
+      "kind": "process",
+      "not_observable": false,
+      "relations": [],
+      "rev": 1,
+      "review_summary": {
+        "comment": 0,
+        "confirm": 1,
+        "reject": 0
+      },
+      "reviews": [
+        {
+          "action": "confirm",
+          "created_at": "2026-01-15T10:13:00.000Z",
+          "reviewer": "Test Reviewer",
+          "text": null
+        }
+      ],
+      "status": "confirmed",
+      "title": "Calculate a car premium",
+      "trace": {
+        "boundary": null,
+        "process": {
+          "key": "PROC-001",
+          "title": "Calculate a car premium"
+        },
+        "steps": [
+          {
+            "intent": "Open the car insurance page",
+            "kind": "navigate",
+            "ord": 1
+          },
+          {
+            "intent": "Open the premium calculator",
+            "kind": "click",
+            "ord": 2
+          },
+          {
+            "intent": "Enter the vehicle model",
+            "kind": "fill",
+            "ord": 3
+          }
+        ]
+      }
+    },
+    {
+      "baseline_rev": null,
+      "confidence": "observed",
+      "content": {
+        "acceptance_criteria": [
+          {
+            "given": [
+              "the form \"Dane pojazdu\" is shown"
+            ],
+            "then": [
+              "the field is marked required"
+            ],
+            "when": [
+              "the guest leaves \"Marka\" empty",
+              "selects \"Dalej\""
+            ]
+          }
+        ],
+        "kind": "requirement",
+        "priority": "must",
+        "statement": "The calculator requires a vehicle make (\"Marka\") before \"Dalej\".",
+        "title": "Vehicle make is required"
+      },
+      "evidence": [
+        {
+          "broken": false,
+          "doc_key": null,
+          "label": "form: marka, model, rok_produkcji, pojemnosc",
+          "note": "field \"Marka\" marked required",
+          "run_date": "2026-01-15",
+          "run_id": "00000000-0000-7000-8000-000000000001",
+          "run_mode": "map",
+          "target_id": "00000000-0000-7000-8000-000000000006",
+          "target_kind": "form"
+        }
+      ],
+      "followup": null,
+      "key": "REQ-001",
+      "kind": "requirement",
+      "not_observable": false,
+      "relations": [],
+      "rev": 1,
+      "review_summary": {
+        "comment": 0,
+        "confirm": 1,
+        "reject": 0
+      },
+      "reviews": [
+        {
+          "action": "confirm",
+          "created_at": "2026-01-15T10:17:00.000Z",
+          "reviewer": "Test Reviewer",
+          "text": null
+        }
+      ],
+      "status": "confirmed",
+      "title": "Vehicle make is required",
+      "trace": null
+    },
+    {
+      "baseline_rev": null,
+      "confidence": "observed",
+      "content": {
+        "constraints": {
+          "allowed_values": [
+            "Toyota",
+            "Skoda",
+            "Inna"
+          ],
+          "required": true
+        },
+        "data_type": "enum",
+        "kind": "data_item",
+        "lang": "pl",
+        "name_en": "Make",
+        "name_verbatim": "Marka",
+        "seen_in": [
+          {
+            "kind": "form",
+            "target_id": "00000000-0000-7000-8000-000000000006"
+          }
+        ],
+        "title": "Vehicle make"
+      },
+      "evidence": [
+        {
+          "broken": false,
+          "doc_key": null,
+          "label": "form: marka, model, rok_produkcji, pojemnosc",
+          "note": null,
+          "run_date": "2026-01-15",
+          "run_id": "00000000-0000-7000-8000-000000000001",
+          "run_mode": "map",
+          "target_id": "00000000-0000-7000-8000-000000000006",
+          "target_kind": "form"
+        }
+      ],
+      "followup": null,
+      "key": "DI-001",
+      "kind": "data_item",
+      "not_observable": false,
+      "relations": [
+        {
+          "to_key": "SCR-002",
+          "type": "appears_on"
+        }
+      ],
+      "rev": 1,
+      "review_summary": {
+        "comment": 0,
+        "confirm": 1,
+        "reject": 0
+      },
+      "reviews": [
+        {
+          "action": "confirm",
+          "created_at": "2026-01-15T10:28:00.000Z",
+          "reviewer": "Test Reviewer",
+          "text": null
+        }
+      ],
+      "status": "confirmed",
+      "title": "Vehicle make",
+      "trace": null
+    },
+    {
+      "baseline_rev": null,
+      "confidence": "observed",
+      "content": {
+        "definition": "Voluntary insurance covering damage to the insured vehicle.",
+        "kind": "glossary_term",
+        "lang": "pl",
+        "synonyms_verbatim": [
+          "AC"
+        ],
+        "term_verbatim": "Autocasco",
+        "title": "Autocasco"
+      },
+      "evidence": [
+        {
+          "broken": false,
+          "doc_key": null,
+          "label": "Ubezpieczenie samochodu | Towarzystwo Ubezpieczeń Wzorcowych (/ubezpieczenia/samochod)",
+          "note": null,
+          "run_date": "2026-01-15",
+          "run_id": "00000000-0000-7000-8000-000000000001",
+          "run_mode": "map",
+          "target_id": "00000000-0000-7000-8000-000000000003",
+          "target_kind": "state"
+        }
+      ],
+      "followup": null,
+      "key": "GL-001",
+      "kind": "glossary_term",
+      "not_observable": false,
+      "relations": [],
+      "rev": 1,
+      "review_summary": {
+        "comment": 0,
+        "confirm": 1,
+        "reject": 0
+      },
+      "reviews": [
+        {
+          "action": "confirm",
+          "created_at": "2026-01-15T10:25:00.000Z",
+          "reviewer": "Test Reviewer",
+          "text": null
+        }
+      ],
+      "status": "confirmed",
+      "title": "Autocasco",
+      "trace": null
+    },
+    {
+      "baseline_rev": null,
+      "confidence": "observed",
+      "content": {
+        "category": "localisation",
+        "kind": "nfr",
+        "measured": {
+          "how": "page text of every observed state",
+          "unit": "language",
+          "value": "pl"
+        },
+        "statement": "All observed pages are in Polish.",
+        "title": "Polish user interface"
+      },
+      "evidence": [
+        {
+          "broken": false,
+          "doc_key": null,
+          "label": "Start | Towarzystwo Ubezpieczeń Wzorcowych (/)",
+          "note": null,
+          "run_date": "2026-01-15",
+          "run_id": "00000000-0000-7000-8000-000000000001",
+          "run_mode": "map",
+          "target_id": "00000000-0000-7000-8000-000000000002",
+          "target_kind": "state"
+        },
+        {
+          "broken": false,
+          "doc_key": null,
+          "label": "Ubezpieczenie samochodu | Towarzystwo Ubezpieczeń Wzorcowych (/ubezpieczenia/samochod)",
+          "note": null,
+          "run_date": "2026-01-15",
+          "run_id": "00000000-0000-7000-8000-000000000001",
+          "run_mode": "map",
+          "target_id": "00000000-0000-7000-8000-000000000003",
+          "target_kind": "state"
+        }
+      ],
+      "followup": null,
+      "key": "NFR-001",
+      "kind": "nfr",
+      "not_observable": false,
+      "relations": [],
+      "rev": 1,
+      "review_summary": {
+        "comment": 0,
+        "confirm": 1,
+        "reject": 0
+      },
+      "reviews": [
+        {
+          "action": "confirm",
+          "created_at": "2026-01-15T10:21:00.000Z",
+          "reviewer": "Test Reviewer",
+          "text": null
+        }
+      ],
+      "status": "confirmed",
+      "title": "Polish user interface",
+      "trace": null
+    },
+    {
+      "baseline_rev": null,
+      "confidence": "needs_confirmation",
+      "content": {
+        "kind": "followup",
+        "persona": "guest",
+        "question": "What follows \"Kup polisę\"?",
+        "reason": "The purchase was refused as mutating.",
+        "suggested_mode": "trace",
+        "target": {
+          "goal": "Reach the purchase confirmation",
+          "process_name": "Buy a car policy"
+        },
+        "title": "Trace the purchase"
+      },
+      "evidence": [
+        {
+          "broken": false,
+          "doc_key": null,
+          "label": "skip ceiling:read: classified mutating, above the effective ceiling read",
+          "note": null,
+          "run_date": "2026-01-15",
+          "run_id": "00000000-0000-7000-8000-000000000001",
+          "run_mode": "map",
+          "target_id": "00000000-0000-7000-8000-000000000015",
+          "target_kind": "decision"
+        }
+      ],
+      "followup": {
+        "blocked_reason": "ceiling:read: \"Dalej\" is mutating on production",
+        "run_id": "00000000-0000-7000-8000-000000000020",
+        "status": "blocked"
+      },
+      "key": "FUP-002",
+      "kind": "followup",
+      "not_observable": false,
+      "relations": [],
+      "rev": 1,
+      "review_summary": {
+        "comment": 0,
+        "confirm": 1,
+        "reject": 0
+      },
+      "reviews": [
+        {
+          "action": "confirm",
+          "created_at": "2026-01-15T10:37:00.000Z",
+          "reviewer": "Test Reviewer",
+          "text": null
+        }
+      ],
+      "status": "confirmed",
+      "title": "Trace the purchase",
+      "trace": null
+    }
+  ],
+  "runs": [
+    {
+      "date": "2026-01-15",
+      "environment": "sandbox",
+      "id": "00000000-0000-7000-8000-000000000001",
+      "mode": "map",
+      "persona_id": "guest",
+      "status": "completed"
+    },
+    {
+      "date": "2026-01-15",
+      "environment": "sandbox",
+      "id": "00000000-0000-7000-8000-000000000018",
+      "mode": "trace",
+      "persona_id": "guest",
+      "status": "completed"
+    },
+    {
+      "date": "2026-01-15",
+      "environment": "production",
+      "id": "00000000-0000-7000-8000-000000000020",
+      "mode": "trace",
+      "persona_id": "guest",
+      "status": "completed"
+    }
+  ],
+  "schema": "pathfinder-srs-export/1"
+}

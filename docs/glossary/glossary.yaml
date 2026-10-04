@@ -97,13 +97,52 @@ entries:
       served on `http://127.0.0.1:4010` by `pnpm reference-portal` in `apps/crawler`. Because we
       wrote it, we know everything it contains: its screens, fields, rules and processes are listed
       in a ground-truth file. Comparing the BA's documentation with that file shows what was
-      found, what was missed and what was over-claimed (the planned `docs:evaluate`, R-16). Its
-      data is safe to show and stable, which is why glossary examples come from it.
+      found, what was missed and what was over-claimed (`pnpm docs:evaluate`, see Coverage
+      score). Its data is safe to show and stable, which is why glossary examples come from it.
     appears_in: [Docs tab → reference-insurer, portals/reference-insurer]
     labels: [reference-insurer, ground truth]
-    related: [run, documentation-record]
-    changed_in: R-22
-    changed_on: 2026-10-03
+    related: [run, documentation-record, coverage-score, over-claim]
+    changed_in: R-16
+    changed_on: 2026-10-04
+
+  - id: coverage-score
+    term: Coverage score
+    category: pathfinder
+    group: Runs and setup
+    short: The share of a ground-truth category (screens, fields, constraints, rules, processes, terms) that the BA's documentation covers, as scored by `docs:evaluate`.
+    explanation: |
+      `pnpm docs:evaluate <portal> --ground-truth <file>` compares the latest documentation records
+      with the reference portal's ground truth and gives one percentage per category, with the
+      missing ground-truth ids. Each category has a minimum (the SC-008 targets: screens 90,
+      fields 90, constraints 80, rules 70, processes 100, terms 80) and the command fails when one
+      is not met, so it can gate a pipeline run. Matching is deterministic: a screen by its route
+      template, a field by its verbatim label, a rule by its anchor screen, label and claim markers.
+      A score says the documentation mentions an item, not that it is complete: a rule counts when
+      any one of its claim markers appears.
+    example: "Goal run 2026-10-04 on reference-insurer: screens 100 (17/17), rules 100 (16/16), 0 over-claims."
+    appears_in: ["data/exports/<portal>-eval.json", "`pnpm docs:evaluate`"]
+    labels: [Score, Coverage]
+    related: [reference-portal, over-claim]
+    changed_in: R-16
+    changed_on: 2026-10-04
+
+  - id: over-claim
+    term: Over-claim
+    category: pathfinder
+    group: Runs and setup
+    short: A documentation record that states a rule as observed although the ground truth says a guest cannot observe it.
+    explanation: |
+      Some of the reference portal's rules are hidden from a guest (behind the login, or only in
+      the back office). If the BA documents one of them with confidence `observed`, the evaluation
+      reports an over-claim: the documentation is more certain than the evidence allows. Recording
+      such a rule as `needs_confirmation` or flagged not observable is fine. The goal is 0
+      over-claims (SC-009); one over-claim fails `docs:evaluate`.
+    example: "The renewal window (\"30 dni\", only on the logged-in renewal page) documented as observed would be an over-claim."
+    appears_in: ["data/exports/<portal>-eval.json", "`pnpm docs:evaluate`"]
+    labels: [Over-claims, overclaims]
+    related: [coverage-score, confidence, reference-portal]
+    changed_in: R-16
+    changed_on: 2026-10-04
 
   # ---- Pathfinder: crawling -----------------------------------------------------------------------
   - id: state
@@ -704,6 +743,44 @@ entries:
     changed_in: R-22
     changed_on: 2026-10-03
 
+  - id: srs-export
+    wiki: software-requirements-specification
+    term: SRS export
+    category: pathfinder
+    group: Records and review
+    short: A folder of Markdown files (with Mermaid diagrams) plus records.json that renders a portal's documentation as one SRS a team could rebuild the portal from.
+    explanation: |
+      `pnpm docs:export <portal> [--env <env>] [--confirmed-only]` in `apps/crawler` writes
+      `data/exports/<portal>-<env>-srs/`: a README, chapters 01–10 in an ISO/IEC/IEEE 29148-style
+      outline, `11-unknowns.md`, `12-traceability.md`, a change log and `records.json`, a
+      machine-readable copy of the same records. Every statement keeps its key, revision, status,
+      confidence and evidence references; no evidence files or request bodies are copied. The
+      export is deterministic: the same store gives byte-identical files, so two exports can be
+      compared with `diff -r`.
+    example: "reference-insurer (sandbox, all, drafts marked): 15 files, 158 records."
+    appears_in: ["data/exports/<portal>-<env>-srs/", "`pnpm docs:export`"]
+    labels: [Export, SRS export, records.json]
+    related: [srs, confirmed-only-mode, traceability-matrix, unknowns, documentation-record]
+    changed_in: R-16
+    changed_on: 2026-10-04
+
+  - id: confirmed-only-mode
+    term: Confirmed-only mode
+    category: pathfinder
+    group: Records and review
+    short: The SRS export mode that renders only revisions a reviewer confirmed, leaving out drafts.
+    explanation: |
+      By default the export renders every current record and marks drafts with a "DRAFT — not
+      confirmed by a reviewer" callout. With `--confirmed-only` it renders each record's latest
+      confirmed revision (the confirmed baseline when a newer draft exists) and nothing else, so the
+      output contains only statements a person has signed off. Rejected and withdrawn records
+      appear only in the change log, in both modes.
+    appears_in: ["`pnpm docs:export --confirmed-only`"]
+    labels: [--confirmed-only, Confirmed only, drafts marked]
+    related: [srs-export, record-status, review]
+    changed_in: R-16
+    changed_on: 2026-10-04
+
   # ---- BA: statements and traceability ------------------------------------------------------------
   - id: confidence
     term: Confidence (observed / inferred / needs confirmation)
@@ -731,13 +808,13 @@ entries:
     short: One unit of the BA's documentation, such as a screen, requirement or rule, with a key, revisions, evidence links and a status.
     explanation: |
       Pathfinder's documentation is a set of small linked records rather than one long document.
-      There are twelve kinds (see Record key for the prefixes). The SRS export (R-16) will render
-      them into a readable document.
-    appears_in: [Docs tab]
+      There are twelve kinds (see Record key for the prefixes). The SRS export renders them into a
+      readable document.
+    appears_in: [Docs tab, SRS export]
     labels: [Records, Record]
-    related: [record-key, revision, relations, layers]
-    changed_in: R-22
-    changed_on: 2026-10-03
+    related: [record-key, revision, relations, layers, srs-export]
+    changed_in: R-16
+    changed_on: 2026-10-04
 
   - id: evidence-link
     wiki: traceability
@@ -781,13 +858,48 @@ entries:
     explanation: |
       In Pathfinder, backward traceability is built in: every record cites evidence and the
       evidence names its run. Forward traceability runs through relations (rule → requirement →
-      use case) and, later, through test tags such as `@REQ-007`. The SRS export (R-16) will
-      include a traceability matrix.
-    appears_in: [Record page, SRS export (R-16)]
+      use case) and, later, through test tags such as `@REQ-007`. The SRS export includes a
+      traceability matrix.
+    appears_in: [Record page, SRS export]
     labels: [Traceability]
-    related: [evidence-link, relations, srs]
-    changed_in: R-22
-    changed_on: 2026-10-03
+    related: [evidence-link, relations, srs, traceability-matrix]
+    changed_in: R-16
+    changed_on: 2026-10-04
+
+  - id: traceability-matrix
+    wiki: traceability
+    term: Traceability matrix
+    category: ba
+    group: Statements and traceability
+    short: A table that links each requirement, rule or use case to its related records, the evidence it cites and the run that evidence came from.
+    explanation: |
+      The SRS export writes it as `12-traceability.md`: one row per requirement (REQ), business
+      rule (BR) or use case (UC), then its related records, each evidence link (kind, id, note) and
+      the run (id, mode, date). It answers "where did this statement come from?" for a reader who
+      has only the exported files, without the dashboard.
+    example: "BR-030 (WIOSNA10 takes 10% off) → UC-002 → state on /kalkulator/wynik → trace run of FUP-009."
+    appears_in: [SRS export → 12-traceability.md]
+    labels: [Traceability matrix, 12-traceability.md]
+    related: [traceability, srs-export, evidence-link]
+    changed_in: R-16
+    changed_on: 2026-10-04
+
+  - id: unknowns
+    term: Unknowns
+    category: ba
+    group: Statements and traceability
+    short: The SRS export's chapter listing everything the documentation could not establish, so a team rebuilding the portal knows what is still open.
+    explanation: |
+      `11-unknowns.md` collects records flagged not observable, records with confidence
+      `needs_confirmation`, open and blocked follow-ups, open questions, and evidence links whose
+      target no longer exists. Documentation built from the outside always has gaps (back-office
+      behaviour, pages behind a login); this chapter makes them explicit instead of hiding them.
+    example: "PROC-005..008 (login and customer area, no test account) and OQ-007 (what happens after \"Wniosek przyjęty\")."
+    appears_in: [SRS export → 11-unknowns.md]
+    labels: [Unknowns, 11-unknowns.md]
+    related: [srs-export, confidence, assumption]
+    changed_in: R-16
+    changed_on: 2026-10-04
 
   - id: review
     wiki: requirements-validation
@@ -1006,13 +1118,13 @@ entries:
     group: Record kinds
     short: Software Requirements Specification, the complete requirements document a team could rebuild the system from.
     explanation: |
-      Pathfinder keeps requirements as linked records; the planned SRS export (R-16) renders them
-      into one document with chapters, diagrams, a traceability matrix and an Unknowns section.
-    appears_in: [SRS export (R-16)]
+      Pathfinder keeps requirements as linked records; the SRS export (`pnpm docs:export`) renders
+      them into one document with chapters, diagrams, a traceability matrix and an Unknowns section.
+    appears_in: [SRS export]
     labels: [SRS]
-    related: [traceability, documentation-record, as-is-documentation]
-    changed_in: R-22
-    changed_on: 2026-10-03
+    related: [traceability, documentation-record, as-is-documentation, srs-export]
+    changed_in: R-16
+    changed_on: 2026-10-04
 
   - id: as-is-documentation
     wiki: process-modelling-as-is

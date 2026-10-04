@@ -108,16 +108,63 @@ The reference portal is a fake Polish insurer, "Towarzystwo Ubezpieczeń Wzorcow
 served on `http://127.0.0.1:4010` by `pnpm reference-portal` in `apps/crawler`. Because we
 wrote it, we know everything it contains: its screens, fields, rules and processes are listed
 in a ground-truth file. Comparing the BA's documentation with that file shows what was
-found, what was missed and what was over-claimed (the planned `docs:evaluate`, R-16). Its
-data is safe to show and stable, which is why glossary examples come from it.
+found, what was missed and what was over-claimed (`pnpm docs:evaluate`, see Coverage
+score). Its data is safe to show and stable, which is why glossary examples come from it.
 
 *Seen in:* Docs tab → reference-insurer; portals/reference-insurer
 
 *Labels:* `reference-insurer`, `ground truth`
 
-*Related:* [Run](#run), [Documentation record](#documentation-record)
+*Related:* [Run](#run), [Documentation record](#documentation-record), [Coverage score](#coverage-score), [Over-claim](#over-claim)
 
-<sub>Last changed in R-22, 2026-10-03.</sub>
+<sub>Last changed in R-16, 2026-10-04.</sub>
+
+<a id="coverage-score"></a>
+
+#### Coverage score
+
+**The share of a ground-truth category (screens, fields, constraints, rules, processes, terms) that the BA's documentation covers, as scored by `docs:evaluate`.**
+
+`pnpm docs:evaluate <portal> --ground-truth <file>` compares the latest documentation records
+with the reference portal's ground truth and gives one percentage per category, with the
+missing ground-truth ids. Each category has a minimum (the SC-008 targets: screens 90,
+fields 90, constraints 80, rules 70, processes 100, terms 80) and the command fails when one
+is not met, so it can gate a pipeline run. Matching is deterministic: a screen by its route
+template, a field by its verbatim label, a rule by its anchor screen, label and claim markers.
+A score says the documentation mentions an item, not that it is complete: a rule counts when
+any one of its claim markers appears.
+
+*Example:* Goal run 2026-10-04 on reference-insurer: screens 100 (17/17), rules 100 (16/16), 0 over-claims.
+
+*Seen in:* data/exports/<portal>-eval.json; `pnpm docs:evaluate`
+
+*Labels:* `Score`, `Coverage`
+
+*Related:* [Reference portal / ground truth](#reference-portal), [Over-claim](#over-claim)
+
+<sub>Last changed in R-16, 2026-10-04.</sub>
+
+<a id="over-claim"></a>
+
+#### Over-claim
+
+**A documentation record that states a rule as observed although the ground truth says a guest cannot observe it.**
+
+Some of the reference portal's rules are hidden from a guest (behind the login, or only in
+the back office). If the BA documents one of them with confidence `observed`, the evaluation
+reports an over-claim: the documentation is more certain than the evidence allows. Recording
+such a rule as `needs_confirmation` or flagged not observable is fine. The goal is 0
+over-claims (SC-009); one over-claim fails `docs:evaluate`.
+
+*Example:* The renewal window ("30 dni", only on the logged-in renewal page) documented as observed would be an over-claim.
+
+*Seen in:* data/exports/<portal>-eval.json; `pnpm docs:evaluate`
+
+*Labels:* `Over-claims`, `overclaims`
+
+*Related:* [Coverage score](#coverage-score), [Confidence (observed / inferred / needs confirmation)](#confidence), [Reference portal / ground truth](#reference-portal)
+
+<sub>Last changed in R-16, 2026-10-04.</sub>
 
 ### Crawling
 
@@ -790,6 +837,52 @@ BA agent and not the dashboard; it follows from the reviews.
 
 <sub>Last changed in R-22, 2026-10-03.</sub>
 
+<a id="srs-export"></a>
+
+#### SRS export
+
+**A folder of Markdown files (with Mermaid diagrams) plus records.json that renders a portal's documentation as one SRS a team could rebuild the portal from.**
+
+`pnpm docs:export <portal> [--env <env>] [--confirmed-only]` in `apps/crawler` writes
+`data/exports/<portal>-<env>-srs/`: a README, chapters 01–10 in an ISO/IEC/IEEE 29148-style
+outline, `11-unknowns.md`, `12-traceability.md`, a change log and `records.json`, a
+machine-readable copy of the same records. Every statement keeps its key, revision, status,
+confidence and evidence references; no evidence files or request bodies are copied. The
+export is deterministic: the same store gives byte-identical files, so two exports can be
+compared with `diff -r`.
+
+*Example:* reference-insurer (sandbox, all, drafts marked): 15 files, 158 records.
+
+*Seen in:* data/exports/<portal>-<env>-srs/; `pnpm docs:export`
+
+*Labels:* `Export`, `SRS export`, `records.json`
+
+*Related:* [SRS](#srs), [Confirmed-only mode](#confirmed-only-mode), [Traceability matrix](#traceability-matrix), [Unknowns](#unknowns), [Documentation record](#documentation-record)
+
+*Read more:* [BA wiki: Software requirements specification (SRS)](../wiki/software-requirements-specification.md)
+
+<sub>Last changed in R-16, 2026-10-04.</sub>
+
+<a id="confirmed-only-mode"></a>
+
+#### Confirmed-only mode
+
+**The SRS export mode that renders only revisions a reviewer confirmed, leaving out drafts.**
+
+By default the export renders every current record and marks drafts with a "DRAFT — not
+confirmed by a reviewer" callout. With `--confirmed-only` it renders each record's latest
+confirmed revision (the confirmed baseline when a newer draft exists) and nothing else, so the
+output contains only statements a person has signed off. Rejected and withdrawn records
+appear only in the change log, in both modes.
+
+*Seen in:* `pnpm docs:export --confirmed-only`
+
+*Labels:* `--confirmed-only`, `Confirmed only`, `drafts marked`
+
+*Related:* [SRS export](#srs-export), [Record status](#record-status), [Review (confirm / reject / comment)](#review)
+
+<sub>Last changed in R-16, 2026-10-04.</sub>
+
 ### Reading the dashboard
 
 <a id="status-codes"></a>
@@ -876,16 +969,16 @@ documentation that reads as fact but is a guess.
 **One unit of the BA's documentation, such as a screen, requirement or rule, with a key, revisions, evidence links and a status.**
 
 Pathfinder's documentation is a set of small linked records rather than one long document.
-There are twelve kinds (see Record key for the prefixes). The SRS export (R-16) will render
-them into a readable document.
+There are twelve kinds (see Record key for the prefixes). The SRS export renders them into a
+readable document.
 
-*Seen in:* Docs tab
+*Seen in:* Docs tab; SRS export
 
 *Labels:* `Records`, `Record`
 
-*Related:* [Record key](#record-key), [Revision (Rev)](#revision), [Relations / linked records](#relations), [Layer A / Layer B](#layers)
+*Related:* [Record key](#record-key), [Revision (Rev)](#revision), [Relations / linked records](#relations), [Layer A / Layer B](#layers), [SRS export](#srs-export)
 
-<sub>Last changed in R-22, 2026-10-03.</sub>
+<sub>Last changed in R-16, 2026-10-04.</sub>
 
 <a id="evidence-link"></a>
 
@@ -937,18 +1030,62 @@ they change with the record.
 
 In Pathfinder, backward traceability is built in: every record cites evidence and the
 evidence names its run. Forward traceability runs through relations (rule → requirement →
-use case) and, later, through test tags such as `@REQ-007`. The SRS export (R-16) will
-include a traceability matrix.
+use case) and, later, through test tags such as `@REQ-007`. The SRS export includes a
+traceability matrix.
 
-*Seen in:* Record page; SRS export (R-16)
+*Seen in:* Record page; SRS export
 
 *Labels:* `Traceability`
 
-*Related:* [Evidence link / cites](#evidence-link), [Relations / linked records](#relations), [SRS](#srs)
+*Related:* [Evidence link / cites](#evidence-link), [Relations / linked records](#relations), [SRS](#srs), [Traceability matrix](#traceability-matrix)
 
 *Read more:* [BA wiki: Traceability](../wiki/traceability.md)
 
-<sub>Last changed in R-22, 2026-10-03.</sub>
+<sub>Last changed in R-16, 2026-10-04.</sub>
+
+<a id="traceability-matrix"></a>
+
+#### Traceability matrix
+
+**A table that links each requirement, rule or use case to its related records, the evidence it cites and the run that evidence came from.**
+
+The SRS export writes it as `12-traceability.md`: one row per requirement (REQ), business
+rule (BR) or use case (UC), then its related records, each evidence link (kind, id, note) and
+the run (id, mode, date). It answers "where did this statement come from?" for a reader who
+has only the exported files, without the dashboard.
+
+*Example:* BR-030 (WIOSNA10 takes 10% off) → UC-002 → state on /kalkulator/wynik → trace run of FUP-009.
+
+*Seen in:* SRS export → 12-traceability.md
+
+*Labels:* `Traceability matrix`, `12-traceability.md`
+
+*Related:* [Traceability](#traceability), [SRS export](#srs-export), [Evidence link / cites](#evidence-link)
+
+*Read more:* [BA wiki: Traceability](../wiki/traceability.md)
+
+<sub>Last changed in R-16, 2026-10-04.</sub>
+
+<a id="unknowns"></a>
+
+#### Unknowns
+
+**The SRS export's chapter listing everything the documentation could not establish, so a team rebuilding the portal knows what is still open.**
+
+`11-unknowns.md` collects records flagged not observable, records with confidence
+`needs_confirmation`, open and blocked follow-ups, open questions, and evidence links whose
+target no longer exists. Documentation built from the outside always has gaps (back-office
+behaviour, pages behind a login); this chapter makes them explicit instead of hiding them.
+
+*Example:* PROC-005..008 (login and customer area, no test account) and OQ-007 (what happens after "Wniosek przyjęty").
+
+*Seen in:* SRS export → 11-unknowns.md
+
+*Labels:* `Unknowns`, `11-unknowns.md`
+
+*Related:* [SRS export](#srs-export), [Confidence (observed / inferred / needs confirmation)](#confidence), [Assumption (ASM)](#assumption)
+
+<sub>Last changed in R-16, 2026-10-04.</sub>
 
 <a id="review"></a>
 
@@ -1228,18 +1365,18 @@ confirmed or replaced once someone who knows the business has looked at it.
 
 **Software Requirements Specification, the complete requirements document a team could rebuild the system from.**
 
-Pathfinder keeps requirements as linked records; the planned SRS export (R-16) renders them
-into one document with chapters, diagrams, a traceability matrix and an Unknowns section.
+Pathfinder keeps requirements as linked records; the SRS export (`pnpm docs:export`) renders
+them into one document with chapters, diagrams, a traceability matrix and an Unknowns section.
 
-*Seen in:* SRS export (R-16)
+*Seen in:* SRS export
 
 *Labels:* `SRS`
 
-*Related:* [Traceability](#traceability), [Documentation record](#documentation-record), [As-is documentation](#as-is-documentation)
+*Related:* [Traceability](#traceability), [Documentation record](#documentation-record), [As-is documentation](#as-is-documentation), [SRS export](#srs-export)
 
 *Read more:* [BA wiki: Software requirements specification (SRS)](../wiki/software-requirements-specification.md)
 
-<sub>Last changed in R-22, 2026-10-03.</sub>
+<sub>Last changed in R-16, 2026-10-04.</sub>
 
 <a id="as-is-documentation"></a>
 

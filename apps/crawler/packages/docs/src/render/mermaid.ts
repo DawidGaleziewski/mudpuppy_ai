@@ -108,3 +108,44 @@ export function capabilityMap(input: CapabilityMapInput): string {
   }
   return `${lines.join('\n')}\n`;
 }
+
+export interface EntityDiagramInput {
+  entities: {
+    /** Stable id, e.g. a form id; turned into a node id. */
+    id: string;
+    label: string;
+    attributes: { type: string; name: string; comment: string }[];
+  }[];
+}
+
+/** An ER token (type or attribute name): starts with a letter, then letters, digits, `_`, `-`. */
+function erToken(text: string, fallback: string): string {
+  const t = text
+    .normalize('NFKD')
+    .replace(/[̀-ͯ]/g, '')
+    .replace(/[^A-Za-z0-9_-]+/g, '_')
+    .replace(/^_+|_+$/g, '');
+  return /^[A-Za-z]/.test(t) ? t : `${fallback}${t ? `_${t}` : ''}`;
+}
+
+/** A quoted ER string (alias or comment): Mermaid ER has no escape, so `"` becomes `'`. */
+const erString = (text: string): string => text.replace(/\s+/g, ' ').trim().replace(/"/g, "'");
+
+/**
+ * Entity diagram for the data dictionary (export only, no dashboard twin): one entity per place
+ * data items were seen together, attributes in the given order. No relationships are drawn: none
+ * are observed, and the export must not invent them.
+ */
+export function entityDiagram(input: EntityDiagramInput): string {
+  const lines = ['erDiagram'];
+  const entities = [...input.entities].sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
+  entities.forEach((e, i) => {
+    lines.push(`  E${i + 1}["${erString(e.label)}"] {`);
+    for (const a of e.attributes)
+      lines.push(
+        `    ${erToken(a.type, 'type')} ${erToken(a.name, 'field')} "${erString(a.comment)}"`,
+      );
+    lines.push('  }');
+  });
+  return `${lines.join('\n')}\n`;
+}

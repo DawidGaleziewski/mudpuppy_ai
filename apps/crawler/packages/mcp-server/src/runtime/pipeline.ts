@@ -116,13 +116,14 @@ async function usage(
   run: RunRow,
   rs: RunState,
   actionsInState: number,
+  /** The depth the step lands at; defaults to one below the page the browser is on. */
+  depth = rs.currentStateId ? (rs.depthByState.get(rs.currentStateId) ?? 0) + 1 : 1,
 ): Promise<GateContext['usage']> {
   const { n } = await ctx.db
     .selectFrom('state_observations')
     .select((eb) => eb.fn.countAll<number>().as('n'))
     .where('run_id', '=', run.id)
     .executeTakeFirstOrThrow();
-  const depth = rs.currentStateId ? (rs.depthByState.get(rs.currentStateId) ?? 0) + 1 : 1;
   return {
     depth,
     states: Number(n),
@@ -233,6 +234,28 @@ async function bumpRun(
   };
   await ctx.db.updateTable('runs').set(counters).where('id', '=', run.id).execute();
   ctx.tracer.event('run_status', { status: run.status, ...counters });
+}
+
+/**
+ * A state's items skipped only for `budget:max_depth` go back to `pending` at the state's new,
+ * shallower depth when that brings them within the budget; `act` gates each one again.
+ */
+async function reopenDepthSkipped(
+  ctx: ServerContext,
+  rs: RunState,
+  runId: string,
+  stateId: string,
+  depth: number,
+): Promise<void> {
+  if (depth + 1 > rs.scope.max_depth) return;
+  await ctx.db
+    .updateTable('frontier')
+    .set({ status: 'pending', reason: null, depth, updated_at: nowIso() })
+    .where('run_id', '=', runId)
+    .where('state_id', '=', stateId)
+    .where('status', '=', 'budget_reached')
+    .where('reason', 'like', 'budget:max_depth:%')
+    .execute();
 }
 
 /** `event stabilization_timeout` when the page never settled (research §9). */
@@ -393,7 +416,13 @@ async function processPage(
       return { evidenceRef, alreadyInRun, state_id, created, stateRow };
     },
   );
-  if (!rs.depthByState.has(state_id)) rs.depthByState.set(state_id, depth);
+  const knownDepth = rs.depthByState.get(state_id);
+  if (knownDepth === undefined || knownDepth > depth) rs.depthByState.set(state_id, depth);
+  // A shorter path to a state already queued: its depth-skipped items are within budget again.
+  if (knownDepth !== undefined && knownDepth > depth && !rs.isTrace)
+    await reopenDepthSkipped(ctx, rs, run.id, state_id, depth);
+  const urlDepth = rs.depthByUrl.get(observed.url);
+  if (urlDepth === undefined || urlDepth > depth) rs.depthByUrl.set(observed.url, depth);
 
   // Forms: recorded once per state per run, never submitted (FR-011). Per run, not per state: a
   // trace over states an earlier run created still carries the forms the BA reads from its runs.
@@ -606,7 +635,8 @@ async function issueAndEnqueue(
         (JSON.parse(e.action_json) as { nth: number }).nth === c.nth,
     )?.id;
 
-  const g = gateContext(rs, await usage(ctx, run, rs, 0));
+  // This page's actions land one level below it; the browser's previous page does not count.
+  const g = gateContext(rs, await usage(ctx, run, rs, 0, depth + 1));
   const issued: IssuedAction[] = [];
   for (const [ci, c] of candidates.entries()) {
     const d = decide({ kind: 'act', descriptor: c.descriptor, currentUrl: observed.url }, g);
@@ -824,7 +854,10 @@ async function navigateStep(
   const started = Date.now();
   state.obstacleCursor = state.session.obstacles.events.length;
   const g = await phase(ctx, 'gate', async () => {
-    const g = gateContext(state, await usage(ctx, run, state, 0));
+    const g = gateContext(
+      state,
+      await usage(ctx, run, state, 0, state.depthByUrl.get(input.url)),
+    );
     const d = decide({ kind: 'navigate', url: input.url }, g);
     traceGate(ctx, state, { kind: 'navigate', url: input.url }, d);
     if (!d.allowed) {
@@ -1133,7 +1166,12 @@ async function gateAct(
     .where('run_id', '=', run.id)
     .where('from_state', '=', action.state_id)
     .executeTakeFirstOrThrow();
-  const g = gateContext(state, await usage(ctx, run, state, Number(priorActions.n)));
+  // Depth counts from the action's own state: the browser may be elsewhere (reach_state goes back).
+  const fromDepth = state.depthByState.get(action.state_id) ?? 0;
+  const g = gateContext(
+    state,
+    await usage(ctx, run, state, Number(priorActions.n), fromDepth + 1),
+  );
   const d = decide({ kind: 'act', descriptor, currentUrl: action.json.page_url }, g);
   traceGate(ctx, state, { kind: 'act', action }, d);
   if (!d.allowed) {

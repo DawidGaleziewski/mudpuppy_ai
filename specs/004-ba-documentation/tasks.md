@@ -123,6 +123,18 @@ BA reads, skill (T046–T049). R-15 starts once T037 is committed (the dashboard
 from the migrations): read side (T051–T063), then review (T064–T070). Manual runs (T050, T071) last:
 T050 needs a Claude Code session started after the trace tools exist (MCP servers load at start).
 
+## Model split and order for R-16 (2026-10-03)
+
+R-16 is built on `feature/004-r16-srs-export-goal-evaluation`. Suggested model per task:
+
+| Model | R-16 |
+|---|---|
+| `[sonnet]` | T076, T080, T081 |
+| `[opus]` | T072, T073, T074, T075, T077, T078, T079, T082 |
+
+Order: T072 ∥ T074 ∥ T077 → T073 → T075 → T078 → T076 → T079 (needs a fresh Claude Code session with
+the `pathfinder` and `pathfinder-ba` servers) → T080–T082.
+
 ## Phase 4: User Story 4 — Crawler traces a named process (P2, R-14)
 
 **Goal**: `trace` mode records one process as server-observed steps; production stops at the first
@@ -215,11 +227,11 @@ derived by the status engine.
 
 **Independent Test**: quickstart.md R-16.
 
-- [ ] T072 [P] [US5] Golden export `apps/crawler/packages/docs/tests/golden/reference-insurer-all/` and `…-confirmed/` from the fixture store (extended with a confirmed REQ and review); failing tests `packages/docs/tests/export.test.ts`: files equal goldens; `--confirmed-only` contains no `DRAFT` callout and only confirmed revisions; two renders byte-identical; every key and evidence id in Markdown exists in `records.json` and the store; no evidence file content or request bodies copied (FR-054)
-- [ ] T073 [US5] `apps/crawler/packages/docs/src/render/chapters/*.ts` (README, 01–11 per contracts/srs-export.md; statement header line and evidence line formats; Gherkin blocks; decision tables; Mermaid from `render/mermaid.ts`)
-- [ ] T074 [P] [US5] `apps/crawler/packages/docs/src/render/traceability.ts` (REQ/BR/UC → related records → evidence → run) and `render/records-json.ts` (canonical JSON: sorted keys, records by key, revisions by number, LF)
-- [ ] T075 [US5] `apps/crawler/packages/docs/src/export.ts` (`exportSrs(db, portal, {confirmedOnly})` → file map; "as of" = newest revision/review time) and thin `apps/crawler/scripts/docs-export.ts` + `"docs:export"` script (default out `data/exports/<portal>-<env>-srs/`, replaced; `portal_data_log` row `export`; exit 1 when the portal has no records). T072 passes
-- [ ] T076 [US5] Manual validation quickstart.md R-16 step 1: export `reference-insurer` twice + `diff -r` empty; skim chapters for readability issues and note them in `roadmap.md`
+- [X] T072 [P] [US5] [opus] `seedDocRecords(store)` in `apps/crawler/packages/docs/src/testing/` (the fixture store has no BA records yet): one fixed record set over the map run and a trace run covering all 12 kinds; statuses draft, confirmed, rejected, superseded (a draft over a confirmed baseline), one withdrawn record; confidences `observed`/`inferred`/`needs_confirmation`, one not-observable flag; reviews (confirm, reject, comment); one open and one blocked follow-up; one BA open question and one open crawler question; one evidence link whose target is gone. Golden export `apps/crawler/packages/docs/tests/golden/reference-insurer-all/` and `…-confirmed/` from it; failing tests `packages/docs/tests/export.test.ts`: files equal goldens; `--confirmed-only` contains no `DRAFT` callout and only confirmed revisions (the baseline rev for a record with a newer draft); "all" mode shows that newer draft with the callout and a `confirmed baseline: rev N` line; rejected-only and withdrawn records appear only in `appendix-change-log.md`; the broken evidence link is listed in `11-unknowns.md`; two renders byte-identical; every key and evidence id in Markdown exists in `records.json` and the store; no evidence file content or request bodies copied (FR-054)
+- [X] T073 [US5] [opus] `apps/crawler/packages/docs/src/render/chapters/*.ts` (README, 01–11 and `appendix-change-log.md` per contracts/srs-export.md; 12 is T074; statement header line and evidence line formats; Gherkin blocks; decision tables; Mermaid from `render/mermaid.ts` plus a new `erDiagram` builder for 07, export-only, no dashboard twin; broken evidence links in 11)
+- [X] T074 [P] [US5] [opus] `apps/crawler/packages/docs/src/render/traceability.ts` (REQ/BR/UC → related records → evidence → run) and `render/records-json.ts` (canonical JSON: sorted keys, records by key, revisions by number, LF)
+- [X] T075 [US5] [opus] `apps/crawler/packages/docs/src/export.ts` (`exportSrs(db, portal, {confirmedOnly})` → file map; "as of" = newest revision/review time) and thin `apps/crawler/scripts/docs-export.ts` + `"docs:export"` script (default out `data/exports/<portal>-<env>-srs/`, replaced only when missing, empty or a previous export (holds `records.json` and `README.md`), else exit 2 without deleting; `portal_data_log` row `export`; exit 1 when the portal has no records). T072 passes
+- [X] T076 [US5] [sonnet] Manual validation quickstart.md R-16 step 1: export `reference-insurer` twice + `diff -r` empty; skim chapters for readability issues and note them in `roadmap.md`
 
 ---
 
@@ -230,17 +242,17 @@ on SC-008/SC-009; the full pipeline is run and its gaps fed back.
 
 **Independent Test**: evaluator unit tests on hand-built records; quickstart.md R-16 step 2.
 
-- [ ] T077 [P] [US6] Failing tests `apps/crawler/packages/docs/tests/evaluate.test.ts` on a small hand-built ground truth + records: each category's matching rule of research §16 (screen by route template; field by normalised verbatim label; constraint kind and value; rule by anchor citation + verbatim label or relation to the matched data item; process by traced routes or `until_boundary` flag; term by normalised verbatim term); 9/10 screens → 90% with the missing id; not-guest-observable rule documented `observed` → over-claim; only latest non-withdrawn, non-rejected revisions count; thresholds → `passed`/`failed`; byte-identical report on re-run; evaluator source contains no portal name
-- [ ] T078 [US6] Implement `apps/crawler/packages/docs/src/evaluate.ts` (generic `GroundTruth` input type, no import of the reference-portal package) and thin `apps/crawler/scripts/docs-evaluate.ts` + `"docs:evaluate"` script (`--ground-truth`, `--env`, repeatable `--min <category>=<pct>`, defaults = SC-008 targets and 0 over-claims, `--out` writes JSON + Markdown summary; exit 0/1/2 per contracts/ground-truth.md). T077 passes
-- [ ] T079 [US6] Goal run, quickstart.md R-16 step 2, on a fresh `data/db/sandbox.sqlite`: map → BA → traces for its FUPs → BA → `docs:evaluate`. Record scores and over-claims in `roadmap.md`. For each miss decide the cause (crawler did not reach it, BA did not document it, matcher too strict) and fix it in the crawler, `ba-practice` skill or evaluator; repeat until SC-008 and SC-009 pass or remaining misses are listed as accepted follow-up items with the user's agreement
+- [X] T077 [P] [US6] [opus] Failing tests `apps/crawler/packages/docs/tests/evaluate.test.ts` on a small hand-built ground truth + records: each category's matching rule of research §16 (screen by route template; field by normalised verbatim label; constraint kind and value; rule by anchor citation + verbatim label or relation to the matched data item; process by traced routes or `until_boundary` flag; term by normalised verbatim term); 9/10 screens → 90% with the missing id; not-guest-observable rule documented `observed` → over-claim; only latest non-withdrawn, non-rejected revisions count; thresholds → `passed`/`failed`; byte-identical report on re-run; evaluator source contains no portal name
+- [X] T078 [US6] [opus] Implement `apps/crawler/packages/docs/src/evaluate.ts` (generic `GroundTruth` input type that accepts and ignores fields it does not score, e.g. `today`, `reached_by`, `steps`, `method`; no import of the reference-portal package) and thin `apps/crawler/scripts/docs-evaluate.ts` + `"docs:evaluate"` script (`--ground-truth`, `--env`, repeatable `--min <category>=<pct>`, defaults = SC-008 targets and 0 over-claims, `--out` writes JSON + Markdown summary; exit 0/1/2 per contracts/ground-truth.md). T077 passes
+- [X] T079 [US6] [opus] Goal run, quickstart.md R-16 step 2, on a fresh `data/db/sandbox.sqlite`: map → BA → traces for its FUPs → BA → `docs:evaluate`. Record scores and over-claims in `roadmap.md`. For each miss decide the cause (crawler did not reach it, BA did not document it, matcher too strict) and fix it in the crawler, `ba-practice` skill or evaluator; repeat until SC-008 and SC-009 pass or remaining misses are listed as accepted follow-up items with the user's agreement. Every bug and slip found goes into [goal-run-findings.md](goal-run-findings.md) (input for a later tests/evals item)
 
 ---
 
 ## Phase 9: Polish & Cross-Cutting (R-16)
 
-- [ ] T080 [P] Docs: `apps/dashboard/README.md` (Docs tab, `PATHFINDER_REVIEWER`, review write path), `data/README.md` (Layer B tables, exports), root `README.md` (crawl → BA → review → export → evaluate flow, agents `crawler`/`ba`, reference portal)
-- [ ] T081 Full gates: `apps/crawler`: `pnpm typecheck && pnpm lint && pnpm test`; `apps/dashboard`: `uv run pytest && uv run ruff check . && uv run ruff format --check .`; `pnpm docs:audit` on every fixture store; fix all failures
-- [ ] T082 Run skill `speckit-analyze` over spec/plan/tasks; resolve findings; mark roadmap R-13…R-16 task ranges final
+- [X] T080 [P] [sonnet] Docs: `apps/dashboard/README.md` (Docs tab, `PATHFINDER_REVIEWER`, review write path), `data/README.md` (Layer B tables, exports), root `README.md` (crawl → BA → review → export → evaluate flow, agents `crawler`/`ba`, reference portal)
+- [X] T081 [sonnet] Full gates: `apps/crawler`: `pnpm typecheck && pnpm lint && pnpm test`; `apps/dashboard`: `uv run pytest && uv run ruff check . && uv run ruff format --check .`; `pnpm docs:audit` on every fixture store; fix all failures
+- [X] T082 [opus] Run skill `speckit-analyze` over spec/plan/tasks; resolve findings; mark roadmap R-13…R-16 task ranges final; glossary sync: update the entries that call the export and `docs:evaluate` planned (`docs/glossary/glossary.yaml`, reference portal and record kind entries) and add entries for terms R-16 adds (SRS export, confirmed-only mode, traceability matrix, Unknowns, over-claim, coverage score) with `changed_in: R-16`, then `uv run pathfinder-glossary --write` in `apps/dashboard`
 
 ---
 

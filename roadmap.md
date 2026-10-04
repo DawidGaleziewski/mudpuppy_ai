@@ -22,7 +22,7 @@ Status: `todo`, `in progress`, `done`. Last reviewed: 2026-10-03.
 | R-13 | BA documentation store and BA agent: Layer B records with revisions and evidence links, BA MCP tools, `ba` subagent and BA skill, works on map evidence; reference portal with ground truth | `specs/004-ba-documentation` US1, T001–T032 | done |
 | R-14 | Crawler trace mode: record one named process as ordered steps, stop at the submit boundary on production, follow-up tasks drive trace runs | `specs/004-ba-documentation` US4, T033–T050 | done |
 | R-15 | Docs tab: SRS view per portal with evidence and run links, revision history, review actions (confirm/reject/comment), constitution amendment for the review write path | `specs/004-ba-documentation` US2 + US3, T051–T071 | done |
-| R-16 | SRS export and goal evaluation: deterministic Markdown + Mermaid + machine-readable export with traceability matrix and Unknowns section; `docs:evaluate` scores the docs against the reference portal's ground truth | `specs/004-ba-documentation` US5 + US6 + polish, T072–T082 | todo |
+| R-16 | SRS export and goal evaluation: deterministic Markdown + Mermaid + machine-readable export with traceability matrix and Unknowns section; `docs:evaluate` scores the docs against the reference portal's ground truth | `specs/004-ba-documentation` US5 + US6 + polish, T072–T082 | done |
 | R-18 | To discuss: API discovery depth and browser tooling (richer network capture in the crawler; Playwright MCP and Chrome DevTools MCP as developer debugging tools only) | — (no spec yet) | todo |
 | R-19 | To discuss: pan and zoom for Docs diagrams (large maps are too small to read) | — (no spec yet) | todo |
 | R-20 | To discuss: screenshots as evidence, with the described elements highlighted, shown on record pages | — (no spec yet) | todo |
@@ -390,3 +390,64 @@ Status: `todo`, `in progress`, `done`. Last reviewed: 2026-10-03.
   dashboard and signed off (T029). `speckit-analyze` found no critical issues; one medium (SC-003
   on stacked tables, accepted and noted in the spec) and three low wording items, all resolved
   (`8b0cf28`). Glossary sync: every entry is new in R-22, nothing else to update. Next: R-16.
+- R-16 started 2026-10-03 on `feature/004-r16-srs-export-goal-evaluation` (spec 004, T072–T082).
+  Pre-implementation `speckit-analyze`: 0 critical, 1 high, 5 medium, 4 low, all resolved in the
+  docs before coding: T072 now seeds a full BA record set (the fixture store had none); "all" mode
+  shows a newer draft over its `confirmed baseline: rev N`; rejected-only and withdrawn records go
+  to a new `appendix-change-log.md`; broken evidence links are listed in `11-unknowns.md`;
+  `docs:export` refuses to replace a folder that is not a previous export; the ground-truth
+  contract example matches the real schema; glossary sync is part of T082; tasks tagged
+  `[opus]`/`[sonnet]`.
+- R-16 US5 built (T072–T076): `docs:export` renders README, 01–12, `appendix-change-log.md` and
+  `records.json` from `@pathfinder/docs` (`render/model.ts` reads, chapters are pure). Goldens from
+  a fixed seed (`seedDocRecords`, fixture store with `deterministicIds`). T076 on
+  `data/db/sandbox.sqlite`: 139 `reference-insurer` records, two exports `diff -r` empty (SC-007);
+  `--confirmed-only` has 0 records (nothing in the sandbox store is confirmed yet). Readability notes:
+  (1) the screen navigation diagram keeps 1 transition and omits 121 as global navigation, because
+  every reference page links to every menu target; the export uses the dashboard's filter for parity,
+  so this is a R-19 topic (a per-screen "links to" list may read better than one diagram); (2) state
+  evidence labels repeat the page title suffix (" | Towarzystwo Ubezpieczeń Wzorcowych") on every
+  line; (3) `DataItemConstraints` has no min/max, so a range constraint can only be written as
+  `format` text; T078's constraint matcher has to account for that.
+- R-16 US6 evaluator built (T077–T078): `docs:evaluate` (`@pathfinder/docs/src/evaluate.ts`, pure
+  `evaluate()` + `loadEvalInput()`), JSON + Markdown report, exit 0/1/2. The first run on the existing
+  sandbox store (R-13–R-15 data) found the rule matcher too loose: 4 "over-claims" were honest records
+  quoting a hidden rule's anchor label (the login prompt on `/moje-polisy/przedluz`, the premium table
+  row "Składka łączna"), and "all fields required" counted as the postcode-format and year-range
+  rules. Fix: optional `claim_markers` per ground-truth rule (its numbers or key phrase, EN + PL),
+  required in addition to the anchor; the reference portal test checks hidden-rule markers appear on
+  no guest page (it caught "likwidator", which the FAQ shows). Baseline on that store: screens 94.1,
+  fields 100, constraints 71.4, rules 93.8, processes 80, terms 100, 0 over-claims; fails
+  constraints (driver/options step fields have no constraints) and processes (P05 renewal behind
+  login has no process record). T079 runs the full pipeline on a fresh store.
+- T079 goal run done 2026-10-04 on the cleared sandbox store: map `01a10603…` (12 states, frontier
+  drained) → BA → 8 traces (FUP-001..004 plus variants: trip over 90 days, same product twice,
+  contact without phone/e-mail, engine 3000 cm3) → BA → trace FUP-009 "Kup polisę" (with WIOSNA10)
+  → BA. 158 records, `docs:audit` clean. `docs:evaluate`: screens 100 (17/17), fields 100,
+  constraints 100 (49/49), rules 100 (16/16), processes 100 (5/5), terms 100, 0 over-claims; SC-008
+  and SC-009 pass. Two crawler depth bugs blocked the map run and were fixed first (`74a3c66`,
+  `64a2e65`). Every bug, gap and slip found is in `specs/004-ba-documentation/goal-run-findings.md`
+  (F-01…F-16) as input for a later tests/evals item; open ones include map mode pressing submits
+  when the persona allows it (F-10), the evaluator matching a rule on any one marker (F-13, rules
+  score is generous: R05 counts with one engine band unobserved) and BA revisions losing citations
+  from runs outside the session (F-16). Still open in the store: FUP-005..008 (need a customer
+  account, OQ-001), FUP-010/011 (more calculator and travel variants).
+- T082 speckit-analyze (2026-10-04, R-16 scope), findings and how each was resolved:
+  - I1 (HIGH, cross-spec): map mode presses submit buttons when the persona's class allows it
+    (F-10), against spec 001 FR-011 ("without being submitted"). Allowed by the constitution (sandbox
+    only), but an open defect against R-04; to fix in the crawler in a later item. Nothing was sent in
+    the goal run (browser validation held every empty form).
+  - U1 (MEDIUM): `docs:evaluate` matching is deterministic and documented (FR-063), but a rule counts
+    when any one claim marker appears (F-13), so the rules score is generous (R05 counts with the 0.9
+    band unobserved). Accepted for R-16; stricter matching (all-of and negative markers, partial
+    scores) goes to the later tests/evals item.
+  - C1 (MEDIUM): SC-008 counts "the traces the BA requests". Eight of the nine goal-run traces came
+    from BA follow-ups (FUP-001..004, FUP-009, and the variants named in FUP-002..004); the 3000 cm3
+    engine trace was added by Claude from the baseline misses. Without it R05 would likely miss:
+    rules 15/16 (93.8%), still above 70%, so SC-008 holds either way.
+  - I2 (LOW): plan.md project structure now lists `docs:evaluate` / `docs-evaluate.ts`.
+  - D1 (LOW): BA revisions can cite only runs in their session, so older citations would drop (F-16);
+    no R-16 requirement covers it, logged for a later item.
+- R-16 closed 2026-10-04: the user signed it off. Squash-merged into `master` as one commit, like
+  R-13 to R-15; `feature/004-r16-srs-export-goal-evaluation` is deleted. Spec 004 is complete
+  (T001–T082).

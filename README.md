@@ -1,9 +1,12 @@
 # Pathfinder AI
 
-Pathfinder maps a web portal the way a careful visitor would and records what it finds. The first feature is
-the **crawler in `map` mode** (`specs/001-crawler-map-mode/`): it explores a portal as a guest, read-only, and
-stores states, transitions, forms and API shapes with evidence, so analysts and testers can build on facts
-instead of guesses.
+Pathfinder maps a web portal the way a careful visitor would, records what it finds, and turns that
+into documentation good enough to re-create the portal. The **crawler** (`specs/001-crawler-map-mode/`)
+explores a portal as a guest, read-only on production, and stores states, transitions, forms and API
+shapes with evidence; in `trace` mode it records one named business process step by step. The **BA
+agent** (`specs/004-ba-documentation/`) reads that evidence and writes keyed, evidence-linked
+documentation records (an as-is SRS), which a person reviews, exports and scores against a known
+answer key.
 
 ## How the crawler works
 
@@ -41,6 +44,38 @@ cd apps/dashboard && uv sync && uv run pathfinder-dashboard   # http://127.0.0.1
 ```
 
 See [`apps/dashboard/README.md`](apps/dashboard/README.md) (spec `specs/003-dashboard-ui/`).
+
+## From crawl to documentation
+
+The whole flow, with the agents named in `.claude/agents/`:
+
+1. **Map.** *"Use the crawler agent to map `<portal>` as `<persona>`"* records the guest-visible
+   portal (`map` mode).
+2. **Document.** *"Use the ba agent to document `<portal>` from run `<run_id>`"*: the `ba` agent
+   (skill `ba-practice`) has no browser; through the `pathfinder-ba` MCP server it writes screens,
+   capabilities, requirements, business rules, data items, glossary terms, assumptions and open
+   questions, each with a confidence label and evidence, and asks for **follow-up** traces of the
+   processes it found.
+3. **Trace.** The crawler agent traces each open follow-up (`trace` mode); on production it stops
+   at the first mutating action and records what could not be observed. Re-running the ba agent
+   turns the traces into process and use-case records.
+4. **Review.** The dashboard's Docs tab shows the documentation; with `PATHFINDER_REVIEWER` set, a
+   person confirms, rejects or comments (see `apps/dashboard/README.md`). Rejections come back to
+   the BA as feedback in its next session.
+5. **Export.** `pnpm --dir apps/crawler docs:export <portal> --env <env> [--confirmed-only]` writes
+   the SRS: Markdown chapters along ISO/IEC/IEEE 29148, Mermaid diagrams, a traceability matrix,
+   an Unknowns chapter and `records.json`, byte-identical for the same store.
+6. **Evaluate.** `pnpm --dir apps/crawler docs:evaluate <portal> --env <env> --ground-truth <file>`
+   scores the documentation per category (screens, fields, constraints, rules, processes, terms),
+   lists every miss and every over-claim, and fails below the targets.
+
+`pnpm --dir apps/crawler docs:audit <portal> --env <env>` checks that every revision has resolvable
+evidence and every status is explained by a review.
+
+The **reference portal** (`apps/crawler/packages/reference-portal`, portal `reference-insurer`) is a
+local fake Polish insurer whose full truth is written down in `ground-truth.json`. Start it with
+`pnpm --dir apps/crawler reference-portal` (http://127.0.0.1:4010) and run the flow above with the MCP
+servers on `PATHFINDER_ENV=sandbox`; step 6 then says how close the documentation gets.
 
 New to the vocabulary (run, frontier, evidence, settled, …)? Read the
 [Pathfinder glossary](docs/glossary/README.md), also in the dashboard's Glossary tab, and the
@@ -84,12 +119,12 @@ These guarantees are enforced in code, outside the agent:
 ## Repository layout
 
 - `apps/<name>/` — every app, whatever its language, self-contained with its own manifest, lockfile and tests
-  - `apps/crawler/` — the TypeScript workspace (`packages/*`: core, fingerprint, safety, config, obstacles, crawler, mcp-server)
+  - `apps/crawler/` — the TypeScript workspace (`packages/*`: core, fingerprint, safety, config, obstacles, crawler, mcp-server, docs, reference-portal)
   - `apps/dashboard/` — the read-only operator dashboard (Python, uv, FastAPI + htmx)
 - `data/` — migrations, the schema snapshot, and generated databases and evidence
 - `docs/` — the Pathfinder glossary (`docs/glossary/glossary.yaml` is the source) and the BA wiki
 - `specs/` — spec-driven development documents (spec, plan, tasks, contracts, quickstart)
-- `.claude/agents/` — subagents (crawler, db-admin, frontend-dev, governor, po); `.claude/skills/revamp-dashboard/` holds the UI design system
+- `.claude/agents/` — subagents (crawler, ba, db-admin, frontend-dev, governor, po); `.claude/skills/` holds `ba-practice` (how the BA documents) and `revamp-dashboard` (the UI design system)
 - `roadmap.md`, `CHANGELOG.md` — status and history, maintained by the `po` agent
 
 Develop with `pnpm --dir apps/crawler test`, `typecheck`, `lint`, and in `apps/dashboard` with `uv run pytest` and

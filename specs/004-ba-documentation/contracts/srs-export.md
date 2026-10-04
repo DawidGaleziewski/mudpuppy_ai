@@ -1,13 +1,19 @@
 # Contract: SRS Export (R-16)
 
 `pnpm docs:export <portal> [--env <env>] [--confirmed-only] [--out <dir>]`, default out
-`data/exports/<portal>-<env>-srs/` (replaced on each run). Rendered by pure functions in
+`data/exports/<portal>-<env>-srs/` (replaced on each run, but only when the folder is missing,
+empty, or a previous export holding `records.json` and `README.md`; any other existing folder is
+refused with exit 2 and nothing is deleted). Rendered by pure functions in
 `@pathfinder/docs` from the store; deterministic: same store + same flags → byte-identical files
 (no wall-clock times, stable sort by key, LF line endings, canonical JSON with sorted keys).
 
-Modes: default "all, drafts marked" includes `draft` and `confirmed` latest revisions (rejected and
-withdrawn are listed only in the change log); `--confirmed-only` renders the latest **confirmed**
-revision of each record and nothing else.
+Modes: default "all, drafts marked" renders the latest revision of each record when it is `draft`
+or `confirmed`. When a newer draft sits on top of a confirmed revision, the draft is rendered with
+the DRAFT callout and a line `confirmed baseline: rev N`, as the Docs tab shows it. Records whose
+latest revision is `rejected` with no confirmed baseline, and withdrawn records, are not rendered
+in the chapters; they are listed only in `appendix-change-log.md`. `--confirmed-only` renders the
+latest **confirmed** revision of each record (the baseline when a newer draft exists) and nothing
+else; its change log lists only confirmed revisions.
 
 ## Files
 
@@ -26,8 +32,9 @@ Outline adapted from ISO/IEC/IEEE 29148 (SRS) for as-is documentation.
 | `08-glossary.md` | `GL` terms sorted by verbatim term, definitions, synonyms |
 | `09-non-functional.md` | `NFR` by category, measured values |
 | `10-assumptions-and-questions.md` | `ASM`, `OQ` (BA), open crawler questions |
-| `11-unknowns.md` | Everything `not_observable`, `needs_confirmation`, blocked/open follow-ups |
+| `11-unknowns.md` | Everything `not_observable`, `needs_confirmation`, blocked/open follow-ups, and evidence links whose target no longer exists (record key, rev, evidence kind:id) |
 | `12-traceability.md` | Matrix: REQ/BR/UC → related records → evidence (kind:id, note) → run (id, mode, date) |
+| `appendix-change-log.md` | Per record key: every revision (rev, change, status, created) and its reviews (action, reviewer, time); rejected-only and withdrawn records appear only here |
 | `records.json` | Canonical machine-readable copy: records with the rendered revision, links, relations, review summary |
 
 ## Statement format
@@ -41,6 +48,7 @@ No raw evidence files, ARIA snapshots, request bodies or unscrubbed values are c
 
 ## Diagram parity
 
+The `erDiagram` in `07-data-dictionary.md` is export-only (no dashboard twin, so no parity test).
 Mermaid text for the process map, screen navigation and capability map is also produced by the
 dashboard. Both implementations are tested against `diagram-fixtures/` (input records JSON →
 expected `.mmd`), added with R-15.

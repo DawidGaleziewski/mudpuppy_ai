@@ -1,6 +1,6 @@
 ---
 title: Traceability
-glossary: [traceability, relations, evidence-link]
+glossary: [traceability, relations, evidence-link, traceability-matrix]
 citations:
   - source: "IREB, Glossary of Requirements Engineering Terminology (Martin Glinz)"
     edition: "Version 2.2.0 (2025)"

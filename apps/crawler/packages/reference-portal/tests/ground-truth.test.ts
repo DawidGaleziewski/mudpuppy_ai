@@ -75,6 +75,18 @@ describe('ground truth ⇔ served HTML', () => {
     },
   );
 
+  it('claim markers of a non-observable rule appear on no guest page', async () => {
+    const pages = await Promise.all(
+      gt.screens.filter((s) => s.guest_visible).map((s) => screenHtml(portal, s.route_template)),
+    );
+    const all = pages.map(text).join(' ').toLowerCase();
+    for (const r of gt.rules.filter((x) => !x.guest_observable)) {
+      expect(r.claim_markers, r.id).toBeDefined();
+      for (const m of r.claim_markers ?? [])
+        expect(all, `${r.id}: ${m}`).not.toContain(m.toLowerCase());
+    }
+  });
+
   it('every term appears on some guest page', async () => {
     const pages = await Promise.all(
       gt.screens.filter((s) => s.guest_visible).map((s) => screenHtml(portal, s.route_template)),

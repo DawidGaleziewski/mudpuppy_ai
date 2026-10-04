@@ -6,6 +6,23 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Added
+- R-16 SRS export and goal evaluation: `pnpm docs:export` renders a portal's documentation as a
+  deterministic SRS folder (README, chapters 01–10 in a 29148-style outline, `11-unknowns.md`,
+  `12-traceability.md`, change log, Mermaid diagrams, `records.json`) in "all, drafts marked" or
+  `--confirmed-only` mode, with golden tests; `pnpm docs:evaluate` scores the documentation against
+  the reference portal's ground truth per category (screens, fields, constraints, rules with claim
+  markers, processes, terms), lists missing items and over-claims, and fails below the SC-008
+  thresholds. Goal run on a fresh sandbox store (map → BA → 9 traces → BA, three BA sessions, 158
+  records): every category 100, 0 over-claims. Six glossary terms added (SRS export, confirmed-only
+  mode, traceability matrix, Unknowns, over-claim, coverage score)
+  (`specs/004-ba-documentation`, T072–T082).
+  Fixed: map runs stalled at `max_depth` because depth was measured from the browser's page; a
+  page's actions now gate from that page's own depth, a state keeps its shallowest depth and a
+  shorter path reopens its depth-skipped frontier items. Bugs and gaps found during the goal run
+  (F-01…F-16, open ones for a later tests/evals item) are in
+  `specs/004-ba-documentation/goal-run-findings.md`.
+  Commits: 2ba07d6, 6ad0551, e738338, 8ee6078, 74a3c66, 64a2e65, f86e6b9, 358641c (squash-merged
+  on master).
 - R-22 glossary and BA wiki: one source (`docs/glossary/glossary.yaml`) explaining 59 Pathfinder
   and BA terms chosen by the user's term review, long pages for frontier and evidence, generated
   `docs/glossary/README.md` (`uv run pathfinder-glossary`); dashboard Glossary tab with filter,

@@ -20,6 +20,8 @@
     "trace:import-agent": "tsx scripts/trace-import-agent.ts",
     "docs:audit": "tsx scripts/docs-audit.ts",
     "docs:review": "tsx scripts/docs-review.ts",
+    "docs:export": "tsx scripts/docs-export.ts",
+    "docs:evaluate": "tsx scripts/docs-evaluate.ts",
     "trace:smoke": "tsx packages/mcp-server/scripts/trace-smoke.ts",
     "reference-portal": "pnpm --filter @pathfinder/reference-portal start"
   },

@@ -309,6 +309,83 @@ describe.skipIf(!available)('map run against the mock portal', () => {
     }
   }, 60_000);
 
+  it('measures depth from the state an action or URL belongs to, not from where the browser is', async () => {
+    const { call, cleanup } = await setup({
+      portal: portalYaml({ origin: portal.origin }).replace('max_depth: 6', 'max_depth: 2'),
+    });
+    try {
+      const runId = (await call('start_run', { portal_id: 'mock', persona_id: 'guest' })).body
+        .run_id as string;
+      const home = await call('navigate', {
+        run_id: runId,
+        url: portal.origin + '/',
+        rationale: 'exploring the target URL',
+      });
+      expect(home.isError, JSON.stringify(home.body)).toBe(false);
+      const link = (name: string) =>
+        home.body.actions.find((x: Body) => x.accessible_name === name).action_id as string;
+      const act = (action_id: string) =>
+        call('act', { run_id: runId, action_id, rationale: 'exploring the next frontier item' });
+
+      // home is depth 1, /oferty depth 2 = max_depth: nothing deeper from here
+      expect((await act(link('Oferty'))).isError).toBe(false);
+      // a home-page action is still depth 2, even though the browser is on /oferty
+      expect((await act(link('Laptopy'))).isError).toBe(false);
+      // navigating back to an already recorded page keeps that page's depth
+      const back = await call('navigate', {
+        run_id: runId,
+        url: portal.origin + '/',
+        rationale: 'exploring the target URL',
+      });
+      expect(back.isError).toBe(false);
+      // its actions are gated from its own depth, not from the page the browser just left
+      const laptopy = back.body.actions.find((x: Body) => x.accessible_name === 'Laptopy');
+      expect(laptopy.allowed).toBe(true);
+    } finally {
+      await cleanup();
+    }
+  }, 60_000);
+
+  it('a state reached again by a shorter path takes the shallower depth and reopens its depth-skipped items', async () => {
+    const { ctx, call, cleanup } = await setup({
+      portal: portalYaml({ origin: portal.origin }).replace('max_depth: 6', 'max_depth: 3'),
+    });
+    try {
+      const runId = (await call('start_run', { portal_id: 'mock', persona_id: 'guest' })).body
+        .run_id as string;
+      const home = await call('navigate', {
+        run_id: runId,
+        url: portal.origin + '/',
+        rationale: 'exploring the target URL',
+      });
+      const linkOn = (page: Body, name: string) =>
+        page.body.actions.find((x: Body) => x.accessible_name === name).action_id as string;
+      const act = (action_id: string) =>
+        call('act', { run_id: runId, action_id, rationale: 'exploring the next frontier item' });
+
+      // home 1 → /oferty 2 → /oferty/laptopy 3: the listing's links would be depth 4
+      const oferty = await act(linkOn(home, 'Oferty'));
+      const deep = await act(linkOn(oferty, 'Laptopy'));
+      const deepItem = deep.body.actions.find((x: Body) => x.accessible_name === 'Laptop model 2');
+      expect(deepItem.allowed).toBe(false);
+
+      // home's own Laptopy link reaches the same listing at depth 2
+      const shallow = await act(linkOn(home, 'Laptopy'));
+      expect(shallow.isError).toBe(false);
+      const item = shallow.body.actions.find((x: Body) => x.accessible_name === 'Laptop model 2');
+      expect(item.allowed).toBe(true);
+      const row = await ctx.db
+        .selectFrom('frontier')
+        .select(['status', 'depth'])
+        .where('run_id', '=', runId)
+        .where('action_id', '=', item.action_id)
+        .executeTakeFirstOrThrow();
+      expect(row).toEqual({ status: 'pending', depth: 2 });
+    } finally {
+      await cleanup();
+    }
+  }, 60_000);
+
   it('sends the configured User-Agent on every request and respects the rate limit', async () => {
     const { call, cleanup } = await setup();
     const from = portal.requests.length;

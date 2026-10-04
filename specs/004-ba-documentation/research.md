@@ -252,11 +252,15 @@ later if it grows).
 Deterministic matching, documented in [contracts/ground-truth.md](contracts/ground-truth.md):
 - screen: a `screen` record whose `route_templates` contains the ground-truth route template;
 - field: a `data_item` whose `name_verbatim` equals the field label (case/whitespace-normalised);
-- constraint: that `data_item`'s `constraints` state the same kind (required, format, min/max,
-  allowed values) with equal values;
+- constraint: that `data_item`'s `constraints` state the same kind with an equal value: `required`,
+  `max_length`, `pattern` = `pattern_observed`, allowed values as a superset (placeholders may be
+  extra), `min`/`max` from keys of those names or, because the data item schema has no min/max
+  fields, as a token in the `format` text (R-16, T078);
 - rule: a `business_rule` or `requirement` whose evidence cites the rule's anchor screen/form **and**
-  whose text quotes the anchor label verbatim (D6 makes this a fair test); or that relates to the
-  matched `data_item`;
+  whose text quotes the anchor label verbatim (D6 makes this a fair test) **and**, when the ground
+  truth lists `claim_markers`, contains one of them (R-16, T078; contracts/ground-truth.md "Claim
+  markers"). The planned "or relates to the matched `data_item`" path was dropped: the relation rules
+  allow no BR/REQ → DI relation;
 - process: a `process` record citing a traced process whose visited route templates include the
   ground-truth first and last observable routes, or flagged `until_boundary`/not observable where the
   ground truth says it ends in a mutation or login wall;

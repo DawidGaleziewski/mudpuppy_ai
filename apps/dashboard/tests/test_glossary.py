@@ -262,7 +262,7 @@ REPO_DOCS = Path(__file__).resolve().parents[3] / "docs"
 
 # The 59 terms rated Must or Nice in specs/006-glossary-ba-wiki/term-review.md (FR-003).
 EXPECTED_IDS = {
-    # Pathfinder (39)
+    # Pathfinder (43)
     "run", "mode", "environment", "persona", "state", "fingerprint", "cluster", "settled",
     "transition", "accessible-name", "role", "safety-class", "decision", "top-locator", "target",
     "frontier", "priority-depth", "budget", "portal-scope", "network-call-shape",
@@ -270,19 +270,21 @@ EXPECTED_IDS = {
     "submit-boundary", "tool-call", "run-less-call", "percentiles", "follow-up-task", "layers",
     "analysis-session", "analysis-pass", "gaps", "record-key", "revision", "record-status",
     "status-codes", "reference-portal",
-    # BA (20)
+    "coverage-score", "over-claim", "srs-export", "confirmed-only-mode",  # R-16
+    # BA (22)
     "confidence", "documentation-record", "evidence-link", "relations", "traceability", "review",
     "capability", "screen", "process-record", "use-case", "requirement", "nfr",
     "acceptance-criteria", "business-rule", "decision-table", "data-item", "glossary-term",
     "assumption", "srs", "as-is-documentation",
+    "traceability-matrix", "unknowns",  # R-16
 }  # fmt: skip
 
 
 def test_real_glossary_is_valid_and_complete() -> None:
     g = load_ok(REPO_DOCS)
     assert {e.id for e in g.entries} == EXPECTED_IDS
-    assert len(EXPECTED_IDS) == 59
-    assert sum(e.category == "ba" for e in g.entries) == 20
+    assert len(EXPECTED_IDS) == 65
+    assert sum(e.category == "ba" for e in g.entries) == 22
 
 
 def test_real_glossary_placement_and_pages() -> None:

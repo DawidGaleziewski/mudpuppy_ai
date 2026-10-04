@@ -14,6 +14,8 @@ export class RunState {
   /** Built once per run from the portal file; every classification of this run uses it. */
   readonly ruleSet: RuleSet;
   readonly depthByState = new Map<string, number>();
+  /** The shallowest depth each URL was observed at, so `navigate` back to it keeps that depth. */
+  readonly depthByUrl = new Map<string, number>();
   private readonly urls: string[] = [];
   private templater: RouteTemplater | null = null;
   currentStateId: string | null = null;

@@ -7,3 +7,5 @@ export * from './evidence.js';
 export * from './audit.js';
 export * from './review.js';
 export * from './render/mermaid.js';
+export * from './export.js';
+export * from './evaluate.js';

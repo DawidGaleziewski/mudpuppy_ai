@@ -68,6 +68,13 @@ export const GtRule = z
     type: z.enum(['validation', 'format', 'range', 'computation', 'eligibility', 'ui_enablement']),
     anchor: z.object({ screen: Id, label: z.string().min(1) }).strict(),
     guest_observable: z.boolean(),
+    /**
+     * Phrases only a statement of this rule would contain (e.g. "30 dni"). When present, a record
+     * must contain one of them to match, so a record that merely quotes the anchor label (the login
+     * prompt on the same page) is not taken for this rule. For a non-observable rule they must never
+     * appear on a guest page (tested).
+     */
+    claim_markers: z.array(z.string().min(1)).min(1).optional(),
   })
   .strict();
 

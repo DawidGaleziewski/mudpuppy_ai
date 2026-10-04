@@ -4,10 +4,13 @@ A local, **read-only** operator dashboard over the crawler's SQLite store
 (`data/db/<env>.sqlite`). It shows every portal's runs, how they ended and why, and for each run
 the states, actions (with safety class), frontier, forms, network call shapes, robots.txt policies
 and the decision log, with confidence and evidence on every record. Open pages update live while
-the crawler writes. The **Glossary** tab explains Pathfinder's terms, and `[?]` marks next to
-labels show a term's definition on hover or keyboard focus.
+the crawler writes. The **Docs** tab shows the BA agent's documentation of each portal (the SRS
+view) and lets a reviewer confirm, reject or comment on it. The **Glossary** tab explains
+Pathfinder's terms, and `[?]` marks next to labels show a term's definition on hover or keyboard
+focus.
 
-Spec: [`specs/003-dashboard-ui/`](../../specs/003-dashboard-ui/) (R-12); glossary and BA wiki
+Spec: [`specs/003-dashboard-ui/`](../../specs/003-dashboard-ui/) (R-12); Docs tab and review
+[`specs/004-ba-documentation/`](../../specs/004-ba-documentation/) (R-15); glossary and BA wiki
 [`specs/006-glossary-ba-wiki/`](../../specs/006-glossary-ba-wiki/) (R-22).
 
 ## Run
@@ -24,6 +27,30 @@ Settings can also come from the environment: `PATHFINDER_DATA_DIR`, `PATHFINDER_
 `PATHFINDER_PORT`, `PATHFINDER_DEV`. The data dir defaults to the repo's `data/` (the nearest
 ancestor holding `data/migrations`). Every `data/db/*.sqlite` file is an environment; switch in
 the top bar (`?env=` on any URL).
+
+## Docs tab and review
+
+`/docs` lists every portal with documentation records; `/docs/<portal>` shows them by SRS section
+(capabilities, screens, processes, requirements, rules, data items, glossary, questions, follow-ups)
+with diagrams, and each record page shows its revisions, evidence (linked to the runs it came
+from) and reviews. The run page's Docs tab lists the records citing that run.
+
+Review actions are off until a reviewer name is set:
+
+```bash
+PATHFINDER_REVIEWER="Your Name" uv run pathfinder-dashboard --env sandbox
+```
+
+Confirm, reject (a reason is required) and comment act on a record's latest revision. The
+dashboard does not write them itself: `POST /docs/<portal>/<key>/reviews` runs
+`pnpm --dir <crawler_dir> docs:review --env <env>` (`PATHFINDER_CRAWLER_DIR`, default
+`apps/crawler`) with the review as JSON on stdin, so the TypeScript status engine stays the only
+writer (constitution 1.4.0). A stale revision returns 409, a missing reason 422; requests from
+another origin are refused.
+
+To hand the documentation to another team, export it from `apps/crawler`:
+`pnpm docs:export <portal> --env <env> [--confirmed-only]` writes Markdown chapters with Mermaid
+diagrams, a traceability matrix and `records.json` to `data/exports/<portal>-<env>-srs/`.
 
 ## Glossary and BA wiki
 
@@ -52,7 +79,10 @@ uv run ruff check . && uv run ruff format --check .
 
 - **Read-only.** The store is opened `file:…?mode=ro` with `PRAGMA query_only = ON`; the process
   cannot write even through a bug, and a missing store is reported, never created.
-  `tests/test_readonly.py` hashes the store before and after hitting every route.
+  `tests/test_readonly.py` hashes the store before and after hitting every route. The one
+  exception is a review action, which runs the crawler's `docs:review` command as a subprocess
+  (see Docs tab and review); `tests/test_review.py` checks that the store changes by exactly the
+  review and status rows.
 - **Local only.** Binds `127.0.0.1`; the config snapshot shows operator contact data.
 - **Schema drift fails loudly.** `models.py` mirrors every table; `tests/test_models_schema.py`
   compares fields and enums against a store built from `data/migrations/*.up.sql`.

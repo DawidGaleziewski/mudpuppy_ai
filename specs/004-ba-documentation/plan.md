@@ -109,8 +109,8 @@ data/
 └── schema/schema.sql, README.md                           # regenerated
 
 apps/crawler/
-├── package.json                    # + docs:review, docs:export, docs:audit scripts
-├── scripts/docs-review.ts, docs-export.ts, docs-audit.ts
+├── package.json                    # + docs:review, docs:export, docs:audit, docs:evaluate scripts
+├── scripts/docs-review.ts, docs-export.ts, docs-audit.ts, docs-evaluate.ts
 │   (portal-export.ts, portal-delete.ts: + Layer B and process tables in the partition map)
 └── packages/
     ├── core/src/schemas/           # + analysis-session, doc-record, doc-revision (content union),

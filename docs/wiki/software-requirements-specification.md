@@ -1,6 +1,6 @@
 ---
 title: Software requirements specification (SRS)
-glossary: [srs]
+glossary: [srs, srs-export]
 citations:
   - source: "IREB, Glossary of Requirements Engineering Terminology (Martin Glinz)"
     edition: "Version 2.2.0 (2025)"
