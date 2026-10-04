@@ -1,10 +1,10 @@
-# Pathfinder glossary
+# MudPuppy glossary
 
 <!-- Generated from glossary.yaml by `uv run pathfinder-glossary --write` (apps/dashboard). Do not edit by hand. -->
 
 This glossary explains Pathfinder's own vocabulary: the words the dashboard, the specs and the agents use for runs, evidence and documentation. It is not the portal glossary the BA agent writes (GL records in the Docs tab), which explains the documented website's business terms, such as "Składka" or "OC".
 
-## Pathfinder terms
+## MudPuppy terms
 
 ### Runs and setup
 

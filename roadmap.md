@@ -28,6 +28,7 @@ Status: `todo`, `in progress`, `done`. Last reviewed: 2026-10-03.
 | R-20 | To discuss: screenshots as evidence, with the described elements highlighted, shown on record pages | — (no spec yet) | todo |
 | R-21 | To discuss: low-fidelity wireframes per screen, drawn from recorded evidence in one style | — (no spec yet) | todo |
 | R-22 | Glossary and BA wiki: one source for Pathfinder and BA terms, dashboard Glossary page, `[?]` tooltips and section intros, local BA wiki with cited sources, glossary-sync step in the close-out | `specs/006-glossary-ba-wiki` T001–T030 | done |
+| R-23 | MudPuppy rebrand (brand only): new logo and favicon set in the dashboard, `mudpuppy://console` wordmark, product name in READMEs and glossary labels; code identifiers (`@pathfinder/*`, `pathfinder_dashboard`, MCP server names, `PATHFINDER_*`) stay for a later item | `user_input/MudPuppyRebrand/mudpuppy.md` | done |
 
 ## Notes
 
@@ -451,3 +452,9 @@ Status: `todo`, `in progress`, `done`. Last reviewed: 2026-10-03.
 - R-16 closed 2026-10-04: the user signed it off. Squash-merged into `master` as one commit, like
   R-13 to R-15; `feature/004-r16-srs-export-goal-evaluation` is deleted. Spec 004 is complete
   (T001–T082).
+- R-23 added and started 2026-10-04 on `feature/007-r23-mudpuppy-rebrand` (small task, no spec). Scope
+  agreed with the user: brand only. Historical specs, changelog and session dumps keep the old name.
+  Follow-up: rename code identifiers and the GitHub repo.
+- R-23 closed 2026-10-04: the user signed it off; origin moved to
+  `git@github.com:DawidGaleziewski/MudPuppy-AI.git`. Squash-merged into `master`;
+  `feature/007-r23-mudpuppy-rebrand` is deleted.

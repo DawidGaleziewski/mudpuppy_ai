@@ -7,7 +7,7 @@
     <p class="crumbs"><a href="{{ c.url('/') }}">Overview</a> / glossary</p>
     <h1>Glossary</h1>
   </div>
-  <p class="caption">Pathfinder and business-analysis terms · <a href="{{ c.url('/glossary/wiki') }}">[BA wiki]</a></p>
+  <p class="caption">MudPuppy and business-analysis terms · <a href="{{ c.url('/glossary/wiki') }}">[BA wiki]</a></p>
 </div>
 
 {%- if error %}
@@ -48,7 +48,7 @@
     {%- for category, group, entries in groups %}
       {%- if category != ns.category %}
         {%- set ns.category = category %}
-        <h2 class="gl-category">{{ "Pathfinder terms" if category == "pathfinder" else "Business-analysis terms" }}</h2>
+        <h2 class="gl-category">{{ "MudPuppy terms" if category == "pathfinder" else "Business-analysis terms" }}</h2>
       {%- endif %}
       <section class="section gl-group" id="group-{{ loop.index }}" aria-labelledby="group-{{ loop.index }}-title" data-gl-group>
         <div class="section-head"><h3 id="group-{{ loop.index }}-title">{{ group }}</h3></div>
@@ -56,7 +56,7 @@
         <article class="panel gl-entry" id="{{ e.id }}" data-gl-text="{{ (e.term ~ ' ' ~ e.short ~ ' ' ~ (e.labels | join(' '))) | lower }}">
           <header class="gl-entry-head">
             <h4>{{ e.term }}{% if e.retired %} <span class="muted">(retired)</span>{% endif %}</h4>
-            <span class="caption">{{ "Pathfinder term" if e.category == "pathfinder" else "BA term" }} · <a href="#{{ e.id }}" aria-label="link to {{ e.term }}">#{{ e.id }}</a></span>
+            <span class="caption">{{ "MudPuppy term" if e.category == "pathfinder" else "BA term" }} · <a href="#{{ e.id }}" aria-label="link to {{ e.term }}">#{{ e.id }}</a></span>
           </header>
           <p class="gl-short">{{ e.short }}</p>
           <div class="gl-body">{{ e.explanation | markdown }}</div>

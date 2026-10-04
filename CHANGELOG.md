@@ -6,6 +6,12 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Added
+- R-23 MudPuppy rebrand (brand only): the product is now MudPuppy. Dashboard top bar shows the
+  pixel salamander head as its mark and the `mudpuppy://console` wordmark; full favicon set and web
+  manifest under `static/brand/`; READMEs and glossary labels use the new name; the GitHub origin is
+  now `DawidGaleziewski/MudPuppy-AI`. Code identifiers (`@pathfinder/*`, `pathfinder_dashboard`, MCP
+  server names, `PATHFINDER_*`) keep the old name for a later item
+  (`user_input/MudPuppyRebrand/mudpuppy.md`). Commit: 1f9c0d6 (squash-merged on master).
 - R-16 SRS export and goal evaluation: `pnpm docs:export` renders a portal's documentation as a
   deterministic SRS folder (README, chapters 01–10 in a 29148-style outline, `11-unknowns.md`,
   `12-traceability.md`, change log, Mermaid diagrams, `records.json`) in "all, drafts marked" or

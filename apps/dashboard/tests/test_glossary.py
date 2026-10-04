@@ -253,7 +253,7 @@ def test_readme_is_deterministic_and_complete(docs: Path) -> None:
     assert "[Alpha in depth](pages/alpha-long.md)" in first
     assert "[BA wiki: Beta concept](../wiki/beta-concept.md)" in first
     assert "Gamma (retired)" in first
-    assert first.index("## Pathfinder terms") < first.index("## Business-analysis terms")
+    assert first.index("## MudPuppy terms") < first.index("## Business-analysis terms")
 
 
 # ---- the real glossary (docs/) ------------------------------------------------------------------

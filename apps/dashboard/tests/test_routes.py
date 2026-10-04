@@ -23,7 +23,7 @@ def test_shell_binds_live_stream_and_assets(client: TestClient) -> None:
     assert 'hx-sse:connect="/events"' in html
     for asset in ("htmx.min.js", "hx-sse.min.js", "live.js", "tokens.css", "app.css"):
         assert re.search(rf'(?:src|href)="/static/[^"]*{re.escape(asset)}"', html), asset
-    assert "pathfinder://console" in html
+    assert "mudpuppy://console" in html
     assert 'href="#main"' in html  # skip link
 
 

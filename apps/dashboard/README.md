@@ -1,4 +1,4 @@
-# apps/dashboard — pathfinder://console
+# apps/dashboard — mudpuppy://console
 
 A local, **read-only** operator dashboard over the crawler's SQLite store
 (`data/db/<env>.sqlite`). It shows every portal's runs, how they ended and why, and for each run
@@ -6,7 +6,7 @@ the states, actions (with safety class), frontier, forms, network call shapes, r
 and the decision log, with confidence and evidence on every record. Open pages update live while
 the crawler writes. The **Docs** tab shows the BA agent's documentation of each portal (the SRS
 view) and lets a reviewer confirm, reject or comment on it. The **Glossary** tab explains
-Pathfinder's terms, and `[?]` marks next to labels show a term's definition on hover or keyboard
+MudPuppy's terms, and `[?]` marks next to labels show a term's definition on hover or keyboard
 focus.
 
 Spec: [`specs/003-dashboard-ui/`](../../specs/003-dashboard-ui/) (R-12); Docs tab and review

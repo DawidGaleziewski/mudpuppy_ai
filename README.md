@@ -1,6 +1,8 @@
-# Pathfinder AI
+# MudPuppy
 
-Pathfinder maps a web portal the way a careful visitor would, records what it finds, and turns that
+<img src="apps/dashboard/src/pathfinder_dashboard/static/brand/mudpuppy-rust-256.png" width="256" height="207" alt="MudPuppy">
+
+MudPuppy maps a web portal the way a careful visitor would, records what it finds, and turns that
 into documentation good enough to re-create the portal. The **crawler** (`specs/001-crawler-map-mode/`)
 explores a portal as a guest, read-only on production, and stores states, transitions, forms and API
 shapes with evidence; in `trace` mode it records one named business process step by step. The **BA
@@ -78,7 +80,7 @@ local fake Polish insurer whose full truth is written down in `ground-truth.json
 servers on `PATHFINDER_ENV=sandbox`; step 6 then says how close the documentation gets.
 
 New to the vocabulary (run, frontier, evidence, settled, …)? Read the
-[Pathfinder glossary](docs/glossary/README.md), also in the dashboard's Glossary tab, and the
+[MudPuppy glossary](docs/glossary/README.md), also in the dashboard's Glossary tab, and the
 [BA wiki](docs/wiki/README.md) for the business-analysis concepts behind the documentation.
 
 ## Configuration
@@ -122,7 +124,7 @@ These guarantees are enforced in code, outside the agent:
   - `apps/crawler/` — the TypeScript workspace (`packages/*`: core, fingerprint, safety, config, obstacles, crawler, mcp-server, docs, reference-portal)
   - `apps/dashboard/` — the read-only operator dashboard (Python, uv, FastAPI + htmx)
 - `data/` — migrations, the schema snapshot, and generated databases and evidence
-- `docs/` — the Pathfinder glossary (`docs/glossary/glossary.yaml` is the source) and the BA wiki
+- `docs/` — the MudPuppy glossary (`docs/glossary/glossary.yaml` is the source) and the BA wiki
 - `specs/` — spec-driven development documents (spec, plan, tasks, contracts, quickstart)
 - `.claude/agents/` — subagents (crawler, ba, db-admin, frontend-dev, governor, po); `.claude/skills/` holds `ba-practice` (how the BA documents) and `revamp-dashboard` (the UI design system)
 - `roadmap.md`, `CHANGELOG.md` — status and history, maintained by the `po` agent

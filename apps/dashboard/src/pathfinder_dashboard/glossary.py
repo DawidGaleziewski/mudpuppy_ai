@@ -25,7 +25,7 @@ _OPENERS = re.escape('"(' + chr(0x201C))
 SENTENCE_BREAK = re.compile(rf"[.!?][{_CLOSERS}]?\s+(?=[{_OPENERS}]?[A-Z])")
 SHORT_MAX = 200
 QUOTE_MAX_SENTENCES = 2
-README_TITLE = "Pathfinder glossary"
+README_TITLE = "MudPuppy glossary"
 # Raw HTML off, tables on: content can never inject markup (research R3).
 _MD = MarkdownIt("js-default")
 
@@ -359,7 +359,7 @@ def markdown_html(text: str, base: Base = "glossary") -> Markup:
 
 # ---- README (repository view) -----------------------------------------------------------------
 
-CATEGORY_TITLES = {"pathfinder": "Pathfinder terms", "ba": "Business-analysis terms"}
+CATEGORY_TITLES = {"pathfinder": "MudPuppy terms", "ba": "Business-analysis terms"}
 
 
 def render_readme(g: Glossary) -> str:

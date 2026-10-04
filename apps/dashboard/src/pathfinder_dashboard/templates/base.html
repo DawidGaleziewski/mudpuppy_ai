@@ -4,7 +4,11 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>{% block title %}Overview{% endblock %} · pathfinder://console</title>
+  <title>{% block title %}Overview{% endblock %} · mudpuppy://console</title>
+  <link rel="icon" href="/static/brand/favicon.ico" sizes="any">
+  <link rel="icon" type="image/png" sizes="32x32" href="/static/brand/favicon-32.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="/static/brand/apple-touch-icon.png">
+  <link rel="manifest" href="/static/brand/site.webmanifest">
   <meta name="htmx-config" content='{"includeIndicatorCSS": false}'>
   <link rel="preload" href="/static/fonts/jetbrains-mono-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="/static/css/tokens.css">
@@ -17,7 +21,7 @@
 <body{% if dev %} data-dev="1"{% endif %} data-boot="{{ BOOT_ID }}">
   <a class="skip-link" href="#main">Skip to content</a>
   <header class="topbar">
-    <a class="wordmark" href="{{ c.url('/') }}">{{ m.mark(bounce=true) }}<span>pathfinder://console</span></a>
+    <a class="wordmark" href="{{ c.url('/') }}">{{ m.mark(bounce=true) }}<span>mudpuppy://console</span></a>
     <nav aria-label="Main">
       <ul class="nav">
         <li><a href="{{ c.url('/') }}"{% if nav_current | default('overview') == 'overview' and not s %} aria-current="page"{% endif %}>Overview</a></li>
