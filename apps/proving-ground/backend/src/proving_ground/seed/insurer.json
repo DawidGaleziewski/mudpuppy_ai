@@ -1,0 +1,41 @@
+{
+  "policies": [
+    {
+      "nr": "7",
+      "typ": "OC/AC samochodu",
+      "nazwa": "OC/AC samochodu nr 7",
+      "owner": "insurer-client",
+      "suma": 80000,
+      "skladka": 1840.0,
+      "od": "2025-09-01",
+      "do": "2026-08-31"
+    },
+    {
+      "nr": "12",
+      "typ": "Mieszkanie",
+      "nazwa": "Mieszkanie nr 12",
+      "owner": "insurer-client",
+      "suma": 40000,
+      "skladka": 420.0,
+      "od": "2025-11-15",
+      "do": "2026-11-14"
+    },
+    {
+      "nr": "21",
+      "typ": "NNW",
+      "nazwa": "NNW nr 21",
+      "owner": "insurer-client",
+      "suma": 20000,
+      "skladka": 96.0,
+      "od": "2026-01-01",
+      "do": "2026-12-31"
+    }
+  ],
+  "addons": [
+    {"id": "assistance-premium", "nazwa": "Assistance Premium", "cena": 249.0, "min_suma": 50000},
+    {"id": "szyby", "nazwa": "Szyby", "cena": 79.0, "min_suma": 0},
+    {"id": "opony", "nazwa": "Opony", "cena": 59.0, "min_suma": 0}
+  ],
+  "addons_bought": [],
+  "claim_window_days": 30
+}

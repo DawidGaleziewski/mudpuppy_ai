@@ -1072,6 +1072,347 @@ called "Links to", so "Target" has only this meaning.
 
 <sub>Last changed in R-22, 2026-10-03.</sub>
 
+### Proving ground
+
+<a id="proving-ground"></a>
+
+#### Proving ground
+
+**A deliberately awkward legacy estate (shop, bank, insurer and old pages) that Pathfinder runs locally to prove it can cope with known legacy obstacles.**
+
+The proving ground (`apps/proving-ground`) is a fictional Polish group, Grupa Mokradło, with
+three brands. A Django backend serves a React shell, micro-frontends, server-rendered legacy
+pages, CMS texts and a login. Each screen reproduces one or more entries of the legacy
+obstacle catalogue. Like the reference portal it has a written answer key (ground truth),
+one file per brand. Its data is disposable and may be changed, submitted and reset at will.
+
+*Example:* The bank's Historia operacji page is an iframe around an old frameset page.
+
+*Seen in:* Docs tab → proving-ground-shop; proving-ground-bank; proving-ground-insurer
+
+*Labels:* `estate`, `Grupa Mokradło`
+
+*Related:* [Reference portal / ground truth](#reference-portal), [Legacy obstacle (catalogue)](#legacy-obstacle), [Quality gate (tier 1)](#quality-gate)
+
+<sub>Last changed in R-25, 2026-10-05.</sub>
+
+<a id="legacy-obstacle"></a>
+
+#### Legacy obstacle (catalogue)
+
+**A thing that makes a legacy portal hard to map or document, such as a frameset or a missing label, listed under a stable LO- id in the obstacle catalogue.**
+
+`docs/legacy-obstacles.md` is a living catalogue. Each entry has an id (LO-01, LO-02, …;
+never reused), the place in the proving ground that reproduces it, what Pathfinder is
+expected to do, a source and a status (`proposed`, `in scope`, `later`, `withdrawn`). The
+quality gates hold one set of assertions per in-scope entry, and the evaluator scores an
+obstacles category: did the BA's records name the obstacles the portal contains.
+
+*Example:* LO-10, a "button" that is a div with a click handler and no role.
+
+*Seen in:* docs/legacy-obstacles.md; data/gates/report.json
+
+*Labels:* `LO-xx`, `obstacle`
+
+*Related:* [Proving ground](#proving-ground), [Quality gate (tier 1)](#quality-gate), [Known gap](#known-gap), [Eval (tier 2)](#eval)
+
+<sub>Last changed in R-25, 2026-10-05.</sub>
+
+### Login and credentials
+
+<a id="credential-vault"></a>
+
+#### Credential vault
+
+**The encrypted store of test-user logins and passwords that the crawler server reads, so that no secret is ever written in a config file or shown to the agent.**
+
+Values live in the `credentials` table of the environment's database, one row per portal,
+environment and reference name, sealed with AES-256-GCM. You manage them with
+`pnpm vault` in `apps/crawler` (`set`, `list`, `delete`, `generate`, `check`, `reveal`).
+Only the server decrypts a value, and only to type it into a login form. Values are never
+logged, exported or shown in the dashboard.
+
+*Example:* pnpm vault list shows names and key ids, never values.
+
+*Seen in:* pnpm vault
+
+*Labels:* `vault`
+
+*Related:* [Vault key](#vault-key), [Credential reference (ref:NAME)](#credential-ref), [Secret redactor](#secret-redactor), [Server-side login](#server-side-login)
+
+<sub>Last changed in R-26, 2026-10-05.</sub>
+
+<a id="vault-key"></a>
+
+#### Vault key
+
+**The one local key file that seals and opens the vault, kept outside the repository and the database.**
+
+The key is created on first use and read from `PATHFINDER_VAULT_KEY_FILE` (or the default
+path). Each row remembers a key id. If the key changes, old rows are refused with a message
+asking you to enter the value again. The key is not part of any export. Tests use a
+temporary key and fake values.
+
+*Seen in:* pnpm vault errors
+
+*Labels:* `key file`, `PATHFINDER_VAULT_KEY_FILE`
+
+*Related:* [Credential vault](#credential-vault)
+
+<sub>Last changed in R-26, 2026-10-05.</sub>
+
+<a id="credential-ref"></a>
+
+#### Credential reference (ref:NAME)
+
+**A placeholder such as `ref:PG_BANK_PASSWORD` in a persona file that stands for a vault value, so the file holds the name and never the secret.**
+
+A persona's `auth` block lists `ref:NAME` values. When a run starts, the server resolves
+every reference against the vault for that portal and environment. A missing one stops the
+run before the browser opens and says which name to add (`pnpm vault check <portal>
+<persona>` lists them). A persona with references on a portal that has no login block is
+refused.
+
+*Example:* `password: ref:PG_BANK_PASSWORD` in personas/proving-ground-bank/client.yaml.
+
+*Seen in:* Persona files → auth
+
+*Labels:* `ref`
+
+*Related:* [Persona](#persona), [Credential vault](#credential-vault), [Login block](#login-block)
+
+<sub>Last changed in R-26, 2026-10-05.</sub>
+
+<a id="login-block"></a>
+
+#### Login block
+
+**The part of a portal config that tells the server how to log in, where the form is, how to find its controls and how to tell success, failure and an expired session.**
+
+The `login:` block in `portal.yaml` gives the login URL, a locator for each control (label,
+placeholder or CSS, first match wins), the success and failure signs and the signs of an
+expired session. The agent never sees selectors; the server uses the block for the login
+tool and for re-login.
+
+*Seen in:* Portal config → login
+
+*Labels:* `login`
+
+*Related:* [Server-side login](#server-side-login), [Re-login](#re-login), [Credential reference (ref:NAME)](#credential-ref)
+
+<sub>Last changed in R-26, 2026-10-05.</sub>
+
+<a id="server-side-login"></a>
+
+#### Server-side login
+
+**The `login` tool lets the agent ask for a login, and the server types the vault values into the form itself, so the agent never handles a secret.**
+
+The agent calls `login` with a reason. The server fills the form, submits it and records the
+landing page like a navigation. The result says `logged_in` or `failed` with a reason
+(`rejected`, `captcha`, `locked`, `control_not_found`). Tracing is paused during the fill,
+and the values never reach the tool result, the records or the logs. Login is refused on
+production.
+
+*Seen in:* Run page → decisions (login)
+
+*Labels:* `login tool`
+
+*Related:* [Login block](#login-block), [Credential vault](#credential-vault), [Secret redactor](#secret-redactor), [Re-login](#re-login), [Hand-off (CAPTCHA)](#captcha-handoff)
+
+<sub>Last changed in R-26, 2026-10-05.</sub>
+
+<a id="re-login"></a>
+
+#### Re-login
+
+**When a session expires mid-run, the server logs in again by itself and returns to the page the agent was going to.**
+
+After each page of a logged-in run, the server checks the login block's expiry signs. On a
+match it logs in once, navigates back and writes a `relogin` decision. The agent's call
+returns the target state with `relogged_in: true`. If the re-login fails, the call returns
+`SESSION_LOST` and the run is marked login-blocked. A re-login is a crawler event, not a step
+of any business process.
+
+*Seen in:* Run page → decisions (relogin)
+
+*Labels:* `relogin`, `session expired`
+
+*Related:* [Server-side login](#server-side-login), [Login block](#login-block), [Decision (allowed / skipped)](#decision)
+
+<sub>Last changed in R-26, 2026-10-05.</sub>
+
+<a id="captcha-handoff"></a>
+
+#### Hand-off (CAPTCHA)
+
+**On a sandbox or staging portal, a CAPTCHA does not stop the run; the crawler records it, asks for a human and carries on with the rest.**
+
+The crawler never solves a CAPTCHA. Off production, it records the state, writes a `handoff`
+decision, skips actions inside the CAPTCHA container and opens a crawler question
+`Human needed: CAPTCHA on <route template>`. On production a CAPTCHA is still a block and
+the run stops with a warning. A CAPTCHA on the login page marks the run login-blocked.
+
+*Example:* Human needed: CAPTCHA on /sklep/zamowienie
+
+*Seen in:* Run page → open questions; decisions (handoff)
+
+*Labels:* `handoff`, `Human needed`
+
+*Related:* [Open question (crawler)](#crawler-open-question), [Server-side login](#server-side-login), [Decision (allowed / skipped)](#decision), [Environment (sandbox / production)](#environment)
+
+<sub>Last changed in R-26, 2026-10-05.</sub>
+
+<a id="secret-redactor"></a>
+
+#### Secret redactor
+
+**A filter that replaces every resolved secret value with `[secret]` before text is logged, stored or returned.**
+
+Every value resolved from the vault is registered with the redactor. It also catches the
+URL-encoded and JSON-escaped forms and ignores values shorter than four characters. It
+covers logs, the decision log, tool results and trace errors. A test greps the data folder
+for the password after a login run and expects no hit.
+
+*Seen in:* [secret] in logs and records
+
+*Labels:* `[secret]`
+
+*Related:* [Credential vault](#credential-vault), [Server-side login](#server-side-login), [PII scrubbing](#pii-scrubbing)
+
+<sub>Last changed in R-26, 2026-10-05.</sub>
+
+### Gates and evals
+
+<a id="quality-gate"></a>
+
+#### Quality gate (tier 1)
+
+**A fast, deterministic test that runs the crawler against the proving ground and checks one legacy obstacle or one earlier finding, with no model and no cost.**
+
+Gates live in `apps/crawler/packages/gates` and run inside `pnpm test`. The setup starts the
+proving ground on ports 4200 and 4201 and the reference portal, then each gate drives the
+server tools directly and asserts what was recorded. A coverage test fails when an in-scope
+catalogue entry has no gate. Gates test Pathfinder's mechanics; they say nothing about how
+well the agents decide.
+
+*Seen in:* pnpm test; data/gates/report.json
+
+*Labels:* `gate`, `tier 1`
+
+*Related:* [Legacy obstacle (catalogue)](#legacy-obstacle), [Known gap](#known-gap), [Gate report](#gate-report), [Eval (tier 2)](#eval)
+
+<sub>Last changed in R-27, 2026-10-05.</sub>
+
+<a id="known-gap"></a>
+
+#### Known gap
+
+**A gate for an obstacle Pathfinder does not handle yet; it describes the wanted behaviour, is expected to fail and keeps the run green.**
+
+The report lists known gaps apart from passes. The day the assertions pass, the case fails
+with "known gap is fixed", so it is turned into a normal gate and stays fixed.
+
+*Seen in:* data/gates/report.json → known_gap
+
+*Labels:* `gap()`, `known_gap`
+
+*Related:* [Quality gate (tier 1)](#quality-gate), [Gate report](#gate-report), [Legacy obstacle (catalogue)](#legacy-obstacle)
+
+<sub>Last changed in R-27, 2026-10-05.</sub>
+
+<a id="gate-report"></a>
+
+#### Gate report
+
+**The file `data/gates/report.json` that every test run writes, listing each gate's result and the catalogue entries that have no gate.**
+
+It holds one case per gate (id, title, result, time), the uncovered ids and a summary count.
+Results are `pass`, `fail`, `known_gap`, `gap_fixed` and `skipped_slow`. The file is
+generated and ignored by git.
+
+*Seen in:* data/gates/report.json
+
+*Related:* [Quality gate (tier 1)](#quality-gate), [Known gap](#known-gap), [Slow gate](#slow-gate)
+
+<sub>Last changed in R-27, 2026-10-05.</sub>
+
+<a id="slow-gate"></a>
+
+#### Slow gate
+
+**A gate that has to wait in real time (a session expiry, several fresh browsers), so `pnpm test` skips it and `pnpm test:slow` runs it.**
+
+Slow gates keep the normal test run inside its 3-minute budget. They are still counted for
+coverage, and the gate report lists them as `skipped_slow` when they did not run.
+`pnpm test:slow` runs the whole gate set with them, for example at night.
+
+*Seen in:* pnpm test:slow; data/gates/report.json → skipped_slow
+
+*Labels:* `slow`, `skipped_slow`
+
+*Related:* [Quality gate (tier 1)](#quality-gate), [Gate report](#gate-report)
+
+<sub>Last changed in R-27, 2026-10-05.</sub>
+
+<a id="eval"></a>
+
+#### Eval (tier 2)
+
+**A real, paid run of the crawler and BA agents on one portal, scored against its ground truth and compared with a saved baseline.**
+
+`pnpm eval <portal>` in `apps/crawler` starts the headless agents with a budget cap, runs
+the evaluator and writes `data/evals/<portal>/<timestamp>.json`. It then compares the
+scores and checks with the baseline and exits with 1 on a regression. It is never part of
+`pnpm test`, because it costs tokens and agents are not deterministic. It is how you see
+whether a change to a prompt, a skill or the tools made the agents better or worse.
+
+*Seen in:* pnpm eval
+
+*Labels:* `tier 2`, `pnpm eval`
+
+*Related:* [Eval baseline](#eval-baseline), [Eval workspace](#eval-workspace), [Coverage score](#coverage-score), [Quality gate (tier 1)](#quality-gate)
+
+<sub>Last changed in R-27, 2026-10-05.</sub>
+
+<a id="eval-baseline"></a>
+
+#### Eval baseline
+
+**The saved result an eval is compared with; a score may fall below it only by the portal's tolerance.**
+
+`data/evals/<portal>/baseline.json` is set with `pnpm eval <portal> --promote`, which moves
+the old baseline to `history/`. `tolerances.json` in the same folder sets how far recall and
+precision may drop (default 0.05). A check that was true in the baseline must stay true.
+Baselines are committed.
+
+*Seen in:* data/evals/<portal>/baseline.json
+
+*Labels:* `baseline`, `tolerance`, `promote`
+
+*Related:* [Eval (tier 2)](#eval), [Coverage score](#coverage-score)
+
+<sub>Last changed in R-27, 2026-10-05.</sub>
+
+<a id="eval-workspace"></a>
+
+#### Eval workspace
+
+**A fresh temporary root where an eval's agents record, so your own database and documentation are never touched.**
+
+By default an eval copies the portal and persona configs, the migrations and the persona's
+encrypted credential rows into a temp folder and points the agents there, so every eval
+starts from nothing. With `--in-place` it uses the real store instead, and the runs then show
+in the dashboard.
+
+*Seen in:* pnpm eval --in-place
+
+*Labels:* `PATHFINDER_ROOT`, `in-place`
+
+*Related:* [Eval (tier 2)](#eval), [Credential vault](#credential-vault)
+
+<sub>Last changed in R-27, 2026-10-05.</sub>
+
 ## Business-analysis terms
 
 ### Statements and traceability

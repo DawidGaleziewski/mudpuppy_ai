@@ -18,6 +18,10 @@ rather than editing this folder ad hoc.
   `REQ-007`), `doc_revisions` (immutable content, confidence, status), `doc_evidence_links`
   (each revision → Layer A rows and runs), `doc_relations`, `doc_reviews` and `followup_tasks`.
   Shapes: `specs/004-ba-documentation/data-model.md`.
+  **Credentials** (since spec 009, `0007_credentials`): the `credentials` table holds encrypted
+  test-user credentials per portal and environment (AES-256-GCM ciphertext, nonce, key id). It is
+  written only by the vault (`@pathfinder/vault`), never exported (`portal:export`), never shown in
+  the dashboard and not removed by `portal:delete`. Values are never stored or logged in plaintext.
 - `evidence/` — content-addressed (`sha256`) evidence blobs: ARIA snapshots, robots.txt
   policies and trace payloads too large for their column, referenced by `evidence_ref` columns;
   since spec 008 also state screenshots (`.png`, unmasked), layouts (`.json`: element keys and
@@ -29,6 +33,12 @@ rather than editing this folder ad hoc.
   gathered; `docs:export` writes a portal's SRS (`<portal>-<env>-srs/`: Markdown chapters,
   Mermaid diagrams, traceability matrix, `records.json`, replaced on each run); `docs:evaluate
   --out` writes a ground-truth evaluation report (JSON + Markdown).
+- `gates/` — `report.json`, written by every `pnpm test` run in `apps/crawler` (spec 009): one
+  result per quality gate, plus the catalogue entries that have no gate. Generated, not source
+  (git-ignored).
+- `evals/<portal>/` — tier-2 eval results (spec 009, `pnpm eval`): one `<timestamp>.json` per
+  run, `baseline.json` (the result new runs are compared with), `history/` (older baselines) and
+  `tolerances.json` (allowed score drops). Committed, so regressions show in review.
 - `traces/` — raw per-call Playwright trace zips at `traces/<portal>/<run_id>/<seq>-<tool>.zip`,
   referenced by `trace_spans.pw_trace_path`; unlike `evidence/` these are not content-addressed and
   are never scrubbed, so viewing them is local-only (`npx playwright show-trace <path>`, never

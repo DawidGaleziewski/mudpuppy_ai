@@ -42,6 +42,8 @@ import {
   setStateVisuals,
   type RunRow,
 } from '../services/index.js';
+import { handoffIfCaptcha } from './handoff.js';
+import { loginPreconditions, performLogin, sessionExpired } from './login.js';
 import { recordObstacles } from './obstacles-trace.js';
 import { inPwGroup } from './pw-trace.js';
 import type { RunState } from './run-state.js';
@@ -347,16 +349,34 @@ async function processPage(
   depth: number,
   /** Trace runs: the step this call is, recorded once the page is observed. */
   step?: TraceStep,
+  /** Where to return after a re-login when the session turns out expired (spec 009 FR-020). */
+  reloginTarget?: string,
 ): Promise<PageResult> {
   const { session } = rs;
-  const stabilization = await phase(ctx, 'settle', async () => {
-    const outcome = await session.settleTraced();
-    traceSettle(ctx, rs, outcome);
-    flushObstacles(ctx, rs);
-    const result = outcome.result;
-    await throwIfStopped(ctx, rs);
-    return result;
-  });
+  const settle = () =>
+    phase(ctx, 'settle', async () => {
+      const outcome = await session.settleTraced();
+      traceSettle(ctx, rs, outcome);
+      flushObstacles(ctx, rs);
+      const result = outcome.result;
+      await throwIfStopped(ctx, rs);
+      return result;
+    });
+  let stabilization = await settle();
+  let relogged = false;
+  const loginSpec = rs.effective.portal.login;
+  if (
+    reloginTarget !== undefined &&
+    loginSpec !== undefined &&
+    rs.login === 'logged_in' &&
+    !rs.loggingIn &&
+    (await sessionExpired(session.page, loginSpec))
+  ) {
+    // The expiry page is not observed or recorded: it is not part of the process (FR-020).
+    await relogin(ctx, rs, reloginTarget);
+    stabilization = await settle();
+    relogged = true;
+  }
 
   const observed = await phase(ctx, 'observe', () => observePage(session.page));
   const net = await phase(ctx, 'net_drain', async () => {
@@ -445,6 +465,8 @@ async function processPage(
       }
     });
   }
+  // A CAPTCHA on the page: a human's job, never ours (spec 009 FR-022).
+  await handoffIfCaptcha(ctx, rs, state_id, routeTemplate, (w) => persistStop(ctx, rs, w));
   const knownDepth = rs.depthByState.get(state_id);
   if (knownDepth === undefined || knownDepth > depth) rs.depthByState.set(state_id, depth);
   // A shorter path to a state already queued: its depth-skipped items are within budget again.
@@ -571,7 +593,80 @@ async function processPage(
     })),
     ...(edgeId ? { edge_id: edgeId } : {}),
     ...(recordedStep ? { step: recordedStep } : {}),
+    ...(relogged ? { relogged_in: true } : {}),
   };
+}
+
+/**
+ * The session expired under a logged-in run: log in once more, go back to where the call was
+ * going and settle there (spec 009 FR-020). A failed re-login ends logins for the run.
+ */
+async function relogin(ctx: ServerContext, rs: RunState, target: string): Promise<void> {
+  const from = rs.session.page.url();
+  const creds = loginPreconditions(rs);
+  const out = await phase(ctx, 'relogin', () => performLogin(ctx, rs, creds));
+  if (out.outcome !== 'logged_in') {
+    rs.login = 'blocked';
+    await ctx.decisions.record({
+      run_id: rs.runId,
+      kind: 'note',
+      rule: 'relogin',
+      reason: `session expired and the re-login failed (${out.reason ?? 'unknown'})`,
+      detail: {
+        from_url: shapeUrl(from),
+        outcome: out.outcome,
+        reason: out.reason ?? null,
+        at: out.at ?? null,
+      },
+    });
+    throw new ToolError(
+      'SESSION_LOST',
+      `the session expired and logging in again failed (${out.reason}${out.at ? ` at ${out.at}` : ''})`,
+      { reason: out.reason, ...(out.at ? { at: out.at } : {}) },
+    );
+  }
+  await ctx.decisions.record({
+    run_id: rs.runId,
+    kind: 'note',
+    rule: 'relogin',
+    reason: 'session expired; logged in again and returned to the target page',
+    detail: { from_url: shapeUrl(from), to_url: shapeUrl(target) },
+  });
+  ctx.tracer.event('relogin', { from_url: shapeUrl(from), to_url: shapeUrl(target) });
+  await rs.session.goto(target);
+}
+
+/**
+ * `login` (contracts/login-tool.md): the server fills and submits the portal's login form from
+ * the vault; the agent gets the outcome and the landing page, never a value.
+ */
+export async function login(
+  ctx: ServerContext,
+  rs: RunState | undefined,
+  input: { run_id: string },
+): Promise<PageResult & { outcome: 'logged_in' | 'failed'; reason?: string }> {
+  const run = await phase(ctx, 'begin_step', () => beginStep(ctx, rs, input.run_id));
+  const state = rs!;
+  return counted(state, async () => {
+    const started = Date.now();
+    const creds = loginPreconditions(state);
+    const out = await phase(ctx, 'login', () => performLogin(ctx, state, creds));
+    state.login = out.outcome === 'logged_in' ? 'logged_in' : 'blocked';
+    await ctx.decisions.record({
+      run_id: run.id,
+      kind: 'note',
+      rule: 'login',
+      reason:
+        out.outcome === 'logged_in'
+          ? 'logged in with vault credentials'
+          : `login failed (${out.reason}); no further login attempt in this run`,
+      detail: { outcome: out.outcome, reason: out.reason ?? null },
+    });
+    const page = await processPage(ctx, run, state, { kind: 'navigate' }, 0);
+    await phase(ctx, 'run_bookkeeping', () => bumpRun(ctx, run, started, 0));
+    flushObstacles(ctx, state);
+    return { ...page, outcome: out.outcome, ...(out.reason ? { reason: out.reason } : {}) };
+  });
 }
 
 /** What a trace call adds to its step row; the server fills in everything it observed. */
@@ -1021,6 +1116,7 @@ async function navigateStep(
     state.isTrace
       ? { intent: input.intent!, kind: 'navigate', action_id: null, value: null }
       : undefined,
+    input.url,
   );
   await phase(ctx, 'run_bookkeeping', async () => {
     for (const pending of await pendingNavigateItems(ctx.db, run.id, input.url))
@@ -1260,6 +1356,7 @@ async function actStep(
     state.isTrace
       ? { intent: input.intent!, kind: action.json.input ?? 'click', action_id: action.id, value }
       : undefined,
+    action.json.page_url,
   );
   await phase(ctx, 'run_bookkeeping', async () => {
     const pending = await pendingItemForAction(ctx.db, run.id, action.id);

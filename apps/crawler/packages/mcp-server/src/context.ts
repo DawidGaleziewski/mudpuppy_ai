@@ -37,6 +37,8 @@ export interface ServerContext {
   dbEnvironment: string;
   /** Used only for robots.txt (spec 002 FR-001); injectable so tests never reach the network. */
   fetch?: typeof fetch;
+  /** Vault key file (spec 009); default `PATHFINDER_VAULT_KEY_FILE` or `~/.config/pathfinder/vault.key`. */
+  vaultKeyPath?: string;
   /** Screenshot + layout of a new state (spec 008); injectable so tests can force a failure. */
   captureVisuals?: typeof captureVisuals;
 }

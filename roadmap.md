@@ -2,7 +2,7 @@
 
 Maintained by the `po` agent. Order follows the build order in the constitution. An item is `done`
 only when every task in its range in its linked spec's `tasks.md` is `[X]`.
-Status: `todo`, `in progress`, `done`. Last reviewed: 2026-10-03.
+Status: `todo`, `in progress`, `done`. Last reviewed: 2026-10-05.
 
 | ID | Item | Tasks | Status |
 | --- | --- | --- | --- |
@@ -30,6 +30,11 @@ Status: `todo`, `in progress`, `done`. Last reviewed: 2026-10-03.
 | R-22 | Glossary and BA wiki: one source for Pathfinder and BA terms, dashboard Glossary page, `[?]` tooltips and section intros, local BA wiki with cited sources, glossary-sync step in the close-out | `specs/006-glossary-ba-wiki` T001–T030 | done |
 | R-23 | MudPuppy rebrand (brand only): new logo and favicon set in the dashboard, `mudpuppy://console` wordmark, product name in READMEs and glossary labels; code identifiers (`@pathfinder/*`, `pathfinder_dashboard`, MCP server names, `PATHFINDER_*`) stay for a later item | `user_input/MudPuppyRebrand/mudpuppy.md` | done |
 | R-24 | Token usage optimisation: collect token-cost problems found while building or validating features and fix them in one place. Start set: slim `act`/`navigate` result for a known state (P1), one frontier item per link target with inferred edges for shared navigation (P2), compact `elements` in BA `get_evidence` (P3), leaner `get_run_evidence` pages (P4) | `specs/008-screenshots-wireframes/token-usage.md` | todo |
+| R-25 | Legacy proving ground: local micro-frontend estate (React shell, shop/bank/insurer front-end apps, Django backend, embedded legacy app, CMS label files) reproducing the `docs/legacy-obstacles.md` catalogue, with ground truth per domain | `specs/009-legacy-proving-ground` US1 + US2 | done |
+| R-26 | Test-user credential vault and logged-in crawling: encrypted credentials per portal and environment resolved from `ref:` names, server-side login and re-login, CAPTCHA hand-off instead of stopping the run on sandbox | `specs/009-legacy-proving-ground` US3–US5 | done |
+| R-27 | Quality gates and evals: deterministic gate per catalogue obstacle and logged finding inside `pnpm test`; on-demand headless agent eval scored against ground truth with a stored baseline | `specs/009-legacy-proving-ground` US6 + US7 | done |
+| R-28 | Crawler hardening: close the known gaps the R-27 gates found (clickable elements without a role, iframe/frameset content, pop-ups, placeholder-only fields, session ids in route templates, interstitial merging, A/B variant clustering, classic form POSTs) and the older findings mapped to gate gaps; each fixed gap is promoted from `gap()` to `gate()`. Order from the user's ranking (R-29) | spec to come | todo |
+| R-29 | R-25..R-27 leftovers: (1) first eval baselines for the four portals (`reference-insurer` guest, `proving-ground-shop` guest, `proving-ground-bank` client, `proving-ground-insurer` client) at $8 per agent with `--promote --force-promote`, checking ports 4010/4100/4101 after each (F-16, F-17); (2) read the gap ranking page (https://claude.ai/artifact/U5tVbfrdoD3rwvriT2resk), write `specs/009-legacy-proving-ground/gap-ranking.md` and order R-28; (3) recheck SC-003/004/005 on those agent runs | `specs/009-legacy-proving-ground` T043, T051, SC-003–SC-005, SC-007 | todo |
 
 ## Notes
 
@@ -496,3 +501,44 @@ Status: `todo`, `in progress`, `done`. Last reviewed: 2026-10-03.
     file on excalidraw.com and check it loads without errors, matches the layout and is editable.
   - Open findings carried over: F-02, F-07, F-13 (flaky browser tests under full-suite load),
     F-03 (latent YAML masking), F-06 (worked around), F-12 (highlight crop cuts off labels) in `specs/008-screenshots-wireframes/findings.md`.
+- R-25..R-27 added and started 2026-10-05 from `user_input/more_testing_and_test_portals.md` on
+  `feature/009-r25-r27-legacy-proving-ground` (spec `specs/009-legacy-proving-ground`, one spec,
+  three items like R-20/R-21). Decided with the user: all three domains (shop, bank, insurer),
+  micro-frontends (React shell + Django backend), simulated legacy software catalogued in
+  `docs/legacy-obstacles.md`, a local fake CAPTCHA, two-tier gates, test-user passwords stored
+  per portal and environment in SQL (generated for the proving ground). Built overnight with the
+  user asleep: open decisions became "overnight defaults" in the spec's Clarifications.
+  - Built 2026-10-05 (T001–T042, T044, T045): estate `ad50575`; vault + CLI + login block
+    `72d3f40`; ground truth v2, redaction, login tool, re-login, CAPTCHA hand-off `858f993`; gate
+    harness `4c17bca`; gate cases `28464b2`; evaluator v2 + `pnpm eval` `859fb87`; self-check and
+    docs `b90b1eb`. Analysis in `specs/009-legacy-proving-ground/analysis.md`, findings F-01..F-12
+    in `findings.md`.
+  - Gates: 78 cases, 51 passing gates, 20 known gaps (Pathfinder behaviours the estate exposes
+    and the crawler does not handle yet, e.g. div buttons LO-10, iframe/frame content LO-02/04,
+    session ids in templates LO-24), 0 uncovered; ~4.6 min, above SC-006's 3 min.
+  - Open: T043 (fair eval baselines need bigger budgets: the $3 runs were cut off, F-12), T047
+    (user review and sign-off of R-25..R-27, changelog, merge).
+  - Review session 2026-10-05 (answers in the spec's Clarifications): gate time fixed by F-06
+    (the stabilizer ignores long-lived streams) and a 20 req/s gate harness setting, slow cases in
+    `pnpm test:slow` (F-14); Playwright traces kept for credential runs with the login masked
+    (FR-019a); eval baselines at $8 per agent for all four portals; R-28 added from the 20 gaps.
+  - Later, not scheduled (user, 2026-10-05):
+    - CAPTCHA bypass provided by the portal owner: a per-portal setting for official test keys,
+      a bypass header or an allowlisted crawler IP on sandbox/staging. Pathfinder never solves or
+      evades a third-party CAPTCHA; without such a bypass the human hand-off stays.
+    - Login on production stays refused (a login submit is not a read-only action). Discuss in
+      the constitution when a real logged-in target comes up.
+    - When may the crawler end a map run? In the T043 evals the crawler agent stopped after ~17
+      states with 235 frontier items pending and $7.6 of $8 left, judging the items repeats of
+      shared navigation (F-17). The first baselines were promoted anyway (`--force-promote`,
+      user's choice), so they reflect "the agent decides when the map is done". Reconsider after
+      battle-testing on more real environments (liveinsurer); related: R-24 P2 (one frontier item per
+      link target).
+  - R-25..R-27 closed 2026-10-05 on the user's sign-off, as built. Met: SC-001, SC-002 (ground
+    truth 35/35, smoke 15/15), SC-006 (gates 2m05s, 100 % in-scope coverage, sabotage checks).
+    Partly met: SC-003 (checked on the real bank run and in gates LO-30/LO-31 incl. trace
+    chunks; no real insurer run yet), SC-004 (the capped bank run logged in and re-logged in,
+    36 % of logged-in screens, not 80 %), SC-005 (CAPTCHA hand-off proven by gate LO-37 only; no
+    agent shop map yet). Open: SC-007 (baselines) moved to R-29 with the gap ranking; the R-29
+    eval runs also cover the missing SC-003/004/005 agent runs.
+    Squash-merged into `master`, tag `v1.0.9`; branch deleted.

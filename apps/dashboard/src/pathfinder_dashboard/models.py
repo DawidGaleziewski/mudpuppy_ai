@@ -469,6 +469,20 @@ class ProcessStep(Row):
     created_at: str
 
 
+class Credential(Row):
+    """A vault row (spec 009 R-26): listed for the schema; the dashboard never decrypts one."""
+
+    id: str
+    portal_id: str
+    environment: Literal["sandbox", "staging", "production"]
+    ref_name: str
+    ciphertext: bytes
+    nonce: bytes
+    key_id: str
+    created_at: str
+    updated_at: str
+
+
 TABLE_MODELS: dict[str, type[Row]] = {
     "runs": Run,
     "state_observations": StateObservation,
@@ -497,6 +511,7 @@ TABLE_MODELS: dict[str, type[Row]] = {
     "followup_tasks": FollowupTask,
     "processes": Process,
     "process_steps": ProcessStep,
+    "credentials": Credential,
 }
 
 

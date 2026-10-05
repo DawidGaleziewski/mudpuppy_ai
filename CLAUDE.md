@@ -12,6 +12,7 @@
 
 ## Verification Before Commit
 - Run `pnpm typecheck && pnpm lint && pnpm test` (and `uv run ruff check && uv run pytest` for Python) before every commit. Never commit an intermediate state that doesn't build.
+- `pnpm test` in `apps/crawler` includes the quality gates. It starts the proving ground on ports 4200/4201, so stop anything on those ports first. `uv run pytest` also applies in `apps/proving-ground/backend`.
 - Do NOT edit files with Python/sed text-replacement scripts. Use the Edit tool, then re-read the file to confirm the change landed (prettier reformatting silently breaks string matches).
 - Never use realistic secret shapes in tests (`sk_live_`, `ghp_`, `AKIA...`). Use obviously fake values like `test-key-not-real`.
 - Before claiming a server works, kill any stale dev/watch processes first.

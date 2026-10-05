@@ -39,6 +39,10 @@ export const PHASE_NAMES = [
   'run_bookkeeping',
   'complete_run',
   'pw_trace',
+  // spec 009 (R-26): credentials and server-side login
+  'resolve_credentials',
+  'login',
+  'relogin',
 ] as const;
 export type PhaseName = (typeof PHASE_NAMES)[number];
 
@@ -67,6 +71,10 @@ export const EVENT_NAMES = [
   'error',
   'trace_health',
   'concurrent_calls',
+  // spec 009 (R-26)
+  'handoff',
+  'login',
+  'relogin',
 ] as const;
 export type EventName = (typeof EVENT_NAMES)[number];
 

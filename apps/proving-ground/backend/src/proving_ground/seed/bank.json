@@ -1,0 +1,18 @@
+{
+  "accounts": [
+    {
+      "id": "acc-1",
+      "user": "bank-client",
+      "name": "Konto Osobiste",
+      "iban": "PL05109010140000000712178111",
+      "balance": 1254367
+    },
+    {
+      "id": "acc-2",
+      "user": "bank-client",
+      "name": "Konto Oszczędnościowe",
+      "iban": "PL15109010140000000712178222",
+      "balance": 4800000
+    }
+  ]
+}

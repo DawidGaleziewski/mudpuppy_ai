@@ -109,6 +109,70 @@ export const Compliance = z.object({
 });
 export type Compliance = z.infer<typeof Compliance>;
 
+const TextList = z.union([z.string().min(1), z.array(z.string().min(1)).min(1)]);
+
+const hasLocator = (l: { label?: string; placeholder?: string; css?: string }) =>
+  l.label !== undefined || l.placeholder !== undefined || l.css !== undefined;
+
+const LOCATOR_MSG = 'needs at least one of label, placeholder or css';
+
+/** A login control locator; the first match wins in the order label, placeholder, css. */
+const FieldLocator = z
+  .object({
+    label: z.string().min(1).optional(),
+    placeholder: z.string().min(1).optional(),
+    css: z.string().min(1).optional(),
+  })
+  .strict()
+  .refine(hasLocator, { message: LOCATOR_MSG });
+
+const SubmitLocator = z
+  .object({
+    label: z.string().min(1).optional(),
+    placeholder: z.string().min(1).optional(),
+    css: z.string().min(1).optional(),
+    role: z.string().min(1).optional(),
+    name: z.string().min(1).optional(),
+  })
+  .strict()
+  .refine((l) => hasLocator(l) || (l.role !== undefined && l.name !== undefined), {
+    message: 'needs at least one of label, placeholder, css, or role together with name',
+  });
+
+/** How a persona with credentials signs in to this portal (spec 009 login-tool contract). */
+export const LoginSpec = z
+  .object({
+    url: z
+      .string()
+      .refine((v) => v.startsWith('/') || /^https?:\/\/\S+$/.test(v), {
+        message: 'must start with "/" or be an absolute http(s) URL',
+      }),
+    username: FieldLocator,
+    password: FieldLocator,
+    submit: SubmitLocator,
+    success: z
+      .object({ url_not_matching: z.string().min(1).optional(), text: TextList.optional() })
+      .strict()
+      .refine((s) => s.url_not_matching !== undefined || s.text !== undefined, {
+        message: 'needs url_not_matching or text',
+      }),
+    failure: z.object({ text: TextList }).strict().optional(),
+    expiry: z
+      .object({ url_matching: z.string().min(1).optional(), text: TextList.optional() })
+      .strict()
+      .refine((s) => s.url_matching !== undefined || s.text !== undefined, {
+        message: 'needs url_matching or text',
+      })
+      .optional(),
+    /** Persona auth keys that supply the username and the password. */
+    fields: z
+      .object({ username: z.string().min(1), password: z.string().min(1) })
+      .strict()
+      .default({ username: 'login', password: 'password' }),
+  })
+  .strict();
+export type LoginSpec = z.infer<typeof LoginSpec>;
+
 export const PortalConfig = z
   .object({
     id: Slug,
@@ -139,6 +203,8 @@ export const PortalConfig = z
      * notes). Off by default since constitution 2.0.0 (spec 008); screenshots are never masked.
      */
     pii_scrub: z.boolean().default(false),
+    /** How to sign in; required for any persona that has `ref:` credentials (spec 009). */
+    login: LoginSpec.optional(),
   })
   .strict()
   .superRefine((p, ctx) => {

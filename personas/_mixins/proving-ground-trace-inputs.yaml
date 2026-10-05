@@ -1,0 +1,15 @@
+# Trace-mode inputs for the local proving-ground estate (control label or placeholder verbatim ->
+# synthetic value), shared by all three brands' guest and client personas. The IBAN is a
+# mod-97-valid test number that is not one of the seeded accounts.
+trace_inputs:
+  # Bank: przelew
+  Numer rachunku: PL25109010140000000712178333
+  Kwota: "12,34"
+  Tytuł przelewu: Test Pathfinder
+  # Shop: zamówienie
+  Imię i nazwisko: Jan Testowy
+  E-mail: jan.testowy@example.test
+  Kod pocztowy: 00-950
+  # Insurer: zgłoszenie szkody
+  Data zdarzenia: "2026-03-10"
+  Opis: Szkoda testowa

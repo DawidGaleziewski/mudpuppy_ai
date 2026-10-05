@@ -1,0 +1,27 @@
+{
+  "name": "@pathfinder/gates",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Tier-1 quality gates (one case per legacy obstacle and logged finding) and the tier-2 eval tooling (spec 009 R-27)",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.30.0",
+    "@pathfinder/config": "workspace:*",
+    "@pathfinder/crawler": "workspace:*",
+    "@pathfinder/docs": "workspace:*",
+    "@pathfinder/reference-portal": "workspace:*",
+    "@pathfinder/core": "workspace:*",
+    "@pathfinder/mcp-server": "workspace:*",
+    "@pathfinder/vault": "workspace:*",
+    "pino": "^10.3.1",
+    "playwright": "^1.63.0",
+    "yaml": "^2.9.1",
+    "zod": "^4.6.5"
+  },
+  "devDependencies": {
+    "@types/node": "^22.20.4"
+  }
+}

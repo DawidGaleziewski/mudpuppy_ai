@@ -1,0 +1,201 @@
+# Spec 009 FR-025: every logged finding (F-xx headings in specs 004, 008, 009 findings docs) is mapped
+# here to a deterministic gate, a non-deterministic eval check, or not_testable (with a reason).
+# `pnpm test` fails when a finding heading in those files is missing from this list.
+
+# ---- spec 004 (goal-run-findings.md) ----
+- id: F-01@004
+  title: Depth measured from the browser page, not the action's state
+  tier: gate
+  reason: scripted map run with max_depth 6 must keep depth per state/URL and still accept finish_run
+- id: F-02@004
+  title: A page's actions gated with the previous page's depth
+  tier: gate
+  reason: allowed flag in a navigate result equals the decision act makes on the same action id
+- id: F-03@004
+  title: A state kept the depth of the first path that reached it
+  tier: gate
+  reason: recorded depth per state equals its shortest click distance and skipped items reopen
+- id: F-04@004
+  title: Resumed run does not rebuild per-state / per-URL depths
+  tier: gate
+  reason: interrupt a scripted run at depth 2, resume, and assert the next act's depth matches
+- id: F-05@004
+  title: actions.allowed / skip_reason stay as first issued
+  tier: gate
+  reason: re-issue an action whose decision changed and assert the stored row follows
+- id: F-06@004
+  title: Agent stopped with a non-empty frontier by its own judgment
+  tier: eval
+  check: frontier_empty_at_finish
+- id: F-07@004
+  title: Asked map mode to fill the calculator forms
+  tier: not_testable
+  reason: process slip by Claude (wrong prompt); map mode never fills forms by design
+- id: F-08@004
+  title: Cleared the sandbox portal without being asked
+  tier: not_testable
+  reason: process slip by Claude (destructive data operation unasked)
+- id: F-09@004
+  title: Running MCP server held old code after a fix
+  tier: not_testable
+  reason: environment and process issue (stale server process after a fix)
+- id: F-10@004
+  title: Map mode issues and presses submit buttons when the persona allows it
+  tier: not_testable
+  reason: superseded by constitution 2.0.0 (forms may be submitted on test environments)
+- id: F-11@004
+  title: Trace step results summarise tables, agent cannot read values
+  tier: eval
+  check: ba_computation_rule_names_factor
+- id: F-12@004
+  title: Agent judged dates against the real date, not the portal's
+  tier: eval
+  check: dates_against_portal_clock
+- id: F-13@004
+  title: One claim marker is enough to match a rule, scores run high
+  tier: gate
+  reason: golden evaluator input quoting only the hint example must not match R11; two of three bands scores R05 partial
+- id: F-14@004
+  title: Trace runs count depth against the map budget
+  tier: gate
+  reason: scripted trace of a 7-step process on a portal with max_depth 6 reaches its goal
+- id: F-15@004
+  title: Trace agent sent fills in parallel with stale action ids
+  tier: eval
+  check: no_parallel_fills
+- id: F-16@004
+  title: Revising a record drops citations from runs outside the session
+  tier: gate
+  reason: revise a record cited from run A in a session over run B only; revision keeps A's links and adds B's
+- id: F-17@004
+  title: Depth test flaked once under full-suite load
+  tier: gate
+  reason: stable repro of the depth scenario must pass repeatedly and report the server error code on failure
+
+# ---- spec 008 (specs/008-screenshots-wireframes/findings.md) ----
+- id: F-01@008
+  title: Constitution edited with a Python script
+  tier: not_testable
+  reason: process slip by Claude (edited a tracked file with a script)
+- id: F-02@008
+  title: Flaky trace-run test "refuses malformed trace inputs"
+  tier: gate
+  reason: stable repro of the malformed-trace-input refusals pinned with an explicit timeout and server log on failure
+- id: F-03@008
+  title: Masking a whole YAML snapshot can break its quoting
+  tier: gate
+  reason: keys of maskText(yaml) equal keys of the tree with maskText applied per name
+- id: F-04@008
+  title: New map-run integration test timed out at the 5 s default
+  tier: not_testable
+  reason: Claude's slip (missing explicit test timeout), fixed; covered by review not a gate
+- id: F-05@008
+  title: Second sed edit of a tracked file
+  tier: not_testable
+  reason: process slip by Claude (edited a tracked file with sed)
+- id: F-06@008
+  title: Decision-log detail redacts any value under a name key
+  tier: gate
+  reason: write a decision with structural keys (name, title, label) and assert which survive scrubbing
+- id: F-07@008
+  title: Flaky stabilizer test "waits for a running finite CSS animation"
+  tier: gate
+  reason: stable repro asserting the stabilizer's recorded animation count instead of wall time
+- id: F-08@008
+  title: Crawler agent stopped a map run by choice with non-empty frontier
+  tier: eval
+  check: frontier_empty_at_finish
+- id: F-09@008
+  title: Orphan MCP servers from earlier sessions held the store open
+  tier: not_testable
+  reason: environment-only issue (stdio MCP children outliving sessions)
+- id: F-10@008
+  title: A reopened navigate frontier item can never be settled
+  tier: gate
+  reason: refuse a navigate for depth, reach the state shallower, execute the navigate, assert item done and finish_run passes
+- id: F-11@008
+  title: Dashboard smoke test did not copy data/evidence
+  tier: not_testable
+  reason: test fixture slip by Claude, fixed; dashboard fixture concern outside the crawler gates
+- id: F-12@008
+  title: Highlight crop cuts off labels to the right of a small control
+  tier: gate
+  reason: golden crop for a radio group asserts the crop contains the label text box
+- id: F-13@008
+  title: Flaky autofill test "fills and sends nothing on production"
+  tier: gate
+  reason: stable repro of production autofill sending nothing, printing the server log on an INTERNAL result
+
+# ---- spec 009 (specs/009-legacy-proving-ground/findings.md) ----
+- id: F-01@009
+  title: CAPTCHA detection never saw widgets a single-page app renders
+  tier: gate
+  reason: gate LO-37 on the shop checkout (SPA widget) and on a server-rendered page with the widget
+- id: F-02@009
+  title: Rate limiter tripped by a normal page load
+  tier: gate
+  reason: gate LO-41 asserts a full shell page load never trips the limiter and a burst of 31 API calls does
+- id: F-03@009
+  title: Two subagents ran ruff format over the whole backend
+  tier: not_testable
+  reason: process slip in subagent briefs (formatting scope), no behaviour to test
+- id: F-04@009
+  title: A README in portals/ broke code treating every entry as a portal
+  tier: gate
+  reason: portals/ holds only folders with a portal.yaml
+- id: F-05@009
+  title: Logging in after an expiry expired the new session at once
+  tier: not_testable
+  reason: estate bug, pinned by backend pytest test_login_after_expiry_starts_a_fresh_idle_clock and gate LO-32
+- id: F-06@009
+  title: Pages with a live SSE connection never reach network idle
+  tier: not_testable
+  reason: fixed in the stabilizer, pinned by its unit test (EventSource) and gate LO-44
+- id: F-08@009
+  title: A parallel burst against the estate is spread out by its listen backlog
+  tier: not_testable
+  reason: estate server setting (request_queue_size), fixed in launcher.py; no crawler behaviour
+- id: F-09@009
+  title: Resume test lost a step count once under full-suite load
+  tier: not_testable
+  reason: load-dependent flakiness without a deterministic repro yet
+- id: F-10@009
+  title: Frameset pages crashed observation with an internal error
+  tier: gate
+  reason: navigate to a frameset page records a state instead of INTERNAL
+- id: F-11@009
+  title: Edited a test file with sed
+  tier: not_testable
+  reason: process slip by Claude
+- id: F-12@009
+  title: A budget-capped eval interrupts the crawler mid-map
+  tier: eval
+  check: crawler_completed
+- id: F-13@009
+  title: Edited a gate source file with a Python replace script
+  tier: not_testable
+  reason: process slip by Claude
+- id: F-14@009
+  title: Gate time was blamed on the slow cases; the real cost was politeness and SSE
+  tier: not_testable
+  reason: test-harness timing observation; pinned by the stabilizer unit test and the gate budget
+- id: F-15@009
+  title: Pausing the Playwright trace around the login still leaked the password
+  tier: not_testable
+  reason: pinned by gates LO-30 and LO-31, which search the unzipped trace chunks, and core zip.test.ts
+- id: F-16@009
+  title: A reference-portal server from the overnight run was still listening
+  tier: not_testable
+  reason: process slip by Claude (session-end check); suggestion for the eval preflight logged
+- id: F-17@009
+  title: The crawler agent ends a map run early, with most of the frontier pending
+  tier: eval
+  check: crawler_completed
+- id: F-18@009
+  title: Dashboard tests were red since the overnight build
+  tier: not_testable
+  reason: process slip by Claude; the dashboard's own tests catch it once run
+- id: F-19@009
+  title: Gates rebuilt the estate's web apps in dev JSX mode, so nothing rendered
+  tier: not_testable
+  reason: caught by the ground-truth self-check (pnpm gt:check) after any forced rebuild

@@ -1,0 +1,38 @@
+# Specification Quality Checklist: Legacy Proving Ground, Credential Vault, Quality Gates and Evals
+
+**Purpose**: Validate specification completeness and quality before proceeding to planning
+**Created**: 2026-10-05
+**Feature**: [spec.md](../spec.md)
+
+## Content Quality
+
+- [x] No implementation details (languages, frameworks, APIs)
+- [x] Focused on user value and business needs
+- [x] Written for non-technical stakeholders
+- [x] All mandatory sections completed
+
+## Requirement Completeness
+
+- [x] No [NEEDS CLARIFICATION] markers remain
+- [x] Requirements are testable and unambiguous
+- [x] Success criteria are measurable
+- [x] Success criteria are technology-agnostic (no implementation details)
+- [x] All acceptance scenarios are defined
+- [x] Edge cases are identified
+- [x] Scope is clearly bounded
+- [x] Dependencies and assumptions identified
+
+## Feature Readiness
+
+- [x] All functional requirements have clear acceptance criteria
+- [x] User scenarios cover primary flows
+- [x] Feature meets measurable outcomes defined in Success Criteria
+- [x] No implementation details leak into specification
+
+## Notes
+
+- The user named the stack (React single-page shell, Django backend, micro-frontends). The spec
+  keeps it to "modern shell", "front-end apps" and "backend"; the stack is fixed in plan.md.
+  Terms like iframe, DOM markers and CAPTCHA are domain facts of the obstacles, not design.
+- No [NEEDS CLARIFICATION] markers: the user was asleep, so open decisions became "overnight
+  defaults" in the Clarifications section, to confirm in the morning.

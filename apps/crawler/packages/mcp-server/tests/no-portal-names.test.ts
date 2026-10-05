@@ -32,7 +32,10 @@ function portalNames(): string[] {
 describe('no portal-specific names in code (spec 002 FR-021, SC-007)', () => {
   it('crawler, safety, MCP server, config and agent files never name a portal', () => {
     const sources = [
-      ...readdirSync(join(REPO, 'apps/crawler/packages')).flatMap((pkg) => {
+      // `gates` is test tooling whose job is to drive named test portals (spec 009 R-27).
+      ...readdirSync(join(REPO, 'apps/crawler/packages'))
+        .filter((pkg) => pkg !== 'gates')
+        .flatMap((pkg) => {
         const src = join(REPO, 'apps/crawler/packages', pkg, 'src');
         try {
           return files(src, '.ts');

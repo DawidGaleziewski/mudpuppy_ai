@@ -4,10 +4,11 @@ import { BrowserSession, type StabilizerOptions } from '@pathfinder/crawler';
 import { computeFingerprint } from '@pathfinder/fingerprint';
 import type { ServerContext } from '../context.js';
 import type { Runtime } from '../runtime.js';
-import { act, navigate, navigationPolicy, persistStop } from './pipeline.js';
+import { act, login, navigate, navigationPolicy, persistStop } from './pipeline.js';
 import { RunState } from './run-state.js';
 import { processOfRun } from '../services/trace.js';
 import { pwTraceEnabled, startPwTrace } from './pw-trace.js';
+import { runSecrets } from '../services/credentials.js';
 import { createRunTraceHooks } from './trace-hooks.js';
 
 export interface BrowserRuntimeOptions {
@@ -23,10 +24,15 @@ export interface BrowserRuntimeOptions {
 export function createBrowserRuntime(opts: BrowserRuntimeOptions = {}): Runtime {
   const runs = new Map<string, RunState>();
 
-  const closeRun = async (runId: string): Promise<void> => {
+  const closeSession = async (runId: string): Promise<void> => {
     const rs = runs.get(runId);
     runs.delete(runId);
     await rs?.session.close();
+  };
+  /** The run has ended: its browser and its resolved credentials go. */
+  const closeRun = async (runId: string): Promise<void> => {
+    runSecrets.delete(runId);
+    await closeSession(runId);
   };
 
   return {
@@ -37,6 +43,7 @@ export function createBrowserRuntime(opts: BrowserRuntimeOptions = {}): Runtime 
     },
     navigate: (ctx, input) => navigate(ctx, runs.get(input.run_id), input),
     act: (ctx, input) => act(ctx, runs.get(input.run_id), input),
+    login: (ctx, input) => login(ctx, runs.get(input.run_id), input),
     closeRun,
     robotsStats: (runId) => runs.get(runId)?.session.gate.robotsStats(),
     async closeAll() {
@@ -50,7 +57,7 @@ export function createBrowserRuntime(opts: BrowserRuntimeOptions = {}): Runtime 
     approved: Parameters<Runtime['openSession']>[2],
     robots: Parameters<Runtime['openSession']>[3],
   ): Promise<RunState> {
-    await closeRun(run.id); // a resumed run replaces any earlier session
+    await closeSession(run.id); // a resumed run replaces any earlier session (keeps its credentials)
     const holder: { rs?: RunState } = {};
     const templateFor = (url: string): string => {
       try {
@@ -117,7 +124,18 @@ export function createBrowserRuntime(opts: BrowserRuntimeOptions = {}): Runtime 
     const rs = new RunState(run.id, session, approved.effective, approved.scope, robots, trace);
     rs.processId = (await processOfRun(ctx, run.id))?.id ?? null;
     holder.rs = rs;
-    if (pwTraceEnabled(approved.effective.portal.environment, ctx.pwTrace))
+    // Playwright traces keep DOM snapshots with typed input values: a run that logs in with vault
+    // credentials pauses the trace around every login (spec 009 FR-019a), and says so.
+    const hasCredentials = Object.keys(runSecrets.get(run.id) ?? {}).length > 0;
+    const tracing = pwTraceEnabled(approved.effective.portal.environment, ctx.pwTrace);
+    if (hasCredentials && tracing)
+      await ctx.decisions.record({
+        run_id: run.id,
+        kind: 'note',
+        rule: 'pw_trace:login_masked',
+        reason: 'Playwright trace recorded with every login left out (vault credentials)',
+      });
+    if (tracing)
       rs.pw = await startPwTrace({
         context: session.context,
         tracer: ctx.tracer,

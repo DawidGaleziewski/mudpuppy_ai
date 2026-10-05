@@ -33,6 +33,11 @@ export const ERROR_CODES = [
   'NOT_OBSERVABLE_NEEDS_QUESTION',
   // Operator review command (shared with @pathfinder/docs DocsErrorCode).
   'NOT_CANCELLABLE',
+  // Server-side login (specs/009-legacy-proving-ground/contracts/login-tool.md).
+  'LOGIN_NOT_CONFIGURED',
+  'LOGIN_BLOCKED',
+  'PRODUCTION_REFUSED',
+  'SESSION_LOST',
 ] as const;
 export type ErrorCode = (typeof ERROR_CODES)[number];
 

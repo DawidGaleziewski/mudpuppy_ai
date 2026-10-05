@@ -1,0 +1,386 @@
+{
+ "categories": [
+  {
+   "id": 1,
+   "slug": "obuwie-gumowe",
+   "name": "Obuwie gumowe"
+  },
+  {
+   "id": 2,
+   "slug": "odziez-przeciwdeszczowa",
+   "name": "Odzież przeciwdeszczowa"
+  },
+  {
+   "id": 3,
+   "slug": "akcesoria-do-ogrodu",
+   "name": "Akcesoria do ogrodu"
+  },
+  {
+   "id": 4,
+   "slug": "wyprawa-w-teren",
+   "name": "Wyprawa w teren"
+  }
+ ],
+ "products": [
+  {
+   "id": 1,
+   "slug": "kalosze-bagienne-klasyczne",
+   "name": "Kalosze Bagienne klasyczne",
+   "category": 1,
+   "price": 12900,
+   "description": "Kalosze Bagienne klasyczne — sprawdzony wybór z kolekcji Mokradło. Wytrzymały materiał, dobre wykonanie, szybka wysyłka.",
+   "hue": 0
+  },
+  {
+   "id": 2,
+   "slug": "kalosze-torfowisko-dzieciece",
+   "name": "Kalosze Torfowisko dziecięce",
+   "category": 1,
+   "price": 7900,
+   "description": "Kalosze Torfowisko dziecięce — sprawdzony wybór z kolekcji Mokradło. Wytrzymały materiał, dobre wykonanie, szybka wysyłka.",
+   "hue": 37
+  },
+  {
+   "id": 3,
+   "slug": "gumowce-rozlewisko",
+   "name": "Gumowce Rozlewisko",
+   "category": 1,
+   "price": 13900,
+   "description": "Gumowce Rozlewisko — sprawdzony wybór z kolekcji Mokradło. Wytrzymały materiał, dobre wykonanie, szybka wysyłka.",
+   "hue": 74
+  },
+  {
+   "id": 4,
+   "slug": "kalosze-blotniak-ocieplane",
+   "name": "Kalosze Błotniak ocieplane",
+   "category": 1,
+   "price": 16900,
+   "description": "Kalosze Błotniak ocieplane — sprawdzony wybór z kolekcji Mokradło. Wytrzymały materiał, dobre wykonanie, szybka wysyłka.",
+   "hue": 111
+  },
+  {
+   "id": 5,
+   "slug": "polbuty-kaluza",
+   "name": "Półbuty Kałuża",
+   "category": 1,
+   "price": 9900,
+   "description": "Półbuty Kałuża — sprawdzony wybór z kolekcji Mokradło. Wytrzymały materiał, dobre wykonanie, szybka wysyłka.",
+   "hue": 148
+  },
+  {
+   "id": 6,
+   "slug": "wodery-rybackie-grzezawisko",
+   "name": "Wodery Rybackie Grzęzawisko",
+   "category": 1,
+   "price": 24900,
+   "description": "Wodery Rybackie Grzęzawisko — sprawdzony wybór z kolekcji Mokradło. Wytrzymały materiał, dobre wykonanie, szybka wysyłka.",
+   "hue": 185
+  },
+  {
+   "id": 7,
+   "slug": "kalosze-mokradlo-premium",
+   "name": "Kalosze Mokradło Premium",
+   "category": 1,
+   "price": 19900,
+   "description": "Kalosze Mokradło Premium — sprawdzony wybór z kolekcji Mokradło. Wytrzymały materiał, dobre wykonanie, szybka wysyłka.",
+   "hue": 222
+  },
+  {
+   "id": 8,
+   "slug": "klapki-sitowie",
+   "name": "Klapki Sitowie",
+   "category": 1,
+   "price": 3900,
+   "description": "Klapki Sitowie — sprawdzony wybór z kolekcji Mokradło. Wytrzymały materiał, dobre wykonanie, szybka wysyłka.",
+   "hue": 259
+  },
+  {
+   "id": 9,
+   "slug": "plaszcz-mzawka",
+   "name": "Płaszcz Mżawka",
+   "category": 2,
+   "price": 28900,
+   "description": "Płaszcz Mżawka — sprawdzony wybór z kolekcji Mokradło. Wytrzymały materiał, dobre wykonanie, szybka wysyłka.",
+   "hue": 296
+  },
+  {
+   "id": 10,
+   "slug": "kurtka-ulewa",
+   "name": "Kurtka Ulewa",
+   "category": 2,
+   "price": 34900,
+   "description": "Kurtka Ulewa — sprawdzony wybór z kolekcji Mokradło. Wytrzymały materiał, dobre wykonanie, szybka wysyłka.",
+   "hue": 333
+  },
+  {
+   "id": 11,
+   "slug": "peleryna-przelotny-deszcz",
+   "name": "Peleryna Przelotny Deszcz",
+   "category": 2,
+   "price": 5900,
+   "description": "Peleryna Przelotny Deszcz — sprawdzony wybór z kolekcji Mokradło. Wytrzymały materiał, dobre wykonanie, szybka wysyłka.",
+   "hue": 10
+  },
+  {
+   "id": 12,
+   "slug": "spodnie-chlapa",
+   "name": "Spodnie Chlapa",
+   "category": 2,
+   "price": 15900,
+   "description": "Spodnie Chlapa — sprawdzony wybór z kolekcji Mokradło. Wytrzymały materiał, dobre wykonanie, szybka wysyłka.",
+   "hue": 47
+  },
+  {
+   "id": 13,
+   "slug": "kapelusz-sztormiak",
+   "name": "Kapelusz Sztormiak",
+   "category": 2,
+   "price": 6900,
+   "description": "Kapelusz Sztormiak — sprawdzony wybór z kolekcji Mokradło. Wytrzymały materiał, dobre wykonanie, szybka wysyłka.",
+   "hue": 84
+  },
+  {
+   "id": 14,
+   "slug": "parasol-zawilec",
+   "name": "Parasol Zawilec",
+   "category": 2,
+   "price": 4900,
+   "description": "Parasol Zawilec — sprawdzony wybór z kolekcji Mokradło. Wytrzymały materiał, dobre wykonanie, szybka wysyłka.",
+   "hue": 121
+  },
+  {
+   "id": 15,
+   "slug": "plaszcz-dzieciecy-kropelka",
+   "name": "Płaszcz dziecięcy Kropelka",
+   "category": 2,
+   "price": 11900,
+   "description": "Płaszcz dziecięcy Kropelka — sprawdzony wybór z kolekcji Mokradło. Wytrzymały materiał, dobre wykonanie, szybka wysyłka.",
+   "hue": 158
+  },
+  {
+   "id": 16,
+   "slug": "rekawice-wodoodporne",
+   "name": "Rękawice Wodoodporne",
+   "category": 2,
+   "price": 3500,
+   "description": "Rękawice Wodoodporne — sprawdzony wybór z kolekcji Mokradło. Wytrzymały materiał, dobre wykonanie, szybka wysyłka.",
+   "hue": 195
+  },
+  {
+   "id": 17,
+   "slug": "konewka-rosa-10-l",
+   "name": "Konewka Rosa 10 l",
+   "category": 3,
+   "price": 4500,
+   "description": "Konewka Rosa 10 l — sprawdzony wybór z kolekcji Mokradło. Wytrzymały materiał, dobre wykonanie, szybka wysyłka.",
+   "hue": 232
+  },
+  {
+   "id": 18,
+   "slug": "rekawice-ogrodowe-humus",
+   "name": "Rękawice ogrodowe Humus",
+   "category": 3,
+   "price": 2900,
+   "description": "Rękawice ogrodowe Humus — sprawdzony wybór z kolekcji Mokradło. Wytrzymały materiał, dobre wykonanie, szybka wysyłka.",
+   "hue": 269
+  },
+  {
+   "id": 19,
+   "slug": "waz-ogrodowy-strumyk-20-m",
+   "name": "Wąż ogrodowy Strumyk 20 m",
+   "category": 3,
+   "price": 8900,
+   "description": "Wąż ogrodowy Strumyk 20 m — sprawdzony wybór z kolekcji Mokradło. Wytrzymały materiał, dobre wykonanie, szybka wysyłka.",
+   "hue": 306
+  },
+  {
+   "id": 20,
+   "slug": "fartuch-grzadka",
+   "name": "Fartuch Grządka",
+   "category": 3,
+   "price": 5500,
+   "description": "Fartuch Grządka — sprawdzony wybór z kolekcji Mokradło. Wytrzymały materiał, dobre wykonanie, szybka wysyłka.",
+   "hue": 343
+  },
+  {
+   "id": 21,
+   "slug": "klecznik-rabata",
+   "name": "Klęcznik Rabata",
+   "category": 3,
+   "price": 6700,
+   "description": "Klęcznik Rabata — sprawdzony wybór z kolekcji Mokradło. Wytrzymały materiał, dobre wykonanie, szybka wysyłka.",
+   "hue": 20
+  },
+  {
+   "id": 22,
+   "slug": "sekator-galazka",
+   "name": "Sekator Gałązka",
+   "category": 3,
+   "price": 7900,
+   "description": "Sekator Gałązka — sprawdzony wybór z kolekcji Mokradło. Wytrzymały materiał, dobre wykonanie, szybka wysyłka.",
+   "hue": 57
+  },
+  {
+   "id": 23,
+   "slug": "taczka-ciezar",
+   "name": "Taczka Ciężar",
+   "category": 3,
+   "price": 31900,
+   "description": "Taczka Ciężar — sprawdzony wybór z kolekcji Mokradło. Wytrzymały materiał, dobre wykonanie, szybka wysyłka.",
+   "hue": 94
+  },
+  {
+   "id": 24,
+   "slug": "zraszacz-deszczyk",
+   "name": "Zraszacz Deszczyk",
+   "category": 3,
+   "price": 3900,
+   "description": "Zraszacz Deszczyk — sprawdzony wybór z kolekcji Mokradło. Wytrzymały materiał, dobre wykonanie, szybka wysyłka.",
+   "hue": 131
+  },
+  {
+   "id": 25,
+   "slug": "plecak-szuwary-30-l",
+   "name": "Plecak Szuwary 30 l",
+   "category": 4,
+   "price": 21900,
+   "description": "Plecak Szuwary 30 l — sprawdzony wybór z kolekcji Mokradło. Wytrzymały materiał, dobre wykonanie, szybka wysyłka.",
+   "hue": 168
+  },
+  {
+   "id": 26,
+   "slug": "termos-mgla-1-l",
+   "name": "Termos Mgła 1 l",
+   "category": 4,
+   "price": 8900,
+   "description": "Termos Mgła 1 l — sprawdzony wybór z kolekcji Mokradło. Wytrzymały materiał, dobre wykonanie, szybka wysyłka.",
+   "hue": 205
+  },
+  {
+   "id": 27,
+   "slug": "latarka-czolowa-swietlik",
+   "name": "Latarka czołowa Świetlik",
+   "category": 4,
+   "price": 6500,
+   "description": "Latarka czołowa Świetlik — sprawdzony wybór z kolekcji Mokradło. Wytrzymały materiał, dobre wykonanie, szybka wysyłka.",
+   "hue": 242
+  },
+  {
+   "id": 28,
+   "slug": "namiot-trzcinowy-dwuosobowy",
+   "name": "Namiot Trzcinowy dwuosobowy",
+   "category": 4,
+   "price": 54900,
+   "description": "Namiot Trzcinowy dwuosobowy — sprawdzony wybór z kolekcji Mokradło. Wytrzymały materiał, dobre wykonanie, szybka wysyłka.",
+   "hue": 279
+  },
+  {
+   "id": 29,
+   "slug": "spiwor-mokradla",
+   "name": "Śpiwór Mokradła",
+   "category": 4,
+   "price": 32900,
+   "description": "Śpiwór Mokradła — sprawdzony wybór z kolekcji Mokradło. Wytrzymały materiał, dobre wykonanie, szybka wysyłka.",
+   "hue": 316
+  },
+  {
+   "id": 30,
+   "slug": "mata-turystyczna-mech",
+   "name": "Mata turystyczna Mech",
+   "category": 4,
+   "price": 9900,
+   "description": "Mata turystyczna Mech — sprawdzony wybór z kolekcji Mokradło. Wytrzymały materiał, dobre wykonanie, szybka wysyłka.",
+   "hue": 353
+  },
+  {
+   "id": 31,
+   "slug": "kompas-polnoc",
+   "name": "Kompas Północ",
+   "category": 4,
+   "price": 3200,
+   "description": "Kompas Północ — sprawdzony wybór z kolekcji Mokradło. Wytrzymały materiał, dobre wykonanie, szybka wysyłka.",
+   "hue": 30
+  },
+  {
+   "id": 32,
+   "slug": "worek-wodoszczelny-wydra-20-l",
+   "name": "Worek wodoszczelny Wydra 20 l",
+   "category": 4,
+   "price": 7400,
+   "description": "Worek wodoszczelny Wydra 20 l — sprawdzony wybór z kolekcji Mokradło. Wytrzymały materiał, dobre wykonanie, szybka wysyłka.",
+   "hue": 67
+  }
+ ],
+ "lockers": {
+  "Warszawa": [
+   {
+    "id": "WAW01M",
+    "name": "WAW01M – ul. Główna 1"
+   },
+   {
+    "id": "WAW07M",
+    "name": "WAW07M – ul. Dworcowa 12"
+   },
+   {
+    "id": "WAW15M",
+    "name": "WAW15M – al. Lipowa 3"
+   }
+  ],
+  "Kraków": [
+   {
+    "id": "KRK01M",
+    "name": "KRK01M – ul. Główna 1"
+   },
+   {
+    "id": "KRK07M",
+    "name": "KRK07M – ul. Dworcowa 12"
+   },
+   {
+    "id": "KRK15M",
+    "name": "KRK15M – al. Lipowa 3"
+   }
+  ],
+  "Wrocław": [
+   {
+    "id": "WRO01M",
+    "name": "WRO01M – ul. Główna 1"
+   },
+   {
+    "id": "WRO07M",
+    "name": "WRO07M – ul. Dworcowa 12"
+   },
+   {
+    "id": "WRO15M",
+    "name": "WRO15M – al. Lipowa 3"
+   }
+  ],
+  "Gdańsk": [
+   {
+    "id": "GDA01M",
+    "name": "GDA01M – ul. Główna 1"
+   },
+   {
+    "id": "GDA07M",
+    "name": "GDA07M – ul. Dworcowa 12"
+   },
+   {
+    "id": "GDA15M",
+    "name": "GDA15M – al. Lipowa 3"
+   }
+  ],
+  "Poznań": [
+   {
+    "id": "POZ01M",
+    "name": "POZ01M – ul. Główna 1"
+   },
+   {
+    "id": "POZ07M",
+    "name": "POZ07M – ul. Dworcowa 12"
+   },
+   {
+    "id": "POZ15M",
+    "name": "POZ15M – al. Lipowa 3"
+   }
+  ]
+ }
+}

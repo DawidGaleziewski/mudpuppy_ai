@@ -1,6 +1,7 @@
 /// <reference lib="dom" />
 import { buildLayout, type AriaJsonNode, type Layout } from '@pathfinder/core';
 import type { Page } from 'playwright';
+import { PAGE_ROOT } from './observer.js';
 import { evalInPage } from './pw-eval.js';
 
 /** Screenshots taller than this (CSS px) are cut; the layout records `cut: true` (spec 008 FR-006). */
@@ -47,7 +48,8 @@ export async function captureVisuals(
     innerHeight: window.innerHeight,
   }));
   const tree = (await page
-    .locator('body')
+    .locator(PAGE_ROOT)
+    .first()
     .ariaSnapshotJSON({ boxes: true, timeout })) as unknown as AriaJsonNode[];
   const cut = metrics.scrollHeight > maxHeight;
   const png = await page.screenshot({

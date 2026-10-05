@@ -175,9 +175,15 @@ importers:
       '@pathfinder/docs':
         specifier: workspace:*
         version: link:packages/docs
+      '@pathfinder/gates':
+        specifier: workspace:*
+        version: link:packages/gates
       '@pathfinder/mcp-server':
         specifier: workspace:*
         version: link:packages/mcp-server
+      '@pathfinder/vault':
+        specifier: workspace:*
+        version: link:packages/vault
       '@types/node':
         specifier: ^22.20.4
         version: 22.20.4
@@ -279,6 +285,49 @@ importers:
 
   packages/fingerprint: {}
 
+  packages/gates:
+    dependencies:
+      '@modelcontextprotocol/sdk':
+        specifier: ^1.30.0
+        version: 1.30.0(zod@4.6.5)
+      '@pathfinder/config':
+        specifier: workspace:*
+        version: link:../config
+      '@pathfinder/core':
+        specifier: workspace:*
+        version: link:../core
+      '@pathfinder/crawler':
+        specifier: workspace:*
+        version: link:../crawler
+      '@pathfinder/docs':
+        specifier: workspace:*
+        version: link:../docs
+      '@pathfinder/mcp-server':
+        specifier: workspace:*
+        version: link:../mcp-server
+      '@pathfinder/reference-portal':
+        specifier: workspace:*
+        version: link:../reference-portal
+      '@pathfinder/vault':
+        specifier: workspace:*
+        version: link:../vault
+      pino:
+        specifier: ^10.3.1
+        version: 10.3.1
+      playwright:
+        specifier: ^1.63.0
+        version: 1.63.0
+      yaml:
+        specifier: ^2.9.1
+        version: 2.9.1
+      zod:
+        specifier: ^4.6.5
+        version: 4.6.5
+    devDependencies:
+      '@types/node':
+        specifier: ^22.20.4
+        version: 22.20.4
+
   packages/mcp-server:
     dependencies:
       '@modelcontextprotocol/sdk':
@@ -305,6 +354,9 @@ importers:
       '@pathfinder/safety':
         specifier: workspace:*
         version: link:../safety
+      '@pathfinder/vault':
+        specifier: workspace:*
+        version: link:../vault
       '@pathfinder/wireframe':
         specifier: workspace:*
         version: link:../wireframe
@@ -340,6 +392,22 @@ importers:
       '@pathfinder/core':
         specifier: workspace:*
         version: link:../core
+
+  packages/vault:
+    dependencies:
+      '@pathfinder/config':
+        specifier: workspace:*
+        version: link:../config
+      '@pathfinder/core':
+        specifier: workspace:*
+        version: link:../core
+      kysely:
+        specifier: ^0.29.6
+        version: 0.29.6
+    devDependencies:
+      '@types/node':
+        specifier: ^22.20.4
+        version: 22.20.4
 
   packages/wireframe:
     dependencies:

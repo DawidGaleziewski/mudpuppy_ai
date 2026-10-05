@@ -1,0 +1,16 @@
+{% extends "legacy/base.html" %}
+{% block head %}Zgłoszenie szkody (stary formularz){% endblock %}
+{% block body %}
+{% if ok %}<font face="Verdana" size="2" color="#006600"><b>Zgłoszenie przyjęte</b></font>
+{% else %}
+{% if error %}<font size="1" color="#CC0000">{{ error }}</font>{% endif %}
+<form method="post" action="/legacy/insurer/szkoda-stara.do">
+<table width="100%" border="0" cellpadding="3">
+<tr><td width="140"><font size="1">Nr polisy</font></td><td><input type="text" name="polisa" value="{{ polisa }}"></td></tr>
+<tr><td><font size="1">Data zdarzenia</font></td><td><input type="text" name="data" value="{{ data }}"></td></tr>
+<tr><td valign="top"><font size="1">Opis</font></td><td><textarea name="opis" rows="4" cols="40">{{ opis }}</textarea></td></tr>
+<tr><td>&nbsp;</td><td><input type="submit" value="Wyślij"></td></tr>
+</table>
+</form>
+{% endif %}
+{% endblock %}

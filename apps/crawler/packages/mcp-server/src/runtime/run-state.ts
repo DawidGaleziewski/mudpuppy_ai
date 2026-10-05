@@ -30,6 +30,15 @@ export class RunState {
   processId: string | null = null;
   /** The page as last observed, compared with the next one for a trace step's outcomes. */
   lastObserved: { url: string; title: string; snapshot: string } | null = null;
+  /** States already handed to a human for a CAPTCHA in this run (spec 009 FR-022). */
+  readonly handoffs = new Set<string>();
+  /**
+   * Server-side login (spec 009 FR-018, FR-020): `blocked` after any failure, so a wrong
+   * password is tried once per run (lockout guard); `logged_in` arms re-login on expiry.
+   */
+  login: 'none' | 'logged_in' | 'blocked' = 'none';
+  /** True while the server itself is logging in, so the login page is not a trace step. */
+  loggingIn = false;
 
   get isTrace(): boolean {
     return this.processId !== null;

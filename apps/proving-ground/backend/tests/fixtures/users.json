@@ -1,0 +1,23 @@
+{
+  "_comment": "Throwaway test users for tests and gates; password for all: test-password-not-real",
+  "users": [
+    {
+      "id": "shop-client",
+      "brand": "shop",
+      "login": "klient.sklep",
+      "hash": "pbkdf2_sha256$1000$fixturesaltshop$35icSo21NwakSyYepwqQO70dhpOVYQlQJeSZsRv2lHI="
+    },
+    {
+      "id": "bank-client",
+      "brand": "bank",
+      "login": "jan.testowy",
+      "hash": "pbkdf2_sha256$1000$fixturesaltbank$SBDa/h2Uz1xhZV9NLmySV5LrG9orFu9DbBvDgoKWmEM="
+    },
+    {
+      "id": "insurer-client",
+      "brand": "insurer",
+      "login": "ewa.polisowa",
+      "hash": "pbkdf2_sha256$1000$fixturesaltinsurer$RGKaNLhZLx4cqY3Bpuabhkzie0vsdXBjZcbB1Ks/XjA="
+    }
+  ]
+}

@@ -1,0 +1,4 @@
+backend/var/
+web/*/dist/
+node_modules/
+.venv/

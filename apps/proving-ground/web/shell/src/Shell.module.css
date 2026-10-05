@@ -1,0 +1,156 @@
+/* Modern shell on the Console tokens (tokens.css). Class names come out hashed (LO-13). */
+.app {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--surface-0);
+  color: var(--ink-100);
+  font: var(--weight-regular) var(--text-body) / var(--leading) var(--font-mono);
+}
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding: var(--space-3) var(--space-6);
+  border-bottom: var(--hairline) solid var(--border);
+  background: var(--surface-100);
+}
+.logo {
+  color: var(--brand);
+  font-weight: var(--weight-bold);
+  font-size: var(--text-h1);
+  text-decoration: none;
+}
+.nav {
+  display: flex;
+  gap: var(--space-4);
+}
+.navLink {
+  color: var(--ink-100);
+  text-decoration: none;
+  padding: var(--space-1) 0;
+  border-bottom: var(--rule) solid transparent;
+}
+.navLink:hover,
+.active {
+  border-bottom-color: var(--brand);
+  color: var(--brand);
+}
+.home,
+.login {
+  width: 100%;
+  max-width: var(--content-max);
+  margin: 0 auto;
+  padding: var(--space-6);
+  box-sizing: border-box;
+  flex: 1;
+}
+.login {
+  max-width: 420px;
+}
+.h1 {
+  font-size: var(--text-display);
+  color: var(--brand);
+  margin: 0 0 var(--space-2);
+}
+.muted {
+  color: var(--ink-500);
+}
+.tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: var(--space-4);
+  margin-top: var(--space-6);
+}
+.tile {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-5);
+  border: var(--hairline) solid var(--border);
+  background: var(--surface-100);
+  color: var(--ink-100);
+  text-decoration: none;
+}
+.tile:hover {
+  border-color: var(--brand);
+  box-shadow: var(--glow-shadow);
+}
+.tile strong {
+  color: var(--brand);
+  font-size: var(--text-h2);
+}
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin-top: var(--space-4);
+}
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+.input,
+.field input {
+  background: var(--surface-200);
+  color: var(--ink-100);
+  border: var(--hairline) solid var(--border);
+  padding: var(--space-2) var(--space-3);
+  font: inherit;
+}
+.primary {
+  background: var(--brand);
+  color: var(--surface-0);
+  border: 0;
+  padding: var(--space-2) var(--space-4);
+  font: inherit;
+  font-weight: var(--weight-bold);
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-block;
+}
+.error {
+  color: var(--signal-error);
+  border-left: var(--accent-bar) solid var(--signal-error);
+  padding-left: var(--space-2);
+}
+.mfe {
+  flex: 1;
+}
+.mfeError {
+  margin: var(--space-6);
+  padding: var(--space-4);
+  border: var(--hairline) dashed var(--signal-error);
+  color: var(--signal-error);
+}
+.footer {
+  padding: var(--space-4) var(--space-6);
+  border-top: var(--hairline) solid var(--border);
+  color: var(--ink-500);
+  font-size: var(--text-caption);
+}
+.scrim {
+  position: fixed;
+  inset: 0;
+  background: var(--scrim);
+  display: grid;
+  place-items: center;
+  z-index: 50;
+}
+.modal {
+  background: var(--surface-100);
+  border: var(--hairline) solid var(--brand);
+  padding: var(--space-6);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  align-items: flex-start;
+}
+.brand_shop {
+}
+.brand_bank {
+}
+.brand_insurer {
+}

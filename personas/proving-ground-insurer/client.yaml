@@ -1,0 +1,6 @@
+id: client
+extends: ["../_mixins/anonymous-base.yaml", "../_mixins/proving-ground-trace-inputs.yaml"]
+max_action_class: external-side-effect
+auth:
+  login: ref:PG_INSURER_LOGIN
+  password: ref:PG_INSURER_PASSWORD

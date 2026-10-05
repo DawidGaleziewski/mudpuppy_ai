@@ -28,7 +28,11 @@ export interface PageResult {
   edge_id?: string;
   /** Trace runs: the step this call recorded. */
   step?: { ord: number; outcomes: string[] };
+  /** The session had expired; the server logged in again and returned here (spec 009). */
+  relogged_in?: true;
 }
+
+export type LoginResult = PageResult & { outcome: 'logged_in' | 'failed'; reason?: string };
 
 export interface NavigateInput {
   run_id: string;
@@ -65,6 +69,8 @@ export interface Runtime {
   ): { pageRequestsBlocked: number; pageRequestsAllowed: number } | undefined;
   navigate(ctx: ServerContext, input: NavigateInput): Promise<PageResult>;
   act(ctx: ServerContext, input: ActInput): Promise<PageResult>;
+  /** Server-side login from the vault (spec 009); optional so browserless test runtimes need not. */
+  login?(ctx: ServerContext, input: { run_id: string }): Promise<LoginResult>;
   /** Release the browser of a run that has ended (finished, stopped or interrupted). */
   closeRun?(runId: string): Promise<void>;
   closeAll(): Promise<void>;

@@ -20,7 +20,13 @@ const Value = z.union([z.number(), z.string()]);
 export const GroundTruth = z.object({
   portal_id: z.string().min(1),
   screens: z.array(
-    z.object({ id: Id, route_template: z.string().min(1), guest_visible: z.boolean() }),
+    z.object({
+      id: Id,
+      route_template: z.string().min(1),
+      guest_visible: z.boolean(),
+      /** v2 (spec 009): `guest` or a test user id; a non-guest screen scores in `logged_in_screens`. */
+      actor: z.string().optional(),
+    }),
   ),
   forms: z.array(
     z.object({
@@ -62,6 +68,20 @@ export const GroundTruth = z.object({
     }),
   ),
   terms: z.array(z.object({ id: Id, term: z.string().min(1) })),
+  // v2 (spec 009 contracts/ground-truth-v2.md); absent in v1 files, which then score as before.
+  redirects: z
+    .array(z.object({ id: Id, from: z.string().min(1), to: z.string().min(1) }))
+    .optional(),
+  obstacles: z
+    .array(
+      z.object({
+        id: Id,
+        screens: z.array(Id),
+        markers: z.array(z.string().min(1)),
+        expected: z.enum(['handoff', 'documented', 'ignored', 'navigated']),
+      }),
+    )
+    .optional(),
 });
 export type GroundTruth = z.infer<typeof GroundTruth>;
 
@@ -95,8 +115,24 @@ export const CATEGORIES = [
 ] as const;
 export type Category = (typeof CATEGORIES)[number];
 
+/**
+ * Categories a v2 ground truth adds (spec 009 FR-027). They are scored, and appear in the report,
+ * only when the ground truth has the data, so v1 reports stay byte-identical.
+ */
+export const EXTRA_CATEGORIES = ['logged_in_screens', 'obstacles', 'entry_points'] as const;
+export type ExtraCategory = (typeof EXTRA_CATEGORIES)[number];
+export type AnyCategory = Category | ExtraCategory;
+
 /** Minimum percentage per category, and the most over-claims allowed. */
-export type Thresholds = Record<Category, number> & { overclaims: number };
+export type Thresholds = Record<Category, number> &
+  Partial<Record<ExtraCategory, number>> & { overclaims: number };
+
+/** Minimums for the v2 categories when a run does not set them. */
+export const EXTRA_DEFAULTS: Record<ExtraCategory, number> = {
+  logged_in_screens: 80,
+  obstacles: 60,
+  entry_points: 50,
+};
 
 /** SC-008 targets and SC-009's zero over-claims. */
 export const DEFAULT_THRESHOLDS: Thresholds = {
@@ -129,7 +165,7 @@ export interface Overclaim {
 export interface EvaluationReport {
   portal_id: string;
   as_of: string;
-  scores: Record<Category, CategoryScore>;
+  scores: Record<Category, CategoryScore> & Partial<Record<ExtraCategory, CategoryScore>>;
   overclaims: Overclaim[];
   thresholds: Thresholds;
   passed: boolean;
@@ -143,6 +179,8 @@ export interface EvaluateInput {
   records: readonly EvalRecord[];
   groundTruth: GroundTruth;
   thresholds?: Thresholds;
+  /** Route templates of states the crawler handed to a human (CAPTCHA, spec 009 FR-022). */
+  handoffs?: readonly string[];
 }
 
 // ---- matching ---------------------------------------------------------------------------------------
@@ -359,7 +397,7 @@ export function evaluate(input: EvaluateInput): EvaluationReport {
           : 0,
   );
 
-  const scores: Record<Category, CategoryScore> = {
+  const scores: EvaluationReport['scores'] = {
     screens: score([...screenMatches.keys()], screenMatches),
     fields: score([...fieldMatches.keys()], fieldMatches),
     constraints: score(constraintIds, constraintMatchesById),
@@ -367,7 +405,66 @@ export function evaluate(input: EvaluateInput): EvaluationReport {
     processes: score([...processMatches.keys()], processMatches),
     terms: score([...termMatches.keys()], termMatches),
   };
-  const failed: string[] = CATEGORIES.filter((c) => scores[c].pct < thresholds[c]);
+
+  // ---- v2 categories (spec 009 FR-027), only when the ground truth carries the data -------------
+  const screenRecordFor = (route: string): string[] =>
+    ofKind('screen')
+      .filter((r) => strings(r.content.route_templates).includes(route))
+      .map((r) => r.key);
+
+  // Logged-in screens: matched like guest screens, for screens behind a login.
+  const loggedIn = gt.screens.filter((s) => s.actor !== undefined && s.actor !== 'guest');
+  if (loggedIn.length > 0) {
+    const m = new Map(loggedIn.map((s) => [s.id, screenRecordFor(s.route_template)]));
+    scores.logged_in_screens = score([...m.keys()], m);
+  }
+
+  // Obstacles: what documenting each one means depends on what Pathfinder should do with it.
+  if (gt.obstacles && gt.obstacles.length > 0) {
+    const handoffs = new Set(input.handoffs ?? []);
+    const m = new Map<string, string[]>();
+    for (const o of gt.obstacles) {
+      const routes = o.screens.map((id) => screenRoute.get(id)).filter((r) => r !== undefined);
+      const markers = o.markers.map(normalise);
+      const mentioning = (r: EvalRecord) =>
+        markers.some((mk) => textOf(r.content).some((t) => hasMarker(normalise(t), mk)));
+      let hits: string[] = [];
+      if (o.expected === 'handoff')
+        hits = routes.filter((r) => handoffs.has(r)).map((r) => `handoff:${r}`);
+      else if (o.expected === 'documented')
+        hits = records
+          .filter((r) => routes.some((rt) => routesOf(r).has(rt)) && mentioning(r))
+          .map((r) => r.key);
+      else if (o.expected === 'navigated') hits = routes.flatMap((rt) => screenRecordFor(rt));
+      // ignored: an overlay nobody documented as a screen of its own
+      else if (!ofKind('screen').some(mentioning)) hits = ['ignored'];
+      m.set(o.id, hits);
+    }
+    scores.obstacles = score([...m.keys()], m);
+  }
+
+  // Entry points: an old URL documented (quoted in any record) as reaching its screen.
+  if (gt.redirects && gt.redirects.length > 0) {
+    const m = new Map<string, string[]>();
+    for (const d of gt.redirects) {
+      const path = normalise(d.from.split('?')[0]!);
+      m.set(
+        d.id,
+        records
+          .filter((r) => textOf(r.content).some((t) => normalise(t).includes(path)))
+          .map((r) => r.key),
+      );
+    }
+    scores.entry_points = score([...m.keys()], m);
+  }
+
+  const failed: string[] = [
+    ...CATEGORIES.filter((c) => scores[c].pct < thresholds[c]),
+    ...EXTRA_CATEGORIES.filter((c) => {
+      const s = scores[c];
+      return s !== undefined && s.pct < (thresholds[c] ?? EXTRA_DEFAULTS[c]);
+    }),
+  ];
   if (overclaims.length > thresholds.overclaims) failed.push('overclaims');
   return {
     portal_id: input.portal_id,
@@ -379,6 +476,15 @@ export function evaluate(input: EvaluateInput): EvaluationReport {
     failed,
   };
 }
+
+/** The categories a report scored: the six v1 ones, then any v2 one the ground truth had. */
+export const scoredCategories = (report: EvaluationReport): AnyCategory[] => [
+  ...CATEGORIES,
+  ...EXTRA_CATEGORIES.filter((c) => report.scores[c] !== undefined),
+];
+
+export const minimumOf = (t: Thresholds, c: AnyCategory): number =>
+  (t as Partial<Record<AnyCategory, number>>)[c] ?? EXTRA_DEFAULTS[c as ExtraCategory] ?? 0;
 
 /** Canonical, byte-stable JSON (sorted keys, two-space indent, LF, one trailing newline). */
 export const reportJson = (report: EvaluationReport): string =>
@@ -423,20 +529,22 @@ export function evaluationMarkdown(report: EvaluationReport, gt: GroundTruth): s
     '',
     '| Category | Matched | Total | Score | Minimum | Result |',
     '| --- | --- | --- | --- | --- | --- |',
-    ...CATEGORIES.map((c) => {
-      const s = report.scores[c];
-      return `| ${c} | ${s.matched} | ${s.total} | ${s.pct.toFixed(1)}% | ${report.thresholds[c]}% | ${s.pct >= report.thresholds[c] ? 'ok' : '**below**'} |`;
+    ...scoredCategories(report).map((c) => {
+      const s = report.scores[c]!;
+      const min = minimumOf(report.thresholds, c);
+      return `| ${c} | ${s.matched} | ${s.total} | ${s.pct.toFixed(1)}% | ${min}% | ${s.pct >= min ? 'ok' : '**below**'} |`;
     }),
     `| over-claims | ${report.overclaims.length} | | | at most ${report.thresholds.overclaims} | ${report.overclaims.length <= report.thresholds.overclaims ? 'ok' : '**too many**'} |`,
     '',
     '## Missing',
   ];
-  for (const c of CATEGORIES) {
-    const missing = report.scores[c].missing;
+  for (const c of scoredCategories(report)) {
+    const missing = report.scores[c]!.missing;
     if (missing.length === 0) continue;
     lines.push('', `### ${c}`, '', ...missing.map((id) => `- ${id}: ${what.get(id) ?? id}`));
   }
-  if (CATEGORIES.every((c) => report.scores[c].missing.length === 0)) lines.push('', '_nothing_');
+  if (scoredCategories(report).every((c) => report.scores[c]!.missing.length === 0))
+    lines.push('', '_nothing_');
   lines.push(
     '',
     '## Over-claims',
@@ -471,7 +579,7 @@ interface RevisionRow {
 export function loadEvalInput(
   raw: RawDb,
   portalId: string,
-): { as_of: string; records: EvalRecord[] } {
+): { as_of: string; records: EvalRecord[]; handoffs: string[] } {
   const rows = raw
     .prepare(
       `SELECT r.id AS record_id, r.key, r.kind, v.id AS revision_id, v.rev_no, v.confidence,
@@ -575,5 +683,16 @@ export function loadEvalInput(
          JOIN doc_records r ON r.id = v.record_id WHERE r.portal_id = ?)`,
     )
     .get(portalId, portalId) as { t: string | null };
-  return { as_of: asOf.t ?? '', records };
+  // Hand-offs (spec 009 FR-022): the crawler's "Human needed: CAPTCHA on …" questions, by route.
+  const handoffs = (
+    raw
+      .prepare(
+        `SELECT DISTINCT s.route_template AS route FROM open_questions q
+         JOIN runs ru ON ru.id = q.run_id JOIN states s ON s.id = q.about_ref
+         WHERE ru.portal_id = ? AND q.text LIKE 'Human needed: CAPTCHA on %'
+         ORDER BY route`,
+      )
+      .all(portalId) as { route: string }[]
+  ).map((r) => r.route);
+  return { as_of: asOf.t ?? '', records, handoffs };
 }

@@ -126,6 +126,14 @@ describe.skipIf(!available)('stabilizer diagnostics', () => {
     await page.close();
   });
 
+  it('settles while a live EventSource stays open (spec 009 F-06)', async () => {
+    const { page, net } = await open(`<script>new EventSource('${ORIGIN}/hang')</script>`);
+    const out = await settleWithDiagnostics(page, net, { ...fast, timeoutMs: 2000 });
+    expect(out.result).toBe('settled');
+    expect(net.inFlightRequests()).toEqual([]);
+    await page.close();
+  });
+
   it('returns no diagnostics when the page settles', async () => {
     const { page, net } = await open('<h1>ok</h1>');
     const out = await settleWithDiagnostics(page, net, { ...fast, timeoutMs: 2000 });

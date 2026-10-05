@@ -110,6 +110,18 @@ needs: `references/srs-outline.md`.
 - A `requirement` `refines` a `use_case` or `capability` and `enforces` a `business_rule`.
 - Allowed relation triples are enforced (`RELATION_NOT_ALLOWED`); see `references/record-kinds.md`.
 
+## Hand-offs, logged-in evidence and legacy obstacles
+
+- **CAPTCHA hand-off.** A crawler question `Human needed: CAPTCHA on <route>` means a person must
+  pass that screen. Document the screen as reachable only by a human. Raise no requirement about
+  solving the CAPTCHA. Link the open question to the screen.
+- **Logged-in evidence.** Screens recorded after a login are documented with the persona as the
+  actor. The login and any re-login are crawler events, not steps of a process: never write a
+  `re-login` into a flow or a use case. A `relogin` decision only explains why a state repeats.
+- **Legacy obstacles.** When a record describes something in `docs/legacy-obstacles.md`, name it in
+  plain words in the statement, for example `The "Wykonaj" button has no accessible role.` or `The
+  history list is shown in a frameset.` Reviewers and the evaluator find it by those words.
+
 ## Asking for more
 
 | You lack | Write |

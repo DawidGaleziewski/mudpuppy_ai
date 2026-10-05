@@ -18,6 +18,8 @@ data/exports/*
 # Unscrubbed per-call Playwright traces (research §13 of specs/005-crawl-run-observability-trace)
 data/traces/*
 !data/traces/.gitkeep
+# Quality-gate report, rewritten by every `pnpm test` (spec 009 R-27)
+data/gates/
 
 # SQLite side files, wherever a DB ends up
 *.sqlite

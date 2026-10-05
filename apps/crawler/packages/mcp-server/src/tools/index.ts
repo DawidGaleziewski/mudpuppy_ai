@@ -25,6 +25,7 @@ export const AGENT_TOOL_NAMES = [
   'get_next_frontier_item',
   'navigate',
   'act',
+  'login',
   'add_open_question',
   'add_rule_candidate',
   'finish_run',
@@ -144,6 +145,16 @@ export function registerTools(server: McpServer, ctx: ServerContext, runtime: Ru
           await runtime.closeRun?.(a.run_id);
         throw e;
       }
+    },
+  );
+  tool(
+    'login',
+    "Log in as the run's persona. The server fills and submits the portal's login form with the persona's stored credentials (you never see them) and records the landing page. Returns outcome logged_in or failed (reason rejected | locked | captcha | control_not_found); after a failure no further login is possible in this run. Expired sessions are re-logged in automatically (results then carry relogged_in).",
+    { run_id: z.string(), rationale: z.string().trim().min(1).max(300) },
+    async (a) => {
+      if (!runtime.login)
+        throw new ToolError('LOGIN_NOT_CONFIGURED', 'this server runtime cannot log in');
+      return runtime.login(ctx, a);
     },
   );
   tool(

@@ -1,0 +1,68 @@
+{
+  "portal_id": "proving-ground-bank",
+  "persona_id": "client",
+  "started_at": "2026-10-05T06:55:48.985Z",
+  "git_sha": "b90b1eb",
+  "runs": {
+    "crawler": "01a10ad8-eff4-7000-94c9-b980bef13614",
+    "ba_session": "01a10ade-9ea2-7000-adb8-2fbae7a9c23b"
+  },
+  "cost": {
+    "usd": 2.3183930000000004,
+    "input_tokens": 2875690,
+    "output_tokens": 43680,
+    "duration_ms": 686540
+  },
+  "scores": {
+    "screens": {
+      "matched": 1,
+      "total": 2,
+      "pct": 50
+    },
+    "fields": {
+      "matched": 0,
+      "total": 2,
+      "pct": 0
+    },
+    "constraints": {
+      "matched": 0,
+      "total": 2,
+      "pct": 0
+    },
+    "rules": {
+      "matched": 0,
+      "total": 0,
+      "pct": 100
+    },
+    "processes": {
+      "matched": 0,
+      "total": 4,
+      "pct": 0
+    },
+    "terms": {
+      "matched": 2,
+      "total": 10,
+      "pct": 20
+    },
+    "logged_in_screens": {
+      "matched": 4,
+      "total": 11,
+      "pct": 36.4
+    },
+    "obstacles": {
+      "matched": 10,
+      "total": 30,
+      "pct": 33.3
+    }
+  },
+  "overclaims": 0,
+  "checks": {
+    "frontier_empty_at_finish": false,
+    "crawler_completed": false,
+    "crawler_steps": 29,
+    "ba_session_completed": true,
+    "handoffs": 0,
+    "relogins": 1,
+    "logged_in": true
+  }
+}

@@ -9,6 +9,7 @@
   "scripts": {
     "test": "vitest run",
     "test:watch": "vitest",
+    "test:slow": "PATHFINDER_SLOW_GATES=1 vitest run --project gates",
     "typecheck": "pnpm -r exec tsc --noEmit",
     "lint": "eslint .",
     "format": "prettier --write .",
@@ -24,13 +25,18 @@
     "docs:evaluate": "tsx scripts/docs-evaluate.ts",
     "wireframes:build": "tsx scripts/wireframes-build.ts",
     "trace:smoke": "tsx packages/mcp-server/scripts/trace-smoke.ts",
-    "reference-portal": "pnpm --filter @pathfinder/reference-portal start"
+    "reference-portal": "pnpm --filter @pathfinder/reference-portal start",
+    "vault": "tsx scripts/vault.ts",
+    "eval": "tsx scripts/eval-run.ts",
+    "gt:check": "vitest run --project gates tests/ground-truth.test.ts"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "@pathfinder/core": "workspace:*",
     "@pathfinder/docs": "workspace:*",
+    "@pathfinder/gates": "workspace:*",
     "@pathfinder/mcp-server": "workspace:*",
+    "@pathfinder/vault": "workspace:*",
     "@types/node": "^22.20.4",
     "eslint": "^10.11.0",
     "prettier": "^3.9.8",

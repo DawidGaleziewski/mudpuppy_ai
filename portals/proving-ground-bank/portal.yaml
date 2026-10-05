@@ -1,0 +1,49 @@
+# Local legacy proving ground (apps/proving-ground): one estate behind a single origin, three
+# brands. Start it before a run; login block and credentials: specs/009 contracts/login-tool.md.
+id: proving-ground-bank
+base_url: http://127.0.0.1:4100/bank
+environment: sandbox
+# Our own local test estate, so traces may submit forms (like reference-insurer).
+max_action_class: external-side-effect
+
+# Our own local test estate: nothing to review, filled so the config is complete.
+compliance:
+  robots_checked_on: 2026-10-05
+  terms_reviewed_on: 2026-10-05
+  terms_reviewed_by: local test estate, no terms
+
+scope:
+  allowed_domains: ["127.0.0.1"]
+  allowed_paths: ["/bank*", "/logowanie", "/api/*", "/cms/*", "/mfe/*", "/legacy/bank/*"]
+  external_link_policy: record
+  max_depth: 6
+  max_states: 150
+  max_actions_per_state: 40
+  max_run_time_minutes: 30
+  max_steps: 600
+
+denylist:
+  - path:/__admin/* # state reset endpoint
+  - path:/api/logout # the crawler must never log itself out
+
+rate_limit:
+  requests_per_second: 5
+  max_concurrency: 2
+  user_agent: "PathfinderAI-Crawler/0.1 (local proving ground)"
+
+obstacles:
+  - id: cookie-banner
+    selector: '#cookie-banner button:has-text("Tylko niezbędne")'
+
+login:
+  url: "/logowanie?marka=bank&next=%2Fbank%2Fpulpit"
+  username: { placeholder: "Login", css: "input[name=login]" }
+  password: { placeholder: "Hasło", css: "input[name=haslo]" }
+  submit: { role: button, name: "Zaloguj" }
+  success: { url_not_matching: "/logowanie" }
+  failure:
+    text: ["Nieprawidłowy login lub hasło.", "Konto zostało zablokowane", "Potwierdź, że nie jesteś robotem."]
+  expiry:
+    url_matching: "/logowanie"
+    text: ["Sesja wygasła"]
+  fields: { username: login, password: password }

@@ -8,6 +8,8 @@ import { z } from 'zod';
  */
 
 const Id = z.string().regex(/^[A-Z]+\d{2}(\.\d+)?$/);
+/** A legacy-obstacle catalogue id (docs/legacy-obstacles.md). */
+const LO_ID = /^LO-\d{2,}$/;
 
 export const GtScreen = z
   .object({
@@ -17,6 +19,10 @@ export const GtScreen = z
     guest_visible: z.boolean(),
     /** How a guest reaches it: plain navigation, only after a data-changing submit, or never (login). */
     reached_by: z.enum(['navigation', 'mutation', 'login']),
+    /** v2 (spec 009): who can see it, `guest` (default) or a `users[].id`. */
+    actor: z.string().min(1).optional(),
+    /** v2: `docs/legacy-obstacles.md` ids reproduced on this screen. */
+    obstacles: z.array(z.string().regex(LO_ID)).optional(),
   })
   .strict();
 
@@ -93,6 +99,37 @@ export const GtTerm = z
   .object({ id: Id, term: z.string().min(1), lang: z.string().min(2) })
   .strict();
 
+/** v2: a test user of the portal; never a password (the vault holds those by `refs`). */
+export const GtUser = z
+  .object({
+    id: z.string().regex(/^[a-z][a-z0-9-]*$/),
+    persona: z.string().min(1),
+    refs: z.array(z.string().min(1)).min(1),
+  })
+  .strict();
+
+/** v2: an old entry point that ends on a known screen (LO-21..LO-23). */
+export const GtRedirect = z
+  .object({
+    id: Id,
+    from: z.string().startsWith('/'),
+    to: z.string().startsWith('/'),
+    kind: z.enum(['http', 'chain', 'meta_refresh', 'js_location']),
+    hops: z.array(z.enum(['http_301', 'http_302', 'meta_refresh', 'js_location'])).min(1),
+  })
+  .strict();
+
+/** v2: one catalogue obstacle present in this portal and what documenting it means. */
+export const GtObstacle = z
+  .object({
+    id: z.string().regex(LO_ID),
+    screens: z.array(Id).min(1),
+    /** Phrases a record must contain to count as documenting it (evaluator `obstacles`). */
+    markers: z.array(z.string().min(1)).min(1),
+    expected: z.enum(['handoff', 'documented', 'ignored', 'navigated']),
+  })
+  .strict();
+
 export const GroundTruth = z
   .object({
     portal_id: z.string().min(1),
@@ -102,10 +139,31 @@ export const GroundTruth = z
     rules: z.array(GtRule),
     processes: z.array(GtProcess),
     terms: z.array(GtTerm),
+    users: z.array(GtUser).optional(),
+    redirects: z.array(GtRedirect).optional(),
+    obstacles: z.array(GtObstacle).optional(),
   })
   .strict()
   .superRefine((gt, ctx) => {
     const screens = new Set(gt.screens.map((s) => s.id));
+    const users = new Set((gt.users ?? []).map((u) => u.id));
+    const obstacles = new Set((gt.obstacles ?? []).map((o) => o.id));
+    const issue = (message: string) => ctx.addIssue({ code: 'custom', message });
+    for (const s of gt.screens) {
+      // v1 files have no actor: a login-wall screen is `guest_visible: false` without one.
+      if (s.actor !== undefined) {
+        if (s.actor !== 'guest' && !users.has(s.actor))
+          issue(`screen ${s.id}: unknown actor ${s.actor}`);
+        if (s.guest_visible !== (s.actor === 'guest'))
+          issue(`screen ${s.id}: guest_visible must be true exactly when actor is guest`);
+      }
+      for (const o of s.obstacles ?? [])
+        if (!obstacles.has(o)) issue(`screen ${s.id}: obstacle ${o} missing from obstacles[]`);
+    }
+    for (const o of gt.obstacles ?? [])
+      for (const sid of o.screens)
+        if (!screens.has(sid)) issue(`obstacle ${o.id}: unknown screen ${sid}`);
+    if (obstacles.size !== (gt.obstacles ?? []).length) issue('duplicate obstacle id');
     const ids = new Set<string>();
     const all = [
       ...gt.screens,
@@ -114,6 +172,7 @@ export const GroundTruth = z
       ...gt.rules,
       ...gt.processes,
       ...gt.terms,
+      ...(gt.redirects ?? []),
     ];
     for (const x of all) {
       if (ids.has(x.id)) ctx.addIssue({ code: 'custom', message: `duplicate id ${x.id}` });

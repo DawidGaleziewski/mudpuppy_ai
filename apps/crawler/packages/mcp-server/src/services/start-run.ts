@@ -10,6 +10,8 @@ import { scopeOf } from './run-budget.js';
 import { portalRuleSet, ruleSetSummary } from '@pathfinder/safety';
 import { createRunRobots, robotsSnapshot, type RunRobots } from './robots.js';
 import { createProcess, openFollowup, processOfRun } from './trace.js';
+import { resolveRunCredentials, runSecrets } from './credentials.js';
+import { personaRefs } from '@pathfinder/vault';
 
 const StartRunInput = z
   .object({
@@ -107,6 +109,14 @@ export async function startRunRecord(
     return { input, pre };
   });
   const { portal, persona, effectiveMaxActionClass } = pre.effective;
+  // Credentials before anything else is written or launched: a missing ref refuses the run.
+  // Guests have nothing to resolve, and their traces stay as they were.
+  const secrets =
+    Object.keys(personaRefs(persona.auth)).length === 0
+      ? {}
+      : await ctx.tracer.phase('resolve_credentials', () =>
+          resolveRunCredentials(ctx, portal.id, persona),
+        );
 
   if (input.resume_run_id !== undefined) {
     const resumeId = input.resume_run_id;
@@ -128,6 +138,7 @@ export async function startRunRecord(
       return getRun(ctx, run.id);
     });
     const resumedProcess = await processOfRun(ctx, run.id);
+    runSecrets.set(run.id, secrets);
     return {
       output: {
         run_id: run.id,
@@ -200,6 +211,7 @@ export async function startRunRecord(
           followup_record_id: followupRecordId,
         })
       : undefined;
+  runSecrets.set(id, secrets);
   return {
     output: {
       run_id: id,

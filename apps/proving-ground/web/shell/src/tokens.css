@@ -1,0 +1,94 @@
+/* Copied from the dashboard's Console tokens (apps/dashboard/.../static/css/tokens.css), without the
+   web fonts: the estate's modern parts use "our current design" (spec 009 FR-012). Global, not a module. */
+:root {
+  color-scheme: dark;
+
+  /* colour */
+  --surface-0: #0a0a08;
+  --surface-100: #131310;
+  --surface-200: #1a1a14;
+  --border: #2b2a20;
+  --ink-100: #e8d9ae;
+  --ink-500: #8a7f5c;
+  --brand: #ffb000;
+  --accent-2: #33ff66;
+  --accent-3: #00e5ff;
+  --accent-4: #ff66c4;
+  --signal-error: #ff3b30;
+  --glow: rgba(255, 176, 0, 0.35);
+  --scrim: rgba(10, 10, 8, 0.8);
+  --scanline: rgba(255, 176, 0, 0.04);
+
+  /* Pathfinder aliases: intent at the call site (tokens-to-code.md) */
+  --status-ok: var(--brand);
+  --status-running: var(--accent-3);
+  --status-failed: var(--signal-error);
+  --status-muted: var(--ink-500);
+  --safety-read: var(--accent-2);
+  --safety-risky: var(--accent-4);
+  --confidence-unverified: var(--accent-4);
+
+  /* type */
+  --font-mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  --text-display: 20px;
+  --text-h1: 18px;
+  --text-h2: 15px;
+  --text-body: 13px;
+  --text-body-sm: 12px;
+  --text-label: 11px;
+  --text-caption: 10px;
+  --text-stat: 28px;
+  --weight-regular: 400;
+  --weight-medium: 500;
+  --weight-bold: 700;
+  --leading: 1.5;
+
+  /* spacing (4px root) */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-7: 28px;
+  --space-9: 36px;
+
+  /* shape and lines */
+  --radius-none: 0px;
+  --radius-full: 9999px;
+  --hairline: 1px;
+  --rule: 2px;
+  --accent-bar: 3px;
+  --dot: 8px;
+  --touch: 44px;
+  --mark: 22px;
+  --tick-w: 16px;
+  --tick-h: 3px;
+  --content-max: 1280px;
+  --docs-index-w: 240px;
+  --textarea-min-h: 64px;
+  --prose-max: 72ch; /* running text: glossary and wiki pages (spec 006) */
+
+  /* screenshots and wireframes (spec 008) */
+  --paper: #ffffff; /* behind wireframes and transparent screenshots, which are drawn for light paper */
+  --highlight: var(--brand);
+  --highlight-halo: var(--surface-0);
+  --thumb-w: 64px;
+  --thumb-h: 40px;
+  --shot-col: 420px; /* minimum column of the Screens grid */
+  --badge: 18px;
+  --tip-w: 32ch; /* glossary tooltip width */
+
+  /* effects and motion (three sanctioned animations only) */
+  --glow-shadow: 0 0 8px var(--glow);
+  --scanline-pitch: 3px;
+  --pulse-duration: 1.3s;
+  --caret-duration: 1s;
+  --bounce-duration: 600ms;
+  --disabled-opacity: 0.35;
+  --pulse-low-opacity: 0.35;
+
+  /* breakpoints (documentation; media queries cannot read custom properties) */
+  --bp-tablet: 640px;
+  --bp-desktop: 1024px;
+}

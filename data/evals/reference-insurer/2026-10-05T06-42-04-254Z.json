@@ -1,0 +1,55 @@
+{
+  "portal_id": "reference-insurer",
+  "persona_id": "guest",
+  "started_at": "2026-10-05T06:42:04.254Z",
+  "git_sha": "859fb87",
+  "runs": {
+    "crawler": "01a10acc-59e4-7000-9ad9-bfaa0208f62b",
+    "ba_session": "01a10acd-bceb-7000-adf4-ce003f34b176"
+  },
+  "cost": {
+    "usd": 2.8822706,
+    "input_tokens": 3798211,
+    "output_tokens": 58565,
+    "duration_ms": 569068
+  },
+  "scores": {
+    "screens": {
+      "matched": 16,
+      "total": 17,
+      "pct": 94.1
+    },
+    "fields": {
+      "matched": 0,
+      "total": 26,
+      "pct": 0
+    },
+    "constraints": {
+      "matched": 0,
+      "total": 49,
+      "pct": 0
+    },
+    "rules": {
+      "matched": 5,
+      "total": 16,
+      "pct": 31.3
+    },
+    "processes": {
+      "matched": 0,
+      "total": 5,
+      "pct": 0
+    },
+    "terms": {
+      "matched": 5,
+      "total": 10,
+      "pct": 50
+    }
+  },
+  "overclaims": 0,
+  "checks": {
+    "frontier_empty_at_finish": false,
+    "handoffs": 0,
+    "relogins": 0,
+    "logged_in": false
+  }
+}

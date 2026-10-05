@@ -9,7 +9,7 @@ import { newId, nowIso } from '../src/ids.js';
 
 const MIGRATIONS = fileURLToPath(new URL('../../../../../data/migrations', import.meta.url));
 
-const ALL = ['0001', '0002', '0003', '0004', '0005', '0006'];
+const ALL = ['0001', '0002', '0003', '0004', '0005', '0006', '0007'];
 
 let opened: OpenedDb | undefined;
 let tmp: string | undefined;
@@ -30,7 +30,7 @@ const tables = (o: OpenedDb) =>
     .sort();
 
 describe('migrations', () => {
-  it('finds 0001_init through 0006_screenshots_wireframes, each with an up and a down', () => {
+  it('finds 0001_init through 0007_credentials, each with an up and a down', () => {
     expect(loadMigrations(MIGRATIONS).map((m) => m.version)).toEqual(ALL);
   });
 
@@ -60,8 +60,10 @@ describe('migrations', () => {
         'processes',
         'process_steps',
         'state_wireframes',
+        'credentials',
       ]),
     );
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0007');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0006');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0005');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0004');
@@ -76,6 +78,7 @@ describe('migrations', () => {
     opened = openDb(':memory:');
     expect(migrateUp(opened.raw, MIGRATIONS)).toEqual(ALL);
     expect(migrateUp(opened.raw, MIGRATIONS)).toEqual([]);
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0007');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0006');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0005');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0004');
@@ -89,6 +92,7 @@ describe('migrations', () => {
   it('0003_trace applies and reverts on a DB holding 0001/0002 data (up, down, up round-trips cleanly)', () => {
     opened = openDb(':memory:');
     migrateUp(opened.raw, MIGRATIONS);
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0007');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0006');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0005');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0004');
@@ -97,7 +101,7 @@ describe('migrations', () => {
       expect.arrayContaining(['trace_boots', 'trace_spans', 'agent_turns']),
     );
     expect(tables(opened)).toEqual(expect.arrayContaining(['states', 'frontier', 'decision_log']));
-    expect(migrateUp(opened.raw, MIGRATIONS)).toEqual(['0003', '0004', '0005', '0006']);
+    expect(migrateUp(opened.raw, MIGRATIONS)).toEqual(['0003', '0004', '0005', '0006', '0007']);
     expect(appliedVersions(opened.raw)).toEqual(ALL);
     expect(tables(opened)).toEqual(
       expect.arrayContaining(['trace_boots', 'trace_spans', 'agent_turns']),
@@ -291,11 +295,12 @@ describe('Layer B tables (0004_ba_documentation)', () => {
         `INSERT INTO doc_reviews (id, revision_id, action, reviewer, text, created_at) VALUES (?, ?, 'comment', 'dawid', 'looks good', ?)`,
       )
       .run(newId(), revisionId, ts);
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0007');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0006');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0005');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0004');
     expect(tables(opened)).not.toEqual(expect.arrayContaining(['doc_records', 'doc_revisions']));
-    expect(migrateUp(opened.raw, MIGRATIONS)).toEqual(['0004', '0005', '0006']);
+    expect(migrateUp(opened.raw, MIGRATIONS)).toEqual(['0004', '0005', '0006', '0007']);
     expect(opened.raw.prepare('SELECT count(*) AS n FROM doc_records').get()).toEqual({ n: 0 });
   });
 });
@@ -373,15 +378,45 @@ describe('screenshots and wireframes (0006_screenshots_wireframes)', () => {
     opened.raw
       .prepare(`INSERT INTO state_wireframes VALUES (?, '1', 'a.svg', 'a.excalidraw', ?)`)
       .run(stateId, nowIso());
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0007');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0006');
     expect(tables(opened)).not.toContain('state_wireframes');
     expect(opened.raw.prepare('SELECT target_kind, note FROM doc_evidence_links').all()).toEqual([
       { target_kind: 'state', note: 'region button "Oblicz": n' },
     ]);
-    expect(migrateUp(opened.raw, MIGRATIONS)).toEqual(['0006']);
+    expect(migrateUp(opened.raw, MIGRATIONS)).toEqual(['0006', '0007']);
     expect(opened.raw.prepare('SELECT target_kind, region FROM doc_evidence_links').all()).toEqual([
       { target_kind: 'state', region: null },
     ]);
+  });
+});
+
+describe('credentials (0007_credentials)', () => {
+  const insert = (o: OpenedDb, env: string, nonceLen = 12, keyId = 'abcdef01') =>
+    o.raw
+      .prepare(
+        `INSERT INTO credentials (id, portal_id, environment, ref_name, ciphertext, nonce, key_id, created_at, updated_at)
+         VALUES (?, 'p', ?, 'USER_PASSWORD', ?, ?, ?, ?, ?)`,
+      )
+      .run(newId(), env, Buffer.alloc(20), Buffer.alloc(nonceLen), keyId, nowIso(), nowIso());
+
+  it('enforces the environment enum, nonce and key id lengths and uniqueness', () => {
+    opened = openDb(':memory:');
+    migrateUp(opened.raw, MIGRATIONS);
+    insert(opened, 'sandbox');
+    expect(() => insert(opened!, 'sandbox')).toThrow(/UNIQUE/);
+    expect(() => insert(opened!, 'dev')).toThrow(/CHECK/);
+    expect(() => insert(opened!, 'staging', 11)).toThrow(/CHECK/);
+    expect(() => insert(opened!, 'staging', 12, 'abc')).toThrow(/CHECK/);
+  });
+
+  it('round-trips (up, down, up)', () => {
+    opened = openDb(':memory:');
+    migrateUp(opened.raw, MIGRATIONS);
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0007');
+    expect(tables(opened)).not.toContain('credentials');
+    expect(migrateUp(opened.raw, MIGRATIONS)).toEqual(['0007']);
+    expect(tables(opened)).toContain('credentials');
   });
 });
 

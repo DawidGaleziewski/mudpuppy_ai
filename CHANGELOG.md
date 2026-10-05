@@ -6,6 +6,26 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Added
+- R-25 legacy proving ground, R-26 credential vault and logged-in crawling, R-27 quality gates
+  and evals: `apps/proving-ground` is a local "Grupa Mokradło" estate (Django backend, React
+  shell loading shop/bank/insurer micro-frontends at runtime, an embedded server-rendered legacy
+  app, CMS label files) that reproduces the 51 entries of `docs/legacy-obstacles.md`, with a
+  ground truth per brand checked by `pnpm gt:check` (35/35). Test-user passwords live encrypted
+  per portal and environment in the store (migration `0007`, key outside the repo, `pnpm vault`);
+  the crawler's new `login` tool types them server-side, re-logs in once after an expiry and
+  never retries a rejected login; every resolved value is redacted before any write, Playwright
+  trace chunks included (the trace pauses around the login and each chunk is redacted, F-15).
+  Off production a CAPTCHA becomes a "Human needed" hand-off and the crawl goes on. `pnpm test`
+  runs 78 gate cases (one per in-scope obstacle and per gate finding; 20 are known gaps that fail
+  the run once fixed) in 2m05s; slow cases run in `pnpm test:slow`. `pnpm eval <portal>` runs the
+  real agents headless in a throwaway workspace, scores the docs against ground truth and compares
+  with a baseline. Fixed along the way: pages with a live SSE stream never settled (F-06),
+  frameset pages crashed observation (F-10), an estate re-login expired at once (F-05). Open,
+  moved to R-29: the first eval baselines (the crawler agent ends map runs early, F-17) and the
+  gap ranking for R-28. 17 glossary terms added or changed (incl. "Slow gate"). Findings F-01…F-18 in
+  `specs/009-legacy-proving-ground/findings.md` (`specs/009-legacy-proving-ground`, T001–T051).
+  Commits: 3cc387b, 72d3f40, ad50575, 858f993, 4c17bca, 28464b2, 859fb87, b90b1eb, 6608c51,
+  d204b5e, ce1b117, 96955ba, 1819ae5, f5566ca (squash-merged on master, tag v1.0.9).
 - R-20 screenshots as evidence and R-21 wireframes: every new state gets an unmasked screenshot
   and a layout of element boxes with stable element keys on every environment (migration
   `0006`, binary evidence); the BA cites "screen regions" that the audit resolves and the

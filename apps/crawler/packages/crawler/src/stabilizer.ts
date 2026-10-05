@@ -23,6 +23,9 @@ export interface NetworkActivityOptions {
   onRequestFailed?: (f: { url: string; resourceType: string; failure: string }) => void;
 }
 
+/** Long-lived streams stay open for the page's lifetime; counting them means never idle (spec 009 F-06). */
+const STREAMS = new Set(['eventsource', 'websocket']);
+
 export function trackNetworkActivity(
   page: Page,
   now: () => number = Date.now,
@@ -32,11 +35,13 @@ export function trackNetworkActivity(
   let last = now();
   const pending = new Map<Request, { url: string; resourceType: string; startedAt: number }>();
   const start = (r: Request): void => {
+    if (STREAMS.has(r.resourceType())) return;
     inFlight += 1;
     last = now();
     pending.set(r, { url: r.url(), resourceType: r.resourceType(), startedAt: last });
   };
   const end = (r: Request): void => {
+    if (!pending.has(r)) return;
     inFlight = Math.max(0, inFlight - 1);
     last = now();
     pending.delete(r);

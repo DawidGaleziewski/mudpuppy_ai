@@ -1,0 +1,35 @@
+[project]
+name = "proving-ground"
+version = "0.1.0"
+description = "Legacy proving-ground estate (Django, no ORM) for Pathfinder."
+requires-python = ">=3.12"
+dependencies = [
+    "django>=5.2,<6",
+]
+
+[project.scripts]
+proving-ground = "proving_ground.launcher:main"
+
+[build-system]
+requires = ["uv_build>=0.12.10,<0.13.0"]
+build-backend = "uv_build"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+pythonpath = ["src"]
+DJANGO_SETTINGS_MODULE = "proving_ground.settings"
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "SIM", "RUF"]
+
+[dependency-groups]
+dev = [
+    "pytest",
+    "pytest-django",
+    "ruff",
+]

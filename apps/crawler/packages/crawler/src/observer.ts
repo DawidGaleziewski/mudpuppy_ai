@@ -26,8 +26,14 @@ export interface DomForm {
  * `captureVisuals` (capture.ts) since spec 008; they are not masked (constitution 2.0.0).
  */
 export function captureAria(page: Page): Promise<string> {
-  return page.locator('body').ariaSnapshot();
+  return page.locator(PAGE_ROOT).first().ariaSnapshot();
 }
+
+/**
+ * The element a page's snapshot starts from: `<body>`, or `<frameset>` on a frames page, which
+ * has no body at all (legacy portals, spec 009 LO-04; a plain `body` locator waited forever).
+ */
+export const PAGE_ROOT = 'body, frameset';
 
 /**
  * Extract forms and their field schemas without submitting or reading any value: only attributes,

@@ -96,6 +96,7 @@ export class BrowserSession {
         userAgent: rate.user_agent,
         blockSignatures: portal.block_signatures,
         onStop: opts.onStop,
+        captchaHandoff: portal.environment !== 'production',
         ...(opts.navigationPolicy ? { navigationPolicy: opts.navigationPolicy } : {}),
         ...(opts.onNavigationRefused ? { onNavigationRefused: opts.onNavigationRefused } : {}),
         robots: opts.robots,

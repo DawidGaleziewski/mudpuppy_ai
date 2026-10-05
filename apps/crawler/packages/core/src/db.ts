@@ -3,6 +3,7 @@ import { Kysely, SqliteDialect } from 'kysely';
 import { mkdirSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import type { Database } from './db-types.js';
+import { secretsPlugin } from './secrets-plugin.js';
 
 export type PathfinderDb = Kysely<Database>;
 
@@ -33,6 +34,10 @@ export function openDb(path: string): OpenedDb {
   if (path !== ':memory:') mkdirSync(dirname(path), { recursive: true });
   const raw = new BetterSqlite3(path);
   applyPragmas(raw);
-  const db = new Kysely<Database>({ dialect: new SqliteDialect({ database: raw }) });
+  const db = new Kysely<Database>({
+    dialect: new SqliteDialect({ database: raw }),
+    // Registered credentials never reach a row (spec 009 FR-019).
+    plugins: [secretsPlugin()],
+  });
   return { db, raw, close: () => db.destroy() };
 }

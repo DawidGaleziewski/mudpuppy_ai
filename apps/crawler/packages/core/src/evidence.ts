@@ -2,6 +2,7 @@ import { createHash } from 'node:crypto';
 import { existsSync } from 'node:fs';
 import { mkdir, rename, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
+import { SECRETS } from './secrets.js';
 
 /** `<64 hex sha256>.<ext>`, relative to the evidence root (`excalidraw` is the longest extension). */
 const REF = /^[0-9a-f]{64}\.[a-z0-9]{1,10}$/;
@@ -61,7 +62,8 @@ export function createEvidenceStore(root: string): EvidenceStore {
     }
     return ref;
   };
-  const utf8 = (s: string): Uint8Array => Buffer.from(s, 'utf8');
+  // Text evidence passes the secret redactor (spec 009 FR-019); binary (screenshots) cannot.
+  const utf8 = (s: string): Uint8Array => Buffer.from(SECRETS.redact(s), 'utf8');
 
   return {
     root,

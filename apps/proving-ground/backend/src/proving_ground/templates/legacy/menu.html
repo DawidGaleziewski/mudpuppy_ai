@@ -1,0 +1,21 @@
+{% extends "legacy/base.html" %}
+{% block head %}Menu{% endblock %}
+{% block body %}
+<form name="aspnetForm" method="post" action="/legacy/bank/lista.do;jsessionid={{ sid }}" target="content">
+<input type="hidden" name="__VIEWSTATE" value="{{ viewstate }}">
+<input type="hidden" name="__EVENTTARGET" value="">
+</form>
+<script type="text/javascript">
+function __doPostBack(target, arg) {
+  var f = document.forms['aspnetForm'];
+  f.__EVENTTARGET.value = target;
+  f.submit();
+}
+</script>
+<font face="Verdana" size="1">
+<a href="javascript:void(0)" onclick="__doPostBack('lista','')">Lista operacji</a><br>
+<a href="javascript:void(0)" onclick="__doPostBack('szczegoly','')">Szczegóły</a><br>
+<a href="/legacy/bank/archiwum.do;jsessionid={{ sid }}" target="content">Archiwum</a><br>
+<a href="/legacy/bank/raport.do;jsessionid={{ sid }}" target="content">Raport</a><br>
+</font>
+{% endblock %}

@@ -72,7 +72,7 @@ const attrs = (row: Record<string, unknown>) =>
   JSON.parse(row.attrs_json as string) as Record<string, unknown>;
 
 describe('call spans for the agent tools (US1)', () => {
-  it('writes exactly one call span per tool call, for each of the eight tools', async () => {
+  it('writes exactly one call span per tool call, for each of the nine tools', async () => {
     const { ctx, call, calls, writeFiles } = await connect();
     writeFiles(PORTAL_FILES);
     const start = await call('start_run', { portal_id: 'shop', persona_id: 'guest' });
@@ -99,6 +99,8 @@ describe('call spans for the agent tools (US1)', () => {
       action_id: 'a1',
       rationale: 'exploring the next frontier item',
     });
+    // a guest persona: refused (LOGIN_NOT_CONFIGURED), still one call span
+    await call('login', { run_id: run, rationale: 'log in as the persona' });
     await call('add_open_question', { run_id: run, text: 'why', about_ref: s.state_id });
     await call('add_rule_candidate', { run_id: run, text: 'rule', about_ref: s.state_id });
     await call('finish_run', { run_id: run, rationale: 'frontier exhausted' });
@@ -109,6 +111,7 @@ describe('call spans for the agent tools (US1)', () => {
       'get_next_frontier_item',
       'navigate',
       'act',
+      'login',
       'add_open_question',
       'add_rule_candidate',
       'finish_run',

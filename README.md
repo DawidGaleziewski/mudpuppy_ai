@@ -92,6 +92,28 @@ New to the vocabulary (run, frontier, evidence, settled, …)? Read the
 [MudPuppy glossary](docs/glossary/README.md), also in the dashboard's Glossary tab, and the
 [BA wiki](docs/wiki/README.md) for the business-analysis concepts behind the documentation.
 
+## Proving ground, vault, gates and evals
+
+The **proving ground** (`apps/proving-ground`) is a fictional legacy estate (shop, bank, insurer,
+old pages) that reproduces the obstacles in `docs/legacy-obstacles.md`. Its data is disposable.
+
+1. Start it: `pnpm --dir apps/proving-ground start` (http://127.0.0.1:4100/). See
+   `apps/proving-ground/README.md`.
+2. Generate test users: `pnpm vault generate proving-ground-bank --login PG_BANK_LOGIN=jan.testowy
+   --password PG_BANK_PASSWORD --seed ../proving-ground/backend/var/users.local.json --seed-user
+   bank-client` (in `apps/crawler`). The first call creates the vault key. `pnpm vault list` shows
+   names only.
+3. `pnpm test` in `apps/crawler` also runs the quality gates (tier 1). They start the estate on
+   4200/4201, so stop anything on those ports first. The run writes `data/gates/report.json`.
+   Cases with real waits (LO-32 session expiry, LO-35 fresh browsers) are skipped there and run
+   with `pnpm test:slow` (the whole gate set, for a nightly run).
+4. `pnpm eval <portal> [--persona <id>] [--budget-usd 5]` (in `apps/crawler`) runs the real
+   crawler and BA agents headless, scores the result and compares it with the baseline. It costs
+   real tokens (the budget cap defaults to 5 USD) and is never part of `pnpm test`. It writes
+   `data/evals/<portal>/<timestamp>.json`; `--promote` makes it the new baseline.
+
+Walk-through: `specs/009-legacy-proving-ground/quickstart.md`.
+
 ## Configuration
 
 | File | Purpose |

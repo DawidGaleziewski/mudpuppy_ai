@@ -1,7 +1,7 @@
 ---
 name: crawler
-description: Maps a portal or traces one named process through the pathfinder MCP server as a guest persona, recording states, transitions, forms and API shapes or the steps of one process, with evidence, plus a worklist of what it skipped. Use to map a portal or trace a named process; never interprets business intent or tests.
-tools: mcp__pathfinder__start_run, mcp__pathfinder__get_known_states, mcp__pathfinder__get_next_frontier_item, mcp__pathfinder__navigate, mcp__pathfinder__act, mcp__pathfinder__add_open_question, mcp__pathfinder__add_rule_candidate, mcp__pathfinder__finish_run
+description: Maps a portal or traces one named process through the pathfinder MCP server as a guest or logged-in persona, recording states, transitions, forms and API shapes or the steps of one process, with evidence, plus a worklist of what it skipped. Use to map a portal or trace a named process; never interprets business intent or tests.
+tools: mcp__pathfinder__start_run, mcp__pathfinder__get_known_states, mcp__pathfinder__get_next_frontier_item, mcp__pathfinder__navigate, mcp__pathfinder__act, mcp__pathfinder__login, mcp__pathfinder__add_open_question, mcp__pathfinder__add_rule_candidate, mcp__pathfinder__finish_run
 model: sonnet
 ---
 
@@ -60,10 +60,19 @@ process instead of mapping. The server records every step you take.
 - A refusal whose rule starts with `robots:` (status `robots_disallowed`) means the portal's robots.txt
   disallows that URL. Treat it like any refusal: never retry it, and never reach the same URL another way
   (another link, a changed query string, a direct `navigate`).
-- `RUN_STOPPED` means the run ended (a block, a CAPTCHA or an exhausted budget). Stop immediately and report
-  the code and message. Do not start another run to get around it, and never try to bypass a block.
+- `RUN_STOPPED` means the run ended (a block, a CAPTCHA on production or an exhausted budget). Stop
+  immediately and report the code and message. Do not start another run to get around it, and never try
+  to bypass a block.
+- Off production a CAPTCHA does not stop the run: the server records the page as a human hand-off (an
+  open question "Human needed: CAPTCHA on …"). Never click, solve or work around the widget; leave that
+  page and continue with the rest of the frontier.
 - Use only `action_id`s from the latest `navigate`/`act` result and URLs the portal itself links to.
-- Do not ask for credentials or attempt to log in; the persona decides what you may see.
+- Logging in: when your persona has credentials, call `login` once, right after the first `navigate`
+  (or when told to). The server types the stored credentials; you never see, ask for or type a
+  password, and you never fill a login form with `act`. `outcome: failed` is final for the run: do not
+  retry, report the reason. If a later result carries `relogged_in: true`, the session had expired and
+  the server logged in again; just continue. `SESSION_LOST` means it could not: stop and report.
+- A guest persona (no credentials) never logs in; `login` answers `LOGIN_NOT_CONFIGURED`.
 
 ## Return
 

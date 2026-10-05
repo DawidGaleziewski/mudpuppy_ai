@@ -1,0 +1,107 @@
+.root {
+  min-height: 100vh;
+  background: var(--surface-0);
+  color: var(--ink-900);
+  font-size: var(--text-body);
+}
+.strip {
+  display: flex;
+  gap: var(--space-3);
+  align-items: center;
+  padding: var(--space-3);
+  background: var(--brand);
+  color: #fff;
+}
+.strip a {
+  color: #fff;
+}
+.spacer {
+  flex: 1;
+}
+.logout {
+  display: inline;
+}
+.linkButton {
+  background: none;
+  border: 1px solid #fff;
+  color: #fff;
+  padding: 4px 12px;
+  cursor: pointer;
+}
+.main {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: var(--space-3);
+}
+.card {
+  border: 1px solid var(--ink-900);
+  padding: var(--space-3);
+  margin-bottom: var(--space-3);
+}
+.balance {
+  font-family: var(--font-mono);
+  font-size: 1.4em;
+}
+.iban {
+  font-family: var(--font-mono);
+}
+.ticker {
+  font-family: var(--font-mono);
+}
+.banner {
+  display: block;
+  margin: var(--space-3) 0;
+}
+.cta {
+  display: inline-block;
+  padding: 8px 16px;
+  background: var(--brand);
+  color: #fff;
+  text-decoration: none;
+}
+.chat {
+  position: fixed;
+  right: 16px;
+  bottom: 16px;
+  width: 280px;
+  height: 200px;
+  border: 1px solid var(--ink-900);
+  background: #fff;
+}
+.form {
+  display: grid;
+  gap: var(--space-3);
+  max-width: 420px;
+}
+.input {
+  padding: 8px;
+  font-size: var(--text-body);
+}
+.submit {
+  display: inline-block;
+  padding: 8px 16px;
+  background: var(--brand);
+  color: #fff;
+  cursor: pointer;
+  text-align: center;
+}
+.error {
+  color: #b00020;
+}
+.ops {
+  width: 100%;
+  border-collapse: collapse;
+}
+.ops td {
+  padding: 4px 8px;
+  border-bottom: 1px solid #ddd;
+}
+.pager {
+  display: flex;
+  gap: var(--space-3);
+  margin: var(--space-3) 0;
+}
+.frame {
+  width: 100%;
+  border: 1px solid var(--ink-900);
+}

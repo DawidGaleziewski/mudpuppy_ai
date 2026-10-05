@@ -73,6 +73,23 @@ export interface StateWireframesTable {
   created_at: string;
 }
 
+/**
+ * 0007: encrypted test-user credential. Written only by the vault; never exported or joined.
+ * `ciphertext` is AES-256-GCM ciphertext || 16-byte tag; `nonce` is 12 bytes.
+ */
+export interface CredentialsTable {
+  id: string;
+  portal_id: string;
+  environment: 'sandbox' | 'staging' | 'production';
+  ref_name: string;
+  ciphertext: Buffer | Uint8Array;
+  nonce: Buffer | Uint8Array;
+  /** First 8 hex chars of sha256(key). */
+  key_id: string;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface StateObservationsTable {
   run_id: string;
   state_id: string;
@@ -408,4 +425,5 @@ export interface Database {
   followup_tasks: FollowupTasksTable;
   processes: ProcessesTable;
   process_steps: ProcessStepsTable;
+  credentials: CredentialsTable;
 }

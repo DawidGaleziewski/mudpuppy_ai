@@ -1,0 +1,24 @@
+{% extends "legacy/base.html" %}
+{% block head %}{% if view == "szczegoly" %}Szczegóły operacji (widok){% else %}Historia operacji{% endif %}{% endblock %}
+{% block body %}
+<form name="f1" method="post" action="/legacy/bank/lista.do;jsessionid={{ sid }}">
+<input type="hidden" name="__VIEWSTATE" value="{{ viewstate }}">
+<input type="hidden" name="__EVENTTARGET" value="">
+<font face="Verdana" size="1">Widok: {{ view }} &nbsp;
+<a href="javascript:void(0)" onclick="document.f1.__EVENTTARGET.value='lista';document.f1.submit()">lista</a> |
+<a href="javascript:void(0)" onclick="document.f1.__EVENTTARGET.value='szczegoly';document.f1.submit()">szczegóły</a>
+&nbsp; <a href="/legacy/bank/szczegoly.do;jsessionid={{ sid }}"><img src="/legacy/static/print.gif" width="16" height="16" border="0"></a></font>
+<form name="f2" method="get" action="/legacy/bank/lista.do;jsessionid={{ sid }}">
+<table width="100%" border="1" cellpadding="2" cellspacing="0" style="border-collapse:collapse">
+<tr bgcolor="#CCCCFF"><td><font size="1"><b>Data</b></font></td><td><font size="1"><b>Opis</b></font></td><td><font size="1"><b>Kwota</b></font></td>{% if view == "szczegoly" %}<td><font size="1"><b>Saldo po</b></font></td>{% endif %}</tr>
+{% for op in operations %}<tr id="row" bgcolor="{% cycle '#FFFFFF' '#F0F0F8' %}">
+<td><font size="1">{{ op.date }}
+<td><font size="1">{{ op.title }}
+<td align="right"><font size="1">{{ op.amount }}
+{% if view == "szczegoly" %}<td align="right"><font size="1">{{ op.balance }}{% endif %}
+</tr>
+{% endfor %}
+</table>
+</form>
+</form>
+{% endblock %}
