@@ -351,6 +351,7 @@ details > summary:hover {
 
 .nav {
   display: flex;
+  flex-wrap: wrap;
   gap: var(--space-1);
   margin: 0;
   padding: 0;
@@ -402,6 +403,13 @@ details > summary:hover {
   justify-content: space-between;
   gap: var(--space-2) var(--space-4);
   margin: var(--space-6) 0 var(--space-4);
+}
+
+.page-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--space-2);
 }
 
 .crumbs {
@@ -1438,4 +1446,531 @@ details.screens > summary h2 {
 .cited-list li {
   margin-bottom: var(--space-1);
   overflow-wrap: anywhere;
+}
+
+/* ---------- chat and step tracker (spec 010, R-30) ---------- */
+
+.btn-primary {
+  color: var(--surface-0);
+  background: var(--brand);
+  border-color: var(--brand);
+  font-weight: var(--weight-bold);
+}
+
+.btn-primary:hover {
+  color: var(--surface-0);
+  background: var(--ink-100);
+  border-color: var(--ink-100);
+}
+
+/* mobile first: one column in reading order (chat, then steps); side by side from 1024px */
+.chat {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  margin-top: var(--space-4);
+}
+
+.chat-main {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  min-width: 0;
+}
+
+.chat-scroll {
+  max-height: var(--chat-h);
+  min-height: calc(var(--touch) * 3);
+  overflow-y: auto;
+  padding: var(--space-3);
+  background: var(--surface-100);
+  border: var(--hairline) solid var(--border);
+}
+
+.msgs {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.msgs:empty {
+  display: none;
+}
+
+.chat-scroll .msgs + .msgs,
+.chat-scroll .region + .msgs {
+  margin-top: var(--space-3);
+}
+
+.msg {
+  padding: var(--space-2) var(--space-3);
+  border-left: var(--accent-bar) solid var(--border);
+  background: var(--surface-0);
+}
+
+/* who speaks is carried by the role text; the bar is a second signal, not the only one */
+.msg-user {
+  border-left-color: var(--brand);
+}
+
+.msg-assistant {
+  border-left-color: var(--ink-500);
+}
+
+.msg-system {
+  border-left-style: dashed;
+}
+
+.msg-error {
+  border-left-color: var(--signal-error);
+  border-left-style: solid;
+}
+
+.msg-head {
+  display: flex;
+  gap: var(--space-3);
+  margin: 0 0 var(--space-1);
+  font-size: var(--text-label);
+}
+
+.msg-role {
+  font-weight: var(--weight-bold);
+}
+
+.msg-body {
+  margin: 0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.msg-ref {
+  margin: var(--space-2) 0 0;
+  font-size: var(--text-body-sm);
+}
+
+.err-ref code {
+  user-select: all;
+}
+
+.notice {
+  margin: 0;
+  padding: var(--space-2) var(--space-3);
+  border: var(--hairline) dashed var(--border);
+  color: var(--ink-100);
+  font-size: var(--text-body-sm);
+}
+
+/* the animation shows from send until idle, and while a step is pending or in progress */
+.working {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.working[hidden] {
+  display: none;
+}
+
+.working-img {
+  width: var(--working-w);
+  height: auto;
+}
+
+.working-text {
+  margin: 0;
+  color: var(--ink-500);
+  font-size: var(--text-body-sm);
+}
+
+/* run progress under the animation (T047/T048): counters, then the activity feed */
+.progress {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  font-size: var(--text-body-sm);
+}
+
+.progress-head,
+.progress-counts,
+.progress-quiet {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--space-1) var(--space-3);
+  margin: 0;
+}
+
+.progress-counts {
+  color: var(--ink-500);
+}
+
+.progress-counts strong {
+  color: var(--ink-100);
+}
+
+.progress-quiet {
+  color: var(--status-failed);
+}
+
+.progress-feed summary {
+  cursor: pointer;
+  color: var(--ink-100);
+}
+
+.feed {
+  max-height: calc(var(--touch) * 6);
+  overflow-y: auto;
+  margin: var(--space-2) 0 0;
+  padding: 0;
+  list-style: none;
+  border-left: var(--hairline) solid var(--border);
+}
+
+.feed-item {
+  display: flex;
+  gap: var(--space-2);
+  padding: 0 var(--space-2);
+  overflow-wrap: anywhere;
+}
+
+.feed-time {
+  flex: none;
+  color: var(--ink-500);
+  font-family: var(--font-mono);
+}
+
+.feed-problem .feed-text {
+  color: var(--status-failed);
+}
+
+.feed-page .feed-text,
+.feed-question .feed-text {
+  color: var(--ink-100);
+  font-weight: 600;
+}
+
+.feed-text a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.feed-text a:hover,
+.feed-text a:focus-visible {
+  text-decoration: underline;
+}
+
+.composer-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+/* `.btn` sets a display, which would beat the hidden attribute ([stop] only while working) */
+.composer-actions .btn[hidden] {
+  display: none;
+}
+
+.now {
+  min-height: var(--space-6);
+  margin: 0;
+  color: var(--ink-100);
+  font-size: var(--text-body-sm);
+}
+
+.composer {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.composer-field {
+  display: flex;
+}
+
+.composer .btn {
+  align-self: flex-start;
+}
+
+.btn-primary[disabled] {
+  opacity: var(--disabled-opacity);
+  cursor: not-allowed;
+}
+
+/* step tracker */
+.tracker {
+  padding: var(--space-4);
+  background: var(--surface-100);
+  border: var(--hairline) solid var(--border);
+}
+
+.steps {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.step {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: var(--space-1) var(--space-3);
+  align-items: baseline;
+  padding: var(--space-2) 0;
+  border-bottom: var(--hairline) solid var(--border);
+}
+
+.step-pending {
+  border-bottom-style: dashed;
+}
+
+.step-name {
+  font-weight: var(--weight-medium);
+}
+
+.step-ref,
+.step-action {
+  grid-column: 1 / -1;
+  font-size: var(--text-body-sm);
+}
+
+@media (min-width: 1024px) {
+  .chat {
+    flex-direction: row;
+    align-items: flex-start;
+  }
+
+  .chat-main {
+    flex: 1 1 0;
+  }
+
+  .chat-side {
+    flex: 0 0 var(--chat-side-w);
+  }
+}
+
+@media (max-width: 1023px) {
+  .chat-side {
+    width: 100%;
+  }
+}
+
+/* ---------- forms beside the chat, TO-BE amendments, superseded review (spec 010, R-30) ---------- */
+
+/* live map beside the chat (T049): natural size in a scroll box, new and current pages lit */
+.live-map .diagram {
+  max-height: calc(var(--touch) * 12);
+  overflow: auto;
+  padding: var(--space-2);
+}
+
+.live-map .diagram svg {
+  max-width: none;
+}
+
+.live-map .node.fresh rect,
+.live-map .node.fresh polygon {
+  stroke: var(--status-running) !important;
+}
+
+.live-map .node.current rect,
+.live-map .node.current polygon {
+  stroke: var(--brand) !important;
+}
+
+.chat-side {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  min-width: 0;
+}
+
+.tracker-link,
+.portal-card-note {
+  margin: var(--space-3) 0 0;
+}
+
+.tools {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.tool {
+  display: grid;
+  gap: var(--space-3);
+  min-width: 0;
+}
+
+.tool > p,
+.tool .section-head {
+  margin: 0;
+}
+
+/* "+ new portal" page (spec 011) */
+.portal-form-panel {
+  display: grid;
+  gap: var(--space-3);
+  max-width: 44rem;
+}
+
+.form-error {
+  margin: 0;
+  color: var(--status-failed);
+}
+
+.form-ok {
+  margin: 0 0 var(--space-3);
+  color: var(--status-ok);
+}
+
+/* one environment per fieldset on the new-portal form */
+.env-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+  gap: var(--space-3);
+}
+
+.env-row > legend {
+  font-weight: 600;
+}
+
+.portal-settings-link {
+  align-self: flex-end;
+}
+
+.tool-form {
+  display: grid;
+  gap: var(--space-3);
+  min-width: 0;
+}
+
+.tool-form .field {
+  display: flex;
+}
+
+.tool-form .input,
+.tool-form .select,
+.tool-form .textarea {
+  width: 100%;
+  min-width: 0;
+}
+
+.tool-form h3 {
+  margin: 0;
+  font-size: var(--text-body);
+}
+
+.form-result {
+  margin: 0;
+  font-size: var(--text-body-sm);
+  overflow-wrap: anywhere;
+}
+
+.form-result:empty {
+  display: none;
+}
+
+/* scope checklist: one row per mapped state; scrolls inside the panel */
+.scope-list {
+  max-height: var(--chat-h);
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+  list-style: none;
+  border: var(--hairline) solid var(--border);
+}
+
+.scope-row {
+  display: grid;
+  gap: var(--space-1);
+  padding: var(--space-2) var(--space-3);
+  border-bottom: var(--hairline) solid var(--border);
+}
+
+.scope-row:last-child {
+  border-bottom: none;
+}
+
+.scope-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.scope-title {
+  overflow-wrap: anywhere;
+}
+
+.scope-route {
+  font-size: var(--text-body-sm);
+  color: var(--ink-500);
+  overflow-wrap: anywhere;
+}
+
+.scope-ends {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+}
+
+.scope-comment[hidden] {
+  display: none;
+}
+
+.check {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: var(--touch);
+  font-size: var(--text-body-sm);
+  cursor: pointer;
+}
+
+.check input {
+  width: var(--space-5);
+  height: var(--space-5);
+  margin: 0;
+  accent-color: var(--brand);
+}
+
+/* TO-BE: the BA's intention. Dashed, with the word on it, never an observed fact (Principle II) */
+.tobe-tag {
+  display: inline-block;
+  padding: 0 var(--space-1);
+  font-size: var(--text-label);
+  font-weight: var(--weight-medium);
+  color: var(--ink-100);
+  border: var(--hairline) dashed var(--ink-500);
+  vertical-align: middle;
+}
+
+.tobe {
+  padding-left: var(--space-3);
+  border-left: var(--accent-bar) dashed var(--ink-500);
+}
+
+.tobe-form {
+  margin-top: var(--space-4);
+  padding: var(--space-4);
+  border: var(--hairline) dashed var(--border);
+}
+
+.reapply {
+  margin-bottom: var(--space-2);
+}
+
+.reapply summary {
+  list-style: none;
+  width: fit-content;
+}
+
+.reapply summary::-webkit-details-marker {
+  display: none;
+}
+
+.reapply .tool-form {
+  margin-top: var(--space-2);
+  min-width: var(--docs-index-w);
 }

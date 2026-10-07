@@ -20,6 +20,8 @@ export const ERROR_CODES = [
   'PII_SUSPECTED',
   'ROBOTS_UNAVAILABLE',
   'BROWSER_UNAVAILABLE',
+  // `navigate` could not open the page at all (spec 011 F-06).
+  'NAVIGATION_FAILED',
   // Trace mode (specs/004-ba-documentation/contracts/crawler-trace-tools.md).
   'TRACE_BOUNDARY_REACHED',
   // BA server (specs/004-ba-documentation/contracts/ba-mcp-tools.md).

@@ -1,35 +1,102 @@
 """FastAPI app: pages, htmx fragments and the live event stream (contracts/http-routes.md).
 
-Every route is GET and read-only. A page renders the same partials its fragments return, so a
-live region re-fetching itself and a full page load produce identical markup.
+Pages and fragments are GET and read-only; the few POST/DELETE routes only forward a form to the
+chat service (spec 010), which is the only writer of chat tables. A page renders the same
+partials its fragments return, so a live region re-fetching itself and a full page load produce
+identical markup.
 """
 
 from __future__ import annotations
 
 import itertools
+import json
 import re
 import sqlite3
 from collections.abc import AsyncIterable, Iterator
 from contextlib import contextmanager
 from dataclasses import dataclass, field
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Annotated, Any
-from urllib.parse import parse_qs, urlencode, urlsplit
+from urllib.parse import parse_qs, quote, urlencode, urlsplit
 
+import httpx2
 from fastapi import FastAPI, Header, Query, Request
 from fastapi.concurrency import run_in_threadpool
-from fastapi.responses import HTMLResponse, JSONResponse, PlainTextResponse, Response
+from fastapi.responses import (
+    HTMLResponse,
+    JSONResponse,
+    PlainTextResponse,
+    RedirectResponse,
+    Response,
+    StreamingResponse,
+)
 from fastapi.sse import EventSourceResponse, ServerSentEvent
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from starlette.exceptions import HTTPException
 
-from . import db, diagrams, glossary, live, queries, queries_docs, review, visuals
+from . import (
+    chat_client,
+    db,
+    diagrams,
+    glossary,
+    live,
+    live_map,
+    queries,
+    queries_chat,
+    queries_docs,
+    review,
+    visuals,
+)
 from .models import DECISION_KINDS, FRONTIER_STATUSES, RUN_STATUSES, SAFETY_CLASSES, Run
 from .settings import Settings
 from .version import STARTUP_FINGERPRINT
 
 PACKAGE = Path(__file__).parent
+# Largest attachment the chat service takes is 8 MB of file content; base64 adds a third.
+MAX_ATTACHMENT_B64 = (8 * 1024 * 1024 * 4 + 2) // 3
+ERR_REF = re.compile(r"^ERR-[A-Za-z0-9-]{1,64}$")
+# A running run with no recorded activity for this long is called out in the chat (T047, F-22).
+QUIET_WARN_MS = 5 * 60_000
+# The header's portal choice (spec 011): kept in a cookie; "" means all portals.
+PORTAL_COOKIE = "pf_portal"
+PORTAL_ID = re.compile(r"^[a-z0-9][a-z0-9_-]{0,63}$")
+NEW_PORTAL = "__new__"
+# The "+ new portal" form's fields and defaults (spec 011 FR-004; user decisions 2026-10-06).
+# A portal's environments, in the order pages show them (spec 011 FR-008).
+PORTAL_ENVS = ("production", "staging", "sandbox")
+# The "+ new portal" form's fields and defaults (spec 011 FR-004, FR-011; user decisions
+# 2026-10-06): an address and a limit per environment, robots ignored, forms may be submitted.
+NEW_PORTAL_DEFAULTS = {
+    "id": "",
+    "robots": "ignore",
+    **{f"url_{e}": "" for e in PORTAL_ENVS},
+    **{f"limit_{e}": "external-side-effect" for e in PORTAL_ENVS},
+}
+# How far the crawler may go, as the forms say it.
+ACTION_LIMITS = (
+    ("external-side-effect", "fill and submit forms (everything)"),
+    ("destructive", "up to deleting things, no outside effects"),
+    ("mutating", "change data, never delete"),
+    ("read", "only look, never submit"),
+)
+
+
+def form_fields(body: bytes, defaults: dict[str, str]) -> dict[str, str]:
+    """A url-encoded form post as {field: value}, with the defaults for missing fields."""
+    fields = parse_qs(body.decode("utf-8", "replace"))
+    return {k: (fields.get(k) or [v])[0].strip() for k, v in defaults.items()}
+
+
+def chosen_portal(request: Request) -> str | None:
+    """`?portal=` wins over the cookie; an empty value is "all portals"."""
+    value = request.query_params.get("portal")
+    if value is None:
+        value = request.cookies.get(PORTAL_COOKIE)
+    return value if value and PORTAL_ID.match(value) else None
+
+
 SECTIONS: tuple[tuple[str, str], ...] = (
     ("states", "States"),
     ("actions", "Actions"),
@@ -67,6 +134,8 @@ class Ctx:
     env: str
     envs: list[str]
     extra: dict[str, Any] = field(default_factory=dict)
+    # The header's portal choice (spec 011): `?portal=` or the cookie; None = all portals.
+    portal: str | None = None
 
     @property
     def env_param(self) -> str | None:
@@ -86,7 +155,11 @@ class Ctx:
             conn.close()
 
 
-def create_app(settings: Settings | None = None) -> FastAPI:
+def create_app(
+    settings: Settings | None = None,
+    chat_transport: httpx2.AsyncBaseTransport | None = None,
+) -> FastAPI:
+    """`chat_transport` replaces the network to the chat service (tests mock it)."""
     settings = settings or Settings()
     app = FastAPI(title="pathfinder://console", docs_url=None, redoc_url=None, openapi_url=None)
     app.state.settings = settings
@@ -139,10 +212,32 @@ def create_app(settings: Settings | None = None) -> FastAPI:
 
     app.mount("/static", StaticWithCache(directory=PACKAGE / "static"), name="static")
 
+    @app.middleware("http")
+    async def remember_portal(request: Request, call_next: Any) -> Response:
+        """The header's portal dropdown (spec 011 FR-002): `?portal=` is kept in a cookie;
+        "+ new portal" opens the form."""
+        chosen = request.query_params.get("portal")
+        if chosen == NEW_PORTAL:
+            return RedirectResponse(build_url("/portals/new", env=request.query_params.get("env")))
+        response: Response = await call_next(request)
+        if chosen is not None and request.method == "GET":
+            if chosen and PORTAL_ID.match(chosen):
+                response.set_cookie(PORTAL_COOKIE, chosen, samesite="lax", httponly=True)
+            elif not chosen:
+                response.delete_cookie(PORTAL_COOKIE)
+        return response
+
     def ctx(request: Request, env: str | None) -> Ctx:
         envs = db.list_environments(settings.data_dir)
         resolved = db.resolve_env(settings.data_dir, env, settings.default_env)
-        return Ctx(request, settings, resolved, envs)
+        return Ctx(request, settings, resolved, envs, portal=chosen_portal(request))
+
+    def header_portals(c: Ctx) -> list[str]:
+        try:
+            with c.conn() as conn:
+                return queries_chat.known_portals(conn, settings.portals_dir)
+        except db.StoreMissing:
+            return queries_chat.known_portals(None, settings.portals_dir)
 
     def render(
         c: Ctx, template: str, status_code: int = 200, push: str | None = None, **values: Any
@@ -156,6 +251,14 @@ def create_app(settings: Settings | None = None) -> FastAPI:
                 "envs": c.envs,
                 "dev": settings.dev,
                 "store": db.store_info(settings.data_dir, c.env),
+                # Spec 011: called by the header only, so fragment polls do not pay for it.
+                "header_portals": lambda: header_portals(c),
+                # [settings] only for a portal with a config file (a scanned-only one has none)
+                "portal_configured": lambda p: bool(
+                    p
+                    and PORTAL_ID.match(p)
+                    and (settings.portals_dir / p / "portal.yaml").is_file()
+                ),
                 **values,
             },
             status_code=status_code,
@@ -188,6 +291,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         page: int = 1,
     ) -> HTMLResponse:
         c = ctx(request, env)
+        portal = portal if portal is not None else c.portal  # spec 011: the header's choice
         try:
             with c.conn() as conn:
                 return render(
@@ -242,6 +346,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
                     c,
                     "state.html",
                     p=page,
+                    am=state_amendments_values(c, conn, page.figure.state),
                     view="wireframe" if view == "wireframe" else "screenshot",
                     show_elements=elements,
                 )
@@ -427,9 +532,11 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     def portal_exists(conn: sqlite3.Connection, portal: str) -> bool:
         return queries_docs.portal_known(conn, portal) or portal in queries.portals(conn)
 
-    @app.get("/docs", response_class=HTMLResponse)
-    def docs_portals(request: Request, env: str | None = None) -> HTMLResponse:
+    @app.get("/docs", response_class=HTMLResponse, response_model=None)
+    def docs_portals(request: Request, env: str | None = None) -> Response:
         c = ctx(request, env)
+        if c.portal:  # spec 011: a portal chosen in the header opens its documentation
+            return RedirectResponse(c.url(f"/docs/{quote(c.portal, safe='')}"), status_code=303)
         try:
             with c.conn() as conn:
                 return render(
@@ -704,6 +811,712 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             body=glossary.markdown_html(page.body, base="wiki"),
         )
 
+    # ---- chat (spec 010, R-30; contracts/chat-http-api.md) ------------------------------------
+    # History and the step tracker come from the read-only store. Sending and streaming go
+    # through the local chat service, called from here only: the browser never reaches it.
+
+    def chat_json(status: int, body: object) -> JSONResponse:
+        return JSONResponse(body, status_code=status, headers={"Cache-Control": "no-store"})
+
+    def chat_down() -> JSONResponse:
+        return chat_json(503, {"ref": None, "message": chat_client.NOT_RUNNING})
+
+    def chat_refused() -> JSONResponse:
+        return chat_json(403, {"ref": None, "message": "Cross-origin request refused."})
+
+    def chat_values(
+        c: Ctx, conn: sqlite3.Connection, conversation_id: str | None
+    ) -> dict[str, Any] | None:
+        """Newest active conversation, or the one asked for; None when that id does not exist."""
+        conversation = (
+            queries_chat.get_conversation(conn, conversation_id)
+            if conversation_id
+            else queries_chat.newest_active_conversation(conn, c.portal)  # spec 011
+        )
+        if conversation is None:
+            return None if conversation_id else {"conversation": None}
+        tracker = queries_chat.tracker(conn, conversation)
+        progress = queries_chat.progress(conn, tracker)
+        now = datetime.now(UTC)
+        return {
+            "conversation": conversation,
+            "messages": queries_chat.list_messages(conn, conversation.id),
+            "tracker": tracker,
+            "superseded": queries_chat.superseded_counts(conn).get(tracker.portal_id or "", 0),
+            # T047: the run's counters and activity feed, timed on the server (reload-safe)
+            "progress": progress,
+            "elapsed_ms": progress.elapsed_ms(now) if progress else None,
+            "quiet_ms": progress.quiet_ms(now) if progress else None,
+            "quiet_warn_ms": QUIET_WARN_MS,
+        }
+
+    def tools_values(
+        c: Ctx, conn: sqlite3.Connection, conversation: Any, portal: str | None
+    ) -> dict[str, Any]:
+        """The credentials form and the scope checklist beside the chat (T020, T027)."""
+        return {
+            "tools": {
+                "portal": portal,
+                "states": queries_chat.portal_states(conn, portal),
+                "personas": queries_chat.list_personas(settings.personas_dir, portal),
+                "environments": queries_chat.ENVIRONMENTS,
+                "self_url": c.url("/fragments/chat/tools", conversation=conversation.id),
+            }
+        }
+
+    def state_amendments_values(c: Ctx, conn: sqlite3.Connection, state: Any) -> dict[str, Any]:
+        """TO-BE amendments on one state, plus what its form needs (T031)."""
+        return {
+            "items": queries_chat.amendments_for_state(conn, state.portal_id, state.id),
+            "elements": queries_chat.state_elements(settings.data_dir, state),
+            "self_url": c.url(f"/fragments/states/{state.id}/amendments"),
+        }
+
+    async def read_json(request: Request) -> dict[str, Any]:
+        try:
+            payload = await request.json()
+        except ValueError:
+            return {}
+        return payload if isinstance(payload, dict) else {}
+
+    async def forward(method: str, path: str, payload: object | None = None) -> JSONResponse:
+        """One call to the chat service; its answer (or a plain "not running") goes back as is."""
+        try:
+            status, body = await chat_client.call(settings, method, path, payload, chat_transport)
+        except chat_client.ChatUnavailable:
+            return chat_down()
+        return chat_json(status, body)
+
+    def invalid(message: str) -> JSONResponse:
+        return chat_json(422, {"ref": None, "message": message})
+
+    @app.get("/chat", response_class=HTMLResponse)
+    async def chat_page(
+        request: Request, env: str | None = None, conversation: str | None = None
+    ) -> HTMLResponse:
+        c = ctx(request, env)
+        up = await chat_client.service_up(settings, chat_transport)
+        try:
+            with c.conn() as conn:
+                values = chat_values(c, conn, conversation)
+                if values and values.get("conversation"):
+                    values.update(
+                        tools_values(c, conn, values["conversation"], values["tracker"].portal_id)
+                    )
+                    values.update(map_values(c, conn, values))
+        except db.StoreMissing as err:
+            return missing(c, err)
+        return render(
+            c,
+            "chat.html",
+            status_code=200 if values is not None else 404,
+            nav_current="chat",
+            service_up=up,
+            asked=conversation,
+            **(values or {"conversation": None}),
+        )
+
+    @app.get("/fragments/chat/messages", response_class=HTMLResponse)
+    def fragment_chat_messages(
+        request: Request, env: str | None = None, conversation: str | None = None
+    ) -> HTMLResponse:
+        c = ctx(request, env)
+        try:
+            with c.conn() as conn:
+                values = chat_values(c, conn, conversation)
+        except db.StoreMissing as err:
+            return missing(c, err, fragment=True)
+        if values is None:
+            return render(c, "partials/chat_missing.html", status_code=404, asked=conversation)
+        return render(c, "partials/chat_messages.html", **values)
+
+    @app.get("/fragments/chat/tracker", response_class=HTMLResponse)
+    def fragment_chat_tracker(
+        request: Request, env: str | None = None, conversation: str | None = None
+    ) -> HTMLResponse:
+        c = ctx(request, env)
+        try:
+            with c.conn() as conn:
+                values = chat_values(c, conn, conversation)
+        except db.StoreMissing as err:
+            return missing(c, err, fragment=True)
+        if values is None:
+            return render(c, "partials/chat_missing.html", status_code=404, asked=conversation)
+        return render(c, "partials/chat_tracker.html", **values)
+
+    @app.get("/fragments/chat/progress", response_class=HTMLResponse)
+    def fragment_chat_progress(
+        request: Request, env: str | None = None, conversation: str | None = None
+    ) -> HTMLResponse:
+        """T047: counters and activity feed of the conversation's run."""
+        c = ctx(request, env)
+        try:
+            with c.conn() as conn:
+                values = chat_values(c, conn, conversation)
+        except db.StoreMissing as err:
+            return missing(c, err, fragment=True)
+        if values is None or not values.get("conversation"):
+            return render(c, "partials/chat_missing.html", status_code=404, asked=conversation)
+        return render(c, "partials/chat_progress.html", **values)
+
+    def map_values(c: Ctx, conn: sqlite3.Connection, values: dict[str, Any]) -> dict[str, Any]:
+        """T049: the live map of the conversation's run; `map_version` also covers the status,
+        so the map renders once more when the run ends (and stops polling)."""
+        progress = values.get("progress")
+        live = live_map.run_map(conn, progress.run_id, datetime.now(UTC)) if progress else None
+        version = f"{live.version}-{progress.status}" if live and progress else ""
+        return {"live_map": live, "map_version": version}
+
+    @app.get("/fragments/chat/map", response_class=HTMLResponse, response_model=None)
+    def fragment_chat_map(
+        request: Request,
+        env: str | None = None,
+        conversation: str | None = None,
+        v: str | None = None,
+    ) -> HTMLResponse | Response:
+        """T049: polled every 3 s while the run runs; 204 (htmx keeps the drawing) if unchanged."""
+        c = ctx(request, env)
+        try:
+            with c.conn() as conn:
+                values = chat_values(c, conn, conversation)
+                if values and values.get("conversation"):
+                    values.update(map_values(c, conn, values))
+        except db.StoreMissing as err:
+            return missing(c, err, fragment=True)
+        if values is None or not values.get("conversation"):
+            return render(c, "partials/chat_missing.html", status_code=404, asked=conversation)
+        if v and v == values["map_version"]:
+            return Response(status_code=204)
+        return render(c, "partials/chat_map.html", **values)
+
+    @app.get("/fragments/chat/tools", response_class=HTMLResponse)
+    def fragment_chat_tools(
+        request: Request, env: str | None = None, conversation: str | None = None
+    ) -> HTMLResponse:
+        c = ctx(request, env)
+        try:
+            with c.conn() as conn:
+                values = chat_values(c, conn, conversation)
+                if values and values.get("conversation"):
+                    values.update(
+                        tools_values(c, conn, values["conversation"], values["tracker"].portal_id)
+                    )
+        except db.StoreMissing as err:
+            return missing(c, err, fragment=True)
+        if values is None or not values.get("conversation"):
+            return render(c, "partials/chat_missing.html", status_code=404, asked=conversation)
+        return render(c, "partials/chat_tools.html", **values)
+
+    # ---- new portal from the dashboard (spec 011 T005, FR-004, FR-005) ----------------------
+
+    @app.get("/portals/new", response_class=HTMLResponse)
+    async def portal_new(request: Request, env: str | None = None) -> HTMLResponse:
+        c = ctx(request, env)
+        up = await chat_client.service_up(settings, chat_transport)
+        return render(c, "portal_new.html", service_up=up, form=NEW_PORTAL_DEFAULTS, error=None)
+
+    @app.post("/portals/new", response_class=HTMLResponse, response_model=None)
+    async def portal_create(request: Request, env: str | None = None) -> Response:
+        """A plain form post (works without JavaScript). The chat service writes the files; on
+        success the portal is chosen in the header and a chat conversation opens for it."""
+        if not same_origin(request):
+            return PlainTextResponse("Cross-origin request refused.", status_code=403)
+        c = ctx(request, env)
+        form = form_fields(await request.body(), NEW_PORTAL_DEFAULTS)
+        payload: dict[str, Any] = {
+            "robots": form["robots"],
+            "environments": {
+                e: {"base_url": form[f"url_{e}"], "max_action_class": form[f"limit_{e}"]}
+                for e in PORTAL_ENVS
+                if form[f"url_{e}"]
+            },
+        }
+        if form["id"]:
+            payload["id"] = form["id"]
+
+        def again(message: str, status: int) -> HTMLResponse:
+            return render(c, "portal_new.html", status, service_up=True, form=form, error=message)
+
+        try:
+            status, body = await chat_client.call(
+                settings, "POST", "/portals", payload, chat_transport
+            )
+        except chat_client.ChatUnavailable:
+            return render(c, "portal_new.html", 503, service_up=False, form=form, error=None)
+        if status != 201 or not isinstance(body, dict):
+            message = body.get("message") if isinstance(body, dict) else None
+            return again(str(message or "The portal could not be saved."), 400)
+        portal = str(body["portal"])
+        target = c.url("/chat", portal=portal)  # the middleware keeps the choice in the cookie
+        try:
+            status, made = await chat_client.call(
+                settings,
+                "POST",
+                "/conversations",
+                {"portal": portal, "fresh": True},
+                chat_transport,
+            )
+            if status < 300 and isinstance(made, dict) and isinstance(made.get("id"), str):
+                target = c.url("/chat", portal=portal, conversation=made["id"])
+        except chat_client.ChatUnavailable:
+            pass
+        response = RedirectResponse(target, status_code=303)
+        response.set_cookie(PORTAL_COOKIE, portal, samesite="lax", httponly=True)
+        return response
+
+    # ---- portal settings: add, change and revoke environments (spec 011 FR-012) -------------
+
+    async def settings_page(
+        c: Ctx, portal: str, status: int = 200, error: str | None = None, form: Any = None
+    ) -> HTMLResponse:
+        """The portal's environments as the chat service reads them from its file."""
+        environments: list[dict[str, Any]] = []
+        up = True
+        try:
+            code, body = await chat_client.call(
+                settings, "GET", f"/portals/{quote(portal, safe='')}", None, chat_transport
+            )
+        except chat_client.ChatUnavailable:
+            up = False
+        else:
+            if code == 200 and isinstance(body, dict):
+                environments = list(body.get("environments") or [])
+            else:
+                status = 404 if code == 404 else status
+                if error is None:
+                    error = str(body.get("message") if isinstance(body, dict) else "unreadable")
+        missing = [e for e in PORTAL_ENVS if e not in {x["environment"] for x in environments}]
+        return render(
+            c,
+            "portal_settings.html",
+            status,
+            portal=portal,
+            environments=environments,
+            limits=ACTION_LIMITS,
+            missing=missing,
+            form=form
+            or {
+                "environment": missing[0] if missing else "production",
+                "base_url": "",
+                "limit": "external-side-effect",
+            },
+            error=error,
+            saved=c.request.query_params.get("saved"),
+            service_up=up,
+        )
+
+    @app.get("/portals/{portal}/settings", response_class=HTMLResponse)
+    async def portal_settings(
+        request: Request, portal: str, env: str | None = None
+    ) -> HTMLResponse:
+        return await settings_page(ctx(request, env), portal)
+
+    @app.post("/portals/{portal}/environments", response_class=HTMLResponse, response_model=None)
+    async def portal_env_set(request: Request, portal: str, env: str | None = None) -> Response:
+        """Add an environment, or change its address and limit (a plain form post)."""
+        if not same_origin(request):
+            return PlainTextResponse("Cross-origin request refused.", status_code=403)
+        c = ctx(request, env)
+        form = form_fields(
+            await request.body(),
+            {"environment": "", "base_url": "", "limit": "external-side-effect"},
+        )
+        path = (
+            f"/portals/{quote(portal, safe='')}/environments/{quote(form['environment'], safe='')}"
+        )
+        try:
+            code, body = await chat_client.call(
+                settings,
+                "PUT",
+                path,
+                {"base_url": form["base_url"], "max_action_class": form["limit"]},
+                chat_transport,
+            )
+        except chat_client.ChatUnavailable:
+            return await settings_page(c, portal, 503, form=form)
+        if code != 200:
+            message = body.get("message") if isinstance(body, dict) else None
+            return await settings_page(c, portal, 400, str(message or "Not saved."), form)
+        target = c.url(f"/portals/{quote(portal, safe='')}/settings", saved=form["environment"])
+        return RedirectResponse(target, status_code=303)
+
+    @app.post(
+        "/portals/{portal}/environments/{environment}/revoke",
+        response_class=HTMLResponse,
+        response_model=None,
+    )
+    async def portal_env_revoke(
+        request: Request, portal: str, environment: str, env: str | None = None
+    ) -> Response:
+        """Revoke an environment; the chat service keeps the last one."""
+        if not same_origin(request):
+            return PlainTextResponse("Cross-origin request refused.", status_code=403)
+        c = ctx(request, env)
+        path = f"/portals/{quote(portal, safe='')}/environments/{quote(environment, safe='')}"
+        try:
+            code, body = await chat_client.call(settings, "DELETE", path, None, chat_transport)
+        except chat_client.ChatUnavailable:
+            return await settings_page(c, portal, 503)
+        if code != 200:
+            message = body.get("message") if isinstance(body, dict) else None
+            return await settings_page(c, portal, 409, str(message or "Not revoked."))
+        target = c.url(f"/portals/{quote(portal, safe='')}/settings")
+        return RedirectResponse(target, status_code=303)
+
+    @app.post("/chat/new")
+    async def chat_new(request: Request, env: str | None = None) -> Response:
+        """The "new conversation" button (a plain form post, so it works without JavaScript)."""
+        if not same_origin(request):
+            return PlainTextResponse("Cross-origin request refused.", status_code=403)
+        c = ctx(request, env)
+        # Spec 011: a new conversation is for the portal chosen in the header (always a new one).
+        payload = {"portal": c.portal, "fresh": True} if c.portal else {}
+        try:
+            status, body = await chat_client.call(
+                settings, "POST", "/conversations", payload, chat_transport
+            )
+        except chat_client.ChatUnavailable:
+            return RedirectResponse(c.url("/chat"), status_code=303)
+        new_id = body.get("id") if isinstance(body, dict) else None
+        if status >= 300 or not isinstance(new_id, str):
+            return RedirectResponse(c.url("/chat"), status_code=303)
+        return RedirectResponse(c.url("/chat", conversation=new_id), status_code=303)
+
+    @app.post("/chat/conversations")
+    async def chat_create(request: Request) -> JSONResponse:
+        if not same_origin(request):
+            return chat_refused()
+        try:
+            payload = await request.json()
+        except ValueError:
+            payload = {}
+        fields = payload if isinstance(payload, dict) else {}
+        sent = {k: v for k, v in fields.items() if k in ("portal", "goal") and isinstance(v, str)}
+        try:
+            status, body = await chat_client.call(
+                settings, "POST", "/conversations", sent, chat_transport
+            )
+        except chat_client.ChatUnavailable:
+            return chat_down()
+        return chat_json(status, body)
+
+    @app.post("/chat/conversations/{conversation_id}/messages")
+    async def chat_send(request: Request, conversation_id: str) -> JSONResponse:
+        if not same_origin(request):
+            return chat_refused()
+        try:
+            payload = await request.json()
+        except ValueError:
+            payload = {}
+        text = payload.get("text") if isinstance(payload, dict) else None
+        if not isinstance(text, str) or not text.strip():
+            return chat_json(422, {"ref": None, "message": "Write a message first."})
+        try:
+            status, body = await chat_client.call(
+                settings,
+                "POST",
+                f"/conversations/{quote(conversation_id, safe='')}/messages",
+                {"text": text},
+                chat_transport,
+            )
+        except chat_client.ChatUnavailable:
+            return chat_down()
+        return chat_json(status, body)
+
+    @app.get("/chat/conversations/{conversation_id}/events")
+    async def chat_events(
+        conversation_id: str,
+        last_event_id: Annotated[str | None, Header()] = None,
+    ) -> Response:
+        """SSE passthrough. `Last-Event-ID` goes upstream so a reconnect resumes where it left."""
+        client = chat_client.make_client(settings, chat_transport, stream=True)
+        headers = {"accept": "text/event-stream"}
+        if last_event_id:
+            headers["last-event-id"] = last_event_id
+        request = client.build_request(
+            "GET", f"/conversations/{quote(conversation_id, safe='')}/events", headers=headers
+        )
+        try:
+            upstream = await client.send(request, stream=True)
+        except httpx2.HTTPError:
+            await client.aclose()
+            return chat_down()
+        if upstream.status_code != 200:
+            try:
+                body = upstream.json() if await upstream.aread() else {}
+            except ValueError:
+                body = {}
+            await upstream.aclose()
+            await client.aclose()
+            return chat_json(upstream.status_code, body)
+
+        async def relay() -> AsyncIterable[bytes]:
+            try:
+                async for chunk in upstream.aiter_raw():
+                    yield chunk
+            except httpx2.HTTPError:
+                return  # the service went away; the browser's EventSource reconnects
+            finally:
+                await upstream.aclose()
+                await client.aclose()
+
+        return StreamingResponse(
+            relay(),
+            media_type="text/event-stream",
+            headers={"Cache-Control": "no-store", "X-Accel-Buffering": "no"},
+        )
+
+    # ---- credentials, scope, amendments: forms posted through the dashboard (T020, T027, T031,
+    # T033). Each route validates the obvious, then forwards; the service is the only writer. ----
+
+    @app.post("/chat/conversations/{conversation_id}/credentials")
+    async def chat_credentials(request: Request, conversation_id: str) -> JSONResponse:
+        """Values go to the service and nowhere else: they are not logged, stored or echoed."""
+        if not same_origin(request):
+            return chat_refused()
+        fields = await read_json(request)
+        portal = fields.get("portal")
+        environment = fields.get("environment")
+        raw = fields.get("values")
+        if not isinstance(portal, str) or not portal.strip():
+            return invalid("Choose a portal in the chat first.")
+        if environment not in queries_chat.ENVIRONMENTS:
+            return invalid("Choose sandbox, staging or production.")
+        values = (
+            {k: v for k, v in raw.items() if isinstance(v, str) and v != ""}
+            if isinstance(raw, dict)
+            else {}
+        )
+        if not values:
+            return invalid("Type at least one value.")
+        if any(not queries_chat.REF_NAME.match(k) for k in values):
+            return invalid("Reference names use capital letters, digits and underscores.")
+        sent = {"portal": portal, "environment": environment, "values": values}
+        response = await forward(
+            "POST", f"/conversations/{quote(conversation_id, safe='')}/credentials", sent
+        )
+        # Whatever the service said, only these keys go back to the browser.
+        body = json.loads(response.body)
+        kept = {k: body[k] for k in ("stored", "refs", "ref", "message") if k in body}
+        return chat_json(response.status_code, kept)
+
+    @app.post("/chat/conversations/{conversation_id}/scope")
+    async def chat_scope(request: Request, conversation_id: str) -> JSONResponse:
+        if not same_origin(request):
+            return chat_refused()
+        fields = await read_json(request)
+        text_fields = ("portal", "process_name", "persona", "start_state_id", "end_state_id")
+        if not isinstance(fields.get("process_name"), str) or not fields["process_name"].strip():
+            return invalid("Name the process first.")
+        if any(not isinstance(fields.get(k), str) or not fields[k] for k in text_fields):
+            return invalid("Choose a persona, a start state and an end state.")
+        selected = fields.get("selected_state_ids")
+        comments = fields.get("comments")
+        sent = {
+            **{k: fields[k].strip() for k in text_fields},
+            "selected_state_ids": [s for s in selected if isinstance(s, str)]
+            if isinstance(selected, list)
+            else [],
+            "comments": {
+                k: v
+                for k, v in (comments if isinstance(comments, dict) else {}).items()
+                if isinstance(v, str) and v.strip()
+            },
+            "source": "ba_description",
+        }
+        return await forward(
+            "POST", f"/conversations/{quote(conversation_id, safe='')}/scope", sent
+        )
+
+    @app.post("/chat/portals/{portal}/amendments")
+    async def amendment_create(request: Request, portal: str) -> JSONResponse:
+        if not same_origin(request):
+            return chat_refused()
+        fields = await read_json(request)
+        sent: dict[str, Any] = {
+            k: fields[k]
+            for k in ("kind", "target_kind", "target_id", "text", "author")
+            if isinstance(fields.get(k), str) and fields[k].strip()
+        }
+        attachment = fields.get("attachment")
+        if isinstance(attachment, dict):
+            name, content = attachment.get("name"), attachment.get("content_base64")
+            if not isinstance(name, str) or not isinstance(content, str) or not content:
+                return invalid("The attachment could not be read.")
+            if len(content) > MAX_ATTACHMENT_B64:
+                return chat_json(
+                    413, {"ref": None, "message": "The attachment is larger than 8 MB."}
+                )
+            sent["attachment"] = {"name": name, "content_base64": content}
+        if not all(k in sent for k in ("kind", "target_kind", "target_id")):
+            return invalid("The amendment has no target.")
+        return await forward("POST", f"/portals/{quote(portal, safe='')}/amendments", sent)
+
+    @app.delete("/chat/portals/{portal}/amendments/{amendment_id}")
+    async def amendment_withdraw(request: Request, portal: str, amendment_id: str) -> JSONResponse:
+        if not same_origin(request):
+            return chat_refused()
+        return await forward(
+            "DELETE", f"/portals/{quote(portal, safe='')}/amendments/{quote(amendment_id, safe='')}"
+        )
+
+    @app.post("/chat/portals/{portal}/amendments/{amendment_id}/reapply")
+    async def amendment_reapply(request: Request, portal: str, amendment_id: str) -> JSONResponse:
+        if not same_origin(request):
+            return chat_refused()
+        fields = await read_json(request)
+        sent = {
+            k: fields[k]
+            for k in ("target_kind", "target_id", "text")
+            if isinstance(fields.get(k), str) and fields[k].strip()
+        }
+        if "target_kind" not in sent or "target_id" not in sent:
+            return invalid("Choose the state to apply it to.")
+        return await forward(
+            "POST",
+            f"/portals/{quote(portal, safe='')}/amendments/{quote(amendment_id, safe='')}/reapply",
+            sent,
+        )
+
+    @app.post("/chat/portals/{portal}/amendments/{amendment_id}/dismiss")
+    async def amendment_dismiss(request: Request, portal: str, amendment_id: str) -> JSONResponse:
+        if not same_origin(request):
+            return chat_refused()
+        return await forward(
+            "POST",
+            f"/portals/{quote(portal, safe='')}/amendments/{quote(amendment_id, safe='')}/dismiss",
+            {},
+        )
+
+    @app.post("/chat/runs/{run_id}/stop")
+    async def chat_stop_run(request: Request, run_id: str) -> JSONResponse:
+        """The tracker's "Stop scan" button (T041): the run becomes interrupted, so it resumes."""
+        if not same_origin(request):
+            return chat_refused()
+        return await forward("POST", f"/runs/{quote(run_id, safe='')}/stop", {})
+
+    @app.post("/chat/conversations/{conversation_id}/cancel")
+    async def chat_cancel(request: Request, conversation_id: str) -> JSONResponse:
+        """The chat's [stop] (T050): ends the assistant's turn and the conversation's runs."""
+        if not same_origin(request):
+            return chat_refused()
+        return await forward("POST", f"/conversations/{quote(conversation_id, safe='')}/cancel", {})
+
+    @app.post("/chat/conversations/{conversation_id}/reset")
+    async def chat_reset(request: Request, conversation_id: str) -> JSONResponse:
+        """[reset assistant] (T051): a fresh assistant session on the next message."""
+        if not same_origin(request):
+            return chat_refused()
+        return await forward("POST", f"/conversations/{quote(conversation_id, safe='')}/reset", {})
+
+    # ---- developer lookup of an ERR- reference (T025) ----------------------------------------
+
+    @app.get("/chat/errors/{ref}", response_class=HTMLResponse)
+    async def chat_error(request: Request, ref: str, env: str | None = None) -> HTMLResponse:
+        """The error-log line behind a reference, fetched from the service (not the store)."""
+        c = ctx(request, env)
+        entry: dict[str, Any] | None = None
+        unavailable = False
+        status = 200
+        if ERR_REF.match(ref):
+            try:
+                code, body = await chat_client.call(
+                    settings, "GET", f"/errors/{quote(ref, safe='')}", None, chat_transport
+                )
+            except chat_client.ChatUnavailable:
+                unavailable = True
+            else:
+                entry = body if code == 200 and isinstance(body, dict) else None
+        status = 503 if unavailable else (200 if entry else 404)
+        return render(
+            c,
+            "error_entry.html",
+            status_code=status,
+            ref=ref,
+            entry=entry,
+            unavailable=unavailable,
+            nav_current="chat",
+        )
+
+    # ---- superseded amendments (T033, FR-022) ------------------------------------------------
+
+    def superseded_values(
+        c: Ctx, conn: sqlite3.Connection, portal: str | None, show: str | None
+    ) -> dict[str, Any]:
+        portal = portal or None
+        show = show if show in queries_chat.SHOW_FILTERS else "superseded"
+        items = queries_chat.superseded_amendments(conn, portal, show)
+        states = {
+            p: queries_chat.portal_states(conn, p) for p in sorted({a.portal_id for a in items})
+        }
+        return {
+            "items": items,
+            "portal": portal,
+            "show": show,
+            "portals": queries_chat.amendment_portals(conn),
+            "states": states,
+            "reasons": queries_chat.SUPERSEDED_REASONS,
+            "form_action": c.url("/amendments/superseded"),
+            "fragment_url": c.url("/fragments/amendments/superseded"),
+            "self_url": c.url("/fragments/amendments/superseded", portal=portal, show=show),
+        }
+
+    @app.get("/amendments/superseded", response_class=HTMLResponse)
+    def superseded_page(
+        request: Request, env: str | None = None, portal: str | None = None, show: str | None = None
+    ) -> HTMLResponse:
+        c = ctx(request, env)
+        try:
+            with c.conn() as conn:
+                return render(
+                    c,
+                    "amendments.html",
+                    nav_current="amendments",
+                    v=superseded_values(c, conn, portal, show),
+                )
+        except db.StoreMissing as err:
+            return missing(c, err)
+
+    @app.get("/fragments/amendments/superseded", response_class=HTMLResponse)
+    def fragment_superseded(
+        request: Request,
+        env: str | None = None,
+        portal: str | None = None,
+        show: str | None = None,
+        push: bool = False,
+    ) -> HTMLResponse:
+        c = ctx(request, env)
+        try:
+            with c.conn() as conn:
+                v = superseded_values(c, conn, portal, show)
+        except db.StoreMissing as err:
+            return missing(c, err, fragment=True)
+        return render(
+            c,
+            "partials/amendments_superseded.html",
+            v=v,
+            push=c.url("/amendments/superseded", portal=v["portal"], show=v["show"])
+            if push
+            else None,
+        )
+
+    @app.get("/fragments/states/{state_id}/amendments", response_class=HTMLResponse)
+    def fragment_state_amendments(
+        request: Request, state_id: str, env: str | None = None
+    ) -> HTMLResponse:
+        c = ctx(request, env)
+        try:
+            with c.conn() as conn:
+                page = visuals.state_page(conn, settings.data_dir, state_id)
+                if page is None:
+                    return render(
+                        c, "partials/states/state_missing.html", status_code=404, state_id=state_id
+                    )
+                am = state_amendments_values(c, conn, page.figure.state)
+        except db.StoreMissing as err:
+            return missing(c, err, fragment=True)
+        return render(c, "partials/state_amendments.html", am=am, st=page.figure.state)
+
     # ---- live -------------------------------------------------------------------------------
 
     @app.get("/events", response_class=EventSourceResponse)
@@ -755,6 +1568,7 @@ def summary_values(c: Ctx, conn: sqlite3.Connection, portal: str | None) -> dict
         summaries = [s for s in summaries if s.portal_id == portal]
     return {
         "items": summaries,
+        "superseded": queries_chat.superseded_counts(conn),
         "self_url": c.url("/fragments/summary", portal=portal),
     }
 

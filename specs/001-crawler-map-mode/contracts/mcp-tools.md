@@ -68,7 +68,8 @@ to hold it in context.
   observer, fingerprint, PII scrubbing, and the server records the state, any forms, and the
   observed API calls, with evidence and confidence.
 - **Output**: `{ state_id, created: boolean, cluster_id, title, route_template, forms: number, actions: Array<{ action_id, role, accessible_name, safety_class, allowed: boolean, skip_reason? }> }`
-- **Errors**: `ACTION_REFUSED` (with `rule`), `RUN_STOPPED`
+- **Errors**: `ACTION_REFUSED` (with `rule`), `RUN_STOPPED`, `NAVIGATION_FAILED` (the page
+  never opened: refused connection, unknown host, …; nothing is recorded; spec 011 F-06)
 
 ### `act`
 

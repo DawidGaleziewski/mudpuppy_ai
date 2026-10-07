@@ -1,0 +1,40 @@
+{% import "partials/macros.html" as m %}
+{#- TO-BE amendments on one state, from the read-only `amendments` table. Live region; the add
+    form sits outside it so typing is never swapped away. -#}
+{% call m.region("state-amendments", am.self_url, "Amendments on this state (to-be)") %}
+  {%- if not am["items"] %}
+    {{ m.empty("No amendments on this screen", "Add the change you want below; it is kept apart from what was observed.") }}
+  {%- else %}
+  <div class="table-wrap">
+    <table class="data stack">
+      <caption class="visually-hidden">To-be amendments on this screen</caption>
+      <thead><tr>
+        <th scope="col">Key</th><th scope="col">Status</th><th scope="col">Target</th>
+        <th scope="col">Text</th><th scope="col">Added (UTC)</th><th scope="col">Action</th>
+      </tr></thead>
+      <tbody>
+        {%- for a in am["items"] %}
+        <tr id="{{ a.key }}">
+          <td data-label="key"><code>{{ a.key }}</code></td>
+          <td data-label="status">{{ m.amendment_status(a.status) }}</td>
+          <td data-label="target">{% if a.target_kind == "state" %}whole screen{% else %}element <code>{{ a.target_id.split("#", 1)[1] }}</code>{% endif %}</td>
+          <td data-label="text">
+            {%- if a.text %}{{ a.text }}{% endif %}
+            {%- if a.attachment_name %} <span class="muted">attachment</span> <code>{{ a.attachment_name }}</code>{% endif %}
+            {%- if not a.text and not a.attachment_name %}<span class="muted">—</span>{% endif %}
+          </td>
+          <td data-label="added">{{ a.created_at | when }} <span class="muted">by {{ a.author }}</span></td>
+          <td data-label="action">
+            {%- if a.status == "active" %}
+            <button class="btn btn-bracket" type="button" data-withdraw="/chat/portals/{{ a.portal_id | urlencode }}/amendments/{{ a.id | urlencode }}" data-label="{{ a.key }}">[withdraw]</button>
+            {%- elif a.status == "superseded" %}
+            <a class="btn btn-bracket" href="{{ c.url('/amendments/superseded', portal=a.portal_id) }}">[review]</a>
+            {%- else %}<span class="muted">—</span>{% endif %}
+          </td>
+        </tr>
+        {%- endfor %}
+      </tbody>
+    </table>
+  </div>
+  {%- endif %}
+{% endcall %}

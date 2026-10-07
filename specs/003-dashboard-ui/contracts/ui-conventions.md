@@ -41,6 +41,10 @@ mapping) plus the status vocabulary for Pathfinder's records. It is mirrored in
 | doc revision | `rejected`, `superseded`, `withdrawn` | `[RJCT]`, `[OLD.]`, `[WDRN]` | `ink-500` | a reviewer's decision is not a crawl failure: never red |
 | follow-up task | `open`, `in_progress`, `done` | `[OPEN]`, `[WORK]`, `[DONE]` | `ink-100`, `accent-3`, `brand` | no pulse on `[WORK]` |
 | follow-up task | `blocked`, `cancelled` | `[BLKD]`, `[CNCL]` | `ink-500` | blocked reason beside it |
+| chat workflow step (spec 010) | `todo`, `pending` | `[TODO]`, `[PEND]` | `ink-500` | `[TODO]` is new; `pending` has a dashed row border |
+| amendment (TO-BE, spec 010) | `active`, `dismissed` | `[ACTV]`, `[DISM]` | `ink-100`, `ink-500` | both new; shown with a dashed `TO-BE` tag, never mixed with observed facts |
+| amendment | `superseded`, `withdrawn` | `[OLD.]`, `[WDRN]` | `ink-500` | reuse doc revision labels; never red |
+| chat workflow step | `in_progress`, `done`, `failed` | `[RUN.]`, `[DONE]`, `[FAIL]` | `accent-3`, `brand`, `signal-error` | live dot on `[RUN.]`; `ERR-` ref beside `[FAIL]` |
 | review action | `confirm`, `reject`, `comment` | `[ OK ]`, `[RJCT]`, `[NOTE]` | `brand`, `ink-500`, `ink-100` | reviewer and time beside it |
 | trace process outcome | `goal_reached`, `boundary_reached`, `stopped`, `abandoned` | `[ OK ]`, `[BNDY]`, `[STOP]`, `[ABND]` | `brand`, `ink-500`, `signal-error`, `ink-500` | a safety boundary is the system working: muted |
 | evidence link | target missing / kind unsupported | `[ ?? ]` | `ink-500` | text says "broken link" or "unresolved" |

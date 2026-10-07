@@ -1,0 +1,102 @@
+{% import "partials/macros.html" as m %}
+{#- Credentials form (T020, FR-006) and the scope checklist (T027, FR-014) beside the chat.
+    Live region over the portal's states and personas; a refresh is skipped while a form here has
+    unsaved input (`window.formsDirty`, forms.js), so typing is never swapped away. Both forms post
+    JSON through the dashboard (`data-json-form`, forms.js); nothing here reaches the service
+    from the browser. -#}
+{%- set t = tools %}
+{%- set refs = [] %}
+{%- for p in t.personas %}{% for r in p.refs %}{% if r not in refs %}{% set _ = refs.append(r) %}{% endif %}{% endfor %}{% endfor %}
+{% call m.region("chat-tools", t.self_url, "Credentials and process scope", guard="!(window.formsDirty && window.formsDirty())") %}
+<div class="tools">
+  <section class="panel tool" aria-labelledby="cred-h">
+    <div class="section-head"><h2 id="cred-h">Credentials</h2></div>
+    {%- if not t.portal %}
+    <p class="muted">Choose a portal in the chat first; its persona says which credentials it needs.</p>
+    {%- else %}
+    <p class="muted">For <code>{{ t.portal }}</code>. Values go into the vault, never into the chat, and are not shown again.</p>
+    <form class="tool-form" data-json-form="credentials" method="post" autocomplete="off"
+          action="/chat/conversations/{{ conversation.id }}/credentials">
+      <input type="hidden" name="portal" value="{{ t.portal }}">
+      <label class="field">
+        <span>Environment</span>
+        <select class="select" name="environment">
+          {%- for e in t.environments %}<option value="{{ e }}"{% if e == "sandbox" %} selected{% endif %}>{{ e }}</option>{% endfor %}
+        </select>
+      </label>
+      {%- for r in refs %}
+      <label class="field">
+        <span><code>{{ r }}</code> <span class="muted">used by {% for p in t.personas if r in p.refs %}{{ p.id }}{% if not loop.last %}, {% endif %}{% endfor %}</span></span>
+        <input class="input" type="password" name="ref:{{ r }}" autocomplete="new-password" spellcheck="false">
+      </label>
+      {%- else %}
+      <p class="muted">No persona of this portal names a credential. Add a reference below if it needs one.</p>
+      {%- endfor %}
+      <label class="field">
+        <span>Another reference name <span class="muted">(optional, e.g. <code>PORTAL_TOKEN</code>)</span></span>
+        <input class="input" type="text" name="extra_ref" pattern="[A-Z][A-Z0-9_]{0,63}" autocomplete="off" spellcheck="false">
+      </label>
+      <label class="field">
+        <span>Value for that reference</span>
+        <input class="input" type="password" name="extra_value" autocomplete="new-password" spellcheck="false">
+      </label>
+      <button class="btn btn-primary" type="submit"{% if not conversation %} disabled{% endif %}>[store credentials]</button>
+      <p class="form-result" role="status" data-result></p>
+    </form>
+    {%- endif %}
+  </section>
+
+  <section class="panel tool" aria-labelledby="scope-h">
+    <div class="section-head"><h2 id="scope-h">Process scope</h2><span class="caption mono-num">{{ t.states | length }} states</span></div>
+    {%- if not t.portal %}
+    <p class="muted">Choose a portal in the chat first.</p>
+    {%- elif not t.states %}
+    {{ m.empty("No states mapped yet", "Run the scan and map steps for " ~ t.portal ~ "; its screens appear here to pick from.", "[ -- ]") }}
+    {%- else %}
+    <p class="muted">Tick the screens of the process, mark where it starts and ends, and add a note to any of them.</p>
+    <form class="tool-form" data-json-form="scope" method="post"
+          action="/chat/conversations/{{ conversation.id }}/scope">
+      <input type="hidden" name="portal" value="{{ t.portal }}">
+      <label class="field">
+        <span>Process name</span>
+        <input class="input" type="text" name="process_name" required maxlength="200" autocomplete="off">
+      </label>
+      <label class="field">
+        <span>Persona</span>
+        <select class="select" name="persona" required>
+          {%- for p in t.personas %}<option value="{{ p.id }}">{{ p.id }}</option>
+          {%- else %}<option value="" disabled selected>no persona found</option>{% endfor %}
+        </select>
+      </label>
+      <ol class="scope-list" aria-label="Mapped states of {{ t.portal }}">
+        {%- for s in t.states %}
+        <li class="scope-row" data-state="{{ s.id }}">
+          <div class="scope-head">
+            <label class="check">
+              <input type="checkbox" name="include" value="{{ s.id }}">
+              <span class="scope-title">{{ s.title or "(untitled page)" }}</span>
+            </label>
+            {%- if s.screenshot_ref %}
+            <a href="{{ c.url('/states/' ~ s.id) }}" aria-label="Open the state “{{ s.title }}”"><img class="thumb" src="/evidence/{{ s.screenshot_ref }}" alt="" loading="lazy"></a>
+            {%- endif %}
+          </div>
+          <code class="scope-route">{{ s.route_template }}</code>
+          <div class="scope-ends">
+            <label class="check"><input type="radio" name="start_state_id" value="{{ s.id }}" required><span>start</span></label>
+            <label class="check"><input type="radio" name="end_state_id" value="{{ s.id }}" required><span>end</span></label>
+          </div>
+          <label class="field scope-comment" hidden>
+            <span>Note on this screen</span>
+            <input class="input" type="text" name="comment:{{ s.id }}" maxlength="2000" autocomplete="off">
+          </label>
+        </li>
+        {%- endfor %}
+      </ol>
+      <button class="btn btn-primary" type="submit"{% if not conversation %} disabled{% endif %}>[save scope]</button>
+      <p class="form-result" role="status" data-result></p>
+    </form>
+    {%- endif %}
+  </section>
+  <noscript><p class="muted">These forms need JavaScript.</p></noscript>
+</div>
+{% endcall %}

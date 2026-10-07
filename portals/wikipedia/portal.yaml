@@ -1,0 +1,29 @@
+# Added from the dashboard (spec 011) on 2026-10-06.
+id: wikipedia
+compliance:
+  robots_checked_on: null
+  terms_reviewed_on: null
+  terms_reviewed_by: null
+robots: ignore
+scope:
+  allowed_domains:
+    - wikipedia.org
+  allowed_paths:
+    - /*
+  external_link_policy: record
+  max_depth: 6
+  max_states: 200
+  max_actions_per_state: 40
+  max_run_time_minutes: 60
+  max_steps: 600
+denylist: []
+rate_limit:
+  requests_per_second: 2
+  max_concurrency: 1
+  user_agent: PathfinderAI-Crawler/0.1 (portal added from the dashboard)
+environments:
+  production:
+    base_url: https://www.wikipedia.org/
+    max_action_class: external-side-effect
+    allowed_domains:
+      - wikipedia.org

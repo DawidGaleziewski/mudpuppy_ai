@@ -66,14 +66,11 @@ describe('record_transition safety', () => {
     ).toBe('read');
   });
 
-  it('rejects UNSAFE_ACTION_EXECUTED for an executed non-read action on a production run', async () => {
+  it('records an executed non-read action on a production run (constitution 4.0.0, spec 011)', async () => {
+    // the limit is enforced before acting (the action gate); recording what happened is allowed
     const { ctx, base } = await setup('production');
-    expect(
-      await code(
-        recordTransition(ctx, base({ action: bid, safety_class: 'external-side-effect' })),
-      ),
-    ).toBe('UNSAFE_ACTION_EXECUTED');
-    expect(await ctx.db.selectFrom('edges').selectAll().execute()).toHaveLength(0);
+    await recordTransition(ctx, base({ action: bid, safety_class: 'external-side-effect' }));
+    expect(await ctx.db.selectFrom('edges').selectAll().execute()).toHaveLength(1);
   });
 
   it('rejects a supplied class that differs from the re-derived one (agent claims read for a bid button)', async () => {

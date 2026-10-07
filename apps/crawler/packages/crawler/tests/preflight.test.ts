@@ -72,10 +72,15 @@ describe('preflight', () => {
     expect(preflight('shop', 'guest', { root }).ok).toBe(true);
   });
 
-  const refused = (root: string, code: string, needle: string) => {
+  const refused = (
+    root: string,
+    code: string,
+    needle: string,
+    environment?: 'production' | 'staging' | 'sandbox',
+  ) => {
     const fetchSpy = vi.spyOn(globalThis, 'fetch');
     const t0 = performance.now();
-    const r = preflight('shop', 'guest', { root });
+    const r = preflight('shop', 'guest', { root, ...(environment ? { environment } : {}) });
     const ms = performance.now() - t0;
     expect(r).toMatchObject({ ok: false, code });
     expect(r.ok === false && r.message).toContain(needle);
@@ -95,17 +100,25 @@ describe('preflight', () => {
     );
   });
 
-  it('refuses production while any compliance value is null', () => {
+  it('allows production with compliance values left null (constitution 4.0.0, spec 011)', () => {
     const compliance =
-      '  robots_checked_on: null\n  terms_reviewed_on: 2026-09-21\n  terms_reviewed_by: dawid';
-    refused(
-      repo({
-        'portals/shop/portal.yaml': PORTAL({ compliance }),
-        'personas/shop/guest.yaml': PERSONA,
-      }),
-      'ENV_GUARD_REFUSED',
-      'robots_checked_on',
-    );
+      '  robots_checked_on: null\n  terms_reviewed_on: null\n  terms_reviewed_by: null';
+    const root = repo({
+      'portals/shop/portal.yaml': PORTAL({ compliance }),
+      'personas/shop/guest.yaml': PERSONA,
+    });
+    const r = preflight('shop', 'guest', { root });
+    expect(r.ok).toBe(true);
+  });
+
+  it('loads the environment a run asks for and refuses one the portal lacks (spec 011)', () => {
+    const root = repo({
+      'portals/shop/portal.yaml': PORTAL({}),
+      'personas/shop/guest.yaml': PERSONA,
+    });
+    const r = preflight('shop', 'guest', { root, environment: 'production' });
+    expect(r.ok && r.effective.portal.environment).toBe('production');
+    refused(root, 'CONFIG_INVALID', 'has no environment "sandbox"', 'sandbox');
   });
 
   it('refuses production with a placeholder User-Agent', () => {

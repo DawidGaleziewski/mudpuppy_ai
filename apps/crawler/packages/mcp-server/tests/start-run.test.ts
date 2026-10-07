@@ -91,12 +91,9 @@ describe('start_run (database part)', () => {
     expect(snap.effective_max_action_class).toBe('read');
   });
 
-  it('refuses with ENV_GUARD_REFUSED and creates no run (production flag, null compliance, placeholder UA)', async () => {
-    for (const o of [
-      { env: 'sandbox' },
-      { compliance: false },
-      { ua: 'PathfinderAI (+contact@example.com)' },
-    ]) {
+  it('refuses with ENV_GUARD_REFUSED and creates no run (production flag, placeholder UA)', async () => {
+    // null compliance values no longer refuse a production run (constitution 4.0.0, spec 011)
+    for (const o of [{ env: 'sandbox' }, { ua: 'PathfinderAI (+contact@example.com)' }]) {
       const ctx = await repo(files(o));
       expect(await code(startRunRecord(ctx, { portal_id: 'shop', persona_id: 'guest' }))).toBe(
         'ENV_GUARD_REFUSED',
@@ -122,17 +119,48 @@ describe('start_run (database part)', () => {
     );
   });
 
-  it('refuses a portal of another environment than the database', async () => {
+  it('records a run of any environment in this store, labelled with it (spec 011 FR-009)', async () => {
     const ctx = await repo(
       files({ env: 'sandbox', base: 'http://localhost:9000/', domain: 'localhost' }),
     );
-    expect(await code(startRunRecord(ctx, { portal_id: 'shop', persona_id: 'guest' }))).toBe(
-      'ENV_GUARD_REFUSED',
+    expect(ctx.dbEnvironment).not.toBe('sandbox');
+    const { run } = await startRunRecord(ctx, { portal_id: 'shop', persona_id: 'guest' });
+    expect(run.environment).toBe('sandbox');
+    // an environment the portal does not have is refused before anything is written
+    const other = await repo(
+      files({ env: 'sandbox', base: 'http://localhost:9000/', domain: 'localhost' }),
     );
-    ctx.dbEnvironment = 'sandbox';
     expect(
-      (await startRunRecord(ctx, { portal_id: 'shop', persona_id: 'guest' })).output.resumed,
-    ).toBe(false);
+      await code(
+        startRunRecord(other, { portal_id: 'shop', persona_id: 'guest', environment: 'staging' }),
+      ),
+    ).toBe('CONFIG_INVALID');
+    expect(await other.db.selectFrom('runs').selectAll().execute()).toHaveLength(0);
+  });
+
+  it('records the starting server as owner, and the resuming server takes it over (F-14)', async () => {
+    const ctx = await repo(files());
+    ctx.owner = { id: 'server-a', pid: 111 };
+    const { output } = await startRunRecord(ctx, { portal_id: 'shop', persona_id: 'guest' });
+    const owner = () =>
+      ctx.db
+        .selectFrom('runs')
+        .select(['owner_id', 'owner_pid'])
+        .where('id', '=', output.run_id)
+        .executeTakeFirstOrThrow();
+    expect(await owner()).toEqual({ owner_id: 'server-a', owner_pid: 111 });
+    await ctx.db
+      .updateTable('runs')
+      .set({ status: 'interrupted' })
+      .where('id', '=', output.run_id)
+      .execute();
+    ctx.owner = { id: 'server-b', pid: 222 };
+    await startRunRecord(ctx, {
+      portal_id: 'shop',
+      persona_id: 'guest',
+      resume_run_id: output.run_id,
+    });
+    expect(await owner()).toEqual({ owner_id: 'server-b', owner_pid: 222 });
   });
 
   it('resumes only an interrupted run of the same portal and persona', async () => {
@@ -171,6 +199,143 @@ describe('start_run (database part)', () => {
         startRunRecord(ctx, { portal_id: 'shop', persona_id: 'guest', resume_run_id: 'ghost' }),
       ),
     ).toBe('RUN_NOT_RESUMABLE');
+  });
+
+  it('keeps the BA’s per-run choices: a lower limit, skipped images; a resume keeps or replaces them (spec 011 FR-013, FR-014)', async () => {
+    const ctx = await repo({
+      'portals/shop/portal.yaml': portal() + 'max_action_class: external-side-effect\n',
+      'personas/shop/guest.yaml': persona.replace('read', 'external-side-effect'),
+    });
+    const snap = async (id: string) =>
+      JSON.parse(
+        (
+          await ctx.db
+            .selectFrom('runs')
+            .select('config_snapshot')
+            .where('id', '=', id)
+            .executeTakeFirstOrThrow()
+        ).config_snapshot,
+      );
+    const full = await startRunRecord(ctx, { portal_id: 'shop', persona_id: 'guest' });
+    expect(full.output).toMatchObject({
+      effective_max_action_class: 'external-side-effect',
+      skip_images: false,
+    });
+    const look = await startRunRecord(ctx, {
+      portal_id: 'shop',
+      persona_id: 'guest',
+      max_action_class: 'read',
+      skip_images: true,
+    });
+    expect(look.output).toMatchObject({ effective_max_action_class: 'read', skip_images: true });
+    expect(look.approved.effective.effectiveMaxActionClass).toBe('read');
+    expect((await snap(look.output.run_id)).choices).toEqual({
+      max_action_class: 'read',
+      skip_images: true,
+      focus: null,
+    });
+    await ctx.db
+      .updateTable('runs')
+      .set({ status: 'interrupted' })
+      .where('id', '=', look.output.run_id)
+      .execute();
+    const kept = await startRunRecord(ctx, {
+      portal_id: 'shop',
+      persona_id: 'guest',
+      resume_run_id: look.output.run_id,
+    });
+    expect(kept.output).toMatchObject({ effective_max_action_class: 'read', skip_images: true });
+    await ctx.db
+      .updateTable('runs')
+      .set({ status: 'interrupted' })
+      .where('id', '=', look.output.run_id)
+      .execute();
+    const widened = await startRunRecord(ctx, {
+      portal_id: 'shop',
+      persona_id: 'guest',
+      resume_run_id: look.output.run_id,
+      max_action_class: 'external-side-effect',
+      skip_images: false,
+    });
+    expect(widened.output).toMatchObject({
+      effective_max_action_class: 'external-side-effect',
+      skip_images: false,
+    });
+    expect((await snap(look.output.run_id)).effective_max_action_class).toBe(
+      'external-side-effect',
+    );
+  });
+
+  it('narrows a run to the BA’s focus: start page, host, excluded paths; a resume keeps it (spec 011 FR-017)', async () => {
+    const ctx = await repo(files());
+    const focus = {
+      start_url: 'https://en.shop.pl/',
+      only_domains: ['en.shop.pl'],
+      exclude_paths: ['/help/*'],
+    };
+    const { output, approved } = await startRunRecord(ctx, {
+      portal_id: 'shop',
+      persona_id: 'guest',
+      focus,
+    });
+    expect(output).toMatchObject({ base_url: 'https://en.shop.pl/', focus });
+    expect(approved.scope).toMatchObject({
+      allowed_domains: ['en.shop.pl'],
+      allowed_paths: ['/*'],
+      excluded_paths: ['/help/*'],
+    });
+    const row = await ctx.db
+      .selectFrom('runs')
+      .select('config_snapshot')
+      .where('id', '=', output.run_id)
+      .executeTakeFirstOrThrow();
+    const snap = JSON.parse(row.config_snapshot);
+    expect(snap.choices.focus).toEqual(focus);
+    expect(snap.scope.excluded_paths).toEqual(['/help/*']);
+
+    await ctx.db
+      .updateTable('runs')
+      .set({ status: 'interrupted' })
+      .where('id', '=', output.run_id)
+      .execute();
+    const resumed = await startRunRecord(ctx, {
+      portal_id: 'shop',
+      persona_id: 'guest',
+      resume_run_id: output.run_id,
+    });
+    expect(resumed.output.base_url).toBe('https://en.shop.pl/');
+    expect(resumed.approved.scope.excluded_paths).toEqual(['/help/*']);
+  });
+
+  it('refuses a focus outside the portal and creates no run', async () => {
+    const ctx = await repo(files());
+    const err = await startRunRecord(ctx, {
+      portal_id: 'shop',
+      persona_id: 'guest',
+      focus: { only_domains: ['other.example'] },
+    }).catch((e: unknown) => e as ToolError);
+    expect(err).toMatchObject({ code: 'SCHEMA_INVALID' });
+    expect((err as ToolError).message).toMatch(/^focus: address other\.example not within/);
+    expect(
+      await code(
+        startRunRecord(ctx, {
+          portal_id: 'shop',
+          persona_id: 'guest',
+          focus: { start_url: 'https://elsewhere.example/' },
+        }),
+      ),
+    ).toBe('SCHEMA_INVALID');
+    expect(await ctx.db.selectFrom('runs').select('id').execute()).toEqual([]);
+  });
+
+  it('never raises the limit above the portal’s and persona’s', async () => {
+    const ctx = await repo(files());
+    const { output } = await startRunRecord(ctx, {
+      portal_id: 'shop',
+      persona_id: 'guest',
+      max_action_class: 'external-side-effect',
+    });
+    expect(output.effective_max_action_class).toBe('read');
   });
 
   it('never resumes a stopped_warning run', async () => {

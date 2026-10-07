@@ -20,6 +20,8 @@ data/traces/*
 !data/traces/.gitkeep
 # Quality-gate report, rewritten by every `pnpm test` (spec 009 R-27)
 data/gates/
+# Chat error logs keyed by ERR- reference id, 30-day retention (spec 010 R-30)
+data/logs/
 
 # SQLite side files, wherever a DB ends up
 *.sqlite

@@ -61,6 +61,8 @@ export type RobotsCheck =
 
 export interface RobotsRegistryOptions {
   allowedDomains: readonly string[];
+  /** The portal's `robots: ignore` (spec 011 FR-006): no host is governed, nothing is fetched. */
+  ignore?: boolean;
   /** The configured User-Agent (`rate_limit.user_agent`); the product token is derived from it. */
   userAgent: string | undefined;
   limiter: RateLimiter;
@@ -142,7 +144,7 @@ export function createRobotsRegistry(opts: RobotsRegistryOptions): RobotsRegistr
   const origins = new Map<string, string>();
 
   const governed = (u: URL | null): u is URL =>
-    u !== null && domainAllowed(u.hostname, opts.allowedDomains);
+    opts.ignore !== true && u !== null && domainAllowed(u.hostname, opts.allowedDomains);
 
   async function download(
     origin: string,

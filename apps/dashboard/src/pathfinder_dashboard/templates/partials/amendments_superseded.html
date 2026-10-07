@@ -1,0 +1,91 @@
+{% import "partials/macros.html" as m %}
+{#- Amendments the crawler's newer recordings made stale (FR-022), and the ones the BA dismissed.
+    Live region; a refresh is skipped while a re-apply form has unsaved input. Every row is
+    TO-BE: the BA's intention, never an observed fact. -#}
+{% call m.region("amendments-superseded", v.self_url, "Superseded amendments (to-be)", guard="!(window.formsDirty && window.formsDirty())") %}
+  <div class="section-head">
+    <h2>{{ "Dismissed" if v.show == "dismissed" else "Superseded" }}{% if v.show == "both" %} and dismissed{% endif %} <span class="muted mono-num">{{ v["items"] | length }}</span></h2>
+    {% call m.filter_form(v, c) %}
+      <label class="field"><span>portal</span>
+        <select class="select" name="portal">
+          <option value=""{% if not v.portal %} selected{% endif %}>any</option>
+          {%- for p in v.portals %}<option value="{{ p }}"{% if v.portal == p %} selected{% endif %}>{{ p }}</option>{% endfor %}
+        </select>
+      </label>
+      <label class="field"><span>show</span>
+        <select class="select" name="show">
+          {%- for s in ("superseded", "dismissed", "both") %}<option value="{{ s }}"{% if v.show == s %} selected{% endif %}>{{ s }}</option>{% endfor %}
+        </select>
+      </label>
+    {% endcall %}
+  </div>
+  {%- for pid, sts in v.states.items() %}
+  <datalist id="dl-states-{{ pid }}">
+    {%- for s in sts %}<option value="{{ s.id }}">{{ s.title }} · {{ s.route_template }}</option>{% endfor %}
+  </datalist>
+  {%- endfor %}
+  {%- if not v["items"] %}
+    {{ m.empty("Nothing " ~ ("dismissed" if v.show == "dismissed" else "superseded") ~ (" for " ~ v.portal if v.portal else ""),
+               "An amendment shows up here when a newer recording replaces or changes the screen or element it was written for.") }}
+  {%- else %}
+  <div class="table-wrap">
+    <table class="data stack">
+      <caption class="visually-hidden">Superseded and dismissed amendments (to-be)</caption>
+      <thead><tr>
+        <th scope="col">Key</th><th scope="col">Status</th><th scope="col">Target</th><th scope="col">Text</th>
+        <th scope="col">Why</th><th scope="col">Newer run</th><th scope="col">When (UTC)</th><th scope="col">Action</th>
+      </tr></thead>
+      <tbody>
+        {%- for a in v["items"] %}
+        {%- set sid = a.target_id.split("#", 1)[0] if a.target_kind != "evidence" else none %}
+        <tr id="{{ a.key }}">
+          <td data-label="key"><code>{{ a.key }}</code>{% if not v.portal %}<br><span class="muted">{{ a.portal_id }}</span>{% endif %}</td>
+          <td data-label="status">{{ m.amendment_status(a.status) }} <span class="tobe-tag">TO-BE</span></td>
+          <td data-label="target">
+            {%- if sid %}<a href="{{ c.url('/states/' ~ sid) }}">state <code>{{ sid | short_id }}</code></a>
+            {%- if a.target_kind == "wireframe_element" %} element <code>{{ a.target_id.split("#", 1)[1] }}</code>{% endif %}
+            {%- else %}evidence <code>{{ a.target_id | short_id }}</code>{% endif %}
+          </td>
+          <td data-label="text">
+            {%- if a.text %}{{ a.text }}{% endif %}
+            {%- if a.attachment_name %} <span class="muted">attachment</span> <code>{{ a.attachment_name }}</code>{% endif %}
+          </td>
+          <td data-label="why">
+            {%- if a.superseded_reason %}{{ v.reasons.get(a.superseded_reason, a.superseded_reason) }}
+            {%- if a.superseded_detail %}<br><span class="muted">{{ a.superseded_detail }}</span>{% endif %}
+            {%- else %}<span class="muted">dismissed by the BA</span>{% endif %}
+          </td>
+          <td data-label="newer run">{% if a.superseded_by_run %}<a href="{{ c.url('/runs/' ~ a.superseded_by_run) }}"><code>{{ a.superseded_by_run | short_id }}</code></a>{% else %}<span class="muted">—</span>{% endif %}</td>
+          <td data-label="when">{{ (a.superseded_at or a.dismissed_at) | when }}</td>
+          <td data-label="action">
+            {%- if a.status == "superseded" and a.reapplied_as %}
+            <span class="muted">re-applied as a new amendment</span>
+            {%- elif a.status == "superseded" %}
+            <details class="reapply">
+              <summary class="btn btn-bracket">[re-apply]</summary>
+              <form class="tool-form" data-json-form="reapply" method="post"
+                    action="/chat/portals/{{ a.portal_id | urlencode }}/amendments/{{ a.id | urlencode }}/reapply"
+                    data-element-target="{{ 1 if a.target_kind == 'wireframe_element' else 0 }}">
+                <label class="field"><span>Apply to state</span>
+                  <input class="input" name="state_id" list="dl-states-{{ a.portal_id }}" value="{{ sid or '' }}" required autocomplete="off" spellcheck="false">
+                </label>
+                <label class="field"><span>Element key <span class="muted">(optional)</span></span>
+                  <input class="input" name="element" value="{{ a.anchor_element.get('key', '') if a.anchor_element else '' }}" autocomplete="off" spellcheck="false">
+                </label>
+                <label class="field"><span>New wording <span class="muted">(optional; blank keeps the original)</span></span>
+                  <input class="input" name="text" maxlength="50000" autocomplete="off">
+                </label>
+                <button class="btn btn-primary" type="submit">[apply to this state]</button>
+                <p class="form-result" role="status" data-result></p>
+              </form>
+            </details>
+            <button class="btn btn-bracket" type="button" data-dismiss="/chat/portals/{{ a.portal_id | urlencode }}/amendments/{{ a.id | urlencode }}/dismiss" data-label="{{ a.key }}">[dismiss]</button>
+            {%- else %}<span class="muted">—</span>{% endif %}
+          </td>
+        </tr>
+        {%- endfor %}
+      </tbody>
+    </table>
+  </div>
+  {%- endif %}
+{% endcall %}

@@ -26,6 +26,9 @@ from .version import code_fingerprint
 _LINK = re.compile(r'(?:href|hx-get)="([^"]+)"')
 # Static files and the event stream are not pages; a `cursor` is dropped in `_normalise`.
 _SKIP_PREFIXES = ("/static/", "/events")
+# Where the crawl starts. The Chat page and the superseded-amendments page (spec 010) are listed
+# so a broken one is found even when no link on the other pages reaches it.
+START_PAGES = ("/", "/docs", "/activity", "/chat", "/amendments/superseded")
 
 
 def _get(url: str, timeout: float = 10.0) -> tuple[int, str, float]:
@@ -74,7 +77,7 @@ def run(base: str, env: str | None, max_pages: int) -> int:
 
     queue: deque[str] = deque()
     seen: set[str] = set()
-    for start in ("/", "/docs", "/activity"):
+    for start in START_PAGES:
         u = _normalise(base, start, env)
         if u:
             queue.append(u)

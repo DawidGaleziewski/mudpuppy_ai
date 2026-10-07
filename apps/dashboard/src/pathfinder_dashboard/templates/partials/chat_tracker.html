@@ -1,0 +1,36 @@
+{% import "partials/macros.html" as m %}
+{#- The five workflow steps of the conversation's portal, from `workflow_steps`. A step with no
+    row is "to do". Live region: refreshes on store changes and on `step-changed` (the chat
+    stream), and polls every 2 s while a step is pending or in progress, so a reload is correct
+    (FR-019, SC-004). `data-active` tells chat.js whether to show the working animation. -#}
+<section id="region-chat-tracker" class="region tracker" data-active="{{ 1 if tracker.active else 0 }}"
+         hx-get="{{ c.url('/fragments/chat/tracker', conversation=conversation.id) }}"
+         hx-trigger="store-changed from:body, step-changed from:body{% if tracker.active %}, every 2s{% endif %}"
+         hx-swap="outerHTML" aria-label="Workflow steps">
+  <div class="section-head">
+    <h2>Steps</h2>
+    <span class="caption">{% if tracker.portal_id %}portal <code>{{ tracker.portal_id }}</code>{% else %}no portal chosen yet{% endif %}</span>
+  </div>
+  <ol class="steps">
+    {%- for row in tracker.rows %}
+    <li class="step step-{{ row.status }}" data-step="{{ row.step }}" data-status="{{ row.status }}">
+      <span class="step-name">{{ row.label }}</span>
+      <span class="step-status">{{ m.step_status(row.status) }}</span>
+      {%- if row.status == "failed" %}
+      <span class="step-ref">{% if row.error_ref %}{{ m.error_ref(row.error_ref) }}{% else %}<span class="muted">no reference recorded</span>{% endif %}</span>
+      {%- endif %}
+      {%- if row.status == "stopped" and row.step == "scan" %}
+      {#- Spec 011 F-04: the BA stopped it; resuming continues from the pages still queued. #}
+      <span class="step-action"><button class="btn btn-bracket" type="button" data-chat-say="Resume the scan.">[resume scan]</button></span>
+      {%- endif %}
+      {%- if row.run_running %}
+      {#- T041: also shown on a failed step whose run was left running (F-13), so it can be resumed. #}
+      <span class="step-action"><button class="btn btn-bracket" type="button" data-stop-run="/chat/runs/{{ row.run_id | urlencode }}/stop" data-label="the {{ row.label | lower }} (run {{ row.run_id }})">[stop scan]</button></span>
+      {%- endif %}
+    </li>
+    {%- endfor %}
+  </ol>
+  <p class="tracker-link">
+    <a class="btn btn-bracket" href="{{ c.url('/amendments/superseded', portal=tracker.portal_id) }}">[amendments to review{% if superseded %} {{ superseded }} superseded{% endif %}]</a>
+  </p>
+</section>

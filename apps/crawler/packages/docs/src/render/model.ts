@@ -13,6 +13,7 @@ import {
 } from '@pathfinder/core';
 import type { RawDb } from '../keys.js';
 import type { ProcessMapInput, ScreenNavInput } from './mermaid.js';
+import type { ExportAmendment } from './amendments.js';
 
 /**
  * Everything the SRS export renders, read once from the store (contracts/srs-export.md). The
@@ -164,6 +165,10 @@ export interface ExportModel {
   screen_nav: ScreenNavInput & { omitted: number };
   /** Data item `seen_in` target id → short label (`form on /kontakt`, `GET /api/x`). */
   sightings: Record<string, string>;
+  /** Set on a process-scoped export (R-30 FR-016); absent otherwise, so unscoped output is unchanged. */
+  scope?: { name: string; state_ids: string[] };
+  /** BA to-be amendments (R-30 FR-023); absent when the portal has none (SC-007). */
+  amendments?: ExportAmendment[];
 }
 
 /** Canonical kind order: the order of the SRS chapters. */

@@ -26,7 +26,7 @@ start_run  ->  navigate / act  <-  get_next_frontier_item   ...   finish_run
 
 ## Running it
 
-1. Install: `pnpm --dir apps/crawler install`, then a browser once: `pnpm --dir apps/crawler exec playwright install --with-deps chromium`.
+1. Install: `pnpm install` at the repo root (one workspace for all apps), then a browser once: `pnpm --dir apps/crawler exec playwright install --with-deps chromium`.
 2. Ask the main Claude Code session: *"Use the crawler subagent to map `<portal>` as `<persona>`"*. There is no
    crawler CLI. Approve the `pathfinder` MCP server when prompted.
 3. Results land in `data/db/<environment>.sqlite` and `data/evidence/`; both are generated and git-ignored.
@@ -46,6 +46,8 @@ cd apps/dashboard && uv sync && uv run pathfinder-dashboard   # http://127.0.0.1
 ```
 
 See [`apps/dashboard/README.md`](apps/dashboard/README.md) (spec `specs/003-dashboard-ui/`).
+For the guided chat (scan, narrow, document, amend) step by step with screenshots, see
+[`docs/how-to-use.md`](docs/how-to-use.md).
 
 ## From crawl to documentation
 

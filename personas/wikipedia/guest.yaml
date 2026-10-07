@@ -1,0 +1,5 @@
+# Added from the dashboard (spec 011) on 2026-10-06.
+id: guest
+extends:
+  - ../_mixins/anonymous-base.yaml
+max_action_class: external-side-effect

@@ -9,6 +9,7 @@ import {
   dbPathFor,
   linkDecisions,
   migrateUp,
+  newId,
   openDb,
 } from '@pathfinder/core';
 import type { ServerContext } from './context.js';
@@ -45,6 +46,7 @@ export async function main(opts: BootOptions): Promise<void> {
     pwTrace: trace.pwTrace,
   });
   const ctx: ServerContext = {
+    owner: { id: newId(), pid: process.pid },
     db: opened.db,
     raw: opened.raw,
     evidence,
@@ -55,18 +57,26 @@ export async function main(opts: BootOptions): Promise<void> {
     root,
     dbEnvironment: opts.environment,
   };
-  // No browser survives a restart: anything still marked running is resumable, not live.
-  await interruptStaleRuns(ctx);
+  // No browser survives its server: a running run whose server is gone is resumable, not live.
+  // Runs of other live servers on the same store are left alone (F-14).
+  await interruptStaleRuns(ctx, 'startup');
   await tracer.sweepUnfinished();
   const server = createServer(ctx, opts.runtime);
   await server.connect(new StdioServerTransport());
-  const shutdown = async (): Promise<void> => {
-    await opts.runtime.closeAll();
-    await interruptStaleRuns(ctx);
-    await tracer.shutdown();
-    await opened.close();
-    process.exit(0);
-  };
+  let closing: Promise<void> | null = null;
+  const shutdown = (): Promise<void> =>
+    (closing ??= (async () => {
+      await opts.runtime.closeAll();
+      await interruptStaleRuns(ctx, 'shutdown');
+      await tracer.shutdown();
+      await opened.close();
+      process.exit(0);
+    })());
   process.once('SIGINT', shutdown);
   process.once('SIGTERM', shutdown);
+  process.once('SIGHUP', shutdown);
+  // The client going away closes stdin. An open browser would keep this process (and Chromium)
+  // alive forever after the chat service stopped (spec 010 F-19), so stdin's end shuts down too.
+  process.stdin.once('end', shutdown);
+  process.stdin.once('close', shutdown);
 }

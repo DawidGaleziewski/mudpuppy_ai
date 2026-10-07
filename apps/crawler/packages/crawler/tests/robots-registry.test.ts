@@ -83,6 +83,18 @@ function setup(
 
 const ROBOTS = 'https://www.example.pl/robots.txt';
 
+describe('robots registry: robots: ignore (spec 011 FR-006)', () => {
+  it('governs no host: nothing is fetched and nothing is refused', async () => {
+    // an unreachable robots.txt would refuse the run when respected
+    const s = setup({ [ROBOTS]: new TypeError('fetch failed') }, { ignore: true });
+    expect(await s.reg.ensure('https://www.example.pl/')).toBeNull();
+    expect(s.reg.inScope('https://www.example.pl/private')).toBe(false);
+    expect(s.reg.check('https://www.example.pl/private')).toEqual({ state: 'not_checked' });
+    expect(s.calls).toEqual([]);
+    expect(s.persisted).toEqual([]);
+  });
+});
+
 describe('robots registry: fetching (contracts/robots.md)', () => {
   it('fetches through the limiter with the User-Agent, manual redirects and a timeout', async () => {
     const s = setup({ [ROBOTS]: { status: 200, body: 'User-agent: *\nDisallow: /x\n' } });

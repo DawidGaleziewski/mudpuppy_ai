@@ -153,6 +153,8 @@ describe('record schemas', () => {
       started_at: ts,
       ended_at: null,
       coverage: null,
+      owner_id: null,
+      owner_pid: null,
     };
     expect(Run.safeParse(run).success).toBe(false);
     expect(Run.safeParse({ ...run, warning: '403' }).success).toBe(true);

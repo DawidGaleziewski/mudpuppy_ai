@@ -29,12 +29,15 @@ Status: `todo`, `in progress`, `done`. Last reviewed: 2026-10-05.
 | R-21 | Wireframes: deterministic low-fidelity SVG per state from the ARIA snapshot plus an editable `.excalidraw` file; fallback where no screenshot exists; in the dashboard and export | `specs/008-screenshots-wireframes` | done |
 | R-22 | Glossary and BA wiki: one source for Pathfinder and BA terms, dashboard Glossary page, `[?]` tooltips and section intros, local BA wiki with cited sources, glossary-sync step in the close-out | `specs/006-glossary-ba-wiki` T001–T030 | done |
 | R-23 | MudPuppy rebrand (brand only): new logo and favicon set in the dashboard, `mudpuppy://console` wordmark, product name in READMEs and glossary labels; code identifiers (`@pathfinder/*`, `pathfinder_dashboard`, MCP server names, `PATHFINDER_*`) stay for a later item | `user_input/MudPuppyRebrand/mudpuppy.md` | done |
-| R-24 | Token usage optimisation: collect token-cost problems found while building or validating features and fix them in one place. Start set: slim `act`/`navigate` result for a known state (P1), one frontier item per link target with inferred edges for shared navigation (P2), compact `elements` in BA `get_evidence` (P3), leaner `get_run_evidence` pages (P4) | `specs/008-screenshots-wireframes/token-usage.md` | todo |
+| R-24 | Token usage optimisation: collect token-cost problems found while building or validating features and fix them in one place. Start set: slim `act`/`navigate` result for a known state (P1), one frontier item per link target with inferred edges for shared navigation (P2), compact `elements` in BA `get_evidence` (P3), leaner `get_run_evidence` pages (P4), cost of draining the frontier in a chat scan: 1.4M cache reads stopped early vs 38–78M drained on the reference portal (P5, R-30) | `specs/008-screenshots-wireframes/token-usage.md`, P5: `specs/010-acp-chat-orchestrator/findings.md` F-16 | todo |
 | R-25 | Legacy proving ground: local micro-frontend estate (React shell, shop/bank/insurer front-end apps, Django backend, embedded legacy app, CMS label files) reproducing the `docs/legacy-obstacles.md` catalogue, with ground truth per domain | `specs/009-legacy-proving-ground` US1 + US2 | done |
 | R-26 | Test-user credential vault and logged-in crawling: encrypted credentials per portal and environment resolved from `ref:` names, server-side login and re-login, CAPTCHA hand-off instead of stopping the run on sandbox | `specs/009-legacy-proving-ground` US3–US5 | done |
 | R-27 | Quality gates and evals: deterministic gate per catalogue obstacle and logged finding inside `pnpm test`; on-demand headless agent eval scored against ground truth with a stored baseline | `specs/009-legacy-proving-ground` US6 + US7 | done |
 | R-28 | Crawler hardening: close the known gaps the R-27 gates found (clickable elements without a role, iframe/frameset content, pop-ups, placeholder-only fields, session ids in route templates, interstitial merging, A/B variant clustering, classic form POSTs) and the older findings mapped to gate gaps; each fixed gap is promoted from `gap()` to `gate()`. Order from the user's ranking (R-29) | spec to come | todo |
 | R-29 | R-25..R-27 leftovers: (1) first eval baselines for the four portals (`reference-insurer` guest, `proving-ground-shop` guest, `proving-ground-bank` client, `proving-ground-insurer` client) at $8 per agent with `--promote --force-promote`, checking ports 4010/4100/4101 after each (F-16, F-17); (2) read the gap ranking page (https://claude.ai/artifact/U5tVbfrdoD3rwvriT2resk), write `specs/009-legacy-proving-ground/gap-ranking.md` and order R-28; (3) recheck SC-003/004/005 on those agent runs | `specs/009-legacy-proving-ground` T043, T051, SC-003–SC-005, SC-007 | todo |
+| R-30 | Guided chat orchestrator (phase 1): dashboard chat with one orchestrator agent that enforces the workflow (scan, persona help, map, narrow to one process, document), step tracker, error reference ids with local logs, MudPuppy animation while working, as-is documentation per process plus to-be amendments; the chat never edits the harness | `specs/010-acp-chat-orchestrator` | done |
+| R-31 | Portal onboarding and switcher (from BA review F-22 item 4): the BA adds any site (e.g. wikipedia.org) with a "+ new portal" form in the dashboard (user decision 2026-10-06: from the GUI, not the chat); it writes the portal config and a guest persona. Sites the BA works on and migrates: `robots: ignore` by default (constitution 3.0.0), forms may be submitted (the BA's responsibility). A portal dropdown next to the data-store picker lists configured and scanned portals, "all portals" and "+ new portal"; Overview, Docs and Chat follow the chosen portal. Phase 2 (BA follow-up 2026-10-06): several environments per portal (production, staging, sandbox, each with its own address and limit), production may write per its limit (constitution 4.0.0), a scan names its environment, a portal settings page adds and revokes environments. Phase 3 (2026-10-07): per-scan decisions (read-only by default, allow edits, skip images), a stopped step with [resume scan]. Phase 4 (2026-10-07): a focus per scan (start page, hosts, paths, excluded paths), a new scan on a scanned portal, process traces from the chat; the `pathfinder` server no longer outlives the chat service (F-19) | `specs/011-portal-onboarding` T001–T022 | done |
+| R-32 | Full real-agent pass of the guided chat (rest of spec 010 T038, split out 2026-10-07 by the user): on the reference portal with the real Claude agent, a full guest scan through the chat, then narrow to one process with the state checklist and get scoped documentation (SC-005: under 10 minutes of chat time, 100 % of records citing in-scope evidence), add amendments (note, element reference, attachment), change the portal (one state replaced, one element renamed, one untouched), re-scan and check the superseded view and the export (SC-007, SC-008). Persona building in conversation is out: the current persona flow is good enough (user). **Costly, plan it**: a drained scan of the reference portal measured 38–78M cache-read tokens (R-24 P5, spec 010 F-16), plus a second scan after the portal change and a BA documentation session; expect two full scans and one documentation run, several hours of agent time. Run after R-24 P5 if the cost should come down first | `specs/010-acp-chat-orchestrator/quickstart.md` steps 3, 7, 9–10; T038 | todo |
 
 ## Notes
 
@@ -542,3 +545,35 @@ Status: `todo`, `in progress`, `done`. Last reviewed: 2026-10-05.
     agent shop map yet). Open: SC-007 (baselines) moved to R-29 with the gap ranking; the R-29
     eval runs also cover the missing SC-003/004/005 agent runs.
     Squash-merged into `master`, tag `v1.0.9`; branch deleted.
+- R-30 added and started 2026-10-05 from `user_input/raw_idea/acp_chat_and_easy_interface/readme.md`
+  on `feature/010-r30-acp-chat-orchestrator` (spec `specs/010-acp-chat-orchestrator`). Decided with
+  the user: ACP transport (dashboard backend is an ACP client to a Claude Code ACP agent); phase 1
+  amendments are text notes, wireframe element references and attachments, drawing deferred;
+  personas stay YAML, credentials go only to the R-26 vault via a dashboard form, never through the
+  model; a restricted `orchestrator` agent (allowlisted workflow tools, no file edits); errors in
+  `data/logs/chat/` (JSON lines by reference id, 30 days, not in git). Later the same day: the chat
+  service is its own app `apps/chat` and the workflow logic a shared `packages/workflow`;
+  chat-service commands are covered by the `docs:review` precedent (accepted, to be confirmed by
+  testing); a fresh crawl run may override amendments, which then become superseded (kept, with
+  reason and run) and are re-applied or dismissed in a "Superseded amendments" view.
+  Built overnight 2026-10-05/06 (T001–T037 done; T038 partly, T039 waiting for review): root pnpm
+  workspace with constitution 2.1.0 (one root lockfile), migration 0008, `apps/chat` (ACP client,
+  fence, HTTP/SSE API, pathfinder-chat MCP tools, step recorder, supersede after runs), dashboard
+  Chat page, tracker, credentials form, state checklist, amendments and "Superseded amendments",
+  scoped and to-be export. Real-agent runs: the orchestrator answers from `workflow_state`, refuses
+  harness changes, and a scan through the chat drives the crawler end to end; open issues from
+  that run in `specs/010-acp-chat-orchestrator/findings.md` F-13, F-14.
+  - Review answers 2026-10-06 (tasks T040–T044): "Stop scan" in the tracker plus `stop_scan`
+    and resume through `request_scan` (F-13); the chat crawler must drain the frontier like the
+    shell runs, cost measured as R-24 P5 (F-13, F-16); run ownership so pathfinder servers on
+    one store no longer interrupt each other's runs (F-14); CLAUDE.md and a BA how-to guide.
+  - Concerns, later / nice to have (user, 2026-10-06; not scheduled):
+    - Listing pages and supersede: an amendment on one product's page is superseded by a run
+      that only visits another product under the same route template (`/product/:id`)
+      (research R8b). Accepted for now; the user tests how it behaves before deciding on a
+      narrower match (for example by cluster).
+    - Enforcing "the chat never changes the harness" beyond prompts: the fence refuses harness
+      tools in chat sessions, but rules in a brief do not stop a subagent from editing files by
+      script (F-07, three times). Subagents editing files or writing notes is fine; the goal is
+      that explicit commands in the chatbot cannot modify the harness. Needs deeper work (for
+      example hooks or an OS-level sandbox for the chat runtime); no PreToolUse hook for now.

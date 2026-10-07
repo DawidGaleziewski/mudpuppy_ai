@@ -1,8 +1,8 @@
 import { existsSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { ConfigError, loadEffectiveConfig, type EffectiveConfig } from '@pathfinder/config';
-import { EnvGuardError, assertRunAllowed, narrowScope } from '@pathfinder/safety';
-import type { Scope } from '@pathfinder/config';
+import { EnvGuardError, assertRunAllowed, narrowScope, type RunScope } from '@pathfinder/safety';
+import type { Environment } from '@pathfinder/config';
 
 export type PreflightRefusalCode = 'ENV_GUARD_REFUSED' | 'CONFIG_INVALID';
 
@@ -10,8 +10,8 @@ export type PreflightResult =
   | {
       ok: true;
       effective: EffectiveConfig;
-      /** Portal scope narrowed by the persona; what the gates enforce. */
-      scope: Scope;
+      /** Portal scope narrowed by the persona (and later by the scan's focus); what the gates enforce. */
+      scope: RunScope;
       portalPath: string;
       personaPath: string;
     }
@@ -20,6 +20,8 @@ export type PreflightResult =
 export interface PreflightOptions {
   /** Repo root that holds `portals/` and `personas/`. */
   root: string;
+  /** Which of the portal's environments the run targets (spec 011 FR-008, FR-009). */
+  environment?: Environment;
 }
 
 const SLUG = /^[a-z0-9][a-z0-9_-]*$/;
@@ -47,8 +49,9 @@ const refuse = (code: PreflightRefusalCode, reasons: string[]): PreflightResult 
 
 /**
  * Called first by `start_run`, BEFORE any browser is launched or request made (SC-006). Synchronous
- * and file-only: loads config, applies the environment guard and, for production, the compliance
- * gate (FR-026: every `compliance` value set, and no placeholder User-Agent).
+ * and file-only: loads config for the chosen environment, applies the environment guard and, for
+ * production, refuses a placeholder User-Agent (FR-026; the compliance dates are no longer
+ * required since constitution 4.0.0).
  */
 export function preflight(
   portalId: string,
@@ -71,9 +74,12 @@ export function preflight(
   let effective: EffectiveConfig;
   try {
     // A persona may extend shared mixins and its own portal's files only (spec 002 FR-025).
-    effective = loadEffectiveConfig(portalPath, personaPath, {
-      fence: [join(opts.root, 'personas', '_mixins'), join(opts.root, 'personas', portalId)],
-    });
+    effective = loadEffectiveConfig(
+      portalPath,
+      personaPath,
+      { fence: [join(opts.root, 'personas', '_mixins'), join(opts.root, 'personas', portalId)] },
+      opts.environment,
+    );
   } catch (e) {
     if (e instanceof ConfigError) return refuse('CONFIG_INVALID', [e.message]);
     throw e;
@@ -87,22 +93,15 @@ export function preflight(
     throw e;
   }
 
-  if (portal.environment === 'production') {
-    const reasons: string[] = [];
-    const missing = Object.entries(portal.compliance)
-      .filter(([, v]) => v === null)
-      .map(([k]) => k);
-    if (missing.length > 0) {
-      reasons.push(
-        `compliance not completed in ${portalPath}: ${missing.join(', ')} still null (FR-026)`,
-      );
-    }
-    if (portal.rate_limit?.user_agent.toLowerCase().includes('example.com')) {
-      reasons.push(
-        `rate_limit.user_agent in ${portalPath} still holds the placeholder contact address (FR-026)`,
-      );
-    }
-    if (reasons.length > 0) return refuse('ENV_GUARD_REFUSED', reasons);
+  // Production traffic must be identifiable (constitution 4.0.0). The compliance review dates
+  // are no longer required: that review is the BA's (spec 011 phase 2).
+  if (
+    portal.environment === 'production' &&
+    portal.rate_limit?.user_agent.toLowerCase().includes('example.com')
+  ) {
+    return refuse('ENV_GUARD_REFUSED', [
+      `rate_limit.user_agent in ${portalPath} still holds the placeholder contact address (FR-026)`,
+    ]);
   }
 
   return {

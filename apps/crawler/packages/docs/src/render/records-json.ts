@@ -56,6 +56,10 @@ export function recordsJson(m: ExportModel): string {
     environment: m.environment,
     mode: m.mode,
     as_of: m.as_of,
+    ...(m.scope ? { scope: m.scope } : {}),
+    // To-be, never observed (FR-018): every amendment carries its status so the consuming agent
+    // sees what was dropped and why (FR-023).
+    ...(m.amendments ? { amendments: m.amendments.map((a) => ({ ...a, to_be: true })) } : {}),
     records: m.records.map((r) => ({
       key: r.key,
       kind: r.kind,

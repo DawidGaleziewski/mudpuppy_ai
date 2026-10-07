@@ -164,7 +164,65 @@ settings:
 
 importers:
 
-  .:
+  apps/chat:
+    dependencies:
+      '@agentclientprotocol/claude-agent-acp':
+        specifier: ^0.85.1
+        version: 0.85.1(@anthropic-ai/sdk@0.131.0(zod@4.6.5))(@modelcontextprotocol/sdk@1.30.0(zod@4.6.5))
+      '@agentclientprotocol/sdk':
+        specifier: ^1.7.0
+        version: 1.7.0(zod@4.6.5)
+      '@modelcontextprotocol/sdk':
+        specifier: ^1.30.0
+        version: 1.30.0(zod@4.6.5)
+      '@pathfinder/config':
+        specifier: workspace:*
+        version: link:../crawler/packages/config
+      '@pathfinder/core':
+        specifier: workspace:*
+        version: link:../crawler/packages/core
+      '@pathfinder/docs':
+        specifier: workspace:*
+        version: link:../crawler/packages/docs
+      '@pathfinder/vault':
+        specifier: workspace:*
+        version: link:../crawler/packages/vault
+      '@pathfinder/workflow':
+        specifier: workspace:*
+        version: link:../../packages/workflow
+      yaml:
+        specifier: ^2.9.1
+        version: 2.9.1
+      zod:
+        specifier: ^4.6.5
+        version: 4.6.5
+    devDependencies:
+      '@eslint/js':
+        specifier: ^10.0.1
+        version: 10.0.1(eslint@10.11.0)
+      '@types/better-sqlite3':
+        specifier: ^9.6.0
+        version: 9.6.0
+      '@types/node':
+        specifier: ^22.20.4
+        version: 22.20.4
+      eslint:
+        specifier: ^10.11.0
+        version: 10.11.0
+      tsx:
+        specifier: ^4.23.15
+        version: 4.23.15
+      typescript:
+        specifier: ^6.0.3
+        version: 6.0.3
+      typescript-eslint:
+        specifier: ^8.70.1
+        version: 8.70.1(eslint@10.11.0)(typescript@6.0.3)
+      vitest:
+        specifier: ^5.0.1
+        version: 5.0.1(@types/node@22.20.4)(vite@8.3.0(@types/node@22.20.4)(esbuild@0.28.2)(tsx@4.23.15)(yaml@2.9.1))
+
+  apps/crawler:
     devDependencies:
       '@eslint/js':
         specifier: ^10.0.1
@@ -206,7 +264,7 @@ importers:
         specifier: ^5.0.1
         version: 5.0.1(@types/node@22.20.4)(vite@8.3.0(@types/node@22.20.4)(esbuild@0.28.2)(tsx@4.23.15)(yaml@2.9.1))
 
-  packages/config:
+  apps/crawler/packages/config:
     dependencies:
       '@pathfinder/core':
         specifier: workspace:*
@@ -218,7 +276,7 @@ importers:
         specifier: ^4.6.5
         version: 4.6.5
 
-  packages/core:
+  apps/crawler/packages/core:
     dependencies:
       better-sqlite3:
         specifier: ^13.0.3
@@ -240,7 +298,7 @@ importers:
         specifier: ^9.6.0
         version: 9.6.0
 
-  packages/crawler:
+  apps/crawler/packages/crawler:
     dependencies:
       '@pathfinder/config':
         specifier: workspace:*
@@ -264,7 +322,7 @@ importers:
         specifier: ^1.63.0
         version: 1.63.0
 
-  packages/docs:
+  apps/crawler/packages/docs:
     dependencies:
       '@pathfinder/core':
         specifier: workspace:*
@@ -283,9 +341,9 @@ importers:
         specifier: ^6.0.5
         version: 6.0.5
 
-  packages/fingerprint: {}
+  apps/crawler/packages/fingerprint: {}
 
-  packages/gates:
+  apps/crawler/packages/gates:
     dependencies:
       '@modelcontextprotocol/sdk':
         specifier: ^1.30.0
@@ -328,7 +386,7 @@ importers:
         specifier: ^22.20.4
         version: 22.20.4
 
-  packages/mcp-server:
+  apps/crawler/packages/mcp-server:
     dependencies:
       '@modelcontextprotocol/sdk':
         specifier: ^1.30.0
@@ -367,14 +425,17 @@ importers:
       '@pathfinder/reference-portal':
         specifier: workspace:*
         version: link:../reference-portal
+      tsx:
+        specifier: ^4.23.15
+        version: 4.23.15
 
-  packages/obstacles:
+  apps/crawler/packages/obstacles:
     dependencies:
       playwright:
         specifier: ^1.63.0
         version: 1.63.0
 
-  packages/reference-portal:
+  apps/crawler/packages/reference-portal:
     dependencies:
       zod:
         specifier: ^4.6.5
@@ -383,8 +444,11 @@ importers:
       '@types/node':
         specifier: ^22.20.4
         version: 22.20.4
+      tsx:
+        specifier: ^4.23.15
+        version: 4.23.15
 
-  packages/safety:
+  apps/crawler/packages/safety:
     dependencies:
       '@pathfinder/config':
         specifier: workspace:*
@@ -393,7 +457,7 @@ importers:
         specifier: workspace:*
         version: link:../core
 
-  packages/vault:
+  apps/crawler/packages/vault:
     dependencies:
       '@pathfinder/config':
         specifier: workspace:*
@@ -409,13 +473,114 @@ importers:
         specifier: ^22.20.4
         version: 22.20.4
 
-  packages/wireframe:
+  apps/crawler/packages/wireframe:
     dependencies:
       '@pathfinder/core':
         specifier: workspace:*
         version: link:../core
 
+  packages/workflow:
+    devDependencies:
+      '@eslint/js':
+        specifier: ^10.0.1
+        version: 10.0.1(eslint@10.11.0)
+      '@types/node':
+        specifier: ^22.20.4
+        version: 22.20.4
+      eslint:
+        specifier: ^10.11.0
+        version: 10.11.0
+      typescript:
+        specifier: ^6.0.3
+        version: 6.0.3
+      typescript-eslint:
+        specifier: ^8.70.1
+        version: 8.70.1(eslint@10.11.0)(typescript@6.0.3)
+      vitest:
+        specifier: ^5.0.1
+        version: 5.0.1(@types/node@22.20.4)(vite@8.3.0(@types/node@22.20.4)(esbuild@0.28.2)(tsx@4.23.15)(yaml@2.9.1))
+
 packages:
+
+  '@agentclientprotocol/claude-agent-acp@0.85.1':
+    resolution: {integrity: sha512-XpBAh6m98ib0R1yu0fC7OOZNk2n/KxA6ykH1QXSr/dYJGDgm4ILr4lprlvEBDxFytzVEpup24Mjkv0qZPmMsMQ==}
+    engines: {node: '>=22'}
+    hasBin: true
+
+  '@agentclientprotocol/sdk@1.6.0':
+    resolution: {integrity: sha512-XxXrmX7aZkDgOB0Rg9cu+ZFyiUUc5lF2n9seO3Gc4OR+MTdfZOwIqF6m3LvsmmM8K3qgPmXkDH8/IFM2u9vdcQ==}
+    peerDependencies:
+      zod: ^3.25.0 || ^4.0.0
+
+  '@agentclientprotocol/sdk@1.7.0':
+    resolution: {integrity: sha512-ZORuxsuEnLjRly7t6Ad7zAsWitjWsyprswyPUHz/yycPb+tTm3DGa8XheaHhRXqX8LS9snuxaYavXSRA50TlHw==}
+    peerDependencies:
+      zod: ^3.25.0 || ^4.0.0
+
+  '@anthropic-ai/claude-agent-sdk-darwin-arm64@0.3.286':
+    resolution: {integrity: sha512-gkxWcJ+Z23UxwghI1V3dL09PkELIZmB2vPelR8XsdfhS+yP1KvoW7FThvRLojcxXb3fj0ddYawjQSQYIkXFbxw==}
+    cpu: [arm64]
+    os: [darwin]
+
+  '@anthropic-ai/claude-agent-sdk-darwin-x64@0.3.286':
+    resolution: {integrity: sha512-eMdni7sy1ud2IISI4QSsfVBCxotzSe62zCGdXISejL9MxDIwcRgEGZpO5OV+j7t8mNGMTe6Opl1t/3Z/1RUJaQ==}
+    cpu: [x64]
+    os: [darwin]
+
+  '@anthropic-ai/claude-agent-sdk-linux-arm64-musl@0.3.286':
+    resolution: {integrity: sha512-fG8Cqx53jkFyEL86ETA0tdLH3p06yFQKHcoxnMpiU+VmJ5g6uGFhsUZbJ6gFvuT3EgyMcNI2kZwhCCDF/DTnpQ==}
+    cpu: [arm64]
+    os: [linux]
+    libc: [musl]
+
+  '@anthropic-ai/claude-agent-sdk-linux-arm64@0.3.286':
+    resolution: {integrity: sha512-3h+WWGek9beZ6i1qbIjjwYEFbs46D6qumjSBc6cLsEvnufcoi7mc0iBwbFSh9yRb3upxoi4ZTJdl53T3gLTdUQ==}
+    cpu: [arm64]
+    os: [linux]
+    libc: [glibc]
+
+  '@anthropic-ai/claude-agent-sdk-linux-x64-musl@0.3.286':
+    resolution: {integrity: sha512-WeO/wG2uPh95BhOQi1IsIECdW5gJgC1Q9xtGw4RjV04it1fBMAbUe7aVwP4DQgH8PHnmduA7dRnLtbnZnrGsjg==}
+    cpu: [x64]
+    os: [linux]
+    libc: [musl]
+
+  '@anthropic-ai/claude-agent-sdk-linux-x64@0.3.286':
+    resolution: {integrity: sha512-kNczbWhWJ1G8sPRZd4Nsx/Ozr/kx16lT2NGp/EEmTV4Hn732xfLkUOlg+tFcS78i6lOPBknjDB/cz/J5Ha4wDQ==}
+    cpu: [x64]
+    os: [linux]
+    libc: [glibc]
+
+  '@anthropic-ai/claude-agent-sdk-win32-arm64@0.3.286':
+    resolution: {integrity: sha512-N4p7Gw5Qg3q9+Y5sEht1cIHHZkmBAUfWXJnqfmDD7N8twqF3XNVK3w65hDLqli4i0ttuZu79bGmRGkgNGm9Imw==}
+    cpu: [arm64]
+    os: [win32]
+
+  '@anthropic-ai/claude-agent-sdk-win32-x64@0.3.286':
+    resolution: {integrity: sha512-pg35GRPBKyviod0i8Z3EVMzDnTiiiucuWUbyH1bVIFFN0UWCQQ+PRUJ15qrPKjL6+vlFxOX2ei9FfsWYjGYZwA==}
+    cpu: [x64]
+    os: [win32]
+
+  '@anthropic-ai/claude-agent-sdk@0.3.286':
+    resolution: {integrity: sha512-InL/UNmRGSwBM/81PME0J0TZDsDBBlweWqRZgq2XSViSIg2hBi8nIL8j9Hm6MHRH85wgDJQE5n6Vo/r9hIO0NQ==}
+    engines: {node: '>=18.0.0'}
+    peerDependencies:
+      '@anthropic-ai/sdk': '>=0.93.0'
+      '@modelcontextprotocol/sdk': ^1.29.0
+      zod: ^4.0.0
+
+  '@anthropic-ai/sdk@0.131.0':
+    resolution: {integrity: sha512-9+PepoU7qVMmM70jSahdnfcMHAvAnzhMOLv2W9WjRLO+OG/MAiBETkwKZqv7KIJ1Cj5h8eZ019bHzZaq+Mbepw==}
+    hasBin: true
+    peerDependencies:
+      zod: ^3.25.0 || ^4.0.0
+    peerDependenciesMeta:
+      zod:
+        optional: true
+
+  '@babel/runtime@7.29.7':
+    resolution: {integrity: sha512-Nq8OhGWiZIZGV6hLHoyAKLLcJihP/xFeBMGJoUrxTX2psI8dCifzLhZISFb+VWS3wFMRDmCGw5R+dOySCqPLhw==}
+    engines: {node: '>=6.9.0'}
 
   '@cacheable/memory@2.2.0':
     resolution: {integrity: sha512-CTLKqLItRCEixEAewD3/j9DB3/o96gpTPD4eJ1v+DGOlxZRZncRQkGYqqnAGCscYd6RNeXfGeiuCphsPtqyIfQ==}
@@ -778,6 +943,9 @@ packages:
   '@rolldown/pluginutils@1.0.1':
     resolution: {integrity: sha512-2j9bGt5Jh8hj+vPtgzPtl72j0yRxHAyumoo6TNfAjsLB04UtpSvPbPcDcBMxz7n+9CYB0c1GxQFxYRg2jimqGw==}
 
+  '@stablelib/base64@1.0.1':
+    resolution: {integrity: sha512-1bnPQqSxSuc3Ii6MhBysoWCg58j97aUjuCSZrGSmDxNqtytIi0k8utUenAwTZN4V5mXXYGsVUI9zeBqy+jBOSQ==}
+
   '@types/better-sqlite3@9.6.0':
     resolution: {integrity: sha512-ZEEwBSgMu7GYJOynoagg5X9JbxfL6dTJDsgViJIqh67jV44kyOr9RXfmFjLK5rzC4MWssP06t9hu/JwGDnUbCg==}
 
@@ -798,9 +966,6 @@ packages:
 
   '@types/node@22.20.4':
     resolution: {integrity: sha512-zJRE40jpHtKqE/C4fgHrAKQLJuSpzEnP9ff9Y7YtoR3Wd2pwqzlekDeEuUQXjRd+QCYnVnNwuJYmhdk9XV8gvA==}
-
-  '@types/node@26.6.2':
-    resolution: {integrity: sha512-X1P21scMv4zGKLYqjdGjaKa7COa0RKVYYZZN/NfvLQ1JegxFhdhpZG/Lyn8AXx6CDUavKAd11v6BvfpkDByK8g==}
 
   '@types/pngjs@6.0.5':
     resolution: {integrity: sha512-0k5eKfrA83JOZPppLtS2C7OUtyNAl2wKNxfyYl9Q5g9lPkgBl/9hNyAu6HuEH2J4XmIv2znEpkDd0SaZVxW6iQ==}
@@ -997,6 +1162,10 @@ packages:
     resolution: {integrity: sha512-Btj2BOOO83o3WyH59e8MgXsxEQVcarkUOpEYrubB0urwnN10yQ364rsiByU11nZlqWYZm05i/of7io4mzihBtQ==}
     engines: {node: '>=8'}
 
+  diff@9.0.0:
+    resolution: {integrity: sha512-svtcdpS8CgJyqAjEQIXdb3OjhFVVYjzGAPO8WGCmRbrml64SPw/jJD4GoE98aR7r25A0XcgrK3F02yw9R/vhQw==}
+    engines: {node: '>=0.3.1'}
+
   dunder-proto@1.0.1:
     resolution: {integrity: sha512-KIN/nDJBQRcXw0MLVhZE9iQHmG68qAVIBg9CqmUYjmQIhgij9U5MFvrqkUL5FbtyyzZuOeOt0zdeRe4UY7ct+A==}
     engines: {node: '>= 0.4'}
@@ -1114,6 +1283,9 @@ packages:
 
   fast-levenshtein@2.0.6:
     resolution: {integrity: sha512-DCXu6Ifhqcks7TZKY3Hxp3y6qphY5SJZmrWMDrKcERSOXWQdMhU9Ig/PYrzyw/ul9jOIyh0N4M0tbC5hodg8dw==}
+
+  fast-sha256@1.3.0:
+    resolution: {integrity: sha512-n11RGP/lrWEFI/bWdygLxhI+pVeo1ZYIVwvvPkW7azl/rOy+F3HYRZ2K5zeE9mmkhQppyv9sQFx0JM9UabnpPQ==}
 
   fast-uri@3.1.8:
     resolution: {integrity: sha512-GZMtZUTNRpOVIECoXwLNZS5xUGE+mVNbTB8h/7Rwh2TFWcBQiPzTgyZi05BF9UMZKkLJv8XBRJTlU7zg8+ZfMg==}
@@ -1245,6 +1417,10 @@ packages:
 
   jose@6.2.12:
     resolution: {integrity: sha512-9NiFmJEex0sy2Dk58j2UGBSHgUs2ypF9eZSu4L6vjOX3Dp96Sw1F3uL+H+D1sx02jZZdzUT0HgvCy59CuvXcWw==}
+
+  json-schema-to-ts@3.1.1:
+    resolution: {integrity: sha512-+DWg8jCJG2TEnpy7kOm/7/AxaYoaRbjVB4LFZLySZlWn8exGs3A4OLJR966cVvU26N7X9TWxl+Jsw7dzAqKT6g==}
+    engines: {node: '>=16'}
 
   json-schema-traverse@0.4.1:
     resolution: {integrity: sha512-xbbCH5dCYU5T8LcEhhuh7HJ88HXuW3qsI3Y0zOZFKfZEHcpWiHU/Jxzk629Brsab/mMiHQti9wMP+845RPe3Vg==}
@@ -1605,6 +1781,9 @@ packages:
   stackback@0.0.2:
     resolution: {integrity: sha512-1XMJE5fQo1jGH6Y/7ebnwPOBEkIEnT4QF32d5R1+VXdXveM0IBMJt8zfaxX1P3QhVwrYe+576+jkANtSS2mBbw==}
 
+  standardwebhooks@1.1.1:
+    resolution: {integrity: sha512-bCbX9ZEyFkWPsRz7Bl3NuQUJohmwGSev/yhr7vhaGPlc4AfIrspIRa6cPTBuI1ItmrTDJ4d/S2hCsfe4+vQGnQ==}
+
   statuses@2.0.2:
     resolution: {integrity: sha512-DvEy55V3DB7uknRo+4iOGT5fP1slR8wQohVdknigZPMpMstaKJQWhwiYBACJE3Ul2pTnATihhBYnRhZQHGBiRw==}
     engines: {node: '>= 0.8'}
@@ -1631,6 +1810,9 @@ packages:
   toidentifier@1.0.1:
     resolution: {integrity: sha512-o5sSPKEkg/DIQNmH43V0/uerLrpzVedkUh8tGNvaeXpfpuwjKenlSox/2O/BTlZUtEe+JG7s5YhEz608PlAHRA==}
     engines: {node: '>=0.6'}
+
+  ts-algebra@2.0.0:
+    resolution: {integrity: sha512-FPAhNPFMrkwz76P7cdjdmiShwMynZYN6SgOujD1urY4oNm80Ou9oMdmbR45LotcKOXoy7wSmHkRFE6Mxbrhefw==}
 
   ts-api-utils@2.5.0:
     resolution: {integrity: sha512-OJ/ibxhPlqrMM0UiNHJ/0CKQkoKF243/AEmplt3qpRgkW8VG7IfOS41h7V8TjITqdByHzrjcS/2si+y4lIh8NA==}
@@ -1665,9 +1847,6 @@ packages:
 
   undici-types@6.21.0:
     resolution: {integrity: sha512-iwDZqg0QAGrg9Rav5H4n0M64c3mkR59cJ6wQp+7C4nI0gsmExaedaYLNO44eT4AtBBwjbTiGPMlt2Md0T9H9JQ==}
-
-  undici-types@8.9.0:
-    resolution: {integrity: sha512-KTDyRTYX8sWmKXAikPHHSyc63CRPETMctyjKFupcC6OBLXT3xsN0e9aF7m+mIXutFWpUXuedtowG7iLOzp0kQg==}
 
   unpipe@1.0.0:
     resolution: {integrity: sha512-pjy2bYhSsufwWlKwPc+l3cN7+wuJlK6uz0YdJEOlQDbl6jo/YlPi4mb8agUkVC8BF7V8NuzeyPNqRksA3hztKQ==}
@@ -1799,6 +1978,72 @@ packages:
     resolution: {integrity: sha512-v5l/aFXZQeai4awLbOpSoHecE9UiMrnfx75tEXLjNonXVARxQ5mOeipTjROUchszUNCqnE+hqAMujRsRHsut2Q==}
 
 snapshots:
+
+  '@agentclientprotocol/claude-agent-acp@0.85.1(@anthropic-ai/sdk@0.131.0(zod@4.6.5))(@modelcontextprotocol/sdk@1.30.0(zod@4.6.5))':
+    dependencies:
+      '@agentclientprotocol/sdk': 1.6.0(zod@4.6.5)
+      '@anthropic-ai/claude-agent-sdk': 0.3.286(@anthropic-ai/sdk@0.131.0(zod@4.6.5))(@modelcontextprotocol/sdk@1.30.0(zod@4.6.5))(zod@4.6.5)
+      diff: 9.0.0
+      zod: 4.6.5
+    transitivePeerDependencies:
+      - '@anthropic-ai/sdk'
+      - '@modelcontextprotocol/sdk'
+
+  '@agentclientprotocol/sdk@1.6.0(zod@4.6.5)':
+    dependencies:
+      zod: 4.6.5
+
+  '@agentclientprotocol/sdk@1.7.0(zod@4.6.5)':
+    dependencies:
+      zod: 4.6.5
+
+  '@anthropic-ai/claude-agent-sdk-darwin-arm64@0.3.286':
+    optional: true
+
+  '@anthropic-ai/claude-agent-sdk-darwin-x64@0.3.286':
+    optional: true
+
+  '@anthropic-ai/claude-agent-sdk-linux-arm64-musl@0.3.286':
+    optional: true
+
+  '@anthropic-ai/claude-agent-sdk-linux-arm64@0.3.286':
+    optional: true
+
+  '@anthropic-ai/claude-agent-sdk-linux-x64-musl@0.3.286':
+    optional: true
+
+  '@anthropic-ai/claude-agent-sdk-linux-x64@0.3.286':
+    optional: true
+
+  '@anthropic-ai/claude-agent-sdk-win32-arm64@0.3.286':
+    optional: true
+
+  '@anthropic-ai/claude-agent-sdk-win32-x64@0.3.286':
+    optional: true
+
+  '@anthropic-ai/claude-agent-sdk@0.3.286(@anthropic-ai/sdk@0.131.0(zod@4.6.5))(@modelcontextprotocol/sdk@1.30.0(zod@4.6.5))(zod@4.6.5)':
+    dependencies:
+      '@anthropic-ai/sdk': 0.131.0(zod@4.6.5)
+      '@modelcontextprotocol/sdk': 1.30.0(zod@4.6.5)
+      zod: 4.6.5
+    optionalDependencies:
+      '@anthropic-ai/claude-agent-sdk-darwin-arm64': 0.3.286
+      '@anthropic-ai/claude-agent-sdk-darwin-x64': 0.3.286
+      '@anthropic-ai/claude-agent-sdk-linux-arm64': 0.3.286
+      '@anthropic-ai/claude-agent-sdk-linux-arm64-musl': 0.3.286
+      '@anthropic-ai/claude-agent-sdk-linux-x64': 0.3.286
+      '@anthropic-ai/claude-agent-sdk-linux-x64-musl': 0.3.286
+      '@anthropic-ai/claude-agent-sdk-win32-arm64': 0.3.286
+      '@anthropic-ai/claude-agent-sdk-win32-x64': 0.3.286
+
+  '@anthropic-ai/sdk@0.131.0(zod@4.6.5)':
+    dependencies:
+      json-schema-to-ts: 3.1.1
+      standardwebhooks: 1.1.1
+    optionalDependencies:
+      zod: 4.6.5
+
+  '@babel/runtime@7.29.7': {}
 
   '@cacheable/memory@2.2.0':
     dependencies:
@@ -2034,9 +2279,11 @@ snapshots:
 
   '@rolldown/pluginutils@1.0.1': {}
 
+  '@stablelib/base64@1.0.1': {}
+
   '@types/better-sqlite3@9.6.0':
     dependencies:
-      '@types/node': 26.6.2
+      '@types/node': 22.20.4
 
   '@types/chai@5.2.3':
     dependencies:
@@ -2054,10 +2301,6 @@ snapshots:
   '@types/node@22.20.4':
     dependencies:
       undici-types: 6.21.0
-
-  '@types/node@26.6.2':
-    dependencies:
-      undici-types: 8.9.0
 
   '@types/pngjs@6.0.5':
     dependencies:
@@ -2275,6 +2518,8 @@ snapshots:
 
   detect-libc@2.1.2: {}
 
+  diff@9.0.0: {}
+
   dunder-proto@1.0.1:
     dependencies:
       call-bind-apply-helpers: 1.0.2
@@ -2453,6 +2698,8 @@ snapshots:
 
   fast-levenshtein@2.0.6: {}
 
+  fast-sha256@1.3.0: {}
+
   fast-uri@3.1.8: {}
 
   fdir@6.5.0(picomatch@4.0.7):
@@ -2571,6 +2818,11 @@ snapshots:
   isexe@2.0.0: {}
 
   jose@6.2.12: {}
+
+  json-schema-to-ts@3.1.1:
+    dependencies:
+      '@babel/runtime': 7.29.7
+      ts-algebra: 2.0.0
 
   json-schema-traverse@0.4.1: {}
 
@@ -2906,6 +3158,11 @@ snapshots:
 
   stackback@0.0.2: {}
 
+  standardwebhooks@1.1.1:
+    dependencies:
+      '@stablelib/base64': 1.0.1
+      fast-sha256: 1.3.0
+
   statuses@2.0.2: {}
 
   std-env@4.2.0: {}
@@ -2924,6 +3181,8 @@ snapshots:
       picomatch: 4.0.7
 
   toidentifier@1.0.1: {}
+
+  ts-algebra@2.0.0: {}
 
   ts-api-utils@2.5.0(typescript@6.0.3):
     dependencies:
@@ -2959,8 +3218,6 @@ snapshots:
   typescript@6.0.3: {}
 
   undici-types@6.21.0: {}
-
-  undici-types@8.9.0: {}
 
   unpipe@1.0.0: {}
 

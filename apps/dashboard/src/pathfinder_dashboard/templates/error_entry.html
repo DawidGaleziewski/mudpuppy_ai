@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% import "partials/macros.html" as m %}
+{% block title %}Error {{ ref }}{% endblock %}
+{% block head_extra %}<script src="/static/js/chat.js" defer></script>{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <p class="crumbs"><a href="{{ c.url('/') }}">Overview</a> / <a href="{{ c.url('/chat') }}">chat</a> / error log</p>
+    <h1>Error reference <code>{{ ref }}</code></h1>
+  </div>
+  <p class="caption">for developers · read from the chat service's error log</p>
+</div>
+
+{%- if unavailable %}
+<div class="state state-error" role="alert">
+  <span class="state-icon st" aria-hidden="true">[FAIL]</span>
+  <p class="state-title">The chat service is not running</p>
+  <p class="muted">The error log is read through the service. Start it, then retry.</p>
+  <p><code>pnpm --dir apps/chat start</code></p>
+  <p><a class="btn btn-bracket" href="/chat/errors/{{ ref | urlencode }}">[retry]</a></p>
+</div>
+{%- elif not entry %}
+<div class="state state-empty" role="status">
+  <span class="state-icon st" aria-hidden="true">[ ?? ]</span>
+  <p class="state-title">No log entry for “{{ ref }}”</p>
+  <p class="muted">The reference may be mistyped, or the entry was never written (the message then said so). Log files are kept for a limited time.</p>
+  <p><a class="btn btn-bracket" href="{{ c.url('/chat') }}">[back to the chat]</a></p>
+</div>
+{%- else %}
+<div class="panel">
+  <dl class="facts facts-1">
+    <div><dt>Reference</dt><dd>{{ m.error_ref(entry.ref) }}</dd></div>
+    <div><dt>Time (UTC)</dt><dd><time class="mono-num" datetime="{{ entry.time }}">{{ entry.time | when }}</time></dd></div>
+    <div><dt>Step</dt><dd>{% if entry.step %}{{ entry.step }}{% else %}<span class="muted">none (not tied to a workflow step)</span>{% endif %}</dd></div>
+    <div><dt>Where</dt><dd><code>{{ entry.where }}</code></dd></div>
+    <div><dt>Conversation</dt><dd>{% if entry.conversation_id %}<a href="{{ c.url('/chat', conversation=entry.conversation_id) }}"><code>{{ entry.conversation_id | short_id }}</code></a>{% else %}<span class="muted">none</span>{% endif %}</dd></div>
+    <div><dt>Message</dt><dd>{{ entry.message }}</dd></div>
+  </dl>
+</div>
+<div class="section">
+  <div class="section-head"><h2>Detail</h2></div>
+  {%- if entry.detail is none %}
+  <p class="muted">No detail was recorded.</p>
+  {%- else %}
+  <pre class="json">{{ entry.detail | pretty_json }}</pre>
+  {%- endif %}
+</div>
+{%- endif %}
+{% endblock %}

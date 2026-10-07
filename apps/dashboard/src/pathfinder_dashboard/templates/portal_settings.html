@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+{% import "partials/macros.html" as m %}
+{% block title %}Portal settings{% endblock %}
+{% block content %}
+{#- Spec 011 FR-012: a portal's environments (address and how far the crawler may go); add or
+    change one, revoke one (never the last). Writes go through the chat service, which checks the
+    file like a run does and puts it back on any problem. Plain form posts. -#}
+<div class="page-head">
+  <div>
+    <p class="crumbs"><a href="{{ c.url('/') }}">Overview</a> / portal settings</p>
+    <h1>Portal <code>{{ portal }}</code></h1>
+  </div>
+  <div class="page-actions">
+    <a class="btn btn-bracket" href="{{ c.url('/chat', portal=portal) }}">[chat]</a>
+  </div>
+</div>
+
+{%- if not service_up %}
+<div class="state state-error" role="alert">
+  <span class="state-icon st" aria-hidden="true">[FAIL]</span>
+  <p class="state-title">The chat service is not running</p>
+  <p class="muted">It reads and saves portal settings. Start it in a terminal, then reload this page.</p>
+  <p><code>pnpm --dir apps/chat start</code></p>
+</div>
+{%- endif %}
+{%- if error %}
+<p class="form-error" role="alert"><span class="st st-fail">[FAIL]</span> {{ error }}</p>
+{%- endif %}
+{%- if saved %}
+<p class="form-ok" role="status"><span class="st st-ok">[ OK ]</span> {{ saved }} saved.</p>
+{%- endif %}
+
+<section class="panel" aria-labelledby="envs-h">
+  <div class="section-head"><h2 id="envs-h">Environments</h2>
+    <span class="caption">a scan names one; the assistant asks when there are several</span></div>
+  {%- if environments %}
+  <div class="table-wrap">
+  <table class="data">
+    <thead><tr><th>Environment</th><th>Address</th><th>How far the crawler may go</th><th></th></tr></thead>
+    <tbody>
+      {%- for e in environments %}
+      <tr>
+        <td><code>{{ e.environment }}</code></td>
+        <td><a href="{{ e.base_url }}" rel="noreferrer" target="_blank">{{ e.base_url }}</a></td>
+        <td>{% for value, text in limits if value == (e.max_action_class or "read") %}{{ text }}{% endfor %}</td>
+        <td>
+          {%- if environments | length > 1 %}
+          <form method="post" action="{{ c.url('/portals/' ~ portal ~ '/environments/' ~ e.environment ~ '/revoke') }}"
+                onsubmit="return confirm('Revoke {{ e.environment }} of {{ portal }}? Runs already recorded are kept.')">
+            <button class="btn btn-bracket" type="submit">[revoke]</button>
+          </form>
+          {%- else %}
+          <span class="muted">the only one</span>
+          {%- endif %}
+        </td>
+      </tr>
+      {%- endfor %}
+    </tbody>
+  </table>
+  </div>
+  {%- else %}
+  <p class="muted">No environments could be read.</p>
+  {%- endif %}
+</section>
+
+<section class="panel portal-form-panel" aria-labelledby="add-h">
+  <div class="section-head"><h2 id="add-h">Add or change an environment</h2></div>
+  <p class="muted">Pick an environment that is already there to change its address or limit.</p>
+  <form class="tool-form" method="post" action="{{ c.url('/portals/' ~ portal ~ '/environments') }}">
+    <label class="field">
+      <span>Environment</span>
+      <select class="select" name="environment">
+        {%- for e in ["production", "staging", "sandbox"] %}
+        <option value="{{ e }}"{% if e == form.environment %} selected{% endif %}>{{ e }}{% if e not in missing %} (change){% endif %}</option>
+        {%- endfor %}
+      </select>
+    </label>
+    <label class="field">
+      <span>Address</span>
+      <input class="input" type="text" name="base_url" required inputmode="url" spellcheck="false" value="{{ form.base_url }}">
+    </label>
+    <label class="field">
+      <span>How far the crawler may go</span>
+      <select class="select" name="limit">
+        {%- for value, text in limits %}
+        <option value="{{ value }}"{% if value == form.limit %} selected{% endif %}>{{ text }}</option>
+        {%- endfor %}
+      </select>
+    </label>
+    <button class="btn btn-primary" type="submit"{% if not service_up %} disabled{% endif %}>[save environment]</button>
+  </form>
+</section>
+{% endblock %}

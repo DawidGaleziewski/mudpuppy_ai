@@ -69,6 +69,42 @@
   "abandoned": ("[ABND]", "st-muted"),
 } -%}
 
+{#- Chat step tracker (spec 010, R-30). `todo` is the only new label; the rest reuse the frontier
+    and run vocabulary. A failed step is the crawl failing, so it alone is red. -#}
+{%- set STEP_LABELS = {
+  "todo": ("[TODO]", "st-muted", "to do"),
+  "pending": ("[PEND]", "st-muted", "pending"),
+  "in_progress": ("[RUN.]", "st-run", "in progress"),
+  "done": ("[DONE]", "st-ok", "done"),
+  "failed": ("[FAIL]", "st-fail", "failed"),
+  "stopped": ("[STOP]", "st-muted", "stopped"),
+} -%}
+
+{#- BA amendments (TO-BE, spec 010 T031/T033). `active` and `dismissed` are new labels; the rest
+    reuse the doc revision vocabulary. Never red: an amendment going stale is not a crawl failure. -#}
+{%- set AMENDMENT_LABELS = {
+  "active": ("[ACTV]", "st-plain"),
+  "superseded": ("[OLD.]", "st-muted"),
+  "dismissed": ("[DISM]", "st-muted"),
+  "withdrawn": ("[WDRN]", "st-muted"),
+} -%}
+
+{% macro amendment_status(status) -%}
+  {%- set label, cls = AMENDMENT_LABELS.get(status, ("[ ?? ]", "st-muted")) -%}
+  <span class="st {{ cls }}">{{ label }}</span> <span class="status-text">{{ status }}</span>
+{%- endmacro %}
+
+{% macro step_status(status) -%}
+  {%- set label, cls, text = STEP_LABELS.get(status, ("[ ?? ]", "st-muted", status)) -%}
+  <span class="st {{ cls }}">{% if status == "in_progress" %}<span class="live-dot" aria-hidden="true"></span>{% endif %}{{ label }}</span> <span class="status-text">{{ text }}</span>
+{%- endmacro %}
+
+{#- An ERR- reference, visible and copyable (spec 010 FR-020). The button needs JS; the text is
+    selectable without it. -#}
+{% macro error_ref(ref) -%}
+  <span class="err-ref"><span class="muted">reference</span> <a href="/chat/errors/{{ ref | urlencode }}" title="Look up this reference in the error log"><code>{{ ref }}</code></a> <button class="btn btn-bracket" type="button" data-copy="{{ ref }}" aria-label="Copy reference {{ ref }}">[copy]</button></span>
+{%- endmacro %}
+
 {% macro doc_status(status) -%}
   {%- set label, cls = DOC_STATUS_LABELS.get(status, ("[ ?? ]", "st-muted")) -%}
   <span class="st {{ cls }}">{{ label }}</span> <span class="status-text">{{ status }}</span>

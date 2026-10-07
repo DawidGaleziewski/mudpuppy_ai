@@ -53,6 +53,25 @@ To hand the documentation to another team, export it from `apps/crawler`:
 diagrams, a traceability matrix, `records.json` and `images/` to
 `data/exports/<portal>-<env>-srs/`.
 
+## Chat (spec 010, R-30)
+
+`/chat` is the guided chat with the orchestrator, with the five workflow steps (scan, map, narrow,
+document, amend) beside it. History and steps are read from the store (read-only) and update
+live; sending and streaming go through the local chat service (`pnpm --dir apps/chat start`,
+default `http://127.0.0.1:4310`, override with `PATHFINDER_CHAT_URL`). The browser never calls
+that service: the dashboard proxies `POST /chat/conversations`, `POST /chat/conversations/<id>/messages`
+and the SSE stream `GET /chat/conversations/<id>/events` (forwarding `Last-Event-ID`). If the
+service is not running the page says so and shows the start command.
+
+Beside the chat: a **credentials** form (a password field per `ref:NAME` in the portal's personas,
+read from `personas/<portal>/*.yaml`; values go to the service, are cleared and never shown) and
+the **process scope** checklist (mapped states with thumbnails, start/end, notes; `POST
+/chat/conversations/<id>/scope`). Every `ERR-` reference links to `/chat/errors/<ref>` (the service's
+error log). State pages carry a **TO-BE amendments** section (add, list, withdraw), and
+`/amendments/superseded?portal=&show=superseded|dismissed|both` reviews amendments a newer
+recording made stale (re-apply or dismiss). These forms post JSON to `/chat/...` routes that
+forward to the service; the dashboard still never writes the store.
+
 ## Screenshots and wireframes (spec 008)
 
 Each recorded state has a page at `/states/<id>` (titles in a run's States table link to it, with a

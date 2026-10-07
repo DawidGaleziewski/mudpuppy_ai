@@ -1,0 +1,11 @@
+id: guest-reader
+extends:
+  - ../_mixins/anonymous-base.yaml
+max_action_class: read
+budgets:
+  max_depth: 3
+  max_states: 10
+  max_run_time_minutes: 15
+  max_steps: 30
+trace_inputs:
+  search_query: pickles

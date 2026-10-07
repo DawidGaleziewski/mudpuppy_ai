@@ -30,7 +30,7 @@ def crawl(client: TestClient, env: str, limit: int = 3000) -> tuple[int, list[st
     """GET every same-origin link from the nav pages; returns (pages checked, failures)."""
     queue: deque[str] = deque()
     seen: set[str] = set()
-    for start in ("/", "/docs", "/activity"):
+    for start in smoke.START_PAGES:
         u = smoke._normalise(BASE, start, env)
         assert u
         queue.append(u)
@@ -41,6 +41,9 @@ def crawl(client: TestClient, env: str, limit: int = 3000) -> tuple[int, list[st
         path = queue.popleft()
         r = client.get(path)
         checked += 1
+        # 204: a poll whose content has not changed (the live map, T049); htmx keeps what it has.
+        if r.status_code == 204 and "v=" in path:
+            continue
         if r.status_code != 200:
             failures.append(f"{r.status_code} {path}")
             continue

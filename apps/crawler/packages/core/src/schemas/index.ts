@@ -24,3 +24,7 @@ export * from './doc-review.js';
 export * from './followup-task.js';
 export * from './process.js';
 export * from './process-step.js';
+export * from './chat-conversation.js';
+export * from './workflow-step.js';
+export * from './process-scope.js';
+export * from './amendment.js';

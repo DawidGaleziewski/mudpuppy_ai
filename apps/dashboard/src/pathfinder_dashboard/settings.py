@@ -37,5 +37,12 @@ class Settings(BaseSettings):
     # Where `pnpm docs:review` runs; the dashboard never writes the store (constitution 1.4.0).
     crawler_dir: Path = Field(default_factory=lambda: find_data_dir().parent / "apps" / "crawler")
     review_timeout_s: float = 10.0
+    # The local chat service (apps/chat, spec 010), called server-side only.
+    chat_url: str = "http://127.0.0.1:4310"
+    chat_timeout_s: float = 10.0
+    # Persona YAML files, read to list the `ref:NAME` credentials a persona needs (spec 010 T020).
+    personas_dir: Path = Field(default_factory=lambda: find_data_dir().parent / "personas")
+    # Portal configs (`<id>/portal.yaml`), listed in the header's portal dropdown (spec 011).
+    portals_dir: Path = Field(default_factory=lambda: find_data_dir().parent / "portals")
     # Glossary, its long pages and the BA wiki (spec 006): authored content, read-only here.
     docs_dir: Path = Field(default_factory=lambda: find_data_dir().parent / "docs")

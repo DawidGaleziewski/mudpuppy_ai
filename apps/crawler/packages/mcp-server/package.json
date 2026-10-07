@@ -21,7 +21,8 @@
     "@pathfinder/docs": "workspace:*"
   },
   "devDependencies": {
-    "@pathfinder/reference-portal": "workspace:*"
+    "@pathfinder/reference-portal": "workspace:*",
+    "tsx": "^4.23.15"
   },
   "scripts": {
     "start": "tsx src/main.ts",

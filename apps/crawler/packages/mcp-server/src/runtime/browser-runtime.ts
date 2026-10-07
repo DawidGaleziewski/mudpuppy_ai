@@ -7,6 +7,7 @@ import type { Runtime } from '../runtime.js';
 import { act, login, navigate, navigationPolicy, persistStop } from './pipeline.js';
 import { RunState } from './run-state.js';
 import { processOfRun } from '../services/trace.js';
+import { runChoices } from '../services/start-run.js';
 import { pwTraceEnabled, startPwTrace } from './pw-trace.js';
 import { runSecrets } from '../services/credentials.js';
 import { createRunTraceHooks } from './trace-hooks.js';
@@ -67,7 +68,30 @@ export function createBrowserRuntime(opts: BrowserRuntimeOptions = {}): Runtime 
       }
     };
     const trace = createRunTraceHooks(ctx.tracer, run.id, templateFor);
+    // Spec 011 FR-014: images skipped by the BA's choice; the decision log says so once per run,
+    // each image is a placeholder in the page and a trace event.
+    let skipNoted = false;
+    const skipImages = runChoices(run).skip_images
+      ? {
+          onSkip: (url: string) => {
+            if (skipNoted) return;
+            skipNoted = true;
+            void ctx.decisions
+              .record({
+                run_id: run.id,
+                kind: 'note',
+                rule: 'choice:skip_images',
+                reason:
+                  'images skipped for this run (the BA chose it when the scan was requested); each image shows an "Image skipped" placeholder in screenshots',
+                subject_ref: url,
+                detail: { first_url: url },
+              })
+              .catch((err: unknown) => ctx.logger.error({ err }, 'failed to log skipped images'));
+          },
+        }
+      : undefined;
     const session = await BrowserSession.launch({
+      ...(skipImages ? { skipImages } : {}),
       observe: trace.observe,
       effective: approved.effective,
       headless: opts.headless ?? true,

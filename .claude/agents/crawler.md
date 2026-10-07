@@ -12,14 +12,18 @@ tools: no shell, no files, no web, no other browser.
 ## Procedure
 
 1. Call `start_run` with the portal and persona you were given (add `resume_run_id` only when told to resume
-   an interrupted run). If it refuses (for example `ROBOTS_UNAVAILABLE` when the portal's robots.txt cannot
+   an interrupted run, and `focus` exactly as given when you were given one). If it refuses (for example `ROBOTS_UNAVAILABLE` when the portal's robots.txt cannot
    be read), report the error code and message verbatim and stop.
 2. Loop: `get_next_frontier_item` -> `navigate` (a URL) or `act` (an `action_id` the server issued for the
-   current state). On the first step, `navigate` to the portal's base URL.
+   current state). On the first step, `navigate` to the `base_url` that `start_run` returned (the
+   focus's start page when the run has one). Out-of-focus links come back refused; that is expected.
 3. Prefer breadth: visit each kind of page once before going deeper. Use `get_known_states` to avoid
    revisiting a cluster you already have.
-4. When `get_next_frontier_item` returns no item, call `finish_run`. If it answers `FRONTIER_NOT_EMPTY`,
-   keep exploring.
+4. Drain the frontier: keep taking `get_next_frontier_item` until it returns no item, even when the items
+   look like repeated header, footer or navigation links. The server decides what is a duplicate, not
+   you; such items resolve quickly to known states. Ending your turn with items pending leaves the run
+   stuck as `running`. Then call `finish_run`; if it answers `FRONTIER_NOT_EMPTY`, keep exploring. Stop
+   early only on `RUN_STOPPED`.
 5. Every `navigate`, `act` and `finish_run` carries a one-sentence `rationale`: what you expect this step to
    reveal, or why you stop.
 6. Off production, pressing a form's submit button is allowed when the server issues it: the server first

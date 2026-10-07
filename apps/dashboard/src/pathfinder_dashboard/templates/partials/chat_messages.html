@@ -1,0 +1,25 @@
+{% import "partials/macros.html" as m %}
+{#- Conversation history from the read-only store. A live region: it re-fetches when a turn ends
+    (`chat-settled`) and when the store changes, except while a reply is streaming (the streamed
+    text lives in #chat-live and would otherwise be swapped away). -#}
+{%- set ROLES = {"user": "You", "assistant": "Assistant", "system": "System"} %}
+<section id="region-chat-messages" class="region chat-history"
+         hx-get="{{ c.url('/fragments/chat/messages', conversation=conversation.id) }}"
+         hx-trigger="chat-settled from:body, store-changed[!window.chatBusy] from:body"
+         hx-swap="outerHTML" aria-label="Conversation history">
+  {%- if not messages %}
+  {{ m.empty("No messages yet", "Say what you want to do with a portal, or ask “what can I do?”.", "[ >_ ]") }}
+  {%- else %}
+  <ol class="msgs">
+    {%- for msg in messages %}
+    <li class="msg msg-{{ msg.role }}{% if msg.error_ref %} msg-error{% endif %}">
+      <p class="msg-head"><span class="msg-role">{{ ROLES.get(msg.role, msg.role) }}</span> <time class="muted mono-num" datetime="{{ msg.created_at }}">{{ msg.created_at | when }}</time></p>
+      <p class="msg-body">{{ msg.content }}</p>
+      {%- if msg.error_ref %}
+      <p class="msg-ref"><span class="st st-fail">[FAIL]</span> {{ m.error_ref(msg.error_ref) }}</p>
+      {%- endif %}
+    </li>
+    {%- endfor %}
+  </ol>
+  {%- endif %}
+</section>

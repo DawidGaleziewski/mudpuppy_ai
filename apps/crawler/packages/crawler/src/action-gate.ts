@@ -1,5 +1,4 @@
 import { minSafetyClass, type SafetyClass } from '@pathfinder/core';
-import type { Scope } from '@pathfinder/config';
 import {
   checkBudgets,
   checkDenylist,
@@ -12,6 +11,7 @@ import {
   type ClassifyOptions,
   type Decision,
   type RuleSet,
+  type RunScope,
 } from '@pathfinder/safety';
 import type { RobotsCheck } from './robots-registry.js';
 
@@ -22,8 +22,8 @@ export type Proposal =
   | { kind: 'navigate'; url: string };
 
 export interface GateContext {
-  /** Portal scope already narrowed by the persona (`narrowScope`). */
-  scope: Scope;
+  /** Portal scope already narrowed by the persona (`narrowScope`) and the scan's focus. */
+  scope: RunScope;
   denylist: readonly string[];
   /** The run's rule set (`portalRuleSet`), used by the classifier and the denylist. */
   rules: RuleSet;

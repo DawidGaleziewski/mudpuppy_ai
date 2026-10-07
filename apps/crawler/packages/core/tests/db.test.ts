@@ -9,7 +9,7 @@ import { newId, nowIso } from '../src/ids.js';
 
 const MIGRATIONS = fileURLToPath(new URL('../../../../../data/migrations', import.meta.url));
 
-const ALL = ['0001', '0002', '0003', '0004', '0005', '0006', '0007'];
+const ALL = ['0001', '0002', '0003', '0004', '0005', '0006', '0007', '0008', '0009', '0010'];
 
 let opened: OpenedDb | undefined;
 let tmp: string | undefined;
@@ -30,7 +30,7 @@ const tables = (o: OpenedDb) =>
     .sort();
 
 describe('migrations', () => {
-  it('finds 0001_init through 0007_credentials, each with an up and a down', () => {
+  it('finds 0001_init through 0010_step_stopped, each with an up and a down', () => {
     expect(loadMigrations(MIGRATIONS).map((m) => m.version)).toEqual(ALL);
   });
 
@@ -63,6 +63,9 @@ describe('migrations', () => {
         'credentials',
       ]),
     );
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0010');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0009');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0008');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0007');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0006');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0005');
@@ -78,6 +81,9 @@ describe('migrations', () => {
     opened = openDb(':memory:');
     expect(migrateUp(opened.raw, MIGRATIONS)).toEqual(ALL);
     expect(migrateUp(opened.raw, MIGRATIONS)).toEqual([]);
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0010');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0009');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0008');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0007');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0006');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0005');
@@ -92,6 +98,9 @@ describe('migrations', () => {
   it('0003_trace applies and reverts on a DB holding 0001/0002 data (up, down, up round-trips cleanly)', () => {
     opened = openDb(':memory:');
     migrateUp(opened.raw, MIGRATIONS);
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0010');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0009');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0008');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0007');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0006');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0005');
@@ -101,7 +110,16 @@ describe('migrations', () => {
       expect.arrayContaining(['trace_boots', 'trace_spans', 'agent_turns']),
     );
     expect(tables(opened)).toEqual(expect.arrayContaining(['states', 'frontier', 'decision_log']));
-    expect(migrateUp(opened.raw, MIGRATIONS)).toEqual(['0003', '0004', '0005', '0006', '0007']);
+    expect(migrateUp(opened.raw, MIGRATIONS)).toEqual([
+      '0003',
+      '0004',
+      '0005',
+      '0006',
+      '0007',
+      '0008',
+      '0009',
+      '0010',
+    ]);
     expect(appliedVersions(opened.raw)).toEqual(ALL);
     expect(tables(opened)).toEqual(
       expect.arrayContaining(['trace_boots', 'trace_spans', 'agent_turns']),
@@ -295,12 +313,23 @@ describe('Layer B tables (0004_ba_documentation)', () => {
         `INSERT INTO doc_reviews (id, revision_id, action, reviewer, text, created_at) VALUES (?, ?, 'comment', 'dawid', 'looks good', ?)`,
       )
       .run(newId(), revisionId, ts);
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0010');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0009');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0008');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0007');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0006');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0005');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0004');
     expect(tables(opened)).not.toEqual(expect.arrayContaining(['doc_records', 'doc_revisions']));
-    expect(migrateUp(opened.raw, MIGRATIONS)).toEqual(['0004', '0005', '0006', '0007']);
+    expect(migrateUp(opened.raw, MIGRATIONS)).toEqual([
+      '0004',
+      '0005',
+      '0006',
+      '0007',
+      '0008',
+      '0009',
+      '0010',
+    ]);
     expect(opened.raw.prepare('SELECT count(*) AS n FROM doc_records').get()).toEqual({ n: 0 });
   });
 });
@@ -378,13 +407,16 @@ describe('screenshots and wireframes (0006_screenshots_wireframes)', () => {
     opened.raw
       .prepare(`INSERT INTO state_wireframes VALUES (?, '1', 'a.svg', 'a.excalidraw', ?)`)
       .run(stateId, nowIso());
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0010');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0009');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0008');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0007');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0006');
     expect(tables(opened)).not.toContain('state_wireframes');
     expect(opened.raw.prepare('SELECT target_kind, note FROM doc_evidence_links').all()).toEqual([
       { target_kind: 'state', note: 'region button "Oblicz": n' },
     ]);
-    expect(migrateUp(opened.raw, MIGRATIONS)).toEqual(['0006', '0007']);
+    expect(migrateUp(opened.raw, MIGRATIONS)).toEqual(['0006', '0007', '0008', '0009', '0010']);
     expect(opened.raw.prepare('SELECT target_kind, region FROM doc_evidence_links').all()).toEqual([
       { target_kind: 'state', region: null },
     ]);
@@ -413,10 +445,87 @@ describe('credentials (0007_credentials)', () => {
   it('round-trips (up, down, up)', () => {
     opened = openDb(':memory:');
     migrateUp(opened.raw, MIGRATIONS);
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0010');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0009');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0008');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0007');
     expect(tables(opened)).not.toContain('credentials');
-    expect(migrateUp(opened.raw, MIGRATIONS)).toEqual(['0007']);
+    expect(migrateUp(opened.raw, MIGRATIONS)).toEqual(['0007', '0008', '0009', '0010']);
     expect(tables(opened)).toContain('credentials');
+  });
+});
+
+describe('chat orchestrator tables (0008_chat_orchestrator)', () => {
+  const ts = () => nowIso();
+  let amdSeq = 0;
+  const conv = (o: OpenedDb, portal: string | null = 'p') => {
+    const id = newId();
+    o.raw
+      .prepare(
+        `INSERT INTO chat_conversations (id, portal_id, goal, created_at, updated_at) VALUES (?, ?, 'g', ?, ?)`,
+      )
+      .run(id, portal, ts(), ts());
+    return id;
+  };
+  const amd = (o: OpenedDb, cols: string, vals: unknown[]) =>
+    o.raw
+      .prepare(
+        `INSERT INTO amendments (id, key, portal_id, target_kind, target_id, kind, author, created_at, ${cols})
+         VALUES (?, ?, 'p', 'state', 's1', 'note', 'ba', ?, ${vals.map(() => '?').join(',')})`,
+      )
+      .run(newId(), `AMD-${String(++amdSeq).padStart(3, '0')}`, ts(), ...vals);
+
+  it('enforces enums, message order and amendment invariants', () => {
+    opened = openDb(':memory:');
+    migrateUp(opened.raw, MIGRATIONS);
+    const c = conv(opened);
+    const msg = (seq: number, role: string) =>
+      opened!.raw
+        .prepare(
+          `INSERT INTO chat_messages (id, conversation_id, seq, role, content, created_at) VALUES (?, ?, ?, ?, 'x', ?)`,
+        )
+        .run(newId(), c, seq, role, ts());
+    msg(0, 'user');
+    expect(() => msg(0, 'user')).toThrow(/UNIQUE/);
+    expect(() => msg(1, 'bot')).toThrow(/CHECK/);
+    expect(() =>
+      opened!.raw
+        .prepare(
+          `INSERT INTO chat_conversations (id, goal, status, created_at, updated_at) VALUES (?, 'g', 'open', ?, ?)`,
+        )
+        .run(newId(), ts(), ts()),
+    ).toThrow(/CHECK/);
+    amd(opened, 'text', ['note text']);
+    expect(() => amd(opened!, 'text', [null])).toThrow(/CHECK/); // note needs text
+    expect(() => amd(opened!, 'text, status', ['t', 'superseded'])).toThrow(/CHECK/);
+    expect(() => amd(opened!, 'text, superseded_reason', ['t', 'gone'])).toThrow(/CHECK/);
+    amd(opened, 'text, status, superseded_at, superseded_reason', [
+      't',
+      'superseded',
+      ts(),
+      'element_removed',
+    ]);
+    expect(() => amd(opened!, 'text, status', ['t', 'withdrawn'])).toThrow(/CHECK/);
+  });
+
+  it('round-trips (up, down, up)', () => {
+    opened = openDb(':memory:');
+    migrateUp(opened.raw, MIGRATIONS);
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0010');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0009');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0008');
+    expect(tables(opened)).not.toContain('chat_conversations');
+    expect(tables(opened)).not.toContain('amendments');
+    expect(migrateUp(opened.raw, MIGRATIONS)).toEqual(['0008', '0009', '0010']);
+    expect(tables(opened)).toEqual(
+      expect.arrayContaining([
+        'chat_conversations',
+        'chat_messages',
+        'workflow_steps',
+        'process_scopes',
+        'amendments',
+      ]),
+    );
   });
 });
 
@@ -652,5 +761,29 @@ describe('connection', () => {
         .values({ ...state, id: newId(), fingerprint: 'c'.repeat(64), first_seen_run: 'nope' })
         .execute(),
     ).rejects.toThrow();
+  });
+});
+
+describe('run owner (0009_run_owner)', () => {
+  it('round-trips (up, down, up) on a DB holding a run, keeping the run', async () => {
+    opened = openDb(':memory:');
+    migrateUp(opened.raw, MIGRATIONS);
+    const { runId } = await seedRunAndState(opened, 'p', 'f'.repeat(64));
+    opened.raw
+      .prepare(`UPDATE runs SET owner_id = 'server-a', owner_pid = 4242 WHERE id = ?`)
+      .run(runId);
+    expect(() =>
+      opened!.raw.prepare(`UPDATE runs SET owner_pid = 0 WHERE id = ?`).run(runId),
+    ).toThrow(/CHECK/);
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0010');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0009');
+    const cols = () =>
+      (opened!.raw.prepare(`PRAGMA table_info(runs)`).all() as { name: string }[]).map(
+        (c) => c.name,
+      );
+    expect(cols()).not.toContain('owner_id');
+    expect(opened.raw.prepare(`SELECT id FROM runs`).all()).toEqual([{ id: runId }]);
+    expect(migrateUp(opened.raw, MIGRATIONS)).toEqual(['0009', '0010']);
+    expect(cols()).toEqual(expect.arrayContaining(['owner_id', 'owner_pid']));
   });
 });

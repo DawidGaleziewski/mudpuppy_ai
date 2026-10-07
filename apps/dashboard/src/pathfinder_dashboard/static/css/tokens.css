@@ -127,6 +127,9 @@
   --content-max: 1280px;
   --docs-index-w: 240px;
   --textarea-min-h: 64px;
+  --chat-h: 60vh; /* message list height (spec 010) */
+  --chat-side-w: 320px; /* step tracker column */
+  --working-w: 140px; /* the working animation */
   --prose-max: 72ch; /* running text: glossary and wiki pages (spec 006) */
 
   /* screenshots and wireframes (spec 008) */

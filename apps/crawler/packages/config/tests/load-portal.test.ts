@@ -75,6 +75,12 @@ describe('loadPortal', () => {
     expect(allow.robots_page_requests).toBe('allow_and_record');
   });
 
+  it('defaults robots to respect and accepts ignore (constitution 3.0.0, spec 011 FR-006)', () => {
+    expect(load(PORTAL_YAML).run().robots).toBe('respect');
+    expect(load(PORTAL_YAML + 'robots: ignore\n').run().robots).toBe('ignore');
+    expect(problems(load(PORTAL_YAML + 'robots: maybe\n').run).problems.join()).toContain('robots');
+  });
+
   it('defaults pii_scrub to false and accepts true (constitution 2.0.0, spec 008 FR-004)', () => {
     expect(load(PORTAL_YAML).run().pii_scrub).toBe(false);
     expect(load(PORTAL_YAML + 'pii_scrub: true\n').run().pii_scrub).toBe(true);

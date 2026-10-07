@@ -3,7 +3,7 @@ import { ConfigError } from './errors.js';
 import { loadPersona, type LoadPersonaOptions } from './load-persona.js';
 import { loadPortal } from './load-portal.js';
 import type { PersonaConfig } from './persona-schema.js';
-import type { PortalConfig } from './portal-schema.js';
+import type { Environment, PortalConfig } from './portal-schema.js';
 
 export interface EffectiveConfig {
   portal: PortalConfig;
@@ -39,12 +39,14 @@ export function checkLoginCrossRef(
     );
 }
 
+/** `environment`: which of the portal's environments to use (spec 011 FR-008). */
 export function loadEffectiveConfig(
   portalPath: string,
   personaPath: string,
   personaOptions: LoadPersonaOptions = {},
+  environment?: Environment,
 ): EffectiveConfig {
-  const portal = loadPortal(portalPath);
+  const portal = loadPortal(portalPath, environment);
   const persona = loadPersona(personaPath, personaOptions);
   checkLoginCrossRef(portal, persona, personaPath);
   return {

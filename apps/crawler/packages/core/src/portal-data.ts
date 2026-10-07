@@ -35,13 +35,22 @@ export const PORTAL_TABLES = [
   'followup_tasks',
   'processes',
   'process_steps',
+  'chat_conversations',
+  'chat_messages',
+  'workflow_steps',
+  'process_scopes',
+  'amendments',
 ] as const;
 export type PortalTable = (typeof PORTAL_TABLES)[number];
 
 /**
  * Children before parents, so every foreign key still holds at each step. `process_steps` then
  * `processes` (`0005_trace_processes`) go first of all: steps reference actions, edges and states,
- * and processes reference runs, actions and doc_records. Layer B
+ * and processes reference runs, actions and doc_records. The chat tables (`0008_chat_orchestrator`)
+ * go before even those: amendments reference process_scopes and runs; process_scopes reference
+ * states; workflow_steps reference runs and analysis_sessions; all but amendments reference
+ * chat_conversations, and chat_messages are its children. amendments' self-references
+ * (`reapplied_as`, `reapplies`) are within one portal and go in one DELETE statement. Layer B
  * (`0004_ba_documentation`, data-model.md "Portal data partition") goes first: reviews, relations and
  * evidence links are children of doc_revisions; followup_tasks and doc_revisions are children of
  * doc_records; doc_revisions is also a child of analysis_sessions, so it must precede
@@ -52,6 +61,11 @@ export type PortalTable = (typeof PORTAL_TABLES)[number];
  * `decision_log` and `runs`.
  */
 const DELETE_ORDER: readonly PortalTable[] = [
+  'amendments',
+  'process_scopes',
+  'workflow_steps',
+  'chat_messages',
+  'chat_conversations',
   'process_steps',
   'processes',
   'doc_reviews',
@@ -106,7 +120,13 @@ export function where(table: PortalTable, side: 'mine' | 'others'): string {
     case 'analysis_sessions':
     case 'doc_records':
     case 'processes':
+    case 'chat_conversations':
+    case 'workflow_steps':
+    case 'process_scopes':
+    case 'amendments':
       return `portal_id ${op} ?`;
+    case 'chat_messages':
+      return `conversation_id IN (SELECT id FROM chat_conversations WHERE portal_id ${op} ?)`;
     case 'analysis_session_runs':
       return `session_id IN (SELECT id FROM analysis_sessions WHERE portal_id ${op} ?)`;
     case 'doc_revisions':

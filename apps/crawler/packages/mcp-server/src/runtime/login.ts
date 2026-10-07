@@ -71,11 +71,6 @@ export function loginPreconditions(rs: RunState): {
       'LOGIN_NOT_CONFIGURED',
       `portal ${rs.effective.portal.id} has no login block`,
     );
-  if (rs.effective.portal.environment === 'production')
-    throw new ToolError(
-      'PRODUCTION_REFUSED',
-      'logging in is not allowed on production (a login submit is not a read-only action)',
-    );
   if (rs.login === 'blocked')
     throw new ToolError(
       'LOGIN_BLOCKED',

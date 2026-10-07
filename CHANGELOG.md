@@ -6,6 +6,35 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Added
+- R-30 guided chat orchestrator and R-31 portal onboarding: the dashboard's Chat page talks to
+  one orchestrator agent (`apps/chat`, ACP over the user's Claude Code login) that runs the
+  workflow scan → map a process → narrow → document → amend from recorded data only
+  (`packages/workflow`, migration `0008`), hands scans and traces to the `crawler` agent and
+  documentation to the `ba` agent, and is fenced from editing the harness. The page shows a step
+  tracker with [stop scan] / [resume scan], a progress feed and a live map read from the store,
+  a credentials form, the state checklist for a process scope, amendments with superseded
+  review, [stop], [reset assistant] with a context hand-over, and error references (`ERR-…`)
+  backed by local logs. Portals: "+ new portal" in a header dropdown writes the portal and a
+  guest persona; a portal holds production, staging and sandbox, each with its own address and
+  limit (portal settings page); `robots: ignore` per portal. Constitution 3.0.0 and 4.0.0: the
+  robots/terms check is the BA's choice and production may write up to the limit the BA sets.
+  Per scan, the BA decides in the chat: read-only (default) or edits allowed, images or an
+  "Image skipped" placeholder, and a focus (start page, hosts, paths, excluded paths; it only
+  narrows); a scanned portal may be scanned again ("resume or new"), and "map searching for X"
+  starts a process trace. A stop the BA asked for is `stopped` (migration `0010`), resumable from
+  the queued pages; a run records the server that owns it (migration `0009`). Fixed along the
+  way: undeclared `tsx` kept the `.mcp.json` servers from starting (F-01), an unreachable address
+  crashed the `pathfinder` server (F-05) or was recorded as a page (F-06, now
+  `NAVIGATION_FAILED`), the `pathfinder` server and Chromium outlived the chat service (spec 010
+  F-19, now it shuts down when its client goes away), a read-only brief stopped a trace from
+  using an allowed search box (F-10). Verified live with the real assistant: the BA's
+  "English Wikipedia only, map searching for a pickle" reached its goal read-only. The full
+  real-agent pass (scoped documentation, amendments, re-scan) is roadmap R-32, marked costly.
+  15 glossary terms added or changed. Findings in `specs/010-acp-chat-orchestrator/findings.md`
+  and `specs/011-portal-onboarding/findings.md` (`specs/010-acp-chat-orchestrator` T001–T052,
+  `specs/011-portal-onboarding` T001–T022). Branches `feature/010-r30-acp-chat-orchestrator`,
+  `feature/011-r31-portal-onboarding`, `feature/012-r30-r31-integration` (44 commits, fa97a8d …
+  41706ac; squash-merged on master, tag v1.0.10).
 - R-25 legacy proving ground, R-26 credential vault and logged-in crawling, R-27 quality gates
   and evals: `apps/proving-ground` is a local "Grupa Mokradło" estate (Django backend, React
   shell loading shop/bank/insurer micro-frontends at runtime, an embedded server-rendered legacy

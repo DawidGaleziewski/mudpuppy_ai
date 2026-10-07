@@ -10,7 +10,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:slow": "PATHFINDER_SLOW_GATES=1 vitest run --project gates",
-    "typecheck": "pnpm -r exec tsc --noEmit",
+    "typecheck": "pnpm --filter \"./packages/*\" exec tsc --noEmit",
     "lint": "eslint .",
     "format": "prettier --write .",
     "format:check": "prettier --check .",

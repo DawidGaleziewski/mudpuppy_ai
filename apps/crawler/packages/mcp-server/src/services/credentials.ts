@@ -28,7 +28,7 @@ export const runSecrets = {
 };
 
 /**
- * Resolve every `ref:` of the persona for the portal on this server's environment, register the
+ * Resolve every `ref:` of the persona for the portal on the run's environment, register the
  * values with the redactor, and refuse the run naming what is missing. A persona without refs
  * needs no vault (and no key file).
  */
@@ -36,6 +36,8 @@ export async function resolveRunCredentials(
   ctx: ServerContext,
   portalId: string,
   persona: PersonaConfig,
+  /** The run's environment (spec 011 FR-009); default: this server's store environment. */
+  environment?: string,
 ): Promise<Record<string, string>> {
   if (Object.keys(personaRefs(persona.auth)).length === 0) return {};
   try {
@@ -43,7 +45,7 @@ export async function resolveRunCredentials(
       ctx.db,
       loadKey(ctx.vaultKeyPath !== undefined ? { path: ctx.vaultKeyPath } : {}),
     );
-    const env = asEnvironment(ctx.dbEnvironment);
+    const env = asEnvironment(environment ?? ctx.dbEnvironment);
     const { values, missing } = await resolvePersonaRefs(store, portalId, env, persona.auth);
     if (missing.length > 0)
       throw new ToolError(

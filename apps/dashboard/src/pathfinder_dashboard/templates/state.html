@@ -71,4 +71,32 @@
   </ul>
   {%- endif %}
 </div>
+
+<div class="section tobe">
+  <div class="section-head"><h2>Amendments <span class="tobe-tag">TO-BE</span></h2></div>
+  <p class="muted">What the business wants changed on this screen. These are intentions, not observations: they are kept apart from the recorded page and from the documentation of how it works today.</p>
+  {% include "partials/state_amendments.html" %}
+  <form class="tool-form tobe-form" data-json-form="amendment" method="post"
+        action="/chat/portals/{{ st.portal_id | urlencode }}/amendments" data-state="{{ st.id }}" autocomplete="off">
+    <h3>Add an amendment</h3>
+    <label class="field">
+      <span>Applies to</span>
+      <select class="select" name="element">
+        <option value="">the whole screen</option>
+        {%- for key, label in am.elements %}<option value="{{ key }}">{{ label }} · {{ key }}</option>{% endfor %}
+      </select>
+    </label>
+    {%- if not am.elements %}<p class="muted">No wireframe layout is recorded for this state, so only the whole screen can be amended.</p>{% endif %}
+    <label class="field">
+      <span>Note</span>
+      <textarea class="textarea" name="text" rows="3" maxlength="50000" placeholder="What should be different, and why"></textarea>
+    </label>
+    <label class="field">
+      <span>Attachment <span class="muted">(optional, up to 8 MB)</span></span>
+      <input class="input" type="file" name="attachment">
+    </label>
+    <button class="btn btn-primary" type="submit">[add amendment]</button>
+    <p class="form-result" role="status" data-result></p>
+  </form>
+</div>
 {% endblock %}

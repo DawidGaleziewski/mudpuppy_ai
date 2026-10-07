@@ -76,10 +76,23 @@ export function registerTools(server: McpServer, ctx: ServerContext, runtime: Ru
 
   tool(
     'start_run',
-    'Start (or resume with resume_run_id) a read-only run: mode "map" (default) explores the portal; mode "trace" records one named process (process {name, goal}, optional followup_key of an open FUP). Validates config and the production guard before any browser opens.',
+    'Start (or resume with resume_run_id) a run: mode "map" (default) explores the portal; mode "trace" records one named process (process {name, goal}, optional followup_key of an open FUP). environment picks one of the portal\'s environments (required when it has several; a resumed run keeps its own). max_action_class lowers this run\'s limit (e.g. "read" = only look; never raises the portal\'s); skip_images answers image requests with an "Image skipped" placeholder; focus {start_url, only_domains, only_paths, exclude_paths} narrows the run to part of the portal (start there, stay on those hosts and path globs, never open the excluded ones; never widens) and base_url in the result is the page to start on; a resumed run keeps all three unless given again. Validates config and the environment guard before any browser opens.',
     {
       portal_id: z.string(),
       persona_id: z.string(),
+      environment: z.enum(['production', 'staging', 'sandbox']).optional(),
+      max_action_class: z
+        .enum(['read', 'mutating', 'destructive', 'external-side-effect'])
+        .optional(),
+      skip_images: z.boolean().optional(),
+      focus: z
+        .object({
+          start_url: z.string().optional(),
+          only_domains: z.array(z.string()).optional(),
+          only_paths: z.array(z.string()).optional(),
+          exclude_paths: z.array(z.string()).optional(),
+        })
+        .optional(),
       resume_run_id: z.string().optional(),
       mode: z.enum(['map', 'trace']).optional(),
       process: z.object({ name: z.string(), goal: z.string() }).optional(),

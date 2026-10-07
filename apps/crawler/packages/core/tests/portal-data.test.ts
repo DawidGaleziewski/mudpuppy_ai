@@ -169,9 +169,51 @@ function seed() {
   spans(shopRun);
   agentTurn(shopRun);
 
+  /** One conversation with a message, step, scope and two amendments (one re-applied copy of the other). */
+  const chat = (portal: string, runId: string, s1: string, s2: string) => {
+    const conv = newId();
+    raw
+      .prepare(
+        `INSERT INTO chat_conversations (id, portal_id, goal, created_at, updated_at) VALUES (?, ?, 'g', ?, ?)`,
+      )
+      .run(conv, portal, ts, ts);
+    raw
+      .prepare(
+        `INSERT INTO chat_messages (id, conversation_id, seq, role, content, created_at) VALUES (?, ?, 0, 'user', 'hi', ?)`,
+      )
+      .run(newId(), conv, ts);
+    raw
+      .prepare(
+        `INSERT INTO workflow_steps (id, conversation_id, portal_id, step, run_id, updated_at) VALUES (?, ?, ?, 'map', ?, ?)`,
+      )
+      .run(newId(), conv, portal, runId, ts);
+    const scope = newId();
+    raw
+      .prepare(
+        `INSERT INTO process_scopes (id, conversation_id, portal_id, process_name, persona, start_state_id, end_state_id,
+         selected_state_ids, source, created_at) VALUES (?, ?, ?, 'Quote', 'guest', ?, ?, '[]', 'ba_description', ?)`,
+      )
+      .run(scope, conv, portal, s1, s2, ts);
+    const orig = newId();
+    const copy = newId();
+    const amd = (id: string, key: string, extra: string) =>
+      raw
+        .prepare(
+          `INSERT INTO amendments (id, key, portal_id, scope_id, target_kind, target_id, kind, text, author, status,
+           superseded_by_run, superseded_reason, superseded_at, reapplied_as, reapplies, created_at)
+           VALUES (?, ?, ?, ?, 'state', ?, 'note', 'n', 'ba', ${extra}, ?)`,
+        )
+        .run(id, key, portal, scope, s1, ts);
+    amd(orig, 'AMD-001', `'superseded', '${runId}', 'state_replaced', '${ts}', NULL, NULL`);
+    amd(copy, 'AMD-002', `'active', NULL, NULL, NULL, NULL, '${orig}'`);
+    raw.prepare('UPDATE amendments SET reapplied_as = ? WHERE id = ?').run(copy, orig);
+  };
+  chat('shop', shopRun, shopState, shopState2);
+
   const insurerRun = run('insurer');
-  state('insurer', insurerRun, SHARED);
-  state2('insurer', insurerRun, INSURER_ONLY);
+  const insurerState = state('insurer', insurerRun, SHARED);
+  const insurerState2 = state2('insurer', insurerRun, INSURER_ONLY);
+  chat('insurer', insurerRun, insurerState, insurerState2);
   note(insurerRun);
   spans(insurerRun);
   agentTurn(insurerRun);
@@ -222,6 +264,11 @@ describe('portal export (spec 002 FR-028, contracts/operator-cli.md)', () => {
       robots_policies: 1,
       trace_spans: 2,
       agent_turns: 1,
+      chat_conversations: 1,
+      chat_messages: 1,
+      workflow_steps: 1,
+      process_scopes: 1,
+      amendments: 2,
     });
     const manifest = JSON.parse(readFileSync(join(out, 'manifest.json'), 'utf8'));
     expect(manifest).toMatchObject({
@@ -229,7 +276,7 @@ describe('portal export (spec 002 FR-028, contracts/operator-cli.md)', () => {
       environment: 'sandbox',
       counts: r.counts,
       evidence_files: 4,
-      schema_version: '0007',
+      schema_version: '0010',
     });
     expect(typeof manifest.exported_at).toBe('string');
     for (const t of PORTAL_TABLES) expect(existsSync(join(out, `${t}.ndjson`))).toBe(true);

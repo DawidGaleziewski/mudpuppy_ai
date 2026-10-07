@@ -22,6 +22,13 @@ rather than editing this folder ad hoc.
   test-user credentials per portal and environment (AES-256-GCM ciphertext, nonce, key id). It is
   written only by the vault (`@pathfinder/vault`), never exported (`portal:export`), never shown in
   the dashboard and not removed by `portal:delete`. Values are never stored or logged in plaintext.
+  **Chat orchestrator** (since spec 010, `0008_chat_orchestrator`): `chat_conversations`,
+  `chat_messages`, `workflow_steps`, `process_scopes` and `amendments`. Written only by
+  `@pathfinder/chat`, read-only for the dashboard. They are not Layer A or B and not evidence
+  records (no `evidence_ref`/`confidence`); amendments are never joined into Layer B records. All
+  carry `portal_id` (`chat_messages` via its conversation), so `portal:export` and `portal:delete`
+  include them. Chat error logs are files in `logs/chat/` (JSONL, 30-day retention), not tables.
+  Shapes: `specs/010-acp-chat-orchestrator/data-model.md`.
 - `evidence/` — content-addressed (`sha256`) evidence blobs: ARIA snapshots, robots.txt
   policies and trace payloads too large for their column, referenced by `evidence_ref` columns;
   since spec 008 also state screenshots (`.png`, unmasked), layouts (`.json`: element keys and

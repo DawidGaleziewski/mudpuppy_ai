@@ -1,0 +1,24 @@
+{% import "partials/macros.html" as m %}
+{#- T049 (F-22 item 2): the run's pages and the moves between them, drawn as the crawler goes.
+    Polls every 3 s while the run is running; the URL carries the drawn version, and the server
+    answers 204 (nothing to swap) until the map changes. diagrams.js renders after each swap. -#}
+<section id="region-chat-map" class="region live-map"
+         {%- if live_map %}
+         hx-get="{{ c.url('/fragments/chat/map', conversation=conversation.id, v=map_version) }}"
+         {%- else %}
+         hx-get="{{ c.url('/fragments/chat/map', conversation=conversation.id) }}"
+         {%- endif %}
+         hx-trigger="step-changed from:body{% if progress and progress.running %}, every 3s{% endif %}"
+         hx-swap="outerHTML" aria-label="Live map">
+  <div class="section-head">
+    <h2>Map</h2>
+    <span class="caption">
+      {%- if live_map %}{{ live_map.pages }} pages{% if live_map.shown < live_map.pages %}, newest {{ live_map.shown }} shown{% endif %}{% else %}no pages yet{% endif -%}
+    </span>
+  </div>
+  {%- if live_map %}
+  {{ m.diagram(live_map.source, "Pages of run " ~ (progress.run_id | short_id) ~ ": new in the last minute and the current page are highlighted.") }}
+  {%- else %}
+  <p class="muted">The map is drawn here as soon as the scan records its first page.</p>
+  {%- endif %}
+</section>

@@ -16,6 +16,7 @@
   <script src="/static/vendor/htmx.min.js" defer></script>
   <script src="/static/vendor/hx-sse.min.js" defer></script>
   <script src="/static/js/live.js" defer></script>
+  <script src="/static/js/forms.js" defer></script>
   {% block head_extra %}{% endblock %}
 </head>
 <body{% if dev %} data-dev="1"{% endif %} data-boot="{{ BOOT_ID }}">
@@ -27,14 +28,39 @@
         <li><a href="{{ c.url('/') }}"{% if nav_current | default('overview') == 'overview' and not s %} aria-current="page"{% endif %}>Overview</a></li>
         <li><a href="{{ c.url('/docs') }}"{% if nav_current == 'docs' %} aria-current="page"{% endif %}>Docs</a></li>
         <li><a href="{{ c.url('/activity') }}"{% if nav_current == 'activity' %} aria-current="page"{% endif %}>Activity</a></li>
+        <li><a href="{{ c.url('/chat') }}"{% if nav_current == 'chat' %} aria-current="page"{% endif %}>Chat</a></li>
         <li><a href="{{ c.url('/glossary') }}"{% if nav_current == 'glossary' %} aria-current="page"{% endif %}>Glossary</a></li>
       </ul>
     </nav>
     <div class="topbar-end">
       <span id="live-status" class="live-status" role="status"><span class="st st-muted">[ .. ]</span> connecting</span>
+      {#- Spec 011: which portal the pages show; kept in a cookie. "+ new portal" opens the form. #}
+      <form class="env-form" method="get" action="{{ request.url.path }}">
+        {%- if c.env_param %}<input type="hidden" name="env" value="{{ c.env_param }}">{% endif %}
+        <label class="field">
+          <span>portal</span>
+          <select class="select" name="portal" data-autosubmit>
+            <option value=""{% if not c.portal %} selected{% endif %}>all portals</option>
+            {%- for p in header_portals() %}
+            <option value="{{ p }}"{% if p == c.portal %} selected{% endif %}>{{ p }}</option>
+            {%- endfor %}
+            {%- if c.portal and c.portal not in header_portals() %}
+            <option value="{{ c.portal }}" selected>{{ c.portal }}</option>
+            {%- endif %}
+            <option value="__new__">+ new portal</option>
+          </select>
+        </label>
+        <noscript><button class="btn btn-bracket" type="submit">[switch]</button></noscript>
+      </form>
+      {%- if portal_configured(c.portal) %}
+      <a class="btn btn-bracket portal-settings-link" href="{{ c.url('/portals/' ~ c.portal ~ '/settings') }}"
+         title="Environments of {{ c.portal }}: addresses and how far the crawler may go">[settings]</a>
+      {%- endif %}
       <form class="env-form" method="get" action="{{ request.url.path }}">
         <label class="field">
-          <span>environment</span>
+          {#- Which local database the pages read (data/db/<name>.sqlite); not the environment a
+              scan targets, which belongs to the portal (spec 011). #}
+          <span title="Which local database the dashboard reads. The environment a scan targets is set per portal under [settings].">data store</span>
           <select class="select" name="env" data-autosubmit>
             {%- for e in envs %}
             <option value="{{ e }}"{% if e == env %} selected{% endif %}>{{ e }}</option>

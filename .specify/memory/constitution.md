@@ -1,19 +1,43 @@
 <!--
-SYNC IMPACT REPORT (temporary; remove before commit)
-Version change: 1.4.0 → 2.0.0 (MAJOR: removes the PII scrubbing requirement and redefines what
-non-production runs may do; spec 008)
-Modified principles: V. Safety-First Exploration (sandbox/staging no longer need resettable seed
-data; map and trace runs MAY fill and submit forms there; traces and screenshots stored unmasked
-on every environment; PII scrubbing optional per portal). III. Strict Role Separation (PII
-scrubbing listed as optional). Production policy unchanged (read-only, robots.txt, rate limit,
-no CAPTCHA/anti-bot work-arounds).
-Modified sections: Development Workflow & Quality Gates ("resettable demo app" bullet)
+SYNC IMPACT REPORT (amendment history, newest first)
+Version change: 3.0.0 → 4.0.0 (MAJOR: removes production read-only from Principle V; spec 011
+phase 2, R-31)
+Modified principles: V. Safety-First Exploration: production is no longer read-only by rule.
+Every environment of a portal (production, staging, sandbox) has its own action limit set by
+the BA; on production the crawler may fill, submit and log in up to that limit. The compliance
+gate (robots/terms review dates required on production) is removed: the BA owns that. Still in
+force on production: declaring `environment: production` for a production-looking address,
+a rate limit and identifiable User-Agent, and stopping (never working around) CAPTCHA/anti-bot
+blocks. A portal may hold several environments; each run records the one it targets.
+User decisions 2026-10-06: "If i say production should be scanned let it be production",
+"Allow writes on prod", "One portal, many envs".
+Templates/specs checked: specs/011-portal-onboarding phase 2; spec 001 FR-011 and spec 002
+FR-026 (production read-only, compliance gate) superseded by this version.
+Previous change: 2.1.0 → 3.0.0 (MAJOR: redefines part of Principle V, NON-NEGOTIABLE; spec 011, R-31)
+Modified principles: V. Safety-First Exploration: the robots.txt and terms check "before the
+first run against a portal" becomes the BA's choice per portal: a portal may set `robots: ignore`
+(no robots.txt fetch, no robots refusals). The BA owns that choice for the sites they work on and
+migrate. User decision 2026-10-06 ("Fuck robots. Fuck constraints."). Production stays read-only
+and keeps its rate-limit, User-Agent and anti-bot rules.
 Added sections: none
 Removed sections: none
-Templates/specs checked: specs/001-crawler-map-mode FR-011 (superseded by spec 008 FR-002);
-specs/004-ba-documentation T082 finding I1 (superseded); crawler observer comment on screenshots
-(to update in spec 008 implementation)
+Templates/specs checked: specs/011-portal-onboarding (spec, tasks); specs/002 robots FR-001..
+FR-009 stay the default behaviour (`robots: respect`).
 Deferred items: none
+Previous change: 2.0.0 → 2.1.0 (MINOR: materially expanded layout guidance; spec 010, R-30)
+Modified principles: none
+Modified sections: Technical Constraints, "App layout" bullet: TypeScript apps and shared
+`packages/*` form one root pnpm workspace with one root `pnpm-lock.yaml` (workspace config, not a
+language manifest); isolated apps (proving ground) MAY keep their own workspace and lockfile;
+Python apps keep their own `uv.lock`. Replaces "every app has its own lockfile". User decision
+2026-10-05.
+Added sections: none
+Removed sections: none
+Templates/specs checked: specs/010-acp-chat-orchestrator plan Constitution Check and research R10
+(updated); CLAUDE.md Monorepo Layout (consistent: apps/ and packages/, pnpm workspaces)
+Deferred items: none
+Previous change: 1.4.0 → 2.0.0 (MAJOR, spec 008: PII scrubbing optional, non-production runs may
+submit forms).
 -->
 # Pathfinder AI Constitution
 
@@ -64,24 +88,28 @@ deterministic orchestrator code from run results, never by an agent claiming suc
 
 ### V. Safety-First Exploration (NON-NEGOTIABLE)
 Every action MUST be classified read-only, mutating, destructive, or external-side-effect;
-ambiguity is treated as unsafe. Mutating and destructive actions MUST run only against a
-sandbox or staging environment, enforced by an environment guard. On sandbox and staging,
-map and trace runs MAY fill forms with test data and submit them; data on those targets is
-disposable. CAPTCHAs MUST NOT be solved by automation; they are removed or bypassed in the
+ambiguity is treated as unsafe. Every environment of a portal (production, staging, sandbox)
+has an action limit set by the BA, enforced in code; actions above it are never executed.
+Within that limit map and trace runs MAY fill forms and submit them on any environment,
+production included; that choice and its consequences on a live site are the BA's. CAPTCHAs MUST NOT be solved by automation; they are removed or bypassed in the
 test environment. Traces and screenshots are stored as recorded, unmasked, on every
 environment; PII scrubbing of text evidence is optional per portal.
 
 Production policy:
 - A production target MUST be declared with `environment: production` in its portal config;
   without that flag the environment guard refuses to run against it.
-- On production the environment guard MUST allow only read-only actions, enforced in code.
+- A portal MAY hold several environments, each with its own address and action limit; every
+  run records the environment it targets.
 - A production run MUST use a conservative rate limit, low concurrency, and an identifiable
   User-Agent or header.
-- `robots.txt` and the site's terms MUST be checked before the first run against a portal.
+- `robots.txt` is obeyed by default. The BA MAY switch it off per portal (`robots: ignore`) for
+  sites they work on; checking the site's terms is then the BA's responsibility.
 - Anti-bot or CAPTCHA defenses MUST NOT be worked around. A block is recorded as a run-level
   warning and the run stops.
-Rationale: read-only crawling of a live site is acceptable only when it cannot change the
-site's data and cannot degrade or evade its protections.
+Rationale: the BA documents sites they work on and migrate, often only reachable as production;
+how far a crawl may change a site is their decision per environment, enforced in code. What
+stays fixed is honesty about the target (declared environment, identifiable traffic) and never
+degrading or evading a site's protections.
 
 ### VI. Human-in-the-Loop Validation
 Requirements enter as `draft` and become `confirmed` only through explicit human BA approval.
@@ -103,9 +131,13 @@ Markdown, Mermaid and Gherkin are rendered from it. Generated tests MUST be plai
 - **Stack**: Node 22+, TypeScript (strict), pnpm workspaces monorepo with one package per module;
   Playwright library for the crawler and `@playwright/test` for generated tests, kept separate.
 - **App layout**: every app, whatever its language (TypeScript, Python or other), lives in its
-  own `apps/<name>/` folder and is self-contained: its own manifest, lockfile, lint, type and test
-  config, and tests. The repo root holds no language manifest (`package.json`, `pyproject.toml`,
-  …), so languages never compete for it.
+  own `apps/<name>/` folder and is self-contained: its own manifest, lint, type and test config,
+  and tests. Shared TypeScript code lives in `packages/<name>/`. TypeScript apps and shared
+  packages form one pnpm workspace whose `pnpm-workspace.yaml` and single `pnpm-lock.yaml` sit at
+  the repo root; that is workspace configuration, not a language manifest. An app that must stay
+  isolated (for example the proving ground) MAY keep its own pnpm workspace and lockfile and is
+  excluded from the root workspace. Python apps keep their own `uv.lock`. The repo root holds no
+  language manifest (`package.json`, `pyproject.toml`, …), so languages never compete for it.
 - **Python tooling**: `uv` manages any Python app (`pyproject.toml` and `uv.lock` inside its
   `apps/<name>/`), for example the operator dashboard, offline scripts or NLP/embedding work such
   as glossary consolidation.
@@ -165,4 +197,4 @@ pull request review MUST verify compliance; any violation MUST be justified in w
 plan's complexity-tracking section or be corrected. Runtime guidance for agents lives in
 `user_input/raw_idea/agents/` until moved into the `agents/` and `skills/` packages.
 
-**Version**: 2.0.0 | **Ratified**: 2026-09-20 | **Last Amended**: 2026-10-04
+**Version**: 4.0.0 | **Ratified**: 2026-09-20 | **Last Amended**: 2026-10-06

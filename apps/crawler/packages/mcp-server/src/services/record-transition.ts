@@ -108,12 +108,6 @@ export async function recordTransition(
       { derived },
     );
   }
-  if (input.status === 'executed' && derived !== 'read' && run.environment === 'production') {
-    throw new ToolError(
-      'UNSAFE_ACTION_EXECUTED',
-      `refusing to record an executed ${derived} action on a production run`,
-    );
-  }
 
   for (const [field, id] of [
     ['from_state', input.from_state],

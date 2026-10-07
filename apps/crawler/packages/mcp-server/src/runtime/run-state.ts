@@ -1,8 +1,8 @@
 import { FingerprintIndex } from '@pathfinder/fingerprint';
 import { inferRouteTemplates, type RouteTemplater } from '@pathfinder/fingerprint';
-import type { EffectiveConfig, Scope } from '@pathfinder/config';
+import type { EffectiveConfig } from '@pathfinder/config';
 import { FrontierPolicy, type BrowserSession } from '@pathfinder/crawler';
-import { portalRuleSet, type RuleSet } from '@pathfinder/safety';
+import { portalRuleSet, type RuleSet, type RunScope } from '@pathfinder/safety';
 import type { RunRobots } from '../services/robots.js';
 import type { PwTrace } from './pw-trace.js';
 import type { RunTraceHooks } from './trace-hooks.js';
@@ -48,7 +48,7 @@ export class RunState {
     readonly runId: string,
     readonly session: BrowserSession,
     readonly effective: EffectiveConfig,
-    readonly scope: Scope,
+    readonly scope: RunScope,
     readonly robots: RunRobots,
     /** Request-level trace events of this run's browser (spec 005). */
     readonly trace: RunTraceHooks,

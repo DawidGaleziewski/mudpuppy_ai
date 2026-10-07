@@ -90,6 +90,7 @@ export function createRunRobots(
   const pending: PolicyRow[] = [];
   const registry = createRobotsRegistry({
     allowedDomains: portal.scope.allowed_domains,
+    ignore: portal.robots === 'ignore',
     userAgent: rate.user_agent,
     limiter,
     ...(ctx.fetch ? { fetch: ctx.fetch } : {}),

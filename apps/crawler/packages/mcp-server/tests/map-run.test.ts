@@ -242,16 +242,14 @@ describe.skipIf(!available)('map run against the mock portal', () => {
     }
   }, 60_000);
 
-  it('refuses start_run before any request: undeclared production address, null compliance, placeholder User-Agent', async () => {
+  it('refuses start_run before any request: undeclared production address, placeholder User-Agent', async () => {
+    // null compliance values no longer refuse production (constitution 4.0.0, spec 011)
     const before = portal.requests.length;
     const cases: string[] = [
       portalYaml({ origin: portal.origin, base: 'https://shop.example-portal.pl/' }).replace(
         'allowed_domains: [127.0.0.1]',
         'allowed_domains: [shop.example-portal.pl]',
       ),
-      portalYaml({ origin: portal.origin, env: 'production', compliance: false })
-        .replace('allowed_domains: [127.0.0.1]', 'allowed_domains: [shop.example-portal.pl]')
-        .replace(portal.origin + '/', 'https://shop.example-portal.pl/'),
       portalYaml({
         origin: portal.origin,
         ua: 'Bot (+contact@example.com)',

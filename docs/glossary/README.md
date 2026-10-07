@@ -60,24 +60,26 @@ follow-up tasks when a map run is not enough.
 
 #### Environment (sandbox / production)
 
-**Whether a portal is a live production site, where only read-only actions are allowed, or a sandbox or staging site with disposable data, where forms may be filled and submitted.**
+**Which copy of a site a scan targets, production (the live site), staging or sandbox; each has its own address and limit of how far the crawler may go.**
 
-The portal config declares `environment: production`, `staging` or `sandbox`. On production
-the environment guard allows only `read` actions, enforced in code, plus a conservative rate
-limit and an identifying User-Agent. On sandbox and staging, map and trace runs may fill and
-submit forms with test data (constitution 2.0.0). Each environment has its own database file
-(`data/db/<environment>.sqlite`); the environment selector in the dashboard's top bar
-switches between them.
+A portal has one or more environments (see Portal settings). A public address must be
+declared production. Since constitution 4.0.0 production is not read-only by rule: the
+crawler may fill, submit and log in up to the limit the BA set for that environment, which
+on a live site really happens. Each scan from the chat only looks unless you allow edits
+for it (see Scan choices). Production keeps a conservative rate limit, an identifying
+User-Agent, and stops on a CAPTCHA. Each run records its environment. Separately, the
+dashboard's "data store" switch picks which local database file (`data/db/<name>.sqlite`)
+it reads; runs of every environment can be in one store.
 
-*Example:* reference-insurer is a sandbox; its twin reference-insurer-readonly is treated as production.
+*Example:* wikipedia-org: production https://www.wikipedia.org/ (only look); reference-insurer: sandbox
 
-*Seen in:* Top bar → environment; Runs table → Environment
+*Seen in:* Portal settings; Runs table → Environment
 
-*Labels:* `Environment`, `sandbox`, `production`
+*Labels:* `Environment`, `sandbox`, `staging`, `production`
 
-*Related:* [Safety class](#safety-class), [Scope / denylist](#portal-scope), [Form autofill](#form-autofill)
+*Related:* [Safety class](#safety-class), [Scope / denylist](#portal-scope), [Form autofill](#form-autofill), [Portal settings (environments)](#portal-settings), [Scan choices (edits, images)](#scan-choices)
 
-<sub>Last changed in R-20, 2026-10-04.</sub>
+<sub>Last changed in R-31, 2026-10-07.</sub>
 
 <a id="persona"></a>
 
@@ -1412,6 +1414,329 @@ in the dashboard.
 *Related:* [Eval (tier 2)](#eval), [Credential vault](#credential-vault)
 
 <sub>Last changed in R-27, 2026-10-05.</sub>
+
+### Chat and workflow
+
+<a id="chat"></a>
+
+#### Chat
+
+**The dashboard page where the BA talks to one assistant that knows where each portal stands and runs the next step for them.**
+
+The Chat page is the guided way in: instead of choosing between agents and skills, the BA
+says what they want and the assistant offers only the steps that are valid now. A new
+conversation opens with a computed summary of the portal's steps and the moves you can take.
+The chat runs in its own local service (`pnpm --dir apps/chat start`); the dashboard only
+shows it. While work runs, the MudPuppy animation plays.
+
+*Example:* Opening the chat on reference-insurer shows "scan done" and proposes picking a process.
+
+*Seen in:* Chat page
+
+*Labels:* `Chat`, `conversation`
+
+*Related:* [Orchestrator (assistant)](#orchestrator), [Workflow step](#workflow-step), [Error reference (ERR-…)](#error-reference)
+
+<sub>Last changed in R-30, 2026-10-06.</sub>
+
+<a id="orchestrator"></a>
+
+#### Orchestrator (assistant)
+
+**The assistant behind the chat; it can scan, trace, narrow and document, but cannot change Pathfinder itself.**
+
+The orchestrator calls the chat tools (`workflow_state`, `request_scan`, `save_persona`, …)
+and hands the work to the crawler and BA agents. It has no file, shell or web tools: a
+request to change agents, skills, rules, code, configuration or safety settings is refused
+and named as a developer task in the shell. Safety-gate refusals are quoted word for word.
+
+*Seen in:* Chat page
+
+*Labels:* `assistant`, `orchestrator`
+
+*Related:* [Chat](#chat), [Persona](#persona), [Run](#run)
+
+<sub>Last changed in R-30, 2026-10-06.</sub>
+
+<a id="workflow-step"></a>
+
+#### Workflow step
+
+**One stage of the work on a portal (scan, map, narrow, document, amend), shown in the step tracker as to do, waiting to start, in progress, done, failed or stopped.**
+
+Statuses come from what was recorded, not from what the assistant says: a scan is in
+progress while its run is running and done when the run completed. A request shows as
+"waiting to start" until its run or documentation session appears. A failed step carries an
+error reference. The tracker is correct after a reload or a restart of the chat service.
+
+While a scan's run is running, the step shows `[stop scan]`. Stopping (with `[stop scan]`,
+`[stop]` or by asking the assistant) makes the step **stopped**, not failed: no error
+reference, what it recorded stays, and `[resume scan]` continues it from the pages still
+queued with the same choices (read-only or not, images or not).
+
+*Seen in:* Chat page → step tracker
+
+*Labels:* `step tracker`, `pending`, `in progress`, `failed`, `stopped`, `stop scan`, `resume scan`
+
+*Related:* [Chat](#chat), [Run](#run), [Analysis session](#analysis-session), [Error reference (ERR-…)](#error-reference), [Scan choices (edits, images)](#scan-choices)
+
+<sub>Last changed in R-31, 2026-10-07.</sub>
+
+<a id="scan-choices"></a>
+
+#### Scan choices (edits, images)
+
+**The two questions the assistant asks before each scan, whether it may fill in and submit forms (default no, only look) and whether to skip images (default no).**
+
+A scan only looks unless you allow edits: then it may fill in and submit forms, on
+production too, up to the most the environment allows (set in Portal settings). Images load
+by default because you need them to see what a page asks for; skipping them maps faster on
+image-heavy sites. A skipped image shows an "Image skipped: images turned off for this
+scan" box in the screenshot where it would be, and the run's log says why. A resumed scan
+keeps its choices unless you change them.
+
+*Example:* "Scan it, you may submit forms, skip images" → edits allowed, images skipped
+
+*Seen in:* Chat page
+
+*Labels:* `read-only`, `allow edits`, `skip images`, `Image skipped`
+
+*Related:* [Environment (sandbox / production)](#environment), [Portal settings (environments)](#portal-settings), [Workflow step](#workflow-step), [Scan focus](#scan-focus)
+
+<sub>Last changed in R-31, 2026-10-07.</sub>
+
+<a id="scan-focus"></a>
+
+#### Scan focus
+
+**The part of a portal one scan or process trace keeps to, said in the chat; where it starts, which addresses and paths it stays within, which paths it leaves out.**
+
+Without a focus a scan maps the whole portal. A focus starts the scan on a given page, keeps
+it on the hosts and paths you name and never opens the paths you leave out (`*` matches
+anything). It can only narrow what the portal allows. It belongs to that one run: a resume
+keeps it, a new scan does not. Links outside it are listed as not done with the reason
+(`scope:excluded_path` for a left-out path).
+
+*Example:* "Only the English site, leave out Special: pages" → start https://en.wikipedia.org/, only en.wikipedia.org, never /wiki/Special:*
+
+*Seen in:* Chat page; Run page → decisions
+
+*Labels:* `focus`, `scope:excluded_path`
+
+*Related:* [Scan choices (edits, images)](#scan-choices), [Scope / denylist](#portal-scope), [Persona](#persona)
+
+<sub>Last changed in R-31, 2026-10-07.</sub>
+
+<a id="error-reference"></a>
+
+#### Error reference (ERR-…)
+
+**The id shown with every error in the chat; a developer finds the technical detail under it in the local chat log.**
+
+Every failure gets an `ERR-` id (time-ordered, 26 characters after the prefix). The detail
+goes to `data/logs/chat/<date>.jsonl`, one line per error, kept 30 days and never with
+credentials in it. Give the reference to a developer instead of a screenshot.
+
+*Example:* The scan step failed (ERR-01K6Z…).
+
+*Seen in:* Chat page; step tracker
+
+*Labels:* `ERR-`, `reference id`
+
+*Related:* [Chat](#chat), [Workflow step](#workflow-step)
+
+<sub>Last changed in R-30, 2026-10-06.</sub>
+
+<a id="activity-feed"></a>
+
+#### Activity (scan progress)
+
+**The list under the chat of what the conversation's scan did, newest first, with counters for pages found, links queued, steps and time.**
+
+Read from what the crawler recorded, not from the assistant, so it is the same after a
+reload or after leaving the page. Lines: a new page, one crawler step (`Clicked … on /a →
+/b`), a form found, a problem (error, a page that never settled, an HTTP error), something
+not done (with the reason) and a question for the BA. When a running scan records nothing
+for 5 minutes the chat says so: the crawler may be stuck.
+
+*Example:* 17 pages found · 113 still queued · 171 / 400 steps · Clicked link "Kontakt" on /logowanie → /kontakt
+
+*Seen in:* Chat page
+
+*Labels:* `Activity`, `pages found`, `still queued`, `Nothing recorded for`
+
+*Related:* [Chat](#chat), [Map (live)](#live-map), [Run](#run)
+
+<sub>Last changed in R-30, 2026-10-06.</sub>
+
+<a id="live-map"></a>
+
+#### Map (live)
+
+**The pages of the conversation's scan drawn beside the chat as the crawler finds them, each hanging off the page it was reached from.**
+
+A discovery tree: for every page, the link the crawler clicked to reach it first. It does
+not show every link between pages (that is the state graph on the run's page). Pages found
+in the last minute and the page the crawler is on are highlighted. It redraws only when
+something changed and stops when the run ends.
+
+*Example:* / → (Kontakt) → /kontakt, highlighted as the current page
+
+*Seen in:* Chat page
+
+*Labels:* `Map`
+
+*Related:* [Activity (scan progress)](#activity-feed), [Run](#run)
+
+<sub>Last changed in R-30, 2026-10-06.</sub>
+
+<a id="portal-dropdown"></a>
+
+#### Portal (dropdown)
+
+**The choice at the top of every page of which portal you work on; the pages follow it until you change it.**
+
+Lists the configured portals and every portal that was scanned, plus "all portals" and
+"+ new portal". With a portal chosen, Overview shows only its runs, Docs opens its
+documentation and Chat its newest conversation; [new conversation] starts one for it. The
+choice is remembered by the browser.
+
+*Example:* portal: wikipedia-org → the chat opens the wikipedia-org conversation
+
+*Seen in:* Page header
+
+*Labels:* `portal`, `all portals`
+
+*Related:* [New portal](#new-portal), [Environment (sandbox / production)](#environment), [Chat](#chat)
+
+<sub>Last changed in R-31, 2026-10-06.</sub>
+
+<a id="new-portal"></a>
+
+#### New portal
+
+**The form, opened with "+ new portal" in the portal dropdown, that adds a site to work on without editing files.**
+
+Give the address of each environment the site has (production, staging, sandbox; at least
+one) and how far the crawler may go on each; a short name is proposed from the first
+address. robots.txt is ignored by default (your responsibility). The limit per environment
+is the most a scan may ever do there; each scan still only looks unless you allow edits
+when the assistant asks (see Scan choices). Saving writes the portal's configuration and a guest persona, checked the
+same way a scan checks them, and opens a chat for it.
+
+*Example:* production https://www.wikipedia.org/ (only look) → wikipedia-org, then "scan it"
+
+*Seen in:* New portal page; portal dropdown
+
+*Labels:* `+ new portal`, `robots.txt ignore it`
+
+*Related:* [Portal (dropdown)](#portal-dropdown), [Portal settings (environments)](#portal-settings), [Scope / denylist](#portal-scope), [Persona](#persona), [Scan choices (edits, images)](#scan-choices)
+
+<sub>Last changed in R-31, 2026-10-07.</sub>
+
+<a id="portal-settings"></a>
+
+#### Portal settings (environments)
+
+**The page, opened with [settings] next to the portal dropdown, that lists a portal's environments and adds, changes or revokes them.**
+
+A portal can have a production, a staging and a sandbox environment, each with its own
+address and how far the crawler may go there. A scan targets one of them (the assistant
+asks when there are several) and the run records it. Revoking an environment keeps the
+runs already recorded for it; the last one cannot be revoked. The "data store" switch at
+the top is something else: which local database the dashboard reads.
+
+*Example:* wikipedia-org: production https://www.wikipedia.org/ (only look); [revoke] sandbox
+
+*Seen in:* Portal settings page; page header
+
+*Labels:* `[settings]`, `[revoke]`, `production`, `staging`, `sandbox`
+
+*Related:* [New portal](#new-portal), [Portal (dropdown)](#portal-dropdown), [Environment (sandbox / production)](#environment)
+
+<sub>Last changed in R-31, 2026-10-06.</sub>
+
+<a id="reset-assistant"></a>
+
+#### Reset assistant
+
+**Gives the assistant a fresh context in the same conversation; the history stays on screen and the portal and steps are kept.**
+
+The assistant forgets the earlier messages but is told the portal and where the steps
+stand. Use it when it gets confused or the conversation is long. A new conversation instead
+starts from zero with its own steps. Refused while the assistant answers: press [stop]
+first. After a chat-service restart the assistant is also given the last messages, so the
+conversation carries on.
+
+*Example:* [reset assistant] → "Assistant context reset. Your next message starts a fresh session…"
+
+*Seen in:* Chat page
+
+*Labels:* `[reset assistant]`, `[stop]`
+
+*Related:* [Chat](#chat), [Orchestrator (assistant)](#orchestrator)
+
+<sub>Last changed in R-30, 2026-10-06.</sub>
+
+<a id="process-scope"></a>
+
+#### Process scope
+
+**The one process the BA wants documented, given by its start and end screens, the screens in between and a comment per screen.**
+
+Real portals are too big to document whole. The assistant proposes candidates from traced
+processes, documented processes and matching screens; the BA confirms start, end and the
+screens in the checklist beside the chat. Documentation then cites only evidence from those
+screens, and `pnpm docs:export <portal> --scope <id>` exports only that process.
+
+*Seen in:* Chat page → state checklist; docs:export --scope
+
+*Labels:* `scope`, `start state`, `end state`
+
+*Related:* [Process (trace mode)](#trace-process), [State](#state), [SRS export](#srs-export)
+
+<sub>Last changed in R-30, 2026-10-06.</sub>
+
+<a id="amendment"></a>
+
+#### Amendment (to-be)
+
+**A BA note on a screen, a piece of evidence or a wireframe element that says what should change; kept apart from the recorded facts.**
+
+An amendment is a text note, a reference to one wireframe element ("this button should
+say …"), or an attached file. It is stored with author, time and target, never mixed into
+the as-is records, and exported in its own to-be chapter (`13-to-be-amendments.md`) and in
+`records.json` with `to_be: true`, so an agent building the new portal can tell as-is from
+to-be. Keys look like `AMD-001`.
+
+*Seen in:* Chat page; SRS export → 13-to-be-amendments.md
+
+*Labels:* `AMD-`, `to-be`, `amendment`
+
+*Related:* [Superseded amendment](#superseded-amendment), [Wireframe](#wireframe), [Screen region](#screen-region), [SRS export](#srs-export)
+
+<sub>Last changed in R-30, 2026-10-06.</sub>
+
+<a id="superseded-amendment"></a>
+
+#### Superseded amendment
+
+**An amendment a fresh run made out of date because the screen or element it targets changed; kept, never deleted, until the BA re-applies or dismisses it.**
+
+After a run the BA started finishes, Pathfinder checks every active amendment against what
+the run saw: same address but a different screen (`state_replaced`), the targeted element
+renamed (`element_changed`) or gone (`element_removed`). A screen the run did not visit
+leaves its amendments active. Superseded ones are listed in "Superseded amendments" with
+reason, run and time; re-apply creates a new active copy on a current screen, dismiss
+retires it. Exports list them in `appendix-superseded-amendments.md`.
+
+*Seen in:* Superseded amendments view; appendix-superseded-amendments.md
+
+*Labels:* `superseded`, `re-apply`, `dismiss`
+
+*Related:* [Amendment (to-be)](#amendment), [Run](#run)
+
+<sub>Last changed in R-30, 2026-10-06.</sub>
 
 ## Business-analysis terms
 

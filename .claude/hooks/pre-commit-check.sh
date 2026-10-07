@@ -35,6 +35,13 @@ fi
 if code '^apps/dashboard/' || has '^(data/migrations/|docs/glossary/)'; then
   run dashboard apps/dashboard bash -c 'uv run ruff check && uv run pytest -q'
 fi
+# Chat service and the shared workflow package (R-30); chat also depends on workflow and core.
+if code '^(apps/chat/|packages/workflow/|apps/crawler/packages/core/)'; then
+  run chat apps/chat bash -c 'pnpm --silent typecheck && pnpm --silent lint && pnpm --silent test'
+fi
+if code '^packages/workflow/'; then
+  run workflow packages/workflow bash -c 'pnpm --silent typecheck && pnpm --silent lint && pnpm --silent test'
+fi
 # Proving-ground backend.
 if code '^apps/proving-ground/backend/'; then
   run proving-ground apps/proving-ground/backend bash -c 'uv run ruff check && uv run pytest -q'

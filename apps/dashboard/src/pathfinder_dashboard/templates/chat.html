@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+{% import "partials/macros.html" as m %}
+{% block title %}Chat{% endblock %}
+{% block head_extra %}<script src="/static/js/chat.js" defer></script><script src="/static/js/diagrams.js" defer></script>{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <p class="crumbs"><a href="{{ c.url('/') }}">Overview</a> / chat</p>
+    <h1>Guided chat</h1>
+  </div>
+  <div class="page-actions">
+  {%- if conversation %}
+  <button class="btn btn-bracket" id="chat-reset" type="button"
+          data-reset-url="/chat/conversations/{{ conversation.id }}/reset"{% if not service_up %} disabled{% endif %}
+          title="Give the assistant a fresh context. The history stays; it keeps the portal and the step progress.">[reset assistant]</button>
+  {%- endif %}
+  <form method="post" action="{{ c.url('/chat/new') }}">
+    <button class="btn btn-bracket" type="submit"{% if not service_up %} disabled{% endif %}>[new conversation]</button>
+  </form>
+  </div>
+</div>
+
+{%- if not service_up %}
+<div class="state state-error" role="alert">
+  <span class="state-icon st" aria-hidden="true">[FAIL]</span>
+  <p class="state-title">The chat service is not running</p>
+  <p class="muted">Start it in a terminal, then retry. History below is read from the store and stays available.</p>
+  <p><code>pnpm --dir apps/chat start</code></p>
+  <p><a class="btn btn-bracket" href="{{ c.url('/chat', conversation=conversation.id if conversation else none) }}">[retry]</a></p>
+</div>
+{%- endif %}
+
+{%- if asked and not conversation %}
+<div class="section">{% include "partials/chat_missing.html" %}</div>
+{%- elif not conversation %}
+<div class="section">
+  {{ m.empty("No conversation yet", "Start one: the assistant helps you scan, map and document a portal, one step at a time.", "[ >_ ]") }}
+</div>
+{%- else %}
+<div class="chat" id="chat"
+     data-conversation="{{ conversation.id }}"
+     data-events-url="/chat/conversations/{{ conversation.id }}/events"
+     data-send-url="/chat/conversations/{{ conversation.id }}/messages"
+     data-cancel-url="/chat/conversations/{{ conversation.id }}/cancel"
+     data-service-up="{{ 1 if service_up else 0 }}">
+  <section class="chat-main" aria-label="Chat with the assistant">
+    <div class="chat-scroll" id="chat-scroll" tabindex="0" role="log" aria-label="Messages">
+      {% include "partials/chat_messages.html" %}
+      <ol class="msgs" id="chat-live" aria-live="polite"></ol>
+    </div>
+    <div class="working" id="chat-working"{% if not tracker.active %} hidden{% endif %}>
+      <picture>
+        <source media="(prefers-reduced-motion: reduce)" srcset="/static/brand/mudpuppy-rust-256.png">
+        <img class="working-img" src="/static/brand/mudpuppy-working.gif" width="140" height="85" alt="" loading="lazy">
+      </picture>
+      <p class="working-text">The assistant is working.</p>
+    </div>
+    {% include "partials/chat_progress.html" %}
+    <p class="now" id="chat-now" role="status"></p>
+    <form class="composer" id="chat-form" action="{{ c.url('/chat', conversation=conversation.id) }}" method="get">
+      <label class="field composer-field">
+        <span>Message</span>
+        <textarea class="textarea" id="chat-input" name="text" rows="2" required
+                  {% if not service_up %}disabled{% endif %}
+                  placeholder="Ask what you can do, or name a portal and a goal. Enter sends, Shift+Enter adds a line."></textarea>
+      </label>
+      <div class="composer-actions">
+        <button class="btn btn-primary" id="chat-send" type="submit"{% if not service_up %} disabled{% endif %}>[send]</button>
+        <button class="btn btn-bracket" id="chat-stop" type="button" hidden
+                title="Stop the assistant's reply and any scan this conversation started">[stop]</button>
+      </div>
+    </form>
+    <noscript><p class="muted">Sending and live replies need JavaScript. History and steps still show.</p></noscript>
+  </section>
+  <aside class="chat-side" aria-label="Progress">
+    {% include "partials/chat_tracker.html" %}
+    {% include "partials/chat_map.html" %}
+    {% include "partials/chat_tools.html" %}
+  </aside>
+</div>
+{%- endif %}
+{% endblock %}

@@ -15,6 +15,8 @@ import { capabilities, processes, screens } from './render/chapters/structure.js
 import { loadExportModel, type ExportModel } from './render/model.js';
 import { recordsJson } from './render/records-json.js';
 import { traceability } from './render/traceability.js';
+import { applyScope, type ExportScope } from './scope.js';
+import { loadAmendments, supersededAmendments, toBeAmendments } from './render/amendments.js';
 
 /** Refusals of the operator export command; kept apart from `DocsError`, which the BA tools map. */
 export class ExportError extends Error {
@@ -37,6 +39,8 @@ export interface ExportOptions {
    * `images/` (spec 008 US4). Without it the export has no pictures.
    */
   evidenceRoot?: string;
+  /** Keep only records whose evidence lies on these states (R-30 process scope). */
+  scope?: ExportScope;
 }
 
 const RENDERERS: readonly [string, (m: ExportModel) => string][] = [
@@ -74,14 +78,28 @@ export function exportSrs(
   ).n;
   if (count === 0)
     throw new ExportError('NO_RECORDS', `portal ${portalId} has no documentation records`);
-  const model = loadExportModel(raw, portalId, {
+  const loaded = loadExportModel(raw, portalId, {
     environment: opts.environment,
     mode: opts.confirmedOnly ? 'confirmed' : 'all',
     ...(opts.evidenceRoot ? { evidenceRoot: opts.evidenceRoot } : {}),
   });
+  const scoped = opts.scope ? applyScope(raw, loaded, opts.scope) : loaded;
+  // To-be amendments (R-30): own files and records.json section, only when there are any.
+  const inScope = opts.scope ? new Set(opts.scope.stateIds) : null;
+  const amendments = loadAmendments(raw, portalId).filter(
+    (a) =>
+      inScope === null ||
+      a.target_kind === 'evidence' ||
+      inScope.has(a.target_kind === 'wireframe_element' ? a.target_id.split('#')[0]! : a.target_id),
+  );
+  const model = amendments.length > 0 ? { ...scoped, amendments } : scoped;
   const files = new Map<string, string | Uint8Array>(
     RENDERERS.map(([file, render]) => [file, render(model)]),
   );
+  if (model.amendments) {
+    files.set('13-to-be-amendments.md', toBeAmendments(portalId, model.amendments));
+    files.set('appendix-superseded-amendments.md', supersededAmendments(model.amendments));
+  }
   if (opts.evidenceRoot) {
     const images = imageFiles(model, opts.evidenceRoot);
     for (const path of [...images.keys()].sort()) files.set(path, images.get(path)!);

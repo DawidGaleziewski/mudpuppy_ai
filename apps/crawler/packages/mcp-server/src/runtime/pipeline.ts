@@ -1105,6 +1105,15 @@ async function navigateStep(
   await phase(ctx, 'goto', async () => {
     await state.session.goto(input.url);
     await throwIfStopped(ctx, state);
+    // The page never opened (refused, unknown host, …): nothing is recorded, and the agent and the
+    // BA learn that the address is wrong or the site is down (spec 011 F-06).
+    const failed = state.session.lastNavigationError;
+    if (failed !== null)
+      throw new ToolError(
+        'NAVIGATION_FAILED',
+        `${input.url} could not be opened (${failed}); the address may be wrong or the site down`,
+        { url: input.url, error: failed },
+      );
   });
   const depth = g.usage.depth;
   const result = await processPage(
@@ -1277,8 +1286,9 @@ async function actStep(
     }
     return { locator, matches };
   });
-  // Off production, map mode fills a form before pressing its submit control (spec 008 FR-002).
-  if (!state.isTrace && !action.json.input && state.effective.portal.environment !== 'production')
+  // Map mode fills a form before pressing its submit control (spec 008 FR-002); on production
+  // too since constitution 4.0.0, within the portal's limit (spec 011 FR-010).
+  if (!state.isTrace && !action.json.input)
     await phase(ctx, 'autofill', () => autofillBeforeSubmit(ctx, run, state, action, locator));
   await phase(ctx, 'click', async () => {
     // Reachability first (trial: actionability only, nothing is clicked), then the click itself with

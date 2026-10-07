@@ -181,7 +181,7 @@ describe('request gate', () => {
 });
 
 describe('request gate: robots (FR-003, FR-009)', () => {
-  type Reply = { status: number; location?: string };
+  type Reply = { status: number; location?: string; error?: string };
   const UA = 'PathfinderAI-Crawler/0.1 (+me@corp.pl)';
 
   /** Registry stub: `*cHash*`, `/quote/` and `/api/` disallowed on in-scope hosts (x.pl). */
@@ -230,6 +230,7 @@ describe('request gate: robots (FR-003, FR-009)', () => {
             expect(o.maxRedirects).toBe(0);
             fetched.push(url);
             const r = replies[url] ?? { status: 200 };
+            if (r.error) throw new Error(r.error);
             return {
               status: () => r.status,
               url: () => url,
@@ -334,6 +335,20 @@ describe('request gate: robots (FR-003, FR-009)', () => {
     );
     expect(r.fulfill).toHaveBeenCalled();
     expect(r.abort).not.toHaveBeenCalled();
+  });
+
+  it('aborts a navigation whose fetch fails with the network error instead of throwing (F-05)', async () => {
+    const m = make('block', {
+      'https://www.x.pl/down': { status: 0, error: 'connect ECONNREFUSED 127.0.0.1:4459' },
+      'https://www.x.pl/odd': { status: 0, error: 'something else' },
+    });
+    await m.gate.install(m.c.ctx as never);
+    const down = await m.c.request('https://www.x.pl/down', 'main');
+    expect(down.abort).toHaveBeenCalledWith('connectionrefused');
+    expect(down.fulfill).not.toHaveBeenCalled();
+    expect((await m.c.request('https://www.x.pl/odd', 'main')).abort).toHaveBeenCalledWith(
+      'failed',
+    );
   });
 
   it('refuses a redirect to a disallowed URL before it is followed', async () => {
@@ -583,5 +598,73 @@ describe('request gate: trace callbacks', () => {
     await s.gate.install(s.ctx as never);
     const r = await s.request('https://cdn.test/a.js', 'resource');
     expect(r.continue).toHaveBeenCalled();
+  });
+});
+
+describe('request gate: skip images (spec 011 FR-014)', () => {
+  function setup(skip: boolean) {
+    let handler!: (route: unknown, request: unknown) => Promise<void>;
+    const skipped: string[] = [];
+    const acquire = vi.fn();
+    const base = createRateLimiter({ requestsPerSecond: 1000, maxConcurrency: 1 });
+    const gate = createRequestGate({
+      limiter: { ...base, acquire: (o?: AcquireOptions) => (acquire(), base.acquire(o)) },
+      userAgent: 'UA',
+      onStop: () => {},
+      ...(skip ? { skipImages: { onSkip: (u: string) => skipped.push(u) } } : {}),
+    });
+    const request = async (url: string, resourceType: string) => {
+      const route = {
+        continue: vi.fn(async () => {}),
+        abort: vi.fn(async () => {}),
+        fulfill: vi.fn(async () => {}),
+      };
+      await handler(route, {
+        headers: () => ({}),
+        isNavigationRequest: () => false,
+        frame: () => ({ parentFrame: () => null }),
+        url: () => url,
+        method: () => 'GET',
+        resourceType: () => resourceType,
+      });
+      return route;
+    };
+    return {
+      gate,
+      skipped,
+      acquire,
+      request,
+      install: () =>
+        gate.install({
+          route: async (_p: string, h: typeof handler) => void (handler = h),
+          on: () => {},
+        } as never),
+    };
+  }
+
+  it('answers images with the placeholder, without the network or a limiter slot', async () => {
+    const s = setup(true);
+    await s.install();
+    const img = await s.request('https://cdn.x.pl/a.png', 'image');
+    await s.request('https://cdn.x.pl/a.png', 'image');
+    expect(img.fulfill).toHaveBeenCalledWith(
+      expect.objectContaining({
+        contentType: 'image/svg+xml',
+        body: expect.stringContaining('Image skipped'),
+      }),
+    );
+    expect(img.continue).not.toHaveBeenCalled();
+    expect(s.acquire).not.toHaveBeenCalled();
+    expect(s.skipped).toEqual(['https://cdn.x.pl/a.png']); // once per URL
+    const js = await s.request('https://x.pl/app.js', 'script');
+    expect(js.continue).toHaveBeenCalled();
+  });
+
+  it('loads images as before when the run does not skip them', async () => {
+    const s = setup(false);
+    await s.install();
+    const img = await s.request('https://cdn.x.pl/a.png', 'image');
+    expect(img.continue).toHaveBeenCalled();
+    expect(img.fulfill).not.toHaveBeenCalled();
   });
 });

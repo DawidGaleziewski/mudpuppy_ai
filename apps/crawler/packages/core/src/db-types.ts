@@ -22,6 +22,15 @@ import type { ReviewAction } from './schemas/doc-review.js';
 import type { FollowupStatus } from './schemas/followup-task.js';
 import type { ProcessOutcome, ProcessStatus } from './schemas/process.js';
 import type { ProcessStepKind } from './schemas/process-step.js';
+import type {
+  AmendmentKind,
+  AmendmentStatus,
+  AmendmentSupersededReason,
+  AmendmentTargetKind,
+} from './schemas/amendment.js';
+import type { ChatConversationStatus, ChatMessageRole } from './schemas/chat-conversation.js';
+import type { ProcessScopeSource } from './schemas/process-scope.js';
+import type { WorkflowStepName, WorkflowStepStatus } from './schemas/workflow-step.js';
 
 /** Kysely table types mirroring data/schema/schema.sql. JSON columns are TEXT (stringified JSON). */
 export interface RunsTable {
@@ -44,6 +53,9 @@ export interface RunsTable {
   started_at: string;
   ended_at: string | null;
   coverage: string | null;
+  /** 0009: the pathfinder server instance driving the run, and its process id (F-14). */
+  owner_id: string | null;
+  owner_pid: number | null;
 }
 
 export interface StatesTable {
@@ -88,6 +100,88 @@ export interface CredentialsTable {
   key_id: string;
   created_at: string;
   updated_at: string;
+}
+
+/** 0008: guided chat orchestrator (spec 010). JSON columns are TEXT (stringified JSON). */
+export interface ChatConversationsTable {
+  id: string;
+  portal_id: string | null;
+  goal: string;
+  acp_session_id: string | null;
+  persona_draft: ColumnType<string, string | undefined, string>;
+  status: ColumnType<
+    ChatConversationStatus,
+    ChatConversationStatus | undefined,
+    ChatConversationStatus
+  >;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ChatMessagesTable {
+  id: string;
+  conversation_id: string;
+  seq: number;
+  role: ChatMessageRole;
+  content: string;
+  tool_name: string | null;
+  error_ref: string | null;
+  created_at: string;
+}
+
+export interface WorkflowStepsTable {
+  id: string;
+  conversation_id: string;
+  portal_id: string;
+  step: WorkflowStepName;
+  status: ColumnType<WorkflowStepStatus, WorkflowStepStatus | undefined, WorkflowStepStatus>;
+  run_id: string | null;
+  session_id: string | null;
+  error_ref: string | null;
+  started_at: string | null;
+  finished_at: string | null;
+  updated_at: string;
+}
+
+export interface ProcessScopesTable {
+  id: string;
+  conversation_id: string;
+  portal_id: string;
+  process_name: string;
+  persona: string;
+  start_state_id: string;
+  end_state_id: string;
+  selected_state_ids: string;
+  comments: ColumnType<string, string | undefined, string>;
+  source: ProcessScopeSource;
+  created_at: string;
+}
+
+export interface AmendmentsTable {
+  id: string;
+  key: string;
+  portal_id: string;
+  scope_id: string | null;
+  target_kind: AmendmentTargetKind;
+  target_id: string;
+  kind: AmendmentKind;
+  text: string | null;
+  attachment_sha256: string | null;
+  attachment_name: string | null;
+  author: string;
+  status: ColumnType<AmendmentStatus, AmendmentStatus | undefined, AmendmentStatus>;
+  anchor_fingerprint: string | null;
+  anchor_route_template: string | null;
+  anchor_element: string | null;
+  superseded_by_run: string | null;
+  superseded_reason: AmendmentSupersededReason | null;
+  superseded_detail: string | null;
+  superseded_at: string | null;
+  dismissed_at: string | null;
+  reapplied_as: string | null;
+  reapplies: string | null;
+  created_at: string;
+  withdrawn_at: string | null;
 }
 
 export interface StateObservationsTable {
@@ -426,4 +520,9 @@ export interface Database {
   processes: ProcessesTable;
   process_steps: ProcessStepsTable;
   credentials: CredentialsTable;
+  chat_conversations: ChatConversationsTable;
+  chat_messages: ChatMessagesTable;
+  workflow_steps: WorkflowStepsTable;
+  process_scopes: ProcessScopesTable;
+  amendments: AmendmentsTable;
 }

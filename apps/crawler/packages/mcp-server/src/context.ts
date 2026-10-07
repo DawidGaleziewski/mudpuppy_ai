@@ -20,8 +20,17 @@ export interface BaContext {
   logger: Logger;
 }
 
+/** One running pathfinder server: written on the runs it drives (spec 010 F-14). */
+export interface RunOwner {
+  /** UUIDv7, new on every server start. */
+  id: string;
+  pid: number;
+}
+
 /** Everything a service needs. Run-scoped browser state lives elsewhere (session registry). */
 export interface ServerContext {
+  /** This server, when it shares the store with others; absent means "every running run is mine". */
+  owner?: RunOwner;
   db: PathfinderDb;
   raw: OpenedDb['raw'];
   evidence: EvidenceStore;

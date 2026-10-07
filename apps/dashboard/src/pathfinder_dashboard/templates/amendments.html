@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% import "partials/macros.html" as m %}
+{% block title %}Superseded amendments{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <p class="crumbs"><a href="{{ c.url('/') }}">Overview</a> / <a href="{{ c.url('/chat') }}">chat</a> / amendments</p>
+    <h1>Amendments to review <span class="tobe-tag">TO-BE</span></h1>
+  </div>
+  <p class="caption">store {{ store.path }} · read-only</p>
+</div>
+<p class="muted">A new recording replaced or changed the screen or element these amendments were written for. Apply each to a current screen, or dismiss it. Nothing here describes how the portal works today.</p>
+<div class="section">
+  {% include "partials/amendments_superseded.html" %}
+</div>
+{% endblock %}

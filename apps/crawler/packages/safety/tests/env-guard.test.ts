@@ -23,6 +23,7 @@ const portal = (over: Partial<PortalConfig> = {}): PortalConfig => ({
   item_route_templates: [],
   block_signatures: [],
   robots_page_requests: 'block',
+  robots: 'respect',
   action_rules: [],
   pii_scrub: false,
   rate_limit: { requests_per_second: 1, max_concurrency: 1, user_agent: 'x' },

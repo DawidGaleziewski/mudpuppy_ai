@@ -1,6 +1,6 @@
 /**
  * Export a portal's documentation as an SRS folder (specs/004 contracts/srs-export.md; FR-050–FR-054).
- * Usage: pnpm docs:export <portal> [--env production] [--confirmed-only] [--out <dir>] [--operator "<name>"] [--root <repo root>]
+ * Usage: pnpm docs:export <portal> [--env production] [--confirmed-only] [--scope <process scope id>] [--out <dir>] [--operator "<name>"] [--root <repo root>]
  * Default out: data/exports/<portal>-<env>-srs/, replaced on each run (only if it is empty or an
  * earlier export). Exit 0 on success, 1 when the portal has no documentation records, 2 on bad
  * input (usage, missing store, an out folder that is not an earlier export).
@@ -9,7 +9,7 @@ import { existsSync } from 'node:fs';
 import { userInfo } from 'node:os';
 import { join, resolve } from 'node:path';
 import { dbPathFor, newId, nowIso, openDb } from '@pathfinder/core';
-import { ExportError, exportSrs, writeExport } from '@pathfinder/docs';
+import { ExportError, exportSrs, writeExport, type ExportScope } from '@pathfinder/docs';
 
 const arg = (name: string, fallback: string): string => {
   const i = process.argv.indexOf(`--${name}`);
@@ -34,10 +34,26 @@ if (!existsSync(path)) {
 
 const opened = openDb(path);
 try {
+  // `--scope <process scope id>` (R-30): only records whose evidence lies on the scope's states.
+  const scopeId = arg('scope', '');
+  let scope: ExportScope | undefined;
+  if (scopeId !== '') {
+    const row = opened.raw
+      .prepare(
+        'SELECT process_name, selected_state_ids FROM process_scopes WHERE id = ? AND portal_id = ?',
+      )
+      .get(scopeId, portal) as { process_name: string; selected_state_ids: string } | undefined;
+    if (row === undefined) {
+      console.error(`no process scope ${scopeId} for portal ${portal}`);
+      process.exit(2);
+    }
+    scope = { name: row.process_name, stateIds: JSON.parse(row.selected_state_ids) as string[] };
+  }
   const files = exportSrs(opened.raw, portal, {
     environment: env,
     confirmedOnly,
     evidenceRoot: join(root, 'data', 'evidence'),
+    ...(scope ? { scope } : {}),
   });
   writeExport(out, files);
   const records = (

@@ -62,9 +62,23 @@ export interface RequestGateOptions {
   onRobotsCheck?: (c: { url: string; rule: string; action: 'blocked' | 'allowed' }) => void;
   onResponse?: (r: { url: string; status: number; resourceType: string }) => void;
   onBlockVerdict?: (v: { kind: string; warning: string; status: number; url: string }) => void;
+  /**
+   * The BA chose to skip images for this run (spec 011 FR-014): every image request is answered
+   * with a placeholder saying so, without a network request or a limiter slot. `onSkip` is called
+   * once per skipped URL.
+   */
+  skipImages?: { onSkip?: (url: string) => void };
   /** Clock for limiter waits; injectable for tests. */
   now?: () => number;
 }
+
+/** Shown where a skipped image would be, so screenshots say what is missing and why. */
+export const SKIPPED_IMAGE_SVG =
+  '<svg xmlns="http://www.w3.org/2000/svg" width="240" height="80" viewBox="0 0 240 80">' +
+  '<rect width="240" height="80" fill="#eceff1" stroke="#90a4ae" stroke-dasharray="4 3"/>' +
+  '<text x="120" y="34" font-family="sans-serif" font-size="13" fill="#455a64" text-anchor="middle">Image skipped</text>' +
+  '<text x="120" y="54" font-family="sans-serif" font-size="10" fill="#607d8b" text-anchor="middle">images turned off for this scan</text>' +
+  '</svg>';
 
 export interface RequestDecision {
   url: string;
@@ -72,7 +86,7 @@ export interface RequestDecision {
   resourceType: string;
   mainFrame: boolean;
   decision: 'continue' | 'abort' | 'fulfill';
-  reason?: 'navigation_policy' | 'robots' | 'redirect_refused' | 'limiter_halted';
+  reason?: 'navigation_policy' | 'robots' | 'redirect_refused' | 'limiter_halted' | 'image_skipped';
   rule?: string;
   /** Set when a robots-disallowed page request was let through (`allow_and_record`). */
   robotsRule?: string;
@@ -131,6 +145,16 @@ function isMainFrameDocument(response: {
   return req.frame?.().parentFrame?.() == null;
 }
 
+/** Playwright's `route.abort` code for a failed `route.fetch`, so the browser shows the same error. */
+function networkErrorCode(message: string): string {
+  if (/ECONNREFUSED/.test(message)) return 'connectionrefused';
+  if (/ENOTFOUND|EAI_AGAIN/.test(message)) return 'namenotresolved';
+  if (/ETIMEDOUT|[Tt]imeout/.test(message)) return 'timedout';
+  if (/ECONNRESET|socket hang up/.test(message)) return 'connectionreset';
+  if (/EHOSTUNREACH|ENETUNREACH/.test(message)) return 'addressunreachable';
+  return 'failed';
+}
+
 /**
  * The single request choke point (FR-006, FR-008). Every request the browser makes passes through
  * the rate limiter and carries the configured User-Agent; every response is checked for a block, and
@@ -139,6 +163,7 @@ function isMainFrameDocument(response: {
 export function createRequestGate(opts: RequestGateOptions): RequestGate {
   const clock = opts.now ?? (() => performance.now());
   let stopped: StopEvent | null = null;
+  const skippedImages = new Set<string>();
   const stats: RobotsStats = {
     refusedNavigations: 0,
     pageRequestsBlocked: 0,
@@ -232,6 +257,18 @@ export function createRequestGate(opts: RequestGateOptions): RequestGate {
           report({ decision: 'abort', reason: 'limiter_halted' });
           return route.abort('blockedbyclient');
         };
+        if (opts.skipImages && request.resourceType() === 'image') {
+          if (!skippedImages.has(url)) {
+            skippedImages.add(url);
+            safely(opts.skipImages.onSkip, url);
+          }
+          report({ decision: 'fulfill', reason: 'image_skipped' });
+          return route.fulfill({
+            status: 200,
+            contentType: 'image/svg+xml',
+            body: SKIPPED_IMAGE_SVG,
+          });
+        }
 
         if (mainNav && opts.navigationPolicy) {
           const refusal = opts.navigationPolicy(url);
@@ -293,8 +330,11 @@ export function createRequestGate(opts: RequestGateOptions): RequestGate {
         try {
           response = (await (route as Route).fetch({ headers, maxRedirects: 0 })) as FetchedLike;
         } catch (e) {
-          report({ decision: 'fulfill', failed: (e as Error).message });
-          throw e;
+          // A network error must reach the browser as a failed navigation: rethrown from a route
+          // handler it is an unhandled rejection that kills the server (spec 011 F-05).
+          const message = (e as Error).message;
+          report({ decision: 'fulfill', failed: message });
+          return route.abort(networkErrorCode(message));
         } finally {
           release();
         }

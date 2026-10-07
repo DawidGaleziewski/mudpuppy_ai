@@ -40,6 +40,10 @@ together with this file.
 | doc revision | `rejected` / `superseded` / `withdrawn` | `[RJCT]` / `[OLD.]` / `[WDRN]` | `ink-500` | reviewer decision, never red |
 | follow-up task | `open` / `in_progress` / `done` | `[OPEN]` / `[WORK]` / `[DONE]` | `ink-100` / `accent-3` / `brand` | no pulse |
 | follow-up task | `blocked` / `cancelled` | `[BLKD]` / `[CNCL]` | `ink-500` | blocked reason beside it |
+| chat workflow step | `todo` / `pending` | `[TODO]` / `[PEND]` | `ink-500` | pending: dashed row border |
+| chat workflow step | `in_progress` / `done` / `failed` | `[RUN.]` / `[DONE]` / `[FAIL]` | `accent-3` / `brand` / `signal-error` | live dot on `[RUN.]`; `ERR-` ref beside `[FAIL]` |
+| amendment (TO-BE) | `active` / `dismissed` | `[ACTV]` / `[DISM]` | `ink-100` / `ink-500` | new labels; always beside a dashed `TO-BE` tag |
+| amendment | `superseded` / `withdrawn` | `[OLD.]` / `[WDRN]` | `ink-500` | never red; reason column on the review page |
 | review action | `confirm` / `reject` / `comment` | `[ OK ]` / `[RJCT]` / `[NOTE]` | `brand` / `ink-500` / `ink-100` | |
 | trace process outcome | `goal_reached` / `boundary_reached` / `stopped` / `abandoned` | `[ OK ]` / `[BNDY]` / `[STOP]` / `[ABND]` | `brand` / `ink-500` / `signal-error` / `ink-500` | boundary = system working |
 | evidence link | target missing / kind unsupported | `[ ?? ]` | `ink-500` | text "broken link" / "unresolved" |

@@ -1,0 +1,44 @@
+{% import "partials/macros.html" as m %}
+{#- T047/T048 (F-22): what the conversation's run is doing, read from the store, so it is right
+    after a reload or after leaving the page. Counters, then the newest activity first. Polls
+    every 3 s while the run is running; also refreshes on `step-changed` from the chat stream. -#}
+<section id="region-chat-progress" class="region progress"
+         data-running="{{ 1 if progress and progress.running else 0 }}"
+         hx-get="{{ c.url('/fragments/chat/progress', conversation=conversation.id) }}"
+         hx-trigger="store-changed from:body, step-changed from:body{% if progress and progress.running %}, every 3s{% endif %}"
+         hx-swap="outerHTML" aria-label="Scan progress">
+  {%- if progress %}
+  <p class="progress-head">
+    {{ m.run_status(progress.status) }}
+    <span>{{ "scan" if progress.mode == "map" else "trace" }} of <code>{{ progress.portal_id }}</code></span>
+    <a class="muted" href="{{ c.url('/runs/' ~ progress.run_id) }}" title="{{ progress.run_id }}">run {{ progress.run_id | short_id }}</a>
+  </p>
+  <p class="progress-counts">
+    <span><strong>{{ progress.pages }}</strong> pages found</span>
+    <span><strong>{{ progress.queued }}</strong> still queued</span>
+    <span><strong>{{ progress.steps_used }}</strong>{% if progress.max_steps %} / {{ progress.max_steps }}{% endif %} steps</span>
+    <span>{{ elapsed_ms | duration }} {{ "running" if progress.running else "of activity" }}</span>
+    {%- if progress.last_activity %}
+    <span class="muted">last activity {{ progress.last_activity | when }}</span>
+    {%- endif %}
+  </p>
+  {%- if quiet_ms is not none and quiet_ms >= quiet_warn_ms %}
+  <p class="progress-quiet" role="alert"><span class="st st-fail">[WAIT]</span> Nothing recorded for {{ quiet_ms | duration }}. The crawler may be stuck; [stop] ends the run, and the assistant can resume it.</p>
+  {%- endif %}
+  {%- if progress.items %}
+  <details class="progress-feed"{% if progress.running %} open{% endif %}>
+    <summary>Activity <span class="muted">(newest first, last {{ progress.items | length }})</span></summary>
+    <ol class="feed">
+      {%- for item in progress.items %}
+      <li class="feed-item feed-{{ item.kind }}">
+        <time class="feed-time" datetime="{{ item.at }}">{{ item.at[11:19] }}</time>
+        <span class="feed-text">{% if item.state_id %}<a href="{{ c.url('/states/' ~ item.state_id) }}">{{ item.text }}</a>{% else %}{{ item.text }}{% endif %}</span>
+      </li>
+      {%- endfor %}
+    </ol>
+  </details>
+  {%- else %}
+  <p class="muted">Nothing recorded yet. The first pages appear here as soon as the crawler records them.</p>
+  {%- endif %}
+  {%- endif %}
+</section>

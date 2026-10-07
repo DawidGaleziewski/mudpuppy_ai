@@ -135,6 +135,8 @@ class Run(Row):
     started_at: str
     ended_at: str | None
     coverage: Json | None
+    owner_id: str | None = None  # 0009: pathfinder server driving the run (F-14)
+    owner_pid: int | None = None
 
 
 class StateObservation(Row):
@@ -483,6 +485,87 @@ class Credential(Row):
     updated_at: str
 
 
+class ChatConversation(Row):
+    """Guided chat orchestrator state (spec 010, R-30); written only by @pathfinder/chat."""
+
+    id: str
+    portal_id: str | None
+    goal: str
+    acp_session_id: str | None
+    persona_draft: Json
+    status: Literal["active", "closed"]
+    created_at: str
+    updated_at: str
+
+
+class ChatMessage(Row):
+    id: str
+    conversation_id: str
+    seq: int
+    role: Literal["user", "assistant", "system", "tool"]
+    content: str
+    tool_name: str | None
+    error_ref: str | None
+    created_at: str
+
+
+class WorkflowStep(Row):
+    id: str
+    conversation_id: str
+    portal_id: str
+    step: Literal["scan", "map", "narrow", "document", "amend"]
+    status: Literal["todo", "pending", "in_progress", "done", "failed", "stopped"]
+    run_id: str | None
+    session_id: str | None
+    error_ref: str | None
+    started_at: str | None
+    finished_at: str | None
+    updated_at: str
+
+
+class ProcessScope(Row):
+    id: str
+    conversation_id: str
+    portal_id: str
+    process_name: str
+    persona: str
+    start_state_id: str
+    end_state_id: str
+    selected_state_ids: Json
+    comments: Json
+    source: Literal["agent_proposal", "ba_description"]
+    created_at: str
+
+
+class Amendment(Row):
+    """A BA amendment; never joined into Layer B records."""
+
+    id: str
+    key: str
+    portal_id: str
+    scope_id: str | None
+    target_kind: Literal["state", "evidence", "wireframe_element"]
+    target_id: str
+    kind: Literal["note", "element_ref", "attachment"]
+    text: str | None
+    attachment_sha256: str | None
+    attachment_name: str | None
+    author: str
+    status: Literal["active", "superseded", "dismissed", "withdrawn"]
+    anchor_fingerprint: str | None
+    anchor_route_template: str | None
+    anchor_element: Json | None
+    superseded_by_run: str | None
+    superseded_reason: Literal["state_replaced", "element_changed", "element_removed"] | None
+    superseded_detail: str | None
+    superseded_at: str | None
+    dismissed_at: str | None
+    reapplied_as: str | None
+    reapplies: str | None
+    created_at: str
+    withdrawn_at: str | None
+
+
 TABLE_MODELS: dict[str, type[Row]] = {
     "runs": Run,
     "state_observations": StateObservation,
@@ -512,6 +595,11 @@ TABLE_MODELS: dict[str, type[Row]] = {
     "processes": Process,
     "process_steps": ProcessStep,
     "credentials": Credential,
+    "chat_conversations": ChatConversation,
+    "chat_messages": ChatMessage,
+    "workflow_steps": WorkflowStep,
+    "process_scopes": ProcessScope,
+    "amendments": Amendment,
 }
 
 

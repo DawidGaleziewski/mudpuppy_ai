@@ -6,6 +6,8 @@ import {
   classifyAction,
   classifyUrl,
   narrowScope,
+  focusScope,
+  FocusError,
   builtinRuleSet,
   extendRuleSet,
 } from '../src/index.js';
@@ -95,6 +97,58 @@ const DENYLIST = [
   'reveal_seller_contact',
   'path:/oferty/wystaw/*',
 ];
+
+describe('focusScope (spec 011 FR-017)', () => {
+  const wiki = {
+    ...scope,
+    allowed_domains: ['wikipedia.org'],
+    allowed_paths: ['/*'],
+  };
+  const base = 'https://www.wikipedia.org/';
+
+  it('narrows to one subdomain, a start page and excluded paths', () => {
+    const s = focusScope(
+      wiki,
+      {
+        start_url: 'https://en.wikipedia.org/',
+        only_domains: ['en.wikipedia.org'],
+        exclude_paths: ['/wiki/Special:*'],
+      },
+      base,
+    );
+    expect(s.allowed_domains).toEqual(['en.wikipedia.org']);
+    expect(checkScope('https://en.wikipedia.org/wiki/Pickle', s).inScope).toBe(true);
+    expect(checkScope('https://de.wikipedia.org/wiki/Gurke', s).refusal).toMatchObject({
+      rule: 'scope:domain',
+    });
+    expect(checkScope('https://en.wikipedia.org/wiki/Special:Random', s).refusal).toMatchObject({
+      status: 'out_of_scope',
+      rule: 'scope:excluded_path',
+      reason: '/wiki/Special:Random is excluded for this scan (/wiki/Special:*)',
+    });
+  });
+
+  it('never widens: a host or path the portal does not allow is refused', () => {
+    expect(() => focusScope(wiki, { only_domains: ['example.org'] }, base)).toThrow(FocusError);
+    expect(() =>
+      focusScope({ ...wiki, allowed_paths: ['/wiki/*'] }, { only_paths: ['/w/*'] }, base),
+    ).toThrow(/path \/w\/\* not within/);
+  });
+
+  it('refuses a start page outside the focus', () => {
+    // The portal's own start page (www.) is outside a focus on en. without a start_url.
+    expect(() => focusScope(wiki, { only_domains: ['en.wikipedia.org'] }, base)).toThrow(
+      /start page https:\/\/www\.wikipedia\.org\/ is outside the focus/,
+    );
+  });
+
+  it('an empty focus leaves the scope as it was', () => {
+    const s = focusScope(wiki, {}, base);
+    expect(s.allowed_domains).toEqual(wiki.allowed_domains);
+    expect(s.allowed_paths).toEqual(wiki.allowed_paths);
+    expect(s.excluded_paths).toEqual([]);
+  });
+});
 
 describe('checkDenylist', () => {
   it.each([

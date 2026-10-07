@@ -1,0 +1,36 @@
+{
+  "name": "@pathfinder/chat",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Chat orchestrator service for Pathfinder (R-30): talks to an ACP agent and exposes an HTTP and SSE API to the dashboard",
+  "type": "module",
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint .",
+    "test": "vitest run",
+    "start": "tsx src/main.ts",
+    "mcp": "tsx src/mcp-main.ts"
+  },
+  "dependencies": {
+    "@agentclientprotocol/claude-agent-acp": "^0.85.1",
+    "@agentclientprotocol/sdk": "^1.7.0",
+    "@modelcontextprotocol/sdk": "^1.30.0",
+    "@pathfinder/config": "workspace:*",
+    "@pathfinder/core": "workspace:*",
+    "@pathfinder/docs": "workspace:*",
+    "@pathfinder/vault": "workspace:*",
+    "@pathfinder/workflow": "workspace:*",
+    "yaml": "^2.9.1",
+    "zod": "^4.6.5"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@types/better-sqlite3": "^9.6.0",
+    "@types/node": "^22.20.4",
+    "eslint": "^10.11.0",
+    "tsx": "^4.23.15",
+    "typescript": "^6.0.3",
+    "typescript-eslint": "^8.70.1",
+    "vitest": "^5.0.1"
+  }
+}

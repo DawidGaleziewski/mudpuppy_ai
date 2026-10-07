@@ -35,6 +35,8 @@ export interface SessionOptions {
   limiter?: RateLimiter;
   /** robots.txt enforcement for every request of the session (spec 002). */
   robots: NonNullable<RequestGateOptions['robots']>;
+  /** The BA chose to skip images for this run (spec 011 FR-014). */
+  skipImages?: RequestGateOptions['skipImages'];
   headless?: boolean;
   stabilizer?: StabilizerOptions;
   /** Observability hooks handed to the request gate (spec 005); they never change its behaviour. */
@@ -100,6 +102,7 @@ export class BrowserSession {
         ...(opts.navigationPolicy ? { navigationPolicy: opts.navigationPolicy } : {}),
         ...(opts.onNavigationRefused ? { onNavigationRefused: opts.onNavigationRefused } : {}),
         robots: opts.robots,
+        ...(opts.skipImages ? { skipImages: opts.skipImages } : {}),
         ...(opts.observe?.onRequestDecision
           ? { onRequestDecision: opts.observe.onRequestDecision }
           : {}),
@@ -141,12 +144,23 @@ export class BrowserSession {
   }
 
   /** Load a URL; the response status is returned but a failed load is not an exception. */
+  /**
+   * The network error of the last `goto` that could not open its page (`net::ERR_CONNECTION_REFUSED`,
+   * a name that does not resolve, …); null after a page opened or the gate itself blocked it.
+   */
+  lastNavigationError: string | null = null;
+
   async goto(url: string): Promise<number | null> {
+    this.lastNavigationError = null;
     try {
       const res = await this.page.goto(url, { waitUntil: 'domcontentloaded', timeout: 30_000 });
       return res?.status() ?? null;
-    } catch {
-      return null; // aborted by the gate, timed out or refused; the caller checks `gate.stopped`
+    } catch (e) {
+      // Aborted by the gate, timed out or refused; the caller checks `gate.stopped`. A network
+      // error is kept so `navigate` can say the address could not be opened (spec 011 F-06).
+      const net = /net::ERR_[A-Z_]+/.exec((e as Error).message)?.[0];
+      if (net !== undefined && net !== 'net::ERR_BLOCKED_BY_CLIENT') this.lastNavigationError = net;
+      return null;
     }
   }
 

@@ -197,6 +197,11 @@ export const PortalConfig = z
      * `allow_and_record` lets them through. Main-frame navigations always obey robots.
      */
     robots_page_requests: z.enum(['block', 'allow_and_record']).default('block'),
+    /**
+     * `ignore`: robots.txt is neither fetched nor obeyed (constitution 3.0.0, spec 011 FR-006);
+     * the BA's choice for sites they work on. Default `respect` (spec 002 FR-001 to FR-009).
+     */
+    robots: z.enum(['respect', 'ignore']).default('respect'),
     action_rules: z.array(ActionRuleConfig).default([]),
     /**
      * Mask PII in stored text evidence (ARIA snapshots, titles, form fields, network shapes, agent

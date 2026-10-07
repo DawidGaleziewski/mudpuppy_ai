@@ -36,6 +36,10 @@
         <span class="stat-meta">{{ p.rule_candidates }} rule candidates (inferred)</span>
       </div>
     </div>
+    {%- set stale = summary.superseded.get(p.portal_id, 0) %}
+    {%- if stale %}
+    <p class="portal-card-note"><a class="btn btn-bracket" href="{{ c.url('/amendments/superseded', portal=p.portal_id) }}">[{{ stale }} superseded amendment{{ "s" if stale != 1 }} to review]</a></p>
+    {%- endif %}
   </article>
   {%- endfor %}
 {% endcall %}

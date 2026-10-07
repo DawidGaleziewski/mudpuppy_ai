@@ -1,4 +1,7 @@
 packages:
+  - "apps/*"
+  - "!apps/proving-ground"
+  - "apps/crawler/packages/*"
   - "packages/*"
 allowBuilds:
   better-sqlite3: true
