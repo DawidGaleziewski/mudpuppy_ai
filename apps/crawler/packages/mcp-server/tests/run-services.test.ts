@@ -264,6 +264,7 @@ describe('complete_run / finish_run', () => {
     expect(out.coverage).toEqual({
       states: 2,
       actions_executed: 1,
+      actions_inferred: 0,
       actions_skipped_by_class: { 'external-side-effect': 1 },
       api_endpoints: 1,
       item_page_visits: 0,

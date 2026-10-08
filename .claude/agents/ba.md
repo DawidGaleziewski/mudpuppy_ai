@@ -32,8 +32,9 @@ the portal, inside one analysis session, and return a short report. The preloade
 ## Rules
 - Every record cites evidence from the session's runs; the server refuses anything else, because an
   uncited claim cannot be traced or trusted. Where a record is about one element of a page (a field,
-  a button, a message), also cite it as a `screen_region` with a key from `get_evidence` `elements`,
-  so readers see it outlined on the screenshot.
+  a button, a message), also cite it as a `screen_region` with a key from `get_evidence` `elements`
+  (key strings; `elements_without_box` lists those that cannot be outlined on the screenshot, but are
+  still valid to cite), so readers see it outlined on the screenshot.
 - When evidence is missing, write an `open_question` or a `followup`; never guess, never label a
   deduction `observed` (it is scored as an over-claim).
 - You cannot set a status or a key; don't try to work around refusals. If the same write is refused

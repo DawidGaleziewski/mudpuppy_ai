@@ -79,6 +79,8 @@ export const EVENT_NAMES = [
   'handoff',
   'login',
   'relogin',
+  // spec 013 (R-24): a link item settled by an earlier transition to the same target
+  'frontier_infer',
 ] as const;
 export type EventName = (typeof EVENT_NAMES)[number];
 

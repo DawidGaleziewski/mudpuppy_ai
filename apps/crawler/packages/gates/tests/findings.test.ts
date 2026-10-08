@@ -108,7 +108,7 @@ async function mock(maxDepth = 6): Promise<{ gs: GateServer; portal: MockPortal;
 }
 
 async function must(gs: GateServer, name: string, args: Record<string, unknown>): Promise<Body> {
-  const r = await gs.call(name, { rationale: 'gate step', ...args });
+  const r = await gs.call(name, { rationale: 'gate step', include_actions: true, ...args });
   if (r.isError) throw new Error(`${name} refused: ${JSON.stringify(r.body)}`);
   return r.body;
 }

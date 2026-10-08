@@ -128,7 +128,7 @@ export function registerBaTools(server: McpServer, ctx: BaContext): void {
   );
   tool(
     'get_run_evidence',
-    'One page of what a run recorded, of one kind, with ids, confidence and a compact summary. Pass next_cursor back as cursor for the next page, until it is null.',
+    'One page of what a run recorded, of one kind, with ids, confidence and a compact summary. Items omit null fields and fields equal to the page\'s `defaults` (e.g. confidence "observed", safety_class "read"): a missing field is null or the default. Pass next_cursor back as cursor for the next page, until it is null.',
     {
       run_id: z.string(),
       kind: z.string().describe(`One of: ${oneOf(RunEvidenceKind.options)}`),
@@ -142,7 +142,7 @@ export function registerBaTools(server: McpServer, ctx: BaContext): void {
   );
   tool(
     'get_evidence',
-    'The full recorded item and the content of its evidence file (ARIA snapshot or shape), cut at 60 kB with truncated: true. For a state also: screenshot (true when one was recorded) and elements, the element keys you can cite as a screen_region (box: true means it can be outlined on the screenshot).',
+    'The full recorded item and the content of its evidence file (ARIA snapshot or shape), cut at 60 kB with truncated: true. For a state also: screenshot (true when one was recorded), elements (key strings you can cite as a screen_region), and elements_without_box (keys that cannot be outlined on the screenshot, but are still valid to cite).',
     {
       target_kind: z.string().describe(`One of: ${oneOf(EvidenceReadKind.options)}`),
       target_id: z.string(),

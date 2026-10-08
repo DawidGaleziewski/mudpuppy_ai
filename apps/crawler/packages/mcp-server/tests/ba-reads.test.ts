@@ -46,8 +46,11 @@ describe('list_runs', () => {
 describe('get_run_evidence', () => {
   it('summarises each kind', async () => {
     const h = await startBa();
-    const page = async (kind: string) =>
-      (await h.must('get_run_evidence', { run_id: h.fx.runId, kind })).items;
+    // Items as the BA reads them: the page's defaults filled in.
+    const page = async (kind: string) => {
+      const p = await h.must('get_run_evidence', { run_id: h.fx.runId, kind });
+      return p.items.map((i: Record<string, unknown>) => ({ ...p.defaults, ...i }));
+    };
 
     const states = await page('states');
     expect(states).toHaveLength(4);
@@ -72,12 +75,13 @@ describe('get_run_evidence', () => {
     const actions = await page('actions');
     expect(actions.find((a: { id: string }) => a.id === h.fx.actions.buy)).toMatchObject({
       role: 'button',
-      accessible_name: 'Kup polisę',
+      name: 'Kup polisę',
       safety_class: 'mutating',
       allowed: false,
       skip_reason: expect.stringContaining('ceiling:read'),
       form: { method: 'POST' },
     });
+    expect(actions.every((a: Record<string, unknown>) => !('accessible_name' in a))).toBe(true);
 
     const forms = await page('forms');
     const vehicle = forms.find((f: { id: string }) => f.id === h.fx.forms.vehicle);
@@ -103,6 +107,45 @@ describe('get_run_evidence', () => {
     expect(await page('decisions')).toMatchObject([
       { id: h.fx.decision, kind: 'skip', rule: 'ceiling:read', subject_ref: h.fx.actions.buy },
     ]);
+  });
+
+  it('keeps real role and name on actions, omits nulls and page defaults', async () => {
+    const h = await startBa();
+    const get = (kind: string) => h.must('get_run_evidence', { run_id: h.fx.runId, kind });
+
+    const actions = await get('actions');
+    expect(actions.defaults).toEqual({
+      safety_class: 'read',
+      allowed: true,
+      confidence: 'observed',
+    });
+    for (const a of actions.items as Record<string, unknown>[]) {
+      expect(typeof a.role).toBe('string');
+      expect(typeof a.name).toBe('string');
+      expect(a).not.toHaveProperty('confidence');
+    }
+    // A value other than the default stays on the item.
+    expect(actions.items.find((a: { id: string }) => a.id === h.fx.actions.buy)).toMatchObject({
+      role: 'button',
+      name: 'Kup polisę',
+      safety_class: 'mutating',
+      allowed: false,
+    });
+
+    const calls = await get('network_calls');
+    expect(calls.defaults).toEqual({ confidence: 'observed' });
+    expect(calls.items[0]).not.toHaveProperty('confidence');
+
+    // Kinds without defaults keep every non-null field on the item.
+    const rules = await get('rule_candidates');
+    expect(rules).not.toHaveProperty('defaults');
+    expect(rules.items[0]).toHaveProperty('confidence', 'inferred');
+
+    for (const kind of ['states', 'edges', 'actions', 'forms', 'network_calls', 'decisions']) {
+      const page = await get(kind);
+      for (const item of page.items as Record<string, unknown>[])
+        expect(Object.values(item)).not.toContain(null);
+    }
   });
 
   it('pages with a cursor', async () => {

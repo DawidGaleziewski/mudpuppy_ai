@@ -16,7 +16,13 @@ Layer: servers (G-07; `apps/crawler/layers.json`)
     forms/transition → network → `enqueue` → trace step), all on one `StepContext` (`context.ts`).
   - `navigate.ts`, `act.ts` (+ `act-gate.ts`), `login-step.ts`, `relogin.ts`, `trace-boundary.ts`:
     the tool entry points; `gate.ts` (gate context, item cap, `refuse`), `stop.ts` (begin step,
-    persist stop, bookkeeping), `actions.ts` (issued action rows, input values).
+    persist stop, bookkeeping), `actions.ts` (issued action rows, input values), `next-item.ts`
+    (`withNext`: map-mode results carry the next frontier item, spec 013).
+  - Map-mode results leave out `actions` for a state the run already observed
+    (`actions_omitted`; `include_actions: true` lists them); tests that read actions on a revisit
+    pass `include_actions`.
+- `src/services/frontier.ts` + `same-target.ts`: `get_next_frontier_item` settles link items whose
+  target the run already reached as `inferred` edges instead of handing them out (spec 013 US2).
   - `index.ts` re-exports only `navigate`, `act`, `login`, `beginStep`, `persistStop`,
     `navigationPolicy`, `ActionRow`.
 - Entry points: `pnpm --filter @pathfinder/mcp-server start` (`src/main.ts`), `start:ba`.
@@ -50,5 +56,5 @@ Layer: servers (G-07; `apps/crawler/layers.json`)
 
 ## See also
 
-- specs/001, 002, 004, 005, 009, 011, 012 (move-map.md); docs/code-guidelines.md (G-12, G-14,
+- specs/001, 002, 004, 005, 009, 011, 012 (move-map.md), 013 (token usage); docs/code-guidelines.md (G-12, G-14,
   G-18, G-24)

@@ -262,8 +262,8 @@ describe('pathfinder-chat MCP server', () => {
   it('request_scan briefs the crawler to drain the frontier (F-13)', async () => {
     const { body } = await call('request_scan', { portal: 'reference-insurer', persona: 'guest' });
     const prompt = (body.handoff as { prompt: string }).prompt;
-    expect(prompt).toContain('Drain the frontier');
-    expect(prompt).toContain('the server decides what is a duplicate');
+    expect(prompt).toContain('Drain the frontier by acting on each result');
+    expect(prompt).toContain('get_next_frontier_item when a result has none');
     expect(prompt).not.toContain('resume_run_id');
   });
 

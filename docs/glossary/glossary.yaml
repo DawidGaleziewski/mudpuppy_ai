@@ -384,6 +384,40 @@ entries:
     changed_in: R-22
     changed_on: 2026-10-03
 
+  - id: inferred-link
+    term: Inferred link
+    category: pathfinder
+    group: Frontier
+    short: A frontier item for a link whose target address the run already reached by clicking another link, recorded as a transition with no additional click.
+    explanation: |
+      When the next frontier item is a plain link and the run already reached that link's target
+      address by clicking another link, the server does not hand the item out. Instead, it records
+      a transition marked `inferred` to the same page, with the evidence from that earlier click,
+      and marks the item done (`same_target`). If the earlier click failed, the link is clicked
+      as usual. This saves the crawler agent from re-walking shared header and footer menus.
+    example: On reference-insurer, 319 transitions were recorded but only 32 were clicked; 287 were inferred.
+    appears_in: [Frontier report, finish_run coverage (actions_inferred)]
+    labels: [Inferred, inferred]
+    related: [frontier, transition, confidence]
+    changed_in: R-24
+    changed_on: 2026-10-08
+
+  - id: next-item
+    term: Next item
+    category: pathfinder
+    group: Frontier
+    short: In a map run, the frontier item the crawler should work on next, returned by every navigate and act result so the crawler does not have to ask for it.
+    explanation: |
+      After each action in a map run, the `next` field in the result names the next frontier item
+      to follow, sparing the crawler agent a separate `get_next_frontier_item` call. When `next`
+      is null, the frontier is empty or a budget constraint has been reached.
+    example: An act result ends with next.item = link "Kontakt" on the home page, so the agent acts on that action id straight away.
+    appears_in: [Run page → Trace (navigate and act results)]
+    labels: [next, Next item]
+    related: [frontier, priority-depth]
+    changed_in: R-24
+    changed_on: 2026-10-08
+
   - id: priority-depth
     term: Priority / depth
     category: pathfinder

@@ -14,6 +14,7 @@ import {
   usage,
   type RefusalTarget,
 } from './gate.js';
+import { withNext } from './next-item.js';
 import { processPage } from './process-page.js';
 import { beginStep, bumpRun, throwIfStopped } from './stop.js';
 
@@ -80,6 +81,7 @@ async function navigateStep(
       ? { step: { intent: input.intent!, kind: 'navigate', action_id: null, value: null } }
       : {}),
     reloginTarget: input.url,
+    ...(input.include_actions ? { includeActions: true } : {}),
   });
   await step({ ctx, run }, 'run_bookkeeping', async () => {
     for (const pending of await pendingNavigateItems(ctx.db, run.id, input.url))
@@ -87,7 +89,7 @@ async function navigateStep(
     return bumpRun(ctx, run, started, depth);
   });
   await flushObstacles(ctx, state);
-  return result;
+  return withNext(ctx, state, run.id, result);
 }
 
 /** A refused navigation is recorded on the page the browser is on (none before the first page). */

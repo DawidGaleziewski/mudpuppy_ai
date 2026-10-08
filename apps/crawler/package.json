@@ -31,6 +31,7 @@
     "reference-portal": "pnpm --filter @pathfinder/reference-portal start",
     "vault": "tsx scripts/vault.ts",
     "eval": "tsx scripts/eval-run.ts",
+    "tokens:ba": "tsx scripts/tokens-ba-reads.ts",
     "gt:check": "vitest run --project gates tests/ground-truth.test.ts"
   },
   "devDependencies": {

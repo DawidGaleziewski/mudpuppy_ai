@@ -85,10 +85,12 @@ async function issueActions(
   const issued: IssuedAction[] = [];
   for (const [ci, c] of candidates.entries()) {
     const d = decide({ kind: 'act', descriptor: c.descriptor, currentUrl: observed.url }, g);
+    const target = c.href ? targetUrl(c.href, observed.url) : null;
     const json = {
       nth: c.nth,
       ...(c.input ? { input: c.input } : {}),
       ...(c.href ? { href: c.href } : {}),
+      ...(target ? { target_url: target } : {}),
       ...(c.descriptor.form ? { form: c.descriptor.form } : {}),
       locators: locatorSets[ci] ?? [],
       // QA can re-read the element in the snapshot of the page it was found on.
@@ -123,6 +125,19 @@ async function issueActions(
     });
   }
   return { issued, g };
+}
+
+/**
+ * A link's absolute http(s) target, fragment kept (a hash route is a page of its own), so link
+ * items with the same target can be told apart from the rest (spec 013 R3); null otherwise.
+ */
+function targetUrl(href: string, pageUrl: string): string | null {
+  try {
+    const u = new URL(href, pageUrl);
+    return u.protocol === 'http:' || u.protocol === 'https:' ? u.toString() : null;
+  } catch {
+    return null;
+  }
 }
 
 /** Queue the issued actions on the frontier, or record why the policy does not expand the state. */

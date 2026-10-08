@@ -68,6 +68,7 @@ the call's Playwright trace chunk, so its cost shows in the phase breakdown).
 | `form_autofill` (spec 008) | `action_id`, `filled` [{field, type, value}], `skipped` [{field, reason}], `error?` |
 | `frontier_enqueue` / `frontier_skip` | `frontier_id`, `action`, `safety_class`, `priority`, `depth`, `rule?`, `reason?` |
 | `frontier_pick` | `frontier_id?`, `priority?`, `depth?`, `pending`, `reason?` (`empty`/`budget_exhausted`) |
+| `frontier_infer` | `frontier_id`, `edge_id`, `same_as_edge_id`, `to_state` (a link item settled because an earlier transition reached the same target, spec 013) |
 | `request` | `method`, `resource_type`, `url` (shaped), `main_frame`, `decision` (`continue`/`abort`/`fulfill`), `reason?`, `robots_rule?`, `limiter_wait_ms`, `status?`, `redirect_to?` (shaped), `failed?` |
 | `request_aggregate` | `by_type_decision` {"xhr:continue": n, …}, `limiter_wait_ms_total`, `count` |
 | `robots_check` | `url` (shaped), `rule`, `action` (`blocked`/`allowed`) |

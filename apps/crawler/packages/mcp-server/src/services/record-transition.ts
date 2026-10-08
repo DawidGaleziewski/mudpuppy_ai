@@ -39,6 +39,8 @@ export const ActionInput = z
     /** Trace runs: a fill/check/select control (spec 004 R-14). */
     input: z.enum(['fill', 'check', 'select']).optional(),
     href: z.string().optional(),
+    /** The link's absolute target; same-target link items are inferred from it (spec 013 R3). */
+    target_url: z.string().optional(),
     method: z.string().optional(),
     form: z
       .object({

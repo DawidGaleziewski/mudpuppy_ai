@@ -14,16 +14,10 @@ tools: no shell, no files, no web, no other browser.
 1. Call `start_run` with the portal and persona you were given (add `resume_run_id` only when told to resume
    an interrupted run, and `focus` exactly as given when you were given one). If it refuses (for example `ROBOTS_UNAVAILABLE` when the portal's robots.txt cannot
    be read), report the error code and message verbatim and stop.
-2. Loop: `get_next_frontier_item` -> `navigate` (a URL) or `act` (an `action_id` the server issued for the
-   current state). On the first step, `navigate` to the `base_url` that `start_run` returned (the
-   focus's start page when the run has one). Out-of-focus links come back refused; that is expected.
+2. Loop: act on `next.item` from the latest result's `navigate` or `act` (an `action_id` the server issued, or `null` when the frontier is empty or the budget is spent). On the first step, `navigate` to the `base_url` that `start_run` returned (the focus's start page when the run has one). Out-of-focus links come back refused; that is expected. When a result has no `next` field (an error result, or after `start_run`/`login`), call `get_next_frontier_item` to get the next item. A link whose target this run already reached through another link is recorded as an inferred transition and not handed out again.
 3. Prefer breadth: visit each kind of page once before going deeper. Use `get_known_states` to avoid
    revisiting a cluster you already have.
-4. Drain the frontier: keep taking `get_next_frontier_item` until it returns no item, even when the items
-   look like repeated header, footer or navigation links. The server decides what is a duplicate, not
-   you; such items resolve quickly to known states. Ending your turn with items pending leaves the run
-   stuck as `running`. Then call `finish_run`; if it answers `FRONTIER_NOT_EMPTY`, keep exploring. Stop
-   early only on `RUN_STOPPED`.
+4. Drain the frontier: loop acting on each result's `next.item` (or call `get_next_frontier_item` when a result has no `next`) until there is no next item. Ending your turn with items pending leaves the run stuck as `running`. Then call `finish_run`; if it answers `FRONTIER_NOT_EMPTY`, keep exploring. Stop early only on `RUN_STOPPED`.
 5. Every `navigate`, `act` and `finish_run` carries a one-sentence `rationale`: what you expect this step to
    reveal, or why you stop.
 6. Off production, pressing a form's submit button is allowed when the server issues it: the server first
@@ -70,7 +64,7 @@ process instead of mapping. The server records every step you take.
 - Off production a CAPTCHA does not stop the run: the server records the page as a human hand-off (an
   open question "Human needed: CAPTCHA on …"). Never click, solve or work around the widget; leave that
   page and continue with the rest of the frontier.
-- Use only `action_id`s from the latest `navigate`/`act` result and URLs the portal itself links to.
+- Use only `action_id`s from `next.item` or from a result's `actions`; a known page has none listed (`include_actions: true` when you really need them). URLs must come from the portal itself.
 - Logging in: when your persona has credentials, call `login` once, right after the first `navigate`
   (or when told to). The server types the stored credentials; you never see, ask for or type a
   password, and you never fill a login form with `act`. `outcome: failed` is final for the run: do not

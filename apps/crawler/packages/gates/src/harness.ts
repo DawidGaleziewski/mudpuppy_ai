@@ -180,6 +180,7 @@ export async function nav(call: Call, runId: string, path: string): Promise<Body
     run_id: runId,
     url: path.startsWith('http') ? path : `${GATE_BASE}${path}`,
     rationale: 'gate step',
+    include_actions: true,
   });
   if (r.isError) throw new Error(`navigate ${path}: ${JSON.stringify(r.body)}`);
   return r.body;

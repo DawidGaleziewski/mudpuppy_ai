@@ -77,7 +77,11 @@ export async function processPage(sc: StepContext): Promise<PageResult> {
     title: stateRow.title,
     route_template: stateRow.route_template,
     forms: formCount,
-    actions: issuedForAgent(sc, issued),
+    // A map run queued a known state's actions on its first visit: listing them again only
+    // grows the agent's context (spec 013 US1). A trace acts on the page in front of it.
+    ...(rs.isTrace || !alreadyInRun || sc.includeActions
+      ? { actions: issuedForAgent(sc, issued) }
+      : { actions_omitted: issued.length }),
     ...(edgeId ? { edge_id: edgeId } : {}),
     ...(recordedStep ? { step: recordedStep } : {}),
     ...(relogged ? { relogged_in: true } : {}),

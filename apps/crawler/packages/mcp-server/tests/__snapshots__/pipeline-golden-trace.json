@@ -9757,6 +9757,7 @@
             "coverage": {
               "states": 11,
               "actions_executed": 13,
+              "actions_inferred": 0,
               "actions_skipped_by_class": {},
               "api_endpoints": 0,
               "item_page_visits": 0,

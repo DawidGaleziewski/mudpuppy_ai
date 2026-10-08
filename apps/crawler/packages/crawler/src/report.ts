@@ -3,6 +3,8 @@ import type { PathfinderDb } from '@pathfinder/store';
 export interface Coverage {
   states: number;
   actions_executed: number;
+  /** Link items settled from an earlier transition to the same target, not clicked (spec 013). */
+  actions_inferred: number;
   actions_skipped_by_class: Record<string, number>;
   api_endpoints: number;
   /** Distinct item/listing pages visited in this run (FR-024). */
@@ -39,12 +41,16 @@ export async function computeCoverage(
     .select((eb) => eb.fn.countAll<number>().as('n'))
     .where('run_id', '=', runId)
     .executeTakeFirstOrThrow();
-  const executed = await db
+  // A link inferred from an earlier transition to the same target was not clicked (spec 013 US2).
+  const edges = await db
     .selectFrom('edges')
-    .select((eb) => eb.fn.countAll<number>().as('n'))
+    .select(['confidence', (eb) => eb.fn.countAll<number>().as('n')])
     .where('run_id', '=', runId)
     .where('status', '=', 'executed')
-    .executeTakeFirstOrThrow();
+    .groupBy('confidence')
+    .execute();
+  const inferred = num(edges.find((e) => e.confidence === 'inferred')?.n ?? 0);
+  const executed = edges.reduce((s, e) => s + num(e.n), 0) - inferred;
   const skipped = await db
     .selectFrom('frontier')
     .select(['safety_class', (eb) => eb.fn.countAll<number>().as('n')])
@@ -60,7 +66,8 @@ export async function computeCoverage(
     .execute();
   return {
     states: num(states.n),
-    actions_executed: num(executed.n),
+    actions_executed: executed,
+    actions_inferred: inferred,
     actions_skipped_by_class: Object.fromEntries(skipped.map((r) => [r.safety_class, num(r.n)])),
     api_endpoints: endpoints.length,
     item_page_visits: await countItemPageVisits(db, runId, itemRouteTemplates),
@@ -154,6 +161,7 @@ export function renderReport(r: FrontierReport): string {
     '',
     `- States: ${c.states}`,
     `- Actions executed: ${c.actions_executed}`,
+    `- Links inferred (target already reached): ${c.actions_inferred}`,
     `- Actions skipped by class: ${
       Object.entries(c.actions_skipped_by_class)
         .map(([k, v]) => `${k} ${v}`)

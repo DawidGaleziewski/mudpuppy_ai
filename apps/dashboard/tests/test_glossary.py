@@ -267,7 +267,8 @@ EXPECTED_IDS = {
     # Pathfinder (68)
     "run", "mode", "environment", "persona", "state", "fingerprint", "cluster", "settled",
     "transition", "accessible-name", "role", "safety-class", "decision", "top-locator", "target",
-    "frontier", "priority-depth", "budget", "portal-scope", "network-call-shape",
+    "frontier", "inferred-link", "next-item", "priority-depth", "budget", "portal-scope",
+    "network-call-shape",
     "crawler-open-question", "rule-candidate", "evidence", "trace-process", "process-step",
     "submit-boundary", "tool-call", "run-less-call", "percentiles", "follow-up-task", "layers",
     "analysis-session", "analysis-pass", "gaps", "record-key", "revision", "record-status",
@@ -297,7 +298,7 @@ EXPECTED_IDS = {
 def test_real_glossary_is_valid_and_complete() -> None:
     g = load_ok(REPO_DOCS)
     assert {e.id for e in g.entries} == EXPECTED_IDS
-    assert len(EXPECTED_IDS) == 109
+    assert len(EXPECTED_IDS) == 111
     assert sum(e.category == "ba" for e in g.entries) == 22
 
 

@@ -94,17 +94,17 @@ needs: `references/srs-outline.md`.
   `business_rule` `The "Kod pocztowy" field accepts only the format NN-NNN.` (evidence: the same form,
   plus the validation message step if a trace recorded one).
 - **Point at the element on the screenshot.** States recorded since spec 008 have a screenshot, and
-  `get_evidence` on a state lists its `elements`: keys such as `textbox "Pojemność silnika"` or
-  `button "Dalej"`, with `box: true` when the element can be outlined. Readers see a screenshot with
-  the cited elements outlined, so cite a **screen region** (`target_kind` `screen_region`,
-  `target_id` the state id, `region` the key) in addition to the form or state:
+  `get_evidence` on a state lists its `elements`: key strings such as `textbox "Pojemność silnika"` or
+  `button "Dalej"`. `elements_without_box` lists the keys that cannot be outlined on the screenshot
+  (they are still valid to cite). Readers see outlined elements on a screenshot, so cite a **screen region**
+  (`target_kind` `screen_region`, `target_id` the state id, `region` the key) in addition to the form or state:
   - every `data_item` cites the region of its field;
   - a `business_rule` or `requirement` about one control or message cites that control's region;
   - a `screen` cites the whole `state`, plus regions for the elements its content names when useful.
   Copy keys verbatim from `elements` (the `#2` suffix included); the server refuses a key the state
   does not have (`UNKNOWN_REF`) and lists the closest ones. A region counts as observed evidence like
-  its state. A key with `box: false` is still valid (it is in the snapshot but not visible on the
-  screenshot); prefer a visible one when both describe the same thing.
+  its state. A key in `elements_without_box` is still valid (it is in the snapshot but not visible on the
+  screenshot); prefer an outlined one when both describe the same thing.
 - A `data_item` relates to its screen with `appears_on`; any record using a domain term relates to the
   `glossary_term` with `uses_term`.
 - A `requirement` `refines` a `use_case` or `capability` and `enforces` a `business_rule`.

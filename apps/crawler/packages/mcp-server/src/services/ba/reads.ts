@@ -105,10 +105,13 @@ export const GetRunEvidenceInput = z
 /** The action a row describes, without locators and snapshot refs. */
 function actionSummary(actionJson: string): Row {
   const a = json<Row>(actionJson);
+  return { role: a.role ?? null, name: a.accessible_name ?? null, ...actionTarget(a) };
+}
+
+/** The `href` and `form` of an action's JSON, when it has them. */
+function actionTarget(a: Row): Row {
   const form = a.form as Row | undefined;
   return {
-    role: a.role ?? null,
-    name: a.accessible_name ?? null,
     ...(a.href !== undefined ? { href: a.href } : {}),
     ...(form ? { form: { method: form.method ?? null, action: form.action ?? null } } : {}),
   };
@@ -132,12 +135,13 @@ const RUN_EVIDENCE: Record<RunEvidenceKind, { sql: string; summarise: (row: Row)
   actions: {
     sql: `SELECT id, state_id, role, accessible_name, action_json, safety_class, allowed, skip_reason
           FROM actions WHERE run_id = ? AND id > ? ORDER BY id LIMIT ?`,
-    summarise: ({ action_json, allowed, ...r }) => ({
+    // The row's own role and accessible name are the real ones (the JSON has neither); href and
+    // form come from the JSON.
+    summarise: ({ action_json, allowed, accessible_name, ...r }) => ({
       ...r,
+      name: accessible_name,
       allowed: allowed === 1,
-      ...actionSummary(action_json as string),
-      // Every action was seen on the page by the server, whether or not it was allowed to run.
-      confidence: 'observed',
+      ...actionTarget(json<Row>(action_json as string)),
     }),
   },
   forms: {
@@ -154,7 +158,6 @@ const RUN_EVIDENCE: Record<RunEvidenceKind, { sql: string; summarise: (row: Row)
       req_schema: json(req_schema as string),
       res_schema: json(res_schema as string),
       console_errors: json(console_errors as string),
-      confidence: 'observed',
     }),
   },
   open_questions: {
@@ -181,7 +184,29 @@ function requireRun(ctx: BaContext, runId: string): { id: string; portal_id: str
   return run;
 }
 
-/** One page of a run's Layer A records of one kind; pass `next_cursor` back to continue. */
+/**
+ * Per kind, the values most items share, stated once on the page (spec 013 US5). Actions and
+ * network calls are always seen by the server, so their `confidence` is always the default.
+ */
+const PAGE_DEFAULTS: Partial<Record<RunEvidenceKind, Row>> = {
+  states: { confidence: 'observed', stabilization: 'settled' },
+  edges: { safety_class: 'read', status: 'executed', confidence: 'observed' },
+  actions: { safety_class: 'read', allowed: true, confidence: 'observed' },
+  forms: { confidence: 'observed' },
+  network_calls: { confidence: 'observed' },
+};
+
+/** The item without null fields and without fields equal to the page's default. */
+function compact(item: Row, defaults: Row): Row {
+  return Object.fromEntries(
+    Object.entries(item).filter(([k, v]) => v !== null && !(k in defaults && defaults[k] === v)),
+  );
+}
+
+/**
+ * One page of a run's Layer A records of one kind; pass `next_cursor` back to continue.
+ * A missing field is null, or the page's `defaults` value when `defaults` names it.
+ */
 export function getRunEvidence(
   ctx: BaContext,
   raw: unknown,
@@ -189,12 +214,14 @@ export function getRunEvidence(
   run_id: string;
   portal_id: string;
   kind: RunEvidenceKind;
+  defaults?: Row;
   items: Row[];
   next_cursor: string | null;
 } {
   const input = parseInput(GetRunEvidenceInput, raw);
   const run = requireRun(ctx, input.run_id);
   const { sql, summarise } = RUN_EVIDENCE[input.kind];
+  const defaults = PAGE_DEFAULTS[input.kind];
   // One row more than asked for tells whether another page exists.
   const rows = ctx.raw.prepare(sql).all(run.id, input.cursor ?? '', input.limit + 1) as Row[];
   const page = rows.slice(0, input.limit);
@@ -202,7 +229,8 @@ export function getRunEvidence(
     run_id: run.id,
     portal_id: run.portal_id,
     kind: input.kind,
-    items: page.map(summarise),
+    ...(defaults ? { defaults } : {}),
+    items: page.map((r) => compact(summarise(r), defaults ?? {})),
     next_cursor: rows.length > input.limit ? (page.at(-1)!.id as string) : null,
   };
 }
@@ -272,23 +300,21 @@ async function readEvidenceFile(ctx: BaContext, ref: string): Promise<EvidenceFi
   return { ref, content, truncated, bytes: buf.byteLength };
 }
 
-/** One element of a state the BA can cite as a screen region (contracts/ba-tools-delta.md). */
-export interface StateElement {
-  key: string;
-  role: string;
-  name: string;
-  /** True when the layout has a box for it, so it can be outlined on the screenshot. */
-  box: boolean;
+interface StateElements {
+  screenshot: boolean;
+  /** Element keys in snapshot order; a key encodes role and name, e.g. `button "Dalej"`. */
+  elements: string[];
+  /** Keys the layout has no box for, so they cannot be outlined on the screenshot. */
+  elements_without_box: string[];
+  elements_truncated: boolean;
 }
 
 /**
- * The element keys of a state, from its whole snapshot (not the cut evidence content), marked with
- * whether the layout placed them on the screenshot.
+ * The element keys of a state (a key holds role and name), from its whole snapshot (not the cut
+ * evidence content), plus the keys the layout has no box for (they cannot be outlined on the
+ * screenshot).
  */
-async function stateElements(
-  ctx: BaContext,
-  row: Row,
-): Promise<{ screenshot: boolean; elements: StateElement[]; elements_truncated: boolean }> {
+async function stateElements(ctx: BaContext, row: Row): Promise<StateElements> {
   const read = async (ref: unknown): Promise<string | null> => {
     if (typeof ref !== 'string' || !isEvidenceRef(ref)) return null;
     try {
@@ -311,7 +337,8 @@ async function stateElements(
   );
   return {
     screenshot: typeof row.screenshot_ref === 'string',
-    elements: keyed.map((e) => ({ key: e.key, role: e.role, name: e.name, box: boxed.has(e.key) })),
+    elements: keyed.map((e) => e.key),
+    elements_without_box: keyed.filter((e) => !boxed.has(e.key)).map((e) => e.key),
     elements_truncated: keyed.length >= MAX_KEYED_ELEMENTS,
   };
 }
@@ -320,14 +347,13 @@ async function stateElements(
 export async function getEvidence(
   ctx: BaContext,
   raw: unknown,
-): Promise<{
-  target_kind: EvidenceReadKind;
-  record: Row;
-  evidence: EvidenceFile | null;
-  screenshot?: boolean;
-  elements?: StateElement[];
-  elements_truncated?: boolean;
-}> {
+): Promise<
+  {
+    target_kind: EvidenceReadKind;
+    record: Row;
+    evidence: EvidenceFile | null;
+  } & Partial<StateElements>
+> {
   const input = parseInput(GetEvidenceInput, raw);
   const row = ctx.raw
     .prepare(`SELECT * FROM ${EVIDENCE_TABLE[input.target_kind]} WHERE id = ?`)

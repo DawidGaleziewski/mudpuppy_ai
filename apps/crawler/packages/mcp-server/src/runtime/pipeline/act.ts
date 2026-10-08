@@ -26,6 +26,7 @@ import {
   step,
 } from './context.js';
 import { actionTarget, gateEvent, itemCapChecked, refuse, requireIntent } from './gate.js';
+import { withNext } from './next-item.js';
 import { processPage } from './process-page.js';
 import { settleReports } from './settle.js';
 import { beginStep, bumpRun, throwIfStopped } from './stop.js';
@@ -97,6 +98,7 @@ async function actStep(
         }
       : {}),
     reloginTarget: action.json.page_url,
+    ...(input.include_actions ? { includeActions: true } : {}),
   });
   await step(call, 'run_bookkeeping', async () => {
     const pending = await pendingItemForAction(ctx.db, run.id, action.id);
@@ -104,7 +106,7 @@ async function actStep(
     return bumpRun(ctx, run, started, toDepth);
   });
   await flushObstacles(ctx, state);
-  return result;
+  return withNext(ctx, state, run.id, result);
 }
 
 /**

@@ -3,6 +3,7 @@ import type { StartRunOutput } from './services/start-run.js';
 import type { RunRow } from './services/common.js';
 import type { PreflightResult } from '@pathfinder/crawler';
 import type { RunRobots } from './services/robots.js';
+import type { NextFrontierItem } from './services/frontier.js';
 
 /** What `navigate`/`act` return (contracts/mcp-tools.md). */
 export interface PageResult {
@@ -12,7 +13,11 @@ export interface PageResult {
   title: string;
   route_template: string;
   forms: number;
-  actions: {
+  /**
+   * The page's issued actions. Left out in map runs when the run already observed this state
+   * (its items are on the frontier) unless `include_actions` asked for them (spec 013 US1).
+   */
+  actions?: {
     action_id: string;
     role: string;
     accessible_name: string | null;
@@ -25,6 +30,10 @@ export interface PageResult {
      */
     suggested_value?: string;
   }[];
+  /** How many issued actions a result without `actions` left out. */
+  actions_omitted?: number;
+  /** Map runs: the item `get_next_frontier_item` would return now; act on it next (spec 013 US3). */
+  next?: NextFrontierItem;
   edge_id?: string;
   /** Trace runs: the step this call recorded. */
   step?: { ord: number; outcomes: string[] };
@@ -39,6 +48,8 @@ export interface NavigateInput {
   url: string;
   /** Required in trace runs. */
   intent?: string;
+  /** Return the page's actions even when the run already knows the state. */
+  include_actions?: boolean;
 }
 
 export interface ActInput {
@@ -48,6 +59,8 @@ export interface ActInput {
   intent?: string;
   /** Trace runs, fill/select actions only. */
   value?: string;
+  /** Return the page's actions even when the run already knows the state. */
+  include_actions?: boolean;
 }
 
 /**

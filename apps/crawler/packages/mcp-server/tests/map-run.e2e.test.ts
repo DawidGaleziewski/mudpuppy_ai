@@ -335,6 +335,7 @@ describe.skipIf(!available)('map run against the mock portal', () => {
         run_id: runId,
         url: portal.origin + '/',
         rationale: 'exploring the target URL',
+        include_actions: true,
       });
       expect(back.isError).toBe(false);
       // its actions are gated from its own depth, not from the page the browser just left
@@ -359,8 +360,13 @@ describe.skipIf(!available)('map run against the mock portal', () => {
       });
       const linkOn = (page: Body, name: string) =>
         page.body.actions.find((x: Body) => x.accessible_name === name).action_id as string;
-      const act = (action_id: string) =>
-        call('act', { run_id: runId, action_id, rationale: 'exploring the next frontier item' });
+      const act = (action_id: string, include_actions = false) =>
+        call('act', {
+          run_id: runId,
+          action_id,
+          rationale: 'exploring the next frontier item',
+          include_actions,
+        });
 
       // home 1 → /oferty 2 → /oferty/laptopy 3: the listing's links would be depth 4
       const oferty = await act(linkOn(home, 'Oferty'));
@@ -369,7 +375,7 @@ describe.skipIf(!available)('map run against the mock portal', () => {
       expect(deepItem.allowed).toBe(false);
 
       // home's own Laptopy link reaches the same listing at depth 2
-      const shallow = await act(linkOn(home, 'Laptopy'));
+      const shallow = await act(linkOn(home, 'Laptopy'), true);
       expect(shallow.isError).toBe(false);
       const item = shallow.body.actions.find((x: Body) => x.accessible_name === 'Laptop model 2');
       expect(item.allowed).toBe(true);
@@ -380,6 +386,38 @@ describe.skipIf(!available)('map run against the mock portal', () => {
         .where('action_id', '=', item.action_id)
         .executeTakeFirstOrThrow();
       expect(row).toEqual({ status: 'pending', depth: 2 });
+    } finally {
+      await cleanup();
+    }
+  }, 60_000);
+
+  it('a revisit omits the action list unless asked, and results carry the next frontier item', async () => {
+    const { call, cleanup } = await setup();
+    try {
+      const runId = (await call('start_run', { portal_id: 'mock', persona_id: 'guest' })).body
+        .run_id as string;
+      const visit = (extra: Body = {}) =>
+        call('navigate', {
+          run_id: runId,
+          url: portal.origin + '/',
+          rationale: 'exploring the target URL',
+          ...extra,
+        });
+
+      const first = await visit();
+      expect(first.isError).toBe(false);
+      expect(first.body.actions.length).toBeGreaterThan(0);
+      expect(first.body.next).toBeDefined();
+      const hasItem = first.body.next.item !== null && first.body.next.item !== undefined;
+      expect(hasItem || typeof first.body.next.reason === 'string').toBe(true);
+
+      const again = await visit();
+      expect(again.isError).toBe(false);
+      expect(again.body.actions).toBeUndefined();
+      expect(again.body.actions_omitted).toBeGreaterThan(0);
+
+      const asked = await visit({ include_actions: true });
+      expect(asked.body.actions.length).toBe(first.body.actions.length);
     } finally {
       await cleanup();
     }

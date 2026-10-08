@@ -307,9 +307,8 @@ export function scanPrompt(
       : `Resume the stopped map run ${resumeRunId} of portal "${portal}" as persona "${persona}" in environment "${environment}": call start_run with resume_run_id "${resumeRunId}" and environment "${environment}".`) +
     choiceArgs(choices);
   return (
-    `${start} Use only the pathfinder tools. Drain the frontier: keep taking get_next_frontier_item ` +
-    'and acting on it until it returns no item, even when items look like repeated header, footer ' +
-    'or navigation links; the server decides what is a duplicate, not you. Only then call ' +
+    `${start} Use only the pathfinder tools. Drain the frontier by acting on each result's next item ` +
+    '(or get_next_frontier_item when a result has none) until there is no next item. Only then call ' +
     'finish_run; if it answers FRONTIER_NOT_EMPTY, continue. Stop early only on RUN_STOPPED or a ' +
     'refusal to start, and report its message word for word. Finish with the run id, its status ' +
     'and the worklist of what you skipped.'

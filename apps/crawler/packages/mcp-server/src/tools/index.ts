@@ -33,6 +33,10 @@ export const AGENT_TOOL_NAMES = [
 ] as const;
 export type AgentToolName = (typeof AGENT_TOOL_NAMES)[number];
 
+/** The map-run result shape, shared by the navigate and act descriptions (spec 013 US1, US3). */
+const MAP_RESULT =
+  'Map runs: a page this run already observed comes back without `actions` (its items are on the frontier; `actions_omitted` counts them, `include_actions: true` lists them), and the result carries `next`, the next frontier item to act on.';
+
 /** What the SDK passes a tool callback besides its arguments (RequestHandlerExtra, the part we read). */
 interface ToolExtra {
   _meta?: Record<string, unknown>;
@@ -125,30 +129,32 @@ export function registerTools(server: McpServer, ctx: ServerContext, runtime: Ru
   );
   tool(
     'get_next_frontier_item',
-    'Next unexplored item chosen by the server, or null.',
+    'Next unexplored item chosen by the server, or null. Map-run navigate/act results already carry it as `next`. A link whose target the run already reached is not handed out: the server records it as an inferred transition.',
     { run_id: z.string() },
     (a) => getNextFrontierItem(ctx, a),
   );
   tool(
     'navigate',
-    "Navigate to a URL (checked against scope, denylist and the read-only ceiling). The server records what it observes. Trace runs require `intent` (the step's purpose).",
+    `Navigate to a URL (checked against scope, denylist and the read-only ceiling). The server records what it observes. Trace runs require \`intent\` (the step's purpose). ${MAP_RESULT}`,
     {
       run_id: z.string(),
       url: z.string(),
       rationale: z.string().trim().min(1).max(300),
       intent: z.string().trim().min(1).max(200).optional(),
+      include_actions: z.boolean().optional(),
     },
     (a) => runtime.navigate(ctx, a),
   );
   tool(
     'act',
-    'Perform an action_id the server issued for the current state. The server re-checks safety before executing. Trace runs require `intent`; fill/select actions take a synthetic `value`. TRACE_BOUNDARY_REACHED ends the run: stop and report.',
+    `Perform an action_id the server issued for the current state. The server re-checks safety before executing. Trace runs require \`intent\`; fill/select actions take a synthetic \`value\`. TRACE_BOUNDARY_REACHED ends the run: stop and report. ${MAP_RESULT}`,
     {
       run_id: z.string(),
       action_id: z.string(),
       rationale: z.string().trim().min(1).max(300),
       intent: z.string().trim().min(1).max(200).optional(),
       value: z.string().max(500).optional(),
+      include_actions: z.boolean().optional(),
     },
     async (a) => {
       try {

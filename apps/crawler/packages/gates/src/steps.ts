@@ -35,6 +35,7 @@ export async function actOn(
     run_id: runId,
     action_id: a.action_id,
     rationale: 'gate step',
+    include_actions: true,
     ...extra,
   });
   if (r.isError) throw new Error(`act ${String(name)}: ${JSON.stringify(r.body).slice(0, 300)}`);

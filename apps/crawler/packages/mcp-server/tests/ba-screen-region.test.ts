@@ -30,24 +30,22 @@ describe('get_evidence on a state (elements for screen regions)', () => {
     });
     expect(out.screenshot).toBe(true);
     expect(out.elements_truncated).toBe(false);
-    const byKey = Object.fromEntries(
-      (out.elements as { key: string; box: boolean }[]).map((e) => [e.key, e]),
-    );
-    expect(byKey[FIELD]).toEqual({
-      key: FIELD,
-      role: 'spinbutton',
-      name: 'Pojemność silnika (cm³)',
-      box: true,
-    });
-    expect(byKey['link "Kontakt"']).toMatchObject({ box: false }); // in the snapshot, no box
+    const elements = out.elements as string[];
+    const withoutBox = out.elements_without_box as string[];
+    expect(elements.every((e) => typeof e === 'string')).toBe(true);
+    expect(elements).toContain(FIELD);
+    expect(withoutBox).not.toContain(FIELD);
+    expect(elements).toContain('link "Kontakt"'); // in the snapshot, no box
+    expect(withoutBox).toContain('link "Kontakt"');
+    expect(withoutBox.every((k) => elements.includes(k))).toBe(true);
   });
 
-  it('marks every element box: false on a state without a screenshot', async () => {
+  it('lists every element as without a box on a state without a screenshot', async () => {
     const h = await startBa();
     const out = await h.must('get_evidence', { target_kind: 'state', target_id: h.fx.states.car });
     expect(out.screenshot).toBe(false);
     expect(out.elements.length).toBeGreaterThan(0);
-    expect(out.elements.every((e: { box: boolean }) => e.box === false)).toBe(true);
+    expect(out.elements_without_box).toEqual(out.elements);
   });
 
   it('adds nothing to other kinds', async () => {

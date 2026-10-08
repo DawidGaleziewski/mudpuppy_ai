@@ -4,6 +4,7 @@ import type { ServerContext } from '../context.js';
 import { parseInput } from '../errors.js';
 import { assertRunActive, getRun } from './common.js';
 import { isBudgetExhausted } from './run-budget.js';
+import { inferSameTarget } from './same-target.js';
 
 export const AddFrontierItemInput = z
   .object({
@@ -77,19 +78,40 @@ function describe(actionJson: string): string {
   }
 }
 
-/** Highest priority, then oldest id (UUIDv7 = FIFO); read-only, `act` moves the row on. */
-export async function getNextFrontierItem(ctx: ServerContext, raw: unknown) {
+/** What `get_next_frontier_item` returns, and what map-mode results carry as `next`. */
+export type NextFrontierItem =
+  | {
+      item: {
+        frontier_id: string;
+        state_id: string;
+        action_id: string | null;
+        description: string;
+      };
+    }
+  | { item: null; reason: 'empty' | 'budget_exhausted' };
+
+/**
+ * Highest priority, then oldest id (UUIDv7 = FIFO). `act` moves the handed-out row on; link items
+ * whose target the run already reached are settled here as inferred instead (spec 013 US2).
+ */
+export async function getNextFrontierItem(
+  ctx: ServerContext,
+  raw: unknown,
+): Promise<NextFrontierItem> {
   const input = parseInput(z.object({ run_id: z.string().min(1) }).strict(), raw);
   const run = await assertRunActive(ctx, input.run_id);
-  const row = await ctx.db
-    .selectFrom('frontier')
-    .selectAll()
-    .where('run_id', '=', input.run_id)
-    .where('status', '=', 'pending')
-    .orderBy('priority', 'desc')
-    .orderBy('id', 'asc')
-    .limit(1)
-    .executeTakeFirst();
+  const nextPending = () =>
+    ctx.db
+      .selectFrom('frontier')
+      .selectAll()
+      .where('run_id', '=', input.run_id)
+      .where('status', '=', 'pending')
+      .orderBy('priority', 'desc')
+      .orderBy('id', 'asc')
+      .limit(1)
+      .executeTakeFirst();
+  let row = await nextPending();
+  while (row && (await inferSameTarget(ctx, row))) row = await nextPending();
   const pick = async (attrs: Record<string, unknown>): Promise<void> => {
     if (ctx.tracer.level === 'off') return;
     const { n } = await ctx.db

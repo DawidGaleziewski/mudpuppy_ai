@@ -478,6 +478,48 @@ within the rules.
 
 <sub>Last changed in R-22, 2026-10-03.</sub>
 
+<a id="inferred-link"></a>
+
+#### Inferred link
+
+**A frontier item for a link whose target address the run already reached by clicking another link, recorded as a transition with no additional click.**
+
+When the next frontier item is a plain link and the run already reached that link's target
+address by clicking another link, the server does not hand the item out. Instead, it records
+a transition marked `inferred` to the same page, with the evidence from that earlier click,
+and marks the item done (`same_target`). If the earlier click failed, the link is clicked
+as usual. This saves the crawler agent from re-walking shared header and footer menus.
+
+*Example:* On reference-insurer, 319 transitions were recorded but only 32 were clicked; 287 were inferred.
+
+*Seen in:* Frontier report; finish_run coverage (actions_inferred)
+
+*Labels:* `Inferred`, `inferred`
+
+*Related:* [Frontier](#frontier), [Transition (edge)](#transition), [Confidence (observed / inferred / needs confirmation)](#confidence)
+
+<sub>Last changed in R-24, 2026-10-08.</sub>
+
+<a id="next-item"></a>
+
+#### Next item
+
+**In a map run, the frontier item the crawler should work on next, returned by every navigate and act result so the crawler does not have to ask for it.**
+
+After each action in a map run, the `next` field in the result names the next frontier item
+to follow, sparing the crawler agent a separate `get_next_frontier_item` call. When `next`
+is null, the frontier is empty or a budget constraint has been reached.
+
+*Example:* An act result ends with next.item = link "Kontakt" on the home page, so the agent acts on that action id straight away.
+
+*Seen in:* Run page → Trace (navigate and act results)
+
+*Labels:* `next`, `Next item`
+
+*Related:* [Frontier](#frontier), [Priority / depth](#priority-depth)
+
+<sub>Last changed in R-24, 2026-10-08.</sub>
+
 <a id="priority-depth"></a>
 
 #### Priority / depth

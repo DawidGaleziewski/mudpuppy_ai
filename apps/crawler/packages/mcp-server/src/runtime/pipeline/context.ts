@@ -150,4 +150,6 @@ export interface StepContext {
   step?: TraceStep;
   /** Where to return after a re-login when the session turns out expired (spec 009 FR-020). */
   reloginTarget?: string;
+  /** List the page's actions even when the run already knows the state (spec 013 US1). */
+  includeActions?: boolean;
 }

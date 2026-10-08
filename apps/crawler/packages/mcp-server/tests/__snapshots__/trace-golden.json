@@ -297,7 +297,7 @@
     "started_at": "<ts:24>",
     "ended_at": "<ts:25>",
     "duration_ms": 20,
-    "attrs_json": "{\"args\":{\"run_id\":\"<id:6>\"},\"request_id\":7,\"output\":{\"run_id\":\"<id:6>\",\"status\":\"completed\",\"coverage\":{\"states\":0,\"actions_executed\":0,\"actions_skipped_by_class\":{},\"api_endpoints\":0,\"item_page_visits\":0,\"robots\":{\"hosts\":[\"shop.pl\"],\"refused_navigations\":0,\"page_requests_blocked\":0,\"page_requests_allowed\":0}}}}",
+    "attrs_json": "{\"args\":{\"run_id\":\"<id:6>\"},\"request_id\":7,\"output\":{\"run_id\":\"<id:6>\",\"status\":\"completed\",\"coverage\":{\"states\":0,\"actions_executed\":0,\"actions_inferred\":0,\"actions_skipped_by_class\":{},\"api_endpoints\":0,\"item_page_visits\":0,\"robots\":{\"hosts\":[\"shop.pl\"],\"refused_navigations\":0,\"page_requests_blocked\":0,\"page_requests_allowed\":0}}}}",
     "payload_ref": null,
     "summary": "finish_run ok",
     "decision_id": null,

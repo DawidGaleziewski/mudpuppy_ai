@@ -6,6 +6,20 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Added
+- R-24 token usage: a drained map run of the reference portal now costs 1.05M cache-read
+  tokens instead of 38–78M (36 agent turns instead of ~400, $0.47), with the same 21 states and
+  the same 319 transitions. Map-mode `navigate`/`act` results leave out the action list of a page
+  the run already knows (`actions_omitted`; `include_actions: true` lists it) and carry `next`,
+  the next frontier item, so one call per item instead of two. A link whose target the run
+  already reached is no longer clicked again: `get_next_frontier_item` records it as an
+  `inferred` transition with the earlier click's evidence (`frontier_infer` trace event;
+  coverage reports `actions_inferred` apart from `actions_executed`). BA reads: state `elements`
+  are key strings plus `elements_without_box` (−28 % per `get_evidence`), `get_run_evidence`
+  items drop nulls and values equal to the page's `defaults` (actions pages −36 %). New
+  `token-budget.e2e.test.ts` holds the scripted-drain budget (78 → 12 calls); `pnpm tokens:ba
+  <run>` measures BA reads. Trace runs are unchanged. Findings F-01–F-04 in
+  `specs/013-token-usage/findings.md` (`specs/013-token-usage` T001–T020). Branch
+  `feature/013-r24-token-usage` (squash-merged on master, tag v1.0.12).
 - R-34 maintainability: written code guidelines G-01–G-32 (`docs/code-guidelines.md`, rated by
   the user) and a `CLAUDE.md` in every package and app. Test tiers: `pnpm test:fast` runs only the
   tests a change can affect (about 20 s per commit, was 5 min 40 s; the commit hook runs it),
@@ -157,3 +171,7 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Changed
 - Moved the TypeScript workspace into `apps/crawler/` so the repo root can host other apps. Commit: b1639fc.
+
+### Fixed
+- BA `get_run_evidence` `actions` items carried `role: null` and `name: null` since R-13; they
+  now carry the action's real role and name (spec 013 F-01).
