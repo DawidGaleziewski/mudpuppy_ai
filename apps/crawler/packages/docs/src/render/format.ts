@@ -1,4 +1,4 @@
-import type { DocKind } from '@pathfinder/core';
+import type { DocKind } from '@pathfinder/docs-model';
 import { highlightFiles, screenFiles } from './images.js';
 import type { ExportEvidence, ExportMode, ExportRecord } from './model.js';
 

@@ -8,8 +8,8 @@
  */
 import { existsSync, readFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
-import { dbPathFor, openDb } from '@pathfinder/core';
 import { DocsError, applyReview, cancelFollowup } from '@pathfinder/docs';
+import { dbPathFor, openDb } from '@pathfinder/store';
 
 const argv = process.argv.slice(2);
 const flag = (name: string): string | undefined => {

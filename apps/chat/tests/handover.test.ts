@@ -1,6 +1,6 @@
 // T051 (F-18, F-19): the context block the chat service puts before the BA's message.
 
-import type { ChatConversation, ChatMessage, WorkflowStep } from '@pathfinder/core';
+import type { ChatConversation, ChatMessage, WorkflowStep } from '@pathfinder/chat-model';
 import { describe, expect, it } from 'vitest';
 import { MAX_MESSAGE_CHARS, handover, promptWithHandover } from '../src/handover.js';
 
@@ -58,7 +58,9 @@ describe('handover', () => {
     const block = handover({ kind: 'continuing', conversation, steps: [], messages })!;
     expect(block).toContain('- The scan of reference-insurer was stopped (run r1).');
     expect(block).not.toContain('Portal:');
-    expect(promptWithHandover(block, 'resume it')).toMatch(/\[End of context\]\n\nBA's message:\nresume it$/);
+    expect(promptWithHandover(block, 'resume it')).toMatch(
+      /\[End of context\]\n\nBA's message:\nresume it$/,
+    );
   });
 
   it('takes the newest row per step and the steps’ portal when the conversation has none', () => {

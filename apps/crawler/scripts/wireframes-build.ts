@@ -7,8 +7,9 @@
  */
 import { existsSync } from 'node:fs';
 import { join, resolve } from 'node:path';
-import { createEvidenceStore, dbPathFor, migrateUp, openDb } from '@pathfinder/core';
+import { createEvidenceStore } from '@pathfinder/core';
 import { rebuildWireframes } from '@pathfinder/mcp-server';
+import { dbPathFor, migrateUp, openDb } from '@pathfinder/store';
 
 const arg = (name: string, fallback: string): string => {
   const i = process.argv.indexOf(`--${name}`);

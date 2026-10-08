@@ -118,9 +118,9 @@ const GET_ROUTES: Record<string, GetHandler> = {
 
 export function startReferencePortal(opts: StartOptions): Promise<ReferencePortal> {
   const requests: LoggedRequest[] = [];
-  const portal = { state: freshState() } as { state: PortalState };
+  const portal = { state: freshState() };
 
-  const server = createServer(async (req, res) => {
+  const handle = async (req: IncomingMessage, res: ServerResponse): Promise<void> => {
     const url = new URL(req.url ?? '/', 'http://portal.invalid');
     const method = req.method ?? 'GET';
     requests.push({ method, path: url.pathname, query: url.search });
@@ -157,6 +157,14 @@ export function startReferencePortal(opts: StartOptions): Promise<ReferencePorta
       return send(res, 405, notFound());
     }
     return send(res, 405, notFound());
+  };
+  // Node ignores the handler's promise: a failed request (e.g. an aborted form body) answers 500
+  // instead of becoming an unhandled rejection (G-21).
+  const server = createServer((req, res) => {
+    handle(req, res).catch(() => {
+      if (!res.headersSent) res.statusCode = 500;
+      res.end();
+    });
   });
 
   return new Promise((resolve) => {

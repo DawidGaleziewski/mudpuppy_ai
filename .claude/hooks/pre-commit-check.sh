@@ -20,23 +20,28 @@ code() { grep -Ev '\.md$' <<<"$changed" | grep -Eq "$1"; }
 failed=""
 run() { # name, dir, command...
   local name=$1 dir=$2; shift 2
+  local log=/tmp/pre-commit-${name%% *}.log # first word: "crawler (fast tier)" → crawler
   echo "pre-commit: $name" >&2
-  (cd "$dir" && "$@") >/tmp/pre-commit-"$name".log 2>&1 || {
-    failed="$failed $name"
-    tail -40 /tmp/pre-commit-"$name".log >&2
+  (cd "$dir" && "$@") >"$log" 2>&1 || {
+    failed="$failed ${name%% *}"
+    tail -40 "$log" >&2
   }
 }
 
-# Crawler + gates: its code, the schema, portal/persona configs, the proving-ground estate.
+# Crawler: its code, the schema, portal/persona configs, the proving-ground estate. Fast tier only
+# (affected tests, no browser end-to-end files, no gates); `pnpm test:slow` and `pnpm test` are
+# run by hand per CLAUDE.md (spec 012 US1).
 if code '^(apps/crawler/|data/migrations/|portals/|personas/|apps/proving-ground/)'; then
-  run crawler apps/crawler bash -c 'pnpm --silent typecheck && pnpm --silent lint && pnpm --silent test'
+  run "crawler (fast tier)" apps/crawler bash -c 'pnpm --silent typecheck && pnpm --silent lint && pnpm --silent test:fast'
 fi
 # Dashboard: its code, the schema it models, the glossary it renders.
 if code '^apps/dashboard/' || has '^(data/migrations/|docs/glossary/)'; then
-  run dashboard apps/dashboard bash -c 'uv run ruff check && uv run pytest -q'
+  # Perf budgets run alone after the parallel run (spec 012 F-08).
+  run dashboard apps/dashboard bash -c "uv run ruff check && uv run pytest -q -n auto -m 'not perf' && uv run pytest -q -m perf"
 fi
-# Chat service and the shared workflow package (R-30); chat also depends on workflow and core.
-if code '^(apps/chat/|packages/workflow/|apps/crawler/packages/core/)'; then
+# Chat service and the shared workflow package (R-30); chat also depends on workflow, core and
+# the packages split out of core (spec 012: store, trace, docs-model, chat-model).
+if code '^(apps/chat/|packages/workflow/|apps/crawler/packages/(core|store|trace|docs-model|chat-model)/)'; then
   run chat apps/chat bash -c 'pnpm --silent typecheck && pnpm --silent lint && pnpm --silent test'
 fi
 if code '^packages/workflow/'; then

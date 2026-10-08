@@ -1,6 +1,6 @@
 import { execFileSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
-import type { PwTraceMode, TraceLevel } from '@pathfinder/core';
+import type { PwTraceMode, TraceLevel } from '@pathfinder/trace';
 
 const LEVELS: readonly TraceLevel[] = ['off', 'standard', 'verbose'];
 

@@ -64,7 +64,7 @@ gate('LO-16', 'text baked into an image is never guessed into the record', async
 
 gate('LO-40', 'the chat widget is not explored as part of the portal', async () => {
   const p = await nav(gs.call, run, '/bank');
-  expect(actionNamed(p as Body, /czat|konsultant/i)).toBeUndefined();
+  expect(actionNamed(p, /czat|konsultant/i)).toBeUndefined();
 });
 
 gate('LO-44', 'a live ticker does not make every observation a new state', async () => {

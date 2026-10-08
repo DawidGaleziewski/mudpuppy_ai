@@ -328,7 +328,7 @@ export function createRequestGate(opts: RequestGateOptions): RequestGate {
         // target passes the navigation policy and robots before the browser may follow it.
         let response: FetchedLike;
         try {
-          response = (await (route as Route).fetch({ headers, maxRedirects: 0 })) as FetchedLike;
+          response = (await route.fetch({ headers, maxRedirects: 0 })) as FetchedLike;
         } catch (e) {
           // A network error must reach the browser as a failed navigation: rethrown from a route
           // handler it is an unhandled rejection that kills the server (spec 011 F-05).
@@ -367,7 +367,7 @@ export function createRequestGate(opts: RequestGateOptions): RequestGate {
             return route.abort('blockedbyclient');
           }
         }
-        await (route as Route).fulfill({ response: response as never });
+        await route.fulfill({ response: response as never });
         report({ decision: 'fulfill', status, ...(redirectTo ? { redirectTo } : {}) });
       });
       ctx.on('response', async (response) => {

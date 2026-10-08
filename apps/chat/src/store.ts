@@ -2,15 +2,14 @@
 // way in and out. Conversations and messages are written only here, workflow steps only in
 // `steps.ts`; the dashboard reads the same tables read-only.
 
+import { newId, nowIso } from '@pathfinder/core';
 import {
   ChatConversation,
   ChatMessage,
   WorkflowStep,
-  newId,
-  nowIso,
   type ChatMessageRole,
-  type PathfinderDb,
-} from '@pathfinder/core';
+} from '@pathfinder/chat-model';
+import { type PathfinderDb } from '@pathfinder/store';
 
 export interface NewConversation {
   portal?: string | null;

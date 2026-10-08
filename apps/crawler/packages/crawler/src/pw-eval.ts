@@ -29,6 +29,7 @@ export function evalInPage<R>(page: Page, fn: () => R): Promise<R> {
   // Built via `new Function`, not a tsx-transpiled arrow: esbuild never sees this source, so the
   // wrapper itself carries no `__name` call, and `fn.toString()`'s own `__name(...)` calls now
   // resolve against the shim defined right above them, in one evaluate() round trip.
+  // eslint-disable-next-line @typescript-eslint/no-implied-eval -- deliberate, see the comment above
   const wrapped = new Function(`${NAME_SHIM} return (${fn.toString()})();`);
   return page.evaluate(wrapped as () => R);
 }
@@ -39,7 +40,8 @@ export function evalOnElement<A, R>(
   fn: (el: Element, arg: A) => R,
   arg: A,
 ): Promise<R> {
+  // eslint-disable-next-line @typescript-eslint/no-implied-eval -- same `__name` shim as evalInPage
   const wrapped = new Function('el', 'arg', `${NAME_SHIM} return (${fn.toString()})(el, arg);`);
   // Playwright's PageFunctionOn typing cannot see through `new Function`; the call is the same.
-  return locator.evaluate(wrapped as never, arg as never) as Promise<R>;
+  return locator.evaluate(wrapped as never, arg as never);
 }

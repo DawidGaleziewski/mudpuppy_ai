@@ -14,6 +14,7 @@
     "@pathfinder/docs": "workspace:*",
     "@pathfinder/reference-portal": "workspace:*",
     "@pathfinder/core": "workspace:*",
+    "@pathfinder/store": "workspace:*",
     "@pathfinder/mcp-server": "workspace:*",
     "@pathfinder/vault": "workspace:*",
     "pino": "^10.3.1",

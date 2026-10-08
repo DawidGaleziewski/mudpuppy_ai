@@ -1347,15 +1347,16 @@ generated and ignored by git.
 
 Slow gates keep the normal test run inside its 3-minute budget. They are still counted for
 coverage, and the gate report lists them as `skipped_slow` when they did not run.
-`pnpm test:slow` runs the whole gate set with them, for example at night.
+`pnpm test:slow` runs the whole gate set with them, together with the browser end-to-end
+files (the slow tier).
 
 *Seen in:* pnpm test:slow; data/gates/report.json → skipped_slow
 
 *Labels:* `slow`, `skipped_slow`
 
-*Related:* [Quality gate (tier 1)](#quality-gate), [Gate report](#gate-report)
+*Related:* [Quality gate (tier 1)](#quality-gate), [Gate report](#gate-report), [Slow tier](#slow-tier)
 
-<sub>Last changed in R-27, 2026-10-05.</sub>
+<sub>Last changed in R-34, 2026-10-07.</sub>
 
 <a id="eval"></a>
 
@@ -1737,6 +1738,125 @@ retires it. Exports list them in `appendix-superseded-amendments.md`.
 *Related:* [Amendment (to-be)](#amendment), [Run](#run)
 
 <sub>Last changed in R-30, 2026-10-06.</sub>
+
+### Building Pathfinder
+
+<a id="fast-tier"></a>
+
+#### Fast tier
+
+**The crawler tests that run on every commit, in seconds — only the ones your uncommitted change can affect, without browser end-to-end files and gates.**
+
+`pnpm test:fast` in `apps/crawler` asks Vitest which test files import, directly or through
+other packages, a file you changed, and runs only those. A change to something the import
+graph cannot see (a test harness, fixtures, a migration, a portal or persona file, a config)
+runs the whole fast tier instead, still in about 10 seconds. The commit hook runs it.
+
+*Example:* tier: fast (affected) — a one-line change in the fingerprint package runs the tests of fingerprint, crawler and mcp-server that use it.
+
+*Seen in:* pnpm test:fast; the commit hook
+
+*Labels:* `test:fast`, `tier: fast`
+
+*Related:* [Slow tier](#slow-tier), [Quality gate (tier 1)](#quality-gate)
+
+<sub>Last changed in R-34, 2026-10-07.</sub>
+
+<a id="slow-tier"></a>
+
+#### Slow tier
+
+**The browser end-to-end test files (`*.e2e.test.ts`) and the whole gate set, run before committing runtime or gate changes and before a merge.**
+
+`pnpm test:slow` runs two things at once: the files that drive whole crawler runs through
+the MCP server with a real browser, and every quality gate including the slow ones against
+the proving ground (ports 4200/4201). It takes about three minutes. `pnpm test` still runs
+everything and is the check before a merge.
+
+*Seen in:* pnpm test:slow; CLAUDE.md "Verification Before Commit"
+
+*Labels:* `test:slow`, `e2e`, `*.e2e.test.ts`
+
+*Related:* [Fast tier](#fast-tier), [Slow gate](#slow-gate), [Quality gate (tier 1)](#quality-gate)
+
+<sub>Last changed in R-34, 2026-10-07.</sub>
+
+<a id="code-guidelines"></a>
+
+#### Code guidelines
+
+**The rated rules (G-01 to G-32) for how Pathfinder's code is shaped, layered, tested and reviewed, in `docs/code-guidelines.md`.**
+
+Each guideline has an id, the rule, why it exists and what checks it (a lint rule, a test or
+the code reviewer). They were proposed as a list and rated by the project owner before any
+refactor, so they hold only rules the owner accepted. Reviews cite the ids.
+
+*Example:* G-21: every async call is awaited, returned, or explicitly voided with a reason.
+
+*Seen in:* docs/code-guidelines.md; CLAUDE.md "Code Guidelines"
+
+*Labels:* `G-01`, `guideline`
+
+*Related:* [Agent notes](#agent-notes)
+
+<sub>Last changed in R-34, 2026-10-07.</sub>
+
+<a id="agent-notes"></a>
+
+#### Agent notes
+
+**The short `CLAUDE.md` in every package and app that tells an AI agent (and a person) what the package is for, its layer, public API, rules and where to add things.**
+
+Claude Code reads a folder's `CLAUDE.md` when it works there, so these notes are the first
+thing an agent sees. They hold facts only (about 60 lines at most), follow one template and
+change in the same commit as the code they describe (guideline G-30).
+
+*Seen in:* apps/*/CLAUDE.md; apps/crawler/packages/*/CLAUDE.md; packages/workflow/CLAUDE.md
+
+*Labels:* `CLAUDE.md`
+
+*Related:* [Code guidelines](#code-guidelines)
+
+<sub>Last changed in R-34, 2026-10-07.</sub>
+
+<a id="mutation-testing"></a>
+
+#### Mutation testing
+
+**A check of the tests themselves — the code is changed in small ways on purpose and every change the tests do not notice is a gap in the tests.**
+
+Each small change is a "mutant" (a `>` turned into `>=`, a condition forced true, a
+statement removed). Killed means a test failed, as it should; survived means no test noticed.
+The score is the share of mutants killed. It runs on demand, never on every commit:
+`pnpm mutate` for the crawler's core packages, `uv run mutmut run` for the dashboard.
+
+*Example:* safety: 929 mutants, 717 killed, 211 survived — 77.3 %.
+
+*Seen in:* pnpm mutate; data/mutation/stryker/<package>/report.html; uv run mutmut results
+
+*Labels:* `mutant`, `mutation score`, `survived`, `killed`, `Stryker`, `mutmut`
+
+*Related:* [Fast tier](#fast-tier), [Behaviour lock](#behaviour-lock)
+
+<sub>Last changed in R-34, 2026-10-08.</sub>
+
+<a id="behaviour-lock"></a>
+
+#### Behaviour lock
+
+**A test that records exactly what the code does today, so a refactor can prove it changed nothing.**
+
+Before code is moved or split, the lock captures its observable result; after every step
+the lock must still match. The crawl pipeline's lock runs a map run and a trace run and
+compares the recorded states, edges, decision log and trace spans with a committed snapshot.
+
+*Seen in:* tests/pipeline-golden.e2e.test.ts; docs/code-guidelines.md G-29
+
+*Labels:* `golden test`, `snapshot`
+
+*Related:* [Code guidelines](#code-guidelines), [Slow tier](#slow-tier)
+
+<sub>Last changed in R-34, 2026-10-08.</sub>
 
 ## Business-analysis terms
 

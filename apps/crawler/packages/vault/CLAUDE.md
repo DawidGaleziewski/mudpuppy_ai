@@ -1,0 +1,25 @@
+# @pathfinder/vault
+
+Encrypted test-user credentials per portal and environment, resolved from persona `ref:` names. CLI behind `pnpm vault` (apps/crawler/scripts/vault.ts). Re-exports run-scoped secret redactor from core.
+
+Layer: features (G-07; `apps/crawler/layers.json`). Depends on config, core, store.
+
+## Public API
+- Credential resolution; used by crawler, mcp-server, gates, apps/chat.
+- Secret redactor: re-exported from core (it lives there so the write choke points need no vault dependency).
+- CLI (`pnpm vault`): manage encrypted credentials.
+
+## Invariants
+- Secrets never reach logs, DB or evidence (redactor at write choke points).
+- Tests use obviously fake values (`test-key-not-real`, G-28).
+
+## Where to add things
+- New credential type: CLI and resolve logic in `src/`.
+- Tests: use fake values (G-28).
+
+## Tests
+- `pnpm exec vitest run --project vault`; tier: fast. 3 files.
+
+## See also
+- specs/009-legacy-proving-ground (R-26)
+- docs/code-guidelines.md (G-28)

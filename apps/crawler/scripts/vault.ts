@@ -4,8 +4,8 @@
  * Values are read from a hidden prompt or stdin, never from the command line.
  */
 import { join, resolve } from 'node:path';
-import { dbPathFor, migrateUp, openDb } from '@pathfinder/core';
 import { runVaultCli } from '@pathfinder/vault';
+import { dbPathFor, migrateUp, openDb } from '@pathfinder/store';
 
 const argv = process.argv.slice(2);
 const envIdx = argv.indexOf('--env');

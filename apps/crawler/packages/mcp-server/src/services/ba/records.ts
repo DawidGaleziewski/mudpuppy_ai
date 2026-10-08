@@ -1,16 +1,13 @@
+import { Confidence, newId, nowIso } from '@pathfinder/core';
 import {
-  Confidence,
   DOC_CONTENT_BY_KIND,
   DocKind,
   EvidenceTargetKind,
   RelationType,
-  newId,
-  nowIso,
   type DocContent,
-  type DocRecordsTable,
   type RevisionChange,
-  type Selectable,
-} from '@pathfinder/core';
+} from '@pathfinder/docs-model';
+import type { DocRecordsTable, Selectable } from '@pathfinder/store';
 import {
   applyStatusEvent,
   checkObserved,

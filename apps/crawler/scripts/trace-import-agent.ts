@@ -11,7 +11,7 @@
  * otherwise exit 1 on unreadable input.
  */
 import { join, resolve } from 'node:path';
-import { importAgent } from '@pathfinder/core';
+import { importAgent } from '@pathfinder/store';
 
 const arg = (name: string): string | undefined => {
   const i = process.argv.indexOf(`--${name}`);
@@ -45,7 +45,9 @@ async function main(): Promise<void> {
         (payload.agentId as string | undefined) ??
         (payload.subagent_id as string | undefined);
     } catch (e) {
-      console.log(JSON.stringify({ agent_id: null, stores: [], skipped: `hook input: ${e}` }));
+      console.log(
+        JSON.stringify({ agent_id: null, stores: [], skipped: `hook input: ${String(e)}` }),
+      );
       return;
     }
   }

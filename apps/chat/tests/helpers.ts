@@ -1,4 +1,4 @@
-import { migrateUp, openDb, type OpenedDb } from '@pathfinder/core';
+import { migrateUp, openDb, type OpenedDb } from '@pathfinder/store';
 import { join } from 'node:path';
 import { ChatStore } from '../src/store.js';
 

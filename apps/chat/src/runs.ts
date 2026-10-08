@@ -4,7 +4,8 @@
 // from the recorded frontier. Covered by the `docs:review` precedent like every chat write (T037).
 
 import type BetterSqlite3 from 'better-sqlite3';
-import { nowIso, type WorkflowStepName } from '@pathfinder/core';
+import { nowIso } from '@pathfinder/core';
+import type { WorkflowStepName } from '@pathfinder/chat-model';
 import { recordStep } from './steps.js';
 
 export class RunRefusal extends Error {

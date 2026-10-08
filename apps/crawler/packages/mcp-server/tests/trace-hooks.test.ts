@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { Attrs, EventName, Tracer } from '@pathfinder/core';
+import type { Attrs, EventName, Tracer } from '@pathfinder/store';
 import type { RequestDecision } from '@pathfinder/crawler';
 import { createRunTraceHooks } from '../src/runtime/trace-hooks.js';
 

@@ -5,7 +5,8 @@
 // the tracker is right after a reload or a service restart without the chat being open.
 
 import type BetterSqlite3 from 'better-sqlite3';
-import type { EvidenceStore, WorkflowStepName, WorkflowStepStatus } from '@pathfinder/core';
+import type { EvidenceStore } from '@pathfinder/core';
+import type { WorkflowStepName, WorkflowStepStatus } from '@pathfinder/chat-model';
 import { supersedeAfterRun, supersedeNotice } from './supersede.js';
 import type { ErrorInput, LogResult } from './error-log.js';
 import type { ChatEvent } from './events.js';
@@ -315,8 +316,8 @@ export class StepRecorder {
             : work.status === 'running'
               ? `The ${agent} agent stopped while its ${work.kind} ${work.id} is still marked running; its last message in the chat says why.`
               : this.awaitingResume(row, work)
-              ? `The ${agent} agent finished without resuming ${work.kind} ${work.id}; its last message in the chat says why.`
-              : null;
+                ? `The ${agent} agent finished without resuming ${work.kind} ${work.id}; its last message in the chat says why.`
+                : null;
       if (message === null) continue;
       const e = await this.fail(row, message, {
         agent,

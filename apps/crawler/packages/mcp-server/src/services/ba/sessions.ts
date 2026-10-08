@@ -1,10 +1,9 @@
+import { newId, nowIso } from '@pathfinder/core';
 import {
   AnalysisPass,
-  newId,
-  nowIso,
   type AnalysisSessionPassEntry,
   type AnalysisSessionStatus,
-} from '@pathfinder/core';
+} from '@pathfinder/docs-model';
 import { z } from 'zod';
 import type { BaContext } from '../../context.js';
 import { ToolError, parseInput } from '../../errors.js';

@@ -13,16 +13,14 @@ import {
 import { tmpdir } from 'node:os';
 import pino from 'pino';
 import { join } from 'node:path';
+import { createEvidenceStore, createLogger, unzip } from '@pathfinder/core';
 import {
   createDecisionLog,
-  createEvidenceStore,
-  createLogger,
   createTracer,
   linkDecisions,
   migrateUp,
   openDb,
-  unzip,
-} from '@pathfinder/core';
+} from '@pathfinder/store';
 import { createBrowserRuntime, createServer, type ServerContext } from '@pathfinder/mcp-server';
 import { createVaultStore, loadKey } from '@pathfinder/vault';
 import {
@@ -35,7 +33,7 @@ import {
   REPO,
 } from './paths.js';
 
-export type Body = Record<string, any>; // eslint-disable-line @typescript-eslint/no-explicit-any
+export type Body = Record<string, any>; // eslint-disable-line @typescript-eslint/no-explicit-any -- parsed JSON bodies of arbitrary shape
 export type Call = (
   name: string,
   args: Record<string, unknown>,

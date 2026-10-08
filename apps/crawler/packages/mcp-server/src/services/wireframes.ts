@@ -1,5 +1,6 @@
 import { readFile } from 'node:fs/promises';
-import { nowIso, type EvidenceStore, type PathfinderDb } from '@pathfinder/core';
+import { nowIso, type EvidenceStore } from '@pathfinder/core';
+import type { PathfinderDb } from '@pathfinder/store';
 import { GENERATOR_VERSION, renderWireframe } from '@pathfinder/wireframe';
 
 /**

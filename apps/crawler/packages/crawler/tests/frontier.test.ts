@@ -1,6 +1,7 @@
 import { fileURLToPath } from 'node:url';
 import { afterEach, describe, expect, it } from 'vitest';
-import { migrateUp, newId, nowIso, openDb, type OpenedDb } from '@pathfinder/core';
+import { newId, nowIso } from '@pathfinder/core';
+import { migrateUp, openDb, type OpenedDb } from '@pathfinder/store';
 import { builtinRuleSet } from '@pathfinder/safety';
 import { classifyCandidates, extractCandidates } from '../src/action-extractor.js';
 import type { GateContext } from '../src/action-gate.js';

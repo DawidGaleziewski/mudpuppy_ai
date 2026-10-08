@@ -2,7 +2,7 @@ import { mkdirSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { migrateUp, openDb, type OpenedDb } from '@pathfinder/core';
+import { migrateUp, openDb, type OpenedDb } from '@pathfinder/store';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { runVaultCli, type CliIo } from '../src/index.js';
 

@@ -4,7 +4,7 @@
  * Exits 1 when anything is found; never prints the offending values.
  */
 import { join, resolve } from 'node:path';
-import { auditPii, dbPathFor, openDb } from '@pathfinder/core';
+import { auditPii, dbPathFor, openDb } from '@pathfinder/store';
 
 const arg = (name: string, fallback: string): string => {
   const i = process.argv.indexOf(`--${name}`);

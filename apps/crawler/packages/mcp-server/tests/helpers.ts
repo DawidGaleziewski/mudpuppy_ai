@@ -3,19 +3,16 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { afterEach } from 'vitest';
+import { createEvidenceStore, createLogger, newId, nowIso } from '@pathfinder/core';
 import {
   createDecisionLog,
-  createEvidenceStore,
-  createLogger,
   createTracer,
   linkDecisions,
   migrateUp,
-  newId,
-  nowIso,
   openDb,
   type OpenedDb,
   type TracerDeps,
-} from '@pathfinder/core';
+} from '@pathfinder/store';
 import type { ServerContext } from '../src/context.js';
 
 const MIGRATIONS = fileURLToPath(new URL('../../../../../data/migrations', import.meta.url));
@@ -59,7 +56,7 @@ export async function makeCtx(
     root: dir,
     dbEnvironment: 'production',
     // No test reaches the network: robots.txt answers 404 (no rules) unless a test overrides it.
-    fetch: (async () => new Response('', { status: 404 })) as typeof fetch,
+    fetch: async () => new Response('', { status: 404 }),
     dir,
     opened,
   };

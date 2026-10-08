@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import type { OpenedDb } from '@pathfinder/core';
+import type { OpenedDb } from '@pathfinder/store';
 import type { ErrorInput } from '../src/error-log.js';
 import type { ChatEvent } from '../src/events.js';
 import { StepRecorder } from '../src/step-recorder.js';
@@ -200,7 +200,7 @@ describe('StepRecorder.observe', () => {
       type: 'step_changed',
       step: 'scan',
       status: 'failed',
-      errorRef: expect.stringMatching(/^ERR-T/) as unknown as string,
+      errorRef: expect.stringMatching(/^ERR-T/),
     });
     expect(errors.at(-1)?.message).toContain('so the run was stopped');
     expect(errors.at(-1)?.message).toContain('resume');

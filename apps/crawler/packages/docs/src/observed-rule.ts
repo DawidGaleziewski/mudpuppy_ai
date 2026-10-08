@@ -1,4 +1,5 @@
-import type { Confidence, EvidenceTargetKind } from '@pathfinder/core';
+import type { Confidence } from '@pathfinder/core';
+import type { EvidenceTargetKind } from '@pathfinder/docs-model';
 
 /** One evidence link after resolution against the store (see `resolveTargets`). */
 export interface ResolvedTarget {

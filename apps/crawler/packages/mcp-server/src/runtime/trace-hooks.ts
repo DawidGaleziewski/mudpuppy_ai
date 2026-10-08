@@ -1,4 +1,6 @@
-import { maskText, shapeUrl, type Attrs, type EventName, type Tracer } from '@pathfinder/core';
+import { maskText } from '@pathfinder/core';
+import { shapeUrl } from '@pathfinder/trace';
+import type { Attrs, EventName, Tracer } from '@pathfinder/store';
 import type { RequestDecision, SessionOptions } from '@pathfinder/crawler';
 
 /** A limiter wait longer than this is always worth its own event (research §10). */

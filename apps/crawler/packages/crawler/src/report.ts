@@ -1,4 +1,4 @@
-import type { PathfinderDb } from '@pathfinder/core';
+import type { PathfinderDb } from '@pathfinder/store';
 
 export interface Coverage {
   states: number;

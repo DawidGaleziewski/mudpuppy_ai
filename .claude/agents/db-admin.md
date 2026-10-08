@@ -17,8 +17,9 @@ Make one schema change end to end and return a short report. You own `data/`; th
 
 ## Procedure
 1. Add a reversible migration (up and down) in `data/migrations/`; never alter a DB by hand.
-2. Keep the Zod record schema in `apps/crawler/packages/core/src/schemas/` identical to the table; if they diverge,
-   Zod wins.
+2. Keep the Zod record schema identical to the table (crawl model: `apps/crawler/packages/core/src/schemas/`;
+   a feature's tables: its model package, e.g. `docs-model`, `chat-model`, `trace` — guideline G-09), and the
+   Kysely table type in `apps/crawler/packages/store/src/db-types.ts`; if they diverge, Zod wins.
 3. Regenerate the `data/schema/` snapshot; update `data-model.md` (and `contracts/` if tool inputs
    change) in the same change.
 4. Verify up, down, up on a scratch DB in `data/db/`, then run the package tests.

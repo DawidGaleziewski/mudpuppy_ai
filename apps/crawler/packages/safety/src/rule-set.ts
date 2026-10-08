@@ -1,4 +1,4 @@
-import { maxSafetyClass, type SafetyClass } from '@pathfinder/core';
+import { maxSafetyClass } from '@pathfinder/core';
 import type { ActionRuleConfig, PortalConfig } from '@pathfinder/config';
 import { ACTION_RULES, normalize, type ActionRule } from './rules.js';
 import { globToRegExp } from './scope.js';
@@ -48,7 +48,7 @@ export function extendRuleSet(
     if (i === -1) {
       rules.push({
         id: r.id,
-        safetyClass: (r.class ?? 'mutating') as SafetyClass,
+        safetyClass: r.class ?? 'mutating',
         keywords,
         paths,
         origin: 'portal',

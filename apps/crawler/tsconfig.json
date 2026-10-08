@@ -1,0 +1,14 @@
+{
+  "//": "Files outside the packages' own tsconfigs (scripts, Vitest configs), so typed lint can see them (spec 012 T017).",
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "noEmit": true
+  },
+  "include": [
+    "scripts",
+    "tests",
+    "vitest.config.ts",
+    "packages/*/vitest.config.ts",
+    "packages/*/scripts"
+  ]
+}

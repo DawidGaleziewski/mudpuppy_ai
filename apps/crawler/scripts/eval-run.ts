@@ -23,8 +23,8 @@ import {
 } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
-import { dbPathFor, migrateUp, openDb } from '@pathfinder/core';
 import { evaluate, GroundTruth, loadEvalInput } from '@pathfinder/docs';
+import { dbPathFor, migrateUp, openDb } from '@pathfinder/store';
 import {
   compareEval,
   comparisonMarkdown,
@@ -139,7 +139,7 @@ async function ensurePortal(): Promise<ChildProcess | null> {
         ]
       : [null, null, null];
   if (!probe || (await healthy(probe))) return null;
-  const child = spawn(cmd!, args as string[], { stdio: 'ignore', detached: true });
+  const child = spawn(cmd, args, { stdio: 'ignore', detached: true });
   for (let i = 0; i < 300; i++) {
     if (await healthy(probe)) return child;
     await new Promise((r) => setTimeout(r, 300));
@@ -276,7 +276,7 @@ try {
     scores: Object.fromEntries(
       Object.entries(report.scores).map(([k, s]) => [
         k,
-        { matched: s!.matched, total: s!.total, pct: s!.pct },
+        { matched: s.matched, total: s.total, pct: s.pct },
       ]),
     ),
     overclaims: report.overclaims.length,

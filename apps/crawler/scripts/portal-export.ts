@@ -5,7 +5,7 @@
  */
 import { userInfo } from 'node:os';
 import { join, resolve } from 'node:path';
-import { PortalDataError, dbPathFor, exportPortal, migrateUp, openDb } from '@pathfinder/core';
+import { PortalDataError, dbPathFor, exportPortal, migrateUp, openDb } from '@pathfinder/store';
 
 const arg = (name: string, fallback: string): string => {
   const i = process.argv.indexOf(`--${name}`);

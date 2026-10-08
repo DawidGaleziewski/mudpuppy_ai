@@ -18,6 +18,8 @@ from pathfinder_dashboard.glossary import (
     render_readme,
 )
 
+from .paths import REPO_ROOT
+
 FIXTURE = Path(__file__).parent / "fixtures" / "glossary" / "docs"
 
 
@@ -258,7 +260,7 @@ def test_readme_is_deterministic_and_complete(docs: Path) -> None:
 
 # ---- the real glossary (docs/) ------------------------------------------------------------------
 
-REPO_DOCS = Path(__file__).resolve().parents[3] / "docs"
+REPO_DOCS = REPO_ROOT / "docs"
 
 # The 59 terms rated Must or Nice in specs/006-glossary-ba-wiki/term-review.md (FR-003).
 EXPECTED_IDS = {
@@ -281,6 +283,8 @@ EXPECTED_IDS = {
     "superseded-amendment",  # R-30
     "activity-feed", "live-map", "reset-assistant",  # R-30 BA review (F-22)
     "portal-dropdown", "new-portal", "portal-settings", "scan-choices", "scan-focus",  # R-31
+    "fast-tier", "slow-tier", "code-guidelines", "agent-notes",  # R-34
+    "mutation-testing", "behaviour-lock",  # R-34
     # BA (22)
     "confidence", "documentation-record", "evidence-link", "relations", "traceability", "review",
     "capability", "screen", "process-record", "use-case", "requirement", "nfr",
@@ -293,7 +297,7 @@ EXPECTED_IDS = {
 def test_real_glossary_is_valid_and_complete() -> None:
     g = load_ok(REPO_DOCS)
     assert {e.id for e in g.entries} == EXPECTED_IDS
-    assert len(EXPECTED_IDS) == 103
+    assert len(EXPECTED_IDS) == 109
     assert sum(e.category == "ba" for e in g.entries) == 22
 
 

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { DocKind, RelationType } from '@pathfinder/core';
+import { DocKind, RelationType } from '@pathfinder/docs-model';
 import { RELATION_RULES, isAllowed } from '../src/relations.js';
 
 const ALLOWED: [DocKind, RelationType, DocKind][] = [

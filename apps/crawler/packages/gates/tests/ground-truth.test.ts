@@ -52,7 +52,7 @@ async function contextFor(domain: Domain, actor: string): Promise<BrowserContext
     const page = await ctx.newPage();
     await page.goto(`${GATE_BASE}/logowanie?marka=${domain}&next=/`);
     await page.waitForFunction(
-      () => (document.querySelector('input[name=csrf]') as HTMLInputElement | null)?.value,
+      () => document.querySelector<HTMLInputElement>('input[name=csrf]')?.value,
     );
     await page.locator('input[name=login]').fill(LOGINS[domain]);
     await page.locator('input[name=haslo]').fill(FIXTURE_PASSWORD);

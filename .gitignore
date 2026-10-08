@@ -22,6 +22,9 @@ data/traces/*
 data/gates/
 # Chat error logs keyed by ERR- reference id, 30-day retention (spec 010 R-30)
 data/logs/
+# Mutation-testing reports and Stryker's sandbox, rewritten by `pnpm mutate` (spec 012 R-34)
+data/mutation/
+apps/dashboard/mutants/
 
 # SQLite side files, wherever a DB ends up
 *.sqlite

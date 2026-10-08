@@ -4,7 +4,7 @@
 import { fileURLToPath } from 'node:url';
 import { join } from 'node:path';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
-import { dbPathFor, migrateUp, openDb } from '@pathfinder/core';
+import { dbPathFor, migrateUp, openDb } from '@pathfinder/store';
 import { createChatMcpServer } from './mcp-chat.js';
 
 // apps/chat/src -> repo root is three levels up.

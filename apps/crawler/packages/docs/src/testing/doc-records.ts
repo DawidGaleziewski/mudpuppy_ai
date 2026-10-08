@@ -1,5 +1,5 @@
+import type { Confidence } from '@pathfinder/core';
 import type {
-  Confidence,
   DocContent,
   DocKind,
   EvidenceTargetKind,
@@ -7,7 +7,7 @@ import type {
   ReviewAction,
   RevisionChange,
   RevisionStatus,
-} from '@pathfinder/core';
+} from '@pathfinder/docs-model';
 import { formatKey } from '../keys.js';
 import type { FixtureStore, TraceFixture } from './fixture-store.js';
 

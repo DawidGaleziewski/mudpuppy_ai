@@ -58,20 +58,19 @@ export class NetworkRecorder {
     private readonly page: Page,
     private readonly opts: { bodyTimeoutMs?: number } = {},
   ) {
-    this.on('response', ((res: Response) => this.track(this.onResponse(res))) as never);
-    this.on('requestfailed', ((req: Request) => {
+    this.on('response', (res: Response) => this.track(this.onResponse(res)));
+    this.on('requestfailed', (req: Request) => {
       if (this.isApi(req))
         this.errors.push(
           maskText(
             `${req.method()} ${apiUrlTemplate(req.url())} failed: ${req.failure()?.errorText ?? 'unknown'}`,
           ),
         );
-    }) as never);
-    this.on('console', ((msg: { type(): string; text(): string }) => {
+    });
+    this.on('console', (msg: { type(): string; text(): string }) => {
       if (msg.type() === 'error') this.errors.push(maskText(msg.text()).slice(0, 500));
-    }) as never);
-    this.on('pageerror', ((err: Error) =>
-      this.errors.push(maskText(err.message).slice(0, 500))) as never);
+    });
+    this.on('pageerror', (err: Error) => this.errors.push(maskText(err.message).slice(0, 500)));
   }
 
   private on(event: string, fn: (...a: never[]) => void): void {

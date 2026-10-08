@@ -3,7 +3,7 @@
  * Usage: pnpm stability <runA> <runB> [--env production] [--root <repo root>]
  */
 import { join, resolve } from 'node:path';
-import { compareRuns, dbPathFor, openDb } from '@pathfinder/core';
+import { compareRuns, dbPathFor, openDb } from '@pathfinder/store';
 
 const args = process.argv
   .slice(2)

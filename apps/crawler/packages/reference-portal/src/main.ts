@@ -13,6 +13,10 @@ if (!host) {
 }
 const port = Number(arg('port') ?? process.env.REFERENCE_PORTAL_PORT ?? 4010);
 
-startReferencePortal({ host, port }).then((p) => {
-  console.log(`reference portal listening on ${p.url}`);
-});
+startReferencePortal({ host, port }).then(
+  (p) => console.log(`reference portal listening on ${p.url}`),
+  (err: unknown) => {
+    console.error('reference-portal: could not start:', err);
+    process.exit(1);
+  },
+);

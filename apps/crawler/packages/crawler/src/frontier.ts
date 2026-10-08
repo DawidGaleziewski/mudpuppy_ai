@@ -1,4 +1,5 @@
-import { newId, nowIso, type PathfinderDb, type SafetyClass } from '@pathfinder/core';
+import { newId, nowIso, type SafetyClass } from '@pathfinder/core';
+import type { PathfinderDb } from '@pathfinder/store';
 import type { Refusal } from '@pathfinder/safety';
 import type { ClassifiedAction } from './action-extractor.js';
 import { decide, type GateContext } from './action-gate.js';

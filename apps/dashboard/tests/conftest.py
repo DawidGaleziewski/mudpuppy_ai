@@ -14,7 +14,8 @@ from fastapi.testclient import TestClient
 from pathfinder_dashboard.app import create_app
 from pathfinder_dashboard.settings import Settings
 
-REPO_ROOT = Path(__file__).resolve().parents[3]
+from .paths import REPO_ROOT
+
 MIGRATIONS = sorted((REPO_ROOT / "data" / "migrations").glob("*.up.sql"))
 
 T0 = "2026-09-25T19:00:00.000Z"

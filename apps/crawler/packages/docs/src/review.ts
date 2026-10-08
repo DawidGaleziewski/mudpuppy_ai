@@ -1,4 +1,5 @@
-import { newId, nowIso, ReviewAction, type RevisionStatus } from '@pathfinder/core';
+import { newId, nowIso } from '@pathfinder/core';
+import { ReviewAction, type RevisionStatus } from '@pathfinder/docs-model';
 import { z } from 'zod';
 import { DocsError } from './errors.js';
 import type { RawDb } from './keys.js';

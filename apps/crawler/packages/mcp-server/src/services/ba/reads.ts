@@ -1,13 +1,12 @@
 import { readFile } from 'node:fs/promises';
 import {
-  DocKind,
   Layout,
   MAX_KEYED_ELEMENTS,
-  RevisionStatus,
   elementKeys,
   isEvidenceRef,
   parseAriaYaml,
 } from '@pathfinder/core';
+import { DocKind, RevisionStatus } from '@pathfinder/docs-model';
 import { z } from 'zod';
 import type { BaContext } from '../../context.js';
 import { ToolError, parseInput } from '../../errors.js';

@@ -1,4 +1,4 @@
-import { NfrCategory } from '@pathfinder/core';
+import { NfrCategory } from '@pathfinder/docs-model';
 import { byKind, doc, field, FILE_OF_KIND, inline, list, recordBlock, table } from '../format.js';
 import { entityDiagram } from '../mermaid.js';
 import type { ExportModel, ExportRecord } from '../model.js';

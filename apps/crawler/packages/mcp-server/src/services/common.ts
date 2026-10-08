@@ -1,4 +1,5 @@
-import { Confidence, isEvidenceRef, type RunsTable, type Selectable } from '@pathfinder/core';
+import { Confidence, isEvidenceRef } from '@pathfinder/core';
+import type { RunsTable, Selectable } from '@pathfinder/store';
 import { ToolError } from '../errors.js';
 import type { ServerContext } from '../context.js';
 

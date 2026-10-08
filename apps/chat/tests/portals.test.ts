@@ -1,6 +1,14 @@
 // Spec 011 (FR-004, FR-005, FR-008, FR-011, FR-012): portals added and changed from the dashboard.
 
-import { cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import {
+  cpSync,
+  existsSync,
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from 'node:fs';
 import type { Server } from 'node:http';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -21,10 +29,7 @@ import { testService } from './helpers.js';
 const repo = join(import.meta.dirname, '..', '..', '..');
 let root: string;
 const paths = () => ({ repoRoot: root });
-const fence = (id: string) => [
-  join(root, 'personas', '_mixins'),
-  join(root, 'personas', id),
-];
+const fence = (id: string) => [join(root, 'personas', '_mixins'), join(root, 'personas', id)];
 
 beforeEach(() => {
   root = mkdtempSync(join(tmpdir(), 'pathfinder-portals-'));
@@ -40,7 +45,9 @@ describe('createPortal', () => {
     expect(made).toMatchObject({ portal: 'wikipedia-org', persona: 'guest' });
     expect(listPortals(paths())).toEqual(['wikipedia-org']);
     expect(listPersonas(paths(), 'wikipedia-org')).toEqual(['guest']);
-    const e = loadEffectiveConfig(made.files[0]!, made.files[1]!, { fence: fence('wikipedia-org') });
+    const e = loadEffectiveConfig(made.files[0]!, made.files[1]!, {
+      fence: fence('wikipedia-org'),
+    });
     // the BA's decisions (2026-10-06): production, robots ignored, forms may be submitted
     expect(e.portal.environment).toBe('production');
     expect(e.portal.robots).toBe('ignore');
@@ -66,7 +73,12 @@ describe('createPortal', () => {
         max_action_class: 'external-side-effect',
       },
     ]);
-    const staging = loadEffectiveConfig(made.files[0]!, made.files[1]!, { fence: fence('shop') }, 'staging');
+    const staging = loadEffectiveConfig(
+      made.files[0]!,
+      made.files[1]!,
+      { fence: fence('shop') },
+      'staging',
+    );
     expect(staging.portal.scope.allowed_domains).toEqual(['staging.shop.example.pl']);
     expect(readFileSync(made.files[0]!, 'utf8')).toContain('robots: respect');
   });
@@ -75,13 +87,18 @@ describe('createPortal', () => {
     expect(() => createPortal(paths(), { environments: {} })).toThrow(/at least one environment/);
     createPortal(paths(), WIKI);
     expect(() => createPortal(paths(), WIKI)).toThrow(
-      expect.objectContaining({ code: 'PORTAL_EXISTS' }) as unknown as Error,
+      expect.objectContaining({ code: 'PORTAL_EXISTS' }) as unknown,
     );
     expect(() =>
-      createPortal(paths(), { environments: { sandbox: { base_url: 'ftp://files.example.test' } } }),
+      createPortal(paths(), {
+        environments: { sandbox: { base_url: 'ftp://files.example.test' } },
+      }),
     ).toThrow(PortalRefusal);
     expect(() =>
-      createPortal(paths(), { id: 'no spaces', environments: { sandbox: { base_url: 'https://a.test' } } }),
+      createPortal(paths(), {
+        id: 'no spaces',
+        environments: { sandbox: { base_url: 'https://a.test' } },
+      }),
     ).toThrow(/lowercase letters/);
     expect(listPortals(paths())).toEqual(['wikipedia-org']);
   });
@@ -90,7 +107,7 @@ describe('createPortal', () => {
     rmSync(join(root, 'personas', '_mixins'), { recursive: true }); // the persona cannot load
     expect(() =>
       createPortal(paths(), { environments: { sandbox: { base_url: 'https://broken.test' } } }),
-    ).toThrow(expect.objectContaining({ code: 'INVALID' }) as unknown as Error);
+    ).toThrow(expect.objectContaining({ code: 'INVALID' }) as unknown);
     expect(existsSync(join(root, 'portals', 'broken-test'))).toBe(false);
     expect(existsSync(join(root, 'personas', 'broken-test'))).toBe(false);
   });
@@ -121,7 +138,7 @@ describe('portal settings: add and revoke environments', () => {
     const revoked = removeEnvironment(paths(), 'wikipedia-org', 'production');
     expect(revoked.environments.map((e) => e.environment)).toEqual(['staging']);
     expect(() => removeEnvironment(paths(), 'wikipedia-org', 'staging')).toThrow(
-      expect.objectContaining({ code: 'LAST_ENVIRONMENT' }) as unknown as Error,
+      expect.objectContaining({ code: 'LAST_ENVIRONMENT' }) as unknown,
     );
     expect(describePortal(paths(), 'wikipedia-org').environments).toHaveLength(1);
   });
@@ -139,10 +156,16 @@ describe('portal settings: add and revoke environments', () => {
     );
     const out = setEnvironment(paths(), 'old', 'staging', { base_url: 'http://127.0.0.2:4010/' });
     expect(out.environments).toEqual([
-      { environment: 'staging', base_url: 'http://127.0.0.2:4010/', max_action_class: 'external-side-effect' },
+      {
+        environment: 'staging',
+        base_url: 'http://127.0.0.2:4010/',
+        max_action_class: 'external-side-effect',
+      },
       { environment: 'sandbox', base_url: 'http://127.0.0.1:4010/', max_action_class: 'mutating' },
     ]);
-    expect(readFileSync(join(root, 'portals', 'old', 'portal.yaml'), 'utf8')).toContain('# keep me');
+    expect(readFileSync(join(root, 'portals', 'old', 'portal.yaml'), 'utf8')).toContain(
+      '# keep me',
+    );
   });
 
   it('puts the file back when the change does not load, and knows unknown portals', () => {
@@ -152,10 +175,10 @@ describe('portal settings: add and revoke environments', () => {
     rmSync(join(root, 'personas', '_mixins'), { recursive: true }); // any check now fails
     expect(() =>
       setEnvironment(paths(), 'wikipedia-org', 'staging', { base_url: 'https://t.wikipedia.org' }),
-    ).toThrow(expect.objectContaining({ code: 'INVALID' }) as unknown as Error);
+    ).toThrow(expect.objectContaining({ code: 'INVALID' }) as unknown);
     expect(readFileSync(file, 'utf8')).toBe(before);
     expect(() => describePortal(paths(), 'nope')).toThrow(
-      expect.objectContaining({ code: 'PORTAL_NOT_FOUND' }) as unknown as Error,
+      expect.objectContaining({ code: 'PORTAL_NOT_FOUND' }) as unknown,
     );
   });
 });
@@ -201,8 +224,11 @@ describe('portal routes', () => {
     expect(again.status).toBe(409);
     expect(((await again.json()) as { message: string }).message).toContain('already exists');
     expect(
-      (await send('POST', '/portals', { environments: { sandbox: { base_url: 'mailto:x@y.test' } } }))
-        .status,
+      (
+        await send('POST', '/portals', {
+          environments: { sandbox: { base_url: 'mailto:x@y.test' } },
+        })
+      ).status,
     ).toBe(400);
     expect((await send('GET', '/portals/wikipedia-org')).status).toBe(200);
     expect((await send('GET', '/portals/nope')).status).toBe(404);
@@ -211,8 +237,12 @@ describe('portal routes', () => {
     });
     expect(put.status).toBe(200);
     expect(((await put.json()) as { environments: unknown[] }).environments).toHaveLength(2);
-    expect((await send('PUT', '/portals/wikipedia-org/environments/qa', { base_url: 'x' })).status).toBe(400);
+    expect(
+      (await send('PUT', '/portals/wikipedia-org/environments/qa', { base_url: 'x' })).status,
+    ).toBe(400);
     expect((await send('DELETE', '/portals/wikipedia-org/environments/staging')).status).toBe(200);
-    expect((await send('DELETE', '/portals/wikipedia-org/environments/production')).status).toBe(409);
+    expect((await send('DELETE', '/portals/wikipedia-org/environments/production')).status).toBe(
+      409,
+    );
   });
 });

@@ -1,0 +1,35 @@
+# @pathfinder/docs
+
+Layer B documentation core for the BA agent: record keys, status engine, relations, observed
+rules, evidence resolution, audit, review, SRS rendering (Mermaid), export, process scope,
+evaluation against a ground truth.
+
+Layer: features (G-07; `apps/crawler/layers.json`). Depends on core, docs-model (the record
+schemas) and store (record keys are allocated in the DB, `src/keys.ts`).
+
+## Public API
+
+- Record keys and status engine; used by mcp-server (BA tools), gates, apps/chat.
+- Relations, observed rules, evidence resolution; used by mcp-server.
+- SRS rendering (`src/render/`), audit, review, export, process scope, evaluation; used by the
+  crawler app scripts (`pnpm docs:*`).
+- Test helpers in `src/testing/` (a migrated scratch store, record fixtures).
+
+## Invariants
+
+- No browser, no LLM: functions over recorded data; DB access only through `@pathfinder/store`.
+- Every documentation record cites evidence.
+- Record schemas live in `@pathfinder/docs-model`, not here (G-09).
+
+## Where to add things
+
+- New record kind or relation: the schema in `docs-model`, then the logic and rendering here.
+- New rendering format: `src/render/`.
+
+## Tests
+
+- `pnpm exec vitest run --project docs` (from `apps/crawler`); tier: fast.
+
+## See also
+
+- specs/004-ba-documentation, docs/code-guidelines.md (G-09)

@@ -7,18 +7,20 @@ import { existsSync } from 'node:fs';
 import { readFile } from 'node:fs/promises';
 import { extname } from 'node:path';
 import {
-  Amendment,
-  AmendmentAnchorElement,
-  AmendmentKind,
-  AmendmentTargetKind,
   Layout,
   SECRETS,
   newId,
   nowIso,
   isEvidenceRef,
   type EvidenceStore,
-  type PathfinderDb,
 } from '@pathfinder/core';
+import {
+  Amendment,
+  AmendmentAnchorElement,
+  AmendmentKind,
+  AmendmentTargetKind,
+} from '@pathfinder/chat-model';
+import { type PathfinderDb } from '@pathfinder/store';
 import { z } from 'zod';
 import { HttpError } from './http-error.js';
 

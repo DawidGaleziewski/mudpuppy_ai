@@ -1,4 +1,5 @@
-import type { Confidence, DocKind, EvidenceTargetKind } from '@pathfinder/core';
+import type { Confidence } from '@pathfinder/core';
+import type { DocKind, EvidenceTargetKind } from '@pathfinder/docs-model';
 import { z } from 'zod';
 import type { RawDb } from './keys.js';
 import { canonical } from './render/records-json.js';

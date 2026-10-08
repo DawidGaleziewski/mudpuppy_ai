@@ -1,5 +1,5 @@
 import type { LoginSpec } from '@pathfinder/config';
-import { shapeUrl } from '@pathfinder/core';
+import { shapeUrl } from '@pathfinder/trace';
 import { settle } from '@pathfinder/crawler';
 import type { ServerContext } from '../context.js';
 import { ToolError } from '../errors.js';

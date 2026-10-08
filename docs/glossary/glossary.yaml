@@ -1483,12 +1483,13 @@ entries:
     explanation: |
       Slow gates keep the normal test run inside its 3-minute budget. They are still counted for
       coverage, and the gate report lists them as `skipped_slow` when they did not run.
-      `pnpm test:slow` runs the whole gate set with them, for example at night.
+      `pnpm test:slow` runs the whole gate set with them, together with the browser end-to-end
+      files (the slow tier).
     appears_in: [pnpm test:slow, data/gates/report.json → skipped_slow]
     labels: [slow, skipped_slow]
-    related: [quality-gate, gate-report]
-    changed_in: R-27
-    changed_on: 2026-10-05
+    related: [quality-gate, gate-report, slow-tier]
+    changed_in: R-34
+    changed_on: 2026-10-07
 
   - id: eval
     term: Eval (tier 2)
@@ -1805,3 +1806,100 @@ entries:
     related: [amendment, run]
     changed_in: R-30
     changed_on: 2026-10-06
+
+  # ---- Pathfinder: building Pathfinder (R-34) -----------------------------------------------------
+  - id: fast-tier
+    term: Fast tier
+    category: pathfinder
+    group: Building Pathfinder
+    short: The crawler tests that run on every commit, in seconds — only the ones your uncommitted change can affect, without browser end-to-end files and gates.
+    explanation: |
+      `pnpm test:fast` in `apps/crawler` asks Vitest which test files import, directly or through
+      other packages, a file you changed, and runs only those. A change to something the import
+      graph cannot see (a test harness, fixtures, a migration, a portal or persona file, a config)
+      runs the whole fast tier instead, still in about 10 seconds. The commit hook runs it.
+    example: "tier: fast (affected) — a one-line change in the fingerprint package runs the tests of fingerprint, crawler and mcp-server that use it."
+    appears_in: [pnpm test:fast, the commit hook]
+    labels: [test:fast, "tier: fast"]
+    related: [slow-tier, quality-gate]
+    changed_in: R-34
+    changed_on: 2026-10-07
+
+  - id: slow-tier
+    term: Slow tier
+    category: pathfinder
+    group: Building Pathfinder
+    short: The browser end-to-end test files (`*.e2e.test.ts`) and the whole gate set, run before committing runtime or gate changes and before a merge.
+    explanation: |
+      `pnpm test:slow` runs two things at once: the files that drive whole crawler runs through
+      the MCP server with a real browser, and every quality gate including the slow ones against
+      the proving ground (ports 4200/4201). It takes about three minutes. `pnpm test` still runs
+      everything and is the check before a merge.
+    appears_in: [pnpm test:slow, CLAUDE.md "Verification Before Commit"]
+    labels: [test:slow, e2e, "*.e2e.test.ts"]
+    related: [fast-tier, slow-gate, quality-gate]
+    changed_in: R-34
+    changed_on: 2026-10-07
+
+  - id: code-guidelines
+    term: Code guidelines
+    category: pathfinder
+    group: Building Pathfinder
+    short: The rated rules (G-01 to G-32) for how Pathfinder's code is shaped, layered, tested and reviewed, in `docs/code-guidelines.md`.
+    explanation: |
+      Each guideline has an id, the rule, why it exists and what checks it (a lint rule, a test or
+      the code reviewer). They were proposed as a list and rated by the project owner before any
+      refactor, so they hold only rules the owner accepted. Reviews cite the ids.
+    example: "G-21: every async call is awaited, returned, or explicitly voided with a reason."
+    appears_in: [docs/code-guidelines.md, CLAUDE.md "Code Guidelines"]
+    labels: [G-01, guideline]
+    related: [agent-notes]
+    changed_in: R-34
+    changed_on: 2026-10-07
+
+  - id: agent-notes
+    term: Agent notes
+    category: pathfinder
+    group: Building Pathfinder
+    short: The short `CLAUDE.md` in every package and app that tells an AI agent (and a person) what the package is for, its layer, public API, rules and where to add things.
+    explanation: |
+      Claude Code reads a folder's `CLAUDE.md` when it works there, so these notes are the first
+      thing an agent sees. They hold facts only (about 60 lines at most), follow one template and
+      change in the same commit as the code they describe (guideline G-30).
+    appears_in: ["apps/*/CLAUDE.md", "apps/crawler/packages/*/CLAUDE.md", packages/workflow/CLAUDE.md]
+    labels: [CLAUDE.md]
+    related: [code-guidelines]
+    changed_in: R-34
+    changed_on: 2026-10-07
+
+  - id: mutation-testing
+    term: Mutation testing
+    category: pathfinder
+    group: Building Pathfinder
+    short: A check of the tests themselves — the code is changed in small ways on purpose and every change the tests do not notice is a gap in the tests.
+    explanation: |
+      Each small change is a "mutant" (a `>` turned into `>=`, a condition forced true, a
+      statement removed). Killed means a test failed, as it should; survived means no test noticed.
+      The score is the share of mutants killed. It runs on demand, never on every commit:
+      `pnpm mutate` for the crawler's core packages, `uv run mutmut run` for the dashboard.
+    example: "safety: 929 mutants, 717 killed, 211 survived — 77.3 %."
+    appears_in: [pnpm mutate, data/mutation/stryker/<package>/report.html, uv run mutmut results]
+    labels: [mutant, mutation score, survived, killed, Stryker, mutmut]
+    related: [fast-tier, behaviour-lock]
+    changed_in: R-34
+    changed_on: 2026-10-08
+
+  - id: behaviour-lock
+    term: Behaviour lock
+    category: pathfinder
+    group: Building Pathfinder
+    short: A test that records exactly what the code does today, so a refactor can prove it changed nothing.
+    explanation: |
+      Before code is moved or split, the lock captures its observable result; after every step
+      the lock must still match. The crawl pipeline's lock runs a map run and a trace run and
+      compares the recorded states, edges, decision log and trace spans with a committed snapshot.
+    appears_in: [tests/pipeline-golden.e2e.test.ts, docs/code-guidelines.md G-29]
+    labels: [golden test, snapshot]
+    related: [code-guidelines, slow-tier]
+    changed_in: R-34
+    changed_on: 2026-10-08

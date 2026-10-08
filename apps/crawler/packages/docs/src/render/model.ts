@@ -1,16 +1,14 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import {
-  Layout,
-  isEvidenceRef,
-  type Confidence,
-  type DocKind,
-  type EvidenceTargetKind,
-  type RelationType,
-  type ReviewAction,
-  type RevisionChange,
-  type RevisionStatus,
-} from '@pathfinder/core';
+import { Layout, isEvidenceRef, type Confidence } from '@pathfinder/core';
+import type {
+  DocKind,
+  EvidenceTargetKind,
+  RelationType,
+  ReviewAction,
+  RevisionChange,
+  RevisionStatus,
+} from '@pathfinder/docs-model';
 import type { RawDb } from '../keys.js';
 import type { ProcessMapInput, ScreenNavInput } from './mermaid.js';
 import type { ExportAmendment } from './amendments.js';
@@ -244,9 +242,7 @@ const json = (text: string | null): unknown => {
 };
 const accessibleName = (actionJson: string | null): string | null => {
   const a = json(actionJson);
-  return a && typeof a === 'object' && 'accessible_name' in a
-    ? String((a as { accessible_name: unknown }).accessible_name)
-    : null;
+  return a && typeof a === 'object' && 'accessible_name' in a ? String(a.accessible_name) : null;
 };
 
 /** Labels as the Docs tab shows them (queries_docs.py `_TARGETS`); never evidence file content. */
@@ -275,11 +271,7 @@ const TARGET_LABEL: Partial<
       const fields = json(r.fields_json as string);
       const names = Array.isArray(fields)
         ? fields
-            .map((f: unknown) =>
-              f && typeof f === 'object' && 'name' in f
-                ? String((f as { name: unknown }).name)
-                : '',
-            )
+            .map((f: unknown) => (f && typeof f === 'object' && 'name' in f ? String(f.name) : ''))
             .filter(Boolean)
         : [];
       return `form: ${names.slice(0, 4).join(', ') || 'fields not named'}`;

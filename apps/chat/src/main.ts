@@ -1,7 +1,8 @@
 // Entry point of the chat service (R-30 T014): `pnpm start` in apps/chat.
 // Environment: PATHFINDER_ENV (default sandbox), PATHFINDER_CHAT_PORT (default 4310).
 
-import { createEvidenceStore, dbPathFor, migrateUp, openDb } from '@pathfinder/core';
+import { createEvidenceStore } from '@pathfinder/core';
+import { dbPathFor, migrateUp, openDb } from '@pathfinder/store';
 import { mkdirSync, readFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';

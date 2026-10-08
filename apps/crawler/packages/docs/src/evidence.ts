@@ -1,11 +1,6 @@
 import { readFileSync } from 'node:fs';
-import {
-  createEvidenceStore,
-  elementKeys,
-  parseAriaYaml,
-  type Confidence,
-  type EvidenceTargetKind,
-} from '@pathfinder/core';
+import { createEvidenceStore, elementKeys, parseAriaYaml, type Confidence } from '@pathfinder/core';
+import type { EvidenceTargetKind } from '@pathfinder/docs-model';
 import { DocsError } from './errors.js';
 import type { RawDb } from './keys.js';
 import type { ResolvedTarget } from './observed-rule.js';

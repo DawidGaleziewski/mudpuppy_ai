@@ -87,7 +87,7 @@ function resolveFile(file: string, stack: string[], opts: LoadPersonaOptions, to
     }
     merged = merge(merged, resolveFile(target, [...stack, abs], opts, top));
   }
-  return merge(merged, own as Plain);
+  return merge(merged, own);
 }
 
 /** Resolve a persona through `extends` and validate the merged result with the full schema. */

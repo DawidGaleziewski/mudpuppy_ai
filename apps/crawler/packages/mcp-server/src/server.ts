@@ -1,17 +1,15 @@
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { mkdirSync } from 'node:fs';
 import { join, resolve } from 'node:path';
+import { createEvidenceStore, createLogger, newId } from '@pathfinder/core';
 import {
   createDecisionLog,
-  createEvidenceStore,
-  createLogger,
   createTracer,
   dbPathFor,
   linkDecisions,
   migrateUp,
-  newId,
   openDb,
-} from '@pathfinder/core';
+} from '@pathfinder/store';
 import type { ServerContext } from './context.js';
 import type { Runtime } from './runtime.js';
 import { interruptStaleRuns } from './services/index.js';
@@ -72,11 +70,15 @@ export async function main(opts: BootOptions): Promise<void> {
       await opened.close();
       process.exit(0);
     })());
-  process.once('SIGINT', shutdown);
-  process.once('SIGTERM', shutdown);
-  process.once('SIGHUP', shutdown);
+  // Listeners ignore the returned promise; a shutdown that throws must still end the process (G-21).
+  const onExit = (): void => {
+    shutdown().catch(() => process.exit(1));
+  };
+  process.once('SIGINT', onExit);
+  process.once('SIGTERM', onExit);
+  process.once('SIGHUP', onExit);
   // The client going away closes stdin. An open browser would keep this process (and Chromium)
   // alive forever after the chat service stopped (spec 010 F-19), so stdin's end shuts down too.
-  process.stdin.once('end', shutdown);
-  process.stdin.once('close', shutdown);
+  process.stdin.once('end', onExit);
+  process.stdin.once('close', onExit);
 }

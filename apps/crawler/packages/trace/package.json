@@ -1,0 +1,14 @@
+{
+  "name": "@pathfinder/trace",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Trace model: trace span/boot and agent-turn schemas plus pure trace helpers (scrubbing, payload limits, URL shaping, transcript parsing and joining)",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "@pathfinder/core": "workspace:*",
+    "zod": "^4.6.5"
+  }
+}

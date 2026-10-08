@@ -7,6 +7,9 @@ import pytest
 
 from .conftest import Store, insert, make_client, make_trace_fixture
 
+# Wall-clock budgets: run alone, not next to 16 xdist workers (spec 012 findings F-08).
+pytestmark = pytest.mark.perf
+
 BIG = "run-big"
 URLS = [
     "/",

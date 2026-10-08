@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { join, resolve } from 'node:path';
-import { migrateUp, openDb, type OpenedDb } from '@pathfinder/core';
+import { migrateUp, openDb, type OpenedDb } from '@pathfinder/store';
 import {
   ScopeRefusal,
   listProcessCandidates,

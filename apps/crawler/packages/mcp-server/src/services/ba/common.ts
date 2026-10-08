@@ -1,4 +1,5 @@
-import { maskText, type AnalysisSessionsTable, type Selectable } from '@pathfinder/core';
+import { maskText } from '@pathfinder/core';
+import type { AnalysisSessionsTable, Selectable } from '@pathfinder/store';
 import { DocsError } from '@pathfinder/docs';
 import type { BaContext } from '../../context.js';
 import { ToolError } from '../../errors.js';

@@ -1,4 +1,4 @@
-import { AnalysisPass, DocKind, KEY_PREFIX } from '@pathfinder/core';
+import { AnalysisPass, DocKind, KEY_PREFIX } from '@pathfinder/docs-model';
 import { applyReview, audit } from '@pathfinder/docs';
 import { describe, expect, it } from 'vitest';
 import { CONTENT, seedReview, startBa } from './ba-harness.js';

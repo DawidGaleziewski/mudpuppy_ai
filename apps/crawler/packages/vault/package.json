@@ -10,6 +10,7 @@
   "dependencies": {
     "@pathfinder/config": "workspace:*",
     "@pathfinder/core": "workspace:*",
+    "@pathfinder/store": "workspace:*",
     "kysely": "^0.29.6"
   },
   "devDependencies": {

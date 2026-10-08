@@ -4,7 +4,7 @@ import { loadPersona } from '@pathfinder/config';
 import { djangoPbkdf2, generatePassword, loadKey } from './crypto.js';
 import { VaultError } from './errors.js';
 import { asEnvironment, createVaultStore, personaRefs, type VaultStore } from './store.js';
-import type { PathfinderDb } from '@pathfinder/core';
+import type { PathfinderDb } from '@pathfinder/store';
 
 /** Everything the CLI touches, injected so tests run it without a TTY or the real key. */
 export interface CliIo {

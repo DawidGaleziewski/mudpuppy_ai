@@ -4,7 +4,7 @@ import { BrowserSession, type StabilizerOptions } from '@pathfinder/crawler';
 import { computeFingerprint } from '@pathfinder/fingerprint';
 import type { ServerContext } from '../context.js';
 import type { Runtime } from '../runtime.js';
-import { act, login, navigate, navigationPolicy, persistStop } from './pipeline.js';
+import { act, login, navigate, navigationPolicy, persistStop } from './pipeline/index.js';
 import { RunState } from './run-state.js';
 import { processOfRun } from '../services/trace.js';
 import { runChoices } from '../services/start-run.js';
@@ -20,7 +20,7 @@ export interface BrowserRuntimeOptions {
 
 /**
  * The real `Runtime`: one Playwright browser per run, owned by this process. Everything a tool does in
- * the browser goes through `pipeline.ts` (action gate -> request gate -> observe -> record).
+ * the browser goes through `pipeline/` (action gate -> request gate -> observe -> record).
  */
 export function createBrowserRuntime(opts: BrowserRuntimeOptions = {}): Runtime {
   const runs = new Map<string, RunState>();

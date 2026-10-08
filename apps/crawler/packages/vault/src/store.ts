@@ -1,4 +1,5 @@
-import { newId, nowIso, type CredentialsTable, type PathfinderDb } from '@pathfinder/core';
+import { newId, nowIso } from '@pathfinder/core';
+import type { CredentialsTable, PathfinderDb } from '@pathfinder/store';
 import { decrypt, encrypt, type VaultKey } from './crypto.js';
 import { VaultError } from './errors.js';
 

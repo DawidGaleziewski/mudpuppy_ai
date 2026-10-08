@@ -1,7 +1,8 @@
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { mkdirSync } from 'node:fs';
 import { join, resolve } from 'node:path';
-import { createEvidenceStore, createLogger, dbPathFor, migrateUp, openDb } from '@pathfinder/core';
+import { createEvidenceStore, createLogger } from '@pathfinder/core';
+import { dbPathFor, migrateUp, openDb } from '@pathfinder/store';
 import { createBaServer } from './ba-tools/index.js';
 import type { BaContext } from './context.js';
 import { sweepStaleSessions } from './services/ba/sessions.js';
@@ -36,6 +37,10 @@ export async function mainBa(opts: BaBootOptions): Promise<void> {
     await opened.close();
     process.exit(0);
   };
-  process.once('SIGINT', shutdown);
-  process.once('SIGTERM', shutdown);
+  // Listeners ignore the returned promise; a shutdown that throws must still end the process (G-21).
+  const onExit = (): void => {
+    shutdown().catch(() => process.exit(1));
+  };
+  process.once('SIGINT', onExit);
+  process.once('SIGTERM', onExit);
 }

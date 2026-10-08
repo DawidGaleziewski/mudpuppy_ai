@@ -3,7 +3,7 @@
 // notices posted by the service (a stopped scan, a failed step) and, in a new session, the
 // conversation itself. The block is built from the store; it is never shown in the chat.
 
-import type { ChatConversation, ChatMessage, WorkflowStep } from '@pathfinder/core';
+import type { ChatConversation, ChatMessage, WorkflowStep } from '@pathfinder/chat-model';
 
 /**
  * How the assistant's session relates to the conversation:
@@ -72,7 +72,8 @@ export function handover(input: HandoverInput): string | null {
       .slice(-RECENT_MESSAGES);
     if (recent.length > 0) {
       lines.push('Last messages:');
-      for (const m of recent) lines.push(`- ${m.role === 'user' ? 'BA' : 'You'}: ${clip(m.content)}`);
+      for (const m of recent)
+        lines.push(`- ${m.role === 'user' ? 'BA' : 'You'}: ${clip(m.content)}`);
     }
   }
   const notices = missedNotices(input.messages);

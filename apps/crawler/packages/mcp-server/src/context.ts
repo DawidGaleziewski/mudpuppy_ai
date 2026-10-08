@@ -1,12 +1,6 @@
-import type {
-  DecisionLog,
-  EvidenceStore,
-  Logger,
-  OpenedDb,
-  PathfinderDb,
-  PwTraceMode,
-  Tracer,
-} from '@pathfinder/core';
+import type { EvidenceStore, Logger } from '@pathfinder/core';
+import type { PwTraceMode } from '@pathfinder/trace';
+import type { DecisionLog, OpenedDb, PathfinderDb, Tracer } from '@pathfinder/store';
 import type { captureVisuals } from '@pathfinder/crawler';
 
 /**

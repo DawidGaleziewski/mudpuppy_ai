@@ -98,7 +98,7 @@ export function extractForms(page: Page): Promise<DomForm[]> {
         method: (f.getAttribute('method') || 'get').toUpperCase(),
         action: f.action || '',
         hasPassword: !!f.querySelector('input[type=password]'),
-        purpose: (isSearch ? 'search' : 'other') as 'search' | 'other',
+        purpose: isSearch ? 'search' : 'other',
         fields,
       };
     });

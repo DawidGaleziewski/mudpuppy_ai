@@ -6,6 +6,24 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Added
+- R-34 maintainability: written code guidelines G-01–G-32 (`docs/code-guidelines.md`, rated by
+  the user) and a `CLAUDE.md` in every package and app. Test tiers: `pnpm test:fast` runs only the
+  tests a change can affect (about 20 s per commit, was 5 min 40 s; the commit hook runs it),
+  `pnpm test:slow` runs the browser end-to-end files and the gates in parallel (163 s, was 340 s);
+  dashboard tests run in parallel with pytest-xdist (35 s, was 1 min 48 s). Type-aware ESLint
+  (unawaited promises are errors; it found four unhandled-rejection paths, fixed) with size and
+  complexity warnings and `pnpm lint:report`. `core` is now the kernel only: new packages `store`
+  (DB, decision log, tracer), `trace`, `docs-model`, `chat-model`, with `layers.json` and a layers
+  test that fails an upward import. The 1,484-line `pipeline.ts` is one file per step in
+  `runtime/pipeline/`; steps return their decisions and events and `step()` writes them (G-18,
+  lint-enforced), locked by a golden behaviour test; the dashboard's 2,187-line `app.py` is one
+  router per page (172 lines left, all 55 routes unchanged). Mutation testing on demand
+  (`pnpm mutate`, Stryker command runner; `uv run mutmut run` in the dashboard) plus follow-up
+  boundary tests: core 60.9 → 82.6 %, safety 77.3 → 91.7 %, fingerprint 60.3 → 73.1 %,
+  dashboard 85.3 → 89.3 %. A `code-reviewer` agent and a `refactor-code` skill, now a step of
+  the feature close-out. Findings F-01–F-16 in `specs/012-maintainability/findings.md`
+  (`specs/012-maintainability` T001–T052). Branch `feature/012-r34-maintainability`
+  (squash-merged on master, tag v1.0.11).
 - R-30 guided chat orchestrator and R-31 portal onboarding: the dashboard's Chat page talks to
   one orchestrator agent (`apps/chat`, ACP over the user's Claude Code login) that runs the
   workflow scan → map a process → narrow → document → amend from recorded data only

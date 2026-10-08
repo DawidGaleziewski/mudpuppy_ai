@@ -13,18 +13,24 @@
 1. Every roadmap item (R-xx) gets a feature branch named per the saved branch naming convention.
 2. Spec → plan → tasks (speckit/po agent) before implementation. Clarify open questions first.
 3. Commit per completed task group with the task IDs (e.g. T007–T011) in the message.
-4. Before merging: tick the validation checkboxes, update roadmap/spec/ledger docs, glossary sync (add or update `docs/glossary/glossary.yaml` entries for terms the item added or changed, then `uv run pathfinder-glossary --write` in `apps/dashboard`), run the changelog skill (changelog BEFORE merge), merge to master, delete the branch.
+4. Before merging: run the `code-reviewer` agent on the branch (guideline conformance, G-31) and fix or defer its findings; tick the validation checkboxes, update roadmap/spec/ledger docs, glossary sync (add or update `docs/glossary/glossary.yaml` entries for terms the item added or changed, then `uv run pathfinder-glossary --write` in `apps/dashboard`), run the changelog skill (changelog BEFORE merge), merge to master, delete the branch.
 5. When stopping mid-work, write a session dump listing done/uncommitted/blocked tasks.
 
 
+## Code Guidelines
+- Read `docs/code-guidelines.md` (G-01–G-32, rated 2026-10-07) before writing code: size limits, layers, the patterns for adding a tool / page / table / gate case / pipeline step, style and tests. Cite the ids in reviews.
+
 ## Verification Before Commit
-- Run `pnpm typecheck && pnpm lint && pnpm test` (and `uv run ruff check && uv run pytest` for Python) before every commit. Never commit an intermediate state that doesn't build.
-- `pnpm test` in `apps/crawler` includes the quality gates. It starts the proving ground on ports 4200/4201, so stop anything on those ports first. `uv run pytest` also applies in `apps/proving-ground/backend`.
+- Every commit (fast tier): `pnpm typecheck && pnpm lint && pnpm test:fast` in `apps/crawler` (the tests affected by your uncommitted changes, without browser end-to-end files and gates; the commit hook runs it), `pnpm typecheck && pnpm lint && pnpm test` in `apps/chat` and `packages/workflow`, and `uv run ruff check && uv run pytest` for Python (`uv run pytest -n auto -m 'not perf' && uv run pytest -m perf` in `apps/dashboard`: parallel, then the wall-clock tests alone). Never commit an intermediate state that doesn't build.
+- Slow tier: also run `pnpm test:slow` in `apps/crawler` (the `*.e2e.test.ts` browser files and the whole gate set) before committing a task that changes `apps/crawler/packages/mcp-server/src/runtime/**`, `apps/crawler/packages/gates/**`, `apps/crawler/packages/crawler/src/**` or `apps/proving-ground/**`.
+- Close-out before merge: `pnpm test` (everything) in `apps/crawler` plus every app's suite.
+- The gates (in `pnpm test:slow` and `pnpm test`) start the proving ground on ports 4200/4201, so stop anything on those ports first. `uv run pytest` also applies in `apps/proving-ground/backend`.
+- A new browser test that drives a whole run is named `*.e2e.test.ts` so it lands in the slow tier.
 - Do NOT edit files with Python/sed text-replacement scripts. Use the Edit tool, then re-read the file to confirm the change landed (prettier reformatting silently breaks string matches).
 - Never use realistic secret shapes in tests (`sk_live_`, `ghp_`, `AKIA...`). Use obviously fake values like `test-key-not-real`.
 - Before claiming a server works, kill any stale dev/watch processes first.
 
 ## Scope & Collaboration
-- Do exactly what was asked. If you see further improvements, list them as suggestions instead of implementing them. The user is learning and wants to do some of the work.
+- Do exactly what was asked. If you see further improvements, list them as suggestions instead of implementing them. Claude does all the work itself, git flow included (branch, commit, push, merge as the workflow above says).
 - Do not gitignore SQLite databases or seed data unless asked.
 - Domain facts: the crawler/explorer is ONE non-deterministic LLM agent, not a deterministic script. The BA agent is judged on system behavior and goal achievement, not on mock-insurer data.

@@ -1,12 +1,12 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
+import { Confidence } from '@pathfinder/core';
 import {
   AnalysisPass,
-  Confidence,
   DocKind,
   EvidenceTargetKind,
   RelationType,
   RevisionStatus,
-} from '@pathfinder/core';
+} from '@pathfinder/docs-model';
 import { z } from 'zod';
 import type { BaContext } from '../context.js';
 import { getPendingFeedback } from '../services/ba/feedback.js';

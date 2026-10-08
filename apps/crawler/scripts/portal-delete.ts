@@ -12,7 +12,7 @@ import {
   migrateUp,
   openDb,
   planPortalDelete,
-} from '@pathfinder/core';
+} from '@pathfinder/store';
 
 const arg = (name: string): string | undefined => {
   const i = process.argv.indexOf(`--${name}`);

@@ -6,10 +6,11 @@ export const MIN_SECRET_LENGTH = 4;
 
 export interface Redactor {
   /** Register a value; its raw, URL-encoded and JSON-escaped forms are all replaced. */
-  add(value: string): void;
-  redact(text: string): string;
+  add(this: void, value: string): void;
+  /** Closures, not `this` methods: safe to pass around as `r.redact`. */
+  redact(this: void, text: string): string;
   /** Deep copy with every string (keys included) redacted. */
-  redactJson<T>(value: T): T;
+  redactJson<T>(this: void, value: T): T;
   readonly size: number;
 }
 

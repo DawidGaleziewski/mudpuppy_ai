@@ -3,13 +3,14 @@
 from __future__ import annotations
 
 import json
-from pathlib import Path
 
 import pytest
 
 from pathfinder_dashboard.diagrams import capability_map, label, node_id, process_map, screen_nav
 
-SPEC = Path(__file__).resolve().parents[3] / "specs" / "004-ba-documentation"
+from .paths import REPO_ROOT
+
+SPEC = REPO_ROOT / "specs" / "004-ba-documentation"
 FIXTURES = SPEC / "contracts" / "diagram-fixtures"
 
 

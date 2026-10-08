@@ -1,4 +1,5 @@
-import { RunStatus, emitForRun, nowIso } from '@pathfinder/core';
+import { RunStatus, nowIso } from '@pathfinder/core';
+import { emitForRun } from '@pathfinder/store';
 import { z } from 'zod';
 import type { ServerContext } from '../context.js';
 import { ToolError, parseInput } from '../errors.js';

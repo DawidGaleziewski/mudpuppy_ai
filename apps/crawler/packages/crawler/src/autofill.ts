@@ -53,7 +53,7 @@ function readForm(el: Element): AutofillField[] | null {
     const isChoice = ftype === 'checkbox' || ftype === 'radio';
     const entry: AutofillField = {
       index,
-      tag: ftag as AutofillField['tag'],
+      tag: ftag,
       type: ftype,
       name: field.name || field.id || label,
       label,
@@ -100,6 +100,7 @@ function writeForm(el: Element, values: { index: number; value: string | true }[
       if (!box.checked) box.click();
     } else {
       const proto = Object.getPrototypeOf(field) as object;
+      // eslint-disable-next-line @typescript-eslint/unbound-method -- called with `.call(field, …)` below
       const setter = Object.getOwnPropertyDescriptor(proto, 'value')?.set;
       if (setter) setter.call(field, value);
       else field.value = value;

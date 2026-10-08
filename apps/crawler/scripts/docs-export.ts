@@ -8,8 +8,9 @@
 import { existsSync } from 'node:fs';
 import { userInfo } from 'node:os';
 import { join, resolve } from 'node:path';
-import { dbPathFor, newId, nowIso, openDb } from '@pathfinder/core';
+import { newId, nowIso } from '@pathfinder/core';
 import { ExportError, exportSrs, writeExport, type ExportScope } from '@pathfinder/docs';
+import { dbPathFor, openDb } from '@pathfinder/store';
 
 const arg = (name: string, fallback: string): string => {
   const i = process.argv.indexOf(`--${name}`);

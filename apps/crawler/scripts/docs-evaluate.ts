@@ -10,7 +10,6 @@
  */
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
-import { dbPathFor, openDb } from '@pathfinder/core';
 import {
   CATEGORIES,
   DEFAULT_THRESHOLDS,
@@ -21,6 +20,7 @@ import {
   reportJson,
   type Thresholds,
 } from '@pathfinder/docs';
+import { dbPathFor, openDb } from '@pathfinder/store';
 
 const fail = (message: string): never => {
   console.error(message);
@@ -30,7 +30,7 @@ const arg = (name: string): string | undefined => {
   const i = process.argv.indexOf(`--${name}`);
   return i > -1 && process.argv[i + 1] ? process.argv[i + 1] : undefined;
 };
-const portal = process.argv[2];
+const portal = process.argv[2] ?? ''; // '' fails the check below like a missing argument
 if (!portal || portal.startsWith('--') || !/^[a-z0-9][a-z0-9_-]*$/.test(portal))
   fail(
     'usage: pnpm docs:evaluate <portal> --ground-truth <file> [--env <env>] [--min <category>=<pct>]… [--out <file>]',

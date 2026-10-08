@@ -4,7 +4,7 @@ import { join, resolve } from 'node:path';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { migrateUp, openDb, type OpenedDb } from '@pathfinder/core';
+import { migrateUp, openDb, type OpenedDb } from '@pathfinder/store';
 import { createChatMcpServer } from '../src/mcp-chat.js';
 import { createPortal } from '../src/portals.js';
 

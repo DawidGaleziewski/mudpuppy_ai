@@ -11,15 +11,10 @@ import {
 } from './amendments.js';
 import { CredentialsBody, type CredentialsHandler } from './credentials.js';
 import { Environment } from '@pathfinder/config';
-import {
-  EnvironmentBody,
-  NewPortalBody,
-  PortalRefusal,
-  type PortalSummary,
-} from './portals.js';
+import { EnvironmentBody, NewPortalBody, PortalRefusal, type PortalSummary } from './portals.js';
 import { RunRefusal, type StoppedRun } from './runs.js';
 import { ScopeRefusal, SetScopeInput } from './scope.js';
-import type { ProcessScope } from '@pathfinder/core';
+import type { ProcessScope } from '@pathfinder/chat-model';
 import type { ErrorInput, ErrorRecord, LogResult } from './error-log.js';
 import { HttpError } from './http-error.js';
 import { ChatError, type ChatService, type SequencedEvent } from './service.js';
@@ -150,8 +145,10 @@ export function createApi(opts: ApiOptions): Server {
     res.write(': connected\n\n');
     // T048: whether a turn is running, so a page opened or reloaded mid-turn shows it working.
     // No `id:`: it is connection state, not part of the replayable stream.
-    res.write(`event: status\ndata: ${JSON.stringify({ busy: service.isBusy(conversationId) })}\n\n`);
-    const write =({ id, event }: SequencedEvent): void => {
+    res.write(
+      `event: status\ndata: ${JSON.stringify({ busy: service.isBusy(conversationId) })}\n\n`,
+    );
+    const write = ({ id, event }: SequencedEvent): void => {
       res.write(`id: ${String(id)}\nevent: ${event.type}\ndata: ${JSON.stringify(event)}\n\n`);
     };
     const unsubscribe = service.subscribe(conversationId, parseLastEventId(req), write);
@@ -177,14 +174,22 @@ export function createApi(opts: ApiOptions): Server {
     if (method === 'POST' && path === '/portals') {
       if (portals === undefined) throw new HttpError(404, 'This address does not exist.');
       const body = parseBody(NewPortalBody, await readJson(req));
-      sendJson(res, 201, portalCall(() => portals.create(body)));
+      sendJson(
+        res,
+        201,
+        portalCall(() => portals.create(body)),
+      );
       return;
     }
     const portalOne = /^\/portals\/([^/]+)$/.exec(path);
     if (method === 'GET' && portalOne !== null) {
       if (portals === undefined) throw new HttpError(404, 'This address does not exist.');
       const id = decodeURIComponent(portalOne[1]!);
-      sendJson(res, 200, portalCall(() => portals.describe(id)));
+      sendJson(
+        res,
+        200,
+        portalCall(() => portals.describe(id)),
+      );
       return;
     }
     const portalEnv = /^\/portals\/([^/]+)\/environments\/([^/]+)$/.exec(path);
@@ -196,8 +201,17 @@ export function createApi(opts: ApiOptions): Server {
         throw new HttpError(400, 'The environment must be production, staging or sandbox.');
       if (method === 'PUT') {
         const body = parseBody(EnvironmentBody, await readJson(req));
-        sendJson(res, 200, portalCall(() => portals.setEnvironment(id, env.data, body)));
-      } else sendJson(res, 200, portalCall(() => portals.removeEnvironment(id, env.data)));
+        sendJson(
+          res,
+          200,
+          portalCall(() => portals.setEnvironment(id, env.data, body)),
+        );
+      } else
+        sendJson(
+          res,
+          200,
+          portalCall(() => portals.removeEnvironment(id, env.data)),
+        );
       return;
     }
     if (method === 'POST' && path === '/conversations') {

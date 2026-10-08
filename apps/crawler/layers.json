@@ -1,0 +1,11 @@
+{
+  "//": "Package layers (guideline G-07, spec 012 contracts/layers.md). Imports go only downward or within a layer; the kernel depends on no workspace package. Checked by tests/layers.test.ts.",
+  "layers": [
+    { "name": "kernel", "packages": ["core", "fingerprint", "obstacles"] },
+    { "name": "models", "packages": ["config", "safety", "trace", "docs-model", "chat-model"] },
+    { "name": "store", "packages": ["store"] },
+    { "name": "features", "packages": ["crawler", "docs", "vault", "wireframe", "workflow"] },
+    { "name": "servers", "packages": ["mcp-server", "chat", "gates", "reference-portal"] }
+  ],
+  "exceptions": []
+}

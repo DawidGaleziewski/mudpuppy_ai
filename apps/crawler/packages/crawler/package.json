@@ -10,6 +10,7 @@
   "dependencies": {
     "@pathfinder/config": "workspace:*",
     "@pathfinder/core": "workspace:*",
+    "@pathfinder/store": "workspace:*",
     "@pathfinder/fingerprint": "workspace:*",
     "@pathfinder/obstacles": "workspace:*",
     "@pathfinder/safety": "workspace:*",

@@ -1,4 +1,4 @@
-import type { DocKind } from '@pathfinder/core';
+import type { DocKind } from '@pathfinder/docs-model';
 import { doc, inline, list, modeLabel, table } from '../format.js';
 import { KIND_ORDER, type ExportModel } from '../model.js';
 

@@ -1,5 +1,6 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
-import { shapeUrl, type CallStart, type SpanHandle } from '@pathfinder/core';
+import { shapeUrl } from '@pathfinder/trace';
+import type { CallStart, SpanHandle } from '@pathfinder/store';
 import { z } from 'zod';
 import type { ServerContext } from '../context.js';
 import { ToolError } from '../errors.js';

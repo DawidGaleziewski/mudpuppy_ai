@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { newId, type DocKind } from '@pathfinder/core';
+import { newId } from '@pathfinder/core';
+import type { DocKind } from '@pathfinder/docs-model';
 import { audit } from '../src/audit.js';
 import { DocsError } from '../src/errors.js';
 import { formatKey, nextSeq } from '../src/keys.js';

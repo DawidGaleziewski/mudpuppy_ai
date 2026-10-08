@@ -1,4 +1,4 @@
-import type { ReviewAction, RevisionChange, RevisionStatus } from '@pathfinder/core';
+import type { ReviewAction, RevisionChange, RevisionStatus } from '@pathfinder/docs-model';
 import { DocsError } from './errors.js';
 
 /** What the engine needs to know about one stored revision. */

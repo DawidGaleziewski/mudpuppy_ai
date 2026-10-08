@@ -5,16 +5,13 @@ import { fileURLToPath } from 'node:url';
 import {
   createEvidenceStore,
   elementKeys,
-  migrateUp,
   newId,
-  openDb,
   parseAriaYaml,
   type Box,
   type EvidenceStore,
   type Layout,
-  type OpenedDb,
-  type PathfinderDb,
 } from '@pathfinder/core';
+import { migrateUp, openDb, type OpenedDb, type PathfinderDb } from '@pathfinder/store';
 import { PNG } from 'pngjs';
 
 // packages/docs/src/testing -> repo root is six levels up.

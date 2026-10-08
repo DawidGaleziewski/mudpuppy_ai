@@ -1,3 +1,5 @@
+// The crawl model only. Trace, documentation and chat schemas live in `@pathfinder/trace`,
+// `@pathfinder/docs-model` and `@pathfinder/chat-model` (guidelines G-09, G-10).
 export * from './common.js';
 export * from './run.js';
 export * from './state.js';
@@ -11,20 +13,3 @@ export * from './action.js';
 export * from './decision-log.js';
 export * from './robots-policy.js';
 export * from './portal-data-log.js';
-export * from './trace-boot.js';
-export * from './trace-span.js';
-export * from './agent-turn.js';
-export * from './analysis-session.js';
-export * from './doc-record.js';
-export * from './doc-content.js';
-export * from './doc-revision.js';
-export * from './evidence-link.js';
-export * from './doc-relation.js';
-export * from './doc-review.js';
-export * from './followup-task.js';
-export * from './process.js';
-export * from './process-step.js';
-export * from './chat-conversation.js';
-export * from './workflow-step.js';
-export * from './process-scope.js';
-export * from './amendment.js';

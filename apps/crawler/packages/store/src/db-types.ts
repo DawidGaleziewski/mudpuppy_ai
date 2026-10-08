@@ -1,0 +1,544 @@
+import type { ColumnType } from 'kysely';
+// Crawl model (kernel).
+import type {
+  Confidence,
+  DecisionKind,
+  EdgeStatus,
+  FrontierItemStatus,
+  PortalDataLogAction,
+  RobotsOutcome,
+  RunStatus,
+  SafetyClass,
+  Stabilization,
+} from '@pathfinder/core';
+// Trace model.
+import type {
+  AgentTurnKind,
+  AgentTurnRole,
+  PwTraceMode,
+  SpanKind,
+  SpanStatus,
+  TraceLevel,
+  TraceServer,
+} from '@pathfinder/trace';
+// Documentation model.
+import type {
+  AnalysisSessionStatus,
+  DocKind,
+  EvidenceTargetKind,
+  FollowupStatus,
+  ProcessOutcome,
+  ProcessStatus,
+  ProcessStepKind,
+  RelationType,
+  ReviewAction,
+  RevisionChange,
+  RevisionStatus,
+} from '@pathfinder/docs-model';
+// Chat model.
+import type {
+  AmendmentKind,
+  AmendmentStatus,
+  AmendmentSupersededReason,
+  AmendmentTargetKind,
+  ChatConversationStatus,
+  ChatMessageRole,
+  ProcessScopeSource,
+  WorkflowStepName,
+  WorkflowStepStatus,
+} from '@pathfinder/chat-model';
+
+/** Kysely table types mirroring data/schema/schema.sql. JSON columns are TEXT (stringified JSON). */
+export interface RunsTable {
+  id: string;
+  portal_id: string;
+  persona_id: string;
+  mode: string;
+  environment: string;
+  env_version_or_date: string;
+  seed_id: string | null;
+  viewport: string;
+  locale: string;
+  browser: string;
+  config_snapshot: string;
+  status: RunStatus;
+  warning: string | null;
+  steps_used: number;
+  elapsed_ms: number;
+  max_depth_reached: number;
+  started_at: string;
+  ended_at: string | null;
+  coverage: string | null;
+  /** 0009: the pathfinder server instance driving the run, and its process id (F-14). */
+  owner_id: string | null;
+  owner_pid: number | null;
+}
+
+export interface StatesTable {
+  id: string;
+  portal_id: string;
+  fingerprint: string;
+  cluster_id: string;
+  route_template: string;
+  title: string;
+  evidence_ref: string;
+  confidence: Confidence;
+  stabilization: Stabilization;
+  first_seen_run: string;
+  created_at: string;
+  /** 0006: `<sha256>.png`, set once when the state is first recorded; NULL if capture failed. */
+  screenshot_ref: ColumnType<string | null, string | null | undefined, string | null>;
+  /** 0006: Layout JSON ref (element keys and page boxes); NULL if capture failed. */
+  layout_ref: ColumnType<string | null, string | null | undefined, string | null>;
+}
+
+/** 0006: derived wireframe of a state, rebuilt when `generator_version` is stale. */
+export interface StateWireframesTable {
+  state_id: string;
+  generator_version: string;
+  svg_ref: string;
+  excalidraw_ref: string;
+  created_at: string;
+}
+
+/**
+ * 0007: encrypted test-user credential. Written only by the vault; never exported or joined.
+ * `ciphertext` is AES-256-GCM ciphertext || 16-byte tag; `nonce` is 12 bytes.
+ */
+export interface CredentialsTable {
+  id: string;
+  portal_id: string;
+  environment: 'sandbox' | 'staging' | 'production';
+  ref_name: string;
+  ciphertext: Buffer | Uint8Array;
+  nonce: Buffer | Uint8Array;
+  /** First 8 hex chars of sha256(key). */
+  key_id: string;
+  created_at: string;
+  updated_at: string;
+}
+
+/** 0008: guided chat orchestrator (spec 010). JSON columns are TEXT (stringified JSON). */
+export interface ChatConversationsTable {
+  id: string;
+  portal_id: string | null;
+  goal: string;
+  acp_session_id: string | null;
+  persona_draft: ColumnType<string, string | undefined, string>;
+  status: ColumnType<
+    ChatConversationStatus,
+    ChatConversationStatus | undefined,
+    ChatConversationStatus
+  >;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ChatMessagesTable {
+  id: string;
+  conversation_id: string;
+  seq: number;
+  role: ChatMessageRole;
+  content: string;
+  tool_name: string | null;
+  error_ref: string | null;
+  created_at: string;
+}
+
+export interface WorkflowStepsTable {
+  id: string;
+  conversation_id: string;
+  portal_id: string;
+  step: WorkflowStepName;
+  status: ColumnType<WorkflowStepStatus, WorkflowStepStatus | undefined, WorkflowStepStatus>;
+  run_id: string | null;
+  session_id: string | null;
+  error_ref: string | null;
+  started_at: string | null;
+  finished_at: string | null;
+  updated_at: string;
+}
+
+export interface ProcessScopesTable {
+  id: string;
+  conversation_id: string;
+  portal_id: string;
+  process_name: string;
+  persona: string;
+  start_state_id: string;
+  end_state_id: string;
+  selected_state_ids: string;
+  comments: ColumnType<string, string | undefined, string>;
+  source: ProcessScopeSource;
+  created_at: string;
+}
+
+export interface AmendmentsTable {
+  id: string;
+  key: string;
+  portal_id: string;
+  scope_id: string | null;
+  target_kind: AmendmentTargetKind;
+  target_id: string;
+  kind: AmendmentKind;
+  text: string | null;
+  attachment_sha256: string | null;
+  attachment_name: string | null;
+  author: string;
+  status: ColumnType<AmendmentStatus, AmendmentStatus | undefined, AmendmentStatus>;
+  anchor_fingerprint: string | null;
+  anchor_route_template: string | null;
+  anchor_element: string | null;
+  superseded_by_run: string | null;
+  superseded_reason: AmendmentSupersededReason | null;
+  superseded_detail: string | null;
+  superseded_at: string | null;
+  dismissed_at: string | null;
+  reapplied_as: string | null;
+  reapplies: string | null;
+  created_at: string;
+  withdrawn_at: string | null;
+}
+
+export interface StateObservationsTable {
+  run_id: string;
+  state_id: string;
+  persona_id: string;
+  evidence_ref: string;
+  observed_at: string;
+}
+
+export interface ActionsTable {
+  id: string;
+  run_id: string;
+  state_id: string;
+  role: string;
+  accessible_name: string | null;
+  action_json: string;
+  safety_class: SafetyClass;
+  allowed: 0 | 1;
+  skip_reason: string | null;
+  created_at: string;
+}
+
+export interface EdgesTable {
+  id: string;
+  run_id: string;
+  from_state: string;
+  to_state: string | null;
+  action_json: string;
+  safety_class: SafetyClass;
+  status: EdgeStatus;
+  evidence_ref: string;
+  confidence: Confidence;
+  error: string | null;
+  stabilization: Stabilization;
+  created_at: string;
+}
+
+export interface FormsTable {
+  id: string;
+  run_id: string;
+  state_id: string;
+  fields_json: string;
+  evidence_ref: string;
+  confidence: Confidence;
+  created_at: string;
+}
+
+export interface NetworkCallsTable {
+  id: string;
+  run_id: string;
+  edge_id: string | null;
+  method: string;
+  url_template: string;
+  status: number;
+  req_schema: string;
+  res_schema: string;
+  console_errors: string;
+  created_at: string;
+}
+
+export interface FrontierTable {
+  id: string;
+  run_id: string;
+  state_id: string;
+  action_id: string | null;
+  action_json: string;
+  safety_class: SafetyClass;
+  status: FrontierItemStatus;
+  priority: number;
+  depth: number;
+  reason: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface OpenQuestionsTable {
+  id: string;
+  run_id: string;
+  text: string;
+  about_ref: string;
+  status: 'open' | 'addressed';
+  created_at: string;
+}
+
+export interface RuleCandidatesTable {
+  id: string;
+  run_id: string;
+  text: string;
+  about_ref: string;
+  evidence_ref: string;
+  confidence: 'inferred';
+  created_at: string;
+}
+
+export interface DecisionLogTable {
+  id: string;
+  run_id: string;
+  kind: DecisionKind;
+  rule: string | null;
+  reason: string;
+  subject_ref: string | null;
+  detail_json: string | null;
+  created_at: string;
+}
+
+export interface RobotsPoliciesTable {
+  id: string;
+  run_id: string;
+  host: string;
+  source_url: string;
+  final_url: string | null;
+  outcome: RobotsOutcome;
+  http_status: number | null;
+  product_token: string;
+  group_used: string | null;
+  crawl_delay_s: number | null;
+  ignored_lines: number;
+  truncated: 0 | 1;
+  content_sha256: string | null;
+  evidence_ref: string;
+  fetched_at: string;
+}
+
+export interface PortalDataLogTable {
+  id: string;
+  portal_id: string;
+  environment: string;
+  action: PortalDataLogAction;
+  operator: string;
+  counts_json: string;
+  target: string | null;
+  created_at: string;
+}
+
+export interface TraceBootsTable {
+  id: string;
+  started_at: string;
+  ended_at: string | null;
+  environment: string;
+  server: TraceServer;
+  pid: number;
+  version: string;
+  trace_level: TraceLevel;
+  pw_trace: PwTraceMode;
+}
+
+export interface TraceSpansTable {
+  id: string;
+  boot_id: string;
+  seq: number;
+  run_id: string | null;
+  parent_id: string | null;
+  kind: SpanKind;
+  name: string;
+  status: SpanStatus;
+  started_at: string;
+  ended_at: string | null;
+  duration_ms: number | null;
+  attrs_json: string;
+  payload_ref: string | null;
+  summary: string;
+  decision_id: string | null;
+  tool_use_id: string | null;
+  agent_id: string | null;
+  rationale: string | null;
+  pw_trace_path: string | null;
+  between_calls: 0 | 1;
+}
+
+export interface AgentTurnsTable {
+  id: string;
+  agent_id: string;
+  agent_type: string;
+  session_id: string | null;
+  message_uuid: string;
+  block_index: number;
+  api_message_id: string | null;
+  run_id: string | null;
+  role: AgentTurnRole;
+  kind: AgentTurnKind;
+  tool_use_id: string | null;
+  tool_name: string | null;
+  text: string | null;
+  payload_ref: string | null;
+  is_error: 0 | 1 | null;
+  model: string | null;
+  input_tokens: number | null;
+  output_tokens: number | null;
+  cache_read_tokens: number | null;
+  cache_creation_tokens: number | null;
+  matched: 0 | 1;
+  created_at: string;
+  imported_at: string;
+}
+
+export interface AnalysisSessionsTable {
+  id: string;
+  portal_id: string;
+  status: AnalysisSessionStatus;
+  passes_json: string;
+  summary: string | null;
+  gaps_json: string;
+  started_at: string;
+  ended_at: string | null;
+}
+
+export interface AnalysisSessionRunsTable {
+  session_id: string;
+  run_id: string;
+}
+
+export interface DocRecordsTable {
+  id: string;
+  portal_id: string;
+  kind: DocKind;
+  key: string;
+  seq: number;
+  title: string;
+  latest_rev: number;
+  confirmed_rev: number | null;
+  withdrawn: 0 | 1;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface DocRevisionsTable {
+  id: string;
+  record_id: string;
+  rev_no: number;
+  session_id: string;
+  change: RevisionChange;
+  content_json: string;
+  confidence: Confidence;
+  not_observable: 0 | 1;
+  status: RevisionStatus;
+  change_note: string | null;
+  responds_to_review: string | null;
+  created_at: string;
+}
+
+export interface DocEvidenceLinksTable {
+  id: string;
+  revision_id: string;
+  target_kind: EvidenceTargetKind;
+  target_id: string;
+  run_id: string | null;
+  note: string | null;
+  /** 0006: element key; set iff `target_kind = 'screen_region'`. */
+  region: ColumnType<string | null, string | null | undefined, string | null>;
+}
+
+export interface DocRelationsTable {
+  from_revision_id: string;
+  to_record_id: string;
+  type: RelationType;
+}
+
+export interface DocReviewsTable {
+  id: string;
+  revision_id: string;
+  action: ReviewAction;
+  reviewer: string;
+  text: string | null;
+  created_at: string;
+}
+
+export interface FollowupTasksTable {
+  record_id: string;
+  status: FollowupStatus;
+  run_id: string | null;
+  blocked_reason: string | null;
+  updated_at: string;
+}
+
+export interface ProcessesTable {
+  id: string;
+  run_id: string;
+  portal_id: string;
+  persona_id: string;
+  name: string;
+  goal: string;
+  followup_record_id: string | null;
+  status: ProcessStatus;
+  outcome: ProcessOutcome | null;
+  boundary_action_id: string | null;
+  observed_result: string | null;
+  not_observable: string | null;
+  created_at: string;
+  ended_at: string | null;
+}
+
+export interface ProcessStepsTable {
+  id: string;
+  process_id: string;
+  ord: number;
+  intent: string;
+  kind: ProcessStepKind;
+  action_id: string | null;
+  edge_id: string | null;
+  value: string | null;
+  state_before: string | null;
+  state_after: string | null;
+  outcomes_json: string;
+  evidence_ref: string;
+  confidence: Confidence;
+  created_at: string;
+}
+
+export interface Database {
+  runs: RunsTable;
+  states: StatesTable;
+  state_wireframes: StateWireframesTable;
+  state_observations: StateObservationsTable;
+  actions: ActionsTable;
+  edges: EdgesTable;
+  forms: FormsTable;
+  network_calls: NetworkCallsTable;
+  frontier: FrontierTable;
+  open_questions: OpenQuestionsTable;
+  rule_candidates: RuleCandidatesTable;
+  decision_log: DecisionLogTable;
+  robots_policies: RobotsPoliciesTable;
+  portal_data_log: PortalDataLogTable;
+  trace_boots: TraceBootsTable;
+  trace_spans: TraceSpansTable;
+  agent_turns: AgentTurnsTable;
+  analysis_sessions: AnalysisSessionsTable;
+  analysis_session_runs: AnalysisSessionRunsTable;
+  doc_records: DocRecordsTable;
+  doc_revisions: DocRevisionsTable;
+  doc_evidence_links: DocEvidenceLinksTable;
+  doc_relations: DocRelationsTable;
+  doc_reviews: DocReviewsTable;
+  followup_tasks: FollowupTasksTable;
+  processes: ProcessesTable;
+  process_steps: ProcessStepsTable;
+  credentials: CredentialsTable;
+  chat_conversations: ChatConversationsTable;
+  chat_messages: ChatMessagesTable;
+  workflow_steps: WorkflowStepsTable;
+  process_scopes: ProcessScopesTable;
+  amendments: AmendmentsTable;
+}

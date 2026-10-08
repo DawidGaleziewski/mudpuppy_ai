@@ -5,8 +5,8 @@
  */
 import { existsSync } from 'node:fs';
 import { join, resolve } from 'node:path';
-import { dbPathFor, openDb } from '@pathfinder/core';
 import { audit, elementKeysReader } from '@pathfinder/docs';
+import { dbPathFor, openDb } from '@pathfinder/store';
 
 const arg = (name: string, fallback: string): string => {
   const i = process.argv.indexOf(`--${name}`);
