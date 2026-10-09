@@ -1,3 +1,5 @@
+import { readFileSync, writeFileSync } from 'node:fs';
+import { join } from 'node:path';
 import { afterAll, beforeAll, expect } from 'vitest';
 import {
   actionNamed,
@@ -38,6 +40,44 @@ gate(
   },
 );
 
+gate(
+  'LO-02',
+  'a slow micro-frontend bundle is waited for before the page is observed',
+  async () => {
+    // A server of its own: the shop portal does not allow `/__test/*`, so this copy of its config
+    // does (the real config stays closed), and the delay cookie cannot slow the other cases.
+    const slow = await gateServer({
+      portals: ['proving-ground-shop'],
+      extra: (root) => {
+        const file = join(root, 'portals', 'proving-ground-shop', 'portal.yaml');
+        writeFileSync(
+          file,
+          readFileSync(file, 'utf8').replace('allowed_paths: [', 'allowed_paths: ["/__test/*", '),
+        );
+      },
+    });
+    try {
+      const own = await startRun(slow.call, 'proving-ground-shop', 'guest');
+      await nav(slow.call, own, '/__test/bundle-delay?ms=2500');
+      const page = await nav(slow.call, own, '/sklep');
+      expect(snapshot(slow, page.state_id)).toContain('Katalog produktów');
+      const [obs] = rows<{ composition_json: string }>(
+        slow,
+        'SELECT composition_json FROM state_observations WHERE run_id = ? AND state_id = ?',
+        own,
+        page.state_id,
+      );
+      const mounts = (JSON.parse(obs!.composition_json).mounts ?? []) as {
+        filled: boolean;
+        waited_ms: number;
+      }[];
+      expect(mounts.some((m) => m.filled === true && m.waited_ms > 1000)).toBe(true);
+    } finally {
+      await slow.close();
+    }
+  },
+);
+
 gate('LO-05', 'the shadow-DOM mini-cart is part of the observed page', async () => {
   expect(snapshot(gs, catalogue.state_id)).toMatch(/Koszyk \(\d+\)/);
 });
@@ -65,15 +105,18 @@ gate('LO-09', 'white-label login pages of two brands are two different states', 
   expect(bank.title).not.toBe(shop.title);
 });
 
-gap(
-  'LO-10',
-  'a div "button" without a role is found and can be acted on',
-  'actions are extracted from ARIA roles only; a clickable div has none',
-  async () => {
-    const product = await nav(gs.call, run, '/sklep/produkt/kalosze-bagienne-klasyczne');
-    expect(actionNamed(product, 'Dodaj do koszyka')).toBeDefined();
-  },
-);
+gate('LO-10', 'a div "button" without a role is found and can be acted on', async () => {
+  // A run of its own (own browser, own cart): adding to the cart must not reach LO-51's cart.
+  const own = await startRun(gs.call, 'proving-ground-shop', 'guest');
+  const product = await nav(gs.call, own, '/sklep/produkt/kalosze-bagienne-klasyczne');
+  const add = actionNamed(product, 'Dodaj do koszyka');
+  expect(add).toBeDefined();
+  expect(add?.role).toBe('generic');
+  expect(Array.isArray(add?.found_by)).toBe(true);
+  expect((add?.found_by as unknown[]).length).toBeGreaterThan(0);
+  const after = await actOn(gs.call, own, product, 'Dodaj do koszyka');
+  expect(after.error).toBeUndefined();
+});
 
 gate('LO-13', 'generated class names never reach locators or the fingerprint', async () => {
   const locators = rows<{ action_json: string }>(
@@ -93,14 +136,9 @@ gate('LO-15', 'an icon-only button is still issued as an action', async () => {
   expect(unnamed.length).toBeGreaterThan(0);
 });
 
-gap(
-  'LO-18',
-  'a div-based dropdown is operable (its options are issued)',
-  'a div dropdown has no role, so it is not extracted (same cause as LO-10)',
-  async () => {
-    expect(actionNamed(catalogue, /Wszystkie kategorie|Kategoria/)).toBeDefined();
-  },
-);
+gate('LO-18', 'a div-based dropdown is operable (its options are issued)', async () => {
+  expect(actionNamed(catalogue, /Wszystkie kategorie|Kategoria/)).toBeDefined();
+});
 
 gate(
   'LO-21',
@@ -127,13 +165,14 @@ gate('LO-26', 'endless pagination does not become one state per page', async () 
   expect(pages.filter((p) => /strona=\d/.test(p.route_template))).toEqual([]);
 });
 
-gap(
+gate(
   'LO-34',
   'adding to the cart in the shop app updates the shell cart (one state change)',
-  '"Dodaj do koszyka" is a div button (LO-10), so the crawler cannot add to the cart',
   async () => {
-    const product = await nav(gs.call, run, '/sklep/produkt/kalosze-bagienne-klasyczne');
-    const after = await actOn(gs.call, run, product, 'Dodaj do koszyka');
+    // A run of its own (own browser, own cart): "Koszyk (1)" needs an empty cart to start from.
+    const own = await startRun(gs.call, 'proving-ground-shop', 'guest');
+    const product = await nav(gs.call, own, '/sklep/produkt/kalosze-bagienne-klasyczne');
+    const after = await actOn(gs.call, own, product, 'Dodaj do koszyka');
     expect(snapshot(gs, after.state_id)).toContain('Koszyk (1)');
   },
 );
@@ -209,4 +248,25 @@ gate('LO-51', 'free delivery appears only past the threshold', async () => {
   // one cheap item: no free delivery yet (the rule is found past 200 zł by a trace)
   expect(snap).not.toContain('Darmowa dostawa od 200,00 zł');
   expect(GATE_BASE).toContain('127.0.0.1');
+});
+
+gate('LO-11', 'inputs outside any form (a React checkout) are recorded as a form', async () => {
+  // A run of its own (own browser, own cart): the checkout needs an item first.
+  const own = await startRun(gs.call, 'proving-ground-shop', 'guest');
+  const product = await nav(gs.call, own, '/sklep/produkt/kalosze-bagienne-klasyczne');
+  await actOn(gs.call, own, product, 'Dodaj do koszyka');
+  const checkout = await nav(gs.call, own, '/sklep/zamowienie');
+  const stored = rows<{ fields_json: string }>(
+    gs,
+    'SELECT fields_json FROM forms WHERE state_id = ?',
+    checkout.state_id,
+  );
+  expect(stored.length).toBeGreaterThan(0);
+  const fields = stored.map((f) => f.fields_json).join(' ');
+  // labels of the CMS texts (cms/shop/pl.json: checkout.name, .email, .postal)
+  expect(fields).toMatch(/Imi|Nazwisko/);
+  expect(fields).toMatch(/e-?mail/i);
+  expect(fields).toContain('Miasto');
+  // the postal input's placeholder "00-000" is only a format: the label next to it names it
+  expect(fields).toContain('Kod pocztowy');
 });

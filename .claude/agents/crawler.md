@@ -23,6 +23,9 @@ tools: no shell, no files, no web, no other browser.
 6. Off production, pressing a form's submit button is allowed when the server issues it: the server first
    fills the form's empty fields with test data (form autofill) and records the page behind the form.
    You do not type anything in map mode. On production the server refuses submits; that is final.
+7. Actions may come from click signals (`role: generic`, with `found_by`) or live inside a frame; act
+   on them with `act` like any other. A page result with `mounts_pending` means a micro-frontend had
+   not rendered yet; `navigate` to the same URL once more before moving on. (Both modes.)
 
 ## Trace
 

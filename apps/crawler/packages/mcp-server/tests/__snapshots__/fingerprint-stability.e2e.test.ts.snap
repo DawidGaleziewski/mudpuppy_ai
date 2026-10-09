@@ -1,0 +1,25 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`fingerprints of frame-less pages > match the pre-spec-015 fingerprints of the reference portal screens 1`] = `
+{
+  "S01 /": "0200e6959f74b76676c273222ffb05d3cb241eb51327051d95220fc740d240f3",
+  "S02 /ubezpieczenia/samochod": "908c3cb8747aa8acc2216bb57f141b96204de9f177ebb2c92b4779f453782d39",
+  "S03 /ubezpieczenia/dom": "8ba40b1a512a7223fd96d6822997472b46fd4fdc81ccc37aa9ba86f443837477",
+  "S04 /ubezpieczenia/podroze": "688427098e1166cdc952297ee405b02d04ff586252ea6cba573b4ad75b515354",
+  "S05 /ubezpieczenia/podroze/wynik": "ef32ee27f99bd7e0999e0d3db15cc2d8c9e4fefd1d59631262e6958f6d5fd275",
+  "S06 /porownanie": "18c0d2b289b34ec434ba085e991a9b26992011d4488db51e45714d8db49ef894",
+  "S07 /porownanie/wynik": "6ceee284d3e92bfb2c62cfc978206b3fbdd5ba2a27a39cec6e276bf566ae93ca",
+  "S08 /kalkulator/pojazd": "e871cde706240ca82801cd135dde894eecf8708fd27e102375d2da5ea3f369cb",
+  "S09 /kalkulator/kierowca": "c67e4bfb867776de2ad4a857da8892f2098c39fa0446eb0a5ea7809cc88e79a2",
+  "S10 /kalkulator/opcje": "2c184b58893e4ced844c605cd7482ed587395307cc6bbd7d02dc05f13a854c5e",
+  "S11 /kalkulator/wynik": "3cbf2567b3f54789b04ddec89a4a8b57d053c6de370640bacaf42dde79176a12",
+  "S12 /kalkulator/zakup": "1dbb8ac105d2895d5c5830ad7ce61a058dd844026731da4b4b314ff87d36fbb2",
+  "S13 /kontakt": "2d2b845fca7ae333f50fa460922cabf6db3aa9334b37e0c8f66e5a3ad1ac160a",
+  "S14 /kontakt/dziekujemy": "07fb7f7153ab7f05d98b808d8c9594ef24e8c681b912894f998a2d32c9e8ad0d",
+  "S15 /faq": "7969cf315bed09549fbe019fd09c75dd43c455928d5bd93617a9a6c116730be5",
+  "S16 /slowniczek": "3f6eca19171b974a23e4fc9ff8aa0a23d61d62cf009d0932551e94541d321dd8",
+  "S17 /logowanie": "45edd46330cb178617d2314aea2e99842b33e963c94dca190f6a4dd5dcaa50e5",
+  "S18 /moje-polisy": "1bd35b422f12026a6333cb88503016f874b1434dc86e335a80f95ea97a5a4c1d",
+  "S19 /moje-polisy/przedluz": "ad385dc027f4c4b3e9651ffaf3ec57ddf937e78f828dab666c6b0a6121d99f01",
+}
+`;

@@ -1,0 +1,83 @@
+{
+  "portal_id": "proving-ground-shop",
+  "persona_id": "guest",
+  "started_at": "2026-10-09T20:39:41.417Z",
+  "git_sha": "0c67c2c",
+  "runs": {
+    "crawler": "01a12264-a60a-7000-80ef-9a6bda86a8ae",
+    "ba_session": "01a1227f-1956-7000-96d8-097e2dc6405e",
+    "crawler_cli_session": "cd8060da-060f-4ab0-91c6-61c6f929e7e6",
+    "ba_cli_session": "9c595a91-dbed-4d96-9609-8f8bdc3b9284"
+  },
+  "cost": {
+    "usd": 9.3394544,
+    "input_tokens": 25823972,
+    "output_tokens": 101916,
+    "duration_ms": 2545160
+  },
+  "scores": {
+    "screens": {
+      "matched": 3,
+      "total": 6,
+      "pct": 50
+    },
+    "fields": {
+      "matched": 8,
+      "total": 15,
+      "pct": 53.3
+    },
+    "constraints": {
+      "matched": 0,
+      "total": 23,
+      "pct": 0
+    },
+    "rules": {
+      "matched": 4,
+      "total": 8,
+      "pct": 50
+    },
+    "processes": {
+      "matched": 0,
+      "total": 2,
+      "pct": 0
+    },
+    "terms": {
+      "matched": 3,
+      "total": 11,
+      "pct": 27.3
+    },
+    "logged_in_screens": {
+      "matched": 1,
+      "total": 1,
+      "pct": 100
+    },
+    "obstacles": {
+      "matched": 16,
+      "total": 24,
+      "pct": 66.7
+    },
+    "entry_points": {
+      "matched": 0,
+      "total": 1,
+      "pct": 0
+    },
+    "crawl_screens": {
+      "matched": 4,
+      "total": 6,
+      "pct": 66.7
+    }
+  },
+  "overclaims": 0,
+  "checks": {
+    "frontier_empty_at_finish": false,
+    "crawler_completed": false,
+    "crawler_steps": 105,
+    "frontier_pending": 214,
+    "ba_session_completed": true,
+    "handoffs": 1,
+    "relogins": 0,
+    "logged_in": false,
+    "password_hits": 0,
+    "widget_actions": 0
+  }
+}

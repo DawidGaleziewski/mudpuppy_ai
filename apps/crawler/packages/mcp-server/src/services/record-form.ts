@@ -1,4 +1,4 @@
-import { Confidence, newId, nowIso } from '@pathfinder/core';
+import { Confidence, FieldNameSource, newId, nowIso } from '@pathfinder/core';
 import { z } from 'zod';
 import type { ServerContext } from '../context.js';
 import { ToolError, parseInput } from '../errors.js';
@@ -13,6 +13,10 @@ export const FieldSchema = z
     constraints: z.record(z.string(), z.union([z.string(), z.number(), z.boolean()])).optional(),
     options: z.array(z.string()).optional(),
     validation_messages: z.array(z.string()).optional(),
+    /** Where the name came from (spec 015 LO-11); nearby text and position are inferred names. */
+    name_source: FieldNameSource.optional(),
+    /** The field's visible label, placeholder or nearby text, when it has one. */
+    label: z.string().optional(),
   })
   .strict();
 

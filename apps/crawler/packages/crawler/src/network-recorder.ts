@@ -1,14 +1,20 @@
 import type { Page, Request, Response } from 'playwright';
 import { inferRouteTemplates } from '@pathfinder/fingerprint';
 import { maskText } from '@pathfinder/core';
-import { shapeOfBody, type Shape } from './shape.js';
+import { shapeOfBody, shapeOfFormBody, type Shape } from './shape.js';
+
+/** `res_schema` of a form-submit call: no body is read; the redirect hops (URLs as templates) follow it. */
+export interface DocumentResSchema {
+  kind: 'document';
+  redirects?: { status: number; url_template: string }[];
+}
 
 export interface ObservedCall {
   method: string;
   url_template: string;
   status: number;
   req_schema: Shape;
-  res_schema: Shape;
+  res_schema: Shape | DocumentResSchema;
 }
 
 export interface Observation {
@@ -52,12 +58,16 @@ export class NetworkRecorder {
   private calls: ObservedCall[] = [];
   private errors: string[] = [];
   private pending = new Set<Promise<void>>();
+  /** Resolves once the form-submit probe is installed (new documents carry it from then on). */
+  readonly ready: Promise<void>;
+  private submitted = new Map<string, Record<string, Shape>>();
   private readonly listeners: [string, (...a: never[]) => void][] = [];
 
   constructor(
     private readonly page: Page,
     private readonly opts: { bodyTimeoutMs?: number } = {},
   ) {
+    this.ready = this.installSubmitProbe();
     this.on('response', (res: Response) => this.track(this.onResponse(res)));
     this.on('requestfailed', (req: Request) => {
       if (this.isApi(req))
@@ -90,6 +100,7 @@ export class NetworkRecorder {
 
   private async onResponse(res: Response): Promise<void> {
     const req = res.request();
+    if (req.resourceType() === 'document') return this.onDocumentResponse(res);
     if (!this.isApi(req)) return;
     let resBody: string | null = null;
     try {
@@ -107,6 +118,69 @@ export class NetworkRecorder {
       status: res.status(),
       req_schema: shapeOfBody(req.postData(), req.headers()['content-type']),
       res_schema: shapeOfBody(resBody, res.headers()['content-type']),
+    });
+  }
+
+  /**
+   * Chromium hands Playwright no `postData` for a multipart body that carries a file, so the field
+   * names (and `<file>`/`string` tags, never values) come from the submitting form in the page.
+   * A capture-phase `submit` listener (every document, via init script) reports the form's field
+   * names to the recorder BEFORE the navigation starts; the page is gone by the time the request
+   * event fires. Best effort: a recorder created after the page loaded misses that first document.
+   */
+  private async installSubmitProbe(): Promise<void> {
+    try {
+      await this.page.exposeFunction(
+        '__pfFormSubmit',
+        (path: string, fields: Record<string, Shape>) => {
+          this.submitted.set(path, fields);
+        },
+      );
+      await this.page.addInitScript(
+        `document.addEventListener('submit', (ev) => { try {
+          const f = ev.target; if (!f || !/multipart/i.test(f.enctype)) return;
+          const out = {};
+          for (const e of f.elements) if (e.name) out[e.name] = e.type === 'file' ? '<file>' : 'string';
+          window.__pfFormSubmit(new URL(f.action, location.href).pathname, out);
+        } catch (e) {} }, true);`,
+      );
+    } catch {
+      /* binding already installed by another recorder, or the page is closed: no upload fields */
+    }
+  }
+
+  /**
+   * A classic form submit (document request that is not GET/HEAD, FR-009) is one call with the redirect
+   * chain after it. The POST's own 3xx response and the redirected GET are not calls of their own: the
+   * call is recorded once, when the final response arrives. Plain GET navigations stay out (AS7.2).
+   * A document response body is never read.
+   */
+  private async onDocumentResponse(res: Response): Promise<void> {
+    let root = res.request();
+    while (root.redirectedFrom()) root = root.redirectedFrom()!;
+    const method = root.method().toUpperCase();
+    if (method === 'GET' || method === 'HEAD') return;
+    if (res.status() >= 300 && res.status() < 400 && res.headers()['location']) return;
+    const redirects: { status: number; url_template: string }[] = [];
+    for (let r: Request | null = root, next = r.redirectedTo(); next; next = r.redirectedTo()) {
+      redirects.push({
+        status: (await r.response())?.status() ?? 0,
+        url_template: apiUrlTemplate(next.url()),
+      });
+      r = next;
+    }
+    const fields =
+      root.postData() === null && /multipart\/form-data/i.test(root.headers()['content-type'] ?? '')
+        ? this.submitted.get(new URL(root.url()).pathname)
+        : undefined;
+    this.calls.push({
+      method,
+      url_template: apiUrlTemplate(root.url()),
+      status: res.status(),
+      req_schema: fields
+        ? { ...fields, content_type: 'multipart/form-data' }
+        : shapeOfFormBody(root.postData(), root.headers()['content-type']),
+      res_schema: redirects.length > 0 ? { kind: 'document', redirects } : { kind: 'document' },
     });
   }
 

@@ -41,6 +41,36 @@ export function shapeOf(value: unknown, depth = 0): Shape {
   }
 }
 
+/**
+ * Shape of a form-submit body (document request): field names with value shapes, never values, and
+ * `content_type`. A multipart file part is `"<file>"`, its contents are never read into the shape.
+ */
+export function shapeOfFormBody(
+  body: string | null | undefined,
+  contentType: string | undefined,
+): Shape {
+  const ct = contentType?.toLowerCase() ?? '';
+  if (body && ct.includes('x-www-form-urlencoded')) {
+    const fields: Record<string, Shape> = {};
+    for (const k of new URLSearchParams(body).keys()) fields[k] = 'string';
+    return { ...fields, content_type: 'application/x-www-form-urlencoded' };
+  }
+  const boundary = /boundary=("?)([^";]+)\1/i.exec(contentType ?? '')?.[2];
+  if (body && ct.includes('multipart/form-data') && boundary)
+    return { ...multipartFields(body, boundary), content_type: 'multipart/form-data' };
+  return ct ? { content_type: ct.split(';')[0]!.trim() } : {};
+}
+
+function multipartFields(body: string, boundary: string): Record<string, Shape> {
+  const fields: Record<string, Shape> = {};
+  for (const part of body.split(`--${boundary}`)) {
+    const head = part.split(/\r?\n\r?\n/, 1)[0] ?? '';
+    const name = /\bname="([^"]*)"/i.exec(head)?.[1];
+    if (name) fields[name] = /\bfilename=/i.test(head) ? '<file>' : 'string';
+  }
+  return fields;
+}
+
 /** Shape of a request/response body given its content type; non-JSON bodies yield `{}` (shape unknown). */
 export function shapeOfBody(
   body: string | null | undefined,

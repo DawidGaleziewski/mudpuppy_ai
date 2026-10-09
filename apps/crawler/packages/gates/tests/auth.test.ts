@@ -156,6 +156,27 @@ gate('LO-37', 'a CAPTCHA off production is handed to a human and the crawl goes 
   expect(q).toHaveLength(1);
   expect(q[0]!.text).toContain('/sklep/zamowienie');
   expect(decisions('handoff:captcha')).toHaveLength(1);
+  // spec 015 FR-004: the widget frame is recorded by URL, not read, and yields no action
+  const comp = JSON.parse(
+    (
+      gs.ctx.raw
+        .prepare('SELECT composition_json FROM state_observations WHERE state_id = ?')
+        .get(checkout.state_id) as { composition_json: string }
+    ).composition_json,
+  ) as { frames: { path: string; url: string; origin: string; observed: boolean }[] };
+  // The widget request is blocked by the request gate, so its frame ends on a browser error page
+  // (url chrome-error://...) whose origin falls back to the portal's: it counts as "observed"
+  // (finding, see the report). The invariant that holds: no action lives in a frame that is not a
+  // portal document.
+  const widget = comp.frames.filter((f) => !f.observed || !/^https?:/.test(f.url));
+  expect(comp.frames.length, JSON.stringify(comp)).toBeGreaterThan(0);
+  const framed = gs.ctx.raw
+    .prepare(
+      "SELECT json_extract(action_json, '$.frame') AS frame FROM actions WHERE state_id = ? AND json_extract(action_json, '$.frame') IS NOT NULL",
+    )
+    .all(checkout.state_id) as { frame: string }[];
+  for (const a of framed)
+    expect(widget.some((w) => a.frame === w.path || a.frame.startsWith(`${w.path}/`))).toBe(false);
   // the run is still running: the next page works
   const next = await nav(gs.call, run, '/sklep/koszyk');
   expect(next.state_id).toBeTruthy();

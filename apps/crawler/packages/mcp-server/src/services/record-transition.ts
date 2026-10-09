@@ -1,6 +1,7 @@
 import {
   Confidence,
   EdgeStatus,
+  FoundBy,
   SafetyClass,
   Stabilization,
   newId,
@@ -13,7 +14,7 @@ import type { ServerContext } from '../context.js';
 import { ToolError, parseInput } from '../errors.js';
 import { getRun, requireEvidenceAndConfidence } from './common.js';
 
-export const LocatorKind = z.enum(['role', 'label', 'text', 'test_id', 'container']);
+export const LocatorKind = z.enum(['role', 'label', 'text', 'test_id', 'container', 'path']);
 
 export const ActionInput = z
   .object({
@@ -52,6 +53,11 @@ export const ActionInput = z
       .strict()
       .optional(),
     attributes: z.record(z.string(), z.string()).optional(),
+    /** Role-less clickables (spec 015 R1): the click signals that found it and its tag. */
+    found_by: z.array(FoundBy).min(1).optional(),
+    tag: z.string().min(1).optional(),
+    /** Frame path of the document it lives in (spec 015 R3); absent for the top document. */
+    frame: z.string().min(1).optional(),
   })
   .strict();
 

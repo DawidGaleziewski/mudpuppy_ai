@@ -145,6 +145,7 @@ class StateObservation(Row):
     persona_id: str
     evidence_ref: str
     observed_at: str
+    composition_json: str | None = None
 
 
 class Action(Row):

@@ -22,6 +22,7 @@ import {
   compareEval,
   comparisonMarkdown,
   crawlScreens,
+  frameRoutes,
   EvalResult,
   HARD_ZERO_CHECKS,
   passwordHits,
@@ -189,7 +190,14 @@ async function measure(ws: string, gt: GroundTruth, runId: string, sessions: Ses
     'SELECT DISTINCT s.route_template AS v FROM state_observations o JOIN states s ON s.id = o.state_id WHERE o.run_id = ?',
     runId,
   );
-  const crawl = crawlScreens(gt.screens, routes, persona !== 'guest');
+  // Pages read inside frames count as reached under their own route (spec 015 F-13).
+  const framed = frameRoutes(
+    col(
+      'SELECT composition_json AS v FROM state_observations WHERE run_id = ? AND composition_json IS NOT NULL',
+      runId,
+    ),
+  );
+  const crawl = crawlScreens(gt.screens, [...routes, ...framed], persona !== 'guest');
   const widget = widgetActions({
     edgeActions: col(
       "SELECT action_json AS v FROM edges WHERE run_id = ? AND status = 'executed'",

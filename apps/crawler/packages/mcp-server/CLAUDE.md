@@ -14,6 +14,9 @@ Layer: servers (G-07; `apps/crawler/layers.json`)
   - `process-page.ts`: the ordered steps for an observed page (`settle` → `observe` → `net_drain` →
     `fingerprint-step` → `record-state` → visuals → CAPTCHA hand-off → depth → `record-page`
     forms/transition → network → `enqueue` → trace step), all on one `StepContext` (`context.ts`).
+    `settle` also waits for micro-frontend mounts; `observe` reads frames (`frames.ts`:
+    `frame_skipped` reports); `composition.ts` builds the page composition and the result hints
+    (spec 015).
   - `navigate.ts`, `act.ts` (+ `act-gate.ts`), `login-step.ts`, `relogin.ts`, `trace-boundary.ts`:
     the tool entry points; `gate.ts` (gate context, item cap, `refuse`), `stop.ts` (begin step,
     persist stop, bookkeeping), `actions.ts` (issued action rows, input values), `next-item.ts`

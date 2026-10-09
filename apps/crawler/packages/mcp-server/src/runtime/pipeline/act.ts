@@ -1,6 +1,8 @@
 import { maskText } from '@pathfinder/core';
 import {
   decide,
+  frameByPath,
+  locateClickable,
   pendingItemForAction,
   settleFrontierItem,
   type GateContext,
@@ -43,6 +45,7 @@ export async function act(
 
 /** The Playwright locator of the element (mcp-server has no direct playwright dependency). */
 type Locator = Parameters<typeof autofillBeforeSubmit>[2];
+type Page = Parameters<typeof frameByPath>[0];
 
 /** One `act` call after its gate passed: the action, its gate context and the decision. */
 interface ActCall {
@@ -188,29 +191,57 @@ function locatorAttrs(action: ActionRow) {
   return { role: action.role, accessible_name: action.accessible_name, nth: action.json.nth };
 }
 
-/** Find the element again by role, name and position; gone means unreachable. */
+/**
+ * Find the element again: by role, name and position, or, for a role-less clickable, by its DOM
+ * path or exact text (spec 015 R2). Gone, or several where one was recorded, means unreachable;
+ * nothing is clicked on a guess (FR-003).
+ */
 function locate(call: ActCall) {
   const { ctx, run, state, action, d } = call;
   return step(call, 'locate', async () => {
-    const all = state.session.page.getByRole(
-      action.role as never,
-      action.accessible_name ? { name: action.accessible_name, exact: true } : {},
-    );
-    const matches = await all.count();
-    const locator = all.nth(action.json.nth);
-    if ((await locator.count()) === 0) {
-      const absent = event('locator', { ...locatorAttrs(action), matches, outcome: 'absent' });
+    const found = await findAgain(state.session.page, action);
+    if (found.locator === null) {
+      const missing = event('locator', {
+        ...locatorAttrs(action),
+        matches: found.matches,
+        outcome: found.outcome,
+      });
       const refusal: Refusal = {
         status: 'unreachable',
         rule: 'unreachable',
-        reason: `${action.role} ${JSON.stringify(action.accessible_name)} is no longer present on ${action.json.page_url}`,
+        reason:
+          found.outcome === 'ambiguous'
+            ? `${found.matches} elements match ${action.role} ${JSON.stringify(action.accessible_name)} on ${action.json.page_url}; none is clicked on a guess`
+            : `${action.role} ${JSON.stringify(action.accessible_name)} is no longer present on ${action.json.page_url}`,
       };
       return refuse(ctx, run, refusal, actionTarget(action, d.classification.safetyClass), [
-        absent,
+        missing,
       ]);
     }
-    return reported({ locator, matches });
+    return reported({ locator: found.locator, matches: found.matches });
   });
+}
+
+type Found =
+  | { locator: Locator; matches: number }
+  | { locator: null; matches: number; outcome: 'absent' | 'ambiguous' };
+
+async function findAgain(page: Page, action: ActionRow): Promise<Found> {
+  // An action inside a frame resolves in that frame (spec 015 R3); a frame that is gone means the
+  // element is gone.
+  const doc = action.json.frame !== undefined ? frameByPath(page, action.json.frame) : page;
+  if (doc === null) return { locator: null, matches: 0, outcome: 'absent' };
+  const path = action.json.locators.find((l) => l.kind === 'path')?.value;
+  if (action.json.found_by !== undefined && path !== undefined)
+    return locateClickable(doc, { path, name: action.accessible_name });
+  const all = doc.getByRole(
+    action.role as never,
+    action.accessible_name ? { name: action.accessible_name, exact: true } : {},
+  );
+  const matches = await all.count();
+  const locator = all.nth(action.json.nth);
+  if ((await locator.count()) === 0) return { locator: null, matches, outcome: 'absent' };
+  return { locator, matches };
 }
 
 /** Click, fill, select or check the element; a failure is a refusal with Playwright's reason. */

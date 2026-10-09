@@ -1,4 +1,4 @@
-export type LocatorKind = 'role' | 'label' | 'text' | 'test_id' | 'container';
+export type LocatorKind = 'role' | 'label' | 'text' | 'test_id' | 'container' | 'path';
 
 export interface RankedLocator {
   kind: LocatorKind;

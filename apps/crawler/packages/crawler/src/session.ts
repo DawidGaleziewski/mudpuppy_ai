@@ -6,6 +6,7 @@ import {
   type ObstacleHandlers,
 } from '@pathfinder/obstacles';
 import type { Refusal } from '@pathfinder/safety';
+import { installClickSignals } from './click-signals.js';
 import { NetworkRecorder } from './network-recorder.js';
 import { createRateLimiter, type RateLimiter } from './rate-limiter.js';
 import {
@@ -111,6 +112,8 @@ export class BrowserSession {
         ...(opts.observe?.onBlockVerdict ? { onBlockVerdict: opts.observe.onBlockVerdict } : {}),
       });
       await gate.install(context);
+      // Before the first page: the listener record must exist before the page's scripts run.
+      await installClickSignals(context);
       const page = await context.newPage();
       const net = trackNetworkActivity(
         page,
@@ -118,6 +121,8 @@ export class BrowserSession {
         opts.observe?.onRequestFailed ? { onRequestFailed: opts.observe.onRequestFailed } : {},
       );
       const recorder = new NetworkRecorder(page);
+      // Its form-submit probe must be in place before the first page loads (spec 015 LO-43).
+      await recorder.ready;
       const obstacles = await registerObstacleHandlers(page, portal.obstacles);
       const session = new BrowserSession(
         browser,

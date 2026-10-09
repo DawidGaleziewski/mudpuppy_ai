@@ -38,23 +38,26 @@ async function legacySid(): Promise<string> {
   return sid;
 }
 
-gap(
-  'LO-11',
-  'inputs with only a placeholder get a field name from it',
-  'form fields are recorded only with a name or id attribute; controlled inputs with a placeholder only are dropped',
-  async () => {
-    const p = await nav(gs.call, run, '/bank/przelew');
-    const fields = rows<{ fields_json: string }>(
-      gs,
-      'SELECT fields_json FROM forms WHERE state_id = ?',
-      p.state_id,
-    )
-      .map((f) => f.fields_json)
-      .join(' ');
-    expect(fields).toContain('Numer rachunku');
-    expect(fields).toContain('Kwota');
-  },
-);
+gate('LO-11', 'inputs with only a placeholder get a field name from it', async () => {
+  const p = await nav(gs.call, run, '/bank/przelew');
+  const fields = rows<{ fields_json: string }>(
+    gs,
+    'SELECT fields_json FROM forms WHERE state_id = ?',
+    p.state_id,
+  )
+    .map((f) => f.fields_json)
+    .join(' ');
+  expect(fields).toContain('Numer rachunku');
+  expect(fields).toContain('Kwota');
+});
+
+gate('LO-10', 'the div button "Wykonaj" on the transfer form is issued with found_by', async () => {
+  const p = await nav(gs.call, run, '/bank/przelew');
+  const submit = actionNamed(p, 'Wykonaj');
+  expect(submit).toBeDefined();
+  expect(Array.isArray(submit?.found_by)).toBe(true);
+  expect((submit?.found_by as unknown[]).length).toBeGreaterThan(0);
+});
 
 gate('LO-16', 'text baked into an image is never guessed into the record', async () => {
   const p = await nav(gs.call, run, '/bank');
@@ -122,25 +125,36 @@ gap(
   },
 );
 
-gap(
-  'LO-02',
-  'the legacy app inside the wrapper iframe is observed',
-  'the ARIA snapshot covers the top document only; iframe content is not observed',
-  async () => {
-    const p = await nav(gs.call, run, '/bank/historia');
-    expect(snapshot(gs, p.state_id)).toContain('Lista operacji');
-  },
-);
+/** The state's stored actions that live in a frame, with their stored frame path. */
+const frameActions = (stateId: string) =>
+  rows<{ id: string; role: string; safety_class: string; frame: string; href: string | null }>(
+    gs,
+    "SELECT id, role, safety_class, json_extract(action_json, '$.frame') AS frame, json_extract(action_json, '$.href') AS href FROM actions WHERE state_id = ? AND json_extract(action_json, '$.frame') IS NOT NULL",
+    stateId,
+  );
 
-gap(
-  'LO-04',
-  'a frameset is observed as one screen with its frames',
-  'frames are separate documents; the observer reads the top document only',
-  async () => {
-    const p = await nav(gs.call, run, `/legacy/bank/historia.do;jsessionid=${await legacySid()}`);
-    expect(snapshot(gs, p.state_id)).toContain('Historia operacji');
-  },
-);
+gate('LO-02', 'the legacy app inside the wrapper iframe is observed', async () => {
+  const p = await nav(gs.call, run, '/bank/historia');
+  expect(snapshot(gs, p.state_id)).toContain('Lista operacji');
+  expect(frameActions(p.state_id).length).toBeGreaterThan(0);
+});
+
+gate('LO-04', 'a frameset is observed as one screen with its frames', async () => {
+  const p = await nav(gs.call, run, `/legacy/bank/historia.do;jsessionid=${await legacySid()}`);
+  expect(snapshot(gs, p.state_id)).toContain('Historia operacji');
+  // javascript: postback links are refused by the scope rule, so pick a link with a real target
+  const inFrame = frameActions(p.state_id).filter(
+    (a) => a.role === 'link' && a.safety_class === 'read' && (a.href ?? '').startsWith('/'),
+  );
+  expect(inFrame.length).toBeGreaterThan(0);
+  const r = await gs.call('act', {
+    run_id: run,
+    action_id: inFrame[0]!.id,
+    rationale: 'gate step: act on a frame link',
+    include_actions: true,
+  });
+  expect(r.isError, JSON.stringify(r.body).slice(0, 400)).toBe(false);
+});
 
 gate('LO-12', 'a layout-table page yields its links and controls', async () => {
   const p = await nav(gs.call, run, `/legacy/bank/lista.do;jsessionid=${await legacySid()}`);

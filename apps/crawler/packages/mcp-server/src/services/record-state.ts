@@ -1,4 +1,4 @@
-import { Confidence, Stabilization, newId, nowIso } from '@pathfinder/core';
+import { Confidence, PageComposition, Stabilization, newId, nowIso } from '@pathfinder/core';
 import { z } from 'zod';
 import type { ServerContext } from '../context.js';
 import { parseInput } from '../errors.js';
@@ -15,6 +15,8 @@ export const RecordStateInput = z
     evidence_ref: z.string().min(1),
     confidence: Confidence,
     stabilization: Stabilization.default('settled'),
+    /** What the page is made of (spec 015); stored with this run's sighting of the state. */
+    composition: PageComposition.optional(),
   })
   .strict();
 export type RecordStateInput = z.input<typeof RecordStateInput>;
@@ -88,6 +90,7 @@ export async function recordState(
         persona_id: run.persona_id,
         evidence_ref: input.evidence_ref,
         observed_at: ts,
+        composition_json: input.composition ? JSON.stringify(input.composition) : null,
       })
       .onConflict((oc) => oc.columns(['run_id', 'state_id']).doNothing())
       .execute();

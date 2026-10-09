@@ -43,6 +43,9 @@ function targetUrl(p: Proposal): string | undefined {
   if (p.kind === 'navigate') return p.url;
   const href = p.descriptor.href ?? p.descriptor.form?.action;
   if (href === undefined) return undefined;
+  // A `javascript:` link (a legacy postback) is a click that runs page script, not a URL to go to;
+  // whatever request it starts still passes the request gate's scope and robots checks (spec 015).
+  if (/^\s*javascript:/i.test(href)) return undefined;
   try {
     return new URL(href, p.currentUrl).toString();
   } catch {

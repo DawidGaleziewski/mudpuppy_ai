@@ -16,6 +16,7 @@ urlpatterns = [
     path("healthz", estate.healthz),
     path("robots.txt", estate.robots),
     path("__admin/reset", estate.reset),
+    path("__test/bundle-delay", estate.bundle_delay),
     path("api/clock", estate.clock),
     path("api/session", auth.session_info),
     path("api/login/form", auth.login_form),

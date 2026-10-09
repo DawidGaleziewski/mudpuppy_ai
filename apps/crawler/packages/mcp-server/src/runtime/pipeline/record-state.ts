@@ -3,6 +3,7 @@ import type { SettleOutcome } from '@pathfinder/crawler';
 import type { ServerContext } from '../../context.js';
 import { recordState } from '../../services/index.js';
 import type { RunState } from '../run-state.js';
+import { pageComposition } from './composition.js';
 import { event, reported, step, type StepContext } from './context.js';
 import type { Fingerprinted, Observed } from './fingerprint-step.js';
 
@@ -38,6 +39,7 @@ export function recordStateStep(
       evidence_ref: evidenceRef,
       confidence: 'observed',
       stabilization,
+      composition: pageComposition(observed, sc.rs.lastMounts),
     });
     const stateRow = await ctx.db
       .selectFrom('states')

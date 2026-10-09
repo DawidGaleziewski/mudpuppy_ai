@@ -1,31 +1,18 @@
 /// <reference lib="dom" />
-import type { Page } from 'playwright';
+import type { Frame, Page } from 'playwright';
+import { MAX_ACTIONS_PER_STATE } from './action-extractor.js';
+import { readClickables, selectClickables, type ClickableSelection } from './clickables.js';
+import { extractForms, type DomForm } from './forms.js';
+import { frameLabel, walkFrames, withFrameSnapshots, type ObservedFrame } from './frames.js';
 import { evalInPage } from './pw-eval.js';
 
-export interface DomFormField {
-  name: string;
-  type: string;
-  required: boolean;
-  constraints?: Record<string, string | number | boolean>;
-  options?: string[];
-  validation_messages?: string[];
-}
-
-export interface DomForm {
-  /** Accessible name used to join with the ARIA `form "<name>"` node; may be empty. */
-  name: string;
-  method: string;
-  action: string;
-  hasPassword: boolean;
-  purpose: 'search' | 'other';
-  fields: DomFormField[];
-}
+export { extractForms, type DomForm, type DomFormField } from './forms.js';
 
 /**
  * ARIA snapshot of the whole page. Screenshots and element boxes of new states are taken by
  * `captureVisuals` (capture.ts) since spec 008; they are not masked (constitution 2.0.0).
  */
-export function captureAria(page: Page): Promise<string> {
+export function captureAria(page: Page | Frame): Promise<string> {
   return page.locator(PAGE_ROOT).first().ariaSnapshot();
 }
 
@@ -35,76 +22,6 @@ export function captureAria(page: Page): Promise<string> {
  */
 export const PAGE_ROOT = 'body, frameset';
 
-/**
- * Extract forms and their field schemas without submitting or reading any value: only attributes,
- * option labels and the browser's own validation message are read. `checkValidity()` fires
- * `invalid` events but never submits. (Observation never submits; since spec 008 map mode may
- * submit a form as an action off production, superseding spec 001 FR-011.)
- */
-export function extractForms(page: Page): Promise<DomForm[]> {
-  return evalInPage(page, () => {
-    const SKIP = new Set(['hidden', 'submit', 'button', 'image', 'reset']);
-    const nameOf = (f: HTMLFormElement): string => {
-      const labelled = f.getAttribute('aria-labelledby');
-      const fromLabelled = labelled
-        ? labelled
-            .split(/\s+/)
-            .map((id) => document.getElementById(id)?.textContent?.trim() ?? '')
-            .join(' ')
-            .trim()
-        : '';
-      return f.getAttribute('aria-label') ?? (fromLabelled || f.getAttribute('name') || f.id || '');
-    };
-    return [...document.querySelectorAll('form')].map((f) => {
-      const fields = (
-        [...f.elements] as (HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement)[]
-      )
-        .filter(
-          (el) =>
-            (el.getAttribute('name') || el.id) && !SKIP.has((el as HTMLInputElement).type ?? ''),
-        )
-        .map((el) => {
-          const tag = el.tagName.toLowerCase();
-          const input = el as HTMLInputElement;
-          const constraints: Record<string, string | number | boolean> = {};
-          for (const a of ['minlength', 'maxlength', 'min', 'max', 'pattern', 'step', 'accept']) {
-            const v = el.getAttribute(a);
-            if (v !== null && v !== '')
-              constraints[a] = /^-?\d+(\.\d+)?$/.test(v) && a !== 'pattern' ? Number(v) : v;
-          }
-          if (input.multiple) constraints.multiple = true;
-          el.checkValidity();
-          const msg = el.validationMessage;
-          const field: DomFormField = {
-            name: el.getAttribute('name') || el.id,
-            type:
-              tag === 'select' ? 'select' : tag === 'textarea' ? 'textarea' : input.type || 'text',
-            required: el.hasAttribute('required'),
-          };
-          if (Object.keys(constraints).length) field.constraints = constraints;
-          if (tag === 'select')
-            field.options = [...(el as HTMLSelectElement).options]
-              .slice(0, 50)
-              .map((o) => (o.textContent ?? '').trim());
-          if (msg) field.validation_messages = [msg];
-          return field;
-        });
-      const isSearch =
-        f.getAttribute('role') === 'search' ||
-        !!f.querySelector('input[type=search]') ||
-        !!f.closest('[role=search]');
-      return {
-        name: nameOf(f),
-        method: (f.getAttribute('method') || 'get').toUpperCase(),
-        action: f.action || '',
-        hasPassword: !!f.querySelector('input[type=password]'),
-        purpose: isSearch ? 'search' : 'other',
-        fields,
-      };
-    });
-  });
-}
-
 export interface DomTestId {
   testId: string;
   role: string;
@@ -112,10 +29,12 @@ export interface DomTestId {
   name: string;
   /** Text of an associated <label>, for form controls. */
   label: string;
+  /** Frame path of the document it lives in; absent for the top document (spec 015 R3). */
+  frame?: string;
 }
 
 /** Elements exposing `data-testid`, with the role and name needed to join them to ARIA candidates. */
-export function extractTestIds(page: Page): Promise<DomTestId[]> {
+export function extractTestIds(page: Page | Frame): Promise<DomTestId[]> {
   return evalInPage(page, () => {
     const IMPLICIT: Record<string, string> = {
       a: 'link',
@@ -161,20 +80,107 @@ export function extractTestIds(page: Page): Promise<DomTestId[]> {
   });
 }
 
+/** One document's snapshot: the page itself (`frame` "") or a read frame (spec 015 R3). */
+export interface DocumentPart {
+  frame: string;
+  /** Label of its block in the page snapshot (`frameLabel`); "" for the top document. */
+  label: string;
+  snapshot: string;
+}
+
 export interface PageObservation {
   url: string;
   title: string;
+  /** The page snapshot: the top document plus each read frame's block; fingerprinted and stored. */
   ariaSnapshot: string;
+  /** Per-document snapshots, for action extraction (nth counts per document). */
+  parts: DocumentPart[];
+  /** Forms, test ids and clickables of every read document; those in a frame carry `frame`. */
   forms: DomForm[];
   testIds: DomTestId[];
+  /** Role-less clickables (spec 015 R1, LO-10); not part of the snapshot or the fingerprint. */
+  clickables: ClickableSelection;
+  /** Every frame of the page, read or not, and those beyond the frame depth (counted). */
+  frames: (ObservedFrame & { failed?: true })[];
+  framesSkipped: number;
 }
 
-export async function observePage(page: Page): Promise<PageObservation> {
-  const [ariaSnapshot, forms, title, testIds] = await Promise.all([
-    captureAria(page),
-    extractForms(page),
-    page.title(),
-    extractTestIds(page),
+export interface ObserveOptions {
+  /** Deepest frame level read (portal `scope.frame_depth`); default 3. */
+  frameDepth?: number;
+  /** Whether a cross-origin frame's URL is in the portal's scope; default: never. */
+  frameInScope?: (url: string) => boolean;
+}
+
+interface DocumentView {
+  snapshot: string;
+  forms: DomForm[];
+  testIds: DomTestId[];
+  clickables: ClickableSelection;
+}
+
+async function observeDocument(target: Page | Frame, frame: string): Promise<DocumentView> {
+  const [snapshot, forms, testIds, raw] = await Promise.all([
+    captureAria(target),
+    extractForms(target),
+    extractTestIds(target),
+    readClickables(target),
   ]);
-  return { url: page.url(), title, ariaSnapshot, forms, testIds };
+  const sel = selectClickables(raw, MAX_ACTIONS_PER_STATE);
+  if (frame === '') return { snapshot, forms, testIds, clickables: sel };
+  return {
+    snapshot,
+    forms: forms.map((f) => ({ ...f, frame })),
+    testIds: testIds.map((t) => ({ ...t, frame })),
+    clickables: { ...sel, issued: sel.issued.map((c) => ({ ...c, frame })) },
+  };
+}
+
+/**
+ * Observe the page and, since spec 015, its frames: a wrapper iframe around a legacy app (LO-02)
+ * and a frameset (LO-04) are one screen with their frames' content. A frame that fails to read (it
+ * navigated or detached meanwhile) is recorded as `failed`, and the page is still observed.
+ */
+export async function observePage(page: Page, opts: ObserveOptions = {}): Promise<PageObservation> {
+  const [top, title] = await Promise.all([observeDocument(page, ''), page.title()]);
+  const walk = await walkFrames(page, {
+    maxDepth: opts.frameDepth ?? 3,
+    inScope: opts.frameInScope ?? (() => false),
+  });
+  const views: (DocumentView & { part: DocumentPart })[] = [
+    { ...top, part: { frame: '', label: '', snapshot: top.snapshot } },
+  ];
+  const frames: PageObservation['frames'] = [];
+  for (const { frame, ...f } of walk.frames) {
+    if (!f.observed) {
+      frames.push(f);
+      continue;
+    }
+    try {
+      const view = await observeDocument(frame, f.path);
+      views.push({
+        ...view,
+        part: { frame: f.path, label: frameLabel(f), snapshot: view.snapshot },
+      });
+      frames.push(f);
+    } catch {
+      frames.push({ ...f, observed: false, failed: true });
+    }
+  }
+  const parts = views.map((v) => v.part);
+  return {
+    url: page.url(),
+    title,
+    ariaSnapshot: withFrameSnapshots(top.snapshot, parts.slice(1)),
+    parts,
+    forms: views.flatMap((v) => v.forms),
+    testIds: views.flatMap((v) => v.testIds),
+    clickables: {
+      issued: views.flatMap((v) => v.clickables.issued),
+      found: views.reduce((n, v) => n + v.clickables.found, 0),
+      capped: views.reduce((n, v) => n + v.clickables.capped, 0),
+    },
+    frames,
+    framesSkipped: walk.skipped,
+  };
 }

@@ -5,6 +5,9 @@ import { reported, step, type StepContext } from './context.js';
 import type { IssuedAction } from './enqueue.js';
 import { issueAndEnqueue } from './enqueue.js';
 import { fingerprintStep, type Observed } from './fingerprint-step.js';
+import { compositionHints } from './composition.js';
+import { frameReports } from './frames.js';
+import { navigationPolicy } from './gate.js';
 import { recordNetwork } from './network.js';
 import { recordFormsStep, recordTraceStep, recordTransitionStep } from './record-page.js';
 import { recordStateStep, trackDepth } from './record-state.js';
@@ -20,9 +23,14 @@ import { newStateVisuals } from './visuals.js';
 export async function processPage(sc: StepContext): Promise<PageResult> {
   const { ctx, run, rs } = sc;
   const { stabilization, relogged } = await settleStep(sc);
-  const observed = await step(sc, 'observe', async () =>
-    reported(await observePage(rs.session.page)),
-  );
+  const observed = await step(sc, 'observe', async () => {
+    const inScope = navigationPolicy(rs);
+    const o = await observePage(rs.session.page, {
+      frameDepth: rs.scope.frame_depth,
+      frameInScope: (url) => inScope(url) === null,
+    });
+    return reported(o, frameReports(o));
+  });
   const net = await step(sc, 'net_drain', async () => {
     const drained = await rs.session.recorder.drain();
     await throwIfStopped(ctx, rs);
@@ -85,6 +93,7 @@ export async function processPage(sc: StepContext): Promise<PageResult> {
     ...(edgeId ? { edge_id: edgeId } : {}),
     ...(recordedStep ? { step: recordedStep } : {}),
     ...(relogged ? { relogged_in: true } : {}),
+    ...compositionHints(observed, rs.lastMounts),
   };
 }
 
@@ -98,6 +107,7 @@ function issuedForAgent(sc: StepContext, issued: IssuedAction[]): PageResult['ac
     safety_class: a.safetyClass,
     allowed: a.allowed,
     ...(a.skip_reason ? { skip_reason: a.skip_reason } : {}),
+    ...(a.found_by ? { found_by: a.found_by } : {}),
     ...(a.input && a.input !== 'check' && a.name !== null && inputs[a.name] !== undefined
       ? { suggested_value: inputs[a.name] }
       : {}),

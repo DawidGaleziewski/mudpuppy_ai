@@ -87,6 +87,10 @@ export const Scope = Budgets.extend({
   allowed_domains: z.array(z.string().min(1)).min(1),
   allowed_paths: z.array(z.string().min(1)).min(1),
   external_link_policy: z.enum(['record', 'follow']).default('record'),
+  /** How long to wait for a micro-frontend mount to fill, in ms (spec 015). */
+  mfe_wait_ms: z.number().int().min(0).max(60000).default(10000),
+  /** How deep nested frames are observed (spec 015). */
+  frame_depth: z.number().int().min(0).max(5).default(3),
 });
 export type Scope = z.infer<typeof Scope>;
 
@@ -142,11 +146,9 @@ const SubmitLocator = z
 /** How a persona with credentials signs in to this portal (spec 009 login-tool contract). */
 export const LoginSpec = z
   .object({
-    url: z
-      .string()
-      .refine((v) => v.startsWith('/') || /^https?:\/\/\S+$/.test(v), {
-        message: 'must start with "/" or be an absolute http(s) URL',
-      }),
+    url: z.string().refine((v) => v.startsWith('/') || /^https?:\/\/\S+$/.test(v), {
+      message: 'must start with "/" or be an absolute http(s) URL',
+    }),
     username: FieldLocator,
     password: FieldLocator,
     submit: SubmitLocator,

@@ -62,4 +62,20 @@ describe.skipIf(!available)('autofillForm (spec 008 FR-002)', () => {
     expect(await page.locator('input[name=model]').inputValue()).toBe('');
     await page.close();
   });
+
+  it('fills the fields a div "Wykonaj" sends, in a form or in a div form (spec 015)', async () => {
+    const page = await browser.newPage();
+    await page.setContent(`<!doctype html>
+      <form><input placeholder="Kwota" type="number" required><div id="go">Wykonaj</div></form>
+      <section><input placeholder="Miasto" required><div id="order">Zamawiam</div>
+        <div id="prev">Poprzedni miesiąc</div></section>`);
+    const inForm = await autofillForm(page.locator('#go'));
+    expect(inForm!.filled.map((f) => f.field)).toEqual(['Kwota']);
+    const inDiv = await autofillForm(page.locator('#order'));
+    expect(inDiv!.filled.map((f) => f.field)).toEqual(['Miasto']);
+    expect(await page.locator('input[placeholder=Miasto]').inputValue()).not.toBe('');
+    // a click whose text does not read like a submit fills nothing
+    expect(await autofillForm(page.locator('#prev'))).toBeNull();
+    await page.close();
+  });
 });

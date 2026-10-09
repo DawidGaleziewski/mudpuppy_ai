@@ -9,7 +9,9 @@ expected to do. The quality gates (R-27) hold one assertion set per entry.
 the source (project or finding id), and leave "Proving ground" as `not yet` until a screen
 reproduces it. Ids are never reused; a dropped entry is marked `withdrawn`, not deleted.
 
-Status: `proposed` (not yet rated), `in scope`, `later`, `withdrawn`. The first set (LO-01..LO-51)
+Status: `proposed` (not yet rated), `in scope`, `later`, `withdrawn`. Whether Pathfinder handles an
+entry is shown by its gate (`gate()` handled, `gap()` known gap) in the gate report, not here.
+Handled by spec 015 (R-28): LO-02, LO-04, LO-10, LO-11, LO-18, LO-34, LO-43. The first set (LO-01..LO-51)
 was put in scope by an overnight default on 2026-10-05 (all but LO-36 and LO-46); the user may
 re-rate it.
 Source: `idea` = user raw idea (`user_input/more_testing_and_test_portals.md`), `F-xx` = a logged

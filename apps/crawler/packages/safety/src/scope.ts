@@ -227,5 +227,7 @@ export function narrowScope(
     max_actions_per_state: min(portal.max_actions_per_state, r.max_actions_per_state),
     max_run_time_minutes: min(portal.max_run_time_minutes, r.max_run_time_minutes),
     max_steps: min(portal.max_steps, r.max_steps),
+    mfe_wait_ms: min(portal.mfe_wait_ms, r.mfe_wait_ms),
+    frame_depth: min(portal.frame_depth, r.frame_depth),
   };
 }

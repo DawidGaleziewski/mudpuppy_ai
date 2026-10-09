@@ -90,22 +90,17 @@ gate('LO-03', 'a cross-origin iframe in a page does not break observation', asyn
   expect(r.isError).toBe(false);
 });
 
-gap(
-  'LO-43',
-  'a classic form POST (no XHR) is recorded as an API shape',
-  'the network recorder takes only xhr/fetch requests (R-18)',
-  async () => {
-    const f = await nav(gs.call, run, '/legacy/insurer/szkoda-stara.do');
-    const submit = actionNamed(f, /Wyślij|Zgłoś/);
-    expect(submit).toBeDefined();
-    await actOn(gs.call, run, f, /Wyślij|Zgłoś/);
-    const posts = rows(
-      gs,
-      "SELECT id FROM network_calls WHERE method = 'POST' AND url_template LIKE '%szkoda-stara%'",
-    );
-    expect(posts.length).toBeGreaterThan(0);
-  },
-);
+gate('LO-43', 'a classic form POST (no XHR) is recorded as an API shape', async () => {
+  const f = await nav(gs.call, run, '/legacy/insurer/szkoda-stara.do');
+  const submit = actionNamed(f, /Wyślij|Zgłoś/);
+  expect(submit).toBeDefined();
+  await actOn(gs.call, run, f, /Wyślij|Zgłoś/);
+  const posts = rows(
+    gs,
+    "SELECT id FROM network_calls WHERE method = 'POST' AND url_template LIKE '%szkoda-stara%'",
+  );
+  expect(posts.length).toBeGreaterThan(0);
+});
 
 gap(
   'LO-47',
@@ -125,4 +120,41 @@ gate('LO-50', 'the ground truth uses the portal clock, not the real date', async
     ) as { today: string };
     expect(gt.today).toBe(clock.today);
   }
+});
+
+gate(
+  'LO-11',
+  'the legacy claim fields carry the label text of the neighbouring table cell',
+  async () => {
+    const f = await nav(gs.call, run, '/legacy/insurer/szkoda-stara.do');
+    const forms = rows<{ fields_json: string }>(
+      gs,
+      'SELECT fields_json FROM forms WHERE state_id = ?',
+      f.state_id,
+    );
+    expect(forms.length).toBeGreaterThan(0);
+    // the inputs carry name attributes, so the cell text lands in `label`, not in the name
+    const fields = forms.flatMap((x) => JSON.parse(x.fields_json) as Record<string, unknown>[]);
+    const labelOf = (name: string) => fields.find((x) => x.name === name)?.label;
+    expect(labelOf('polisa')).toBe('Nr polisy');
+    expect(labelOf('data')).toBe('Data zdarzenia');
+    expect(labelOf('opis')).toBe('Opis');
+  },
+);
+
+gate('LO-18', 'the div date picker "Data rozpoczęcia" can be opened and a day picked', async () => {
+  const page = await nav(gs.call, run, '/ubezpieczenia#/polisy/7/dodatki');
+  const trigger = (page.actions as Record<string, unknown>[]).find((a) =>
+    /Data rozpoczęcia|Wybierz|\d{4}-\d{2}-\d{2}/.test(String(a.accessible_name ?? '')),
+  );
+  expect(
+    trigger,
+    `actions: ${(page.actions as Record<string, unknown>[]).map((a) => a.accessible_name).join(' | ')}`,
+  ).toBeDefined();
+  const opened = await actOn(gs.call, run, page, String(trigger!.accessible_name));
+  const day = actionNamed(opened, /^15$/);
+  expect(day, 'a day cell of the opened calendar is issued').toBeDefined();
+  const picked = await actOn(gs.call, run, opened, /^15$/);
+  expect(picked.state_id).not.toBe(opened.state_id);
+  expect(snapshot(gs, picked.state_id)).toMatch(/\d{4}-\d{2}-15/);
 });

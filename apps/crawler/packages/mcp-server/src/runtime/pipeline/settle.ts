@@ -1,5 +1,5 @@
 import { shapeUrl } from '@pathfinder/trace';
-import type { SettleOutcome } from '@pathfinder/crawler';
+import { waitForMounts, type MountWait, type SettleOutcome } from '@pathfinder/crawler';
 import { sessionExpired } from '../login.js';
 import type { RunState } from '../run-state.js';
 import {
@@ -32,16 +32,45 @@ export function settleReports(rs: RunState, outcome: SettleOutcome): Report[] {
   ];
 }
 
-/** Wait for the page to settle; obstacles dismissed meanwhile are traced, a block stops the run. */
+/** `event mfe_mount_timeout` per mount point still empty when the wait ran out (spec 015 R4). */
+export function mountReports(w: MountWait): Report[] {
+  if (!w.timedOut) return [];
+  return w.mounts
+    .filter((m) => !m.filled)
+    .map((m) =>
+      event('mfe_mount_timeout', {
+        selector: m.selector,
+        frame: '',
+        waited_ms: Math.round(w.waitedMs),
+        bundles: w.bundles.length,
+      }),
+    );
+}
+
+/**
+ * Wait for the page to settle; obstacles dismissed meanwhile are traced, a block stops the run. A
+ * page that loads micro-frontends at run time is then given until its mount points fill (bounded by
+ * `scope.mfe_wait_ms`) and settled once more, so the observation sees the rendered front end.
+ */
 function settle(sc: StepContext) {
   const { ctx, rs } = sc;
   return step(sc, 'settle', async () => {
-    const outcome = await rs.session.settleTraced();
-    const reports = [...settleReports(rs, outcome), ...obstacleReports(rs)];
+    let outcome = await rs.session.settleTraced();
+    const mounts = await waitForMounts(rs.session.page, rs.scope.mfe_wait_ms);
+    if (mounts.waitedMs >= MOUNT_RESETTLE_MS) outcome = await rs.session.settleTraced();
+    rs.lastMounts = mounts;
+    const reports = [
+      ...settleReports(rs, outcome),
+      ...mountReports(mounts),
+      ...obstacleReports(rs),
+    ];
     await orFail(reports, throwIfStopped(ctx, rs));
     return reported(outcome.result, reports);
   });
 }
+
+/** A mount wait shorter than this changed nothing worth a second settle. */
+const MOUNT_RESETTLE_MS = 50;
 
 /**
  * Settle the page; when a logged-in run's session expired on the way, log in again, return to the

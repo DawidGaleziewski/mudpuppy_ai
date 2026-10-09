@@ -30,6 +30,36 @@ describe('loadPortal', () => {
     expect(p.denylist).toContain('path:/oferty/wystaw/*');
   });
 
+  it('applies the micro-frontend wait and frame depth defaults', () => {
+    const p = load(PORTAL_YAML).run();
+    expect(p.scope.mfe_wait_ms).toBe(10000);
+    expect(p.scope.frame_depth).toBe(3);
+  });
+
+  it('accepts explicit mfe_wait_ms and frame_depth', () => {
+    const p = load(
+      PORTAL_YAML.replace(
+        '  max_steps: 2000\n',
+        '  max_steps: 2000\n  mfe_wait_ms: 0\n  frame_depth: 5\n',
+      ),
+    ).run();
+    expect(p.scope.mfe_wait_ms).toBe(0);
+    expect(p.scope.frame_depth).toBe(5);
+  });
+
+  it.each([
+    ['mfe_wait_ms: 60001', 'mfe_wait_ms'],
+    ['mfe_wait_ms: -1', 'mfe_wait_ms'],
+    ['frame_depth: 6', 'frame_depth'],
+    ['frame_depth: -1', 'frame_depth'],
+    ['frame_depth: 1.5', 'frame_depth'],
+  ])('refuses %s', (line, field) => {
+    const e = problems(
+      load(PORTAL_YAML.replace('  max_steps: 2000\n', `  max_steps: 2000\n  ${line}\n`)).run,
+    );
+    expect(e.problems.join()).toContain(field);
+  });
+
   it('rejects a missing environment, naming the file and field', () => {
     const t = load(PORTAL_YAML.replace('environment: production\n', ''));
     const e = problems(t.run);

@@ -114,3 +114,33 @@ def test_jsessionid_in_the_path_carries_the_session(client):
     r = other.get(f"/api/session;jsessionid={sid}")
     # /api/session itself is not a legacy path; the id is still read from it (LO-24)
     assert r.status_code in (200, 404)
+
+
+def _timed_bundle(client) -> float:
+    start = time.monotonic()
+    client.get("/mfe/shop/index.js")
+    return time.monotonic() - start
+
+
+def test_bundle_delay_cookie_slows_micro_frontend_bundles(client):
+    assert client.get("/__test/bundle-delay?ms=300").content == b"ok"
+    assert client.cookies["pg_bundle_delay_ms"].value == "300"
+    assert _timed_bundle(client) >= 0.3
+
+
+def test_bundle_without_the_cookie_is_not_delayed(client):
+    assert _timed_bundle(client) < 0.2
+
+
+def test_bundle_delay_out_of_range_is_ignored(client):
+    client.get("/__test/bundle-delay?ms=10001")
+    assert _timed_bundle(client) < 0.2
+    client.get("/__test/bundle-delay?ms=abc")
+    assert _timed_bundle(client) < 0.2
+
+
+def test_shell_bundle_is_never_delayed(client):
+    client.get("/__test/bundle-delay?ms=500")
+    start = time.monotonic()
+    client.get("/mfe/shell/index.js")
+    assert time.monotonic() - start < 0.3

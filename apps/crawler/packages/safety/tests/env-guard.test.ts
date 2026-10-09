@@ -11,6 +11,8 @@ const scope = {
   max_actions_per_state: 20,
   max_run_time_minutes: 60,
   max_steps: 2000,
+  mfe_wait_ms: 10000,
+  frame_depth: 3,
 };
 const portal = (over: Partial<PortalConfig> = {}): PortalConfig => ({
   id: 'p',

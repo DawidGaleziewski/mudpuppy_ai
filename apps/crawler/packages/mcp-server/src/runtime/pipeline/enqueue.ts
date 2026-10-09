@@ -1,10 +1,9 @@
 import { newId, nowIso } from '@pathfinder/core';
 import {
-  attachLocators,
   classifyCandidates,
   decide,
   enqueueActions,
-  extractCandidates,
+  extractPageCandidates,
   observePage,
   type ClassifiedAction,
   type GateContext,
@@ -45,10 +44,23 @@ export async function issueAndEnqueue(
   page: IssuePage,
 ): Promise<Reported<IssuedAction[]>> {
   const { issued, g } = await issueActions(ctx, run, rs, observed, page);
+  const capped = clickablesCapped(observed, issued);
   // Queue for exploration only the first time this run sees the state, and only if the policy admits it.
   // A trace run follows one process and uses no frontier.
-  if (page.alreadyInRun || rs.isTrace) return reported(issued);
-  return reported(issued, await queueForExploration(ctx, run, rs, { observed, page, issued, g }));
+  if (page.alreadyInRun || rs.isTrace) return reported(issued, capped);
+  return reported(issued, [
+    ...capped,
+    ...(await queueForExploration(ctx, run, rs, { observed, page, issued, g })),
+  ]);
+}
+
+/** `event clickables_capped` when role-less clickables were left out by a cap (spec 015 edge case). */
+export function clickablesCapped(observed: Observed, issued: readonly IssuedAction[]): Report[] {
+  const sel = observed.clickables;
+  const kept = issued.filter((a) => a.found_by !== undefined).length;
+  const dropped = sel.capped + sel.issued.length - kept;
+  if (dropped <= 0) return [];
+  return [event('clickables_capped', { found: sel.found, issued: kept, capped: dropped })];
 }
 
 /** Server-issued action ids, stable per (state, role, name, nth) so a revisit reuses them. */
@@ -61,11 +73,8 @@ async function issueActions(
 ): Promise<{ issued: IssuedAction[]; g: GateContext }> {
   const { state_id, evidenceRef, depth } = page;
   // Actions: server-issued ids, stable per (state, role, name, nth) so a revisit reuses them.
-  const extracted = extractCandidates(observed.ariaSnapshot, observed.forms, {
-    mode: rs.isTrace ? 'trace' : 'map',
-  });
+  const { extracted, locatorSets } = extractPageCandidates(observed, rs.isTrace ? 'trace' : 'map');
   const candidates = classifyCandidates(extracted, rs.ruleSet, rs.isTrace ? TRACE_CLASSIFY : {});
-  const locatorSets = attachLocators(extracted, observed.testIds);
   const existing = await ctx.db
     .selectFrom('actions')
     .selectAll()
@@ -73,12 +82,15 @@ async function issueActions(
     .where('state_id', '=', state_id)
     .execute();
   const idFor = (c: ClassifiedAction): string | undefined =>
-    existing.find(
-      (e) =>
+    existing.find((e) => {
+      const j = JSON.parse(e.action_json) as { nth: number; frame?: string };
+      return (
         e.role === c.role &&
         (e.accessible_name ?? null) === c.name &&
-        (JSON.parse(e.action_json) as { nth: number }).nth === c.nth,
-    )?.id;
+        j.nth === c.nth &&
+        j.frame === c.frame
+      );
+    })?.id;
 
   // This page's actions land one level below it; the browser's previous page does not count.
   const g = gateContext(rs, await usage(ctx, run, rs, 0, depth + 1));
@@ -86,17 +98,12 @@ async function issueActions(
   for (const [ci, c] of candidates.entries()) {
     const d = decide({ kind: 'act', descriptor: c.descriptor, currentUrl: observed.url }, g);
     const target = c.href ? targetUrl(c.href, observed.url) : null;
-    const json = {
-      nth: c.nth,
-      ...(c.input ? { input: c.input } : {}),
-      ...(c.href ? { href: c.href } : {}),
-      ...(target ? { target_url: target } : {}),
-      ...(c.descriptor.form ? { form: c.descriptor.form } : {}),
+    const json = actionBody(c, {
+      target,
       locators: locatorSets[ci] ?? [],
-      // QA can re-read the element in the snapshot of the page it was found on.
-      snapshot_ref: evidenceRef,
-      page_url: observed.url,
-    };
+      evidenceRef,
+      pageUrl: observed.url,
+    });
     let id = idFor(c);
     if (!id) {
       id = newId();
@@ -125,6 +132,31 @@ async function issueActions(
     });
   }
   return { issued, g };
+}
+
+/** The `action_json` body of an issued action (key order is part of the stored JSON). */
+function actionBody(
+  c: ClassifiedAction,
+  at: {
+    target: string | null;
+    locators: readonly unknown[];
+    evidenceRef: string;
+    pageUrl: string;
+  },
+) {
+  return {
+    nth: c.nth,
+    ...(c.frame !== undefined ? { frame: c.frame } : {}),
+    ...(c.found_by ? { found_by: c.found_by, tag: c.tag } : {}),
+    ...(c.input ? { input: c.input } : {}),
+    ...(c.href ? { href: c.href } : {}),
+    ...(at.target ? { target_url: at.target } : {}),
+    ...(c.descriptor.form ? { form: c.descriptor.form } : {}),
+    locators: at.locators,
+    // QA can re-read the element in the snapshot of the page it was found on.
+    snapshot_ref: at.evidenceRef,
+    page_url: at.pageUrl,
+  };
 }
 
 /**

@@ -12,9 +12,44 @@ const pct = (matched: number, total: number): number =>
 
 /**
  * Parameter names are free text on both sides (the crawler writes `:param`, ground truth
- * `:slug`), so a route is compared with every `:name` reduced to `:` (spec 014 F-06).
+ * `:slug`), so a route is compared with every `:name` reduced to `:` (spec 014 F-06). Ground-truth
+ * routes never hold a query, while a crawled hash route may keep one
+ * (`#/szkody/potwierdzenie?nr=…`): the query is not part of the screen (spec 015 F-18; query
+ * parameters are recorded on their own by R-37).
  */
-const routeKey = (route: string): string => route.replace(/:[A-Za-z_][A-Za-z0-9_]*/g, ':');
+const routeKey = (route: string): string =>
+  route.replace(/\?.*$/, '').replace(/:[A-Za-z_][A-Za-z0-9_]*/g, ':');
+
+/**
+ * Routes of the frames the crawler read (spec 015, LO-02/LO-04): a legacy page shown inside a
+ * wrapper iframe or a frameset is recorded as part of the outer state, whose route is the outer
+ * page's; its own URL is in the observation's page composition. A frame URL counts as its path
+ * without path parameters (`;jsessionid=…`, LO-24) and without the query. Frames that were not
+ * read (cross-origin, failed) do not count. Unparseable compositions are skipped.
+ */
+export function frameRoutes(compositions: readonly (string | null)[]): string[] {
+  const out = new Set<string>();
+  for (const raw of compositions) {
+    if (raw === null) continue;
+    let frames: { url?: unknown; observed?: unknown }[];
+    try {
+      frames = (JSON.parse(raw) as { frames?: typeof frames }).frames ?? [];
+    } catch {
+      continue;
+    }
+    for (const f of frames) {
+      if (f.observed !== true || typeof f.url !== 'string') continue;
+      try {
+        const u = new URL(f.url);
+        if (u.protocol === 'http:' || u.protocol === 'https:')
+          out.add(u.pathname.replace(/;[^/]*/g, ''));
+      } catch {
+        // about:srcdoc and the like have no route
+      }
+    }
+  }
+  return [...out];
+}
 
 /** D1/D2: screens for the persona (guest → guest_visible; else a non-guest actor), route match. */
 export function crawlScreens(

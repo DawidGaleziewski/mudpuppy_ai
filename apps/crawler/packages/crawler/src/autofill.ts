@@ -1,6 +1,6 @@
 /// <reference lib="dom" />
 import type { Locator } from 'playwright';
-import { evalOnElement } from './pw-eval.js';
+import { evalOnElementWithHelpers } from './pw-eval.js';
 import { testValueFor, type AutofillField, type TestValue } from './test-values.js';
 
 /**
@@ -16,26 +16,57 @@ export interface AutofillResult {
   skipped: { field: string; reason: string }[];
 }
 
+/**
+ * The controls a click on `el` sends: a native submit's form; for a script-driven submit (a `div` or
+ * `type=button` whose text reads like a submit, spec 015) its `<form>`, else the nearest container
+ * with controls outside any form (a `div` form). Null when the click submits nothing.
+ */
+function pfNativeSubmitForm(el: Element): HTMLFormElement | null {
+  const form = (el as HTMLButtonElement).form;
+  if (!form) return null;
+  const tag = el.tagName.toLowerCase();
+  const type = (el.getAttribute('type') || (tag === 'button' ? 'submit' : '')).toLowerCase();
+  const submits =
+    (tag === 'button' && type === 'submit') ||
+    (tag === 'input' && (type === 'submit' || type === 'image'));
+  return submits ? form : null;
+}
+
+function pfControlsFor(el: Element): Element[] | null {
+  const native = pfNativeSubmitForm(el);
+  if (native) return Array.from(native.elements);
+  const text = ((el as HTMLElement).innerText || el.getAttribute('aria-label') || '')
+    .replace(/\s+/g, ' ')
+    .trim();
+  const submitWord =
+    /^(wyślij|zapisz|wykonaj|dalej|zamów|zamawiam|potwierdź|oblicz|submit|send|save|next|continue|order|confirm)/i;
+  if (text.length > 40 || !submitWord.test(text)) return null;
+  const form = el.closest('form');
+  if (form) return Array.from(form.elements);
+  for (let cur = el.parentElement; cur; cur = cur.parentElement) {
+    const controls = [...cur.querySelectorAll('input, select, textarea')].filter(
+      (c) => !c.closest('form'),
+    );
+    if (controls.length > 0) return controls;
+  }
+  return null;
+}
+
+/** In-page helpers sent with `readForm` / `writeForm`. */
+const HELPERS = [pfNativeSubmitForm, pfControlsFor];
+
 /** The submit control's form fields, or null when the control does not submit a form. */
 function readForm(el: Element): AutofillField[] | null {
-  const control = el as HTMLButtonElement | HTMLInputElement;
-  const form = (control as HTMLButtonElement).form;
-  const tag = control.tagName.toLowerCase();
-  const type = (control.getAttribute('type') || (tag === 'button' ? 'submit' : '')).toLowerCase();
-  const submits =
-    form !== null &&
-    form !== undefined &&
-    ((tag === 'button' && type === 'submit') ||
-      (tag === 'input' && (type === 'submit' || type === 'image')));
-  if (!submits || !form) return null;
+  const controls = pfControlsFor(el);
+  if (controls === null) return null;
   const skip = ['hidden', 'submit', 'button', 'image', 'reset'];
   const out: AutofillField[] = [];
   const checkedGroups = new Set<string>();
-  for (const f of Array.from(form.elements)) {
+  for (const f of controls) {
     const input = f as HTMLInputElement;
     if (input.type === 'radio' && input.checked) checkedGroups.add(input.name);
   }
-  Array.from(form.elements).forEach((f, index) => {
+  controls.forEach((f, index) => {
     const field = f as HTMLInputElement & HTMLSelectElement & HTMLTextAreaElement;
     const ftag = field.tagName.toLowerCase();
     if (ftag !== 'input' && ftag !== 'select' && ftag !== 'textarea') return;
@@ -87,12 +118,11 @@ function readForm(el: Element): AutofillField[] | null {
 
 /** Write the values into the form like a user would (native setters, input + change events). */
 function writeForm(el: Element, values: { index: number; value: string | true }[]): number {
-  const form = (el as HTMLButtonElement).form;
-  if (!form) return 0;
+  const controls = pfControlsFor(el);
+  if (!controls) return 0;
   let written = 0;
   for (const { index, value } of values) {
-    const field = form.elements[index] as
-      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement;
+    const field = controls[index] as HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement;
     if (!field) continue;
     field.focus();
     if (value === true) {
@@ -122,7 +152,7 @@ export async function autofillForm(
   submit: Locator,
   inputs: Readonly<Record<string, string>> = {},
 ): Promise<AutofillResult | null> {
-  const fields = await evalOnElement(submit, readForm, undefined);
+  const fields = await evalOnElementWithHelpers(submit, HELPERS, readForm, undefined);
   if (fields === null) return null;
   const result: AutofillResult = { filled: [], skipped: [] };
   const plan: { index: number; value: TestValue }[] = [];
@@ -147,6 +177,6 @@ export async function autofillForm(
     plan.push({ index: f.index, value });
     result.filled.push({ field: f.name, type: f.type, value: value === true ? 'checked' : value });
   }
-  if (plan.length > 0) await evalOnElement(submit, writeForm, plan);
+  if (plan.length > 0) await evalOnElementWithHelpers(submit, HELPERS, writeForm, plan);
   return result;
 }

@@ -22,6 +22,8 @@ const scope = {
   max_actions_per_state: 5,
   max_run_time_minutes: 10,
   max_steps: 100,
+  mfe_wait_ms: 10000,
+  frame_depth: 3,
 };
 
 describe('checkScope', () => {

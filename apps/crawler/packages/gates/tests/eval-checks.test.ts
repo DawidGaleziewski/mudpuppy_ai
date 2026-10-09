@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { crawlScreens, passwordHits, widgetActions, type GtScreen } from '../src/eval-checks.js';
+import {
+  crawlScreens,
+  frameRoutes,
+  passwordHits,
+  widgetActions,
+  type GtScreen,
+} from '../src/eval-checks.js';
 
 const screens: GtScreen[] = [
   { id: 'S1', route_template: '/', guest_visible: true, actor: 'guest' },
@@ -7,6 +13,44 @@ const screens: GtScreen[] = [
   { id: 'S3', route_template: '/account', guest_visible: false, actor: 'customer' },
   { id: 'S4', route_template: '/admin', guest_visible: false },
 ];
+
+describe('frameRoutes (spec 015)', () => {
+  it('takes the path of every read http frame, without path parameters or query', () => {
+    const c = JSON.stringify({
+      frames: [
+        { url: 'http://h/legacy/bank/historia.do;jsessionid=abc', observed: true },
+        { url: 'http://h/legacy/bank/lista.do;jsessionid=abc?strona=2', observed: true },
+        { url: 'about:srcdoc', observed: true },
+        { url: 'http://other/widget', observed: false },
+      ],
+    });
+    expect(frameRoutes([c, null, 'not json']).sort()).toEqual([
+      '/legacy/bank/historia.do',
+      '/legacy/bank/lista.do',
+    ]);
+  });
+
+  it('lets crawlScreens count a screen reached only inside a frame', () => {
+    const legacy: GtScreen[] = [
+      { id: 'S08', route_template: '/legacy/bank/historia.do', guest_visible: false, actor: 'c' },
+    ];
+    const routes = frameRoutes([
+      JSON.stringify({ frames: [{ url: 'http://h/legacy/bank/historia.do;x=1', observed: true }] }),
+    ]);
+    expect(crawlScreens(legacy, ['/bank/historia', ...routes], true).matched).toBe(1);
+  });
+});
+
+describe('crawlScreens route matching (spec 015 F-18)', () => {
+  it('ignores a query kept in a crawled hash route', () => {
+    const gt: GtScreen[] = [
+      { id: 'S07', route_template: '/u#/szkody/potwierdzenie', guest_visible: false, actor: 'c' },
+    ];
+    expect(crawlScreens(gt, ['/u#/szkody/potwierdzenie?nr=SZ%2F2026%2F0001'], true).matched).toBe(
+      1,
+    );
+  });
+});
 
 describe('crawlScreens', () => {
   it('scores the guest set by guest_visible', () => {

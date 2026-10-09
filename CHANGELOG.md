@@ -6,6 +6,25 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Added
+- R-28 crawler hardening: the crawler gets past the "now" set of legacy obstacles. Clickable
+  `div`/`span`/`li` elements with only a JS handler and no ARIA role are found by a click-signal
+  init script and issued as actions with `found_by` and path/text locators (`act` never clicks
+  a guess); frames and framesets are walked to depth 3 (`scope.frame_depth`), their blocks
+  appended to the page so frame-less pages keep their fingerprints (locked by
+  `fingerprint-stability.e2e.test.ts`); `javascript:` postback links are clicks; fields get names
+  from labels, nearby text or placeholders (`name_source`), `div` forms are read and autofilled;
+  document POSTs and their redirect chains are recorded; the page waits for micro-frontend mounts
+  while a bundle loads (`scope.mfe_wait_ms`, `mounts_pending` in the result); resumed runs rebuild
+  their depths. Migration `0011_page_composition` stores each page's composition (frames,
+  mounts, loaders, bundles). The eight gap cases LO-10, LO-02, LO-04, LO-11, LO-18, LO-34, LO-43
+  and F-04@004 are now gates. Evals: bank `crawl_screens` 4 → 10/11 (legacy app reached,
+  promoted as the new baseline), insurer 4 → 5/6, shop 3 → 4/6 (target 5/6 missed: budget
+  spent on catalogue pages, F-17 → R-35), reference portal 17/17 with no regression; no password
+  hits or widget actions in any run. The eval now counts screens read inside frames and ignores
+  a query in a hash route. Open findings went to R-35 and the new R-45 (frame mounts, BA write
+  refusals, dashboard eval stores). Glossary: 5 entries. Findings F-01–F-23 and verdicts in
+  `specs/015-crawler-hardening/findings.md` (`specs/015-crawler-hardening` T001–T041). Branch
+  `feature/015-r28-crawler-hardening` (squash-merged on master, tag v1.0.14).
 - R-29 eval baselines: the first tier-2 baselines for `reference-insurer` (guest),
   `proving-ground-shop` (guest), `proving-ground-bank` (client, `--session-timeout 20`) and
   `proving-ground-insurer` (client), each with a second run and `tolerances.json`

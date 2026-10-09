@@ -1,22 +1,22 @@
 {
   "portal_id": "proving-ground-bank",
   "persona_id": "client",
-  "started_at": "2026-10-08T20:01:07.241Z",
-  "git_sha": "c426dba",
+  "started_at": "2026-10-09T17:31:12.924Z",
+  "git_sha": "0c67c2c",
   "runs": {
-    "crawler": "01a11d1a-fc53-7000-aee5-caa7fbf74cfc",
-    "ba_session": "01a11d1d-7c3b-7000-81a9-d898ef786139",
-    "crawler_cli_session": "d92b8c79-c392-472e-9230-c42997f548f1",
-    "ba_cli_session": "7295372d-db87-40e9-9f28-a50443a10dc6"
+    "crawler": "01a121b8-1a93-7000-9dfc-12d3b20c091f",
+    "ba_session": "01a121c3-c9ed-7000-bcb4-24257d3bc022",
+    "crawler_cli_session": "2f7fa0d7-9f3e-45af-8a48-d912bf7f8e76",
+    "ba_cli_session": "e38c21e7-90e0-4131-879f-b8231159a632"
   },
   "conditions": {
     "session_timeout_s": 20
   },
   "cost": {
-    "usd": 3.153334999999999,
-    "input_tokens": 4369235,
-    "output_tokens": 62480,
-    "duration_ms": 700327
+    "usd": 6.322320399999999,
+    "input_tokens": 8969424,
+    "output_tokens": 87605,
+    "duration_ms": 1509313
   },
   "scores": {
     "screens": {
@@ -45,35 +45,35 @@
       "pct": 0
     },
     "terms": {
-      "matched": 4,
+      "matched": 0,
       "total": 10,
-      "pct": 40
+      "pct": 0
     },
     "logged_in_screens": {
-      "matched": 4,
+      "matched": 5,
       "total": 11,
-      "pct": 36.4
+      "pct": 45.5
     },
     "obstacles": {
-      "matched": 12,
+      "matched": 13,
       "total": 30,
-      "pct": 40
+      "pct": 43.3
     },
     "crawl_screens": {
-      "matched": 4,
+      "matched": 10,
       "total": 11,
-      "pct": 36.4
+      "pct": 90.9
     }
   },
   "overclaims": 0,
   "checks": {
-    "frontier_empty_at_finish": false,
-    "crawler_completed": false,
-    "crawler_steps": 27,
-    "frontier_pending": 4,
+    "frontier_empty_at_finish": true,
+    "crawler_completed": true,
+    "crawler_steps": 53,
+    "frontier_pending": 0,
     "ba_session_completed": true,
     "handoffs": 0,
-    "relogins": 1,
+    "relogins": 2,
     "logged_in": true,
     "password_hits": 0,
     "widget_actions": 0

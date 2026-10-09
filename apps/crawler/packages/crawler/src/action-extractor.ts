@@ -6,6 +6,7 @@ import {
 } from '@pathfinder/safety';
 import type { SafetyClass } from '@pathfinder/core';
 import { buildLocators, type RankedLocator } from './locators.js';
+import type { DomClickable, FoundBy } from './clickables.js';
 import type { DomForm, DomTestId } from './observer.js';
 
 /** Roles that can be clicked to do something (typing roles are not actions in v1). */
@@ -57,6 +58,13 @@ export interface CandidateAction {
   /** Ancestor chain like `main`, `form "Logowanie"`. */
   ancestors: string[];
   descriptor: ActionDescriptor;
+  /** Role-less clickables only (spec 015 R1): the click signals that found the element. */
+  found_by?: FoundBy[];
+  /** Role-less clickables only: element tag and DOM path (tag and child index) for the locator. */
+  tag?: string;
+  path?: string;
+  /** Frame path of the document it lives in; absent for the top document (spec 015 R3). */
+  frame?: string;
 }
 
 export interface ClassifiedAction extends CandidateAction {
@@ -99,6 +107,9 @@ export function extractCandidates(
   forms: readonly DomForm[] = [],
   opts: ExtractOptions = {},
 ): CandidateAction[] {
+  // Only `<form>` elements have an ARIA `form` node to join with; a `div_form` (spec 015) must not
+  // change which DOM form an unnamed ARIA form is taken to be.
+  forms = forms.filter((f) => f.kind !== 'div_form');
   const trace = opts.mode === 'trace';
   const out: CandidateAction[] = [];
   const stack: { depth: number; label: string; role: string; name: string | null }[] = [];
@@ -178,6 +189,49 @@ export function extractCandidates(
   return out;
 }
 
+/**
+ * Candidate actions for role-less clickables (spec 015 R1, LO-10), after the ARIA ones and within
+ * what is left of the per-state cap. Their role is `generic`: the classifier finds no read evidence
+ * in it, so only a read keyword in the name or a read form makes one `read` (FR-002). `nth` counts
+ * repeats of the same name among them, as for ARIA candidates.
+ */
+export function clickableCandidates(
+  clickables: readonly DomClickable[],
+  forms: readonly DomForm[],
+  room: number,
+): CandidateAction[] {
+  const seen = new Map<string, number>();
+  return clickables.slice(0, Math.max(0, room)).map((c) => {
+    const nth = seen.get(c.name ?? '') ?? 0;
+    seen.set(c.name ?? '', nth + 1);
+    const dom = c.form !== null ? forms.find((f) => f.name === c.form) : undefined;
+    const descriptor: ActionDescriptor = {
+      role: 'generic',
+      ...(c.name ? { name: c.name } : {}),
+      ...(c.form !== null
+        ? {
+            form: {
+              ...(dom
+                ? { method: dom.method, action: dom.action, hasPassword: dom.hasPassword }
+                : {}),
+              purpose: dom?.purpose ?? 'other',
+            },
+          }
+        : {}),
+    };
+    return {
+      role: 'generic',
+      name: c.name,
+      nth,
+      ancestors: c.form !== null ? [`form "${c.form}"`] : [],
+      descriptor,
+      found_by: c.found_by,
+      tag: c.tag,
+      path: c.path,
+    };
+  });
+}
+
 /** Classify each candidate with the `safety` package. The class always comes from the server-side rules. */
 export function classifyCandidates(
   cands: readonly CandidateAction[],
@@ -208,6 +262,20 @@ function testIdFor(
 }
 
 /**
+ * Locators of a role-less clickable (spec 015 R2): its DOM path first (tag and child index, the
+ * only handle that tells one `div` from the next), then its text, then the container path. A role
+ * locator would not resolve: `generic` is not a role Playwright can query by name.
+ */
+function clickableLocators(c: CandidateAction, path: string): RankedLocator[] {
+  const out: Omit<RankedLocator, 'rank'>[] = [{ kind: 'path', value: path }];
+  if (c.name) out.push({ kind: 'text', value: c.name });
+  const self = c.name ? `${c.tag ?? 'generic'} ${JSON.stringify(c.name)}` : (c.tag ?? 'generic');
+  const nth = c.nth > 0 ? ` >> nth=${c.nth}` : '';
+  out.push({ kind: 'container', value: `${[...c.ancestors, self].join(' > ')}${nth}` });
+  return out.map((l, rank) => ({ ...l, rank }));
+}
+
+/**
  * Ranked locators (FR-013) for every candidate: role+name, label/text, `data-testid` when the element
  * has one, and a container path. Order of the result matches `cands`.
  */
@@ -216,6 +284,7 @@ export function attachLocators(
   testIds: readonly DomTestId[] = [],
 ): RankedLocator[][] {
   return cands.map((c) => {
+    if (c.path !== undefined) return clickableLocators(c, c.path);
     const t = testIdFor(c, cands, testIds);
     return buildLocators({
       role: c.role,

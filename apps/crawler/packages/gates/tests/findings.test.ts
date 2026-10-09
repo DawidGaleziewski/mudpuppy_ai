@@ -202,26 +202,21 @@ gap(
   },
 );
 
-gap(
-  'F-04@004',
-  'a resumed run keeps the depths it had before the interruption',
-  'open: resume does not rebuild depthByState / depthByUrl (spec 004 F-04)',
-  async () => {
-    const { gs, portal, run } = await mock(2);
-    const home = await must(gs, 'navigate', { run_id: run, url: portal.origin + '/' });
-    const oferty = await must(gs, 'act', {
-      run_id: run,
-      action_id: named(home, 'Oferty').action_id,
-    });
-    // /oferty is depth 2 = max_depth: its links are refused
-    expect(named(oferty, 'Laptop model 1').allowed).toBe(false);
-    // crash: the server restarts and marks the run interrupted; resume it
-    expect(await interruptStaleRuns(gs.ctx)).toEqual([run]);
-    await must(gs, 'start_run', { portal_id: 'mock', persona_id: 'guest', resume_run_id: run });
-    const again = await must(gs, 'navigate', { run_id: run, url: portal.origin + '/oferty' });
-    expect(named(again, 'Laptop model 1').allowed).toBe(false);
-  },
-);
+gate('F-04@004', 'a resumed run keeps the depths it had before the interruption', async () => {
+  const { gs, portal, run } = await mock(2);
+  const home = await must(gs, 'navigate', { run_id: run, url: portal.origin + '/' });
+  const oferty = await must(gs, 'act', {
+    run_id: run,
+    action_id: named(home, 'Oferty').action_id,
+  });
+  // /oferty is depth 2 = max_depth: its links are refused
+  expect(named(oferty, 'Laptop model 1').allowed).toBe(false);
+  // crash: the server restarts and marks the run interrupted; resume it
+  expect(await interruptStaleRuns(gs.ctx)).toEqual([run]);
+  await must(gs, 'start_run', { portal_id: 'mock', persona_id: 'guest', resume_run_id: run });
+  const again = await must(gs, 'navigate', { run_id: run, url: portal.origin + '/oferty' });
+  expect(named(again, 'Laptop model 1').allowed).toBe(false);
+});
 
 /** A chain of ten pages, each with one "Dalej" link to the next. */
 async function chainPortal(): Promise<string> {

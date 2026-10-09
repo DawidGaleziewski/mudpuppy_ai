@@ -107,8 +107,9 @@ Table `states`.
 | `first_seen_run` | string (run id) | |
 
 States are global by fingerprint. Relationship table
-`state_observations(run_id, state_id, persona_id, evidence_ref, observed_at)` (PK `run_id, state_id`,
-FKs to `runs` and `states`) records which run/persona saw a state. It answers
+`state_observations(run_id, state_id, persona_id, evidence_ref, observed_at, composition_json)` (PK
+`run_id, state_id`, FKs to `runs` and `states`; `composition_json` is a nullable JSON
+`PageComposition` since 0011, spec 015) records which run/persona saw a state. It answers
 `get_known_states(run_id)` and supports cross-run and cross-persona comparison (FR-020, and the
 future permission-matrix use case named in `tech-stack.md`, not built here).
 

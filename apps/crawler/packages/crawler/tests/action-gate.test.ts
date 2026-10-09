@@ -25,6 +25,8 @@ const ctx = (over: Partial<GateContext> = {}): GateContext => ({
     max_actions_per_state: 20,
     max_run_time_minutes: 60,
     max_steps: 2000,
+    mfe_wait_ms: 10000,
+    frame_depth: 3,
   },
   denylist: ['logout', 'payment', 'bidding', 'buy_now', 'path:/oferty/wystaw/*'],
   rules: builtinRuleSet(),
@@ -46,6 +48,30 @@ describe('action gate', () => {
       ctx(),
     );
     expect(r).toMatchObject({ allowed: true });
+  });
+
+  it('clicks a javascript: postback link instead of refusing it as a URL (spec 015)', () => {
+    const r = decide(
+      {
+        kind: 'act',
+        currentUrl: here,
+        descriptor: { role: 'link', name: 'Lista operacji', href: "javascript:go('lista')" },
+      },
+      ctx(),
+    );
+    expect(r).toMatchObject({ allowed: true });
+  });
+
+  it('a javascript: link with a mutating label is still held by the ceiling', () => {
+    const r = decide(
+      {
+        kind: 'act',
+        currentUrl: here,
+        descriptor: { role: 'link', name: 'Dodaj do ulubionych', href: 'javascript:void(0)' },
+      },
+      ctx(),
+    );
+    expect(r).toMatchObject({ allowed: false, status: 'skipped_unsafe' });
   });
 
   it('refuses a denylisted button as denylisted, naming the rule', () => {

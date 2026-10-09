@@ -68,10 +68,32 @@ def import_map(request: HttpRequest) -> JsonResponse:
     return JsonResponse({name: f"/mfe/{name}/index.js" for name in APPS if name != "shell"})
 
 
+BUNDLE_DELAY_COOKIE = "pg_bundle_delay_ms"
+BUNDLE_DELAY_MAX_MS = 10_000
+
+
+def _bundle_delay_ms(request: HttpRequest) -> int:
+    """The opt-in test delay of the cookie; anything outside 0..10000 or not a number is ignored."""
+    raw = request.COOKIES.get(BUNDLE_DELAY_COOKIE, "")
+    if not raw.isdigit():
+        return 0
+    ms = int(raw)
+    return ms if 0 <= ms <= BUNDLE_DELAY_MAX_MS else 0
+
+
+def bundle_delay(request: HttpRequest) -> HttpResponse:
+    """Test-only: set the cookie that slows micro-frontend bundles (LO-02). Nothing links here."""
+    response = HttpResponse("ok", content_type="text/html; charset=utf-8")
+    response.set_cookie(BUNDLE_DELAY_COOKIE, request.GET.get("ms", "0"), path="/")
+    return response
+
+
 def bundle(request: HttpRequest, name: str, file: str) -> HttpResponse:
     folder = APPS.get(name)
     if folder is None or ".." in file:
         raise Http404("no such bundle")
+    if name != "shell":
+        time.sleep(_bundle_delay_ms(request) / 1000)
     path = config.CONFIG.root / "web" / folder / "dist" / file
     if not path.is_file():
         raise Http404("bundle not built; run pnpm --dir apps/proving-ground build")

@@ -206,6 +206,7 @@ export interface StateObservationsTable {
   persona_id: string;
   evidence_ref: string;
   observed_at: string;
+  composition_json: string | null;
 }
 
 export interface ActionsTable {

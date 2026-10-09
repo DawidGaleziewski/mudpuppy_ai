@@ -1,4 +1,4 @@
-import { isSyntheticInput } from '@pathfinder/core';
+import { isSyntheticInput, type FoundBy } from '@pathfinder/core';
 import type { ActionDescriptor } from '@pathfinder/safety';
 import type { ServerContext } from '../../context.js';
 import { ToolError } from '../../errors.js';
@@ -19,6 +19,12 @@ export interface ActionRow {
     attributes?: Record<string, string>;
     locators: { kind: string; value: string; rank: number }[];
     snapshot_ref?: string;
+    /** Signal-found actions only (spec 015); their role is `generic`. */
+    found_by?: FoundBy[];
+    /** Frame path; absent for the top document. */
+    frame?: string;
+    /** Element tag of a signal-found action, for the path locator. */
+    tag?: string;
     page_url: string;
   };
 }

@@ -338,6 +338,64 @@ so nothing is filled or sent there.
 
 <sub>Last changed in R-20, 2026-10-04.</sub>
 
+<a id="page-composition"></a>
+
+#### Page composition
+
+**Per observation, the page's structure: frames, micro-frontend mount points, module loaders, bundles and clickable element counts.**
+
+When the crawler records a page, it observes not just the content but the structure: which
+frames it contains (legacy framesets or modern iframes), where micro-frontends mount (`#root`,
+`[data-mfe]`), whether modules are loaded dynamically, how many JavaScript bundles are
+running and how many clickable elements it found. Page composition shows the page's
+architecture, not just its text and forms.
+
+*Seen in:* Run page → State details; State page
+
+*Labels:* `Page composition`, `composition`
+
+*Related:* [Mount point](#mount-point), [State](#state)
+
+<sub>Last changed in R-28, 2026-10-09.</sub>
+
+<a id="mount-point"></a>
+
+#### Mount point
+
+**An element a micro-frontend renders into, such as `#root` or `[data-mfe]`.**
+
+In modern multi-frontend architectures, a shell page contains placeholders (mount points)
+where each micro-frontend renders its own tree. The crawler observes and records these:
+an element with an id or data attribute that marks it as a destination for a dynamic
+subtree. Understanding mount points helps trace how a page is composed from pieces.
+
+*Seen in:* Run page → State details; page composition
+
+*Labels:* `Mount point`, `mfe mount`
+
+*Related:* [Page composition](#page-composition), [State](#state)
+
+<sub>Last changed in R-28, 2026-10-09.</sub>
+
+<a id="div-form"></a>
+
+#### Div form
+
+**Inputs outside any `<form>` element recorded as a form, one per container with a submit-like control.**
+
+Legacy and modern portals sometimes build forms from divs without using the HTML `<form>`
+element: input fields as divs or spans, and a submit button elsewhere. The crawler recognizes
+them by finding a container with input-like controls and a submit-like button, and records
+them as a form. The container's structure shows which fields belong together.
+
+*Seen in:* Run page → Forms; Actions
+
+*Labels:* `Div form`, `form`
+
+*Related:* [Form autofill](#form-autofill), [State](#state)
+
+<sub>Last changed in R-28, 2026-10-09.</sub>
+
 ### Actions and safety
 
 <a id="accessible-name"></a>
@@ -447,6 +505,44 @@ validates a locator before relying on it.
 *Related:* [Accessible name](#accessible-name), [Role](#role), [Transition (edge)](#transition)
 
 <sub>Last changed in R-22, 2026-10-03.</sub>
+
+<a id="click-signal"></a>
+
+#### Click signal
+
+**What makes an element without an ARIA role count as clickable, such as a click listener, inline handler, framework handler, pointer cursor or tabindex.**
+
+Elements with no explicit ARIA role but behavioural signals that they respond to clicks are
+recorded with `role: generic` and a `found_by` list naming the signals that identified them.
+The BA labels the inferred meaning based on context: is it a button, a menu item, a
+navigation link or something else.
+
+*Seen in:* Actions → Role; Actions → found_by
+
+*Labels:* `Click signal`, `signal`
+
+*Related:* [Signal-found action](#signal-found-action), [Accessible name](#accessible-name), [Role](#role)
+
+<sub>Last changed in R-28, 2026-10-09.</sub>
+
+<a id="signal-found-action"></a>
+
+#### Signal-found action
+
+**An action issued for an element without an ARIA role but with click signals; the BA labels its meaning inferred from context.**
+
+When the crawler finds an element with click signals but no role, it records an action with
+`role: generic` and includes a `found_by` list of the signals (click handler, pointer
+cursor, tabindex, framework handler). The meaning of this action — whether it is a button,
+menu item or link — is inferred by the BA from where it appears and what it does.
+
+*Seen in:* Actions → Role; Actions → found_by
+
+*Labels:* `Signal-found`, `generic role`
+
+*Related:* [Click signal](#click-signal), [Accessible name](#accessible-name), [Decision (allowed / skipped)](#decision)
+
+<sub>Last changed in R-28, 2026-10-09.</sub>
 
 ### Frontier
 

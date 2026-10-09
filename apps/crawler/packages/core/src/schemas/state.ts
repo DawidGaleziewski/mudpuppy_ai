@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { Confidence, EvidenceRef, Id, Stabilization, Timestamp } from './common.js';
+import { Confidence, EvidenceRef, Id, JsonValue, Stabilization, Timestamp } from './common.js';
 
 export const State = z.object({
   id: Id,
@@ -22,5 +22,6 @@ export const StateObservation = z.object({
   persona_id: z.string().min(1),
   evidence_ref: EvidenceRef,
   observed_at: Timestamp,
+  composition_json: JsonValue.nullable(),
 });
 export type StateObservation = z.infer<typeof StateObservation>;

@@ -1,4 +1,4 @@
--- GENERATED from data/migrations/*.up.sql applied in order (currently through 0010_step_stopped). Do not edit by hand.
+-- GENERATED from data/migrations/*.up.sql applied in order (currently through 0011_page_composition). Do not edit by hand.
 -- Regenerate after every migration; see data/schema/README.md.
 
 CREATE TABLE runs (
@@ -34,6 +34,8 @@ CREATE TABLE state_observations (
   persona_id   TEXT NOT NULL,
   evidence_ref TEXT NOT NULL CHECK (length(evidence_ref) > 0),
   observed_at  TEXT NOT NULL,
+  -- 0011 (ALTER TABLE): JSON PageComposition (frames, mounts, loaders, clickables); NULL before 0011 (spec 015).
+  composition_json TEXT CHECK (composition_json IS NULL OR json_valid(composition_json)),
   PRIMARY KEY (run_id, state_id)
 ) STRICT, WITHOUT ROWID;
 

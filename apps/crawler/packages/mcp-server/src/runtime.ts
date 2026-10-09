@@ -24,6 +24,8 @@ export interface PageResult {
     safety_class: string;
     allowed: boolean;
     skip_reason?: string;
+    /** Role-less clickables only: the click signals that found the element (spec 015). */
+    found_by?: string[];
     /**
      * Trace runs: the persona's `trace_inputs` value for this field's label, when declared. It is
      * what to type, NOT what the field holds: forms start as the portal renders them.
@@ -39,6 +41,10 @@ export interface PageResult {
   step?: { ord: number; outcomes: string[] };
   /** The session had expired; the server logged in again and returned here (spec 009). */
   relogged_in?: true;
+  /** Frames whose content is part of this page (spec 015); omitted when none. */
+  frames?: number;
+  /** Micro-frontend mount points still empty when the wait ran out (spec 015); worth one re-navigate. */
+  mounts_pending?: string[];
 }
 
 export type LoginResult = PageResult & { outcome: 'logged_in' | 'failed'; reason?: string };

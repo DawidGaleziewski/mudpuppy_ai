@@ -1,7 +1,7 @@
 import { FingerprintIndex } from '@pathfinder/fingerprint';
 import { inferRouteTemplates, type RouteTemplater } from '@pathfinder/fingerprint';
 import type { EffectiveConfig } from '@pathfinder/config';
-import { FrontierPolicy, type BrowserSession } from '@pathfinder/crawler';
+import { FrontierPolicy, type BrowserSession, type MountWait } from '@pathfinder/crawler';
 import { portalRuleSet, type RuleSet, type RunScope } from '@pathfinder/safety';
 import type { RunRobots } from '../services/robots.js';
 import type { PwTrace } from './pw-trace.js';
@@ -30,6 +30,8 @@ export class RunState {
   processId: string | null = null;
   /** The page as last observed, compared with the next one for a trace step's outcomes. */
   lastObserved: { url: string; title: string; snapshot: string } | null = null;
+  /** The mount wait of the latest settle (spec 015 R4), for the page composition. */
+  lastMounts: MountWait | null = null;
   /** States already handed to a human for a CAPTCHA in this run (spec 009 FR-022). */
   readonly handoffs = new Set<string>();
   /**

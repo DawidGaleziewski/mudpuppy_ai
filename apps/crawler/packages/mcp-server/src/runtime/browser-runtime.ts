@@ -218,5 +218,19 @@ export function createBrowserRuntime(opts: BrowserRuntimeOptions = {}): Runtime 
     for (const d of depths)
       if (!rs.depthByState.has(d.state_id) || rs.depthByState.get(d.state_id)! > d.depth)
         rs.depthByState.set(d.state_id, d.depth);
+    // `navigate` looks depths up by URL; each issued action remembers the URL of its page, so a
+    // page's URL gets its state's depth back (spec 004 F-04, spec 015 T032).
+    const pages = await ctx.db
+      .selectFrom('actions')
+      .select(['state_id', 'action_json'])
+      .where('run_id', '=', run.id)
+      .execute();
+    for (const a of pages) {
+      const depth = rs.depthByState.get(a.state_id);
+      const url = (JSON.parse(a.action_json) as { page_url?: string }).page_url;
+      if (depth === undefined || url === undefined) continue;
+      const known = rs.depthByUrl.get(url);
+      if (known === undefined || known > depth) rs.depthByUrl.set(url, depth);
+    }
   }
 }

@@ -22,6 +22,8 @@ const budgets = {
   max_actions_per_state: 5,
   max_run_time_minutes: 5,
   max_steps: 20,
+  mfe_wait_ms: 10000,
+  frame_depth: 3,
 };
 const scope: Scope = {
   ...budgets,

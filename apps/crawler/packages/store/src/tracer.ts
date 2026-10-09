@@ -81,6 +81,10 @@ export const EVENT_NAMES = [
   'relogin',
   // spec 013 (R-24): a link item settled by an earlier transition to the same target
   'frontier_infer',
+  // spec 015 (R-28): frames, micro-frontend mounts, click signals
+  'mfe_mount_timeout',
+  'frame_skipped',
+  'clickables_capped',
 ] as const;
 export type EventName = (typeof EVENT_NAMES)[number];
 

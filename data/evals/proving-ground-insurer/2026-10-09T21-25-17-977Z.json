@@ -1,0 +1,83 @@
+{
+  "portal_id": "proving-ground-insurer",
+  "persona_id": "client",
+  "started_at": "2026-10-09T21:25:17.977Z",
+  "git_sha": "0c67c2c",
+  "runs": {
+    "crawler": "01a1228e-68ec-7000-a986-6e801614fb33",
+    "ba_session": "01a12298-6fe5-7000-8898-bfd5a8ea6e66",
+    "crawler_cli_session": "df805aa5-92b0-4188-86e7-dec6017fa614",
+    "ba_cli_session": "3a42f9ee-1c88-4e88-a709-21db38babae1"
+  },
+  "cost": {
+    "usd": 4.1260992000000005,
+    "input_tokens": 8061212,
+    "output_tokens": 67352,
+    "duration_ms": 1077629
+  },
+  "scores": {
+    "screens": {
+      "matched": 1,
+      "total": 2,
+      "pct": 50
+    },
+    "fields": {
+      "matched": 0,
+      "total": 2,
+      "pct": 0
+    },
+    "constraints": {
+      "matched": 0,
+      "total": 2,
+      "pct": 0
+    },
+    "rules": {
+      "matched": 0,
+      "total": 1,
+      "pct": 0
+    },
+    "processes": {
+      "matched": 0,
+      "total": 5,
+      "pct": 0
+    },
+    "terms": {
+      "matched": 5,
+      "total": 10,
+      "pct": 50
+    },
+    "logged_in_screens": {
+      "matched": 2,
+      "total": 6,
+      "pct": 33.3
+    },
+    "obstacles": {
+      "matched": 9,
+      "total": 26,
+      "pct": 34.6
+    },
+    "entry_points": {
+      "matched": 0,
+      "total": 1,
+      "pct": 0
+    },
+    "crawl_screens": {
+      "matched": 4,
+      "total": 6,
+      "pct": 66.7
+    }
+  },
+  "overclaims": 0,
+  "checks": {
+    "frontier_empty_at_finish": true,
+    "crawler_completed": true,
+    "crawler_steps": 40,
+    "frontier_pending": 0,
+    "ba_session_completed": true,
+    "handoffs": 0,
+    "relogins": 1,
+    "logged_in": true,
+    "password_hits": 0,
+    "widget_actions": 0
+  }
+}
