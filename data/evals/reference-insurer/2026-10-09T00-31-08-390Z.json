@@ -1,0 +1,68 @@
+{
+  "portal_id": "reference-insurer",
+  "persona_id": "guest",
+  "started_at": "2026-10-09T00:31:08.390Z",
+  "git_sha": "0188c02",
+  "runs": {
+    "crawler": "01a11e12-333f-7000-8b57-11ef58dbd3fd",
+    "ba_session": "01a11e13-ad98-7000-a3f3-0b29cf531dc1",
+    "crawler_cli_session": "1a52b29f-8350-4b2f-9c8a-8bf43f0344e2",
+    "ba_cli_session": "1555abaa-8e13-4117-9291-17ccf4c7b1c6"
+  },
+  "cost": {
+    "usd": 4.8189572,
+    "input_tokens": 7323593,
+    "output_tokens": 81383,
+    "duration_ms": 796009
+  },
+  "scores": {
+    "screens": {
+      "matched": 17,
+      "total": 17,
+      "pct": 100
+    },
+    "fields": {
+      "matched": 25,
+      "total": 26,
+      "pct": 96.2
+    },
+    "constraints": {
+      "matched": 47,
+      "total": 49,
+      "pct": 95.9
+    },
+    "rules": {
+      "matched": 9,
+      "total": 16,
+      "pct": 56.3
+    },
+    "processes": {
+      "matched": 0,
+      "total": 5,
+      "pct": 0
+    },
+    "terms": {
+      "matched": 10,
+      "total": 10,
+      "pct": 100
+    },
+    "crawl_screens": {
+      "matched": 17,
+      "total": 17,
+      "pct": 100
+    }
+  },
+  "overclaims": 0,
+  "checks": {
+    "frontier_empty_at_finish": true,
+    "crawler_completed": true,
+    "crawler_steps": 33,
+    "frontier_pending": 0,
+    "ba_session_completed": true,
+    "handoffs": 0,
+    "relogins": 0,
+    "logged_in": false,
+    "password_hits": 0,
+    "widget_actions": 0
+  }
+}

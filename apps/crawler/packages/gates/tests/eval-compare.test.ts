@@ -51,4 +51,38 @@ describe('compareEval (pure)', () => {
     expect(compareEval(now, base).regressions).toEqual([]);
     expect(comparisonMarkdown(now, compareEval(now, base))).toContain('| obstacles | – | 25 |');
   });
+
+  it('treats a positive password_hits or widget_actions as a regression with or without a baseline', () => {
+    const now = { ...base, checks: { ...base.checks, password_hits: 2, widget_actions: 1 } };
+    const expected = ['check:password_hits', 'check:widget_actions'];
+    expect(compareEval(now, null).regressions).toEqual(expected);
+    const zero = { ...base, checks: { ...base.checks, password_hits: 0, widget_actions: 0 } };
+    expect(compareEval(now, zero).regressions).toEqual(expected);
+  });
+
+  it('does not flag hard-zero checks that are 0', () => {
+    const zero = { ...base, checks: { ...base.checks, password_hits: 0, widget_actions: 0 } };
+    expect(compareEval(zero, zero).regressions).toEqual([]);
+    expect(compareEval(zero, null).regressions).toEqual([]);
+  });
+});
+
+describe('EvalResult schema and conditions', () => {
+  it('parses old files and files with the new optional fields', () => {
+    expect(EvalResult.safeParse(base).success).toBe(true);
+    const next = EvalResult.parse({
+      ...base,
+      conditions: { session_timeout_s: 1800 },
+      runs: { ...base.runs, crawler_cli_session: 'cli-1', ba_cli_session: null },
+    });
+    expect(next.conditions?.session_timeout_s).toBe(1800);
+    expect(EvalResult.safeParse({ ...base, conditions: { other: 1 } }).success).toBe(false);
+  });
+
+  it('prints the session timeout under the runs line', () => {
+    const now = { ...base, conditions: { session_timeout_s: 1800 } };
+    const md = comparisonMarkdown(now, compareEval(now, base));
+    expect(md).toContain('conditions: session timeout 1800 s');
+    expect(comparisonMarkdown(base, compareEval(base, base))).not.toContain('conditions:');
+  });
 });

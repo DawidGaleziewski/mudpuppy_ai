@@ -4,3 +4,4 @@ export * from './harness.js';
 export * from './paths.js';
 export * from './steps.js';
 export * from './eval.js';
+export * from './eval-checks.js';

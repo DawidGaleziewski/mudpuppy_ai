@@ -1536,11 +1536,14 @@ entries:
       scores and checks with the baseline and exits with 1 on a regression. It is never part of
       `pnpm test`, because it costs tokens and agents are not deterministic. It is how you see
       whether a change to a prompt, a skill or the tools made the agents better or worse.
+      When an agent is cut off by an API error or the account's usage limit, the eval writes no
+      result at all, so an outage is never scored as agent quality. Run evals one at a time: they
+      spend the same usage quota as your Claude Code session.
     appears_in: [pnpm eval]
     labels: [tier 2, pnpm eval]
-    related: [eval-baseline, eval-workspace, coverage-score, quality-gate]
-    changed_in: R-27
-    changed_on: 2026-10-05
+    related: [eval-baseline, eval-workspace, coverage-score, crawl-coverage-score, password-sweep, quality-gate]
+    changed_in: R-29
+    changed_on: 2026-10-09
 
   - id: eval-baseline
     term: Eval baseline
@@ -1549,14 +1552,50 @@ entries:
     short: The saved result an eval is compared with; a score may fall below it only by the portal's tolerance.
     explanation: |
       `data/evals/<portal>/baseline.json` is set with `pnpm eval <portal> --promote`, which moves
-      the old baseline to `history/`. `tolerances.json` in the same folder sets how far recall and
-      precision may drop (default 0.05). A check that was true in the baseline must stay true.
-      Baselines are committed.
-    appears_in: [data/evals/<portal>/baseline.json]
+      the old baseline to `history/`. `tolerances.json` in the same folder sets how many
+      percentage points each score may drop (default 5, widened per category where two runs of
+      the same map differed). A check that was true in the baseline must stay true; the
+      password-hit and widget-action counts must be 0 in every run, baseline or not, and a run
+      that breaks them is never promoted. Baselines are committed.
+    appears_in: [data/evals/<portal>/baseline.json, data/evals/<portal>/tolerances.json]
     labels: [baseline, tolerance, promote]
+    related: [eval, coverage-score, crawl-coverage-score, password-sweep]
+    changed_in: R-29
+    changed_on: 2026-10-09
+
+  - id: crawl-coverage-score
+    term: Crawl coverage score
+    category: pathfinder
+    group: Gates and evals
+    short: How many of the portal's ground-truth screens the crawler itself reached in an eval, apart from what the BA documented.
+    explanation: |
+      `crawl_screens` in an eval result. A guest persona is scored on the screens a guest can see;
+      a logged-in persona on the screens behind the login. A screen counts when one of the run's
+      states has its route (parameter names do not matter: `:slug` and `:param` match). A low
+      documentation score with a high crawl score points at the BA; a low crawl score points at
+      the crawler.
+    appears_in: [data/evals/<portal>/*.json → scores.crawl_screens]
+    labels: [crawl_screens]
     related: [eval, coverage-score]
-    changed_in: R-27
-    changed_on: 2026-10-05
+    changed_in: R-29
+    changed_on: 2026-10-09
+
+  - id: password-sweep
+    term: Password sweep
+    category: pathfinder
+    group: Gates and evals
+    short: The eval's search for the portal's test passwords in everything a run left behind; it must find none.
+    explanation: |
+      After both agents ran, the eval searches the store (except the vault's encrypted rows), every
+      file of the run (evidence, logs, unzipped traces), the documentation export and both agents'
+      transcripts for every password the vault holds for the portal, guest runs included. The
+      count is `password_hits`; anything above 0 fails the eval. It prints only counts per place,
+      never a password.
+    appears_in: [data/evals/<portal>/*.json → checks.password_hits]
+    labels: [password_hits]
+    related: [eval, credential-vault]
+    changed_in: R-29
+    changed_on: 2026-10-09
 
   - id: eval-workspace
     term: Eval workspace

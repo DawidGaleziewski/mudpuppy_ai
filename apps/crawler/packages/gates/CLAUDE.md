@@ -1,12 +1,15 @@
 # @pathfinder/gates
 
-Tier-1 quality gates (one case per legacy obstacle and logged finding) against the proving ground, and tier-2 eval tooling (spec 009 R-27). Exports: catalogue, gate, gap, harness, paths, steps, eval.
+Tier-1 quality gates (one case per legacy obstacle and logged finding) against the proving ground, and tier-2 eval tooling (spec 009 R-27). Exports: catalogue, gate, gap, harness, paths, steps, eval, eval-checks.
 
 Layer: servers (G-07; `apps/crawler/layers.json`)
 
 ## Public API
 - `gate()`, `gap()`: define gate and known-unfixed cases; used by the crawler app root.
 - `catalogue`, `harness`, `paths`, `steps`, `eval`: gate infrastructure and reporting.
+- `eval-checks` (`crawlScreens`, `passwordHits`, `widgetActions`) and `HARD_ZERO_CHECKS`: pure
+  eval measures used by `scripts/eval-run.ts` (spec 014). Their tests run only in the gates tier
+  (spec 014 F-03).
 
 ## Invariants
 - Files run one at a time (`fileParallelism: false`); shared estate on ports 4200/4201.

@@ -45,7 +45,10 @@ rather than editing this folder ad hoc.
   (git-ignored).
 - `evals/<portal>/` — tier-2 eval results (spec 009, `pnpm eval`): one `<timestamp>.json` per
   run, `baseline.json` (the result new runs are compared with), `history/` (older baselines) and
-  `tolerances.json` (allowed score drops). Committed, so regressions show in review.
+  `tolerances.json` (allowed score drops). Committed, so regressions show in review. Baselines
+  since 2026-10-08 (spec 014): `reference-insurer` (guest), `proving-ground-shop` (guest),
+  `proving-ground-bank` (client, run with `--session-timeout 20`), `proving-ground-insurer`
+  (client); verdicts in `specs/014-eval-baselines/criteria.md`.
 - `traces/` — raw per-call Playwright trace zips at `traces/<portal>/<run_id>/<seq>-<tool>.zip`,
   referenced by `trace_spans.pw_trace_path`; unlike `evidence/` these are not content-addressed and
   are never scrubbed, so viewing them is local-only (`npx playwright show-trace <path>`, never

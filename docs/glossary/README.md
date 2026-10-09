@@ -1411,14 +1411,17 @@ the evaluator and writes `data/evals/<portal>/<timestamp>.json`. It then compare
 scores and checks with the baseline and exits with 1 on a regression. It is never part of
 `pnpm test`, because it costs tokens and agents are not deterministic. It is how you see
 whether a change to a prompt, a skill or the tools made the agents better or worse.
+When an agent is cut off by an API error or the account's usage limit, the eval writes no
+result at all, so an outage is never scored as agent quality. Run evals one at a time: they
+spend the same usage quota as your Claude Code session.
 
 *Seen in:* pnpm eval
 
 *Labels:* `tier 2`, `pnpm eval`
 
-*Related:* [Eval baseline](#eval-baseline), [Eval workspace](#eval-workspace), [Coverage score](#coverage-score), [Quality gate (tier 1)](#quality-gate)
+*Related:* [Eval baseline](#eval-baseline), [Eval workspace](#eval-workspace), [Coverage score](#coverage-score), [Crawl coverage score](#crawl-coverage-score), [Password sweep](#password-sweep), [Quality gate (tier 1)](#quality-gate)
 
-<sub>Last changed in R-27, 2026-10-05.</sub>
+<sub>Last changed in R-29, 2026-10-09.</sub>
 
 <a id="eval-baseline"></a>
 
@@ -1427,17 +1430,59 @@ whether a change to a prompt, a skill or the tools made the agents better or wor
 **The saved result an eval is compared with; a score may fall below it only by the portal's tolerance.**
 
 `data/evals/<portal>/baseline.json` is set with `pnpm eval <portal> --promote`, which moves
-the old baseline to `history/`. `tolerances.json` in the same folder sets how far recall and
-precision may drop (default 0.05). A check that was true in the baseline must stay true.
-Baselines are committed.
+the old baseline to `history/`. `tolerances.json` in the same folder sets how many
+percentage points each score may drop (default 5, widened per category where two runs of
+the same map differed). A check that was true in the baseline must stay true; the
+password-hit and widget-action counts must be 0 in every run, baseline or not, and a run
+that breaks them is never promoted. Baselines are committed.
 
-*Seen in:* data/evals/<portal>/baseline.json
+*Seen in:* data/evals/<portal>/baseline.json; data/evals/<portal>/tolerances.json
 
 *Labels:* `baseline`, `tolerance`, `promote`
 
+*Related:* [Eval (tier 2)](#eval), [Coverage score](#coverage-score), [Crawl coverage score](#crawl-coverage-score), [Password sweep](#password-sweep)
+
+<sub>Last changed in R-29, 2026-10-09.</sub>
+
+<a id="crawl-coverage-score"></a>
+
+#### Crawl coverage score
+
+**How many of the portal's ground-truth screens the crawler itself reached in an eval, apart from what the BA documented.**
+
+`crawl_screens` in an eval result. A guest persona is scored on the screens a guest can see;
+a logged-in persona on the screens behind the login. A screen counts when one of the run's
+states has its route (parameter names do not matter: `:slug` and `:param` match). A low
+documentation score with a high crawl score points at the BA; a low crawl score points at
+the crawler.
+
+*Seen in:* data/evals/<portal>/*.json → scores.crawl_screens
+
+*Labels:* `crawl_screens`
+
 *Related:* [Eval (tier 2)](#eval), [Coverage score](#coverage-score)
 
-<sub>Last changed in R-27, 2026-10-05.</sub>
+<sub>Last changed in R-29, 2026-10-09.</sub>
+
+<a id="password-sweep"></a>
+
+#### Password sweep
+
+**The eval's search for the portal's test passwords in everything a run left behind; it must find none.**
+
+After both agents ran, the eval searches the store (except the vault's encrypted rows), every
+file of the run (evidence, logs, unzipped traces), the documentation export and both agents'
+transcripts for every password the vault holds for the portal, guest runs included. The
+count is `password_hits`; anything above 0 fails the eval. It prints only counts per place,
+never a password.
+
+*Seen in:* data/evals/<portal>/*.json → checks.password_hits
+
+*Labels:* `password_hits`
+
+*Related:* [Eval (tier 2)](#eval), [Credential vault](#credential-vault)
+
+<sub>Last changed in R-29, 2026-10-09.</sub>
 
 <a id="eval-workspace"></a>
 

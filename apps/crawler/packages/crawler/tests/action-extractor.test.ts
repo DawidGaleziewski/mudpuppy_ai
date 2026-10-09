@@ -48,6 +48,21 @@ describe('extractCandidates', () => {
     expect(c[1]!.href).toBeUndefined();
   });
 
+  it('reads a YAML-quoted /url as its value: hash routes (spec 014 F-08)', () => {
+    const c = extractCandidates(
+      [
+        '- link "Moje polisy":',
+        '    - /url: "#/polisy"',
+        '- link "Warunki":',
+        "    - /url: '#'",
+        '- link "Plain":',
+        '    - /url: /kontakt',
+      ].join('\n'),
+    );
+    expect(c.map((x) => x.href)).toEqual(['#/polisy', '#', '/kontakt']);
+    expect(c[0]!.descriptor.href).toBe('#/polisy');
+  });
+
   it('joins DOM form semantics: a POST form with a password makes its button non-read', () => {
     const snap = ['- form "Logowanie":', '    - button "Zaloguj"'].join('\n');
     const withDom = classifyCandidates(

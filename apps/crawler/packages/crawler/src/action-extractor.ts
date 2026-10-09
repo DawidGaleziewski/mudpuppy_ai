@@ -68,6 +68,24 @@ export interface ClassifiedAction extends CandidateAction {
 const LINE = /^(\s*)- ([a-z][a-z0-9-]*)(?: "((?:[^"\\]|\\.)*)")?((?: \[[^\]]*\])*)(:)?(?: (.*))?$/;
 const PROP = /^\s*- \/(\w+):\s*(.*)$/;
 
+/**
+ * A property value as written: the snapshot is YAML, which quotes a value that starts with `#`
+ * (hash routes) or holds `: `, so `/url: "#/polisy"` means `#/polisy` (spec 014 F-08).
+ */
+function yamlScalar(raw: string): string {
+  const v = raw.trim();
+  if (v.length >= 2 && v.startsWith('"') && v.endsWith('"')) {
+    try {
+      return JSON.parse(v) as string;
+    } catch {
+      return v.slice(1, -1);
+    }
+  }
+  if (v.length >= 2 && v.startsWith("'") && v.endsWith("'"))
+    return v.slice(1, -1).replaceAll("''", "'");
+  return v;
+}
+
 const unescape = (s: string): string => s.replace(/\\(.)/g, '$1');
 
 /**
@@ -91,7 +109,7 @@ export function extractCandidates(
     const prop = PROP.exec(line);
     if (prop) {
       if (prop[1] === 'url' && last && last.role !== 'button') {
-        last.href = prop[2]!.trim();
+        last.href = yamlScalar(prop[2]!);
         last.descriptor.href = last.href;
       }
       continue;

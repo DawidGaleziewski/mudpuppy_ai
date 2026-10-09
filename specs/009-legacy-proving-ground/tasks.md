@@ -93,7 +93,7 @@ Paths: `PG/` = `apps/proving-ground/`, `CR/` = `apps/crawler/packages/`.
 - [X] T040 [US7] [opus] Evaluator categories `obstacles`, `logged_in_screens`, `entry_points` in `CR/docs/src/evaluate.ts` + input loader (hand-off open questions); tests; reference golden unchanged.
 - [X] T041 [US7] [opus] `EvalResult` Zod schema, `compareEval(result, baseline, tolerances)` pure function + Markdown table; tests.
 - [X] T042 [US7] [opus] `apps/crawler/scripts/eval-run.ts` + `pnpm eval`: preflight (CLI version, stale servers, estate), crawler and BA headless runs with fixed prompts, evaluate, write result, compare, `--promote`, `--dry-run`.
-- [X] T043 [US7] [opus] Run the eval once per portal (`reference-insurer`, `proving-ground-shop`, `-bank`, `-insurer`) at $8 per agent, promote the first baselines, log every problem in findings.md. (Moved to R-29 at close-out: the first attempt was stopped on the user's request, F-17; no baseline promoted yet.)
+- [X] T043 [US7] [opus] Run the eval once per portal (`reference-insurer`, `proving-ground-shop`, `-bank`, `-insurer`) at $8 per agent, promote the first baselines, log every problem in findings.md. (Moved to R-29 at close-out: the first attempt was stopped on the user's request, F-17; no baseline promoted yet. Done in R-29, 2026-10-09: four baselines and second runs, SC-003/SC-007 met, SC-004/SC-005 not met — `specs/014-eval-baselines/criteria.md`; gap ranking in `gap-ranking.md`.)
 
 ## Phase 10: Polish
 

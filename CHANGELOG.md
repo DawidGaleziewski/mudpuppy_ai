@@ -6,6 +6,24 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Added
+- R-29 eval baselines: the first tier-2 baselines for `reference-insurer` (guest),
+  `proving-ground-shop` (guest), `proving-ground-bank` (client, `--session-timeout 20`) and
+  `proving-ground-insurer` (client), each with a second run and `tolerances.json`
+  (`data/evals/`). `pnpm eval` now scores the crawler apart from the BA (`crawl_screens`: 17/17,
+  3/6, 4/11, 4/6, identical in both runs), counts the frontier left pending, sweeps the store,
+  every run file, the SRS export and both agent transcripts for the portal's vault passwords
+  (`password_hits`, 0 in all 8 runs) and counts actions on the CAPTCHA widget
+  (`widget_actions`, 0); both must be 0 or the eval fails and nothing is promoted. It starts the
+  estate with `--session-timeout`, always stops the portal server it started, and writes no
+  result when an agent is cut off by an API error or the account's usage limit (it happened
+  twice; the first two baselines were withdrawn). Spec 009 verdicts on real agent runs: SC-003
+  and SC-007 met, SC-004 and SC-005 not met (crawl coverage), in
+  `specs/014-eval-baselines/criteria.md`. The user's gap ranking orders R-28 (LO-10 first) and
+  added R-35..R-41 (next/later gaps, all query parameters, all URLs and redirects, BA goal
+  quality, eval robustness, a roadmap review) with a priorities section in `roadmap.md`.
+  Glossary: crawl coverage score, password sweep. Findings F-01–F-10 in
+  `specs/014-eval-baselines/findings.md` (`specs/014-eval-baselines` T001–T020). Branch
+  `feature/014-r29-eval-baselines` (squash-merged on master, tag v1.0.13).
 - R-24 token usage: a drained map run of the reference portal now costs 1.05M cache-read
   tokens instead of 38–78M (36 agent turns instead of ~400, $0.47), with the same 21 states and
   the same 319 transitions. Map-mode `navigate`/`act` results leave out the action list of a page
@@ -173,5 +191,9 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Moved the TypeScript workspace into `apps/crawler/` so the repo root can host other apps. Commit: b1639fc.
 
 ### Fixed
+- The crawler never followed hash-route links (`#/polisy`): the ARIA snapshot quotes such a
+  `/url` and the action extractor kept the quotes, so the target became `/%22#…` and was refused
+  as out of scope, on every portal since R-07 (spec 014 F-08). Insurer client crawl coverage
+  went from 1 to 4 of 6 screens.
 - BA `get_run_evidence` `actions` items carried `role: null` and `name: null` since R-13; they
   now carry the action's real role and name (spec 013 F-01).
