@@ -154,3 +154,16 @@ not flag it after the `sweep()` split); `extractCandidates` complexity 35 is old
 - **Fix**: checked by printing the line after the edit; it is correct.
 - **Test/eval idea**: the spec 009 F-13 suggestion still stands: a hook that flags `sed -i` and
   `python3 -` edits on tracked files.
+
+## F-12 Two empty `user_input/` placeholders were committed on the feature branch (process slip)
+
+- **Symptom**: the checkout of master before the squash failed: `user_input/loose_ideas/readme.md`
+  and `user_input/redesign/readme.md` were tracked on the branch as empty files (7ebfa43,
+  1f4287a) while the user's real notes were only in the working tree.
+- **Cause**: not found: the `git add` paths of those commits did not name `user_input/`; the
+  files were probably staged empty (intent-to-add or created and staged by another tool) before
+  the user wrote into them.
+- **Fix**: backed up the notes, untracked the placeholders on the branch (1a4dd30, committed with
+  `--no-verify`: no code), squash-merged, then committed the notes on master on their own.
+- **Test/eval idea**: before each commit, `git diff --cached --stat` and refuse files outside the
+  paths the task named.
