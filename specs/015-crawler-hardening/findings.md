@@ -285,6 +285,17 @@ Every bug, gap and process slip found while building this feature or running the
 - **Test/eval idea**: the PreToolUse hook from F-01 that flags `sed -i` / `python3 -` on tracked
   files.
 
+## F-24 Dashboard review test failed once in the pre-commit hook (flake, open → R-40)
+
+- **Symptom**: the squash commit's hook failed
+  `test_review.py::test_confirm_runs_docs_review_and_changes_only_the_reported_rows` with a 500,
+  error `UNEXPECTED` "status: 7"; the test passed alone, in the close-out run and on the retry.
+- **Cause**: not proven. The test runs a real `pnpm docs:review` subprocess in `apps/crawler`
+  while the hook runs the crawler's fast tier at the same time.
+- **Fix**: open → R-40 (eval and test robustness).
+- **Test/eval idea**: run the test 20× under `-n auto` alongside `pnpm test:fast`; keep the
+  subprocess's stderr in the error detail.
+
 ## Verdicts (T038, 2026-10-10)
 
 | SC | Verdict | Rests on |
