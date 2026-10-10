@@ -115,7 +115,7 @@ system being graded. *Example:* `apps/crawler/packages/reference-portal/ground-t
 
 **Harness**
 The code around a model that gives it tools, runs it, records what happens and (for evals) grades it.
-*Example:* the `pathfinder` MCP server is the crawler's harness; `eval-run.ts` + `evaluate.ts` is the eval
+*Example:* the `pathfinder` MCP server is the crawler's harness; `apps/crawler/evals/` + `evaluate.ts` is the eval
 harness.
 
 **Hold-out set**

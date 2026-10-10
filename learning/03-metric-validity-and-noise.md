@@ -49,7 +49,7 @@ Open `data/evals/*/*.json` and `apps/crawler/packages/docs/src/evaluate.ts` and 
    fake-fail test: `"Autocasco"` vs ground truth `"Autocasco (AC)"` is a miss.
 5. **Processes by first + last route in cited evidence.** Fails the fake-fail test: a correct process
    record that cites screens instead of `process`/`process_step` evidence scores 0. Worse, the eval
-   (`eval-run.ts`) runs the crawler only in map mode, so no trace evidence ever exists, and processes ending
+   (`apps/crawler/evals/`) runs the crawler only in map mode, so no trace evidence ever exists, and processes ending
    in a result (P02, P03 on the reference portal) can't match at all. The score could never move. Confirm it
    in exercise 4.1.
 6. **`crawl_screens` on the proving ground** after tuning the crawler on the same proving ground. Fails

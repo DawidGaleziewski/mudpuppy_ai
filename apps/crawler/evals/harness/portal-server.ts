@@ -2,8 +2,9 @@
  * Start and stop the portal's local server for an eval (spec 009 R-27; spec 014 D5, D8).
  */
 import { spawn, type ChildProcess } from 'node:child_process';
-import { join } from 'node:path';
+import type { EvalCase } from '../cases.js';
 
+/** Readiness probe: is the server answering yet? Not a check of the portal itself. */
 export async function healthy(url: string): Promise<boolean> {
   try {
     return (await fetch(url)).ok;
@@ -21,29 +22,12 @@ export type EnsureResult = { ok: true; server: ChildProcess | null } | { ok: fal
  */
 export async function ensurePortal(
   root: string,
-  portal: string,
+  evalCase: EvalCase,
   sessionTimeoutS?: number,
 ): Promise<EnsureResult> {
-  const estate = portal.startsWith('proving-ground-');
-  const [probe, cmd, args] = estate
-    ? [
-        'http://127.0.0.1:4100/healthz',
-        'node',
-        [
-          join(root, 'apps/proving-ground/scripts/start.mjs'),
-          ...(sessionTimeoutS === undefined ? [] : ['--session-timeout', String(sessionTimeoutS)]),
-        ],
-      ]
-    : portal === 'reference-insurer'
-      ? [
-          'http://127.0.0.1:4010/robots.txt',
-          'pnpm',
-          ['--dir', join(root, 'apps/crawler'), 'reference-portal'],
-        ]
-      : [null, null, null];
-  if (sessionTimeoutS !== undefined && !estate)
+  const { probe, command, args, takesSessionTimeout } = evalCase.server;
+  if (sessionTimeoutS !== undefined && !takesSessionTimeout)
     return { ok: false, error: '--session-timeout applies to proving-ground portals only' };
-  if (!probe) return { ok: true, server: null };
   if (await healthy(probe)) {
     if (sessionTimeoutS !== undefined)
       return {
@@ -52,7 +36,7 @@ export async function ensurePortal(
       };
     return { ok: true, server: null };
   }
-  const child = spawn(cmd, args, { stdio: 'ignore', detached: true });
+  const child = spawn(command, args(root, sessionTimeoutS), { stdio: 'ignore', detached: true });
   for (let i = 0; i < 300; i++) {
     if (await healthy(probe)) return { ok: true, server: child };
     await new Promise((r) => setTimeout(r, 300));

@@ -27,7 +27,7 @@ Pathfinder already has all three. Knowing which is which removes most of the con
 | --- | --- | --- |
 | Unit / integration tests | `pnpm test:fast`, `uv run pytest` | **Tests.** Deterministic code checks. |
 | Gates | `apps/crawler/packages/gates/`, run in `pnpm test:slow` | **Deterministic tests of the harness** against the proving ground. No LLM decides anything: a scripted driver walks the portal and checks that the server records what it should (e.g. a `div` with an `onclick` becomes an action). Pass/fail. |
-| Evals | `pnpm --dir apps/crawler eval` (`apps/crawler/scripts/eval-run.ts`), results in `data/evals/<portal>/` | **Evals.** The real crawler and BA agents run headless (`claude -p --agent crawler ...`), then `docs:evaluate` (`apps/crawler/packages/docs/src/evaluate.ts`) scores the documentation against ground truth. Score per category. |
+| Evals | `pnpm --dir apps/crawler eval` (`apps/crawler/evals/`), results in `data/evals/<portal>/` | **Evals.** The real crawler and BA agents run headless (`claude -p --agent crawler ...`), then `docs:evaluate` (`apps/crawler/packages/docs/src/evaluate.ts`) scores the documentation against ground truth. Score per category. |
 
 Gates answer "can the harness handle a `div` click?". Evals answer "does the agent, using the harness,
 actually document the portal?". A green gate set with a 0 % eval score means the machinery works and the
@@ -47,7 +47,7 @@ mapped onto this project:
 | **Outcome** | The final state the agent produced | The BA records in the SQLite store |
 | **Grader** | Code, model or human that scores the outcome | `evaluate.ts` (code grader) |
 | **Ground truth** | The answer key the grader compares to | `apps/crawler/packages/reference-portal/ground-truth.json` |
-| **Harness** | The code that runs tasks, collects transcripts and grades | `eval-run.ts` + `evaluate.ts` + `gates/src/eval.ts` |
+| **Harness** | The code that runs tasks, collects transcripts and grades | `apps/crawler/evals/` + `evaluate.ts` + `gates/src/eval.ts` |
 
 ### Three kinds of graders
 

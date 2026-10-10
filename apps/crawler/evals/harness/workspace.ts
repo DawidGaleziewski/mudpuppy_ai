@@ -1,6 +1,6 @@
 /**
- * The eval's workspace and ground truth (spec 009 R-27; moved out of `eval-run.ts` in spec 014
- * T005 to keep the script under G-01).
+ * The eval's workspace (spec 009 R-27): an isolated copy, so every eval starts from nothing and
+ * the developer's store is never touched.
  */
 import { cpSync, existsSync, mkdtempSync } from 'node:fs';
 import { tmpdir } from 'node:os';
@@ -40,12 +40,4 @@ export function createWorkspace(root: string, portal: string, env: string): stri
   }
   void target.close(); // fire-and-forget: the workspace store reopens later, SQLite WAL is durable
   return ws;
-}
-
-/** The ground-truth file of a portal, or null when none is known. */
-export function groundTruthPath(root: string, portal: string): string | null {
-  if (portal === 'reference-insurer')
-    return join(root, 'apps/crawler/packages/reference-portal/ground-truth.json');
-  const m = /^proving-ground-(shop|bank|insurer)$/.exec(portal);
-  return m ? join(root, 'apps/proving-ground/ground-truth', `${m[1]}.json`) : null;
 }

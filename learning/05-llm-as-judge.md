@@ -63,7 +63,7 @@ This follows Hamel Husain's "critique shadowing" approach.
 
 ### Where
 
-After the deterministic `evaluate()` in `apps/crawler/scripts/eval-run.ts`, add a judge step for rules
+After the deterministic `evaluate()` in `apps/crawler/evals/scorers/docs-coverage.ts`, add a judge step for rules
 (and later processes). Keep code matching for screens, fields and constraints.
 
 ```
@@ -80,7 +80,7 @@ That's cheaper, and each question stays narrow.
 
 ### How to call it with only Claude
 
-You already spawn headless Claude in `eval-run.ts` (`claude -p ... --output-format json`). A judge call is
+You already spawn headless Claude in `evals/harness/agent.ts` (`claude -p ... --output-format json`). A judge call is
 the same, without agents, tools or MCP servers, and with a JSON schema so the answer is always parseable:
 
 ```bash
@@ -96,7 +96,7 @@ claude -p "$PROMPT" \
 (Flags checked against the local Claude Code CLI, version 2.1.288. Check `claude --help` if something
 changed.)
 
-A sketch of the TypeScript side, next to `runAgent` in `eval-run.ts`:
+A sketch of the TypeScript side, a new scorer in `evals/scorers/`, calling headless Claude the way `runAgent` in `evals/harness/agent.ts` does:
 
 ```ts
 interface Verdict { verdict: 'pass' | 'fail'; reason: string }

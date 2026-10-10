@@ -8,7 +8,7 @@ Layer: servers (G-07; `apps/crawler/layers.json`)
 - `gate()`, `gap()`: define gate and known-unfixed cases; used by the crawler app root.
 - `catalogue`, `harness`, `paths`, `steps`, `eval`: gate infrastructure and reporting.
 - `eval-checks` (`crawlScreens`, `passwordHits`, `widgetActions`) and `HARD_ZERO_CHECKS`: pure
-  eval measures used by `scripts/eval-run.ts` (spec 014). Their tests run only in the gates tier
+  eval measures used by `apps/crawler/evals/` (spec 014). Their tests run only in the gates tier
   (spec 014 F-03).
 
 ## Invariants

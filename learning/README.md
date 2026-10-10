@@ -97,7 +97,7 @@ Cost was taken seriously once seen (R-24: 38–78M → about 1M cache-read token
    ("docs good enough to re-create the portal") has no eval.
 2. **Activity over outcome.** `processes` is 0 % in every eval run ever, on every portal, while 40+
    roadmap items shipped (rebrand, glossary, wiki, chat, switcher...). R-39 sits behind R-28/R-37/R-38.
-   Found while writing this folder: `eval-run.ts` runs the crawler in **map mode only**, so no trace
+   Found while writing this folder: the eval (`apps/crawler/evals/`) runs the crawler in **map mode only**, so no trace
    evidence ever exists, and 2 of the 5 reference processes (P02, P03) *cannot* match by design. The
    score could never have moved. Exercise 4.1 confirms the rest.
 3. **Error analysis is missing.** Fixes come from an obstacle catalogue written upfront (LO-xx), not from

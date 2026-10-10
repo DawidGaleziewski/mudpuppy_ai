@@ -30,8 +30,12 @@ export const forceRerunTriggers = [
 // `vitest.workspace` files were removed in Vitest 4; monorepo projects live in `test.projects`.
 export default defineConfig({
   test: {
-    // `repo`: checks over the whole workspace (package layers), in the fast tier.
-    projects: ['packages/*', { test: { name: 'repo', include: ['tests/**/*.test.ts'] } }],
+    // `repo`: checks over the whole workspace (package layers) and the eval runner's own
+    // unit tests, in the fast tier.
+    projects: [
+      'packages/*',
+      { test: { name: 'repo', include: ['tests/**/*.test.ts', 'evals/tests/**/*.test.ts'] } },
+    ],
     passWithNoTests: true,
     forceRerunTriggers,
   },
