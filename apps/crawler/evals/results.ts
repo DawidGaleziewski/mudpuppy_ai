@@ -1,6 +1,7 @@
 /**
- * The results log under `data/evals/<portal>/`: write this run's result, compare it with the
- * baseline (within `tolerances.json`), and on `--promote` make it the new baseline.
+ * The results log under `data/evals/<portal>/`, one JSON file per trial: write this trial's
+ * result, compare it with the baseline (within `tolerances.json`), and on `--promote` make it the
+ * new baseline.
  */
 import { execFileSync } from 'node:child_process';
 import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from 'node:fs';
@@ -16,7 +17,8 @@ import type { EvalConfig } from './config.js';
 import type { Cost } from './harness/index.js';
 import type { Grades } from './graders/index.js';
 
-export interface RunRecord {
+/** What one trial produced, before it becomes an `EvalResult`. */
+export interface TrialRecord {
   startedAt: string;
   crawlRunId: string;
   sessions: { crawler: string; ba: string };
@@ -24,7 +26,7 @@ export interface RunRecord {
   grades: Grades;
 }
 
-export function buildResult(config: EvalConfig, r: RunRecord): EvalResult {
+export function buildResult(config: EvalConfig, r: TrialRecord): EvalResult {
   return EvalResult.parse({
     portal_id: config.portal,
     persona_id: config.persona,

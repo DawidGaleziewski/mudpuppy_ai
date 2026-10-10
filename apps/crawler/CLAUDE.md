@@ -22,8 +22,8 @@ own `CLAUDE.md`), the operator scripts under `scripts/`, and the test tiers.
 - `packages/*` — workspace packages; `tests/layers.test.ts` (Vitest project `repo`) enforces
   `layers.json`: imports only downward, the kernel depends on nothing (G-07, G-08).
 - `scripts/*.ts` — thin CLIs over the packages; typechecked through the root `tsconfig.json`.
-- `evals/` — the tier-2 eval runner (`pnpm eval`): cases, prompts, harness, graders, results;
-  see `evals/README.md`. Its unit tests (`evals/tests/`) run in the `repo` project, fast tier.
+- `evals/` — the tier-2 eval runner (`pnpm eval`): tasks (the suite), prompts, harness, graders,
+  results; see `evals/README.md`. Eval terms follow Anthropic's (G-33). Its unit tests (`evals/tests/`) run in the `repo` project, fast tier.
 - `tests/fixtures/` — shared fixtures (robots, HAR, ARIA, URLs); a change runs the whole fast tier.
 
 ## Where to add things

@@ -2,7 +2,7 @@
  * Start and stop the portal's local server for an eval (spec 009 R-27; spec 014 D5, D8).
  */
 import { spawn, type ChildProcess } from 'node:child_process';
-import type { EvalCase } from '../cases.js';
+import type { EvalTask } from '../tasks.js';
 
 /** Readiness probe: is the server answering yet? Not a check of the portal itself. */
 export async function healthy(url: string): Promise<boolean> {
@@ -22,10 +22,10 @@ export type EnsureResult = { ok: true; server: ChildProcess | null } | { ok: fal
  */
 export async function ensurePortal(
   root: string,
-  evalCase: EvalCase,
+  task: EvalTask,
   sessionTimeoutS?: number,
 ): Promise<EnsureResult> {
-  const { probe, command, args, takesSessionTimeout } = evalCase.server;
+  const { probe, command, args, takesSessionTimeout } = task.server;
   if (sessionTimeoutS !== undefined && !takesSessionTimeout)
     return { ok: false, error: '--session-timeout applies to proving-ground portals only' };
   if (await healthy(probe)) {

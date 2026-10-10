@@ -1,7 +1,9 @@
 /**
- * Tier-2 eval (spec 009 R-27, contracts/gates-evals.md; measures of spec 014 US1): run the real
- * crawler and BA agents headless against one portal, score the documentation and the crawl
- * against the portal's ground truth, sweep for leaked passwords, compare with the baseline.
+ * Tier-2 eval (spec 009 R-27, contracts/gates-evals.md; graders of spec 014 US1): one trial of
+ * one task. The real crawler and BA agents run headless against the task's portal, the graders
+ * score the outcome (documentation and crawl) against the portal's ground truth and check the
+ * transcripts for leaked passwords, and the result is compared with the baseline.
+ * Terms follow Anthropic's eval vocabulary (G-33; table in README.md).
  * Usage: see `USAGE` in config.ts. Writes data/evals/<portal>/<timestamp>.json; exit 1 on a
  * regression, 2 on bad input or preflight. Never part of `pnpm test`: it spends real tokens.
  *
@@ -9,7 +11,7 @@
  * portals/, personas/ and the migrations), so the developer's store and its documentation are
  * never touched and every eval starts from nothing. `--in-place` uses the real store instead.
  *
- * Where things are: cases.ts (portals + ground truth), prompts.ts, harness/ (workspace, portal
+ * Where things are: tasks.ts (the suite: portals + ground truth), prompts.ts, harness/ (workspace, portal
  * server, agents, cost), graders/ (what is scored, by kind), results.ts (save, compare, promote).
  */
 import type { ChildProcess } from 'node:child_process';
@@ -17,7 +19,6 @@ import { randomUUID } from 'node:crypto';
 import { join } from 'node:path';
 import type { GroundTruth } from '@pathfinder/docs';
 import { dbPathFor, openDb } from '@pathfinder/store';
-import { caseFor, loadGroundTruth, type EvalCase } from './cases.js';
 import { parseConfig, type EvalConfig } from './config.js';
 import { abort, die, EvalAbort } from './failures.js';
 import {
@@ -33,18 +34,19 @@ import { PROMPTS } from './prompts.js';
 import { latestCrawlRun } from './queries.js';
 import { buildResult, saveResult } from './results.js';
 import { grade, portalSecrets } from './graders/index.js';
+import { loadGroundTruth, taskFor, type EvalTask } from './tasks.js';
 
 const parsed = parseConfig(process.argv.slice(2));
 if (!parsed.ok) die(parsed.error);
 const config = parsed.config;
 preflight(config);
-const evalCase =
-  caseFor(config.portal) ??
+const task =
+  taskFor(config.portal) ??
   die(`no ground truth known for ${config.portal}; only reference-insurer and proving-ground-*`);
-const groundTruth = loadGroundTruth(config.root, evalCase);
+const groundTruth = loadGroundTruth(config.root, task);
 process.exitCode = config.dryRun
   ? await dryRun(config, groundTruth)
-  : await runEval(config, evalCase, groundTruth);
+  : await runTrial(config, task, groundTruth);
 
 /** Everything up to the first paid call, including the vault, so a broken setup fails here. */
 async function dryRun(c: EvalConfig, gt: GroundTruth): Promise<number> {
@@ -56,12 +58,12 @@ async function dryRun(c: EvalConfig, gt: GroundTruth): Promise<number> {
   return 0;
 }
 
-/** Portal up → crawler → BA → grade → save; the portal server is stopped whatever happens. */
-async function runEval(c: EvalConfig, evalCase: EvalCase, gt: GroundTruth): Promise<number> {
+/** One trial: portal up → crawler → BA → grade → save; the portal server is always stopped. */
+async function runTrial(c: EvalConfig, task: EvalTask, gt: GroundTruth): Promise<number> {
   const startedAt = new Date().toISOString();
   let server: ChildProcess | null = null;
   try {
-    const up = await ensurePortal(c.root, evalCase, c.sessionTimeoutS);
+    const up = await ensurePortal(c.root, task, c.sessionTimeoutS);
     if (!up.ok) return abort(up.error);
     server = up.server;
     const ws = c.inPlace ? c.root : createWorkspace(c.root, c.portal, c.env);
