@@ -112,17 +112,19 @@ never written in the file.
 The reference portal is a fake Polish insurer, "Towarzystwo Ubezpieczeń Wzorcowych",
 served on `http://127.0.0.1:4010` by `pnpm reference-portal` in `apps/crawler`. Because we
 wrote it, we know everything it contains: its screens, fields, rules and processes are listed
-in a ground-truth file. Comparing the BA's documentation with that file shows what was
-found, what was missed and what was over-claimed (`pnpm docs:evaluate`, see Coverage
-score). Its data is safe to show and stable, which is why glossary examples come from it.
+in a ground-truth file, `ground-truth.yaml` (ground truth is always YAML, written and
+reviewed by people, guideline G-34). Comparing the BA's documentation with that file shows
+what was found, what was missed and what was over-claimed (`pnpm docs:evaluate`, see
+Coverage score). Its data is safe to show and stable, which is why glossary examples come
+from it. A live site we don't own keeps its ground truth in `apps/crawler/evals/ground-truth/`.
 
 *Seen in:* Docs tab → reference-insurer; portals/reference-insurer
 
 *Labels:* `reference-insurer`, `ground truth`
 
-*Related:* [Run](#run), [Documentation record](#documentation-record), [Coverage score](#coverage-score), [Over-claim](#over-claim)
+*Related:* [Run](#run), [Documentation record](#documentation-record), [Coverage score](#coverage-score), [Over-claim](#over-claim), [Eval task / suite](#eval-task)
 
-<sub>Last changed in R-16, 2026-10-04.</sub>
+<sub>Last changed in R-46, 2026-10-10.</sub>
 
 <a id="coverage-score"></a>
 
@@ -1502,22 +1504,83 @@ files (the slow tier).
 
 **A real, paid run of the crawler and BA agents on one portal, scored against its ground truth and compared with a saved baseline.**
 
-`pnpm eval <portal>` in `apps/crawler` starts the headless agents with a budget cap, runs
-the evaluator and writes `data/evals/<portal>/<timestamp>.json`. It then compares the
-scores and checks with the baseline and exits with 1 on a regression. It is never part of
-`pnpm test`, because it costs tokens and agents are not deterministic. It is how you see
-whether a change to a prompt, a skill or the tools made the agents better or worse.
+`pnpm eval <portal>` in `apps/crawler` runs one trial of one task: it starts the headless
+agents with a budget cap, lets the graders score the outcome and writes
+`data/evals/<portal>/<timestamp>.json`. It then compares the scores and checks with the
+baseline and exits with 1 on a regression. It is never part of `pnpm test`, because it costs
+tokens and agents are not deterministic. It is how you see whether a change to a prompt, a
+skill or the tools made the agents better or worse. `--crawler-only` skips the BA.
 When an agent is cut off by an API error or the account's usage limit, the eval writes no
 result at all, so an outage is never scored as agent quality. Run evals one at a time: they
-spend the same usage quota as your Claude Code session.
+spend the same usage quota as your Claude Code session. The code is `apps/crawler/evals/`,
+its words are Anthropic's eval terms (guideline G-33), and new evals follow the
+`create-eval` skill.
 
-*Seen in:* pnpm eval
+*Seen in:* pnpm eval; apps/crawler/evals
 
-*Labels:* `tier 2`, `pnpm eval`
+*Labels:* `tier 2`, `pnpm eval`, `crawler-only`
 
-*Related:* [Eval baseline](#eval-baseline), [Eval workspace](#eval-workspace), [Coverage score](#coverage-score), [Crawl coverage score](#crawl-coverage-score), [Password sweep](#password-sweep), [Quality gate (tier 1)](#quality-gate)
+*Related:* [Eval task / suite](#eval-task), [Eval trial](#eval-trial), [Grader](#grader), [Eval baseline](#eval-baseline), [Eval workspace](#eval-workspace), [Coverage score](#coverage-score), [Crawl coverage score](#crawl-coverage-score), [Password sweep](#password-sweep), [Quality gate (tier 1)](#quality-gate)
 
-<sub>Last changed in R-29, 2026-10-09.</sub>
+<sub>Last changed in R-46, 2026-10-10.</sub>
+
+<a id="eval-task"></a>
+
+#### Eval task / suite
+
+**One test the eval can run, a portal with its ground truth and success criteria; all tasks together are the evaluation suite.**
+
+Tasks are listed in `SUITE` in `apps/crawler/evals/tasks.ts`. A map task has the crawler
+map the whole portal; a trace task has it walk one named process toward a goal and is also
+graded on that process's steps (e.g. `wikipedia`, "find the article about pickled
+cucumbers"). A task for a live site we don't own starts no local server and keeps its ground
+truth in `apps/crawler/evals/ground-truth/`.
+
+*Seen in:* apps/crawler/evals/tasks.ts
+
+*Labels:* `task`, `suite`, `SUITE`, `trace task`
+
+*Related:* [Eval (tier 2)](#eval), [Eval trial](#eval-trial), [Reference portal / ground truth](#reference-portal)
+
+<sub>Last changed in R-46, 2026-10-10.</sub>
+
+<a id="eval-trial"></a>
+
+#### Eval trial
+
+**One attempt at a task, one `pnpm eval` run; agents differ from run to run, so a task needs several trials before a score means much.**
+
+Each trial writes one result file in `data/evals/<portal>/`, promoted or not. The baseline
+is a copy of the trial chosen as the standard. Comparing one trial with the baseline can
+catch a regression only beyond the normal spread, which is what `tolerances.json` allows for.
+
+*Seen in:* data/evals/<portal>/<timestamp>.json
+
+*Labels:* `trial`
+
+*Related:* [Eval (tier 2)](#eval), [Eval task / suite](#eval-task), [Eval baseline](#eval-baseline)
+
+<sub>Last changed in R-46, 2026-10-10.</sub>
+
+<a id="grader"></a>
+
+#### Grader
+
+**The logic that turns a finished trial into one score or check; code-based, model-based (an LLM judge) or human.**
+
+Graders live in `apps/crawler/evals/graders/`, one folder per kind. Today all are
+code-based (`graders/code/`): documentation coverage, crawl coverage, process steps of a
+trace, the password sweep and the run checks. A model-based grader would answer one narrow
+question per call, such as "does this record state rule R03 correctly?", and is trusted only
+once it agrees with human labels (`graders/human/`).
+
+*Seen in:* apps/crawler/evals/graders
+
+*Labels:* `grader`, `code-based`, `model-based`, `LLM judge`
+
+*Related:* [Eval (tier 2)](#eval), [Coverage score](#coverage-score), [Crawl coverage score](#crawl-coverage-score), [Password sweep](#password-sweep)
+
+<sub>Last changed in R-46, 2026-10-10.</sub>
 
 <a id="eval-baseline"></a>
 

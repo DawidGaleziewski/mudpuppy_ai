@@ -34,7 +34,7 @@ import { PROMPTS } from './prompts.js';
 import { latestCrawlRun } from './queries.js';
 import { buildResult, saveResult } from './results.js';
 import { grade, portalSecrets } from './graders/index.js';
-import { loadGroundTruth, taskFor, type EvalTask } from './tasks.js';
+import { loadGroundTruth, SUITE, taskFor, type EvalTask } from './tasks.js';
 
 const parsed = parseConfig(process.argv.slice(2));
 if (!parsed.ok) die(parsed.error);
@@ -42,7 +42,7 @@ const config = parsed.config;
 preflight(config);
 const task =
   taskFor(config.portal) ??
-  die(`no ground truth known for ${config.portal}; only reference-insurer and proving-ground-*`);
+  die(`no task for ${config.portal}; the suite has: ${SUITE.map((t) => t.portal).join(', ')}`);
 const groundTruth = loadGroundTruth(config.root, task);
 process.exitCode = config.dryRun
   ? await dryRun(config, groundTruth)
