@@ -61,8 +61,8 @@ What the code-based graders measure:
 
 Where things live outside this folder:
 
-- Ground truth stays next to its portal: `packages/reference-portal/ground-truth.json` and
-  `apps/proving-ground/ground-truth/*.json` (their self-check tests read them there).
+- Ground truth (YAML, G-34) stays next to its portal: `packages/reference-portal/ground-truth.yaml`
+  and `apps/proving-ground/ground-truth/*.yaml` (their self-check tests read them there).
 - Results, `baseline.json` and `tolerances.json`: `data/evals/<portal>/` (generated output).
 - The scoring functions shared with the gates: `@pathfinder/gates` (`eval.ts`, `eval-checks.ts`)
   and `evaluate()` in `@pathfinder/docs`.

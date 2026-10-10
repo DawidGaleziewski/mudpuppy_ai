@@ -14,8 +14,8 @@ Layer: servers (G-07; `apps/crawler/layers.json`)
 - Ground truth must match the pages.
 
 ## Where to add things
-- New page or rule: `src/pages/` or `src/rules.ts`, and the matching entry in the ground-truth
-  manifest (`src/ground-truth.ts`) in the same commit.
+- New page or rule: `src/pages/` or `src/rules.ts`, and the matching entry in `ground-truth.yaml`
+  (YAML, G-34; schema in `src/ground-truth.ts`) in the same commit.
 
 ## Tests
 - `pnpm exec vitest run --project reference-portal`; tier: fast. 3 files.

@@ -8,7 +8,7 @@ Layer: app (test estate, outside the TS layers)
 - Django backend (no ORM) in `backend/`.
 - Vite/React micro-frontends in `web/`, `web/mfe-*`.
 - CMS texts in `cms/`.
-- Ground truth in `ground-truth/*.json`.
+- Ground truth in `ground-truth/*.yaml` (YAML, G-34).
 - Own pnpm workspace (only exception to single root workspace).
 
 ## Run

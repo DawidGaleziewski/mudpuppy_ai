@@ -69,9 +69,11 @@ Keep all three grader folders even when empty, so the kinds are visible.
 
 ## 4. Where data lives
 
-- **Ground truth**: next to the system it describes when we own it (its self-check tests read it
-  there), e.g. `apps/proving-ground/ground-truth/*.json`. For a system we do not own (a live
-  portal), in `evals/ground-truth/<task>.json`. Either way `tasks.ts` names the path.
+- **Ground truth** is YAML (G-34), read with `readGroundTruth()` from `@pathfinder/docs` and
+  validated by the `GroundTruth` schema: next to the system it describes when we own it (its
+  self-check tests read it there), e.g. `apps/proving-ground/ground-truth/*.yaml`. For a system we
+  do not own (a live portal), in `evals/ground-truth/<task>.yaml`. Either way `tasks.ts` names
+  the path. How to write one: `learning/11-writing-ground-truth.md`.
 - **Results** (generated, never in the code folder): `data/evals/<task>/<timestamp>.json` per
   trial, `baseline.json`, `tolerances.json` (allowed drop in points per category), `history/`.
 - Reuse the result schema and comparison from `@pathfinder/gates` (`EvalResult`, `compareEval`,

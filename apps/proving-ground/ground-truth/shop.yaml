@@ -1,0 +1,627 @@
+# Ground truth: proving ground, shop (proving-ground-shop).
+# The answer key the eval graders compare against; written in YAML (G-34).
+# Schema: GroundTruth in apps/crawler/packages/reference-portal/src/ground-truth.ts.
+
+portal_id: proving-ground-shop
+today: 2026-03-16
+screens:
+  - id: S01
+    route_template: /sklep
+    title: Katalog produktów
+    guest_visible: true
+    reached_by: navigation
+    actor: guest
+    obstacles:
+      - LO-01
+      - LO-05
+      - LO-07
+      - LO-13
+      - LO-15
+      - LO-18
+      - LO-21
+      - LO-26
+      - LO-35
+      - LO-38
+      - LO-39
+      - LO-42
+  - id: S02
+    route_template: /sklep/produkt/:slug
+    title: Kalosze Bagienne klasyczne
+    guest_visible: true
+    reached_by: navigation
+    actor: guest
+    obstacles:
+      - LO-01
+      - LO-05
+      - LO-07
+      - LO-10
+      - LO-13
+      - LO-34
+      - LO-42
+  - id: S03
+    route_template: /sklep/koszyk
+    title: Twój koszyk
+    guest_visible: true
+    reached_by: navigation
+    actor: guest
+    obstacles:
+      - LO-01
+      - LO-05
+      - LO-07
+      - LO-08
+      - LO-13
+      - LO-34
+      - LO-42
+      - LO-51
+  - id: S04
+    route_template: /sklep/zamowienie
+    title: Zamówienie
+    guest_visible: true
+    reached_by: navigation
+    actor: guest
+    obstacles:
+      - LO-01
+      - LO-05
+      - LO-07
+      - LO-13
+      - LO-34
+      - LO-37
+      - LO-42
+      - LO-48
+      - LO-49
+  - id: S05
+    route_template: /sklep/zamowienie/potwierdzenie
+    title: Dziękujemy za zamówienie
+    guest_visible: true
+    reached_by: mutation
+    actor: guest
+    obstacles:
+      - LO-01
+      - LO-05
+      - LO-07
+      - LO-13
+  - id: S06
+    route_template: /sklep/konto
+    title: Moje zamówienia
+    guest_visible: false
+    reached_by: login
+    actor: shop-client
+    obstacles:
+      - LO-01
+      - LO-05
+      - LO-07
+      - LO-13
+      - LO-32
+      - LO-50
+  - id: S07
+    route_template: /logowanie
+    title: Zaloguj się do sklepu
+    guest_visible: true
+    reached_by: navigation
+    actor: guest
+    obstacles:
+      - LO-05
+      - LO-07
+      - LO-09
+      - LO-13
+      - LO-30
+      - LO-31
+      - LO-37
+forms:
+  - id: F01
+    screen: S01
+    label: Filtry
+    method: get
+    fields:
+      - id: F01.1
+        label: Kategoria
+        type: select
+        constraints:
+          allowed_values:
+            - Wszystkie kategorie
+            - Obuwie gumowe
+            - Odzież przeciwdeszczowa
+            - Akcesoria do ogrodu
+            - Wyprawa w teren
+      - id: F01.2
+        label: Cena od (zł)
+        type: text
+        constraints:
+          pattern: \d+
+      - id: F01.3
+        label: Cena do (zł)
+        type: text
+        constraints:
+          pattern: \d+
+      - id: F01.4
+        label: Sortowanie
+        type: select
+        constraints:
+          allowed_values:
+            - Nazwa A-Z
+            - Cena rosnąco
+            - Cena malejąco
+  - id: F02
+    screen: S02
+    label: Dodaj do koszyka
+    method: post
+    fields:
+      - id: F02.1
+        label: Ilość
+        type: number
+        constraints:
+          required: true
+          min: 1
+          max: 10
+  - id: F03
+    screen: S03
+    label: Twój koszyk
+    method: post
+    fields:
+      - id: F03.1
+        label: Ilość
+        type: number
+        constraints:
+          required: true
+          min: 1
+          max: 10
+  - id: F04
+    screen: S04
+    label: Zamówienie
+    method: post
+    fields:
+      - id: F04.1
+        label: Imię i nazwisko
+        type: text
+        constraints:
+          required: true
+      - id: F04.2
+        label: E-mail
+        type: text
+        constraints:
+          required: true
+      - id: F04.3
+        label: Kod pocztowy
+        type: text
+        constraints:
+          required: true
+          pattern: \d{2}-\d{3}
+      - id: F04.4
+        label: Miasto
+        type: select
+        constraints:
+          required: true
+          allowed_values:
+            - Warszawa
+            - Kraków
+            - Wrocław
+            - Gdańsk
+            - Poznań
+      - id: F04.5
+        label: Sposób dostawy
+        type: radio
+        constraints:
+          required: true
+          allowed_values:
+            - Kurier
+            - Paczkomat
+      - id: F04.6
+        label: Wybierz paczkomat
+        type: select
+        constraints:
+          required: false
+      - id: F04.7
+        label: Metoda płatności
+        type: radio
+        constraints:
+          required: true
+          allowed_values:
+            - BLIK
+            - Karta płatnicza
+            - Przelew online
+  - id: F05
+    screen: S07
+    label: Zaloguj się do sklepu
+    method: post
+    fields:
+      - id: F05.1
+        label: Login
+        type: text
+        constraints:
+          required: true
+      - id: F05.2
+        label: Hasło
+        type: password
+        constraints:
+          required: true
+rules:
+  - id: R01
+    statement: Delivery is free once the value of the products in the cart reaches 200,00 zł; below that
+      threshold the cart shows no free-delivery notice.
+    type: computation
+    anchor:
+      screen: S03
+      label: Dostawa
+    guest_observable: true
+    claim_markers:
+      - 200,00 zł
+      - 200 zł
+      - 200 PLN
+  - id: R02
+    statement: Delivery costs 14,99 zł when the products total is below 200 zł.
+    type: computation
+    anchor:
+      screen: S03
+      label: Dostawa
+    guest_observable: true
+    claim_markers:
+      - 14,99 zł
+      - 14,99
+      - "14.99"
+  - id: R03
+    statement: The quantity of one product in the cart must be between 1 and 10.
+    type: range
+    anchor:
+      screen: S02
+      label: Ilość
+    guest_observable: true
+    claim_markers:
+      - od 1 do 10
+      - 1–10
+      - 1-10
+      - 1 to 10
+      - maximum of 10
+  - id: R04
+    statement: The postal code must have the format 00-000 (two digits, a hyphen, three digits).
+    type: format
+    anchor:
+      screen: S04
+      label: Kod pocztowy
+    guest_observable: true
+    claim_markers:
+      - 00-000
+      - \d{2}-\d{3}
+      - NN-NNN
+  - id: R05
+    statement: The full name is required to place an order.
+    type: validation
+    anchor:
+      screen: S04
+      label: Imię i nazwisko
+    guest_observable: true
+    claim_markers:
+      - Podaj imię i nazwisko
+      - name is required
+      - full name
+  - id: R06
+    statement: The e-mail address is required to place an order.
+    type: validation
+    anchor:
+      screen: S04
+      label: E-mail
+    guest_observable: true
+    claim_markers:
+      - Podaj adres e-mail
+      - e-mail is required
+      - email is required
+  - id: R07
+    statement: A city must be chosen; the list of parcel lockers depends on it.
+    type: validation
+    anchor:
+      screen: S04
+      label: Miasto
+    guest_observable: true
+    claim_markers:
+      - Wybierz miasto
+      - city is required
+      - city must be chosen
+  - id: R08
+    statement: A parcel locker must be chosen when delivery to a parcel locker (Paczkomat) is selected.
+    type: eligibility
+    anchor:
+      screen: S04
+      label: Paczkomat
+    guest_observable: true
+    claim_markers:
+      - Wybierz paczkomat
+      - parcel locker is required
+      - locker is required
+processes:
+  - id: P01
+    name: Złóż zamówienie
+    steps:
+      - /sklep
+      - /sklep/produkt/:slug
+      - /sklep/koszyk
+      - /sklep/zamowienie
+      - /sklep/zamowienie/potwierdzenie
+    first_route: /sklep
+    last_observable_route: /sklep/zamowienie
+    ends_with: mutation
+  - id: P02
+    name: Obejrzyj swoje zamówienia
+    steps:
+      - /sklep/konto
+    first_route: /sklep/konto
+    last_observable_route: /sklep/konto
+    ends_with: login_wall
+terms:
+  - id: T01
+    term: Katalog produktów
+    lang: pl
+  - id: T02
+    term: Koszyk
+    lang: pl
+  - id: T03
+    term: Darmowa dostawa
+    lang: pl
+  - id: T04
+    term: Do zapłaty
+    lang: pl
+  - id: T05
+    term: Sposób dostawy
+    lang: pl
+  - id: T06
+    term: Kurier
+    lang: pl
+  - id: T07
+    term: Paczkomat
+    lang: pl
+  - id: T08
+    term: Metoda płatności
+    lang: pl
+  - id: T09
+    term: BLIK
+    lang: pl
+  - id: T10
+    term: Kod pocztowy
+    lang: pl
+  - id: T11
+    term: Moje zamówienia
+    lang: pl
+users:
+  - id: shop-client
+    persona: client
+    refs:
+      - PG_SHOP_LOGIN
+      - PG_SHOP_PASSWORD
+redirects:
+  - id: D01
+    from: /shop/index.php?cat=:n
+    to: /sklep?kategoria=:n
+    kind: chain
+    hops:
+      - http_301
+      - http_302
+obstacles:
+  - id: LO-01
+    screens:
+      - S01
+      - S02
+      - S03
+      - S04
+      - S05
+      - S06
+    markers:
+      - micro-frontend
+      - micro-frontends
+      - microfrontend
+      - mikrofrontend
+    expected: navigated
+  - id: LO-05
+    screens:
+      - S01
+      - S02
+      - S03
+      - S04
+      - S05
+      - S06
+      - S07
+    markers:
+      - shadow DOM
+      - shadow root
+      - mk-mini-cart
+    expected: documented
+  - id: LO-07
+    screens:
+      - S01
+      - S02
+      - S03
+      - S04
+      - S05
+      - S06
+      - S07
+    markers:
+      - CMS
+      - pl.json
+      - runtime texts
+      - teksty z CMS
+    expected: documented
+  - id: LO-08
+    screens:
+      - S03
+    markers:
+      - checkout.summary.vatNote
+    expected: documented
+  - id: LO-09
+    screens:
+      - S07
+    markers:
+      - white-label
+      - Zaloguj się do sklepu
+      - shared login
+    expected: documented
+  - id: LO-10
+    screens:
+      - S02
+    markers:
+      - Dodaj do koszyka
+      - no button role
+      - div
+    expected: documented
+  - id: LO-13
+    screens:
+      - S01
+      - S02
+      - S03
+      - S04
+      - S05
+      - S06
+      - S07
+    markers:
+      - hashed class
+      - class names
+      - CSS-module
+      - nazwy klas
+    expected: documented
+  - id: LO-15
+    screens:
+      - S01
+    markers:
+      - icon-only
+      - unnamed button
+      - no accessible name
+      - bez nazwy
+    expected: documented
+  - id: LO-18
+    screens:
+      - S01
+    markers:
+      - custom dropdown
+      - Wszystkie kategorie
+      - Sortowanie
+      - Nazwa A-Z
+    expected: documented
+  - id: LO-21
+    screens:
+      - S01
+    markers:
+      - /shop/index.php
+      - /old/kategoria
+      - "301"
+      - redirect
+    expected: navigated
+  - id: LO-26
+    screens:
+      - S01
+    markers:
+      - Następna strona
+      - Brak produktów na tej stronie
+      - no last page
+      - endless
+    expected: documented
+  - id: LO-30
+    screens:
+      - S07
+    markers:
+      - CSRF
+      - csrf
+    expected: documented
+  - id: LO-31
+    screens:
+      - S07
+    markers:
+      - Konto zostało zablokowane
+      - lockout
+      - locked
+      - zablokowane
+    expected: documented
+  - id: LO-32
+    screens:
+      - S06
+    markers:
+      - Sesja wygasła
+      - session expired
+      - session timeout
+    expected: documented
+  - id: LO-34
+    screens:
+      - S02
+      - S03
+      - S04
+    markers:
+      - Koszyk (
+      - cart badge
+      - cart counter
+    expected: documented
+  - id: LO-35
+    screens:
+      - S01
+    markers:
+      - Wszystko na każdą pogodę
+      - Jesienne wyprzedaże do -30%
+      - A/B
+      - variant
+    expected: documented
+  - id: LO-37
+    screens:
+      - S04
+      - S07
+    markers:
+      - CAPTCHA
+      - nie jestem robotem
+      - reCAPTCHA
+    expected: handoff
+  - id: LO-38
+    screens:
+      - S01
+    markers:
+      - Akceptuję wszystkie
+      - Tylko niezbędne
+      - cookie
+    expected: ignored
+  - id: LO-39
+    screens:
+      - S01
+    markers:
+      - Zapisz się do newslettera
+      - Nie, dziękuję
+      - newsletter
+    expected: ignored
+  - id: LO-42
+    screens:
+      - S01
+      - S02
+      - S03
+      - S04
+    markers:
+      - graphql
+      - GraphQL
+      - operationName
+      - AddToCart
+    expected: documented
+  - id: LO-48
+    screens:
+      - S04
+    markers:
+      - Wybierz paczkomat
+      - Wybierz miasto
+      - lockers?miasto
+      - cascading
+    expected: documented
+  - id: LO-49
+    screens:
+      - S04
+    markers:
+      - 00-000
+      - postal code
+      - kod pocztowy
+    expected: documented
+  - id: LO-50
+    screens:
+      - S06
+    markers:
+      - 2026-03-16
+      - 16.03.2026
+      - estate clock
+      - fixed date
+    expected: documented
+  - id: LO-51
+    screens:
+      - S03
+    markers:
+      - Darmowa dostawa od 200,00 zł
+      - 200,00 zł
+      - free delivery
+      - threshold
+    expected: documented

@@ -1,0 +1,633 @@
+# Ground truth: proving ground, insurer (proving-ground-insurer).
+# The answer key the eval graders compare against; written in YAML (G-34).
+# Schema: GroundTruth in apps/crawler/packages/reference-portal/src/ground-truth.ts.
+
+portal_id: proving-ground-insurer
+today: 2026-03-16
+screens:
+  - id: S01
+    route_template: /ubezpieczenia
+    title: Ubezpieczenia Mokradło
+    guest_visible: true
+    reached_by: navigation
+    actor: guest
+    obstacles:
+      - LO-01
+      - LO-05
+      - LO-07
+      - LO-13
+      - LO-27
+      - LO-38
+      - LO-45
+  - id: S02
+    route_template: /logowanie
+    title: Strefa Klienta
+    guest_visible: true
+    reached_by: navigation
+    actor: guest
+    obstacles:
+      - LO-05
+      - LO-07
+      - LO-09
+      - LO-11
+      - LO-13
+      - LO-30
+      - LO-31
+      - LO-37
+  - id: S03
+    route_template: /ubezpieczenia#/polisy
+    title: Moje polisy
+    guest_visible: false
+    reached_by: login
+    actor: insurer-client
+    obstacles:
+      - LO-01
+      - LO-05
+      - LO-06
+      - LO-07
+      - LO-13
+      - LO-32
+  - id: S04
+    route_template: /ubezpieczenia#/polisy/:nr
+    title: Szczegóły polisy
+    guest_visible: false
+    reached_by: login
+    actor: insurer-client
+    obstacles:
+      - LO-01
+      - LO-05
+      - LO-06
+      - LO-07
+      - LO-13
+      - LO-21
+      - LO-22
+      - LO-23
+      - LO-28
+      - LO-32
+  - id: S05
+    route_template: /ubezpieczenia#/polisy/:nr/dodatki
+    title: Dodatki do polisy
+    guest_visible: false
+    reached_by: login
+    actor: insurer-client
+    obstacles:
+      - LO-01
+      - LO-05
+      - LO-06
+      - LO-07
+      - LO-13
+      - LO-18
+      - LO-32
+      - LO-50
+      - LO-51
+  - id: S06
+    route_template: /ubezpieczenia#/szkody/nowa
+    title: Zgłoszenie szkody
+    guest_visible: false
+    reached_by: login
+    actor: insurer-client
+    obstacles:
+      - LO-01
+      - LO-03
+      - LO-05
+      - LO-06
+      - LO-07
+      - LO-13
+      - LO-32
+      - LO-33
+      - LO-47
+  - id: S07
+    route_template: /ubezpieczenia#/szkody/potwierdzenie
+    title: Szkoda zgłoszona
+    guest_visible: false
+    reached_by: mutation
+    actor: insurer-client
+    obstacles:
+      - LO-01
+      - LO-05
+      - LO-06
+      - LO-07
+      - LO-13
+      - LO-32
+  - id: S08
+    route_template: /legacy/insurer/szkoda-stara.do
+    title: Zgłoszenie szkody (stary formularz)
+    guest_visible: false
+    reached_by: login
+    actor: insurer-client
+    obstacles:
+      - LO-11
+      - LO-12
+      - LO-43
+forms:
+  - id: F01
+    screen: S02
+    label: Strefa Klienta
+    method: post
+    fields:
+      - id: F01.1
+        label: Login
+        type: text
+        constraints:
+          required: true
+      - id: F01.2
+        label: Hasło
+        type: password
+        constraints:
+          required: true
+  - id: F02
+    screen: S05
+    label: Dodatki do polisy
+    method: post
+    fields:
+      - id: F02.1
+        label: Data rozpoczęcia
+        type: date
+        constraints:
+          required: true
+          min: 2026-03-16
+  - id: F03
+    screen: S06
+    label: Zdarzenie
+    method: post
+    fields:
+      - id: F03.1
+        label: Polisa
+        type: select
+        constraints:
+          required: true
+      - id: F03.2
+        label: Data zdarzenia
+        type: date
+        constraints:
+          required: true
+      - id: F03.3
+        label: Opis zdarzenia
+        type: textarea
+        constraints:
+          required: true
+  - id: F04
+    screen: S06
+    label: Miejsce i dokumenty
+    method: post
+    fields:
+      - id: F04.1
+        label: Miejsce zdarzenia
+        type: text
+        constraints:
+          required: true
+  - id: F05
+    screen: S08
+    label: Zgłoszenie szkody (stary formularz)
+    method: post
+    fields:
+      - id: F05.1
+        label: Nr polisy
+        type: text
+        constraints:
+          required: true
+      - id: F05.2
+        label: Data zdarzenia
+        type: text
+        constraints:
+          required: true
+      - id: F05.3
+        label: Opis
+        type: textarea
+        constraints:
+          required: true
+rules:
+  - id: R01
+    statement: A claim must be reported within 30 days of the event, and the event date cannot be in the
+      future.
+    type: validation
+    anchor:
+      screen: S06
+      label: Data zdarzenia
+    guest_observable: true
+    claim_markers:
+      - 30 dni
+      - 30 days
+  - id: R02
+    statement: The Assistance Premium add-on is available only for policies with a sum insured of 50 000
+      zł or more.
+    type: eligibility
+    anchor:
+      screen: S05
+      label: Assistance Premium
+    guest_observable: false
+    claim_markers:
+      - 50 000 zł
+      - 50 000
+      - "50000"
+  - id: R03
+    statement: The add-on start date cannot be earlier than today (the estate date).
+    type: validation
+    anchor:
+      screen: S05
+      label: Data rozpoczęcia
+    guest_observable: false
+    claim_markers:
+      - wcześniejsza niż dziś
+      - earlier than today
+      - in the past
+  - id: R04
+    statement: The add-on start date cannot be later than the end of the policy.
+    type: validation
+    anchor:
+      screen: S05
+      label: Data rozpoczęcia
+    guest_observable: false
+    claim_markers:
+      - późniejsza niż koniec polisy
+      - after the end of the policy
+      - policy end
+  - id: R05
+    statement: The event description is required to continue the claim.
+    type: validation
+    anchor:
+      screen: S06
+      label: Opis zdarzenia
+    guest_observable: false
+    claim_markers:
+      - Opisz zdarzenie
+      - description is required
+  - id: R06
+    statement: The place of the event is required to continue the claim.
+    type: validation
+    anchor:
+      screen: S06
+      label: Miejsce zdarzenia
+    guest_observable: false
+    claim_markers:
+      - Podaj miejsce zdarzenia
+      - place of the event is required
+  - id: R07
+    statement: The claim steps are kept on the server and must be completed in order; going Back in the
+      browser resets the wizard to step 1.
+    type: ui_enablement
+    anchor:
+      screen: S06
+      label: Nie używaj przycisku Wstecz przeglądarki.
+    guest_observable: false
+    claim_markers:
+      - Nie używaj przycisku Wstecz
+      - Back button
+      - resets the wizard
+      - step 1
+  - id: R08
+    statement: The old claim form requires all three fields (policy number, event date, description).
+    type: validation
+    anchor:
+      screen: S08
+      label: Nr polisy
+    guest_observable: false
+    claim_markers:
+      - Wypełnij wszystkie pola
+      - all three fields
+      - all fields are required
+processes:
+  - id: P01
+    name: Zgłoś szkodę
+    steps:
+      - /ubezpieczenia#/szkody/nowa
+      - /ubezpieczenia#/szkody/potwierdzenie
+    first_route: /ubezpieczenia#/szkody/nowa
+    last_observable_route: /ubezpieczenia#/szkody/nowa
+    ends_with: mutation
+  - id: P02
+    name: Dodaj dodatek do polisy
+    steps:
+      - /ubezpieczenia#/polisy
+      - /ubezpieczenia#/polisy/:nr
+      - /ubezpieczenia#/polisy/:nr/dodatki
+    first_route: /ubezpieczenia#/polisy
+    last_observable_route: /ubezpieczenia#/polisy/:nr/dodatki
+    ends_with: mutation
+  - id: P03
+    name: Obejrzyj swoje polisy
+    steps:
+      - /ubezpieczenia#/polisy
+      - /ubezpieczenia#/polisy/:nr
+    first_route: /ubezpieczenia#/polisy
+    last_observable_route: /ubezpieczenia#/polisy/:nr
+    ends_with: result
+  - id: P04
+    name: Zgłoś szkodę starym formularzem
+    steps:
+      - /legacy/insurer/szkoda-stara.do
+    first_route: /legacy/insurer/szkoda-stara.do
+    last_observable_route: /legacy/insurer/szkoda-stara.do
+    ends_with: mutation
+  - id: P05
+    name: Zaloguj się do Strefy Klienta
+    steps:
+      - /ubezpieczenia
+      - /logowanie
+    first_route: /ubezpieczenia
+    last_observable_route: /logowanie
+    ends_with: login_wall
+terms:
+  - id: T01
+    term: Ogólne warunki ubezpieczenia
+    lang: pl
+  - id: T02
+    term: Suma ubezpieczenia
+    lang: pl
+  - id: T03
+    term: Składka
+    lang: pl
+  - id: T04
+    term: Okres ubezpieczenia
+    lang: pl
+  - id: T05
+    term: Numer polisy
+    lang: pl
+  - id: T06
+    term: Dodatki do polisy
+    lang: pl
+  - id: T07
+    term: Assistance Premium
+    lang: pl
+  - id: T08
+    term: Zgłoszenie szkody
+    lang: pl
+  - id: T09
+    term: Data zdarzenia
+    lang: pl
+  - id: T10
+    term: Strefa Klienta
+    lang: pl
+users:
+  - id: insurer-client
+    persona: client
+    refs:
+      - PG_INSURER_LOGIN
+      - PG_INSURER_PASSWORD
+redirects:
+  - id: D01
+    from: /polisa.php?id=:nr
+    to: /ubezpieczenia#/polisy/:nr
+    kind: chain
+    hops:
+      - meta_refresh
+      - js_location
+obstacles:
+  - id: LO-01
+    screens:
+      - S01
+      - S03
+      - S04
+      - S05
+      - S06
+      - S07
+    markers:
+      - micro-frontend
+      - micro-frontends
+      - microfrontend
+      - mikrofrontend
+    expected: navigated
+  - id: LO-03
+    screens:
+      - S06
+    markers:
+      - cross-origin
+      - Dołącz zdjęcie lub dokument
+      - upload widget
+      - iframe
+    expected: documented
+  - id: LO-05
+    screens:
+      - S02
+      - S01
+      - S03
+      - S04
+      - S05
+      - S06
+      - S07
+    markers:
+      - shadow DOM
+      - shadow root
+      - mk-mini-cart
+    expected: documented
+  - id: LO-06
+    screens:
+      - S03
+      - S04
+      - S05
+      - S06
+      - S07
+    markers:
+      - hash
+      - "#/polisy"
+      - hash route
+      - routing
+    expected: navigated
+  - id: LO-07
+    screens:
+      - S02
+      - S01
+      - S03
+      - S04
+      - S05
+      - S06
+      - S07
+    markers:
+      - CMS
+      - pl.json
+      - runtime texts
+      - teksty z CMS
+    expected: documented
+  - id: LO-09
+    screens:
+      - S02
+    markers:
+      - white-label
+      - Strefa Klienta
+      - shared login
+    expected: documented
+  - id: LO-11
+    screens:
+      - S02
+      - S08
+    markers:
+      - placeholder
+      - no label
+      - bez etykiety
+      - inferred
+    expected: documented
+  - id: LO-12
+    screens:
+      - S08
+    markers:
+      - layout table
+      - tabela układu
+      - table layout
+      - <table>
+    expected: documented
+  - id: LO-13
+    screens:
+      - S02
+      - S01
+      - S03
+      - S04
+      - S05
+      - S06
+      - S07
+    markers:
+      - hashed class
+      - class names
+      - CSS-module
+      - nazwy klas
+    expected: documented
+  - id: LO-18
+    screens:
+      - S05
+    markers:
+      - custom date picker
+      - Wybierz datę
+      - Data rozpoczęcia
+      - date picker
+    expected: documented
+  - id: LO-21
+    screens:
+      - S04
+    markers:
+      - /polisa.php
+      - /stare/polisa
+      - redirect chain
+      - redirect
+    expected: navigated
+  - id: LO-22
+    screens:
+      - S04
+    markers:
+      - Proszę czekać
+      - meta refresh
+      - location.replace
+      - js location
+    expected: navigated
+  - id: LO-23
+    screens:
+      - S04
+    markers:
+      - /polisa.php?id=
+      - /polisy/
+      - old URL
+      - two URL schemes
+    expected: navigated
+  - id: LO-27
+    screens:
+      - S01
+    markers:
+      - Ogólne warunki ubezpieczenia
+      - pop-up
+      - popup
+      - window.open
+    expected: documented
+  - id: LO-28
+    screens:
+      - S04
+    markers:
+      - Pobierz polisę (PDF)
+      - polisa-
+      - .pdf
+      - download
+    expected: documented
+  - id: LO-30
+    screens:
+      - S02
+    markers:
+      - CSRF
+      - csrf
+    expected: documented
+  - id: LO-31
+    screens:
+      - S02
+    markers:
+      - Konto zostało zablokowane
+      - lockout
+      - locked
+      - zablokowane
+    expected: documented
+  - id: LO-32
+    screens:
+      - S03
+      - S04
+      - S05
+      - S06
+      - S07
+    markers:
+      - Sesja wygasła
+      - session expired
+      - session timeout
+    expected: documented
+  - id: LO-33
+    screens:
+      - S06
+    markers:
+      - Nie używaj przycisku Wstecz
+      - Back button
+      - wizard
+      - server-held
+    expected: documented
+  - id: LO-37
+    screens:
+      - S02
+    markers:
+      - CAPTCHA
+      - nie jestem robotem
+      - reCAPTCHA
+    expected: handoff
+  - id: LO-38
+    screens:
+      - S01
+    markers:
+      - Akceptuję wszystkie
+      - Tylko niezbędne
+      - cookie
+    expected: ignored
+  - id: LO-43
+    screens:
+      - S08
+    markers:
+      - classic form POST
+      - POST
+      - redirect after POST
+      - Zgłoszenie przyjęte
+    expected: documented
+  - id: LO-45
+    screens:
+      - S01
+    markers:
+      - Trwa wyliczanie składki
+      - spinner
+      - never settles
+      - long polling
+    expected: documented
+  - id: LO-47
+    screens:
+      - S06
+    markers:
+      - Szkodę można zgłosić do 30 dni
+      - client-side
+      - server-side
+      - mismatch
+    expected: documented
+  - id: LO-50
+    screens:
+      - S05
+    markers:
+      - 2026-03-16
+      - 16.03.2026
+      - estate clock
+      - fixed date
+    expected: documented
+  - id: LO-51
+    screens:
+      - S05
+    markers:
+      - Assistance Premium
+      - 50 000 zł
+      - threshold
+    expected: documented

@@ -1,5 +1,5 @@
 /**
- * The portal's business rules as pure functions. `ground-truth.json` describes them; the tests
+ * The portal's business rules as pure functions. `ground-truth.yaml` describes them; the tests
  * check the served pages against both. "Today" is fixed so age and date rules never drift.
  */
 

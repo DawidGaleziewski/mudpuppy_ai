@@ -46,7 +46,7 @@ mapped onto this project:
 | **Transcript** (trace) | Everything the agent saw and did in a trial | `~/.claude/projects/-home-dawid-projects-pathfinder-ai/<crawler_cli_session>.jsonl` |
 | **Outcome** | The final state the agent produced | The BA records in the SQLite store |
 | **Grader** | Code, model or human that scores the outcome | `evaluate.ts` (code grader) |
-| **Ground truth** | The answer key the grader compares to | `apps/crawler/packages/reference-portal/ground-truth.json` |
+| **Ground truth** | The answer key the grader compares to | `apps/crawler/packages/reference-portal/ground-truth.yaml` |
 | **Harness** | The code that runs tasks, collects transcripts and grades | `apps/crawler/evals/` + `evaluate.ts` + `gates/src/eval.ts` |
 
 ### Three kinds of graders

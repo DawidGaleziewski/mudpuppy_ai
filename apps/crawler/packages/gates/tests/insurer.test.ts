@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { afterAll, beforeAll, expect } from 'vitest';
+import { parse } from 'yaml';
 import { AGENT_TOOL_NAMES } from '@pathfinder/mcp-server';
 import {
   actionNamed,
@@ -115,9 +116,9 @@ gap(
 gate('LO-50', 'the ground truth uses the portal clock, not the real date', async () => {
   const clock = (await (await fetch(`${GATE_BASE}/api/clock`)).json()) as { today: string };
   for (const d of ['shop', 'bank', 'insurer']) {
-    const gt = JSON.parse(
-      readFileSync(join(PROVING_GROUND, 'ground-truth', `${d}.json`), 'utf8'),
-    ) as { today: string };
+    const gt = parse(readFileSync(join(PROVING_GROUND, 'ground-truth', `${d}.yaml`), 'utf8')) as {
+      today: string;
+    };
     expect(gt.today).toBe(clock.today);
   }
 });

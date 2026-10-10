@@ -60,7 +60,7 @@ the shop cart is missing on purpose, so the raw key shows.
 
 ## Ground truth and obstacle catalogue
 
-- Ground truth, one file per brand: `ground-truth/{shop,bank,insurer}.json`. The evaluator scores the
+- Ground truth, one file per brand: `ground-truth/{shop,bank,insurer}.yaml`. The evaluator scores the
   BA's documentation against them (`pnpm eval proving-ground-bank`).
 - Obstacle catalogue: `docs/legacy-obstacles.md`. Each `LO-` entry names the route and the
   ground-truth screen that reproduces it.

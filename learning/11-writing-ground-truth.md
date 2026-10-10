@@ -7,10 +7,11 @@ a fictional insurer where a logged-in client files a motor claim online. Read it
 ## What you write, and what you don't
 
 You write **BA notes in YAML**: facts about the portal, each with where you got it. You do **not**
-write the grader's JSON (`ground-truth.json`). That file is an encoding for the code graders, full
-of matching hints, and is produced *from* your notes (today by Claude, later by a converter).
+write the grader's file (`ground-truth.yaml`, also YAML since G-34, but in the `GroundTruth`
+schema). That file is an encoding for the code graders, full of matching hints, and is produced
+*from* your notes (today by Claude, later by a converter).
 
-| You write (YAML notes) | The graders read (JSON) |
+| You write (YAML notes) | The graders read (`ground-truth.yaml`, schema) |
 |---|---|
 | Facts in plain words | The same facts plus matching hints |
 | `how_i_know` for every item | Nothing about sources |
@@ -62,7 +63,7 @@ Work on the portal, not in the editor. One process at a time:
 Write fewer screens and more rules and processes (module 02, "how to pick"): screens are easy and
 already scored well; rules and processes are where the value and the low scores are.
 
-## From your notes to the grader's JSON
+## From your notes to the grader's file
 
 Rule R04 from the example:
 
@@ -77,15 +78,13 @@ Rule R04 from the example:
 
 becomes, in the current schema (`GroundTruth` in `reference-portal/src/ground-truth.ts`):
 
-```json
-{
-  "id": "R04",
-  "statement": "A theft claim (Kradzież) requires the police report number.",
-  "type": "validation",
-  "anchor": { "screen": "S03", "label": "Numer zgłoszenia policji" },
-  "guest_observable": false,
-  "claim_markers": ["Kradzież", "policji"]
-}
+```yaml
+- id: R04
+  statement: A theft claim (Kradzież) requires the police report number.
+  type: validation
+  anchor: { screen: S03, label: Numer zgłoszenia policji }
+  guest_observable: false
+  claim_markers: [Kradzież, policji]
 ```
 
 - `statement`, `anchor` are copied.
@@ -101,7 +100,7 @@ Processes work the same way: `steps` become routes, `first_route` is the first, 
 
 ## What checks your notes
 
-- **Portals we own** (proving ground, reference portal): the consistency test compares the JSON with
+- **Portals we own** (proving ground, reference portal): the consistency test compares the ground-truth file with
   the running portal: routes answer, labels are on the page, rule anchors are where you said.
 - **Portals we don't own**: nothing automatic. Your `how_i_know` lines and a second review a few days
   later (module 02) are the check. That's why every item needs a source.
@@ -119,7 +118,7 @@ Processes work the same way: `steps` become routes, `first_route` is the first, 
 
 - [ ] 11.1 Read the example and find, for each of R01–R09, the step in "How to go about it" that
   produced it.
-- [ ] 11.2 Convert P01 of the example to the JSON schema by hand (routes, `first_route`,
+- [ ] 11.2 Convert P01 of the example to the `GroundTruth` schema by hand (routes, `first_route`,
   `last_observable_route`, `ends_with`).
 - [ ] 11.3 Write notes in this format for one process you know from work: 4–8 screens, its fields
   and 5–10 rules, with `how_i_know` for each. Don't look at any agent output first.

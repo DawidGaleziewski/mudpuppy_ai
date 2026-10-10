@@ -86,7 +86,7 @@ migration 0006 have no screenshot; to get them, wipe the store and re-crawl
 (`specs/008-screenshots-wireframes/quickstart.md` §0).
 
 The **reference portal** (`apps/crawler/packages/reference-portal`, portal `reference-insurer`) is a
-local fake Polish insurer whose full truth is written down in `ground-truth.json`. Start it with
+local fake Polish insurer whose full truth is written down in `ground-truth.yaml`. Start it with
 `pnpm --dir apps/crawler reference-portal` (http://127.0.0.1:4010) and run the flow above with the MCP
 servers on `PATHFINDER_ENV=sandbox`; step 6 then says how close the documentation gets.
 

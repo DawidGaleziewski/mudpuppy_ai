@@ -3,9 +3,8 @@
  * to start its local server. The ground truth stays next to the portal it describes (its
  * self-check tests read it there); this list is the one place that names them all.
  */
-import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { GroundTruth } from '@pathfinder/docs';
+import { readGroundTruth, type GroundTruth } from '@pathfinder/docs';
 
 export interface PortalServer {
   /** A URL that answers 2xx once the server is up. */
@@ -18,7 +17,7 @@ export interface PortalServer {
 
 export interface EvalTask {
   portal: string;
-  /** Repo-relative path of the ground-truth JSON. */
+  /** Repo-relative path of the ground-truth YAML (G-34). */
   groundTruth: string;
   server: PortalServer;
 }
@@ -43,14 +42,14 @@ const PROVING_GROUND_ESTATE: PortalServer = {
 
 const provingGround = (domain: 'shop' | 'bank' | 'insurer'): EvalTask => ({
   portal: `proving-ground-${domain}`,
-  groundTruth: `apps/proving-ground/ground-truth/${domain}.json`,
+  groundTruth: `apps/proving-ground/ground-truth/${domain}.yaml`,
   server: PROVING_GROUND_ESTATE,
 });
 
 export const SUITE: readonly EvalTask[] = [
   {
     portal: 'reference-insurer',
-    groundTruth: 'apps/crawler/packages/reference-portal/ground-truth.json',
+    groundTruth: 'apps/crawler/packages/reference-portal/ground-truth.yaml',
     server: REFERENCE_PORTAL,
   },
   provingGround('shop'),
@@ -63,5 +62,5 @@ export function taskFor(portal: string): EvalTask | undefined {
 }
 
 export function loadGroundTruth(root: string, task: EvalTask): GroundTruth {
-  return GroundTruth.parse(JSON.parse(readFileSync(join(root, task.groundTruth), 'utf8')));
+  return readGroundTruth(join(root, task.groundTruth));
 }

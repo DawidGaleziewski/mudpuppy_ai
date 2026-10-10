@@ -97,7 +97,7 @@ afterAll(async () => {
 });
 
 const gts = Object.fromEntries(
-  DOMAINS.map((d) => [d, loadGroundTruth(join(PROVING_GROUND, 'ground-truth', `${d}.json`))]),
+  DOMAINS.map((d) => [d, loadGroundTruth(join(PROVING_GROUND, 'ground-truth', `${d}.yaml`))]),
 ) as Record<Domain, GroundTruth>;
 
 describe.each(DOMAINS)('ground truth %s ⇔ the estate', (domain) => {

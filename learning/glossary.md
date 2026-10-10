@@ -110,7 +110,7 @@ Whatever scores an output: code, an LLM judge or a human.
 
 **Ground truth**
 The answer key: what's really true about the thing being documented, written independently of the
-system being graded. *Example:* `apps/crawler/packages/reference-portal/ground-truth.json` (19 screens,
+system being graded. *Example:* `apps/crawler/packages/reference-portal/ground-truth.yaml` (19 screens,
 19 rules, 5 processes, 10 terms).
 
 **Harness**
