@@ -1,5 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
+import { parse } from 'yaml';
 import { z } from 'zod';
 
 /**
@@ -190,9 +191,10 @@ export const GroundTruth = z
   });
 export type GroundTruth = z.infer<typeof GroundTruth>;
 
-/** Absolute path of this package's `ground-truth.json`. */
-export const GROUND_TRUTH_PATH = fileURLToPath(new URL('../ground-truth.json', import.meta.url));
+/** Absolute path of this package's `ground-truth.yaml`. */
+export const GROUND_TRUTH_PATH = fileURLToPath(new URL('../ground-truth.yaml', import.meta.url));
 
+/** Ground truth is YAML (G-34). */
 export function loadGroundTruth(path: string = GROUND_TRUTH_PATH): GroundTruth {
-  return GroundTruth.parse(JSON.parse(readFileSync(path, 'utf8')));
+  return GroundTruth.parse(parse(readFileSync(path, 'utf8')));
 }

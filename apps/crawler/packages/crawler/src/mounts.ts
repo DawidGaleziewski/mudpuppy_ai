@@ -1,7 +1,7 @@
 /// <reference lib="dom" />
 import type { CompositionLoader } from '@pathfinder/core';
 import type { Frame, Page } from 'playwright';
-import { evalWithHelpers } from './pw-eval.js';
+import { evalWithHelpers } from './in-page.js';
 
 /** A micro-frontend mount point and whether something rendered into it (spec 015 R4, LO-02). */
 export interface MountPoint {

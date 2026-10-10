@@ -6,6 +6,27 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Added
+- R-46 hands-on learning, first round (the user's learning branch, merged whole on 2026-10-10;
+  the roadmap freeze set for it is lifted, R-46 is paused until an LLM judge exists). The eval
+  runner `scripts/eval-run.ts` is rebuilt as `apps/crawler/evals/`, organised by role: `index.ts`
+  (the trial, top to bottom), `config.ts` (strict `parseArgs`, unknown flags rejected),
+  `tasks.ts` (the suite as data), `prompts.ts`, `queries.ts`, `harness/`, `graders/` grouped by
+  Anthropic's kinds (`code/`, `model/`, `human/`) and `results.ts`; behaviour locked by the
+  dry-run output and an identical grader result on a stored run. New guidelines: G-33 (Anthropic
+  eval terms: task, suite, trial, grader…) and G-34 (ground truth is YAML: all four converted,
+  `readGroundTruth()` in `@pathfinder/docs`, byte-identical `docs:evaluate` report). New
+  `create-eval` skill with the eval conventions. Trace tasks (graded on the process's steps in
+  order, `trace_steps`, `trace_goal_reached`), live-site tasks and `--crawler-only` (recorded as
+  `conditions.crawler_only`). The user's first hand-written ground truth, Wikipedia "find the
+  article about pickled cucumbers": `portals/wikipedia` made read-only with a narrow scope and
+  signed off, persona in en-US; baseline 1/3 steps, because robots.txt blocks
+  `/wiki/Special:Search` ($0.09 a trial). Also `pw-eval.ts` renamed `in-page.ts`, lint
+  `no-nested-ternary` as a warning, learning modules 10 (writing evals) and 11 (writing ground
+  truth, with an example), glossary entries `eval-task`, `eval-trial`, `grader`. Follow-ups:
+  29 existing nested ternaries; the reference portal's own `GroundTruth` schema next to the docs
+  one (G-09); crawl coverage treats any persona not named `guest` as logged in; a request blocked
+  by robots or scope reaches the agent as a blank page with no reason. Branch
+  `feature/016-r46-hands-on-learning` (merged on master, tag v1.0.15).
 - R-28 crawler hardening: the crawler gets past the "now" set of legacy obstacles. Clickable
   `div`/`span`/`li` elements with only a JS handler and no ARIA role are found by a click-signal
   init script and issued as actions with `found_by` and path/text locators (`act` never clicks

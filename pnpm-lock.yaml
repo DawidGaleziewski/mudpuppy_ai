@@ -356,6 +356,9 @@ importers:
       pngjs:
         specifier: ^7.0.0
         version: 7.0.0
+      yaml:
+        specifier: ^2.9.1
+        version: 2.9.1
       zod:
         specifier: ^4.6.5
         version: 4.6.5
@@ -481,6 +484,9 @@ importers:
 
   apps/crawler/packages/reference-portal:
     dependencies:
+      yaml:
+        specifier: ^2.9.1
+        version: 2.9.1
       zod:
         specifier: ^4.6.5
         version: 4.6.5

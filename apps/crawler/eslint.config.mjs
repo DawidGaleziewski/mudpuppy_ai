@@ -34,6 +34,9 @@ export default defineConfig(
       complexity: ['warn', 15],
       'max-params': ['warn', 5],
       'max-depth': ['warn', 4],
+      // Nested ternaries hide branching; use a lookup table, early returns or a switch. 29 hits
+      // when added (R-46), so a warning with a baseline, like the size rules above.
+      'no-nested-ternary': 'warn',
     },
   },
   {

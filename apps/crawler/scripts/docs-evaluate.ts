@@ -1,23 +1,24 @@
 /**
  * Score a portal's documentation against a ground truth (specs/004 contracts/ground-truth.md;
  * FR-063, FR-064, SC-008, SC-009).
- * Usage: pnpm docs:evaluate <portal> --ground-truth <file> [--env production] [--min <category>=<pct>]…
+ * Usage: pnpm docs:evaluate <portal> --ground-truth <file.yaml> [--env production] [--min <category>=<pct>]…
  *        [--out <file.json>] [--root <repo root>]
  * Categories: screens, fields, constraints, rules, processes, terms; `--min overclaims=<n>` is the
  * most over-claims allowed. Defaults: the SC-008 targets and 0 over-claims. Prints the JSON report,
  * or writes it to --out with a Markdown summary next to it (same name, .md).
  * Exit 0 when every threshold passes, 1 when any fails, 2 on bad input.
  */
-import { existsSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, writeFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import {
   CATEGORIES,
   DEFAULT_THRESHOLDS,
-  GroundTruth,
   evaluate,
   evaluationMarkdown,
   loadEvalInput,
+  readGroundTruth,
   reportJson,
+  type GroundTruth,
   type Thresholds,
 } from '@pathfinder/docs';
 import { dbPathFor, openDb } from '@pathfinder/store';
@@ -49,7 +50,7 @@ process.argv.forEach((a, i) => {
 const gtPath = arg('ground-truth') ?? fail('--ground-truth <file> is required');
 let groundTruth: GroundTruth;
 try {
-  groundTruth = GroundTruth.parse(JSON.parse(readFileSync(resolve(gtPath), 'utf8')));
+  groundTruth = readGroundTruth(resolve(gtPath));
 } catch (e) {
   fail(`cannot read the ground truth ${gtPath}: ${e instanceof Error ? e.message : String(e)}`);
 }

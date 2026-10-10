@@ -1,6 +1,6 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import type { Browser } from 'playwright';
-import { evalInPage, evalOnElement } from '../src/pw-eval.js';
+import { evalInPage, evalOnElement } from '../src/in-page.js';
 import { browserAvailable, launch } from './browser.js';
 
 const available = await browserAvailable();

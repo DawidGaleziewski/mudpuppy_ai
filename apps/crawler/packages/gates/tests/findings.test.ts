@@ -1,12 +1,12 @@
 import { createServer as createHttpServer, type Server } from 'node:http';
 import type { AddressInfo } from 'node:net';
-import { mkdirSync, readdirSync, readFileSync, existsSync, statSync, writeFileSync } from 'node:fs';
+import { mkdirSync, readdirSync, existsSync, statSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { afterEach, expect } from 'vitest';
 import { chromium } from 'playwright';
 import { deflateSync } from 'node:zlib';
 import { elementKeys, maskText, parseAriaYaml, scrubJson } from '@pathfinder/core';
-import { GroundTruth as EvalGroundTruth, evaluate, type EvalRecord } from '@pathfinder/docs';
+import { evaluate, readGroundTruth, type EvalRecord } from '@pathfinder/docs';
 import { interruptStaleRuns } from '@pathfinder/mcp-server';
 import { startReferencePortal, type ReferencePortal } from '@pathfinder/reference-portal';
 // Not package exports: the gates pin internals of these packages directly.
@@ -496,13 +496,8 @@ gap(
   'a record quoting only the hint example does not earn R11',
   'open: one claim marker is enough to match a rule (spec 004 F-13)',
   async () => {
-    const gt = EvalGroundTruth.parse(
-      JSON.parse(
-        readFileSync(
-          join(REPO, 'apps/crawler/packages/reference-portal/ground-truth.json'),
-          'utf8',
-        ),
-      ),
+    const gt = readGroundTruth(
+      join(REPO, 'apps/crawler/packages/reference-portal/ground-truth.yaml'),
     );
     const route = gt.screens.find((s) => s.id === 'S11')!.route_template;
     const record: EvalRecord = {

@@ -97,7 +97,7 @@ Cost was taken seriously once seen (R-24: 38–78M → about 1M cache-read token
    ("docs good enough to re-create the portal") has no eval.
 2. **Activity over outcome.** `processes` is 0 % in every eval run ever, on every portal, while 40+
    roadmap items shipped (rebrand, glossary, wiki, chat, switcher...). R-39 sits behind R-28/R-37/R-38.
-   Found while writing this folder: `eval-run.ts` runs the crawler in **map mode only**, so no trace
+   Found while writing this folder: the eval (`apps/crawler/evals/`) runs the crawler in **map mode only**, so no trace
    evidence ever exists, and 2 of the 5 reference processes (P02, P03) *cannot* match by design. The
    score could never have moved. Exercise 4.1 confirms the rest.
 3. **Error analysis is missing.** Fixes come from an obstacle catalogue written upfront (LO-xx), not from
@@ -130,4 +130,6 @@ hours on `processes = 0 %` yourself; write hold-out ground truth by hand; protot
 | [07-context-and-tools.md](07-context-and-tools.md) | What the agent sees and how tools shape it |
 | [08-working-with-ai.md](08-working-with-ai.md) | Transcripts, comprehension debt, process overhead audit |
 | [09-productization.md](09-productization.md) | Login vs API, cost per portal |
+| [10-writing-evals.md](10-writing-evals.md) | The process of writing a new eval, step by step |
+| [11-writing-ground-truth.md](11-writing-ground-truth.md) | Writing ground truth by hand, with a complete example ([examples/](examples/)) |
 | [glossary.md](glossary.md) | Terms explained simply, with examples from this project |

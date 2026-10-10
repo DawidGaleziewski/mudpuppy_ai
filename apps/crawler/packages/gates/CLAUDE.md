@@ -6,9 +6,11 @@ Layer: servers (G-07; `apps/crawler/layers.json`)
 
 ## Public API
 - `gate()`, `gap()`: define gate and known-unfixed cases; used by the crawler app root.
-- `catalogue`, `harness`, `paths`, `steps`, `eval`: gate infrastructure and reporting.
+- `catalogue`, `harness`, `paths`, `steps`, `eval`: gate infrastructure and reporting. `eval`
+  holds `EvalResult` (with `conditions`: `session_timeout_s`, `crawler_only`), `compareEval`
+  and `Tolerances`, used by `apps/crawler/evals/`.
 - `eval-checks` (`crawlScreens`, `passwordHits`, `widgetActions`) and `HARD_ZERO_CHECKS`: pure
-  eval measures used by `scripts/eval-run.ts` (spec 014). Their tests run only in the gates tier
+  eval measures used by `apps/crawler/evals/` (spec 014). Their tests run only in the gates tier
   (spec 014 F-03).
 
 ## Invariants

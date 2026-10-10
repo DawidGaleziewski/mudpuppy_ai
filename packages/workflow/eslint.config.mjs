@@ -31,6 +31,7 @@ export default defineConfig(
       complexity: ['warn', 15],
       'max-params': ['warn', 5],
       'max-depth': ['warn', 4],
+      'no-nested-ternary': 'warn',
     },
   },
   {

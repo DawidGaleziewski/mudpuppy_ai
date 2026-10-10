@@ -12,7 +12,8 @@ schemas) and store (record keys are allocated in the DB, `src/keys.ts`).
 - Record keys and status engine; used by mcp-server (BA tools), gates, apps/chat.
 - Relations, observed rules, evidence resolution; used by mcp-server.
 - SRS rendering (`src/render/`), audit, review, export, process scope, evaluation; used by the
-  crawler app scripts (`pnpm docs:*`).
+  crawler app scripts (`pnpm docs:*`). `readGroundTruth()` reads a YAML ground truth (G-34); used
+  by `apps/crawler/evals/`, `docs:evaluate` and the gates.
 - Test helpers in `src/testing/` (a migrated scratch store, record fixtures).
 
 ## Invariants

@@ -85,7 +85,7 @@ The highest-value two hours in this whole document.
 3. List the BA's process records:
    `sqlite3 /tmp/pf-eval-reference-insurer-XXXX/data/db/sandbox.sqlite` and look at the doc record
    tables for kind `process` (ask Claude for the exact query; reading the schema in `data/schema/` is also a good exercise).
-4. Open `apps/crawler/packages/reference-portal/ground-truth.json` → `processes` (5 of them).
+4. Open `apps/crawler/packages/reference-portal/ground-truth.yaml` → `processes` (5 of them).
 5. Read the matching rule in `apps/crawler/packages/docs/src/evaluate.ts` (around line 340): a process
    counts only if a `process` record cites `process` or `process_step` evidence whose routes contain both
    `first_route` and `last_observable_route`, or is flagged `until_boundary` / not observable while citing
@@ -96,7 +96,7 @@ The highest-value two hours in this whole document.
    or wrong), **crawler problem** (no traces were run, so there's nothing to cite), or **ground-truth
    problem**.
 
-**A head start (checked while writing this, 2026-10-09):** `apps/crawler/scripts/eval-run.ts` runs one
+**A head start (checked while writing this, 2026-10-09):** `apps/crawler/evals/` runs one
 crawler session **in map mode only** and then one BA session (see `PROMPTS` around line 147). No trace run
 happens, so no `process_step` evidence exists. Of the 5 reference processes, P02 and P03 end in a
 `result` and can *only* match through traced evidence, so they're **impossible by design** in the current

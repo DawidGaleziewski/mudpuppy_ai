@@ -31,7 +31,7 @@ You don't need to understand every line. You need to understand the parts that *
 product works**:
 
 1. The crawler agent prompt (`.claude/agents/crawler.md`) and the BA skill (`.claude/skills/ba-practice/SKILL.md`)
-2. The eval runner (`apps/crawler/scripts/eval-run.ts`) and grader (`apps/crawler/packages/docs/src/evaluate.ts`)
+2. The eval runner (`apps/crawler/evals/`) and grader (`apps/crawler/packages/docs/src/evaluate.ts`)
 3. The page pipeline order (`apps/crawler/packages/mcp-server/src/runtime/pipeline/process-page.ts`)
 4. The safety classifier (what's refused and why)
 

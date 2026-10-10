@@ -10,3 +10,4 @@ export * from './render/mermaid.js';
 export * from './export.js';
 export * from './scope.js';
 export * from './evaluate.js';
+export * from './ground-truth-file.js';

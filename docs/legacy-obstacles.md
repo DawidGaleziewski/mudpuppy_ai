@@ -18,7 +18,7 @@ Source: `idea` = user raw idea (`user_input/more_testing_and_test_portals.md`), 
 finding (spec 004 `goal-run-findings.md` / spec 008 `findings.md`), `common` = typical in legacy
 migrations.
 
-"Proving ground" cells name domain, route and ground-truth screen id (`apps/proving-ground/ground-truth/{shop,bank,insurer}.json`).
+"Proving ground" cells name domain, route and ground-truth screen id (`apps/proving-ground/ground-truth/{shop,bank,insurer}.yaml`).
 Screen ids are per domain: `shop S03` is screen S03 in `shop.json`.
 
 ## Architecture

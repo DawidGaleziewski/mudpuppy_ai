@@ -30,7 +30,7 @@
     "trace:smoke": "tsx packages/mcp-server/scripts/trace-smoke.ts",
     "reference-portal": "pnpm --filter @pathfinder/reference-portal start",
     "vault": "tsx scripts/vault.ts",
-    "eval": "tsx scripts/eval-run.ts",
+    "eval": "tsx evals/index.ts",
     "tokens:ba": "tsx scripts/tokens-ba-reads.ts",
     "gt:check": "vitest run --project gates tests/ground-truth.test.ts"
   },

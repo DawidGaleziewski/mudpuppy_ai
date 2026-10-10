@@ -10,26 +10,32 @@ sheet is the ground truth. If the student wrote the answer sheet, the exam measu
 
 In Pathfinder, the "thing" is a portal, and the ground truth lists what a perfect BA would document:
 
-```json
-// apps/crawler/packages/reference-portal/ground-truth.json (shortened)
-{
-  "screens":   [{ "id": "S09", "route_template": "/kalkulator/kierowca", "guest_visible": true }],
-  "rules":     [{ "id": "R01",
-                  "statement": "The driver must be between 18 and 75 years old on the calculation date.",
-                  "anchor": { "screen": "S09", "label": "Data urodzenia" },
-                  "guest_observable": true,
-                  "claim_markers": ["18", "75"] }],
-  "processes": [{ "id": "P01", "name": "Oblicz składkę OC/AC",
-                  "steps": ["/kalkulator/pojazd", "/kalkulator/kierowca", "/kalkulator/opcje",
-                            "/kalkulator/wynik", "/kalkulator/zakup"],
-                  "first_route": "/kalkulator/pojazd", "last_observable_route": "/kalkulator/wynik",
-                  "ends_with": "mutation" }],
-  "terms":     [{ "id": "T02", "term": "Autocasco (AC)", "lang": "pl" }]
-}
+```yaml
+# apps/crawler/packages/reference-portal/ground-truth.yaml (shortened)
+screens:
+  - id: S09
+    route_template: /kalkulator/kierowca
+    guest_visible: true
+rules:
+  - id: R01
+    statement: The driver must be between 18 and 75 years old on the calculation date.
+    anchor: { screen: S09, label: Data urodzenia }
+    guest_observable: true
+    claim_markers: ["18", "75"]
+processes:
+  - id: P01
+    name: Oblicz składkę OC/AC
+    steps: [/kalkulator/pojazd, /kalkulator/kierowca, /kalkulator/opcje, /kalkulator/wynik, /kalkulator/zakup]
+    first_route: /kalkulator/pojazd
+    last_observable_route: /kalkulator/wynik
+    ends_with: mutation
+terms:
+  - { id: T02, term: Autocasco (AC), lang: pl }
 ```
 
 The reference portal has 19 screens, 19 rules, 5 processes and 10 terms. The proving ground's ground
-truths live in `apps/proving-ground/ground-truth/{bank,insurer,shop}.json`. The format is described in
+truths live in `apps/proving-ground/ground-truth/{bank,insurer,shop}.yaml`. Ground truth is written in
+YAML (guideline G-34). The format is described in
 `specs/004-ba-documentation/contracts/ground-truth.md` and `specs/009-legacy-proving-ground/contracts/ground-truth-v2.md`.
 
 ## Why it matters which way it was made
@@ -127,7 +133,7 @@ contains what Claude can find, and misses what it can't, which is the thing you 
 - **2.1 Hold-out ground truth.** Pick one process (work portal or liveinsurer). Do steps 1–7 above. Target: 1
   process, 5–8 screens, 8+ rules, all fields, 10 terms. Time box: one evening for the walk, 30 min for the
   review three days later.
-- **2.2 Review the existing key.** Open `apps/crawler/packages/reference-portal/ground-truth.json`.
+- **2.2 Review the existing key.** Open `apps/crawler/packages/reference-portal/ground-truth.yaml`.
   For each rule: is the `statement` checkable on the portal? Do the `claim_markers` accept wrong answers
   or reject right ones? Note what you'd change.
 - **2.3 Run the agent on your hold-out portal** 3× and score it. Compare with the proving-ground scores.

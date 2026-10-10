@@ -2,4 +2,7 @@
 id: guest
 extends:
   - ../_mixins/anonymous-base.yaml
-max_action_class: external-side-effect
+max_action_class: read # was external-side-effect; lowered 2026-10-10 (R-46): live Wikipedia, only look
+# The eval's ground truth was walked in English (evals/ground-truth/wikipedia.yaml); the base
+# mixin's pl-PL made the home page search pl.wikipedia.org (trial 2026-10-10T20:46).
+locale: en-US

@@ -1,7 +1,7 @@
 /// <reference lib="dom" />
 import type { FoundBy } from '@pathfinder/core';
 import type { Frame, Locator, Page } from 'playwright';
-import { evalOnElement, evalWithHelpers } from './pw-eval.js';
+import { evalOnElement, evalWithHelpers } from './in-page.js';
 
 export type { FoundBy };
 

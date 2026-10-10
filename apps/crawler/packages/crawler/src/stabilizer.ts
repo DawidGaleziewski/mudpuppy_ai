@@ -1,6 +1,6 @@
 /// <reference lib="dom" />
 import type { Page, Request } from 'playwright';
-import { evalInPage } from './pw-eval.js';
+import { evalInPage } from './in-page.js';
 
 export interface InFlightRequest {
   url: string;

@@ -4,7 +4,7 @@ import { MAX_ACTIONS_PER_STATE } from './action-extractor.js';
 import { readClickables, selectClickables, type ClickableSelection } from './clickables.js';
 import { extractForms, type DomForm } from './forms.js';
 import { frameLabel, walkFrames, withFrameSnapshots, type ObservedFrame } from './frames.js';
-import { evalInPage } from './pw-eval.js';
+import { evalInPage } from './in-page.js';
 
 export { extractForms, type DomForm, type DomFormField } from './forms.js';
 

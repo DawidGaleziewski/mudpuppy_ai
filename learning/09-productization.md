@@ -41,7 +41,7 @@ models for mechanical steps (you already split by model for development; the sam
 - **9.1 Estimate R-33.** From `data/evals/*/*.json` (`cost.usd`, `checks.crawler_steps`), compute cost per
   crawler step and per screen. Estimate a 300-screen portal × 10 sampled personas × 1 run. Put the number in
   the R-33 discussion.
-- **9.2 Find the seam.** Locate every place that starts a Claude session (`eval-run.ts`, `apps/chat`).
+- **9.2 Find the seam.** Locate every place that starts a Claude session (`apps/crawler/evals/harness/agent.ts`, `apps/chat`).
   Could they switch to the Agent SDK + API key through one function? If not, note what's in the way.
 
 ## Where in your process

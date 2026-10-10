@@ -1,0 +1,661 @@
+# Ground truth: proving ground, bank (proving-ground-bank).
+# The answer key the eval graders compare against; written in YAML (G-34).
+# Schema: GroundTruth in apps/crawler/packages/reference-portal/src/ground-truth.ts.
+
+portal_id: proving-ground-bank
+today: 2026-03-16
+screens:
+  - id: S01
+    route_template: /bank
+    title: Bankowość dla każdego
+    guest_visible: true
+    reached_by: navigation
+    actor: guest
+    obstacles:
+      - LO-01
+      - LO-05
+      - LO-07
+      - LO-13
+      - LO-16
+      - LO-38
+      - LO-40
+  - id: S02
+    route_template: /logowanie
+    title: Logowanie do bankowości
+    guest_visible: true
+    reached_by: navigation
+    actor: guest
+    obstacles:
+      - LO-05
+      - LO-07
+      - LO-09
+      - LO-11
+      - LO-13
+      - LO-30
+      - LO-31
+      - LO-37
+  - id: S03
+    route_template: /bank/pulpit
+    title: Twoje rachunki
+    guest_visible: false
+    reached_by: login
+    actor: bank-client
+    obstacles:
+      - LO-01
+      - LO-05
+      - LO-07
+      - LO-13
+      - LO-32
+      - LO-44
+  - id: S04
+    route_template: /bank/przelew
+    title: Przelew krajowy
+    guest_visible: false
+    reached_by: login
+    actor: bank-client
+    obstacles:
+      - LO-01
+      - LO-05
+      - LO-07
+      - LO-10
+      - LO-11
+      - LO-13
+      - LO-32
+      - LO-49
+  - id: S05
+    route_template: /bank/przelew/potwierdzenie
+    title: Przelew został przyjęty
+    guest_visible: false
+    reached_by: mutation
+    actor: bank-client
+    obstacles:
+      - LO-01
+      - LO-05
+      - LO-07
+      - LO-13
+      - LO-32
+      - LO-50
+  - id: S06
+    route_template: /bank/wyciagi
+    title: Wyciągi
+    guest_visible: false
+    reached_by: login
+    actor: bank-client
+    obstacles:
+      - LO-01
+      - LO-05
+      - LO-07
+      - LO-13
+      - LO-26
+      - LO-28
+      - LO-32
+  - id: S07
+    route_template: /bank/historia
+    title: Historia operacji
+    guest_visible: false
+    reached_by: login
+    actor: bank-client
+    obstacles:
+      - LO-01
+      - LO-02
+      - LO-05
+      - LO-07
+      - LO-13
+      - LO-24
+      - LO-32
+  - id: S08
+    route_template: /legacy/bank/historia.do
+    title: Historia operacji
+    guest_visible: false
+    reached_by: login
+    actor: bank-client
+    obstacles:
+      - LO-04
+      - LO-24
+  - id: S09
+    route_template: /legacy/bank/menu.do
+    title: Menu
+    guest_visible: false
+    reached_by: login
+    actor: bank-client
+    obstacles:
+      - LO-12
+      - LO-17
+      - LO-24
+      - LO-25
+  - id: S10
+    route_template: /legacy/bank/lista.do
+    title: Historia operacji
+    guest_visible: false
+    reached_by: login
+    actor: bank-client
+    obstacles:
+      - LO-12
+      - LO-14
+      - LO-15
+      - LO-17
+      - LO-19
+      - LO-24
+      - LO-25
+  - id: S11
+    route_template: /legacy/bank/szczegoly.do
+    title: Szczegóły operacji – zażółć gęślą jaźń
+    guest_visible: false
+    reached_by: login
+    actor: bank-client
+    obstacles:
+      - LO-12
+      - LO-20
+      - LO-24
+  - id: S12
+    route_template: /legacy/bank/archiwum.do
+    title: Strona nie istnieje
+    guest_visible: false
+    reached_by: login
+    actor: bank-client
+    obstacles:
+      - LO-24
+      - LO-29
+  - id: S13
+    route_template: /legacy/bank/raport.do
+    title: Wystąpił błąd aplikacji (kod 0x1F)
+    guest_visible: false
+    reached_by: login
+    actor: bank-client
+    obstacles:
+      - LO-24
+      - LO-29
+forms:
+  - id: F01
+    screen: S02
+    label: Logowanie do bankowości
+    method: post
+    fields:
+      - id: F01.1
+        label: Login
+        type: text
+        constraints:
+          required: true
+      - id: F01.2
+        label: Hasło
+        type: password
+        constraints:
+          required: true
+  - id: F02
+    screen: S04
+    label: Przelew krajowy
+    method: post
+    fields:
+      - id: F02.1
+        label: Numer rachunku
+        type: text
+        constraints:
+          required: true
+          pattern: PL\d{26}
+      - id: F02.2
+        label: Kwota
+        type: text
+        constraints:
+          required: true
+          min: 0,01
+          max: 20 000,00
+      - id: F02.3
+        label: Tytuł przelewu
+        type: text
+        constraints:
+          required: true
+          max_length: 140
+rules:
+  - id: R01
+    statement: "The recipient account number must be a Polish IBAN: PL followed by 26 digits, with a
+      valid mod-97 checksum."
+    type: format
+    anchor:
+      screen: S04
+      label: Numer rachunku
+    guest_observable: false
+    claim_markers:
+      - Nieprawidłowy numer rachunku
+      - checksum
+      - suma kontrolna
+      - 26 cyfr
+      - 26 digits
+      - mod 97
+  - id: R02
+    statement: The transfer amount must be between 0,01 zł and 20 000,00 zł.
+    type: range
+    anchor:
+      screen: S04
+      label: Kwota
+    guest_observable: false
+    claim_markers:
+      - 0,01
+      - 20 000,00 zł
+      - 20 000 zł
+  - id: R03
+    statement: The amount is entered with a decimal comma (for example 1 234,50); a decimal point is rejected.
+    type: format
+    anchor:
+      screen: S04
+      label: Kwota
+    guest_observable: false
+    claim_markers:
+      - decimal comma
+      - przecinek
+      - przecinkiem
+      - 1 234,50
+  - id: R04
+    statement: The transfer title must have 1 to 140 characters.
+    type: range
+    anchor:
+      screen: S04
+      label: Tytuł przelewu
+    guest_observable: false
+    claim_markers:
+      - 140 znak
+      - 140 char
+      - 1–140
+      - 1 do 140
+  - id: R05
+    statement: The total of transfers made in one day cannot exceed the daily limit of 20 000,00 zł.
+    type: validation
+    anchor:
+      screen: S04
+      label: Kwota
+    guest_observable: false
+    claim_markers:
+      - dzienny limit
+      - daily limit
+      - Przekroczono dzienny limit
+  - id: R06
+    statement: A transfer cannot exceed the balance of the source account.
+    type: validation
+    anchor:
+      screen: S04
+      label: Kwota
+    guest_observable: false
+    claim_markers:
+      - Niewystarczające środki
+      - insufficient funds
+      - insufficient balance
+  - id: R07
+    statement: A transfer submitted after 22:00 (estate clock) is booked on the next working day;
+      weekends are skipped.
+    type: computation
+    anchor:
+      screen: S05
+      label: Data księgowania
+    guest_observable: false
+    claim_markers:
+      - 22:00
+      - next working day
+      - następny dzień roboczy
+      - kolejny dzień roboczy
+processes:
+  - id: P01
+    name: Wykonaj przelew krajowy
+    steps:
+      - /bank/pulpit
+      - /bank/przelew
+      - /bank/przelew/potwierdzenie
+    first_route: /bank/pulpit
+    last_observable_route: /bank/przelew
+    ends_with: mutation
+  - id: P02
+    name: Obejrzyj wyciąg miesięczny
+    steps:
+      - /bank/pulpit
+      - /bank/wyciagi
+    first_route: /bank/pulpit
+    last_observable_route: /bank/wyciagi
+    ends_with: result
+  - id: P03
+    name: Obejrzyj historię operacji
+    steps:
+      - /bank/historia
+      - /legacy/bank/historia.do
+      - /legacy/bank/lista.do
+    first_route: /bank/historia
+    last_observable_route: /legacy/bank/lista.do
+    ends_with: result
+  - id: P04
+    name: Zaloguj się do bankowości
+    steps:
+      - /bank
+      - /logowanie
+    first_route: /bank
+    last_observable_route: /logowanie
+    ends_with: login_wall
+terms:
+  - id: T01
+    term: Przelew krajowy
+    lang: pl
+  - id: T02
+    term: Numer rachunku
+    lang: pl
+  - id: T03
+    term: Tytuł przelewu
+    lang: pl
+  - id: T04
+    term: Rachunek odbiorcy
+    lang: pl
+  - id: T05
+    term: Data księgowania
+    lang: pl
+  - id: T06
+    term: Saldo
+    lang: pl
+  - id: T07
+    term: Wyciągi
+    lang: pl
+  - id: T08
+    term: Pulpit
+    lang: pl
+  - id: T09
+    term: Kurs EUR/PLN
+    lang: pl
+  - id: T10
+    term: Archiwum
+    lang: pl
+users:
+  - id: bank-client
+    persona: client
+    refs:
+      - PG_BANK_LOGIN
+      - PG_BANK_PASSWORD
+redirects: []
+obstacles:
+  - id: LO-01
+    screens:
+      - S01
+      - S03
+      - S04
+      - S05
+      - S06
+      - S07
+    markers:
+      - micro-frontend
+      - micro-frontends
+      - microfrontend
+      - mikrofrontend
+    expected: navigated
+  - id: LO-02
+    screens:
+      - S07
+    markers:
+      - iframe
+      - Historia operacji (system archiwalny)
+      - legacy
+    expected: navigated
+  - id: LO-04
+    screens:
+      - S08
+    markers:
+      - frameset
+      - frame
+      - ramek
+    expected: navigated
+  - id: LO-05
+    screens:
+      - S02
+      - S01
+      - S03
+      - S04
+      - S05
+      - S06
+      - S07
+    markers:
+      - shadow DOM
+      - shadow root
+      - mk-mini-cart
+    expected: documented
+  - id: LO-07
+    screens:
+      - S02
+      - S01
+      - S03
+      - S04
+      - S05
+      - S06
+      - S07
+    markers:
+      - CMS
+      - pl.json
+      - runtime texts
+      - teksty z CMS
+    expected: documented
+  - id: LO-09
+    screens:
+      - S02
+    markers:
+      - white-label
+      - Logowanie do bankowości
+      - shared login
+    expected: documented
+  - id: LO-10
+    screens:
+      - S04
+    markers:
+      - Wykonaj
+      - no button role
+      - div
+    expected: documented
+  - id: LO-11
+    screens:
+      - S02
+      - S04
+    markers:
+      - placeholder
+      - no label
+      - bez etykiety
+      - inferred
+    expected: documented
+  - id: LO-12
+    screens:
+      - S09
+      - S10
+      - S11
+    markers:
+      - layout table
+      - tabela układu
+      - table layout
+      - <table>
+    expected: documented
+  - id: LO-13
+    screens:
+      - S02
+      - S01
+      - S03
+      - S04
+      - S05
+      - S06
+      - S07
+    markers:
+      - hashed class
+      - class names
+      - CSS-module
+      - nazwy klas
+    expected: documented
+  - id: LO-14
+    screens:
+      - S10
+    markers:
+      - duplicate id
+      - id="row"
+      - powtórzone id
+    expected: documented
+  - id: LO-15
+    screens:
+      - S10
+    markers:
+      - print.gif
+      - print icon
+      - ikona drukowania
+      - no alt
+    expected: documented
+  - id: LO-16
+    screens:
+      - S01
+    markers:
+      - rates.png
+      - baked
+      - text in image
+      - tekst w obrazie
+      - kursy walut
+    expected: documented
+  - id: LO-17
+    screens:
+      - S09
+      - S10
+    markers:
+      - javascript:void(0)
+      - Lista operacji
+      - Szczegóły
+    expected: documented
+  - id: LO-19
+    screens:
+      - S10
+    markers:
+      - invalid HTML
+      - unclosed
+      - nested form
+      - niezamknięt
+    expected: documented
+  - id: LO-20
+    screens:
+      - S11
+    markers:
+      - windows-1250
+      - zażółć gęślą jaźń
+      - cp1250
+    expected: documented
+  - id: LO-24
+    screens:
+      - S07
+      - S08
+      - S09
+      - S10
+      - S11
+      - S12
+      - S13
+    markers:
+      - ;jsessionid=
+      - jsessionid
+      - session id in the URL
+    expected: documented
+  - id: LO-25
+    screens:
+      - S09
+      - S10
+    markers:
+      - __doPostBack
+      - __VIEWSTATE
+      - postback
+    expected: documented
+  - id: LO-26
+    screens:
+      - S06
+    markers:
+      - Poprzedni miesiąc
+      - Następny miesiąc
+      - miesiac=
+      - no lower bound
+    expected: documented
+  - id: LO-28
+    screens:
+      - S06
+    markers:
+      - Pobierz PDF
+      - wyciag-
+      - .pdf
+      - download
+    expected: documented
+  - id: LO-29
+    screens:
+      - S12
+      - S13
+    markers:
+      - Strona nie istnieje
+      - kod 0x1F
+      - "404"
+      - "500"
+    expected: documented
+  - id: LO-30
+    screens:
+      - S02
+    markers:
+      - CSRF
+      - csrf
+    expected: documented
+  - id: LO-31
+    screens:
+      - S02
+    markers:
+      - Konto zostało zablokowane
+      - lockout
+      - locked
+      - zablokowane
+    expected: documented
+  - id: LO-32
+    screens:
+      - S03
+      - S04
+      - S05
+      - S06
+      - S07
+    markers:
+      - Sesja wygasła
+      - session expired
+      - session timeout
+    expected: documented
+  - id: LO-37
+    screens:
+      - S02
+    markers:
+      - CAPTCHA
+      - nie jestem robotem
+      - reCAPTCHA
+    expected: handoff
+  - id: LO-38
+    screens:
+      - S01
+    markers:
+      - Akceptuję wszystkie
+      - Tylko niezbędne
+      - cookie
+    expected: ignored
+  - id: LO-40
+    screens:
+      - S01
+    markers:
+      - Czat z konsultantem
+      - chat widget
+      - Cześć! W czym możemy pomóc?
+    expected: ignored
+  - id: LO-44
+    screens:
+      - S03
+    markers:
+      - Kurs EUR/PLN
+      - ticker
+      - SSE
+      - EventSource
+    expected: documented
+  - id: LO-49
+    screens:
+      - S04
+    markers:
+      - IBAN
+      - Numer rachunku
+      - decimal comma
+      - przecinek
+    expected: documented
+  - id: LO-50
+    screens:
+      - S05
+    markers:
+      - 2026-03-16
+      - 16.03.2026
+      - estate clock
+      - fixed date
+    expected: documented

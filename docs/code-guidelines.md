@@ -1,7 +1,8 @@
 # Code guidelines
 
 How code in this repo is shaped, layered and tested. Every rule was proposed in spec 012 (R-34)
-and accepted by the project owner on 2026-10-07 (`specs/012-maintainability/guideline-review.md`).
+and accepted by the project owner on 2026-10-07 (`specs/012-maintainability/guideline-review.md`);
+G-33 and G-34 were set by the owner directly on 2026-10-10 (R-46).
 Agents read this before writing code; the `code-reviewer` agent checks branches against it and
 cites the ids.
 
@@ -99,6 +100,22 @@ this file wins over habits found in existing code.
 - **G-24** Errors crossing a tool or HTTP boundary are typed (`ToolError` codes, HTTP status plus
   a plain message); no bare `throw new Error('…')` reaches the agent or the BA.
   Checked by: reviewer.
+- **G-33** Eval and harness code, docs and agent notes use **Anthropic's eval terminology**
+  ([Demystifying evals for AI agents](https://www.anthropic.com/engineering/demystifying-evals-for-ai-agents)):
+  *task*, *trial*, *evaluation suite*, *grader* (code-based / model-based / human), *transcript*,
+  *outcome*, *evaluation harness*, *agent harness*, *reference solution*. A new eval concept takes
+  Anthropic's name when one exists; a term of our own is added only when they have none. The
+  mapping lives in `apps/crawler/evals/README.md` (Terminology). Kept on purpose: *ground truth*
+  (owner decision 2026-10-10) and the crawler's domain terms (*crawl run*, *state*, *frontier*),
+  which are not eval terms. *Why:* one vocabulary across our code, the material the owner learns
+  from, and the agents that read both. New evals follow the `create-eval` skill (layout, naming).
+  Checked by: reviewer.
+- **G-34** **Ground truth is written in YAML** (`.yaml`), never JSON: one file per portal, read
+  with `readGroundTruth()` (`@pathfinder/docs`) or `loadGroundTruth()`
+  (`@pathfinder/reference-portal`) and validated by the `GroundTruth` schema. A file starts with a
+  comment naming the portal. *Why:* people write and review it by hand; YAML allows comments and is
+  far easier to read than JSON (`learning/11-writing-ground-truth.md`). Checked by: the readers
+  (paths in `apps/crawler/evals/tasks.ts` and the self-check tests), reviewer.
 
 ## E. Tests
 

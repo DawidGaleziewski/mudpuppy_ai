@@ -66,6 +66,8 @@ export const GroundTruth = z.object({
       first_route: z.string().min(1),
       last_observable_route: z.string().min(1),
       ends_with: z.enum(['mutation', 'result', 'login_wall']),
+      /** The routes in order; not scored here, kept for the eval's trace grader (R-46). */
+      steps: z.array(z.string().min(1)).optional(),
     }),
   ),
   terms: z.array(z.object({ id: Id, term: z.string().min(1) })),
