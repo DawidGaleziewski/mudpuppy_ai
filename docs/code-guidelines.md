@@ -108,7 +108,8 @@ this file wins over habits found in existing code.
   mapping lives in `apps/crawler/evals/README.md` (Terminology). Kept on purpose: *ground truth*
   (owner decision 2026-10-10) and the crawler's domain terms (*crawl run*, *state*, *frontier*),
   which are not eval terms. *Why:* one vocabulary across our code, the material the owner learns
-  from, and the agents that read both. Checked by: reviewer.
+  from, and the agents that read both. New evals follow the `create-eval` skill (layout, naming).
+  Checked by: reviewer.
 
 ## E. Tests
 

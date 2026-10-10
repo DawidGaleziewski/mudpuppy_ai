@@ -9,7 +9,8 @@ checks the setup for free.
 
 We use Anthropic's eval vocabulary
 ([Demystifying evals for AI agents](https://www.anthropic.com/engineering/demystifying-evals-for-ai-agents));
-guideline G-33 makes it the rule for new code.
+guideline G-33 makes it the rule for new code. This folder is the reference layout; the
+`create-eval` skill (`.claude/skills/create-eval/`) is how to build the next eval the same way.
 
 | Term               | Meaning                                                             | Here                                                            |
 | ------------------ | ------------------------------------------------------------------- | --------------------------------------------------------------- |
