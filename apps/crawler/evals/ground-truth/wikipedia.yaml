@@ -8,6 +8,10 @@
 
 portal_id: wikipedia
 today: 2026-10-10
+# The facts hold for an English browser: the home page preselects the search language from the
+# browser locale, and a pl-PL browser searches pl.wikipedia.org instead (trial 2026-10-10T20:46).
+# Not read by the graders yet; a trial matches this only with a persona locale of en-US.
+locale: en-US
 screens:
   - id: S01
     route_template: /
