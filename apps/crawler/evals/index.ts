@@ -10,7 +10,7 @@
  * never touched and every eval starts from nothing. `--in-place` uses the real store instead.
  *
  * Where things are: cases.ts (portals + ground truth), prompts.ts, harness/ (workspace, portal
- * server, agents, cost), scorers/ (what is measured), results.ts (save, compare, promote).
+ * server, agents, cost), graders/ (what is scored, by kind), results.ts (save, compare, promote).
  */
 import type { ChildProcess } from 'node:child_process';
 import { randomUUID } from 'node:crypto';
@@ -32,7 +32,7 @@ import {
 import { PROMPTS } from './prompts.js';
 import { latestCrawlRun } from './queries.js';
 import { buildResult, saveResult } from './results.js';
-import { measure, portalSecrets } from './scorers/index.js';
+import { grade, portalSecrets } from './graders/index.js';
 
 const parsed = parseConfig(process.argv.slice(2));
 if (!parsed.ok) die(parsed.error);
@@ -56,7 +56,7 @@ async function dryRun(c: EvalConfig, gt: GroundTruth): Promise<number> {
   return 0;
 }
 
-/** Portal up → crawler → BA → measure → save; the portal server is stopped whatever happens. */
+/** Portal up → crawler → BA → grade → save; the portal server is stopped whatever happens. */
 async function runEval(c: EvalConfig, evalCase: EvalCase, gt: GroundTruth): Promise<number> {
   const startedAt = new Date().toISOString();
   let server: ChildProcess | null = null;
@@ -76,7 +76,7 @@ async function runEval(c: EvalConfig, evalCase: EvalCase, gt: GroundTruth): Prom
       (await findCrawlRun(c, ws, startedAt)) ??
       abort(`the crawler made no run (session ${sessions.crawler})`);
     cost = addCost(cost, runAgent(c, ws, 'ba', PROMPTS.ba(c.portal, crawlRunId), sessions.ba));
-    const measures = await measure({
+    const grades = await grade({
       config: c,
       ws,
       startedAt,
@@ -84,7 +84,7 @@ async function runEval(c: EvalConfig, evalCase: EvalCase, gt: GroundTruth): Prom
       crawlRunId,
       sessionIds: [sessions.crawler, sessions.ba],
     });
-    return saveResult(c, buildResult(c, { startedAt, crawlRunId, sessions, cost, measures }));
+    return saveResult(c, buildResult(c, { startedAt, crawlRunId, sessions, cost, grades }));
   } catch (e) {
     if (!(e instanceof EvalAbort)) throw e;
     console.error(e.message);

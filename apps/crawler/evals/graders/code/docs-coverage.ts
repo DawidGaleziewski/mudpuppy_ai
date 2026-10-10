@@ -4,7 +4,7 @@
  * `evaluate()` in `@pathfinder/docs`, the same one `pnpm docs:evaluate` uses.
  */
 import { evaluate, loadEvalInput, type GroundTruth } from '@pathfinder/docs';
-import type { RawDb } from '../queries.js';
+import type { RawDb } from '../../queries.js';
 
 export interface Score {
   matched: number;

@@ -3,7 +3,7 @@
  */
 import type { GroundTruth } from '@pathfinder/docs';
 import { crawlScreens, frameRoutes } from '@pathfinder/gates';
-import { compositions, observedRoutes, type RawDb } from '../queries.js';
+import { compositions, observedRoutes, type RawDb } from '../../queries.js';
 
 export function scoreCrawl(db: RawDb, runId: string, groundTruth: GroundTruth, loggedIn: boolean) {
   // Pages read inside frames count as reached under their own route (spec 015 F-13).

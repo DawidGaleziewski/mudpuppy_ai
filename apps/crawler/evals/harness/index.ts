@@ -1,6 +1,6 @@
 /**
  * The harness: everything that sets up the world an eval runs in and runs the agents in it.
- * Nothing here scores; that is `../scorers`.
+ * Nothing here grades; that is `../graders`.
  */
 export { runAgent, type AgentName, type CliOut } from './agent.js';
 export { addCost, emptyCost, type Cost } from './cost.js';

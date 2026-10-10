@@ -63,7 +63,7 @@ This follows Hamel Husain's "critique shadowing" approach.
 
 ### Where
 
-After the deterministic `evaluate()` in `apps/crawler/evals/scorers/docs-coverage.ts`, add a judge step for rules
+After the deterministic `evaluate()` in `apps/crawler/evals/graders/code/docs-coverage.ts`, add a judge step for rules
 (and later processes). Keep code matching for screens, fields and constraints.
 
 ```
@@ -96,7 +96,7 @@ claude -p "$PROMPT" \
 (Flags checked against the local Claude Code CLI, version 2.1.288. Check `claude --help` if something
 changed.)
 
-A sketch of the TypeScript side, a new scorer in `evals/scorers/`, calling headless Claude the way `runAgent` in `evals/harness/agent.ts` does:
+A sketch of the TypeScript side, a model-based grader in `evals/graders/model/`, calling headless Claude the way `runAgent` in `evals/harness/agent.ts` does:
 
 ```ts
 interface Verdict { verdict: 'pass' | 'fail'; reason: string }

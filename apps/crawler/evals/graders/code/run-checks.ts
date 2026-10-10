@@ -10,7 +10,7 @@ import {
   pendingFrontierCount,
   runEnd,
   type RawDb,
-} from '../queries.js';
+} from '../../queries.js';
 
 export function runChecks(db: RawDb, runId: string, loggedIn: boolean) {
   const end = runEnd(db, runId);

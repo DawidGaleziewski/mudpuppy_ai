@@ -1,5 +1,5 @@
 /**
- * All scorers over one finished eval run (spec 014 US1): goal scores (docs and crawl coverage
+ * All graders over one finished eval run (spec 014 US1): goal scores (docs and crawl coverage
  * against the ground truth), guardrails (leaks, widget actions) and run diagnostics.
  */
 import type { GroundTruth } from '@pathfinder/docs';
@@ -7,12 +7,12 @@ import { dbPathFor, openDb } from '@pathfinder/store';
 import { join } from 'node:path';
 import type { EvalConfig } from '../config.js';
 import { latestAnalysisSession } from '../queries.js';
-import { scoreCrawl } from './crawl-coverage.js';
-import { scoreDocs } from './docs-coverage.js';
-import { sweepLeaks } from './leaks.js';
-import { runChecks } from './run-checks.js';
+import { scoreCrawl } from './code/crawl-coverage.js';
+import { scoreDocs } from './code/docs-coverage.js';
+import { sweepLeaks } from './code/leaks.js';
+import { runChecks } from './code/run-checks.js';
 
-export interface MeasureInput {
+export interface GradeInput {
   config: EvalConfig;
   /** The workspace the agents ran in. */
   ws: string;
@@ -23,9 +23,9 @@ export interface MeasureInput {
   sessionIds: readonly string[];
 }
 
-export type Measures = Awaited<ReturnType<typeof measure>>;
+export type Grades = Awaited<ReturnType<typeof grade>>;
 
-export async function measure(m: MeasureInput) {
+export async function grade(m: GradeInput) {
   const { portal, persona, env } = m.config;
   const loggedIn = persona !== 'guest';
   const opened = openDb(dbPathFor(join(m.ws, 'data'), env));

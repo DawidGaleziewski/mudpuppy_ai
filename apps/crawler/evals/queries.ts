@@ -1,6 +1,6 @@
 /**
  * The questions the eval asks the workspace store, one named function each. Read-only; the
- * scorers turn the answers into numbers.
+ * graders turn the answers into scores.
  */
 import type { openDb } from '@pathfinder/store';
 

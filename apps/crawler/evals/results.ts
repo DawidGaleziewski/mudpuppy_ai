@@ -14,14 +14,14 @@ import {
 } from '@pathfinder/gates';
 import type { EvalConfig } from './config.js';
 import type { Cost } from './harness/index.js';
-import type { Measures } from './scorers/index.js';
+import type { Grades } from './graders/index.js';
 
 export interface RunRecord {
   startedAt: string;
   crawlRunId: string;
   sessions: { crawler: string; ba: string };
   cost: Cost;
-  measures: Measures;
+  grades: Grades;
 }
 
 export function buildResult(config: EvalConfig, r: RunRecord): EvalResult {
@@ -35,7 +35,7 @@ export function buildResult(config: EvalConfig, r: RunRecord): EvalResult {
     }).trim(),
     runs: {
       crawler: r.crawlRunId,
-      ba_session: r.measures.session?.id ?? null,
+      ba_session: r.grades.session?.id ?? null,
       crawler_cli_session: r.sessions.crawler,
       ba_cli_session: r.sessions.ba,
     },
@@ -43,9 +43,9 @@ export function buildResult(config: EvalConfig, r: RunRecord): EvalResult {
       ? {}
       : { conditions: { session_timeout_s: config.sessionTimeoutS } }),
     cost: r.cost,
-    scores: r.measures.scores,
-    overclaims: r.measures.overclaims,
-    checks: r.measures.checks,
+    scores: r.grades.scores,
+    overclaims: r.grades.overclaims,
+    checks: r.grades.checks,
   });
 }
 
