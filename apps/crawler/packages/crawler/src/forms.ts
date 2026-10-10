@@ -1,7 +1,7 @@
 /// <reference lib="dom" />
 import type { FieldNameSource } from '@pathfinder/core';
 import type { Frame, Page } from 'playwright';
-import { evalWithHelpers } from './pw-eval.js';
+import { evalWithHelpers } from './in-page.js';
 
 export interface DomFormField {
   /**

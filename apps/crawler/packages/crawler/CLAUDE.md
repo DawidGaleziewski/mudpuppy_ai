@@ -13,7 +13,7 @@ obstacles, safety, store.
   `clickables.ts` (role-less clickables, `locateClickable`); `frames.ts` (frame walk, frame blocks
   appended to the snapshot); `page-candidates.ts` (actions per document); `mounts.ts`
   (micro-frontend mount wait); `forms.ts` (field naming with `name_source`, `div` forms).
-- In-page code with helpers goes through `evalWithHelpers` (`pw-eval.ts`): top-level helper
+- In-page code with helpers goes through `evalWithHelpers` (`in-page.ts`; Playwright's `evaluate`, not an eval): top-level helper
   functions only, no closures (the `__name` shim, G-02).
 
 ## Invariants

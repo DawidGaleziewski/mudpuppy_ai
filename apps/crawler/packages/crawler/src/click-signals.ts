@@ -1,6 +1,6 @@
 /// <reference lib="dom" />
 import type { BrowserContext } from 'playwright';
-import { NAME_SHIM } from './pw-eval.js';
+import { NAME_SHIM } from './in-page.js';
 
 /**
  * Where the init script keeps the elements that registered a click-like listener: a `WeakSet` under

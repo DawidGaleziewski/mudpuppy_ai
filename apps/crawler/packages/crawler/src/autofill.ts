@@ -1,6 +1,6 @@
 /// <reference lib="dom" />
 import type { Locator } from 'playwright';
-import { evalOnElementWithHelpers } from './pw-eval.js';
+import { evalOnElementWithHelpers } from './in-page.js';
 import { testValueFor, type AutofillField, type TestValue } from './test-values.js';
 
 /**

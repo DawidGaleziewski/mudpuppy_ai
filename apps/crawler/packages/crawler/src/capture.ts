@@ -2,7 +2,7 @@
 import { buildLayout, type AriaJsonNode, type Layout } from '@pathfinder/core';
 import type { Page } from 'playwright';
 import { PAGE_ROOT } from './observer.js';
-import { evalInPage } from './pw-eval.js';
+import { evalInPage } from './in-page.js';
 
 /** Screenshots taller than this (CSS px) are cut; the layout records `cut: true` (spec 008 FR-006). */
 export const MAX_SCREENSHOT_HEIGHT = 10_000;
