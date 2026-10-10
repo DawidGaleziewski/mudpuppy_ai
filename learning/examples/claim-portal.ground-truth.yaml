@@ -1,0 +1,225 @@
+# Ground truth: "Przykład Ubezpieczenia" (fictional), process "file a motor claim online".
+# Written by hand by the BA, from walking the portal (see learning/11-writing-ground-truth.md).
+#
+# Every item has:
+#   how_i_know   where the fact comes from (tried it, read the page, read the help text). No source → no item.
+#   who_sees     who can observe it: guest (anyone), client (after login), nobody (not visible on the
+#                website at all; documenting it is an overclaim).
+#   counts_when  (rules, processes) in plain words: which BA record would count as correct.
+# `unsure:` marks what you could not confirm. It is kept out of grading until confirmed.
+
+portal: przyklad-ubezpieczenia
+today: 2026-10-10            # the date the facts were checked; date rules are judged against it
+actors:
+  - guest                    # anyone, not logged in
+  - client                   # a logged-in policy holder (test user "jan.testowy")
+
+# ---- screens: every page in scope ----------------------------------------------------------------
+screens:
+  - id: S01
+    route: /logowanie
+    title: Zaloguj się
+    who_sees: guest
+    how_i_know: opened it from the "Zgłoś szkodę" button while logged out
+
+  - id: S02
+    route: /moje-szkody
+    title: Moje szkody
+    who_sees: client
+    how_i_know: landing page after login; lists my claims with their status
+
+  - id: S03
+    route: /moje-szkody/nowa/zdarzenie
+    title: Zgłoszenie szkody — zdarzenie
+    who_sees: client
+    how_i_know: step 1 of 4, after "Zgłoś nową szkodę" on S02
+
+  - id: S04
+    route: /moje-szkody/nowa/pojazd
+    title: Zgłoszenie szkody — pojazd i polisa
+    who_sees: client
+    how_i_know: step 2 of 4
+
+  - id: S05
+    route: /moje-szkody/nowa/opis
+    title: Zgłoszenie szkody — opis i zdjęcia
+    who_sees: client
+    how_i_know: step 3 of 4
+
+  - id: S06
+    route: /moje-szkody/nowa/podsumowanie
+    title: Zgłoszenie szkody — podsumowanie
+    who_sees: client
+    how_i_know: step 4 of 4, read-only summary with consents and a "Wyślij zgłoszenie" button
+
+  - id: S07
+    route: /moje-szkody/{numer}
+    title: Szkoda {numer}
+    who_sees: client
+    how_i_know: shown after sending; the URL contains the new claim number
+
+# ---- forms and fields: labels exactly as shown on the page ----------------------------------------
+forms:
+  - id: F01
+    screen: S03
+    label: Zdarzenie
+    fields:
+      - label: Data zdarzenia
+        type: date
+        required: true
+        how_i_know: leaving it empty shows "Pole wymagane"
+      - label: Rodzaj szkody
+        type: select
+        required: true
+        allowed_values: [Kolizja, Kradzież, Szkoda parkingowa, Zdarzenie losowe]
+        how_i_know: the options of the list
+      - label: Miejsce zdarzenia
+        type: text
+        required: true
+        max_length: 200
+        how_i_know: typing more stops at 200 characters
+      - label: Numer zgłoszenia policji
+        type: text
+        required: false        # required only for Kradzież, see rule R04
+        how_i_know: appears only when Rodzaj szkody = Kradzież
+
+  - id: F02
+    screen: S04
+    label: Pojazd i polisa
+    fields:
+      - label: Numer polisy
+        type: select
+        required: true
+        how_i_know: lists only my policies (2 for the test user)
+      - label: Numer rejestracyjny
+        type: text
+        required: true
+        how_i_know: prefilled from the policy, editable
+      - label: Czy byli poszkodowani?
+        type: radio
+        required: true
+        allowed_values: [Tak, Nie]
+        how_i_know: no default; "Dalej" stays disabled until one is chosen
+
+  - id: F03
+    screen: S05
+    label: Opis i zdjęcia
+    fields:
+      - label: Opis zdarzenia
+        type: textarea
+        required: true
+        min_length: 30
+        how_i_know: 29 characters gives "Opis musi mieć co najmniej 30 znaków"
+      - label: Zdjęcia
+        type: file
+        required: false
+        how_i_know: upload control, see rule R06 for limits
+      - label: Szacowana wartość szkody (PLN)
+        type: number
+        required: false
+        min: 0
+        how_i_know: -1 gives "Wartość nie może być ujemna"
+
+  - id: F04
+    screen: S06
+    label: Podsumowanie
+    fields:
+      - label: Oświadczam, że podane informacje są zgodne z prawdą
+        type: checkbox
+        required: true
+        how_i_know: the button "Wyślij zgłoszenie" stays disabled until ticked
+
+# ---- business rules: one sentence each ------------------------------------------------------------
+rules:
+  - id: R01
+    statement: The event date cannot be in the future.
+    where: { screen: S03, label: Data zdarzenia }
+    who_sees: client
+    how_i_know: tomorrow's date gives "Data zdarzenia nie może być z przyszłości"
+    counts_when: a record says the event date must be today or earlier
+
+  - id: R02
+    statement: A claim can be filed online only within 3 years of the event date.
+    where: { screen: S03, label: Data zdarzenia }
+    who_sees: client
+    how_i_know: a date 3 years and 1 day ago gives "Zgłoś szkodę telefonicznie"
+    counts_when: a record states the 3-year limit for online claims
+
+  - id: R03
+    statement: The selected policy must have been active on the event date.
+    where: { screen: S04, label: Numer polisy }
+    who_sees: client
+    how_i_know: the expired policy of the test user is greyed out for an event after its end date
+    counts_when: a record links the policy choice to its validity on the event date
+
+  - id: R04
+    statement: A theft claim (Kradzież) requires the police report number.
+    where: { screen: S03, label: Numer zgłoszenia policji }
+    who_sees: client
+    how_i_know: with Kradzież and the field empty, "Dalej" shows "Podaj numer zgłoszenia policji"
+    counts_when: a record says the police report number is mandatory for theft
+
+  - id: R05
+    statement: If there were injured persons, a contact phone number is required.
+    where: { screen: S04, label: "Czy byli poszkodowani?" }
+    who_sees: client
+    how_i_know: choosing "Tak" adds a required "Telefon kontaktowy" field
+    counts_when: a record ties injured persons to a required phone number
+
+  - id: R06
+    statement: At most 10 photos, JPG, PNG or PDF, each up to 10 MB.
+    where: { screen: S05, label: Zdjęcia }
+    who_sees: client
+    how_i_know: help text under the control, and an 11th file is refused
+    counts_when: a record states the count limit and the size limit (types are a bonus)
+
+  - id: R07
+    statement: The claim number has the format SZ/<year>/<6 digits>, e.g. SZ/2026/004512.
+    where: { screen: S07, label: Numer szkody }
+    who_sees: client
+    how_i_know: two test claims got SZ/2026/004512 and SZ/2026/004513
+    counts_when: a record gives the SZ/year/number pattern
+
+  - id: R08
+    statement: Claims estimated above 20 000 PLN are inspected by an adjuster (rzeczoznawca) before payment.
+    where: { screen: S07, label: Status }
+    who_sees: nobody
+    how_i_know: told by the claims department; nothing on the website says it
+    counts_when: never expected; a record claiming it is an overclaim
+
+  - id: R09
+    statement: The insurer decides within 30 days of the claim being filed.
+    where: { screen: S07, label: Termin decyzji }
+    who_sees: client
+    how_i_know: the claim page shows "Decyzja do <date>", always filing date + 30 days
+    unsure: is it 30 calendar days or working days? Both test claims fit calendar days.
+    counts_when: a record states the 30-day decision deadline
+
+# ---- processes: the user journey, as screens in order --------------------------------------------
+processes:
+  - id: P01
+    name: Zgłoś szkodę komunikacyjną
+    who: client
+    steps: [S02, S03, S04, S05, S06, S07]
+    ends_with: mutation       # sending creates a claim (data changes)
+    how_i_know: walked it twice with the test user
+    counts_when: a record describes the four form steps in order and that sending creates a claim with a number
+
+  - id: P02
+    name: Sprawdź status szkody
+    who: client
+    steps: [S02, S07]
+    ends_with: result         # read-only, nothing changes
+    how_i_know: clicking a claim in the list opens its page with status and decision date
+    counts_when: a record describes finding a claim in the list and reading its status
+
+# ---- terms: the portal's own words a BA must keep verbatim ---------------------------------------
+terms:
+  - term: Szkoda
+    meaning: a loss event reported to the insurer, here a motor claim
+  - term: Numer szkody
+    meaning: the claim id, SZ/<year>/<number>
+  - term: Poszkodowany
+    meaning: a person who suffered harm in the event
+  - term: Zdarzenie losowe
+    meaning: a random event (storm, falling tree), one of the claim types
