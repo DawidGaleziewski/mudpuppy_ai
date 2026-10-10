@@ -1,0 +1,96 @@
+# Ground truth: "Wikipedia.org" (production), process "search for pickle".
+# Written by hand by the DEV, from walking the portal.
+#
+# Every item has:
+#   how_i_know   where the fact comes from (tried it, read the page, read the help text). No source → no item.
+#   who_sees     who can observe it: guest (anyone), client (after login), nobody (not visible on the
+#                website at all; documenting it is an overclaim).
+#   counts_when  (rules, processes) in plain words: which BA record would count as correct.
+# `unsure:` marks what you could not confirm. It is kept out of grading until confirmed.
+#
+# FIX notes (Claude, 2026-10-10): every change below is marked with a `# FIX:` comment saying what
+# changed and why. Nothing was invented: added items come from your own notes or from pickle.png.
+
+portal: wikipedia            # FIX: a short id, not a URL; the start URL moved to `start_url`
+start_url: https://www.wikipedia.org/   # FIX: added, keeps the URL you had in `portal`
+today: 2026-10-10            # the date the facts were checked; date rules are judged against it
+locale: en-US                # FIX: added; your browser was English. A pl-PL browser preselects Polish and searches pl.wikipedia.org (first trial)
+actors:
+  - guest                    # anyone, not logged in
+
+# ---- screens: every page in scope ----------------------------------------------------------------
+screens:
+  - id: S01
+    route: /
+    host: www.wikipedia.org  # FIX: added; the search moves you to another host (see S02, S03)
+    title: Wikipedia
+    who_sees: guest
+    how_i_know: landing page after I entered there
+
+  - id: S02
+    route: /wiki/Pickle
+    host: en.wikipedia.org   # FIX: added; same host as S03 in pickle.png
+    title: Pickle - Wikipedia
+    who_sees: guest          # FIX: was client; you were logged out (pickle.png shows "Log in")
+    how_i_know: I entered pickle in search and clicked enter this shows
+    unsure: is this a disambiguation page (a list of meanings)? "picked from Food section" suggests so  # FIX: added
+
+  - id: S03
+    route: /wiki/Pickled_cucumber
+    host: en.wikipedia.org   # FIX: added, read from the address bar in pickle.png
+    title: Pickled cucumber  # FIX: was "Pickled Cucumber - Wikipedia"; the page heading, verbatim (lowercase c)
+    who_sees: guest          # FIX: was client; pickle.png shows "Create account" and "Log in", so logged out
+    how_i_know: I picked from Food section pickled cucumber, which was my intent here; screenshot pickle.png  # FIX: added the screenshot as evidence
+
+  - id: S04                  # FIX: added; R01 lands here, so it must be a screen
+    route: /wiki/Special:Search
+    host: en.wikipedia.org
+    title: Search
+    who_sees: guest
+    how_i_know: submitting an empty search on S01 moved me to the advanced search form (your R01)
+    unsure: route, host and title not checked; confirm them in the address bar  # FIX: you only noted "advanced search"
+
+# ---- forms and fields: labels exactly as shown on the page ----------------------------------------
+forms:
+  - id: F01
+    screen: S01
+    label: Search            # FIX: was "Zdarzenie", a leftover from the claim-portal example
+    fields:
+      - label: Search Wikipedia   # FIX: was "None"; use the text the user sees, the same as in R01
+        type: search
+        required: false
+        how_i_know: leaving it empty goes to advanced search   # FIX: typo "advenced"
+        unsure: is "Search Wikipedia" the visible placeholder or only the screen-reader label? check the page  # FIX: added
+
+# ---- business rules: one sentence each ------------------------------------------------------------
+rules:
+  - id: R01
+    statement: Submitting an empty search opens the advanced search page (S04) instead of results.  # FIX: rephrased as a checkable fact; typos fixed
+    where: { screen: S01, label: Search Wikipedia }   # FIX: label matches F01
+    who_sees: guest          # FIX: was client
+    how_i_know: I did not enter anything and I was moved to advanced search   # FIX: typo "advencesd"
+    counts_when: a record says an empty search leads to the advanced search page   # FIX: was "event date…", a leftover from the example
+
+  - id: R02                  # FIX: added, seen in pickle.png
+    statement: The article is protected; a guest sees "View source" instead of an edit link and a lock icon.
+    where: { screen: S03, label: View source }
+    who_sees: guest
+    how_i_know: screenshot pickle.png, tabs "Read / View source / View history" and the lock icon
+    counts_when: a record says the page is protected and a guest can only view its source
+
+# ---- processes: the user journey, as screens in order --------------------------------------------
+processes:
+  - id: P01
+    name: Find the article about pickled cucumbers   # FIX: was "Form for search for terms"; name the user's goal
+    who: guest               # FIX: was client
+    steps: [S01, S02, S03]   # FIX: removed the "not sure" comment; this is exactly right
+    ends_with: result        # FIX: was "redirect"; must be result, mutation or login_wall. Reading changes nothing → result
+    how_i_know: went to next page by typing pickle, then chose the food meaning; screenshot pickle.png of the last step
+    counts_when: a record describes searching "pickle" on the home page, landing on the Pickle page and choosing the food meaning  # FIX: was the user's action, not the BA record
+
+# ---- terms: the portal's own words a BA must keep verbatim ---------------------------------------
+terms:
+  - term: Article
+    meaning: the tab showing the encyclopedia text of a page (next to Talk)   # FIX: was "a tab where user can enter search term"
+  - term: Talk               # FIX: added, the tab next to Article in pickle.png
+    meaning: the tab with the discussion page about the article
