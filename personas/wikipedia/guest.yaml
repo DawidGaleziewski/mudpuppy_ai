@@ -2,4 +2,4 @@
 id: guest
 extends:
   - ../_mixins/anonymous-base.yaml
-max_action_class: external-side-effect
+max_action_class: read # was external-side-effect; lowered 2026-10-10 (R-46): live Wikipedia, only look

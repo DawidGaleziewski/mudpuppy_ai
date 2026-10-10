@@ -1,0 +1,50 @@
+# Ground truth: Wikipedia (live production site), process "find the article about pickled cucumbers".
+# The answer key the eval graders compare against; written in YAML (G-34). A site we don't own, so
+# it lives here, not next to the portal (create-eval skill §4).
+# Source: the owner's hand-written notes learning/excersise/wikipedia.search.pickle.ground-truth.yaml
+# (walked 2026-10-10, logged out; screenshot learning/excersise/pickle.png). Items marked `unsure:`
+# there are left out until confirmed: screen S04 (advanced search) and the search field's label.
+# Routes are paths only; the hosts are www.wikipedia.org (S01) and en.wikipedia.org (S02, S03).
+
+portal_id: wikipedia
+today: 2026-10-10
+screens:
+  - id: S01
+    route_template: /
+    title: Wikipedia
+    guest_visible: true
+    reached_by: navigation
+  - id: S02
+    route_template: /wiki/Pickle
+    title: Pickle
+    guest_visible: true
+    reached_by: navigation
+  - id: S03
+    route_template: /wiki/Pickled_cucumber
+    title: Pickled cucumber
+    guest_visible: true
+    reached_by: navigation
+forms: [] # F01's only field has an unconfirmed label
+rules:
+  - id: R01
+    statement: Submitting an empty search opens the advanced search page instead of results.
+    type: validation
+    anchor: { screen: S01, label: Search }
+    guest_observable: true
+    claim_markers: [empty, advanced search]
+  - id: R02
+    statement: The article is protected; a guest sees "View source" instead of an edit link.
+    type: ui_enablement
+    anchor: { screen: S03, label: View source }
+    guest_observable: true
+    claim_markers: [protected, View source]
+processes:
+  - id: P01
+    name: Find the article about pickled cucumbers
+    steps: [/, /wiki/Pickle, /wiki/Pickled_cucumber]
+    first_route: /
+    last_observable_route: /wiki/Pickled_cucumber
+    ends_with: result
+terms:
+  - { id: T01, term: Article, lang: en }
+  - { id: T02, term: Talk, lang: en }

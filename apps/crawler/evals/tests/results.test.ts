@@ -4,7 +4,7 @@ import { join } from 'node:path';
 import type { EvalResult } from '@pathfinder/gates';
 import { afterEach, beforeEach, expect, it, vi } from 'vitest';
 import { parseConfig, type EvalConfig } from '../config.js';
-import { saveResult } from '../results.js';
+import { buildResult, saveResult, type TrialRecord } from '../results.js';
 
 let dir: string;
 let config: EvalConfig;
@@ -57,4 +57,23 @@ it('never promotes a run that leaked a password', () => {
   saveResult(config, result('2026-10-01T00:00:00.000Z', 80));
   expect(saveResult(config, result('2026-10-02T00:00:00.000Z', 90, 1))).toBe(1);
   expect(baselineOf()).toBe('2026-10-01T00:00:00.000Z');
+});
+
+it('records a crawler-only trial as a condition, and no conditions when all are default', () => {
+  const trial: TrialRecord = {
+    startedAt: '2026-10-10T00:00:00.000Z',
+    crawlRunId: 'run',
+    sessions: { crawler: 'c', ba: null },
+    cost: { usd: 0, input_tokens: 0, output_tokens: 0, duration_ms: 0 },
+    grades: {
+      session: undefined,
+      scores: { crawl_screens: { matched: 1, total: 3, pct: 33.3 } },
+      overclaims: 0,
+      checks: { crawler_completed: true, password_hits: 0, widget_actions: 0 },
+    } as unknown as TrialRecord['grades'],
+  };
+  const crawlerOnly = buildResult({ ...config, crawlerOnly: true }, trial);
+  expect(crawlerOnly.conditions).toEqual({ crawler_only: true });
+  expect(crawlerOnly.runs).toMatchObject({ ba_session: null, ba_cli_session: null });
+  expect(buildResult({ ...config, crawlerOnly: false }, trial).conditions).toBeUndefined();
 });

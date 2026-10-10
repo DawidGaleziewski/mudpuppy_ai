@@ -19,7 +19,11 @@ export const EvalResult = z
       })
       .strict(),
     conditions: z
-      .object({ session_timeout_s: z.number().int().positive().optional() })
+      .object({
+        session_timeout_s: z.number().int().positive().optional(),
+        /** Only the crawler ran (`--crawler-only`): no BA, so no documentation scores. */
+        crawler_only: z.boolean().optional(),
+      })
       .strict()
       .optional(),
     cost: z
@@ -128,6 +132,7 @@ export function comparisonMarkdown(current: EvalResult, cmp: Comparison): string
     ...(current.conditions?.session_timeout_s
       ? [`conditions: session timeout ${current.conditions.session_timeout_s} s`]
       : []),
+    ...(current.conditions?.crawler_only ? ['conditions: crawler only (no BA)'] : []),
     '',
     '| Measure | Baseline | Now | Change | |',
     '| --- | --- | --- | --- | --- |',

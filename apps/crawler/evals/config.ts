@@ -7,7 +7,8 @@ import { parseArgs } from 'node:util';
 
 export const USAGE =
   'usage: pnpm eval <portal> [--persona guest] [--budget-usd 5] [--model <m>] [--env sandbox]\n' +
-  '       [--session-timeout <s>] [--promote [--force-promote]] [--dry-run] [--in-place]';
+  '       [--session-timeout <s>] [--crawler-only] [--promote [--force-promote]] [--dry-run]\n' +
+  '       [--in-place]';
 
 export interface EvalConfig {
   /** The repo root: portals/, personas/, data/ and `.mcp.json` live here. */
@@ -20,6 +21,8 @@ export interface EvalConfig {
   model: string | undefined;
   /** Proving-ground portals only: start the estate with this session timeout (spec 014 D5). */
   sessionTimeoutS: number | undefined;
+  /** Run only the crawler agent: no BA session, so no documentation graders. */
+  crawlerOnly: boolean;
   promote: boolean;
   forcePromote: boolean;
   dryRun: boolean;
@@ -40,6 +43,7 @@ const OPTIONS = {
   env: { type: 'string', default: 'sandbox' },
   model: { type: 'string' },
   'session-timeout': { type: 'string' },
+  'crawler-only': { type: 'boolean', default: false },
   promote: { type: 'boolean', default: false },
   'force-promote': { type: 'boolean', default: false },
   'dry-run': { type: 'boolean', default: false },
@@ -71,6 +75,7 @@ export function parseConfig(argv: readonly string[], root = REPO_ROOT): ConfigRe
       env: values.env,
       model: values.model,
       sessionTimeoutS,
+      crawlerOnly: values['crawler-only'],
       promote: values.promote,
       forcePromote: values['force-promote'],
       dryRun: values['dry-run'],

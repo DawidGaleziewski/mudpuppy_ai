@@ -18,16 +18,17 @@ export type EnsureResult = { ok: true; server: ChildProcess | null } | { ok: fal
 /**
  * Start the portal's local server when it is not up; `server` is the process to stop afterwards.
  * With a session timeout the estate must be started here: one already running has an unknown
- * timeout, so the result would not be comparable (D5).
+ * timeout, so the result would not be comparable (D5). A live site (no `server`) has nothing to start.
  */
 export async function ensurePortal(
   root: string,
   task: EvalTask,
   sessionTimeoutS?: number,
 ): Promise<EnsureResult> {
-  const { probe, command, args, takesSessionTimeout } = task.server;
-  if (sessionTimeoutS !== undefined && !takesSessionTimeout)
+  if (sessionTimeoutS !== undefined && !task.server?.takesSessionTimeout)
     return { ok: false, error: '--session-timeout applies to proving-ground portals only' };
+  if (!task.server) return { ok: true, server: null };
+  const { probe, command, args } = task.server;
   if (await healthy(probe)) {
     if (sessionTimeoutS !== undefined)
       return {

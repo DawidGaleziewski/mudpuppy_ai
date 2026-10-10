@@ -39,7 +39,10 @@ evals/
   index.ts         entry: parse config → preflight → task → dry run or one trial; reads top to bottom
   config.ts        parseArgs (strict: unknown flags are errors) into one EvalConfig; USAGE
   failures.ts      die (before the trial), EvalAbort + abort (inside it, so `finally` cleans up)
-  tasks.ts         EvalTask, SUITE, taskFor(), loadGroundTruth(): the suite as data
+  tasks.ts         EvalTask, SUITE, taskFor(), loadGroundTruth(): the suite as data; a task may
+                   omit `server` (live site) and add `trace` (walk one named process, graded on
+                   its ground-truth `steps`)
+  ground-truth/    ground truth of systems we don't own (YAML, G-34)
   prompts.ts       PROMPTS: what each agent is asked; the *how* stays in agent definitions/skills
   queries.ts       named read-only store queries, one function per question
   results.ts       TrialRecord, buildResult(), saveResult(), promote

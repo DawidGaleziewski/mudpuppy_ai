@@ -94,3 +94,26 @@ export function actionCallUrls(db: RawDb, runId: string): string[] {
     runId,
   );
 }
+
+/** Route templates of the trace's steps in order (the state each step ended on). */
+export function traceStepRoutes(db: RawDb, runId: string): string[] {
+  return column(
+    db,
+    `SELECT s.route_template AS v FROM process_steps ps
+       JOIN processes p ON p.id = ps.process_id
+       JOIN states s ON s.id = ps.state_after
+      WHERE p.run_id = ? ORDER BY ps.ord`,
+    runId,
+  );
+}
+
+/** How the trace ended: goal_reached, boundary_reached, stopped, abandoned; null while running. */
+export function traceOutcome(db: RawDb, runId: string): string | null {
+  return (
+    one<{ outcome: string | null } | undefined>(
+      db,
+      'SELECT outcome FROM processes WHERE run_id = ?',
+      runId,
+    )?.outcome ?? null
+  );
+}

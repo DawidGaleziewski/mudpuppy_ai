@@ -31,4 +31,6 @@ it('answers on an empty store', () => {
   expect(q.compositions(db, 'r')).toEqual([]);
   expect(q.executedActions(db, 'r')).toEqual([]);
   expect(q.actionCallUrls(db, 'r')).toEqual([]);
+  expect(q.traceStepRoutes(db, 'r')).toEqual([]);
+  expect(q.traceOutcome(db, 'r')).toBeNull();
 });

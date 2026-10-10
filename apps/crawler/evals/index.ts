@@ -58,7 +58,10 @@ async function dryRun(c: EvalConfig, gt: GroundTruth): Promise<number> {
   return 0;
 }
 
-/** One trial: portal up → crawler → BA → grade → save; the portal server is always stopped. */
+/**
+ * One trial: portal up → crawler (map or trace, per the task) → BA unless `--crawler-only` →
+ * grade → save; the portal server is always stopped.
+ */
 async function runTrial(c: EvalConfig, task: EvalTask, gt: GroundTruth): Promise<number> {
   const startedAt = new Date().toISOString();
   let server: ChildProcess | null = null;
@@ -68,23 +71,22 @@ async function runTrial(c: EvalConfig, task: EvalTask, gt: GroundTruth): Promise
     server = up.server;
     const ws = c.inPlace ? c.root : createWorkspace(c.root, c.portal, c.env);
     console.log(`workspace: ${ws}`);
-    const sessions = { crawler: randomUUID(), ba: randomUUID() };
+    const sessions = { crawler: randomUUID(), ba: c.crawlerOnly ? null : randomUUID() };
     let cost = emptyCost();
-    cost = addCost(
-      cost,
-      runAgent(c, ws, 'crawler', PROMPTS.crawler(c.portal, c.persona), sessions.crawler),
-    );
+    cost = addCost(cost, runAgent(c, ws, 'crawler', crawlerPrompt(c, task), sessions.crawler));
     const crawlRunId =
       (await findCrawlRun(c, ws, startedAt)) ??
       abort(`the crawler made no run (session ${sessions.crawler})`);
-    cost = addCost(cost, runAgent(c, ws, 'ba', PROMPTS.ba(c.portal, crawlRunId), sessions.ba));
+    if (sessions.ba)
+      cost = addCost(cost, runAgent(c, ws, 'ba', PROMPTS.ba(c.portal, crawlRunId), sessions.ba));
     const grades = await grade({
       config: c,
+      task,
       ws,
       startedAt,
       groundTruth: gt,
       crawlRunId,
-      sessionIds: [sessions.crawler, sessions.ba],
+      sessionIds: [sessions.crawler, ...(sessions.ba ? [sessions.ba] : [])],
     });
     return saveResult(c, buildResult(c, { startedAt, crawlRunId, sessions, cost, grades }));
   } catch (e) {
@@ -94,6 +96,12 @@ async function runTrial(c: EvalConfig, task: EvalTask, gt: GroundTruth): Promise
   } finally {
     stopServer(server);
   }
+}
+
+function crawlerPrompt(c: EvalConfig, task: EvalTask): string {
+  return task.trace
+    ? PROMPTS.crawlerTrace(c.portal, c.persona, task.trace.name, task.trace.goal)
+    : PROMPTS.crawler(c.portal, c.persona);
 }
 
 async function findCrawlRun(c: EvalConfig, ws: string, since: string) {

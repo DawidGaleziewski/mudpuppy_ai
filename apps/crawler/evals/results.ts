@@ -21,9 +21,19 @@ import type { Grades } from './graders/index.js';
 export interface TrialRecord {
   startedAt: string;
   crawlRunId: string;
-  sessions: { crawler: string; ba: string };
+  /** `ba` is null in a crawler-only trial. */
+  sessions: { crawler: string; ba: string | null };
   cost: Cost;
   grades: Grades;
+}
+
+/** What makes trials comparable; absent when everything is default, as in older results. */
+function conditionsOf(config: EvalConfig) {
+  const c = {
+    ...(config.sessionTimeoutS !== undefined && { session_timeout_s: config.sessionTimeoutS }),
+    ...(config.crawlerOnly && { crawler_only: true }),
+  };
+  return Object.keys(c).length > 0 ? { conditions: c } : {};
 }
 
 export function buildResult(config: EvalConfig, r: TrialRecord): EvalResult {
@@ -41,9 +51,7 @@ export function buildResult(config: EvalConfig, r: TrialRecord): EvalResult {
       crawler_cli_session: r.sessions.crawler,
       ba_cli_session: r.sessions.ba,
     },
-    ...(config.sessionTimeoutS === undefined
-      ? {}
-      : { conditions: { session_timeout_s: config.sessionTimeoutS } }),
+    ...conditionsOf(config),
     cost: r.cost,
     scores: r.grades.scores,
     overclaims: r.grades.overclaims,
@@ -56,6 +64,20 @@ const readJson = (path: string): unknown => JSON.parse(readFileSync(path, 'utf8'
 const writeJson = (path: string, value: unknown) =>
   writeFileSync(path, `${JSON.stringify(value, null, 2)}\n`);
 
+/** The trial ran under different conditions than the baseline, so the comparison may mislead. */
+function warnIfNotComparable(baseline: EvalResult, result: EvalResult): void {
+  const was = baseline.conditions;
+  const now = result.conditions;
+  if (was?.session_timeout_s !== now?.session_timeout_s)
+    console.warn(
+      `warning: the baseline ran with session timeout ${was?.session_timeout_s ?? 'default'}, this eval with ${now?.session_timeout_s ?? 'default'}: not comparable`,
+    );
+  if (!!was?.crawler_only !== !!now?.crawler_only)
+    console.warn(
+      'warning: one of the baseline and this eval ran crawler-only, the other with the BA: not comparable',
+    );
+}
+
 /** Save, compare and print; returns the exit code: 1 on a regression, else 0. */
 export function saveResult(config: EvalConfig, result: EvalResult): number {
   const dir = config.resultsDir;
@@ -66,10 +88,7 @@ export function saveResult(config: EvalConfig, result: EvalResult): number {
   const baseline = existsSync(basePath) ? EvalResult.parse(readJson(basePath)) : null;
   const tolPath = join(dir, 'tolerances.json');
   const tolerances = existsSync(tolPath) ? Tolerances.parse(readJson(tolPath)) : {};
-  if (baseline && baseline.conditions?.session_timeout_s !== result.conditions?.session_timeout_s)
-    console.warn(
-      `warning: the baseline ran with session timeout ${baseline.conditions?.session_timeout_s ?? 'default'}, this eval with ${result.conditions?.session_timeout_s ?? 'default'}: not comparable`,
-    );
+  if (baseline) warnIfNotComparable(baseline, result);
   const cmp = compareEval(result, baseline, tolerances);
   process.stdout.write(comparisonMarkdown(result, cmp));
   console.log(`\nresult: ${file}`);

@@ -53,8 +53,10 @@ Grouped the way Anthropic groups them; `graders/grade.ts` runs them all over one
 
 What the code-based graders measure:
 
-- **Goal**: `docs-coverage.ts` (BA documentation vs ground truth, plus overclaims) and
-  `crawl-coverage.ts` (ground-truth screens the crawler reached).
+- **Goal**: `docs-coverage.ts` (BA documentation vs ground truth, plus overclaims; skipped with
+  `--crawler-only`), `crawl-coverage.ts` (ground-truth screens the crawler reached) and, for a
+  trace task, `process-trace.ts` (the process's steps reached in order, and whether the crawler
+  reported the goal reached).
 - **Guardrails**, must stay 0: `leaks.ts` (portal passwords in any output) and `widget_actions`
   in `run-checks.ts`.
 - **Diagnostics**, explain why a score moved: the rest of `run-checks.ts`.
@@ -62,10 +64,22 @@ What the code-based graders measure:
 Where things live outside this folder:
 
 - Ground truth (YAML, G-34) stays next to its portal: `packages/reference-portal/ground-truth.yaml`
-  and `apps/proving-ground/ground-truth/*.yaml` (their self-check tests read them there).
+  and `apps/proving-ground/ground-truth/*.yaml` (their self-check tests read them there). A site
+  we don't own has its ground truth here, in `ground-truth/` (e.g. `wikipedia.yaml`).
 - Results, `baseline.json` and `tolerances.json`: `data/evals/<portal>/` (generated output).
 - The scoring functions shared with the gates: `@pathfinder/gates` (`eval.ts`, `eval-checks.ts`)
   and `evaluate()` in `@pathfinder/docs`.
 - How the agents behave: `.claude/agents/crawler.md`, `ba.md` and the `ba-practice` skill.
 
 To add a task: give the portal a ground truth, then add a line to `SUITE` in `tasks.ts`.
+
+Kinds of task:
+
+- **Map** (default): the crawler maps the whole portal; graded on screens reached and the BA's docs.
+- **Trace** (`trace:` in `tasks.ts`): the crawler walks one named process toward a goal; also graded
+  on that process's `steps` in the ground truth. Example: `wikipedia`.
+- **Live site** (no `server:`): nothing is started locally. Keep the portal config read-only with a
+  narrow scope, and run it `--crawler-only` unless the BA is part of the question.
+
+Known gap: crawl coverage treats every persona not named `guest` as logged in, so an anonymous
+persona with another name (e.g. `guest-reader`) is graded on logged-in screens.
