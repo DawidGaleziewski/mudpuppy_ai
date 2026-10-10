@@ -130,4 +130,5 @@ hours on `processes = 0 %` yourself; write hold-out ground truth by hand; protot
 | [07-context-and-tools.md](07-context-and-tools.md) | What the agent sees and how tools shape it |
 | [08-working-with-ai.md](08-working-with-ai.md) | Transcripts, comprehension debt, process overhead audit |
 | [09-productization.md](09-productization.md) | Login vs API, cost per portal |
+| [10-writing-evals.md](10-writing-evals.md) | The process of writing a new eval, step by step |
 | [glossary.md](glossary.md) | Terms explained simply, with examples from this project |
