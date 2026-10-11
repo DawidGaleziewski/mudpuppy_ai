@@ -8,7 +8,7 @@ import { parseArgs } from 'node:util';
 export const USAGE =
   'usage: pnpm eval <portal> [--persona guest] [--budget-usd 5] [--model <m>] [--env sandbox]\n' +
   '       [--session-timeout <s>] [--crawler-only] [--promote [--force-promote]] [--dry-run]\n' +
-  '       [--in-place]';
+  '       [--in-place] [--no-judges]';
 
 export interface EvalConfig {
   /** The repo root: portals/, personas/, data/ and `.mcp.json` live here. */
@@ -28,13 +28,15 @@ export interface EvalConfig {
   dryRun: boolean;
   /** Use the real store instead of a fresh workspace (then the runs show in the dashboard). */
   inPlace: boolean;
+  /** Run the model-based graders after the code ones (spec 017); `--no-judges` turns them off. */
+  judges: boolean;
   /** `data/evals/<portal>/`: results, `baseline.json`, `tolerances.json`, `history/`. */
   resultsDir: string;
 }
 
 export type ConfigResult = { ok: true; config: EvalConfig } | { ok: false; error: string };
 
-const REPO_ROOT = resolve(import.meta.dirname, '../../..');
+export const REPO_ROOT = resolve(import.meta.dirname, '../../..');
 const PORTAL_ID = /^[a-z0-9][a-z0-9_-]*$/;
 
 const OPTIONS = {
@@ -48,6 +50,7 @@ const OPTIONS = {
   'force-promote': { type: 'boolean', default: false },
   'dry-run': { type: 'boolean', default: false },
   'in-place': { type: 'boolean', default: false },
+  'no-judges': { type: 'boolean', default: false },
 } as const;
 
 /** Parse `pnpm eval` arguments; an unknown flag is an error, not silently ignored. */
@@ -80,6 +83,7 @@ export function parseConfig(argv: readonly string[], root = REPO_ROOT): ConfigRe
       forcePromote: values['force-promote'],
       dryRun: values['dry-run'],
       inPlace: values['in-place'],
+      judges: !values['no-judges'],
       resultsDir: join(root, 'data', 'evals', portal),
     },
   };

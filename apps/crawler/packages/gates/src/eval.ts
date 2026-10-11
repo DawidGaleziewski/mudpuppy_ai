@@ -3,6 +3,50 @@ import { z } from 'zod';
 /** One category's score, as `docs:evaluate` reports it (pct 0–100). */
 const Score = z.object({ matched: z.number(), total: z.number(), pct: z.number() }).strict();
 
+export const JudgeCost = z
+  .object({
+    usd: z.number(),
+    input_tokens: z.number(),
+    output_tokens: z.number(),
+    calls: z.number().int(),
+  })
+  .strict();
+export type JudgeCost = z.infer<typeof JudgeCost>;
+
+/**
+ * One model-based grader over the trial's documentation (spec 017 data-model JudgeRun). Kept out
+ * of `scores` on purpose: judge scores never count as regressions (research R5), and the code
+ * scores stay comparable with or without judges.
+ */
+export const JudgeRunResult = z
+  .object({
+    id: z.string().min(1),
+    version: z.string().min(1),
+    model: z.string().min(1),
+    claude_code_version: z.string().min(1),
+    /** Its newest `test` calibration for this wording met the bar (FR-011). */
+    calibrated: z.boolean(),
+    covered: z.number().int().min(0),
+    total: z.number().int().min(0),
+    pct: z.number(),
+    counts: z
+      .object({ pass: z.number(), fail: z.number(), unknown: z.number(), error: z.number() })
+      .strict(),
+    skipped_pairs: z.number().int().min(0),
+    cost: JudgeCost,
+    verdicts: z.array(
+      z
+        .object({
+          pair_id: z.string(),
+          verdict: z.enum(['pass', 'fail', 'unknown', 'error']),
+          reason: z.string(),
+        })
+        .strict(),
+    ),
+  })
+  .strict();
+export type JudgeRunResult = z.infer<typeof JudgeRunResult>;
+
 /** A tier-2 eval result (contracts/gates-evals.md), one JSON file per run under data/evals/. */
 export const EvalResult = z
   .object({
@@ -37,6 +81,9 @@ export const EvalResult = z
     scores: z.record(z.string(), Score),
     overclaims: z.number().int().min(0),
     checks: z.record(z.string(), z.union([z.boolean(), z.number()])),
+    /** The trial's workspace (its store and documentation), so the outcome can be found again (spec 017 F-01). */
+    workspace: z.string().min(1).optional(),
+    judges: z.array(JudgeRunResult).optional(),
   })
   .strict();
 export type EvalResult = z.infer<typeof EvalResult>;
@@ -142,6 +189,21 @@ export function comparisonMarkdown(current: EvalResult, cmp: Comparison): string
     ),
     '',
     cmp.regressions.length === 0 ? 'No regression.' : `Regressions: ${cmp.regressions.join(', ')}`,
+    ...judgeLines(current.judges ?? []),
   ];
   return `${lines.join('\n')}\n`;
+}
+
+/** Judges are reported, never compared (spec 017 research R5). */
+function judgeLines(judges: readonly JudgeRunResult[]): string[] {
+  if (judges.length === 0) return [];
+  return [
+    '',
+    'Judges (model-based graders, not compared with the baseline):',
+    ...judges.map(
+      (j) =>
+        `- ${j.id} (v${j.version}, ${j.calibrated ? 'calibrated' : 'uncalibrated'}): ${j.covered}/${j.total} (${j.pct} %), ` +
+        `pass ${j.counts.pass} · fail ${j.counts.fail} · unknown ${j.counts.unknown} · error ${j.counts.error}, $${j.cost.usd.toFixed(3)}`,
+    ),
+  ];
 }

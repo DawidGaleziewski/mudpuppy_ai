@@ -34,6 +34,7 @@ import { PROMPTS } from './prompts.js';
 import { latestCrawlRun } from './queries.js';
 import { buildResult, saveResult } from './results.js';
 import { grade, portalSecrets } from './graders/index.js';
+import { judgeLoginLine, judgeTrial } from './graders/model/index.js';
 import { loadGroundTruth, SUITE, taskFor, type EvalTask } from './tasks.js';
 
 const parsed = parseConfig(process.argv.slice(2));
@@ -55,12 +56,13 @@ async function dryRun(c: EvalConfig, gt: GroundTruth): Promise<number> {
   console.log(
     `dry run ok: ${c.portal} as ${c.persona}, budget $${c.budgetUsd}/agent, ground truth ${gt.portal_id}, ${secrets.length} secret(s) to sweep for`,
   );
+  console.log(judgeLoginLine(c));
   return 0;
 }
 
 /**
  * One trial: portal up → crawler (map or trace, per the task) → BA unless `--crawler-only` →
- * grade → save; the portal server is always stopped.
+ * grade → judges unless `--no-judges` (spec 017) → save; the portal server is always stopped.
  */
 async function runTrial(c: EvalConfig, task: EvalTask, gt: GroundTruth): Promise<number> {
   const startedAt = new Date().toISOString();
@@ -88,7 +90,12 @@ async function runTrial(c: EvalConfig, task: EvalTask, gt: GroundTruth): Promise
       crawlRunId,
       sessionIds: [sessions.crawler, ...(sessions.ba ? [sessions.ba] : [])],
     });
-    return saveResult(c, buildResult(c, { startedAt, crawlRunId, sessions, cost, grades }));
+    const judges = await judgeTrial(c, ws, gt);
+    const workspace = c.inPlace ? undefined : ws;
+    return saveResult(
+      c,
+      buildResult(c, { startedAt, crawlRunId, sessions, cost, grades, workspace, judges }),
+    );
   } catch (e) {
     if (!(e instanceof EvalAbort)) throw e;
     console.error(e.message);

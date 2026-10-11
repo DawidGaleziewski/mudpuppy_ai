@@ -1,0 +1,42 @@
+{
+  "judge": "glossary-terms",
+  "version": "130240170034",
+  "model": "claude-sonnet-5-5",
+  "claude_code_version": "2.1.288",
+  "split": "dev",
+  "at": "2026-10-11T20:00:22.594Z",
+  "runs": 3,
+  "table": {
+    "tp": 4,
+    "fn": 0,
+    "fp": 0,
+    "tn": 0
+  },
+  "tpr": 1,
+  "tnr": null,
+  "flip_rate": 0,
+  "skipped": [
+    "T01~HM-01@1",
+    "T01~HM-03@1",
+    "T02~HM-06@1",
+    "T03~HM-09@1",
+    "T03~HM-10@1",
+    "T04~HM-11@1",
+    "T04~HM-12@1",
+    "T04~HM-13@1",
+    "T05~HM-15@1",
+    "T05~HM-16@1",
+    "T07~HM-22@1",
+    "T09~HM-28@1",
+    "T09~HM-29@1",
+    "T10~HM-31@1"
+  ],
+  "disagreements": [],
+  "repeat_test_use": false,
+  "cost": {
+    "usd": 0.046322,
+    "input_tokens": 15767,
+    "output_tokens": 1594,
+    "calls": 12
+  }
+}

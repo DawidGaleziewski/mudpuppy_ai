@@ -12,6 +12,13 @@ describe('eval suite', () => {
     },
   );
 
+  it.each(SUITE.map((t) => [t.portal, t] as const))(
+    '%s: every rule keeps its statement, the text a judge reads (spec 017 F-06)',
+    (_portal, t) => {
+      for (const rule of loadGroundTruth(root, t).rules) expect(rule.statement).toBeTruthy();
+    },
+  );
+
   it('has no task for another portal', () => {
     expect(taskFor('liveinsurer')).toBeUndefined();
   });

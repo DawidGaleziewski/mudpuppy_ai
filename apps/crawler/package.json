@@ -31,6 +31,10 @@
     "reference-portal": "pnpm --filter @pathfinder/reference-portal start",
     "vault": "tsx scripts/vault.ts",
     "eval": "tsx evals/index.ts",
+    "eval:judge": "tsx evals/judge.ts",
+    "eval:draw": "tsx evals/draw.ts",
+    "eval:calibrate": "tsx evals/calibrate.ts",
+    "eval:judge-check": "tsx evals/judge-check.ts",
     "tokens:ba": "tsx scripts/tokens-ba-reads.ts",
     "gt:check": "vitest run --project gates tests/ground-truth.test.ts"
   },
@@ -50,6 +54,8 @@
     "tsx": "^4.23.15",
     "typescript": "^6.0.3",
     "typescript-eslint": "^8.70.1",
-    "vitest": "^5.0.1"
+    "vitest": "^5.0.1",
+    "yaml": "^2.9.1",
+    "zod": "^4.6.5"
   }
 }

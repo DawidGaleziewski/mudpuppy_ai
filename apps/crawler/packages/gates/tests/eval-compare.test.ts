@@ -79,6 +79,35 @@ describe('EvalResult schema and conditions', () => {
     expect(EvalResult.safeParse({ ...base, conditions: { other: 1 } }).success).toBe(false);
   });
 
+  it('parses workspace and judges, which never change the comparison (spec 017)', () => {
+    const judge = {
+      id: 'glossary-terms',
+      version: 'abc123def456',
+      model: 'claude-sonnet-5-5',
+      claude_code_version: '2.1.288',
+      calibrated: false,
+      covered: 8,
+      total: 10,
+      pct: 80,
+      counts: { pass: 9, fail: 3, unknown: 1, error: 0 },
+      skipped_pairs: 0,
+      cost: { usd: 0.07, input_tokens: 13000, output_tokens: 1600, calls: 13 },
+      verdicts: [{ pair_id: 'T02~GL-002@1', verdict: 'pass' as const, reason: 'Same term.' }],
+    };
+    const now = EvalResult.parse({ ...base, workspace: '/tmp/pf-eval-x', judges: [judge] });
+    expect(compareEval(now, base)).toEqual(compareEval(base, base));
+    expect(compareEval(base, now)).toEqual(compareEval(base, base));
+    const md = comparisonMarkdown(now, compareEval(now, base));
+    expect(md).toContain('- glossary-terms (vabc123def456, uncalibrated): 8/10 (80 %)');
+    expect(comparisonMarkdown(base, compareEval(base, base))).not.toContain('Judges');
+    expect(
+      EvalResult.safeParse({
+        ...base,
+        judges: [{ ...judge, verdicts: [{ pair_id: 'x', verdict: 'maybe', reason: '' }] }],
+      }).success,
+    ).toBe(false);
+  });
+
   it('prints the session timeout under the runs line', () => {
     const now = { ...base, conditions: { session_timeout_s: 1800 } };
     const md = comparisonMarkdown(now, compareEval(now, base));

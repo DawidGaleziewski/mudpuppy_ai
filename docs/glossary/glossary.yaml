@@ -1669,16 +1669,16 @@ entries:
     group: Gates and evals
     short: The logic that turns a finished trial into one score or check; code-based, model-based (an LLM judge) or human.
     explanation: |
-      Graders live in `apps/crawler/evals/graders/`, one folder per kind. Today all are
-      code-based (`graders/code/`): documentation coverage, crawl coverage, process steps of a
-      trace, the password sweep and the run checks. A model-based grader would answer one narrow
-      question per call, such as "does this record state rule R03 correctly?", and is trusted only
-      once it agrees with human labels (`graders/human/`).
+      Graders live in `apps/crawler/evals/graders/`, one folder per kind. Code-based ones
+      (`graders/code/`): documentation coverage, crawl coverage, process steps of a trace, the
+      password sweep and the run checks. Model-based ones are judges (`graders/model/`), which
+      answer one narrow question per call and are trusted only once they agree with the owner's
+      labels, the human grader (`graders/human/labels/`).
     appears_in: [apps/crawler/evals/graders]
     labels: [grader, code-based, model-based, LLM judge]
-    related: [eval, coverage-score, crawl-coverage-score, password-sweep]
-    changed_in: R-46
-    changed_on: 2026-10-10
+    related: [eval, judge, judge-calibration, coverage-score, crawl-coverage-score, password-sweep]
+    changed_in: R-47
+    changed_on: 2026-10-11
 
   - id: eval-baseline
     term: Eval baseline
@@ -1747,6 +1747,80 @@ entries:
     related: [eval, credential-vault]
     changed_in: R-27
     changed_on: 2026-10-05
+
+  - id: judge
+    term: Judge (LLM judge)
+    category: pathfinder
+    group: Gates and evals
+    short: A model-based grader that asks Claude one narrow yes/no question about one ground-truth item and one documentation record.
+    explanation: |
+      A judge is declared in one file (`apps/crawler/evals/graders/model/judges/<id>.ts`): its
+      question, what pass and fail mean, a few labelled examples, and code that picks the
+      candidate records per ground-truth item. Each call is isolated (no tools, no MCP servers,
+      an empty config folder) and answers `pass`, `fail` or `unknown` with a one-sentence reason.
+      Judge scores sit in the eval result's `judges` section, beside the code scores, and are
+      never compared with the baseline. Its wording version is a hash of the question, the
+      definitions, the examples and the model: changing any of them makes the judge
+      uncalibrated again.
+    example: The glossary-terms judge should fail a record defining "Składka" as the highest amount the insurer pays, which is the portal's meaning of "Suma ubezpieczenia".
+    appears_in: [pnpm eval, pnpm eval:judge, apps/crawler/evals/graders/model]
+    labels: [judge, LLM judge, model-based grader, verdict, wording version]
+    related: [grader, judge-labels, judge-calibration, judge-isolation-check, eval]
+    changed_in: R-47
+    changed_on: 2026-10-11
+
+  - id: judge-labels
+    term: Judge labels
+    category: pathfinder
+    group: Gates and evals
+    short: The owner's own pass or fail, with one sentence why, for each pair a judge is asked about; what the judge is measured against.
+    explanation: |
+      One YAML file per judge (`apps/crawler/evals/graders/human/labels/<judge>.yaml`), filled by
+      hand. `pnpm eval:draw` adds the judge's pairs from a store and never changes a pair already
+      there; pairs real output lacks can be added as `hand-made`. Each pair is put in `dev` (used
+      to tune the judge's wording) or `test` (used once per wording, for the real measure).
+    appears_in: [pnpm eval:draw, apps/crawler/evals/graders/human/labels]
+    labels: [labels, dev split, test split, hand-made pair]
+    related: [judge, judge-calibration, reference-portal]
+    changed_in: R-47
+    changed_on: 2026-10-11
+
+  - id: judge-calibration
+    term: Judge calibration
+    category: pathfinder
+    group: Gates and evals
+    short: Measuring how often a judge agrees with the owner's labels, as two rates (TPR and TNR) and a flip rate; a judge counts only once calibrated.
+    explanation: |
+      `pnpm eval:calibrate <judge> --split dev|test` asks the judge about every labelled pair three
+      times and compares the majority with the label. TPR (true-positive rate) is the share of the
+      owner's passes the judge also passed; TNR (true-negative rate) the share of the owner's
+      fails it also failed. Two rates, because a judge that passes everything has TPR 100 % and
+      TNR 0 %. The flip rate is the share of pairs whose three answers differed. A judge is
+      calibrated when its newest `test` report for its current wording has TPR and TNR at 90 % or
+      more. Reports: `data/evals/judges/<judge>/`.
+    appears_in: [pnpm eval:calibrate, eval result judges section]
+    labels: [calibration, TPR, TNR, true-positive rate, true-negative rate, flip rate, calibrated]
+    related: [judge, judge-labels, grader]
+    changed_in: R-47
+    changed_on: 2026-10-11
+
+  - id: judge-isolation-check
+    term: Judge isolation check
+    category: pathfinder
+    group: Gates and evals
+    short: One real judge call that proves nothing of your or the project's Claude setup reached the judge.
+    explanation: |
+      `pnpm eval:judge-check` makes one call and reads what Claude Code loaded for it: only the
+      answer tool, no MCP servers, no plugins, skills or agents of yours or the project's (Claude
+      Code's built-in ones are allowed), memory inside the judge's temporary config folder, and
+      under 2 000 input tokens (a leaked CLAUDE.md would add thousands). The judge logs in with the
+      token in `~/.config/pathfinder/judge-token` (from `claude setup-token`) or, without it, with
+      your own login.
+    appears_in: [pnpm eval:judge-check]
+    labels: [isolation check, judge-token, PATHFINDER_JUDGE_TOKEN_FILE]
+    related: [judge]
+    changed_in: R-47
+    changed_on: 2026-10-11
 
   # ---- Pathfinder: chat and workflow (R-30) ------------------------------------------------------
   - id: chat

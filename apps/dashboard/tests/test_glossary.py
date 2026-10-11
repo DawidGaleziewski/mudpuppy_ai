@@ -284,6 +284,7 @@ EXPECTED_IDS = {
     "eval-workspace",  # R-25..R-27
     "crawl-coverage-score", "password-sweep",  # R-29
     "eval-task", "eval-trial", "grader",  # R-46
+    "judge", "judge-labels", "judge-calibration", "judge-isolation-check",  # R-47
     "chat", "orchestrator", "workflow-step", "error-reference", "process-scope", "amendment",
     "superseded-amendment",  # R-30
     "activity-feed", "live-map", "reset-assistant",  # R-30 BA review (F-22)
@@ -302,7 +303,7 @@ EXPECTED_IDS = {
 def test_real_glossary_is_valid_and_complete() -> None:
     g = load_ok(REPO_DOCS)
     assert {e.id for e in g.entries} == EXPECTED_IDS
-    assert len(EXPECTED_IDS) == 121
+    assert len(EXPECTED_IDS) == 125
     assert sum(e.category == "ba" for e in g.entries) == 22
 
 

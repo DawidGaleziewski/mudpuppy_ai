@@ -5,26 +5,32 @@ Tier-1 quality gates (one case per legacy obstacle and logged finding) against t
 Layer: servers (G-07; `apps/crawler/layers.json`)
 
 ## Public API
+
 - `gate()`, `gap()`: define gate and known-unfixed cases; used by the crawler app root.
 - `catalogue`, `harness`, `paths`, `steps`, `eval`: gate infrastructure and reporting. `eval`
-  holds `EvalResult` (with `conditions`: `session_timeout_s`, `crawler_only`), `compareEval`
-  and `Tolerances`, used by `apps/crawler/evals/`.
+  holds `EvalResult` (with `conditions`: `session_timeout_s`, `crawler_only`; optional
+  `workspace` and `judges`, spec 017), `compareEval` and `Tolerances`, used by
+  `apps/crawler/evals/`. `judges` (`JudgeRunResult`) are printed, never compared.
 - `eval-checks` (`crawlScreens`, `passwordHits`, `widgetActions`) and `HARD_ZERO_CHECKS`: pure
   eval measures used by `apps/crawler/evals/` (spec 014). Their tests run only in the gates tier
   (spec 014 F-03).
 
 ## Invariants
+
 - Files run one at a time (`fileParallelism: false`); shared estate on ports 4200/4201.
 - `src/global-setup.ts` starts the proving ground.
 - Slow cases run only with `PATHFINDER_SLOW_GATES=1` (`pnpm test:slow`).
 
 ## Where to add things
+
 - New gate case: G-17 (`gate('<id>', …)`); known unfixed: `gap()`.
 
 ## Tests
+
 - Tier: gates (in `pnpm test:slow` and `pnpm test`, never in `test:fast`). Stop anything on 4200/4201 first.
 - Report in `data/gates/`.
 
 ## See also
+
 - specs/009-legacy-proving-ground
 - docs/code-guidelines.md (G-17)

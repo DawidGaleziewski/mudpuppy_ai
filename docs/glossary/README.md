@@ -1568,19 +1568,19 @@ catch a regression only beyond the normal spread, which is what `tolerances.json
 
 **The logic that turns a finished trial into one score or check; code-based, model-based (an LLM judge) or human.**
 
-Graders live in `apps/crawler/evals/graders/`, one folder per kind. Today all are
-code-based (`graders/code/`): documentation coverage, crawl coverage, process steps of a
-trace, the password sweep and the run checks. A model-based grader would answer one narrow
-question per call, such as "does this record state rule R03 correctly?", and is trusted only
-once it agrees with human labels (`graders/human/`).
+Graders live in `apps/crawler/evals/graders/`, one folder per kind. Code-based ones
+(`graders/code/`): documentation coverage, crawl coverage, process steps of a trace, the
+password sweep and the run checks. Model-based ones are judges (`graders/model/`), which
+answer one narrow question per call and are trusted only once they agree with the owner's
+labels, the human grader (`graders/human/labels/`).
 
 *Seen in:* apps/crawler/evals/graders
 
 *Labels:* `grader`, `code-based`, `model-based`, `LLM judge`
 
-*Related:* [Eval (tier 2)](#eval), [Coverage score](#coverage-score), [Crawl coverage score](#crawl-coverage-score), [Password sweep](#password-sweep)
+*Related:* [Eval (tier 2)](#eval), [Judge (LLM judge)](#judge), [Judge calibration](#judge-calibration), [Coverage score](#coverage-score), [Crawl coverage score](#crawl-coverage-score), [Password sweep](#password-sweep)
 
-<sub>Last changed in R-46, 2026-10-10.</sub>
+<sub>Last changed in R-47, 2026-10-11.</sub>
 
 <a id="eval-baseline"></a>
 
@@ -1661,6 +1661,93 @@ in the dashboard.
 *Related:* [Eval (tier 2)](#eval), [Credential vault](#credential-vault)
 
 <sub>Last changed in R-27, 2026-10-05.</sub>
+
+<a id="judge"></a>
+
+#### Judge (LLM judge)
+
+**A model-based grader that asks Claude one narrow yes/no question about one ground-truth item and one documentation record.**
+
+A judge is declared in one file (`apps/crawler/evals/graders/model/judges/<id>.ts`): its
+question, what pass and fail mean, a few labelled examples, and code that picks the
+candidate records per ground-truth item. Each call is isolated (no tools, no MCP servers,
+an empty config folder) and answers `pass`, `fail` or `unknown` with a one-sentence reason.
+Judge scores sit in the eval result's `judges` section, beside the code scores, and are
+never compared with the baseline. Its wording version is a hash of the question, the
+definitions, the examples and the model: changing any of them makes the judge
+uncalibrated again.
+
+*Example:* The glossary-terms judge should fail a record defining "Składka" as the highest amount the insurer pays, which is the portal's meaning of "Suma ubezpieczenia".
+
+*Seen in:* pnpm eval; pnpm eval:judge; apps/crawler/evals/graders/model
+
+*Labels:* `judge`, `LLM judge`, `model-based grader`, `verdict`, `wording version`
+
+*Related:* [Grader](#grader), [Judge labels](#judge-labels), [Judge calibration](#judge-calibration), [Judge isolation check](#judge-isolation-check), [Eval (tier 2)](#eval)
+
+<sub>Last changed in R-47, 2026-10-11.</sub>
+
+<a id="judge-labels"></a>
+
+#### Judge labels
+
+**The owner's own pass or fail, with one sentence why, for each pair a judge is asked about; what the judge is measured against.**
+
+One YAML file per judge (`apps/crawler/evals/graders/human/labels/<judge>.yaml`), filled by
+hand. `pnpm eval:draw` adds the judge's pairs from a store and never changes a pair already
+there; pairs real output lacks can be added as `hand-made`. Each pair is put in `dev` (used
+to tune the judge's wording) or `test` (used once per wording, for the real measure).
+
+*Seen in:* pnpm eval:draw; apps/crawler/evals/graders/human/labels
+
+*Labels:* `labels`, `dev split`, `test split`, `hand-made pair`
+
+*Related:* [Judge (LLM judge)](#judge), [Judge calibration](#judge-calibration), [Reference portal / ground truth](#reference-portal)
+
+<sub>Last changed in R-47, 2026-10-11.</sub>
+
+<a id="judge-calibration"></a>
+
+#### Judge calibration
+
+**Measuring how often a judge agrees with the owner's labels, as two rates (TPR and TNR) and a flip rate; a judge counts only once calibrated.**
+
+`pnpm eval:calibrate <judge> --split dev|test` asks the judge about every labelled pair three
+times and compares the majority with the label. TPR (true-positive rate) is the share of the
+owner's passes the judge also passed; TNR (true-negative rate) the share of the owner's
+fails it also failed. Two rates, because a judge that passes everything has TPR 100 % and
+TNR 0 %. The flip rate is the share of pairs whose three answers differed. A judge is
+calibrated when its newest `test` report for its current wording has TPR and TNR at 90 % or
+more. Reports: `data/evals/judges/<judge>/`.
+
+*Seen in:* pnpm eval:calibrate; eval result judges section
+
+*Labels:* `calibration`, `TPR`, `TNR`, `true-positive rate`, `true-negative rate`, `flip rate`, `calibrated`
+
+*Related:* [Judge (LLM judge)](#judge), [Judge labels](#judge-labels), [Grader](#grader)
+
+<sub>Last changed in R-47, 2026-10-11.</sub>
+
+<a id="judge-isolation-check"></a>
+
+#### Judge isolation check
+
+**One real judge call that proves nothing of your or the project's Claude setup reached the judge.**
+
+`pnpm eval:judge-check` makes one call and reads what Claude Code loaded for it: only the
+answer tool, no MCP servers, no plugins, skills or agents of yours or the project's (Claude
+Code's built-in ones are allowed), memory inside the judge's temporary config folder, and
+under 2 000 input tokens (a leaked CLAUDE.md would add thousands). The judge logs in with the
+token in `~/.config/pathfinder/judge-token` (from `claude setup-token`) or, without it, with
+your own login.
+
+*Seen in:* pnpm eval:judge-check
+
+*Labels:* `isolation check`, `judge-token`, `PATHFINDER_JUDGE_TOKEN_FILE`
+
+*Related:* [Judge (LLM judge)](#judge)
+
+<sub>Last changed in R-47, 2026-10-11.</sub>
 
 ### Chat and workflow
 

@@ -15,7 +15,7 @@ own `CLAUDE.md`), the operator scripts under `scripts/`, and the test tiers.
   across the whole app (every file gets a temporary `// @ts-nocheck`): do not edit, test or
   commit anything in `apps/crawler` while it runs (spec 012 F-16). Not incremental (F-15).
 - Operator scripts: `pnpm docs:*`, `pnpm portal:export|delete`, `pnpm vault`, `pnpm eval`,
-  `pnpm tokens:ba`, `pnpm stability`, `pnpm trace:import-agent`, `pnpm wireframes:build`, `pnpm reference-portal`.
+  `pnpm eval:judge|draw|calibrate|judge-check` (LLM judges, spec 017), `pnpm tokens:ba`, `pnpm stability`, `pnpm trace:import-agent`, `pnpm wireframes:build`, `pnpm reference-portal`.
 
 ## Layout
 
@@ -24,6 +24,8 @@ own `CLAUDE.md`), the operator scripts under `scripts/`, and the test tiers.
 - `scripts/*.ts` — thin CLIs over the packages; typechecked through the root `tsconfig.json`.
 - `evals/` — the tier-2 eval runner (`pnpm eval`): tasks (the suite), prompts, harness, graders,
   results; see `evals/README.md`. Eval terms follow Anthropic's (G-33). Its unit tests (`evals/tests/`) run in the `repo` project, fast tier.
+  Model-based graders (judges) call headless Claude, so they never run in any test tier; their
+  pure parts are tested on saved CLI outputs (`evals/tests/fixtures/judge/`).
 - `tests/fixtures/` — shared fixtures (robots, HAR, ARIA, URLs); a change runs the whole fast tier.
 
 ## Where to add things

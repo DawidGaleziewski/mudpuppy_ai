@@ -97,7 +97,13 @@ export const GtProcess = z
   .strict();
 
 export const GtTerm = z
-  .object({ id: Id, term: z.string().min(1), lang: z.string().min(2) })
+  .object({
+    id: Id,
+    term: z.string().min(1),
+    lang: z.string().min(2),
+    /** The portal's own definition (/slowniczek), verbatim; the glossary judge's reference (spec 017). */
+    meaning: z.string().min(1).optional(),
+  })
   .strict();
 
 /** v2: a test user of the portal; never a password (the vault holds those by `refs`). */

@@ -45,11 +45,11 @@ _frontier_. _Baseline_ and _tolerance_ are our regression-check terms.
 
 Grouped the way Anthropic groups them; `graders/grade.ts` runs them all over one finished trial.
 
-| Kind        | Judges by                                                                                                    | Folder           | Today                                        |
-| ----------- | ------------------------------------------------------------------------------------------------------------ | ---------------- | -------------------------------------------- |
-| Code-based  | Exact matching, counting, rules: fast, free, repeatable                                                      | `graders/code/`  | all graders                                  |
-| Model-based | A second model call answers one narrow question (LLM as judge); trusted only once it agrees with hand labels | `graders/model/` | none yet (see `learning/05-llm-as-judge.md`) |
-| Human       | A person labels or reviews; also how a model grader is calibrated                                            | `graders/human/` | none yet                                     |
+| Kind        | Judges by                                                                                                    | Folder           | Today                                                |
+| ----------- | ------------------------------------------------------------------------------------------------------------ | ---------------- | ---------------------------------------------------- |
+| Code-based  | Exact matching, counting, rules: fast, free, repeatable                                                      | `graders/code/`  | all graders                                          |
+| Model-based | A second model call answers one narrow question (LLM as judge); trusted only once it agrees with hand labels | `graders/model/` | the judge mechanism and `glossary-terms` (spec 017)  |
+| Human       | A person labels or reviews; also how a model grader is calibrated                                            | `graders/human/` | label files for the judges (`graders/human/labels/`) |
 
 What the code-based graders measure:
 
@@ -60,6 +60,30 @@ What the code-based graders measure:
 - **Guardrails**, must stay 0: `leaks.ts` (portal passwords in any output) and `widget_actions`
   in `run-checks.ts`.
 - **Diagnostics**, explain why a score moved: the rest of `run-checks.ts`.
+
+### Judges (model-based graders, spec 017)
+
+A judge asks headless Claude one narrow question per (ground-truth item, record) pair and gets
+`pass`, `fail` or `unknown` with a one-sentence reason. Each call is isolated: no tools, no MCP
+servers, a fresh config folder and an empty working folder, so nothing of your or the project's
+Claude setup reaches it. Judge scores go in the result's `judges` section, beside the code scores,
+and are never compared with the baseline. A judge counts only once **calibrated**: its newest
+`test` calibration for its current wording agrees with the owner's labels at TPR and TNR ≥ 0.9.
+
+| Command                                                  | What it does                                                                   | Cost             |
+| -------------------------------------------------------- | ------------------------------------------------------------------------------ | ---------------- |
+| `pnpm eval:judge-check`                                  | One judge call; checks nothing of your setup was loaded                        | 1 call           |
+| `pnpm eval:draw <judge> --portal <p> --store <path>`     | Draws the judge's pairs into `graders/human/labels/<judge>.yaml` for labelling | free             |
+| `pnpm eval:calibrate <judge> --split dev\|test`          | Judges every labelled pair 3×: table, TPR, TNR, flip rate, disagreements       | 3 calls per pair |
+| `pnpm eval:judge <portal> --store <path> [--judge <id>]` | Judges an existing store; code matcher and judge side by side                  | 1 call per pair  |
+| `pnpm eval <portal>`                                     | Runs the judges after the code graders; `--no-judges` turns them off           | 1 call per pair  |
+
+- Login: the token from `claude setup-token` in `~/.config/pathfinder/judge-token` (one line,
+  no quotes, mode 600; or `PATHFINDER_JUDGE_TOKEN_FILE`), else your Claude login, linked. Never
+  export `CLAUDE_CODE_OAUTH_TOKEN` in your shell: it would replace every Claude session's login.
+- Adding a judge: its file in `graders/model/judges/` and one line in `judges/index.ts`
+  (`specs/017-llm-judge/contracts/judge-definition.md`; the `create-eval` skill, section 7).
+- Calibration reports and store reports: `data/evals/judges/<judge>/`.
 
 Where things live outside this folder:
 

@@ -1,0 +1,177 @@
+{
+  "at": "2026-10-10T23:28:50.504Z",
+  "store": "data/db/sandbox.sqlite",
+  "portal": "reference-insurer",
+  "result": {
+    "id": "glossary-terms",
+    "version": "db1290207317",
+    "model": "claude-sonnet-5-5",
+    "claude_code_version": "2.1.288",
+    "calibrated": false,
+    "covered": 10,
+    "total": 10,
+    "pct": 100,
+    "counts": {
+      "pass": 10,
+      "fail": 1,
+      "unknown": 0,
+      "error": 0
+    },
+    "skipped_pairs": 0,
+    "cost": {
+      "usd": 0.032539,
+      "input_tokens": 13719,
+      "output_tokens": 1215,
+      "calls": 11
+    },
+    "verdicts": [
+      {
+        "pair_id": "T01~GL-001@1",
+        "verdict": "pass",
+        "reason": "The record's term_verbatim is \"OC\", which exactly matches the ground-truth term \"OC\"."
+      },
+      {
+        "pair_id": "T02~GL-002@1",
+        "verdict": "pass",
+        "reason": "The record's term \"Autocasco (AC)\" is identical to the ground-truth term \"Autocasco (AC)\"."
+      },
+      {
+        "pair_id": "T03~GL-003@1",
+        "verdict": "pass",
+        "reason": "The record's term \"Assistance\" matches the ground-truth term \"Assistance\" exactly."
+      },
+      {
+        "pair_id": "T04~GL-004@1",
+        "verdict": "pass",
+        "reason": "The record's term \"Bezszkodowa jazda\" matches the ground-truth term exactly."
+      },
+      {
+        "pair_id": "T05~GL-005@1",
+        "verdict": "pass",
+        "reason": "The record's term is \"Składka\", which is exactly the ground-truth term."
+      },
+      {
+        "pair_id": "T06~GL-006@1",
+        "verdict": "pass",
+        "reason": "The record's term, \"Suma ubezpieczenia\", is identical to the ground-truth term."
+      },
+      {
+        "pair_id": "T06~GL-007@1",
+        "verdict": "fail",
+        "reason": "The record names \"OWU\" (Ogólne Warunki Ubezpieczenia, general terms and conditions), which is a different term from \"Suma ubezpieczenia\" (sum insured)."
+      },
+      {
+        "pair_id": "T07~GL-007@1",
+        "verdict": "pass",
+        "reason": "The record's term_verbatim is \"OWU\", which exactly matches the ground-truth term."
+      },
+      {
+        "pair_id": "T08~GL-008@1",
+        "verdict": "pass",
+        "reason": "The record's term \"Ubezpieczający\" is identical to the ground-truth term."
+      },
+      {
+        "pair_id": "T09~GL-009@1",
+        "verdict": "pass",
+        "reason": "The record's term \"Ubezpieczony\" is identical to the ground-truth term \"Ubezpieczony\"."
+      },
+      {
+        "pair_id": "T10~GL-010@1",
+        "verdict": "pass",
+        "reason": "The record's term \"Kod rabatowy\" is identical to the ground-truth term \"Kod rabatowy\"."
+      }
+    ]
+  },
+  "items": [
+    {
+      "id": "T01",
+      "code": [
+        "GL-001"
+      ],
+      "judge": [
+        "GL-001"
+      ]
+    },
+    {
+      "id": "T02",
+      "code": [
+        "GL-002"
+      ],
+      "judge": [
+        "GL-002"
+      ]
+    },
+    {
+      "id": "T03",
+      "code": [
+        "GL-003"
+      ],
+      "judge": [
+        "GL-003"
+      ]
+    },
+    {
+      "id": "T04",
+      "code": [
+        "GL-004"
+      ],
+      "judge": [
+        "GL-004"
+      ]
+    },
+    {
+      "id": "T05",
+      "code": [
+        "GL-005"
+      ],
+      "judge": [
+        "GL-005"
+      ]
+    },
+    {
+      "id": "T06",
+      "code": [
+        "GL-006"
+      ],
+      "judge": [
+        "GL-006"
+      ]
+    },
+    {
+      "id": "T07",
+      "code": [
+        "GL-007"
+      ],
+      "judge": [
+        "GL-007"
+      ]
+    },
+    {
+      "id": "T08",
+      "code": [
+        "GL-008"
+      ],
+      "judge": [
+        "GL-008"
+      ]
+    },
+    {
+      "id": "T09",
+      "code": [
+        "GL-009"
+      ],
+      "judge": [
+        "GL-009"
+      ]
+    },
+    {
+      "id": "T10",
+      "code": [
+        "GL-010"
+      ],
+      "judge": [
+        "GL-010"
+      ]
+    }
+  ]
+}

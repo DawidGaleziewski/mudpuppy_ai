@@ -577,33 +577,44 @@ processes:
     last_observable_route: /moje-polisy/przedluz
     ends_with: login_wall
 terms:
+  # meaning: the portal's own definition on /slowniczek, verbatim (the glossary judge's reference).
   - id: T01
     term: OC
     lang: pl
+    meaning: Obowiązkowe ubezpieczenie odpowiedzialności cywilnej posiadaczy pojazdów.
   - id: T02
     term: Autocasco (AC)
     lang: pl
+    meaning: Dobrowolne ubezpieczenie pojazdu od uszkodzeń i kradzieży.
   - id: T03
     term: Assistance
     lang: pl
+    meaning: 'Pomoc w podróży: holowanie, auto zastępcze, naprawa na miejscu.'
   - id: T04
     term: Bezszkodowa jazda
     lang: pl
+    meaning: Okres, w którym kierowca nie spowodował szkody z polisy OC.
   - id: T05
     term: Składka
     lang: pl
+    meaning: Kwota płacona za ochronę ubezpieczeniową.
   - id: T06
     term: Suma ubezpieczenia
     lang: pl
+    meaning: Najwyższa kwota, jaką wypłaci ubezpieczyciel.
   - id: T07
     term: OWU
     lang: pl
+    meaning: Ogólne Warunki Ubezpieczenia.
   - id: T08
     term: Ubezpieczający
     lang: pl
+    meaning: Osoba zawierająca umowę i płacąca składkę.
   - id: T09
     term: Ubezpieczony
     lang: pl
+    meaning: Osoba objęta ochroną ubezpieczeniową.
   - id: T10
     term: Kod rabatowy
     lang: pl
+    meaning: Kod promocyjny obniżający składkę.

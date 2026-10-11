@@ -6,6 +6,34 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Added
+- R-47 LLM judge, mechanism (paused by the user 2026-10-11 with calibration open).
+  - **Model-based graders** (G-33) in `apps/crawler/evals/graders/model/`: a judge is one file
+    (`defineJudge`: question, pass and fail wording, examples, model, `selectPairs`) with a
+    wording version (a hash). Each pair is judged in an isolated headless `claude -p` call: fresh
+    config folder, empty cwd, no tools, JSON-schema answer `pass`/`fail`/`unknown` plus a reason.
+  - **Login:** the user's own judge token (`~/.config/pathfinder/judge-token`), else the linked
+    Claude Code login; an invalid token fails loudly.
+  - **`pnpm eval:judge-check`** proves the isolation: 7 checks, about 1,000 input tokens and
+    $0.005 per call.
+  - **Labels and calibration:** label files in `graders/human/labels/` with a stable dev/test
+    split; `pnpm eval:draw` and `pnpm eval:calibrate` (TPR, TNR, flip rate over 3 runs, reports
+    under `data/evals/judges/`).
+  - **In trials:** judges run after the code graders, in a new `judges` section of the result,
+    never compared with the baseline (`--no-judges` turns them off); results also record their
+    `workspace`. `pnpm eval:judge` judges any store without a trial.
+  - **Example judge `glossary-terms`:** "does the record define the term with the meaning the
+    portal gives it?". Ground-truth terms gained `meaning`, the portal's /slowniczek text, kept
+    equal by a test.
+  - **Ground truth also keeps each rule's `statement`** for a future rules judge.
+  - **Glossary entries:** `judge`, `judge-labels`, `judge-calibration`, `judge-isolation-check`.
+  - **Open, the user's part:** labels (32 pairs), calibration (TPR/TNR on test) and the rules
+    judge.
+  - **Also on the branch:**
+    - the user's request to map and document our own dashboard: `portals/pathfinder-dashboard`
+      and its persona, export in `data/exports/`, crawler problems C1–C10 in
+      `session_dump/2026-10-11-dashboard-scan.md`;
+    - roadmap R-48 (dashboard self-eval, after R-47).
+  - Branch `feature/017-r47-llm-judge` (squash-merged on master, tag v1.0.16).
 - R-46 hands-on learning, first round (the user's learning branch, merged whole on 2026-10-10;
   the roadmap freeze set for it is lifted, R-46 is paused until an LLM judge exists). The eval
   runner `scripts/eval-run.ts` is rebuilt as `apps/crawler/evals/`, organised by role: `index.ts`

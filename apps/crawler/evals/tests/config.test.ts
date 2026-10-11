@@ -21,6 +21,7 @@ describe('parseConfig', () => {
         forcePromote: false,
         dryRun: false,
         inPlace: false,
+        judges: true,
         resultsDir: '/repo/data/evals/reference-insurer',
       },
     });
@@ -44,8 +45,10 @@ describe('parseConfig', () => {
       '--force-promote',
       '--dry-run',
       '--in-place',
+      '--no-judges',
     );
     expect(r.ok && r.config).toMatchObject({
+      judges: false,
       persona: 'client',
       budgetUsd: '2',
       env: 'test',

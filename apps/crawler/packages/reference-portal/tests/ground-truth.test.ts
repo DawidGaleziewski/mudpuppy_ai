@@ -95,6 +95,11 @@ describe('ground truth ⇔ served HTML', () => {
     for (const t of gt.terms) expect(all, t.term).toContain(t.term);
   });
 
+  it("every term's meaning is the portal's own definition on /slowniczek", async () => {
+    const page = text(await screenHtml(portal, '/slowniczek'));
+    for (const t of gt.terms) expect(page, t.term).toContain(`${t.term} ${t.meaning ?? '(none)'}`);
+  });
+
   it('every process step is a known screen and each process starts where it says', () => {
     const routes = new Set(gt.screens.map((s) => s.route_template));
     for (const p of gt.processes) {

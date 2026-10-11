@@ -1,0 +1,13 @@
+id: guest
+extends:
+  - ../_mixins/anonymous-base.yaml
+# Overrides the mixin's `read`: the scanned copy is throwaway (see the portal.yaml). Sending a chat
+# message is external-side-effect (it calls the assistant), so traces may chat.
+max_action_class: external-side-effect
+locale: en-US
+# Synthetic inputs for trace runs (labels as the dashboard shows them).
+trace_inputs:
+  Message: What can you do here?
+  Short name: demo-portal
+  Address: http://127.0.0.1:4010/
+  Note: Test note, rename this button to Save.

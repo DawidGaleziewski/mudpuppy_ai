@@ -77,3 +77,38 @@ it('records a crawler-only trial as a condition, and no conditions when all are 
   expect(crawlerOnly.runs).toMatchObject({ ba_session: null, ba_cli_session: null });
   expect(buildResult({ ...config, crawlerOnly: false }, trial).conditions).toBeUndefined();
 });
+
+it('records the workspace and the judges, and leaves both out when absent (spec 017)', () => {
+  const trial: TrialRecord = {
+    startedAt: '2026-10-11T00:00:00.000Z',
+    crawlRunId: 'run',
+    sessions: { crawler: 'c', ba: 'b' },
+    cost: { usd: 0, input_tokens: 0, output_tokens: 0, duration_ms: 0 },
+    grades: {
+      session: undefined,
+      scores: { terms: { matched: 7, total: 10, pct: 70 } },
+      overclaims: 0,
+      checks: { crawler_completed: true, password_hits: 0, widget_actions: 0 },
+    } as unknown as TrialRecord['grades'],
+  };
+  const judge = {
+    id: 'glossary-terms',
+    version: 'abc123def456',
+    model: 'claude-sonnet-5-5',
+    claude_code_version: '2.1.288',
+    calibrated: false,
+    covered: 8,
+    total: 10,
+    pct: 80,
+    counts: { pass: 8, fail: 2, unknown: 0, error: 0 },
+    skipped_pairs: 0,
+    cost: { usd: 0.05, input_tokens: 9000, output_tokens: 1000, calls: 10 },
+    verdicts: [],
+  };
+  const full = buildResult(config, { ...trial, workspace: '/tmp/pf-eval-x', judges: [judge] });
+  expect(full).toMatchObject({ workspace: '/tmp/pf-eval-x', judges: [{ id: 'glossary-terms' }] });
+  expect(full.scores).toEqual(trial.grades.scores);
+  const bare = buildResult(config, { ...trial, judges: [] });
+  expect(bare).not.toHaveProperty('workspace');
+  expect(bare).not.toHaveProperty('judges');
+});

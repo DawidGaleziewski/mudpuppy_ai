@@ -1,0 +1,730 @@
+# Labels for judge glossary-terms (spec 017). For each pair, set label to pass or fail and write one
+# sentence in why. Add pairs real output lacks with source: hand-made (any unique id).
+# Never label from the judge: these labels are what the judge is measured against.
+judge: glossary-terms
+pairs:
+  - id: T01~GL-001@1
+    split: test
+    source: data/db/sandbox.sqlite#reference-insurer
+    item: |-
+      term: OC
+      meaning on the portal: Obowiązkowe ubezpieczenie odpowiedzialności cywilnej posiadaczy pojazdów.
+    record:
+      key: GL-001
+      rev: 1
+      text: |-
+        title: OC
+        term_verbatim: OC
+        lang: pl
+        definition: Compulsory third-party liability insurance of vehicle owners (portal: "Obowiązkowe ubezpieczenie odpowiedzialności cywilnej posiadaczy pojazdów."). Covers damage caused to others; base premium from 800 zł.
+        synonyms_verbatim: Tylko OC
+        confidence: observed
+    label: pass
+    why: Definition is correct.
+  - id: T02~GL-002@1
+    split: dev
+    source: data/db/sandbox.sqlite#reference-insurer
+    item: |-
+      term: Autocasco (AC)
+      meaning on the portal: Dobrowolne ubezpieczenie pojazdu od uszkodzeń i kradzieży.
+    record:
+      key: GL-002
+      rev: 1
+      text: |-
+        title: Autocasco (AC)
+        term_verbatim: Autocasco (AC)
+        lang: pl
+        definition: Voluntary insurance of the vehicle against damage and theft (portal: "Dobrowolne ubezpieczenie pojazdu od uszkodzeń i kradzieży."). Base premium from 1200 zł; offered only for vehicles younger than 15 years.
+        synonyms_verbatim: AC
+        confidence: observed
+    label: pass
+    why: definition is correct, It explains in a clear way the term. It is not to long or too short. Noting wierd or incorrect about it
+  - id: T03~GL-003@1
+    split: dev
+    source: data/db/sandbox.sqlite#reference-insurer
+    item: |-
+      term: Assistance
+      meaning on the portal: Pomoc w podróży: holowanie, auto zastępcze, naprawa na miejscu.
+    record:
+      key: GL-003
+      rev: 1
+      text: |-
+        title: Assistance
+        term_verbatim: Assistance
+        lang: pl
+        definition: Help on the road: towing, replacement car, on-site repair (portal: "Pomoc w podróży: holowanie, auto zastępcze, naprawa na miejscu."). Optional add-on priced 99 zł in the car calculator; also part of travel insurance.
+        confidence: observed
+    label: pass
+    why: definition is correct, It explains in a clear way the term. It is not to long or too short. Noting wierd or incorrect about it
+  - id: T04~GL-004@1
+    split: test
+    source: data/db/sandbox.sqlite#reference-insurer
+    item: |-
+      term: Bezszkodowa jazda
+      meaning on the portal: Okres, w którym kierowca nie spowodował szkody z polisy OC.
+    record:
+      key: GL-004
+      rev: 1
+      text: |-
+        title: Bezszkodowa jazda
+        term_verbatim: Bezszkodowa jazda
+        lang: pl
+        definition: Period in which the driver caused no claim on an OC policy (portal: "Okres, w którym kierowca nie spowodował szkody z polisy OC."). Entered as "Lata bezszkodowej jazdy"; 5 or more years give a discount.
+        synonyms_verbatim: Lata bezszkodowej jazdy
+        confidence: observed
+    label: pass
+    why: definition is correct, It explains in a clear way the term. It is not to long or too short. Noting wierd or incorrect about it
+  - id: T05~GL-005@1
+    split: test
+    source: data/db/sandbox.sqlite#reference-insurer
+    item: |-
+      term: Składka
+      meaning on the portal: Kwota płacona za ochronę ubezpieczeniową.
+    record:
+      key: GL-005
+      rev: 1
+      text: |-
+        title: Składka
+        term_verbatim: Składka
+        lang: pl
+        definition: The amount paid for insurance cover (portal: "Kwota płacona za ochronę ubezpieczeniową."). The calculator shows the annual "Składka łączna".
+        synonyms_verbatim: Składka łączna, Składka bazowa
+        confidence: observed
+    label: pass
+    why: definition is correct, It explains in a clear way the term. It is not to long or too short. Noting wierd or incorrect about it
+  - id: T06~GL-006@1
+    split: test
+    source: data/db/sandbox.sqlite#reference-insurer
+    item: |-
+      term: Suma ubezpieczenia
+      meaning on the portal: Najwyższa kwota, jaką wypłaci ubezpieczyciel.
+    record:
+      key: GL-006
+      rev: 1
+      text: |-
+        title: Suma ubezpieczenia
+        term_verbatim: Suma ubezpieczenia
+        lang: pl
+        definition: The highest amount the insurer will pay out (portal: "Najwyższa kwota, jaką wypłaci ubezpieczyciel."). For home insurance it is set individually.
+        confidence: observed
+    label: pass
+    why: definition is correct, It explains in a clear way the term. It is not to long or too short. Noting wierd or incorrect about it
+  - id: T06~GL-007@1
+    split: test
+    source: data/db/sandbox.sqlite#reference-insurer
+    item: |-
+      term: Suma ubezpieczenia
+      meaning on the portal: Najwyższa kwota, jaką wypłaci ubezpieczyciel.
+    record:
+      key: GL-007
+      rev: 1
+      text: |-
+        title: OWU
+        term_verbatim: OWU
+        lang: pl
+        definition: General terms and conditions of insurance, "Ogólne Warunki Ubezpieczenia" — the document describing the scope of cover. The driver step requires the declaration "Oświadczam, że zapoznałem się z OWU".
+        synonyms_verbatim: Ogólne Warunki Ubezpieczenia
+        confidence: observed
+    label: pass
+    why: definition is correct, It explains in a clear way the term. It is not to long or too short. Noting wierd or incorrect about it
+  - id: T08~GL-008@1
+    split: dev
+    source: data/db/sandbox.sqlite#reference-insurer
+    item: |-
+      term: Ubezpieczający
+      meaning on the portal: Osoba zawierająca umowę i płacąca składkę.
+    record:
+      key: GL-008
+      rev: 1
+      text: |-
+        title: Ubezpieczający
+        term_verbatim: Ubezpieczający
+        lang: pl
+        definition: The person who concludes the insurance contract and pays the premium (portal: "Osoba zawierająca umowę i płacąca składkę.").
+        confidence: observed
+    label: pass
+    why: definition is correct, It explains in a clear way the term. It is not to long or too short. Noting wierd or incorrect about it
+  - id: T09~GL-009@1
+    split: test
+    source: data/db/sandbox.sqlite#reference-insurer
+    item: |-
+      term: Ubezpieczony
+      meaning on the portal: Osoba objęta ochroną ubezpieczeniową.
+    record:
+      key: GL-009
+      rev: 1
+      text: |-
+        title: Ubezpieczony
+        term_verbatim: Ubezpieczony
+        lang: pl
+        definition: The person covered by the insurance (portal: "Osoba objęta ochroną ubezpieczeniową.").
+        confidence: observed
+    label: pass
+    why: definition is correct, It explains in a clear way the term. It is not to long or too short. Noting wierd or incorrect about it
+  - id: T10~GL-010@1
+    split: dev
+    source: data/db/sandbox.sqlite#reference-insurer
+    item: |-
+      term: Kod rabatowy
+      meaning on the portal: Kod promocyjny obniżający składkę.
+    record:
+      key: GL-010
+      rev: 1
+      text: |-
+        title: Kod rabatowy
+        term_verbatim: Kod rabatowy
+        lang: pl
+        definition: Promotional code that lowers the premium (portal: "Kod promocyjny obniżający składkę."); e.g. WIOSNA10.
+        confidence: observed
+    label: pass
+    why: definition is correct, It explains in a clear way the term. It is not to long or too short. Noting wierd or incorrect about it
+  - id: T01~HM-01@1
+    split: dev
+    source: hand-made
+    item: |-
+      term: OC
+      meaning on the portal: Obowiązkowe ubezpieczenie odpowiedzialności cywilnej posiadaczy pojazdów.
+    record:
+      key: HM-01
+      rev: 1
+      text: |-
+        title: OC
+        term_verbatim: OC
+        lang: pl
+        definition: Compulsory third-party liability insurance for vehicle owners; covers damage the driver causes to other people.
+        confidence: observed
+    label:
+    why:
+  - id: T01~HM-02@1
+    split: test
+    source: hand-made
+    item: |-
+      term: OC
+      meaning on the portal: Obowiązkowe ubezpieczenie odpowiedzialności cywilnej posiadaczy pojazdów.
+    record:
+      key: HM-02
+      rev: 1
+      text: |-
+        title: OC
+        term_verbatim: OC
+        lang: pl
+        definition: Voluntary insurance of your own vehicle against damage.
+        confidence: observed
+    label:
+    why:
+  - id: T01~HM-03@1
+    split: dev
+    source: hand-made
+    item: |-
+      term: OC
+      meaning on the portal: Obowiązkowe ubezpieczenie odpowiedzialności cywilnej posiadaczy pojazdów.
+    record:
+      key: HM-03
+      rev: 1
+      text: |-
+        title: OC
+        term_verbatim: OC
+        lang: pl
+        definition: Ubezpieczenie od uszkodzeń własnego pojazdu.
+        synonyms_verbatim: Tylko OC
+        confidence: observed
+    label:
+    why:
+  - id: T01~HM-04@1
+    split: test
+    source: hand-made
+    item: |-
+      term: OC
+      meaning on the portal: Obowiązkowe ubezpieczenie odpowiedzialności cywilnej posiadaczy pojazdów.
+    record:
+      key: HM-04
+      rev: 1
+      text: |-
+        title: OC
+        term_verbatim: OC
+        lang: pl
+        definition: Insurance required by law for every car owner.
+        confidence: observed
+    label:
+    why:
+  - id: T02~HM-05@1
+    split: test
+    source: hand-made
+    item: |-
+      term: Autocasco (AC)
+      meaning on the portal: Dobrowolne ubezpieczenie pojazdu od uszkodzeń i kradzieży.
+    record:
+      key: HM-05
+      rev: 1
+      text: |-
+        title: AC
+        term_verbatim: AC
+        lang: pl
+        definition: Optional cover for damage to and theft of your own car.
+        synonyms_verbatim: Autocasco
+        confidence: observed
+    label:
+    why:
+  - id: T02~HM-06@1
+    split: dev
+    source: hand-made
+    item: |-
+      term: Autocasco (AC)
+      meaning on the portal: Dobrowolne ubezpieczenie pojazdu od uszkodzeń i kradzieży.
+    record:
+      key: HM-06
+      rev: 1
+      text: |-
+        title: Autocasco (AC)
+        term_verbatim: Autocasco (AC)
+        lang: pl
+        definition: Optional insurance against damage to the vehicle.
+        confidence: observed
+    label:
+    why:
+  - id: T02~HM-07@1
+    split: test
+    source: hand-made
+    item: |-
+      term: Autocasco (AC)
+      meaning on the portal: Dobrowolne ubezpieczenie pojazdu od uszkodzeń i kradzieży.
+    record:
+      key: HM-07
+      rev: 1
+      text: |-
+        title: Autocasco (AC)
+        term_verbatim: Autocasco (AC)
+        lang: pl
+        definition: Compulsory insurance of the vehicle against damage and theft.
+        synonyms_verbatim: AC
+        confidence: observed
+    label:
+    why:
+  - id: T03~HM-08@1
+    split: test
+    source: hand-made
+    item: |-
+      term: Assistance
+      meaning on the portal: Pomoc w podróży: holowanie, auto zastępcze, naprawa na miejscu.
+    record:
+      key: HM-08
+      rev: 1
+      text: |-
+        title: Assistance
+        term_verbatim: Assistance
+        lang: pl
+        definition: Roadside help: towing and a replacement car.
+        confidence: observed
+    label:
+    why:
+  - id: T03~HM-09@1
+    split: dev
+    source: hand-made
+    item: |-
+      term: Assistance
+      meaning on the portal: Pomoc w podróży: holowanie, auto zastępcze, naprawa na miejscu.
+    record:
+      key: HM-09
+      rev: 1
+      text: |-
+        title: Assistance
+        term_verbatim: Assistance
+        lang: pl
+        definition: A help line for questions about your policy and claims.
+        confidence: observed
+    label:
+    why:
+  - id: T03~HM-10@1
+    split: dev
+    source: hand-made
+    item: |-
+      term: Assistance
+      meaning on the portal: Pomoc w podróży: holowanie, auto zastępcze, naprawa na miejscu.
+    record:
+      key: HM-10
+      rev: 1
+      text: |-
+        title: Assistance
+        term_verbatim: Assistance
+        lang: pl
+        definition: Pomoc w podróży: holowanie, auto zastępcze, naprawa na miejscu.
+        confidence: observed
+    label:
+    why:
+  - id: T04~HM-11@1
+    split: dev
+    source: hand-made
+    item: |-
+      term: Bezszkodowa jazda
+      meaning on the portal: Okres, w którym kierowca nie spowodował szkody z polisy OC.
+    record:
+      key: HM-11
+      rev: 1
+      text: |-
+        title: Bezszkodowa jazda
+        term_verbatim: Bezszkodowa jazda
+        lang: pl
+        definition: The period in which the driver caused no damage covered by an OC policy.
+        confidence: observed
+    label:
+    why:
+  - id: T04~HM-12@1
+    split: dev
+    source: hand-made
+    item: |-
+      term: Bezszkodowa jazda
+      meaning on the portal: Okres, w którym kierowca nie spowodował szkody z polisy OC.
+    record:
+      key: HM-12
+      rev: 1
+      text: |-
+        title: Bezszkodowa jazda
+        term_verbatim: Bezszkodowa jazda
+        lang: pl
+        definition: The number of years the driver has held a driving licence.
+        confidence: observed
+    label:
+    why:
+  - id: T04~HM-13@1
+    split: dev
+    source: hand-made
+    item: |-
+      term: Bezszkodowa jazda
+      meaning on the portal: Okres, w którym kierowca nie spowodował szkody z polisy OC.
+    record:
+      key: HM-13
+      rev: 1
+      text: |-
+        title: Bezszkodowa jazda
+        term_verbatim: Bezszkodowa jazda
+        lang: pl
+        definition: A discount for drivers who caused no damage.
+        synonyms_verbatim: Zniżka za bezszkodową jazdę
+        confidence: observed
+    label:
+    why:
+  - id: T05~HM-14@1
+    split: test
+    source: hand-made
+    item: |-
+      term: Składka
+      meaning on the portal: Kwota płacona za ochronę ubezpieczeniową.
+    record:
+      key: HM-14
+      rev: 1
+      text: |-
+        title: Składka
+        term_verbatim: Składka
+        lang: pl
+        definition: The amount paid for insurance cover.
+        confidence: observed
+    label:
+    why:
+  - id: T05~HM-15@1
+    split: dev
+    source: hand-made
+    item: |-
+      term: Składka
+      meaning on the portal: Kwota płacona za ochronę ubezpieczeniową.
+    record:
+      key: HM-15
+      rev: 1
+      text: |-
+        title: Składka
+        term_verbatim: Składka
+        lang: pl
+        definition: The highest amount the insurer will pay out.
+        confidence: observed
+    label:
+    why:
+  - id: T05~HM-16@1
+    split: dev
+    source: hand-made
+    item: |-
+      term: Składka
+      meaning on the portal: Kwota płacona za ochronę ubezpieczeniową.
+    record:
+      key: HM-16
+      rev: 1
+      text: |-
+        title: Składka bazowa
+        term_verbatim: Składka bazowa
+        lang: pl
+        definition: The base price of OC or AC before add-ons and discounts.
+        confidence: observed
+    label:
+    why:
+  - id: T05~HM-17@1
+    split: test
+    source: hand-made
+    item: |-
+      term: Składka
+      meaning on the portal: Kwota płacona za ochronę ubezpieczeniową.
+    record:
+      key: HM-17
+      rev: 1
+      text: |-
+        title: Składka
+        term_verbatim: Składka
+        lang: pl
+        definition: The premium. Base OC from 800 zł; the total is shown in the calculator after discounts.
+        synonyms_verbatim: Składka łączna
+        confidence: observed
+    label:
+    why:
+  - id: T06~HM-18@1
+    split: test
+    source: hand-made
+    item: |-
+      term: Suma ubezpieczenia
+      meaning on the portal: Najwyższa kwota, jaką wypłaci ubezpieczyciel.
+    record:
+      key: HM-18
+      rev: 1
+      text: |-
+        title: Suma ubezpieczenia
+        term_verbatim: Suma ubezpieczenia
+        lang: pl
+        definition: The highest amount the insurer pays.
+        confidence: observed
+    label:
+    why:
+  - id: T06~HM-19@1
+    split: test
+    source: hand-made
+    item: |-
+      term: Suma ubezpieczenia
+      meaning on the portal: Najwyższa kwota, jaką wypłaci ubezpieczyciel.
+    record:
+      key: HM-19
+      rev: 1
+      text: |-
+        title: Suma ubezpieczenia
+        term_verbatim: Suma ubezpieczenia
+        lang: pl
+        definition: The total amount the customer pays for the policy.
+        confidence: observed
+    label:
+    why:
+  - id: T06~HM-20@1
+    split: test
+    source: hand-made
+    item: |-
+      term: Suma ubezpieczenia
+      meaning on the portal: Najwyższa kwota, jaką wypłaci ubezpieczyciel.
+    record:
+      key: HM-20
+      rev: 1
+      text: |-
+        title: Suma ubezpieczenia
+        term_verbatim: Suma ubezpieczenia
+        lang: pl
+        definition: The value of the home, set individually in home insurance.
+        confidence: observed
+    label:
+    why:
+  - id: T07~HM-21@1
+    split: test
+    source: hand-made
+    item: |-
+      term: OWU
+      meaning on the portal: Ogólne Warunki Ubezpieczenia.
+    record:
+      key: HM-21
+      rev: 1
+      text: |-
+        title: OWU
+        term_verbatim: OWU
+        lang: pl
+        definition: General Terms of Insurance.
+        synonyms_verbatim: Ogólne Warunki Ubezpieczenia
+        confidence: observed
+    label:
+    why:
+  - id: T07~HM-22@1
+    split: dev
+    source: hand-made
+    item: |-
+      term: OWU
+      meaning on the portal: Ogólne Warunki Ubezpieczenia.
+    record:
+      key: HM-22
+      rev: 1
+      text: |-
+        title: OWU AC
+        term_verbatim: OWU AC
+        lang: pl
+        definition: The general terms of the Autocasco insurance.
+        confidence: observed
+    label:
+    why:
+  - id: T07~HM-23@1
+    split: test
+    source: hand-made
+    item: |-
+      term: OWU
+      meaning on the portal: Ogólne Warunki Ubezpieczenia.
+    record:
+      key: HM-23
+      rev: 1
+      text: |-
+        title: OWU
+        term_verbatim: OWU
+        lang: pl
+        definition: A document the customer must accept before buying; it describes the scope of cover.
+        confidence: observed
+    label:
+    why:
+  - id: T07~HM-24@1
+    split: test
+    source: hand-made
+    item: |-
+      term: OWU
+      meaning on the portal: Ogólne Warunki Ubezpieczenia.
+    record:
+      key: HM-24
+      rev: 1
+      text: |-
+        title: OWU
+        term_verbatim: OWU
+        lang: pl
+        definition: The insurer's online customer service.
+        confidence: observed
+    label:
+    why:
+  - id: T08~HM-25@1
+    split: test
+    source: hand-made
+    item: |-
+      term: Ubezpieczający
+      meaning on the portal: Osoba zawierająca umowę i płacąca składkę.
+    record:
+      key: HM-25
+      rev: 1
+      text: |-
+        title: Ubezpieczający
+        term_verbatim: Ubezpieczający
+        lang: pl
+        definition: The person who signs the contract and pays the premium.
+        confidence: observed
+    label:
+    why:
+  - id: T08~HM-26@1
+    split: test
+    source: hand-made
+    item: |-
+      term: Ubezpieczający
+      meaning on the portal: Osoba zawierająca umowę i płacąca składkę.
+    record:
+      key: HM-26
+      rev: 1
+      text: |-
+        title: Ubezpieczający
+        term_verbatim: Ubezpieczający
+        lang: pl
+        definition: The person covered by the insurance.
+        confidence: observed
+    label:
+    why:
+  - id: T08~HM-27@1
+    split: test
+    source: hand-made
+    item: |-
+      term: Ubezpieczający
+      meaning on the portal: Osoba zawierająca umowę i płacąca składkę.
+    record:
+      key: HM-27
+      rev: 1
+      text: |-
+        title: Ubezpieczający
+        term_verbatim: Ubezpieczający
+        lang: pl
+        definition: The person who buys the policy.
+        confidence: observed
+    label:
+    why:
+  - id: T09~HM-28@1
+    split: dev
+    source: hand-made
+    item: |-
+      term: Ubezpieczony
+      meaning on the portal: Osoba objęta ochroną ubezpieczeniową.
+    record:
+      key: HM-28
+      rev: 1
+      text: |-
+        title: Ubezpieczony
+        term_verbatim: Ubezpieczony
+        lang: pl
+        definition: Osoba objęta ochroną ubezpieczeniową.
+        confidence: observed
+    label:
+    why:
+  - id: T09~HM-29@1
+    split: dev
+    source: hand-made
+    item: |-
+      term: Ubezpieczony
+      meaning on the portal: Osoba objęta ochroną ubezpieczeniową.
+    record:
+      key: HM-29
+      rev: 1
+      text: |-
+        title: Ubezpieczony
+        term_verbatim: Ubezpieczony
+        lang: pl
+        definition: The person who concludes the contract and pays the premium.
+        confidence: observed
+    label:
+    why:
+  - id: T10~HM-30@1
+    split: test
+    source: hand-made
+    item: |-
+      term: Kod rabatowy
+      meaning on the portal: Kod promocyjny obniżający składkę.
+    record:
+      key: HM-30
+      rev: 1
+      text: |-
+        title: Kod rabatowy
+        term_verbatim: Kod rabatowy
+        lang: pl
+        definition: A promotional code that lowers the premium.
+        confidence: observed
+    label:
+    why:
+  - id: T10~HM-31@1
+    split: dev
+    source: hand-made
+    item: |-
+      term: Kod rabatowy
+      meaning on the portal: Kod promocyjny obniżający składkę.
+    record:
+      key: HM-31
+      rev: 1
+      text: |-
+        title: Kod rabatowy
+        term_verbatim: Kod rabatowy
+        lang: pl
+        definition: Capital letters and two digits, e.g. WIOSNA10, entered in the car calculator.
+        confidence: observed
+    label:
+    why:
+  - id: T10~HM-32@1
+    split: test
+    source: hand-made
+    item: |-
+      term: Kod rabatowy
+      meaning on the portal: Kod promocyjny obniżający składkę.
+    record:
+      key: HM-32
+      rev: 1
+      text: |-
+        title: Kod rabatowy
+        term_verbatim: Kod rabatowy
+        lang: pl
+        definition: A code that adds Assistance to the policy for free.
+        confidence: observed
+    label:
+    why:

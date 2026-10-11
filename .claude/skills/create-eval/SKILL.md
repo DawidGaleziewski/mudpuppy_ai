@@ -54,8 +54,8 @@ evals/
     index.ts       grade() and what index.ts needs
     grade.ts       grade(): runs every grader over one finished trial
     code/          code-based graders, one file per thing graded
-    model/         model-based graders (LLM judge); `.gitkeep` while empty
-    human/         human labels and review flows; `.gitkeep` while empty
+    model/         model-based graders (LLM judge): the mechanism + judges/<id>.ts, one per judge
+    human/         human labels and review flows: labels.ts + labels/<judge>.yaml
   tests/           unit tests of every pure module (fast tier)
 ```
 
@@ -133,6 +133,26 @@ persona:
 - Grade the **outcome** (what the store holds at the end), not the path the agent took, except a
   trace's steps, which are the outcome of a trace task.
 - A grader with an empty denominator scores 0, never 100 %.
+
+### Adding a judge (model-based grader, spec 017)
+
+The mechanism lives in `apps/crawler/evals/graders/model/`; only the judge is new:
+
+1. `graders/model/judges/<id>.ts` exporting `defineJudge({ id, category, question, pass, fail,
+   examples, selectPairs })` (`specs/017-llm-judge/contracts/judge-definition.md`), and one line
+   in `JUDGES` (`judges/index.ts`).
+2. `pnpm eval:draw <id> --portal <p> --store <path>` → `graders/human/labels/<id>.yaml`; the
+   owner labels it (pass/fail + one sentence), adding `hand-made` pairs for tricky cases.
+3. `pnpm eval:calibrate <id> --split dev`, read every disagreement, refine the wording or a label,
+   repeat; then once `--split test`. Calibrated = TPR and TNR ≥ 0.9 on `test` for the current
+   wording (changing the wording or model makes it uncalibrated again).
+
+Rules: one narrow yes/no question per call about one (item, record) pair; `fail` covers "not
+clearly stated"; `selectPairs` is pure, deterministic, and looser than the code matcher if the
+judge is to find false fails (whole words, not substrings); examples come from `dev` labels,
+never `test`; the judge sees only the item and the record. Judges run in `pnpm eval` (off with
+`--no-judges`), their scores sit in `judges`, never in `scores`, and never gate a baseline. Never
+in `pnpm test`; their pure parts are unit-tested on saved CLI outputs.
 - Graders that need an agent that did not run (the BA under `--crawler-only`) are skipped, not
   scored 0.
 

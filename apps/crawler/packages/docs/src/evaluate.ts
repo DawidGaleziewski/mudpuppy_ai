@@ -54,6 +54,8 @@ export const GroundTruth = z.object({
   rules: z.array(
     z.object({
       id: Id,
+      /** Not scored here; the text a model-based grader judges a record against (spec 017). */
+      statement: z.string().min(1).optional(),
       anchor: z.object({ screen: Id, label: z.string().min(1) }),
       guest_observable: z.boolean(),
       /** When present, a matching record must also contain one of these phrases. */
@@ -70,7 +72,14 @@ export const GroundTruth = z.object({
       steps: z.array(z.string().min(1)).optional(),
     }),
   ),
-  terms: z.array(z.object({ id: Id, term: z.string().min(1) })),
+  terms: z.array(
+    z.object({
+      id: Id,
+      term: z.string().min(1),
+      /** Not scored here; what the glossary judge compares a definition with (spec 017). */
+      meaning: z.string().min(1).optional(),
+    }),
+  ),
   // v2 (spec 009 contracts/ground-truth-v2.md); absent in v1 files, which then score as before.
   redirects: z
     .array(z.object({ id: Id, from: z.string().min(1), to: z.string().min(1) }))

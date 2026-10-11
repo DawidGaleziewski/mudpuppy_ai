@@ -61,6 +61,14 @@ This follows Hamel Husain's "critique shadowing" approach.
 
 ## How it fits into this harness
 
+> **Built in R-47 (spec 017, 2026-10-11).** The mechanism below exists now: judges in
+> `apps/crawler/evals/graders/model/judges/`, labels in `graders/human/labels/`, and the commands
+> `pnpm eval:judge-check`, `eval:draw`, `eval:calibrate`, `eval:judge` (table in
+> `apps/crawler/evals/README.md`, section Judges). It follows this module with two differences:
+> the judge may also answer `unknown` (counted as fail, reported apart), and its scores sit in a
+> `judges` section beside the code scores, never compared with the baseline. The example judge is
+> `glossary-terms`; the rules judge is yours (exercises 5.1–5.3 below are unchanged).
+
 ### Where
 
 After the deterministic `evaluate()` in `apps/crawler/evals/graders/code/docs-coverage.ts`, add a judge step for rules

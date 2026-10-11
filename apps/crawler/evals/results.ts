@@ -12,6 +12,7 @@ import {
   EvalResult,
   HARD_ZERO_CHECKS,
   Tolerances,
+  type JudgeRunResult,
 } from '@pathfinder/gates';
 import type { EvalConfig } from './config.js';
 import type { Cost } from './harness/index.js';
@@ -25,6 +26,10 @@ export interface TrialRecord {
   sessions: { crawler: string; ba: string | null };
   cost: Cost;
   grades: Grades;
+  /** The workspace the agents ran in; absent with `--in-place` (spec 017 F-01). */
+  workspace?: string;
+  /** Model-based graders; absent when off or when none applied (spec 017). */
+  judges?: JudgeRunResult[];
 }
 
 /** What makes trials comparable; absent when everything is default, as in older results. */
@@ -56,6 +61,8 @@ export function buildResult(config: EvalConfig, r: TrialRecord): EvalResult {
     scores: r.grades.scores,
     overclaims: r.grades.overclaims,
     checks: r.grades.checks,
+    ...(r.workspace && { workspace: r.workspace }),
+    ...(r.judges && r.judges.length > 0 && { judges: r.judges }),
   });
 }
 
