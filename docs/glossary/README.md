@@ -2199,8 +2199,8 @@ compares the recorded states, edges, decision log and trace spans with a committ
 
 `pnpm --dir apps/exportfork-export export` builds it from master into a separate local repository:
 only the crawler and BA servers, their packages and the field commands, with the project
-name replaced by "exportfork", Kiro agents (exportfork, crawler, ba, reporter), skills and a steering
-file. No chat, dashboard, evals, hooks or tracing. It is never edited by hand: fixes are made
+name replaced by "exportfork", the read-only dashboard (without Chat), Kiro agents (exportfork,
+crawler, ba, reporter), skills and a steering file. No chat, evals, hooks or tracing. It is never edited by hand: fixes are made
 here and carried out by the next export. A marker file records which commit it came from;
 the field's own portals, personas, issues and data are never touched by an export.
 

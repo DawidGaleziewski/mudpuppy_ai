@@ -37,6 +37,13 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   - **Glossary entries:** `export-fork`, `field-issue`.
   - **Not verified here:** anything inside Kiro (no Kiro CLI on this machine). The first field
     session is the check.
+  - **Amendment, the user 2026-10-11 ("I need it to check incoming data"): the dashboard ships.**
+    - It is renamed (`exportfork-dashboard`, `exportfork://console`) and the Chat link is gone. The
+      Glossary, its tooltips and the BA wiki come along.
+    - The export verifies it with `uv sync`, `ruff` and `pytest`.
+    - The field README now covers it; the field machine also needs Python 3.13 and uv.
+    - The export rewrites the dashboard's hard-coded tool-prefix length (F-06).
+    - The crawler tests run with one retry in verify (flaky wall-clock test, F-05).
 - R-47 LLM judge, mechanism (paused by the user 2026-10-11 with calibration open).
   - **Model-based graders** (G-33) in `apps/crawler/evals/graders/model/`: a judge is one file
     (`defineJudge`: question, pass and fail wording, examples, model, `selectPairs`) with a
