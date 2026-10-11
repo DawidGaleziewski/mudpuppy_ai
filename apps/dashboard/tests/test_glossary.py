@@ -291,6 +291,7 @@ EXPECTED_IDS = {
     "portal-dropdown", "new-portal", "portal-settings", "scan-choices", "scan-focus",  # R-31
     "fast-tier", "slow-tier", "code-guidelines", "agent-notes",  # R-34
     "mutation-testing", "behaviour-lock",  # R-34
+    "export-fork", "field-issue",  # R-49
     # BA (22)
     "confidence", "documentation-record", "evidence-link", "relations", "traceability", "review",
     "capability", "screen", "process-record", "use-case", "requirement", "nfr",
@@ -303,7 +304,7 @@ EXPECTED_IDS = {
 def test_real_glossary_is_valid_and_complete() -> None:
     g = load_ok(REPO_DOCS)
     assert {e.id for e in g.entries} == EXPECTED_IDS
-    assert len(EXPECTED_IDS) == 125
+    assert len(EXPECTED_IDS) == 127
     assert sum(e.category == "ba" for e in g.entries) == 22
 
 

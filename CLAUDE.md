@@ -8,6 +8,7 @@
 - Chat service (the dashboard's Chat page needs it): `pnpm --dir apps/chat start` → 127.0.0.1:4310. Env: `PATHFINDER_ENV` (default `sandbox`), `PATHFINDER_CHAT_PORT`. It uses the user's Claude Code login and starts its own `pathfinder` MCP servers (with Chromium) per conversation.
 - After running the real chat service, stop it and check for orphaned `pathfinder` servers and Chromium processes.
 - BA-facing walkthrough: `docs/how-to-use.md`.
+- export-fork (Kiro field artifact, R-49): `pnpm --dir apps/exportfork-export export` (clean tree; writes and commits `../export-fork`) after each merged R-item; `import-issues` brings its `issues/` into `docs/field-issues/` for triage. Never fix things in export-fork itself.
 
 ## Feature Workflow (SDD)
 1. Every roadmap item (R-xx) gets a feature branch named per the saved branch naming convention.

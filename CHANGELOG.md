@@ -6,6 +6,37 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Added
+- R-49 export-fork, the Kiro field artifact (added and started by the user 2026-10-11).
+  - **`apps/exportfork-export`**, `pnpm --dir apps/exportfork-export export`: it builds a separate local
+    repo (`../export-fork`, no remote) from the current commit.
+    - **What it keeps:** an allow list in `src/manifest.ts`. That is the crawler and BA MCP
+      servers with their packages and unit tests, plus the field commands. Left out: chat,
+      dashboard, proving ground, evals, hooks, tracing, specs and every portal's data.
+    - **Renames:** pathfinder → exportfork in any case, and the harness's portal names in test
+      fixtures.
+    - **Leak check:** fails the export on the project name, portal names, secret shapes or the
+      user's e-mail.
+    - **Verify:** install, typecheck, lint and tests run in a staging folder before anything is
+      written.
+    - **Sync:** never touches the field's `portals/`, `personas/`, `issues/` or data. The commit
+      uses a neutral `exportfork-export` identity. `--dry-run` stages and checks only.
+  - **Kiro setup in the artifact:**
+    - agents `exportfork` (main: portal and persona files, commands, delegation), `crawler` and `ba`
+      (built from `.claude/agents`, exactly their MCP tools) and `reporter`;
+    - `permissions` fence each agent: the BA reads only its references, the reporter writes only
+      `issues/`, and the main agent has no crawler or BA tools;
+    - skills `ba-practice`, `create-portal` (new) and `create-persona` (writes files, no chat
+      service);
+    - a steering file, a README quick start and the MCP config.
+  - **Field issues:** the reporter writes `issues/BI-<date>-<nn>-<slug>.md`, checked against
+    one Zod schema. `pnpm --dir apps/exportfork-export import-issues` copies new ones into
+    `docs/field-issues/` with an index row for triage. Invalid files are reported and repeats
+    are skipped.
+  - **`pnpm portal:check <portal> [<persona>] [--env e]`** in `apps/crawler`: validates portal
+    and persona files without a run.
+  - **Glossary entries:** `export-fork`, `field-issue`.
+  - **Not verified here:** anything inside Kiro (no Kiro CLI on this machine). The first field
+    session is the check.
 - R-47 LLM judge, mechanism (paused by the user 2026-10-11 with calibration open).
   - **Model-based graders** (G-33) in `apps/crawler/evals/graders/model/`: a judge is one file
     (`defineJudge`: question, pass and fail wording, examples, model, `selectPairs`) with a

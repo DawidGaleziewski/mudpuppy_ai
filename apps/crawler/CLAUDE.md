@@ -14,7 +14,8 @@ own `CLAUDE.md`), the operator scripts under `scripts/`, and the test tiers.
 - `pnpm mutate [--package <name>]` — mutation testing on demand (G-32), mutates files in place
   across the whole app (every file gets a temporary `// @ts-nocheck`): do not edit, test or
   commit anything in `apps/crawler` while it runs (spec 012 F-16). Not incremental (F-15).
-- Operator scripts: `pnpm docs:*`, `pnpm portal:export|delete`, `pnpm vault`, `pnpm eval`,
+- Operator scripts: `pnpm docs:*`, `pnpm portal:export|delete|check` (`check`: validate a portal
+  and persona file without a run; R-49), `pnpm vault`, `pnpm eval`,
   `pnpm eval:judge|draw|calibrate|judge-check` (LLM judges, spec 017), `pnpm tokens:ba`, `pnpm stability`, `pnpm trace:import-agent`, `pnpm wireframes:build`, `pnpm reference-portal`.
 
 ## Layout

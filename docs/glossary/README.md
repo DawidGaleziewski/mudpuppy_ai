@@ -2191,6 +2191,50 @@ compares the recorded states, edges, decision log and trace spans with a committ
 
 <sub>Last changed in R-34, 2026-10-08.</sub>
 
+<a id="export-fork"></a>
+
+#### export-fork (field artifact)
+
+**A generated, stripped and renamed copy of the crawler and BA for Kiro CLI, used to try Pathfinder on real portals where only Kiro is available.**
+
+`pnpm --dir apps/exportfork-export export` builds it from master into a separate local repository:
+only the crawler and BA servers, their packages and the field commands, with the project
+name replaced by "exportfork", Kiro agents (exportfork, crawler, ba, reporter), skills and a steering
+file. No chat, dashboard, evals, hooks or tracing. It is never edited by hand: fixes are made
+here and carried out by the next export. A marker file records which commit it came from;
+the field's own portals, personas, issues and data are never touched by an export.
+
+*Example:* export: harness 668505a2352b → /home/dawid/projects/export-fork, 532 files, verified.
+
+*Seen in:* apps/exportfork-export; specs/018-export-fork
+
+*Labels:* `export-fork`, `exportfork`, `field artifact`, `exportfork-export`
+
+*Related:* [Field issue](#field-issue)
+
+<sub>Last changed in R-49, 2026-10-11.</sub>
+
+<a id="field-issue"></a>
+
+#### Field issue
+
+**One problem found while using export-fork on a real portal, written as one file by its reporter agent and imported here for triage.**
+
+The reporter agent writes `issues/BI-<date>-<nn>-<slug>.md`: area, severity, portal, run and
+evidence ids, then symptom, steps, expected, actual and a suggested test or eval.
+`pnpm --dir apps/exportfork-export import-issues` copies new valid ones to `docs/field-issues/`
+and adds a row to its index; triage turns them into roadmap items, findings or tasks.
+
+*Example:* BI-20261012-01-crawler-stuck-on-cookie-banner, area crawler, severity blocker.
+
+*Seen in:* docs/field-issues/README.md; specs/018-export-fork/contracts/field-issue.md
+
+*Labels:* `field issue`, `BI-`
+
+*Related:* [export-fork (field artifact)](#export-fork)
+
+<sub>Last changed in R-49, 2026-10-11.</sub>
+
 ## Business-analysis terms
 
 ### Statements and traceability
