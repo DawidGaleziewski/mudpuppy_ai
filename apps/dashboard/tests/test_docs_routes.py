@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import re
+from pathlib import Path
 
 import pytest
 from fastapi.testclient import TestClient
@@ -123,11 +124,20 @@ def test_portal_picker_shows_counts_and_statuses(ba_client: TestClient) -> None:
 def test_empty_state_when_no_records(empty_client: TestClient) -> None:
     r = empty_client.get("/docs")
     assert r.status_code == 200 and "No documentation written yet" in r.text
-    # a configured portal with no data in this store says so (spec 019 AS5.3); unknown: 404
-    configured = empty_client.get("/docs/reference-insurer")
+
+
+def test_configured_portal_without_data_says_so(empty_store: Store, tmp_path: Path) -> None:
+    """Spec 019 AS5.3: a configured portal with no data in this store says so; unknown: 404.
+    Its own portals folder, so the test also runs where the repo's `portals/` is absent."""
+    portals = tmp_path / "portals"
+    (portals / "my-portal").mkdir(parents=True)
+    (portals / "my-portal" / "portal.yaml").write_text("id: my-portal\n", "utf-8")
+    with make_client(empty_store, portals_dir=portals) as client:
+        configured = client.get("/docs/my-portal")
+        unknown = client.get("/docs/no-such-portal")
     assert configured.status_code == 200
-    assert "Nothing recorded for reference-insurer in this store" in configured.text
-    assert empty_client.get("/docs/no-such-portal").status_code == 404
+    assert "Nothing recorded for my-portal in this store" in configured.text
+    assert unknown.status_code == 404
 
 
 def test_section_index_counts_and_overview(ba_client: TestClient) -> None:
