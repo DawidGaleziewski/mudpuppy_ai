@@ -1,4 +1,4 @@
--- GENERATED from data/migrations/*.up.sql applied in order (currently through 0013_relation_triples). Do not edit by hand.
+-- GENERATED from data/migrations/*.up.sql applied in order (currently through 0014_relation_vocabulary). Do not edit by hand.
 -- Regenerate after every migration; see data/schema/README.md.
 
 CREATE TABLE runs (
@@ -377,11 +377,11 @@ CREATE TABLE doc_relations (
   to_record_id     TEXT NOT NULL REFERENCES doc_records(id),
   type             TEXT NOT NULL CHECK (type IN (
                       'contains','describes','refines','enforces','appears_on','uses_term',
-                      'synonym_of','answers','depends_on'
+                      'synonym_of','answers','depends_on','applies_on','asks_about','follows_up'
                     )),
   PRIMARY KEY (from_revision_id, to_record_id, type)
 ) STRICT, WITHOUT ROWID;
--- Triple backstop (0013): the store refuses a relation whose (from kind, type, to kind) is not in
+-- Triple backstop (0013, extended by 0014 with applies_on, asks_about, follows_up): the store refuses a relation whose (from kind, type, to kind) is not in
 -- RELATION_RULES; the list equals relations.ts (drift test: docs/tests/relation-triples.test.ts).
 CREATE TRIGGER trg_doc_relations_triple_insert
 BEFORE INSERT ON doc_relations
@@ -400,7 +400,10 @@ WHEN EXISTS (
       (NEW.type = 'uses_term'  AND tr.kind = 'glossary_term') OR
       (NEW.type = 'synonym_of' AND fr.kind = 'glossary_term' AND tr.kind = 'glossary_term') OR
       (NEW.type = 'answers'    AND fr.kind IN ('assumption','requirement','business_rule') AND tr.kind = 'open_question') OR
-      (NEW.type = 'depends_on' AND fr.kind = tr.kind)
+      (NEW.type = 'depends_on' AND fr.kind = tr.kind) OR
+      (NEW.type = 'applies_on' AND fr.kind = 'business_rule' AND tr.kind = 'screen') OR
+      (NEW.type = 'asks_about' AND fr.kind = 'open_question') OR
+      (NEW.type = 'follows_up' AND fr.kind = 'followup' AND tr.kind IN ('process','capability','screen','business_rule','open_question','use_case'))
     )
 )
 BEGIN
@@ -424,7 +427,10 @@ WHEN EXISTS (
       (NEW.type = 'uses_term'  AND tr.kind = 'glossary_term') OR
       (NEW.type = 'synonym_of' AND fr.kind = 'glossary_term' AND tr.kind = 'glossary_term') OR
       (NEW.type = 'answers'    AND fr.kind IN ('assumption','requirement','business_rule') AND tr.kind = 'open_question') OR
-      (NEW.type = 'depends_on' AND fr.kind = tr.kind)
+      (NEW.type = 'depends_on' AND fr.kind = tr.kind) OR
+      (NEW.type = 'applies_on' AND fr.kind = 'business_rule' AND tr.kind = 'screen') OR
+      (NEW.type = 'asks_about' AND fr.kind = 'open_question') OR
+      (NEW.type = 'follows_up' AND fr.kind = 'followup' AND tr.kind IN ('process','capability','screen','business_rule','open_question','use_case'))
     )
 )
 BEGIN

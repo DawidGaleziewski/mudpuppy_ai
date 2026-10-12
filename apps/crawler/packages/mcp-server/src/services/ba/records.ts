@@ -32,6 +32,7 @@ import {
   sessionRunIds,
   type SessionRow,
 } from './common.js';
+import { assertOneFieldPerDataItem } from './data-item-fields.js';
 
 type RecordRow = Selectable<DocRecordsTable>;
 
@@ -331,6 +332,7 @@ export function createRecord(ctx: BaContext, raw: unknown): WriteOutput {
   const input = parseInput(CreateRecordInput, raw);
   const content = parseContent(input.kind, input.content);
   assertNoPii(content, 'content', isIdPath);
+  assertOneFieldPerDataItem(ctx, content, input.evidence);
   assertNoPii(
     input.evidence.map((e) => e.note),
     'evidence.note',
@@ -425,6 +427,7 @@ export function reviseRecord(ctx: BaContext, raw: unknown): WriteOutput {
     const record = currentRecord(ctx, session, input.key, input.base_rev);
     const content = parseContent(record.kind, input.content);
     assertNoPii(content, 'content', isIdPath);
+    assertOneFieldPerDataItem(ctx, content, input.evidence);
 
     if (input.responds_to_review !== undefined) {
       const review = ctx.raw

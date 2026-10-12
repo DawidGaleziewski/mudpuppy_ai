@@ -1146,14 +1146,17 @@ entries:
     short: Typed links between records, such as a rule that enforces a requirement or a field that appears on a screen.
     explanation: |
       Relation types: `contains`, `describes`, `refines`, `enforces`, `appears_on`, `uses_term`,
-      `synonym_of`, `answers`, `depends_on`. Relations belong to the revision that states them, so
-      they change with the record.
+      `synonym_of`, `answers`, `depends_on`, and since R-45 `applies_on` (a rule holds on a
+      screen), `asks_about` (what an open question is about) and `follows_up` (what a follow-up
+      would observe). Each type allows only certain pairs of record kinds; the server and the store
+      both refuse any other pair, so no bad link is ever stored. Relations belong to the revision
+      that states them, so they change with the record.
     example: On reference-insurer the most common are uses_term (44), appears_on (41) and contains (39).
-    appears_in: [Record page → Relations, Linked records]
+    appears_in: [Record page → Relations, Linked records, SRS export (Business rules on this screen, Open questions about this)]
     labels: [Relations, Linked records]
     related: [documentation-record, traceability]
-    changed_in: R-22
-    changed_on: 2026-10-03
+    changed_in: R-45
+    changed_on: 2026-10-12
 
   - id: traceability
     wiki: traceability

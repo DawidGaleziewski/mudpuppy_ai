@@ -178,3 +178,26 @@ export const incoming = (
   type: string,
 ): ExportRecord[] =>
   records.filter((r) => r.relations.some((x) => x.type === type && x.to_key === key));
+
+/**
+ * The incoming links a reader looks for on a record (spec 019 F-14): open questions about it
+ * (`asks_about`) and follow-ups for it (`follows_up`). Empty when there are none, so records without
+ * them render as before.
+ */
+export function backlinks(records: readonly ExportRecord[], key: string, file: string): string[] {
+  const out: string[] = [];
+  for (const [type, label] of [
+    ['asks_about', 'Open questions about this'],
+    ['follows_up', 'Follow-ups for this'],
+  ] as const) {
+    const from = incoming(records, key, type);
+    if (from.length > 0)
+      out.push(
+        '',
+        `**${label}:**`,
+        '',
+        ...list(from.map((r) => `${keyLink(r.key, file)} ${r.title}`)),
+      );
+  }
+  return out;
+}

@@ -17,6 +17,17 @@ export const RELATION_RULES: Record<RelationType, readonly Rule[]> = {
   synonym_of: [{ from: ['glossary_term'], to: ['glossary_term'] }],
   answers: [{ from: ['assumption', 'requirement', 'business_rule'], to: ['open_question'] }],
   depends_on: [{ from: 'any', to: 'same' }],
+  // spec 019 F-14: a rule applies on a screen; a question is about any record; a follow-up is
+  // for the process, capability, screen or rule it would observe. Mirrored by migration 0014.
+  applies_on: [{ from: ['business_rule'], to: ['screen'] }],
+  asks_about: [{ from: ['open_question'], to: DocKind.options }],
+  // + open_question and use_case: what the BA tried in the next trial (spec 019 F-16)
+  follows_up: [
+    {
+      from: ['followup'],
+      to: ['process', 'capability', 'screen', 'business_rule', 'open_question', 'use_case'],
+    },
+  ],
 };
 
 export type RelationCheck =
@@ -31,26 +42,40 @@ export type RelationCheck =
         to_kind: DocKind;
         /** What `type` does allow, as `from type to` phrases. */
         allowed: string[];
+        /** The same type is allowed from `to_kind` to `from_kind`. */
+        reverse_allowed?: true;
       };
     };
 
 const describeRule = (type: RelationType, r: Rule): string =>
   `${r.from === 'any' ? 'any kind' : r.from.join('|')} ${type} ${r.to === 'same' ? 'a record of the same kind' : r.to.join('|')}`;
 
-/** Whether a record of `fromKind` may assert `type` towards a record of `toKind`. */
-export function isAllowed(fromKind: DocKind, type: RelationType, toKind: DocKind): RelationCheck {
-  const rules = RELATION_RULES[type];
-  const ok = rules.some(
+const permits = (type: RelationType, fromKind: DocKind, toKind: DocKind): boolean =>
+  RELATION_RULES[type].some(
     (r) =>
       (r.from === 'any' || r.from.includes(fromKind)) &&
       (r.to === 'same' ? toKind === fromKind : r.to.includes(toKind)),
   );
-  if (ok) return { ok: true };
-  const allowed = rules.map((r) => describeRule(type, r));
+
+/** Whether a record of `fromKind` may assert `type` towards a record of `toKind`. */
+export function isAllowed(fromKind: DocKind, type: RelationType, toKind: DocKind): RelationCheck {
+  if (permits(type, fromKind, toKind)) return { ok: true };
+  const allowed = RELATION_RULES[type].map((r) => describeRule(type, r));
+  // The BA sometimes writes a link from the wrong end (`glossary_term uses_term data_item`);
+  // saying so turns the retry into the right relation (spec 019 F-16).
+  const reverse = permits(type, toKind, fromKind)
+    ? ` The reverse is allowed: write "${toKind} ${type} ${fromKind}" on the ${toKind} record.`
+    : '';
   return {
     ok: false,
     code: 'RELATION_NOT_ALLOWED',
-    message: `${fromKind} ${type} ${toKind} is not an allowed relation; allowed: ${allowed.join('; ')}`,
-    details: { from_kind: fromKind, type, to_kind: toKind, allowed },
+    message: `${fromKind} ${type} ${toKind} is not an allowed relation; allowed: ${allowed.join('; ')}.${reverse}`,
+    details: {
+      from_kind: fromKind,
+      type,
+      to_kind: toKind,
+      allowed,
+      ...(reverse ? { reverse_allowed: true } : {}),
+    },
   };
 }

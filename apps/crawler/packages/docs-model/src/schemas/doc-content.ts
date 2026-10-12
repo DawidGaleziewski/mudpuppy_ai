@@ -23,11 +23,25 @@ export const ScreenElement = z.object({
 });
 export type ScreenElement = z.infer<typeof ScreenElement>;
 
+/**
+ * A route template as the crawler recorded it: a path, never a query on it (a hash route may keep
+ * one after `#`, as recorded). The BA kept writing parameters into it in three reference trials
+ * although the skill and the tool description said not to (spec 019 F-09, F-13, F-15), so the
+ * contract is enforced; the parameters belong in `entry_points`.
+ */
+export const RouteTemplate = z
+  .string()
+  .min(1)
+  .refine((t) => !t.split('#')[0]!.includes('?'), {
+    message:
+      'a route template is the recorded path without a query; put URLs with parameters in entry_points',
+  });
+
 export const ScreenContent = z.object({
   kind: z.literal('screen'),
   ...base,
   purpose: z.string().min(1),
-  route_templates: z.array(z.string().min(1)).min(1),
+  route_templates: z.array(RouteTemplate).min(1),
   elements: z.array(ScreenElement),
   entry_points: z.array(z.string().min(1)),
 });

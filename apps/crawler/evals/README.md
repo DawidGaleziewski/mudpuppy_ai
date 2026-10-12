@@ -62,7 +62,9 @@ What the code-based graders measure:
 - **Diagnostics**, explain why a score moved: the rest of `run-checks.ts`, and `ba-writes.ts`
   (the BA's `create_record`/`revise_record`/`withdraw_record` calls the server refused, from the
   transcripts, by error code; checks `ba_write_calls`, `ba_write_refused`, `ba_write_refused_pct`,
-  spec 019).
+  `ba_relation_refused`, spec 019), and `ba-shapes.ts` (record-shape mistakes the trials caught:
+  `route_templates_with_query`, `data_items_joined` — a data item holding two or more ground-truth
+  field labels — and `rules_on_screens_pct`, rules linked to a screen with `applies_on`).
 
 ### Judges (model-based graders, spec 017)
 

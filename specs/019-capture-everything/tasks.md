@@ -142,3 +142,32 @@ test/eval idea; slow tier (`pnpm test:slow`) before committing any group that to
   checkboxes; changelog; merge per the owner's go-ahead.
   (Done except the merge: glossary, roadmap rows at `review`, CHANGELOG under Unreleased, session
   dump `session_dump/2026-10-12-r37-r38-r45-capture-everything.md`.)
+
+## Amendment (owner, 2026-10-12): relation vocabulary F-14 options 1–4
+
+Branch `feature/019-r45-relation-vocabulary` from master v1.0.19. Owner: "ok do it. Add these
+arrows … Run tests. Add evals. Make sure all is working. Add tests for such cases to make sure this
+won't happen again."
+
+- [x] T031 [opus] `RelationType` + `RELATION_RULES`: `applies_on` (business_rule → screen),
+  `asks_about` (open_question → any kind), `follows_up` (followup → process | capability | screen |
+  business_rule).
+- [x] T032 [sonnet] Migration `0014_relation_vocabulary` (db-admin): `doc_relations` CHECK rebuilt,
+  triggers recreated with the new triples; down deletes rows of the new types; schema snapshot,
+  store tests, dashboard read model.
+- [x] T033 [sonnet] Export: "Business rules on this screen" (screens), "Open questions about this"
+  and "Follow-ups for this" (screens, processes, rules); `ba-practice` reference and skill; glossary
+  `relations`.
+- [x] T034 [opus] Regression tests: BA end to end (the three links stored, wrong pairs refused by the
+  server and by the store), `docs/tests/contract-drift.test.ts` (every relation type has rules over
+  known kinds; the evals' intents allowed; no type allows every pair; the tool description and the
+  `ba-practice` reference name every type and only allowed pairs; every evidence kind classified
+  observable or not, `NOT_OBSERVABLE_KINDS`), `export-relations.test.ts`.
+- [x] T035 [sonnet] Eval checks: `ba_relation_refused` (from `ba-writes.ts`) and `ba-shapes.ts`
+  (`route_templates_with_query`, `data_items_joined`, `rules_on_screens_pct`); on the 2026-10-12
+  reference workspace they read 5, 5 and 0 %, matching the hand count.
+- [x] T036 [opus] Full test run, one reference trial to see the checks move, close-out.
+  (As run: three reference trials (F-15, F-16 and the last); the last one: fields 100 %,
+  constraints 100 %, `ba_relation_refused` 0, `data_items_joined` 0, `route_templates_with_query` 0,
+  `rules_on_screens_pct` 100, no regression; the 5 refusals are the new guards, each corrected on
+  retry. Squash-merged on master, tag v1.0.20.)

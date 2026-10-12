@@ -256,6 +256,153 @@ describe('create_record', () => {
   });
 });
 
+describe('screen route templates stay the recorded path (spec 019 F-15)', () => {
+  it('refuses a query on the path and says where parameters go; a hash-route query is kept', async () => {
+    const h = await startBa();
+    const s = await h.session();
+    const screen = (route: string) =>
+      create(h, s, {
+        kind: 'screen',
+        content: { ...CONTENT.screen, route_templates: [route] },
+      });
+    const bad = await h.refused('create_record', screen('/porownanie/wynik?produkt_1={code}'));
+    expect(bad.code).toBe('SCHEMA_INVALID');
+    expect(bad.message).toContain('put URLs with parameters in entry_points');
+    await h.must('create_record', screen('/ubezpieczenia#/szkody/potwierdzenie?nr=:nr'));
+  });
+});
+
+describe('one data item per form field (spec 019 F-16)', () => {
+  it('refuses a data item naming two fields of the form it cites, keeps a single field', async () => {
+    const h = await startBa();
+    const s = await h.session();
+    const form = 'form-travel';
+    h.fx.raw
+      .prepare(
+        `INSERT INTO forms (id, run_id, state_id, fields_json, evidence_ref, confidence, created_at)
+         SELECT ?, run_id, state_id, ?, evidence_ref, 'observed', created_at FROM forms WHERE id = ?`,
+      )
+      .run(
+        form,
+        JSON.stringify([
+          { name: 'data_wyjazdu', type: 'date', label: 'Data wyjazdu' },
+          { name: 'data_powrotu', type: 'date', label: 'Data powrotu' },
+          { name: 'zgoda', type: 'checkbox', label: 'Oświadczam, że zapoznałem się z OWU' },
+        ]),
+        h.fx.forms.vehicle,
+      );
+    const item = (name: string) =>
+      create(h, s, {
+        kind: 'data_item',
+        content: {
+          title: name,
+          name_verbatim: name,
+          lang: 'pl',
+          name_en: name,
+          data_type: 'date',
+          constraints: {},
+          seen_in: [{ kind: 'form', target_id: form }],
+        },
+        evidence: [{ target_kind: 'form', target_id: form }],
+      });
+    const joined = await h.refused('create_record', item('Data wyjazdu / Data powrotu'));
+    expect(joined).toMatchObject({
+      code: 'SCHEMA_INVALID',
+      fields: ['Data wyjazdu', 'Data powrotu'],
+    });
+    expect(joined.message).toContain('write one data_item per field');
+    await h.must('create_record', item('Data wyjazdu'));
+    // a label with a comma is one field, not two
+    await h.must('create_record', item('Oświadczam, że zapoznałem się z OWU'));
+  });
+});
+
+describe('a relation written from the wrong end (spec 019 F-16)', () => {
+  it('says the reverse is allowed', async () => {
+    const h = await startBa();
+    const s = await h.session();
+    await h.must(
+      'create_record',
+      create(h, s, { kind: 'glossary_term', content: CONTENT.glossary_term }),
+    );
+    await h.must('create_record', create(h, s));
+    const err = await h.refused(
+      'create_record',
+      create(h, s, {
+        kind: 'glossary_term',
+        content: { ...CONTENT.glossary_term, term_verbatim: 'OC', title: 'OC' },
+        relations: [{ type: 'uses_term', to_key: 'REQ-001' }],
+      }),
+    );
+    expect(err).toMatchObject({ code: 'RELATION_NOT_ALLOWED', reverse_allowed: true });
+    expect(err.message).toContain(
+      'write "requirement uses_term glossary_term" on the requirement record',
+    );
+  });
+});
+
+describe('relations the BA kept trying (spec 019 F-12/F-14)', () => {
+  it('stores a rule applying on a screen, a question about a rule, a follow-up for a screen', async () => {
+    const h = await startBa();
+    const s = await h.session();
+    const inferred = (kind: string, content: object, relations: object[]) =>
+      create(h, s, { kind, content, confidence: 'inferred', relations });
+    await h.must('create_record', create(h, s, { kind: 'screen', content: CONTENT.screen }));
+    await h.must(
+      'create_record',
+      inferred('business_rule', CONTENT.business_rule, [{ type: 'applies_on', to_key: 'SCR-001' }]),
+    );
+    await h.must(
+      'create_record',
+      inferred('open_question', CONTENT.open_question, [{ type: 'asks_about', to_key: 'BR-001' }]),
+    );
+    await h.must(
+      'create_record',
+      inferred('followup', CONTENT.followup, [{ type: 'follows_up', to_key: 'SCR-001' }]),
+    );
+    const screen = await h.must('get_record', { portal_id: h.fx.portalId, key: 'SCR-001' });
+    expect(
+      screen.related_from.map((r: { type: string; from_key: string }) => [r.type, r.from_key]),
+    ).toEqual(
+      expect.arrayContaining([
+        ['applies_on', 'BR-001'],
+        ['follows_up', 'FUP-001'],
+      ]),
+    );
+    const rule = await h.must('get_record', { portal_id: h.fx.portalId, key: 'BR-001' });
+    expect(rule.related_from).toEqual([
+      expect.objectContaining({ type: 'asks_about', from_key: 'OQ-001' }),
+    ]);
+  });
+
+  it('still refuses the new types between the wrong kinds, in the server and in the store', async () => {
+    const h = await startBa();
+    const s = await h.session();
+    await h.must('create_record', create(h, s, { kind: 'screen', content: CONTENT.screen }));
+    const wrong = await h.refused(
+      'create_record',
+      create(h, s, { relations: [{ type: 'applies_on', to_key: 'SCR-001' }] }),
+    );
+    expect(wrong).toMatchObject({ code: 'RELATION_NOT_ALLOWED', from_kind: 'requirement' });
+    // the store's own guard (migration 0013/0014): a write that skips the server is refused too
+    const screenId = (
+      h.fx.raw.prepare("SELECT id FROM doc_records WHERE key = 'SCR-001'").get() as { id: string }
+    ).id;
+    const rev = (
+      h.fx.raw.prepare('SELECT id FROM doc_revisions WHERE record_id = ?').get(screenId) as {
+        id: string;
+      }
+    ).id;
+    expect(() =>
+      h.fx.raw
+        .prepare(
+          `INSERT INTO doc_relations (from_revision_id, to_record_id, type) VALUES (?, ?, 'follows_up')`,
+        )
+        .run(rev, screenId),
+    ).toThrow(/RELATION_NOT_ALLOWED/);
+  });
+});
+
 describe('relations', () => {
   it('stores allowed relations and refuses the rest (RELATION_NOT_ALLOWED)', async () => {
     const h = await startBa();

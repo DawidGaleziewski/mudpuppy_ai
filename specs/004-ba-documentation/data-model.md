@@ -141,7 +141,7 @@ Every revision has ≥ 1 link (enforced by the tool in the same transaction and 
 |---|---|---|
 | `from_revision_id` | TEXT FK → doc_revisions | Relations are versioned with the revision that asserts them |
 | `to_record_id` | TEXT FK → doc_records | Points at a record (its current revision at read time) |
-| `type` | TEXT NOT NULL | `contains, describes, refines, enforces, appears_on, uses_term, synonym_of, answers, depends_on` (process steps and personas are not records: steps live in `process_steps`, the persona in `process` content) |
+| `type` | TEXT NOT NULL | `contains, describes, refines, enforces, appears_on, uses_term, synonym_of, answers, depends_on`, plus `applies_on, asks_about, follows_up` since `0014_relation_vocabulary` (spec 019 F-14) (process steps and personas are not records: steps live in `process_steps`, the persona in `process` content) |
 | PK | (`from_revision_id`, `to_record_id`, `type`) | |
 
 Allowed (from kind, type, to kind) triples are a table in `@pathfinder/docs` (tasks.md T009). Since

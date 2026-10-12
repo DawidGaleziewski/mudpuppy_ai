@@ -28,6 +28,19 @@ export const OBSERVABLE_KINDS: readonly EvidenceTargetKind[] = [
   'page_visit',
 ];
 
+/**
+ * Kinds that never show behaviour. Every `EvidenceTargetKind` is in exactly one of the two lists
+ * (tested), so a new kind cannot fall through unclassified as `page_visit` did (spec 019 F-07).
+ */
+export const NOT_OBSERVABLE_KINDS: readonly EvidenceTargetKind[] = [
+  'rule_candidate',
+  'open_question',
+  'decision',
+  'process',
+  'doc_record',
+  'review',
+];
+
 export function qualifiesAsObserved(target: ResolvedTarget): boolean {
   return OBSERVABLE_KINDS.includes(target.target_kind) && target.confidence === 'observed';
 }

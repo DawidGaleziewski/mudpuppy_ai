@@ -138,6 +138,12 @@ needs: `references/srs-outline.md`.
 - A `data_item` relates to its screen with `appears_on`; any record using a domain term relates to the
   `glossary_term` with `uses_term`.
 - A `requirement` `refines` a `use_case` or `capability` and `enforces` a `business_rule`.
+- A `business_rule` relates to each screen it holds on with `applies_on` (besides citing the
+  screen region as evidence); an `open_question` names what it is about with `asks_about`; a
+  `followup` names the process, capability, screen, rule, use case or open question it would
+  observe or answer with `follows_up`.
+- One data item per form field: the server refuses a data item whose name holds two or more field
+  labels of the form it cites ("Data wyjazdu / Data powrotu" is two data items).
 - Allowed relation triples are enforced (`RELATION_NOT_ALLOWED`); see `references/record-kinds.md`.
 
 ## Hand-offs, logged-in evidence and legacy obstacles

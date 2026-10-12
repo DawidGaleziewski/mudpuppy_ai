@@ -269,3 +269,35 @@ automatically.
 
 Open for the owner: which of 1/2/3 (or 6 instead), whether 2 targets any kind, and the verbs
 (`applies_on`, `asks_about`, `follows_up` are proposals; the glossary entries follow the choice).
+
+## F-15 Reference trial with the new relation types (2026-10-12, T036)
+
+- **Relations work**: BA write refusals 1 of 101 (1 %; was 12 % and 5 % in the two trials before);
+  `rules_on_screens_pct` 100 (every business rule linked to its screen with `applies_on`);
+  `fields` 50 → 69.2, `constraints` 61.2 → 75.5; crawl 17/17. $4.12.
+- **One refusal left, a fourth intent**: `assumption depends_on business_rule` (an assumption about
+  a rule). Not added: the owner approved three types; for the owner to decide.
+- **Route templates**: the BA still wrote 5 screen route templates with a query
+  (`route_templates_with_query` 5) although the crawler's states carry none and the skill and the
+  tool description both said not to: it documents GET parameters there on purpose. Now enforced:
+  `RouteTemplate` in `docs-model` refuses a query on the path part (a hash route keeps its query)
+  with "put URLs with parameters in entry_points"; test in `ba-records.test.ts`.
+- **Joined data items**: `data_items_joined` 4 (was 5). Not enforced: real labels contain commas
+  ("Oświadczam, że zapoznałem się z OWU"), so a rule on the name would refuse good records; stays
+  a measured diagnostic for R-39.
+
+## F-16 Confirming reference trial after the route-template rule (2026-10-12)
+
+- **Fixed**: `route_templates_with_query` 5 → 0; `rules_on_screens_pct` 100; crawl 17/17. $4.80.
+- **Not yet fine**: 6 of 107 writes refused: 4 `followup follows_up open_question`, 2 `followup
+  follows_up use_case` (legitimate: a follow-up that would answer a question or trace a use
+  case), 2 `glossary_term uses_term data_item` (written from the wrong end). `data_items_joined`
+  4: "Data wyjazdu / Data powrotu", "Login / Hasło", "Pierwszy produkt / Drugi produkt", "Zgoda … /
+  Oświadczam …"; `fields` 69.2 % (baseline 88.5).
+- **Fix**: `follows_up` also targets `open_question` and `use_case` (code, migration 0014,
+  reference, drift tests); a refused relation whose reverse is allowed says so ("write
+  `data_item uses_term glossary_term` on the data_item record", `reverse_allowed`); the server
+  refuses a data item whose name holds two or more visible labels of a form it cites
+  (`services/ba/data-item-fields.ts`, observed labels only, so "Oświadczam, że zapoznałem się z OWU"
+  stays one field). On this trial's store the rule refuses exactly the 4 joined items and none of
+  the 19 correct ones. Tests in `ba-records.test.ts`, `contract-drift.test.ts`, `relations.test.ts`.

@@ -14,6 +14,18 @@ const ALLOWED: [DocKind, RelationType, DocKind][] = [
   ['assumption', 'answers', 'open_question'],
   ['requirement', 'answers', 'open_question'],
   ['business_rule', 'answers', 'open_question'],
+  ['business_rule', 'applies_on', 'screen'],
+  ['followup', 'follows_up', 'process'],
+  ['followup', 'follows_up', 'capability'],
+  ['followup', 'follows_up', 'screen'],
+  ['followup', 'follows_up', 'business_rule'],
+  ['followup', 'follows_up', 'open_question'],
+  ['followup', 'follows_up', 'use_case'],
+  ...DocKind.options.map((to): [DocKind, RelationType, DocKind] => [
+    'open_question',
+    'asks_about',
+    to,
+  ]),
 ];
 
 describe('relation table', () => {

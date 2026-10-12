@@ -1,4 +1,5 @@
 import {
+  backlinks,
   byKind,
   doc,
   field,
@@ -106,9 +107,23 @@ export function screens(m: ExportModel): string {
         '',
         ...list(strings(s.content.entry_points)),
         ...observedUrls(m.screen_urls[s.key]),
+        ...rulesApplied(m, s.key, file),
+        ...backlinks(m.records, s.key, file),
       ]);
     }),
   ]);
+}
+
+/** The business rules that apply on a screen (`applies_on`, spec 019 F-14); empty when none. */
+function rulesApplied(m: ExportModel, key: string, file: string): string[] {
+  const rules = incoming(m.records, key, 'applies_on');
+  if (rules.length === 0) return [];
+  return [
+    '',
+    '**Business rules on this screen:**',
+    '',
+    ...list(rules.map((r) => `${keyLink(r.key, file)} ${r.title}`)),
+  ];
 }
 
 /**
@@ -213,6 +228,7 @@ export function processes(m: ExportModel): string {
               `**Not observable beyond the boundary** (${inline(p.boundary.action)}): ${inline(p.boundary.not_observable)}`,
             ]
           : []),
+        ...backlinks(m.records, p.key, file),
       ]),
     );
     for (const u of incoming(ucs, p.key, 'describes')) {

@@ -30,6 +30,9 @@ Portal-language text goes in `*_verbatim` fields with a `lang` code (e.g. `pl`).
 - `glossary_term` synonym_of `glossary_term`
 - `assumption` | `requirement` | `business_rule` answers `open_question`
 - depends_on between two records of the same kind (e.g. process → process)
+- `business_rule` applies_on `screen` (the screen where the rule holds)
+- `open_question` asks_about any record (what the question is about; the answer later uses `answers`)
+- `followup` follows_up `process` | `capability` | `screen` | `business_rule` | `open_question` | `use_case` (what the follow-up would observe or answer)
 
 ## Constraints in `data_item`
 

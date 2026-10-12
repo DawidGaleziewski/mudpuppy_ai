@@ -2395,12 +2395,15 @@ what the crawler actually recorded.
 **Typed links between records, such as a rule that enforces a requirement or a field that appears on a screen.**
 
 Relation types: `contains`, `describes`, `refines`, `enforces`, `appears_on`, `uses_term`,
-`synonym_of`, `answers`, `depends_on`. Relations belong to the revision that states them, so
-they change with the record.
+`synonym_of`, `answers`, `depends_on`, and since R-45 `applies_on` (a rule holds on a
+screen), `asks_about` (what an open question is about) and `follows_up` (what a follow-up
+would observe). Each type allows only certain pairs of record kinds; the server and the store
+both refuse any other pair, so no bad link is ever stored. Relations belong to the revision
+that states them, so they change with the record.
 
 *Example:* On reference-insurer the most common are uses_term (44), appears_on (41) and contains (39).
 
-*Seen in:* Record page → Relations; Linked records
+*Seen in:* Record page → Relations; Linked records; SRS export (Business rules on this screen; Open questions about this)
 
 *Labels:* `Relations`, `Linked records`
 
@@ -2408,7 +2411,7 @@ they change with the record.
 
 *Read more:* [BA wiki: Traceability](../wiki/traceability.md)
 
-<sub>Last changed in R-22, 2026-10-03.</sub>
+<sub>Last changed in R-45, 2026-10-12.</sub>
 
 <a id="traceability"></a>
 

@@ -46,6 +46,15 @@ for the source, `to_record_id` → `doc_records.kind` for the target) and `RAISE
 `packages/docs/tests/relation-triples.test.ts`. Existing stores held 0 bad relations (checked), so the
 migration cannot fail on data.
 
+## Migration 0014_relation_vocabulary (F-14)
+
+No new column, no index. `doc_relations` is rebuilt (PRIMARY KEY, STRICT, WITHOUT ROWID kept, rows copied) so
+the `type` CHECK admits `applies_on` (business_rule → screen), `asks_about` (open_question → any kind) and
+`follows_up` (followup → process, capability, screen, business_rule). Both 0013 triggers are dropped with the
+old table and recreated with the triple list extended to equal `RELATION_RULES`. Down: relations of the three
+new types are deleted (no old type can hold them; lossy), the 0013 triggers are restored. Existing stores
+cannot violate anything: the types are new. Drift test: `packages/docs/tests/relation-triples.test.ts`.
+
 ## Zod (owner: `@pathfinder/core`, crawl model — used by crawler, store, mcp-server, docs)
 
 ```ts

@@ -11,6 +11,7 @@ import { latestAnalysisSession, type RawDb } from '../queries.js';
 import type { EvalTask } from '../tasks.js';
 import { scoreCrawl } from './code/crawl-coverage.js';
 import { scoreDocs } from './code/docs-coverage.js';
+import { scoreBaShapes } from './code/ba-shapes.js';
 import { scoreBaWrites } from './code/ba-writes.js';
 import { sweepLeaks, transcriptPath } from './code/leaks.js';
 import { scoreTrace } from './code/process-trace.js';
@@ -50,6 +51,29 @@ function gradeDocs(db: RawDb, m: GradeInput) {
   };
 }
 
+/** Checks of the BA's session: completion, hand-offs, refused writes, record-shape mistakes. */
+function baChecks(
+  session: { status: string } | undefined,
+  handoffs: number,
+  writes: ReturnType<typeof scoreBaWrites> | null,
+  shapes: ReturnType<typeof scoreBaShapes> | null,
+) {
+  return {
+    ba_session_completed: session?.status === 'completed',
+    handoffs,
+    // spec 019 US4: reported and compared, not yet a gate (a first measurement)
+    ...(writes && {
+      ba_write_calls: writes.calls,
+      ba_write_refused: writes.refused,
+      ba_write_refused_pct: writes.refused_pct,
+      // spec 019 F-12/F-14: should stay 0 now that the BA's intents have relation types
+      ba_relation_refused: writes.by_code.RELATION_NOT_ALLOWED ?? 0,
+    }),
+    // spec 019 F-09/F-13/F-14: the record-shape mistakes the trials caught
+    ...(shapes ?? {}),
+  };
+}
+
 export async function grade(m: GradeInput) {
   const { portal, persona, env } = m.config;
   const loggedIn = persona !== 'guest';
@@ -61,6 +85,7 @@ export async function grade(m: GradeInput) {
     ? scoreTrace(opened.raw, m.crawlRunId, m.groundTruth, m.task.trace.processId)
     : null;
   const run = runChecks(opened.raw, m.crawlRunId, loggedIn);
+  const shapes = docs ? scoreBaShapes(opened.raw, portal, m.groundTruth) : null;
   await opened.close();
   console.log(
     `crawl: ${crawl.matched}/${crawl.total} ground-truth screens${crawl.missing.length ? `, missing ${crawl.missing.join(', ')}` : ''}; frontier pending ${run.frontier_pending}`,
@@ -91,16 +116,7 @@ export async function grade(m: GradeInput) {
       crawler_completed: run.crawler_completed,
       crawler_steps: run.crawler_steps,
       frontier_pending: run.frontier_pending,
-      ...(docs && {
-        ba_session_completed: session?.status === 'completed',
-        handoffs: docs.handoffs,
-      }),
-      // spec 019 US4: reported and compared, not yet a gate (a first measurement)
-      ...(writes && {
-        ba_write_calls: writes.calls,
-        ba_write_refused: writes.refused,
-        ba_write_refused_pct: writes.refused_pct,
-      }),
+      ...(docs && baChecks(session, docs.handoffs, writes, shapes)),
       ...(trace && { trace_goal_reached: trace.goalReached }),
       relogins: run.relogins,
       logged_in: run.logged_in,

@@ -87,6 +87,9 @@ RelationType = Literal[
     "synonym_of",
     "answers",
     "depends_on",
+    "applies_on",
+    "asks_about",
+    "follows_up",
 ]
 
 RUN_STATUSES: tuple[RunStatus, ...] = ("running", "completed", "stopped_warning", "interrupted")

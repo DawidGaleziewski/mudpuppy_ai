@@ -6,6 +6,20 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Added
+- R-45 amendment, relation vocabulary (the owner, 2026-10-12: "add these arrows … make sure this
+  won't happen again"):
+  - New relation types: `applies_on` (business rule → screen), `asks_about` (open question → any
+    record), `follows_up` (follow-up → process, capability, screen, rule, use case, open question),
+    migration `0014_relation_vocabulary`. The export shows "Business rules on this screen", "Open
+    questions about this" and "Follow-ups for this".
+  - Guards the evals asked for: a screen route template with a query on its path is refused; a
+    data item naming two or more observed labels of the form it cites is refused; a relation
+    written from the wrong end says which way is allowed.
+  - Tests against drift: `contract-drift.test.ts` keeps the relation types, the store triggers, the
+    tool description and the `ba-practice` reference in agreement, and every evidence kind classified.
+  - Eval checks: `ba_relation_refused`, `route_templates_with_query`, `data_items_joined`,
+    `rules_on_screens_pct`. Reference trial: fields 100 %, constraints 100 %, all four checks clean,
+    no regression.
 - Proprietary licence (2026-10-12, asked by the owner): `LICENSE` (all rights reserved, confidential,
   no AI training or text and data mining) and `THIRD_PARTY_NOTICES.md` (Mermaid and Spec Kit MIT
   texts, htmx, JetBrains Mono) in this repo. export-fork ships its own pair from

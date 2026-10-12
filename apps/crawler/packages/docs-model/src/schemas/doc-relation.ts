@@ -12,6 +12,10 @@ export const RelationType = z.enum([
   'synonym_of',
   'answers',
   'depends_on',
+  // spec 019 F-14 (owner, 2026-10-12): what the BA kept trying to say (F-12)
+  'applies_on',
+  'asks_about',
+  'follows_up',
 ]);
 export type RelationType = z.infer<typeof RelationType>;
 
