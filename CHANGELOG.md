@@ -6,6 +6,10 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Added
+- Proprietary licence (2026-10-12, asked by the owner): `LICENSE` (all rights reserved, confidential,
+  no AI training or text and data mining) and `THIRD_PARTY_NOTICES.md` (Mermaid and Spec Kit MIT
+  texts, htmx, JetBrains Mono) in this repo. export-fork ships its own pair from
+  `apps/exportfork-export/templates`; the leak check lets `LICENSE` name the owner (`ownerFiles`).
 - R-49 export-fork, the Kiro field artifact (added and started by the user 2026-10-11).
   - **`apps/exportfork-export`**, `pnpm --dir apps/exportfork-export export`: it builds a separate local
     repo (`../export-fork`, no remote) from the current commit.

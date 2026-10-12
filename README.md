@@ -170,3 +170,11 @@ for every portal that does not set `pii_scrub`, which is expected since constitu
 Develop with `pnpm --dir apps/crawler test`, `typecheck`, `lint`, and in `apps/dashboard` with `uv run pytest` and
 `uv run ruff check .`. Tests that need a browser skip themselves when
 Chromium cannot start.
+
+## License
+
+Proprietary. Copyright © 2026 Dawid Gałęziewski. All rights reserved. This is not open-source
+software: no use, copying, modification or distribution without written permission, and no use
+for AI or machine-learning training or text and data mining (rights reserved under Article 4(3)
+of Directive (EU) 2019/790). See [`LICENSE`](LICENSE); third-party files keep their own licences
+([`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md)).

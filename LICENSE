@@ -1,0 +1,76 @@
+MUDPUPPY — PROPRIETARY SOFTWARE NOTICE
+
+Copyright © 2026 Dawid Gałęziewski. All rights reserved.
+
+MudPuppy (repository "MudPuppy-AI", also developed under the working name
+"Pathfinder") is proprietary software. It is not open-source software. No
+open-source licence (MIT, Apache, GPL or any other) applies to it.
+
+1. OWNERSHIP
+
+Dawid Gałęziewski retains all rights, title and interest in the original
+software, source code, prompts, agent instructions, documentation, data
+models, designs and accompanying materials that he owns (the "Software").
+Access to the Software, or any publication of it, does not transfer
+ownership or grant a licence of any kind.
+
+Third-party components remain subject to their respective ownership rights
+and licences (see THIRD_PARTY_NOTICES.md).
+
+2. NO LICENCE GRANTED
+
+Use of the Software is reserved exclusively to Dawid Gałęziewski.
+
+Without his prior written permission, no other person or entity is
+authorised to use, run, copy, modify, distribute, sublicense, sell, host,
+deploy, create derivative works from, or incorporate any protected portion
+of the Software into another product or service, whether for commercial or
+non-commercial purposes.
+
+Having access to the Software (for example as a collaborator, reviewer or
+viewer of a demonstration) does not grant permission to install, execute,
+copy or reuse it.
+
+3. CONFIDENTIAL INFORMATION
+
+The Software and the domain knowledge, methods, processes, prompts and
+designs it contains are confidential information and trade secrets of
+Dawid Gałęziewski. Anyone given access to them must keep them confidential
+and must not disclose or use them for any purpose other than the one for
+which access was given.
+
+4. NO AI TRAINING OR TEXT AND DATA MINING
+
+Dawid Gałęziewski expressly reserves all rights in the Software against
+text and data mining, including under Article 4(3) of Directive (EU)
+2019/790, Article 26³ of the Polish Act on Copyright and Related Rights,
+and any equivalent law.
+
+Without a separate, paid, written licence from him, no person or entity
+may use the Software or any part of it to train, fine-tune, evaluate,
+benchmark, ground, index, embed or otherwise develop or improve any
+machine-learning or artificial-intelligence model or system. This also
+covers building datasets, retrieval indexes or prompts from it. Each such
+use is unauthorised, and the right to seek damages and licence fees for it
+is reserved.
+
+5. LIMITED EXCEPTIONS
+
+This notice does not restrict rights that cannot lawfully be excluded, or
+permissions granted under the applicable terms of a platform hosting this
+repository (for example GitHub's terms for public repositories, where they
+apply). No additional permissions are granted by this notice.
+
+6. ENFORCEMENT
+
+Unauthorised use, copying, distribution or training may result in legal
+action. Dawid Gałęziewski reserves the right to pursue all remedies
+available under applicable law, including takedown requests, injunctive
+relief, damages, licence fees and recovery of legal costs where permitted.
+
+7. NO WARRANTY
+
+The Software is experimental and provided "AS IS", without warranties of
+any kind, to the fullest extent permitted by applicable law.
+
+Requests for permission must be made in writing to Dawid Gałęziewski.
