@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import tempfile
 from pathlib import Path
 
 from pydantic import Field
@@ -46,3 +47,6 @@ class Settings(BaseSettings):
     portals_dir: Path = Field(default_factory=lambda: find_data_dir().parent / "portals")
     # Glossary, its long pages and the BA wiki (spec 006): authored content, read-only here.
     docs_dir: Path = Field(default_factory=lambda: find_data_dir().parent / "docs")
+    # Where `pnpm eval` leaves its workspaces (`pf-eval-<portal>-*`), listed in the store picker
+    # (spec 019 US5); None turns the listing off.
+    eval_root: Path | None = Field(default_factory=lambda: Path(tempfile.gettempdir()))

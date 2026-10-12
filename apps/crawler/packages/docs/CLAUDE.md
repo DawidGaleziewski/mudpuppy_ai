@@ -11,6 +11,9 @@ schemas) and store (record keys are allocated in the DB, `src/keys.ts`).
 
 - Record keys and status engine; used by mcp-server (BA tools), gates, apps/chat.
 - Relations, observed rules, evidence resolution; used by mcp-server.
+- Spec 019: `parameterInventory` (`param-inventory.ts`, URL parameters and entry URLs per state,
+  pure; `render/screen-urls.ts` puts them in the export) and `describeRecordKinds` /
+  `describeRelations` (`record-kinds-text.ts`, the BA's write contract as text, from the schemas).
 - SRS rendering (`src/render/`), audit, review, export, process scope, evaluation; used by the
   crawler app scripts (`pnpm docs:*`). `readGroundTruth()` reads a YAML ground truth (G-34); used
   by `apps/crawler/evals/`, `docs:evaluate` and the gates.

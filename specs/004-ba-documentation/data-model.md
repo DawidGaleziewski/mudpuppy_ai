@@ -144,7 +144,11 @@ Every revision has ≥ 1 link (enforced by the tool in the same transaction and 
 | `type` | TEXT NOT NULL | `contains, describes, refines, enforces, appears_on, uses_term, synonym_of, answers, depends_on` (process steps and personas are not records: steps live in `process_steps`, the persona in `process` content) |
 | PK | (`from_revision_id`, `to_record_id`, `type`) | |
 
-Allowed (from kind, type, to kind) triples are a table in `@pathfinder/docs` (tasks.md T009).
+Allowed (from kind, type, to kind) triples are a table in `@pathfinder/docs` (tasks.md T009). Since
+`0013_relation_triples` (spec 019 F-12) the store enforces the same list: `BEFORE INSERT` and `BEFORE UPDATE`
+triggers on `doc_relations` abort with `RELATION_NOT_ALLOWED: ...` on any other triple, so no write path can
+store one. The server's friendly `RELATION_NOT_ALLOWED` refusal (with the allowed list) stays the first line;
+`docs/tests/relation-triples.test.ts` checks every (kind, type, kind) against both, so they cannot drift.
 
 ## Review — `doc_reviews`
 

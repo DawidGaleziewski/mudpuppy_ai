@@ -30,7 +30,7 @@ async function snapshotOfSellerPage(scrub: boolean) {
       url: `${portal.origin}/sprzedawca`,
       rationale: 'x',
     });
-    expect(page.body.error).toBeUndefined();
+    expect(page.body.error, JSON.stringify(page.body.error)).toBeUndefined();
     const state = h.ctx.raw
       .prepare('SELECT title, evidence_ref, screenshot_ref FROM states WHERE id = ?')
       .get(page.body.state_id) as { title: string; evidence_ref: string; screenshot_ref: string };
@@ -80,6 +80,7 @@ describe.skipIf(!available)('pii_scrub (spec 008 FR-004)', () => {
           intent: 'Open the login page',
           rationale: 'x',
         });
+        expect(page.isError, JSON.stringify(page.body)).toBe(false);
         const email = (page.body.actions as { role: string; action_id: string }[]).find(
           (a) => a.role === 'textbox',
         )!;

@@ -258,6 +258,20 @@ export interface NetworkCallsTable {
   res_schema: string;
   console_errors: string;
   created_at: string;
+  /** 0012: the verbatim request URL (query kept); NULL before 0012. */
+  url: ColumnType<string | null, string | null | undefined, string | null>;
+}
+
+/** 0012: one arrival on a page, its verbatim URL and the hops (JSON `NavigationHop[]`) that led there. */
+export interface PageVisitsTable {
+  id: string;
+  run_id: string;
+  state_id: string;
+  edge_id: string | null;
+  via: 'navigate' | 'action' | 'relogin' | 'login';
+  url: string;
+  hops_json: string;
+  created_at: string;
 }
 
 export interface FrontierTable {
@@ -517,6 +531,7 @@ export interface Database {
   edges: EdgesTable;
   forms: FormsTable;
   network_calls: NetworkCallsTable;
+  page_visits: PageVisitsTable;
   frontier: FrontierTable;
   open_questions: OpenQuestionsTable;
   rule_candidates: RuleCandidatesTable;

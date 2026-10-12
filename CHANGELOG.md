@@ -10,6 +10,48 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   no AI training or text and data mining) and `THIRD_PARTY_NOTICES.md` (Mermaid and Spec Kit MIT
   texts, htmx, JetBrains Mono) in this repo. export-fork ships its own pair from
   `apps/exportfork-export/templates`; the leak check lets `LICENSE` name the owner (`ownerFiles`).
+- R-37, R-38 and R-45 on one branch (spec 019, "capture everything"; the user 2026-10-11: "these
+  are quite small, one branch").
+  - **Every URL, every parameter (R-37):**
+    - Each arrival on a page is a `page_visit` with the verbatim URL: query, path parameters
+      (`;jsessionid=`), fragment and tracking parameters, nothing normalised away. API calls keep
+      their `url`.
+    - Route templates drop path parameters, so a session id never makes a screen of its own (LO-24
+      promoted to a gate).
+    - A per-screen parameter inventory (values seen, where each was set) for the BA
+      (`get_run_evidence` kinds `page_visits` and `parameters`, evidence kind `page_visit`), the SRS
+      export ("URLs observed", "URL parameters") and the dashboard state page ("Reached under").
+    - Proving ground: LO-52, the legacy statement `wyciag.do` with intertwined `typ`, `okres` and
+      `tryb`. In the bank eval the BA documented it as BR-005 with a decision table, citing 13
+      visits.
+    - Form-POST shapes keep field names under `fields` (spec 015 F-08).
+  - **Every redirect (R-38):**
+    - Each visit lists its hops: `navigate`, `http` with status, `meta_refresh`, `script`,
+      `same_document`, `reload`, or `blocked` with the reason. Playwright events only, no DevTools
+      session.
+    - Short client-side redirects are waited through (`scope.client_redirect_wait_ms`, 5 s), so an
+      interstitial is a hop, not a screen (LO-23 promoted; LO-21 and LO-22 assert the hops).
+  - **R-28 leftovers (R-45):**
+    - Micro-frontend mounts are waited for inside every frame read (LO-53 gate).
+    - The BA's write tools carry record shapes and relations generated from the schemas.
+      Refusals name the expected shape and the relations a kind may assert. The eval reports
+      `ba_write_calls`, `ba_write_refused` and `ba_write_refused_pct`. Bank refusals went from 39 %
+      to 4 %; insurer 7 %; shop and reference 12 %, all guessed relations.
+    - Dashboard: eval workspaces in the data-store picker, newest first; a portal with no data in
+      the current store names the stores that hold it; the startup line prints the resolved store.
+  - **Storage:** migration `0012_page_visits` adds the table and `network_calls.url`, and rebuilds
+    `doc_evidence_links` for the `page_visit` kind (reversible). Migration `0013_relation_triples`:
+    the store itself refuses a relation outside the allowed (kind, type, kind) triples (triggers,
+    with a drift test against `RELATION_RULES`; the owner, "we should have no bad relations").
+  - **Fixed on the way:** step durations use a monotonic clock. The wall clock stepping back broke
+    `elapsed_ms >= 0`, so a call failed `INTERNAL` after recording its page; this was the cause of
+    load-dependent e2e flakes, master included.
+  - **Glossary entries:** `page-visit`, `navigation-hop`, `parameter-inventory`, `entry-url`;
+    `eval-workspace` updated.
+  - **Open:** F-10/F-13 (the BA merges form fields and writes queries into route templates; the
+    `create_record` description now states both rules, unconfirmed), F-11 (residual timing flakes
+    of the trace phase sum and the golden's `limiter_wait` under load), F-14 (relation vocabulary
+    proposal for the owner to rate), R-50 (parameters as screen identity, to discuss).
 - R-49 export-fork, the Kiro field artifact (added and started by the user 2026-10-11).
   - **`apps/exportfork-export`**, `pnpm --dir apps/exportfork-export export`: it builds a separate local
     repo (`../export-fork`, no remote) from the current commit.

@@ -166,7 +166,8 @@ export type DataItemConstraints = z.infer<typeof DataItemConstraints>;
 
 /** Assumption: where the field was seen, resolved like an evidence target (`form` or `network_call` id). */
 export const DataItemSighting = z.object({
-  kind: z.enum(['form', 'network_call']),
+  /** `page_visit`: a URL parameter, seen on that visit's URL (spec 019, R-37). */
+  kind: z.enum(['form', 'network_call', 'page_visit']),
   target_id: Id,
 });
 export type DataItemSighting = z.infer<typeof DataItemSighting>;

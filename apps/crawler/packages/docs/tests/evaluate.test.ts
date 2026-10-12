@@ -220,6 +220,16 @@ describe('evaluate (research §16, contracts/ground-truth.md)', () => {
     expect(r.scores.screens).toMatchObject({ matched: 9, total: 10, pct: 90, missing: ['S10'] });
   });
 
+  it('a route template written with its query still names the screen (spec 019 F-09)', () => {
+    const withQuery = records().map((r) =>
+      r.kind === 'screen' && r.key === 'SCR-001'
+        ? { ...r, content: { ...r.content, route_templates: ['/page-1?produkt={code}&n=2'] } }
+        : r,
+    );
+    const r = evaluate({ ...base, records: withQuery });
+    expect(r.scores.screens).toMatchObject({ matched: 9, total: 10 });
+  });
+
   it('fields match by normalised verbatim label, guest forms only', () => {
     const r = evaluate({ ...base, records: records() });
     expect(r.scores.fields).toMatchObject({ matched: 3, total: 3, missing: [] });

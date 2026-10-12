@@ -96,3 +96,34 @@ def test_old_claim_form_post_redirect_get(client) -> None:
     assert r.status_code == 302
     assert r["Location"] == "/legacy/insurer/szkoda-stara.do?ok=1"
     assert "Zgłoszenie przyjęte" in client.get(r["Location"]).content.decode()
+
+
+def test_statement_parameters_depend_on_each_other(client) -> None:
+    """LO-52 (spec 019): typ decides the format of okres, tryb=druk the layout, konto travels."""
+    sid = _bank(client)
+    menu = client.get("/legacy/bank/menu.do").content.decode()
+    assert "wyciag.do;jsessionid=" in menu and 'target="_top"' in menu
+    base = f"/legacy/bank/wyciag.do;jsessionid={sid}?konto=4521"
+    monthly = client.get(f"{base}&typ=M&okres=2026-03&tryb=podglad").content.decode()
+    assert "rachunek 4521, okres 2026-03" in monthly and "miesięczny" in monthly
+    assert "konto=4521&amp;typ=M&amp;okres=2026-03&amp;tryb=druk" in monthly
+    assert "typ=R&amp;okres=2026&amp;tryb=podglad" in monthly
+    yearly_print = client.get(f"{base}&typ=R&okres=2026&tryb=druk").content.decode()
+    assert "WYDRUK WYCIĄGU" in yearly_print and "Okres: 2026" in yearly_print
+    wrong = client.get(f"{base}&typ=M&okres=2026&tryb=podglad").content.decode()
+    assert "Nieprawidłowy okres dla wyciągu miesięcznego (RRRR-MM)." in wrong
+    wrong_yearly = client.get(f"{base}&typ=R&okres=2026-03&tryb=druk").content.decode()
+    assert "Nieprawidłowy okres dla wyciągu rocznego (RRRR)." in wrong_yearly
+    assert "WYDRUK" not in wrong_yearly
+    assert "Brak numeru rachunku" in client.get("/legacy/bank/wyciag.do").content.decode()
+
+
+def test_rates_mount_late_inside_a_frame(client) -> None:
+    """LO-53 (spec 019): the wrapper frames a front end that mounts after the page is quiet."""
+    sid = _bank(client)
+    assert "kursy.do;jsessionid=" in client.get("/legacy/bank/menu.do").content.decode()
+    wrapper = client.get(f"/legacy/bank/kursy.do;jsessionid={sid}").content.decode()
+    assert f'src="/legacy/bank/kursy-app.do;jsessionid={sid}"' in wrapper
+    app = client.get(f"/legacy/bank/kursy-app.do;jsessionid={sid}").content.decode()
+    assert '<script type="importmap">' in app and '<div id="app"></div>' in app
+    assert "setTimeout" in app and "1500" in app

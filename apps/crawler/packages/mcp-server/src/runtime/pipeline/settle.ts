@@ -1,5 +1,15 @@
 import { shapeUrl } from '@pathfinder/trace';
-import { waitForMounts, type MountWait, type SettleOutcome } from '@pathfinder/crawler';
+import {
+  followClientRedirects,
+  waitForMountsIn,
+  walkFrames,
+  type ClientRedirects,
+  type MountProbe,
+  type MountWait,
+  type PageMountWait,
+  type SettleOutcome,
+} from '@pathfinder/crawler';
+import { navigationPolicy } from './gate.js';
 import { sessionExpired } from '../login.js';
 import type { RunState } from '../run-state.js';
 import {
@@ -32,41 +42,87 @@ export function settleReports(rs: RunState, outcome: SettleOutcome): Report[] {
   ];
 }
 
-/** `event mfe_mount_timeout` per mount point still empty when the wait ran out (spec 015 R4). */
-export function mountReports(w: MountWait): Report[] {
-  if (!w.timedOut) return [];
-  return w.mounts
-    .filter((m) => !m.filled)
-    .map((m) =>
-      event('mfe_mount_timeout', {
-        selector: m.selector,
-        frame: '',
-        waited_ms: Math.round(w.waitedMs),
-        bundles: w.bundles.length,
-      }),
-    );
+/**
+ * `event mfe_mount_timeout` per mount point still empty when the wait ran out (spec 015 R4), in the
+ * top document (`frame: ''`) and in each frame read with it (`frame`: its URL, spec 019 LO-53).
+ */
+export function mountReports(w: MountWait & { frames?: PageMountWait['frames'] }): Report[] {
+  const empty = (frame: string, probe: MountProbe) =>
+    probe.mounts
+      .filter((m) => !m.filled)
+      .map((m) =>
+        event('mfe_mount_timeout', {
+          selector: m.selector,
+          frame,
+          waited_ms: Math.round(w.waitedMs),
+          bundles: probe.bundles.length,
+        }),
+      );
+  return [
+    ...(w.timedOut ? empty('', w) : []),
+    ...(w.frames ?? []).filter((f) => f.timedOut).flatMap((f) => empty(f.url, f.probe)),
+  ];
+}
+
+/**
+ * `event client_redirect` when the page redirected itself (spec 019 FR-007): how many hops were
+ * waited through, a refresh too slow to wait for, or a loop stopped at the hop cap.
+ */
+export function clientRedirectReports(r: ClientRedirects): Report[] {
+  if (r.followed === 0 && r.pending === null && !r.capped) return [];
+  return [
+    event('client_redirect', {
+      followed: r.followed,
+      capped: r.capped,
+      ...(r.pending
+        ? { pending_refresh: { delay_ms: Math.round(r.pending.delayMs), target: r.pending.target } }
+        : {}),
+    }),
+  ];
 }
 
 /**
  * Wait for the page to settle; obstacles dismissed meanwhile are traced, a block stops the run. A
- * page that loads micro-frontends at run time is then given until its mount points fill (bounded by
- * `scope.mfe_wait_ms`) and settled once more, so the observation sees the rendered front end.
+ * page that redirects itself (meta refresh, script) is waited through first, so an interstitial is
+ * never observed as a screen (LO-23). A page that loads micro-frontends at run time is then given
+ * until its mount points fill (bounded by `scope.mfe_wait_ms`) and settled once more, so the
+ * observation sees the rendered front end.
  */
 function settle(sc: StepContext) {
   const { ctx, rs } = sc;
   return step(sc, 'settle', async () => {
     let outcome = await rs.session.settleTraced();
-    const mounts = await waitForMounts(rs.session.page, rs.scope.mfe_wait_ms);
+    const redirects = await followClientRedirects(rs.session.page, {
+      maxWaitMs: rs.scope.client_redirect_wait_ms,
+      navigating: () => rs.session.navigation.navigating(),
+    });
+    if (redirects.followed > 0) outcome = await rs.session.settleTraced();
+    const mounts = await waitForMountsIn(
+      rs.session.page,
+      () => framesRead(rs),
+      rs.scope.mfe_wait_ms,
+    );
     if (mounts.waitedMs >= MOUNT_RESETTLE_MS) outcome = await rs.session.settleTraced();
     rs.lastMounts = mounts;
     const reports = [
       ...settleReports(rs, outcome),
+      ...clientRedirectReports(redirects),
       ...mountReports(mounts),
       ...obstacleReports(rs),
     ];
     await orFail(reports, throwIfStopped(ctx, rs));
     return reported(outcome.result, reports);
   });
+}
+
+/** The frames the observation will read (same walk and filter as `observe`), whose mounts count too. */
+async function framesRead(rs: RunState) {
+  const inScope = navigationPolicy(rs);
+  const walk = await walkFrames(rs.session.page, {
+    maxDepth: rs.scope.frame_depth,
+    inScope: (url) => inScope(url) === null,
+  });
+  return walk.frames.filter((f) => f.observed).map((f) => f.frame);
 }
 
 /** A mount wait shorter than this changed nothing worth a second settle. */

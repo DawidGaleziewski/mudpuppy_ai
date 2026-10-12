@@ -91,6 +91,11 @@ export const Scope = Budgets.extend({
   mfe_wait_ms: z.number().int().min(0).max(60000).default(10000),
   /** How deep nested frames are observed (spec 015). */
   frame_depth: z.number().int().min(0).max(5).default(3),
+  /**
+   * Longest meta-refresh delay that is followed, and the wait per client-side redirect hop, in ms
+   * (spec 019 FR-007): an interstitial ("Proszę czekać…") is passed, not recorded as a screen.
+   */
+  client_redirect_wait_ms: z.number().int().min(0).max(30000).default(5000),
 });
 export type Scope = z.infer<typeof Scope>;
 

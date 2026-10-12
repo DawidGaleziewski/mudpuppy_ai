@@ -5,7 +5,9 @@ Pure state fingerprinting: route templates, ARIA canonicalisation, two-level fin
 Layer: kernel (G-07)
 
 ## Public API
-- `route-template`: route template computation.
+- `route-template`: route template computation (path parameters such as `;jsessionid=` dropped, LO-24).
+- `url-params`: `parseUrlParams`, every query, path and hash-route parameter of a URL as written
+  (spec 019, R-37).
 - `aria-canonical`: ARIA canonicalisation.
 - `fingerprint`: two-level fingerprint.
 

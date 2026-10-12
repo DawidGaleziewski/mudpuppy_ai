@@ -178,7 +178,9 @@ def docs_perf_store(tmp_path_factory: pytest.TempPathFactory) -> Store:
             )  # fmt: skip
             for j in range(3):
                 links.append((f"{vid}-e{j}", vid, "state", "perf-state", DOC_RUN, "note"))
-        relations.append((f"{rid}-r3", f"rec-{(i + 1) % n:05d}", "refines"))
+        # depends_on is allowed between records of one kind (the store refuses other triples, 0013)
+        if i + len(DOC_KIND_PREFIX) < n:
+            relations.append((f"{rid}-r3", f"rec-{i + len(DOC_KIND_PREFIX):05d}", "depends_on"))
     w.executemany(
         "INSERT INTO doc_records (id, portal_id, kind, key, seq, title, latest_rev, confirmed_rev,"
         " withdrawn, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 't', 't')",

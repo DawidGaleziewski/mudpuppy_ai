@@ -21,3 +21,5 @@ export * from './report.js';
 export * from './session.js';
 export * from './locators.js';
 export * from './step-outcomes.js';
+export * from './navigation-recorder.js';
+export * from './client-redirect.js';

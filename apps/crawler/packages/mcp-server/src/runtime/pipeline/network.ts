@@ -1,16 +1,23 @@
+import { maskText } from '@pathfinder/core';
 import type { ServerContext } from '../../context.js';
 import { ToolError } from '../../errors.js';
 import { recordApiCall, type RunRow } from '../../services/index.js';
 import type { RunState } from '../run-state.js';
 import { decision, fail, reported, type Report, type Reported } from './context.js';
 
+/** Where the calls were observed: the action's edge (if any), the page's state, the portal's masking. */
+export interface NetworkAt {
+  edgeId: string | undefined;
+  stateId: string;
+  scrub: boolean;
+}
+
 /** The API calls observed for this page; a call that cannot be stored is a decision, not a failure. */
 export async function recordNetwork(
   ctx: ServerContext,
   run: RunRow,
   net: Awaited<ReturnType<RunState['session']['recorder']['drain']>>,
-  edgeId: string | undefined,
-  state_id: string,
+  { edgeId, stateId: state_id, scrub }: NetworkAt,
 ): Promise<Reported<void>> {
   const reports: Report[] = [];
   for (const call of net.calls) {
@@ -19,6 +26,8 @@ export async function recordNetwork(
         run_id: run.id,
         edge_id: edgeId ?? null,
         ...call,
+        // Verbatim unless the portal asks for masking (spec 019, research R2).
+        url: scrub ? maskText(call.url) : call.url,
         console_errors: net.console_errors,
       });
     } catch (e) {

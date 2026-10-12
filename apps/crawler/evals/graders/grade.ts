@@ -11,7 +11,8 @@ import { latestAnalysisSession, type RawDb } from '../queries.js';
 import type { EvalTask } from '../tasks.js';
 import { scoreCrawl } from './code/crawl-coverage.js';
 import { scoreDocs } from './code/docs-coverage.js';
-import { sweepLeaks } from './code/leaks.js';
+import { scoreBaWrites } from './code/ba-writes.js';
+import { sweepLeaks, transcriptPath } from './code/leaks.js';
 import { scoreTrace } from './code/process-trace.js';
 import { runChecks } from './code/run-checks.js';
 
@@ -28,6 +29,17 @@ export interface GradeInput {
 }
 
 export type Grades = Awaited<ReturnType<typeof grade>>;
+
+/** The BA's refused writes over the trial's transcripts, printed by error code (spec 019 US4). */
+function baWrites(sessionIds: readonly string[]) {
+  const transcripts = sessionIds.map(transcriptPath).filter((t): t is string => t !== null);
+  const w = scoreBaWrites(transcripts);
+  const codes = Object.entries(w.by_code).map(([c, n]) => `${c} ${n}`);
+  console.log(
+    `BA writes: ${w.refused} of ${w.calls} refused (${w.refused_pct} %)${codes.length ? `: ${codes.join(', ')}` : ''}`,
+  );
+  return w;
+}
 
 /** Documentation graders, or none when the BA did not run. */
 function gradeDocs(db: RawDb, m: GradeInput) {
@@ -58,6 +70,7 @@ export async function grade(m: GradeInput) {
       `trace: ${trace.steps.matched}/${trace.steps.total} process steps in order${trace.steps.missing.length ? `, missing ${trace.steps.missing.join(', ')}` : ''}; goal reached: ${trace.goalReached ? 'yes' : 'no'}`,
     );
   const leaks = await sweepLeaks(m.ws, portal, env, m.sessionIds);
+  const writes = docs ? baWrites(m.sessionIds) : null;
   return {
     session,
     scores: {
@@ -81,6 +94,12 @@ export async function grade(m: GradeInput) {
       ...(docs && {
         ba_session_completed: session?.status === 'completed',
         handoffs: docs.handoffs,
+      }),
+      // spec 019 US4: reported and compared, not yet a gate (a first measurement)
+      ...(writes && {
+        ba_write_calls: writes.calls,
+        ba_write_refused: writes.refused,
+        ba_write_refused_pct: writes.refused_pct,
       }),
       ...(trace && { trace_goal_reached: trace.goalReached }),
       relogins: run.relogins,

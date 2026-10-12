@@ -11,6 +11,7 @@ import {
   table,
 } from '../format.js';
 import { capabilityMap, processMap, screenNav } from '../mermaid.js';
+import type { StateInventory } from '../../param-inventory.js';
 import type { ExportModel, ExportRecord } from '../model.js';
 
 const mermaid = (text: string): string[] => ['```mermaid', text.trimEnd(), '```'];
@@ -104,9 +105,46 @@ export function screens(m: ExportModel): string {
         '**Entry points:**',
         '',
         ...list(strings(s.content.entry_points)),
+        ...observedUrls(m.screen_urls[s.key]),
       ]);
     }),
   ]);
+}
+
+/**
+ * The URLs a screen was reached under and the parameters they carried, as recorded (spec 019,
+ * R-37/R-38): what a re-creating team needs to keep old links and parameter wiring working.
+ */
+function observedUrls(inv: StateInventory | undefined): string[] {
+  if (!inv) return [];
+  return [
+    '',
+    '**URLs observed** (verbatim):',
+    '',
+    ...list(
+      inv.entry_urls.map(
+        (e) =>
+          `\`${e.url}\` (${e.visits} visit${e.visits === 1 ? '' : 's'}${e.hop_kinds.length ? `; via ${e.hop_kinds.join(' → ')}` : ''})`,
+      ),
+    ),
+    ...(inv.entry_urls_more > 0 ? ['', `and ${inv.entry_urls_more} more`] : []),
+    ...(inv.params.length === 0
+      ? []
+      : [
+          '',
+          '**URL parameters:**',
+          '',
+          ...table(
+            ['Name', 'In', 'Values seen', 'Distinct'],
+            inv.params.map((p) => [
+              `\`${p.name}\``,
+              p.in.replace('_', ' '),
+              p.values.map((v) => (v === null ? '(no value)' : `\`${v}\``)).join(', '),
+              String(p.distinct),
+            ]),
+          ),
+        ]),
+  ];
 }
 
 type Flow = { n?: unknown; actor_or_system?: unknown; text?: unknown }[];

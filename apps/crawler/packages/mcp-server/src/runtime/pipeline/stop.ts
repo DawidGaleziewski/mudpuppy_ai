@@ -77,7 +77,10 @@ export async function bumpRun(
 ): Promise<Reported<void>> {
   const counters = {
     steps_used: run.steps_used + 1,
-    elapsed_ms: run.elapsed_ms + (Date.now() - startedAt),
+    // `startedAt` is `performance.now()`: the wall clock may step back (WSL resyncs it under load),
+    // and a negative step broke the CHECK `elapsed_ms >= 0`, so the call failed INTERNAL after
+    // recording its page (spec 019 F-04/F-05).
+    elapsed_ms: run.elapsed_ms + Math.max(0, Math.round(performance.now() - startedAt)),
     max_depth_reached: Math.max(run.max_depth_reached, depth),
   };
   await ctx.db.updateTable('runs').set(counters).where('id', '=', run.id).execute();

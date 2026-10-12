@@ -13,21 +13,19 @@ Layer: servers (G-07; `apps/crawler/layers.json`)
   the crawl pipeline, one file per step or tool:
   - `process-page.ts`: the ordered steps for an observed page (`settle` → `observe` → `net_drain` →
     `fingerprint-step` → `record-state` → visuals → CAPTCHA hand-off → depth → `record-page`
-    forms/transition → network → `enqueue` → trace step), all on one `StepContext` (`context.ts`).
-    `settle` also waits for micro-frontend mounts; `observe` reads frames (`frames.ts`:
-    `frame_skipped` reports); `composition.ts` builds the page composition and the result hints
-    (spec 015).
+    forms/transition → network → `record_visit` → `enqueue` → trace step) on one `StepContext`.
+    `settle` waits through client redirects and for mounts in every frame read; `visits.ts`
+    stores the page visit (spec 019); `observe` reads frames (`frames.ts`); `composition.ts`
+    builds the page composition (spec 015).
   - `navigate.ts`, `act.ts` (+ `act-gate.ts`), `login-step.ts`, `relogin.ts`, `trace-boundary.ts`:
     the tool entry points; `gate.ts` (gate context, item cap, `refuse`), `stop.ts` (begin step,
     persist stop, bookkeeping), `actions.ts` (issued action rows, input values), `next-item.ts`
     (`withNext`: map-mode results carry the next frontier item, spec 013).
-  - Map-mode results leave out `actions` for a state the run already observed
-    (`actions_omitted`; `include_actions: true` lists them); tests that read actions on a revisit
-    pass `include_actions`.
-- `src/services/frontier.ts` + `same-target.ts`: `get_next_frontier_item` settles link items whose
-  target the run already reached as `inferred` edges instead of handing them out (spec 013 US2).
-  - `index.ts` re-exports only `navigate`, `act`, `login`, `beginStep`, `persistStop`,
-    `navigationPolicy`, `ActionRow`.
+  - Map-mode results omit `actions` on a revisited state (`actions_omitted`; tests that read
+    them pass `include_actions`). `index.ts` re-exports only the tool entry points and helpers.
+- `src/services/frontier.ts` + `same-target.ts`: link items whose target the run already reached
+  become `inferred` edges (spec 013 US2). BA reads: `services/ba/reads.ts`, `run-evidence.ts`
+  (`get_run_evidence`, incl. `page_visits`, `parameters`, spec 019).
 - Entry points: `pnpm --filter @pathfinder/mcp-server start` (`src/main.ts`), `start:ba`.
 
 ## Invariants

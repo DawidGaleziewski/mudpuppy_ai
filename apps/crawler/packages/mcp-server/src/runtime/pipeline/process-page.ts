@@ -13,6 +13,7 @@ import { recordFormsStep, recordTraceStep, recordTransitionStep } from './record
 import { recordStateStep, trackDepth } from './record-state.js';
 import { settleStep } from './settle.js';
 import { persistStop, throwIfStopped } from './stop.js';
+import { recordVisitStep } from './visits.js';
 import { newStateVisuals } from './visuals.js';
 
 /**
@@ -56,7 +57,14 @@ export async function processPage(sc: StepContext): Promise<PageResult> {
   const formCount = await recordFormsStep(sc, page);
   // Edge (for act) first: API calls observed during an action hang off it.
   const edgeId = await recordTransitionStep(sc, { stateId: state_id, evidenceRef, stabilization });
-  await step(sc, 'record_api_calls', () => recordNetwork(ctx, run, net, edgeId, state_id));
+  await step(sc, 'record_api_calls', () =>
+    recordNetwork(ctx, run, net, {
+      edgeId,
+      stateId: state_id,
+      scrub: rs.effective.portal.pii_scrub,
+    }),
+  );
+  await recordVisitStep(sc, { stateId: state_id, url: observed.url, edgeId, relogged });
   const issued = await step(sc, 'enqueue_frontier', () =>
     issueAndEnqueue(ctx, run, rs, observed, {
       state_id,

@@ -101,10 +101,18 @@ function mergeInto(target: TrieNode, src: TrieNode): void {
   for (const [key, sub] of src.children) mergeInto(child(target, key), sub);
 }
 
-/** Segments of the normalized URL's path, followed by `#` and the hash-route path if present. */
+/**
+ * Segments of the normalized URL's path, followed by `#` and the hash-route path if present. Path
+ * parameters (`;jsessionid=…`) are not part of a segment: a session id must never make a route of its
+ * own (LO-24, spec 019); the stored URL keeps them.
+ */
 function segmentsOf(normalized: string): { host: string; segments: string[] } {
   const url = new URL(normalized);
-  const split = (p: string) => p.split('/').filter(Boolean);
+  const split = (p: string) =>
+    p
+      .split('/')
+      .map((s) => s.replace(/;.*$/, ''))
+      .filter(Boolean);
   const segments = split(url.pathname);
   if (isHashRoute(url.hash)) segments.push('#', ...split(url.hash.replace(/^#!?/, '')));
   return { host: url.host, segments };

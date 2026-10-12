@@ -16,7 +16,7 @@ router = APIRouter()
 def healthz(request: Request, env: str | None = None) -> JSONResponse:
     web = web_of(request)
     c = web.ctx(request, env)
-    info = db.store_info(web.settings.data_dir, c.env)
+    info = db.store_info(c.data_dir, c.env)
     return JSONResponse(
         {"ok": info.exists, "store": info.model_dump(), "code": STARTUP_FINGERPRINT},
         status_code=200 if info.exists else 503,

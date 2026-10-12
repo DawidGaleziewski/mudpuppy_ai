@@ -63,7 +63,7 @@ async function actStep(
   state: RunState,
   input: ActInput,
 ): Promise<PageResult> {
-  const started = Date.now();
+  const started = performance.now();
   state.obstacleCursor = state.session.obstacles.events.length;
   if (state.isTrace) await requireCurrentState(ctx, run, state, input.action_id);
   const { action, g, d } = await step({ ctx, run }, 'gate', () =>
@@ -79,6 +79,8 @@ async function actStep(
   // too since constitution 4.0.0, within the portal's limit (spec 011 FR-010).
   if (!state.isTrace && !action.json.input)
     await step(call, 'autofill', () => autofillBeforeSubmit(state, action, locator));
+  // The hops of this action start on the page it was taken on (spec 019, R-38).
+  state.session.navigation.begin(state.session.page.url());
   await perform(call, locator, matches, value);
 
   const fromDepth = state.depthByState.get(action.state_id) ?? 0;

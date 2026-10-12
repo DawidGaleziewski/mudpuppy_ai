@@ -13,5 +13,7 @@ export const NetworkCall = z.object({
   res_schema: JsonValue,
   console_errors: z.array(z.string()),
   created_at: Timestamp,
+  /** 0012 (spec 019): the verbatim request URL, query kept; null on rows recorded before. */
+  url: z.string().min(1).nullable().optional(),
 });
 export type NetworkCall = z.infer<typeof NetworkCall>;

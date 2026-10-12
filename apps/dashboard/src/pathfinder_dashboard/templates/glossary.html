@@ -31,7 +31,7 @@
 
   <div class="docs-main">
     <form class="filters gl-filter" method="get" action="{{ c.url('/glossary') }}" role="search">
-      {%- if c.env_param %}<input type="hidden" name="env" value="{{ c.env_param }}">{% endif %}
+      {%- if c.store_param %}<input type="hidden" name="store" value="{{ c.store_param }}">{% endif %}
       <label class="field">
         <span>filter terms</span>
         <input class="input" type="search" name="q" value="{{ q }}" placeholder="e.g. frontier" data-gl-filter autocomplete="off">

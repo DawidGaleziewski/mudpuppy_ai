@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Kursy walut (aplikacja)</title>
+<script type="importmap">{"imports": {"kursy": "/legacy/static/kursy.js"}}</script>
+</head>
+<body>
+<div id="app"></div>
+<script>
+// LO-53: the app mounts after the page is quiet: no request in flight, no DOM change until then.
+setTimeout(function () {
+  document.getElementById('app').innerHTML =
+    '<table><caption>Kursy walut NBP</caption>' +
+    '<tr><td>Kurs EUR</td><td>4,2615</td></tr>' +
+    '<tr><td>Kurs USD</td><td>3,9120</td></tr></table>';
+}, {{ delay_ms }});
+</script>
+</body>
+</html>

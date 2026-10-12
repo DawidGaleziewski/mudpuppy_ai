@@ -436,6 +436,8 @@ _TARGETS: dict[str, tuple[str, str, Callable[[sqlite3.Row], str]]] = {
     ),
     "process": ("processes", "process", lambda r: r["name"]),
     "process_step": ("process_steps", "process", lambda r: f"step {r['ord']}: {r['intent']}"),
+    # spec 019 (R-37): a visit's verbatim URL, the evidence of a parameter dependency
+    "page_visit": ("page_visits", "states", lambda r: r["url"]),
 }
 
 

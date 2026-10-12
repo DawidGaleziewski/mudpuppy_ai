@@ -203,6 +203,13 @@ export const normalise = (s: string): string =>
 
 const strings = (v: unknown): string[] => (Array.isArray(v) ? v.map(String) : []);
 
+/**
+ * A record's route templates as screen routes: a query written after the path still names the
+ * screen (`/porownanie/wynik?produkt_1={code}` is `/porownanie/wynik`), as crawl coverage already
+ * treats routes (spec 015 F-18). Ground-truth routes never carry a query; spec 019 F-09.
+ */
+const screenRoutes = (v: unknown): string[] => strings(v).map((r) => r.replace(/\?.*$/, ''));
+
 /** Every string in a record's content (statement, title, criteria, table cells, …). */
 function textOf(value: unknown): string[] {
   if (typeof value === 'string') return [value];
@@ -293,7 +300,7 @@ export function evaluate(input: EvaluateInput): EvaluationReport {
     screenMatches.set(
       s.id,
       ofKind('screen')
-        .filter((r) => strings(r.content.route_templates).includes(s.route_template))
+        .filter((r) => screenRoutes(r.content.route_templates).includes(s.route_template))
         .map((r) => r.key),
     );
 
@@ -421,7 +428,7 @@ export function evaluate(input: EvaluateInput): EvaluationReport {
   // ---- v2 categories (spec 009 FR-027), only when the ground truth carries the data -------------
   const screenRecordFor = (route: string): string[] =>
     ofKind('screen')
-      .filter((r) => strings(r.content.route_templates).includes(route))
+      .filter((r) => screenRoutes(r.content.route_templates).includes(route))
       .map((r) => r.key);
 
   // Logged-in screens: matched like guest screens, for screens behind a login.

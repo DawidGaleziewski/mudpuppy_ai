@@ -1,0 +1,100 @@
+{
+  "comment": "Spec 019 T014/T026: one input, one expected inventory; the TS read model (@pathfinder/docs parameterInventory) and the dashboard's Python one (queries_urls.py) must both produce `expected` from `visits`.",
+  "visits": [
+    {
+      "id": "v1",
+      "state_id": "S-wyciag",
+      "edge_id": "E1",
+      "via": "action",
+      "url": "http://pg.test/legacy/bank/wyciag.do;jsessionid=AB12?konto=7&typ=M&okres=2026-09&tryb=podglad",
+      "hops": [
+        { "url": "http://pg.test/legacy/bank/menu.do;jsessionid=AB12", "kind": "start" },
+        { "url": "http://pg.test/legacy/bank/wyciag.do;jsessionid=AB12?konto=7&typ=M&okres=2026-09&tryb=podglad", "kind": "navigate" }
+      ]
+    },
+    {
+      "id": "v2",
+      "state_id": "S-wyciag",
+      "edge_id": "E2",
+      "via": "action",
+      "url": "http://pg.test/legacy/bank/wyciag.do;jsessionid=AB12?konto=7&typ=R&okres=2026&tryb=podglad",
+      "hops": [
+        { "url": "http://pg.test/legacy/bank/menu.do;jsessionid=AB12", "kind": "start" },
+        { "url": "http://pg.test/legacy/bank/wyciag.do;jsessionid=AB12?konto=7&typ=R&okres=2026&tryb=podglad", "kind": "navigate" }
+      ]
+    },
+    {
+      "id": "v3",
+      "state_id": "S-wyciag",
+      "edge_id": null,
+      "via": "navigate",
+      "url": "http://pg.test/legacy/bank/wyciag.do;jsessionid=CD34?konto=7&typ=M&okres=2026-09&tryb=podglad&utm_source=mail&flag",
+      "hops": [
+        { "url": "http://pg.test/stary/wyciag?k=7", "kind": "start" },
+        { "url": "http://pg.test/legacy/bank/wyciag.do;jsessionid=CD34?konto=7&typ=M&okres=2026-09&tryb=podglad&utm_source=mail&flag", "kind": "http", "status": 302 }
+      ]
+    },
+    {
+      "id": "v4",
+      "state_id": "S-polisa",
+      "edge_id": null,
+      "via": "navigate",
+      "url": "http://pg.test/ubezpieczenia#/polisy/7?zakladka=raty",
+      "hops": [
+        { "url": "http://pg.test/polisa.php?id=7", "kind": "start" },
+        { "url": "http://pg.test/stare/polisa/7", "kind": "meta_refresh" },
+        { "url": "http://pg.test/ubezpieczenia#/polisy/7?zakladka=raty", "kind": "script" }
+      ]
+    }
+  ],
+  "expected": [
+    {
+      "state_id": "S-wyciag",
+      "entry_urls": [
+        {
+          "url": "http://pg.test/legacy/bank/wyciag.do;jsessionid=AB12?konto=7&typ=M&okres=2026-09&tryb=podglad",
+          "visits": 1,
+          "via": ["action"],
+          "hop_kinds": ["navigate"]
+        },
+        {
+          "url": "http://pg.test/legacy/bank/wyciag.do;jsessionid=AB12?konto=7&typ=R&okres=2026&tryb=podglad",
+          "visits": 1,
+          "via": ["action"],
+          "hop_kinds": ["navigate"]
+        },
+        {
+          "url": "http://pg.test/legacy/bank/wyciag.do;jsessionid=CD34?konto=7&typ=M&okres=2026-09&tryb=podglad&utm_source=mail&flag",
+          "visits": 1,
+          "via": ["navigate"],
+          "hop_kinds": ["http"]
+        }
+      ],
+      "entry_urls_more": 0,
+      "params": [
+        { "name": "jsessionid", "in": "path", "visits": 3, "values": ["AB12", "CD34"], "distinct": 2, "set_by": [{ "edge_id": "E1", "hop": "navigate" }, { "edge_id": null, "hop": "http" }] },
+        { "name": "konto", "in": "query", "visits": 3, "values": ["7"], "distinct": 1, "set_by": [{ "edge_id": "E1", "hop": "navigate" }] },
+        { "name": "typ", "in": "query", "visits": 3, "values": ["M", "R"], "distinct": 2, "set_by": [{ "edge_id": "E1", "hop": "navigate" }, { "edge_id": "E2", "hop": "navigate" }] },
+        { "name": "okres", "in": "query", "visits": 3, "values": ["2026-09", "2026"], "distinct": 2, "set_by": [{ "edge_id": "E1", "hop": "navigate" }, { "edge_id": "E2", "hop": "navigate" }] },
+        { "name": "tryb", "in": "query", "visits": 3, "values": ["podglad"], "distinct": 1, "set_by": [{ "edge_id": "E1", "hop": "navigate" }] },
+        { "name": "utm_source", "in": "query", "visits": 1, "values": ["mail"], "distinct": 1, "set_by": [{ "edge_id": null, "hop": "http" }] },
+        { "name": "flag", "in": "query", "visits": 1, "values": [null], "distinct": 1, "set_by": [{ "edge_id": null, "hop": "http" }] }
+      ]
+    },
+    {
+      "state_id": "S-polisa",
+      "entry_urls": [
+        {
+          "url": "http://pg.test/ubezpieczenia#/polisy/7?zakladka=raty",
+          "visits": 1,
+          "via": ["navigate"],
+          "hop_kinds": ["meta_refresh", "script"]
+        }
+      ],
+      "entry_urls_more": 0,
+      "params": [
+        { "name": "zakladka", "in": "fragment_query", "visits": 1, "values": ["raty"], "distinct": 1, "set_by": [{ "edge_id": null, "hop": "script" }] }
+      ]
+    }
+  ]
+}

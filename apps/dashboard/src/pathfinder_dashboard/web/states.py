@@ -8,7 +8,7 @@ from typing import Any
 from fastapi import APIRouter, Request
 from fastapi.responses import HTMLResponse
 
-from .. import db, queries_chat, visuals
+from .. import db, queries_chat, queries_urls, visuals
 from .deps import Ctx, web_of
 
 router = APIRouter()
@@ -18,7 +18,7 @@ def state_amendments_values(c: Ctx, conn: sqlite3.Connection, state: Any) -> dic
     """TO-BE amendments on one state, plus what its form needs (T031)."""
     return {
         "items": queries_chat.amendments_for_state(conn, state.portal_id, state.id),
-        "elements": queries_chat.state_elements(c.settings.data_dir, state),
+        "elements": queries_chat.state_elements(c.data_dir, state),
         "self_url": c.url(f"/fragments/states/{state.id}/amendments"),
     }
 
@@ -36,7 +36,7 @@ def state_detail(
     c = web.ctx(request, env)
     try:
         with c.conn() as conn:
-            page = visuals.state_page(conn, web.settings.data_dir, state_id)
+            page = visuals.state_page(conn, c.data_dir, state_id)
             if page is None:
                 return web.render(c, "state_not_found.html", status_code=404, state_id=state_id)
             if not page.figure.has_screenshot:
@@ -45,6 +45,7 @@ def state_detail(
                 c,
                 "state.html",
                 p=page,
+                urls=queries_urls.state_urls(conn, state_id),
                 am=state_amendments_values(c, conn, page.figure.state),
                 view="wireframe" if view == "wireframe" else "screenshot",
                 show_elements=elements,
@@ -61,7 +62,7 @@ def fragment_state_amendments(
     c = web.ctx(request, env)
     try:
         with c.conn() as conn:
-            page = visuals.state_page(conn, web.settings.data_dir, state_id)
+            page = visuals.state_page(conn, c.data_dir, state_id)
             if page is None:
                 return web.render(
                     c, "partials/states/state_missing.html", status_code=404, state_id=state_id

@@ -10,7 +10,9 @@ import type {
   RevisionStatus,
 } from '@pathfinder/docs-model';
 import type { RawDb } from '../keys.js';
+import type { StateInventory } from '../param-inventory.js';
 import type { ProcessMapInput, ScreenNavInput } from './mermaid.js';
+import { screenUrls } from './screen-urls.js';
 import type { ExportAmendment } from './amendments.js';
 
 /**
@@ -163,6 +165,8 @@ export interface ExportModel {
   screen_nav: ScreenNavInput & { omitted: number };
   /** Data item `seen_in` target id → short label (`form on /kontakt`, `GET /api/x`). */
   sightings: Record<string, string>;
+  /** Screen key → its entry URLs and URL parameters (spec 019); screens without visits are absent. */
+  screen_urls: Record<string, StateInventory>;
   /** Set on a process-scoped export (R-30 FR-016); absent otherwise, so unscoped output is unchanged. */
   scope?: { name: string; state_ids: string[] };
   /** BA to-be amendments (R-30 FR-023); absent when the portal has none (SC-007). */
@@ -250,6 +254,8 @@ const TARGET_LABEL: Partial<
   Record<EvidenceTargetKind, { table: string; label: (r: Record<string, unknown>) => string }>
 > = {
   state: { table: 'states', label: (r) => `${String(r.title)} (${String(r.route_template)})` },
+  // spec 019: a visit is shown by its verbatim URL (the dashboard's `_TARGETS` does the same)
+  page_visit: { table: 'page_visits', label: (r) => String(r.url) },
   screen_region: {
     table: 'states',
     label: (r) => `${String(r.title)} (${String(r.route_template)})`,
@@ -658,6 +664,7 @@ export function loadExportModel(
     crawler_questions: crawlerQuestions,
     screen_nav: screenNavInput(raw, rendered, selected),
     sightings: sightingLabels(raw, rendered),
+    screen_urls: screenUrls(raw, rendered, sessionRuns),
   };
 }
 
@@ -679,6 +686,10 @@ function sightingLabels(raw: RawDb, rendered: ExportRecord[]): Record<string, st
           .prepare('SELECT method, url_template FROM network_calls WHERE id = ?')
           .get(s.target_id) as { method: string; url_template: string } | undefined;
         if (row) out[s.target_id] = `${row.method} ${row.url_template}`;
+      } else if (s.kind === 'page_visit') {
+        const row = raw.prepare('SELECT url FROM page_visits WHERE id = ?').get(s.target_id) as
+          { url: string } | undefined;
+        if (row) out[s.target_id] = `URL ${row.url}`;
       }
     }
   }

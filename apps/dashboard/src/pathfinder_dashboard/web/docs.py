@@ -11,8 +11,8 @@ from fastapi.concurrency import run_in_threadpool
 from fastapi.responses import HTMLResponse, PlainTextResponse, RedirectResponse, Response
 from starlette.exceptions import HTTPException
 
-from .. import db, queries, queries_docs, review
-from .deps import Ctx, Web, same_origin, web_of
+from .. import db, queries, queries_docs, review, stores
+from .deps import Ctx, Web, build_url, same_origin, web_of
 from .views_docs import (
     docs_index_values,
     docs_portals_values,
@@ -28,6 +28,20 @@ router = APIRouter()
 def docs_not_found(web: Web, c: Ctx, what: str, fragment: bool = False) -> HTMLResponse:
     template = "partials/docs/not_found.html" if fragment else "docs/not_found.html"
     return web.render(c, template, status_code=404, what=what, nav_current="docs")
+
+
+def portal_elsewhere(web: Web, c: Ctx, portal: str) -> HTMLResponse:
+    """A portal with no data in this store (spec 019 AS5.3, spec 015 F-21): name the stores that
+    hold its runs, eval workspaces included, instead of a bare 404. Unknown anywhere: 404."""
+    others = [s for s in c.stores if s.key != c.store.key]
+    found = stores.stores_with_portal(others, portal)
+    configured = (c.settings.portals_dir / portal / "portal.yaml").is_file()
+    if not found and not configured:
+        return docs_not_found(web, c, f"portal “{portal}”")
+    links = [(s, build_url(f"/docs/{quote(portal, safe='')}", store=s.key)) for s in found]
+    return web.render(
+        c, "docs/portal_empty.html", nav_current="docs", portal=portal, elsewhere=links
+    )
 
 
 def portal_exists(conn: sqlite3.Connection, portal: str) -> bool:
@@ -70,7 +84,7 @@ def docs_portal(
     try:
         with c.conn() as conn:
             if not portal_exists(conn, portal):
-                return docs_not_found(web, c, f"portal “{portal}”")
+                return portal_elsewhere(web, c, portal)
             return web.render(
                 c,
                 "docs/portal.html",

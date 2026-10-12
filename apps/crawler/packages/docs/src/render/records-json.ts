@@ -1,3 +1,4 @@
+import type { StateInventory } from '../param-inventory.js';
 import { highlightFiles, screenFiles } from './images.js';
 import type { ExportModel, ExportRecord } from './model.js';
 
@@ -14,6 +15,11 @@ export function canonical(value: unknown): unknown {
 }
 
 export const EXPORT_SCHEMA = 'pathfinder-srs-export/1';
+
+/** The inventory without its internal state id (the record key already names the screen). */
+function urlsJson(inv: StateInventory) {
+  return { entry_urls: inv.entry_urls, entry_urls_more: inv.entry_urls_more, params: inv.params };
+}
 
 /** A record's pictures with export-relative paths (spec 008 FR-021); null when it has none. */
 function visualsJson(r: ExportRecord) {
@@ -81,6 +87,8 @@ export function recordsJson(m: ExportModel): string {
       followup: r.followup,
       trace: r.trace,
       visuals: visualsJson(r),
+      // spec 019: a screen's observed URLs and URL parameters, only where visits were recorded
+      ...(m.screen_urls[r.key] ? { urls: urlsJson(m.screen_urls[r.key]!) } : {}),
     })),
     change_log: m.change_log,
     runs: m.runs,

@@ -7,6 +7,7 @@ import {
 } from '@pathfinder/obstacles';
 import type { Refusal } from '@pathfinder/safety';
 import { installClickSignals } from './click-signals.js';
+import { NavigationRecorder } from './navigation-recorder.js';
 import { NetworkRecorder } from './network-recorder.js';
 import { createRateLimiter, type RateLimiter } from './rate-limiter.js';
 import {
@@ -48,6 +49,20 @@ export interface SessionOptions {
     NetworkActivityOptions;
 }
 
+/** What a launched session is made of (one object, not ten positional parameters: G-04). */
+interface SessionParts {
+  browser: Browser;
+  context: BrowserContext;
+  page: Page;
+  limiter: RateLimiter;
+  gate: RequestGate;
+  net: NetworkActivity;
+  recorder: NetworkRecorder;
+  navigation: NavigationRecorder;
+  obstacles: ObstacleHandlers;
+  stabilizerOptions: StabilizerOptions;
+}
+
 /** Non-production portals may omit `rate_limit`; be gentle anyway. */
 export const DEFAULT_RATE_LIMIT = {
   requests_per_second: 2,
@@ -63,17 +78,30 @@ export const DEFAULT_RATE_LIMIT = {
  */
 export class BrowserSession {
   readonly popups: string[] = [];
-  private constructor(
-    readonly browser: Browser,
-    readonly context: BrowserContext,
-    readonly page: Page,
-    readonly limiter: RateLimiter,
-    readonly gate: RequestGate,
-    readonly net: NetworkActivity,
-    readonly recorder: NetworkRecorder,
-    readonly obstacles: ObstacleHandlers,
-    private readonly stabilizerOptions: StabilizerOptions,
-  ) {}
+  readonly browser: Browser;
+  readonly context: BrowserContext;
+  readonly page: Page;
+  readonly limiter: RateLimiter;
+  readonly gate: RequestGate;
+  readonly net: NetworkActivity;
+  readonly recorder: NetworkRecorder;
+  /** Every URL and redirect hop of the main frame, per step (spec 019, R-38). */
+  readonly navigation: NavigationRecorder;
+  readonly obstacles: ObstacleHandlers;
+  private readonly stabilizerOptions: StabilizerOptions;
+
+  private constructor(parts: SessionParts) {
+    this.browser = parts.browser;
+    this.context = parts.context;
+    this.page = parts.page;
+    this.limiter = parts.limiter;
+    this.gate = parts.gate;
+    this.net = parts.net;
+    this.recorder = parts.recorder;
+    this.navigation = parts.navigation;
+    this.obstacles = parts.obstacles;
+    this.stabilizerOptions = parts.stabilizerOptions;
+  }
 
   static async launch(opts: SessionOptions): Promise<BrowserSession> {
     const { portal, persona } = opts.effective;
@@ -121,10 +149,11 @@ export class BrowserSession {
         opts.observe?.onRequestFailed ? { onRequestFailed: opts.observe.onRequestFailed } : {},
       );
       const recorder = new NetworkRecorder(page);
-      // Its form-submit probe must be in place before the first page loads (spec 015 LO-43).
-      await recorder.ready;
+      const navigation = new NavigationRecorder(page);
+      // Their in-page probes (form submits, meta refresh) must be in place before the first page.
+      await Promise.all([recorder.ready, navigation.ready]);
       const obstacles = await registerObstacleHandlers(page, portal.obstacles);
-      const session = new BrowserSession(
+      const session = new BrowserSession({
         browser,
         context,
         page,
@@ -132,9 +161,10 @@ export class BrowserSession {
         gate,
         net,
         recorder,
+        navigation,
         obstacles,
-        opts.stabilizer ?? {},
-      );
+        stabilizerOptions: opts.stabilizer ?? {},
+      });
       // New tabs (target=_blank, window.open) are not followed: their URL is noted and the tab closed.
       context.on('page', (p) => {
         if (p === page) return;
@@ -185,6 +215,7 @@ export class BrowserSession {
   async close(): Promise<void> {
     this.limiter.halt();
     this.recorder.dispose();
+    this.navigation.dispose();
     this.net.dispose();
     await this.browser.close().catch(() => undefined);
   }

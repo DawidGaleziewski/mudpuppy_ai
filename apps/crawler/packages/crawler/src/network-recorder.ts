@@ -1,7 +1,7 @@
 import type { Page, Request, Response } from 'playwright';
 import { inferRouteTemplates } from '@pathfinder/fingerprint';
 import { maskText } from '@pathfinder/core';
-import { shapeOfBody, shapeOfFormBody, type Shape } from './shape.js';
+import { formShape, shapeOfBody, shapeOfFormBody, type Shape } from './shape.js';
 
 /** `res_schema` of a form-submit call: no body is read; the redirect hops (URLs as templates) follow it. */
 export interface DocumentResSchema {
@@ -12,6 +12,8 @@ export interface DocumentResSchema {
 export interface ObservedCall {
   method: string;
   url_template: string;
+  /** The request URL as the page sent it, query and session ids kept (spec 019, R-37). */
+  url: string;
   status: number;
   req_schema: Shape;
   res_schema: Shape | DocumentResSchema;
@@ -115,6 +117,7 @@ export class NetworkRecorder {
     this.calls.push({
       method: req.method().toUpperCase(),
       url_template: apiUrlTemplate(req.url()),
+      url: req.url(),
       status: res.status(),
       req_schema: shapeOfBody(req.postData(), req.headers()['content-type']),
       res_schema: shapeOfBody(resBody, res.headers()['content-type']),
@@ -176,9 +179,10 @@ export class NetworkRecorder {
     this.calls.push({
       method,
       url_template: apiUrlTemplate(root.url()),
+      url: root.url(),
       status: res.status(),
       req_schema: fields
-        ? { ...fields, content_type: 'multipart/form-data' }
+        ? formShape('multipart/form-data', fields)
         : shapeOfFormBody(root.postData(), root.headers()['content-type']),
       res_schema: redirects.length > 0 ? { kind: 'document', redirects } : { kind: 'document' },
     });

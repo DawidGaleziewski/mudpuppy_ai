@@ -289,6 +289,18 @@ describe('resolveTargets', () => {
     );
   });
 
+  it('lets a page visit qualify for observed (spec 019 F-07)', () => {
+    fx.raw
+      .prepare(
+        `INSERT INTO page_visits (id, run_id, state_id, edge_id, via, url, hops_json, created_at)
+         VALUES ('visit-obs', ?, ?, NULL, 'navigate', 'https://ref.test/a?b=1', '[]', '2026-10-01T00:00:00.000Z')`,
+      )
+      .run(fx.runId, fx.states.home);
+    const [t] = resolve([{ target_kind: 'page_visit', target_id: 'visit-obs' }]);
+    expect(t).toMatchObject({ target_kind: 'page_visit', confidence: 'observed' });
+    expect(qualifiesAsObserved(t!)).toBe(true);
+  });
+
   it('lets a process step, but not a process, qualify for observed', () => {
     const t = fx.addTraceRun();
     const targets = resolve(

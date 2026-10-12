@@ -24,6 +24,7 @@ const budgets = {
   max_steps: 20,
   mfe_wait_ms: 10000,
   frame_depth: 3,
+  client_redirect_wait_ms: 5000,
 };
 const scope: Scope = {
   ...budgets,

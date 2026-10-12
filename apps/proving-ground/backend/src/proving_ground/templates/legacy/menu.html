@@ -17,5 +17,9 @@ function __doPostBack(target, arg) {
 <a href="javascript:void(0)" onclick="__doPostBack('szczegoly','')">Szczegóły</a><br>
 <a href="/legacy/bank/archiwum.do;jsessionid={{ sid }}" target="content">Archiwum</a><br>
 <a href="/legacy/bank/raport.do;jsessionid={{ sid }}" target="content">Raport</a><br>
+{# LO-52: the statement leaves the frameset (target _top) with its parameters in the URL. #}
+<a href="/legacy/bank/wyciag.do;jsessionid={{ sid }}?konto=4521&amp;typ=M&amp;okres=2026-03&amp;tryb=podglad" target="_top">Wyciąg miesięczny</a><br>
+<a href="/legacy/bank/wyciag.do;jsessionid={{ sid }}?konto=4521&amp;typ=R&amp;okres=2026&amp;tryb=druk" target="_top">Wyciąg roczny (wydruk)</a><br>
+<a href="/legacy/bank/kursy.do;jsessionid={{ sid }}" target="content">Kursy walut</a><br>
 </font>
 {% endblock %}

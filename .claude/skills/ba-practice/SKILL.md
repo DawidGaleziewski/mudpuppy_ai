@@ -59,7 +59,7 @@ PII check reads an id in prose as a token and refuses the write (`PII_SUSPECTED`
 
 | # | Pass | Read | Write |
 |---|---|---|---|
-| 1 | `inventory` | `get_run_evidence` states, forms, network_calls, actions, decisions | one `screen` per distinct page/UI state cluster: purpose, **route templates exactly as recorded**, elements (role + verbatim label), entry points |
+| 1 | `inventory` | `get_run_evidence` states, forms, network_calls, actions, decisions, page_visits | one `screen` per distinct page/UI state cluster: purpose, **route templates exactly as recorded**, elements (role + verbatim label; an element with no visible label is left out of `elements` and cited as a screen region instead), entry points (every URL it was reached under) |
 | 2 | `capabilities` | your screens, nav labels | `capability` records (what the business offers, e.g. "Car insurance quoting"); relations `capability contains screen|process` |
 | 3 | `processes` | `list_processes`, then `get_process` per process (ordered steps), edges between screens | `process` (goal, persona, trigger, outcome, `observed_extent`) and `use_case` (Cockburn, see `references/use-cases.md`); if no trace exists, a `followup` asking for one |
 | 4 | `rules` | forms (required, pattern, min/max), disabled controls and their hints, validation messages, computed values, refused actions, rule candidates | `business_rule` and `requirement` records (`references/business-rules.md`, `references/requirements-writing.md`) |
@@ -83,7 +83,37 @@ PII check reads an id in prose as a token and refuses the write (`PII_SUSPECTED`
 - To see more than the traces show (a process you only know as a link, or one that stopped at a
   boundary and could run in a sandbox), write a `followup` (below) rather than guessing.
 
-Record fields per kind: `references/record-kinds.md`. Document order and what a re-creating team
+### URLs and parameters (inside passes 1, 4 and 5)
+
+Legacy systems wire screens together through URLs: old and new address schemes, redirects, and
+query parameters that depend on each other. These are part of the documentation, not noise.
+`get_run_evidence` kind `page_visits` gives every URL a screen was reached under with the hops that
+led there (`http` 301/302, `meta_refresh`, `script`, `same_document`, `reload`, `blocked`); kind
+`parameters` gives, per screen, every query, path and hash-route parameter, the values seen and the
+action (`edge_id`) or hop that set them.
+
+- **Route templates stay as recorded** (pass 1): `route_templates` holds the state's
+  `route_template` exactly, a path with no query (`/porownanie/wynik`, never
+  `/porownanie/wynik?produkt_1={code}`). Parameters go in `entry_points` and in rule and data-item
+  records, never into the route.
+- **Entry points** (pass 1): a screen's `entry_points` name every distinct way in, e.g. "old URL
+  `/polisa.php?id=:nr`, redirected (meta refresh, then script) to `/ubezpieczenia#/polisy/:nr`".
+- **Parameters that change the screen** (pass 4): a value that switches the layout or content (e.g.
+  `tryb=druk` gives a print layout) is a `business_rule` (`rule_type` `inference`) citing a visit
+  with each value.
+- **Parameters that only matter together** (pass 4): when one parameter's format or meaning depends
+  on another (e.g. `okres` is `YYYY-MM` when `typ=M` and `YYYY` when `typ=R`), write a
+  `business_rule`, with a `decision_table` when there are several combinations. Cite the visits
+  that show each combination. Label it `inferred` unless a validation message or error page shows the
+  dependency. Then it is `observed`, and that page is cited too.
+- **Parameters carried from page to page** (pass 5): a parameter set by one action and passed along
+  (`konto`, a session id) is a `data_item` with `seen_in` kind `page_visit`. Say where it is set and
+  where it is read.
+- Session ids and tracking parameters are recorded on purpose. Document a session id once, as a
+  `data_item` ("Session identifier in the URL path"). Never list its values in prose.
+
+Record fields per kind: `references/record-kinds.md` (the `create_record` tool description carries
+the same shapes, generated from the server's schemas). Document order and what a re-creating team
 needs: `references/srs-outline.md`.
 
 ## Linking so the documentation is usable

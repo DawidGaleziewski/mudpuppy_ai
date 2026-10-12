@@ -1,0 +1,6 @@
+{% extends "legacy/base.html" %}
+{% block head %}Kursy walut{% endblock %}
+{% block body %}
+{# LO-53: the rates are a separate front end, mounted late inside this frame. #}
+<iframe name="kursy" src="/legacy/bank/kursy-app.do;jsessionid={{ sid }}" width="740" height="200" frameborder="0"></iframe>
+{% endblock %}

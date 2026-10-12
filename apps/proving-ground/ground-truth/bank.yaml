@@ -165,6 +165,27 @@ screens:
     obstacles:
       - LO-24
       - LO-29
+  # spec 019: the statement whose parameters depend on each other (LO-52; its print layout is the
+  # same route, chosen by `tryb=druk`, so it is rule R09, not a screen of its own) and the rates
+  # front end mounted late inside a frame (LO-53).
+  - id: S14
+    route_template: /legacy/bank/wyciag.do
+    title: Wyciąg z rachunku
+    guest_visible: false
+    reached_by: login
+    actor: bank-client
+    obstacles:
+      - LO-24
+      - LO-52
+  - id: S15
+    route_template: /legacy/bank/kursy.do
+    title: Kursy walut
+    guest_visible: false
+    reached_by: login
+    actor: bank-client
+    obstacles:
+      - LO-24
+      - LO-53
 forms:
   - id: F01
     screen: S02
@@ -291,6 +312,33 @@ rules:
       - next working day
       - następny dzień roboczy
       - kolejny dzień roboczy
+  # spec 019 (R-37, LO-52): parameter dependencies the BA should document from the visits' URLs
+  - id: R08
+    statement: The statement period `okres` must be RRRR-MM when `typ=M` (monthly) and RRRR when
+      `typ=R` (yearly); any other combination shows an error instead of the statement.
+    type: validation
+    anchor:
+      screen: S14
+      label: okres
+    guest_observable: false
+    claim_markers:
+      - typ=M
+      - typ=R
+      - RRRR-MM
+      - YYYY-MM
+      - Nieprawidłowy okres
+  - id: R09
+    statement: The URL parameter `tryb=druk` shows the statement as a print layout; `tryb=podglad`
+      shows the preview with links.
+    type: ui_enablement
+    anchor:
+      screen: S14
+      label: tryb
+    guest_observable: false
+    claim_markers:
+      - tryb=druk
+      - print layout
+      - wydruk
 processes:
   - id: P01
     name: Wykonaj przelew krajowy
@@ -538,6 +586,8 @@ obstacles:
       - S11
       - S12
       - S13
+      - S14
+      - S15
     markers:
       - ;jsessionid=
       - jsessionid
@@ -658,4 +708,21 @@ obstacles:
       - 16.03.2026
       - estate clock
       - fixed date
+    expected: documented
+  - id: LO-52
+    screens:
+      - S14
+    markers:
+      - typ
+      - okres
+      - tryb
+      - query parameter
+      - parametr
+    expected: documented
+  - id: LO-53
+    screens:
+      - S15
+    markers:
+      - Kurs EUR
+      - Kursy walut NBP
     expected: documented

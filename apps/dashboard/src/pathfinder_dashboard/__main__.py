@@ -34,9 +34,13 @@ def main(argv: list[str] | None = None) -> None:
     from .settings import Settings
 
     settings = Settings()
+    # The store actually opened, after the fallback to an existing one (spec 015 F-21/F-22).
+    from .db import resolve_env, store_path
+
+    env = resolve_env(settings.data_dir, None, settings.default_env)
     print(
-        f"pathfinder://console on http://{settings.host}:{settings.port}  (store: "
-        f"{settings.data_dir}/db, env {settings.default_env}, read-only)"
+        f"pathfinder://console on http://{settings.host}:{settings.port}  (store "
+        f"{store_path(settings.data_dir, env)}, env {env}, read-only)"
     )
     uvicorn.run(
         "pathfinder_dashboard.app:create_app",

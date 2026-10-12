@@ -1974,3 +1974,8 @@ details.screens > summary h2 {
   margin-top: var(--space-2);
   min-width: var(--docs-index-w);
 }
+
+/* the store picker chose an eval workspace, or one that is gone (spec 019 US5) */
+.store-note {
+  margin-bottom: var(--space-3);
+}

@@ -34,6 +34,7 @@ describe('loadPortal', () => {
     const p = load(PORTAL_YAML).run();
     expect(p.scope.mfe_wait_ms).toBe(10000);
     expect(p.scope.frame_depth).toBe(3);
+    expect(p.scope.client_redirect_wait_ms).toBe(5000);
   });
 
   it('accepts explicit mfe_wait_ms and frame_depth', () => {
@@ -53,6 +54,8 @@ describe('loadPortal', () => {
     ['frame_depth: 6', 'frame_depth'],
     ['frame_depth: -1', 'frame_depth'],
     ['frame_depth: 1.5', 'frame_depth'],
+    ['client_redirect_wait_ms: 30001', 'client_redirect_wait_ms'],
+    ['client_redirect_wait_ms: -1', 'client_redirect_wait_ms'],
   ])('refuses %s', (line, field) => {
     const e = problems(
       load(PORTAL_YAML.replace('  max_steps: 2000\n', `  max_steps: 2000\n  ${line}\n`)).run,

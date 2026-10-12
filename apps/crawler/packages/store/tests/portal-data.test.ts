@@ -157,6 +157,16 @@ function seed() {
       SHOP_ONLY,
       ts,
     );
+  // A visit references its edge and state: deleting the portal must drop it before both (0012).
+  const shopEdge = (
+    raw.prepare('SELECT id FROM edges WHERE run_id = ?').get(shopRun) as { id: string }
+  ).id;
+  raw
+    .prepare(
+      `INSERT INTO page_visits (id, run_id, state_id, edge_id, via, url, hops_json, created_at)
+       VALUES (?, ?, ?, ?, 'action', 'https://shop.pl/koszyk?sid=1', '[]', ?)`,
+    )
+    .run(newId(), shopRun, shopState2, shopEdge, ts);
   raw
     .prepare(
       `INSERT INTO robots_policies (id, run_id, host, source_url, final_url, outcome, http_status, product_token,
@@ -260,6 +270,7 @@ describe('portal export (spec 002 FR-028, contracts/operator-cli.md)', () => {
       states: 2,
       state_observations: 1,
       edges: 1,
+      page_visits: 1,
       decision_log: 1,
       robots_policies: 1,
       trace_spans: 2,
@@ -276,7 +287,7 @@ describe('portal export (spec 002 FR-028, contracts/operator-cli.md)', () => {
       environment: 'sandbox',
       counts: r.counts,
       evidence_files: 4,
-      schema_version: '0011',
+      schema_version: '0013',
     });
     expect(typeof manifest.exported_at).toBe('string');
     for (const t of PORTAL_TABLES) expect(existsSync(join(out, `${t}.ndjson`))).toBe(true);

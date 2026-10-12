@@ -24,7 +24,7 @@ async def events(
     settings = web.settings
     c = web.ctx(request, env)
     async for event in live.watch(
-        settings.data_dir,
+        c.data_dir,
         c.env,
         dev=settings.dev,
         last_event_id=last_event_id,

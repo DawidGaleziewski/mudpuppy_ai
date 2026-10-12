@@ -31,7 +31,20 @@ describe('record_api_call', () => {
       .selectAll()
       .where('id', '=', api_call_id)
       .executeTakeFirstOrThrow();
-    expect(row).toMatchObject({ method: 'GET', edge_id: null, console_errors: '[]' });
+    expect(row).toMatchObject({ method: 'GET', edge_id: null, console_errors: '[]', url: null });
+  });
+
+  it('keeps the verbatim URL, query and session id included (spec 019, R-37)', async () => {
+    const ctx = await makeCtx();
+    const run = await seedRun(ctx);
+    const url = 'https://bank.test/api/ops;jsessionid=AB12?konto=7&from=2026-09-01&from=x';
+    const { api_call_id } = await recordApiCall(ctx, call(run, { url }));
+    const row = await ctx.db
+      .selectFrom('network_calls')
+      .select('url')
+      .where('id', '=', api_call_id)
+      .executeTakeFirstOrThrow();
+    expect(row.url).toBe(url);
   });
 
   it('rejects payloads that look like raw PII with PII_SUSPECTED', async () => {

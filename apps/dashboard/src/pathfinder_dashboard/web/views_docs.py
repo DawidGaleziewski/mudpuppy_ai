@@ -226,7 +226,7 @@ def record_values(
         "key": key,
         "detail": detail,
         "diagram": diagram,
-        "figures": visuals.record_figures(conn, c.settings.data_dir, detail.evidence),
+        "figures": visuals.record_figures(conn, c.data_dir, detail.evidence),
         "figures_open": visuals.FIGURES_OPEN,
         "panel": panel,
         "header_url": c.url(f"{base}/header", rev=rev_arg),

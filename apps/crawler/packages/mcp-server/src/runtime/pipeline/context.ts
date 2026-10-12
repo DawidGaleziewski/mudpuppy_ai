@@ -152,4 +152,6 @@ export interface StepContext {
   reloginTarget?: string;
   /** List the page's actions even when the run already knows the state (spec 013 US1). */
   includeActions?: boolean;
+  /** The page is the landing of the server-side login (its visit row says `login`, spec 019). */
+  visitVia?: 'login';
 }

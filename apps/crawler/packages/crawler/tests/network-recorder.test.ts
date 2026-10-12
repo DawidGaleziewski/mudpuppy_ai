@@ -54,6 +54,7 @@ describe('NetworkRecorder body reads', () => {
 const FORMS = `<!doctype html><title>f</title>
 <form id="a" method="post" action="/save"><input name="first" value="x"><input name="second" value="y"><button id="go">go</button></form>
 <form id="b" method="post" action="/upload" enctype="multipart/form-data"><input name="note" value="n"><input type="file" name="doc"><button id="up">up</button></form>
+<form id="c" method="post" action="/meta?lang=pl"><input name="content_type" value="pdf"><input name="q" value="1"><button id="ct">ct</button></form>
 <a id="link" href="/plain">plain</a>`;
 
 describe.skipIf(!available)('NetworkRecorder form submits (document requests)', () => {
@@ -103,14 +104,23 @@ describe.skipIf(!available)('NetworkRecorder form submits (document requests)', 
       method: 'POST',
       url_template: '/save',
       status: 200,
+      url: `${base}/save`,
       req_schema: {
-        first: 'string',
-        second: 'string',
         content_type: 'application/x-www-form-urlencoded',
+        fields: { first: 'string', second: 'string' },
       },
       res_schema: { kind: 'document', redirects: [{ status: 302, url_template: '/save' }] },
     });
     expect(JSON.stringify(calls)).not.toContain('"x"');
+  });
+
+  it('keeps a field named content_type beside the content type (spec 015 F-08)', async () => {
+    const calls = await submit('#ct');
+    expect(calls[0]!.url).toBe(`${base}/meta?lang=pl`);
+    expect(calls[0]!.req_schema).toEqual({
+      content_type: 'application/x-www-form-urlencoded',
+      fields: { content_type: 'string', q: 'string' },
+    });
   });
 
   it('records a multipart file field as a shape, never its contents', async () => {
@@ -129,9 +139,8 @@ describe.skipIf(!available)('NetworkRecorder form submits (document requests)', 
     await page.close();
     expect(calls).toHaveLength(1);
     expect(calls[0]!.req_schema).toEqual({
-      note: 'string',
-      doc: '<file>',
       content_type: 'multipart/form-data',
+      fields: { note: 'string', doc: '<file>' },
     });
     expect(JSON.stringify(calls)).not.toContain('FILE-CONTENTS-MARKER');
   });

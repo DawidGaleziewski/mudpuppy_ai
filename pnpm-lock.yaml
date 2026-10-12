@@ -387,6 +387,9 @@ importers:
       '@pathfinder/docs-model':
         specifier: workspace:*
         version: link:../docs-model
+      '@pathfinder/fingerprint':
+        specifier: workspace:*
+        version: link:../fingerprint
       '@pathfinder/store':
         specifier: workspace:*
         version: link:../store

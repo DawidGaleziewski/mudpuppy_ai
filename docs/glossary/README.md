@@ -831,6 +831,93 @@ business rule record only when the evidence supports it.
 
 <sub>Last changed in R-22, 2026-10-03.</sub>
 
+<a id="page-visit"></a>
+
+#### Page visit
+
+**One arrival of the crawler on a page, with the full URL exactly as the browser had it and the hops that led there.**
+
+Every `navigate`, every action that lands on a page and every return after a re-login is a
+visit, also when the run already knows the state. The URL is stored verbatim: every query
+and path parameter, the fragment, session ids and tracking parameters included. Nothing is
+normalised away, because legacy systems wire screens together through their URLs. The
+route template, which decides which screen a page is, still leaves the parameters out.
+
+*Example:* A visit of the legacy bank statement at `wyciag.do;jsessionid=AB12?konto=4521&typ=M&okres=2026-03&tryb=podglad`, reached by a link from the menu.
+
+*Seen in:* State page → Reached under; get_run_evidence page_visits; SRS export (URLs observed)
+
+*Labels:* `page_visits`, `Reached under`
+
+*Related:* [Navigation hop](#navigation-hop), [Parameter inventory](#parameter-inventory), [Entry URL](#entry-url), [State](#state)
+
+<sub>Last changed in R-37, 2026-10-12.</sub>
+
+<a id="navigation-hop"></a>
+
+#### Navigation hop
+
+**One step the browser took from one URL to the next while reaching a page (an HTTP redirect, a meta refresh, a script redirect, a history change or a reload).**
+
+A visit lists its hops in order: `start` (the URL the step began on), `navigate` (the
+step's own load), `http` with its 3xx status, `meta_refresh`, `script`, `same_document`
+(a history-API or hash change without a page load), `reload`, and `blocked` when the
+request gate refused to follow, with the reason. The crawler waits through short
+client-side redirects (up to the portal's `client_redirect_wait_ms`, 5 s by default), so a
+"Proszę czekać…" interstitial is a hop, not a screen.
+
+*Example:* `/polisa.php?id=7` → meta_refresh → `/stare/polisa/7` → script → `/ubezpieczenia#/polisy/7`.
+
+*Seen in:* State page → Reached under; get_run_evidence page_visits
+
+*Labels:* `hops`, `client_redirect_wait_ms`
+
+*Related:* [Page visit](#page-visit), [Entry URL](#entry-url)
+
+<sub>Last changed in R-38, 2026-10-12.</sub>
+
+<a id="parameter-inventory"></a>
+
+#### Parameter inventory
+
+**For each screen, every URL parameter its visits carried, the values seen and where each value was set.**
+
+Built from the visits, not stored: for each parameter its name, where it sits (`query`,
+`path` such as `;jsessionid=`, or `fragment query` after a hash route), the distinct values
+in the order first seen (at most 20 are listed, with a count of all), how many visits
+carried it, and the action or hop that brought each new value. The BA reads it with
+`get_run_evidence` kind `parameters` and documents dependencies between parameters as
+business rules and data items, citing the visits.
+
+*Example:* On the bank statement, `typ` has the values M and R, and `okres` has 2026-03 and 2026. The BA writes the rule that `okres` is RRRR-MM when `typ=M`.
+
+*Seen in:* State page → Reached under; get_run_evidence parameters; SRS export (URL parameters)
+
+*Labels:* `parameters`, `URL parameters`
+
+*Related:* [Page visit](#page-visit), [Business rule (BR)](#business-rule), [Data item (DI)](#data-item)
+
+<sub>Last changed in R-37, 2026-10-12.</sub>
+
+<a id="entry-url"></a>
+
+#### Entry URL
+
+**A distinct URL a screen was observed under, with how it was reached; one screen often has several (old and new address schemes, links with different parameters).**
+
+Entry URLs are the distinct verbatim URLs of a screen's visits. Each one shows how often it
+was seen, whether it was reached by the agent's `navigate`, an action, a re-login or the
+login, and the kinds of hops on the way. A re-creating team needs them to keep old links
+working.
+
+*Seen in:* State page → Reached under; SRS export (URLs observed)
+
+*Labels:* `entry_urls`, `URLs observed`
+
+*Related:* [Page visit](#page-visit), [Navigation hop](#navigation-hop)
+
+<sub>Last changed in R-38, 2026-10-12.</sub>
+
 ### Traced processes
 
 <a id="trace-process"></a>
@@ -1651,16 +1738,18 @@ never a password.
 
 By default an eval copies the portal and persona configs, the migrations and the persona's
 encrypted credential rows into a temp folder and points the agents there, so every eval
-starts from nothing. With `--in-place` it uses the real store instead, and the runs then show
-in the dashboard.
+starts from nothing. With `--in-place` it uses the real store instead. Since R-45 the
+dashboard's data-store picker lists every eval workspace on the machine, newest first
+("eval · <portal> · <time>"), so an eval's runs and documentation open from the picker.
+A portal with no data in the current store names the stores that hold it.
 
-*Seen in:* pnpm eval --in-place
+*Seen in:* pnpm eval --in-place; Header → data store (eval workspaces)
 
-*Labels:* `PATHFINDER_ROOT`, `in-place`
+*Labels:* `PATHFINDER_ROOT`, `in-place`, `eval workspaces`
 
 *Related:* [Eval (tier 2)](#eval), [Credential vault](#credential-vault)
 
-<sub>Last changed in R-27, 2026-10-05.</sub>
+<sub>Last changed in R-45, 2026-10-12.</sub>
 
 <a id="judge"></a>
 

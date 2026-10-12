@@ -7,7 +7,8 @@ Layer: kernel (G-07; `apps/crawler/layers.json`). DB code lives in `@pathfinder/
 
 ## Public API
 - Crawl-model schemas in `src/schemas/` (run, state, action, edge, form, frontier, decision log,
-  network call, open question, rule candidate, robots policy, portal data log, common enums).
+  network call, open question, rule candidate, robots policy, portal data log, page visit and
+  navigation hop (spec 019), common enums).
   Trace, documentation and chat schemas live in `@pathfinder/trace`, `docs-model`, `chat-model`.
 - `newId`, `nowIso` (`ids.ts`), `maskText`, `scrubJson` (`pii.ts`), `createEvidenceStore`
   (`evidence.ts`), element keys and `buildLayout` (`element-key.ts`, `layout.ts`).

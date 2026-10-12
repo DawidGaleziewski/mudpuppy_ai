@@ -157,6 +157,8 @@ describe('create_record', () => {
     );
     expect(bad.code).toBe('SCHEMA_INVALID');
     expect(bad.message).toContain('content.priority');
+    // the whole expected shape of the kind, so one retry fixes every field (spec 019 US4)
+    expect(bad.expected).toMatch(/^requirement: title, summary\?, statement, /);
 
     const missing = await h.refused(
       'create_record',
@@ -302,6 +304,13 @@ describe('relations', () => {
       type: 'contains',
       to_kind: 'business_rule',
     });
+    // every relation a requirement may assert, so the retry picks a right one (spec 019 US4)
+    expect(error.allowed_from_kind).toEqual(
+      expect.arrayContaining([
+        'requirement refines use_case|capability',
+        'requirement enforces business_rule',
+      ]),
+    );
     expect(
       (
         await h.refused(

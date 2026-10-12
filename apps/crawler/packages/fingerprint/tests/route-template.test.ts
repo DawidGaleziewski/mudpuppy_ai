@@ -110,4 +110,13 @@ describe('inferRouteTemplates', () => {
   it('handles hosts it has not seen', () => {
     expect(templater.templateFor('https://other.example/oferta/1')).toBe('/oferta/:param');
   });
+
+  it('drops path parameters from segments: a session id is never a route (LO-24, spec 019)', () => {
+    const t = inferRouteTemplates([]);
+    expect(t.templateFor('https://bank.test/legacy/bank/historia.do;jsessionid=A1B2C3')).toBe(
+      '/legacy/bank/historia.do',
+    );
+    expect(t.templateFor('https://bank.test/a;v=1/b.do;jsessionid=Z?x=1')).toBe('/a/b.do');
+    expect(t.templateFor('https://bank.test/;jsessionid=Z')).toBe('/');
+  });
 });

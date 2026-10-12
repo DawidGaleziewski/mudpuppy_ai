@@ -1,0 +1,20 @@
+{% extends "legacy/base.html" %}
+{% block head %}Wyciąg z rachunku{% endblock %}
+{% block body %}
+{# LO-52: konto, typ and okres travel together in every link; tryb=druk is the print layout. #}
+{% if error %}
+<font face="Verdana" size="2" color="#CC0000"><b>{{ error }}</b></font><br>
+<font size="1"><a href="/legacy/bank/wyciag.do;jsessionid={{ sid }}?konto={{ konto|urlencode }}&amp;typ=M&amp;okres=2026-03&amp;tryb=podglad">Wyciąg za marzec 2026</a></font>
+{% else %}
+<font face="Verdana" size="2"><b>Wyciąg {% if typ == "M" %}miesięczny{% else %}roczny{% endif %} – rachunek {{ konto }}, okres {{ okres }}</b></font>
+<table width="100%" border="1" cellpadding="2" cellspacing="0" style="border-collapse:collapse">
+<tr bgcolor="#CCCCFF"><td><font size="1"><b>Data</b></font></td><td><font size="1"><b>Opis</b></font></td><td><font size="1"><b>Kwota</b></font></td></tr>
+{% for op in operations %}<tr><td><font size="1">{{ op.date }}</font></td><td><font size="1">{{ op.title }}</font></td><td align="right"><font size="1">{{ op.amount }}</font></td></tr>
+{% endfor %}
+</table>
+<font size="1">
+<a href="/legacy/bank/wyciag.do;jsessionid={{ sid }}?konto={{ konto|urlencode }}&amp;typ={{ typ }}&amp;okres={{ okres|urlencode }}&amp;tryb=druk">Drukuj</a> |
+{% if typ == "M" %}<a href="/legacy/bank/wyciag.do;jsessionid={{ sid }}?konto={{ konto|urlencode }}&amp;typ=R&amp;okres=2026&amp;tryb=podglad">Wyciąg roczny</a>{% else %}<a href="/legacy/bank/wyciag.do;jsessionid={{ sid }}?konto={{ konto|urlencode }}&amp;typ=M&amp;okres=2026-03&amp;tryb=podglad">Wyciąg miesięczny</a>{% endif %}
+</font>
+{% endif %}
+{% endblock %}

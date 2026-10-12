@@ -11,6 +11,8 @@ import type { DocRecordsTable, Selectable } from '@pathfinder/store';
 import {
   applyStatusEvent,
   checkObserved,
+  describeRecordKind,
+  describeRelations,
   elementKeysReader,
   formatKey,
   isAllowed,
@@ -128,7 +130,8 @@ function parseContent(kind: DocKind, content: Record<string, unknown>): DocConte
     r.error.issues
       .map((i) => `content${i.path.length ? `.${i.path.join('.')}` : ''}: ${i.message}`)
       .join('; '),
-    { kind },
+    // The whole expected shape, so one retry fixes every field (spec 015 F-20, spec 019 US4).
+    { kind, expected: describeRecordKind(kind) },
   );
 }
 
@@ -176,7 +179,12 @@ function resolveRelations(
       });
     const check = isAllowed(fromKind, rel.type, to.kind);
     if (!check.ok)
-      throw new ToolError(check.code, check.message, { ...check.details, to_key: to.key });
+      throw new ToolError(check.code, check.message, {
+        ...check.details,
+        to_key: to.key,
+        // Every relation this kind may assert, not only those of the type it tried (spec 019 US4).
+        allowed_from_kind: describeRelations(fromKind),
+      });
     out.set(`${rel.type} ${to.id}`, { type: rel.type, to });
   }
   return [...out.values()];
@@ -308,7 +316,7 @@ function validateWrite(
     if (!check.ok)
       throw new ToolError(
         'INVALID_CONFIDENCE',
-        'observed needs evidence that was itself observed: a state, screen region, edge, form, action or network call. Rule candidates, questions, decisions, records and reviews do not count; use inferred or needs_confirmation',
+        'observed needs evidence that was itself observed: a state, screen region, edge, form, action, network call, process step or page visit. Rule candidates, questions, decisions, records and reviews do not count; use inferred or needs_confirmation',
         { checked: check.checked },
       );
   }

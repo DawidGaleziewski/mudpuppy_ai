@@ -98,6 +98,64 @@ export function shouldWaitForMounts(p: MountProbe): boolean {
   return p.loaders.length > 0 && p.mounts.some((m) => !m.filled);
 }
 
+/** One frame's mount probe at the end of the wait (spec 019 US3, LO-53). */
+export interface FrameMountWait {
+  url: string;
+  probe: MountProbe;
+  /** True when one of its mounts was still empty when the wait ran out. */
+  timedOut: boolean;
+}
+
+export interface PageMountWait extends MountWait {
+  frames: FrameMountWait[];
+}
+
+/** A frame's probe, or null when it went away or cannot be read (navigated, detached). */
+async function probeOrNull(frame: Frame): Promise<MountProbe | null> {
+  try {
+    return await probeMounts(frame);
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * {@link waitForMounts} over the top document and the frames the observation reads (spec 019 US3,
+ * LO-53): a legacy wrapper whose inner page mounts its own front end late was read empty, because
+ * only the top document was probed (spec 015 T021 as built). One deadline for all of them; the
+ * frame list is asked again on every poll, so a frame that appears late is waited for too.
+ */
+export async function waitForMountsIn(
+  page: Page,
+  frames: () => Promise<readonly Frame[]>,
+  maxMs: number,
+  pollMs = 100,
+): Promise<PageMountWait> {
+  const started = Date.now();
+  for (;;) {
+    let top: MountProbe;
+    try {
+      top = await probeMounts(page);
+    } catch {
+      top = { mounts: [], loaders: [], bundles: [] }; // navigated: the next observation sees it
+    }
+    const inner: FrameMountWait[] = [];
+    for (const f of await frames().catch(() => [] as readonly Frame[])) {
+      const probe = await probeOrNull(f);
+      if (probe) inner.push({ url: f.url(), probe, timedOut: shouldWaitForMounts(probe) });
+    }
+    const waiting = shouldWaitForMounts(top) || inner.some((f) => f.timedOut);
+    if (!waiting || Date.now() - started >= maxMs || page.isClosed())
+      return {
+        ...top,
+        waitedMs: Date.now() - started,
+        timedOut: shouldWaitForMounts(top),
+        frames: inner,
+      };
+    await new Promise((r) => setTimeout(r, pollMs));
+  }
+}
+
 /**
  * Wait, bounded by `maxMs` (portal `scope.mfe_wait_ms`), until every mount point of a page that loads
  * front ends at run time has content (spec 015 R4, LO-02): the shell may settle between fetching its

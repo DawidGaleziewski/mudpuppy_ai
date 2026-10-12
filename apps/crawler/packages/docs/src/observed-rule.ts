@@ -24,6 +24,8 @@ export const OBSERVABLE_KINDS: readonly EvidenceTargetKind[] = [
   'action',
   'network_call',
   'process_step',
+  // spec 019: the browser was at that URL; refused in the first bank eval (findings F-07)
+  'page_visit',
 ];
 
 export function qualifiesAsObserved(target: ResolvedTarget): boolean {

@@ -11,3 +11,5 @@ export * from './export.js';
 export * from './scope.js';
 export * from './evaluate.js';
 export * from './ground-truth-file.js';
+export * from './param-inventory.js';
+export * from './record-kinds-text.js';

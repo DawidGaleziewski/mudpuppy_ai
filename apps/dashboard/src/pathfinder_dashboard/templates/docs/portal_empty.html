@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}Docs: {{ portal }}{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <p class="crumbs"><a href="{{ c.url('/docs') }}">Docs</a></p>
+    <h1>{{ portal }}</h1>
+  </div>
+</div>
+<section class="panel" aria-labelledby="empty-h">
+  <h2 id="empty-h">Nothing recorded for {{ portal }} in this store</h2>
+  <p>The dashboard reads <code>{{ store.path }}</code> ({{ c.store.label }}). It holds no runs and no
+    documentation for this portal.</p>
+  {%- if elsewhere %}
+  <p>These stores do hold its data; an eval (<code>pnpm eval</code>) writes to its own workspace:</p>
+  <ul>
+    {%- for s, href in elsewhere %}
+    <li><a href="{{ href }}">{{ s.label }}</a> <span class="st st-muted">{{ s.data_dir }}</span></li>
+    {%- endfor %}
+  </ul>
+  {%- else %}
+  <p>No other store on this machine has it yet: scan it from the Chat page.</p>
+  {%- endif %}
+</section>
+{% endblock %}

@@ -16,6 +16,8 @@ export const EvidenceTargetKind = z.enum([
   'doc_record',
   'review',
   'screen_region',
+  // spec 019 (R-37): a visit's verbatim URL is the evidence for a parameter dependency
+  'page_visit',
 ]);
 export type EvidenceTargetKind = z.infer<typeof EvidenceTargetKind>;
 

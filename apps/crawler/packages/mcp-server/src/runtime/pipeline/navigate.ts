@@ -34,7 +34,7 @@ async function navigateStep(
   state: RunState,
   input: NavigateInput,
 ): Promise<PageResult> {
-  const started = Date.now();
+  const started = performance.now();
   state.obstacleCursor = state.session.obstacles.events.length;
   const g = await step({ ctx, run }, 'gate', async () => {
     const g = gateContext(state, await usage(ctx, run, state, 0, state.depthByUrl.get(input.url)));
@@ -58,6 +58,7 @@ async function navigateStep(
   });
 
   await phase(ctx, 'goto', async () => {
+    state.session.navigation.begin(input.url);
     await state.session.goto(input.url);
     await throwIfStopped(ctx, state);
     // The page never opened (refused, unknown host, …): nothing is recorded, and the agent and the

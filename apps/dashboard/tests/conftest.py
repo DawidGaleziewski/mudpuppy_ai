@@ -22,6 +22,15 @@ T0 = "2026-09-25T19:00:00.000Z"
 EVIDENCE = "a" * 64 + ".json"
 
 
+@pytest.fixture(autouse=True)
+def _no_machine_eval_workspaces(
+    monkeypatch: pytest.MonkeyPatch, tmp_path_factory: pytest.TempPathFactory
+) -> None:
+    """The store picker lists eval workspaces under the system temp dir (spec 019); tests see an
+    empty one unless they build their own, so real `pnpm eval` leftovers never leak in."""
+    monkeypatch.setenv("PATHFINDER_EVAL_ROOT", str(tmp_path_factory.mktemp("no-evals")))
+
+
 def ts(minute: int, second: int = 0) -> str:
     """UTC ISO timestamp `minute` minutes after T0, in the crawler's format."""
     h, m = divmod(minute, 60)
@@ -982,10 +991,9 @@ def seed_ba(conn: sqlite3.Connection) -> None:
     add_relation(conn, "CAP-001", "SCR-002", "contains")
     add_relation(conn, "CAP-001", "PROC-001", "contains")
     add_relation(conn, "REQ-001", "CAP-001", "refines")
-    add_relation(conn, "REQ-001", "SCR-002", "appears_on")
-    add_relation(conn, "BR-001", "REQ-001", "enforces")
-    add_relation(conn, "OQ-001", "PROC-001", "answers")
-    add_relation(conn, "PROC-001", "OQ-001", "depends_on")
+    # Only triples the store allows (0013_relation_triples).
+    add_relation(conn, "REQ-001", "BR-001", "enforces")
+    add_relation(conn, "ASM-001", "OQ-001", "answers")
 
 
 @pytest.fixture

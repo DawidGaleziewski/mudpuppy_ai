@@ -62,6 +62,20 @@ export const routeOf = (gs: GateServer, stateId: string): string =>
     stateId,
   )[0]!.route_template;
 
+/** The latest recorded visit of a state (spec 019): its verbatim URL and the hops that led there. */
+export function lastVisit(
+  gs: GateServer,
+  stateId: string,
+): { url: string; via: string; hops: { url: string; kind: string; status?: number }[] } {
+  const [v] = rows<{ url: string; via: string; hops_json: string }>(
+    gs,
+    'SELECT url, via, hops_json FROM page_visits WHERE state_id = ? ORDER BY created_at DESC, rowid DESC LIMIT 1',
+    stateId,
+  );
+  if (!v) throw new Error(`no visit recorded for state ${stateId}`);
+  return { url: v.url, via: v.via, hops: JSON.parse(v.hops_json) as never };
+}
+
 /** Navigate and wait a little, for timed overlays and live updates. */
 export async function navWait(call: Call, runId: string, path: string, ms: number): Promise<Body> {
   const p = await nav(call, runId, path);

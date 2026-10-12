@@ -298,7 +298,7 @@
   <form class="filters" method="get" action="{{ v.form_action }}"
         hx-get="{{ v.fragment_url }}" hx-trigger="change" hx-target="closest section"
         hx-swap="outerHTML">
-    {%- if c.env_param %}<input type="hidden" name="env" value="{{ c.env_param }}">{% endif %}
+    {%- if c.store_param %}<input type="hidden" name="store" value="{{ c.store_param }}">{% endif %}
     <input type="hidden" name="push" value="1">
     {%- for k, val in hidden.items() %}<input type="hidden" name="{{ k }}" value="{{ val }}">{% endfor %}
     {{ caller() }}

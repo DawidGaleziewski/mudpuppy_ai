@@ -42,8 +42,8 @@ export function shapeOf(value: unknown, depth = 0): Shape {
 }
 
 /**
- * Shape of a form-submit body (document request): field names with value shapes, never values, and
- * `content_type`. A multipart file part is `"<file>"`, its contents are never read into the shape.
+ * Shape of a form-submit body (document request): `{content_type, fields}` with field names and value
+ * shapes, never values. A multipart file part is `"<file>"`, its contents are never read into the shape.
  */
 export function shapeOfFormBody(
   body: string | null | undefined,
@@ -53,12 +53,20 @@ export function shapeOfFormBody(
   if (body && ct.includes('x-www-form-urlencoded')) {
     const fields: Record<string, Shape> = {};
     for (const k of new URLSearchParams(body).keys()) fields[k] = 'string';
-    return { ...fields, content_type: 'application/x-www-form-urlencoded' };
+    return formShape('application/x-www-form-urlencoded', fields);
   }
   const boundary = /boundary=("?)([^";]+)\1/i.exec(contentType ?? '')?.[2];
   if (body && ct.includes('multipart/form-data') && boundary)
-    return { ...multipartFields(body, boundary), content_type: 'multipart/form-data' };
+    return formShape('multipart/form-data', multipartFields(body, boundary));
   return ct ? { content_type: ct.split(';')[0]!.trim() } : {};
+}
+
+/**
+ * The fields sit under their own key, beside the content type: a form field literally named
+ * `content_type` would otherwise overwrite it (spec 015 F-08, fixed in spec 019).
+ */
+export function formShape(contentType: string, fields: Record<string, Shape>): Shape {
+  return { content_type: contentType, fields };
 }
 
 function multipartFields(body: string, boundary: string): Record<string, Shape> {

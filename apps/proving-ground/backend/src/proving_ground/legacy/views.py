@@ -1,6 +1,7 @@
 """Server-rendered legacy app: frames, postbacks, cp1250, dead and broken pages (LO-04..LO-43)."""
 
 import base64
+import re
 from collections.abc import Callable
 
 from django.http import HttpRequest, HttpResponse, HttpResponseRedirect
@@ -128,6 +129,56 @@ def szkoda_stara(request: HttpRequest, *_a) -> HttpResponse:
     return _page("legacy/claim.html", ok=request.GET.get("ok") == "1")
 
 
+# LO-52: the statement's parameters depend on each other. `typ` M (monthly) wants `okres` as
+# RRRR-MM, R (yearly) as RRRR; `tryb=druk` turns the preview into a print layout; `konto` is carried
+# from link to link. A wrong combination shows the legacy error text, not a 400.
+OKRES = {"M": r"^\d{4}-(0[1-9]|1[0-2])$", "R": r"^\d{4}$"}
+
+
+@_bank
+def wyciag(request: HttpRequest, *_a) -> HttpResponse:
+    q = request.GET
+    konto, typ, okres = q.get("konto", ""), q.get("typ", ""), q.get("okres", "")
+    tryb = q.get("tryb", "podglad")
+    sid = session_of(request).id
+    error = None
+    if not konto:
+        error = "Brak numeru rachunku (konto)."
+    elif typ not in OKRES:
+        error = "Nieznany typ wyciągu: wybierz M (miesięczny) lub R (roczny)."
+    elif not re.match(OKRES[typ], okres):
+        error = (
+            "Nieprawidłowy okres dla wyciągu miesięcznego (RRRR-MM)."
+            if typ == "M"
+            else "Nieprawidłowy okres dla wyciągu rocznego (RRRR)."
+        )
+    template = (
+        "legacy/wyciag_druk.html" if tryb == "druk" and error is None else "legacy/wyciag.html"
+    )
+    return _page(
+        template,
+        sid=sid,
+        konto=konto,
+        typ=typ,
+        okres=okres,
+        error=error,
+        operations=OPERATIONS if typ == "M" else OPERATIONS[:2],
+    )
+
+
+# LO-53: a legacy wrapper whose same-origin frame loads its own front end and mounts it late, after
+# the page looks settled (no request in flight, DOM quiet). Only a mount wait that probes frames
+# reads the rates; probing the top document finds no loader there and does not wait.
+@_bank
+def kursy(request: HttpRequest, *_a) -> HttpResponse:
+    return _page("legacy/kursy.html", sid=session_of(request).id)
+
+
+@_bank
+def kursy_app(request: HttpRequest, *_a) -> HttpResponse:
+    return _page("legacy/kursy_app.html", delay_ms=1500)
+
+
 def _do(name: str, view: View, brand: str = "bank"):
     return re_path(rf"^legacy/{brand}/{name}\.do{JSID}$", view)
 
@@ -139,6 +190,9 @@ urlpatterns = [
     _do("szczegoly", szczegoly),
     _do("archiwum", archiwum),
     _do("raport", raport),
+    _do("wyciag", wyciag),
+    _do("kursy", kursy),
+    _do("kursy-app", kursy_app),
     _do("szkoda-stara", szkoda_stara, "insurer"),
     re_path(r"^legacy/static/print\.gif$", print_gif),
 ]

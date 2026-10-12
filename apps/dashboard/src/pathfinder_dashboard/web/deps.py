@@ -11,6 +11,7 @@ import sqlite3
 from collections.abc import Iterator
 from contextlib import contextmanager
 from dataclasses import dataclass, field
+from pathlib import Path
 from typing import Any
 from urllib.parse import urlencode, urlsplit
 
@@ -19,7 +20,7 @@ from fastapi import Request
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 
-from .. import db, glossary, queries_chat
+from .. import db, glossary, queries_chat, stores
 from ..settings import Settings
 
 # The header's portal choice (spec 011): kept in a cookie; "" means all portals.
@@ -59,28 +60,44 @@ def same_origin(request: Request) -> bool:
 
 @dataclass
 class Ctx:
-    """Per-request context: which store, and helpers that keep `env` on every link."""
+    """Per-request context: which store, and helpers that keep the store on every link."""
 
     request: Request
     settings: Settings
-    env: str
-    envs: list[str]
+    store: stores.Store
     extra: dict[str, Any] = field(default_factory=dict)
     # The header's portal choice (spec 011): `?portal=` or the cookie; None = all portals.
     portal: str | None = None
+    # Why the store asked for is not the one shown (a deleted eval workspace, spec 019).
+    store_note: str | None = None
 
     @property
-    def env_param(self) -> str | None:
-        """`env` goes into links only when it is not the default one."""
+    def env(self) -> str:
+        return self.store.env
+
+    @property
+    def data_dir(self) -> Path:
+        """The chosen store's data directory: the main one, or an eval workspace's (spec 019)."""
+        return self.store.data_dir
+
+    @property
+    def stores(self) -> list[stores.Store]:
+        return stores.list_stores(self.settings.data_dir, self.settings.eval_root)
+
+    @property
+    def store_param(self) -> str | None:
+        """`store` goes into links only when it is not the default one."""
         default = db.resolve_env(self.settings.data_dir, None, self.settings.default_env)
-        return None if self.env == default else self.env
+        if self.store.kind == "main" and self.store.env == default:
+            return None
+        return self.store.key
 
     def url(self, path: str, **params: Any) -> str:
-        return build_url(path, env=self.env_param, **params)
+        return build_url(path, store=self.store_param, **params)
 
     @contextmanager
     def conn(self) -> Iterator[sqlite3.Connection]:
-        conn = db.connect(self.settings.data_dir, self.env)
+        conn = db.connect(self.data_dir, self.env)
         try:
             yield conn
         finally:
@@ -113,9 +130,11 @@ class Web:
         return g if isinstance(g, glossary.Glossary) else None
 
     def ctx(self, request: Request, env: str | None) -> Ctx:
-        envs = db.list_environments(self.settings.data_dir)
-        resolved = db.resolve_env(self.settings.data_dir, env, self.settings.default_env)
-        return Ctx(request, self.settings, resolved, envs, portal=chosen_portal(request))
+        s = self.settings
+        store, note = stores.resolve_store(
+            s.data_dir, s.eval_root, request.query_params.get("store"), env, s.default_env
+        )
+        return Ctx(request, s, store, portal=chosen_portal(request), store_note=note)
 
     def header_portals(self, c: Ctx) -> list[str]:
         try:
@@ -134,9 +153,8 @@ class Web:
             {
                 "c": c,
                 "env": c.env,
-                "envs": c.envs,
                 "dev": settings.dev,
-                "store": db.store_info(settings.data_dir, c.env),
+                "store": db.store_info(c.data_dir, c.env),
                 # Spec 011: called by the header only, so fragment polls do not pay for it.
                 "header_portals": lambda: self.header_portals(c),
                 # [settings] only for a portal with a config file (a scanned-only one has none)

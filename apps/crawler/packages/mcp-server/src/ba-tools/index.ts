@@ -1,5 +1,6 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { Confidence } from '@pathfinder/core';
+import { describeRecordKinds } from '@pathfinder/docs';
 import {
   AnalysisPass,
   DocKind,
@@ -12,15 +13,14 @@ import type { BaContext } from '../context.js';
 import { getPendingFeedback } from '../services/ba/feedback.js';
 import {
   EvidenceReadKind,
-  RunEvidenceKind,
   getEvidence,
   getProcess,
   getRecord,
-  getRunEvidence,
   listProcesses,
   listRecords,
   listRuns,
 } from '../services/ba/reads.js';
+import { RunEvidenceKind, getRunEvidence } from '../services/ba/run-evidence.js';
 import {
   addressCrawlerQuestion,
   createRecord,
@@ -55,6 +55,12 @@ export const BA_TOOL_NAMES = [
 export type BaToolName = (typeof BA_TOOL_NAMES)[number];
 
 const oneOf = (values: readonly string[]): string => values.join(', ');
+
+/**
+ * Content shapes and relations, generated from the schemas the server checks against: the BA
+ * guessed them and 40 % of its writes were refused (spec 015 F-20, spec 019 US4).
+ */
+const RECORD_KINDS = describeRecordKinds();
 
 /**
  * Input shapes are deliberately loose (strings, not enums): the services validate strictly and answer
@@ -222,7 +228,7 @@ export function registerBaTools(server: McpServer, ctx: BaContext): void {
   // Writes
   tool(
     'create_record',
-    'Create a documentation record. The server allocates the key and stores revision 1 as a draft; returns { key, rev_no }.',
+    `Create a documentation record. The server allocates the key and stores revision 1 as a draft; returns { key, rev_no }.\n${RECORD_KINDS}`,
     {
       session_id: z.string(),
       kind: z.string().describe(`One of: ${oneOf(DocKind.options)}`),
@@ -236,7 +242,7 @@ export function registerBaTools(server: McpServer, ctx: BaContext): void {
   );
   tool(
     'revise_record',
-    'Write a new draft revision of a record. base_rev must be its latest revision; content, evidence and relations replace the previous ones.',
+    'Write a new draft revision of a record. base_rev must be its latest revision; content, evidence and relations replace the previous ones. Content shapes and relations: as in create_record.',
     {
       session_id: z.string(),
       key: z.string().describe('Key of the record to revise'),

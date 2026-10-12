@@ -1,0 +1,87 @@
+{
+  "portal_id": "proving-ground-insurer",
+  "persona_id": "client",
+  "started_at": "2026-10-11T23:31:59.695Z",
+  "git_sha": "d7dcb12",
+  "runs": {
+    "crawler": "01a12d4f-1e4f-7000-95ae-e1a61f277725",
+    "ba_session": "01a12d59-23ec-7000-bd3a-4ac66ef3822a",
+    "crawler_cli_session": "1f3305a0-2dea-43d4-84e9-34a2eafcb3ea",
+    "ba_cli_session": "c3236fe9-19d2-4a28-88fd-b2498b3d3af6"
+  },
+  "cost": {
+    "usd": 3.9564075999999995,
+    "input_tokens": 7898071,
+    "output_tokens": 60532,
+    "duration_ms": 1076695
+  },
+  "scores": {
+    "screens": {
+      "matched": 1,
+      "total": 2,
+      "pct": 50
+    },
+    "fields": {
+      "matched": 0,
+      "total": 2,
+      "pct": 0
+    },
+    "constraints": {
+      "matched": 0,
+      "total": 2,
+      "pct": 0
+    },
+    "rules": {
+      "matched": 0,
+      "total": 1,
+      "pct": 0
+    },
+    "processes": {
+      "matched": 0,
+      "total": 5,
+      "pct": 0
+    },
+    "terms": {
+      "matched": 4,
+      "total": 10,
+      "pct": 40
+    },
+    "logged_in_screens": {
+      "matched": 2,
+      "total": 6,
+      "pct": 33.3
+    },
+    "obstacles": {
+      "matched": 8,
+      "total": 26,
+      "pct": 30.8
+    },
+    "entry_points": {
+      "matched": 0,
+      "total": 1,
+      "pct": 0
+    },
+    "crawl_screens": {
+      "matched": 5,
+      "total": 6,
+      "pct": 83.3
+    }
+  },
+  "overclaims": 1,
+  "checks": {
+    "frontier_empty_at_finish": true,
+    "crawler_completed": true,
+    "crawler_steps": 38,
+    "frontier_pending": 0,
+    "ba_session_completed": true,
+    "handoffs": 0,
+    "ba_write_calls": 54,
+    "ba_write_refused": 4,
+    "ba_write_refused_pct": 7,
+    "relogins": 1,
+    "logged_in": true,
+    "password_hits": 0,
+    "widget_actions": 0
+  },
+  "workspace": "/tmp/pf-eval-proving-ground-insurer-8WXc1f"
+}

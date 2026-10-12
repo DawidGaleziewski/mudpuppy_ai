@@ -59,7 +59,10 @@ What the code-based graders measure:
   reported the goal reached).
 - **Guardrails**, must stay 0: `leaks.ts` (portal passwords in any output) and `widget_actions`
   in `run-checks.ts`.
-- **Diagnostics**, explain why a score moved: the rest of `run-checks.ts`.
+- **Diagnostics**, explain why a score moved: the rest of `run-checks.ts`, and `ba-writes.ts`
+  (the BA's `create_record`/`revise_record`/`withdraw_record` calls the server refused, from the
+  transcripts, by error code; checks `ba_write_calls`, `ba_write_refused`, `ba_write_refused_pct`,
+  spec 019).
 
 ### Judges (model-based graders, spec 017)
 

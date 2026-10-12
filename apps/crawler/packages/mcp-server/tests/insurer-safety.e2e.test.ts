@@ -42,6 +42,8 @@ describe.skipIf(!available)('insurer mock: configuration only, generic ids (spec
         url: mock.origin + '/ubezpieczenia/dom',
         rationale: 'exploring the target URL',
       });
+      // spec 019 F-05: name the error when navigate fails instead of a TypeError on `actions`
+      expect(page.body.actions, JSON.stringify(page.body).slice(0, 2000)).toBeDefined();
       const byName = Object.fromEntries(
         (page.body.actions as Body[]).map((a) => [a.accessible_name, a]),
       );
@@ -92,6 +94,8 @@ describe.skipIf(!available)('insurer mock: portal action rules (spec 002 US4)', 
         url: mock.origin + '/ubezpieczenia/dom',
         rationale: 'exploring the target URL',
       });
+      // spec 019 F-05: name the error when navigate fails instead of a TypeError on `actions`
+      expect(page.body.actions, JSON.stringify(page.body).slice(0, 2000)).toBeDefined();
       const byName = Object.fromEntries(
         (page.body.actions as Body[]).map((a) => [a.accessible_name, a]),
       );

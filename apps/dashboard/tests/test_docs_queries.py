@@ -59,8 +59,8 @@ def test_filters_status_confidence_flag_kind(conn: sqlite3.Connection) -> None:
         "PROC-001",
     ]
     flagged = keys(q.list_records(conn, PORTAL, all_kinds, flag="open_question"))
-    # PROC-001 relates to OQ-001 both ways; REQ-001 and OQ-001 cite a crawler open_question
-    assert flagged == ["OQ-001", "PROC-001", "REQ-001"]
+    # ASM-001 answers OQ-001; REQ-001 and OQ-001 cite a crawler open_question
+    assert flagged == ["ASM-001", "OQ-001", "REQ-001"]
     assert q.list_records(conn, PORTAL, kinds, status="withdrawn").total == 0
     assert keys(q.list_records(conn, PORTAL, ("glossary_term",), status="withdrawn")) == ["GL-001"]
 
@@ -87,9 +87,11 @@ def test_record_detail_revisions_links_relations_reviews(conn: sqlite3.Connectio
     assert [r.action for r in d.history[1].reviews] == ["confirm"]
     assert {(r.type, r.key) for r in d.relations_out} == {
         ("refines", "CAP-001"),
-        ("appears_on", "SCR-002"),
+        ("enforces", "BR-001"),
     }
-    assert {(r.type, r.key) for r in d.relations_in} == {("enforces", "BR-001")}
+    assert d.relations_in == []
+    br_in = q.record_detail(conn, PORTAL, "BR-001").relations_in
+    assert {(r.type, r.key) for r in br_in} == {("enforces", "REQ-001")}
     assert d.session_started_at == "2026-09-25T20:00:00.000Z"
     old = q.record_detail(conn, PORTAL, "REQ-001", rev=1)
     assert old is not None and old.shown.rev_no == 1 and not old.is_latest

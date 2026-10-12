@@ -38,6 +38,8 @@ export const PHASE_NAMES = [
   'record_forms',
   'record_transition',
   'record_api_calls',
+  // spec 019 (R-37/R-38): the page's verbatim URL and the hops that led to it
+  'record_visit',
   'enqueue_frontier',
   'record_step',
   'run_bookkeeping',
@@ -85,6 +87,9 @@ export const EVENT_NAMES = [
   'mfe_mount_timeout',
   'frame_skipped',
   'clickables_capped',
+  // spec 019 (R-38): client-side redirects waited through, a slow refresh left alone, a loop capped
+  'client_redirect',
+  'page_visit',
 ] as const;
 export type EventName = (typeof EVENT_NAMES)[number];
 

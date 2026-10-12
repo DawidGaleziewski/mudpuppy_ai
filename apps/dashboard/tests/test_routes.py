@@ -163,11 +163,13 @@ def test_environment_switch(liveinsurer_store: Store) -> None:
     make_store(liveinsurer_store.data_dir, "scratch")
     with make_client(liveinsurer_store) as c:
         html = c.get("/").text
-        assert '<option value="scratch"' in html
-        scratch = c.get("/?env=scratch")
+        assert '<option value="main:scratch"' in html
+        scratch = c.get("/?store=main:scratch")
+        # the older `?env=` links keep working (spec 019)
+        assert "No runs recorded yet" in text(c.get("/?env=scratch").text)
     assert "No runs recorded yet" in text(scratch.text)
-    assert 'hx-sse:connect="/events?env=scratch"' in scratch.text
-    assert "/fragments/runs?env=scratch" in scratch.text
+    assert 'hx-sse:connect="/events?store=main%3Ascratch"' in scratch.text
+    assert "/fragments/runs?store=main%3Ascratch" in scratch.text
 
 
 # --- US2 --------------------------------------------------------------------------------------

@@ -10,6 +10,7 @@ import {
   gate,
   gateServer,
   GATE_BASE,
+  lastVisit,
   loginAs,
   nav,
   PROVING_GROUND,
@@ -40,23 +41,37 @@ gate('LO-06', 'hash-routed screens are different states with different templates
   expect(routeOf(gs, list.state_id)).not.toBe(routeOf(gs, wizard.state_id));
 });
 
-gate('LO-22', 'a meta-refresh and JS redirect chain is followed to the final screen', async () => {
-  const p = await nav(gs.call, run, '/polisa.php?id=7');
-  await new Promise((r) => setTimeout(r, 2500));
-  const again = await nav(gs.call, run, '/ubezpieczenia#/polisy/7');
-  // the chain ends on the policy screen; at least the final screen is recorded
-  expect(snapshot(gs, again.state_id)).toMatch(/Szczegóły polisy|polis/i);
-  expect(p.state_id).toBeTruthy();
-});
+gate(
+  'LO-22',
+  'a meta-refresh and JS redirect chain is followed and every hop recorded',
+  async () => {
+    const p = await nav(gs.call, run, '/polisa.php?id=7');
+    // the navigate itself waits through the interstitial and lands on the policy screen (spec 019)
+    expect(snapshot(gs, p.state_id)).toMatch(/Szczegóły polisy|polis/i);
+    const v = lastVisit(gs, p.state_id);
+    expect(v.hops.map((h) => h.kind)).toEqual(['start', 'meta_refresh', 'script']);
+    expect(v.hops[0]!.url).toContain('/polisa.php?id=7');
+    expect(v.hops[1]!.url).toContain('/stare/polisa/7');
+    expect(v.url).toContain('/ubezpieczenia#/polisy/7');
+  },
+);
 
-gap(
+gate(
   'LO-23',
-  'the old and the new URL of one screen merge into one state',
-  'the crawler records the "Proszę czekać…" interstitial as the landing of the old URL',
+  'the old and the new URL of one screen merge into one state, both URLs recorded',
   async () => {
     const old = await nav(gs.call, run, '/polisa.php?id=7');
     const fresh = await nav(gs.call, run, '/ubezpieczenia#/polisy/7');
     expect(old.state_id).toBe(fresh.state_id);
+    const titles = rows<{ title: string }>(gs, 'SELECT title FROM states').map((s) => s.title);
+    expect(titles.some((t) => /Proszę czekać/i.test(t))).toBe(false);
+    const entries = rows<{ hops_json: string }>(
+      gs,
+      'SELECT hops_json FROM page_visits WHERE state_id = ?',
+      old.state_id,
+    ).map((v) => (JSON.parse(v.hops_json) as { url: string }[])[0]?.url ?? '');
+    expect(entries.some((u) => u.includes('/polisa.php?id=7'))).toBe(true);
+    expect(entries.some((u) => u.includes('/ubezpieczenia#/polisy/7'))).toBe(true);
   },
 );
 

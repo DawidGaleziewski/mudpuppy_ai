@@ -1,10 +1,11 @@
 import { afterAll, beforeAll, expect } from 'vitest';
+import { parameterInventory } from '@pathfinder/docs';
 import {
   actionNamed,
   actOn,
-  gap,
   gate,
   gateServer,
+  lastVisit,
   loginAs,
   nav,
   resetEstate,
@@ -114,14 +115,14 @@ gate('LO-49', 'trace inputs give a checksum-valid IBAN for the transfer form', a
   expect(mod).toBe(1);
 });
 
-gap(
+gate(
   'LO-24',
-  'a session id in the URL never becomes part of a route template',
-  'route templates keep path parameters, so ";jsessionid=<id>" stays in the template',
+  'a session id in the URL is recorded on the visit, never part of a route template',
   async () => {
     const s = await legacySid();
     const p = await nav(gs.call, run, `/legacy/bank/historia.do;jsessionid=${s}`);
     expect(routeOf(gs, p.state_id)).not.toContain(s);
+    expect(lastVisit(gs, p.state_id).url).toContain(`;jsessionid=${s}`);
   },
 );
 
@@ -132,6 +133,55 @@ const frameActions = (stateId: string) =>
     "SELECT id, role, safety_class, json_extract(action_json, '$.frame') AS frame, json_extract(action_json, '$.href') AS href FROM actions WHERE state_id = ? AND json_extract(action_json, '$.frame') IS NOT NULL",
     stateId,
   );
+
+gate(
+  'LO-52',
+  'every parameter of the statement URLs, and each value, is in the parameter inventory',
+  async () => {
+    const s = await legacySid();
+    const base = `/legacy/bank/wyciag.do;jsessionid=${s}?konto=4521`;
+    await nav(gs.call, run, `${base}&typ=M&okres=2026-03&tryb=podglad`);
+    await nav(gs.call, run, `${base}&typ=R&okres=2026&tryb=druk`);
+    await nav(gs.call, run, `${base}&typ=M&okres=2026&tryb=podglad`); // the error combination
+    const visits = rows<{
+      id: string;
+      edge_id: string | null;
+      via: string;
+      url: string;
+      hops_json: string;
+    }>(
+      gs,
+      `SELECT v.id, v.edge_id, v.via, v.url, v.hops_json FROM page_visits v
+       JOIN states s ON s.id = v.state_id
+       WHERE v.run_id = ? AND s.route_template = '/legacy/bank/wyciag.do'`,
+      run,
+    );
+    // preview, print and error are different screens of one route: pooled for the check
+    const [inv] = parameterInventory(
+      visits.map((v) => ({
+        id: v.id,
+        state_id: 'wyciag',
+        edge_id: v.edge_id,
+        via: v.via as 'navigate',
+        url: v.url,
+        hops: JSON.parse(v.hops_json) as never,
+      })),
+    );
+    const values = Object.fromEntries(inv!.params.map((p) => [`${p.in}:${p.name}`, p.values]));
+    expect(values).toEqual({
+      'path:jsessionid': [s],
+      'query:konto': ['4521'],
+      'query:typ': ['M', 'R'],
+      'query:okres': ['2026-03', '2026'],
+      'query:tryb': ['podglad', 'druk'],
+    });
+  },
+);
+
+gate('LO-53', 'a front end mounted late inside a frame is waited for and read', async () => {
+  const p = await nav(gs.call, run, `/legacy/bank/kursy.do;jsessionid=${await legacySid()}`);
+  expect(snapshot(gs, p.state_id)).toContain('Kurs EUR');
+});
 
 gate('LO-02', 'the legacy app inside the wrapper iframe is observed', async () => {
   const p = await nav(gs.call, run, '/bank/historia');

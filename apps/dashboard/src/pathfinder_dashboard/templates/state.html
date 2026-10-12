@@ -59,6 +59,50 @@
 </div>
 
 <div class="section">
+  <div class="section-head"><h2>Reached under <span class="muted mono-num">{{ urls.entry_urls | length if urls else 0 }}</span></h2></div>
+  <p class="muted">Every URL this screen was observed under, with the redirects that led there, and every parameter those URLs carried (spec 019). Nothing is normalised away: session ids and tracking parameters are kept.</p>
+  {%- if not urls %}
+    {{ m.empty("No URLs recorded for this state", "Runs before spec 019 kept only the route template.") }}
+  {%- else %}
+  <div class="table-wrap">
+    <table class="table">
+      <thead><tr><th>URL</th><th>visits</th><th>reached by</th></tr></thead>
+      <tbody>
+        {%- for e in urls.entry_urls %}
+        <tr>
+          <td data-label="URL"><code class="wrap">{{ e.url }}</code></td>
+          <td data-label="visits" class="mono-num">{{ e.visits }}</td>
+          <td data-label="reached by">{{ e.via | join(", ") }}
+            {%- for h in e.last_hops if h.kind != "start" %}<br><span class="muted">{{ h.kind | replace("_", " ") }}{% if h.status %} {{ h.status }}{% endif %} →</span> <code class="wrap">{{ h.url }}</code>{% if h.reason %} <span class="muted">({{ h.reason }})</span>{% endif %}{% endfor %}</td>
+        </tr>
+        {%- endfor %}
+      </tbody>
+    </table>
+  </div>
+  {%- if urls.entry_urls_more %}<p class="muted">and {{ urls.entry_urls_more }} more URLs</p>{% endif %}
+  {%- if urls.params %}
+  <h3>Parameters</h3>
+  <div class="table-wrap">
+    <table class="table">
+      <thead><tr><th>name</th><th>in</th><th>values</th><th>distinct</th><th>visits</th></tr></thead>
+      <tbody>
+        {%- for prm in urls.params %}
+        <tr>
+          <td data-label="name"><code>{{ prm.name }}</code></td>
+          <td data-label="in">{{ prm.where | replace("_", " ") }}</td>
+          <td data-label="values">{% for v in prm.values %}<code>{{ "(no value)" if v is none else v }}</code>{% if not loop.last %}, {% endif %}{% endfor %}</td>
+          <td data-label="distinct" class="mono-num">{{ prm.distinct }}</td>
+          <td data-label="visits" class="mono-num">{{ prm.visits }}</td>
+        </tr>
+        {%- endfor %}
+      </tbody>
+    </table>
+  </div>
+  {%- endif %}
+  {%- endif %}
+</div>
+
+<div class="section">
   <div class="section-head"><h2>Cited by <span class="muted mono-num">{{ p.citing | length }}</span></h2></div>
   {%- if not p.citing %}
     {{ m.empty("No documentation record cites this state", "Records cite a state or a region of its screenshot as evidence.") }}

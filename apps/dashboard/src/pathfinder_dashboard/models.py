@@ -75,6 +75,7 @@ EvidenceTargetKind = Literal[
     "doc_record",
     "review",
     "screen_region",
+    "page_visit",
 ]
 RelationType = Literal[
     "contains",
@@ -196,6 +197,20 @@ class NetworkCall(Row):
     req_schema: Json
     res_schema: Json
     console_errors: Json
+    created_at: str
+    url: str | None = None  # 0012: verbatim request URL; NULL before 0012
+
+
+class PageVisit(Row):
+    """0012 (spec 019): one arrival on a page, its verbatim URL and the hops that led there."""
+
+    id: str
+    run_id: str
+    state_id: str
+    edge_id: str | None
+    via: Literal["navigate", "action", "relogin", "login"]
+    url: str
+    hops_json: Json
     created_at: str
 
 
@@ -574,6 +589,7 @@ TABLE_MODELS: dict[str, type[Row]] = {
     "edges": Edge,
     "forms": Form,
     "network_calls": NetworkCall,
+    "page_visits": PageVisit,
     "open_questions": OpenQuestion,
     "rule_candidates": RuleCandidate,
     "states": State,

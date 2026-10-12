@@ -67,7 +67,7 @@ def test_env_param_kept(empty_store: Store) -> None:
     (empty_store.data_dir / "db" / "sandbox.sqlite").write_bytes(b"")
     with make_client(empty_store) as client:
         r = client.get("/glossary", params={"env": "sandbox"})
-    assert 'href="/glossary/pages/frontier?env=sandbox"' in r.text
+    assert 'href="/glossary/pages/frontier?store=main%3Asandbox"' in r.text
 
 
 def test_broken_glossary_degrades(empty_store: Store, tmp_path: Path) -> None:

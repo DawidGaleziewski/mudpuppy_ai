@@ -229,5 +229,6 @@ export function narrowScope(
     max_steps: min(portal.max_steps, r.max_steps),
     mfe_wait_ms: min(portal.mfe_wait_ms, r.mfe_wait_ms),
     frame_depth: min(portal.frame_depth, r.frame_depth),
+    client_redirect_wait_ms: min(portal.client_redirect_wait_ms, r.client_redirect_wait_ms),
   };
 }

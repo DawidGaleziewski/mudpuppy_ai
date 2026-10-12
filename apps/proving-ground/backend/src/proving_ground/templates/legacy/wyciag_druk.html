@@ -1,0 +1,15 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>Wydruk wyciągu</title>
+</head>
+<body bgcolor="#FFFFFF" text="#000000" onload="">
+<pre>
+BANK KORPORACYJNY - WYDRUK WYCIĄGU
+Rachunek: {{ konto }}   Okres: {{ okres }}   Typ: {% if typ == "M" %}miesięczny{% else %}roczny{% endif %}
+{% for op in operations %}{{ op.date }}  {{ op.title|ljust:"28" }} {{ op.amount|rjust:"12" }}
+{% endfor %}</pre>
+<a href="javascript:window.print()">Drukuj tę stronę</a>
+</body>
+</html>

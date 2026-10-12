@@ -14,6 +14,11 @@ export const RecordApiCallInput = z
     req_schema: z.unknown(),
     res_schema: z.unknown(),
     console_errors: z.array(z.string()).default([]),
+    /**
+     * The verbatim request URL (spec 019, R-37): kept as the page asked for it, query and session ids
+     * included; not checked for raw payloads like the shapes are ("capture everything").
+     */
+    url: z.string().min(1).nullable().default(null),
   })
   .strict();
 
@@ -57,6 +62,7 @@ export async function recordApiCall(
       res_schema: JSON.stringify(input.res_schema ?? null),
       console_errors: JSON.stringify(input.console_errors),
       created_at: nowIso(),
+      url: input.url,
     })
     .execute();
   return { api_call_id: id };

@@ -1,4 +1,4 @@
--- GENERATED from data/migrations/*.up.sql applied in order (currently through 0011_page_composition). Do not edit by hand.
+-- GENERATED from data/migrations/*.up.sql applied in order (currently through 0013_relation_triples). Do not edit by hand.
 -- Regenerate after every migration; see data/schema/README.md.
 
 CREATE TABLE runs (
@@ -89,7 +89,9 @@ CREATE TABLE network_calls (
   req_schema     TEXT NOT NULL CHECK (json_valid(req_schema)),  -- shape only, no PII
   res_schema     TEXT NOT NULL CHECK (json_valid(res_schema)),  -- shape only, no PII
   console_errors TEXT NOT NULL DEFAULT '[]' CHECK (json_valid(console_errors) AND json_type(console_errors) = 'array'),
-  created_at     TEXT NOT NULL
+  created_at     TEXT NOT NULL,
+  -- 0012 (ALTER TABLE): the verbatim request URL (query kept); NULL before 0012 (spec 019).
+  url            TEXT
 ) STRICT;
 
 CREATE TABLE open_questions (
@@ -352,7 +354,8 @@ CREATE TABLE doc_evidence_links (
   revision_id TEXT NOT NULL REFERENCES doc_revisions(id),
   target_kind TEXT NOT NULL CHECK (target_kind IN (
                  'state','edge','action','form','network_call','rule_candidate','open_question',
-                 'decision','process','process_step','doc_record','review','screen_region'
+                 'decision','process','process_step','doc_record','review','screen_region',
+                 'page_visit'
                )),
   target_id   TEXT NOT NULL,
   run_id      TEXT REFERENCES runs(id),
@@ -378,6 +381,55 @@ CREATE TABLE doc_relations (
                     )),
   PRIMARY KEY (from_revision_id, to_record_id, type)
 ) STRICT, WITHOUT ROWID;
+-- Triple backstop (0013): the store refuses a relation whose (from kind, type, to kind) is not in
+-- RELATION_RULES; the list equals relations.ts (drift test: docs/tests/relation-triples.test.ts).
+CREATE TRIGGER trg_doc_relations_triple_insert
+BEFORE INSERT ON doc_relations
+WHEN EXISTS (
+  SELECT 1
+  FROM doc_revisions v
+  JOIN doc_records fr ON fr.id = v.record_id
+  JOIN doc_records tr ON tr.id = NEW.to_record_id
+  WHERE v.id = NEW.from_revision_id
+    AND NOT (
+      (NEW.type = 'contains'   AND fr.kind = 'capability'  AND tr.kind IN ('process','screen')) OR
+      (NEW.type = 'describes'  AND fr.kind = 'use_case'    AND tr.kind = 'process') OR
+      (NEW.type = 'refines'    AND fr.kind = 'requirement' AND tr.kind IN ('use_case','capability')) OR
+      (NEW.type = 'enforces'   AND fr.kind = 'requirement' AND tr.kind = 'business_rule') OR
+      (NEW.type = 'appears_on' AND fr.kind = 'data_item'   AND tr.kind = 'screen') OR
+      (NEW.type = 'uses_term'  AND tr.kind = 'glossary_term') OR
+      (NEW.type = 'synonym_of' AND fr.kind = 'glossary_term' AND tr.kind = 'glossary_term') OR
+      (NEW.type = 'answers'    AND fr.kind IN ('assumption','requirement','business_rule') AND tr.kind = 'open_question') OR
+      (NEW.type = 'depends_on' AND fr.kind = tr.kind)
+    )
+)
+BEGIN
+  SELECT RAISE(ABORT, 'RELATION_NOT_ALLOWED: (from kind, type, to kind) is not an allowed triple');
+END;
+
+CREATE TRIGGER trg_doc_relations_triple_update
+BEFORE UPDATE OF from_revision_id, to_record_id, type ON doc_relations
+WHEN EXISTS (
+  SELECT 1
+  FROM doc_revisions v
+  JOIN doc_records fr ON fr.id = v.record_id
+  JOIN doc_records tr ON tr.id = NEW.to_record_id
+  WHERE v.id = NEW.from_revision_id
+    AND NOT (
+      (NEW.type = 'contains'   AND fr.kind = 'capability'  AND tr.kind IN ('process','screen')) OR
+      (NEW.type = 'describes'  AND fr.kind = 'use_case'    AND tr.kind = 'process') OR
+      (NEW.type = 'refines'    AND fr.kind = 'requirement' AND tr.kind IN ('use_case','capability')) OR
+      (NEW.type = 'enforces'   AND fr.kind = 'requirement' AND tr.kind = 'business_rule') OR
+      (NEW.type = 'appears_on' AND fr.kind = 'data_item'   AND tr.kind = 'screen') OR
+      (NEW.type = 'uses_term'  AND tr.kind = 'glossary_term') OR
+      (NEW.type = 'synonym_of' AND fr.kind = 'glossary_term' AND tr.kind = 'glossary_term') OR
+      (NEW.type = 'answers'    AND fr.kind IN ('assumption','requirement','business_rule') AND tr.kind = 'open_question') OR
+      (NEW.type = 'depends_on' AND fr.kind = tr.kind)
+    )
+)
+BEGIN
+  SELECT RAISE(ABORT, 'RELATION_NOT_ALLOWED: (from kind, type, to kind) is not an allowed triple');
+END;
 
 -- Written only by docs:review. text required for reject/comment; confirm needs no text.
 CREATE TABLE doc_reviews (
@@ -555,3 +607,17 @@ CREATE TABLE amendments (
 ) STRICT;
 CREATE INDEX idx_amendments_target ON amendments (portal_id, target_kind, target_id);
 CREATE INDEX idx_amendments_status ON amendments (portal_id, status);
+
+-- 0012_page_visits (spec 019): one row per arrival on a page, verbatim URL and the hops that led there.
+CREATE TABLE page_visits (
+  id         TEXT PRIMARY KEY,
+  run_id     TEXT NOT NULL REFERENCES runs(id),
+  state_id   TEXT NOT NULL REFERENCES states(id),
+  edge_id    TEXT REFERENCES edges(id),  -- the action edge that led here; NULL for navigate and re-login
+  via        TEXT NOT NULL CHECK (via IN ('navigate','action','relogin','login')),
+  url        TEXT NOT NULL CHECK (length(url) > 0),
+  hops_json  TEXT NOT NULL DEFAULT '[]' CHECK (json_valid(hops_json) AND json_type(hops_json) = 'array'),
+  created_at TEXT NOT NULL
+) STRICT;
+CREATE INDEX idx_page_visits_run_state ON page_visits (run_id, state_id);
+CREATE INDEX idx_page_visits_state ON page_visits (state_id);

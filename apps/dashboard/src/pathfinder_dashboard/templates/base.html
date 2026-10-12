@@ -36,7 +36,7 @@
       <span id="live-status" class="live-status" role="status"><span class="st st-muted">[ .. ]</span> connecting</span>
       {#- Spec 011: which portal the pages show; kept in a cookie. "+ new portal" opens the form. #}
       <form class="env-form" method="get" action="{{ request.url.path }}">
-        {%- if c.env_param %}<input type="hidden" name="env" value="{{ c.env_param }}">{% endif %}
+        {%- if c.store_param %}<input type="hidden" name="store" value="{{ c.store_param }}">{% endif %}
         <label class="field">
           <span>portal</span>
           <select class="select" name="portal" data-autosubmit>
@@ -60,13 +60,22 @@
         <label class="field">
           {#- Which local database the pages read (data/db/<name>.sqlite); not the environment a
               scan targets, which belongs to the portal (spec 011). #}
-          <span title="Which local database the dashboard reads. The environment a scan targets is set per portal under [settings].">data store</span>
-          <select class="select" name="env" data-autosubmit>
-            {%- for e in envs %}
-            <option value="{{ e }}"{% if e == env %} selected{% endif %}>{{ e }}</option>
+          <span title="Which local database the dashboard reads: one of data/db, or an eval workspace (pnpm eval). The environment a scan targets is set per portal under [settings].">data store</span>
+          {%- set all_stores = c.stores %}
+          <select class="select" name="store" data-autosubmit>
+            {%- for s in all_stores if s.kind == "main" %}
+            <option value="{{ s.key }}"{% if s.key == c.store.key %} selected{% endif %}>{{ s.label }}</option>
             {%- else %}
-            <option value="{{ env }}" selected>{{ env }}</option>
+            <option value="{{ c.store.key }}" selected>{{ c.store.label }}</option>
             {%- endfor %}
+            {%- set evals = all_stores | selectattr("kind", "equalto", "eval") | list %}
+            {%- if evals %}
+            <optgroup label="eval workspaces">
+              {%- for s in evals %}
+              <option value="{{ s.key }}"{% if s.key == c.store.key %} selected{% endif %}>{{ s.label }}</option>
+              {%- endfor %}
+            </optgroup>
+            {%- endif %}
           </select>
         </label>
         <noscript><button class="btn btn-bracket" type="submit">[switch]</button></noscript>
@@ -75,6 +84,11 @@
   </header>
   <div id="live" hx-sse:connect="{{ c.url('/events') }}" hidden></div>
   <main id="main" class="shell">
+    {%- if c.store_note %}
+    <p class="notice store-note" role="status"><span class="st st-fail">[GONE]</span> {{ c.store_note }}</p>
+    {%- elif c.store.kind == "eval" %}
+    <p class="notice store-note" role="status"><span class="st st-run">[EVAL]</span> Reading the eval workspace {{ c.store.data_dir.parent.name }} ({{ c.store.label }}), read-only.</p>
+    {%- endif %}
     {% block content %}{% endblock %}
   </main>
   <div id="stale" class="banner" role="status" hidden>

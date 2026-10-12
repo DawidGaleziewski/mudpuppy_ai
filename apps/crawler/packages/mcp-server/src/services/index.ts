@@ -12,3 +12,4 @@ export * from './start-run.js';
 export * from './run-lifecycle.js';
 export * from './robots.js';
 export * from './wireframes.js';
+export * from './page-visits.js';

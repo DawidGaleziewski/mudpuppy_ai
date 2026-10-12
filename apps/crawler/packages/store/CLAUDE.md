@@ -15,7 +15,8 @@ Layer: store (G-07; `apps/crawler/layers.json`)
   and emits a tracer `decision` event.
 - `createTracer`, `emitForRun`, span/phase/event vocabulary (`tracer.ts`): writes `trace_spans`.
 - `importAgent` (`import-agent.ts`): imports a crawler subagent transcript (`pnpm trace:import-agent`).
-- `auditPii`, `compareRuns` (`audit.ts`), portal export/delete (`portal-data.ts`), `secretsPlugin`.
+- `auditPii`, `compareRuns` (`audit.ts`), portal export/delete (`portal-data.ts`, every portal
+  table incl. `page_visits`, spec 019), `secretsPlugin`.
 - Used by: mcp-server, crawler, docs, gates, vault, apps/chat, the crawler app scripts.
 
 ## Invariants

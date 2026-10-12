@@ -17,7 +17,9 @@ Layer: app (Python, FastAPI + Jinja + htmx, uv; outside the TS layers)
 - `web/<page>.py`: one `APIRouter` per page with its fragments (`overview`, `runs`, `states`,
   `evidence`, `health`, `activity`, `docs`, `glossary`, `chat`, `portals`, `amendments`, `events`);
   shared view helpers in `web/views_docs.py`, `web/views_chat.py`, `web/chat_forward.py`.
-- `queries.py`, `queries_docs.py`, `queries_chat.py`: read models.
+- `queries.py`, `queries_docs.py`, `queries_chat.py`, `queries_urls.py` (visits, parameter
+  inventory, spec 019): read models.
+- `stores.py`: the stores a request may open (main data dir + eval workspaces), chosen by key.
 - `models.py`: read-only models of SQLite schema; drift test vs. `data/schema/schema.sql`.
 - `templates/`, `static/`, `diagrams.py`, `glossary.py`, `live.py`, `chat_client.py`.
 

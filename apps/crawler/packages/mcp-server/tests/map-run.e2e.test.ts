@@ -584,11 +584,13 @@ describe.skipIf(!available)('map run against the mock portal', () => {
       });
       for (let i = 0; i < 4; i++) {
         const next = await call('get_next_frontier_item', { run_id: runId });
-        await call('act', {
+        const acted = await call('act', {
           run_id: runId,
           action_id: next.body.item.action_id,
           rationale: 'exploring the next frontier item',
         });
+        // spec 019 F-04: a step that failed after recording its edge must not pass unseen
+        expect(acted.isError, JSON.stringify(acted.body)).toBe(false);
       }
       const edgesBefore = await ctx.db.selectFrom('edges').select('id').execute();
       const statesBefore = await ctx.db.selectFrom('states').select('id').execute();

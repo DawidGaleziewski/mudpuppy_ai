@@ -24,6 +24,7 @@ const scope = {
   max_steps: 100,
   mfe_wait_ms: 10000,
   frame_depth: 3,
+  client_redirect_wait_ms: 5000,
 };
 
 describe('checkScope', () => {

@@ -109,6 +109,68 @@ describe('get_run_evidence', () => {
     ]);
   });
 
+  it('reads page visits and the parameter inventory (spec 019, R-37/R-38)', async () => {
+    const h = await startBa();
+    const insert = h.fx.raw.prepare(
+      `INSERT INTO page_visits (id, run_id, state_id, edge_id, via, url, hops_json, created_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+    );
+    const hops = [
+      { url: 'https://ref.test/stary/kalkulator', kind: 'start' },
+      { url: 'https://ref.test/kalkulator/pojazd?typ=osobowy', kind: 'http', status: 302 },
+    ];
+    insert.run(
+      'visit-a',
+      h.fx.runId,
+      h.fx.states.vehicle,
+      null,
+      'navigate',
+      'https://ref.test/kalkulator/pojazd?typ=osobowy',
+      JSON.stringify(hops),
+      FIXTURE_TS,
+    );
+    insert.run(
+      'visit-b',
+      h.fx.runId,
+      h.fx.states.vehicle,
+      h.fx.edges.carToVehicle,
+      'action',
+      'https://ref.test/kalkulator/pojazd?typ=ciezarowy&flag',
+      '[]',
+      FIXTURE_TS,
+    );
+    const visits = await h.must('get_run_evidence', { run_id: h.fx.runId, kind: 'page_visits' });
+    expect(visits.defaults).toEqual({ via: 'action' });
+    expect(visits.items).toEqual([
+      {
+        id: 'visit-a',
+        state_id: h.fx.states.vehicle,
+        route_template: '/kalkulator/pojazd',
+        via: 'navigate',
+        url: 'https://ref.test/kalkulator/pojazd?typ=osobowy',
+        hops,
+      },
+      {
+        id: 'visit-b',
+        state_id: h.fx.states.vehicle,
+        route_template: '/kalkulator/pojazd',
+        edge_id: h.fx.edges.carToVehicle,
+        url: 'https://ref.test/kalkulator/pojazd?typ=ciezarowy&flag',
+        hops: [],
+      },
+    ]);
+    const params = await h.must('get_run_evidence', { run_id: h.fx.runId, kind: 'parameters' });
+    expect(params.items).toHaveLength(1);
+    expect(params.items[0]).toMatchObject({
+      id: h.fx.states.vehicle,
+      route_template: '/kalkulator/pojazd',
+      params: [
+        { name: 'typ', in: 'query', values: ['osobowy', 'ciezarowy'], distinct: 2, visits: 2 },
+        { name: 'flag', in: 'query', values: [null], visits: 1 },
+      ],
+    });
+  });
+
   it('keeps real role and name on actions, omits nulls and page defaults', async () => {
     const h = await startBa();
     const get = (kind: string) => h.must('get_run_evidence', { run_id: h.fx.runId, kind });

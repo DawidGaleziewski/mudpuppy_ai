@@ -8,6 +8,7 @@ import {
   gate,
   gateServer,
   GATE_BASE,
+  lastVisit,
   nav,
   navWait,
   resetEstate,
@@ -152,6 +153,16 @@ gate(
     );
     expect(routes.some((r) => r.startsWith('/old/') || r.startsWith('/shop/'))).toBe(false);
     expect(rows(gs, 'SELECT id FROM states').length - before).toBeLessThanOrEqual(1);
+    // every hop of the chain is recorded with its status and full URL (spec 019, R-38)
+    const v = lastVisit(gs, landed.state_id);
+    expect(v.hops.map((h) => [h.kind, h.status ?? null])).toEqual([
+      ['start', null],
+      ['http', 301],
+      ['http', 302],
+    ]);
+    expect(v.hops[0]!.url).toContain('/shop/index.php?cat=2');
+    expect(v.hops[1]!.url).toContain('/old/kategoria/2');
+    expect(v.url).toContain('/sklep?kategoria=2');
   },
 );
 

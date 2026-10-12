@@ -18,9 +18,10 @@ export async function login(
   const run = await phase(ctx, 'begin_step', () => beginStep(ctx, rs, input.run_id));
   const state = rs!;
   return counted(state, async () => {
-    const started = Date.now();
+    const started = performance.now();
     const creds = loginPreconditions(state);
     const out = await step({ ctx, run }, 'login', async () => {
+      state.session.navigation.begin(state.session.page.url());
       const out = await performLogin(ctx, state, creds);
       state.login = out.outcome === 'logged_in' ? 'logged_in' : 'blocked';
       return reported(out, [
@@ -35,7 +36,14 @@ export async function login(
         }),
       ]);
     });
-    const page = await processPage({ ctx, run, rs: state, via: { kind: 'navigate' }, depth: 0 });
+    const page = await processPage({
+      ctx,
+      run,
+      rs: state,
+      via: { kind: 'navigate' },
+      depth: 0,
+      visitVia: 'login',
+    });
     await step({ ctx, run }, 'run_bookkeeping', () => bumpRun(ctx, run, started, 0));
     await flushObstacles(ctx, state);
     return { ...page, outcome: out.outcome, ...(out.reason ? { reason: out.reason } : {}) };
