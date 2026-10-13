@@ -92,6 +92,30 @@ describe('ChatService', () => {
     expect(refused?.content).toContain('not allowed here');
   });
 
+  it('keeps a credential request in the history; other browser actions leave no row', async () => {
+    const t = setup();
+    const id = await newConversation(t);
+    t.service.inject(id, [
+      { type: 'ui_action', action: 'open', path: '/screens' },
+      {
+        type: 'ui_action',
+        action: 'credential',
+        portal: 'liveinsurer',
+        environment: 'sandbox',
+        persona: 'client',
+        ref: 'LIVEINSURER_PASSWORD',
+        reason: null,
+      },
+    ]);
+    await t.service.drain(id);
+    const rows = (await t.store.listMessages(id)).filter((m) => m.role === 'system');
+    expect(rows.map((m) => [m.tool_name, m.content])).toContainEqual([
+      'request_credential',
+      'Credential needed: LIVEINSURER_PASSWORD · liveinsurer · sandbox · client.',
+    ]);
+    expect(rows.some((m) => m.content.includes('/screens'))).toBe(false);
+  });
+
   it('survives an agent crash: error event with ref, then a new session on the next send', async () => {
     const t = setup();
     const id = await newConversation(t);

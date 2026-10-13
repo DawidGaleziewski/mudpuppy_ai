@@ -13,6 +13,9 @@ import {
   ChatConversationStatus,
   ChatMessage,
   ChatMessageRole,
+  ChatProposal,
+  ChatProposalStatus,
+  ChatProposalTargetKind,
   ProcessScope,
   ProcessScopeSource,
   WorkflowStep,
@@ -191,5 +194,63 @@ describe('amendment revisions (0016)', () => {
     expect(AmendmentRevision.safeParse({ ...rev, base_rev: 1 }).success).toBe(false);
     expect(AmendmentRevision.safeParse({ ...rev, rev: 2 }).success).toBe(false);
     expect(AmendmentRevision.safeParse({ ...rev, change: 'supersede' }).success).toBe(false);
+  });
+});
+
+describe('chat proposals (0017)', () => {
+  const SQL_0017 = readFileSync(
+    fileURLToPath(
+      new URL('../../../../../data/migrations/0017_chat_proposals.up.sql', import.meta.url),
+    ),
+    'utf-8',
+  );
+  const base = {
+    id: 'p1',
+    conversation_id: 'c1',
+    portal_id: 'portal',
+    target_kind: 'amendment',
+    target_id: 'a1',
+    base_rev: 1,
+    payload: { text: 'x' },
+    summary: 'Target: whole screen',
+    status: 'open',
+    applied_amendment_id: null,
+    applied_rev: null,
+    decided_by: null,
+    decided_at: null,
+    created_at: ts,
+  };
+
+  it('Zod enums equal the CHECK lists in the migration', () => {
+    expect(ChatProposalTargetKind.options).toEqual(
+      inList('chat_proposals', 'target_kind', SQL_0017),
+    );
+    expect(ChatProposalStatus.options).toEqual(inList('chat_proposals', 'status', SQL_0017));
+  });
+
+  it('mirrors the row CHECKs', () => {
+    expect(ChatProposal.safeParse(base).success).toBe(true);
+    const created = { ...base, target_kind: 'new_amendment', target_id: null, base_rev: null };
+    expect(ChatProposal.safeParse(created).success).toBe(true);
+    expect(ChatProposal.safeParse({ ...base, base_rev: null }).success).toBe(false);
+    expect(ChatProposal.safeParse({ ...created, target_id: 'a1' }).success).toBe(false);
+    expect(ChatProposal.safeParse({ ...base, summary: '' }).success).toBe(false);
+    expect(ChatProposal.safeParse({ ...base, status: 'applied', decided_at: ts }).success).toBe(
+      false,
+    );
+    expect(
+      ChatProposal.safeParse({
+        ...base,
+        status: 'applied',
+        applied_amendment_id: 'a1',
+        applied_rev: 2,
+        decided_by: 'ba',
+        decided_at: ts,
+      }).success,
+    ).toBe(true);
+    expect(ChatProposal.safeParse({ ...base, status: 'stale' }).success).toBe(false);
+    expect(ChatProposal.safeParse({ ...base, status: 'discarded', decided_at: ts }).success).toBe(
+      true,
+    );
   });
 });

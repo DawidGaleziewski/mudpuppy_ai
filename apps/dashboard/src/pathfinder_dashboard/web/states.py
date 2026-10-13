@@ -30,8 +30,11 @@ def state_detail(
     env: str | None = None,
     view: str = "screenshot",
     elements: bool = False,
+    hl: str | None = None,
 ) -> HTMLResponse:
-    """A recorded state's screenshot, wireframe and the records citing it (spec 008)."""
+    """A recorded state's screenshot, wireframe and the records citing it (spec 008). `hl` is the
+    assistant's highlight (spec 022 FE-A07): that element is marked "Marked by assistant"; an
+    empty value marks the whole screen."""
     web = web_of(request)
     c = web.ctx(request, env)
     try:
@@ -50,6 +53,8 @@ def state_detail(
                 screen=queries_revisions.screen_of_state(conn, state_id),
                 view="wireframe" if view == "wireframe" else "screenshot",
                 show_elements=elements,
+                assistant_hl=hl,
+                marked=[e for e in page.elements if e.key == hl] if hl else [],
             )
     except db.StoreMissing as err:
         return web.missing(c, err)

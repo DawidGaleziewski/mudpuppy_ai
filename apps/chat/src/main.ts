@@ -16,12 +16,8 @@ import { ChatService } from './service.js';
 import { StepRecorder } from './step-recorder.js';
 import { openingMessage } from './opening.js';
 import { createPortal, describePortal, removeEnvironment, setEnvironment } from './portals.js';
-import {
-  conversationsOfRun,
-  runningRunsOfConversation,
-  stopRun,
-  stoppedNotice,
-} from './runs.js';
+import { createProposalService } from './proposal-service.js';
+import { conversationsOfRun, runningRunsOfConversation, stopRun, stoppedNotice } from './runs.js';
 import { setProcessScope } from './scope.js';
 import { listPortals, loadWorkflowInput } from './workflow-data.js';
 import { workflowState } from '@pathfinder/workflow';
@@ -72,6 +68,7 @@ async function main(): Promise<void> {
     policy: createFence({ repoRoot }),
     logError: (input) => logError(input),
   });
+  const amendments = createAmendmentService({ db: opened.db, evidence });
   const server = createApi({
     service,
     logError: (input) => logError(input),
@@ -79,10 +76,8 @@ async function main(): Promise<void> {
     version: packageVersion(),
     credentials: createCredentialsHandler({ db: opened.db }),
     scope: (conversationId, body) => setProcessScope(opened.raw, repoRoot, conversationId, body),
-    amendments: createAmendmentService({
-      db: opened.db,
-      evidence,
-    }),
+    amendments,
+    proposals: createProposalService({ db: opened.db, amendments }),
     // T041: tell every conversation following the run; the timer moves its step on.
     stopRun: (runId) => {
       const stopped = stopRun(opened.raw, runId, { byBa: true });

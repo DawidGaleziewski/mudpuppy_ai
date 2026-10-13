@@ -5,7 +5,10 @@ import { createServer, type IncomingMessage, type Server, type ServerResponse } 
 import { z } from 'zod';
 import { amendmentRoutes } from './api-amendments.js';
 import { type AmendmentService } from './amendments.js';
+import { proposalRoutes } from './api-proposals.js';
+import { type ProposalService } from './proposal-service.js';
 import { parseBody, readJson, sendJson } from './http-io.js';
+import { PageContext, contextLine } from './page-context.js';
 import { CredentialsBody, type CredentialsHandler } from './credentials.js';
 import { Environment } from '@pathfinder/config';
 import { EnvironmentBody, NewPortalBody, PortalRefusal, type PortalSummary } from './portals.js';
@@ -28,6 +31,8 @@ export interface ApiOptions {
   credentials?: CredentialsHandler;
   /** Amendment commands (T030). Without it the amendment routes answer 404. */
   amendments?: AmendmentService;
+  /** The assistant's proposals (spec 022 R6). Without it the proposal routes answer 404. */
+  proposals?: ProposalService;
   /** Save a process scope (T027); throws `ScopeRefusal`. Without it the route answers 404. */
   scope?: (conversationId: string, body: SetScopeInput) => ProcessScope;
   /** Stop a running run (T041); throws `RunRefusal`. Without it the route answers 404. */
@@ -74,7 +79,11 @@ const CreateBody = z.object({
   /** Spec 011: [new conversation] for the chosen portal never resumes its active one. */
   fresh: z.boolean().optional(),
 });
-const MessageBody = z.object({ text: z.string().trim().min(1).max(50_000) });
+const MessageBody = z.object({
+  text: z.string().trim().min(1).max(50_000),
+  /** Spec 022: the page the message is about ("This page") or the whole portal. */
+  context: PageContext.optional(),
+});
 
 function parseLastEventId(req: IncomingMessage): number | null {
   const raw = req.headers['last-event-id'];
@@ -180,7 +189,11 @@ export function createApi(opts: ApiOptions): Server {
     const messages = /^\/conversations\/([^/]+)\/messages$/.exec(path);
     if (method === 'POST' && messages !== null) {
       const body = parseBody(MessageBody, await readJson(req));
-      const { messageId } = await service.send(decodeURIComponent(messages[1]!), body.text);
+      const { messageId } = await service.send(
+        decodeURIComponent(messages[1]!),
+        body.text,
+        contextLine(body.context) + body.text,
+      );
       sendJson(res, 202, { messageId });
       return;
     }
@@ -196,7 +209,16 @@ export function createApi(opts: ApiOptions): Server {
       const body = parseBody(CredentialsBody, await readJson(req));
       if (!(await service.exists(id)))
         throw new HttpError(404, 'This conversation does not exist.');
-      sendJson(res, 200, await opts.credentials.store(body));
+      const stored = await opts.credentials.store(body);
+      // Names only, never values: tells the assistant (and the request card) it can go on.
+      service.inject(id, [
+        {
+          type: 'notice',
+          text: `Stored in the vault: ${stored.refs.join(', ')} (${body.portal} · ${body.environment}). Values are never shown.`,
+          tool: 'credential_stored',
+        },
+      ]);
+      sendJson(res, 200, stored);
       return;
     }
     // Process scope confirmed in the dashboard checklist (T027, FR-014, FR-015).
@@ -226,6 +248,7 @@ export function createApi(opts: ApiOptions): Server {
     }
     // Amendments with revisions (T030, T033; spec 022 contracts/amendments-api.md).
     if (await amendmentRoutes(req, res, method, path, url, opts.amendments)) return;
+    if (await proposalRoutes(req, res, method, path, opts.proposals)) return;
     // T050: the chat's [stop] button. Ends the assistant's turn and stops every run the
     // conversation follows (interrupted, so they can be resumed); answers what was stopped.
     const cancel = /^\/conversations\/([^/]+)\/cancel$/.exec(path);

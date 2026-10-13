@@ -188,11 +188,23 @@ describe('stop a run', () => {
         .prepare(`SELECT status, error_ref FROM workflow_steps WHERE conversation_id = ?`)
         .get(conversationId) as { status: string; error_ref: string | null };
     addRun('auto', 'running');
-    recordStep(raw(), { conversationId, portalId: P, step: 'scan', status: 'in_progress', runId: 'auto' });
+    recordStep(raw(), {
+      conversationId,
+      portalId: P,
+      step: 'scan',
+      status: 'in_progress',
+      runId: 'auto',
+    });
     stopRun(raw(), 'auto'); // an agent left it running: the step recorder decides
     expect(stepOf().status).toBe('in_progress');
     addRun('ba', 'running', '2026-10-06T09:00:00.000Z');
-    recordStep(raw(), { conversationId, portalId: P, step: 'scan', status: 'in_progress', runId: 'ba' });
+    recordStep(raw(), {
+      conversationId,
+      portalId: P,
+      step: 'scan',
+      status: 'in_progress',
+      runId: 'ba',
+    });
     stopRun(raw(), 'ba', { byBa: true });
     expect(stepOf()).toEqual({ status: 'stopped', error_ref: null });
   });

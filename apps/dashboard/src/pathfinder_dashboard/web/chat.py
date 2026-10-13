@@ -21,7 +21,7 @@ from fastapi.responses import (
     StreamingResponse,
 )
 
-from .. import chat_client, db, queries_chat
+from .. import chat_client, db, queries_chat, queries_revisions
 from .chat_forward import (
     chat_down,
     chat_json,
@@ -31,7 +31,7 @@ from .chat_forward import (
     read_json,
 )
 from .deps import same_origin, web_of
-from .views_chat import chat_values, map_values, tools_values
+from .views_chat import chat_values, home_values, map_values, tools_values
 
 router = APIRouter()
 
@@ -53,6 +53,7 @@ async def chat_page(
                     tools_values(c, conn, values["conversation"], values["tracker"].portal_id)
                 )
                 values.update(map_values(c, conn, values))
+                values.update(home_values(conn, values["tracker"].portal_id))
     except db.StoreMissing as err:
         return web.missing(c, err)
     return web.render(
@@ -64,6 +65,38 @@ async def chat_page(
         asked=conversation,
         **(values or {"conversation": None}),
     )
+
+
+@router.get("/fragments/assistant", response_class=HTMLResponse)
+async def fragment_assistant(request: Request, env: str | None = None) -> HTMLResponse:
+    """The drawer's conversation (spec 022 FE-A02): the portal's newest active one."""
+    web = web_of(request)
+    c = web.ctx(request, env)
+    up = await chat_client.service_up(web.settings, web.chat_transport)
+    try:
+        with c.conn() as conn:
+            values = chat_values(c, conn, None) or {"conversation": None}
+    except db.StoreMissing as err:
+        return web.missing(c, err, fragment=True)
+    return web.render(c, "salvage/partials/assistant_drawer_body.html", service_up=up, **values)
+
+
+@router.get("/fragments/assistant/page-changed", response_class=HTMLResponse)
+def fragment_page_changed(
+    request: Request, state: str, rev: int, env: str | None = None
+) -> HTMLResponse:
+    """The drawer's "changed underneath you" notice (spec 022 screen 03 state 5): a scan
+    recorded a newer revision of the screen the context refers to. Empty while it is current."""
+    web = web_of(request)
+    c = web.ctx(request, env)
+    try:
+        with c.conn() as conn:
+            screen = queries_revisions.screen_of_state(conn, state)
+    except db.StoreMissing as err:
+        return web.missing(c, err, fragment=True)
+    latest = screen.latest() if screen else None
+    newer = latest if latest and latest.rev > rev else None
+    return web.render(c, "salvage/partials/page_changed.html", newer=newer, rev=rev)
 
 
 @router.get("/fragments/assistant-status", response_class=HTMLResponse)
@@ -221,12 +254,17 @@ async def chat_send(request: Request, conversation_id: str) -> JSONResponse:
     text = payload.get("text") if isinstance(payload, dict) else None
     if not isinstance(text, str) or not text.strip():
         return chat_json(422, {"ref": None, "message": "Write a message first."})
+    sent: dict[str, Any] = {"text": text}
+    # Spec 022 (FE-A03): "This page" or "Whole yard"; the chat service validates the shape.
+    context = payload.get("context")
+    if isinstance(context, dict):
+        sent["context"] = context
     try:
         status, body = await chat_client.call(
             web.settings,
             "POST",
             f"/conversations/{quote(conversation_id, safe='')}/messages",
-            {"text": text},
+            sent,
             web.chat_transport,
         )
     except chat_client.ChatUnavailable:

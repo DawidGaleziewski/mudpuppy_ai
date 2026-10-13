@@ -7,7 +7,7 @@ store, vault, workflow.
 
 ## Public API
 - HTTP + SSE API (127.0.0.1:4310); used by apps/dashboard.
-- MCP chat server: `workflow_state`, `save_persona`, `request_scan`, `list_process_candidates`, `set_process_scope`, `request_documentation`, `list_amendments`.
+- MCP chat server: `workflow_state`, `save_persona`, `request_scan`, `stop_scan`, `list_process_candidates`, `set_process_scope`, `request_documentation`, `list_amendments`; spec 022: `page_context`, `highlight_element`, `open_page`, `request_credential` (mcp-page-tools), `propose_change`.
 
 ## Modules
 - `acp-client`: ACP session lifecycle.
@@ -21,6 +21,11 @@ store, vault, workflow.
   stale `base_rev` answers 409 `STALE_REVISION`); `api-amendments`: their HTTP routes;
   `reanchor`: after a scan, carries amendments forward or flags them for re-anchoring (spec 022).
 - `http-io`, `http-error`: JSON in/out and the HTTP error with machine-readable extras.
+- `page-context`: the message's page context and the line the agent gets; `ui-actions`: completed
+  browser tools → `ui_action` events (a credential request is also kept in the history);
+  `mcp-page-tools`: the page tools.
+- `proposals` (propose_change writes an open `chat_proposals` row), `proposal-service`
+  (apply / discard / undo through the amendment write path), `api-proposals` (their routes).
 - `portals`, `personas`, `credentials`: portal/user data.
 - `scan`, `scope`: process scanning and scope management.
 - `fence`: permission control.

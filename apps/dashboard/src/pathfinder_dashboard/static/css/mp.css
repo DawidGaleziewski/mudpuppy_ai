@@ -68,6 +68,15 @@
   .mp-phase-bar__seg { inline-size: var(--value); background: var(--sy-active); border-inline-end: 1px solid var(--sy-bg-ground); }
   .mp-phase-bar__seg[data-status="failed"] { background: var(--sy-fail); }
 
+  /* Assistant (spec 022 M3): the history and the streamed replies are wrappers inside
+     .sy-chat__log; they lay out their messages like the log does. Agent text keeps its lines. */
+  .mp-chat-history, .mp-chat-live { display: flex; flex-direction: column; gap: inherit; }
+  .mp-chat-live:empty { display: none; }
+  .mp-pre { white-space: pre-wrap; overflow-wrap: anywhere; }
+  .mp-msg--wide { max-inline-size: none; }
+  .mp-drawer-notice:not(:empty) { padding: var(--sy-space-3) var(--sy-space-4) 0; }
+  .mp-suggestions { padding: var(--sy-space-2) var(--sy-space-4) 0; }
+
   /* Mermaid diagrams render on the light paper ground, like recorded pages. */
   .mp-diagram { margin: 0; }
   .mp-diagram .mermaid { overflow: auto; background: var(--sy-paper); color: var(--sy-paper-ink); padding: var(--sy-space-3); }

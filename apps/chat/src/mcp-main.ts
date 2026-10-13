@@ -4,6 +4,7 @@
 import { fileURLToPath } from 'node:url';
 import { join } from 'node:path';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
+import { createEvidenceStore } from '@pathfinder/core';
 import { dbPathFor, migrateUp, openDb } from '@pathfinder/store';
 import { createChatMcpServer } from './mcp-chat.js';
 
@@ -17,5 +18,10 @@ if (conversationId === undefined || conversationId === '') {
 
 const opened = openDb(dbPathFor(join(repoRoot, 'data'), process.env.PATHFINDER_ENV ?? 'sandbox'));
 migrateUp(opened.raw, join(repoRoot, 'data', 'migrations'));
-const server = createChatMcpServer({ raw: opened.raw, paths: { repoRoot }, conversationId });
+const server = createChatMcpServer({
+  raw: opened.raw,
+  paths: { repoRoot },
+  conversationId,
+  evidence: createEvidenceStore(join(repoRoot, 'data', 'evidence')),
+});
 await server.connect(new StdioServerTransport());

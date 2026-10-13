@@ -1,5 +1,7 @@
 {% extends "salvage/base.html" %}
 {% set nav_current = "docs" %}
+{#- "This page" for the assistant (spec 022 R6): the record and its newest revision. -#}
+{% set page_ctx = {"type": "docs", "id": r.detail.record.id, "rev": r.detail.record.latest_rev, "label": r.detail.record.title, "ids": [r.key]} %}
 {% block title %}{{ r.key }} · {{ r.detail.record.title }}{% endblock %}
 {% block head_extra %}<script src="/static/js/diagram-zoom.js" defer></script><script src="/static/js/diagrams.js" defer></script>{% endblock %}
 {% block main %}

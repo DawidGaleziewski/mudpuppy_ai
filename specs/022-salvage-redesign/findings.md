@@ -58,6 +58,60 @@
 - **Test idea**: stage in a separate call from the commit; or let the hook print "nothing was
   staged by this call" when it blocks a command that starts with `git add`.
 
+## F-08 FE-A06 asks for an ERR reference when the chat service is down, 2026-10-13
+
+- **Symptom**: the drawer's "Assistant not running" state has no `ERR-…` reference, unlike the
+  design (screen 03 state 6).
+- **Cause**: `ERR-…` references are minted by the chat service, which writes the error log; when
+  it is down nothing can mint or log one. The dashboard is read-only and has no error log of its
+  own. Inventing a reference that leads nowhere would break "every ERR resolves to a log entry".
+- **Decision needed (owner)**: (a) drop the reference from FE-A06 for "service down" (the start
+  command is the next move), or (b) give the dashboard its own small error log so it can mint one.
+- **Test idea**: `test_service_down_drawer_shows_the_failure_and_pages_keep_working` covers the
+  rest of FE-A06.
+
+## F-09 The chat history wrappers broke the log layout, 2026-10-13
+
+- **Symptom**: inside `.sy-chat__log`, messages in the server-rendered history and the streamed
+  replies lost the log's gap, and user messages did not align right; `mp-pre` was used but never
+  defined, so the agent's line breaks collapsed.
+- **Cause**: the history and live regions are wrapper elements (htmx swap targets) that the
+  design's flat log markup does not have; the M3 templates were not compared by eye before commit.
+- **Fix**: `.mp-chat-history` / `.mp-chat-live` lay out like the log; `.mp-pre` defined (c1c5f9d).
+- **Test idea**: the ui:check could fail on an `mp-` class used in a template but defined in no
+  stylesheet (a list of hook-only classes allowed).
+
+## F-10 Another script edit: tests appended with a heredoc, 2026-10-13
+
+- **Symptom**: the Home tests were appended to `tests/test_assistant_cards.py` with
+  `cat >> … <<'EOF'` instead of the Edit tool (CLAUDE.md: no script edits), the second slip after
+  F-03 in this branch. The content was checked by running the file (6 passed) and ruff format.
+- **Test idea**: the PreToolUse hook proposed in F-03/F-04 should also catch `cat >>` and `tee`
+  into tracked files.
+
+## F-11 "This page" context was never sent: a broken attribute, 2026-10-13
+
+- **Symptom**: the drawer's `data-assistant-context="{{ ctx | tojson }}"` ended at the first `"` of
+  the JSON; `JSON.parse` failed and assistant.js fell back to "Whole yard" without a word, so no
+  message carried a page context (FE-A02/A03 silently broken since 5028fb2).
+- **Cause**: Jinja's `tojson` output is marked safe and escapes `<>&'` but not `"`; inside a
+  double-quoted attribute it breaks. The tests checked the chat service's context line, never the
+  rendered attribute; ui:check sees no console error because the fallback catches the exception.
+- **Fix**: single-quoted attribute (Jinja's documented use); a test parses the attribute back
+  (`test_drawer_notices_a_newer_revision_of_the_screen_in_context`); checked in Chromium on screen,
+  record and scan pages.
+- **Test idea**: the browser e2e for FE-A03 should send a message from the drawer and assert the
+  request body has `kind: page`; ui:check could warn when a `data-*-context` attribute does not
+  parse as JSON.
+
+## F-12 The export-fork rename lengthens lines past the lint limit, 2026-10-13
+
+- **Symptom**: the M3 export dry run failed at `dashboard lint` (E501) on a test line that is 98
+  characters here; the export renames `liveinsurer` to `insuro` and `LIVEINSURER_` to `INSURO_`.
+- **Fix**: a shorter fixture string (ruff format joins split literals back when they fit).
+- **Test idea**: the fast tier could lint with the line limit minus the longest rename delta, or
+  the export could rewrap; for now the dry run before each merge catches it.
+
 ## F-03 The design's Console glossary text, 2026-10-13
 
 - The glossary entry "status codes" still explains `[ OK ]`, `[RUN.]` … (content, not markup). It

@@ -92,11 +92,12 @@
       for (const input of form.querySelectorAll('input[name^="ref:"]')) {
         if (input.value) values[input.name.slice(4)] = input.value;
       }
-      const extra = form.elements.extra_ref.value.trim();
+      // The chat's request card (spec 022 FE-A05) asks for one named reference, without these two.
+      const extra = form.elements.extra_ref?.value.trim() ?? "";
       if (extra && form.elements.extra_value.value) values[extra] = form.elements.extra_value.value;
       const wipe = () => {
         for (const input of form.querySelectorAll('input[type="password"]')) input.value = "";
-        form.elements.extra_ref.value = "";
+        if (form.elements.extra_ref) form.elements.extra_ref.value = "";
       };
       if (!Object.keys(values).length) {
         show(where, false, "Type at least one value.");
@@ -111,6 +112,7 @@
       delete form.dataset.dirty;
       if (result.ok && result.body.stored) {
         show(where, true, `Credentials stored for ${(result.body.refs ?? []).join(", ")}.`);
+        refresh(); // a request card in the chat turns to "Stored"
       } else if (result.status === 409) {
         show(
           where,
@@ -248,6 +250,24 @@
     } else {
       button.disabled = false;
       fail(note, result, "That did not work.");
+    }
+  });
+
+  // The assistant's proposals (spec 022 FE-A04): Apply, Discard, Undo. Each is one revision or
+  // one decision; no confirmation, since nothing is lost (Undo adds a revision). A stale answer
+  // (409) shows its message and the refresh disables the card.
+  document.addEventListener("click", async (e) => {
+    const button = e.target.closest?.("[data-proposal]");
+    if (!button || button.disabled) return;
+    const card = button.closest(".sy-proposal");
+    const note = card?.querySelector("[data-result]");
+    card?.querySelectorAll("[data-proposal]").forEach((b) => (b.disabled = true));
+    const result = await send("POST", button.dataset.proposal, {});
+    if (result.ok) refresh();
+    else {
+      if (note) fail(note, result, "That did not work.");
+      if (result.status === 409) refresh();
+      else card?.querySelectorAll("[data-proposal]").forEach((b) => (b.disabled = false));
     }
   });
 

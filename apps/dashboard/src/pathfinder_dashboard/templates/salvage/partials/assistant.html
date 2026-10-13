@@ -1,0 +1,61 @@
+{#- The assistant (screens 01–03): history, streamed replies and the composer. One markup for
+    Home (`mode = "home"`, the main column) and the drawer (`mode = "drawer"`); assistant.js drives
+    both through the data attributes. Needs `conversation`, `messages`, `service_up`, and on Home
+    the progress values for the scan line. The drawer's page context lives outside, in the drawer
+    head ([data-assistant-context]). -#}
+{% import "salvage/macros.html" as sy %}
+<div class="mp-assistant sy-stack" style="--sy-gap: 0" data-assistant
+     data-conversation="{{ conversation.id }}"
+     data-events-url="/chat/conversations/{{ conversation.id }}/events"
+     data-send-url="/chat/conversations/{{ conversation.id }}/messages"
+     data-cancel-url="/chat/conversations/{{ conversation.id }}/cancel"
+     data-service-up="{{ 1 if service_up else 0 }}"
+     data-mode="{{ mode }}">
+  <div class="sy-chat__log" role="log" aria-label="Messages" tabindex="0" data-assistant-scroll>
+    {% include "salvage/partials/chat_messages.html" %}
+    <div class="mp-chat-live" data-assistant-live aria-live="polite"></div>
+    <div class="sy-msg" data-assistant-working hidden>
+      <span class="sy-msg__who">Assistant</span>
+      <p class="sy-caret" data-assistant-now>Thinking</p>
+    </div>
+  </div>
+  {%- if not service_up %}
+  <section class="sy-state sy-state--failure" role="alert">
+    <h3 class="sy-state__title">Assistant not running</h3>
+    <p>Start it in a terminal, then retry. Your history stays readable and every other page keeps working.</p>
+    <pre class="sy-code">pnpm --dir apps/chat start</pre>
+    <p><a class="sy-btn sy-btn--sm" href="{{ c.url(request.url.path) }}">Retry</a></p>
+  </section>
+  {%- endif %}
+  {%- if service_up %}
+  {#- Suggestions (screens 01, 03): one click sends the line as the BA's message. -#}
+  {%- if mode == "home" %}
+  {%- set resume = home is defined and home.needs | selectattr("0.key", "equalto", "resume_scan") | list %}
+  {%- set suggestions = (["Continue the stopped scan"] if resume else []) + ["What can I do here?", "Sort screens into processes", "Follow one process start to end", "Add to-be notes"] %}
+  {%- else %}
+  {%- set suggestions = ["Explain this page", "What changed since the last scan?", "Draft a to-be for this screen"] %}
+  {%- endif %}
+  <div class="sy-chips mp-suggestions" role="group" aria-label="Suggestions">
+    {%- for s in suggestions %}
+    <button class="sy-btn sy-btn--sm sy-btn--quiet sy-btn--well" type="button" data-chat-say="{{ s }}">{{ s }}</button>
+    {%- endfor %}
+  </div>
+  {%- endif %}
+  <form class="sy-composer" data-assistant-form action="{{ c.url('/chat', conversation=conversation.id) }}" method="get">
+    {%- if mode == "home" and progress is defined %}{% include "salvage/partials/chat_progress.html" %}{% endif %}
+    <label class="sy-field"><span class="sy-field__label">Message</span>
+      <textarea class="sy-textarea" name="text" rows="{{ 3 if mode == 'home' else 2 }}" required data-assistant-input
+                {%- if mode == "home" %} data-home-composer{% endif %}
+                {%- if not service_up %} disabled{% endif %}
+                aria-describedby="send-hint-{{ mode }}"
+                placeholder="{{ 'Ask about this page' if mode == 'drawer' else 'Ask what you can do, or name a goal' ~ (' for ' ~ conversation.portal_id if conversation.portal_id else '') }}"></textarea></label>
+    <div class="sy-actions sy-actions--split">
+      <span id="send-hint-{{ mode }}" class="sy-meta"><span class="sy-kbd">Enter</span> sends · <span class="sy-kbd">Shift+Enter</span> new line</span>
+      <span class="sy-actions">
+        <button class="sy-btn sy-btn--md sy-btn--danger" type="button" data-assistant-stop hidden title="Stop the reply and any scan this conversation started">Stop</button>
+        <button class="sy-btn {{ 'sy-btn--primary' if mode == 'home' else 'sy-btn--strong' }}" type="submit" data-assistant-send{% if not service_up %} disabled{% endif %}>Send</button>
+      </span>
+    </div>
+    <noscript><p class="sy-small sy-muted">Sending and live replies need JavaScript. History and steps still show.</p></noscript>
+  </form>
+</div>

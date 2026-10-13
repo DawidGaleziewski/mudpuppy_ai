@@ -42,6 +42,7 @@ export const PORTAL_TABLES = [
   'process_scopes',
   'amendments',
   'amendment_revisions',
+  'chat_proposals',
   'screens',
 ] as const;
 export type PortalTable = (typeof PORTAL_TABLES)[number];
@@ -66,6 +67,7 @@ export type PortalTable = (typeof PORTAL_TABLES)[number];
  * `decision_log` and `runs`.
  */
 const DELETE_ORDER: readonly PortalTable[] = [
+  'chat_proposals', // 0017: references chat_conversations and amendments
   'amendment_revisions',
   'amendments',
   'process_scopes',
@@ -132,6 +134,7 @@ export function where(table: PortalTable, side: 'mine' | 'others'): string {
     case 'workflow_steps':
     case 'process_scopes':
     case 'amendments':
+    case 'chat_proposals':
     case 'screens':
       return `portal_id ${op} ?`;
     case 'chat_messages':

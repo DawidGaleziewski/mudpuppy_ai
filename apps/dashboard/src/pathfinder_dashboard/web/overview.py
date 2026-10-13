@@ -6,9 +6,9 @@ import sqlite3
 from typing import Any
 
 from fastapi import APIRouter, Request
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, RedirectResponse, Response
 
-from .. import db, queries, queries_chat
+from .. import db, queries, queries_chat, ui_flag
 from ..models import RUN_STATUSES
 from .deps import Ctx, web_of
 
@@ -68,7 +68,7 @@ def runs_values(
     }
 
 
-@router.get("/", response_class=HTMLResponse)
+@router.get("/", response_class=HTMLResponse, response_model=None)
 def overview(
     request: Request,
     env: str | None = None,
@@ -76,10 +76,13 @@ def overview(
     status: str | None = None,
     cursor: str | None = None,
     page: int = 1,
-) -> HTMLResponse:
+) -> Response:
     web = web_of(request)
     c = web.ctx(request, env)
     portal = portal if portal is not None else c.portal  # spec 011: the header's choice
+    # Spec 022 (D-13, FE-A01): in Salvage Yard, Home for a picked portal is its assistant.
+    if portal and ui_flag.salvage_on(web.settings.ui_salvage, "chat"):
+        return RedirectResponse(c.url("/chat"), status_code=303)
     try:
         with c.conn() as conn:
             return web.render(

@@ -81,8 +81,13 @@ describe('pathfinder-chat MCP server', () => {
   it('lists exactly the contract tools', async () => {
     const { tools } = await client.listTools();
     expect(tools.map((t) => t.name).sort()).toEqual([
+      'highlight_element',
       'list_amendments',
       'list_process_candidates',
+      'open_page',
+      'page_context',
+      'propose_change',
+      'request_credential',
       'request_documentation',
       'request_scan',
       'save_persona',
@@ -319,7 +324,11 @@ describe('pathfinder-chat MCP server', () => {
 
   it('request_scan maps read-only with images by default; the BA’s choices reach the crawler brief (FR-013, FR-014)', async () => {
     const prompt = async (args: Record<string, unknown>) => {
-      const r = await call('request_scan', { portal: 'reference-insurer', persona: 'guest', ...args });
+      const r = await call('request_scan', {
+        portal: 'reference-insurer',
+        persona: 'guest',
+        ...args,
+      });
       return (r.body.handoff as { prompt: string }).prompt;
     };
     const plain = await prompt({});
@@ -356,7 +365,9 @@ describe('pathfinder-chat MCP server', () => {
       exclude_paths: ['/wiki/Special:*'],
     };
     const r = await call('request_scan', { portal: 'reference-insurer', persona: 'guest', focus });
-    expect((r.body.handoff as { prompt: string }).prompt).toContain(`focus ${JSON.stringify(focus)}`);
+    expect((r.body.handoff as { prompt: string }).prompt).toContain(
+      `focus ${JSON.stringify(focus)}`,
+    );
     const stopped = seedRun('interrupted');
     const resumed = await call('request_scan', {
       portal: 'reference-insurer',
@@ -373,7 +384,11 @@ describe('pathfinder-chat MCP server', () => {
 
   it('request_scan with a process hands off one trace: the "map a process" step (spec 011 FR-019)', async () => {
     const process = { name: 'Search for a pickle', goal: 'results for "pickle" are shown' };
-    const r = await call('request_scan', { portal: 'reference-insurer', persona: 'guest', process });
+    const r = await call('request_scan', {
+      portal: 'reference-insurer',
+      persona: 'guest',
+      process,
+    });
     expect(r.isError).toBe(false);
     expect(r.body).toMatchObject({ step: 'map', status: 'pending', handoff: { agent: 'crawler' } });
     const prompt = (r.body.handoff as { prompt: string }).prompt;
@@ -382,7 +397,9 @@ describe('pathfinder-chat MCP server', () => {
     expect(prompt).toContain('max_action_class "read"');
     expect(prompt).not.toContain('Drain the frontier');
     expect(
-      opened.raw.prepare(`SELECT step, status FROM workflow_steps WHERE conversation_id = ?`).get(CONV),
+      opened.raw
+        .prepare(`SELECT step, status FROM workflow_steps WHERE conversation_id = ?`)
+        .get(CONV),
     ).toEqual({ step: 'map', status: 'pending' });
     const stopped = seedRun('interrupted');
     const both = await call('request_scan', {
@@ -397,7 +414,9 @@ describe('pathfinder-chat MCP server', () => {
     seedRun('running', 'guest', 'trace');
     const r = await call('request_scan', { portal: 'reference-insurer', persona: 'guest' });
     expect(r.body.error).toMatchObject({ code: 'SCAN_RUNNING' });
-    expect(r.body.error?.message).toContain('a process trace of reference-insurer is already running');
+    expect(r.body.error?.message).toContain(
+      'a process trace of reference-insurer is already running',
+    );
   });
 
   it('list_amendments is read only and filters by status', async () => {

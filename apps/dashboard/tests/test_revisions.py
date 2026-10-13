@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import html
+import json
 import re
 
 from pathfinder_dashboard import db, queries_revisions
@@ -67,6 +69,31 @@ def test_state_page_shows_the_revision_strip(empty_store: Store) -> None:
     assert re.search(r'href="/states/st-r1"\s+aria-current="page">r1', html)
     assert 'href="/states/st-r2"' in html and "latest" in html
     assert "seen by 2 scans" in html
+
+
+def test_drawer_notices_a_newer_revision_of_the_screen_in_context(empty_store: Store) -> None:
+    """Screen 03 state 5: the drawer on r1 says a scan recorded r2 and offers to switch."""
+    seed(empty_store)
+    with make_client(empty_store, ui_salvage="all") as c:
+        page = c.get("/states/st-r1").text
+        old = c.get("/fragments/assistant/page-changed", params={"state": "st-r1", "rev": 1})
+        current = c.get("/fragments/assistant/page-changed", params={"state": "st-r2", "rev": 2})
+        unknown = c.get("/fragments/assistant/page-changed", params={"state": "nope", "rev": 1})
+    assert "/fragments/assistant/page-changed?state=st-r1" in page.replace("&amp;", "&")
+    # The context is one intact attribute the drawer can parse (F-11).
+    raw = re.search(r"data-assistant-context='([^']*)'", page)
+    assert raw is not None
+    assert json.loads(html.unescape(raw[1])) == {
+        "type": "screen",
+        "id": "st-r1",
+        "label": "Oferty",
+        "ids": [],
+        "rev": 1,
+    }
+    assert "Changed underneath you" in old.text and "recorded r2" in old.text
+    assert 'href="/states/st-r2"' in old.text and "Switch context to r2" in old.text
+    assert "Changed underneath you" not in current.text
+    assert unknown.status_code == 200 and "Changed underneath you" not in unknown.text
 
 
 def test_amendment_history_is_ordered_and_empty_without_rows(empty_store: Store) -> None:

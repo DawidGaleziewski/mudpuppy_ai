@@ -63,6 +63,39 @@ Which revision a scan saw: `state_observations (run_id, state_id, persona_id)` j
 Backfill: one `create` revision per existing amendment (rev 1), plus a `needs_reanchor` revision
 (rev 2) for every superseded one.
 
+## M3 — chat proposals (migration 0017_chat_proposals)
+
+### `chat_proposals` (new)
+
+Changes the chat assistant proposes and a person applies or discards (research.md R6). The assistant never
+writes amendments; **Apply** runs the same revision write path as a BA edit (base check: a moved head makes the
+proposal `stale`). Written only by the chat service.
+
+| Column | Type | Notes |
+|---|---|---|
+| id | TEXT PK | UUIDv7 |
+| conversation_id | TEXT NOT NULL → chat_conversations(id) | |
+| portal_id | TEXT NOT NULL | non-empty |
+| target_kind | TEXT NOT NULL CHECK IN ('amendment','new_amendment') | `amendment` edits an existing one (text / re-anchor); `new_amendment` creates one |
+| target_id | TEXT | the amendment id; NULL for `new_amendment`; no FK (polymorphic like `amendments.target_id`) |
+| base_rev | INTEGER CHECK (NULL or >= 1) | the amendment revision the proposal was made on; NULL for `new_amendment` |
+| payload | TEXT NOT NULL CHECK json_valid AND json object | e.g. `{"text": "…"}` or `{"target_kind","target_id","text","kind"}` |
+| summary | TEXT NOT NULL CHECK length > 0 | the one line the drawer shows |
+| status | TEXT NOT NULL DEFAULT 'open' CHECK IN ('open','applied','discarded','stale') | |
+| applied_amendment_id | TEXT → amendments(id) | the created or changed amendment |
+| applied_rev | INTEGER CHECK (NULL or >= 1) | the amendment revision that applying created |
+| decided_by, decided_at | TEXT | set when applied / discarded / stale |
+| created_at | TEXT NOT NULL | ISO UTC |
+
+CHECKs: `amendment` needs `target_id` and `base_rev`, `new_amendment` needs both NULL; `applied` needs
+`applied_amendment_id`, `applied_rev` and `decided_at`; `discarded`/`stale` need `decided_at`.
+
+Indexes (one per read): `ix_chat_proposals_conversation (conversation_id, created_at)` lists a conversation's
+proposals in the drawer; `ix_chat_proposals_portal_status (portal_id, status)` serves the Review inbox's open
+proposals. Portal export/delete include the table (`PORTAL_TABLES`; deleted before `amendments` and
+`chat_conversations`). Zod: `ChatProposal` in `@pathfinder/chat-model`; dashboard model `ChatProposal`.
+Down: drops the table (open proposals are lost).
+
 ## As built (migrations 0015, 0016)
 
 - **No separate `states.screen_id` index**: `ux_states_screen_rev (screen_id, screen_rev)` leads with it and
