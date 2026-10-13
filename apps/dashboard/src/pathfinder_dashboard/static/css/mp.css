@@ -58,6 +58,10 @@
   /* Review inbox: the selected item's pane (screen 09). */
   .mp-review-side { flex-basis: 360px; }
 
+  /* Screen page: the side pane with Amendments / Cited by / History (screen 08). */
+  .mp-screen-side { flex-basis: 400px; }
+  .mp-screen-side .sy-tabs { flex-wrap: wrap; }
+
   /* A recorded capture: the image fills the frame; highlights are positioned over it. */
   .mp-shot { padding: 0; }
   .mp-shot > a { display: block; }
@@ -77,6 +81,8 @@
   .mp-chat-history, .mp-chat-live { display: flex; flex-direction: column; gap: inherit; }
   .mp-chat-live:empty { display: none; }
   .mp-pre { white-space: pre-wrap; overflow-wrap: anywhere; }
+  /* Settings (spec 022 T031): personas, crawl rules and data store side by side, wrapping. */
+  .mp-settings-grid { --sy-min: 18rem; align-items: start; }
   .mp-msg--wide { max-inline-size: none; }
   .mp-drawer-notice:not(:empty) { padding: var(--sy-space-3) var(--sy-space-4) 0; }
   .mp-suggestions { padding: var(--sy-space-2) var(--sy-space-4) 0; }

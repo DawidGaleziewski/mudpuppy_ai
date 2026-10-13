@@ -127,3 +127,11 @@ def test_nav_marker_counts_what_waits_and_needs_you_links_here(liveinsurer: Stor
         page = c.get("/screens?portal=liveinsurer").text
     nav = page[page.index('class="sy-nav') : page.index("</nav>", page.index('class="sy-nav'))]
     assert re.search(r'href="/review[^"]*"[^>]*>Review <span class="sy-count">3</span>', nav)
+
+
+def test_the_old_superseded_page_redirects_to_review_when_salvage_is_on(liveinsurer: Store) -> None:
+    """FR-009: old URLs land in their new place."""
+    with client(liveinsurer) as c:
+        r = c.get("/amendments/superseded?portal=liveinsurer", follow_redirects=False)
+    assert r.status_code == 307
+    assert r.headers["location"] == "/review?portal=liveinsurer&show=reanchor"

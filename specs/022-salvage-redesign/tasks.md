@@ -52,9 +52,9 @@ tiers green and an interim merge to master behind `UI_SALVAGE`.
 ## M4 — Review, Scans, Settings, Screen detail (interim merge 4)
 
 - [x] T029 [sonnet] Review inbox (09): re-anchor, proposals, records to confirm, conflicts; counts; detail pane; nav count (`/review`, `queries_review.py`; conflicts stay an empty group until M5 stores them; Needs-you rows link to `/review?show=…`)
-- [ ] T030 [sonnet] Scans (10): live monitor (SSE, progressbar), history with what changed, Server activity tab, run detail tabs
-- [ ] T031 [sonnet] Settings (11): environments table + form, Revoke dialog, credentials collapsed (FE-T02), personas, crawl rules, data store
-- [ ] T032 [opus] Screen detail (08): revision strip, amendment pins and history, add amendment, re-anchor flow
+- [x] T030 [sonnet] Scans (10): live monitor (SSE, progressbar), history with what changed, Server activity tab, run detail tabs (`/scans`; live region refresh, no new SSE endpoint; New scan button and status filter left out: scans start through the assistant)
+- [x] T031 [sonnet] Settings (11): environments table + form, Revoke dialog, credentials collapsed (FE-T02), personas, crawl rules, data store (vault form and "Copy full path" left out: credentials are requested in chat)
+- [x] T032 [opus] Screen detail (08): revision strip, amendment pins and history, add amendment, re-anchor flow (side tabs Amendments / Cited by / History; Edit = new revision via PATCH; amendments of the screen on every revision; "In processes"; `/amendments/superseded` redirects to Review, FR-009)
 
 ## M5 — Processes workspace (interim merge 5)
 

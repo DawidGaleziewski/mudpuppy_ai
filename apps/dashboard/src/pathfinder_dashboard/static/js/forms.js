@@ -191,11 +191,28 @@
         : { target_kind: "state", target_id: state };
       if (text) payload.text = text;
       const result = await send("POST", form.action, payload);
-      if (result.status === 201) {
+      // The chat service answers 200 since re-anchoring writes a revision (spec 022 M2); a copy
+      // made before that answered 201.
+      if (result.ok) {
         delete form.dataset.dirty;
-        show(where, true, `Re-applied as ${result.body.key ?? "a new amendment"}.`);
+        const key = result.body.key ?? "The amendment";
+        show(where, true, `${key} re-anchored${result.body.rev ? ` as r${result.body.rev}` : ""}.`);
         refresh();
-      } else fail(where, result, "The amendment could not be re-applied.");
+      } else fail(where, result, "The amendment could not be re-anchored.");
+    },
+
+    // A new revision of an amendment's wording (spec 022 T032); a stale base answers 409.
+    async edit(form, where) {
+      const text = form.elements.text.value.trim();
+      if (!text) return fail(where, { body: { message: "Write the new wording." } }, "");
+      const payload = { text, base_rev: Number(form.dataset.baseRev) };
+      const result = await send("PATCH", form.action, payload);
+      if (result.ok) {
+        delete form.dataset.dirty;
+        form.closest("details")?.removeAttribute("open");
+        show(where, true, `Saved as r${result.body.rev ?? payload.base_rev + 1}.`);
+        refresh();
+      } else fail(where, result, "The new wording was not saved.");
     },
   };
 

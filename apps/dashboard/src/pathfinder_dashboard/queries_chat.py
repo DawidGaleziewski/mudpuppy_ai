@@ -426,6 +426,24 @@ def amendments_for_state(conn: sqlite3.Connection, portal: str, state_id: str) -
     )
 
 
+def amendments_for_screen(
+    conn: sqlite3.Connection, portal: str, state_id: str, screen_id: str | None
+) -> list[Amendment]:
+    """Amendments of the screen a state is a revision of (spec 022 FE-S01): carried-forward ones
+    point at the newest revision, so an older revision's page still lists them. Without a screen
+    (a store before 0015, an old crawler's state): the state's own."""
+    if screen_id is None:
+        return amendments_for_state(conn, portal, state_id)
+    found = _amendments(
+        conn,
+        "SELECT * FROM amendments WHERE portal_id = ? AND screen_id = ? ORDER BY key",
+        (portal, screen_id),
+    )
+    own = {a.id for a in found}
+    extra = [a for a in amendments_for_state(conn, portal, state_id) if a.id not in own]
+    return sorted([*found, *extra], key=lambda a: a.key)
+
+
 def state_elements(data_dir: Path, state: State) -> list[tuple[str, str]]:
     """(key, readable label) of every element the state's stored layout placed."""
     layout = load_layout(data_dir, state.layout_ref)

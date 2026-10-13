@@ -93,3 +93,30 @@ def search(conn: sqlite3.Connection, q: str, portal: str | None) -> SearchResult
         records=[DocRecord.model_validate(dict(r)) for r in records],
         runs=[Run.model_validate(dict(r)) for r in runs],
     )
+
+
+class ProcessUse(BaseModel):
+    name: str
+    role: str  # start | end | step
+
+
+def processes_of_state(conn: sqlite3.Connection, state_id: str) -> list[ProcessUse]:
+    """The named processes (newest scope of each) that include this screen, for the page head."""
+    try:
+        rows = conn.execute(
+            "SELECT p.process_name, p.start_state_id, p.end_state_id FROM process_scopes p"
+            " WHERE (p.start_state_id = ?1 OR p.end_state_id = ?1"
+            "   OR EXISTS (SELECT 1 FROM json_each(p.selected_state_ids) j WHERE j.value = ?1))"
+            " AND p.created_at = (SELECT max(q.created_at) FROM process_scopes q"
+            "   WHERE q.portal_id = p.portal_id AND q.process_name = p.process_name)"
+            " ORDER BY p.process_name",
+            (state_id,),
+        ).fetchall()
+    except sqlite3.OperationalError:
+        return []
+
+    def role(r: sqlite3.Row) -> str:
+        ends = {r["start_state_id"]: "start", r["end_state_id"]: "end"}
+        return ends.get(state_id, "step")
+
+    return [ProcessUse(name=r["process_name"], role=role(r)) for r in rows]
