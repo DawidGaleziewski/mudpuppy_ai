@@ -17,7 +17,7 @@ from .conftest import Store, insert, ts
 from .test_chat import CONV, ORIGIN, Service, seed_conversation, text
 
 FAKE_SECRET = "fake-value-not-real"
-NEEDED = "Credential needed: LIVEINSURER_PASSWORD · liveinsurer · sandbox · client. The scan reached the login."
+NEEDED = "Credential needed: LIVEINSURER_PASSWORD · liveinsurer · sandbox · client. Login form reached."
 STORED = "Stored in the vault: LIVEINSURER_PASSWORD (liveinsurer · sandbox). Values are never shown."
 
 
@@ -53,7 +53,7 @@ def test_request_card_is_one_vault_field_that_posts_to_the_vault(empty_store: St
     assert 'name="ref:LIVEINSURER_PASSWORD"' in card and 'type="password"' in card
     assert f'action="/chat/conversations/{CONV}/credentials"' in card
     assert 'value="liveinsurer"' in card and 'value="sandbox"' in card
-    assert "Needs you" in card and "The scan reached the login." in text(body)
+    assert "Needs you" in card and "Login form reached." in text(body)
     assert "Credential needed:" not in text(body)  # the line itself is not shown as a divider
 
 
