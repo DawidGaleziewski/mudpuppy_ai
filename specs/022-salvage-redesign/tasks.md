@@ -6,28 +6,29 @@ tiers green and an interim merge to master behind `UI_SALVAGE`.
 ## M1 — Foundation, shell, re-skin (interim merge 1)
 
 ### Group 1.1 Package and harness
-- [ ] T001 [haiku] Commit the package under `docs/design/salvage-yard/` (without the duplicate `skill/` folder's references; keep `screens/`, `docs/`, `migration/`, `design-system/`, `brand/`, `wireframes/`, `screenshots/`)
-- [ ] T002 [sonnet] Install `.claude/skills/mudpuppy-salvage-ui/` (DS_PATH `apps/dashboard/src/pathfinder_dashboard/static/salvage`, DESIGN_PKG `docs/design/salvage-yard`); merge the package's AGENTS.md rules into `apps/dashboard/CLAUDE.md`; `frontend-dev` agent points at the new skill; `revamp-dashboard` Console references marked deprecated (no deletion)
-- [ ] T003 [sonnet] `find-old-styles.sh` as a dashboard test over `templates/salvage/` and `static/salvage/` (0 hits); baseline count over the old templates recorded in `specs/022-*/style-baseline.md`
+- [x] T001 [haiku] Commit the package under `docs/design/salvage-yard/` (the whole package, plus the zip in `user_input/`)
+- [x] T002 [sonnet] Install `.claude/skills/mudpuppy-salvage-ui/` (DS_PATH `apps/dashboard/src/pathfinder_dashboard/static/salvage`, DESIGN_PKG `docs/design/salvage-yard`); merge the package's AGENTS.md rules into `apps/dashboard/CLAUDE.md`; `frontend-dev` agent points at the new skill; `revamp-dashboard` Console references marked deprecated (no deletion)
+- [x] T003 [sonnet] `find-old-styles.sh` as a dashboard test over `templates/salvage/`, `static/css/mp.css`, `static/js/shell.js` (0 hits; the app keeps its own copy of the script, the skill is not exported); baseline in `style-baseline.md`
 
 ### Group 1.2 Foundation behind the flag
-- [ ] T004 [sonnet] Copy `design-system/css` + `fonts` + tag icon to `static/salvage/`; `ui_flag.py` (`PATHFINDER_UI_SALVAGE`: `all` | route names) with tests
-- [ ] T005 [opus] `templates/salvage/base.html` (skeleton from `screens/*.html`: CSS order, `body.sy-ground`, skip link, `.sy-app`) and the render switch in `web/deps.py` (one base per page, never both)
-- [ ] T006 [sonnet] `status_map.py` from `status-map.csv` (+ unit test over every backend status), Jinja `status`, `tag`, `note`, `utc` macros/filters
+- [x] T004 [sonnet] Copy `design-system/css` + `fonts` + tag icon to `static/salvage/`; `ui_flag.py` (`PATHFINDER_UI_SALVAGE`: `all` | page names) with tests
+- [x] T005 [opus] `templates/salvage/base.html` and the render switch in `web/deps.py` (a page's `salvage/` twin when the flag covers it; one base per page, never both)
+- [x] T006 [sonnet] `status_map.py` (one mapping; test over every stored run, frontier, decision and doc status), Salvage macros (`status`, `tag`, `note`, Console-compatible names); `when` is the UTC filter
 
 ### Group 1.3 Shell
-- [ ] T007 [opus] Header partial (wordmark `[MUD]PUPPY`, portal picker with explicit switch, search, assistant status, Ask, ?) and side nav (seven sections, Review count, data store in the nav footer); FE-N01–N04 tests
-- [ ] T008 [sonnet] Keyboard: Ctrl/⌘ K, Ctrl/⌘ J, Esc (`static/salvage/js/shell.js`); redirects from old URLs (`/chat`, `/amendments/superseded`, `/activity`, …) to the section routes; FE-N05 test
-- [ ] T009 [sonnet] Responsive shell (FE-N06) checked with screenshots at 1280/1023/390
+- [x] T007 [opus] Header partial (wordmark `[MUD]PUPPY`, portal picker as a menu of links, search, assistant status fragment, Ask, ?) and side nav (seven sections from `nav.py`, Review count slot, data store in the nav footer); FE-N01, N03 tests
+- [x] T008 [sonnet] Keyboard: Ctrl/⌘ K, Ctrl/⌘ J, Esc (`static/js/shell.js`), confirm dialogs. Redirects from old URLs move to M3/M4, when their new pages exist
+- [x] T008a [sonnet] New Salvage-only pages the nav and header need: `/screens` (Screens list) and `/search` (screens, records, scans)
+- [x] T009 [sonnet] Responsive shell (FE-N06) checked by `ui:check` at 1280 and 390
 
 ### Group 1.4 Re-skin every page (Track 1), one commit per page
-- [ ] T010 [sonnet] Overview → Home placeholder + "All portals" cards
-- [ ] T011 [sonnet] Run detail (all tabs) → Scans ▸ scan detail
-- [ ] T012 [sonnet] Docs (SRS sections, record pages)
-- [ ] T013 [sonnet] Portal settings, new portal → Settings
-- [ ] T014 [sonnet] State detail → Screens ▸ screen detail (restyle only; redesign in M4)
-- [ ] T015 [sonnet] Activity, glossary, wiki, error and not-found pages
-- [ ] T016 [sonnet] Screenshots (Playwright, reduced motion) at 1280 and 390 of every re-skinned page into `specs/022-*/screens/`; axe-core 0 serious/critical (vendored axe, a pytest-run script)
+- [x] T010 [sonnet] Overview → Home placeholder + "All portals" cards
+- [x] T011 [sonnet] Run detail (all tabs) → Scans ▸ scan detail
+- [x] T012 [sonnet] Docs (SRS sections, record pages, sessions)
+- [x] T013 [sonnet] Portal settings (screen 11 environments, revoke dialog, Edit/Add prefill), new portal
+- [x] T014 [sonnet] State detail → Screens ▸ screen detail (restyle only; redesign in M4)
+- [x] T015 [sonnet] Activity, glossary, wiki, error and not-found pages. Chat and superseded amendments stay Console until M3 (Home) and M4 (Review) rebuild them
+- [x] T016 [sonnet] `pnpm --dir apps/dashboard ui:check`: screenshots at 1280 and 390 (reduced motion), page scroll, one h1, ≤1 primary / intent, axe-core 0 serious/critical; all migrated pages pass
 
 ## M2 — Versioning backend, R-44 (interim merge 2)
 
