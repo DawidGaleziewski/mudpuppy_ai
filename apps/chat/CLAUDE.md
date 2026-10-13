@@ -7,7 +7,7 @@ store, vault, workflow.
 
 ## Public API
 - HTTP + SSE API (127.0.0.1:4310); used by apps/dashboard.
-- MCP chat server: `workflow_state`, `save_persona`, `request_scan`, `stop_scan`, `list_process_candidates`, `set_process_scope`, `request_documentation`, `list_amendments`; spec 022: `page_context`, `highlight_element`, `open_page`, `request_credential` (mcp-page-tools), `propose_change`.
+- MCP chat server: `workflow_state`, `save_persona`, `request_scan`, `stop_scan`, `list_process_candidates`, `set_process_scope`, `request_documentation`, `list_amendments`; spec 022: `page_context`, `highlight_element`, `open_page`, `request_credential` (mcp-page-tools), `propose_change`, `list_grouping_inputs`, `suggest_grouping` (mcp-process-tools).
 
 ## Modules
 - `acp-client`: ACP session lifecycle.
@@ -26,6 +26,11 @@ store, vault, workflow.
   `mcp-page-tools`: the page tools.
 - `proposals` (propose_change writes an open `chat_proposals` row), `proposal-service`
   (apply / discard / undo through the amendment write path), `api-proposals` (their routes).
+- BA processes (spec 022 M5, contracts/processes-api.md): `process-steps` (pure step rules),
+  `process-bodies` (request schemas), `process-store` (loads, the revision write with base check),
+  `process-service` (create, rename/stage, branch, drafts, save, rebase, restore, live, change
+  spec), `process-suggestions` (the assistant's groupings: suggest, accept, dismiss),
+  `api-processes` (routes), `mcp-process-tools` (`list_grouping_inputs`, `suggest_grouping`).
 - `portals`, `personas`, `credentials`: portal/user data.
 - `scan`, `scope`: process scanning and scope management.
 - `fence`: permission control.

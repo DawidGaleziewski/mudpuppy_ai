@@ -20,6 +20,7 @@ const opened = openDb(dbPathFor(join(repoRoot, 'data'), process.env.PATHFINDER_E
 migrateUp(opened.raw, join(repoRoot, 'data', 'migrations'));
 const server = createChatMcpServer({
   raw: opened.raw,
+  db: opened.db,
   paths: { repoRoot },
   conversationId,
   evidence: createEvidenceStore(join(repoRoot, 'data', 'evidence')),

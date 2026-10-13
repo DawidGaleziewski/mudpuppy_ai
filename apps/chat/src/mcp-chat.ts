@@ -7,7 +7,9 @@ import type { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
 import type BetterSqlite3 from 'better-sqlite3';
 import { z } from 'zod';
 import { SECRETS, type EvidenceStore } from '@pathfinder/core';
+import { type PathfinderDb } from '@pathfinder/store';
 import { registerPageTools } from './mcp-page-tools.js';
+import { registerProcessTools } from './mcp-process-tools.js';
 import { workflowState } from '@pathfinder/workflow';
 import { existsSync } from 'node:fs';
 import { PersonaFile, portalEnvironments } from '@pathfinder/config';
@@ -36,6 +38,8 @@ export interface ChatMcpContext {
   conversationId: string;
   /** Recorded layouts for page_context and highlight_element (spec 022); null in tests without. */
   evidence?: EvidenceStore | null;
+  /** The typed store for suggest_grouping (spec 022 M5); without it the tool is not offered. */
+  db?: PathfinderDb | null;
 }
 
 function ok(value: unknown): CallToolResult {
@@ -73,6 +77,12 @@ function fail(error: unknown): CallToolResult {
 export function createChatMcpServer(ctx: ChatMcpContext): McpServer {
   const server = new McpServer({ name: 'pathfinder-chat', version: '0.1.0' });
   registerPageTools(server, { raw: ctx.raw, evidence: ctx.evidence ?? null }, ok, refused);
+  registerProcessTools(
+    server,
+    { raw: ctx.raw, db: ctx.db ?? null, conversationId: ctx.conversationId },
+    ok,
+    refused,
+  );
 
   server.registerTool(
     'workflow_state',
