@@ -21,7 +21,7 @@ from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 from jinja2 import TemplateNotFound
 
-from .. import db, glossary, queries_chat, stores, ui_flag
+from .. import db, glossary, queries_chat, queries_review, stores, ui_flag
 from ..settings import Settings
 
 # The header's portal choice (spec 011): kept in a cookie; "" means all portals.
@@ -151,6 +151,14 @@ class Web:
         except db.StoreMissing:
             return queries_chat.known_portals(None, self.settings.portals_dir)
 
+    def review_count(self, c: Ctx) -> int:
+        """The nav's Review marker (FE-N04) for the chosen portal."""
+        try:
+            with c.conn() as conn:
+                return queries_review.count(conn, c.portal)
+        except db.StoreMissing:
+            return 0
+
     def render(
         self, c: Ctx, template: str, status_code: int = 200, push: str | None = None, **values: Any
     ) -> HTMLResponse:
@@ -165,6 +173,7 @@ class Web:
                 "store": db.store_info(c.data_dir, c.env),
                 # Spec 011: called by the header only, so fragment polls do not pay for it.
                 "header_portals": lambda: self.header_portals(c),
+                "review_count": lambda: self.review_count(c),
                 # [settings] only for a portal with a config file (a scanned-only one has none)
                 "portal_configured": lambda p: bool(
                     p

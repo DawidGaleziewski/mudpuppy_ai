@@ -53,6 +53,10 @@
 
   /* Thumbnails in tables. */
   .mp-thumb-cell { inline-size: 8rem; }
+  .mp-thumb-sm { inline-size: 72px; flex: none; }
+
+  /* Review inbox: the selected item's pane (screen 09). */
+  .mp-review-side { flex-basis: 360px; }
 
   /* A recorded capture: the image fills the frame; highlights are positioned over it. */
   .mp-shot { padding: 0; }

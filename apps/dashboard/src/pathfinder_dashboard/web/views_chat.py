@@ -111,14 +111,20 @@ def tools_values(
     }
 
 
-# Where each "Needs you" row is resolved (D-17). Proposals are decided in the conversation until
-# the Review inbox lists them (M4).
+# Where each "Needs you" row is resolved (D-17): a stopped scan in Scans, the rest in the Review
+# inbox filtered to that kind (T029).
 NEEDS_SECTION = {
     "resume_scan": "scans",
     "reanchor": "review",
-    "proposals": "home",
-    "drafts": "docs",
+    "proposals": "review",
+    "drafts": "review",
 }
+REVIEW_SHOW = {"reanchor": "reanchor", "proposals": "proposals", "drafts": "records"}
+
+
+def _needs_href(key: str, portal: str | None) -> str | None:
+    href = nav.href_of(NEEDS_SECTION[key], portal)
+    return f"{href}?show={REVIEW_SHOW[key]}" if href and key in REVIEW_SHOW else href
 
 
 def home_values(conn: sqlite3.Connection, portal: str | None) -> dict[str, Any]:
@@ -128,8 +134,7 @@ def home_values(conn: sqlite3.Connection, portal: str | None) -> dict[str, Any]:
         "home": {
             "conversations": queries_home.conversations(conn, portal),
             "needs": [
-                (row, nav.href_of(NEEDS_SECTION[row.key], portal))
-                for row in queries_home.needs_you(conn, portal)
+                (row, _needs_href(row.key, portal)) for row in queries_home.needs_you(conn, portal)
             ],
             "processes": queries_home.processes(conn, portal),
             "processes_href": nav.href_of("processes", portal),

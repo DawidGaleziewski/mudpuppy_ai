@@ -15,7 +15,7 @@
           {%- if a.status == "active" %}
           <button class="sy-btn sy-btn--sm sy-btn--quiet" type="button" data-withdraw="/chat/portals/{{ a.portal_id | urlencode }}/amendments/{{ a.id | urlencode }}" data-label="{{ a.key }}">Withdraw</button>
           {%- elif a.status == "needs_reanchor" %}
-          <a class="sy-btn sy-btn--sm" href="{{ c.url('/amendments/superseded', portal=a.portal_id) }}">Re-anchor</a>
+          <a class="sy-btn sy-btn--sm" href="{{ c.url('/review', portal=a.portal_id, select='reanchor:' ~ a.key) }}">Re-anchor</a>
           {%- endif %}
         </span>
       </div>
