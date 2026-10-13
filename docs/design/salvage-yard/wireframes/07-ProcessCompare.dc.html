@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Process: compare A and B</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&amp;family=IBM+Plex+Sans:wght@400;500;600&amp;display=swap">
+<style>
+body{margin:0;background:#F6F5F1}
+a{color:#2453C9}a:hover{color:#163A99}
+button,input,select,textarea{font:inherit;color:inherit}
+:focus-visible{outline:2px solid #2453C9;outline-offset:1px}
+</style>
+</helmet>
+<div style="min-height: 100vh; display: flex; flex-direction: column; background: #F6F5F1; color: #1C1C1A; font-family: 'IBM Plex Sans', ui-sans-serif, system-ui, sans-serif; font-size: 14px; line-height: 1.45">
+
+<header style="display: flex; flex-wrap: wrap; align-items: center; gap: 12px 16px; padding: 10px 20px; background: #FFFFFF; border-bottom: 1px solid #C9C6BD">
+<a href="02-Main.dc.html" style="font-family: 'IBM Plex Mono', ui-monospace, monospace; font-weight: 500; font-size: 15px; color: #1C1C1A; text-decoration: none">mudpuppy://console</a>
+<label style="display: flex; align-items: center; gap: 8px; font-size: 12px; color: #55534D">Portal
+<select style="height: 44px; padding: 0 8px; border: 1px solid #8E8B82; background: #FFFFFF; font-size: 14px; min-width: 190px"><option>reference-insurer</option><option>wikipedia</option><option>All portals</option><option>+ New portal</option></select>
+</label>
+<label style="flex: 1 1 240px; display: flex; align-items: center; gap: 8px; height: 44px; box-sizing: border-box; padding: 0 12px; border: 1px solid #C9C6BD; background: #F6F5F1; font-size: 13px; color: #55534D">
+<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5"></path></svg>
+<input type="search" aria-label="Search" placeholder="Search screens, processes, records" style="flex: 1; min-width: 0; border: 0; background: transparent; font-size: 13px">
+<span style="font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 11px">Ctrl K</span>
+</label>
+<span style="display: flex; align-items: center; gap: 6px; font-size: 12px; color: #55534D"><span style="width: 8px; height: 8px; border-radius: 9999px; background: #1C1C1A"></span>assistant running</span>
+<a href="03-ChatDrawer.dc.html" style="display: flex; align-items: center; gap: 8px; height: 44px; box-sizing: border-box; padding: 0 14px; border: 1px solid #1C1C1A; background: #FFFFFF; color: #1C1C1A; text-decoration: none; font-size: 13px; font-weight: 500"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M4 5h16v11H9l-5 4z"></path></svg>Ask assistant <span style="font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 11px; color: #55534D">Ctrl J</span></a>
+<a href="01-IA.dc.html" aria-label="Help and glossary" style="width: 44px; height: 44px; box-sizing: border-box; display: flex; align-items: center; justify-content: center; border: 1px solid #C9C6BD; color: #1C1C1A; text-decoration: none; font-weight: 600">?</a>
+</header>
+
+<div style="flex: 1; display: flex; flex-wrap: wrap; align-items: stretch">
+
+<nav aria-label="Portal sections" style="flex: 1 1 64px; max-width: 200px; display: flex; flex-direction: column; gap: 2px; padding: 16px 8px; box-sizing: border-box; background: #EFEDE8; border-right: 1px solid #C9C6BD; font-size: 13px">
+<a href="02-Main.dc.html" style="display: flex; align-items: center; min-height: 44px; padding: 0 10px; text-decoration: none; color: #1C1C1A">Home</a>
+<a href="05-Processes.dc.html" aria-current="page" style="display: flex; align-items: center; min-height: 44px; padding: 0 10px; text-decoration: none; background: #1C1C1A; color: #FFFFFF; font-weight: 500">Processes</a>
+<a href="09-ScreenDetail.dc.html" style="display: flex; align-items: center; min-height: 44px; padding: 0 10px; text-decoration: none; color: #1C1C1A">Screens</a>
+<a href="#" style="display: flex; align-items: center; min-height: 44px; padding: 0 10px; text-decoration: none; color: #1C1C1A">Docs</a>
+<a href="10-Review.dc.html" style="display: flex; align-items: center; min-height: 44px; padding: 0 10px; text-decoration: none; color: #1C1C1A">Review</a>
+<a href="11-Runs.dc.html" style="display: flex; align-items: center; min-height: 44px; padding: 0 10px; text-decoration: none; color: #1C1C1A">Scans</a>
+<a href="12-Settings.dc.html" style="display: flex; align-items: center; min-height: 44px; padding: 0 10px; text-decoration: none; color: #1C1C1A">Settings</a>
+</nav>
+
+<main style="flex: 999 1 640px; min-width: 0; padding: 20px 24px; box-sizing: border-box; display: flex; flex-direction: column; gap: 16px">
+
+<div style="font-size: 13px; color: #55534D"><a href="05-Processes.dc.html">Processes</a> / <a href="06-ProcessDetail.dc.html">Oblicz składkę OC/AC</a> / Compare</div>
+
+<div style="display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 12px 24px">
+<h1 style="margin: 0; font-size: 22px; font-weight: 600">Compare A and B</h1>
+<div style="display: flex; flex-wrap: wrap; align-items: flex-end; gap: 10px">
+<label style="display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: #55534D">Left
+<select style="height: 40px; padding: 0 8px; border: 1px solid #8E8B82; background: #FFFFFF; font-size: 13px"><option>A · As-is r1 (observed)</option></select>
+</label>
+<span style="padding-bottom: 10px" aria-hidden="true">↔</span>
+<label style="display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: #55534D">Right
+<select style="height: 40px; padding: 0 8px; border: 1px solid #8E8B82; background: #FFFFFF; font-size: 13px"><option>B · To-be r2 draft (yours)</option><option>B · To-be r1</option></select>
+</label>
+<label style="display: flex; align-items: center; gap: 6px; min-height: 40px; font-size: 13px"><input type="checkbox" style="width: 18px; height: 18px">Only changes</label>
+</div>
+</div>
+
+<div aria-label="Legend" style="display: flex; flex-wrap: wrap; gap: 10px; font-size: 12px; color: #55534D">
+<span style="padding: 2px 8px; border: 1px solid #C9C6BD; background: #FFFFFF">unchanged</span>
+<span style="padding: 2px 8px; border: 2px solid #2453C9; background: #FFFFFF; color: #2453C9">changed or merged</span>
+<span style="padding: 2px 8px; background: #2453C9; color: #FFFFFF">+ added</span>
+<span style="padding: 2px 8px; border: 1px solid #B4540A; color: #B4540A"><s>removed</s></span>
+</div>
+
+<div style="display: flex; flex-wrap: wrap; gap: 18px; align-items: flex-start">
+
+<div style="flex: 999 1 520px; min-width: 0; overflow-x: auto; background: #FFFFFF; border: 1px solid #C9C6BD">
+<table style="width: 100%; min-width: 600px; border-collapse: collapse; font-size: 13px">
+<thead><tr style="text-align: left; background: #EFEDE8">
+<th scope="col" style="padding: 10px 12px; font-weight: 600; border-bottom: 1px solid #C9C6BD; width: 42%">A · As-is r1</th>
+<th scope="col" style="padding: 10px 12px; font-weight: 600; border-bottom: 1px solid #C9C6BD; width: 42%">B · To-be r2 draft</th>
+<th scope="col" style="padding: 10px 12px; font-weight: 600; border-bottom: 1px solid #C9C6BD">Change</th>
+</tr></thead>
+<tbody>
+<tr>
+<td style="padding: 10px 12px; border-bottom: 1px solid #E4E2DC; vertical-align: top">1 · START · Ubezpieczenia dla Ciebie<div style="font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 11px; color: #55534D">/</div></td>
+<td style="padding: 10px 12px; border-bottom: 1px solid #E4E2DC; vertical-align: top">1 · START · Ubezpieczenia dla Ciebie<div style="font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 11px; color: #55534D">/ · note: "Oblicz składkę OC/AC" opens step 2</div></td>
+<td style="padding: 10px 12px; border-bottom: 1px solid #E4E2DC; vertical-align: top; color: #55534D">unchanged</td>
+</tr>
+<tr>
+<td style="padding: 10px 12px; border-bottom: 1px solid #E4E2DC; vertical-align: top; color: #B4540A"><s>2 · Samochód</s><div style="font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 11px"><s>/ubezpieczenia/samochod</s></div></td>
+<td style="padding: 10px 12px; border-bottom: 1px solid #E4E2DC; vertical-align: top; color: #55534D">—</td>
+<td style="padding: 10px 12px; border-bottom: 1px solid #E4E2DC; vertical-align: top; color: #B4540A">removed</td>
+</tr>
+<tr>
+<td style="padding: 10px 12px; border-bottom: 1px solid #E4E2DC; vertical-align: top">3 · Kalkulator OC/AC — dane kierowcy<div style="font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 11px; color: #55534D">/kalkulator/kierowca</div></td>
+<td rowspan="2" style="padding: 10px 12px; border-bottom: 1px solid #E4E2DC; vertical-align: middle; outline: 2px solid #2453C9; outline-offset: -4px">2 · Kalkulator OC/AC — kierowca i opcje<div style="font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 11px; color: #55534D">/oc-ac/wycena</div></td>
+<td rowspan="2" style="padding: 10px 12px; border-bottom: 1px solid #E4E2DC; vertical-align: middle; color: #2453C9">2 steps merged into 1</td>
+</tr>
+<tr>
+<td style="padding: 10px 12px; border-bottom: 1px solid #E4E2DC; vertical-align: top">4 · Kalkulator OC/AC — opcje</td>
+</tr>
+<tr>
+<td style="padding: 10px 12px; vertical-align: top; color: #B4540A">end not reached<div style="font-size: 11px">scan 01a110d5 interrupted</div></td>
+<td style="padding: 10px 12px; vertical-align: top"><span style="padding: 1px 6px; background: #2453C9; color: #FFFFFF; font-size: 11px">+</span> 3 · END · Podsumowanie i oferta<div style="font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 11px; color: #55534D">/oc-ac/oferta</div></td>
+<td style="padding: 10px 12px; vertical-align: top; color: #2453C9">added</td>
+</tr>
+</tbody>
+</table>
+</div>
+
+<section aria-labelledby="spec-h" style="flex: 1 1 340px; min-width: 0; display: flex; flex-direction: column; background: #FFFFFF; border: 1px solid #1C1C1A">
+<div style="display: flex; justify-content: space-between; align-items: baseline; gap: 8px; padding: 12px 14px; border-bottom: 1px solid #C9C6BD">
+<h2 id="spec-h" style="margin: 0; font-size: 15px; font-weight: 600">Change spec</h2>
+<span style="font-size: 12px; color: #55534D">generated · you can edit it</span>
+</div>
+<div style="display: flex; flex-direction: column; gap: 12px; padding: 12px 14px; font-size: 13px">
+<div><div style="font-size: 12px; font-weight: 600">Scope</div>Oblicz składkę OC/AC · persona guest · sandbox</div>
+<div><div style="font-size: 12px; font-weight: 600">As-is (A r1)</div>4 screens observed in 3 scans. The end of the process was not reached.</div>
+<div><div style="font-size: 12px; font-weight: 600">To-be (B r2)</div>3 steps: home, one calculator form, summary.</div>
+<div><div style="font-size: 12px; font-weight: 600">Delta</div>
+<ul style="margin: 2px 0 0; padding-left: 18px"><li>Remove the product page step</li><li>Merge driver data and options into one form</li><li>Add a summary and offer step</li></ul></div>
+<div><div style="font-size: 12px; font-weight: 600">Records that cite these screens</div><a href="#">CAP-005</a>, <a href="#">NFR-001</a>, <a href="#">SCR-001</a> (on /)</div>
+<div><div style="font-size: 12px; font-weight: 600">Migration cut</div>Routes /ubezpieczenia/samochod and /kalkulator/* move to a new quote module under /oc-ac/*. Entry stays the links on /. Rollback: switch sandbox back to A.</div>
+<div style="padding: 8px 10px; border: 1px dashed #B4540A"><div style="font-size: 12px; font-weight: 600; color: #B4540A">Open question</div>The as-is end was never observed. Resume the scan before sign-off.</div>
+</div>
+<div style="display: flex; flex-wrap: wrap; gap: 8px; padding: 12px 14px; border-top: 1px solid #C9C6BD">
+<button type="button" style="min-height: 44px; padding: 0 16px; border: 1px solid #1C1C1A; background: #1C1C1A; color: #FFFFFF; font-size: 13px; font-weight: 500; cursor: pointer">Export spec</button>
+<button type="button" style="min-height: 44px; padding: 0 12px; border: 1px solid #1C1C1A; background: #FFFFFF; font-size: 13px; cursor: pointer">Save to Docs</button>
+</div>
+</section>
+</div>
+</main>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":1040}}'>
+class Component extends DCLogic {
+renderVals() {
+return {};
+}
+}
+</script>
+</body>
+</html>

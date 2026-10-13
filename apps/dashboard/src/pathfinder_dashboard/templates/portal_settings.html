@@ -42,7 +42,7 @@
       <tr>
         <td><code>{{ e.environment }}</code></td>
         <td><a href="{{ e.base_url }}" rel="noreferrer" target="_blank">{{ e.base_url }}</a></td>
-        <td>{% for value, text in limits if value == (e.max_action_class or "read") %}{{ text }}{% endfor %}</td>
+        <td>{% for value, text in limits if value == (e.max_action_class or "external-side-effect") %}{{ text }}{% endfor %}</td>
         <td>
           {%- if environments | length > 1 %}
           <form method="post" action="{{ c.url('/portals/' ~ portal ~ '/environments/' ~ e.environment ~ '/revoke') }}"

@@ -1,0 +1,10 @@
+{% extends "salvage/base.html" %}
+{% set nav_current = "docs" %}
+{% block title %}Session {{ v.detail.session.id | short_id }}{% endblock %}
+{% block main %}
+<div class="sy-pagehead">
+  <nav class="sy-crumbs" aria-label="Breadcrumb"><a href="{{ c.url('/docs') }}">Docs</a> / <a href="{{ c.url('/docs/' ~ portal) }}">{{ portal }}</a> / session</nav>
+  <h1 class="sy-h1">Analysis session <span class="sy-mono">{{ v.detail.session.id | short_id }}</span></h1>
+</div>
+{% include "salvage/partials/docs/session.html" %}
+{% endblock %}

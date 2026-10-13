@@ -1,0 +1,37 @@
+source_system,old_token,old_value,new_role_token,new_value,action,note
+Console,surface-0,#0A0A08,--sy-bg-ground,#111315,replace,"Add .sy-ground on <body> for the 24px grid"
+Console,surface-100,#131310,--sy-bg-plate,#181B1E,replace,Panels header nav drawer
+Console,surface-200,#1a1a14,--sy-bg-raised,#202428,replace,Hover and own chat messages
+(new),,,--sy-bg-well,#141618,add,Inputs composer plate footers
+Console,border,#2b2a20,--sy-border-weld,#2C3136,split,Rows inside plates (decorative)
+Console,border,#2b2a20,--sy-border-plate,#464D55,split,Plate edges (decorative)
+Console,border,#2b2a20,--sy-border-control,#6B737C,split,"Inputs selects buttons; meets 3:1"
+Console,ink-100,#E8D9AE,--sy-text,#E8E4DA,replace,Primary text
+Console,ink-500,#8a7f5c,--sy-text-muted,#A3A69F,replace,"Contrast 4.97 -> 7.55"
+Console,brand,#FFB000,--sy-intent,#FF8F1F,split,"Brand paint, primary button, needs you, focus, link underline"
+Console,brand (as Ok status),#FFB000,--sy-ok,#7BC47F,split,"OK / observed / confirmed / saved"
+Console,kind-eval,#00E5FF,--sy-active,#56C2E6,replace,"Running and live only"
+Console,kind-tool,#33FF66,,,remove,"No reassignable accents; use neutrals + labels for categories"
+Console,kind-hook,#FF66C4,,,remove,"Drafts and proposals use --sy-tobe"
+(new),,,--sy-tobe,#7AA7FF,add,"Drawn not built: to-be, drafts, inferred; always dashed"
+(new),,,--sy-tag,#E9D8A6,add,"Record tags and human notes (text --sy-text-on-tag #1B1A17)"
+Console,signal-error,#FF3B30,--sy-fail,#FF5A5F,replace,Failure only
+Console,glow,"rgba(255,176,0,0.35)",,,remove,No glow anywhere
+Console,scanlines,"repeating-linear-gradient 3px amber",--sy-grid-line,"rgba(232,228,218,0.035) @ 24px",replace,Page ground only
+Console,radius-none,0px,--sy-radius,0,replace,
+Console,radius-full,9999px,,,remove,"Status dots are now squares"
+Console,space-1..space-7,4px..28px,--sy-space-1..--sy-space-7,4px..28px,replace,Same values
+Console,space-9,36px,--sy-space-8,40px,replace,Nearest step
+Console,font mono (JetBrains Mono),,--sy-font-sans / --sy-font-mono / --sy-font-note,"Archivo / IBM Plex Mono / Special Elite",split,See 08-migration-guide.md section 3
+Console,caption 10px,10px,--sy-fs-micro,11px,replace,11px floor
+MudPuppy doc (never shipped),surface-0,#14110D,--sy-bg-ground,#111315,supersede,
+MudPuppy doc (never shipped),surface-100,#1F1A13,--sy-bg-plate,#181B1E,supersede,
+MudPuppy doc (never shipped),surface-200,#2A2318,--sy-bg-raised,#202428,supersede,
+MudPuppy doc (never shipped),border,#3A2F1F,--sy-border-weld,#2C3136,supersede,
+MudPuppy doc (never shipped),ink-100,#E8DCC0,--sy-text,#E8E4DA,supersede,
+MudPuppy doc (never shipped),ink-500,#8F8266,--sy-text-muted,#A3A69F,supersede,
+MudPuppy doc (never shipped),brand (rust),#C9793A,--sy-intent,#FF8F1F,supersede,
+MudPuppy doc (never shipped),accent-2 swamp,#7A8450,,,remove,
+MudPuppy doc (never shipped),accent-3 teal,#4A7A6B,,,remove,
+MudPuppy doc (never shipped),accent-4 mustard,#C9A227,,,remove,
+MudPuppy doc (never shipped),signal-error barn red,#C0392B,--sy-fail,#FF5A5F,supersede,"Barn red is 3.42:1 on ground; fails AA"

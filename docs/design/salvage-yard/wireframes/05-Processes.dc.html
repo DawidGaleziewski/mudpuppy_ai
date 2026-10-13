@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Processes</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&amp;family=IBM+Plex+Sans:wght@400;500;600&amp;display=swap">
+<style>
+body{margin:0;background:#F6F5F1}
+a{color:#2453C9}a:hover{color:#163A99}
+button,input,select,textarea{font:inherit;color:inherit}
+:focus-visible{outline:2px solid #2453C9;outline-offset:1px}
+</style>
+</helmet>
+<div style="min-height: 100vh; display: flex; flex-direction: column; background: #F6F5F1; color: #1C1C1A; font-family: 'IBM Plex Sans', ui-sans-serif, system-ui, sans-serif; font-size: 14px; line-height: 1.45">
+
+<header style="display: flex; flex-wrap: wrap; align-items: center; gap: 12px 16px; padding: 10px 20px; background: #FFFFFF; border-bottom: 1px solid #C9C6BD">
+<a href="02-Main.dc.html" style="font-family: 'IBM Plex Mono', ui-monospace, monospace; font-weight: 500; font-size: 15px; color: #1C1C1A; text-decoration: none">mudpuppy://console</a>
+<label style="display: flex; align-items: center; gap: 8px; font-size: 12px; color: #55534D">Portal
+<select style="height: 44px; padding: 0 8px; border: 1px solid #8E8B82; background: #FFFFFF; font-size: 14px; min-width: 190px"><option>reference-insurer</option><option>wikipedia</option><option>All portals</option><option>+ New portal</option></select>
+</label>
+<label style="flex: 1 1 240px; display: flex; align-items: center; gap: 8px; height: 44px; box-sizing: border-box; padding: 0 12px; border: 1px solid #C9C6BD; background: #F6F5F1; font-size: 13px; color: #55534D">
+<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5"></path></svg>
+<input type="search" aria-label="Search" placeholder="Search screens, processes, records" style="flex: 1; min-width: 0; border: 0; background: transparent; font-size: 13px">
+<span style="font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 11px">Ctrl K</span>
+</label>
+<span style="display: flex; align-items: center; gap: 6px; font-size: 12px; color: #55534D"><span style="width: 8px; height: 8px; border-radius: 9999px; background: #1C1C1A"></span>assistant running</span>
+<a href="03-ChatDrawer.dc.html" style="display: flex; align-items: center; gap: 8px; height: 44px; box-sizing: border-box; padding: 0 14px; border: 1px solid #1C1C1A; background: #FFFFFF; color: #1C1C1A; text-decoration: none; font-size: 13px; font-weight: 500"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M4 5h16v11H9l-5 4z"></path></svg>Ask assistant <span style="font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 11px; color: #55534D">Ctrl J</span></a>
+<a href="01-IA.dc.html" aria-label="Help and glossary" style="width: 44px; height: 44px; box-sizing: border-box; display: flex; align-items: center; justify-content: center; border: 1px solid #C9C6BD; color: #1C1C1A; text-decoration: none; font-weight: 600">?</a>
+</header>
+
+<div style="flex: 1; display: flex; flex-wrap: wrap; align-items: stretch">
+
+<nav aria-label="Portal sections" style="flex: 1 1 200px; display: flex; flex-direction: column; gap: 2px; padding: 16px 12px; box-sizing: border-box; background: #EFEDE8; border-right: 1px solid #C9C6BD">
+<a href="02-Main.dc.html" style="display: flex; justify-content: space-between; align-items: center; min-height: 44px; padding: 0 12px; text-decoration: none; color: #1C1C1A">Home</a>
+<a href="05-Processes.dc.html" aria-current="page" style="display: flex; justify-content: space-between; align-items: center; min-height: 44px; padding: 0 12px; text-decoration: none; background: #1C1C1A; color: #FFFFFF; font-weight: 500">Processes <span style="font-size: 12px">2 · 3 new</span></a>
+<a href="09-ScreenDetail.dc.html" style="display: flex; justify-content: space-between; align-items: center; min-height: 44px; padding: 0 12px; text-decoration: none; color: #1C1C1A">Screens <span style="font-size: 12px; color: #55534D">21</span></a>
+<a href="#" style="display: flex; justify-content: space-between; align-items: center; min-height: 44px; padding: 0 12px; text-decoration: none; color: #1C1C1A">Docs</a>
+<a href="10-Review.dc.html" style="display: flex; justify-content: space-between; align-items: center; min-height: 44px; padding: 0 12px; text-decoration: none; color: #1C1C1A">Review <span style="font-size: 12px; padding: 0 6px; border: 1px solid #1C1C1A">3</span></a>
+<a href="11-Runs.dc.html" style="display: flex; justify-content: space-between; align-items: center; min-height: 44px; padding: 0 12px; text-decoration: none; color: #1C1C1A">Scans <span style="font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 11px; color: #55534D">[INT.]</span></a>
+<a href="12-Settings.dc.html" style="display: flex; justify-content: space-between; align-items: center; min-height: 44px; padding: 0 12px; text-decoration: none; color: #1C1C1A">Settings</a>
+<div style="height: 1px; background: #C9C6BD; margin: 10px 0"></div>
+<a href="#" style="display: flex; align-items: center; min-height: 44px; padding: 0 12px; text-decoration: none; color: #55534D; font-size: 13px">Glossary and BA wiki</a>
+<div style="margin-top: auto; padding: 12px; font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 11px; color: #55534D">store: sandbox · read-only</div>
+</nav>
+
+<main style="flex: 999 1 560px; min-width: 0; padding: 24px 28px; box-sizing: border-box; display: flex; flex-direction: column; gap: 22px">
+
+<div style="display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 12px 24px">
+<div style="display: flex; flex-direction: column; gap: 4px">
+<h1 style="margin: 0; font-size: 22px; font-weight: 600">Processes</h1>
+<p style="margin: 0; max-width: 64ch; font-size: 13px; color: #55534D">Cut reference-insurer into processes you can document, redesign and migrate one at a time.</p>
+</div>
+<div style="display: flex; flex-wrap: wrap; gap: 8px">
+<a href="03-ChatDrawer.dc.html" style="display: inline-flex; align-items: center; min-height: 44px; padding: 0 14px; border: 1px solid #1C1C1A; background: #FFFFFF; color: #1C1C1A; text-decoration: none; font-size: 13px">Ask the assistant to regroup</a>
+<button type="button" style="min-height: 44px; padding: 0 16px; border: 1px solid #1C1C1A; background: #1C1C1A; color: #FFFFFF; font-size: 13px; font-weight: 500; cursor: pointer">New process</button>
+</div>
+</div>
+
+<div aria-label="Process stages" style="display: flex; flex-wrap: wrap; align-items: center; gap: 6px; font-size: 12px; color: #55534D">
+<span>Stages:</span>
+<span style="padding: 3px 8px; border: 1px dashed #8E8B82">Suggested</span><span aria-hidden="true">→</span>
+<span style="padding: 3px 8px; border: 1px solid #8E8B82">Scoped</span><span aria-hidden="true">→</span>
+<span style="padding: 3px 8px; border: 1px solid #8E8B82">As-is documented</span><span aria-hidden="true">→</span>
+<span style="padding: 3px 8px; border: 1px solid #8E8B82">To-be in design</span><span aria-hidden="true">→</span>
+<span style="padding: 3px 8px; border: 1px solid #8E8B82">Migrating</span><span aria-hidden="true">→</span>
+<span style="padding: 3px 8px; border: 1px solid #8E8B82">Migrated</span>
+<span>· a process can move back at any time</span>
+</div>
+
+<section aria-labelledby="yours-h" style="display: flex; flex-direction: column; gap: 10px">
+<h2 id="yours-h" style="margin: 0; font-size: 15px; font-weight: 600">Your processes · 2</h2>
+<div style="overflow-x: auto; background: #FFFFFF; border: 1px solid #C9C6BD">
+<table style="width: 100%; min-width: 820px; border-collapse: collapse; font-size: 13px">
+<thead><tr style="text-align: left; background: #EFEDE8">
+<th scope="col" style="padding: 10px 12px; font-weight: 600; border-bottom: 1px solid #C9C6BD">Process</th>
+<th scope="col" style="padding: 10px 12px; font-weight: 600; border-bottom: 1px solid #C9C6BD">Stage</th>
+<th scope="col" style="padding: 10px 12px; font-weight: 600; border-bottom: 1px solid #C9C6BD">Variants</th>
+<th scope="col" style="padding: 10px 12px; font-weight: 600; border-bottom: 1px solid #C9C6BD">Live in sandbox</th>
+<th scope="col" style="padding: 10px 12px; font-weight: 600; border-bottom: 1px solid #C9C6BD">Screens</th>
+<th scope="col" style="padding: 10px 12px; font-weight: 600; border-bottom: 1px solid #C9C6BD">Amendments</th>
+<th scope="col" style="padding: 10px 12px; font-weight: 600; border-bottom: 1px solid #C9C6BD">Last change</th>
+</tr></thead>
+<tbody>
+<tr>
+<td style="padding: 10px 12px; border-bottom: 1px solid #E4E2DC"><a href="06-ProcessDetail.dc.html" style="font-weight: 500">Oblicz składkę OC/AC</a><div style="font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 11px; color: #55534D">/ → /kalkulator/kierowca → … end not reached</div></td>
+<td style="padding: 10px 12px; border-bottom: 1px solid #E4E2DC">To-be in design</td>
+<td style="padding: 10px 12px; border-bottom: 1px solid #E4E2DC">A as-is r1 · B to-be r1 <span style="font-size: 12px; color: #55534D">draft</span></td>
+<td style="padding: 10px 12px; border-bottom: 1px solid #E4E2DC; font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 12px">A</td>
+<td style="padding: 10px 12px; border-bottom: 1px solid #E4E2DC">4</td>
+<td style="padding: 10px 12px; border-bottom: 1px solid #E4E2DC">0</td>
+<td style="padding: 10px 12px; border-bottom: 1px solid #E4E2DC; font-size: 12px; color: #55534D">B r1 draft · you · today</td>
+</tr>
+<tr>
+<td style="padding: 10px 12px"><a href="06-ProcessDetail.dc.html" style="font-weight: 500">Test process</a><div style="font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 11px; color: #55534D">/ → /faq · guest</div></td>
+<td style="padding: 10px 12px">Scoped</td>
+<td style="padding: 10px 12px">A as-is r1</td>
+<td style="padding: 10px 12px; font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 12px">A</td>
+<td style="padding: 10px 12px">2</td>
+<td style="padding: 10px 12px">1 <span style="font-size: 12px; color: #55534D">AMD-001 on /</span></td>
+<td style="padding: 10px 12px; font-size: 12px; color: #55534D">A r1 · you · today</td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+
+<section aria-labelledby="sugg-h" style="display: flex; flex-direction: column; gap: 10px">
+<div style="display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px">
+<h2 id="sugg-h" style="margin: 0; font-size: 15px; font-weight: 600">Suggested by the assistant · 3</h2>
+<span style="font-size: 12px; color: #55534D">inferred from links between screens · nothing is saved until you accept</span>
+</div>
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(300px, 100%), 1fr)); gap: 14px">
+
+<article style="display: flex; flex-direction: column; background: #FFFFFF; border: 1px dashed #8E8B82">
+<div style="display: flex; flex-direction: column; gap: 4px; padding: 12px 14px">
+<h3 style="margin: 0; font-size: 14px; font-weight: 600">Porównaj produkty</h3>
+<div style="font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 12px; color: #55534D">/ → /porownanie · 2 screens</div>
+<div style="font-size: 12px; color: #55534D">Why: "Na skróty" link "Porównaj produkty" and menu link "Porównanie".</div>
+</div>
+<div style="display: flex; gap: 6px; padding: 0 14px 12px"><div style="width: 72px; height: 48px; background: repeating-linear-gradient(135deg, #E9E7E1 0 8px, #E1DED7 8px 16px); border: 1px solid #C9C6BD"></div><div style="width: 72px; height: 48px; background: repeating-linear-gradient(135deg, #E9E7E1 0 8px, #E1DED7 8px 16px); border: 1px solid #C9C6BD"></div></div>
+<div style="display: flex; flex-wrap: wrap; gap: 6px; padding: 10px 14px; border-top: 1px dashed #8E8B82">
+<button type="button" style="min-height: 40px; padding: 0 12px; border: 1px solid #1C1C1A; background: #FFFFFF; font-size: 13px; font-weight: 500; cursor: pointer">Accept</button>
+<button type="button" style="min-height: 40px; padding: 0 12px; border: 1px solid #C9C6BD; background: #FFFFFF; font-size: 13px; cursor: pointer">Edit first</button>
+<button type="button" style="min-height: 40px; padding: 0 12px; border: 1px solid #C9C6BD; background: #FFFFFF; font-size: 13px; cursor: pointer">Dismiss</button>
+</div>
+</article>
+
+<article style="display: flex; flex-direction: column; background: #FFFFFF; border: 1px dashed #8E8B82">
+<div style="display: flex; flex-direction: column; gap: 4px; padding: 12px 14px">
+<h3 style="margin: 0; font-size: 14px; font-weight: 600">Napisz do nas</h3>
+<div style="font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 12px; color: #55534D">/ → /kontakt · 2 screens</div>
+<div style="font-size: 12px; color: #55534D">Why: "Na skróty" link "Napisz do nas" and menu link "Kontakt".</div>
+</div>
+<div style="display: flex; gap: 6px; padding: 0 14px 12px"><div style="width: 72px; height: 48px; background: repeating-linear-gradient(135deg, #E9E7E1 0 8px, #E1DED7 8px 16px); border: 1px solid #C9C6BD"></div><div style="width: 72px; height: 48px; background: repeating-linear-gradient(135deg, #E9E7E1 0 8px, #E1DED7 8px 16px); border: 1px solid #C9C6BD"></div></div>
+<div style="display: flex; flex-wrap: wrap; gap: 6px; padding: 10px 14px; border-top: 1px dashed #8E8B82">
+<button type="button" style="min-height: 40px; padding: 0 12px; border: 1px solid #1C1C1A; background: #FFFFFF; font-size: 13px; font-weight: 500; cursor: pointer">Accept</button>
+<button type="button" style="min-height: 40px; padding: 0 12px; border: 1px solid #C9C6BD; background: #FFFFFF; font-size: 13px; cursor: pointer">Edit first</button>
+<button type="button" style="min-height: 40px; padding: 0 12px; border: 1px solid #C9C6BD; background: #FFFFFF; font-size: 13px; cursor: pointer">Dismiss</button>
+</div>
+</article>
+
+<article style="display: flex; flex-direction: column; background: #FFFFFF; border: 1px dashed #8E8B82">
+<div style="display: flex; flex-direction: column; gap: 4px; padding: 12px 14px">
+<h3 style="margin: 0; font-size: 14px; font-weight: 600">Moje polisy</h3>
+<div style="font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 12px; color: #55534D">/logowanie → /moje-polisy · 2 screens</div>
+<div style="font-size: 12px; color: #55534D">Why: menu links "Zaloguj się" and "Moje polisy". Past the login form the scan needs a credential.</div>
+</div>
+<div style="display: flex; gap: 6px; padding: 0 14px 12px"><div style="width: 72px; height: 48px; background: repeating-linear-gradient(135deg, #E9E7E1 0 8px, #E1DED7 8px 16px); border: 1px solid #C9C6BD"></div><div style="width: 72px; height: 48px; box-sizing: border-box; display: flex; align-items: center; justify-content: center; border: 1px dashed #8E8B82; font-size: 11px; color: #55534D">locked</div></div>
+<div style="display: flex; flex-wrap: wrap; gap: 6px; padding: 10px 14px; border-top: 1px dashed #8E8B82">
+<button type="button" style="min-height: 40px; padding: 0 12px; border: 1px solid #1C1C1A; background: #FFFFFF; font-size: 13px; font-weight: 500; cursor: pointer">Accept</button>
+<button type="button" style="min-height: 40px; padding: 0 12px; border: 1px solid #C9C6BD; background: #FFFFFF; font-size: 13px; cursor: pointer">Edit first</button>
+<button type="button" style="min-height: 40px; padding: 0 12px; border: 1px solid #C9C6BD; background: #FFFFFF; font-size: 13px; cursor: pointer">Dismiss</button>
+</div>
+</article>
+
+</div>
+</section>
+
+<section aria-labelledby="none-h" style="display: flex; flex-direction: column; gap: 10px; padding: 14px 16px; background: #FFFFFF; border: 1px solid #C9C6BD">
+<div style="display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px">
+<h2 id="none-h" style="margin: 0; font-size: 15px; font-weight: 600">In no process · 12 screens</h2>
+<a href="09-ScreenDetail.dc.html" style="font-size: 13px">Show all in Screens</a>
+</div>
+<div style="display: flex; flex-wrap: wrap; gap: 8px; font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 12px">
+<span style="padding: 4px 8px; border: 1px solid #C9C6BD">/slowniczek</span>
+<span style="padding: 4px 8px; border: 1px solid #C9C6BD">/ubezpieczenia/dom</span>
+<span style="padding: 4px 8px; border: 1px solid #C9C6BD">/ubezpieczenia/podroze</span>
+<span style="padding: 4px 8px; border: 1px dashed #C9C6BD; color: #55534D">+ 9 more</span>
+</div>
+<div style="font-size: 12px; color: #55534D">Drag a screen onto a process, or select several and choose "New process from these".</div>
+</section>
+
+</main>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":1040}}'>
+class Component extends DCLogic {
+renderVals() {
+return {};
+}
+}
+</script>
+</body>
+</html>

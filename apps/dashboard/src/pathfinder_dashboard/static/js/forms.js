@@ -26,12 +26,20 @@
   const refresh = () => window.htmx?.trigger(document.body, "store-changed");
 
   // The result line: the label is text, colour only reinforces it (Principle II).
+  // Salvage Yard pages (spec 022) get shape + word; Console pages keep the bracket label.
+  const salvage = document.body.classList.contains("sy-ground");
   const show = (where, ok, message, ref) => {
-    where.className = `form-result ${ok ? "form-ok" : "form-fail"}`;
+    where.className = salvage ? "form-result sy-small" : `form-result ${ok ? "form-ok" : "form-fail"}`;
     where.replaceChildren();
     const tag = document.createElement("span");
-    tag.className = `st ${ok ? "st-ok" : "st-fail"}`;
-    tag.textContent = ok ? "[ OK ]" : "[FAIL]";
+    if (salvage) {
+      tag.className = "sy-status";
+      tag.dataset.status = ok ? "ok" : "failed";
+      tag.textContent = ok ? "Done" : "Failed";
+    } else {
+      tag.className = `st ${ok ? "st-ok" : "st-fail"}`;
+      tag.textContent = ok ? "[ OK ]" : "[FAIL]";
+    }
     where.append(tag, ` ${message}`);
     if (ref) {
       const link = document.createElement("a");

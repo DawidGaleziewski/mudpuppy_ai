@@ -1,0 +1,45 @@
+/* ==========================================================================
+   MudPuppy · Salvage Yard — self-hosted fonts
+   Files: ../fonts/*.woff2 (subset: Basic Latin, Latin-1, Latin Extended-A
+   incl. Polish ąćęłńóśźż, punctuation, arrows — and box/geometric shapes
+   where the font has them; none of the three has ■ □ ✕, which is why status
+   shapes are drawn in CSS, see docs D-06).
+   Licences: OFL 1.1 (Archivo, IBM Plex Mono), Apache 2.0 (Special Elite).
+   No third-party font requests in production (privacy + offline consoles).
+   ========================================================================== */
+
+/* Archivo — variable: weight 100–900, width 62–125 %.
+   font-stretch: 125% gives "Archivo Expanded" (headings, wordmark). */
+@font-face {
+  font-family: "Archivo";
+  src: url("../fonts/Archivo-Variable.woff2") format("woff2-variations"),
+       url("../fonts/Archivo-Variable.woff2") format("woff2");
+  font-weight: 100 900;
+  font-stretch: 62% 125%;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* IBM Plex Mono — data: IDs, routes, statuses, counts */
+@font-face {
+  font-family: "IBM Plex Mono";
+  src: url("../fonts/IBMPlexMono-Regular.woff2") format("woff2");
+  font-weight: 400; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: "IBM Plex Mono";
+  src: url("../fonts/IBMPlexMono-Medium.woff2") format("woff2");
+  font-weight: 500; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: "IBM Plex Mono";
+  src: url("../fonts/IBMPlexMono-SemiBold.woff2") format("woff2");
+  font-weight: 600; font-style: normal; font-display: swap;
+}
+
+/* Special Elite — typewriter. Human-written notes and annotations ONLY. */
+@font-face {
+  font-family: "Special Elite";
+  src: url("../fonts/SpecialElite-Regular.woff2") format("woff2");
+  font-weight: 400; font-style: normal; font-display: swap;
+}

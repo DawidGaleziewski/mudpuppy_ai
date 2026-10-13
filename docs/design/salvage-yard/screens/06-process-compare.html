@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MudPuppy · Compare A and B</title>
+<link rel="icon" href="../brand/logo/tag-icon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../design-system/css/tokens.css">
+<link rel="stylesheet" href="../design-system/css/fonts.css">
+<link rel="stylesheet" href="../design-system/css/salvage.css">
+<style>
+  /* Screen layout only: spec lists indent by one step. */
+  .mp-spec ul { padding-left: var(--sy-space-5); }
+</style>
+</head>
+<body class="sy-ground">
+<a class="sy-skip" href="#main">Skip to content</a>
+<div class="sy-app">
+  <header class="sy-header">
+    <a class="sy-wordmark" href="01-home.html"><span class="sy-wordmark__paint">MUD</span>PUPPY</a>
+    <label class="sy-portal"><span class="sy-label">Portal</span>
+      <select class="sy-select"><option>reference-insurer</option><option>wikipedia</option><option>All portals</option><option>+ New portal</option></select></label>
+    <label class="sy-search">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+      <input type="search" aria-label="Search" placeholder="Search parts: screens, processes, records"><span class="sy-kbd">Ctrl K</span></label>
+    <span class="sy-status" data-status="ok">Assistant up</span>
+    <a class="sy-btn" href="02-screen-with-assistant.html">Ask the assistant <span class="sy-kbd">Ctrl J</span></a>
+    <a class="sy-btn sy-btn--icon" href="#" aria-label="Help and glossary">?</a>
+  </header>
+  <div class="sy-app__body">
+    <nav class="sy-nav sy-nav--compact" aria-label="Portal sections">
+      <a class="sy-nav__item" href="01-home.html">Home</a>
+      <a class="sy-nav__item" href="04-processes.html" aria-current="page">Processes <span class="sy-nav__count">1·4</span></a>
+      <a class="sy-nav__item" href="08-screen-detail.html">Screens <span class="sy-nav__count">21</span></a>
+      <a class="sy-nav__item" href="#">Docs</a>
+      <a class="sy-nav__item" href="09-review.html">Review <span class="sy-count">3</span></a>
+      <a class="sy-nav__item" href="10-scans.html">Scans</a>
+      <a class="sy-nav__item" href="11-settings.html">Settings</a>
+      <div class="sy-nav__foot">store: sandbox · read-only</div>
+    </nav>
+    <main id="main" class="sy-main">
+
+      <!-- Page head: what is compared -->
+      <div class="sy-pagehead">
+        <nav class="sy-crumbs" aria-label="Breadcrumb"><a href="04-processes.html">Processes</a> / <a href="05-process-edit.html">Oblicz składkę OC/AC</a> / Compare</nav>
+        <div class="sy-pagehead__row">
+          <h1 class="sy-h1">Compare A and B</h1>
+          <form class="sy-cluster" style="--sy-gap: 10px; align-items: flex-end" action="#" aria-label="Variants to compare">
+            <label class="sy-field"><span class="sy-field__label">Left</span>
+              <select class="sy-select sy-select--md"><option>A · As-is r1 (observed)</option></select></label>
+            <span class="sy-mono sy-muted" aria-hidden="true" style="margin-bottom: 10px">↔</span>
+            <label class="sy-field"><span class="sy-field__label">Right</span>
+              <select class="sy-select sy-select--md sy-select--drawn"><option>B · To-be r2 draft (yours)</option><option>B · To-be r1</option></select></label>
+            <label class="sy-check"><input type="checkbox"> Only changes</label>
+          </form>
+        </div>
+      </div>
+
+      <div class="sy-legend" role="note" aria-label="Legend">
+        <span>─ Unchanged</span>
+        <span class="sy-legend__drawn">┄ Changed or merged</span>
+        <span class="sy-legend__drawn">+ Added (drawn)</span>
+        <span><s>Removed</s></span>
+      </div>
+
+      <div class="sy-columns">
+        <!-- Diff + annotation -->
+        <div class="sy-col-main sy-stack" style="--sy-gap: 14px">
+          <div class="sy-table-wrap">
+            <table class="sy-table sy-table--middle" style="min-width: 600px">
+              <caption class="sy-sr-only">Steps of A · As-is r1 against B · To-be r2 draft</caption>
+              <thead>
+                <tr>
+                  <th scope="col" style="width: 42%">A · As-is r1</th>
+                  <th scope="col" style="width: 42%">B · To-be r2 draft</th>
+                  <th scope="col">Change</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>1 · START · Ubezpieczenia dla Ciebie<div class="sy-route">/</div></td>
+                  <td>
+                    <div class="sy-stack" style="--sy-gap: 6px">
+                      <div>1 · START · Ubezpieczenia dla Ciebie<div class="sy-route">/</div></div>
+                      <span><span class="sy-note sy-note--sm">"Oblicz składkę OC/AC" opens step 2</span></span>
+                    </div>
+                  </td>
+                  <td><span class="sy-diff__change">Unchanged</span></td>
+                </tr>
+                <tr>
+                  <td class="sy-diff--removed">2 · Samochód<div class="sy-route">/ubezpieczenia/samochod</div></td>
+                  <td class="sy-muted"><span aria-label="No step">—</span></td>
+                  <td><span class="sy-diff__change"><s>Removed</s></span></td>
+                </tr>
+                <tr>
+                  <td>3 · Kalkulator OC/AC — dane kierowcy<div class="sy-route">/kalkulator/kierowca</div></td>
+                  <td rowspan="2"><div class="sy-drawn">2 · Kalkulator OC/AC — kierowca i opcje<div class="sy-route">/oc-ac/wycena</div></div></td>
+                  <td rowspan="2"><span class="sy-diff__change sy-diff__change--drawn">2 steps merged into 1</span></td>
+                </tr>
+                <tr>
+                  <td>4 · Kalkulator OC/AC — opcje</td>
+                </tr>
+                <tr>
+                  <td>
+                    <div class="sy-stack" style="--sy-gap: 4px">
+                      <span class="sy-status" data-status="needs">End not reached</span>
+                      <span class="sy-cluster sy-small sy-muted" style="--sy-gap: 6px">Scan <span class="sy-tag sy-tag--sm">01a110d5</span> interrupted</span>
+                    </div>
+                  </td>
+                  <td><div class="sy-drawn">+ 3 · END · Podsumowanie i oferta<div class="sy-route">/oc-ac/oferta</div></div></td>
+                  <td><span class="sy-diff__change sy-diff__change--drawn">+ Added</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="sy-annot" role="note" aria-label="Annotation on step 2">
+            <span class="sy-annot__target">Step 2</span>
+            <span class="sy-annot__line" aria-hidden="true"></span>
+            <p class="sy-note">One form instead of two: driver data and cover options together, price updates as you fill it.<span class="sy-note__by">— you · draft</span></p>
+          </div>
+        </div>
+
+        <!-- Generated change spec -->
+        <div class="sy-col-side" style="flex-basis: 340px">
+        <section class="sy-plate mp-spec" aria-labelledby="spec-h">
+          <div class="sy-plate__head">
+            <h2 id="spec-h" class="sy-plate__title">Change spec</h2>
+            <span class="sy-mono sy-mono--sm sy-muted">Generated · editable</span>
+          </div>
+          <div class="sy-plate__body" style="gap: 14px">
+            <section class="sy-stack" style="--sy-gap: 2px" aria-labelledby="spec-scope">
+              <h3 id="spec-scope" class="sy-label">Scope</h3>
+              <p>Oblicz składkę OC/AC · persona <span class="sy-mono">guest</span> · sandbox</p>
+            </section>
+            <section class="sy-stack" style="--sy-gap: 2px" aria-labelledby="spec-asis">
+              <div class="sy-cluster" style="--sy-gap: 6px"><h3 id="spec-asis" class="sy-label">As-is</h3><span class="sy-tag sy-tag--sm">A r1</span></div>
+              <p>4 screens observed in 3 scans. The end of the process was not reached.</p>
+            </section>
+            <section class="sy-stack" style="--sy-gap: 2px" aria-labelledby="spec-tobe">
+              <div class="sy-cluster" style="--sy-gap: 6px"><h3 id="spec-tobe" class="sy-label">To-be</h3><span class="sy-tag sy-tag--sm">B r2</span></div>
+              <p>3 steps: home, one calculator form, summary.</p>
+            </section>
+            <section class="sy-stack" style="--sy-gap: 2px" aria-labelledby="spec-delta">
+              <h3 id="spec-delta" class="sy-label">Delta</h3>
+              <ul>
+                <li>Remove the product page step</li>
+                <li>Merge driver data and options into one form</li>
+                <li>Add a summary and offer step</li>
+              </ul>
+            </section>
+            <section class="sy-stack" style="--sy-gap: 6px" aria-labelledby="spec-records">
+              <h3 id="spec-records" class="sy-label">Records that cite these screens</h3>
+              <div class="sy-tags">
+                <a class="sy-tag" href="#">CAP-005</a>
+                <a class="sy-tag" href="#">NFR-001</a>
+                <a class="sy-tag" href="08-screen-detail.html">SCR-001</a>
+                <span class="sy-route">on /</span>
+              </div>
+            </section>
+            <section class="sy-stack" style="--sy-gap: 2px" aria-labelledby="spec-cut">
+              <h3 id="spec-cut" class="sy-label">Migration cut</h3>
+              <p>Routes <code class="sy-mono">/ubezpieczenia/samochod</code> and <code class="sy-mono">/kalkulator/*</code> move to a new quote module under <code class="sy-mono">/oc-ac/*</code>. Entry stays the links on <code class="sy-mono">/</code>. Rollback: switch sandbox back to A.</p>
+            </section>
+            <div class="sy-callout sy-callout--intent" role="note">
+              <span class="sy-callout__title">Open question</span>
+              The as-is end was never observed. Resume the scan before sign-off.
+            </div>
+          </div>
+          <div class="sy-plate__foot">
+            <div class="sy-actions">
+              <button class="sy-btn sy-btn--primary" type="button">Export spec</button>
+              <button class="sy-btn" type="button">Save to Docs</button>
+            </div>
+          </div>
+        </section>
+        </div>
+      </div>
+
+    </main>
+  </div>
+</div>
+</body>
+</html>

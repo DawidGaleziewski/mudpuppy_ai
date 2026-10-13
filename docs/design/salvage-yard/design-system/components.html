@@ -1,0 +1,352 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Salvage Yard · Components</title>
+<link rel="icon" href="../brand/logo/tag-icon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="css/tokens.css">
+<link rel="stylesheet" href="css/fonts.css">
+<link rel="stylesheet" href="css/salvage.css">
+<style>
+  /* Docs-page-only layout. Not part of the library. */
+  .doc { max-width: 1280px; margin: 0 auto; padding: 40px 44px 80px; display: flex; flex-direction: column; gap: 40px; }
+  .doc-sec { display: flex; flex-direction: column; gap: 14px; }
+  .doc-sec > header { display: flex; flex-direction: column; gap: 4px; padding-bottom: 10px; border-bottom: 1px solid var(--sy-border-plate); }
+  .doc-demo { display: flex; flex-direction: column; gap: 16px; padding: 20px; background: var(--sy-bg-plate); border: 1px solid var(--sy-border-weld); }
+  .doc-code { margin: 0; padding: 12px 14px; overflow-x: auto; background: var(--sy-bg-well); border: 1px solid var(--sy-border-weld);
+    font-family: var(--sy-font-mono); font-size: 12px; line-height: 1.55; color: var(--sy-text-muted); white-space: pre; }
+  .doc-swatch { display: flex; flex-direction: column; border: 1px solid var(--sy-border-weld); background: var(--sy-bg-plate); }
+  .doc-swatch > i { display: block; height: 56px; }
+  .doc-swatch > div { padding: 8px 10px; font-size: 13px; display: flex; flex-direction: column; gap: 2px; }
+</style>
+</head>
+<body class="sy-ground">
+<a class="sy-skip" href="#doc">Skip to content</a>
+<main id="doc" class="doc">
+
+<header class="sy-stack" style="--sy-gap: 10px">
+  <span class="sy-wordmark sy-wordmark--lg"><span class="sy-wordmark__paint">MUD</span>PUPPY</span>
+  <h1 class="sy-h1">Salvage Yard · component library</h1>
+  <p class="sy-meta sy-prose">Every part in <code>css/salvage.css</code>, live, with the markup to copy. Load <code>tokens.css</code>, <code>fonts.css</code>, then <code>salvage.css</code>. Classes are prefixed <code>sy-</code>; state is ARIA (<code>aria-current</code>, <code>aria-pressed</code>, <code>aria-selected</code>, <code>aria-invalid</code>); enums are <code>data-status</code>.</p>
+</header>
+
+<!-- ============ COLOUR ============ -->
+<section class="doc-sec" aria-labelledby="c-col">
+  <header><h2 id="c-col" class="sy-h2">Colour: one job per paint</h2><p class="sy-meta">Ratios are against steel-900 (the darkest ground). Full guide: docs/03-colour-guide.md.</p></header>
+  <div class="sy-grid" style="--sy-min: 180px; --sy-gap: 10px">
+    <div class="doc-swatch"><i class="sy-ground" style="border-bottom:1px solid var(--sy-line)"></i><div><b>ground</b><span class="sy-mono sy-muted">steel-900 #111315</span><span class="sy-muted">Page + 24px grid</span></div></div>
+    <div class="doc-swatch"><i style="background:var(--sy-steel-850)"></i><div><b>well</b><span class="sy-mono sy-muted">steel-850 #141618</span><span class="sy-muted">Inputs, composer</span></div></div>
+    <div class="doc-swatch"><i style="background:var(--sy-steel-800);border-bottom:1px solid var(--sy-line)"></i><div><b>plate</b><span class="sy-mono sy-muted">steel-800 #181B1E</span><span class="sy-muted">Panels, header, nav</span></div></div>
+    <div class="doc-swatch"><i style="background:var(--sy-steel-700)"></i><div><b>raised</b><span class="sy-mono sy-muted">steel-700 #202428</span><span class="sy-muted">Hover, your messages</span></div></div>
+    <div class="doc-swatch"><i style="background:var(--sy-chalk)"></i><div><b>chalk</b><span class="sy-mono sy-muted">#E8E4DA · 14.7:1</span><span class="sy-muted">Text</span></div></div>
+    <div class="doc-swatch"><i style="background:var(--sy-ash)"></i><div><b>ash</b><span class="sy-mono sy-muted">#A3A69F · 7.6:1</span><span class="sy-muted">Secondary text</span></div></div>
+    <div class="doc-swatch"><i style="background:var(--sy-marker)"></i><div><b>marker</b><span class="sy-mono sy-muted">#FF8F1F · 8.2:1</span><span class="sy-muted">Intent: brand, primary, needs you</span></div></div>
+    <div class="doc-swatch"><i style="background:var(--sy-manila)"></i><div><b>manila</b><span class="sy-mono sy-muted">#E9D8A6 · ink 12.3:1</span><span class="sy-muted">Record tags, human notes</span></div></div>
+    <div class="doc-swatch"><i style="background:var(--sy-inspected)"></i><div><b>inspected</b><span class="sy-mono sy-muted">#7BC47F · 8.9:1</span><span class="sy-muted">OK, confirmed, observed</span></div></div>
+    <div class="doc-swatch"><i style="background:var(--sy-coolant)"></i><div><b>coolant</b><span class="sy-mono sy-muted">#56C2E6 · 9.1:1</span><span class="sy-muted">Active now: running, live</span></div></div>
+    <div class="doc-swatch" style="border:1px dashed var(--sy-blueprint)"><i style="background: linear-gradient(rgba(122,167,255,.25) 1px, transparent 1px) 0 0/12px 12px, linear-gradient(90deg, rgba(122,167,255,.25) 1px, transparent 1px) 0 0/12px 12px, #14213A"></i><div><b>blueprint</b><span class="sy-mono sy-muted">#7AA7FF · 7.8:1</span><span class="sy-muted">Drawn, not built. Always dashed</span></div></div>
+    <div class="doc-swatch"><i style="background:var(--sy-failure)"></i><div><b>failure</b><span class="sy-mono sy-muted">#FF5A5F · 6.1:1</span><span class="sy-muted">Failure only</span></div></div>
+    <div class="doc-swatch"><i style="background:var(--sy-steel-800); box-shadow: inset 0 0 0 1px var(--sy-edge)"></i><div><b>edge</b><span class="sy-mono sy-muted">#6B737C · 3.9:1</span><span class="sy-muted">Control borders</span></div></div>
+    <div class="doc-swatch"><i style="background:var(--sy-steel-800); box-shadow: inset 0 0 0 1px var(--sy-strong)"></i><div><b>strong</b><span class="sy-mono sy-muted">#464D55</span><span class="sy-muted">Plate edges (decorative)</span></div></div>
+  </div>
+</section>
+
+<!-- ============ TYPE ============ -->
+<section class="doc-sec" aria-labelledby="c-type">
+  <header><h2 id="c-type" class="sy-h2">Type: machines print, humans type</h2></header>
+  <div class="doc-demo">
+    <div class="sy-split" style="align-items:baseline"><span class="sy-h1">Oblicz składkę OC/AC</span><span class="sy-mono sy-muted">.sy-h1 · Archivo 800 · 125% wide · 26px · caps</span></div>
+    <div class="sy-split" style="align-items:baseline"><span class="sy-h2">Where this portal is</span><span class="sy-mono sy-muted">.sy-h2 · 18px</span></div>
+    <div class="sy-split" style="align-items:baseline"><span class="sy-h3">Change spec</span><span class="sy-mono sy-muted">.sy-h3 / .sy-plate__title · 14px</span></div>
+    <div class="sy-split" style="align-items:baseline"><span class="sy-label">Process name</span><span class="sy-mono sy-muted">.sy-label · 12px · 112% · caps</span></div>
+    <div class="sy-split" style="align-items:baseline"><span>The scan stopped at 171 of 400 steps. 113 pages are still queued.</span><span class="sy-mono sy-muted">body · Archivo 400 · 15/1.5</span></div>
+    <div class="sy-split" style="align-items:baseline"><span class="sy-mono">/kalkulator/kierowca · 01a110d5 · AMD-001</span><span class="sy-mono sy-muted">.sy-mono · IBM Plex Mono 13px</span></div>
+    <div class="sy-split" style="align-items:baseline"><span class="sy-note">Driver data and options in one form. Price updates as you fill it.</span><span class="sy-mono sy-muted">.sy-note · Special Elite 15px · people only</span></div>
+  </div>
+</section>
+
+<!-- ============ WORDMARK & SHELL ============ -->
+<section class="doc-sec" aria-labelledby="c-shell">
+  <header><h2 id="c-shell" class="sy-h2">Header and navigation</h2><p class="sy-meta">The portal picker is the project context. Search, assistant state and "Ask the assistant" live in the header on every page.</p></header>
+  <div class="doc-demo" style="padding:0">
+    <header class="sy-header" style="position:static">
+      <a class="sy-wordmark" href="#"><span class="sy-wordmark__paint">MUD</span>PUPPY</a>
+      <label class="sy-portal"><span class="sy-label">Portal</span>
+        <select class="sy-select"><option>reference-insurer</option><option>wikipedia</option></select></label>
+      <label class="sy-search"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+        <input type="search" placeholder="Search parts: screens, processes, records" aria-label="Search"><span class="sy-kbd">Ctrl K</span></label>
+      <span class="sy-status" data-status="ok">Assistant up</span>
+      <a class="sy-btn" href="#">Ask the assistant <span class="sy-kbd">Ctrl J</span></a>
+    </header>
+    <div style="display:flex">
+      <nav class="sy-nav" aria-label="Portal sections" style="min-height:300px">
+        <a class="sy-nav__item" href="#" aria-current="page">Home</a>
+        <a class="sy-nav__item" href="#">Processes <span class="sy-nav__count">1·4</span></a>
+        <a class="sy-nav__item" href="#">Screens <span class="sy-nav__count">21</span></a>
+        <a class="sy-nav__item" href="#">Docs</a>
+        <a class="sy-nav__item" href="#">Review <span class="sy-count">3</span></a>
+        <a class="sy-nav__item" href="#">Scans</a>
+        <a class="sy-nav__item" href="#">Settings</a>
+        <div class="sy-nav__foot">store: sandbox · read-only</div>
+      </nav>
+      <div class="sy-main sy-main--narrow"><div class="sy-pagehead"><div class="sy-crumbs"><a href="#">Processes</a> / Oblicz składkę OC/AC</div><h1 class="sy-h1">reference-insurer</h1><p class="sy-meta">Towarzystwo Ubezpieczeń Wzorcowych · sandbox · 3 scans · 21 parts logged</p></div></div>
+    </div>
+  </div>
+<pre class="doc-code">&lt;a class="sy-wordmark" href="/"&gt;&lt;span class="sy-wordmark__paint"&gt;MUD&lt;/span&gt;PUPPY&lt;/a&gt;
+&lt;nav class="sy-nav" aria-label="Portal sections"&gt;
+  &lt;a class="sy-nav__item" href="/home" aria-current="page"&gt;Home&lt;/a&gt;
+  &lt;a class="sy-nav__item" href="/review"&gt;Review &lt;span class="sy-count"&gt;3&lt;/span&gt;&lt;/a&gt;
+&lt;/nav&gt;</pre>
+</section>
+
+<!-- ============ BUTTONS ============ -->
+<section class="doc-sec" aria-labelledby="c-btn">
+  <header><h2 id="c-btn" class="sy-h2">Buttons and links</h2><p class="sy-meta">Buttons are boxes, links are underlined text. One primary (marker) per view. Destructive actions are outlined in failure red and always confirm.</p></header>
+  <div class="doc-demo">
+    <div class="sy-actions">
+      <button class="sy-btn sy-btn--primary" type="button">Send</button>
+      <button class="sy-btn" type="button">Resume scan</button>
+      <button class="sy-btn sy-btn--quiet" type="button">Sort screens into processes</button>
+      <button class="sy-btn sy-btn--danger" type="button">Revoke</button>
+      <button class="sy-btn" type="button" disabled>Disabled</button>
+      <button class="sy-btn" type="button" aria-busy="true">Saving</button>
+      <button class="sy-btn sy-btn--icon" type="button" aria-label="Help and glossary">?</button>
+    </div>
+    <div class="sy-actions">
+      <button class="sy-btn sy-btn--md" type="button">New</button>
+      <button class="sy-btn sy-btn--sm" type="button">Apply as r2</button>
+      <span>Read the <a href="#">change spec</a> before export.</span>
+    </div>
+    <div class="sy-seg" role="group" aria-label="What the assistant can see" style="max-width:360px">
+      <button type="button" aria-pressed="true">This page</button><button type="button" aria-pressed="false">Whole yard</button>
+    </div>
+  </div>
+<pre class="doc-code">&lt;button class="sy-btn sy-btn--primary"&gt;Send&lt;/button&gt;            &lt;!-- one per view --&gt;
+&lt;button class="sy-btn"&gt;Resume scan&lt;/button&gt;                     &lt;!-- secondary --&gt;
+&lt;button class="sy-btn sy-btn--quiet"&gt;Sort screens…&lt;/button&gt;     &lt;!-- chips, minor --&gt;
+&lt;button class="sy-btn sy-btn--danger"&gt;Revoke&lt;/button&gt;           &lt;!-- + confirm dialog --&gt;
+&lt;div class="sy-seg" role="group" aria-label="What the assistant can see"&gt;
+  &lt;button aria-pressed="true"&gt;This page&lt;/button&gt;&lt;button aria-pressed="false"&gt;Whole yard&lt;/button&gt;
+&lt;/div&gt;</pre>
+</section>
+
+<!-- ============ STATUS & TAGS ============ -->
+<section class="doc-sec" aria-labelledby="c-status">
+  <header><h2 id="c-status" class="sy-h2">Status, tags, counts</h2><p class="sy-meta">Shape says certainty (filled happened · hollow didn't yet · dashed unconfirmed · cross broke). Colour says who should care. The word is always there.</p></header>
+  <div class="doc-demo">
+    <div class="sy-cluster" style="--sy-gap: 8px 18px">
+      <span class="sy-status" data-status="ok">OK</span>
+      <span class="sy-status" data-status="ok">Observed</span>
+      <span class="sy-status" data-status="running">Running</span>
+      <span class="sy-status" data-status="live">Live · sandbox</span>
+      <span class="sy-status" data-status="needs">Needs you</span>
+      <span class="sy-status" data-status="stopped">Stopped</span>
+      <span class="sy-status" data-status="skipped">Skipped</span>
+      <span class="sy-status" data-status="todo">To do</span>
+      <span class="sy-status" data-status="queued">Queued</span>
+      <span class="sy-status" data-status="unobserved">Not observed</span>
+      <span class="sy-status" data-status="draft">Draft</span>
+      <span class="sy-status" data-status="inferred">Inferred</span>
+      <span class="sy-status" data-status="failed">Failed</span>
+    </div>
+    <div class="sy-tags">
+      <a class="sy-tag" href="#">SCR-001</a><a class="sy-tag" href="#">AMD-001 r2</a><span class="sy-tag">CAP-005</span><span class="sy-tag">01a110d5</span>
+      <span class="sy-tag sy-tag--intent">Tagged for migration</span><span class="sy-tag sy-tag--sm">+2</span>
+      <span class="sy-count">3</span><span class="sy-count sy-count--muted">21</span>
+    </div>
+  </div>
+<pre class="doc-code">&lt;span class="sy-status" data-status="stopped"&gt;Stopped&lt;/span&gt;   &lt;!-- ok|running|live|needs|stopped|skipped|todo|queued|unobserved|draft|inferred|failed --&gt;
+&lt;a class="sy-tag" href="/records/SCR-001"&gt;SCR-001&lt;/a&gt;           &lt;!-- every record ID is a tag --&gt;
+&lt;span class="sy-tag sy-tag--intent"&gt;Tagged for migration&lt;/span&gt;</pre>
+</section>
+
+<!-- ============ PLATES & ROWS ============ -->
+<section class="doc-sec" aria-labelledby="c-plate">
+  <header><h2 id="c-plate" class="sy-h2">Plates, rows, steps, callouts</h2><p class="sy-meta">Plates are solid and square; the grid never shows through data. At most one intent plate per view.</p></header>
+  <div class="sy-grid" style="--sy-min: 300px">
+    <section class="sy-plate" aria-labelledby="d-where">
+      <div class="sy-plate__head"><h3 id="d-where" class="sy-plate__title">Where this portal is</h3></div>
+      <ol class="sy-steps">
+        <li><span>1 · Scan</span><span class="sy-status" data-status="stopped">Stopped</span></li>
+        <li><span>2 · Map screens</span><span class="sy-status" data-status="ok">21</span></li>
+        <li aria-current="step"><span>3 · Sort into processes</span><span class="sy-status" data-status="needs">Needs you</span></li>
+        <li data-state="todo"><span>4 · Document as-is</span><span class="sy-status" data-status="todo">To do</span></li>
+        <li data-state="todo"><span>5 · Draw the to-be</span><span class="sy-status" data-status="todo">To do</span></li>
+      </ol>
+    </section>
+    <section class="sy-plate sy-plate--intent" aria-labelledby="d-needs">
+      <div class="sy-plate__head"><h3 id="d-needs" class="sy-plate__title">Needs you</h3><span class="sy-count">5</span></div>
+      <div class="sy-rows">
+        <a class="sy-row" href="#"><span>Stopped scan to resume</span><b>1</b></a>
+        <a class="sy-row" href="#"><span>Draft records to confirm</span><span class="sy-tags"><span class="sy-tag sy-tag--sm">CAP-005</span><span class="sy-tag sy-tag--sm">+2</span></span></a>
+        <a class="sy-row" href="#"><span>Drafted processes</span><b>4</b></a>
+      </div>
+    </section>
+    <section class="sy-plate sy-plate--drawn" aria-labelledby="d-drawn">
+      <div class="sy-plate__head"><h3 id="d-drawn" class="sy-plate__title">4 processes, drafted</h3><span class="sy-status" data-status="inferred">Inferred · not saved</span></div>
+      <div class="sy-rows">
+        <div class="sy-row"><span>Oblicz składkę OC/AC</span><span class="sy-route">/ → /kalkulator/kierowca → …</span></div>
+        <div class="sy-row"><span>Porównaj produkty</span><span class="sy-route">/ → /porownanie</span></div>
+        <div class="sy-row"><a href="#">Review them in Processes</a></div>
+      </div>
+    </section>
+  </div>
+  <div class="sy-grid" style="--sy-min: 240px">
+    <div class="sy-callout sy-callout--intent"><span class="sy-callout__title">Open question</span>End of line never found. Resume the scan before sign-off.</div>
+    <div class="sy-callout sy-callout--failure"><span class="sy-callout__title">Assistant down</span>Reference ERR-… from the alert. Restart it, then retry.</div>
+    <div class="sy-callout sy-callout--drawn"><span class="sy-callout__title">Drawn, not built</span>Step 3 exists only in B r2.</div>
+    <div class="sy-callout sy-callout--ok"><span class="sy-callout__title">Saved as r3</span>Nothing was overwritten. Undo stays available in History.</div>
+  </div>
+</section>
+
+<!-- ============ FORMS ============ -->
+<section class="doc-sec" aria-labelledby="c-form">
+  <header><h2 id="c-form" class="sy-h2">Forms and the vault</h2><p class="sy-meta">44px controls, edge borders at 3:1, labels above. Secrets are never displayed, only their state.</p></header>
+  <div class="doc-demo">
+    <div class="sy-grid" style="--sy-min: 260px">
+      <label class="sy-field"><span class="sy-field__label">Process name</span><input class="sy-input" value="Oblicz składkę OC/AC"><span class="sy-field__help">Max 200 characters.</span></label>
+      <label class="sy-field"><span class="sy-field__label">Persona</span><select class="sy-select"><option>guest</option><option>guest-reader</option></select></label>
+      <label class="sy-field"><span class="sy-field__label">Address</span><input class="sy-input" aria-invalid="true" placeholder="http://127.0.0.1:4010/"><span class="sy-field__error">Fill in the address.</span></label>
+      <label class="sy-field"><span class="sy-field__label">Note on this screen</span><textarea class="sy-textarea" rows="2">Driver data and options in one form.</textarea></label>
+    </div>
+    <div class="sy-cluster"><label class="sy-check"><input type="checkbox" checked> Start screen</label><label class="sy-check"><input type="checkbox"> End screen</label></div>
+    <div class="sy-vault" style="max-width:480px">
+      <div class="sy-split"><span class="sy-label">Credential · staging · guest</span><span class="sy-status" data-status="ok">Stored</span></div>
+      <div class="sy-split"><span>guest · staging</span><span class="sy-meta">saved 2026-10-11 19:31Z · <a href="#">Replace</a> · <a href="#">Delete</a></span></div>
+      <span class="sy-field__help">Kept in the vault. Never shown again. The assistant asks for it only when a scan needs it.</span>
+    </div>
+  </div>
+</section>
+
+<!-- ============ TABLE & DIFF ============ -->
+<section class="doc-sec" aria-labelledby="c-table">
+  <header><h2 id="c-table" class="sy-h2">Tables and as-is / to-be diff</h2></header>
+  <div class="sy-legend"><span>─ Unchanged</span><span class="sy-legend__drawn">┄ Changed or merged</span><span class="sy-legend__drawn">+ Added (drawn)</span><span><s>Removed</s></span></div>
+  <div class="sy-table-wrap">
+    <table class="sy-table">
+      <thead><tr><th scope="col" style="width:42%">A · As found</th><th scope="col" style="width:42%">B · Drawing r2</th><th scope="col">Change</th></tr></thead>
+      <tbody>
+        <tr><td>1 · Ubezpieczenia dla Ciebie<div class="sy-route">/</div></td><td>1 · Ubezpieczenia dla Ciebie<div class="sy-route">/ · shortcut opens step 2</div></td><td><span class="sy-diff__change">Unchanged</span></td></tr>
+        <tr><td class="sy-diff--removed">2 · Samochód<div class="sy-route">/ubezpieczenia/samochod</div></td><td class="sy-muted">—</td><td><span class="sy-diff__change"><s>Removed</s></span></td></tr>
+        <tr><td>3 · Kalkulator OC/AC — dane kierowcy<div class="sy-route">/kalkulator/kierowca</div></td><td><div class="sy-drawn">2 · Kalkulator OC/AC — kierowca i opcje<div class="sy-route">/oc-ac/wycena</div></div></td><td><span class="sy-diff__change sy-diff__change--drawn">2 steps merged into 1</span></td></tr>
+        <tr><td><span class="sy-status" data-status="needs">End not reached</span><div class="sy-route">scan 01a110d5 stopped</div></td><td><div class="sy-drawn">+ 3 · Podsumowanie i oferta<div class="sy-route">/oc-ac/oferta</div></div></td><td><span class="sy-diff__change sy-diff__change--drawn">+ Added</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="sy-annot" aria-label="Annotation on step 2"><span class="sy-annot__target">Step 2</span><span class="sy-annot__line" aria-hidden="true"></span><span class="sy-note">Driver data and options in one form. Price updates as you fill it.<span class="sy-note__by">— you · AMD-002 · 2026-10-11 19:40Z</span></span></div>
+</section>
+
+<!-- ============ CHAT ============ -->
+<section class="doc-sec" aria-labelledby="c-chat">
+  <header><h2 id="c-chat" class="sy-h2">Assistant: chat, proposals, composer</h2><p class="sy-meta">Your messages sit on raised steel, right. The assistant answers in plain prose, left. Anything it drafts is dashed blueprint until you apply it; applied work turns solid.</p></header>
+  <div class="sy-plate sy-chat" style="max-width:760px">
+    <div class="sy-plate__head"><div class="sy-cluster" style="--sy-gap:10px"><h3 class="sy-plate__title">Assistant</h3><span class="sy-mono sy-mono--sm sy-muted">Context · Whole yard</span></div><button class="sy-btn sy-btn--md" type="button">New</button></div>
+    <div class="sy-chat__log" role="log" aria-label="Messages">
+      <div class="sy-chat__divider">Context reset ×2 · 6 Oct 20:32Z</div>
+      <div class="sy-msg sy-msg--user">AMD-001 says "rename this button to Save". Which button?</div>
+      <div class="sy-msg"><span class="sy-msg__who">Assistant</span><p>None on this screen. It has links, lists and headings, no buttons. I can pin AMD-001 to an element.</p>
+        <div class="sy-proposal">
+          <div class="sy-proposal__head"><span class="sy-proposal__title">Proposed change</span><span class="sy-mono sy-mono--sm sy-muted">AMD-001 r1 → r2</span></div>
+          <div class="sy-proposal__body"><span><span class="sy-muted">target</span> <s class="sy-muted">whole screen</s> → <b class="sy-drawn-text">link "Zaloguj się"</b></span><span><span class="sy-note sy-note--sm">Test note, rename this button to Save.</span></span></div>
+          <div class="sy-proposal__foot"><button class="sy-btn sy-btn--sm sy-btn--strong" type="button">Apply as r2</button><button class="sy-btn sy-btn--sm sy-btn--quiet" type="button">Pick another element</button><button class="sy-btn sy-btn--sm sy-btn--quiet" type="button">Discard</button></div>
+        </div>
+        <div class="sy-proposal sy-proposal--applied">
+          <div class="sy-proposal__head"><span class="sy-proposal__title">Applied as r2</span><span class="sy-status" data-status="ok">Saved</span></div>
+          <div class="sy-proposal__foot"><button class="sy-btn sy-btn--sm" type="button">Undo</button><a class="sy-btn sy-btn--sm sy-btn--quiet" href="#">Open AMD-001</a></div>
+        </div>
+      </div>
+    </div>
+    <div class="sy-composer">
+      <div class="sy-scanline"><span class="sy-status" data-status="stopped">Stopped</span><span>Scan 01a110d5 · 171 / 400 steps · 113 queued</span><a href="#">Open in Scans</a></div>
+      <label class="sy-field"><span class="sy-field__label">Message</span><textarea class="sy-textarea" rows="2" placeholder="Ask what you can do, or name a goal for reference-insurer"></textarea></label>
+      <div class="sy-actions sy-actions--split"><div class="sy-actions"><button class="sy-btn sy-btn--md sy-btn--quiet" type="button">@ Mention a part</button></div><button class="sy-btn sy-btn--primary" type="button">Send</button></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ RECORDED SCREEN ============ -->
+<section class="doc-sec" aria-labelledby="c-shot">
+  <header><h2 id="c-shot" class="sy-h2">Recorded screen and assistant highlight</h2><p class="sy-meta">The recorded page is shown as captured (light). The highlight is marker orange with a steel inner ring so it reads at 3:1+ on any page.</p></header>
+  <figure class="sy-shot" style="max-width:640px" aria-label="Screenshot of the screen, as recorded">
+    <div class="sy-shot__link" style="text-decoration:underline">Towarzystwo Ubezpieczeń Wzorcowych</div>
+    <div class="sy-shot__title">Ubezpieczenia dla Ciebie</div>
+    <div class="sy-mark"><span class="sy-mark__label">Marked by assistant</span><b>Na skróty</b><br><span class="sy-shot__link">Oblicz składkę OC/AC</span> · <span class="sy-shot__link">Porównaj produkty</span> · <span class="sy-shot__link">Przedłuż polisę</span> · <span class="sy-shot__link">Napisz do nas</span></div>
+  </figure>
+</section>
+
+<!-- ============ PROGRESS & HISTORY ============ -->
+<section class="doc-sec" aria-labelledby="c-prog">
+  <header><h2 id="c-prog" class="sy-h2">Progress, history, tabs</h2></header>
+  <div class="sy-grid" style="--sy-min: 320px">
+    <div class="doc-demo">
+      <div class="sy-meter" data-status="running" style="--value: 42.75%"><div class="sy-meter__label"><span>Scan 01a110d5</span><span>171 / 400 steps</span></div><div class="sy-meter__track" role="progressbar" aria-valuemin="0" aria-valuemax="400" aria-valuenow="171" aria-label="Scan progress"><div class="sy-meter__fill"></div></div></div>
+      <div class="sy-meter" data-status="ok" style="--value: 100%"><div class="sy-meter__label"><span>Scan 01a1083f</span><span>320 / 320 steps</span></div><div class="sy-meter__track" role="progressbar" aria-valuemin="0" aria-valuemax="320" aria-valuenow="320" aria-label="Scan progress"><div class="sy-meter__fill"></div></div></div>
+      <div class="sy-tabs" role="tablist"><button class="sy-tab" role="tab" aria-selected="true">States <span class="sy-count sy-count--muted">17</span></button><button class="sy-tab" role="tab" aria-selected="false">Frontier <span class="sy-count sy-count--muted">113</span></button><button class="sy-tab" role="tab" aria-selected="false">Decisions</button></div>
+    </div>
+    <div class="doc-demo">
+      <ol class="sy-timeline">
+        <li data-status="draft"><div class="sy-timeline__head"><span class="sy-tag sy-tag--sm">B r2</span><span class="sy-status" data-status="draft">Draft</span></div><div class="sy-timeline__body">Merge driver data and options · you · today</div></li>
+        <li data-status="live"><div class="sy-timeline__head"><span class="sy-tag sy-tag--sm">A r1</span><span class="sy-status" data-status="live">Live · sandbox</span></div><div class="sy-timeline__body">As found in scans 1–3</div></li>
+        <li><div class="sy-timeline__head"><span class="sy-tag sy-tag--sm">B r1</span><span class="sy-muted sy-small">superseded</span></div><div class="sy-timeline__body">First drawing</div></li>
+      </ol>
+    </div>
+  </div>
+</section>
+
+<!-- ============ STATES ============ -->
+<section class="doc-sec" aria-labelledby="c-states">
+  <header><h2 id="c-states" class="sy-h2">Empty, loading, error, dialog, toast</h2></header>
+  <div class="sy-grid" style="--sy-min: 280px">
+    <div class="sy-state"><span class="sy-state__title">Yard's empty</span><span class="sy-muted">Add a portal address to start the inventory.</span><div><a class="sy-btn sy-btn--primary" href="#">Add portal</a></div></div>
+    <div class="sy-state"><span class="sy-state__title sy-caret">Reading the lot</span><span class="sy-muted">17 pages checked, 113 queued.</span></div>
+    <div class="sy-state sy-state--failure"><span class="sy-state__title">Assistant down</span><span>Reference <span class="sy-mono">ERR-01M48DVAT5E1GS5K42CTCTTDTJ</span>. Start the chat service, then retry. Read-only pages keep working.</span></div>
+  </div>
+  <div class="sy-grid" style="--sy-min: 320px">
+    <div class="sy-dialog sy-dialog--static" role="dialog" aria-labelledby="dlg-t" aria-modal="false">
+      <div class="sy-dialog__head"><h3 id="dlg-t" class="sy-h3">Revoke staging?</h3></div>
+      <div class="sy-dialog__body"><p>Runs already recorded are kept. Stored credentials for staging are deleted.</p></div>
+      <div class="sy-dialog__foot"><button class="sy-btn" type="button">Keep it</button><button class="sy-btn sy-btn--danger" type="button">Revoke staging</button></div>
+    </div>
+    <div><div class="sy-toast" role="status"><span class="sy-status" data-status="ok">Scope saved</span><span>"Test process", 2 screens.</span><button class="sy-btn sy-btn--sm" type="button">Undo</button></div></div>
+  </div>
+</section>
+
+<section class="doc-sec" aria-labelledby="c-more">
+  <header><h2 id="c-more" class="sy-h2">More parts: drawer, disclosure, code, thumbnails, flush table, note pin</h2></header>
+  <div class="sy-grid" style="--sy-min: 340px">
+    <aside class="sy-drawer" aria-label="Assistant (example)" style="max-width:none">
+      <div class="sy-drawer__head"><h3 class="sy-plate__title">Assistant</h3><button class="sy-btn sy-btn--md sy-btn--icon" type="button" aria-label="Close assistant">×</button></div>
+      <div class="sy-drawer__context">
+        <div class="sy-seg" role="group" aria-label="What the assistant can see"><button type="button" aria-pressed="true">This page</button><button type="button" aria-pressed="false">Whole yard</button></div>
+        <div class="sy-tags"><span class="sy-tag">SCREEN / r1</span><span class="sy-tag">AMD-001</span><span class="sy-tag">CAP-005</span></div>
+      </div>
+      <div class="sy-chat__log" role="log" aria-label="Messages"><div class="sy-msg sy-msg--user">Which links here lead into processes?</div></div>
+      <div class="sy-composer"><label class="sy-field"><span class="sy-field__label">Message</span><textarea class="sy-textarea" rows="2" placeholder="Ask about this screen"></textarea></label><div class="sy-actions sy-actions--end"><button class="sy-btn sy-btn--primary" type="button">Send</button></div></div>
+    </aside>
+    <div class="sy-stack">
+      <details class="sy-disclosure"><summary><span class="sy-plate__title">Credentials</span><span class="sy-meta">none stored · values are never shown</span></summary><div class="sy-disclosure__body"><span class="sy-meta">The assistant asks for a credential in chat only when a scan needs one.</span></div></details>
+      <pre class="sy-code"><code>[start command from the console alert]</code></pre>
+      <div class="sy-cluster"><span class="sy-thumb" role="img" aria-label="Thumbnail of a recorded screen" style="width:120px"></span><span class="sy-thumb sy-thumb--locked" role="img" aria-label="Screen behind a login, not recorded" style="width:120px"></span></div>
+      <figure class="sy-shot"><div class="sy-shot__title">Zaloguj się</div><mark class="sy-mark sy-mark--note"><span class="sy-mark__label">AMD-001</span><span class="sy-shot__link">Zaloguj się</span></mark></figure>
+      <section class="sy-plate" aria-labelledby="flush-t"><div class="sy-plate__head"><h3 id="flush-t" class="sy-plate__title">Environments</h3></div>
+        <div class="sy-table-wrap sy-table-wrap--flush"><table class="sy-table sy-table--middle"><thead><tr><th scope="col">Environment</th><th scope="col">Address</th><th scope="col"><span class="sy-sr-only">Actions</span></th></tr></thead>
+        <tbody><tr><th scope="row">production</th><td class="sy-route">https://www.wikipedia.org/</td><td><div class="sy-actions sy-actions--nowrap"><button class="sy-btn sy-btn--sm" type="button">Edit</button><button class="sy-btn sy-btn--sm sy-btn--danger" type="button">Revoke</button></div></td></tr></tbody></table></div>
+      </section>
+    </div>
+  </div>
+<pre class="doc-code">&lt;mark class="sy-mark sy-mark--note"&gt;…&lt;/mark&gt;   &lt;!-- a person's amendment pin (manila); plain .sy-mark = the assistant's highlight --&gt;
+&lt;details class="sy-disclosure"&gt;&lt;summary&gt;…&lt;/summary&gt;&lt;div class="sy-disclosure__body"&gt;…&lt;/div&gt;&lt;/details&gt;
+&lt;div class="sy-table-wrap sy-table-wrap--flush"&gt;&lt;table class="sy-table sy-table--middle"&gt;…&lt;/table&gt;&lt;/div&gt;   &lt;!-- table inside a plate --&gt;</pre>
+</section>
+
+<section class="doc-sec" aria-labelledby="c-misc">
+  <header><h2 id="c-misc" class="sy-h2">Facts, hints, keys</h2></header>
+  <div class="doc-demo">
+    <dl class="sy-facts"><dt>Portal</dt><dd>reference-insurer <a class="sy-hint" href="#" aria-label="What is a portal?">?</a></dd><dt>Environment</dt><dd>sandbox · <span class="sy-mono">http://127.0.0.1:4010/</span></dd><dt>Started (UTC)</dt><dd class="sy-mono">2026-10-11 19:27:29Z</dd><dt>Shortcuts</dt><dd><span class="sy-kbd">Ctrl K</span> search · <span class="sy-kbd">Ctrl J</span> assistant</dd></dl>
+  </div>
+</section>
+
+</main>
+</body>
+</html>

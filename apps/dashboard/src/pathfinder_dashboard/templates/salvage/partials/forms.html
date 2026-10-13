@@ -1,0 +1,33 @@
+{% import "salvage/macros.html" as sy %}
+{% set v = section %}
+{% call sy.region("forms", v.self_url, "Forms") %}
+<div class="sy-plate">
+  <div class="sy-plate__head"><h2 class="sy-plate__title">Forms <span class="sy-count sy-count--muted">{{ v["items"] | length }}</span></h2></div>
+  {%- if not v["items"] %}
+  <div class="sy-plate__body">{{ sy.empty("No forms recorded in this scan", "Forms are recorded with their fields.") }}</div>
+  {%- else %}
+  <div class="sy-table-wrap sy-table-wrap--flush">
+    <table class="sy-table">
+      <caption class="sy-sr-only">Forms recorded in this scan</caption>
+      <thead><tr><th scope="col">Fields</th><th scope="col">{{ sy.term("state", "Screen") }}</th><th scope="col">{{ sy.term("confidence", "Confidence") }}</th><th scope="col">{{ sy.term("evidence", "Evidence") }}</th></tr></thead>
+      <tbody>
+        {%- for f in v["items"] %}
+        <tr id="{{ f.id }}">
+          <td>
+            {%- if f.fields_json is iterable and f.fields_json is not string %}
+            <ul class="sy-cluster sy-small">
+              {%- for fld in f.fields_json %}<li><span class="sy-mono sy-mono--sm">{{ fld | jget("name") or "?" }}</span> <span class="sy-muted">{{ fld | jget("type") or "" }}{% if fld | jget("required") %} · required{% endif %}</span></li>{% endfor %}
+            </ul>
+            {%- else %}{{ sy.json_block(f.fields_json, "Fields") }}{% endif %}
+          </td>
+          <td><a class="sy-mono sy-mono--sm" href="{{ c.url('/states/' ~ f.state_id) }}">{{ f.state_id }}</a></td>
+          <td>{{ sy.confidence(f.confidence) }}</td>
+          <td>{{ sy.evidence(f.evidence_ref) }}</td>
+        </tr>
+        {%- endfor %}
+      </tbody>
+    </table>
+  </div>
+  {%- endif %}
+</div>
+{% endcall %}

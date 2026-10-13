@@ -1,0 +1,48 @@
+{#- Salvage Yard base (spec 022 T005): the skeleton of docs/design/salvage-yard/screens/*.html.
+    Loads only the Salvage stylesheets (never Console's), self-hosted fonts (FE-V01, FE-Q09).
+    Pages set `nav_current` (a Console page key, see nav.py) and fill `main`; a page may add
+    `drawer` (the assistant, M3). -#}
+{% import "salvage/macros.html" as sy -%}
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MudPuppy · {% block title %}Home{% endblock %}</title>
+<link rel="icon" href="/static/salvage/tag-icon.svg" type="image/svg+xml">
+<link rel="preload" href="/static/salvage/fonts/Archivo-Variable.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="/static/salvage/css/tokens.css">
+<link rel="stylesheet" href="/static/salvage/css/fonts.css">
+<link rel="stylesheet" href="/static/salvage/css/salvage.css">
+<link rel="stylesheet" href="/static/css/mp.css">
+<meta name="htmx-config" content='{"includeIndicatorCSS": false}'>
+<script src="/static/vendor/htmx.min.js" defer></script>
+<script src="/static/vendor/hx-sse.min.js" defer></script>
+<script src="/static/js/live.js" defer></script>
+<script src="/static/js/forms.js" defer></script>
+<script src="/static/js/shell.js" defer></script>
+{% block head_extra %}{% endblock %}
+</head>
+<body class="sy-ground"{% if dev %} data-dev="1"{% endif %} data-boot="{{ BOOT_ID }}">
+<a class="sy-skip" href="#main">Skip to content</a>
+<div class="sy-app">
+  {% include "salvage/partials/header.html" %}
+  <div class="sy-app__body">
+    {% include "salvage/partials/nav.html" %}
+    <main id="main" class="sy-main{% block main_class %}{% endblock %}">
+      {%- if c.store_note %}
+      <div class="sy-callout sy-callout--failure" role="status"><p class="sy-callout__title">Store gone</p><p>{{ c.store_note }}</p></div>
+      {%- elif c.store.kind == "eval" %}
+      <div class="sy-callout" role="status"><p>Reading the eval workspace <span class="sy-mono">{{ c.store.data_dir.parent.name }}</span> ({{ c.store.label }}), read-only.</p></div>
+      {%- endif %}
+      {% block main %}{% endblock %}
+    </main>
+    {% block drawer %}{% endblock %}
+  </div>
+</div>
+<div id="live" hx-sse:connect="{{ c.url('/events') }}" hidden></div>
+<div id="stale" class="sy-toast sy-toast--fixed" role="status" hidden>
+  <span class="sy-status" data-status="failed">Stale</span> Live connection lost. The view may be stale; reconnecting.
+</div>
+</body>
+</html>

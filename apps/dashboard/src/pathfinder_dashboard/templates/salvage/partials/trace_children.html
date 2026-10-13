@@ -1,0 +1,36 @@
+{#- Not a live region: loaded once, when a call row is expanded. -#}
+{% import "salvage/macros.html" as sy %}
+{%- if not phases and not top_events %}
+  {{ sy.empty("No phase or event detail recorded for this call", "It predates phase tracing, or ran at trace level “off”.", level=4) }}
+{%- else %}
+  {%- if phases %}
+  <div class="mp-phase-bar" role="img" aria-label="Time per phase">
+    {%- for p in phases %}
+    <span class="mp-phase-bar__seg"{% if p.span.status != 'ok' %} data-status="failed"{% endif %}
+          style="--value: {{ ((p.span.duration_ms or 0) / total_ms * 100) if total_ms else 0 }}%"
+          title="{{ p.span.name }} · {{ p.span.duration_ms | duration }}"></span>
+    {%- endfor %}
+  </div>
+  <ul class="sy-stack sy-small" style="--sy-gap: 6px">
+    {%- for p in phases %}
+    <li>
+      <span class="sy-cluster"><span class="sy-mono sy-mono--sm">{{ p.span.name }}</span> {{ sy.span_status(p.span.status) }} <span class="sy-num">{{ p.span.duration_ms | duration }}</span></span>
+      {%- if p.events %}
+      <ul class="sy-stack mp-indent" style="--sy-gap: 4px">
+        {%- for e in p.events %}
+        <li>{{ sy.span_kind(e.kind) }} <strong>{{ e.name }}</strong> · {{ e.summary }}{{ sy.trace_event_detail(e, c, run_id) }}</li>
+        {%- endfor %}
+      </ul>
+      {%- endif %}
+    </li>
+    {%- endfor %}
+  </ul>
+  {%- endif %}
+  {%- if top_events %}
+  <ul class="sy-stack sy-small" style="--sy-gap: 4px">
+    {%- for e in top_events %}
+    <li>{{ sy.span_kind(e.kind) }} <strong>{{ e.name }}</strong> · {{ e.summary }}{{ sy.trace_event_detail(e, c, run_id) }}</li>
+    {%- endfor %}
+  </ul>
+  {%- endif %}
+{%- endif %}

@@ -1,0 +1,72 @@
+/* MudPuppy product layout on Salvage Yard (spec 022). Role tokens only; `mp-` classes only;
+   no colours, fonts, radius or shadows (docs/design/salvage-yard/docs/05-css-guide.md §4). */
+@layer sy.reset, sy.base, sy.layout, sy.components, sy.utilities, app;
+
+@layer app {
+  /* htmx request indicators (htmx's own indicator CSS is off, htmx-config). */
+  .htmx-indicator { visibility: hidden; }
+  .htmx-request .htmx-indicator, .htmx-request.htmx-indicator { visibility: visible; }
+
+  /* Header portal picker: a disclosure with a menu of portal links (FE-N02). */
+  .mp-portal-menu { position: relative; }
+  .mp-portal-menu > summary { cursor: pointer; list-style: none; display: flex; gap: var(--sy-space-2); align-items: center; }
+  .mp-portal-menu > summary::-webkit-details-marker { display: none; }
+  .mp-menu {
+    position: absolute; z-index: var(--sy-z-header); inset-block-start: calc(100% + var(--sy-space-1));
+    inset-inline-start: 0; min-inline-size: 14rem; margin: 0; padding: var(--sy-space-1) 0;
+    list-style: none; background: var(--sy-bg-raised); border: 1px solid var(--sy-border-plate);
+  }
+  .mp-menu a { display: block; padding: var(--sy-space-2) var(--sy-space-3); }
+  .mp-menu a[aria-current="true"] { color: var(--sy-strong); border-inline-start: 2px solid var(--sy-intent); }
+
+  /* Docs: section index beside the section; plain lists in prose. */
+  .mp-docs-layout { display: grid; grid-template-columns: minmax(12rem, 16rem) minmax(0, 1fr); gap: var(--sy-space-4); align-items: start; }
+  @media (max-width: 1023px) { .mp-docs-layout { grid-template-columns: minmax(0, 1fr); } }
+  .mp-row-link { text-decoration: none; color: inherit; }
+  .mp-row-link[aria-current="true"] { border-inline-start: 2px solid var(--sy-intent); }
+  .mp-list { padding-inline-start: var(--sy-space-5); list-style: revert; }
+
+  /* Inline forms: fields side by side, wrapping on narrow screens; the button aligns to them. */
+  .mp-form-row { display: flex; flex-wrap: wrap; align-items: flex-end; gap: var(--sy-space-3); }
+  .mp-form-row > .sy-field { flex: 1 1 9rem; }
+  .mp-form-row > .mp-grow-2 { flex: 2 1 14rem; }
+  .mp-form-row > .mp-grow-3 { flex: 3 1 14rem; }
+  .mp-fieldset { border: 1px solid var(--sy-border-weld); padding: var(--sy-space-3); }
+
+  /* Rendered Markdown (glossary, wiki pages): headings, lists, quotes and code in the library's voices. */
+  .mp-prose h1, .mp-prose h2, .mp-prose h3 { font-size: var(--sy-fs-h3); font-weight: 800; font-stretch: var(--sy-stretch-expanded);
+    letter-spacing: var(--sy-track-caps); text-transform: uppercase; }
+  .mp-prose ul, .mp-prose ol { padding-inline-start: var(--sy-space-5); list-style: revert; }
+  .mp-prose blockquote { border-inline-start: 2px solid var(--sy-border-plate); padding-inline-start: var(--sy-space-3); color: var(--sy-text-muted); }
+  .mp-prose code { font-family: var(--sy-font-mono); font-size: var(--sy-fs-mono-sm); overflow-wrap: anywhere; }
+  .mp-prose pre { background: var(--sy-bg-well); padding: var(--sy-space-3); overflow-x: auto; }
+  .mp-prose table { inline-size: 100%; font-size: var(--sy-fs-sm); }
+  .mp-prose th, .mp-prose td { padding: var(--sy-space-2); border-block-end: 1px solid var(--sy-border-weld); text-align: start; }
+
+  /* A label with its glossary hint stays inline (headings keep their count on the same line). */
+  .mp-term { display: inline-flex; align-items: center; }
+
+  /* Long URLs and ids break anywhere instead of widening the page. */
+  .mp-break { overflow-wrap: anywhere; }
+
+  /* Thumbnails in tables. */
+  .mp-thumb-cell { inline-size: 8rem; }
+
+  /* A recorded capture: the image fills the frame; highlights are positioned over it. */
+  .mp-shot { padding: 0; }
+  .mp-shot > a { display: block; }
+  .mp-figure { margin: 0; }
+
+  /* Trace: expandable call rows, nested events, time-per-phase bar. */
+  .mp-trace-call > summary { cursor: pointer; }
+  .mp-trace-detail { padding-block-start: var(--sy-space-3); }
+  .mp-indent { padding-inline-start: var(--sy-space-4); }
+  .mp-phase-bar { display: flex; block-size: var(--sy-space-2); margin-block: var(--sy-space-2);
+    background: var(--sy-bg-well); border: 1px solid var(--sy-border-weld); }
+  .mp-phase-bar__seg { inline-size: var(--value); background: var(--sy-active); border-inline-end: 1px solid var(--sy-bg-ground); }
+  .mp-phase-bar__seg[data-status="failed"] { background: var(--sy-fail); }
+
+  /* Mermaid diagrams render on the light paper ground, like recorded pages. */
+  .mp-diagram { margin: 0; }
+  .mp-diagram .mermaid { overflow: auto; background: var(--sy-paper); color: var(--sy-paper-ink); padding: var(--sy-space-3); }
+}

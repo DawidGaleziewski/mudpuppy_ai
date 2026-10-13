@@ -1,0 +1,112 @@
+{% import "salvage/macros.html" as sy %}
+
+{#- Scope view: what is documented, how far it is reviewed, the latest sessions. -#}
+{% macro overview(v, c, portal) -%}
+  {%- if not v.statuses and not v.sessions %}
+  <div class="sy-plate__body">{{ sy.empty("Nothing documented for " ~ portal ~ " yet", "Start an analysis session with the BA agent; its records and sessions appear here as they are written.", level=3) }}</div>
+  {%- else %}
+  <div class="sy-plate__body sy-stack">
+    <p class="sy-prose">Documentation of <strong>{{ portal }}</strong> reconstructed from recorded scan evidence.
+      Every statement cites evidence; anything the crawler could not observe is marked {{ sy.not_observable() }} and has an open question.</p>
+    <p class="sy-cluster">
+      {%- for st in DOC_STATUSES if v.statuses.get(st) %}<span><span class="sy-num">{{ v.statuses[st] }}</span> {{ sy.doc_status(st) }}</span>{% endfor %}
+    </p>
+  </div>
+  <div class="sy-table-wrap sy-table-wrap--flush">
+    <table class="sy-table sy-table--dense">
+      <caption class="sy-sr-only">Records by section</caption>
+      <thead><tr><th scope="col">Section</th><th scope="col" class="sy-num">Records</th></tr></thead>
+      <tbody>
+        {%- for sid, label, count, url in v.counts %}
+        <tr><td><a href="{{ url }}">{{ label }}</a></td><td class="sy-num">{{ count }}</td></tr>
+        {%- endfor %}
+      </tbody>
+    </table>
+  </div>
+  <div class="sy-plate__body"><h3 class="sy-label">Analysis sessions</h3></div>
+  <div class="sy-table-wrap sy-table-wrap--flush">
+    <table class="sy-table">
+      <caption class="sy-sr-only">Analysis sessions</caption>
+      <thead><tr><th scope="col">Session</th><th scope="col">Status</th><th scope="col">Started (UTC)</th><th scope="col">Summary</th></tr></thead>
+      <tbody>
+        {%- for s in v.sessions %}
+        <tr>
+          <td>{{ sy.tag(s.id | short_id, c.url('/docs/' ~ portal ~ '/sessions/' ~ s.id), sm=true) }}</td>
+          <td>{{ sy.run_status(s.status) }}</td>
+          <td class="sy-mono sy-mono--sm">{{ s.started_at | when }}</td>
+          <td>{{ s.summary or "—" }}</td>
+        </tr>
+        {%- else %}
+        <tr><td colspan="4" class="sy-muted">No session recorded.</td></tr>
+        {%- endfor %}
+      </tbody>
+    </table>
+  </div>
+  {%- endif %}
+{%- endmacro %}
+
+{% macro record_link(c, portal, row) -%}{{ sy.tag(row.record.key, c.url('/docs/' ~ portal ~ '/' ~ row.record.key), sm=true) }}{%- endmacro %}
+
+{% macro notes(row) -%}
+  {%- if row.not_observable %}{{ sy.not_observable() }} {% endif -%}
+  {%- if row.followup_status %}{{ sy.followup_status(row.followup_status) }}{% if row.blocked_reason %} {{ row.blocked_reason }}{% endif %} {% endif -%}
+  {%- if row.record.confirmed_rev and row.record.confirmed_rev != row.rev_no %}<span class="sy-small sy-muted">confirmed at rev {{ row.record.confirmed_rev }}</span>{% endif -%}
+{%- endmacro %}
+
+{% macro record_table(v, c, portal) -%}
+  {%- set rows = v.page["items"] -%}
+  {%- set filtered = v.filters.kind or v.filters.status or v.filters.confidence or v.filters.flag -%}
+  {%- if not rows %}
+  <div class="sy-plate__body">{{ sy.empty("No " ~ v.label | lower ~ (" match these filters" if filtered else " documented yet"),
+               "Records appear here once the BA agent has written them from the recorded scans." if not filtered else "Clear a filter to see more.", level=3) }}</div>
+  {%- elif v.id == "traceability" %}
+  <div class="sy-table-wrap sy-table-wrap--flush">
+    <table class="sy-table">
+      <caption class="sy-sr-only">Requirement, rule, NFR and use-case traceability: each row's evidence and linked records</caption>
+      <thead><tr>
+        <th scope="col">Record</th><th scope="col">{{ sy.term("record-status", "Status") }}</th><th scope="col">{{ sy.term("confidence", "Confidence") }}</th>
+        <th scope="col" class="sy-num">{{ sy.term("evidence-link", "Evidence") }}</th><th scope="col" class="sy-num">Scans</th><th scope="col">{{ sy.term("relations", "Linked records") }}</th>
+      </tr></thead>
+      <tbody>
+        {%- for row in rows %}
+        <tr>
+          <td>{{ record_link(c, portal, row) }} {{ row.record.title }}<div class="sy-small sy-muted">{{ row.record.kind | replace("_", " ") }}</div></td>
+          <td>{{ sy.doc_status(row.status) }}</td>
+          <td>{{ sy.confidence(row.confidence) }}</td>
+          <td class="sy-num">{{ row.evidence_count }}</td>
+          <td class="sy-num">{{ row.run_count }}</td>
+          <td><span class="sy-tags">
+            {%- for k in row.related %}{{ sy.tag(k, c.url('/docs/' ~ portal ~ '/' ~ k), sm=true) }}{% else %}<span class="sy-muted">None</span>{% endfor -%}
+          </span></td>
+        </tr>
+        {%- endfor %}
+      </tbody>
+    </table>
+  </div>
+  <div class="sy-plate__foot">{{ sy.pager(v, v.page.total, rows | length) }}</div>
+  {%- else %}
+  <div class="sy-table-wrap sy-table-wrap--flush">
+    <table class="sy-table">
+      <caption class="sy-sr-only">{{ v.label }}</caption>
+      <thead><tr>
+        <th scope="col">{{ sy.term("record-key", "Record") }}</th><th scope="col">{{ sy.term("record-status", "Status") }}</th><th scope="col">{{ sy.term("confidence", "Confidence") }}</th>
+        <th scope="col" class="sy-num">{{ sy.term("revision", "Rev") }}</th><th scope="col">Notes</th>
+      </tr></thead>
+      <tbody>
+        {%- for row in rows %}
+        <tr>
+          <td>{{ record_link(c, portal, row) }} {{ row.record.title }}
+            {%- if v.kind_options %}<div class="sy-small sy-muted">{{ row.record.kind | replace("_", " ") }}</div>{% endif %}
+            {%- if row.summary %}<div class="sy-small sy-muted">{{ row.summary }}</div>{% endif %}</td>
+          <td>{{ sy.doc_status(row.status) }}</td>
+          <td>{{ sy.confidence(row.confidence) }}</td>
+          <td class="sy-num">{{ row.rev_no }}</td>
+          <td>{{ notes(row) }}</td>
+        </tr>
+        {%- endfor %}
+      </tbody>
+    </table>
+  </div>
+  <div class="sy-plate__foot">{{ sy.pager(v, v.page.total, rows | length) }}</div>
+  {%- endif %}
+{%- endmacro %}

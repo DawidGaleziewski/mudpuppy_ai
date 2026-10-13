@@ -26,7 +26,16 @@ Layer: app (Python, FastAPI + Jinja + htmx, uv; outside the TS layers)
 ## Invariants
 - Reads DB read-only (test_readonly), except chat/amendment writes through chat service.
 - No SQL in routers (G-15); a router never imports another router (G-13).
-- UI follows Console design tokens.
+- UI follows the Salvage Yard design system (spec 022): all UI work uses the `mudpuppy-salvage-ui`
+  skill; reference screens in `docs/design/salvage-yard/screens/`. Never use Console-era styling
+  (amber `#FFB000`, JetBrains Mono, scanlines, glow, round status dots, bracket statuses like
+  `[ OK ]`, the `mudpuppy://console` wordmark) in a migrated page. Until the clean-up (spec 022
+  M6) unmigrated pages keep the Console base; `PATHFINDER_UI_SALVAGE` picks the base per route,
+  never both stylesheets on one page.
+- Compose from `sy-` classes; product-only layout classes use `mp-`. No hex, fonts, radius or
+  shadows in templates or app CSS. Statuses through the one status helper, record ids through the
+  tag helper, human text through the note helper. At most one primary button and one intent plate
+  per view. Ask the owner before adding a colour, font, radius, shadow or animation.
 
 ## Where to add things
 - New page: G-15 — `web/<page>.py` router (follow `web/glossary.py`), included in `app.py`,
@@ -42,6 +51,13 @@ Layer: app (Python, FastAPI + Jinja + htmx, uv; outside the TS layers)
   add a new test file of a mutated module there, and `rm -rf mutants` before a rerun after test
   changes (spec 012 F-15). Works from a copy in `mutants/` (gitignored), so tests find repo
   files through `tests/paths.py`, never by counting parent folders.
+
+## UI check (spec 022)
+- `pnpm --dir apps/dashboard ui:check --base http://127.0.0.1:<port> [paths…]` against a running
+  dashboard with `PATHFINDER_UI_SALVAGE=all`: screenshots at 1280 and 390 px (reduced motion) into
+  `ui-check/`, and fails on a page-level horizontal scroll, not exactly one h1, more than one
+  primary button or intent plate, an axe-core serious/critical issue, or a console error.
+  `apps/dashboard/package.json` exists only for this check (Playwright, axe-core).
 
 ## Other commands
 - `uv run pathfinder-glossary --write`: glossary sync.

@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Settings</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&amp;family=IBM+Plex+Sans:wght@400;500;600&amp;display=swap">
+<style>
+body{margin:0;background:#F6F5F1}
+a{color:#2453C9}a:hover{color:#163A99}
+button,input,select,textarea{font:inherit;color:inherit}
+:focus-visible{outline:2px solid #2453C9;outline-offset:1px}
+</style>
+</helmet>
+<div style="min-height: 100vh; display: flex; flex-direction: column; background: #F6F5F1; color: #1C1C1A; font-family: 'IBM Plex Sans', ui-sans-serif, system-ui, sans-serif; font-size: 14px; line-height: 1.45">
+
+<header style="display: flex; flex-wrap: wrap; align-items: center; gap: 12px 16px; padding: 10px 20px; background: #FFFFFF; border-bottom: 1px solid #C9C6BD">
+<a href="02-Main.dc.html" style="font-family: 'IBM Plex Mono', ui-monospace, monospace; font-weight: 500; font-size: 15px; color: #1C1C1A; text-decoration: none">mudpuppy://console</a>
+<label style="display: flex; align-items: center; gap: 8px; font-size: 12px; color: #55534D">Portal
+<select style="height: 44px; padding: 0 8px; border: 1px solid #8E8B82; background: #FFFFFF; font-size: 14px; min-width: 190px"><option>wikipedia</option><option>reference-insurer</option><option>All portals</option><option>+ New portal</option></select>
+</label>
+<label style="flex: 1 1 240px; display: flex; align-items: center; gap: 8px; height: 44px; box-sizing: border-box; padding: 0 12px; border: 1px solid #C9C6BD; background: #F6F5F1; font-size: 13px; color: #55534D">
+<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5"></path></svg>
+<input type="search" aria-label="Search" placeholder="Search screens, processes, records" style="flex: 1; min-width: 0; border: 0; background: transparent; font-size: 13px">
+<span style="font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 11px">Ctrl K</span>
+</label>
+<span style="display: flex; align-items: center; gap: 6px; font-size: 12px; color: #55534D"><span style="width: 8px; height: 8px; border-radius: 9999px; background: #1C1C1A"></span>assistant running</span>
+<a href="03-ChatDrawer.dc.html" style="display: flex; align-items: center; gap: 8px; height: 44px; box-sizing: border-box; padding: 0 14px; border: 1px solid #1C1C1A; background: #FFFFFF; color: #1C1C1A; text-decoration: none; font-size: 13px; font-weight: 500"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M4 5h16v11H9l-5 4z"></path></svg>Ask assistant <span style="font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 11px; color: #55534D">Ctrl J</span></a>
+<a href="01-IA.dc.html" aria-label="Help and glossary" style="width: 44px; height: 44px; box-sizing: border-box; display: flex; align-items: center; justify-content: center; border: 1px solid #C9C6BD; color: #1C1C1A; text-decoration: none; font-weight: 600">?</a>
+</header>
+
+<div style="flex: 1; display: flex; flex-wrap: wrap; align-items: stretch">
+
+<nav aria-label="Portal sections" style="flex: 1 1 200px; display: flex; flex-direction: column; gap: 2px; padding: 16px 12px; box-sizing: border-box; background: #EFEDE8; border-right: 1px solid #C9C6BD">
+<a href="02-Main.dc.html" style="display: flex; justify-content: space-between; align-items: center; min-height: 44px; padding: 0 12px; text-decoration: none; color: #1C1C1A">Home</a>
+<a href="05-Processes.dc.html" style="display: flex; justify-content: space-between; align-items: center; min-height: 44px; padding: 0 12px; text-decoration: none; color: #1C1C1A">Processes</a>
+<a href="09-ScreenDetail.dc.html" style="display: flex; justify-content: space-between; align-items: center; min-height: 44px; padding: 0 12px; text-decoration: none; color: #1C1C1A">Screens <span style="font-size: 12px; color: #55534D">14</span></a>
+<a href="#" style="display: flex; justify-content: space-between; align-items: center; min-height: 44px; padding: 0 12px; text-decoration: none; color: #1C1C1A">Docs</a>
+<a href="10-Review.dc.html" style="display: flex; justify-content: space-between; align-items: center; min-height: 44px; padding: 0 12px; text-decoration: none; color: #1C1C1A">Review</a>
+<a href="11-Runs.dc.html" style="display: flex; justify-content: space-between; align-items: center; min-height: 44px; padding: 0 12px; text-decoration: none; color: #1C1C1A">Scans</a>
+<a href="12-Settings.dc.html" aria-current="page" style="display: flex; justify-content: space-between; align-items: center; min-height: 44px; padding: 0 12px; text-decoration: none; background: #1C1C1A; color: #FFFFFF; font-weight: 500">Settings</a>
+<div style="height: 1px; background: #C9C6BD; margin: 10px 0"></div>
+<a href="#" style="display: flex; align-items: center; min-height: 44px; padding: 0 12px; text-decoration: none; color: #55534D; font-size: 13px">Glossary and BA wiki</a>
+<div style="margin-top: auto; padding: 12px; font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 11px; color: #55534D">store: sandbox · read-only</div>
+</nav>
+
+<main style="flex: 999 1 560px; min-width: 0; padding: 24px 28px; box-sizing: border-box; display: flex; flex-direction: column; gap: 18px">
+
+<div style="display: flex; flex-direction: column; gap: 4px">
+<h1 style="margin: 0; font-size: 22px; font-weight: 600">Settings · wikipedia</h1>
+<div role="status" style="font-size: 13px"><span style="font-family: 'IBM Plex Mono', ui-monospace, monospace">[ OK ]</span> staging saved.</div>
+</div>
+
+<nav aria-label="Settings sections" style="display: flex; flex-wrap: wrap; gap: 6px; font-size: 13px">
+<a href="#env" style="display: inline-flex; align-items: center; min-height: 36px; padding: 0 10px; border: 1px solid #1C1C1A; color: #1C1C1A; text-decoration: none">Environments</a>
+<a href="#cred" style="display: inline-flex; align-items: center; min-height: 36px; padding: 0 10px; border: 1px solid #C9C6BD; color: #1C1C1A; text-decoration: none">Credentials</a>
+<a href="#personas" style="display: inline-flex; align-items: center; min-height: 36px; padding: 0 10px; border: 1px solid #C9C6BD; color: #1C1C1A; text-decoration: none">Personas</a>
+<a href="#crawl" style="display: inline-flex; align-items: center; min-height: 36px; padding: 0 10px; border: 1px solid #C9C6BD; color: #1C1C1A; text-decoration: none">Crawl rules</a>
+<a href="#store" style="display: inline-flex; align-items: center; min-height: 36px; padding: 0 10px; border: 1px solid #C9C6BD; color: #1C1C1A; text-decoration: none">Data store</a>
+</nav>
+
+<section id="env" aria-labelledby="env-h" style="display: flex; flex-direction: column; background: #FFFFFF; border: 1px solid #C9C6BD">
+<div style="display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px; padding: 12px 16px; border-bottom: 1px solid #C9C6BD">
+<h2 id="env-h" style="margin: 0; font-size: 15px; font-weight: 600">Environments</h2>
+<span style="font-size: 12px; color: #55534D">a scan names one; the assistant asks when there are several</span>
+</div>
+<div style="overflow-x: auto">
+<table style="width: 100%; min-width: 680px; border-collapse: collapse; font-size: 13px">
+<thead><tr style="text-align: left; background: #EFEDE8">
+<th scope="col" style="padding: 10px 16px; font-weight: 600; border-bottom: 1px solid #C9C6BD">Environment</th>
+<th scope="col" style="padding: 10px 12px; font-weight: 600; border-bottom: 1px solid #C9C6BD">Address</th>
+<th scope="col" style="padding: 10px 12px; font-weight: 600; border-bottom: 1px solid #C9C6BD">How far the crawler may go</th>
+<th scope="col" style="padding: 10px 12px; font-weight: 600; border-bottom: 1px solid #C9C6BD">Credentials</th>
+<th scope="col" style="padding: 10px 16px; font-weight: 600; border-bottom: 1px solid #C9C6BD"><span style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0)">Actions</span></th>
+</tr></thead>
+<tbody>
+<tr><td style="padding: 10px 16px; border-bottom: 1px solid #E4E2DC">production</td><td style="padding: 10px 12px; border-bottom: 1px solid #E4E2DC"><a href="#">https://www.wikipedia.org/</a></td><td style="padding: 10px 12px; border-bottom: 1px solid #E4E2DC">only look, never submit</td><td style="padding: 10px 12px; border-bottom: 1px solid #E4E2DC; color: #55534D">none</td><td style="padding: 10px 16px; border-bottom: 1px solid #E4E2DC"><div style="display: flex; gap: 10px; justify-content: flex-end"><a href="#">Edit</a><a href="#">Revoke</a></div></td></tr>
+<tr><td style="padding: 10px 16px; border-bottom: 1px solid #E4E2DC">staging</td><td style="padding: 10px 12px; border-bottom: 1px solid #E4E2DC"><a href="#">http://127.0.0.1:4010/</a></td><td style="padding: 10px 12px; border-bottom: 1px solid #E4E2DC">fill and submit forms (everything)</td><td style="padding: 10px 12px; border-bottom: 1px solid #E4E2DC; color: #55534D">none</td><td style="padding: 10px 16px; border-bottom: 1px solid #E4E2DC"><div style="display: flex; gap: 10px; justify-content: flex-end"><a href="#">Edit</a><a href="#">Revoke</a></div></td></tr>
+<tr><td style="padding: 10px 16px; color: #55534D">sandbox</td><td style="padding: 10px 12px; color: #55534D" colspan="3">not configured</td><td style="padding: 10px 16px; text-align: right"><a href="#add-env">Add</a></td></tr>
+</tbody>
+</table>
+</div>
+<form id="add-env" style="display: flex; flex-wrap: wrap; align-items: flex-end; gap: 10px 12px; padding: 14px 16px; border-top: 1px solid #C9C6BD; background: #F6F5F1">
+<label style="flex: 1 1 140px; display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: #55534D">Environment<select style="height: 44px; padding: 0 8px; border: 1px solid #8E8B82; background: #FFFFFF; font-size: 13px; color: #1C1C1A"><option>sandbox</option><option>staging (change)</option><option>production (change)</option></select></label>
+<label style="flex: 3 1 220px; display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: #55534D">Address<input type="url" required placeholder="https://" style="height: 44px; box-sizing: border-box; padding: 0 10px; border: 1px solid #8E8B82; background: #FFFFFF; font-size: 13px; color: #1C1C1A"></label>
+<label style="flex: 2 1 220px; display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: #55534D">How far the crawler may go<select style="height: 44px; padding: 0 8px; border: 1px solid #8E8B82; background: #FFFFFF; font-size: 13px; color: #1C1C1A"><option>fill and submit forms (everything)</option><option>up to deleting things, no outside effects</option><option>change data, never delete</option><option>only look, never submit</option></select></label>
+<button type="submit" style="min-height: 44px; padding: 0 16px; border: 1px solid #1C1C1A; background: #1C1C1A; color: #FFFFFF; font-size: 13px; font-weight: 500; cursor: pointer">Save environment</button>
+</form>
+</section>
+
+<section id="cred" aria-labelledby="cred-h" style="display: flex; flex-direction: column; background: #FFFFFF; border: 1px solid #C9C6BD">
+<details>
+<summary style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; min-height: 52px; padding: 0 16px; cursor: pointer">
+<span style="display: flex; flex-wrap: wrap; align-items: baseline; gap: 10px"><span id="cred-h" style="font-size: 15px; font-weight: 600">Credentials</span><span style="font-size: 12px; color: #55534D">none stored · values are never shown</span></span>
+<span style="font-size: 13px; color: #2453C9">Show</span>
+</summary>
+<div style="display: flex; flex-direction: column; gap: 10px; padding: 12px 16px; border-top: 1px solid #C9C6BD">
+<p style="margin: 0; font-size: 13px; color: #55534D">"Values go into the vault, never into the chat, and are not shown again." No persona of this portal names a credential. The assistant asks in chat when a scan reaches a login it can't pass.</p>
+<div style="display: flex; flex-wrap: wrap; align-items: flex-end; gap: 10px 12px">
+<label style="flex: 1 1 140px; display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: #55534D">Environment<select style="height: 44px; padding: 0 8px; border: 1px solid #8E8B82; background: #FFFFFF; font-size: 13px; color: #1C1C1A"><option>production</option><option>staging</option></select></label>
+<label style="flex: 2 1 200px; display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: #55534D">Reference name<input type="text" placeholder="e.g. PORTAL_TOKEN" style="height: 44px; box-sizing: border-box; padding: 0 10px; border: 1px solid #8E8B82; background: #FFFFFF; font-size: 13px; color: #1C1C1A"></label>
+<label style="flex: 2 1 200px; display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: #55534D">Value<input type="password" style="height: 44px; box-sizing: border-box; padding: 0 10px; border: 1px solid #8E8B82; background: #FFFFFF; font-size: 13px; color: #1C1C1A"></label>
+<button type="button" style="min-height: 44px; padding: 0 14px; border: 1px solid #1C1C1A; background: #FFFFFF; font-size: 13px; cursor: pointer">Store in vault</button>
+</div>
+</div>
+</details>
+</section>
+
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(280px, 100%), 1fr)); gap: 16px">
+
+<section id="personas" aria-labelledby="per-h" style="display: flex; flex-direction: column; background: #FFFFFF; border: 1px solid #C9C6BD">
+<h2 id="per-h" style="margin: 0; padding: 12px 16px; font-size: 15px; font-weight: 600; border-bottom: 1px solid #C9C6BD">Personas</h2>
+<div style="display: flex; justify-content: space-between; gap: 8px; padding: 10px 16px; border-bottom: 1px solid #E4E2DC; font-size: 13px"><span>guest</span><span style="color: #55534D">used by 2 scans</span></div>
+<div style="display: flex; justify-content: space-between; gap: 8px; padding: 10px 16px; font-size: 13px"><span>guest-reader</span><span style="color: #55534D">used by 1 scan</span></div>
+</section>
+
+<section id="crawl" aria-labelledby="crawl-h" style="display: flex; flex-direction: column; background: #FFFFFF; border: 1px solid #C9C6BD">
+<h2 id="crawl-h" style="margin: 0; padding: 12px 16px; font-size: 15px; font-weight: 600; border-bottom: 1px solid #C9C6BD">Crawl rules</h2>
+<fieldset style="margin: 0; padding: 10px 16px; border: 0; display: flex; flex-direction: column; gap: 4px; font-size: 13px">
+<legend style="padding: 10px 0 4px; font-size: 12px; color: #55534D">robots.txt</legend>
+<label style="display: flex; align-items: center; gap: 8px; min-height: 36px"><input type="radio" name="robots" checked style="width: 18px; height: 18px">ignore it (visit every page; your responsibility)</label>
+<label style="display: flex; align-items: center; gap: 8px; min-height: 36px"><input type="radio" name="robots" style="width: 18px; height: 18px">respect it</label>
+</fieldset>
+</section>
+
+<section id="store" aria-labelledby="store-h" style="display: flex; flex-direction: column; background: #FFFFFF; border: 1px solid #C9C6BD">
+<h2 id="store-h" style="margin: 0; padding: 12px 16px; font-size: 15px; font-weight: 600; border-bottom: 1px solid #C9C6BD">Data store</h2>
+<div style="display: flex; flex-direction: column; gap: 6px; padding: 10px 16px; font-size: 13px">
+<label style="display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: #55534D">Store<select style="height: 44px; padding: 0 8px; border: 1px solid #8E8B82; background: #FFFFFF; font-size: 13px; color: #1C1C1A"><option>sandbox</option></select></label>
+<div style="font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 12px">data/db/sandbox.sqlite · 22,128 KB · read-only</div>
+<div><button type="button" style="min-height: 36px; padding: 0 10px; border: 1px solid #C9C6BD; background: #FFFFFF; font-size: 12px; cursor: pointer">Copy full path</button></div>
+</div>
+</section>
+</div>
+</main>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":1200}}'>
+class Component extends DCLogic {
+renderVals() {
+return {};
+}
+}
+</script>
+</body>
+</html>

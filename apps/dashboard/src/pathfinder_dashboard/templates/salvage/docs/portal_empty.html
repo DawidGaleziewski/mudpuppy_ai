@@ -1,0 +1,23 @@
+{% extends "salvage/base.html" %}
+{% set nav_current = "docs" %}
+{% block title %}Docs: {{ portal }}{% endblock %}
+{% block main %}
+<div class="sy-pagehead">
+  <nav class="sy-crumbs" aria-label="Breadcrumb"><a href="{{ c.url('/docs') }}">Docs</a></nav>
+  <h1 class="sy-h1">{{ portal }}</h1>
+</div>
+<section class="sy-state" aria-labelledby="empty-h">
+  <h2 class="sy-state__title" id="empty-h">Nothing recorded for {{ portal }} in this store</h2>
+  <p>The dashboard reads <span class="sy-mono sy-mono--sm">{{ store.path }}</span> ({{ c.store.label }}). It holds no scans and no documentation for this portal.</p>
+  {%- if elsewhere %}
+  <p>These stores do hold its data; an eval (<span class="sy-mono sy-mono--sm">pnpm eval</span>) writes to its own workspace:</p>
+  <ul class="mp-list">
+    {%- for s, href in elsewhere %}
+    <li><a href="{{ href }}">{{ s.label }}</a> <span class="sy-mono sy-mono--sm sy-muted">{{ s.data_dir }}</span></li>
+    {%- endfor %}
+  </ul>
+  {%- else %}
+  <p>No other store on this machine has it yet. Ask the assistant to scan it.</p>
+  {%- endif %}
+</section>
+{% endblock %}

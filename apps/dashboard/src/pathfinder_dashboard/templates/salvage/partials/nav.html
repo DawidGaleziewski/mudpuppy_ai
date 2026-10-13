@@ -1,0 +1,39 @@
+{#- The seven portal sections (FE-N03, nav.py), `aria-current="page"` on the current one; the
+    Review count is the only marker count (FE-N04). The footer holds the data store picker and
+    the store's live status. -#}
+{%- set section = nav_section(nav_current | default(none)) %}
+<nav class="sy-nav{% if nav_compact | default(false) %} sy-nav--compact{% endif %}" aria-label="Portal sections">
+  {%- for s in NAV_SECTIONS %}
+  {%- set href = section_href(s.key, c.portal) %}
+  {%- if href %}
+  <a class="sy-nav__item" href="{{ c.url(href) }}"{% if s.key == section %} aria-current="page"{% endif %}>{{ s.label }}
+    {%- if s.key == "review" and review_count | default(0) %} <span class="sy-count">{{ review_count }}</span>{% endif %}</a>
+  {%- else %}
+  <span class="sy-nav__item sy-muted" aria-disabled="true" title="Pick a portal first">{{ s.label }}</span>
+  {%- endif %}
+  {%- endfor %}
+  <div class="sy-nav__foot">
+    <form method="get" action="{{ request.url.path }}" class="sy-stack" style="--sy-gap: 4px">
+      <label class="sy-field">
+        <span class="sy-field__label">Data store</span>
+        <select class="sy-select" name="store">
+          {%- for s in c.stores if s.kind == "main" %}
+          <option value="{{ s.key }}"{% if s.key == c.store.key %} selected{% endif %}>{{ s.label }}</option>
+          {%- else %}
+          <option value="{{ c.store.key }}" selected>{{ c.store.label }}</option>
+          {%- endfor %}
+          {%- set evals = c.stores | selectattr("kind", "equalto", "eval") | list %}
+          {%- if evals %}
+          <optgroup label="Eval workspaces">
+            {%- for s in evals %}
+            <option value="{{ s.key }}"{% if s.key == c.store.key %} selected{% endif %}>{{ s.label }}</option>
+            {%- endfor %}
+          </optgroup>
+          {%- endif %}
+        </select>
+      </label>
+      <button class="sy-btn sy-btn--sm sy-btn--quiet" type="submit">Switch store</button>
+    </form>
+    <span class="sy-small">read-only · <span id="live-status" role="status">{{ sy.status("assistant", "connecting") }}</span></span>
+  </div>
+</nav>

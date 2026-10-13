@@ -19,7 +19,7 @@ from fastapi.responses import RedirectResponse, Response
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
-from . import glossary, live, queries_docs
+from . import glossary, live, nav, queries_docs, status_map
 from .models import DECISION_KINDS, FRONTIER_STATUSES, RUN_STATUSES, SAFETY_CLASSES
 from .settings import Settings
 from .web import activity as activity_page
@@ -33,6 +33,7 @@ from .web import health as health_page
 from .web import overview as overview_page
 from .web import portals as portals_page
 from .web import runs as runs_page
+from .web import screens as screens_page
 from .web import states as states_page
 from .web.amendments import MAX_ATTACHMENT_B64
 from .web.deps import PORTAL_COOKIE, PORTAL_ID, Web, build_url
@@ -74,6 +75,12 @@ def create_app(
     templates.env.filters["short_id"] = short_id
     templates.env.filters["top_locator"] = top_locator
     templates.env.filters["markdown"] = glossary.markdown_html
+    # Salvage Yard (spec 022): the one status mapping, used by `salvage/macros.html`.
+    templates.env.globals["sy_status_of"] = status_map.status_of
+    templates.env.globals["sy_options"] = status_map.options
+    templates.env.globals["NAV_SECTIONS"] = nav.SECTIONS
+    templates.env.globals["nav_section"] = nav.current_section
+    templates.env.globals["section_href"] = nav.href_of
 
     # Shared page helpers (web/deps.py); the page routers get them with `web_of(request)`.
     web = Web(settings, templates, chat_transport)
@@ -120,6 +127,7 @@ def create_app(
     app.include_router(portals_page.router)
     app.include_router(amendments_page.router)
     app.include_router(events_page.router)
+    app.include_router(screens_page.router)
     return app
 
 

@@ -1,0 +1,222 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MudPuppy · Processes</title>
+<link rel="icon" href="../brand/logo/tag-icon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../design-system/css/tokens.css">
+<link rel="stylesheet" href="../design-system/css/fonts.css">
+<link rel="stylesheet" href="../design-system/css/salvage.css">
+<style>
+  /* Screen layout only: a strip of fixed-width thumbnails; the locked one centres its label. */
+  .mp-thumbs { display: flex; flex-wrap: wrap; gap: var(--sy-space-2); }
+  .mp-thumbs > * { width: 96px; }
+  .mp-thumbs > .sy-thumb--locked { display: flex; align-items: center; justify-content: center; }
+</style>
+</head>
+<body class="sy-ground">
+<a class="sy-skip" href="#main">Skip to content</a>
+<div class="sy-app">
+  <header class="sy-header">
+    <a class="sy-wordmark" href="01-home.html"><span class="sy-wordmark__paint">MUD</span>PUPPY</a>
+    <label class="sy-portal"><span class="sy-label">Portal</span>
+      <select class="sy-select"><option>reference-insurer</option><option>wikipedia</option><option>All portals</option><option>+ New portal</option></select></label>
+    <label class="sy-search">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+      <input type="search" aria-label="Search" placeholder="Search parts: screens, processes, records"><span class="sy-kbd">Ctrl K</span></label>
+    <span class="sy-status" data-status="ok">Assistant up</span>
+    <a class="sy-btn" href="02-screen-with-assistant.html">Ask the assistant <span class="sy-kbd">Ctrl J</span></a>
+    <a class="sy-btn sy-btn--icon" href="#" aria-label="Help and glossary">?</a>
+  </header>
+  <div class="sy-app__body">
+    <nav class="sy-nav" aria-label="Portal sections">
+      <a class="sy-nav__item" href="01-home.html">Home</a>
+      <a class="sy-nav__item" href="04-processes.html" aria-current="page">Processes <span class="sy-nav__count">1·4</span></a>
+      <a class="sy-nav__item" href="08-screen-detail.html">Screens <span class="sy-nav__count">21</span></a>
+      <a class="sy-nav__item" href="#">Docs</a>
+      <a class="sy-nav__item" href="09-review.html">Review <span class="sy-count">3</span></a>
+      <a class="sy-nav__item" href="10-scans.html">Scans</a>
+      <a class="sy-nav__item" href="11-settings.html">Settings</a>
+      <div class="sy-nav__foot">store: sandbox · read-only</div>
+    </nav>
+    <main id="main" class="sy-main">
+
+      <!-- Page head -->
+      <div class="sy-pagehead">
+        <div class="sy-pagehead__row">
+          <div class="sy-stack" style="--sy-gap: 4px">
+            <h1 class="sy-h1">Processes</h1>
+            <p class="sy-meta sy-prose">Cut reference-insurer into processes you can document, redesign and migrate one at a time.</p>
+          </div>
+          <div class="sy-actions">
+            <a class="sy-btn" href="02-screen-with-assistant.html">Ask the assistant to regroup</a>
+            <button class="sy-btn sy-btn--primary" type="button">New process</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Lifecycle key -->
+      <div class="sy-cluster" style="--sy-gap: 6px 12px">
+        <span class="sy-label" id="stages-l">Stages</span>
+        <ol class="sy-legend" aria-labelledby="stages-l">
+          <li class="sy-legend__drawn">┄ Suggested <span aria-hidden="true">→</span></li>
+          <li>Scoped <span aria-hidden="true">→</span></li>
+          <li>As-is documented <span aria-hidden="true">→</span></li>
+          <li>To-be in design <span aria-hidden="true">→</span></li>
+          <li>Migrating <span aria-hidden="true">→</span></li>
+          <li>Migrated</li>
+        </ol>
+        <span class="sy-meta">A process can move back at any time.</span>
+      </div>
+
+      <!-- Your processes -->
+      <section class="sy-stack" style="--sy-gap: 10px" aria-labelledby="yours-h">
+        <h2 id="yours-h" class="sy-h2">Your processes · 2</h2>
+        <div class="sy-table-wrap">
+          <table class="sy-table sy-table--interactive" style="min-width: 860px">
+            <thead>
+              <tr>
+                <th scope="col" style="min-width: 240px">Process</th>
+                <th scope="col">Stage</th>
+                <th scope="col">Variants</th>
+                <th scope="col">Live in sandbox</th>
+                <th scope="col" class="sy-num">Screens</th>
+                <th scope="col">Amendments</th>
+                <th scope="col">Last change</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <th scope="row"><div class="sy-stack" style="--sy-gap: 2px">
+                  <a href="05-process-edit.html">Oblicz składkę OC/AC</a>
+                  <span class="sy-route sy-mono">/ → /kalkulator/kierowca → … end not reached</span>
+                </div></th>
+                <td>To-be in design</td>
+                <td>
+                  <div class="sy-stack" style="--sy-gap: 6px">
+                    <span class="sy-cluster" style="--sy-gap: 6px"><span class="sy-tag sy-tag--sm">A r1</span><span class="sy-small sy-muted">as-is</span></span>
+                    <span class="sy-cluster" style="--sy-gap: 6px"><span class="sy-tag sy-tag--sm">B r1</span><span class="sy-small sy-muted">to-be</span><span class="sy-status" data-status="draft">Draft</span></span>
+                  </div>
+                </td>
+                <td><span class="sy-status" data-status="live">A</span></td>
+                <td class="sy-num">4</td>
+                <td><span class="sy-num">0</span></td>
+                <td><span class="sy-cluster" style="--sy-gap: 6px"><span class="sy-tag sy-tag--sm">B r1</span><span class="sy-meta">draft · you · today</span></span></td>
+              </tr>
+              <tr>
+                <th scope="row"><div class="sy-stack" style="--sy-gap: 2px">
+                  <a href="05-process-edit.html">Test process</a>
+                  <span class="sy-route sy-mono">/ → /faq · guest</span>
+                </div></th>
+                <td>Scoped</td>
+                <td><span class="sy-cluster" style="--sy-gap: 6px"><span class="sy-tag sy-tag--sm">A r1</span><span class="sy-small sy-muted">as-is</span></span></td>
+                <td><span class="sy-status" data-status="live">A</span></td>
+                <td class="sy-num">2</td>
+                <td><span class="sy-cluster" style="--sy-gap: 6px"><span class="sy-num">1</span><span class="sy-tag sy-tag--sm">AMD-001</span><span class="sy-route">on /</span></span></td>
+                <td><span class="sy-cluster" style="--sy-gap: 6px"><span class="sy-tag sy-tag--sm">A r1</span><span class="sy-meta">you · today</span></span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- Assistant suggestions: inferred, dashed blueprint, nothing saved yet -->
+      <section class="sy-stack" style="--sy-gap: 10px" aria-labelledby="sugg-h">
+        <div class="sy-split" style="align-items: baseline">
+          <h2 id="sugg-h" class="sy-h2">Suggested by the assistant · 3</h2>
+          <div class="sy-cluster" style="--sy-gap: 6px 10px">
+            <span class="sy-status" data-status="inferred">Inferred · not saved</span>
+            <span class="sy-meta">From links between screens. Nothing is saved until you accept.</span>
+          </div>
+        </div>
+        <div class="sy-grid" style="--sy-min: 300px; --sy-gap: 14px">
+
+          <article class="sy-plate sy-plate--drawn" aria-labelledby="sg1-h">
+            <div class="sy-plate__head">
+              <h3 id="sg1-h" class="sy-plate__title">Porównaj produkty</h3>
+            </div>
+            <div class="sy-plate__body">
+              <span class="sy-route">/ → /porownanie · 2 screens</span>
+              <p class="sy-meta">Why: "Na skróty" link "Porównaj produkty" and menu link "Porównanie".</p>
+              <div class="mp-thumbs">
+                <figure class="sy-thumb" role="img" aria-label="Recorded screen /"></figure>
+                <figure class="sy-thumb" role="img" aria-label="Recorded screen /porownanie"></figure>
+              </div>
+            </div>
+            <div class="sy-plate__foot">
+              <div class="sy-actions" style="--sy-gap: 6px">
+                <button class="sy-btn sy-btn--md sy-btn--strong" type="button">Accept<span class="sy-sr-only"> Porównaj produkty</span></button>
+                <button class="sy-btn sy-btn--md" type="button">Edit first<span class="sy-sr-only"> Porównaj produkty</span></button>
+                <button class="sy-btn sy-btn--md sy-btn--quiet" type="button">Dismiss<span class="sy-sr-only"> Porównaj produkty</span></button>
+              </div>
+            </div>
+          </article>
+
+          <article class="sy-plate sy-plate--drawn" aria-labelledby="sg2-h">
+            <div class="sy-plate__head">
+              <h3 id="sg2-h" class="sy-plate__title">Napisz do nas</h3>
+            </div>
+            <div class="sy-plate__body">
+              <span class="sy-route">/ → /kontakt · 2 screens</span>
+              <p class="sy-meta">Why: "Na skróty" link "Napisz do nas" and menu link "Kontakt".</p>
+              <div class="mp-thumbs">
+                <figure class="sy-thumb" role="img" aria-label="Recorded screen /"></figure>
+                <figure class="sy-thumb" role="img" aria-label="Recorded screen /kontakt"></figure>
+              </div>
+            </div>
+            <div class="sy-plate__foot">
+              <div class="sy-actions" style="--sy-gap: 6px">
+                <button class="sy-btn sy-btn--md sy-btn--strong" type="button">Accept<span class="sy-sr-only"> Napisz do nas</span></button>
+                <button class="sy-btn sy-btn--md" type="button">Edit first<span class="sy-sr-only"> Napisz do nas</span></button>
+                <button class="sy-btn sy-btn--md sy-btn--quiet" type="button">Dismiss<span class="sy-sr-only"> Napisz do nas</span></button>
+              </div>
+            </div>
+          </article>
+
+          <article class="sy-plate sy-plate--drawn" aria-labelledby="sg3-h">
+            <div class="sy-plate__head">
+              <h3 id="sg3-h" class="sy-plate__title">Moje polisy</h3>
+            </div>
+            <div class="sy-plate__body">
+              <span class="sy-route">/logowanie → /moje-polisy · 2 screens</span>
+              <p class="sy-meta">Why: menu links "Zaloguj się" and "Moje polisy". Past the login form the scan needs a credential.</p>
+              <div class="mp-thumbs">
+                <figure class="sy-thumb" role="img" aria-label="Recorded screen /logowanie"></figure>
+                <div class="sy-thumb sy-thumb--locked"><span class="sy-status" data-status="unobserved">Locked</span></div>
+              </div>
+            </div>
+            <div class="sy-plate__foot">
+              <div class="sy-actions" style="--sy-gap: 6px">
+                <button class="sy-btn sy-btn--md sy-btn--strong" type="button">Accept<span class="sy-sr-only"> Moje polisy</span></button>
+                <button class="sy-btn sy-btn--md" type="button">Edit first<span class="sy-sr-only"> Moje polisy</span></button>
+                <button class="sy-btn sy-btn--md sy-btn--quiet" type="button">Dismiss<span class="sy-sr-only"> Moje polisy</span></button>
+              </div>
+            </div>
+          </article>
+
+        </div>
+      </section>
+
+      <!-- Loose screens -->
+      <section class="sy-plate" aria-labelledby="none-h">
+        <div class="sy-plate__head">
+          <h2 id="none-h" class="sy-plate__title">In no process · 12 screens</h2>
+          <a class="sy-small" href="08-screen-detail.html">Show all in Screens</a>
+        </div>
+        <div class="sy-plate__body">
+          <ul class="sy-cluster" aria-label="Screens in no process">
+            <li><button class="sy-btn sy-btn--sm sy-btn--quiet" type="button" aria-pressed="false"><span class="sy-mono sy-mono--sm">/slowniczek</span></button></li>
+            <li><button class="sy-btn sy-btn--sm sy-btn--quiet" type="button" aria-pressed="false"><span class="sy-mono sy-mono--sm">/ubezpieczenia/dom</span></button></li>
+            <li><button class="sy-btn sy-btn--sm sy-btn--quiet" type="button" aria-pressed="false"><span class="sy-mono sy-mono--sm">/ubezpieczenia/podroze</span></button></li>
+            <li><a class="sy-btn sy-btn--sm sy-btn--quiet" href="08-screen-detail.html">+ 9 more</a></li>
+          </ul>
+          <p class="sy-field__help">Drag a screen onto a process, or select several and choose "New process from these".</p>
+        </div>
+      </section>
+
+    </main>
+  </div>
+</div>
+</body>
+</html>

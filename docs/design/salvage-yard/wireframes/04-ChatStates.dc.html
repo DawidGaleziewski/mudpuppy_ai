@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Assistant drawer: all states</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&amp;family=IBM+Plex+Sans:wght@400;500;600&amp;display=swap">
+<style>
+body{margin:0;background:#F6F5F1}
+a{color:#2453C9}a:hover{color:#163A99}
+button,input,select,textarea{font:inherit;color:inherit}
+:focus-visible{outline:2px solid #2453C9;outline-offset:1px}
+</style>
+</helmet>
+<div style="min-height: 100vh; box-sizing: border-box; padding: 32px 36px; display: flex; flex-direction: column; gap: 20px; background: #F6F5F1; color: #1C1C1A; font-family: 'IBM Plex Sans', ui-sans-serif, system-ui, sans-serif; font-size: 13px; line-height: 1.45">
+<div style="display: flex; flex-direction: column; gap: 6px">
+<h1 style="margin: 0; font-size: 24px; font-weight: 600">Assistant drawer: all states</h1>
+<p style="margin: 0; max-width: 72ch; font-size: 14px; color: #55534D">The same drawer as on the previous board, shown in each state it can be in. Wording in quotes comes from today's console where it already exists.</p>
+</div>
+
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(360px, 100%), 1fr)); gap: 20px">
+
+<section aria-labelledby="s1" style="display: flex; flex-direction: column; background: #FFFFFF; border: 1px solid #8E8B82">
+<div style="display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 10px 14px; border-bottom: 1px solid #C9C6BD"><h2 id="s1" style="margin: 0; font-size: 14px; font-weight: 600">1 · Empty, new conversation</h2><span style="font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 11px; color: #55534D">This page</span></div>
+<div style="display: flex; flex-wrap: wrap; gap: 6px; padding: 10px 14px; border-bottom: 1px solid #C9C6BD; background: #F6F5F1; font-size: 12px"><span style="padding: 3px 8px; border: 1px solid #1C1C1A; background: #FFFFFF">Screen · Ubezpieczenia dla Ciebie r1</span><span style="padding: 3px 8px; border: 1px solid #C9C6BD; background: #FFFFFF">35 elements</span></div>
+<div style="flex: 1; display: flex; flex-direction: column; gap: 10px; padding: 14px">
+<div style="color: #55534D">Ask about this screen, or start with:</div>
+<div style="display: flex; flex-direction: column; gap: 6px">
+<button type="button" style="min-height: 40px; padding: 0 10px; border: 1px solid #8E8B82; background: #FFFFFF; text-align: left; cursor: pointer">Explain what a guest can do here</button>
+<button type="button" style="min-height: 40px; padding: 0 10px; border: 1px solid #8E8B82; background: #FFFFFF; text-align: left; cursor: pointer">Which doc records cite this screen?</button>
+<button type="button" style="min-height: 40px; padding: 0 10px; border: 1px solid #8E8B82; background: #FFFFFF; text-align: left; cursor: pointer">Draft a to-be for this screen</button>
+<button type="button" style="min-height: 40px; padding: 0 10px; border: 1px solid #8E8B82; background: #FFFFFF; text-align: left; cursor: pointer">What changed since the last scan?</button>
+</div>
+</div>
+<div style="padding: 10px 14px; border-top: 1px solid #C9C6BD; background: #F6F5F1"><div style="min-height: 40px; display: flex; align-items: center; padding: 0 10px; border: 1px solid #8E8B82; background: #FFFFFF; color: #55534D">Ask about this screen</div></div>
+</section>
+
+<section aria-labelledby="s2" style="display: flex; flex-direction: column; background: #FFFFFF; border: 1px solid #8E8B82">
+<div style="display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 10px 14px; border-bottom: 1px solid #C9C6BD"><h2 id="s2" style="margin: 0; font-size: 14px; font-weight: 600">2 · Working</h2><span style="font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 11px; color: #55534D">Whole project</span></div>
+<div style="flex: 1; display: flex; flex-direction: column; gap: 10px; padding: 14px">
+<div style="align-self: flex-end; max-width: 85%; padding: 8px 12px; background: #EFEDE8; border: 1px solid #C9C6BD">Group screens into processes.</div>
+<div style="display: flex; flex-direction: column; gap: 6px; padding: 10px; border: 1px dashed #8E8B82">
+<div style="display: flex; justify-content: space-between; gap: 8px"><span style="font-weight: 500">"Thinking…"</span><span style="font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 11px">[RUN.] 0:14</span></div>
+<ul style="margin: 0; padding-left: 18px; color: #55534D; font-size: 12px; display: flex; flex-direction: column; gap: 2px"><li>read 21 screens of reference-insurer</li><li>read links between screens</li><li>matching the "Na skróty" links…</li></ul>
+<div><button type="button" style="min-height: 36px; padding: 0 12px; border: 1px solid #1C1C1A; background: #FFFFFF; font-size: 12px; cursor: pointer">Stop</button></div>
+</div>
+</div>
+<div style="display: flex; flex-direction: column; gap: 6px; padding: 10px 14px; border-top: 1px solid #C9C6BD; background: #F6F5F1">
+<div style="min-height: 40px; display: flex; align-items: center; padding: 0 10px; border: 1px solid #8E8B82; background: #FFFFFF">Then document the first one|</div>
+<div style="font-size: 12px; color: #55534D">You can keep typing; it sends when this answer ends.</div>
+</div>
+</section>
+
+<section aria-labelledby="s3" style="display: flex; flex-direction: column; background: #FFFFFF; border: 1px solid #8E8B82">
+<div style="display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 10px 14px; border-bottom: 1px solid #C9C6BD"><h2 id="s3" style="margin: 0; font-size: 14px; font-weight: 600">3 · Credential needed, just in time</h2><span style="font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 11px; color: #55534D">Whole project</span></div>
+<div style="flex: 1; display: flex; flex-direction: column; gap: 10px; padding: 14px">
+<div>The scan reached <span style="font-family: 'IBM Plex Mono', ui-monospace, monospace">/logowanie</span> on sandbox. "No persona of this portal names a credential." To go past the login form I need one for <b>guest</b>.</div>
+<div style="display: flex; flex-direction: column; gap: 8px; padding: 10px; border: 1px solid #1C1C1A">
+<label style="display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: #55534D">Reference name<input type="text" value="PORTAL_TOKEN" style="min-height: 36px; padding: 0 8px; border: 1px solid #8E8B82; background: #FFFFFF; font-size: 13px; color: #1C1C1A"></label>
+<label style="display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: #55534D">Value<input type="password" value="secretvalue" style="min-height: 36px; padding: 0 8px; border: 1px solid #8E8B82; background: #FFFFFF; font-size: 13px; color: #1C1C1A"></label>
+<div style="font-size: 12px; color: #55534D">"Values go into the vault, never into the chat, and are not shown again."</div>
+<div style="display: flex; flex-wrap: wrap; gap: 6px"><button type="button" style="min-height: 36px; padding: 0 10px; border: 1px solid #1C1C1A; background: #FFFFFF; font-size: 12px; font-weight: 500; cursor: pointer">Store in vault</button><button type="button" style="min-height: 36px; padding: 0 10px; border: 1px solid #C9C6BD; background: #FFFFFF; font-size: 12px; cursor: pointer">Skip logged-in pages</button></div>
+</div>
+<a href="12-Settings.dc.html" style="font-size: 12px">Manage credentials in Settings</a>
+</div>
+</section>
+
+<section aria-labelledby="s4" style="display: flex; flex-direction: column; background: #FFFFFF; border: 1px solid #8E8B82">
+<div style="display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 10px 14px; border-bottom: 1px solid #C9C6BD"><h2 id="s4" style="margin: 0; font-size: 14px; font-weight: 600">4 · Change applied</h2><span style="font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 11px; color: #55534D">This page</span></div>
+<div style="flex: 1; display: flex; flex-direction: column; gap: 10px; padding: 14px">
+<div style="display: flex; flex-direction: column; border: 1px solid #C9C6BD">
+<div style="display: flex; justify-content: space-between; gap: 8px; padding: 8px 10px; background: #F6F5F1; border-bottom: 1px solid #C9C6BD"><b style="font-weight: 600">Proposed change</b><span style="font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 11px">AMD-001 r1 → r2</span></div>
+<div style="padding: 8px 10px; font-size: 12px"><span style="color: #55534D">target</span> <s style="color: #B4540A">whole screen</s> → <span style="color: #2453C9; font-weight: 500">link "Zaloguj się"</span></div>
+<div style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 8px 10px; border-top: 1px solid #C9C6BD; font-size: 12px"><span style="font-family: 'IBM Plex Mono', ui-monospace, monospace">[ OK ]</span><span>Saved as r2 by you, 22:31Z</span></div>
+</div>
+<div style="display: flex; flex-wrap: wrap; gap: 6px"><button type="button" style="min-height: 36px; padding: 0 10px; border: 1px solid #1C1C1A; background: #FFFFFF; font-size: 12px; cursor: pointer">Undo (restores r1 as r3)</button><a href="09-ScreenDetail.dc.html" style="display: inline-flex; align-items: center; min-height: 36px; padding: 0 10px; border: 1px solid #C9C6BD; color: #1C1C1A; text-decoration: none; font-size: 12px">Show on the screen</a></div>
+<div style="font-size: 12px; color: #55534D">Undo never deletes: it adds a revision, so the history shows both.</div>
+</div>
+</section>
+
+<section aria-labelledby="s5" style="display: flex; flex-direction: column; background: #FFFFFF; border: 1px solid #8E8B82">
+<div style="display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 10px 14px; border-bottom: 1px solid #C9C6BD"><h2 id="s5" style="margin: 0; font-size: 14px; font-weight: 600">5 · Page changed while talking</h2><span style="font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 11px; color: #55534D">This page</span></div>
+<div style="flex: 1; display: flex; flex-direction: column; gap: 10px; padding: 14px">
+<div style="display: flex; flex-direction: column; gap: 8px; padding: 10px; border: 1px solid #B4540A">
+<div style="font-weight: 500">A new scan recorded r2 of this screen.</div>
+<div style="font-size: 12px; color: #55534D">My answers above refer to r1. 2 elements differ; AMD-001 still has its target.</div>
+<div style="display: flex; flex-wrap: wrap; gap: 6px"><button type="button" style="min-height: 36px; padding: 0 10px; border: 1px solid #1C1C1A; background: #FFFFFF; font-size: 12px; cursor: pointer">Switch context to r2</button><a href="09-ScreenDetail.dc.html" style="display: inline-flex; align-items: center; min-height: 36px; padding: 0 10px; border: 1px solid #C9C6BD; color: #1C1C1A; text-decoration: none; font-size: 12px">Compare r1 and r2</a></div>
+</div>
+<div style="font-size: 12px; color: #55534D">The same notice appears when someone else saves a new revision of the process or amendment you're discussing.</div>
+</div>
+</section>
+
+<section aria-labelledby="s6" style="display: flex; flex-direction: column; background: #FFFFFF; border: 1px dashed #8E8B82">
+<div style="display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 10px 14px; border-bottom: 1px dashed #8E8B82"><h2 id="s6" style="margin: 0; font-size: 14px; font-weight: 600">6 · Assistant not running</h2><span style="font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 11px">[FAIL]</span></div>
+<div style="flex: 1; display: flex; flex-direction: column; gap: 10px; padding: 14px">
+<div style="font-weight: 500">"The chat service is not running."</div>
+<div style="font-size: 12px; color: #55534D">Start it on the machine that runs the console:</div>
+<div style="padding: 8px 10px; background: #EFEDE8; font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 12px">[start command from today's alert]</div>
+<div style="display: flex; flex-wrap: wrap; align-items: center; gap: 6px; font-size: 12px"><span>reference</span><span style="font-family: 'IBM Plex Mono', ui-monospace, monospace">ERR-01M48DVAT5E1GS5K42CTCTTDTJ</span><button type="button" style="min-height: 32px; padding: 0 8px; border: 1px solid #C9C6BD; background: #FFFFFF; font-size: 12px; cursor: pointer">Copy</button></div>
+<div><button type="button" style="min-height: 36px; padding: 0 12px; border: 1px solid #1C1C1A; background: #FFFFFF; font-size: 12px; font-weight: 500; cursor: pointer">Retry</button></div>
+</div>
+<div style="padding: 10px 14px; border-top: 1px dashed #8E8B82; font-size: 12px; color: #55534D">Your unsent message is kept as a draft. Screens, processes and docs stay readable.</div>
+</section>
+
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":1080}}'>
+class Component extends DCLogic {
+renderVals() {
+return {};
+}
+}
+</script>
+</body>
+</html>

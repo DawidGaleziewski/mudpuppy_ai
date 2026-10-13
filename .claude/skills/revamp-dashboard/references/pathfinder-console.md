@@ -1,5 +1,9 @@
 # Pathfinder console — the product layer on Console
 
+> **DEPRECATED (spec 022, 2026-10-13).** MudPuppy's dashboard moves to the Salvage Yard design
+> system: use the `mudpuppy-salvage-ui` skill for all MudPuppy UI. This file only describes pages
+> not migrated yet; never build new UI from it.
+
 Read this before any UI task in `apps/dashboard/`. The Console system
 (`console-design-system.md`) applies unchanged: tokens, the five rules, type, spacing, radius,
 breakpoints and the three sanctioned animations. This file holds only what Console asks each

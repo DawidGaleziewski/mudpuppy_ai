@@ -1,0 +1,57 @@
+{% import "salvage/macros.html" as sy %}
+{% set v = section %}
+{% set p = v.process %}
+{% call sy.region("process", v.self_url, "Recorded process") %}
+  {%- if not p %}
+  {{ sy.empty("No process recorded for this scan", "A trace scan records one process: its goal, ordered steps, and where it stopped. Map scans have none.") }}
+  {%- else %}
+<div class="sy-stack">
+  <div class="sy-plate" id="{{ p.id }}">
+    <div class="sy-plate__head">
+      <h2 class="sy-plate__title">{{ sy.term("trace-process", "Process") }} <span class="sy-case-normal">{{ p.name }}</span></h2>
+      {{ sy.process_outcome(p.outcome) }}
+    </div>
+    <div class="sy-plate__body sy-stack">
+      <dl class="sy-facts">
+        <dt>Goal</dt><dd>{{ p.goal }}</dd>
+        <dt>Persona</dt><dd>{{ p.persona_id }}</dd>
+        <dt>Observed result</dt><dd>{{ p.observed_result or "—" }}</dd>
+        <dt>Boundary action</dt><dd>{% if p.boundary_action_id %}<a class="sy-mono sy-mono--sm" href="{{ c.url('/runs/' ~ v.run.id, tab='actions') }}#{{ p.boundary_action_id }}">{{ p.boundary_action_id | short_id }}</a>{% else %}—{% endif %}</dd>
+        {%- if p.followup_record_id %}<dt>Follow-up</dt><dd class="sy-mono sy-mono--sm">{{ p.followup_record_id | short_id }}</dd>{% endif %}
+        <dt>Started · ended (UTC)</dt><dd class="sy-mono sy-mono--sm">{{ p.created_at | when }} · {{ p.ended_at | when }}</dd>
+      </dl>
+      {%- if p.not_observable %}<p>{{ sy.not_observable() }} {{ p.not_observable }}</p>{% endif %}
+    </div>
+  </div>
+  {%- if v.diagram %}
+  <div class="sy-plate"><div class="sy-plate__body">{{ sy.diagram(v.diagram, "Process map from the recorded steps") }}</div></div>
+  {%- endif %}
+  <div class="sy-plate">
+    <div class="sy-plate__head"><h2 class="sy-plate__title">{{ sy.term("process-step", "Steps") }} <span class="sy-count sy-count--muted">{{ v.steps | length }}</span></h2></div>
+    {%- if not v.steps %}
+    <div class="sy-plate__body">{{ sy.empty("No step recorded yet", "Steps appear as the crawler agent acts in the trace scan.", level=3) }}</div>
+    {%- else %}
+    <div class="sy-table-wrap sy-table-wrap--flush">
+      <table class="sy-table">
+        <caption class="sy-sr-only">Recorded steps in order</caption>
+        <thead><tr><th scope="col" class="sy-num">#</th><th scope="col">Intent</th><th scope="col">Kind</th><th scope="col">Value</th><th scope="col">Outcomes</th><th scope="col">{{ sy.term("confidence", "Confidence") }}</th><th scope="col">{{ sy.term("evidence", "Evidence") }}</th></tr></thead>
+        <tbody>
+          {%- for s in v.steps %}
+          <tr id="{{ s.id }}">
+            <td class="sy-num">{{ s.ord }}</td>
+            <td>{{ s.intent }}{% if s.action_id %}<div class="sy-small"><a href="{{ c.url('/runs/' ~ v.run.id, tab='actions') }}#{{ s.action_id }}">action <span class="sy-mono sy-mono--sm">{{ s.action_id | short_id }}</span></a></div>{% endif %}</td>
+            <td class="sy-mono sy-mono--sm">{{ s.kind }}</td>
+            <td>{% if s.value %}<span class="sy-mono sy-mono--sm">{{ s.value }}</span>{% else %}<span class="sy-muted">—</span>{% endif %}</td>
+            <td>{% if s.outcomes_json %}<ul class="sy-small">{% for o in s.outcomes_json %}<li>{{ o }}</li>{% endfor %}</ul>{% else %}<span class="sy-muted">None observed</span>{% endif %}</td>
+            <td>{{ sy.confidence(s.confidence) }}</td>
+            <td>{{ sy.evidence(s.evidence_ref) }}</td>
+          </tr>
+          {%- endfor %}
+        </tbody>
+      </table>
+    </div>
+    {%- endif %}
+  </div>
+</div>
+  {%- endif %}
+{% endcall %}

@@ -5,6 +5,9 @@ description: How to implement a new IT/internal dashboard or revamp an old, date
 
 # Revamp Dashboard
 
+> **MudPuppy's own dashboard (`apps/dashboard`)**: use the `mudpuppy-salvage-ui` skill instead
+> (spec 022). The Console references here (`pathfinder-console.md`) are deprecated for it.
+
 Implementing a dashboard and inventing its look are different jobs. This skill assumes the hard creative decisions either already exist somewhere (a design system, a brandbook, a token file) or should come from the bundled default (see below) — and focuses on the part that most often goes wrong afterward: turning decisions into code that holds up, and touching an *existing* dashboard without breaking it.
 
 ## Step 0: find or establish the source of truth

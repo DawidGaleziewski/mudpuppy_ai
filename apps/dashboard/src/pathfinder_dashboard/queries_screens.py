@@ -1,0 +1,95 @@
+"""Read models for the Screens section and the header search (spec 022 M1, FE-N01, FE-N03).
+
+Read-only, like every query module. A "screen" here is still one recorded state; spec 022 M2
+groups states into screens with observed revisions.
+"""
+
+from __future__ import annotations
+
+import sqlite3
+
+from pydantic import BaseModel
+
+from .models import DocRecord, Run, State
+
+SEARCH_LIMIT = 20
+
+
+class ScreenRow(BaseModel):
+    state: State
+    observations: int
+    runs: int
+    personas: list[str]
+    last_seen: str | None
+
+
+def portal_screens(conn: sqlite3.Connection, portal: str | None) -> list[ScreenRow]:
+    """Every recorded screen of a portal (or of all portals), by route then title."""
+    where, args = ("WHERE s.portal_id = ?", (portal,)) if portal else ("", ())
+    rows = conn.execute(
+        f"""SELECT s.*, COUNT(o.run_id) AS observations, COUNT(DISTINCT o.run_id) AS runs,
+                   GROUP_CONCAT(DISTINCT o.persona_id) AS personas, MAX(o.observed_at) AS last_seen
+            FROM states s LEFT JOIN state_observations o ON o.state_id = s.id
+            {where}
+            GROUP BY s.id ORDER BY s.portal_id, s.route_template, s.title""",
+        args,
+    ).fetchall()
+    out = []
+    for r in rows:
+        d = dict(r)
+        extra = {k: d.pop(k) for k in ("observations", "runs", "personas", "last_seen")}
+        out.append(
+            ScreenRow(
+                state=State.model_validate(d),
+                observations=extra["observations"],
+                runs=extra["runs"],
+                personas=sorted((extra["personas"] or "").split(",")) if extra["personas"] else [],
+                last_seen=extra["last_seen"],
+            )
+        )
+    return out
+
+
+class SearchResults(BaseModel):
+    q: str
+    screens: list[State]
+    records: list[DocRecord]
+    runs: list[Run]
+
+    @property
+    def total(self) -> int:
+        return len(self.screens) + len(self.records) + len(self.runs)
+
+
+def _like(q: str) -> str:
+    return "%" + q.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_") + "%"
+
+
+def search(conn: sqlite3.Connection, q: str, portal: str | None) -> SearchResults:
+    """Screens by title or route, records by key or title, scans by id prefix; case-insensitive."""
+    q = q.strip()
+    if not q:
+        return SearchResults(q=q, screens=[], records=[], runs=[])
+    like = _like(q)
+    scope, scope_args = ("AND portal_id = ?", (portal,)) if portal else ("", ())
+    screens = conn.execute(
+        f"""SELECT * FROM states
+            WHERE (title LIKE ? ESCAPE '\\' OR route_template LIKE ? ESCAPE '\\')
+            {scope} ORDER BY title LIMIT ?""",
+        (like, like, *scope_args, SEARCH_LIMIT),
+    ).fetchall()
+    records = conn.execute(
+        f"""SELECT * FROM doc_records WHERE (key LIKE ? ESCAPE '\\' OR title LIKE ? ESCAPE '\\')
+            AND withdrawn = 0 {scope} ORDER BY kind, seq LIMIT ?""",
+        (like, like, *scope_args, SEARCH_LIMIT),
+    ).fetchall()
+    runs = conn.execute(
+        f"SELECT * FROM runs WHERE id LIKE ? ESCAPE '\\' {scope} ORDER BY started_at DESC LIMIT ?",
+        (_like(q).lstrip("%"), *scope_args, SEARCH_LIMIT),
+    ).fetchall()
+    return SearchResults(
+        q=q,
+        screens=[State.model_validate(dict(r)) for r in screens],
+        records=[DocRecord.model_validate(dict(r)) for r in records],
+        runs=[Run.model_validate(dict(r)) for r in runs],
+    )

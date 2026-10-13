@@ -1,0 +1,81 @@
+{% extends "salvage/base.html" %}
+{% import "salvage/macros.html" as sy %}
+{% set nav_current = "glossary" %}
+{% block title %}Glossary{% endblock %}
+{% block head_extra %}<script src="/static/js/glossary.js" defer></script>{% endblock %}
+{% block main %}
+<div class="sy-pagehead">
+  <h1 class="sy-h1">Glossary</h1>
+  <p class="sy-meta">MudPuppy and business-analysis terms · <a href="{{ c.url('/glossary/wiki') }}">BA wiki</a></p>
+</div>
+
+{%- if error %}
+<section class="sy-state sy-state--failure" role="status">
+  <h2 class="sy-state__title">The glossary could not be loaded</h2>
+  <p>Labels show without explanations until <span class="sy-mono sy-mono--sm">docs/glossary/glossary.yaml</span> is fixed. Run <span class="sy-mono sy-mono--sm">uv run pathfinder-glossary</span> in apps/dashboard for the full list.</p>
+  <ul class="mp-list sy-small">{% for p in error.problems[:10] %}<li class="sy-mono sy-mono--sm">{{ p }}</li>{% endfor %}</ul>
+</section>
+{%- else %}
+<p class="sy-prose sy-muted">{{ g.scope }}</p>
+
+<div class="mp-docs-layout">
+  <nav class="sy-plate" aria-label="Glossary groups">
+    <div class="sy-rows">
+      {%- for category, group, entries in groups %}
+      <a class="sy-row mp-row-link" href="#group-{{ loop.index }}"><span class="sy-split"><span>{{ group }}</span> <span class="sy-count sy-count--muted">{{ entries | length }}</span></span></a>
+      {%- endfor %}
+    </div>
+  </nav>
+
+  <div class="sy-stack">
+    <form method="get" action="{{ c.url('/glossary') }}" role="search">
+      {%- if c.store_param %}<input type="hidden" name="store" value="{{ c.store_param }}">{% endif %}
+      <label class="sy-field">
+        <span class="sy-field__label">Filter terms</span>
+        <input class="sy-input" type="search" name="q" value="{{ q }}" placeholder="e.g. frontier" data-gl-filter autocomplete="off">
+      </label>
+      <noscript><button class="sy-btn sy-btn--sm" type="submit">Filter</button></noscript>
+    </form>
+
+    {%- if not groups %}
+    {{ sy.empty("No term matches “" ~ q ~ "”", "Try a shorter word, or clear the filter to see all terms.") }}
+    {%- endif %}
+    <p class="sy-muted" hidden data-gl-none>No term matches the filter.</p>
+
+    {%- set ns = namespace(category=none) %}
+    {%- for category, group, entries in groups %}
+      {%- if category != ns.category %}
+        {%- set ns.category = category %}
+        <h2 class="sy-h2">{{ "MudPuppy terms" if category == "pathfinder" else "Business-analysis terms" }}</h2>
+      {%- endif %}
+      <section class="sy-stack" id="group-{{ loop.index }}" aria-labelledby="group-{{ loop.index }}-title" data-gl-group>
+        <h3 class="sy-h3" id="group-{{ loop.index }}-title">{{ group }}</h3>
+        {%- for e in entries %}
+        <article class="sy-plate" id="{{ e.id }}" data-gl-text="{{ (e.term ~ ' ' ~ e.short ~ ' ' ~ (e.labels | join(' '))) | lower }}">
+          <div class="sy-plate__head">
+            <h4 class="sy-plate__title sy-case-normal">{{ e.term }}{% if e.retired %} <span class="sy-muted">(retired)</span>{% endif %}</h4>
+            <span class="sy-meta">{{ "MudPuppy term" if e.category == "pathfinder" else "BA term" }} · <a href="#{{ e.id }}" aria-label="#{{ e.id }}: link to {{ e.term }}">#{{ e.id }}</a></span>
+          </div>
+          <div class="sy-plate__body sy-stack">
+            <p><strong>{{ e.short }}</strong></p>
+            <div class="sy-prose mp-prose">{{ e.explanation | markdown }}</div>
+            <dl class="sy-facts sy-small">
+              {%- if e.example %}<dt>Example</dt><dd>{{ e.example }}</dd>{% endif %}
+              {%- if e.appears_in %}<dt>Seen in</dt><dd>{{ e.appears_in | join(" · ") }}</dd>{% endif %}
+              {%- if e.related %}<dt>Related</dt><dd>
+                {%- for r in e.related %}{% set t = g.get(r) %}<a href="#{{ r }}">{{ t.term if t else r }}</a>{% if not loop.last %} · {% endif %}{% endfor %}</dd>{% endif %}
+              {%- if e.page or (e.wiki and e.wiki in g.wiki) %}<dt>Read more</dt><dd>
+                {%- if e.page %}<a href="{{ c.url('/glossary/pages/' ~ e.page) }}">{{ g.page_title(e.page) }}</a>{% endif %}
+                {%- if e.wiki and e.wiki in g.wiki %}{% if e.page %} · {% endif %}<a href="{{ c.url('/glossary/wiki/' ~ e.wiki) }}">BA wiki: {{ g.wiki[e.wiki].front.title }}</a>{% endif %}</dd>{% endif %}
+              {%- if e.retired %}<dt>Retired {{ e.retired.since }}</dt><dd>{{ e.retired.note }}{% if e.retired.replaced_by %} Replaced by <a href="#{{ e.retired.replaced_by }}">{{ g.get(e.retired.replaced_by).term }}</a>.{% endif %}</dd>{% endif %}
+            </dl>
+            <p class="sy-small sy-muted">Last changed in {{ e.changed_in }}, <span class="sy-mono sy-mono--sm">{{ e.changed_on }}</span>.</p>
+          </div>
+        </article>
+        {%- endfor %}
+      </section>
+    {%- endfor %}
+  </div>
+</div>
+{%- endif %}
+{% endblock %}

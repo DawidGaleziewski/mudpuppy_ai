@@ -1,0 +1,440 @@
+{
+  "$description": "MudPuppy · Salvage Yard tokens (W3C DTCG). Generated from design-system/css/tokens.css. Token 'sy.<name>' = CSS custom property '--sy-<name>'.",
+  "sy": {
+    "steel-900": {
+      "$value": "#111315",
+      "$type": "color",
+      "$description": "Page ground (with the 24px yard grid). Darkest surface."
+    },
+    "steel-850": {
+      "$value": "#141618",
+      "$type": "color",
+      "$description": "Well: chat composer, plate footers, read-only fields."
+    },
+    "steel-800": {
+      "$value": "#181B1E",
+      "$type": "color",
+      "$description": "Plate: panels, header, side nav, drawer. Always solid."
+    },
+    "steel-700": {
+      "$value": "#202428",
+      "$type": "color",
+      "$description": "Raised: hover on rows/buttons, your own chat messages."
+    },
+    "line": {
+      "$value": "#2C3136",
+      "$type": "color",
+      "$description": "Weld line between rows inside a plate. Decorative only."
+    },
+    "strong": {
+      "$value": "#464D55",
+      "$type": "color",
+      "$description": "Plate edge. Decorative (2.0:1); never the only cue."
+    },
+    "edge": {
+      "$value": "#6B737C",
+      "$type": "color",
+      "$description": "Control edge: inputs, selects, secondary buttons (3.2-3.9:1)."
+    },
+    "chalk": {
+      "$value": "#E8E4DA",
+      "$type": "color",
+      "$description": "Primary text; inverse fill of the selected nav item / pressed segment."
+    },
+    "ash": {
+      "$value": "#A3A69F",
+      "$type": "color",
+      "$description": "Secondary text: meta, timestamps, helper copy, hollow statuses."
+    },
+    "ink": {
+      "$value": "#1B1A17",
+      "$type": "color",
+      "$description": "Text on manila tags and notes (12.3:1)."
+    },
+    "marker": {
+      "$value": "#FF8F1F",
+      "$type": "color",
+      "$description": "Paint: INTENT."
+    },
+    "marker-hi": {
+      "$value": "#FFA54D",
+      "$type": "color",
+      "$description": "Paint: hover of marker fills."
+    },
+    "manila": {
+      "$value": "#E9D8A6",
+      "$type": "color",
+      "$description": "Paint: TAGS (records, human notes)."
+    },
+    "inspected": {
+      "$value": "#7BC47F",
+      "$type": "color",
+      "$description": "Paint: OK."
+    },
+    "coolant": {
+      "$value": "#56C2E6",
+      "$type": "color",
+      "$description": "Paint: ACTIVE NOW."
+    },
+    "blueprint": {
+      "$value": "#7AA7FF",
+      "$type": "color",
+      "$description": "Paint: DRAWN, NOT BUILT (always dashed)."
+    },
+    "failure": {
+      "$value": "#FF5A5F",
+      "$type": "color",
+      "$description": "Paint: FAILURE only."
+    },
+    "paper": {
+      "$value": "#F2F0EA",
+      "$type": "color",
+      "$description": "Mock only: background of a recorded light page inside .sy-shot."
+    },
+    "paper-ink": {
+      "$value": "#1A1A1A",
+      "$type": "color",
+      "$description": "Mock only: text of a recorded page."
+    },
+    "paper-link": {
+      "$value": "#1A0DAB",
+      "$type": "color",
+      "$description": "Mock only: link colour of a recorded page."
+    },
+    "bg-ground": {
+      "$value": "{sy.steel-900}",
+      "$type": "color",
+      "$description": "Page background."
+    },
+    "bg-well": {
+      "$value": "{sy.steel-850}",
+      "$type": "color",
+      "$description": "Recessed areas: composer, plate footers, read-only fields."
+    },
+    "bg-plate": {
+      "$value": "{sy.steel-800}",
+      "$type": "color",
+      "$description": "Panels, header, nav, drawer."
+    },
+    "bg-raised": {
+      "$value": "{sy.steel-700}",
+      "$type": "color",
+      "$description": "Hover; your own chat messages."
+    },
+    "bg-inverse": {
+      "$value": "{sy.chalk}",
+      "$type": "color",
+      "$description": "Selected nav item, pressed segment."
+    },
+    "border-weld": {
+      "$value": "{sy.line}",
+      "$type": "color",
+      "$description": "Rows inside a plate."
+    },
+    "border-plate": {
+      "$value": "{sy.strong}",
+      "$type": "color",
+      "$description": "Plate edges."
+    },
+    "border-control": {
+      "$value": "{sy.edge}",
+      "$type": "color",
+      "$description": "Inputs, selects, secondary buttons."
+    },
+    "text": {
+      "$value": "{sy.chalk}",
+      "$type": "color",
+      "$description": "Primary text."
+    },
+    "text-hover": {
+      "$value": "#FFFFFF",
+      "$type": "color",
+      "$description": "Link hover."
+    },
+    "text-muted": {
+      "$value": "{sy.ash}",
+      "$type": "color",
+      "$description": "Secondary text."
+    },
+    "text-on-paint": {
+      "$value": "{sy.steel-900}",
+      "$type": "color",
+      "$description": "Text on marker, chalk and coolant fills."
+    },
+    "text-on-tag": {
+      "$value": "{sy.ink}",
+      "$type": "color",
+      "$description": "Text on manila."
+    },
+    "text-on-tag-muted": {
+      "$value": "#5A564C",
+      "$type": "color",
+      "$description": "Author line on a note (5.2:1 on manila)."
+    },
+    "intent": {
+      "$value": "{sy.marker}",
+      "$type": "color",
+      "$description": "A person should act: brand paint, the one primary button, needs you, focus ring, link underline."
+    },
+    "intent-hover": {
+      "$value": "{sy.marker-hi}",
+      "$type": "color",
+      "$description": "Hover of intent fills."
+    },
+    "intent-tint": {
+      "$value": "rgba(255, 143, 31, 0.10)",
+      "$type": "color",
+      "$description": "Background of a needs-you row / current step; assistant highlight fill."
+    },
+    "tag": {
+      "$value": "{sy.manila}",
+      "$type": "color",
+      "$description": "Record tags and human notes."
+    },
+    "tag-hover": {
+      "$value": "#F5E9C6",
+      "$type": "color",
+      "$description": "Hover of a linked tag."
+    },
+    "ok": {
+      "$value": "{sy.inspected}",
+      "$type": "color",
+      "$description": "OK, observed, confirmed, saved."
+    },
+    "active": {
+      "$value": "{sy.coolant}",
+      "$type": "color",
+      "$description": "Running and live."
+    },
+    "tobe": {
+      "$value": "{sy.blueprint}",
+      "$type": "color",
+      "$description": "Drawn, not built: to-be, drafts, proposals, inferred."
+    },
+    "tobe-tint": {
+      "$value": "rgba(122, 167, 255, 0.08)",
+      "$type": "color",
+      "$description": "Optional fill behind a selected drawn block."
+    },
+    "fail": {
+      "$value": "{sy.failure}",
+      "$type": "color",
+      "$description": "Failure and destructive actions only."
+    },
+    "fail-tint": {
+      "$value": "rgba(255, 90, 95, 0.10)",
+      "$type": "color",
+      "$description": "Failure callout background, danger hover."
+    },
+    "focus": {
+      "$value": "{sy.marker}",
+      "$type": "color",
+      "$description": "Keyboard focus ring."
+    },
+    "backdrop": {
+      "$value": "rgba(10, 11, 12, 0.72)",
+      "$type": "color",
+      "$description": "Behind modal dialogs."
+    },
+    "grid-line": {
+      "$value": "rgba(232, 228, 218, 0.035)",
+      "$type": "color",
+      "$description": "The 24px yard grid line on the page ground."
+    },
+    "font-sans": {
+      "$value": [
+        "Archivo",
+        "Helvetica Neue",
+        "Arial",
+        "sans-serif"
+      ],
+      "$type": "fontFamily"
+    },
+    "font-mono": {
+      "$value": [
+        "IBM Plex Mono",
+        "ui-monospace",
+        "SFMono-Regular",
+        "Menlo",
+        "Consolas",
+        "monospace"
+      ],
+      "$type": "fontFamily"
+    },
+    "font-note": {
+      "$value": [
+        "Special Elite",
+        "Courier Prime",
+        "Courier New",
+        "monospace"
+      ],
+      "$type": "fontFamily"
+    },
+    "grid-size": {
+      "$value": "24px",
+      "$type": "dimension"
+    },
+    "fs-display": {
+      "$value": "44px",
+      "$type": "dimension"
+    },
+    "fs-h1": {
+      "$value": "26px",
+      "$type": "dimension"
+    },
+    "fs-h2": {
+      "$value": "18px",
+      "$type": "dimension"
+    },
+    "fs-h3": {
+      "$value": "14px",
+      "$type": "dimension"
+    },
+    "fs-label": {
+      "$value": "12px",
+      "$type": "dimension"
+    },
+    "fs-body": {
+      "$value": "15px",
+      "$type": "dimension"
+    },
+    "fs-sm": {
+      "$value": "14px",
+      "$type": "dimension"
+    },
+    "fs-xs": {
+      "$value": "13px",
+      "$type": "dimension"
+    },
+    "fs-mono": {
+      "$value": "13px",
+      "$type": "dimension"
+    },
+    "fs-mono-sm": {
+      "$value": "12px",
+      "$type": "dimension"
+    },
+    "fs-micro": {
+      "$value": "11px",
+      "$type": "dimension"
+    },
+    "fs-note": {
+      "$value": "15px",
+      "$type": "dimension"
+    },
+    "space-1": {
+      "$value": "4px",
+      "$type": "dimension"
+    },
+    "space-2": {
+      "$value": "8px",
+      "$type": "dimension"
+    },
+    "space-3": {
+      "$value": "12px",
+      "$type": "dimension"
+    },
+    "space-4": {
+      "$value": "16px",
+      "$type": "dimension"
+    },
+    "space-5": {
+      "$value": "20px",
+      "$type": "dimension"
+    },
+    "space-6": {
+      "$value": "24px",
+      "$type": "dimension"
+    },
+    "space-7": {
+      "$value": "28px",
+      "$type": "dimension"
+    },
+    "space-8": {
+      "$value": "40px",
+      "$type": "dimension"
+    },
+    "space-9": {
+      "$value": "48px",
+      "$type": "dimension"
+    },
+    "control": {
+      "$value": "44px",
+      "$type": "dimension"
+    },
+    "control-md": {
+      "$value": "40px",
+      "$type": "dimension"
+    },
+    "control-sm": {
+      "$value": "36px",
+      "$type": "dimension"
+    },
+    "nav-w": {
+      "$value": "190px",
+      "$type": "dimension"
+    },
+    "nav-w-compact": {
+      "$value": "160px",
+      "$type": "dimension"
+    },
+    "drawer-w": {
+      "$value": "400px",
+      "$type": "dimension"
+    },
+    "tag-cut": {
+      "$value": "6px",
+      "$type": "dimension"
+    },
+    "weld": {
+      "$value": "1px",
+      "$type": "dimension"
+    },
+    "weld-strong": {
+      "$value": "2px",
+      "$type": "dimension"
+    },
+    "lh-tight": {
+      "$value": 1.15,
+      "$type": "number"
+    },
+    "lh-ui": {
+      "$value": 1.35,
+      "$type": "number"
+    },
+    "lh-body": {
+      "$value": 1.5,
+      "$type": "number"
+    },
+    "dur-hover": {
+      "$value": "120ms",
+      "$type": "duration"
+    },
+    "dur-pulse": {
+      "$value": "1.3s",
+      "$type": "duration"
+    },
+    "dur-caret": {
+      "$value": "1s",
+      "$type": "duration"
+    },
+    "stretch-expanded": {
+      "$value": "125%"
+    },
+    "stretch-semi": {
+      "$value": "112%"
+    },
+    "track-caps": {
+      "$value": "0.06em"
+    },
+    "track-title": {
+      "$value": "0.03em"
+    },
+    "measure": {
+      "$value": "68ch"
+    },
+    "radius": {
+      "$value": "0"
+    }
+  }
+}

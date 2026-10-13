@@ -1,0 +1,242 @@
+{#- Salvage Yard helpers (spec 022, docs/design/salvage-yard/docs/05-css-guide.md §7).
+    status: the ONE mapping (status_map.py) → shape + word. tag: a record id as a manila tag.
+    note: text a person wrote. Times use the `when` filter (UTC with Z). -#}
+
+{% macro status(vocabulary, value, extra="") -%}
+  {%- set s = sy_status_of(vocabulary, value) -%}
+  {%- if s.shape -%}
+  <span class="sy-status" data-status="{{ s.shape }}">{{ s.word }}{% if extra %} · {{ extra }}{% endif %}</span>
+  {%- else -%}
+  <span class="sy-mono sy-mono--sm">{{ s.word }}{% if extra %} · {{ extra }}{% endif %}</span>
+  {%- endif -%}
+{%- endmacro %}
+
+{% macro tag(id, href=None, sm=false, intent=false, label=None) -%}
+  {%- set cls = "sy-tag" ~ (" sy-tag--sm" if sm else "") ~ (" sy-tag--intent" if intent else "") -%}
+  {%- if href %}<a class="{{ cls }}" href="{{ href }}">{{ label or id }}</a>{% else %}<span class="{{ cls }}">{{ label or id }}</span>{% endif -%}
+{%- endmacro %}
+
+{% macro note(text, by=None, at=None, sm=false) -%}
+  <div class="sy-note{% if sm %} sy-note--sm{% endif %}">{{ text }}{% if by or at %}<span class="sy-note__by">{{ by or "" }}{% if by and at %} · {% endif %}{{ at | when if at else "" }}</span>{% endif %}</div>
+{%- endmacro %}
+
+{% macro confidence(value) -%}{{ status("confidence", value) }}{%- endmacro %}
+
+{#- An ERR- reference, visible and copyable (spec 010 FR-020); exempt from tags (FE-V09). -#}
+{% macro error_ref(ref) -%}
+  <span class="sy-small">reference <a class="sy-mono" href="/chat/errors/{{ ref | urlencode }}">{{ ref }}</a></span>
+  <button class="sy-btn sy-btn--sm sy-btn--quiet" type="button" data-copy="{{ ref }}" aria-label="Copy reference {{ ref }}">Copy</button>
+{%- endmacro %}
+
+{#- A live region (spec 003): re-fetches itself when the store changes. Same contract as the
+    Console macro, so fragments and full pages render identical markup. -#}
+{% macro region(id, self_url, label=none, guard=none, oob=false) -%}
+  <section id="region-{{ id }}" class="mp-region" hx-get="{{ self_url }}"
+           hx-trigger="store-changed{% if guard %}[{{ guard }}]{% endif %} from:body" hx-swap="outerHTML"
+           {%- if oob %} hx-swap-oob="true"{% endif %}
+           {%- if label %} aria-label="{{ label }}"{% endif %}>
+    {{ caller() }}
+  </section>
+{%- endmacro %}
+
+{#- Glossary hint (spec 006 → .sy-hint): the label, then a [?] link whose title is the short
+    definition. Unknown id or no glossary: the plain label (FR-011). -#}
+{% macro term(id, label) -%}
+  {%- set g = GLOSSARY() -%}
+  {%- set e = g.get(id) if g else none -%}
+  {%- if e -%}
+  <span class="mp-term">{{ label }}<a class="sy-hint" href="/glossary#{{ id }}" title="{{ e.short }}" aria-label="What is {{ e.term }}?">?</a></span>
+  {%- else -%}{{ label }}{%- endif -%}
+{%- endmacro %}
+
+{%- set DOC_SECTION_TERMS = {
+  "capabilities": "capability", "screens": "screen", "processes": "process-record",
+  "requirements": "requirement", "rules": "business-rule", "data": "data-item",
+  "glossary": "glossary-term", "nfr": "nfr", "assumptions": "assumption",
+  "followups": "follow-up-task", "traceability": "traceability",
+} -%}
+
+{#- A docs section heading's term, if it has one. -#}
+{% macro section_term(section_id, label) -%}
+  {%- if section_id in DOC_SECTION_TERMS -%}{{ term(DOC_SECTION_TERMS[section_id], label) }}{%- else -%}{{ label }}{%- endif -%}
+{%- endmacro %}
+
+{% macro intro(id) -%}
+  {%- set g = GLOSSARY() -%}
+  {%- set e = g.get(id) if g else none -%}
+  {%- if e -%}
+  <p class="sy-small sy-muted">{{ e.short }} <a href="/glossary#{{ id }}" aria-label="More about {{ e.term }}">More</a></p>
+  {%- endif -%}
+{%- endmacro %}
+
+{#- Filter form: htmx swaps the region in place and pushes the page URL; without JS a plain GET. -#}
+{% macro filter_form(v, c, hidden={}) -%}
+  <form class="sy-cluster" method="get" action="{{ v.form_action }}"
+        hx-get="{{ v.fragment_url }}" hx-trigger="change" hx-target="closest section"
+        hx-swap="outerHTML">
+    {%- if c.store_param %}<input type="hidden" name="store" value="{{ c.store_param }}">{% endif %}
+    <input type="hidden" name="push" value="1">
+    {%- for k, val in hidden.items() %}<input type="hidden" name="{{ k }}" value="{{ val }}">{% endfor %}
+    {{ caller() }}
+    <noscript><button class="sy-btn sy-btn--sm" type="submit">Apply</button></noscript>
+    <span class="htmx-indicator sy-caret sy-small sy-muted" aria-hidden="true">Loading</span>
+  </form>
+{%- endmacro %}
+
+{% macro select(name, label, options, current, any_label="Any") -%}
+  <label class="sy-field">
+    <span class="sy-field__label">{{ label }}</span>
+    <select class="sy-select" name="{{ name }}">
+      <option value="" {% if not current %}selected{% endif %}>{{ any_label }}</option>
+      {%- for value, text in options %}
+      <option value="{{ value }}" {% if current == value %}selected{% endif %}>{{ text }}</option>
+      {%- endfor %}
+    </select>
+  </label>
+{%- endmacro %}
+
+{#- Keyset pager: position, then first / next. -#}
+{% macro pager(v, total, shown) -%}
+  {%- if total > shown or v.first_url -%}
+  <nav class="sy-split sy-small" aria-label="Pagination">
+    <span class="sy-num sy-muted">{{ v.offset + 1 if shown else 0 }}–{{ v.offset + shown }} of {{ total }}</span>
+    <span class="sy-actions">
+      {%- if v.first_url %}<a class="sy-btn sy-btn--sm sy-btn--quiet" href="{{ v.first_url }}" hx-get="{{ v.first_fragment }}" hx-target="closest section" hx-swap="outerHTML">First</a>{% endif %}
+      {%- if v.next_url %}<a class="sy-btn sy-btn--sm" href="{{ v.next_url }}" hx-get="{{ v.next_fragment }}" hx-target="closest section" hx-swap="outerHTML">Next</a>{% endif %}
+    </span>
+  </nav>
+  {%- endif -%}
+{%- endmacro %}
+
+{% macro empty(title, body=None, level=2) -%}
+  <section class="sy-state"><h{{ level }} class="sy-state__title">{{ title }}</h{{ level }}>{% if body %}<p class="sy-muted">{{ body }}</p>{% endif %}</section>
+{%- endmacro %}
+
+{#- ---- Console-compatible names (spec 022 Track 1): same signatures as partials/macros.html, so a
+    page's salvage twin keeps its structure and only changes markup. ---- -#}
+{% macro run_status(value, with_text=true) -%}{{ status("run", value) }}{%- endmacro %}
+{% macro frontier_status(value) -%}{{ status("frontier", value) }}{%- endmacro %}
+{% macro decision_kind(value) -%}{{ status("decision", value) }}{%- endmacro %}
+{% macro span_status(value) -%}{{ status("span", value) }}{%- endmacro %}
+{% macro span_kind(value) -%}{{ status("span_kind", value) }}{%- endmacro %}
+{% macro doc_status(value) -%}{{ status("doc", value) }}{%- endmacro %}
+{% macro followup_status(value) -%}{{ status("followup", value) }}{%- endmacro %}
+{% macro review_action(value) -%}{{ status("review", value) }}{%- endmacro %}
+{% macro process_outcome(value) -%}{{ status("outcome", value) }}{%- endmacro %}
+{% macro step_status(value) -%}{{ status("step", value) }}{%- endmacro %}
+{% macro amendment_status(value) -%}{{ status("amendment", value) }}{%- endmacro %}
+{% macro allowed(flag) -%}{{ status("allowed", "yes" if flag else "no") }}{%- endmacro %}
+
+{#- Safety class: a classification, not a state, so a mono word (no status shape). -#}
+{% macro safety(value) -%}<span class="sy-mono sy-mono--sm">{{ value }}</span>{%- endmacro %}
+
+{% macro evidence(ref) -%}
+  <a class="sy-mono sy-mono--sm" href="/evidence/{{ ref | urlencode }}" title="evidence: data/evidence/{{ ref }}">{{ ref }}</a>
+{%- endmacro %}
+
+{#- Text is the signal: a gap in what the crawler could observe (spec 004 FR-006). -#}
+{% macro not_observable() -%}<span class="sy-status" data-status="unobserved">Not observed</span>{%- endmacro %}
+
+{#- A trace event's `url`/`redirect_to` attr: {origin, route, query_keys} (shapeUrl, never raw). -#}
+{% macro shaped_url(u) -%}
+  {%- if u %}<span class="sy-route">{{ u.route }}</span>{% if u.query_keys %}<span class="sy-muted sy-mono sy-mono--sm">?{{ u.query_keys | join(",") }}</span>{% endif %}{% if u.origin %} <span class="sy-muted sy-mono sy-mono--sm">{{ u.origin }}</span>{% endif %}{% else %}<span class="sy-muted">—</span>{% endif -%}
+{%- endmacro %}
+
+{% macro json_block(value, label="JSON") -%}
+  <details class="sy-disclosure">
+    <summary>{{ label }}</summary>
+    <div class="sy-disclosure__body"><pre class="sy-code">{{ value | pretty_json }}</pre></div>
+  </details>
+{%- endmacro %}
+
+{#- A Mermaid diagram: the source is the no-JS fallback and the text alternative. -#}
+{% macro diagram(source, caption) -%}
+  <figure class="mp-diagram">
+    <figcaption class="sy-label">{{ caption }}</figcaption>
+    <pre class="mermaid">{{ source }}</pre>
+  </figure>
+{%- endmacro %}
+
+{#- Structured detail for a trace event, by name (contracts/005 trace-spans.md "Names"). -#}
+{% macro trace_event_detail(e, c, run_id) -%}
+  {%- set a = e.attrs_json -%}
+  {%- if e.name == "gate_decision" %}
+    <dl class="sy-facts">
+      <dt>Input</dt><dd>{{ a.input_kind }}{% if a.url %} · {{ shaped_url(a.url) }}{% elif a.action %} · <span class="sy-mono sy-mono--sm">{{ a.action.role }}</span> “{{ a.action.accessible_name }}”{% endif %}</dd>
+      <dt>Safety class</dt><dd>{{ safety(a.safety_class) }}</dd>
+      <dt>Verdict</dt><dd>{{ allowed(a.allowed) }}{% if a.rule %} <span class="sy-mono sy-mono--sm">{{ a.rule }}</span>{% endif %}</dd>
+      {%- if a.reason %}<dt>Reason</dt><dd>{{ a.reason }}</dd>{% endif %}
+    </dl>
+  {%- elif e.name == "robots_check" %}
+    <dl class="sy-facts">
+      <dt>URL</dt><dd>{{ shaped_url(a.url) }}</dd>
+      <dt>Rule</dt><dd class="sy-mono sy-mono--sm">{{ a.rule or "—" }}</dd>
+      <dt>Action</dt><dd>{{ allowed(a.action == "allowed") }}</dd>
+    </dl>
+  {%- elif e.name == "request" %}
+    <dl class="sy-facts">
+      <dt>Request</dt><dd><span class="sy-mono sy-mono--sm">{{ a.method }}</span> {{ a.resource_type }} {{ shaped_url(a.url) }}{% if a.main_frame %} <span class="sy-muted">main frame</span>{% endif %}</dd>
+      <dt>Decision</dt><dd>{{ a.decision }}{% if a.reason %} · {{ a.reason }}{% endif %}{% if a.status %} · <span class="sy-num">{{ a.status }}</span>{% endif %}{% if a.failed %} · {{ status("span", "error") }}{% endif %}</dd>
+      {%- if a.robots_rule %}<dt>Robots rule</dt><dd class="sy-mono sy-mono--sm">{{ a.robots_rule }}</dd>{% endif %}
+      {%- if a.redirect_to %}<dt>Redirect to</dt><dd>{{ shaped_url(a.redirect_to) }}</dd>{% endif %}
+      {%- if a.limiter_wait_ms %}<dt>Limiter wait</dt><dd class="sy-num">{{ a.limiter_wait_ms }} ms</dd>{% endif %}
+    </dl>
+  {%- elif e.name == "block_verdict" %}
+    <dl class="sy-facts">
+      <dt>Signature</dt><dd class="sy-mono sy-mono--sm">{{ a.signature }}</dd>
+      <dt>Response status</dt><dd class="sy-num">{{ a.status }}</dd>
+      <dt>URL</dt><dd>{{ shaped_url(a.url) }}</dd>
+    </dl>
+  {%- elif e.name == "decision" %}
+    <dl class="sy-facts">
+      <dt>Kind</dt><dd>{{ decision_kind(a.kind) }}</dd>
+      <dt>Rule</dt><dd class="sy-mono sy-mono--sm">{{ a.rule or "—" }}</dd>
+      <dt>Decision log</dt><dd>
+        {%- if run_id and a.rule -%}
+        <a href="{{ c.url('/runs/' ~ run_id, tab='decisions', rule=a.rule) }}">View <span class="sy-mono sy-mono--sm">{{ a.decision_id | short_id }}</span></a>
+        {%- else -%}<span class="sy-mono sy-mono--sm">{{ a.decision_id or "—" }}</span>{%- endif -%}
+      </dd>
+    </dl>
+  {%- elif e.name == "fingerprint_assign" %}
+    <dl class="sy-facts">
+      <dt>Route</dt><dd class="sy-route">{{ a.route_template }}</dd>
+      <dt>Decision</dt><dd>{{ a.decision }}{% if a.matched %} · matched existing{% else %} · new state{% endif %}</dd>
+      <dt>Cluster</dt><dd class="sy-mono sy-mono--sm">{{ a.cluster_id or "—" }}</dd>
+      <dt>Similarity</dt><dd class="sy-num">{{ "%.3f" | format(a.similarity) if a.similarity is not none else "—" }} <span class="sy-muted">(threshold {{ "%.3f" | format(a.threshold) if a.threshold is not none else "—" }})</span></dd>
+    </dl>
+  {%- elif e.name in ("frontier_enqueue", "frontier_skip") %}
+    <dl class="sy-facts">
+      <dt>Action</dt><dd><span class="sy-mono sy-mono--sm">{{ a.action }}</span> {{ safety(a.safety_class) }}</dd>
+      <dt>Priority / depth</dt><dd class="sy-num">{{ a.priority }} / {{ a.depth }}</dd>
+      {%- if a.rule %}<dt>Rule</dt><dd><span class="sy-mono sy-mono--sm">{{ a.rule }}</span>{% if a.reason %} · {{ a.reason }}{% endif %}</dd>{% endif %}
+    </dl>
+  {%- elif e.name == "frontier_pick" %}
+    <dl class="sy-facts">
+      {%- if a.frontier_id %}
+      <dt>Picked</dt><dd class="sy-num">priority {{ a.priority }}, depth {{ a.depth }}</dd>
+      {%- else %}
+      <dt>Picked</dt><dd class="sy-muted">nothing{% if a.reason %} · {{ a.reason }}{% endif %}</dd>
+      {%- endif %}
+      <dt>Pending</dt><dd class="sy-num">{{ a.pending }}</dd>
+    </dl>
+  {%- elif e.name == "stabilization_timeout" %}
+    <dl class="sy-facts">
+      <dt>Timeout</dt><dd class="sy-num">{{ a.timeout_ms }} ms</dd>
+      <dt>Since last mutation</dt><dd class="sy-num">{{ a.since_mutation_ms }} ms</dd>
+      <dt>Running animations</dt><dd class="sy-num">{{ a.running_animations }}</dd>
+    </dl>
+    {%- if a.in_flight %}
+    <ul class="sy-small">
+      {%- for r in a.in_flight %}
+      <li><span class="sy-mono sy-mono--sm">{{ r.resource_type }}</span> {{ r.url }} <span class="sy-muted sy-num">{{ r.age_ms }} ms in flight</span></li>
+      {%- endfor %}
+    </ul>
+    {%- endif %}
+  {%- elif e.name == "obstacle" %}
+    <dl class="sy-facts">
+      <dt>Obstacle</dt><dd class="sy-mono sy-mono--sm">{{ a.obstacle_id }}</dd>
+      <dt>Selector</dt><dd class="sy-mono sy-mono--sm">{{ a.selector }}</dd>
+      <dt>Dismissed by</dt><dd>{{ a.via }}</dd>
+    </dl>
+  {%- endif -%}
+{%- endmacro %}

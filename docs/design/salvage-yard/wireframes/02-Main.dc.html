@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Home: chat first</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&amp;family=IBM+Plex+Sans:wght@400;500;600&amp;display=swap">
+<style>
+body{margin:0;background:#F6F5F1}
+a{color:#2453C9}a:hover{color:#163A99}
+button,input,select,textarea{font:inherit;color:inherit}
+:focus-visible{outline:2px solid #2453C9;outline-offset:1px}
+</style>
+</helmet>
+<div style="min-height: 100vh; display: flex; flex-direction: column; background: #F6F5F1; color: #1C1C1A; font-family: 'IBM Plex Sans', ui-sans-serif, system-ui, sans-serif; font-size: 14px; line-height: 1.45">
+
+<header style="display: flex; flex-wrap: wrap; align-items: center; gap: 12px 16px; padding: 10px 20px; background: #FFFFFF; border-bottom: 1px solid #C9C6BD">
+<a href="02-Main.dc.html" style="font-family: 'IBM Plex Mono', ui-monospace, monospace; font-weight: 500; font-size: 15px; color: #1C1C1A; text-decoration: none">mudpuppy://console</a>
+<label style="display: flex; align-items: center; gap: 8px; font-size: 12px; color: #55534D">Portal
+<select style="height: 44px; padding: 0 8px; border: 1px solid #8E8B82; background: #FFFFFF; font-size: 14px; min-width: 190px"><option>reference-insurer</option><option>wikipedia</option><option>All portals</option><option>+ New portal</option></select>
+</label>
+<label style="flex: 1 1 240px; display: flex; align-items: center; gap: 8px; height: 44px; box-sizing: border-box; padding: 0 12px; border: 1px solid #C9C6BD; background: #F6F5F1; font-size: 13px; color: #55534D">
+<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5"></path></svg>
+<input type="search" aria-label="Search" placeholder="Search screens, processes, records" style="flex: 1; min-width: 0; border: 0; background: transparent; font-size: 13px">
+<span style="font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 11px">Ctrl K</span>
+</label>
+<span style="display: flex; align-items: center; gap: 6px; font-size: 12px; color: #55534D"><span style="width: 8px; height: 8px; border-radius: 9999px; background: #1C1C1A"></span>assistant running</span>
+<a href="03-ChatDrawer.dc.html" style="display: flex; align-items: center; gap: 8px; height: 44px; box-sizing: border-box; padding: 0 14px; border: 1px solid #1C1C1A; background: #FFFFFF; color: #1C1C1A; text-decoration: none; font-size: 13px; font-weight: 500"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M4 5h16v11H9l-5 4z"></path></svg>Ask assistant <span style="font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 11px; color: #55534D">Ctrl J</span></a>
+<a href="01-IA.dc.html" aria-label="Help and glossary" style="width: 44px; height: 44px; box-sizing: border-box; display: flex; align-items: center; justify-content: center; border: 1px solid #C9C6BD; color: #1C1C1A; text-decoration: none; font-weight: 600">?</a>
+</header>
+
+<div style="flex: 1; display: flex; flex-wrap: wrap; align-items: stretch">
+
+<nav aria-label="Portal sections" style="flex: 1 1 200px; display: flex; flex-direction: column; gap: 2px; padding: 16px 12px; box-sizing: border-box; background: #EFEDE8; border-right: 1px solid #C9C6BD">
+<a href="02-Main.dc.html" aria-current="page" style="display: flex; justify-content: space-between; align-items: center; min-height: 44px; padding: 0 12px; text-decoration: none; background: #1C1C1A; color: #FFFFFF; font-weight: 500">Home</a>
+<a href="05-Processes.dc.html" style="display: flex; justify-content: space-between; align-items: center; min-height: 44px; padding: 0 12px; text-decoration: none; color: #1C1C1A">Processes <span style="font-size: 12px; color: #55534D">1 · 4 new</span></a>
+<a href="09-ScreenDetail.dc.html" style="display: flex; justify-content: space-between; align-items: center; min-height: 44px; padding: 0 12px; text-decoration: none; color: #1C1C1A">Screens <span style="font-size: 12px; color: #55534D">21</span></a>
+<a href="#" style="display: flex; justify-content: space-between; align-items: center; min-height: 44px; padding: 0 12px; text-decoration: none; color: #1C1C1A">Docs</a>
+<a href="10-Review.dc.html" style="display: flex; justify-content: space-between; align-items: center; min-height: 44px; padding: 0 12px; text-decoration: none; color: #1C1C1A">Review <span style="font-size: 12px; padding: 0 6px; border: 1px solid #1C1C1A">3</span></a>
+<a href="11-Runs.dc.html" style="display: flex; justify-content: space-between; align-items: center; min-height: 44px; padding: 0 12px; text-decoration: none; color: #1C1C1A">Scans <span style="font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 11px; color: #55534D">[INT.]</span></a>
+<a href="12-Settings.dc.html" style="display: flex; justify-content: space-between; align-items: center; min-height: 44px; padding: 0 12px; text-decoration: none; color: #1C1C1A">Settings</a>
+<div style="height: 1px; background: #C9C6BD; margin: 10px 0"></div>
+<a href="#" style="display: flex; align-items: center; min-height: 44px; padding: 0 12px; text-decoration: none; color: #55534D; font-size: 13px">Glossary and BA wiki</a>
+<div style="margin-top: auto; padding: 12px; font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 11px; color: #55534D">store: sandbox · read-only</div>
+</nav>
+
+<main style="flex: 999 1 560px; min-width: 0; padding: 24px 28px; box-sizing: border-box; display: flex; flex-direction: column; gap: 20px">
+
+<div style="display: flex; flex-direction: column; gap: 4px">
+<h1 style="margin: 0; font-size: 22px; font-weight: 600">reference-insurer</h1>
+<div style="font-size: 13px; color: #55534D">Towarzystwo Ubezpieczeń Wzorcowych · sandbox · 3 scans · 21 screens · last scan 6 Oct 10:49Z <span style="font-family: 'IBM Plex Mono', ui-monospace, monospace">[INT.]</span> interrupted at 171 / 400 steps</div>
+</div>
+
+<div style="display: flex; flex-wrap: wrap; gap: 20px; align-items: flex-start">
+
+<section aria-label="Assistant" style="flex: 999 1 520px; min-width: 0; display: flex; flex-direction: column; background: #FFFFFF; border: 1px solid #8E8B82">
+<div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 12px; padding: 10px 16px; border-bottom: 1px solid #C9C6BD">
+<div style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px">
+<h2 style="margin: 0; font-size: 15px; font-weight: 600">Assistant</h2>
+<span style="font-size: 12px; color: #55534D">context</span>
+<span style="display: inline-flex; align-items: center; gap: 6px; padding: 3px 8px; border: 1px solid #1C1C1A; font-size: 12px">Whole project: reference-insurer</span>
+</div>
+<div style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px">
+<label style="display: flex; align-items: center; gap: 6px; font-size: 12px; color: #55534D">Conversation
+<select style="height: 40px; padding: 0 8px; border: 1px solid #C9C6BD; background: #FFFFFF; font-size: 13px"><option>What can you do here? · 6 Oct</option><option>Earlier conversations…</option></select>
+</label>
+<button type="button" style="min-height: 40px; padding: 0 12px; border: 1px solid #1C1C1A; background: #FFFFFF; font-size: 13px; cursor: pointer">New conversation</button>
+</div>
+</div>
+
+<div role="log" aria-label="Messages" style="display: flex; flex-direction: column; gap: 14px; padding: 16px">
+<div style="display: flex; align-items: center; gap: 10px; font-size: 12px; color: #55534D"><span style="flex: 1; height: 1px; background: #C9C6BD"></span>context reset ×2 · 6 Oct 20:32Z<span style="flex: 1; height: 1px; background: #C9C6BD"></span></div>
+
+<div style="align-self: flex-end; max-width: 75%; padding: 10px 14px; background: #EFEDE8; border: 1px solid #C9C6BD">What can you do here?</div>
+
+<div style="display: flex; flex-direction: column; gap: 8px; max-width: 90%">
+<div style="font-size: 12px; color: #55534D">Assistant</div>
+<div><b>Process:</b> none has been picked or followed yet. What you can do next:</div>
+<div style="display: flex; flex-wrap: wrap; gap: 8px">
+<button type="button" style="min-height: 40px; padding: 0 12px; border: 1px solid #8E8B82; background: #FFFFFF; font-size: 13px; cursor: pointer">Continue the scan (113 pages not reached)</button>
+<button type="button" style="min-height: 40px; padding: 0 12px; border: 1px solid #8E8B82; background: #FFFFFF; font-size: 13px; cursor: pointer">Group screens into processes</button>
+<button type="button" style="min-height: 40px; padding: 0 12px; border: 1px solid #8E8B82; background: #FFFFFF; font-size: 13px; cursor: pointer">Follow one process start to end</button>
+<button type="button" style="min-height: 40px; padding: 0 12px; border: 1px solid #8E8B82; background: #FFFFFF; font-size: 13px; cursor: pointer">Add to-be notes</button>
+</div>
+</div>
+
+<div style="align-self: flex-end; max-width: 75%; padding: 10px 14px; background: #EFEDE8; border: 1px solid #C9C6BD">Group screens into processes.</div>
+
+<div style="display: flex; flex-direction: column; gap: 8px; max-width: 90%">
+<div style="font-size: 12px; color: #55534D">Assistant</div>
+<div>The home page's "Na skróty" links name most of the processes. From the 21 screens I'd suggest these:</div>
+<div style="display: flex; flex-direction: column; border: 1px solid #C9C6BD">
+<div style="display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px; padding: 10px 12px; border-bottom: 1px solid #C9C6BD; background: #F6F5F1"><b style="font-weight: 600">4 suggested processes</b><span style="font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 12px; color: #55534D">inferred · not saved yet</span></div>
+<div style="display: flex; flex-wrap: wrap; justify-content: space-between; gap: 4px 8px; padding: 8px 12px; border-bottom: 1px solid #E4E2DC"><span>Oblicz składkę OC/AC</span><span style="font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 12px; color: #55534D">/ → /kalkulator/kierowca → … end not reached</span></div>
+<div style="display: flex; flex-wrap: wrap; justify-content: space-between; gap: 4px 8px; padding: 8px 12px; border-bottom: 1px solid #E4E2DC"><span>Porównaj produkty</span><span style="font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 12px; color: #55534D">/ → /porownanie</span></div>
+<div style="display: flex; flex-wrap: wrap; justify-content: space-between; gap: 4px 8px; padding: 8px 12px; border-bottom: 1px solid #E4E2DC"><span>Napisz do nas</span><span style="font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 12px; color: #55534D">/ → /kontakt</span></div>
+<div style="display: flex; flex-wrap: wrap; justify-content: space-between; gap: 4px 8px; padding: 8px 12px; border-bottom: 1px solid #E4E2DC"><span>Moje polisy</span><span style="font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 12px; color: #55534D">/logowanie → /moje-polisy</span></div>
+<div style="padding: 10px 12px"><a href="05-Processes.dc.html">Review them in Processes</a></div>
+</div>
+<div style="font-size: 13px; color: #55534D">Your "Test process" (/ → /faq) stays as it is. "Przedłuż polisę" is linked from the home page but the scan hasn't reached it yet.</div>
+</div>
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 10px; padding: 14px 16px; border-top: 1px solid #C9C6BD; background: #F6F5F1">
+<div style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px; font-size: 13px">
+<span style="font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 12px">[INT.]</span>
+<span>Scan 01a110d5 interrupted · 171 / 400 steps · 17 pages · 113 queued</span>
+<a href="11-Runs.dc.html">Open in Scans</a>
+</div>
+<label style="display: flex; flex-direction: column; gap: 6px; font-size: 12px; color: #55534D">Message
+<textarea rows="3" placeholder="Ask what you can do, or name a goal for reference-insurer" style="resize: vertical; padding: 10px 12px; border: 1px solid #8E8B82; background: #FFFFFF; font-size: 14px; color: #1C1C1A"></textarea>
+</label>
+<div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px">
+<div style="display: flex; flex-wrap: wrap; gap: 8px">
+<button type="button" style="min-height: 40px; padding: 0 12px; border: 1px solid #C9C6BD; background: #FFFFFF; font-size: 13px; cursor: pointer">@ Mention a screen or process</button>
+<button type="button" style="min-height: 40px; padding: 0 12px; border: 1px solid #C9C6BD; background: #FFFFFF; font-size: 13px; cursor: pointer">Attach file</button>
+</div>
+<div style="display: flex; align-items: center; gap: 10px">
+<span style="font-size: 12px; color: #55534D">Enter sends · Shift+Enter new line</span>
+<button type="button" style="min-height: 44px; padding: 0 20px; border: 1px solid #1C1C1A; background: #1C1C1A; color: #FFFFFF; font-size: 14px; font-weight: 500; cursor: pointer">Send</button>
+</div>
+</div>
+</div>
+</section>
+
+<aside style="flex: 1 1 300px; min-width: 0; display: flex; flex-direction: column; gap: 16px">
+
+<section aria-labelledby="next-h" style="display: flex; flex-direction: column; background: #FFFFFF; border: 1px solid #C9C6BD">
+<h2 id="next-h" style="margin: 0; padding: 12px 16px; font-size: 15px; font-weight: 600; border-bottom: 1px solid #C9C6BD">Where this portal is</h2>
+<ol style="margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column">
+<li style="display: flex; justify-content: space-between; gap: 8px; padding: 10px 16px; border-bottom: 1px solid #E4E2DC"><span>1 · Scan</span><span style="font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 12px">[INT.] 171 / 400</span></li>
+<li style="display: flex; justify-content: space-between; gap: 8px; padding: 10px 16px; border-bottom: 1px solid #E4E2DC"><span>2 · Map screens</span><span style="font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 12px">[ OK ] 21</span></li>
+<li style="display: flex; justify-content: space-between; gap: 8px; padding: 10px 16px; border-bottom: 1px solid #E4E2DC; background: #EFEDE8; font-weight: 500"><span>3 · Group into processes</span><span style="font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 12px">[WAIT] 4 to review</span></li>
+<li style="display: flex; justify-content: space-between; gap: 8px; padding: 10px 16px; border-bottom: 1px solid #E4E2DC"><span>4 · Document as-is</span><span style="font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 12px">[TODO]</span></li>
+<li style="display: flex; justify-content: space-between; gap: 8px; padding: 10px 16px"><span>5 · Plan to-be changes</span><span style="font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 12px">[TODO]</span></li>
+</ol>
+<div style="padding: 12px 16px; border-top: 1px solid #C9C6BD"><a href="05-Processes.dc.html" style="display: inline-flex; align-items: center; min-height: 40px; padding: 0 12px; border: 1px solid #1C1C1A; color: #1C1C1A; text-decoration: none; font-size: 13px">Review 4 suggested processes</a></div>
+</section>
+
+<section aria-labelledby="needs-h" style="display: flex; flex-direction: column; background: #FFFFFF; border: 1px solid #C9C6BD">
+<h2 id="needs-h" style="margin: 0; padding: 12px 16px; font-size: 15px; font-weight: 600; border-bottom: 1px solid #C9C6BD">Needs you</h2>
+<a href="11-Runs.dc.html" style="display: flex; justify-content: space-between; gap: 8px; padding: 10px 16px; border-bottom: 1px solid #E4E2DC; text-decoration: none; color: #1C1C1A"><span>Interrupted scan to resume</span><b>1</b></a>
+<a href="10-Review.dc.html" style="display: flex; justify-content: space-between; gap: 8px; padding: 10px 16px; border-bottom: 1px solid #E4E2DC; text-decoration: none; color: #1C1C1A"><span>Draft doc records to confirm</span><b>3</b></a>
+<a href="05-Processes.dc.html" style="display: flex; justify-content: space-between; gap: 8px; padding: 10px 16px; text-decoration: none; color: #1C1C1A"><span>Suggested processes</span><b>4</b></a>
+</section>
+
+<section aria-labelledby="proc-h" style="display: flex; flex-direction: column; background: #FFFFFF; border: 1px solid #C9C6BD">
+<h2 id="proc-h" style="margin: 0; padding: 12px 16px; font-size: 15px; font-weight: 600; border-bottom: 1px solid #C9C6BD">Processes</h2>
+<a href="06-ProcessDetail.dc.html" style="display: flex; flex-direction: column; gap: 2px; padding: 10px 16px; text-decoration: none; color: #1C1C1A"><span style="font-weight: 500">Test process</span><span style="font-size: 12px; color: #55534D">Scoped · 2 screens · / → /faq · persona guest</span></a>
+</section>
+
+</aside>
+</div>
+</main>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":1000}}'>
+class Component extends DCLogic {
+renderVals() {
+return {};
+}
+}
+</script>
+</body>
+</html>
