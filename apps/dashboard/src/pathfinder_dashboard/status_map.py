@@ -9,7 +9,7 @@ shown. The enum and meanings are in `docs/design/salvage-yard/docs/03-colour-gui
 from __future__ import annotations
 
 from collections.abc import Iterable
-from typing import Literal, NamedTuple
+from typing import Literal, NamedTuple, get_args
 
 Shape = Literal[
     "ok",
@@ -25,7 +25,7 @@ Shape = Literal[
     "inferred",
     "failed",
 ]
-SHAPES: frozenset[str] = frozenset(Shape.__args__)  # type: ignore[attr-defined]
+SHAPES: frozenset[str] = frozenset(get_args(Shape))
 
 
 class Status(NamedTuple):

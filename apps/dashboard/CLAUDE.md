@@ -15,11 +15,13 @@ Layer: app (Python, FastAPI + Jinja + htmx, uv; outside the TS layers)
 - `web/deps.py`: `Ctx`, `build_url`, `Web` (`ctx`, `render`, `missing`, `not_found`, glossary) on
   `app.state.web`; routers call `web_of(request)`.
 - `web/<page>.py`: one `APIRouter` per page with its fragments (`overview`, `runs`, `states`,
-  `evidence`, `health`, `activity`, `docs`, `glossary`, `chat`, `portals`, `amendments`, `events`);
+  `evidence`, `health`, `activity`, `docs`, `glossary`, `chat`, `portals`, `amendments`, `events`,
+  and for spec 022 `processes`, `review`, `scans`, `screens`);
   shared view helpers in `web/views_docs.py`, `web/views_chat.py`, `web/chat_forward.py`.
 - `queries.py`, `queries_docs.py`, `queries_chat.py`, `queries_urls.py` (visits, parameter
   inventory, spec 019), and for spec 022 `queries_screens.py`, `queries_revisions.py`,
-  `queries_proposals.py` (the assistant's proposals), `queries_home.py` (Home beside the
+  `queries_proposals.py` (the assistant's proposals), `queries_processes.py` (BA processes,
+  history, compare), `queries_review.py`, `queries_scans.py`, `queries_settings.py`, `queries_home.py` (Home beside the
   assistant): read models.
 - `stores.py`: the stores a request may open (main data dir + eval workspaces), chosen by key.
 - `models.py`: read-only models of SQLite schema; drift test vs. `data/schema/schema.sql`.
@@ -31,9 +33,9 @@ Layer: app (Python, FastAPI + Jinja + htmx, uv; outside the TS layers)
 - UI follows the Salvage Yard design system (spec 022): all UI work uses the `mudpuppy-salvage-ui`
   skill; reference screens in `docs/design/salvage-yard/screens/`. Never use Console-era styling
   (amber `#FFB000`, JetBrains Mono, scanlines, glow, round status dots, bracket statuses like
-  `[ OK ]`, the `mudpuppy://console` wordmark) in a migrated page. Until the clean-up (spec 022
-  M6) unmigrated pages keep the Console base; `PATHFINDER_UI_SALVAGE` picks the base per route,
-  never both stylesheets on one page.
+  `[ OK ]`, the `mudpuppy://console` wordmark). Since the clean-up (spec 022 M6) every template
+  lives under `templates/salvage/`; routers may name them without the prefix (`web/deps.py`
+  `salvage_template`). `scripts/find-old-styles.sh src` must report 0.
 - Compose from `sy-` classes; product-only layout classes use `mp-`. No hex, fonts, radius or
   shadows in templates or app CSS. Statuses through the one status helper, record ids through the
   tag helper, human text through the note helper. At most one primary button and one intent plate
@@ -57,7 +59,7 @@ Layer: app (Python, FastAPI + Jinja + htmx, uv; outside the TS layers)
 
 ## UI check (spec 022)
 - `pnpm --dir apps/dashboard ui:check --base http://127.0.0.1:<port> [paths…]` against a running
-  dashboard with `PATHFINDER_UI_SALVAGE=all`: screenshots at 1280 and 390 px (reduced motion) into
+  dashboard: screenshots at 1280 and 390 px (reduced motion) into
   `ui-check/`, and fails on a page-level horizontal scroll, not exactly one h1, more than one
   primary button or intent plate, an axe-core serious/critical issue, or a console error.
   `apps/dashboard/package.json` exists only for this check (Playwright, axe-core).

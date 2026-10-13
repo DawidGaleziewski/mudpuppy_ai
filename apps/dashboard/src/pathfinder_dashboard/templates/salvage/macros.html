@@ -24,7 +24,7 @@
 
 {#- An ERR- reference, visible and copyable (spec 010 FR-020); exempt from tags (FE-V09). -#}
 {% macro error_ref(ref) -%}
-  <span class="sy-small">reference <a class="sy-mono" href="/chat/errors/{{ ref | urlencode }}">{{ ref }}</a></span>
+  <span class="sy-small">reference <a class="sy-mono mp-break" href="/chat/errors/{{ ref | urlencode }}">{{ ref }}</a></span>
   <button class="sy-btn sy-btn--sm sy-btn--quiet" type="button" data-copy="{{ ref }}" aria-label="Copy reference {{ ref }}">Copy</button>
 {%- endmacro %}
 
@@ -130,8 +130,14 @@
 {#- Safety class: a classification, not a state, so a mono word (no status shape). -#}
 {% macro safety(value) -%}<span class="sy-mono sy-mono--sm">{{ value }}</span>{%- endmacro %}
 
+{#- Only pictures are served (/evidence serves png, svg, excalidraw); other refs (snapshots,
+    JSON) are shown as their path, not as a dead link. -#}
 {% macro evidence(ref) -%}
-  <a class="sy-mono sy-mono--sm" href="/evidence/{{ ref | urlencode }}" title="evidence: data/evidence/{{ ref }}">{{ ref }}</a>
+  {%- if ref and ref.rsplit(".", 1)[-1] in ("png", "svg", "excalidraw") -%}
+  <a class="sy-mono sy-mono--sm mp-break" href="/evidence/{{ ref | urlencode }}" title="evidence: data/evidence/{{ ref }}">{{ ref }}</a>
+  {%- else -%}
+  <span class="sy-mono sy-mono--sm mp-break" title="evidence: data/evidence/{{ ref }}">{{ ref }}</span>
+  {%- endif -%}
 {%- endmacro %}
 
 {#- Text is the signal: a gap in what the crawler could observe (spec 004 FR-006). -#}

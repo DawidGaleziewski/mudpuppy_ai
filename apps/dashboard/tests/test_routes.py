@@ -21,9 +21,9 @@ def text(html: str) -> str:
 def test_shell_binds_live_stream_and_assets(client: TestClient) -> None:
     html = client.get("/").text
     assert 'hx-sse:connect="/events"' in html
-    for asset in ("htmx.min.js", "hx-sse.min.js", "live.js", "tokens.css", "app.css"):
+    for asset in ("htmx.min.js", "hx-sse.min.js", "live.js", "tokens.css", "salvage.css", "mp.css"):
         assert re.search(rf'(?:src|href)="/static/[^"]*{re.escape(asset)}"', html), asset
-    assert "mudpuppy://console" in html
+    assert "MUD PUPPY" in text(html)  # the wordmark
     assert 'href="#main"' in html  # skip link
 
 
@@ -32,12 +32,23 @@ def test_static_assets_served_with_cache(client: TestClient) -> None:
         "/static/vendor/htmx.min.js",
         "/static/vendor/hx-sse.min.js",
         "/static/js/live.js",
-        "/static/css/app.css",
-        "/static/fonts/jetbrains-mono-latin-400-normal.woff2",
+        "/static/css/mp.css",
+        "/static/salvage/css/tokens.css",
+        "/static/salvage/css/salvage.css",
+        "/static/salvage/fonts/Archivo-Variable.woff2",
     ):
         r = client.get(path)
         assert r.status_code == 200, path
         assert "max-age" in r.headers["cache-control"]
+
+
+def test_console_assets_are_gone(client: TestClient) -> None:
+    for path in (
+        "/static/css/app.css",
+        "/static/fonts/jetbrains-mono-latin-400-normal.woff2",
+        "/static/brand/favicon.ico",
+    ):
+        assert client.get(path).status_code == 404, path
 
 
 def test_html_is_never_cached(client: TestClient) -> None:
@@ -62,27 +73,27 @@ def test_overview_shows_portal_and_runs(client: TestClient) -> None:
     html = client.get("/").text
     t = text(html)
     assert "liveinsurer" in t
-    assert re.search(r"Runs 9\b", t)
-    assert html.count("[INT.]") >= 7
-    assert html.count("[STOP]") >= 2
+    assert re.search(r"Scans 9\b", t)
+    assert html.count('data-status="stopped">Interrupted') >= 7
+    assert html.count('data-status="failed">Stopped') >= 2
     assert CAPTCHA_1 in html and CAPTCHA_2 in html
-    assert "stopped warning" in t  # status carried by text, not colour alone
+    assert "Stopped" in t  # status carried by text, not colour alone
     assert f'href="/runs/{BIG_RUN}"' in html
 
 
 def test_overview_summary_counts(client: TestClient) -> None:
     t = text(client.get("/fragments/summary").text)
-    assert "Actions allowed 570" in t
+    assert "Actions 570 allowed" in t
     assert "30 skipped by safety" in t
     assert "6 forms · 9 network call shapes" in t
-    assert "7 interrupted" in t and "2 stopped warning" in t
+    assert "7 Interrupted" in t and "2 Stopped" in t
 
 
 def test_runs_fragment_filters_by_status(client: TestClient) -> None:
     r = client.get("/fragments/runs?status=stopped_warning")
     assert r.status_code == 200
-    assert r.text.count("[STOP]") == 2 + 0  # two rows; the filter select has no labels
-    assert "[INT.]" not in r.text
+    assert r.text.count('data-status="failed">Stopped') == 2  # two rows
+    assert 'data-status="stopped">Interrupted' not in r.text
     assert 'id="region-runs"' in r.text
     assert 'hx-trigger="store-changed from:body"' in r.text
     assert 'hx-get="/fragments/runs?status=stopped_warning"' in r.text
@@ -92,10 +103,10 @@ def test_runs_fragment_filters_by_status(client: TestClient) -> None:
 def test_empty_form_values_mean_any(client: TestClient) -> None:
     """A filter form submits `portal=` for "any"; it must not filter on the empty string."""
     r = client.get("/fragments/runs?push=1&portal=&status=stopped_warning")
-    assert r.text.count("[STOP]") == 2
+    assert r.text.count('data-status="failed">Stopped') == 2
     assert r.headers["HX-Push-Url"] == "/?status=stopped_warning"
     all_runs = client.get("/fragments/runs?portal=&status=&cursor=")
-    assert 'Runs <span class="muted mono-num">9</span>' in all_runs.text
+    assert "Scans 9" in text(all_runs.text)
     actions = client.get(f"/fragments/runs/{BIG_RUN}/actions?safety_class=&allowed=&cursor=")
     assert "1–50 of 600" in text(actions.text)
     decisions = client.get(f"/fragments/runs/{BIG_RUN}/decisions?kind=&rule=")
@@ -115,18 +126,18 @@ def test_runs_pagination(liveinsurer_store: Store) -> None:
         assert nxt, "next link"
         second = c.get(nxt.group(1).replace("&amp;", "&")).text
         assert "5–8 of 9" in second
-        assert "[first]" in second
+        assert re.search(r'<a class="sy-btn[^"]*" href="[^"]*"[^>]*>First</a>', second)
 
 
 def test_empty_store_shows_empty_state(empty_client: TestClient) -> None:
     t = text(empty_client.get("/").text)
-    assert "No runs recorded yet" in t
+    assert "No scans recorded yet" in t
     assert "crawler" in t
 
 
 def test_filtered_empty_state(client: TestClient) -> None:
     t = text(client.get("/fragments/runs?status=completed").text)
-    assert "No runs match these filters" in t
+    assert "No scans match these filters" in t
 
 
 def test_missing_store_shows_error_state(tmp_path: Path) -> None:
@@ -136,9 +147,9 @@ def test_missing_store_shows_error_state(tmp_path: Path) -> None:
         r = c.get("/")
         frag = c.get("/fragments/runs")
     assert r.status_code == 200
-    assert "No crawl store" in r.text and "production.sqlite" in r.text
-    assert "[retry]" in r.text
-    assert "No crawl store" in frag.text
+    assert "No store “production”" in r.text and "production.sqlite" in r.text
+    assert ">Retry</a>" in r.text
+    assert "No store “production”" in frag.text
     assert not (data / "db" / "production.sqlite").exists()
 
 
@@ -166,8 +177,8 @@ def test_environment_switch(liveinsurer_store: Store) -> None:
         assert '<option value="main:scratch"' in html
         scratch = c.get("/?store=main:scratch")
         # the older `?env=` links keep working (spec 019)
-        assert "No runs recorded yet" in text(c.get("/?env=scratch").text)
-    assert "No runs recorded yet" in text(scratch.text)
+        assert "No scans recorded yet" in text(c.get("/?env=scratch").text)
+    assert "No scans recorded yet" in text(scratch.text)
     assert 'hx-sse:connect="/events?store=main%3Ascratch"' in scratch.text
     assert "/fragments/runs?store=main%3Ascratch" in scratch.text
 
@@ -178,8 +189,8 @@ def test_environment_switch(liveinsurer_store: Store) -> None:
 def test_run_detail_header_and_tabs(client: TestClient) -> None:
     html = client.get(f"/runs/{BIG_RUN}").text
     t = text(html)
-    assert f"Run {BIG_RUN}" in t
-    assert "[INT.]" in html
+    assert f"Scan {BIG_RUN}" in t
+    assert 'data-status="stopped">Interrupted' in html
     for label, count in [
         ("States", 1),
         ("Actions", 600),
@@ -190,20 +201,20 @@ def test_run_detail_header_and_tabs(client: TestClient) -> None:
     ]:
         assert f"{label} {count}" in t, label
     assert 'aria-current="page">States' in html
-    assert "config snapshot" in t
+    assert "Config snapshot" in t
     assert "&#34;liveinsurer&#34;" in html or "&quot;liveinsurer&quot;" in html  # JSON escaped in <pre>
 
 
 def test_run_detail_stopped_run_shows_warning(client: TestClient) -> None:
     html = client.get("/runs/run-005").text
-    assert "[STOP]" in html and CAPTCHA_1 in html
-    assert "No states observed in this run" in text(html)
+    assert 'data-status="failed">Stopped' in html and CAPTCHA_1 in html
+    assert "No screens observed in this scan" in text(html)
 
 
 def test_states_show_confidence_and_evidence(client: TestClient) -> None:
     html = client.get(f"/fragments/runs/{BIG_RUN}/states").text
     assert "Kup ubezpieczenia" in html
-    assert 'class="conf conf-observed">observed' in html
+    assert 'data-status="ok">Observed' in html
     assert "a" * 64 + ".json" in html
 
 
@@ -213,18 +224,18 @@ def test_actions_section(client: TestClient) -> None:
     assert "Actions extracted 600" in t
     assert "1–50 of 600" in t
     skipped = client.get(f"/fragments/runs/{BIG_RUN}/actions?allowed=0").text
-    assert text(skipped).count("skipped") >= 30
-    assert "[ OK ]" not in skipped.split("<tbody>")[1]
+    assert skipped.split("<tbody>")[1].count('data-status="skipped">Skipped') >= 30
+    assert 'data-status="ok">Allowed' not in skipped.split("<tbody>")[1]
     assert "above ceiling read" in skipped
 
 
 def test_frontier_section_counts_and_filter(client: TestClient) -> None:
     t = text(client.get(f"/runs/{BIG_RUN}?tab=frontier").text)
     for fragment in (
-        "[PEND] pending 549",
-        "[DONE] done 2",
-        "[FAIL] unreachable 10",
-        "[SKIP] robots disallowed 6",
+        "549 Queued",
+        "2 Done",
+        "10 Unreachable",
+        "6 Skipped · robots",
     ):
         assert fragment in t, fragment
     only = client.get(f"/fragments/runs/{BIG_RUN}/frontier?status=unreachable")
@@ -240,12 +251,12 @@ def test_decisions_grouped_and_filtered(client: TestClient) -> None:
     assert "click_failed 10" in t
     assert "robots:Disallow: *cHash* 6" in t
     skips = client.get(f"/fragments/runs/{BIG_RUN}/decisions?kind=skip")
-    entries = skips.text.split("<caption>Entries</caption>")[1]
-    assert "[RFSE]" not in entries and "[MRGE]" not in entries
+    entries = skips.text.split("Decision log entries</caption>")[1]
+    assert ">Refused<" not in entries and ">merge<" not in entries
     assert "1–39 of 39" not in text(skips.text)  # fits one page: no pager
     by_rule = client.get(
         f"/fragments/runs/{BIG_RUN}/decisions", params={"rule": "robots:Disallow: *cHash*"}
-    ).text.split("<caption>Entries</caption>")[1]
+    ).text.split("Decision log entries</caption>")[1]
     assert by_rule.count("<tr") == 1 + 6  # header row + 6 entries
     pushed = client.get(f"/fragments/runs/{BIG_RUN}/decisions?kind=skip&push=1")
     assert pushed.headers["HX-Push-Url"] == f"/runs/{BIG_RUN}?tab=decisions&kind=skip"
@@ -254,15 +265,15 @@ def test_decisions_grouped_and_filtered(client: TestClient) -> None:
 def test_decisions_filter_survives_reload(client: TestClient) -> None:
     html = client.get(f"/runs/{BIG_RUN}?tab=decisions&kind=refuse").text
     assert '<option value="refuse" selected>' in html
-    entries = html.split("<caption>Entries</caption>")[1]
-    assert "[SKIP]" not in entries
+    entries = html.split("Decision log entries</caption>")[1]
+    assert ">Skipped<" not in entries
 
 
 def test_forms_network_robots_sections(client: TestClient) -> None:
     forms = text(client.get(f"/fragments/runs/{BIG_RUN}/forms").text)
     assert "Forms 6" in forms and "q search" in forms
     net = client.get(f"/fragments/runs/{BIG_RUN}/network").text
-    assert "GET /api/:param" in net and "on state load" in net
+    assert "GET /api/:param" in text(net) and "on screen load" in text(net)
     robots = client.get("/fragments/runs/run-001/robots").text
     assert "www.liveinsurer.example" in robots and "HTTP 200" in robots
 
@@ -279,7 +290,7 @@ def test_frontier_pagination_uses_cursor(client: TestClient) -> None:
 def test_unknown_run_is_not_found(client: TestClient) -> None:
     r = client.get("/runs/nope")
     assert r.status_code == 404
-    assert "No run with id" in r.text and "[back to overview]" in r.text
+    assert "No scan with id" in r.text and "Back to Home" in r.text
     assert client.get("/fragments/runs/nope/states").status_code == 404
     assert client.get(f"/fragments/runs/{BIG_RUN}/bogus").status_code == 404
 
@@ -369,8 +380,10 @@ def test_trace_tab_renders_calls_with_rationale_status_and_count(liveinsurer_sto
     t = text(html)
     assert "Trace 2" in t  # tab bar count = call spans for this run
     assert "pf_extract" in t and "pf_click" in t
-    assert "agent-stated: need to see the page contents" in t
-    assert "[ OK ]" in html and "[FAIL]" in html  # ok / error call statuses
+    assert "Agent-stated: need to see the page contents" in t
+    # ok / error call statuses
+    assert 'data-status="ok">OK' in html or 'data-status="ok">Ok' in html
+    assert 'data-status="failed">' in html
     assert 'id="region-trace"' in html
 
 
@@ -380,7 +393,7 @@ def test_trace_fragment_filters_by_tool_and_status(liveinsurer_store: Store) -> 
     w.commit()
 
     def calls_list(html: str) -> str:
-        return html.split('<ul class="trace-calls">')[1]
+        return html.split('<ul class="sy-rows">')[1]
 
     with make_client(liveinsurer_store) as c:
         only_click = c.get(f"/fragments/runs/{BIG_RUN}/trace?tool=pf_click&push=1")
@@ -402,7 +415,7 @@ def test_trace_expand_loads_phases_and_events(liveinsurer_store: Store) -> None:
         children = c.get("/fragments/spans/span-call-1/children").text
     t = text(children)
     assert "goto" in t and "request" in t and "GET /api" in t
-    assert "phase-bar-seg" in children
+    assert "mp-phase-bar__seg" in children
 
 
 def test_trace_children_not_found_shows_empty_state(liveinsurer_store: Store) -> None:
@@ -413,7 +426,7 @@ def test_trace_children_not_found_shows_empty_state(liveinsurer_store: Store) ->
 
 def test_trace_empty_state_when_run_never_reached_the_server(client: TestClient) -> None:
     html = client.get(f"/runs/{BIG_RUN}?tab=trace").text
-    assert "No trace recorded for this run" in text(html)
+    assert "No trace recorded for this scan" in text(html)
     assert "predates tracing" in text(html)
     filtered = client.get(f"/fragments/runs/{BIG_RUN}/trace?status=error").text
     assert "No calls match these filters" in text(filtered)
@@ -640,7 +653,7 @@ def test_trace_tab_shows_agent_context_and_never_reached_server(liveinsurer_stor
     t = text(html)
     assert "Trying to buy the policy to see what happens" in t
     assert "200 in / 40 out" in t
-    assert "Never reached server" in t
+    assert "Never reached the server" in t
     assert "mcp__pathfinder__navigate" in t
 
 
@@ -650,7 +663,7 @@ def test_trace_tab_not_imported_state(liveinsurer_store: Store) -> None:
     w.commit()
     with make_client(liveinsurer_store) as c:
         html = c.get(f"/runs/{BIG_RUN}?tab=trace").text
-    assert "not imported" in html
+    assert "Not imported" in html
     assert "pnpm trace:import-agent" in html
 
 
@@ -660,7 +673,7 @@ def test_trace_problems_filter_shows_unmatched_and_refused_calls(liveinsurer_sto
     w.commit()
     with make_client(liveinsurer_store) as c:
         html = c.get(f"/fragments/runs/{BIG_RUN}/trace?problems=1").text
-        rows = html.split('<ul class="trace-calls">')[1]
+        rows = html.split('<ul class="sy-rows">')[1]
     t = text(rows)
     assert "pf_click" in t  # refused
     assert "pf_extract" in t  # ok, but its tool_use_id has no matching agent turn
@@ -677,15 +690,15 @@ def test_trace_summary_fragment_and_page_panel(liveinsurer_store: Store) -> None
     for html in (frag, page):
         t = text(html)
         assert "pf_click" in t and "pf_extract" in t
-        assert "never reached server" in t
+        assert "never reached the server" in t
         assert "unmatched to the agent" in t
-        assert "problems only" in t
+        assert "Problems only" in t
     assert 'id="region-trace-summary"' in frag
 
 
 def test_trace_summary_empty_state(client: TestClient) -> None:
     html = client.get(f"/fragments/runs/{BIG_RUN}/trace/summary").text
-    assert "No trace recorded for this run" in text(html)
+    assert "No trace recorded for this scan" in text(html)
 
 
 def test_activity_page_and_fragment_show_run_less_calls(liveinsurer_store: Store) -> None:
@@ -705,7 +718,7 @@ def test_activity_page_and_fragment_show_run_less_calls(liveinsurer_store: Store
 
 def test_activity_empty_state(client: TestClient) -> None:
     t = text(client.get("/activity").text)
-    assert "No run-less calls recorded" in t
+    assert "No calls outside a scan" in t
 
 
 def test_only_running_runs_carry_the_live_dot(liveinsurer_store: Store) -> None:
@@ -715,5 +728,5 @@ def test_only_running_runs_carry_the_live_dot(liveinsurer_store: Store) -> None:
     with make_client(liveinsurer_store) as c:
         runs = c.get("/fragments/runs").text
         header = c.get("/fragments/runs/run-live/header").text
-    assert runs.count('class="live-dot"') == 1
-    assert "[RUN.]" in runs and 'class="live-dot"' in header
+    assert runs.count('data-status="running"') == 1
+    assert 'data-status="running">Running' in runs and 'data-status="running"' in header

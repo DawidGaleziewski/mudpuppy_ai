@@ -111,7 +111,6 @@ export async function startStack(name: string): Promise<Stack> {
         PATHFINDER_DEFAULT_ENV: 'sandbox',
         PATHFINDER_PORT: String(port),
         PATHFINDER_CHAT_URL: chatBase,
-        PATHFINDER_UI_SALVAGE: 'all',
         PATHFINDER_REVIEWER: reviewer,
       },
       stdio: 'ignore',

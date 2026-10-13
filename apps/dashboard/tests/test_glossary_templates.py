@@ -54,6 +54,6 @@ def test_intro_terms_are_intro_placement() -> None:
 
 
 def test_actions_target_column_renamed() -> None:
-    actions = (TEMPLATES / "partials" / "actions.html").read_text(encoding="utf-8")
+    actions = (TEMPLATES / "salvage" / "partials" / "actions.html").read_text(encoding="utf-8")
     assert ">Target<" not in actions
     assert "Links to" in actions

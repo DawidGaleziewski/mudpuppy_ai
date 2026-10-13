@@ -44,25 +44,27 @@ def test_dropdown_lists_configured_and_scanned_portals_and_new(
     with client(empty_store, Service(), configured(tmp_path, "wikipedia-org")) as c:
         r = c.get("/")
     assert r.status_code == 200
-    options = text(r.text.split('name="portal"', 1)[1].split("</select>", 1)[0])
-    assert "all portals" in options and "liveinsurer" in options and "wikipedia-org" in options
-    assert "+ new portal" in options
+    options = text(r.text.split('aria-label="Switch portal"', 1)[1].split("</ul>", 1)[0])
+    assert "All portals" in options and "liveinsurer" in options and "wikipedia-org" in options
+    assert "+ New portal" in options and 'href="/portals/new"' in r.text
 
 
 def test_choice_is_kept_in_a_cookie_and_all_portals_clears_it(
     empty_store: Store, tmp_path: Path
 ) -> None:
-    """FR-002, FR-003: Overview shows only the chosen portal's runs, on later pages too."""
+    """FR-002, FR-003: the pick shows only the chosen portal's runs, on later pages too."""
     add_run(empty_store, "run-u", "liveinsurer")
     add_run(empty_store, "run-w", "wikipedia-org")
     with client(empty_store, Service(), configured(tmp_path)) as c:
-        chosen = c.get("/", params={"portal": "wikipedia-org"})
-        later = c.get("/")
+        chosen = c.get("/", params={"portal": "wikipedia-org"}, follow_redirects=False)
+        later = c.get("/scans")
         cleared = c.get("/", params={"portal": ""})
+    assert chosen.status_code == 303 and chosen.headers["location"] == "/chat"  # Home = assistant
     assert "pf_portal=wikipedia-org" in chosen.headers["set-cookie"]
-    assert 'value="wikipedia-org" selected' in later.text
+    assert 'class="sy-mono">wikipedia-org</span>' in later.text  # the header shows the choice
     assert "run-w" in later.text and "run-u" not in later.text
     assert "run-u" in cleared.text and "run-w" in cleared.text
+    assert 'aria-current="true">All portals' in cleared.text
 
 
 def test_new_portal_option_opens_the_form(empty_store: Store, tmp_path: Path) -> None:
@@ -170,7 +172,8 @@ def test_new_portal_form_says_when_the_chat_service_is_down(
     with client(empty_store, Service(up=False), configured(tmp_path)) as c:
         page = c.get("/portals/new")
         post = c.post("/portals/new", data={"url_sandbox": "https://x.test"}, headers=ORIGIN)
-    assert "The chat service is not running" in text(page.text)
+    assert "Assistant not running" in text(page.text)
+    assert "pnpm --dir apps/chat start" in text(page.text)
     assert post.status_code == 503 and 'value="https://x.test"' in post.text
 
 
@@ -200,17 +203,22 @@ def test_settings_lists_environments_and_the_header_links_to_it(
     service = Service()
     service.routes[("GET", "/portals/shop")] = httpx2.Response(200, json=TWO_ENVS)
     with client(empty_store, service, configured(tmp_path, "shop")) as c:
-        home = c.get("/", params={"portal": "shop"})
+        home = c.get("/scans", params={"portal": "shop"})  # Home redirects; Scans shows the nav
         page = c.get("/portals/shop/settings")
     assert 'href="/portals/shop/settings"' in home.text
-    with client(empty_store, service, configured(tmp_path / "other")) as c:
-        scanned_only = c.get("/", params={"portal": "shop"})  # no portal.yaml: no [settings]
-    assert "/portals/shop/settings" not in scanned_only.text
     body = text(page.text)
     assert "https://shop.example.pl/" in body and "only look, never submit" in body
     assert "https://staging.shop.example.pl/" in body and "fill and submit forms" in body
-    assert page.text.count("[revoke]") == 2
-    assert 'value="sandbox" selected' in page.text  # the add form offers what is missing
+    assert page.text.count('data-dialog="revoke-dialog"') == 2
+    assert '<option value="sandbox" selected>' in page.text  # the add form offers what is missing
+
+
+def test_settings_link_is_hidden_for_a_portal_without_a_portal_file(
+    empty_store: Store, tmp_path: Path
+) -> None:
+    with client(empty_store, Service(), configured(tmp_path / "other")) as c:
+        scanned_only = c.get("/scans", params={"portal": "shop"})  # no portal.yaml: no Settings
+    assert "/portals/shop/settings" not in scanned_only.text
 
 
 def test_settings_adds_and_revokes_through_the_service(empty_store: Store, tmp_path: Path) -> None:
@@ -254,5 +262,5 @@ def test_settings_shows_the_services_refusal(empty_store: Store, tmp_path: Path)
         r = c.post("/portals/shop/environments/production/revoke", headers=ORIGIN)
         missing = c.get("/portals/nope/settings")
     assert r.status_code == 409 and "the only environment" in text(r.text)
-    assert "[revoke]" not in r.text and "the only one" in text(r.text)
+    assert 'data-dialog="revoke-dialog"' not in r.text and "the only one" in text(r.text).lower()
     assert missing.status_code == 404

@@ -78,4 +78,4 @@ def test_state_page_shows_entry_urls_hops_and_parameters(liveinsurer_store: Stor
     assert "Reached under" in html
     assert "https://liveinsurer.test/oc?wariant=pelny&amp;sid=AB12" in html
     assert "http 301" in html
-    assert "<code>wariant</code>" in html and "pelny" in html
+    assert ">wariant</td>" in html and "pelny" in html

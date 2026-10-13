@@ -19,9 +19,8 @@ import httpx2
 from fastapi import Request
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
-from jinja2 import TemplateNotFound
 
-from .. import db, glossary, queries_chat, queries_review, stores, ui_flag
+from .. import db, glossary, queries_chat, queries_review, stores
 from ..settings import Settings
 
 # The header's portal choice (spec 011): kept in a cookie; "" means all portals.
@@ -46,6 +45,15 @@ def build_url(path: str, **params: Any) -> str:
     `k=v` pair per item instead of one mangled param; scalar strings are unaffected."""
     query = urlencode(_clean(params), doseq=True)
     return f"{path}?{query}" if query else path
+
+
+TEMPLATE_DIR = "salvage/"
+
+
+def salvage_template(name: str) -> str:
+    """Every page is Salvage Yard (spec 022 M6): templates live under `salvage/`; routers may
+    name them with or without the prefix."""
+    return name if name.startswith(TEMPLATE_DIR) else TEMPLATE_DIR + name
 
 
 def same_origin(request: Request) -> bool:
@@ -137,13 +145,6 @@ class Web:
         )
         return Ctx(request, s, store, portal=chosen_portal(request), store_note=note)
 
-    def _has_template(self, name: str) -> bool:
-        try:
-            self.templates.env.get_template(name)
-        except TemplateNotFound:
-            return False
-        return True
-
     def header_portals(self, c: Ctx) -> list[str]:
         try:
             with c.conn() as conn:
@@ -165,7 +166,7 @@ class Web:
         settings = self.settings
         response = self.templates.TemplateResponse(
             c.request,
-            ui_flag.pick_template(settings.ui_salvage, template, self._has_template),
+            salvage_template(template),
             {
                 "c": c,
                 "env": c.env,

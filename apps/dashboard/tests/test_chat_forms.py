@@ -217,8 +217,8 @@ def test_tools_without_a_portal_ask_to_choose_one(empty_store: Store) -> None:
     seed_conversation(empty_store, portal=None)
     with make_client(empty_store, Service()) as c:
         body = text(c.get("/chat").text)
-    assert body.count("Choose a portal in the chat first") == 2  # credentials and scope
-    assert "[store credentials]" not in body and "[save scope]" not in body
+    assert body.count("Pick a portal first") == 2  # credentials and scope
+    assert "Store in vault" not in body and "Save scope" not in body
 
 
 def test_credentials_post_forwards_values_and_never_echoes_them(mapped: Store) -> None:
@@ -307,10 +307,8 @@ def test_error_refs_in_chat_and_tracker_link_to_the_lookup(empty_store: Store) -
     seed_step(empty_store, "scan", "failed", error_ref="ERR-0002-cd")
     with make_client(empty_store, Service()) as c:
         html = c.get("/chat").text
-    assert (
-        '<a href="/chat/errors/ERR-0001-ab"' in html
-        and '<a href="/chat/errors/ERR-0002-cd"' in html
-    )
+    assert re.search(r'<a [^>]*href="/chat/errors/ERR-0001-ab"', html)
+    assert re.search(r'<a [^>]*href="/chat/errors/ERR-0002-cd"', html)
 
 
 def test_error_lookup_shows_the_entry_with_pretty_detail_and_escaping(empty_store: Store) -> None:
@@ -368,19 +366,26 @@ def test_scope_checklist_lists_states_with_thumbnails_and_escaped_titles(
         r = c.get("/chat")
     html = r.text
     assert "Kalkulator <b>OC</b>" not in html and "Kalkulator &lt;b&gt;OC&lt;/b&gt;" in html
-    assert f'src="/evidence/{SHOT}"' in html and html.count('class="thumb"') == 1
     assert html.count('name="start_state_id"') == 2 and html.count('name="end_state_id"') == 2
     assert 'name="include" value="st-1"' in html and 'name="comment:st-2"' in html
     assert '<option value="client">client</option>' in html and '<option value="guest">' in html
-    assert "2 states" in text(html) and "[save scope]" in html
+    assert "2 screens" in text(html) and "Save scope" in text(html)
     assert 'name="process_name"' in html
+
+
+def test_scope_checklist_shows_a_thumbnail_of_a_state_with_a_screenshot(
+    mapped: Store, personas: Path
+) -> None:
+    with make_client(mapped, Service(), personas) as c:
+        html = c.get("/chat").text
+    assert f'src="/evidence/{SHOT}"' in html
 
 
 def test_scope_checklist_empty_when_no_states_are_mapped(empty_store: Store) -> None:
     seed_conversation(empty_store)
     with make_client(empty_store, Service()) as c:
         body = text(c.get("/chat").text)
-    assert "No states mapped yet" in body and "[save scope]" not in body
+    assert "No screens mapped yet" in body and "Save scope" not in body
 
 
 def test_tools_fragment_and_missing_conversation(mapped: Store, personas: Path) -> None:
@@ -478,11 +483,11 @@ def test_state_page_lists_to_be_amendments_apart_from_observed_facts(mapped: Sto
         r = c.get("/states/st-1")
     html = r.text
     body = text(html)
-    assert "Amendments TO-BE" in body and "intentions, not observations" in body
+    assert "To-be: what the business wants changed" in body and "Kept apart from how" in body
     assert "make it <i>bigger</i>" not in html and "make it &lt;i&gt;bigger&lt;/i&gt;" in html
-    assert "[ACTV] active" in body and "[WDRN] withdrawn" in body
+    assert 'data-status="live">Active' in html and 'data-status="stopped">Withdrawn' in html
     assert "AMD-001" in body and "AMD-002" in body and "AMD-003" in body and "AMD-004" not in body
-    assert "mock.png" in body and "whole screen" in body
+    assert "mock.png" in body and "Whole screen" in body
     assert html.count("data-withdraw=") == 2  # only active ones can be withdrawn
     assert '/chat/portals/liveinsurer/amendments/amd-id-1"' in html
     assert 'id="region-state-amendments"' in html and "/fragments/states/st-1/amendments" in html
@@ -509,8 +514,10 @@ def test_state_amendments_fragment_and_not_found(mapped: Store) -> None:
     with make_client(mapped, Service()) as c:
         ok = c.get("/fragments/states/st-1/amendments")
         missing = c.get("/fragments/states/nope/amendments")
-    assert ok.status_code == 200 and "AMD-001" in ok.text and "<form" not in ok.text
-    assert missing.status_code == 404 and "No state with id “nope”" in text(missing.text)
+    # the add form sits outside the live region, so typing in it is never swapped away
+    assert ok.status_code == 200 and "AMD-001" in ok.text
+    assert 'type="file"' not in ok.text and "Add an amendment" not in ok.text
+    assert missing.status_code == 404 and "No screen with id “nope”" in text(missing.text)
 
 
 def test_amendment_create_forwards_the_body_with_an_attachment(mapped: Store) -> None:
@@ -606,59 +613,58 @@ def test_superseded_page_shows_reason_run_target_and_actions(mapped: Store) -> N
     )
     seed_amendment(mapped, 3, status="dismissed", dismissed_at=ts(40))
     with make_client(mapped, Service()) as c:
-        r = c.get("/amendments/superseded")
-        dismissed = c.get("/amendments/superseded", params={"show": "dismissed"})
-        both = c.get("/amendments/superseded", params={"show": "both", "portal": "liveinsurer"})
+        r = c.get(
+            "/review", params={"portal": "liveinsurer", "show": "reanchor", "select": "reanchor:AMD-001"}
+        )
+        second = c.get("/review", params={"portal": "liveinsurer", "select": "reanchor:AMD-002"})
     html, body = r.text, text(r.text)
-    assert r.status_code == 200 and "Amendments to review TO-BE" in body
-    assert "rename <b>it</b>" not in html and "rename &lt;b&gt;it&lt;/b&gt;" in html
-    assert "[OLD.] needs reanchor" in body
-    assert "element changed" in body and "button renamed" in body
-    assert "state replaced by a newer recording" in body and "new layout" in body
+    assert r.status_code == 200 and "Amendments to re-anchor" in body
+    # AMD-001 is selected: why it lost its place, the scan, the screen, the actions
+    assert "rename &lt;b&gt;it&lt;/b&gt;" in html and "rename <b>it</b>" not in html
+    assert "changed in the newer recording" in body and "button renamed" in body
     assert f'href="/runs/{RUN}"' in html and 'href="/states/st-1"' in html
-    assert "re-applied as a new amendment" in body  # AMD-002 has no actions
-    assert html.count("[re-apply]") == 1 and html.count("data-dismiss=") == 1
+    assert 'element <span class="sy-mono sy-mono--sm">button &#34;Go&#34;</span>' in html
+    assert html.count("Re-anchor here") == 1 and html.count("data-dismiss=") == 1
     assert '/chat/portals/liveinsurer/amendments/amd-id-1/reapply"' in html
-    assert 'list="dl-states-liveinsurer"' in html and '<datalist id="dl-states-liveinsurer">' in html
-    assert 'value="st-1"' in html and "button &#34;Go&#34;" in html  # prefilled from the original
-    assert "AMD-003" not in body
-    assert "AMD-003" in text(dismissed.text) and "[DISM] dismissed" in text(dismissed.text)
-    assert "dismissed by the BA" in text(dismissed.text) and "[re-apply]" not in dismissed.text
-    assert {"AMD-001", "AMD-002", "AMD-003"} <= set(text(both.text).split())
-    assert "TO-BE" in html and 'id="region-amendments-superseded"' in html
+    assert 'list="dl-review-states"' in html and '<datalist id="dl-review-states">' in html
+    assert 'name="state_id"' in html and 'value="st-1"' in html  # prefilled from the original
+    assert 'value="button &#34;Go&#34;"' in html  # the element key too
+    # a re-applied copy (AMD-002) and a dismissed one (AMD-003) wait for nobody
+    assert "AMD-002" not in body and "AMD-003" not in body
+    assert "AMD-002" not in text(second.text)
 
 
-def test_superseded_filter_fragment_pushes_the_page_url(mapped: Store) -> None:
-    seed_superseded(mapped, 1)
-    seed_superseded(mapped, 2, portal_id="other")
+def test_superseded_url_redirects_to_the_review_reanchor_group(mapped: Store) -> None:
+    """FR-009: the Console page and its filter fragment are gone; the URL leads to Review."""
+    old = "/amendments/superseded"
     with make_client(mapped, Service()) as c:
-        r = c.get("/fragments/amendments/superseded", params={"portal": "other", "push": 1})
-        live = c.get("/fragments/amendments/superseded", params={"portal": "other"})
-    assert r.headers["HX-Push-Url"] == "/amendments/superseded?portal=other&show=superseded"
-    assert "AMD-002" in r.text and "AMD-001" not in r.text
-    assert "HX-Push-Url" not in live.headers
-    assert "store-changed" in r.text
+        plain = c.get(old, follow_redirects=False)
+        scoped = c.get(old, params={"portal": "liveinsurer"}, follow_redirects=False)
+        fragment = c.get("/fragments/amendments/superseded")
+    assert plain.status_code == 307 and plain.headers["location"] == "/review?show=reanchor"
+    assert scoped.headers["location"] == "/review?portal=liveinsurer&show=reanchor"
+    assert fragment.status_code == 404
 
 
-def test_superseded_unknown_filters_fall_back_and_empty_state(mapped: Store) -> None:
+def test_review_reanchor_group_empty_state_and_unknown_filter(mapped: Store) -> None:
     with make_client(mapped, Service()) as c:
-        r = c.get("/amendments/superseded", params={"show": "bogus", "portal": "liveinsurer"})
+        r = c.get("/review", params={"portal": "liveinsurer", "show": "bogus"})
     body = text(r.text)
-    assert r.status_code == 200 and "Nothing superseded for liveinsurer" in body
-    assert "replaces or changes the screen" in body
+    assert r.status_code == 200 and "Nothing to re-anchor" in body
+    assert "a scan changes a screen" in body
 
 
 def test_count_badge_on_chat_tracker_and_portal_card(mapped: Store) -> None:
     with make_client(mapped, Service()) as c:
         none = text(c.get("/chat").text)
-        assert "[amendments to review]" in none
+        assert "to re-anchor" not in none
         seed_superseded(mapped, 1)
         seed_superseded(mapped, 2)
         seed_superseded(mapped, 3, reapplied_as="amd-id-1")  # decided: not counted
         chat = text(c.get("/chat").text)
         overview = text(c.get("/").text)
-    assert "[amendments to review 2 superseded]" in chat
-    assert "[2 superseded amendments to review]" in overview
+    assert "2 amendments to re-anchor" in chat
+    assert "2 amendments to re-anchor" in overview
 
 
 def test_reapply_and_dismiss_forward_to_the_service(mapped: Store) -> None:
@@ -713,7 +719,7 @@ def test_every_new_page_answers_200(mapped: Store, personas: Path) -> None:
             "/chat",
             "/fragments/chat/tools?conversation=conv-1",
             "/amendments/superseded",
-            "/fragments/amendments/superseded",
+            "/review?portal=liveinsurer&show=reanchor",
             "/states/st-1",
             "/fragments/states/st-1/amendments",
         ):

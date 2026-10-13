@@ -1,0 +1,3 @@
+{% import "salvage/macros.html" as sy %}
+{{ sy.empty("No conversation with id " ~ asked, "It may belong to another environment, or it was never created.", level=2) }}
+<p><a class="sy-btn sy-btn--sm" href="{{ c.url('/chat') }}">Open the newest conversation</a></p>

@@ -1,5 +1,5 @@
 // Dashboard UI check (spec 022 T016; FE-Q01, FE-N06, FE-V07, screen acceptance 1–3, 6).
-// Against a running dashboard with PATHFINDER_UI_SALVAGE=all, for every page at 1280 and 390 px
+// Against a running dashboard, for every page at 1280 and 390 px
 // with reduced motion: a full-page screenshot, no page-level horizontal scroll, one h1, at most
 // one primary button and one intent plate, and axe-core with no serious or critical issue.
 //

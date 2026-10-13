@@ -23,12 +23,14 @@ def test_glossary_page_lists_every_entry(empty_client: TestClient) -> None:
 
 
 def test_glossary_nav_item(empty_client: TestClient) -> None:
-    r = empty_client.get("/glossary")
-    nav = re.search(r'<nav aria-label="Main">.*?</nav>', r.text, re.S).group(0)
-    assert re.search(r'href="/glossary[^"]*"\s+aria-current="page">Glossary<', nav)
-    other = empty_client.get("/activity").text
-    nav = re.search(r'<nav aria-label="Main">.*?</nav>', other, re.S).group(0)
-    assert ">Glossary<" in nav and 'aria-current="page">Glossary' not in nav
+    # The Salvage yard has no glossary tab: the header's "?" button (Help and glossary) opens it
+    # from every page, and the glossary is not one of the portal sections.
+    for url in ("/glossary", "/scans"):
+        html = empty_client.get(url).text
+        assert re.search(r'<a [^>]*href="/glossary"[^>]*aria-label="Help and glossary"', html), url
+        nav = re.search(r'<nav class="sy-nav"[^>]*>.*?</nav>', html, re.S).group(0)
+        assert ">Glossary<" not in nav, url
+    assert '<h1 class="sy-h1">Glossary</h1>' in empty_client.get("/glossary").text
 
 
 def test_glossary_filter(empty_client: TestClient) -> None:
@@ -77,7 +79,8 @@ def test_broken_glossary_degrades(empty_store: Store, tmp_path: Path) -> None:
     with make_client(empty_store, docs_dir=docs) as client:
         page = client.get("/glossary")
         assert page.status_code == 200
-        assert "[WARN]" in page.text
+        assert "The glossary could not be loaded" in page.text
+        assert "sy-state--failure" in page.text
         assert "invalid YAML" in page.text
         assert client.get("/").status_code == 200
         assert client.get("/glossary/pages/alpha-long").status_code == 404
@@ -102,15 +105,18 @@ def test_markdown_is_not_raw_html(empty_store: Store) -> None:
 # ---- tooltips and section intros (US2) ----------------------------------------------------------
 
 TIP = re.compile(
-    r'<span class="gl">(?P<label>[^<]+)<a class="gl-mark" href="/glossary#(?P<id>[a-z0-9-]+)" '
-    r'aria-describedby="(?P<tip>gl-tip-[a-z0-9-]+)"[^>]*>\[\?\]</a>'
-    r'<span class="gl-tip" role="tooltip" id="(?P=tip)">[^<]+</span></span>'
+    r'<span class="mp-term">(?P<label>[^<]+)<a class="sy-hint" href="/glossary#(?P<id>[a-z0-9-]+)" '
+    r'title="(?P<short>[^"]+)" aria-label="What is [^"]+\?">\?</a></span>'
 )
 
 
 def tips(html: str) -> dict[str, str]:
-    """label → term id for every tooltip on the page."""
+    """label → term id for every tooltip (the "?" hint after a label) on the page."""
     return {m["label"]: m["id"] for m in TIP.finditer(html)}
+
+
+def plain(html: str) -> str:
+    return re.sub(r"\s+", " ", re.sub(r"<[^>]+>", " ", html))
 
 
 def test_actions_tab_tooltips_and_rename(client: TestClient) -> None:
@@ -123,8 +129,9 @@ def test_actions_tab_tooltips_and_rename(client: TestClient) -> None:
     assert found["Decision"] == "decision"
     assert ">Links to<" in html
     assert ">Target<" not in html
-    assert 'class="section-intro"' in html  # the run header intro
+    # the run header intro: the term's short text and a "More" link to the glossary entry
     assert "One session of the crawler" in html
+    assert re.search(r'<a href="/glossary#run" aria-label="More about [^"]+">More</a>', html)
 
 
 def test_frontier_and_states_tooltips(client: TestClient) -> None:
@@ -140,12 +147,16 @@ def test_frontier_and_states_tooltips(client: TestClient) -> None:
     assert "One distinct condition of a portal screen" in states_html
 
 
-def test_tooltip_ids_are_unique_per_page(client: TestClient) -> None:
+def test_tooltips_carry_their_text_and_page_ids_stay_unique(client: TestClient) -> None:
+    # The Salvage hint keeps its text in `title` (no per-tooltip element ids to collide), so the
+    # old "tooltip ids are unique" check becomes: every hint has text, and no id repeats.
     from .test_routes import BIG_RUN
 
     html = client.get(f"/runs/{BIG_RUN}?tab=frontier").text
-    ids = re.findall(r'id="(gl-tip-[^"]+)"', html)
-    assert ids and len(ids) == len(set(ids))
+    shorts = [m["short"] for m in TIP.finditer(html)]
+    assert shorts and all(s.strip() for s in shorts)
+    ids = re.findall(r'\sid="([^"]+)"', html)
+    assert len(ids) == len(set(ids))
 
 
 def test_docs_record_tooltips(ba_client: TestClient) -> None:
@@ -169,7 +180,7 @@ def test_no_tooltips_when_glossary_broken(liveinsurer_store: Store, tmp_path: Pa
     (docs / "glossary" / "glossary.yaml").write_text("entries: [unclosed\n")
     with make_client(liveinsurer_store, docs_dir=docs) as client:
         html = client.get(f"/runs/{BIG_RUN}?tab=frontier").text
-    assert 'class="gl"' not in html
+    assert 'class="mp-term"' not in html and 'class="sy-hint"' not in html
     assert "Frontier" in html
 
 
@@ -186,7 +197,7 @@ def test_wiki_page_with_citations(empty_client: TestClient) -> None:
     r = empty_client.get("/glossary/wiki/business-rule")
     assert r.status_code == 200
     assert "Business Rules Analysis" in r.text
-    assert "checked 2026-10-03" in r.text
+    assert "checked 2026-10-03" in plain(r.text)
     assert 'href="https://www.iiba.org/' in r.text
 
 
@@ -210,5 +221,5 @@ def test_wiki_markdown_has_no_raw_html(empty_store: Store) -> None:
 
 def test_entry_shows_last_change(empty_client: TestClient) -> None:
     html = empty_client.get("/glossary").text
-    entry = re.search(r'<article class="panel gl-entry" id="frontier".*?</article>', html, re.S)
-    assert entry and "Last changed in R-52, 2026-10-12." in entry.group(0)
+    entry = re.search(r'<article class="sy-plate" id="frontier".*?</article>', html, re.S)
+    assert entry and "Last changed in R-52, 2026-10-12" in plain(entry.group(0))

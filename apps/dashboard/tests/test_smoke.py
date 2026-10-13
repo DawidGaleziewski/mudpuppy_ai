@@ -24,6 +24,9 @@ from .conftest import Store, make_client
 BASE = "http://testserver/"
 REAL_SANDBOX = Path(__file__).resolve().parents[3] / "data" / "db" / "sandbox.sqlite"
 _LINK = re.compile(r'(?:href|hx-get)="([^"]+)"')
+# The error-log lookup is fetched from the chat service and answers 503 by design without it
+# (the assistant drawer on every page lists these references from the store's conversations).
+_NEEDS_CHAT_SERVICE = ("/chat/errors/",)
 
 
 def crawl(client: TestClient, env: str, limit: int = 3000) -> tuple[int, list[str]]:
@@ -48,6 +51,8 @@ def crawl(client: TestClient, env: str, limit: int = 3000) -> tuple[int, list[st
             failures.append(f"{r.status_code} {path}")
             continue
         for href in _LINK.findall(r.text):
+            if href.startswith(_NEEDS_CHAT_SERVICE):
+                continue
             u = smoke._normalise(BASE, href, env)
             if u and u not in seen:
                 seen.add(u)

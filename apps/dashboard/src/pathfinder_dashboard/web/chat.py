@@ -157,30 +157,6 @@ def fragment_chat_progress(
     return web.render(c, "partials/chat_progress.html", **values)
 
 
-@router.get("/fragments/chat/map", response_class=HTMLResponse, response_model=None)
-def fragment_chat_map(
-    request: Request,
-    env: str | None = None,
-    conversation: str | None = None,
-    v: str | None = None,
-) -> HTMLResponse | Response:
-    """T049: polled every 3 s while the run runs; 204 (htmx keeps the drawing) if unchanged."""
-    web = web_of(request)
-    c = web.ctx(request, env)
-    try:
-        with c.conn() as conn:
-            values = chat_values(c, conn, conversation)
-            if values and values.get("conversation"):
-                values.update(map_values(c, conn, values))
-    except db.StoreMissing as err:
-        return web.missing(c, err, fragment=True)
-    if values is None or not values.get("conversation"):
-        return web.render(c, "partials/chat_missing.html", status_code=404, asked=conversation)
-    if v and v == values["map_version"]:
-        return Response(status_code=204)
-    return web.render(c, "partials/chat_map.html", **values)
-
-
 @router.get("/fragments/chat/tools", response_class=HTMLResponse)
 def fragment_chat_tools(
     request: Request, env: str | None = None, conversation: str | None = None

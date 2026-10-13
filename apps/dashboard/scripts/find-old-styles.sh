@@ -17,7 +17,9 @@ if [ "$#" -eq 0 ]; then set -- .; fi
 INCLUDE=(--include='*.html' --include='*.htm' --include='*.jinja' --include='*.jinja2' --include='*.j2'
          --include='*.css' --include='*.scss' --include='*.js' --include='*.mjs' --include='*.ts'
          --include='*.tsx' --include='*.jsx' --include='*.py' --include='*.vue' --include='*.svelte')
-EXCLUDE=(--exclude-dir=node_modules --exclude-dir=.git --exclude-dir=dist --exclude-dir=build)
+# `vendor`: third-party bundles (htmx, mermaid) are not ours to restyle (spec 022 T039).
+EXCLUDE=(--exclude-dir=node_modules --exclude-dir=.git --exclude-dir=dist --exclude-dir=build
+         --exclude-dir=vendor --exclude-dir=.venv --exclude-dir=mutants)
 
 declare -a PATTERNS=(
   "Console amber (brand/OK)|#ffb000"

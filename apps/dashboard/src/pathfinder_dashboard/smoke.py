@@ -25,7 +25,8 @@ from .version import code_fingerprint
 
 _LINK = re.compile(r'(?:href|hx-get)="([^"]+)"')
 # Static files and the event stream are not pages; a `cursor` is dropped in `_normalise`.
-_SKIP_PREFIXES = ("/static/", "/events")
+# `/chat/errors/`: answers 503 by design while the chat service is down (spec 022 FE-A06).
+_SKIP_PREFIXES = ("/static/", "/events", "/chat/errors/")
 # Where the crawl starts. The Chat page and the superseded-amendments page (spec 010) are listed
 # so a broken one is found even when no link on the other pages reaches it.
 START_PAGES = ("/", "/docs", "/activity", "/chat", "/amendments/superseded")

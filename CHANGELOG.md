@@ -6,6 +6,38 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Added
+- R-43 + R-44 dashboard redesign with versioning (spec 022; the owner, 2026-10-13: "redesign
+  EVERYTHING", R-44 folded in), to the Salvage Yard design package:
+  - **Portal as context, seven sections:** the portal is picked once in the header; Home (the
+    assistant, Needs you, Processes summary), Processes, Screens, Docs, Review, Scans, Settings.
+    Old URLs redirect (the superseded-amendments page lands in Review).
+  - **Chat first:** "Ask the assistant" (Ctrl J) opens a drawer on every page with "This page" /
+    "Whole yard"; the assistant reads the page (screen, docs record, scan, process), marks an
+    element, opens a page, proposes changes the BA applies, undoes or discards (each a revision),
+    and asks for a credential with a vault field (the value never reaches it).
+  - **Nothing is overwritten (R-44):** screens get observed revisions (r1, r2…) instead of being
+    replaced; amendments, processes, variants, change specs and the live marker are append-only
+    revisions signed with the reviewer name; a save on an old base is refused and shown as
+    "Someone saved first" with Rebase; amendments carry forward or wait in Review to be
+    re-anchored. Migrations 0015 screens, 0016 amendment revisions, 0017 chat proposals, 0018 BA
+    processes (saved process scopes become processes).
+  - **Processes workspace:** the assistant suggests groupings (`list_grouping_inputs`,
+    `suggest_grouping`; a dismissed set is never suggested again); a process has the observed
+    as-is A and to-be variants B, C… drawn as autosaved drafts (add, move, merge, edit, annotate,
+    remove steps), Save as rN+1, Discard; Compare shows the step diff and a generated, editable
+    change spec (Markdown export); History marks which variant is live per environment and
+    restores revisions.
+  - **Review inbox, Scans, Settings:** one inbox for records to confirm, amendments to re-anchor,
+    proposals and conflicts, with a count in the nav; Scans has the live monitor and history with
+    what changed; Settings has environments, collapsed credentials (names only), personas, crawl
+    rules and the data store.
+  - The Console UI, the `PATHFINDER_UI_SALVAGE` flag, its CSS and JetBrains Mono are removed;
+    `docs/how-to-use.md` is rewritten; nine glossary entries; browser end-to-end tests for
+    proposals and for drawing and the two-person conflict (`pnpm --dir apps/chat test:e2e`).
+- Owner decisions of 2026-10-14: a chat scan may fill and submit forms by default ("only look"
+  makes one read-only); the `pwTrace` boot mode is removed; load-sensitive tests run alone after
+  the parallel pass (`serial` marker, `pnpm test:perf`); a hook refuses `sed -i`, `perl -i` and
+  redirect writes to tracked files.
 - R-52 roadmap declutter (spec 020; the owner, 2026-10-12: "tasks that are a bit minor and can be
   done now without any decision on my end … one collective feature branch"), built overnight:
   - **Evals (R-40, done):** the gates' pure eval checks run in the fast tier; each agent session

@@ -1,11 +1,13 @@
-"""Token fidelity (scorecard): every colour and radius in app.css comes from tokens.css."""
+"""Token fidelity (scorecard): the dashboard's own CSS takes its colours and radius from the Salvage
+tokens (static/salvage/css/tokens.css); the design package's CSS is not edited."""
 
 import re
 from pathlib import Path
 
-CSS = Path(__file__).resolve().parents[1] / "src" / "pathfinder_dashboard" / "static" / "css"
-APP = (CSS / "app.css").read_text()
-TOKENS = (CSS / "tokens.css").read_text()
+STATIC = Path(__file__).resolve().parents[1] / "src" / "pathfinder_dashboard" / "static"
+APP = (STATIC / "css" / "mp.css").read_text()
+SALVAGE = (STATIC / "salvage" / "css" / "salvage.css").read_text()
+TOKENS = (STATIC / "salvage" / "css" / "tokens.css").read_text()
 
 
 def without_comments(css: str) -> str:
@@ -19,34 +21,34 @@ def test_no_colour_literals_in_app_css() -> None:
 
 
 def test_radius_only_from_tokens() -> None:
-    for value in re.findall(r"border-radius\s*:\s*([^;]+);", without_comments(APP)):
-        assert value.strip() in {"var(--radius-none)", "var(--radius-full)"}, value
+    for css in (APP, SALVAGE):
+        for value in re.findall(r"border-radius\s*:\s*([^;]+);", without_comments(css)):
+            assert value.strip() in {"var(--sy-radius)", "0", "50%"}, value
 
 
 def test_every_var_used_is_defined() -> None:
-    defined = set(re.findall(r"(--[a-z0-9-]+)\s*:", TOKENS))
+    defined = set(re.findall(r"(--[a-z0-9-]+)\s*:", TOKENS + SALVAGE + APP))
     used = set(re.findall(r"var\((--[a-z0-9-]+)", without_comments(APP)))
-    assert used <= defined, used - defined
+    # --value is set inline per element (the phase bar segment width).
+    assert used - {"--value"} <= defined, used - defined
 
 
-def test_only_three_sanctioned_animations() -> None:
-    keyframes = set(re.findall(r"@keyframes\s+([a-z-]+)", APP))
-    assert keyframes == {"pulse", "mark-bounce", "caret"}
-    assert "prefers-reduced-motion" in APP
+def test_only_sanctioned_animations() -> None:
+    keyframes = set(re.findall(r"@keyframes\s+([a-z-]+)", APP + SALVAGE))
+    assert keyframes == {"sy-pulse", "sy-caret"}
+    assert "prefers-reduced-motion" in SALVAGE
 
 
-def test_console_colour_tokens_present() -> None:
+def test_salvage_colour_tokens_present() -> None:
     for token, value in {
-        "--surface-0": "#0a0a08",
-        "--surface-100": "#131310",
-        "--surface-200": "#1a1a14",
-        "--border": "#2b2a20",
-        "--ink-100": "#e8d9ae",
-        "--ink-500": "#8a7f5c",
-        "--brand": "#ffb000",
-        "--accent-2": "#33ff66",
-        "--accent-3": "#00e5ff",
-        "--accent-4": "#ff66c4",
-        "--signal-error": "#ff3b30",
+        "--sy-steel-900": "#111315",
+        "--sy-steel-800": "#181B1E",
+        "--sy-chalk": "#E8E4DA",
+        "--sy-marker": "#FF8F1F",
+        "--sy-manila": "#E9D8A6",
+        "--sy-inspected": "#7BC47F",
+        "--sy-coolant": "#56C2E6",
+        "--sy-blueprint": "#7AA7FF",
+        "--sy-failure": "#FF5A5F",
     }.items():
         assert re.search(rf"{token}:\s*{value};", TOKENS), token

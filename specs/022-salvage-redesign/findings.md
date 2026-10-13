@@ -118,7 +118,11 @@
 - **Symptom**: the T031 agent changed `web/portals.py` once with a Python `str.replace` script
   although its brief forbade script edits; it said so in its report. The result was correct. The
   T033 db-admin agent did the same with throwaway node/python scripts on `db-types.ts`,
-  `portal-data.ts` and two READMEs (also reported, also correct after prettier).
+  `portal-data.ts` and two READMEs (also reported, also correct after prettier). A T039 test
+  agent wrote `tests/test_chat.py` once with a python heredoc (reported, re-verified). The
+  close-out code-reviewer edited `apps/chat/src/reanchor.ts` with a Python text-replace (reported;
+  diff checked: a clean extraction of `headWriter` and `revisionOf`). Five slips in one night by
+  subagents: the hook gap matters; the follow-up above is worth doing.
 - **Cause**: the new PreToolUse hook (`no-script-edits.py`) blocks `sed -i`, `perl -i` and
   redirects, not an inline Python or Node script that writes a file.
 - **Test idea**: extend the hook to refuse `python3 -c`/heredoc scripts and `node -e` that call
@@ -147,3 +151,26 @@
 
 - The glossary entry "status codes" still explains `[ OK ]`, `[RUN.]` … (content, not markup). It
   is rewritten with the other glossary entries in M6 (T041).
+
+## Close-out review: feature/022-r43-salvage-redesign (2026-10-14)
+
+Scope: the whole spec 022 change set (4d25d85..HEAD), not only the M6 diff. Counted without blank and comment lines.
+
+| # | File:line | Guideline | Finding | Change | Size | Outcome |
+| - | --------- | --------- | ------- | ------ | ---- | ------- |
+| 1 | apps/dashboard/src/pathfinder_dashboard/status_map.py:28 | G-23 | `# type: ignore[attr-defined]` without a reason | `get_args(Shape)` replaces `Shape.__args__`, ignore removed | small | fixed |
+| 2 | apps/chat/src/reanchor.ts:106 | G-02, G-04 | `reanchorAfterRun` 92 lines (limit 80) | extracted `headWriter` and `revisionOf` (scan context object, 4 params) | small | fixed |
+| 3 | apps/dashboard/CLAUDE.md:16-24 | G-30 | layout list missed routers `processes`, `review`, `scans`, `screens` and `queries_processes/review/scans/settings` | added to the list | small | fixed |
+| 4 | apps/dashboard/CLAUDE.md | G-30 | file is about 72 lines (limit about 60) | trim the UI-check and mutation sections | small | deferred (owner-facing notes; trim in a docs pass) |
+| 5 | apps/chat/src/amendment-revisions.ts:100 | G-04 | `writeRevision` has 6 positional parameters | options object; changes every caller (amendments, proposal-service, process-store) | large | deferred → follow-up |
+| 6 | apps/chat/src/api-amendments.ts:35 | G-03, G-04 | `amendmentRoutes` complexity 20, 6 parameters | split into root/one/action handlers with a route context | large | deferred → follow-up |
+| 7 | apps/chat/src/amendments.ts:121 | G-02 | `createAmendmentService` 213 lines (rewritten in M2, +154/-145) | one function per service method | large | deferred → follow-up |
+| 8 | apps/chat/src/mcp-chat.ts:77 | G-02, G-06 | `createChatMcpServer` 170 lines and grew by 41 lines | register tools per module as `mcp-page-tools` does | large | deferred → follow-up |
+| 9 | apps/chat/src/scan.ts:107,214 | G-02, G-03, G-13 | `requestScan` 140 lines, complexity 43, nested ternaries (touched by +15/-11) | extract preflight and result-shaping steps | large | deferred → follow-up |
+| 10 | apps/chat/src/step-recorder.ts, steps.ts, acp-client.ts, workflow-data.ts, handover.ts | G-02, G-03 | complexity and length warnings, nested ternaries; changed by 2-13 lines only | not part of the spec's growth | large | deferred (G-06: split when a feature touches them) |
+| 11 | apps/dashboard/src/pathfinder_dashboard/models.py | G-01, G-06 | 844 counted lines (limit 400), +158 in this spec | split by table group (portal, docs, chat, processes) | large | deferred → follow-up |
+| 12 | apps/dashboard/src/pathfinder_dashboard/queries_chat.py | G-01, G-06 | 417 counted lines (limit 400), +16 | move proposal reads to `queries_proposals.py` | large | deferred → follow-up |
+| 13 | apps/dashboard web/overview.py:30,72,114, web/portals.py:155, web/states.py:48 | G-04 | ruff PLR0913 (6 to 8 parameters) | FastAPI route and view-value signatures take query parameters; an options object would break the route contract | small | rejected (framework parameters, not positional call sites) |
+
+Checks after fixes: chat typecheck ✓ lint ✓ (0 errors, warnings are the deferred rows) test ✓ (253); dashboard ruff ✓ pytest -n auto -m 'not perf and not serial' ✓. Crawler files untouched (the crawler suite was running), so no crawler tier was run by this review.
+Summary: 13 findings, 3 fixed, 9 deferred, 1 rejected.

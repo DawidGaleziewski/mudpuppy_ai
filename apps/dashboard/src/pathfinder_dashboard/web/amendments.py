@@ -1,18 +1,16 @@
 """TO-BE amendments: the forms' posts and the assistant's proposals (spec 022), forwarded to the
-chat service (T031, T033), and the superseded-amendments page (FR-022)."""
+chat service (T031, T033); the old superseded-amendments URL redirects to Review (FR-009)."""
 
 from __future__ import annotations
 
-import sqlite3
 from typing import Any
 from urllib.parse import quote
 
 from fastapi import APIRouter, Request
-from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
+from fastapi.responses import JSONResponse, RedirectResponse
 
-from .. import db, queries_chat, ui_flag
 from .chat_forward import chat_json, chat_refused, forward, invalid, read_json
-from .deps import Ctx, same_origin, web_of
+from .deps import same_origin, web_of
 
 router = APIRouter()
 
@@ -137,65 +135,10 @@ async def proposal_decide(
     )
 
 
-def superseded_values(
-    c: Ctx, conn: sqlite3.Connection, portal: str | None, show: str | None
-) -> dict[str, Any]:
-    portal = portal or None
-    show = show if show in queries_chat.SHOW_FILTERS else "superseded"
-    items = queries_chat.superseded_amendments(conn, portal, show)
-    states = {p: queries_chat.portal_states(conn, p) for p in sorted({a.portal_id for a in items})}
-    return {
-        "items": items,
-        "portal": portal,
-        "show": show,
-        "portals": queries_chat.amendment_portals(conn),
-        "states": states,
-        "reasons": queries_chat.SUPERSEDED_REASONS,
-        "form_action": c.url("/amendments/superseded"),
-        "fragment_url": c.url("/fragments/amendments/superseded"),
-        "self_url": c.url("/fragments/amendments/superseded", portal=portal, show=show),
-    }
-
-
-@router.get("/amendments/superseded", response_class=HTMLResponse, response_model=None)
+@router.get("/amendments/superseded", response_model=None)
 def superseded_page(
-    request: Request, env: str | None = None, portal: str | None = None, show: str | None = None
-) -> HTMLResponse | RedirectResponse:
-    web = web_of(request)
-    c = web.ctx(request, env)
-    # FR-009: with the redesign on, the old page is the Review inbox's re-anchor group.
-    if ui_flag.salvage_on(web.settings.ui_salvage, "amendments"):
-        return RedirectResponse(c.url("/review", portal=portal, show="reanchor"), status_code=307)
-    try:
-        with c.conn() as conn:
-            return web.render(
-                c,
-                "amendments.html",
-                nav_current="amendments",
-                v=superseded_values(c, conn, portal, show),
-            )
-    except db.StoreMissing as err:
-        return web.missing(c, err)
-
-
-@router.get("/fragments/amendments/superseded", response_class=HTMLResponse)
-def fragment_superseded(
-    request: Request,
-    env: str | None = None,
-    portal: str | None = None,
-    show: str | None = None,
-    push: bool = False,
-) -> HTMLResponse:
-    web = web_of(request)
-    c = web.ctx(request, env)
-    try:
-        with c.conn() as conn:
-            v = superseded_values(c, conn, portal, show)
-    except db.StoreMissing as err:
-        return web.missing(c, err, fragment=True)
-    return web.render(
-        c,
-        "partials/amendments_superseded.html",
-        v=v,
-        push=c.url("/amendments/superseded", portal=v["portal"], show=v["show"]) if push else None,
-    )
+    request: Request, env: str | None = None, portal: str | None = None
+) -> RedirectResponse:
+    """FR-009: the old page is the Review inbox's re-anchor group now."""
+    c = web_of(request).ctx(request, env)
+    return RedirectResponse(c.url("/review", portal=portal, show="reanchor"), status_code=307)

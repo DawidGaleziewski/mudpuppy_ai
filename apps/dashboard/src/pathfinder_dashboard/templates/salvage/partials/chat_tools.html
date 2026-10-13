@@ -61,6 +61,7 @@
           <li class="sy-row scope-row sy-stack" style="--sy-gap: 4px" data-state="{{ s.id }}">
             <label class="sy-check"><input type="checkbox" name="include" value="{{ s.id }}"> <span class="sy-case-normal">{{ s.title or "(untitled page)" }}</span></label>
             <span class="sy-route">{{ s.route_template }}</span>
+            {%- if s.screenshot_ref %}<img class="sy-thumb mp-thumb-sm" src="/evidence/{{ s.screenshot_ref }}" alt="" loading="lazy">{% endif %}
             <span class="sy-cluster">
               <label class="sy-check"><input type="radio" name="start_state_id" value="{{ s.id }}" required> start</label>
               <label class="sy-check"><input type="radio" name="end_state_id" value="{{ s.id }}" required> end</label>

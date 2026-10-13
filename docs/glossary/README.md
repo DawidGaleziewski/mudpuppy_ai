@@ -18,9 +18,9 @@ A run starts when the crawler agent calls `start_run` and ends with `finish_run`
 something stops it. Every state, action, form, network call shape, decision and question
 it records belongs to that run, so the run is the unit you open to see "what happened".
 
-Status codes on runs: `[ OK ]` completed, `[RUN.]` running, `[STOP]` stopped on a warning
-(for example an anti-bot block), `[INT.]` interrupted (the process died or was stopped; it
-can be resumed without repeating recorded work).
+Statuses on runs: Completed, Running, Stopped (on a warning, for example an anti-bot
+block) and Interrupted (the process died or was stopped; it can be resumed without
+repeating recorded work).
 
 *Example:* The map run 01a0fe67… on reference-insurer completed with 12 states and 201 frontier items.
 
@@ -1074,8 +1074,7 @@ Layer A.
 
 When the evidence is not enough, for example a process was never traced, the BA writes a
 follow-up task. A person then runs the crawler (usually in trace mode) to fulfil it, and the
-BA reads the new run. Status codes: `[OPEN]` open, `[WORK]` in progress, `[DONE]` done,
-`[BLKD]` blocked, `[CNCL]` cancelled.
+BA reads the new run. Statuses: Open, In progress, Done, Blocked, Cancelled.
 
 *Example:* FUP-001 "Trace the OC/AC calculator through all four steps".
 
@@ -1189,23 +1188,22 @@ cannot silently carry over to text nobody approved.
 
 **The state of a record's revision, either draft, confirmed, rejected, superseded or withdrawn, worked out by code from the revisions and reviews.**
 
-- `[DRFT]` draft: written, not yet reviewed.
-- `[ OK ]` confirmed: a person approved this revision.
-- `[RJCT]` rejected: a person sent it back.
-- `[OLD.]` superseded: a newer revision replaced this draft, or a newer revision was
-  confirmed.
-- `[WDRN]` withdrawn: the BA retracted the record.
+- Draft: written, not yet reviewed.
+- Confirmed: a person approved this revision.
+- Rejected: a person sent it back.
+- Superseded: a newer revision replaced this draft, or a newer revision was confirmed.
+- Withdrawn: the BA retracted the record.
 
 Only the latest draft can be confirmed or rejected. Nobody sets a status by hand, not the
 BA agent and not the dashboard; it follows from the reviews.
 
 *Seen in:* Docs tab → Status; Record page
 
-*Labels:* `Status`, `Status now`, `DRFT`, `RJCT`, `OLD.`, `WDRN`
+*Labels:* `Status`, `Status now`, `Draft`, `Rejected`, `Superseded`, `Withdrawn`
 
-*Related:* [Revision (Rev)](#revision), [Review (confirm / reject / comment)](#review), [Four-letter status codes](#status-codes)
+*Related:* [Revision (Rev)](#revision), [Review (confirm / reject / comment)](#review), [Status (shape and word)](#status-codes)
 
-<sub>Last changed in R-22, 2026-10-03.</sub>
+<sub>Last changed in R-43, 2026-10-14.</sub>
 
 <a id="srs-export"></a>
 
@@ -1257,32 +1255,33 @@ appear only in the change log, in both modes.
 
 <a id="status-codes"></a>
 
-#### Four-letter status codes
+#### Status (shape and word)
 
-**The bracketed labels such as [DRFT] or [BNDY], a fixed-width short form of the status word printed next to them.**
+**Every status in the dashboard is a small shape plus a word, such as Live, Draft or Failed, so it never relies on colour alone.**
 
-The dashboard prints every status as a four-character code in brackets, followed by the full
-word, so columns line up. Muted codes mean "the system did what it should" (a safety skip,
-a boundary), and red ones mean something needs attention.
+The shape says what kind of state it is, and the word says which one. The same shape and
+word mean the same thing on every page.
 
-| Where | Codes |
-|---|---|
-| Runs | `[ OK ]` completed, `[RUN.]` running, `[STOP]` stopped on a warning, `[INT.]` interrupted |
-| Frontier | `[PEND]` pending, `[DONE]` done, `[SKIP]` skipped (unsafe, out of scope, denylisted, robots, budget), `[FAIL]` unreachable |
-| Decision log | `[SKIP]` skip, `[RFSE]` refuse, `[MRGE]` merge, `[SPLT]` split, `[WARN]` warning, `[NOTE]` note |
-| Trace | `[ OK ]` ok, `[RUN.]` running, `[RFSE]` refused, `[STOP]` stopped, `[FAIL]` error, `[INCM]` unfinished, `[PHSE]` phase, `[EVNT]` event |
-| Records | `[DRFT]` draft, `[ OK ]` confirmed, `[RJCT]` rejected, `[OLD.]` superseded, `[WDRN]` withdrawn |
-| Reviews | `[ OK ]` confirm, `[RJCT]` reject, `[NOTE]` comment |
-| Follow-ups | `[OPEN]` open, `[WORK]` in progress, `[DONE]` done, `[BLKD]` blocked, `[CNCL]` cancelled |
-| Process outcome | `[ OK ]` goal reached, `[BNDY]` boundary reached, `[STOP]` stopped, `[ABND]` abandoned |
+| Shape | Meaning | Example words |
+|---|---|---|
+| Filled square | It happened, or is happening | Completed, Confirmed, Observed, Done, Stored, Running, Live, Active |
+| Filled square in the marker colour | It needs you | Needs you, Warning, Re-anchor |
+| Hollow square | It did not happen (yet) | Interrupted, Stopped, Skipped, To do, Not configured, Rejected, Withdrawn |
+| Dashed corners | Not confirmed | Draft, Proposed, Inferred, Suggested, Queued, Pending |
+| Cross | It broke | Failed, Error, Unreachable |
 
-*Seen in:* Every status column
+A kind that is not a state (a decision "merge", a trace "phase") has no shape and shows as
+a plain label. A run can be Completed, Running, Interrupted or Stopped; a record Draft,
+Confirmed, Rejected, Superseded or Withdrawn; a proposal Proposed, Applied, Discarded or
+Out of date; a process variant Observed, Drawn, Draft open or Live.
 
-*Labels:* `[ OK ]`, `[DRFT]`, `[BNDY]`, `[SKIP]`
+*Seen in:* Every status column and badge
 
-*Related:* [Record status](#record-status), [Run](#run), [Frontier](#frontier), [Submit boundary](#submit-boundary)
+*Labels:* `Status`, `Live`, `Draft`, `Failed`, `Interrupted`
 
-<sub>Last changed in R-22, 2026-10-03.</sub>
+*Related:* [Record status](#record-status), [Run](#run), [Frontier](#frontier), [Submit boundary](#submit-boundary), [Variant (A as-is, B to-be)](#process-variant)
+
+<sub>Last changed in R-43, 2026-10-14.</sub>
 
 <a id="target"></a>
 
@@ -2146,30 +2145,213 @@ to-be. Keys look like `AMD-001`.
 
 *Labels:* `AMD-`, `to-be`, `amendment`
 
-*Related:* [Superseded amendment](#superseded-amendment), [Wireframe](#wireframe), [Screen region](#screen-region), [SRS export](#srs-export)
+*Related:* [Re-anchor](#re-anchor), [Wireframe](#wireframe), [Screen region](#screen-region), [SRS export](#srs-export), [Screen revision (observed)](#screen-revision)
 
-<sub>Last changed in R-30, 2026-10-06.</sub>
+<sub>Last changed in R-43, 2026-10-14.</sub>
 
 <a id="superseded-amendment"></a>
 
-#### Superseded amendment
+#### Superseded amendment (retired)
 
-**An amendment a fresh run made out of date because the screen or element it targets changed; kept, never deleted, until the BA re-applies or dismisses it.**
+**The old name for an amendment whose element a new scan made out of date; the dashboard now calls it an amendment to re-anchor.**
 
-After a run the BA started finishes, Pathfinder checks every active amendment against what
-the run saw: same address but a different screen (`state_replaced`), the targeted element
-renamed (`element_changed`) or gone (`element_removed`). A screen the run did not visit
-leaves its amendments active. Superseded ones are listed in "Superseded amendments" with
-reason, run and time; re-apply creates a new active copy on a current screen, dismiss
-retires it. Exports list them in `appendix-superseded-amendments.md`.
+Until the Salvage Yard redesign (spec 022) an amendment a scan made out of date was called
+superseded and was kept until the BA re-applied or dismissed it. The same thing now has
+the name "re-anchor", and an amendment whose element survives is carried forward instead.
+Exports still list these in `appendix-superseded-amendments.md`.
 
-*Seen in:* Superseded amendments view; appendix-superseded-amendments.md
+*Seen in:* appendix-superseded-amendments.md
 
 *Labels:* `superseded`, `re-apply`, `dismiss`
 
-*Related:* [Amendment (to-be)](#amendment), [Run](#run)
+*Related:* [Re-anchor](#re-anchor), [Amendment (to-be)](#amendment), [Run](#run)
 
-<sub>Last changed in R-30, 2026-10-06.</sub>
+*Retired on 2026-10-14:* Renamed in spec 022; the status word is now Re-anchor. Replaced by [re-anchor](#re-anchor).
+
+<sub>Last changed in R-43, 2026-10-14.</sub>
+
+<a id="re-anchor"></a>
+
+#### Re-anchor
+
+**To point an amendment at the element or screen it belongs to now, after a new scan removed the element it was written on; the amendment waits in Review until you do.**
+
+When a scan sees a new revision of a screen, Pathfinder checks every amendment on it. If
+the amendment's element is still there, it carries forward to the new revision. If the
+element was renamed or removed, or the address now shows a different screen, the
+amendment is flagged Re-anchor and listed in Review. You pick the current screen or
+element it now belongs to, or dismiss it. Each choice is a new revision; the amendment is
+never deleted and nothing is lost.
+
+*Example:* AMD-004 on the "Kontynuuj" button of /kalkulator/pojazd; r2 has no such button, so AMD-004 waits for you to choose another element.
+
+*Seen in:* Review → Amendments to re-anchor; Screen page → Amendments
+
+*Labels:* `Re-anchor`, `Needs re-anchor`, `superseded`
+
+*Related:* [Amendment (to-be)](#amendment), [Screen revision (observed)](#screen-revision), [Review inbox](#review-inbox), [Superseded amendment](#superseded-amendment)
+
+<sub>Last changed in R-43, 2026-10-14.</sub>
+
+<a id="screen-revision"></a>
+
+#### Screen revision (observed)
+
+**One version of a screen as a scan saw it, numbered r1, r2 and so on; a changed screen gets a new revision, not a new screen.**
+
+The first scan that sees a screen records r1. When a later scan sees the same screen with
+different content, it adds r2 to the same screen, and the screen page shows which scans
+saw each revision. A page that moves to another route is a new screen, not a new
+revision. Revisions are only added, never changed. Every amendment is re-checked against a
+new revision.
+
+*Example:* Screen "Kalkulator OC/AC": r1 seen by scan 01a1083f, r2 seen by 01a110d5.
+
+*Seen in:* Screens → a screen → Observed revision
+
+*Labels:* `r1`, `r2`, `Observed revision`, `latest`
+
+*Related:* [Re-anchor](#re-anchor), [Amendment (to-be)](#amendment), [Variant (A as-is, B to-be)](#process-variant), [Run](#run)
+
+<sub>Last changed in R-43, 2026-10-14.</sub>
+
+<a id="process-variant"></a>
+
+#### Variant (A as-is, B to-be)
+
+**One version of a process, either A, the process as the scans observed it, or B and further letters, the process the business wants.**
+
+A process always has variant A, the as-is flow built from what was observed; you do not
+edit it. You start variant B from A (or from another variant) and draw the to-be: edit,
+reorder, merge and add steps. A variant has numbered revisions (A r1, B r2); every save
+makes a new one, with the reviewer's name and the time. Compare puts two variants side by
+side.
+
+*Example:* PRC-001 "Oblicz składkę OC/AC" has A r1 (4 observed steps) and B r1 (3 designed steps).
+
+*Seen in:* Processes → a process → variant tabs
+
+*Labels:* `Variant`, `A`, `B`, `as-is`, `to-be`
+
+*Related:* [Draft (process draft)](#process-draft), [Change spec](#change-spec), [Live variant (per environment)](#live-variant), [Screen revision (observed)](#screen-revision), [Amendment (to-be)](#amendment)
+
+<sub>Last changed in R-43, 2026-10-14.</sub>
+
+<a id="process-draft"></a>
+
+#### Draft (process draft)
+
+**Your unsaved work on a variant, which saves itself and which only you see, until you save it as the next revision or discard it.**
+
+Opening a variant to change it starts a draft of its latest revision. The page shows how
+many changes it holds since that revision. Save as rN+1 turns the draft into a revision
+with your name and the time. Discard draft drops it and keeps the last revision. If
+someone saved a newer revision while you drew, saving shows "Someone saved first" and both
+versions go to the review inbox as an edit conflict, so you can compare them.
+
+*Seen in:* Processes → a variant → Draft open
+
+*Labels:* `Draft open`, `Save as`, `Discard draft`, `Someone saved first`
+
+*Related:* [Variant (A as-is, B to-be)](#process-variant), [Review inbox](#review-inbox), [Status (shape and word)](#status-codes)
+
+<sub>Last changed in R-43, 2026-10-14.</sub>
+
+<a id="change-spec"></a>
+
+#### Change spec
+
+**The document built from the difference between a process's as-is and to-be variants, saying what must change and why, ready to hand to the builders.**
+
+Compare generates it. It has sections: scope, as-is, to-be, the delta step by step, the
+records it affects, the migration cut and open questions. You edit any section, and each
+save is a revision of the spec. Export it as Markdown, or save it as a documentation
+record. It is generated from the variants, so it follows them when you save a new
+revision.
+
+*Seen in:* Processes → Compare; Processes → spec.md
+
+*Labels:* `Change spec`, `Compare`, `spec.md`
+
+*Related:* [Variant (A as-is, B to-be)](#process-variant), [Amendment (to-be)](#amendment), [SRS export](#srs-export)
+
+<sub>Last changed in R-43, 2026-10-14.</sub>
+
+<a id="live-variant"></a>
+
+#### Live variant (per environment)
+
+**The variant of a process the BA marked as the one that runs in an environment, such as sandbox or production; each environment has its own marker.**
+
+Mark live in a process's History says "B r2 is what runs in sandbox". The marker is a
+revision too: changing it keeps the old one in the history, so you can see what was live
+and when. An environment nobody marked shows "Not marked". It records your decision; it does
+not deploy anything.
+
+*Seen in:* Processes → History → Mark live; Home → Processes
+
+*Labels:* `Mark live`, `Live`, `Not marked`
+
+*Related:* [Variant (A as-is, B to-be)](#process-variant), [Environment (sandbox / production)](#environment), [Change spec](#change-spec)
+
+<sub>Last changed in R-43, 2026-10-14.</sub>
+
+<a id="proposal"></a>
+
+#### Proposal (assistant proposal)
+
+**A change the assistant suggests in the chat, such as a new amendment or an edited step, which changes nothing until you press Apply.**
+
+A proposal shows what would change. Apply makes it a new revision under your name, the same
+way a hand edit does, and shows Undo; Undo restores the earlier content as yet another
+revision. Discard drops it. A proposal you leave alone waits in the review inbox, and one
+whose target changed meanwhile shows "Out of date".
+
+*Seen in:* Assistant drawer; Review → Assistant proposals
+
+*Labels:* `Proposed`, `Apply`, `Undo`, `Discard`, `Out of date`
+
+*Related:* [Review inbox](#review-inbox), [Amendment (to-be)](#amendment), [Draft (process draft)](#process-draft), [Chat](#chat)
+
+<sub>Last changed in R-43, 2026-10-14.</sub>
+
+<a id="review-inbox"></a>
+
+#### Review inbox
+
+**The one page that lists every open decision, namely records to confirm, amendments to re-anchor, assistant proposals and edit conflicts.**
+
+Anything that waits for a person lands in Review, and the number beside it in the side
+menu counts them. You decide in place: confirm or reject a record, re-anchor or dismiss an
+amendment, apply or discard a proposal, keep one side of an edit conflict. An item leaves
+the inbox when decided; nothing is deleted without a decision.
+
+*Seen in:* Review; Home → Needs you
+
+*Labels:* `Review`, `Needs you`, `inbox`
+
+*Related:* [Re-anchor](#re-anchor), [Proposal (assistant proposal)](#proposal), [Record status](#record-status), [Draft (process draft)](#process-draft)
+
+<sub>Last changed in R-43, 2026-10-14.</sub>
+
+<a id="grouping-suggestion"></a>
+
+#### Grouping suggestion
+
+**A set of screens the assistant proposes as one business process, with the reason they belong together, which you accept, change or ignore.**
+
+After a scan the assistant looks at the screens, the links between them and the forms, and
+suggests candidate processes. A suggestion has the Suggested status until you accept it.
+Accepting it makes a process with variant A built from those screens. It never invents a
+screen that was not recorded.
+
+*Seen in:* Processes → Suggested; Home → Processes
+
+*Labels:* `Suggested`, `grouping`
+
+*Related:* [Process scope](#process-scope), [Variant (A as-is, B to-be)](#process-variant), [Proposal (assistant proposal)](#proposal)
+
+<sub>Last changed in R-43, 2026-10-14.</sub>
 
 ### Building Pathfinder
 

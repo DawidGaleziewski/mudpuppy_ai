@@ -8,7 +8,7 @@ from typing import Any
 from fastapi import APIRouter, Request
 from fastapi.responses import HTMLResponse, RedirectResponse, Response
 
-from .. import db, queries, queries_chat, ui_flag
+from .. import db, queries, queries_chat
 from ..models import RUN_STATUSES
 from .deps import Ctx, web_of
 
@@ -80,8 +80,8 @@ def overview(
     web = web_of(request)
     c = web.ctx(request, env)
     portal = portal if portal is not None else c.portal  # spec 011: the header's choice
-    # Spec 022 (D-13, FE-A01): in Salvage Yard, Home for a picked portal is its assistant.
-    if portal and ui_flag.salvage_on(web.settings.ui_salvage, "chat"):
+    # Spec 022 (D-13, FE-A01): Home for a picked portal is its assistant.
+    if portal:
         return RedirectResponse(c.url("/chat"), status_code=303)
     try:
         with c.conn() as conn:

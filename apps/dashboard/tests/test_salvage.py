@@ -1,5 +1,5 @@
-"""Salvage Yard foundation (spec 022 M1): the flag, the one status mapping, the shell, and the
-guard against Console-era styling (FE-V01, FE-V02, FE-V07, FE-V08, FE-N01, FE-N03)."""
+"""Salvage Yard foundation (spec 022 M1): the template naming, the one status mapping, the shell,
+and the guard against Console-era styling (FE-V01, FE-V02, FE-V07, FE-V08, FE-N01, FE-N03)."""
 
 from __future__ import annotations
 
@@ -11,8 +11,9 @@ from pathlib import Path
 import pytest
 from fastapi.testclient import TestClient
 
-from pathfinder_dashboard import nav, queries_docs, status_map, ui_flag
+from pathfinder_dashboard import nav, queries_docs, status_map
 from pathfinder_dashboard.models import DECISION_KINDS, FRONTIER_STATUSES, RUN_STATUSES
+from pathfinder_dashboard.web.deps import salvage_template
 
 from .conftest import Store, make_client
 from .paths import REPO_ROOT
@@ -24,38 +25,28 @@ GUARD = REPO_ROOT / "apps/dashboard/scripts/find-old-styles.sh"
 
 @pytest.fixture
 def salvage(liveinsurer_store: Store) -> Iterator[TestClient]:
-    with make_client(liveinsurer_store, ui_salvage="all") as c:
+    with make_client(liveinsurer_store) as c:
         yield c
 
 
-# --- flag ---------------------------------------------------------------------------------------
+# --- template names (no flag any more: every page is Salvage) ------------------------------------
 
 
 @pytest.mark.parametrize(
-    ("flag", "template", "expected"),
+    ("template", "expected"),
     [
-        ("", "overview.html", "overview.html"),
-        ("all", "overview.html", "salvage/overview.html"),
-        ("overview", "overview.html", "salvage/overview.html"),
-        ("overview", "run_detail.html", "run_detail.html"),
-        (" run_detail , overview ", "run_detail.html", "salvage/run_detail.html"),
-        ("all", "no_twin.html", "no_twin.html"),
-        ("all", "salvage/overview.html", "salvage/overview.html"),
-        ("partials/runs_table", "partials/runs_table.html", "salvage/partials/runs_table.html"),
+        ("overview.html", "salvage/overview.html"),
+        ("salvage/overview.html", "salvage/overview.html"),
+        ("partials/runs_table.html", "salvage/partials/runs_table.html"),
     ],
 )
-def test_pick_template(flag: str, template: str, expected: str) -> None:
-    exists = {
-        "salvage/overview.html",
-        "salvage/run_detail.html",
-        "salvage/partials/runs_table.html",
-    }
-    assert ui_flag.pick_template(flag, template, exists.__contains__) == expected
+def test_salvage_template_prefix(template: str, expected: str) -> None:
+    assert salvage_template(template) == expected
 
 
-def test_flag_off_keeps_the_console_page(client: TestClient) -> None:
+def test_default_page_is_salvage_not_console(client: TestClient) -> None:
     html = client.get("/").text
-    assert "/static/css/app.css" in html and "salvage.css" not in html
+    assert "salvage.css" in html and "/static/css/app.css" not in html
 
 
 # --- status map ---------------------------------------------------------------------------------
@@ -197,7 +188,7 @@ def test_migrated_pages_render_in_salvage(salvage: TestClient, path: str) -> Non
 def test_docs_pages_render_in_salvage(ba_fixture: Store) -> None:
     from .test_docs_routes import ALL_PAGES
 
-    with make_client(ba_fixture, ui_salvage="all") as c:
+    with make_client(ba_fixture) as c:
         for path in ALL_PAGES:
             r = c.get(path)
             assert r.status_code == 200, (path, r.text[:400])

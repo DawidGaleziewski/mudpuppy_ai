@@ -51,7 +51,7 @@ def test_lists_eval_workspaces_newest_first_after_the_main_stores(
     assert listed[1].label.startswith("eval · proving-ground-bank · ")
     with make_client(empty_store) as c:
         html = c.get("/").text
-    assert '<optgroup label="eval workspaces">' in html
+    assert '<optgroup label="Eval workspaces">' in html
     assert html.index("proving-ground-bank") < html.index("proving-ground-shop")
 
 
@@ -60,7 +60,8 @@ def test_opens_an_eval_store_and_keeps_it_on_links(empty_store: Store, eval_root
     with make_client(empty_store) as c:
         page = c.get("/", params={"store": key})
         run = c.get(f"/runs/{BANK_RUN}", params={"store": key})
-    assert "[EVAL]" in page.text and "pf-eval-proving-ground-bank-AbC123" in page.text
+    assert "Reading the eval workspace" in page.text
+    assert "pf-eval-proving-ground-bank-AbC123" in page.text
     assert "store=eval%3Apf-eval-proving-ground-bank-AbC123%3Asandbox" in page.text
     assert run.status_code == 200
 

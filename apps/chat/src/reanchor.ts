@@ -103,6 +103,54 @@ function nextHead(
   });
 }
 
+/** The three statements that move a head to its next revision and record it. */
+function headWriter(raw: BetterSqlite3.Database) {
+  const load = raw.prepare(`SELECT * FROM amendments WHERE id = ? AND status = 'active'`);
+  const updateHead = raw.prepare(
+    `UPDATE amendments SET status = @status, target_id = @target_id,
+       anchor_fingerprint = @anchor_fingerprint, anchor_route_template = @anchor_route_template,
+       screen_id = @screen_id, superseded_by_run = @superseded_by_run,
+       superseded_reason = @superseded_reason, superseded_detail = @superseded_detail,
+       superseded_at = @superseded_at, rev = @rev
+     WHERE id = @id AND rev = @base_rev`,
+  );
+  const insertRevision = raw.prepare(
+    `INSERT INTO amendment_revisions (amendment_id, rev, base_rev, change, author, status,
+       target_kind, target_id, text, anchor_fingerprint, anchor_route_template, anchor_element,
+       reason, run_id, created_at)
+     VALUES (@amendment_id, @rev, @base_rev, @change, @author, @status, @target_kind, @target_id,
+       @text, @anchor_fingerprint, @anchor_route_template, @anchor_element, @reason, @run_id,
+       @created_at)`,
+  );
+  return { load, updateHead, insertRevision };
+}
+
+/** The revision row for one outcome: who (the scan), what happened and on which base. */
+function revisionOf(
+  next: Amendment,
+  baseRev: number,
+  o: AmendmentOutcome,
+  scan: { author: string; runId: string; at: string },
+): AmendmentRevision {
+  return AmendmentRevision.parse({
+    amendment_id: next.id,
+    rev: next.rev,
+    base_rev: baseRev,
+    change: o.outcome,
+    author: scan.author,
+    status: next.status,
+    target_kind: next.target_kind,
+    target_id: next.target_id,
+    text: next.text,
+    anchor_fingerprint: next.anchor_fingerprint,
+    anchor_route_template: next.anchor_route_template,
+    anchor_element: next.anchor_element,
+    reason: o.outcome === 'needs_reanchor' ? `${o.reason}: ${o.detail}` : o.detail,
+    run_id: scan.runId,
+    created_at: scan.at,
+  });
+}
+
 export function reanchorAfterRun(
   raw: BetterSqlite3.Database,
   evidence: EvidenceStore,
@@ -135,27 +183,11 @@ export function reanchorAfterRun(
   const at = nowIso(now);
   const author = `scan:${runId}`;
 
-  const loadHead = raw.prepare(`SELECT * FROM amendments WHERE id = ? AND status = 'active'`);
-  const updateHead = raw.prepare(
-    `UPDATE amendments SET status = @status, target_id = @target_id,
-       anchor_fingerprint = @anchor_fingerprint, anchor_route_template = @anchor_route_template,
-       screen_id = @screen_id, superseded_by_run = @superseded_by_run,
-       superseded_reason = @superseded_reason, superseded_detail = @superseded_detail,
-       superseded_at = @superseded_at, rev = @rev
-     WHERE id = @id AND rev = @base_rev`,
-  );
-  const insertRevision = raw.prepare(
-    `INSERT INTO amendment_revisions (amendment_id, rev, base_rev, change, author, status,
-       target_kind, target_id, text, anchor_fingerprint, anchor_route_template, anchor_element,
-       reason, run_id, created_at)
-     VALUES (@amendment_id, @rev, @base_rev, @change, @author, @status, @target_kind, @target_id,
-       @text, @anchor_fingerprint, @anchor_route_template, @anchor_element, @reason, @run_id,
-       @created_at)`,
-  );
+  const write = headWriter(raw);
 
   raw.transaction(() => {
     for (const o of outcomes) {
-      const found = loadHead.get(o.amendmentId) as Record<string, unknown> | undefined;
+      const found = write.load.get(o.amendmentId) as Record<string, unknown> | undefined;
       if (found === undefined) continue; // changed meanwhile: leave it for the next scan
       const head = Amendment.parse({
         ...found,
@@ -163,25 +195,9 @@ export function reanchorAfterRun(
           found.anchor_element === null ? null : JSON.parse(String(found.anchor_element)),
       });
       const next = nextHead(raw, head, o, runId, at);
-      updateHead.run({ ...next, base_rev: head.rev });
-      const revision = AmendmentRevision.parse({
-        amendment_id: next.id,
-        rev: next.rev,
-        base_rev: head.rev,
-        change: o.outcome,
-        author,
-        status: next.status,
-        target_kind: next.target_kind,
-        target_id: next.target_id,
-        text: next.text,
-        anchor_fingerprint: next.anchor_fingerprint,
-        anchor_route_template: next.anchor_route_template,
-        anchor_element: next.anchor_element,
-        reason: o.outcome === 'needs_reanchor' ? `${o.reason}: ${o.detail}` : o.detail,
-        run_id: runId,
-        created_at: at,
-      });
-      insertRevision.run({
+      write.updateHead.run({ ...next, base_rev: head.rev });
+      const revision = revisionOf(next, head.rev, o, { author, runId, at });
+      write.insertRevision.run({
         ...revision,
         anchor_element:
           revision.anchor_element === null ? null : JSON.stringify(revision.anchor_element),

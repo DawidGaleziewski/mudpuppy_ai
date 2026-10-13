@@ -23,6 +23,11 @@ def text(html: str) -> str:
     return re.sub(r"\s+", " ", re.sub(r"<[^>]+>", " ", html))
 
 
+def steps_of(html: str) -> list[tuple[str, str]]:
+    """(step, status shape) of each tracker row, in order."""
+    return re.findall(r'data-step="(\w+)">.*?data-status="(\w+)"', html, re.DOTALL)
+
+
 def seed_conversation(
     store: Store, conv: str = CONV, portal: str | None = "liveinsurer", created: str = T0
 ) -> None:
@@ -142,18 +147,18 @@ def make_chat_client(store: Store, service: Service) -> TestClient:
 
 def test_page_with_no_conversation_shows_empty_state_and_nav(empty_store: Store) -> None:
     with make_chat_client(empty_store, Service()) as c:
-        r = c.get("/chat")
+        r = c.get("/chat", params={"portal": "liveinsurer"})
     assert r.status_code == 200
     body = text(r.text)
-    assert "No conversation yet" in body and "[new conversation]" in body
-    assert 'href="/chat" aria-current="page"' in r.text
+    assert "No conversation yet" in body and "Start a conversation" in body
+    assert re.search(r'href="/"\s+aria-current="page">Home', r.text)  # Home is the assistant
     assert "region-chat-tracker" not in r.text  # nothing to track yet
 
 
 def test_unknown_conversation_is_a_404_not_found_state(empty_store: Store) -> None:
     with make_chat_client(empty_store, Service()) as c:
         r = c.get("/chat", params={"conversation": "nope"})
-    assert r.status_code == 404 and "No conversation with id “nope”" in text(r.text)
+    assert r.status_code == 404 and "No conversation “nope”" in text(r.text)
 
 
 def test_history_renders_in_seq_order_with_escaping_and_error_ref(empty_store: Store) -> None:
@@ -169,10 +174,10 @@ def test_history_renders_in_seq_order_with_escaping_and_error_ref(empty_store: S
     body = text(html)
     assert body.index("hello") < body.index("Which portal?") < body.index("The scan failed.")
     assert "internal bookkeeping" not in body
-    assert "You" in body and "Assistant" in body and "System" in body
-    assert "<code>ERR-0001-ab</code>" in html and 'data-copy="ERR-0001-ab"' in html
-    assert "[FAIL]" in body
-    assert 'id="region-chat-messages"' in html and "chat-settled from:body" in html
+    assert "Assistant" in body and "sy-msg--user" in html  # user line and assistant line
+    assert 'href="/chat/errors/ERR-0001-ab"' in html and 'data-copy="ERR-0001-ab"' in html
+    assert "sy-callout--failure" in html  # a failed system line is a failure callout
+    assert 'id="region-chat-messages"' in html and "chat-settled" in html
 
 
 def test_conversation_param_picks_that_conversation(empty_store: Store) -> None:
@@ -194,7 +199,7 @@ def test_service_down_shows_how_to_start_it_not_a_traceback(empty_store: Store) 
         r = c.get("/chat")
     assert r.status_code == 200
     body = text(r.text)
-    assert "The chat service is not running" in body
+    assert "Assistant not running" in body
     assert "pnpm --dir apps/chat start" in body
     assert "still readable" in body  # history comes from the store
     assert re.search(r"<textarea[^>]*disabled", r.text)
@@ -216,16 +221,15 @@ def test_tracker_missing_rows_are_to_do(empty_store: Store) -> None:
     seed_step(empty_store, "scan", "done")
     with make_chat_client(empty_store, Service()) as c:
         r = c.get("/fragments/chat/tracker", params={"conversation": CONV})
-    steps = re.findall(r'data-step="(\w+)" data-status="(\w+)"', r.text)
-    assert steps == [
-        ("scan", "done"),
+    assert steps_of(r.text) == [
+        ("scan", "ok"),
         ("map", "todo"),
         ("narrow", "todo"),
         ("document", "todo"),
         ("amend", "todo"),
     ]
     body = text(r.text)
-    assert "[DONE] done" in body and "[TODO] to do" in body
+    assert "Done" in body and "To do" in body
     assert 'data-active="0"' in r.text and "every 2s" not in r.text
     assert "store-changed from:body, step-changed from:body" in r.text
 
@@ -239,28 +243,34 @@ def test_tracker_statuses_error_ref_and_polling_while_active(empty_store: Store)
     with make_chat_client(empty_store, Service()) as c:
         r = c.get("/fragments/chat/tracker", params={"conversation": CONV})
     body = text(r.text)
-    for label in ("[DONE] done", "[RUN.] in progress", "[PEND] pending", "[FAIL] failed"):
+    assert steps_of(r.text) == [
+        ("scan", "ok"),
+        ("map", "running"),
+        ("narrow", "queued"),
+        ("document", "failed"),
+        ("amend", "todo"),  # amend has no row
+    ]
+    for label in ("Done", "In progress", "Pending", "Failed", "To do"):
         assert label in body, label
-    assert "[TODO] to do" in body  # amend has no row
-    assert "<code>ERR-0042-zz</code>" in r.text
+    assert 'href="/chat/errors/ERR-0042-zz"' in r.text and 'data-copy="ERR-0042-zz"' in r.text
     assert 'data-active="1"' in r.text and "every 2s" in r.text
 
 
 def test_tracker_stopped_scan_offers_resume_and_no_reference(empty_store: Store) -> None:
-    """Spec 011 F-04: a scan the BA stopped is [STOP] with [resume scan], not a failure."""
+    """Spec 011 F-04: a scan the BA stopped is Stopped with Resume, not a failure."""
     seed_conversation(empty_store)
     seed_step(empty_store, "scan", "stopped")
     with make_chat_client(empty_store, Service()) as c:
         r = c.get("/fragments/chat/tracker", params={"conversation": CONV})
     body = text(r.text)
-    assert "[STOP] stopped" in body and "[FAIL]" not in body
-    assert 'data-chat-say="Resume the scan."' in r.text and "[resume scan]" in body
+    assert steps_of(r.text)[0] == ("scan", "stopped") and "Failed" not in body
+    assert 'data-chat-say="Resume the scan."' in r.text and "Resume" in body
     assert "reference" not in body
     assert 'data-active="0"' in r.text
 
 
 def test_tracker_offers_stop_scan_only_while_the_linked_run_runs(empty_store: Store) -> None:
-    """T041: in progress, or failed with the run left running (F-13), shows [stop scan]."""
+    """T041: in progress, or failed with the run left running (F-13), shows Stop scan."""
     seed_conversation(empty_store)
     conn = empty_store.connect()
     insert(conn, "runs", id="run-live", portal_id="liveinsurer", status="running", started_at=ts(1))
@@ -271,7 +281,7 @@ def test_tracker_offers_stop_scan_only_while_the_linked_run_runs(empty_store: St
     seed_step(empty_store, "map", "done", run_id="run-done")
     with make_chat_client(empty_store, Service()) as c:
         r = c.get("/fragments/chat/tracker", params={"conversation": CONV})
-    assert r.text.count("[stop scan]") == 1
+    assert text(r.text).count("Stop scan") == 1
     assert 'data-stop-run="/chat/runs/run-live/stop"' in r.text
 
 
@@ -288,7 +298,7 @@ def test_stop_scan_forwards_to_the_service(empty_store: Store) -> None:
 
 
 def test_stop_button_forwards_to_the_service(empty_store: Store) -> None:
-    """T050: the chat's [stop] ends the turn and the conversation's runs, same-origin only."""
+    """T050: the chat's Stop ends the turn and the conversation's runs, same-origin only."""
     seed_conversation(empty_store)
     service = Service()
     service.routes[("POST", f"/conversations/{CONV}/cancel")] = httpx2.Response(
@@ -299,13 +309,13 @@ def test_stop_button_forwards_to_the_service(empty_store: Store) -> None:
         ok = c.post(f"/chat/conversations/{CONV}/cancel", headers=ORIGIN)
         cross = c.post(f"/chat/conversations/{CONV}/cancel")
     assert f'data-cancel-url="/chat/conversations/{CONV}/cancel"' in page.text
-    assert 'id="chat-stop"' in page.text
+    assert "data-assistant-stop" in page.text
     assert ok.status_code == 200 and ok.json()["turn"] is True
     assert cross.status_code == 403
 
 
 def test_reset_assistant_forwards_to_the_service(empty_store: Store) -> None:
-    """T051: [reset assistant] in the page head, same-origin only, service errors passed on."""
+    """T051: Reset context in the page head, same-origin only, service errors passed on."""
     seed_conversation(empty_store)
     service = Service()
     service.routes[("POST", f"/conversations/{CONV}/reset")] = httpx2.Response(
@@ -316,7 +326,7 @@ def test_reset_assistant_forwards_to_the_service(empty_store: Store) -> None:
         busy = c.post(f"/chat/conversations/{CONV}/reset", headers=ORIGIN)
         cross = c.post(f"/chat/conversations/{CONV}/reset")
     assert f'data-reset-url="/chat/conversations/{CONV}/reset"' in page.text
-    assert "[reset assistant]" in page.text
+    assert "Reset context" in text(page.text)
     assert busy.status_code == 409 and "[stop]" in busy.json()["message"]
     assert cross.status_code == 403
 
@@ -328,11 +338,7 @@ def test_tracker_uses_newest_row_per_step_and_the_conversations_portal(empty_sto
     seed_step(empty_store, "map", "done", portal="other", updated=9)  # another portal: ignored
     with make_chat_client(empty_store, Service()) as c:
         r = c.get("/fragments/chat/tracker", params={"conversation": CONV})
-    assert re.findall(r'data-step="(\w+)" data-status="(\w+)"', r.text)[:2] == [
-        ("scan", "done"),
-        ("map", "todo"),
-    ]
-    assert "<code>liveinsurer</code>" in r.text
+    assert steps_of(r.text)[:2] == [("scan", "ok"), ("map", "todo")]
 
 
 def test_tracker_without_conversation_portal_follows_newest_row(empty_store: Store) -> None:
@@ -578,9 +584,9 @@ def test_progress_fragment_polls_while_running_and_warns_when_quiet(empty_store:
     assert r.status_code == 200
     assert 'data-running="1"' in r.text and "every 3s" in r.text
     body = text(r.text)
-    assert "2 pages found" in body and "2 still queued" in body and "3 / 400 steps" in body
-    assert "Nothing recorded for" in body  # the seeded activity is long past
-    assert '<a href="/states/s-quote' in r.text
+    assert "2 pages" in body and "2 queued" in body and "3 / 400 steps" in body
+    assert "Nothing for" in body  # the seeded activity is long past
+    assert 'href="/runs/run-p"' in r.text  # Open in Scans: the feed itself lives there
     assert 'id="region-chat-progress"' in page.text
 
 
@@ -590,8 +596,7 @@ def test_progress_of_a_finished_run_does_not_poll(empty_store: Store) -> None:
     with make_chat_client(empty_store, Service()) as c:
         r = c.get("/fragments/chat/progress", params={"conversation": CONV})
     assert 'data-running="0"' in r.text and "every 3s" not in r.text
-    assert "Nothing recorded for" not in text(r.text)
-    assert '<details class="progress-feed">' in r.text  # closed when the run is over
+    assert "Nothing for" not in text(r.text)
 
 
 def test_live_map_draws_the_discovery_tree_and_marks_the_current_page(empty_store: Store) -> None:
@@ -610,18 +615,13 @@ def test_live_map_draws_the_discovery_tree_and_marks_the_current_page(empty_stor
     assert "class s_s_quote current" in live.source
 
 
-def test_live_map_fragment_answers_204_while_unchanged(empty_store: Store) -> None:
-    """T049: the poll carries the drawn version; the server only redraws on a change."""
+def test_chat_map_fragment_is_gone_and_the_page_has_no_map_region(empty_store: Store) -> None:
+    """Spec 022: the chat map moved to Scans; the chat page links the run instead."""
     seed_conversation(empty_store)
     seed_progress_run(empty_store)
     with make_chat_client(empty_store, Service()) as c:
         page = c.get("/chat", params={"conversation": CONV})
-        first = c.get("/fragments/chat/map", params={"conversation": CONV})
-        version = re.search(r"v=([a-z0-9-]+)", first.text)
-        assert version is not None
-        same = c.get("/fragments/chat/map", params={"conversation": CONV, "v": version[1]})
-        other = c.get("/fragments/chat/map", params={"conversation": CONV, "v": "old"})
-    assert 'id="region-chat-map"' in page.text and "every 3s" in first.text
-    assert version[1].endswith("-running")
-    assert same.status_code == 204
-    assert other.status_code == 200 and "flowchart LR" in other.text
+        gone = c.get("/fragments/chat/map", params={"conversation": CONV})
+    assert 'id="region-chat-map"' not in page.text
+    assert 'href="/runs/run-p"' in page.text
+    assert gone.status_code == 404

@@ -94,8 +94,9 @@
     const p = document.createElement("p");
     p.className = "msg-ref";
     const tag = document.createElement("span");
-    tag.className = "st st-fail";
-    tag.textContent = "[FAIL]";
+    tag.className = "sy-status";
+    tag.dataset.status = "failed";
+    tag.textContent = "Failed";
     const wrap = document.createElement("span");
     wrap.className = "err-ref";
     const lead = document.createElement("span");
