@@ -16,12 +16,7 @@ import { ChatService } from './service.js';
 import { StepRecorder } from './step-recorder.js';
 import { openingMessage } from './opening.js';
 import { createPortal, describePortal, removeEnvironment, setEnvironment } from './portals.js';
-import {
-  conversationsOfRun,
-  runningRunsOfConversation,
-  stopRun,
-  stoppedNotice,
-} from './runs.js';
+import { conversationsOfRun, runningRunsOfConversation, stopRun, stoppedNotice } from './runs.js';
 import { setProcessScope } from './scope.js';
 import { listPortals, loadWorkflowInput } from './workflow-data.js';
 import { workflowState } from '@pathfinder/workflow';

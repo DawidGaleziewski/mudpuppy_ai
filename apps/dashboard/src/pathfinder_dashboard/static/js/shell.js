@@ -18,10 +18,17 @@
     d.hidden = false;
     ask?.setAttribute("aria-expanded", "true");
     document.querySelector(".sy-nav")?.classList.add("sy-nav--compact");
+    // The drawer's conversation loads the first time it opens (hx-trigger "assistant-open once").
+    document.body.dispatchEvent(new CustomEvent("assistant-open", { bubbles: true }));
     d.querySelector("textarea, input:not([type=hidden])")?.focus();
   };
   const closeDrawer = (d) => {
     d.hidden = true;
+    try {
+      sessionStorage.removeItem("assistant-open");
+    } catch {
+      // storage blocked: nothing to forget
+    }
     ask?.setAttribute("aria-expanded", "false");
     document.querySelector(".sy-nav")?.classList.remove("sy-nav--compact");
     (returnFocus || ask)?.focus();

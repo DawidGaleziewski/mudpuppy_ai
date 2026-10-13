@@ -44,6 +44,8 @@ import type {
   AmendmentTargetKind,
   ChatConversationStatus,
   ChatMessageRole,
+  ChatProposalStatus,
+  ChatProposalTargetKind,
   ProcessScopeSource,
   WorkflowStepName,
   WorkflowStepStatus,
@@ -236,6 +238,24 @@ export interface AmendmentRevisionsTable {
   anchor_element: string | null;
   reason: string | null;
   run_id: string | null;
+  created_at: string;
+}
+
+/** 0017: changes the chat assistant proposes and a person applies or discards (spec 022 R6). */
+export interface ChatProposalsTable {
+  id: string;
+  conversation_id: string;
+  portal_id: string;
+  target_kind: ChatProposalTargetKind;
+  target_id: string | null;
+  base_rev: number | null;
+  payload: string;
+  summary: string;
+  status: ColumnType<ChatProposalStatus, ChatProposalStatus | undefined, ChatProposalStatus>;
+  applied_amendment_id: string | null;
+  applied_rev: number | null;
+  decided_by: string | null;
+  decided_at: string | null;
   created_at: string;
 }
 
@@ -598,4 +618,5 @@ export interface Database {
   process_scopes: ProcessScopesTable;
   amendments: AmendmentsTable;
   amendment_revisions: AmendmentRevisionsTable;
+  chat_proposals: ChatProposalsTable;
 }

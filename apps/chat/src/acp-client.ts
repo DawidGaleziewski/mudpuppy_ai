@@ -8,6 +8,7 @@ import { fileURLToPath } from 'node:url';
 import * as acp from '@agentclientprotocol/sdk';
 import type { ErrorInput, LogResult } from './error-log.js';
 import type { ChatEvent, ChatEventListener } from './events.js';
+import { uiActionOf } from './ui-actions.js';
 
 export interface PermissionQuery {
   toolCallId: string;
@@ -90,6 +91,8 @@ interface ToolInfo {
   parentToolCallId: string | null;
   /** `subagent_type` of an Agent call, so its children can be judged by their parent. */
   subagent: string | null;
+  /** The call's input as last seen (it can stream in after `tool_call`); for UI actions. */
+  input: unknown;
 }
 
 interface ClaudeMeta {
@@ -297,9 +300,17 @@ export class AcpChat {
       tool: m.toolName ?? known?.tool ?? fallbackTool,
       parentToolCallId: m.parentToolUseId ?? known?.parentToolCallId ?? null,
       subagent: subagentOf(rawInput) ?? known?.subagent ?? null,
+      input: rawInput ?? known?.input ?? null,
     };
     this.tools.set(toolCallId, info);
     return info;
+  }
+
+  /** A completed call of the assistant's browser tools becomes a `ui_action` (spec 022 R6). */
+  private finished(info: ToolInfo, status: string | null | undefined): void {
+    if (status !== 'completed') return;
+    const action = uiActionOf(info.tool, info.input);
+    if (action !== null) this.emit(action);
   }
 
   private onUpdate(update: acp.SessionUpdate): void {
@@ -340,6 +351,7 @@ export class AcpChat {
             agent: info.subagent,
             ...(launchedInBackground(update) ? { background: true } : {}),
           });
+        this.finished(info, update.status);
         return;
       }
       case 'tool_call_update': {
@@ -354,6 +366,7 @@ export class AcpChat {
             agent: info.subagent,
             ...(launchedInBackground(update) ? { background: true } : {}),
           });
+        this.finished(info, update.status);
         return;
       }
       case 'plan':

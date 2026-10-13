@@ -66,6 +66,20 @@ async def chat_page(
     )
 
 
+@router.get("/fragments/assistant", response_class=HTMLResponse)
+async def fragment_assistant(request: Request, env: str | None = None) -> HTMLResponse:
+    """The drawer's conversation (spec 022 FE-A02): the portal's newest active one."""
+    web = web_of(request)
+    c = web.ctx(request, env)
+    up = await chat_client.service_up(web.settings, web.chat_transport)
+    try:
+        with c.conn() as conn:
+            values = chat_values(c, conn, None) or {"conversation": None}
+    except db.StoreMissing as err:
+        return web.missing(c, err, fragment=True)
+    return web.render(c, "salvage/partials/assistant_drawer_body.html", service_up=up, **values)
+
+
 @router.get("/fragments/assistant-status", response_class=HTMLResponse)
 async def fragment_assistant_status(request: Request, env: str | None = None) -> HTMLResponse:
     """The header's assistant status (spec 022 FE-N01): is the chat service up."""
@@ -221,12 +235,17 @@ async def chat_send(request: Request, conversation_id: str) -> JSONResponse:
     text = payload.get("text") if isinstance(payload, dict) else None
     if not isinstance(text, str) or not text.strip():
         return chat_json(422, {"ref": None, "message": "Write a message first."})
+    sent: dict[str, Any] = {"text": text}
+    # Spec 022 (FE-A03): "This page" or "Whole yard"; the chat service validates the shape.
+    context = payload.get("context")
+    if isinstance(context, dict):
+        sent["context"] = context
     try:
         status, body = await chat_client.call(
             web.settings,
             "POST",
             f"/conversations/{quote(conversation_id, safe='')}/messages",
-            {"text": text},
+            sent,
             web.chat_transport,
         )
     except chat_client.ChatUnavailable:

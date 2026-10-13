@@ -630,6 +630,25 @@ class AmendmentRevision(Row):
     created_at: str
 
 
+class ChatProposal(Row):
+    """A change the chat assistant proposes and a person applies or discards (0017)."""
+
+    id: str
+    conversation_id: str
+    portal_id: str
+    target_kind: Literal["amendment", "new_amendment"]
+    target_id: str | None  # the amendment id; None for new_amendment
+    base_rev: int | None  # the amendment revision the proposal was made on
+    payload: Json  # what to change; a JSON object
+    summary: str
+    status: Literal["open", "applied", "discarded", "stale"]
+    applied_amendment_id: str | None
+    applied_rev: int | None
+    decided_by: str | None
+    decided_at: str | None
+    created_at: str
+
+
 TABLE_MODELS: dict[str, type[Row]] = {
     "runs": Run,
     "state_observations": StateObservation,
@@ -667,6 +686,7 @@ TABLE_MODELS: dict[str, type[Row]] = {
     "process_scopes": ProcessScope,
     "amendments": Amendment,
     "amendment_revisions": AmendmentRevision,
+    "chat_proposals": ChatProposal,
 }
 
 

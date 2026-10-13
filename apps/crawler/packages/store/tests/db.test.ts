@@ -26,6 +26,7 @@ const ALL = [
   '0014',
   '0015',
   '0016',
+  '0017',
 ];
 
 let opened: OpenedDb | undefined;
@@ -47,7 +48,7 @@ const tables = (o: OpenedDb) =>
     .sort();
 
 describe('migrations', () => {
-  it('finds 0001_init through 0016_amendment_revisions, each with an up and a down', () => {
+  it('finds 0001_init through 0017_chat_proposals, each with an up and a down', () => {
     expect(loadMigrations(MIGRATIONS).map((m) => m.version)).toEqual(ALL);
   });
 
@@ -80,6 +81,7 @@ describe('migrations', () => {
         'credentials',
       ]),
     );
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0017');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0016');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0015');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0014');
@@ -104,6 +106,7 @@ describe('migrations', () => {
     opened = openDb(':memory:');
     expect(migrateUp(opened.raw, MIGRATIONS)).toEqual(ALL);
     expect(migrateUp(opened.raw, MIGRATIONS)).toEqual([]);
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0017');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0016');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0015');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0014');
@@ -127,6 +130,7 @@ describe('migrations', () => {
   it('0003_trace applies and reverts on a DB holding 0001/0002 data (up, down, up round-trips cleanly)', () => {
     opened = openDb(':memory:');
     migrateUp(opened.raw, MIGRATIONS);
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0017');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0016');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0015');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0014');
@@ -160,6 +164,7 @@ describe('migrations', () => {
       '0014',
       '0015',
       '0016',
+      '0017',
     ]);
     expect(appliedVersions(opened.raw)).toEqual(ALL);
     expect(tables(opened)).toEqual(
@@ -354,6 +359,7 @@ describe('Layer B tables (0004_ba_documentation)', () => {
         `INSERT INTO doc_reviews (id, revision_id, action, reviewer, text, created_at) VALUES (?, ?, 'comment', 'dawid', 'looks good', ?)`,
       )
       .run(newId(), revisionId, ts);
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0017');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0016');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0015');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0014');
@@ -382,6 +388,7 @@ describe('Layer B tables (0004_ba_documentation)', () => {
       '0014',
       '0015',
       '0016',
+      '0017',
     ]);
     expect(opened.raw.prepare('SELECT count(*) AS n FROM doc_records').get()).toEqual({ n: 0 });
   });
@@ -460,6 +467,7 @@ describe('screenshots and wireframes (0006_screenshots_wireframes)', () => {
     opened.raw
       .prepare(`INSERT INTO state_wireframes VALUES (?, '1', 'a.svg', 'a.excalidraw', ?)`)
       .run(stateId, nowIso());
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0017');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0016');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0015');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0014');
@@ -487,6 +495,7 @@ describe('screenshots and wireframes (0006_screenshots_wireframes)', () => {
       '0014',
       '0015',
       '0016',
+      '0017',
     ]);
     expect(opened.raw.prepare('SELECT target_kind, region FROM doc_evidence_links').all()).toEqual([
       { target_kind: 'state', region: null },
@@ -516,6 +525,7 @@ describe('credentials (0007_credentials)', () => {
   it('round-trips (up, down, up)', () => {
     opened = openDb(':memory:');
     migrateUp(opened.raw, MIGRATIONS);
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0017');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0016');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0015');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0014');
@@ -538,6 +548,7 @@ describe('credentials (0007_credentials)', () => {
       '0014',
       '0015',
       '0016',
+      '0017',
     ]);
     expect(tables(opened)).toContain('credentials');
   });
@@ -599,6 +610,7 @@ describe('chat orchestrator tables (0008_chat_orchestrator)', () => {
   it('round-trips (up, down, up)', () => {
     opened = openDb(':memory:');
     migrateUp(opened.raw, MIGRATIONS);
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0017');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0016');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0015');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0014');
@@ -620,6 +632,7 @@ describe('chat orchestrator tables (0008_chat_orchestrator)', () => {
       '0014',
       '0015',
       '0016',
+      '0017',
     ]);
     expect(tables(opened)).toEqual(
       expect.arrayContaining([
@@ -879,6 +892,7 @@ describe('run owner (0009_run_owner)', () => {
     expect(() =>
       opened!.raw.prepare(`UPDATE runs SET owner_pid = 0 WHERE id = ?`).run(runId),
     ).toThrow(/CHECK/);
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0017');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0016');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0015');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0014');
@@ -902,6 +916,7 @@ describe('run owner (0009_run_owner)', () => {
       '0014',
       '0015',
       '0016',
+      '0017',
     ]);
     expect(cols()).toEqual(expect.arrayContaining(['owner_id', 'owner_pid']));
   });
@@ -929,6 +944,7 @@ describe('page visits (0012_page_visits)', () => {
          VALUES (?, ?, NULL, 'GET', '/api/x', 200, '{}', '{}', ?, 'http://x/api/x?q=1')`,
       )
       .run(newId(), runId, nowIso());
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0017');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0016');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0015');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0014');
@@ -938,7 +954,14 @@ describe('page visits (0012_page_visits)', () => {
     expect(opened.raw.prepare('SELECT url_template FROM network_calls').all()).toEqual([
       { url_template: '/api/x' },
     ]);
-    expect(migrateUp(opened.raw, MIGRATIONS)).toEqual(['0012', '0013', '0014', '0015', '0016']);
+    expect(migrateUp(opened.raw, MIGRATIONS)).toEqual([
+      '0012',
+      '0013',
+      '0014',
+      '0015',
+      '0016',
+      '0017',
+    ]);
     expect(opened.raw.prepare('SELECT url FROM network_calls').all()).toEqual([{ url: null }]);
   });
 });
@@ -991,6 +1014,7 @@ describe('screens and amendment revisions (0015, 0016; spec 022)', () => {
   it('backfills screens, revision numbers, amendment heads and revisions; down restores the 0014 shape', async () => {
     opened = openDb(':memory:');
     migrateUp(opened.raw, MIGRATIONS);
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0017');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0016');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0015');
     const { runId, stateId: first } = await seedRunAndState(opened, 'p', 'e'.repeat(64));
@@ -998,7 +1022,7 @@ describe('screens and amendment revisions (0015, 0016; spec 022)', () => {
     const other = insertState(opened, runId, 2, '/login', 'c');
     insertAmendment(opened, 'AMD-001', 'active', first, runId);
     insertAmendment(opened, 'AMD-002', 'superseded', other, runId);
-    expect(migrateUp(opened.raw, MIGRATIONS)).toEqual(['0015', '0016']);
+    expect(migrateUp(opened.raw, MIGRATIONS)).toEqual(['0015', '0016', '0017']);
 
     const screens = opened.raw.prepare('SELECT * FROM screens ORDER BY route_template').all() as {
       id: string;
@@ -1048,6 +1072,7 @@ describe('screens and amendment revisions (0015, 0016; spec 022)', () => {
     ]);
     expect(opened.raw.pragma('foreign_key_check')).toEqual([]);
 
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0017');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0016');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0015');
     const back = opened.raw
@@ -1079,5 +1104,78 @@ describe('screens and amendment revisions (0015, 0016; spec 022)', () => {
     expect(() => add(2, 1, 'supersede')).toThrow(/CHECK/);
     expect(() => add(2, 1, 'edit', 'superseded')).toThrow(/CHECK/);
     add(2, 1, 'carry_forward');
+  });
+});
+
+describe('chat proposals (0017; spec 022)', () => {
+  it('enforces the target, applied and decided CHECKs, keeps both indexes, and the down drops the table', () => {
+    opened = openDb(':memory:');
+    migrateUp(opened.raw, MIGRATIONS);
+    const now = nowIso();
+    opened.raw
+      .prepare(
+        `INSERT INTO chat_conversations (id, portal_id, goal, created_at, updated_at) VALUES ('c1', 'p', 'g', ?, ?)`,
+      )
+      .run(now, now);
+    const add = (
+      kind: string,
+      targetId: string | null,
+      baseRev: number | null,
+      payload: string,
+      status = 'open',
+      applied: [string | null, number | null] = [null, null],
+      decidedAt: string | null = null,
+      summary = 'one line',
+    ) =>
+      opened!.raw
+        .prepare(
+          `INSERT INTO chat_proposals (id, conversation_id, portal_id, target_kind, target_id, base_rev, payload, summary, status, applied_amendment_id, applied_rev, decided_at, created_at)
+           VALUES (lower(hex(randomblob(8))), 'c1', 'p', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        )
+        .run(
+          kind,
+          targetId,
+          baseRev,
+          payload,
+          summary,
+          status,
+          applied[0],
+          applied[1],
+          decidedAt,
+          now,
+        );
+    add('amendment', 'a1', 1, '{"text":"x"}');
+    add('new_amendment', null, null, '{"text":"x"}');
+    expect(() => add('amendment', null, null, '{}')).toThrow(/CHECK/);
+    expect(() => add('amendment', 'a1', null, '{}')).toThrow(/CHECK/);
+    expect(() => add('new_amendment', 'a1', 1, '{}')).toThrow(/CHECK/);
+    expect(() => add('other', null, null, '{}')).toThrow(/CHECK/);
+    expect(() => add('new_amendment', null, null, '[]')).toThrow(/CHECK/);
+    expect(() => add('new_amendment', null, null, 'nope')).toThrow(/CHECK/);
+    expect(() => add('new_amendment', null, null, '{}', 'open', [null, null], null, '')).toThrow(
+      /CHECK/,
+    );
+    expect(() => add('new_amendment', null, null, '{}', 'applied', [null, null], now)).toThrow(
+      /CHECK/,
+    );
+    expect(() => add('new_amendment', null, null, '{}', 'discarded')).toThrow(/CHECK/);
+    expect(() => add('new_amendment', null, null, '{}', 'stale')).toThrow(/CHECK/);
+    expect(() => add('new_amendment', null, null, '{}', 'bogus')).toThrow(/CHECK/);
+    add('new_amendment', null, null, '{}', 'discarded', [null, null], now);
+    expect(
+      (
+        opened.raw
+          .prepare(
+            "SELECT name FROM sqlite_master WHERE type='index' AND tbl_name='chat_proposals'",
+          )
+          .all() as { name: string }[]
+      )
+        .map((r) => r.name)
+        .filter((n) => n.startsWith('ix_'))
+        .sort(),
+    ).toEqual(['ix_chat_proposals_conversation', 'ix_chat_proposals_portal_status']);
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0017');
+    expect(tables(opened)).not.toContain('chat_proposals');
+    expect(migrateUp(opened.raw, MIGRATIONS)).toEqual(['0017']);
   });
 });

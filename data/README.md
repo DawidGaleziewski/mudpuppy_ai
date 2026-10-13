@@ -34,6 +34,9 @@ rather than editing this folder ad hoc.
   `screen_id` + `screen_rev`), `amendment_revisions` (append-only history of an amendment; `amendments` keeps the
   head, `rev` and `screen_id`; status `superseded` became `needs_reanchor`). Shapes:
   `specs/022-salvage-redesign/data-model.md`.
+  **Chat proposals** (since spec 022, `0017_chat_proposals`): `chat_proposals` — changes the chat assistant
+  proposes and a person applies or discards; written only by `@pathfinder/chat`, read-only for the dashboard,
+  in the portal export/delete partition.
 - `evidence/` — content-addressed (`sha256`) evidence blobs: ARIA snapshots, robots.txt
   policies and trace payloads too large for their column, referenced by `evidence_ref` columns;
   since spec 008 also state screenshots (`.png`, unmasked), layouts (`.json`: element keys and

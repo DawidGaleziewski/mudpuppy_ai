@@ -213,7 +213,9 @@ export function setEnvironment(
   body: EnvironmentBody,
 ): PortalSummary {
   const entry = environmentEntry(body);
-  return editPortal(paths, id, (doc) => doc.setIn(['environments', environment], doc.createNode(entry)));
+  return editPortal(paths, id, (doc) =>
+    doc.setIn(['environments', environment], doc.createNode(entry)),
+  );
 }
 
 /** Revoke an environment; the last one stays (FR-012). Runs already recorded are kept. */

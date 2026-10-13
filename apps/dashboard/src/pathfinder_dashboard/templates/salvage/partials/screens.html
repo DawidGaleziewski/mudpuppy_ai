@@ -3,7 +3,9 @@
     which is never changed. Import "with context" (the macros use `c`). -#}
 {% import "salvage/macros.html" as sy %}
 
-{% macro figure(fig, hl=none, legend=true, caption=none, view="screenshot") -%}
+{#- `mark_label`: the assistant's highlight (spec 022 FE-A07) labels its mark "Marked by assistant"
+    instead of a number. -#}
+{% macro figure(fig, hl=none, legend=true, caption=none, view="screenshot", mark_label=none) -%}
   {%- set marks = hl if hl is not none else fig.highlights -%}
   {%- set st = fig.state -%}
   {%- set show_shot = view == "screenshot" and fig.has_screenshot -%}
@@ -15,7 +17,7 @@
              {%- if fig.page_width %} width="{{ fig.page_width }}" height="{{ fig.page_height }}"{% endif %}>
       </a>
       {%- for h in marks if h.visible %}
-      <mark class="sy-mark sy-mark--overlay" style="left: {{ h.left }}%; top: {{ h.top }}%; width: {{ h.width }}%; height: {{ h.height }}%;" title="{{ h.key }}"><span class="sy-mark__label">{{ h.n }}</span></mark>
+      <mark class="sy-mark sy-mark--overlay" style="left: {{ h.left }}%; top: {{ h.top }}%; width: {{ h.width }}%; height: {{ h.height }}%;" title="{{ h.key }}"><span class="sy-mark__label">{{ mark_label or h.n }}</span></mark>
       {%- endfor %}
     </div>
     {%- elif fig.wireframe %}

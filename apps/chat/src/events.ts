@@ -35,6 +35,22 @@ export type ChatEvent =
   | { type: 'refused'; tool: string | null; title: string; reason: string }
   | { type: 'error'; ref: string; message: string; logged: boolean }
   | { type: 'notice'; text: string }
+  /**
+   * Something the assistant asked the browser to do (spec 022 R6): highlight an element on a
+   * recorded screen, or open a page. Only from the pathfinder-chat tools `highlight_element` /
+   * `open_page`, after they completed; the drawer performs it.
+   */
+  | UiAction
   | { type: 'idle' };
+
+export type UiAction =
+  | {
+      type: 'ui_action';
+      action: 'highlight';
+      stateId: string;
+      elementKey: string | null;
+      label: string | null;
+    }
+  | { type: 'ui_action'; action: 'open'; path: string };
 
 export type ChatEventListener = (event: ChatEvent) => void;

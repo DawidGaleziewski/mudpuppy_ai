@@ -4,6 +4,10 @@
 {% set nav_current = "state" %}
 {% set f = p.figure %}
 {% set st = f.state %}
+{#- "This page" for the assistant (spec 022 R6): the screen, its revision, its amendments. -#}
+{% set this_rev = (screen.revisions | selectattr("state_id", "equalto", st.id) | map(attribute="rev") | first) if screen and screen.revisions else none %}
+{% set page_ctx = {"type": "screen", "id": st.id, "label": st.title or st.route_template, "ids": am["items"] | map(attribute="key") | list} %}
+{% if this_rev %}{% set _ = page_ctx.update({"rev": this_rev}) %}{% endif %}
 {% block title %}{{ st.title }}{% endblock %}
 {% block main %}
 <div class="sy-pagehead">
@@ -26,7 +30,14 @@
     {%- endif %}
     <a class="sy-tab" href="{{ c.url('/states/' ~ st.id, view='wireframe') }}"{% if view == "wireframe" %} aria-current="page"{% endif %}>Wireframe</a>
   </nav>
-  {%- if view == "screenshot" %}
+  {%- if assistant_hl is not none and view == "screenshot" %}
+  <div class="sy-callout" role="status">
+    <p><span class="sy-label">Marked by assistant</span>
+      {%- if marked %} <span class="sy-mono sy-mono--sm">{{ assistant_hl }}</span>{% elif assistant_hl %} <span class="sy-mono sy-mono--sm">{{ assistant_hl }}</span> is not on the screenshot{% else %} the whole screen{% endif %}
+      · <a href="{{ c.url('/states/' ~ st.id) }}">Clear</a></p>
+  </div>
+  {{ sc.figure(f, hl=marked, legend=false, caption="As first recorded", mark_label="Marked by assistant") }}
+  {%- elif view == "screenshot" %}
   <div class="sy-cluster sy-small">
     {%- if show_elements %}
     <a class="sy-btn sy-btn--sm" href="{{ c.url('/states/' ~ st.id) }}">Hide elements</a>

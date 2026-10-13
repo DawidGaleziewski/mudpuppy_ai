@@ -19,6 +19,10 @@ export const CHAT_TOOLS = [
   'set_process_scope',
   'request_documentation',
   'list_amendments',
+  // Spec 022: the page the BA is looking at, and the browser actions on it.
+  'page_context',
+  'highlight_element',
+  'open_page',
 ].map((t) => CHAT + t);
 
 /** pathfinder-ba tools that only read; the orchestrator may use these itself. */

@@ -26,7 +26,13 @@ export const ScanFocus = z
   .object({
     start_url: z.url().optional(),
     only_domains: z
-      .array(z.string().trim().toLowerCase().regex(/^[a-z0-9.-]+$/, 'a host such as en.example.org'))
+      .array(
+        z
+          .string()
+          .trim()
+          .toLowerCase()
+          .regex(/^[a-z0-9.-]+$/, 'a host such as en.example.org'),
+      )
       .min(1)
       .max(20)
       .optional(),
@@ -118,8 +124,7 @@ export function requestScan(
       ? undefined
       : (
           raw.prepare(`SELECT persona_id FROM runs WHERE id = ?`).get(resume_run_id) as
-            | { persona_id: string }
-            | undefined
+            { persona_id: string } | undefined
         )?.persona_id);
   const portalPath = portalFile(paths, portal);
   const personaPath =
@@ -141,8 +146,7 @@ export function requestScan(
         ? undefined
         : (
             raw.prepare(`SELECT environment FROM runs WHERE id = ?`).get(resume_run_id) as
-              | { environment: Environment }
-              | undefined
+              { environment: Environment } | undefined
           )?.environment;
     const declared = portalEnvironments(portalPath).map((e) => e.environment);
     const chosen = rest.environment ?? resumed ?? (declared.length === 1 ? declared[0] : undefined);

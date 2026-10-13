@@ -15,6 +15,8 @@ CHAT_TABLES = (
     "workflow_steps",
     "process_scopes",
     "amendments",
+    "amendment_revisions",  # spec 022: revisions and proposals go through the chat service too
+    "chat_proposals",
 )
 WRITE = re.compile(
     r"\b(INSERT\s+(OR\s+\w+\s+)?INTO|UPDATE|DELETE\s+FROM|REPLACE\s+INTO)\s+[\"`]?("

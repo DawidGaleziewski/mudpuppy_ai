@@ -1,0 +1,28 @@
+{% import "salvage/macros.html" as sy %}
+{#- Conversation history from the read-only store (screen 01/02 `.sy-chat__log` messages). A live
+    region: it re-fetches when a turn ends (`chat-settled`) and when the store changes, except while
+    a reply is streaming (the streamed text lives in [data-assistant-live]). System lines are
+    dividers; a failed one carries its ERR reference. -#}
+<div id="region-chat-messages" class="mp-chat-history"
+     hx-get="{{ c.url('/fragments/chat/messages', conversation=conversation.id) }}"
+     hx-trigger="chat-settled from:body, store-changed[!window.chatBusy] from:body"
+     hx-swap="outerHTML">
+  {%- if not messages %}
+  <div class="sy-msg">
+    <span class="sy-msg__who">Assistant</span>
+    <p>Say what you want to do with this portal, or ask “what can I do here?”.</p>
+  </div>
+  {%- else %}
+  {%- for msg in messages %}
+  {%- if msg.role == "user" %}
+  <div class="sy-msg sy-msg--user">{{ msg.content }}</div>
+  {%- elif msg.role == "assistant" %}
+  <div class="sy-msg"><span class="sy-msg__who">Assistant</span><p class="mp-pre">{{ msg.content }}</p></div>
+  {%- elif msg.error_ref %}
+  <div class="sy-callout sy-callout--failure"><p>{{ msg.content }}</p><p>{{ sy.error_ref(msg.error_ref) }}</p></div>
+  {%- else %}
+  <div class="sy-chat__divider">{{ msg.content }} · <span class="sy-mono sy-mono--sm">{{ msg.created_at | when }}</span></div>
+  {%- endif %}
+  {%- endfor %}
+  {%- endif %}
+</div>

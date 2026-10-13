@@ -89,8 +89,15 @@ export class ChatService {
     return (await this.opts.store.getConversation(conversationId)) !== null;
   }
 
-  /** Persist the user message and start the turn in the background. */
-  async send(conversationId: string, text: string): Promise<{ messageId: string }> {
+  /**
+   * Persist the user message and start the turn in the background. `forAgent` is what the agent
+   * reads (the text with the page-context line in front, spec 022); the history keeps `text`.
+   */
+  async send(
+    conversationId: string,
+    text: string,
+    forAgent: string = text,
+  ): Promise<{ messageId: string }> {
     const conversation = await this.opts.store.getConversation(conversationId);
     if (conversation === null) throw new ChatError(404, 'This conversation does not exist.');
     const rt = this.runtime(conversationId);
@@ -102,7 +109,7 @@ export class ChatService {
         role: 'user',
         content: text,
       });
-      void this.runTurn(conversationId, rt, text, message.seq);
+      void this.runTurn(conversationId, rt, forAgent, message.seq);
       return { messageId: message.id };
     } catch (error) {
       rt.busy = false;

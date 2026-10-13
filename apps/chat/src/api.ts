@@ -6,6 +6,7 @@ import { z } from 'zod';
 import { amendmentRoutes } from './api-amendments.js';
 import { type AmendmentService } from './amendments.js';
 import { parseBody, readJson, sendJson } from './http-io.js';
+import { PageContext, contextLine } from './page-context.js';
 import { CredentialsBody, type CredentialsHandler } from './credentials.js';
 import { Environment } from '@pathfinder/config';
 import { EnvironmentBody, NewPortalBody, PortalRefusal, type PortalSummary } from './portals.js';
@@ -74,7 +75,11 @@ const CreateBody = z.object({
   /** Spec 011: [new conversation] for the chosen portal never resumes its active one. */
   fresh: z.boolean().optional(),
 });
-const MessageBody = z.object({ text: z.string().trim().min(1).max(50_000) });
+const MessageBody = z.object({
+  text: z.string().trim().min(1).max(50_000),
+  /** Spec 022: the page the message is about ("This page") or the whole portal. */
+  context: PageContext.optional(),
+});
 
 function parseLastEventId(req: IncomingMessage): number | null {
   const raw = req.headers['last-event-id'];
@@ -180,7 +185,11 @@ export function createApi(opts: ApiOptions): Server {
     const messages = /^\/conversations\/([^/]+)\/messages$/.exec(path);
     if (method === 'POST' && messages !== null) {
       const body = parseBody(MessageBody, await readJson(req));
-      const { messageId } = await service.send(decodeURIComponent(messages[1]!), body.text);
+      const { messageId } = await service.send(
+        decodeURIComponent(messages[1]!),
+        body.text,
+        contextLine(body.context) + body.text,
+      );
       sendJson(res, 202, { messageId });
       return;
     }

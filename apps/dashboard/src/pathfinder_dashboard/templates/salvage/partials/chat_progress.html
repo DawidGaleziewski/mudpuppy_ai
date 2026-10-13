@@ -1,0 +1,22 @@
+{% import "salvage/macros.html" as sy %}
+{#- The one-line scan status in the composer (FE-C02, screen 01 `.sy-scanline`): what the
+    conversation's run is doing, from the store. Polls every 3 s while it runs; the full monitor is
+    in Scans. `data-running` tells assistant.js whether a scan keeps the assistant busy. -#}
+<div id="region-chat-progress" class="sy-scanline"
+     data-running="{{ 1 if progress and progress.running else 0 }}"
+     hx-get="{{ c.url('/fragments/chat/progress', conversation=conversation.id) }}"
+     hx-trigger="store-changed from:body, step-changed from:body{% if progress and progress.running %}, every 3s{% endif %}"
+     hx-swap="outerHTML" aria-label="Scan status">
+  {%- if progress %}
+  {{ sy.run_status(progress.status) }}
+  <span>{{ "Scan" if progress.mode == "map" else "Trace" }} {{ sy.tag(progress.run_id[:8], c.url('/runs/' ~ progress.run_id), sm=true) }}
+    · <span class="sy-num">{{ progress.steps_used }}{% if progress.max_steps %} / {{ progress.max_steps }}{% endif %}</span> steps
+    · <span class="sy-num">{{ progress.pages }}</span> pages · <span class="sy-num">{{ progress.queued }}</span> queued</span>
+  {%- if quiet_ms is not none and quiet_ms >= quiet_warn_ms %}
+  <span class="sy-status" data-status="needs">Nothing for {{ quiet_ms | duration }}</span>
+  {%- endif %}
+  <a href="{{ c.url('/runs/' ~ progress.run_id) }}">Open in Scans</a>
+  {%- else %}
+  <span class="sy-muted">No scan yet for this conversation.</span>
+  {%- endif %}
+</div>

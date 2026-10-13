@@ -54,9 +54,15 @@ describe('error log', () => {
 
   it('keeps the class of an Error in the detail (F-21)', async () => {
     const error = new TypeError('Internal error: boom');
-    const r = await logError({ where: 'acp-client', message: 'x', detail: error }, { logsDir: dir });
+    const r = await logError(
+      { where: 'acp-client', message: 'x', detail: error },
+      { logsDir: dir },
+    );
     const rec = await findError(r.ref, { logsDir: dir });
-    expect(rec?.detail).toMatchObject({ error_class: 'TypeError', message: 'Internal error: boom' });
+    expect(rec?.detail).toMatchObject({
+      error_class: 'TypeError',
+      message: 'Internal error: boom',
+    });
   });
 
   it('finds a ref in an older file', async () => {

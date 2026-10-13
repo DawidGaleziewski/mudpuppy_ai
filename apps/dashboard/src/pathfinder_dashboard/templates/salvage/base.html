@@ -21,6 +21,7 @@
 <script src="/static/js/live.js" defer></script>
 <script src="/static/js/forms.js" defer></script>
 <script src="/static/js/shell.js" defer></script>
+<script src="/static/js/assistant.js" defer></script>
 {% block head_extra %}{% endblock %}
 </head>
 <body class="sy-ground"{% if dev %} data-dev="1"{% endif %} data-boot="{{ BOOT_ID }}">
@@ -37,7 +38,7 @@
       {%- endif %}
       {% block main %}{% endblock %}
     </main>
-    {% block drawer %}{% endblock %}
+    {% block drawer %}{% if not no_drawer | default(false) %}{% include "salvage/partials/drawer.html" %}{% endif %}{% endblock %}
   </div>
 </div>
 <div id="live" hx-sse:connect="{{ c.url('/events') }}" hidden></div>

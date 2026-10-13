@@ -6,7 +6,8 @@ import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import type { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
 import type BetterSqlite3 from 'better-sqlite3';
 import { z } from 'zod';
-import { SECRETS } from '@pathfinder/core';
+import { SECRETS, type EvidenceStore } from '@pathfinder/core';
+import { registerPageTools } from './mcp-page-tools.js';
 import { workflowState } from '@pathfinder/workflow';
 import { existsSync } from 'node:fs';
 import { PersonaFile, portalEnvironments } from '@pathfinder/config';
@@ -32,6 +33,8 @@ export interface ChatMcpContext {
   paths: WorkspacePaths;
   /** The chat conversation this agent session belongs to (passed by the chat service). */
   conversationId: string;
+  /** Recorded layouts for page_context and highlight_element (spec 022); null in tests without. */
+  evidence?: EvidenceStore | null;
 }
 
 function ok(value: unknown): CallToolResult {
@@ -67,6 +70,7 @@ function fail(error: unknown): CallToolResult {
 
 export function createChatMcpServer(ctx: ChatMcpContext): McpServer {
   const server = new McpServer({ name: 'pathfinder-chat', version: '0.1.0' });
+  registerPageTools(server, { raw: ctx.raw, evidence: ctx.evidence ?? null }, ok, refused);
 
   server.registerTool(
     'workflow_state',
@@ -83,7 +87,9 @@ export function createChatMcpServer(ctx: ChatMcpContext): McpServer {
         if (portal !== undefined && existsSync(portalFile(ctx.paths, portal)))
           try {
             environments = portalEnvironments(portalFile(ctx.paths, portal)).map(
-              (e) => `${e.environment} (${e.base_url}, up to ${e.max_action_class ?? 'read'})`,
+              // An environment without a limit has none (spec 021).
+              (e) =>
+                `${e.environment} (${e.base_url}, ${e.max_action_class ? `up to ${e.max_action_class}` : 'no limit'})`,
             );
           } catch {
             // a broken file: request_scan reports its problems
@@ -198,17 +204,17 @@ export function createChatMcpServer(ctx: ChatMcpContext): McpServer {
     'list_amendments',
     {
       description:
-        "Read a portal's amendments (to-be notes) with status and, when superseded, the reason and the run. Read only: re-applying or dismissing happens in the dashboard.",
+        "Read a portal's amendments (to-be notes) with status, revision and, when one needs re-anchoring, the reason and the scan. Read only: you propose changes with propose_change; a person applies them, re-anchors or dismisses in the dashboard.",
       inputSchema: {
         portal: z.string(),
-        status: z.enum(['active', 'superseded', 'dismissed', 'withdrawn']).optional(),
+        status: z.enum(['active', 'needs_reanchor', 'dismissed', 'withdrawn']).optional(),
       },
     },
     ({ portal, status }) => {
       try {
         const rows = ctx.raw
           .prepare(
-            `SELECT key, target_kind, target_id, kind, text, attachment_name, status,
+            `SELECT id, key, rev, target_kind, target_id, kind, text, attachment_name, status,
                     superseded_reason, superseded_detail, superseded_by_run, superseded_at, created_at
              FROM amendments WHERE portal_id = ? AND (? IS NULL OR status = ?) ORDER BY created_at`,
           )

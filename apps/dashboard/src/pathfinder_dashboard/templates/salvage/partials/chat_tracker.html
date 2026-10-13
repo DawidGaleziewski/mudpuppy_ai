@@ -1,0 +1,34 @@
+{% import "salvage/macros.html" as sy %}
+{#- "Where this portal is" (screen 01): the workflow steps of the conversation's portal, from
+    `workflow_steps`. Live region, polls while a step is active (FR-019, SC-004); `data-active`
+    tells assistant.js whether the assistant is working. -#}
+<section id="region-chat-tracker" class="sy-plate" data-active="{{ 1 if tracker.active else 0 }}"
+         hx-get="{{ c.url('/fragments/chat/tracker', conversation=conversation.id) }}"
+         hx-trigger="store-changed from:body, step-changed from:body{% if tracker.active %}, every 2s{% endif %}"
+         hx-swap="outerHTML" aria-labelledby="where-h">
+  <div class="sy-plate__head"><h2 id="where-h" class="sy-plate__title">Where this portal is</h2></div>
+  <ol class="sy-steps">
+    {%- set ns = namespace(current=false) %}
+    {%- for row in tracker.rows %}
+    {%- set is_current = not ns.current and row.status != "done" %}
+    {%- if is_current %}{% set ns.current = true %}{% endif %}
+    <li{% if is_current %} aria-current="step"{% elif row.status == "todo" %} data-state="todo"{% endif %} data-step="{{ row.step }}">
+      <span>{{ loop.index }} · {{ row.label }}</span>
+      <span class="sy-cluster" style="--sy-gap: 6px">{{ sy.step_status(row.status) }}
+        {%- if row.status == "stopped" and row.step == "scan" %}
+        <button class="sy-btn sy-btn--sm" type="button" data-chat-say="Resume the scan.">Resume</button>
+        {%- endif %}
+        {%- if row.run_running %}
+        <button class="sy-btn sy-btn--sm sy-btn--danger" type="button" data-stop-run="/chat/runs/{{ row.run_id | urlencode }}/stop" data-label="the {{ row.label | lower }} (run {{ row.run_id }})">Stop scan</button>
+        {%- endif %}
+      </span>
+      {%- if row.status == "failed" %}
+      <span class="sy-small">{% if row.error_ref %}{{ sy.error_ref(row.error_ref) }}{% else %}<span class="sy-muted">No reference recorded</span>{% endif %}</span>
+      {%- endif %}
+    </li>
+    {%- endfor %}
+  </ol>
+  {%- if superseded %}
+  <div class="sy-plate__foot"><a class="sy-btn sy-btn--md" href="{{ c.url('/amendments/superseded', portal=tracker.portal_id) }}">{{ superseded }} amendment{{ "s" if superseded != 1 }} to re-anchor</a></div>
+  {%- endif %}
+</section>
