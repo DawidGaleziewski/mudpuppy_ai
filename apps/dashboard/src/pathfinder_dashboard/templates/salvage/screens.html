@@ -1,0 +1,38 @@
+{% extends "salvage/base.html" %}
+{% import "salvage/macros.html" as sy %}
+{% set nav_current = "screens" %}
+{% block title %}Screens{% endblock %}
+{% block main %}
+<div class="sy-pagehead">
+  <h1 class="sy-h1">Screens</h1>
+  <p class="sy-meta"><span class="sy-num">{{ rows | length }}</span> recorded screen{{ "" if rows | length == 1 else "s" }}{% if c.portal %} of {{ c.portal }}{% else %} across all portals{% endif %}</p>
+</div>
+{%- if not rows %}
+{{ sy.empty("No screens recorded yet", "Ask the assistant to scan the portal; every page it records shows up here.") }}
+{%- else %}
+<div class="sy-table-wrap">
+  <table class="sy-table sy-table--interactive">
+    <caption class="sy-sr-only">Recorded screens</caption>
+    <thead><tr>
+      <th scope="col">{{ sy.term("screenshot", "Picture") }}</th><th scope="col">Title</th><th scope="col">Route template</th>
+      {%- if not c.portal %}<th scope="col">Portal</th>{% endif %}
+      <th scope="col">{{ sy.term("confidence", "Confidence") }}</th><th scope="col" class="sy-num">Scans</th><th scope="col">{{ sy.term("persona", "Personas") }}</th><th scope="col">Last seen (UTC)</th>
+    </tr></thead>
+    <tbody>
+      {%- for r in rows %}{% set st = r.state %}
+      <tr>
+        <td class="mp-thumb-cell">{% if st.screenshot_ref %}<a href="{{ c.url('/states/' ~ st.id) }}" aria-label="Screenshot of {{ st.title }}"><img class="sy-thumb" src="/evidence/{{ st.screenshot_ref }}" alt="" loading="lazy"></a>{% else %}<a href="{{ c.url('/states/' ~ st.id, view='wireframe') }}">Wireframe</a>{% endif %}</td>
+        <td><a class="sy-case-normal" href="{{ c.url('/states/' ~ st.id) }}">{{ st.title or "(untitled page)" }}</a></td>
+        <td class="sy-route mp-break">{{ st.route_template }}</td>
+        {%- if not c.portal %}<td>{{ st.portal_id }}</td>{% endif %}
+        <td>{{ sy.confidence(st.confidence) }}</td>
+        <td class="sy-num">{{ r.runs }}</td>
+        <td class="sy-small">{{ r.personas | join(", ") or "—" }}</td>
+        <td class="sy-mono sy-mono--sm">{{ r.last_seen | when }}</td>
+      </tr>
+      {%- endfor %}
+    </tbody>
+  </table>
+</div>
+{%- endif %}
+{% endblock %}

@@ -204,6 +204,25 @@ def test_docs_pages_render_in_salvage(ba_fixture: Store) -> None:
                 _salvage_page(r.text)
 
 
+# --- new pages: Screens list and search (always Salvage) ----------------------------------------
+
+
+def test_screens_list_shows_recorded_screens(client: TestClient) -> None:
+    html = client.get("/screens").text
+    _salvage_page(html)
+    assert "Kup ubezpieczenia" in html and 'href="/states/state-home"' in html
+    assert re.search(r'class="sy-nav__item" href="/screens"[^>]*aria-current="page"', html)
+
+
+def test_search_finds_screens_scans_and_escapes_wildcards(client: TestClient) -> None:
+    html = client.get("/search", params={"q": "kup"}).text
+    _salvage_page(html)
+    assert 'href="/states/state-home"' in html
+    assert 'href="/runs/run-009"' in client.get("/search", params={"q": "run-00"}).text
+    assert "Nothing found" in client.get("/search", params={"q": "%"}).text
+    assert "Type in the search field" in client.get("/search").text
+
+
 # --- style guard (FE-V02) -----------------------------------------------------------------------
 
 
