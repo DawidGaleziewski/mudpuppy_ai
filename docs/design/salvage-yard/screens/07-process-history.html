@@ -1,0 +1,231 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MudPuppy · Process history</title>
+<link rel="icon" href="../brand/logo/tag-icon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../design-system/css/tokens.css">
+<link rel="stylesheet" href="../design-system/css/fonts.css">
+<link rel="stylesheet" href="../design-system/css/salvage.css">
+</head>
+<body class="sy-ground">
+<a class="sy-skip" href="#main">Skip to content</a>
+<div class="sy-app">
+  <header class="sy-header">
+    <a class="sy-wordmark" href="01-home.html"><span class="sy-wordmark__paint">MUD</span>PUPPY</a>
+    <label class="sy-portal"><span class="sy-label">Portal</span>
+      <select class="sy-select"><option>reference-insurer</option><option>wikipedia</option><option>All portals</option><option>+ New portal</option></select></label>
+    <label class="sy-search">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+      <input type="search" aria-label="Search" placeholder="Search parts: screens, processes, records"><span class="sy-kbd">Ctrl K</span></label>
+    <span class="sy-status" data-status="ok">Assistant up</span>
+    <a class="sy-btn" href="02-screen-with-assistant.html">Ask the assistant <span class="sy-kbd">Ctrl J</span></a>
+    <a class="sy-btn sy-btn--icon" href="#" aria-label="Help and glossary">?</a>
+  </header>
+  <div class="sy-app__body">
+    <nav class="sy-nav" aria-label="Portal sections">
+      <a class="sy-nav__item" href="01-home.html">Home</a>
+      <a class="sy-nav__item" href="04-processes.html" aria-current="page">Processes <span class="sy-nav__count">1·4</span></a>
+      <a class="sy-nav__item" href="08-screen-detail.html">Screens <span class="sy-nav__count">21</span></a>
+      <a class="sy-nav__item" href="#">Docs</a>
+      <a class="sy-nav__item" href="09-review.html">Review <span class="sy-count">3</span></a>
+      <a class="sy-nav__item" href="10-scans.html">Scans</a>
+      <a class="sy-nav__item" href="11-settings.html">Settings</a>
+      <div class="sy-nav__foot">store: sandbox · read-only</div>
+    </nav>
+    <main id="main" class="sy-main">
+
+      <!-- Page head -->
+      <div class="sy-pagehead">
+        <nav class="sy-crumbs" aria-label="Breadcrumb"><a href="04-processes.html">Processes</a> / <a href="05-process-edit.html">Oblicz składkę OC/AC</a> / <span aria-current="page">History</span></nav>
+        <div class="sy-pagehead__row">
+          <div class="sy-stack" style="--sy-gap: 4px">
+            <h1 class="sy-h1">History</h1>
+            <p class="sy-meta">Oblicz składkę OC/AC · 2 variants · 5 revisions · live in sandbox</p>
+          </div>
+          <!-- Designer's note on the versioning roadmap item (canvas note beside the wireframe) -->
+          <aside class="sy-callout sy-callout--drawn" aria-label="About this data" style="max-width: 440px">
+            <span class="sy-callout__title">Roadmap: versioning</span>
+            <span>Scans 1–3 are real. Scans 4–6 and B's revisions are an illustrative future.</span>
+          </aside>
+        </div>
+      </div>
+
+      <!-- Edit conflict: someone else saved first -->
+      <div class="sy-callout sy-callout--intent" role="alert">
+        <div class="sy-split" style="--sy-gap: 10px 16px">
+          <div class="sy-stack" style="--sy-gap: 4px">
+            <span class="sy-callout__title">Someone saved first</span>
+            <p><b>The reviewer saved <span class="sy-tag sy-tag--sm">B r3</span> while your draft was based on <span class="sy-tag sy-tag--sm">B r2</span>.</b> Your draft is kept; nothing was overwritten.</p>
+          </div>
+          <div class="sy-actions">
+            <a class="sy-btn sy-btn--md sy-btn--strong" href="06-process-compare.html">Compare your draft with r3</a>
+            <button class="sy-btn sy-btn--md" type="button">Rebase your draft onto r3</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Which variant is live in each environment -->
+      <section class="sy-stack" style="--sy-gap: 10px" aria-labelledby="live-h">
+        <h2 id="live-h" class="sy-h2">Which variant runs where</h2>
+        <div class="sy-table-wrap">
+          <table class="sy-table" style="min-width: 680px">
+            <thead>
+              <tr>
+                <th scope="col">Environment</th>
+                <th scope="col">Live now</th>
+                <th scope="col">How we know</th>
+                <th scope="col" aria-label="Action"></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <th scope="row">sandbox</th>
+                <td>
+                  <div class="sy-cluster">
+                    <span class="sy-status" data-status="live">Live</span>
+                    <span class="sy-tag sy-tag--sm">A r2</span>
+                    <span class="sy-meta">back from B since scan 6</span>
+                  </div>
+                </td>
+                <td class="sy-muted">Scan 6 walked all 5 steps of A</td>
+                <td><div class="sy-actions sy-actions--end"><button class="sy-btn sy-btn--sm" type="button">Mark B as live…</button></div></td>
+              </tr>
+              <tr>
+                <th scope="row"><span class="sy-muted">staging, production</span></th>
+                <td colspan="2">
+                  <div class="sy-cluster">
+                    <span class="sy-status" data-status="todo">Not configured</span>
+                    <span class="sy-meta">for this portal</span>
+                  </div>
+                </td>
+                <td><div class="sy-actions sy-actions--end"><a href="11-settings.html">Add in Settings</a></div></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- Scan-by-scan timeline: revisions per variant and what ran in sandbox -->
+      <section class="sy-stack" style="--sy-gap: 10px" aria-labelledby="tl-h">
+        <div class="sy-split" style="align-items: baseline">
+          <h2 id="tl-h" class="sy-h2">Timeline</h2>
+          <p id="tl-d" class="sy-meta">Revisions of A and B, and the variant live in sandbox, scan by scan.</p>
+        </div>
+        <div class="sy-table-wrap">
+          <table class="sy-table" style="min-width: 860px" aria-labelledby="tl-h" aria-describedby="tl-d">
+            <thead>
+              <tr>
+                <th scope="col" style="width: 150px">Scan</th>
+                <th scope="col"><div class="sy-stack" style="--sy-gap: 4px"><span class="sy-cluster" style="--sy-gap: 6px">1 <span class="sy-tag sy-tag--sm sy-case-normal">01a1083f</span></span><span class="sy-mono sy-mono--sm">4 Oct</span></div></th>
+                <th scope="col"><div class="sy-stack" style="--sy-gap: 4px"><span class="sy-cluster" style="--sy-gap: 6px">2 <span class="sy-tag sy-tag--sm sy-case-normal">01a10eb9</span></span><span class="sy-mono sy-mono--sm">6 Oct</span></div></th>
+                <th scope="col"><div class="sy-stack" style="--sy-gap: 4px"><span class="sy-cluster" style="--sy-gap: 6px">3 <span class="sy-tag sy-tag--sm sy-case-normal">01a110d5</span></span><span class="sy-mono sy-mono--sm">6 Oct</span></div></th>
+                <th scope="col"><div class="sy-stack" style="--sy-gap: 4px"><span>4</span><span class="sy-mono sy-mono--sm">next</span></div></th>
+                <th scope="col">5</th>
+                <th scope="col">6</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <th scope="row">A · As-is</th>
+                <td></td>
+                <td></td>
+                <td><div class="sy-stack" style="--sy-gap: 4px"><span><span class="sy-tag sy-tag--sm">A r1</span></span><span class="sy-meta">you accepted</span></div></td>
+                <td><div class="sy-stack" style="--sy-gap: 4px"><span><span class="sy-tag sy-tag--sm">A r2</span></span><span class="sy-meta">scan · end reached</span></div></td>
+                <td></td>
+                <td></td>
+              </tr>
+              <tr>
+                <th scope="row">B · To-be</th>
+                <td></td>
+                <td></td>
+                <td><div class="sy-stack" style="--sy-gap: 4px"><span><span class="sy-tag sy-tag--sm">B r1</span></span><span class="sy-meta">you · branched</span></div></td>
+                <td><div class="sy-stack" style="--sy-gap: 4px"><span><span class="sy-tag sy-tag--sm">B r2</span></span><span class="sy-meta">you</span></div></td>
+                <td><div class="sy-stack" style="--sy-gap: 4px"><span><span class="sy-tag sy-tag--sm">B r3</span></span><span class="sy-meta">reviewer</span></div></td>
+                <td><div class="sy-drawn sy-drawn--fill sy-small">Your draft</div></td>
+              </tr>
+              <tr>
+                <th scope="row">Live in sandbox</th>
+                <td colspan="4"><span class="sy-status" data-status="live">A</span></td>
+                <td><span class="sy-status" data-status="live">B · scan 5 matched B</span></td>
+                <td><span class="sy-status" data-status="live">A · rolled back</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- Revisions per variant -->
+      <section class="sy-stack" style="--sy-gap: 10px" aria-labelledby="rev-h">
+        <div class="sy-split" style="align-items: baseline">
+          <h2 id="rev-h" class="sy-h2">Revisions</h2>
+          <p class="sy-meta">Restoring adds a new revision. A rescan adds revisions to A and never edits B.</p>
+        </div>
+        <div class="sy-grid" style="--sy-min: 360px">
+
+          <section class="sy-plate sy-plate--drawn" aria-labelledby="rev-b">
+            <div class="sy-plate__head">
+              <h3 id="rev-b" class="sy-plate__title">B · To-be</h3>
+              <span class="sy-meta">3 revisions</span>
+            </div>
+            <div class="sy-plate__body">
+              <ol class="sy-timeline">
+                <li data-status="draft">
+                  <div class="sy-timeline__head"><span class="sy-tag sy-tag--sm">B r3</span><span class="sy-status" data-status="draft">Latest drawing</span></div>
+                  <div class="sy-timeline__body sy-stack" style="--sy-gap: 6px">
+                    <span>Renamed step 3 to "Podsumowanie i oferta" · reviewer · after scan 5</span>
+                    <div class="sy-actions" style="--sy-gap: 6px 14px"><a href="05-process-edit.html">View</a><a href="06-process-compare.html">Compare with r2</a></div>
+                  </div>
+                </li>
+                <li>
+                  <div class="sy-timeline__head"><span class="sy-tag sy-tag--sm">B r2</span><span class="sy-small sy-muted">superseded</span></div>
+                  <div class="sy-timeline__body sy-stack" style="--sy-gap: 6px">
+                    <span>Merged driver data and options into one step · you · after scan 4</span>
+                    <div class="sy-actions" style="--sy-gap: 6px 14px"><a href="05-process-edit.html">View</a><a href="06-process-compare.html">Compare</a><button class="sy-btn sy-btn--sm" type="button">Restore as r4</button></div>
+                  </div>
+                </li>
+                <li>
+                  <div class="sy-timeline__head"><span class="sy-tag sy-tag--sm">B r1</span><span class="sy-small sy-muted">superseded</span></div>
+                  <div class="sy-timeline__body sy-stack" style="--sy-gap: 6px">
+                    <span>Branched from <span class="sy-tag sy-tag--sm">A r1</span> · you · after scan 3</span>
+                    <div class="sy-actions" style="--sy-gap: 6px 14px"><a href="05-process-edit.html">View</a><button class="sy-btn sy-btn--sm" type="button">Restore as r4</button></div>
+                  </div>
+                </li>
+              </ol>
+            </div>
+          </section>
+
+          <section class="sy-plate" aria-labelledby="rev-a">
+            <div class="sy-plate__head">
+              <h3 id="rev-a" class="sy-plate__title">A · As-is</h3>
+              <span class="sy-meta">2 revisions</span>
+            </div>
+            <div class="sy-plate__body">
+              <ol class="sy-timeline">
+                <li data-status="live">
+                  <div class="sy-timeline__head"><span class="sy-tag sy-tag--sm">A r2</span><span class="sy-status" data-status="live">Live · sandbox</span></div>
+                  <div class="sy-timeline__body sy-stack" style="--sy-gap: 6px">
+                    <span>Observed the last step; the end is now known · scan 4</span>
+                    <div class="sy-actions" style="--sy-gap: 6px 14px"><a href="05-process-edit.html">View</a><a href="06-process-compare.html">Compare with r1</a></div>
+                  </div>
+                </li>
+                <li>
+                  <div class="sy-timeline__head"><span class="sy-tag sy-tag--sm">A r1</span><span class="sy-small sy-muted">superseded</span></div>
+                  <div class="sy-timeline__body sy-stack" style="--sy-gap: 6px">
+                    <span>Accepted the assistant's suggestion, built from scans 1–3 · you · after scan 3</span>
+                    <div class="sy-actions" style="--sy-gap: 6px 14px"><a href="05-process-edit.html">View</a></div>
+                  </div>
+                </li>
+              </ol>
+            </div>
+          </section>
+
+        </div>
+      </section>
+
+    </main>
+  </div>
+</div>
+</body>
+</html>

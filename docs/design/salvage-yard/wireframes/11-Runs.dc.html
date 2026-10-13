@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Scans</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&amp;family=IBM+Plex+Sans:wght@400;500;600&amp;display=swap">
+<style>
+body{margin:0;background:#F6F5F1}
+a{color:#2453C9}a:hover{color:#163A99}
+button,input,select,textarea{font:inherit;color:inherit}
+:focus-visible{outline:2px solid #2453C9;outline-offset:1px}
+</style>
+</helmet>
+<div style="min-height: 100vh; display: flex; flex-direction: column; background: #F6F5F1; color: #1C1C1A; font-family: 'IBM Plex Sans', ui-sans-serif, system-ui, sans-serif; font-size: 14px; line-height: 1.45">
+
+<header style="display: flex; flex-wrap: wrap; align-items: center; gap: 12px 16px; padding: 10px 20px; background: #FFFFFF; border-bottom: 1px solid #C9C6BD">
+<a href="02-Main.dc.html" style="font-family: 'IBM Plex Mono', ui-monospace, monospace; font-weight: 500; font-size: 15px; color: #1C1C1A; text-decoration: none">mudpuppy://console</a>
+<label style="display: flex; align-items: center; gap: 8px; font-size: 12px; color: #55534D">Portal
+<select style="height: 44px; padding: 0 8px; border: 1px solid #8E8B82; background: #FFFFFF; font-size: 14px; min-width: 190px"><option>reference-insurer</option><option>wikipedia</option><option>All portals</option><option>+ New portal</option></select>
+</label>
+<label style="flex: 1 1 240px; display: flex; align-items: center; gap: 8px; height: 44px; box-sizing: border-box; padding: 0 12px; border: 1px solid #C9C6BD; background: #F6F5F1; font-size: 13px; color: #55534D">
+<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5"></path></svg>
+<input type="search" aria-label="Search" placeholder="Search screens, processes, records" style="flex: 1; min-width: 0; border: 0; background: transparent; font-size: 13px">
+<span style="font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 11px">Ctrl K</span>
+</label>
+<span style="display: flex; align-items: center; gap: 6px; font-size: 12px; color: #55534D"><span style="width: 8px; height: 8px; border-radius: 9999px; background: #1C1C1A"></span>assistant running</span>
+<a href="03-ChatDrawer.dc.html" style="display: flex; align-items: center; gap: 8px; height: 44px; box-sizing: border-box; padding: 0 14px; border: 1px solid #1C1C1A; background: #FFFFFF; color: #1C1C1A; text-decoration: none; font-size: 13px; font-weight: 500"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M4 5h16v11H9l-5 4z"></path></svg>Ask assistant <span style="font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 11px; color: #55534D">Ctrl J</span></a>
+<a href="01-IA.dc.html" aria-label="Help and glossary" style="width: 44px; height: 44px; box-sizing: border-box; display: flex; align-items: center; justify-content: center; border: 1px solid #C9C6BD; color: #1C1C1A; text-decoration: none; font-weight: 600">?</a>
+</header>
+
+<div style="flex: 1; display: flex; flex-wrap: wrap; align-items: stretch">
+
+<nav aria-label="Portal sections" style="flex: 1 1 200px; display: flex; flex-direction: column; gap: 2px; padding: 16px 12px; box-sizing: border-box; background: #EFEDE8; border-right: 1px solid #C9C6BD">
+<a href="02-Main.dc.html" style="display: flex; justify-content: space-between; align-items: center; min-height: 44px; padding: 0 12px; text-decoration: none; color: #1C1C1A">Home</a>
+<a href="05-Processes.dc.html" style="display: flex; justify-content: space-between; align-items: center; min-height: 44px; padding: 0 12px; text-decoration: none; color: #1C1C1A">Processes <span style="font-size: 12px; color: #55534D">2 · 3 new</span></a>
+<a href="09-ScreenDetail.dc.html" style="display: flex; justify-content: space-between; align-items: center; min-height: 44px; padding: 0 12px; text-decoration: none; color: #1C1C1A">Screens <span style="font-size: 12px; color: #55534D">21</span></a>
+<a href="#" style="display: flex; justify-content: space-between; align-items: center; min-height: 44px; padding: 0 12px; text-decoration: none; color: #1C1C1A">Docs</a>
+<a href="10-Review.dc.html" style="display: flex; justify-content: space-between; align-items: center; min-height: 44px; padding: 0 12px; text-decoration: none; color: #1C1C1A">Review <span style="font-size: 12px; padding: 0 6px; border: 1px solid #1C1C1A">3</span></a>
+<a href="11-Runs.dc.html" aria-current="page" style="display: flex; justify-content: space-between; align-items: center; min-height: 44px; padding: 0 12px; text-decoration: none; background: #1C1C1A; color: #FFFFFF; font-weight: 500">Scans <span style="font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 11px">[INT.]</span></a>
+<a href="12-Settings.dc.html" style="display: flex; justify-content: space-between; align-items: center; min-height: 44px; padding: 0 12px; text-decoration: none; color: #1C1C1A">Settings</a>
+<div style="height: 1px; background: #C9C6BD; margin: 10px 0"></div>
+<a href="#" style="display: flex; align-items: center; min-height: 44px; padding: 0 12px; text-decoration: none; color: #55534D; font-size: 13px">Glossary and BA wiki</a>
+<div style="margin-top: auto; padding: 12px; font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 11px; color: #55534D">store: sandbox · read-only</div>
+</nav>
+
+<main style="flex: 999 1 560px; min-width: 0; padding: 24px 28px; box-sizing: border-box; display: flex; flex-direction: column; gap: 18px">
+
+<div style="display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 12px">
+<h1 style="margin: 0; font-size: 22px; font-weight: 600">Scans</h1>
+<button type="button" style="min-height: 44px; padding: 0 14px; border: 1px solid #1C1C1A; background: #FFFFFF; font-size: 13px; cursor: pointer">New scan</button>
+</div>
+
+<div role="tablist" aria-label="Scan views" style="display: flex; flex-wrap: wrap; gap: 4px; border-bottom: 1px solid #C9C6BD; font-size: 13px">
+<button type="button" role="tab" aria-selected="true" style="min-height: 40px; padding: 0 12px; border: 0; border-bottom: 2px solid #1C1C1A; background: transparent; font-weight: 600; cursor: pointer">Scans 3</button>
+<button type="button" role="tab" aria-selected="false" style="min-height: 40px; padding: 0 12px; border: 0; background: transparent; color: #55534D; cursor: pointer">Server activity</button>
+</div>
+
+<section aria-labelledby="last-h" style="display: flex; flex-direction: column; background: #FFFFFF; border: 1px solid #8E8B82">
+<div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 16px; padding: 12px 16px; border-bottom: 1px solid #C9C6BD">
+<div style="display: flex; flex-direction: column; gap: 2px">
+<h2 id="last-h" style="margin: 0; font-size: 15px; font-weight: 600"><span style="font-family: 'IBM Plex Mono', ui-monospace, monospace; font-weight: 500">[INT.]</span> Map scan 01a110d5 stopped</h2>
+<div style="font-size: 12px; color: #55534D">sandbox · persona guest · started 2026-10-06 10:49:25Z · last activity 10:58:44Z</div>
+</div>
+<div style="display: flex; flex-wrap: wrap; gap: 8px">
+<a href="03-ChatDrawer.dc.html" style="display: inline-flex; align-items: center; min-height: 44px; padding: 0 12px; border: 1px solid #1C1C1A; color: #1C1C1A; text-decoration: none; font-size: 13px">Ask why it stopped</a>
+<button type="button" style="min-height: 44px; padding: 0 16px; border: 1px solid #1C1C1A; background: #1C1C1A; color: #FFFFFF; font-size: 13px; font-weight: 500; cursor: pointer">Resume scan</button>
+</div>
+</div>
+<div style="display: flex; flex-direction: column; gap: 8px; padding: 12px 16px; border-bottom: 1px solid #E4E2DC">
+<div role="progressbar" aria-label="Steps" aria-valuemin="0" aria-valuemax="400" aria-valuenow="171" style="height: 10px; background: #EFEDE8; border: 1px solid #C9C6BD"><div style="width: 42.75%; height: 100%; background: #1C1C1A"></div></div>
+<div style="display: flex; flex-wrap: wrap; gap: 6px 20px; font-size: 13px"><span><b>171</b> / 400 steps</span><span><b>17</b> pages found</span><span><b>113</b> still queued</span><span>9m 18s of activity</span></div>
+<div style="display: flex; flex-wrap: wrap; align-items: center; gap: 6px; font-size: 12px; color: #55534D"><span>stop reason</span><span style="font-family: 'IBM Plex Mono', ui-monospace, monospace; color: #1C1C1A">[FAIL] ERR-01M48DVAT5E1GS5K42CTCTTDTJ</span><button type="button" style="min-height: 32px; padding: 0 8px; border: 1px solid #C9C6BD; background: #FFFFFF; font-size: 12px; cursor: pointer">Copy</button><a href="#">Details</a></div>
+</div>
+<div style="display: flex; flex-wrap: wrap; gap: 0">
+<div style="flex: 999 1 380px; min-width: 0; display: flex; flex-direction: column; gap: 8px; padding: 12px 16px; border-right: 1px solid #E4E2DC">
+<div style="display: flex; justify-content: space-between; gap: 8px; font-size: 12px; color: #55534D"><span>Map · 17 pages</span><a href="#">Full size</a></div>
+<div aria-label="Map of pages found" style="display: flex; gap: 16px; align-items: center; min-height: 220px; padding: 12px; background: #F6F5F1; border: 1px solid #C9C6BD">
+<div style="flex: none; padding: 6px 10px; border: 2px solid #1C1C1A; font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 12px; background: #FFFFFF">/</div>
+<div aria-hidden="true" style="flex: none; width: 28px; height: 1px; background: #8E8B82"></div>
+<div style="display: flex; flex-wrap: wrap; gap: 6px; font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 11px">
+<span style="padding: 4px 8px; border: 1px solid #8E8B82; background: #FFFFFF">/ubezpieczenia/samochod</span>
+<span style="padding: 4px 8px; border: 1px solid #8E8B82; background: #FFFFFF">/ubezpieczenia/dom</span>
+<span style="padding: 4px 8px; border: 1px solid #8E8B82; background: #FFFFFF">/ubezpieczenia/podroze</span>
+<span style="padding: 4px 8px; border: 1px solid #8E8B82; background: #FFFFFF">/porownanie</span>
+<span style="padding: 4px 8px; border: 1px solid #8E8B82; background: #FFFFFF">/kalkulator/kierowca</span>
+<span style="padding: 4px 8px; border: 2px solid #1C1C1A; background: #FFFFFF">/kontakt · last page</span>
+<span style="padding: 4px 8px; border: 1px solid #8E8B82; background: #FFFFFF">/faq</span>
+<span style="padding: 4px 8px; border: 1px solid #8E8B82; background: #FFFFFF">/slowniczek</span>
+<span style="padding: 4px 8px; border: 1px solid #8E8B82; background: #FFFFFF">/moje-polisy</span>
+<span style="padding: 4px 8px; border: 1px solid #8E8B82; background: #FFFFFF">/logowanie</span>
+<span style="padding: 4px 8px; border: 1px dashed #8E8B82; color: #55534D">+ 6 more</span>
+</div>
+</div>
+</div>
+<div style="flex: 1 1 260px; min-width: 0; display: flex; flex-direction: column; gap: 8px; padding: 12px 16px">
+<div style="font-size: 12px; color: #55534D">Activity · newest first · last 30</div>
+<ol style="margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 6px; font-size: 12px">
+<li style="display: flex; gap: 8px"><span style="font-family: 'IBM Plex Mono', ui-monospace, monospace; color: #55534D">10:58:44Z</span><span>stopped · [FAIL] ERR-01M48D…</span></li>
+<li style="display: flex; gap: 8px"><span style="font-family: 'IBM Plex Mono', ui-monospace, monospace; color: #55534D">10:58Z</span><span>visited /kontakt</span></li>
+<li style="display: flex; gap: 8px; color: #55534D"><span style="font-family: 'IBM Plex Mono', ui-monospace, monospace">…</span><span>28 earlier events</span></li>
+</ol>
+</div>
+</div>
+</section>
+
+<section aria-labelledby="hist-h" style="display: flex; flex-direction: column; gap: 10px">
+<div style="display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 10px">
+<h2 id="hist-h" style="margin: 0; font-size: 15px; font-weight: 600">All scans of reference-insurer</h2>
+<label style="display: flex; align-items: center; gap: 6px; font-size: 12px; color: #55534D">Status<select style="height: 40px; padding: 0 8px; border: 1px solid #C9C6BD; background: #FFFFFF; font-size: 13px"><option>any</option><option>completed</option><option>interrupted</option></select></label>
+</div>
+<div style="overflow-x: auto; background: #FFFFFF; border: 1px solid #C9C6BD">
+<table style="width: 100%; min-width: 860px; border-collapse: collapse; font-size: 13px">
+<thead><tr style="text-align: left; background: #EFEDE8">
+<th scope="col" style="padding: 10px 12px; font-weight: 600; border-bottom: 1px solid #C9C6BD">Status</th>
+<th scope="col" style="padding: 10px 12px; font-weight: 600; border-bottom: 1px solid #C9C6BD">Scan</th>
+<th scope="col" style="padding: 10px 12px; font-weight: 600; border-bottom: 1px solid #C9C6BD">Persona</th>
+<th scope="col" style="padding: 10px 12px; font-weight: 600; border-bottom: 1px solid #C9C6BD">Mode · environment</th>
+<th scope="col" style="padding: 10px 12px; font-weight: 600; border-bottom: 1px solid #C9C6BD">Steps</th>
+<th scope="col" style="padding: 10px 12px; font-weight: 600; border-bottom: 1px solid #C9C6BD">Started (UTC)</th>
+<th scope="col" style="padding: 10px 12px; font-weight: 600; border-bottom: 1px solid #C9C6BD">Duration</th>
+<th scope="col" style="padding: 10px 12px; font-weight: 600; border-bottom: 1px solid #C9C6BD">What changed</th>
+</tr></thead>
+<tbody>
+<tr><td style="padding: 9px 12px; border-bottom: 1px solid #E4E2DC; font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 12px">[INT.] interrupted</td><td style="padding: 9px 12px; border-bottom: 1px solid #E4E2DC"><a href="#">01a110d5-2028…</a></td><td style="padding: 9px 12px; border-bottom: 1px solid #E4E2DC">guest</td><td style="padding: 9px 12px; border-bottom: 1px solid #E4E2DC">map · sandbox</td><td style="padding: 9px 12px; border-bottom: 1px solid #E4E2DC">171</td><td style="padding: 9px 12px; border-bottom: 1px solid #E4E2DC">2026-10-06 10:49:25Z</td><td style="padding: 9px 12px; border-bottom: 1px solid #E4E2DC">8h 37m</td><td style="padding: 9px 12px; border-bottom: 1px solid #E4E2DC"><a href="10-Review.dc.html">screens added or changed</a></td></tr>
+<tr><td style="padding: 9px 12px; border-bottom: 1px solid #E4E2DC; font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 12px">[INT.] interrupted</td><td style="padding: 9px 12px; border-bottom: 1px solid #E4E2DC"><a href="#">01a10eb9-70f2…</a></td><td style="padding: 9px 12px; border-bottom: 1px solid #E4E2DC">guest</td><td style="padding: 9px 12px; border-bottom: 1px solid #E4E2DC">map · sandbox</td><td style="padding: 9px 12px; border-bottom: 1px solid #E4E2DC">84</td><td style="padding: 9px 12px; border-bottom: 1px solid #E4E2DC">2026-10-06 00:59:56Z</td><td style="padding: 9px 12px; border-bottom: 1px solid #E4E2DC">6h 08m</td><td style="padding: 9px 12px; border-bottom: 1px solid #E4E2DC"><a href="10-Review.dc.html">screens added or changed</a></td></tr>
+<tr><td style="padding: 9px 12px; font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 12px">[ OK ] completed</td><td style="padding: 9px 12px"><a href="#">01a1083f-5472…</a></td><td style="padding: 9px 12px">guest</td><td style="padding: 9px 12px">map · sandbox</td><td style="padding: 9px 12px">320</td><td style="padding: 9px 12px">2026-10-04 18:48:50Z</td><td style="padding: 9px 12px">29m 47s</td><td style="padding: 9px 12px; color: #55534D">first scan: baseline</td></tr>
+</tbody>
+</table>
+</div>
+</section>
+</main>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":1040}}'>
+class Component extends DCLogic {
+renderVals() {
+return {};
+}
+}
+</script>
+</body>
+</html>

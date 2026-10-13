@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MudPuppy · Review</title>
+<link rel="icon" href="../brand/logo/tag-icon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../design-system/css/tokens.css">
+<link rel="stylesheet" href="../design-system/css/fonts.css">
+<link rel="stylesheet" href="../design-system/css/salvage.css">
+</head>
+<body class="sy-ground">
+<a class="sy-skip" href="#main">Skip to content</a>
+<div class="sy-app">
+  <header class="sy-header">
+    <a class="sy-wordmark" href="01-home.html"><span class="sy-wordmark__paint">MUD</span>PUPPY</a>
+    <label class="sy-portal"><span class="sy-label">Portal</span>
+      <select class="sy-select"><option>reference-insurer</option><option>wikipedia</option><option>All portals</option><option>+ New portal</option></select></label>
+    <label class="sy-search">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+      <input type="search" aria-label="Search" placeholder="Search parts: screens, processes, records"><span class="sy-kbd">Ctrl K</span></label>
+    <span class="sy-status" data-status="ok">Assistant up</span>
+    <a class="sy-btn" href="02-screen-with-assistant.html">Ask the assistant <span class="sy-kbd">Ctrl J</span></a>
+    <a class="sy-btn sy-btn--icon" href="#" aria-label="Help and glossary">?</a>
+  </header>
+  <div class="sy-app__body">
+    <nav class="sy-nav" aria-label="Portal sections">
+      <a class="sy-nav__item" href="01-home.html">Home</a>
+      <a class="sy-nav__item" href="04-processes.html">Processes <span class="sy-nav__count">1·4</span></a>
+      <a class="sy-nav__item" href="08-screen-detail.html">Screens <span class="sy-nav__count">21</span></a>
+      <a class="sy-nav__item" href="#">Docs</a>
+      <a class="sy-nav__item" href="09-review.html" aria-current="page">Review <span class="sy-count">3</span></a>
+      <a class="sy-nav__item" href="10-scans.html">Scans</a>
+      <a class="sy-nav__item" href="11-settings.html">Settings</a>
+      <div class="sy-nav__foot">store: sandbox · read-only</div>
+    </nav>
+    <main id="main" class="sy-main">
+
+      <div class="sy-pagehead">
+        <h1 class="sy-h1">Review</h1>
+        <p class="sy-meta sy-prose">3 decisions waiting, all records to confirm. Everything that waits for a decision lands here. Nothing here is deleted automatically.</p>
+      </div>
+
+      <!-- Filter: one inbox, four kinds of decision -->
+      <div class="sy-tabs" role="tablist" aria-label="Filter" id="review-tabs">
+        <button class="sy-tab" type="button" role="tab" id="tab-all" data-filter="all" aria-selected="true" aria-controls="review-panel">All <span class="sy-count sy-count--muted">3</span></button>
+        <button class="sy-tab" type="button" role="tab" id="tab-records" data-filter="records" aria-selected="false" aria-controls="review-panel" tabindex="-1">Records to confirm <span class="sy-count sy-count--muted">3</span></button>
+        <button class="sy-tab" type="button" role="tab" id="tab-reanchor" data-filter="reanchor" aria-selected="false" aria-controls="review-panel" tabindex="-1">Amendments to re-anchor <span class="sy-count sy-count--muted">0</span></button>
+        <button class="sy-tab" type="button" role="tab" id="tab-proposals" data-filter="proposals" aria-selected="false" aria-controls="review-panel" tabindex="-1">Assistant proposals <span class="sy-count sy-count--muted">0</span></button>
+        <button class="sy-tab" type="button" role="tab" id="tab-conflicts" data-filter="conflicts" aria-selected="false" aria-controls="review-panel" tabindex="-1">Edit conflicts <span class="sy-count sy-count--muted">0</span></button>
+      </div>
+
+      <div class="sy-columns">
+
+        <!-- The inbox -->
+        <div class="sy-col-main sy-stack" role="tabpanel" id="review-panel" aria-labelledby="tab-all">
+
+          <section class="sy-plate sy-plate--intent" aria-labelledby="rec-h" data-kind="records">
+            <div class="sy-plate__head">
+              <h2 id="rec-h" class="sy-plate__title">Records to confirm</h2>
+              <span class="sy-count">3</span>
+            </div>
+            <div class="sy-rows">
+              <a class="sy-row" href="#" aria-current="true">
+                <span class="sy-row__main">
+                  <span class="sy-cluster"><span class="sy-tag sy-tag--sm">CAP-005</span><span class="sy-status" data-status="draft">Draft · rev 1</span><span class="sy-meta">capability</span></span>
+                  <span>Product and help information</span>
+                </span>
+              </a>
+              <a class="sy-row" href="#">
+                <span class="sy-row__main">
+                  <span class="sy-cluster"><span class="sy-tag sy-tag--sm">NFR-001</span><span class="sy-status" data-status="draft">Draft · rev 1</span><span class="sy-meta">non-functional</span></span>
+                  <span>Portal content in Polish; field validation uses browser-native messages</span>
+                </span>
+              </a>
+              <a class="sy-row" href="#">
+                <span class="sy-row__main">
+                  <span class="sy-cluster"><span class="sy-tag sy-tag--sm">SCR-001</span><span class="sy-status" data-status="draft">Draft · rev 1</span><span class="sy-meta">screen</span></span>
+                  <span>Home page regions: navigation "Menu główne", region "Na skróty"</span>
+                </span>
+              </a>
+            </div>
+          </section>
+
+          <section class="sy-state" aria-labelledby="re-h" data-kind="reanchor">
+            <div class="sy-split">
+              <h2 id="re-h" class="sy-state__title">Amendments to re-anchor</h2>
+              <span class="sy-count sy-count--muted">0</span>
+            </div>
+            <p class="sy-muted">Nothing to re-anchor. When a scan changes a screen and an amendment's element is gone, the amendment lands here with both pictures side by side. It is never deleted.</p>
+          </section>
+
+          <section class="sy-state" aria-labelledby="pr-h" data-kind="proposals">
+            <div class="sy-split">
+              <h2 id="pr-h" class="sy-state__title">Assistant proposals</h2>
+              <span class="sy-count sy-count--muted">0</span>
+            </div>
+            <p class="sy-muted">No open proposals. Changes the assistant suggests in chat wait here if you don't apply or discard them there.</p>
+          </section>
+
+          <section class="sy-state" aria-labelledby="cf-h" data-kind="conflicts">
+            <div class="sy-split">
+              <h2 id="cf-h" class="sy-state__title">Edit conflicts</h2>
+              <span class="sy-count sy-count--muted">0</span>
+            </div>
+            <p class="sy-muted">No conflicts. If someone saves a revision while you're editing the same process or amendment, both versions wait here to compare.</p>
+          </section>
+        </div>
+
+        <!-- The selected item -->
+        <div class="sy-col-side" style="flex-basis: 360px">
+          <aside class="sy-plate" aria-labelledby="sel-h">
+            <div class="sy-plate__head">
+              <div class="sy-stack" style="--sy-gap: 8px">
+                <div class="sy-cluster"><span class="sy-tag sy-tag--sm">CAP-005</span><span class="sy-status" data-status="draft">Draft</span><span class="sy-mono sy-mono--sm sy-muted">revision 1 of 1</span></div>
+                <h2 id="sel-h" class="sy-plate__title">Product and help information</h2>
+              </div>
+            </div>
+            <div class="sy-plate__body">
+              <h3 class="sy-label">Screens it cites</h3>
+              <a class="sy-cluster" href="08-screen-detail.html" style="--sy-gap: 12px">
+                <span class="sy-thumb" aria-hidden="true" style="width: 72px; flex: none"></span>
+                <span class="sy-stack" style="--sy-gap: 2px"><span>Ubezpieczenia dla Ciebie</span><span class="sy-route">/ · r1</span></span>
+              </a>
+              <a class="sy-small" href="#">Open the full record in Docs</a>
+            </div>
+            <hr>
+            <form class="sy-plate__body" aria-label="Decide on CAP-005">
+              <div><button class="sy-btn sy-btn--primary" type="button">Confirm rev 1</button></div>
+              <label class="sy-field"><span class="sy-field__label">Reason (required to reject)</span>
+                <textarea class="sy-textarea" name="reason" rows="2"></textarea></label>
+              <div><button class="sy-btn sy-btn--md" type="button">Reject rev 1</button></div>
+              <label class="sy-field"><span class="sy-field__label">Comment</span>
+                <textarea class="sy-textarea" name="comment" rows="2"></textarea></label>
+              <div class="sy-actions">
+                <button class="sy-btn sy-btn--md sy-btn--quiet" type="button">Comment</button>
+                <a class="sy-btn sy-btn--md sy-btn--quiet" href="02-screen-with-assistant.html">Ask the assistant about it</a>
+              </div>
+            </form>
+          </aside>
+        </div>
+
+      </div>
+    </main>
+  </div>
+</div>
+<script>
+  /* Filter tabs: flip aria-selected and hide the groups that do not match. */
+  (() => {
+    const tabs = [...document.querySelectorAll('#review-tabs [role="tab"]')];
+    const panel = document.getElementById('review-panel');
+    const select = (tab) => {
+      tabs.forEach((t) => { const on = t === tab; t.setAttribute('aria-selected', String(on)); t.tabIndex = on ? 0 : -1; });
+      panel.setAttribute('aria-labelledby', tab.id);
+      panel.querySelectorAll('[data-kind]').forEach((g) => { g.hidden = tab.dataset.filter !== 'all' && g.dataset.kind !== tab.dataset.filter; });
+    };
+    tabs.forEach((tab, i) => {
+      tab.addEventListener('click', () => select(tab));
+      tab.addEventListener('keydown', (e) => {
+        const step = e.key === 'ArrowRight' ? 1 : e.key === 'ArrowLeft' ? -1 : 0;
+        if (!step) return;
+        const next = tabs[(i + step + tabs.length) % tabs.length];
+        select(next); next.focus(); e.preventDefault();
+      });
+    });
+  })();
+</script>
+</body>
+</html>

@@ -1,0 +1,204 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Process: editing the to-be</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&amp;family=IBM+Plex+Sans:wght@400;500;600&amp;display=swap">
+<style>
+body{margin:0;background:#F6F5F1}
+a{color:#2453C9}a:hover{color:#163A99}
+button,input,select,textarea{font:inherit;color:inherit}
+:focus-visible{outline:2px solid #2453C9;outline-offset:1px}
+</style>
+</helmet>
+<div style="min-height: 100vh; display: flex; flex-direction: column; background: #F6F5F1; color: #1C1C1A; font-family: 'IBM Plex Sans', ui-sans-serif, system-ui, sans-serif; font-size: 14px; line-height: 1.45">
+
+<header style="display: flex; flex-wrap: wrap; align-items: center; gap: 12px 16px; padding: 10px 20px; background: #FFFFFF; border-bottom: 1px solid #C9C6BD">
+<a href="02-Main.dc.html" style="font-family: 'IBM Plex Mono', ui-monospace, monospace; font-weight: 500; font-size: 15px; color: #1C1C1A; text-decoration: none">mudpuppy://console</a>
+<label style="display: flex; align-items: center; gap: 8px; font-size: 12px; color: #55534D">Portal
+<select style="height: 44px; padding: 0 8px; border: 1px solid #8E8B82; background: #FFFFFF; font-size: 14px; min-width: 190px"><option>reference-insurer</option><option>wikipedia</option><option>All portals</option><option>+ New portal</option></select>
+</label>
+<label style="flex: 1 1 240px; display: flex; align-items: center; gap: 8px; height: 44px; box-sizing: border-box; padding: 0 12px; border: 1px solid #C9C6BD; background: #F6F5F1; font-size: 13px; color: #55534D">
+<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5"></path></svg>
+<input type="search" aria-label="Search" placeholder="Search screens, processes, records" style="flex: 1; min-width: 0; border: 0; background: transparent; font-size: 13px">
+<span style="font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 11px">Ctrl K</span>
+</label>
+<span style="display: flex; align-items: center; gap: 6px; font-size: 12px; color: #55534D"><span style="width: 8px; height: 8px; border-radius: 9999px; background: #1C1C1A"></span>assistant running</span>
+<a href="03-ChatDrawer.dc.html" style="display: flex; align-items: center; gap: 8px; height: 44px; box-sizing: border-box; padding: 0 14px; border: 1px solid #1C1C1A; background: #FFFFFF; color: #1C1C1A; text-decoration: none; font-size: 13px; font-weight: 500"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M4 5h16v11H9l-5 4z"></path></svg>Ask assistant <span style="font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 11px; color: #55534D">Ctrl J</span></a>
+<a href="01-IA.dc.html" aria-label="Help and glossary" style="width: 44px; height: 44px; box-sizing: border-box; display: flex; align-items: center; justify-content: center; border: 1px solid #C9C6BD; color: #1C1C1A; text-decoration: none; font-weight: 600">?</a>
+</header>
+
+<div style="flex: 1; display: flex; flex-wrap: wrap; align-items: stretch">
+
+<nav aria-label="Portal sections" style="flex: 1 1 64px; max-width: 200px; display: flex; flex-direction: column; gap: 2px; padding: 16px 8px; box-sizing: border-box; background: #EFEDE8; border-right: 1px solid #C9C6BD; font-size: 13px">
+<a href="02-Main.dc.html" style="display: flex; align-items: center; min-height: 44px; padding: 0 10px; text-decoration: none; color: #1C1C1A">Home</a>
+<a href="05-Processes.dc.html" aria-current="page" style="display: flex; align-items: center; min-height: 44px; padding: 0 10px; text-decoration: none; background: #1C1C1A; color: #FFFFFF; font-weight: 500">Processes</a>
+<a href="09-ScreenDetail.dc.html" style="display: flex; align-items: center; min-height: 44px; padding: 0 10px; text-decoration: none; color: #1C1C1A">Screens</a>
+<a href="#" style="display: flex; align-items: center; min-height: 44px; padding: 0 10px; text-decoration: none; color: #1C1C1A">Docs</a>
+<a href="10-Review.dc.html" style="display: flex; align-items: center; min-height: 44px; padding: 0 10px; text-decoration: none; color: #1C1C1A">Review</a>
+<a href="11-Runs.dc.html" style="display: flex; align-items: center; min-height: 44px; padding: 0 10px; text-decoration: none; color: #1C1C1A">Scans</a>
+<a href="12-Settings.dc.html" style="display: flex; align-items: center; min-height: 44px; padding: 0 10px; text-decoration: none; color: #1C1C1A">Settings</a>
+</nav>
+
+<main style="flex: 999 1 640px; min-width: 0; padding: 20px 24px; box-sizing: border-box; display: flex; flex-direction: column; gap: 16px">
+
+<div style="font-size: 13px; color: #55534D"><a href="05-Processes.dc.html">Processes</a> / Oblicz składkę OC/AC</div>
+
+<div style="display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: 12px 24px">
+<div style="display: flex; flex-direction: column; gap: 4px">
+<h1 style="margin: 0; font-size: 22px; font-weight: 600">Oblicz składkę OC/AC</h1>
+<div style="display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 12px; color: #55534D"><span>To-be in design</span><span>persona guest</span><span>live in sandbox: A</span><span>4 screens</span></div>
+</div>
+<div style="display: flex; flex-wrap: wrap; gap: 8px">
+<a href="07-ProcessCompare.dc.html" style="display: inline-flex; align-items: center; min-height: 40px; padding: 0 12px; border: 1px solid #1C1C1A; color: #1C1C1A; text-decoration: none; font-size: 13px">Compare A and B</a>
+<a href="08-ProcessHistory.dc.html" style="display: inline-flex; align-items: center; min-height: 40px; padding: 0 12px; border: 1px solid #1C1C1A; color: #1C1C1A; text-decoration: none; font-size: 13px">History</a>
+</div>
+</div>
+
+<div role="group" aria-label="Variant" style="display: flex; flex-wrap: wrap; border: 1px solid #1C1C1A; align-self: flex-start">
+<button type="button" aria-pressed="{{aPressed}}" onClick="{{showA}}" style="min-height: 44px; padding: 0 16px; border: 0; font-size: 13px; font-weight: 500; cursor: pointer; background: {{aBg}}; color: {{aFg}}">A · As-is r1 · observed</button>
+<button type="button" aria-pressed="{{bPressed}}" onClick="{{showB}}" style="min-height: 44px; padding: 0 16px; border: 0; border-left: 1px solid #1C1C1A; font-size: 13px; font-weight: 500; cursor: pointer; background: {{bBg}}; color: {{bFg}}">B · To-be r1 · draft open</button>
+<button type="button" style="min-height: 44px; padding: 0 14px; border: 0; border-left: 1px solid #1C1C1A; background: #FFFFFF; font-size: 13px; cursor: pointer">+ Variant</button>
+</div>
+
+<sc-if value="{{isB}}" hint-placeholder-val="{{ true }}">
+<div role="status" style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 16px; padding: 10px 14px; background: #FFFFFF; border: 1px solid #2453C9">
+<div style="font-size: 13px"><b style="font-weight: 600">Draft of B r2</b> · 3 changes since r1 · autosaved 22:41Z · only you see this draft</div>
+<div style="display: flex; flex-wrap: wrap; gap: 8px">
+<button type="button" style="min-height: 40px; padding: 0 12px; border: 1px solid #C9C6BD; background: #FFFFFF; font-size: 13px; cursor: pointer">Discard draft</button>
+<button type="button" style="min-height: 40px; padding: 0 14px; border: 1px solid #1C1C1A; background: #1C1C1A; color: #FFFFFF; font-size: 13px; font-weight: 500; cursor: pointer">Save as B r2</button>
+</div>
+</div>
+</sc-if>
+
+<div role="tablist" aria-label="Process sections" style="display: flex; flex-wrap: wrap; gap: 4px; border-bottom: 1px solid #C9C6BD; font-size: 13px">
+<button type="button" role="tab" aria-selected="true" style="min-height: 40px; padding: 0 12px; border: 0; border-bottom: 2px solid #1C1C1A; background: transparent; font-weight: 600; cursor: pointer">Flow</button>
+<button type="button" role="tab" aria-selected="false" style="min-height: 40px; padding: 0 12px; border: 0; background: transparent; color: #55534D; cursor: pointer">Screens 4</button>
+<button type="button" role="tab" aria-selected="false" style="min-height: 40px; padding: 0 12px; border: 0; background: transparent; color: #55534D; cursor: pointer">Requirements and rules</button>
+<button type="button" role="tab" aria-selected="false" style="min-height: 40px; padding: 0 12px; border: 0; background: transparent; color: #55534D; cursor: pointer">Amendments 0</button>
+<a href="07-ProcessCompare.dc.html" role="tab" aria-selected="false" style="display: inline-flex; align-items: center; min-height: 40px; padding: 0 12px; color: #55534D; text-decoration: none">Change spec</a>
+</div>
+
+<div style="display: flex; flex-wrap: wrap; gap: 18px; align-items: flex-start">
+
+<div style="flex: 999 1 460px; min-width: 0; display: flex; flex-direction: column; gap: 14px">
+
+<sc-if value="{{isB}}" hint-placeholder-val="{{ true }}">
+<div style="display: flex; flex-direction: column; gap: 8px">
+<div style="font-size: 12px; color: #55534D">B · To-be (draft) · steps you can edit, reorder or remove</div>
+<ol style="margin: 0; padding: 0; list-style: none; display: flex; flex-wrap: wrap; align-items: stretch; gap: 10px">
+<li style="flex: 1 1 180px; display: flex; flex-direction: column; gap: 8px; padding: 10px; background: #FFFFFF; border: 1px solid #8E8B82">
+<div style="display: flex; justify-content: space-between; gap: 6px; font-size: 11px"><span style="font-family: 'IBM Plex Mono', ui-monospace, monospace">1 · START</span><span style="color: #55534D">unchanged</span></div>
+<div style="height: 70px; background: repeating-linear-gradient(135deg, #E9E7E1 0 8px, #E1DED7 8px 16px); border: 1px solid #C9C6BD"></div>
+<div style="font-weight: 500; font-size: 13px">Ubezpieczenia dla Ciebie</div>
+<div style="font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 11px; color: #55534D">/</div>
+<div style="display: flex; align-items: center; gap: 6px; font-size: 12px"><span style="width: 20px; height: 20px; display: inline-flex; align-items: center; justify-content: center; background: #2453C9; color: #FFFFFF; font-size: 11px; font-weight: 600">1</span>1 annotation</div>
+</li>
+<li style="flex: 1 1 180px; display: flex; flex-direction: column; gap: 8px; padding: 10px; background: #FFFFFF; border: 2px solid #2453C9">
+<div style="display: flex; justify-content: space-between; gap: 6px; font-size: 11px"><span style="font-family: 'IBM Plex Mono', ui-monospace, monospace">2</span><span style="color: #2453C9; font-weight: 600">changed · selected</span></div>
+<div style="height: 70px; box-sizing: border-box; display: flex; align-items: center; justify-content: center; border: 1px dashed #2453C9; font-size: 11px; color: #2453C9">designed, not observed</div>
+<div style="font-weight: 500; font-size: 13px">Kalkulator OC/AC — kierowca i opcje</div>
+<div style="font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 11px; color: #55534D">/oc-ac/wycena · merges 2 as-is steps</div>
+<div style="display: flex; align-items: center; gap: 6px; font-size: 12px"><span style="width: 20px; height: 20px; display: inline-flex; align-items: center; justify-content: center; background: #2453C9; color: #FFFFFF; font-size: 11px; font-weight: 600">2</span>1 annotation</div>
+</li>
+<li style="flex: 1 1 180px; display: flex; flex-direction: column; gap: 8px; padding: 10px; background: #FFFFFF; border: 1px solid #8E8B82">
+<div style="display: flex; justify-content: space-between; gap: 6px; font-size: 11px"><span style="font-family: 'IBM Plex Mono', ui-monospace, monospace">3 · END</span><span style="color: #2453C9; font-weight: 600">+ added</span></div>
+<div style="height: 70px; box-sizing: border-box; display: flex; align-items: center; justify-content: center; border: 1px dashed #2453C9; font-size: 11px; color: #2453C9">designed, not observed</div>
+<div style="font-weight: 500; font-size: 13px">Podsumowanie i oferta</div>
+<div style="font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 11px; color: #55534D">/oc-ac/oferta</div>
+<div style="display: flex; align-items: center; gap: 6px; font-size: 12px"><span style="width: 20px; height: 20px; display: inline-flex; align-items: center; justify-content: center; background: #2453C9; color: #FFFFFF; font-size: 11px; font-weight: 600">3</span>1 annotation</div>
+</li>
+<li style="flex: 0 1 120px; display: flex">
+<button type="button" style="flex: 1; min-height: 120px; border: 1px dashed #8E8B82; background: transparent; font-size: 13px; cursor: pointer">+ Add step</button>
+</li>
+</ol>
+<div style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px; font-size: 12px"><span style="color: #55534D">Removed from A:</span><span style="padding: 3px 8px; border: 1px solid #B4540A; color: #B4540A"><s>Samochód · /ubezpieczenia/samochod</s></span><span style="color: #55534D">the shortcut goes straight to step 2</span></div>
+</div>
+</sc-if>
+
+<div style="display: flex; flex-direction: column; gap: 8px; padding: 12px; background: {{asisBg}}; border: 1px solid #C9C6BD">
+<div style="font-size: 12px; color: #55534D">{{asisLabel}}</div>
+<ol style="margin: 0; padding: 0; list-style: none; display: flex; flex-wrap: wrap; align-items: center; gap: 6px; font-size: 12px">
+<li style="padding: 6px 8px; border: 1px solid #C9C6BD; background: #FFFFFF">1 · START · Ubezpieczenia dla Ciebie <span style="font-family: 'IBM Plex Mono', ui-monospace, monospace; color: #55534D">/</span></li>
+<li aria-hidden="true">→</li>
+<li style="padding: 6px 8px; border: 1px solid #C9C6BD; background: #FFFFFF">2 · Samochód <span style="font-family: 'IBM Plex Mono', ui-monospace, monospace; color: #55534D">/ubezpieczenia/samochod</span></li>
+<li aria-hidden="true">→</li>
+<li style="padding: 6px 8px; border: 1px solid #C9C6BD; background: #FFFFFF">3 · Kalkulator OC/AC — dane kierowcy <span style="font-family: 'IBM Plex Mono', ui-monospace, monospace; color: #55534D">/kalkulator/kierowca</span></li>
+<li aria-hidden="true">→</li>
+<li style="padding: 6px 8px; border: 1px solid #C9C6BD; background: #FFFFFF">4 · Kalkulator OC/AC — opcje</li>
+<li aria-hidden="true">→</li>
+<li style="padding: 6px 8px; border: 1px dashed #B4540A; color: #B4540A">end not reached · scan 01a110d5 interrupted, 113 pages queued</li>
+</ol>
+<sc-if value="{{isA}}" hint-placeholder-val="{{ false }}">
+<div style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center; font-size: 12px; color: #55534D">Observed by scans 01a1083f, 01a10eb9 and 01a110d5. Read-only: change it by rescanning, or branch a new variant from it.
+<a href="11-Runs.dc.html" style="display: inline-flex; align-items: center; min-height: 36px; padding: 0 10px; border: 1px solid #1C1C1A; color: #1C1C1A; text-decoration: none">Resume scan to reach the end</a>
+</div>
+</sc-if>
+</div>
+</div>
+
+<aside aria-label="Selected step" style="flex: 1 1 300px; min-width: 0; display: flex; flex-direction: column; background: #FFFFFF; border: 1px solid #C9C6BD">
+<div style="padding: 12px 14px; border-bottom: 1px solid #C9C6BD">
+<div style="font-size: 12px; color: #55534D">Step 2 of B (draft)</div>
+<h2 style="margin: 2px 0 0; font-size: 15px; font-weight: 600">Kalkulator OC/AC — kierowca i opcje</h2>
+</div>
+<div style="display: flex; flex-direction: column; gap: 6px; padding: 12px 14px; border-bottom: 1px solid #E4E2DC; font-size: 12px">
+<div style="color: #55534D">Built from</div>
+<a href="09-ScreenDetail.dc.html">Kalkulator OC/AC — dane kierowcy · r1</a>
+<a href="09-ScreenDetail.dc.html">Kalkulator OC/AC — opcje · r1</a>
+</div>
+<div style="display: flex; flex-direction: column; gap: 8px; padding: 12px 14px; border-bottom: 1px solid #E4E2DC">
+<div style="font-size: 12px; color: #55534D">Annotations on this step</div>
+<div style="display: flex; gap: 8px; font-size: 13px"><span style="flex: none; width: 20px; height: 20px; display: inline-flex; align-items: center; justify-content: center; background: #2453C9; color: #FFFFFF; font-size: 11px; font-weight: 600">2</span><span>One form instead of two: driver data and cover options together, price updates as you fill it. <span style="color: #55534D">· you · draft</span></span></div>
+<label style="display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: #55534D">New annotation
+<textarea rows="3" placeholder="What should be different here, and why" style="resize: vertical; padding: 8px 10px; border: 1px solid #8E8B82; background: #FFFFFF; font-size: 13px; color: #1C1C1A"></textarea>
+</label>
+<div style="display: flex; flex-wrap: wrap; gap: 6px">
+<button type="button" style="min-height: 36px; padding: 0 10px; border: 1px solid #1C1C1A; background: #FFFFFF; font-size: 12px; cursor: pointer">Add annotation</button>
+<button type="button" style="min-height: 36px; padding: 0 10px; border: 1px solid #C9C6BD; background: #FFFFFF; font-size: 12px; cursor: pointer">Attach file</button>
+</div>
+</div>
+<div style="display: flex; flex-direction: column; gap: 8px; padding: 12px 14px">
+<a href="03-ChatDrawer.dc.html" style="display: inline-flex; align-items: center; justify-content: center; min-height: 40px; padding: 0 12px; border: 1px solid #1C1C1A; color: #1C1C1A; text-decoration: none; font-size: 13px">Ask the assistant about this step</a>
+<button type="button" style="min-height: 40px; padding: 0 12px; border: 1px solid #C9C6BD; background: #FFFFFF; font-size: 13px; cursor: pointer">Remove step from B</button>
+</div>
+</aside>
+</div>
+</main>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":1100}}'>
+class Component extends DCLogic {
+constructor(props) {
+super(props);
+this.state = { v: 'B' };
+}
+renderVals() {
+const b = this.state.v === 'B';
+const ink = '#1C1C1A';
+const paper = '#FFFFFF';
+return {
+isA: !b,
+isB: b,
+aPressed: b ? 'false' : 'true',
+bPressed: b ? 'true' : 'false',
+aBg: b ? paper : ink,
+aFg: b ? ink : paper,
+bBg: b ? ink : paper,
+bFg: b ? paper : ink,
+asisBg: b ? '#EFEDE8' : '#FFFFFF',
+asisLabel: b ? 'A · As-is r1, for reference (ghosted)' : 'A · As-is r1 · observed flow',
+showA: () => this.setState({ v: 'A' }),
+showB: () => this.setState({ v: 'B' })
+};
+}
+}
+</script>
+</body>
+</html>

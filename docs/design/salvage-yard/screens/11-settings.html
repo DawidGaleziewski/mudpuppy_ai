@@ -1,0 +1,199 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MudPuppy · Settings</title>
+<link rel="icon" href="../brand/logo/tag-icon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../design-system/css/tokens.css">
+<link rel="stylesheet" href="../design-system/css/fonts.css">
+<link rel="stylesheet" href="../design-system/css/salvage.css">
+</head>
+<body class="sy-ground">
+<a class="sy-skip" href="#main">Skip to content</a>
+<div class="sy-app">
+  <header class="sy-header">
+    <a class="sy-wordmark" href="01-home.html"><span class="sy-wordmark__paint">MUD</span>PUPPY</a>
+    <label class="sy-portal"><span class="sy-label">Portal</span>
+      <select class="sy-select"><option>reference-insurer</option><option selected>wikipedia</option><option>All portals</option><option>+ New portal</option></select></label>
+    <label class="sy-search">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+      <input type="search" aria-label="Search" placeholder="Search parts: screens, processes, records"><span class="sy-kbd">Ctrl K</span></label>
+    <span class="sy-status" data-status="ok">Assistant up</span>
+    <a class="sy-btn" href="02-screen-with-assistant.html">Ask the assistant <span class="sy-kbd">Ctrl J</span></a>
+    <a class="sy-btn sy-btn--icon" href="#" aria-label="Help and glossary">?</a>
+  </header>
+  <div class="sy-app__body">
+    <nav class="sy-nav" aria-label="Portal sections">
+      <a class="sy-nav__item" href="01-home.html">Home</a>
+      <a class="sy-nav__item" href="04-processes.html">Processes</a>
+      <a class="sy-nav__item" href="08-screen-detail.html">Screens <span class="sy-nav__count">14</span></a>
+      <a class="sy-nav__item" href="#">Docs</a>
+      <a class="sy-nav__item" href="09-review.html">Review</a>
+      <a class="sy-nav__item" href="10-scans.html">Scans</a>
+      <a class="sy-nav__item" href="11-settings.html" aria-current="page">Settings</a>
+      <div class="sy-nav__foot">store: sandbox · read-only</div>
+    </nav>
+    <main id="main" class="sy-main">
+
+      <div class="sy-pagehead">
+        <h1 class="sy-h1">Settings · wikipedia</h1>
+        <p class="sy-cluster" role="status"><span class="sy-status" data-status="ok">OK</span><span class="sy-meta">staging saved.</span></p>
+      </div>
+
+      <nav class="sy-actions" aria-label="Settings sections">
+        <a class="sy-btn sy-btn--sm sy-btn--quiet sy-selected" href="#env" aria-current="true">Environments</a>
+        <a class="sy-btn sy-btn--sm sy-btn--quiet" href="#cred">Credentials</a>
+        <a class="sy-btn sy-btn--sm sy-btn--quiet" href="#personas">Personas</a>
+        <a class="sy-btn sy-btn--sm sy-btn--quiet" href="#crawl">Crawl rules</a>
+        <a class="sy-btn sy-btn--sm sy-btn--quiet" href="#store">Data store</a>
+      </nav>
+
+      <!-- Environments: where a scan may run and how far the crawler may go there. -->
+      <section id="env" class="sy-plate" aria-labelledby="env-h">
+        <div class="sy-plate__head">
+          <h2 id="env-h" class="sy-plate__title">Environments</h2>
+          <span class="sy-meta">A scan names one; the assistant asks when there are several.</span>
+        </div>
+        <div class="sy-table-wrap sy-table-wrap--flush">
+          <table class="sy-table sy-table--middle" style="min-width: 860px" aria-labelledby="env-h">
+            <thead>
+              <tr>
+                <th scope="col">Environment</th>
+                <th scope="col">Address</th>
+                <th scope="col">How far the crawler may go</th>
+                <th scope="col">Credentials</th>
+                <th scope="col"><span class="sy-sr-only">Actions</span></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <th scope="row">production</th>
+                <td><a class="sy-mono" href="https://www.wikipedia.org/">https://www.wikipedia.org/</a></td>
+                <td>only look, never submit</td>
+                <td class="sy-muted">none</td>
+                <td>
+                  <div class="sy-actions sy-actions--end sy-actions--nowrap">
+                    <a class="sy-btn sy-btn--sm sy-btn--quiet" href="#add-env">Edit<span class="sy-sr-only"> production</span></a>
+                    <button class="sy-btn sy-btn--sm sy-btn--danger" type="button" aria-haspopup="dialog" aria-controls="revoke-dialog" data-revoke="production">Revoke<span class="sy-sr-only"> production</span></button>
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <th scope="row">staging</th>
+                <td><a class="sy-mono" href="http://127.0.0.1:4010/">http://127.0.0.1:4010/</a></td>
+                <td>fill and submit forms (everything)</td>
+                <td class="sy-muted">none</td>
+                <td>
+                  <div class="sy-actions sy-actions--end sy-actions--nowrap">
+                    <a class="sy-btn sy-btn--sm sy-btn--quiet" href="#add-env">Edit<span class="sy-sr-only"> staging</span></a>
+                    <button class="sy-btn sy-btn--sm sy-btn--danger" type="button" aria-haspopup="dialog" aria-controls="revoke-dialog" data-revoke="staging">Revoke<span class="sy-sr-only"> staging</span></button>
+                  </div>
+                </td>
+              </tr>
+              <tr class="sy-muted">
+                <th scope="row"><span class="sy-muted">sandbox</span></th>
+                <td colspan="3"><span class="sy-status" data-status="todo">Not configured</span></td>
+                <td>
+                  <div class="sy-actions sy-actions--end sy-actions--nowrap">
+                    <a class="sy-btn sy-btn--sm sy-btn--quiet" href="#add-env">Add<span class="sy-sr-only"> sandbox</span></a>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <form id="add-env" class="sy-plate__foot" aria-label="Add or change an environment" style="align-items: flex-end; justify-content: flex-start; gap: 10px 12px">
+          <label class="sy-field" style="flex: 1 1 140px"><span class="sy-field__label">Environment</span>
+            <select class="sy-select" name="environment"><option selected>sandbox</option><option>staging (change)</option><option>production (change)</option></select></label>
+          <label class="sy-field" style="flex: 3 1 220px"><span class="sy-field__label">Address</span>
+            <input class="sy-input" type="url" name="address" required placeholder="https://"></label>
+          <label class="sy-field" style="flex: 2 1 220px"><span class="sy-field__label">How far the crawler may go</span>
+            <select class="sy-select" name="reach"><option>fill and submit forms (everything)</option><option>up to deleting things, no outside effects</option><option>change data, never delete</option><option>only look, never submit</option></select></label>
+          <button class="sy-btn sy-btn--primary" type="submit">Save environment</button>
+        </form>
+      </section>
+
+      <!-- Credentials: collapsed by default. Values go to the vault and are never displayed. -->
+      <section id="cred" aria-labelledby="cred-h">
+        <details class="sy-disclosure">
+          <summary>
+            <h2 id="cred-h" class="sy-plate__title">Credentials</h2>
+            <span class="sy-meta" style="margin-right: auto">none stored · values are never shown</span>
+          </summary>
+          <div class="sy-disclosure__body">
+            <p class="sy-prose sy-meta">"Values go into the vault, never into the chat, and are not shown again." No persona of this portal names a credential. The assistant asks in chat when a scan reaches a login it can't pass.</p>
+            <form class="sy-vault" aria-label="Store a credential in the vault">
+              <div class="sy-split"><span class="sy-label">Vault · wikipedia</span><span class="sy-mono sy-muted">0 stored</span></div>
+              <div class="sy-cluster" style="align-items: flex-end; --sy-gap: 10px 12px">
+                <label class="sy-field" style="flex: 1 1 140px"><span class="sy-field__label">Environment</span>
+                  <select class="sy-select" name="cred-environment"><option>production</option><option>staging</option></select></label>
+                <label class="sy-field" style="flex: 2 1 200px"><span class="sy-field__label">Reference name</span>
+                  <input class="sy-input" type="text" name="cred-name" placeholder="e.g. PORTAL_TOKEN" autocomplete="off" spellcheck="false"></label>
+                <label class="sy-field" style="flex: 2 1 200px"><span class="sy-field__label">Value</span>
+                  <input class="sy-input" type="password" name="cred-value" autocomplete="new-password"></label>
+                <button class="sy-btn sy-btn--strong" type="submit">Store in vault</button>
+              </div>
+            </form>
+          </div>
+        </details>
+      </section>
+
+      <div class="sy-grid" style="--sy-min: 280px">
+        <section id="personas" class="sy-plate" aria-labelledby="per-h">
+          <div class="sy-plate__head"><h2 id="per-h" class="sy-plate__title">Personas</h2></div>
+          <ul class="sy-rows">
+            <li class="sy-row"><span>guest</span><span class="sy-meta">used by 2 scans</span></li>
+            <li class="sy-row"><span>guest-reader</span><span class="sy-meta">used by 1 scan</span></li>
+          </ul>
+        </section>
+
+        <section id="crawl" class="sy-plate" aria-labelledby="crawl-h">
+          <div class="sy-plate__head"><h2 id="crawl-h" class="sy-plate__title">Crawl rules</h2></div>
+          <div class="sy-plate__body">
+            <fieldset class="sy-stack" style="--sy-gap: 4px">
+              <legend class="sy-legend-label"><span class="sy-mono">robots.txt</span></legend>
+              <label class="sy-check"><input type="radio" name="robots" value="ignore" checked> ignore it (visit every page; your responsibility)</label>
+              <label class="sy-check"><input type="radio" name="robots" value="respect"> respect it</label>
+            </fieldset>
+          </div>
+        </section>
+
+        <section id="store" class="sy-plate" aria-labelledby="store-h">
+          <div class="sy-plate__head"><h2 id="store-h" class="sy-plate__title">Data store</h2></div>
+          <div class="sy-plate__body">
+            <label class="sy-field"><span class="sy-field__label">Store</span>
+              <select class="sy-select sy-select--md" name="store"><option>sandbox</option></select></label>
+            <p class="sy-route">data/db/sandbox.sqlite · 22,128 KB · read-only</p>
+            <div><button class="sy-btn sy-btn--sm" type="button">Copy full path</button></div>
+          </div>
+        </section>
+      </div>
+
+      <!-- Revoke confirm. Opened by any Revoke button (script below fills in the environment name). -->
+      <dialog id="revoke-dialog" class="sy-dialog" aria-labelledby="revoke-h">
+        <form method="dialog">
+          <div class="sy-dialog__head"><h2 id="revoke-h" class="sy-h3">Revoke <span data-env-name>staging</span>?</h2></div>
+          <div class="sy-dialog__body">
+            <p>Runs already recorded are kept. Stored credentials for <span data-env-name>staging</span> are deleted.</p>
+          </div>
+          <div class="sy-dialog__foot">
+            <button class="sy-btn" type="submit" value="keep" autofocus>Keep it</button>
+            <button class="sy-btn sy-btn--danger" type="submit" value="revoke"><span>Revoke <span data-env-name>staging</span></span></button>
+          </div>
+        </form>
+      </dialog>
+
+    </main>
+  </div>
+</div>
+<script>
+  // Revoke always confirms: open the dialog with the row's environment name.
+  const dlg = document.getElementById('revoke-dialog');
+  document.querySelectorAll('[data-revoke]').forEach(btn => btn.addEventListener('click', () => {
+    dlg.querySelectorAll('[data-env-name]').forEach(n => { n.textContent = btn.dataset.revoke; });
+    dlg.showModal();
+  }));
+</script>
+</body>
+</html>

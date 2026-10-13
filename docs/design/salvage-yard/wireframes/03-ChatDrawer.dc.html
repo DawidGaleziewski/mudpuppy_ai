@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Assistant drawer on any page</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&amp;family=IBM+Plex+Sans:wght@400;500;600&amp;display=swap">
+<style>
+body{margin:0;background:#F6F5F1}
+a{color:#2453C9}a:hover{color:#163A99}
+button,input,select,textarea{font:inherit;color:inherit}
+:focus-visible{outline:2px solid #2453C9;outline-offset:1px}
+</style>
+</helmet>
+<div style="min-height: 100vh; display: flex; flex-direction: column; background: #F6F5F1; color: #1C1C1A; font-family: 'IBM Plex Sans', ui-sans-serif, system-ui, sans-serif; font-size: 14px; line-height: 1.45">
+
+<header style="display: flex; flex-wrap: wrap; align-items: center; gap: 12px 16px; padding: 10px 20px; background: #FFFFFF; border-bottom: 1px solid #C9C6BD">
+<a href="02-Main.dc.html" style="font-family: 'IBM Plex Mono', ui-monospace, monospace; font-weight: 500; font-size: 15px; color: #1C1C1A; text-decoration: none">mudpuppy://console</a>
+<label style="display: flex; align-items: center; gap: 8px; font-size: 12px; color: #55534D">Portal
+<select style="height: 44px; padding: 0 8px; border: 1px solid #8E8B82; background: #FFFFFF; font-size: 14px; min-width: 190px"><option>reference-insurer</option><option>wikipedia</option><option>All portals</option><option>+ New portal</option></select>
+</label>
+<label style="flex: 1 1 240px; display: flex; align-items: center; gap: 8px; height: 44px; box-sizing: border-box; padding: 0 12px; border: 1px solid #C9C6BD; background: #F6F5F1; font-size: 13px; color: #55534D">
+<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5"></path></svg>
+<input type="search" aria-label="Search" placeholder="Search screens, processes, records" style="flex: 1; min-width: 0; border: 0; background: transparent; font-size: 13px">
+<span style="font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 11px">Ctrl K</span>
+</label>
+<span style="display: flex; align-items: center; gap: 6px; font-size: 12px; color: #55534D"><span style="width: 8px; height: 8px; border-radius: 9999px; background: #1C1C1A"></span>assistant running</span>
+<a href="09-ScreenDetail.dc.html" aria-pressed="true" style="display: flex; align-items: center; gap: 8px; height: 44px; box-sizing: border-box; padding: 0 14px; border: 1px solid #1C1C1A; background: #1C1C1A; color: #FFFFFF; text-decoration: none; font-size: 13px; font-weight: 500"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M4 5h16v11H9l-5 4z"></path></svg>Ask assistant</a>
+<a href="01-IA.dc.html" aria-label="Help and glossary" style="width: 44px; height: 44px; box-sizing: border-box; display: flex; align-items: center; justify-content: center; border: 1px solid #C9C6BD; color: #1C1C1A; text-decoration: none; font-weight: 600">?</a>
+</header>
+
+<div style="flex: 1; display: flex; flex-wrap: wrap; align-items: stretch">
+
+<nav aria-label="Portal sections" style="flex: 1 1 64px; max-width: 200px; display: flex; flex-direction: column; gap: 2px; padding: 16px 8px; box-sizing: border-box; background: #EFEDE8; border-right: 1px solid #C9C6BD; font-size: 13px">
+<a href="02-Main.dc.html" style="display: flex; align-items: center; min-height: 44px; padding: 0 10px; text-decoration: none; color: #1C1C1A">Home</a>
+<a href="05-Processes.dc.html" style="display: flex; align-items: center; min-height: 44px; padding: 0 10px; text-decoration: none; color: #1C1C1A">Processes</a>
+<a href="09-ScreenDetail.dc.html" aria-current="page" style="display: flex; align-items: center; min-height: 44px; padding: 0 10px; text-decoration: none; background: #1C1C1A; color: #FFFFFF; font-weight: 500">Screens</a>
+<a href="#" style="display: flex; align-items: center; min-height: 44px; padding: 0 10px; text-decoration: none; color: #1C1C1A">Docs</a>
+<a href="10-Review.dc.html" style="display: flex; align-items: center; min-height: 44px; padding: 0 10px; text-decoration: none; color: #1C1C1A">Review</a>
+<a href="11-Runs.dc.html" style="display: flex; align-items: center; min-height: 44px; padding: 0 10px; text-decoration: none; color: #1C1C1A">Scans</a>
+<a href="12-Settings.dc.html" style="display: flex; align-items: center; min-height: 44px; padding: 0 10px; text-decoration: none; color: #1C1C1A">Settings</a>
+</nav>
+
+<main style="flex: 999 1 460px; min-width: 0; padding: 20px 24px; box-sizing: border-box; display: flex; flex-direction: column; gap: 14px">
+<div style="font-size: 13px; color: #55534D"><a href="09-ScreenDetail.dc.html">Screens</a> / Ubezpieczenia dla Ciebie</div>
+<div style="display: flex; flex-direction: column; gap: 4px">
+<h1 style="margin: 0; font-size: 20px; font-weight: 600">Ubezpieczenia dla Ciebie</h1>
+<div style="display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 12px; color: #55534D"><span style="font-family: 'IBM Plex Mono', ui-monospace, monospace">/</span><span>cluster-0200e6959f74</span><span>observed · settled</span><span>r1 · 35 elements</span><span>1 amendment</span></div>
+</div>
+
+<div aria-label="Screenshot of the screen, as recorded" style="display: flex; flex-direction: column; gap: 10px; padding: 18px; background: #FFFFFF; border: 1px solid #C9C6BD; font-size: 13px">
+<div style="text-decoration: underline; color: #2453C9">Towarzystwo Ubezpieczeń Wzorcowych</div>
+<div style="display: flex; flex-wrap: wrap; gap: 4px 12px; padding: 8px; background: #EFEDE8; font-size: 12px"><span>Start</span><span>Samochód</span><span>Dom</span><span>Podróże</span><span>Porównanie</span><span>Oblicz składkę</span><span>Kontakt</span><span>FAQ</span><span>Słowniczek</span><span>Moje polisy</span><span>Zaloguj się</span></div>
+<div style="font-size: 20px; font-weight: 600">Ubezpieczenia dla Ciebie</div>
+<div style="display: flex; flex-direction: column; gap: 4px"><b style="font-weight: 600">Nasze produkty</b><span>Ubezpieczenie samochodu (OC i AC)</span><span>Ubezpieczenie domu i mieszkania</span><span>Ubezpieczenie turystyczne</span></div>
+<div style="position: relative; display: flex; flex-direction: column; gap: 4px; padding: 10px; outline: 2px solid #2453C9; outline-offset: 2px; background: #E3EAFB">
+<span style="position: absolute; top: -12px; right: 8px; padding: 1px 6px; background: #2453C9; color: #FFFFFF; font-size: 11px">highlighted by assistant</span>
+<b style="font-weight: 600">Na skróty</b><span>Oblicz składkę OC/AC</span><span>Porównaj produkty</span><span>Przedłuż polisę</span><span>Napisz do nas</span>
+</div>
+<div style="font-size: 12px; color: #55534D">Towarzystwo Ubezpieczeń Wzorcowych S.A. — portal demonstracyjny. Wszystkie dane są fikcyjne. · FAQ · Słowniczek · Kontakt</div>
+</div>
+</main>
+
+<aside aria-label="Assistant" style="flex: 1 1 400px; min-width: 0; max-width: 520px; display: flex; flex-direction: column; background: #FFFFFF; border-left: 2px solid #1C1C1A">
+<div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 10px 14px; border-bottom: 1px solid #C9C6BD">
+<h2 style="margin: 0; font-size: 15px; font-weight: 600">Assistant</h2>
+<div style="display: flex; gap: 6px">
+<a href="02-Main.dc.html" aria-label="Open this conversation full page" style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; border: 1px solid #C9C6BD; color: #1C1C1A"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M14 4h6v6M10 20H4v-6M20 4l-7 7M4 20l7-7"></path></svg></a>
+<a href="09-ScreenDetail.dc.html" aria-label="Close assistant" style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; border: 1px solid #C9C6BD; color: #1C1C1A"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg></a>
+</div>
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 8px; padding: 12px 14px; border-bottom: 1px solid #C9C6BD; background: #F6F5F1">
+<div role="group" aria-label="What the assistant can see" style="display: flex; border: 1px solid #1C1C1A">
+<button type="button" aria-pressed="{{pagePressed}}" onClick="{{usePage}}" style="flex: 1; min-height: 40px; border: 0; font-size: 13px; font-weight: 500; cursor: pointer; background: {{pageBg}}; color: {{pageFg}}">This page</button>
+<button type="button" aria-pressed="{{projectPressed}}" onClick="{{useProject}}" style="flex: 1; min-height: 40px; border: 0; font-size: 13px; font-weight: 500; cursor: pointer; background: {{projectBg}}; color: {{projectFg}}">Whole project</button>
+</div>
+<sc-if value="{{isPage}}" hint-placeholder-val="{{ true }}">
+<div style="display: flex; flex-wrap: wrap; gap: 6px; font-size: 12px">
+<span style="padding: 3px 8px; border: 1px solid #1C1C1A; background: #FFFFFF">Screen · Ubezpieczenia dla Ciebie r1</span>
+<span style="padding: 3px 8px; border: 1px solid #C9C6BD; background: #FFFFFF">35 elements</span>
+<span style="padding: 3px 8px; border: 1px solid #C9C6BD; background: #FFFFFF">AMD-001</span>
+<span style="padding: 3px 8px; border: 1px solid #C9C6BD; background: #FFFFFF">cited by CAP-005, NFR-001, SCR-001</span>
+<span style="padding: 3px 8px; border: 1px solid #C9C6BD; background: #FFFFFF">Test process · step 1</span>
+<button type="button" style="padding: 3px 8px; border: 1px dashed #8E8B82; background: transparent; font-size: 12px; cursor: pointer">+ add context</button>
+</div>
+</sc-if>
+<sc-if value="{{isProject}}" hint-placeholder-val="{{ false }}">
+<div style="display: flex; flex-wrap: wrap; gap: 6px; font-size: 12px">
+<span style="padding: 3px 8px; border: 1px solid #1C1C1A; background: #FFFFFF">Portal · reference-insurer</span>
+<span style="padding: 3px 8px; border: 1px solid #C9C6BD; background: #FFFFFF">21 screens</span>
+<span style="padding: 3px 8px; border: 1px solid #C9C6BD; background: #FFFFFF">1 process · 4 suggested</span>
+<span style="padding: 3px 8px; border: 1px solid #C9C6BD; background: #FFFFFF">3 scans · last [INT.]</span>
+<span style="padding: 3px 8px; border: 1px solid #C9C6BD; background: #FFFFFF">doc records</span>
+</div>
+</sc-if>
+</div>
+
+<div role="log" aria-label="Messages" style="flex: 1; display: flex; flex-direction: column; gap: 12px; padding: 14px; font-size: 13px">
+<div style="align-self: flex-end; max-width: 85%; padding: 8px 12px; background: #EFEDE8; border: 1px solid #C9C6BD">Which links here lead into processes?</div>
+<div style="display: flex; flex-direction: column; gap: 6px">
+<div style="font-size: 12px; color: #55534D">Assistant</div>
+<div>The <a href="#">Na skróty region</a> (now highlighted) has 4 links. Three start processes I suggested: Oblicz składkę OC/AC, Porównaj produkty and Napisz do nas. "Przedłuż polisę" leads to a page the scan hasn't reached yet.</div>
+<div style="display: flex; flex-wrap: wrap; gap: 6px">
+<a href="06-ProcessDetail.dc.html" style="display: inline-flex; align-items: center; min-height: 36px; padding: 0 10px; border: 1px solid #8E8B82; color: #1C1C1A; text-decoration: none; font-size: 12px">Open "Oblicz składkę OC/AC"</a>
+<a href="11-Runs.dc.html" style="display: inline-flex; align-items: center; min-height: 36px; padding: 0 10px; border: 1px solid #8E8B82; color: #1C1C1A; text-decoration: none; font-size: 12px">Queue /przedluz in the next scan</a>
+</div>
+</div>
+<div style="align-self: flex-end; max-width: 85%; padding: 8px 12px; background: #EFEDE8; border: 1px solid #C9C6BD">AMD-001 says "rename this button to Save". Which button?</div>
+<div style="display: flex; flex-direction: column; gap: 6px">
+<div style="font-size: 12px; color: #55534D">Assistant</div>
+<div>None that I can see. AMD-001 targets the whole screen, and this screen has no buttons: its 35 elements are links, lists and headings. I can point it at an element, or leave it for the BA.</div>
+<div style="display: flex; flex-direction: column; border: 1px solid #1C1C1A">
+<div style="display: flex; justify-content: space-between; gap: 8px; padding: 8px 10px; background: #F6F5F1; border-bottom: 1px solid #C9C6BD"><b style="font-weight: 600">Proposed change</b><span style="font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 11px">AMD-001 r1 → r2</span></div>
+<div style="display: flex; flex-direction: column; gap: 4px; padding: 8px 10px; font-size: 12px">
+<div><span style="color: #55534D">target</span> <s style="color: #B4540A">whole screen</s> → <span style="color: #2453C9; font-weight: 500">link "Zaloguj się"</span></div>
+<div><span style="color: #55534D">text</span> unchanged</div>
+<div style="color: #55534D">r1 stays in the amendment's history.</div>
+</div>
+<div style="display: flex; flex-wrap: wrap; gap: 6px; padding: 8px 10px; border-top: 1px solid #C9C6BD">
+<button type="button" style="min-height: 36px; padding: 0 10px; border: 1px solid #1C1C1A; background: #FFFFFF; font-size: 12px; font-weight: 500; cursor: pointer">Apply as r2</button>
+<button type="button" style="min-height: 36px; padding: 0 10px; border: 1px solid #C9C6BD; background: #FFFFFF; font-size: 12px; cursor: pointer">Pick another element</button>
+<button type="button" style="min-height: 36px; padding: 0 10px; border: 1px solid #C9C6BD; background: #FFFFFF; font-size: 12px; cursor: pointer">Discard</button>
+</div>
+</div>
+</div>
+</div>
+
+<div style="display: flex; flex-direction: column; gap: 8px; padding: 12px 14px; border-top: 1px solid #C9C6BD; background: #F6F5F1">
+<label style="display: flex; flex-direction: column; gap: 6px; font-size: 12px; color: #55534D">Message
+<textarea rows="2" placeholder="{{placeholder}}" style="resize: vertical; padding: 8px 10px; border: 1px solid #8E8B82; background: #FFFFFF; font-size: 13px; color: #1C1C1A"></textarea>
+</label>
+<div style="display: flex; justify-content: space-between; align-items: center; gap: 8px">
+<button type="button" style="min-height: 40px; padding: 0 10px; border: 1px solid #C9C6BD; background: #FFFFFF; font-size: 12px; cursor: pointer">@ Mention</button>
+<button type="button" style="min-height: 44px; padding: 0 18px; border: 1px solid #1C1C1A; background: #1C1C1A; color: #FFFFFF; font-size: 13px; font-weight: 500; cursor: pointer">Send</button>
+</div>
+</div>
+</aside>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":1000}}'>
+class Component extends DCLogic {
+constructor(props) {
+super(props);
+this.state = { ctx: 'page' };
+}
+renderVals() {
+const page = this.state.ctx === 'page';
+const ink = '#1C1C1A';
+const paper = '#FFFFFF';
+return {
+isPage: page,
+isProject: !page,
+pagePressed: page ? 'true' : 'false',
+projectPressed: page ? 'false' : 'true',
+pageBg: page ? ink : paper,
+pageFg: page ? paper : ink,
+projectBg: page ? paper : ink,
+projectFg: page ? ink : paper,
+placeholder: page ? 'Ask about this screen' : 'Ask about reference-insurer',
+usePage: () => this.setState({ ctx: 'page' }),
+useProject: () => this.setState({ ctx: 'project' })
+};
+}
+}
+</script>
+</body>
+</html>

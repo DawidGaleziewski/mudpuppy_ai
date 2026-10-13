@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Screen: observed revisions and amendments</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&amp;family=IBM+Plex+Sans:wght@400;500;600&amp;display=swap">
+<style>
+body{margin:0;background:#F6F5F1}
+a{color:#2453C9}a:hover{color:#163A99}
+button,input,select,textarea{font:inherit;color:inherit}
+:focus-visible{outline:2px solid #2453C9;outline-offset:1px}
+</style>
+</helmet>
+<div style="min-height: 100vh; display: flex; flex-direction: column; background: #F6F5F1; color: #1C1C1A; font-family: 'IBM Plex Sans', ui-sans-serif, system-ui, sans-serif; font-size: 14px; line-height: 1.45">
+
+<header style="display: flex; flex-wrap: wrap; align-items: center; gap: 12px 16px; padding: 10px 20px; background: #FFFFFF; border-bottom: 1px solid #C9C6BD">
+<a href="02-Main.dc.html" style="font-family: 'IBM Plex Mono', ui-monospace, monospace; font-weight: 500; font-size: 15px; color: #1C1C1A; text-decoration: none">mudpuppy://console</a>
+<label style="display: flex; align-items: center; gap: 8px; font-size: 12px; color: #55534D">Portal
+<select style="height: 44px; padding: 0 8px; border: 1px solid #8E8B82; background: #FFFFFF; font-size: 14px; min-width: 190px"><option>reference-insurer</option><option>wikipedia</option><option>All portals</option><option>+ New portal</option></select>
+</label>
+<label style="flex: 1 1 240px; display: flex; align-items: center; gap: 8px; height: 44px; box-sizing: border-box; padding: 0 12px; border: 1px solid #C9C6BD; background: #F6F5F1; font-size: 13px; color: #55534D">
+<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5"></path></svg>
+<input type="search" aria-label="Search" placeholder="Search screens, processes, records" style="flex: 1; min-width: 0; border: 0; background: transparent; font-size: 13px">
+<span style="font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 11px">Ctrl K</span>
+</label>
+<span style="display: flex; align-items: center; gap: 6px; font-size: 12px; color: #55534D"><span style="width: 8px; height: 8px; border-radius: 9999px; background: #1C1C1A"></span>assistant running</span>
+<a href="03-ChatDrawer.dc.html" style="display: flex; align-items: center; gap: 8px; height: 44px; box-sizing: border-box; padding: 0 14px; border: 1px solid #1C1C1A; background: #FFFFFF; color: #1C1C1A; text-decoration: none; font-size: 13px; font-weight: 500"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M4 5h16v11H9l-5 4z"></path></svg>Ask about this screen <span style="font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 11px; color: #55534D">Ctrl J</span></a>
+<a href="01-IA.dc.html" aria-label="Help and glossary" style="width: 44px; height: 44px; box-sizing: border-box; display: flex; align-items: center; justify-content: center; border: 1px solid #C9C6BD; color: #1C1C1A; text-decoration: none; font-weight: 600">?</a>
+</header>
+
+<div style="flex: 1; display: flex; flex-wrap: wrap; align-items: stretch">
+
+<nav aria-label="Portal sections" style="flex: 1 1 64px; max-width: 200px; display: flex; flex-direction: column; gap: 2px; padding: 16px 8px; box-sizing: border-box; background: #EFEDE8; border-right: 1px solid #C9C6BD; font-size: 13px">
+<a href="02-Main.dc.html" style="display: flex; align-items: center; min-height: 44px; padding: 0 10px; text-decoration: none; color: #1C1C1A">Home</a>
+<a href="05-Processes.dc.html" style="display: flex; align-items: center; min-height: 44px; padding: 0 10px; text-decoration: none; color: #1C1C1A">Processes</a>
+<a href="09-ScreenDetail.dc.html" aria-current="page" style="display: flex; align-items: center; min-height: 44px; padding: 0 10px; text-decoration: none; background: #1C1C1A; color: #FFFFFF; font-weight: 500">Screens</a>
+<a href="#" style="display: flex; align-items: center; min-height: 44px; padding: 0 10px; text-decoration: none; color: #1C1C1A">Docs</a>
+<a href="10-Review.dc.html" style="display: flex; align-items: center; min-height: 44px; padding: 0 10px; text-decoration: none; color: #1C1C1A">Review</a>
+<a href="11-Runs.dc.html" style="display: flex; align-items: center; min-height: 44px; padding: 0 10px; text-decoration: none; color: #1C1C1A">Scans</a>
+<a href="12-Settings.dc.html" style="display: flex; align-items: center; min-height: 44px; padding: 0 10px; text-decoration: none; color: #1C1C1A">Settings</a>
+</nav>
+
+<main style="flex: 999 1 640px; min-width: 0; padding: 20px 24px; box-sizing: border-box; display: flex; flex-direction: column; gap: 16px">
+
+<div style="font-size: 13px; color: #55534D"><a href="09-ScreenDetail.dc.html">Screens</a> / Ubezpieczenia dla Ciebie</div>
+
+<div style="display: flex; flex-direction: column; gap: 6px">
+<h1 style="margin: 0; font-size: 22px; font-weight: 600">Ubezpieczenia dla Ciebie</h1>
+<div style="display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 12px; color: #55534D">
+<span>route <span style="font-family: 'IBM Plex Mono', ui-monospace, monospace; color: #1C1C1A">/</span></span>
+<span>cluster-0200e6959f74 <a href="#" aria-label="What is a cluster?">[?]</a></span>
+<span>observed <a href="#" aria-label="What is confidence?">[?]</a></span>
+<span>settled <a href="#" aria-label="What is stabilization?">[?]</a></span>
+<span>35 of 35 elements visible</span>
+</div>
+<div style="display: flex; flex-wrap: wrap; gap: 6px; font-size: 12px"><span style="color: #55534D">In processes:</span><a href="06-ProcessDetail.dc.html">Test process · start</a><span aria-hidden="true">·</span><a href="06-ProcessDetail.dc.html">Oblicz składkę OC/AC · step 1 in A and B</a></div>
+</div>
+
+<div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 16px; padding: 10px 14px; background: #FFFFFF; border: 1px solid #C9C6BD">
+<div style="display: flex; flex-wrap: wrap; align-items: center; gap: 10px">
+<span style="font-size: 12px; color: #55534D">Observed revision</span>
+<div role="group" aria-label="Observed revision" style="display: flex; border: 1px solid #1C1C1A">
+<button type="button" aria-pressed="true" style="min-height: 40px; padding: 0 12px; border: 0; background: #1C1C1A; color: #FFFFFF; font-size: 13px; font-weight: 500; cursor: pointer">r1 · 4 Oct 18:48Z · latest</button>
+</div>
+<span style="font-size: 12px; color: #55534D">seen unchanged by scans 01a10eb9 and 01a110d5</span>
+</div>
+<div style="font-size: 12px; color: #55534D">When a scan sees this screen change, it adds r2 here and re-checks every amendment's target.</div>
+</div>
+
+<div style="display: flex; flex-wrap: wrap; gap: 18px; align-items: flex-start">
+
+<div style="flex: 999 1 460px; min-width: 0; display: flex; flex-direction: column; gap: 8px">
+<div role="tablist" aria-label="Picture" style="display: flex; flex-wrap: wrap; gap: 4px; border-bottom: 1px solid #C9C6BD; font-size: 13px">
+<button type="button" role="tab" aria-selected="true" style="min-height: 40px; padding: 0 12px; border: 0; border-bottom: 2px solid #1C1C1A; background: transparent; font-weight: 600; cursor: pointer">Screenshot</button>
+<button type="button" role="tab" aria-selected="false" style="min-height: 40px; padding: 0 12px; border: 0; background: transparent; color: #55534D; cursor: pointer">Wireframe</button>
+<button type="button" role="tab" aria-selected="false" style="min-height: 40px; padding: 0 12px; border: 0; background: transparent; color: #55534D; cursor: pointer">Elements</button>
+<label style="margin-left: auto; display: flex; align-items: center; gap: 6px; min-height: 40px; font-size: 12px"><input type="checkbox" checked style="width: 18px; height: 18px">Show amendment pins</label>
+</div>
+<div aria-label="Screenshot, revision 1" style="display: flex; flex-direction: column; gap: 10px; padding: 18px; background: #FFFFFF; border: 1px solid #C9C6BD; font-size: 13px">
+<div style="text-decoration: underline; color: #2453C9">Towarzystwo Ubezpieczeń Wzorcowych</div>
+<div style="display: flex; flex-wrap: wrap; align-items: center; gap: 4px 12px; padding: 8px; background: #EFEDE8; font-size: 12px"><span>Start</span><span>Samochód</span><span>Dom</span><span>Podróże</span><span>Porównanie</span><span>Oblicz składkę</span><span>Kontakt</span><span>FAQ</span><span>Słowniczek</span><span>Moje polisy</span><span style="display: inline-flex; align-items: center; gap: 4px; padding: 2px 4px; outline: 2px solid #2453C9">Zaloguj się<span style="width: 18px; height: 18px; display: inline-flex; align-items: center; justify-content: center; background: #2453C9; color: #FFFFFF; font-size: 10px; font-weight: 600">1</span></span></div>
+<div style="font-size: 20px; font-weight: 600">Ubezpieczenia dla Ciebie</div>
+<div style="display: flex; flex-direction: column; gap: 4px"><b style="font-weight: 600">Nasze produkty</b><span>Ubezpieczenie samochodu (OC i AC)</span><span>Ubezpieczenie domu i mieszkania</span><span>Ubezpieczenie turystyczne</span></div>
+<div style="display: flex; flex-direction: column; gap: 4px"><b style="font-weight: 600">Na skróty</b><span>Oblicz składkę OC/AC</span><span>Porównaj produkty</span><span>Przedłuż polisę</span><span>Napisz do nas</span></div>
+<div style="font-size: 12px; color: #55534D">Towarzystwo Ubezpieczeń Wzorcowych S.A. — portal demonstracyjny. Wszystkie dane są fikcyjne. · FAQ · Słowniczek · Kontakt</div>
+</div>
+<div style="font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 11px; color: #55534D">snapshot 7116f773…e4fa1.yaml · first seen in 01a1083f</div>
+</div>
+
+<aside aria-label="Screen details" style="flex: 1 1 340px; min-width: 0; display: flex; flex-direction: column; background: #FFFFFF; border: 1px solid #C9C6BD">
+<div role="tablist" aria-label="Screen details" style="display: flex; flex-wrap: wrap; gap: 2px; padding: 0 10px; border-bottom: 1px solid #C9C6BD; font-size: 13px">
+<button type="button" role="tab" aria-selected="true" style="min-height: 40px; padding: 0 10px; border: 0; border-bottom: 2px solid #1C1C1A; background: transparent; font-weight: 600; cursor: pointer">Amendments 1</button>
+<button type="button" role="tab" aria-selected="false" style="min-height: 40px; padding: 0 10px; border: 0; background: transparent; color: #55534D; cursor: pointer">Cited by 3</button>
+<button type="button" role="tab" aria-selected="false" style="min-height: 40px; padding: 0 10px; border: 0; background: transparent; color: #55534D; cursor: pointer">History</button>
+</div>
+<div style="padding: 10px 14px; border-bottom: 1px solid #E4E2DC; font-size: 12px; color: #55534D">To-be: what the business wants changed. Kept apart from how the screen works today.</div>
+
+<article style="display: flex; flex-direction: column; gap: 6px; padding: 12px 14px; border-bottom: 1px solid #C9C6BD">
+<div style="display: flex; flex-wrap: wrap; justify-content: space-between; gap: 6px; font-size: 12px"><span style="display: inline-flex; align-items: center; gap: 6px"><span style="width: 18px; height: 18px; display: inline-flex; align-items: center; justify-content: center; background: #2453C9; color: #FFFFFF; font-size: 10px; font-weight: 600">1</span><b style="font-family: 'IBM Plex Mono', ui-monospace, monospace; font-weight: 500">AMD-001 · r2</b></span><span style="font-family: 'IBM Plex Mono', ui-monospace, monospace">[ACTV] active</span></div>
+<div style="font-size: 13px">"Test note, rename this button to Save."</div>
+<div style="font-size: 12px; color: #55534D">on link "Zaloguj się" · anchored to screen r1</div>
+<details style="font-size: 12px">
+<summary style="cursor: pointer; min-height: 32px; display: flex; align-items: center">2 revisions</summary>
+<ol style="margin: 4px 0 0; padding-left: 18px; display: flex; flex-direction: column; gap: 4px; color: #55534D">
+<li>r2 · target changed from whole screen to link "Zaloguj się" · you, via assistant · today 22:31Z</li>
+<li>r1 · whole screen · BA · 2026-10-11 19:27:29Z</li>
+</ol>
+</details>
+<div style="display: flex; flex-wrap: wrap; gap: 6px"><button type="button" style="min-height: 36px; padding: 0 10px; border: 1px solid #C9C6BD; background: #FFFFFF; font-size: 12px; cursor: pointer">Edit (new revision)</button><button type="button" style="min-height: 36px; padding: 0 10px; border: 1px solid #C9C6BD; background: #FFFFFF; font-size: 12px; cursor: pointer">Withdraw</button></div>
+</article>
+
+<form style="display: flex; flex-direction: column; gap: 10px; padding: 12px 14px">
+<h2 style="margin: 0; font-size: 14px; font-weight: 600">Add an amendment</h2>
+<fieldset style="margin: 0; padding: 0; border: 0; display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 13px">
+<legend style="padding: 0 0 4px; font-size: 12px; color: #55534D">Applies to</legend>
+<label style="display: flex; align-items: center; gap: 6px; min-height: 36px"><input type="radio" name="target" checked style="width: 18px; height: 18px">the whole screen</label>
+<label style="display: flex; align-items: center; gap: 6px; min-height: 36px"><input type="radio" name="target" style="width: 18px; height: 18px">an element: pick it on the screenshot</label>
+</fieldset>
+<label style="display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: #55534D">Note
+<textarea rows="3" placeholder="What should be different, and why" style="resize: vertical; padding: 8px 10px; border: 1px solid #8E8B82; background: #FFFFFF; font-size: 13px; color: #1C1C1A"></textarea>
+</label>
+<label style="display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: #55534D">Attachment (optional, up to 8 MB)
+<input type="file" style="font-size: 12px">
+</label>
+<div><button type="submit" style="min-height: 44px; padding: 0 16px; border: 1px solid #1C1C1A; background: #1C1C1A; color: #FFFFFF; font-size: 13px; font-weight: 500; cursor: pointer">Add amendment</button></div>
+</form>
+</aside>
+</div>
+</main>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":1100}}'>
+class Component extends DCLogic {
+renderVals() {
+return {};
+}
+}
+</script>
+</body>
+</html>

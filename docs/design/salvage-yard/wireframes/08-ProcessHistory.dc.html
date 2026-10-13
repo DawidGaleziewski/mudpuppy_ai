@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Process: history, variants, live per environment</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&amp;family=IBM+Plex+Sans:wght@400;500;600&amp;display=swap">
+<style>
+body{margin:0;background:#F6F5F1}
+a{color:#2453C9}a:hover{color:#163A99}
+button,input,select,textarea{font:inherit;color:inherit}
+:focus-visible{outline:2px solid #2453C9;outline-offset:1px}
+</style>
+</helmet>
+<div style="min-height: 100vh; display: flex; flex-direction: column; background: #F6F5F1; color: #1C1C1A; font-family: 'IBM Plex Sans', ui-sans-serif, system-ui, sans-serif; font-size: 14px; line-height: 1.45">
+
+<header style="display: flex; flex-wrap: wrap; align-items: center; gap: 12px 16px; padding: 10px 20px; background: #FFFFFF; border-bottom: 1px solid #C9C6BD">
+<a href="02-Main.dc.html" style="font-family: 'IBM Plex Mono', ui-monospace, monospace; font-weight: 500; font-size: 15px; color: #1C1C1A; text-decoration: none">mudpuppy://console</a>
+<label style="display: flex; align-items: center; gap: 8px; font-size: 12px; color: #55534D">Portal
+<select style="height: 44px; padding: 0 8px; border: 1px solid #8E8B82; background: #FFFFFF; font-size: 14px; min-width: 190px"><option>reference-insurer</option><option>wikipedia</option><option>All portals</option><option>+ New portal</option></select>
+</label>
+<label style="flex: 1 1 240px; display: flex; align-items: center; gap: 8px; height: 44px; box-sizing: border-box; padding: 0 12px; border: 1px solid #C9C6BD; background: #F6F5F1; font-size: 13px; color: #55534D">
+<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5"></path></svg>
+<input type="search" aria-label="Search" placeholder="Search screens, processes, records" style="flex: 1; min-width: 0; border: 0; background: transparent; font-size: 13px">
+<span style="font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 11px">Ctrl K</span>
+</label>
+<span style="display: flex; align-items: center; gap: 6px; font-size: 12px; color: #55534D"><span style="width: 8px; height: 8px; border-radius: 9999px; background: #1C1C1A"></span>assistant running</span>
+<a href="03-ChatDrawer.dc.html" style="display: flex; align-items: center; gap: 8px; height: 44px; box-sizing: border-box; padding: 0 14px; border: 1px solid #1C1C1A; background: #FFFFFF; color: #1C1C1A; text-decoration: none; font-size: 13px; font-weight: 500"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M4 5h16v11H9l-5 4z"></path></svg>Ask assistant <span style="font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 11px; color: #55534D">Ctrl J</span></a>
+<a href="01-IA.dc.html" aria-label="Help and glossary" style="width: 44px; height: 44px; box-sizing: border-box; display: flex; align-items: center; justify-content: center; border: 1px solid #C9C6BD; color: #1C1C1A; text-decoration: none; font-weight: 600">?</a>
+</header>
+
+<div style="flex: 1; display: flex; flex-wrap: wrap; align-items: stretch">
+
+<nav aria-label="Portal sections" style="flex: 1 1 64px; max-width: 200px; display: flex; flex-direction: column; gap: 2px; padding: 16px 8px; box-sizing: border-box; background: #EFEDE8; border-right: 1px solid #C9C6BD; font-size: 13px">
+<a href="02-Main.dc.html" style="display: flex; align-items: center; min-height: 44px; padding: 0 10px; text-decoration: none; color: #1C1C1A">Home</a>
+<a href="05-Processes.dc.html" aria-current="page" style="display: flex; align-items: center; min-height: 44px; padding: 0 10px; text-decoration: none; background: #1C1C1A; color: #FFFFFF; font-weight: 500">Processes</a>
+<a href="09-ScreenDetail.dc.html" style="display: flex; align-items: center; min-height: 44px; padding: 0 10px; text-decoration: none; color: #1C1C1A">Screens</a>
+<a href="#" style="display: flex; align-items: center; min-height: 44px; padding: 0 10px; text-decoration: none; color: #1C1C1A">Docs</a>
+<a href="10-Review.dc.html" style="display: flex; align-items: center; min-height: 44px; padding: 0 10px; text-decoration: none; color: #1C1C1A">Review</a>
+<a href="11-Runs.dc.html" style="display: flex; align-items: center; min-height: 44px; padding: 0 10px; text-decoration: none; color: #1C1C1A">Scans</a>
+<a href="12-Settings.dc.html" style="display: flex; align-items: center; min-height: 44px; padding: 0 10px; text-decoration: none; color: #1C1C1A">Settings</a>
+</nav>
+
+<main style="flex: 999 1 640px; min-width: 0; padding: 20px 24px; box-sizing: border-box; display: flex; flex-direction: column; gap: 18px">
+
+<div style="font-size: 13px; color: #55534D"><a href="05-Processes.dc.html">Processes</a> / <a href="06-ProcessDetail.dc.html">Oblicz składkę OC/AC</a> / History</div>
+<h1 style="margin: 0; font-size: 22px; font-weight: 600">History</h1>
+
+<div role="alert" style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 16px; padding: 12px 14px; background: #FFFFFF; border: 1px solid #B4540A">
+<div style="font-size: 13px"><b style="font-weight: 600">The reviewer saved B r3 while your draft was based on r2.</b> Your draft is kept; nothing was overwritten.</div>
+<div style="display: flex; flex-wrap: wrap; gap: 8px">
+<a href="07-ProcessCompare.dc.html" style="display: inline-flex; align-items: center; min-height: 40px; padding: 0 12px; border: 1px solid #1C1C1A; color: #1C1C1A; text-decoration: none; font-size: 13px">Compare your draft with r3</a>
+<button type="button" style="min-height: 40px; padding: 0 12px; border: 1px solid #1C1C1A; background: #FFFFFF; font-size: 13px; cursor: pointer">Rebase your draft onto r3</button>
+</div>
+</div>
+
+<section aria-labelledby="live-h" style="display: flex; flex-direction: column; gap: 10px">
+<h2 id="live-h" style="margin: 0; font-size: 15px; font-weight: 600">Which variant runs where</h2>
+<div style="overflow-x: auto; background: #FFFFFF; border: 1px solid #C9C6BD">
+<table style="width: 100%; min-width: 720px; border-collapse: collapse; font-size: 13px">
+<thead><tr style="text-align: left; background: #EFEDE8">
+<th scope="col" style="padding: 10px 12px; font-weight: 600; border-bottom: 1px solid #C9C6BD">Environment</th>
+<th scope="col" style="padding: 10px 12px; font-weight: 600; border-bottom: 1px solid #C9C6BD">Live now</th>
+<th scope="col" style="padding: 10px 12px; font-weight: 600; border-bottom: 1px solid #C9C6BD">How we know</th>
+<th scope="col" style="padding: 10px 12px; font-weight: 600; border-bottom: 1px solid #C9C6BD"><span style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0)">Action</span></th>
+</tr></thead>
+<tbody>
+<tr>
+<td style="padding: 10px 12px; border-bottom: 1px solid #E4E2DC">sandbox</td>
+<td style="padding: 10px 12px; border-bottom: 1px solid #E4E2DC"><b style="font-weight: 600">A r2</b> <span style="color: #55534D">· back from B since scan 6</span></td>
+<td style="padding: 10px 12px; border-bottom: 1px solid #E4E2DC; color: #55534D">scan 6 walked all 5 steps of A</td>
+<td style="padding: 10px 12px; border-bottom: 1px solid #E4E2DC; text-align: right"><button type="button" style="min-height: 36px; padding: 0 10px; border: 1px solid #1C1C1A; background: #FFFFFF; font-size: 12px; cursor: pointer">Mark B as live…</button></td>
+</tr>
+<tr>
+<td style="padding: 10px 12px; color: #55534D">staging, production</td>
+<td style="padding: 10px 12px; color: #55534D" colspan="2">not configured for this portal</td>
+<td style="padding: 10px 12px; text-align: right"><a href="12-Settings.dc.html" style="font-size: 12px">Add in Settings</a></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+
+<section aria-labelledby="tl-h" style="display: flex; flex-direction: column; gap: 10px">
+<h2 id="tl-h" style="margin: 0; font-size: 15px; font-weight: 600">Timeline</h2>
+<div style="overflow-x: auto; background: #FFFFFF; border: 1px solid #C9C6BD">
+<div style="min-width: 760px; display: flex; flex-direction: column; font-size: 12px">
+<div style="display: grid; grid-template-columns: 150px repeat(6, minmax(0, 1fr)); background: #EFEDE8; border-bottom: 1px solid #C9C6BD">
+<div style="padding: 8px 10px; font-weight: 600">Scan</div>
+<div style="padding: 8px 10px; border-left: 1px solid #C9C6BD">1 · 01a1083f<br><span style="color: #55534D">4 Oct</span></div>
+<div style="padding: 8px 10px; border-left: 1px solid #C9C6BD">2 · 01a10eb9<br><span style="color: #55534D">6 Oct</span></div>
+<div style="padding: 8px 10px; border-left: 1px solid #C9C6BD">3 · 01a110d5<br><span style="color: #55534D">6 Oct</span></div>
+<div style="padding: 8px 10px; border-left: 1px solid #C9C6BD">4<br><span style="color: #55534D">next</span></div>
+<div style="padding: 8px 10px; border-left: 1px solid #C9C6BD">5</div>
+<div style="padding: 8px 10px; border-left: 1px solid #C9C6BD">6</div>
+</div>
+<div style="display: grid; grid-template-columns: 150px repeat(6, minmax(0, 1fr)); border-bottom: 1px solid #E4E2DC; min-height: 56px">
+<div style="padding: 10px; font-weight: 500">A · As-is</div>
+<div style="border-left: 1px solid #E4E2DC"></div>
+<div style="border-left: 1px solid #E4E2DC"></div>
+<div style="padding: 8px; border-left: 1px solid #E4E2DC"><span style="display: inline-block; padding: 4px 8px; border: 1px solid #1C1C1A">r1 · you accepted</span></div>
+<div style="padding: 8px; border-left: 1px solid #E4E2DC"><span style="display: inline-block; padding: 4px 8px; border: 1px solid #1C1C1A">r2 · scan · end reached</span></div>
+<div style="border-left: 1px solid #E4E2DC"></div>
+<div style="border-left: 1px solid #E4E2DC"></div>
+</div>
+<div style="display: grid; grid-template-columns: 150px repeat(6, minmax(0, 1fr)); border-bottom: 1px solid #E4E2DC; min-height: 56px">
+<div style="padding: 10px; font-weight: 500">B · To-be</div>
+<div style="border-left: 1px solid #E4E2DC"></div>
+<div style="border-left: 1px solid #E4E2DC"></div>
+<div style="padding: 8px; border-left: 1px solid #E4E2DC"><span style="display: inline-block; padding: 4px 8px; border: 1px solid #2453C9; color: #2453C9">r1 · you · branched</span></div>
+<div style="padding: 8px; border-left: 1px solid #E4E2DC"><span style="display: inline-block; padding: 4px 8px; border: 1px solid #2453C9; color: #2453C9">r2 · you</span></div>
+<div style="padding: 8px; border-left: 1px solid #E4E2DC"><span style="display: inline-block; padding: 4px 8px; border: 1px solid #2453C9; color: #2453C9">r3 · reviewer</span></div>
+<div style="padding: 8px; border-left: 1px solid #E4E2DC"><span style="display: inline-block; padding: 4px 8px; border: 1px dashed #2453C9; color: #2453C9">your draft</span></div>
+</div>
+<div style="display: grid; grid-template-columns: 150px repeat(6, minmax(0, 1fr)); min-height: 52px; align-items: center">
+<div style="padding: 10px; font-weight: 500">Live in sandbox</div>
+<div style="grid-column: 2 / 6; margin: 0 6px; padding: 6px 8px; background: #E4E2DC; border: 1px solid #8E8B82">A</div>
+<div style="grid-column: 6 / 7; margin: 0 6px; padding: 6px 8px; background: #2453C9; color: #FFFFFF">B · scan 5 matched B</div>
+<div style="grid-column: 7 / 8; margin: 0 6px; padding: 6px 8px; background: #E4E2DC; border: 1px solid #8E8B82">A · rolled back</div>
+</div>
+</div>
+</div>
+</section>
+
+<section aria-labelledby="rev-h" style="display: flex; flex-direction: column; gap: 10px">
+<div style="display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px">
+<h2 id="rev-h" style="margin: 0; font-size: 15px; font-weight: 600">Revisions</h2>
+<span style="font-size: 12px; color: #55534D">Restoring adds a new revision. A rescan adds revisions to A and never edits B.</span>
+</div>
+<div style="overflow-x: auto; background: #FFFFFF; border: 1px solid #C9C6BD">
+<table style="width: 100%; min-width: 820px; border-collapse: collapse; font-size: 13px">
+<thead><tr style="text-align: left; background: #EFEDE8">
+<th scope="col" style="padding: 10px 12px; font-weight: 600; border-bottom: 1px solid #C9C6BD">Revision</th>
+<th scope="col" style="padding: 10px 12px; font-weight: 600; border-bottom: 1px solid #C9C6BD">By</th>
+<th scope="col" style="padding: 10px 12px; font-weight: 600; border-bottom: 1px solid #C9C6BD">What changed</th>
+<th scope="col" style="padding: 10px 12px; font-weight: 600; border-bottom: 1px solid #C9C6BD">When</th>
+<th scope="col" style="padding: 10px 12px; font-weight: 600; border-bottom: 1px solid #C9C6BD">Actions</th>
+</tr></thead>
+<tbody>
+<tr><td style="padding: 9px 12px; border-bottom: 1px solid #E4E2DC; font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 12px">B r3</td><td style="padding: 9px 12px; border-bottom: 1px solid #E4E2DC">reviewer</td><td style="padding: 9px 12px; border-bottom: 1px solid #E4E2DC">Renamed step 3 to "Podsumowanie i oferta"</td><td style="padding: 9px 12px; border-bottom: 1px solid #E4E2DC; color: #55534D">after scan 5</td><td style="padding: 9px 12px; border-bottom: 1px solid #E4E2DC"><div style="display: flex; flex-wrap: wrap; gap: 10px"><a href="06-ProcessDetail.dc.html">View</a><a href="07-ProcessCompare.dc.html">Compare with r2</a></div></td></tr>
+<tr><td style="padding: 9px 12px; border-bottom: 1px solid #E4E2DC; font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 12px">B r2</td><td style="padding: 9px 12px; border-bottom: 1px solid #E4E2DC">you</td><td style="padding: 9px 12px; border-bottom: 1px solid #E4E2DC">Merged driver data and options into one step</td><td style="padding: 9px 12px; border-bottom: 1px solid #E4E2DC; color: #55534D">after scan 4</td><td style="padding: 9px 12px; border-bottom: 1px solid #E4E2DC"><div style="display: flex; flex-wrap: wrap; gap: 10px"><a href="06-ProcessDetail.dc.html">View</a><a href="07-ProcessCompare.dc.html">Compare</a><a href="#">Restore as r4</a></div></td></tr>
+<tr><td style="padding: 9px 12px; border-bottom: 1px solid #E4E2DC; font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 12px">B r1</td><td style="padding: 9px 12px; border-bottom: 1px solid #E4E2DC">you</td><td style="padding: 9px 12px; border-bottom: 1px solid #E4E2DC">Branched from A r1</td><td style="padding: 9px 12px; border-bottom: 1px solid #E4E2DC; color: #55534D">after scan 3</td><td style="padding: 9px 12px; border-bottom: 1px solid #E4E2DC"><div style="display: flex; flex-wrap: wrap; gap: 10px"><a href="06-ProcessDetail.dc.html">View</a><a href="#">Restore as r4</a></div></td></tr>
+<tr><td style="padding: 9px 12px; border-bottom: 1px solid #E4E2DC; font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 12px">A r2</td><td style="padding: 9px 12px; border-bottom: 1px solid #E4E2DC">scan 4</td><td style="padding: 9px 12px; border-bottom: 1px solid #E4E2DC">Observed the last step; the end is now known</td><td style="padding: 9px 12px; border-bottom: 1px solid #E4E2DC; color: #55534D">scan 4</td><td style="padding: 9px 12px; border-bottom: 1px solid #E4E2DC"><div style="display: flex; flex-wrap: wrap; gap: 10px"><a href="06-ProcessDetail.dc.html">View</a><a href="07-ProcessCompare.dc.html">Compare with r1</a></div></td></tr>
+<tr><td style="padding: 9px 12px; font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 12px">A r1</td><td style="padding: 9px 12px">you</td><td style="padding: 9px 12px">Accepted the assistant's suggestion, built from scans 1–3</td><td style="padding: 9px 12px; color: #55534D">after scan 3</td><td style="padding: 9px 12px"><div style="display: flex; flex-wrap: wrap; gap: 10px"><a href="06-ProcessDetail.dc.html">View</a></div></td></tr>
+</tbody>
+</table>
+</div>
+</section>
+</main>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":1160}}'>
+class Component extends DCLogic {
+renderVals() {
+return {};
+}
+}
+</script>
+</body>
+</html>

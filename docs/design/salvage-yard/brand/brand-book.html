@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MudPuppy · Brand book</title>
+<link rel="icon" href="logo/tag-icon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../design-system/css/tokens.css">
+<link rel="stylesheet" href="../design-system/css/fonts.css">
+<link rel="stylesheet" href="../design-system/css/salvage.css">
+<style>
+  /* Brand-book page layout only. */
+  .bb { max-width: 1200px; margin: 0 auto; padding: 48px 44px 96px; display: flex; flex-direction: column; gap: 56px; }
+  .bb-sec { display: flex; flex-direction: column; gap: 16px; }
+  .bb-sec > header { display: flex; flex-direction: column; gap: 6px; padding-bottom: 10px; border-bottom: 1px solid var(--sy-border-plate); }
+  .bb-num { font-family: var(--sy-font-mono); font-size: 12px; color: var(--sy-intent); }
+  .bb-cover { display: grid; grid-template-columns: minmax(0, 1fr) 256px; gap: 40px; align-items: center; padding: 40px; background: var(--sy-bg-plate); border: 1px solid var(--sy-border-plate); }
+  .bb-cover img { width: 256px; height: 256px; image-rendering: pixelated; }
+  .bb-tile { display: flex; flex-direction: column; gap: 10px; padding: 20px; background: var(--sy-bg-plate); border: 1px solid var(--sy-border-weld); }
+  .bb-tile--ground { background-color: var(--sy-bg-ground); background-image: linear-gradient(var(--sy-grid-line) 1px, transparent 1px), linear-gradient(90deg, var(--sy-grid-line) 1px, transparent 1px); background-size: 24px 24px; }
+  .bb-pix { image-rendering: pixelated; }
+  .bb-do, .bb-dont { display: flex; flex-direction: column; gap: 8px; padding: 14px; border: 1px solid var(--sy-border-weld); background: var(--sy-bg-plate); font-size: 14px; }
+  .bb-do > b { color: var(--sy-ok); } .bb-dont > b { color: var(--sy-fail); }
+  .bb-clear { display: inline-block; padding: 22px; outline: 1px dashed var(--sy-tobe); outline-offset: 0; }
+  @media (max-width: 760px) { .bb { padding: 24px 16px 64px; } .bb-cover { grid-template-columns: 1fr; padding: 20px; } }
+</style>
+</head>
+<body class="sy-ground">
+<main class="bb">
+
+<section class="bb-cover" aria-label="Cover">
+  <div class="sy-stack" style="--sy-gap: 18px">
+    <span class="sy-wordmark sy-wordmark--lg"><span class="sy-wordmark__paint">MUD</span>PUPPY</span>
+    <h1 class="sy-h1">Brand book · Salvage Yard</h1>
+    <p class="sy-prose" style="font-size:18px">Tag it, strip it, ship it.</p>
+    <p class="sy-meta sy-prose">MudPuppy walks a legacy portal like a scrapyard: it logs every part it can see, tags the ones worth keeping, and lets people draw the new build over them. The brand is steel plate, spray-paint orange, manila tags and drafting lines: gritty enough to have character, serious enough for an enterprise architecture review.</p>
+  </div>
+  <img src="logo/mark-grid-path.svg" alt="The MudPuppy mark: a pixel mudpuppy crawling along a survey grid, trail of orange cells behind it">
+</section>
+
+<section class="bb-sec" aria-labelledby="b1">
+  <header><span class="bb-num">01</span><h2 id="b1" class="sy-h2">What we are</h2></header>
+  <div class="sy-grid" style="--sy-min: 300px">
+    <div class="bb-tile"><span class="sy-label">Mission</span><p>MudPuppy documents what an application actually does today, before anyone migrates it. It observes the running app, records evidence, and turns that evidence into business-analysis documentation. Every statement points back to what was seen.</p></div>
+    <div class="bb-tile"><span class="sy-label">For whom</span><p>Legacy developers, BAs and QAs on enterprise portal migrations, who spend all day in tools like Sitecore or AEM and use an AI harness to do the walking. People who read evidence for hours.</p></div>
+    <div class="bb-tile"><span class="sy-label">The metaphor</span><p>A salvage yard. The old portal is the lot; screens are <b>parts</b>; records are <b>tags</b>; the to-be is a <b>blueprint</b> drawn over the parts; people's notes are <b>typed</b> on the tags. Nothing is thrown away until someone decides.</p></div>
+  </div>
+</section>
+
+<section class="bb-sec" aria-labelledby="b2">
+  <header><span class="bb-num">02</span><h2 id="b2" class="sy-h2">Personality</h2><p class="sy-meta">Four traits. If a choice fights one of them, the choice is wrong.</p></header>
+  <div class="sy-grid" style="--sy-min: 240px">
+    <div class="bb-tile"><span class="sy-h3">Honest</span><p class="sy-muted">Shows what was observed, marks what was guessed, never fills a gap with a guess.</p></div>
+    <div class="bb-tile"><span class="sy-h3">Workmanlike</span><p class="sy-muted">A tool on a workbench, not a showroom. Dense, square, labelled.</p></div>
+    <div class="bb-tile"><span class="sy-h3">Dry humour</span><p class="sy-muted">One yard joke per screen at most, and never in an error or a number.</p></div>
+    <div class="bb-tile"><span class="sy-h3">Easy on tired eyes</span><p class="sy-muted">Dark steel, warm chalk text, no glow over data, no motion you didn't ask for.</p></div>
+  </div>
+</section>
+
+<section class="bb-sec" aria-labelledby="b3">
+  <header><span class="bb-num">03</span><h2 id="b3" class="sy-h2">Wordmark</h2><p class="sy-meta">Live text, never an image of letters. "MUD" sits on a block of marker paint; "PUPPY" is chalk. Archivo 800 at 125% width, uppercase, +0.02em tracking.</p></header>
+  <div class="sy-grid" style="--sy-min: 320px">
+    <div class="bb-tile bb-tile--ground" style="align-items:flex-start; grid-column: 1 / -1"><span class="sy-label">Primary lockup</span><span class="sy-wordmark sy-wordmark--lg"><span class="sy-wordmark__paint">MUD</span>PUPPY</span></div>
+    <div class="bb-tile bb-tile--ground" style="align-items:flex-start"><span class="sy-label">With product scope</span><span class="sy-wordmark"><span class="sy-wordmark__paint">MUD</span>PUPPY<span class="sy-wordmark__scope">console</span></span><span class="sy-meta">Scope in IBM Plex Mono, ash. Use when MudPuppy has more than one surface.</span></div>
+    <div class="bb-tile bb-tile--ground" style="align-items:flex-start"><span class="sy-label">Clear space</span><span class="bb-clear"><span class="sy-wordmark"><span class="sy-wordmark__paint">MUD</span>PUPPY</span></span><span class="sy-meta">Keep one paint-block height free on every side. Minimum size: 22px (the header size, ≈15px cap height).</span></div>
+  </div>
+</section>
+
+<section class="bb-sec" aria-labelledby="b4">
+  <header><span class="bb-num">04</span><h2 id="b4" class="sy-h2">Mark</h2><p class="sy-meta">A pixel mudpuppy crawling diagonally along a survey grid, a fading trail of marker cells behind it: discovery, one cell at a time. The external gills are the one detail that makes it a mudpuppy and not a lizard; never crop them.</p></header>
+  <div class="sy-grid" style="--sy-min: 240px">
+    <div class="bb-tile" style="align-items:center"><img class="bb-pix" src="logo/mark-grid-path.svg" width="192" height="192" alt="Grid-path mark"><span class="sy-label">Grid-path · 64px and up</span><span class="sy-meta">Brand surfaces: README, splash, empty yard, docs cover.</span></div>
+    <div class="bb-tile" style="align-items:center"><img class="bb-pix" src="logo/mark-creature.svg" width="192" height="104" alt="Creature-only mark"><span class="sy-label">Creature · 24–63px</span><span class="sy-meta">Where the grid does not fit. Transparent background, dark grounds only.</span></div>
+    <div class="bb-tile" style="align-items:center"><img src="logo/mark-mono.svg" width="192" height="104" alt="One-colour mark"><span class="sy-label">One colour</span><span class="sy-meta">Stamps, stencils, single-colour print. Chalk on steel.</span></div>
+    <div class="bb-tile" style="align-items:center"><img src="logo/tag-icon.svg" width="64" height="64" alt="Tag icon"><span class="sy-label">Tag icon · under 24px</span><span class="sy-meta">Favicon and app icon: a marker tag with a punched hole.</span></div>
+  </div>
+  <p class="sy-meta">The mark is the existing MudPuppy pixel artwork, recoloured pixel by pixel to Salvage tokens: body marker, back and gills manila, belly edge grey, tail ash, feet <span class="sy-mono">#B25F14</span> (a mark-only shade). It is not used in the app header; the paint-block wordmark carries the brand there.</p>
+</section>
+
+<section class="bb-sec" aria-labelledby="b5">
+  <header><span class="bb-num">05</span><h2 id="b5" class="sy-h2">Colour</h2><p class="sy-meta">Six paints on steel. Each paint has ONE job; a colour that does two jobs teaches nobody anything.</p></header>
+  <div class="sy-grid" style="--sy-min: 200px; --sy-gap: 10px">
+    <div class="bb-tile" style="padding:0;gap:0"><i style="display:block;height:64px;background:var(--sy-marker)"></i><div style="padding:12px" class="sy-stack" ><b>Marker · #FF8F1F</b><span class="sy-meta">Intent. Brand, the one primary action, "needs you", tagged for migration.</span></div></div>
+    <div class="bb-tile" style="padding:0;gap:0"><i style="display:block;height:64px;background:var(--sy-manila)"></i><div style="padding:12px" class="sy-stack"><b>Manila · #E9D8A6</b><span class="sy-meta">Tags. Record IDs and anything a person wrote.</span></div></div>
+    <div class="bb-tile" style="padding:0;gap:0"><i style="display:block;height:64px;background:var(--sy-blueprint)"></i><div style="padding:12px" class="sy-stack"><b>Blueprint · #7AA7FF</b><span class="sy-meta">Drawn, not built: to-be, drafts, inferred. Always dashed.</span></div></div>
+    <div class="bb-tile" style="padding:0;gap:0"><i style="display:block;height:64px;background:var(--sy-inspected)"></i><div style="padding:12px" class="sy-stack"><b>Inspected · #7BC47F</b><span class="sy-meta">Passed, settled, confirmed.</span></div></div>
+    <div class="bb-tile" style="padding:0;gap:0"><i style="display:block;height:64px;background:var(--sy-coolant)"></i><div style="padding:12px" class="sy-stack"><b>Coolant · #56C2E6</b><span class="sy-meta">Active now: running, live.</span></div></div>
+    <div class="bb-tile" style="padding:0;gap:0"><i style="display:block;height:64px;background:var(--sy-failure)"></i><div style="padding:12px" class="sy-stack"><b>Failure · #FF5A5F</b><span class="sy-meta">Failure and destruction. Nothing else, ever.</span></div></div>
+    <div class="bb-tile" style="padding:0;gap:0"><i style="display:block;height:64px;background:linear-gradient(90deg,var(--sy-steel-900) 0 25%,var(--sy-steel-850) 25% 50%,var(--sy-steel-800) 50% 75%,var(--sy-steel-700) 75%)"></i><div style="padding:12px" class="sy-stack"><b>Steel · 900 → 700</b><span class="sy-meta">Ground, well, plate, raised. Text is chalk #E8E4DA and ash #A3A69F.</span></div></div>
+  </div>
+</section>
+
+<section class="bb-sec" aria-labelledby="b6">
+  <header><span class="bb-num">06</span><h2 id="b6" class="sy-h2">Type</h2><p class="sy-meta">Machines print, humans type.</p></header>
+  <div class="sy-grid" style="--sy-min: 300px">
+    <div class="bb-tile"><span class="sy-label">Archivo · machine voice</span><span class="sy-h1">Oblicz składkę</span><span>Headings in Expanded 800 caps. Prose and UI in Archivo 400/600, sentence case.</span></div>
+    <div class="bb-tile"><span class="sy-label">IBM Plex Mono · data</span><span class="sy-mono" style="font-size:18px">01a110d5 · /kontakt</span><span>IDs, routes, timestamps, counts, statuses.</span></div>
+    <div class="bb-tile"><span class="sy-label">Special Elite · people</span><span class="sy-note">Rename this button to Save.</span><span>Only for text a person wrote: notes, annotations, amendments.</span></div>
+  </div>
+</section>
+
+<section class="bb-sec" aria-labelledby="b7">
+  <header><span class="bb-num">07</span><h2 id="b7" class="sy-h2">Graphic devices</h2><p class="sy-meta">The yard has five devices. Use them for their meaning, not as decoration.</p></header>
+  <div class="sy-grid" style="--sy-min: 220px">
+    <div class="bb-tile bb-tile--ground"><span class="sy-label">Yard grid</span><span class="sy-meta">24px chalk grid at 3.5% on the page ground only. Plates are solid; data never sits on the grid.</span></div>
+    <div class="bb-tile"><span class="sy-label">Manila tag</span><span class="sy-tags"><span class="sy-tag">SCR-001</span><span class="sy-tag">AMD-001 r2</span></span><span class="sy-meta">The only angled corner in the system, with a punched hole.</span></div>
+    <div class="bb-tile"><span class="sy-label">Paint block</span><span class="sy-wordmark"><span class="sy-wordmark__paint">MUD</span></span><span class="sy-meta">Wordmark, primary button, count of things that need you.</span></div>
+    <div class="bb-tile"><span class="sy-label">Blueprint line</span><div class="sy-drawn">+ 3 · Podsumowanie i oferta</div><span class="sy-meta">Dashed = drawn, not built.</span></div>
+    <div class="bb-tile"><span class="sy-label">Dimension line</span><div class="sy-annot"><span class="sy-annot__target">Step 2</span><span class="sy-annot__line" aria-hidden="true"></span><span class="sy-note sy-note--sm">One form.</span></div><span class="sy-meta">Joins a person's note to the thing it is about.</span></div>
+  </div>
+</section>
+
+<section class="bb-sec" aria-labelledby="b8">
+  <header><span class="bb-num">08</span><h2 id="b8" class="sy-h2">Voice</h2><p class="sy-meta">Inventory voice: counts first, then the next move. Short sentences. Product nouns stay plain.</p></header>
+  <div class="sy-grid" style="--sy-min: 300px">
+    <div class="bb-do"><b>Do</b>171 of 400 steps. 17 parts logged, 113 pages unchecked. Resume the scan to find the end of the line.</div>
+    <div class="bb-dont"><b>Don't</b>Oops! Looks like our crawler took a little nap 😴 Let's get it going again!</div>
+    <div class="bb-do"><b>Do</b>Assistant down. Reference ERR-01M48D… Restart it, then retry. Read-only pages keep working.</div>
+    <div class="bb-dont"><b>Don't</b>Something went wrong. Please try again later.</div>
+    <div class="bb-do"><b>Do</b>Yard's empty. Add a portal address to start the inventory.</div>
+    <div class="bb-dont"><b>Don't</b>Yee-haw, partner! This here junkyard ain't got no junk yet! (Flavour must never cost clarity.)</div>
+  </div>
+  <dl class="sy-facts"><dt>Say</dt><dd>portal, scan, screen, process, record, amendment, revision, environment, as-is, to-be</dd><dt>Yard words, sparingly</dt><dd>parts, lot, tag, scrapped, salvage, drawing, inventory</dd><dt>Never</dt><dd>magic, AI-powered, seamless, oops, emoji in product UI</dd></dl>
+</section>
+
+<section class="bb-sec" aria-labelledby="b9">
+  <header><span class="bb-num">09</span><h2 id="b9" class="sy-h2">Misuse</h2></header>
+  <div class="sy-grid" style="--sy-min: 260px">
+    <div class="bb-dont"><b>Don't</b>Draw the wordmark as an image, outline it, or set it in any font but Archivo Expanded.</div>
+    <div class="bb-dont"><b>Don't</b>Recolour the mark, add glow or gradients, or place it on a light background.</div>
+    <div class="bb-dont"><b>Don't</b>Use marker orange for success, red for "warning", or blueprint for anything that is real.</div>
+    <div class="bb-dont"><b>Don't</b>Round corners, add drop shadows, or lay grain, rust or grime textures over data.</div>
+    <div class="bb-dont"><b>Don't</b>Set machine output in the typewriter face. It is reserved for people.</div>
+    <div class="bb-dont"><b>Don't</b>Put two primary buttons, or two intent plates, in one view.</div>
+  </div>
+</section>
+
+</main>
+</body>
+</html>

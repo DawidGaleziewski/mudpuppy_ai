@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
+  <title>MudPuppy tag icon</title>
+  <!-- Salvage tag: cut corner + punched hole. Marker #FF8F1F. Hole is transparent. -->
+  <path fill="#FF8F1F" fill-rule="evenodd" d="M10 4h20v24H10L2 16z M10.5 13a3 3 0 1 0 0 6a3 3 0 1 0 0-6z"/>
+  <rect x="16" y="11" width="10" height="3" fill="#111315"/>
+  <rect x="16" y="18" width="7" height="3" fill="#111315"/>
+</svg>

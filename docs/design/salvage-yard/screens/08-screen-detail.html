@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MudPuppy · Screen detail</title>
+<link rel="icon" href="../brand/logo/tag-icon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../design-system/css/tokens.css">
+<link rel="stylesheet" href="../design-system/css/fonts.css">
+<link rel="stylesheet" href="../design-system/css/salvage.css">
+<style>
+  /* Screen-specific layout only: inset the tab strip inside the details plate. */
+  .mp-screen-side > .sy-tabs { padding: var(--sy-space-2) var(--sy-space-3) 0; }
+</style>
+</head>
+<body class="sy-ground">
+<a class="sy-skip" href="#main">Skip to content</a>
+<div class="sy-app">
+  <header class="sy-header">
+    <a class="sy-wordmark" href="01-home.html"><span class="sy-wordmark__paint">MUD</span>PUPPY</a>
+    <label class="sy-portal"><span class="sy-label">Portal</span>
+      <select class="sy-select"><option>reference-insurer</option><option>wikipedia</option><option>All portals</option><option>+ New portal</option></select></label>
+    <label class="sy-search">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+      <input type="search" aria-label="Search" placeholder="Search parts: screens, processes, records"><span class="sy-kbd">Ctrl K</span></label>
+    <span class="sy-status" data-status="ok">Assistant up</span>
+    <a class="sy-btn" href="02-screen-with-assistant.html">Ask the assistant <span class="sy-kbd">Ctrl J</span></a>
+    <a class="sy-btn sy-btn--icon" href="#" aria-label="Help and glossary">?</a>
+  </header>
+  <div class="sy-app__body">
+    <nav class="sy-nav" aria-label="Portal sections">
+      <a class="sy-nav__item" href="01-home.html">Home</a>
+      <a class="sy-nav__item" href="04-processes.html">Processes <span class="sy-nav__count">1·4</span></a>
+      <a class="sy-nav__item" href="08-screen-detail.html" aria-current="page">Screens <span class="sy-nav__count">21</span></a>
+      <a class="sy-nav__item" href="#">Docs</a>
+      <a class="sy-nav__item" href="09-review.html">Review <span class="sy-count">3</span></a>
+      <a class="sy-nav__item" href="10-scans.html">Scans</a>
+      <a class="sy-nav__item" href="11-settings.html">Settings</a>
+      <div class="sy-nav__foot">store: sandbox · read-only</div>
+    </nav>
+    <main id="main" class="sy-main">
+
+      <!-- Page head: the screen and where it sits -->
+      <div class="sy-pagehead">
+        <nav class="sy-crumbs" aria-label="Breadcrumb"><a href="08-screen-detail.html">Screens</a> / <span aria-current="page">Ubezpieczenia dla Ciebie</span></nav>
+        <div class="sy-stack" style="--sy-gap: 8px">
+          <h1 class="sy-h1">Ubezpieczenia dla Ciebie</h1>
+          <div class="sy-cluster sy-meta" style="--sy-gap: 6px 18px">
+            <span class="sy-cluster" style="--sy-gap: 6px">route <span class="sy-mono">/</span></span>
+            <span class="sy-cluster" style="--sy-gap: 0"><span class="sy-mono">cluster-0200e6959f74</span><a class="sy-hint" href="#" aria-label="What is a cluster?">?</a></span>
+            <span class="sy-cluster" style="--sy-gap: 0"><span class="sy-status" data-status="ok">Observed</span><a class="sy-hint" href="#" aria-label="What is confidence?">?</a></span>
+            <span class="sy-cluster" style="--sy-gap: 0"><span class="sy-status" data-status="ok">Settled</span><a class="sy-hint" href="#" aria-label="What is stabilization?">?</a></span>
+            <span>35 of 35 elements visible</span>
+          </div>
+          <p class="sy-meta">In processes: <a href="05-process-edit.html">Test process · start</a> · <a href="05-process-edit.html">Oblicz składkę OC/AC · step 1 in A and B</a></p>
+        </div>
+      </div>
+
+      <!-- Observed revisions: rescans add r2, r3… instead of replacing the screen -->
+      <section class="sy-plate" aria-labelledby="obs-l">
+        <div class="sy-plate__body">
+          <div class="sy-split" style="--sy-gap: 10px 24px">
+            <div class="sy-cluster" style="--sy-gap: 10px 12px">
+              <span id="obs-l" class="sy-label">Observed revision</span>
+              <div class="sy-seg" role="group" aria-labelledby="obs-l">
+                <button type="button" aria-pressed="true">r1 · 4 Oct 18:48Z · latest</button>
+              </div>
+              <span class="sy-meta">seen unchanged by scans</span>
+              <span class="sy-tags"><span class="sy-tag sy-tag--sm">01a10eb9</span><span class="sy-tag sy-tag--sm">01a110d5</span></span>
+            </div>
+            <p class="sy-meta" style="max-width: 52ch">When a scan sees this screen change, it adds r2 here and re-checks every amendment's target. Amendments carry forward; one whose element is gone goes to <a href="09-review.html">Review</a> for re-anchoring, never deleted.</p>
+          </div>
+        </div>
+      </section>
+
+      <div class="sy-columns">
+
+        <!-- Picture of the screen -->
+        <div class="sy-col-main sy-stack" style="--sy-gap: 10px">
+          <div class="sy-split" style="align-items: flex-end; --sy-gap: 8px 16px">
+            <div class="sy-tabs sy-grow" role="tablist" aria-label="Picture">
+              <button class="sy-tab" type="button" role="tab" id="tab-shot" aria-selected="true" aria-controls="panel-shot">Screenshot</button>
+              <button class="sy-tab" type="button" role="tab" aria-selected="false" tabindex="-1">Wireframe</button>
+              <button class="sy-tab" type="button" role="tab" aria-selected="false" tabindex="-1">Elements <span class="sy-count sy-count--muted">35</span></button>
+            </div>
+            <label class="sy-check"><input type="checkbox" checked> Show amendment pins</label>
+          </div>
+
+          <div role="tabpanel" id="panel-shot" aria-labelledby="tab-shot" class="sy-stack" style="--sy-gap: 8px">
+            <figure class="sy-shot" aria-label="Screenshot of Ubezpieczenia dla Ciebie, revision r1, as recorded">
+              <u class="sy-shot__link">Towarzystwo Ubezpieczeń Wzorcowych</u>
+              <div class="sy-cluster" style="--sy-gap: 6px 14px">
+                <span class="sy-shot__link">Start</span><span class="sy-shot__link">Samochód</span><span class="sy-shot__link">Dom</span><span class="sy-shot__link">Podróże</span><span class="sy-shot__link">Porównanie</span><span class="sy-shot__link">Oblicz składkę</span><span class="sy-shot__link">Kontakt</span><span class="sy-shot__link">FAQ</span><span class="sy-shot__link">Słowniczek</span><span class="sy-shot__link">Moje polisy</span>
+                <mark class="sy-mark sy-mark--note" style="margin-top: 12px"><span class="sy-mark__label">AMD-001</span><span class="sy-shot__link">Zaloguj się</span></mark>
+              </div>
+              <span class="sy-shot__title">Ubezpieczenia dla Ciebie</span>
+              <div class="sy-stack" style="--sy-gap: 3px">
+                <b>Nasze produkty</b>
+                <span class="sy-shot__link">Ubezpieczenie samochodu (OC i AC)</span>
+                <span class="sy-shot__link">Ubezpieczenie domu i mieszkania</span>
+                <span class="sy-shot__link">Ubezpieczenie turystyczne</span>
+              </div>
+              <div class="sy-stack" style="--sy-gap: 3px">
+                <b>Na skróty</b>
+                <span class="sy-shot__link">Oblicz składkę OC/AC</span>
+                <span class="sy-shot__link">Porównaj produkty</span>
+                <span class="sy-shot__link">Przedłuż polisę</span>
+                <span class="sy-shot__link">Napisz do nas</span>
+              </div>
+              <small>Towarzystwo Ubezpieczeń Wzorcowych S.A. — portal demonstracyjny. Wszystkie dane są fikcyjne. · FAQ · Słowniczek · Kontakt</small>
+            </figure>
+            <p class="sy-cluster sy-route" style="--sy-gap: 6px">snapshot 7116f773…e4fa1.yaml · first seen in <span class="sy-tag sy-tag--sm">01a1083f</span></p>
+          </div>
+        </div>
+
+        <!-- Screen details: amendments (to-be), cited by, history -->
+        <div class="sy-col-side" style="flex-basis: 400px">
+          <aside class="sy-plate mp-screen-side" aria-label="Screen details">
+            <div class="sy-tabs" role="tablist" aria-label="Screen details">
+              <button class="sy-tab" type="button" role="tab" id="tab-amd" aria-selected="true" aria-controls="panel-amd">Amendments <span class="sy-count sy-count--muted">1</span></button>
+              <button class="sy-tab" type="button" role="tab" aria-selected="false" tabindex="-1">Cited by <span class="sy-count sy-count--muted">3</span></button>
+              <button class="sy-tab" type="button" role="tab" aria-selected="false" tabindex="-1">History</button>
+            </div>
+
+            <div role="tabpanel" id="panel-amd" aria-labelledby="tab-amd">
+              <div class="sy-plate__body">
+                <p class="sy-meta">To-be: what the business wants changed. Kept apart from how the screen works today.</p>
+              </div>
+              <hr>
+
+              <!-- One amendment; it carries forward to every new observed revision -->
+              <article class="sy-plate__body" aria-labelledby="amd-1">
+                <div class="sy-split">
+                  <h2 id="amd-1" class="sy-cluster" style="--sy-gap: 8px"><a class="sy-tag" href="#">AMD-001 r2</a><span class="sy-meta">pin 1</span></h2>
+                  <span class="sy-status" data-status="live">Active</span>
+                </div>
+                <p class="sy-note">Test note, rename this button to Save.<span class="sy-note__by">— BA · 2026-10-11 19:27:29Z</span></p>
+                <p class="sy-meta">On link "Zaloguj się" · anchored to screen r1</p>
+                <details class="sy-disclosure">
+                  <summary><span class="sy-meta">2 revisions</span></summary>
+                  <div class="sy-disclosure__body">
+                    <ol class="sy-timeline">
+                      <li data-status="ok">
+                        <div class="sy-timeline__head"><span class="sy-tag sy-tag--sm">AMD-001 r2</span></div>
+                        <div class="sy-timeline__body">Target changed from whole screen to link "Zaloguj się" · you, via assistant · today 22:31Z</div>
+                      </li>
+                      <li>
+                        <div class="sy-timeline__head"><span class="sy-tag sy-tag--sm">AMD-001 r1</span></div>
+                        <div class="sy-timeline__body">Whole screen · BA · 2026-10-11 19:27:29Z</div>
+                      </li>
+                    </ol>
+                  </div>
+                </details>
+                <div class="sy-actions">
+                  <button class="sy-btn sy-btn--sm" type="button">Edit (new revision)</button>
+                  <button class="sy-btn sy-btn--sm sy-btn--quiet" type="button">Withdraw</button>
+                </div>
+              </article>
+              <hr>
+
+              <!-- Add an amendment -->
+              <form class="sy-plate__body" aria-labelledby="add-h">
+                <h2 id="add-h" class="sy-h3">Add an amendment</h2>
+                <fieldset class="sy-field">
+                  <legend class="sy-legend-label">Applies to</legend>
+                  <label class="sy-check"><input type="radio" name="target" value="screen" checked> The whole screen</label>
+                  <label class="sy-check"><input type="radio" name="target" value="element"> An element: pick it on the screenshot</label>
+                </fieldset>
+                <label class="sy-field"><span class="sy-field__label">Note</span>
+                  <textarea class="sy-textarea" name="note" rows="3" placeholder="What should be different, and why"></textarea></label>
+                <label class="sy-field"><span class="sy-field__label">Attachment</span>
+                  <input class="sy-input" type="file" name="attachment">
+                  <span class="sy-field__help">Optional, up to 8 MB.</span></label>
+                <div><button class="sy-btn sy-btn--primary" type="submit">Add amendment</button></div>
+              </form>
+            </div>
+          </aside>
+        </div>
+
+      </div>
+    </main>
+  </div>
+</div>
+</body>
+</html>

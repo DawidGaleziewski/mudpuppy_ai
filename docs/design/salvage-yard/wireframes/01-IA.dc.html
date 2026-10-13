@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Navigation: today vs redesign</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&amp;family=IBM+Plex+Sans:wght@400;500;600&amp;display=swap">
+<style>
+body{margin:0;background:#F6F5F1}
+a{color:#2453C9}a:hover{color:#163A99}
+:focus-visible{outline:2px solid #2453C9;outline-offset:1px}
+</style>
+</helmet>
+<div style="min-height: 100vh; box-sizing: border-box; padding: 32px 36px; display: flex; flex-direction: column; gap: 24px; background: #F6F5F1; color: #1C1C1A; font-family: 'IBM Plex Sans', ui-sans-serif, system-ui, sans-serif; font-size: 14px; line-height: 1.45">
+
+<div style="display: flex; flex-direction: column; gap: 6px">
+<h1 style="margin: 0; font-size: 24px; font-weight: 600">Navigation: today vs redesign</h1>
+<p style="margin: 0; max-width: 72ch; color: #55534D">Nothing is removed. Every part of today's console gets one home, chosen by what you're trying to do. The portal you pick at the top is the project; everything below it is about that portal.</p>
+</div>
+
+<div style="display: flex; flex-wrap: wrap; gap: 20px">
+<section aria-labelledby="today-h" style="flex: 1 1 420px; min-width: 0; display: flex; flex-direction: column; gap: 12px; padding: 16px; background: #FFFFFF; border: 1px solid #C9C6BD">
+<h2 id="today-h" style="margin: 0; font-size: 15px; font-weight: 600">Today</h2>
+<div style="display: flex; flex-wrap: wrap; gap: 6px; font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 12px">
+<span style="padding: 6px 10px; border: 1px solid #8E8B82">Overview</span>
+<span style="padding: 6px 10px; border: 1px solid #8E8B82">Docs</span>
+<span style="padding: 6px 10px; border: 1px solid #8E8B82">Activity</span>
+<span style="padding: 6px 10px; border: 1px solid #8E8B82">Chat</span>
+<span style="padding: 6px 10px; border: 1px solid #8E8B82">Glossary</span>
+<span style="padding: 6px 10px; border: 1px dashed #8E8B82">[ .. ] connecting</span>
+<span style="padding: 6px 10px; border: 1px dashed #8E8B82">portal ▾</span>
+<span style="padding: 6px 10px; border: 1px dashed #8E8B82">[settings]</span>
+<span style="padding: 6px 10px; border: 1px dashed #8E8B82">data store ▾</span>
+</div>
+<p style="margin: 0; font-size: 13px; color: #55534D">Five tool-shaped tabs. The chat page holds six jobs: conversation, workflow steps, scan progress, live map, credentials and process scope. Screens (states) are reachable only through a run.</p>
+</section>
+<section aria-labelledby="new-h" style="flex: 1 1 420px; min-width: 0; display: flex; flex-direction: column; gap: 12px; padding: 16px; background: #FFFFFF; border: 1px solid #1C1C1A">
+<h2 id="new-h" style="margin: 0; font-size: 15px; font-weight: 600">Redesign</h2>
+<div style="display: flex; flex-wrap: wrap; gap: 6px; font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 12px">
+<span style="padding: 6px 10px; border: 1px dashed #8E8B82">portal ▾</span>
+<span style="padding: 6px 10px; border: 1px dashed #8E8B82">search · Ctrl K</span>
+<span style="padding: 6px 10px; border: 1px solid #1C1C1A">Ask assistant · Ctrl J</span>
+<span style="padding: 6px 10px; border: 1px dashed #8E8B82">?</span>
+</div>
+<div style="display: flex; flex-wrap: wrap; gap: 6px; font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 12px">
+<a href="02-Main.dc.html" style="padding: 6px 10px; background: #1C1C1A; color: #FFFFFF; text-decoration: none">Home</a>
+<a href="05-Processes.dc.html" style="padding: 6px 10px; border: 1px solid #8E8B82; color: #1C1C1A; text-decoration: none">Processes</a>
+<a href="09-ScreenDetail.dc.html" style="padding: 6px 10px; border: 1px solid #8E8B82; color: #1C1C1A; text-decoration: none">Screens</a>
+<span style="padding: 6px 10px; border: 1px solid #8E8B82">Docs</span>
+<a href="10-Review.dc.html" style="padding: 6px 10px; border: 1px solid #8E8B82; color: #1C1C1A; text-decoration: none">Review</a>
+<a href="11-Runs.dc.html" style="padding: 6px 10px; border: 1px solid #8E8B82; color: #1C1C1A; text-decoration: none">Scans</a>
+<a href="12-Settings.dc.html" style="padding: 6px 10px; border: 1px solid #8E8B82; color: #1C1C1A; text-decoration: none">Settings</a>
+</div>
+<p style="margin: 0; font-size: 13px; color: #55534D">Seven sections for one portal, ordered by the brownfield workflow: talk, cut into processes, inspect screens, document, decide, scan, configure. The assistant is one keystroke away on every page.</p>
+</section>
+</div>
+
+<section aria-labelledby="map-h" style="display: flex; flex-direction: column; gap: 10px">
+<h2 id="map-h" style="margin: 0; font-size: 15px; font-weight: 600">Where each part goes</h2>
+<div style="overflow-x: auto; background: #FFFFFF; border: 1px solid #C9C6BD">
+<table style="width: 100%; min-width: 860px; border-collapse: collapse; font-size: 13px">
+<thead>
+<tr style="text-align: left; background: #EFEDE8">
+<th scope="col" style="padding: 10px 12px; font-weight: 600; border-bottom: 1px solid #C9C6BD; width: 32%">Today (screen from the self-scan)</th>
+<th scope="col" style="padding: 10px 12px; font-weight: 600; border-bottom: 1px solid #C9C6BD; width: 32%">Redesign</th>
+<th scope="col" style="padding: 10px 12px; font-weight: 600; border-bottom: 1px solid #C9C6BD">Why</th>
+</tr>
+</thead>
+<tbody>
+<tr><td style="padding: 9px 12px; border-bottom: 1px solid #E4E2DC"><span style="font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 12px; color: #55534D">SCR-007</span> Guided chat, /chat</td><td style="padding: 9px 12px; border-bottom: 1px solid #E4E2DC"><a href="02-Main.dc.html">Home</a> is the chat; <a href="03-ChatDrawer.dc.html">drawer</a> on every page</td><td style="padding: 9px 12px; border-bottom: 1px solid #E4E2DC; color: #55534D">The most-used feature was one tab of five</td></tr>
+<tr><td style="padding: 9px 12px; border-bottom: 1px solid #E4E2DC"><span style="font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 12px; color: #55534D">SCR-007</span> Workflow steps (Scan, Map, Narrow, Document, Amend)</td><td style="padding: 9px 12px; border-bottom: 1px solid #E4E2DC">Home › "Where this portal is"</td><td style="padding: 9px 12px; border-bottom: 1px solid #E4E2DC; color: #55534D">Guides the conversation, so it sits beside it</td></tr>
+<tr><td style="padding: 9px 12px; border-bottom: 1px solid #E4E2DC"><span style="font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 12px; color: #55534D">SCR-007</span> Scan progress and live map</td><td style="padding: 9px 12px; border-bottom: 1px solid #E4E2DC"><a href="11-Runs.dc.html">Scans</a> (live monitor); one-line status in chat</td><td style="padding: 9px 12px; border-bottom: 1px solid #E4E2DC; color: #55534D">Watching a scan and talking are different jobs</td></tr>
+<tr><td style="padding: 9px 12px; border-bottom: 1px solid #E4E2DC"><span style="font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 12px; color: #55534D">SCR-007</span> Credentials</td><td style="padding: 9px 12px; border-bottom: 1px solid #E4E2DC"><a href="12-Settings.dc.html">Settings › Credentials</a>, collapsed; asked in chat only when needed</td><td style="padding: 9px 12px; border-bottom: 1px solid #E4E2DC; color: #55534D">Rarely used, sensitive, and took a third of the side panel</td></tr>
+<tr><td style="padding: 9px 12px; border-bottom: 1px solid #E4E2DC"><span style="font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 12px; color: #55534D">SCR-007</span> Process scope (tick 21 states, start, end)</td><td style="padding: 9px 12px; border-bottom: 1px solid #E4E2DC"><a href="05-Processes.dc.html">Processes</a>, its own workspace</td><td style="padding: 9px 12px; border-bottom: 1px solid #E4E2DC; color: #55534D">Cutting the portal into processes is the core brownfield job</td></tr>
+<tr><td style="padding: 9px 12px; border-bottom: 1px solid #E4E2DC"><span style="font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 12px; color: #55534D">SCR-002</span> Overview: portal cards</td><td style="padding: 9px 12px; border-bottom: 1px solid #E4E2DC">Portal picker › All portals; this portal's numbers on Home</td><td style="padding: 9px 12px; border-bottom: 1px solid #E4E2DC; color: #55534D">Most work happens inside one portal</td></tr>
+<tr><td style="padding: 9px 12px; border-bottom: 1px solid #E4E2DC"><span style="font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 12px; color: #55534D">SCR-002 · SCR-014</span> Runs table, run detail</td><td style="padding: 9px 12px; border-bottom: 1px solid #E4E2DC"><a href="11-Runs.dc.html">Scans</a> › history, scan detail (same tabs)</td><td style="padding: 9px 12px; border-bottom: 1px solid #E4E2DC; color: #55534D">One place for everything about scanning</td></tr>
+<tr><td style="padding: 9px 12px; border-bottom: 1px solid #E4E2DC"><span style="font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 12px; color: #55534D">SCR-010</span> State detail, only via a run</td><td style="padding: 9px 12px; border-bottom: 1px solid #E4E2DC"><a href="09-ScreenDetail.dc.html">Screens</a>: library plus detail with revisions</td><td style="padding: 9px 12px; border-bottom: 1px solid #E4E2DC; color: #55534D">Screens are what you talk about; reach them directly</td></tr>
+<tr><td style="padding: 9px 12px; border-bottom: 1px solid #E4E2DC"><span style="font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 12px; color: #55534D">SCR-011</span> Amendments to review (superseded)</td><td style="padding: 9px 12px; border-bottom: 1px solid #E4E2DC"><a href="10-Review.dc.html">Review</a> › Re-anchor</td><td style="padding: 9px 12px; border-bottom: 1px solid #E4E2DC; color: #55534D">A rescan never deletes an amendment</td></tr>
+<tr><td style="padding: 9px 12px; border-bottom: 1px solid #E4E2DC"><span style="font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 12px; color: #55534D">SCR-003 · 004 · 005</span> Docs, sections, record review</td><td style="padding: 9px 12px; border-bottom: 1px solid #E4E2DC">Docs (sections); confirm or reject in <a href="10-Review.dc.html">Review</a></td><td style="padding: 9px 12px; border-bottom: 1px solid #E4E2DC; color: #55534D">Every decision waits in one inbox</td></tr>
+<tr><td style="padding: 9px 12px; border-bottom: 1px solid #E4E2DC"><span style="font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 12px; color: #55534D">SCR-006</span> Server activity</td><td style="padding: 9px 12px; border-bottom: 1px solid #E4E2DC"><a href="11-Runs.dc.html">Scans</a> › Server activity tab</td><td style="padding: 9px 12px; border-bottom: 1px solid #E4E2DC; color: #55534D">Operational detail, rarely opened</td></tr>
+<tr><td style="padding: 9px 12px; border-bottom: 1px solid #E4E2DC"><span style="font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 12px; color: #55534D">SCR-008 · 009</span> Glossary, BA wiki</td><td style="padding: 9px 12px; border-bottom: 1px solid #E4E2DC">"?" help, plus the inline [?] popovers</td><td style="padding: 9px 12px; border-bottom: 1px solid #E4E2DC; color: #55534D">Reference, not a destination</td></tr>
+<tr><td style="padding: 9px 12px; border-bottom: 1px solid #E4E2DC"><span style="font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 12px; color: #55534D">SCR-012</span> Portal settings, via [settings]</td><td style="padding: 9px 12px; border-bottom: 1px solid #E4E2DC"><a href="12-Settings.dc.html">Settings</a> in the nav</td><td style="padding: 9px 12px; border-bottom: 1px solid #E4E2DC; color: #55534D">Was a link that appeared only after picking a portal</td></tr>
+<tr><td style="padding: 9px 12px; border-bottom: 1px solid #E4E2DC"><span style="font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 12px; color: #55534D">SCR-013</span> New portal</td><td style="padding: 9px 12px; border-bottom: 1px solid #E4E2DC">Portal picker › + New portal (same flow)</td><td style="padding: 9px 12px; border-bottom: 1px solid #E4E2DC; color: #55534D">Unchanged</td></tr>
+<tr><td style="padding: 9px 12px; border-bottom: 1px solid #E4E2DC"><span style="font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 12px; color: #55534D">SCR-001</span> Data store picker</td><td style="padding: 9px 12px; border-bottom: 1px solid #E4E2DC"><a href="12-Settings.dc.html">Settings › Data store</a>; current store in the nav footer</td><td style="padding: 9px 12px; border-bottom: 1px solid #E4E2DC; color: #55534D">Changed rarely; no need for prime header space</td></tr>
+<tr><td style="padding: 9px 12px"><span style="font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: 12px; color: #55534D">SCR-001</span> "[ .. ] connecting"</td><td style="padding: 9px 12px">Assistant status in the top bar: running, or not running with Retry</td><td style="padding: 9px 12px; color: #55534D">It read "connecting" in every capture of the scan</td></tr>
+</tbody>
+</table>
+</div>
+</section>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":1080}}'>
+class Component extends DCLogic {
+renderVals() {
+return {};
+}
+}
+</script>
+</body>
+</html>
