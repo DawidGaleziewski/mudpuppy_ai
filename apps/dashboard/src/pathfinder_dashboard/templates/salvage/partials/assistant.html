@@ -13,7 +13,7 @@
      data-mode="{{ mode }}">
   <div class="sy-chat__log" role="log" aria-label="Messages" tabindex="0" data-assistant-scroll>
     {% include "salvage/partials/chat_messages.html" %}
-    <div data-assistant-live aria-live="polite"></div>
+    <div class="mp-chat-live" data-assistant-live aria-live="polite"></div>
     <div class="sy-msg" data-assistant-working hidden>
       <span class="sy-msg__who">Assistant</span>
       <p class="sy-caret" data-assistant-now>Thinking</p>

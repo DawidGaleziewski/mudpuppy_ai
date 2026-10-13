@@ -6,11 +6,21 @@ import sqlite3
 from datetime import UTC, datetime
 from typing import Any
 
-from .. import live_map, queries_chat
+from .. import live_map, queries_chat, queries_proposals
+from ..models import ChatMessage
+from ..queries_proposals import ProposalView
 from .deps import Ctx
 
 # A running run with no recorded activity for this long is called out in the chat (T047, F-22).
 QUIET_WARN_MS = 5 * 60_000
+
+
+def timeline(messages: list[ChatMessage], proposals: list[ProposalView]) -> list[tuple[str, Any]]:
+    """Messages and the assistant's proposals in time order (spec 022 FE-A04): a proposal sits
+    after the message it was made during. Both lists are already in order."""
+    entries: list[tuple[str, str, Any]] = [("message", m.created_at, m) for m in messages]
+    entries += [("proposal", v.p.created_at, v) for v in proposals]
+    return [(kind, item) for kind, _, item in sorted(entries, key=lambda e: e[1])]
 
 
 def chat_values(
@@ -27,9 +37,11 @@ def chat_values(
     tracker = queries_chat.tracker(conn, conversation)
     progress = queries_chat.progress(conn, tracker)
     now = datetime.now(UTC)
+    messages = queries_chat.list_messages(conn, conversation.id)
     return {
         "conversation": conversation,
-        "messages": queries_chat.list_messages(conn, conversation.id),
+        "messages": messages,
+        "timeline": timeline(messages, queries_proposals.for_conversation(conn, conversation.id)),
         "tracker": tracker,
         "superseded": queries_chat.superseded_counts(conn).get(tracker.portal_id or "", 0),
         # T047: the run's counters and activity feed, timed on the server (reload-safe)

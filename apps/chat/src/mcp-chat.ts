@@ -12,6 +12,7 @@ import { workflowState } from '@pathfinder/workflow';
 import { existsSync } from 'node:fs';
 import { PersonaFile, portalEnvironments } from '@pathfinder/config';
 import { PersonaRefusal, savePersona } from './personas.js';
+import { ProposalRefusal, ProposeInput, proposeChange } from './proposals.js';
 import { RunRefusal, runningRunOf, stopRun } from './runs.js';
 import { RequestScanInput, ScanRefusal, requestScan } from './scan.js';
 import {
@@ -59,6 +60,7 @@ function fail(error: unknown): CallToolResult {
   if (error instanceof ScanRefusal) return refused(error.code, error.message, error.missing);
   if (error instanceof ScopeRefusal) return refused(error.code, error.message, error.details);
   if (error instanceof RunRefusal) return refused(error.code, error.message);
+  if (error instanceof ProposalRefusal) return refused(error.code, error.message);
   if (error instanceof z.ZodError)
     return refused(
       'INVALID',
@@ -220,6 +222,23 @@ export function createChatMcpServer(ctx: ChatMcpContext): McpServer {
           )
           .all(portal, status ?? null, status ?? null);
         return ok({ portal, amendments: rows });
+      } catch (error) {
+        return fail(error);
+      }
+    },
+  );
+
+  server.registerTool(
+    'propose_change',
+    {
+      description:
+        'Propose a change to the to-be for the BA to apply or discard (the drawer shows it with Apply). With amendment_id: new text for an active amendment, or target_kind + target_id (+ optional text) to re-anchor one that needs it. Without amendment_id: a new note on a recorded screen (target_kind "state", target_id = state id) or on one of its elements ("wireframe_element", "<state id>#<element key>"). You never change amendments yourself; nothing changes until a person applies it.',
+      inputSchema: ProposeInput.shape,
+    },
+    (args) => {
+      try {
+        const p = proposeChange(ctx.raw, ctx.conversationId, args);
+        return ok({ proposal: { id: p.id, status: p.status, summary: p.summary } });
       } catch (error) {
         return fail(error);
       }

@@ -5,6 +5,8 @@ import { createServer, type IncomingMessage, type Server, type ServerResponse } 
 import { z } from 'zod';
 import { amendmentRoutes } from './api-amendments.js';
 import { type AmendmentService } from './amendments.js';
+import { proposalRoutes } from './api-proposals.js';
+import { type ProposalService } from './proposal-service.js';
 import { parseBody, readJson, sendJson } from './http-io.js';
 import { PageContext, contextLine } from './page-context.js';
 import { CredentialsBody, type CredentialsHandler } from './credentials.js';
@@ -29,6 +31,8 @@ export interface ApiOptions {
   credentials?: CredentialsHandler;
   /** Amendment commands (T030). Without it the amendment routes answer 404. */
   amendments?: AmendmentService;
+  /** The assistant's proposals (spec 022 R6). Without it the proposal routes answer 404. */
+  proposals?: ProposalService;
   /** Save a process scope (T027); throws `ScopeRefusal`. Without it the route answers 404. */
   scope?: (conversationId: string, body: SetScopeInput) => ProcessScope;
   /** Stop a running run (T041); throws `RunRefusal`. Without it the route answers 404. */
@@ -235,6 +239,7 @@ export function createApi(opts: ApiOptions): Server {
     }
     // Amendments with revisions (T030, T033; spec 022 contracts/amendments-api.md).
     if (await amendmentRoutes(req, res, method, path, url, opts.amendments)) return;
+    if (await proposalRoutes(req, res, method, path, opts.proposals)) return;
     // T050: the chat's [stop] button. Ends the assistant's turn and stops every run the
     // conversation follows (interrupted, so they can be resumed); answers what was stopped.
     const cancel = /^\/conversations\/([^/]+)\/cancel$/.exec(path);

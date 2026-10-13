@@ -1,5 +1,5 @@
-"""TO-BE amendments: the forms' posts, forwarded to the chat service (T031, T033), and the
-superseded-amendments page (FR-022)."""
+"""TO-BE amendments: the forms' posts and the assistant's proposals (spec 022), forwarded to the
+chat service (T031, T033), and the superseded-amendments page (FR-022)."""
 
 from __future__ import annotations
 
@@ -95,6 +95,24 @@ async def amendment_dismiss(request: Request, portal: str, amendment_id: str) ->
         web,
         "POST",
         f"/portals/{quote(portal, safe='')}/amendments/{quote(amendment_id, safe='')}/dismiss",
+        _author(request),
+    )
+
+
+@router.post("/chat/portals/{portal}/proposals/{proposal_id}/{verb}")
+async def proposal_decide(
+    request: Request, portal: str, proposal_id: str, verb: str
+) -> JSONResponse:
+    """Apply, discard or undo an assistant proposal (spec 022 FE-A04), signed like an edit."""
+    if not same_origin(request):
+        return chat_refused()
+    if verb not in ("apply", "discard", "undo"):
+        return invalid("Apply, discard or undo.")
+    web = web_of(request)
+    return await forward(
+        web,
+        "POST",
+        f"/portals/{quote(portal, safe='')}/proposals/{quote(proposal_id, safe='')}/{verb}",
         _author(request),
     )
 

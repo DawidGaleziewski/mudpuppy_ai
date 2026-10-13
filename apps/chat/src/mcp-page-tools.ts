@@ -2,7 +2,7 @@
 // read the page the BA is looking at, highlight an element on a recorded screen, open a page.
 // The two browser tools only validate and answer; the chat service turns their completed calls
 // into `ui_action` events (ui-actions.ts). Changes are proposed with propose_change
-// (proposal-tools.ts) and applied by a person.
+// (mcp-chat.ts, proposals.ts) and applied by a person.
 
 import { readFileSync } from 'node:fs';
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';

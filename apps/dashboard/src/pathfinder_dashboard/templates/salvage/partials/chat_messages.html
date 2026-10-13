@@ -7,14 +7,16 @@
      hx-get="{{ c.url('/fragments/chat/messages', conversation=conversation.id) }}"
      hx-trigger="chat-settled from:body, store-changed[!window.chatBusy] from:body"
      hx-swap="outerHTML">
-  {%- if not messages %}
+  {%- if not timeline %}
   <div class="sy-msg">
     <span class="sy-msg__who">Assistant</span>
     <p>Say what you want to do with this portal, or ask “what can I do here?”.</p>
   </div>
   {%- else %}
-  {%- for msg in messages %}
-  {%- if msg.role == "user" %}
+  {%- for kind, msg in timeline %}
+  {%- if kind == "proposal" %}
+  <div class="sy-msg mp-msg--wide"><span class="sy-msg__who">Assistant</span>{% set v = msg %}{% include "salvage/partials/proposal.html" %}</div>
+  {%- elif msg.role == "user" %}
   <div class="sy-msg sy-msg--user">{{ msg.content }}</div>
   {%- elif msg.role == "assistant" %}
   <div class="sy-msg"><span class="sy-msg__who">Assistant</span><p class="mp-pre">{{ msg.content }}</p></div>

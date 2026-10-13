@@ -112,6 +112,15 @@ VOCABULARIES: dict[str, dict[str, Status]] = {
         "dismissed": _s("stopped", "Dismissed"),
         "withdrawn": _s("stopped", "Withdrawn"),
     },
+    # The assistant's proposals (spec 022 FE-A04); "undone" is a discarded one that was applied.
+    "proposal": {
+        "open": _s("draft", "Proposed"),
+        "applied": _s("ok", "Applied"),
+        "saved": _s("ok", "Saved"),  # the revision applying wrote
+        "discarded": _s("skipped", "Discarded"),
+        "undone": _s("skipped", "Undone"),
+        "stale": _s("stopped", "Out of date"),
+    },
     "confidence": {
         "observed": _s("ok", "Observed"),
         "inferred": _s("inferred", "Inferred"),

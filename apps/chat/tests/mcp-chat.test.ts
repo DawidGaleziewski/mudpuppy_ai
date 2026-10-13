@@ -86,6 +86,7 @@ describe('pathfinder-chat MCP server', () => {
       'list_process_candidates',
       'open_page',
       'page_context',
+      'propose_change',
       'request_documentation',
       'request_scan',
       'save_persona',

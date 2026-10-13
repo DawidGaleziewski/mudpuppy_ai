@@ -23,6 +23,7 @@ export const CHAT_TOOLS = [
   'page_context',
   'highlight_element',
   'open_page',
+  'propose_change',
 ].map((t) => CHAT + t);
 
 /** pathfinder-ba tools that only read; the orchestrator may use these itself. */
