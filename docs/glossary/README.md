@@ -39,14 +39,14 @@ can be resumed without repeating recorded work).
 **What a run is for, either map mode, which explores the whole portal, or trace mode, which records one named process step by step.**
 
 **Map** mode explores broadly: it visits every reachable state within scope and budget and
-records what is there. Off production it fills a form with test data before pressing its
-submit button (form autofill), so the pages behind forms are mapped too; on production it
-never submits.
+records what is there. It fills a form with test data before pressing its submit button
+(form autofill), so the pages behind forms are mapped too, unless the portal's or
+persona's limit forbids submitting.
 
 **Trace** mode follows one named business process, such as "Oblicz składkę OC/AC", with
 inputs from the persona, and records the ordered steps and what the portal did after each.
-On production it stops at the submit boundary. The BA asks for trace runs through
-follow-up tasks when a map run is not enough.
+Where a limit forbids the next action it stops at the submit boundary. The BA asks for
+trace runs through follow-up tasks when a map run is not enough.
 
 *Seen in:* Runs table → Mode
 
@@ -54,22 +54,22 @@ follow-up tasks when a map run is not enough.
 
 *Related:* [Run](#run), [Process (trace mode)](#trace-process), [Submit boundary](#submit-boundary), [Follow-up task (FUP)](#follow-up-task), [Form autofill](#form-autofill)
 
-<sub>Last changed in R-20, 2026-10-04.</sub>
+<sub>Last changed in R-42, 2026-10-13.</sub>
 
 <a id="environment"></a>
 
 #### Environment (sandbox / production)
 
-**Which copy of a site a scan targets, production (the live site), staging or sandbox; each has its own address and limit of how far the crawler may go.**
+**Which copy of a site a scan targets, production (the live site), staging or sandbox; each has its own address and an optional limit of how far the crawler may go.**
 
-A portal has one or more environments (see Portal settings). A public address must be
-declared production. Since constitution 4.0.0 production is not read-only by rule: the
-crawler may fill, submit and log in up to the limit the BA set for that environment, which
-on a live site really happens. Each scan from the chat only looks unless you allow edits
-for it (see Scan choices). Production keeps a conservative rate limit, an identifying
-User-Agent, and stops on a CAPTCHA. Each run records its environment. Separately, the
-dashboard's "data store" switch picks which local database file (`data/db/<name>.sqlite`)
-it reads; runs of every environment can be in one store.
+A portal has one or more environments (see Portal settings). The environment is a label:
+since spec 021 (R-42) production behaves exactly like staging and sandbox. Without a limit
+the crawler may fill, submit and log in, which on a live site really happens; the BA sets
+a limit per environment to restrict it. Each scan from the chat only looks unless you allow
+edits for it (see Scan choices). A CAPTCHA is handed to a human on every environment. Each
+run records its environment. Separately, the dashboard's "data store" switch picks which
+local database file (`data/db/<name>.sqlite`) it reads; runs of every environment can be in
+one store.
 
 *Example:* wikipedia-org: production https://www.wikipedia.org/ (only look); reference-insurer: sandbox
 
@@ -79,7 +79,7 @@ it reads; runs of every environment can be in one store.
 
 *Related:* [Safety class](#safety-class), [Scope / denylist](#portal-scope), [Form autofill](#form-autofill), [Portal settings (environments)](#portal-settings), [Scan choices (edits, images)](#scan-choices)
 
-<sub>Last changed in R-31, 2026-10-07.</sub>
+<sub>Last changed in R-42, 2026-10-13.</sub>
 
 <a id="persona"></a>
 
@@ -324,13 +324,13 @@ listed, never silently dropped, so you can see what a bigger budget would have e
 
 #### Form autofill
 
-**In map mode off production, the crawler fills a form with test data just before it presses the form's submit button, so it can reach the page behind the form.**
+**In map mode, the crawler fills a form with test data just before it presses the form's submit button, so it can reach the page behind the form.**
 
 Values come from the persona's inputs when it has one for the field's label, otherwise from
 a fixed generator per field type (an e-mail on a test domain, a number inside the field's
 limits, the first real option of a list). Each autofill is written to the trace and the
-decision log with the field names and values. On production the submit itself is refused,
-so nothing is filled or sent there.
+decision log with the field names and values. Where the portal's or persona's limit refuses
+the submit, nothing is filled or sent. Every environment is treated the same (spec 021).
 
 *Seen in:* Run page → Trace → form_autofill; Run page → Decisions
 
@@ -338,7 +338,7 @@ so nothing is filled or sent there.
 
 *Related:* [Mode (map / trace)](#mode), [Environment (sandbox / production)](#environment), [Persona](#persona), [Safety class](#safety-class)
 
-<sub>Last changed in R-20, 2026-10-04.</sub>
+<sub>Last changed in R-42, 2026-10-13.</sub>
 
 <a id="page-composition"></a>
 
@@ -453,11 +453,11 @@ Every action is classified by pure code before it may run:
 - `external-side-effect`: does something outside the site, such as sending an e-mail or
   making a payment.
 
-If the code cannot prove an action is read-only it does not assume it is. On production
-only `read` actions run. The effective ceiling of a run is the lower of the portal's and
-the persona's.
+If the code cannot prove an action is read-only it does not assume it is. The effective
+ceiling of a run is the lowest limit the portal, its environment and the persona set; with
+none set, every class may run (spec 021).
 
-*Example:* On the reference map run the "Porównaj" button was classified mutating (no evidence it is read-only) and skipped.
+*Example:* On the read-only reference map run the "Porównaj" button was classified mutating (no evidence it is read-only) and skipped.
 
 *Seen in:* Actions → Safety class; Frontier → Safety class
 
@@ -465,7 +465,7 @@ the persona's.
 
 *Related:* [Decision (allowed / skipped)](#decision), [Environment (sandbox / production)](#environment), [Persona](#persona)
 
-<sub>Last changed in R-22, 2026-10-03.</sub>
+<sub>Last changed in R-42, 2026-10-13.</sub>
 
 <a id="decision"></a>
 
@@ -970,11 +970,12 @@ case records.
 
 #### Submit boundary
 
-**The point in a process where continuing would submit, buy or send something, where a trace on production stops on purpose.**
+**The point in a process where continuing would submit, buy or send something, where a trace on a portal with a read-only limit stops on purpose.**
 
-On production only read-only actions are allowed, so a trace fills the steps it safely can
-and stops before the final submit. The outcome `[BNDY]` means the run worked as intended,
-not that it failed. On a sandbox the same process may continue past the boundary.
+When the portal, environment or persona limits actions to `read`, a trace fills the steps it
+safely can and stops before the final submit. The outcome `[BNDY]` means the run worked as
+intended, not that it failed. Without such a limit the same process continues past the
+boundary, on any environment (spec 021).
 
 *Seen in:* Process tab → Outcome [BNDY]
 
@@ -982,7 +983,7 @@ not that it failed. On a sandbox the same process may continue past the boundary
 
 *Related:* [Process (trace mode)](#trace-process), [Safety class](#safety-class), [Environment (sandbox / production)](#environment)
 
-<sub>Last changed in R-22, 2026-10-03.</sub>
+<sub>Last changed in R-42, 2026-10-13.</sub>
 
 ### Run trace
 
@@ -1444,8 +1445,8 @@ tool and for re-login.
 The agent calls `login` with a reason. The server fills the form, submits it and records the
 landing page like a navigation. The result says `logged_in` or `failed` with a reason
 (`rejected`, `captcha`, `locked`, `control_not_found`). Tracing is paused during the fill,
-and the values never reach the tool result, the records or the logs. Login is refused on
-production.
+and the values never reach the tool result, the records or the logs. Login works the same
+on every environment (spec 021).
 
 *Seen in:* Run page → decisions (login)
 
@@ -1453,7 +1454,7 @@ production.
 
 *Related:* [Login block](#login-block), [Credential vault](#credential-vault), [Secret redactor](#secret-redactor), [Re-login](#re-login), [Hand-off (CAPTCHA)](#captcha-handoff)
 
-<sub>Last changed in R-26, 2026-10-05.</sub>
+<sub>Last changed in R-42, 2026-10-13.</sub>
 
 <a id="re-login"></a>
 
@@ -1479,12 +1480,12 @@ of any business process.
 
 #### Hand-off (CAPTCHA)
 
-**On a sandbox or staging portal, a CAPTCHA does not stop the run; the crawler records it, asks for a human and carries on with the rest.**
+**A CAPTCHA does not stop the run; the crawler records it, asks for a human and carries on with the rest, on every environment.**
 
-The crawler never solves a CAPTCHA. Off production, it records the state, writes a `handoff`
-decision, skips actions inside the CAPTCHA container and opens a crawler question
-`Human needed: CAPTCHA on <route template>`. On production a CAPTCHA is still a block and
-the run stops with a warning. A CAPTCHA on the login page marks the run login-blocked.
+The crawler never solves a CAPTCHA. It records the state, writes a `handoff` decision, skips
+actions inside the CAPTCHA container and opens a crawler question
+`Human needed: CAPTCHA on <route template>`. Since spec 021 this is the same on production.
+A CAPTCHA on the login page marks the run login-blocked.
 
 *Example:* Human needed: CAPTCHA on /sklep/zamowienie
 
@@ -1494,7 +1495,7 @@ the run stops with a warning. A CAPTCHA on the login page marks the run login-bl
 
 *Related:* [Open question (crawler)](#crawler-open-question), [Server-side login](#server-side-login), [Decision (allowed / skipped)](#decision), [Environment (sandbox / production)](#environment)
 
-<sub>Last changed in R-26, 2026-10-05.</sub>
+<sub>Last changed in R-42, 2026-10-13.</sub>
 
 <a id="secret-redactor"></a>
 

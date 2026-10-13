@@ -12,9 +12,9 @@ export interface EffectiveConfig {
   effectiveMaxActionClass: SafetyClass;
 }
 
-/** Portal ceiling: its declared `max_action_class`, else `read` (production default; also the safe default elsewhere). */
+/** Portal ceiling: its declared `max_action_class`, else no limit on any environment (spec 021 FR-002). */
 export function portalCeiling(portal: PortalConfig): SafetyClass {
-  return portal.max_action_class ?? 'read';
+  return portal.max_action_class ?? 'external-side-effect';
 }
 
 /** Persona credentials and the portal's `login` block must come as a pair (a guest needs neither). */

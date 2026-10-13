@@ -306,7 +306,7 @@ export function seedDocRecords(fx: FixtureStore): SeededDocs {
         goal: 'Reach the purchase confirmation',
         persona: 'guest',
         trigger: 'The guest starts the calculator.',
-        outcome: 'Stops before "Dalej"; what follows is not observable on production.',
+        outcome: 'Stops before "Dalej"; what follows is not observable under the read limit.',
         observed_extent: 'until_boundary',
       },
       confidence: 'observed',
@@ -632,7 +632,7 @@ export function seedDocRecords(fx: FixtureStore): SeededDocs {
     .prepare(
       `INSERT INTO followup_tasks (record_id, status, run_id, blocked_reason, updated_at) VALUES (?, 'blocked', ?, ?, ?)`,
     )
-    .run(ids[fup2], boundary.runId, 'ceiling:read: "Dalej" is mutating on production', tick());
+    .run(ids[fup2], boundary.runId, 'ceiling:read: "Dalej" is mutating, above the read limit', tick());
 
   for (const rel of pending)
     raw

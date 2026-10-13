@@ -5,7 +5,7 @@ import { DENYLIST_RULE_IDS, loadEffectiveConfig } from '../src/index.js';
 const root = (p: string) => fileURLToPath(new URL(`../../../../../${p}`, import.meta.url));
 
 describe('repository config files', () => {
-  it('portals/marketsite + guest load and resolve to the read ceiling', () => {
+  it('portals/marketsite + guest load and resolve to its explicit read ceiling', () => {
     const e = loadEffectiveConfig(
       root('portals/marketsite/portal.yaml'),
       root('personas/marketsite/guest.yaml'),
@@ -36,7 +36,7 @@ describe('repository config files', () => {
     );
     expect(readonly.portal.environment).toBe('production');
     expect(readonly.portal.base_url).toBe(sandbox.portal.base_url);
-    // The production twin caps even the sandbox persona at read, and its own persona is read too.
+    // The twin's explicit read limit (spec 021) caps even the sandbox persona, and its own persona is read too.
     expect(readonly.effectiveMaxActionClass).toBe('read');
     expect(
       loadEffectiveConfig(

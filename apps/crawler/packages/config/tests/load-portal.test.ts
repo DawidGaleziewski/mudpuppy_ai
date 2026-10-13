@@ -70,9 +70,9 @@ describe('loadPortal', () => {
     expect(e.problems.join()).toContain('environment');
   });
 
-  it('rejects production without rate_limit', () => {
+  it('allows production without rate_limit (spec 021)', () => {
     const yaml = PORTAL_YAML.replace(/rate_limit:[\s\S]*?user_agent:.*\n/, '');
-    expect(problems(load(yaml).run).problems.join()).toContain('rate_limit');
+    expect(load(yaml).run().rate_limit).toBeUndefined();
   });
 
   it('allows staging without rate_limit', () => {

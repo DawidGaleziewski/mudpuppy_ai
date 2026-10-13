@@ -91,14 +91,11 @@ describe('start_run (database part)', () => {
     expect(snap.effective_max_action_class).toBe('read');
   });
 
-  it('refuses with ENV_GUARD_REFUSED and creates no run (production flag, placeholder UA)', async () => {
-    // null compliance values no longer refuse a production run (constitution 4.0.0, spec 011)
+  it('starts a run whatever the environment label or User-Agent says (spec 021)', async () => {
     for (const o of [{ env: 'sandbox' }, { ua: 'PathfinderAI (+contact@example.com)' }]) {
       const ctx = await repo(files(o));
-      expect(await code(startRunRecord(ctx, { portal_id: 'shop', persona_id: 'guest' }))).toBe(
-        'ENV_GUARD_REFUSED',
-      );
-      expect(await ctx.db.selectFrom('runs').selectAll().execute()).toHaveLength(0);
+      await startRunRecord(ctx, { portal_id: 'shop', persona_id: 'guest' });
+      expect(await ctx.db.selectFrom('runs').selectAll().execute()).toHaveLength(1);
     }
   });
 

@@ -82,7 +82,7 @@ Evidence:
 
 **Trigger:** The guest starts the calculator.
 
-**Outcome:** Stops before "Dalej"; what follows is not observable on production.
+**Outcome:** Stops before "Dalej"; what follows is not observable under the read limit.
 
 **Observed extent:** until boundary
 

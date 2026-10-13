@@ -76,8 +76,8 @@ async function actStep(
   if (state.currentStateId !== action.state_id) await reachState(call);
   if (action.json.href) await checkLinkItemCap(call);
   const { locator, matches } = await locate(call);
-  // Map mode fills a form before pressing its submit control (spec 008 FR-002); on production
-  // too since constitution 4.0.0, within the portal's limit (spec 011 FR-010).
+  // Map mode fills a form before pressing its submit control (spec 008 FR-002) on every
+  // environment, within the portal's limit when it sets one (spec 021).
   if (!state.isTrace && !action.json.input)
     await step(call, 'autofill', () => autofillBeforeSubmit(state, action, locator));
   // The hops of this action start on the page it was taken on (spec 019, R-38).

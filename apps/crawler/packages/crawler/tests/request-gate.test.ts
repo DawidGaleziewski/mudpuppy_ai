@@ -73,13 +73,15 @@ function fakeContext() {
 describe('request gate', () => {
   const make = () => {
     const stops: StopEvent[] = [];
+    const verdicts: string[] = [];
     const limiter = createRateLimiter({ requestsPerSecond: 1000, maxConcurrency: 4 });
     const gate = createRequestGate({
       limiter,
       userAgent: 'PathfinderAI-Crawler/0.1 (+me@corp.pl)',
       onStop: (e) => stops.push(e),
+      onBlockVerdict: (v) => verdicts.push(v.kind),
     });
-    return { stops, limiter, gate };
+    return { stops, verdicts, limiter, gate };
   };
 
   it('sets the configured User-Agent on every request', async () => {
@@ -107,16 +109,18 @@ describe('request gate', () => {
     expect(route.abort).toHaveBeenCalled();
   });
 
-  it('detects a CAPTCHA page served with 200', async () => {
-    const { gate, stops } = make();
+  it('detects a CAPTCHA page served with 200 and does not stop: it is handed to a human (spec 021)', async () => {
+    const { gate, stops, verdicts, limiter } = make();
     const f = fakeContext();
     await gate.install(f.ctx as never);
     await f.respond(200, '<div class="g-recaptcha"></div>');
-    expect(stops[0]!.kind).toBe('captcha');
+    expect(verdicts).toEqual(['captcha']);
+    expect(stops).toHaveLength(0);
+    expect(limiter.halted).toBe(false);
   });
 
   it('does not read a vendor script or iframe body as a CAPTCHA page', async () => {
-    const { gate, stops } = make();
+    const { gate, stops, verdicts } = make();
     const f = fakeContext();
     await gate.install(f.ctx as never);
     const body = 'var a="g-recaptcha";';
@@ -134,26 +138,29 @@ describe('request gate', () => {
     await res('script', null);
     await res('document', {});
     expect(stops).toHaveLength(0);
+    expect(verdicts).toHaveLength(0);
   });
 
   it('ignores normal pages and non-text bodies', async () => {
-    const { gate, stops } = make();
+    const { gate, stops, verdicts } = make();
     const f = fakeContext();
     await gate.install(f.ctx as never);
     await f.respond(200, '<h1>Oferty</h1>');
     await f.respond(404, 'nie ma');
     await f.respond(200, 'g-recaptcha', 'image/png');
     expect(stops).toHaveLength(0);
+    expect(verdicts).toHaveLength(0);
   });
 
   it('ignores CAPTCHA markers inside vendor scripts and third-party iframes', async () => {
-    const { gate, stops } = make();
+    const { gate, stops, verdicts } = make();
     const f = fakeContext();
     await gate.install(f.ctx as never);
     // Google's recaptcha__pl.js bundle contains "g-recaptcha" on a normal page with invisible v3.
     await f.respond(200, 'var c="g-recaptcha";', 'text/javascript', { resourceType: 'script' });
     await f.respond(200, '<div class="g-recaptcha">', 'text/html', { mainFrame: false });
     expect(stops).toHaveLength(0);
+    expect(verdicts).toHaveLength(0);
     await f.respond(403, '', 'text/javascript', { resourceType: 'script' });
     expect(stops[0]!.kind).toBe('http_403');
   });

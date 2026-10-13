@@ -73,7 +73,7 @@ PII check reads an id in prose as a token and refuses the write (`PII_SUSPECTED`
   after, outcomes) are the evidence. Cite the `process` and the `process_step`s that show each claim
   (`target_kind` `process` / `process_step`); a step is a server-observed fact and can carry `observed`.
 - `PROC` field `observed_extent`: `full` when the process ended `goal_reached`; `until_boundary` when it
-  ended `boundary_reached` (a production trace stopped at a mutating action); `map_only` when you
+  ended `boundary_reached` (a trace stopped at an action above the run's limit); `map_only` when you
   know the process only from map data (screens and edges, no trace).
 - Write each `use_case` main flow from the steps, one entry per step: actor steps quote the verbatim
   label and value, system steps state the recorded outcome (`references/use-cases.md`).
@@ -162,7 +162,7 @@ needs: `references/srs-outline.md`.
 
 | You lack | Write |
 |---|---|
-| Something only people know (why a rule exists, business goals, what happens after a submit on production) | `open_question` (`answer_needed_from: sme`) |
+| Something only people know (why a rule exists, business goals, what happens after a submit the crawler was not allowed to make) | `open_question` (`answer_needed_from: sme`) |
 | Behaviour the crawler could record but has not (a flow's steps, a page not visited, the error shown for a bad postcode) | `followup` with `suggested_mode: trace` and `target: {process_name, goal}` for a process, or `map` with `target: {url}`; `reason` says what record it will unblock |
 | Both | a `followup` and an `open_question`, related |
 
@@ -175,7 +175,7 @@ crawler picks it up, traces it and links the run; the next session reads it with
 ## Not observable
 
 Backend jobs, e-mails, payments, third-party integrations, anything behind a login the persona does
-not have, anything after a submit the crawler refused on production: record it with
+not have, anything after a submit the crawler's limit refused: record it with
 `not_observable: true`, confidence `needs_confirmation`, and a linked `open_question` (required by the
 server). Never `observed`. Checklist: `references/blind-spots.md`.
 

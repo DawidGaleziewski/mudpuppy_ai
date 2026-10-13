@@ -2,7 +2,6 @@ import type { ZodType } from 'zod';
 
 /** Error codes from contracts/mcp-tools.md, plus the ones the recording services add (see the contract). */
 export const ERROR_CODES = [
-  'ENV_GUARD_REFUSED',
   'CONFIG_INVALID',
   'PORTAL_NOT_FOUND',
   'RUN_NOT_FOUND',
@@ -38,7 +37,6 @@ export const ERROR_CODES = [
   // Server-side login (specs/009-legacy-proving-ground/contracts/login-tool.md).
   'LOGIN_NOT_CONFIGURED',
   'LOGIN_BLOCKED',
-  'PRODUCTION_REFUSED',
   'SESSION_LOST',
 ] as const;
 export type ErrorCode = (typeof ERROR_CODES)[number];

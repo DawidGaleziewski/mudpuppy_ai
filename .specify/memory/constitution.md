@@ -1,6 +1,20 @@
 <!--
 SYNC IMPACT REPORT (amendment history, newest first)
-Version change: 3.0.0 → 4.0.0 (MAJOR: removes production read-only from Principle V; spec 011
+Version change: 4.0.0 → 5.0.0 (MAJOR: removes the production policy from Principle V; adds the
+to-be product rule; spec 021, R-42)
+Modified principles: V. Safety-First Exploration: every environment is equal; `environment` is a
+label. The action limit is optional (omitted = no limit) and set by the BA per portal,
+environment or persona; classification and enforcement of a set limit stay in code. Removed: the
+production-address check, the required rate limit and identifiable User-Agent on production,
+stopping on CAPTCHA/anti-bot on production (a CAPTCHA is handed to a human on every
+environment, never solved by automation), Playwright traces only off production.
+Added sections: "Product rule" (Pathfinder records the as-is; people draw the to-be in it; the
+assistant only proposes). Modified sections: Testing ("production targets are read-only" removed).
+User decisions 2026-10-13: "I don't care about production guard. We should not have it at all to
+begin with. REMOVE IT."; design open item O-1 answered "records as-is, people draw to-be".
+Templates/specs checked: spec 001 FR-011, spec 002 FR-005/FR-006/FR-018/FR-026, spec 009 FR-022,
+spec 011 phase 2 (superseded notes added); docs/portal-config.md.
+Previous change: 3.0.0 → 4.0.0 (MAJOR: removes production read-only from Principle V; spec 011
 phase 2, R-31)
 Modified principles: V. Safety-First Exploration: production is no longer read-only by rule.
 Every environment of a portal (production, staging, sandbox) has its own action limit set by
@@ -46,6 +60,10 @@ applications so that they can be re-created, for example on a newer tech stack, 
 documentation alone. It discovers processes with Playwright, records them as evidence-backed
 requirements, and generates static tests that verify them.
 
+**Product rule**: Pathfinder records the as-is; people draw the to-be in it; the assistant only
+proposes and changes nothing until a person applies it. Recorded evidence is never edited to look
+like the to-be.
+
 ## Core Principles
 
 ### I. Observed Behavior Is Separate From Intent
@@ -88,28 +106,25 @@ deterministic orchestrator code from run results, never by an agent claiming suc
 
 ### V. Safety-First Exploration (NON-NEGOTIABLE)
 Every action MUST be classified read-only, mutating, destructive, or external-side-effect;
-ambiguity is treated as unsafe. Every environment of a portal (production, staging, sandbox)
-has an action limit set by the BA, enforced in code; actions above it are never executed.
-Within that limit map and trace runs MAY fill forms and submit them on any environment,
-production included; that choice and its consequences on a live site are the BA's. CAPTCHAs MUST NOT be solved by automation; they are removed or bypassed in the
-test environment. Traces and screenshots are stored as recorded, unmasked, on every
-environment; PII scrubbing of text evidence is optional per portal.
+ambiguity is treated as unsafe. The classification is recorded on every edge. The BA MAY set an
+action limit per portal, environment or persona; a set limit is enforced in code (the lowest
+one wins) and actions above it are never executed. Without a limit every action class is
+allowed. Every environment (production, staging, sandbox) is treated the same: `environment`
+labels the runs, it changes no behaviour. Map and trace runs MAY fill and submit forms on any
+environment; that choice and its consequences on a live site are the BA's. Traces, Playwright
+traces and screenshots are stored as recorded, unmasked, on every environment; PII scrubbing of
+text evidence is optional per portal.
 
-Production policy:
-- A production target MUST be declared with `environment: production` in its portal config;
-  without that flag the environment guard refuses to run against it.
-- A portal MAY hold several environments, each with its own address and action limit; every
-  run records the environment it targets.
-- A production run MUST use a conservative rate limit, low concurrency, and an identifiable
-  User-Agent or header.
+- A portal MAY hold several environments, each with its own address and optional action limit;
+  every run records the environment it targets.
 - `robots.txt` is obeyed by default. The BA MAY switch it off per portal (`robots: ignore`) for
   sites they work on; checking the site's terms is then the BA's responsibility.
-- Anti-bot or CAPTCHA defenses MUST NOT be worked around. A block is recorded as a run-level
+- CAPTCHAs MUST NOT be solved by automation: a CAPTCHA page is handed to a human (decision note
+  and open question) and the crawl goes on elsewhere. Any other block is recorded as a run-level
   warning and the run stops.
 Rationale: the BA documents sites they work on and migrate, often only reachable as production;
-how far a crawl may change a site is their decision per environment, enforced in code. What
-stays fixed is honesty about the target (declared environment, identifiable traffic) and never
-degrading or evading a site's protections.
+how far a crawl may change a site is their decision, enforced in code when they set a limit.
+User decision 2026-10-13: no production guard.
 
 ### VI. Human-in-the-Loop Validation
 Requirements enter as `draft` and become `confirmed` only through explicit human BA approval.
@@ -177,8 +192,8 @@ Markdown, Mermaid and Gherkin are rendered from it. Generated tests MUST be plai
   portal (rendering the graph to Mermaid) → QA helper library, spec generation and runner (whose
   runs verify processes) → downstream docs.
 - Pure-function packages MUST have Vitest unit tests before dependent packages build on them.
-- Mutating tests and exploration MUST target a demo app, a sandbox or staging. Production
-  targets are read-only under the production policy in Principle V.
+- Pathfinder's own automated tests and gates MUST target a demo app, the proving ground or a
+  local reference portal. Exploration MAY target any environment (Principle V).
 - Failures are triaged rules-first (brittleness, environment, defect, requirement drift), and
   only ambiguous cases go to a triager agent. A repeated failure pattern is fixed by extending
   the shared obstacle library, not by editing individual tests.
@@ -197,4 +212,4 @@ pull request review MUST verify compliance; any violation MUST be justified in w
 plan's complexity-tracking section or be corrected. Runtime guidance for agents lives in
 `user_input/raw_idea/agents/` until moved into the `agents/` and `skills/` packages.
 
-**Version**: 4.0.0 | **Ratified**: 2026-09-20 | **Last Amended**: 2026-10-06
+**Version**: 5.0.0 | **Ratified**: 2026-09-20 | **Last Amended**: 2026-10-13

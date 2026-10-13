@@ -72,7 +72,8 @@ one portal holds several environments, each with its own address and limit.
   or database per environment); test-user credentials are looked up for the run's environment.
 - **FR-010** Production follows the portal's limit like any environment: forms may be filled
   and submitted, a login may be made. A CAPTCHA still stops a production run; Playwright traces
-  stay off on production. No compliance gate (constitution 4.0.0).
+  stay off on production. No compliance gate (constitution 4.0.0). *(CAPTCHA and Playwright
+  trace parts superseded by spec 021: hand-off and traces on every environment.)*
 - **FR-011** The "+ new portal" form takes an address per environment (production, staging,
   sandbox; at least one) and the limit for each.
 - **FR-012** A portal settings page lists its environments (address, limit), adds one and

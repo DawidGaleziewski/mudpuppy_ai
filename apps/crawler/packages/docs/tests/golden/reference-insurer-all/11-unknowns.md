@@ -47,7 +47,7 @@ What follows "Kup polisę"?
 
 **Reason:** The purchase was refused as mutating.
 
-**Task status:** blocked: ceiling:read: "Dalej" is mutating on production
+**Task status:** blocked: ceiling:read: "Dalej" is mutating, above the read limit
 
 Evidence:
 

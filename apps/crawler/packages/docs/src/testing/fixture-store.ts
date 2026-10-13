@@ -74,7 +74,8 @@ export interface FixtureStore {
    */
   addTraceRun(): TraceFixture;
   /**
-   * A completed production-style trace run: two steps, then the mutating "Dalej" action refused,
+   * A completed trace run under a `read` limit (labelled production): two steps, then the
+   * mutating "Dalej" action refused,
    * outcome `boundary_reached` with `not_observable` and `boundary_action_id` set.
    */
   addBoundaryTrace(): TraceFixture;

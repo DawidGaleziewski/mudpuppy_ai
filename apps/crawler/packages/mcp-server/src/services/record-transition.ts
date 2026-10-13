@@ -90,8 +90,7 @@ export function descriptorOf(action: z.infer<typeof ActionInput>): ActionDescrip
 
 /**
  * Records an edge. The class is re-derived with the `safety` package and a differing supplied class
- * is rejected (FR-004). Executing a non-read action on a production run is a hard reject: the last
- * line of defence behind the action gate.
+ * is rejected (FR-004). Whether the action may run at all is the action gate's decision.
  */
 export async function recordTransition(
   ctx: ServerContext,

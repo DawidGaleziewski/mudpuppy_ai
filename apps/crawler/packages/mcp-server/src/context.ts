@@ -32,7 +32,7 @@ export interface ServerContext {
   logger: Logger;
   /** Observability trace (spec 005); never read by a service to decide anything. */
   tracer: Tracer;
-  /** `all` = record Playwright traces even on production portals (`PATHFINDER_PW_TRACE=1`). */
+  /** Recorded in the boot span; `all` since spec 021 (every environment is traced). */
   pwTrace: PwTraceMode;
   /** Repo root holding `portals/` and `personas/`. */
   root: string;

@@ -1,10 +1,10 @@
 import { existsSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { ConfigError, loadEffectiveConfig, type EffectiveConfig } from '@pathfinder/config';
-import { EnvGuardError, assertRunAllowed, narrowScope, type RunScope } from '@pathfinder/safety';
+import { narrowScope, type RunScope } from '@pathfinder/safety';
 import type { Environment } from '@pathfinder/config';
 
-export type PreflightRefusalCode = 'ENV_GUARD_REFUSED' | 'CONFIG_INVALID';
+export type PreflightRefusalCode = 'CONFIG_INVALID';
 
 export type PreflightResult =
   | {
@@ -49,9 +49,8 @@ const refuse = (code: PreflightRefusalCode, reasons: string[]): PreflightResult 
 
 /**
  * Called first by `start_run`, BEFORE any browser is launched or request made (SC-006). Synchronous
- * and file-only: loads config for the chosen environment, applies the environment guard and, for
- * production, refuses a placeholder User-Agent (FR-026; the compliance dates are no longer
- * required since constitution 4.0.0).
+ * and file-only: loads config for the chosen environment and narrows the scope by the persona.
+ * Every environment is treated the same (spec 021: no production guard).
  */
 export function preflight(
   portalId: string,
@@ -85,24 +84,6 @@ export function preflight(
     throw e;
   }
   const { portal, persona } = effective;
-
-  try {
-    assertRunAllowed(portal, persona);
-  } catch (e) {
-    if (e instanceof EnvGuardError) return refuse('ENV_GUARD_REFUSED', e.reasons);
-    throw e;
-  }
-
-  // Production traffic must be identifiable (constitution 4.0.0). The compliance review dates
-  // are no longer required: that review is the BA's (spec 011 phase 2).
-  if (
-    portal.environment === 'production' &&
-    portal.rate_limit?.user_agent.toLowerCase().includes('example.com')
-  ) {
-    return refuse('ENV_GUARD_REFUSED', [
-      `rate_limit.user_agent in ${portalPath} still holds the placeholder contact address (FR-026)`,
-    ]);
-  }
 
   return {
     ok: true,

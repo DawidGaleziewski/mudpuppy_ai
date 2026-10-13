@@ -35,7 +35,7 @@ export async function gateAct(
 
   await orFail(reports, recordSkippedEdge(ctx, run, action, d.classification.safetyClass));
   const refused = refuse(ctx, run, d, actionTarget(action, d.classification.safetyClass), reports);
-  // A trace stops where the safety class does (production, or any ceiling below the action):
+  // A trace stops where the safety class does (a set ceiling below the action, spec 021):
   // robots, denylist and scope refusals stay plain ACTION_REFUSED.
   if (state.isTrace && d.status === 'skipped_unsafe') {
     const withRefusal = await refused.catch((e: unknown) =>

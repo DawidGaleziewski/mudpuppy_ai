@@ -915,7 +915,7 @@
         }
       ],
       "followup": {
-        "blocked_reason": "ceiling:read: \"Dalej\" is mutating on production",
+        "blocked_reason": "ceiling:read: \"Dalej\" is mutating, above the read limit",
         "run_id": "00000000-0000-7000-8000-000000000020",
         "status": "blocked"
       },

@@ -89,15 +89,13 @@ describe('preflight', () => {
     expect(playwrightTouched).not.toHaveBeenCalled();
   };
 
-  it('refuses a production address whose config does not declare production', () => {
-    refused(
-      repo({
-        'portals/shop/portal.yaml': PORTAL({ env: 'sandbox' }),
-        'personas/shop/guest.yaml': PERSONA,
-      }),
-      'ENV_GUARD_REFUSED',
-      'environment: production',
-    );
+  it('allows a public address labelled sandbox: the environment is only a label (spec 021)', () => {
+    const root = repo({
+      'portals/shop/portal.yaml': PORTAL({ env: 'sandbox' }),
+      'personas/shop/guest.yaml': PERSONA,
+    });
+    const r = preflight('shop', 'guest', { root });
+    expect(r.ok && r.effective.portal.environment).toBe('sandbox');
   });
 
   it('allows production with compliance values left null (constitution 4.0.0, spec 011)', () => {
@@ -121,17 +119,14 @@ describe('preflight', () => {
     refused(root, 'CONFIG_INVALID', 'has no environment "sandbox"', 'sandbox');
   });
 
-  it('refuses production with a placeholder User-Agent', () => {
-    refused(
-      repo({
-        'portals/shop/portal.yaml': PORTAL({
-          ua: 'PathfinderAI-Crawler/0.1 (+contact@example.com)',
-        }),
-        'personas/shop/guest.yaml': PERSONA,
+  it('allows production with a placeholder User-Agent (spec 021)', () => {
+    const root = repo({
+      'portals/shop/portal.yaml': PORTAL({
+        ua: 'PathfinderAI-Crawler/0.1 (+contact@example.com)',
       }),
-      'ENV_GUARD_REFUSED',
-      'placeholder',
-    );
+      'personas/shop/guest.yaml': PERSONA,
+    });
+    expect(preflight('shop', 'guest', { root }).ok).toBe(true);
   });
 
   it('refuses an invalid config with CONFIG_INVALID naming the file', () => {

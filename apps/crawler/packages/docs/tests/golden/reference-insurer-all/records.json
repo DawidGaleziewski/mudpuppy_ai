@@ -1055,7 +1055,7 @@
         "goal": "Reach the purchase confirmation",
         "kind": "process",
         "observed_extent": "until_boundary",
-        "outcome": "Stops before \"Dalej\"; what follows is not observable on production.",
+        "outcome": "Stops before \"Dalej\"; what follows is not observable under the read limit.",
         "persona": "guest",
         "title": "Buy a car policy",
         "trigger": "The guest starts the calculator."
@@ -1994,7 +1994,7 @@
         }
       ],
       "followup": {
-        "blocked_reason": "ceiling:read: \"Dalej\" is mutating on production",
+        "blocked_reason": "ceiling:read: \"Dalej\" is mutating, above the read limit",
         "run_id": "00000000-0000-7000-8000-000000000020",
         "status": "blocked"
       },

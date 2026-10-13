@@ -240,7 +240,7 @@ describe('Tracer.call', () => {
     const { tracer, spans } = await setup();
     await expect(
       tracer.call({ tool: 'start_run', runId: null, args: {} }, async () => {
-        throw new FakeToolError('ENV_GUARD_REFUSED', 'production');
+        throw new FakeToolError('CONFIG_INVALID', 'portal.yaml');
       }),
     ).rejects.toThrow();
     expect(spans().map((r) => [r.name, r.run_id])).toEqual([

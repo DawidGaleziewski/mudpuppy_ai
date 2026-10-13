@@ -2,18 +2,8 @@ import { existsSync, readdirSync, statSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { canLaunchBrowser } from '@pathfinder/crawler';
-import { pwTraceEnabled } from '../src/runtime/pw-trace.js';
 import { startMockPortal, type MockPortal } from './mock-portal.js';
 import { portalYaml, scriptedTraceRun, setupTraceRun } from './trace-run-harness.js';
-
-describe('pwTraceEnabled (research §13)', () => {
-  it('records off production, and on production only with the boot flag', () => {
-    expect(pwTraceEnabled('sandbox', 'non_production')).toBe(true);
-    expect(pwTraceEnabled('staging', 'non_production')).toBe(true);
-    expect(pwTraceEnabled('production', 'non_production')).toBe(false);
-    expect(pwTraceEnabled('production', 'all')).toBe(true);
-  });
-});
 
 const available = await canLaunchBrowser();
 let portal: MockPortal;
@@ -49,7 +39,7 @@ describe.skipIf(!available)('Playwright trace chunks', () => {
     }
   });
 
-  it('writes nothing for a production portal without PATHFINDER_PW_TRACE', async () => {
+  it('traces a production portal like any other (spec 021)', async () => {
     const { ctx, call, spans, cleanup } = await setupTraceRun(portal);
     try {
       ctx.dbEnvironment = 'production';
@@ -57,13 +47,11 @@ describe.skipIf(!available)('Playwright trace chunks', () => {
         join(ctx.root, 'portals/mock/portal.yaml'),
         portalYaml(portal.origin, 4).replace('environment: sandbox', 'environment: production'),
       );
-      await scriptedTraceRun(call, portal.origin);
+      const runId = await scriptedTraceRun(call, portal.origin);
       expect(
-        spans()
-          .filter((r) => r.kind === 'call')
-          .every((r) => r.pw_trace_path === null),
+        spans().some((r) => r.kind === 'call' && r.name === 'navigate' && r.pw_trace_path),
       ).toBe(true);
-      expect(existsSync(join(ctx.root, 'data', 'traces'))).toBe(false);
+      expect(existsSync(join(ctx.root, 'data', 'traces', 'mock', runId))).toBe(true);
     } finally {
       await cleanup();
     }

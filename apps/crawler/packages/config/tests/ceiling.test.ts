@@ -25,10 +25,11 @@ describe('effective ceiling', () => {
   it('persona below the portal ceiling wins', () => {
     expect(effective(sandbox('destructive'), persona('read')).effectiveMaxActionClass).toBe('read');
   });
-  it('production without max_action_class defaults the portal to read', () => {
+  it('production without max_action_class has no limit, like any environment (spec 021)', () => {
     expect(effective(PORTAL_YAML, persona('external-side-effect')).effectiveMaxActionClass).toBe(
-      'read',
+      'external-side-effect',
     );
+    expect(effective(PORTAL_YAML, persona('mutating')).effectiveMaxActionClass).toBe('mutating');
   });
   it('returns the validated portal and resolved persona', () => {
     const e = effective(PORTAL_YAML, persona('read'));

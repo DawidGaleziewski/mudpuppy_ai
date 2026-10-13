@@ -8,7 +8,7 @@ import { act, login, navigate, navigationPolicy, persistStop } from './pipeline/
 import { RunState } from './run-state.js';
 import { processOfRun } from '../services/trace.js';
 import { runChoices } from '../services/start-run.js';
-import { pwTraceEnabled, startPwTrace } from './pw-trace.js';
+import { startPwTrace } from './pw-trace.js';
 import { runSecrets } from '../services/credentials.js';
 import { createRunTraceHooks } from './trace-hooks.js';
 
@@ -149,25 +149,24 @@ export function createBrowserRuntime(opts: BrowserRuntimeOptions = {}): Runtime 
     rs.processId = (await processOfRun(ctx, run.id))?.id ?? null;
     holder.rs = rs;
     // Playwright traces keep DOM snapshots with typed input values: a run that logs in with vault
-    // credentials pauses the trace around every login (spec 009 FR-019a), and says so.
+    // credentials pauses the trace around every login (spec 009 FR-019a), and says so. Every
+    // environment is traced (spec 021).
     const hasCredentials = Object.keys(runSecrets.get(run.id) ?? {}).length > 0;
-    const tracing = pwTraceEnabled(approved.effective.portal.environment, ctx.pwTrace);
-    if (hasCredentials && tracing)
+    if (hasCredentials)
       await ctx.decisions.record({
         run_id: run.id,
         kind: 'note',
         rule: 'pw_trace:login_masked',
         reason: 'Playwright trace recorded with every login left out (vault credentials)',
       });
-    if (tracing)
-      rs.pw = await startPwTrace({
-        context: session.context,
-        tracer: ctx.tracer,
-        logger: ctx.logger,
-        dataDir: join(ctx.root, 'data'),
-        portal: run.portal_id,
-        runId: run.id,
-      });
+    rs.pw = await startPwTrace({
+      context: session.context,
+      tracer: ctx.tracer,
+      logger: ctx.logger,
+      dataDir: join(ctx.root, 'data'),
+      portal: run.portal_id,
+      runId: run.id,
+    });
     return rs;
   }
 

@@ -1,7 +1,6 @@
 import { newId, nowIso } from '@pathfinder/core';
 import { CAPTCHA_MARKERS } from '@pathfinder/safety';
 import type { ServerContext } from '../context.js';
-import { ToolError } from '../errors.js';
 import type { RunState } from './run-state.js';
 
 type Page = RunState['session']['page'];
@@ -26,24 +25,18 @@ export async function captchaInDom(page: Page): Promise<string | null> {
 }
 
 /**
- * Off production: record the state as needing a human (decision note + open question) and let the
- * crawl continue (FR-022). On production: the run stops with a warning, as for any block
- * (constitution Principle V). Returns true when a hand-off was recorded for this state.
+ * Record the state as needing a human (decision note + open question) and let the crawl continue
+ * (FR-022), on every environment (spec 021). Returns true when a hand-off was recorded for this
+ * state.
  */
 export async function handoffIfCaptcha(
   ctx: ServerContext,
   rs: RunState,
   stateId: string,
   routeTemplate: string,
-  onProductionStop: (warning: string) => Promise<void>,
 ): Promise<boolean> {
   const marker = await captchaInDom(rs.session.page);
   if (marker === null) return false;
-  if (rs.effective.portal.environment === 'production') {
-    const warning = `CAPTCHA/bot challenge (${marker}) on ${routeTemplate}, stopping the run`;
-    await onProductionStop(warning);
-    throw new ToolError('RUN_STOPPED', warning);
-  }
   if (rs.handoffs.has(stateId)) return true;
   rs.handoffs.add(stateId);
   await ctx.decisions.record({

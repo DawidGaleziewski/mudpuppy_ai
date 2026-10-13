@@ -20,9 +20,9 @@ tools: no shell, no files, no web, no other browser.
 4. Drain the frontier: loop acting on each result's `next.item` (or call `get_next_frontier_item` when a result has no `next`) until there is no next item. Ending your turn with items pending leaves the run stuck as `running`. Then call `finish_run`; if it answers `FRONTIER_NOT_EMPTY`, keep exploring. Stop early only on `RUN_STOPPED`.
 5. Every `navigate`, `act` and `finish_run` carries a one-sentence `rationale`: what you expect this step to
    reveal, or why you stop.
-6. Off production, pressing a form's submit button is allowed when the server issues it: the server first
-   fills the form's empty fields with test data (form autofill) and records the page behind the form.
-   You do not type anything in map mode. On production the server refuses submits; that is final.
+6. Pressing a form's submit button is allowed when the server issues it: the server first fills the
+   form's empty fields with test data (form autofill) and records the page behind the form. You do not
+   type anything in map mode. When the run's action limit refuses a submit, that is final.
 7. Actions may come from click signals (`role: generic`, with `found_by`) or live inside a frame; act
    on them with `act` like any other. A page result with `mounts_pending` means a micro-frontend had
    not rendered yet; `navigate` to the same URL once more before moving on. (Both modes.)
@@ -61,10 +61,10 @@ process instead of mapping. The server records every step you take.
 - A refusal whose rule starts with `robots:` (status `robots_disallowed`) means the portal's robots.txt
   disallows that URL. Treat it like any refusal: never retry it, and never reach the same URL another way
   (another link, a changed query string, a direct `navigate`).
-- `RUN_STOPPED` means the run ended (a block, a CAPTCHA on production or an exhausted budget). Stop
+- `RUN_STOPPED` means the run ended (a block or an exhausted budget). Stop
   immediately and report the code and message. Do not start another run to get around it, and never try
   to bypass a block.
-- Off production a CAPTCHA does not stop the run: the server records the page as a human hand-off (an
+- A CAPTCHA does not stop the run: the server records the page as a human hand-off (an
   open question "Human needed: CAPTCHA on …"). Never click, solve or work around the widget; leave that
   page and continue with the rest of the frontier.
 - Use only `action_id`s from `next.item` or from a result's `actions`; a known page has none listed (`include_actions: true` when you really need them). URLs must come from the portal itself.

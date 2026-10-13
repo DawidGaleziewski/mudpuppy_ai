@@ -229,3 +229,7 @@
   title: LO-35 "fixed" reports were false; the gap made deterministic
   tier: not_testable
   reason: covered by the LO-35 known-gap case in gates/tests/shop.test.ts, which waits until both A/B variants were observed with their text, so it no longer reports "fixed" by chance or under load
+- id: F-08@020
+  title: The export-fork export broke on a Vitest config change
+  tier: not_testable
+  reason: a close-out process slip; the logged test idea is an export dry run before merging any R-item that touches a file in apps/exportfork-export/src/transforms/

@@ -171,9 +171,11 @@ and verify each has ranked candidate locators with the fields listed below.
   in code outside the agent.
 - **FR-005**: A portal config MUST declare an environment. Runs against a production
   environment MUST be refused unless the config explicitly declares `environment: production`,
-  and MUST then allow only read-only actions.
+  and MUST then allow only read-only actions. *(Superseded by spec 021 (R-42, 2026-10-13): the
+  environment is a label only; no address check, no read-only default.)*
 - **FR-006**: Production runs MUST enforce a configured request rate limit and a low
-  concurrency limit, and MUST send an identifiable User-Agent or header.
+  concurrency limit, and MUST send an identifiable User-Agent or header. *(Superseded by spec
+  021: `rate_limit` is optional on every environment; runs without one use the default pace.)*
 - **FR-007**: The system MUST enforce a scope (allowed domains and paths, external-link policy,
   maximum depth, maximum states, per-state action cap, run time and step budget) and a denylist
   (including logout, delete, payment, bidding, buy-now, messaging or contacting a seller,
@@ -231,7 +233,8 @@ and verify each has ranked candidate locators with the fields listed below.
   It MAY only record the calls that the portal's own pages make while being browsed.
 - **FR-026**: A production run MUST be refused unless the portal config records that
   `robots.txt` and the portal's terms were checked (who and when), and MUST be refused while
-  the identifiable User-Agent still contains a placeholder contact address.
+  the identifiable User-Agent still contains a placeholder contact address. *(Superseded: the
+  compliance dates by constitution 4.0.0, the User-Agent refusal by spec 021.)*
 
 ### Key Entities
 

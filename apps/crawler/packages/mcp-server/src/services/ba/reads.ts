@@ -393,7 +393,7 @@ function stateRef(ctx: BaContext, stateId: unknown): Row | null {
   return s ? { state_id: s.id, title: s.title, route_template: s.route_template } : null;
 }
 
-/** One process with its ordered steps and, when a production trace stopped early, its boundary. */
+/** One process with its ordered steps and, when a trace stopped at its action limit, its boundary. */
 export function getProcess(ctx: BaContext, raw: unknown): Row {
   const input = parseInput(GetProcessInput, raw);
   const p = ctx.raw.prepare('SELECT * FROM processes WHERE id = ?').get(input.process_id) as

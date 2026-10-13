@@ -368,6 +368,16 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - `governor` and `po` subagents, `roadmap.md`, and the `po` guard hook, plus the `sqlite-conventions` and `subagent-authoring` skills.
 
 ### Changed
+- R-42 no production guard (spec 021; the owner, 2026-10-13: "We should not have it at all to
+  begin with. REMOVE IT."): `environment` is a label and changes no behaviour. A portal or
+  environment without `max_action_class` has no limit (it was `read`); liveinsurer, marketsite and
+  reference-insurer-readonly now say `read` explicitly. Removed: the production-address check
+  (`env-guard.ts`, `ENV_GUARD_REFUSED`), the required `rate_limit` and placeholder-User-Agent refusal
+  on production, the stop on a production CAPTCHA (hand-off to a human everywhere), Playwright traces
+  only off production (`PATHFINDER_PW_TRACE`), the unused `PRODUCTION_REFUSED`. Constitution 5.0.0:
+  Principle V without a production policy, plus the product rule "Pathfinder records the as-is;
+  people draw the to-be in it; the assistant only proposes". Docs, glossary, crawler agent and
+  ba-practice texts follow; the missing F-08@020 eval case is added.
 - Moved the TypeScript workspace into `apps/crawler/` so the repo root can host other apps. Commit: b1639fc.
 
 ### Fixed

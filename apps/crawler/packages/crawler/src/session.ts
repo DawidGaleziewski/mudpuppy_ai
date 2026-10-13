@@ -63,7 +63,7 @@ interface SessionParts {
   stabilizerOptions: StabilizerOptions;
 }
 
-/** Non-production portals may omit `rate_limit`; be gentle anyway. */
+/** A portal may omit `rate_limit` on any environment; be gentle anyway. */
 export const DEFAULT_RATE_LIMIT = {
   requests_per_second: 2,
   max_concurrency: 2,
@@ -136,7 +136,6 @@ export class BrowserSession {
         userAgent: rate.user_agent,
         blockSignatures: portal.block_signatures,
         onStop: opts.onStop,
-        captchaHandoff: portal.environment !== 'production',
         ...(opts.navigationPolicy ? { navigationPolicy: opts.navigationPolicy } : {}),
         ...(opts.onNavigationRefused ? { onNavigationRefused: opts.onNavigationRefused } : {}),
         robots: opts.robots,

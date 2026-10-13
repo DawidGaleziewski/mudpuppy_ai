@@ -180,7 +180,7 @@ export function registerBaTools(server: McpServer, ctx: BaContext): void {
   );
   tool(
     'list_processes',
-    'Processes recorded by trace runs of a portal: id, run, name, goal, persona, outcome, step count and the boundary action when a production trace stopped early.',
+    'Processes recorded by trace runs of a portal: id, run, name, goal, persona, outcome, step count and the boundary action when a trace stopped at its action limit.',
     { portal_id: z.string() },
     (a) => listProcesses(ctx, a),
   );

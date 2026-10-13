@@ -6,8 +6,8 @@ import { testValueFor, type AutofillField, type TestValue } from './test-values.
 /**
  * Map-mode form autofill (spec 008 FR-002, research R9): before map mode presses a control that
  * submits a form, the form's empty fields are filled with test data, so the crawl reaches the page
- * behind the form instead of the browser's validation message. On production too since
- * constitution 4.0.0 (spec 011 FR-010), within the portal's limit.
+ * behind the form instead of the browser's validation message. On every environment, within the
+ * run's action limit when one is set (spec 021).
  */
 
 /** `field` (not `name`): the decision log redacts values under a `name` key as personal data. */

@@ -1,17 +1,18 @@
 # @pathfinder/safety
 
-Pure action classifier, rule set (built-in + portal rules), robots.txt parsing, scope checks, denylist, environment guard, block detector.
+Pure action classifier, rule set (built-in + portal rules), robots.txt parsing, scope checks, denylist, block detector.
 
 Layer: models
 
 ## Public API
 - Action classifier; used by crawler, mcp-server.
 - Rule set and robots.txt parser; used by crawler, mcp-server.
-- Scope checks, denylist, environment guard, block detector.
+- Scope checks, denylist, block detector.
 
 ## Invariants
 - Pure (no browser, no network).
-- Production run never performs a mutating action.
+- No behaviour depends on the environment label (spec 021); a set action limit is enforced, none
+  set means no limit.
 - Refusals carry the rule id.
 
 ## Where to add things

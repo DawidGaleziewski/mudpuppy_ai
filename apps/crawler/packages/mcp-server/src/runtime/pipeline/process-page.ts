@@ -12,7 +12,7 @@ import { recordNetwork } from './network.js';
 import { recordFormsStep, recordTraceStep, recordTransitionStep } from './record-page.js';
 import { recordStateStep, trackDepth } from './record-state.js';
 import { settleStep } from './settle.js';
-import { persistStop, throwIfStopped } from './stop.js';
+import { throwIfStopped } from './stop.js';
 import { recordVisitStep } from './visits.js';
 import { newStateVisuals } from './visuals.js';
 
@@ -51,7 +51,7 @@ export async function processPage(sc: StepContext): Promise<PageResult> {
   if (created)
     await newStateVisuals(sc, { id: state_id, title: stateRow.title, snapshot: storedSnapshot });
   // A CAPTCHA on the page: a human's job, never ours (spec 009 FR-022).
-  await handoffIfCaptcha(ctx, rs, state_id, routeTemplate, (w) => persistStop(ctx, rs, w));
+  await handoffIfCaptcha(ctx, rs, state_id, routeTemplate);
   await trackDepth(sc, state_id, observed.url);
   const page = { observed, stateId: state_id, evidenceRef, alreadyInRun };
   const formCount = await recordFormsStep(sc, page);

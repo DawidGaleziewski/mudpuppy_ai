@@ -5,18 +5,19 @@ import { startHarness, type Body } from './harness.js';
 import { makeCtx } from './helpers.js';
 
 /**
- * spec 008 US5 (FR-002, FR-003, SC-006): off production, map mode fills a form with test data
- * before pressing its submit button and reaches the page behind it; on production nothing is
- * filled or sent.
+ * spec 008 US5 (FR-002, FR-003, SC-006): map mode fills a form with test data before pressing
+ * its submit button and reaches the page behind it; under a `read` limit nothing is filled or
+ * sent. The environment label changes nothing (spec 021 SC-002).
  */
 
 const available = await canLaunchBrowser();
 
-const portalYaml = (id: string, origin: string, environment: 'sandbox' | 'production') => `
+type Env = 'sandbox' | 'production';
+const portalYaml = (id: string, origin: string, environment: Env, limit?: string) => `
 id: ${id}
 base_url: ${origin}/
 environment: ${environment}
-${environment === 'sandbox' ? 'max_action_class: external-side-effect' : ''}
+${limit ? `max_action_class: ${limit}` : ''}
 compliance:
   robots_checked_on: 2026-10-02
   terms_reviewed_on: 2026-10-02
@@ -49,14 +50,14 @@ afterEach(async () => {
   for (const p of portals.splice(0)) await p.close();
 });
 
-async function setup(environment: 'sandbox' | 'production') {
+async function setup(environment: Env, limit?: string) {
   const portal = await startReferencePortal({ host: '127.0.0.1', port: 0 });
   portals.push(portal);
   const origin = portal.url.replace(/\/$/, '');
   const id = environment === 'sandbox' ? 'reference-insurer' : 'reference-insurer-readonly';
   const h = await startHarness(
     {
-      [`portals/${id}/portal.yaml`]: portalYaml(id, origin, environment),
+      [`portals/${id}/portal.yaml`]: portalYaml(id, origin, environment, limit),
       [`personas/${id}/guest.yaml`]: PERSONA,
     },
     await makeCtx(),
@@ -78,7 +79,7 @@ const find = (page: Body, role: string, name: string): Body => {
 
 describe.skipIf(!available)('map-mode form autofill (spec 008 FR-002)', () => {
   it('fills the contact form, submits it and records the confirmation page (sandbox)', async () => {
-    const h = await setup('sandbox');
+    const h = await setup('sandbox', 'external-side-effect');
     const page = (
       await h.call('navigate', { run_id: h.runId, url: `${h.origin}/kontakt`, rationale: 'x' })
     ).body;
@@ -107,7 +108,7 @@ describe.skipIf(!available)('map-mode form autofill (spec 008 FR-002)', () => {
   });
 
   it('reaches the next calculator step behind the vehicle form (sandbox, SC-006)', async () => {
-    const h = await setup('sandbox');
+    const h = await setup('sandbox', 'external-side-effect');
     const page = (
       await h.call('navigate', {
         run_id: h.runId,
@@ -124,8 +125,25 @@ describe.skipIf(!available)('map-mode form autofill (spec 008 FR-002)', () => {
     expect(next.body.route_template).toBe('/kalkulator/kierowca');
   });
 
-  it('fills and sends nothing on production', async () => {
+  it('fills and submits on production without a limit, like sandbox (spec 021 SC-002)', async () => {
     const h = await setup('production');
+    const page = (
+      await h.call('navigate', { run_id: h.runId, url: `${h.origin}/kontakt`, rationale: 'x' })
+    ).body;
+    const sent = await h.call('act', {
+      run_id: h.runId,
+      action_id: find(page, 'button', 'Wyślij zapytanie').action_id,
+      rationale: 'exploring the next frontier item',
+    });
+    expect(sent.isError).toBe(false);
+    expect(sent.body.route_template).toBe('/kontakt/dziekujemy');
+    expect(h.portal.requests.filter((q) => q.method === 'POST').map((q) => q.path)).toEqual([
+      '/kontakt',
+    ]);
+  });
+
+  it('fills and sends nothing under an explicit read limit', async () => {
+    const h = await setup('production', 'read');
     const page = (
       await h.call('navigate', { run_id: h.runId, url: `${h.origin}/kontakt`, rationale: 'x' })
     ).body;

@@ -628,7 +628,7 @@ async function captchaPortal(): Promise<string> {
 
 gate(
   'F-01@009',
-  'a server-rendered CAPTCHA is a hand-off off production and a stop on production',
+  'a server-rendered CAPTCHA is a hand-off on every environment (spec 021)',
   async () => {
     const origin = await captchaPortal();
     for (const env of ['sandbox', 'production'] as const) {
@@ -651,20 +651,14 @@ gate(
       const status = (
         gs.ctx.raw.prepare('SELECT status FROM runs WHERE id = ?').get(run) as { status: string }
       ).status;
-      if (env === 'sandbox') {
-        expect(r.isError, JSON.stringify(r.body)).toBe(false);
-        expect(status).toBe('running');
-        const q = gs.ctx.raw
-          .prepare(
-            "SELECT count(*) AS n FROM open_questions WHERE text LIKE 'Human needed: CAPTCHA on /kontakt%'",
-          )
-          .get() as { n: number };
-        expect(q.n).toBe(1);
-      } else {
-        expect(r.isError).toBe(true);
-        expect(r.body.error.code).toBe('RUN_STOPPED');
-        expect(status).toBe('stopped_warning');
-      }
+      expect(r.isError, JSON.stringify(r.body)).toBe(false);
+      expect(status).toBe('running');
+      const q = gs.ctx.raw
+        .prepare(
+          "SELECT count(*) AS n FROM open_questions WHERE text LIKE 'Human needed: CAPTCHA on /kontakt%'",
+        )
+        .get() as { n: number };
+      expect(q.n).toBe(1);
     }
   },
 );

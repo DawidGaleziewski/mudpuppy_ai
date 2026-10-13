@@ -148,7 +148,7 @@ describe('exportSrs (contracts/srs-export.md)', () => {
     for (const key of ['REQ-002', 'BR-002', 'FUP-001', 'FUP-002', 'PROC-002'])
       expect(unknowns, key).toContain(key);
     expect(unknowns).toContain(seeded.goneFormId);
-    expect(unknowns).toContain('ceiling:read: "Dalej" is mutating on production');
+    expect(unknowns).toContain('ceiling:read: "Dalej" is mutating, above the read limit');
     expect(all.get('06-business-rules.md')).toContain('not observable');
   });
 

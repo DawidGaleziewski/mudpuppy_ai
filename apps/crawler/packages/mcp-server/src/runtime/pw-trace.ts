@@ -2,16 +2,10 @@ import { AsyncLocalStorage } from 'node:async_hooks';
 import { mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { redactZip, SECRETS, type Logger } from '@pathfinder/core';
-import type { PwTraceMode } from '@pathfinder/trace';
 import type { Tracer } from '@pathfinder/store';
 import type { BrowserSession } from '@pathfinder/crawler';
 
 type BrowserContext = BrowserSession['context'];
-
-/** Playwright traces hold unscrubbed page content: only off production, or when the boot flag says so (research §13). */
-export function pwTraceEnabled(environment: string, bootFlag: PwTraceMode): boolean {
-  return environment !== 'production' || bootFlag === 'all';
-}
 
 type Tracing = BrowserContext['tracing'];
 const scope = new AsyncLocalStorage<Tracing>();

@@ -221,7 +221,7 @@ function readDivForms(): unknown[] {
  * Extract forms and their field schemas without submitting or reading any value: only attributes,
  * option labels and the browser's own validation message are read. `checkValidity()` fires
  * `invalid` events but never submits. (Observation never submits; since spec 008 map mode may
- * submit a form as an action off production, superseding spec 001 FR-011.)
+ * submit a form as an action, within the run's limit, superseding spec 001 FR-011.)
  *
  * Controls without `name`/`id` are kept (spec 015 FR-007), named by label, aria, placeholder,
  * nearby text or position, with `name_source` saying which. Controls outside any `<form>` are

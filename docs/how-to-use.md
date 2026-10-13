@@ -176,7 +176,7 @@ proposes the next steps in order.
 ## 5. Scan a portal
 
 A scan (map run) visits the portal as one **persona** and records every screen, link, form
-and what happens behind forms (off production).
+and what happens behind forms (when the scan may submit them).
 
 1. Name the portal: *"Scan reference-insurer as the guest persona."*
 2. If no persona fits, the assistant asks a few questions, one at a time: anonymous or logged

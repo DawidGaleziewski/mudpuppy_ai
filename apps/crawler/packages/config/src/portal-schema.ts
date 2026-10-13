@@ -238,12 +238,5 @@ export const PortalConfig = z
         message: `${JSON.stringify(entry)} must be a rule id, "path:<glob>" or "url:<glob>" (rule ids: ${[...DENYLIST_RULE_IDS, ...seen].join(', ')})`,
       });
     });
-    if (p.environment === 'production' && p.rate_limit === undefined) {
-      ctx.addIssue({
-        code: 'custom',
-        path: ['rate_limit'],
-        message: 'required when environment is production (FR-006)',
-      });
-    }
   });
 export type PortalConfig = z.infer<typeof PortalConfig>;

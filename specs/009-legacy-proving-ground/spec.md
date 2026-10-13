@@ -382,6 +382,7 @@ a comparison with per-category deltas and token cost.
 - **FR-022**: On sandbox and staging, a detected CAPTCHA on a page MUST mark that state as needing
   a human, add a hand-off item (page, kind, time) to the run's worklist, forbid actions on the
   widget and continue the frontier; on production the current stop-with-warning behaviour stays.
+  *(Production part superseded by spec 021: the hand-off applies on every environment.)*
 
 **Quality gates and evals (R-27)**
 

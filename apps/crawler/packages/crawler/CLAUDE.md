@@ -25,7 +25,7 @@ obstacles, safety, store.
 ## Invariants
 - Every request and action goes through the gates (request-gate, action-gate); no direct fetch/http calls (spec 001 FR-025).
 - The crawler is one non-deterministic LLM agent; this package is not a deterministic crawler script.
-- Never submits on production; autofill only on sandbox.
+- Submits and autofills only within the run's action limit; the environment label changes nothing (spec 021).
 
 ## Where to add things
 - New browser capability: one file in `src/`, exported from `src/index.ts`, called from the

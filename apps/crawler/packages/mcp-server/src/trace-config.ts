@@ -4,7 +4,10 @@ import type { PwTraceMode, TraceLevel } from '@pathfinder/trace';
 
 const LEVELS: readonly TraceLevel[] = ['off', 'standard', 'verbose'];
 
-/** `PATHFINDER_TRACE_LEVEL` (default `standard`) and `PATHFINDER_PW_TRACE=1` (research §10, §13). */
+/**
+ * `PATHFINDER_TRACE_LEVEL` (default `standard`, research §10). Playwright traces are recorded on
+ * every environment (spec 021), so the boot mode is always `all`.
+ */
 export function traceConfigFromEnv(env: NodeJS.ProcessEnv): {
   level: TraceLevel;
   pwTrace: PwTraceMode;
@@ -14,7 +17,7 @@ export function traceConfigFromEnv(env: NodeJS.ProcessEnv): {
   const valid = LEVELS.find((l) => l === raw);
   return {
     level: valid ?? 'standard',
-    pwTrace: env.PATHFINDER_PW_TRACE === '1' ? 'all' : 'non_production',
+    pwTrace: 'all',
     ...(raw && !valid ? { invalidLevel: raw } : {}),
   };
 }

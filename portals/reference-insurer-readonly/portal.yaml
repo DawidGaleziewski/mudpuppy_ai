@@ -3,8 +3,9 @@
 # Start it with `pnpm reference-portal` from apps/crawler/ before a run.
 id: reference-insurer-readonly
 base_url: http://127.0.0.1:4010/
-environment: production # same server, declared production to exercise the trace boundary (R-14)
-# max_action_class omitted: defaults to `read` on production.
+environment: production # same server, labelled production; the trace boundary (R-14) comes from the limit below
+# Explicit since spec 021, which made the default "no limit".
+max_action_class: read
 
 # Our own local test server: nothing to review, filled so the config is complete.
 compliance:

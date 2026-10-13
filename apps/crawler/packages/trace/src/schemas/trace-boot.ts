@@ -7,6 +7,7 @@ export type TraceServer = z.infer<typeof TraceServer>;
 export const TraceLevel = z.enum(['off', 'standard', 'verbose']);
 export type TraceLevel = z.infer<typeof TraceLevel>;
 
+/** `all` since spec 021; `non_production` is kept so boots recorded before it still parse. */
 export const PwTraceMode = z.enum(['non_production', 'all']);
 export type PwTraceMode = z.infer<typeof PwTraceMode>;
 

@@ -242,29 +242,16 @@ describe.skipIf(!available)('map run against the mock portal', () => {
     }
   }, 60_000);
 
-  it('refuses start_run before any request: undeclared production address, placeholder User-Agent', async () => {
-    // null compliance values no longer refuse production (constitution 4.0.0, spec 011)
-    const before = portal.requests.length;
-    const cases: string[] = [
-      portalYaml({ origin: portal.origin, base: 'https://shop.example-portal.pl/' }).replace(
-        'allowed_domains: [127.0.0.1]',
-        'allowed_domains: [shop.example-portal.pl]',
-      ),
-      portalYaml({
-        origin: portal.origin,
-        ua: 'Bot (+contact@example.com)',
-        compliance: true,
-      }).replace('environment: sandbox', 'environment: production'),
-    ];
-    for (const yaml of cases) {
-      const { call, cleanup } = await setup({ portal: yaml });
-      const t0 = Date.now();
-      const r = await call('start_run', { portal_id: 'mock', persona_id: 'guest' });
-      expect(r).toMatchObject({ isError: true, body: { error: { code: 'ENV_GUARD_REFUSED' } } });
-      expect(Date.now() - t0).toBeLessThan(5000);
-      await cleanup();
-    }
-    expect(portal.requests.length).toBe(before);
+  it('starts a production-labelled run with a placeholder User-Agent (spec 021: no production guard)', async () => {
+    const yaml = portalYaml({
+      origin: portal.origin,
+      ua: 'Bot (+contact@example.com)',
+      compliance: true,
+    }).replace('environment: sandbox', 'environment: production');
+    const { call, cleanup } = await setup({ portal: yaml });
+    const r = await call('start_run', { portal_id: 'mock', persona_id: 'guest' });
+    expect(r.isError).toBeFalsy();
+    await cleanup();
   }, 60_000);
 
   it('refuses navigate to a logout URL and never requests it', async () => {

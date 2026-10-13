@@ -20,16 +20,15 @@ export interface StopEvent {
 
 export interface RequestGateOptions {
   limiter: RateLimiter;
-  /** Identifiable User-Agent from `rate_limit.user_agent` (FR-006). */
+  /** User-Agent from `rate_limit.user_agent`, or the default one. */
   userAgent: string;
   blockSignatures?: readonly string[];
-  onStop: (e: StopEvent) => void;
   /**
-   * Off production a CAPTCHA does not stop the run: the page is handed to a human and the crawl
-   * goes on elsewhere (spec 009 FR-022). The pipeline records the hand-off from the DOM; here the
-   * verdict only must not stop. Production keeps stopping (constitution Principle V).
+   * Called once when a block stops the run. A CAPTCHA never stops it: the page is handed to a
+   * human and the crawl goes on elsewhere, on every environment (spec 009 FR-022, spec 021). The
+   * pipeline records the hand-off from the DOM; here the verdict is only reported.
    */
-  captchaHandoff?: boolean;
+  onStop: (e: StopEvent) => void;
   /**
    * Checked for every main-frame navigation request, including ones the page starts itself
    * (redirects, scripts, clicks): a refusal aborts the request. Returns the refusal or null.
@@ -235,7 +234,7 @@ export function createRequestGate(opts: RequestGateOptions): RequestGate {
 
   const stop = (verdict: BlockVerdict): void => {
     if (stopped || !verdict.blocked || !verdict.kind || !verdict.warning) return;
-    if (verdict.kind === 'captcha' && opts.captchaHandoff) return;
+    if (verdict.kind === 'captcha') return;
     stopped = { kind: verdict.kind, warning: verdict.warning };
     opts.limiter.halt();
     opts.onStop(stopped);
