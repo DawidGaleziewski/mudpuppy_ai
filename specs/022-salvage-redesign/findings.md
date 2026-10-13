@@ -89,6 +89,21 @@
 - **Test idea**: the PreToolUse hook proposed in F-03/F-04 should also catch `cat >>` and `tee`
   into tracked files.
 
+## F-11 "This page" context was never sent: a broken attribute, 2026-10-13
+
+- **Symptom**: the drawer's `data-assistant-context="{{ ctx | tojson }}"` ended at the first `"` of
+  the JSON; `JSON.parse` failed and assistant.js fell back to "Whole yard" without a word, so no
+  message carried a page context (FE-A02/A03 silently broken since 5028fb2).
+- **Cause**: Jinja's `tojson` output is marked safe and escapes `<>&'` but not `"`; inside a
+  double-quoted attribute it breaks. The tests checked the chat service's context line, never the
+  rendered attribute; ui:check sees no console error because the fallback catches the exception.
+- **Fix**: single-quoted attribute (Jinja's documented use); a test parses the attribute back
+  (`test_drawer_notices_a_newer_revision_of_the_screen_in_context`); checked in Chromium on screen,
+  record and scan pages.
+- **Test idea**: the browser e2e for FE-A03 should send a message from the drawer and assert the
+  request body has `kind: page`; ui:check could warn when a `data-*-context` attribute does not
+  parse as JSON.
+
 ## F-03 The design's Console glossary text, 2026-10-13
 
 - The glossary entry "status codes" still explains `[ OK ]`, `[RUN.]` … (content, not markup). It

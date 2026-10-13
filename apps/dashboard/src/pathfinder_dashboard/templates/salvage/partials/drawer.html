@@ -5,7 +5,7 @@
 {% import "salvage/macros.html" as sy %}
 {%- set ctx = page_ctx | default(none) %}
 <aside class="sy-drawer" id="assistant" aria-label="Assistant" hidden
-       data-assistant-context="{{ (ctx | tojson) if ctx else '' }}"
+       data-assistant-context='{{ (ctx | tojson) if ctx else "" }}' {# single quotes: tojson escapes ' but not " #}
        data-assistant-portal="{{ c.portal or '' }}">
   <div class="sy-drawer__head">
     <h2 class="sy-plate__title">Assistant</h2>
@@ -29,6 +29,11 @@
       <li class="sy-small">{% if c.portal %}Portal · {{ c.portal }}{% else %}All portals{% endif %}</li>
     </ul>
   </div>
+  {%- if ctx and ctx.type == "screen" and ctx.rev %}
+  {#- Re-checked whenever the store changes (live.js SSE). -#}
+  <div class="mp-drawer-notice" hx-get="{{ c.url('/fragments/assistant/page-changed', state=ctx.id, rev=ctx.rev) }}"
+       hx-trigger="store-changed from:body" hx-swap="innerHTML"></div>
+  {%- endif %}
   <div class="mp-drawer-body" hx-get="{{ c.url('/fragments/assistant') }}" hx-trigger="assistant-open once from:body" hx-swap="innerHTML">
     <p class="sy-small sy-muted sy-caret">Loading the conversation</p>
   </div>

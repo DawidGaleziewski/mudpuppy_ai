@@ -161,6 +161,16 @@ describe('page tools', () => {
     rmSync(root, { recursive: true, force: true });
   });
 
+  it('page_context reads a scan page and answers NOT_FOUND for an unknown record', async () => {
+    const scan = await call('page_context', { type: 'scan', id: 'run-1' });
+    expect(scan.body).toMatchObject({
+      type: 'scan',
+      run: { id: 'run-1', portal_id: 'p', status: 'completed', screens_seen: 1 },
+    });
+    const docs = await call('page_context', { type: 'docs', id: 'rec-none' });
+    expect(docs).toMatchObject({ isError: true, body: { error: { code: 'NOT_FOUND' } } });
+  });
+
   it('page_context reads the screen, its revisions and elements', async () => {
     const r = await call('page_context', { type: 'screen', id: 's-2' });
     expect(r.isError).toBe(false);

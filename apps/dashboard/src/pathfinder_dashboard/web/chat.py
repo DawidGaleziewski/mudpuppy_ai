@@ -21,7 +21,7 @@ from fastapi.responses import (
     StreamingResponse,
 )
 
-from .. import chat_client, db, queries_chat
+from .. import chat_client, db, queries_chat, queries_revisions
 from .chat_forward import (
     chat_down,
     chat_json,
@@ -79,6 +79,24 @@ async def fragment_assistant(request: Request, env: str | None = None) -> HTMLRe
     except db.StoreMissing as err:
         return web.missing(c, err, fragment=True)
     return web.render(c, "salvage/partials/assistant_drawer_body.html", service_up=up, **values)
+
+
+@router.get("/fragments/assistant/page-changed", response_class=HTMLResponse)
+def fragment_page_changed(
+    request: Request, state: str, rev: int, env: str | None = None
+) -> HTMLResponse:
+    """The drawer's "changed underneath you" notice (spec 022 screen 03 state 5): a scan
+    recorded a newer revision of the screen the context refers to. Empty while it is current."""
+    web = web_of(request)
+    c = web.ctx(request, env)
+    try:
+        with c.conn() as conn:
+            screen = queries_revisions.screen_of_state(conn, state)
+    except db.StoreMissing as err:
+        return web.missing(c, err, fragment=True)
+    latest = screen.latest() if screen else None
+    newer = latest if latest and latest.rev > rev else None
+    return web.render(c, "salvage/partials/page_changed.html", newer=newer, rev=rev)
 
 
 @router.get("/fragments/assistant-status", response_class=HTMLResponse)

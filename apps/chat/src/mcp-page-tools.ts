@@ -92,6 +92,42 @@ function screenContext(ctx: PageToolContext, stateId: string): Record<string, un
   };
 }
 
+/** A doc record page: the record, its newest revision's content and what that revision cites. */
+function docsContext(ctx: PageToolContext, recordId: string): Record<string, unknown> | null {
+  const record = ctx.raw
+    .prepare(
+      `SELECT r.id, r.portal_id, r.kind, r.key, r.title, r.latest_rev, r.confirmed_rev, r.withdrawn,
+              v.id AS revision_id, v.status, v.confidence, v.content_json, v.change_note
+       FROM doc_records r JOIN doc_revisions v ON v.record_id = r.id AND v.rev_no = r.latest_rev
+       WHERE r.id = ?`,
+    )
+    .get(recordId) as
+    (Record<string, unknown> & { revision_id: string; content_json: string }) | undefined;
+  if (record === undefined) return null;
+  const { revision_id, content_json, ...rest } = record;
+  const evidence = ctx.raw
+    .prepare(
+      'SELECT target_kind, target_id, run_id, region FROM doc_evidence_links WHERE revision_id = ?',
+    )
+    .all(revision_id);
+  return { type: 'docs', record: rest, content: JSON.parse(content_json) as unknown, evidence };
+}
+
+/** A scan page: the run and how much it recorded. */
+function scanContext(ctx: PageToolContext, runId: string): Record<string, unknown> | null {
+  const run = ctx.raw
+    .prepare(
+      `SELECT id, portal_id, persona_id, mode, environment, status, started_at, ended_at,
+              (SELECT count(*) FROM state_observations o WHERE o.run_id = runs.id) AS screens_seen,
+              (SELECT count(*) FROM actions a WHERE a.run_id = runs.id) AS actions
+       FROM runs WHERE id = ?`,
+    )
+    .get(runId);
+  return run === undefined ? null : { type: 'scan', run };
+}
+
+const READERS = { screen: screenContext, docs: docsContext, scan: scanContext } as const;
+
 export function registerPageTools(
   server: McpServer,
   ctx: PageToolContext,
@@ -102,16 +138,20 @@ export function registerPageTools(
     'page_context',
     {
       description:
-        'Read the page the BA is looking at (the "[Page context: …]" line names it). For a screen: the recorded state, the revisions of its screen with the scans that saw each, its elements (keys for highlight_element), its amendments with revision numbers, and the records that cite it. Read only.',
+        'Read the page the BA is looking at (the "[Page context: …]" line names it). For a screen: the recorded state, the revisions of its screen with the scans that saw each, its elements (keys for highlight_element), its amendments with revision numbers, and the records that cite it. For docs: the record, its newest revision and its evidence. For a scan: the run and its counts. Read only.',
       inputSchema: {
-        type: z.enum(['screen']).describe('page type from the context line'),
-        id: z.string().describe('the id from the context line (for a screen: the state id)'),
+        type: z.enum(['screen', 'docs', 'scan']).describe('page type from the context line'),
+        id: z
+          .string()
+          .describe(
+            'the id from the context line (screen: state id; docs: record id; scan: run id)',
+          ),
       },
     },
-    ({ id }) => {
+    ({ type, id }) => {
       try {
-        const page = screenContext(ctx, id);
-        return page === null ? refused('NOT_FOUND', `no recorded screen ${id}`) : ok(page);
+        const page = READERS[type](ctx, id);
+        return page === null ? refused('NOT_FOUND', `no ${type} ${id}`) : ok(page);
       } catch {
         return refused('INTERNAL', 'internal error in pathfinder-chat; the chat service logs it');
       }
@@ -142,6 +182,21 @@ export function registerPageTools(
     },
   );
 
+  registerCredentialRequest(server, ok);
+
+  server.registerTool(
+    'open_page',
+    {
+      description:
+        'Open a dashboard page for the BA, e.g. /states/<id>, /docs/<portal>/<key>, /runs/<id>, /screens, /search?q=…. Only dashboard paths; the BA can always go back.',
+      inputSchema: { path: z.string().regex(/^\/[a-z]/, 'a dashboard path starting with /') },
+    },
+    ({ path }) => ok({ opened: path }),
+  );
+}
+
+/** `request_credential` (FE-A05): only answers; the chat service shows the vault field. */
+function registerCredentialRequest(server: McpServer, ok: Reply): void {
   server.registerTool(
     'request_credential',
     {
@@ -160,15 +215,5 @@ export function registerPageTools(
     },
     ({ portal, environment, persona, ref }) =>
       ok({ requested: { portal, environment, persona, ref } }),
-  );
-
-  server.registerTool(
-    'open_page',
-    {
-      description:
-        'Open a dashboard page for the BA, e.g. /states/<id>, /docs/<portal>/<key>, /runs/<id>, /screens, /search?q=…. Only dashboard paths; the BA can always go back.',
-      inputSchema: { path: z.string().regex(/^\/[a-z]/, 'a dashboard path starting with /') },
-    },
-    ({ path }) => ok({ opened: path }),
   );
 }
