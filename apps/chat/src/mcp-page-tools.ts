@@ -126,7 +126,42 @@ function scanContext(ctx: PageToolContext, runId: string): Record<string, unknow
   return run === undefined ? null : { type: 'scan', run };
 }
 
-const READERS = { screen: screenContext, docs: docsContext, scan: scanContext } as const;
+/**
+ * A process page (spec 022 M5): `<process id>:<variant label>`. The process, every variant with
+ * its newest steps, and the live marker per environment.
+ */
+function processContext(ctx: PageToolContext, ref: string): Record<string, unknown> | null {
+  const [id, label] = ref.split(':');
+  const process = ctx.raw
+    .prepare('SELECT id, portal_id, key, name, persona, stage, rev FROM ba_processes WHERE id = ?')
+    .get(id);
+  if (process === undefined) return null;
+  const variants = (
+    ctx.raw
+      .prepare(
+        `SELECT v.label, v.kind, v.rev, r.steps, r.author, r.created_at FROM process_variants v
+         JOIN process_variant_revisions r ON r.variant_id = v.id AND r.rev = v.rev
+         WHERE v.process_id = ? ORDER BY length(v.label), v.label`,
+      )
+      .all(id) as (Record<string, unknown> & { steps: string })[]
+  ).map((v) => ({ ...v, steps: JSON.parse(v.steps) as unknown }));
+  const live = ctx.raw
+    .prepare(
+      `SELECT l.environment, v.label, l.variant_rev, l.author, l.created_at FROM process_live l
+       JOIN process_variants v ON v.id = l.variant_id
+       WHERE l.process_id = ? AND l.created_at = (SELECT max(m.created_at) FROM process_live m
+         WHERE m.process_id = l.process_id AND m.environment = l.environment)`,
+    )
+    .all(id);
+  return { type: 'process', process, shown_variant: label ?? 'A', variants, live };
+}
+
+const READERS = {
+  screen: screenContext,
+  docs: docsContext,
+  scan: scanContext,
+  process: processContext,
+} as const;
 
 export function registerPageTools(
   server: McpServer,
@@ -138,13 +173,15 @@ export function registerPageTools(
     'page_context',
     {
       description:
-        'Read the page the BA is looking at (the "[Page context: …]" line names it). For a screen: the recorded state, the revisions of its screen with the scans that saw each, its elements (keys for highlight_element), its amendments with revision numbers, and the records that cite it. For docs: the record, its newest revision and its evidence. For a scan: the run and its counts. Read only.',
+        'Read the page the BA is looking at (the "[Page context: …]" line names it). For a screen: the recorded state, the revisions of its screen with the scans that saw each, its elements (keys for highlight_element), its amendments with revision numbers, and the records that cite it. For docs: the record, its newest revision and its evidence. For a scan: the run and its counts. For a process: its variants with their steps (to-be steps are drawn by people) and which variant is live where. Read only.',
       inputSchema: {
-        type: z.enum(['screen', 'docs', 'scan']).describe('page type from the context line'),
+        type: z
+          .enum(['screen', 'docs', 'scan', 'process'])
+          .describe('page type from the context line'),
         id: z
           .string()
           .describe(
-            'the id from the context line (screen: state id; docs: record id; scan: run id)',
+            'the id from the context line (screen: state id; docs: record id; scan: run id; process: <process id>:<variant>)',
           ),
       },
     },

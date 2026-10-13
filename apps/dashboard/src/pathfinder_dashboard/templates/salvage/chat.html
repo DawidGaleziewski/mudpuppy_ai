@@ -81,8 +81,8 @@
       {%- if home.processes %}
       <div class="sy-rows">
         {%- for p in home.processes %}
-        <a class="sy-row" href="{{ c.url(home.processes_href) }}">
-          <span class="sy-row__main"><b class="sy-case-normal">{{ p.name }}</b><span class="sy-meta">Scoped · {{ p.screens }} screens · <span class="sy-mono sy-mono--sm mp-break">{{ p.start_route }} → {{ p.end_route }}</span> · persona {{ p.persona }}</span></span>
+        <a class="sy-row" href="{{ c.url('/processes/' ~ p.key) if p.key else c.url(home.processes_href) }}">
+          <span class="sy-row__main"><b class="sy-case-normal">{{ p.name }}</b><span class="sy-meta">{{ sy_status_of("stage", p.stage).word }} · {{ p.screens }} screens · <span class="sy-mono sy-mono--sm mp-break">{{ p.start_route }} → {{ p.end_route }}</span> · persona {{ p.persona }}</span></span>
         </a>
         {%- endfor %}
       </div>

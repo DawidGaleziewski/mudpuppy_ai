@@ -10,6 +10,7 @@ import { createEvidenceStore, type EvidenceStore } from '@pathfinder/core';
 import { migrateUp, openDb, type OpenedDb } from '@pathfinder/store';
 import { createChatMcpServer } from '../src/mcp-chat.js';
 import { contextLine } from '../src/page-context.js';
+import { createProcessService } from '../src/process-service.js';
 import { credentialLine, uiActionOf } from '../src/ui-actions.js';
 
 const repo = resolve(import.meta.dirname, '../../..');
@@ -169,6 +170,35 @@ describe('page tools', () => {
     });
     const docs = await call('page_context', { type: 'docs', id: 'rec-none' });
     expect(docs).toMatchObject({ isError: true, body: { error: { code: 'NOT_FOUND' } } });
+  });
+
+  it('page_context reads a process: variants with steps and the live marker (spec 022 M5)', async () => {
+    const svc = createProcessService({ db: opened.db });
+    const made = await svc.create('p', {
+      name: 'Buy',
+      persona: 'guest',
+      state_ids: ['s-1', 's-2'],
+      author: 'Anna',
+    });
+    await svc.branch('p', made.process.id, { author: 'Anna' });
+    await svc.markLive('p', made.process.id, {
+      environment: 'sandbox',
+      label: 'B',
+      author: 'Anna',
+    });
+    const r = await call('page_context', { type: 'process', id: `${made.process.id}:B` });
+    expect(r.body).toMatchObject({
+      type: 'process',
+      process: { key: 'PRC-001', name: 'Buy' },
+      shown_variant: 'B',
+      variants: [
+        { label: 'A', kind: 'as_is', rev: 1 },
+        { label: 'B', kind: 'to_be', rev: 1 },
+      ],
+      live: [{ environment: 'sandbox', label: 'B', variant_rev: 1 }],
+    });
+    expect((r.body.variants as { steps: unknown[] }[])[0]!.steps).toHaveLength(2);
+    expect((await call('page_context', { type: 'process', id: 'nope:A' })).isError).toBe(true);
   });
 
   it('page_context reads the screen, its revisions and elements', async () => {

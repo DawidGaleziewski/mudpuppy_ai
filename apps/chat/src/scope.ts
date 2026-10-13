@@ -9,6 +9,7 @@ import type BetterSqlite3 from 'better-sqlite3';
 import { z } from 'zod';
 import { newId, nowIso } from '@pathfinder/core';
 import { ProcessScope } from '@pathfinder/chat-model';
+import { syncScopeProcess } from './scope-process.js';
 import { recordStep } from './steps.js';
 
 export class ScopeRefusal extends Error {
@@ -212,26 +213,30 @@ export function setProcessScope(
     source: s.source,
     created_at: nowIso(),
   });
-  raw
-    .prepare(
-      `INSERT INTO process_scopes
+  // The scope and its BA process (spec 022 T035) are written together.
+  raw.transaction(() => {
+    raw
+      .prepare(
+        `INSERT INTO process_scopes
          (id, conversation_id, portal_id, process_name, persona, start_state_id, end_state_id,
           selected_state_ids, comments, source, created_at)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-    )
-    .run(
-      row.id,
-      row.conversation_id,
-      row.portal_id,
-      row.process_name,
-      row.persona,
-      row.start_state_id,
-      row.end_state_id,
-      JSON.stringify(row.selected_state_ids),
-      JSON.stringify(row.comments),
-      row.source,
-      row.created_at,
-    );
+      )
+      .run(
+        row.id,
+        row.conversation_id,
+        row.portal_id,
+        row.process_name,
+        row.persona,
+        row.start_state_id,
+        row.end_state_id,
+        JSON.stringify(row.selected_state_ids),
+        JSON.stringify(row.comments),
+        row.source,
+        row.created_at,
+      );
+    syncScopeProcess(raw, row);
+  })();
   recordStep(raw, { conversationId, portalId: s.portal, step: 'narrow', status: 'done' });
   return row;
 }

@@ -121,6 +121,38 @@ describe('setProcessScope and requestDocumentation', () => {
     expect(doc).toEqual({ status: 'pending' });
   });
 
+  it('a saved scope is a BA process; saving the same name again re-cuts its as-is as r2 (spec 022 T035)', () => {
+    const base = {
+      portal: P,
+      process_name: 'Car insurance quote',
+      persona: 'guest',
+      start_state_id: 's-home',
+      end_state_id: 's-quote',
+    };
+    setProcessScope(opened.raw, repo, CONV, { ...base, selected_state_ids: ['s-car'] });
+    const steps = (rev: number) =>
+      (
+        JSON.parse(
+          (
+            opened.raw
+              .prepare(
+                `SELECT r.steps FROM process_variant_revisions r JOIN process_variants v ON v.id = r.variant_id
+                 JOIN ba_processes p ON p.id = v.process_id WHERE p.name = ? AND v.label = 'A' AND r.rev = ?`,
+              )
+              .get(base.process_name, rev) as { steps: string }
+          ).steps,
+        ) as { state_id: string }[]
+      ).map((s) => s.state_id);
+    expect(opened.raw.prepare('SELECT key, source, stage FROM ba_processes').all()).toEqual([
+      { key: 'PRC-001', source: 'scope', stage: 'scoped' },
+    ]);
+    expect(steps(1)).toEqual(['s-home', 's-car', 's-quote']);
+    setProcessScope(opened.raw, repo, CONV, { ...base, selected_state_ids: [] });
+    expect(steps(2)).toEqual(['s-home', 's-quote']);
+    expect(steps(1)).toEqual(['s-home', 's-car', 's-quote']);
+    expect(opened.raw.prepare('SELECT count(*) AS n FROM ba_processes').get()).toEqual({ n: 1 });
+  });
+
   it('refuses unknown states, foreign-portal states, comments off the selection and missing personas', () => {
     let error: unknown;
     try {

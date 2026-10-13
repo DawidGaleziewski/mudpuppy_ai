@@ -5,7 +5,7 @@
 {#- Compare two variants (screen 06, FE-P03): the step diff (unchanged, changed, merged, added,
     removed) and the change spec: generated, editable per section, saved as a revision, exported
     as Markdown. Your open draft stands in for its variant on the right. -#}
-{% set page_ctx = {"type": "process", "id": p.key, "label": p.name ~ " · compare"} %}
+{% set page_ctx = {"type": "process", "id": p.id ~ ":" ~ (v.right.variant.label if v.right else "A"), "label": p.key ~ " " ~ p.name ~ " · compare"} %}
 {% block title %}Compare · {{ p.name }}{% endblock %}
 {% block head_extra %}<script src="/static/js/processes.js" defer></script>{% endblock %}
 {% block main %}

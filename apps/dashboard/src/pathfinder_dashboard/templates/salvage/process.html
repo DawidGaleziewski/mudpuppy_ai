@@ -4,7 +4,7 @@
 {%- set view = v.view %}{% set p = view.process %}{% set vv = v.vv %}
 {#- One process (screen 05, FE-P02): the variant switch, and for a to-be variant the person's draft
     over its last revision (autosaved, Save as rN+1, Discard). The editor is a live region. -#}
-{% set page_ctx = {"type": "process", "id": p.key, "label": p.name, "variant": vv.variant.label, "rev": vv.variant.rev} %}
+{% set page_ctx = {"type": "process", "id": p.id ~ ":" ~ vv.variant.label, "label": p.key ~ " " ~ p.name ~ " · " ~ vv.variant.label, "rev": vv.variant.rev} %}
 {% block title %}{{ p.name }}{% endblock %}
 {% block head_extra %}<script src="/static/js/processes.js" defer></script>{% endblock %}
 {% block main %}
