@@ -75,6 +75,35 @@ describe('record_state', () => {
     expect(obs.map((o) => o.run_id).sort()).toEqual([r1, r2].sort());
   });
 
+  it('makes each new state the next revision of its screen (route + cluster, spec 022 R1)', async () => {
+    const ctx = await makeCtx();
+    const r1 = await seedRun(ctx);
+    const r2 = await seedRun(ctx);
+    const v1 = await recordState(ctx, state(r1));
+    // The page changed between scans: new fingerprint, same route and cluster → r2 of the screen.
+    const v2 = await recordState(ctx, state(r2, { fingerprint: FP('b'), title: 'Oferty (nowe)' }));
+    // Another view on the same route (another cluster) is its own screen.
+    const other = await recordState(ctx, state(r2, { fingerprint: FP('c'), cluster_id: 'c2' }));
+    const rows = await ctx.db
+      .selectFrom('states')
+      .select(['id', 'screen_id', 'screen_rev'])
+      .execute();
+    const by = new Map(rows.map((r) => [r.id, r]));
+    expect(by.get(v1.state_id)?.screen_rev).toBe(1);
+    expect(by.get(v2.state_id)).toMatchObject({
+      screen_id: by.get(v1.state_id)?.screen_id,
+      screen_rev: 2,
+    });
+    expect(by.get(other.state_id)?.screen_id).not.toBe(by.get(v1.state_id)?.screen_id);
+    expect(by.get(other.state_id)?.screen_rev).toBe(1);
+    const screens = await ctx.db.selectFrom('screens').selectAll().orderBy('created_at').execute();
+    expect(screens).toHaveLength(2);
+    expect(screens.find((s) => s.cluster_id === 'c1')).toMatchObject({
+      title: 'Oferty (nowe)',
+      first_seen_run: r1,
+    });
+  });
+
   it('generates ids itself and accepts no client-supplied id', async () => {
     const ctx = await makeCtx();
     const run = await seedRun(ctx);

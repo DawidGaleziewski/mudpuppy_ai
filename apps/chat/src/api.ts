@@ -3,12 +3,9 @@
 
 import { createServer, type IncomingMessage, type Server, type ServerResponse } from 'node:http';
 import { z } from 'zod';
-import {
-  AmendmentBody,
-  MAX_ATTACHMENT_BYTES,
-  ReapplyBody,
-  type AmendmentService,
-} from './amendments.js';
+import { amendmentRoutes } from './api-amendments.js';
+import { type AmendmentService } from './amendments.js';
+import { parseBody, readJson, sendJson } from './http-io.js';
 import { CredentialsBody, type CredentialsHandler } from './credentials.js';
 import { Environment } from '@pathfinder/config';
 import { EnvironmentBody, NewPortalBody, PortalRefusal, type PortalSummary } from './portals.js';
@@ -20,9 +17,6 @@ import { HttpError } from './http-error.js';
 import { ChatError, type ChatService, type SequencedEvent } from './service.js';
 
 export const HEARTBEAT_MS = 15_000;
-const MAX_BODY_BYTES = 256 * 1024;
-/** Base64 inflates by a third; leave room for the JSON around it. */
-const MAX_ATTACHMENT_BODY_BYTES = Math.ceil((MAX_ATTACHMENT_BYTES * 4) / 3) + 64 * 1024;
 
 export interface ApiOptions {
   service: ChatService;
@@ -81,43 +75,6 @@ const CreateBody = z.object({
   fresh: z.boolean().optional(),
 });
 const MessageBody = z.object({ text: z.string().trim().min(1).max(50_000) });
-
-function sendJson(res: ServerResponse, status: number, body: unknown): void {
-  const text = JSON.stringify(body);
-  res.writeHead(status, {
-    'content-type': 'application/json; charset=utf-8',
-    'content-length': Buffer.byteLength(text),
-    'cache-control': 'no-store',
-  });
-  res.end(text);
-}
-
-async function readJson(req: IncomingMessage, maxBytes = MAX_BODY_BYTES): Promise<unknown> {
-  const chunks: Buffer[] = [];
-  let size = 0;
-  for await (const chunk of req) {
-    const buf = chunk as Buffer;
-    size += buf.length;
-    if (size > maxBytes) throw new HttpError(400, 'The request is too large.');
-    chunks.push(buf);
-  }
-  if (size === 0) return {};
-  try {
-    return JSON.parse(Buffer.concat(chunks).toString('utf8')) as unknown;
-  } catch {
-    throw new HttpError(400, 'The request body is not valid JSON.');
-  }
-}
-
-function parseBody<T>(schema: z.ZodType<T>, value: unknown): T {
-  const parsed = schema.safeParse(value);
-  if (!parsed.success) {
-    const first = parsed.error.issues[0];
-    const where = first === undefined ? '' : ` (${first.path.join('.') || 'body'})`;
-    throw new HttpError(400, `The request is not valid${where}.`);
-  }
-  return parsed.data;
-}
 
 function parseLastEventId(req: IncomingMessage): number | null {
   const raw = req.headers['last-event-id'];
@@ -267,38 +224,8 @@ export function createApi(opts: ApiOptions): Server {
       sendJson(res, 201, saved);
       return;
     }
-    const amendmentsRoot = /^\/portals\/([^/]+)\/amendments$/.exec(path);
-    if (method === 'POST' && amendmentsRoot !== null) {
-      if (opts.amendments === undefined) throw new HttpError(404, 'This address does not exist.');
-      const body = parseBody(AmendmentBody, await readJson(req, MAX_ATTACHMENT_BODY_BYTES));
-      const created = await opts.amendments.create(decodeURIComponent(amendmentsRoot[1]!), body);
-      sendJson(res, 201, created);
-      return;
-    }
-    const amendmentOne = /^\/portals\/([^/]+)\/amendments\/([^/]+)$/.exec(path);
-    if (method === 'DELETE' && amendmentOne !== null) {
-      if (opts.amendments === undefined) throw new HttpError(404, 'This address does not exist.');
-      const withdrawn = await opts.amendments.withdraw(
-        decodeURIComponent(amendmentOne[1]!),
-        decodeURIComponent(amendmentOne[2]!),
-      );
-      sendJson(res, 200, withdrawn);
-      return;
-    }
-    // T033: re-apply or dismiss a superseded amendment (FR-022).
-    const amendmentAction = /^\/portals\/([^/]+)\/amendments\/([^/]+)\/(reapply|dismiss)$/.exec(
-      path,
-    );
-    if (method === 'POST' && amendmentAction !== null) {
-      if (opts.amendments === undefined) throw new HttpError(404, 'This address does not exist.');
-      const portal = decodeURIComponent(amendmentAction[1]!);
-      const id = decodeURIComponent(amendmentAction[2]!);
-      if (amendmentAction[3] === 'reapply') {
-        const body = parseBody(ReapplyBody, await readJson(req));
-        sendJson(res, 201, await opts.amendments.reapply(portal, id, body));
-      } else sendJson(res, 200, await opts.amendments.dismiss(portal, id));
-      return;
-    }
+    // Amendments with revisions (T030, T033; spec 022 contracts/amendments-api.md).
+    if (await amendmentRoutes(req, res, method, path, url, opts.amendments)) return;
     // T050: the chat's [stop] button. Ends the assistant's turn and stops every run the
     // conversation follows (interrupted, so they can be resumed); answers what was stopped.
     const cancel = /^\/conversations\/([^/]+)\/cancel$/.exec(path);
@@ -369,7 +296,7 @@ export function createApi(opts: ApiOptions): Server {
         res.end();
         return;
       }
-      sendJson(res, status, { ref, message });
+      sendJson(res, status, { ...(error instanceof HttpError ? error.extra : {}), ref, message });
     });
   });
 }

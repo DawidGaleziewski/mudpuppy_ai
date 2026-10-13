@@ -13,6 +13,10 @@ export const State = z.object({
   stabilization: Stabilization,
   first_seen_run: Id,
   created_at: Timestamp,
+  /** 0015: the screen this state is a revision of; NULL only for rows an old crawler wrote. */
+  screen_id: Id.nullable(),
+  /** 0015: r1, r2, ... by first sighting within the screen (>= 1); NULL with screen_id. */
+  screen_rev: z.number().int().min(1).nullable(),
 });
 export type State = z.infer<typeof State>;
 

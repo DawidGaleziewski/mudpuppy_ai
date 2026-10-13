@@ -16,6 +16,7 @@
     <span>{{ st.stabilization | replace("_", " ") }}</span>
   </div>
 </div>
+{% set current = st.id %}{% include "salvage/partials/revision_strip.html" %}
 
 <div class="sy-columns">
 <div class="sy-col-main sy-stack">

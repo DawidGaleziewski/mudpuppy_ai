@@ -208,7 +208,7 @@ function derived(input: WorkflowInput): Record<Step, Omit<StepState, 'step'>> {
           errorRef: null,
         };
   if (input.supersededAmendments > 0)
-    amend.detail = `${amend.detail}; ${String(input.supersededAmendments)} superseded to review`;
+    amend.detail = `${amend.detail}; ${String(input.supersededAmendments)} to re-anchor`;
 
   return { scan, map, narrow, document, amend };
 }
@@ -335,7 +335,7 @@ function moves(input: WorkflowInput, steps: Record<Step, Omit<StepState, 'step'>
     {
       move: 'review_superseded',
       valid: input.supersededAmendments > 0,
-      missing: input.supersededAmendments > 0 ? [] : ['superseded amendments'],
+      missing: input.supersededAmendments > 0 ? [] : ['amendments to re-anchor'],
     },
   ];
   for (const m of out) if (m.valid) m.missing = [];

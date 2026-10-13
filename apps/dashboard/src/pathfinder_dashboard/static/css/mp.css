@@ -46,6 +46,8 @@
   /* A label with its glossary hint stays inline (headings keep their count on the same line). */
   .mp-term { display: inline-flex; align-items: center; }
 
+  .mp-measure-52 { max-inline-size: 52ch; }
+
   /* Long URLs and ids break anywhere instead of widening the page. */
   .mp-break { overflow-wrap: anywhere; }
 

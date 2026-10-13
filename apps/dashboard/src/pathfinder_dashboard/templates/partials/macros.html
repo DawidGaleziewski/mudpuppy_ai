@@ -84,14 +84,14 @@
     reuse the doc revision vocabulary. Never red: an amendment going stale is not a crawl failure. -#}
 {%- set AMENDMENT_LABELS = {
   "active": ("[ACTV]", "st-plain"),
-  "superseded": ("[OLD.]", "st-muted"),
+  "needs_reanchor": ("[OLD.]", "st-muted"),
   "dismissed": ("[DISM]", "st-muted"),
   "withdrawn": ("[WDRN]", "st-muted"),
 } -%}
 
 {% macro amendment_status(status) -%}
   {%- set label, cls = AMENDMENT_LABELS.get(status, ("[ ?? ]", "st-muted")) -%}
-  <span class="st {{ cls }}">{{ label }}</span> <span class="status-text">{{ status }}</span>
+  <span class="st {{ cls }}">{{ label }}</span> <span class="status-text">{{ status | replace("_", " ") }}</span>
 {%- endmacro %}
 
 {% macro step_status(status) -%}

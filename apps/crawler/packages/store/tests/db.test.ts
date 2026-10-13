@@ -24,6 +24,8 @@ const ALL = [
   '0012',
   '0013',
   '0014',
+  '0015',
+  '0016',
 ];
 
 let opened: OpenedDb | undefined;
@@ -45,7 +47,7 @@ const tables = (o: OpenedDb) =>
     .sort();
 
 describe('migrations', () => {
-  it('finds 0001_init through 0014_relation_vocabulary, each with an up and a down', () => {
+  it('finds 0001_init through 0016_amendment_revisions, each with an up and a down', () => {
     expect(loadMigrations(MIGRATIONS).map((m) => m.version)).toEqual(ALL);
   });
 
@@ -78,6 +80,8 @@ describe('migrations', () => {
         'credentials',
       ]),
     );
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0016');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0015');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0014');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0013');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0012');
@@ -100,6 +104,8 @@ describe('migrations', () => {
     opened = openDb(':memory:');
     expect(migrateUp(opened.raw, MIGRATIONS)).toEqual(ALL);
     expect(migrateUp(opened.raw, MIGRATIONS)).toEqual([]);
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0016');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0015');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0014');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0013');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0012');
@@ -121,6 +127,8 @@ describe('migrations', () => {
   it('0003_trace applies and reverts on a DB holding 0001/0002 data (up, down, up round-trips cleanly)', () => {
     opened = openDb(':memory:');
     migrateUp(opened.raw, MIGRATIONS);
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0016');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0015');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0014');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0013');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0012');
@@ -150,6 +158,8 @@ describe('migrations', () => {
       '0012',
       '0013',
       '0014',
+      '0015',
+      '0016',
     ]);
     expect(appliedVersions(opened.raw)).toEqual(ALL);
     expect(tables(opened)).toEqual(
@@ -344,6 +354,8 @@ describe('Layer B tables (0004_ba_documentation)', () => {
         `INSERT INTO doc_reviews (id, revision_id, action, reviewer, text, created_at) VALUES (?, ?, 'comment', 'dawid', 'looks good', ?)`,
       )
       .run(newId(), revisionId, ts);
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0016');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0015');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0014');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0013');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0012');
@@ -368,6 +380,8 @@ describe('Layer B tables (0004_ba_documentation)', () => {
       '0012',
       '0013',
       '0014',
+      '0015',
+      '0016',
     ]);
     expect(opened.raw.prepare('SELECT count(*) AS n FROM doc_records').get()).toEqual({ n: 0 });
   });
@@ -446,6 +460,8 @@ describe('screenshots and wireframes (0006_screenshots_wireframes)', () => {
     opened.raw
       .prepare(`INSERT INTO state_wireframes VALUES (?, '1', 'a.svg', 'a.excalidraw', ?)`)
       .run(stateId, nowIso());
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0016');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0015');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0014');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0013');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0012');
@@ -469,6 +485,8 @@ describe('screenshots and wireframes (0006_screenshots_wireframes)', () => {
       '0012',
       '0013',
       '0014',
+      '0015',
+      '0016',
     ]);
     expect(opened.raw.prepare('SELECT target_kind, region FROM doc_evidence_links').all()).toEqual([
       { target_kind: 'state', region: null },
@@ -498,6 +516,8 @@ describe('credentials (0007_credentials)', () => {
   it('round-trips (up, down, up)', () => {
     opened = openDb(':memory:');
     migrateUp(opened.raw, MIGRATIONS);
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0016');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0015');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0014');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0013');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0012');
@@ -516,6 +536,8 @@ describe('credentials (0007_credentials)', () => {
       '0012',
       '0013',
       '0014',
+      '0015',
+      '0016',
     ]);
     expect(tables(opened)).toContain('credentials');
   });
@@ -567,7 +589,7 @@ describe('chat orchestrator tables (0008_chat_orchestrator)', () => {
     expect(() => amd(opened!, 'text, superseded_reason', ['t', 'gone'])).toThrow(/CHECK/);
     amd(opened, 'text, status, superseded_at, superseded_reason', [
       't',
-      'superseded',
+      'needs_reanchor',
       ts(),
       'element_removed',
     ]);
@@ -577,6 +599,8 @@ describe('chat orchestrator tables (0008_chat_orchestrator)', () => {
   it('round-trips (up, down, up)', () => {
     opened = openDb(':memory:');
     migrateUp(opened.raw, MIGRATIONS);
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0016');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0015');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0014');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0013');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0012');
@@ -594,6 +618,8 @@ describe('chat orchestrator tables (0008_chat_orchestrator)', () => {
       '0012',
       '0013',
       '0014',
+      '0015',
+      '0016',
     ]);
     expect(tables(opened)).toEqual(
       expect.arrayContaining([
@@ -853,6 +879,8 @@ describe('run owner (0009_run_owner)', () => {
     expect(() =>
       opened!.raw.prepare(`UPDATE runs SET owner_pid = 0 WHERE id = ?`).run(runId),
     ).toThrow(/CHECK/);
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0016');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0015');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0014');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0013');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0012');
@@ -872,6 +900,8 @@ describe('run owner (0009_run_owner)', () => {
       '0012',
       '0013',
       '0014',
+      '0015',
+      '0016',
     ]);
     expect(cols()).toEqual(expect.arrayContaining(['owner_id', 'owner_pid']));
   });
@@ -899,6 +929,8 @@ describe('page visits (0012_page_visits)', () => {
          VALUES (?, ?, NULL, 'GET', '/api/x', 200, '{}', '{}', ?, 'http://x/api/x?q=1')`,
       )
       .run(newId(), runId, nowIso());
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0016');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0015');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0014');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0013');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0012');
@@ -906,7 +938,146 @@ describe('page visits (0012_page_visits)', () => {
     expect(opened.raw.prepare('SELECT url_template FROM network_calls').all()).toEqual([
       { url_template: '/api/x' },
     ]);
-    expect(migrateUp(opened.raw, MIGRATIONS)).toEqual(['0012', '0013', '0014']);
+    expect(migrateUp(opened.raw, MIGRATIONS)).toEqual(['0012', '0013', '0014', '0015', '0016']);
     expect(opened.raw.prepare('SELECT url FROM network_calls').all()).toEqual([{ url: null }]);
+  });
+});
+
+describe('screens and amendment revisions (0015, 0016; spec 022)', () => {
+  const insertState = (o: OpenedDb, runId: string, n: number, route: string, cluster: string) => {
+    const id = newId();
+    o.raw
+      .prepare(
+        `INSERT INTO states (id, portal_id, fingerprint, cluster_id, route_template, title, evidence_ref, confidence,
+                             stabilization, first_seen_run, created_at)
+         VALUES (?, 'p', ?, ?, ?, ?, ?, 'observed', 'settled', ?, ?)`,
+      )
+      .run(
+        id,
+        String(n).repeat(64),
+        cluster,
+        route,
+        `title ${n}`,
+        'a'.repeat(64) + '.yaml',
+        runId,
+        `2030-01-0${n}T00:00:00.000Z`,
+      );
+    return id;
+  };
+  const insertAmendment = (
+    o: OpenedDb,
+    key: string,
+    status: string,
+    stateId: string,
+    runId: string,
+  ) =>
+    o.raw
+      .prepare(
+        `INSERT INTO amendments (id, key, portal_id, target_kind, target_id, kind, text, author, status,
+                                 superseded_by_run, superseded_reason, superseded_detail, superseded_at, created_at)
+         VALUES (?, ?, 'p', 'state', ?, 'note', 't', 'ba', ?, ?, ?, ?, ?, '2026-01-01T00:00:00.000Z')`,
+      )
+      .run(
+        newId(),
+        key,
+        stateId,
+        status,
+        status === 'superseded' ? runId : null,
+        status === 'superseded' ? 'element_removed' : null,
+        status === 'superseded' ? 'link gone' : null,
+        status === 'superseded' ? '2026-01-05T00:00:00.000Z' : null,
+      );
+
+  it('backfills screens, revision numbers, amendment heads and revisions; down restores the 0014 shape', async () => {
+    opened = openDb(':memory:');
+    migrateUp(opened.raw, MIGRATIONS);
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0016');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0015');
+    const { runId, stateId: first } = await seedRunAndState(opened, 'p', 'e'.repeat(64));
+    const second = insertState(opened, runId, 1, '/', 'c'); // same screen as `first`, later
+    const other = insertState(opened, runId, 2, '/login', 'c');
+    insertAmendment(opened, 'AMD-001', 'active', first, runId);
+    insertAmendment(opened, 'AMD-002', 'superseded', other, runId);
+    expect(migrateUp(opened.raw, MIGRATIONS)).toEqual(['0015', '0016']);
+
+    const screens = opened.raw.prepare('SELECT * FROM screens ORDER BY route_template').all() as {
+      id: string;
+      route_template: string;
+      title: string;
+    }[];
+    expect(screens.map((s) => s.route_template)).toEqual(['/', '/login']);
+    expect(screens[0]!.id).toMatch(
+      /^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/,
+    );
+    const revOf = (id: string) =>
+      opened!.raw.prepare('SELECT screen_id, screen_rev FROM states WHERE id = ?').get(id) as {
+        screen_id: string;
+        screen_rev: number;
+      };
+    expect([revOf(first).screen_rev, revOf(second).screen_rev, revOf(other).screen_rev]).toEqual([
+      1, 2, 1,
+    ]);
+    expect(revOf(first).screen_id).toBe(revOf(second).screen_id);
+    expect(screens[0]!.title).toBe('title 1'); // latest revision (the second state)
+
+    const heads = opened.raw
+      .prepare('SELECT key, status, rev, screen_id FROM amendments ORDER BY key')
+      .all() as { key: string; status: string; rev: number; screen_id: string }[];
+    expect(heads.map((h) => [h.key, h.status, h.rev])).toEqual([
+      ['AMD-001', 'active', 1],
+      ['AMD-002', 'needs_reanchor', 2],
+    ]);
+    expect(heads[1]!.screen_id).toBe(revOf(other).screen_id);
+    const revs = opened.raw
+      .prepare(
+        `SELECT a.key, r.rev, r.base_rev, r.change, r.status, r.reason FROM amendment_revisions r
+         JOIN amendments a ON a.id = r.amendment_id ORDER BY a.key, r.rev`,
+      )
+      .all();
+    expect(revs).toEqual([
+      { key: 'AMD-001', rev: 1, base_rev: null, change: 'create', status: 'active', reason: null },
+      { key: 'AMD-002', rev: 1, base_rev: null, change: 'create', status: 'active', reason: null },
+      {
+        key: 'AMD-002',
+        rev: 2,
+        base_rev: 1,
+        change: 'needs_reanchor',
+        status: 'needs_reanchor',
+        reason: 'element_removed: link gone',
+      },
+    ]);
+    expect(opened.raw.pragma('foreign_key_check')).toEqual([]);
+
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0016');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0015');
+    const back = opened.raw
+      .prepare('SELECT status, superseded_reason FROM amendments ORDER BY key')
+      .all();
+    expect(back).toEqual([
+      { status: 'active', superseded_reason: null },
+      { status: 'superseded', superseded_reason: 'element_removed' },
+    ]);
+    expect(opened.raw.prepare('SELECT count(*) AS n FROM states').get()).toEqual({ n: 3 });
+  });
+
+  it('refuses a revision without a base after r1, a second r1, or an unknown change', async () => {
+    opened = openDb(':memory:');
+    migrateUp(opened.raw, MIGRATIONS);
+    const { runId, stateId } = await seedRunAndState(opened, 'p', 'f'.repeat(64));
+    insertAmendment(opened, 'AMD-001', 'active', stateId, runId);
+    const aid = (opened.raw.prepare('SELECT id FROM amendments').get() as { id: string }).id;
+    const add = (rev: number, base: number | null, change: string, status = 'active') =>
+      opened!.raw
+        .prepare(
+          `INSERT INTO amendment_revisions (amendment_id, rev, base_rev, change, author, status, target_kind, target_id, created_at)
+           VALUES (?, ?, ?, ?, 'ba', ?, 'state', 's', ?)`,
+        )
+        .run(aid, rev, base, change, status, nowIso());
+    add(1, null, 'create');
+    expect(() => add(1, null, 'create')).toThrow(/UNIQUE|PRIMARY/);
+    expect(() => add(2, null, 'edit')).toThrow(/CHECK/);
+    expect(() => add(2, 1, 'supersede')).toThrow(/CHECK/);
+    expect(() => add(2, 1, 'edit', 'superseded')).toThrow(/CHECK/);
+    add(2, 1, 'carry_forward');
   });
 });

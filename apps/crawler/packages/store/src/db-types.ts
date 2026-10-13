@@ -37,6 +37,7 @@ import type {
 } from '@pathfinder/docs-model';
 // Chat model.
 import type {
+  AmendmentChange,
   AmendmentKind,
   AmendmentStatus,
   AmendmentSupersededReason,
@@ -90,6 +91,21 @@ export interface StatesTable {
   screenshot_ref: ColumnType<string | null, string | null | undefined, string | null>;
   /** 0006: Layout JSON ref (element keys and page boxes); NULL if capture failed. */
   layout_ref: ColumnType<string | null, string | null | undefined, string | null>;
+  /** 0015: the screen this state is a revision of; NULL only for rows an old crawler wrote. */
+  screen_id: ColumnType<string | null, string | null | undefined, string | null>;
+  /** 0015: r1, r2, ... by first sighting within the screen. */
+  screen_rev: ColumnType<number | null, number | null | undefined, number | null>;
+}
+
+/** 0015: a screen is (portal_id, route_template, cluster_id); its states are its observed revisions. */
+export interface ScreensTable {
+  id: string;
+  portal_id: string;
+  route_template: string;
+  cluster_id: string;
+  title: string;
+  first_seen_run: string;
+  created_at: string;
 }
 
 /** 0006: derived wireframe of a state, rebuilt when `generator_version` is stale. */
@@ -198,6 +214,29 @@ export interface AmendmentsTable {
   reapplies: string | null;
   created_at: string;
   withdrawn_at: string | null;
+  /** 0016: the head's current revision number. */
+  rev: ColumnType<number, number | undefined, number>;
+  /** 0016: the screen the amendment belongs to. */
+  screen_id: string | null;
+}
+
+/** 0016: append-only history of an amendment. */
+export interface AmendmentRevisionsTable {
+  amendment_id: string;
+  rev: number;
+  base_rev: number | null;
+  change: AmendmentChange;
+  author: string;
+  status: AmendmentStatus;
+  target_kind: AmendmentTargetKind;
+  target_id: string;
+  text: string | null;
+  anchor_fingerprint: string | null;
+  anchor_route_template: string | null;
+  anchor_element: string | null;
+  reason: string | null;
+  run_id: string | null;
+  created_at: string;
 }
 
 export interface StateObservationsTable {
@@ -524,6 +563,7 @@ export interface ProcessStepsTable {
 
 export interface Database {
   runs: RunsTable;
+  screens: ScreensTable;
   states: StatesTable;
   state_wireframes: StateWireframesTable;
   state_observations: StateObservationsTable;
@@ -557,4 +597,5 @@ export interface Database {
   workflow_steps: WorkflowStepsTable;
   process_scopes: ProcessScopesTable;
   amendments: AmendmentsTable;
+  amendment_revisions: AmendmentRevisionsTable;
 }

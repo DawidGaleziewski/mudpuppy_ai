@@ -27,7 +27,7 @@
           <td data-label="action">
             {%- if a.status == "active" %}
             <button class="btn btn-bracket" type="button" data-withdraw="/chat/portals/{{ a.portal_id | urlencode }}/amendments/{{ a.id | urlencode }}" data-label="{{ a.key }}">[withdraw]</button>
-            {%- elif a.status == "superseded" %}
+            {%- elif a.status == "needs_reanchor" %}
             <a class="btn btn-bracket" href="{{ c.url('/amendments/superseded', portal=a.portal_id) }}">[review]</a>
             {%- else %}<span class="muted">—</span>{% endif %}
           </td>

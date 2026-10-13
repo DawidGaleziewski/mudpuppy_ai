@@ -214,7 +214,7 @@ function seed() {
            VALUES (?, ?, ?, ?, 'state', ?, 'note', 'n', 'ba', ${extra}, ?)`,
         )
         .run(id, key, portal, scope, s1, ts);
-    amd(orig, 'AMD-001', `'superseded', '${runId}', 'state_replaced', '${ts}', NULL, NULL`);
+    amd(orig, 'AMD-001', `'needs_reanchor', '${runId}', 'state_replaced', '${ts}', NULL, NULL`);
     amd(copy, 'AMD-002', `'active', NULL, NULL, NULL, NULL, '${orig}'`);
     raw.prepare('UPDATE amendments SET reapplied_as = ? WHERE id = ?').run(copy, orig);
   };
@@ -287,7 +287,7 @@ describe('portal export (spec 002 FR-028, contracts/operator-cli.md)', () => {
       environment: 'sandbox',
       counts: r.counts,
       evidence_files: 4,
-      schema_version: '0014',
+      schema_version: '0016',
     });
     expect(typeof manifest.exported_at).toBe('string');
     for (const t of PORTAL_TABLES) expect(existsSync(join(out, `${t}.ndjson`))).toBe(true);

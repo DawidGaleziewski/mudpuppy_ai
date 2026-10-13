@@ -250,7 +250,8 @@ export function loadWorkflowInput(
     ),
     supersededAmendments: count(
       raw,
-      `SELECT count(*) AS n FROM amendments WHERE portal_id = ? AND status = 'superseded'`,
+      // `needs_reanchor` replaced `superseded` (spec 022); the field keeps its name for the agent.
+      `SELECT count(*) AS n FROM amendments WHERE portal_id = ? AND status = 'needs_reanchor'`,
       portal,
     ),
     recordedSteps,

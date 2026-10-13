@@ -46,7 +46,7 @@ beforeAll(async () => {
   fx = await makeFixtureStore({ portalId: 'reference-insurer', deterministicIds: true });
   seedDocRecords(fx);
   before = exportSrs(fx.raw, fx.portalId, { environment: 'sandbox' }) as Map<string, string>;
-  amend('a1', 'AMD-001', 'superseded', {
+  amend('a1', 'AMD-001', 'needs_reanchor', {
     superseded_at: T,
     superseded_reason: 'element_changed',
     superseded_detail: 'button "Kup" is now button "Kup teraz"',
@@ -85,7 +85,7 @@ describe('amendments in the export', () => {
     expect(chapter).not.toContain('AMD-004');
   });
 
-  it('the appendix lists superseded and dismissed ones with reason and run (SC-008)', () => {
+  it('the appendix lists amendments to re-anchor and dismissed ones with reason and run (SC-008)', () => {
     const appendix = after.get('appendix-superseded-amendments.md')!;
     expect(appendix).toContain('**AMD-001**');
     expect(appendix).toContain('element_changed: button "Kup" is now button "Kup teraz"');
@@ -99,7 +99,7 @@ describe('amendments in the export', () => {
       amendments: { key: string; status: string; to_be: boolean; reapplied_as: string | null }[];
     };
     expect(json.amendments.map((a) => [a.key, a.status, a.to_be])).toEqual([
-      ['AMD-001', 'superseded', true],
+      ['AMD-001', 'needs_reanchor', true],
       ['AMD-002', 'active', true],
       ['AMD-003', 'dismissed', true],
     ]);

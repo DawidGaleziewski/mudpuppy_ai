@@ -16,7 +16,11 @@ store, vault, workflow.
 - `mcp-chat`: MCP chat tool definitions.
 - `session-config`: session setup (prompt, tools, MCP servers).
 - `step-recorder`: workflow step recording.
-- `amendments`: amendment handling; used with `supersede`.
+- `amendments`: amendment commands (create, withdraw, re-anchor, dismiss, edit, restore);
+  `amendment-revisions`: the one write path (every change is a row in `amendment_revisions`, a
+  stale `base_rev` answers 409 `STALE_REVISION`); `api-amendments`: their HTTP routes;
+  `reanchor`: after a scan, carries amendments forward or flags them for re-anchoring (spec 022).
+- `http-io`, `http-error`: JSON in/out and the HTTP error with machine-readable extras.
 - `portals`, `personas`, `credentials`: portal/user data.
 - `scan`, `scope`: process scanning and scope management.
 - `fence`: permission control.

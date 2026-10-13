@@ -7,7 +7,7 @@
 import type BetterSqlite3 from 'better-sqlite3';
 import type { EvidenceStore } from '@pathfinder/core';
 import type { WorkflowStepName, WorkflowStepStatus } from '@pathfinder/chat-model';
-import { supersedeAfterRun, supersedeNotice } from './supersede.js';
+import { reanchorAfterRun, reanchorNotice } from './reanchor.js';
 import type { ErrorInput, LogResult } from './error-log.js';
 import type { ChatEvent } from './events.js';
 import { RunRefusal, stopRun } from './runs.js';
@@ -196,10 +196,11 @@ export class StepRecorder {
       if (work.status === 'running') push(row, this.change(row, 'in_progress', link));
       else if (work.status === 'completed') {
         push(row, this.change(row, 'done', link));
-        // T032: a finished run the BA started may supersede amendments (FR-021).
+        // T032 / spec 022 R4: a finished scan the BA started carries amendments forward to the
+        // new revisions of their screens, or flags them for re-anchoring (FR-021, FE-S02).
         if (work.kind === 'run' && this.opts.evidence !== undefined) {
-          const text = supersedeNotice(
-            supersedeAfterRun(this.opts.raw, this.opts.evidence, row.portal_id, work.id),
+          const text = reanchorNotice(
+            reanchorAfterRun(this.opts.raw, this.opts.evidence, row.portal_id, work.id),
           );
           if (text !== null) push(row, { type: 'notice', text });
         }

@@ -3,7 +3,9 @@ import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 import {
   Amendment,
+  AmendmentChange,
   AmendmentKind,
+  AmendmentRevision,
   AmendmentStatus,
   AmendmentSupersededReason,
   AmendmentTargetKind,
@@ -21,6 +23,13 @@ import {
 const SQL = readFileSync(
   fileURLToPath(
     new URL('../../../../../data/migrations/0008_chat_orchestrator.up.sql', import.meta.url),
+  ),
+  'utf-8',
+);
+/** 0016 rebuilt `amendments` (status `needs_reanchor`) and added `amendment_revisions`. */
+const SQL_0016 = readFileSync(
+  fileURLToPath(
+    new URL('../../../../../data/migrations/0016_amendment_revisions.up.sql', import.meta.url),
   ),
   'utf-8',
 );
@@ -51,8 +60,10 @@ describe('chat orchestrator schemas (0008)', () => {
     expect(ProcessScopeSource.options).toEqual(inList('process_scopes', 'source'));
     expect(AmendmentTargetKind.options).toEqual(inList('amendments', 'target_kind'));
     expect(AmendmentKind.options).toEqual(inList('amendments', 'kind'));
-    expect(AmendmentStatus.options).toEqual(inList('amendments', 'status'));
+    expect(AmendmentStatus.options).toEqual(inList('amendments_new', 'status', SQL_0016));
     expect(AmendmentSupersededReason.options).toEqual(inList('amendments', 'superseded_reason'));
+    expect(AmendmentStatus.options).toEqual(inList('amendment_revisions', 'status', SQL_0016));
+    expect(AmendmentChange.options).toEqual(inList('amendment_revisions', 'change', SQL_0016));
   });
 
   it('parses valid rows and rejects bad ones', () => {
@@ -138,21 +149,47 @@ describe('chat orchestrator schemas (0008)', () => {
       reapplies: null,
       created_at: ts,
       withdrawn_at: null,
+      rev: 1,
+      screen_id: null,
     };
     expect(Amendment.safeParse(amd).success).toBe(true);
     expect(Amendment.safeParse({ ...amd, text: null }).success).toBe(false);
-    expect(Amendment.safeParse({ ...amd, status: 'superseded' }).success).toBe(false);
-    expect(
-      Amendment.safeParse({
-        ...amd,
-        status: 'superseded',
-        superseded_at: ts,
-        superseded_reason: 'element_removed',
-      }).success,
-    ).toBe(true);
+    expect(Amendment.safeParse({ ...amd, status: 'superseded' }).success).toBe(false); // 0016 renamed it
+    expect(Amendment.safeParse({ ...amd, status: 'needs_reanchor' }).success).toBe(true);
+    expect(Amendment.safeParse({ ...amd, rev: 0 }).success).toBe(false);
     expect(Amendment.safeParse({ ...amd, status: 'dismissed' }).success).toBe(false);
     expect(Amendment.safeParse({ ...amd, status: 'withdrawn' }).success).toBe(false);
     expect(Amendment.safeParse({ ...amd, kind: 'attachment', text: null }).success).toBe(false);
     expect(Amendment.safeParse({ ...amd, key: 'AMD-1' }).success).toBe(false);
+  });
+});
+
+describe('amendment revisions (0016)', () => {
+  const rev = {
+    amendment_id: 'a1',
+    rev: 1,
+    base_rev: null,
+    change: 'create',
+    author: 'ba',
+    status: 'active',
+    target_kind: 'state',
+    target_id: 's1',
+    text: 'n',
+    anchor_fingerprint: null,
+    anchor_route_template: null,
+    anchor_element: null,
+    reason: null,
+    run_id: null,
+    created_at: ts,
+  };
+
+  it('parses r1 (no base) and a later revision (with base), like the table CHECK', () => {
+    expect(AmendmentRevision.safeParse(rev).success).toBe(true);
+    expect(
+      AmendmentRevision.safeParse({ ...rev, rev: 2, base_rev: 1, change: 'edit' }).success,
+    ).toBe(true);
+    expect(AmendmentRevision.safeParse({ ...rev, base_rev: 1 }).success).toBe(false);
+    expect(AmendmentRevision.safeParse({ ...rev, rev: 2 }).success).toBe(false);
+    expect(AmendmentRevision.safeParse({ ...rev, change: 'supersede' }).success).toBe(false);
   });
 });

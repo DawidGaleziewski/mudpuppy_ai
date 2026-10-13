@@ -8,7 +8,7 @@ from typing import Any
 from fastapi import APIRouter, Request
 from fastapi.responses import HTMLResponse
 
-from .. import db, queries_chat, queries_urls, visuals
+from .. import db, queries_chat, queries_revisions, queries_urls, visuals
 from .deps import Ctx, web_of
 
 router = APIRouter()
@@ -47,6 +47,7 @@ def state_detail(
                 p=page,
                 urls=queries_urls.state_urls(conn, state_id),
                 am=state_amendments_values(c, conn, page.figure.state),
+                screen=queries_revisions.screen_of_state(conn, state_id),
                 view="wireframe" if view == "wireframe" else "screenshot",
                 show_elements=elements,
             )
