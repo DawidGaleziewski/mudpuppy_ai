@@ -1,0 +1,45 @@
+{% import "salvage/macros.html" as sy %}
+{% set v = section %}
+{% call sy.region("frontier", v.self_url, "Frontier") %}
+<div class="sy-plate">
+  <div class="sy-plate__head">
+    <div class="sy-stack" style="--sy-gap: 6px">
+      <h2 class="sy-plate__title">{{ sy.term("frontier", "Frontier") }} <span class="sy-count sy-count--muted">{{ v.counts.values() | sum }}</span></h2>
+      <ul class="sy-cluster sy-small" aria-label="Frontier by status">
+        {%- for st, n in v.counts.items() %}<li><span class="sy-num">{{ n }}</span> {{ sy.frontier_status(st) }}</li>{% endfor %}
+      </ul>
+    </div>
+    {% call sy.filter_form(v, c, {"tab": "frontier"}) %}
+      {{ sy.select("status", "Status", sy_options(FRONTIER_STATUSES, "frontier"), v.filters.status) }}
+    {% endcall %}
+  </div>
+  {%- if not v.page["items"] %}
+  <div class="sy-plate__body">{{ sy.empty("No frontier items" ~ (" with this status" if v.filters.status else " in this scan"),
+               "The frontier is the queue of actions the crawler planned, did, or refused.") }}</div>
+  {%- else %}
+  <div class="sy-table-wrap sy-table-wrap--flush">
+    <table class="sy-table">
+      <caption class="sy-sr-only">Frontier items</caption>
+      <thead><tr>
+        <th scope="col">{{ sy.term("status-codes", "Status") }}</th><th scope="col">Action</th><th scope="col">{{ sy.term("safety-class", "Safety class") }}</th>
+        <th scope="col" class="sy-num">{{ sy.term("priority-depth", "Depth") }}</th><th scope="col" class="sy-num">{{ sy.term("priority-depth", "Priority") }}</th><th scope="col">{{ sy.term("decision", "Reason") }}</th>
+      </tr></thead>
+      <tbody>
+        {%- for f in v.page["items"] %}
+        <tr>
+          <td>{{ sy.frontier_status(f.status) }}</td>
+          <td><span class="sy-mono sy-mono--sm">{{ f.action_json | jget("role") or "" }}</span> {{ f.action_json | jget("accessible_name") or "" }}
+            {%- set href = f.action_json | jget("href") %}{% if href %} <span class="sy-route sy-muted">→ {{ href }}</span>{% endif %}</td>
+          <td>{{ sy.safety(f.safety_class) }}</td>
+          <td class="sy-num">{{ f.depth }}</td>
+          <td class="sy-num">{{ f.priority }}</td>
+          <td>{{ f.reason or "—" }}</td>
+        </tr>
+        {%- endfor %}
+      </tbody>
+    </table>
+  </div>
+  <div class="sy-plate__foot">{{ sy.pager(v, v.page.total, v.page["items"] | length) }}</div>
+  {%- endif %}
+</div>
+{% endcall %}

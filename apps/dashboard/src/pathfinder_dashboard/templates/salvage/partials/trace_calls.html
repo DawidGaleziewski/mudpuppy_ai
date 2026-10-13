@@ -1,0 +1,106 @@
+{% import "salvage/macros.html" as sy %}
+{% set v = section %}
+{% call sy.region("trace", v.self_url, "Trace") %}
+<div class="sy-plate">
+  <div class="sy-plate__head">
+    <h2 class="sy-plate__title">{{ sy.term("tool-call", "Tool calls") }} <span class="sy-count sy-count--muted">{{ v.page.total }}</span></h2>
+  </div>
+  <div class="sy-plate__body">
+    {% call sy.filter_form(v, c, {"tab": "trace"}) %}
+      <fieldset class="sy-cluster">
+        <legend class="sy-legend-label">Tool</legend>
+        {%- for t in v.tool_options %}
+        <label class="sy-check"><input type="checkbox" name="tool" value="{{ t }}" {% if t in v.filters.tool %}checked{% endif %}> <span class="sy-mono sy-mono--sm">{{ t }}</span></label>
+        {%- endfor %}
+      </fieldset>
+      <fieldset class="sy-cluster">
+        <legend class="sy-legend-label">Status</legend>
+        {%- for st in v.status_options %}
+        <label class="sy-check"><input type="checkbox" name="status" value="{{ st }}" {% if st in v.filters.status %}checked{% endif %}> {{ sy_status_of("span", st).word }}</label>
+        {%- endfor %}
+      </fieldset>
+      <label class="sy-check"><input type="checkbox" name="problems" value="1" {% if v.problems %}checked{% endif %}> Problems only</label>
+    {% endcall %}
+  </div>
+  {%- if not v.page["items"] %}
+  <div class="sy-plate__body">
+    {{ sy.empty(
+      "No trace recorded for this scan"
+        if not v.filters.tool and not v.filters.status and not v.problems
+        else "No problems in this scan" if v.problems and not v.filters.tool and not v.filters.status
+        else "No calls match these filters",
+      "It predates tracing or never reached the server."
+        if not v.filters.tool and not v.filters.status and not v.problems
+        else "Every call and decision completed as expected." if v.problems and not v.filters.tool and not v.filters.status
+        else "Clear the tool, status or problems filters."
+    ) }}
+  </div>
+  {%- else %}
+  <ul class="sy-rows">
+    {%- for s in v.page["items"] %}
+    <li class="sy-row{% if s.between_calls %} sy-row--muted{% endif %}">
+      <details id="trace-call-{{ s.id }}" class="mp-trace-call"
+                hx-get="{{ c.url('/fragments/spans/' ~ s.id ~ '/children') }}"
+                hx-trigger="toggle once" hx-target="find .mp-trace-phases" hx-swap="innerHTML">
+        <summary class="sy-cluster">
+          <span class="sy-num">#{{ s.seq }}</span>
+          <span class="sy-mono">{{ s.name }}</span>
+          {{ sy.span_status(s.status) }}
+          <span class="sy-num">{{ s.duration_ms | duration }}</span>
+          <span class="sy-small">{% if s.rationale %}<span class="sy-muted">Agent-stated:</span> {{ s.rationale }}{% else %}<span class="sy-muted">No rationale recorded</span>{% endif %}</span>
+        </summary>
+        <div class="sy-stack mp-trace-detail">
+          {%- set ac = v.agent_ctx.by_tool_use_id.get(s.tool_use_id) if s.tool_use_id else none %}
+          <dl class="sy-facts">
+            <dt>Agent tokens</dt><dd>
+              {%- if not v.agent_ctx.imported -%}
+                <span class="sy-muted">Not imported. Run <span class="sy-mono sy-mono--sm">pnpm trace:import-agent --agent-id &lt;id&gt;</span></span>
+              {%- elif ac and ac.usage -%}
+                <span class="sy-num">{{ ac.usage.input_tokens or 0 }} in / {{ ac.usage.output_tokens or 0 }} out</span>
+                {%- if ac.usage.cache_read_tokens %} <span class="sy-muted">({{ ac.usage.cache_read_tokens }} cache read)</span>{% endif %}
+              {%- else -%}
+                <span class="sy-muted">No matching agent turn</span>
+              {%- endif -%}
+            </dd>
+            <dt>Preceding agent text</dt><dd>
+              {%- if not v.agent_ctx.imported -%}<span class="sy-muted">Not imported</span>
+              {%- elif ac and ac.text -%}{{ ac.text }}
+              {%- else -%}<span class="sy-muted">None</span>{%- endif -%}
+            </dd>
+            <dt>tool_use_id</dt><dd class="sy-mono sy-mono--sm">{{ s.tool_use_id or "—" }}</dd>
+            <dt>Payload</dt><dd>{% if s.payload_ref %}{{ sy.evidence(s.payload_ref) }}{% else %}<span class="sy-muted">None stored</span>{% endif %}</dd>
+          </dl>
+          {{ sy.json_block(s.attrs_json, "Input / attrs") }}
+          {%- if s.pw_trace_path %}
+          <div class="sy-stack" style="--sy-gap: 4px">
+            <span class="sy-label">Playwright trace</span>
+            <pre class="sy-code">npx playwright show-trace data/{{ s.pw_trace_path }}</pre>
+          </div>
+          {%- endif %}
+          <div class="mp-trace-phases">
+            <span class="sy-caret sy-small sy-muted" aria-hidden="true">Loading phases</span>
+          </div>
+        </div>
+      </details>
+    </li>
+    {%- endfor %}
+  </ul>
+  <div class="sy-plate__foot">{{ sy.pager(v, v.page.total, v.page["items"] | length) }}</div>
+  {%- endif %}
+  {%- if v.agent_ctx.unmatched_agent_calls %}
+  <div class="sy-plate__body"><h3 class="sy-label">Never reached the server <span class="sy-count sy-count--muted">{{ v.agent_ctx.unmatched_agent_calls | length }}</span></h3></div>
+  <ul class="sy-rows">
+    {%- for u in v.agent_ctx.unmatched_agent_calls %}
+    <li class="sy-row">
+      <div class="sy-cluster">
+        {{ sy.status("span", "error") }} <span class="sy-small">never reached the server</span>
+        <span class="sy-mono">{{ u.turn.tool_name }}</span>
+        <span class="sy-mono sy-mono--sm">{{ u.turn.created_at | when }}</span>
+      </div>
+      {%- if u.text %}<p class="sy-small sy-muted">{{ u.text }}</p>{% endif %}
+    </li>
+    {%- endfor %}
+  </ul>
+  {%- endif %}
+</div>
+{% endcall %}

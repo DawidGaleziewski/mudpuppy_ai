@@ -1,0 +1,157 @@
+{% extends "salvage/base.html" %}
+{% import "salvage/macros.html" as sy %}
+{% import "salvage/partials/screens.html" as sc with context %}
+{% set nav_current = "state" %}
+{% set f = p.figure %}
+{% set st = f.state %}
+{% block title %}{{ st.title }}{% endblock %}
+{% block main %}
+<div class="sy-pagehead">
+  <nav class="sy-crumbs" aria-label="Breadcrumb"><a href="{{ c.url('/screens') }}">Screens</a> / {{ st.portal_id }}</nav>
+  <h1 class="sy-h1 sy-case-normal">{{ st.title or "(untitled page)" }}</h1>
+  <div class="sy-cluster sy-meta" style="--sy-gap: 6px 14px">
+    <span class="sy-route">{{ st.route_template }}</span>
+    <span class="sy-mono sy-mono--sm">{{ st.cluster_id }}</span>
+    {{ sy.confidence(st.confidence) }}
+    <span>{{ st.stabilization | replace("_", " ") }}</span>
+  </div>
+</div>
+
+<div class="sy-columns">
+<div class="sy-col-main sy-stack">
+  <nav class="sy-tabs" aria-label="Picture">
+    {%- if f.has_screenshot %}
+    <a class="sy-tab" href="{{ c.url('/states/' ~ st.id) }}"{% if view == "screenshot" %} aria-current="page"{% endif %}>Screenshot</a>
+    {%- endif %}
+    <a class="sy-tab" href="{{ c.url('/states/' ~ st.id, view='wireframe') }}"{% if view == "wireframe" %} aria-current="page"{% endif %}>Wireframe</a>
+  </nav>
+  {%- if view == "screenshot" %}
+  <div class="sy-cluster sy-small">
+    {%- if show_elements %}
+    <a class="sy-btn sy-btn--sm" href="{{ c.url('/states/' ~ st.id) }}">Hide elements</a>
+    {%- else %}
+    <a class="sy-btn sy-btn--sm" href="{{ c.url('/states/' ~ st.id, elements=1) }}">Show elements</a>
+    {%- endif %}
+    <a class="sy-btn sy-btn--sm sy-btn--quiet" href="/evidence/{{ st.screenshot_ref }}" target="_blank" rel="noopener">Full size</a>
+    <span class="sy-muted">{{ p.elements | length }} of {{ p.element_count }} {{ sy.term("element-key", "elements") }} visible on the screenshot</span>
+  </div>
+  {{ sc.figure(f, hl=p.elements if show_elements else [], legend=show_elements, caption="As first recorded") }}
+  {%- else %}
+  {%- if not f.has_screenshot %}<p class="sy-small sy-muted">No screenshot recorded; wireframe shown.</p>{% endif %}
+  {%- if f.wireframe %}
+  <div class="sy-cluster sy-small">
+    <a class="sy-btn sy-btn--sm" href="/evidence/{{ f.wireframe.svg_ref }}?download={{ st.title or 'wireframe' }}">Download SVG</a>
+    <a class="sy-btn sy-btn--sm" href="/evidence/{{ f.wireframe.excalidraw_ref }}?download={{ st.title or 'wireframe' }}">Download Excalidraw</a>
+    <span class="sy-muted">Opens on excalidraw.com or in the Excalidraw VS Code extension</span>
+  </div>
+  {%- endif %}
+  {{ sc.figure(f, hl=[], legend=false, caption="Drawn from the recorded page structure", view="wireframe") }}
+  {%- endif %}
+
+  <div class="sy-plate">
+    <div class="sy-plate__head"><h2 class="sy-plate__title">Reached under <span class="sy-count sy-count--muted">{{ urls.entry_urls | length if urls else 0 }}</span></h2></div>
+    <div class="sy-plate__body"><p class="sy-small sy-muted">Every URL this screen was observed under, with the redirects that led there, and every parameter those URLs carried (spec 019). Nothing is normalised away.</p></div>
+    {%- if not urls %}
+    <div class="sy-plate__body">{{ sy.empty("No URLs recorded for this screen", "Scans before spec 019 kept only the route template.", level=3) }}</div>
+    {%- else %}
+    <div class="sy-table-wrap sy-table-wrap--flush">
+      <table class="sy-table">
+        <caption class="sy-sr-only">URLs this screen was reached under</caption>
+        <thead><tr><th scope="col">URL</th><th scope="col" class="sy-num">Visits</th><th scope="col">Reached by</th></tr></thead>
+        <tbody>
+          {%- for e in urls.entry_urls %}
+          <tr>
+            <td class="sy-mono sy-mono--sm mp-break">{{ e.url }}</td>
+            <td class="sy-num">{{ e.visits }}</td>
+            <td class="sy-small">{{ e.via | join(", ") }}
+              {%- for h in e.last_hops if h.kind != "start" %}<br><span class="sy-muted">{{ h.kind | replace("_", " ") }}{% if h.status %} {{ h.status }}{% endif %} →</span> <span class="sy-mono sy-mono--sm mp-break">{{ h.url }}</span>{% if h.reason %} <span class="sy-muted">({{ h.reason }})</span>{% endif %}{% endfor %}</td>
+          </tr>
+          {%- endfor %}
+        </tbody>
+      </table>
+    </div>
+    {%- if urls.entry_urls_more %}<div class="sy-plate__body"><p class="sy-small sy-muted">And {{ urls.entry_urls_more }} more URLs</p></div>{% endif %}
+    {%- if urls.params %}
+    <div class="sy-plate__body"><h3 class="sy-label">Parameters</h3></div>
+    <div class="sy-table-wrap sy-table-wrap--flush">
+      <table class="sy-table sy-table--dense">
+        <caption class="sy-sr-only">URL parameters</caption>
+        <thead><tr><th scope="col">Name</th><th scope="col">In</th><th scope="col">Values</th><th scope="col" class="sy-num">Distinct</th><th scope="col" class="sy-num">Visits</th></tr></thead>
+        <tbody>
+          {%- for prm in urls.params %}
+          <tr>
+            <td class="sy-mono sy-mono--sm">{{ prm.name }}</td>
+            <td>{{ prm.where | replace("_", " ") }}</td>
+            <td class="sy-mono sy-mono--sm mp-break">{% for v in prm.values %}{{ "(no value)" if v is none else v }}{% if not loop.last %}, {% endif %}{% endfor %}</td>
+            <td class="sy-num">{{ prm.distinct }}</td>
+            <td class="sy-num">{{ prm.visits }}</td>
+          </tr>
+          {%- endfor %}
+        </tbody>
+      </table>
+    </div>
+    {%- endif %}
+    {%- endif %}
+  </div>
+</div>
+
+<aside class="sy-col-side sy-stack">
+  <div class="sy-plate">
+    <div class="sy-plate__head"><h2 class="sy-plate__title">Facts</h2></div>
+    <div class="sy-plate__body">
+      <dl class="sy-facts">
+        <dt>{{ sy.term("cluster", "Cluster") }}</dt><dd class="sy-mono sy-mono--sm">{{ st.cluster_id }}</dd>
+        <dt>First seen</dt><dd>{{ sy.tag(st.first_seen_run[:8], c.url('/runs/' ~ st.first_seen_run), sm=true) }} <span class="sy-mono sy-mono--sm">{{ st.created_at | when }}</span></dd>
+        <dt>{{ sy.term("evidence", "Snapshot") }}</dt><dd>{{ sy.evidence(st.evidence_ref) }}</dd>
+      </dl>
+    </div>
+  </div>
+
+  <div class="sy-plate">
+    <div class="sy-plate__head"><h2 class="sy-plate__title">Cited by <span class="sy-count sy-count--muted">{{ p.citing | length }}</span></h2></div>
+    <div class="sy-plate__body">
+    {%- if not p.citing %}
+      {{ sy.empty("No record cites this screen", "Records cite a screen or a region of its screenshot as evidence.", level=3) }}
+    {%- else %}
+    <ul class="sy-stack sy-small" style="--sy-gap: 6px">
+      {%- for r in p.citing %}
+      <li>{{ sy.tag(r.key, c.url('/docs/' ~ r.portal_id ~ '/' ~ r.key), sm=true) }} {{ r.title }}
+        {%- if r.regions %} <span class="sy-muted">regions:</span> {% for k in r.regions %}<span class="sy-mono sy-mono--sm">{{ k }}</span>{% if not loop.last %}, {% endif %}{% endfor %}{% endif %}</li>
+      {%- endfor %}
+    </ul>
+    {%- endif %}
+    </div>
+  </div>
+
+  <div class="sy-plate sy-plate--drawn">
+    <div class="sy-plate__head"><h2 class="sy-plate__title">Amendments</h2><span class="sy-status" data-status="draft">To-be</span></div>
+    <div class="sy-plate__body sy-stack">
+      <p class="sy-small sy-muted">What the business wants changed on this screen. Intentions, not observations: kept apart from the recorded page and from the documentation of how it works today.</p>
+      {% include "salvage/partials/state_amendments.html" %}
+      <form class="sy-stack" data-json-form="amendment" method="post"
+            action="/chat/portals/{{ st.portal_id | urlencode }}/amendments" data-state="{{ st.id }}" autocomplete="off">
+        <h3 class="sy-label">Add an amendment</h3>
+        <label class="sy-field">
+          <span class="sy-field__label">Applies to</span>
+          <select class="sy-select" name="element">
+            <option value="">The whole screen</option>
+            {%- for key, label in am.elements %}<option value="{{ key }}">{{ label }} · {{ key }}</option>{% endfor %}
+          </select>
+        </label>
+        {%- if not am.elements %}<p class="sy-small sy-muted">No wireframe layout is recorded for this screen, so only the whole screen can be amended.</p>{% endif %}
+        <label class="sy-field">
+          <span class="sy-field__label">Note</span>
+          <textarea class="sy-textarea" name="text" rows="3" maxlength="50000" placeholder="What should be different, and why"></textarea>
+        </label>
+        <label class="sy-field">
+          <span class="sy-field__label">Attachment (optional, up to 8 MB)</span>
+          <input class="sy-input" type="file" name="attachment">
+        </label>
+        <div class="sy-actions"><button class="sy-btn sy-btn--primary" type="submit">Add amendment</button></div>
+        <p class="form-result" role="status" data-result></p>
+      </form>
+    </div>
+  </div>
+</aside>
+</div>
+{% endblock %}

@@ -1,0 +1,59 @@
+{% import "salvage/macros.html" as sy %}
+{% set v = section %}
+{% call sy.region("decisions", v.self_url, "Decisions") %}
+<div class="sy-stack">
+<div class="sy-plate">
+  <div class="sy-plate__head">
+    <h2 class="sy-plate__title">Decision log <span class="sy-count sy-count--muted">{{ v.groups | sum(attribute="count") }}</span></h2>
+    {% call sy.filter_form(v, c, {"tab": "decisions"}) %}
+      {{ sy.select("kind", "Kind", sy_options(DECISION_KINDS), v.filters.kind) }}
+      {{ sy.select("rule", "Rule", sy_options(v.rules), v.filters.rule) }}
+    {% endcall %}
+  </div>
+  {%- if v.groups %}
+  <div class="sy-table-wrap sy-table-wrap--flush">
+    <table class="sy-table sy-table--dense">
+      <caption class="sy-sr-only">Decisions by rule</caption>
+      <thead><tr><th scope="col">Kind</th><th scope="col">Rule</th><th scope="col" class="sy-num">Count</th><th scope="col">Example reason</th></tr></thead>
+      <tbody>
+        {%- for g in v.groups %}
+        <tr>
+          <td>{{ sy.decision_kind(g.kind) }}</td>
+          <td class="sy-mono sy-mono--sm">{{ g.rule or "—" }}</td>
+          <td class="sy-num">{{ g.count }}</td>
+          <td>{{ g.example_reason }}</td>
+        </tr>
+        {%- endfor %}
+      </tbody>
+    </table>
+  </div>
+  {%- endif %}
+</div>
+<div class="sy-plate">
+  <div class="sy-plate__head"><h3 class="sy-plate__title">Entries</h3></div>
+  {%- if not v.page["items"] %}
+  <div class="sy-plate__body">{{ sy.empty("No decisions" ~ (" match these filters" if v.filters.kind or v.filters.rule else " logged in this scan"),
+               "Every skip, refusal, merge, split and warning is logged with the rule that applied.", level=3) }}</div>
+  {%- else %}
+  <div class="sy-table-wrap sy-table-wrap--flush">
+    <table class="sy-table">
+      <caption class="sy-sr-only">Decision log entries</caption>
+      <thead><tr><th scope="col">Kind</th><th scope="col">Rule</th><th scope="col">Reason</th><th scope="col">Subject</th><th scope="col">At (UTC)</th></tr></thead>
+      <tbody>
+        {%- for d in v.page["items"] %}
+        <tr id="{{ d.id }}">
+          <td>{{ sy.decision_kind(d.kind) }}</td>
+          <td class="sy-mono sy-mono--sm">{{ d.rule or "—" }}</td>
+          <td>{{ d.reason }}{% if d.detail_json is not none %}{{ sy.json_block(d.detail_json, "Detail") }}{% endif %}</td>
+          <td class="sy-mono sy-mono--sm">{{ d.subject_ref or "—" }}</td>
+          <td class="sy-mono sy-mono--sm">{{ d.created_at | when }}</td>
+        </tr>
+        {%- endfor %}
+      </tbody>
+    </table>
+  </div>
+  <div class="sy-plate__foot">{{ sy.pager(v, v.page.total, v.page["items"] | length) }}</div>
+  {%- endif %}
+</div>
+</div>
+{% endcall %}

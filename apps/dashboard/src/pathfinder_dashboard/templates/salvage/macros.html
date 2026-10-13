@@ -99,3 +99,132 @@
 {% macro empty(title, body=None, level=2) -%}
   <section class="sy-state"><h{{ level }} class="sy-state__title">{{ title }}</h{{ level }}>{% if body %}<p class="sy-muted">{{ body }}</p>{% endif %}</section>
 {%- endmacro %}
+
+{#- ---- Console-compatible names (spec 022 Track 1): same signatures as partials/macros.html, so a
+    page's salvage twin keeps its structure and only changes markup. ---- -#}
+{% macro run_status(value, with_text=true) -%}{{ status("run", value) }}{%- endmacro %}
+{% macro frontier_status(value) -%}{{ status("frontier", value) }}{%- endmacro %}
+{% macro decision_kind(value) -%}{{ status("decision", value) }}{%- endmacro %}
+{% macro span_status(value) -%}{{ status("span", value) }}{%- endmacro %}
+{% macro span_kind(value) -%}{{ status("span_kind", value) }}{%- endmacro %}
+{% macro doc_status(value) -%}{{ status("doc", value) }}{%- endmacro %}
+{% macro followup_status(value) -%}{{ status("followup", value) }}{%- endmacro %}
+{% macro review_action(value) -%}{{ status("review", value) }}{%- endmacro %}
+{% macro process_outcome(value) -%}{{ status("outcome", value) }}{%- endmacro %}
+{% macro step_status(value) -%}{{ status("step", value) }}{%- endmacro %}
+{% macro amendment_status(value) -%}{{ status("amendment", value) }}{%- endmacro %}
+{% macro allowed(flag) -%}{{ status("allowed", "yes" if flag else "no") }}{%- endmacro %}
+
+{#- Safety class: a classification, not a state, so a mono word (no status shape). -#}
+{% macro safety(value) -%}<span class="sy-mono sy-mono--sm">{{ value }}</span>{%- endmacro %}
+
+{% macro evidence(ref) -%}
+  <a class="sy-mono sy-mono--sm" href="/evidence/{{ ref | urlencode }}" title="evidence: data/evidence/{{ ref }}">{{ ref }}</a>
+{%- endmacro %}
+
+{#- Text is the signal: a gap in what the crawler could observe (spec 004 FR-006). -#}
+{% macro not_observable() -%}<span class="sy-status" data-status="unobserved">Not observed</span>{%- endmacro %}
+
+{#- A trace event's `url`/`redirect_to` attr: {origin, route, query_keys} (shapeUrl, never raw). -#}
+{% macro shaped_url(u) -%}
+  {%- if u %}<span class="sy-route">{{ u.route }}</span>{% if u.query_keys %}<span class="sy-muted sy-mono sy-mono--sm">?{{ u.query_keys | join(",") }}</span>{% endif %}{% if u.origin %} <span class="sy-muted sy-mono sy-mono--sm">{{ u.origin }}</span>{% endif %}{% else %}<span class="sy-muted">—</span>{% endif -%}
+{%- endmacro %}
+
+{% macro json_block(value, label="JSON") -%}
+  <details class="sy-disclosure">
+    <summary>{{ label }}</summary>
+    <div class="sy-disclosure__body"><pre class="sy-code">{{ value | pretty_json }}</pre></div>
+  </details>
+{%- endmacro %}
+
+{#- A Mermaid diagram: the source is the no-JS fallback and the text alternative. -#}
+{% macro diagram(source, caption) -%}
+  <figure class="mp-diagram">
+    <figcaption class="sy-label">{{ caption }}</figcaption>
+    <pre class="mermaid">{{ source }}</pre>
+  </figure>
+{%- endmacro %}
+
+{#- Structured detail for a trace event, by name (contracts/005 trace-spans.md "Names"). -#}
+{% macro trace_event_detail(e, c, run_id) -%}
+  {%- set a = e.attrs_json -%}
+  {%- if e.name == "gate_decision" %}
+    <dl class="sy-facts">
+      <dt>Input</dt><dd>{{ a.input_kind }}{% if a.url %} · {{ shaped_url(a.url) }}{% elif a.action %} · <span class="sy-mono sy-mono--sm">{{ a.action.role }}</span> “{{ a.action.accessible_name }}”{% endif %}</dd>
+      <dt>Safety class</dt><dd>{{ safety(a.safety_class) }}</dd>
+      <dt>Verdict</dt><dd>{{ allowed(a.allowed) }}{% if a.rule %} <span class="sy-mono sy-mono--sm">{{ a.rule }}</span>{% endif %}</dd>
+      {%- if a.reason %}<dt>Reason</dt><dd>{{ a.reason }}</dd>{% endif %}
+    </dl>
+  {%- elif e.name == "robots_check" %}
+    <dl class="sy-facts">
+      <dt>URL</dt><dd>{{ shaped_url(a.url) }}</dd>
+      <dt>Rule</dt><dd class="sy-mono sy-mono--sm">{{ a.rule or "—" }}</dd>
+      <dt>Action</dt><dd>{{ allowed(a.action == "allowed") }}</dd>
+    </dl>
+  {%- elif e.name == "request" %}
+    <dl class="sy-facts">
+      <dt>Request</dt><dd><span class="sy-mono sy-mono--sm">{{ a.method }}</span> {{ a.resource_type }} {{ shaped_url(a.url) }}{% if a.main_frame %} <span class="sy-muted">main frame</span>{% endif %}</dd>
+      <dt>Decision</dt><dd>{{ a.decision }}{% if a.reason %} · {{ a.reason }}{% endif %}{% if a.status %} · <span class="sy-num">{{ a.status }}</span>{% endif %}{% if a.failed %} · {{ status("span", "error") }}{% endif %}</dd>
+      {%- if a.robots_rule %}<dt>Robots rule</dt><dd class="sy-mono sy-mono--sm">{{ a.robots_rule }}</dd>{% endif %}
+      {%- if a.redirect_to %}<dt>Redirect to</dt><dd>{{ shaped_url(a.redirect_to) }}</dd>{% endif %}
+      {%- if a.limiter_wait_ms %}<dt>Limiter wait</dt><dd class="sy-num">{{ a.limiter_wait_ms }} ms</dd>{% endif %}
+    </dl>
+  {%- elif e.name == "block_verdict" %}
+    <dl class="sy-facts">
+      <dt>Signature</dt><dd class="sy-mono sy-mono--sm">{{ a.signature }}</dd>
+      <dt>Response status</dt><dd class="sy-num">{{ a.status }}</dd>
+      <dt>URL</dt><dd>{{ shaped_url(a.url) }}</dd>
+    </dl>
+  {%- elif e.name == "decision" %}
+    <dl class="sy-facts">
+      <dt>Kind</dt><dd>{{ decision_kind(a.kind) }}</dd>
+      <dt>Rule</dt><dd class="sy-mono sy-mono--sm">{{ a.rule or "—" }}</dd>
+      <dt>Decision log</dt><dd>
+        {%- if run_id and a.rule -%}
+        <a href="{{ c.url('/runs/' ~ run_id, tab='decisions', rule=a.rule) }}">View <span class="sy-mono sy-mono--sm">{{ a.decision_id | short_id }}</span></a>
+        {%- else -%}<span class="sy-mono sy-mono--sm">{{ a.decision_id or "—" }}</span>{%- endif -%}
+      </dd>
+    </dl>
+  {%- elif e.name == "fingerprint_assign" %}
+    <dl class="sy-facts">
+      <dt>Route</dt><dd class="sy-route">{{ a.route_template }}</dd>
+      <dt>Decision</dt><dd>{{ a.decision }}{% if a.matched %} · matched existing{% else %} · new state{% endif %}</dd>
+      <dt>Cluster</dt><dd class="sy-mono sy-mono--sm">{{ a.cluster_id or "—" }}</dd>
+      <dt>Similarity</dt><dd class="sy-num">{{ "%.3f" | format(a.similarity) if a.similarity is not none else "—" }} <span class="sy-muted">(threshold {{ "%.3f" | format(a.threshold) if a.threshold is not none else "—" }})</span></dd>
+    </dl>
+  {%- elif e.name in ("frontier_enqueue", "frontier_skip") %}
+    <dl class="sy-facts">
+      <dt>Action</dt><dd><span class="sy-mono sy-mono--sm">{{ a.action }}</span> {{ safety(a.safety_class) }}</dd>
+      <dt>Priority / depth</dt><dd class="sy-num">{{ a.priority }} / {{ a.depth }}</dd>
+      {%- if a.rule %}<dt>Rule</dt><dd><span class="sy-mono sy-mono--sm">{{ a.rule }}</span>{% if a.reason %} · {{ a.reason }}{% endif %}</dd>{% endif %}
+    </dl>
+  {%- elif e.name == "frontier_pick" %}
+    <dl class="sy-facts">
+      {%- if a.frontier_id %}
+      <dt>Picked</dt><dd class="sy-num">priority {{ a.priority }}, depth {{ a.depth }}</dd>
+      {%- else %}
+      <dt>Picked</dt><dd class="sy-muted">nothing{% if a.reason %} · {{ a.reason }}{% endif %}</dd>
+      {%- endif %}
+      <dt>Pending</dt><dd class="sy-num">{{ a.pending }}</dd>
+    </dl>
+  {%- elif e.name == "stabilization_timeout" %}
+    <dl class="sy-facts">
+      <dt>Timeout</dt><dd class="sy-num">{{ a.timeout_ms }} ms</dd>
+      <dt>Since last mutation</dt><dd class="sy-num">{{ a.since_mutation_ms }} ms</dd>
+      <dt>Running animations</dt><dd class="sy-num">{{ a.running_animations }}</dd>
+    </dl>
+    {%- if a.in_flight %}
+    <ul class="sy-small">
+      {%- for r in a.in_flight %}
+      <li><span class="sy-mono sy-mono--sm">{{ r.resource_type }}</span> {{ r.url }} <span class="sy-muted sy-num">{{ r.age_ms }} ms in flight</span></li>
+      {%- endfor %}
+    </ul>
+    {%- endif %}
+  {%- elif e.name == "obstacle" %}
+    <dl class="sy-facts">
+      <dt>Obstacle</dt><dd class="sy-mono sy-mono--sm">{{ a.obstacle_id }}</dd>
+      <dt>Selector</dt><dd class="sy-mono sy-mono--sm">{{ a.selector }}</dd>
+      <dt>Dismissed by</dt><dd>{{ a.via }}</dd>
+    </dl>
+  {%- endif -%}
+{%- endmacro %}

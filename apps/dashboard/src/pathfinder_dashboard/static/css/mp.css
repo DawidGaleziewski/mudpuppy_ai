@@ -18,4 +18,28 @@
   }
   .mp-menu a { display: block; padding: var(--sy-space-2) var(--sy-space-3); }
   .mp-menu a[aria-current="true"] { color: var(--sy-strong); border-inline-start: 2px solid var(--sy-intent); }
+
+  /* Long URLs and ids break anywhere instead of widening the page. */
+  .mp-break { overflow-wrap: anywhere; }
+
+  /* Thumbnails in tables. */
+  .mp-thumb-cell { inline-size: 8rem; }
+
+  /* A recorded capture: the image fills the frame; highlights are positioned over it. */
+  .mp-shot { padding: 0; }
+  .mp-shot > a { display: block; }
+  .mp-figure { margin: 0; }
+
+  /* Trace: expandable call rows, nested events, time-per-phase bar. */
+  .mp-trace-call > summary { cursor: pointer; }
+  .mp-trace-detail { padding-block-start: var(--sy-space-3); }
+  .mp-indent { padding-inline-start: var(--sy-space-4); }
+  .mp-phase-bar { display: flex; block-size: var(--sy-space-2); margin-block: var(--sy-space-2);
+    background: var(--sy-bg-well); border: 1px solid var(--sy-border-weld); }
+  .mp-phase-bar__seg { inline-size: var(--value); background: var(--sy-active); border-inline-end: 1px solid var(--sy-bg-ground); }
+  .mp-phase-bar__seg[data-status="failed"] { background: var(--sy-fail); }
+
+  /* Mermaid diagrams render on the light paper ground, like recorded pages. */
+  .mp-diagram { margin: 0; }
+  .mp-diagram .mermaid { overflow: auto; background: var(--sy-paper); color: var(--sy-paper-ink); padding: var(--sy-space-3); }
 }

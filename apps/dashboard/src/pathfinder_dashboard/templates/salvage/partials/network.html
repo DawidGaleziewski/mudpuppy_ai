@@ -1,0 +1,28 @@
+{% import "salvage/macros.html" as sy %}
+{% set v = section %}
+{% call sy.region("network", v.self_url, "Network") %}
+<div class="sy-plate">
+  <div class="sy-plate__head"><h2 class="sy-plate__title">{{ sy.term("network-call-shape", "Network call shapes") }} <span class="sy-count sy-count--muted">{{ v.page.total }}</span></h2></div>
+  {%- if not v.page["items"] %}
+  <div class="sy-plate__body">{{ sy.empty("No network calls recorded in this scan", "Only request and response shapes are stored.") }}</div>
+  {%- else %}
+  <div class="sy-table-wrap sy-table-wrap--flush">
+    <table class="sy-table">
+      <caption class="sy-sr-only">Network call shapes</caption>
+      <thead><tr><th scope="col">Call</th><th scope="col" class="sy-num">Status</th><th scope="col">Shapes</th><th scope="col">Console errors</th></tr></thead>
+      <tbody>
+        {%- for n in v.page["items"] %}
+        <tr id="{{ n.id }}">
+          <td><span class="sy-route">{{ n.method }} {{ n.url_template }}</span><div class="sy-small sy-muted">{% if n.edge_id %}edge <span class="sy-mono sy-mono--sm">{{ n.edge_id }}</span>{% else %}on screen load{% endif %}</div></td>
+          <td class="sy-num">{{ sy.status("http", "error" if n.status >= 400 else "ok", n.status) }}</td>
+          <td class="sy-stack" style="--sy-gap: 4px">{{ sy.json_block(n.req_schema, "Request") }}{{ sy.json_block(n.res_schema, "Response") }}</td>
+          <td>{% if n.console_errors %}{{ sy.json_block(n.console_errors, (n.console_errors | length) ~ " errors") }}{% else %}<span class="sy-muted">None</span>{% endif %}</td>
+        </tr>
+        {%- endfor %}
+      </tbody>
+    </table>
+  </div>
+  <div class="sy-plate__foot">{{ sy.pager(v, v.page.total, v.page["items"] | length) }}</div>
+  {%- endif %}
+</div>
+{% endcall %}

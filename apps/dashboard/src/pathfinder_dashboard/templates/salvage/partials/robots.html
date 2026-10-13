@@ -1,0 +1,29 @@
+{% import "salvage/macros.html" as sy %}
+{% set v = section %}
+{% call sy.region("robots", v.self_url, "Robots") %}
+<div class="sy-plate">
+  <div class="sy-plate__head"><h2 class="sy-plate__title">robots.txt policies <span class="sy-count sy-count--muted">{{ v["items"] | length }}</span></h2></div>
+  {%- if not v["items"] %}
+  <div class="sy-plate__body">{{ sy.empty("No robots.txt fetched in this scan", "The policy is fetched per host before the first page loads, unless the portal ignores robots.txt.") }}</div>
+  {%- else %}
+  <div class="sy-table-wrap sy-table-wrap--flush">
+    <table class="sy-table">
+      <caption class="sy-sr-only">robots.txt policies</caption>
+      <thead><tr><th scope="col">Host</th><th scope="col">Outcome</th><th scope="col">Group</th><th scope="col">Crawl delay</th><th scope="col">Fetched (UTC)</th><th scope="col">Evidence</th></tr></thead>
+      <tbody>
+        {%- for p in v["items"] %}
+        <tr>
+          <td>{{ p.host }}<div class="sy-small sy-muted sy-mono sy-mono--sm">{{ p.final_url or p.source_url }}</div></td>
+          <td>{{ sy.status("robots", p.outcome) }}{% if p.http_status %} <span class="sy-small">HTTP {{ p.http_status }}</span>{% endif %}{% if p.truncated %} <span class="sy-small sy-muted">truncated</span>{% endif %}</td>
+          <td>{{ p.group_used or "—" }} <span class="sy-muted">as {{ p.product_token }}</span></td>
+          <td class="sy-num">{{ (p.crawl_delay_s ~ "s") if p.crawl_delay_s is not none else "—" }}</td>
+          <td class="sy-mono sy-mono--sm">{{ p.fetched_at | when }}</td>
+          <td>{{ sy.evidence(p.evidence_ref) }}</td>
+        </tr>
+        {%- endfor %}
+      </tbody>
+    </table>
+  </div>
+  {%- endif %}
+</div>
+{% endcall %}

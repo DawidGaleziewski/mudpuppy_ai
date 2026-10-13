@@ -118,6 +118,12 @@ VOCABULARIES: dict[str, dict[str, Status]] = {
         "needs_confirmation": _s("needs", "Needs confirmation"),
     },
     "allowed": {"yes": _s("ok", "Allowed"), "no": _s("skipped", "Skipped")},
+    "robots": {
+        "rules": _s("ok", "Rules"),
+        "no_rules": _s("ok", "No rules"),
+        "unreachable": _s("failed", "Unreachable"),
+    },
+    "http": {"ok": _s("ok", "OK"), "error": _s("failed", "Error")},
     "assistant": {
         "up": _s("ok", "Assistant up"),
         "down": _s("failed", "Assistant down"),

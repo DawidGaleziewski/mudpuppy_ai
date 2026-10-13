@@ -1,0 +1,36 @@
+{% import "salvage/macros.html" as sy %}
+{% set v = section %}
+{% call sy.region("docs", v.self_url, "Documentation citing this scan") %}
+<div class="sy-plate">
+  <div class="sy-plate__head"><h2 class="sy-plate__title">Documentation citing this scan <span class="sy-count sy-count--muted">{{ v.page.total }}</span></h2></div>
+  {%- if not v.page["items"] %}
+  <div class="sy-plate__body">{{ sy.empty("No documentation cites this scan", "Records appear here once the BA agent cites this scan's screens, actions, forms, calls or decisions as evidence.") }}</div>
+  {%- else %}
+  <div class="sy-table-wrap sy-table-wrap--flush">
+    <table class="sy-table">
+      <caption class="sy-sr-only">Records whose latest revision cites this scan</caption>
+      <thead><tr><th scope="col">{{ sy.term("documentation-record", "Record") }}</th><th scope="col">{{ sy.term("record-status", "Status") }}</th><th scope="col">{{ sy.term("confidence", "Confidence") }}</th><th scope="col">{{ sy.term("evidence-link", "Cites") }}</th></tr></thead>
+      <tbody>
+        {%- for item in v.page["items"] %}
+        {%- set row = item.row %}
+        <tr id="{{ row.record.key }}">
+          <td>{{ sy.tag(row.record.key, c.url('/docs/' ~ row.record.portal_id ~ '/' ~ row.record.key), sm=true) }} {{ row.record.title }}
+            <div class="sy-small sy-muted">{{ row.record.kind | replace("_", " ") }} · {{ sy.tag("rev " ~ row.rev_no, sm=true) }}</div></td>
+          <td>{{ sy.doc_status(row.status) }}</td>
+          <td>{{ sy.confidence(row.confidence) }}</td>
+          <td>
+            <ul class="sy-small">
+              {%- for link in item.cites %}
+              <li>{% if EVIDENCE_TABS.get(link.target_kind) %}<a href="{{ c.url('/runs/' ~ v.run.id, tab=EVIDENCE_TABS[link.target_kind]) }}#{{ link.target_id }}">{{ link.target_kind | replace("_", " ") }} <span class="sy-mono sy-mono--sm">{{ link.target_id | short_id }}</span></a>{% else %}{{ link.target_kind | replace("_", " ") }} <span class="sy-mono sy-mono--sm">{{ link.target_id | short_id }}</span>{% endif %}{% if link.note %} <span class="sy-muted">· {{ link.note }}</span>{% endif %}</li>
+              {%- endfor %}
+            </ul>
+          </td>
+        </tr>
+        {%- endfor %}
+      </tbody>
+    </table>
+  </div>
+  <div class="sy-plate__foot">{{ sy.pager(v, v.page.total, v.page["items"] | length) }}</div>
+  {%- endif %}
+</div>
+{% endcall %}
