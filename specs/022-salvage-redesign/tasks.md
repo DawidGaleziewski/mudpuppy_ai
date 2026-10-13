@@ -44,7 +44,7 @@ tiers green and an interim merge to master behind `UI_SALVAGE`.
 - [x] T023 [opus] Home (screen 01): assistant as main column, conversation picker, suggestions, scan line, Where this portal is, Needs you (D-17 rules), Processes summary
 - [x] T024 [opus] Drawer (screens 02–03): `aside.sy-drawer` on every page, This page / Whole yard, context tags per page type, the six states (empty, working, credential, applied, page changed, not running)
 - [x] T025 [opus] Chat service: message `context` payload; MCP chat tools `page_context`, `highlight_element`, `open_page`, `propose_change`; SSE events the drawer acts on; tests with the fake ACP agent (5028fb2, c1c5f9d; plus `request_credential`)
-- [ ] T026 [sonnet] Proposals: stored as pending revisions; Apply → revision + Undo; stale proposal disabled; FE-A04 e2e — done except the browser e2e (service + route + render tests, c1c5f9d)
+- [x] T026 [sonnet] Proposals: stored as pending revisions; Apply → revision + Undo; stale proposal disabled; FE-A04 e2e (service + route + render tests, c1c5f9d; browser e2e `apps/chat/tests/proposals-browser.e2e.test.ts`, `pnpm --dir apps/chat test:e2e`)
 - [x] T027 [sonnet] Credential request in chat with a vault field (FE-A05), value never echoed; DOM/log check
 - [x] T028 [sonnet] Chat down (FE-A06): drawer failure state; pages keep working — no ERR reference for this case (F-08, owner 2026-10-14)
 - Page context covers screen, docs record and scan pages; Processes and Review pages add theirs when they land (M4, M5). "Needs you" links proposals to Home until the Review inbox lists them (T029).
