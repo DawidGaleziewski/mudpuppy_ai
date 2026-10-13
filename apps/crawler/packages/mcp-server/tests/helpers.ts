@@ -38,7 +38,6 @@ export async function makeCtx(
     environment: 'sandbox',
     server: 'pathfinder',
     version: 'test',
-    pwTrace: 'non_production',
   });
   cleanups.push(async () => {
     await tracer.shutdown();
@@ -52,7 +51,6 @@ export async function makeCtx(
     decisions: linkDecisions(createDecisionLog(opened.db, logger), tracer),
     logger,
     tracer,
-    pwTrace: 'non_production',
     root: dir,
     dbEnvironment: 'production',
     // No test reaches the network: robots.txt answers 404 (no rules) unless a test overrides it.

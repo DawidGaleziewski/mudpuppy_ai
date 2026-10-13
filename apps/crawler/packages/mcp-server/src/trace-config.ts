@@ -1,23 +1,21 @@
 import { execFileSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
-import type { PwTraceMode, TraceLevel } from '@pathfinder/trace';
+import type { TraceLevel } from '@pathfinder/trace';
 
 const LEVELS: readonly TraceLevel[] = ['off', 'standard', 'verbose'];
 
 /**
  * `PATHFINDER_TRACE_LEVEL` (default `standard`, research §10). Playwright traces are recorded on
- * every environment (spec 021), so the boot mode is always `all`.
+ * every environment (spec 021), so there is no Playwright trace mode to configure.
  */
 export function traceConfigFromEnv(env: NodeJS.ProcessEnv): {
   level: TraceLevel;
-  pwTrace: PwTraceMode;
   invalidLevel?: string;
 } {
   const raw = env.PATHFINDER_TRACE_LEVEL?.trim().toLowerCase();
   const valid = LEVELS.find((l) => l === raw);
   return {
     level: valid ?? 'standard',
-    pwTrace: 'all',
     ...(raw && !valid ? { invalidLevel: raw } : {}),
   };
 }

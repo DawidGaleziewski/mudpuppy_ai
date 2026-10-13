@@ -98,7 +98,6 @@ export async function gateServer(
     environment: 'sandbox',
     server: 'pathfinder',
     version: 'gate',
-    pwTrace: 'non_production',
   });
   const keyPath = join(dir, 'vault.key');
   const vault = createVaultStore(opened.db, loadKey({ path: keyPath, create: true }));
@@ -122,7 +121,6 @@ export async function gateServer(
     decisions: linkDecisions(createDecisionLog(opened.db, logger), tracer),
     logger,
     tracer,
-    pwTrace: 'non_production',
     root: dir,
     dbEnvironment: 'sandbox',
     fetch,

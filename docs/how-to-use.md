@@ -54,8 +54,8 @@ To work on a site that is not in the list (for example wikipedia.org), choose **
   least one; leave the others empty. The crawler starts at that address and stays on its domain
   and subdomains. A public site (like wikipedia.org) is **production**.
 - **The most a scan may do here**, per environment: by default up to filling in and submitting
-  forms. This is a ceiling: each scan still only looks unless you allow edits when the assistant
-  asks (below). Choose **only look, never submit** to rule edits out for that environment.
+  forms. This is a ceiling: each scan goes up to it unless you ask that scan to only look
+  (below). Choose **only look, never submit** to rule edits out for that environment.
 - **robots.txt**: **ignore it** (default) visits every page, whatever the site's robots.txt
   says; **respect it** follows it. Ignoring it, and checking the site's terms, is your
   responsibility.
@@ -65,12 +65,11 @@ Ask *"scan it"*; if the portal has several environments, the assistant asks whic
 *"scan production"*). If the name is taken or an address is wrong, the form says why and keeps
 what you typed.
 
-Before each new scan the assistant asks two things (answer both in one line, or say them in your
-request, e.g. *"scan it, you may submit forms, skip images"*):
+A scan fills in and submits forms up to the environment's limit, on production too, where that
+really happens on the live site. To keep a scan read-only, say so in your request, e.g. *"scan
+it, only look"*. Before each new scan the assistant asks one thing (or say it in your request,
+e.g. *"scan it, skip images"*):
 
-- **Read-only, or may it fill in and submit forms?** Read-only is the default. If you allow it,
-  the scan fills in and submits forms up to the environment's limit, on production too, where
-  that really happens on the live site. No further warnings.
 - **Load images, or skip them?** Images load by default, so you can see what each page asks for.
   Skipping them maps image-heavy sites much faster; every skipped image shows an
   **"Image skipped: images turned off for this scan"** box in the screenshot where it would be.
@@ -241,7 +240,8 @@ starts from its start page; the stopped run keeps what it recorded.
 To record just one thing a visitor does, say it: *"map searching for a pickle on English
 Wikipedia"*. The assistant starts a **process trace**: the crawler walks that one process
 toward its goal (here: the search results are shown) instead of mapping everything. It asks the
-same two questions as for a scan (read-only is enough for searching) and takes a focus too. The
+same question as for a scan, follows your "only look" if you say it (read-only is enough for
+searching) and takes a focus too. The
 **Map a process** step shows its progress. A stopped trace is started again, not resumed.
 
 The run's own page (Overview → the run) shows what it recorded, its status, and the trace of

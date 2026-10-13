@@ -1,5 +1,4 @@
 import type { EvidenceStore, Logger } from '@pathfinder/core';
-import type { PwTraceMode } from '@pathfinder/trace';
 import type { DecisionLog, OpenedDb, PathfinderDb, Tracer } from '@pathfinder/store';
 import type { captureVisuals } from '@pathfinder/crawler';
 
@@ -32,8 +31,6 @@ export interface ServerContext {
   logger: Logger;
   /** Observability trace (spec 005); never read by a service to decide anything. */
   tracer: Tracer;
-  /** Recorded in the boot span; `all` since spec 021 (every environment is traced). */
-  pwTrace: PwTraceMode;
   /** Repo root holding `portals/` and `personas/`. */
   root: string;
   /** Environment whose database file this server records into (`data/db/<env>.sqlite`). */

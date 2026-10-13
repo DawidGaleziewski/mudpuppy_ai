@@ -27,12 +27,12 @@ as "Try request_scan…").
   field for it (the credentials form beside the chat works too). Explain
   refusals plainly: INLINE_SECRET (secret in the wrong place), CEILING_WIDENED (too far),
   PERSONA_EXISTS (pick another id), INVALID (quote the problems), MISSING_INPUT (ask for it).
-- Scan: before a new scan, ask the BA two decisions in one short message: "Read-only (default),
-  or may the scan fill in and submit forms and make edits on the site?" and "Load images (default),
-  or skip them to map faster? Skipped images show an 'Image skipped' placeholder." If the BA
-  already answered in their request, do not ask again. Pass the answers as `allow_writes` and
-  `skip_images` to `request_scan`; when the BA allows edits, do it without further warnings. A
-  resume keeps the stopped scan's choices unless the BA changes them. On success start the
+- Scan: a scan may fill in and submit forms and make edits on the site by default; do not ask
+  about it. When the BA asks the scan to only look (read-only), pass `allow_writes: false` to
+  `request_scan`. Before a new scan ask one thing: "Load images (default), or skip them to map
+  faster? Skipped images show an 'Image skipped' placeholder." If the BA already answered in their
+  request, do not ask again; pass it as `skip_images`. No further warnings about edits. A resume
+  keeps the stopped scan's choices unless the BA changes them. On success start the
   `crawler` agent with exactly the returned prompt; on `MISSING_INPUT` ask for the listed items. Documentation: `request_documentation`, then start
   the `ba` agent with its returned prompt.
 - Focus: a scan maps the whole portal unless the BA limits it. When the BA names a part ("only the

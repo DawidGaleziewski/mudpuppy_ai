@@ -2,23 +2,18 @@ import { describe, expect, it } from 'vitest';
 import { serverVersion, traceConfigFromEnv } from '../src/trace-config.js';
 
 describe('traceConfigFromEnv', () => {
-  it('defaults to standard; Playwright traces on every environment (spec 021)', () => {
-    expect(traceConfigFromEnv({})).toEqual({ level: 'standard', pwTrace: 'all' });
+  it('defaults to standard', () => {
+    expect(traceConfigFromEnv({})).toEqual({ level: 'standard' });
   });
   it('reads PATHFINDER_TRACE_LEVEL', () => {
     expect(traceConfigFromEnv({ PATHFINDER_TRACE_LEVEL: 'Verbose' })).toEqual({
       level: 'verbose',
-      pwTrace: 'all',
     });
-    expect(traceConfigFromEnv({ PATHFINDER_TRACE_LEVEL: 'off' })).toEqual({
-      level: 'off',
-      pwTrace: 'all',
-    });
+    expect(traceConfigFromEnv({ PATHFINDER_TRACE_LEVEL: 'off' })).toEqual({ level: 'off' });
   });
   it('falls back to standard on an unknown level and reports it', () => {
     expect(traceConfigFromEnv({ PATHFINDER_TRACE_LEVEL: 'debug' })).toEqual({
       level: 'standard',
-      pwTrace: 'all',
       invalidLevel: 'debug',
     });
   });

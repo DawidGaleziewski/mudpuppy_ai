@@ -121,7 +121,6 @@ describe('linkDecisions (research §2)', () => {
       environment: 'sandbox',
       server: 'pathfinder',
       version: 't',
-      pwTrace: 'non_production',
     });
     const spans = () =>
       s.raw.prepare('SELECT * FROM trace_spans ORDER BY seq').all() as Record<string, unknown>[];

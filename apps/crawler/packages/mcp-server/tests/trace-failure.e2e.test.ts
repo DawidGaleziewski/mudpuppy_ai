@@ -103,7 +103,6 @@ describe('a crashed server leaves its in-flight call unfinished', () => {
       environment: 'production',
       server: 'pathfinder',
       version: 'test',
-      pwTrace: 'non_production',
     });
     expect(await next.sweepUnfinished()).toBe(1);
     expect(

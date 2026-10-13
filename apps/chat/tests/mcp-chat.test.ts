@@ -322,7 +322,7 @@ describe('pathfinder-chat MCP server', () => {
     expect(c.body.error?.message).toContain('is completed; only a stopped');
   });
 
-  it('request_scan maps read-only with images by default; the BA’s choices reach the crawler brief (FR-013, FR-014)', async () => {
+  it('request_scan may act with images by default; the BA’s choices reach the crawler brief (FR-013, FR-014)', async () => {
     const prompt = async (args: Record<string, unknown>) => {
       const r = await call('request_scan', {
         portal: 'reference-insurer',
@@ -331,15 +331,16 @@ describe('pathfinder-chat MCP server', () => {
       });
       return (r.body.handoff as { prompt: string }).prompt;
     };
+    // Owner 2026-10-14: a chat scan may fill and submit forms unless the BA says "only look".
     const plain = await prompt({});
-    expect(plain).toContain('max_action_class "read"');
-    // The server enforces read-only; the brief must not forbid allowed searches (F-10).
-    expect(plain).toContain('act on every action it marks allowed, searching included');
-    expect(plain).not.toContain('no form is filled');
+    expect(plain).toContain('max_action_class "external-side-effect"');
     expect(plain).toContain('skip_images false');
-    const writes = await prompt({ allow_writes: true, skip_images: true });
-    expect(writes).toContain('max_action_class "external-side-effect"');
-    expect(writes).toContain('skip_images true');
+    const look = await prompt({ allow_writes: false, skip_images: true });
+    expect(look).toContain('max_action_class "read"');
+    // The server enforces read-only; the brief must not forbid allowed searches (F-10).
+    expect(look).toContain('act on every action it marks allowed, searching included');
+    expect(look).not.toContain('no form is filled');
+    expect(look).toContain('skip_images true');
     const stopped = seedRun('interrupted');
     const resumed = await prompt({ resume_run_id: stopped });
     expect(resumed).not.toContain('max_action_class');
@@ -394,7 +395,7 @@ describe('pathfinder-chat MCP server', () => {
     const prompt = (r.body.handoff as { prompt: string }).prompt;
     expect(prompt).toContain('mode "trace"');
     expect(prompt).toContain(JSON.stringify(process));
-    expect(prompt).toContain('max_action_class "read"');
+    expect(prompt).toContain('max_action_class "external-side-effect"');
     expect(prompt).not.toContain('Drain the frontier');
     expect(
       opened.raw
