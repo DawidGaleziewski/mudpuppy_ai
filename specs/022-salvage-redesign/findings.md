@@ -104,6 +104,14 @@
   request body has `kind: page`; ui:check could warn when a `data-*-context` attribute does not
   parse as JSON.
 
+## F-12 The export-fork rename lengthens lines past the lint limit, 2026-10-13
+
+- **Symptom**: the M3 export dry run failed at `dashboard lint` (E501) on a test line that is 98
+  characters here; the export renames `liveinsurer` to `insuro` and `LIVEINSURER_` to `INSURO_`.
+- **Fix**: a shorter fixture string (ruff format joins split literals back when they fit).
+- **Test idea**: the fast tier could lint with the line limit minus the longest rename delta, or
+  the export could rewrap; for now the dry run before each merge catches it.
+
 ## F-03 The design's Console glossary text, 2026-10-13
 
 - The glossary entry "status codes" still explains `[ OK ]`, `[RUN.]` … (content, not markup). It
