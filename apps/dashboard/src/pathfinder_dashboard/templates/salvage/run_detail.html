@@ -6,7 +6,7 @@
 {% block head_extra %}{% if tab == "process" %}<script src="/static/js/diagram-zoom.js" defer></script><script src="/static/js/diagrams.js" defer></script>{% endif %}{% endblock %}
 {% block main %}
 <div class="sy-pagehead">
-  <nav class="sy-crumbs" aria-label="Breadcrumb"><a href="{{ c.url('/activity') }}">Scans</a> / {{ s.run.portal_id }}</nav>
+  <nav class="sy-crumbs" aria-label="Breadcrumb"><a href="{{ c.url('/scans') }}">Scans</a> / {{ s.run.portal_id }}</nav>
   <h1 class="sy-h1">Scan <span class="sy-mono">{{ s.run.id }}</span></h1>
   <p class="sy-meta">Store <span class="sy-mono sy-mono--sm">{{ store.path }}</span> · read-only</p>
 </div>

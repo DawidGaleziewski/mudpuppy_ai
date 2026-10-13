@@ -1,0 +1,118 @@
+{% import "salvage/macros.html" as sy %}
+{#- Scans (screen 10): the live monitor of the running scan (else the newest one) and the history
+    with what each scan changed. One live region: any store commit refreshes both. A stopped scan
+    is resumed through the assistant (Home), never from here. -#}
+{% if not v.portal %}
+<div class="sy-plate"><div class="sy-plate__body">{{ sy.empty("No portal chosen", "Pick a portal in the header to see its scans.") }}</div></div>
+{% else %}
+{% call sy.region("scans", v.self_url, "Scans of " ~ v.portal) %}
+<div class="sy-stack">
+{%- if not v.history %}
+  <div class="sy-plate"><div class="sy-plate__body">{{ sy.empty("No scans recorded yet", "Ask the assistant on Home to scan " ~ v.portal ~ "; the scan shows up here as soon as it is recorded.") }}</div></div>
+{%- else %}
+  {%- for m in v.monitors %}
+  {%- set r = m.run %}
+  {%- set shape = sy_status_of("run", r.status).shape %}
+  <section id="scan-{{ r.id }}" class="sy-plate" aria-labelledby="mon-h-{{ loop.index }}">
+    <div class="sy-plate__head">
+      <div class="sy-stack">
+        <div class="sy-cluster">
+          {{ sy.run_status(r.status) }}
+          <h2 id="mon-h-{{ loop.index }}" class="sy-plate__title">{{ "Scan" if r.mode == "map" else "Trace" }} {{ sy.tag(r.id[:8], c.url('/runs/' ~ r.id)) }}{% if m.running %} running{% endif %}</h2>
+        </div>
+        <p class="sy-meta">{{ r.environment }} · persona {{ r.persona_id }} · started <time class="sy-mono" datetime="{{ r.started_at }}">{{ r.started_at | when }}</time> · <span class="sy-num">{{ r.elapsed_ms | duration }}</span> of activity</p>
+      </div>
+      <div class="sy-actions">
+        {%- if m.running %}
+        <button class="sy-btn sy-btn--danger" type="button" data-stop-run="/chat/runs/{{ r.id | urlencode }}/stop" data-label="the scan (run {{ r.id }})">Stop scan</button>
+        {%- elif r.status in ("interrupted", "stopped_warning") %}
+        <a class="sy-btn" href="{{ c.url('/chat') }}">Resume with the assistant</a>
+        {%- endif %}
+      </div>
+    </div>
+    <div class="sy-plate__body sy-stack">
+      {%- if r.warning %}<div class="sy-callout sy-callout--failure"><p>{{ r.warning }}</p></div>{% endif %}
+      {%- if m.max_steps %}
+      <div class="sy-meter" data-status="{{ shape }}" style="--value: {{ m.percent }}%">
+        <div class="sy-meter__track" role="progressbar" aria-label="Steps used" aria-valuemin="0" aria-valuemax="{{ m.max_steps }}" aria-valuenow="{{ [r.steps_used, m.max_steps] | min }}" aria-valuetext="{{ r.steps_used }} of {{ m.max_steps }} steps, {{ sy_status_of('run', r.status).word | lower }}"><div class="sy-meter__fill"></div></div>
+      </div>
+      {%- endif %}
+      <ul class="sy-cluster" aria-label="Scan counts">
+        <li class="sy-num"><b>{{ r.steps_used }}</b>{% if m.max_steps %} / {{ m.max_steps }}{% endif %} steps</li>
+        <li><span class="sy-status sy-status--plain" data-status="ok"><span><b>{{ m.pages }}</b> page{{ "" if m.pages == 1 else "s" }} recorded</span></span></li>
+        <li><span class="sy-status sy-status--plain" data-status="queued"><span><b>{{ m.queued }}</b> still queued</span></span></li>
+      </ul>
+      <section aria-labelledby="route-h-{{ loop.index }}">
+        <h3 id="route-h-{{ loop.index }}" class="sy-label">Pages in the order they were seen</h3>
+        {%- if m.routes %}
+        <ol class="sy-cluster" aria-label="Routes seen by scan {{ r.id[:8] }}">
+          {%- for route in m.routes %}
+          <li class="sy-callout"><span class="sy-route">{{ route }}</span>{% if loop.last and m.routes_total == m.routes | length and not m.running %} <span class="sy-status" data-status="stopped">Last page</span>{% endif %}</li>
+          {%- endfor %}
+          {%- if m.routes_total > m.routes | length %}
+          <li class="sy-route">+ {{ m.routes_total - m.routes | length }} more</li>
+          {%- endif %}
+        </ol>
+        {%- else %}
+        {{ sy.empty("No page recorded yet", "The route list fills as the scan records pages.", level=4) }}
+        {%- endif %}
+      </section>
+    </div>
+  </section>
+  {%- endfor %}
+
+  <section class="sy-stack" aria-labelledby="hist-h">
+    <h2 id="hist-h" class="sy-h2">All scans of {{ v.portal }}</h2>
+    <div class="sy-table-wrap">
+      <table class="sy-table sy-table--dense">
+        <caption class="sy-sr-only">Scans of {{ v.portal }}, newest first</caption>
+        <thead><tr>
+          <th scope="col">Status</th><th scope="col">Scan</th><th scope="col">Persona</th>
+          <th scope="col">Mode · environment</th><th scope="col" class="sy-num">Steps</th>
+          <th scope="col" class="sy-num">Pages</th><th scope="col">Started (UTC)</th><th scope="col">What changed</th>
+        </tr></thead>
+        <tbody>
+          {%- for h in v.history %}
+          {%- set r = h.run %}
+          <tr>
+            <td>{{ sy.run_status(r.status) }}</td>
+            <th scope="row">{{ sy.tag(r.id, c.url('/runs/' ~ r.id), sm=true, label=r.id[:8]) }}</th>
+            <td>{{ r.persona_id }}</td>
+            <td>{{ r.mode }} · {{ r.environment }}</td>
+            <td class="sy-num">{{ r.steps_used }}</td>
+            <td class="sy-num">{{ h.pages }}</td>
+            <td><time class="sy-mono sy-mono--sm" datetime="{{ r.started_at }}">{{ r.started_at | when }}</time></td>
+            <td>
+              {%- set ch = h.changes %}
+              {%- if ch.baseline %}<span class="sy-muted">first scan: baseline{% if ch.new_screens %} · {{ ch.new_screens | length }} screen{{ "" if ch.new_screens | length == 1 else "s" }}{% endif %}</span>
+              {%- elif ch.empty %}<span class="sy-muted">no screen changes recorded</span>
+              {%- else %}
+              <details class="sy-disclosure">
+                <summary>
+                  {%- if ch.new_screens %}{{ ch.new_screens | length }} new screen{{ "" if ch.new_screens | length == 1 else "s" }}{% endif -%}
+                  {%- if ch.new_screens and ch.changed_screens %} · {% endif -%}
+                  {%- if ch.changed_screens %}{{ ch.changed_screens | length }} changed{% endif -%}
+                  {%- if ch.reanchor %}{% if ch.new_screens or ch.changed_screens %} · {% endif %}{{ ch.reanchor }} to re-anchor{% endif -%}
+                </summary>
+                <div class="sy-disclosure__body sy-stack">
+                  {%- if ch.new_screens or ch.changed_screens %}
+                  <ul class="sy-small">
+                    {%- for s in ch.new_screens %}<li>New: <a class="sy-route" href="{{ c.url('/states/' ~ s.state_id) }}">{{ s.route }}</a> <span class="sy-muted">{{ s.title }}</span></li>{% endfor %}
+                    {%- for s in ch.changed_screens %}<li>Changed to r{{ s.rev }}: <a class="sy-route" href="{{ c.url('/states/' ~ s.state_id) }}">{{ s.route }}</a> <span class="sy-muted">{{ s.title }}</span></li>{% endfor %}
+                  </ul>
+                  {%- endif %}
+                  {%- if ch.reanchor %}<a class="sy-small" href="{{ c.url('/review', show='reanchor') }}">{{ ch.reanchor }} amendment{{ "" if ch.reanchor == 1 else "s" }} to re-anchor</a>{% endif %}
+                </div>
+              </details>
+              {%- endif %}
+            </td>
+          </tr>
+          {%- endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+{%- endif %}
+</div>
+{% endcall %}
+{% endif %}

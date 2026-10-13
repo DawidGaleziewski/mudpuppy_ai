@@ -148,7 +148,7 @@ def test_home_shows_needs_you_processes_picker_and_suggestions(empty_store: Stor
     flat = text(body)
     needs = body[body.index('id="needs-h"') : body.index('id="proc-h"')]
     assert "Stopped scans to resume" in needs and "Amendments to re-anchor" in needs
-    assert 'href="/activity' in needs and 'href="/review?show=reanchor' in needs
+    assert 'href="/scans' in needs and 'href="/review?show=reanchor' in needs
     assert "Draft doc records" not in needs  # zero rows are left out
     assert body.count("sy-plate--intent") == 1
     assert "Test process" in flat and "2 screens" in flat and "/ → /faq" in flat

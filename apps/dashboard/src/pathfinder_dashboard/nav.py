@@ -29,7 +29,7 @@ SECTIONS: tuple[Section, ...] = (
     Section("screens", "Screens", lambda p: "/screens", frozenset({"screens", "state"})),
     Section("docs", "Docs", lambda p: f"/docs/{p}" if p else "/docs", frozenset({"docs"})),
     Section("review", "Review", lambda p: "/review", frozenset({"review", "amendments"})),
-    Section("scans", "Scans", lambda p: "/activity", frozenset({"scans", "activity", "run"})),
+    Section("scans", "Scans", lambda p: "/scans", frozenset({"scans", "activity", "run"})),
     Section("settings", "Settings", _settings, frozenset({"settings", "portals"})),
 )
 
