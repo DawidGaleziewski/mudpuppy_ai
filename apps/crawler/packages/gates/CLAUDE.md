@@ -12,8 +12,8 @@ Layer: servers (G-07; `apps/crawler/layers.json`)
   `workspace` and `judges`, spec 017), `compareEval` and `Tolerances`, used by
   `apps/crawler/evals/`. `judges` (`JudgeRunResult`) are printed, never compared.
 - `eval-checks` (`crawlScreens`, `passwordHits`, `widgetActions`) and `HARD_ZERO_CHECKS`: pure
-  eval measures used by `apps/crawler/evals/` (spec 014). Their tests run only in the gates tier
-  (spec 014 F-03).
+  eval measures used by `apps/crawler/evals/` (spec 014). Their tests (`tests/eval-*.test.ts`) need no
+  estate and run in the root `repo` project, fast tier (spec 014 F-03, spec 020 T001).
 
 ## Invariants
 
@@ -27,7 +27,8 @@ Layer: servers (G-07; `apps/crawler/layers.json`)
 
 ## Tests
 
-- Tier: gates (in `pnpm test:slow` and `pnpm test`, never in `test:fast`). Stop anything on 4200/4201 first.
+- Tier: gates (in `pnpm test:slow` and `pnpm test`, never in `test:fast`), except the pure
+  `tests/eval-*.test.ts`, which run in the fast tier. Stop anything on 4200/4201 first.
 - Report in `data/gates/`.
 
 ## See also

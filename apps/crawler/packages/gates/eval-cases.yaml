@@ -1,4 +1,4 @@
-# Spec 009 FR-025: every logged finding (F-xx headings in specs 004, 008, 009 findings docs) is mapped
+# Spec 009 FR-025: every logged finding (F-xx headings in specs 004, 008, 009, 020 findings docs) is mapped
 # here to a deterministic gate, a non-deterministic eval check, or not_testable (with a reason).
 # `pnpm test` fails when a finding heading in those files is missing from this list.
 
@@ -186,7 +186,7 @@
 - id: F-16@009
   title: A reference-portal server from the overnight run was still listening
   tier: not_testable
-  reason: process slip by Claude (session-end check); suggestion for the eval preflight logged
+  reason: process slip by Claude (session-end check); the eval now refuses a port it did not start and checks its ports after stopping (spec 020 T005, evals/tests/ports.test.ts)
 - id: F-17@009
   title: The crawler agent ends a map run early, with most of the frontier pending
   tier: eval
@@ -199,3 +199,33 @@
   title: Gates rebuilt the estate's web apps in dev JSX mode, so nothing rendered
   tier: not_testable
   reason: caught by the ground-truth self-check (pnpm gt:check) after any forced rebuild
+
+# ---- spec 020 (specs/020-roadmap-declutter/findings.md) ----
+- id: F-01@020
+  title: T074 safety review pass
+  tier: not_testable
+  reason: a static code review; the test idea (an allow-list of Playwright action call sites) is logged
+- id: F-02@020
+  title: Pan and zoom checked in Chromium
+  tier: not_testable
+  reason: dashboard JavaScript checked once in a browser; a dashboard browser test is the logged idea
+- id: F-03@020
+  title: Checkboxes ticked with sed -i
+  tier: not_testable
+  reason: process slip by Claude; a PreToolUse hook refusing sed -i is the logged idea
+- id: F-04@020
+  title: A pop-up window that opens a URL is queued and its screen visited
+  tier: gate
+  reason: a target=_blank link and a window.open button on a local server; both URLs queued, one visited
+- id: F-05@020
+  title: A pop-up's first request crashed the request gate's handlers
+  tier: not_testable
+  reason: unit test with a frame-less request in crawler/tests/request-gate.test.ts; the F-04@020 gate run fails on the unhandled rejection
+- id: F-06@020
+  title: Insurer S08 and bank S11 never reached
+  tier: eval
+  check: crawl_screens
+- id: F-07@020
+  title: LO-35 "fixed" reports were false; the gap made deterministic
+  tier: not_testable
+  reason: covered by the LO-35 known-gap case in gates/tests/shop.test.ts, which waits until both A/B variants were observed with their text, so it no longer reports "fixed" by chance or under load

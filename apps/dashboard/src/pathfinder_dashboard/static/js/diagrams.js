@@ -57,6 +57,12 @@
       const mermaid = await load();
       configure(mermaid);
       await mermaid.run({ nodes });
+      // Pan and zoom (diagram-zoom.js, spec 020 US4) on every newly drawn diagram.
+      if (window.pfDiagramZoom)
+        for (const node of nodes) {
+          const figure = node.closest("figure.diagram");
+          if (figure) window.pfDiagramZoom.attach(figure);
+        }
     } catch (err) {
       // leave the source text in place: it is still a readable description of the diagram
       console.warn("diagram not rendered:", err);

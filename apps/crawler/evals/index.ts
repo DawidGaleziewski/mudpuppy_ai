@@ -5,7 +5,8 @@
  * transcripts for leaked passwords, and the result is compared with the baseline.
  * Terms follow Anthropic's eval vocabulary (G-33; table in README.md).
  * Usage: see `USAGE` in config.ts. Writes data/evals/<portal>/<timestamp>.json; exit 1 on a
- * regression, 2 on bad input or preflight. Never part of `pnpm test`: it spends real tokens.
+ * regression, 2 on bad input, preflight or an agent's API error, 3 on the account's usage limit
+ * (README "Running several"). Never part of `pnpm test`: it spends real tokens.
  *
  * By default the agents work in a fresh workspace (PATHFINDER_ROOT = a temp folder with copies of
  * portals/, personas/ and the migrations), so the developer's store and its documentation are
@@ -14,7 +15,6 @@
  * Where things are: tasks.ts (the suite: portals + ground truth), prompts.ts, harness/ (workspace, portal
  * server, agents, cost), graders/ (what is scored, by kind), results.ts (save, compare, promote).
  */
-import type { ChildProcess } from 'node:child_process';
 import { randomUUID } from 'node:crypto';
 import { join } from 'node:path';
 import type { GroundTruth } from '@pathfinder/docs';
@@ -29,7 +29,9 @@ import {
   preflight,
   runAgent,
   stopServer,
+  type StartedServer,
 } from './harness/index.js';
+import { acquireEvalLock } from './harness/lock.js';
 import { PROMPTS } from './prompts.js';
 import { latestCrawlRun } from './queries.js';
 import { buildResult, saveResult } from './results.js';
@@ -47,7 +49,18 @@ const task =
 const groundTruth = loadGroundTruth(config.root, task);
 process.exitCode = config.dryRun
   ? await dryRun(config, groundTruth)
-  : await runTrial(config, task, groundTruth);
+  : await oneAtATime(() => runTrial(config, task, groundTruth));
+
+/** Evals share the account's usage quota: a second one at the same time is refused (spec 020 T004). */
+async function oneAtATime(trial: () => Promise<number>): Promise<number> {
+  const lock = acquireEvalLock();
+  if (!lock.ok) die(`another eval is running (pid ${lock.pid}); evals run one at a time`);
+  try {
+    return await trial();
+  } finally {
+    lock.release();
+  }
+}
 
 /** Everything up to the first paid call, including the vault, so a broken setup fails here. */
 async function dryRun(c: EvalConfig, gt: GroundTruth): Promise<number> {
@@ -66,7 +79,7 @@ async function dryRun(c: EvalConfig, gt: GroundTruth): Promise<number> {
  */
 async function runTrial(c: EvalConfig, task: EvalTask, gt: GroundTruth): Promise<number> {
   const startedAt = new Date().toISOString();
-  let server: ChildProcess | null = null;
+  let server: StartedServer | null = null;
   try {
     const up = await ensurePortal(c.root, task, c.sessionTimeoutS);
     if (!up.ok) return abort(up.error);
@@ -74,13 +87,16 @@ async function runTrial(c: EvalConfig, task: EvalTask, gt: GroundTruth): Promise
     const ws = c.inPlace ? c.root : createWorkspace(c.root, c.portal, c.env);
     console.log(`workspace: ${ws}`);
     const sessions = { crawler: randomUUID(), ba: c.crawlerOnly ? null : randomUUID() };
-    let cost = emptyCost();
-    cost = addCost(cost, runAgent(c, ws, 'crawler', crawlerPrompt(c, task), sessions.crawler));
+    const crawler = runAgent(c, ws, 'crawler', crawlerPrompt(c, task), sessions.crawler);
+    let cost = addCost(emptyCost(), crawler.out);
     const crawlRunId =
       (await findCrawlRun(c, ws, startedAt)) ??
       abort(`the crawler made no run (session ${sessions.crawler})`);
-    if (sessions.ba)
-      cost = addCost(cost, runAgent(c, ws, 'ba', PROMPTS.ba(c.portal, crawlRunId), sessions.ba));
+    const ba = sessions.ba
+      ? runAgent(c, ws, 'ba', PROMPTS.ba(c.portal, crawlRunId), sessions.ba)
+      : null;
+    if (ba) cost = addCost(cost, ba.out);
+    const outcomes = { crawler: crawler.outcome, ...(ba && { ba: ba.outcome }) };
     const grades = await grade({
       config: c,
       task,
@@ -94,14 +110,23 @@ async function runTrial(c: EvalConfig, task: EvalTask, gt: GroundTruth): Promise
     const workspace = c.inPlace ? undefined : ws;
     return saveResult(
       c,
-      buildResult(c, { startedAt, crawlRunId, sessions, cost, grades, workspace, judges }),
+      buildResult(c, {
+        startedAt,
+        crawlRunId,
+        sessions,
+        outcomes,
+        cost,
+        grades,
+        workspace,
+        judges,
+      }),
     );
   } catch (e) {
     if (!(e instanceof EvalAbort)) throw e;
     console.error(e.message);
-    return 2;
+    return e.code;
   } finally {
-    stopServer(server);
+    await stopServer(server);
   }
 }
 

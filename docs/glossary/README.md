@@ -564,17 +564,21 @@ with a reason (`skipped_unsafe`, `out_of_scope`, `denylisted`, `robots_disallowe
 `budget_reached`, `unreachable`). An empty list of `pending` items means the map is complete
 within the rules.
 
+Besides actions, an item can be an address to open: a pop-up window an action opened
+("navigate to …", reason "pop-up opened by action …"). The crawler closes pop-ups at once and
+visits their address later in its own tab.
+
 *Example:* The reference map run queued 201 items, followed 195 and skipped 6 as unsafe.
 
 *Seen in:* Run page → Frontier
 
-*Labels:* `Frontier`
+*Labels:* `Frontier`, `pop-up`
 
 *Related:* [Priority / depth](#priority-depth), [Budget](#budget), [Decision (allowed / skipped)](#decision), [Scope / denylist](#portal-scope)
 
 *Read more:* [The frontier, explained](pages/frontier.md)
 
-<sub>Last changed in R-22, 2026-10-03.</sub>
+<sub>Last changed in R-52, 2026-10-12.</sub>
 
 <a id="inferred-link"></a>
 
@@ -1641,13 +1645,18 @@ Each trial writes one result file in `data/evals/<portal>/`, promoted or not. Th
 is a copy of the trial chosen as the standard. Comparing one trial with the baseline can
 catch a regression only beyond the normal spread, which is what `tolerances.json` allows for.
 
+Each agent session of a trial ends with an outcome: `success`, `budget_end` (the eval's own
+budget ran out), `api_error` or `usage_limit` (the account's limit). Only the first two
+write a result, stored as `outcomes`; a usage limit exits with code 3. Trials run one at a
+time, and each starts its own portal server, refusing a port something else holds.
+
 *Seen in:* data/evals/<portal>/<timestamp>.json
 
-*Labels:* `trial`
+*Labels:* `trial`, `outcome`, `usage_limit`, `budget_end`
 
 *Related:* [Eval (tier 2)](#eval), [Eval task / suite](#eval-task), [Eval baseline](#eval-baseline)
 
-<sub>Last changed in R-46, 2026-10-10.</sub>
+<sub>Last changed in R-52, 2026-10-12.</sub>
 
 <a id="grader"></a>
 

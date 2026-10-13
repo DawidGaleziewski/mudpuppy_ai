@@ -104,8 +104,21 @@ async function issueActions(
       evidenceRef,
       pageUrl: observed.url,
     });
+    const skipReason = d.allowed ? null : `${d.rule}: ${d.reason}`;
     let id = idFor(c);
-    if (!id) {
+    if (id) {
+      // Re-issued: the stored decision follows the latest one, e.g. a depth refusal that no
+      // longer holds from a shallower page (spec 004 F-05).
+      await ctx.db
+        .updateTable('actions')
+        .set({
+          safety_class: d.classification.safetyClass,
+          allowed: d.allowed ? 1 : 0,
+          skip_reason: skipReason,
+        })
+        .where('id', '=', id)
+        .execute();
+    } else {
       id = newId();
       await ctx.db
         .insertInto('actions')
@@ -118,7 +131,7 @@ async function issueActions(
           action_json: JSON.stringify(json),
           safety_class: d.classification.safetyClass,
           allowed: d.allowed ? 1 : 0,
-          skip_reason: d.allowed ? null : `${d.rule}: ${d.reason}`,
+          skip_reason: skipReason,
           created_at: nowIso(),
         })
         .execute();
@@ -128,7 +141,7 @@ async function issueActions(
       actionId: id,
       actionJson: { role: c.role, accessible_name: c.name, ...json },
       allowed: d.allowed,
-      ...(d.allowed ? {} : { skip_reason: `${d.rule}: ${d.reason}` }),
+      ...(skipReason === null ? {} : { skip_reason: skipReason }),
     });
   }
   return { issued, g };

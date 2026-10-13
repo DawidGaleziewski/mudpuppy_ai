@@ -77,7 +77,16 @@ export const DEFAULT_RATE_LIMIT = {
  * notifications, camera) and by the portal's obstacle selectors dismissing banners (FR-023).
  */
 export class BrowserSession {
+  /** Every window the pages opened, by the URL it opened (`about:blank` when written by script). */
   readonly popups: string[] = [];
+  private popupsTaken = 0;
+
+  /** The windows opened since the last call: http(s) URLs only, a script-written window has none. */
+  takeOpened(): string[] {
+    const fresh = this.popups.slice(this.popupsTaken);
+    this.popupsTaken = this.popups.length;
+    return fresh.filter((u) => /^https?:/i.test(u));
+  }
   readonly browser: Browser;
   readonly context: BrowserContext;
   readonly page: Page;
@@ -165,10 +174,23 @@ export class BrowserSession {
         obstacles,
         stabilizerOptions: opts.stabilizer ?? {},
       });
-      // New tabs (target=_blank, window.open) are not followed: their URL is noted and the tab closed.
+      // New tabs (target=_blank, window.open) are not followed in the browser: the URL each one
+      // opens is noted and the tab closed; the run visits a noted URL in its own tab later (LO-27).
+      // A pop-up's first request comes before its frame exists (Playwright throws on `frame()`):
+      // its URL names the window when the window itself has not committed (refused, still loading).
+      const unclaimed: string[] = [];
+      context.on('request', (r) => {
+        if (!r.isNavigationRequest()) return;
+        try {
+          r.frame();
+        } catch {
+          unclaimed.push(r.url());
+        }
+      });
       context.on('page', (p) => {
         if (p === page) return;
-        session.popups.push(p.url());
+        const first = unclaimed.shift();
+        session.popups.push(p.url() === 'about:blank' && first ? first : p.url());
         void p.close().catch(() => undefined);
       });
       return session;

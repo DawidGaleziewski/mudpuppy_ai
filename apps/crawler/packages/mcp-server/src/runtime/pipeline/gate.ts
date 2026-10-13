@@ -82,7 +82,9 @@ export async function usage(
 
 export function gateContext(rs: RunState, u: GateContext['usage']): GateContext {
   return {
-    scope: rs.scope,
+    // A trace follows one process as deep as it goes; its step budget bounds it, not the map's
+    // depth budget (spec 004 F-14).
+    scope: rs.isTrace ? { ...rs.scope, max_depth: Number.MAX_SAFE_INTEGER } : rs.scope,
     denylist: rs.effective.portal.denylist,
     rules: rs.ruleSet,
     robots: rs.robots.registry,

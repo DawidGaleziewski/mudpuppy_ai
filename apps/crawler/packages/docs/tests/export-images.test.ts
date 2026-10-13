@@ -6,6 +6,7 @@ import { PNG } from 'pngjs';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { exportSrs, writeExport } from '../src/export.js';
 import { highlightCrop } from '../src/render/images.js';
+import { withLabel } from '../src/render/label-box.js';
 import { makeFixtureStore, seedDocRecords, type FixtureStore } from '../src/testing/index.js';
 
 /** spec 008 US4 (FR-019–FR-021, SC-005): pictures in the SRS export, deterministic. */
@@ -156,5 +157,42 @@ describe('highlightCrop', () => {
       { state_id: 's', key: 'k', note: null, n: 12, box: { x: 10, y: 30, width: 40, height: 10 } },
     ];
     expect(highlightCrop(page(), regions)).toEqual(highlightCrop(page(), regions));
+  });
+});
+
+describe('withLabel (spec 008 F-12)', () => {
+  const radio = { x: 100, y: 50, width: 13, height: 13 };
+
+  it('widens a radio box to the right so its label is inside', () => {
+    const box = withLabel(radio, 'radio', 'OC + Autocasco', 1280)!;
+    expect(box).toMatchObject({ x: 100, y: 50, height: 13 });
+    // 13 px input + 8 px gap + 14 chars at 9 px
+    expect(box.width).toBe(13 + 8 + 14 * 9);
+  });
+
+  it('a highlight crop of a radio then holds its label', () => {
+    const png = new PNG({ width: 400, height: 100 });
+    png.data.fill(255);
+    const box = withLabel({ x: 20, y: 40, width: 13, height: 13 }, 'checkbox', 'Zgoda', 400)!;
+    const crop = PNG.sync.read(
+      Buffer.from(
+        highlightCrop(new Uint8Array(PNG.sync.write(png)), [
+          { state_id: 's', key: 'k', note: null, n: 1, box },
+        ]),
+      ),
+    );
+    expect(crop.width).toBeGreaterThanOrEqual(13 + 8 + 5 * 9);
+  });
+
+  it('stops at the page edge', () => {
+    expect(withLabel({ ...radio, x: 1260 }, 'radio', 'a long label', 1280)!.width).toBe(20);
+  });
+
+  it('leaves other roles, nameless controls, wide boxes and missing boxes alone', () => {
+    expect(withLabel(radio, 'button', 'OK', 1280)).toEqual(radio);
+    expect(withLabel(radio, 'radio', ' ', 1280)).toEqual(radio);
+    const card = { x: 0, y: 0, width: 300, height: 40 };
+    expect(withLabel(card, 'radio', 'Pakiet Komfort', 1280)).toEqual(card);
+    expect(withLabel(null, 'radio', 'x', 1280)).toBeNull();
   });
 });

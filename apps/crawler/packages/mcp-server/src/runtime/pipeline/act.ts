@@ -29,6 +29,7 @@ import {
 } from './context.js';
 import { actionTarget, gateEvent, itemCapChecked, refuse, requireIntent } from './gate.js';
 import { withNext } from './next-item.js';
+import { queueOpenedWindows } from './popups.js';
 import { processPage } from './process-page.js';
 import { settleReports } from './settle.js';
 import { beginStep, bumpRun, throwIfStopped } from './stop.js';
@@ -81,6 +82,7 @@ async function actStep(
     await step(call, 'autofill', () => autofillBeforeSubmit(state, action, locator));
   // The hops of this action start on the page it was taken on (spec 019, R-38).
   state.session.navigation.begin(state.session.page.url());
+  state.session.takeOpened(); // windows opened before this action are not its pop-ups
   await perform(call, locator, matches, value);
 
   const fromDepth = state.depthByState.get(action.state_id) ?? 0;
@@ -105,6 +107,8 @@ async function actStep(
     reloginTarget: action.json.page_url,
     ...(input.include_actions ? { includeActions: true } : {}),
   });
+  // After the page settled, so a pop-up's window has opened by now (LO-27).
+  await queueOpenedWindows(ctx, run, state, action, fromDepth + 1);
   await step(call, 'run_bookkeeping', async () => {
     const pending = await pendingItemForAction(ctx.db, run.id, action.id);
     if (pending) await settleFrontierItem(ctx.db, pending.id, 'done', null);

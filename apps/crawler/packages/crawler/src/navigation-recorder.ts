@@ -46,7 +46,12 @@ export class NavigationRecorder {
   }
 
   private isMainDocument(req: Request): boolean {
-    return req.isNavigationRequest() && req.frame() === this.page.mainFrame();
+    if (!req.isNavigationRequest()) return false;
+    try {
+      return req.frame() === this.page.mainFrame();
+    } catch {
+      return false; // a pop-up's first request: no frame yet, and not this page's document
+    }
   }
 
   /** Open a step that starts on `startUrl` (the `navigate` target, or the page before an action). */

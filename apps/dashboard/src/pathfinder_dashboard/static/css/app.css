@@ -1054,6 +1054,41 @@ pre.gherkin {
   height: auto;
 }
 
+/* pan and zoom (static/js/diagram-zoom.js, spec 020 US4): the SVG keeps its own aspect ratio up
+   to a cap; dragging and zooming move its viewBox inside that box */
+.diagram-zoom {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-1);
+  margin-bottom: var(--space-2);
+}
+
+.diagram-zoom-btn {
+  justify-content: center;
+  min-width: var(--touch);
+}
+
+.diagram svg.diagram-zoomable {
+  display: block;
+  width: 100%;
+  max-height: calc(var(--touch) * 14);
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+}
+
+.diagram svg.diagram-zoomable.diagram-squeezed {
+  min-height: calc(var(--touch) * 8);
+}
+
+.diagram svg.diagram-zoomable.dragging {
+  cursor: grabbing;
+}
+
+.diagram.diagram-active {
+  border-color: var(--brand);
+}
+
 /* review panel: confirm / reject / comment on the latest revision */
 .textarea {
   display: block;
@@ -1767,6 +1802,11 @@ details.screens > summary h2 {
 
 .live-map .diagram svg {
   max-width: none;
+}
+
+/* with pan and zoom the map fits its box and is zoomed instead of scrolled */
+.live-map .diagram svg.diagram-zoomable {
+  max-width: 100%;
 }
 
 .live-map .node.fresh rect,

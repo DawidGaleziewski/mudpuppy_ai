@@ -14,6 +14,8 @@ export interface PortalServer {
   args: (root: string, sessionTimeoutS: number | undefined) => string[];
   /** Whether `--session-timeout` can be passed to it (the proving-ground estate only). */
   takesSessionTimeout: boolean;
+  /** Every port the server listens on: must be free before it starts and after it stops. */
+  ports: readonly number[];
 }
 
 /** A trace task: the crawler walks one named process instead of mapping the portal. */
@@ -40,6 +42,7 @@ const REFERENCE_PORTAL: PortalServer = {
   command: 'pnpm',
   args: (root) => ['--dir', join(root, 'apps/crawler'), 'reference-portal'],
   takesSessionTimeout: false,
+  ports: [4010],
 };
 
 /** One server hosts all three proving-ground portals. */
@@ -51,6 +54,8 @@ const PROVING_GROUND_ESTATE: PortalServer = {
     ...(sessionTimeoutS === undefined ? [] : ['--session-timeout', String(sessionTimeoutS)]),
   ],
   takesSessionTimeout: true,
+  // The estate and its cross-origin widget host.
+  ports: [4100, 4101],
 };
 
 const provingGround = (domain: 'shop' | 'bank' | 'insurer'): EvalTask => ({

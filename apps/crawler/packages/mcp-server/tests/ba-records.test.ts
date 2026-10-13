@@ -874,3 +874,47 @@ describe('a failed write leaves no partial rows', () => {
     expect((await h.must('create_record', create(h, s))).key).toBe('REQ-002');
   });
 });
+
+describe('revise_record keeps evidence from runs outside the session (spec 004 F-16)', () => {
+  const revise = (session_id: string, key: string, evidence: unknown[]) => ({
+    session_id,
+    key,
+    base_rev: 1,
+    content: CONTENT.requirement,
+    confidence: 'observed',
+    evidence,
+    change_note: 'Seen again in a later run.',
+  });
+  const runsOf = (record: Record<string, unknown>) =>
+    (record.revisions as { evidence: { run_id: string | null }[] }[])[1]!.evidence.map(
+      (e) => e.run_id,
+    );
+
+  it('carries over links to earlier runs and adds the new ones', async () => {
+    const h = await startBa();
+    const { key } = await h.must('create_record', create(h, await h.session()));
+    const other = h.fx.addRun();
+    const s2 = await h.session([other.runId]);
+    await h.must(
+      'revise_record',
+      revise(s2, key, [{ target_kind: 'edge', target_id: other.edgeId }]),
+    );
+    const record = await h.must('get_record', { portal_id: h.fx.portalId, key });
+    expect(runsOf(record).sort()).toEqual([h.fx.runId, other.runId].sort());
+    // the carried link keeps its note
+    expect(record.revisions[1].evidence).toContainEqual(
+      expect.objectContaining({ target_id: h.fx.forms.vehicle, note: 'pattern on kod_pocztowy' }),
+    );
+  });
+
+  it('does not carry links to the session’s own runs: the BA may drop them', async () => {
+    const h = await startBa();
+    const s = await h.session();
+    const { key } = await h.must('create_record', create(h, s));
+    await h.must('revise_record', revise(s, key, stateEvidence(h)));
+    const record = await h.must('get_record', { portal_id: h.fx.portalId, key });
+    expect(record.revisions[1].evidence.map((e: { target_kind: string }) => e.target_kind)).toEqual(
+      ['state'],
+    );
+  });
+});

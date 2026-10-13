@@ -32,6 +32,7 @@ import {
   sessionRunIds,
   type SessionRow,
 } from './common.js';
+import { outsideSessionLinks, type CarriedLink } from './carry-over.js';
 import { assertOneFieldPerDataItem } from './data-item-fields.js';
 
 type RecordRow = Selectable<DocRecordsTable>;
@@ -230,6 +231,8 @@ interface RevisionWrite {
   respondsToReview: string | null;
   evidence: readonly EvidenceInput[];
   targets: readonly ResolvedTarget[];
+  /** Links of the previous revision kept as they were (revise only, spec 004 F-16). */
+  carried?: readonly CarriedLink[];
   relations: readonly ResolvedRelation[];
   status: StatusResult;
 }
@@ -277,6 +280,8 @@ function writeRevision(ctx: BaContext, w: RevisionWrite, ts: string): void {
       t.region ?? null,
     ),
   );
+  for (const l of w.carried ?? [])
+    addLink.run(newId(), revisionId, l.target_kind, l.target_id, l.run_id, l.note, l.region);
 
   const addRelation = ctx.raw.prepare(
     'INSERT INTO doc_relations (from_revision_id, to_record_id, type) VALUES (?, ?, ?)',
@@ -473,6 +478,7 @@ export function reviseRecord(ctx: BaContext, raw: unknown): WriteOutput {
         respondsToReview: input.responds_to_review ?? null,
         evidence: input.evidence,
         targets,
+        carried: outsideSessionLinks(ctx, record.id, record.latest_rev, session.id),
         relations,
         status,
       },

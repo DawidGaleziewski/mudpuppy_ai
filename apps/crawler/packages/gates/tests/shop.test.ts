@@ -89,15 +89,15 @@ gate('LO-07', 'CMS texts are recorded, not the keys that flash before they load'
   expect(snap).not.toMatch(/\bcatalog\.[a-z]+\b/i);
 });
 
-gap(
-  'LO-08',
-  'a missing CMS key is recorded as the portal shows it',
-  'the raw key shows only with items in the cart, and adding needs LO-10',
-  async () => {
-    const cart = await nav(gs.call, run, '/sklep/koszyk');
-    expect(snapshot(gs, cart.state_id)).toContain('checkout.summary.vatNote');
-  },
-);
+gate('LO-08', 'a missing CMS key is recorded as the portal shows it', async () => {
+  // The raw key shows only with items in the cart; adding uses the div "button" of LO-10. A run of
+  // its own (own browser, own cart), so LO-51's cart stays as it is.
+  const own = await startRun(gs.call, 'proving-ground-shop', 'guest');
+  const product = await nav(gs.call, own, '/sklep/produkt/kalosze-bagienne-klasyczne');
+  await actOn(gs.call, own, product, 'Dodaj do koszyka');
+  const cart = await nav(gs.call, own, '/sklep/koszyk');
+  expect(snapshot(gs, cart.state_id)).toContain('checkout.summary.vatNote');
+});
 
 gate('LO-09', 'white-label login pages of two brands are two different states', async () => {
   const bank = await nav(gs.call, run, '/logowanie?marka=bank&next=/bank/pulpit');
@@ -188,25 +188,35 @@ gate(
   },
 );
 
+/** The catalogue hero's title per A/B variant (`mfe-shop` Catalog.tsx, CMS `hero.a/b.title`). */
+const HERO = { A: 'Wszystko na każdą pogodę', B: 'Jesienne wyprzedaże do -30%' } as const;
+
 gap(
   'LO-35',
   'A/B banner variants of the catalogue fall into one cluster',
   'the two hero variants differ enough that the fingerprint splits them into two clusters',
   async () => {
-    const clusters = new Set<string>();
-    for (let i = 0; i < 4; i++) {
+    // Fresh sessions until both variants were observed with their text (spec 012 F-03: a session
+    // draws its variant at random, and an observation before the CMS text arrives tells nothing).
+    const clusters = new Map<keyof typeof HERO, string>();
+    for (let i = 0; i < 10 && clusters.size < 2; i++) {
       const other = await gateServer({ portals: ['proving-ground-shop'] });
       try {
         const r = await startRun(other.call, 'proving-ground-shop', 'guest');
         const p = await nav(other.call, r, '/sklep');
-        clusters.add(p.cluster_id as string);
+        const text = snapshot(other, p.state_id as string);
+        const seen = (Object.keys(HERO) as (keyof typeof HERO)[]).find((v) =>
+          text.includes(HERO[v]),
+        );
+        if (seen) clusters.set(seen, p.cluster_id as string);
       } finally {
         await other.close();
       }
     }
-    expect(clusters.size).toBe(1);
+    expect([...clusters.keys()].sort()).toEqual(['A', 'B']);
+    expect(new Set(clusters.values()).size).toBe(1);
   },
-  { timeout: 120_000, slow: true },
+  { timeout: 240_000, slow: true },
 );
 
 gate('LO-38', 'the cookie banner is dismissed before observation, never recorded', async () => {

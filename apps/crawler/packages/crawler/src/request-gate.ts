@@ -142,7 +142,11 @@ function isMainFrameDocument(response: {
   const req = response.request?.();
   if (!req) return true;
   if (req.resourceType && req.resourceType() !== 'document') return false;
-  return req.frame?.().parentFrame?.() == null;
+  try {
+    return req.frame?.().parentFrame?.() == null;
+  } catch {
+    return true; // a pop-up window's first document: top-level, no frame yet (spec 020 F-05)
+  }
 }
 
 /** Playwright's `route.abort` code for a failed `route.fetch`, so the browser shows the same error. */
@@ -153,6 +157,19 @@ function networkErrorCode(message: string): string {
   if (/ECONNRESET|socket hang up/.test(message)) return 'connectionreset';
   if (/EHOSTUNREACH|ENETUNREACH/.test(message)) return 'addressunreachable';
   return 'failed';
+}
+
+/**
+ * A request of a top-level document. A pop-up window's first request comes before its frame
+ * exists, and Playwright throws on `frame()` then: it opens a new top-level window, so it counts as
+ * top-level and the navigation policy (scope, robots) applies to it (spec 020 F-05).
+ */
+function isTopLevel(request: Request): boolean {
+  try {
+    return request.frame().parentFrame() === null;
+  } catch {
+    return true;
+  }
 }
 
 /**
@@ -233,7 +250,7 @@ export function createRequestGate(opts: RequestGateOptions): RequestGate {
       const ctx = context as GateContextLike;
       await ctx.route('**/*', async (route, request) => {
         const url = request.url();
-        const mainNav = request.isNavigationRequest() && request.frame().parentFrame() === null;
+        const mainNav = request.isNavigationRequest() && isTopLevel(request);
         let limiterWaitMs = 0;
         let robotsRule: string | undefined;
         const report = (

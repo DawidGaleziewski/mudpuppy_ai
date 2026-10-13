@@ -64,6 +64,7 @@ it('records a crawler-only trial as a condition, and no conditions when all are 
     startedAt: '2026-10-10T00:00:00.000Z',
     crawlRunId: 'run',
     sessions: { crawler: 'c', ba: null },
+    outcomes: { crawler: 'budget_end' },
     cost: { usd: 0, input_tokens: 0, output_tokens: 0, duration_ms: 0 },
     grades: {
       session: undefined,
@@ -75,6 +76,7 @@ it('records a crawler-only trial as a condition, and no conditions when all are 
   const crawlerOnly = buildResult({ ...config, crawlerOnly: true }, trial);
   expect(crawlerOnly.conditions).toEqual({ crawler_only: true });
   expect(crawlerOnly.runs).toMatchObject({ ba_session: null, ba_cli_session: null });
+  expect(crawlerOnly.outcomes).toEqual({ crawler: 'budget_end' });
   expect(buildResult({ ...config, crawlerOnly: false }, trial).conditions).toBeUndefined();
 });
 
@@ -83,6 +85,7 @@ it('records the workspace and the judges, and leaves both out when absent (spec 
     startedAt: '2026-10-11T00:00:00.000Z',
     crawlRunId: 'run',
     sessions: { crawler: 'c', ba: 'b' },
+    outcomes: { crawler: 'success', ba: 'success' },
     cost: { usd: 0, input_tokens: 0, output_tokens: 0, duration_ms: 0 },
     grades: {
       session: undefined,
@@ -108,6 +111,7 @@ it('records the workspace and the judges, and leaves both out when absent (spec 
   const full = buildResult(config, { ...trial, workspace: '/tmp/pf-eval-x', judges: [judge] });
   expect(full).toMatchObject({ workspace: '/tmp/pf-eval-x', judges: [{ id: 'glossary-terms' }] });
   expect(full.scores).toEqual(trial.grades.scores);
+  expect(full.outcomes).toEqual({ crawler: 'success', ba: 'success' });
   const bare = buildResult(config, { ...trial, judges: [] });
   expect(bare).not.toHaveProperty('workspace');
   expect(bare).not.toHaveProperty('judges');

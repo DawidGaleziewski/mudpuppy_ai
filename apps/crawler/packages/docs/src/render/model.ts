@@ -14,6 +14,7 @@ import type { StateInventory } from '../param-inventory.js';
 import type { ProcessMapInput, ScreenNavInput } from './mermaid.js';
 import { screenUrls } from './screen-urls.js';
 import type { ExportAmendment } from './amendments.js';
+import { withLabel } from './label-box.js';
 
 /**
  * Everything the SRS export renders, read once from the store (contracts/srs-export.md). The
@@ -230,7 +231,8 @@ function layoutBoxes(evidenceRoot: string | undefined, layoutRef: string | null)
   try {
     const layout = Layout.parse(JSON.parse(readFileSync(join(evidenceRoot, layoutRef), 'utf8')));
     page = layout.page;
-    for (const e of layout.elements) out.set(e.key, e.box);
+    for (const e of layout.elements)
+      out.set(e.key, withLabel(e.box, e.role, e.name, layout.page.width));
   } catch {
     // an unreadable layout only means no boxes
   }

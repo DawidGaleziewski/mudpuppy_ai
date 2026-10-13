@@ -211,4 +211,4 @@ def test_wiki_markdown_has_no_raw_html(empty_store: Store) -> None:
 def test_entry_shows_last_change(empty_client: TestClient) -> None:
     html = empty_client.get("/glossary").text
     entry = re.search(r'<article class="panel gl-entry" id="frontier".*?</article>', html, re.S)
-    assert entry and "Last changed in R-22, 2026-10-03." in entry.group(0)
+    assert entry and "Last changed in R-52, 2026-10-12." in entry.group(0)

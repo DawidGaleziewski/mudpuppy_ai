@@ -20,7 +20,9 @@ Layer: servers (G-07; `apps/crawler/layers.json`)
   - `navigate.ts`, `act.ts` (+ `act-gate.ts`), `login-step.ts`, `relogin.ts`, `trace-boundary.ts`:
     the tool entry points; `gate.ts` (gate context, item cap, `refuse`), `stop.ts` (begin step,
     persist stop, bookkeeping), `actions.ts` (issued action rows, input values), `next-item.ts`
-    (`withNext`: map-mode results carry the next frontier item, spec 013).
+    (`withNext`: map-mode results carry the next frontier item, spec 013); `popups.ts`
+    (`queueOpenedWindows`: URLs of pop-ups an action opened become gated `navigate` frontier
+    items, spec 020 / LO-27).
   - Map-mode results omit `actions` on a revisited state (`actions_omitted`; tests that read
     them pass `include_actions`). `index.ts` re-exports only the tool entry points and helpers.
 - `src/services/frontier.ts` + `same-target.ts`: link items whose target the run already reached

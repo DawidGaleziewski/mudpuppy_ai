@@ -78,7 +78,7 @@ gate(
 gap(
   'LO-27',
   'a window.open pop-up is recorded as its own screen',
-  'pop-up windows are not followed: the browser session observes its first page only',
+  'a pop-up with a URL is queued and visited (F-04@020), but this one is written by script into about:blank: no URL, and the session observes only its own page',
   async () => {
     const home = await nav(gs.call, run, '/ubezpieczenia');
     await actOn(gs.call, run, home, /Ogólne warunki/);

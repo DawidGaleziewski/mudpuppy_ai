@@ -4,7 +4,8 @@
 import { spawnSync } from 'node:child_process';
 import { join } from 'node:path';
 import type { EvalConfig } from '../config.js';
-import { abort } from '../failures.js';
+import { abort, EXIT_USAGE_LIMIT } from '../failures.js';
+import { classifyOutcome, isScored, type ScoredOutcome } from './outcome.js';
 
 export type AgentName = 'crawler' | 'ba';
 
@@ -39,6 +40,12 @@ function cliArgs(config: EvalConfig, agent: AgentName, prompt: string, sessionId
   ];
 }
 
+/** A session that may be scored, with how it ended. */
+export interface AgentRun {
+  out: CliOut;
+  outcome: ScoredOutcome;
+}
+
 /** Run one agent in workspace `ws`; `sessionId` names its transcript for the password sweep. */
 export function runAgent(
   config: EvalConfig,
@@ -46,7 +53,7 @@ export function runAgent(
   agent: AgentName,
   prompt: string,
   sessionId: string,
-): CliOut {
+): AgentRun {
   const r = spawnSync('claude', cliArgs(config, agent, prompt, sessionId), {
     cwd: config.root,
     encoding: 'utf8',
@@ -62,10 +69,11 @@ export function runAgent(
   // An API error (account usage limit, overload) cuts the agent off mid-work: its scores would
   // measure the outage, not the agent, so there is no result at all (spec 014 F-04). Running out
   // of the eval's own budget is a fair end and stays a result (`crawler_completed`).
-  const limited = /hit your .*limit|rate.?limit/i.test(out.result ?? '');
-  if (limited || (out.is_error === true && out.subtype !== 'error_max_budget_usd'))
+  const outcome = classifyOutcome(out);
+  if (!isScored(outcome))
     abort(
-      `${agent} session ${sessionId} ended with an error (${out.subtype ?? 'no subtype'}): ${(out.result ?? '').slice(0, 300)}; no result written`,
+      `${agent} session ${sessionId} ended with ${outcome.replace('_', ' ')} (${out.subtype ?? 'no subtype'}): ${(out.result ?? '').slice(0, 300)}; no result written`,
+      outcome === 'usage_limit' ? EXIT_USAGE_LIMIT : 2,
     );
-  return out;
+  return { out, outcome };
 }

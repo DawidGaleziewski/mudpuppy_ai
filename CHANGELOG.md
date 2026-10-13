@@ -6,6 +6,20 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Added
+- R-52 roadmap declutter (spec 020; the owner, 2026-10-12: "tasks that are a bit minor and can be
+  done now without any decision on my end … one collective feature branch"), built overnight:
+  - **Evals (R-40, done):** the gates' pure eval checks run in the fast tier; each agent session
+    ends as `success`, `budget_end`, `api_error` or `usage_limit`, only the first two write a
+    result (stored as `outcomes`), a usage limit exits 3; one eval at a time (a lock in the temp
+    folder); the eval starts its own portal server, refuses a port another process holds, and
+    checks its ports are free after stopping the server's process group.
+  - **Pan and zoom for diagrams (R-19, done):** every dashboard diagram can be dragged, zoomed
+    (Ctrl/⌘ + wheel, pinch, or a plain wheel once clicked) and fitted with + / − / fit buttons; a
+    long map gets a usable height.
+  - **Pop-ups with a URL (LO-27, part):** a `target="_blank"` link or `window.open(url)` is closed
+    at once and its URL queued as a gated `navigate` frontier item, so the run visits the screen
+    (gate F-04@020). A window written by script into `about:blank` is still a known gap.
+  - Proving ground: the insurer's policy screen links the old claim form (S08 was unreachable).
 - R-45 amendment, relation vocabulary (the owner, 2026-10-12: "add these arrows … make sure this
   won't happen again"):
   - New relation types: `applies_on` (business rule → screen), `asks_about` (open question → any
@@ -357,6 +371,13 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Moved the TypeScript workspace into `apps/crawler/` so the repo root can host other apps. Commit: b1639fc.
 
 ### Fixed
+- R-52: radio and checkbox highlight crops in the export hold their labels (F-12@008); a
+  re-issued action's stored decision follows the latest one (F-05@004); a revised BA record keeps
+  its citations from runs outside the session (F-16@004); trace runs are no longer cut off by the
+  map's depth budget (F-14@004); a pop-up's first request no longer crashes the request gate
+  (spec 020 F-05). Gates LO-08, F-05@004, F-12@008, F-14@004 and F-16@004 moved from known gap to
+  gate. The LO-35 known gap no longer reports "fixed" by chance: it waits until both A/B variants
+  were seen with their text, and confirms they still split into two clusters (spec 020 F-07).
 - The crawler never followed hash-route links (`#/polisy`): the ARIA snapshot quotes such a
   `/url` and the action extractor kept the quotes, so the target became `/%22#…` and was refused
   as out of scope, on every portal since R-07 (spec 014 F-08). Insurer client crawl coverage

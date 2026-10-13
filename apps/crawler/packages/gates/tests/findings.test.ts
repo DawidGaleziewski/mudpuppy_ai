@@ -12,6 +12,7 @@ import { startReferencePortal, type ReferencePortal } from '@pathfinder/referenc
 // Not package exports: the gates pin internals of these packages directly.
 import { settleWithDiagnostics, trackNetworkActivity } from '../../crawler/src/stabilizer.js';
 import { highlightCrop } from '../../docs/src/render/images.js';
+import { withLabel } from '../../docs/src/render/label-box.js';
 import { startMockPortal, type MockPortal } from '../../mcp-server/tests/mock-portal.js';
 import { CONTENT, startBa } from '../../mcp-server/tests/ba-harness.js';
 import {
@@ -188,10 +189,9 @@ gate(
   },
 );
 
-gap(
+gate(
   'F-05@004',
   'a re-issued action’s stored allowed/skip_reason follows the new decision',
-  'open: actions rows keep the first decision (spec 004 F-05)',
   async () => {
     const { gs, deepItem, item } = await shallowerScenario();
     expect(item.action_id).toBe(deepItem.action_id); // same state, same action row
@@ -240,35 +240,93 @@ async function chainPortal(): Promise<string> {
   return `http://127.0.0.1:${(server.address() as AddressInfo).port}`;
 }
 
-gap(
-  'F-14@004',
-  'a trace of a process longer than max_depth reaches its goal',
-  'open: trace runs count depth against the map budget (spec 004 F-14)',
-  async () => {
-    const origin = await chainPortal();
-    const gs = await serverFor({
-      'portals/chain/portal.yaml': portalYaml({ id: 'chain', origin }),
-      'personas/chain/guest.yaml': GUEST(),
-    });
-    const start = await must(gs, 'start_run', {
-      portal_id: 'chain',
-      persona_id: 'guest',
-      mode: 'trace',
-      process: { name: 'Przejdź proces', goal: 'Reach Koniec procesu' },
-    });
-    const run = start.run_id as string;
-    let page = await must(gs, 'navigate', {
-      run_id: run,
-      url: `${origin}/k`,
-      intent: 'Open step 0',
-    });
-    for (let i = 1; i <= 8; i++) {
-      const next = named(page, 'Dalej');
-      expect(next.allowed, `step ${i}: ${next.skip_reason}`).toBe(true);
-      page = await must(gs, 'act', { run_id: run, action_id: next.action_id, intent: `Step ${i}` });
-    }
-  },
-);
+gate('F-14@004', 'a trace of a process longer than max_depth reaches its goal', async () => {
+  const origin = await chainPortal();
+  const gs = await serverFor({
+    'portals/chain/portal.yaml': portalYaml({ id: 'chain', origin }),
+    'personas/chain/guest.yaml': GUEST(),
+  });
+  const start = await must(gs, 'start_run', {
+    portal_id: 'chain',
+    persona_id: 'guest',
+    mode: 'trace',
+    process: { name: 'Przejdź proces', goal: 'Reach Koniec procesu' },
+  });
+  const run = start.run_id as string;
+  let page = await must(gs, 'navigate', {
+    run_id: run,
+    url: `${origin}/k`,
+    intent: 'Open step 0',
+  });
+  for (let i = 1; i <= 8; i++) {
+    const next = named(page, 'Dalej');
+    expect(next.allowed, `step ${i}: ${next.skip_reason}`).toBe(true);
+    page = await must(gs, 'act', { run_id: run, action_id: next.action_id, intent: `Step ${i}` });
+  }
+});
+
+/** A home page whose terms open in pop-up windows: a `target="_blank"` link and `window.open`. */
+async function popupPortal(): Promise<string> {
+  const page = (title: string, body = '') =>
+    `<!doctype html><html lang="pl"><head><title>${title}</title></head><body><main><h1>${title}</h1>${body}</main></body></html>`;
+  const server: Server = createHttpServer((req, res) => {
+    const p = req.url ?? '/';
+    if (p === '/robots.txt') return void res.end('User-agent: *\nDisallow:\n');
+    res.setHeader('content-type', 'text/html; charset=utf-8');
+    if (p === '/warunki') return void res.end(page('Ogólne warunki'));
+    if (p === '/regulamin') return void res.end(page('Regulamin'));
+    res.end(
+      page(
+        'Start',
+        '<a href="/warunki" target="_blank">Warunki</a>' +
+          '<button type="button" onclick="window.open(\'/regulamin\')">Regulamin</button>',
+      ),
+    );
+  });
+  await new Promise<void>((r) => server.listen(0, '127.0.0.1', r));
+  closers.push(() => new Promise((r) => server.close(() => r())));
+  return `http://127.0.0.1:${(server.address() as AddressInfo).port}`;
+}
+
+gate('F-04@020', 'a pop-up window that opens a URL is queued and its screen visited', async () => {
+  const origin = await popupPortal();
+  const gs = await serverFor({
+    'portals/popup/portal.yaml': portalYaml({
+      id: 'popup',
+      origin,
+      extra: 'max_action_class: mutating',
+    }),
+    // The `window.open` button is a script control, classed mutating like any unlabelled button.
+    'personas/popup/guest.yaml': GUEST('mutating'),
+  });
+  const run = (await must(gs, 'start_run', { portal_id: 'popup', persona_id: 'guest' }))
+    .run_id as string;
+  const home = await must(gs, 'navigate', { run_id: run, url: `${origin}/` });
+  for (const name of ['Warunki', 'Regulamin']) {
+    const after = await must(gs, 'act', { run_id: run, action_id: named(home, name).action_id });
+    expect(after.state_id, `${name}: the opener stays`).toBe(home.state_id);
+  }
+  const queued = () =>
+    gs.ctx.raw
+      .prepare(
+        `SELECT action_json, status FROM frontier WHERE run_id = ? AND action_id IS NULL
+         AND action_json LIKE '{"kind":"navigate"%' ORDER BY action_json`,
+      )
+      .all(run) as { action_json: string; status: string }[];
+  expect(queued()).toEqual([
+    {
+      action_json: JSON.stringify({ kind: 'navigate', url: `${origin}/regulamin` }),
+      status: 'pending',
+    },
+    {
+      action_json: JSON.stringify({ kind: 'navigate', url: `${origin}/warunki` }),
+      status: 'pending',
+    },
+  ]);
+  const terms = await must(gs, 'navigate', { run_id: run, url: `${origin}/warunki` });
+  expect(terms.title).toBe('Ogólne warunki');
+  expect(queued().map((q) => q.status)).toEqual(['pending', 'done']);
+});
 
 const REF_PERSONA = `${GUEST()}trace_inputs:\n  Model: Octavia\n`;
 
@@ -477,19 +535,15 @@ function blankPng(w: number, h: number): Uint8Array {
   );
 }
 
-gap(
-  'F-12@008',
-  'a highlight crop of a radio includes the label to its right',
-  'open: the crop is the union of cited boxes plus a fixed margin (spec 008 F-12)',
-  async () => {
-    // the radio dot at x 100; its label text runs to x 420 (a separate element)
-    const crop = highlightCrop(blankPng(600, 120), [
-      { n: 1, key: 'radio "OC + Autocasco"', box: { x: 100, y: 50, width: 16, height: 16 } },
-    ] as never);
-    const width = Buffer.from(crop).readUInt32BE(16); // IHDR width
-    expect(width).toBeGreaterThanOrEqual(420 - 100);
-  },
-);
+gate('F-12@008', 'a highlight crop of a radio includes the label to its right', async () => {
+  // The radio dot at x 100; its label "OC + Autocasco" is a separate element to its right, about
+  // 8 px per character at body size. The export widens the region box by the label (spec 020 T007).
+  const label = 'OC + Autocasco';
+  const box = withLabel({ x: 100, y: 50, width: 16, height: 16 }, 'radio', label, 600);
+  const crop = highlightCrop(blankPng(600, 120), [{ n: 1, key: `radio "${label}"`, box }] as never);
+  const width = Buffer.from(crop).readUInt32BE(16); // IHDR width
+  expect(width).toBeGreaterThanOrEqual(16 + 8 + label.length * 8);
+});
 
 gap(
   'F-13@004',
@@ -523,37 +577,32 @@ gap(
   },
 );
 
-gap(
-  'F-16@004',
-  'a revision keeps citations from runs outside the current session',
-  'open: revise_record cites only runs of the session (spec 004 F-16)',
-  async () => {
-    const h = await startBa();
-    const s1 = await h.session();
-    const created = await h.must('create_record', {
-      session_id: s1,
-      kind: 'requirement',
-      content: CONTENT.requirement,
-      confidence: 'observed',
-      evidence: [{ target_kind: 'form', target_id: h.fx.forms.vehicle }],
-    });
-    const other = h.fx.addRun();
-    const s2 = await h.session([other.runId]);
-    await h.must('revise_record', {
-      session_id: s2,
-      key: created.key,
-      base_rev: 1,
-      content: CONTENT.requirement,
-      confidence: 'observed',
-      evidence: [{ target_kind: 'edge', target_id: other.edgeId }],
-      change_note: 'Seen again in a later run.',
-    });
-    const record = await h.must('get_record', { portal_id: h.fx.portalId, key: created.key });
-    const runs = (record.revisions[1].evidence as Body[]).map((e) => e.run_id);
-    expect(runs).toContain(h.fx.runId);
-    expect(runs).toContain(other.runId);
-  },
-);
+gate('F-16@004', 'a revision keeps citations from runs outside the current session', async () => {
+  const h = await startBa();
+  const s1 = await h.session();
+  const created = await h.must('create_record', {
+    session_id: s1,
+    kind: 'requirement',
+    content: CONTENT.requirement,
+    confidence: 'observed',
+    evidence: [{ target_kind: 'form', target_id: h.fx.forms.vehicle }],
+  });
+  const other = h.fx.addRun();
+  const s2 = await h.session([other.runId]);
+  await h.must('revise_record', {
+    session_id: s2,
+    key: created.key,
+    base_rev: 1,
+    content: CONTENT.requirement,
+    confidence: 'observed',
+    evidence: [{ target_kind: 'edge', target_id: other.edgeId }],
+    change_note: 'Seen again in a later run.',
+  });
+  const record = await h.must('get_record', { portal_id: h.fx.portalId, key: created.key });
+  const runs = (record.revisions[1].evidence as Body[]).map((e) => e.run_id);
+  expect(runs).toContain(h.fx.runId);
+  expect(runs).toContain(other.runId);
+});
 
 /** A page that renders the CAPTCHA widget server-side, plus the vendor-like anchor frame. */
 async function captchaPortal(): Promise<string> {

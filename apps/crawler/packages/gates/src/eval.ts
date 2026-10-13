@@ -47,6 +47,9 @@ export const JudgeRunResult = z
   .strict();
 export type JudgeRunResult = z.infer<typeof JudgeRunResult>;
 
+/** A fair end of an agent session: it finished, or used up the eval's budget. */
+export const ScoredOutcome = z.enum(['success', 'budget_end']);
+
 /** A tier-2 eval result (contracts/gates-evals.md), one JSON file per run under data/evals/. */
 export const EvalResult = z
   .object({
@@ -68,6 +71,11 @@ export const EvalResult = z
         /** Only the crawler ran (`--crawler-only`): no BA, so no documentation scores. */
         crawler_only: z.boolean().optional(),
       })
+      .strict()
+      .optional(),
+    /** How each agent's session ended; only fair ends are ever written (spec 020 T003). */
+    outcomes: z
+      .object({ crawler: ScoredOutcome, ba: ScoredOutcome.optional() })
       .strict()
       .optional(),
     cost: z

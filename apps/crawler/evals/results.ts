@@ -15,7 +15,7 @@ import {
   type JudgeRunResult,
 } from '@pathfinder/gates';
 import type { EvalConfig } from './config.js';
-import type { Cost } from './harness/index.js';
+import type { Cost, ScoredOutcome } from './harness/index.js';
 import type { Grades } from './graders/index.js';
 
 /** What one trial produced, before it becomes an `EvalResult`. */
@@ -24,6 +24,8 @@ export interface TrialRecord {
   crawlRunId: string;
   /** `ba` is null in a crawler-only trial. */
   sessions: { crawler: string; ba: string | null };
+  /** How each agent's session ended; `ba` is absent in a crawler-only trial (spec 020 T003). */
+  outcomes: { crawler: ScoredOutcome; ba?: ScoredOutcome };
   cost: Cost;
   grades: Grades;
   /** The workspace the agents ran in; absent with `--in-place` (spec 017 F-01). */
@@ -57,6 +59,7 @@ export function buildResult(config: EvalConfig, r: TrialRecord): EvalResult {
       ba_cli_session: r.sessions.ba,
     },
     ...conditionsOf(config),
+    outcomes: r.outcomes,
     cost: r.cost,
     scores: r.grades.scores,
     overclaims: r.grades.overclaims,

@@ -169,6 +169,10 @@ export function Detail({ nr }: { nr: string }) {
               <a className={s.link} href="#/szkody/nowa">
                 {t("detail.claim")}
               </a>
+              {/* The legacy part is still linked from the new app (S08, spec 015 F-19). */}
+              <a className={s.link} href="/legacy/insurer/szkoda-stara.do">
+                {t("detail.claimOld")}
+              </a>
             </div>
           </div>
         )}

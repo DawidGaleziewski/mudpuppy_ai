@@ -36,12 +36,16 @@ function fakeContext() {
       route: async (_p: string, h: RouteHandler) => void (routeHandler = h),
       on: (_e: string, h: (r: FakeResponse) => Promise<void>) => void (responseHandler = h),
     },
-    request: async (nav?: { url: string; mainFrame?: boolean }) => {
+    request: async (nav?: { url: string; mainFrame?: boolean; popup?: boolean }) => {
       const route = { continue: vi.fn(async () => {}), abort: vi.fn(async () => {}) };
       await routeHandler(route, {
         headers: () => ({ accept: '*/*', 'user-agent': 'Chrome' }),
         isNavigationRequest: () => nav !== undefined,
-        frame: () => ({ parentFrame: () => (nav?.mainFrame === false ? {} : null) }),
+        frame: () => {
+          // Playwright: a pop-up's first request comes before its frame exists.
+          if (nav?.popup) throw new Error('Frame for this navigation request is not available');
+          return { parentFrame: () => (nav?.mainFrame === false ? {} : null) };
+        },
         url: () => nav?.url ?? 'https://x.pl/asset.js',
       });
       return route;
@@ -176,6 +180,12 @@ describe('request gate', () => {
     // subframe navigations and subresources are not subject to the policy
     expect(
       (await f.request({ url: 'https://x.pl/wyloguj', mainFrame: false })).continue,
+    ).toHaveBeenCalled();
+    // a pop-up window's first request (no frame yet) is a top-level navigation: gated, no throw
+    const popup = await f.request({ url: 'https://x.pl/wyloguj', popup: true });
+    expect(popup.abort).toHaveBeenCalled();
+    expect(
+      (await f.request({ url: 'https://x.pl/oferty', popup: true })).continue,
     ).toHaveBeenCalled();
   });
 });

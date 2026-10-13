@@ -218,6 +218,14 @@ def test_diagrams_on_capability_and_screen_sections(ba_client: TestClient) -> No
     )
 
 
+def test_every_page_with_diagrams_loads_pan_and_zoom_first(ba_client: TestClient) -> None:
+    # spec 020 US4: diagrams.js attaches diagram-zoom.js after rendering, so it must load first
+    for url in (f"/docs/{P}?section=screens", f"/docs/{P}/PROC-001", "/runs/run-trace?tab=process"):
+        html = ba_client.get(url).text
+        zoom = html.find("/static/js/diagram-zoom.js")
+        assert 0 <= zoom < html.find("/static/js/diagrams.js"), url
+
+
 # --- record page ------------------------------------------------------------------------------
 
 

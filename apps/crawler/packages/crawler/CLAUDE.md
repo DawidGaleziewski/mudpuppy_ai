@@ -16,6 +16,9 @@ obstacles, safety, store.
   `name_source`, `div` forms).
 - Spec 019: `navigation-recorder.ts` (the hops of each step: HTTP, meta refresh, script, same
   document, reload, blocked) and `client-redirect.ts` (waiting through short client redirects).
+- Spec 020: `BrowserSession.takeOpened()` returns the http(s) URLs of pop-up windows opened since
+  the last call (the run queues them, LO-27); a pop-up's first request has no frame yet, so frame
+  reads in `request-gate.ts` and `navigation-recorder.ts` treat it as top-level.
 - In-page code with helpers goes through `evalWithHelpers` (`in-page.ts`; Playwright's `evaluate`, not an eval): top-level helper
   functions only, no closures (the `__name` shim, G-02).
 
