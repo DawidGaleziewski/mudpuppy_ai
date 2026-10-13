@@ -44,6 +44,14 @@ export const PORTAL_TABLES = [
   'amendment_revisions',
   'chat_proposals',
   'screens',
+  'grouping_suggestions',
+  'ba_processes',
+  'ba_process_revisions',
+  'process_variants',
+  'process_variant_revisions',
+  'process_drafts',
+  'process_live',
+  'change_spec_revisions',
 ] as const;
 export type PortalTable = (typeof PORTAL_TABLES)[number];
 
@@ -55,7 +63,10 @@ export type PortalTable = (typeof PORTAL_TABLES)[number];
  * states; workflow_steps reference runs and analysis_sessions; all but amendments reference
  * chat_conversations, and chat_messages are its children. `amendment_revisions` (`0016`) precede
  * amendments, and `screens` (`0015`) follow states (states and amendments reference them) and precede
- * runs (`first_seen_run`). amendments' self-references
+ * runs (`first_seen_run`). The BA process tables (`0018`) go first of all: change specs, live records, drafts,
+ * variant revisions and variants, process revisions, `ba_processes`, then `grouping_suggestions`; the cycle
+ * between `ba_processes.suggestion_id` and `grouping_suggestions.process_id` is cut by clearing the latter first
+ * (see `deletePortal`). amendments' self-references
  * (`reapplied_as`, `reapplies`) are within one portal and go in one DELETE statement. Layer B
  * (`0004_ba_documentation`, data-model.md "Portal data partition") goes first: reviews, relations and
  * evidence links are children of doc_revisions; followup_tasks and doc_revisions are children of
@@ -67,6 +78,14 @@ export type PortalTable = (typeof PORTAL_TABLES)[number];
  * `decision_log` and `runs`.
  */
 const DELETE_ORDER: readonly PortalTable[] = [
+  'change_spec_revisions', // 0018: the BA process tables, children first
+  'process_live',
+  'process_drafts',
+  'process_variant_revisions',
+  'process_variants',
+  'ba_process_revisions',
+  'ba_processes',
+  'grouping_suggestions',
   'chat_proposals', // 0017: references chat_conversations and amendments
   'amendment_revisions',
   'amendments',
@@ -121,6 +140,9 @@ const DOC_RECORDS_OF_PORTAL = (op: string) => `SELECT id FROM doc_records WHERE 
 const DOC_REVISIONS_OF_PORTAL = (op: string) =>
   `SELECT id FROM doc_revisions WHERE record_id IN (${DOC_RECORDS_OF_PORTAL(op)})`;
 
+const BA_PROCESSES_OF_PORTAL = (op: string) =>
+  `SELECT id FROM ba_processes WHERE portal_id ${op} ?`;
+
 /** `mine`: rows of the portal; `others`: rows of every other portal. */
 export function where(table: PortalTable, side: 'mine' | 'others'): string {
   const op = side === 'mine' ? '=' : '<>';
@@ -136,6 +158,8 @@ export function where(table: PortalTable, side: 'mine' | 'others'): string {
     case 'amendments':
     case 'chat_proposals':
     case 'screens':
+    case 'ba_processes':
+    case 'grouping_suggestions':
       return `portal_id ${op} ?`;
     case 'chat_messages':
       return `conversation_id IN (SELECT id FROM chat_conversations WHERE portal_id ${op} ?)`;
@@ -152,6 +176,14 @@ export function where(table: PortalTable, side: 'mine' | 'others'): string {
       return `record_id IN (${DOC_RECORDS_OF_PORTAL(op)})`;
     case 'amendment_revisions':
       return `amendment_id IN (SELECT id FROM amendments WHERE portal_id ${op} ?)`;
+    case 'ba_process_revisions':
+    case 'process_variants':
+    case 'process_live':
+    case 'change_spec_revisions':
+      return `process_id IN (${BA_PROCESSES_OF_PORTAL(op)})`;
+    case 'process_variant_revisions':
+    case 'process_drafts':
+      return `variant_id IN (SELECT id FROM process_variants WHERE process_id IN (${BA_PROCESSES_OF_PORTAL(op)}))`;
     case 'process_steps':
       return `process_id IN (SELECT id FROM processes WHERE portal_id ${op} ?)`;
     case 'state_wireframes':
@@ -345,6 +377,11 @@ export function deletePortal(opts: {
     // point at within this single-statement-per-table delete pass.
     raw
       .prepare(`UPDATE trace_spans SET parent_id = NULL WHERE ${where('trace_spans', 'mine')}`)
+      .run(portal);
+    raw
+      .prepare(
+        `UPDATE grouping_suggestions SET process_id = NULL WHERE ${where('grouping_suggestions', 'mine')}`,
+      )
       .run(portal);
     for (const t of DELETE_ORDER)
       raw.prepare(`DELETE FROM ${t} WHERE ${where(t, 'mine')}`).run(portal);

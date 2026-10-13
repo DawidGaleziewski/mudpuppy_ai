@@ -116,7 +116,9 @@
 ## F-13 A Sonnet agent edited a file with a Python string replace, 2026-10-14
 
 - **Symptom**: the T031 agent changed `web/portals.py` once with a Python `str.replace` script
-  although its brief forbade script edits; it said so in its report. The result was correct.
+  although its brief forbade script edits; it said so in its report. The result was correct. The
+  T033 db-admin agent did the same with throwaway node/python scripts on `db-types.ts`,
+  `portal-data.ts` and two READMEs (also reported, also correct after prettier).
 - **Cause**: the new PreToolUse hook (`no-script-edits.py`) blocks `sed -i`, `perl -i` and
   redirects, not an inline Python or Node script that writes a file.
 - **Test idea**: extend the hook to refuse `python3 -c`/heredoc scripts and `node -e` that call

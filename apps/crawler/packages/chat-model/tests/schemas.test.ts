@@ -9,6 +9,12 @@ import {
   AmendmentStatus,
   AmendmentSupersededReason,
   AmendmentTargetKind,
+  BaProcess,
+  BaProcessChange,
+  BaProcessRevision,
+  BaProcessSource,
+  BaProcessStage,
+  ChangeSpecRevision,
   ChatConversation,
   ChatConversationStatus,
   ChatMessage,
@@ -16,8 +22,18 @@ import {
   ChatProposal,
   ChatProposalStatus,
   ChatProposalTargetKind,
+  GroupingSuggestion,
+  GroupingSuggestionStatus,
+  ProcessDraft,
+  ProcessLive,
+  ProcessLiveEnvironment,
   ProcessScope,
   ProcessScopeSource,
+  ProcessStep,
+  ProcessVariant,
+  ProcessVariantChange,
+  ProcessVariantKind,
+  ProcessVariantRevision,
   WorkflowStep,
   WorkflowStepName,
   WorkflowStepStatus,
@@ -252,5 +268,172 @@ describe('chat proposals (0017)', () => {
     expect(ChatProposal.safeParse({ ...base, status: 'discarded', decided_at: ts }).success).toBe(
       true,
     );
+  });
+});
+
+describe('BA processes (0018)', () => {
+  const SQL_0018 = readFileSync(
+    fileURLToPath(
+      new URL('../../../../../data/migrations/0018_ba_processes.up.sql', import.meta.url),
+    ),
+    'utf-8',
+  );
+  const step = {
+    id: 's1',
+    title: 'Home',
+    route: '/',
+    state_id: 'st1',
+    screen_id: null,
+    observed: true,
+    from: [],
+    annotations: [],
+  };
+
+  it('Zod enums equal the CHECK lists in the migration', () => {
+    expect(BaProcessStage.options).toEqual(inList('ba_processes', 'stage', SQL_0018));
+    expect(BaProcessSource.options).toEqual(inList('ba_processes', 'source', SQL_0018));
+    expect(BaProcessChange.options).toEqual(inList('ba_process_revisions', 'change', SQL_0018));
+    expect(ProcessVariantKind.options).toEqual(inList('process_variants', 'kind', SQL_0018));
+    expect(ProcessVariantChange.options).toEqual(
+      inList('process_variant_revisions', 'change', SQL_0018),
+    );
+    expect(ProcessLiveEnvironment.options).toEqual(inList('process_live', 'environment', SQL_0018));
+    expect(GroupingSuggestionStatus.options).toEqual(
+      inList('grouping_suggestions', 'status', SQL_0018),
+    );
+  });
+
+  it('mirrors the row CHECKs', () => {
+    const rev = {
+      variant_id: 'v1',
+      rev: 1,
+      base_rev: null,
+      change: 'create',
+      author: 'BA',
+      steps: [step],
+      note: null,
+      run_id: null,
+      restored_from: null,
+      created_at: ts,
+    };
+    expect(ProcessVariantRevision.safeParse(rev).success).toBe(true);
+    expect(ProcessVariantRevision.safeParse({ ...rev, rev: 2 }).success).toBe(false);
+    expect(ProcessVariantRevision.safeParse({ ...rev, base_rev: 1 }).success).toBe(false);
+    expect(ProcessVariantRevision.safeParse({ ...rev, steps: {} }).success).toBe(false);
+    expect(ProcessStep.safeParse({ ...step, from: ['s0'], annotations: [] }).success).toBe(true);
+    expect(ProcessStep.safeParse({ ...step, observed: 'yes' }).success).toBe(false);
+
+    const process = {
+      id: 'p1',
+      portal_id: 'portal',
+      key: 'PRC-001',
+      name: 'Claim',
+      persona: 'anon',
+      stage: 'scoped',
+      rev: 1,
+      source: 'scope',
+      scope_id: null,
+      suggestion_id: null,
+      created_at: ts,
+      updated_at: ts,
+    };
+    expect(BaProcess.safeParse(process).success).toBe(true);
+    expect(BaProcess.safeParse({ ...process, key: 'X-1' }).success).toBe(false);
+    expect(
+      BaProcessRevision.safeParse({
+        process_id: 'p1',
+        rev: 2,
+        base_rev: 1,
+        change: 'stage',
+        author: 'BA',
+        name: 'Claim',
+        stage: 'migrating',
+        created_at: ts,
+      }).success,
+    ).toBe(true);
+
+    const variant = {
+      id: 'v1',
+      process_id: 'p1',
+      label: 'A',
+      kind: 'as_is',
+      rev: 1,
+      branched_from_variant_id: null,
+      branched_from_rev: null,
+      created_at: ts,
+    };
+    expect(ProcessVariant.safeParse(variant).success).toBe(true);
+    expect(ProcessVariant.safeParse({ ...variant, branched_from_rev: 1 }).success).toBe(false);
+
+    expect(
+      ProcessDraft.safeParse({
+        variant_id: 'v1',
+        author: 'BA',
+        base_rev: 1,
+        steps: [step],
+        updated_at: ts,
+      }).success,
+    ).toBe(true);
+    expect(
+      ProcessLive.safeParse({
+        id: 'l1',
+        process_id: 'p1',
+        environment: 'staging',
+        variant_id: 'v1',
+        variant_rev: 1,
+        author: 'BA',
+        reason: null,
+        created_at: ts,
+      }).success,
+    ).toBe(true);
+
+    const suggestion = {
+      id: 'g1',
+      portal_id: 'portal',
+      name: 'Claim',
+      persona: 'anon',
+      steps: [step],
+      why: 'Same flow',
+      screens_key: 'a,b',
+      status: 'open',
+      conversation_id: null,
+      process_id: null,
+      decided_by: null,
+      decided_at: null,
+      created_at: ts,
+    };
+    expect(GroupingSuggestion.safeParse(suggestion).success).toBe(true);
+    expect(GroupingSuggestion.safeParse({ ...suggestion, status: 'dismissed' }).success).toBe(
+      false,
+    );
+    expect(
+      GroupingSuggestion.safeParse({ ...suggestion, status: 'accepted', decided_at: ts }).success,
+    ).toBe(false);
+
+    const section = ['x'];
+    const spec = {
+      process_id: 'p1',
+      rev: 1,
+      base_rev: null,
+      left_variant_id: 'v1',
+      left_rev: 1,
+      right_variant_id: 'v2',
+      right_rev: 1,
+      sections: {
+        scope: 's',
+        as_is: section,
+        to_be: section,
+        delta: section,
+        records: section,
+        migration_cut: section,
+        open_questions: section,
+      },
+      author: 'BA',
+      doc_key: null,
+      created_at: ts,
+    };
+    expect(ChangeSpecRevision.safeParse(spec).success).toBe(true);
+    expect(ChangeSpecRevision.safeParse({ ...spec, sections: [] }).success).toBe(false);
+    expect(ChangeSpecRevision.safeParse({ ...spec, rev: 2 }).success).toBe(false);
   });
 });

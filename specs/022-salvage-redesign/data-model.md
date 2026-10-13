@@ -212,3 +212,30 @@ start → selected (in route order) → end, author `BA`. Older scopes stay as t
 ### Portal export/delete
 
 Every new table is in `PORTAL_TABLES` (children before parents).
+
+### As built (0018)
+
+- **Tables and CHECKs**: all STRICT; the four revision tables and `process_drafts` are also WITHOUT ROWID.
+  `base_rev IS NULL` exactly for rev 1 in `ba_process_revisions`, `process_variant_revisions` and
+  `change_spec_revisions`. `steps` (variant revisions, drafts, suggestions) must be a JSON array, `sections` a JSON
+  object. `ba_processes.key` GLOB `PRC-[0-9][0-9][0-9]*`.
+- **Added integrity beyond the design**: `process_variants` needs `branched_from_variant_id` and `branched_from_rev`
+  together or neither; `grouping_suggestions` needs `decided_at` once not `open` and `process_id` when `accepted`;
+  composite FKs `process_live (variant_id, variant_rev)` and `change_spec_revisions (left|right_variant_id,
+  left|right_rev)` to `process_variant_revisions (variant_id, rev)`, so a live mark or spec can only name a
+  revision that exists. `process_variant_revisions.note` and `process_live.reason` are nullable; `restored_from` is
+  not forced by `change = 'restore'` (Zod and the write tool own that).
+- **Indexes (only the named reads)**: `ix_process_live_process_env (process_id, environment, created_at)`,
+  `ix_grouping_suggestions_portal_status (portal_id, status)`, `ix_grouping_suggestions_portal_screens
+  (portal_id, screens_key)`. The UNIQUE keys `(portal_id, key)` and `(process_id, label)` serve key and label lookups.
+- **Backfill**: the newest scope per `(portal_id, process_name)` (by `created_at`, then id); `PRC-nnn` numbered in
+  name order per portal; ids UUIDv7 from the scope's `created_at`, kept in a temp table that the migration drops.
+  Steps run start, then the selected states ordered by `route_template` (then state id; start and end excluded),
+  then end, ids `s1`..`sn`; `screen_id` is the state's (NULL when the state has none); variant revision note
+  `Migrated from process scope`. A selected state id with no `states` row is dropped. `process_scopes` is untouched.
+- **Down**: drops the eight tables (the runner has foreign keys off, which also breaks the `ba_processes` /
+  `grouping_suggestions` cycle); everything in them is lost. Portal delete clears `grouping_suggestions.process_id`
+  first for the same reason.
+- **Mirrors**: Zod in `@pathfinder/chat-model` (`ba-process.ts`); Kysely types in `store/src/db-types.ts`;
+  dashboard read models in `models.py` (`BaProcess`, ..., `ChangeSpecRevision`). The Zod `ProcessStep` is the step
+  object; `steps = z.array(ProcessStep)`.

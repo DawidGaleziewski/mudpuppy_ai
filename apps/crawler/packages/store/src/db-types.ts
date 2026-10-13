@@ -42,11 +42,18 @@ import type {
   AmendmentStatus,
   AmendmentSupersededReason,
   AmendmentTargetKind,
+  BaProcessChange,
+  BaProcessSource,
+  BaProcessStage,
   ChatConversationStatus,
   ChatMessageRole,
   ChatProposalStatus,
   ChatProposalTargetKind,
+  GroupingSuggestionStatus,
+  ProcessLiveEnvironment,
   ProcessScopeSource,
+  ProcessVariantChange,
+  ProcessVariantKind,
   WorkflowStepName,
   WorkflowStepStatus,
 } from '@pathfinder/chat-model';
@@ -256,6 +263,110 @@ export interface ChatProposalsTable {
   applied_rev: number | null;
   decided_by: string | null;
   decided_at: string | null;
+  created_at: string;
+}
+
+/** 0018: the BA's cut of the portal (spec 022 M5). Head rows; `steps`/`sections` are stringified JSON. */
+export interface BaProcessesTable {
+  id: string;
+  portal_id: string;
+  key: string;
+  name: string;
+  persona: string;
+  stage: BaProcessStage;
+  rev: number;
+  source: BaProcessSource;
+  scope_id: string | null;
+  suggestion_id: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface BaProcessRevisionsTable {
+  process_id: string;
+  rev: number;
+  base_rev: number | null;
+  change: BaProcessChange;
+  author: string;
+  name: string;
+  stage: BaProcessStage;
+  created_at: string;
+}
+
+export interface ProcessVariantsTable {
+  id: string;
+  process_id: string;
+  label: string;
+  kind: ProcessVariantKind;
+  rev: number;
+  branched_from_variant_id: string | null;
+  branched_from_rev: number | null;
+  created_at: string;
+}
+
+export interface ProcessVariantRevisionsTable {
+  variant_id: string;
+  rev: number;
+  base_rev: number | null;
+  change: ProcessVariantChange;
+  author: string;
+  steps: string;
+  note: string | null;
+  run_id: string | null;
+  restored_from: number | null;
+  created_at: string;
+}
+
+export interface ProcessDraftsTable {
+  variant_id: string;
+  author: string;
+  base_rev: number;
+  steps: string;
+  updated_at: string;
+}
+
+export interface ProcessLiveTable {
+  id: string;
+  process_id: string;
+  environment: ProcessLiveEnvironment;
+  variant_id: string;
+  variant_rev: number;
+  author: string;
+  reason: string | null;
+  created_at: string;
+}
+
+export interface GroupingSuggestionsTable {
+  id: string;
+  portal_id: string;
+  name: string;
+  persona: string;
+  steps: string;
+  why: string;
+  screens_key: string;
+  status: ColumnType<
+    GroupingSuggestionStatus,
+    GroupingSuggestionStatus | undefined,
+    GroupingSuggestionStatus
+  >;
+  conversation_id: string | null;
+  process_id: string | null;
+  decided_by: string | null;
+  decided_at: string | null;
+  created_at: string;
+}
+
+export interface ChangeSpecRevisionsTable {
+  process_id: string;
+  rev: number;
+  base_rev: number | null;
+  left_variant_id: string;
+  left_rev: number;
+  right_variant_id: string;
+  right_rev: number;
+  sections: string;
+  author: string;
+  doc_key: string | null;
   created_at: string;
 }
 
@@ -619,4 +730,12 @@ export interface Database {
   amendments: AmendmentsTable;
   amendment_revisions: AmendmentRevisionsTable;
   chat_proposals: ChatProposalsTable;
+  grouping_suggestions: GroupingSuggestionsTable;
+  ba_processes: BaProcessesTable;
+  ba_process_revisions: BaProcessRevisionsTable;
+  process_variants: ProcessVariantsTable;
+  process_variant_revisions: ProcessVariantRevisionsTable;
+  process_drafts: ProcessDraftsTable;
+  process_live: ProcessLiveTable;
+  change_spec_revisions: ChangeSpecRevisionsTable;
 }

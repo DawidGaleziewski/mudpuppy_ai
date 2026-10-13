@@ -37,6 +37,10 @@ rather than editing this folder ad hoc.
   **Chat proposals** (since spec 022, `0017_chat_proposals`): `chat_proposals` — changes the chat assistant
   proposes and a person applies or discards; written only by `@pathfinder/chat`, read-only for the dashboard,
   in the portal export/delete partition.
+  **BA processes** (since spec 022, `0018_ba_processes`): `ba_processes`, `ba_process_revisions`, `process_variants`,
+  `process_variant_revisions`, `process_drafts`, `process_live`, `grouping_suggestions`, `change_spec_revisions` —
+  the BA's cut of the portal, written only by `@pathfinder/chat`; `process_scopes` were migrated in. In the
+  portal export/delete partition.
 - `evidence/` — content-addressed (`sha256`) evidence blobs: ARIA snapshots, robots.txt
   policies and trace payloads too large for their column, referenced by `evidence_ref` columns;
   since spec 008 also state screenshots (`.png`, unmasked), layouts (`.json`: element keys and
