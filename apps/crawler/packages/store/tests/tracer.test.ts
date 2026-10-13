@@ -15,7 +15,6 @@ const BOOT = {
   environment: 'sandbox',
   server: 'pathfinder',
   version: '0.0.0-test',
-  pwTrace: 'non_production',
 } as const;
 
 class FakeToolError extends Error {
@@ -104,7 +103,7 @@ describe('Tracer boot', () => {
       pid: process.pid,
       version: '0.0.0-test',
       trace_level: 'standard',
-      pw_trace: 'non_production',
+      pw_trace: 'all',
       ended_at: null,
     });
   });

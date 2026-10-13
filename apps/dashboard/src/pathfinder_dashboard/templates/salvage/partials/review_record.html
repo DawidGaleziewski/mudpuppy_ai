@@ -1,0 +1,42 @@
+{% import "salvage/macros.html" as sy %}
+{#- The selected record to confirm (screen 09 side pane): what it cites, then the decision. The
+    form posts to /review/records/…, which runs `docs:review` and comes back here. -#}
+{%- set r = sel %}
+{%- set docs_url = c.url('/docs/' ~ c.portal ~ '/' ~ r.key) %}
+<aside class="sy-plate" aria-labelledby="sel-h">
+  <div class="sy-plate__head">
+    <div class="sy-stack" style="--sy-gap: 8px">
+      <div class="sy-cluster">{{ sy.tag(r.key, docs_url, sm=true) }}{{ sy.doc_status(r.status) }}<span class="sy-mono sy-mono--sm sy-muted">revision {{ r.rev }} of {{ r.total }}</span></div>
+      <h2 id="sel-h" class="sy-plate__title">{{ r.title }}</h2>
+    </div>
+  </div>
+  <div class="sy-plate__body sy-stack">
+    <h3 class="sy-label">Screens it cites</h3>
+    {%- for s in v.cited %}
+    <a class="sy-cluster" href="{{ c.url('/states/' ~ s.id) }}" style="--sy-gap: 12px">
+      {%- if s.screenshot_ref %}<img class="sy-thumb mp-thumb-sm" src="/evidence/{{ s.screenshot_ref }}" alt="" loading="lazy">{% else %}<span class="sy-thumb mp-thumb-sm" aria-hidden="true"></span>{% endif %}
+      <span class="sy-stack" style="--sy-gap: 2px"><span>{{ s.title or "(untitled page)" }}</span><span class="sy-route">{{ s.route }}</span></span>
+    </a>
+    {%- else %}
+    <p class="sy-small sy-muted">No screens cited; the record rests on other evidence.</p>
+    {%- endfor %}
+    <a class="sy-small" href="{{ docs_url }}">Open the full record in Docs</a>
+  </div>
+  <hr>
+  {%- if c.settings.reviewer %}
+  <form class="sy-plate__body sy-stack" method="post" action="{{ c.url('/review/records/' ~ (c.portal | urlencode) ~ '/' ~ (r.key | urlencode)) }}" aria-label="Decide on {{ r.key }}">
+    <input type="hidden" name="rev_no" value="{{ r.rev }}">
+    <div><button class="sy-btn sy-btn--primary" type="submit" name="action" value="confirm">Confirm rev {{ r.rev }}</button></div>
+    <label class="sy-field"><span class="sy-field__label">Reason (required to reject)</span>
+      <textarea class="sy-textarea" name="reject" rows="2"></textarea></label>
+    <div><button class="sy-btn sy-btn--md" type="submit" name="action" value="reject">Reject rev {{ r.rev }}</button></div>
+    <label class="sy-field"><span class="sy-field__label">Comment</span>
+      <textarea class="sy-textarea" name="comment" rows="2"></textarea></label>
+    <div class="sy-actions">
+      <button class="sy-btn sy-btn--md sy-btn--quiet" type="submit" name="action" value="comment">Comment</button>
+    </div>
+  </form>
+  {%- else %}
+  <p class="sy-plate__body sy-small sy-muted">Review actions are off: set <span class="sy-mono sy-mono--sm">PATHFINDER_REVIEWER</span> to your name and restart the dashboard.</p>
+  {%- endif %}
+</aside>

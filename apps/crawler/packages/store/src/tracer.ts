@@ -5,7 +5,6 @@ import { maskText, newId as defaultNewId, type EvidenceStore } from '@pathfinder
 import {
   fitPayload,
   fitText,
-  type PwTraceMode,
   type SpanKind,
   type SpanStatus,
   type TraceLevel,
@@ -155,7 +154,6 @@ export interface Tracer {
     environment: string;
     server: TraceServer;
     version: string;
-    pwTrace: PwTraceMode;
   }): Promise<void>;
   sweepUnfinished(): Promise<number>;
   call<T>(c: CallStart, fn: (span: SpanHandle) => Promise<T>): Promise<T>;
@@ -598,7 +596,8 @@ export function createTracer(deps: TracerDeps): Tracer {
             pid: process.pid,
             version: boot.version,
             trace_level: level,
-            pw_trace: boot.pwTrace,
+            // Every environment is traced since spec 021; the column keeps old boots readable.
+            pw_trace: 'all',
           })
           .execute(),
       );

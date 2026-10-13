@@ -1,0 +1,20 @@
+{% extends "salvage/base.html" %}
+{% set nav_current = "scans" %}
+{% block title %}Scans{% endblock %}
+{% block main %}
+{%- set k = v.counts %}
+<div class="sy-pagehead">
+  <h1 class="sy-h1">Scans</h1>
+  <p class="sy-meta">
+    {%- if not c.portal %}Pick a portal in the header to see its scans.
+    {%- elif k and k.total %}{{ v.portal }} · <span class="sy-num">{{ k.total }}</span> scan{{ "" if k.total == 1 else "s" }}
+      {%- if k.running %} · <span class="sy-num">{{ k.running }}</span> running{% endif %}
+      {%- if k.interrupted %} · <span class="sy-num">{{ k.interrupted }}</span> interrupted{% endif %}
+      {%- if k.completed %} · <span class="sy-num">{{ k.completed }}</span> completed{% endif %}
+      {%- if k.other %} · <span class="sy-num">{{ k.other }}</span> stopped by a warning{% endif %}
+    {%- else %}{{ v.portal }} · no scans yet{% endif %}</p>
+</div>
+{% set scan_tab = "scans" %}{% set scan_total = k.total if k else none %}
+{% include "salvage/partials/scan_tabs.html" %}
+{% include "salvage/partials/scans_body.html" %}
+{% endblock %}

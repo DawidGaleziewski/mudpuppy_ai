@@ -36,7 +36,10 @@ store, vault, workflow.
 - Chat schemas will move to `@pathfinder/chat-model` (G-10).
 
 ## Tests
-- `pnpm --dir apps/chat test` (typecheck, lint, test before commit).
+- `pnpm --dir apps/chat test` (typecheck, lint, test before commit); it leaves out `*.e2e.test.ts`.
+- `pnpm --dir apps/chat test:e2e`: browser end-to-end files (real dashboard via `uv run` + Chromium
+  on one temp store, e.g. `proposals-browser.e2e.test.ts`, FE-A04); before committing a change to
+  proposals, the drawer or the dashboard's chat pages, and in the close-out.
 
 ## See also
 - specs/010-acp-chat-orchestrator, specs/011-portal-onboarding

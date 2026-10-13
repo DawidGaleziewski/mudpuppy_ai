@@ -18,7 +18,12 @@
     <span class="sy-mono sy-mono--sm">{{ st.cluster_id }}</span>
     {{ sy.confidence(st.confidence) }}
     <span>{{ st.stabilization | replace("_", " ") }}</span>
+    <span>{{ p.elements | length }} of {{ p.element_count }} elements visible</span>
   </div>
+  {%- if processes %}
+  <p class="sy-meta">In processes:
+    {%- for u in processes %} <a href="{{ c.url('/chat') }}">{{ u.name }} · {{ u.role }}</a>{% if not loop.last %} ·{% endif %}{% endfor %}</p>
+  {%- endif %}
 </div>
 {% set current = st.id %}{% include "salvage/partials/revision_strip.html" %}
 
@@ -40,14 +45,23 @@
   {%- elif view == "screenshot" %}
   <div class="sy-cluster sy-small">
     {%- if show_elements %}
-    <a class="sy-btn sy-btn--sm" href="{{ c.url('/states/' ~ st.id) }}">Hide elements</a>
+    <a class="sy-btn sy-btn--sm" href="{{ c.url('/states/' ~ st.id, side=side) }}">Hide elements</a>
     {%- else %}
-    <a class="sy-btn sy-btn--sm" href="{{ c.url('/states/' ~ st.id, elements=1) }}">Show elements</a>
+    <a class="sy-btn sy-btn--sm" href="{{ c.url('/states/' ~ st.id, elements=1, side=side) }}">Show elements</a>
+    {%- if pins is none %}
+    <a class="sy-btn sy-btn--sm sy-btn--quiet" href="{{ c.url('/states/' ~ st.id, side=side) }}">Show amendment pins</a>
+    {%- elif pins %}
+    <a class="sy-btn sy-btn--sm sy-btn--quiet" href="{{ c.url('/states/' ~ st.id, side=side, pins='false') }}">Hide amendment pins</a>
+    {%- endif %}
     {%- endif %}
     <a class="sy-btn sy-btn--sm sy-btn--quiet" href="/evidence/{{ st.screenshot_ref }}" target="_blank" rel="noopener">Full size</a>
     <span class="sy-muted">{{ p.elements | length }} of {{ p.element_count }} {{ sy.term("element-key", "elements") }} visible on the screenshot</span>
   </div>
-  {{ sc.figure(f, hl=p.elements if show_elements else [], legend=show_elements, caption="As first recorded") }}
+  {%- if show_elements %}
+  {{ sc.figure(f, hl=p.elements, legend=true, caption="As first recorded") }}
+  {%- else %}
+  {{ sc.figure(f, hl=pins or [], legend=false, caption="As first recorded" ~ (" · amendment pins" if pins else ""), label_by="note") }}
+  {%- endif %}
   {%- else %}
   {%- if not f.has_screenshot %}<p class="sy-small sy-muted">No screenshot recorded; wireframe shown.</p>{% endif %}
   {%- if f.wireframe %}
@@ -107,63 +121,6 @@
   </div>
 </div>
 
-<aside class="sy-col-side sy-stack">
-  <div class="sy-plate">
-    <div class="sy-plate__head"><h2 class="sy-plate__title">Facts</h2></div>
-    <div class="sy-plate__body">
-      <dl class="sy-facts">
-        <dt>{{ sy.term("cluster", "Cluster") }}</dt><dd class="sy-mono sy-mono--sm">{{ st.cluster_id }}</dd>
-        <dt>First seen</dt><dd>{{ sy.tag(st.first_seen_run[:8], c.url('/runs/' ~ st.first_seen_run), sm=true) }} <span class="sy-mono sy-mono--sm">{{ st.created_at | when }}</span></dd>
-        <dt>{{ sy.term("evidence", "Snapshot") }}</dt><dd>{{ sy.evidence(st.evidence_ref) }}</dd>
-      </dl>
-    </div>
-  </div>
-
-  <div class="sy-plate">
-    <div class="sy-plate__head"><h2 class="sy-plate__title">Cited by <span class="sy-count sy-count--muted">{{ p.citing | length }}</span></h2></div>
-    <div class="sy-plate__body">
-    {%- if not p.citing %}
-      {{ sy.empty("No record cites this screen", "Records cite a screen or a region of its screenshot as evidence.", level=3) }}
-    {%- else %}
-    <ul class="sy-stack sy-small" style="--sy-gap: 6px">
-      {%- for r in p.citing %}
-      <li>{{ sy.tag(r.key, c.url('/docs/' ~ r.portal_id ~ '/' ~ r.key), sm=true) }} {{ r.title }}
-        {%- if r.regions %} <span class="sy-muted">regions:</span> {% for k in r.regions %}<span class="sy-mono sy-mono--sm">{{ k }}</span>{% if not loop.last %}, {% endif %}{% endfor %}{% endif %}</li>
-      {%- endfor %}
-    </ul>
-    {%- endif %}
-    </div>
-  </div>
-
-  <div class="sy-plate sy-plate--drawn">
-    <div class="sy-plate__head"><h2 class="sy-plate__title">Amendments</h2><span class="sy-status" data-status="draft">To-be</span></div>
-    <div class="sy-plate__body sy-stack">
-      <p class="sy-small sy-muted">What the business wants changed on this screen. Intentions, not observations: kept apart from the recorded page and from the documentation of how it works today.</p>
-      {% include "salvage/partials/state_amendments.html" %}
-      <form class="sy-stack" data-json-form="amendment" method="post"
-            action="/chat/portals/{{ st.portal_id | urlencode }}/amendments" data-state="{{ st.id }}" autocomplete="off">
-        <h3 class="sy-label">Add an amendment</h3>
-        <label class="sy-field">
-          <span class="sy-field__label">Applies to</span>
-          <select class="sy-select" name="element">
-            <option value="">The whole screen</option>
-            {%- for key, label in am.elements %}<option value="{{ key }}">{{ label }} · {{ key }}</option>{% endfor %}
-          </select>
-        </label>
-        {%- if not am.elements %}<p class="sy-small sy-muted">No wireframe layout is recorded for this screen, so only the whole screen can be amended.</p>{% endif %}
-        <label class="sy-field">
-          <span class="sy-field__label">Note</span>
-          <textarea class="sy-textarea" name="text" rows="3" maxlength="50000" placeholder="What should be different, and why"></textarea>
-        </label>
-        <label class="sy-field">
-          <span class="sy-field__label">Attachment (optional, up to 8 MB)</span>
-          <input class="sy-input" type="file" name="attachment">
-        </label>
-        <div class="sy-actions"><button class="sy-btn sy-btn--primary" type="submit">Add amendment</button></div>
-        <p class="form-result" role="status" data-result></p>
-      </form>
-    </div>
-  </div>
-</aside>
+{% include "salvage/partials/screen_side.html" %}
 </div>
 {% endblock %}

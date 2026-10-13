@@ -20,10 +20,14 @@ from .conftest import Store, make_client
 
 P = "reference-insurer"
 CRAWLER = Path(__file__).resolve().parents[2] / "crawler"
-pytestmark = pytest.mark.skipif(
-    shutil.which("pnpm") is None or not (CRAWLER / "node_modules").is_dir(),
-    reason="docs:review needs pnpm and apps/crawler/node_modules",
-)
+pytestmark = [
+    pytest.mark.skipif(
+        shutil.which("pnpm") is None or not (CRAWLER / "node_modules").is_dir(),
+        reason="docs:review needs pnpm and apps/crawler/node_modules",
+    ),
+    # Shells out to the crawler CLI; flaked when several workers did that at once (spec 022 F-01).
+    pytest.mark.serial,
+]
 ORIGIN = {"Origin": "http://testserver"}
 
 

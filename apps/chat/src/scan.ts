@@ -54,9 +54,9 @@ export const RequestScanInput = z.object({
   /** Continue a stopped (interrupted) map run of this portal and persona instead of a new one. */
   resume_run_id: z.string().min(1).optional(),
   /**
-   * The BA's decision for this scan (spec 011 FR-013): false (the default for a new scan) maps
-   * read-only; true lets the crawler fill and submit forms up to the portal's limit. A resumed
-   * run keeps its own when left out.
+   * The BA's decision for this scan (spec 011 FR-013): true (the default for a new scan since
+   * the owner's 2026-10-14 decision) lets the crawler fill and submit forms up to the portal's
+   * limit; false ("only look") maps read-only. A resumed run keeps its own when left out.
    */
   allow_writes: z.boolean().optional(),
   /** Skip loading images (spec 011 FR-014); default false; a resumed run keeps its own. */
@@ -232,12 +232,12 @@ export function requestScan(
     status: 'pending',
     runId: resume_run_id ?? null,
   });
-  // A new scan maps read-only with images and the whole portal unless the BA decided otherwise
-  // (spec 011 FR-013, FR-014, FR-017); a resume passes only what the BA changed.
+  // A new scan may fill and submit forms, loads images and maps the whole portal unless the BA
+  // decided otherwise (spec 011 FR-013, FR-014, FR-017); a resume passes only what the BA changed.
   const choices: ScanChoices =
     resume_run_id === undefined
       ? {
-          allowWrites: rest.allow_writes ?? false,
+          allowWrites: rest.allow_writes ?? true,
           skipImages: rest.skip_images ?? false,
           ...(rest.focus !== undefined ? { focus: rest.focus } : {}),
         }

@@ -1,0 +1,16 @@
+{% extends "salvage/base.html" %}
+{% import "salvage/macros.html" as sy %}
+{% set nav_current = "review" %}
+{% block title %}Review{% endblock %}
+{% block main %}
+<div class="sy-pagehead">
+  <h1 class="sy-h1">Review</h1>
+  <p class="sy-meta sy-prose">
+    {%- if not c.portal %}Pick a portal in the header to see what waits for a decision.
+    {%- else %}<span class="sy-num">{{ v.inbox.total }}</span> decision{{ "" if v.inbox.total == 1 else "s" }} waiting for {{ c.portal }}. Everything that waits for a decision lands here. Nothing here is deleted automatically.{% endif %}</p>
+</div>
+{%- if v.note %}
+<p class="sy-small" role="status">{{ v.note }}</p>
+{%- endif %}
+{% include "salvage/partials/review_inbox.html" %}
+{% endblock %}

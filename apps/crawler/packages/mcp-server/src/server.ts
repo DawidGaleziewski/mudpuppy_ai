@@ -41,7 +41,6 @@ export async function main(opts: BootOptions): Promise<void> {
     environment: opts.environment,
     server: 'pathfinder',
     version: serverVersion(root),
-    pwTrace: trace.pwTrace,
   });
   const ctx: ServerContext = {
     owner: { id: newId(), pid: process.pid },
@@ -51,7 +50,6 @@ export async function main(opts: BootOptions): Promise<void> {
     decisions: linkDecisions(createDecisionLog(opened.db, logger), tracer),
     logger,
     tracer,
-    pwTrace: trace.pwTrace,
     root,
     dbEnvironment: opts.environment,
   };

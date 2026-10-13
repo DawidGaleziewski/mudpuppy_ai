@@ -116,3 +116,99 @@ Down: drops the table (open proposals are lost).
   `superseded_reason` `state_replaced` when missing) and loses revision history; `0015` down rebuilds `states`
   (SQLite cannot drop a column that has a foreign key) and drops `screens`.
 - **Portal export/delete** include `screens` and `amendment_revisions` (`PORTAL_TABLES`).
+
+## M5 — BA processes (migration 0018_ba_processes)
+
+A BA process is the BA's cut of the portal (screens 04–07), distinct from the crawler's trace
+`processes` (spec 004) and from `process_scopes` (spec 010, migrated in). Same pattern as
+amendments: a head row with the current revision number, append-only revision rows beside it.
+Every write goes through the chat service (FR-011); a stale `base_rev` answers 409.
+
+### Steps (JSON, in variant revisions and drafts)
+
+An ordered array; each step:
+`{"id": "s1", "title": "…", "route": "/…", "state_id": "…"|null, "screen_id": "…"|null,
+"observed": true|false, "from": ["s2", "s3"], "annotations": [{"text": "…", "author": "…", "at": "…"}]}`.
+`observed` steps point at a recorded state (as-is); drawn steps have no state ("Designed, not
+observed"). `from` names the steps of the variant it was branched from that this step replaces
+(one = changed, two or more = merged); a to-be step without `from` is added. The first step is the
+start, the last the end. Ids are unique within a variant and kept across its revisions.
+
+### `ba_processes` (new; head)
+
+| Column | Notes |
+|---|---|
+| id TEXT PK | UUIDv7 |
+| portal_id TEXT NOT NULL | |
+| key TEXT NOT NULL | `PRC-001`…, UNIQUE (portal_id, key) |
+| name TEXT NOT NULL | |
+| persona TEXT NOT NULL | the persona the as-is was observed as |
+| stage TEXT NOT NULL | `scoped` \| `as_is_documented` \| `to_be_design` \| `migrating` \| `migrated` (a process can move back) |
+| rev INTEGER NOT NULL ≥ 1 | the head's current process revision |
+| source TEXT NOT NULL | `suggestion` \| `scope` (migrated from `process_scopes`) \| `new` |
+| scope_id TEXT → process_scopes(id) | the scope it was migrated from |
+| suggestion_id TEXT → grouping_suggestions(id) | the accepted suggestion |
+| created_at, updated_at TEXT NOT NULL | |
+
+### `ba_process_revisions` (new, append-only)
+
+PK (process_id, rev); `base_rev` NULL exactly for rev 1; `change` IN (`create`, `rename`,
+`stage`, `restore`); `author`; `name`, `stage` (the values after the change); `created_at`.
+
+### `process_variants` (new; head per variant)
+
+| Column | Notes |
+|---|---|
+| id TEXT PK | |
+| process_id TEXT NOT NULL → ba_processes(id) | |
+| label TEXT NOT NULL | `A`, `B`, `C`…; UNIQUE (process_id, label) |
+| kind TEXT NOT NULL | `as_is` (A, observed, rescans add revisions) \| `to_be` (drawn by people) |
+| rev INTEGER NOT NULL ≥ 1 | the head's current revision |
+| branched_from_variant_id TEXT → process_variants(id), branched_from_rev INTEGER | NULL for A |
+| created_at TEXT NOT NULL | |
+
+### `process_variant_revisions` (new, append-only)
+
+PK (variant_id, rev); `base_rev` (NULL exactly for rev 1); `change` IN (`create`, `branch`,
+`save`, `restore`, `observe`); `author` (reviewer name, or `scan:<run>` for `observe`); `steps`
+JSON array (as above); `note` (the one line the history shows); `run_id` → runs(id) (for
+`observe`); `restored_from` INTEGER (for `restore`); `created_at`.
+
+### `process_drafts` (new; scratch, updated in place)
+
+PK (variant_id, author): the open draft of one person over one to-be variant. `base_rev` (the
+revision it was started from), `steps` JSON, `updated_at`. Saving deletes it after writing the
+revision; Discard deletes it. A draft whose `base_rev` is older than the variant's head is an
+**edit conflict** (Review "Edit conflicts", screen 07 notice): nothing is overwritten; Rebase
+starts it again on the head keeping the draft's steps.
+
+### `process_live` (new, append-only)
+
+id PK; process_id, environment (`sandbox`|`staging`|`production`), variant_id, variant_rev,
+author, reason, created_at. The live variant per environment is the newest row for
+(process_id, environment). Index (process_id, environment, created_at).
+
+### `grouping_suggestions` (new)
+
+id PK; portal_id; name; persona; steps JSON (ordered as-is steps as above, all observed); why
+(the assistant's reason); `screens_key` (the sorted state ids joined with `,`: a suggestion with a
+dismissed `screens_key` is refused, FR-007); status `open`|`accepted`|`dismissed`;
+conversation_id → chat_conversations(id) (nullable); process_id → ba_processes(id) (on accept);
+decided_by, decided_at; created_at. Index (portal_id, status); index (portal_id, screens_key).
+
+### `change_spec_revisions` (new, append-only)
+
+PK (process_id, rev); base_rev (NULL exactly for rev 1); left_variant_id, left_rev,
+right_variant_id, right_rev (what was compared); `sections` JSON object with keys `scope`,
+`as_is`, `to_be`, `delta`, `records`, `migration_cut`, `open_questions` (strings or string
+arrays); author; created_at; `doc_key` (the doc record key when saved to Docs, else NULL).
+
+### Migration of `process_scopes` (T035, in 0018)
+
+For the newest scope of each (portal, process name): one `ba_processes` row (`source = 'scope'`,
+`stage = 'scoped'`, key in name order), its revision r1, variant A r1 with observed steps
+start → selected (in route order) → end, author `BA`. Older scopes stay as they are.
+
+### Portal export/delete
+
+Every new table is in `PORTAL_TABLES` (children before parents).

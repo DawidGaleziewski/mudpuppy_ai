@@ -28,7 +28,8 @@ build-backend = "uv_build"
 testpaths = ["tests"]
 addopts = "-q"
 markers = [
-    "perf: wall-clock budget tests; run serially: `pytest -n auto -m 'not perf'` then `pytest -m perf`",
+    "perf: wall-clock budget tests; run alone after the parallel pass",
+    "serial: tests that flake under parallel load; run alone: `pytest -n auto -m 'not perf and not serial'` then `pytest -m 'perf or serial'`",
 ]
 
 # On-demand mutation testing of the pure modules (G-32); writes to ./mutants/

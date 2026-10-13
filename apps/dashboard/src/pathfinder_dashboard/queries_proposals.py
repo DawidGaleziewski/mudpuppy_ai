@@ -50,6 +50,11 @@ class ProposalView(BaseModel):
 
 def for_conversation(conn: sqlite3.Connection, conversation_id: str) -> list[ProposalView]:
     """The conversation's proposals, oldest first; empty before migration 0017."""
+    return views_of(conn, "p.conversation_id = ?", (conversation_id,))
+
+
+def views_of(conn: sqlite3.Connection, where: str, args: tuple[Any, ...]) -> list[ProposalView]:
+    """Proposals matching `where` (over `chat_proposals p`), oldest first."""
     try:
         rows = conn.execute(
             "SELECT p.*, a.key AS a_key, a.rev AS a_rev, r.text AS r_text, r.target_id AS r_target"
@@ -57,8 +62,8 @@ def for_conversation(conn: sqlite3.Connection, conversation_id: str) -> list[Pro
             " LEFT JOIN amendments a ON a.id = coalesce(p.target_id, p.applied_amendment_id)"
             " LEFT JOIN amendment_revisions r ON r.amendment_id = p.target_id"
             "  AND r.rev = p.base_rev"
-            " WHERE p.conversation_id = ? ORDER BY p.created_at, p.id",
-            (conversation_id,),
+            f" WHERE {where} ORDER BY p.created_at, p.id",
+            args,
         ).fetchall()
     except sqlite3.OperationalError:
         return []

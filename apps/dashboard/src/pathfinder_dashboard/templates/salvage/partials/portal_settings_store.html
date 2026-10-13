@@ -1,0 +1,13 @@
+{#- Data store: where this page reads from. The dashboard opens it read-only. -#}
+<section id="store" class="sy-plate" aria-labelledby="store-h">
+  <div class="sy-plate__head"><h2 id="store-h" class="sy-plate__title">Data store</h2><span class="sy-meta">{{ store.environment }} · read-only</span></div>
+  <div class="sy-plate__body sy-stack">
+    {%- if store.exists %}
+    <p class="sy-route mp-break">{{ store.path }}</p>
+    <p class="sy-meta">{{ "{:,}".format((store.size_bytes / 1024) | round | int) }} KB</p>
+    {%- else %}
+    <p class="sy-route mp-break">{{ store.path }}</p>
+    <p class="sy-meta">No store file here yet. A scan creates it.</p>
+    {%- endif %}
+  </div>
+</section>

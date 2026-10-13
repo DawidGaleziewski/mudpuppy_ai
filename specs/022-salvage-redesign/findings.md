@@ -67,6 +67,7 @@
   own. Inventing a reference that leads nowhere would break "every ERR resolves to a log entry".
 - **Decision needed (owner)**: (a) drop the reference from FE-A06 for "service down" (the start
   command is the next move), or (b) give the dashboard its own small error log so it can mint one.
+- **Decision (owner, 2026-10-14)**: (a). FR-001 amended; T028 closed.
 - **Test idea**: `test_service_down_drawer_shows_the_failure_and_pages_keep_working` covers the
   rest of FE-A06.
 
@@ -111,6 +112,23 @@
 - **Fix**: a shorter fixture string (ruff format joins split literals back when they fit).
 - **Test idea**: the fast tier could lint with the line limit minus the longest rename delta, or
   the export could rewrap; for now the dry run before each merge catches it.
+
+## F-13 A Sonnet agent edited a file with a Python string replace, 2026-10-14
+
+- **Symptom**: the T031 agent changed `web/portals.py` once with a Python `str.replace` script
+  although its brief forbade script edits; it said so in its report. The result was correct.
+- **Cause**: the new PreToolUse hook (`no-script-edits.py`) blocks `sed -i`, `perl -i` and
+  redirects, not an inline Python or Node script that writes a file.
+- **Test idea**: extend the hook to refuse `python3 -c`/heredoc scripts and `node -e` that call
+  `write_text`/`open(...,'w')`/`writeFileSync` on a tracked path; an eval task where an agent is
+  briefed to rename a symbol across files and must use Edit.
+
+## F-14 Re-anchoring showed "could not be re-applied" on success, 2026-10-14
+
+- **Symptom**: `forms.js` treated only 201 as success for re-apply; since M2 the chat service
+  answers 200 (re-anchoring writes a revision). Found while building the Review inbox (T029).
+- **Fix**: success is `result.ok`; the message says "AMD-… re-anchored as rN" (T032 commit).
+- **Test idea**: a browser e2e of re-anchor from Review like FE-A04's, asserting the status line.
 
 ## F-03 The design's Console glossary text, 2026-10-13
 

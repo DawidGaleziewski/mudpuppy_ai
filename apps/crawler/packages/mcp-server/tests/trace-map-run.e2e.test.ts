@@ -256,10 +256,12 @@ describe.skipIf(!available)('trace of a map run against the mock portal', () => 
     }
   });
 
-  it.skipIf(process.env.CI === '1')(
+  // Wall-clock: only in `pnpm test:perf`, alone (spec 022 F-06).
+  it.runIf(process.env.PATHFINDER_PERF === '1' && process.env.CI !== '1')(
     'adds less than 10% to the median step time at standard vs off (SC-008)',
     async () => {
-      // Production-declared so no Playwright trace is recorded in either run: this measures the span trace only.
+      // Both runs record the same Playwright trace (every environment is traced since spec 021),
+      // so the difference is the span trace. The production label is a leftover and harmless.
       const median = async (level: 'off' | 'standard') => {
         const { ctx, call, spans, cleanup } = await setupTraceRun(portal, {
           maxSteps: 12,

@@ -1,8 +1,9 @@
 """The side nav's seven portal sections (spec 022 FE-N03, wireframe 01-IA).
 
 Each section points at the page that holds it today; later milestones repoint a section when its
-redesigned page lands (Processes M5, Screens and Review M4). `pages` lists the Console page keys
-(`nav_current` in the templates) that belong to the section, so the current one is marked.
+redesigned page lands (Processes M5; Screens and Review landed in M4). `pages` lists the Console
+page keys (`nav_current` in the templates) that belong to the section, so the current one is
+marked.
 """
 
 from __future__ import annotations
@@ -27,10 +28,8 @@ SECTIONS: tuple[Section, ...] = (
     Section("processes", "Processes", lambda p: "/chat", frozenset({"processes"})),
     Section("screens", "Screens", lambda p: "/screens", frozenset({"screens", "state"})),
     Section("docs", "Docs", lambda p: f"/docs/{p}" if p else "/docs", frozenset({"docs"})),
-    Section(
-        "review", "Review", lambda p: "/amendments/superseded", frozenset({"review", "amendments"})
-    ),
-    Section("scans", "Scans", lambda p: "/activity", frozenset({"scans", "activity", "run"})),
+    Section("review", "Review", lambda p: "/review", frozenset({"review", "amendments"})),
+    Section("scans", "Scans", lambda p: "/scans", frozenset({"scans", "activity", "run"})),
     Section("settings", "Settings", _settings, frozenset({"settings", "portals"})),
 )
 

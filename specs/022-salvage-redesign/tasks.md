@@ -44,17 +44,17 @@ tiers green and an interim merge to master behind `UI_SALVAGE`.
 - [x] T023 [opus] Home (screen 01): assistant as main column, conversation picker, suggestions, scan line, Where this portal is, Needs you (D-17 rules), Processes summary
 - [x] T024 [opus] Drawer (screens 02–03): `aside.sy-drawer` on every page, This page / Whole yard, context tags per page type, the six states (empty, working, credential, applied, page changed, not running)
 - [x] T025 [opus] Chat service: message `context` payload; MCP chat tools `page_context`, `highlight_element`, `open_page`, `propose_change`; SSE events the drawer acts on; tests with the fake ACP agent (5028fb2, c1c5f9d; plus `request_credential`)
-- [ ] T026 [sonnet] Proposals: stored as pending revisions; Apply → revision + Undo; stale proposal disabled; FE-A04 e2e — done except the browser e2e (service + route + render tests, c1c5f9d)
+- [x] T026 [sonnet] Proposals: stored as pending revisions; Apply → revision + Undo; stale proposal disabled; FE-A04 e2e (service + route + render tests, c1c5f9d; browser e2e `apps/chat/tests/proposals-browser.e2e.test.ts`, `pnpm --dir apps/chat test:e2e`)
 - [x] T027 [sonnet] Credential request in chat with a vault field (FE-A05), value never echoed; DOM/log check
-- [ ] T028 [sonnet] Chat down (FE-A06): drawer failure state with ERR reference; pages keep working — done except the ERR reference (F-08)
+- [x] T028 [sonnet] Chat down (FE-A06): drawer failure state; pages keep working — no ERR reference for this case (F-08, owner 2026-10-14)
 - Page context covers screen, docs record and scan pages; Processes and Review pages add theirs when they land (M4, M5). "Needs you" links proposals to Home until the Review inbox lists them (T029).
 
 ## M4 — Review, Scans, Settings, Screen detail (interim merge 4)
 
-- [ ] T029 [sonnet] Review inbox (09): re-anchor, proposals, records to confirm, conflicts; counts; detail pane; nav count
-- [ ] T030 [sonnet] Scans (10): live monitor (SSE, progressbar), history with what changed, Server activity tab, run detail tabs
-- [ ] T031 [sonnet] Settings (11): environments table + form, Revoke dialog, credentials collapsed (FE-T02), personas, crawl rules, data store
-- [ ] T032 [opus] Screen detail (08): revision strip, amendment pins and history, add amendment, re-anchor flow
+- [x] T029 [sonnet] Review inbox (09): re-anchor, proposals, records to confirm, conflicts; counts; detail pane; nav count (`/review`, `queries_review.py`; conflicts stay an empty group until M5 stores them; Needs-you rows link to `/review?show=…`)
+- [x] T030 [sonnet] Scans (10): live monitor (SSE, progressbar), history with what changed, Server activity tab, run detail tabs (`/scans`; live region refresh, no new SSE endpoint; New scan button and status filter left out: scans start through the assistant)
+- [x] T031 [sonnet] Settings (11): environments table + form, Revoke dialog, credentials collapsed (FE-T02), personas, crawl rules, data store (vault form and "Copy full path" left out: credentials are requested in chat)
+- [x] T032 [opus] Screen detail (08): revision strip, amendment pins and history, add amendment, re-anchor flow (side tabs Amendments / Cited by / History; Edit = new revision via PATCH; amendments of the screen on every revision; "In processes"; `/amendments/superseded` redirects to Review, FR-009)
 
 ## M5 — Processes workspace (interim merge 5)
 

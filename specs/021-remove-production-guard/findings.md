@@ -37,6 +37,13 @@
 
 ## Follow-ups
 
-- Remove the `pwTrace` boot mode plumbing (finding 1), keeping old boots readable.
+- Remove the `pwTrace` boot mode plumbing (finding 1), keeping old boots readable. *Done
+  2026-10-14 on the spec 022 branch: config, context and tracer no longer carry it; new boots
+  write `pw_trace = 'all'`; the column and the dashboard's read stay for old boots.*
 - The chat's per-scan choice "only look unless you allow edits" (spec 011) is not part of the
-  production guard and stays; ask the owner whether that default should change too.
+  production guard and stays; ask the owner whether that default should change too. *Owner
+  2026-10-14: change it. A chat scan may act by default; "only look" is the BA's opt-in (spec
+  011 FR-013 amended).*
+- The SC-008 test comment "Production-declared so no Playwright trace is recorded" was stale since
+  spec 021 (production is traced too; both runs record one). Comment corrected 2026-10-14; the
+  test runs alone in `pnpm test:perf` (spec 022 F-06).

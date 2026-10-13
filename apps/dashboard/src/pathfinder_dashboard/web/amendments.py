@@ -8,9 +8,9 @@ from typing import Any
 from urllib.parse import quote
 
 from fastapi import APIRouter, Request
-from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
 
-from .. import db, queries_chat
+from .. import db, queries_chat, ui_flag
 from .chat_forward import chat_json, chat_refused, forward, invalid, read_json
 from .deps import Ctx, same_origin, web_of
 
@@ -62,6 +62,26 @@ async def amendment_withdraw(request: Request, portal: str, amendment_id: str) -
         "DELETE",
         f"/portals/{quote(portal, safe='')}/amendments/{quote(amendment_id, safe='')}",
         _author(request) or None,
+    )
+
+
+@router.patch("/chat/portals/{portal}/amendments/{amendment_id}")
+async def amendment_edit(request: Request, portal: str, amendment_id: str) -> JSONResponse:
+    """New wording as a new revision (spec 022 T032), signed; the chat service checks the base."""
+    if not same_origin(request):
+        return chat_refused()
+    web = web_of(request)
+    fields = await read_json(request)
+    text, base_rev = fields.get("text"), fields.get("base_rev")
+    if not isinstance(text, str) or not text.strip():
+        return invalid("Write the new wording.")
+    if not isinstance(base_rev, int) or isinstance(base_rev, bool) or base_rev < 1:
+        return invalid("Reload the page: the revision it was edited from is unknown.")
+    return await forward(
+        web,
+        "PATCH",
+        f"/portals/{quote(portal, safe='')}/amendments/{quote(amendment_id, safe='')}",
+        {**_author(request), "text": text.strip(), "base_rev": base_rev},
     )
 
 
@@ -137,12 +157,15 @@ def superseded_values(
     }
 
 
-@router.get("/amendments/superseded", response_class=HTMLResponse)
+@router.get("/amendments/superseded", response_class=HTMLResponse, response_model=None)
 def superseded_page(
     request: Request, env: str | None = None, portal: str | None = None, show: str | None = None
-) -> HTMLResponse:
+) -> HTMLResponse | RedirectResponse:
     web = web_of(request)
     c = web.ctx(request, env)
+    # FR-009: with the redesign on, the old page is the Review inbox's re-anchor group.
+    if ui_flag.salvage_on(web.settings.ui_salvage, "amendments"):
+        return RedirectResponse(c.url("/review", portal=portal, show="reanchor"), status_code=307)
     try:
         with c.conn() as conn:
             return web.render(

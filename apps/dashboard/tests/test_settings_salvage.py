@@ -1,0 +1,163 @@
+"""Settings in Salvage Yard (spec 022 T031, screen 11; FE-T01, FE-T02): section links, the
+environments table and form, the Revoke dialog, collapsed credentials (names only), personas, crawl
+rules, the data store, and no page context for the drawer. The chat service is mocked."""
+
+from __future__ import annotations
+
+from pathlib import Path
+
+import httpx2
+import pytest
+from fastapi.testclient import TestClient
+
+from pathfinder_dashboard.app import create_app
+from pathfinder_dashboard.settings import Settings
+
+from .conftest import Store, insert, ts
+from .test_chat import Service, text
+from .test_portals import TWO_ENVS
+
+SECRET = "ciphertext-not-a-real-value"
+
+
+@pytest.fixture
+def world(empty_store: Store, tmp_path: Path) -> tuple[Store, Path, Path]:
+    portals, personas = tmp_path / "portals", tmp_path / "personas"
+    (portals / "shop").mkdir(parents=True)
+    (portals / "shop" / "portal.yaml").write_text(
+        "id: shop\nrobots: respect\nscope:\n  allowed_domains: [shop.example.pl]\n"
+        "  allowed_paths: ['/*']\ndenylist:\n  - logout\n  - path:/<b>admin/*\n"
+    )
+    (personas / "shop").mkdir(parents=True)
+    (personas / "shop" / "guest.yaml").write_text("auth: none\n")
+    (personas / "shop" / "client.yaml").write_text("auth:\n  login: ref:SHOP_LOGIN\n")
+    conn = empty_store.connect()
+    insert(
+        conn,
+        "credentials",
+        id="c1",
+        portal_id="shop",
+        environment="staging",
+        ref_name="SHOP_LOGIN",
+        ciphertext=SECRET.encode(),
+        nonce=b"0" * 12,
+        key_id="abcdef01",
+        created_at=ts(1),
+        updated_at=ts(2),
+    )
+    conn.commit()
+    conn.close()
+    return empty_store, portals, personas
+
+
+def client(world: tuple[Store, Path, Path], service: Service | None = None) -> TestClient:
+    store, portals, personas = world
+    settings = Settings(
+        data_dir=store.data_dir,
+        default_env=store.env,
+        ui_salvage="all",
+        portals_dir=portals,
+        personas_dir=personas,
+    )
+    return TestClient(create_app(settings, chat_transport=httpx2.MockTransport(service or up())))
+
+
+def up() -> Service:
+    service = Service()
+    service.routes[("GET", "/portals/shop")] = httpx2.Response(200, json=TWO_ENVS)
+    return service
+
+
+def test_settings_page_has_every_region(world: tuple[Store, Path, Path]) -> None:
+    with client(world) as c:
+        r = c.get("/portals/shop/settings")
+    assert r.status_code == 200
+    body, plain = r.text, text(r.text)
+    assert body.count("<h1") == 1 and "Settings · shop" in plain
+    for label in ("Environments", "Credentials", "Personas", "Crawl rules", "Data store"):
+        assert f">{label}</a>" in body
+    for anchor in ("env", "cred", "personas", "crawl", "store"):
+        assert f'id="{anchor}"' in body
+    assert "only look, never submit" in plain and "fill and submit forms (everything)" in plain
+    assert body.count("sy-btn--primary") == 1 and "Save environment" in plain
+    assert 'action="/portals/shop/environments"' in body
+    assert "Runs already recorded are kept." in plain
+    assert body.count('data-dialog="revoke-dialog"') == 2
+    assert 'data-action="/portals/shop/environments/staging/revoke"' in body
+    assert 'value="sandbox" selected' in body
+    assert "sy-plate--intent" not in body
+
+
+def test_credentials_are_collapsed_and_never_show_a_value(world: tuple[Store, Path, Path]) -> None:
+    with client(world) as c:
+        r = c.get("/portals/shop/settings")
+        fragment = c.get("/fragments/portals/shop/credentials")
+    body = r.text
+    assert '<details class="sy-disclosure">' in body and "<details open" not in body
+    assert "SHOP_LOGIN" in body and f">{ts(2)}<" in body and "staging" in body
+    assert "1 stored" in text(body)
+    for page in (body, fragment.text):
+        assert SECRET not in page and 'type="password"' not in page and "***" not in page
+    assert 'id="region-settings-credentials"' in fragment.text
+    assert 'hx-get="/fragments/portals/shop/credentials"' in body
+
+
+def test_credentials_empty_state(world: tuple[Store, Path, Path]) -> None:
+    portals = world[1]
+    (portals / "bare").mkdir()
+    (portals / "bare" / "portal.yaml").write_text("id: bare\n")
+    service = Service()
+    service.routes[("GET", "/portals/bare")] = httpx2.Response(
+        200, json={**TWO_ENVS, "portal": "bare"}
+    )
+    with client(world, service) as c:
+        r = c.get("/portals/bare/settings")
+    plain = text(r.text)
+    assert "0 stored" in plain and "Nothing stored for bare" in plain
+    assert "No persona files for bare" in plain
+
+
+def test_personas_and_crawl_rules_and_store(world: tuple[Store, Path, Path]) -> None:
+    store = world[0]
+    with client(world) as c:
+        r = c.get("/portals/shop/settings")
+    plain = text(r.text)
+    assert "client" in plain and "logged-in" in plain and "SHOP_LOGIN" in plain
+    assert "guest" in plain and "anonymous" in plain
+    assert "respect it" in plain and "shop.example.pl" in plain
+    assert "/&lt;b&gt;admin/*" in r.text and "/<b>admin/*" not in r.text  # escaped
+    assert str(store.path) in r.text and "read-only" in plain
+
+
+def test_unreadable_portal_file_and_stopped_service(world: tuple[Store, Path, Path]) -> None:
+    with client(world, Service(up=False)) as c:
+        r = c.get("/portals/nope/settings")
+    plain = text(r.text)
+    assert "Assistant not running" in plain and "could not be read" in plain
+    assert "disabled" in r.text
+
+
+def test_drawer_has_no_page_context(world: tuple[Store, Path, Path]) -> None:
+    with client(world) as c:
+        r = c.get("/portals/shop/settings")
+    assert "data-assistant-context=''" in r.text
+    assert 'title="This page has no page context"' in r.text
+
+
+def test_save_posts_through_the_existing_forwarder(world: tuple[Store, Path, Path]) -> None:
+    from .test_chat import ORIGIN
+
+    service = up()
+    service.routes[("PUT", "/portals/shop/environments/sandbox")] = httpx2.Response(
+        200, json=TWO_ENVS
+    )
+    with client(world, service) as c:
+        r = c.post(
+            "/portals/shop/environments",
+            data={"environment": "sandbox", "base_url": "http://x.test/", "limit": "read"},
+            headers=ORIGIN,
+            follow_redirects=False,
+        )
+        saved = c.get("/portals/shop/settings", params={"saved": "<i>sandbox</i>"})
+    assert r.status_code == 303
+    assert "&lt;i&gt;sandbox" in saved.text and "<i>sandbox" not in saved.text

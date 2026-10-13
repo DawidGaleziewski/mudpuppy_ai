@@ -90,7 +90,9 @@ picture has been that it was skipped and why." / fix F-06, F-07, F-08 and the sp
 
 - **FR-013** Every scan from the chat is read-only unless the BA allows more for that scan.
   Before a new scan the assistant asks whether it may fill in and submit forms; a yes runs up to
-  the environment's limit with no further warnings. `start_run` takes `max_action_class`, which
+  the environment's limit with no further warnings. *Amended 2026-10-14 (owner, spec 021
+  follow-up): a chat scan runs up to the environment's limit by default; the assistant no longer
+  asks, and the BA's "only look" makes that scan read-only.* `start_run` takes `max_action_class`, which
   lowers the run's limit and never raises it; the choice is kept with the run and a resume keeps
   it unless the BA changes it. The portal's limit stays the most any scan may do there.
 - **FR-014** Images load by default. The BA may choose, per scan, to skip them for faster

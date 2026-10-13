@@ -148,7 +148,9 @@ dashboard's test suite and reports 0 on migrated templates.
 
 - **FR-001**: Every requirement FE-V01–V10, FE-N01–N06, FE-A01–A08, FE-P01–P05, FE-S01–S02,
   FE-R01, FE-C01–C02, FE-T01–T02 and FE-Q01–Q12 of `docs/design/salvage-yard/docs/07-requirements.md`
-  is in scope, with its acceptance check.
+  is in scope, with its acceptance check. Amended (owner, 2026-10-14, F-08): FE-A06 shows no
+  `ERR-…` reference when the chat service is down; the failure state names the cause and the
+  start command instead, since only the chat service mints and logs references.
 - **FR-002**: The redesign ships behind `UI_SALVAGE` (per route), so each route can fall back to
   the Console page until the clean-up; the clean-up removes Console styles and the flag.
 - **FR-003**: Screens get a stable identity across scans; every scan that observes a screen
