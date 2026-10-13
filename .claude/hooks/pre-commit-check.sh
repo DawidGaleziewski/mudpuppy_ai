@@ -36,8 +36,8 @@ if code '^(apps/crawler/|data/migrations/|portals/|personas/|apps/proving-ground
 fi
 # Dashboard: its code, the schema it models, the glossary it renders.
 if code '^apps/dashboard/' || has '^(data/migrations/|docs/glossary/)'; then
-  # Perf budgets run alone after the parallel run (spec 012 F-08).
-  run dashboard apps/dashboard bash -c "uv run ruff check && uv run pytest -q -n auto -m 'not perf' && uv run pytest -q -m perf"
+  # Perf budgets and load-sensitive tests run alone after the parallel run (spec 012 F-08, 022 F-01).
+  run dashboard apps/dashboard bash -c "uv run ruff check && uv run pytest -q -n auto -m 'not perf and not serial' && uv run pytest -q -m 'perf or serial'"
 fi
 # Chat service and the shared workflow package (R-30); chat also depends on workflow, core and
 # the packages split out of core (spec 012: store, trace, docs-model, chat-model).

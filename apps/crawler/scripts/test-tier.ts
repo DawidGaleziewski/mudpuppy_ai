@@ -4,7 +4,8 @@
  *   fast: tests affected by uncommitted changes (staged, unstaged, untracked), without the browser
  *         end-to-end files (`*.e2e.test.ts`) and the `gates` project; the whole fast tier when a
  *         `forceRerunTriggers` file changed.
- *   slow: the `*.e2e.test.ts` files and the whole gate set (slow gate cases included).
+ *   slow: the `*.e2e.test.ts` files and the whole gate set (slow gate cases included), then perf.
+ *   perf: the wall-clock budget tests alone.
  */
 import { spawn, spawnSync } from 'node:child_process';
 import { matchesGlob, relative, resolve } from 'node:path';
@@ -55,6 +56,15 @@ function vitestBuffered(label: string, args: string[], env: NodeJS.ProcessEnv = 
 
 const FAST = ['--project=!gates', '--exclude=**/*.e2e.test.ts'];
 
+/**
+ * Wall-clock budget tests, alone after everything else: under load they measured noise
+ * (spec 022 F-06). They run only with `PATHFINDER_PERF=1`.
+ */
+function runPerf(): number {
+  console.log('tier: perf (alone)');
+  return vitest(['--project=!gates', '.e2e.test.ts', '-t', 'SC-008'], { PATHFINDER_PERF: '1' });
+}
+
 if (tier === 'fast') {
   const trigger = changedFiles().find((f) => forceRerunTriggers.some((g) => matchesGlob(f, g)));
   if (trigger) {
@@ -75,8 +85,10 @@ if (tier === 'fast') {
     vitestBuffered('e2e', ['--project=!gates', '--maxWorkers=4', '.e2e.test.ts']),
     vitestBuffered('gates', ['--project=gates'], { PATHFINDER_SLOW_GATES: '1' }),
   ]);
-  process.exitCode = Math.max(...codes);
+  process.exitCode = Math.max(...codes, runPerf());
+} else if (tier === 'perf') {
+  process.exitCode = runPerf();
 } else {
-  console.error('usage: test-tier fast|slow [vitest args]');
+  console.error('usage: test-tier fast|slow|perf [vitest args]');
   process.exitCode = 2;
 }

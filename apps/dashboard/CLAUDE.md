@@ -44,8 +44,9 @@ Layer: app (Python, FastAPI + Jinja + htmx, uv; outside the TS layers)
   its template, queries in a `queries_*.py` module, a route test.
 
 ## Tests
-- `uv run ruff check && uv run pytest -n auto -m 'not perf' && uv run pytest -m perf` (pytest-xdist,
-  about 40 s; the `perf` wall-clock tests run alone; serial everything about 1 min 48 s).
+- `uv run ruff check && uv run pytest -n auto -m 'not perf and not serial' && uv run pytest -m 'perf or serial'`
+  (pytest-xdist, about 40 s; the `perf` wall-clock tests and the load-sensitive `serial` tests run
+  alone; serial everything about 1 min 48 s).
 - Complexity: `uv run ruff check --select C901,PLR0912,PLR0913,PLR0915 --exit-zero`.
 - Mutation testing, on demand only (G-32): `uv run mutmut run` (about 30 s; mutates `diagrams.py`,
   `glossary.py`, `visuals.py` per `[tool.mutmut]`), then `uv run mutmut results` and

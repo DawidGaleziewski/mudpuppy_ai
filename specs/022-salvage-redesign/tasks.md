@@ -46,7 +46,7 @@ tiers green and an interim merge to master behind `UI_SALVAGE`.
 - [x] T025 [opus] Chat service: message `context` payload; MCP chat tools `page_context`, `highlight_element`, `open_page`, `propose_change`; SSE events the drawer acts on; tests with the fake ACP agent (5028fb2, c1c5f9d; plus `request_credential`)
 - [ ] T026 [sonnet] Proposals: stored as pending revisions; Apply → revision + Undo; stale proposal disabled; FE-A04 e2e — done except the browser e2e (service + route + render tests, c1c5f9d)
 - [x] T027 [sonnet] Credential request in chat with a vault field (FE-A05), value never echoed; DOM/log check
-- [ ] T028 [sonnet] Chat down (FE-A06): drawer failure state with ERR reference; pages keep working — done except the ERR reference (F-08)
+- [x] T028 [sonnet] Chat down (FE-A06): drawer failure state; pages keep working — no ERR reference for this case (F-08, owner 2026-10-14)
 - Page context covers screen, docs record and scan pages; Processes and Review pages add theirs when they land (M4, M5). "Needs you" links proposals to Home until the Review inbox lists them (T029).
 
 ## M4 — Review, Scans, Settings, Screen detail (interim merge 4)

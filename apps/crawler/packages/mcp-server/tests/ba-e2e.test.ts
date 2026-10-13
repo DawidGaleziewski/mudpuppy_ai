@@ -335,8 +335,13 @@ describe('BA end to end on the fixture store', () => {
     expect(rejected.status).toBe('rejected');
 
     // Session 3: the rejection is pending feedback; the BA answers it with a new draft.
+    // The bound is inclusive: the session-1 confirm comes back too when session 2 ended in the
+    // same millisecond (spec 022 F-05), so only the reviews to answer are compared.
     const feedback = await must('get_pending_feedback', { portal_id });
-    expect(feedback.reviews).toMatchObject([
+    const toAnswer = (feedback.reviews as { action: string }[]).filter(
+      (r) => r.action !== 'confirm',
+    );
+    expect(toAnswer).toMatchObject([
       { review_id: rejected.review_id, action: 'reject', key: 'BR-001' },
     ]);
     const s3 = await h.session();
@@ -360,7 +365,10 @@ describe('BA end to end on the fixture store', () => {
     expect(record).toMatchObject({ latest_rev: 3, confirmed_rev: 1 });
     expect(record.revisions[2]).toMatchObject({ responds_to_review: rejected.review_id });
     // Shown as answered while the answering session is still open.
-    expect((await must('get_pending_feedback', { portal_id })).reviews).toMatchObject([
+    const after = (await must('get_pending_feedback', { portal_id })).reviews as {
+      action: string;
+    }[];
+    expect(after.filter((r) => r.action !== 'confirm')).toMatchObject([
       { review_id: rejected.review_id, answered_by_rev: 3 },
     ]);
     expect(audit(fx.raw, portal_id).findings).toEqual([]);

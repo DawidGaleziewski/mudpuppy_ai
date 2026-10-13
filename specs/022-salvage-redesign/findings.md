@@ -67,6 +67,7 @@
   own. Inventing a reference that leads nowhere would break "every ERR resolves to a log entry".
 - **Decision needed (owner)**: (a) drop the reference from FE-A06 for "service down" (the start
   command is the next move), or (b) give the dashboard its own small error log so it can mint one.
+- **Decision (owner, 2026-10-14)**: (a). FR-001 amended; T028 closed.
 - **Test idea**: `test_service_down_drawer_shows_the_failure_and_pages_keep_working` covers the
   rest of FE-A06.
 
