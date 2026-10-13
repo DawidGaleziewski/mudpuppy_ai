@@ -1,0 +1,10 @@
+{% extends "salvage/base.html" %}
+{% set nav_current = "docs" %}
+{% block title %}Docs{% endblock %}
+{% block main %}
+<div class="sy-pagehead">
+  <h1 class="sy-h1">Docs</h1>
+  <p class="sy-meta">BA records, read-only · store <span class="sy-mono sy-mono--sm">{{ store.path }}</span></p>
+</div>
+{% include "salvage/partials/docs/portals.html" %}
+{% endblock %}

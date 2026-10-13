@@ -101,6 +101,22 @@ async def portal_create(request: Request, env: str | None = None) -> Response:
 # ---- portal settings: add, change and revoke environments (spec 011 FR-012) -------------
 
 
+def edit_form(
+    environments: list[dict[str, Any]], missing: list[str], chosen: str | None
+) -> dict[str, str]:
+    """The add-or-change form's values: the chosen environment's own (Edit / Add links, spec 022),
+    else the first missing one. An environment without a limit has none (spec 021)."""
+    current = next((e for e in environments if e["environment"] == chosen), None)
+    if current:
+        return {
+            "environment": current["environment"],
+            "base_url": current.get("base_url") or "",
+            "limit": current.get("max_action_class") or "external-side-effect",
+        }
+    default = chosen if chosen in PORTAL_ENVS else (missing[0] if missing else "production")
+    return {"environment": default, "base_url": "", "limit": "external-side-effect"}
+
+
 async def settings_page(
     web: Web, c: Ctx, portal: str, status: int = 200, error: str | None = None, form: Any = None
 ) -> HTMLResponse:
@@ -129,12 +145,7 @@ async def settings_page(
         environments=environments,
         limits=ACTION_LIMITS,
         missing=missing,
-        form=form
-        or {
-            "environment": missing[0] if missing else "production",
-            "base_url": "",
-            "limit": "external-side-effect",
-        },
+        form=form or edit_form(environments, missing, c.request.query_params.get("environment")),
         error=error,
         saved=c.request.query_params.get("saved"),
         service_up=up,

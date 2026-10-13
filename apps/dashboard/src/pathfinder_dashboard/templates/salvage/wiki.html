@@ -1,0 +1,26 @@
+{% extends "salvage/base.html" %}
+{% set nav_current = "glossary" %}
+{% block title %}BA wiki{% endblock %}
+{% block main %}
+<div class="sy-pagehead">
+  <nav class="sy-crumbs" aria-label="Breadcrumb"><a href="{{ c.url('/glossary') }}">Glossary</a> / BA wiki</nav>
+  <h1 class="sy-h1">BA wiki</h1>
+  <p class="sy-meta">Business-analysis concepts behind the documentation · cited sources</p>
+</div>
+<p class="sy-prose sy-muted">Short explanations in our own words, how MudPuppy applies each concept, and citations to recognised sources (IREB CPRE glossary, IIBA BABOK Guide, ISO/IEC/IEEE 29148). Pages are local, so they stay readable when a source link breaks.</p>
+<div class="sy-table-wrap">
+  <table class="sy-table">
+    <caption class="sy-sr-only">BA wiki pages</caption>
+    <thead><tr><th scope="col">Page</th><th scope="col">Glossary terms</th><th scope="col" class="sy-num">Sources</th></tr></thead>
+    <tbody>
+      {%- for p in pages %}
+      <tr>
+        <td><a href="{{ c.url('/glossary/wiki/' ~ p.slug) }}">{{ p.front.title }}</a></td>
+        <td class="sy-small">{% for gid in p.front.glossary %}{% set e = g.get(gid) %}<a href="{{ c.url('/glossary') }}#{{ gid }}">{{ e.term if e else gid }}</a>{% if not loop.last %} · {% endif %}{% endfor %}</td>
+        <td class="sy-num">{{ p.front.citations | length }}</td>
+      </tr>
+      {%- endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

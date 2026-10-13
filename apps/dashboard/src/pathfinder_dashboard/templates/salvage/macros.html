@@ -45,8 +45,20 @@
   {%- set g = GLOSSARY() -%}
   {%- set e = g.get(id) if g else none -%}
   {%- if e -%}
-  <span class="sy-cluster" style="--sy-gap: 0">{{ label }}<a class="sy-hint" href="/glossary#{{ id }}" title="{{ e.short }}" aria-label="What is {{ e.term }}?">?</a></span>
+  <span class="mp-term">{{ label }}<a class="sy-hint" href="/glossary#{{ id }}" title="{{ e.short }}" aria-label="What is {{ e.term }}?">?</a></span>
   {%- else -%}{{ label }}{%- endif -%}
+{%- endmacro %}
+
+{%- set DOC_SECTION_TERMS = {
+  "capabilities": "capability", "screens": "screen", "processes": "process-record",
+  "requirements": "requirement", "rules": "business-rule", "data": "data-item",
+  "glossary": "glossary-term", "nfr": "nfr", "assumptions": "assumption",
+  "followups": "follow-up-task", "traceability": "traceability",
+} -%}
+
+{#- A docs section heading's term, if it has one. -#}
+{% macro section_term(section_id, label) -%}
+  {%- if section_id in DOC_SECTION_TERMS -%}{{ term(DOC_SECTION_TERMS[section_id], label) }}{%- else -%}{{ label }}{%- endif -%}
 {%- endmacro %}
 
 {% macro intro(id) -%}

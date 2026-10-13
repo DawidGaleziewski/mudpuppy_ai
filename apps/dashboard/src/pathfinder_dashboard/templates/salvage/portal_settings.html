@@ -1,0 +1,99 @@
+{% extends "salvage/base.html" %}
+{% import "salvage/macros.html" as sy %}
+{% set nav_current = "settings" %}
+{% block title %}Settings · {{ portal }}{% endblock %}
+{% block main %}
+{#- Spec 011 FR-012 in Salvage Yard (screen 11, FE-T01): a portal's environments (address and how
+    far the crawler may go); add or change one, revoke one (never the last) after a confirm
+    dialog. Writes go through the chat service. An environment without a limit has none
+    (spec 021). -#}
+<div class="sy-pagehead">
+  <h1 class="sy-h1">Settings · {{ portal }}</h1>
+  {%- if saved %}<p class="sy-cluster" role="status">{{ sy.status("http", "ok") }}<span class="sy-meta">{{ saved }} saved.</span></p>{% endif %}
+</div>
+
+{%- if not service_up %}
+<section class="sy-state sy-state--failure" role="alert">
+  <h2 class="sy-state__title">Assistant not running</h2>
+  <p>It reads and saves portal settings. Start it in a terminal, then reload this page. Read-only pages keep working.</p>
+  <pre class="sy-code">pnpm --dir apps/chat start</pre>
+</section>
+{%- endif %}
+{%- if error %}
+<div class="sy-callout sy-callout--failure" role="alert"><p class="sy-callout__title">Not saved</p><p>{{ error }}</p></div>
+{%- endif %}
+
+<section id="env" class="sy-plate" aria-labelledby="env-h">
+  <div class="sy-plate__head">
+    <h2 id="env-h" class="sy-plate__title">Environments</h2>
+    <span class="sy-meta">A scan names one; the assistant asks when there are several.</span>
+  </div>
+  {%- if environments %}
+  <div class="sy-table-wrap sy-table-wrap--flush">
+    <table class="sy-table sy-table--middle">
+      <caption class="sy-sr-only">Environments of {{ portal }}</caption>
+      <thead><tr><th scope="col">Environment</th><th scope="col">Address</th><th scope="col">How far the crawler may go</th><th scope="col"><span class="sy-sr-only">Actions</span></th></tr></thead>
+      <tbody>
+        {%- set configured = environments | map(attribute="environment") | list %}
+        {%- for e in environments %}
+        <tr>
+          <th scope="row">{{ e.environment }}</th>
+          <td><a class="sy-mono mp-break" href="{{ e.base_url }}" rel="noreferrer" target="_blank">{{ e.base_url }}</a></td>
+          <td>{% for value, text in limits if value == (e.max_action_class or "external-side-effect") %}{{ text }}{% endfor %}</td>
+          <td>
+            <div class="sy-actions sy-actions--end sy-actions--nowrap">
+              <a class="sy-btn sy-btn--sm sy-btn--quiet" href="{{ c.url('/portals/' ~ portal ~ '/settings', environment=e.environment) }}#add-env">Edit<span class="sy-sr-only"> {{ e.environment }}</span></a>
+              {%- if environments | length > 1 %}
+              <button class="sy-btn sy-btn--sm sy-btn--danger" type="button" aria-haspopup="dialog" aria-controls="revoke-dialog"
+                      data-dialog="revoke-dialog" data-name="{{ e.environment }}"
+                      data-action="{{ c.url('/portals/' ~ portal ~ '/environments/' ~ e.environment ~ '/revoke') }}">Revoke<span class="sy-sr-only"> {{ e.environment }}</span></button>
+              {%- else %}
+              <span class="sy-small sy-muted">The only one</span>
+              {%- endif %}
+            </div>
+          </td>
+        </tr>
+        {%- endfor %}
+        {%- for name in ["production", "staging", "sandbox"] if name not in configured %}
+        <tr class="sy-muted">
+          <th scope="row">{{ name }}</th>
+          <td colspan="2">{{ sy.status("environment", "not_configured") }}</td>
+          <td><div class="sy-actions sy-actions--end"><a class="sy-btn sy-btn--sm sy-btn--quiet" href="{{ c.url('/portals/' ~ portal ~ '/settings', environment=name) }}#add-env">Add<span class="sy-sr-only"> {{ name }}</span></a></div></td>
+        </tr>
+        {%- endfor %}
+      </tbody>
+    </table>
+  </div>
+  {%- else %}
+  <div class="sy-plate__body">{{ sy.empty("No environments could be read", "The portal file may be missing or invalid; the assistant can check it.", level=3) }}</div>
+  {%- endif %}
+  <form id="add-env" class="sy-plate__foot mp-form-row" method="post" action="{{ c.url('/portals/' ~ portal ~ '/environments') }}" aria-label="Add or change an environment">
+    <label class="sy-field"><span class="sy-field__label">Environment</span>
+      <select class="sy-select" name="environment">
+        {%- for e in ["production", "staging", "sandbox"] %}
+        <option value="{{ e }}"{% if e == form.environment %} selected{% endif %}>{{ e }}{% if e not in missing %} (change){% endif %}</option>
+        {%- endfor %}
+      </select></label>
+    <label class="sy-field mp-grow-3"><span class="sy-field__label">Address</span>
+      <input class="sy-input" type="text" name="base_url" required inputmode="url" spellcheck="false" placeholder="https://" value="{{ form.base_url }}"></label>
+    <label class="sy-field mp-grow-2"><span class="sy-field__label">How far the crawler may go</span>
+      <select class="sy-select" name="limit">
+        {%- for value, text in limits %}
+        <option value="{{ value }}"{% if value == form.limit %} selected{% endif %}>{{ text }}</option>
+        {%- endfor %}
+      </select></label>
+    <button class="sy-btn sy-btn--primary" type="submit"{% if not service_up %} disabled{% endif %}>Save environment</button>
+  </form>
+</section>
+
+<dialog id="revoke-dialog" class="sy-dialog" aria-labelledby="revoke-h">
+  <form method="post" data-dialog-form>
+    <div class="sy-dialog__head"><h2 id="revoke-h" class="sy-h3">Revoke <span data-dialog-name>this environment</span>?</h2></div>
+    <div class="sy-dialog__body"><p>Runs already recorded are kept.</p></div>
+    <div class="sy-dialog__foot">
+      <button class="sy-btn" type="button" data-dialog-close autofocus>Keep it</button>
+      <button class="sy-btn sy-btn--danger" type="submit">Revoke <span data-dialog-name>it</span></button>
+    </div>
+  </form>
+</dialog>
+{% endblock %}

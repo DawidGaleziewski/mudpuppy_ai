@@ -157,6 +157,53 @@ def test_assistant_status_fragment_says_down_without_the_chat_service(salvage: T
     assert 'data-status="failed">Assistant down' in html
 
 
+# --- every migrated page (Track 1) ---------------------------------------------------------------
+
+LIVEINSURER_PAGES = [
+    "/",
+    "/activity",
+    "/glossary",
+    "/glossary/wiki",
+    "/runs/run-009",
+    *(
+        f"/runs/run-009?tab={t}"
+        for t in ("actions", "frontier", "forms", "network", "robots", "decisions", "trace", "docs")
+    ),
+    "/states/state-home",
+    "/states/state-home?view=wireframe",
+    "/runs/nope",
+    "/states/nope",
+]
+
+
+def _salvage_page(html: str) -> None:
+    assert '<body class="sy-ground"' in html
+    assert "/static/css/app.css" not in html
+    # Markup only: the glossary's own text still explains the Console codes until M6 (T041).
+    assert "btn-bracket" not in html and 'class="st ' not in html
+    assert html.count("sy-btn--primary") <= 1
+    assert html.count("sy-plate--intent") <= 1
+
+
+@pytest.mark.parametrize("path", LIVEINSURER_PAGES)
+def test_migrated_pages_render_in_salvage(salvage: TestClient, path: str) -> None:
+    r = salvage.get(path)
+    assert r.status_code in (200, 404), r.text[:400]
+    _salvage_page(r.text)
+    assert r.text.count("<h1") == 1
+
+
+def test_docs_pages_render_in_salvage(ba_fixture: Store) -> None:
+    from .test_docs_routes import ALL_PAGES
+
+    with make_client(ba_fixture, ui_salvage="all") as c:
+        for path in ALL_PAGES:
+            r = c.get(path)
+            assert r.status_code == 200, (path, r.text[:400])
+            if not path.startswith("/fragments/"):
+                _salvage_page(r.text)
+
+
 # --- style guard (FE-V02) -----------------------------------------------------------------------
 
 

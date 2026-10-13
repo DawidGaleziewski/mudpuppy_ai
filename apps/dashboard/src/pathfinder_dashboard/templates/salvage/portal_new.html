@@ -1,0 +1,69 @@
+{% extends "salvage/base.html" %}
+{% import "salvage/macros.html" as sy %}
+{% set nav_current = "settings" %}
+{% block title %}New portal{% endblock %}
+{% block main %}
+{#- Spec 011 (FR-004, FR-005, FR-011): add a site to work on, with an address per environment.
+    The chat service writes portals/<id>/portal.yaml and a guest persona. A plain form post. -#}
+<div class="sy-pagehead">
+  <nav class="sy-crumbs" aria-label="Breadcrumb"><a href="{{ c.url('/') }}">All portals</a> / new portal</nav>
+  <h1 class="sy-h1">New portal</h1>
+</div>
+
+{%- if not service_up %}
+<section class="sy-state sy-state--failure" role="alert">
+  <h2 class="sy-state__title">Assistant not running</h2>
+  <p>It saves the portal. Start it in a terminal, then reload this page.</p>
+  <pre class="sy-code">pnpm --dir apps/chat start</pre>
+</section>
+{%- endif %}
+
+<section class="sy-plate" aria-labelledby="np-h">
+  <div class="sy-plate__head"><h2 class="sy-plate__title" id="np-h">Which site do you want to document?</h2></div>
+  <div class="sy-plate__body sy-stack">
+    <p class="sy-prose sy-muted">Give the address of each environment you have: at least one. The crawler starts
+      there, stays on that domain (and its subdomains) and visits it as a guest. You can add or revoke
+      environments later in Settings. After saving, the assistant opens for it: ask it to scan.</p>
+    {%- if error %}
+    <div class="sy-callout sy-callout--failure" role="alert"><p class="sy-callout__title">Not saved</p><p>{{ error }}</p></div>
+    {%- endif %}
+    <form class="sy-stack" method="post" action="{{ c.url('/portals/new') }}">
+      <label class="sy-field">
+        <span class="sy-field__label">Short name (optional)</span>
+        <input class="sy-input" type="text" name="id" pattern="[a-z0-9][a-z0-9_\-]*" value="{{ form.id }}" spellcheck="false" aria-describedby="np-id-help">
+        <span class="sy-field__help" id="np-id-help">Proposed from the first address, e.g. <span class="sy-mono sy-mono--sm">wikipedia-org</span></span>
+      </label>
+      {%- for e in ["production", "staging", "sandbox"] %}
+      <fieldset class="sy-stack mp-fieldset">
+        <legend class="sy-legend-label">{{ e }}</legend>
+        <div class="mp-form-row">
+          <label class="sy-field mp-grow-3">
+            <span class="sy-field__label">Address</span>
+            <input class="sy-input" type="text" name="url_{{ e }}" inputmode="url" spellcheck="false"
+                   {%- if loop.first %} autofocus{% endif %}
+                   placeholder="{{ 'https://www.wikipedia.org/' if e == 'production' else 'Leave empty if there is none' }}"
+                   value="{{ form['url_' ~ e] }}">
+          </label>
+          <label class="sy-field mp-grow-2">
+            <span class="sy-field__label">The most a scan may do here</span>
+            <select class="sy-select" name="limit_{{ e }}">
+              {%- for value, text in [("external-side-effect", "fill and submit forms (everything)"), ("destructive", "up to deleting things, no outside effects"), ("mutating", "change data, never delete"), ("read", "only look, never submit")] %}
+              <option value="{{ value }}"{% if value == form['limit_' ~ e] %} selected{% endif %}>{{ text }}</option>
+              {%- endfor %}
+            </select>
+          </label>
+        </div>
+      </fieldset>
+      {%- endfor %}
+      <fieldset class="sy-stack" style="--sy-gap: 4px">
+        <legend class="sy-legend-label"><span class="sy-mono">robots.txt</span></legend>
+        <label class="sy-check"><input type="radio" name="robots" value="ignore"{% if form.robots == "ignore" %} checked{% endif %}> ignore it (visit every page; your responsibility)</label>
+        <label class="sy-check"><input type="radio" name="robots" value="respect"{% if form.robots == "respect" %} checked{% endif %}> respect it</label>
+      </fieldset>
+      <p class="sy-small sy-muted">Every scan only looks unless you allow more: before each scan the assistant
+        asks whether it may fill in and submit forms (up to the limit above). On production that really happens on the live site.</p>
+      <div class="sy-actions"><button class="sy-btn sy-btn--primary" type="submit"{% if not service_up %} disabled{% endif %}>Save portal and open the assistant</button></div>
+    </form>
+  </div>
+</section>
+{% endblock %}

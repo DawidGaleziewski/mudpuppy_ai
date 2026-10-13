@@ -1,0 +1,6 @@
+{% import "salvage/macros.html" as sy %}
+<section class="sy-state">
+  <h2 class="sy-state__title">No {{ what }} in store “{{ env }}”</h2>
+  <p class="sy-muted">It may belong to another store, or no documentation has been written for it yet.</p>
+  <p><a class="sy-btn sy-btn--sm" href="{{ c.url('/docs') }}">Back to Docs</a></p>
+</section>

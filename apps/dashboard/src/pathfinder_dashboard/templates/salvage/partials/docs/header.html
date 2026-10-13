@@ -1,0 +1,31 @@
+{% import "salvage/macros.html" as sy %}
+{% set dt = r.detail %}
+{% set rec = dt.record %}
+{% call sy.region("doc-header", r.header_url, "Record header", oob=oob | default(false)) %}
+<div class="sy-plate">
+  <div class="sy-plate__head">
+    <span class="sy-cluster">{{ sy.doc_status(dt.status) }} {{ sy.confidence(dt.shown.confidence) }}
+      {%- if dt.shown.not_observable %} {{ sy.not_observable() }}{% endif %}
+      {%- if dt.followup %} {{ sy.followup_status(dt.followup.status) }}{% endif %}</span>
+    <a class="sy-btn sy-btn--sm" href="#region-reviews">Go to review</a>
+  </div>
+  <div class="sy-plate__body sy-stack">
+    {%- if dt.followup and dt.followup.blocked_reason %}<div class="sy-callout"><p>{{ dt.followup.blocked_reason }}</p></div>{% endif %}
+    {%- if not dt.is_latest %}
+    <div class="sy-callout sy-callout--intent">
+      <p>Showing revision {{ dt.shown.rev_no }} of {{ rec.latest_rev }}, an older revision. <a href="{{ c.url('/docs/' ~ portal ~ '/' ~ rec.key) }}">View the latest</a></p>
+    </div>
+    {%- endif %}
+    <dl class="sy-facts">
+      <dt>Id</dt><dd>{{ sy.tag(rec.key, sm=true) }}</dd>
+      <dt>Kind</dt><dd>{{ rec.kind | replace("_", " ") }}</dd>
+      <dt>Revision</dt><dd class="sy-num">{{ dt.shown.rev_no }} of {{ rec.latest_rev }}{% if rec.confirmed_rev %} <span class="sy-muted">· confirmed at rev {{ rec.confirmed_rev }}</span>{% endif %}</dd>
+      <dt>Change</dt><dd>{{ dt.shown.change }}</dd>
+      <dt>Analysis session</dt><dd>{{ sy.tag(dt.shown.session_id | short_id, c.url('/docs/' ~ portal ~ '/sessions/' ~ dt.shown.session_id), sm=true) }}</dd>
+      <dt>Written (UTC)</dt><dd class="sy-mono sy-mono--sm">{{ dt.shown.created_at | when }}</dd>
+      <dt>Portal</dt><dd><a href="{{ c.url('/docs/' ~ portal) }}">{{ portal }}</a></dd>
+    </dl>
+    {%- if dt.shown.change_note %}<p class="sy-small sy-muted">Change note: {{ dt.shown.change_note }}</p>{% endif %}
+  </div>
+</div>
+{% endcall %}

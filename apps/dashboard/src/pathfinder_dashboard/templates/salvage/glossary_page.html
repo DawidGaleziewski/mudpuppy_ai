@@ -1,0 +1,9 @@
+{% extends "salvage/base.html" %}
+{% set nav_current = "glossary" %}
+{% block title %}{{ title }}{% endblock %}
+{% block main %}
+<div class="sy-pagehead">
+  <nav class="sy-crumbs" aria-label="Breadcrumb"><a href="{{ c.url('/glossary') }}">Glossary</a> / page</nav>
+</div>
+<article class="sy-plate"><div class="sy-plate__body sy-prose mp-prose">{{ body }}</div></article>
+{% endblock %}

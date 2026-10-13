@@ -1,0 +1,25 @@
+{% import "salvage/macros.html" as sy %}
+{% call sy.region("docs-portals", p.self_url, "Documented portals") %}
+  {%- if not p["items"] %}
+  {{ sy.empty("No documentation written yet", "The BA agent writes records after a map or trace scan; each portal shows up here as soon as its first session is recorded.") }}
+  {%- endif %}
+  <div class="sy-grid" style="--sy-min: 22rem">
+  {%- for d in p["items"] %}
+  <article class="sy-plate" aria-labelledby="docs-portal-{{ loop.index }}">
+    <div class="sy-plate__head">
+      <h2 class="sy-plate__title" id="docs-portal-{{ loop.index }}"><a class="sy-case-normal" href="{{ c.url('/docs/' ~ d.portal_id) }}">{{ d.portal_id }}</a></h2>
+      <span class="sy-meta">Last session <span class="sy-mono sy-mono--sm">{{ d.last_session_at | when }}</span></span>
+    </div>
+    <div class="sy-plate__body">
+      <dl class="sy-facts">
+        <dt>Records</dt><dd><span class="sy-num">{{ d.records }}</span> <span class="sy-muted">· {{ d.sessions }} analysis session{{ "" if d.sessions == 1 else "s" }}</span></dd>
+        <dt>By status</dt><dd>
+          {%- for st in DOC_STATUSES if d.by_status.get(st) %}<span class="sy-num">{{ d.by_status[st] }}</span> {{ sy.doc_status(st) }}{% if not loop.last %} · {% endif %}
+          {%- else %}<span class="sy-muted">No records</span>{%- endfor %}</dd>
+        <dt>Open follow-ups</dt><dd><span class="sy-num">{{ d.open_followups }}</span> <span class="sy-muted">crawler tasks the BA asked for</span></dd>
+      </dl>
+    </div>
+  </article>
+  {%- endfor %}
+  </div>
+{% endcall %}

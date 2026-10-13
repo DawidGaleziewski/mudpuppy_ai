@@ -65,6 +65,26 @@
     }
   });
 
+  // Confirm dialogs (FE-T01 Revoke): a button with data-dialog opens that <dialog>, names the
+  // target in its [data-dialog-name] spots and points its form at data-action. Esc closes it
+  // natively; focus returns to the button.
+  document.addEventListener("click", (e) => {
+    const opener = e.target.closest?.("[data-dialog]");
+    if (opener) {
+      const dlg = document.getElementById(opener.dataset.dialog);
+      if (!dlg) return;
+      dlg.querySelectorAll("[data-dialog-name]").forEach((n) => {
+        n.textContent = opener.dataset.name ?? "";
+      });
+      const form = dlg.querySelector("[data-dialog-form]");
+      if (form && opener.dataset.action) form.action = opener.dataset.action;
+      dlg.addEventListener("close", () => opener.focus(), { once: true });
+      dlg.showModal();
+      return;
+    }
+    if (e.target.closest?.("[data-dialog-close]")) e.target.closest("dialog")?.close();
+  });
+
   // The portal menu closes when focus or a click leaves it.
   document.addEventListener("click", (e) => {
     const menu = document.querySelector(".mp-portal-menu[open]");
