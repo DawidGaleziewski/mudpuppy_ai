@@ -1,0 +1,101 @@
+{#- Salvage Yard helpers (spec 022, docs/design/salvage-yard/docs/05-css-guide.md §7).
+    status: the ONE mapping (status_map.py) → shape + word. tag: a record id as a manila tag.
+    note: text a person wrote. Times use the `when` filter (UTC with Z). -#}
+
+{% macro status(vocabulary, value, extra="") -%}
+  {%- set s = sy_status_of(vocabulary, value) -%}
+  {%- if s.shape -%}
+  <span class="sy-status" data-status="{{ s.shape }}">{{ s.word }}{% if extra %} · {{ extra }}{% endif %}</span>
+  {%- else -%}
+  <span class="sy-mono sy-mono--sm">{{ s.word }}{% if extra %} · {{ extra }}{% endif %}</span>
+  {%- endif -%}
+{%- endmacro %}
+
+{% macro tag(id, href=None, sm=false, intent=false, label=None) -%}
+  {%- set cls = "sy-tag" ~ (" sy-tag--sm" if sm else "") ~ (" sy-tag--intent" if intent else "") -%}
+  {%- if href %}<a class="{{ cls }}" href="{{ href }}">{{ label or id }}</a>{% else %}<span class="{{ cls }}">{{ label or id }}</span>{% endif -%}
+{%- endmacro %}
+
+{% macro note(text, by=None, at=None, sm=false) -%}
+  <div class="sy-note{% if sm %} sy-note--sm{% endif %}">{{ text }}{% if by or at %}<span class="sy-note__by">{{ by or "" }}{% if by and at %} · {% endif %}{{ at | when if at else "" }}</span>{% endif %}</div>
+{%- endmacro %}
+
+{% macro confidence(value) -%}{{ status("confidence", value) }}{%- endmacro %}
+
+{#- An ERR- reference, visible and copyable (spec 010 FR-020); exempt from tags (FE-V09). -#}
+{% macro error_ref(ref) -%}
+  <span class="sy-small">reference <a class="sy-mono" href="/chat/errors/{{ ref | urlencode }}">{{ ref }}</a></span>
+  <button class="sy-btn sy-btn--sm sy-btn--quiet" type="button" data-copy="{{ ref }}" aria-label="Copy reference {{ ref }}">Copy</button>
+{%- endmacro %}
+
+{#- A live region (spec 003): re-fetches itself when the store changes. Same contract as the
+    Console macro, so fragments and full pages render identical markup. -#}
+{% macro region(id, self_url, label=none, guard=none, oob=false) -%}
+  <section id="region-{{ id }}" class="mp-region" hx-get="{{ self_url }}"
+           hx-trigger="store-changed{% if guard %}[{{ guard }}]{% endif %} from:body" hx-swap="outerHTML"
+           {%- if oob %} hx-swap-oob="true"{% endif %}
+           {%- if label %} aria-label="{{ label }}"{% endif %}>
+    {{ caller() }}
+  </section>
+{%- endmacro %}
+
+{#- Glossary hint (spec 006 → .sy-hint): the label, then a [?] link whose title is the short
+    definition. Unknown id or no glossary: the plain label (FR-011). -#}
+{% macro term(id, label) -%}
+  {%- set g = GLOSSARY() -%}
+  {%- set e = g.get(id) if g else none -%}
+  {%- if e -%}
+  <span class="sy-cluster" style="--sy-gap: 0">{{ label }}<a class="sy-hint" href="/glossary#{{ id }}" title="{{ e.short }}" aria-label="What is {{ e.term }}?">?</a></span>
+  {%- else -%}{{ label }}{%- endif -%}
+{%- endmacro %}
+
+{% macro intro(id) -%}
+  {%- set g = GLOSSARY() -%}
+  {%- set e = g.get(id) if g else none -%}
+  {%- if e -%}
+  <p class="sy-small sy-muted">{{ e.short }} <a href="/glossary#{{ id }}" aria-label="More about {{ e.term }}">More</a></p>
+  {%- endif -%}
+{%- endmacro %}
+
+{#- Filter form: htmx swaps the region in place and pushes the page URL; without JS a plain GET. -#}
+{% macro filter_form(v, c, hidden={}) -%}
+  <form class="sy-cluster" method="get" action="{{ v.form_action }}"
+        hx-get="{{ v.fragment_url }}" hx-trigger="change" hx-target="closest section"
+        hx-swap="outerHTML">
+    {%- if c.store_param %}<input type="hidden" name="store" value="{{ c.store_param }}">{% endif %}
+    <input type="hidden" name="push" value="1">
+    {%- for k, val in hidden.items() %}<input type="hidden" name="{{ k }}" value="{{ val }}">{% endfor %}
+    {{ caller() }}
+    <noscript><button class="sy-btn sy-btn--sm" type="submit">Apply</button></noscript>
+    <span class="htmx-indicator sy-caret sy-small sy-muted" aria-hidden="true">Loading</span>
+  </form>
+{%- endmacro %}
+
+{% macro select(name, label, options, current, any_label="Any") -%}
+  <label class="sy-field">
+    <span class="sy-field__label">{{ label }}</span>
+    <select class="sy-select" name="{{ name }}">
+      <option value="" {% if not current %}selected{% endif %}>{{ any_label }}</option>
+      {%- for value, text in options %}
+      <option value="{{ value }}" {% if current == value %}selected{% endif %}>{{ text }}</option>
+      {%- endfor %}
+    </select>
+  </label>
+{%- endmacro %}
+
+{#- Keyset pager: position, then first / next. -#}
+{% macro pager(v, total, shown) -%}
+  {%- if total > shown or v.first_url -%}
+  <nav class="sy-split sy-small" aria-label="Pagination">
+    <span class="sy-num sy-muted">{{ v.offset + 1 if shown else 0 }}–{{ v.offset + shown }} of {{ total }}</span>
+    <span class="sy-actions">
+      {%- if v.first_url %}<a class="sy-btn sy-btn--sm sy-btn--quiet" href="{{ v.first_url }}" hx-get="{{ v.first_fragment }}" hx-target="closest section" hx-swap="outerHTML">First</a>{% endif %}
+      {%- if v.next_url %}<a class="sy-btn sy-btn--sm" href="{{ v.next_url }}" hx-get="{{ v.next_fragment }}" hx-target="closest section" hx-swap="outerHTML">Next</a>{% endif %}
+    </span>
+  </nav>
+  {%- endif -%}
+{%- endmacro %}
+
+{% macro empty(title, body=None, level=2) -%}
+  <section class="sy-state"><h{{ level }} class="sy-state__title">{{ title }}</h{{ level }}>{% if body %}<p class="sy-muted">{{ body }}</p>{% endif %}</section>
+{%- endmacro %}

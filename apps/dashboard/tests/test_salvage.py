@@ -1,0 +1,175 @@
+"""Salvage Yard foundation (spec 022 M1): the flag, the one status mapping, the shell, and the
+guard against Console-era styling (FE-V01, FE-V02, FE-V07, FE-V08, FE-N01, FE-N03)."""
+
+from __future__ import annotations
+
+import re
+import subprocess
+from collections.abc import Iterator
+from pathlib import Path
+
+import pytest
+from fastapi.testclient import TestClient
+
+from pathfinder_dashboard import nav, queries_docs, status_map, ui_flag
+from pathfinder_dashboard.models import DECISION_KINDS, FRONTIER_STATUSES, RUN_STATUSES
+
+from .conftest import Store, make_client
+from .paths import REPO_ROOT
+
+PKG = REPO_ROOT / "apps/dashboard/src/pathfinder_dashboard"
+GUARD = REPO_ROOT / ".claude/skills/mudpuppy-salvage-ui/scripts/find-old-styles.sh"
+
+
+@pytest.fixture
+def salvage(liveinsurer_store: Store) -> Iterator[TestClient]:
+    with make_client(liveinsurer_store, ui_salvage="all") as c:
+        yield c
+
+
+# --- flag ---------------------------------------------------------------------------------------
+
+
+@pytest.mark.parametrize(
+    ("flag", "template", "expected"),
+    [
+        ("", "overview.html", "overview.html"),
+        ("all", "overview.html", "salvage/overview.html"),
+        ("overview", "overview.html", "salvage/overview.html"),
+        ("overview", "run_detail.html", "run_detail.html"),
+        (" run_detail , overview ", "run_detail.html", "salvage/run_detail.html"),
+        ("all", "no_twin.html", "no_twin.html"),
+        ("all", "salvage/overview.html", "salvage/overview.html"),
+        ("partials/runs_table", "partials/runs_table.html", "salvage/partials/runs_table.html"),
+    ],
+)
+def test_pick_template(flag: str, template: str, expected: str) -> None:
+    exists = {
+        "salvage/overview.html",
+        "salvage/run_detail.html",
+        "salvage/partials/runs_table.html",
+    }
+    assert ui_flag.pick_template(flag, template, exists.__contains__) == expected
+
+
+def test_flag_off_keeps_the_console_page(client: TestClient) -> None:
+    html = client.get("/").text
+    assert "/static/css/app.css" in html and "salvage.css" not in html
+
+
+# --- status map ---------------------------------------------------------------------------------
+
+
+@pytest.mark.parametrize(
+    ("vocabulary", "values"),
+    [
+        ("run", RUN_STATUSES),
+        ("frontier", FRONTIER_STATUSES),
+        ("decision", DECISION_KINDS),
+        ("doc", queries_docs.DOC_STATUSES),
+    ],
+)
+def test_every_stored_status_has_a_mapping(vocabulary: str, values: tuple[str, ...]) -> None:
+    for v in values:
+        assert v in status_map.VOCABULARIES[vocabulary], (vocabulary, v)
+
+
+def test_shapes_are_the_design_enum_and_every_status_has_a_word() -> None:
+    for table in status_map.VOCABULARIES.values():
+        for s in table.values():
+            assert s.shape is None or s.shape in status_map.SHAPES
+            assert s.word
+
+
+def test_console_labels_map_as_the_design_package_says() -> None:
+    # docs/design/salvage-yard/migration/status-map.csv
+    assert status_map.status_of("run", "completed").shape == "ok"
+    assert status_map.status_of("run", "running").shape == "running"
+    assert status_map.status_of("run", "interrupted") == ("stopped", "Interrupted")
+    assert status_map.status_of("frontier", "skipped_unsafe").shape == "skipped"
+    assert status_map.status_of("doc", "draft").shape == "draft"
+    assert status_map.status_of("amendment", "superseded") == ("needs", "Re-anchor")
+    assert status_map.status_of("confidence", "inferred").shape == "inferred"
+
+
+def test_unknown_value_keeps_its_text_without_a_shape() -> None:
+    assert status_map.status_of("run", "some_new_state") == (None, "some new state")
+    assert status_map.status_of("outcome", None) == ("running", "Running")
+
+
+# --- shell --------------------------------------------------------------------------------------
+
+
+def test_salvage_page_loads_only_salvage_styles(salvage: TestClient) -> None:
+    html = salvage.get("/").text
+    css = re.findall(r'<link rel="stylesheet" href="([^"]+)"', html)
+    assert css == [
+        "/static/salvage/css/tokens.css",
+        "/static/salvage/css/fonts.css",
+        "/static/salvage/css/salvage.css",
+        "/static/css/mp.css",
+    ]
+    assert "jetbrains" not in html.lower() and "fonts.googleapis" not in html
+    assert '<body class="sy-ground"' in html
+    assert 'hx-sse:connect="/events"' in html
+
+
+def test_header_order_and_nav_sections(salvage: TestClient) -> None:
+    html = salvage.get("/").text
+    header = html[html.index('<header class="sy-header">') : html.index("</header>")]
+    order = [
+        "sy-wordmark",
+        "mp-portal-menu",
+        "sy-search",
+        "assistant-status",
+        "ask-assistant",
+        "sy-btn--icon",
+    ]
+    positions = [header.index(k) for k in order]
+    assert positions == sorted(positions)
+    navs = re.findall(r'class="sy-nav__item[^"]*"[^>]*>([A-Za-z]+)', html)
+    assert navs == [s.label for s in nav.SECTIONS]
+    assert re.search(r'class="sy-nav__item" href="/"[^>]*aria-current="page"', html)
+
+
+def test_one_h1_and_at_most_one_primary(salvage: TestClient) -> None:
+    html = salvage.get("/").text
+    assert html.count("<h1") == 1
+    assert html.count("sy-btn--primary") <= 1
+    assert html.count("sy-plate--intent") <= 1
+
+
+def test_runs_show_status_shapes_and_run_tags(salvage: TestClient) -> None:
+    html = salvage.get("/").text
+    assert 'class="sy-status" data-status=' in html
+    assert '<a class="sy-tag sy-tag--sm" href="/runs/run-009">run-009</a>' in html
+    assert "[ OK ]" not in html and "[INT.]" not in html
+
+
+def test_settings_section_needs_a_portal() -> None:
+    assert nav.href_of("settings", None) is None
+    assert nav.href_of("settings", "liveinsurer") == "/portals/liveinsurer/settings"
+    assert nav.current_section("run") == "scans"
+
+
+def test_assistant_status_fragment_says_down_without_the_chat_service(salvage: TestClient) -> None:
+    html = salvage.get("/fragments/assistant-status").text
+    assert 'data-status="failed">Assistant down' in html
+
+
+# --- style guard (FE-V02) -----------------------------------------------------------------------
+
+
+def _guard(*paths: Path) -> subprocess.CompletedProcess[str]:
+    return subprocess.run(
+        ["bash", str(GUARD), *map(str, paths)],
+        capture_output=True,
+        text=True,
+        env={"SY_DS_PATH": str(PKG / "static/salvage"), "PATH": "/usr/bin:/bin"},
+        check=False,
+    )
+
+
+def test_salvage_templates_and_app_css_have_no_console_styling() -> None:
+    r = _guard(PKG / "templates/salvage", PKG / "static/css/mp.css", PKG / "static/js/shell.js")
+    assert r.returncode == 0, r.stdout

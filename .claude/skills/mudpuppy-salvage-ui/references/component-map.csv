@@ -1,0 +1,24 @@
+console_component,salvage_classes,change,screens_using_it
+Buttons & Form Controls,".sy-btn (--primary --strong --quiet --danger --md --sm --icon), .sy-field, .sy-input, .sy-select, .sy-textarea, .sy-check, .sy-seg","Bracket [action] links become boxed buttons when they change data; one primary per view",all
+Cards (stat/content/media),".sy-plate (__head __title __body __foot, --intent --failure --drawn), .sy-rows/.sy-row","No glow on big numbers; max one intent plate",all
+Carousel,(dropped),Use .sy-grid of .sy-thumb,-
+Data Table,".sy-table-wrap (--flush) > .sy-table (--interactive --dense --middle), th[scope], .sy-num","Caps column heads; [?] becomes .sy-hint","04 06 07 10 11"
+Tabs & Dropdown,".sy-tabs > .sy-tab[role=tab][aria-selected] ; native .sy-select","Query-param tabs: aria-current=page","05 08 09 10"
+Modal & Toast,"dialog.sy-dialog (__head __body __foot), .sy-toast (--fixed)","Revoke confirm is a real dialog","11"
+States (empty/loading/error),".sy-state (--failure), .sy-state__title, .sy-caret","Inventory voice; ERR reference + next move","03 09"
+Motion,"sy-pulse on [data-status=running], .sy-caret","Mark bounce dropped",all
+Icon & Status Language (bracket),".sy-status[data-status]","Brackets become CSS shapes + word",all
+Nav Bar (top tabs),".sy-header, .sy-portal, .sy-search, .sy-nav > .sy-nav__item[aria-current=page], .sy-count","Side nav; portal is the context; seven sections",all
+Trace Row & Workflow Node,".sy-row, .sy-steps, step cards (.sy-callout / .sy-drawn [aria-current=true])",,"01 05 07"
+Project Card & Credit Row,".sy-plate + .sy-facts / .sy-rows",,"(portal overview)"
+Mark / MudPuppy Mark,"brand/logo/mark-grid-path.svg, mark-creature.svg, mark-mono.svg, tag-icon.svg ; .sy-wordmark","Pixel mark recoloured; wordmark is live text",brand
+Glossary [?] link,.sy-hint,24px target,"08"
+Live status dot (round),(removed),Square shapes only,-
+Scanline background,.sy-ground,24px grid on page only,all
+(new) Record tag,".sy-tag (--intent --sm), .sy-tags",Every record ID,all
+(new) Human note,".sy-note (__by --sm), .sy-annot (__target __line)",Typewriter on manila,"02 05 06 08"
+(new) Drawn / to-be,".sy-drawn (--fill), .sy-drawn-text, .sy-plate--drawn, .sy-callout--drawn, .sy-select--drawn",Dashed blueprint,"01 04 05 06 07"
+(new) Assistant,".sy-chat, .sy-chat__log, .sy-msg (--user), .sy-chips, .sy-composer, .sy-scanline, .sy-proposal (--applied), .sy-drawer",,"01 02 03"
+(new) Recorded screen,".sy-shot, .sy-mark (--overlay), .sy-mark__label, .sy-thumb (--locked)",Highlight with steel inner ring,"02 04 08"
+(new) Progress / history,".sy-meter[data-status], .sy-timeline > li[data-status]",,"07 10"
+(new) Vault,".sy-vault, details.sy-disclosure",Secrets never shown,"03 11"

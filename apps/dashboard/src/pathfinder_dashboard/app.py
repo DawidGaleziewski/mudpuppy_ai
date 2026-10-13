@@ -19,7 +19,7 @@ from fastapi.responses import RedirectResponse, Response
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
-from . import glossary, live, queries_docs
+from . import glossary, live, nav, queries_docs, status_map
 from .models import DECISION_KINDS, FRONTIER_STATUSES, RUN_STATUSES, SAFETY_CLASSES
 from .settings import Settings
 from .web import activity as activity_page
@@ -74,6 +74,12 @@ def create_app(
     templates.env.filters["short_id"] = short_id
     templates.env.filters["top_locator"] = top_locator
     templates.env.filters["markdown"] = glossary.markdown_html
+    # Salvage Yard (spec 022): the one status mapping, used by `salvage/macros.html`.
+    templates.env.globals["sy_status_of"] = status_map.status_of
+    templates.env.globals["sy_options"] = status_map.options
+    templates.env.globals["NAV_SECTIONS"] = nav.SECTIONS
+    templates.env.globals["nav_section"] = nav.current_section
+    templates.env.globals["section_href"] = nav.href_of
 
     # Shared page helpers (web/deps.py); the page routers get them with `web_of(request)`.
     web = Web(settings, templates, chat_transport)

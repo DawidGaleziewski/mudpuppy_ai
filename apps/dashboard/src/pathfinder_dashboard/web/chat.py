@@ -66,6 +66,15 @@ async def chat_page(
     )
 
 
+@router.get("/fragments/assistant-status", response_class=HTMLResponse)
+async def fragment_assistant_status(request: Request, env: str | None = None) -> HTMLResponse:
+    """The header's assistant status (spec 022 FE-N01): is the chat service up."""
+    web = web_of(request)
+    c = web.ctx(request, env)
+    up = await chat_client.service_up(web.settings, web.chat_transport)
+    return web.render(c, "salvage/partials/assistant_status.html", service_up=up)
+
+
 @router.get("/fragments/chat/messages", response_class=HTMLResponse)
 def fragment_chat_messages(
     request: Request, env: str | None = None, conversation: str | None = None

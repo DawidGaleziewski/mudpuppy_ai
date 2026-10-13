@@ -1,0 +1,60 @@
+{% import "salvage/macros.html" as sy %}
+{% set v = runs %}
+{% call sy.region("runs", v.self_url, "Scans") %}
+<div class="sy-plate">
+  <div class="sy-plate__head">
+    <h2 class="sy-plate__title">Scans <span class="sy-count sy-count--muted">{{ v.page.total }}</span></h2>
+    {% call sy.filter_form(v, c) %}
+      {{ sy.select("portal", "Portal", sy_options(v.portals), v.filters.portal) }}
+      {{ sy.select("status", "Status", sy_options(RUN_STATUSES, "run"), v.filters.status) }}
+    {% endcall %}
+  </div>
+  {%- if not v.page["items"] %}
+  <div class="sy-plate__body">
+    {%- if v.filters.portal or v.filters.status %}
+      {{ sy.empty("No scans match these filters", "Clear the portal or status filter to see all scans.") }}
+    {%- else %}
+      {{ sy.empty("No scans recorded yet", "Scans appear here as the crawler records them.") }}
+    {%- endif %}
+  </div>
+  {%- else %}
+  <div class="sy-table-wrap sy-table-wrap--flush">
+    <table class="sy-table sy-table--interactive">
+      <caption class="sy-sr-only">Scans, newest first</caption>
+      <thead>
+        <tr>
+          <th scope="col">{{ sy.term("status-codes", "Status") }}</th>
+          <th scope="col">{{ sy.term("run", "Scan") }}</th>
+          <th scope="col">Portal</th>
+          <th scope="col">{{ sy.term("persona", "Persona") }}</th>
+          <th scope="col">{{ sy.term("mode", "Mode") }}</th>
+          <th scope="col">{{ sy.term("environment", "Environment") }}</th>
+          <th scope="col" class="sy-num">Steps</th>
+          <th scope="col">Started (UTC)</th>
+          <th scope="col" class="sy-num">Duration</th>
+        </tr>
+      </thead>
+      <tbody>
+        {%- for item in v.page["items"] %}{% set r = item.run %}
+        <tr>
+          <td>
+            {{ sy.status("run", r.status) }}
+            {%- if r.warning %}<div class="sy-small sy-muted">{{ r.warning }}</div>{% endif %}
+          </td>
+          <td>{{ sy.tag(r.id[:8], c.url('/runs/' ~ r.id), sm=true) }}</td>
+          <td>{{ r.portal_id }}</td>
+          <td>{{ r.persona_id }}</td>
+          <td>{{ r.mode }}</td>
+          <td>{{ r.environment }}</td>
+          <td class="sy-num">{{ r.steps_used }}</td>
+          <td class="sy-mono sy-mono--sm">{{ r.started_at | when }}</td>
+          <td class="sy-num">{{ item.duration_ms | duration }}</td>
+        </tr>
+        {%- endfor %}
+      </tbody>
+    </table>
+  </div>
+  <div class="sy-plate__foot">{{ sy.pager(v, v.page.total, v.page["items"] | length) }}</div>
+  {%- endif %}
+</div>
+{% endcall %}

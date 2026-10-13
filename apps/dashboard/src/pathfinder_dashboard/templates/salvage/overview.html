@@ -1,0 +1,13 @@
+{% extends "salvage/base.html" %}
+{% set nav_current = "overview" %}
+{% block title %}{{ c.portal or "All portals" }}{% endblock %}
+{% block main %}
+<div class="sy-pagehead">
+  <h1 class="sy-h1">{{ c.portal or "All portals" }}</h1>
+  <p class="sy-meta">Store <span class="sy-mono sy-mono--sm">{{ store.path }}</span> · {{ store.size_bytes | kb }} · read-only</p>
+</div>
+<div class="sy-stack">
+  {% include "salvage/partials/portal_cards.html" %}
+  {% include "salvage/partials/runs_table.html" %}
+</div>
+{% endblock %}

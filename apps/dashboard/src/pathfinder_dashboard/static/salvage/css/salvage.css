@@ -1,0 +1,707 @@
+/* ==========================================================================
+   MudPuppy · Salvage Yard — component library
+   --------------------------------------------------------------------------
+   Load order:  tokens.css → fonts.css → salvage.css
+   Framework-agnostic: plain HTML + classes. Works with server-rendered
+   templates (the console today) or any component framework.
+
+   Naming:  .sy-block, .sy-block__element, .sy-block--modifier
+   State:   ARIA first. aria-current, aria-pressed, aria-selected,
+            aria-invalid, aria-busy, [disabled], [hidden]. No .is-active.
+   Enums:   data-status="ok|running|live|needs|stopped|skipped|todo|queued|
+                         draft|inferred|unobserved|failed"
+   Layers:  reset < base < layout < components < utilities
+   ========================================================================== */
+
+@layer sy.reset, sy.base, sy.layout, sy.components, sy.utilities;
+
+/* -------------------------------------------------------------------------- */
+@layer sy.reset {
+  *, *::before, *::after { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+  body, h1, h2, h3, h4, p, figure, blockquote, dl, dd, ol, ul { margin: 0; }
+  ol[class], ul[class] { padding: 0; list-style: none; }
+  img, svg, video { display: block; max-width: 100%; }
+  button, input, select, textarea { font: inherit; color: inherit; letter-spacing: inherit; }
+  button { cursor: pointer; }
+  table { border-collapse: collapse; }
+  fieldset { margin: 0; padding: 0; border: 0; min-width: 0; }
+  legend { padding: 0; }
+  /* Components set display:flex/grid; make the hidden attribute always win. */
+  [hidden] { display: none !important; }
+}
+
+/* -------------------------------------------------------------------------- */
+@layer sy.base {
+  html { background: var(--sy-bg-ground); }
+  body {
+    min-height: 100vh;
+    background-color: var(--sy-bg-ground);
+    color: var(--sy-text);
+    font-family: var(--sy-font-sans);
+    font-size: var(--sy-fs-body);
+    line-height: var(--sy-lh-body);
+    font-kerning: normal;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* Links: chalk text, marker underline. Links are underlined; buttons are boxes. */
+  a { color: var(--sy-text); text-decoration: underline; text-decoration-color: var(--sy-intent);
+      text-decoration-thickness: 1px; text-underline-offset: 3px; }
+  a:hover { color: var(--sy-text-hover); text-decoration-thickness: 2px; }
+
+  /* One focus ring for everything: 2px marker, 2px gap. */
+  :focus-visible { outline: var(--sy-weld-strong) solid var(--sy-focus); outline-offset: 2px; }
+  :focus:not(:focus-visible) { outline: none; }
+
+  ::selection { background: var(--sy-intent); color: var(--sy-text-on-paint); }
+
+  code, kbd, samp { font-family: var(--sy-font-mono); }
+  strong, b { font-weight: 700; }
+  hr { border: 0; border-top: var(--sy-weld) solid var(--sy-border-weld); margin: 0; }
+}
+
+/* -------------------------------------------------------------------------- */
+/* LAYOUT: app shell                                                           */
+@layer sy.layout {
+
+  /* The yard: grid ground. Use on <body> or the outermost wrapper. */
+  .sy-ground {
+    background-color: var(--sy-bg-ground);
+    background-image:
+      linear-gradient(var(--sy-grid-line) 1px, transparent 1px),
+      linear-gradient(90deg, var(--sy-grid-line) 1px, transparent 1px);
+    background-size: var(--sy-grid-size) var(--sy-grid-size);
+  }
+
+  .sy-app { min-height: 100vh; display: flex; flex-direction: column; }
+  .sy-app__body { flex: 1; display: flex; align-items: stretch; min-height: 0; }
+
+  .sy-main {
+    flex: 999 1 560px; min-width: 0;
+    padding: var(--sy-space-6) var(--sy-space-7);
+    display: flex; flex-direction: column; gap: var(--sy-space-5);
+  }
+  .sy-main--narrow { padding: var(--sy-space-5) var(--sy-space-6); gap: var(--sy-space-4); }
+
+  /* Two-column content: main column + context column (wraps when narrow) */
+  .sy-columns { display: flex; flex-wrap: wrap; gap: var(--sy-space-5); align-items: flex-start; }
+  .sy-columns > .sy-col-main { flex: 999 1 520px; min-width: 0; }
+  .sy-columns > .sy-col-side { flex: 1 1 290px; min-width: 0; display: flex; flex-direction: column; gap: var(--sy-space-4); }
+
+  /* Skip link (first focusable element in <body>) */
+  .sy-skip { position: absolute; left: var(--sy-space-2); top: -100px; z-index: 100;
+    padding: var(--sy-space-2) var(--sy-space-3); background: var(--sy-intent); color: var(--sy-text-on-paint);
+    font-weight: 700; text-decoration: none; }
+  .sy-skip:focus { top: var(--sy-space-2); }
+}
+
+/* -------------------------------------------------------------------------- */
+@layer sy.components {
+
+  /* ===== Wordmark ======================================================== */
+  /* <a class="sy-wordmark" href="/"><span class="sy-wordmark__paint">MUD</span>PUPPY</a> */
+  .sy-wordmark {
+    display: inline-flex; align-items: baseline; gap: 0;
+    font-family: var(--sy-font-sans); font-weight: 800; font-stretch: var(--sy-stretch-expanded);
+    font-size: 22px; line-height: 1; letter-spacing: 0.02em; text-transform: uppercase;
+    color: var(--sy-text); text-decoration: none; white-space: nowrap;
+  }
+  .sy-wordmark:hover { color: var(--sy-text); }
+  .sy-wordmark__paint { padding: 2px 6px 1px; margin-right: 1px; background: var(--sy-intent); color: var(--sy-text-on-paint); }
+  .sy-wordmark__scope { margin-left: 10px; font-family: var(--sy-font-mono); font-weight: 400; font-stretch: 100%;
+    font-size: var(--sy-fs-mono-sm); letter-spacing: 0; text-transform: none; color: var(--sy-text-muted); }
+  .sy-wordmark--lg { font-size: clamp(28px, 9vw, var(--sy-fs-display)); }
+  .sy-wordmark--lg .sy-wordmark__paint { padding: 4px 10px 2px; }
+
+  /* ===== Header ========================================================== */
+  .sy-header {
+    position: sticky; top: 0; z-index: var(--sy-z-header);
+    display: flex; flex-wrap: wrap; align-items: center; gap: var(--sy-space-3) var(--sy-space-4);
+    padding: 10px var(--sy-space-5);
+    background: var(--sy-bg-plate); border-bottom: var(--sy-weld) solid var(--sy-border-plate);
+  }
+  .sy-header__spacer { flex: 1 1 0; }
+
+  /* Portal (project context) picker in the header */
+  .sy-portal { display: flex; align-items: center; gap: var(--sy-space-2); }
+  .sy-portal .sy-select { min-width: 190px; }
+
+  /* ===== Side navigation ================================================= */
+  .sy-nav {
+    flex: 0 0 var(--sy-nav-w); display: flex; flex-direction: column; gap: 2px;
+    padding: var(--sy-space-4) 10px;
+    background: var(--sy-bg-plate); border-right: var(--sy-weld) solid var(--sy-border-weld);
+  }
+  .sy-nav--compact { flex-basis: var(--sy-nav-w-compact); padding-inline: var(--sy-space-2); }
+  .sy-nav__item {
+    display: flex; align-items: center; justify-content: space-between; gap: var(--sy-space-2);
+    min-height: var(--sy-control); padding: 0 var(--sy-space-3);
+    font-size: var(--sy-fs-xs); font-weight: 700; font-stretch: var(--sy-stretch-semi);
+    letter-spacing: var(--sy-track-caps); text-transform: uppercase;
+    color: var(--sy-text); text-decoration: none;
+    transition: background-color var(--sy-dur-hover) linear;
+  }
+  .sy-nav__item:hover { background: var(--sy-bg-raised); color: var(--sy-text); }
+  .sy-nav__item[aria-current="page"] { background: var(--sy-bg-inverse); color: var(--sy-text-on-paint); }
+  .sy-nav__item[aria-current="page"] .sy-nav__count { color: var(--sy-text-on-paint); }
+  .sy-nav__count { font-family: var(--sy-font-mono); font-size: var(--sy-fs-micro); font-weight: 400;
+    letter-spacing: 0; text-transform: none; color: var(--sy-text-muted); }
+  .sy-nav__foot { margin-top: auto; padding: var(--sy-space-3); font-family: var(--sy-font-mono);
+    font-size: var(--sy-fs-micro); color: var(--sy-text-muted); }
+
+  /* ===== Count badge ===================================================== */
+  /* Marker = "this many need you". Muted = a plain count. */
+  .sy-count { display: inline-flex; align-items: center; justify-content: center; min-width: 20px; height: 20px;
+    padding: 0 6px; font-family: var(--sy-font-mono); font-size: var(--sy-fs-micro); font-weight: 500;
+    letter-spacing: 0; background: var(--sy-intent); color: var(--sy-text-on-paint); }
+  .sy-count--muted { background: transparent; color: var(--sy-text-muted); padding: 0; min-width: 0; }
+
+  /* ===== Type helpers ==================================================== */
+  .sy-h1 { font-size: var(--sy-fs-h1); line-height: var(--sy-lh-tight); font-weight: 800;
+    font-stretch: var(--sy-stretch-expanded); letter-spacing: var(--sy-track-title); text-transform: uppercase; }
+  .sy-h2 { font-size: var(--sy-fs-h2); line-height: 1.2; font-weight: 800;
+    font-stretch: var(--sy-stretch-expanded); letter-spacing: 0.04em; text-transform: uppercase; }
+  .sy-h3 { font-size: var(--sy-fs-h3); line-height: 1.3; font-weight: 800;
+    font-stretch: var(--sy-stretch-expanded); letter-spacing: var(--sy-track-caps); text-transform: uppercase; }
+  .sy-label { font-size: var(--sy-fs-label); line-height: 1.3; font-weight: 700;
+    font-stretch: var(--sy-stretch-semi); letter-spacing: var(--sy-track-caps); text-transform: uppercase;
+    color: var(--sy-text-muted); }
+  .sy-meta  { font-size: var(--sy-fs-sm); color: var(--sy-text-muted); }
+  .sy-small { font-size: var(--sy-fs-xs); }
+  .sy-muted { color: var(--sy-text-muted); }
+  .sy-prose { max-width: var(--sy-measure); }
+  .sy-prose > * + * { margin-top: var(--sy-space-3); }
+  .sy-mono  { font-family: var(--sy-font-mono); font-size: var(--sy-fs-mono); font-weight: 400; letter-spacing: 0; text-transform: none; }
+  .sy-mono--sm { font-size: var(--sy-fs-mono-sm); }
+  .sy-num   { font-variant-numeric: tabular-nums; }
+  .sy-route { font-family: var(--sy-font-mono); font-size: var(--sy-fs-mono-sm); font-weight: 400; font-stretch: 100%;
+    letter-spacing: 0; text-transform: none; color: var(--sy-text-muted); word-break: break-word; }
+
+  /* Page head */
+  .sy-pagehead { display: flex; flex-direction: column; gap: var(--sy-space-1); }
+  .sy-pagehead__row { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: var(--sy-space-3) var(--sy-space-6); }
+  .sy-crumbs { font-size: var(--sy-fs-xs); color: var(--sy-text-muted); }
+  .sy-crumbs a { color: var(--sy-text-muted); }
+  .sy-crumbs a:hover { color: var(--sy-text); }
+
+  /* Keyboard hint */
+  .sy-kbd { display: inline-flex; align-items: center; height: 20px; padding: 0 5px;
+    border: var(--sy-weld) solid var(--sy-border-weld); font-family: var(--sy-font-mono);
+    font-size: var(--sy-fs-micro); font-weight: 400; letter-spacing: 0; color: var(--sy-text-muted);
+    text-transform: uppercase; white-space: nowrap; }
+
+  /* ===== Plate (panel) =================================================== */
+  .sy-plate { position: relative; display: flex; flex-direction: column; min-width: 0;
+    background: var(--sy-bg-plate); border: var(--sy-weld) solid var(--sy-border-plate); }
+  .sy-plate__head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between;
+    gap: var(--sy-space-2) var(--sy-space-3); padding: 10px var(--sy-space-4);
+    border-bottom: var(--sy-weld) solid var(--sy-border-weld); }
+  .sy-plate__title { font-size: var(--sy-fs-h3); line-height: 1.3; font-weight: 800;
+    font-stretch: var(--sy-stretch-expanded); letter-spacing: var(--sy-track-caps); text-transform: uppercase; }
+  .sy-plate__body { padding: var(--sy-space-4); display: flex; flex-direction: column; gap: var(--sy-space-3); }
+  .sy-plate__foot { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--sy-space-2);
+    padding: var(--sy-space-3) var(--sy-space-4); border-top: var(--sy-weld) solid var(--sy-border-plate);
+    background: var(--sy-bg-well); }
+  /* Intent plate: something here needs a person. Max one per view. */
+  .sy-plate--intent { border-color: var(--sy-intent); }
+  .sy-plate--intent > .sy-plate__head .sy-plate__title { color: var(--sy-intent); }
+  .sy-plate--failure { border-color: var(--sy-fail); }
+  .sy-plate--failure > .sy-plate__head .sy-plate__title { color: var(--sy-fail); }
+  /* Drawn plate: to-be / draft / inferred content. Dashed blueprint. */
+  .sy-plate--drawn { border-style: dashed; border-color: var(--sy-tobe); background: var(--sy-bg-plate); }
+  .sy-plate--drawn > .sy-plate__head { border-bottom: var(--sy-weld) dashed var(--sy-tobe); }
+  .sy-plate--drawn > .sy-plate__head .sy-plate__title { color: var(--sy-tobe); }
+  .sy-plate--drawn > .sy-plate__foot { border-top: var(--sy-weld) dashed var(--sy-tobe); }
+
+  /* Selected (not focused): 2px chalk weld. Works on rows, plates, cards, drawn steps. */
+  .sy-selected,
+  .sy-row[aria-selected="true"], .sy-row[aria-current="true"],
+  .sy-plate[aria-current="true"], .sy-callout[aria-current="true"] {
+    outline: var(--sy-weld-strong) solid var(--sy-text); outline-offset: -2px; }
+  .sy-drawn[aria-current="true"] { outline: var(--sy-weld-strong) solid var(--sy-tobe); outline-offset: -1px; }
+  /* Keyboard focus must win over the selection weld. */
+  .sy-selected:focus-visible,
+  .sy-row[aria-selected="true"]:focus-visible, .sy-row[aria-current="true"]:focus-visible,
+  .sy-plate[aria-current="true"]:focus-visible, .sy-callout[aria-current="true"]:focus-visible,
+  .sy-drawn[aria-current="true"]:focus-visible { outline: var(--sy-weld-strong) solid var(--sy-focus); outline-offset: 2px; }
+
+  /* ===== Rows (lists inside plates) ===================================== */
+  .sy-rows { display: flex; flex-direction: column; }
+  .sy-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between;
+    gap: var(--sy-space-1) var(--sy-space-2); padding: 10px var(--sy-space-4);
+    border-bottom: var(--sy-weld) solid var(--sy-border-weld); font-size: var(--sy-fs-sm);
+    color: var(--sy-text); text-decoration: none; }
+  .sy-row:last-child { border-bottom: 0; }
+  a.sy-row, button.sy-row { width: 100%; background: transparent; border-inline: 0; border-top: 0; text-align: left;
+    transition: background-color var(--sy-dur-hover) linear; }
+  a.sy-row:hover, button.sy-row:hover { background: var(--sy-bg-raised); color: var(--sy-text); }
+  .sy-row[aria-current="step"], .sy-row--current { background: var(--sy-bg-raised); font-weight: 600; }
+  .sy-row--intent { background: var(--sy-intent-tint); }
+  .sy-row--muted { color: var(--sy-text-muted); }
+  .sy-row--dashed { border-bottom-style: dashed; }
+  .sy-row__main { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+
+  /* ===== Buttons ========================================================= */
+  .sy-btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: var(--sy-space-2);
+    min-height: var(--sy-control); padding: 0 var(--sy-space-4);
+    border: var(--sy-weld) solid var(--sy-border-control); border-radius: var(--sy-radius);
+    background: transparent; color: var(--sy-text);
+    font-family: var(--sy-font-sans); font-size: var(--sy-fs-sm); font-weight: 600; line-height: 1.2;
+    text-decoration: none; white-space: nowrap; cursor: pointer;
+    transition: background-color var(--sy-dur-hover) linear;
+  }
+  .sy-btn:hover { background: var(--sy-bg-raised); color: var(--sy-text); }
+  /* Primary: spray paint. ONE per view. Expanded caps, ≤ 4 words. */
+  .sy-btn--primary { border-color: var(--sy-intent); background: var(--sy-intent); color: var(--sy-text-on-paint);
+    padding: 0 22px; font-weight: 800; font-stretch: var(--sy-stretch-semi);
+    letter-spacing: var(--sy-track-caps); text-transform: uppercase; }
+  .sy-btn--primary:hover { background: var(--sy-intent-hover); border-color: var(--sy-intent-hover); color: var(--sy-text-on-paint); }
+  /* Strong: the main action INSIDE a card when the page already has its primary
+     (e.g. "Apply as r2" in an assistant proposal). Chalk edge, bold. */
+  .sy-btn--strong { border-color: var(--sy-text); font-weight: 700; }
+  /* Quiet: suggestion chips, minor tools. */
+  .sy-btn--quiet { border-color: var(--sy-border-weld); font-weight: 400; }
+  .sy-btn--quiet.sy-btn--well { background: var(--sy-bg-ground); }
+  /* Danger: destructive. Outline only; the confirm dialog carries the weight. */
+  .sy-btn--danger { border-color: var(--sy-fail); color: var(--sy-fail); }
+  .sy-btn--danger:hover { background: var(--sy-fail-tint); color: var(--sy-fail); }
+  .sy-btn--md { min-height: var(--sy-control-md); padding: 0 var(--sy-space-3); }
+  .sy-btn--sm { min-height: var(--sy-control-sm); padding: 0 10px; font-size: var(--sy-fs-xs); }
+  .sy-btn--icon { width: var(--sy-control); padding: 0; }
+  .sy-btn--icon.sy-btn--md { width: var(--sy-control-md); }
+  .sy-btn[disabled], .sy-btn[aria-disabled="true"] { border-color: var(--sy-border-weld); background: transparent;
+    color: var(--sy-text-muted); cursor: not-allowed; }
+  .sy-btn--primary[disabled], .sy-btn--primary[aria-disabled="true"] { background: var(--sy-bg-raised); border-color: var(--sy-border-weld); }
+  .sy-btn[aria-busy="true"]::after { content: "_"; animation: sy-caret var(--sy-dur-caret) step-end infinite; }
+
+  .sy-actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sy-gap, var(--sy-space-2)); }
+  .sy-actions--nowrap { flex-wrap: nowrap; }
+  .sy-actions--end { justify-content: flex-end; }
+  .sy-actions--split { justify-content: space-between; }
+
+  /* Segmented control (e.g. assistant context: This page / Whole yard) */
+  .sy-seg { display: flex; border: var(--sy-weld) solid var(--sy-border-control); }
+  .sy-seg > button, .sy-seg > a { flex: 1; display: inline-flex; align-items: center; justify-content: center;
+    min-height: var(--sy-control-md); padding: 0 var(--sy-space-3); border: 0; background: transparent; color: var(--sy-text);
+    font-size: var(--sy-fs-label); font-weight: 800; font-stretch: var(--sy-stretch-semi);
+    letter-spacing: var(--sy-track-caps); text-transform: uppercase; text-decoration: none;
+    transition: background-color var(--sy-dur-hover) linear; }
+  .sy-seg > *:hover { background: var(--sy-bg-raised); }
+  .sy-seg > [aria-pressed="true"], .sy-seg > [aria-current="true"] { background: var(--sy-bg-inverse); color: var(--sy-text-on-paint); }
+
+  /* ===== Forms =========================================================== */
+  .sy-field { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+  .sy-field__label { font-size: var(--sy-fs-label); font-weight: 700; font-stretch: var(--sy-stretch-semi);
+    letter-spacing: var(--sy-track-caps); text-transform: uppercase; color: var(--sy-text-muted); }
+  .sy-field__help { font-size: var(--sy-fs-xs); color: var(--sy-text-muted); }
+  .sy-field__error { font-size: var(--sy-fs-xs); color: var(--sy-fail); }
+  .sy-input, .sy-select, .sy-textarea {
+    width: 100%; min-height: var(--sy-control); padding: 0 var(--sy-space-3);
+    border: var(--sy-weld) solid var(--sy-border-control); border-radius: var(--sy-radius);
+    background: var(--sy-bg-ground); color: var(--sy-text);
+    font-family: var(--sy-font-sans); font-size: var(--sy-fs-body); font-weight: 400;
+    letter-spacing: 0; text-transform: none;
+  }
+  .sy-textarea { padding: 10px var(--sy-space-3); resize: vertical; line-height: var(--sy-lh-body); }
+  .sy-input::placeholder, .sy-textarea::placeholder { color: var(--sy-text-muted); opacity: 1; }
+  .sy-select { appearance: none; -webkit-appearance: none; padding-right: 36px; cursor: pointer;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5l5 5 5-5' fill='none' stroke='%23A3A69F' stroke-width='1.6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat; background-position: right 12px center; }
+  .sy-select--md, .sy-input--md { min-height: var(--sy-control-md); font-size: var(--sy-fs-sm); }
+  .sy-input[aria-invalid="true"], .sy-select[aria-invalid="true"], .sy-textarea[aria-invalid="true"] { border-color: var(--sy-fail); }
+  .sy-input[readonly] { background: var(--sy-bg-well); color: var(--sy-text-muted); }
+  .sy-input[type="file"] { padding: 6px var(--sy-space-3); font-size: var(--sy-fs-sm); }
+  .sy-input::file-selector-button { margin-right: var(--sy-space-3); min-height: 30px; padding: 0 var(--sy-space-3);
+    border: var(--sy-weld) solid var(--sy-border-control); border-radius: 0; background: transparent; color: var(--sy-text);
+    font: inherit; font-weight: 600; cursor: pointer; }
+  .sy-input::file-selector-button:hover { background: var(--sy-bg-raised); }
+  .sy-select--drawn { border-style: dashed; border-color: var(--sy-tobe); }
+  .sy-check { display: inline-flex; align-items: center; gap: var(--sy-space-2); min-height: var(--sy-control-sm);
+    font-size: var(--sy-fs-sm); cursor: pointer; }
+  .sy-check input { width: 18px; height: 18px; margin: 0; accent-color: var(--sy-intent); }
+
+  /* Search box with icon + shortcut */
+  .sy-search { flex: 1 1 240px; display: flex; align-items: center; gap: var(--sy-space-2);
+    min-height: var(--sy-control); padding: 0 var(--sy-space-3);
+    border: var(--sy-weld) solid var(--sy-border-control); background: var(--sy-bg-ground); color: var(--sy-text-muted); }
+  .sy-search:focus-within { outline: var(--sy-weld-strong) solid var(--sy-focus); outline-offset: 2px; }
+  .sy-search input { flex: 1; min-width: 0; border: 0; background: transparent; color: var(--sy-text); font-size: var(--sy-fs-sm); }
+  .sy-search input:focus-visible { outline: none; }
+  .sy-search input::placeholder { color: var(--sy-text-muted); opacity: 1; }
+
+  /* Vault field: secret values are never shown, only their state. */
+  .sy-vault { display: flex; flex-direction: column; gap: var(--sy-space-2); padding: var(--sy-space-3);
+    border: var(--sy-weld) solid var(--sy-border-control); background: var(--sy-bg-well); }
+
+  /* ===== Tag (manila record tag) ========================================= */
+  /* <a class="sy-tag" href="/records/SCR-001">SCR-001</a>
+     Paint lives on ::before so the focus outline is not clipped. */
+  .sy-tag {
+    position: relative; isolation: isolate;
+    display: inline-flex; align-items: center; height: 24px; padding: 0 10px 0 16px;
+    font-family: var(--sy-font-mono); font-size: var(--sy-fs-micro); font-weight: 500; line-height: 1;
+    letter-spacing: 0.01em; color: var(--sy-text-on-tag); text-decoration: none; white-space: nowrap;
+    text-transform: none; font-stretch: 100%;  /* IDs keep their real case, even inside caps headings */
+  }
+  .sy-tag::before {
+    content: ""; position: absolute; inset: 0; z-index: -1;
+    background: var(--_tag-paint, var(--sy-tag));
+    clip-path: polygon(var(--sy-tag-cut) 0, 100% 0, 100% 100%, var(--sy-tag-cut) 100%, 0 50%);
+    -webkit-mask: radial-gradient(circle at 7px 50%, transparent 2.5px, #000 3px);
+            mask: radial-gradient(circle at 7px 50%, transparent 2.5px, #000 3px);
+  }
+  a.sy-tag:hover { color: var(--sy-text-on-tag); }
+  a.sy-tag:hover::before { --_tag-paint: var(--sy-tag-hover); }
+  .sy-tag--intent { --_tag-paint: var(--sy-intent); color: var(--sy-text-on-paint); text-transform: uppercase; }
+  a.sy-tag--intent:hover { color: var(--sy-text-on-paint); }
+  a.sy-tag--intent:hover::before { --_tag-paint: var(--sy-intent-hover); }
+  .sy-tag--sm { height: 22px; padding: 0 8px 0 14px; }
+  .sy-tags { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+
+  /* ===== Status (shape + word) =========================================== */
+  /* <span class="sy-status" data-status="stopped">Stopped</span>
+     Shape = certainty: filled happened · hollow didn't (yet) · dashed unconfirmed · cross broke.
+     Colour = who should care. Shape and word always carry the meaning; colour only helps. */
+  .sy-status { --_c: var(--sy-text-muted);
+    display: inline-flex; align-items: center; gap: 7px; white-space: nowrap;
+    font-family: var(--sy-font-mono); font-size: var(--sy-fs-mono-sm); font-weight: 500; line-height: 1.2;
+    letter-spacing: 0.02em; text-transform: uppercase; color: var(--_c); }
+  .sy-status::before { content: ""; flex: none; width: 10px; height: 10px; background: var(--_c); }
+  /* filled */
+  .sy-status[data-status="ok"]       { --_c: var(--sy-ok); }
+  .sy-status[data-status="running"]  { --_c: var(--sy-active); }
+  .sy-status[data-status="running"]::before { animation: sy-pulse var(--sy-dur-pulse) ease-in-out infinite; }
+  .sy-status[data-status="live"]     { --_c: var(--sy-active); }
+  .sy-status[data-status="needs"]    { --_c: var(--sy-intent); }
+  /* hollow */
+  .sy-status[data-status="stopped"]::before,
+  .sy-status[data-status="skipped"]::before,
+  .sy-status[data-status="todo"]::before { background: transparent; border: 1.5px solid var(--_c); }
+  /* dashed: drawn as four corner marks so it stays distinct from hollow at 10px */
+  .sy-status[data-status="queued"]::before,
+  .sy-status[data-status="unobserved"]::before,
+  .sy-status[data-status="draft"]::before,
+  .sy-status[data-status="inferred"]::before {
+    --_k: linear-gradient(var(--_c), var(--_c));
+    background:
+      var(--_k) left top / 3px 1.5px no-repeat, var(--_k) left top / 1.5px 3px no-repeat,
+      var(--_k) right top / 3px 1.5px no-repeat, var(--_k) right top / 1.5px 3px no-repeat,
+      var(--_k) left bottom / 3px 1.5px no-repeat, var(--_k) left bottom / 1.5px 3px no-repeat,
+      var(--_k) right bottom / 3px 1.5px no-repeat, var(--_k) right bottom / 1.5px 3px no-repeat; }
+  .sy-status[data-status="draft"], .sy-status[data-status="inferred"] { --_c: var(--sy-tobe); }
+  /* cross */
+  .sy-status[data-status="failed"] { --_c: var(--sy-fail); }
+  .sy-status[data-status="failed"]::before {
+    clip-path: polygon(20% 0, 50% 30%, 80% 0, 100% 20%, 70% 50%, 100% 80%, 80% 100%, 50% 70%, 20% 100%, 0 80%, 30% 50%, 0 20%); }
+  .sy-status--plain { font-family: var(--sy-font-sans); text-transform: none; letter-spacing: 0; font-size: var(--sy-fs-sm); }
+
+  /* ===== Typewriter note + annotation =================================== */
+  /* Humans type, machines print: anything a PERSON wrote is typewriter on manila. */
+  .sy-note { display: inline-block; max-width: var(--sy-measure); padding: 8px 12px;
+    background: var(--sy-tag); color: var(--sy-text-on-tag);
+    font-family: var(--sy-font-note); font-size: var(--sy-fs-note); font-weight: 400; line-height: 1.45;
+    font-stretch: 100%; letter-spacing: 0; text-transform: none; }
+  .sy-note__by { display: block; margin-top: 4px; font-family: var(--sy-font-mono); font-size: var(--sy-fs-micro);
+    color: var(--sy-text-on-tag-muted); } /* 5.2:1 on manila */
+  .sy-note--sm { font-size: 13px; padding: 4px 8px; }
+
+  /* Annotation: target ── dimension line ── note */
+  .sy-annot { display: flex; align-items: center; gap: 0; min-width: 0; }
+  .sy-annot__target { flex: none; padding: 4px 8px; border: var(--sy-weld) dashed var(--sy-tobe); color: var(--sy-tobe);
+    font-family: var(--sy-font-mono); font-size: var(--sy-fs-micro); text-transform: uppercase; }
+  .sy-annot__line { position: relative; flex: 0 1 80px; min-width: 24px; height: 1px; background: var(--sy-tobe); }
+  .sy-annot__line::before, .sy-annot__line::after { content: ""; position: absolute; top: -5px; width: 1px; height: 11px; background: var(--sy-tobe); }
+  .sy-annot__line::before { left: 0; }
+  .sy-annot__line::after { right: 0; }
+  .sy-annot .sy-note { flex: 0 1 auto; }
+
+  /* ===== Drawn (to-be) block ============================================= */
+  .sy-drawn-text { color: var(--sy-tobe); font-weight: 600; }   /* inline to-be value, e.g. new target */
+  .sy-drawn { padding: 10px 12px; border: var(--sy-weld) dashed var(--sy-tobe); color: var(--sy-tobe); }
+  .sy-drawn--fill { background: var(--sy-tobe-tint); }
+  .sy-drawn .sy-route { color: var(--sy-tobe); }
+
+  /* ===== Callout ========================================================= */
+  .sy-callout { display: flex; flex-direction: column; gap: 4px; padding: 10px 12px;
+    border: var(--sy-weld) solid var(--sy-border-control); font-size: var(--sy-fs-sm); }
+  .sy-callout__title { font-size: var(--sy-fs-label); font-weight: 800; font-stretch: var(--sy-stretch-semi);
+    letter-spacing: var(--sy-track-caps); text-transform: uppercase; }
+  .sy-callout--intent { border-color: var(--sy-intent); background: var(--sy-intent-tint); }
+  .sy-callout--intent .sy-callout__title { color: var(--sy-intent); }
+  .sy-callout--failure { border-color: var(--sy-fail); background: var(--sy-fail-tint); }
+  .sy-callout--failure .sy-callout__title { color: var(--sy-fail); }
+  .sy-callout--drawn { border-style: dashed; border-color: var(--sy-tobe); }
+  .sy-callout--drawn .sy-callout__title { color: var(--sy-tobe); }
+  .sy-callout--ok { border-color: var(--sy-ok); }
+  .sy-callout--ok .sy-callout__title { color: var(--sy-ok); }
+
+  /* ===== Table =========================================================== */
+  .sy-table-wrap { position: relative; overflow-x: auto; background: var(--sy-bg-plate); border: var(--sy-weld) solid var(--sy-border-plate); }
+  .sy-table-wrap--flush { border: 0; background: transparent; }  /* a table inside a plate */
+  .sy-table { width: 100%; font-size: var(--sy-fs-sm); }
+  .sy-table th { text-align: left; padding: 10px 12px; border-bottom: var(--sy-weld) solid var(--sy-border-plate);
+    font-size: var(--sy-fs-label); font-weight: 800; font-stretch: var(--sy-stretch-semi);
+    letter-spacing: var(--sy-track-caps); text-transform: uppercase; color: var(--sy-text-muted); white-space: nowrap; }
+  .sy-table td { padding: 10px 12px; border-bottom: var(--sy-weld) solid var(--sy-border-weld); vertical-align: top; }
+  .sy-table tbody tr:last-child > td { border-bottom: 0; }
+  .sy-table td.sy-num, .sy-table th.sy-num { text-align: right; font-variant-numeric: tabular-nums; }
+  .sy-table--interactive tbody tr:hover { background: var(--sy-bg-raised); }
+  .sy-table tbody tr[aria-selected="true"] { outline: var(--sy-weld-strong) solid var(--sy-text); outline-offset: -2px; }
+  .sy-table--dense td, .sy-table--dense th { padding: 7px 10px; }
+  /* Row headers read like data, not like column heads. */
+  .sy-table th[scope="row"] { font-size: var(--sy-fs-sm); font-weight: 600; font-stretch: 100%; letter-spacing: 0;
+    text-transform: none; color: var(--sy-text); white-space: normal; vertical-align: top;
+    border-bottom: var(--sy-weld) solid var(--sy-border-weld); }
+  .sy-table tbody tr:last-child > th[scope="row"] { border-bottom: 0; }
+  .sy-table--middle td, .sy-table--middle th[scope="row"] { vertical-align: middle; }  /* after the row-head rule on purpose */
+
+  /* Diff cells (as-is vs to-be) */
+  .sy-diff--removed { color: var(--sy-text-muted); text-decoration: line-through; }
+  .sy-diff__change { font-family: var(--sy-font-mono); font-size: var(--sy-fs-micro); color: var(--sy-text-muted); text-transform: uppercase; }
+  .sy-diff__change--drawn { color: var(--sy-tobe); }
+  .sy-legend { display: flex; flex-wrap: wrap; gap: var(--sy-space-1) 14px; font-family: var(--sy-font-mono);
+    font-size: var(--sy-fs-micro); color: var(--sy-text-muted); text-transform: uppercase; }
+  .sy-legend__drawn { color: var(--sy-tobe); }
+
+  /* ===== Tabs ============================================================ */
+  .sy-tabs { display: flex; gap: 2px; overflow-x: auto; border-bottom: var(--sy-weld) solid var(--sy-border-plate); }
+  .sy-tab { flex: none; display: inline-flex; align-items: center; gap: var(--sy-space-2);
+    min-height: var(--sy-control); padding: 0 14px; margin-bottom: -1px;
+    border: var(--sy-weld) solid transparent; border-bottom: 0; background: transparent; color: var(--sy-text-muted);
+    font-size: var(--sy-fs-label); font-weight: 800; font-stretch: var(--sy-stretch-semi);
+    letter-spacing: var(--sy-track-caps); text-transform: uppercase; text-decoration: none; }
+  .sy-tab:hover { color: var(--sy-text); background: var(--sy-bg-raised); }
+  .sy-tab[aria-selected="true"], .sy-tab[aria-current="page"] { color: var(--sy-text); background: var(--sy-bg-plate);
+    border-color: var(--sy-border-plate); border-bottom: var(--sy-weld) solid var(--sy-bg-plate); }
+
+  /* ===== Steps (portal workflow) ======================================== */
+  .sy-steps { counter-reset: sy-step; display: flex; flex-direction: column; }
+  .sy-steps > li { display: flex; justify-content: space-between; align-items: center; gap: var(--sy-space-2);
+    padding: 10px var(--sy-space-4); border-bottom: var(--sy-weld) solid var(--sy-border-weld); font-size: var(--sy-fs-sm); }
+  .sy-steps > li:last-child { border-bottom: 0; }
+  .sy-steps > li[aria-current="step"] { background: var(--sy-intent-tint); font-weight: 600; }
+  .sy-steps > li[data-state="todo"] { color: var(--sy-text-muted); }
+
+  /* ===== Meter (scan progress) ========================================== */
+  .sy-meter { display: flex; flex-direction: column; gap: 6px; }
+  .sy-meter__track { position: relative; height: 8px; background: var(--sy-bg-well); border: var(--sy-weld) solid var(--sy-border-weld); }
+  .sy-meter__fill { position: absolute; inset: 0 auto 0 0; width: var(--value, 0%); background: var(--sy-text-muted); }
+  .sy-meter[data-status="running"] .sy-meter__fill { background: var(--sy-active); }
+  .sy-meter[data-status="ok"] .sy-meter__fill { background: var(--sy-ok); }
+  .sy-meter[data-status="failed"] .sy-meter__fill { background: var(--sy-fail); }
+  .sy-meter__label { display: flex; justify-content: space-between; gap: var(--sy-space-2); font-family: var(--sy-font-mono);
+    font-size: var(--sy-fs-mono-sm); color: var(--sy-text-muted); }
+
+  /* ===== Timeline (revisions) =========================================== */
+  .sy-timeline { display: flex; flex-direction: column; position: relative; }
+  .sy-timeline > li { position: relative; display: grid; grid-template-columns: 24px 1fr; gap: 0 var(--sy-space-3);
+    padding: 0 0 var(--sy-space-4); }
+  .sy-timeline > li::before { content: ""; grid-row: 1 / span 2; justify-self: center; margin-top: 6px; width: 10px; height: 10px;
+    background: var(--sy-text-muted); position: relative; z-index: 1; }
+  .sy-timeline > li::after { content: ""; position: absolute; left: 11.5px; top: 16px; bottom: 0; width: 1px; background: var(--sy-border-plate); }
+  .sy-timeline > li:last-child::after { display: none; }
+  .sy-timeline > li[data-status="live"]::before { background: var(--sy-active); }
+  .sy-timeline > li[data-status="draft"]::before { --_k: linear-gradient(var(--sy-tobe), var(--sy-tobe));
+    background:
+      var(--_k) left top / 3px 1.5px no-repeat, var(--_k) left top / 1.5px 3px no-repeat,
+      var(--_k) right top / 3px 1.5px no-repeat, var(--_k) right top / 1.5px 3px no-repeat,
+      var(--_k) left bottom / 3px 1.5px no-repeat, var(--_k) left bottom / 1.5px 3px no-repeat,
+      var(--_k) right bottom / 3px 1.5px no-repeat, var(--_k) right bottom / 1.5px 3px no-repeat, var(--sy-bg-plate); }
+  .sy-timeline > li[data-status="ok"]::before { background: var(--sy-ok); }
+  .sy-timeline__head { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sy-space-2); }
+  .sy-timeline__body { grid-column: 2; font-size: var(--sy-fs-sm); color: var(--sy-text-muted); }
+
+  /* ===== Chat ============================================================ */
+  .sy-chat { display: flex; flex-direction: column; min-width: 0; }
+  .sy-chat__log { display: flex; flex-direction: column; gap: var(--sy-space-4); padding: 18px var(--sy-space-4); }
+  .sy-chat__divider { display: flex; align-items: center; gap: 10px; font-family: var(--sy-font-mono);
+    font-size: var(--sy-fs-micro); color: var(--sy-text-muted); text-transform: uppercase; }
+  .sy-chat__divider::before, .sy-chat__divider::after { content: ""; flex: 1; height: 1px; background: var(--sy-border-weld); }
+  .sy-msg { display: flex; flex-direction: column; gap: 10px; max-width: 92%; }
+  .sy-msg--user { align-self: flex-end; max-width: 75%; padding: 10px 14px; background: var(--sy-bg-raised);
+    border: var(--sy-weld) solid var(--sy-border-weld); }
+  .sy-msg__who { font-size: var(--sy-fs-label); font-weight: 700; letter-spacing: var(--sy-track-caps);
+    text-transform: uppercase; color: var(--sy-text-muted); }
+  .sy-msg > p { max-width: var(--sy-measure); }
+  .sy-chips { display: flex; flex-wrap: wrap; gap: var(--sy-gap, var(--sy-space-2)); }
+  .sy-composer { display: flex; flex-direction: column; gap: 10px; padding: 14px var(--sy-space-4);
+    border-top: var(--sy-weld) solid var(--sy-border-plate); background: var(--sy-bg-well); }
+  .sy-scanline { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sy-space-2) 10px; font-size: var(--sy-fs-sm); }
+
+  /* Assistant proposal (a drafted change, not applied yet) */
+  .sy-proposal { display: flex; flex-direction: column; border: var(--sy-weld) dashed var(--sy-tobe); }
+  .sy-proposal__head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--sy-space-2);
+    padding: var(--sy-space-2) 10px; border-bottom: var(--sy-weld) dashed var(--sy-tobe); }
+  .sy-proposal__title { font-size: var(--sy-fs-label); font-weight: 800; font-stretch: var(--sy-stretch-semi);
+    letter-spacing: var(--sy-track-caps); text-transform: uppercase; color: var(--sy-tobe); }
+  .sy-proposal__body { padding: var(--sy-space-2) 10px; font-size: var(--sy-fs-xs); display: flex; flex-direction: column; gap: 6px; }
+  .sy-proposal__body > .sy-row { padding-inline: 0; }
+  .sy-proposal__foot { display: flex; flex-wrap: wrap; gap: 6px; padding: var(--sy-space-2) 10px; border-top: var(--sy-weld) dashed var(--sy-tobe); }
+  /* Applied: the drawing became a real revision → solid, inspected */
+  .sy-proposal--applied { border-style: solid; border-color: var(--sy-ok); }
+  .sy-proposal--applied > .sy-proposal__head { border-bottom-style: solid; border-color: var(--sy-border-weld); }
+  .sy-proposal--applied .sy-proposal__title { color: var(--sy-ok); }
+  .sy-proposal--applied > .sy-proposal__foot { border-top-style: solid; border-color: var(--sy-border-weld); }
+
+  /* ===== Assistant drawer ================================================ */
+  .sy-drawer { flex: 1 1 var(--sy-drawer-w); min-width: 0; max-width: 520px; display: flex; flex-direction: column;
+    background: var(--sy-bg-plate); border-left: var(--sy-weld) solid var(--sy-border-plate); }
+  .sy-drawer__head { display: flex; align-items: center; justify-content: space-between; gap: var(--sy-space-2);
+    padding: 10px 14px; border-bottom: var(--sy-weld) solid var(--sy-border-weld); }
+  .sy-drawer__context { display: flex; flex-direction: column; gap: 10px; padding: var(--sy-space-3) 14px;
+    border-bottom: var(--sy-weld) solid var(--sy-border-weld); }
+  .sy-drawer .sy-chat__log { flex: 1; padding: 14px; gap: 14px; font-size: var(--sy-fs-sm); }
+  .sy-drawer .sy-msg--user { max-width: 85%; padding: 8px 12px; }
+  .sy-drawer .sy-composer { padding: var(--sy-space-3) 14px; }
+
+  /* ===== Recorded screen (screenshot frame) + assistant highlight ======== */
+  /* Production: <figure class="sy-shot"><img …><mark class="sy-mark sy-mark--overlay" style="left:…;top:…;width:…;height:…"></figure> */
+  .sy-shot { position: relative; display: flex; flex-direction: column; gap: 10px; padding: 18px;
+    background: var(--sy-paper); color: var(--sy-paper-ink); border: var(--sy-weld) solid var(--sy-border-plate);
+    font-family: var(--sy-font-paper); font-size: 13px; line-height: 1.45; }
+  .sy-shot img { width: 100%; height: auto; }
+  .sy-shot__link { color: var(--sy-paper-link); }
+  .sy-shot__title { font-size: 22px; font-weight: 700; line-height: 1.2; }   /* mock only */
+  /* Thumbnail of a recorded screen (lists, step cards) */
+  .sy-thumb { display: block; width: 100%; aspect-ratio: 16 / 10; object-fit: cover; object-position: top;
+    background: var(--sy-paper); border: var(--sy-weld) solid var(--sy-border-weld); }
+  .sy-thumb--locked { background: repeating-linear-gradient(135deg, var(--sy-bg-well) 0 6px, var(--sy-bg-plate) 6px 12px); }
+  /* Highlight: marker outline + steel inner ring (marker alone is only 2.0:1 on light pages). */
+  .sy-mark { position: relative; display: block; padding: 10px; color: inherit;
+    background: var(--sy-intent-tint);
+    box-shadow: 0 0 0 2px var(--sy-bg-ground);
+    outline: 3px solid var(--sy-intent); outline-offset: 2px; }
+  .sy-mark--overlay { position: absolute; padding: 0; pointer-events: none; }
+  .sy-mark__label { position: absolute; top: -17px; right: 6px; padding: 1px 8px; white-space: nowrap;
+    background: var(--sy-intent); color: var(--sy-text-on-paint); box-shadow: 0 0 0 2px var(--sy-bg-ground);
+    font-family: var(--sy-font-mono); font-size: var(--sy-fs-micro); font-weight: 500; text-transform: uppercase; }
+  /* Note pin: where a PERSON's amendment is anchored (manila, not the assistant's orange). */
+  .sy-mark--note { background: transparent; outline-color: var(--sy-tag); }
+  .sy-mark--note > .sy-mark__label { background: var(--sy-tag); color: var(--sy-text-on-tag); text-transform: none; }
+
+  /* ===== States: empty / loading / error ================================ */
+  .sy-state { display: flex; flex-direction: column; gap: var(--sy-space-2); padding: var(--sy-space-6);
+    border: var(--sy-weld) dashed var(--sy-border-plate); font-size: var(--sy-fs-sm); }
+  .sy-state__title { font-size: var(--sy-fs-h3); font-weight: 800; font-stretch: var(--sy-stretch-expanded);
+    letter-spacing: var(--sy-track-caps); text-transform: uppercase; }
+  .sy-state--failure { border-style: solid; border-color: var(--sy-fail); }
+  .sy-state--failure .sy-state__title { color: var(--sy-fail); }
+  .sy-caret::after { content: "_"; margin-left: 2px; animation: sy-caret var(--sy-dur-caret) step-end infinite; }
+
+  /* ===== Dialog & toast ================================================== */
+  .sy-dialog { width: min(520px, calc(100vw - 32px)); padding: 0; color: var(--sy-text);
+    background: var(--sy-bg-plate); border: var(--sy-weld) solid var(--sy-border-plate); }
+  .sy-dialog::backdrop { background: var(--sy-backdrop); }
+  .sy-dialog__head { padding: 14px var(--sy-space-4); border-bottom: var(--sy-weld) solid var(--sy-border-weld); }
+  .sy-dialog__body { padding: var(--sy-space-4); display: flex; flex-direction: column; gap: var(--sy-space-3); font-size: var(--sy-fs-sm); }
+  .sy-dialog__foot { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: var(--sy-space-2);
+    padding: var(--sy-space-3) var(--sy-space-4); border-top: var(--sy-weld) solid var(--sy-border-plate); background: var(--sy-bg-well); }
+  .sy-dialog--static { display: block; position: static; width: min(520px, 100%); }   /* for docs/previews only */
+
+  .sy-toast { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sy-space-3); max-width: 480px;
+    padding: var(--sy-space-3) var(--sy-space-4); background: var(--sy-bg-raised);
+    border: var(--sy-weld) solid var(--sy-border-plate); font-size: var(--sy-fs-sm); }
+  .sy-toast--fixed { position: fixed; right: var(--sy-space-5); bottom: var(--sy-space-5); z-index: var(--sy-z-toast); }
+
+  /* ===== Glossary hint [?] =============================================== */
+  .sy-hint { display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px;
+    margin-left: 4px; vertical-align: middle; border: var(--sy-weld) solid var(--sy-border-weld);
+    background: transparent; color: var(--sy-text-muted); font-family: var(--sy-font-mono); font-size: var(--sy-fs-micro);
+    text-decoration: none; cursor: help; }
+  .sy-hint:hover { color: var(--sy-text); border-color: var(--sy-border-control); }
+
+  /* ===== Code / command block ============================================ */
+  .sy-code { display: block; margin: 0; padding: 10px 12px; overflow-x: auto; white-space: pre;
+    background: var(--sy-bg-well); border: var(--sy-weld) solid var(--sy-border-weld); color: var(--sy-text);
+    font-family: var(--sy-font-mono); font-size: var(--sy-fs-mono-sm); line-height: 1.55; }
+
+  /* ===== Disclosure (<details>) — e.g. credentials collapsed by default === */
+  .sy-disclosure { background: var(--sy-bg-plate); border: var(--sy-weld) solid var(--sy-border-plate); }
+  .sy-disclosure > summary { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between;
+    gap: var(--sy-space-2) var(--sy-space-3); min-height: var(--sy-control); padding: 10px var(--sy-space-4);
+    cursor: pointer; list-style: none; }
+  .sy-disclosure > summary::-webkit-details-marker { display: none; }
+  .sy-disclosure > summary::after { content: "Show"; font-size: var(--sy-fs-xs); font-weight: 600; color: var(--sy-text);
+    padding: 4px 10px; border: var(--sy-weld) solid var(--sy-border-control); }
+  .sy-disclosure[open] > summary::after { content: "Hide"; }
+  .sy-disclosure[open] > summary { border-bottom: var(--sy-weld) solid var(--sy-border-weld); }
+  .sy-disclosure__body { padding: var(--sy-space-4); display: flex; flex-direction: column; gap: var(--sy-space-3); }
+
+  /* Fieldset legend that looks like a field label */
+  .sy-legend-label { margin-bottom: 6px; font-size: var(--sy-fs-label); font-weight: 700; font-stretch: var(--sy-stretch-semi);
+    letter-spacing: var(--sy-track-caps); text-transform: uppercase; color: var(--sy-text-muted); }
+
+  /* Long names (e.g. Polish process names) as titles: keep sentence case */
+  .sy-case-normal { text-transform: none; letter-spacing: 0; font-stretch: 100%; }
+
+  /* ===== Definition list (key facts) ===================================== */
+  .sy-facts { display: grid; grid-template-columns: max-content 1fr; gap: 6px var(--sy-space-4); font-size: var(--sy-fs-sm); }
+  .sy-facts dt { color: var(--sy-text-muted); }
+  .sy-facts dd { margin: 0; min-width: 0; overflow-wrap: anywhere; }
+}
+
+/* -------------------------------------------------------------------------- */
+@layer sy.utilities {
+  .sy-stack   { display: flex; flex-direction: column; gap: var(--sy-gap, var(--sy-space-4)); }
+  .sy-cluster { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sy-gap, var(--sy-space-2)); }
+  .sy-split   { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--sy-gap, var(--sy-space-2)); }
+  .sy-grid    { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(var(--sy-min, 260px), 100%), 1fr)); gap: var(--sy-gap, var(--sy-space-4)); }
+  .sy-grow    { flex: 1 1 auto; min-width: 0; }
+  .sy-sr-only { position: absolute !important; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden;
+    clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap; border: 0; }
+  .sy-truncate { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+}
+
+/* -------------------------------------------------------------------------- */
+/* MOTION — exactly two sanctioned loops: running pulse, loading caret.        */
+@keyframes sy-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.35; } }
+@keyframes sy-caret { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}
+
+/* -------------------------------------------------------------------------- */
+/* RESPONSIVE — reference width 1280; tablet < 1024; mobile < 640              */
+@media (max-width: 1023px) {
+  .sy-app__body { flex-wrap: wrap; }
+  .sy-nav, .sy-nav--compact { flex: 1 1 100%; flex-direction: row; overflow-x: auto; gap: 2px; padding: 6px var(--sy-space-3);
+    border-right: 0; border-bottom: var(--sy-weld) solid var(--sy-border-weld); }
+  .sy-nav__item { flex: none; }
+  .sy-nav__foot { display: none; }
+  .sy-drawer { flex: 1 1 100%; max-width: none; border-left: 0; border-top: var(--sy-weld) solid var(--sy-border-plate); }
+}
+@media (max-width: 639px) {
+  .sy-header { padding: var(--sy-space-2) var(--sy-space-3); }
+  .sy-portal .sy-select { min-width: 0; }
+  .sy-main, .sy-main--narrow { padding: var(--sy-space-4); }
+  .sy-msg--user { max-width: 90%; }
+  .sy-h1 { font-size: 22px; }
+}
+/* Touch: every control grows to 44px. (Desktop floor is 24px per WCAG 2.5.8; most controls are 36–44.) */
+@media (pointer: coarse) {
+  .sy-btn--sm, .sy-btn--md, .sy-seg > button, .sy-seg > a,
+  .sy-select--md, .sy-input--md, .sy-check { min-height: var(--sy-control); }
+  .sy-btn--icon.sy-btn--md { width: var(--sy-control); }
+  a.sy-tag { min-height: var(--sy-control); }
+  a.sy-tag::before { inset: 10px 0; }
+}
+
+/* Windows High Contrast / forced colours: keep shapes, meters and tags visible */
+@media (forced-colors: active) {
+  .sy-status { --_c: CanvasText; }
+  .sy-status::before, .sy-meter__fill, .sy-timeline > li::before { forced-color-adjust: none; }
+  .sy-status::before { background-color: CanvasText; }
+  .sy-status[data-status="stopped"]::before, .sy-status[data-status="skipped"]::before,
+  .sy-status[data-status="todo"]::before { background: Canvas; border-color: CanvasText; }
+  .sy-status[data-status="queued"]::before, .sy-status[data-status="unobserved"]::before,
+  .sy-status[data-status="draft"]::before, .sy-status[data-status="inferred"]::before { background-color: transparent; }
+  .sy-meter__fill, .sy-timeline > li::before { background-color: CanvasText; }
+  .sy-timeline > li[data-status="draft"]::before { --_k: linear-gradient(CanvasText, CanvasText); background-color: Canvas; }
+  .sy-tag { border: 1px solid CanvasText; }
+  .sy-tag::before { display: none; }
+  .sy-wordmark__paint, .sy-count { forced-color-adjust: none; }
+  .sy-mark { outline-color: Highlight; }
+}

@@ -1,0 +1,21 @@
+/* MudPuppy product layout on Salvage Yard (spec 022). Role tokens only; `mp-` classes only;
+   no colours, fonts, radius or shadows (docs/design/salvage-yard/docs/05-css-guide.md §4). */
+@layer sy.reset, sy.base, sy.layout, sy.components, sy.utilities, app;
+
+@layer app {
+  /* htmx request indicators (htmx's own indicator CSS is off, htmx-config). */
+  .htmx-indicator { visibility: hidden; }
+  .htmx-request .htmx-indicator, .htmx-request.htmx-indicator { visibility: visible; }
+
+  /* Header portal picker: a disclosure with a menu of portal links (FE-N02). */
+  .mp-portal-menu { position: relative; }
+  .mp-portal-menu > summary { cursor: pointer; list-style: none; display: flex; gap: var(--sy-space-2); align-items: center; }
+  .mp-portal-menu > summary::-webkit-details-marker { display: none; }
+  .mp-menu {
+    position: absolute; z-index: var(--sy-z-header); inset-block-start: calc(100% + var(--sy-space-1));
+    inset-inline-start: 0; min-inline-size: 14rem; margin: 0; padding: var(--sy-space-1) 0;
+    list-style: none; background: var(--sy-bg-raised); border: 1px solid var(--sy-border-plate);
+  }
+  .mp-menu a { display: block; padding: var(--sy-space-2) var(--sy-space-3); }
+  .mp-menu a[aria-current="true"] { color: var(--sy-strong); border-inline-start: 2px solid var(--sy-intent); }
+}

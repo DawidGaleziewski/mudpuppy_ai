@@ -5,8 +5,14 @@
   const dev = document.body.dataset.dev === "1";
   let bootId = null;
 
+  // Salvage Yard pages (spec 022) show shape + word; Console pages keep their bracket label.
+  const salvage = document.body.classList.contains("sy-ground");
   const setStatus = (live) => {
-    if (statusEl) {
+    if (statusEl && salvage) {
+      statusEl.innerHTML = live
+        ? '<span class="sy-status" data-status="live">Live</span>'
+        : '<span class="sy-status" data-status="failed">Stale</span>';
+    } else if (statusEl) {
       statusEl.innerHTML = live
         ? '<span class="st st-ok">[LIVE]</span> live'
         : '<span class="st st-fail">[FAIL]</span> stale';

@@ -19,8 +19,9 @@ import httpx2
 from fastapi import Request
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
+from jinja2 import TemplateNotFound
 
-from .. import db, glossary, queries_chat, stores
+from .. import db, glossary, queries_chat, stores, ui_flag
 from ..settings import Settings
 
 # The header's portal choice (spec 011): kept in a cookie; "" means all portals.
@@ -136,6 +137,13 @@ class Web:
         )
         return Ctx(request, s, store, portal=chosen_portal(request), store_note=note)
 
+    def _has_template(self, name: str) -> bool:
+        try:
+            self.templates.env.get_template(name)
+        except TemplateNotFound:
+            return False
+        return True
+
     def header_portals(self, c: Ctx) -> list[str]:
         try:
             with c.conn() as conn:
@@ -149,7 +157,7 @@ class Web:
         settings = self.settings
         response = self.templates.TemplateResponse(
             c.request,
-            template,
+            ui_flag.pick_template(settings.ui_salvage, template, self._has_template),
             {
                 "c": c,
                 "env": c.env,

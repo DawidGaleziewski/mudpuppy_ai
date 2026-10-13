@@ -1,0 +1,23 @@
+console_value,meaning,data_status,shape,colour_role,word_to_show
+[ OK ],run completed / record ok,ok,filled,--sy-ok,OK
+[RUN.],scan in progress,running,filled (pulsing),--sy-active,Running
+[INT.],run interrupted / stopped,stopped,hollow,--sy-text-muted,Interrupted
+[SKIP],action skipped (safety class),skipped,hollow,--sy-text-muted,Skipped
+[FAIL],failed,failed,cross,--sy-fail,Failed
+[DRFT],draft record / draft revision,draft,dashed corners,--sy-tobe,Draft
+[LIVE],variant live in an environment,live,filled,--sy-active,Live · {environment}
+[ACTV],amendment active,live,filled,--sy-active,Active
+[ .. ] connecting,assistant/chat connecting,queued,dashed corners,--sy-text-muted,Connecting
+assistant running,assistant service up,ok,filled,--sy-ok,Assistant up
+assistant not running,chat service 503,failed,cross,--sy-fail,Assistant down
+superseded (amendment),element changed; needs re-anchoring,needs,filled,--sy-intent,Re-anchor
+draft record to confirm,record is a draft awaiting sign-off (the Review/Needs-you count is what turns orange),draft,dashed corners,--sy-tobe,Draft
+observed,seen by a scan,ok,filled,--sy-ok,Observed
+confirmed / signed off,human approved,ok,filled,--sy-ok,Confirmed
+not observable,gap the crawler could not see,unobserved,dashed corners,--sy-text-muted,Not observed
+rule candidate (inferred),inferred until confirmed,inferred,dashed corners,--sy-tobe,Inferred
+assistant suggestion,proposed by assistant,inferred,dashed corners,--sy-tobe,Suggested
+queued page (frontier),waiting to be visited,queued,dashed corners,--sy-text-muted,Queued
+workflow step not started,to do,todo,hollow,--sy-text-muted,To do
+environment not configured,to do,todo,hollow,--sy-text-muted,Not configured
+needs a person (any),decision required,needs,filled,--sy-intent,Needs you
