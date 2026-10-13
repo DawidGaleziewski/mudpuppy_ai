@@ -1,0 +1,17 @@
+{#- Personas of this portal (files in personas/<portal>/): name, kind, credential references. -#}
+<section id="personas" class="sy-plate" aria-labelledby="per-h">
+  <div class="sy-plate__head"><h2 id="per-h" class="sy-plate__title">Personas</h2><span class="sy-count sy-count--muted">{{ personas | length }}</span></div>
+  {%- if personas %}
+  <ul class="sy-rows">
+    {%- for p in personas %}
+    <li class="sy-row">
+      <span class="sy-row__main"><span class="sy-mono">{{ p.id }}</span>
+        {%- if p.refs %}<span class="sy-small sy-muted"> · needs {% for r in p.refs %}<span class="sy-mono sy-mono--sm">{{ r }}</span>{{ ", " if not loop.last }}{% endfor %}</span>{% endif %}</span>
+      <span class="sy-meta">{{ p.kind }}</span>
+    </li>
+    {%- endfor %}
+  </ul>
+  {%- else %}
+  <div class="sy-plate__body"><p class="sy-meta">No persona files for {{ portal }}. Ask the assistant to build one.</p></div>
+  {%- endif %}
+</section>

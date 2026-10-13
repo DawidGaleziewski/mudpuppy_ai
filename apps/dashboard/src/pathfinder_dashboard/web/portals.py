@@ -9,7 +9,7 @@ from urllib.parse import parse_qs, quote
 from fastapi import APIRouter, Request
 from fastapi.responses import HTMLResponse, PlainTextResponse, RedirectResponse, Response
 
-from .. import chat_client
+from .. import chat_client, db, queries_settings
 from .deps import PORTAL_COOKIE, Ctx, Web, same_origin, web_of
 
 router = APIRouter()
@@ -117,6 +117,41 @@ def edit_form(
     return {"environment": default, "base_url": "", "limit": "external-side-effect"}
 
 
+def stored_credentials(c: Ctx, portal: str) -> list[queries_settings.StoredCredential]:
+    """Names, environments and saved times of the vault's entries; never a value (FE-T02)."""
+    try:
+        with c.conn() as conn:
+            return queries_settings.stored_credentials(conn, portal)
+    except db.StoreMissing:
+        return []
+
+
+def extra_values(web: Web, c: Ctx, portal: str) -> dict[str, Any]:
+    """Settings beside the environments (screen 11): credentials, personas, crawl rules."""
+    return {
+        "credentials": stored_credentials(c, portal),
+        "credentials_url": c.url(f"/fragments/portals/{quote(portal, safe='')}/credentials"),
+        "personas": queries_settings.persona_rows(web.settings.personas_dir, portal),
+        "rules": queries_settings.crawl_rules(web.settings.portals_dir, portal),
+    }
+
+
+@router.get("/fragments/portals/{portal}/credentials", response_class=HTMLResponse)
+async def settings_credentials(
+    request: Request, portal: str, env: str | None = None
+) -> HTMLResponse:
+    """The credentials list as a live region (a credential stored in chat shows up here)."""
+    web = web_of(request)
+    c = web.ctx(request, env)
+    return web.render(
+        c,
+        "salvage/partials/portal_settings_credentials.html",
+        portal=portal,
+        credentials=stored_credentials(c, portal),
+        credentials_url=c.url(f"/fragments/portals/{quote(portal, safe='')}/credentials"),
+    )
+
+
 async def settings_page(
     web: Web, c: Ctx, portal: str, status: int = 200, error: str | None = None, form: Any = None
 ) -> HTMLResponse:
@@ -142,6 +177,7 @@ async def settings_page(
         "portal_settings.html",
         status,
         portal=portal,
+        **extra_values(web, c, portal),
         environments=environments,
         limits=ACTION_LIMITS,
         missing=missing,
