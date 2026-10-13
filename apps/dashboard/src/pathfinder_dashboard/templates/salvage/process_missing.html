@@ -1,0 +1,11 @@
+{% extends "salvage/base.html" %}
+{% import "salvage/macros.html" as sy %}
+{% set nav_current = "processes" %}
+{% block title %}Process not found{% endblock %}
+{% block main %}
+<div class="sy-pagehead">
+  <nav class="sy-crumbs" aria-label="Breadcrumb"><a href="{{ c.url('/processes') }}">Processes</a></nav>
+  <h1 class="sy-h1">Process not found</h1>
+</div>
+{{ sy.empty("No process " ~ key ~ (" in " ~ c.portal if c.portal else ""), "Pick the portal it belongs to in the header, or open the list of processes.") }}
+{% endblock %}

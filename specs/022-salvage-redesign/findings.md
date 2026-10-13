@@ -132,6 +132,17 @@
 - **Fix**: success is `result.ok`; the message says "AMD-… re-anchored as rN" (T032 commit).
 - **Test idea**: a browser e2e of re-anchor from Review like FE-A04's, asserting the status line.
 
+## F-15 "Save to Docs" for the change spec is a deviation (owner to confirm), 2026-10-14
+
+- **Design**: screen 06's Save to Docs stores the change spec as a doc record (FR-008).
+- **Built**: Save keeps it as a `change_spec_revisions` row with the process (revisioned, exported
+  as Markdown). Not a `doc_records` row.
+- **Why**: doc records are the BA agent's as-is layer (each revision needs an analysis session and
+  evidence links), and the product rule keeps the to-be apart from it (amendments are never joined
+  into Layer B records either). Mixing a person-written to-be spec into it would break that.
+- **Owner question**: keep it this way and list change specs in the Docs section as their own
+  "to-be" chapter, or make them doc records anyway?
+
 ## F-03 The design's Console glossary text, 2026-10-13
 
 - The glossary entry "status codes" still explains `[ OK ]`, `[RUN.]` … (content, not markup). It

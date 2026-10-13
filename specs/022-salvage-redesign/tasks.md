@@ -60,9 +60,9 @@ tiers green and an interim merge to master behind `UI_SALVAGE`.
 
 - [x] T033 [sonnet] (db-admin) migration: `ba_processes`, `process_variants`, `process_revisions`, `process_live`, `grouping_suggestions`, `change_spec_revisions` (0018, a96e2e8; also revisions, drafts; process_scopes backfill)
 - [x] T034 [opus] Chat service: process write API (create from grouping, save variant revision, mark live, restore, dismiss suggestion) + MCP tools for the assistant to draft groupings (contracts/processes-api.md)
-- [ ] T035 [opus] Processes list + groupings (04), "In no process", migration of saved process scopes (spec 010) into processes
-- [ ] T036 [opus] To-be editing (05): variant switch, draft bar with autosave, step cards (add, remove, merge, annotate), inspector, Save as rN+1, Discard
-- [ ] T037 [opus] Compare + change spec (06): step diff, generated editable spec sections, Export Markdown, Save to Docs
+- [x] T035 [opus] Processes list + groupings (04), "In no process", migration of saved process scopes (spec 010) into processes
+- [x] T036 [opus] To-be editing (05): variant switch, draft bar with autosave, step cards (add, remove, merge, annotate), inspector, Save as rN+1, Discard (browser e2e `processes-browser.e2e.test.ts`, FE-P02 + FE-P05)
+- [x] T037 [opus] Compare + change spec (06): step diff, generated editable spec sections, Export Markdown, Save to Docs (deviation F-15: saved as a change spec revision kept with the process, not a doc record)
 - [ ] T038 [sonnet] History + live per environment (07): timeline, revisions, Restore, Mark live, conflict notice + Rebase (FE-P05 two-session test)
 
 ## M6 — Clean-up and close-out

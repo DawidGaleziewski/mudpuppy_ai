@@ -1,0 +1,290 @@
+"""Read models for the Processes workspace (spec 022 M5, screens 04–07): the portal's BA
+processes with their variants and live markers, the assistant's open suggestions, the screens in no
+process, and one process with every revision, draft and change spec. Read-only; each read gives
+nothing on a store older than migration 0018."""
+
+from __future__ import annotations
+
+import json
+import sqlite3
+from typing import Any
+
+from pydantic import BaseModel
+
+from .models import (
+    BaProcess,
+    BaProcessRevision,
+    ChangeSpecRevision,
+    GroupingSuggestion,
+    ProcessDraft,
+    ProcessLive,
+    ProcessVariant,
+    ProcessVariantRevision,
+    State,
+)
+
+ENVIRONMENTS = ("sandbox", "staging", "production")
+STAGES = ("scoped", "as_is_documented", "to_be_design", "migrating", "migrated")
+
+
+class VariantView(BaseModel):
+    variant: ProcessVariant
+    head: ProcessVariantRevision
+    revisions: list[ProcessVariantRevision]  # r1 first
+    drafts: list[ProcessDraft]  # every person's open draft
+
+    @property
+    def steps(self) -> list[dict[str, Any]]:
+        return list(self.head.steps)
+
+    def revision(self, rev: int) -> ProcessVariantRevision | None:
+        return next((r for r in self.revisions if r.rev == rev), None)
+
+    def draft_of(self, author: str | None) -> ProcessDraft | None:
+        return next((d for d in self.drafts if d.author == author), None)
+
+
+class LiveView(BaseModel):
+    environment: str
+    label: str
+    rev: int
+    marks: list[ProcessLive]  # newest first; marks[0] is the current one
+
+
+class ProcessView(BaseModel):
+    process: BaProcess
+    revisions: list[BaProcessRevision]
+    variants: list[VariantView]  # A first
+    live: list[LiveView]
+    specs: list[ChangeSpecRevision]  # newest first
+
+    def variant(self, label: str) -> VariantView | None:
+        return next((v for v in self.variants if v.variant.label == label), None)
+
+    @property
+    def as_is(self) -> VariantView | None:
+        return self.variant("A")
+
+    def live_in(self, env: str) -> LiveView | None:
+        return next((lv for lv in self.live if lv.environment == env), None)
+
+
+class ProcessRow(BaseModel):
+    process: BaProcess
+    variants: list[tuple[str, str, int, int]]  # label, kind, rev, open drafts
+    live: dict[str, str]  # environment → "B r2"
+    screens: int  # steps of the as-is head
+    amendments: int  # active amendments on those screens
+    start_route: str | None
+    end_route: str | None
+    last_by: str
+    last_at: str
+
+
+def _rows(conn: sqlite3.Connection, sql: str, args: tuple[Any, ...]) -> list[sqlite3.Row]:
+    try:
+        return conn.execute(sql, args).fetchall()
+    except sqlite3.OperationalError:
+        return []
+
+
+def _variant_views(conn: sqlite3.Connection, process_id: str) -> list[VariantView]:
+    variants = [
+        ProcessVariant.model_validate(dict(r))
+        for r in _rows(
+            conn,
+            "SELECT * FROM process_variants WHERE process_id = ? ORDER BY length(label), label",
+            (process_id,),
+        )
+    ]
+    views = []
+    for v in variants:
+        revs = [
+            ProcessVariantRevision.model_validate(dict(r))
+            for r in _rows(
+                conn,
+                "SELECT * FROM process_variant_revisions WHERE variant_id = ? ORDER BY rev",
+                (v.id,),
+            )
+        ]
+        drafts = [
+            ProcessDraft.model_validate(dict(r))
+            for r in _rows(
+                conn,
+                "SELECT * FROM process_drafts WHERE variant_id = ? ORDER BY updated_at DESC",
+                (v.id,),
+            )
+        ]
+        head = next((r for r in revs if r.rev == v.rev), None)
+        if head is not None:
+            views.append(VariantView(variant=v, head=head, revisions=revs, drafts=drafts))
+    return views
+
+
+def _live(conn: sqlite3.Connection, process_id: str, labels: dict[str, str]) -> list[LiveView]:
+    marks = [
+        ProcessLive.model_validate(dict(r))
+        for r in _rows(
+            conn,
+            "SELECT * FROM process_live WHERE process_id = ? ORDER BY created_at DESC, id DESC",
+            (process_id,),
+        )
+    ]
+    out = []
+    for env in ENVIRONMENTS:
+        mine = [m for m in marks if m.environment == env]
+        if mine:
+            label = labels.get(mine[0].variant_id, "?")
+            out.append(LiveView(environment=env, label=label, rev=mine[0].variant_rev, marks=mine))
+    return out
+
+
+def process_view(conn: sqlite3.Connection, portal: str, key: str) -> ProcessView | None:
+    """One process with every variant, revision, draft, live marker and change spec."""
+    found = _rows(conn, "SELECT * FROM ba_processes WHERE portal_id = ? AND key = ?", (portal, key))
+    if not found:
+        return None
+    process = BaProcess.model_validate(dict(found[0]))
+    variants = _variant_views(conn, process.id)
+    labels = {v.variant.id: v.variant.label for v in variants}
+    return ProcessView(
+        process=process,
+        revisions=[
+            BaProcessRevision.model_validate(dict(r))
+            for r in _rows(
+                conn,
+                "SELECT * FROM ba_process_revisions WHERE process_id = ? ORDER BY rev",
+                (process.id,),
+            )
+        ],
+        variants=variants,
+        live=_live(conn, process.id, labels),
+        specs=[
+            ChangeSpecRevision.model_validate(dict(r))
+            for r in _rows(
+                conn,
+                "SELECT * FROM change_spec_revisions WHERE process_id = ? ORDER BY rev DESC",
+                (process.id,),
+            )
+        ],
+    )
+
+
+def _amendment_count(conn: sqlite3.Connection, portal: str, state_ids: list[str]) -> int:
+    if not state_ids:
+        return 0
+    marks = ", ".join("?" for _ in state_ids)
+    rows = _rows(
+        conn,
+        "SELECT count(*) FROM amendments WHERE portal_id = ? AND status = 'active'"
+        f" AND substr(target_id, 1, instr(target_id || '#', '#') - 1) IN ({marks})",
+        (portal, *state_ids),
+    )
+    return int(rows[0][0]) if rows else 0
+
+
+def portal_processes(conn: sqlite3.Connection, portal: str | None) -> list[ProcessRow]:
+    """Every BA process of the portal, by key, for the list (screen 04)."""
+    if not portal:
+        return []
+    out = []
+    keys = _rows(conn, "SELECT key FROM ba_processes WHERE portal_id = ? ORDER BY key", (portal,))
+    for (key,) in keys:
+        view = process_view(conn, portal, key)
+        if view is None or view.as_is is None:
+            continue
+        steps = view.as_is.steps
+        newest = max([r for v in view.variants for r in v.revisions], key=lambda r: r.created_at)
+        out.append(
+            ProcessRow(
+                process=view.process,
+                variants=[
+                    (v.variant.label, v.variant.kind, v.variant.rev, len(v.drafts))
+                    for v in view.variants
+                ],
+                live={lv.environment: f"{lv.label} r{lv.rev}" for lv in view.live},
+                screens=len(steps),
+                amendments=_amendment_count(
+                    conn, portal, [s["state_id"] for s in steps if s.get("state_id")]
+                ),
+                start_route=steps[0].get("route") if steps else None,
+                end_route=steps[-1].get("route") if steps else None,
+                last_by=newest.author,
+                last_at=newest.created_at,
+            )
+        )
+    return out
+
+
+def open_suggestions(conn: sqlite3.Connection, portal: str | None) -> list[GroupingSuggestion]:
+    if not portal:
+        return []
+    return [
+        GroupingSuggestion.model_validate(dict(r))
+        for r in _rows(
+            conn,
+            "SELECT * FROM grouping_suggestions WHERE portal_id = ? AND status = 'open'"
+            " ORDER BY created_at",
+            (portal,),
+        )
+    ]
+
+
+def loose_screens(conn: sqlite3.Connection, portal: str | None) -> list[State]:
+    """Screens (newest revision of each) that no process's as-is includes."""
+    if not portal:
+        return []
+    used = {s.get("state_id") for steps in _as_is_steps(conn, portal) for s in steps}
+    try:
+        rows = conn.execute(
+            "SELECT * FROM states s WHERE s.portal_id = ? AND (s.screen_id IS NULL"
+            " OR s.screen_rev = (SELECT max(t.screen_rev) FROM states t"
+            " WHERE t.screen_id = s.screen_id))"
+            " ORDER BY s.route_template, s.title",
+            (portal,),
+        ).fetchall()
+    except sqlite3.OperationalError:
+        return []
+    return [State.model_validate(dict(r)) for r in rows if r["id"] not in used]
+
+
+def _as_is_steps(conn: sqlite3.Connection, portal: str) -> list[list[dict[str, Any]]]:
+    """The steps of every process's as-is head in the portal."""
+    rows = _rows(
+        conn,
+        "SELECT r.steps FROM ba_processes p JOIN process_variants v"
+        " ON v.process_id = p.id AND v.label = 'A' JOIN process_variant_revisions r"
+        " ON r.variant_id = v.id AND r.rev = v.rev WHERE p.portal_id = ?",
+        (portal,),
+    )
+    return [json.loads(r[0]) for r in rows]
+
+
+def scans_of(conn: sqlite3.Connection, state_ids: list[str]) -> int:
+    """How many scans observed any of these screens (the change spec's as-is line)."""
+    if not state_ids:
+        return 0
+    marks = ", ".join("?" for _ in state_ids)
+    rows = _rows(
+        conn,
+        f"SELECT count(DISTINCT run_id) FROM state_observations WHERE state_id IN ({marks})",
+        tuple(state_ids),
+    )
+    return int(rows[0][0]) if rows else 0
+
+
+def citing_records(conn: sqlite3.Connection, state_ids: list[str]) -> list[str]:
+    """`KEY title` of records whose latest revision cites any of these screens."""
+    if not state_ids:
+        return []
+    marks = ", ".join("?" for _ in state_ids)
+    rows = _rows(
+        conn,
+        "SELECT DISTINCT r.key, r.title FROM doc_records r"
+        " JOIN doc_revisions v ON v.record_id = r.id AND v.rev_no = r.latest_rev"
+        " JOIN doc_evidence_links l ON l.revision_id = v.id"
+        f" WHERE r.withdrawn = 0 AND l.target_kind IN ('state', 'screen_region')"
+        f" AND l.target_id IN ({marks}) ORDER BY r.kind, r.seq",
+        tuple(state_ids),
+    )
+    return [f"{r['key']} {r['title']}" for r in rows]

@@ -58,6 +58,15 @@
   /* Review inbox: the selected item's pane (screen 09). */
   .mp-review-side { flex-basis: 360px; }
 
+  /* Processes (screens 04–06): step cards wrap; "+ Add step" fills the last slot; wide tables. */
+  .mp-flow { display: flex; flex-wrap: wrap; align-items: stretch; gap: var(--sy-space-3); padding: 0; margin: 0; list-style: none; }
+  .mp-flow > li { flex: 3 1 160px; min-width: 0; }
+  .mp-flow > li.mp-flow__add { flex: 1 1 110px; display: flex; }
+  .mp-flow > li.mp-flow__add > * { flex: 1; }
+  .mp-frame { text-align: center; padding: var(--sy-space-3); }
+  .mp-table-wide { min-inline-size: 860px; }
+  .mp-process-side { flex-basis: 380px; }
+
   /* Screen page: the side pane with Amendments / Cited by / History (screen 08). */
   .mp-screen-side { flex-basis: 400px; }
   .mp-screen-side .sy-tabs { flex-wrap: wrap; }

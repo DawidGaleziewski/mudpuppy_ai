@@ -1,0 +1,44 @@
+{% extends "salvage/base.html" %}
+{% import "salvage/macros.html" as sy %}
+{% set nav_current = "processes" %}
+{%- set view = v.view %}{% set p = view.process %}{% set vv = v.vv %}
+{#- One process (screen 05, FE-P02): the variant switch, and for a to-be variant the person's draft
+    over its last revision (autosaved, Save as rN+1, Discard). The editor is a live region. -#}
+{% set page_ctx = {"type": "process", "id": p.key, "label": p.name, "variant": vv.variant.label, "rev": vv.variant.rev} %}
+{% block title %}{{ p.name }}{% endblock %}
+{% block head_extra %}<script src="/static/js/processes.js" defer></script>{% endblock %}
+{% block main %}
+<div class="sy-pagehead">
+  <nav class="sy-crumbs" aria-label="Breadcrumb"><a href="{{ c.url('/processes') }}">Processes</a> / <span aria-current="page">{{ p.name }}</span></nav>
+  <div class="sy-pagehead__row">
+    <div class="sy-stack" style="--sy-gap: 8px">
+      <h1 class="sy-h1 sy-case-normal">{{ p.name }}</h1>
+      <div class="sy-cluster sy-meta" style="--sy-gap: 6px 16px">
+        {{ sy.tag(p.key, sm=true) }}{{ sy.status("stage", p.stage) }}
+        <span>persona <span class="sy-mono">{{ p.persona }}</span></span>
+        {%- for lv in view.live %}<span>Live in {{ lv.environment }}: {{ sy.tag(lv.label ~ " r" ~ lv.rev, sm=true) }}</span>{% endfor %}
+        <span>{{ view.as_is.steps | length if view.as_is else 0 }} screens</span>
+      </div>
+    </div>
+    <div class="sy-actions">
+      {%- set to_be = view.variants | selectattr("variant.kind", "equalto", "to_be") | list %}
+      {%- if to_be %}<a class="sy-btn" href="{{ c.url('/processes/' ~ p.key ~ '/compare', left='A', right=(vv.variant.label if vv.variant.kind == 'to_be' else to_be[0].variant.label)) }}">Compare A and {{ vv.variant.label if vv.variant.kind == 'to_be' else to_be[0].variant.label }}</a>{% endif %}
+      <a class="sy-btn" href="{{ c.url('/processes/' ~ p.key ~ '/history') }}">History</a>
+    </div>
+  </div>
+</div>
+
+<div class="sy-cluster" data-actions>
+  <nav class="sy-seg" aria-label="Variant">
+    {%- for x in view.variants %}
+    <a href="{{ c.url('/processes/' ~ p.key, variant=x.variant.label) }}"{% if x.variant.id == vv.variant.id %} aria-current="true"{% endif %}>{{ x.variant.label }} · {{ "As-is" if x.variant.kind == "as_is" else "To-be" }} r{{ x.variant.rev }}{% if x.drafts %} · draft open{% endif %}</a>
+    {%- endfor %}
+  </nav>
+  {%- if c.settings.reviewer %}
+  <button class="sy-btn sy-btn--md sy-btn--quiet" type="button" data-process="/chat/portals/{{ p.portal_id | urlencode }}/processes/{{ p.id | urlencode }}/variants" data-body='{"from": "{{ vv.variant.label }}"}' data-open="1">+ Variant from {{ vv.variant.label }} r{{ vv.variant.rev }}</button>
+  {%- endif %}
+  <p class="sy-small" role="status" data-result></p>
+</div>
+
+{% include "salvage/partials/process_editor.html" %}
+{% endblock %}
