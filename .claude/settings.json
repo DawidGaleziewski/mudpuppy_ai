@@ -34,7 +34,7 @@
           },
           {
             "type": "command",
-            "command": "cd \"$(git rev-parse --show-toplevel)\" && python3 .claude/hooks/no-script-edits.py"
+            "command": "root=$(git rev-parse --show-toplevel 2>/dev/null) || exit 0; [ -f \"$root/.claude/hooks/no-script-edits.py\" ] || exit 0; cd \"$root\" && python3 .claude/hooks/no-script-edits.py"
           }
         ]
       }
