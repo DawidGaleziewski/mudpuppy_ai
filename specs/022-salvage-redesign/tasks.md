@@ -32,12 +32,12 @@ tiers green and an interim merge to master behind `UI_SALVAGE`.
 
 ## M2 — Versioning backend, R-44 (interim merge 2)
 
-- [ ] T017 [opus] research: screen identity (route template + cluster) against the reference and proving-ground stores; how many states collapse into how many screens; edge cases (route moved, cluster split) → `research.md`
-- [ ] T018 [sonnet] (db-admin) migration: `screens`, `screen_revisions` + backfill; data-model.md, Zod/db-types, dashboard models drift test
-- [ ] T019 [opus] crawler `record-state`: link each recorded state to its screen and revision; observation rows say which revision a run saw; tests + slow tier
-- [ ] T020 [sonnet] (db-admin) migration: amendment revisions (append-only), `needs_reanchor` replaces `superseded`, carry-forward on a new screen revision; chat service `supersede.ts` → `reanchor.ts`; tests
-- [ ] T021 [opus] Revision write path in the chat service: base-rev check (409 + latest), author = reviewer name, restore/withdraw as revisions; shared by amendments, processes, specs, proposals; tests
-- [ ] T022 [sonnet] Dashboard read models: screen with revisions, revision strip, amendment history (`queries_revisions.py`) + tests
+- [x] T017 [opus] research: screen identity (route template + cluster) measured on the sandbox store → `research.md` R1
+- [x] T018 [sonnet] (db-admin) migration 0015: `screens`, `states.screen_id/screen_rev` + backfill (no separate revisions table: the states are the revisions); data-model, Zod, db-types, dashboard models
+- [x] T019 [opus] crawler `record-state`: new states get their screen and next revision number; which revision a scan saw comes from `state_observations`; tests (full `pnpm test` green apart from the F-06 timing flake)
+- [x] T020 [sonnet] (db-admin) migration 0016: `amendment_revisions`, `needs_reanchor` replaces `superseded`; `amendmentOutcomes` (carry forward / re-anchor); chat `reanchor.ts` replaces `supersede.ts`; docs export; tests
+- [x] T021 [opus] Revision write path in the chat service (`amendment-revisions.ts`): base-rev check (409 `STALE_REVISION` + latest), author = reviewer name, re-anchor in place, edit, restore, withdraw/dismiss as revisions, history route; tests
+- [x] T022 [sonnet] Dashboard read models (`queries_revisions.py`): screen with revisions, revision strip on the screen page, revision tags on amendments; tests
 
 ## M3 — Chat first (interim merge 3)
 
