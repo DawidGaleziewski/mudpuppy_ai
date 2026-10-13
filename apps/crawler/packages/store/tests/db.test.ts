@@ -27,6 +27,7 @@ const ALL = [
   '0015',
   '0016',
   '0017',
+  '0018',
 ];
 
 let opened: OpenedDb | undefined;
@@ -48,7 +49,7 @@ const tables = (o: OpenedDb) =>
     .sort();
 
 describe('migrations', () => {
-  it('finds 0001_init through 0017_chat_proposals, each with an up and a down', () => {
+  it('finds 0001_init through 0018_ba_processes, each with an up and a down', () => {
     expect(loadMigrations(MIGRATIONS).map((m) => m.version)).toEqual(ALL);
   });
 
@@ -81,6 +82,7 @@ describe('migrations', () => {
         'credentials',
       ]),
     );
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0018');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0017');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0016');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0015');
@@ -106,6 +108,7 @@ describe('migrations', () => {
     opened = openDb(':memory:');
     expect(migrateUp(opened.raw, MIGRATIONS)).toEqual(ALL);
     expect(migrateUp(opened.raw, MIGRATIONS)).toEqual([]);
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0018');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0017');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0016');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0015');
@@ -130,6 +133,7 @@ describe('migrations', () => {
   it('0003_trace applies and reverts on a DB holding 0001/0002 data (up, down, up round-trips cleanly)', () => {
     opened = openDb(':memory:');
     migrateUp(opened.raw, MIGRATIONS);
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0018');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0017');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0016');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0015');
@@ -165,6 +169,7 @@ describe('migrations', () => {
       '0015',
       '0016',
       '0017',
+      '0018',
     ]);
     expect(appliedVersions(opened.raw)).toEqual(ALL);
     expect(tables(opened)).toEqual(
@@ -359,6 +364,7 @@ describe('Layer B tables (0004_ba_documentation)', () => {
         `INSERT INTO doc_reviews (id, revision_id, action, reviewer, text, created_at) VALUES (?, ?, 'comment', 'dawid', 'looks good', ?)`,
       )
       .run(newId(), revisionId, ts);
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0018');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0017');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0016');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0015');
@@ -389,6 +395,7 @@ describe('Layer B tables (0004_ba_documentation)', () => {
       '0015',
       '0016',
       '0017',
+      '0018',
     ]);
     expect(opened.raw.prepare('SELECT count(*) AS n FROM doc_records').get()).toEqual({ n: 0 });
   });
@@ -467,6 +474,7 @@ describe('screenshots and wireframes (0006_screenshots_wireframes)', () => {
     opened.raw
       .prepare(`INSERT INTO state_wireframes VALUES (?, '1', 'a.svg', 'a.excalidraw', ?)`)
       .run(stateId, nowIso());
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0018');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0017');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0016');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0015');
@@ -496,6 +504,7 @@ describe('screenshots and wireframes (0006_screenshots_wireframes)', () => {
       '0015',
       '0016',
       '0017',
+      '0018',
     ]);
     expect(opened.raw.prepare('SELECT target_kind, region FROM doc_evidence_links').all()).toEqual([
       { target_kind: 'state', region: null },
@@ -525,6 +534,7 @@ describe('credentials (0007_credentials)', () => {
   it('round-trips (up, down, up)', () => {
     opened = openDb(':memory:');
     migrateUp(opened.raw, MIGRATIONS);
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0018');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0017');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0016');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0015');
@@ -549,6 +559,7 @@ describe('credentials (0007_credentials)', () => {
       '0015',
       '0016',
       '0017',
+      '0018',
     ]);
     expect(tables(opened)).toContain('credentials');
   });
@@ -610,6 +621,7 @@ describe('chat orchestrator tables (0008_chat_orchestrator)', () => {
   it('round-trips (up, down, up)', () => {
     opened = openDb(':memory:');
     migrateUp(opened.raw, MIGRATIONS);
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0018');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0017');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0016');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0015');
@@ -633,6 +645,7 @@ describe('chat orchestrator tables (0008_chat_orchestrator)', () => {
       '0015',
       '0016',
       '0017',
+      '0018',
     ]);
     expect(tables(opened)).toEqual(
       expect.arrayContaining([
@@ -892,6 +905,7 @@ describe('run owner (0009_run_owner)', () => {
     expect(() =>
       opened!.raw.prepare(`UPDATE runs SET owner_pid = 0 WHERE id = ?`).run(runId),
     ).toThrow(/CHECK/);
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0018');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0017');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0016');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0015');
@@ -917,6 +931,7 @@ describe('run owner (0009_run_owner)', () => {
       '0015',
       '0016',
       '0017',
+      '0018',
     ]);
     expect(cols()).toEqual(expect.arrayContaining(['owner_id', 'owner_pid']));
   });
@@ -944,6 +959,7 @@ describe('page visits (0012_page_visits)', () => {
          VALUES (?, ?, NULL, 'GET', '/api/x', 200, '{}', '{}', ?, 'http://x/api/x?q=1')`,
       )
       .run(newId(), runId, nowIso());
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0018');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0017');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0016');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0015');
@@ -961,6 +977,7 @@ describe('page visits (0012_page_visits)', () => {
       '0015',
       '0016',
       '0017',
+      '0018',
     ]);
     expect(opened.raw.prepare('SELECT url FROM network_calls').all()).toEqual([{ url: null }]);
   });
@@ -1014,6 +1031,7 @@ describe('screens and amendment revisions (0015, 0016; spec 022)', () => {
   it('backfills screens, revision numbers, amendment heads and revisions; down restores the 0014 shape', async () => {
     opened = openDb(':memory:');
     migrateUp(opened.raw, MIGRATIONS);
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0018');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0017');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0016');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0015');
@@ -1022,7 +1040,7 @@ describe('screens and amendment revisions (0015, 0016; spec 022)', () => {
     const other = insertState(opened, runId, 2, '/login', 'c');
     insertAmendment(opened, 'AMD-001', 'active', first, runId);
     insertAmendment(opened, 'AMD-002', 'superseded', other, runId);
-    expect(migrateUp(opened.raw, MIGRATIONS)).toEqual(['0015', '0016', '0017']);
+    expect(migrateUp(opened.raw, MIGRATIONS)).toEqual(['0015', '0016', '0017', '0018']);
 
     const screens = opened.raw.prepare('SELECT * FROM screens ORDER BY route_template').all() as {
       id: string;
@@ -1072,6 +1090,7 @@ describe('screens and amendment revisions (0015, 0016; spec 022)', () => {
     ]);
     expect(opened.raw.pragma('foreign_key_check')).toEqual([]);
 
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0018');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0017');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0016');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0015');
@@ -1174,8 +1193,312 @@ describe('chat proposals (0017; spec 022)', () => {
         .filter((n) => n.startsWith('ix_'))
         .sort(),
     ).toEqual(['ix_chat_proposals_conversation', 'ix_chat_proposals_portal_status']);
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0018');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0017');
     expect(tables(opened)).not.toContain('chat_proposals');
-    expect(migrateUp(opened.raw, MIGRATIONS)).toEqual(['0017']);
+    expect(migrateUp(opened.raw, MIGRATIONS)).toEqual(['0017', '0018']);
+  });
+});
+
+describe('BA processes (0018; spec 022 M5)', () => {
+  const insertState = (o: OpenedDb, runId: string, n: number, route: string, title: string) => {
+    const id = newId();
+    o.raw
+      .prepare(
+        `INSERT INTO states (id, portal_id, fingerprint, cluster_id, route_template, title, evidence_ref, confidence,
+                             stabilization, first_seen_run, created_at)
+         VALUES (?, 'p', ?, 'c', ?, ?, ?, 'observed', 'settled', ?, '2030-01-01T00:00:00.000Z')`,
+      )
+      .run(id, String(n).repeat(64), route, title, 'a'.repeat(64) + '.yaml', runId);
+    return id;
+  };
+  const insertScope = (
+    o: OpenedDb,
+    name: string,
+    start: string,
+    end: string,
+    selected: string[],
+    createdAt: string,
+    portal = 'p',
+  ) => {
+    const now = nowIso();
+    o.raw
+      .prepare(
+        `INSERT OR IGNORE INTO chat_conversations (id, portal_id, goal, created_at, updated_at) VALUES ('c1', ?, 'g', ?, ?)`,
+      )
+      .run(portal, now, now);
+    const id = newId();
+    o.raw
+      .prepare(
+        `INSERT INTO process_scopes (id, conversation_id, portal_id, process_name, persona, start_state_id, end_state_id,
+                                     selected_state_ids, source, created_at)
+         VALUES (?, 'c1', ?, ?, 'anon', ?, ?, ?, 'ba_description', ?)`,
+      )
+      .run(id, portal, name, start, end, JSON.stringify(selected), createdAt);
+    return id;
+  };
+
+  it('backfills the newest scope per name with ordered steps; down drops the tables', async () => {
+    opened = openDb(':memory:');
+    migrateUp(opened.raw, MIGRATIONS);
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0018');
+    const { runId, stateId: start } = await seedRunAndState(opened, 'p', 'e'.repeat(64));
+    const end = insertState(opened, runId, 1, '/done', 'Done');
+    const zed = insertState(opened, runId, 2, '/z-page', 'Z page');
+    const mid = insertState(opened, runId, 3, '/a-page', 'A page');
+    insertScope(opened, 'Claim', start, end, [zed], '2030-02-01T00:00:00.000Z'); // older, ignored
+    const newest = insertScope(
+      opened,
+      'Claim',
+      start,
+      end,
+      [zed, mid, start, end],
+      '2030-03-01T00:00:00.000Z',
+    );
+    insertScope(opened, 'Apply', start, end, [], '2030-01-15T00:00:00.000Z');
+    opened.raw
+      .prepare(
+        `INSERT INTO screens (id, portal_id, route_template, cluster_id, title, first_seen_run, created_at)
+         VALUES ('scr1', 'p', '/a-page', 'c', 'A page', ?, '2030-01-01T00:00:00.000Z')`,
+      )
+      .run(runId);
+    opened.raw
+      .prepare(`UPDATE states SET screen_id = 'scr1', screen_rev = 1 WHERE id = ?`)
+      .run(mid);
+    expect(migrateUp(opened.raw, MIGRATIONS)).toEqual(['0018']);
+
+    const procs = opened.raw
+      .prepare(
+        'SELECT id, key, name, persona, stage, rev, source, scope_id, suggestion_id, created_at, updated_at FROM ba_processes ORDER BY key',
+      )
+      .all() as Record<string, unknown>[];
+    expect(procs.map((p) => [p.key, p.name, p.stage, p.rev, p.source])).toEqual([
+      ['PRC-001', 'Apply', 'scoped', 1, 'scope'],
+      ['PRC-002', 'Claim', 'scoped', 1, 'scope'],
+    ]);
+    expect(procs[1]).toMatchObject({
+      scope_id: newest,
+      suggestion_id: null,
+      persona: 'anon',
+      created_at: '2030-03-01T00:00:00.000Z',
+      updated_at: '2030-03-01T00:00:00.000Z',
+    });
+    expect(procs[1]!.id).toMatch(
+      /^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/,
+    );
+    expect(opened.raw.prepare('SELECT count(*) AS n FROM process_scopes').get()).toEqual({ n: 3 });
+    expect(
+      opened.raw
+        .prepare(
+          'SELECT rev, base_rev, change, author, name, stage FROM ba_process_revisions WHERE process_id = ?',
+        )
+        .all(procs[1]!.id),
+    ).toEqual([
+      { rev: 1, base_rev: null, change: 'create', author: 'BA', name: 'Claim', stage: 'scoped' },
+    ]);
+
+    const variants = opened.raw
+      .prepare(
+        'SELECT id, label, kind, rev, branched_from_variant_id FROM process_variants WHERE process_id = ?',
+      )
+      .all(procs[1]!.id) as { id: string; label: string; kind: string; rev: number }[];
+    expect(variants).toMatchObject([
+      { label: 'A', kind: 'as_is', rev: 1, branched_from_variant_id: null },
+    ]);
+    const rev = opened.raw
+      .prepare(
+        'SELECT base_rev, change, author, steps, created_at FROM process_variant_revisions WHERE variant_id = ? AND rev = 1',
+      )
+      .get(variants[0]!.id) as {
+      base_rev: null;
+      change: string;
+      author: string;
+      steps: string;
+      created_at: string;
+    };
+    expect([rev.base_rev, rev.change, rev.author, rev.created_at]).toEqual([
+      null,
+      'create',
+      'BA',
+      '2030-03-01T00:00:00.000Z',
+    ]);
+    const steps = JSON.parse(rev.steps) as Record<string, unknown>[];
+    // start, the selected states by route_template (start and end excluded), end
+    expect(steps.map((s) => [s.id, s.route, s.state_id])).toEqual([
+      ['s1', '/', start],
+      ['s2', '/a-page', mid],
+      ['s3', '/z-page', zed],
+      ['s4', '/done', end],
+    ]);
+    expect(steps[1]).toEqual({
+      id: 's2',
+      title: 'A page',
+      route: '/a-page',
+      state_id: mid,
+      screen_id: 'scr1',
+      observed: true,
+      from: [],
+      annotations: [],
+    });
+    expect(opened.raw.pragma('foreign_key_check')).toEqual([]);
+    expect(tables(opened)).not.toContain('_scope_backfill');
+
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0018');
+    for (const t of [
+      'ba_processes',
+      'process_variants',
+      'grouping_suggestions',
+      'change_spec_revisions',
+    ])
+      expect(tables(opened)).not.toContain(t);
+    expect(opened.raw.prepare('SELECT count(*) AS n FROM process_scopes').get()).toEqual({ n: 3 });
+  });
+
+  it('enforces the revision, enum and JSON CHECKs and the named indexes', () => {
+    opened = openDb(':memory:');
+    migrateUp(opened.raw, MIGRATIONS);
+    const now = nowIso();
+    const run = (sql: string, ...args: unknown[]) => opened!.raw.prepare(sql).run(...args);
+    run(
+      `INSERT INTO ba_processes (id, portal_id, key, name, persona, stage, rev, source, created_at, updated_at)
+       VALUES ('pr1', 'p', 'PRC-001', 'N', 'anon', 'scoped', 1, 'new', ?, ?)`,
+      now,
+      now,
+    );
+    const proc = (key: string, stage = 'scoped', source = 'new') =>
+      run(
+        `INSERT INTO ba_processes (id, portal_id, key, name, persona, stage, rev, source, created_at, updated_at)
+         VALUES (lower(hex(randomblob(8))), 'p', ?, 'N', 'anon', ?, 1, ?, ?, ?)`,
+        key,
+        stage,
+        source,
+        now,
+        now,
+      );
+    expect(() => proc('PRC-001')).toThrow(/UNIQUE/);
+    expect(() => proc('X-2')).toThrow(/CHECK/);
+    expect(() => proc('PRC-002', 'bogus')).toThrow(/CHECK/);
+    expect(() => proc('PRC-003', 'scoped', 'bogus')).toThrow(/CHECK/);
+
+    const prRev = (rev: number, base: number | null, change = 'create') =>
+      run(
+        `INSERT INTO ba_process_revisions (process_id, rev, base_rev, change, author, name, stage, created_at)
+         VALUES ('pr1', ?, ?, ?, 'ba', 'N', 'scoped', ?)`,
+        rev,
+        base,
+        change,
+        now,
+      );
+    prRev(1, null);
+    expect(() => prRev(2, null, 'rename')).toThrow(/CHECK/);
+    expect(() => prRev(1, 1)).toThrow(/CHECK/);
+    expect(() => prRev(2, 1, 'bogus')).toThrow(/CHECK/);
+    prRev(2, 1, 'stage');
+
+    run(
+      `INSERT INTO process_variants (id, process_id, label, kind, rev, created_at) VALUES ('v1', 'pr1', 'A', 'as_is', 1, ?)`,
+      now,
+    );
+    expect(() =>
+      run(
+        `INSERT INTO process_variants (id, process_id, label, kind, rev, created_at) VALUES ('v2', 'pr1', 'A', 'to_be', 1, ?)`,
+        now,
+      ),
+    ).toThrow(/UNIQUE/);
+    expect(() =>
+      run(
+        `INSERT INTO process_variants (id, process_id, label, kind, rev, branched_from_variant_id, created_at) VALUES ('v2', 'pr1', 'B', 'to_be', 1, 'v1', ?)`,
+        now,
+      ),
+    ).toThrow(/CHECK/);
+    const vRev = (rev: number, base: number | null, steps: string, change = 'create') =>
+      run(
+        `INSERT INTO process_variant_revisions (variant_id, rev, base_rev, change, author, steps, created_at)
+         VALUES ('v1', ?, ?, ?, 'ba', ?, ?)`,
+        rev,
+        base,
+        change,
+        steps,
+        now,
+      );
+    expect(() => vRev(1, null, '{}')).toThrow(/CHECK/);
+    expect(() => vRev(1, null, 'nope')).toThrow(/CHECK/);
+    expect(() => vRev(2, null, '[]')).toThrow(/CHECK/);
+    expect(() => vRev(1, null, '[]', 'bogus')).toThrow(/CHECK/);
+    vRev(1, null, '[]');
+    vRev(2, 1, '[]', 'save');
+
+    const draft = (steps: string) =>
+      run(
+        `INSERT INTO process_drafts (variant_id, author, base_rev, steps, updated_at) VALUES ('v1', 'ba', 1, ?, ?)`,
+        steps,
+        now,
+      );
+    expect(() => draft('{}')).toThrow(/CHECK/);
+    draft('[]');
+    expect(() => draft('[]')).toThrow(/UNIQUE|PRIMARY/);
+
+    const live = (env: string, rev = 1) =>
+      run(
+        `INSERT INTO process_live (id, process_id, environment, variant_id, variant_rev, author, created_at)
+         VALUES (lower(hex(randomblob(8))), 'pr1', ?, 'v1', ?, 'ba', ?)`,
+        env,
+        rev,
+        now,
+      );
+    live('sandbox');
+    expect(() => live('moon')).toThrow(/CHECK/);
+    opened.raw.pragma('foreign_keys = ON');
+    expect(() => live('staging', 9)).toThrow(/FOREIGN KEY/);
+
+    const sugg = (
+      status: string,
+      steps = '[]',
+      process: string | null = null,
+      decided: string | null = null,
+    ) =>
+      run(
+        `INSERT INTO grouping_suggestions (id, portal_id, name, persona, steps, why, screens_key, status, process_id, decided_at, created_at)
+         VALUES (lower(hex(randomblob(8))), 'p', 'N', 'anon', ?, 'why', 'a,b', ?, ?, ?, ?)`,
+        steps,
+        status,
+        process,
+        decided,
+        now,
+      );
+    sugg('open');
+    expect(() => sugg('open', '{}')).toThrow(/CHECK/);
+    expect(() => sugg('dismissed')).toThrow(/CHECK/);
+    expect(() => sugg('accepted', '[]', null, now)).toThrow(/CHECK/);
+    sugg('accepted', '[]', 'pr1', now);
+
+    const spec = (rev: number, base: number | null, sections: string) =>
+      run(
+        `INSERT INTO change_spec_revisions (process_id, rev, base_rev, left_variant_id, left_rev, right_variant_id, right_rev, sections, author, created_at)
+         VALUES ('pr1', ?, ?, 'v1', 1, 'v1', 2, ?, 'ba', ?)`,
+        rev,
+        base,
+        sections,
+        now,
+      );
+    expect(() => spec(1, null, '[]')).toThrow(/CHECK/);
+    expect(() => spec(2, null, '{}')).toThrow(/CHECK/);
+    spec(1, null, '{}');
+
+    const indexes = (
+      opened.raw
+        .prepare(
+          `SELECT name FROM sqlite_master WHERE type='index' AND name LIKE 'ix_%' AND tbl_name IN
+         ('ba_processes','ba_process_revisions','process_variants','process_variant_revisions','process_drafts','process_live','grouping_suggestions','change_spec_revisions')`,
+        )
+        .all() as { name: string }[]
+    )
+      .map((r) => r.name)
+      .sort();
+    expect(indexes).toEqual([
+      'ix_grouping_suggestions_portal_screens',
+      'ix_grouping_suggestions_portal_status',
+      'ix_process_live_process_env',
+    ]);
   });
 });

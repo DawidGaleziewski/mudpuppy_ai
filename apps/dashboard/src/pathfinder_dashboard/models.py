@@ -649,6 +649,124 @@ class ChatProposal(Row):
     created_at: str
 
 
+BaProcessStage = Literal["scoped", "as_is_documented", "to_be_design", "migrating", "migrated"]
+
+
+class BaProcess(Row):
+    """The BA's cut of the portal, head row (0018); `rev` is the current process revision."""
+
+    id: str
+    portal_id: str
+    key: str  # PRC-nnn, per portal
+    name: str
+    persona: str
+    stage: BaProcessStage
+    rev: int
+    source: Literal["suggestion", "scope", "new"]
+    scope_id: str | None
+    suggestion_id: str | None
+    created_at: str
+    updated_at: str
+
+
+class BaProcessRevision(Row):
+    """One immutable revision of a BA process (0018, append-only)."""
+
+    process_id: str
+    rev: int
+    base_rev: int | None
+    change: Literal["create", "rename", "stage", "restore"]
+    author: str
+    name: str
+    stage: BaProcessStage
+    created_at: str
+
+
+class ProcessVariant(Row):
+    """Head of one variant (A, B, ...) of a BA process (0018)."""
+
+    id: str
+    process_id: str
+    label: str
+    kind: Literal["as_is", "to_be"]
+    rev: int
+    branched_from_variant_id: str | None
+    branched_from_rev: int | None
+    created_at: str
+
+
+class ProcessVariantRevision(Row):
+    """One immutable revision of a variant (0018, append-only); `steps` is a JSON array."""
+
+    variant_id: str
+    rev: int
+    base_rev: int | None
+    change: Literal["create", "branch", "save", "restore", "observe"]
+    author: str
+    steps: Json
+    note: str | None
+    run_id: str | None
+    restored_from: int | None
+    created_at: str
+
+
+class ProcessDraft(Row):
+    """One person's open draft over one to-be variant (0018, scratch)."""
+
+    variant_id: str
+    author: str
+    base_rev: int
+    steps: Json
+    updated_at: str
+
+
+class ProcessLive(Row):
+    """A mark that a variant revision is live in an environment (0018, append-only)."""
+
+    id: str
+    process_id: str
+    environment: Literal["sandbox", "staging", "production"]
+    variant_id: str
+    variant_rev: int
+    author: str
+    reason: str | None
+    created_at: str
+
+
+class GroupingSuggestion(Row):
+    """A grouping of screens the assistant suggests as a process (0018)."""
+
+    id: str
+    portal_id: str
+    name: str
+    persona: str
+    steps: Json
+    why: str
+    screens_key: str
+    status: Literal["open", "accepted", "dismissed"]
+    conversation_id: str | None
+    process_id: str | None
+    decided_by: str | None
+    decided_at: str | None
+    created_at: str
+
+
+class ChangeSpecRevision(Row):
+    """One immutable revision of a change spec (0018, append-only); `sections` is a JSON object."""
+
+    process_id: str
+    rev: int
+    base_rev: int | None
+    left_variant_id: str
+    left_rev: int
+    right_variant_id: str
+    right_rev: int
+    sections: Json
+    author: str
+    doc_key: str | None
+    created_at: str
+
+
 TABLE_MODELS: dict[str, type[Row]] = {
     "runs": Run,
     "state_observations": StateObservation,
@@ -687,6 +805,14 @@ TABLE_MODELS: dict[str, type[Row]] = {
     "amendments": Amendment,
     "amendment_revisions": AmendmentRevision,
     "chat_proposals": ChatProposal,
+    "grouping_suggestions": GroupingSuggestion,
+    "ba_processes": BaProcess,
+    "ba_process_revisions": BaProcessRevision,
+    "process_variants": ProcessVariant,
+    "process_variant_revisions": ProcessVariantRevision,
+    "process_drafts": ProcessDraft,
+    "process_live": ProcessLive,
+    "change_spec_revisions": ChangeSpecRevision,
 }
 
 

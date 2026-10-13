@@ -28,6 +28,8 @@ class ProcessItem(NamedTuple):
     start_route: str
     end_route: str
     created_at: str
+    key: str | None = None  # PRC-nnn; None for a scope of a store before 0018
+    stage: str = "scoped"
 
 
 def _rows(conn: sqlite3.Connection, sql: str, args: tuple[Any, ...]) -> list[sqlite3.Row]:
@@ -90,9 +92,41 @@ def needs_you(conn: sqlite3.Connection, portal: str | None) -> list[NeedsRow]:
 
 
 def processes(conn: sqlite3.Connection, portal: str | None) -> list[ProcessItem]:
-    """The newest scope of each named process of the portal."""
+    """The portal's BA processes with their as-is (spec 022 M5); on a store before migration 0018,
+    the newest scope of each named process."""
     if not portal:
         return []
+    try:
+        ba = conn.execute(
+            "SELECT p.key, p.name, p.persona, p.stage, p.updated_at, r.steps FROM ba_processes p"
+            " JOIN process_variants v ON v.process_id = p.id AND v.label = 'A'"
+            " JOIN process_variant_revisions r ON r.variant_id = v.id AND r.rev = v.rev"
+            " WHERE p.portal_id = ? ORDER BY p.key",
+            (portal,),
+        ).fetchall()
+    except sqlite3.OperationalError:
+        return _scopes(conn, portal)
+    items = []
+    for r in ba:
+        steps = json.loads(r["steps"])
+        items.append(
+            ProcessItem(
+                r["name"],
+                r["persona"],
+                len(steps),
+                steps[0].get("route", "") if steps else "",
+                steps[-1].get("route", "") if steps else "",
+                r["updated_at"],
+                r["key"],
+                r["stage"],
+            )
+        )
+    # A scope saved by older code has no BA process yet: still listed.
+    names = {i.name for i in items}
+    return items + [s for s in _scopes(conn, portal) if s.name not in names]
+
+
+def _scopes(conn: sqlite3.Connection, portal: str) -> list[ProcessItem]:
     rows = _rows(
         conn,
         "SELECT p.process_name, p.persona, p.selected_state_ids, p.created_at,"

@@ -140,7 +140,33 @@ VOCABULARIES: dict[str, dict[str, Status]] = {
         "down": _s("failed", "Assistant down"),
         "connecting": _s("queued", "Connecting"),
     },
-    "environment": {"not_configured": _s("todo", "Not configured")},
+    "environment": {
+        "not_configured": _s("todo", "Not configured"),
+        "not_marked": _s("todo", "Not marked"),
+    },
+    # BA processes (spec 022 M5, screens 04–07).
+    "stage": {
+        "suggested": _s("inferred", "Suggested"),
+        "scoped": _s("todo", "Scoped"),
+        "as_is_documented": _s("ok", "As-is documented"),
+        "to_be_design": _s("draft", "To-be in design"),
+        "migrating": _s("running", "Migrating"),
+        "migrated": _s("ok", "Migrated"),
+    },
+    "step_change": {
+        "unchanged": _s("ok", "Unchanged"),
+        "changed": _s("draft", "Changed"),
+        "merged": _s("draft", "Merged"),
+        "added": _s("draft", "Added"),
+        "removed": _s("skipped", "Removed"),
+    },
+    "variant": {
+        "as_is": _s("ok", "Observed"),
+        "to_be": _s("draft", "Drawn"),
+        "draft": _s("draft", "Draft open"),
+        "live": _s("live", "Live"),
+        "conflict": _s("stopped", "Someone saved first"),
+    },
 }
 
 

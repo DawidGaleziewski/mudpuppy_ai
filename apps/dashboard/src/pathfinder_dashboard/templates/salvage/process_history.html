@@ -1,0 +1,166 @@
+{% extends "salvage/base.html" %}
+{% import "salvage/macros.html" as sy %}
+{% set nav_current = "processes" %}
+{%- set view = v.view %}{% set p = view.process %}
+{#- Screen 07 (FE-P04): which variant runs where, every revision of every variant (restoring adds a
+    revision, nothing is deleted), the process's own revisions and the change specs. -#}
+{% set page_ctx = {"type": "process", "id": p.key, "label": p.name} %}
+{% block title %}{{ p.name }} · History{% endblock %}
+{% block head_extra %}<script src="/static/js/processes.js" defer></script>{% endblock %}
+{% block main %}
+{%- set base = "/chat/portals/" ~ (p.portal_id | urlencode) ~ "/processes/" ~ (p.id | urlencode) %}
+{%- set reviewer = c.settings.reviewer %}
+<div class="sy-pagehead">
+  <nav class="sy-crumbs" aria-label="Breadcrumb"><a href="{{ c.url('/processes') }}">Processes</a> / <a class="sy-case-normal" href="{{ c.url('/processes/' ~ p.key) }}">{{ p.name }}</a> / <span aria-current="page">History</span></nav>
+  <div class="sy-stack" style="--sy-gap: 4px">
+    <h1 class="sy-h1">History</h1>
+    <p class="sy-meta"><span class="sy-case-normal">{{ p.name }}</span> · {{ view.variants | length }} variant{{ "" if view.variants | length == 1 else "s" }} · {{ v.revision_count }} revision{{ "" if v.revision_count == 1 else "s" }} · {% if v.marked_in %}live in {{ v.marked_in | join(", ") }}{% else %}not marked live anywhere{% endif %}</p>
+  </div>
+</div>
+
+{%- for vv, d in v.conflicts %}
+{%- set label = vv.variant.label %}
+<div class="sy-callout sy-callout--failure" role="alert" data-actions>
+  <div class="sy-split" style="--sy-gap: 10px 16px">
+    <div class="sy-stack" style="--sy-gap: 4px">
+      <span class="sy-callout__title">Someone saved first</span>
+      <p>{{ label }} r{{ vv.variant.rev }} was saved while your draft was based on {{ label }} r{{ d.base_rev }}. Your draft is kept; nothing was overwritten.</p>
+    </div>
+    <div class="sy-actions">
+      <a class="sy-btn sy-btn--md" href="{{ c.url('/processes/' ~ p.key ~ '/compare', left=label, right=label) }}">Compare your draft with r{{ vv.variant.rev }}</a>
+      <button class="sy-btn sy-btn--md sy-btn--strong" type="button" data-process="{{ base }}/variants/{{ label }}/rebase">Rebase your draft onto r{{ vv.variant.rev }}</button>
+    </div>
+  </div>
+  <p class="sy-small" role="status" data-result></p>
+</div>
+{%- endfor %}
+
+<section class="sy-stack" style="--sy-gap: 10px" aria-labelledby="live-h" data-actions>
+  <h2 id="live-h" class="sy-h2">Which variant runs where</h2>
+  <div class="sy-table-wrap">
+    <table class="sy-table sy-table--middle">
+      <thead><tr>
+        <th scope="col">Environment</th><th scope="col">Live now</th><th scope="col">How we know</th><th scope="col">Mark live</th>
+      </tr></thead>
+      <tbody>
+        {%- for e in v.environments %}
+        {%- set lv = view.live_in(e) %}
+        {%- set m = lv.marks[0] if lv else none %}
+        <tr>
+          <th scope="row">{{ e }}</th>
+          <td>
+            {%- if lv %}
+            <div class="sy-cluster">{{ sy.status("variant", "live") }}{{ sy.tag(lv.label ~ " r" ~ lv.rev, sm=true) }}</div>
+            {%- else %}{{ sy.status("environment", "not_marked") }}{% endif %}
+          </td>
+          <td>
+            {%- if m %}
+            <div class="sy-stack" style="--sy-gap: 4px">
+              <span class="sy-meta">{{ m.author }} · <span class="sy-mono sy-mono--sm">{{ m.created_at | when }}</span>{% if lv.marks | length > 1 %} · {{ lv.marks | length - 1 }} earlier mark{{ "" if lv.marks | length == 2 else "s" }}{% endif %}</span>
+              {%- if m.reason %}{{ sy.note(m.reason, sm=true) }}{% endif %}
+            </div>
+            {%- else %}<span class="sy-muted">Nothing marked yet</span>{% endif %}
+          </td>
+          <td>
+            {%- if reviewer %}
+            <div class="sy-cluster" style="--sy-gap: 6px">
+              <label class="sy-field"><span class="sy-sr-only">Variant to mark live in {{ e }}</span>
+                <select class="sy-select" id="live-label-{{ e }}" name="label">
+                  {%- for x in view.variants %}<option value="{{ x.variant.label }}"{% if lv and lv.label == x.variant.label %} selected{% endif %}>{{ x.variant.label }} r{{ x.variant.rev }}</option>{% endfor %}
+                </select></label>
+              <label class="sy-field"><span class="sy-sr-only">Reason (optional)</span>
+                <input class="sy-input" id="live-reason-{{ e }}" name="reason" maxlength="500" placeholder="Reason (optional)" autocomplete="off"></label>
+              <button class="sy-btn sy-btn--sm" type="button" data-process="{{ base }}/live" data-body='{"environment": "{{ e }}"}' data-from="#live-label-{{ e }} #live-reason-{{ e }}">Mark live in {{ e }}</button>
+            </div>
+            {%- else %}<span class="sy-small sy-muted">Set <span class="sy-mono sy-mono--sm">PATHFINDER_REVIEWER</span> to mark</span>{% endif %}
+          </td>
+        </tr>
+        {%- endfor %}
+      </tbody>
+    </table>
+  </div>
+  <p class="sy-small" role="status" data-result></p>
+  <p class="sy-small sy-muted">Marking records which revision runs in an environment. It does not deploy anything. The newest mark wins; earlier ones stay in the record.</p>
+</section>
+
+<section class="sy-stack" style="--sy-gap: 10px" aria-labelledby="rev-h">
+  <div class="sy-split" style="align-items: baseline">
+    <h2 id="rev-h" class="sy-h2">Revisions</h2>
+    <p class="sy-meta">Restoring adds a new revision. A rescan adds revisions to A and never edits a to-be variant.</p>
+  </div>
+  <div class="sy-grid" style="--sy-min: 360px">
+    {%- for x in view.variants | reverse %}
+    {%- set label = x.variant.label %}{% set to_be = x.variant.kind == "to_be" %}
+    <section class="sy-plate{% if to_be %} sy-plate--drawn{% endif %}" aria-labelledby="rev-{{ label }}" data-actions>
+      <div class="sy-plate__head">
+        <h3 id="rev-{{ label }}" class="sy-plate__title">{{ label }} · {{ "To-be" if to_be else "As-is" }}</h3>
+        <span class="sy-meta">{{ x.revisions | length }} revision{{ "" if x.revisions | length == 1 else "s" }}</span>
+      </div>
+      <div class="sy-plate__body">
+        <ol class="sy-timeline">
+          {%- for r in x.revisions | reverse %}
+          {%- set latest = r.rev == x.variant.rev %}{% set where = v.live_now.get((label, r.rev), []) %}
+          <li{% if where %} data-status="live"{% elif latest and to_be %} data-status="draft"{% endif %}>
+            <div class="sy-timeline__head">
+              {{ sy.tag(label ~ " r" ~ r.rev, sm=true) }}
+              {%- if where %}{{ sy.status("variant", "live", extra=where | join(", ")) }}{% endif %}
+              {%- if latest %}<span class="sy-small">Latest</span>{% else %}<span class="sy-small sy-muted">superseded</span>{% endif %}
+            </div>
+            <div class="sy-timeline__body sy-stack" style="--sy-gap: 6px">
+              <span class="sy-cluster sy-small" style="--sy-gap: 4px 8px">
+                <span class="sy-label">{{ r.change }}</span>
+                {%- if r.change == "branch" and x.variant.branched_from_rev %}<span>from {{ sy.tag("A r" ~ x.variant.branched_from_rev, sm=true) }}</span>{% endif %}
+                {%- if r.restored_from %}<span>of {{ sy.tag(label ~ " r" ~ r.restored_from, sm=true) }}</span>{% endif %}
+                <span>· {{ r.author }} · <span class="sy-mono sy-mono--sm">{{ r.created_at | when }}</span></span>
+              </span>
+              {%- if r.note and r.change in ("save", "restore") %}{{ sy.note(r.note, sm=true) }}{% elif r.note %}<span class="sy-small">{{ r.note }}</span>{% endif %}
+              <div class="sy-actions" style="--sy-gap: 6px 14px">
+                <a href="{{ c.url('/processes/' ~ p.key, variant=label) }}">View<span class="sy-sr-only"> {{ label }}</span></a>
+                {%- if to_be %}<a href="{{ c.url('/processes/' ~ p.key ~ '/compare', left='A', right=label) }}">Compare with A</a>{% endif %}
+                {%- if to_be and not latest and reviewer %}
+                <button class="sy-btn sy-btn--sm" type="button" data-process="{{ base }}/variants/{{ label }}/restore" data-body='{"rev": {{ r.rev }}, "base_rev": {{ x.variant.rev }}}' data-confirm="Restore {{ label }} r{{ r.rev }} as {{ label }} r{{ x.variant.rev + 1 }}? Nothing is deleted.">Restore as r{{ x.variant.rev + 1 }}</button>
+                {%- endif %}
+              </div>
+            </div>
+          </li>
+          {%- endfor %}
+        </ol>
+        <p class="sy-small" role="status" data-result></p>
+      </div>
+    </section>
+    {%- endfor %}
+  </div>
+</section>
+
+<section class="sy-grid" style="--sy-min: 360px" aria-label="Process and change spec revisions">
+  <div class="sy-plate" role="group" aria-labelledby="prev-h">
+    <div class="sy-plate__head"><h2 id="prev-h" class="sy-plate__title">The process itself</h2><span class="sy-meta">{{ view.revisions | length }} revision{{ "" if view.revisions | length == 1 else "s" }}</span></div>
+    <div class="sy-plate__body">
+      <ol class="sy-timeline">
+        {%- for r in view.revisions | reverse %}
+        <li><div class="sy-timeline__head">{{ sy.tag("r" ~ r.rev, sm=true) }}{% if r.rev == p.rev %}<span class="sy-small">Latest</span>{% endif %}</div>
+          <div class="sy-timeline__body sy-small">
+            <span class="sy-label">{{ r.change }}</span> · <span class="sy-case-normal">{{ r.name }}</span> · {{ sy.status("stage", r.stage) }} · {{ r.author }} · <span class="sy-mono sy-mono--sm">{{ r.created_at | when }}</span></div></li>
+        {%- endfor %}
+      </ol>
+    </div>
+  </div>
+  <div class="sy-plate" role="group" aria-labelledby="spec-h">
+    <div class="sy-plate__head"><h2 id="spec-h" class="sy-plate__title">Change spec</h2><span class="sy-meta">{{ view.specs | length }} revision{{ "" if view.specs | length == 1 else "s" }}</span></div>
+    <div class="sy-plate__body">
+      {%- if view.specs %}
+      <ol class="sy-timeline">
+        {%- for s in view.specs %}
+        <li><div class="sy-timeline__head">{{ sy.tag("spec r" ~ s.rev, sm=true) }}{% if loop.first %}<span class="sy-small">Latest</span>{% endif %}</div>
+          <div class="sy-timeline__body sy-stack" style="--sy-gap: 6px">
+            <span class="sy-small">{{ v.labels.get(s.left_variant_id, "?") }} r{{ s.left_rev }} against {{ v.labels.get(s.right_variant_id, "?") }} r{{ s.right_rev }} · {{ s.author }} · <span class="sy-mono sy-mono--sm">{{ s.created_at | when }}</span></span>
+            <a href="{{ c.url('/processes/' ~ p.key ~ '/compare', left=v.labels.get(s.left_variant_id, 'A'), right=v.labels.get(s.right_variant_id, 'B')) }}">Open in Compare</a></div></li>
+        {%- endfor %}
+      </ol>
+      {%- else %}
+      <p class="sy-small sy-muted">No change spec saved yet. Compare generates one; save it there.</p>
+      {%- endif %}
+    </div>
+  </div>
+</section>
+{% endblock %}

@@ -25,7 +25,7 @@ def _settings(portal: str | None) -> str | None:
 
 SECTIONS: tuple[Section, ...] = (
     Section("home", "Home", lambda p: "/", frozenset({"home", "overview", "chat"})),
-    Section("processes", "Processes", lambda p: "/chat", frozenset({"processes"})),
+    Section("processes", "Processes", lambda p: "/processes", frozenset({"processes"})),
     Section("screens", "Screens", lambda p: "/screens", frozenset({"screens", "state"})),
     Section("docs", "Docs", lambda p: f"/docs/{p}" if p else "/docs", frozenset({"docs"})),
     Section("review", "Review", lambda p: "/review", frozenset({"review", "amendments"})),

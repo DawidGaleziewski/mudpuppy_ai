@@ -116,7 +116,9 @@
 ## F-13 A Sonnet agent edited a file with a Python string replace, 2026-10-14
 
 - **Symptom**: the T031 agent changed `web/portals.py` once with a Python `str.replace` script
-  although its brief forbade script edits; it said so in its report. The result was correct.
+  although its brief forbade script edits; it said so in its report. The result was correct. The
+  T033 db-admin agent did the same with throwaway node/python scripts on `db-types.ts`,
+  `portal-data.ts` and two READMEs (also reported, also correct after prettier).
 - **Cause**: the new PreToolUse hook (`no-script-edits.py`) blocks `sed -i`, `perl -i` and
   redirects, not an inline Python or Node script that writes a file.
 - **Test idea**: extend the hook to refuse `python3 -c`/heredoc scripts and `node -e` that call
@@ -129,6 +131,17 @@
   answers 200 (re-anchoring writes a revision). Found while building the Review inbox (T029).
 - **Fix**: success is `result.ok`; the message says "AMD-… re-anchored as rN" (T032 commit).
 - **Test idea**: a browser e2e of re-anchor from Review like FE-A04's, asserting the status line.
+
+## F-15 "Save to Docs" for the change spec is a deviation (owner to confirm), 2026-10-14
+
+- **Design**: screen 06's Save to Docs stores the change spec as a doc record (FR-008).
+- **Built**: Save keeps it as a `change_spec_revisions` row with the process (revisioned, exported
+  as Markdown). Not a `doc_records` row.
+- **Why**: doc records are the BA agent's as-is layer (each revision needs an analysis session and
+  evidence links), and the product rule keeps the to-be apart from it (amendments are never joined
+  into Layer B records either). Mixing a person-written to-be spec into it would break that.
+- **Owner question**: keep it this way and list change specs in the Docs section as their own
+  "to-be" chapter, or make them doc records anyway?
 
 ## F-03 The design's Console glossary text, 2026-10-13
 

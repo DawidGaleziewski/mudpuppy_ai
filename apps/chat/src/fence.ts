@@ -25,6 +25,9 @@ export const CHAT_TOOLS = [
   'open_page',
   'propose_change',
   'request_credential',
+  // Spec 022 M5: drafting process groupings (a person accepts them in Processes).
+  'list_grouping_inputs',
+  'suggest_grouping',
 ].map((t) => CHAT + t);
 
 /** pathfinder-ba tools that only read; the orchestrator may use these itself. */

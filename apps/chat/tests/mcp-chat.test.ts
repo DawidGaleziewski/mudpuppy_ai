@@ -83,6 +83,7 @@ describe('pathfinder-chat MCP server', () => {
     expect(tools.map((t) => t.name).sort()).toEqual([
       'highlight_element',
       'list_amendments',
+      'list_grouping_inputs',
       'list_process_candidates',
       'open_page',
       'page_context',
