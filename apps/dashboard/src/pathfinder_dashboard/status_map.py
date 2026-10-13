@@ -140,7 +140,10 @@ VOCABULARIES: dict[str, dict[str, Status]] = {
         "down": _s("failed", "Assistant down"),
         "connecting": _s("queued", "Connecting"),
     },
-    "environment": {"not_configured": _s("todo", "Not configured")},
+    "environment": {
+        "not_configured": _s("todo", "Not configured"),
+        "not_marked": _s("todo", "Not marked"),
+    },
     # BA processes (spec 022 M5, screens 04–07).
     "stage": {
         "suggested": _s("inferred", "Suggested"),

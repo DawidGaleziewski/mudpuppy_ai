@@ -67,6 +67,12 @@
       ?.querySelector("[data-result]");
     button.disabled = true;
     const body = button.dataset.body ? JSON.parse(button.dataset.body) : {};
+    // data-from="#a #b": add the named fields' values (when not empty) to the body.
+    for (const selector of (button.dataset.from ?? "").split(" ").filter(Boolean)) {
+      const field = document.querySelector(selector);
+      const value = field?.value.trim();
+      if (value) body[field.name] = value;
+    }
     const result = await send(
       button.dataset.method ?? "POST",
       button.dataset.process,

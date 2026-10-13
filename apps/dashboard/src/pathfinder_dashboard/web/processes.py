@@ -228,6 +228,47 @@ def compare_page(
     return web.render(c, "salvage/process_compare.html", nav_current="processes", v=v)
 
 
+def history_values(view: queries_processes.ProcessView, reviewer: str | None) -> dict[str, Any]:
+    """Screen 07: which revision runs where, each variant's revisions newest first, the reviewer's
+    drafts that sit on an older revision (the conflict notice), and the process's own timeline."""
+    labels = {v.variant.id: v.variant.label for v in view.variants}
+    live_now = {
+        (lv.label, lv.rev): [
+            e.environment for e in view.live if (e.label, e.rev) == (lv.label, lv.rev)
+        ]
+        for lv in view.live
+    }
+    conflicts = [
+        (v, d)
+        for v in view.variants
+        for d in [v.draft_of(reviewer)]
+        if d is not None and v.variant.kind == "to_be" and d.base_rev != v.variant.rev
+    ]
+    return {
+        "view": view,
+        "environments": queries_processes.ENVIRONMENTS,
+        "labels": labels,
+        "live_now": live_now,
+        "conflicts": conflicts,
+        "revision_count": sum(len(v.revisions) for v in view.variants),
+        "marked_in": [lv.environment for lv in view.live],
+    }
+
+
+@router.get("/processes/{key}/history", response_class=HTMLResponse)
+def history_page(request: Request, key: str, env: str | None = None) -> HTMLResponse:
+    web = web_of(request)
+    c = web.ctx(request, env)
+    try:
+        with c.conn() as conn:
+            v = history_values(_view_or_404(c, conn, key), c.settings.reviewer)
+    except db.StoreMissing as err:
+        return web.missing(c, err)
+    except LookupError:
+        return web.render(c, "salvage/process_missing.html", status_code=404, key=key)
+    return web.render(c, "salvage/process_history.html", nav_current="processes", v=v)
+
+
 @router.get("/processes/{key}/spec.md", response_model=None)
 def spec_export(
     request: Request, key: str, env: str | None = None, left: str = "A", right: str = "B"

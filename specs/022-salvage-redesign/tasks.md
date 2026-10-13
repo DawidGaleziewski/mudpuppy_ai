@@ -63,7 +63,7 @@ tiers green and an interim merge to master behind `UI_SALVAGE`.
 - [x] T035 [opus] Processes list + groupings (04), "In no process", migration of saved process scopes (spec 010) into processes
 - [x] T036 [opus] To-be editing (05): variant switch, draft bar with autosave, step cards (add, remove, merge, annotate), inspector, Save as rN+1, Discard (browser e2e `processes-browser.e2e.test.ts`, FE-P02 + FE-P05)
 - [x] T037 [opus] Compare + change spec (06): step diff, generated editable spec sections, Export Markdown, Save to Docs (deviation F-15: saved as a change spec revision kept with the process, not a doc record)
-- [ ] T038 [sonnet] History + live per environment (07): timeline, revisions, Restore, Mark live, conflict notice + Rebase (FE-P05 two-session test)
+- [x] T038 [sonnet] History + live per environment (07): timeline, revisions, Restore, Mark live, conflict notice + Rebase (FE-P05 two-session test: processes-browser.e2e; "Not configured" environments and a read-only view of an older revision left out)
 
 ## M6 — Clean-up and close-out
 
