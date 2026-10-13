@@ -103,3 +103,63 @@ def test_service_down_drawer_shows_the_failure_and_pages_keep_working(empty_stor
     assert "disabled" in home.text  # composer and Send are off, history stays readable
     assert screens.status_code == 200
     assert "Assistant down" in status.text
+
+
+# --- Home beside the assistant (screen 01, FE-A01, D-17) ---------------------------------------
+
+
+def seed_home(store: Store) -> None:
+    from .test_chat_forms import seed_run, seed_state, seed_superseded
+
+    seed_conversation(store)
+    seed_conversation(store, conv="conv-2", created=ts(30))
+    seed_run(store)
+    conn = store.connect()
+    insert(conn, "runs", id="run-2", status="interrupted", started_at=ts(2), ended_at=ts(3))
+    conn.commit()
+    conn.close()
+    seed_state(store, "st-1", "Start", "/")
+    seed_state(store, "st-2", "FAQ", "/faq")
+    seed_superseded(store, 1)
+    conn = store.connect()
+    insert(
+        conn,
+        "process_scopes",
+        id="scope-1",
+        conversation_id=CONV,
+        portal_id="liveinsurer",
+        process_name="Test process",
+        persona="guest",
+        start_state_id="st-1",
+        end_state_id="st-2",
+        selected_state_ids=json.dumps(["st-1", "st-2"]),
+        comments="{}",
+        source="ba_description",
+        created_at=ts(5),
+    )
+    conn.commit()
+    conn.close()
+
+
+def test_home_shows_needs_you_processes_picker_and_suggestions(empty_store: Store) -> None:
+    seed_home(empty_store)
+    with client(empty_store, Service()) as c:
+        body = c.get("/chat", params={"conversation": CONV}).text
+    flat = text(body)
+    needs = body[body.index('id="needs-h"') : body.index('id="proc-h"')]
+    assert "Stopped scans to resume" in needs and "Amendments to re-anchor" in needs
+    assert 'href="/activity' in needs and 'href="/amendments/superseded' in needs
+    assert "Draft doc records" not in needs  # zero rows are left out
+    assert body.count("sy-plate--intent") == 1
+    assert "Test process" in flat and "2 screens" in flat and "/ → /faq" in flat
+    assert 'name="conversation"' in body and f'value="{CONV}" selected' in body
+    assert 'data-chat-say="Continue the stopped scan"' in body
+
+
+def test_home_without_waiting_work_has_no_intent_plate(empty_store: Store) -> None:
+    seed_conversation(empty_store)
+    with client(empty_store, Service()) as c:
+        body = c.get("/chat").text
+    assert "sy-plate--intent" not in body and "No process scoped yet" in body
+    assert 'name="conversation"' not in body  # one conversation: no picker
+    assert 'data-chat-say="Continue the stopped scan"' not in body

@@ -81,6 +81,14 @@
 - **Test idea**: the ui:check could fail on an `mp-` class used in a template but defined in no
   stylesheet (a list of hook-only classes allowed).
 
+## F-10 Another script edit: tests appended with a heredoc, 2026-10-13
+
+- **Symptom**: the Home tests were appended to `tests/test_assistant_cards.py` with
+  `cat >> … <<'EOF'` instead of the Edit tool (CLAUDE.md: no script edits), the second slip after
+  F-03 in this branch. The content was checked by running the file (6 passed) and ruff format.
+- **Test idea**: the PreToolUse hook proposed in F-03/F-04 should also catch `cat >>` and `tee`
+  into tracked files.
+
 ## F-03 The design's Console glossary text, 2026-10-13
 
 - The glossary entry "status codes" still explains `[ OK ]`, `[RUN.]` … (content, not markup). It

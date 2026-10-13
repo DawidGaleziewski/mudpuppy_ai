@@ -8,7 +8,7 @@ from dataclasses import dataclass
 from datetime import UTC, datetime
 from typing import Any
 
-from .. import live_map, queries_chat, queries_proposals
+from .. import live_map, nav, queries_chat, queries_home, queries_proposals
 from ..models import ChatMessage
 from ..queries_proposals import ProposalView
 from .deps import Ctx
@@ -107,6 +107,32 @@ def tools_values(
             "personas": queries_chat.list_personas(c.settings.personas_dir, portal),
             "environments": queries_chat.ENVIRONMENTS,
             "self_url": c.url("/fragments/chat/tools", conversation=conversation.id),
+        }
+    }
+
+
+# Where each "Needs you" row is resolved (D-17). Proposals are decided in the conversation until
+# the Review inbox lists them (M4).
+NEEDS_SECTION = {
+    "resume_scan": "scans",
+    "reanchor": "review",
+    "proposals": "home",
+    "drafts": "docs",
+}
+
+
+def home_values(conn: sqlite3.Connection, portal: str | None) -> dict[str, Any]:
+    """Beside the assistant on Home (screen 01): the conversation picker, what waits for a
+    person, and the scoped processes."""
+    return {
+        "home": {
+            "conversations": queries_home.conversations(conn, portal),
+            "needs": [
+                (row, nav.href_of(NEEDS_SECTION[row.key], portal))
+                for row in queries_home.needs_you(conn, portal)
+            ],
+            "processes": queries_home.processes(conn, portal),
+            "processes_href": nav.href_of("processes", portal),
         }
     }
 

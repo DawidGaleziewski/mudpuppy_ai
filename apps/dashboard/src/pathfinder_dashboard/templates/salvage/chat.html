@@ -44,6 +44,18 @@
         <span class="sy-small">Whole yard{% if conversation.portal_id %} · {{ conversation.portal_id }}{% endif %}</span>
       </div>
       <div class="sy-actions">
+        {%- if home.conversations | length > 1 %}
+        {#- No select that navigates on change: the picker opens with an explicit button. -#}
+        <form class="sy-cluster" style="--sy-gap: 6px" method="get" action="{{ c.url('/chat') }}">
+          <label class="sy-cluster" style="--sy-gap: 8px"><span class="sy-label">Conversation</span>
+            <select class="sy-select sy-select--md" name="conversation">
+              {%- for item in home.conversations %}
+              <option value="{{ item.id }}"{% if item.id == conversation.id %} selected{% endif %}>{{ (item.goal or "Conversation") | truncate(40) }} · {{ item.created_at[:10] }}</option>
+              {%- endfor %}
+            </select></label>
+          <button class="sy-btn sy-btn--md sy-btn--quiet" type="submit">Open</button>
+        </form>
+        {%- endif %}
         <button class="sy-btn sy-btn--md sy-btn--quiet" type="button" data-assistant-reset
                 data-reset-url="/chat/conversations/{{ conversation.id }}/reset"{% if not service_up %} disabled{% endif %}
                 title="Give the assistant a fresh context. The history stays.">Reset context</button>
@@ -54,6 +66,30 @@
   </section>
   <aside class="sy-col-side sy-stack" aria-label="Portal at a glance">
     {% include "salvage/partials/chat_tracker.html" %}
+    {%- if home.needs %}
+    <section class="sy-plate sy-plate--intent" aria-labelledby="needs-h">
+      <div class="sy-plate__head"><h2 id="needs-h" class="sy-plate__title">Needs you</h2></div>
+      <div class="sy-rows">
+        {%- for row, href in home.needs %}
+        <a class="sy-row" href="{{ c.url(href) }}"><span>{{ row.label }}</span><b class="sy-num">{{ row.count }}</b></a>
+        {%- endfor %}
+      </div>
+    </section>
+    {%- endif %}
+    <section class="sy-plate" aria-labelledby="proc-h">
+      <div class="sy-plate__head"><h2 id="proc-h" class="sy-plate__title">Processes <span class="sy-count sy-count--muted">{{ home.processes | length }}</span></h2></div>
+      {%- if home.processes %}
+      <div class="sy-rows">
+        {%- for p in home.processes %}
+        <a class="sy-row" href="{{ c.url(home.processes_href) }}">
+          <span class="sy-row__main"><b class="sy-case-normal">{{ p.name }}</b><span class="sy-meta">Scoped · {{ p.screens }} screens · <span class="sy-mono sy-mono--sm mp-break">{{ p.start_route }} → {{ p.end_route }}</span> · persona {{ p.persona }}</span></span>
+        </a>
+        {%- endfor %}
+      </div>
+      {%- else %}
+      <div class="sy-plate__body"><p class="sy-small sy-muted">No process scoped yet. Ask the assistant to sort screens into processes.</p></div>
+      {%- endif %}
+    </section>
     {% include "salvage/partials/chat_tools.html" %}
   </aside>
 </div>

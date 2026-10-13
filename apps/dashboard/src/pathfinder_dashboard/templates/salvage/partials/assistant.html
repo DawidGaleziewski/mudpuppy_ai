@@ -27,6 +27,20 @@
     <p><a class="sy-btn sy-btn--sm" href="{{ c.url(request.url.path) }}">Retry</a></p>
   </section>
   {%- endif %}
+  {%- if service_up %}
+  {#- Suggestions (screens 01, 03): one click sends the line as the BA's message. -#}
+  {%- if mode == "home" %}
+  {%- set resume = home is defined and home.needs | selectattr("0.key", "equalto", "resume_scan") | list %}
+  {%- set suggestions = (["Continue the stopped scan"] if resume else []) + ["What can I do here?", "Sort screens into processes", "Follow one process start to end", "Add to-be notes"] %}
+  {%- else %}
+  {%- set suggestions = ["Explain this page", "What changed since the last scan?", "Draft a to-be for this screen"] %}
+  {%- endif %}
+  <div class="sy-chips mp-suggestions" role="group" aria-label="Suggestions">
+    {%- for s in suggestions %}
+    <button class="sy-btn sy-btn--sm sy-btn--quiet sy-btn--well" type="button" data-chat-say="{{ s }}">{{ s }}</button>
+    {%- endfor %}
+  </div>
+  {%- endif %}
   <form class="sy-composer" data-assistant-form action="{{ c.url('/chat', conversation=conversation.id) }}" method="get">
     {%- if mode == "home" and progress is defined %}{% include "salvage/partials/chat_progress.html" %}{% endif %}
     <label class="sy-field"><span class="sy-field__label">Message</span>

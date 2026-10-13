@@ -31,7 +31,7 @@ from .chat_forward import (
     read_json,
 )
 from .deps import same_origin, web_of
-from .views_chat import chat_values, map_values, tools_values
+from .views_chat import chat_values, home_values, map_values, tools_values
 
 router = APIRouter()
 
@@ -53,6 +53,7 @@ async def chat_page(
                     tools_values(c, conn, values["conversation"], values["tracker"].portal_id)
                 )
                 values.update(map_values(c, conn, values))
+                values.update(home_values(conn, values["tracker"].portal_id))
     except db.StoreMissing as err:
         return web.missing(c, err)
     return web.render(

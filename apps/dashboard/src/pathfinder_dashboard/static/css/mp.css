@@ -74,6 +74,7 @@
   .mp-chat-live:empty { display: none; }
   .mp-pre { white-space: pre-wrap; overflow-wrap: anywhere; }
   .mp-msg--wide { max-inline-size: none; }
+  .mp-suggestions { padding: var(--sy-space-2) var(--sy-space-4) 0; }
 
   /* Mermaid diagrams render on the light paper ground, like recorded pages. */
   .mp-diagram { margin: 0; }
