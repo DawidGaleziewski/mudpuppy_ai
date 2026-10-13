@@ -18,7 +18,8 @@ from .conftest import Store, make_client
 from .paths import REPO_ROOT
 
 PKG = REPO_ROOT / "apps/dashboard/src/pathfinder_dashboard"
-GUARD = REPO_ROOT / ".claude/skills/mudpuppy-salvage-ui/scripts/find-old-styles.sh"
+# The app's own copy of the design package's guard (the skill is not exported to export-fork).
+GUARD = REPO_ROOT / "apps/dashboard/scripts/find-old-styles.sh"
 
 
 @pytest.fixture
