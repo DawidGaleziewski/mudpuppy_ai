@@ -5,7 +5,7 @@
 import type { Move, WorkflowState } from '@pathfinder/workflow';
 
 const MOVE_TEXT: Record<Move, string> = {
-  review_superseded: 'review the superseded amendments (a new run changed their screens)',
+  review_superseded: 're-anchor amendments in Review (a new scan changed their screens)',
   scan: 'scan the portal',
   continue_scan: 'continue the scan (pages are still queued, or the last scan stopped)',
   narrow_process: 'pick one process to document (its start and end screens)',

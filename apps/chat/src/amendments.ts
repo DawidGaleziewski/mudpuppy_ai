@@ -1,7 +1,8 @@
-// Amendment commands (R-30 T030, data-model.md amendments, research R8/R8b): create and withdraw.
-// Every row passes the core Zod `Amendment` schema. The anchor (fingerprint, route template and,
-// for wireframe elements, `{key, role, name, roleIndex}`) is captured at write time so a later
-// fresh run can tell what changed.
+// Amendment commands (R-30 T030; spec 022 M2, contracts/amendments-api.md): create, withdraw,
+// re-anchor, dismiss, edit, restore. Every row passes the core Zod `Amendment` schema, and every
+// change is a revision (amendment-revisions.ts): nothing is deleted or overwritten. The anchor
+// (fingerprint, route template, screen and, for wireframe elements, `{key, role, name, roleIndex}`)
+// is captured at write time so a later scan can tell what changed.
 
 import { existsSync } from 'node:fs';
 import { readFile } from 'node:fs/promises';
@@ -19,13 +20,24 @@ import {
   AmendmentAnchorElement,
   AmendmentKind,
   AmendmentTargetKind,
+  type AmendmentRevision,
 } from '@pathfinder/chat-model';
 import { type PathfinderDb } from '@pathfinder/store';
 import { z } from 'zod';
+import {
+  checkBase,
+  insertCreated,
+  listRevisions,
+  loadHead,
+  writeRevision,
+} from './amendment-revisions.js';
 import { HttpError } from './http-error.js';
 
 /** Largest attachment accepted, in bytes of file content. */
 export const MAX_ATTACHMENT_BYTES = 8 * 1024 * 1024;
+
+const Author = z.string().trim().min(1).max(200).default('BA');
+const BaseRev = z.number().int().min(1).optional();
 
 export const AmendmentBody = z.object({
   kind: AmendmentKind,
@@ -33,7 +45,7 @@ export const AmendmentBody = z.object({
   target_id: z.string().min(1).max(2_000),
   text: z.string().trim().min(1).max(50_000).optional(),
   scope_id: z.string().min(1).optional(),
-  author: z.string().trim().min(1).max(200).default('BA'),
+  author: Author,
   attachment: z
     .object({
       name: z.string().trim().min(1).max(255),
@@ -43,31 +55,45 @@ export const AmendmentBody = z.object({
 });
 export type AmendmentBody = z.infer<typeof AmendmentBody>;
 
-/** Re-apply a superseded amendment to a current target (T033, FR-022). */
+/** Re-anchor an amendment that needs it to a current target (FE-S02; was "re-apply", T033). */
 export const ReapplyBody = z.object({
   target_kind: AmendmentTargetKind,
   target_id: z.string().min(1).max(2_000),
-  /** Optional new wording; default keeps the original text. */
+  /** Optional new wording; default keeps the text. */
   text: z.string().trim().min(1).max(50_000).optional(),
-  author: z.string().trim().min(1).max(200).default('BA'),
+  author: Author,
+  base_rev: BaseRev,
 });
 export type ReapplyBody = z.infer<typeof ReapplyBody>;
 
+/** Withdraw or dismiss: who, and on which revision. */
+export const DecideBody = z.object({ author: Author, base_rev: BaseRev });
+export type DecideBody = z.infer<typeof DecideBody>;
+
+export const EditBody = z.object({
+  text: z.string().trim().min(1).max(50_000),
+  author: Author,
+  base_rev: z.number().int().min(1),
+});
+export type EditBody = z.infer<typeof EditBody>;
+
+export const RestoreBody = z.object({
+  rev: z.number().int().min(1),
+  author: Author,
+  base_rev: z.number().int().min(1),
+});
+export type RestoreBody = z.infer<typeof RestoreBody>;
+
 export interface AmendmentService {
   create(portal: string, body: AmendmentBody): Promise<Amendment>;
-  withdraw(portal: string, id: string): Promise<Amendment>;
-  /** New active copy on the chosen target, linked both ways; the original stays superseded. */
+  withdraw(portal: string, id: string, body?: DecideBody): Promise<Amendment>;
+  /** Re-anchor in place: same id and key, a new revision on the chosen target. */
   reapply(portal: string, id: string, body: ReapplyBody): Promise<Amendment>;
-  dismiss(portal: string, id: string): Promise<Amendment>;
-}
-
-type Row = Omit<Amendment, 'anchor_element'> & { anchor_element: string | null };
-
-function parseRow(row: Row): Amendment {
-  return Amendment.parse({
-    ...row,
-    anchor_element: row.anchor_element === null ? null : JSON.parse(row.anchor_element),
-  });
+  dismiss(portal: string, id: string, body?: DecideBody): Promise<Amendment>;
+  edit(portal: string, id: string, body: EditBody): Promise<Amendment>;
+  /** Make an earlier revision's text, target and status the newest revision. */
+  restore(portal: string, id: string, body: RestoreBody): Promise<Amendment>;
+  revisions(portal: string, id: string): Promise<AmendmentRevision[]>;
 }
 
 /** Next `AMD-nnn` of the portal: highest number so far plus one, at least three digits. */
@@ -85,6 +111,13 @@ function extensionOf(name: string): string {
   return /^[a-z0-9]{1,10}$/.test(ext) ? ext : 'bin';
 }
 
+interface Anchor {
+  fingerprint: string | null;
+  routeTemplate: string | null;
+  element: AmendmentAnchorElement | null;
+  screenId: string | null;
+}
+
 export function createAmendmentService(opts: {
   db: PathfinderDb;
   evidence: EvidenceStore;
@@ -94,7 +127,7 @@ export function createAmendmentService(opts: {
   async function loadState(portal: string, id: string) {
     const state = await db
       .selectFrom('states')
-      .select(['id', 'fingerprint', 'route_template', 'layout_ref'])
+      .select(['id', 'fingerprint', 'route_template', 'layout_ref', 'screen_id'])
       .where('portal_id', '=', portal)
       .where('id', '=', id)
       .executeTakeFirst();
@@ -110,23 +143,24 @@ export function createAmendmentService(opts: {
     }
   }
 
-  /** Resolve the target; returns the anchor to store (state fields and the element, if any). */
+  /** Resolve the target; returns the anchor to store (state fields, screen and the element). */
   async function resolveAnchor(
     portal: string,
-    body: AmendmentBody,
-  ): Promise<{
-    fingerprint: string | null;
-    routeTemplate: string | null;
-    element: AmendmentAnchorElement | null;
-  }> {
+    body: { target_kind: AmendmentTargetKind; target_id: string },
+  ): Promise<Anchor> {
     if (body.target_kind === 'evidence') {
       if (!isEvidenceRef(body.target_id) || !existsSync(evidence.resolve(body.target_id)))
         throw new HttpError(404, 'This evidence item does not exist.');
-      return { fingerprint: null, routeTemplate: null, element: null };
+      return { fingerprint: null, routeTemplate: null, element: null, screenId: null };
     }
     if (body.target_kind === 'state') {
       const state = await loadState(portal, body.target_id);
-      return { fingerprint: state.fingerprint, routeTemplate: state.route_template, element: null };
+      return {
+        fingerprint: state.fingerprint,
+        routeTemplate: state.route_template,
+        element: null,
+        screenId: state.screen_id,
+      };
     }
     const hash = body.target_id.indexOf('#');
     if (hash <= 0 || hash === body.target_id.length - 1)
@@ -146,8 +180,28 @@ export function createAmendmentService(opts: {
       fingerprint: state.fingerprint,
       routeTemplate: state.route_template,
       element: AmendmentAnchorElement.parse({ key, role: el.role, name: el.name, roleIndex }),
+      screenId: state.screen_id,
     };
   }
+
+  /** Load, check the base, and write one revision in a transaction. */
+  async function change(
+    portal: string,
+    id: string,
+    baseRev: number | undefined,
+    apply: (head: Amendment, trx: PathfinderDb) => Promise<Amendment>,
+  ): Promise<Amendment> {
+    return db.transaction().execute(async (trx) => {
+      const head = await loadHead(trx, portal, id);
+      checkBase(head, baseRev);
+      return apply(head, trx);
+    });
+  }
+
+  const mustBe = (head: Amendment, status: Amendment['status'], what: string): void => {
+    if (head.status !== status)
+      throw new HttpError(409, `Only ${what} (this one is ${head.status.replace('_', ' ')}).`);
+  };
 
   return {
     async create(portal, body) {
@@ -203,139 +257,94 @@ export function createAmendmentService(opts: {
           reapplies: null,
           created_at: nowIso(),
           withdrawn_at: null,
+          rev: 1,
+          screen_id: anchor.screenId,
         });
-        await trx
-          .insertInto('amendments')
-          .values({
-            ...row,
-            anchor_element: row.anchor_element === null ? null : JSON.stringify(row.anchor_element),
-          })
-          .execute();
+        await insertCreated(trx, row, body.author);
         return row;
       });
     },
 
-    async withdraw(portal, id) {
-      return db.transaction().execute(async (trx) => {
-        const found = await trx
-          .selectFrom('amendments')
-          .selectAll()
-          .where('portal_id', '=', portal)
-          .where('id', '=', id)
-          .executeTakeFirst();
-        if (found === undefined) throw new HttpError(404, 'This amendment does not exist.');
-        const current = parseRow(found);
-        if (current.status !== 'active')
-          throw new HttpError(
-            409,
-            `Only an active amendment can be withdrawn (this one is ${current.status}).`,
-          );
-        const next = Amendment.parse({ ...current, status: 'withdrawn', withdrawn_at: nowIso() });
-        await trx
-          .updateTable('amendments')
-          .set({ status: next.status, withdrawn_at: next.withdrawn_at })
-          .where('id', '=', id)
-          .execute();
-        return next;
+    async withdraw(portal, id, body = { author: 'BA' }) {
+      return change(portal, id, body.base_rev, async (head, trx) => {
+        mustBe(head, 'active', 'an active amendment can be withdrawn');
+        return writeRevision(trx, head, 'withdraw', body.author, {
+          status: 'withdrawn',
+          withdrawn_at: nowIso(),
+        });
       });
     },
 
     async reapply(portal, id, body) {
-      const original = await loadSuperseded(portal, id);
-      if (original.kind === 'element_ref' && body.target_kind !== 'wireframe_element')
-        throw new HttpError(400, 'An element reference must be re-applied to a wireframe element.');
-      const anchor = await resolveAnchor(portal, {
-        kind: original.kind,
-        target_kind: body.target_kind,
-        target_id: body.target_id,
-        author: body.author,
-      });
-      return db.transaction().execute(async (trx) => {
-        // Re-check inside the transaction: two clicks must not make two copies.
-        const again = await trx
-          .selectFrom('amendments')
-          .select(['status', 'reapplied_as'])
-          .where('id', '=', id)
-          .executeTakeFirst();
-        if (again?.status !== 'superseded' || again.reapplied_as !== null)
-          throw new HttpError(409, 'This amendment was already re-applied or dismissed.');
-        const keys = await trx
-          .selectFrom('amendments')
-          .select('key')
-          .where('portal_id', '=', portal)
-          .execute();
-        const copy = Amendment.parse({
-          ...original,
-          id: newId(),
-          key: nextKey(keys.map((k) => k.key)),
+      const before = await loadHead(db, portal, id);
+      if (before.kind === 'element_ref' && body.target_kind !== 'wireframe_element')
+        throw new HttpError(
+          400,
+          'An element reference must be re-anchored to a wireframe element.',
+        );
+      const anchor = await resolveAnchor(portal, body);
+      return change(portal, id, body.base_rev, async (head, trx) => {
+        mustBe(head, 'needs_reanchor', 'an amendment that needs re-anchoring can be re-anchored');
+        return writeRevision(trx, head, 'reanchor', body.author, {
+          status: 'active',
           target_kind: body.target_kind,
           target_id: body.target_id,
-          text: body.text === undefined ? original.text : SECRETS.redact(body.text),
-          author: body.author,
-          status: 'active',
+          text: body.text === undefined ? head.text : SECRETS.redact(body.text),
           anchor_fingerprint: anchor.fingerprint,
           anchor_route_template: anchor.routeTemplate,
           anchor_element: anchor.element,
-          superseded_by_run: null,
-          superseded_reason: null,
-          superseded_detail: null,
-          superseded_at: null,
-          dismissed_at: null,
-          reapplied_as: null,
-          reapplies: original.id,
-          created_at: nowIso(),
-          withdrawn_at: null,
+          screen_id: anchor.screenId ?? head.screen_id,
         });
-        await trx
-          .insertInto('amendments')
-          .values({
-            ...copy,
-            anchor_element:
-              copy.anchor_element === null ? null : JSON.stringify(copy.anchor_element),
-          })
-          .execute();
-        await trx
-          .updateTable('amendments')
-          .set({ reapplied_as: copy.id })
-          .where('id', '=', original.id)
-          .execute();
-        return copy;
       });
     },
 
-    async dismiss(portal, id) {
-      const original = await loadSuperseded(portal, id);
-      const next = Amendment.parse({ ...original, status: 'dismissed', dismissed_at: nowIso() });
-      const done = await db
-        .updateTable('amendments')
-        .set({ status: next.status, dismissed_at: next.dismissed_at })
-        .where('id', '=', id)
-        .where('status', '=', 'superseded')
-        .where('reapplied_as', 'is', null)
-        .executeTakeFirst();
-      if (Number(done.numUpdatedRows) !== 1)
-        throw new HttpError(409, 'This amendment was already re-applied or dismissed.');
-      return next;
+    async dismiss(portal, id, body = { author: 'BA' }) {
+      return change(portal, id, body.base_rev, async (head, trx) => {
+        mustBe(head, 'needs_reanchor', 'an amendment that needs re-anchoring can be dismissed');
+        return writeRevision(trx, head, 'dismiss', body.author, {
+          status: 'dismissed',
+          dismissed_at: nowIso(),
+        });
+      });
+    },
+
+    async edit(portal, id, body) {
+      return change(portal, id, body.base_rev, async (head, trx) => {
+        mustBe(head, 'active', 'an active amendment can be edited');
+        return writeRevision(trx, head, 'edit', body.author, { text: SECRETS.redact(body.text) });
+      });
+    },
+
+    async restore(portal, id, body) {
+      return change(portal, id, body.base_rev, async (head, trx) => {
+        const old = (await listRevisions(trx, id)).find((r) => r.rev === body.rev);
+        if (old === undefined)
+          throw new HttpError(404, `${head.key} has no revision ${String(body.rev)}.`);
+        const now = nowIso();
+        return writeRevision(
+          trx,
+          head,
+          'restore',
+          body.author,
+          {
+            status: old.status,
+            target_kind: old.target_kind,
+            target_id: old.target_id,
+            text: old.text,
+            anchor_fingerprint: old.anchor_fingerprint,
+            anchor_route_template: old.anchor_route_template,
+            anchor_element: old.anchor_element,
+            withdrawn_at: old.status === 'withdrawn' ? (head.withdrawn_at ?? now) : null,
+            dismissed_at: old.status === 'dismissed' ? (head.dismissed_at ?? now) : null,
+          },
+          { reason: `restored revision ${String(body.rev)}` },
+        );
+      });
+    },
+
+    async revisions(portal, id) {
+      await loadHead(db, portal, id);
+      return listRevisions(db, id);
     },
   };
-
-  /** A superseded amendment of the portal that was neither re-applied nor dismissed yet. */
-  async function loadSuperseded(portal: string, id: string): Promise<Amendment> {
-    const found = await db
-      .selectFrom('amendments')
-      .selectAll()
-      .where('portal_id', '=', portal)
-      .where('id', '=', id)
-      .executeTakeFirst();
-    if (found === undefined) throw new HttpError(404, 'This amendment does not exist.');
-    const current = parseRow(found);
-    if (current.status !== 'superseded')
-      throw new HttpError(
-        409,
-        `Only a superseded amendment can be re-applied or dismissed (this one is ${current.status}).`,
-      );
-    if (current.reapplied_as !== null)
-      throw new HttpError(409, 'This amendment was already re-applied.');
-    return current;
-  }
 }

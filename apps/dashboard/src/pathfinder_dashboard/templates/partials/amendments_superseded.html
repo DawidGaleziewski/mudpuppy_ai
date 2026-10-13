@@ -58,9 +58,9 @@
           <td data-label="newer run">{% if a.superseded_by_run %}<a href="{{ c.url('/runs/' ~ a.superseded_by_run) }}"><code>{{ a.superseded_by_run | short_id }}</code></a>{% else %}<span class="muted">—</span>{% endif %}</td>
           <td data-label="when">{{ (a.superseded_at or a.dismissed_at) | when }}</td>
           <td data-label="action">
-            {%- if a.status == "superseded" and a.reapplied_as %}
+            {%- if a.status == "needs_reanchor" and a.reapplied_as %}
             <span class="muted">re-applied as a new amendment</span>
-            {%- elif a.status == "superseded" %}
+            {%- elif a.status == "needs_reanchor" %}
             <details class="reapply">
               <summary class="btn btn-bracket">[re-apply]</summary>
               <form class="tool-form" data-json-form="reapply" method="post"

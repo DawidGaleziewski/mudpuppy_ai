@@ -29,6 +29,11 @@ rather than editing this folder ad hoc.
   carry `portal_id` (`chat_messages` via its conversation), so `portal:export` and `portal:delete`
   include them. Chat error logs are files in `logs/chat/` (JSONL, 30-day retention), not tables.
   Shapes: `specs/010-acp-chat-orchestrator/data-model.md`.
+  **Screens and amendment revisions** (since spec 022, `0015_screens`, `0016_amendment_revisions`): `screens`
+  (one per portal, route template and cluster; each `states` row is an observed revision of its screen via
+  `screen_id` + `screen_rev`), `amendment_revisions` (append-only history of an amendment; `amendments` keeps the
+  head, `rev` and `screen_id`; status `superseded` became `needs_reanchor`). Shapes:
+  `specs/022-salvage-redesign/data-model.md`.
 - `evidence/` — content-addressed (`sha256`) evidence blobs: ARIA snapshots, robots.txt
   policies and trace payloads too large for their column, referenced by `evidence_ref` columns;
   since spec 008 also state screenshots (`.png`, unmasked), layouts (`.json`: element keys and

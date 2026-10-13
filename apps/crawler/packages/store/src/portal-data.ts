@@ -41,6 +41,8 @@ export const PORTAL_TABLES = [
   'workflow_steps',
   'process_scopes',
   'amendments',
+  'amendment_revisions',
+  'screens',
 ] as const;
 export type PortalTable = (typeof PORTAL_TABLES)[number];
 
@@ -50,7 +52,9 @@ export type PortalTable = (typeof PORTAL_TABLES)[number];
  * and processes reference runs, actions and doc_records. The chat tables (`0008_chat_orchestrator`)
  * go before even those: amendments reference process_scopes and runs; process_scopes reference
  * states; workflow_steps reference runs and analysis_sessions; all but amendments reference
- * chat_conversations, and chat_messages are its children. amendments' self-references
+ * chat_conversations, and chat_messages are its children. `amendment_revisions` (`0016`) precede
+ * amendments, and `screens` (`0015`) follow states (states and amendments reference them) and precede
+ * runs (`first_seen_run`). amendments' self-references
  * (`reapplied_as`, `reapplies`) are within one portal and go in one DELETE statement. Layer B
  * (`0004_ba_documentation`, data-model.md "Portal data partition") goes first: reviews, relations and
  * evidence links are children of doc_revisions; followup_tasks and doc_revisions are children of
@@ -62,6 +66,7 @@ export type PortalTable = (typeof PORTAL_TABLES)[number];
  * `decision_log` and `runs`.
  */
 const DELETE_ORDER: readonly PortalTable[] = [
+  'amendment_revisions',
   'amendments',
   'process_scopes',
   'workflow_steps',
@@ -92,6 +97,7 @@ const DELETE_ORDER: readonly PortalTable[] = [
   'state_observations',
   'state_wireframes',
   'states',
+  'screens',
   'runs',
 ];
 
@@ -126,6 +132,7 @@ export function where(table: PortalTable, side: 'mine' | 'others'): string {
     case 'workflow_steps':
     case 'process_scopes':
     case 'amendments':
+    case 'screens':
       return `portal_id ${op} ?`;
     case 'chat_messages':
       return `conversation_id IN (SELECT id FROM chat_conversations WHERE portal_id ${op} ?)`;
@@ -140,6 +147,8 @@ export function where(table: PortalTable, side: 'mine' | 'others'): string {
       return `from_revision_id IN (${DOC_REVISIONS_OF_PORTAL(op)})`;
     case 'followup_tasks':
       return `record_id IN (${DOC_RECORDS_OF_PORTAL(op)})`;
+    case 'amendment_revisions':
+      return `amendment_id IN (SELECT id FROM amendments WHERE portal_id ${op} ?)`;
     case 'process_steps':
       return `process_id IN (SELECT id FROM processes WHERE portal_id ${op} ?)`;
     case 'state_wireframes':

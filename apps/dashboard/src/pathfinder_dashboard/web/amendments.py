@@ -20,6 +20,13 @@ router = APIRouter()
 MAX_ATTACHMENT_B64 = (8 * 1024 * 1024 * 4 + 2) // 3
 
 
+def _author(request: Request) -> dict[str, str]:
+    """Who makes the change (spec 022: every revision is signed): the configured reviewer name;
+    without one the chat service records `BA`."""
+    reviewer = web_of(request).settings.reviewer
+    return {"author": reviewer} if reviewer else {}
+
+
 @router.post("/chat/portals/{portal}/amendments")
 async def amendment_create(request: Request, portal: str) -> JSONResponse:
     if not same_origin(request):
@@ -41,6 +48,7 @@ async def amendment_create(request: Request, portal: str) -> JSONResponse:
         sent["attachment"] = {"name": name, "content_base64": content}
     if not all(k in sent for k in ("kind", "target_kind", "target_id")):
         return invalid("The amendment has no target.")
+    sent = {**_author(request), **sent}
     return await forward(web, "POST", f"/portals/{quote(portal, safe='')}/amendments", sent)
 
 
@@ -53,6 +61,7 @@ async def amendment_withdraw(request: Request, portal: str, amendment_id: str) -
         web,
         "DELETE",
         f"/portals/{quote(portal, safe='')}/amendments/{quote(amendment_id, safe='')}",
+        _author(request) or None,
     )
 
 
@@ -73,7 +82,7 @@ async def amendment_reapply(request: Request, portal: str, amendment_id: str) ->
         web,
         "POST",
         f"/portals/{quote(portal, safe='')}/amendments/{quote(amendment_id, safe='')}/reapply",
-        sent,
+        {**_author(request), **sent},
     )
 
 
@@ -86,7 +95,7 @@ async def amendment_dismiss(request: Request, portal: str, amendment_id: str) ->
         web,
         "POST",
         f"/portals/{quote(portal, safe='')}/amendments/{quote(amendment_id, safe='')}/dismiss",
-        {},
+        _author(request),
     )
 
 

@@ -9,12 +9,12 @@
     {%- for a in am["items"] %}
     <li class="sy-row" id="{{ a.key }}">
       <div class="sy-split">
-        <span class="sy-cluster">{{ sy.tag(a.key, sm=true) }} {{ sy.amendment_status(a.status) }}
+        <span class="sy-cluster">{{ sy.tag(a.key ~ " r" ~ a.rev, sm=true) }} {{ sy.amendment_status(a.status) }}
           <span class="sy-small">{% if a.target_kind == "state" %}Whole screen{% else %}Element <span class="sy-mono sy-mono--sm">{{ a.target_id.split("#", 1)[1] }}</span>{% endif %}</span></span>
         <span class="sy-actions">
           {%- if a.status == "active" %}
           <button class="sy-btn sy-btn--sm sy-btn--quiet" type="button" data-withdraw="/chat/portals/{{ a.portal_id | urlencode }}/amendments/{{ a.id | urlencode }}" data-label="{{ a.key }}">Withdraw</button>
-          {%- elif a.status == "superseded" %}
+          {%- elif a.status == "needs_reanchor" %}
           <a class="sy-btn sy-btn--sm" href="{{ c.url('/amendments/superseded', portal=a.portal_id) }}">Re-anchor</a>
           {%- endif %}
         </span>

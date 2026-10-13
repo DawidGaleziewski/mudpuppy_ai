@@ -1,4 +1,5 @@
 import { Confidence, PageComposition, Stabilization, newId, nowIso } from '@pathfinder/core';
+import type { PathfinderDb } from '@pathfinder/store';
 import { z } from 'zod';
 import type { ServerContext } from '../context.js';
 import { parseInput } from '../errors.js';
@@ -39,6 +40,49 @@ export async function setStateVisuals(
   return Number(r.numUpdatedRows) === 1;
 }
 
+/**
+ * The screen a new state is a revision of (spec 022 R1: `(portal, route template, cluster)`),
+ * created on its first state, and the state's revision number (r1, r2, … by first sighting).
+ * The screen's title follows its newest revision.
+ */
+async function screenFor(
+  trx: PathfinderDb, // a transaction is a Kysely instance too
+  run: { id: string; portal_id: string },
+  input: { route_template: string; cluster_id: string; title: string },
+  ts: string,
+): Promise<{ id: string; nextRev: number }> {
+  const found = await trx
+    .selectFrom('screens')
+    .select('id')
+    .where('portal_id', '=', run.portal_id)
+    .where('route_template', '=', input.route_template)
+    .where('cluster_id', '=', input.cluster_id)
+    .executeTakeFirst();
+  if (found === undefined) {
+    const id = newId();
+    await trx
+      .insertInto('screens')
+      .values({
+        id,
+        portal_id: run.portal_id,
+        route_template: input.route_template,
+        cluster_id: input.cluster_id,
+        title: input.title,
+        first_seen_run: run.id,
+        created_at: ts,
+      })
+      .execute();
+    return { id, nextRev: 1 };
+  }
+  const last = await trx
+    .selectFrom('states')
+    .select((eb) => eb.fn.max('screen_rev').as('rev'))
+    .where('screen_id', '=', found.id)
+    .executeTakeFirst();
+  await trx.updateTable('screens').set({ title: input.title }).where('id', '=', found.id).execute();
+  return { id: found.id, nextRev: Number(last?.rev ?? 0) + 1 };
+}
+
 /** Idempotent by fingerprint: an existing state is reused (`created: false`) and the run's sighting recorded. */
 export async function recordState(
   ctx: ServerContext,
@@ -65,6 +109,7 @@ export async function recordState(
     } else {
       stateId = newId();
       created = true;
+      const screen = await screenFor(trx, run, input, ts);
       await trx
         .insertInto('states')
         .values({
@@ -79,6 +124,8 @@ export async function recordState(
           stabilization: input.stabilization,
           first_seen_run: run.id,
           created_at: ts,
+          screen_id: screen.id,
+          screen_rev: screen.nextRev,
         })
         .execute();
     }

@@ -7,7 +7,8 @@ import { doc, table } from './format.js';
  */
 export interface ExportAmendment {
   key: string;
-  status: 'active' | 'superseded' | 'dismissed';
+  /** `needs_reanchor` replaced `superseded` (spec 022, migration 0016). */
+  status: 'active' | 'needs_reanchor' | 'dismissed';
   target_kind: string;
   target_id: string;
   kind: string;
@@ -62,8 +63,8 @@ export function toBeAmendments(portalId: string, list: readonly ExportAmendment[
     '# 13. To-be amendments',
     '',
     `Changes the BA wants to the as-is portal \`${portalId}\`. These are **to-be** statements, not`,
-    'observed facts: every other chapter describes the portal as it was recorded. Superseded and',
-    'dismissed amendments are listed in `appendix-superseded-amendments.md`.',
+    'observed facts: every other chapter describes the portal as it was recorded. Amendments that',
+    'need re-anchoring and dismissed ones are listed in `appendix-superseded-amendments.md`.',
     '',
     ...(active.length === 0
       ? ['_none active_']
@@ -82,14 +83,17 @@ export function toBeAmendments(portalId: string, list: readonly ExportAmendment[
   ]);
 }
 
-/** `appendix-superseded-amendments.md`: what was dropped and why (FR-023). */
+/**
+ * `appendix-superseded-amendments.md` (file name kept for existing exports): amendments waiting for
+ * a person to re-anchor them, and dismissed ones, with the reason (FR-023, spec 022 FE-S02).
+ */
 export function supersededAmendments(list: readonly ExportAmendment[]): string {
   const gone = list.filter((a) => a.status !== 'active');
   return doc([
-    '# Appendix: superseded and dismissed amendments',
+    '# Appendix: amendments to re-anchor and dismissed amendments',
     '',
-    'Amendments a fresh run made out of date (the screen or element they targeted changed) and',
-    'amendments the BA dismissed. They are not part of the to-be chapter.',
+    'Amendments whose screen or element changed in a fresh scan, so a person has to pick their new',
+    'anchor, and amendments the BA dismissed. They are not part of the to-be chapter.',
     '',
     ...(gone.length === 0
       ? ['_none_']

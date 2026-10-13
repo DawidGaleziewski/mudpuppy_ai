@@ -250,6 +250,20 @@ class State(Row):
     created_at: str
     screenshot_ref: str | None = None  # spec 008: PNG, set when the state was first recorded
     layout_ref: str | None = None  # spec 008: Layout JSON (element keys and boxes)
+    screen_id: str | None = None  # 0015: the screen this state is a revision of
+    screen_rev: int | None = None  # 0015: r1, r2, ... by first sighting within the screen
+
+
+class Screen(Row):
+    """A screen (0015): (portal, route template, cluster); its states are its observed revisions."""
+
+    id: str
+    portal_id: str
+    route_template: str
+    cluster_id: str
+    title: str
+    first_seen_run: str
+    created_at: str
 
 
 class StateWireframe(Row):
@@ -570,7 +584,7 @@ class Amendment(Row):
     attachment_sha256: str | None
     attachment_name: str | None
     author: str
-    status: Literal["active", "superseded", "dismissed", "withdrawn"]
+    status: Literal["active", "needs_reanchor", "dismissed", "withdrawn"]
     anchor_fingerprint: str | None
     anchor_route_template: str | None
     anchor_element: Json | None
@@ -583,6 +597,37 @@ class Amendment(Row):
     reapplies: str | None
     created_at: str
     withdrawn_at: str | None
+    rev: int  # 0016: the head's current revision number
+    screen_id: str | None  # 0016: the screen the amendment belongs to
+
+
+class AmendmentRevision(Row):
+    """One immutable revision of an amendment (0016, append-only)."""
+
+    amendment_id: str
+    rev: int
+    base_rev: int | None
+    change: Literal[
+        "create",
+        "edit",
+        "carry_forward",
+        "needs_reanchor",
+        "reanchor",
+        "withdraw",
+        "restore",
+        "dismiss",
+    ]
+    author: str
+    status: Literal["active", "needs_reanchor", "dismissed", "withdrawn"]
+    target_kind: Literal["state", "evidence", "wireframe_element"]
+    target_id: str
+    text: str | None
+    anchor_fingerprint: str | None
+    anchor_route_template: str | None
+    anchor_element: Json | None
+    reason: str | None
+    run_id: str | None
+    created_at: str
 
 
 TABLE_MODELS: dict[str, type[Row]] = {
@@ -595,6 +640,7 @@ TABLE_MODELS: dict[str, type[Row]] = {
     "page_visits": PageVisit,
     "open_questions": OpenQuestion,
     "rule_candidates": RuleCandidate,
+    "screens": Screen,
     "states": State,
     "state_wireframes": StateWireframe,
     "frontier": FrontierItem,
@@ -620,6 +666,7 @@ TABLE_MODELS: dict[str, type[Row]] = {
     "workflow_steps": WorkflowStep,
     "process_scopes": ProcessScope,
     "amendments": Amendment,
+    "amendment_revisions": AmendmentRevision,
 }
 
 

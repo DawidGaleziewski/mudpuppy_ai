@@ -437,8 +437,9 @@ def state_elements(data_dir: Path, state: State) -> list[tuple[str, str]]:
 def superseded_amendments(
     conn: sqlite3.Connection, portal: str | None, show: str
 ) -> list[Amendment]:
-    statuses = {"superseded": ("superseded",), "dismissed": ("dismissed",)}.get(
-        show, ("superseded", "dismissed")
+    # The `superseded` filter key stays for old links; the status is `needs_reanchor` (spec 022).
+    statuses = {"superseded": ("needs_reanchor",), "dismissed": ("dismissed",)}.get(
+        show, ("needs_reanchor", "dismissed")
     )
     marks = ", ".join("?" for _ in statuses)
     sql = f"SELECT * FROM amendments WHERE status IN ({marks})"
@@ -451,12 +452,13 @@ def superseded_amendments(
 
 
 def superseded_counts(conn: sqlite3.Connection) -> dict[str, int]:
-    """Superseded amendments per portal that still wait for a decision (a re-applied one does not;
-    a dismissed one has another status)."""
+    """Amendments per portal that wait for a person to re-anchor them (spec 022 FE-S02; a
+    re-anchored or dismissed one has another status)."""
     try:
         rows = conn.execute(
             "SELECT portal_id, COUNT(*) AS n FROM amendments"
-            " WHERE status = 'superseded' AND reapplied_as IS NULL GROUP BY portal_id"
+            # reapplied_as: rows re-applied as a copy before spec 022 are already handled
+            " WHERE status = 'needs_reanchor' AND reapplied_as IS NULL GROUP BY portal_id"
         ).fetchall()
     except sqlite3.OperationalError:
         return {}

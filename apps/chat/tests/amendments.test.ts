@@ -211,8 +211,8 @@ describe('amendment commands', () => {
     ).toBe(404);
   });
 
-  describe('superseded amendments (T033, FR-022)', () => {
-    async function superseded(): Promise<string> {
+  describe('amendments that need re-anchoring (T033, spec 022 FE-S02)', () => {
+    async function needsReanchor(): Promise<string> {
       const created = (await (
         await post({
           kind: 'note',
@@ -221,46 +221,72 @@ describe('amendment commands', () => {
           text: 'Make it green',
         })
       ).json()) as { id: string };
+      // What a scan writes when the anchor is gone (reanchor.ts): head + revision 2.
       t.opened.raw
         .prepare(
-          `UPDATE amendments SET status = 'superseded', superseded_reason = 'state_replaced',
-             superseded_detail = 'changed', superseded_by_run = 'run-1', superseded_at = ? WHERE id = ?`,
+          `UPDATE amendments SET status = 'needs_reanchor', superseded_reason = 'state_replaced',
+             superseded_detail = 'changed', superseded_by_run = 'run-1', superseded_at = ?, rev = 2 WHERE id = ?`,
         )
         .run(T, created.id);
+      t.opened.raw
+        .prepare(
+          `INSERT INTO amendment_revisions (amendment_id, rev, base_rev, change, author, status, target_kind,
+             target_id, text, created_at) VALUES (?, 2, 1, 'needs_reanchor', 'scan:run-1', 'needs_reanchor',
+             'state', 's-offer', 'Make it green', ?)`,
+        )
+        .run(created.id, T);
       return created.id;
     }
-    const action = (id: string, what: 'reapply' | 'dismiss', body: unknown = {}) =>
+    const action = (
+      id: string,
+      what: 'reapply' | 'reanchor' | 'dismiss' | 'restore',
+      body: unknown = {},
+    ) =>
       fetch(`${base}/portals/${P}/amendments/${id}/${what}`, {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify(body),
       });
+    const history = async (id: string) =>
+      (await (await fetch(`${base}/portals/${P}/amendments/${id}/revisions`)).json()) as {
+        rev: number;
+        change: string;
+        status: string;
+        author: string;
+      }[];
 
-    it('re-applies to a current state: a new active copy, linked both ways, original kept', async () => {
-      const id = await superseded();
-      const res = await action(id, 'reapply', { target_kind: 'state', target_id: 's-bare' });
-      expect(res.status).toBe(201);
-      const copy = (await res.json()) as Record<string, unknown>;
-      expect(copy).toMatchObject({
-        key: 'AMD-002',
+    it('re-anchors in place: same id and key, a new revision, the whole history kept', async () => {
+      const id = await needsReanchor();
+      const res = await action(id, 'reanchor', {
+        target_kind: 'state',
+        target_id: 's-bare',
+        author: 'Ola',
+      });
+      expect(res.status).toBe(200);
+      expect((await res.json()) as Record<string, unknown>).toMatchObject({
+        id,
+        key: 'AMD-001',
         status: 'active',
+        rev: 3,
         text: 'Make it green',
         target_id: 's-bare',
         anchor_fingerprint: 'fp-bare',
-        reapplies: id,
       });
-      const original = t.opened.raw
-        .prepare('SELECT status, reapplied_as FROM amendments WHERE id = ?')
-        .get(id);
-      expect(original).toEqual({ status: 'superseded', reapplied_as: copy.id });
+      expect((await history(id)).map((r) => [r.rev, r.change, r.status, r.author])).toEqual([
+        [1, 'create', 'active', 'BA'],
+        [2, 'needs_reanchor', 'needs_reanchor', 'scan:run-1'],
+        [3, 'reanchor', 'active', 'Ola'],
+      ]);
+      // The old route name still works, but only while it needs re-anchoring.
       expect(
         (await action(id, 'reapply', { target_kind: 'state', target_id: 's-bare' })).status,
       ).toBe(409);
       expect((await action(id, 'dismiss')).status).toBe(409);
+      expect(t.opened.raw.prepare('SELECT count(*) AS n FROM amendments').get()).toEqual({ n: 1 });
     });
 
     it('dismisses once and keeps the row', async () => {
-      const id = await superseded();
+      const id = await needsReanchor();
       const res = await action(id, 'dismiss');
       expect(res.status).toBe(200);
       expect(((await res.json()) as { status: string }).status).toBe('dismissed');
@@ -273,11 +299,75 @@ describe('amendment commands', () => {
         await post({ kind: 'note', target_kind: 'state', target_id: 's-offer', text: 'x' })
       ).json()) as { id: string };
       expect((await action(active.id, 'dismiss')).status).toBe(409);
-      const id = await superseded();
+      const id = await needsReanchor();
       expect(
-        (await action(id, 'reapply', { target_kind: 'state', target_id: 'ghost' })).status,
+        (await action(id, 'reanchor', { target_kind: 'state', target_id: 'ghost' })).status,
       ).toBe(404);
       expect((await action('nope', 'dismiss')).status).toBe(404);
+    });
+  });
+
+  describe('revisions: edit, restore, stale base (spec 022 FR-004, FR-005)', () => {
+    const edit = (id: string, body: unknown) =>
+      fetch(`${base}/portals/${P}/amendments/${id}`, {
+        method: 'PATCH',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+
+    it('edits on the latest revision; a save on an older base is refused with the latest', async () => {
+      const a = (await (
+        await post({ kind: 'note', target_kind: 'state', target_id: 's-offer', text: 'v1' })
+      ).json()) as { id: string; rev: number };
+      expect(a.rev).toBe(1);
+      const ok = await edit(a.id, { text: 'v2', author: 'Ola', base_rev: 1 });
+      expect(ok.status).toBe(200);
+      expect(await ok.json()).toMatchObject({ text: 'v2', rev: 2 });
+      // A second tab still on revision 1:
+      const stale = await edit(a.id, { text: 'v2 from another tab', author: 'Jan', base_rev: 1 });
+      expect(stale.status).toBe(409);
+      const body = (await stale.json()) as { code: string; latest: { rev: number; text: string } };
+      expect(body.code).toBe('STALE_REVISION');
+      expect(body.latest).toMatchObject({ rev: 2, text: 'v2' });
+    });
+
+    it('restore makes an old revision the newest; nothing is lost', async () => {
+      const a = (await (
+        await post({ kind: 'note', target_kind: 'state', target_id: 's-offer', text: 'v1' })
+      ).json()) as { id: string };
+      await edit(a.id, { text: 'v2', author: 'Ola', base_rev: 1 });
+      const res = await fetch(`${base}/portals/${P}/amendments/${a.id}/restore`, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ rev: 1, author: 'Ola', base_rev: 2 }),
+      });
+      expect(res.status).toBe(200);
+      expect(await res.json()).toMatchObject({ text: 'v1', rev: 3, status: 'active' });
+      const revs = t.opened.raw
+        .prepare(
+          'SELECT rev, change, text FROM amendment_revisions WHERE amendment_id = ? ORDER BY rev',
+        )
+        .all(a.id);
+      expect(revs).toEqual([
+        { rev: 1, change: 'create', text: 'v1' },
+        { rev: 2, change: 'edit', text: 'v2' },
+        { rev: 3, change: 'restore', text: 'v1' },
+      ]);
+    });
+
+    it('withdraw takes the author and base from the query (the dashboard button)', async () => {
+      const a = (await (
+        await post({ kind: 'note', target_kind: 'state', target_id: 's-offer', text: 'x' })
+      ).json()) as { id: string };
+      const stale = await fetch(`${base}/portals/${P}/amendments/${a.id}?author=Ola&base_rev=7`, {
+        method: 'DELETE',
+      });
+      expect(stale.status).toBe(409);
+      const res = await fetch(`${base}/portals/${P}/amendments/${a.id}?author=Ola&base_rev=1`, {
+        method: 'DELETE',
+      });
+      expect(res.status).toBe(200);
+      expect(await res.json()).toMatchObject({ status: 'withdrawn', rev: 2 });
     });
   });
 });

@@ -38,6 +38,8 @@ describe('record schemas', () => {
     stabilization: 'settled',
     first_seen_run: 'r',
     created_at: ts,
+    screen_id: null,
+    screen_rev: null,
   };
   it('accepts a valid state and rejects empty evidence_ref or bad confidence', () => {
     expect(State.safeParse(state).success).toBe(true);

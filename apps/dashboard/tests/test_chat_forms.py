@@ -103,8 +103,10 @@ def seed_amendment(store: Store, n: int, **over: object) -> None:
 
 
 def seed_superseded(store: Store, n: int, **over: object) -> None:
+    """An amendment a scan flagged for re-anchoring (`needs_reanchor` replaced `superseded`,
+    spec 022); the superseded_* columns keep why."""
     row: dict[str, object] = {
-        "status": "superseded",
+        "status": "needs_reanchor",
         "superseded_by_run": RUN,
         "superseded_reason": "element_changed",
         "superseded_detail": "button renamed",
@@ -610,7 +612,8 @@ def test_superseded_page_shows_reason_run_target_and_actions(mapped: Store) -> N
     html, body = r.text, text(r.text)
     assert r.status_code == 200 and "Amendments to review TO-BE" in body
     assert "rename <b>it</b>" not in html and "rename &lt;b&gt;it&lt;/b&gt;" in html
-    assert "[OLD.] superseded" in body and "element changed" in body and "button renamed" in body
+    assert "[OLD.] needs reanchor" in body
+    assert "element changed" in body and "button renamed" in body
     assert "state replaced by a newer recording" in body and "new layout" in body
     assert f'href="/runs/{RUN}"' in html and 'href="/states/st-1"' in html
     assert "re-applied as a new amendment" in body  # AMD-002 has no actions

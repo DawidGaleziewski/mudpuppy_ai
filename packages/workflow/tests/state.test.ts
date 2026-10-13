@@ -274,7 +274,7 @@ describe('workflowState', () => {
       supersededAmendments: 2,
     });
     expect(s.proposals[0]).toBe('review_superseded');
-    expect(step(s, 'amend').detail).toBe('1 amendment(s); 2 superseded to review');
+    expect(step(s, 'amend').detail).toBe('1 amendment(s); 2 to re-anchor');
   });
 
   it('is deterministic', () => {

@@ -1,4 +1,4 @@
--- GENERATED from data/migrations/*.up.sql applied in order (currently through 0014_relation_vocabulary). Do not edit by hand.
+-- GENERATED from data/migrations/*.up.sql applied in order (currently through 0016_amendment_revisions). Do not edit by hand.
 -- Regenerate after every migration; see data/schema/README.md.
 
 CREATE TABLE runs (
@@ -129,10 +129,14 @@ CREATE TABLE states (
   created_at     TEXT NOT NULL,
   -- 0006: captured once when the state is first recorded; NULL when capture failed or pre-0006.
   screenshot_ref TEXT CHECK (screenshot_ref IS NULL OR length(screenshot_ref) > 0),
-  layout_ref     TEXT CHECK (layout_ref IS NULL OR length(layout_ref) > 0)
+  layout_ref     TEXT CHECK (layout_ref IS NULL OR length(layout_ref) > 0),
+  -- 0015 (ALTER TABLE): the screen this state is a revision of, and its number (r1, r2, ... by first sighting).
+  screen_id      TEXT REFERENCES screens(id),
+  screen_rev     INTEGER CHECK (screen_rev IS NULL OR screen_rev >= 1)
 ) STRICT;
 CREATE UNIQUE INDEX ux_states_portal_fingerprint ON states(portal_id, fingerprint);
 CREATE INDEX ix_states_portal_cluster ON states(portal_id, cluster_id);
+CREATE UNIQUE INDEX ux_states_screen_rev ON states (screen_id, screen_rev);
 
 -- Rebuilt by 0002_portal_workspaces: status CHECK adds 'robots_disallowed' (FR-003).
 -- Server-owned frontier: pending queue + done + skipped in one table. Visited set = state_observations + status 'done'.
@@ -591,7 +595,7 @@ CREATE TABLE amendments (
   attachment_sha256 TEXT CHECK (attachment_sha256 IS NULL OR length(attachment_sha256) = 64),
   attachment_name   TEXT,
   author            TEXT NOT NULL CHECK (length(author) > 0),
-  status            TEXT NOT NULL DEFAULT 'active' CHECK (status IN ('active','superseded','dismissed','withdrawn')),
+  status            TEXT NOT NULL DEFAULT 'active' CHECK (status IN ('active','needs_reanchor','dismissed','withdrawn')),  -- 0016: was 'superseded'
   anchor_fingerprint    TEXT,                                      -- fingerprint of the state when written
   anchor_route_template TEXT,
   anchor_element    TEXT CHECK (anchor_element IS NULL OR (json_valid(anchor_element) AND json_type(anchor_element) = 'object')),  -- role, accessible name, wireframe element id
@@ -604,10 +608,11 @@ CREATE TABLE amendments (
   reapplies         TEXT REFERENCES amendments(id),                -- the original this row copies
   created_at        TEXT NOT NULL,
   withdrawn_at      TEXT,
+  rev               INTEGER NOT NULL DEFAULT 1 CHECK (rev >= 1),  -- 0016: the head's current revision number
+  screen_id         TEXT REFERENCES screens(id),                   -- 0016: the screen the amendment belongs to
   UNIQUE (portal_id, key),
   CHECK (kind <> 'note' OR text IS NOT NULL),
   CHECK (kind <> 'attachment' OR (attachment_sha256 IS NOT NULL AND attachment_name IS NOT NULL)),
-  CHECK (status <> 'superseded' OR (superseded_at IS NOT NULL AND superseded_reason IS NOT NULL)),
   CHECK (status <> 'dismissed' OR dismissed_at IS NOT NULL),
   CHECK (status <> 'withdrawn' OR withdrawn_at IS NOT NULL)
 ) STRICT;
@@ -627,3 +632,38 @@ CREATE TABLE page_visits (
 ) STRICT;
 CREATE INDEX idx_page_visits_run_state ON page_visits (run_id, state_id);
 CREATE INDEX idx_page_visits_state ON page_visits (state_id);
+
+-- 0015_screens (spec 022): a screen is (portal_id, route_template, cluster_id); each state is one observed
+-- revision of it (states.screen_id + screen_rev). Created by the same migration that adds those columns.
+CREATE TABLE screens (
+  id             TEXT PRIMARY KEY,                                  -- UUIDv7
+  portal_id      TEXT NOT NULL,
+  route_template TEXT NOT NULL,
+  cluster_id     TEXT NOT NULL,
+  title          TEXT NOT NULL,                                     -- title of the latest revision (display only)
+  first_seen_run TEXT NOT NULL REFERENCES runs(id),
+  created_at     TEXT NOT NULL,
+  UNIQUE (portal_id, route_template, cluster_id)
+) STRICT;
+
+-- 0016_amendment_revisions (spec 022): append-only history of an amendment; amendments (above, rebuilt by
+-- 0016) keeps the head. The head changes only together with a new revision row, in one transaction.
+CREATE TABLE amendment_revisions (
+  amendment_id          TEXT NOT NULL REFERENCES amendments(id),
+  rev                   INTEGER NOT NULL CHECK (rev >= 1),
+  base_rev              INTEGER CHECK (base_rev IS NULL OR base_rev >= 1),  -- the revision this one was written on top of; NULL for r1
+  change                TEXT NOT NULL CHECK (change IN ('create','edit','carry_forward','needs_reanchor','reanchor','withdraw','restore','dismiss')),
+  author                TEXT NOT NULL CHECK (length(author) > 0),           -- reviewer, or 'scan:<run id>' for automatic carry-forward
+  status                TEXT NOT NULL CHECK (status IN ('active','needs_reanchor','dismissed','withdrawn')),
+  target_kind           TEXT NOT NULL CHECK (target_kind IN ('state','evidence','wireframe_element')),
+  target_id             TEXT NOT NULL CHECK (length(target_id) > 0),
+  text                  TEXT,
+  anchor_fingerprint    TEXT,
+  anchor_route_template TEXT,
+  anchor_element        TEXT CHECK (anchor_element IS NULL OR (json_valid(anchor_element) AND json_type(anchor_element) = 'object')),
+  reason                TEXT,                                               -- e.g. 'element_removed: the link "Zaloguj się" is gone'
+  run_id                TEXT REFERENCES runs(id),                           -- the scan that caused a carry-forward / needs-reanchor
+  created_at            TEXT NOT NULL,
+  PRIMARY KEY (amendment_id, rev),
+  CHECK ((rev = 1) = (base_rev IS NULL))
+) STRICT, WITHOUT ROWID;
