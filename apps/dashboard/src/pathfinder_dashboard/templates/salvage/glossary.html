@@ -54,7 +54,7 @@
         <article class="sy-plate" id="{{ e.id }}" data-gl-text="{{ (e.term ~ ' ' ~ e.short ~ ' ' ~ (e.labels | join(' '))) | lower }}">
           <div class="sy-plate__head">
             <h4 class="sy-plate__title sy-case-normal">{{ e.term }}{% if e.retired %} <span class="sy-muted">(retired)</span>{% endif %}</h4>
-            <span class="sy-meta">{{ "MudPuppy term" if e.category == "pathfinder" else "BA term" }} · <a href="#{{ e.id }}" aria-label="Link to {{ e.term }}">#{{ e.id }}</a></span>
+            <span class="sy-meta">{{ "MudPuppy term" if e.category == "pathfinder" else "BA term" }} · <a href="#{{ e.id }}" aria-label="#{{ e.id }}: link to {{ e.term }}">#{{ e.id }}</a></span>
           </div>
           <div class="sy-plate__body sy-stack">
             <p><strong>{{ e.short }}</strong></p>

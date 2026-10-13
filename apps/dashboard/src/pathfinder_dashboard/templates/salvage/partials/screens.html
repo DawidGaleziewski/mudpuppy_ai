@@ -45,7 +45,8 @@
 {% macro panel(figures, open_max) -%}
   {%- if figures %}
   <details class="sy-disclosure"{% if figures | length <= open_max %} open{% endif %}>
-    <summary><h2 class="sy-h3">{{ sy.term("screenshot", "Screens") }} <span class="sy-count sy-count--muted">{{ figures | length }}</span></h2></summary>
+    {#- No glossary link here: a link inside <summary> is a nested interactive control. -#}
+    <summary><h2 class="sy-h3">Screens <span class="sy-count sy-count--muted">{{ figures | length }}</span></h2></summary>
     <div class="sy-disclosure__body sy-grid" style="--sy-min: 20rem">
       {%- for f in figures %}{{ figure(f) }}{% endfor %}
     </div>

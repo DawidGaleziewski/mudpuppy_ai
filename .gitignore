@@ -2,6 +2,8 @@
 node_modules/
 dist/
 *.tsbuildinfo
+# Dashboard UI check output (screenshots, report), spec 022
+apps/dashboard/ui-check/
 
 # Env / secrets
 .env

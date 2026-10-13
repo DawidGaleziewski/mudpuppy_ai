@@ -1,0 +1,13 @@
+{
+  "name": "@pathfinder/dashboard-ui-check",
+  "private": true,
+  "description": "Browser checks of the dashboard UI (spec 022): screenshots at 1280 and 390 px, no page scroll, axe-core. The dashboard itself is Python (uv).",
+  "type": "module",
+  "scripts": {
+    "ui:check": "node scripts/ui-check.mjs"
+  },
+  "devDependencies": {
+    "axe-core": "^4.14.0",
+    "playwright": "^1.63.0"
+  }
+}

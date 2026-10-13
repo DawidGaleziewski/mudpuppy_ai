@@ -52,6 +52,13 @@ Layer: app (Python, FastAPI + Jinja + htmx, uv; outside the TS layers)
   changes (spec 012 F-15). Works from a copy in `mutants/` (gitignored), so tests find repo
   files through `tests/paths.py`, never by counting parent folders.
 
+## UI check (spec 022)
+- `pnpm --dir apps/dashboard ui:check --base http://127.0.0.1:<port> [paths…]` against a running
+  dashboard with `PATHFINDER_UI_SALVAGE=all`: screenshots at 1280 and 390 px (reduced motion) into
+  `ui-check/`, and fails on a page-level horizontal scroll, not exactly one h1, more than one
+  primary button or intent plate, an axe-core serious/critical issue, or a console error.
+  `apps/dashboard/package.json` exists only for this check (Playwright, axe-core).
+
 ## Other commands
 - `uv run pathfinder-glossary --write`: glossary sync.
 - `pathfinder-dashboard-smoke`: smoke tests.

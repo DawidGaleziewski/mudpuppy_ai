@@ -85,6 +85,21 @@
     if (e.target.closest?.("[data-dialog-close]")) e.target.closest("dialog")?.close();
   });
 
+  // A table that scrolls sideways must be reachable by keyboard (WCAG 2.1.1, axe
+  // scrollable-region-focusable): its wrapper becomes focusable while it overflows. htmx swaps
+  // regions in, so this runs again after every swap.
+  const focusableScrollers = (root) => {
+    root.querySelectorAll?.(".sy-table-wrap").forEach((w) => {
+      if (w.scrollWidth > w.clientWidth + 1) {
+        w.tabIndex = 0;
+        if (!w.hasAttribute("aria-label")) w.setAttribute("aria-label", "Table, scrolls sideways");
+      } else w.removeAttribute("tabindex");
+    });
+  };
+  focusableScrollers(document);
+  window.addEventListener("resize", () => focusableScrollers(document));
+  document.body.addEventListener("htmx:afterSwap", (e) => focusableScrollers(e.target));
+
   // The portal menu closes when focus or a click leaves it.
   document.addEventListener("click", (e) => {
     const menu = document.querySelector(".mp-portal-menu[open]");

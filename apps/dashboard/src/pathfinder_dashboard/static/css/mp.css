@@ -23,7 +23,7 @@
   .mp-docs-layout { display: grid; grid-template-columns: minmax(12rem, 16rem) minmax(0, 1fr); gap: var(--sy-space-4); align-items: start; }
   @media (max-width: 1023px) { .mp-docs-layout { grid-template-columns: minmax(0, 1fr); } }
   .mp-row-link { text-decoration: none; color: inherit; }
-  .mp-row-link[aria-current="true"] { color: var(--sy-strong); border-inline-start: 2px solid var(--sy-intent); }
+  .mp-row-link[aria-current="true"] { border-inline-start: 2px solid var(--sy-intent); }
   .mp-list { padding-inline-start: var(--sy-space-5); list-style: revert; }
 
   /* Inline forms: fields side by side, wrapping on narrow screens; the button aligns to them. */
@@ -38,7 +38,7 @@
     letter-spacing: var(--sy-track-caps); text-transform: uppercase; }
   .mp-prose ul, .mp-prose ol { padding-inline-start: var(--sy-space-5); list-style: revert; }
   .mp-prose blockquote { border-inline-start: 2px solid var(--sy-border-plate); padding-inline-start: var(--sy-space-3); color: var(--sy-text-muted); }
-  .mp-prose code { font-family: var(--sy-font-mono); font-size: var(--sy-fs-mono-sm); }
+  .mp-prose code { font-family: var(--sy-font-mono); font-size: var(--sy-fs-mono-sm); overflow-wrap: anywhere; }
   .mp-prose pre { background: var(--sy-bg-well); padding: var(--sy-space-3); overflow-x: auto; }
   .mp-prose table { inline-size: 100%; font-size: var(--sy-fs-sm); }
   .mp-prose th, .mp-prose td { padding: var(--sy-space-2); border-block-end: 1px solid var(--sy-border-weld); text-align: start; }
