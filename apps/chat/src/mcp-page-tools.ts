@@ -10,6 +10,7 @@ import type { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
 import type BetterSqlite3 from 'better-sqlite3';
 import { Layout, type EvidenceStore } from '@pathfinder/core';
 import { z } from 'zod';
+import { REF_NAME } from './ui-actions.js';
 
 export interface PageToolContext {
   raw: BetterSqlite3.Database;
@@ -139,6 +140,26 @@ export function registerPageTools(
         return refused('NOT_FOUND', `screen ${state_id} has no element ${element_key}`);
       return ok({ highlighted: { state_id, element_key: element_key ?? null } });
     },
+  );
+
+  server.registerTool(
+    'request_credential',
+    {
+      description:
+        'Ask the BA for a credential the scan needs (for example a login of a persona). The chat shows a vault field for that reference; the value goes into the vault and never to you or the chat. You learn it was stored from a "Stored in the vault: …" notice. Never ask for a password or token in a message.',
+      inputSchema: {
+        portal: z.string(),
+        environment: z.enum(['sandbox', 'staging', 'production']),
+        persona: z.string().describe('the persona that needs it'),
+        ref: z
+          .string()
+          .regex(REF_NAME, 'capital letters, digits and underscores, e.g. LIVEINSURER_PASSWORD')
+          .describe("the vault reference name the persona's auth block uses"),
+        reason: z.string().max(300).optional().describe('one line: why the scan needs it'),
+      },
+    },
+    ({ portal, environment, persona, ref }) =>
+      ok({ requested: { portal, environment, persona, ref } }),
   );
 
   server.registerTool(

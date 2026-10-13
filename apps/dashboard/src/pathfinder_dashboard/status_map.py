@@ -112,6 +112,8 @@ VOCABULARIES: dict[str, dict[str, Status]] = {
         "dismissed": _s("stopped", "Dismissed"),
         "withdrawn": _s("stopped", "Withdrawn"),
     },
+    # A credential the assistant asked for in the chat (spec 022 FE-A05).
+    "credential": {"needed": _s("needs", "Needs you"), "stored": _s("ok", "Stored")},
     # The assistant's proposals (spec 022 FE-A04); "undone" is a discarded one that was applied.
     "proposal": {
         "open": _s("draft", "Proposed"),

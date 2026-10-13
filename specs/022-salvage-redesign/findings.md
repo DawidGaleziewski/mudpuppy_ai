@@ -58,6 +58,29 @@
 - **Test idea**: stage in a separate call from the commit; or let the hook print "nothing was
   staged by this call" when it blocks a command that starts with `git add`.
 
+## F-08 FE-A06 asks for an ERR reference when the chat service is down, 2026-10-13
+
+- **Symptom**: the drawer's "Assistant not running" state has no `ERR-…` reference, unlike the
+  design (screen 03 state 6).
+- **Cause**: `ERR-…` references are minted by the chat service, which writes the error log; when
+  it is down nothing can mint or log one. The dashboard is read-only and has no error log of its
+  own. Inventing a reference that leads nowhere would break "every ERR resolves to a log entry".
+- **Decision needed (owner)**: (a) drop the reference from FE-A06 for "service down" (the start
+  command is the next move), or (b) give the dashboard its own small error log so it can mint one.
+- **Test idea**: `test_service_down_drawer_shows_the_failure_and_pages_keep_working` covers the
+  rest of FE-A06.
+
+## F-09 The chat history wrappers broke the log layout, 2026-10-13
+
+- **Symptom**: inside `.sy-chat__log`, messages in the server-rendered history and the streamed
+  replies lost the log's gap, and user messages did not align right; `mp-pre` was used but never
+  defined, so the agent's line breaks collapsed.
+- **Cause**: the history and live regions are wrapper elements (htmx swap targets) that the
+  design's flat log markup does not have; the M3 templates were not compared by eye before commit.
+- **Fix**: `.mp-chat-history` / `.mp-chat-live` lay out like the log; `.mp-pre` defined (c1c5f9d).
+- **Test idea**: the ui:check could fail on an `mp-` class used in a template but defined in no
+  stylesheet (a list of hook-only classes allowed).
+
 ## F-03 The design's Console glossary text, 2026-10-13
 
 - The glossary entry "status codes" still explains `[ OK ]`, `[RUN.]` … (content, not markup). It

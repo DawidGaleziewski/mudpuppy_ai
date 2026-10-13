@@ -34,11 +34,12 @@ export type ChatEvent =
   | { type: 'step_changed'; step: string; status: string; errorRef: string | null }
   | { type: 'refused'; tool: string | null; title: string; reason: string }
   | { type: 'error'; ref: string; message: string; logged: boolean }
-  | { type: 'notice'; text: string }
+  /** `tool` tags a notice the dashboard renders specially (e.g. `credential_stored`). */
+  | { type: 'notice'; text: string; tool?: string }
   /**
    * Something the assistant asked the browser to do (spec 022 R6): highlight an element on a
-   * recorded screen, or open a page. Only from the pathfinder-chat tools `highlight_element` /
-   * `open_page`, after they completed; the drawer performs it.
+   * recorded screen, open a page, or ask for a credential. Only from the pathfinder-chat tools
+   * `highlight_element` / `open_page` / `request_credential`, after they completed.
    */
   | UiAction
   | { type: 'idle' };
@@ -51,6 +52,16 @@ export type UiAction =
       elementKey: string | null;
       label: string | null;
     }
-  | { type: 'ui_action'; action: 'open'; path: string };
+  | { type: 'ui_action'; action: 'open'; path: string }
+  /** Ask the BA for a credential in the chat (FE-A05); the value goes to the vault only. */
+  | {
+      type: 'ui_action';
+      action: 'credential';
+      portal: string;
+      environment: 'sandbox' | 'staging' | 'production';
+      persona: string;
+      ref: string;
+      reason: string | null;
+    };
 
 export type ChatEventListener = (event: ChatEvent) => void;

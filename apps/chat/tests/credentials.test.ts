@@ -69,8 +69,16 @@ describe('credentials endpoint', () => {
     expect(text).not.toContain(SECRET);
     const vault = createVaultStore(t.opened.db, key());
     expect(await vault.get('liveinsurer', 'sandbox', 'TEST_PASSWORD')).toBe(SECRET);
-    const messages = t.opened.raw.prepare('SELECT content FROM chat_messages').all();
+    await t.service.drain(conversationId);
+    const messages = t.opened.raw.prepare('SELECT content, tool_name FROM chat_messages').all() as {
+      content: string;
+      tool_name: string | null;
+    }[];
     expect(JSON.stringify(messages)).not.toContain(SECRET);
+    // The request card and the assistant learn the names were stored (spec 022 FE-A05).
+    expect(messages.find((m) => m.tool_name === 'credential_stored')?.content).toBe(
+      'Stored in the vault: TEST_USER, TEST_PASSWORD (liveinsurer · sandbox). Values are never shown.',
+    );
     const replayed: unknown[] = [];
     t.service.subscribe(conversationId, 0, (e) => replayed.push(e))();
     expect(JSON.stringify(replayed)).not.toContain(SECRET);

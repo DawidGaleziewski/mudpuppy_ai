@@ -92,11 +92,12 @@
       for (const input of form.querySelectorAll('input[name^="ref:"]')) {
         if (input.value) values[input.name.slice(4)] = input.value;
       }
-      const extra = form.elements.extra_ref.value.trim();
+      // The chat's request card (spec 022 FE-A05) asks for one named reference, without these two.
+      const extra = form.elements.extra_ref?.value.trim() ?? "";
       if (extra && form.elements.extra_value.value) values[extra] = form.elements.extra_value.value;
       const wipe = () => {
         for (const input of form.querySelectorAll('input[type="password"]')) input.value = "";
-        form.elements.extra_ref.value = "";
+        if (form.elements.extra_ref) form.elements.extra_ref.value = "";
       };
       if (!Object.keys(values).length) {
         show(where, false, "Type at least one value.");
@@ -111,6 +112,7 @@
       delete form.dataset.dirty;
       if (result.ok && result.body.stored) {
         show(where, true, `Credentials stored for ${(result.body.refs ?? []).join(", ")}.`);
+        refresh(); // a request card in the chat turns to "Stored"
       } else if (result.status === 409) {
         show(
           where,

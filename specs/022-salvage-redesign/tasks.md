@@ -43,10 +43,11 @@ tiers green and an interim merge to master behind `UI_SALVAGE`.
 
 - [ ] T023 [opus] Home (screen 01): assistant as main column, conversation picker, suggestions, scan line, Where this portal is, Needs you (D-17 rules), Processes summary
 - [ ] T024 [opus] Drawer (screens 02–03): `aside.sy-drawer` on every page, This page / Whole yard, context tags per page type, the six states (empty, working, credential, applied, page changed, not running)
-- [ ] T025 [opus] Chat service: message `context` payload; MCP chat tools `page_context`, `highlight_element`, `open_page`, `propose_change`; SSE events the drawer acts on; tests with the fake ACP agent
-- [ ] T026 [sonnet] Proposals: stored as pending revisions; Apply → revision + Undo; stale proposal disabled; FE-A04 e2e
-- [ ] T027 [sonnet] Credential request in chat with a vault field (FE-A05), value never echoed; DOM/log check
-- [ ] T028 [sonnet] Chat down (FE-A06): drawer failure state with ERR reference; pages keep working
+- [x] T025 [opus] Chat service: message `context` payload; MCP chat tools `page_context`, `highlight_element`, `open_page`, `propose_change`; SSE events the drawer acts on; tests with the fake ACP agent (5028fb2, c1c5f9d; plus `request_credential`)
+- [ ] T026 [sonnet] Proposals: stored as pending revisions; Apply → revision + Undo; stale proposal disabled; FE-A04 e2e — done except the browser e2e (service + route + render tests, c1c5f9d)
+- [x] T027 [sonnet] Credential request in chat with a vault field (FE-A05), value never echoed; DOM/log check
+- [ ] T028 [sonnet] Chat down (FE-A06): drawer failure state with ERR reference; pages keep working — done except the ERR reference (F-08)
+- Still open in T023: conversation picker, suggestion chips, Needs you (D-17), Processes summary. In T024: the "page changed" state, context tags for page types other than screens.
 
 ## M4 — Review, Scans, Settings, Screen detail (interim merge 4)
 

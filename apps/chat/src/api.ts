@@ -209,7 +209,16 @@ export function createApi(opts: ApiOptions): Server {
       const body = parseBody(CredentialsBody, await readJson(req));
       if (!(await service.exists(id)))
         throw new HttpError(404, 'This conversation does not exist.');
-      sendJson(res, 200, await opts.credentials.store(body));
+      const stored = await opts.credentials.store(body);
+      // Names only, never values: tells the assistant (and the request card) it can go on.
+      service.inject(id, [
+        {
+          type: 'notice',
+          text: `Stored in the vault: ${stored.refs.join(', ')} (${body.portal} · ${body.environment}). Values are never shown.`,
+          tool: 'credential_stored',
+        },
+      ]);
+      sendJson(res, 200, stored);
       return;
     }
     // Process scope confirmed in the dashboard checklist (T027, FR-014, FR-015).

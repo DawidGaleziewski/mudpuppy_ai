@@ -10,7 +10,7 @@ import { createEvidenceStore, type EvidenceStore } from '@pathfinder/core';
 import { migrateUp, openDb, type OpenedDb } from '@pathfinder/store';
 import { createChatMcpServer } from '../src/mcp-chat.js';
 import { contextLine } from '../src/page-context.js';
-import { uiActionOf } from '../src/ui-actions.js';
+import { credentialLine, uiActionOf } from '../src/ui-actions.js';
 
 const repo = resolve(import.meta.dirname, '../../..');
 const CONV = '0199a000-0000-7000-8000-000000000001';
@@ -26,6 +26,41 @@ describe('contextLine', () => {
     ).toMatch(/^\[Page context: screen s-1 r2 "Oferta"\. On the page: AMD-001\. .*page_context/);
     expect(contextLine({ kind: 'portal' })).toBe('');
     expect(contextLine(undefined)).toBe('');
+  });
+});
+
+describe('credential requests (FE-A05)', () => {
+  it('map to a ui_action and one fixed history line, and refuse a bad reference name', () => {
+    const action = uiActionOf('mcp__pathfinder-chat__request_credential', {
+      portal: 'liveinsurer',
+      environment: 'sandbox',
+      persona: 'client',
+      ref: 'LIVEINSURER_PASSWORD',
+      reason: 'The scan reached\nthe login form.',
+    });
+    expect(action).toEqual({
+      type: 'ui_action',
+      action: 'credential',
+      portal: 'liveinsurer',
+      environment: 'sandbox',
+      persona: 'client',
+      ref: 'LIVEINSURER_PASSWORD',
+      reason: 'The scan reached\nthe login form.',
+    });
+    expect(credentialLine(action as Parameters<typeof credentialLine>[0])).toBe(
+      'Credential needed: LIVEINSURER_PASSWORD · liveinsurer · sandbox · client. The scan reached the login form.',
+    );
+    const base = { portal: 'liveinsurer', environment: 'sandbox', persona: 'client' };
+    expect(
+      uiActionOf('mcp__pathfinder-chat__request_credential', { ...base, ref: 'lower' }),
+    ).toBeNull();
+    expect(
+      uiActionOf('mcp__pathfinder-chat__request_credential', {
+        ...base,
+        environment: 'qa',
+        ref: 'X',
+      }),
+    ).toBeNull();
   });
 });
 

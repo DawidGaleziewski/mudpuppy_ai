@@ -7,6 +7,7 @@ import { AcpChat, type AgentLauncher, type PermissionPolicy } from './acp-client
 import type { ErrorInput, LogResult } from './error-log.js';
 import type { ChatEvent } from './events.js';
 import { handover, promptWithHandover, type SessionKind } from './handover.js';
+import { credentialLine } from './ui-actions.js';
 import type { ChatStore } from './store.js';
 
 export const REPLAY_BUFFER_SIZE = 500;
@@ -282,7 +283,21 @@ export class ChatService {
         });
         return;
       case 'notice':
-        await store.appendMessage(conversationId, { role: 'system', content: event.text });
+        await store.appendMessage(conversationId, {
+          role: 'system',
+          content: event.text,
+          toolName: event.tool ?? null,
+        });
+        return;
+      case 'ui_action':
+        // A credential request stays in the history so the vault form survives the end of the
+        // turn and a reload (FE-A05); highlights and page opens are momentary.
+        if (event.action === 'credential')
+          await store.appendMessage(conversationId, {
+            role: 'system',
+            content: credentialLine(event),
+            toolName: 'request_credential',
+          });
         return;
       case 'step_changed':
         // The tracker reads the steps table; the chat only needs to say when a step failed.
