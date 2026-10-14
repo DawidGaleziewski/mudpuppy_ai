@@ -9,12 +9,13 @@ from fastapi import APIRouter, Request
 from fastapi.responses import HTMLResponse
 
 from .. import db, queries_chat, queries_revisions, queries_screens, queries_urls, visuals
+from . import views_access
 from .deps import Ctx, web_of
 
 router = APIRouter()
 
 
-SIDE_TABS = ("amendments", "cited", "history")
+SIDE_TABS = ("amendments", "cited", "history", "access")
 
 
 def state_amendments_values(c: Ctx, conn: sqlite3.Connection, state: Any) -> dict[str, Any]:
@@ -75,6 +76,7 @@ def state_detail(
                 p=page,
                 urls=queries_urls.state_urls(conn, state_id),
                 am=am,
+                ac=views_access.screen_values(web, c, conn, page.figure.state),
                 screen=queries_revisions.screen_of_state(conn, state_id),
                 processes=queries_screens.processes_of_state(conn, state_id),
                 view="wireframe" if view == "wireframe" else "screenshot",
@@ -86,6 +88,23 @@ def state_detail(
             )
     except db.StoreMissing as err:
         return web.missing(c, err)
+
+
+@router.get("/fragments/states/{state_id}/access", response_class=HTMLResponse)
+def fragment_state_access(request: Request, state_id: str, env: str | None = None) -> HTMLResponse:
+    web = web_of(request)
+    c = web.ctx(request, env)
+    try:
+        with c.conn() as conn:
+            page = visuals.state_page(conn, c.data_dir, state_id)
+            if page is None:
+                return web.render(
+                    c, "partials/states/state_missing.html", status_code=404, state_id=state_id
+                )
+            ac = views_access.screen_values(web, c, conn, page.figure.state)
+    except db.StoreMissing as err:
+        return web.missing(c, err, fragment=True)
+    return web.render(c, "partials/state_access.html", ac=ac)
 
 
 @router.get("/fragments/states/{state_id}/amendments", response_class=HTMLResponse)

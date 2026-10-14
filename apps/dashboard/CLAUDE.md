@@ -16,12 +16,15 @@ Layer: app (Python, FastAPI + Jinja + htmx, uv; outside the TS layers)
   `app.state.web`; routers call `web_of(request)`.
 - `web/<page>.py`: one `APIRouter` per page with its fragments (`overview`, `runs`, `states`,
   `evidence`, `health`, `activity`, `docs`, `glossary`, `chat`, `portals`, `amendments`, `events`,
-  and for spec 022 `processes`, `review`, `scans`, `screens`);
-  shared view helpers in `web/views_docs.py`, `web/views_chat.py`, `web/chat_forward.py`.
+  and for spec 022 `processes`, `review`, `scans`, `screens`, for spec 024 `access`);
+  shared view helpers in `web/views_docs.py`, `web/views_chat.py`, `web/chat_forward.py`,
+  `web/views_access.py` (the /access matrix and the screen page's Access tab).
 - `queries.py`, `queries_docs.py`, `queries_chat.py`, `queries_urls.py` (visits, parameter
   inventory, spec 019), and for spec 022 `queries_screens.py`, `queries_revisions.py`,
   `queries_proposals.py` (the assistant's proposals), `queries_processes.py` (BA processes,
-  history, compare), `queries_review.py`, `queries_scans.py`, `queries_settings.py`, `queries_home.py` (Home beside the
+  history, compare), `queries_access.py` (which personas see which screen and element, spec 024;
+  the same model as the BA tool `get_access_matrix`, both checked against
+  `apps/crawler/tests/fixtures/access/three-personas.json`), `queries_review.py`, `queries_scans.py`, `queries_settings.py`, `queries_home.py` (Home beside the
   assistant): read models.
 - `stores.py`: the stores a request may open (main data dir + eval workspaces), chosen by key.
 - `models.py`: read-only models of SQLite schema; drift test vs. `data/schema/schema.sql`.

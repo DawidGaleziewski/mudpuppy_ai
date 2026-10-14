@@ -124,7 +124,10 @@ through the chat service, so it has to be running.
   the limit, save. Picking one that exists changes it. **Revoke** removes it; recorded scans
   stay. The last environment cannot be revoked.
 - **Credentials** (collapsed): test-user logins by environment. Values are never shown again.
-- **Personas**: the ways of visiting the portal (anonymous or logged in).
+- **Personas**: the ways of visiting the portal (anonymous or logged in), each with its
+  attributes (tariff, contract, feature flags…) when it has any. Many test users at once: a
+  developer runs `pnpm --dir apps/crawler personas:import <portal> users.csv` (columns
+  `persona_id,login,password` and then one column per attribute; see `personas/README.md`).
 - **Crawl rules**: allowed domains and paths, disallowed paths, robots.txt. Ask the assistant to
   change a rule.
 - **Data store**: which database file the dashboard reads.
@@ -234,8 +237,12 @@ Open one to see its page:
 - The **observed revision** strip shows **r1**, **r2** and so on, and which scans saw each. When
   a scan sees the same screen changed, it adds the next revision; it does not make a new
   screen. A page that moves to another route is a new screen.
-- Tabs: **Screenshot** and **Wireframe** on the left; **Amendments**, **Cited by** and
-  **History** on the right.
+- Tabs: **Screenshot** and **Wireframe** on the left; **Amendments**, **Cited by**,
+  **History** and **Access** on the right.
+- **Access** (when the portal was scanned as several personas): who reached the screen, the
+  variant each one saw, and the elements only some of them see ("seen by" / "not seen by"). Only
+  finished scans count as "not seen". **Access by persona** on the Screens page shows the same for
+  the whole portal: screens down, personas across.
 - **Reached under** lists every address the screen was seen under, with redirects and
   parameters.
 

@@ -1,0 +1,56 @@
+"""Spec 024 US2: the access read model against the fixture the BA tool is checked with too."""
+
+from __future__ import annotations
+
+import json
+import sqlite3
+from dataclasses import asdict
+from typing import Any
+
+from pathfinder_dashboard import queries_access
+
+from .conftest import Store, insert
+from .paths import REPO_ROOT
+
+FIXTURE = REPO_ROOT / "apps/crawler/tests/fixtures/access/three-personas.json"
+TABLES = ("runs", "screens", "states", "state_observations", "actions")
+
+
+def reader(store: Store) -> sqlite3.Connection:
+    conn = store.connect()
+    conn.row_factory = sqlite3.Row
+    return conn
+
+
+def load_fixture(store: Store) -> dict[str, Any]:
+    fx = json.loads(FIXTURE.read_text())
+    conn = store.connect()
+    for table in TABLES:
+        for row in fx["rows"][table]:
+            insert(conn, table, **{**fx["defaults"].get(table, {}), **row})
+    conn.commit()
+    conn.close()
+    return fx
+
+
+def test_matrix_matches_the_shared_fixture(empty_store: Store) -> None:
+    fx = load_fixture(empty_store)
+    conn = reader(empty_store)
+    matrix = queries_access.access_matrix(conn, fx["portal_id"])
+    one = queries_access.access_matrix(conn, fx["portal_id"], "sc-account")
+    conn.close()
+    assert asdict(matrix) == fx["expected"]
+    assert [s.screen_id for s in one.screens] == ["sc-account"]
+    assert asdict(one.screens[0]) == fx["expected"]["screens"][1]
+
+
+def test_element_keys_and_an_unknown_portal(empty_store: Store) -> None:
+    assert queries_access.element_key("button", "Export") == 'button "Export"'
+    assert queries_access.element_key("menu", None) == "menu"
+    conn = reader(empty_store)
+    assert asdict(queries_access.access_matrix(conn, "nobody")) == {
+        "portal_id": "nobody",
+        "personas": [],
+        "screens": [],
+    }
+    conn.close()

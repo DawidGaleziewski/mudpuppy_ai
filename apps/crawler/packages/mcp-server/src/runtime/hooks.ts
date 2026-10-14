@@ -49,7 +49,7 @@ export function runHooks(
     hooks,
     browser: browserOf(rs),
     base: {
-      persona: { id: effective.persona.id, attributes: {} },
+      persona: { id: effective.persona.id, attributes: effective.persona.attributes },
       environment: effective.portal.environment,
       run: { id: rs.runId, mode: rs.isTrace ? 'trace' : 'map' },
       config: effective.portal,

@@ -153,6 +153,11 @@ VOCABULARIES: dict[str, dict[str, Status]] = {
         "failed": _s("failed", "Failed"),
         "timeout": _s("failed", "Timed out"),
     },
+    # Does a screen change with who is looking (spec 024 US2)?
+    "access": {
+        "depends": _s("live", "Differs"),
+        "same": _s("skipped", "Same for all"),
+    },
     # BA processes (spec 022 M5, screens 04–07).
     "stage": {
         "suggested": _s("inferred", "Suggested"),

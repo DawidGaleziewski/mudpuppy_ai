@@ -6,6 +6,24 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Added
+- R-33 access-dependent content, P1 (spec 024; owner scope 2026-10-14: attributes, CSV import,
+  per-persona variants with seen / not seen):
+  - **Persona attributes:** `attributes:` on a persona (tariff, contract, feature flags…, any
+    keys; text, numbers, booleans or lists), merged per key through `extends`, never interpreted;
+    kept per run in its config snapshot; shown in Settings → Personas and to the BA (`list_runs`
+    → `persona_attributes`); portal hooks see them.
+  - **CSV import:** `pnpm --dir apps/crawler personas:import <portal> users.csv [--extends m]
+    [--env e]` (= `pnpm vault import`): header `persona_id,login,password,<attributes>`, a list
+    cell is `a|b`; one persona file per row with `ref:` names and its attributes, login and
+    password in the vault. The CSV is checked whole first; a re-import updates the same files and
+    rows and keeps keys added by hand; no password is written to a file or printed.
+  - **Access read model:** per screen, the personas that reached it, each one's variant (newest
+    observed state), the elements only some personas see (seen by / not seen by; only completed
+    map runs count as "not seen") and access-dependent marks. BA tool `get_access_matrix`
+    (read-only, with each persona's attributes) and the dashboard's screen **Access** tab and
+    **Access by persona** page (`/access`, screens × personas); both checked against one fixture.
+  - Waiting for owner review: side-by-side diff, "unexplained difference" Review items, sampling
+    and batch scans, revisions per persona variant (spec 024 findings F-01).
 - R-53 crawler hooks and URL lists per portal (spec 023; the owner's design of 2026-10-13):
   - **Hooks:** a portal's quirks are fixed in `portals/<id>/hooks.ts`, mapped in the portal file
     under `hooks:` to `onRunStart`, `onBeforePageLoad` (open another URL or skip the page),

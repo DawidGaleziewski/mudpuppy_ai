@@ -37,6 +37,23 @@ describe('persona extends', () => {
     expect(p.consent).toEqual({ decline_location: false, decline_marketing: true });
   });
 
+  it('attributes are free-form and merge per key; nested objects are refused (spec 024 US1)', () => {
+    const root = tmpTree({
+      'personas/_mixins/premium.yaml': `${MIXIN}attributes: { tariff: premium, features: [export] }\n`,
+      'personas/portal/anna.yaml': `id: anna\nextends: ["../_mixins/premium.yaml"]\nattributes: { contract: B2B, seats: 3 }\n`,
+      'personas/portal/bad.yaml': `id: bad\n${MIXIN}attributes: { nested: { a: 1 } }\n`,
+    });
+    expect(loadPersona(join(root, 'personas/portal/anna.yaml')).attributes).toEqual({
+      tariff: 'premium',
+      features: ['export'],
+      contract: 'B2B',
+      seats: 3,
+    });
+    expect(() => loadPersona(join(root, 'personas/portal/bad.yaml'))).toThrow(ConfigError);
+    const guest = tmpTree({ 'guest.yaml': `id: guest\n${MIXIN}` });
+    expect(loadPersona(join(guest, 'guest.yaml')).attributes).toEqual({});
+  });
+
   it('later extends entries override earlier ones', () => {
     const root = tmpTree({
       'a.yaml': 'locale: pl-PL\nviewport: { width: 100, height: 100 }\n',

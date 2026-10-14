@@ -33,7 +33,9 @@ Layer: servers (G-07; `apps/crawler/layers.json`)
     them pass `include_actions`). `index.ts` re-exports only the tool entry points and helpers.
 - `src/services/frontier.ts` + `same-target.ts`: link items whose target the run already reached
   become `inferred` edges (spec 013 US2). BA reads: `services/ba/reads.ts`, `run-evidence.ts`
-  (`get_run_evidence`, incl. `page_visits`, `parameters`, spec 019).
+  (`get_run_evidence`, incl. `page_visits`, `parameters`, spec 019), `runs.ts` (`list_runs` with
+  persona attributes), `access.ts` (`get_access_matrix`, spec 024: same model as the dashboard's
+  `queries_access.py`, both checked against `tests/fixtures/access/three-personas.json`).
 - Entry points: `pnpm --filter @pathfinder/mcp-server start` (`src/main.ts`), `start:ba`.
 
 ## Invariants

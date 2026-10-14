@@ -14,7 +14,8 @@ row, or `run_id` on an evidence link (the server resolves it).
 
 | Tool | Input | Output |
 |---|---|---|
-| `list_runs` | `portal_id` | runs of the portal: id, mode, persona, status, warning, started/ended, counts (states, edges, forms, network calls, actions, open questions, rule candidates), process name for trace runs |
+| `list_runs` | `portal_id` | runs of the portal: id, mode, persona, the persona's attributes from the run snapshot (spec 024), status, warning, started/ended, counts (states, edges, forms, network calls, actions, open questions, rule candidates), process name for trace runs |
+| `get_access_matrix` (spec 024) | `portal_id`, `screen_id?` | per screen: personas that reached it and their variant, elements only some see (seen by / not seen by), access-dependent marks, persona attributes; `specs/024-access-dependent-content/contracts/get-access-matrix.md` |
 | `get_run_evidence` | `run_id`, `kind` (`states, edges, actions, forms, network_calls, open_questions, rule_candidates, decisions`), `cursor?`, `limit?` (≤ 200) | page of Layer A records of that kind for the run, with ids, confidence and a compact summary (e.g. state: title, route template, cluster; form: fields; network call: method, url template, status, shapes) |
 | `get_evidence` | `target_kind`, `target_id` | the full Layer A record, plus the content of its evidence file (masked ARIA snapshot / shape JSON) when it has one, truncated to 60 kB with a flag |
 | `list_processes` | `portal_id` | trace processes: id, run, name, goal, persona, outcome, step count, boundary action |

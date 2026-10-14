@@ -1,0 +1,174 @@
+// get_access_matrix (spec 024 US2): which personas reached each screen, the variant each saw and
+// the elements only some personas see. The same model as the dashboard's `queries_access.py`;
+// both are checked against `apps/crawler/tests/fixtures/access/three-personas.json`.
+//
+// - A persona's variant of a screen is the newest state of that screen it observed.
+// - Elements are a state's actions as `role "name"` keys (the role alone when unnamed).
+// - "Not seen by" counts only personas that reached the screen in a completed map run.
+// - An element depends on access when some persona sees it and another does not; a screen does
+//   when any element does, or when a persona with a completed map run never reached it.
+
+import { z } from 'zod';
+import type { BaContext } from '../../context.js';
+import { parseInput } from '../../errors.js';
+import { json } from './common.js';
+
+export const GetAccessMatrixInput = z
+  .object({ portal_id: z.string().min(1), screen_id: z.string().min(1).optional() })
+  .strict();
+
+interface Observation {
+  screen_id: string;
+  route_template: string;
+  title: string;
+  persona_id: string;
+  state_id: string;
+  run_id: string;
+  observed_at: string;
+  complete: number;
+}
+
+interface Variant {
+  persona_id: string;
+  state_id: string;
+  run_id: string;
+  observed_at: string;
+  complete_map_run: boolean;
+}
+
+interface ScreenAccess {
+  screen_id: string;
+  route: string;
+  title: string;
+  depends_on_access: boolean;
+  variants: Variant[];
+  not_reached: string[];
+  elements_total: number;
+  elements: { key: string; seen_by: string[]; not_seen_by: string[] }[];
+}
+
+const elementKey =(role: string, name: string | null): string =>
+  name ? `${role} "${name}"` : role;
+
+/** Code-point order, as Python's `sorted` (not `localeCompare`): both sides list in one order. */
+const byText = (a: string, b: string): number => Number(a > b) - Number(a < b);
+
+/** Observations of one screen, oldest first: the newest per persona, flagged when any was complete. */
+function variantsOf(rows: Observation[]): Variant[] {
+  const newest = new Map<string, Observation>();
+  const complete = new Set<string>();
+  for (const r of rows) {
+    newest.set(r.persona_id, r);
+    if (r.complete) complete.add(r.persona_id);
+  }
+  return [...newest.entries()]
+    .sort(([a], [b]) => byText(a, b))
+    .map(([persona_id, r]) => ({
+      persona_id,
+      state_id: r.state_id,
+      run_id: r.run_id,
+      observed_at: r.observed_at,
+      complete_map_run: complete.has(persona_id),
+    }));
+}
+
+function screenAccess(
+  rows: Observation[],
+  keys: Map<string, Set<string>>,
+  completePersonas: Set<string>,
+): ScreenAccess {
+  const variants = variantsOf(rows);
+  const seen = new Map(
+    variants.map((v) => [v.persona_id, keys.get(v.state_id) ?? new Set<string>()]),
+  );
+  const counted = variants.filter((v) => v.complete_map_run).map((v) => v.persona_id);
+  const everyKey = [...new Set([...seen.values()].flatMap((s) => [...s]))].sort(byText);
+  const elements = everyKey
+    .map((key) => ({
+      key,
+      seen_by: [...seen.keys()].filter((p) => seen.get(p)!.has(key)),
+      not_seen_by: counted.filter((p) => !seen.get(p)!.has(key)),
+    }))
+    .filter((e) => e.seen_by.length > 0 && e.not_seen_by.length > 0);
+  const notReached = [...completePersonas].filter((p) => !seen.has(p)).sort(byText);
+  const first = rows[0]!;
+  return {
+    screen_id: first.screen_id,
+    route: first.route_template,
+    title: first.title,
+    depends_on_access: elements.length > 0 || notReached.length > 0,
+    variants,
+    not_reached: notReached,
+    elements_total: everyKey.length,
+    elements,
+  };
+}
+
+/** Each persona's attributes as its newest run of the portal recorded them (spec 024 US1.1). */
+function personaAttributes(ctx: BaContext, portalId: string): Record<string, unknown> {
+  const rows = ctx.raw
+    .prepare(
+      `SELECT persona_id, config_snapshot FROM runs WHERE portal_id = ?
+       ORDER BY persona_id, started_at, id`,
+    )
+    .all(portalId) as { persona_id: string; config_snapshot: string }[];
+  const out: Record<string, unknown> = {};
+  for (const r of rows)
+    out[r.persona_id] =
+      json<{ persona?: { attributes?: unknown } }>(r.config_snapshot).persona?.attributes ?? {};
+  return out;
+}
+
+/** The portal's access matrix, or one screen's row of it, with each persona's attributes. */
+export function getAccessMatrix(ctx: BaContext, raw: unknown) {
+  const input = parseInput(GetAccessMatrixInput, raw);
+  const runs = ctx.raw
+    .prepare(
+      `SELECT persona_id, MAX(status = 'completed' AND mode = 'map') AS complete
+       FROM runs WHERE portal_id = ? GROUP BY persona_id ORDER BY persona_id`,
+    )
+    .all(input.portal_id) as { persona_id: string; complete: number }[];
+  const completePersonas = new Set(runs.filter((r) => r.complete).map((r) => r.persona_id));
+  const observations = ctx.raw
+    .prepare(
+      `SELECT sc.id AS screen_id, sc.route_template, sc.title, o.persona_id, o.state_id,
+              o.run_id, o.observed_at, (r.status = 'completed' AND r.mode = 'map') AS complete
+       FROM state_observations o
+       JOIN states s ON s.id = o.state_id
+       JOIN screens sc ON sc.id = s.screen_id
+       JOIN runs r ON r.id = o.run_id
+       WHERE sc.portal_id = ? AND (? IS NULL OR sc.id = ?)
+       ORDER BY sc.route_template, sc.title, sc.id, o.observed_at, o.run_id`,
+    )
+    .all(input.portal_id, input.screen_id ?? null, input.screen_id ?? null) as Observation[];
+  // Only the actions of the screens asked for (one screen when screen_id is given).
+  const keys = new Map<string, Set<string>>();
+  const actions = ctx.raw
+    .prepare(
+      `SELECT DISTINCT a.state_id, a.role, a.accessible_name FROM actions a
+       JOIN states s ON s.id = a.state_id
+       WHERE s.portal_id = ? AND s.screen_id IS NOT NULL AND (? IS NULL OR s.screen_id = ?)`,
+    )
+    .all(input.portal_id, input.screen_id ?? null, input.screen_id ?? null) as {
+    state_id: string;
+    role: string;
+    accessible_name: string | null;
+  }[];
+  for (const a of actions) {
+    const set = keys.get(a.state_id) ?? new Set<string>();
+    set.add(elementKey(a.role, a.accessible_name));
+    keys.set(a.state_id, set);
+  }
+  const byScreen = new Map<string, Observation[]>();
+  for (const o of observations) {
+    const rows = byScreen.get(o.screen_id) ?? [];
+    rows.push(o);
+    byScreen.set(o.screen_id, rows);
+  }
+  return {
+    portal_id: input.portal_id,
+    personas: runs.map((r) => r.persona_id),
+    persona_attributes: personaAttributes(ctx, input.portal_id),
+    screens: [...byScreen.values()].map((rows) => screenAccess(rows, keys, completePersonas)),
+  };
+}

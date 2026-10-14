@@ -22,6 +22,7 @@ from fastapi.templating import Jinja2Templates
 from . import glossary, live, nav, queries_docs, status_map
 from .models import DECISION_KINDS, FRONTIER_STATUSES, RUN_STATUSES, SAFETY_CLASSES
 from .settings import Settings
+from .web import access as access_page
 from .web import activity as activity_page
 from .web import amendments as amendments_page
 from .web import chat as chat_page
@@ -131,6 +132,7 @@ def create_app(
     app.include_router(amendments_page.router)
     app.include_router(events_page.router)
     app.include_router(screens_page.router)
+    app.include_router(access_page.router)
     app.include_router(review_page.router)
     app.include_router(scans_page.router)
     # Last: its /chat/portals/{portal}/{rest} forwarder must not shadow the routes above.

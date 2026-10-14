@@ -10,6 +10,7 @@ import {
 } from '@pathfinder/docs-model';
 import { z } from 'zod';
 import type { BaContext } from '../context.js';
+import { getAccessMatrix } from '../services/ba/access.js';
 import { getPendingFeedback } from '../services/ba/feedback.js';
 import {
   EvidenceReadKind,
@@ -18,9 +19,9 @@ import {
   getRecord,
   listProcesses,
   listRecords,
-  listRuns,
 } from '../services/ba/reads.js';
 import { RunEvidenceKind, getRunEvidence } from '../services/ba/run-evidence.js';
+import { listRuns } from '../services/ba/runs.js';
 import {
   addressCrawlerQuestion,
   createRecord,
@@ -51,6 +52,7 @@ export const BA_TOOL_NAMES = [
   'revise_record',
   'withdraw_record',
   'address_crawler_question',
+  'get_access_matrix',
 ] as const;
 export type BaToolName = (typeof BA_TOOL_NAMES)[number];
 
@@ -128,9 +130,15 @@ export function registerBaTools(server: McpServer, ctx: BaContext): void {
   // Reads
   tool(
     'list_runs',
-    'Runs recorded for a portal, with status and how much each recorded.',
+    "Runs recorded for a portal, with status, how much each recorded and the persona's attributes (what decides that user's access, as the owner wrote them).",
     { portal_id: z.string() },
     (a) => listRuns(ctx, a),
+  );
+  tool(
+    'get_access_matrix',
+    'Which personas reached each screen, the variant (state) each saw, and the elements only some personas see: seen_by / not_seen_by, with depends_on_access marks and each persona\'s attributes. "Not seen" counts only completed map runs. Document an access rule with one persona that sees the element and one that does not as evidence. Pass screen_id for one screen.',
+    { portal_id: z.string(), screen_id: z.string().optional() },
+    (a) => getAccessMatrix(ctx, a),
   );
   tool(
     'get_run_evidence',

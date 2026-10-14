@@ -60,6 +60,21 @@ def test_personas_have_a_kind_and_credential_refs(tmp_path: Path) -> None:
     assert queries_settings.persona_rows(root, "../x") == []
 
 
+def test_persona_attributes_merge_per_key_through_extends(tmp_path: Path) -> None:
+    """Spec 024 US1.1: the mixin's attributes first, the file's own win per key."""
+    root = tmp_path / "personas"
+    (root / "shop" / "_mixins").mkdir(parents=True)
+    (root / "shop" / "_mixins" / "login.yaml").write_text(
+        "auth: { login: ref:A, password: ref:B }\nattributes: { tariff: basic, region: EU }\n"
+    )
+    (root / "shop" / "anna.yaml").write_text(
+        "extends: ['_mixins/login.yaml']\nattributes: { tariff: premium, features: [export] }\n"
+    )
+    [anna] = queries_settings.persona_rows(root, "shop")
+    assert anna.kind == "logged-in"
+    assert anna.attributes == {"tariff": "premium", "region": "EU", "features": ["export"]}
+
+
 def test_crawl_rules_from_the_portal_file(tmp_path: Path) -> None:
     (tmp_path / "wiki").mkdir()
     (tmp_path / "wiki" / "portal.yaml").write_text(

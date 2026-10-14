@@ -30,7 +30,10 @@ def world(empty_store: Store, tmp_path: Path) -> tuple[Store, Path, Path]:
     )
     (personas / "shop").mkdir(parents=True)
     (personas / "shop" / "guest.yaml").write_text("auth: none\n")
-    (personas / "shop" / "client.yaml").write_text("auth:\n  login: ref:SHOP_LOGIN\n")
+    (personas / "shop" / "client.yaml").write_text(
+        "auth:\n  login: ref:SHOP_LOGIN\n"
+        "attributes: { tariff: premium, features: [export, share] }\n"
+    )
     conn = empty_store.connect()
     insert(
         conn,
@@ -124,6 +127,8 @@ def test_personas_and_crawl_rules_and_store(world: tuple[Store, Path, Path]) -> 
     plain = text(r.text)
     assert "client" in plain and "logged-in" in plain and "SHOP_LOGIN" in plain
     assert "guest" in plain and "anonymous" in plain
+    # spec 024 attributes, as written, sorted by key
+    assert "features export, share ; tariff premium" in plain
     assert "respect it" in plain and "shop.example.pl" in plain
     assert "Allowed URLs" in plain and "everything on the allowed domains" in plain
     assert "Disallowed URLs" in plain

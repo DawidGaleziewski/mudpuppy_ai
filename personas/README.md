@@ -21,3 +21,23 @@ Rules enforced when a run starts (`preflight`):
 
 `_mixins/anonymous-base.yaml` is the shared base for logged-out personas: no credentials, read-only
 ceiling, optional consent declined.
+
+## Attributes and test users from a CSV (spec 024)
+
+`attributes:` says what decides this test user's access: tariff, contract, feature flags, any key.
+Values are text, numbers, booleans or lists of them; `extends` merges them per key. Pathfinder
+stores and shows them and never interprets them.
+
+```yaml
+attributes: { tariff: premium, contract: B2B, features: [export, share] }
+```
+
+Many logged-in personas at once: `pnpm --dir apps/crawler personas:import <portal> users.csv
+[--extends <mixin>] [--env sandbox|staging|production]`. The header is
+`persona_id,login,password,<attribute columns…>`; a list cell is `a|b`, an empty cell sets nothing.
+Each row becomes `personas/<portal>/<persona_id>.yaml` with `auth` refs
+(`<PORTAL>_<ID>_LOGIN`, `…_PASSWORD`) and the row's attributes, and the two values go to the vault
+for that environment (one environment per import). Viewport, locale and the action ceiling come
+from the mixin: `--extends`, else `personas/<portal>/_mixins/login.yaml` when it exists. Importing
+the same file again updates the same files and vault rows; other keys you added to a persona file
+stay. Passwords are never written to a file or printed.

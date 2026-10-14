@@ -37,32 +37,42 @@ class PersonaRow:
     id: str
     kind: str  # "anonymous" | "logged-in"
     refs: list[str]
+    # What decides this user's access (spec 024 US1): shown as written, never interpreted.
+    attributes: dict[str, Any]
 
 
-def _auth(path: Path, root: Path, depth: int = 0) -> Any:
-    """The persona's `auth` value: its own, else the first one found in its mixins."""
+def _layers(path: Path, root: Path, depth: int = 0) -> list[dict[str, Any]]:
+    """The persona file and its mixins in merge order: `extends` depth first, the file last."""
     doc = queries_chat._load_yaml(path)
     if not isinstance(doc, dict):
-        return None
-    if "auth" in doc:
-        return doc["auth"]
+        return []
+    out: list[dict[str, Any]] = []
     extends = doc.get("extends")
     for rel in extends if isinstance(extends, list) and depth < 4 else []:
         target = (path.parent / str(rel)).resolve()
         if target.is_relative_to(root) and target.is_file():
-            found = _auth(target, root, depth + 1)
-            if found is not None:
-                return found
-    return None
+            out += _layers(target, root, depth + 1)
+    return [*out, doc]
+
+
+def _attributes(layers: list[dict[str, Any]]) -> dict[str, Any]:
+    """`attributes` merged per key like the loader does: a later layer wins."""
+    merged: dict[str, Any] = {}
+    for layer in layers:
+        if isinstance(layer.get("attributes"), dict):
+            merged.update(layer["attributes"])
+    return merged
 
 
 def persona_rows(personas_dir: Path, portal: str | None) -> list[PersonaRow]:
     root = personas_dir.resolve()
     out = []
     for p in queries_chat.list_personas(personas_dir, portal):
-        auth = _auth(root / str(portal) / f"{p.id}.yaml", root)
+        layers = _layers(root / str(portal) / f"{p.id}.yaml", root)
+        auth = next((d["auth"] for d in reversed(layers) if "auth" in d), None)
         logged_in = bool(p.refs) or auth not in (None, "none")
-        out.append(PersonaRow(p.id, "logged-in" if logged_in else "anonymous", p.refs))
+        kind = "logged-in" if logged_in else "anonymous"
+        out.append(PersonaRow(p.id, kind, p.refs, _attributes(layers)))
     return out
 
 

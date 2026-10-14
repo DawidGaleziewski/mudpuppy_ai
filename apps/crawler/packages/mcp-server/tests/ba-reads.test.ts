@@ -22,6 +22,7 @@ describe('list_runs', () => {
         run_id: h.fx.runId,
         mode: 'map',
         persona_id: 'guest',
+        persona_attributes: {},
         environment: 'sandbox',
         status: 'completed',
         warning: null,
@@ -40,6 +41,19 @@ describe('list_runs', () => {
       },
     ]);
     expect((await h.must('list_runs', { portal_id: 'nobody' })).runs).toEqual([]);
+  });
+
+  it("shows the persona attributes the run ran with, from the run's snapshot (spec 024)", async () => {
+    const h = await startBa();
+    const attributes = { tariff: 'premium', features: ['export'] };
+    h.fx.raw
+      .prepare('UPDATE runs SET config_snapshot = ? WHERE id = ?')
+      .run(JSON.stringify({ persona: { id: 'guest', attributes } }), h.fx.runId);
+    const { runs } = (await h.must('list_runs', { portal_id: h.fx.portalId })) as {
+      runs: Record<string, unknown>[];
+    };
+    expect(runs[0]?.persona_attributes).toEqual(attributes);
+    expect(runs[0]).not.toHaveProperty('config_snapshot');
   });
 });
 

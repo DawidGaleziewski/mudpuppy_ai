@@ -1,0 +1,160 @@
+{
+  "about": "Spec 024 access read model, SC-001 shape. basic / premium / b2b ran completed map runs; guest only an interrupted one. Home: premium and b2b see an Export button (variant r2). Account: only b2b sees the Invoices menu entry. Admin: only b2b reached it. Both read models (dashboard queries_access.py, BA get_access_matrix) must return `expected`. Rows give every NOT NULL column; `defaults` fill the repeated ones.",
+  "portal_id": "access-shop",
+  "defaults": {
+    "runs": {
+      "portal_id": "access-shop",
+      "mode": "map",
+      "environment": "sandbox",
+      "env_version_or_date": "2026-10-14",
+      "viewport": "1366x768",
+      "locale": "en-GB",
+      "browser": "chromium",
+      "started_at": "2026-10-14T08:00:00.000Z"
+    },
+    "screens": {
+      "portal_id": "access-shop",
+      "cluster_id": "c1",
+      "first_seen_run": "run-basic",
+      "created_at": "2026-10-14T08:00:00.000Z"
+    },
+    "states": {
+      "portal_id": "access-shop",
+      "cluster_id": "c1",
+      "evidence_ref": "evidence/state.json",
+      "confidence": "observed",
+      "stabilization": "settled",
+      "first_seen_run": "run-basic",
+      "created_at": "2026-10-14T08:00:00.000Z"
+    },
+    "state_observations": { "evidence_ref": "evidence/obs.json" },
+    "actions": {
+      "action_json": "{}",
+      "safety_class": "read",
+      "allowed": 1,
+      "created_at": "2026-10-14T08:00:00.000Z"
+    }
+  },
+  "rows": {
+    "runs": [
+      {
+        "id": "run-basic",
+        "persona_id": "basic",
+        "status": "completed",
+        "config_snapshot": "{\"persona\":{\"id\":\"basic\",\"attributes\":{\"tariff\":\"basic\"}}}"
+      },
+      {
+        "id": "run-premium",
+        "persona_id": "premium",
+        "status": "completed",
+        "config_snapshot": "{\"persona\":{\"id\":\"premium\",\"attributes\":{\"tariff\":\"premium\"}}}"
+      },
+      {
+        "id": "run-b2b",
+        "persona_id": "b2b",
+        "status": "completed",
+        "config_snapshot": "{\"persona\":{\"id\":\"b2b\",\"attributes\":{\"tariff\":\"premium\",\"contract\":\"B2B\"}}}"
+      },
+      {
+        "id": "run-guest",
+        "persona_id": "guest",
+        "status": "interrupted",
+        "config_snapshot": "{\"persona\":{\"id\":\"guest\",\"attributes\":{}}}"
+      }
+    ],
+    "screens": [
+      { "id": "sc-home", "route_template": "/", "title": "Home" },
+      { "id": "sc-account", "route_template": "/account", "title": "Account" },
+      { "id": "sc-admin", "route_template": "/admin", "title": "Admin", "first_seen_run": "run-b2b" }
+    ],
+    "states": [
+      { "id": "st-home-1", "fingerprint": "f-home-1", "route_template": "/", "title": "Home", "screen_id": "sc-home", "screen_rev": 1 },
+      { "id": "st-home-2", "fingerprint": "f-home-2", "route_template": "/", "title": "Home", "screen_id": "sc-home", "screen_rev": 2, "first_seen_run": "run-premium" },
+      { "id": "st-acc-1", "fingerprint": "f-acc-1", "route_template": "/account", "title": "Account", "screen_id": "sc-account", "screen_rev": 1 },
+      { "id": "st-acc-2", "fingerprint": "f-acc-2", "route_template": "/account", "title": "Account", "screen_id": "sc-account", "screen_rev": 2, "first_seen_run": "run-b2b" },
+      { "id": "st-admin-1", "fingerprint": "f-admin-1", "route_template": "/admin", "title": "Admin", "screen_id": "sc-admin", "screen_rev": 1, "first_seen_run": "run-b2b" }
+    ],
+    "state_observations": [
+      { "run_id": "run-basic", "state_id": "st-home-1", "persona_id": "basic", "observed_at": "2026-10-14T08:01:00.000Z" },
+      { "run_id": "run-basic", "state_id": "st-acc-1", "persona_id": "basic", "observed_at": "2026-10-14T08:02:00.000Z" },
+      { "run_id": "run-premium", "state_id": "st-home-1", "persona_id": "premium", "observed_at": "2026-10-14T08:01:00.000Z" },
+      { "run_id": "run-premium", "state_id": "st-home-2", "persona_id": "premium", "observed_at": "2026-10-14T08:05:00.000Z" },
+      { "run_id": "run-premium", "state_id": "st-acc-1", "persona_id": "premium", "observed_at": "2026-10-14T08:06:00.000Z" },
+      { "run_id": "run-b2b", "state_id": "st-home-2", "persona_id": "b2b", "observed_at": "2026-10-14T08:01:00.000Z" },
+      { "run_id": "run-b2b", "state_id": "st-acc-2", "persona_id": "b2b", "observed_at": "2026-10-14T08:02:00.000Z" },
+      { "run_id": "run-b2b", "state_id": "st-admin-1", "persona_id": "b2b", "observed_at": "2026-10-14T08:03:00.000Z" },
+      { "run_id": "run-guest", "state_id": "st-home-1", "persona_id": "guest", "observed_at": "2026-10-14T08:01:00.000Z" }
+    ],
+    "actions": [
+      { "id": "a-h1-offers", "run_id": "run-basic", "state_id": "st-home-1", "role": "link", "accessible_name": "Offers" },
+      { "id": "a-h1-account", "run_id": "run-basic", "state_id": "st-home-1", "role": "link", "accessible_name": "Account" },
+      { "id": "a-h2-offers", "run_id": "run-premium", "state_id": "st-home-2", "role": "link", "accessible_name": "Offers" },
+      { "id": "a-h2-account", "run_id": "run-premium", "state_id": "st-home-2", "role": "link", "accessible_name": "Account" },
+      { "id": "a-h2-export", "run_id": "run-premium", "state_id": "st-home-2", "role": "button", "accessible_name": "Export" },
+      { "id": "a-h2-export-again", "run_id": "run-b2b", "state_id": "st-home-2", "role": "button", "accessible_name": "Export" },
+      { "id": "a-a1-profile", "run_id": "run-basic", "state_id": "st-acc-1", "role": "link", "accessible_name": "Profile" },
+      { "id": "a-a2-profile", "run_id": "run-b2b", "state_id": "st-acc-2", "role": "link", "accessible_name": "Profile" },
+      { "id": "a-a2-invoices", "run_id": "run-b2b", "state_id": "st-acc-2", "role": "menuitem", "accessible_name": "Invoices" },
+      { "id": "a-a2-menu", "run_id": "run-b2b", "state_id": "st-acc-2", "role": "menu", "accessible_name": null },
+      { "id": "a-ad-users", "run_id": "run-b2b", "state_id": "st-admin-1", "role": "link", "accessible_name": "Users" }
+    ]
+  },
+  "expected": {
+    "portal_id": "access-shop",
+    "personas": ["b2b", "basic", "guest", "premium"],
+    "screens": [
+      {
+        "screen_id": "sc-home",
+        "route": "/",
+        "title": "Home",
+        "depends_on_access": true,
+        "variants": [
+          { "persona_id": "b2b", "state_id": "st-home-2", "run_id": "run-b2b", "observed_at": "2026-10-14T08:01:00.000Z", "complete_map_run": true },
+          { "persona_id": "basic", "state_id": "st-home-1", "run_id": "run-basic", "observed_at": "2026-10-14T08:01:00.000Z", "complete_map_run": true },
+          { "persona_id": "guest", "state_id": "st-home-1", "run_id": "run-guest", "observed_at": "2026-10-14T08:01:00.000Z", "complete_map_run": false },
+          { "persona_id": "premium", "state_id": "st-home-2", "run_id": "run-premium", "observed_at": "2026-10-14T08:05:00.000Z", "complete_map_run": true }
+        ],
+        "not_reached": [],
+        "elements_total": 3,
+        "elements": [
+          { "key": "button \"Export\"", "seen_by": ["b2b", "premium"], "not_seen_by": ["basic"] }
+        ]
+      },
+      {
+        "screen_id": "sc-account",
+        "route": "/account",
+        "title": "Account",
+        "depends_on_access": true,
+        "variants": [
+          { "persona_id": "b2b", "state_id": "st-acc-2", "run_id": "run-b2b", "observed_at": "2026-10-14T08:02:00.000Z", "complete_map_run": true },
+          { "persona_id": "basic", "state_id": "st-acc-1", "run_id": "run-basic", "observed_at": "2026-10-14T08:02:00.000Z", "complete_map_run": true },
+          { "persona_id": "premium", "state_id": "st-acc-1", "run_id": "run-premium", "observed_at": "2026-10-14T08:06:00.000Z", "complete_map_run": true }
+        ],
+        "not_reached": [],
+        "elements_total": 3,
+        "elements": [
+          { "key": "menu", "seen_by": ["b2b"], "not_seen_by": ["basic", "premium"] },
+          { "key": "menuitem \"Invoices\"", "seen_by": ["b2b"], "not_seen_by": ["basic", "premium"] }
+        ]
+      },
+      {
+        "screen_id": "sc-admin",
+        "route": "/admin",
+        "title": "Admin",
+        "depends_on_access": true,
+        "variants": [
+          { "persona_id": "b2b", "state_id": "st-admin-1", "run_id": "run-b2b", "observed_at": "2026-10-14T08:03:00.000Z", "complete_map_run": true }
+        ],
+        "not_reached": ["basic", "premium"],
+        "elements_total": 1,
+        "elements": []
+      }
+    ]
+  },
+  "expected_attributes": {
+    "b2b": { "tariff": "premium", "contract": "B2B" },
+    "basic": { "tariff": "basic" },
+    "guest": {},
+    "premium": { "tariff": "premium" }
+  }
+}

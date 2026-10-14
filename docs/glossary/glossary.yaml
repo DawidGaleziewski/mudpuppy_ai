@@ -84,13 +84,15 @@ entries:
       which inputs to type in trace mode, its own budgets and safety ceiling. Personas can extend
       shared pieces (`personas/_mixins/`). The run's effective safety ceiling is the lower of the
       portal's and the persona's, so a persona can restrict but never widen. Secrets are referenced,
-      never written in the file.
+      never written in the file. Its `attributes` (tariff, contract, feature flags…) say what
+      decides that test user's access; Pathfinder shows them and never interprets them. Many
+      logged-in personas can be imported from a CSV of test users (`pnpm personas:import`).
     example: reference-insurer/guest extends the anonymous base mixin and the trace-input mixin.
-    appears_in: [Runs table → Persona]
+    appears_in: [Runs table → Persona, Settings → Personas]
     labels: [Persona]
-    related: [run, safety-class, budget]
-    changed_in: R-22
-    changed_on: 2026-10-03
+    related: [run, safety-class, budget, access-dependent]
+    changed_in: R-33
+    changed_on: 2026-10-14
 
   - id: reference-portal
     term: Reference portal / ground truth
@@ -274,6 +276,26 @@ entries:
     labels: [Hooks, patched by hook]
     related: [portal-scope, environment]
     changed_in: R-53
+    changed_on: 2026-10-14
+
+  - id: access-dependent
+    term: Access-dependent content
+    category: pathfinder
+    group: Runs and setup
+    short: A screen or element that some test users see and others do not, found by scanning the same portal as several personas.
+    explanation: |
+      When personas differ by their attributes (tariff, contract, feature flags), Pathfinder
+      compares what each one recorded. Per screen it lists who reached it, the variant each one
+      saw, and the elements only some of them see ("seen by" / "not seen by"). Only personas whose
+      scan finished count as "not seen": an interrupted scan shows nothing missing. A screen is
+      also marked when a persona with a finished scan never reached it, which can mean access or
+      just a scan that ran out of budget. Pathfinder never reads the attributes itself; the BA
+      documents the rule, citing one persona that sees the element and one that does not.
+    example: "Premium and B2B users see an Export button on Home; a basic user does not."
+    appears_in: [Screen page → Access, Access by persona]
+    labels: [Access, seen by, not seen by]
+    related: [persona, run]
+    changed_in: R-33
     changed_on: 2026-10-14
 
   - id: budget

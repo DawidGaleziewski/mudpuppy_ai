@@ -622,6 +622,9 @@ importers:
       kysely:
         specifier: ^0.29.6
         version: 0.29.6
+      yaml:
+        specifier: ^2.9.1
+        version: 2.9.1
     devDependencies:
       '@types/node':
         specifier: ^22.20.4

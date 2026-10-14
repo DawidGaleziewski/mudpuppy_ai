@@ -40,6 +40,7 @@ export const BA_READ_TOOLS = [
   'list_processes',
   'get_process',
   'get_pending_feedback',
+  'get_access_matrix',
 ].map((t) => BA + t);
 
 export const BA_WRITE_TOOLS = [

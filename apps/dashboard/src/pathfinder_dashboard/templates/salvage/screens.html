@@ -5,7 +5,7 @@
 {% block main %}
 <div class="sy-pagehead">
   <h1 class="sy-h1">Screens</h1>
-  <p class="sy-meta"><span class="sy-num">{{ rows | length }}</span> recorded screen{{ "" if rows | length == 1 else "s" }}{% if c.portal %} of {{ c.portal }}{% else %} across all portals{% endif %}</p>
+  <p class="sy-meta"><span class="sy-num">{{ rows | length }}</span> recorded screen{{ "" if rows | length == 1 else "s" }}{% if c.portal %} of {{ c.portal }}{% else %} across all portals{% endif %}{% if c.portal %} · <a href="{{ c.url('/access') }}">Access by persona</a>{% endif %}</p>
 </div>
 {%- if not rows %}
 {{ sy.empty("No screens recorded yet", "Ask the assistant to scan the portal; every page it records shows up here.") }}

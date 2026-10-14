@@ -20,6 +20,7 @@ describe('real persona files', () => {
       viewport: { width: 1366, height: 768 },
       locale: 'pl-PL',
       trace_inputs: {},
+      attributes: {},
     });
   });
 

@@ -17,66 +17,8 @@ export const EVIDENCE_CONTENT_LIMIT = 60_000;
 
 type Row = Record<string, unknown>;
 
-// ---------------------------------------------------------------------------------------------------
-// list_runs
-
-export const ListRunsInput = z.object({ portal_id: z.string().min(1) }).strict();
-
-const RUN_COUNTS: Record<string, string> = {
-  states: 'state_observations',
-  edges: 'edges',
-  forms: 'forms',
-  network_calls: 'network_calls',
-  actions: 'actions',
-  open_questions: 'open_questions',
-  rule_candidates: 'rule_candidates',
-};
-
-/** Runs of a portal, oldest first, with how much each recorded. */
-export function listRuns(ctx: BaContext, raw: unknown): { runs: Row[] } {
-  const input = parseInput(ListRunsInput, raw);
-  const counts = Object.entries(RUN_COUNTS)
-    .map(([name, table]) => `(SELECT COUNT(*) FROM ${table} t WHERE t.run_id = runs.id) AS ${name}`)
-    .join(', ');
-  const rows = ctx.raw
-    .prepare(
-      `SELECT id, mode, persona_id, environment, status, warning, started_at, ended_at,
-              (SELECT p.name FROM processes p WHERE p.run_id = runs.id) AS process_name, ${counts}
-       FROM runs WHERE portal_id = ? ORDER BY id`,
-    )
-    .all(input.portal_id) as Row[];
-  return {
-    runs: rows.map((r) => {
-      const {
-        id,
-        mode,
-        persona_id,
-        environment,
-        status,
-        warning,
-        started_at,
-        ended_at,
-        process_name,
-        ...n
-      } = r;
-      return {
-        run_id: id,
-        mode,
-        persona_id,
-        environment,
-        status,
-        warning,
-        started_at,
-        ended_at,
-        counts: n,
-        // Trace runs name their process; map runs have none.
-        process_name: process_name ?? null,
-      };
-    }),
-  };
-}
-
-// get_run_evidence lives in `run-evidence.ts` (spec 019: it grew page visits and parameters).
+// list_runs lives in `runs.ts`; get_run_evidence lives in `run-evidence.ts` (spec 019: it grew
+// page visits and parameters).
 
 // ---------------------------------------------------------------------------------------------------
 // get_evidence

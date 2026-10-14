@@ -22,6 +22,18 @@ export const Viewport = z.object({
  */
 export const TraceInputs = z.record(z.string().min(1), z.string());
 
+const AttributeValue = z.union([z.string(), z.number(), z.boolean()]);
+
+/**
+ * What decides this test user's access (spec 024 US1): tariff, contract, feature flags…, any keys.
+ * Pathfinder stores and shows them and never interprets them (FR-008); `extends` merges per key.
+ */
+export const PersonaAttributes = z.record(
+  z.string().min(1).max(100),
+  z.union([AttributeValue, z.array(AttributeValue)]),
+);
+export type PersonaAttributes = z.infer<typeof PersonaAttributes>;
+
 const shape = {
   id: z.string().regex(/^[a-z0-9][a-z0-9_-]*$/, 'must be a lowercase slug'),
   extends: z.array(z.string().min(1)).default([]),
@@ -34,6 +46,7 @@ const shape = {
   viewport: Viewport,
   locale: z.string().min(1),
   trace_inputs: TraceInputs,
+  attributes: PersonaAttributes,
 };
 
 /** A single persona or mixin file: everything is optional because mixins are partial. */
@@ -49,6 +62,7 @@ export const PersonaFile = z
     viewport: shape.viewport.optional(),
     locale: shape.locale.optional(),
     trace_inputs: shape.trace_inputs.optional(),
+    attributes: shape.attributes.optional(),
   })
   .strict();
 export type PersonaFile = z.infer<typeof PersonaFile>;
@@ -66,6 +80,7 @@ export const PersonaConfig = z
     viewport: shape.viewport,
     locale: shape.locale,
     trace_inputs: shape.trace_inputs.default({}),
+    attributes: shape.attributes.default({}),
   })
   .strict();
 export type PersonaConfig = z.infer<typeof PersonaConfig>;

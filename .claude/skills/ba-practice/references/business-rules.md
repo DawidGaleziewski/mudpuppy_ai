@@ -25,6 +25,16 @@ rows: [
 ]
 ```
 
+## Access rules (several personas)
+
+When a portal was scanned with personas that differ by attributes (tariff, contract, flags),
+`get_access_matrix` lists, per screen, the elements only some personas see. An access rule is an
+`action_enabler` with both sides as evidence: one persona that sees the element and one that does
+not (their variant states from the matrix). Name the condition with the attributes the owner wrote
+(`list_runs` → `persona_attributes`), as an `inferred` rule when the attributes differ in more than
+one key; the reason for the rule goes in an `open_question`. A screen marked only because a persona
+"never reached" it is a coverage fact, not yet a rule: ask, do not state it.
+
 ## Honest labels
 
 - Visible limit (attribute or message) → `observed`.

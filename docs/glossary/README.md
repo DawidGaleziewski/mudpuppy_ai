@@ -91,17 +91,19 @@ A persona file (`personas/<portal>/<persona>.yaml`) says who is acting: logged i
 which inputs to type in trace mode, its own budgets and safety ceiling. Personas can extend
 shared pieces (`personas/_mixins/`). The run's effective safety ceiling is the lower of the
 portal's and the persona's, so a persona can restrict but never widen. Secrets are referenced,
-never written in the file.
+never written in the file. Its `attributes` (tariff, contract, feature flags…) say what
+decides that test user's access; Pathfinder shows them and never interprets them. Many
+logged-in personas can be imported from a CSV of test users (`pnpm personas:import`).
 
 *Example:* reference-insurer/guest extends the anonymous base mixin and the trace-input mixin.
 
-*Seen in:* Runs table → Persona
+*Seen in:* Runs table → Persona; Settings → Personas
 
 *Labels:* `Persona`
 
-*Related:* [Run](#run), [Safety class](#safety-class), [Budget](#budget)
+*Related:* [Run](#run), [Safety class](#safety-class), [Budget](#budget), [Access-dependent content](#access-dependent)
 
-<sub>Last changed in R-22, 2026-10-03.</sub>
+<sub>Last changed in R-33, 2026-10-14.</sub>
 
 <a id="reference-portal"></a>
 
@@ -172,6 +174,30 @@ over-claims (SC-009); one over-claim fails `docs:evaluate`.
 *Related:* [Coverage score](#coverage-score), [Confidence (observed / inferred / needs confirmation)](#confidence), [Reference portal / ground truth](#reference-portal)
 
 <sub>Last changed in R-16, 2026-10-04.</sub>
+
+<a id="access-dependent"></a>
+
+#### Access-dependent content
+
+**A screen or element that some test users see and others do not, found by scanning the same portal as several personas.**
+
+When personas differ by their attributes (tariff, contract, feature flags), Pathfinder
+compares what each one recorded. Per screen it lists who reached it, the variant each one
+saw, and the elements only some of them see ("seen by" / "not seen by"). Only personas whose
+scan finished count as "not seen": an interrupted scan shows nothing missing. A screen is
+also marked when a persona with a finished scan never reached it, which can mean access or
+just a scan that ran out of budget. Pathfinder never reads the attributes itself; the BA
+documents the rule, citing one persona that sees the element and one that does not.
+
+*Example:* Premium and B2B users see an Export button on Home; a basic user does not.
+
+*Seen in:* Screen page → Access; Access by persona
+
+*Labels:* `Access`, `seen by`, `not seen by`
+
+*Related:* [Persona](#persona), [Run](#run)
+
+<sub>Last changed in R-33, 2026-10-14.</sub>
 
 ### Crawling
 

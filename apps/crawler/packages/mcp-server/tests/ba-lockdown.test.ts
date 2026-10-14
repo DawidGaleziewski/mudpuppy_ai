@@ -20,7 +20,7 @@ async function baTools() {
 }
 
 describe('BA server lockdown (contracts/ba-mcp-tools.md)', () => {
-  it('lists exactly the 15 BA tools (13 of R-13 plus the R-14 process reads)', async () => {
+  it('lists exactly the 16 BA tools (13 of R-13, the R-14 process reads, spec 024 access)', async () => {
     expect(BA_TOOL_NAMES).toEqual([
       'list_runs',
       'get_run_evidence',
@@ -37,6 +37,7 @@ describe('BA server lockdown (contracts/ba-mcp-tools.md)', () => {
       'revise_record',
       'withdraw_record',
       'address_crawler_question',
+      'get_access_matrix',
     ]);
     const names = (await baTools()).map((t) => t.name).sort();
     expect(names).toEqual([...BA_TOOL_NAMES].sort());

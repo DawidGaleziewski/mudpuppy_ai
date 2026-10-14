@@ -11,6 +11,8 @@ const argv = process.argv.slice(2);
 const envIdx = argv.indexOf('--env');
 const env = (envIdx > -1 ? argv[envIdx + 1] : undefined) ?? process.env.PATHFINDER_ENV ?? 'sandbox';
 const root = resolve(join(import.meta.dirname, '../../..'));
+// pnpm runs this from apps/crawler; file arguments (`import <csv>`, `--seed`) are the caller's.
+if (process.env.INIT_CWD) process.chdir(process.env.INIT_CWD);
 
 async function readSecret(prompt: string, fromStdin: boolean): Promise<string> {
   if (fromStdin || !process.stdin.isTTY) {

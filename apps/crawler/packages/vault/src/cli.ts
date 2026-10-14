@@ -3,6 +3,7 @@ import { dirname } from 'node:path';
 import { loadPersona } from '@pathfinder/config';
 import { djangoPbkdf2, generatePassword, loadKey } from './crypto.js';
 import { VaultError } from './errors.js';
+import { importPersonas } from './import-personas.js';
 import { asEnvironment, createVaultStore, personaRefs, type VaultStore } from './store.js';
 import type { PathfinderDb } from '@pathfinder/store';
 
@@ -26,6 +27,8 @@ const USAGE = `usage:
   pnpm vault generate <portal> --login <REF>=<name> --password <REF> [--env e]
                       [--seed <file> --seed-user <id> [--seed-brand <brand>] [--iterations n]]
   pnpm vault check <portal> <persona> [--env e]
+  pnpm vault import <portal> <file.csv> [--extends <mixin>] [--env e]   (= pnpm personas:import)
+                    header: persona_id,login,password,<attribute columns…>; a list cell is a|b
   pnpm vault reveal <portal> <REF> [--env e] --yes-print-secret`;
 
 function parse(argv: string[]): { pos: string[]; opt: Map<string, string | true> } {
@@ -162,6 +165,25 @@ export async function runVaultCli(argv: string[], io: CliIo): Promise<number> {
           return 1;
         }
         io.out('ok');
+        return 0;
+      }
+      case 'import': {
+        const [portal, file] = rest;
+        if (!portal || !file) break;
+        const imported = await importPersonas({
+          root: io.root,
+          portal,
+          csv: readFileSync(file, 'utf8'),
+          environment: env,
+          extends: str(opt, 'extends'),
+          store: store(true),
+        });
+        for (const p of imported)
+          io.out(
+            `${p.status} personas/${portal}/${p.id}.yaml (${p.refs.login}, ${p.refs.password})`,
+          );
+        const created = imported.filter((p) => p.status === 'created').length;
+        io.out(`${created} created, ${imported.length - created} updated; credentials on ${env}`);
         return 0;
       }
       case 'reveal': {

@@ -2,7 +2,7 @@
 {#- The screen page's side pane (spec 022 screen 08): Amendments (to-be, with the add form),
     Cited by (records), History (observed revisions and facts). Tabs are links (`?side=`), so each
     view has its own URL and works without JavaScript. -#}
-{%- set tabs = [("amendments", "Amendments", am["items"] | length), ("cited", "Cited by", p.citing | length), ("history", "History", none)] %}
+{%- set tabs = [("amendments", "Amendments", am["items"] | length), ("cited", "Cited by", p.citing | length), ("history", "History", none), ("access", "Access", (ac.access.elements | length) if ac and ac.access else none)] %}
 <aside class="sy-col-side mp-screen-side">
   <div class="sy-plate{% if side == 'amendments' %} sy-plate--drawn{% endif %}">
     <nav class="sy-tabs" aria-label="Screen details">
@@ -52,6 +52,10 @@
       {%- endfor %}
     </ul>
     {%- endif %}
+    </div>
+    {%- elif side == "access" %}
+    <div class="sy-plate__body">
+    {%- include "salvage/partials/state_access.html" %}
     </div>
     {%- else %}
     <div class="sy-plate__body sy-stack">
