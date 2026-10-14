@@ -20,7 +20,7 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
     golden lock was updated on purpose (the run reaches the offer page earlier).
   - Shop eval against its baseline: screens 3 → 4/6 (checkout reached), fields 33.3 → 80 %,
     rules 0 → 37.5 %; the budget ended with 90 links pending. The order confirmation and the
-    login are missed for other reasons (R-54).
+    login are missed for other reasons (R-55).
 - R-39 BA goal quality, third round (spec 025; owner decisions 2026-10-14 evening: split the BA
   session, neutral examples everywhere, promote a new baseline):
   - **Two BA sessions in a trial with traces:** the BA first documents the map run with the same
