@@ -257,3 +257,31 @@
   title: The pipeline golden lock flakes on a rate-limiter wait under load
   tier: not_testable
   reason: a timing flake of a test; the idea is to drop limiter_wait from the golden normaliser
+- id: F-01@026
+  title: The run's templater makes every queued product look like a new template
+  tier: not_testable
+  reason: a design slip caught before the gate; the frontier-order unit test locks the fix
+- id: F-02@026
+  title: The pipeline golden lock changed on purpose with the frontier order
+  tier: not_testable
+  reason: a deliberate snapshot update, recorded for review
+- id: F-03@026
+  title: A catalogue's product and page links wait until unvisited templates are handed out
+  tier: gate
+  reason: proving-ground shop catalogue with one product visited; the next item is not a product or page link
+- id: F-04@026
+  title: After the empty cart was followed, the cart link with an item is still followed, not inferred
+  tier: gate
+  reason: proving-ground shop, "Koszyk (0)" followed, an item added; "Koszyk (1)" is handed out
+- id: F-05@026
+  title: The reference BA wrote field code names as name_verbatim
+  tier: not_testable
+  reason: a BA variance in one trial; the eval idea (a snake_case name check) is in the finding
+- id: F-06@026
+  title: The bank eval cannot run from a worktree, its vault credentials are local
+  tier: not_testable
+  reason: an environment fact of worktrees; run the bank eval from the main checkout
+- id: F-07@026
+  title: Shop re-run reaches 4/6; S05 unfilled submit and S07 vanishing link have other causes
+  tier: eval
+  check: crawl_screens

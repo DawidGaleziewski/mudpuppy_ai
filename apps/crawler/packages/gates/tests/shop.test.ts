@@ -291,3 +291,61 @@ gate('LO-11', 'inputs outside any form (a React checkout) are recorded as a form
   // the postal input's placeholder "00-000" is only a format: the label next to it names it
   expect(fields).toContain('Kod pocztowy');
 });
+
+gate(
+  'F-03@026',
+  "a catalogue's product and page links wait until unvisited templates are handed out",
+  async () => {
+    // A run of its own: one product visited, then the catalogue queues every product and page.
+    const own = await startRun(gs.call, 'proving-ground-shop', 'guest');
+    await nav(gs.call, own, '/sklep/produkt/kalosze-bagienne-klasyczne');
+    const cat = await nav(gs.call, own, '/sklep');
+    const itemOrPage = /\/sklep\/produkt\/|strona=/;
+    const pending = rows<{ target: string | null }>(
+      gs,
+      `SELECT json_extract(action_json, '$.target_url') AS target FROM frontier
+       WHERE run_id = ? AND status = 'pending'`,
+      own,
+    );
+    expect(pending.filter((p) => itemOrPage.test(p.target ?? '')).length).toBeGreaterThan(5);
+    const next = (cat.next as { item: { frontier_id: string } | null }).item;
+    expect(next).not.toBeNull();
+    const [picked] = rows<{ target: string | null }>(
+      gs,
+      `SELECT json_extract(action_json, '$.target_url') AS target FROM frontier WHERE id = ?`,
+      next!.frontier_id,
+    );
+    expect(picked!.target ?? '').not.toMatch(itemOrPage);
+  },
+);
+
+gate(
+  'F-04@026',
+  'after the empty cart was followed, the cart link with an item is still followed, not inferred',
+  async () => {
+    // A run of its own (own browser, own cart): the empty cart first, then an item added.
+    const own = await startRun(gs.call, 'proving-ground-shop', 'guest');
+    const cat = await nav(gs.call, own, '/sklep');
+    await actOn(gs.call, own, cat, /^Koszyk \(0\)$/);
+    const product = await nav(gs.call, own, '/sklep/produkt/kalosze-bagienne-klasyczne');
+    const added = await actOn(gs.call, own, product, 'Dodaj do koszyka');
+    expect(actionNamed(added, /^Koszyk \(1\)$/)).toBeDefined();
+    // As if the crawler had handled everything else: only the filled-cart links stay pending,
+    // so the next pick either hands one out (right) or infers it as the empty cart (F-04).
+    gs.ctx.raw
+      .prepare(
+        `UPDATE frontier SET status = 'done' WHERE run_id = ? AND status = 'pending'
+           AND json_extract(action_json, '$.accessible_name') IS NOT 'Koszyk (1)'`,
+      )
+      .run(own);
+    const next = await gs.call('get_next_frontier_item', { run_id: own });
+    const item = (next.body as { item: { frontier_id: string } | null }).item;
+    expect(item).not.toBeNull();
+    const [picked] = rows<{ name: string }>(
+      gs,
+      `SELECT json_extract(action_json, '$.accessible_name') AS name FROM frontier WHERE id = ?`,
+      item!.frontier_id,
+    );
+    expect(picked!.name).toBe('Koszyk (1)');
+  },
+);

@@ -6,6 +6,21 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Added
+- R-35 frontier order for item lists and pagination (spec 026; owner: "order only", then the
+  name check, then "merge as is"):
+  - **Unvisited kinds of page first:** the server hands out links to a route template the run
+    has not visited yet, then buttons, forms and other items, then links to templates it
+    already visited (more products, more catalogue pages). Templates are worked out over the
+    visited URLs and every queued link together, so forty product links count as one kind of
+    page from the start. Nothing is skipped; within each group the old order holds.
+  - **A link is inferred only with the same name:** a link to an address the run already
+    reached is recorded without a click only when its visible name matches too, so the cart
+    link "Koszyk (1)" is followed after "Koszyk (0)" was.
+  - Gates F-03@026 (catalogue links wait) and F-04@026 (filled-cart link followed); the pipeline
+    golden lock was updated on purpose (the run reaches the offer page earlier).
+  - Shop eval against its baseline: screens 3 → 4/6 (checkout reached), fields 33.3 → 80 %,
+    rules 0 → 37.5 %; the budget ended with 90 links pending. The order confirmation and the
+    login are missed for other reasons (R-54).
 - R-39 BA goal quality, third round (spec 025; owner decisions 2026-10-14 evening: split the BA
   session, neutral examples everywhere, promote a new baseline):
   - **Two BA sessions in a trial with traces:** the BA first documents the map run with the same

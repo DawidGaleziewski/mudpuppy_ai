@@ -1,0 +1,142 @@
+{
+  "portal_id": "proving-ground-shop",
+  "persona_id": "guest",
+  "started_at": "2026-10-14T18:38:16.796Z",
+  "git_sha": "b8432da",
+  "runs": {
+    "crawler": "01a13bb5-4b77-7000-8045-b3d50e88f81b",
+    "ba_session": "01a13bcf-5e59-7000-8b11-9436f6ec122f",
+    "crawler_cli_session": "63fc3f29-c18c-4cbb-8aaf-b713abe9cd7a",
+    "ba_cli_session": "859874f2-b95d-4ef9-9f42-8e919c928aa8"
+  },
+  "outcomes": {
+    "crawler": "success",
+    "ba": "success"
+  },
+  "cost": {
+    "usd": 6.02034,
+    "input_tokens": 14016454,
+    "output_tokens": 76079,
+    "duration_ms": 2242220
+  },
+  "scores": {
+    "screens": {
+      "matched": 4,
+      "total": 6,
+      "pct": 66.7
+    },
+    "fields": {
+      "matched": 12,
+      "total": 15,
+      "pct": 80
+    },
+    "constraints": {
+      "matched": 7,
+      "total": 23,
+      "pct": 30.4
+    },
+    "rules": {
+      "matched": 3,
+      "total": 8,
+      "pct": 37.5
+    },
+    "processes": {
+      "matched": 0,
+      "total": 2,
+      "pct": 0
+    },
+    "terms": {
+      "matched": 2,
+      "total": 11,
+      "pct": 18.2
+    },
+    "processes_map": {
+      "matched": 1,
+      "total": 2,
+      "pct": 50
+    },
+    "logged_in_screens": {
+      "matched": 1,
+      "total": 1,
+      "pct": 100
+    },
+    "obstacles": {
+      "matched": 16,
+      "total": 24,
+      "pct": 66.7
+    },
+    "entry_points": {
+      "matched": 0,
+      "total": 1,
+      "pct": 0
+    },
+    "crawl_screens": {
+      "matched": 4,
+      "total": 6,
+      "pct": 66.7
+    }
+  },
+  "overclaims": 0,
+  "checks": {
+    "frontier_empty_at_finish": false,
+    "crawler_completed": false,
+    "crawler_steps": 108,
+    "frontier_pending": 90,
+    "ba_session_completed": true,
+    "handoffs": 1,
+    "ba_write_calls": 57,
+    "ba_write_refused": 5,
+    "ba_write_refused_pct": 9,
+    "ba_relation_refused": 3,
+    "route_templates_with_query": 0,
+    "data_items_joined": 1,
+    "rules_on_screens_pct": 100,
+    "relogins": 0,
+    "logged_in": false,
+    "password_hits": 0,
+    "widget_actions": 0
+  },
+  "workspace": "/tmp/pf-eval-proving-ground-shop-LpEEdb",
+  "judges": [
+    {
+      "id": "glossary-terms",
+      "version": "130240170034",
+      "model": "claude-sonnet-5-5",
+      "claude_code_version": "2.1.288",
+      "calibrated": false,
+      "covered": 1,
+      "total": 11,
+      "pct": 9.1,
+      "counts": {
+        "pass": 1,
+        "fail": 1,
+        "unknown": 1,
+        "error": 0
+      },
+      "skipped_pairs": 0,
+      "cost": {
+        "usd": 0.022908,
+        "input_tokens": 3740,
+        "output_tokens": 796,
+        "calls": 3
+      },
+      "verdicts": [
+        {
+          "pair_id": "T01~GL-003@1",
+          "verdict": "fail",
+          "reason": "The record defines \"Wartość produktów\" (the cart products value), which is a different term and meaning from \"Katalog produktów\" (product catalog)."
+        },
+        {
+          "pair_id": "T04~GL-004@1",
+          "verdict": "unknown",
+          "reason": "The ground-truth item gives only the term \"Do zapłaty\" and no portal meaning, so the record's definition (products value plus delivery cost) can't be checked against it."
+        },
+        {
+          "pair_id": "T07~GL-002@1",
+          "verdict": "pass",
+          "reason": "The record's term is Paczkomat, and it defines it as a parcel locker delivery option where the customer chooses a locker, which matches the term's meaning."
+        }
+      ]
+    }
+  ]
+}

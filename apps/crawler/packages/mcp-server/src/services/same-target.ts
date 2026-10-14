@@ -48,18 +48,23 @@ export function linkTarget(row: Pick<FrontierRow, 'action_id' | 'action_json'>):
  * record an `inferred` edge to the same state (that transition's evidence) and mark the item
  * `done` with `same_target: <edge id>`. Returns false, changing nothing, when the item must be
  * executed: not a plain link, or no successful transition to its target yet (spec 013 US2, R2, R4).
+ * The link's visible name must match too (spec 026 F-04): "Koszyk (1)" after an item was added
+ * leads to a different page than the "Koszyk (0)" the run followed, though the URL is the same.
  */
 export async function inferSameTarget(ctx: ServerContext, row: FrontierRow): Promise<boolean> {
   const target = linkTarget(row);
   if (target === null) return false;
+  const name =
+    (JSON.parse(row.action_json) as { accessible_name?: string | null }).accessible_name ?? null;
   const seen = ctx.raw
     .prepare(
       `SELECT id, to_state, evidence_ref, stabilization FROM edges
        WHERE run_id = ? AND status = 'executed' AND confidence = 'observed'
          AND to_state IS NOT NULL AND json_extract(action_json, '$.target_url') = ?
+         AND json_extract(action_json, '$.accessible_name') IS ?
        ORDER BY id LIMIT 1`,
     )
-    .get(row.run_id, target) as SeenEdge | undefined;
+    .get(row.run_id, target, name) as SeenEdge | undefined;
   if (!seen) return false;
   // The edge carries the item's own action (locators, snapshot) like an executed one, without
   // the page it was found on (record-transition's shape).

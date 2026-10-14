@@ -16,6 +16,7 @@ const FINDINGS: [string, string][] = [
   ['specs/009-legacy-proving-ground/findings.md', '009'],
   ['specs/020-roadmap-declutter/findings.md', '020'],
   ['specs/023-crawler-hooks/findings.md', '023'],
+  ['specs/026-frontier-order/findings.md', '026'],
 ];
 
 describe('coverage (spec 009 FR-024, FR-025)', () => {

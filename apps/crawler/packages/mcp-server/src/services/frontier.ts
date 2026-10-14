@@ -4,6 +4,7 @@ import type { ServerContext } from '../context.js';
 import { parseInput } from '../errors.js';
 import { assertRunActive, getRun } from './common.js';
 import { isBudgetExhausted } from './run-budget.js';
+import { nextPendingRow } from './frontier-order.js';
 import { inferSameTarget } from './same-target.js';
 
 export const AddFrontierItemInput = z
@@ -91,8 +92,10 @@ export type NextFrontierItem =
   | { item: null; reason: 'empty' | 'budget_exhausted' };
 
 /**
- * Highest priority, then oldest id (UUIDv7 = FIFO). `act` moves the handed-out row on; link items
- * whose target the run already reached are settled here as inferred instead (spec 013 US2).
+ * Links to route templates the run has not visited first, then highest priority, then oldest id
+ * (UUIDv7 = FIFO; tiers in `frontier-order.ts`, spec 026). `act` moves the handed-out row on;
+ * link items whose target the run already reached are settled here as inferred instead (spec 013
+ * US2).
  */
 export async function getNextFrontierItem(
   ctx: ServerContext,
@@ -100,18 +103,10 @@ export async function getNextFrontierItem(
 ): Promise<NextFrontierItem> {
   const input = parseInput(z.object({ run_id: z.string().min(1) }).strict(), raw);
   const run = await assertRunActive(ctx, input.run_id);
-  const nextPending = () =>
-    ctx.db
-      .selectFrom('frontier')
-      .selectAll()
-      .where('run_id', '=', input.run_id)
-      .where('status', '=', 'pending')
-      .orderBy('priority', 'desc')
-      .orderBy('id', 'asc')
-      .limit(1)
-      .executeTakeFirst();
-  let row = await nextPending();
-  while (row && (await inferSameTarget(ctx, row))) row = await nextPending();
+  const nextPending = () => nextPendingRow(ctx, input.run_id);
+  let next = await nextPending();
+  while (next && (await inferSameTarget(ctx, next.row))) next = await nextPending();
+  const row = next?.row;
   const pick = async (attrs: Record<string, unknown>): Promise<void> => {
     if (ctx.tracer.level === 'off') return;
     const { n } = await ctx.db
@@ -133,7 +128,12 @@ export async function getNextFrontierItem(
     await pick({ reason: 'budget_exhausted' });
     return { item: null, reason: 'budget_exhausted' as const };
   }
-  await pick({ frontier_id: row.id, priority: row.priority, depth: row.depth });
+  await pick({
+    frontier_id: row.id,
+    priority: row.priority,
+    depth: row.depth,
+    tier: next?.tier,
+  });
   return {
     item: {
       frontier_id: row.id,

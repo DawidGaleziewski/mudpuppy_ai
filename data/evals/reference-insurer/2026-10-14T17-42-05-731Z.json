@@ -1,0 +1,207 @@
+{
+  "portal_id": "reference-insurer",
+  "persona_id": "guest",
+  "started_at": "2026-10-14T17:42:05.731Z",
+  "git_sha": "bbe0a4b",
+  "runs": {
+    "crawler": "01a13b81-da14-7000-a9e9-0e5454fad61b",
+    "ba_session": "01a13b85-0f76-7000-9fd0-b383dd996eb0",
+    "crawler_cli_session": "791c37f5-e687-435e-b32b-bad0050985f1",
+    "ba_cli_session": "2236cdb4-18d1-44b7-9bae-4d613fe9c4ba",
+    "ba_traces_session": "01a13b8c-685f-7000-820c-b23b50939415",
+    "ba_traces_cli_session": "809a168e-53e0-41c3-8ab7-6a64a9d55d53",
+    "process_traces": [
+      {
+        "process_id": "P01",
+        "run": "01a13b83-37a3-7000-9255-60f339074d07",
+        "cli_session": "90499958-d395-4571-baa2-2eef4a7a5c39"
+      },
+      {
+        "process_id": "P02",
+        "run": "01a13b83-e0d2-7000-addd-ebd05b61f28e",
+        "cli_session": "0f0dc0a4-dcf4-4b63-b2db-f8d508e2006c"
+      },
+      {
+        "process_id": "P03",
+        "run": "01a13b84-4bc8-7000-afa8-84b527b61e38",
+        "cli_session": "3e9ca477-832f-4565-bbfe-d00fffed356f"
+      },
+      {
+        "process_id": "P04",
+        "run": "01a13b84-8f6d-7000-ae45-43a3c2494e29",
+        "cli_session": "bac877e7-7597-4787-a5d2-b7e9e3962b0c"
+      }
+    ]
+  },
+  "conditions": {
+    "process_traces": 4
+  },
+  "outcomes": {
+    "crawler": "success",
+    "ba": "success",
+    "ba_traces": "success",
+    "process_traces": [
+      "success",
+      "success",
+      "success",
+      "success"
+    ]
+  },
+  "cost": {
+    "usd": 4.7506114,
+    "input_tokens": 4966505,
+    "output_tokens": 97457,
+    "duration_ms": 887483
+  },
+  "scores": {
+    "screens": {
+      "matched": 17,
+      "total": 17,
+      "pct": 100
+    },
+    "fields": {
+      "matched": 6,
+      "total": 26,
+      "pct": 23.1
+    },
+    "constraints": {
+      "matched": 8,
+      "total": 49,
+      "pct": 16.3
+    },
+    "rules": {
+      "matched": 7,
+      "total": 16,
+      "pct": 43.8
+    },
+    "processes": {
+      "matched": 4,
+      "total": 5,
+      "pct": 80
+    },
+    "terms": {
+      "matched": 10,
+      "total": 10,
+      "pct": 100
+    },
+    "processes_map": {
+      "matched": 4,
+      "total": 5,
+      "pct": 80
+    },
+    "crawl_screens": {
+      "matched": 17,
+      "total": 17,
+      "pct": 100
+    },
+    "process_trace_steps": {
+      "matched": 10,
+      "total": 11,
+      "pct": 90.9
+    }
+  },
+  "overclaims": 0,
+  "checks": {
+    "frontier_empty_at_finish": true,
+    "crawler_completed": true,
+    "crawler_steps": 33,
+    "frontier_pending": 0,
+    "ba_session_completed": true,
+    "handoffs": 0,
+    "ba_write_calls": 100,
+    "ba_write_refused": 2,
+    "ba_write_refused_pct": 2,
+    "ba_relation_refused": 2,
+    "route_templates_with_query": 0,
+    "data_items_joined": 0,
+    "rules_on_screens_pct": 100,
+    "process_traces_goal_reached": 4,
+    "relogins": 0,
+    "logged_in": false,
+    "password_hits": 0,
+    "widget_actions": 0
+  },
+  "workspace": "/tmp/pf-eval-reference-insurer-d2xyTS",
+  "judges": [
+    {
+      "id": "glossary-terms",
+      "version": "130240170034",
+      "model": "claude-sonnet-5-5",
+      "claude_code_version": "2.1.288",
+      "calibrated": false,
+      "covered": 10,
+      "total": 10,
+      "pct": 100,
+      "counts": {
+        "pass": 10,
+        "fail": 1,
+        "unknown": 0,
+        "error": 0
+      },
+      "skipped_pairs": 0,
+      "cost": {
+        "usd": 0.032898,
+        "input_tokens": 14088,
+        "output_tokens": 1258,
+        "calls": 11
+      },
+      "verdicts": [
+        {
+          "pair_id": "T01~GL-001@1",
+          "verdict": "pass",
+          "reason": "The record's term is OC and its definition matches the portal's meaning word for word (mandatory civil liability insurance for vehicle owners)."
+        },
+        {
+          "pair_id": "T02~GL-002@1",
+          "verdict": "pass",
+          "reason": "The record's term is Autocasco (AC), the same as the item, and its definition matches the portal's meaning word for word."
+        },
+        {
+          "pair_id": "T03~GL-003@1",
+          "verdict": "pass",
+          "reason": "The record's term is \"Assistance\" and its definition matches the portal's meaning word for word (travel help: towing, replacement car, on-site repair)."
+        },
+        {
+          "pair_id": "T04~GL-004@1",
+          "verdict": "pass",
+          "reason": "The record's term matches the ground-truth term, and its definition is identical to the portal's meaning."
+        },
+        {
+          "pair_id": "T05~GL-005@1",
+          "verdict": "pass",
+          "reason": "The record's term is \"Składka\" and its definition matches the portal's meaning word for word."
+        },
+        {
+          "pair_id": "T06~GL-006@1",
+          "verdict": "pass",
+          "reason": "The record has the same term and a definition identical to the portal's meaning (the highest amount the insurer will pay)."
+        },
+        {
+          "pair_id": "T06~GL-007@1",
+          "verdict": "fail",
+          "reason": "The record defines \"OWU\" (general insurance terms), not \"Suma ubezpieczenia\" (the maximum amount the insurer pays), so the term and meaning don't match."
+        },
+        {
+          "pair_id": "T07~GL-007@1",
+          "verdict": "pass",
+          "reason": "The record defines OWU as \"Ogólne Warunki Ubezpieczenia\", the same expansion the portal gives, and its added note that it is a document describing the scope of cover does not contradict that meaning."
+        },
+        {
+          "pair_id": "T08~GL-008@1",
+          "verdict": "pass",
+          "reason": "The record's term and definition match the portal's meaning word for word."
+        },
+        {
+          "pair_id": "T09~GL-009@1",
+          "verdict": "pass",
+          "reason": "The record's term is \"Ubezpieczony\" and its definition is identical to the portal's meaning: a person covered by insurance protection."
+        },
+        {
+          "pair_id": "T10~GL-010@1",
+          "verdict": "pass",
+          "reason": "The record's term and definition match the portal's term and meaning exactly (a promo code that reduces the premium)."
+        }
+      ]
+    }
+  ]
+}

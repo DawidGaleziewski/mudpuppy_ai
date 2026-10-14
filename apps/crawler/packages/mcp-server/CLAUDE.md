@@ -32,7 +32,8 @@ Layer: servers (G-07; `apps/crawler/layers.json`)
   - Map-mode results omit `actions` on a revisited state (`actions_omitted`; tests that read
     them pass `include_actions`). `index.ts` re-exports only the tool entry points and helpers.
 - `src/services/frontier.ts` + `same-target.ts`: link items whose target the run already reached
-  become `inferred` edges (spec 013 US2). BA reads: `services/ba/reads.ts`, `run-evidence.ts`
+  (same URL and same visible name, spec 026 F-04) become `inferred` edges (spec 013 US2).
+  `frontier-order.ts`: pick order, links to unvisited route templates first (spec 026). BA reads: `services/ba/reads.ts`, `run-evidence.ts`
   (`get_run_evidence`, incl. `page_visits`, `parameters`, spec 019), `runs.ts` (`list_runs` with
   persona attributes), `access.ts` (`get_access_matrix`, spec 024: same model as the dashboard's
   `queries_access.py`, both checked against `tests/fixtures/access/three-personas.json`).

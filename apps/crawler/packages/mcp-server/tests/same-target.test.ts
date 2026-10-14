@@ -56,7 +56,13 @@ function seedEdge(
   ctx: Ctx,
   runId: string,
   from: string,
-  over: { to: string | null; status?: string; confidence?: string; target?: string },
+  over: {
+    to: string | null;
+    status?: string;
+    confidence?: string;
+    target?: string;
+    name?: string;
+  },
 ): string {
   const id = newId();
   ctx.raw
@@ -70,7 +76,11 @@ function seedEdge(
       runId,
       from,
       over.to,
-      JSON.stringify({ role: 'link', target_url: over.target ?? T }),
+      JSON.stringify({
+        role: 'link',
+        accessible_name: over.name ?? 'Offer',
+        target_url: over.target ?? T,
+      }),
       over.status ?? 'executed',
       REF,
       over.confidence ?? 'observed',
@@ -196,7 +206,8 @@ describe('getNextFrontierItem same-target inference', () => {
     const button = seedItem(ctx, runId, s3, linkJson(T, { role: 'button' }));
     const other = seedItem(ctx, runId, s3, linkJson('https://shop.test/else'));
     const first = await getNextFrontierItem(ctx, { run_id: runId });
-    expect(first).toMatchObject({ item: { frontier_id: button } });
+    // spec 026: a link to a route template the run has not visited goes before a button
+    expect(first).toMatchObject({ item: { frontier_id: other } });
     expect(await inferSameTarget(ctx, { ...rowOf(ctx, other) })).toBe(false);
     expect(frontierRow(ctx, other).status).toBe('pending');
     expect(frontierRow(ctx, button).status).toBe('pending');
@@ -211,6 +222,17 @@ describe('getNextFrontierItem same-target inference', () => {
     const next = await getNextFrontierItem(ctx, { run_id: runId });
     expect(next).toMatchObject({ item: { frontier_id: normal } });
     expect(frontierRow(ctx, inferable).status).toBe('done');
+  });
+
+  it('spec 026 F-04: a link to the same URL with another visible name is handed out, not inferred', async () => {
+    const { ctx, runId, s1, s2, s3 } = await setup();
+    seedEdge(ctx, runId, s1, { to: s2, name: 'Koszyk (0)' });
+    const filled = seedItem(ctx, runId, s3, linkJson(T, { accessible_name: 'Koszyk (1)' }));
+    const same = seedItem(ctx, runId, s3, linkJson(T, { accessible_name: 'Koszyk (0)' }));
+    expect(await inferSameTarget(ctx, { ...rowOf(ctx, filled) })).toBe(false);
+    expect(frontierRow(ctx, filled).status).toBe('pending');
+    expect(await inferSameTarget(ctx, { ...rowOf(ctx, same) })).toBe(true);
+    expect(frontierRow(ctx, same).status).toBe('done');
   });
 });
 
