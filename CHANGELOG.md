@@ -6,6 +6,15 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Added
+- R-39 BA goal quality, first round (spec 025):
+  - **Why processes score 0 %:** the eval runs map scans only and the grader scores processes
+    from trace evidence, so no BA could score; the BA's guest processes are right. Owner decides
+    how to score them (trace in the eval, a map-based score, or both).
+  - **Fixed:** the eval grader gave no route to screen-region and page-visit evidence, so rules
+    citing them never matched (re-graded reference store: rules 4 → 8 of 16).
+  - **BA guidance (`ba-practice`):** a field limit with business meaning is also a business rule,
+    checked again in the synthesis pass; a rule quotes the label of the control it is about.
+  - Reference-insurer eval: rules 31.3 % → 68.8 % (two runs), no regression, no over-claims.
 - R-33 access-dependent content, P1 (spec 024; owner scope 2026-10-14: attributes, CSV import,
   per-persona variants with seen / not seen):
   - **Persona attributes:** `attributes:` on a persona (tariff, contract, feature flags…, any

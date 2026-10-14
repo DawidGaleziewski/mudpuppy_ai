@@ -1,0 +1,162 @@
+{
+  "portal_id": "reference-insurer",
+  "persona_id": "guest",
+  "started_at": "2026-10-14T06:54:51.795Z",
+  "git_sha": "b98b467",
+  "runs": {
+    "crawler": "01a13931-4c0c-7000-b418-83f1a4cf479a",
+    "ba_session": "01a13932-c9d5-7000-a75b-08cf9bd4913d",
+    "crawler_cli_session": "f147237f-ca6b-40c8-978a-2b3ba6f2c8be",
+    "ba_cli_session": "fee32c08-6c50-42c6-8b76-94ffa68b963b"
+  },
+  "outcomes": {
+    "crawler": "success",
+    "ba": "success"
+  },
+  "cost": {
+    "usd": 3.941600999999999,
+    "input_tokens": 4966859,
+    "output_tokens": 78832,
+    "duration_ms": 710082
+  },
+  "scores": {
+    "screens": {
+      "matched": 17,
+      "total": 17,
+      "pct": 100
+    },
+    "fields": {
+      "matched": 26,
+      "total": 26,
+      "pct": 100
+    },
+    "constraints": {
+      "matched": 48,
+      "total": 49,
+      "pct": 98
+    },
+    "rules": {
+      "matched": 9,
+      "total": 16,
+      "pct": 56.3
+    },
+    "processes": {
+      "matched": 0,
+      "total": 5,
+      "pct": 0
+    },
+    "terms": {
+      "matched": 10,
+      "total": 10,
+      "pct": 100
+    },
+    "crawl_screens": {
+      "matched": 17,
+      "total": 17,
+      "pct": 100
+    }
+  },
+  "overclaims": 0,
+  "checks": {
+    "frontier_empty_at_finish": true,
+    "crawler_completed": true,
+    "crawler_steps": 33,
+    "frontier_pending": 0,
+    "ba_session_completed": true,
+    "handoffs": 0,
+    "ba_write_calls": 106,
+    "ba_write_refused": 4,
+    "ba_write_refused_pct": 4,
+    "ba_relation_refused": 2,
+    "route_templates_with_query": 0,
+    "data_items_joined": 0,
+    "rules_on_screens_pct": 100,
+    "relogins": 0,
+    "logged_in": false,
+    "password_hits": 0,
+    "widget_actions": 0
+  },
+  "workspace": "/tmp/pf-eval-reference-insurer-gVpO8s",
+  "judges": [
+    {
+      "id": "glossary-terms",
+      "version": "130240170034",
+      "model": "claude-sonnet-5-5",
+      "claude_code_version": "2.1.288",
+      "calibrated": false,
+      "covered": 10,
+      "total": 10,
+      "pct": 100,
+      "counts": {
+        "pass": 10,
+        "fail": 1,
+        "unknown": 0,
+        "error": 0
+      },
+      "skipped_pairs": 0,
+      "cost": {
+        "usd": 0.048213,
+        "input_tokens": 14230,
+        "output_tokens": 1424,
+        "calls": 11
+      },
+      "verdicts": [
+        {
+          "pair_id": "T01~GL-001@1",
+          "verdict": "pass",
+          "reason": "The record's term is OC and its definition matches the portal's meaning (mandatory civil liability insurance for vehicle holders); the added English gloss and the \"Tylko OC\" synonym don't change it."
+        },
+        {
+          "pair_id": "T02~GL-002@1",
+          "verdict": "pass",
+          "reason": "The record's term is Autocasco (AC) and its definition matches the portal's meaning: voluntary vehicle insurance against damage and theft. The English gloss adds nothing that changes that meaning."
+        },
+        {
+          "pair_id": "T03~GL-003@1",
+          "verdict": "pass",
+          "reason": "The record defines Assistance with the same meaning as the portal (travel help: towing, replacement car, on-site repair); the extra add-on price detail doesn't contradict it."
+        },
+        {
+          "pair_id": "T04~GL-004@1",
+          "verdict": "pass",
+          "reason": "The record's term matches the item's term, and its definition repeats the portal's meaning almost word for word. The only addition is an English gloss, which doesn't change the meaning."
+        },
+        {
+          "pair_id": "T05~GL-005@1",
+          "verdict": "pass",
+          "reason": "The record's term is \"Składka\" and its definition (\"amount paid for insurance coverage\") matches the portal's meaning; the synonyms listed are extra and do not change the meaning."
+        },
+        {
+          "pair_id": "T06~GL-006@1",
+          "verdict": "pass",
+          "reason": "The record uses the same term and gives the same definition as the portal (the highest amount the insurer will pay), with only an English gloss added."
+        },
+        {
+          "pair_id": "T06~GL-007@1",
+          "verdict": "fail",
+          "reason": "The record defines OWU (general terms and conditions of insurance), a different term from \"Suma ubezpieczenia\" (the maximum amount the insurer pays), so it doesn't match."
+        },
+        {
+          "pair_id": "T07~GL-007@1",
+          "verdict": "pass",
+          "reason": "The record's term is OWU and it defines it as Ogólne Warunki Ubezpieczenia (general terms and conditions of insurance), matching the portal's meaning; the added note that it is a document describing the scope of cover does not contradict it."
+        },
+        {
+          "pair_id": "T08~GL-008@1",
+          "verdict": "pass",
+          "reason": "The record defines \"Ubezpieczający\" as the person who concludes the contract and pays the premium, which matches the portal's meaning exactly."
+        },
+        {
+          "pair_id": "T09~GL-009@1",
+          "verdict": "pass",
+          "reason": "The record defines \"Ubezpieczony\" as a person covered by insurance protection, which matches the portal's meaning exactly."
+        },
+        {
+          "pair_id": "T10~GL-010@1",
+          "verdict": "pass",
+          "reason": "The record's term is identical, and its definition (\"promotional code reducing the premium\") matches the portal's meaning; the example is extra detail."
+        }
+      ]
+    }
+  ]
+}

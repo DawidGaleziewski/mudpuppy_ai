@@ -11,6 +11,22 @@ Where to find them in evidence: required/pattern/min/max attributes; disabled co
 hints; validation messages in trace steps; breakdowns on result pages; options that disappear;
 actions refused by the crawler (these show a boundary, not a rule).
 
+## A field limit is also a rule
+
+A data item's constraints say what the field accepts; a `business_rule` says what the business
+allows. When a field's limit carries business meaning (a range of years or amounts, a date that
+cannot be in the past, a maximum duration, an ID or code format, "one of these two is needed"),
+write both: the constraint on the `data_item`, and a `constraint` rule citing the field's screen
+region and stating the limit with its values. Plain input hygiene (a text field's maximum
+length, "required" alone) stays on the data item only.
+
+## Name the control by its label
+
+A rule's statement names the control it is about by its exact visible label, quoted verbatim, as
+`name_verbatim` does for data items: `"Liczba dni" may not exceed 30.`, not "the duration may not
+exceed 30". When the rule comes from a hint or a message, quote that text too and say which
+control it belongs to. A reader (and the evaluator) finds the rule from the screen by that label.
+
 ## Decision tables
 
 Use when a rule has two or more conditions. Only rows you have evidence for; unknown combinations

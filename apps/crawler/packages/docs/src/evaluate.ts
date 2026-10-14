@@ -622,7 +622,12 @@ export function loadEvalInput(
   const routesFor = (kind: EvidenceTargetKind, id: string): string[] => {
     switch (kind) {
       case 'state':
+      case 'screen_region': // target_id is the state; the element key is in `region`
         return stateRoute(id);
+      case 'page_visit':
+        return stateRoute(
+          one('SELECT state_id FROM page_visits WHERE id = ?', id)?.state_id ?? null,
+        );
       case 'form':
       case 'action':
         return stateRoute(
