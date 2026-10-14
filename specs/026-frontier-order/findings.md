@@ -91,3 +91,13 @@ Checks after fixes: typecheck ✓ lint ✓ test:fast ✓ (the reviewer's commit 
 dashboard test that expects the chat service down while one ran on 4310; stopped with the
 owner's consent, then committed)
 Summary: 2 findings, 1 fixed, 1 deferred, 0 rejected.
+
+## F-08 Slip: the squash commit took a file the owner had staged, 2026-10-14 (merge)
+
+- **What**: the main checkout had `user_input/review/1_review_basic.md` staged (empty) by the
+  owner; `git merge --squash` + `git commit` put it into the R-35 commit. Caught before the
+  push: the file was removed from the commit (`git rm --cached`, amend) and the owner's index
+  restored (empty version staged, edits unstaged), so nothing of theirs changed.
+- **Eval idea**: before a squash merge, `git status --short` must be empty or the merge
+  commits only the branch's paths (`git commit -- <paths>`); a pre-merge check in the
+  close-out list.
