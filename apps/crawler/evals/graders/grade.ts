@@ -14,7 +14,7 @@ import { scoreDocs } from './code/docs-coverage.js';
 import { scoreBaShapes } from './code/ba-shapes.js';
 import { scoreBaWrites } from './code/ba-writes.js';
 import { sweepLeaks, transcriptPath } from './code/leaks.js';
-import { scoreTrace } from './code/process-trace.js';
+import { scoreTrace, sumTraces } from './code/process-trace.js';
 import { runChecks } from './code/run-checks.js';
 
 export interface GradeInput {
@@ -25,6 +25,8 @@ export interface GradeInput {
   startedAt: string;
   groundTruth: GroundTruth;
   crawlRunId: string;
+  /** The process traces run after the map (spec 025 FR-006); empty when none ran. */
+  processTraces: readonly { processId: string; runId: string }[];
   /** The CLI session ids of the agents that ran, to find their transcripts. */
   sessionIds: readonly string[];
 }
@@ -74,6 +76,24 @@ function baChecks(
   };
 }
 
+/**
+ * A map task's process traces together (spec 025 FR-006): the score and check to add, both empty
+ * when none ran.
+ */
+function gradeProcessTraces(db: RawDb, m: GradeInput) {
+  if (m.processTraces.length === 0) return { scores: {}, checks: {} };
+  const sum = sumTraces(
+    m.processTraces.map((t) => scoreTrace(db, t.runId, m.groundTruth, t.processId)),
+  );
+  console.log(
+    `process traces: ${sum.steps.matched}/${sum.steps.total} steps in order; goal reached in ${sum.goalReached} of ${m.processTraces.length}`,
+  );
+  return {
+    scores: { process_trace_steps: sum.steps },
+    checks: { process_traces_goal_reached: sum.goalReached },
+  };
+}
+
 export async function grade(m: GradeInput) {
   const { portal, persona, env } = m.config;
   const loggedIn = persona !== 'guest';
@@ -84,6 +104,7 @@ export async function grade(m: GradeInput) {
   const trace = m.task.trace
     ? scoreTrace(opened.raw, m.crawlRunId, m.groundTruth, m.task.trace.processId)
     : null;
+  const processTraces = gradeProcessTraces(opened.raw, m);
   const run = runChecks(opened.raw, m.crawlRunId, loggedIn);
   const shapes = docs ? scoreBaShapes(opened.raw, portal, m.groundTruth) : null;
   await opened.close();
@@ -108,6 +129,7 @@ export async function grade(m: GradeInput) {
           pct: trace.steps.pct,
         },
       }),
+      ...processTraces.scores,
     },
     // No BA, no claims: 0 is exact, not a default.
     overclaims: docs?.overclaims ?? 0,
@@ -118,6 +140,7 @@ export async function grade(m: GradeInput) {
       frontier_pending: run.frontier_pending,
       ...(docs && baChecks(session, docs.handoffs, writes, shapes)),
       ...(trace && { trace_goal_reached: trace.goalReached }),
+      ...processTraces.checks,
       relogins: run.relogins,
       logged_in: run.logged_in,
       password_hits: leaks.total,

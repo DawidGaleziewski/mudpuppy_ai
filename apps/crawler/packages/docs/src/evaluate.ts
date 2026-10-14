@@ -128,10 +128,16 @@ export const CATEGORIES = [
 export type Category = (typeof CATEGORIES)[number];
 
 /**
- * Categories a v2 ground truth adds (spec 009 FR-027). They are scored, and appear in the report,
- * only when the ground truth has the data, so v1 reports stay byte-identical.
+ * Categories scored, and shown in the report, only when the ground truth has the data: the ones a
+ * v2 ground truth adds (spec 009 FR-027), and `processes_map` (spec 025 FR-005) whenever it has
+ * processes.
  */
-export const EXTRA_CATEGORIES = ['logged_in_screens', 'obstacles', 'entry_points'] as const;
+export const EXTRA_CATEGORIES = [
+  'logged_in_screens',
+  'obstacles',
+  'entry_points',
+  'processes_map',
+] as const;
 export type ExtraCategory = (typeof EXTRA_CATEGORIES)[number];
 export type AnyCategory = Category | ExtraCategory;
 
@@ -144,6 +150,7 @@ export const EXTRA_DEFAULTS: Record<ExtraCategory, number> = {
   logged_in_screens: 80,
   obstacles: 60,
   entry_points: 50,
+  processes_map: 80,
 };
 
 /** SC-008 targets and SC-009's zero over-claims. */
@@ -283,6 +290,31 @@ function score(ids: readonly string[], matches: Map<string, string[]>): Category
     missing: sorted.filter((id) => !hit.includes(id)),
     matches: Object.fromEntries(hit.map((id) => [id, [...new Set(matches.get(id))].sort()])),
   };
+}
+
+/**
+ * Processes from map evidence (spec 025 FR-005): a process record whose evidence of any kind
+ * covers the first and last observable routes, or one `processes` matched. A score of its own,
+ * so `processes` keeps meaning "known from a trace".
+ */
+function processesMapScore(
+  gt: GroundTruth,
+  processRecords: readonly EvalRecord[],
+  processMatches: Map<string, string[]>,
+): CategoryScore {
+  const m = new Map<string, string[]>();
+  for (const p of gt.processes) {
+    const viaTrace = new Set(processMatches.get(p.id));
+    const covers = (r: EvalRecord) => {
+      const routes = routesOf(r);
+      return routes.has(p.first_route) && routes.has(p.last_observable_route);
+    };
+    m.set(
+      p.id,
+      processRecords.filter((r) => viaTrace.has(r.key) || covers(r)).map((r) => r.key),
+    );
+  }
+  return score([...m.keys()], m);
 }
 
 /** Pure: records + ground truth + thresholds → report. Same input gives the same report. */
@@ -430,6 +462,9 @@ export function evaluate(input: EvaluateInput): EvaluationReport {
     processes: score([...processMatches.keys()], processMatches),
     terms: score([...termMatches.keys()], termMatches),
   };
+
+  if (gt.processes.length > 0)
+    scores.processes_map = processesMapScore(gt, ofKind('process'), processMatches);
 
   // ---- v2 categories (spec 009 FR-027), only when the ground truth carries the data -------------
   const screenRecordFor = (route: string): string[] =>

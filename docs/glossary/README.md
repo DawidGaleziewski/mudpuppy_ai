@@ -143,15 +143,20 @@ template, a field by its verbatim label, a rule by its anchor screen, label and 
 A score says the documentation mentions an item, not that it is complete: a rule counts when
 any one of its claim markers appears.
 
+`processes` counts a process only from trace evidence (or a boundary flag), so a map-only
+run scores 0 there. `processes_map` (R-39) counts a process record whose cited evidence of
+any kind covers the process's first and last routes; it is shown whenever the ground truth
+has processes (minimum 80).
+
 *Example:* Goal run 2026-10-04 on reference-insurer: screens 100 (17/17), rules 100 (16/16), 0 over-claims.
 
 *Seen in:* data/exports/<portal>-eval.json; `pnpm docs:evaluate`
 
-*Labels:* `Score`, `Coverage`
+*Labels:* `Score`, `Coverage`, `processes_map`
 
 *Related:* [Reference portal / ground truth](#reference-portal), [Over-claim](#over-claim)
 
-<sub>Last changed in R-16, 2026-10-04.</sub>
+<sub>Last changed in R-39, 2026-10-14.</sub>
 
 <a id="over-claim"></a>
 
@@ -1678,13 +1683,18 @@ graded on that process's steps (e.g. `wikipedia`, "find the article about pickle
 cucumbers"). A task for a live site we don't own starts no local server and keeps its ground
 truth in `apps/crawler/evals/ground-truth/`.
 
+A map task may also list process traces (R-39): after the map, the crawler traces each
+listed ground-truth process as a guest, and the BA documents from all the runs, so its
+processes can be scored from traces. `--no-process-traces` leaves them out; the number that
+ran is a condition of the trial.
+
 *Seen in:* apps/crawler/evals/tasks.ts
 
-*Labels:* `task`, `suite`, `SUITE`, `trace task`
+*Labels:* `task`, `suite`, `SUITE`, `trace task`, `process traces`, `processTraces`
 
 *Related:* [Eval (tier 2)](#eval), [Eval trial](#eval-trial), [Reference portal / ground truth](#reference-portal)
 
-<sub>Last changed in R-46, 2026-10-10.</sub>
+<sub>Last changed in R-39, 2026-10-14.</sub>
 
 <a id="eval-trial"></a>
 

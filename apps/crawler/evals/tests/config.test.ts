@@ -22,6 +22,7 @@ describe('parseConfig', () => {
         dryRun: false,
         inPlace: false,
         judges: true,
+        processTraces: true,
         resultsDir: '/repo/data/evals/reference-insurer',
       },
     });
@@ -46,9 +47,11 @@ describe('parseConfig', () => {
       '--dry-run',
       '--in-place',
       '--no-judges',
+      '--no-process-traces',
     );
     expect(r.ok && r.config).toMatchObject({
       judges: false,
+      processTraces: false,
       persona: 'client',
       budgetUsd: '2',
       env: 'test',

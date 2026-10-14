@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { stepsInOrder } from '../graders/code/process-trace.js';
+import { stepsInOrder, sumTraces } from '../graders/code/process-trace.js';
 
 const steps = ['/', '/wiki/Pickle', '/wiki/Pickled_cucumber'];
 
@@ -36,5 +36,19 @@ describe('stepsInOrder', () => {
 
   it('scores 0, not 100, when the ground truth has no steps', () => {
     expect(stepsInOrder([], ['/']).pct).toBe(0);
+  });
+});
+
+describe('sumTraces (spec 025 FR-006)', () => {
+  it('sums the steps of every trace and counts the goals reached', () => {
+    const t = (matched: number, total: number, goalReached: boolean) => ({
+      steps: { matched, total, pct: 0, missing: [] },
+      goalReached,
+    });
+    expect(sumTraces([t(4, 5, false), t(2, 2, true), t(1, 2, true)])).toEqual({
+      steps: { matched: 7, total: 9, pct: 77.8 },
+      goalReached: 2,
+    });
+    expect(sumTraces([]).steps.pct).toBe(0);
   });
 });

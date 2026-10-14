@@ -1,6 +1,7 @@
 /**
  * Goal score of a trace task: how many of the ground-truth process's steps the crawler reached, in
- * order, and whether it reported the goal reached. Only for tasks with a `trace` (tasks.ts).
+ * order, and whether it reported the goal reached. For tasks with a `trace`, and summed over the
+ * `processTraces` of a map task (tasks.ts).
  */
 import type { GroundTruth } from '@pathfinder/docs';
 import { traceOutcome, traceStepRoutes, type RawDb } from '../../queries.js';
@@ -40,5 +41,20 @@ export function scoreTrace(db: RawDb, runId: string, groundTruth: GroundTruth, p
   return {
     steps: stepsInOrder(process.steps, traceStepRoutes(db, runId)),
     goalReached: traceOutcome(db, runId) === 'goal_reached',
+  };
+}
+
+export type TraceScore = ReturnType<typeof scoreTrace>;
+
+/**
+ * The process traces of a map task together (spec 025 FR-006): their steps summed (each trace
+ * against its own ground-truth process) and how many reported the goal reached.
+ */
+export function sumTraces(traces: readonly TraceScore[]) {
+  const matched = traces.reduce((n, t) => n + t.steps.matched, 0);
+  const total = traces.reduce((n, t) => n + t.steps.total, 0);
+  return {
+    steps: { matched, total, pct: total === 0 ? 0 : Math.round((matched / total) * 1000) / 10 },
+    goalReached: traces.filter((t) => t.goalReached).length,
   };
 }

@@ -35,6 +35,11 @@ export interface EvalTask {
   server?: PortalServer;
   /** Absent: the crawler maps the portal (map mode). */
   trace?: TraceSpec;
+  /**
+   * A map task's ground-truth processes the crawler also traces after the map, so the BA has
+   * trace evidence for them (spec 025 FR-006). Guest persona only; `--no-process-traces` skips.
+   */
+  processTraces?: readonly TraceSpec[];
 }
 
 const REFERENCE_PORTAL: PortalServer = {
@@ -69,6 +74,29 @@ export const SUITE: readonly EvalTask[] = [
     portal: 'reference-insurer',
     groundTruth: 'apps/crawler/packages/reference-portal/ground-truth.yaml',
     server: REFERENCE_PORTAL,
+    // P05 (renewal) is behind a login: a guest cannot trace it.
+    processTraces: [
+      {
+        processId: 'P01',
+        name: 'Oblicz składkę OC/AC',
+        goal: 'Get a car insurance premium: fill every step of the calculator and open the result with the premium.',
+      },
+      {
+        processId: 'P02',
+        name: 'Oblicz składkę podróżną',
+        goal: 'Get a travel insurance premium and open its result.',
+      },
+      {
+        processId: 'P03',
+        name: 'Porównaj produkty',
+        goal: 'Compare two insurance products and open the comparison.',
+      },
+      {
+        processId: 'P04',
+        name: 'Wyślij zapytanie kontaktowe',
+        goal: 'Send a question through the contact form.',
+      },
+    ],
   },
   provingGround('shop'),
   provingGround('bank'),
@@ -87,6 +115,11 @@ export const SUITE: readonly EvalTask[] = [
 
 export function taskFor(portal: string): EvalTask | undefined {
   return SUITE.find((t) => t.portal === portal);
+}
+
+/** The process traces a trial of this task runs: the task's list, for the guest persona only. */
+export function processTracesFor(task: EvalTask, persona: string, enabled: boolean): TraceSpec[] {
+  return enabled && persona === 'guest' ? [...(task.processTraces ?? [])] : [];
 }
 
 export function loadGroundTruth(root: string, task: EvalTask): GroundTruth {

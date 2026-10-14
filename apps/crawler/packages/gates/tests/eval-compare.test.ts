@@ -79,6 +79,25 @@ describe('EvalResult schema and conditions', () => {
     expect(EvalResult.safeParse({ ...base, conditions: { other: 1 } }).success).toBe(false);
   });
 
+  it('parses the process traces of a trial and prints their condition (spec 025 FR-006)', () => {
+    const now = EvalResult.parse({
+      ...base,
+      runs: {
+        ...base.runs,
+        process_traces: [{ process_id: 'P01', run: 'run-t1', cli_session: 'cli-t1' }],
+      },
+      conditions: { process_traces: 1 },
+      outcomes: { crawler: 'success', ba: 'success', process_traces: ['budget_end'] },
+    });
+    expect(now.runs.process_traces?.[0]?.run).toBe('run-t1');
+    expect(comparisonMarkdown(now, compareEval(now, base))).toContain(
+      'conditions: 1 process trace(s) after the map',
+    );
+    expect(EvalResult.safeParse({ ...base, conditions: { process_traces: 0 } }).success).toBe(
+      false,
+    );
+  });
+
   it('parses workspace and judges, which never change the comparison (spec 017)', () => {
     const judge = {
       id: 'glossary-terms',

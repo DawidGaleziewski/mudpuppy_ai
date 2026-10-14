@@ -61,3 +61,35 @@ screen. Fixed: both resolve to their state's route. Re-graded, the same store sc
 
 Process scoring (A/B/C above); loosening the rule matcher (R-47 judge); R05/R15 need crawler
 traces.
+
+## Round 2: process scoring (owner decisions 2026-10-14)
+
+The owner chose **C (both)** for processes, and **neutral examples** for the contaminated rule
+guidance (F-02). Branch `feature/025-r39-process-scoring`.
+
+- **FR-005** (B) The grader adds a `processes_map` category beside `processes`: a ground-truth
+  process matches a `process` record whose cited evidence of any kind (screens, edges, forms…)
+  covers its first and last observable routes, or one that `processes` already matches. Scored
+  whenever the ground truth has processes; default minimum 80 %. `processes` keeps its meaning
+  (trace evidence or a boundary flag).
+- **FR-006** (A) A map task may list `processTraces` (tasks.ts): after the map run the eval runs
+  one crawler trace per entry (guest persona only), then the BA documents from the map run and
+  every trace run. `--no-process-traces` skips them. The result records the trace runs, their
+  outcomes and, as the condition `process_traces`, how many ran; the baseline comparison warns
+  when that differs. Each trace's steps are scored as `process_trace_steps` (summed) and
+  `process_traces_goal_reached` (count).
+- **FR-007** reference-insurer lists P01–P04 (the guest processes; P05 is behind a login and
+  scores through its boundary flag).
+- **FR-008** `business-rules.md`: the R03 and R07 examples become neutral ones from a domain no
+  eval portal has (a library). The other reference quotes in the BA guidance go to the owner
+  (F-08).
+- **FR-009** Measure one reference-insurer trial with traces; the baseline is not promoted
+  (conditions changed, owner decision F-04 open).
+
+- **SC-003** On the 2026-10-14T07-08 store (map only), `processes_map` ≥ 4/5 with `processes`
+  unchanged at 0/5.
+- **SC-004** A trial with traces scores `processes` ≥ 3/5.
+
+- **FR-010** (after F-11) BA guidance: pass 5 writes a data item for every field of every form,
+  checkboxes, selects and login fields included, also when a rule or process covers it; pass 7
+  counts each form's fields against the data items. Measured by a second trial with traces.

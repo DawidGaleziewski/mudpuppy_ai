@@ -64,6 +64,7 @@ it('records a crawler-only trial as a condition, and no conditions when all are 
     startedAt: '2026-10-10T00:00:00.000Z',
     crawlRunId: 'run',
     sessions: { crawler: 'c', ba: null },
+    processTraces: [],
     outcomes: { crawler: 'budget_end' },
     cost: { usd: 0, input_tokens: 0, output_tokens: 0, duration_ms: 0 },
     grades: {
@@ -78,6 +79,36 @@ it('records a crawler-only trial as a condition, and no conditions when all are 
   expect(crawlerOnly.runs).toMatchObject({ ba_session: null, ba_cli_session: null });
   expect(crawlerOnly.outcomes).toEqual({ crawler: 'budget_end' });
   expect(buildResult({ ...config, crawlerOnly: false }, trial).conditions).toBeUndefined();
+  expect(buildResult(config, trial).runs.process_traces).toBeUndefined();
+});
+
+it('records the process traces as runs, outcomes and a condition, and warns on a baseline without (spec 025)', () => {
+  const traced: TrialRecord = {
+    startedAt: '2026-10-14T00:00:00.000Z',
+    crawlRunId: 'run',
+    sessions: { crawler: 'c', ba: 'b' },
+    processTraces: [
+      { process_id: 'P01', run: 'run-t1', cli_session: 'cli-t1' },
+      { process_id: 'P02', run: 'run-t2', cli_session: 'cli-t2' },
+    ],
+    outcomes: { crawler: 'success', ba: 'success', process_traces: ['success', 'budget_end'] },
+    cost: { usd: 0, input_tokens: 0, output_tokens: 0, duration_ms: 0 },
+    grades: {
+      session: undefined,
+      scores: { screens: { matched: 1, total: 1, pct: 100 } },
+      overclaims: 0,
+      checks: { crawler_completed: true, password_hits: 0, widget_actions: 0 },
+    } as unknown as TrialRecord['grades'],
+  };
+  const r = buildResult(config, traced);
+  expect(r.conditions).toEqual({ process_traces: 2 });
+  expect(r.runs.process_traces?.map((t) => t.run)).toEqual(['run-t1', 'run-t2']);
+  expect(r.outcomes?.process_traces).toEqual(['success', 'budget_end']);
+  writeFileSync(join(dir, 'baseline.json'), JSON.stringify(result('2026-10-13T00:00:00.000Z', 1)));
+  saveResult({ ...config, promote: false }, r);
+  expect(console.warn).toHaveBeenCalledWith(
+    'warning: the baseline ran 0 process trace(s), this eval 2: not comparable',
+  );
 });
 
 it('records the workspace and the judges, and leaves both out when absent (spec 017)', () => {
@@ -85,6 +116,7 @@ it('records the workspace and the judges, and leaves both out when absent (spec 
     startedAt: '2026-10-11T00:00:00.000Z',
     crawlRunId: 'run',
     sessions: { crawler: 'c', ba: 'b' },
+    processTraces: [],
     outcomes: { crawler: 'success', ba: 'success' },
     cost: { usd: 0, input_tokens: 0, output_tokens: 0, duration_ms: 0 },
     grades: {

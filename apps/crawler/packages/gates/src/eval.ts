@@ -63,6 +63,12 @@ export const EvalResult = z
         ba_session: z.string().nullable(),
         crawler_cli_session: z.string().nullable().optional(),
         ba_cli_session: z.string().nullable().optional(),
+        /** The crawler traces of ground-truth processes run after the map (spec 025 FR-006). */
+        process_traces: z
+          .array(
+            z.object({ process_id: z.string(), run: z.string(), cli_session: z.string() }).strict(),
+          )
+          .optional(),
       })
       .strict(),
     conditions: z
@@ -70,12 +76,18 @@ export const EvalResult = z
         session_timeout_s: z.number().int().positive().optional(),
         /** Only the crawler ran (`--crawler-only`): no BA, so no documentation scores. */
         crawler_only: z.boolean().optional(),
+        /** How many process traces ran after the map; absent means none (spec 025 FR-006). */
+        process_traces: z.number().int().positive().optional(),
       })
       .strict()
       .optional(),
     /** How each agent's session ended; only fair ends are ever written (spec 020 T003). */
     outcomes: z
-      .object({ crawler: ScoredOutcome, ba: ScoredOutcome.optional() })
+      .object({
+        crawler: ScoredOutcome,
+        ba: ScoredOutcome.optional(),
+        process_traces: z.array(ScoredOutcome).optional(),
+      })
       .strict()
       .optional(),
     cost: z
@@ -188,6 +200,9 @@ export function comparisonMarkdown(current: EvalResult, cmp: Comparison): string
       ? [`conditions: session timeout ${current.conditions.session_timeout_s} s`]
       : []),
     ...(current.conditions?.crawler_only ? ['conditions: crawler only (no BA)'] : []),
+    ...(current.conditions?.process_traces
+      ? [`conditions: ${current.conditions.process_traces} process trace(s) after the map`]
+      : []),
     '',
     '| Measure | Baseline | Now | Change | |',
     '| --- | --- | --- | --- | --- |',

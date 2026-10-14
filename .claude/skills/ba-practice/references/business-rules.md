@@ -1,9 +1,9 @@
 # Business rules
 
 Types (`rule_type`):
-- `constraint` — a limit on data or action: "Rok produkcji" not earlier than 1990.
+- `constraint` — a limit on data or action: "Liczba uczestników" from 1 to 12.
 - `computation` — a derived value: premium = base × factors, discount for "Bezszkodowa jazda".
-- `inference` — a conclusion from other facts: a vehicle older than 15 years is "not eligible for AC".
+- `inference` — a conclusion from other facts: a reader with an overdue loan is "not eligible to reserve".
 - `action_enabler` — something becomes possible when a condition holds: "Dalej" enabled only after
   consents are ticked.
 
@@ -33,11 +33,11 @@ Use when a rule has two or more conditions. Only rows you have evidence for; unk
 become an `open_question`.
 
 ```
-conditions: ["vehicle age (years)", "\"Bezszkodowa jazda\" (years)"]
-actions:    ["\"AC\" option available", "discount"]
+conditions: ["\"Rodzaj karty\"", "overdue loans"]
+actions:    ["\"Zarezerwuj\" available", "loan limit"]
 rows: [
-  ["< 15", ">= 5", "yes", "10%"],
-  [">= 15", "any", "no (hint \"AC niedostępne dla pojazdów starszych niż 15 lat\")", "—"]
+  ["\"Karta roczna\"", "0", "yes", "10 books"],
+  ["any", ">= 1", "no (hint \"Zwróć zaległe książki, aby rezerwować\")", "—"]
 ]
 ```
 

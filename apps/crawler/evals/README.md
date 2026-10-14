@@ -71,8 +71,8 @@ What the code-based graders measure:
 
 - **Goal**: `docs-coverage.ts` (BA documentation vs ground truth, plus overclaims; skipped with
   `--crawler-only`), `crawl-coverage.ts` (ground-truth screens the crawler reached) and, for a
-  trace task, `process-trace.ts` (the process's steps reached in order, and whether the crawler
-  reported the goal reached).
+  trace task or a map task's process traces, `process-trace.ts` (the process's steps reached in
+  order, and whether the crawler reported the goal reached).
 - **Guardrails**, must stay 0: `leaks.ts` (portal passwords in any output) and `widget_actions`
   in `run-checks.ts`.
 - **Diagnostics**, explain why a score moved: the rest of `run-checks.ts`, and `ba-writes.ts`
@@ -121,6 +121,13 @@ To add a task: give the portal a ground truth, then add a line to `SUITE` in `ta
 Kinds of task:
 
 - **Map** (default): the crawler maps the whole portal; graded on screens reached and the BA's docs.
+  A map task may list `processTraces` (spec 025): after the map the crawler traces each listed
+  ground-truth process (guest persona only), and the BA documents from the map and every trace
+  run, so `processes` (trace evidence) can score. Graded as `process_trace_steps` (steps summed
+  over the traces) and the check `process_traces_goal_reached`; the result records the trace runs
+  and the condition `process_traces`, and a baseline with a different count is not comparable.
+  `--no-process-traces` skips them. Example: `reference-insurer` (P01–P04). `processes_map` scores
+  processes from map evidence alone, so it means the same with or without traces.
 - **Trace** (`trace:` in `tasks.ts`): the crawler walks one named process toward a goal; also graded
   on that process's `steps` in the ground truth. Example: `wikipedia`.
 - **Live site** (no `server:`): nothing is started locally. Keep the portal config read-only with a

@@ -24,8 +24,10 @@ export interface TrialRecord {
   crawlRunId: string;
   /** `ba` is null in a crawler-only trial. */
   sessions: { crawler: string; ba: string | null };
+  /** The process traces run after the map, in order; empty when none ran (spec 025 FR-006). */
+  processTraces: { process_id: string; run: string; cli_session: string }[];
   /** How each agent's session ended; `ba` is absent in a crawler-only trial (spec 020 T003). */
-  outcomes: { crawler: ScoredOutcome; ba?: ScoredOutcome };
+  outcomes: { crawler: ScoredOutcome; ba?: ScoredOutcome; process_traces?: ScoredOutcome[] };
   cost: Cost;
   grades: Grades;
   /** The workspace the agents ran in; absent with `--in-place` (spec 017 F-01). */
@@ -35,10 +37,11 @@ export interface TrialRecord {
 }
 
 /** What makes trials comparable; absent when everything is default, as in older results. */
-function conditionsOf(config: EvalConfig) {
+function conditionsOf(config: EvalConfig, processTraces: number) {
   const c = {
     ...(config.sessionTimeoutS !== undefined && { session_timeout_s: config.sessionTimeoutS }),
     ...(config.crawlerOnly && { crawler_only: true }),
+    ...(processTraces > 0 && { process_traces: processTraces }),
   };
   return Object.keys(c).length > 0 ? { conditions: c } : {};
 }
@@ -57,8 +60,9 @@ export function buildResult(config: EvalConfig, r: TrialRecord): EvalResult {
       ba_session: r.grades.session?.id ?? null,
       crawler_cli_session: r.sessions.crawler,
       ba_cli_session: r.sessions.ba,
+      ...(r.processTraces.length > 0 && { process_traces: r.processTraces }),
     },
-    ...conditionsOf(config),
+    ...conditionsOf(config, r.processTraces.length),
     outcomes: r.outcomes,
     cost: r.cost,
     scores: r.grades.scores,
@@ -74,18 +78,36 @@ const readJson = (path: string): unknown => JSON.parse(readFileSync(path, 'utf8'
 const writeJson = (path: string, value: unknown) =>
   writeFileSync(path, `${JSON.stringify(value, null, 2)}\n`);
 
+type Conditions = EvalResult['conditions'];
+
+/** Each condition: its value with the default filled in, and the warning when the two differ. */
+const CONDITION_CHECKS: {
+  value: (c: Conditions) => unknown;
+  warning: (was: Conditions, now: Conditions) => string;
+}[] = [
+  {
+    value: (c) => c?.session_timeout_s,
+    warning: (was, now) =>
+      `the baseline ran with session timeout ${was?.session_timeout_s ?? 'default'}, this eval with ${now?.session_timeout_s ?? 'default'}`,
+  },
+  {
+    value: (c) => !!c?.crawler_only,
+    warning: () => 'one of the baseline and this eval ran crawler-only, the other with the BA',
+  },
+  {
+    value: (c) => c?.process_traces ?? 0,
+    warning: (was, now) =>
+      `the baseline ran ${was?.process_traces ?? 0} process trace(s), this eval ${now?.process_traces ?? 0}`,
+  },
+];
+
 /** The trial ran under different conditions than the baseline, so the comparison may mislead. */
 function warnIfNotComparable(baseline: EvalResult, result: EvalResult): void {
   const was = baseline.conditions;
   const now = result.conditions;
-  if (was?.session_timeout_s !== now?.session_timeout_s)
-    console.warn(
-      `warning: the baseline ran with session timeout ${was?.session_timeout_s ?? 'default'}, this eval with ${now?.session_timeout_s ?? 'default'}: not comparable`,
-    );
-  if (!!was?.crawler_only !== !!now?.crawler_only)
-    console.warn(
-      'warning: one of the baseline and this eval ran crawler-only, the other with the BA: not comparable',
-    );
+  for (const check of CONDITION_CHECKS)
+    if (check.value(was) !== check.value(now))
+      console.warn(`warning: ${check.warning(was, now)}: not comparable`);
 }
 
 /** Save, compare and print; returns the exit code: 1 on a regression, else 0. */

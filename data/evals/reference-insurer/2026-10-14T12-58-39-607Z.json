@@ -1,0 +1,184 @@
+{
+  "portal_id": "reference-insurer",
+  "persona_id": "guest",
+  "started_at": "2026-10-14T12:58:39.607Z",
+  "git_sha": "4c2b49a",
+  "runs": {
+    "crawler": "01a13a7e-5caa-7000-bbec-9de866f8ddf9",
+    "ba_session": "01a13a81-c4cb-7000-bf02-2c8ee1c9e652",
+    "crawler_cli_session": "6c645da2-c80c-47ee-92fe-a6ce2d82f807",
+    "ba_cli_session": "22ad1fc3-1b6e-459a-8ca4-f756e6a80818",
+    "process_traces": [
+      {
+        "process_id": "P01",
+        "run": "01a13a7f-e550-7000-aa5e-9d73c8bbb44c",
+        "cli_session": "b5ca088f-5d67-45ec-9f28-52bf4ec07fcc"
+      },
+      {
+        "process_id": "P02",
+        "run": "01a13a80-a817-7000-af19-91cc319eeb45",
+        "cli_session": "6e3350b0-8906-4c69-bbc1-a1a68c378ef8"
+      },
+      {
+        "process_id": "P03",
+        "run": "01a13a81-0428-7000-9841-cc9343a223ef",
+        "cli_session": "378bbfaa-36d9-4474-8d40-2f4600ad9d45"
+      },
+      {
+        "process_id": "P04",
+        "run": "01a13a81-4e74-7000-9b79-09ad263f49d1",
+        "cli_session": "74c5694e-0df9-444a-9973-4e42d4a1e8eb"
+      }
+    ]
+  },
+  "conditions": {
+    "process_traces": 4
+  },
+  "outcomes": {
+    "crawler": "success",
+    "ba": "success",
+    "process_traces": [
+      "success",
+      "success",
+      "success",
+      "success"
+    ]
+  },
+  "cost": {
+    "usd": 3.7842908000000004,
+    "input_tokens": 4596102,
+    "output_tokens": 77666,
+    "duration_ms": 720003
+  },
+  "scores": {
+    "screens": {
+      "matched": 17,
+      "total": 17,
+      "pct": 100
+    },
+    "fields": {
+      "matched": 21,
+      "total": 26,
+      "pct": 80.8
+    },
+    "constraints": {
+      "matched": 44,
+      "total": 49,
+      "pct": 89.8
+    },
+    "rules": {
+      "matched": 8,
+      "total": 16,
+      "pct": 50
+    },
+    "processes": {
+      "matched": 4,
+      "total": 5,
+      "pct": 80
+    },
+    "terms": {
+      "matched": 6,
+      "total": 10,
+      "pct": 60
+    },
+    "processes_map": {
+      "matched": 4,
+      "total": 5,
+      "pct": 80
+    },
+    "crawl_screens": {
+      "matched": 17,
+      "total": 17,
+      "pct": 100
+    },
+    "process_trace_steps": {
+      "matched": 10,
+      "total": 11,
+      "pct": 90.9
+    }
+  },
+  "overclaims": 0,
+  "checks": {
+    "frontier_empty_at_finish": true,
+    "crawler_completed": true,
+    "crawler_steps": 33,
+    "frontier_pending": 0,
+    "ba_session_completed": true,
+    "handoffs": 0,
+    "ba_write_calls": 89,
+    "ba_write_refused": 8,
+    "ba_write_refused_pct": 9,
+    "ba_relation_refused": 1,
+    "route_templates_with_query": 0,
+    "data_items_joined": 0,
+    "rules_on_screens_pct": 100,
+    "process_traces_goal_reached": 4,
+    "relogins": 0,
+    "logged_in": false,
+    "password_hits": 0,
+    "widget_actions": 0
+  },
+  "workspace": "/tmp/pf-eval-reference-insurer-AaksSm",
+  "judges": [
+    {
+      "id": "glossary-terms",
+      "version": "130240170034",
+      "model": "claude-sonnet-5-5",
+      "claude_code_version": "2.1.288",
+      "calibrated": false,
+      "covered": 6,
+      "total": 10,
+      "pct": 60,
+      "counts": {
+        "pass": 6,
+        "fail": 1,
+        "unknown": 0,
+        "error": 0
+      },
+      "skipped_pairs": 0,
+      "cost": {
+        "usd": 0.022202,
+        "input_tokens": 9226,
+        "output_tokens": 1011,
+        "calls": 7
+      },
+      "verdicts": [
+        {
+          "pair_id": "T01~GL-001@1",
+          "verdict": "pass",
+          "reason": "The record's term is OC and its definition matches the portal's meaning (compulsory motor vehicle owners' third-party liability insurance); the English gloss and the synonym \"Tylko OC\" do not change it."
+        },
+        {
+          "pair_id": "T02~GL-002@1",
+          "verdict": "pass",
+          "reason": "The record's term is Autocasco (AC), the same as the item's, and its definition (voluntary vehicle insurance against damage and theft) matches the portal's meaning. The English gloss adds nothing that changes it."
+        },
+        {
+          "pair_id": "T03~GL-003@1",
+          "verdict": "pass",
+          "reason": "The record's term is \"Assistance\" and its definition matches the portal's meaning word for word (travel help: towing, replacement car, on-site repair). The added note about the OC/AC calculator add-on and its price doesn't change that meaning."
+        },
+        {
+          "pair_id": "T04~GL-004@1",
+          "verdict": "pass",
+          "reason": "The record's term matches and its definition restates the portal's meaning (period in which the driver caused no claim under the OC policy); the extra details don't change it."
+        },
+        {
+          "pair_id": "T05~GL-006@1",
+          "verdict": "pass",
+          "reason": "The record's term is Składka and its definition, \"amount paid for insurance coverage,\" matches the portal's meaning. The extra text about other glossary entries does not change that meaning."
+        },
+        {
+          "pair_id": "T06~GL-005@1",
+          "verdict": "fail",
+          "reason": "The record defines OWU (General Terms of Insurance), a different term from \"Suma ubezpieczenia\" (sum insured), and does not describe the maximum payout amount."
+        },
+        {
+          "pair_id": "T07~GL-005@1",
+          "verdict": "pass",
+          "reason": "The record's term is OWU and it expands it as Ogólne Warunki Ubezpieczenia, matching the portal; the added details don't contradict that meaning."
+        }
+      ]
+    }
+  ]
+}

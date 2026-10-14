@@ -86,6 +86,7 @@ Keep all three grader folders even when empty, so the kinds are visible.
 | Kind | In `tasks.ts` | The agent does | Extra grading |
 |---|---|---|---|
 | Map (default) | no `trace` | maps the whole portal | — |
+| Map with process traces | `processTraces: [{ processId, name, goal }]` | maps, then traces each listed process (guest only; `--no-process-traces` skips) | `process_trace_steps`, `process_traces_goal_reached`; condition `process_traces` |
 | Trace | `trace: { processId, name, goal }` | walks one named process toward the goal (trace mode) | `trace_steps` (the ground-truth process's `steps` reached in order), `trace_goal_reached` |
 | Live site | no `server` | as above, on a site we don't own; nothing starts locally | — (see §6) |
 

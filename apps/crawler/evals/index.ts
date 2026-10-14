@@ -16,9 +16,7 @@
  * server, agents, cost), graders/ (what is scored, by kind), results.ts (save, compare, promote).
  */
 import { randomUUID } from 'node:crypto';
-import { join } from 'node:path';
 import type { GroundTruth } from '@pathfinder/docs';
-import { dbPathFor, openDb } from '@pathfinder/store';
 import { parseConfig, type EvalConfig } from './config.js';
 import { abort, die, EvalAbort } from './failures.js';
 import {
@@ -26,18 +24,19 @@ import {
   createWorkspace,
   emptyCost,
   ensurePortal,
+  findCrawlRun,
   preflight,
   runAgent,
+  runProcessTraces,
   stopServer,
   type StartedServer,
 } from './harness/index.js';
 import { acquireEvalLock } from './harness/lock.js';
 import { PROMPTS } from './prompts.js';
-import { latestCrawlRun } from './queries.js';
 import { buildResult, saveResult } from './results.js';
 import { grade, portalSecrets } from './graders/index.js';
 import { judgeLoginLine, judgeTrial } from './graders/model/index.js';
-import { loadGroundTruth, SUITE, taskFor, type EvalTask } from './tasks.js';
+import { loadGroundTruth, processTracesFor, SUITE, taskFor, type EvalTask } from './tasks.js';
 
 const parsed = parseConfig(process.argv.slice(2));
 if (!parsed.ok) die(parsed.error);
@@ -48,7 +47,7 @@ const task =
   die(`no task for ${config.portal}; the suite has: ${SUITE.map((t) => t.portal).join(', ')}`);
 const groundTruth = loadGroundTruth(config.root, task);
 process.exitCode = config.dryRun
-  ? await dryRun(config, groundTruth)
+  ? await dryRun(config, task, groundTruth)
   : await oneAtATime(() => runTrial(config, task, groundTruth));
 
 /** Evals share the account's usage quota: a second one at the same time is refused (spec 020 T004). */
@@ -63,18 +62,20 @@ async function oneAtATime(trial: () => Promise<number>): Promise<number> {
 }
 
 /** Everything up to the first paid call, including the vault, so a broken setup fails here. */
-async function dryRun(c: EvalConfig, gt: GroundTruth): Promise<number> {
+async function dryRun(c: EvalConfig, task: EvalTask, gt: GroundTruth): Promise<number> {
   const ws = createWorkspace(c.root, c.portal, c.env);
   const secrets = await portalSecrets(ws, c.portal, c.env);
+  const traces = processTracesFor(task, c.persona, c.processTraces);
   console.log(
-    `dry run ok: ${c.portal} as ${c.persona}, budget $${c.budgetUsd}/agent, ground truth ${gt.portal_id}, ${secrets.length} secret(s) to sweep for`,
+    `dry run ok: ${c.portal} as ${c.persona}, budget $${c.budgetUsd}/agent, ground truth ${gt.portal_id}, ${secrets.length} secret(s) to sweep for, ${traces.length} process trace(s)`,
   );
   console.log(judgeLoginLine(c));
   return 0;
 }
 
 /**
- * One trial: portal up → crawler (map or trace, per the task) → BA unless `--crawler-only` →
+ * One trial: portal up → crawler (map or trace, per the task) → the task's process traces
+ * (spec 025, guest only, unless `--no-process-traces`) → BA unless `--crawler-only` →
  * grade → judges unless `--no-judges` (spec 017) → save; the portal server is always stopped.
  */
 async function runTrial(c: EvalConfig, task: EvalTask, gt: GroundTruth): Promise<number> {
@@ -92,11 +93,22 @@ async function runTrial(c: EvalConfig, task: EvalTask, gt: GroundTruth): Promise
     const crawlRunId =
       (await findCrawlRun(c, ws, startedAt)) ??
       abort(`the crawler made no run (session ${sessions.crawler})`);
+    const traces = await runProcessTraces(
+      c,
+      ws,
+      processTracesFor(task, c.persona, c.processTraces),
+    );
+    for (const t of traces) cost = addCost(cost, t.out);
+    const traceRunIds = traces.map((t) => t.runId);
     const ba = sessions.ba
-      ? runAgent(c, ws, 'ba', PROMPTS.ba(c.portal, crawlRunId), sessions.ba)
+      ? runAgent(c, ws, 'ba', PROMPTS.ba(c.portal, crawlRunId, traceRunIds), sessions.ba)
       : null;
     if (ba) cost = addCost(cost, ba.out);
-    const outcomes = { crawler: crawler.outcome, ...(ba && { ba: ba.outcome }) };
+    const outcomes = {
+      crawler: crawler.outcome,
+      ...(ba && { ba: ba.outcome }),
+      ...(traces.length > 0 && { process_traces: traces.map((t) => t.outcome) }),
+    };
     const grades = await grade({
       config: c,
       task,
@@ -104,7 +116,12 @@ async function runTrial(c: EvalConfig, task: EvalTask, gt: GroundTruth): Promise
       startedAt,
       groundTruth: gt,
       crawlRunId,
-      sessionIds: [sessions.crawler, ...(sessions.ba ? [sessions.ba] : [])],
+      processTraces: traces.map((t) => ({ processId: t.processId, runId: t.runId })),
+      sessionIds: [
+        sessions.crawler,
+        ...traces.map((t) => t.session),
+        ...(sessions.ba ? [sessions.ba] : []),
+      ],
     });
     const judges = await judgeTrial(c, ws, gt);
     const workspace = c.inPlace ? undefined : ws;
@@ -114,6 +131,11 @@ async function runTrial(c: EvalConfig, task: EvalTask, gt: GroundTruth): Promise
         startedAt,
         crawlRunId,
         sessions,
+        processTraces: traces.map((t) => ({
+          process_id: t.processId,
+          run: t.runId,
+          cli_session: t.session,
+        })),
         outcomes,
         cost,
         grades,
@@ -134,11 +156,4 @@ function crawlerPrompt(c: EvalConfig, task: EvalTask): string {
   return task.trace
     ? PROMPTS.crawlerTrace(c.portal, c.persona, task.trace.name, task.trace.goal)
     : PROMPTS.crawler(c.portal, c.persona);
-}
-
-async function findCrawlRun(c: EvalConfig, ws: string, since: string) {
-  const db = openDb(dbPathFor(join(ws, 'data'), c.env));
-  const run = latestCrawlRun(db.raw, c.portal, c.persona, since);
-  await db.close();
-  return run?.id;
 }

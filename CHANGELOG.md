@@ -6,6 +6,23 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Added
+- R-39 BA goal quality, second round (spec 025; owner decisions 2026-10-14: score processes both
+  ways, neutral examples in the BA guidance):
+  - **Map-based process score:** `processes_map` beside `processes` counts a process record whose
+    cited evidence covers the process's first and last screens; `processes` still means "known
+    from a trace". Re-graded reference store: 4 of 5, nothing else moves.
+  - **Process traces in the eval:** a map task can list ground-truth processes the crawler also
+    traces after the map (guest only); the BA documents from the map and every trace.
+    `reference-insurer` traces P01–P04; `--no-process-traces` turns them off. Results record the
+    trace runs, `process_trace_steps`, `process_traces_goal_reached` and the condition
+    `process_traces`, and warn when the baseline ran a different number.
+  - Reference-insurer, two trials with traces: **processes 0 → 80 %** (P05 sits behind a
+    login), every trace reached its goal. The BA wrote fewer other records with five runs to
+    read (fields 53.8 % / 80.8 %, terms 100 % / 60 %); owner decides how traces should feed the
+    BA (spec 025 F-12). Baseline not promoted.
+  - **BA guidance:** the rule examples no longer quote the reference portal's answer key (R03,
+    R07; other quotes listed in F-08 for the owner); every field of every form gets its own data
+    item, checked again in the synthesis pass.
 - R-39 BA goal quality, first round (spec 025):
   - **Why processes score 0 %:** the eval runs map scans only and the grader scores processes
     from trace evidence, so no BA could score; the BA's guest processes are right. Owner decides

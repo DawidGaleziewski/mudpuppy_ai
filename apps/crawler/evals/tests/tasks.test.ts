@@ -1,6 +1,6 @@
 import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { loadGroundTruth, SUITE, taskFor } from '../tasks.js';
+import { loadGroundTruth, processTracesFor, SUITE, taskFor } from '../tasks.js';
 
 const root = resolve(import.meta.dirname, '../../../..');
 
@@ -42,6 +42,28 @@ describe('eval suite', () => {
       expect(process?.steps?.length).toBeGreaterThan(0);
     },
   );
+
+  it.each(SUITE.filter((t) => t.processTraces).map((t) => [t.portal, t] as const))(
+    '%s: every process trace names a ground-truth process with steps (spec 025)',
+    (_portal, t) => {
+      const processes = loadGroundTruth(root, t).processes;
+      for (const spec of t.processTraces!)
+        expect(processes.find((p) => p.id === spec.processId)?.steps?.length).toBeGreaterThan(0);
+    },
+  );
+
+  it('runs process traces for the guest persona only, unless turned off', () => {
+    const task = taskFor('reference-insurer')!;
+    expect(processTracesFor(task, 'guest', true).map((t) => t.processId)).toEqual([
+      'P01',
+      'P02',
+      'P03',
+      'P04',
+    ]);
+    expect(processTracesFor(task, 'client', true)).toEqual([]);
+    expect(processTracesFor(task, 'guest', false)).toEqual([]);
+    expect(processTracesFor(taskFor('proving-ground-shop')!, 'guest', true)).toEqual([]);
+  });
 
   it('a live site has no server to start', () => {
     expect(taskFor('wikipedia')!.server).toBeUndefined();

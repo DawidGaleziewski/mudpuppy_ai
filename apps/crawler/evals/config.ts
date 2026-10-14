@@ -8,7 +8,7 @@ import { parseArgs } from 'node:util';
 export const USAGE =
   'usage: pnpm eval <portal> [--persona guest] [--budget-usd 5] [--model <m>] [--env sandbox]\n' +
   '       [--session-timeout <s>] [--crawler-only] [--promote [--force-promote]] [--dry-run]\n' +
-  '       [--in-place] [--no-judges]';
+  '       [--in-place] [--no-judges] [--no-process-traces]';
 
 export interface EvalConfig {
   /** The repo root: portals/, personas/, data/ and `.mcp.json` live here. */
@@ -30,6 +30,8 @@ export interface EvalConfig {
   inPlace: boolean;
   /** Run the model-based graders after the code ones (spec 017); `--no-judges` turns them off. */
   judges: boolean;
+  /** Trace the task's `processTraces` after the map (spec 025); `--no-process-traces` skips them. */
+  processTraces: boolean;
   /** `data/evals/<portal>/`: results, `baseline.json`, `tolerances.json`, `history/`. */
   resultsDir: string;
 }
@@ -51,6 +53,7 @@ const OPTIONS = {
   'dry-run': { type: 'boolean', default: false },
   'in-place': { type: 'boolean', default: false },
   'no-judges': { type: 'boolean', default: false },
+  'no-process-traces': { type: 'boolean', default: false },
 } as const;
 
 /** Parse `pnpm eval` arguments; an unknown flag is an error, not silently ignored. */
@@ -84,6 +87,7 @@ export function parseConfig(argv: readonly string[], root = REPO_ROOT): ConfigRe
       dryRun: values['dry-run'],
       inPlace: values['in-place'],
       judges: !values['no-judges'],
+      processTraces: !values['no-process-traces'],
       resultsDir: join(root, 'data', 'evals', portal),
     },
   };
