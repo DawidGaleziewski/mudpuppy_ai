@@ -285,3 +285,7 @@
   title: Shop re-run reaches 4/6; S05 unfilled submit and S07 vanishing link have other causes
   tier: eval
   check: crawl_screens
+- id: F-08@026
+  title: The squash commit took a file the owner had staged
+  tier: not_testable
+  reason: a process slip in the merge; the idea is a clean-status check before a squash merge
