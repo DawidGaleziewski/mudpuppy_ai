@@ -22,12 +22,17 @@ import type { Grades } from './graders/index.js';
 export interface TrialRecord {
   startedAt: string;
   crawlRunId: string;
-  /** `ba` is null in a crawler-only trial. */
-  sessions: { crawler: string; ba: string | null };
+  /** `ba` is null in a crawler-only trial; `baTraces` is null when no trace session ran (F-12). */
+  sessions: { crawler: string; ba: string | null; baTraces: string | null };
   /** The process traces run after the map, in order; empty when none ran (spec 025 FR-006). */
   processTraces: { process_id: string; run: string; cli_session: string }[];
   /** How each agent's session ended; `ba` is absent in a crawler-only trial (spec 020 T003). */
-  outcomes: { crawler: ScoredOutcome; ba?: ScoredOutcome; process_traces?: ScoredOutcome[] };
+  outcomes: {
+    crawler: ScoredOutcome;
+    ba?: ScoredOutcome;
+    ba_traces?: ScoredOutcome;
+    process_traces?: ScoredOutcome[];
+  };
   cost: Cost;
   grades: Grades;
   /** The workspace the agents ran in; absent with `--in-place` (spec 017 F-01). */
@@ -60,6 +65,8 @@ export function buildResult(config: EvalConfig, r: TrialRecord): EvalResult {
       ba_session: r.grades.session?.id ?? null,
       crawler_cli_session: r.sessions.crawler,
       ba_cli_session: r.sessions.ba,
+      ...(r.grades.tracesSession && { ba_traces_session: r.grades.tracesSession.id }),
+      ...(r.sessions.baTraces && { ba_traces_cli_session: r.sessions.baTraces }),
       ...(r.processTraces.length > 0 && { process_traces: r.processTraces }),
     },
     ...conditionsOf(config, r.processTraces.length),

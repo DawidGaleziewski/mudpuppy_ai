@@ -17,3 +17,10 @@ measurement). Model tags per memory `model-split-per-task`.
 - [x] T010 [opus] FR-010 data-item completeness in `ba-practice/SKILL.md` passes 5 and 7
 - [x] T011 [opus] second reference-insurer trial with traces and FR-010; F-12 (processes 80 % again; BA writes less, owner decides a/b/c)
 - [x] T009 [opus] close-out: code-reviewer, suites, glossary, changelog, merge, tag, export
+
+## Round 3: split BA sessions, neutral guidance, new baseline (owner decisions 2026-10-14 evening)
+
+- [x] T012 [opus] FR-011 split BA sessions in the eval: prompts (`ba`, `baTraces`), index, `analysisSessions` query, grade (both sessions completed), results + gates schema (`ba_traces_session`, `outcomes.ba_traces`); tests; README
+- [x] T013 [sonnet] FR-012 neutral examples for the F-08 quotes in `ba-practice` (SKILL.md, business-rules, requirements-writing, use-cases, record-kinds, glossary); SC-006 search
+- [x] T014 [opus] FR-013 reference-insurer trial with split sessions and neutral guidance; findings; promote if SC-005 holds (else a second trial, then promote the better one and say why)
+- [x] T015 [opus] close-out: code-reviewer, suites, glossary, changelog, merge, tag, export

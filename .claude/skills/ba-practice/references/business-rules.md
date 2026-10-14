@@ -2,10 +2,10 @@
 
 Types (`rule_type`):
 - `constraint` — a limit on data or action: "Liczba uczestników" from 1 to 12.
-- `computation` — a derived value: premium = base × factors, discount for "Bezszkodowa jazda".
+- `computation` — a derived value: "Kara za przetrzymanie" = days overdue × daily rate.
 - `inference` — a conclusion from other facts: a reader with an overdue loan is "not eligible to reserve".
-- `action_enabler` — something becomes possible when a condition holds: "Dalej" enabled only after
-  consents are ticked.
+- `action_enabler` — something becomes possible when a condition holds: "Zarezerwuj" enabled only
+  after "Akceptuję regulamin" is ticked.
 
 Where to find them in evidence: required/pattern/min/max attributes; disabled controls and their
 hints; validation messages in trace steps; breakdowns on result pages; options that disappear;
@@ -56,5 +56,5 @@ one key; the reason for the rule goes in an `open_question`. A screen marked onl
 - Visible limit (attribute or message) → `observed`.
 - Formula reconstructed from several results → `inferred`, cite each result.
 - Why the limit exists → never in the rule; put it in an `open_question`.
-- Rules you know exist but cannot see (renewal windows behind login, payout limits) → `not_observable`
+- Rules you know exist but cannot see (loan extension limits behind login, fee caps) → `not_observable`
   + OQ; do not write their values.

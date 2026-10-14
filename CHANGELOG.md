@@ -6,6 +6,19 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Added
+- R-39 BA goal quality, third round (spec 025; owner decisions 2026-10-14 evening: split the BA
+  session, neutral examples everywhere, promote a new baseline):
+  - **Two BA sessions in a trial with traces:** the BA first documents the map run with the same
+    prompt as a map-only trial, then a second session reads only the trace runs and writes
+    processes and use cases. Results record both (`ba_traces_session`, `outcomes.ba_traces`);
+    `ba_session_completed` needs both.
+  - **BA guidance without answer-key quotes:** every reference-portal label, term, route and
+    limit left in the `ba-practice` skill (more than F-08 listed: postcode format, travel dates,
+    "Kup polisę", driver ages) is now a library-domain example no suite portal uses. The
+    proving-ground routes in the URL section stay for the owner (F-13).
+  - Reference-insurer with split sessions: processes 80 %, rules 62.5 %, fields, constraints,
+    terms and screens 100 %, no regression; **promoted as the new reference baseline**.
+  - No glossary change: no dashboard-facing term was added or changed.
 - R-39 BA goal quality, second round (spec 025; owner decisions 2026-10-14: score processes both
   ways, neutral examples in the BA guidance):
   - **Map-based process score:** `processes_map` beside `processes` counts a process record whose

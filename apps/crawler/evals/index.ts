@@ -75,7 +75,8 @@ async function dryRun(c: EvalConfig, task: EvalTask, gt: GroundTruth): Promise<n
 
 /**
  * One trial: portal up → crawler (map or trace, per the task) → the task's process traces
- * (spec 025, guest only, unless `--no-process-traces`) → BA unless `--crawler-only` →
+ * (spec 025, guest only, unless `--no-process-traces`) → BA unless `--crawler-only`: one session
+ * over the map, then one over the traces for processes only (spec 025 F-12) →
  * grade → judges unless `--no-judges` (spec 017) → save; the portal server is always stopped.
  */
 async function runTrial(c: EvalConfig, task: EvalTask, gt: GroundTruth): Promise<number> {
@@ -87,26 +88,27 @@ async function runTrial(c: EvalConfig, task: EvalTask, gt: GroundTruth): Promise
     server = up.server;
     const ws = c.inPlace ? c.root : createWorkspace(c.root, c.portal, c.env);
     console.log(`workspace: ${ws}`);
-    const sessions = { crawler: randomUUID(), ba: c.crawlerOnly ? null : randomUUID() };
+    const traceTasks = processTracesFor(task, c.persona, c.processTraces);
+    const withBa = !c.crawlerOnly;
+    const sessions = {
+      crawler: randomUUID(),
+      ba: withBa ? randomUUID() : null,
+      baTraces: withBa && traceTasks.length > 0 ? randomUUID() : null,
+    };
     const crawler = runAgent(c, ws, 'crawler', crawlerPrompt(c, task), sessions.crawler);
     let cost = addCost(emptyCost(), crawler.out);
     const crawlRunId =
       (await findCrawlRun(c, ws, startedAt)) ??
       abort(`the crawler made no run (session ${sessions.crawler})`);
-    const traces = await runProcessTraces(
-      c,
-      ws,
-      processTracesFor(task, c.persona, c.processTraces),
-    );
+    const traces = await runProcessTraces(c, ws, traceTasks);
     for (const t of traces) cost = addCost(cost, t.out);
-    const traceRunIds = traces.map((t) => t.runId);
-    const ba = sessions.ba
-      ? runAgent(c, ws, 'ba', PROMPTS.ba(c.portal, crawlRunId, traceRunIds), sessions.ba)
-      : null;
+    const { ba, baTraces } = runBaSessions(c, ws, crawlRunId, traces, sessions);
     if (ba) cost = addCost(cost, ba.out);
+    if (baTraces) cost = addCost(cost, baTraces.out);
     const outcomes = {
       crawler: crawler.outcome,
       ...(ba && { ba: ba.outcome }),
+      ...(baTraces && { ba_traces: baTraces.outcome }),
       ...(traces.length > 0 && { process_traces: traces.map((t) => t.outcome) }),
     };
     const grades = await grade({
@@ -121,6 +123,7 @@ async function runTrial(c: EvalConfig, task: EvalTask, gt: GroundTruth): Promise
         sessions.crawler,
         ...traces.map((t) => t.session),
         ...(sessions.ba ? [sessions.ba] : []),
+        ...(baTraces && sessions.baTraces ? [sessions.baTraces] : []),
       ],
     });
     const judges = await judgeTrial(c, ws, gt);
@@ -130,7 +133,7 @@ async function runTrial(c: EvalConfig, task: EvalTask, gt: GroundTruth): Promise
       buildResult(c, {
         startedAt,
         crawlRunId,
-        sessions,
+        sessions: { ...sessions, baTraces: baTraces ? sessions.baTraces : null },
         processTraces: traces.map((t) => ({
           process_id: t.processId,
           run: t.runId,
@@ -150,6 +153,33 @@ async function runTrial(c: EvalConfig, task: EvalTask, gt: GroundTruth): Promise
   } finally {
     await stopServer(server);
   }
+}
+
+/** Two BA sessions (spec 025 F-12): the map as before, then the traces for processes only. */
+function runBaSessions(
+  c: EvalConfig,
+  ws: string,
+  crawlRunId: string,
+  traces: Awaited<ReturnType<typeof runProcessTraces>>,
+  sessions: { ba: string | null; baTraces: string | null },
+) {
+  const ba = sessions.ba
+    ? runAgent(c, ws, 'ba', PROMPTS.ba(c.portal, crawlRunId), sessions.ba)
+    : null;
+  const baTraces =
+    sessions.baTraces && traces.length > 0
+      ? runAgent(
+          c,
+          ws,
+          'ba',
+          PROMPTS.baTraces(
+            c.portal,
+            traces.map((t) => t.runId),
+          ),
+          sessions.baTraces,
+        )
+      : null;
+  return { ba, baTraces };
 }
 
 function crawlerPrompt(c: EvalConfig, task: EvalTask): string {

@@ -63,6 +63,9 @@ export const EvalResult = z
         ba_session: z.string().nullable(),
         crawler_cli_session: z.string().nullable().optional(),
         ba_cli_session: z.string().nullable().optional(),
+        /** The BA's second session, over the process traces only (spec 025 F-12). */
+        ba_traces_session: z.string().optional(),
+        ba_traces_cli_session: z.string().optional(),
         /** The crawler traces of ground-truth processes run after the map (spec 025 FR-006). */
         process_traces: z
           .array(
@@ -86,6 +89,7 @@ export const EvalResult = z
       .object({
         crawler: ScoredOutcome,
         ba: ScoredOutcome.optional(),
+        ba_traces: ScoredOutcome.optional(),
         process_traces: z.array(ScoredOutcome).optional(),
       })
       .strict()

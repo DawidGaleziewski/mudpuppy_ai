@@ -23,7 +23,7 @@ afterAll(async () => {
 it('answers on an empty store', () => {
   const db = opened.raw;
   expect(q.latestCrawlRun(db, 'p', 'guest', '2026-01-01')).toBeUndefined();
-  expect(q.latestAnalysisSession(db, 'p', '2026-01-01')).toBeUndefined();
+  expect(q.analysisSessions(db, 'p', '2026-01-01')).toEqual([]);
   expect(q.runEnd(db, 'r')).toBeUndefined();
   expect(q.pendingFrontierCount(db, 'r')).toBe(0);
   expect(q.decisionCount(db, 'r', 'login')).toBe(0);
@@ -33,4 +33,18 @@ it('answers on an empty store', () => {
   expect(q.actionCallUrls(db, 'r')).toEqual([]);
   expect(q.traceStepRoutes(db, 'r')).toEqual([]);
   expect(q.traceOutcome(db, 'r')).toBeNull();
+});
+
+it('lists the BA sessions since the trial started, the map one first (spec 025 F-12)', () => {
+  const db = opened.raw;
+  const add = db.prepare(
+    "INSERT INTO analysis_sessions (id, portal_id, status, passes_json, started_at) VALUES (?, 'p', ?, '[]', ?)",
+  );
+  add.run('old', 'interrupted', '2026-01-01T00:00:00Z');
+  add.run('traces', 'running', '2026-02-01T00:02:00Z');
+  add.run('map', 'interrupted', '2026-02-01T00:01:00Z');
+  expect(q.analysisSessions(db, 'p', '2026-02-01')).toEqual([
+    { id: 'map', status: 'interrupted' },
+    { id: 'traces', status: 'running' },
+  ]);
 });

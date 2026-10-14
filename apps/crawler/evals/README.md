@@ -122,8 +122,11 @@ Kinds of task:
 
 - **Map** (default): the crawler maps the whole portal; graded on screens reached and the BA's docs.
   A map task may list `processTraces` (spec 025): after the map the crawler traces each listed
-  ground-truth process (guest persona only), and the BA documents from the map and every trace
-  run, so `processes` (trace evidence) can score. Graded as `process_trace_steps` (steps summed
+  ground-truth process (guest persona only). The BA then works in two sessions (spec 025 F-12):
+  first over the map run with the same prompt as a map-only trial, so its scores stay comparable,
+  then over the trace runs only, writing just processes and use cases, so `processes` (trace
+  evidence) can score. The result records both (`runs.ba_traces_session`, `outcomes.ba_traces`),
+  and `ba_session_completed` needs both completed. Graded as `process_trace_steps` (steps summed
   over the traces) and the check `process_traces_goal_reached`; the result records the trace runs
   and the condition `process_traces`, and a baseline with a different count is not comparable.
   `--no-process-traces` skips them. Example: `reference-insurer` (P01–P04). `processes_map` scores

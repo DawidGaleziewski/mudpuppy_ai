@@ -1,7 +1,8 @@
 # Glossary (ubiquitous language)
 
-- One `glossary_term` per domain concept that the portal names: product names, insurance terms,
-  step names that carry meaning ("Bezszkodowa jazda", "OC", "AC", "Składka", "Polisa").
+- One `glossary_term` per domain concept that the portal names: product names, trade terms,
+  step names that carry meaning ("Prolongata", "Karta czytelnika", "Egzemplarz", "Kara za
+  przetrzymanie", "Wypożyczenie").
 - `term_verbatim` exactly as shown (case, diacritics); `lang` = portal language; `definition` in
   English, from what the portal shows (tooltips, glossary pages, context). If the meaning is not shown,
   write your best definition with confidence `inferred` or `needs_confirmation`, never `observed`.

@@ -28,7 +28,7 @@ over-claims. Complete, verbatim and honest beats elegant.
   input.
 - **English prose, portal words verbatim.** Write statements in English; quote every UI label, field
   name, message and domain term exactly as the portal shows it, in its language, in double quotes:
-  the field "Kod pocztowy", the button "Kup polisę". Do not translate inside quotes, fix typos, or
+  the field "Numer karty", the button "Zarezerwuj". Do not translate inside quotes, fix typos, or
   change case. The evaluator matches on verbatim labels and on route templates.
 
 ## Procedure
@@ -60,7 +60,7 @@ PII check reads an id in prose as a token and refuses the write (`PII_SUSPECTED`
 | # | Pass | Read | Write |
 |---|---|---|---|
 | 1 | `inventory` | `get_run_evidence` states, forms, network_calls, actions, decisions, page_visits | one `screen` per distinct page/UI state cluster: purpose, **route templates exactly as recorded**, elements (role + verbatim label; an element with no visible label is left out of `elements` and cited as a screen region instead), entry points (every URL it was reached under) |
-| 2 | `capabilities` | your screens, nav labels | `capability` records (what the business offers, e.g. "Car insurance quoting"); relations `capability contains screen|process` |
+| 2 | `capabilities` | your screens, nav labels | `capability` records (what the business offers, e.g. "Book reservation"); relations `capability contains screen|process` |
 | 3 | `processes` | `list_processes`, then `get_process` per process (ordered steps), edges between screens | `process` (goal, persona, trigger, outcome, `observed_extent`) and `use_case` (Cockburn, see `references/use-cases.md`); if no trace exists, a `followup` asking for one |
 | 4 | `rules` | forms (required, pattern, min/max), disabled controls and their hints, validation messages, computed values, refused actions, rule candidates | `business_rule` and `requirement` records (`references/business-rules.md`, `references/requirements-writing.md`); a field limit with business meaning is a rule too, besides the data item's constraint; every rule quotes the label of the control it is about |
 | 5 | `data` | form fields, network call shapes, labels, state `elements` | one `data_item` per field of every form (`name_verbatim` = the label exactly, constraints observed, evidence includes the field's screen region), checkboxes, selects and login fields included, also when a rule or process already covers the field; `glossary_term` per domain term (`references/glossary.md`) |
@@ -93,8 +93,8 @@ led there (`http` 301/302, `meta_refresh`, `script`, `same_document`, `reload`, 
 action (`edge_id`) or hop that set them.
 
 - **Route templates stay as recorded** (pass 1): `route_templates` holds the state's
-  `route_template` exactly, a path with no query (`/porownanie/wynik`, never
-  `/porownanie/wynik?produkt_1={code}`). Parameters go in `entry_points` and in rule and data-item
+  `route_template` exactly, a path with no query (`/katalog/wyniki`, never
+  `/katalog/wyniki?fraza={text}`). Parameters go in `entry_points` and in rule and data-item
   records, never into the route.
 - **Entry points** (pass 1): a screen's `entry_points` name every distinct way in, e.g. "old URL
   `/polisa.php?id=:nr`, redirected (meta refresh, then script) to `/ubezpieczenia#/polisy/:nr`".
@@ -120,11 +120,11 @@ needs: `references/srs-outline.md`.
 
 - A `business_rule` or `requirement` about a field: cite the **form or state** where it shows, quote
   the field label verbatim in the statement, and cite the same form as the field's `data_item`.
-  Example: `data_item` "Kod pocztowy" (evidence: form; relation `appears_on` → its `screen`) and
-  `business_rule` `The "Kod pocztowy" field accepts only the format NN-NNN.` (evidence: the same form,
+  Example: `data_item` "Numer karty" (evidence: form; relation `appears_on` → its `screen`) and
+  `business_rule` `The "Numer karty" field accepts only the format AA-NNNNNN.` (evidence: the same form,
   plus the validation message step if a trace recorded one).
 - **Point at the element on the screenshot.** States recorded since spec 008 have a screenshot, and
-  `get_evidence` on a state lists its `elements`: key strings such as `textbox "Pojemność silnika"` or
+  `get_evidence` on a state lists its `elements`: key strings such as `textbox "Numer karty"` or
   `button "Dalej"`. `elements_without_box` lists the keys that cannot be outlined on the screenshot
   (they are still valid to cite). Readers see outlined elements on a screenshot, so cite a **screen region**
   (`target_kind` `screen_region`, `target_id` the state id, `region` the key) in addition to the form or state:
@@ -143,7 +143,7 @@ needs: `references/srs-outline.md`.
   `followup` names the process, capability, screen, rule, use case or open question it would
   observe or answer with `follows_up`.
 - One data item per form field: the server refuses a data item whose name holds two or more field
-  labels of the form it cites ("Data wyjazdu / Data powrotu" is two data items).
+  labels of the form it cites ("Data wypożyczenia / Data zwrotu" is two data items).
 - Allowed relation triples are enforced (`RELATION_NOT_ALLOWED`); see `references/record-kinds.md`.
 
 ## Hand-offs, logged-in evidence and legacy obstacles
@@ -163,11 +163,11 @@ needs: `references/srs-outline.md`.
 | You lack | Write |
 |---|---|
 | Something only people know (why a rule exists, business goals, what happens after a submit the crawler was not allowed to make) | `open_question` (`answer_needed_from: sme`) |
-| Behaviour the crawler could record but has not (a flow's steps, a page not visited, the error shown for a bad postcode) | `followup` with `suggested_mode: trace` and `target: {process_name, goal}` for a process, or `map` with `target: {url}`; `reason` says what record it will unblock |
+| Behaviour the crawler could record but has not (a flow's steps, a page not visited, the error shown for a bad card number) | `followup` with `suggested_mode: trace` and `target: {process_name, goal}` for a process, or `map` with `target: {url}`; `reason` says what record it will unblock |
 | Both | a `followup` and an `open_question`, related |
 
 Processes and use cases need trace evidence: request one `followup` per process you can see an entry
-point for (e.g. "Oblicz składkę" link), before writing use cases from map data alone. Shape:
+point for (e.g. "Zarezerwuj" link), before writing use cases from map data alone. Shape:
 `suggested_mode: trace`, `target: {process_name, goal}` (the name in the portal's words, the goal in
 one English sentence), `persona`, and a `reason` saying which `PROC` and `UC` it will unblock. The
 crawler picks it up, traces it and links the run; the next session reads it with `get_process`.
@@ -181,15 +181,17 @@ server). Never `observed`. Checklist: `references/blind-spots.md`.
 
 ## Examples
 
-Good: `business_rule` — statement `The "Dalej" button stays disabled until both consent checkboxes
-are ticked.`, rule_type `action_enabler`, confidence `observed`, evidence: state (button disabled) +
-edge (after ticking, enabled), relation `uses_term` → "Zgoda marketingowa" if it is a term.
+Good: `business_rule` — statement `The "Zarezerwuj" button stays disabled until "Akceptuję
+regulamin" is ticked.`, rule_type `action_enabler`, confidence `observed`, evidence: state (button
+disabled) + edge (after ticking, enabled), relation `uses_term` → "Regulamin wypożyczalni" if it is a
+term.
 
-Bad: `Customers must be adults because of insurance law.` — intent presented as fact, no verbatim
-label, no evidence of the law. Instead: rule `The "Data urodzenia" field rejects ages under 18.`
-(`observed`, cites the validation message) plus an `open_question` "Why is 18 the lower limit?".
+Bad: `Pickups are limited because of library policy.` — intent presented as fact, no verbatim
+label, no evidence of the policy. Instead: rule `The "Data odbioru" field rejects dates more than 7
+days ahead.` (`observed`, cites the validation message) plus an `open_question` "Why is 7 days the
+limit?".
 
-Bad: `data_item` `name_verbatim: "Postal code"` for a field labelled "Kod pocztowy" — translated, so it
+Bad: `data_item` `name_verbatim: "Card number"` for a field labelled "Numer karty" — translated, so it
 matches nothing. Put the English in `name_en`.
 
 ## Stop conditions

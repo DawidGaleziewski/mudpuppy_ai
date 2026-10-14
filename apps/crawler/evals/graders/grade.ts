@@ -7,7 +7,7 @@ import type { GroundTruth } from '@pathfinder/docs';
 import { dbPathFor, openDb } from '@pathfinder/store';
 import { join } from 'node:path';
 import type { EvalConfig } from '../config.js';
-import { latestAnalysisSession, type RawDb } from '../queries.js';
+import { analysisSessions, type RawDb } from '../queries.js';
 import type { EvalTask } from '../tasks.js';
 import { scoreCrawl } from './code/crawl-coverage.js';
 import { scoreDocs } from './code/docs-coverage.js';
@@ -44,24 +44,27 @@ function baWrites(sessionIds: readonly string[]) {
   return w;
 }
 
-/** Documentation graders, or none when the BA did not run. */
+/**
+ * Documentation graders, or none when the BA did not run. The BA's first session is the map one,
+ * a second one the traces one (spec 025 F-12); the docs are scored over both sessions' records.
+ */
 function gradeDocs(db: RawDb, m: GradeInput) {
-  if (m.config.crawlerOnly) return { session: undefined, docs: null };
+  if (m.config.crawlerOnly) return { sessions: [], docs: null };
   return {
-    session: latestAnalysisSession(db, m.config.portal, m.startedAt),
+    sessions: analysisSessions(db, m.config.portal, m.startedAt),
     docs: scoreDocs(db, m.config.portal, m.groundTruth),
   };
 }
 
-/** Checks of the BA's session: completion, hand-offs, refused writes, record-shape mistakes. */
+/** Checks of the BA's sessions: completion, hand-offs, refused writes, record-shape mistakes. */
 function baChecks(
-  session: { status: string } | undefined,
+  sessions: readonly { status: string }[],
   handoffs: number,
   writes: ReturnType<typeof scoreBaWrites> | null,
   shapes: ReturnType<typeof scoreBaShapes> | null,
 ) {
   return {
-    ba_session_completed: session?.status === 'completed',
+    ba_session_completed: sessions.length > 0 && sessions.every((s) => s.status === 'completed'),
     handoffs,
     // spec 019 US4: reported and compared, not yet a gate (a first measurement)
     ...(writes && {
@@ -99,7 +102,7 @@ export async function grade(m: GradeInput) {
   const loggedIn = persona !== 'guest';
   const opened = openDb(dbPathFor(join(m.ws, 'data'), env));
   opened.raw.pragma('query_only = ON');
-  const { session, docs } = gradeDocs(opened.raw, m);
+  const { sessions, docs } = gradeDocs(opened.raw, m);
   const crawl = scoreCrawl(opened.raw, m.crawlRunId, m.groundTruth, loggedIn);
   const trace = m.task.trace
     ? scoreTrace(opened.raw, m.crawlRunId, m.groundTruth, m.task.trace.processId)
@@ -118,7 +121,8 @@ export async function grade(m: GradeInput) {
   const leaks = await sweepLeaks(m.ws, portal, env, m.sessionIds);
   const writes = docs ? baWrites(m.sessionIds) : null;
   return {
-    session,
+    session: sessions[0],
+    tracesSession: sessions[1],
     scores: {
       ...docs?.scores,
       crawl_screens: { matched: crawl.matched, total: crawl.total, pct: crawl.pct },
@@ -138,7 +142,7 @@ export async function grade(m: GradeInput) {
       crawler_completed: run.crawler_completed,
       crawler_steps: run.crawler_steps,
       frontier_pending: run.frontier_pending,
-      ...(docs && baChecks(session, docs.handoffs, writes, shapes)),
+      ...(docs && baChecks(sessions, docs.handoffs, writes, shapes)),
       ...(trace && { trace_goal_reached: trace.goalReached }),
       ...processTraces.checks,
       relogins: run.relogins,

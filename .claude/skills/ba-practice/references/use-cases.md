@@ -19,18 +19,18 @@ route) and the recorded `outcomes`. Cite the process and the steps you turn into
 | `exception_flows[]` | validation messages and refusals seen (verbatim) |
 | `postconditions[]` | last observed state; if the trace hit a boundary, say so |
 
-Example main flow (process "Oblicz składkę OC/AC"):
-1. actor — opens "Oblicz składkę" from the home page.
-2. system — shows step "Dane pojazdu" at `/kalkulator/pojazd`.
-3. actor — enters "Rok produkcji" and "Pojemność silnika", presses "Dalej".
-4. system — shows "Dane kierowcy".
+Example main flow (process "Zarezerwuj książkę"):
+1. actor — opens "Katalog" from the home page.
+2. system — shows "Wyszukiwanie" at `/katalog/szukaj`.
+3. actor — enters "Tytuł" and "Autor", presses "Szukaj".
+4. system — shows "Wyniki wyszukiwania".
 …
 
 Boundary: when the trace ended with `boundary_reached` (a mutating action refused on production), set
 the process `observed_extent: until_boundary`, mark the remainder `not_observable` with an
-`open_question` ("What happens after "Kup polisę"?"), and do not invent the rest of the flow. End the
+`open_question` ("What happens after "Zarezerwuj"?"), and do not invent the rest of the flow. End the
 main flow at the last observed step; put the refused action in `postconditions[]` ("the trace stopped
-before pressing "Kup polisę"") and let the `open_question` carry what is unknown.
+before pressing "Zarezerwuj"") and let the `open_question` carry what is unknown.
 
 Follow-up: when a flow is only known from map data (`observed_extent: map_only`) or stopped at a
 boundary that a sandbox run could pass, add a `followup` with `suggested_mode: trace` and

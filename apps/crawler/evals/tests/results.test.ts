@@ -63,7 +63,7 @@ it('records a crawler-only trial as a condition, and no conditions when all are 
   const trial: TrialRecord = {
     startedAt: '2026-10-10T00:00:00.000Z',
     crawlRunId: 'run',
-    sessions: { crawler: 'c', ba: null },
+    sessions: { crawler: 'c', ba: null, baTraces: null },
     processTraces: [],
     outcomes: { crawler: 'budget_end' },
     cost: { usd: 0, input_tokens: 0, output_tokens: 0, duration_ms: 0 },
@@ -86,15 +86,21 @@ it('records the process traces as runs, outcomes and a condition, and warns on a
   const traced: TrialRecord = {
     startedAt: '2026-10-14T00:00:00.000Z',
     crawlRunId: 'run',
-    sessions: { crawler: 'c', ba: 'b' },
+    sessions: { crawler: 'c', ba: 'b', baTraces: 'bt' },
     processTraces: [
       { process_id: 'P01', run: 'run-t1', cli_session: 'cli-t1' },
       { process_id: 'P02', run: 'run-t2', cli_session: 'cli-t2' },
     ],
-    outcomes: { crawler: 'success', ba: 'success', process_traces: ['success', 'budget_end'] },
+    outcomes: {
+      crawler: 'success',
+      ba: 'success',
+      ba_traces: 'success',
+      process_traces: ['success', 'budget_end'],
+    },
     cost: { usd: 0, input_tokens: 0, output_tokens: 0, duration_ms: 0 },
     grades: {
-      session: undefined,
+      session: { id: 'as-map', status: 'completed' },
+      tracesSession: { id: 'as-traces', status: 'completed' },
       scores: { screens: { matched: 1, total: 1, pct: 100 } },
       overclaims: 0,
       checks: { crawler_completed: true, password_hits: 0, widget_actions: 0 },
@@ -104,6 +110,14 @@ it('records the process traces as runs, outcomes and a condition, and warns on a
   expect(r.conditions).toEqual({ process_traces: 2 });
   expect(r.runs.process_traces?.map((t) => t.run)).toEqual(['run-t1', 'run-t2']);
   expect(r.outcomes?.process_traces).toEqual(['success', 'budget_end']);
+  // spec 025 F-12: the BA's map session and its traces session are both recorded
+  expect(r.runs).toMatchObject({
+    ba_session: 'as-map',
+    ba_cli_session: 'b',
+    ba_traces_session: 'as-traces',
+    ba_traces_cli_session: 'bt',
+  });
+  expect(r.outcomes?.ba_traces).toBe('success');
   writeFileSync(join(dir, 'baseline.json'), JSON.stringify(result('2026-10-13T00:00:00.000Z', 1)));
   saveResult({ ...config, promote: false }, r);
   expect(console.warn).toHaveBeenCalledWith(
@@ -115,7 +129,7 @@ it('records the workspace and the judges, and leaves both out when absent (spec 
   const trial: TrialRecord = {
     startedAt: '2026-10-11T00:00:00.000Z',
     crawlRunId: 'run',
-    sessions: { crawler: 'c', ba: 'b' },
+    sessions: { crawler: 'c', ba: 'b', baTraces: null },
     processTraces: [],
     outcomes: { crawler: 'success', ba: 'success' },
     cost: { usd: 0, input_tokens: 0, output_tokens: 0, duration_ms: 0 },

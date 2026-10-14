@@ -93,3 +93,19 @@ guidance (F-02). Branch `feature/025-r39-process-scoring`.
 - **FR-010** (after F-11) BA guidance: pass 5 writes a data item for every field of every form,
   checkboxes, selects and login fields included, also when a rule or process covers it; pass 7
   counts each form's fields against the data items. Measured by a second trial with traces.
+
+## Round 3: split BA sessions, neutral guidance, new baseline (owner decisions 2026-10-14 evening)
+
+- **FR-011** (F-12 c) A trial with process traces runs the BA twice: first over the map run with
+  the map-only prompt (unchanged, so its scores compare with map-only baselines), then a second
+  session over the trace runs only that writes `process` and `use_case` records and nothing else.
+  The result records both sessions; `ba_session_completed` needs both completed.
+- **FR-012** (F-08) The remaining reference-portal quotes in the BA guidance (`ba-practice`
+  SKILL.md and references) become neutral examples from a domain no suite portal uses.
+- **FR-013** (F-04) After FR-011 and FR-012, promote a reference-insurer trial with traces as the
+  new baseline (`--promote`), with the scores and conditions written in the findings.
+
+- **SC-005** A trial with split sessions scores `processes` ≥ 3/5 and its map-session categories
+  (rules, fields, constraints, terms) within the old map-only baseline's tolerances.
+- **SC-006** A string search of the `ba-practice` skill and `ba.md` finds none of the reference
+  ground truth's rule anchor labels, graded terms or routes.

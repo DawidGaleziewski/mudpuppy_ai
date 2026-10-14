@@ -22,14 +22,13 @@ export function latestCrawlRun(db: RawDb, portal: string, persona: string, since
   );
 }
 
-/** The BA's analysis session for this eval, if it started one. */
-export function latestAnalysisSession(db: RawDb, portal: string, since: string) {
-  return one<{ id: string; status: string } | undefined>(
-    db,
-    'SELECT id, status FROM analysis_sessions WHERE portal_id = ? AND started_at >= ? ORDER BY started_at DESC LIMIT 1',
-    portal,
-    since,
-  );
+/** The BA's analysis sessions for this eval, oldest first: the map one, then the traces one (F-12). */
+export function analysisSessions(db: RawDb, portal: string, since: string) {
+  return db
+    .prepare(
+      'SELECT id, status FROM analysis_sessions WHERE portal_id = ? AND started_at >= ? ORDER BY started_at',
+    )
+    .all(portal, since) as { id: string; status: string }[];
 }
 
 /** How the crawl run ended: `completed`, or `interrupted` when a budget cut it short. */
