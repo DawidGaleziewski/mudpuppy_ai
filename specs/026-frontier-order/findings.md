@@ -92,6 +92,12 @@ dashboard test that expects the chat service down while one ran on 4310; stopped
 owner's consent, then committed)
 Summary: 2 findings, 1 fixed, 1 deferred, 0 rejected.
 
+## Bank eval after the merge (main checkout), 2026-10-14 (T006)
+
+Trial `2026-10-14T20-41-24-681Z` (client, $4.49, 70 steps, crawler completed, 0 pending):
+`crawl_screens` 12/13, missing only S11 (known, spec 020 F-06); rules 100 %, terms 0 → 40 %,
+one re-login (baseline 2); no regression. The new order does not hurt the bank.
+
 ## F-08 Slip: the squash commit took a file the owner had staged, 2026-10-14 (merge)
 
 - **What**: the main checkout had `user_input/review/1_review_basic.md` staged (empty) by the
