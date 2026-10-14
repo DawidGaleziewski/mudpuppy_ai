@@ -470,6 +470,18 @@ importers:
         specifier: ^22.20.4
         version: 22.20.4
 
+  apps/crawler/packages/hooks:
+    dependencies:
+      '@pathfinder/config':
+        specifier: workspace:*
+        version: link:../config
+      '@pathfinder/safety':
+        specifier: workspace:*
+        version: link:../safety
+      zod:
+        specifier: ^4.6.5
+        version: 4.6.5
+
   apps/crawler/packages/mcp-server:
     dependencies:
       '@modelcontextprotocol/sdk':
@@ -493,6 +505,9 @@ importers:
       '@pathfinder/fingerprint':
         specifier: workspace:*
         version: link:../fingerprint
+      '@pathfinder/hooks':
+        specifier: workspace:*
+        version: link:../hooks
       '@pathfinder/obstacles':
         specifier: workspace:*
         version: link:../obstacles

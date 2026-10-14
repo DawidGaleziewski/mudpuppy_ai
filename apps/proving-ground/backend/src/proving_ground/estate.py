@@ -88,6 +88,54 @@ def bundle_delay(request: HttpRequest) -> HttpResponse:
     return response
 
 
+HOOK_GATE_HTML = """<!doctype html>
+<html lang="pl">
+<head><meta charset="utf-8"><title>Brama hooków</title></head>
+<body>
+<main>
+<h1>Brama hooków</h1>
+<p id="status">Brak zgody: strona nie działa bez ciasteczka zgody i poprawki skryptu.</p>
+<ul>
+<li><a href="/__test/hooks/polisa/123/druk">Wydruk polisy</a></li>
+<li><a href="/__test/hooks/sekcja/a">Sekcja A</a></li>
+<li><a href="/__test/hooks/poza/b">Poza sekcją</a></li>
+</ul>
+</main>
+<script>
+// Works only when the consent cookie is set AND a script patched window before the page ran
+// (spec 023 SC-001): a portal hook does both.
+(function () {
+  var consent = document.cookie.split('; ').indexOf('pg_hook_consent=1') >= 0;
+  if (!consent || !window.__pgPatched) return;
+  document.getElementById('status').textContent = 'Strona otwarta';
+  var button = document.createElement('button');
+  button.type = 'button';
+  button.textContent = 'Dalej';
+  document.querySelector('main').appendChild(button);
+})();
+</script>
+</body>
+</html>
+"""
+
+
+def hook_gate(request: HttpRequest) -> HttpResponse:
+    """Test-only page for the crawler hooks gates (spec 023 SC-001..SC-003). Nothing links here."""
+    return HttpResponse(HOOK_GATE_HTML, content_type="text/html; charset=utf-8")
+
+
+def hook_leaf(request: HttpRequest, rest: str) -> HttpResponse:
+    """The pages the hook gate links to: a title naming the path, nothing else."""
+    title = f"Strona {rest}"
+    body = (
+        f"<!doctype html><html lang='pl'><head><meta charset='utf-8'><title>{title}</title></head>"
+    )
+    return HttpResponse(
+        f"{body}<body><main><h1>{title}</h1></main></body></html>",
+        content_type="text/html; charset=utf-8",
+    )
+
+
 def bundle(request: HttpRequest, name: str, file: str) -> HttpResponse:
     folder = APPS.get(name)
     if folder is None or ".." in file:

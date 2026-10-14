@@ -17,6 +17,8 @@ urlpatterns = [
     path("robots.txt", estate.robots),
     path("__admin/reset", estate.reset),
     path("__test/bundle-delay", estate.bundle_delay),
+    path("__test/hook-gate", estate.hook_gate),
+    re_path(r"^__test/hooks/(?P<rest>[a-z0-9/]+)$", estate.hook_leaf),
     path("api/clock", estate.clock),
     path("api/session", auth.session_info),
     path("api/login/form", auth.login_form),

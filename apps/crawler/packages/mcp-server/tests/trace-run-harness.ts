@@ -14,7 +14,6 @@ environment: sandbox
 compliance: { robots_checked_on: 2026-09-20, terms_reviewed_on: 2026-09-21, terms_reviewed_by: me }
 scope:
   allowed_domains: [127.0.0.1]
-  allowed_paths: ["/*"]
   external_link_policy: record
   max_depth: 6
   max_states: 100

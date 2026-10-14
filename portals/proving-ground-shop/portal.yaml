@@ -14,7 +14,6 @@ compliance:
 
 scope:
   allowed_domains: ["127.0.0.1"]
-  allowed_paths: ["/sklep*", "/logowanie", "/api/*", "/cms/*", "/mfe/*", "/shop/*", "/old/*"]
   external_link_policy: record
   max_depth: 6
   max_states: 150
@@ -22,9 +21,13 @@ scope:
   max_run_time_minutes: 30
   max_steps: 600
 
-denylist:
-  - path:/__admin/* # state reset endpoint
-  - path:/api/logout # the crawler must never log itself out
+urls:
+  allowed: ["/sklep*", "/logowanie", "/api/*", "/cms/*", "/mfe/*", "/shop/*", "/old/*"]
+  disallowed:
+    - /__admin/* # state reset endpoint
+    - /api/logout # the crawler must never log itself out
+
+denylist: []
 
 rate_limit:
   requests_per_second: 5

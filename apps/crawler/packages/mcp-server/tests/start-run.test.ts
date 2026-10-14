@@ -16,7 +16,6 @@ compliance:
   terms_reviewed_by: ${o.compliance === false ? 'null' : 'dawid'}
 scope:
   allowed_domains: [${o.domain ?? 'shop.pl'}]
-  allowed_paths: ["/*"]
   max_depth: 6
   max_states: 500
   max_actions_per_state: 20
@@ -276,11 +275,12 @@ describe('start_run (database part)', () => {
       focus,
     });
     expect(output).toMatchObject({ base_url: 'https://en.shop.pl/', focus });
-    expect(approved.scope).toMatchObject({
-      allowed_domains: ['en.shop.pl'],
-      allowed_paths: ['/*'],
-      excluded_paths: ['/help/*'],
-    });
+    const focusLists = { where: 'focus', lists: { disallowed: ['/help/*'] } };
+    expect(approved.scope).toMatchObject({ allowed_domains: ['en.shop.pl'] });
+    expect(approved.scope.url_lists).toEqual([
+      { where: 'urls', lists: { disallowed: [] } },
+      focusLists,
+    ]);
     const row = await ctx.db
       .selectFrom('runs')
       .select('config_snapshot')
@@ -288,7 +288,7 @@ describe('start_run (database part)', () => {
       .executeTakeFirstOrThrow();
     const snap = JSON.parse(row.config_snapshot);
     expect(snap.choices.focus).toEqual(focus);
-    expect(snap.scope.excluded_paths).toEqual(['/help/*']);
+    expect(snap.scope.url_lists).toContainEqual(focusLists);
 
     await ctx.db
       .updateTable('runs')
@@ -301,7 +301,7 @@ describe('start_run (database part)', () => {
       resume_run_id: output.run_id,
     });
     expect(resumed.output.base_url).toBe('https://en.shop.pl/');
-    expect(resumed.approved.scope.excluded_paths).toEqual(['/help/*']);
+    expect(resumed.approved.scope.url_lists).toContainEqual(focusLists);
   });
 
   it('refuses a focus outside the portal and creates no run', async () => {

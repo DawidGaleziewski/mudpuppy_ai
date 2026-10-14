@@ -107,7 +107,7 @@ describe.skipIf(!available)('per-scan choices and unreachable addresses (spec 01
       });
       expect(direct.body.error).toMatchObject({
         code: 'ACTION_REFUSED',
-        rule: 'scope:excluded_path',
+        rule: 'focus.disallowed /help/*',
       });
       const home = await h.call('navigate', { run_id: runId, url: `${origin}/`, rationale: 'x' });
       const link = (
@@ -119,7 +119,7 @@ describe.skipIf(!available)('per-scan choices and unreachable addresses (spec 01
         action_id: link!.action_id,
         rationale: 'x',
       });
-      expect(JSON.stringify(click.body)).toContain('scope:excluded_path');
+      expect(JSON.stringify(click.body)).toContain('focus.disallowed /help/*');
       expect(pageHits).toEqual([]);
     } finally {
       await h.cleanup();

@@ -144,6 +144,15 @@ VOCABULARIES: dict[str, dict[str, Status]] = {
         "not_configured": _s("todo", "Not configured"),
         "not_marked": _s("todo", "Not marked"),
     },
+    # Portal hook runs (spec 023 US2.3).
+    "hook": {
+        "ok": _s("ok", "Ran"),
+        "skip": _s("skipped", "Skipped the page"),
+        "rewrite": _s("ok", "Opened another URL"),
+        "wait": _s("ok", "Waited"),
+        "failed": _s("failed", "Failed"),
+        "timeout": _s("failed", "Timed out"),
+    },
     # BA processes (spec 022 M5, screens 04–07).
     "stage": {
         "suggested": _s("inferred", "Suggested"),

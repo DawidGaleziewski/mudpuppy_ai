@@ -284,20 +284,45 @@ map shows what exists even where the crawler did not go.
 
 **The part of a site the crawler may visit (domains and paths in the portal config) and the URLs or actions it must never touch.**
 
-The portal config lists `allowed_domains` and `allowed_paths`; anything else is out of
-scope and skipped with the reason `out_of_scope`. The `denylist` names paths or controls that
-are forbidden even inside scope, such as logout, payment or an admin reset page; those are
-skipped as `denylisted`. Both appear as skip reasons on the frontier.
+The portal config lists `allowed_domains` and its URL lists (`urls.allowed`, absent for
+everything, and `urls.disallowed`, which always wins); anything else is out of scope and
+skipped with the reason `out_of_scope` ("excluded by rule …"). The `denylist` names controls
+that are forbidden even inside scope, such as logout or payment; those are skipped as
+`denylisted`. Both appear as skip reasons on the frontier.
 
-*Example:* reference-insurer allows 127.0.0.1 with paths /* and denylists path:/__admin/*.
+*Example:* reference-insurer allows 127.0.0.1 and lists /__admin/* in urls.disallowed.
 
 *Seen in:* Frontier → Status; skip reasons
 
 *Labels:* `Scope`, `Denylist`, `out_of_scope`, `denylisted`
 
-*Related:* [Frontier](#frontier), [Budget](#budget), [Environment (sandbox / production)](#environment)
+*Related:* [Frontier](#frontier), [Budget](#budget), [Environment (sandbox / production)](#environment), [Portal hook](#portal-hook)
 
-<sub>Last changed in R-22, 2026-10-03.</sub>
+<sub>Last changed in R-53, 2026-10-14.</sub>
+
+<a id="portal-hook"></a>
+
+#### Portal hook
+
+**A small piece of the owner's code that fixes one portal's quirk at a set point of a scan, such as adding a cookie or patching a broken script.**
+
+Hooks live in `portals/<id>/hooks.ts` and are switched on in the portal file under `hooks:`
+with the point they run at (`onRunStart`, `onBeforePageLoad`, `onPageLoad`,
+`onBeforeClickAction`, `onRunEnd`), optionally only on matching URLs. A hook may set cookies,
+add a script, run code in the page, skip a page or an action, or open another URL. Every run
+is recorded in the trace and the decision log, and a screen a hook changed is marked "patched
+by hook", so the documentation never describes the patch as the portal's own behaviour. A
+failing hook is recorded and the scan goes on. The crawler agent never writes hooks.
+
+*Example:* An onRunStart hook adds a portal's consent cookie, so its banner never covers the page.
+
+*Seen in:* Scan page → Portal hooks; Decisions
+
+*Labels:* `Hooks`, `patched by hook`
+
+*Related:* [Scope / denylist](#portal-scope), [Environment (sandbox / production)](#environment)
+
+<sub>Last changed in R-53, 2026-10-14.</sub>
 
 <a id="budget"></a>
 

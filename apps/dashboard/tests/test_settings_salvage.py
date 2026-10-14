@@ -26,7 +26,7 @@ def world(empty_store: Store, tmp_path: Path) -> tuple[Store, Path, Path]:
     (portals / "shop").mkdir(parents=True)
     (portals / "shop" / "portal.yaml").write_text(
         "id: shop\nrobots: respect\nscope:\n  allowed_domains: [shop.example.pl]\n"
-        "  allowed_paths: ['/*']\ndenylist:\n  - logout\n  - path:/<b>admin/*\n"
+        "urls:\n  disallowed: ['/<b>admin/*']\ndenylist:\n  - logout\n"
     )
     (personas / "shop").mkdir(parents=True)
     (personas / "shop" / "guest.yaml").write_text("auth: none\n")
@@ -125,6 +125,8 @@ def test_personas_and_crawl_rules_and_store(world: tuple[Store, Path, Path]) -> 
     assert "client" in plain and "logged-in" in plain and "SHOP_LOGIN" in plain
     assert "guest" in plain and "anonymous" in plain
     assert "respect it" in plain and "shop.example.pl" in plain
+    assert "Allowed URLs" in plain and "everything on the allowed domains" in plain
+    assert "Disallowed URLs" in plain
     assert "/&lt;b&gt;admin/*" in r.text and "/<b>admin/*" not in r.text  # escaped
     assert str(store.path) in r.text and "read-only" in plain
 

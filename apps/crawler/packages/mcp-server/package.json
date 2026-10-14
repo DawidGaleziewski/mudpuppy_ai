@@ -16,6 +16,7 @@
     "@pathfinder/store": "workspace:*",
     "@pathfinder/crawler": "workspace:*",
     "@pathfinder/fingerprint": "workspace:*",
+    "@pathfinder/hooks": "workspace:*",
     "@pathfinder/obstacles": "workspace:*",
     "@pathfinder/safety": "workspace:*",
     "@pathfinder/vault": "workspace:*",

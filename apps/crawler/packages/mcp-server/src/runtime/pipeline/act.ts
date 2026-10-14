@@ -58,6 +58,35 @@ interface ActCall {
   d: ReturnType<typeof decide>;
 }
 
+/**
+ * `onBeforeClickAction` (spec 023 US1.4): a hook may skip the action (its queued item settled with
+ * the reason, the agent told) or ask to wait for a selector first (within the hook's timeout).
+ */
+async function beforeClickAction(call: ActCall, actionId: string): Promise<void> {
+  const { ctx, run, state, action } = call;
+  if (!state.hooks?.has('onBeforeClickAction')) return;
+  const out = await state.hooks.run('onBeforeClickAction', state.session.page.url(), {
+    role: action.role,
+    name: action.accessible_name ?? '',
+    locators: action.json.locators.map(({ kind, value }) => ({ kind, value })),
+  });
+  if (out.skip !== null) {
+    const reason = `skipped by hook ${out.skip.fn}: ${out.skip.reason}`;
+    const pending = await pendingItemForAction(ctx.db, run.id, actionId);
+    if (pending) await settleFrontierItem(ctx.db, pending.id, 'out_of_scope', reason);
+    throw new ToolError('ACTION_REFUSED', `action ${actionId} was not taken: ${reason}`, {
+      action_id: actionId,
+      rule: `hook:onBeforeClickAction:${out.skip.fn}`,
+    });
+  }
+  if (out.waitFor !== null)
+    await state.session.page
+      .waitForSelector(out.waitFor, { timeout: 10_000 })
+      .catch((err: unknown) =>
+        ctx.logger.warn({ err, selector: out.waitFor }, 'hook waitFor did not appear'),
+      );
+}
+
 async function actStep(
   ctx: ServerContext,
   run: RunRow,
@@ -76,6 +105,7 @@ async function actStep(
   if (state.currentStateId !== action.state_id) await reachState(call);
   if (action.json.href) await checkLinkItemCap(call);
   const { locator, matches } = await locate(call);
+  await beforeClickAction(call, input.action_id);
   // Map mode fills a form before pressing its submit control (spec 008 FR-002) on every
   // environment, within the portal's limit when it sets one (spec 021).
   if (!state.isTrace && !action.json.input)

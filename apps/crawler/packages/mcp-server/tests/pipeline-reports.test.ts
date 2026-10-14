@@ -184,7 +184,9 @@ describe('report builders', () => {
   });
 
   it('settleReports: nothing when the page settled, a timeout event with rounded times otherwise', () => {
-    expect(settleReports(rs, { result: 'stable', waitedMs: 10 } as unknown as SettleOutcome)).toEqual([]);
+    expect(
+      settleReports(rs, { result: 'stable', waitedMs: 10 } as unknown as SettleOutcome),
+    ).toEqual([]);
     const outcome = {
       result: 'timeout',
       waitedMs: 3000.4,

@@ -83,7 +83,10 @@ function resolveEnvironment(file: string, raw: unknown, environment?: Environmen
   }
   const envs = EnvironmentsMap.safeParse(raw.environments);
   if (!envs.success)
-    throw new ConfigError(file, zodProblems(envs.error).map((p) => `environments.${p}`));
+    throw new ConfigError(
+      file,
+      zodProblems(envs.error).map((p) => `environments.${p}`),
+    );
   const names = ENV_ORDER.filter((e) => envs.data[e] !== undefined);
   if (names.length === 0) throw new ConfigError(file, ['environments: declare at least one']);
   const misplaced = ['base_url', 'environment', 'max_action_class'].filter((k) => k in raw);
@@ -109,7 +112,10 @@ function resolveEnvironment(file: string, raw: unknown, environment?: Environmen
     environment: pick,
     base_url: entry.base_url,
     ...(entry.max_action_class ? { max_action_class: entry.max_action_class } : {}),
-    scope: { ...scope, ...(entry.allowed_domains ? { allowed_domains: entry.allowed_domains } : {}) },
+    scope: {
+      ...scope,
+      ...(entry.allowed_domains ? { allowed_domains: entry.allowed_domains } : {}),
+    },
   };
 }
 

@@ -1,0 +1,15 @@
+{
+  "name": "@pathfinder/hooks",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Per-portal crawl hooks (spec 023): load portals/<id>/hooks.ts, match pages, run each hook traced and time-boxed, never fatal",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "@pathfinder/config": "workspace:*",
+    "@pathfinder/safety": "workspace:*",
+    "zod": "^4.6.5"
+  }
+}

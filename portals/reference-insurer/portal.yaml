@@ -16,7 +16,6 @@ compliance:
 
 scope:
   allowed_domains: ["127.0.0.1"]
-  allowed_paths: ["/*"]
   external_link_policy: record
   max_depth: 6
   max_states: 100
@@ -24,8 +23,11 @@ scope:
   max_run_time_minutes: 30
   max_steps: 400
 
-denylist:
-  - path:/__admin/* # state reset endpoint, also disallowed by the portal's robots.txt
+urls:
+  disallowed:
+    - /__admin/* # state reset endpoint, also disallowed by the portal's robots.txt
+
+denylist: []
 
 rate_limit:
   requests_per_second: 5

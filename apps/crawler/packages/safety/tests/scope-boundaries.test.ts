@@ -8,6 +8,7 @@ import {
   focusScope,
   matchesGlob,
   narrowScope,
+  type RunScope,
 } from '../src/scope.js';
 
 /**
@@ -26,12 +27,13 @@ const budgets = {
   frame_depth: 3,
   client_redirect_wait_ms: 5000,
 };
-const scope: Scope = {
+const portalUrls = { allowed: ['/shop/*', '/about'] };
+const baseScope: Scope = {
   ...budgets,
   allowed_domains: ['example.test'],
-  allowed_paths: ['/shop/*', '/about'],
   external_link_policy: 'record',
 };
+const scope: RunScope = narrowScope(baseScope, {}, {}, portalUrls);
 
 describe('matchesGlob', () => {
   it('is anchored at both ends and case-insensitive', () => {
@@ -104,8 +106,8 @@ describe('checkScope verdicts', () => {
         external: false,
         refusal: {
           status: 'out_of_scope',
-          rule: 'scope:path',
-          reason: '/admin matches no allowed_paths entry',
+          rule: 'urls.allowed',
+          reason: 'matches no urls.allowed entry',
         },
       },
     ],
@@ -122,16 +124,15 @@ describe('checkScope verdicts', () => {
     });
   });
 
-  it('an excluded path is refused after the allowed paths', () => {
-    expect(
-      checkScope('https://example.test/shop/cart', { ...scope, excluded_paths: ['/shop/cart*'] }),
-    ).toEqual({
+  it('a disallowed entry wins over the allowed list', () => {
+    const s = narrowScope(baseScope, {}, {}, { ...portalUrls, disallowed: ['/shop/cart*'] });
+    expect(checkScope('https://example.test/shop/cart', s)).toEqual({
       inScope: false,
       external: false,
       refusal: {
         status: 'out_of_scope',
-        rule: 'scope:excluded_path',
-        reason: '/shop/cart is excluded for this scan (/shop/cart*)',
+        rule: 'urls.disallowed /shop/cart*',
+        reason: 'excluded by rule /shop/cart*',
       },
     });
   });
@@ -164,10 +165,13 @@ describe('checkBudgets', () => {
 });
 
 describe('narrowScope', () => {
-  const portal: Scope = { ...scope, allowed_domains: ['example.test', 'other.test'] };
+  const portal: Scope = { ...baseScope, allowed_domains: ['example.test', 'other.test'] };
 
   it('keeps the portal values when the persona restricts nothing', () => {
-    expect(narrowScope(portal, {})).toEqual(portal);
+    expect(narrowScope(portal, {}, {}, portalUrls)).toEqual({
+      ...portal,
+      url_lists: [{ where: 'urls', lists: portalUrls }],
+    });
   });
 
   it('keeps only portal domains within the persona list', () => {
@@ -176,11 +180,22 @@ describe('narrowScope', () => {
     ]);
   });
 
-  it('keeps persona paths a portal path covers once trailing stars are dropped', () => {
-    const p = { ...portal, allowed_paths: ['/about', '/a*/b'] };
-    expect(
-      narrowScope(p, { allowed_paths: ['/about**', '/a*/b*', '/admin*'] }).allowed_paths,
-    ).toEqual(['/about**', '/a*/b*']);
+  it('adds the persona lists after the portal lists: a URL must pass both', () => {
+    const n = narrowScope(
+      portal,
+      { urls: { allowed: ['/about', '/admin*'], disallowed: [] } },
+      {},
+      portalUrls,
+    );
+    expect(n.url_lists).toEqual([
+      { where: 'urls', lists: portalUrls },
+      { where: 'persona.urls', lists: { allowed: ['/about', '/admin*'], disallowed: [] } },
+    ]);
+    expect(checkScope('https://example.test/about', n).inScope).toBe(true);
+    // in the persona list, not the portal's: the portal's wins (never widens)
+    expect(checkScope('https://example.test/admin', n).refusal?.rule).toBe('urls.allowed');
+    // in the portal list, not the persona's
+    expect(checkScope('https://example.test/shop/x', n).refusal?.rule).toBe('persona.urls.allowed');
   });
 
   it.each([
@@ -193,6 +208,8 @@ describe('narrowScope', () => {
     const n = narrowScope(
       { ...portal, external_link_policy: p },
       r ? { external_link_policy: r } : {},
+      {},
+      portalUrls,
     );
     expect(n.external_link_policy).toBe(expected);
   });
@@ -207,30 +224,39 @@ describe('focusScope', () => {
     );
   });
 
-  it('names the paths outside the portal in its error', () => {
-    expect(() => focusScope(scope, { only_paths: ['/admin/*'] }, base)).toThrow(
-      new FocusError("path /admin/* not within the portal's /shop/*, /about"),
-    );
-  });
-
-  it('accepts a focus path covered by any portal path once trailing stars are dropped', () => {
+  it('does not require a focus path to be covered by a portal path: the lists intersect instead', () => {
     const s = focusScope(
       scope,
-      { only_paths: ['/about**'], start_url: 'https://example.test/about' },
+      { only_paths: ['/shop/a*'], start_url: 'https://example.test/shop/abc' },
       base,
     );
-    expect(s.allowed_paths).toEqual(['/about**']);
+    expect(s.url_lists.map((l) => l.where)).toEqual(['urls', 'focus']);
+    expect(checkScope('https://example.test/shop/abc', s).inScope).toBe(true);
+    expect(checkScope('https://example.test/shop/xyz', s).refusal?.rule).toBe('focus.allowed');
+    // a focus entry the portal list does not cover opens nothing the portal refuses
     const t = focusScope(
-      { ...scope, allowed_paths: ['/x', '/a*/b'] },
-      { only_paths: ['/a*/b*'], start_url: 'https://example.test/a1/b' },
+      scope,
+      { only_paths: ['/admin/*', '/shop/*'], start_url: 'https://example.test/shop/x' },
       base,
     );
-    expect(t.allowed_paths).toEqual(['/a*/b*']);
+    expect(checkScope('https://example.test/admin/x', t).refusal?.rule).toBe('urls.allowed');
+  });
+
+  it('refuses an unusable focus entry, naming it', () => {
+    expect(() => focusScope(scope, { only_paths: ['admin/*'] }, base)).toThrow(
+      new FocusError('"admin/*" must be a path ("/…"), an absolute URL ("https://…") or a /regex/'),
+    );
   });
 
   it('narrows the domains to the focus and keeps the exclusions of both', () => {
+    const portalScope = narrowScope(
+      baseScope,
+      {},
+      {},
+      { ...portalUrls, disallowed: ['/shop/old*'] },
+    );
     const s = focusScope(
-      { ...scope, excluded_paths: ['/shop/old*'] },
+      portalScope,
       {
         only_domains: ['shop.example.test'],
         exclude_paths: ['/shop/cart*'],
@@ -239,7 +265,12 @@ describe('focusScope', () => {
       base,
     );
     expect(s.allowed_domains).toEqual(['shop.example.test']);
-    expect(s.excluded_paths).toEqual(['/shop/old*', '/shop/cart*']);
+    expect(checkScope('https://shop.example.test/shop/old1', s).refusal?.rule).toBe(
+      'urls.disallowed /shop/old*',
+    );
+    expect(checkScope('https://shop.example.test/shop/cart', s).refusal?.rule).toBe(
+      'focus.disallowed /shop/cart*',
+    );
   });
 
   it('refuses a start page outside the focused scope', () => {
@@ -247,7 +278,7 @@ describe('focusScope', () => {
       focusScope(scope, { exclude_paths: ['/shop/*'] }, 'https://example.test/shop/x'),
     ).toThrow(
       new FocusError(
-        'the start page https://example.test/shop/x is outside the focus: /shop/x is excluded for this scan (/shop/*)',
+        'the start page https://example.test/shop/x is outside the focus: excluded by rule /shop/*',
       ),
     );
   });

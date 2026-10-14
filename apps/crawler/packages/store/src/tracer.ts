@@ -48,6 +48,8 @@ export const PHASE_NAMES = [
   'resolve_credentials',
   'login',
   'relogin',
+  // spec 023 (R-53): one per portal hook run; attrs say which point and function
+  'hook',
 ] as const;
 export type PhaseName = (typeof PHASE_NAMES)[number];
 
@@ -89,6 +91,8 @@ export const EVENT_NAMES = [
   // spec 019 (R-38): client-side redirects waited through, a slow refresh left alone, a loop capped
   'client_redirect',
   'page_visit',
+  // spec 023 (R-53): the timeouts a page was given when the portal sets `timeouts`
+  'page_timeouts',
 ] as const;
 export type EventName = (typeof EVENT_NAMES)[number];
 
@@ -150,11 +154,7 @@ export interface TraceHealth {
 export interface Tracer {
   readonly bootId: string;
   readonly level: TraceLevel;
-  start(boot: {
-    environment: string;
-    server: TraceServer;
-    version: string;
-  }): Promise<void>;
+  start(boot: { environment: string; server: TraceServer; version: string }): Promise<void>;
   sweepUnfinished(): Promise<number>;
   call<T>(c: CallStart, fn: (span: SpanHandle) => Promise<T>): Promise<T>;
   phase<T>(name: PhaseName, fn: (span: SpanHandle) => Promise<T>, attrs?: Attrs): Promise<T>;

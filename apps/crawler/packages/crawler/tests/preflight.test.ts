@@ -21,7 +21,6 @@ compliance:
 ${over.compliance ?? '  robots_checked_on: 2026-09-20\n  terms_reviewed_on: 2026-09-21\n  terms_reviewed_by: dawid'}
 scope:
   allowed_domains: [${over.domain ?? 'shop.pl'}]
-  allowed_paths: ["/*"]
   max_depth: 6
   max_states: 500
   max_actions_per_state: 20

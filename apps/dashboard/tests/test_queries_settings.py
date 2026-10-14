@@ -63,15 +63,16 @@ def test_personas_have_a_kind_and_credential_refs(tmp_path: Path) -> None:
 def test_crawl_rules_from_the_portal_file(tmp_path: Path) -> None:
     (tmp_path / "wiki").mkdir()
     (tmp_path / "wiki" / "portal.yaml").write_text(
-        "id: wiki\nrobots: respect\nscope:\n  allowed_domains: [a.org]\n  allowed_paths: ['/*']\n"
-        "denylist:\n  - logout\n  - path:/w/*\n"
+        "id: wiki\nrobots: respect\nscope:\n  allowed_domains: [a.org]\n"
+        "urls:\n  allowed: ['/wiki/*']\n  disallowed: ['/w/*']\ndenylist:\n  - logout\n"
     )
     (tmp_path / "bare").mkdir()
     (tmp_path / "bare" / "portal.yaml").write_text("id: bare\n")
     rules = queries_settings.crawl_rules(tmp_path, "wiki")
     assert rules.robots == "respect"
-    assert rules.domains == ["a.org"] and rules.allowed_paths == ["/*"]
-    assert rules.disallowed_paths == ["/w/*"]
+    assert rules.domains == ["a.org"] and rules.allowed_urls == ["/wiki/*"]
+    assert rules.disallowed_urls == ["/w/*"]
     bare = queries_settings.crawl_rules(tmp_path, "bare")
-    assert bare.robots == "ignore" and bare.allowed_paths == [] and bare.disallowed_paths == []
+    # no allowed list at all means everything on the allowed domains, not "nothing"
+    assert bare.robots == "ignore" and bare.allowed_urls is None and bare.disallowed_urls == []
     assert queries_settings.crawl_rules(tmp_path, "missing") is None

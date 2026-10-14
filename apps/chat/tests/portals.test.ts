@@ -148,7 +148,7 @@ describe('portal settings: add and revoke environments', () => {
     mkdirSync(join(root, 'personas', 'old'), { recursive: true });
     writeFileSync(
       join(root, 'portals', 'old', 'portal.yaml'),
-      `# keep me\nid: old\nbase_url: http://127.0.0.1:4010/\nenvironment: sandbox\nmax_action_class: mutating\nscope:\n  allowed_domains: ["127.0.0.1"]\n  allowed_paths: ["/*"]\n  max_depth: 6\n  max_states: 100\n  max_actions_per_state: 40\n  max_run_time_minutes: 30\n  max_steps: 400\n`,
+      `# keep me\nid: old\nbase_url: http://127.0.0.1:4010/\nenvironment: sandbox\nmax_action_class: mutating\nscope:\n  allowed_domains: ["127.0.0.1"]\n  max_depth: 6\n  max_states: 100\n  max_actions_per_state: 40\n  max_run_time_minutes: 30\n  max_steps: 400\n`,
     );
     writeFileSync(
       join(root, 'personas', 'old', 'guest.yaml'),

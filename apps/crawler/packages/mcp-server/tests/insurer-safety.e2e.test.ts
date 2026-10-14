@@ -5,31 +5,41 @@ import { available, insurer, useInsurerMocks } from './insurer-harness.js';
 
 useInsurerMocks();
 
-describe.skipIf(!available)('insurer mock: url: denylist entries (spec 002 US2)', () => {
-  it('skips only the sessionId link as denylisted with the url: entry', async () => {
-    const { mock, ctx, call, cleanup } = await insurer(
-      {},
-      { denylist: '[logout, delete, payment, purchase, submit_request, "url:/*?*sessionId=*"]' },
-    );
-    try {
-      const runId = await mapPortal(call, 'insurer', mock.origin + '/');
-      expect(mock.requests.filter((r) => r.url.includes('sessionId'))).toEqual([]);
-      expect(mock.hits('/porady/').length).toBeGreaterThan(0); // the plain link is followed
-      const denied = await ctx.db
-        .selectFrom('frontier')
-        .select(['reason', 'action_json'])
-        .where('run_id', '=', runId)
-        .where('status', '=', 'denylisted')
-        .execute();
-      const bySession = denied.filter((d) => d.action_json.includes('sessionId'));
-      expect(bySession.length).toBeGreaterThan(0);
-      expect(bySession.every((d) => d.reason!.startsWith('url:/*?*sessionId=*'))).toBe(true);
-      expect(denied.filter((d) => d.reason!.startsWith('url:')).length).toBe(bySession.length);
-    } finally {
-      await cleanup();
-    }
-  }, 120_000);
-});
+describe.skipIf(!available)(
+  'insurer mock: query-aware urls.disallowed entries (spec 002 US2, spec 023 US3)',
+  () => {
+    it('skips only the sessionId link as out of scope with the urls.disallowed entry', async () => {
+      const { mock, ctx, call, cleanup } = await insurer(
+        {},
+        {
+          denylist: '[logout, delete, payment, purchase, submit_request]',
+          extra: 'urls:\n  disallowed: ["/*?*sessionId=*"]\n',
+        },
+      );
+      try {
+        const runId = await mapPortal(call, 'insurer', mock.origin + '/');
+        expect(mock.requests.filter((r) => r.url.includes('sessionId'))).toEqual([]);
+        expect(mock.hits('/porady/').length).toBeGreaterThan(0); // the plain link is followed
+        const denied = await ctx.db
+          .selectFrom('frontier')
+          .select(['reason', 'action_json'])
+          .where('run_id', '=', runId)
+          .where('status', '=', 'out_of_scope')
+          .execute();
+        const bySession = denied.filter((d) => d.action_json.includes('sessionId'));
+        expect(bySession.length).toBeGreaterThan(0);
+        expect(bySession.every((d) => d.reason!.includes('urls.disallowed /*?*sessionId=*'))).toBe(
+          true,
+        );
+        expect(denied.filter((d) => d.reason!.includes('urls.disallowed')).length).toBe(
+          bySession.length,
+        );
+      } finally {
+        await cleanup();
+      }
+    }, 120_000);
+  },
+);
 
 describe.skipIf(!available)('insurer mock: configuration only, generic ids (spec 002 US3)', () => {
   it('refuses purchase and submit_request controls, records the forms and never submits them', async () => {

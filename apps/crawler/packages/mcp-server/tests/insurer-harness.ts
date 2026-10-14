@@ -16,7 +16,6 @@ base_url: ${origin}/
 environment: sandbox
 scope:
   allowed_domains: [127.0.0.1]
-  allowed_paths: ["/*"]
   external_link_policy: record
   max_depth: 4
   max_states: 40

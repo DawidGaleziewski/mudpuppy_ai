@@ -31,14 +31,15 @@ compliance:
   terms_reviewed_by: ${o.compliance ? 'me' : 'null'}
 scope:
   allowed_domains: [127.0.0.1]
-  allowed_paths: ["/*"]
   external_link_policy: record
   max_depth: 6
   max_states: 100
   max_actions_per_state: 50
   max_run_time_minutes: 5
   max_steps: 80
-denylist: [logout, delete, payment, bidding, buy_now, message_or_contact_seller, reveal_seller_contact, "path:/oferty/wystaw/*"]
+denylist: [logout, delete, payment, bidding, buy_now, message_or_contact_seller, reveal_seller_contact]
+urls:
+  disallowed: ["/oferty/wystaw/*"]
 obstacles:
   - { id: cookie_banner, selector: "#cookie button.accept" }
 rate_limit: { requests_per_second: ${RPS}, max_concurrency: 1, user_agent: "${o.ua ?? UA}" }
@@ -281,7 +282,7 @@ describe.skipIf(!available)('map run against the mock portal', () => {
       });
       expect(wystaw.body.error).toMatchObject({
         code: 'ACTION_REFUSED',
-        rule: 'path:/oferty/wystaw/*',
+        rule: 'urls.disallowed /oferty/wystaw/*',
       });
       const ext = await call('navigate', {
         run_id: runId,

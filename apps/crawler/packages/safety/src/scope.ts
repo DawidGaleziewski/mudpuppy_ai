@@ -1,5 +1,6 @@
-import type { Budgets, Scope } from '@pathfinder/config';
+import { urlEntryProblem, type Budgets, type Scope } from '@pathfinder/config';
 import type { Refusal } from './types.js';
+import { checkUrlLists, type UrlLists } from './url-lists.js';
 
 /** Glob over a URL path: `*` matches any run of characters (including `/`). Case-insensitive. */
 export function globToRegExp(glob: string): RegExp {
@@ -23,11 +24,17 @@ export function domainAllowed(host: string, allowed: readonly string[]): boolean
   });
 }
 
-/** A run's scope: the portal's narrowed by the persona and by the BA's focus for the scan. */
-export type RunScope = Scope & {
-  /** Paths the BA left out of this scan (spec 011 FR-017); checked after `allowed_paths`. */
-  excluded_paths?: readonly string[];
-};
+/** One set of URL lists and where it comes from (`urls`, `persona.urls`, `focus`). */
+export interface ScopedUrlLists {
+  where: string;
+  lists: UrlLists;
+}
+
+/**
+ * A run's scope: the portal's narrowed by the persona and by the BA's focus for the scan. A URL
+ * must pass every set of URL lists (spec 023 US3): the portal's, the persona's, the focus's.
+ */
+export type RunScope = Scope & { url_lists: readonly ScopedUrlLists[] };
 
 /** The BA's focus for one scan (spec 011 FR-017). Every part only narrows. */
 export interface ScanFocus {
@@ -35,40 +42,41 @@ export interface ScanFocus {
   start_url?: string | null;
   /** Hosts the scan stays on; each must be one of the portal's domains or a subdomain of one. */
   only_domains?: readonly string[] | null;
-  /** Path globs the scan stays within; each must be covered by a portal path. */
+  /** URL list entries (path globs usually) the scan stays within. */
   only_paths?: readonly string[] | null;
-  /** Path globs the scan never opens. */
+  /** URL list entries the scan never opens. */
   exclude_paths?: readonly string[] | null;
 }
 
 export class FocusError extends Error {}
 
 /**
- * Narrow a run's scope by the BA's focus. A focus domain or path the scope does not already allow,
- * or a start page outside the focused scope, is an error naming it: a focus never widens.
+ * Narrow a run's scope by the BA's focus: its paths become one more set of URL lists every URL
+ * must pass, so a focus never widens. A focus domain the scope does not already allow, a focus
+ * entry that is not a usable URL list entry, or a start page outside the focused scope, is an
+ * error naming it.
  */
 export function focusScope(scope: RunScope, focus: ScanFocus, baseUrl: string): RunScope {
-  const notIn = (what: string, items: readonly string[], allowed: readonly string[]) =>
-    new FocusError(`${what} ${items.join(', ')} not within the portal's ${allowed.join(', ')}`);
   let domains = scope.allowed_domains;
   if (focus.only_domains?.length) {
     const outside = focus.only_domains.filter((d) => !domainAllowed(d, scope.allowed_domains));
-    if (outside.length) throw notIn('address', outside, scope.allowed_domains);
+    if (outside.length)
+      throw new FocusError(
+        `address ${outside.join(', ')} not within the portal's ${scope.allowed_domains.join(', ')}`,
+      );
     domains = [...focus.only_domains];
   }
-  let paths = scope.allowed_paths;
-  if (focus.only_paths?.length) {
-    const outside = focus.only_paths.filter(
-      (p) => !scope.allowed_paths.some((g) => matchesGlob(g, p.replace(/\*+$/, ''))),
-    );
-    if (outside.length) throw notIn('path', outside, scope.allowed_paths);
-    paths = [...focus.only_paths];
-  }
+  const entries = [...(focus.only_paths ?? []), ...(focus.exclude_paths ?? [])];
+  const problems = entries.flatMap((e) => urlEntryProblem(e) ?? []);
+  if (problems.length) throw new FocusError(problems.join('; '));
+  const lists: UrlLists = {
+    ...(focus.only_paths?.length ? { allowed: [...focus.only_paths] } : {}),
+    disallowed: [...(focus.exclude_paths ?? [])],
+  };
   const out: RunScope = {
     ...scope,
     allowed_domains: domains,
-    allowed_paths: paths,
-    excluded_paths: [...(scope.excluded_paths ?? []), ...(focus.exclude_paths ?? [])],
+    url_lists: [...scope.url_lists, { where: 'focus', lists }],
   };
   const start = focus.start_url ?? baseUrl;
   const verdict = checkScope(start, out);
@@ -90,10 +98,7 @@ export interface ScopeVerdict {
  */
 export function checkScope(
   url: string,
-  scope: Pick<
-    RunScope,
-    'allowed_domains' | 'allowed_paths' | 'external_link_policy' | 'excluded_paths'
-  >,
+  scope: Pick<RunScope, 'allowed_domains' | 'external_link_policy' | 'url_lists'>,
 ): ScopeVerdict {
   let parsed: URL;
   try {
@@ -128,28 +133,9 @@ export function checkScope(
       },
     };
   }
-  if (!scope.allowed_paths.some((g) => matchesGlob(g, parsed.pathname))) {
-    return {
-      inScope: false,
-      external: false,
-      refusal: {
-        status: 'out_of_scope',
-        rule: 'scope:path',
-        reason: `${parsed.pathname} matches no allowed_paths entry`,
-      },
-    };
-  }
-  const excluded = scope.excluded_paths?.find((g) => matchesGlob(g, parsed.pathname));
-  if (excluded !== undefined) {
-    return {
-      inScope: false,
-      external: false,
-      refusal: {
-        status: 'out_of_scope',
-        rule: 'scope:excluded_path',
-        reason: `${parsed.pathname} is excluded for this scan (${excluded})`,
-      },
-    };
+  for (const { where, lists } of scope.url_lists) {
+    const refusal = checkUrlLists(parsed.href, lists, where);
+    if (refusal !== null) return { inScope: false, external: false, refusal };
   }
   return { inScope: true, external: false };
 }
@@ -197,27 +183,25 @@ export function checkBudgets(usage: BudgetUsage, budgets: Budgets): Refusal | nu
 
 /**
  * Apply a persona's narrowing to the portal scope. A persona can only restrict: numeric caps take the
- * smaller value, domains are intersected, persona paths are kept only when a portal path already
- * covers them, and `record` wins over `follow`.
+ * smaller value, domains are intersected, `record` wins over `follow`, and the URL lists of both
+ * apply (a URL must pass the portal's and the persona's, spec 023 US3.5).
  */
 export function narrowScope(
   portal: Scope,
-  restrictions: Partial<Scope>,
+  restrictions: Partial<Scope> & { urls?: UrlLists },
   budgets: Partial<Budgets> = {},
-): Scope {
+  portalUrls: UrlLists = {},
+): RunScope {
   const min = (a: number, b: number | undefined): number => (b === undefined ? a : Math.min(a, b));
   const r = { ...restrictions, ...budgets };
   const domains = r.allowed_domains
     ? portal.allowed_domains.filter((d) => domainAllowed(d, r.allowed_domains!))
     : portal.allowed_domains;
-  const paths = r.allowed_paths
-    ? r.allowed_paths.filter((p) =>
-        portal.allowed_paths.some((g) => matchesGlob(g, p.replace(/\*+$/, ''))),
-      )
-    : portal.allowed_paths;
+  const urlLists: ScopedUrlLists[] = [{ where: 'urls', lists: portalUrls }];
+  if (restrictions.urls) urlLists.push({ where: 'persona.urls', lists: restrictions.urls });
   return {
     allowed_domains: domains,
-    allowed_paths: paths,
+    url_lists: urlLists,
     external_link_policy:
       portal.external_link_policy === 'record' || r.external_link_policy === 'record'
         ? 'record'

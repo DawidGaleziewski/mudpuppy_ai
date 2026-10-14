@@ -88,7 +88,7 @@ export function preflight(
   return {
     ok: true,
     effective,
-    scope: narrowScope(portal.scope, persona.scope_restrictions, persona.budgets),
+    scope: narrowScope(portal.scope, persona.scope_restrictions, persona.budgets, portal.urls),
     portalPath,
     personaPath,
   };

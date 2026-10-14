@@ -10,7 +10,7 @@ from fastapi import APIRouter, Query, Request
 from fastapi.responses import HTMLResponse
 from starlette.exceptions import HTTPException
 
-from .. import db, diagrams, queries, queries_docs
+from .. import db, diagrams, queries, queries_docs, queries_hooks
 from ..models import DECISION_KINDS, FRONTIER_STATUSES, SAFETY_CLASSES, Run
 from .deps import Ctx, web_of
 
@@ -156,6 +156,7 @@ def header_values(c: Ctx, conn: sqlite3.Connection, summary: Any, tab: str) -> d
     show_process = run.mode == "trace" or counts["process"] > 0
     return {
         "self_url": c.url(f"/fragments/runs/{run.id}/header", tab=tab),
+        "hooks": queries_hooks.hook_runs(conn, run.id),
         "tab": tab,
         "tabs": [
             (sid, label, counts[sid], c.url(f"/runs/{run.id}", tab=sid))

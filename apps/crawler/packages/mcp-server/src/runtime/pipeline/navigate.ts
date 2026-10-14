@@ -1,4 +1,5 @@
 import { decide, pendingNavigateItems, settleFrontierItem } from '@pathfinder/crawler';
+import { pageTimeouts } from '@pathfinder/safety';
 import type { ServerContext } from '../../context.js';
 import { ToolError } from '../../errors.js';
 import type { NavigateInput, PageResult } from '../../runtime.js';
@@ -28,12 +29,37 @@ export async function navigate(
   return counted(rs!, () => navigateStep(ctx, run, rs!, input));
 }
 
+/**
+ * `onBeforePageLoad` (spec 023 US1.2): a hook may open another URL (it then faces the gate like
+ * any URL) or skip the page: not opened, its queued navigate item settled with the reason.
+ */
+async function beforePageLoad(
+  ctx: ServerContext,
+  run: RunRow,
+  state: RunState,
+  url: string,
+): Promise<string> {
+  if (!state.hooks?.has('onBeforePageLoad')) return url;
+  const out = await state.hooks.run('onBeforePageLoad', url);
+  if (out.skip !== null) {
+    const reason = `skipped by hook ${out.skip.fn}: ${out.skip.reason}`;
+    for (const pending of await pendingNavigateItems(ctx.db, run.id, url))
+      await settleFrontierItem(ctx.db, pending.id, 'out_of_scope', reason);
+    throw new ToolError('ACTION_REFUSED', `${url} was not opened: ${reason}`, {
+      url,
+      rule: `hook:onBeforePageLoad:${out.skip.fn}`,
+    });
+  }
+  return out.url ?? url;
+}
+
 async function navigateStep(
   ctx: ServerContext,
   run: RunRow,
   state: RunState,
-  input: NavigateInput,
+  requested: NavigateInput,
 ): Promise<PageResult> {
+  const input = { ...requested, url: await beforePageLoad(ctx, run, state, requested.url) };
   const started = performance.now();
   state.obstacleCursor = state.session.obstacles.events.length;
   const g = await step({ ctx, run }, 'gate', async () => {
@@ -59,7 +85,11 @@ async function navigateStep(
 
   await phase(ctx, 'goto', async () => {
     state.session.navigation.begin(input.url);
-    await state.session.goto(input.url);
+    const timeouts = state.effective.portal.timeouts;
+    await state.session.goto(
+      input.url,
+      timeouts ? pageTimeouts(timeouts, state.scope, input.url).navigation_ms : undefined,
+    );
     await throwIfStopped(ctx, state);
     // The page never opened (refused, unknown host, …): nothing is recorded, and the agent and the
     // BA learn that the address is wrong or the site is down (spec 011 F-06).

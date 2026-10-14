@@ -1,5 +1,6 @@
 export * from './errors.js';
 export * from './rule-ids.js';
+export * from './url-entry.js';
 export * from './portal-schema.js';
 export * from './persona-schema.js';
 export * from './secrets.js';

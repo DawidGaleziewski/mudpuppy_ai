@@ -70,8 +70,8 @@ def persona_rows(personas_dir: Path, portal: str | None) -> list[PersonaRow]:
 class CrawlRules:
     robots: str  # "respect" | "ignore"
     domains: list[str]
-    allowed_paths: list[str]
-    disallowed_paths: list[str]
+    allowed_urls: list[str] | None  # None = no list: everything on the allowed domains
+    disallowed_urls: list[str]
 
 
 def _strings(value: Any) -> list[str]:
@@ -79,7 +79,7 @@ def _strings(value: Any) -> list[str]:
 
 
 def crawl_rules(portals_dir: Path, portal: str) -> CrawlRules | None:
-    """The portal file's robots choice and path rules; None when the file can't be read."""
+    """The portal file's robots choice and URL lists; None when the file can't be read."""
     if not queries_chat._SAFE_ID.match(portal):
         return None
     path = portals_dir / portal / "portal.yaml"
@@ -87,10 +87,12 @@ def crawl_rules(portals_dir: Path, portal: str) -> CrawlRules | None:
     if not isinstance(doc, dict):
         return None
     scope = doc.get("scope") if isinstance(doc.get("scope"), dict) else {}
-    denied = [d[len("path:") :] for d in _strings(doc.get("denylist")) if d.startswith("path:")]
+    urls = doc.get("urls") if isinstance(doc.get("urls"), dict) else {}
     return CrawlRules(
         robots="respect" if doc.get("robots") == "respect" else "ignore",
         domains=_strings(scope.get("allowed_domains")),
-        allowed_paths=_strings(scope.get("allowed_paths")),
-        disallowed_paths=denied,
+        allowed_urls=_strings(urls.get("allowed"))
+        if isinstance(urls.get("allowed"), list)
+        else None,
+        disallowed_urls=_strings(urls.get("disallowed")),
     )

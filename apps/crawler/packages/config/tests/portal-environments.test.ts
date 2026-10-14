@@ -21,7 +21,6 @@ environments:
     allowed_domains: [staging.shop.example.pl]
 scope:
   allowed_domains: [shop.example.pl]
-  allowed_paths: ["/*"]
   max_depth: 6
   max_states: 100
   max_actions_per_state: 40

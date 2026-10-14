@@ -16,7 +16,6 @@ base_url: ${origin}/
 environment: sandbox
 scope:
   allowed_domains: [127.0.0.1]
-  allowed_paths: ["/*"]
   max_depth: 3
   max_states: 30
   max_actions_per_state: 30

@@ -36,13 +36,13 @@ describe('no portal-specific names in code (spec 002 FR-021, SC-007)', () => {
       ...readdirSync(join(REPO, 'apps/crawler/packages'))
         .filter((pkg) => pkg !== 'gates')
         .flatMap((pkg) => {
-        const src = join(REPO, 'apps/crawler/packages', pkg, 'src');
-        try {
-          return files(src, '.ts');
-        } catch {
-          return [];
-        }
-      }),
+          const src = join(REPO, 'apps/crawler/packages', pkg, 'src');
+          try {
+            return files(src, '.ts');
+          } catch {
+            return [];
+          }
+        }),
       ...files(join(REPO, '.claude/agents'), '.md'),
     ];
     expect(sources.length).toBeGreaterThan(20);

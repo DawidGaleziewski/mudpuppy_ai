@@ -233,3 +233,27 @@
   title: The export-fork export broke on a Vitest config change
   tier: not_testable
   reason: a close-out process slip; the logged test idea is an export dry run before merging any R-item that touches a file in apps/exportfork-export/src/transforms/
+- id: F-01@023
+  title: A page that only works with a cookie and a script patch opens with a portal hook
+  tier: gate
+  reason: proving-ground /__test/hook-gate with and without an onRunStart hook
+- id: F-02@023
+  title: A disallowed regex URL is never opened
+  tier: gate
+  reason: the gate page's print link under a urls.disallowed regex
+- id: F-03@023
+  title: urls.allowed limits a scan to one section
+  tier: gate
+  reason: the gate page's three links under a urls.allowed list
+- id: F-04@023
+  title: A throwing hook leaves the run going with one recorded failure
+  tier: gate
+  reason: an onPageLoad hook that throws on the gate page
+- id: F-05@023
+  title: Subagent script edits (counterpart of spec 022 F-13)
+  tier: not_testable
+  reason: a process observation; the hook-widening idea is logged in spec 022 F-13
+- id: F-06@023
+  title: The pipeline golden lock flakes on a rate-limiter wait under load
+  tier: not_testable
+  reason: a timing flake of a test; the idea is to drop limiter_wait from the golden normaliser

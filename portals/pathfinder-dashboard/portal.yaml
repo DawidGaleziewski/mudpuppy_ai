@@ -18,7 +18,6 @@ robots: ignore
 
 scope:
   allowed_domains: ["127.0.0.1"]
-  allowed_paths: ["/*"]
   external_link_policy: record
   max_depth: 10 # a page reached by direct navigation counted as depth 7 in the first run
   max_states: 100
@@ -26,12 +25,15 @@ scope:
   max_run_time_minutes: 45
   max_steps: 400
 
-denylist:
-  - path:/events # server-sent event streams never finish loading
-  - path:/chat/conversations/*/events
-  - path:/fragments/* # htmx partials, loaded by the pages themselves
-  - path:/evidence/* # screenshots and files, not screens
-  - path:/healthz
+urls:
+  disallowed:
+    - /events # server-sent event streams never finish loading
+    - /chat/conversations/*/events
+    - /fragments/* # htmx partials, loaded by the pages themselves
+    - /evidence/* # screenshots and files, not screens
+    - /healthz
+
+denylist: []
 
 # The cap counts item pages across all templates together (the first run hit it after 2 run pages
 # and 1 state page), so it allows a few of each of the 6 templates.

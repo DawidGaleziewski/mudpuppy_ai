@@ -10,6 +10,9 @@ Used by: mcp-server, crawler, safety, vault, gates, apps/chat (`src/index.ts` re
 - `effective`: the effective config after `extends` resolution.
 - `portal-schema`, `persona-schema`: the Zod schemas.
 - `secrets`, `rule-ids`, `errors`: persona secret refs, portal rule ids, config error types.
+- Spec 023: portal `urls` (URL lists; `url-entry.ts` says which entry kind and refuses an
+  unusable one), `hooks` (point, fn, match, timeout), `timeouts` (portal and per URL); `scope`
+  is strict, so a removed key such as `allowed_paths` fails to load.
 
 ## Invariants
 - No browser, no LLM; reads files, never writes.

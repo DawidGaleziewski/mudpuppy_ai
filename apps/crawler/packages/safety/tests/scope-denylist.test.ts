@@ -15,7 +15,12 @@ import { BUILTIN_RULE_CLASSES, resolveRuleId } from '@pathfinder/config';
 
 const scope = {
   allowed_domains: ['marketsite.example'],
-  allowed_paths: ['/oferty/*', '/oferta/*', '/'],
+  url_lists: [
+    {
+      where: 'urls',
+      lists: { allowed: ['/oferty/*', '/oferta/*', '/'], disallowed: ['/oferty/wystaw/*'] },
+    },
+  ],
   external_link_policy: 'record' as const,
   max_depth: 3,
   max_states: 10,
@@ -44,12 +49,22 @@ describe('checkScope', () => {
     expect(checkScope('https://marketsite.example.evil.example/oferty', scope).inScope).toBe(false);
   });
 
-  it('refuses out-of-path URLs and non-http protocols', () => {
-    expect(checkScope('https://marketsite.example/konto/ustawienia', scope).refusal?.rule).toBe(
-      'scope:path',
-    );
+  it('refuses a URL no allowed entry matches, and a non-http protocol', () => {
+    expect(checkScope('https://marketsite.example/konto/ustawienia', scope).refusal).toEqual({
+      status: 'out_of_scope',
+      rule: 'urls.allowed',
+      reason: 'matches no urls.allowed entry',
+    });
     expect(checkScope('mailto:a@b.pl', scope).refusal?.rule).toBe('scope:protocol');
     expect(checkScope('javascript:alert(1)', scope).inScope).toBe(false);
+  });
+
+  it('refuses a disallowed URL before the allowed list, naming the entry (was a path: denylist entry)', () => {
+    expect(checkScope('https://marketsite.example/oferty/wystaw/nowa', scope).refusal).toEqual({
+      status: 'out_of_scope',
+      rule: 'urls.disallowed /oferty/wystaw/*',
+      reason: 'excluded by rule /oferty/wystaw/*',
+    });
   });
 
   it('lets external links through under policy follow', () => {
@@ -77,16 +92,41 @@ describe('checkBudgets', () => {
 });
 
 describe('narrowScope', () => {
-  it('only restricts', () => {
+  const portalUrls = { allowed: ['/oferty/*', '/oferta/*', '/'], disallowed: ['/oferty/wystaw/*'] };
+  it('only restricts: numbers take the smaller value, a URL must pass portal and persona lists', () => {
     const n = narrowScope(
       scope,
-      { max_depth: 2, max_states: 99, allowed_paths: ['/oferty/laptopy/*', '/konto/*'] },
+      {
+        max_depth: 2,
+        max_states: 99,
+        urls: { allowed: ['/oferty/laptopy/*', '/konto/*'], disallowed: [] },
+      },
       { max_steps: 50 },
+      portalUrls,
     );
     expect(n.max_depth).toBe(2);
     expect(n.max_states).toBe(10);
     expect(n.max_steps).toBe(50);
-    expect(n.allowed_paths).toEqual(['/oferty/laptopy/*']);
+    expect(n.url_lists.map((l) => l.where)).toEqual(['urls', 'persona.urls']);
+    expect(checkScope('https://marketsite.example/oferty/laptopy/1', n).inScope).toBe(true);
+    // allowed by the persona, not by the portal
+    expect(checkScope('https://marketsite.example/konto/x', n).refusal?.rule).toBe('urls.allowed');
+    // allowed by the portal, not by the persona
+    expect(checkScope('https://marketsite.example/oferta/1', n).refusal?.rule).toBe(
+      'persona.urls.allowed',
+    );
+    // the portal's disallowed wins
+    expect(checkScope('https://marketsite.example/oferty/wystaw/x', n).refusal?.rule).toBe(
+      'urls.disallowed /oferty/wystaw/*',
+    );
+  });
+
+  it('a persona disallowed entry refuses with the persona rule', () => {
+    const n = narrowScope(scope, { urls: { disallowed: ['/oferty/laptopy*'] } }, {}, portalUrls);
+    expect(checkScope('https://marketsite.example/oferty/laptopy/1', n).refusal).toMatchObject({
+      rule: 'persona.urls.disallowed /oferty/laptopy*',
+      reason: 'excluded by rule /oferty/laptopy*',
+    });
   });
 });
 
@@ -98,14 +138,13 @@ const DENYLIST = [
   'buy_now',
   'message_or_contact_seller',
   'reveal_seller_contact',
-  'path:/oferty/wystaw/*',
 ];
 
 describe('focusScope (spec 011 FR-017)', () => {
   const wiki = {
     ...scope,
     allowed_domains: ['wikipedia.org'],
-    allowed_paths: ['/*'],
+    url_lists: [{ where: 'urls', lists: {} }],
   };
   const base = 'https://www.wikipedia.org/';
 
@@ -126,16 +165,28 @@ describe('focusScope (spec 011 FR-017)', () => {
     });
     expect(checkScope('https://en.wikipedia.org/wiki/Special:Random', s).refusal).toMatchObject({
       status: 'out_of_scope',
-      rule: 'scope:excluded_path',
-      reason: '/wiki/Special:Random is excluded for this scan (/wiki/Special:*)',
+      rule: 'focus.disallowed /wiki/Special:*',
+      reason: 'excluded by rule /wiki/Special:*',
     });
   });
 
-  it('never widens: a host or path the portal does not allow is refused', () => {
+  it('never widens: a host the portal does not allow is refused, a focus path must also pass the portal list', () => {
     expect(() => focusScope(wiki, { only_domains: ['example.org'] }, base)).toThrow(FocusError);
-    expect(() =>
-      focusScope({ ...wiki, allowed_paths: ['/wiki/*'] }, { only_paths: ['/w/*'] }, base),
-    ).toThrow(/path \/w\/\* not within/);
+    const narrow = { ...wiki, url_lists: [{ where: 'urls', lists: { allowed: ['/wiki/*'] } }] };
+    const s = focusScope(
+      narrow,
+      { only_paths: ['/w/*', '/wiki/Pickle'], start_url: 'https://www.wikipedia.org/wiki/Pickle' },
+      base,
+    );
+    // the focus list does not widen the portal's: /w/x passes the focus but not urls.allowed
+    expect(checkScope('https://www.wikipedia.org/w/x', s).refusal?.rule).toBe('urls.allowed');
+    expect(checkScope('https://www.wikipedia.org/wiki/Gurke', s).refusal?.rule).toBe(
+      'focus.allowed',
+    );
+  });
+
+  it('refuses an unusable focus entry', () => {
+    expect(() => focusScope(wiki, { only_paths: ['wiki/*'] }, base)).toThrow(FocusError);
   });
 
   it('refuses a start page outside the focus', () => {
@@ -148,8 +199,8 @@ describe('focusScope (spec 011 FR-017)', () => {
   it('an empty focus leaves the scope as it was', () => {
     const s = focusScope(wiki, {}, base);
     expect(s.allowed_domains).toEqual(wiki.allowed_domains);
-    expect(s.allowed_paths).toEqual(wiki.allowed_paths);
-    expect(s.excluded_paths).toEqual([]);
+    expect(s.url_lists).toEqual([...wiki.url_lists, { where: 'focus', lists: { disallowed: [] } }]);
+    expect(checkScope('https://www.wikipedia.org/anything', s).inScope).toBe(true);
   });
 });
 
@@ -169,15 +220,6 @@ describe('checkDenylist', () => {
   ])('refuses %s actions and names the rule', (rule, descriptor) => {
     const r = checkDenylist(DENYLIST, { classification: classifyAction(descriptor) });
     expect(r).toMatchObject({ status: 'denylisted', rule });
-  });
-
-  it('refuses a `path:` glob when the URL is proposed to navigate', () => {
-    expect(
-      checkDenylist(DENYLIST, { url: 'https://marketsite.example/oferty/wystaw/nowa' }),
-    ).toMatchObject({
-      status: 'denylisted',
-      rule: 'path:/oferty/wystaw/*',
-    });
   });
 
   it.each([
@@ -205,31 +247,37 @@ describe('checkDenylist', () => {
   });
 });
 
-describe('url: denylist entries (spec 002 FR-010, FR-011)', () => {
+describe('query-aware urls.disallowed entries (was url: denylist entries, spec 002 FR-010, FR-011)', () => {
   const base = 'https://www.example.pl';
+  const scopeWith = (disallowed: string[]) => ({
+    allowed_domains: ['example.pl'],
+    external_link_policy: 'record' as const,
+    url_lists: [{ where: 'urls', lists: { disallowed } }],
+  });
+
   it('matches path plus query and reports the entry as the rule', () => {
-    expect(
-      checkDenylist(['url:*itm_campaign=*'], { url: `${base}/emerytura/?itm_campaign=boks&x=1` }),
-    ).toMatchObject({ status: 'denylisted', rule: 'url:*itm_campaign=*' });
-    expect(checkDenylist(['url:*itm_campaign=*'], { url: `${base}/emerytura/` })).toBeNull();
+    const s = scopeWith(['/*itm_campaign=*']);
+    expect(checkScope(`${base}/emerytura/?itm_campaign=boks&x=1`, s).refusal).toMatchObject({
+      status: 'out_of_scope',
+      rule: 'urls.disallowed /*itm_campaign=*',
+    });
+    expect(checkScope(`${base}/emerytura/`, s).inScope).toBe(true);
   });
 
   it('refuses only the URL carrying the parameter (US2 independent test)', () => {
-    const list = ['url:/*?*sessionId=*'];
-    expect(checkDenylist(list, { url: `${base}/porady/?sessionId=abc` })).toMatchObject({
-      status: 'denylisted',
-      rule: 'url:/*?*sessionId=*',
+    const s = scopeWith(['/*?*sessionId=*']);
+    expect(checkScope(`${base}/porady/?sessionId=abc`, s).refusal).toMatchObject({
+      rule: 'urls.disallowed /*?*sessionId=*',
     });
-    expect(checkDenylist(list, { url: `${base}/porady/?a=1&sessionId=abc` })).not.toBeNull();
-    expect(checkDenylist(list, { url: `${base}/porady/` })).toBeNull();
-    expect(checkDenylist(list, { url: `${base}/porady/sessionId=abc` })).toBeNull();
+    expect(checkScope(`${base}/porady/?a=1&sessionId=abc`, s).inScope).toBe(false);
+    expect(checkScope(`${base}/porady/`, s).inScope).toBe(true);
+    expect(checkScope(`${base}/porady/sessionId=abc`, s).inScope).toBe(true);
   });
 
-  it('path: entries keep ignoring the query (US2 scenario 2)', () => {
-    expect(checkDenylist(['path:/porady/'], { url: `${base}/porady/?sessionId=1` })).toMatchObject({
-      rule: 'path:/porady/',
-    });
-    expect(checkDenylist(['path:*sessionId*'], { url: `${base}/porady/?sessionId=1` })).toBeNull();
+  it('a path entry without a query still refuses the URL with a query (US2 scenario 2)', () => {
+    expect(checkScope(`${base}/porady/?sessionId=1`, scopeWith(['/porady/'])).refusal?.rule).toBe(
+      'urls.disallowed /porady/',
+    );
   });
 });
 

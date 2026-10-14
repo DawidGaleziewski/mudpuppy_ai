@@ -18,7 +18,7 @@ const robots = {
 const ctx = (over: Partial<GateContext> = {}): GateContext => ({
   scope: {
     allowed_domains: ['marketsite.example'],
-    allowed_paths: ['/*'],
+    url_lists: [{ where: 'urls', lists: { disallowed: ['/oferty/wystaw/*'] } }],
     external_link_policy: 'record',
     max_depth: 6,
     max_states: 500,
@@ -29,7 +29,7 @@ const ctx = (over: Partial<GateContext> = {}): GateContext => ({
     frame_depth: 3,
     client_redirect_wait_ms: 5000,
   },
-  denylist: ['logout', 'payment', 'bidding', 'buy_now', 'path:/oferty/wystaw/*'],
+  denylist: ['logout', 'payment', 'bidding', 'buy_now'],
   rules: builtinRuleSet(),
   robots,
   effectiveMaxActionClass: 'read',
@@ -125,7 +125,11 @@ describe('action gate', () => {
     ).toMatchObject({ allowed: false, status: 'denylisted', rule: 'logout' });
     expect(
       decide({ kind: 'navigate', url: 'https://marketsite.example/oferty/wystaw/nowa' }, ctx()),
-    ).toMatchObject({ allowed: false, rule: 'path:/oferty/wystaw/*' });
+    ).toMatchObject({
+      allowed: false,
+      status: 'out_of_scope',
+      rule: 'urls.disallowed /oferty/wystaw/*',
+    });
   });
 
   it('refuses a dangerous URL that is not denylisted by the ceiling', () => {
@@ -194,12 +198,17 @@ describe('action gate', () => {
   it('checks robots after scope and before the denylist', () => {
     const outOfScope = decide(
       { kind: 'navigate', url: 'https://marketsite.example/quote/x' },
-      ctx({ scope: { ...ctx().scope, allowed_paths: ['/oferty/*'] } }),
+      ctx({
+        scope: {
+          ...ctx().scope,
+          url_lists: [{ where: 'urls', lists: { allowed: ['/oferty/*'] } }],
+        },
+      }),
     );
-    expect(outOfScope).toMatchObject({ status: 'out_of_scope' });
+    expect(outOfScope).toMatchObject({ status: 'out_of_scope', rule: 'urls.allowed' });
     const both = decide(
-      { kind: 'navigate', url: 'https://marketsite.example/oferty/quote/x' },
-      ctx({ denylist: ['path:/oferty/quote/*'] }),
+      { kind: 'navigate', url: 'https://marketsite.example/oferty/quote/logout' },
+      ctx({ denylist: ['logout'] }),
     );
     expect(both).toMatchObject({ status: 'robots_disallowed' });
   });

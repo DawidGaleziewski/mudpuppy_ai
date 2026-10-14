@@ -1,0 +1,16 @@
+// Load a portal's hooks for a run (spec 023 FR-002): before anything is written, so a mapping to
+// a missing file or export refuses `start_run` with CONFIG_INVALID naming the problem.
+
+import { join } from 'node:path';
+import { ConfigError, type PortalConfig } from '@pathfinder/config';
+import { loadHooks, type LoadedHook } from '@pathfinder/hooks';
+import { ToolError } from '../errors.js';
+
+export async function loadRunHooks(root: string, portal: PortalConfig): Promise<LoadedHook[]> {
+  try {
+    return await loadHooks(join(root, 'portals', portal.id, 'hooks.ts'), portal.hooks);
+  } catch (err) {
+    if (!(err instanceof ConfigError)) throw err;
+    throw new ToolError('CONFIG_INVALID', err.message, { reasons: err.problems });
+  }
+}

@@ -18,14 +18,14 @@ compliance:
   terms_reviewed_by: local test portal, no terms
 scope:
   allowed_domains: [127.0.0.1]
-  allowed_paths: ["/*"]
   external_link_policy: record
   max_depth: 6
   max_states: 60
   max_actions_per_state: 40
   max_run_time_minutes: 5
   max_steps: 80
-denylist: ["path:/__admin/*"]
+urls:
+  disallowed: ["/__admin/*"]
 rate_limit: { requests_per_second: 20, max_concurrency: 1, user_agent: "PathfinderAI-Crawler/0.1 (local reference portal)" }
 `;
 const PERSONA = `id: guest

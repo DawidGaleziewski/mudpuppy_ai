@@ -15,6 +15,7 @@ const FINDINGS: [string, string][] = [
   ['specs/008-screenshots-wireframes/findings.md', '008'],
   ['specs/009-legacy-proving-ground/findings.md', '009'],
   ['specs/020-roadmap-declutter/findings.md', '020'],
+  ['specs/023-crawler-hooks/findings.md', '023'],
 ];
 
 describe('coverage (spec 009 FR-024, FR-025)', () => {

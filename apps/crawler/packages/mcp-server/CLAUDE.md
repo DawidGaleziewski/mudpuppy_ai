@@ -17,6 +17,12 @@ Layer: servers (G-07; `apps/crawler/layers.json`)
     `settle` waits through client redirects and for mounts in every frame read; `visits.ts`
     stores the page visit (spec 019); `observe` reads frames (`frames.ts`); `composition.ts`
     builds the page composition (spec 015).
+  - Portal hooks (spec 023): `runtime/hooks.ts` (the run's runner: Playwright adapter, `hook`
+    span and decision note per run, `runPageLoadHooks`, `notePatched`), loaded by
+    `services/run-hooks.ts` in `start_run`; called from `navigate` (onBeforePageLoad), `act`
+    (onBeforeClickAction), `processPage` (onPageLoad) and the session open/close. Hook runs are
+    their own `hook` phases outside `step()` (they wrap owner code, not a pipeline step; G-18
+    exception, spec 023 findings row 7). Per-URL timeouts in `settle.ts` / `navigate.ts`.
   - `navigate.ts`, `act.ts` (+ `act-gate.ts`), `login-step.ts`, `relogin.ts`, `trace-boundary.ts`:
     the tool entry points; `gate.ts` (gate context, item cap, `refuse`), `stop.ts` (begin step,
     persist stop, bookkeeping), `actions.ts` (issued action rows, input values), `next-item.ts`

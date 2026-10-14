@@ -29,12 +29,8 @@ describe('RuleSet seam (research §6)', () => {
       expect(classifyUrl(url, builtinRuleSet())).toEqual(classifyUrl(url));
       const classification = classifyUrl(url);
       expect(
-        checkDenylist(
-          ['logout', 'payment', 'path:/oferta/*'],
-          { url, classification },
-          builtinRuleSet(),
-        ),
-      ).toEqual(checkDenylist(['logout', 'payment', 'path:/oferta/*'], { url, classification }));
+        checkDenylist(['logout', 'payment'], { url, classification }, builtinRuleSet()),
+      ).toEqual(checkDenylist(['logout', 'payment'], { url, classification }));
     }
   });
 

@@ -139,6 +139,15 @@ def test_bundle_delay_out_of_range_is_ignored(client):
     assert _timed_bundle(client) < 0.2
 
 
+def test_hook_gate_page_and_its_leaves(client):
+    """Spec 023 gates: the page needs a cookie and a window patch (done in the browser) to open."""
+    page = client.get("/__test/hook-gate").content.decode()
+    assert "Brak zgody" in page and "pg_hook_consent=1" in page and "__pgPatched" in page
+    assert "/__test/hooks/polisa/123/druk" in page and "/__test/hooks/sekcja/a" in page
+    assert "<title>Strona sekcja/a</title>" in client.get("/__test/hooks/sekcja/a").content.decode()
+    assert client.get("/__test/hooks/../admin").status_code == 404
+
+
 def test_shell_bundle_is_never_delayed(client):
     client.get("/__test/bundle-delay?ms=500")
     start = time.monotonic()

@@ -6,6 +6,23 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Added
+- R-53 crawler hooks and URL lists per portal (spec 023; the owner's design of 2026-10-13):
+  - **Hooks:** a portal's quirks are fixed in `portals/<id>/hooks.ts`, mapped in the portal file
+    under `hooks:` to `onRunStart`, `onBeforePageLoad` (open another URL or skip the page),
+    `onPageLoad`, `onBeforeClickAction` (skip or wait for a selector) and `onRunEnd`, optionally
+    only on matching URLs. Hooks may set cookies, add init scripts, route requests and run code in
+    the page. Each run is time-boxed (10 s by default), traced (`hook` span) and noted in the
+    decision log; a failure is recorded and the scan goes on; a screen a hook changed is marked
+    `hook:patched` so the BA never documents the patch; the scan page lists the hooks that ran.
+    A broken mapping refuses `start_run`. New package `@pathfinder/hooks`, shipped in export-fork.
+  - **URL lists:** `urls: { allowed, disallowed }` with path globs, URL globs or `/regex/` entries;
+    `allowed` absent means everything on the domains; `disallowed` always wins; personas and a
+    scan's focus narrow with their own lists; an excluded link is skipped "excluded by rule …".
+    `scope.allowed_paths` and the `path:`/`url:` denylist entries are removed (every portal
+    migrated; a leftover key fails to load).
+  - **Timeouts:** `timeouts:` for settle, navigation, micro-frontend and client-redirect waits,
+    portal-wide and per URL pattern.
+  - Proving-ground page `/__test/hook-gate` and gates F-01..F-04@023.
 - R-43 + R-44 dashboard redesign with versioning (spec 022; the owner, 2026-10-13: "redesign
   EVERYTHING", R-44 folded in), to the Salvage Yard design package:
   - **Portal as context, seven sections:** the portal is picked once in the header; Home (the

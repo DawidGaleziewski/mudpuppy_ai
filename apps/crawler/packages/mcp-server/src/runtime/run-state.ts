@@ -3,6 +3,7 @@ import { inferRouteTemplates, type RouteTemplater } from '@pathfinder/fingerprin
 import type { EffectiveConfig } from '@pathfinder/config';
 import { FrontierPolicy, type BrowserSession, type MountWait } from '@pathfinder/crawler';
 import { portalRuleSet, type RuleSet, type RunScope } from '@pathfinder/safety';
+import type { HookRunner } from '@pathfinder/hooks';
 import type { RunRobots } from '../services/robots.js';
 import type { PwTrace } from './pw-trace.js';
 import type { RunTraceHooks } from './trace-hooks.js';
@@ -41,6 +42,8 @@ export class RunState {
   login: 'none' | 'logged_in' | 'blocked' = 'none';
   /** True while the server itself is logging in, so the login page is not a trace step. */
   loggingIn = false;
+  /** The portal's hooks for this run (spec 023); null until the session is open. */
+  hooks: HookRunner | null = null;
 
   get isTrace(): boolean {
     return this.processId !== null;

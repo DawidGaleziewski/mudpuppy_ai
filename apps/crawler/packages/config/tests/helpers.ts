@@ -30,14 +30,15 @@ compliance:
   terms_reviewed_by: null
 scope:
   allowed_domains: [marketsite.example]
-  allowed_paths: ["/*"]
   external_link_policy: record
   max_depth: 6
   max_states: 500
   max_actions_per_state: 20
   max_run_time_minutes: 60
   max_steps: 2000
-denylist: [logout, delete, payment, bidding, buy_now, message_or_contact_seller, reveal_seller_contact, "path:/oferty/wystaw/*"]
+urls:
+  disallowed: ["/oferty/wystaw/*"]
+denylist: [logout, delete, payment, bidding, buy_now, message_or_contact_seller, reveal_seller_contact]
 obstacles:
   - id: cookie_banner
     selector: "#cookie-consent button[data-accept]"

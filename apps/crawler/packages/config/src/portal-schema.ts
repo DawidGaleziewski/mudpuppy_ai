@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { SafetyClass, maxSafetyClass } from '@pathfinder/core';
 import { BUILTIN_RULE_CLASSES, DENYLIST_RULE_IDS, RULE_ALIASES } from './rule-ids.js';
+import { urlEntryProblem } from './url-entry.js';
 
 export const Environment = z.enum(['production', 'staging', 'sandbox']);
 export type Environment = z.infer<typeof Environment>;
@@ -8,20 +9,90 @@ export type Environment = z.infer<typeof Environment>;
 const Slug = z.string().regex(/^[a-z0-9][a-z0-9_-]*$/, 'must be a lowercase slug');
 const PositiveInt = z.number().int().positive();
 
+/** `path:` / `url:` denylist entries moved to `urls.disallowed` (spec 023 US3.5). */
+const MOVED_TO_URLS = 'URL and path entries moved to urls.disallowed (spec 023)';
+
 /**
- * Known rule id, a `path:` glob (URL path only) or a `url:` glob (path plus query string, spec 002
- * FR-010); unknown free text is rejected, never silently ignored.
+ * A known rule id; unknown free text is rejected, never silently ignored. URLs and paths are
+ * excluded with `urls.disallowed` (spec 023).
  */
 export const DenylistEntry = z.string().superRefine((v, ctx) => {
   // A slug may be the portal's own `action_rules` id; checked against the file in PortalConfig.
   if (DENYLIST_RULE_IDS.includes(v) || /^[a-z0-9][a-z0-9_-]*$/.test(v)) return;
-  for (const prefix of ['path:', 'url:'])
-    if (v.startsWith(prefix) && v.length > prefix.length) return;
   ctx.addIssue({
     code: 'custom',
-    message: `${JSON.stringify(v)} must be a rule id, "path:<glob>" or "url:<glob>" (rule ids: ${DENYLIST_RULE_IDS.join(', ')})`,
+    message:
+      v.startsWith('path:') || v.startsWith('url:')
+        ? `${JSON.stringify(v)}: ${MOVED_TO_URLS}`
+        : `${JSON.stringify(v)} must be a rule id (rule ids: ${DENYLIST_RULE_IDS.join(', ')})`,
   });
 });
+
+const UrlEntry = z.string().superRefine((v, ctx) => {
+  const problem = urlEntryProblem(v);
+  if (problem !== null) ctx.addIssue({ code: 'custom', message: problem });
+});
+
+/**
+ * Which URLs a portal (or a persona, narrowing) may scan (spec 023 US3): `allowed` absent means
+ * every URL inside `scope.allowed_domains`; once set, only matching URLs; `disallowed` wins.
+ * Entries: a path glob (`/konto/*`), an absolute URL glob, or a `/regex/` on the full URL.
+ */
+export const UrlLists = z
+  .object({
+    allowed: z.array(UrlEntry).min(1).optional(),
+    disallowed: z.array(UrlEntry).default([]),
+  })
+  .strict();
+export type UrlLists = z.infer<typeof UrlLists>;
+
+const TimeoutValues = {
+  /** Longest wait for a page to settle (network and DOM quiet), ms. Default 10000. */
+  settle_ms: z.number().int().min(500).max(120_000).optional(),
+  /** Longest wait for a navigation to answer, ms. Default 30000. */
+  navigation_ms: z.number().int().min(1_000).max(180_000).optional(),
+  /** Micro-frontend mount wait, ms; default `scope.mfe_wait_ms`. */
+  mfe_wait_ms: z.number().int().min(0).max(60_000).optional(),
+  /** Client redirect wait per hop, ms; default `scope.client_redirect_wait_ms`. */
+  client_redirect_wait_ms: z.number().int().min(0).max(30_000).optional(),
+};
+
+/**
+ * Crawl timeouts of the portal, and per URL pattern (spec 023 US4): the first `per_url` entry whose
+ * `match` (a URL list entry) fits the page wins over the portal values, which win over defaults.
+ */
+export const Timeouts = z
+  .object({
+    ...TimeoutValues,
+    per_url: z.array(z.object({ match: UrlEntry, ...TimeoutValues }).strict()).default([]),
+  })
+  .strict();
+export type Timeouts = z.infer<typeof Timeouts>;
+
+/** Where a portal hook runs in a crawl (spec 023 FR-001). */
+export const HookPoint = z.enum([
+  'onRunStart',
+  'onBeforePageLoad',
+  'onPageLoad',
+  'onBeforeClickAction',
+  'onRunEnd',
+]);
+export type HookPoint = z.infer<typeof HookPoint>;
+
+/**
+ * One hook of the portal (spec 023 FR-002): an exported function of `portals/<id>/hooks.ts` run
+ * at `point`, on pages whose URL matches `match` (a URL list entry; absent = every page), within
+ * `timeout_ms`. Hooks of one point run in file order.
+ */
+export const HookSpec = z
+  .object({
+    point: HookPoint,
+    fn: z.string().regex(/^[A-Za-z_$][\w$]*$/, 'must be the name of an exported function'),
+    match: UrlEntry.optional(),
+    timeout_ms: z.number().int().min(100).max(120_000).default(10_000),
+  })
+  .strict();
+export type HookSpec = z.infer<typeof HookSpec>;
 
 /**
  * A portal's own action rule (spec 002 FR-015 to FR-017): a new id with its class, or extra
@@ -85,7 +156,6 @@ export type Budgets = z.infer<typeof Budgets>;
 
 export const Scope = Budgets.extend({
   allowed_domains: z.array(z.string().min(1)).min(1),
-  allowed_paths: z.array(z.string().min(1)).min(1),
   external_link_policy: z.enum(['record', 'follow']).default('record'),
   /** How long to wait for a micro-frontend mount to fill, in ms (spec 015). */
   mfe_wait_ms: z.number().int().min(0).max(60000).default(10000),
@@ -96,7 +166,10 @@ export const Scope = Budgets.extend({
    * (spec 019 FR-007): an interstitial ("Proszę czekać…") is passed, not recorded as a screen.
    */
   client_redirect_wait_ms: z.number().int().min(0).max(30000).default(5000),
-});
+})
+  // Strict: a leftover `allowed_paths` (moved to `urls`, spec 023) must not be dropped silently,
+  // which would widen the scan to every URL of the domains.
+  .strict();
 export type Scope = z.infer<typeof Scope>;
 
 export const Obstacle = z.object({ id: Slug, selector: z.string().min(1) });
@@ -192,6 +265,9 @@ export const PortalConfig = z
       terms_reviewed_by: null,
     }),
     scope: Scope,
+    urls: UrlLists.default({ disallowed: [] }),
+    hooks: z.array(HookSpec).default([]),
+    timeouts: Timeouts.optional(),
     denylist: z.array(DenylistEntry).default([]),
     obstacles: z.array(Obstacle).default([]),
     rate_limit: RateLimit.optional(),
@@ -235,7 +311,7 @@ export const PortalConfig = z
       ctx.addIssue({
         code: 'custom',
         path: ['denylist', i],
-        message: `${JSON.stringify(entry)} must be a rule id, "path:<glob>" or "url:<glob>" (rule ids: ${[...DENYLIST_RULE_IDS, ...seen].join(', ')})`,
+        message: `${JSON.stringify(entry)} must be a rule id (rule ids: ${[...DENYLIST_RULE_IDS, ...seen].join(', ')})`,
       });
     });
   });

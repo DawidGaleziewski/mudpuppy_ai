@@ -82,7 +82,7 @@ async function addState(d: Awaited<ReturnType<typeof db>>, fp: string, template 
 const gate = (over: Partial<GateContext> = {}): GateContext => ({
   scope: {
     allowed_domains: ['shop.pl'],
-    allowed_paths: ['/*'],
+    url_lists: [],
     external_link_policy: 'record',
     max_depth: 6,
     max_states: 500,

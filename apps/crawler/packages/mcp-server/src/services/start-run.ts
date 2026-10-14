@@ -19,6 +19,8 @@ import { createRunRobots, robotsSnapshot, type RunRobots } from './robots.js';
 import { createProcess, openFollowup, processOfRun } from './trace.js';
 import { resolveRunCredentials, runSecrets } from './credentials.js';
 import { personaRefs } from '@pathfinder/vault';
+import type { LoadedHook } from '@pathfinder/hooks';
+import { loadRunHooks } from './run-hooks.js';
 
 const Globs = z
   .array(z.string().trim().regex(/^\//, 'a path starting with /; * matches anything'))
@@ -100,7 +102,7 @@ export interface StartRunOutput {
   budgets: { steps: number; run_time_minutes: number; states: number };
 }
 
-type Approved = Extract<PreflightResult, { ok: true }>;
+type Approved = Extract<PreflightResult, { ok: true }> & { hooks: readonly LoadedHook[] };
 
 function remainingBudgets(run: RunRow): StartRunOutput['budgets'] {
   const s = scopeOf(run);
@@ -160,7 +162,9 @@ export async function startRunRecord(
       ...(environment !== undefined ? { environment } : {}),
     });
     if (!pre.ok) throw new ToolError(pre.code, pre.message, { reasons: pre.reasons });
-    return { input, pre };
+    // The portal's hooks (spec 023): a broken mapping refuses the run before anything is written.
+    const hooks = await loadRunHooks(ctx.root, pre.effective.portal);
+    return { input, pre: { ...pre, hooks } };
   });
   const { portal, persona } = pre.effective;
   // The run's limit and scope: the portal's and persona's, lowered and narrowed by the BA's choices

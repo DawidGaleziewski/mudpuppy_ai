@@ -40,6 +40,9 @@ the portal, inside one analysis session, and return a short report. The preloade
 - You cannot set a status or a key; don't try to work around refusals. If the same write is refused
   twice for the same reason, stop retrying and list it in the gaps.
 - You never browse: the crawler records, you interpret.
+- A decision with rule `hook:patched` (run evidence) means a portal hook changed that screen before
+  it was recorded (a cookie, an injected script). What the hook changed is not the portal's own
+  behaviour: never document it as a requirement or rule; say so in an open question if it matters.
 
 ## Return
 At most 15 lines: session id and status; records created/revised by kind; feedback answered; open

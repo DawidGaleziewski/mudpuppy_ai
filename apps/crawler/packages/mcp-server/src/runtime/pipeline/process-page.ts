@@ -1,6 +1,7 @@
 import { observePage } from '@pathfinder/crawler';
 import type { PageResult } from '../../runtime.js';
 import { handoffIfCaptcha } from '../handoff.js';
+import { notePatched, runPageLoadHooks } from '../hooks.js';
 import { reported, step, type StepContext } from './context.js';
 import type { IssuedAction } from './enqueue.js';
 import { issueAndEnqueue } from './enqueue.js';
@@ -23,6 +24,7 @@ import { newStateVisuals } from './visuals.js';
  */
 export async function processPage(sc: StepContext): Promise<PageResult> {
   const { ctx, run, rs } = sc;
+  const pageHooks = await runPageLoadHooks(rs);
   const { stabilization, relogged } = await settleStep(sc);
   const observed = await step(sc, 'observe', async () => {
     const inScope = navigationPolicy(rs);
@@ -48,6 +50,7 @@ export async function processPage(sc: StepContext): Promise<PageResult> {
   });
   const { evidenceRef, state_id, created, stateRow } = recorded;
   const alreadyInRun = recorded.alreadyInRun !== undefined;
+  await notePatched(ctx, rs, state_id, pageHooks);
   if (created)
     await newStateVisuals(sc, { id: state_id, title: stateRow.title, snapshot: storedSnapshot });
   // A CAPTCHA on the page: a human's job, never ours (spec 009 FR-022).

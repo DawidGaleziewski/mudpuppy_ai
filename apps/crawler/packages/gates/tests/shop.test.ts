@@ -53,7 +53,7 @@ gate(
         const file = join(root, 'portals', 'proving-ground-shop', 'portal.yaml');
         writeFileSync(
           file,
-          readFileSync(file, 'utf8').replace('allowed_paths: [', 'allowed_paths: ["/__test/*", '),
+          readFileSync(file, 'utf8').replace('  allowed: [', '  allowed: ["/__test/*", '),
         );
       },
     });

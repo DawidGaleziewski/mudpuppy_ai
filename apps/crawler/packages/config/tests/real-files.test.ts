@@ -12,7 +12,7 @@ describe('repository config files', () => {
     );
     expect(e.portal.environment).toBe('production');
     expect(e.effectiveMaxActionClass).toBe('read');
-    expect(e.portal.denylist).toContain('path:/oferty/wystaw/*');
+    expect(e.portal.urls.disallowed).toContain('/oferty/wystaw/*');
   });
 
   it('portals/liveinsurer + guest load without edits (spec 002 SC-005)', () => {
@@ -29,7 +29,7 @@ describe('repository config files', () => {
     expect(sandbox.portal.environment).toBe('sandbox');
     // Our own local server: traces may submit there.
     expect(sandbox.effectiveMaxActionClass).toBe('external-side-effect');
-    expect(sandbox.portal.denylist).toContain('path:/__admin/*');
+    expect(sandbox.portal.urls.disallowed).toContain('/__admin/*');
     const readonly = loadEffectiveConfig(
       root('portals/reference-insurer-readonly/portal.yaml'),
       guest,

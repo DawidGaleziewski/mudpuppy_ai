@@ -27,7 +27,8 @@ describe('loadPortal', () => {
       terms_reviewed_by: null,
     });
     expect(p.max_action_class).toBeUndefined();
-    expect(p.denylist).toContain('path:/oferty/wystaw/*');
+    expect(p.urls.disallowed).toContain('/oferty/wystaw/*');
+    expect(p.urls.allowed).toBeUndefined();
   });
 
   it('applies the micro-frontend wait and frame depth defaults', () => {
@@ -129,20 +130,36 @@ describe('loadPortal', () => {
     expect(e.problems.join()).toContain('robots_page_requests');
   });
 
-  it('accepts url: denylist entries (FR-010)', () => {
+  it('accepts path, absolute URL and regex entries in urls (spec 023 US3)', () => {
     const yaml = PORTAL_YAML.replace(
-      'denylist: [logout,',
-      'denylist: ["url:*itm_campaign=*", logout,',
+      'urls:\n  disallowed: ["/oferty/wystaw/*"]',
+      'urls:\n  allowed: ["/konto/*", "https://marketsite.example/kontakt*"]\n  disallowed: ["/oferty/wystaw/*", "/*?*itm_campaign=*", "/\\\\/polisa\\\\/\\\\d+/"]',
     );
-    expect(load(yaml).run().denylist).toContain('url:*itm_campaign=*');
+    const p = load(yaml).run();
+    expect(p.urls.allowed).toEqual(['/konto/*', 'https://marketsite.example/kontakt*']);
+    expect(p.urls.disallowed).toHaveLength(3);
   });
 
-  it('rejects an empty url: glob and a mistyped prefix with the contract message', () => {
-    for (const bad of ['"url:"', '"urls:*x*"']) {
+  it('rejects an unusable urls entry, naming the field', () => {
+    for (const bad of ['"konto/*"', '"ftp://x/*"', '"/(unclosed/"']) {
+      const yaml = PORTAL_YAML.replace('disallowed: ["/oferty', `disallowed: [${bad}, "/oferty`);
+      const msg = problems(load(yaml).run).problems.join();
+      expect(msg).toContain('urls.disallowed.0');
+    }
+  });
+
+  it('refuses a leftover scope.allowed_paths instead of widening the scan', () => {
+    const yaml = PORTAL_YAML.replace('  max_depth: 6', '  allowed_paths: ["/*"]\n  max_depth: 6');
+    const msg = problems(load(yaml).run).problems.join();
+    expect(msg).toMatch(/scope.*allowed_paths|allowed_paths.*scope|Unrecognized key/);
+  });
+
+  it('refuses the removed path:/url: denylist entries', () => {
+    for (const bad of ['"path:/x/*"', '"url:/*?*sessionId=*"']) {
       const yaml = PORTAL_YAML.replace('denylist: [logout,', `denylist: [${bad}, logout,`);
       const msg = problems(load(yaml).run).problems.join();
       expect(msg).toContain('denylist.0');
-      expect(msg).toContain('must be a rule id, "path:<glob>" or "url:<glob>"');
+      expect(msg).toContain('moved to urls.disallowed');
     }
   });
 

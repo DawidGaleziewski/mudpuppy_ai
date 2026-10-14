@@ -10,7 +10,7 @@ max_action_class: read
 consent: { decline_location: true, decline_marketing: true }
 viewport: { width: 1366, height: 768 }
 locale: pl-PL
-scope_restrictions: { allowed_paths: ["/a/*", "/b/*"] }
+scope_restrictions: { urls: { allowed: ["/a/*", "/b/*"] } }
 `;
 
 describe('persona extends', () => {
@@ -62,10 +62,11 @@ describe('persona extends', () => {
   it('replaces arrays explicitly instead of concatenating', () => {
     const root = tmpTree({
       'base.yaml':
-        'locale: x\nviewport: { width: 1, height: 1 }\nscope_restrictions: { allowed_paths: ["/a/*", "/b/*"] }\n',
-      'p.yaml': 'id: p\nextends: [base.yaml]\nscope_restrictions: { allowed_paths: ["/c/*"] }\n',
+        'locale: x\nviewport: { width: 1, height: 1 }\nscope_restrictions: { urls: { allowed: ["/a/*", "/b/*"] } }\n',
+      'p.yaml':
+        'id: p\nextends: [base.yaml]\nscope_restrictions: { urls: { allowed: ["/c/*"] } }\n',
     });
-    expect(loadPersona(join(root, 'p.yaml')).scope_restrictions.allowed_paths).toEqual(['/c/*']);
+    expect(loadPersona(join(root, 'p.yaml')).scope_restrictions.urls?.allowed).toEqual(['/c/*']);
   });
 
   it('defaults to no auth and the read ceiling', () => {

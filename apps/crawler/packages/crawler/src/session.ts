@@ -206,10 +206,11 @@ export class BrowserSession {
    */
   lastNavigationError: string | null = null;
 
-  async goto(url: string): Promise<number | null> {
+  /** `timeoutMs`: the page's navigation timeout (spec 023 US4); 30 s by default. */
+  async goto(url: string, timeoutMs = 30_000): Promise<number | null> {
     this.lastNavigationError = null;
     try {
-      const res = await this.page.goto(url, { waitUntil: 'domcontentloaded', timeout: 30_000 });
+      const res = await this.page.goto(url, { waitUntil: 'domcontentloaded', timeout: timeoutMs });
       return res?.status() ?? null;
     } catch (e) {
       // Aborted by the gate, timed out or refused; the caller checks `gate.stopped`. A network
@@ -225,10 +226,15 @@ export class BrowserSession {
     return (await this.settleTraced()).result;
   }
 
-  /** {@link settle}, plus settle diagnostics and the obstacles the two sweeps dismissed. */
-  async settleTraced(): Promise<SettleOutcome & { obstacles: ObstacleEvent[] }> {
+  /**
+   * {@link settle}, plus settle diagnostics and the obstacles the two sweeps dismissed.
+   * `timeoutMs` overrides the settle timeout for this page (spec 023 US4).
+   */
+  async settleTraced(timeoutMs?: number): Promise<SettleOutcome & { obstacles: ObstacleEvent[] }> {
     const before = await this.obstacles.sweep();
-    const outcome = await settleWithDiagnostics(this.page, this.net, this.stabilizerOptions);
+    const options =
+      timeoutMs === undefined ? this.stabilizerOptions : { ...this.stabilizerOptions, timeoutMs };
+    const outcome = await settleWithDiagnostics(this.page, this.net, options);
     const after = await this.obstacles.sweep();
     return { ...outcome, obstacles: [...before, ...after] };
   }

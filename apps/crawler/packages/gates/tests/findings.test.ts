@@ -57,14 +57,15 @@ compliance:
   terms_reviewed_by: local test server, no terms
 scope:
   allowed_domains: [127.0.0.1]
-  allowed_paths: ["/*"]
   external_link_policy: record
   max_depth: ${o.maxDepth ?? 6}
   max_states: 100
   max_actions_per_state: 50
   max_run_time_minutes: 5
   max_steps: 80
-denylist: [logout, delete, payment, bidding, buy_now, message_or_contact_seller, reveal_seller_contact, "path:/__admin/*"]
+denylist: [logout, delete, payment, bidding, buy_now, message_or_contact_seller, reveal_seller_contact]
+urls:
+  disallowed: ["/__admin/*"]
 rate_limit: { requests_per_second: 20, max_concurrency: 1, user_agent: "PathfinderAI-Crawler/0.1 (gate)" }
 ${o.extra ?? ''}
 `;

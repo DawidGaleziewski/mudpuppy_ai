@@ -133,8 +133,8 @@ export function createPortal(paths: WorkspacePaths, input: NewPortalBody): Porta
     compliance: { robots_checked_on: null, terms_reviewed_on: null, terms_reviewed_by: null },
     robots: body.robots,
     environments,
+    // No `urls`: every URL on the portal's domains is in scope (spec 023 US3.1).
     scope: {
-      allowed_paths: ['/*'],
       external_link_policy: 'record',
       max_depth: 6,
       max_states: 200,

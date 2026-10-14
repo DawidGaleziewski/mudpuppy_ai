@@ -74,6 +74,10 @@ process instead of mapping. The server records every step you take.
   retry, report the reason. If a later result carries `relogged_in: true`, the session had expired and
   the server logged in again; just continue. `SESSION_LOST` means it could not: stop and report.
 - A guest persona (no credentials) never logs in; `login` answers `LOGIN_NOT_CONFIGURED`.
+- Portal hooks are the owner's code, run by the server (an `ACTION_REFUSED` "skipped by hook …" is
+  final like any refusal). You never write or change hooks. When a page needs a fix you cannot make
+  (a cookie, a script that breaks, a page that must never open), file `add_open_question` saying
+  which page and what a hook could do.
 
 ## Return
 

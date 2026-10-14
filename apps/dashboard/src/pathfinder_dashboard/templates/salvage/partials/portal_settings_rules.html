@@ -8,10 +8,10 @@
       <dd>{{ "respect it" if rules.robots == "respect" else "ignore it (visit every page; your responsibility)" }}{% if environments %}<span class="sy-small sy-muted"> · {% for e in environments %}{{ e.environment }}{{ ", " if not loop.last }}{% endfor %}</span>{% endif %}</dd>
       <dt>Allowed domains</dt>
       <dd>{% for d in rules.domains %}<span class="sy-mono">{{ d }}</span>{{ ", " if not loop.last }}{% else %}<span class="sy-muted">none listed</span>{% endfor %}</dd>
-      <dt>Allowed paths</dt>
-      <dd>{% for p in rules.allowed_paths %}<span class="sy-mono">{{ p }}</span>{{ ", " if not loop.last }}{% else %}<span class="sy-muted">none listed</span>{% endfor %}</dd>
-      <dt>Disallowed paths</dt>
-      <dd>{% for p in rules.disallowed_paths %}<span class="sy-mono">{{ p }}</span>{{ ", " if not loop.last }}{% else %}<span class="sy-muted">none listed</span>{% endfor %}</dd>
+      <dt>Allowed URLs</dt>
+      <dd>{% if rules.allowed_urls is none %}<span class="sy-muted">everything on the allowed domains</span>{% else %}{% for p in rules.allowed_urls %}<span class="sy-mono">{{ p }}</span>{{ ", " if not loop.last }}{% else %}<span class="sy-muted">none listed</span>{% endfor %}{% endif %}</dd>
+      <dt>Disallowed URLs</dt>
+      <dd>{% for p in rules.disallowed_urls %}<span class="sy-mono">{{ p }}</span>{{ ", " if not loop.last }}{% else %}<span class="sy-muted">none listed</span>{% endfor %}</dd>
     </dl>
     <p class="sy-small sy-muted">Read from the portal file. Ask the assistant to change a rule.</p>
   </div>

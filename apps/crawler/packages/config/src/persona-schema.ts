@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { SafetyClass } from '@pathfinder/core';
-import { Budgets, Scope } from './portal-schema.js';
+import { Budgets, Scope, UrlLists } from './portal-schema.js';
 
 /** Credential fields are references by name (`ref:NAME`); the values themselves never live in a file (FR-017). */
 export const Auth = z.union([z.literal('none'), z.record(z.string().min(1), z.string().min(1))]);
@@ -27,7 +27,8 @@ const shape = {
   extends: z.array(z.string().min(1)).default([]),
   auth: Auth,
   max_action_class: SafetyClass,
-  scope_restrictions: Scope.partial(),
+  // `urls` narrows the portal's URL lists: a URL must pass both (spec 023 US3.5).
+  scope_restrictions: Scope.partial().extend({ urls: UrlLists.optional() }),
   budgets: Budgets.partial(),
   consent: Consent,
   viewport: Viewport,

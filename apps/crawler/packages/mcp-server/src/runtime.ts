@@ -2,6 +2,7 @@ import type { ServerContext } from './context.js';
 import type { StartRunOutput } from './services/start-run.js';
 import type { RunRow } from './services/common.js';
 import type { PreflightResult } from '@pathfinder/crawler';
+import type { LoadedHook } from '@pathfinder/hooks';
 import type { RunRobots } from './services/robots.js';
 import type { NextFrontierItem } from './services/frontier.js';
 
@@ -79,7 +80,8 @@ export interface Runtime {
   openSession(
     ctx: ServerContext,
     run: RunRow,
-    approved: Extract<PreflightResult, { ok: true }>,
+    /** `hooks`: the portal's loaded hooks (spec 023); absent in browserless test runtimes. */
+    approved: Extract<PreflightResult, { ok: true }> & { hooks?: readonly LoadedHook[] },
     robots: RunRobots,
   ): Promise<void>;
   /** Live robots counters of an open session, for `finish_run` coverage. */

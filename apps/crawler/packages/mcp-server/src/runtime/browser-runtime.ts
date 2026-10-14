@@ -11,6 +11,7 @@ import { runChoices } from '../services/start-run.js';
 import { startPwTrace } from './pw-trace.js';
 import { runSecrets } from '../services/credentials.js';
 import { createRunTraceHooks } from './trace-hooks.js';
+import { runHooks } from './hooks.js';
 
 export interface BrowserRuntimeOptions {
   headless?: boolean;
@@ -28,6 +29,8 @@ export function createBrowserRuntime(opts: BrowserRuntimeOptions = {}): Runtime 
   const closeSession = async (runId: string): Promise<void> => {
     const rs = runs.get(runId);
     runs.delete(runId);
+    // onRunEnd before the context closes (spec 023 US1.5); a failing hook never blocks closing.
+    if (rs?.hooks?.has('onRunEnd')) await rs.hooks.run('onRunEnd', '').catch(() => undefined);
     await rs?.session.close();
   };
   /** The run has ended: its browser and its resolved credentials go. */
@@ -41,6 +44,9 @@ export function createBrowserRuntime(opts: BrowserRuntimeOptions = {}): Runtime 
       const rs = await ctx.tracer.phase('open_session', () => launch(ctx, run, approved, robots));
       await ctx.tracer.phase('restore_index', () => restore(ctx, run, rs));
       runs.set(run.id, rs);
+      // onRunStart: the context exists, nothing has been opened or logged in yet (spec 023 US1.1).
+      rs.hooks = runHooks(ctx, rs, approved.hooks ?? []);
+      if (rs.hooks.has('onRunStart')) await rs.hooks.run('onRunStart', '');
     },
     navigate: (ctx, input) => navigate(ctx, runs.get(input.run_id), input),
     act: (ctx, input) => act(ctx, runs.get(input.run_id), input),

@@ -4,5 +4,7 @@ export * from './rule-set.js';
 export * from './robots.js';
 export * from './classifier.js';
 export * from './scope.js';
+export * from './url-lists.js';
+export * from './timeouts.js';
 export * from './denylist.js';
 export * from './block-detector.js';

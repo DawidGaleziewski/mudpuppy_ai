@@ -99,7 +99,7 @@ describe('pathfinder tools', () => {
   it('start_run opens a session only after a successful preflight', async () => {
     const { ctx, runtime, call } = await connect();
     const files: Record<string, string> = {
-      'portals/shop/portal.yaml': `id: shop\nbase_url: https://shop.pl/\nenvironment: production\ncompliance: { robots_checked_on: 2026-09-20, terms_reviewed_on: 2026-09-21, terms_reviewed_by: me }\nscope: { allowed_domains: [shop.pl], allowed_paths: ["/*"], max_depth: 3, max_states: 10, max_actions_per_state: 5, max_run_time_minutes: 5, max_steps: 50 }\nrate_limit: { requests_per_second: 1, max_concurrency: 1, user_agent: "Bot (+ops@corp.pl)" }\n`,
+      'portals/shop/portal.yaml': `id: shop\nbase_url: https://shop.pl/\nenvironment: production\ncompliance: { robots_checked_on: 2026-09-20, terms_reviewed_on: 2026-09-21, terms_reviewed_by: me }\nscope: { allowed_domains: [shop.pl], max_depth: 3, max_states: 10, max_actions_per_state: 5, max_run_time_minutes: 5, max_steps: 50 }\nrate_limit: { requests_per_second: 1, max_concurrency: 1, user_agent: "Bot (+ops@corp.pl)" }\n`,
       'personas/shop/guest.yaml': 'id: guest\nviewport: { width: 1, height: 1 }\nlocale: pl-PL\n',
     };
     for (const [rel, c] of Object.entries(files)) {
@@ -120,7 +120,7 @@ describe('pathfinder tools', () => {
     const { ctx, runtime, call } = await connect();
     runtime.openSession.mockRejectedValueOnce(new Error('libnspr4.so: cannot open shared object'));
     const files: Record<string, string> = {
-      'portals/shop/portal.yaml': `id: shop\nbase_url: https://shop.pl/\nenvironment: production\ncompliance: { robots_checked_on: 2026-09-20, terms_reviewed_on: 2026-09-21, terms_reviewed_by: me }\nscope: { allowed_domains: [shop.pl], allowed_paths: ["/*"], max_depth: 3, max_states: 10, max_actions_per_state: 5, max_run_time_minutes: 5, max_steps: 50 }\nrate_limit: { requests_per_second: 1, max_concurrency: 1, user_agent: "Bot (+ops@corp.pl)" }\n`,
+      'portals/shop/portal.yaml': `id: shop\nbase_url: https://shop.pl/\nenvironment: production\ncompliance: { robots_checked_on: 2026-09-20, terms_reviewed_on: 2026-09-21, terms_reviewed_by: me }\nscope: { allowed_domains: [shop.pl], max_depth: 3, max_states: 10, max_actions_per_state: 5, max_run_time_minutes: 5, max_steps: 50 }\nrate_limit: { requests_per_second: 1, max_concurrency: 1, user_agent: "Bot (+ops@corp.pl)" }\n`,
       'personas/shop/guest.yaml': 'id: guest\nviewport: { width: 1, height: 1 }\nlocale: pl-PL\n',
     };
     for (const [rel, c] of Object.entries(files)) {
