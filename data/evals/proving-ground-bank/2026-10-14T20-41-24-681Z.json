@@ -1,0 +1,152 @@
+{
+  "portal_id": "proving-ground-bank",
+  "persona_id": "client",
+  "started_at": "2026-10-14T20:41:24.681Z",
+  "git_sha": "0550f6f",
+  "runs": {
+    "crawler": "01a13c26-02b9-7000-b10d-c5c2b640d5ac",
+    "ba_session": "01a13c33-4a3d-7000-b1b1-dd38582cae36",
+    "crawler_cli_session": "2aef13e4-64ec-412f-849c-b075b2698283",
+    "ba_cli_session": "3e5afb6a-ae9e-445e-b3e4-6d16da55232a"
+  },
+  "outcomes": {
+    "crawler": "success",
+    "ba": "success"
+  },
+  "cost": {
+    "usd": 4.4933062,
+    "input_tokens": 7293407,
+    "output_tokens": 72010,
+    "duration_ms": 1429183
+  },
+  "scores": {
+    "screens": {
+      "matched": 1,
+      "total": 2,
+      "pct": 50
+    },
+    "fields": {
+      "matched": 0,
+      "total": 2,
+      "pct": 0
+    },
+    "constraints": {
+      "matched": 0,
+      "total": 2,
+      "pct": 0
+    },
+    "rules": {
+      "matched": 0,
+      "total": 0,
+      "pct": 100
+    },
+    "processes": {
+      "matched": 0,
+      "total": 4,
+      "pct": 0
+    },
+    "terms": {
+      "matched": 4,
+      "total": 10,
+      "pct": 40
+    },
+    "processes_map": {
+      "matched": 2,
+      "total": 4,
+      "pct": 50
+    },
+    "logged_in_screens": {
+      "matched": 6,
+      "total": 13,
+      "pct": 46.2
+    },
+    "obstacles": {
+      "matched": 14,
+      "total": 32,
+      "pct": 43.8
+    },
+    "crawl_screens": {
+      "matched": 12,
+      "total": 13,
+      "pct": 92.3
+    }
+  },
+  "overclaims": 0,
+  "checks": {
+    "frontier_empty_at_finish": true,
+    "crawler_completed": true,
+    "crawler_steps": 70,
+    "frontier_pending": 0,
+    "ba_session_completed": true,
+    "handoffs": 0,
+    "ba_write_calls": 61,
+    "ba_write_refused": 7,
+    "ba_write_refused_pct": 11,
+    "ba_relation_refused": 3,
+    "route_templates_with_query": 0,
+    "data_items_joined": 0,
+    "rules_on_screens_pct": 100,
+    "relogins": 1,
+    "logged_in": true,
+    "password_hits": 0,
+    "widget_actions": 0
+  },
+  "workspace": "/tmp/pf-eval-proving-ground-bank-FWdFJX",
+  "judges": [
+    {
+      "id": "glossary-terms",
+      "version": "130240170034",
+      "model": "claude-sonnet-5-5",
+      "claude_code_version": "2.1.288",
+      "calibrated": false,
+      "covered": 4,
+      "total": 10,
+      "pct": 40,
+      "counts": {
+        "pass": 4,
+        "fail": 1,
+        "unknown": 1,
+        "error": 0
+      },
+      "skipped_pairs": 0,
+      "cost": {
+        "usd": 0.044974,
+        "input_tokens": 7683,
+        "output_tokens": 2081,
+        "calls": 6
+      },
+      "verdicts": [
+        {
+          "pair_id": "T01~GL-002@1",
+          "verdict": "pass",
+          "reason": "The record's term matches \"Przelew krajowy\" and its definition (a domestic transfer from the customer's account to a recipient account number, with amount and title) is consistent with the term's meaning. The item gives no portal definition to contradict it."
+        },
+        {
+          "pair_id": "T02~GL-001@1",
+          "verdict": "fail",
+          "reason": "The record defines \"Wyciąg\" (account statement), not \"Numer rachunku\" (account number), so it is a different term with a different meaning."
+        },
+        {
+          "pair_id": "T05~GL-003@1",
+          "verdict": "pass",
+          "reason": "The record's term matches and it defines it as the booking date of a transfer, which fits the term's meaning, and nothing in it contradicts that. The item supplies no portal definition, so this rests on term match and consistency alone."
+        },
+        {
+          "pair_id": "T06~GL-004@1",
+          "verdict": "pass",
+          "reason": "The record's term is \"Saldo\" and it defines it as the account balance, the standard meaning. The item gives no contrary portal meaning, so I found nothing that contradicts it."
+        },
+        {
+          "pair_id": "T07~GL-001@1",
+          "verdict": "pass",
+          "reason": "The record covers the term (its synonym list includes \"Wyciągi\") and clearly defines it as an account statement listing operations for a period. The item gives no contrary portal meaning."
+        },
+        {
+          "pair_id": "T08~GL-005@1",
+          "verdict": "unknown",
+          "reason": "The item gives no portal definition to compare with, so the record's meaning (a dashboard of accounts shown after login) can't be confirmed or contradicted, even though the term matches."
+        }
+      ]
+    }
+  ]
+}
