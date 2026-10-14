@@ -395,10 +395,16 @@ export function evaluate(input: EvaluateInput): EvaluationReport {
         .map((r) => r.key),
     );
 
-  // Over-claims (SC-009): what a guest cannot observe, documented as observed.
+  // Over-claims (SC-009): what a guest cannot observe, documented as observed. A rule anchored on
+  // a screen of a logged-in actor is observable to that actor's run (it is cited from that screen
+  // to match at all), so it is not counted (spec 025 F-06).
   const overclaims: Overclaim[] = [];
   const claimsObserved = (r: EvalRecord) => r.confidence === 'observed' && !r.not_observable;
-  for (const rule of gt.rules.filter((x) => !x.guest_observable))
+  const actorScreen = (screenId: string): boolean => {
+    const actor = gt.screens.find((s) => s.id === screenId)?.actor;
+    return actor !== undefined && actor !== 'guest';
+  };
+  for (const rule of gt.rules.filter((x) => !x.guest_observable && !actorScreen(x.anchor.screen)))
     for (const r of ruleRecords(rule).filter(claimsObserved))
       overclaims.push({ ground_truth: rule.id, record: r.key, rev: r.rev });
   for (const p of gt.processes.filter((x) => x.ends_with === 'login_wall'))

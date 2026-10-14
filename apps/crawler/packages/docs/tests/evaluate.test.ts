@@ -288,6 +288,21 @@ describe('evaluate (research §16, contracts/ground-truth.md)', () => {
     expect(evaluate({ ...base, records: [...records(), honest] }).overclaims).toEqual([]);
   });
 
+  it('a rule on a logged-in actor screen, cited from that screen, is no over-claim (spec 025 F-06)', () => {
+    // A test user's run sees what a guest cannot: the bank's client documented the statement
+    // parameters (R08/R09) correctly and was flagged once page-visit evidence resolved.
+    const screens = gt.screens.map((s) => (s.id === 'S03' ? { ...s, actor: 'shop-client' } : s));
+    const loggedIn = GroundTruth.parse({ ...gt, screens });
+    const claim = rec(
+      'business_rule',
+      { statement: 'Renewal: "Przedłuż" within 30 days.' },
+      { evidence: on('/page-3') },
+    );
+    expect(
+      evaluate({ ...base, groundTruth: loggedIn, records: [...records(), claim] }).overclaims,
+    ).toEqual([]);
+  });
+
   it('claim markers: quoting the anchor label of a hidden rule without stating it is no over-claim', () => {
     const page = rec(
       'requirement',

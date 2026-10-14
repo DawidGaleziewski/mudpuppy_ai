@@ -15,6 +15,10 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   - **BA guidance (`ba-practice`):** a field limit with business meaning is also a business rule,
     checked again in the synthesis pass; a rule quotes the label of the control it is about.
   - Reference-insurer eval: rules 31.3 % → 68.8 % (two runs), no regression, no over-claims.
+  - Follow-up: a rule anchored on a logged-in actor's screen is no longer counted as an
+    over-claim (the bank's client documented the statement parameters correctly and was flagged);
+    proving-ground evals with the new guidance: shop rules 0 → 50 %, fields 33 → 73 %; insurer
+    terms 30 → 50 %; bank unchanged, 0 over-claims.
 - R-33 access-dependent content, P1 (spec 024; owner scope 2026-10-14: attributes, CSV import,
   per-persona variants with seen / not seen):
   - **Persona attributes:** `attributes:` on a persona (tariff, contract, feature flags…, any

@@ -56,7 +56,39 @@ Each finding has a test or eval idea (memory `log-every-bug-for-evals`).
   `record-kinds.md`.
 - **Eval idea**: `ba_relation_refused` tolerance in the eval checks.
 
+## F-06 A test user's correct rule was flagged as an over-claim, 2026-10-14
+
+- **What**: bank eval 2026-10-14T07-43 (persona `client`) reported 2 over-claims, a regression:
+  `BR-003` documents the statement parameters (`typ`, `okres`, `tryb`) with a decision table, which
+  matches R08/R09 (`guest_observable: false`, anchored on S14, actor `bank-client`). The record
+  is right: a logged-in client sees S14.
+- **Cause**: SC-009 counts every not-guest-observable rule documented as observed; it predates
+  actors (spec 009 v2). F-01's fix let the record's page-visit evidence reach S14, so the match,
+  and the flag, appeared.
+- **Fix** (follow-up branch): a rule anchored on a screen of a non-guest actor is not counted as an
+  over-claim (it must cite that screen to match). Re-graded: bank 0 over-claims, reference
+  unchanged. Test in `evaluate.test.ts`.
+- **Eval idea**: score such rules in a `logged_in_rules` category instead of only not flagging
+  them (owner: part of the process/score decisions).
+
+## F-07 Proving-ground evals with the v2 guidance, 2026-10-14
+
+| Portal (persona) | Result | BA scores vs baseline | Crawl | Cost |
+|---|---|---|---|---|
+| bank (client) | `2026-10-14T07-43-42-635Z` | rules 100 = 100, terms 0 → 10, screens 50 =; over-claims 2 → 0 after F-06 | 92.3 % crawl screens, completed | $3.81 |
+| insurer (client) | `2026-10-14T08-04-23-822Z` | terms 30 → 50, rules 0 =, screens 50 =; no regression | crawl screens 66.7 → 100 | $4.19 |
+| shop (guest) | `2026-10-14T08-23-45-925Z` | rules 0 → 50, fields 33.3 → 73.3, screens 33.3 → 66.7, constraints 8.7 → 13 | crawler not completed, frontier not empty (budget; F-17@015, R-35) | $5.79 |
+
+- The proving grounds have few guest-observable rules and field constraints the BA reaches; the
+  insurer's rules stay 0 (its rules sit on screens the crawl reached; not analysed tonight).
+- Shop's crawler regressions are the known frontier flood (R-35 decision), not the BA.
+
 ## Close-out review (code-reviewer, G-31), 2026-10-14
 
 No guideline findings (evaluate.ts cases, the new fast-tier test, docs CLAUDE.md need no
 update); checks green.
+
+Follow-up branch (F-06): one finding, deferred: G-02/G-03 `evaluate()` is about 214 lines (limit
+80), over the limit before this branch (+6 lines here). Split the evaluator into one helper per
+category (`computeOverclaims`, process, rule, term matchers) as its own refactor (with the
+R-39 process-scoring decision, which touches the same code).
