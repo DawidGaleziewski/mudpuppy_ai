@@ -81,3 +81,56 @@ Config schema (attributes, extends merge); CSV import (files, vault refs, idempo
 password in files or output); the read model on a fixture with three personas (basic, premium,
 premium+B2B) and two screens (SC-001 shape): one premium-only button, one B2B-only menu entry;
 dashboard pages; BA tool.
+
+## P2 (owner 2026-10-15)
+
+Branch `feature/028-r51-r39-r33-relations-access` (with R-51, spec 028, and R-39 round 4). Owner:
+"P2 starts with the side-by-side diff and 'unexplained difference' Review items; the /access words
+stay 'Differs / Same for all'; the two `extends` merges get one shared fixture (F-06)". Sampling
+and batch scans (US4) and revisions per persona variant (US2.4, F-01) stay out.
+
+| Part | What | Stories |
+|---|---|---|
+| E | Explanations in the access model: per access-dependent element and per "not reached" screen, the BA records that explain it (`explained_by`), in both read models, one shared fixture | US3.4, FR-006 |
+| F | Review group "Unexplained differences": one item per unexplained element or reach difference; the nav's Review count includes them | US3.3 |
+| G | Side by side on the screen page's Access tab: pick two personas, their screenshots and attributes side by side, elements only one sees, elements whose text differs (paired), the rest counted | US3.1, F-02 |
+| H | One persona-merge fixture (YAML tree + expected) checked by the TypeScript loader and the dashboard's Settings | F-06 |
+
+### E. When is a difference explained (deterministic)
+
+The latest revision of a record that is not withdrawn, with these evidence links:
+
+- **Element** (`seen_by` and `not_seen_by` both non-empty): a `business_rule` citing a
+  `screen_region` of the element on a seer's variant state (the region key without its `#n`
+  suffix equals the element key) **and** a `state` or `screen_region` on a non-seer's variant
+  state. That is the `ba-practice` access rule: one persona that sees it, one that does not.
+- **Reach** (`not_reached` non-empty): a `business_rule` or an `open_question` (the guidance asks
+  for a question here: "never reached" is a coverage fact first) citing a state of the screen
+  **and** a state that one of the `not_reached` personas observed.
+
+`explained_by` lists the record keys (sorted); `reach_explained_by` likewise per screen (empty when
+nothing is unreached). Reading: one query for the evidence links of such records of the portal and
+one for the states each persona observed; no migration.
+
+### F. Review
+
+`queries_review.KINDS` gains `("differences", "Unexplained differences")`. An item names the
+screen, the element (or "not reached by …"), who sees it and who does not with their attributes,
+and links to the screen's Access tab side by side with a seer on the left and a non-seer on the
+right. Deciding means writing the BA record (chat or BA session); the dashboard stays read-only.
+The nav count adds them (through the access model, not one SQL query: it needs the set logic).
+
+### G. Side by side
+
+`queries_access.variant_diff(conn, left_state, right_state)`: each state's actions as element keys
+in recorded order; `only_left`, `only_right`, `text_differs` (unmatched keys paired by role in order
+of appearance, e.g. `link "Cart (1)"` / `link "Cart (0)"`, F-02) and `same` (count). The Access tab
+gets a switcher: each persona's variant alone, or side by side (`?left=&right=` personas, default
+the first seer and first non-seer of the first difference). Screenshots come from the variant
+states.
+
+### H. Merge fixture
+
+`apps/crawler/tests/fixtures/personas/extends/` with mixins and personas (nested `extends`, a list
+attribute, a child overriding one key, `auth` refs) and `expected.json` (resolved `attributes` and
+`auth` per persona). `packages/config` tests and `apps/dashboard/tests` both load it.

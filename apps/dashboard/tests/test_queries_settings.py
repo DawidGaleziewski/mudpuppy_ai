@@ -3,11 +3,13 @@ and the crawl rules read from the portal file."""
 
 from __future__ import annotations
 
+import json
 from pathlib import Path
 
 from pathfinder_dashboard import queries_settings
 
 from .conftest import Store, insert, ts
+from .paths import REPO_ROOT
 
 
 def test_stored_credentials_list_names_never_values(empty_store: Store) -> None:
@@ -73,6 +75,19 @@ def test_persona_attributes_merge_per_key_through_extends(tmp_path: Path) -> Non
     [anna] = queries_settings.persona_rows(root, "shop")
     assert anna.kind == "logged-in"
     assert anna.attributes == {"tariff": "premium", "region": "EU", "features": ["export"]}
+
+
+def test_persona_merge_matches_the_loader_on_the_shared_fixture() -> None:
+    """Spec 024 F-06: the TypeScript loader is checked against the same tree
+    (`packages/config/tests/persona-merge-shared.test.ts`)."""
+    root = REPO_ROOT / "apps/crawler/tests/fixtures/personas/extends"
+    want = json.loads((root / "expected.json").read_text())
+    rows = queries_settings.persona_rows(root, want["portal"])
+    got = {
+        p.id: {"attributes": p.attributes, "logged_in": p.kind == "logged-in", "refs": p.refs}
+        for p in rows
+    }
+    assert got == want["personas"]
 
 
 def test_crawl_rules_from_the_portal_file(tmp_path: Path) -> None:

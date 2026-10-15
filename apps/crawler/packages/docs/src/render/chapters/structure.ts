@@ -82,7 +82,8 @@ export function screens(m: ExportModel): string {
       const elements = Array.isArray(s.content.elements)
         ? (s.content.elements as { role?: unknown; label_verbatim?: unknown }[])
         : [];
-      const items = incoming(m.records, s.key, 'appears_on');
+      const shown = incoming(m.records, s.key, 'appears_on');
+      const items = shown.filter((r) => r.kind === 'data_item');
       return recordBlock(s, file, [
         field('Purpose', s.content.purpose),
         '',
@@ -108,22 +109,36 @@ export function screens(m: ExportModel): string {
         ...list(strings(s.content.entry_points)),
         ...observedUrls(m.screen_urls[s.key]),
         ...rulesApplied(m, s.key, file),
+        ...linkedList(
+          'Terms shown',
+          shown.filter((r) => r.kind === 'glossary_term'),
+          file,
+        ),
+        ...linkedList(
+          'Processes through this screen',
+          byKind(incoming(m.records, s.key, 'contains'), 'process'),
+          file,
+        ),
         ...backlinks(m.records, s.key, file),
       ]);
     }),
   ]);
 }
 
-/** The business rules that apply on a screen (`applies_on`, spec 019 F-14); empty when none. */
-function rulesApplied(m: ExportModel, key: string, file: string): string[] {
-  const rules = incoming(m.records, key, 'applies_on');
-  if (rules.length === 0) return [];
+/** A titled list of linked records; empty when none, so screens without them render as before. */
+function linkedList(title: string, records: readonly ExportRecord[], file: string): string[] {
+  if (records.length === 0) return [];
   return [
     '',
-    '**Business rules on this screen:**',
+    `**${title}:**`,
     '',
-    ...list(rules.map((r) => `${keyLink(r.key, file)} ${r.title}`)),
+    ...list(records.map((r) => `${keyLink(r.key, file)} ${r.title}`)),
   ];
+}
+
+/** The business rules that apply on a screen (`applies_on`, spec 019 F-14); empty when none. */
+function rulesApplied(m: ExportModel, key: string, file: string): string[] {
+  return linkedList('Business rules on this screen', incoming(m.records, key, 'applies_on'), file);
 }
 
 /**

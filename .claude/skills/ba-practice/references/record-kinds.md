@@ -22,10 +22,11 @@ Portal-language text goes in `*_verbatim` fields with a `lang` code (e.g. `pl`).
 ## Relations (from → type → to)
 
 - `capability` contains `process` | `screen`
+- `process` contains `screen` (the screens its steps pass through)
 - `use_case` describes `process`
 - `requirement` refines `use_case` | `capability`
 - `requirement` enforces `business_rule`
-- `data_item` appears_on `screen`
+- `data_item` | `glossary_term` appears_on `screen`
 - any kind uses_term `glossary_term`
 - `glossary_term` synonym_of `glossary_term`
 - `assumption` | `requirement` | `business_rule` answers `open_question`

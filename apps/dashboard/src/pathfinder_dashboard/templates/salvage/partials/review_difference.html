@@ -1,0 +1,42 @@
+{% import "salvage/macros.html" as sy %}
+{#- The selected unexplained difference (spec 024 US3.3): what differs on which screen, who sees it
+    and who does not with their attributes, and how a BA record explains it. Read-only: the record
+    is written by the BA (chat or a BA session); the item leaves Review once it exists. -#}
+{%- set d = sel %}
+{%- set s = d.screen %}
+{%- set state_of = {} %}
+{%- for x in s.variants %}{% set _ = state_of.update({x.persona_id: x.state_id}) %}{% endfor %}
+{%- macro who(personas) -%}
+<ul class="sy-stack sy-small" style="--sy-gap: 4px">
+  {%- for p in personas %}
+  <li><span class="sy-mono sy-mono--sm">{{ p }}</span> <span class="sy-muted">{{ v.attrs.get(p, "no attributes") }}</span></li>
+  {%- endfor %}
+</ul>
+{%- endmacro %}
+<aside class="sy-plate" aria-labelledby="sel-h">
+  <div class="sy-plate__head">
+    <div class="sy-stack" style="--sy-gap: 8px">
+      <div class="sy-cluster">{{ sy.status("access", "depends") }}<span class="sy-route">{{ s.route }}</span></div>
+      <h2 id="sel-h" class="sy-plate__title sy-case-normal">{{ s.title or "(untitled page)" }}</h2>
+    </div>
+  </div>
+  <div class="sy-plate__body sy-stack">
+    {%- if d.element %}
+    {%- set e = d.element %}
+    <p class="sy-small">Element <span class="sy-mono sy-mono--sm mp-break">{{ e.key }}</span></p>
+    <h3 class="sy-label">Seen by</h3>
+    {{ who(e.seen_by) }}
+    <h3 class="sy-label">Not seen by</h3>
+    {{ who(e.not_seen_by) }}
+    <a class="sy-small" href="{{ c.url('/states/' ~ state_of[e.seen_by[0]], side='access', left=e.seen_by[0], right=e.not_seen_by[0]) }}">Compare {{ e.seen_by[0] }} and {{ e.not_seen_by[0] }} side by side</a>
+    <p class="sy-small sy-muted">Explain it with a business rule that cites this element on the screen of a persona who sees it and the screen of a persona who does not. It leaves Review once that record exists.</p>
+    {%- else %}
+    <h3 class="sy-label">Reached by</h3>
+    {{ who(s.variants | map(attribute="persona_id") | list) }}
+    <h3 class="sy-label">Not reached by</h3>
+    {{ who(s.not_reached) }}
+    <a class="sy-small" href="{{ c.url('/states/' ~ s.variants[0].state_id, side='access') }}">Open the screen's Access tab</a>
+    <p class="sy-small sy-muted">A screen some personas never reach may be access or a scan that stopped early. Explain it with a business rule or an open question that cites this screen and a screen the other persona reached. It leaves Review once that record exists.</p>
+    {%- endif %}
+  </div>
+</aside>

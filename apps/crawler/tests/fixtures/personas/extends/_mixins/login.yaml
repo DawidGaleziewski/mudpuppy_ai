@@ -1,0 +1,5 @@
+extends: ["base.yaml"]
+auth:
+  login: ref:SHOP_LOGIN
+  password: ref:SHOP_PASSWORD
+attributes: { features: [search, export] }

@@ -14,7 +14,8 @@ schemas) and store (record keys are allocated in the DB, `src/keys.ts`).
 - Spec 019: `parameterInventory` (`param-inventory.ts`, URL parameters and entry URLs per state,
   pure; `render/screen-urls.ts` puts them in the export) and `describeRecordKinds` /
   `describeRelations` (`record-kinds-text.ts`, the BA's write contract as text, from the schemas).
-- SRS rendering (`src/render/`), audit, review, export, process scope, evaluation; used by the
+- SRS rendering (`src/render/`; a screen lists its data items, terms shown and processes through
+  it from `appears_on` / `contains`, spec 028), audit, review, export, process scope, evaluation; used by the
   crawler app scripts (`pnpm docs:*`). `readGroundTruth()` reads a YAML ground truth (G-34); used
   by `apps/crawler/evals/`, `docs:evaluate` and the gates.
 - Test helpers in `src/testing/` (a migrated scratch store, record fixtures).

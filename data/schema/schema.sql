@@ -1,4 +1,4 @@
--- GENERATED from data/migrations/*.up.sql applied in order (currently through 0017_chat_proposals). Do not edit by hand.
+-- GENERATED from data/migrations/*.up.sql applied in order (currently through 0019_relation_screens). Do not edit by hand.
 -- Regenerate after every migration; see data/schema/README.md.
 
 CREATE TABLE runs (
@@ -385,7 +385,8 @@ CREATE TABLE doc_relations (
                     )),
   PRIMARY KEY (from_revision_id, to_record_id, type)
 ) STRICT, WITHOUT ROWID;
--- Triple backstop (0013, extended by 0014 with applies_on, asks_about, follows_up): the store refuses a relation whose (from kind, type, to kind) is not in
+-- Triple backstop (0013, extended by 0014 with applies_on, asks_about, follows_up, and by 0019 with
+-- glossary_term appears_on screen and process contains screen): the store refuses a relation whose (from kind, type, to kind) is not in
 -- RELATION_RULES; the list equals relations.ts (drift test: docs/tests/relation-triples.test.ts).
 CREATE TRIGGER trg_doc_relations_triple_insert
 BEFORE INSERT ON doc_relations
@@ -397,10 +398,11 @@ WHEN EXISTS (
   WHERE v.id = NEW.from_revision_id
     AND NOT (
       (NEW.type = 'contains'   AND fr.kind = 'capability'  AND tr.kind IN ('process','screen')) OR
+      (NEW.type = 'contains'   AND fr.kind = 'process'     AND tr.kind = 'screen') OR
       (NEW.type = 'describes'  AND fr.kind = 'use_case'    AND tr.kind = 'process') OR
       (NEW.type = 'refines'    AND fr.kind = 'requirement' AND tr.kind IN ('use_case','capability')) OR
       (NEW.type = 'enforces'   AND fr.kind = 'requirement' AND tr.kind = 'business_rule') OR
-      (NEW.type = 'appears_on' AND fr.kind = 'data_item'   AND tr.kind = 'screen') OR
+      (NEW.type = 'appears_on' AND fr.kind IN ('data_item','glossary_term') AND tr.kind = 'screen') OR
       (NEW.type = 'uses_term'  AND tr.kind = 'glossary_term') OR
       (NEW.type = 'synonym_of' AND fr.kind = 'glossary_term' AND tr.kind = 'glossary_term') OR
       (NEW.type = 'answers'    AND fr.kind IN ('assumption','requirement','business_rule') AND tr.kind = 'open_question') OR
@@ -424,10 +426,11 @@ WHEN EXISTS (
   WHERE v.id = NEW.from_revision_id
     AND NOT (
       (NEW.type = 'contains'   AND fr.kind = 'capability'  AND tr.kind IN ('process','screen')) OR
+      (NEW.type = 'contains'   AND fr.kind = 'process'     AND tr.kind = 'screen') OR
       (NEW.type = 'describes'  AND fr.kind = 'use_case'    AND tr.kind = 'process') OR
       (NEW.type = 'refines'    AND fr.kind = 'requirement' AND tr.kind IN ('use_case','capability')) OR
       (NEW.type = 'enforces'   AND fr.kind = 'requirement' AND tr.kind = 'business_rule') OR
-      (NEW.type = 'appears_on' AND fr.kind = 'data_item'   AND tr.kind = 'screen') OR
+      (NEW.type = 'appears_on' AND fr.kind IN ('data_item','glossary_term') AND tr.kind = 'screen') OR
       (NEW.type = 'uses_term'  AND tr.kind = 'glossary_term') OR
       (NEW.type = 'synonym_of' AND fr.kind = 'glossary_term' AND tr.kind = 'glossary_term') OR
       (NEW.type = 'answers'    AND fr.kind IN ('assumption','requirement','business_rule') AND tr.kind = 'open_question') OR

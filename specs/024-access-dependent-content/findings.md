@@ -87,6 +87,41 @@ variants with seen / not seen). Each finding has a test or eval idea.
   like the perf tests.
 - **Test idea**: run the shop gates with a CPU hog (`stress -c <cores>`) to reproduce.
 
+## F-10 Settings showed a persona with `auth: none` over a login mixin as logged in, 2026-10-15 (P2, T012)
+
+- **What**: the shared merge fixture (F-06) found a real drift on its first run. The dashboard's
+  Settings took a persona's refs from the file and one level of `extends` (overridden values
+  included) and called it "logged-in" when any ref was found; the loader deep-merges through every
+  level and the file's `auth: none` wins. So `logged-out` (extends a login mixin, `auth: none`)
+  showed as logged-in with the mixin's refs, and `premium` (overrides only the password) listed the
+  overridden `SHOP_PASSWORD`. A mixin two levels down lost its refs entirely.
+- **Fix**: `queries_settings.resolved_persona` merges like `load-persona.ts` (objects key by key,
+  scalars and lists replaced, every level); kind and refs come from the resolved `auth`. Both sides
+  are tested on `apps/crawler/tests/fixtures/personas/extends/` (`expected.json`).
+- **Test idea**: the fixture is the test; add a case to it whenever the loader's merge changes.
+
+## F-11 What explains a difference is a citation rule, not a judgement, 2026-10-15 (P2, T008)
+
+- **What**: "explained" (plan P2 E) is decided from evidence links only: a business rule citing the
+  element's region on a seer's variant and the non-seer's variant (state or region), or for a
+  screen nobody else reached a rule or open question citing the screen and a state the other
+  persona observed. A record that cites both sides but says something unrelated still "explains"
+  it; one that states the right rule but cites only states (no region) does not.
+- **Next**: if the BA misses the region often, the R-47 judge could answer "does this record
+  explain this difference"; until then the access-rules note in `ba-practice` says what to cite.
+- **Eval idea**: in a two-persona trial, count differences left unexplained and records that
+  cite both sides of a difference they do not describe.
+
+## F-12 Pairing "text differs" by role and place is a guess, 2026-10-15 (P2, T010)
+
+- **What**: side by side pairs two unmatched elements when they have the same role at the same
+  place among that role's elements (F-02). Two different buttons at the same place (Export on one
+  side, Print on the other) would show as "text differs". Review items still come from the access
+  model, which keeps the two keys apart, so nothing is hidden; only the side-by-side wording can
+  mislead.
+- **Test idea**: a fixture pair with a renamed price and a swapped button; assert the price pairs
+  and the button does not (needs a better rule, e.g. the same position in the wireframe layout).
+
 ## Close-out review (code-reviewer, G-31), 2026-10-14
 
 | # | File | Guideline | Finding | Outcome |

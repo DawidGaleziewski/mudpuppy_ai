@@ -1,0 +1,4 @@
+id: logged-out
+extends: ["../_mixins/login.yaml"]
+auth: none
+attributes: { contract: B2B }

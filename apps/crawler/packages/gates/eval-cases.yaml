@@ -289,3 +289,7 @@
   title: The squash commit took a file the owner had staged
   tier: not_testable
   reason: a process slip in the merge; the idea is a clean-status check before a squash merge
+- id: F-09@026
+  title: The export-fork export fails while the chat service runs
+  tier: not_testable
+  reason: dashboard test isolation, not crawler behaviour; the fix is pointing the dashboard tests' chat client at a closed port

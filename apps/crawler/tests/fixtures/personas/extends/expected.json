@@ -1,0 +1,21 @@
+{
+  "about": "Spec 024 F-06: one persona tree both `extends` merges are checked against (TypeScript loadPersona in packages/config, the dashboard's Settings in queries_settings.py). Objects merge key by key, scalars and lists are replaced, the file itself wins; mixins nest (premium -> login -> base). `refs` are the vault refs of the resolved persona, sorted; `logged_in` is auth other than none.",
+  "portal": "shop",
+  "personas": {
+    "anonymous": {
+      "attributes": { "tariff": "basic", "features": ["search"] },
+      "logged_in": false,
+      "refs": []
+    },
+    "logged-out": {
+      "attributes": { "tariff": "basic", "features": ["search", "export"], "contract": "B2B" },
+      "logged_in": false,
+      "refs": []
+    },
+    "premium": {
+      "attributes": { "tariff": "premium", "features": ["search", "export"] },
+      "logged_in": true,
+      "refs": ["PREMIUM_PASSWORD", "SHOP_LOGIN"]
+    }
+  }
+}

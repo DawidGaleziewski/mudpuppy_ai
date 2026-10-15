@@ -55,12 +55,21 @@ def _layers(path: Path, root: Path, depth: int = 0) -> list[dict[str, Any]]:
     return [*out, doc]
 
 
-def _attributes(layers: list[dict[str, Any]]) -> dict[str, Any]:
-    """`attributes` merged per key like the loader does: a later layer wins."""
+def _merge(base: dict[str, Any], over: dict[str, Any]) -> dict[str, Any]:
+    """The loader's merge (`load-persona.ts`): objects merge key by key, scalars and lists are
+    replaced. Both are checked against `apps/crawler/tests/fixtures/personas/extends` (F-06)."""
+    out = dict(base)
+    for key, value in over.items():
+        both = isinstance(value, dict) and isinstance(out.get(key), dict)
+        out[key] = _merge(out[key], value) if both else value
+    return out
+
+
+def resolved_persona(path: Path, root: Path) -> dict[str, Any]:
+    """A persona file merged through its `extends`, the file last."""
     merged: dict[str, Any] = {}
-    for layer in layers:
-        if isinstance(layer.get("attributes"), dict):
-            merged.update(layer["attributes"])
+    for layer in _layers(path, root):
+        merged = _merge(merged, {k: v for k, v in layer.items() if k != "extends"})
     return merged
 
 
@@ -68,11 +77,15 @@ def persona_rows(personas_dir: Path, portal: str | None) -> list[PersonaRow]:
     root = personas_dir.resolve()
     out = []
     for p in queries_chat.list_personas(personas_dir, portal):
-        layers = _layers(root / str(portal) / f"{p.id}.yaml", root)
-        auth = next((d["auth"] for d in reversed(layers) if "auth" in d), None)
-        logged_in = bool(p.refs) or auth not in (None, "none")
-        kind = "logged-in" if logged_in else "anonymous"
-        out.append(PersonaRow(p.id, kind, p.refs, _attributes(layers)))
+        persona = resolved_persona(root / str(portal) / f"{p.id}.yaml", root)
+        auth = persona.get("auth")
+        refs: list[str] = []
+        queries_chat._collect_refs(auth, refs)
+        kind = "logged-in" if auth not in (None, "none") else "anonymous"
+        attributes = persona.get("attributes")
+        out.append(
+            PersonaRow(p.id, kind, sorted(refs), attributes if isinstance(attributes, dict) else {})
+        )
     return out
 
 

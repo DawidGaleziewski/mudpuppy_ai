@@ -11,4 +11,5 @@
   `synonym_of`; ask an `open_question` if they might differ.
 - Every other record that uses a term relates to it with `uses_term`, so the vocabulary stays
   consistent across passes. Reuse existing terms (`list_records kind=glossary_term`) before adding.
+- A term relates to each screen that shows it with `appears_on` (`glossary_term appears_on screen`).
 - Don't add generic UI words ("Dalej", "Wyślij") as terms; they are labels, not domain language.

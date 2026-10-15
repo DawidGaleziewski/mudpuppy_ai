@@ -6,6 +6,26 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Added
+- R-51, R-39 round 4 and R-33 P2 on one branch (owner 2026-10-15: "merge these into one branch
+  and do all of them"; specs 028, 025, 024):
+  - **Two more relations (R-51):** a glossary term `appears_on` the screens that show it, and a
+    process `contains` the screens it passes through (migration 0019 recreates the store's
+    triggers; the types already existed). The SRS export lists a screen's terms and processes
+    apart from its data items, and the BA guidance names both.
+  - **BA guidance without proving-ground quotes (R-39):** the URL section's insurer and bank
+    routes, parameters and button label became legacy-shaped library examples. A reference
+    trial afterwards: no regression, relation refusals 12 → 1, refused writes 14 → 6 %, 29
+    process-to-screen links. Baseline not promoted.
+  - **Differences between personas get explained (R-33):** the access matrix (dashboard and the
+    BA's `get_access_matrix`) names the business rule that explains each element only some
+    personas see (it cites the element on a seer's screen and a non-seer's screen) and the rule
+    or open question that explains a screen some personas never reach. **Review** gets an
+    **Unexplained differences** group (counted in the nav) with who sees it and who does not;
+    the screen's **Access** tab marks each difference with its record or "Unexplained" and puts
+    two personas **side by side**: screenshots, attributes, what only one shows, what is the same
+    element with other text, and how many are the same.
+  - **One persona-merge fixture** for the loader and the dashboard's Settings; it found Settings
+    showing a persona with `auth: none` over a login mixin as logged in (fixed).
 - R-35 frontier order for item lists and pagination (spec 026; owner: "order only", then the
   name check, then "merge as is"):
   - **Unvisited kinds of page first:** the server hands out links to a route template the run
@@ -506,6 +526,8 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Moved the TypeScript workspace into `apps/crawler/` so the repo root can host other apps. Commit: b1639fc.
 
 ### Fixed
+- Spec 028 F-01: the real-sandbox smoke test followed links with whatever portal a later page had
+  switched to; it now uses the portal of the page the link was on.
 - R-52: radio and checkbox highlight crops in the export hold their labels (F-12@008); a
   re-issued action's stored decision follows the latest one (F-05@004); a revised BA record keeps
   its citations from runs outside the session (F-16@004); trace runs are no longer cut off by the

@@ -1,0 +1,6 @@
+auth: none
+max_action_class: read
+consent: { decline_location: true, decline_marketing: true }
+viewport: { width: 1366, height: 768 }
+locale: pl-PL
+attributes: { tariff: basic, features: [search] }

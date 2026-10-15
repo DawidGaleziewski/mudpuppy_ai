@@ -136,7 +136,7 @@ export function registerBaTools(server: McpServer, ctx: BaContext): void {
   );
   tool(
     'get_access_matrix',
-    'Which personas reached each screen, the variant (state) each saw, and the elements only some personas see: seen_by / not_seen_by, with depends_on_access marks and each persona\'s attributes. "Not seen" counts only completed map runs. Document an access rule with one persona that sees the element and one that does not as evidence. Pass screen_id for one screen.',
+    "Which personas reached each screen, the variant (state) each saw, and the elements only some personas see: seen_by / not_seen_by, with depends_on_access marks and each persona's attributes. \"Not seen\" counts only completed map runs. Document an access rule with one persona that sees the element and one that does not as evidence: the element's screen_region on a seer's variant state and the non-seer's variant state. explained_by / reach_explained_by name the records that already do; an empty list is an unexplained difference the reviewer sees in Review. Pass screen_id for one screen.",
     { portal_id: z.string(), screen_id: z.string().optional() },
     (a) => getAccessMatrix(ctx, a),
   );

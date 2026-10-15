@@ -75,6 +75,8 @@ PII check reads an id in prose as a token and refuses the write (`PII_SUSPECTED`
 - `PROC` field `observed_extent`: `full` when the process ended `goal_reached`; `until_boundary` when it
   ended `boundary_reached` (a trace stopped at an action above the run's limit); `map_only` when you
   know the process only from map data (screens and edges, no trace).
+- Relate each `process` to every screen its steps pass through with `contains`
+  (`process contains screen`), in step order.
 - Write each `use_case` main flow from the steps, one entry per step: actor steps quote the verbatim
   label and value, system steps state the recorded outcome (`references/use-cases.md`).
 - A boundary is a `not_observable` gap: record what lies beyond it with `not_observable: true`,
@@ -97,17 +99,18 @@ action (`edge_id`) or hop that set them.
   `/katalog/wyniki?fraza={text}`). Parameters go in `entry_points` and in rule and data-item
   records, never into the route.
 - **Entry points** (pass 1): a screen's `entry_points` name every distinct way in, e.g. "old URL
-  `/polisa.php?id=:nr`, redirected (meta refresh, then script) to `/ubezpieczenia#/polisy/:nr`".
+  `/egzemplarz.asp?sygn=:sygn`, redirected (meta refresh, then script) to
+  `/czytelnia#/egzemplarze/:sygn`".
 - **Parameters that change the screen** (pass 4): a value that switches the layout or content (e.g.
-  `tryb=druk` gives a print layout) is a `business_rule` (`rule_type` `inference`) citing a visit
+  `widok=karta` gives a printable catalogue card) is a `business_rule` (`rule_type` `inference`) citing a visit
   with each value.
 - **Parameters that only matter together** (pass 4): when one parameter's format or meaning depends
-  on another (e.g. `okres` is `YYYY-MM` when `typ=M` and `YYYY` when `typ=R`), write a
+  on another (e.g. `termin` is `DD.MM.YYYY` when `rodzaj=dzien` and `YYYY` when `rodzaj=rok`), write a
   `business_rule`, with a `decision_table` when there are several combinations. Cite the visits
   that show each combination. Label it `inferred` unless a validation message or error page shows the
   dependency. Then it is `observed`, and that page is cited too.
 - **Parameters carried from page to page** (pass 5): a parameter set by one action and passed along
-  (`konto`, a session id) is a `data_item` with `seen_in` kind `page_visit`. Say where it is set and
+  (`czytelnik`, a session id) is a `data_item` with `seen_in` kind `page_visit`. Say where it is set and
   where it is read.
 - Session ids and tracking parameters are recorded on purpose. Document a session id once, as a
   `data_item` ("Session identifier in the URL path"). Never list its values in prose.
@@ -136,7 +139,8 @@ needs: `references/srs-outline.md`.
   its state. A key in `elements_without_box` is still valid (it is in the snapshot but not visible on the
   screenshot); prefer an outlined one when both describe the same thing.
 - A `data_item` relates to its screen with `appears_on`; any record using a domain term relates to the
-  `glossary_term` with `uses_term`.
+  `glossary_term` with `uses_term`; a `glossary_term` relates to each screen that shows it with
+  `appears_on`.
 - A `requirement` `refines` a `use_case` or `capability` and `enforces` a `business_rule`.
 - A `business_rule` relates to each screen it holds on with `applies_on` (besides citing the
   screen region as evidence); an `open_question` names what it is about with `asks_about`; a
@@ -155,7 +159,7 @@ needs: `references/srs-outline.md`.
   actor. The login and any re-login are crawler events, not steps of a process: never write a
   `re-login` into a flow or a use case. A `relogin` decision only explains why a state repeats.
 - **Legacy obstacles.** When a record describes something in `docs/legacy-obstacles.md`, name it in
-  plain words in the statement, for example `The "Wykonaj" button has no accessible role.` or `The
+  plain words in the statement, for example `The "Rezerwuj" button has no accessible role.` or `The
   history list is shown in a frameset.` Reviewers and the evaluator find it by those words.
 
 ## Asking for more

@@ -109,3 +109,18 @@ guidance (F-02). Branch `feature/025-r39-process-scoring`.
   (rules, fields, constraints, terms) within the old map-only baseline's tolerances.
 - **SC-006** A string search of the `ba-practice` skill and `ba.md` finds none of the reference
   ground truth's rule anchor labels, graded terms or routes.
+
+## Round 4: proving-ground quotes, relations to screens (owner decisions 2026-10-15)
+
+On branch `feature/028-r51-r39-r33-relations-access` with R-51 (spec 028) and R-33 P2.
+
+- **FR-014** (F-13) The URL section of `ba-practice` SKILL.md quotes no proving-ground route,
+  parameter or label: legacy-shaped examples from the library domain instead (an `.asp` URL
+  redirected to a hash route, a layout parameter, two parameters that matter together, a parameter
+  carried along, a button without a role).
+- **FR-015** (F-15, F-05) Measure the R-51 relations: one reference-insurer trial with split
+  sessions on the branch.
+- **SC-007** SC-006's search, widened to every suite ground truth (reference, proving-ground
+  insurer, bank, shop, wikipedia), finds only generic words (CAPTCHA, E-mail, Model, "old URL").
+- **SC-008** The FR-015 trial has no `glossary_term appears_on screen` or `process … screen`
+  refusal and no category below the 2026-10-14 baseline's tolerances.

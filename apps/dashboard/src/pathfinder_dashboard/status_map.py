@@ -158,6 +158,10 @@ VOCABULARIES: dict[str, dict[str, Status]] = {
         "depends": _s("live", "Differs"),
         "same": _s("skipped", "Same for all"),
     },
+    # Has a BA record explained a difference between personas (spec 024 US3.4)?
+    "explained": {
+        "no": _s("needs", "Unexplained"),
+    },
     # BA processes (spec 022 M5, screens 04–07).
     "stage": {
         "suggested": _s("inferred", "Suggested"),

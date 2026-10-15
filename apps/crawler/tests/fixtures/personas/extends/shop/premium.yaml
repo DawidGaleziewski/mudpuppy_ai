@@ -1,0 +1,5 @@
+id: premium
+extends: ["../_mixins/login.yaml"]
+auth:
+  password: ref:PREMIUM_PASSWORD
+attributes: { tariff: premium }

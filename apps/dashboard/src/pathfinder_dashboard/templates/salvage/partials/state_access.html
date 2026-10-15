@@ -1,6 +1,10 @@
 {% import "salvage/macros.html" as sy %}
-{#- The screen page's Access tab (spec 024 US2): who reached this screen, who did not, and the
-    elements only some personas see. -#}
+{#- The screen page's Access tab (spec 024 US2, US3): who reached this screen, who did not, the
+    elements only some personas see, which BA record explains each difference, and two personas'
+    variants side by side. -#}
+{%- macro explained(keys) -%}
+  {%- for k in keys %}{{ sy.tag(k, c.url('/docs/' ~ ac.portal ~ '/' ~ k), sm=true) }}{% else %}{{ sy.status("explained", "no") }}{% endfor -%}
+{%- endmacro %}
 {% if not ac %}<p class="sy-small sy-muted">Not grouped into a screen yet.</p>{% else %}
 {% call sy.region("state-access", ac.self_url, "Access to this screen") %}
 {%- set a = ac.access %}
@@ -21,6 +25,7 @@
   {%- if a.not_reached %}
   <h2 class="sy-label">Not reached by</h2>
   <p class="sy-small">{{ a.not_reached | join(", ") }}</p>
+  <div class="sy-cluster sy-small">{{ explained(a.reach_explained_by) }}</div>
   {%- endif %}
   <h2 class="sy-label">Elements that differ</h2>
   {%- if not a.elements %}
@@ -29,11 +34,11 @@
   <div class="sy-table-wrap sy-table-wrap--flush">
     <table class="sy-table sy-table--dense">
       <caption class="sy-sr-only">Elements that depend on the persona</caption>
-      <thead><tr><th scope="col">Element</th><th scope="col">Seen by</th><th scope="col">Not seen by</th></tr></thead>
+      <thead><tr><th scope="col">Element · explained by</th><th scope="col">Seen by</th><th scope="col">Not seen by</th></tr></thead>
       <tbody>
         {%- for e in a.elements %}
         <tr>
-          <th scope="row" class="sy-mono sy-mono--sm mp-break">{{ e.key }}</th>
+          <th scope="row"><span class="sy-stack" style="--sy-gap: 4px"><span class="sy-mono sy-mono--sm mp-break">{{ e.key }}</span><span class="sy-cluster" data-explained>{{ explained(e.explained_by) }}</span></span></th>
           <td class="sy-small">{{ e.seen_by | join(", ") }}</td>
           <td class="sy-small">{{ e.not_seen_by | join(", ") }}</td>
         </tr>
@@ -43,6 +48,7 @@
   </div>
   <p class="sy-small sy-muted">{{ a.elements | length }} of {{ a.elements_total }} elements depend on access.</p>
   {%- endif %}
+  {%- include "salvage/partials/state_access_compare.html" %}
 </div>
 {%- endif %}
 {% endcall %}

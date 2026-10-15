@@ -46,10 +46,14 @@ rows: [
 When a portal was scanned with personas that differ by attributes (tariff, contract, flags),
 `get_access_matrix` lists, per screen, the elements only some personas see. An access rule is an
 `action_enabler` with both sides as evidence: one persona that sees the element and one that does
-not (their variant states from the matrix). Name the condition with the attributes the owner wrote
-(`list_runs` → `persona_attributes`), as an `inferred` rule when the attributes differ in more than
-one key; the reason for the rule goes in an `open_question`. A screen marked only because a persona
-"never reached" it is a coverage fact, not yet a rule: ask, do not state it.
+not (their variant states from the matrix). Cite the element as a `screen_region` on the seer's
+variant state (its key from `elements`) and the non-seer's variant state; only then does the matrix
+list the rule in the element's `explained_by` and the difference leave the reviewer's Review inbox.
+Name the condition with the attributes the owner wrote (`list_runs` → `persona_attributes`), as an
+`inferred` rule when the attributes differ in more than one key; the reason for the rule goes in an
+`open_question`. A screen marked only because a persona "never reached" it is a coverage fact, not
+yet a rule: ask with an `open_question` citing the screen and a screen that persona did reach (it
+then shows in `reach_explained_by`), do not state it.
 
 ## Honest labels
 

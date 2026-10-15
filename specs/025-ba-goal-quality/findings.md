@@ -250,3 +250,29 @@ Trial `2026-10-14T16-23-24-298Z` (git efefd31, $6.27, 1172 s): crawler 17/17, fo
 
 Checks after fixes: typecheck ✓ lint ✓ test:fast ✓ (`evals/tests` 117 ✓ run explicitly)
 Summary: 3 findings, 1 fixed, 2 deferred, 0 rejected.
+
+## F-16 Round 4 trial: R-51 relations and library-domain URL examples, 2026-10-15 (T017)
+
+Trial `2026-10-15T18-28-26-019Z` (git bd8b254, $6.51, 1359 s): crawler 45 steps, four traces
+(goal 4/4, 10/11 steps), BA map session then BA traces session, both `success`. Compared with the
+promoted baseline (`2026-10-14T16-23-24-298Z`): **no regression**.
+
+| Measure | Baseline | Now |
+|---|---|---|
+| processes / processes_map | 80 % / 80 % | 80 % / 80 % |
+| rules | 62.5 % | 56.3 % (one rule; inside the 25-point spread of F-04) |
+| fields / constraints / terms / screens | 100 / 100 / 100 / 100 % | 100 / 98 / 100 / 100 % |
+| BA writes refused | 18 of 125 (14 %) | 7 of 115 (6 %) |
+| `RELATION_NOT_ALLOWED` | 12 | **1** |
+
+- SC-008 and spec 028 SC-002 met: no `glossary_term appears_on screen` or `process … screen`
+  refusal. The traces session wrote **29 `process contains screen`** links (FR-015). The map
+  session wrote **no** `glossary_term appears_on screen` and did not try one either: the
+  10 refusals of the last trial are gone, but the link is not used yet. The guidance names it in
+  `references/glossary.md` only, which pass 5 reads; one trial cannot say whether the BA skips it.
+- The one refusal is a new intent: `use_case depends_on business_rule` (twice in the traces
+  session, counted once). Same family as R-51's open "assumption about a rule": a record that
+  rests on a rule of another kind. Left for the owner with R-51's remaining question.
+- Baseline not promoted (owner decides; the new conditions only differ by guidance and relations).
+- **Eval idea**: a check counting relations per (from kind, type, to kind), so a new relation's
+  use shows in the result like the refusals do.

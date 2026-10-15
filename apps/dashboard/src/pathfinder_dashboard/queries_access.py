@@ -1,5 +1,6 @@
-"""Access read model (spec 024 US2): which personas reached each screen, the variant each one saw,
-and which elements only some personas see. Read-only and deterministic; no migration.
+"""Access read model (spec 024 US2, US3.4): which personas reached each screen, the variant each one
+saw, which elements only some personas see, and which BA records explain those differences.
+Read-only and deterministic; no migration.
 
 The BA tool `get_access_matrix` (apps/crawler `services/ba/access.ts`) computes the same model;
 both are checked against `apps/crawler/tests/fixtures/access/three-personas.json`.
@@ -10,12 +11,17 @@ both are checked against `apps/crawler/tests/fixtures/access/three-personas.json
   whose only visit was in an interrupted run has not shown that the element is missing.
 - An element depends on access when some persona sees it and another does not; a screen does when
   any element does, or when a persona with a completed map run of the portal never reached it.
+- Explained (plan P2 E), from the latest revision of a record that is not withdrawn: an element by
+  a business rule citing the element's screen region on a seer's variant and a state or region on
+  a non-seer's variant; a screen's "not reached" by a business rule or open question citing a
+  state of the screen and a state an unreaching persona observed.
 """
 
 from __future__ import annotations
 
+import re
 import sqlite3
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 
 @dataclass(frozen=True)
@@ -32,6 +38,7 @@ class ElementAccess:
     key: str
     seen_by: list[str]
     not_seen_by: list[str]
+    explained_by: list[str]  # record keys, sorted
 
 
 @dataclass(frozen=True)
@@ -42,6 +49,7 @@ class ScreenAccess:
     depends_on_access: bool
     variants: list[Variant]
     not_reached: list[str]  # personas with a completed map run of the portal that never got here
+    reach_explained_by: list[str]  # record keys; empty when nothing is unreached
     elements_total: int
     elements: list[ElementAccess]  # the access-dependent ones only
 
@@ -53,8 +61,76 @@ class AccessMatrix:
     screens: list[ScreenAccess]
 
 
+@dataclass
+class _Cited:
+    """What one record's latest revision cites: states, and (state, element key) regions."""
+
+    kind: str
+    states: set[str] = field(default_factory=set)
+    regions: set[tuple[str, str]] = field(default_factory=set)
+
+
+@dataclass(frozen=True)
+class _Evidence:
+    cited: dict[str, _Cited]  # record key → citations
+    observed: dict[str, set[str]]  # persona → states it observed
+
+
 def element_key(role: str, name: str | None) -> str:
     return f'{role} "{name}"' if name else role
+
+
+def _region_base(region: str) -> str:
+    """A region key without its `#n` suffix (the second `button "Export"` is `…"Export"#2`)."""
+    return re.sub(r"#\d+$", "", region)
+
+
+def _evidence(conn: sqlite3.Connection, portal: str) -> _Evidence:
+    cited: dict[str, _Cited] = {}
+    try:
+        links = conn.execute(
+            """SELECT r.key, r.kind, l.target_id, l.region FROM doc_records r
+               JOIN doc_revisions v ON v.record_id = r.id AND v.rev_no = r.latest_rev
+               JOIN doc_evidence_links l ON l.revision_id = v.id
+                AND l.target_kind IN ('state', 'screen_region')
+               WHERE r.portal_id = ? AND r.withdrawn = 0
+                 AND r.kind IN ('business_rule', 'open_question')""",
+            (portal,),
+        ).fetchall()
+    except sqlite3.OperationalError:  # a store before the documentation tables
+        links = []
+    for x in links:
+        c = cited.setdefault(x["key"], _Cited(x["kind"]))
+        c.states.add(x["target_id"])
+        if x["region"]:
+            c.regions.add((x["target_id"], _region_base(x["region"])))
+    observed: dict[str, set[str]] = {}
+    for o in conn.execute(
+        "SELECT DISTINCT o.persona_id, o.state_id FROM state_observations o"
+        " JOIN states s ON s.id = o.state_id WHERE s.portal_id = ?",
+        (portal,),
+    ):
+        observed.setdefault(o["persona_id"], set()).add(o["state_id"])
+    return _Evidence(cited, observed)
+
+
+def _explaining_element(ev: _Evidence, key: str, seers: set[str], others: set[str]) -> list[str]:
+    return sorted(
+        k
+        for k, c in ev.cited.items()
+        if c.kind == "business_rule"
+        and any((s, key) in c.regions for s in seers)
+        and c.states & others
+    )
+
+
+def _explaining_reach(ev: _Evidence, screen_states: set[str], not_reached: list[str]) -> list[str]:
+    if not not_reached:
+        return []
+    elsewhere = set().union(*(ev.observed.get(p, set()) for p in not_reached))
+    return sorted(
+        k for k, c in ev.cited.items() if c.states & screen_states and c.states & elsewhere
+    )
 
 
 def _variants(rows: list[sqlite3.Row]) -> list[Variant]:
@@ -72,10 +148,11 @@ def _variants(rows: list[sqlite3.Row]) -> list[Variant]:
 
 
 def _screen(
-    rows: list[sqlite3.Row], keys: dict[str, set[str]], complete_personas: set[str]
+    rows: list[sqlite3.Row], keys: dict[str, set[str]], complete_personas: set[str], ev: _Evidence
 ) -> ScreenAccess:
     variants = _variants(rows)
-    seen = {v.persona_id: keys.get(v.state_id, set()) for v in variants}
+    state_of = {v.persona_id: v.state_id for v in variants}
+    seen = {p: keys.get(s, set()) for p, s in state_of.items()}
     counted = [v.persona_id for v in variants if v.complete_map_run]
     every_key = sorted(set().union(*seen.values()))
     elements = []
@@ -83,7 +160,10 @@ def _screen(
         seen_by = [p for p in seen if key in seen[p]]
         not_seen_by = [p for p in counted if key not in seen[p]]
         if seen_by and not_seen_by:
-            elements.append(ElementAccess(key, seen_by, not_seen_by))
+            seers = {state_of[p] for p in seen_by}
+            others = {state_of[p] for p in not_seen_by}
+            explained = _explaining_element(ev, key, seers, others)
+            elements.append(ElementAccess(key, seen_by, not_seen_by, explained))
     not_reached = sorted(complete_personas - seen.keys())
     first = rows[0]
     return ScreenAccess(
@@ -93,6 +173,7 @@ def _screen(
         depends_on_access=bool(elements or not_reached),
         variants=variants,
         not_reached=not_reached,
+        reach_explained_by=_explaining_reach(ev, {r["state_id"] for r in rows}, not_reached),
         elements_total=len(every_key),
         elements=elements,
     )
@@ -132,8 +213,91 @@ def access_matrix(
     by_screen: dict[str, list[sqlite3.Row]] = {}
     for o in observations:
         by_screen.setdefault(o["screen_id"], []).append(o)
+    ev = _evidence(conn, portal)
     return AccessMatrix(
         portal_id=portal,
         personas=[r["persona_id"] for r in runs],
-        screens=[_screen(rows, keys, complete_personas) for rows in by_screen.values()],
+        screens=[_screen(rows, keys, complete_personas, ev) for rows in by_screen.values()],
+    )
+
+
+@dataclass(frozen=True)
+class Difference:
+    """One open item for Review (plan P2 F): an element only some personas see, or (element
+    None) the personas that never reached the screen."""
+
+    screen: ScreenAccess
+    element: ElementAccess | None
+
+    @property
+    def id(self) -> str:
+        return f"{self.screen.screen_id}|{self.element.key if self.element else ''}"
+
+
+def unexplained(matrix: AccessMatrix) -> list[Difference]:
+    """Differences no BA record explains yet, screen by screen (reach first, then elements)."""
+    out: list[Difference] = []
+    for s in matrix.screens:
+        if s.not_reached and not s.reach_explained_by:
+            out.append(Difference(s, None))
+        out.extend(Difference(s, e) for e in s.elements if not e.explained_by)
+    return out
+
+
+@dataclass(frozen=True)
+class TextDiffers:
+    left: str
+    right: str
+
+
+@dataclass(frozen=True)
+class VariantDiff:
+    """Two variants side by side (plan P2 G): what only one shows, what is the same element with
+    other text (the same role at the same place among that role's elements, F-02), and how many
+    are the same."""
+
+    only_left: list[str]
+    only_right: list[str]
+    text_differs: list[TextDiffers]
+    same: int
+
+
+def screenshots(conn: sqlite3.Connection, state_ids: list[str]) -> dict[str, str | None]:
+    """state id → its screenshot evidence ref (None when the state has none)."""
+    marks = ", ".join("?" for _ in state_ids)
+    rows = conn.execute(
+        f"SELECT id, screenshot_ref FROM states WHERE id IN ({marks})", tuple(state_ids)
+    )
+    return {r["id"]: r["screenshot_ref"] for r in rows}
+
+
+def _elements_in_order(conn: sqlite3.Connection, state_id: str) -> list[tuple[str, str]]:
+    """(role, key) of a state's actions in recorded order, each key once."""
+    out: dict[str, str] = {}
+    for a in conn.execute(
+        "SELECT role, accessible_name FROM actions WHERE state_id = ? ORDER BY created_at, rowid",
+        (state_id,),
+    ):
+        out.setdefault(element_key(a["role"], a["accessible_name"]), a["role"])
+    return [(role, key) for key, role in out.items()]
+
+
+def variant_diff(conn: sqlite3.Connection, left_state: str, right_state: str) -> VariantDiff:
+    left, right = _elements_in_order(conn, left_state), _elements_in_order(conn, right_state)
+    left_keys, right_keys = {k for _, k in left}, {k for _, k in right}
+    by_role: dict[str, tuple[list[str], list[str]]] = {}
+    for side, elements in ((0, left), (1, right)):
+        for role, key in elements:
+            by_role.setdefault(role, ([], []))[side].append(key)
+    paired: list[TextDiffers] = []
+    for lk, rk in by_role.values():
+        for a, b in zip(lk, rk, strict=False):
+            if a not in right_keys and b not in left_keys:
+                paired.append(TextDiffers(a, b))
+    in_pairs = {p.left for p in paired} | {p.right for p in paired}
+    return VariantDiff(
+        only_left=[k for _, k in left if k not in right_keys and k not in in_pairs],
+        only_right=[k for _, k in right if k not in left_keys and k not in in_pairs],
+        text_differs=paired,
+        same=len(left_keys & right_keys),
     )

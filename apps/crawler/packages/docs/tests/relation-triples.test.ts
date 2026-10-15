@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import { fileURLToPath } from 'node:url';
 import { DocKind, RelationType } from '@pathfinder/docs-model';
-import { migrateUp, openDb, type OpenedDb } from '@pathfinder/store';
+import { migrateDown, migrateUp, openDb, type OpenedDb } from '@pathfinder/store';
 import { isAllowed } from '../src/relations.js';
 
 const MIGRATIONS = fileURLToPath(new URL('../../../../../data/migrations', import.meta.url));
@@ -93,6 +93,32 @@ describe('doc_relations triple triggers (0013_relation_triples) match RELATION_R
         .prepare(`UPDATE doc_relations SET to_record_id = ? WHERE type = 'appears_on'`)
         .run(rec('process')),
     ).toThrow(/RELATION_NOT_ALLOWED/);
+  });
+
+  it('0019 down drops only the two R-51 triples and refuses them again', () => {
+    opened = openDb(':memory:');
+    migrateUp(opened.raw, MIGRATIONS);
+    const ids = seed(opened);
+    const rev = (k: string) => ids[k]!.revision;
+    const rec = (k: string) => ids[k]!.record;
+    insert(opened, rev('glossary_term'), rec('screen'), 'appears_on');
+    insert(opened, rev('process'), rec('screen'), 'contains');
+    insert(opened, rev('data_item'), rec('screen'), 'appears_on');
+    insert(opened, rev('capability'), rec('screen'), 'contains');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0019');
+    const left = opened.raw
+      .prepare('SELECT from_revision_id AS f, type FROM doc_relations ORDER BY f')
+      .all();
+    expect(left).toEqual([
+      { f: rev('capability'), type: 'contains' },
+      { f: rev('data_item'), type: 'appears_on' },
+    ]);
+    expect(() => insert(opened!, rev('glossary_term'), rec('screen'), 'appears_on')).toThrow(
+      /RELATION_NOT_ALLOWED/,
+    );
+    expect(() => insert(opened!, rev('process'), rec('screen'), 'contains')).toThrow(
+      /RELATION_NOT_ALLOWED/,
+    );
   });
 
   it('leaves a missing revision or record to the foreign keys', () => {

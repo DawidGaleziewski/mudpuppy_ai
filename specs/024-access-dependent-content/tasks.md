@@ -20,3 +20,12 @@ Model tags per memory `model-split-per-task`. Commit per group with the task ids
 ## Close-out
 
 - [x] T007 [opus] findings (US2.4 revisions per persona, content vs access difference), roadmap R-33 (P1 done, rest open), changelog, code-reviewer, full suites, merge, tag, export
+
+## P2 (owner 2026-10-15), branch `feature/028-r51-r39-r33-relations-access`
+
+- [x] T008 [opus] E: `explained_by` / `reach_explained_by` in `queries_access.py`; fixture rows (doc records, revisions, evidence links) and expected; tests. As built: also `unexplained(matrix)` → `Difference` items for Review (F-11)
+- [x] T009 [opus] E: the same in `services/ba/access.ts` (`get_access_matrix`), contract, `ba-practice` access-rules note (what counts as explained); the tool description says it too
+- [x] T010 [opus] G: `variant_diff` with pairing (F-02, F-12); tests
+- [x] T011 [sonnet] F + G views: Review group "Unexplained differences" (count, item pane), Access tab switcher and side by side; route tests; ui:check. As built by Opus inline (no subagent): explained-by tags under each element key (a fourth column was clipped in the side pane), left/right persona links instead of selects (a GET form would drop the store parameter), status `explained: no` → "Unexplained" (needs); ui:check passed at 1280/390 on Review and three screen pages after two contrast fixes
+- [x] T012 [sonnet] H: shared persona-merge fixture, TS and Python tests (F-06). Found and fixed a real drift (F-10): Settings now merges like the loader
+- [x] T013 [opus] close-out with the branch: findings, roadmap R-33 (P2 part done), glossary, how-to

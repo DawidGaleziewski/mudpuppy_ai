@@ -243,6 +243,13 @@ Open one to see its page:
   variant each one saw, and the elements only some of them see ("seen by" / "not seen by"). Only
   finished scans count as "not seen". **Access by persona** on the Screens page shows the same for
   the whole portal: screens down, personas across.
+  - Each difference shows the record that explains it (a tag such as `BR-004`) or
+    **Unexplained**. A business rule explains an element when it cites the element on the screen
+    of a persona who sees it and the screen of one who does not; until then the difference waits
+    in Review under **Unexplained differences** (section 13).
+  - **Side by side** puts two personas' variants next to each other: their screenshots and
+    attributes, what only one of them shows, what is the same element with other text (a price,
+    a count) and how many elements are the same. Pick the left and right persona above it.
 - **Reached under** lists every address the screen was seen under, with redirects and
   parameters.
 
@@ -354,6 +361,7 @@ deleted.
 | Kind | What to do |
 | --- | --- |
 | **Records to confirm** | Read the record and its evidence. **Confirm**, **Reject** (a reason is required) or **Comment**. |
+| **Unexplained differences** | Something only some personas see (or a screen only some reach). See who sees it, compare two personas side by side, then have the BA write the rule (or, for a screen, a rule or an open question) that cites both sides. It leaves Review when that record exists. |
 | **Amendments to re-anchor** | Pick the element or screen the amendment belongs to now, or dismiss it. |
 | **Assistant proposals** | Changes the assistant suggested that you have not applied or discarded. |
 | **Edit conflicts** | Two saves on the same process or amendment. Compare them and keep one. |

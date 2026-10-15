@@ -200,9 +200,33 @@ documents the rule, citing one persona that sees the element and one that does n
 
 *Labels:* `Access`, `seen by`, `not seen by`
 
-*Related:* [Persona](#persona), [Run](#run)
+*Related:* [Persona](#persona), [Run](#run), [Unexplained difference](#unexplained-difference)
 
 <sub>Last changed in R-33, 2026-10-14.</sub>
+
+<a id="unexplained-difference"></a>
+
+#### Unexplained difference
+
+**Something only some personas see that no documentation record explains yet; it waits in Review until one does.**
+
+Every access-dependent element, and every screen some personas never reached, is a
+difference. It counts as explained once a business rule cites the element on the screen of
+a persona who sees it and the screen of one who does not (for a screen nobody else reached:
+a rule or an open question citing that screen and a screen the other persona reached).
+Until then it is listed in Review under "Unexplained differences", and the screen's Access
+tab marks it "Unexplained". The tab also shows two personas' variants side by side: what
+only one of them shows, what is the same element with other text, and how many are the same.
+
+*Example:* The B2B-only Invoices entry on Account leaves Review once BR-004 cites it on the B2B user's screen and the basic user's screen.
+
+*Seen in:* Review → Unexplained differences; Screen page → Access; Side by side
+
+*Labels:* `Unexplained differences`, `Unexplained`, `Explained by`, `Side by side`
+
+*Related:* [Access-dependent content](#access-dependent), [Persona](#persona), [Business rule (BR)](#business-rule)
+
+<sub>Last changed in R-33, 2026-10-15.</sub>
 
 ### Crawling
 
@@ -2657,13 +2681,14 @@ what the crawler actually recorded.
 Relation types: `contains`, `describes`, `refines`, `enforces`, `appears_on`, `uses_term`,
 `synonym_of`, `answers`, `depends_on`, and since R-45 `applies_on` (a rule holds on a
 screen), `asks_about` (what an open question is about) and `follows_up` (what a follow-up
-would observe). Each type allows only certain pairs of record kinds; the server and the store
+would observe). Since R-51 a glossary term also `appears_on` the screens that show it and a
+process `contains` the screens it passes through. Each type allows only certain pairs of record kinds; the server and the store
 both refuse any other pair, so no bad link is ever stored. Relations belong to the revision
 that states them, so they change with the record.
 
 *Example:* On reference-insurer the most common are uses_term (44), appears_on (41) and contains (39).
 
-*Seen in:* Record page → Relations; Linked records; SRS export (Business rules on this screen; Open questions about this)
+*Seen in:* Record page → Relations; Linked records; SRS export (Business rules on this screen; Terms shown; Processes through this screen; Open questions about this)
 
 *Labels:* `Relations`, `Linked records`
 

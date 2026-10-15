@@ -24,3 +24,11 @@ measurement). Model tags per memory `model-split-per-task`.
 - [x] T013 [sonnet] FR-012 neutral examples for the F-08 quotes in `ba-practice` (SKILL.md, business-rules, requirements-writing, use-cases, record-kinds, glossary); SC-006 search
 - [x] T014 [opus] FR-013 reference-insurer trial with split sessions and neutral guidance; findings; promote if SC-005 holds (else a second trial, then promote the better one and say why)
 - [x] T015 [opus] close-out: code-reviewer, suites, glossary, changelog, merge, tag, export
+
+## Round 4: proving-ground quotes, relations to screens (owner decisions 2026-10-15)
+
+Branch `feature/028-r51-r39-r33-relations-access` (with spec 028 and spec 024 P2).
+
+- [x] T016 [haiku] FR-014 library-domain examples in the `ba-practice` SKILL.md URL section and the legacy-obstacles line; SC-007 search over every suite ground truth
+- [x] T017 [opus] FR-015 reference-insurer trial with split sessions after R-51 and T016; findings (SC-008, spec 028 SC-002); baseline not promoted without the owner
+- [x] T018 [opus] close-out with the branch

@@ -1,6 +1,7 @@
 """Read models for the Review inbox (spec 022 screen 09, T029): one inbox for every decision that
-waits for a person: doc records to confirm, amendments to re-anchor, the assistant's proposals and
-edit conflicts. Read-only; each read gives nothing on a store older than the table it needs.
+waits for a person: doc records to confirm, differences between personas no record explains yet
+(spec 024 US3.3), amendments to re-anchor, the assistant's proposals and edit conflicts.
+Read-only; each read gives nothing on a store older than the table it needs.
 
 Edit conflicts are not stored yet: a stale save is refused with 409 on the spot (FR-005). The
 group stays, empty, until process drafts (M5) keep both versions."""
@@ -10,12 +11,13 @@ from __future__ import annotations
 import sqlite3
 from typing import Any, NamedTuple
 
-from . import queries_chat
+from . import queries_access, queries_chat
 from .models import Amendment
 from .queries_proposals import ProposalView, views_of
 
 KINDS: tuple[tuple[str, str], ...] = (
     ("records", "Records to confirm"),
+    ("differences", "Unexplained differences"),
     ("reanchor", "Amendments to re-anchor"),
     ("proposals", "Assistant proposals"),
     ("conflicts", "Edit conflicts"),
@@ -40,6 +42,7 @@ class CitedScreen(NamedTuple):
 
 class Inbox(NamedTuple):
     records: list[RecordItem]
+    differences: list[queries_access.Difference]
     reanchor: list[Amendment]
     proposals: list[ProposalView]
     conflicts: list[Any]
@@ -82,19 +85,30 @@ def open_proposals(conn: sqlite3.Connection, portal: str) -> list[ProposalView]:
     return views_of(conn, "p.portal_id = ? AND p.status IN ('open', 'stale')", (portal,))
 
 
+def differences(conn: sqlite3.Connection, portal: str) -> list[queries_access.Difference]:
+    """What only some personas see and no BA record explains yet (spec 024 US3.3)."""
+    return queries_access.unexplained(queries_access.access_matrix(conn, portal))
+
+
 def inbox(conn: sqlite3.Connection, portal: str | None) -> Inbox:
     if not portal:
-        return Inbox([], [], [], [])
+        return Inbox([], [], [], [], [])
     reanchor = [
         a
         for a in queries_chat.superseded_amendments(conn, portal, "superseded")
         if not a.reapplied_as
     ]
-    return Inbox(records_to_confirm(conn, portal), reanchor, open_proposals(conn, portal), [])
+    return Inbox(
+        records_to_confirm(conn, portal),
+        differences(conn, portal),
+        reanchor,
+        open_proposals(conn, portal),
+        [],
+    )
 
 
 def count(conn: sqlite3.Connection, portal: str | None) -> int:
-    """The nav's Review marker (FE-N04): everything waiting, one query."""
+    """The nav's Review marker (FE-N04): everything waiting."""
     if not portal:
         return 0
     rows = _rows(
@@ -109,7 +123,8 @@ def count(conn: sqlite3.Connection, portal: str | None) -> int:
         "   AND status IN ('open', 'stale'))",
         (portal,),
     )
-    return int(rows[0][0]) if rows else 0
+    # Differences need the access model's set logic, not one more subquery.
+    return (int(rows[0][0]) if rows else 0) + len(differences(conn, portal))
 
 
 def cited_screens(conn: sqlite3.Connection, portal: str, key: str, rev: int) -> list[CitedScreen]:

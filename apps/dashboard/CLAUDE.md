@@ -18,7 +18,9 @@ Layer: app (Python, FastAPI + Jinja + htmx, uv; outside the TS layers)
   `evidence`, `health`, `activity`, `docs`, `glossary`, `chat`, `portals`, `amendments`, `events`,
   and for spec 022 `processes`, `review`, `scans`, `screens`, for spec 024 `access`);
   shared view helpers in `web/views_docs.py`, `web/views_chat.py`, `web/chat_forward.py`,
-  `web/views_access.py` (the /access matrix and the screen page's Access tab).
+  `web/views_access.py` (the /access matrix and the screen page's Access tab with its side by
+  side, `partials/state_access_compare.html`; Review's "Unexplained differences" group comes from
+  `queries_access.unexplained`, spec 024 P2).
 - `queries.py`, `queries_docs.py`, `queries_chat.py`, `queries_urls.py` (visits, parameter
   inventory, spec 019), and for spec 022 `queries_screens.py`, `queries_revisions.py`,
   `queries_proposals.py` (the assistant's proposals), `queries_processes.py` (BA processes,

@@ -15,6 +15,7 @@ from fastapi.concurrency import run_in_threadpool
 from fastapi.responses import HTMLResponse, PlainTextResponse, RedirectResponse, Response
 
 from .. import db, queries_chat, queries_docs, queries_review, review
+from . import views_access
 from .deps import Ctx, same_origin, web_of
 
 router = APIRouter()
@@ -30,6 +31,7 @@ def _selected(
     kind, _, ident = (select or "").partition(":")
     finders = {
         "records": lambda: next((r for r in inbox.records if r.key == ident), None),
+        "differences": lambda: next((d for d in inbox.differences if d.id == ident), None),
         "reanchor": lambda: next((a for a in inbox.reanchor if a.key == ident), None),
         "proposals": lambda: next((p for p in inbox.proposals if p.p.id == ident), None),
     }
@@ -52,7 +54,11 @@ def review_values(
     cited: list[queries_review.CitedScreen] = []
     if portal and selected and selected[0] == "records":
         cited = queries_review.cited_screens(conn, portal, selected[1].key, selected[1].rev)
+    attrs: dict[str, str] = {}
+    if portal and selected and selected[0] == "differences":
+        attrs = views_access.attributes_by_persona(c.settings.personas_dir, portal)
     return {
+        "attrs": attrs,
         "inbox": inbox,
         "kinds": queries_review.KINDS,
         "show": show,

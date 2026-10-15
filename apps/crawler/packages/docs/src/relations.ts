@@ -8,11 +8,16 @@ interface Rule {
 
 /** The allowed (from kind, type, to kind) triples (tasks.md T013, data-model.md "Relation"). */
 export const RELATION_RULES: Record<RelationType, readonly Rule[]> = {
-  contains: [{ from: ['capability'], to: ['process', 'screen'] }],
+  // R-51 (owner 2026-10-15): a process contains the screens it passes through, a glossary term
+  // appears on the screens that show it (spec 025 F-15, F-05). Mirrored by migration 0019.
+  contains: [
+    { from: ['capability'], to: ['process', 'screen'] },
+    { from: ['process'], to: ['screen'] },
+  ],
   describes: [{ from: ['use_case'], to: ['process'] }],
   refines: [{ from: ['requirement'], to: ['use_case', 'capability'] }],
   enforces: [{ from: ['requirement'], to: ['business_rule'] }],
-  appears_on: [{ from: ['data_item'], to: ['screen'] }],
+  appears_on: [{ from: ['data_item', 'glossary_term'], to: ['screen'] }],
   uses_term: [{ from: 'any', to: ['glossary_term'] }],
   synonym_of: [{ from: ['glossary_term'], to: ['glossary_term'] }],
   answers: [{ from: ['assumption', 'requirement', 'business_rule'], to: ['open_question'] }],

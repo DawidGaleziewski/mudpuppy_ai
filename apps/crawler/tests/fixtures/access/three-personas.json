@@ -1,5 +1,5 @@
 {
-  "about": "Spec 024 access read model, SC-001 shape. basic / premium / b2b ran completed map runs; guest only an interrupted one. Home: premium and b2b see an Export button (variant r2). Account: only b2b sees the Invoices menu entry. Admin: only b2b reached it. Both read models (dashboard queries_access.py, BA get_access_matrix) must return `expected`. Rows give every NOT NULL column; `defaults` fill the repeated ones.",
+  "about": "Spec 024 access read model, SC-001 shape. P2 (plan E): BR-001 explains Export (a region on a seer's variant, the #2 suffix ignored, plus a non-seer's state); BR-004 explains Invoices (non-seer side as a region); BR-002's latest revision cites the seer only, BR-003 is withdrawn, BR-005 cites states without a region: none explains anything; OQ-001 explains why basic and premium never reach Admin. basic / premium / b2b ran completed map runs; guest only an interrupted one. Home: premium and b2b see an Export button (variant r2). Account: only b2b sees the Invoices menu entry. Admin: only b2b reached it. Both read models (dashboard queries_access.py, BA get_access_matrix) must return `expected`. Rows give every NOT NULL column; `defaults` fill the repeated ones.",
   "portal_id": "access-shop",
   "defaults": {
     "runs": {
@@ -33,7 +33,31 @@
       "safety_class": "read",
       "allowed": 1,
       "created_at": "2026-10-14T08:00:00.000Z"
-    }
+    },
+    "analysis_sessions": {
+      "portal_id": "access-shop",
+      "status": "running",
+      "passes_json": "[]",
+      "started_at": "2026-10-14T09:00:00.000Z"
+    },
+    "doc_records": {
+      "portal_id": "access-shop",
+      "kind": "business_rule",
+      "latest_rev": 1,
+      "withdrawn": 0,
+      "created_at": "2026-10-14T09:00:00.000Z",
+      "updated_at": "2026-10-14T09:00:00.000Z"
+    },
+    "doc_revisions": {
+      "rev_no": 1,
+      "session_id": "sess-1",
+      "change": "create",
+      "content_json": "{}",
+      "confidence": "inferred",
+      "status": "draft",
+      "created_at": "2026-10-14T09:00:00.000Z"
+    },
+    "doc_evidence_links": { "target_kind": "state", "region": null }
   },
   "rows": {
     "runs": [
@@ -97,6 +121,39 @@
       { "id": "a-a2-invoices", "run_id": "run-b2b", "state_id": "st-acc-2", "role": "menuitem", "accessible_name": "Invoices" },
       { "id": "a-a2-menu", "run_id": "run-b2b", "state_id": "st-acc-2", "role": "menu", "accessible_name": null },
       { "id": "a-ad-users", "run_id": "run-b2b", "state_id": "st-admin-1", "role": "link", "accessible_name": "Users" }
+    ],
+    "analysis_sessions": [{ "id": "sess-1" }],
+    "doc_records": [
+      { "id": "rec-br1", "key": "BR-001", "seq": 1, "title": "Export needs the premium tariff" },
+      { "id": "rec-br2", "key": "BR-002", "seq": 2, "title": "Invoices (revised, seer only)", "latest_rev": 2 },
+      { "id": "rec-br3", "key": "BR-003", "seq": 3, "title": "Menu (withdrawn)", "withdrawn": 1 },
+      { "id": "rec-br4", "key": "BR-004", "seq": 4, "title": "Invoices need a B2B contract" },
+      { "id": "rec-br5", "key": "BR-005", "seq": 5, "title": "Home states only, no region" },
+      { "id": "rec-oq1", "key": "OQ-001", "seq": 1, "kind": "open_question", "title": "Why do basic and premium never reach Admin?" }
+    ],
+    "doc_revisions": [
+      { "id": "rev-br1", "record_id": "rec-br1" },
+      { "id": "rev-br2-1", "record_id": "rec-br2" },
+      { "id": "rev-br2-2", "record_id": "rec-br2", "rev_no": 2, "change": "revise", "change_note": "narrowed" },
+      { "id": "rev-br3", "record_id": "rec-br3" },
+      { "id": "rev-br4", "record_id": "rec-br4" },
+      { "id": "rev-br5", "record_id": "rec-br5" },
+      { "id": "rev-oq1", "record_id": "rec-oq1" }
+    ],
+    "doc_evidence_links": [
+      { "id": "l-br1-a", "revision_id": "rev-br1", "target_kind": "screen_region", "target_id": "st-home-2", "region": "button \"Export\"#2", "run_id": "run-premium" },
+      { "id": "l-br1-b", "revision_id": "rev-br1", "target_id": "st-home-1", "run_id": "run-basic" },
+      { "id": "l-br2-1a", "revision_id": "rev-br2-1", "target_kind": "screen_region", "target_id": "st-acc-2", "region": "menuitem \"Invoices\"", "run_id": "run-b2b" },
+      { "id": "l-br2-1b", "revision_id": "rev-br2-1", "target_id": "st-acc-1", "run_id": "run-basic" },
+      { "id": "l-br2-2a", "revision_id": "rev-br2-2", "target_kind": "screen_region", "target_id": "st-acc-2", "region": "menuitem \"Invoices\"", "run_id": "run-b2b" },
+      { "id": "l-br3-a", "revision_id": "rev-br3", "target_kind": "screen_region", "target_id": "st-acc-2", "region": "menu", "run_id": "run-b2b" },
+      { "id": "l-br3-b", "revision_id": "rev-br3", "target_id": "st-acc-1", "run_id": "run-basic" },
+      { "id": "l-br4-a", "revision_id": "rev-br4", "target_kind": "screen_region", "target_id": "st-acc-2", "region": "menuitem \"Invoices\"", "run_id": "run-b2b" },
+      { "id": "l-br4-b", "revision_id": "rev-br4", "target_kind": "screen_region", "target_id": "st-acc-1", "region": "link \"Profile\"", "run_id": "run-basic" },
+      { "id": "l-br5-a", "revision_id": "rev-br5", "target_id": "st-home-1", "run_id": "run-basic" },
+      { "id": "l-br5-b", "revision_id": "rev-br5", "target_id": "st-home-2", "run_id": "run-premium" },
+      { "id": "l-oq1-a", "revision_id": "rev-oq1", "target_id": "st-admin-1", "run_id": "run-b2b" },
+      { "id": "l-oq1-b", "revision_id": "rev-oq1", "target_id": "st-acc-1", "run_id": "run-basic" }
     ]
   },
   "expected": {
@@ -115,9 +172,10 @@
           { "persona_id": "premium", "state_id": "st-home-2", "run_id": "run-premium", "observed_at": "2026-10-14T08:05:00.000Z", "complete_map_run": true }
         ],
         "not_reached": [],
+        "reach_explained_by": [],
         "elements_total": 3,
         "elements": [
-          { "key": "button \"Export\"", "seen_by": ["b2b", "premium"], "not_seen_by": ["basic"] }
+          { "key": "button \"Export\"", "seen_by": ["b2b", "premium"], "not_seen_by": ["basic"], "explained_by": ["BR-001"] }
         ]
       },
       {
@@ -131,10 +189,11 @@
           { "persona_id": "premium", "state_id": "st-acc-1", "run_id": "run-premium", "observed_at": "2026-10-14T08:06:00.000Z", "complete_map_run": true }
         ],
         "not_reached": [],
+        "reach_explained_by": [],
         "elements_total": 3,
         "elements": [
-          { "key": "menu", "seen_by": ["b2b"], "not_seen_by": ["basic", "premium"] },
-          { "key": "menuitem \"Invoices\"", "seen_by": ["b2b"], "not_seen_by": ["basic", "premium"] }
+          { "key": "menu", "seen_by": ["b2b"], "not_seen_by": ["basic", "premium"], "explained_by": [] },
+          { "key": "menuitem \"Invoices\"", "seen_by": ["b2b"], "not_seen_by": ["basic", "premium"], "explained_by": ["BR-004"] }
         ]
       },
       {
@@ -146,6 +205,7 @@
           { "persona_id": "b2b", "state_id": "st-admin-1", "run_id": "run-b2b", "observed_at": "2026-10-14T08:03:00.000Z", "complete_map_run": true }
         ],
         "not_reached": ["basic", "premium"],
+        "reach_explained_by": ["OQ-001"],
         "elements_total": 1,
         "elements": []
       }

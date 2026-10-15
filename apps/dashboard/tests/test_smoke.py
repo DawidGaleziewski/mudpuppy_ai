@@ -18,6 +18,7 @@ from fastapi.testclient import TestClient
 
 from pathfinder_dashboard import smoke
 from pathfinder_dashboard.version import STARTUP_FINGERPRINT, code_fingerprint
+from pathfinder_dashboard.web.deps import PORTAL_COOKIE
 
 from .conftest import Store, make_client
 
@@ -30,18 +31,25 @@ _NEEDS_CHAT_SERVICE = ("/chat/errors/",)
 
 
 def crawl(client: TestClient, env: str, limit: int = 3000) -> tuple[int, list[str]]:
-    """GET every same-origin link from the nav pages; returns (pages checked, failures)."""
-    queue: deque[str] = deque()
+    """GET every same-origin link from the nav pages; returns (pages checked, failures).
+
+    A link is followed with the portal choice of the page it was found on, as a reader clicking
+    it would: breadth-first, another page's `?portal=` would otherwise have switched the cookie
+    in between (a process key is per portal, spec 028 F-01)."""
+    queue: deque[tuple[str, str | None]] = deque()
     seen: set[str] = set()
     for start in smoke.START_PAGES:
         u = smoke._normalise(BASE, start, env)
         assert u
-        queue.append(u)
+        queue.append((u, None))
         seen.add(u)
     failures: list[str] = []
     checked = 0
     while queue and checked < limit:
-        path = queue.popleft()
+        path, portal = queue.popleft()
+        client.cookies.clear()
+        if portal is not None:
+            client.cookies.set(PORTAL_COOKIE, portal)
         r = client.get(path)
         checked += 1
         # 204: a poll whose content has not changed (the live map, T049); htmx keeps what it has.
@@ -56,7 +64,7 @@ def crawl(client: TestClient, env: str, limit: int = 3000) -> tuple[int, list[st
             u = smoke._normalise(BASE, href, env)
             if u and u not in seen:
                 seen.add(u)
-                queue.append(u)
+                queue.append((u, client.cookies.get(PORTAL_COOKIE)))
     return checked, failures
 
 

@@ -7,7 +7,17 @@ import { startBa, type BaHarness } from './ba-harness.js';
 const FIXTURE = fileURLToPath(
   new URL('../../../tests/fixtures/access/three-personas.json', import.meta.url),
 );
-const TABLES = ['runs', 'screens', 'states', 'state_observations', 'actions'] as const;
+const TABLES = [
+  'runs',
+  'screens',
+  'states',
+  'state_observations',
+  'actions',
+  'analysis_sessions',
+  'doc_records',
+  'doc_revisions',
+  'doc_evidence_links',
+] as const;
 
 type Row = Record<string, unknown>;
 interface Fixture {
@@ -37,9 +47,9 @@ describe('get_access_matrix (spec 024 US2)', () => {
   it('returns the matrix the shared fixture expects, with each persona attributes', async () => {
     const h = await startBa();
     const fx = seed(h);
-    const { persona_attributes, ...matrix } = (await h.must('get_access_matrix', {
+    const { persona_attributes, ...matrix } = await h.must('get_access_matrix', {
       portal_id: fx.portal_id,
-    }));
+    });
     expect(matrix).toEqual(fx.expected);
     expect(persona_attributes).toEqual(fx.expected_attributes);
   });

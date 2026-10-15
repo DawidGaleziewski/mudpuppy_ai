@@ -5,11 +5,13 @@ import { RELATION_RULES, isAllowed } from '../src/relations.js';
 const ALLOWED: [DocKind, RelationType, DocKind][] = [
   ['capability', 'contains', 'process'],
   ['capability', 'contains', 'screen'],
+  ['process', 'contains', 'screen'],
   ['use_case', 'describes', 'process'],
   ['requirement', 'refines', 'use_case'],
   ['requirement', 'refines', 'capability'],
   ['requirement', 'enforces', 'business_rule'],
   ['data_item', 'appears_on', 'screen'],
+  ['glossary_term', 'appears_on', 'screen'],
   ['glossary_term', 'synonym_of', 'glossary_term'],
   ['assumption', 'answers', 'open_question'],
   ['requirement', 'answers', 'open_question'],
@@ -69,7 +71,7 @@ describe('relation table', () => {
         from_kind: 'screen',
         type: 'contains',
         to_kind: 'capability',
-        allowed: ['capability contains process|screen'],
+        allowed: ['capability contains process|screen', 'process contains screen'],
       },
     });
   });

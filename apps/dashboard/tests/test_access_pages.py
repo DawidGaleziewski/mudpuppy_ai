@@ -50,9 +50,10 @@ def test_access_tab_lists_elements_attributes_and_uncounted_personas(
     text = squash(r.text)
     assert r.text.count("<h1") == 1
     assert 'button "Export"' in text
-    row = re.search(r"<th[^>]*>button &#34;Export&#34;</th>(.*?)</tr>", r.text, re.S)
+    row = re.search(r"button &#34;Export&#34;</span>(.*?)</th>(.*?)</tr>", r.text, re.S)
     assert row is not None
-    seen, not_seen = re.findall(r"<td[^>]*>(.*?)</td>", row.group(1), re.S)
+    assert squash(row.group(1)).strip() == "BR-001"
+    seen, not_seen = re.findall(r"<td[^>]*>(.*?)</td>", row.group(2), re.S)
     assert squash(seen).strip() == "b2b, premium"
     assert squash(not_seen).strip() == "basic"
     # guest reached the screen only outside a completed map run

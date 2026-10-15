@@ -33,13 +33,17 @@ beforeAll(async () => {
   const relate = fx.raw.prepare(
     'INSERT INTO doc_relations (from_revision_id, to_record_id, type) VALUES (?, ?, ?)',
   );
-  const [rule, screen, question] = [
+  const [rule, screen, question, term, process] = [
     keyOf('business_rule'),
     keyOf('screen'),
     keyOf('open_question'),
+    keyOf('glossary_term'),
+    keyOf('process'),
   ];
   relate.run(latestRev(rule), seeded.ids[screen], 'applies_on');
   relate.run(latestRev(question), seeded.ids[rule], 'asks_about');
+  relate.run(latestRev(term), seeded.ids[screen], 'appears_on');
+  relate.run(latestRev(process), seeded.ids[screen], 'contains');
   files = exportSrs(fx.raw, fx.portalId, { environment: 'sandbox' }) as Map<string, string>;
 });
 afterAll(() => fx.close());
@@ -49,5 +53,17 @@ describe('SRS export: applies_on and asks_about (spec 019 F-14)', () => {
     expect(files.get('03-screens.md')).toContain('**Business rules on this screen:**');
     expect(files.get('06-business-rules.md')).toContain('**Open questions about this:**');
     expect(files.get('06-business-rules.md')).toMatch(/Related: applies on \[SCR-/);
+  });
+});
+
+describe('SRS export: glossary_term appears_on and process contains screen (R-51)', () => {
+  it('lists the term and the process on the screen, apart from its data items', () => {
+    const screens = files.get('03-screens.md')!;
+    expect(screens).toMatch(/\*\*Terms shown:\*\*\n\n- \[GL-/);
+    expect(screens).toMatch(/\*\*Processes through this screen:\*\*\n\n- \[PROC-/);
+    const dataItems = screens.split('**Data items shown:**').slice(1);
+    for (const section of dataItems)
+      expect(section.split('**Entry points:**')[0]).not.toMatch(/GL-/);
+    expect(files.get('04-processes-and-use-cases.md')).toMatch(/Related: .*contains \[SCR-/);
   });
 });
