@@ -197,6 +197,8 @@ Summary: 4 findings, 1 fixed, 3 deferred, 0 rejected.
   "Wykonaj" button). These evals are graded too (F-07), so it is the same kind of leak; the
   examples teach legacy URL handling, so replacing them needs equally legacy-shaped neutral ones
   (memory `dont-widen-removals`: not changed without the owner).
+- **Owner decision 2026-10-15**: replace them with neutral examples (as for F-02), legacy-shaped
+  and from a domain no suite portal uses.
 - **Eval idea**: the SC-006 search as a fast test over all suite ground truths (strings with a
   capital, a diacritic or a slash), so a new example cannot reintroduce a leak.
 
@@ -235,6 +237,8 @@ Trial `2026-10-14T16-23-24-298Z` (git efefd31, $6.27, 1172 s): crawler 17/17, fo
   a process or use case to a screen, and the `baTraces` prompt says "linked to the screens …
   already documented", which invites it. Owner: add a process→screen relation (R-51), or reword
   the prompt to link through process steps' evidence only.
+- **Owner decision 2026-10-15**: allow the relation (process → screen), in R-51 with the
+  glossary-term one (F-05).
 
 ## Close-out review: feature/025-r39-split-sessions, round 3 (2026-10-14)
 
