@@ -361,6 +361,7 @@ deleted.
 | Kind | What to do |
 | --- | --- |
 | **Records to confirm** | Read the record and its evidence. **Confirm**, **Reject** (a reason is required) or **Comment**. |
+| **Assumptions to check** | Every assumption the BA wrote, until you confirm it (same buttons as records). A rule or use case that rests on an unchecked assumption shows it as **To check**. |
 | **Unexplained differences** | Something only some personas see (or a screen only some reach). See who sees it, compare two personas side by side, then have the BA write the rule (or, for a screen, a rule or an open question) that cites both sides. It leaves Review when that record exists. |
 | **Amendments to re-anchor** | Pick the element or screen the amendment belongs to now, or dismiss it. |
 | **Assistant proposals** | Changes the assistant suggested that you have not applied or discarded. |

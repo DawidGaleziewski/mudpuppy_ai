@@ -70,7 +70,7 @@
             <td>In <span class="sy-small sy-muted">points to this record</span></td>
             <td>{{ rel.type | replace("_", " ") }}</td>
             <td>{{ sy.tag(rel.key, c.url('/docs/' ~ portal ~ '/' ~ rel.key), sm=true) }} {{ rel.title }}</td>
-            <td>{{ sy.doc_status(rel.status) }}</td>
+            <td>{% if rel.kind == "assumption" and rel.status not in ("confirmed", "withdrawn") %}{{ sy.status("assumption", "to_check") }}{% else %}{{ sy.doc_status(rel.status) }}{% endif %}</td>
           </tr>
           {%- endfor %}
           {%- if not dt.relations_out and not dt.relations_in %}

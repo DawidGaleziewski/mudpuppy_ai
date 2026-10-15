@@ -89,6 +89,28 @@ def test_records_to_confirm_show_their_screens_and_the_decision_form(ba_fixture:
     assert "Review actions are off" in text(off)
 
 
+def test_assumptions_wait_in_their_own_group_until_confirmed(
+    ba_fixture: Store, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Spec 029 (owner 2026-10-15): every assumption is checked by a reviewer."""
+    monkeypatch.setattr(
+        review, "submit_review", lambda *a, **kw: review.ReviewOutcome(200, True, {"ok": True})
+    )
+    with client(ba_fixture) as c:
+        body = c.get(f"/review?portal={PORTAL}").text
+        picked = c.get(f"/review?portal={PORTAL}&select=assumptions:ASM-001").text
+        done = c.post(
+            f"/review/records/{PORTAL}/ASM-001",
+            data={"action": "confirm", "rev_no": "1"},
+            headers=ORIGIN,
+            follow_redirects=False,
+        )
+    assert "ASM-001" in group(body, "assumptions")
+    assert "ASM-001" not in group(body, "records")
+    assert f'action="/review/records/{PORTAL}/ASM-001"' in picked
+    assert "select=assumptions%3AASM-001" in done.headers["location"]
+
+
 def test_a_decision_runs_docs_review_and_comes_back_with_the_outcome(
     ba_fixture: Store, monkeypatch: pytest.MonkeyPatch
 ) -> None:

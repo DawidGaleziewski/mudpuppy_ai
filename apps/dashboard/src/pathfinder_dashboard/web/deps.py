@@ -47,6 +47,16 @@ def build_url(path: str, **params: Any) -> str:
     return f"{path}?{query}" if query else path
 
 
+PORTAL_KEYED_PATHS = ("/processes/", "/fragments/processes/")
+
+
+def _portal_keyed(path: str, params: dict[str, Any]) -> bool:
+    """A process (`PRC-001`) or a selected Review item is named by a key that is per portal."""
+    if path.startswith(PORTAL_KEYED_PATHS):
+        return True
+    return path in ("/review", "/fragments/review") and bool(params.get("select"))
+
+
 TEMPLATE_DIR = "salvage/"
 
 
@@ -102,6 +112,11 @@ class Ctx:
         return self.store.key
 
     def url(self, path: str, **params: Any) -> str:
+        """A link that keeps the store; a link to something named by a per-portal key also names
+        the portal, so it opens the same thing from another tab or after a portal switch
+        (owner 2026-10-15, spec 029; spec 028 F-01)."""
+        if self.portal and "portal" not in params and _portal_keyed(path, params):
+            params["portal"] = self.portal
         return build_url(path, store=self.store_param, **params)
 
     @contextmanager

@@ -31,6 +31,7 @@ def _selected(
     kind, _, ident = (select or "").partition(":")
     finders = {
         "records": lambda: next((r for r in inbox.records if r.key == ident), None),
+        "assumptions": lambda: next((r for r in inbox.assumptions if r.key == ident), None),
         "differences": lambda: next((d for d in inbox.differences if d.id == ident), None),
         "reanchor": lambda: next((a for a in inbox.reanchor if a.key == ident), None),
         "proposals": lambda: next((p for p in inbox.proposals if p.p.id == ident), None),
@@ -52,7 +53,7 @@ def review_values(
     inbox = queries_review.inbox(conn, portal)
     selected = _selected(inbox, select, show)
     cited: list[queries_review.CitedScreen] = []
-    if portal and selected and selected[0] == "records":
+    if portal and selected and selected[0] in ("records", "assumptions"):
         cited = queries_review.cited_screens(conn, portal, selected[1].key, selected[1].rev)
     attrs: dict[str, str] = {}
     if portal and selected and selected[0] == "differences":
@@ -119,9 +120,11 @@ async def review_record(
     rev_no = int(form["rev_no"]) if form.get("rev_no", "").isdigit() else None
     try:
         with c.conn() as conn:
-            known = queries_docs.get_record(conn, portal, key) is not None
+            record = queries_docs.get_record(conn, portal, key)
     except db.StoreMissing as err:
         return web.missing(c, err)
+    known = record is not None
+    group = "assumptions" if record and record.kind == "assumption" else "records"
     if not known:
         note = f"No record {key} in {portal}."
     elif action not in ("confirm", "reject", "comment") or rev_no is None:
@@ -144,5 +147,5 @@ async def review_record(
             if outcome.ok
             else f"Not recorded: {outcome.message or outcome.code or 'failed'}."
         )
-    target = c.url("/review", portal=portal, select=f"records:{key}", note=note)
+    target = c.url("/review", portal=portal, select=f"{group}:{key}", note=note)
     return RedirectResponse(target, status_code=303)

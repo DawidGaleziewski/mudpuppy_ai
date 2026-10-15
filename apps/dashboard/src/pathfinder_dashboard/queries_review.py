@@ -1,7 +1,8 @@
 """Read models for the Review inbox (spec 022 screen 09, T029): one inbox for every decision that
-waits for a person: doc records to confirm, differences between personas no record explains yet
-(spec 024 US3.3), amendments to re-anchor, the assistant's proposals and edit conflicts.
-Read-only; each read gives nothing on a store older than the table it needs.
+waits for a person: doc records to confirm, assumptions to check (spec 029), differences between
+personas no record explains yet (spec 024 US3.3), amendments to re-anchor, the assistant's
+proposals and edit conflicts. Read-only; each read gives nothing on a store older than the table
+it needs.
 
 Edit conflicts are not stored yet: a stale save is refused with 409 on the spot (FR-005). The
 group stays, empty, until process drafts (M5) keep both versions."""
@@ -17,6 +18,7 @@ from .queries_proposals import ProposalView, views_of
 
 KINDS: tuple[tuple[str, str], ...] = (
     ("records", "Records to confirm"),
+    ("assumptions", "Assumptions to check"),
     ("differences", "Unexplained differences"),
     ("reanchor", "Amendments to re-anchor"),
     ("proposals", "Assistant proposals"),
@@ -42,6 +44,7 @@ class CitedScreen(NamedTuple):
 
 class Inbox(NamedTuple):
     records: list[RecordItem]
+    assumptions: list[RecordItem]
     differences: list[queries_access.Difference]
     reanchor: list[Amendment]
     proposals: list[ProposalView]
@@ -63,12 +66,22 @@ def _rows(conn: sqlite3.Connection, sql: str, args: tuple[Any, ...]) -> list[sql
 
 
 def records_to_confirm(conn: sqlite3.Connection, portal: str) -> list[RecordItem]:
-    """Records whose latest revision is not confirmed yet, in document order."""
+    """Records whose latest revision is not confirmed yet, in document order. Assumptions are
+    their own group (`assumptions_to_check`, spec 029)."""
+    return _unconfirmed(conn, portal, "<> 'assumption'")
+
+
+def assumptions_to_check(conn: sqlite3.Connection, portal: str) -> list[RecordItem]:
+    """Assumptions whose latest revision is not confirmed yet: every one is checked (spec 029)."""
+    return _unconfirmed(conn, portal, "= 'assumption'")
+
+
+def _unconfirmed(conn: sqlite3.Connection, portal: str, kind: str) -> list[RecordItem]:
     rows = _rows(
         conn,
         "SELECT r.key, r.kind, r.title, r.latest_rev, v.status FROM doc_records r"
         " JOIN doc_revisions v ON v.record_id = r.id AND v.rev_no = r.latest_rev"
-        " WHERE r.portal_id = ? AND r.withdrawn = 0"
+        f" WHERE r.portal_id = ? AND r.withdrawn = 0 AND r.kind {kind}"
         " AND (r.confirmed_rev IS NULL OR r.confirmed_rev < r.latest_rev)"
         " AND v.status = 'draft' ORDER BY r.kind, r.seq",
         (portal,),
@@ -92,7 +105,7 @@ def differences(conn: sqlite3.Connection, portal: str) -> list[queries_access.Di
 
 def inbox(conn: sqlite3.Connection, portal: str | None) -> Inbox:
     if not portal:
-        return Inbox([], [], [], [], [])
+        return Inbox([], [], [], [], [], [])
     reanchor = [
         a
         for a in queries_chat.superseded_amendments(conn, portal, "superseded")
@@ -100,6 +113,7 @@ def inbox(conn: sqlite3.Connection, portal: str | None) -> Inbox:
     ]
     return Inbox(
         records_to_confirm(conn, portal),
+        assumptions_to_check(conn, portal),
         differences(conn, portal),
         reanchor,
         open_proposals(conn, portal),

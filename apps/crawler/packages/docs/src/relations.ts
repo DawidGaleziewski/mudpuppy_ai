@@ -21,7 +21,11 @@ export const RELATION_RULES: Record<RelationType, readonly Rule[]> = {
   uses_term: [{ from: 'any', to: ['glossary_term'] }],
   synonym_of: [{ from: ['glossary_term'], to: ['glossary_term'] }],
   answers: [{ from: ['assumption', 'requirement', 'business_rule'], to: ['open_question'] }],
-  depends_on: [{ from: 'any', to: 'same' }],
+  // + an assumption or a use case resting on a rule (owner 2026-10-15, spec 029; migration 0020)
+  depends_on: [
+    { from: 'any', to: 'same' },
+    { from: ['assumption', 'use_case'], to: ['business_rule'] },
+  ],
   // spec 019 F-14: a rule applies on a screen; a question is about any record; a follow-up is
   // for the process, capability, screen or rule it would observe. Mirrored by migration 0014.
   applies_on: [{ from: ['business_rule'], to: ['screen'] }],

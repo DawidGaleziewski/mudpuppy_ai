@@ -105,6 +105,7 @@ describe('doc_relations triple triggers (0013_relation_triples) match RELATION_R
     insert(opened, rev('process'), rec('screen'), 'contains');
     insert(opened, rev('data_item'), rec('screen'), 'appears_on');
     insert(opened, rev('capability'), rec('screen'), 'contains');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0020');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0019');
     const left = opened.raw
       .prepare('SELECT from_revision_id AS f, type FROM doc_relations ORDER BY f')
@@ -117,6 +118,24 @@ describe('doc_relations triple triggers (0013_relation_triples) match RELATION_R
       /RELATION_NOT_ALLOWED/,
     );
     expect(() => insert(opened!, rev('process'), rec('screen'), 'contains')).toThrow(
+      /RELATION_NOT_ALLOWED/,
+    );
+  });
+
+  it('0020 down drops only assumption|use_case depends_on business_rule (spec 029)', () => {
+    opened = openDb(':memory:');
+    migrateUp(opened.raw, MIGRATIONS);
+    const ids = seed(opened);
+    const rev = (k: string) => ids[k]!.revision;
+    const rec = (k: string) => ids[k]!.record;
+    insert(opened, rev('assumption'), rec('business_rule'), 'depends_on');
+    insert(opened, rev('use_case'), rec('business_rule'), 'depends_on');
+    insert(opened, rev('process'), rec('process'), 'depends_on');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0020');
+    expect(opened.raw.prepare('SELECT from_revision_id AS f FROM doc_relations').all()).toEqual([
+      { f: rev('process') },
+    ]);
+    expect(() => insert(opened!, rev('assumption'), rec('business_rule'), 'depends_on')).toThrow(
       /RELATION_NOT_ALLOWED/,
     );
   });

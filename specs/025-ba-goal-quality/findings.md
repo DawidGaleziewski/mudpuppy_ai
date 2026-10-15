@@ -274,5 +274,8 @@ promoted baseline (`2026-10-14T16-23-24-298Z`): **no regression**.
   session, counted once). Same family as R-51's open "assumption about a rule": a record that
   rests on a rule of another kind. Left for the owner with R-51's remaining question.
 - Baseline not promoted (owner decides; the new conditions only differ by guidance and relations).
+- **Owner decision 2026-10-15**: promote it (done, spec 029 T001); allow `use_case depends_on
+  business_rule` and the assumption → rule link, with assumptions checked in Review (spec 029);
+  name the glossary link in pass 5 (spec 029 T004).
 - **Eval idea**: a check counting relations per (from kind, type, to kind), so a new relation's
   use shows in the result like the refusals do.

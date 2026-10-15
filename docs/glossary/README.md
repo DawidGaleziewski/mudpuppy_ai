@@ -2682,7 +2682,8 @@ Relation types: `contains`, `describes`, `refines`, `enforces`, `appears_on`, `u
 `synonym_of`, `answers`, `depends_on`, and since R-45 `applies_on` (a rule holds on a
 screen), `asks_about` (what an open question is about) and `follows_up` (what a follow-up
 would observe). Since R-51 a glossary term also `appears_on` the screens that show it and a
-process `contains` the screens it passes through. Each type allows only certain pairs of record kinds; the server and the store
+process `contains` the screens it passes through; an assumption or a use case can rest on
+a business rule with `depends_on`. Each type allows only certain pairs of record kinds; the server and the store
 both refuse any other pair, so no bad link is ever stored. Relations belong to the revision
 that states them, so they change with the record.
 
@@ -3021,19 +3022,22 @@ glossary, which explains Pathfinder's own words.
 **Something the BA treats as true without proof, written down so it can be checked later.**
 
 An assumption is honest about its uncertainty and lets the work continue. Each one should be
-confirmed or replaced once someone who knows the business has looked at it.
+confirmed or replaced once someone who knows the business has looked at it. Every assumption
+waits in Review under "Assumptions to check" until a reviewer confirms it; an assumption can
+rest on a business rule (`depends_on`), and the rule's page and the SRS export mark it
+"To check" until then.
 
 *Example:* ASM-002 "Contact enquiries are answered by phone or e-mail".
 
-*Seen in:* Docs tab → Assumptions
+*Seen in:* Docs tab → Assumptions; Review → Assumptions to check; SRS export (Assumptions resting on this)
 
-*Labels:* `Assumption`, `ASM`
+*Labels:* `Assumption`, `ASM`, `Assumptions to check`, `To check`
 
 *Related:* [Confidence (observed / inferred / needs confirmation)](#confidence)
 
 *Read more:* [BA wiki: Assumption](../wiki/assumption.md)
 
-<sub>Last changed in R-22, 2026-10-03.</sub>
+<sub>Last changed in R-51, 2026-10-15.</sub>
 
 <a id="srs"></a>
 

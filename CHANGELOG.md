@@ -6,6 +6,15 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Added
+- Owner decisions on the v1.0.31 questions (spec 029):
+  - **Assumptions are checked:** an assumption or a use case can rest on a business rule
+    (`depends_on`, migration 0020). Every assumption waits in Review under **Assumptions to
+    check** until a reviewer confirms it; the rule's page and the SRS export mark it "To check".
+  - **Links name their portal:** a link to a process or to a selected Review item carries the
+    portal, so it opens the right thing from another tab.
+  - The 2026-10-15 reference trial is the new baseline; the BA guidance's pass 5 names the
+    glossary-term-to-screen link; a perf test keeps the Review count fast on a big portal (0.43 s
+    for 300 screens × 5 personas, no cache needed).
 - R-51, R-39 round 4 and R-33 P2 on one branch (owner 2026-10-15: "merge these into one branch
   and do all of them"; specs 028, 025, 024):
   - **Two more relations (R-51):** a glossary term `appears_on` the screens that show it, and a

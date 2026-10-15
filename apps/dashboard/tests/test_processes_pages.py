@@ -211,6 +211,17 @@ def test_list_shows_processes_suggestions_and_loose_screens(empty_store: Store) 
     assert "In no process · 1 screens" in flat and 'value="st-faq"' in body
 
 
+def test_process_links_name_their_portal(empty_store: Store) -> None:
+    """Owner 2026-10-15 (spec 029): a process key is per portal, so its links say which portal;
+    a second tab on another portal still opens the right process."""
+    with client(seed(empty_store)) as c:
+        body = c.get(f"/processes?portal={P}").text
+        c.cookies.set("pf_portal", "other")
+        opened = c.get(f"/processes/PRC-001?portal={P}")
+    assert f'href="/processes/PRC-001?portal={P}"' in body
+    assert opened.status_code == 200
+
+
 def test_editor_shows_the_reviewers_draft_against_the_as_is(empty_store: Store) -> None:
     with client(seed(empty_store)) as c:
         body = c.get(f"/processes/PRC-001?portal={P}&variant=B&step=m1").text

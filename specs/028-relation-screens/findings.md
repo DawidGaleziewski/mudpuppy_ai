@@ -17,6 +17,8 @@ Per memory `log-every-bug-for-evals`: symptom, cause, fix, test or eval idea.
   (`tests/test_smoke.py`). The product side (links to portal-scoped pages carrying `portal=`) is
   left as a suggestion.
 - **Test idea**: a BA-fixture smoke case with two portals that both have a `PRC-001`.
+- **Owner decision 2026-10-15**: links should name the portal (built in spec 029 T006:
+  `Ctx.url` adds `portal=` to process links and Review selections).
 
 ## F-02 Review's nav count builds the whole access matrix on every page, 2026-10-15 (review note)
 
@@ -27,6 +29,8 @@ Per memory `log-every-bug-for-evals`: symptom, cause, fix, test or eval idea.
   version or count in SQL. A measured problem goes to R-24 (memory `token-issues-to-r24` is for
   tokens; this one is wall-clock, so a perf test in the dashboard's `perf` marker).
 - **Test idea**: a `perf` test building a 300-screen, 5-persona store and timing `count()`.
+- **Owner decision 2026-10-15**: measure first. Built (spec 029 T005, `tests/test_perf_access.py`,
+  budget 0.5 s): the whole test, store built included, took 0.43 s, so no cache.
 
 ## Close-out review: feature/028-r51-r39-r33-relations-access (2026-10-15)
 

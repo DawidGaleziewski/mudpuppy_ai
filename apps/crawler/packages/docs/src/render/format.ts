@@ -199,5 +199,19 @@ export function backlinks(records: readonly ExportRecord[], key: string, file: s
         ...list(from.map((r) => `${keyLink(r.key, file)} ${r.title}`)),
       );
   }
+  // Spec 029: assumptions resting on this record, marked until a reviewer confirms them.
+  const assumptions = incoming(records, key, 'depends_on').filter((r) => r.kind === 'assumption');
+  if (assumptions.length > 0)
+    out.push(
+      '',
+      '**Assumptions resting on this:**',
+      '',
+      ...list(
+        assumptions.map(
+          (r) =>
+            `${keyLink(r.key, file)} ${r.title}${r.status === 'confirmed' ? '' : ' — to check'}`,
+        ),
+      ),
+    );
   return out;
 }

@@ -30,6 +30,13 @@ _LINK = re.compile(r'(?:href|hx-get)="([^"]+)"')
 _NEEDS_CHAT_SERVICE = ("/chat/errors/",)
 
 
+def _portal_of(client: TestClient) -> str | None:
+    """The portal choice now in force: the page's own `?portal=` sets the cookie again for the
+    server's domain beside the one the crawl set, so the newest one wins."""
+    values = [c.value for c in client.cookies.jar if c.name == PORTAL_COOKIE]
+    return values[-1] if values else None
+
+
 def crawl(client: TestClient, env: str, limit: int = 3000) -> tuple[int, list[str]]:
     """GET every same-origin link from the nav pages; returns (pages checked, failures).
 
@@ -64,7 +71,7 @@ def crawl(client: TestClient, env: str, limit: int = 3000) -> tuple[int, list[st
             u = smoke._normalise(BASE, href, env)
             if u and u not in seen:
                 seen.add(u)
-                queue.append((u, client.cookies.get(PORTAL_COOKIE)))
+                queue.append((u, _portal_of(client)))
     return checked, failures
 
 

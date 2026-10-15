@@ -30,7 +30,9 @@ Portal-language text goes in `*_verbatim` fields with a `lang` code (e.g. `pl`).
 - any kind uses_term `glossary_term`
 - `glossary_term` synonym_of `glossary_term`
 - `assumption` | `requirement` | `business_rule` answers `open_question`
-- depends_on between two records of the same kind (e.g. process → process)
+- depends_on between two records of the same kind (e.g. process → process), and from an
+  `assumption` or a `use_case` to the `business_rule` it rests on (a reviewer checks every
+  assumption: it waits in Review until confirmed)
 - `business_rule` applies_on `screen` (the screen where the rule holds)
 - `open_question` asks_about any record (what the question is about; the answer later uses `answers`)
 - `followup` follows_up `process` | `capability` | `screen` | `business_rule` | `open_question` | `use_case` (what the follow-up would observe or answer)

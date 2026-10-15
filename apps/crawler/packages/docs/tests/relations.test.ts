@@ -45,9 +45,13 @@ describe('relation table', () => {
     expect(isAllowed('requirement', 'uses_term', 'screen').ok).toBe(false);
   });
 
-  it('allows depends_on only between two records of the same kind', () => {
+  it('allows depends_on between two records of the same kind, and onto a rule (spec 029)', () => {
     for (const kind of DocKind.options) expect(isAllowed(kind, 'depends_on', kind).ok).toBe(true);
     expect(isAllowed('process', 'depends_on', 'screen').ok).toBe(false);
+    expect(isAllowed('assumption', 'depends_on', 'business_rule').ok).toBe(true);
+    expect(isAllowed('use_case', 'depends_on', 'business_rule').ok).toBe(true);
+    expect(isAllowed('requirement', 'depends_on', 'business_rule').ok).toBe(false);
+    expect(isAllowed('business_rule', 'depends_on', 'assumption').ok).toBe(false);
   });
 
   it('allows nothing outside the table', () => {

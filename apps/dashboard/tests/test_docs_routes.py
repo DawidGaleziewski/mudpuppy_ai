@@ -317,6 +317,26 @@ def test_relations_in_and_out(ba_client: TestClient) -> None:
     assert "points to this record" in text(br) and f'href="/docs/{P}/REQ-001"' in br
 
 
+def test_an_assumption_a_rule_rests_on_is_marked_to_check(
+    ba_fixture: Store, ba_client: TestClient
+) -> None:
+    """Spec 029: `assumption depends_on business_rule`, marked until a reviewer confirms it."""
+    conn = ba_fixture.connect()
+    conn.execute(
+        "INSERT INTO doc_relations (from_revision_id, to_record_id, type)"
+        " SELECT v.id, b.id, 'depends_on' FROM doc_records a"
+        " JOIN doc_revisions v ON v.record_id = a.id AND v.rev_no = a.latest_rev"
+        " JOIN doc_records b ON b.portal_id = a.portal_id AND b.key = 'BR-001'"
+        " WHERE a.portal_id = ? AND a.key = 'ASM-001'",
+        (P,),
+    )
+    conn.commit()
+    conn.close()
+    html = ba_client.get(f"/docs/{P}/BR-001").text
+    row = html[html.index(f'href="/docs/{P}/ASM-001"') :]
+    assert re.match(r'.*?data-status="needs">To check<', row, re.S)
+
+
 def test_older_revision_via_rev_param(ba_client: TestClient) -> None:
     html = ba_client.get(f"/docs/{P}/REQ-001?rev=1").text
     t = text(html)

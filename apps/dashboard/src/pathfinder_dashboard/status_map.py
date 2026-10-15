@@ -162,6 +162,10 @@ VOCABULARIES: dict[str, dict[str, Status]] = {
     "explained": {
         "no": _s("needs", "Unexplained"),
     },
+    # An assumption a record rests on, until a reviewer confirms it (spec 029).
+    "assumption": {
+        "to_check": _s("needs", "To check"),
+    },
     # BA processes (spec 022 M5, screens 04–07).
     "stage": {
         "suggested": _s("inferred", "Suggested"),

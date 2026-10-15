@@ -111,6 +111,7 @@ variants with seen / not seen). Each finding has a test or eval idea.
   explain this difference"; until then the access-rules note in `ba-practice` says what to cite.
 - **Eval idea**: in a two-persona trial, count differences left unexplained and records that
   cite both sides of a difference they do not describe.
+- **Owner decision 2026-10-15**: keep the citation rule ("yes i think").
 
 ## F-12 Pairing "text differs" by role and place is a guess, 2026-10-15 (P2, T010)
 
@@ -121,6 +122,7 @@ variants with seen / not seen). Each finding has a test or eval idea.
   mislead.
 - **Test idea**: a fixture pair with a renamed price and a swapped button; assert the price pairs
   and the button does not (needs a better rule, e.g. the same position in the wireframe layout).
+- **Owner decision 2026-10-15**: fine as is.
 
 ## Close-out review (code-reviewer, G-31), 2026-10-14
 

@@ -44,6 +44,7 @@ beforeAll(async () => {
   relate.run(latestRev(question), seeded.ids[rule], 'asks_about');
   relate.run(latestRev(term), seeded.ids[screen], 'appears_on');
   relate.run(latestRev(process), seeded.ids[screen], 'contains');
+  relate.run(latestRev(keyOf('assumption')), seeded.ids[rule], 'depends_on');
   files = exportSrs(fx.raw, fx.portalId, { environment: 'sandbox' }) as Map<string, string>;
 });
 afterAll(() => fx.close());
@@ -65,5 +66,13 @@ describe('SRS export: glossary_term appears_on and process contains screen (R-51
     for (const section of dataItems)
       expect(section.split('**Entry points:**')[0]).not.toMatch(/GL-/);
     expect(files.get('04-processes-and-use-cases.md')).toMatch(/Related: .*contains \[SCR-/);
+  });
+});
+
+describe('SRS export: assumptions resting on a rule (spec 029)', () => {
+  it('lists the assumption on the rule, marked until confirmed', () => {
+    expect(files.get('06-business-rules.md')).toMatch(
+      /\*\*Assumptions resting on this:\*\*\n\n- \[ASM-\d+\]\([^)]*\) .* — to check/,
+    );
   });
 });

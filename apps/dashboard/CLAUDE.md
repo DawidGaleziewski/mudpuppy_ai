@@ -13,7 +13,8 @@ Layer: app (Python, FastAPI + Jinja + htmx, uv; outside the TS layers)
 - `app.py`: only builds the app (settings, templates and filters, the `Web` object, the portal
   cookie middleware, static files, `include_router` calls in a fixed order).
 - `web/deps.py`: `Ctx`, `build_url`, `Web` (`ctx`, `render`, `missing`, `not_found`, glossary) on
-  `app.state.web`; routers call `web_of(request)`.
+  `app.state.web`; routers call `web_of(request)`. `Ctx.url` adds `portal=` to links to things
+  named by a per-portal key (`/processes/…`, a selected Review item; spec 029).
 - `web/<page>.py`: one `APIRouter` per page with its fragments (`overview`, `runs`, `states`,
   `evidence`, `health`, `activity`, `docs`, `glossary`, `chat`, `portals`, `amendments`, `events`,
   and for spec 022 `processes`, `review`, `scans`, `screens`, for spec 024 `access`);
@@ -26,7 +27,8 @@ Layer: app (Python, FastAPI + Jinja + htmx, uv; outside the TS layers)
   `queries_proposals.py` (the assistant's proposals), `queries_processes.py` (BA processes,
   history, compare), `queries_access.py` (which personas see which screen and element, spec 024;
   the same model as the BA tool `get_access_matrix`, both checked against
-  `apps/crawler/tests/fixtures/access/three-personas.json`), `queries_review.py`, `queries_scans.py`, `queries_settings.py`, `queries_home.py` (Home beside the
+  `apps/crawler/tests/fixtures/access/three-personas.json`), `queries_review.py` (records, assumptions to check, unexplained differences, re-anchoring,
+  proposals), `queries_scans.py`, `queries_settings.py`, `queries_home.py` (Home beside the
   assistant): read models.
 - `stores.py`: the stores a request may open (main data dir + eval workspaces), chosen by key.
 - `models.py`: read-only models of SQLite schema; drift test vs. `data/schema/schema.sql`.
