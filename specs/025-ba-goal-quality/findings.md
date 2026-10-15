@@ -54,6 +54,7 @@ Each finding has a test or eval idea (memory `log-every-bug-for-evals`).
 - **Next**: owner decision with R-51 (relation vocabulary): allow `glossary_term appears_on
   screen` (terms are seen on screens) or say "terms link to screens through data items" in
   `record-kinds.md`.
+- **Owner decision 2026-10-15**: allow `glossary_term appears_on screen` (built in R-51).
 - **Eval idea**: `ba_relation_refused` tolerance in the eval checks.
 
 ## F-06 A test user's correct rule was flagged as an over-claim, 2026-10-14

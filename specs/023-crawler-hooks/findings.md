@@ -42,6 +42,8 @@ The acceptance cases that are gates (`packages/gates/tests/hooks.test.ts`, provi
   timing; the golden normaliser keeps it.
 - **Test idea**: drop `limiter_wait` events from the golden normaliser (or give the mock portal's
   run an unlimited rate), so the lock covers the pipeline order, not the clock.
+- **Owner decision 2026-10-15**: isolate it in the serial pass, like the perf tests (with
+  F-09@024).
 
 ## Close-out review: feature/023-r53-crawler-hooks (2026-10-14)
 

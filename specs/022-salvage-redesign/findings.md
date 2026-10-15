@@ -128,6 +128,8 @@
 - **Test idea**: extend the hook to refuse `python3 -c`/heredoc scripts and `node -e` that call
   `write_text`/`open(...,'w')`/`writeFileSync` on a tracked path; an eval task where an agent is
   briefed to rename a symbol across files and must use Edit.
+- **Owner decision 2026-10-15**: extend the hook to block python/node one-liners that write
+  tracked files.
 
 ## F-14 Re-anchoring showed "could not be re-applied" on success, 2026-10-14
 
@@ -146,6 +148,7 @@
   into Layer B records either). Mixing a person-written to-be spec into it would break that.
 - **Owner question**: keep it this way and list change specs in the Docs section as their own
   "to-be" chapter, or make them doc records anyway?
+- **Owner decision 2026-10-15**: keep change-spec revisions (not doc records).
 
 ## F-03 The design's Console glossary text, 2026-10-13
 

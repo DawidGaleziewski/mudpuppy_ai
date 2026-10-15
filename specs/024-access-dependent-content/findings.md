@@ -56,6 +56,7 @@ variants with seen / not seen). Each finding has a test or eval idea.
   to the loader's merge rules would not reach the dashboard.
 - **Next**: either a shared fixture checked by both (as for the access model) or the chat service
   serving resolved personas.
+- **Owner decision 2026-10-15**: one shared fixture both sides test against.
 - **Test idea**: one YAML tree with nested mixins in `tests/fixtures`, loaded by both sides.
 
 ## F-07 T001 committed without the slow tier (process slip), 2026-10-14
@@ -82,6 +83,8 @@ variants with seen / not seen). Each finding has a test or eval idea.
   mounts. Like F-06@023, a timing-sensitive gate.
 - **Next**: if it repeats outside load, isolate it like the perf tests (owner's choice for the
   F-01/F-05/F-06 flakes, 2026-10-13), or make the bundle delay larger than the settle poll.
+- **Owner decision 2026-10-15**: isolate it (and F-06@023's golden lock) in the serial pass,
+  like the perf tests.
 - **Test idea**: run the shop gates with a CPU hog (`stress -c <cores>`) to reproduce.
 
 ## Close-out review (code-reviewer, G-31), 2026-10-14

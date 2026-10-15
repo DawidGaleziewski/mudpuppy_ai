@@ -117,6 +117,8 @@ A test page with the dashboard's own CSS and JS and a 40-node left-to-right Merm
 - **Done**: LO-35 stays `gap()` with the deterministic body, so it no longer flips under load or
   by chance (closes spec 012 F-03's flakiness). The clustering itself stays in R-35 (how variants
   merge needs a choice).
+- **Owner decision 2026-10-15**: one screen with variants, on the same axis as persona variants
+  (R-35).
 - **Eval idea**: a gap or gate must name what it observed (here: the variant), so a pass for the
   wrong reason is visible.
 
