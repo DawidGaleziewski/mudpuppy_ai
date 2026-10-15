@@ -107,3 +107,13 @@ one re-login (baseline 2); no regression. The new order does not hurt the bank.
 - **Eval idea**: before a squash merge, `git status --short` must be empty or the merge
   commits only the branch's paths (`git commit -- <paths>`); a pre-merge check in the
   close-out list.
+
+## F-09 The export-fork export fails while the chat service runs, 2026-10-15 (export)
+
+- **What**: the export's `dashboard test` step failed twice: the assistant-status test saw
+  "Assistant up", and the smoke crawl got a 404 on `/portals/sample-insurer/settings` because
+  the settings page asked the live chat service on 4310 about a fixture portal it does not
+  know. Same coupling as the close-out review note above. With the service stopped the export
+  passed (export-fork 1684bbf); the service was restarted afterwards.
+- **Eval idea**: the dashboard tests should point the chat client at a closed port, not the
+  default 4310, so a running service cannot change their result.
