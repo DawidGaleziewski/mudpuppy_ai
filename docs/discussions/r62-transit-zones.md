@@ -1,6 +1,6 @@
 # R-62 open decision: transit zones (how the harness knows which hosts a login passes through)
 
-Status: **open, the owner is thinking it over** (2026-10-15). Roadmap: R-62 [battle-tested-scar].
+Status: **decided 2026-10-16: (b) learned, not declared** (see section 8). Roadmap: R-62 [battle-tested-scar].
 Source: `user_input/mudpuppy-ground-challenge.zip`, field issues GC-09 and GC-11, scan finding SQ-5,
 decision D-2.
 
@@ -127,3 +127,17 @@ Whatever you pick, these are already decided and do not depend on it:
   (Q2; account lockout is not a concern);
 - the separate budget for static files (Q4);
 - the input/change/blur events on login fields (C-6).
+
+## 8. Decision (the owner, 2026-10-16)
+
+**(b) learned.** The owner cannot catch quick redirects with huge URLs by hand, so declaring the
+hosts up front does not work in practice. Two changes to the picture above:
+
+- **Transit pages are recorded, never dropped.** They matter for a migration (the rebuilt portal
+  has to make the same hops), so each one is kept with its evidence and **marked as transit**
+  instead of becoming an ordinary screen of the portal. Section 3's "recorded only as redirect hops"
+  becomes "recorded as hops and as transit-marked pages".
+- **Network capture as a backstop.** In case the condition waits and timeouts miss a hop, the
+  owner suggested reading the chain from DevTools/CDP network events as well as from page loads.
+
+The recommendation in section 6 (declared first) is superseded.

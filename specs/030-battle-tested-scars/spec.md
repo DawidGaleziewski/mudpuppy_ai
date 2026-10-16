@@ -111,7 +111,7 @@ for later"). The same list is under [battle-tested-scar] in `roadmap.md`.
 
 | # | Decision | Item | Where it stands | Source |
 | --- | --- | --- | --- | --- |
-| 1 | Transit zones: declared in the portal file, learned by the harness, or both | R-62 Q3 | not built; Claude recommends declared first, learning and proposals later | `docs/discussions/r62-transit-zones.md` |
+| 1 | Transit zones: declared in the portal file, learned by the harness, or both | R-62 Q3 | decided 2026-10-16: learned (transit pages recorded and marked); not built | `docs/discussions/r62-transit-zones.md` |
 | 2 | D-8: refuse instead of warn when trace runs were not grouped by `narrow` | R-65 (1) | `start_session` warns | tasks T081, session dump |
 | 3 | D-9: names of the two "processes" pages; 1:1 link doc record ↔ reconciled process | R-65 (2) | not built (T082) | tasks T082 |
 | 4 | Should a background (sub-resource) 429 slow the limiter instead of being ignored? | R-57 | ignored; only a main-document 403/429 stops | findings F-03 |
