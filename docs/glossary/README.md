@@ -184,23 +184,26 @@ over-claims (SC-009); one over-claim fails `docs:evaluate`.
 
 #### Portal network (proxy)
 
-**How the browser reaches a portal behind a corporate network, through a forward proxy (with hosts that go direct) and, if needed, ignoring a TLS-inspecting proxy's certificates.**
+**How the browser reaches a portal behind a corporate network, through a forward proxy (with hosts that go direct) and a TLS-inspecting proxy's CA (trusted from a file, or errors ignored).**
 
-`network:` in the portal file: `proxy: { server, bypass }` and `ignore_https_errors`. A
-portal that admits only the company's proxy answers 403 "not whitelisted" otherwise. Robots.txt
-is read by the server, not the browser, so a proxy-only portal sets `robots: ignore`. Before
-the first scan at a new site, `pnpm --dir apps/crawler portal:doctor <portal>` checks the
-machine and the way to the portal and names the cause of each problem with its fix.
+`network:` in the portal file: `proxy: { server, bypass }`, `ca_file` and
+`ignore_https_errors`. A portal that admits only the company's proxy answers 403 "not
+whitelisted" otherwise. `ca_file` names a PEM file with the company's issuing CA: the server
+and the browser trust that CA only, instead of ignoring every certificate error; the doctor
+checks that the portal presents it. Robots.txt is read by the server, not the browser, so a
+proxy-only portal sets `robots: ignore`. Before the first scan at a new site,
+`pnpm --dir apps/crawler portal:doctor <portal>` checks the machine and the way to the portal
+and names the cause of each problem with its fix.
 
-*Example:* network: { proxy: { server: http://proxy.corp:3128, bypass: [cdn.example.net] } }
+*Example:* network: { proxy: { server: http://proxy.corp:3128, bypass: [cdn.example.net] }, ca_file: corp-ca.pem }
 
 *Seen in:* Portal file → network; portal:doctor
 
-*Labels:* `network`, `proxy`, `doctor`
+*Labels:* `network`, `proxy`, `doctor`, `ca_file`
 
 *Related:* [Environment](#environment), [Render warning](#render-warning)
 
-<sub>Last changed in R-63, 2026-10-16.</sub>
+<sub>Last changed in R-67, 2026-10-16.</sub>
 
 <a id="access-dependent"></a>
 
@@ -326,6 +329,13 @@ Before recording, the crawler waits for the page to stabilise. `settled` means i
 may show a half-loaded page; it is still recorded, with evidence, and the run trace shows
 what was still moving.
 
+The wait gives up after a quiet limit with no progress (10 s by default) and never lasts
+longer than a hard limit (30 s), so a page that keeps loading new parts gets more time than
+a stuck one. Progress is a request to a path the page has not asked for before, a new URL,
+or more or fewer elements on the page; a poll of the same address is not progress. The
+micro-frontend mount wait works the same way (quiet limit 3 s). Both limits can be set per
+portal and per URL under `timeouts`.
+
 *Example:* All 12 states of the reference map run are settled.
 
 *Seen in:* States observed → Stabilization; Run trace → settle phase
@@ -334,7 +344,7 @@ what was still moving.
 
 *Related:* [State](#state), [Tool call / phase / span](#tool-call)
 
-<sub>Last changed in R-22, 2026-10-03.</sub>
+<sub>Last changed in R-67, 2026-10-16.</sub>
 
 <a id="transition"></a>
 
@@ -2547,13 +2557,17 @@ suggests candidate processes. A suggestion has the Suggested status until you ac
 Accepting it makes a process with variant A built from those screens. It never invents a
 screen that was not recorded.
 
-*Seen in:* Processes → Suggested; Home → Processes
+`pnpm portal:trace` also suggests one per process it drove: the screens of its best run, and
+every variant run (happy path, validation errors) named in the reason, so the BA documents
+them as one process. A process record then shows one flowchart per cited variant run.
+
+*Seen in:* Processes → Suggested; Home → Processes; Docs → process record
 
 *Labels:* `Suggested`, `grouping`
 
 *Related:* [Process scope](#process-scope), [Variant (A as-is, B to-be)](#process-variant), [Proposal (assistant proposal)](#proposal)
 
-<sub>Last changed in R-43, 2026-10-14.</sub>
+<sub>Last changed in R-67, 2026-10-16.</sub>
 
 ### Building Pathfinder
 

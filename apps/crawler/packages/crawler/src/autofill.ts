@@ -52,8 +52,23 @@ function pfControlsFor(el: Element): Element[] | null {
   return null;
 }
 
+/**
+ * A `<label>` not tied to the field (no `for`, field not inside it) but alone with it in its
+ * wrapper (`<div><label>Kod pocztowy</label><input></div>`), as React and legacy markup often do
+ * (spec 031 T012: the shop's checkout fields had no label for autofill).
+ */
+function pfNearLabel(field: Element): HTMLLabelElement | null {
+  const wrap = field.parentElement;
+  if (!wrap) return null;
+  const labels = wrap.querySelectorAll(':scope > label');
+  const controls = wrap.querySelectorAll(':scope > input, :scope > select, :scope > textarea');
+  if (labels.length !== 1 || controls.length !== 1) return null;
+  const l = labels[0] as HTMLLabelElement;
+  return l.htmlFor || l.contains(field) ? null : l;
+}
+
 /** In-page helpers sent with `readForm` / `writeForm`. */
-const HELPERS = [pfNativeSubmitForm, pfControlsFor];
+const HELPERS = [pfNativeSubmitForm, pfControlsFor, pfNearLabel];
 
 /** The submit control's form fields, or null when the control does not submit a form. */
 function readForm(el: Element): AutofillField[] | null {
@@ -72,7 +87,7 @@ function readForm(el: Element): AutofillField[] | null {
     if (ftag !== 'input' && ftag !== 'select' && ftag !== 'textarea') return;
     const ftype = ftag === 'input' ? (field.type || 'text').toLowerCase() : ftag;
     if (skip.includes(ftype) || field.disabled || field.readOnly) return;
-    const labelEl = field.labels && field.labels[0];
+    const labelEl = (field.labels && field.labels[0]) || pfNearLabel(field);
     const label = (
       (labelEl && labelEl.textContent) ||
       field.getAttribute('aria-label') ||
@@ -97,7 +112,7 @@ function readForm(el: Element): AutofillField[] | null {
             : field.value === '',
     };
     if (ftype === 'radio' && field.name) entry.group = field.name;
-    for (const a of ['min', 'max', 'step', 'pattern'] as const) {
+    for (const a of ['min', 'max', 'step', 'pattern', 'placeholder'] as const) {
       const v = field.getAttribute(a);
       if (v !== null && v !== '') entry[a] = v;
     }

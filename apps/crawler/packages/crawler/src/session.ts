@@ -1,5 +1,5 @@
 import { chromium, type Browser, type BrowserContext, type Page } from 'playwright';
-import type { EffectiveConfig } from '@pathfinder/config';
+import { readTrustedCa, type EffectiveConfig } from '@pathfinder/config';
 import {
   registerObstacleHandlers,
   type ObstacleEvent,
@@ -25,6 +25,7 @@ import {
   type StabilizationResult,
   type StabilizerOptions,
 } from './stabilizer.js';
+import { chromiumCaArgs, trustInNode } from './trusted-ca.js';
 
 export interface SessionOptions {
   effective: EffectiveConfig;
@@ -116,56 +117,24 @@ export class BrowserSession {
   }
 
   static async launch(opts: SessionOptions): Promise<BrowserSession> {
-    const { portal, persona } = opts.effective;
+    const { portal } = opts.effective;
     const rate = portal.rate_limit ?? DEFAULT_RATE_LIMIT;
-    const browser = await chromium.launch({ headless: opts.headless ?? true });
+    // A corporate CA (spec 031 US4): trusted by Node and, by key, by Chromium.
+    const ca = portal.network?.ca_file ? readTrustedCa(portal.network.ca_file) : null;
+    if (ca) trustInNode(ca);
+    const browser = await chromium.launch({
+      headless: opts.headless ?? true,
+      args: chromiumCaArgs(ca),
+    });
     try {
-      const context = await browser.newContext({
-        viewport: persona.viewport,
-        locale: persona.locale,
-        userAgent: rate.user_agent,
-        permissions: [],
-        acceptDownloads: false,
-        serviceWorkers: 'block',
-        // A corporate proxy and TLS inspection (spec 030 R-63): only when the portal says so.
-        ...(portal.network?.proxy
-          ? {
-              proxy: {
-                server: portal.network.proxy.server,
-                ...(portal.network.proxy.bypass.length > 0
-                  ? { bypass: portal.network.proxy.bypass.join(',') }
-                  : {}),
-              },
-            }
-          : {}),
-        ...(portal.network?.ignore_https_errors ? { ignoreHTTPSErrors: true } : {}),
-      });
+      const context = await browser.newContext(contextOptions(opts.effective));
       const limiter =
         opts.limiter ??
         createRateLimiter({
           requestsPerSecond: rate.requests_per_second,
           maxConcurrency: rate.max_concurrency,
         });
-      const gate = createRequestGate({
-        limiter,
-        staticLimiter: createRateLimiter({
-          requestsPerSecond: portal.rate_limit?.static_per_second ?? DEFAULT_STATIC_PER_SECOND,
-          maxConcurrency: Math.max(rate.max_concurrency, 4),
-        }),
-        userAgent: rate.user_agent,
-        blockSignatures: portal.block_signatures,
-        onStop: opts.onStop,
-        ...(opts.navigationPolicy ? { navigationPolicy: opts.navigationPolicy } : {}),
-        ...(opts.onNavigationRefused ? { onNavigationRefused: opts.onNavigationRefused } : {}),
-        robots: opts.robots,
-        ...(opts.skipImages ? { skipImages: opts.skipImages } : {}),
-        ...(opts.observe?.onRequestDecision
-          ? { onRequestDecision: opts.observe.onRequestDecision }
-          : {}),
-        ...(opts.observe?.onRobotsCheck ? { onRobotsCheck: opts.observe.onRobotsCheck } : {}),
-        ...(opts.observe?.onResponse ? { onResponse: opts.observe.onResponse } : {}),
-        ...(opts.observe?.onBlockVerdict ? { onBlockVerdict: opts.observe.onBlockVerdict } : {}),
-      });
+      const gate = createRequestGate(gateOptions(opts, limiter));
       await gate.install(context);
       // Before the first page: the listener record must exist before the page's scripts run.
       await installClickSignals(context);
@@ -192,25 +161,7 @@ export class BrowserSession {
         obstacles,
         stabilizerOptions: opts.stabilizer ?? {},
       });
-      // New tabs (target=_blank, window.open) are not followed in the browser: the URL each one
-      // opens is noted and the tab closed; the run visits a noted URL in its own tab later (LO-27).
-      // A pop-up's first request comes before its frame exists (Playwright throws on `frame()`):
-      // its URL names the window when the window itself has not committed (refused, still loading).
-      const unclaimed: string[] = [];
-      context.on('request', (r) => {
-        if (!r.isNavigationRequest()) return;
-        try {
-          r.frame();
-        } catch {
-          unclaimed.push(r.url());
-        }
-      });
-      context.on('page', (p) => {
-        if (p === page) return;
-        const first = unclaimed.shift();
-        session.popups.push(p.url() === 'about:blank' && first ? first : p.url());
-        void p.close().catch(() => undefined);
-      });
+      watchPopups(context, page, session.popups);
       return session;
     } catch (e) {
       await browser.close().catch(() => undefined);
@@ -247,12 +198,19 @@ export class BrowserSession {
 
   /**
    * {@link settle}, plus settle diagnostics and the obstacles the two sweeps dismissed.
-   * `timeoutMs` overrides the settle timeout for this page (spec 023 US4).
+   * `timeoutMs` (no progress) and `hardMs` (at most) override the settle limits for this page
+   * (spec 023 US4, spec 031 US1).
    */
-  async settleTraced(timeoutMs?: number): Promise<SettleOutcome & { obstacles: ObstacleEvent[] }> {
+  async settleTraced(
+    timeoutMs?: number,
+    hardMs?: number,
+  ): Promise<SettleOutcome & { obstacles: ObstacleEvent[] }> {
     const before = await this.obstacles.sweep();
-    const options =
-      timeoutMs === undefined ? this.stabilizerOptions : { ...this.stabilizerOptions, timeoutMs };
+    const options = {
+      ...this.stabilizerOptions,
+      ...(timeoutMs !== undefined ? { timeoutMs } : {}),
+      ...(hardMs !== undefined ? { hardMs } : {}),
+    };
     const outcome = await settleWithDiagnostics(this.page, this.net, options);
     const after = await this.obstacles.sweep();
     return { ...outcome, obstacles: [...before, ...after] };
@@ -265,6 +223,78 @@ export class BrowserSession {
     this.net.dispose();
     await this.browser.close().catch(() => undefined);
   }
+}
+
+/** The browser context for the persona; a corporate proxy and TLS choice only when the portal says so (spec 030 R-63). */
+function contextOptions(effective: EffectiveConfig): Parameters<Browser['newContext']>[0] {
+  const { portal, persona } = effective;
+  const proxy = portal.network?.proxy;
+  return {
+    viewport: persona.viewport,
+    locale: persona.locale,
+    userAgent: (portal.rate_limit ?? DEFAULT_RATE_LIMIT).user_agent,
+    permissions: [],
+    acceptDownloads: false,
+    serviceWorkers: 'block',
+    ...(proxy
+      ? {
+          proxy: {
+            server: proxy.server,
+            ...(proxy.bypass.length > 0 ? { bypass: proxy.bypass.join(',') } : {}),
+          },
+        }
+      : {}),
+    ...(portal.network?.ignore_https_errors ? { ignoreHTTPSErrors: true } : {}),
+  };
+}
+
+/** The request gate of a session: its limits from the portal, its hooks from the caller. */
+function gateOptions(opts: SessionOptions, limiter: RateLimiter): RequestGateOptions {
+  const { portal } = opts.effective;
+  const rate = portal.rate_limit ?? DEFAULT_RATE_LIMIT;
+  const o = opts.observe;
+  return {
+    limiter,
+    staticLimiter: createRateLimiter({
+      requestsPerSecond: portal.rate_limit?.static_per_second ?? DEFAULT_STATIC_PER_SECOND,
+      maxConcurrency: Math.max(rate.max_concurrency, 4),
+    }),
+    userAgent: rate.user_agent,
+    blockSignatures: portal.block_signatures,
+    onStop: opts.onStop,
+    ...(opts.navigationPolicy ? { navigationPolicy: opts.navigationPolicy } : {}),
+    ...(opts.onNavigationRefused ? { onNavigationRefused: opts.onNavigationRefused } : {}),
+    robots: opts.robots,
+    ...(opts.skipImages ? { skipImages: opts.skipImages } : {}),
+    ...(o?.onRequestDecision ? { onRequestDecision: o.onRequestDecision } : {}),
+    ...(o?.onRobotsCheck ? { onRobotsCheck: o.onRobotsCheck } : {}),
+    ...(o?.onResponse ? { onResponse: o.onResponse } : {}),
+    ...(o?.onBlockVerdict ? { onBlockVerdict: o.onBlockVerdict } : {}),
+  };
+}
+
+/**
+ * New tabs (target=_blank, window.open) are not followed in the browser: the URL each one opens is
+ * noted and the tab closed; the run visits a noted URL in its own tab later (LO-27). A pop-up's
+ * first request comes before its frame exists (Playwright throws on `frame()`): its URL names the
+ * window when the window itself has not committed (refused, still loading).
+ */
+function watchPopups(context: BrowserContext, page: Page, popups: string[]): void {
+  const unclaimed: string[] = [];
+  context.on('request', (r) => {
+    if (!r.isNavigationRequest()) return;
+    try {
+      r.frame();
+    } catch {
+      unclaimed.push(r.url());
+    }
+  });
+  context.on('page', (p) => {
+    if (p === page) return;
+    const first = unclaimed.shift();
+    popups.push(p.url() === 'about:blank' && first ? first : p.url());
+    void p.close().catch(() => undefined);
+  });
 }
 
 /** True when a headless Chromium can start here (needs `playwright install --with-deps chromium`). */

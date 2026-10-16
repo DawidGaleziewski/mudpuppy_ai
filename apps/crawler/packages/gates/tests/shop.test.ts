@@ -349,3 +349,43 @@ gate(
     expect(picked!.name).toBe('Koszyk (1)');
   },
 );
+
+gap(
+  'F-11@031',
+  'a link on a screen reached by a click is still there when act goes back to it (S07)',
+  'act goes back by loading the URL; opened directly, /sklep/konto is the shell login form, so the account screen’s link is gone (reach by navigation: R-66)',
+  async () => {
+    const own = await startRun(gs.call, 'proving-ground-shop', 'guest');
+    const sklep = await nav(gs.call, own, '/sklep');
+    const konto = await actOn(gs.call, own, sklep, /^Moje konto$/);
+    expect(actionNamed(konto, /^Zaloguj się, aby zobaczyć zamówienia$/)).toBeDefined();
+    // Elsewhere first, so `act` has to go back to the account screen and find the link again.
+    await nav(gs.call, own, '/sklep');
+    const login = await actOn(gs.call, own, konto, /^Zaloguj się, aby zobaczyć zamówienia$/);
+    expect(routeOf(gs, login.state_id as string)).toBe('/logowanie');
+  },
+);
+
+gate(
+  'F-08@031',
+  'the checkout is filled before "Zamawiam i płacę": only the CAPTCHA, which a human solves, is left',
+  async () => {
+    // A run of its own, with an item in the cart, so the order can be placed.
+    const own = await startRun(gs.call, 'proving-ground-shop', 'guest');
+    const product = await nav(gs.call, own, '/sklep/produkt/kalosze-bagienne-klasyczne');
+    await actOn(gs.call, own, product, 'Dodaj do koszyka');
+    const checkout = await nav(gs.call, own, '/sklep/zamowienie');
+    const after = await actOn(gs.call, own, checkout, /^Zamawiam i płacę$/);
+    const text = snapshot(gs, after.state_id as string);
+    expect(text).toContain('Potwierdź, że nie jesteś robotem');
+    // The shop's messages; "Wybierz miasto." with its period (the select's placeholder has none).
+    for (const refused of [
+      'Podaj imię',
+      'Podaj adres e-mail',
+      'Kod pocztowy musi',
+      'Wybierz miasto.',
+    ])
+      expect(text).not.toContain(refused);
+    expect(text).toContain('option "Warszawa" [selected]');
+  },
+);

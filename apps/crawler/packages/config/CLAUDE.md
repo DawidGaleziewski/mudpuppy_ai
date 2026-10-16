@@ -20,6 +20,8 @@ Used by: mcp-server, crawler, safety, vault, gates, apps/chat (`src/index.ts` re
   (`declaredEnvironments`, `requireEnvironment`: no default, eval names allowed); `FixSpec`
   (`fixes:` of the portal, run by `@pathfinder/fix-plugins`); `Network` (`proxy`,
   `ignore_https_errors`, R-63); `traces.ts` (`loadTraces`: the `traces.yaml` catalogue).
+- Spec 031: `network.ca_file` (resolved against the portal folder by `loadPortal`) and
+  `ca-file.ts` (`readTrustedCa`, `spkiHash`: shared by preflight, the session and the doctor).
 
 ## Invariants
 

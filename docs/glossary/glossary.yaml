@@ -222,12 +222,19 @@ entries:
       `never_stabilized` means the wait ran out while something was still moving, so the record
       may show a half-loaded page; it is still recorded, with evidence, and the run trace shows
       what was still moving.
+
+      The wait gives up after a quiet limit with no progress (10 s by default) and never lasts
+      longer than a hard limit (30 s), so a page that keeps loading new parts gets more time than
+      a stuck one. Progress is a request to a path the page has not asked for before, a new URL,
+      or more or fewer elements on the page; a poll of the same address is not progress. The
+      micro-frontend mount wait works the same way (quiet limit 3 s). Both limits can be set per
+      portal and per URL under `timeouts`.
     example: All 12 states of the reference map run are settled.
     appears_in: [States observed → Stabilization, Run trace → settle phase]
     labels: [Stabilization, settled, never_stabilized]
     related: [state, tool-call]
-    changed_in: R-22
-    changed_on: 2026-10-03
+    changed_in: R-67
+    changed_on: 2026-10-16
 
   - id: transition
     term: Transition (edge)
@@ -341,18 +348,21 @@ entries:
     term: Portal network (proxy)
     category: pathfinder
     group: Runs and setup
-    short: How the browser reaches a portal behind a corporate network, through a forward proxy (with hosts that go direct) and, if needed, ignoring a TLS-inspecting proxy's certificates.
+    short: How the browser reaches a portal behind a corporate network, through a forward proxy (with hosts that go direct) and a TLS-inspecting proxy's CA (trusted from a file, or errors ignored).
     explanation: |
-      `network:` in the portal file: `proxy: { server, bypass }` and `ignore_https_errors`. A
-      portal that admits only the company's proxy answers 403 "not whitelisted" otherwise. Robots.txt
-      is read by the server, not the browser, so a proxy-only portal sets `robots: ignore`. Before
-      the first scan at a new site, `pnpm --dir apps/crawler portal:doctor <portal>` checks the
-      machine and the way to the portal and names the cause of each problem with its fix.
-    example: "network: { proxy: { server: http://proxy.corp:3128, bypass: [cdn.example.net] } }"
+      `network:` in the portal file: `proxy: { server, bypass }`, `ca_file` and
+      `ignore_https_errors`. A portal that admits only the company's proxy answers 403 "not
+      whitelisted" otherwise. `ca_file` names a PEM file with the company's issuing CA: the server
+      and the browser trust that CA only, instead of ignoring every certificate error; the doctor
+      checks that the portal presents it. Robots.txt is read by the server, not the browser, so a
+      proxy-only portal sets `robots: ignore`. Before the first scan at a new site,
+      `pnpm --dir apps/crawler portal:doctor <portal>` checks the machine and the way to the portal
+      and names the cause of each problem with its fix.
+    example: "network: { proxy: { server: http://proxy.corp:3128, bypass: [cdn.example.net] }, ca_file: corp-ca.pem }"
     appears_in: [Portal file → network, portal:doctor]
-    labels: [network, proxy, doctor]
+    labels: [network, proxy, doctor, ca_file]
     related: [environment, render-warning]
-    changed_in: R-63
+    changed_in: R-67
     changed_on: 2026-10-16
 
   - id: trace-catalogue
@@ -2498,11 +2508,15 @@ entries:
       suggests candidate processes. A suggestion has the Suggested status until you accept it.
       Accepting it makes a process with variant A built from those screens. It never invents a
       screen that was not recorded.
-    appears_in: [Processes → Suggested, Home → Processes]
+
+      `pnpm portal:trace` also suggests one per process it drove: the screens of its best run, and
+      every variant run (happy path, validation errors) named in the reason, so the BA documents
+      them as one process. A process record then shows one flowchart per cited variant run.
+    appears_in: [Processes → Suggested, Home → Processes, Docs → process record]
     labels: [Suggested, grouping]
     related: [process-scope, process-variant, proposal]
-    changed_in: R-43
-    changed_on: 2026-10-14
+    changed_in: R-67
+    changed_on: 2026-10-16
 
   # ---- Pathfinder: building Pathfinder (R-34) -----------------------------------------------------
   - id: fast-tier

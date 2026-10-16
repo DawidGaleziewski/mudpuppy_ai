@@ -293,3 +293,122 @@
   title: The export-fork export fails while the chat service runs
   tier: not_testable
   reason: dashboard test isolation, not crawler behaviour; the fix is pointing the dashboard tests' chat client at a closed port
+# Spec 030 (battle-tested scars): its scars are gates by SC id; the findings are indexed here
+# since spec 031 T006 added the first finding gate of spec 030 (F-08@030).
+- id: F-01@030
+  title: SC-01 did not reproduce with href links, an unnamed form has no ARIA role
+  tier: not_testable
+  reason: a scar-building note; the SC-01 gate holds the real reproduction
+- id: F-02@030
+  title: SC-03 and SC-04 already passed on master
+  tier: not_testable
+  reason: recorded so the scars are not mistaken for fixes; their gates keep them passing
+- id: F-03@030
+  title: A 403 or 429 on a sub-resource no longer stops the run
+  tier: not_testable
+  reason: covered by scar gates (SC-01, SC-02); the 429-slows-the-limiter question is an owner decision
+- id: F-04@030
+  title: A catalogue entry inserted with a Python text replacement (process slip)
+  tier: not_testable
+  reason: a process slip; the no-script-edits hook and its tests (spec 031 F-01) guard it
+- id: F-05@030
+  title: SC-07 does not wedge on master; a crash could still
+  tier: not_testable
+  reason: locked by the unit test tests/act-crash.test.ts (spec 031 T003), not a browser case
+- id: F-06@030
+  title: The slow tier ran after the commit for R-58/R-59 (process note)
+  tier: not_testable
+  reason: a process note
+- id: F-07@030
+  title: The __name shim for hook bodies had no gate
+  tier: not_testable
+  reason: needs a tsx-started server; locked by mcp-server tests/hook-name-shim.e2e.test.ts (spec 031 T005)
+- id: F-08@030
+  title: Typing into an unsettled login page slowed every later bank page
+  tier: gate
+  reason: bank login then three pages; only the empty-by-design cookie mount may wait out the mount wait
+- id: F-09@030
+  title: Three login scars were not real reproductions at first
+  tier: not_testable
+  reason: a scar-building note; every scar is now proven on the previous commit
+- id: F-10@030
+  title: The condition wait was used by login only
+  tier: not_testable
+  reason: built in spec 031 G8; the settle and mount gates cover it
+- id: F-11@030
+  title: Environment model, what is and is not done
+  tier: not_testable
+  reason: a status list; the remaining defaults are an owner decision
+- id: F-12@030
+  title: SC-06, the re-render half already held, the slow tile did not
+  tier: not_testable
+  reason: the SC-06 gate covers it
+- id: F-13@030
+  title: route.fetch tunnels through the proxy with CONNECT, even for http
+  tier: not_testable
+  reason: covered by the SC-13 gate and the doctor's tunnel probe test (spec 031 T004)
+- id: F-14@030
+  title: The no-script-edits hook missed a heredoc append (process slip)
+  tier: not_testable
+  reason: a harness hook; its unittest cases (spec 031 T001) lock the fix
+- id: F-15@030
+  title: The dashboard's review call broke on the strict environment check
+  tier: not_testable
+  reason: dashboard behaviour; the pre-commit hook now runs the review tests on script changes
+- id: F-16@030
+  title: Numbered section paths collapse to /:param and the trap guard stops the map
+  tier: eval
+  check: crawl_screens
+# Spec 031 (roadmap declutter 2).
+- id: F-01@031
+  title: The no-script-edits hook let heredoc, cd and Python writes through
+  tier: not_testable
+  reason: a harness hook; its unittest cases lock the fix
+- id: F-02@031
+  title: The prettier PostToolUse hook never ran
+  tier: not_testable
+  reason: a harness hook path bug, fixed in settings.json
+- id: F-03@031
+  title: Every bank page waits out the mount wait for the empty-by-design cookie mount
+  tier: not_testable
+  reason: covered by the F-08@030 gate (the empty mount's wait is capped under the 10 s limit)
+- id: F-04@031
+  title: The F-07@030 test proves the __name shim under tsx
+  tier: not_testable
+  reason: a test note; the e2e test is the lock
+- id: F-05@031
+  title: The environment guard's mutation score went from 73 to 96 percent
+  tier: not_testable
+  reason: a mutation-testing result; the unit tests are the lock
+- id: F-06@031
+  title: A CA file helps Chromium only when the proxy presents that CA
+  tier: not_testable
+  reason: a design limit; the doctor's tls.ca-file check names the chain
+- id: F-07@031
+  title: Dropping trailing counts would have undone the owner's F-04@026 rule
+  tier: not_testable
+  reason: a proposal slip; same-target unit tests and the F-04@026 gate lock the narrowed rule
+- id: F-08@031
+  title: The shop checkout labels were not tied to their inputs, so autofill typed Test
+  tier: gate
+  reason: shop checkout with an item; after the submit only the CAPTCHA message is left
+- id: F-09@031
+  title: Script-written pop-ups need a second-page observation path (deferred)
+  tier: not_testable
+  reason: a design note; LO-27 stays a known gap in insurer.test.ts
+- id: F-10@031
+  title: The shared wait in settle and the mount wait
+  tier: not_testable
+  reason: covered by F-08@030 (bank pages after login) and the LO-02, LO-53 mount gates
+- id: F-11@031
+  title: A link on a screen reached by a click is gone when act goes back by loading the URL (S07)
+  tier: gate
+  reason: known gap; shop account screen reached through "Moje konto", acted on after visiting another page
+- id: F-12@031
+  title: Shared navigation is already cheap for links; buttons are left alone
+  tier: not_testable
+  reason: no change; same-target inference and its F-04@026 gate cover links
+- id: F-13@031
+  title: Commits on the branch took another session's staged and edited files
+  tier: not_testable
+  reason: a process slip; the idea is a pre-commit check on staged paths outside the command

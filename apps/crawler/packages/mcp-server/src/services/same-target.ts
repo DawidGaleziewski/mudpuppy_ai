@@ -43,6 +43,22 @@ export function linkTarget(row: Pick<FrontierRow, 'action_id' | 'action_json'>):
   return /^https?:\/\//.test(a.target_url) ? a.target_url : null;
 }
 
+/** A trailing count in a link name: "Koszyk (3)", "Inbox [12]". */
+const TRAILING_COUNT = /\s*[([](\d+)[)\]]\s*$/;
+
+/**
+ * The name two links must share to be the same link (spec 026 F-04, spec 031 T014): a trailing
+ * count only says whether it is zero, so "Koszyk (1)" … "(3)" are one link (all a filled cart;
+ * each count was a new item, 16 left pending in the shop eval, F-07@026), while "Koszyk (0)" stays
+ * apart from them as the owner decided (an empty cart hides the checkout).
+ */
+export function linkNameKey(name: string | null): string | null {
+  if (name === null) return null;
+  const m = TRAILING_COUNT.exec(name);
+  if (!m) return name;
+  return `${name.slice(0, m.index)} (${Number(m[1]) === 0 ? '0' : 'n'})`;
+}
+
 /**
  * Settle a link item whose target this run already reached by an executed, observed transition:
  * record an `inferred` edge to the same state (that transition's evidence) and mark the item
@@ -50,21 +66,25 @@ export function linkTarget(row: Pick<FrontierRow, 'action_id' | 'action_json'>):
  * executed: not a plain link, or no successful transition to its target yet (spec 013 US2, R2, R4).
  * The link's visible name must match too (spec 026 F-04): "Koszyk (1)" after an item was added
  * leads to a different page than the "Koszyk (0)" the run followed, though the URL is the same.
+ * Names are compared by {@link linkNameKey}.
  */
 export async function inferSameTarget(ctx: ServerContext, row: FrontierRow): Promise<boolean> {
   const target = linkTarget(row);
   if (target === null) return false;
   const name =
     (JSON.parse(row.action_json) as { accessible_name?: string | null }).accessible_name ?? null;
-  const seen = ctx.raw
-    .prepare(
-      `SELECT id, to_state, evidence_ref, stabilization FROM edges
-       WHERE run_id = ? AND status = 'executed' AND confidence = 'observed'
-         AND to_state IS NOT NULL AND json_extract(action_json, '$.target_url') = ?
-         AND json_extract(action_json, '$.accessible_name') IS ?
-       ORDER BY id LIMIT 1`,
-    )
-    .get(row.run_id, target, name) as SeenEdge | undefined;
+  const key = linkNameKey(name);
+  const seen = (
+    ctx.raw
+      .prepare(
+        `SELECT id, to_state, evidence_ref, stabilization,
+                json_extract(action_json, '$.accessible_name') AS name FROM edges
+         WHERE run_id = ? AND status = 'executed' AND confidence = 'observed'
+           AND to_state IS NOT NULL AND json_extract(action_json, '$.target_url') = ?
+         ORDER BY id`,
+      )
+      .all(row.run_id, target) as (SeenEdge & { name: string | null })[]
+  ).find((e) => linkNameKey(e.name) === key);
   if (!seen) return false;
   // The edge carries the item's own action (locators, snapshot) like an executed one, without
   // the page it was found on (record-transition's shape).

@@ -62,6 +62,36 @@ export interface ClassifyOptions {
   safeFormSubmitIsRead?: boolean;
 }
 
+/** Evidence from the control's own shape: a link with a target, a read role or tag, an input. */
+function readByShape(d: ActionDescriptor): boolean {
+  return (
+    (LINK_ROLES.has(d.role) && d.href !== undefined) ||
+    ANCHOR_TAGS.has(d.tag ?? '') ||
+    READ_ROLES.has(d.role) ||
+    d.input !== undefined
+  );
+}
+
+/**
+ * Positive evidence that a control nothing marked as writing only reads: its shape, a safe-method
+ * form when allowed, a read keyword, a known form purpose, or a disclosure (`aria-expanded`,
+ * `aria-haspopup`). Without it the control counts as mutating.
+ */
+function readEvidence(d: ActionDescriptor, text: string, opts: ClassifyOptions): boolean {
+  const safeForm =
+    opts.safeFormSubmitIsRead === true &&
+    d.form?.method !== undefined &&
+    SAFE_METHODS.has(d.form.method.toUpperCase());
+  return (
+    readByShape(d) ||
+    safeForm ||
+    READ_KEYWORDS.some((k) => k.test(text)) ||
+    (d.form?.purpose !== undefined && d.form.purpose !== 'other') ||
+    d.attributes?.['aria-expanded'] !== undefined ||
+    d.attributes?.['aria-haspopup'] !== undefined
+  );
+}
+
 /**
  * Pure rules engine (research §4). Returns the MOST dangerous class across all signals. Read is
  * only ever the result of positive evidence; unknown controls resolve to non-read. A class claimed
@@ -105,22 +135,8 @@ export function classifyAction(
   if (m) raise(m.cls, null, m.reason);
   if (d.form?.hasPassword) raise('mutating', null, 'form carries a password field');
 
-  if (cls === 'read') {
-    const positiveRead =
-      (LINK_ROLES.has(d.role) && d.href !== undefined) ||
-      ANCHOR_TAGS.has(d.tag ?? '') ||
-      READ_ROLES.has(d.role) ||
-      d.input !== undefined ||
-      (opts.safeFormSubmitIsRead === true &&
-        d.form?.method !== undefined &&
-        SAFE_METHODS.has(d.form.method.toUpperCase())) ||
-      READ_KEYWORDS.some((k) => k.test(text)) ||
-      (d.form?.purpose !== undefined && d.form.purpose !== 'other') ||
-      d.attributes?.['aria-expanded'] !== undefined ||
-      d.attributes?.['aria-haspopup'] !== undefined;
-    if (!positiveRead)
-      raise('mutating', 'unknown_control', 'no evidence that this control is read-only');
-  }
+  if (cls === 'read' && !readEvidence(d, text, opts))
+    raise('mutating', 'unknown_control', 'no evidence that this control is read-only');
 
   if (d.claimedClass !== undefined)
     raise(d.claimedClass, null, `claimed class ${d.claimedClass} (can only raise)`);

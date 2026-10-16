@@ -2,7 +2,7 @@ import { existsSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { ConfigError, loadEffectiveConfig, type EffectiveConfig } from '@pathfinder/config';
 import { narrowScope, type RunScope } from '@pathfinder/safety';
-import type { Environment } from '@pathfinder/config';
+import { readTrustedCa, type Environment } from '@pathfinder/config';
 
 export type PreflightRefusalCode = 'CONFIG_INVALID';
 
@@ -84,6 +84,14 @@ export function preflight(
     throw e;
   }
   const { portal, persona } = effective;
+  // A CA file that cannot be used refuses the run before a browser opens (spec 031 US4).
+  if (portal.network?.ca_file)
+    try {
+      readTrustedCa(portal.network.ca_file);
+    } catch (e) {
+      if (e instanceof ConfigError) return refuse('CONFIG_INVALID', [e.message]);
+      throw e;
+    }
 
   return {
     ok: true,

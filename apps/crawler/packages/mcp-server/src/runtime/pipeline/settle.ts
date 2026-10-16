@@ -9,7 +9,7 @@ import {
   type PageMountWait,
   type SettleOutcome,
 } from '@pathfinder/crawler';
-import { pageTimeouts } from '@pathfinder/safety';
+import { DEFAULT_MFE_QUIET_MS, pageTimeouts } from '@pathfinder/safety';
 import { navigationPolicy } from './gate.js';
 import { sessionExpired } from '../login.js';
 import type { RunState } from '../run-state.js';
@@ -96,21 +96,22 @@ function settle(sc: StepContext) {
     // Per-page timeouts only when the portal sets `timeouts` (spec 023 US4); else as before.
     const portalTimeouts = rs.effective.portal.timeouts;
     const t = portalTimeouts ? pageTimeouts(portalTimeouts, rs.scope, rs.session.page.url()) : null;
-    const settleMs = t?.settle_ms;
-    let outcome = await rs.session.settleTraced(settleMs);
+    const settleAgain = () => rs.session.settleTraced(t?.settle_ms, t?.settle_hard_ms);
+    let outcome = await settleAgain();
     const redirects = await followClientRedirects(rs.session.page, {
       maxWaitMs: t?.client_redirect_wait_ms ?? rs.scope.client_redirect_wait_ms,
       navigating: () => rs.session.navigation.navigating(),
     });
-    if (redirects.followed > 0) outcome = await rs.session.settleTraced(settleMs);
-    const transient = await retryTransientErrors(rs, () => rs.session.settleTraced(settleMs));
+    if (redirects.followed > 0) outcome = await settleAgain();
+    const transient = await retryTransientErrors(rs, settleAgain);
     if (transient.outcome) outcome = transient.outcome;
-    const mounts = await waitForMountsIn(
-      rs.session.page,
-      () => framesRead(rs),
-      t?.mfe_wait_ms ?? rs.scope.mfe_wait_ms,
-    );
-    if (mounts.waitedMs >= MOUNT_RESETTLE_MS) outcome = await rs.session.settleTraced(settleMs);
+    // The shared wait (spec 031 US1): up to the mount limit, ended early when nothing happens.
+    const mounts = await waitForMountsIn(rs.session.page, () => framesRead(rs), {
+      hardMs: t?.mfe_wait_ms ?? rs.scope.mfe_wait_ms,
+      quietMs: t?.mfe_quiet_ms ?? DEFAULT_MFE_QUIET_MS,
+      lastNewPathAt: () => rs.session.net.lastNewPathAt,
+    });
+    if (mounts.waitedMs >= MOUNT_RESETTLE_MS) outcome = await settleAgain();
     rs.lastMounts = mounts;
     const reports = [
       ...(t ? [event('page_timeouts', { ...t, url: rs.session.page.url() })] : []),

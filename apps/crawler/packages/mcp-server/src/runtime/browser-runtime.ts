@@ -151,7 +151,14 @@ export function createBrowserRuntime(opts: BrowserRuntimeOptions = {}): Runtime 
           .catch((err: unknown) => ctx.logger.error({ err }, 'failed to log navigation refusal'));
       },
     });
-    const rs = new RunState(run.id, session, approved.effective, approved.scope, robots, trace);
+    const rs = new RunState({
+      runId: run.id,
+      session,
+      effective: approved.effective,
+      scope: approved.scope,
+      robots,
+      trace,
+    });
     rs.processId = (await processOfRun(ctx, run.id))?.id ?? null;
     rs.assets = trackAssetHealth(session.context);
     holder.rs = rs;

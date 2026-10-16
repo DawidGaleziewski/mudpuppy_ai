@@ -13,3 +13,4 @@ export * from './run-lifecycle.js';
 export * from './robots.js';
 export * from './wireframes.js';
 export * from './page-visits.js';
+export * from './trace-grouping.js';

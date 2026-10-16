@@ -59,8 +59,15 @@ const TimeoutValues = {
   settle_ms: z.number().int().min(500).max(120_000).optional(),
   /** Longest wait for a navigation to answer, ms. Default 30000. */
   navigation_ms: z.number().int().min(1_000).max(180_000).optional(),
+  /**
+   * Longest settle while the page keeps loading new parts, ms; `settle_ms` is then how long it
+   * waits with no progress at all. Default 30000 (spec 031 US1, the shared wait).
+   */
+  settle_hard_ms: z.number().int().min(500).max(300_000).optional(),
   /** Micro-frontend mount wait, ms; default `scope.mfe_wait_ms`. */
   mfe_wait_ms: z.number().int().min(0).max(60_000).optional(),
+  /** The mount wait ends after this long with no progress, ms. Default 3000 (spec 031 US1). */
+  mfe_quiet_ms: z.number().int().min(0).max(60_000).optional(),
   /** Client redirect wait per hop, ms; default `scope.client_redirect_wait_ms`. */
   client_redirect_wait_ms: z.number().int().min(0).max(30_000).optional(),
 };
@@ -228,6 +235,11 @@ export const Network = z
       .strict()
       .optional(),
     ignore_https_errors: z.boolean().default(false),
+    /**
+     * A PEM file with the corporate CA to trust instead of ignoring every certificate error
+     * (spec 031 US4); a relative path is resolved against the portal's folder when loaded.
+     */
+    ca_file: z.string().min(1).optional(),
   })
   .strict();
 export type Network = z.infer<typeof Network>;

@@ -25,12 +25,29 @@ export interface DoctorContext {
   facts: Map<string, unknown>;
   /** Network access, injectable for tests. */
   http: HttpProbe;
+  /** The TLS chain a site presents; the real probe when not given (spec 031 US4). */
+  tlsChain?: TlsChainProbe;
 }
 
-/** One GET with a User-Agent, directly or through an HTTP proxy; never throws. */
+/** A presented certificate: its subject and SPKI hash (Chromium's comparison). */
+export interface PresentedCert {
+  subject: string;
+  spki: string;
+}
+
+/** The certificates an https site presents, directly or through a proxy tunnel; never throws. */
+export type TlsChainProbe = (
+  url: string,
+  opts: { proxy?: string; timeoutMs?: number },
+) => Promise<{ chain: PresentedCert[] } | { error: string; code?: string }>;
+
+/**
+ * One GET with a User-Agent, directly or through an HTTP proxy; never throws. `tunnel` sends an
+ * http target through a CONNECT tunnel too (https always is).
+ */
 export type HttpProbe = (
   url: string,
-  opts: { userAgent: string; proxy?: string; timeoutMs?: number },
+  opts: { userAgent: string; proxy?: string; timeoutMs?: number; tunnel?: boolean },
 ) => Promise<{ status: number } | { error: string; code?: string }>;
 
 export interface Check {

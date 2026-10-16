@@ -177,4 +177,16 @@ describe('preflight', () => {
     expect(JSON.stringify(r)).toContain('leaves the allowed folders');
     expect(playwrightTouched).not.toHaveBeenCalled();
   });
+
+  it('refuses a CA file that is missing or holds no certificate, before any browser (spec 031 US4)', () => {
+    const withCa = (file: string) =>
+      repo({
+        'portals/shop/portal.yaml': `${PORTAL()}network:\n  ca_file: ${file}\n`,
+        'portals/shop/not-a-cert.pem': 'hello',
+        'personas/shop/guest.yaml': PERSONA,
+      });
+    refused(withCa('missing-ca.pem'), 'CONFIG_INVALID', 'cannot be read');
+    // Relative to the portal folder, not the working directory.
+    refused(withCa('not-a-cert.pem'), 'CONFIG_INVALID', 'no PEM certificate');
+  });
 });

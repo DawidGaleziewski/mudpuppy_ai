@@ -202,10 +202,20 @@ def record_values(
     )
     if detail is None:
         return None
-    diagram = None
-    if detail.record.kind == "process":
-        data = queries_docs.process_diagram_input(conn, detail)
-        diagram = diagrams.process_map(data) if data else None
+    # One flowchart per cited trace run: each variant of the process (spec 031 US5).
+    variant_maps = (
+        [
+            {
+                "run_id": d["run_id"],
+                "outcome": d["outcome"],
+                "variant": d["variant"],
+                "source": diagrams.process_map(d),
+            }
+            for d in queries_docs.process_diagram_inputs(conn, detail)
+        ]
+        if detail.record.kind == "process"
+        else []
+    )
     rev_arg = None if detail.is_latest else detail.shown.rev_no
     base = f"/fragments/docs/{portal}/{key}"
     latest = detail.history[0]
@@ -225,7 +235,7 @@ def record_values(
         "portal": portal,
         "key": key,
         "detail": detail,
-        "diagram": diagram,
+        "variant_maps": variant_maps,
         "figures": visuals.record_figures(conn, c.data_dir, detail.evidence),
         "figures_open": visuals.FIGURES_OPEN,
         "panel": panel,

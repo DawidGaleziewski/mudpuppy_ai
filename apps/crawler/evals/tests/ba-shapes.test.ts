@@ -1,7 +1,7 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { readGroundTruth } from '@pathfinder/docs';
 import { makeFixtureStore, seedDocRecords, type FixtureStore } from '@pathfinder/docs/testing';
-import { labelsIn, scoreBaShapes } from '../graders/code/ba-shapes.js';
+import { isCodeName, labelsIn, scoreBaShapes } from '../graders/code/ba-shapes.js';
 
 const GT = readGroundTruth(
   new URL('../../packages/reference-portal/ground-truth.yaml', import.meta.url).pathname,
@@ -13,6 +13,19 @@ describe('labelsIn (spec 019 F-13)', () => {
       labelsIn('Imię, Temat, Wiadomość, Telefon, E-mail', ['Imię', 'Temat', 'Kod pocztowy']),
     ).toEqual(['Imię', 'Temat']);
     expect(labelsIn('Kod pocztowy', ['Imię', 'Kod pocztowy'])).toEqual(['Kod pocztowy']);
+  });
+});
+
+describe('isCodeName (spec 026 F-05)', () => {
+  it('counts snake_case and camelCase names that are not labels', () => {
+    expect(isCodeName('rok_produkcji', ['Rok produkcji'])).toBe(true);
+    expect(isCodeName('postalCode', [])).toBe(true);
+    expect(isCodeName('Rok produkcji', ['Rok produkcji'])).toBe(false);
+    expect(isCodeName('Marka', ['Marka'])).toBe(false);
+    expect(isCodeName('marka', ['Marka'])).toBe(false);
+    expect(isCodeName('E-mail', [])).toBe(false);
+    expect(isCodeName('PESEL', [])).toBe(false);
+    expect(isCodeName('nr_polisy', ['nr_polisy'])).toBe(false);
   });
 });
 
@@ -28,6 +41,7 @@ describe('scoreBaShapes (spec 019 F-09/F-13/F-14)', () => {
     expect(scoreBaShapes(fx.raw, fx.portalId, GT)).toMatchObject({
       route_templates_with_query: 0,
       data_items_joined: 0,
+      data_items_code_names: 0,
     });
     const latest = (kind: string) =>
       fx.raw
@@ -53,5 +67,7 @@ describe('scoreBaShapes (spec 019 F-09/F-13/F-14)', () => {
     expect(s.route_templates_with_query).toBe(1);
     expect(s.data_items_joined).toBe(1);
     expect(s.rules_on_screens_pct).toBeGreaterThan(0);
+    setContent('data_item', { name_verbatim: 'rok_produkcji' });
+    expect(scoreBaShapes(fx.raw, fx.portalId, GT).data_items_code_names).toBe(1);
   });
 });

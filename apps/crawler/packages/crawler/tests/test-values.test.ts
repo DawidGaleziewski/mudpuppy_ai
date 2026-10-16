@@ -72,4 +72,18 @@ describe('testValueFor (spec 008 research R9)', () => {
     const f = field({ type: 'number', min: '50', max: '8000' });
     expect(testValueFor(f)).toBe(testValueFor({ ...f }));
   });
+
+  it('follows a placeholder mask, then a kind in the label or name (spec 031 T012)', () => {
+    expect(testValueFor(field({ placeholder: '00-000', label: 'Kod pocztowy' }))).toBe('00-000');
+    expect(testValueFor(field({ placeholder: '+48 000 000 000' }))).toBe('+48 000 000 000');
+    expect(testValueFor(field({ placeholder: 'np. Jan Kowalski' }))).toBe('Test');
+    expect(testValueFor(field({ label: 'Kod pocztowy' }))).toBe('00-950');
+    expect(testValueFor(field({ label: 'Postleitzahl' }))).toBe('00-950');
+    expect(testValueFor(field({ label: 'Adres e-mail' }))).toBe('test@example.test');
+    expect(testValueFor(field({ name: 'customer_email', label: '' }))).toBe('test@example.test');
+    expect(testValueFor(field({ label: 'Telefon' }))).toBe('500000000');
+    expect(testValueFor(field({ label: 'Imię i nazwisko' }))).toBe('Test');
+    // A pattern still decides: the kind's value is only the first candidate.
+    expect(testValueFor(field({ label: 'Kod pocztowy', pattern: '\\d{5}' }))).toBe('12345');
+  });
 });

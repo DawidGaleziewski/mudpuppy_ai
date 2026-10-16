@@ -22,6 +22,8 @@ export interface AutofillField {
   min?: string;
   max?: string;
   step?: string;
+  /** The placeholder; a format mask ("00-000") says what the field takes (spec 031 T012). */
+  placeholder?: string;
   minlength?: number;
   maxlength?: number;
   pattern?: string;
@@ -77,6 +79,26 @@ function clampText(value: string, min?: string, max?: string): string {
   if (min && value < min) return min;
   if (max && value > max) return max;
   return value;
+}
+
+/** A placeholder that is a format mask: digits and separators only ("00-000", "+48 000 000 000"). */
+const MASK = /^\+?\d[\d .\-/()]*\d$/;
+
+/** What a plain text field takes, from its label or name (PL, EN, DE), when it says so. */
+const KINDS: readonly [RegExp, string][] = [
+  [/e-?mail/i, 'test@example.test'],
+  [/kod pocztowy|postal|post ?code|zip|plz|postleitzahl/i, '00-950'],
+  [/telefon|phone|\btel\b|handy/i, '500000000'],
+];
+
+/**
+ * A text field's value: a format mask in the placeholder wins (its digits already fit), then a kind
+ * named in the label or name, else `fallback` (spec 031 T012: the shop's postal code took "Test").
+ */
+function plainText(f: AutofillField, fallback: string): string {
+  if (f.placeholder && MASK.test(f.placeholder.trim())) return textValue(f, f.placeholder.trim());
+  const kind = KINDS.find(([re]) => re.test(`${f.label} ${f.name}`));
+  return textValue(f, kind ? kind[1] : fallback);
 }
 
 function textValue(f: AutofillField, preferred: string): string {
@@ -135,6 +157,8 @@ export function testValueFor(f: AutofillField, override?: string): TestValue | n
     case 'hidden':
       return null;
     default:
-      return textValue(f, f.tag === 'textarea' ? 'Test message, please ignore.' : 'Test');
+      return f.tag === 'textarea'
+        ? textValue(f, 'Test message, please ignore.')
+        : plainText(f, 'Test');
   }
 }

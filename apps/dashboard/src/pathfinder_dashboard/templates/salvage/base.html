@@ -36,6 +36,12 @@
       {%- elif c.store.kind == "eval" %}
       <div class="sy-callout" role="status"><p>Reading the eval workspace <span class="sy-mono">{{ c.store.data_dir.parent.name }}</span> ({{ c.store.label }}), read-only.</p></div>
       {%- endif %}
+      {%- set strays = stray_servers() if stray_servers is defined else [] %}
+      {%- if strays %}
+      <div class="sy-callout sy-callout--failure" role="status" id="stray-servers"><p class="sy-callout__title">Servers disagree</p>
+        <ul>{% for w in strays %}<li>{{ w }}</li>{% endfor %}</ul>
+        <p>Calls may be answered by one of these. Stop them, or open the store of their environment.</p></div>
+      {%- endif %}
       {% block main %}{% endblock %}
     </main>
     {% block drawer %}{% if not no_drawer | default(false) %}{% include "salvage/partials/drawer.html" %}{% endif %}{% endblock %}

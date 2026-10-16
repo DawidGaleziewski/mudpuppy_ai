@@ -20,7 +20,7 @@ from fastapi import Request
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 
-from .. import db, glossary, queries_chat, queries_review, stores
+from .. import db, glossary, queries_chat, queries_review, servers, stores
 from ..settings import Settings
 
 # The header's portal choice (spec 011): kept in a cookie; "" means all portals.
@@ -167,6 +167,17 @@ class Web:
         except db.StoreMissing:
             return queries_chat.known_portals(None, self.settings.portals_dir)
 
+    def stray_servers(self, c: Ctx) -> list[str]:
+        """Live MCP servers of the main data directory that disagree with the page (spec 031 US2).
+        An eval workspace has no servers of its own: nothing to compare."""
+        if c.store.kind != "main":
+            return []
+        return servers.stray_warnings(
+            servers.live_servers(self.settings.data_dir),
+            c.env,
+            self.settings.portals_dir.parent,
+        )
+
     def review_count(self, c: Ctx) -> int:
         """The nav's Review marker (FE-N04) for the chosen portal."""
         try:
@@ -190,6 +201,7 @@ class Web:
                 # Spec 011: called by the header only, so fragment polls do not pay for it.
                 "header_portals": lambda: self.header_portals(c),
                 "review_count": lambda: self.review_count(c),
+                "stray_servers": lambda: self.stray_servers(c),
                 # [settings] only for a portal with a config file (a scanned-only one has none)
                 "portal_configured": lambda p: bool(
                     p

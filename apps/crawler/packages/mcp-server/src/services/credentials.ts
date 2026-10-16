@@ -27,6 +27,24 @@ export const runSecrets = {
   },
 };
 
+/** Auth fields whose value is always a secret, whatever it equals. */
+const SECRET_FIELD = /pass|secret|token|totp|otp|pin|key/i;
+
+/**
+ * The resolved values the redactor must mask (field GC-10): every value, except a non-secret field
+ * (a login name) whose value equals an id the store keeps readable. Such a value is public already,
+ * it names the persona file, so masking it protects nothing and turned `runs.persona_id` into
+ * `[secret]` when a persona was named after its login.
+ */
+export function secretValues(
+  values: Record<string, string>,
+  publicIds: readonly string[],
+): string[] {
+  return Object.entries(values)
+    .filter(([field, v]) => SECRET_FIELD.test(field) || !publicIds.includes(v))
+    .map(([, v]) => v);
+}
+
 /**
  * Resolve every `ref:` of the persona for the portal on the run's environment, register the
  * values with the redactor, and refuse the run naming what is missing. A persona without refs
@@ -53,7 +71,7 @@ export async function resolveRunCredentials(
         `missing credential refs: ${missing.join(', ')} (run "pnpm vault check ${portalId} ${persona.id} --env ${env}")`,
         { missing },
       );
-    for (const v of Object.values(values)) SECRETS.add(v);
+    for (const v of secretValues(values, [persona.id, portalId])) SECRETS.add(v);
     return values;
   } catch (e) {
     if (e instanceof VaultError) throw new ToolError('CONFIG_INVALID', e.message);

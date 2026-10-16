@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { newId, nowIso } from '@pathfinder/core';
 import type { ServerContext } from '../src/context.js';
 import { getNextFrontierItem } from '../src/services/frontier.js';
-import { inferSameTarget, linkTarget } from '../src/services/same-target.js';
+import { inferSameTarget, linkNameKey, linkTarget } from '../src/services/same-target.js';
 import { makeCtx, REF, seedRun } from './helpers.js';
 
 const T = 'https://shop.test/offer';
@@ -233,6 +233,32 @@ describe('getNextFrontierItem same-target inference', () => {
     expect(frontierRow(ctx, filled).status).toBe('pending');
     expect(await inferSameTarget(ctx, { ...rowOf(ctx, same) })).toBe(true);
     expect(frontierRow(ctx, same).status).toBe('done');
+  });
+
+  it('spec 031 T014: once "Koszyk (1)" was followed, "Koszyk (2)" and "(3)" are inferred; "(0)" is not', async () => {
+    const { ctx, runId, s1, s2, s3 } = await setup();
+    seedEdge(ctx, runId, s1, { to: s2, name: 'Koszyk (1)' });
+    const two = seedItem(ctx, runId, s3, linkJson(T, { accessible_name: 'Koszyk (2)' }));
+    const three = seedItem(ctx, runId, s3, linkJson(T, { accessible_name: 'Koszyk [3]' }));
+    const empty = seedItem(ctx, runId, s3, linkJson(T, { accessible_name: 'Koszyk (0)' }));
+    const plain = seedItem(ctx, runId, s3, linkJson(T, { accessible_name: 'Koszyk' }));
+    expect(await inferSameTarget(ctx, rowOf(ctx, two))).toBe(true);
+    expect(await inferSameTarget(ctx, rowOf(ctx, three))).toBe(true);
+    expect(await inferSameTarget(ctx, rowOf(ctx, empty))).toBe(false);
+    expect(await inferSameTarget(ctx, rowOf(ctx, plain))).toBe(false);
+  });
+});
+
+describe('linkNameKey (spec 031 T014)', () => {
+  it('keeps zero apart, folds other trailing counts, leaves other names alone', () => {
+    expect(linkNameKey('Koszyk (0)')).toBe('Koszyk (0)');
+    expect(linkNameKey('Koszyk (1)')).toBe('Koszyk (n)');
+    expect(linkNameKey('Koszyk(12)')).toBe('Koszyk (n)');
+    expect(linkNameKey('Inbox [7] ')).toBe('Inbox (n)');
+    expect(linkNameKey('Koszyk')).toBe('Koszyk');
+    expect(linkNameKey('3 items in Koszyk')).toBe('3 items in Koszyk');
+    expect(linkNameKey('Rok 2026')).toBe('Rok 2026');
+    expect(linkNameKey(null)).toBeNull();
   });
 });
 

@@ -8,6 +8,8 @@
  * - `data_items_joined`: data items whose verbatim name holds two or more ground-truth field labels
  *   ("Imię, Temat, Wiadomość"); one data item per field.
  * - `rules_on_screens_pct`: business rules linked to a screen with `applies_on`, of all rules.
+ * - `data_items_code_names`: data items named by the input's code name (`rok_produkcji`,
+ *   `postalCode`) instead of its visible label (spec 026 F-05, spec 031 T016).
  */
 import type { GroundTruth } from '@pathfinder/docs';
 import type { RawDb } from '../../queries.js';
@@ -16,6 +18,17 @@ export interface BaShapes {
   route_templates_with_query: number;
   data_items_joined: number;
   rules_on_screens_pct: number;
+  data_items_code_names: number;
+}
+
+/**
+ * A name that reads like code, not a label: snake_case or camelCase, no spaces, and not one of the
+ * ground-truth labels (a label may itself be one word).
+ */
+export function isCodeName(name: string, labels: readonly string[]): boolean {
+  const n = name.trim();
+  if (labels.some((l) => norm(l) === norm(n))) return false;
+  return /^[a-z][a-z0-9]*(_[a-z0-9]+)+$/i.test(n) || /^[a-z]+[A-Z][A-Za-z0-9]*$/.test(n);
 }
 
 type Latest = { kind: string; key: string; content_json: string };
@@ -61,5 +74,8 @@ export function scoreBaShapes(db: RawDb, portal: string, gt: GroundTruth): BaSha
     route_templates_with_query: routeTemplatesWithQuery,
     data_items_joined: dataItemsJoined,
     rules_on_screens_pct: rules.length === 0 ? 0 : Math.round((onScreens.n / rules.length) * 100),
+    data_items_code_names: latest.filter(
+      (r) => r.kind === 'data_item' && isCodeName(asText(content(r).name_verbatim), labels),
+    ).length,
   };
 }

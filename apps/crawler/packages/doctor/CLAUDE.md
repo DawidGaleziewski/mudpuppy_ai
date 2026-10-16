@@ -9,14 +9,16 @@ Playwright only to test that they work.
 ## Public API
 
 - `CHECKS` (in run order), `runChecks(checks, ctx)`, `formatReport(rows)`, `httpProbe` (GET
-  directly or through an HTTP proxy, absolute-form or CONNECT; never throws). Used by
+  directly or through an HTTP proxy, absolute-form or CONNECT, `tunnel` forces CONNECT for http as
+  the browser does (spec 030 F-13); never throws). Used by
   `apps/crawler/scripts/doctor.ts` (`pnpm portal:doctor <portal> [--env]`).
 
 ## Checks
 
 - `checks/local.ts`: `env.declared`, `toolchain.sqlite`, `browser.launch`.
 - `checks/network.ts`: `net.reach` (TLS inspection, DNS), `waf.user-agent`, `net.proxy`,
-  `net.ip-allowlist`, `robots.proxy`.
+  `net.ip-allowlist`, `tls.ca-file` (the CA file holds a certificate the portal presents; chain
+  read by `tls-chain.ts`, spec 031), `robots.proxy`.
 
 ## Invariants
 

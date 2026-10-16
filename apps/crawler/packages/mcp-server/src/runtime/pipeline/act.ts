@@ -53,8 +53,9 @@ export async function act(
  * An `act` that crashed (not a refusal: those settle their item themselves) retires the action's
  * pending frontier item with the error, so the item is never handed out again and `finish_run` can
  * complete with it listed (spec 030 FR-020; in the field such items wedged runs: GC-15, GC-18).
+ * Exported for its test (spec 030 F-05: no scar makes `act` crash).
  */
-async function retireOnCrash(
+export async function retireOnCrash(
   ctx: ServerContext,
   runId: string,
   actionId: string,

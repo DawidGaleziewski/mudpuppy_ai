@@ -9,27 +9,8 @@ import { HttpError } from './http-error.js';
 export const Steps = z.array(ProcessStep).min(1).max(200);
 export type Steps = z.infer<typeof Steps>;
 
-/** A recorded state as a step needs it. */
-export interface StateRow {
-  id: string;
-  title: string;
-  route_template: string;
-  screen_id: string | null;
-}
-
-/** Observed steps in the given order, ids s1, s2, … (accepting a grouping, the as-is A r1). */
-export function observedSteps(states: readonly StateRow[]): Steps {
-  return states.map((s, i) => ({
-    id: `s${String(i + 1)}`,
-    title: s.title,
-    route: s.route_template,
-    state_id: s.id,
-    screen_id: s.screen_id,
-    observed: true,
-    from: [],
-    annotations: [],
-  }));
-}
+// Shared with the trace driver's grouping suggestion (spec 031 US5).
+export { observedSteps, screensKey, type StateRow } from '@pathfinder/chat-model';
 
 /**
  * Check a variant's steps: unique ids, `from` pointing at steps of the variant it was branched
@@ -70,11 +51,6 @@ function toLabel(n: number): string {
   let s = '';
   for (let k = n; k >= 0; k = Math.floor(k / 26) - 1) s = String.fromCharCode(65 + (k % 26)) + s;
   return s;
-}
-
-/** The identity of a grouping for "never suggest a dismissed one again" (FR-007). */
-export function screensKey(stateIds: readonly string[]): string {
-  return [...new Set(stateIds)].sort().join(',');
 }
 
 /** `PRC-001`, `PRC-002`, … after the largest key in use. */

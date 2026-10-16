@@ -7,7 +7,12 @@
  */
 import { join, resolve } from 'node:path';
 import { ConfigError, loadPortal, loadTraces } from '@pathfinder/config';
-import { createBrowserRuntime, driveTrace, openLocalClient } from '@pathfinder/mcp-server';
+import {
+  createBrowserRuntime,
+  driveTrace,
+  openLocalClient,
+  suggestTraceGrouping,
+} from '@pathfinder/mcp-server';
 import { scriptEnvironment } from './script-env.js';
 
 const args = process.argv.slice(2);
@@ -55,17 +60,25 @@ try {
       console.log(`skip  ${trace.id}: to be discovered (no steps yet)`);
       continue;
     }
-    for (const r of await driveTrace(
+    const results = await driveTrace(
       local.call,
       { portal, persona, baseUrl },
       trace,
       flag('variant'),
-    )) {
+    );
+    for (const r of results) {
       abandoned ||= r.outcome === 'abandoned';
       console.log(
         `${r.outcome.padEnd(16)} ${r.trace}/${r.variant}: ${String(r.steps)} step(s), run ${r.runId ?? '-'}${r.reason ? ` — ${r.reason}` : ''}`,
       );
     }
+    // The variants as one process for the BA to accept in Processes (spec 031 US5).
+    const g = suggestTraceGrouping(local.ctx, { portal, persona, trace }, results);
+    console.log(
+      'suggested' in g
+        ? `grouping       ${trace.id}: suggested "${g.suggested.name}" (${String(g.suggested.steps.length)} screens), accept it in Processes`
+        : `grouping       ${trace.id}: not suggested, ${g.skipped}`,
+    );
   }
 } finally {
   await local.close();

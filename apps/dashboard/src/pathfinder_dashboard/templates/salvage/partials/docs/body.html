@@ -9,9 +9,16 @@
     <div class="sy-plate__head"><h2 class="sy-plate__title">Content</h2></div>
     <div class="sy-plate__body">{{ ct.render(dt.shown) }}</div>
   </div>
-  {%- if r.diagram %}
-  <div class="sy-plate"><div class="sy-plate__body">{{ sy.diagram(r.diagram, "Process map from the recorded trace steps") }}</div></div>
-  {%- endif %}
+  {#- One flowchart per cited trace run, each a variant of the process (spec 031 US5). #}
+  {%- for m in r.variant_maps %}
+  <div class="sy-plate" id="variant-map-{{ loop.index }}">
+    {%- if r.variant_maps | length > 1 %}
+    <div class="sy-plate__head"><h2 class="sy-plate__title sy-case-normal">Variant {{ loop.index }}: {{ m.variant }}</h2>
+      <span class="sy-cluster">{{ sy.status("outcome", m.outcome or "") }} {{ sy.tag(m.run_id[:8], c.url('/runs/' ~ m.run_id, tab='process'), sm=true) }}</span></div>
+    {%- endif %}
+    <div class="sy-plate__body">{{ sy.diagram(m.source, "Process map from the recorded trace steps" ~ (" of " ~ m.variant if r.variant_maps | length > 1 else "")) }}</div>
+  </div>
+  {%- endfor %}
   {{ sc.panel(r.figures, r.figures_open) }}
 
   <div class="sy-plate">

@@ -42,6 +42,9 @@ Layer: servers (G-07; `apps/crawler/layers.json`)
   servers, stray warnings); `local-client.ts` + `trace-driver.ts` (`pnpm portal:trace`: drive a trace
   catalogue through the tools); `runtime/render-health.ts` (failed assets per page),
   `pipeline/transient.ts` (re-open a page showing a passing error); `login` can end `pending`.
+- Spec 031: `services/trace-grouping.ts` (after `pnpm portal:trace`, the best variant run's screens
+  become one open grouping suggestion; the BA accepts it, nothing is created here); `credentials.ts`
+  and `run-state.ts` (`RunState` takes one options object).
 - Entry points: `pnpm --filter @pathfinder/mcp-server start` (`src/main.ts`), `start:ba`.
 
 ## Invariants

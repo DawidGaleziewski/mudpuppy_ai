@@ -1,21 +1,11 @@
-import { spawn } from 'node:child_process';
-import {
-  cpSync,
-  mkdirSync,
-  mkdtempSync,
-  readdirSync,
-  readFileSync,
-  rmSync,
-  writeFileSync,
-} from 'node:fs';
+import { rmSync } from 'node:fs';
 import { createServer, type Server } from 'node:http';
 import type { AddressInfo } from 'node:net';
-import { tmpdir } from 'node:os';
-import { dirname, join } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { join } from 'node:path';
 import { canLaunchBrowser } from '@pathfinder/crawler';
 import { dbPathFor, openDb } from '@pathfinder/store';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { descendants, spawnServer, throwawayRoot } from './spawned-server.js';
 import { portalYaml } from './trace-run-harness.js';
 
 /**
@@ -25,8 +15,6 @@ import { portalYaml } from './trace-run-harness.js';
  */
 
 const available = await canLaunchBrowser();
-const PKG = fileURLToPath(new URL('..', import.meta.url));
-const MIGRATIONS = fileURLToPath(new URL('../../../../../data/migrations', import.meta.url));
 const PERSONA =
   'id: guest\nauth: none\nmax_action_class: read\nviewport: { width: 1280, height: 800 }\nlocale: pl-PL\n';
 
@@ -42,31 +30,6 @@ beforeAll(async () => {
   origin = `http://127.0.0.1:${String((site.address() as AddressInfo).port)}`;
 });
 afterAll(async () => new Promise((r) => site?.close(r)));
-
-/** Live descendants of a process (Linux /proc), so Chromium can be seen going away. */
-function descendants(pid: number): number[] {
-  const parent = new Map<number, number>();
-  for (const name of readdirSync('/proc')) {
-    if (!/^\d+$/.test(name)) continue;
-    try {
-      const stat = readFileSync(`/proc/${name}/stat`, 'utf8');
-      const ppid = Number(stat.slice(stat.lastIndexOf(')') + 2).split(' ')[1]);
-      parent.set(Number(name), ppid);
-    } catch {
-      // gone meanwhile
-    }
-  }
-  const out: number[] = [];
-  const walk = (p: number) => {
-    for (const [child, pp] of parent) {
-      if (pp !== p) continue;
-      out.push(child);
-      walk(child);
-    }
-  };
-  walk(pid);
-  return out;
-}
 
 const alive = (pid: number): boolean => {
   try {
@@ -90,70 +53,21 @@ describe.skipIf(!available || process.platform !== 'linux')(
   'pathfinder server shutdown (spec 010 F-19)',
   () => {
     it('stdin closing with a browser open: browser closed, run interrupted, process gone', async () => {
-      const root = mkdtempSync(join(tmpdir(), 'pathfinder-shutdown-'));
+      const root = throwawayRoot('pathfinder-shutdown-', {
+        'portals/mock/portal.yaml': portalYaml(origin, 10) + 'robots: ignore\n',
+        'personas/mock/guest.yaml': PERSONA,
+      });
       let leftovers = (): void => {};
       try {
-        cpSync(MIGRATIONS, join(root, 'data', 'migrations'), { recursive: true });
-        for (const [rel, c] of Object.entries({
-          'portals/mock/portal.yaml': portalYaml(origin, 10) + 'robots: ignore\n',
-          'personas/mock/guest.yaml': PERSONA,
-        })) {
-          mkdirSync(dirname(join(root, rel)), { recursive: true });
-          writeFileSync(join(root, rel), c);
-        }
-        const child = spawn(process.execPath, ['--import', 'tsx', 'src/main.ts'], {
-          cwd: PKG,
-          env: { ...process.env, PATHFINDER_ROOT: root, PATHFINDER_ENV: 'sandbox' },
-          stdio: ['pipe', 'pipe', 'pipe'],
-        });
+        const server = await spawnServer(root);
         // A failing run must not leave the server and its Chromium behind.
-        leftovers = () => {
-          for (const p of [...descendants(child.pid!), child.pid!])
-            try {
-              process.kill(p, 'SIGKILL');
-            } catch {
-              // already gone
-            }
-        };
-        child.stderr.resume();
-        const pending = new Map<number, (v: Record<string, unknown>) => void>();
-        let buf = '';
-        child.stdout.setEncoding('utf8');
-        child.stdout.on('data', (d: string) => {
-          buf += d;
-          let i;
-          while ((i = buf.indexOf('\n')) >= 0) {
-            const line = buf.slice(0, i);
-            buf = buf.slice(i + 1);
-            const msg = JSON.parse(line) as { id?: number; result?: Record<string, unknown> };
-            if (msg.id !== undefined) pending.get(msg.id)?.(msg.result ?? {});
-          }
-        });
-        let seq = 0;
-        const rpc = (method: string, params: unknown) =>
-          new Promise<Record<string, unknown>>((resolve) => {
-            seq += 1;
-            pending.set(seq, resolve);
-            child.stdin.write(`${JSON.stringify({ jsonrpc: '2.0', id: seq, method, params })}\n`);
-          });
-        const tool = async (name: string, args: Record<string, unknown>) =>
-          (await rpc('tools/call', { name, arguments: args })).structuredContent as Record<
-            string,
-            unknown
-          >;
-        await rpc('initialize', {
-          protocolVersion: '2025-06-18',
-          capabilities: {},
-          clientInfo: { name: 'test', version: '0' },
-        });
-        child.stdin.write(
-          `${JSON.stringify({ jsonrpc: '2.0', method: 'notifications/initialized' })}\n`,
-        );
+        leftovers = server.kill;
+        const { child, tool } = server;
         const start = await tool('start_run', { portal_id: 'mock', persona_id: 'guest' });
         const runId = start.run_id as string;
         const page = await tool('navigate', { run_id: runId, url: `${origin}/`, rationale: 'x' });
         expect(page.title).toBe('Strona');
-        const browser = descendants(child.pid!);
+        const browser = descendants(server.pid);
         expect(browser.length).toBeGreaterThan(0);
 
         child.stdin.end();

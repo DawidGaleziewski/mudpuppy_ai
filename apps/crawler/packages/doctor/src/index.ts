@@ -6,12 +6,14 @@ import {
   netProxy,
   netReach,
   robotsBehindProxy,
+  tlsCaFile,
   wafUserAgent,
 } from './checks/network.js';
 import type { Check, CheckResult } from './registry.js';
 
 export * from './registry.js';
 export { httpProbe } from './http-probe.js';
+export { tlsChainProbe } from './tls-chain.js';
 
 /** Every check, in order: later ones read what earlier ones found. */
 export const CHECKS: readonly Check[] = [
@@ -22,6 +24,7 @@ export const CHECKS: readonly Check[] = [
   wafUserAgent,
   netProxy,
   netAllowlist,
+  tlsCaFile,
   robotsBehindProxy,
 ];
 

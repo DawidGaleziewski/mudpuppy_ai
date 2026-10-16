@@ -18,6 +18,10 @@
   }
   .mp-menu a { display: block; padding: var(--sy-space-2) var(--sy-space-3); }
   .mp-menu a[aria-current="true"] { color: var(--sy-strong); border-inline-start: 2px solid var(--sy-intent); }
+  /* The header also names the environment (spec 031 US2): the search starts narrower so one row
+     still holds everything at 1280 px. */
+  .mp-search { flex-basis: 140px; min-width: 0; }
+  .mp-search input { width: 0; }
 
   /* Docs: section index beside the section; plain lists in prose. */
   .mp-docs-layout { display: grid; grid-template-columns: minmax(12rem, 16rem) minmax(0, 1fr); gap: var(--sy-space-4); align-items: start; }

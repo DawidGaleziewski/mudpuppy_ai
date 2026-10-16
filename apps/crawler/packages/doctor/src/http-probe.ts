@@ -50,13 +50,19 @@ function viaHttpProxy(target: URL, proxy: URL, userAgent: string, timeoutMs: num
   });
 }
 
+/**
+ * A GET through a CONNECT tunnel: TLS inside it for https; plain HTTP for http, which is how the
+ * browser's request gate (`route.fetch`) reaches even an http portal through a proxy (spec 030
+ * F-13), so a proxy refusing CONNECT breaks the crawl while an absolute-form GET still works.
+ */
 function viaConnect(target: URL, proxy: URL, userAgent: string, timeoutMs: number) {
+  const https = target.protocol === 'https:';
   return new Promise<Result>((resolve) => {
     const req = httpRequest({
       host: proxy.hostname,
       port: proxy.port || 80,
       method: 'CONNECT',
-      path: `${target.hostname}:${target.port || 443}`,
+      path: `${target.hostname}:${target.port || (https ? 443 : 80)}`,
       timeout: timeoutMs,
     });
     req.on('connect', (res, socket) => {
@@ -65,16 +71,17 @@ function viaConnect(target: URL, proxy: URL, userAgent: string, timeoutMs: numbe
         resolve({ status: res.statusCode ?? 0 });
         return;
       }
-      const tls = tlsConnect({ socket, servername: target.hostname });
-      tls.on('error', (e) => resolve(errorOf(e)));
-      tls.on('secureConnect', () => {
-        tls.write(
+      const stream = https ? tlsConnect({ socket, servername: target.hostname }) : socket;
+      const get = () =>
+        stream.write(
           `GET ${target.pathname}${target.search} HTTP/1.1\r\nHost: ${target.host}\r\nUser-Agent: ${userAgent}\r\nConnection: close\r\n\r\n`,
         );
-      });
-      tls.once('data', (chunk: Buffer) => {
+      stream.on('error', (e) => resolve(errorOf(e)));
+      if (https) stream.on('secureConnect', get);
+      else get();
+      stream.once('data', (chunk: Buffer) => {
         const m = /^HTTP\/1\.[01] (\d{3})/.exec(chunk.toString('latin1'));
-        tls.destroy();
+        stream.destroy();
         resolve(m ? { status: Number(m[1]) } : { error: 'no HTTP answer through the tunnel' });
       });
     });
@@ -91,7 +98,7 @@ export const httpProbe: HttpProbe = (url, opts) => {
   if (!opts.proxy) return viaFetch(url, opts.userAgent, timeoutMs);
   const target = new URL(url);
   const proxy = new URL(opts.proxy);
-  return target.protocol === 'https:'
+  return target.protocol === 'https:' || opts.tunnel
     ? viaConnect(target, proxy, opts.userAgent, timeoutMs)
     : viaHttpProxy(target, proxy, opts.userAgent, timeoutMs);
 };

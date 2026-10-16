@@ -6,6 +6,35 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Added
+- Roadmap declutter 2, R-67 (spec 031; owner: "merge all smaller and maybe some larger tasks into
+  one branch"): the decision-free leftovers after v1.0.33.
+  - **One wait for slow pages (R-60):** settle (navigate, act) and the micro-frontend mount wait
+    wait while the page makes progress (a request to a new path, a new URL, a change in element
+    count) and stop when nothing happens: `timeouts.settle_hard_ms` (30 s) and `mfe_quiet_ms`
+    (3 s) beside `settle_ms` and `mfe_wait_ms`. An empty-by-design mount (a cookie banner after
+    consent) no longer costs 10 s per page on the bank.
+  - **Corporate CA (R-63):** `network.ca_file` (PEM) is trusted by the server and, when the proxy
+    presents it, by the browser; `portal:doctor` checks the presented chain (`tls.ca-file`) and
+    tries a CONNECT tunnel for http portals.
+  - **Environment visible (R-61):** the dashboard header names the environment; a callout names
+    live `pathfinder` servers on another environment or checkout.
+  - **Trace variants as one process (R-64):** `pnpm portal:trace` proposes each trace's variant
+    runs as one grouping suggestion to accept in Processes; a process record draws one flowchart
+    per cited variant run.
+  - **Shop leftovers (R-55):** autofill reads labels not tied to their inputs and placeholder
+    masks ("00-000"), so the checkout is filled before its submit (the CAPTCHA stays a human's);
+    link counts fold for same-target inference except zero; eval check `data_items_code_names`.
+  - Tests the spec 030 findings asked for: a crashing `act` retires its item, a hook body under
+    `tsx`, the bank's pages after login (F-08@030), a CONNECT probe, the hooks' own cases.
+  - **Fixed:** a persona named after its login no longer shows `[secret]` as its id in runs
+    (field GC-10; credential values are still masked); the `no-script-edits` hook missed heredoc
+    appends with an apostrophe, `cd dir && … >> file` and Python writes; the PostToolUse prettier
+    hook never ran (absolute paths).
+  - **Changed:** `classifyAction`, `BrowserSession.launch` and the `RunState` constructor split up
+    (deferred guideline findings); scar-maker's SC-18 rules are functions, not `new Function` text.
+  - Not done (in the roadmap): LO-27 script-written pop-ups (needs a second-page observation
+    path), S07 (a screen that differs when loaded by URL; R-66), the remaining guideline findings,
+    the open owner decisions.
 - [battle-tested-scar] R-56…R-65 from the field pack (spec 030; owner: "merge, leave all rest of
   decisions for later"):
   - **scar-maker (R-56):** a new app `apps/scar-maker` with 18 real-world scars (SC-01…SC-18) on

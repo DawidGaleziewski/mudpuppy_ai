@@ -11,13 +11,19 @@ export interface Field {
   placeholder?: string;
   options?: string[];
   /** Ordered rules: the first that fails gives the message. */
-  rules: { test: string; message: string }[];
+  rules: Rule[];
 }
 
 /**
- * Rule tests are JavaScript expressions over `v` (the field value) and `all` (every value); they run
- * on the server with `new Function` and in the page as the same source text.
+ * A rule's test over `v` (the field value) and `all` (every value). The server calls it; the page
+ * gets its source (`toString()`), so it must use nothing but its arguments and built-ins.
  */
+export interface Rule {
+  test: (v: string, all: Values) => boolean;
+  message: string;
+}
+
+/** The fields of each step, with their rules in order. */
 export const FIELDS: Record<Step, Field[]> = {
   1: [
     {
@@ -25,8 +31,8 @@ export const FIELDS: Record<Step, Field[]> = {
       label: 'Full name',
       kind: 'text',
       rules: [
-        { test: "v.trim() !== ''", message: 'Full name is required.' },
-        { test: 'v.trim().length >= 2', message: 'Full name must have at least 2 characters.' },
+        { test: (v) => v.trim() !== '', message: 'Full name is required.' },
+        { test: (v) => v.trim().length >= 2, message: 'Full name must have at least 2 characters.' },
       ],
     },
     {
@@ -35,9 +41,9 @@ export const FIELDS: Record<Step, Field[]> = {
       kind: 'text',
       placeholder: 'name@example.test',
       rules: [
-        { test: "v.trim() !== ''", message: 'E-mail is required.' },
+        { test: (v) => v.trim() !== '', message: 'E-mail is required.' },
         {
-          test: '/^[^@\\s]+@[^@\\s]+\\.[a-z]{2,}$/i.test(v)',
+          test: (v) => /^[^@\s]+@[^@\s]+\.[a-z]{2,}$/i.test(v),
           message: 'Enter a valid e-mail address.',
         },
       ],
@@ -48,9 +54,9 @@ export const FIELDS: Record<Step, Field[]> = {
       kind: 'text',
       placeholder: 'YYYY',
       rules: [
-        { test: "v.trim() !== ''", message: 'Year of birth is required.' },
-        { test: '/^\\d{4}$/.test(v)', message: 'Enter the year with four digits.' },
-        { test: 'Number(v) <= 2008', message: 'You must be at least 18 years old.' },
+        { test: (v) => v.trim() !== '', message: 'Year of birth is required.' },
+        { test: (v) => /^\d{4}$/.test(v), message: 'Enter the year with four digits.' },
+        { test: (v) => Number(v) <= 2008, message: 'You must be at least 18 years old.' },
       ],
     },
   ],
@@ -60,7 +66,7 @@ export const FIELDS: Record<Step, Field[]> = {
       label: 'Product',
       kind: 'select',
       options: ['Household insurance', 'Liability insurance'],
-      rules: [{ test: "v !== ''", message: 'Choose a product.' }],
+      rules: [{ test: (v) => v !== '', message: 'Choose a product.' }],
     },
     {
       name: 'startyear',
@@ -68,9 +74,9 @@ export const FIELDS: Record<Step, Field[]> = {
       kind: 'text',
       placeholder: 'YYYY',
       rules: [
-        { test: '/^\\d{4}$/.test(v)', message: 'Enter the start year with four digits.' },
+        { test: (v) => /^\d{4}$/.test(v), message: 'Enter the start year with four digits.' },
         {
-          test: 'Number(v) >= Number(all.birthyear) + 18',
+          test: (v, all) => Number(v) >= Number(all.birthyear) + 18,
           message: 'The contract cannot start before you are 18.',
         },
       ],
@@ -81,15 +87,15 @@ export const FIELDS: Record<Step, Field[]> = {
       kind: 'text',
       placeholder: 'KD-000000',
       rules: [
-        { test: "v.trim() !== ''", message: 'Customer number is required.' },
-        { test: '/^KD-\\d{6}$/.test(v)', message: 'The customer number looks like KD-123456.' },
+        { test: (v) => v.trim() !== '', message: 'Customer number is required.' },
+        { test: (v) => /^KD-\d{6}$/.test(v), message: 'The customer number looks like KD-123456.' },
       ],
     },
     {
       name: 'terms',
       label: 'I accept the terms',
       kind: 'checkbox',
-      rules: [{ test: "v === 'yes'", message: 'You must accept the terms.' }],
+      rules: [{ test: (v) => v === 'yes', message: 'You must accept the terms.' }],
     },
   ],
   3: [
@@ -97,7 +103,7 @@ export const FIELDS: Record<Step, Field[]> = {
       name: 'confirm',
       label: 'I confirm the data is correct',
       kind: 'checkbox',
-      rules: [{ test: "v === 'yes'", message: 'Confirm the data to submit.' }],
+      rules: [{ test: (v) => v === 'yes', message: 'Confirm the data to submit.' }],
     },
   ],
 };
@@ -108,9 +114,7 @@ export function validate(step: Step, all: Values): Record<string, string> {
   for (const f of FIELDS[step]) {
     const v = all[f.name] ?? '';
     for (const r of f.rules) {
-      // eslint-disable-next-line @typescript-eslint/no-implied-eval -- rule sources are this module's own constants, never request data; the page runs the same text
-      const ok = new Function('v', 'all', `return (${r.test});`)(v, all) as boolean;
-      if (!ok) {
+      if (!r.test(v, all)) {
         errors[f.name] = r.message;
         break;
       }

@@ -81,7 +81,9 @@ What the code-based graders measure:
   transcripts, by error code; checks `ba_write_calls`, `ba_write_refused`, `ba_write_refused_pct`,
   `ba_relation_refused`, spec 019), and `ba-shapes.ts` (record-shape mistakes the trials caught:
   `route_templates_with_query`, `data_items_joined` — a data item holding two or more ground-truth
-  field labels — and `rules_on_screens_pct`, rules linked to a screen with `applies_on`).
+  field labels — `rules_on_screens_pct`, rules linked to a screen with `applies_on`, and
+  `data_items_code_names`, data items named by the input's code name such as `rok_produkcji`
+  instead of its label, spec 031).
 
 ### Judges (model-based graders, spec 017)
 

@@ -1,7 +1,9 @@
 // Checks of the way to the portal (field GC-03/04/05 proxy and allowlist, GC-07 WAF User-Agent,
 // GC-12 TLS inspection). Each reports what it saw and the portal-file setting that fixes it.
 
+import { readTrustedCa } from '@pathfinder/config';
 import type { Check, DoctorContext } from '../registry.js';
+import { tlsChainProbe } from '../tls-chain.js';
 
 /** A User-Agent of a current desktop browser, for the WAF comparison only (never stored). */
 const BROWSER_UA =
@@ -32,7 +34,7 @@ export const netReach: Check = {
       return {
         status: 'fail',
         detail: `TLS error (${r.code ?? r.error}): a TLS-inspecting proxy re-signs the site's certificate`,
-        fix: 'trust the corporate CA (NODE_EXTRA_CA_CERTS for the server, the system store for the browser), or set network.ignore_https_errors: true',
+        fix: 'set network.ca_file to the corporate issuing CA (PEM), or network.ignore_https_errors: true',
       };
     if (r.code === 'ENOTFOUND')
       return {
@@ -75,8 +77,26 @@ export const netProxy: Check = {
     const proxy = ctx.portal.network!.proxy!.server;
     const r = await ctx.http(ctx.portal.base_url, { userAgent: crawlerUa(ctx), proxy });
     ctx.facts.set('proxied', r);
-    if ('status' in r && r.status < 400)
-      return { status: 'ok', detail: `HTTP ${String(r.status)} through ${proxy}` };
+    if ('status' in r && r.status < 400) {
+      if (new URL(ctx.portal.base_url).protocol === 'https:')
+        return { status: 'ok', detail: `HTTP ${String(r.status)} through ${proxy}` };
+      // The browser tunnels even http through CONNECT (spec 030 F-13): check that way too.
+      const t = await ctx.http(ctx.portal.base_url, {
+        userAgent: crawlerUa(ctx),
+        proxy,
+        tunnel: true,
+      });
+      if ('status' in t && t.status < 400)
+        return {
+          status: 'ok',
+          detail: `HTTP ${String(r.status)} through ${proxy}, also tunnelled`,
+        };
+      return {
+        status: 'fail',
+        detail: `${proxy} forwards a plain GET but not a CONNECT tunnel (${'status' in t ? `HTTP ${String(t.status)}` : t.error}); the browser tunnels every request, so every page would fail`,
+        fix: 'ask for CONNECT to be allowed to the portal host and port on the proxy, or use a proxy that tunnels',
+      };
+    }
     return {
       status: 'fail',
       detail: 'status' in r ? `HTTP ${String(r.status)} through ${proxy}` : `${proxy}: ${r.error}`,
@@ -109,6 +129,41 @@ export const netAllowlist: Check = {
         'HTTP 403 before any page with no proxy that helps: an IP allowlist ("not whitelisted")',
       fix: 'route through the allowlisted egress: network.proxy { server: http://<proxy>:<port>, bypass: [<CDN hosts>] }',
     });
+  },
+};
+
+export const tlsCaFile: Check = {
+  id: 'tls.ca-file',
+  title: 'The configured CA is one the portal presents',
+  appliesWhen: (ctx) => ctx.portal.network?.ca_file !== undefined,
+  probe: async (ctx) => {
+    let ca;
+    try {
+      ca = readTrustedCa(ctx.portal.network!.ca_file!);
+    } catch (e) {
+      return {
+        status: 'fail',
+        detail: (e as Error).message,
+        fix: 'point network.ca_file at a PEM file with the corporate CA (BEGIN CERTIFICATE blocks)',
+      };
+    }
+    const read = `${String(ca.pems.length)} certificate(s): ${ca.subjects.join('; ')}`;
+    if (new URL(ctx.portal.base_url).protocol !== 'https:')
+      return { status: 'ok', detail: `${read}; the portal is http, nothing to compare` };
+    const proxy = ctx.portal.network?.proxy?.server;
+    const r = await (ctx.tlsChain ?? tlsChainProbe)(ctx.portal.base_url, proxy ? { proxy } : {});
+    if ('error' in r)
+      return {
+        status: 'warn',
+        detail: `${read}; the presented chain could not be read (${r.error})`,
+      };
+    const match = r.chain.find((c) => ca.spki.includes(c.spki));
+    if (match) return { status: 'ok', detail: `${read}; the portal presents ${match.subject}` };
+    return {
+      status: 'fail',
+      detail: `none of the file's certificates is in the chain the portal presents (${r.chain.map((c) => c.subject).join(' ← ')})`,
+      fix: 'the browser trusts the CA by key only when the proxy presents it: put the issuing CA from that chain into network.ca_file',
+    };
   },
 };
 

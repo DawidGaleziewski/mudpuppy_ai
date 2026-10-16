@@ -4,6 +4,7 @@
 
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js';
+import type { ServerContext } from './context.js';
 import type { Runtime } from './runtime.js';
 import { openServerContext } from './server-context.js';
 import { createServer } from './tools/index.js';
@@ -19,7 +20,7 @@ export async function openLocalClient(opts: {
   root: string;
   environment: string;
   runtime: Runtime;
-}): Promise<{ call: ToolCall; close(): Promise<void> }> {
+}): Promise<{ call: ToolCall; ctx: ServerContext; close(): Promise<void> }> {
   const opened = await openServerContext(opts);
   const server = createServer(opened.ctx, opts.runtime);
   const client = new Client({ name: 'pathfinder-cli', version: '0' });
@@ -32,6 +33,8 @@ export async function openLocalClient(opts: {
   };
   return {
     call,
+    // The same store the tools write, for what a CLI does after them (the trace grouping).
+    ctx: opened.ctx,
     close: async () => {
       await opts.runtime.closeAll();
       await client.close();

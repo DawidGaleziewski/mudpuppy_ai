@@ -1,3 +1,4 @@
+import { dirname, isAbsolute, resolve } from 'node:path';
 import { z } from 'zod';
 import { SafetyClass } from '@pathfinder/core';
 import { ConfigError, zodProblems } from './errors.js';
@@ -121,5 +122,9 @@ function resolveEnvironment(file: string, raw: unknown, environment?: Environmen
 export function loadPortal(file: string, environment?: Environment): PortalConfig {
   const parsed = PortalConfig.safeParse(resolveEnvironment(file, readYaml(file), environment));
   if (!parsed.success) throw new ConfigError(file, zodProblems(parsed.error));
+  const caFile = parsed.data.network?.ca_file;
+  // A relative CA file is the portal folder's (spec 031 US4), wherever the loader runs from.
+  if (caFile && parsed.data.network && !isAbsolute(caFile))
+    parsed.data.network.ca_file = resolve(dirname(file), caFile);
   return parsed.data;
 }

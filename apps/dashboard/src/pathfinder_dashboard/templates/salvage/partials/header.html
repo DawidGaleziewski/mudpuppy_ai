@@ -14,7 +14,9 @@
       <li><a href="{{ c.url('/portals/new') }}">+ New portal</a></li>
     </ul>
   </details>
-  <form class="sy-search" role="search" method="get" action="{{ c.url('/search') }}">
+  {#- The environment of the open store (spec 031 US2, R-61): every page says which data it shows. #}
+  <span class="sy-cluster" id="header-env"><span class="sy-label">Environment</span> <span class="sy-mono">{{ c.env }}</span>{% if c.store.kind == "eval" %} <span class="sy-small sy-muted">eval</span>{% endif %}</span>
+  <form class="sy-search mp-search" role="search" method="get" action="{{ c.url('/search') }}">
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
     <input type="search" name="q" aria-label="Search" placeholder="Search parts: screens, processes, records" value="{{ search_query | default('') }}">
     {%- if c.store_param %}<input type="hidden" name="store" value="{{ c.store_param }}">{% endif %}

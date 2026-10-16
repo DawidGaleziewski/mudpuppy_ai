@@ -521,6 +521,9 @@ importers:
       '@modelcontextprotocol/sdk':
         specifier: ^1.30.0
         version: 1.30.0(zod@4.6.5)
+      '@pathfinder/chat-model':
+        specifier: workspace:*
+        version: link:../chat-model
       '@pathfinder/config':
         specifier: workspace:*
         version: link:../config

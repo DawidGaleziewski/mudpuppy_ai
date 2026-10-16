@@ -31,6 +31,8 @@ Layer: app (Python, FastAPI + Jinja + htmx, uv; outside the TS layers)
   proposals), `queries_scans.py`, `queries_settings.py`, `queries_home.py` (Home beside the
   assistant): read models.
 - `stores.py`: the stores a request may open (main data dir + eval workspaces), chosen by key.
+- `servers.py`: live `pathfinder` servers read from `<data_dir>/servers/*.json`; the header names
+  those on another environment or checkout (spec 031 R-61). Read-only, dead files are skipped.
 - `models.py`: read-only models of SQLite schema; drift test vs. `data/schema/schema.sql`.
 - `templates/`, `static/`, `diagrams.py`, `glossary.py`, `live.py`, `chat_client.py`.
 

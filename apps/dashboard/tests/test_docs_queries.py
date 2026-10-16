@@ -9,7 +9,7 @@ import pytest
 from pathfinder_dashboard import db
 from pathfinder_dashboard import queries_docs as q
 
-from .conftest import Store
+from .conftest import EVIDENCE, Store, insert, make_client, ts
 
 PORTAL = "reference-insurer"
 
@@ -175,6 +175,61 @@ def test_process_for_run_and_diagram_input(conn: sqlite3.Connection) -> None:
     assert (
         q.process_diagram_input(conn, q.record_detail(conn, PORTAL, "PROC-002")) is None
     )  # map_only
+
+
+def add_variant_run(store: Store) -> None:
+    """A second trace run of PROC-001 (a validation-error variant), cited by its latest revision."""
+    w = store.connect()
+    insert(
+        w,
+        "runs",
+        id="run-trace-2",
+        portal_id=PORTAL,
+        mode="trace",
+        status="completed",
+        started_at=ts(40),
+        ended_at=ts(45),
+        persona_id="guest",
+    )
+    w.execute(
+        "INSERT INTO processes (id, run_id, portal_id, persona_id, name, goal, status, outcome,"
+        " created_at, ended_at) VALUES ('proc-2', 'run-trace-2', ?, 'guest',"
+        " 'Buy a car policy: no model', 'See the validation', 'recorded', 'goal_reached', ?, ?)",
+        (PORTAL, ts(40), ts(45)),
+    )
+    w.execute(
+        "INSERT INTO process_steps (id, process_id, ord, intent, kind, outcomes_json,"
+        " evidence_ref, confidence, created_at) VALUES ('p2-step-1', 'proc-2', 1,"
+        " 'Calculate without a model', 'click', '[]', ?, 'observed', ?)",
+        (EVIDENCE, ts(41)),
+    )
+    rev = w.execute(
+        "SELECT v.id FROM doc_revisions v JOIN doc_records r ON r.id = v.record_id"
+        " AND v.rev_no = r.latest_rev WHERE r.key = 'PROC-001'"
+    ).fetchone()[0]
+    w.execute(
+        "INSERT INTO doc_evidence_links (id, revision_id, target_kind, target_id, run_id, note)"
+        " VALUES ('ev-variant-2', ?, 'process', 'proc-2', 'run-trace-2', 'variant run')",
+        (rev,),
+    )
+    w.commit()
+    w.close()
+
+
+def test_a_process_shows_one_map_per_cited_variant_run(ba_fixture: Store) -> None:
+    """Spec 031 US5: every trace run the record cites is a variant with its own flowchart."""
+    add_variant_run(ba_fixture)
+    c = db.connect(ba_fixture.data_dir, ba_fixture.env)
+    maps = q.process_diagram_inputs(c, q.record_detail(c, PORTAL, "PROC-001"))
+    assert [(m["run_id"], m["outcome"], len(m["steps"])) for m in maps] == [
+        ("run-trace", "boundary_reached", 3),
+        ("run-trace-2", "goal_reached", 1),
+    ]
+    assert maps[1]["variant"] == "Buy a car policy: no model"
+    with make_client(ba_fixture) as client:
+        html = client.get(f"/docs/{PORTAL}/PROC-001").text
+    assert 'id="variant-map-2"' in html
+    assert "Variant 2: Buy a car policy: no model" in html
 
 
 def test_capability_and_screen_diagram_inputs(conn: sqlite3.Connection) -> None:

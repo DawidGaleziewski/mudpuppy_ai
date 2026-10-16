@@ -1,6 +1,6 @@
 import { join } from 'node:path';
 import { loadTraces } from '@pathfinder/config';
-import { driveTrace } from '@pathfinder/mcp-server';
+import { driveTrace, suggestTraceGrouping } from '@pathfinder/mcp-server';
 import { afterAll, beforeAll, expect } from 'vitest';
 import {
   gate,
@@ -49,6 +49,24 @@ gate('SC-18', 'the trace driver walks every variant of a traces.yaml process', a
   expect(
     rows(gs, 'SELECT id FROM processes WHERE run_id IN (?, ?)', apply[0]!.runId, apply[1]!.runId),
   ).toHaveLength(2);
+  // Spec 031 US5: both variants proposed as one process from the happy path's screens, once.
+  const spec = traces.find((t) => t.id === 'apply')!;
+  const g = suggestTraceGrouping(
+    gs.ctx,
+    { portal: 'scar-maker', persona: 'applicant', trace: spec },
+    apply,
+  );
+  expect('suggested' in g && g.suggested.steps.length).toBeGreaterThanOrEqual(2);
+  expect('suggested' in g && g.suggested.why).toContain('too-young');
+  expect(
+    suggestTraceGrouping(
+      gs.ctx,
+      { portal: 'scar-maker', persona: 'applicant', trace: spec },
+      apply,
+    ),
+  ).toMatchObject({
+    skipped: expect.stringContaining('already open') as unknown,
+  });
   expect(
     await driveTrace(
       gs.call,

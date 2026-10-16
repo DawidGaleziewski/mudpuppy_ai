@@ -126,6 +126,27 @@ describe.skipIf(!available)('stabilizer diagnostics', () => {
     await page.close();
   });
 
+  it('a page still loading new parts gets past the quiet limit, up to the hard one (spec 031 US1)', async () => {
+    // A new path every 100 ms, never quiet: progress keeps the wait going until hardMs.
+    const { page, net } = await open(
+      `<script>let n=0;setInterval(()=>fetch('${ORIGIN}/ok?'+(++n)).then(()=>fetch('${ORIGIN}/part'+n)),100)</script>`,
+    );
+    const out = await settleWithDiagnostics(page, net, { ...fast, timeoutMs: 300, hardMs: 1200 });
+    expect(out.result).toBe('never_stabilized');
+    expect(out.waitedMs).toBeGreaterThanOrEqual(1200);
+    await page.close();
+  });
+
+  it('a poll of the same path is not progress: it gives up at the quiet limit', async () => {
+    const { page, net } = await open(
+      `<script>setInterval(()=>fetch('${ORIGIN}/ok?t='+Date.now()),100)</script>`,
+    );
+    const out = await settleWithDiagnostics(page, net, { ...fast, timeoutMs: 400, hardMs: 5000 });
+    expect(out.result).toBe('never_stabilized');
+    expect(out.waitedMs).toBeLessThan(2000);
+    await page.close();
+  });
+
   it('settles while a live EventSource stays open (spec 009 F-06)', async () => {
     const { page, net } = await open(`<script>new EventSource('${ORIGIN}/hang')</script>`);
     const out = await settleWithDiagnostics(page, net, { ...fast, timeoutMs: 2000 });

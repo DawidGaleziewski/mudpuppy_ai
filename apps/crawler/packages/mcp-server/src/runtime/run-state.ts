@@ -56,16 +56,30 @@ export class RunState {
     return this.processId !== null;
   }
 
-  constructor(
-    readonly runId: string,
-    readonly session: BrowserSession,
-    readonly effective: EffectiveConfig,
-    readonly scope: RunScope,
-    readonly robots: RunRobots,
-    /** Request-level trace events of this run's browser (spec 005). */
-    readonly trace: RunTraceHooks,
-  ) {
-    const { portal } = effective;
+  readonly runId: string;
+  readonly session: BrowserSession;
+  readonly effective: EffectiveConfig;
+  readonly scope: RunScope;
+  readonly robots: RunRobots;
+  /** Request-level trace events of this run's browser (spec 005). */
+  readonly trace: RunTraceHooks;
+
+  /** Named parts instead of six positional ones (G-04, spec 030 close-out review). */
+  constructor(parts: {
+    runId: string;
+    session: BrowserSession;
+    effective: EffectiveConfig;
+    scope: RunScope;
+    robots: RunRobots;
+    trace: RunTraceHooks;
+  }) {
+    this.runId = parts.runId;
+    this.session = parts.session;
+    this.effective = parts.effective;
+    this.scope = parts.scope;
+    this.robots = parts.robots;
+    this.trace = parts.trace;
+    const { portal } = parts.effective;
     this.ruleSet = portalRuleSet(portal);
     this.policy = new FrontierPolicy({
       itemRouteTemplates: portal.item_route_templates,

@@ -9,3 +9,4 @@ export * from './load-persona.js';
 export * from './effective.js';
 export * from './environments.js';
 export * from './traces.js';
+export * from './ca-file.js';

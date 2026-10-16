@@ -1,8 +1,21 @@
 import { createServer, request, type Server } from 'node:http';
-import type { AddressInfo } from 'node:net';
-import type { PortalConfig } from '@pathfinder/config';
+import { createServer as createHttpsServer } from 'node:https';
+import { connect, type AddressInfo } from 'node:net';
+import { readTrustedCa, type PortalConfig } from '@pathfinder/config';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { CHECKS, httpProbe, runChecks, type Check, type HttpProbe } from '../src/index.js';
+import { makeCaFixture } from '../../../tests/fixtures/ca-fixture.js';
+import {
+  CHECKS,
+  httpProbe,
+  runChecks,
+  tlsChainProbe,
+  type Check,
+  type HttpProbe,
+  type TlsChainProbe,
+} from '../src/index.js';
+
+const ca = makeCaFixture();
+const tlsCaFile = CHECKS.find((c) => c.id === 'tls.ca-file')!;
 
 const portal = (over: Partial<PortalConfig> = {}): PortalConfig =>
   ({
@@ -62,6 +75,79 @@ describe('doctor checks (spec 030 R-63)', () => {
     expect(r['net.proxy']!.status).toBe('ok');
     expect(r['net.ip-allowlist']!.status).toBe('ok');
     expect(r['robots.proxy']).toMatchObject({ status: 'warn' });
+  });
+
+  it('fails a proxy that forwards a plain GET but refuses a CONNECT tunnel (spec 030 F-13)', async () => {
+    const p = portal({
+      network: {
+        proxy: { server: 'http://proxy.test:3128', bypass: [] },
+        ignore_https_errors: false,
+      },
+    });
+    const statusFor = (o: { proxy?: string; tunnel?: boolean }): number => {
+      if (o.tunnel) return 405;
+      return o.proxy ? 200 : 403;
+    };
+    const r = await run((_u, o) => Promise.resolve({ status: statusFor(o) }), p);
+    expect(r['net.proxy']).toMatchObject({ status: 'fail' });
+    expect(r['net.proxy']!.detail).toContain('CONNECT');
+  });
+});
+
+describe.skipIf(ca === null)('tls.ca-file (spec 031 US4)', () => {
+  const https = (caFile: string) =>
+    portal({
+      base_url: 'https://portal.test/',
+      network: { ignore_https_errors: false, ca_file: caFile },
+    });
+  const withChain =
+    (...spki: string[]): TlsChainProbe =>
+    () =>
+      Promise.resolve({ chain: spki.map((s, i) => ({ subject: `CN=c${String(i)}`, spki: s })) });
+  const check = (p: PortalConfig, tlsChain: TlsChainProbe) =>
+    runChecks([tlsCaFile], {
+      root: '/nowhere',
+      portal: p,
+      environment: 'dev',
+      http: () => Promise.resolve({ status: 200 }),
+      tlsChain,
+    }).then((rows) => rows[0]!.result);
+
+  it('passes when the portal presents a certificate of the file', async () => {
+    const spki = readTrustedCa(ca!.caFile).spki[0]!;
+    const r = await check(https(ca!.caFile), withChain('leaf-key', spki));
+    expect(r).toMatchObject({ status: 'ok' });
+    expect(r.detail).toContain('Test Corp Issuing CA');
+  });
+
+  it('fails, naming the presented chain, when none matches (a root that is never presented)', async () => {
+    const r = await check(https(ca!.caFile), withChain('leaf-key', 'other-ca'));
+    expect(r.status).toBe('fail');
+    expect(r.detail).toContain('CN=c0 ← CN=c1');
+    expect(r.fix).toContain('issuing CA');
+  });
+
+  it('fails on an unreadable file and skips without a ca_file', async () => {
+    expect((await check(https('/nowhere/ca.pem'), withChain())).status).toBe('fail');
+    const none = await runChecks([tlsCaFile], {
+      root: '/nowhere',
+      portal: portal(),
+      environment: 'dev',
+      http: () => Promise.resolve({ status: 200 }),
+    });
+    expect(none[0]!.result.status).toBe('skip');
+  });
+
+  it('reads the chain a real server presents', async () => {
+    const server = createHttpsServer(
+      { key: ca!.leafKey, cert: ca!.leafCert + ca!.caPem },
+      (_q, s) => s.end(),
+    );
+    await new Promise<void>((r) => server.listen(0, '127.0.0.1', r));
+    const url = `https://127.0.0.1:${String((server.address() as AddressInfo).port)}/`;
+    const r = await tlsChainProbe(url, { timeoutMs: 5000 });
+    server.close();
+    expect('chain' in r && r.chain.map((c) => c.spki)).toContain(readTrustedCa(ca!.caFile).spki[0]);
   });
 
   it('names TLS inspection and DNS failures (GC-12)', async () => {
@@ -138,5 +224,32 @@ describe('httpProbe', () => {
     await new Promise<void>((r) => free.close(() => r()));
     const down = await httpProbe(`http://127.0.0.1:${port}/`, { userAgent: 'x', timeoutMs: 2000 });
     expect(down).toMatchObject({ code: 'ECONNREFUSED' });
+  });
+
+  it('tunnels an http target through CONNECT when asked, and reports a proxy that cannot', async () => {
+    // The test proxy has no CONNECT handler: Node drops the socket.
+    const refused = await httpProbe(siteUrl, {
+      userAgent: 'x',
+      proxy: proxyUrl,
+      tunnel: true,
+      timeoutMs: 2000,
+    });
+    expect(refused).toHaveProperty('error');
+    const tunnelling = createServer();
+    tunnelling.on('connect', (req, client) => {
+      const [host, port] = (req.url ?? '').split(':');
+      const up = connect(Number(port), host, () => {
+        client.write('HTTP/1.1 200 Connection Established\r\n\r\n');
+        up.pipe(client);
+        client.pipe(up);
+      });
+    });
+    await new Promise<void>((r) => tunnelling.listen(0, '127.0.0.1', r));
+    const via = `http://127.0.0.1:${(tunnelling.address() as AddressInfo).port}`;
+    // Through the tunnel the site sees no `via` header: 403, but an HTTP answer.
+    expect(await httpProbe(siteUrl, { userAgent: 'x', proxy: via, tunnel: true })).toEqual({
+      status: 403,
+    });
+    tunnelling.close();
   });
 });

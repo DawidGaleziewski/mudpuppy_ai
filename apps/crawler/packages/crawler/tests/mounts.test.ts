@@ -75,7 +75,7 @@ const childFrames = (p: Page) => () =>
 describe.skipIf(!available)('waitForMountsIn (browser, spec 019 LO-53)', () => {
   it('waits for a late mount inside a frame and reports the frame', async () => {
     await page.setContent(wrapper(400));
-    const w = await waitForMountsIn(page, childFrames(page), 5000, 25);
+    const w = await waitForMountsIn(page, childFrames(page), { hardMs: 5000, pollMs: 25 });
     expect(w.frames).toHaveLength(1);
     expect(w.frames[0]!.probe.mounts).toEqual([{ selector: '#app', filled: true }]);
     expect(w.frames[0]!.timedOut).toBe(false);
@@ -84,9 +84,39 @@ describe.skipIf(!available)('waitForMountsIn (browser, spec 019 LO-53)', () => {
 
   it('gives up at the bound and says which frame is still empty', async () => {
     await page.setContent(wrapper(60_000));
-    const w = await waitForMountsIn(page, childFrames(page), 200, 25);
+    const w = await waitForMountsIn(page, childFrames(page), { hardMs: 200, pollMs: 25 });
     expect(w.waitedMs).toBeGreaterThanOrEqual(200);
     expect(w.frames[0]!.timedOut).toBe(true);
     expect(w.timedOut).toBe(false); // the top document has nothing to wait for
+  });
+
+  it('ends early when nothing happens: an empty-by-design mount costs the quiet limit (spec 031 F-03)', async () => {
+    await page.setContent(wrapper(60_000));
+    const w = await waitForMountsIn(page, childFrames(page), {
+      hardMs: 10_000,
+      quietMs: 300,
+      pollMs: 25,
+    });
+    expect(w.frames[0]!.timedOut).toBe(true);
+    expect(w.waitedMs).toBeLessThan(2_000);
+  });
+
+  it('keeps waiting past the quiet limit while the page keeps growing', async () => {
+    // A frame that adds an element every 100 ms and mounts after 1.2 s.
+    const inner =
+      '<!doctype html><script type="importmap">{"imports":{}}</script><div id="app"></div>' +
+      '<script>let n=0;const t=setInterval(()=>{document.body.append(document.createElement("i"));' +
+      'if(++n===12){clearInterval(t);document.getElementById("app").textContent="Gotowe";}},100);</script>';
+    await page.setContent(
+      `<!doctype html><iframe srcdoc="${inner.replace(/"/g, '&quot;')}"></iframe>`,
+    );
+    const w = await waitForMountsIn(page, childFrames(page), {
+      hardMs: 10_000,
+      // Six ticks of the frame's 100 ms growth: margin for a loaded machine (the slow tier).
+      quietMs: 600,
+      pollMs: 25,
+    });
+    expect(w.frames[0]!.timedOut).toBe(false);
+    expect(w.waitedMs).toBeGreaterThan(600);
   });
 });

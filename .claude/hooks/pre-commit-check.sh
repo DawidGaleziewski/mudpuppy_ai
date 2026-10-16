@@ -39,6 +39,15 @@ if code '^apps/dashboard/' || has '^(data/migrations/|docs/glossary/)'; then
   # Perf budgets and load-sensitive tests run alone after the parallel run (spec 012 F-08, 022 F-01).
   run dashboard apps/dashboard bash -c "uv run ruff check && uv run pytest -q -n auto -m 'not perf and not serial' && uv run pytest -q -m 'perf or serial'"
 fi
+# The dashboard's review page shells out to the crawler's operator scripts (`docs:review`), so a
+# script change can break it without a dashboard file changing (spec 030 F-15).
+if code '^apps/crawler/scripts/' && ! { code '^apps/dashboard/' || has '^(data/migrations/|docs/glossary/)'; }; then
+  run "dashboard (review)" apps/dashboard bash -c 'uv run pytest -q tests/test_review.py tests/test_review_inbox.py'
+fi
+# The hooks themselves (spec 031 T001).
+if code '^\.claude/hooks/'; then
+  run hooks . python3 -m unittest discover -s .claude/hooks
+fi
 # Chat service and the shared workflow package (R-30); chat also depends on workflow, core and
 # the packages split out of core (spec 012: store, trace, docs-model, chat-model).
 if code '^(apps/chat/|packages/workflow/|apps/crawler/packages/(core|store|trace|docs-model|chat-model)/)'; then

@@ -23,6 +23,8 @@ obstacles, safety, store.
   when quiet), `transient-error.ts` (`transientError`: 5xx and soft error pages, EN/DE/PL),
   `asset-health.ts` (`trackAssetHealth`: failed stylesheets, scripts and fonts); the request gate
   also budgets static files apart (`static_per_second`).
+- Spec 031: `trusted-ca.ts` (`trustInNode`, `chromiumCaArgs`: a portal's `network.ca_file` is
+  trusted by Node and, by SPKI key, by Chromium; preflight refuses an unusable file).
 - In-page code with helpers goes through `evalWithHelpers` (`in-page.ts`; Playwright's `evaluate`, not an eval): top-level helper
   functions only, no closures (the `__name` shim, G-02).
 

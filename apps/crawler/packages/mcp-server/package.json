@@ -9,6 +9,7 @@
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.30.0",
+    "@pathfinder/chat-model": "workspace:*",
     "@pathfinder/config": "workspace:*",
     "@pathfinder/core": "workspace:*",
     "@pathfinder/crawler": "workspace:*",

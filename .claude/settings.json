@@ -17,7 +17,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "f=$(node -e \"let d='';process.stdin.on('data',c=>d+=c);process.stdin.on('end',()=>{try{process.stdout.write(JSON.parse(d).tool_input.file_path||'')}catch{process.stdout.write('')}})\"); case \"$f\" in apps/crawler/*) rel=\"${f#apps/crawler/}\"; (cd apps/crawler && pnpm exec prettier --write \"$rel\" 2>/dev/null); ;; esac; true"
+            "command": "f=$(node -e \"let d='';process.stdin.on('data',c=>d+=c);process.stdin.on('end',()=>{try{process.stdout.write(JSON.parse(d).tool_input.file_path||'')}catch{process.stdout.write('')}})\"); root=$(git rev-parse --show-toplevel 2>/dev/null) || exit 0; f=\"${f#$root/}\"; case \"$f\" in apps/crawler/*.ts|apps/crawler/*.tsx|apps/crawler/*.js|apps/crawler/*.mjs) rel=\"${f#apps/crawler/}\"; (cd \"$root/apps/crawler\" && pnpm exec prettier --write \"$rel\" 2>/dev/null); ;; esac; true"
           }
         ]
       }

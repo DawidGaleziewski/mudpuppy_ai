@@ -1,6 +1,7 @@
 /// <reference lib="dom" />
 import type { CompositionLoader } from '@pathfinder/core';
 import type { Frame, Page } from 'playwright';
+import { waitForCondition } from './condition-wait.js';
 import { evalWithHelpers } from './in-page.js';
 
 /** A micro-frontend mount point and whether something rendered into it (spec 015 R4, LO-02). */
@@ -119,41 +120,86 @@ async function probeOrNull(frame: Frame): Promise<MountProbe | null> {
   }
 }
 
+/** How long the mount wait goes on with nothing happening (spec 031 US1): above LO-53's 1.5 s. */
+export const DEFAULT_MOUNT_QUIET_MS = 3_000;
+
+export interface MountWaitLimits {
+  /** Never longer than this (`scope.mfe_wait_ms` / `timeouts.mfe_wait_ms`). */
+  hardMs: number;
+  /**
+   * Give up after this long without progress: no request to a new path, no change in the number
+   * of elements of the page or its frames. A mount that is empty on purpose (a cookie banner after
+   * consent) then costs this, not `hardMs` (spec 031 F-03).
+   */
+  quietMs?: number;
+  /** ms timestamp of the page's last request to a new path (`NetworkActivity.lastNewPathAt`). */
+  lastNewPathAt?: () => number;
+  pollMs?: number;
+}
+
+async function probeAll(
+  page: Page,
+  frames: () => Promise<readonly Frame[]>,
+): Promise<{ top: MountProbe; inner: FrameMountWait[] }> {
+  let top: MountProbe;
+  try {
+    top = await probeMounts(page);
+  } catch {
+    top = { mounts: [], loaders: [], bundles: [] }; // navigated: the next observation sees it
+  }
+  const inner: FrameMountWait[] = [];
+  for (const f of await frames().catch(() => [] as readonly Frame[])) {
+    const probe = await probeOrNull(f);
+    if (probe) inner.push({ url: f.url(), probe, timedOut: shouldWaitForMounts(probe) });
+  }
+  return { top, inner };
+}
+
+/** Element counts of the page and its frames: growth anywhere is progress. */
+async function shapeOf(page: Page, frames: () => Promise<readonly Frame[]>): Promise<string> {
+  const count = (t: Page | Frame) =>
+    t.evaluate(() => document.getElementsByTagName('*').length).catch(() => -1);
+  const all = [page, ...(await frames().catch(() => [] as readonly Frame[]))];
+  return (await Promise.all(all.map(count))).join(',');
+}
+
 /**
  * {@link waitForMounts} over the top document and the frames the observation reads (spec 019 US3,
  * LO-53): a legacy wrapper whose inner page mounts its own front end late was read empty, because
- * only the top document was probed (spec 015 T021 as built). One deadline for all of them; the
- * frame list is asked again on every poll, so a frame that appears late is waited for too.
+ * only the top document was probed (spec 015 T021 as built). One wait for all of them; the frame
+ * list is asked again on every poll, so a frame that appears late is waited for too. The wait is
+ * the shared condition wait (owner decision D-2 Q1): up to `hardMs`, ended early after `quietMs`
+ * with no progress.
  */
 export async function waitForMountsIn(
   page: Page,
   frames: () => Promise<readonly Frame[]>,
-  maxMs: number,
-  pollMs = 100,
+  limits: MountWaitLimits,
 ): Promise<PageMountWait> {
-  const started = Date.now();
-  for (;;) {
-    let top: MountProbe;
-    try {
-      top = await probeMounts(page);
-    } catch {
-      top = { mounts: [], loaders: [], bundles: [] }; // navigated: the next observation sees it
-    }
-    const inner: FrameMountWait[] = [];
-    for (const f of await frames().catch(() => [] as readonly Frame[])) {
-      const probe = await probeOrNull(f);
-      if (probe) inner.push({ url: f.url(), probe, timedOut: shouldWaitForMounts(probe) });
-    }
-    const waiting = shouldWaitForMounts(top) || inner.some((f) => f.timedOut);
-    if (!waiting || Date.now() - started >= maxMs || page.isClosed())
-      return {
-        ...top,
-        waitedMs: Date.now() - started,
-        timedOut: shouldWaitForMounts(top),
-        frames: inner,
-      };
-    await new Promise((r) => setTimeout(r, pollMs));
-  }
+  let last = await probeAll(page, frames);
+  const waiting = () => shouldWaitForMounts(last.top) || last.inner.some((f) => f.timedOut);
+  const waited = await waitForCondition(
+    async () => {
+      if (page.isClosed()) return true;
+      last = await probeAll(page, frames);
+      return !waiting();
+    },
+    {
+      lastNetworkActivityAt: limits.lastNewPathAt ?? (() => 0),
+      fingerprint: () => shapeOf(page, frames),
+    },
+    {
+      quietMs: Math.min(limits.quietMs ?? DEFAULT_MOUNT_QUIET_MS, limits.hardMs),
+      hardMs: limits.hardMs,
+      pollMs: limits.pollMs ?? 100,
+    },
+  );
+  return {
+    ...last.top,
+    waitedMs: waited.waitedMs,
+    timedOut: shouldWaitForMounts(last.top),
+    frames: last.inner,
+  };
 }
 
 /**

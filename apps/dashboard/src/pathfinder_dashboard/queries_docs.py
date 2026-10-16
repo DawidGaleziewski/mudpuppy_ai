@@ -655,21 +655,25 @@ def action_name(conn: sqlite3.Connection, action_id: str | None) -> str | None:
     return f'{row["role"]} "{row["accessible_name"] or ""}"' if row else None
 
 
-def process_diagram_input(
+def process_diagram_inputs(
     conn: sqlite3.Connection, detail: DocRecordDetail
-) -> dict[str, Any] | None:
-    """`process_map` input for a PROC record: the steps of the trace run its evidence cites.
+) -> list[dict[str, Any]]:
+    """`process_map` inputs for a PROC record, one per trace run its evidence cites, in citation
+    order: a process documented from several variant runs (happy path, validation errors) shows a
+    flowchart per variant (spec 031 US5). Each adds `run_id`, `outcome` and `variant` (the run's
+    process name) beside the builder's keys.
 
-    None when the record was never traced (`map_only`), cites no trace run, or the store has no
+    Empty when the record was never traced (`map_only`), cites no trace run, or the store has no
     process tables."""
     content = detail.shown.content_json if isinstance(detail.shown.content_json, dict) else {}
     if content.get("observed_extent") == "map_only":
-        return None
+        return []
     run_ids = [
         e.link.run_id
         for e in detail.evidence
         if e.link.target_kind in ("process", "process_step") and e.link.run_id
     ]
+    out: list[dict[str, Any]] = []
     for run_id in dict.fromkeys(run_ids):
         found = process_for_run(conn, run_id)
         if found is None or not found[1]:
@@ -681,12 +685,25 @@ def process_diagram_input(
                 "action": action_name(conn, process.boundary_action_id) or "boundary",
                 "not_observable": process.not_observable or "not observable",
             }
-        return {
-            "process": {"key": detail.record.key, "title": detail.record.title},
-            "steps": [{"ord": s.ord, "kind": s.kind, "intent": s.intent} for s in steps],
-            "boundary": boundary,
-        }
-    return None
+        out.append(
+            {
+                "process": {"key": detail.record.key, "title": detail.record.title},
+                "steps": [{"ord": s.ord, "kind": s.kind, "intent": s.intent} for s in steps],
+                "boundary": boundary,
+                "run_id": run_id,
+                "outcome": process.outcome,
+                "variant": process.name,
+            }
+        )
+    return out
+
+
+def process_diagram_input(
+    conn: sqlite3.Connection, detail: DocRecordDetail
+) -> dict[str, Any] | None:
+    """The first of `process_diagram_inputs`, or None."""
+    inputs = process_diagram_inputs(conn, detail)
+    return inputs[0] if inputs else None
 
 
 def capability_diagram_input(conn: sqlite3.Connection, portal: str) -> dict[str, Any]:

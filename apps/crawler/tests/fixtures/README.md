@@ -10,6 +10,7 @@ Saved inputs for the pure packages, so `fingerprint` and `safety` can be unit-te
 | `actions/` | Labeled action descriptors with their expected safety class                                                             | `safety` classifier                 |
 | `urls/`    | URL lists (tracking params, numeric/slug ids, query variants); `liveinsurer-robots-sample.json` with expected robots verdicts | route-template inference, robots    |
 | `robots/`  | Real `robots.txt` files, byte-exact, and the RFC 9309 examples                                                          | `safety` robots parser              |
+| `ca-fixture.ts` | Makes a throwaway CA and a `localhost` certificate with `openssl` at test time (no key files committed, spec 031 US4) | `crawler` trusted CA, `doctor` `tls.ca-file` |
 
 ## `robots/`
 
