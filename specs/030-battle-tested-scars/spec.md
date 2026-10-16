@@ -101,4 +101,24 @@ runs on an undeclared or defaulted environment.
 
 - **SC-001** Every scar in `scars.yaml` has a gate or gap case; each fixed scar is a `gate()`.
 - **SC-002** The fast and slow tiers stay green; the R-28 gates stay green.
-- **SC-003** The scar-maker eval task runs and has a baseline.
+- **SC-003** The scar-maker eval task runs and has a baseline. (Runs; baseline not promoted, see
+  open decision 6.)
+
+## Open decisions (owner, for later)
+
+Merged as v1.0.33 on 2026-10-16 with these left open (owner: "merge, leave all rest of decisions
+for later"). The same list is under [battle-tested-scar] in `roadmap.md`.
+
+| # | Decision | Item | Where it stands | Source |
+| --- | --- | --- | --- | --- |
+| 1 | Transit zones: declared in the portal file, learned by the harness, or both | R-62 Q3 | not built; Claude recommends declared first, learning and proposals later | `docs/discussions/r62-transit-zones.md` |
+| 2 | D-8: refuse instead of warn when trace runs were not grouped by `narrow` | R-65 (1) | `start_session` warns | tasks T081, session dump |
+| 3 | D-9: names of the two "processes" pages; 1:1 link doc record ↔ reconciled process | R-65 (2) | not built (T082) | tasks T082 |
+| 4 | Should a background (sub-resource) 429 slow the limiter instead of being ignored? | R-57 | ignored; only a main-document 403/429 stops | findings F-03 |
+| 5 | Remaining `sandbox` defaults: vault CLI fallback, chat credentials endpoint, `.mcp.json` | R-61 | kept, validated against declared names | findings F-11 |
+| 6 | Numbered path segments: id or section (with R-50); then promote the eval baseline | R-50, T090 | trials 34.8 % / 54.3 %, not promoted | findings F-16 |
+| 7 | The 13 deferred code-reviewer findings as a maintainability follow-up (R-34 style)? | — | deferred | findings "Close-out review" |
+
+Not decisions, just not built yet: the shared condition wait in navigate/act/mounts (F-10), R-58
+batch drain and shared-nav dedup, R-63 CA trust, R-64 run tagging and per-variant flowcharts, R-65
+(5) `api_endpoint`, R-66 (T083), GC-10 check, the environment in the dashboard header.
