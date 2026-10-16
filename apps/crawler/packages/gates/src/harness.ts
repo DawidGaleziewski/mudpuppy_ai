@@ -31,6 +31,8 @@ import {
   GATE_WIDGET_PORT,
   MIGRATIONS,
   REPO,
+  SCAR_BASE,
+  SCAR_PORT,
 } from './paths.js';
 
 export type Body = Record<string, any>; // eslint-disable-line @typescript-eslint/no-explicit-any -- parsed JSON bodies of arbitrary shape
@@ -62,11 +64,28 @@ export const toGatePorts = (yaml: string): string =>
   yaml
     .replaceAll('127.0.0.1:4100', `127.0.0.1:${GATE_PORT}`)
     .replaceAll('127.0.0.1:4101', `127.0.0.1:${GATE_WIDGET_PORT}`)
+    .replaceAll('127.0.0.1:4300', `127.0.0.1:${SCAR_PORT}`)
+    .replaceAll('127.0.0.2:4300', `127.0.0.2:${SCAR_PORT}`)
+    // scar-maker's forward proxy runs on its port + 2 (spec 030 R-63).
+    .replaceAll('127.0.0.1:4302', `127.0.0.1:${SCAR_PORT + 2}`)
     // Gates jump between pages with direct navigations; depth is not what they test.
     .replace(/max_depth:\s*\d+/, 'max_depth: 100')
     // A shell page pulls ~12 requests; at the configs' 5/s every step waits ~2 s (SC-006). 20/s
     // stays under the estate's own limit of 30 counted requests a second (LO-41).
-    .replace(/requests_per_second:\s*\d+/, 'requests_per_second: 20');
+    .replace(/requests_per_second:\s*\d+/, 'requests_per_second: 20')
+    // Static files have their own budget (spec 030 FR-063); together they stay under 30 (LO-41).
+    .replace(/(\n(\s*)requests_per_second: 20)/, '$1\n$2static_per_second: 8');
+
+/** Scar-maker's one fixture user (apps/scar-maker `login-session.ts`), spec 030, for its portals. */
+async function seedScarLogins(
+  vault: ReturnType<typeof createVaultStore>,
+  portals: readonly string[],
+): Promise<void> {
+  for (const p of portals.filter((id) => id.startsWith('scar-maker'))) {
+    await vault.set(p, 'sandbox', 'SCAR_LOGIN', 'scar.tester');
+    await vault.set(p, 'sandbox', 'SCAR_PASSWORD', FIXTURE_PASSWORD);
+  }
+}
 
 /**
  * A crawler server exactly as the agent sees it (in-memory MCP transport, real browser runtime)
@@ -105,6 +124,7 @@ export async function gateServer(
     brand: string;
     login: string;
   }[];
+  await seedScarLogins(vault, portals);
   for (const p of portals) {
     const brand = BRAND.exec(p)?.[1];
     const user = users.find((u) => u.brand === brand);
@@ -182,6 +202,33 @@ export async function nav(call: Call, runId: string, path: string): Promise<Body
   });
   if (r.isError) throw new Error(`navigate ${path}: ${JSON.stringify(r.body)}`);
   return r.body;
+}
+
+/**
+ * Navigate on the gate's scar-maker (spec 030): a path is taken on the portal host; `extra` adds
+ * arguments (a trace run's `intent`).
+ */
+export async function scarNav(
+  call: Call,
+  runId: string,
+  path: string,
+  extra: Record<string, unknown> = {},
+): Promise<Body> {
+  const r = await call('navigate', {
+    run_id: runId,
+    url: path.startsWith('http') ? path : `${SCAR_BASE}${path}`,
+    rationale: 'gate step',
+    include_actions: true,
+    ...extra,
+  });
+  if (r.isError) throw new Error(`navigate ${path}: ${JSON.stringify(r.body)}`);
+  return r.body;
+}
+
+/** Clear the gate scar-maker's memory (counters, sessions). */
+export async function resetScars(): Promise<void> {
+  const r = await fetch(`${SCAR_BASE}/__admin/reset`, { method: 'POST' });
+  if (!r.ok) throw new Error(`scar reset failed: ${r.status}`);
 }
 
 /** Everything a run left in the store and the evidence folder, as one string (secret searches). */

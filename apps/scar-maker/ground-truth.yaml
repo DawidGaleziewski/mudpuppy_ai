@@ -1,0 +1,292 @@
+# Ground truth: scar-maker (apps/scar-maker, spec 030), the portal of real-world scars.
+# Written by Claude from the scar modules (the portal is ours, like the dashboard self-eval),
+# for the screens a read-only guest map reaches from / on portals/scar-maker as configured (no
+# fixes on). Left out on purpose: screens that depend on chance or on a visit order (SC-07's
+# one-time promo and covered Downloads), on a fix-plugin (SC-08's services, SC-09's products), on a
+# submit a read-only guest may not do (SC-04 result, SC-18 later steps), or that end a run by design
+# (SC-02's 403 page, SC-13's allowlist). Locale: en (some scars are German on purpose).
+# Schema: GroundTruth in apps/crawler/packages/reference-portal/src/ground-truth.ts.
+
+portal_id: scar-maker
+today: 2026-10-16
+screens:
+  - id: S01
+    route_template: /
+    title: Scar maker
+    guest_visible: true
+    reached_by: navigation
+    actor: guest
+  - id: S02
+    route_template: /sc01
+    title: Übersicht
+    guest_visible: true
+    reached_by: navigation
+    actor: guest
+  - id: S03
+    route_template: /sc01/vertraege
+    title: Verträge
+    guest_visible: true
+    reached_by: navigation
+    actor: guest
+  - id: S04
+    route_template: /sc01/dokumente
+    title: Dokumente
+    guest_visible: true
+    reached_by: navigation
+    actor: guest
+  - id: S05
+    route_template: /sc01/postfach
+    title: Postfach
+    guest_visible: true
+    reached_by: navigation
+    actor: guest
+  - id: S06
+    route_template: /sc01/hilfe
+    title: Hilfe
+    guest_visible: true
+    reached_by: navigation
+    actor: guest
+  - id: S07
+    route_template: /sc02
+    title: Dashboard
+    guest_visible: true
+    reached_by: navigation
+    actor: guest
+  - id: S08
+    route_template: /sc02/details
+    title: Contract details
+    guest_visible: true
+    reached_by: navigation
+    actor: guest
+  - id: S09
+    route_template: /sc03
+    title: Step 1 of 2
+    guest_visible: true
+    reached_by: navigation
+    actor: guest
+  - id: S10
+    route_template: /sc03/step-2
+    title: Step 2 of 2
+    guest_visible: true
+    reached_by: navigation
+    actor: guest
+  - id: S11
+    route_template: /sc04
+    title: Choose a contract
+    guest_visible: true
+    reached_by: navigation
+    actor: guest
+  - id: S12
+    route_template: /sc05
+    title: Postfach
+    guest_visible: true
+    reached_by: navigation
+    actor: guest
+  - id: S13
+    route_template: /sc05/uebersicht
+    title: Übersicht
+    guest_visible: true
+    reached_by: navigation
+    actor: guest
+  - id: S14
+    route_template: /sc06
+    title: Customer area
+    guest_visible: true
+    reached_by: navigation
+    actor: guest
+  - id: S15
+    route_template: /sc06/policies
+    title: Policies
+    guest_visible: true
+    reached_by: navigation
+    actor: guest
+  - id: S16
+    route_template: /sc06/claims
+    title: Claims
+    guest_visible: true
+    reached_by: navigation
+    actor: guest
+  - id: S17
+    route_template: /sc06/invoices
+    title: Invoices
+    guest_visible: true
+    reached_by: navigation
+    actor: guest
+  - id: S18
+    route_template: /sc06/documents
+    title: Documents
+    guest_visible: true
+    reached_by: navigation
+    actor: guest
+  - id: S19
+    route_template: /sc06/reports
+    title: Reports
+    guest_visible: true
+    reached_by: navigation
+    actor: guest
+  - id: S20
+    route_template: /sc07
+    title: Service start
+    guest_visible: true
+    reached_by: navigation
+    actor: guest
+  - id: S21
+    route_template: /sc07/news
+    title: News
+    guest_visible: true
+    reached_by: navigation
+    actor: guest
+  - id: S22
+    route_template: /sc07/faq
+    title: Questions and answers
+    guest_visible: true
+    reached_by: navigation
+    actor: guest
+  - id: S23
+    route_template: /sc07/chat
+    title: Live chat
+    guest_visible: true
+    reached_by: navigation
+    actor: guest
+  - id: S24
+    route_template: /sc08
+    title: Services
+    guest_visible: true
+    reached_by: navigation
+    actor: guest
+  - id: S25
+    route_template: /sc09
+    title: Insurance products
+    guest_visible: true
+    reached_by: navigation
+    actor: guest
+  - id: S26
+    route_template: /sc10
+    title: My services
+    guest_visible: true
+    reached_by: navigation
+    actor: guest
+  - id: S27
+    route_template: /sc10/contract-overview
+    title: Contract overview
+    guest_visible: true
+    reached_by: navigation
+    actor: guest
+  - id: S28
+    route_template: /sc10/contract-changes
+    title: Contract changes
+    guest_visible: true
+    reached_by: navigation
+    actor: guest
+  - id: S29
+    route_template: /sc10/open-claims
+    title: Open claims
+    guest_visible: true
+    reached_by: navigation
+    actor: guest
+  - id: S30
+    route_template: /sc10/claim-history
+    title: Claim history
+    guest_visible: true
+    reached_by: navigation
+    actor: guest
+  - id: S31
+    route_template: /sc11
+    title: Report a claim
+    guest_visible: true
+    reached_by: navigation
+    actor: guest
+  - id: S32
+    route_template: /sc12
+    title: Account overview
+    guest_visible: true
+    reached_by: navigation
+    actor: guest
+  - id: S33
+    route_template: /sc12/details
+    title: Details
+    guest_visible: true
+    reached_by: navigation
+    actor: guest
+  - id: S34
+    route_template: /sc14/login
+    title: Sign in
+    guest_visible: true
+    reached_by: navigation
+    actor: guest
+  - id: S35
+    route_template: /sc15/login
+    title: Sign in
+    guest_visible: true
+    reached_by: navigation
+    actor: guest
+  - id: S36
+    route_template: /sc16
+    title: Customer portal
+    guest_visible: true
+    reached_by: navigation
+    actor: guest
+  - id: S37
+    route_template: /sc16/idp/authorize
+    title: Sign in to your account
+    guest_visible: true
+    reached_by: navigation
+    actor: guest
+  - id: S38
+    route_template: /sc17
+    title: Customer area
+    guest_visible: true
+    reached_by: navigation
+    actor: guest
+  - id: S39
+    route_template: /sc17/item-1
+    title: Policies
+    guest_visible: true
+    reached_by: navigation
+    actor: guest
+  - id: S40
+    route_template: /sc17/item-2
+    title: Claims
+    guest_visible: true
+    reached_by: navigation
+    actor: guest
+  - id: S41
+    route_template: /sc17/item-3
+    title: Documents
+    guest_visible: true
+    reached_by: navigation
+    actor: guest
+  - id: S42
+    route_template: /sc17/item-4
+    title: Payments
+    guest_visible: true
+    reached_by: navigation
+    actor: guest
+  - id: S43
+    route_template: /sc17/item-5
+    title: Messages
+    guest_visible: true
+    reached_by: navigation
+    actor: guest
+  - id: S44
+    route_template: /sc17/item-6
+    title: Profile
+    guest_visible: true
+    reached_by: navigation
+    actor: guest
+  - id: S45
+    route_template: /sc18
+    title: Apply for a contract
+    guest_visible: true
+    reached_by: navigation
+    actor: guest
+  - id: S46
+    route_template: /sc18/step-1
+    title: "Application, step 1 of 3: personal data"
+    guest_visible: true
+    reached_by: navigation
+    actor: guest
+forms: []
+rules: []
+processes: []
+terms: []

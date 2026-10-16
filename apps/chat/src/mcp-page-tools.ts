@@ -8,6 +8,7 @@ import { readFileSync } from 'node:fs';
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import type { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
 import type BetterSqlite3 from 'better-sqlite3';
+import { Environment } from '@pathfinder/config';
 import { Layout, type EvidenceStore } from '@pathfinder/core';
 import { z } from 'zod';
 import { REF_NAME } from './ui-actions.js';
@@ -241,7 +242,7 @@ function registerCredentialRequest(server: McpServer, ok: Reply): void {
         'Ask the BA for a credential the scan needs (for example a login of a persona). The chat shows a vault field for that reference; the value goes into the vault and never to you or the chat. You learn it was stored from a "Stored in the vault: …" notice. Never ask for a password or token in a message.',
       inputSchema: {
         portal: z.string(),
-        environment: z.enum(['sandbox', 'staging', 'production']),
+        environment: Environment.describe('one of the environments the portal declares'),
         persona: z.string().describe('the persona that needs it'),
         ref: z
           .string()

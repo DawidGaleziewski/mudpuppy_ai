@@ -12,6 +12,10 @@ Layer: models
 - Spec 023: `url-lists.ts` (`matchUrlEntry`, `checkUrlLists`: a URL must pass every set of lists
   on the run scope, portal, persona, focus) and `timeouts.ts` (`pageTimeouts`: per-URL timeouts).
 
+- Spec 030: built-in rule keywords cover Polish, English and German (always on); an anchor does
+  not inherit the method or action of the form around it (SC-01); `detectBlock` stops the run only
+  on a 403 or 429 of the main document (`isMainDocument`, SC-02).
+
 ## Invariants
 
 - Pure (no browser, no network).

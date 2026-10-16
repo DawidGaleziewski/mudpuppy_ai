@@ -4,6 +4,14 @@ import { builtinRuleSet, type RuleSet } from './rule-set.js';
 import type { ActionDescriptor, Classification } from './types.js';
 
 const SAFE_METHODS = new Set(['GET', 'HEAD']);
+const ANCHOR_TAGS: ReadonlySet<string> = new Set(['a', 'area']);
+
+/** A link: an ARIA link role, or a role-less `<a>`/`<area>` found by the clickable scan. */
+const isAnchor = (d: ActionDescriptor): boolean =>
+  LINK_ROLES.has(d.role) || ANCHOR_TAGS.has(d.tag ?? '');
+
+const isScriptHref = (href: string | undefined): boolean =>
+  href !== undefined && /^\s*javascript:/i.test(href);
 
 function pathOf(url: string): string {
   try {
@@ -79,7 +87,11 @@ export function classifyAction(
       raise(rule.safetyClass, rule.id, `label matches ${rule.id}`);
   }
 
-  for (const url of [d.href, d.form?.action]) {
+  // An anchor navigates on click; it does not submit the form around it (spec 030 SC-01, field C-2:
+  // a legacy page wraps everything in one POST form). A `javascript:` href stays a possible
+  // postback of that form, so it keeps the form's method and target.
+  const formSubmits = !isAnchor(d) || isScriptHref(d.href);
+  for (const url of [d.href, formSubmits ? d.form?.action : undefined]) {
     if (url === undefined) continue;
     const u = classifyUrl(url, ruleSet);
     for (const r of u.rules) {
@@ -88,7 +100,7 @@ export function classifyAction(
     }
   }
 
-  const method = d.method ?? d.form?.method;
+  const method = d.method ?? (formSubmits ? d.form?.method : undefined);
   const m = fromMethod(method);
   if (m) raise(m.cls, null, m.reason);
   if (d.form?.hasPassword) raise('mutating', null, 'form carries a password field');
@@ -96,6 +108,7 @@ export function classifyAction(
   if (cls === 'read') {
     const positiveRead =
       (LINK_ROLES.has(d.role) && d.href !== undefined) ||
+      ANCHOR_TAGS.has(d.tag ?? '') ||
       READ_ROLES.has(d.role) ||
       d.input !== undefined ||
       (opts.safeFormSubmitIsRead === true &&

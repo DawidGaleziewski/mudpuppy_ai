@@ -250,3 +250,31 @@ describe('stale session sweep (server start)', () => {
     ]);
   });
 });
+
+describe('start_session: the narrow step (spec 030 R-65, field SQ-8)', () => {
+  /** Two more runs of the portal, recorded as traces. */
+  const traceRuns = (h: Awaited<ReturnType<typeof startBa>>): string[] => {
+    const ids = ['trace-a', 'trace-b'];
+    for (const id of ids)
+      h.fx.raw.exec(
+        `CREATE TEMP TABLE t AS SELECT * FROM runs WHERE id = '${h.fx.runId}';
+         UPDATE t SET id = '${id}', mode = 'trace';
+         INSERT INTO runs SELECT * FROM t; DROP TABLE t;`,
+      );
+    return ids;
+  };
+
+  it('warns when several trace runs are documented with no grouping or scope', async () => {
+    const h = await startBa();
+    const runs = traceRuns(h);
+    const out = await h.must('start_session', { portal_id: h.fx.portalId, run_ids: runs });
+    expect(out.warnings).toHaveLength(1);
+    expect(out.warnings[0]).toContain('2 trace runs are not grouped');
+  });
+
+  it('says nothing for map runs only', async () => {
+    const h = await startBa();
+    const out = await h.must('start_session', { portal_id: h.fx.portalId, run_ids: [h.fx.runId] });
+    expect(out.warnings).toBeUndefined();
+  });
+});

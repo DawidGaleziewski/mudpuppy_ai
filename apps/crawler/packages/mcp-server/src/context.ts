@@ -11,6 +11,8 @@ export interface BaContext {
   raw: OpenedDb['raw'];
   evidence: EvidenceStore;
   logger: Logger;
+  /** The store's environment, echoed on every result (spec 030 FR-052); absent in tests. */
+  environment?: string;
 }
 
 /** One running pathfinder server: written on the runs it drives (spec 010 F-14). */

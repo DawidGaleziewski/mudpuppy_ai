@@ -133,7 +133,7 @@ export interface StateWireframesTable {
 export interface CredentialsTable {
   id: string;
   portal_id: string;
-  environment: 'sandbox' | 'staging' | 'production';
+  environment: string; // free name per portal, format-checked in the table (spec 030 R-61)
   ref_name: string;
   ciphertext: Buffer | Uint8Array;
   nonce: Buffer | Uint8Array;

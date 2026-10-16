@@ -41,8 +41,34 @@ export async function act(
 ): Promise<PageResult> {
   const run = await phase(ctx, 'begin_step', () => beginStep(ctx, rs, input.run_id));
   requireIntent(rs!, input.intent);
-  return counted(rs!, () => actStep(ctx, run, rs!, input));
+  try {
+    return await counted(rs!, () => actStep(ctx, run, rs!, input));
+  } catch (e) {
+    await retireOnCrash(ctx, run.id, input.action_id, e);
+    throw e;
+  }
 }
+
+/**
+ * An `act` that crashed (not a refusal: those settle their item themselves) retires the action's
+ * pending frontier item with the error, so the item is never handed out again and `finish_run` can
+ * complete with it listed (spec 030 FR-020; in the field such items wedged runs: GC-15, GC-18).
+ */
+async function retireOnCrash(
+  ctx: ServerContext,
+  runId: string,
+  actionId: string,
+  e: unknown,
+): Promise<void> {
+  if (e instanceof ToolError && !CRASH_CODES.has(e.code)) return;
+  const pending = await pendingItemForAction(ctx.db, runId, actionId).catch(() => undefined);
+  if (!pending) return;
+  const message = maskText((e as Error)?.message?.split('\n')[0] ?? String(e)).slice(0, 300);
+  await settleFrontierItem(ctx.db, pending.id, 'unreachable', `act_failed: ${message}`);
+}
+
+/** Tool errors that mean the action could not be done (the agent's own mistakes are not). */
+const CRASH_CODES: ReadonlySet<string> = new Set(['NAVIGATION_FAILED', 'SAFETY_CLASS_MISMATCH']);
 
 /** The Playwright locator of the element (mcp-server has no direct playwright dependency). */
 type Locator = Parameters<typeof autofillBeforeSubmit>[2];
@@ -296,7 +322,9 @@ function perform(
     let stage = 'click failed';
     const kind = action.json.input;
     try {
-      await locator.click({ trial: true, timeout: 5000 });
+      // A role-less tile in a re-rendering list can take longer to become actionable (spec 030
+      // SC-06, field C-4); real controls keep the tight budget so the common case stays fast.
+      await locator.click({ trial: true, timeout: action.role === 'generic' ? 15_000 : 5000 });
       stage = 'navigation after click did not start';
       if (kind === 'fill') {
         stage = 'fill failed';

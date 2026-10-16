@@ -11,7 +11,8 @@ checks the setup for free.
   session that starts them, so a second `pnpm eval` refuses while one runs (a lock file in the
   temp folder holds the running eval's pid; a lock left by a dead process is taken over).
 - **Own portal server.** The eval starts the portal's server itself and refuses when one of its
-  ports (4010 reference portal; 4100 and 4101 the proving-ground estate) is already held, naming
+  ports (4010 reference portal; 4100 and 4101 the proving-ground estate; 4300 and 4302 scar-maker,
+  spec 030: its task is a crawler-only map of the scars, `pnpm eval scar-maker --crawler-only`) is already held, naming
   the process: stop it first. Afterwards it stops the server's whole process group and checks the
   ports are free.
 - **Outcome per agent.** Each agent session ends in `success`, `budget_end` (the eval's own

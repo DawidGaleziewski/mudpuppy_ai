@@ -1,6 +1,8 @@
 // Entry point of the chat service (R-30 T014): `pnpm start` in apps/chat.
-// Environment: PATHFINDER_ENV (default sandbox), PATHFINDER_CHAT_PORT (default 4310).
+// Environment: PATHFINDER_ENV (required: a declared environment, spec 030 R-61),
+// PATHFINDER_CHAT_PORT (default 4310).
 
+import { requireEnvironment } from '@pathfinder/config';
 import { createEvidenceStore } from '@pathfinder/core';
 import { dbPathFor, migrateUp, openDb } from '@pathfinder/store';
 import { mkdirSync, readFileSync } from 'node:fs';
@@ -37,7 +39,9 @@ function packageVersion(): string {
 }
 
 async function main(): Promise<void> {
-  const environment = process.env['PATHFINDER_ENV'] ?? 'sandbox';
+  // No default (spec 030 R-61): the chat serves exactly the environment it is started on, and the
+  // MCP servers it starts get the same one.
+  const environment = requireEnvironment(repoRoot, process.env['PATHFINDER_ENV']);
   const port = Number(process.env['PATHFINDER_CHAT_PORT'] ?? '4310');
   mkdirSync(runtimeDir, { recursive: true });
   const opened = openDb(dbPathFor(join(repoRoot, 'data'), environment));

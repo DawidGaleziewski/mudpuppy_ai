@@ -108,6 +108,100 @@ does not take is recorded as a failure and the scan goes on. A mapped function t
 export, a missing file or a file that does not load refuses `start_run` (`CONFIG_INVALID`). The
 crawler agent never writes hooks; it may suggest one in an open question.
 
+In-page code may use named inner functions: `inPage` defines esbuild's `__name` helper first (spec
+030 FR-033; under `tsx` a named function inside the body used to throw `__name is not defined`).
+
+## Fixes (`fixes`, spec 030 R-59)
+
+A **fix-plugin** is a tested solution to a class of real-world obstacle (a scar), written once in
+`@pathfinder/fix-plugins` and turned on per portal with the client's data. Prefer a fix over a
+hand-written hook when one exists; the client's selectors, cookie names and URLs stay in the portal
+file.
+
+```yaml
+fixes:
+  - use: seed-cookie                 # content appears only with a feature-flag cookie
+    with: { cookies: [{ name: show_services, value: "1" }] }
+  - use: expand-collapsed            # open accordions, <details>, "show more" before observing
+    with: { max: 60, exclude: ["#site-nav"], toggles: ['dl dt > a[href="#"]'] }
+  - use: wait-for-mount              # a late micro-frontend, on the pages that host it
+    match: "/service/*"
+    with: { selector: "#mfe-root form", wait_ms: 8000 }
+  - use: detect-stack                # tag every page SPA or legacy (read-only)
+    with: { spa: ["#app-root"], legacy: ["input[name=__SERVERSTATE]"] }
+```
+
+| Fix | Points | Scar |
+|---|---|---|
+| `seed-cookie` | `onRunStart`, `onBeforePageLoad` (only when missing) | SC-08, field H-1 |
+| `expand-collapsed` | `onPageLoad`: opens only panels that are really hidden, never real links, submits or pop-up openers; form submits suppressed while expanding; capped | SC-09, SC-10, field H-2 |
+| `wait-for-mount` | `onPageLoad` (waits in the page), `onBeforeClickAction` (`waitFor`) | SC-11, field H-3 |
+| `detect-stack` | `onPageLoad`: logs `stack: spa` or `stack: legacy (…)` | field H-4 |
+
+Each entry takes `match` and `timeout_ms` like a hook. Fixes run before the portal's own hooks of
+the same point, in the order listed, traced as `fix:<id>`. An unknown fix or parameters that do not
+fit refuse `start_run` (`CONFIG_INVALID`) naming the field. A new fix: a file in
+`packages/fix-plugins/src/fixes/`, registered in `registry.ts`, with a unit test and a scar-maker
+gate. Rule of thumb (roadmap R-59): plain web-platform behaviour every portal benefits from goes
+into the crawler itself; what needs one client's data, or is risky everywhere, is a fix.
+
+## Network (`network`, spec 030 R-63)
+
+For a portal behind a corporate network: the browser goes through a forward proxy, and hosts in
+`bypass` go direct (a CDN the proxy refuses). `ignore_https_errors` is for a TLS-inspecting proxy
+whose CA the browser does not trust (an explicit owner choice).
+
+```yaml
+network:
+  proxy:
+    server: http://proxy.corp.example:3128
+    bypass: ["cdn.example.net", "*.fonts.example.net"]
+  ignore_https_errors: false
+robots: ignore      # robots.txt is fetched by the server, not through the proxy
+```
+
+Before the first run at a new site, `pnpm --dir apps/crawler portal:doctor <portal> [--env <env>]`
+checks this machine (SQLite native module, Chromium), the environment, and the way to the portal:
+direct reachability, a WAF that refuses the crawler User-Agent, an IP allowlist that admits only the
+proxy, TLS inspection, DNS that resolves only through the proxy, robots behind a proxy. Every warning
+and failure names its cause and the setting that fixes it. Checks live in `@pathfinder/doctor`
+(`src/checks/`, a registry: id, depends on, applies when, probe); a new check needs no core change.
+
+## Traces (`portals/<id>/traces.yaml`, spec 030 R-64)
+
+The processes to drive to their end, the same way every time (map runs stop at the first
+irreversible action; asking the agent to "finish the form" is unreliable). One entry per process,
+one trace run per variant:
+
+```yaml
+traces:
+  - id: apply
+    name: Apply for a contract
+    goal: Reach the success page
+    start_url: /apply/step-1            # a path on the portal's base URL, or absolute
+    steps:                              # by the control's visible label, in order
+      - { name: Full name, kind: fill, value: Test Person, intent: enter the name }
+      - { name: Product, kind: select, value: Household insurance, intent: choose the product }
+      - { name: I accept the terms, kind: check, intent: accept }
+      - { name: Next, kind: click, intent: go to step 2 }
+    submit: Submit application          # the persona's limit decides whether it is pressed
+    variants:
+      - { id: happy-path, expect: proceed }
+      - id: too-young                   # replaces the steps: a validator must stop the form
+        expect: validation_error
+        steps: [ ... ]
+  - id: change-address                  # known to exist, not mapped yet: skipped
+    name: Change the address
+    goal: Change the postal address
+    start_url: /profile
+    to_be_discovered: true
+```
+
+Run: `pnpm --dir apps/crawler portal:trace <portal> <trace-id|all> <persona> --env <env>
+[--variant <id>]`. Values are synthetic (e-mails on `.test`/`.example`). Each step's snapshot is
+kept, so every validation message is in the evidence; a lower action limit ends the run at the
+submit (`boundary_reached`), honestly.
+
 ## Timeouts (`timeouts`, spec 023 US4)
 
 ```yaml

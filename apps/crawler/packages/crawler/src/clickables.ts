@@ -279,14 +279,18 @@ export async function locateClickable(
   target: Page | Frame,
   a: { path: string; name: string | null },
 ): Promise<ClickableMatch> {
+  // Text first when the name is unambiguous (spec 030 SC-06, field C-3): a locator is resolved again
+  // at click time, and in a list that re-renders between observe and act a DOM path then points at
+  // another tile. The visible text follows the tile; the path is the fallback for unnamed or
+  // repeated ones.
+  const byText = a.name === null ? null : target.getByText(a.name, { exact: true });
+  const shown = byText ? await byText.count() : 0;
+  if (byText && shown === 1) return { locator: byText, matches: 1, via: 'text' };
   const byPath = target.locator(`css=${a.path}`);
   const atPath = await byPath.count();
   if (atPath === 1 && (a.name === null || (await carriesName(byPath, a.name))))
     return { locator: byPath, matches: 1, via: 'path' };
   if (a.name === null) return { locator: null, matches: atPath, outcome: 'absent' };
-  const byText = target.getByText(a.name, { exact: true });
-  const shown = await byText.count();
-  if (shown === 1) return { locator: byText, matches: 1, via: 'text' };
   return { locator: null, matches: shown, outcome: shown === 0 ? 'absent' : 'ambiguous' };
 }
 

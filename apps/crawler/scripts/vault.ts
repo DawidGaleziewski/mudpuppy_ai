@@ -4,13 +4,19 @@
  * Values are read from a hidden prompt or stdin, never from the command line.
  */
 import { join, resolve } from 'node:path';
+import { requireEnvironment } from '@pathfinder/config';
 import { runVaultCli } from '@pathfinder/vault';
 import { dbPathFor, migrateUp, openDb } from '@pathfinder/store';
 
 const argv = process.argv.slice(2);
 const envIdx = argv.indexOf('--env');
-const env = (envIdx > -1 ? argv[envIdx + 1] : undefined) ?? process.env.PATHFINDER_ENV ?? 'sandbox';
 const root = resolve(join(import.meta.dirname, '../../..'));
+// Only a declared environment (spec 030 R-61): a typo would create a separate, empty store. The
+// `sandbox` fallback stays for this operator CLI (its documented commands rely on it).
+const env = requireEnvironment(
+  root,
+  (envIdx > -1 ? argv[envIdx + 1] : undefined) ?? process.env.PATHFINDER_ENV ?? 'sandbox',
+);
 // pnpm runs this from apps/crawler; file arguments (`import <csv>`, `--seed`) are the caller's.
 if (process.env.INIT_CWD) process.chdir(process.env.INIT_CWD);
 

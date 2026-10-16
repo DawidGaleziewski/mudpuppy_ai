@@ -120,7 +120,7 @@ export function registerBaTools(server: McpServer, ctx: BaContext): void {
       args: z.infer<z.ZodObject<S>>,
     ) => {
       try {
-        return ok(await handler(args));
+        return ok(await handler(args), ctx.environment);
       } catch (e) {
         return fail(e, ctx);
       }

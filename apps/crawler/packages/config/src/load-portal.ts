@@ -17,7 +17,7 @@ export const PortalEnvironment = z
   .strict();
 export type PortalEnvironment = z.infer<typeof PortalEnvironment>;
 
-const EnvironmentsMap = z.partialRecord(Environment, PortalEnvironment);
+const EnvironmentsMap = z.record(Environment, PortalEnvironment);
 
 /** A portal with several environments was loaded without saying which one to use. */
 export class EnvironmentChoiceError extends ConfigError {
@@ -32,8 +32,6 @@ export class EnvironmentChoiceError extends ConfigError {
 
 const isObject = (v: unknown): v is Record<string, unknown> =>
   typeof v === 'object' && v !== null && !Array.isArray(v);
-
-const ENV_ORDER: readonly Environment[] = ['production', 'staging', 'sandbox'];
 
 /** The environments a portal file declares, with their address and limit (legacy: its one). */
 export function portalEnvironments(
@@ -57,7 +55,8 @@ export function portalEnvironments(
       file,
       zodProblems(envs.error).map((p) => `environments.${p}`),
     );
-  return ENV_ORDER.filter((e) => envs.data[e] !== undefined).map((e) => {
+  // Declaration order: the portal file lists its environments as the user wants them.
+  return Object.keys(envs.data).map((e) => {
     const entry = envs.data[e]!;
     return {
       environment: e,
@@ -87,7 +86,7 @@ function resolveEnvironment(file: string, raw: unknown, environment?: Environmen
       file,
       zodProblems(envs.error).map((p) => `environments.${p}`),
     );
-  const names = ENV_ORDER.filter((e) => envs.data[e] !== undefined);
+  const names = Object.keys(envs.data);
   if (names.length === 0) throw new ConfigError(file, ['environments: declare at least one']);
   const misplaced = ['base_url', 'environment', 'max_action_class'].filter((k) => k in raw);
   if (misplaced.length > 0)

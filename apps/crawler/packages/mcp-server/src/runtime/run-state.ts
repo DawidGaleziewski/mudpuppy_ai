@@ -1,7 +1,12 @@
 import { FingerprintIndex } from '@pathfinder/fingerprint';
 import { inferRouteTemplates, type RouteTemplater } from '@pathfinder/fingerprint';
 import type { EffectiveConfig } from '@pathfinder/config';
-import { FrontierPolicy, type BrowserSession, type MountWait } from '@pathfinder/crawler';
+import {
+  FrontierPolicy,
+  type AssetHealth,
+  type BrowserSession,
+  type MountWait,
+} from '@pathfinder/crawler';
 import { portalRuleSet, type RuleSet, type RunScope } from '@pathfinder/safety';
 import type { HookRunner } from '@pathfinder/hooks';
 import type { RunRobots } from '../services/robots.js';
@@ -44,6 +49,8 @@ export class RunState {
   loggingIn = false;
   /** The portal's hooks for this run (spec 023); null until the session is open. */
   hooks: HookRunner | null = null;
+  /** Stylesheets, scripts and fonts that failed since the last page (spec 030 FR-041). */
+  assets: AssetHealth | null = null;
 
   get isTrace(): boolean {
     return this.processId !== null;

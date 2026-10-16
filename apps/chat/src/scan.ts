@@ -11,7 +11,7 @@ import {
   ConfigError,
   loadEffectiveConfig,
   portalEnvironments,
-  type Environment,
+  Environment,
 } from '@pathfinder/config';
 import { recordStep } from './steps.js';
 import { portalFile, type WorkspacePaths } from './workflow-data.js';
@@ -50,7 +50,7 @@ export const RequestScanInput = z.object({
     .regex(/^[a-z0-9][a-z0-9_/-]*$/)
     .optional(),
   /** One of the portal's environments; may be left out when it has only one (spec 011 FR-009). */
-  environment: z.enum(['sandbox', 'staging', 'production']).optional(),
+  environment: Environment.optional(),
   /** Continue a stopped (interrupted) map run of this portal and persona instead of a new one. */
   resume_run_id: z.string().min(1).optional(),
   /**

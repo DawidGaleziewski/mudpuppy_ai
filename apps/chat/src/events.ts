@@ -58,7 +58,8 @@ export type UiAction =
       type: 'ui_action';
       action: 'credential';
       portal: string;
-      environment: 'sandbox' | 'staging' | 'production';
+      /** A declared environment name (free names, spec 030 R-61). */
+      environment: string;
       persona: string;
       ref: string;
       reason: string | null;

@@ -8,7 +8,7 @@ recorded work, and serves a local HTTP + SSE API that the dashboard calls server
 
 ```
 pnpm install                     # at the repo root, once
-pnpm --dir apps/chat start       # http://127.0.0.1:4310
+PATHFINDER_ENV=sandbox pnpm --dir apps/chat start   # http://127.0.0.1:4310; the environment is required
 ```
 
 | Env                         | Default                          | Meaning                                                         |

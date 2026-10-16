@@ -28,7 +28,7 @@ repeating recorded work).
 
 *Labels:* `Run`, `Runs`
 
-*Related:* [Mode (map / trace)](#mode), [Persona](#persona), [Environment (sandbox / production)](#environment), [Frontier](#frontier)
+*Related:* [Mode (map / trace)](#mode), [Persona](#persona), [Environment](#environment), [Frontier](#frontier)
 
 <sub>Last changed in R-22, 2026-10-03.</sub>
 
@@ -58,28 +58,28 @@ trace runs through follow-up tasks when a map run is not enough.
 
 <a id="environment"></a>
 
-#### Environment (sandbox / production)
+#### Environment
 
-**Which copy of a site a scan targets, production (the live site), staging or sandbox; each has its own address and an optional limit of how far the crawler may go.**
+**A copy of a site you declare per portal under a name of your choice (dev, acceptance, live, sandbox), with its own address, its own users and its own store.**
 
-A portal has one or more environments (see Portal settings). The environment is a label:
-since spec 021 (R-42) production behaves exactly like staging and sandbox. Without a limit
-the crawler may fill, submit and log in, which on a live site really happens; the BA sets
-a limit per environment to restrict it. Each scan from the chat only looks unless you allow
-edits for it (see Scan choices). A CAPTCHA is handed to a human on every environment. Each
-run records its environment. Separately, the dashboard's "data store" switch picks which
-local database file (`data/db/<name>.sqlite`) it reads; runs of every environment can be in
-one store.
+A portal has one or more environments (see Portal settings), named by you; no name has a
+meaning of its own, "production" included (spec 030, R-61). Each environment has its own
+test users and its own database file (`data/db/<name>.sqlite`), so scans and documentation
+of two environments never mix. Nothing opens a store for a name no portal declares (a typo
+used to create a stray, empty store), and there is no default: the servers and the chat need
+`PATHFINDER_ENV` set to a declared name, and every crawler result says which environment
+answered. Without a limit the crawler may fill, submit and log in; the BA sets a limit per
+environment to restrict it. A CAPTCHA is handed to a human on every environment.
 
-*Example:* wikipedia-org: production https://www.wikipedia.org/ (only look); reference-insurer: sandbox
+*Example:* a portal with dev https://dev.portal.test/ and acceptance https://acc.portal.test/ (only look)
 
-*Seen in:* Portal settings; Runs table → Environment
+*Seen in:* Portal settings; Runs table → Environment; every crawler result
 
 *Labels:* `Environment`, `sandbox`, `staging`, `production`
 
 *Related:* [Safety class](#safety-class), [Scope / denylist](#portal-scope), [Form autofill](#form-autofill), [Portal settings (environments)](#portal-settings), [Scan choices (edits, images)](#scan-choices)
 
-<sub>Last changed in R-42, 2026-10-13.</sub>
+<sub>Last changed in R-61, 2026-10-16.</sub>
 
 <a id="persona"></a>
 
@@ -179,6 +179,28 @@ over-claims (SC-009); one over-claim fails `docs:evaluate`.
 *Related:* [Coverage score](#coverage-score), [Confidence (observed / inferred / needs confirmation)](#confidence), [Reference portal / ground truth](#reference-portal)
 
 <sub>Last changed in R-16, 2026-10-04.</sub>
+
+<a id="portal-network"></a>
+
+#### Portal network (proxy)
+
+**How the browser reaches a portal behind a corporate network, through a forward proxy (with hosts that go direct) and, if needed, ignoring a TLS-inspecting proxy's certificates.**
+
+`network:` in the portal file: `proxy: { server, bypass }` and `ignore_https_errors`. A
+portal that admits only the company's proxy answers 403 "not whitelisted" otherwise. Robots.txt
+is read by the server, not the browser, so a proxy-only portal sets `robots: ignore`. Before
+the first scan at a new site, `pnpm --dir apps/crawler portal:doctor <portal>` checks the
+machine and the way to the portal and names the cause of each problem with its fix.
+
+*Example:* network: { proxy: { server: http://proxy.corp:3128, bypass: [cdn.example.net] } }
+
+*Seen in:* Portal file → network; portal:doctor
+
+*Labels:* `network`, `proxy`, `doctor`
+
+*Related:* [Environment](#environment), [Render warning](#render-warning)
+
+<sub>Last changed in R-63, 2026-10-16.</sub>
 
 <a id="access-dependent"></a>
 
@@ -351,7 +373,7 @@ that are forbidden even inside scope, such as logout or payment; those are skipp
 
 *Labels:* `Scope`, `Denylist`, `out_of_scope`, `denylisted`
 
-*Related:* [Frontier](#frontier), [Budget](#budget), [Environment (sandbox / production)](#environment), [Portal hook](#portal-hook)
+*Related:* [Frontier](#frontier), [Budget](#budget), [Environment](#environment), [Portal hook](#portal-hook)
 
 <sub>Last changed in R-53, 2026-10-14.</sub>
 
@@ -375,9 +397,97 @@ failing hook is recorded and the scan goes on. The crawler agent never writes ho
 
 *Labels:* `Hooks`, `patched by hook`
 
-*Related:* [Scope / denylist](#portal-scope), [Environment (sandbox / production)](#environment)
+*Related:* [Scope / denylist](#portal-scope), [Environment](#environment), [Fix-plugin](#fix-plugin)
 
 <sub>Last changed in R-53, 2026-10-14.</sub>
+
+<a id="fix-plugin"></a>
+
+#### Fix-plugin
+
+**A tested, reusable solution to one kind of portal quirk, turned on per portal with that portal's own data instead of writing a hook.**
+
+Fixes live in Pathfinder (`@pathfinder/fix-plugins`); a portal turns one on under `fixes:` in
+its portal file, with the data it needs (a cookie name, selectors, a URL pattern). Today:
+`seed-cookie` (content shown only with a feature-flag cookie), `expand-collapsed` (open
+accordions and "show more" before the page is read, never a real link or submit),
+`wait-for-mount` (wait for a late micro-frontend) and `detect-stack` (tag a page as new SPA or
+legacy). A fix runs like a hook and is recorded as `fix:<name>`; the client's data stays in the
+portal file. Each fix is proven against a scar.
+
+*Example:* fixes: [{ use: expand-collapsed, with: { max: 60 } }] opens the closed service sections of a page.
+
+*Seen in:* Portal file → fixes; Decisions (fix:…)
+
+*Labels:* `fixes`, `fix-plugin`
+
+*Related:* [Portal hook](#portal-hook), [Scar (scar-maker)](#scar)
+
+<sub>Last changed in R-59, 2026-10-16.</sub>
+
+<a id="transient-error-page"></a>
+
+#### Transient error page
+
+**A page that only says a server error happened (a 5xx, or a short "technical error, try again later"); the crawler opens it again before recording anything.**
+
+Some portals answer now and then with an error page although the screen works. The crawler
+re-opens such a page (at most twice) before it reads it, and notes each attempt
+(`transient_error`), so an error page never becomes a screen in place of the real one and the
+documentation keeps the real screens. A page still failing after that is recorded as it is.
+
+*Example:* item-3 answered a 503, was re-opened once and came back with its table.
+
+*Seen in:* Decisions (transient_error); Run trace
+
+*Labels:* `transient_error`
+
+*Related:* [Render warning](#render-warning)
+
+<sub>Last changed in R-60, 2026-10-16.</sub>
+
+<a id="render-warning"></a>
+
+#### Render warning
+
+**A note on a screen that some of its stylesheets, scripts or fonts did not load, so its screenshot may show a broken look that is not the portal's design.**
+
+Behind a corporate proxy a CDN can be refused and a page renders unstyled or half working.
+The screen then carries a `render:assets_failed` warning naming each failed file, so nobody
+documents the broken look as the design. Fix the network (a proxy bypass for the CDN) and
+scan again.
+
+*Example:* render:assets_failed: stylesheet …/theme.css (403), script …/widget.js (403).
+
+*Seen in:* Decisions (render:assets_failed)
+
+*Labels:* `render:assets_failed`
+
+*Related:* [Transient error page](#transient-error-page), [Portal network (proxy)](#portal-network)
+
+<sub>Last changed in R-60, 2026-10-16.</sub>
+
+<a id="trace-catalogue"></a>
+
+#### Trace catalogue
+
+**The list of a portal's processes to drive to their end, with the fields to fill by label and variants such as the happy path and each validation error.**
+
+`portals/<id>/traces.yaml` names each process (start page, steps by visible label, the submit)
+and its variants; `pnpm --dir apps/crawler portal:trace <portal> <id|all> <persona>` walks each
+variant as one trace run, the same way every time. The persona's limit decides whether the
+submit is pressed; each step's snapshot keeps the validation messages. A process known to
+exist but not mapped yet is a stub (`to_be_discovered`).
+
+*Example:* apply: happy-path reaches the success page; too-young stops at a disabled Next.
+
+*Seen in:* portals/<id>/traces.yaml; portal:trace
+
+*Labels:* `traces.yaml`, `portal:trace`, `variant`
+
+*Related:* [Mode (map / trace)](#mode)
+
+<sub>Last changed in R-64, 2026-10-16.</sub>
 
 <a id="budget"></a>
 
@@ -416,7 +526,7 @@ the submit, nothing is filled or sent. Every environment is treated the same (sp
 
 *Labels:* `Autofill`, `form_autofill`
 
-*Related:* [Mode (map / trace)](#mode), [Environment (sandbox / production)](#environment), [Persona](#persona), [Safety class](#safety-class)
+*Related:* [Mode (map / trace)](#mode), [Environment](#environment), [Persona](#persona), [Safety class](#safety-class)
 
 <sub>Last changed in R-42, 2026-10-13.</sub>
 
@@ -543,7 +653,7 @@ none set, every class may run (spec 021).
 
 *Labels:* `Safety class`, `read`, `mutating`, `destructive`, `external-side-effect`
 
-*Related:* [Decision (allowed / skipped)](#decision), [Environment (sandbox / production)](#environment), [Persona](#persona)
+*Related:* [Decision (allowed / skipped)](#decision), [Environment](#environment), [Persona](#persona)
 
 <sub>Last changed in R-42, 2026-10-13.</sub>
 
@@ -881,7 +991,7 @@ stay masked either way.
 
 *Labels:* `pii_scrub`, `masked`
 
-*Related:* [Evidence](#evidence), [Environment (sandbox / production)](#environment)
+*Related:* [Evidence](#evidence), [Environment](#environment)
 
 <sub>Last changed in R-20, 2026-10-04.</sub>
 
@@ -1068,7 +1178,7 @@ boundary, on any environment (spec 021).
 
 *Labels:* `BNDY`, `boundary_reached`
 
-*Related:* [Process (trace mode)](#trace-process), [Safety class](#safety-class), [Environment (sandbox / production)](#environment)
+*Related:* [Process (trace mode)](#trace-process), [Safety class](#safety-class), [Environment](#environment)
 
 <sub>Last changed in R-42, 2026-10-13.</sub>
 
@@ -1579,7 +1689,7 @@ A CAPTCHA on the login page marks the run login-blocked.
 
 *Labels:* `handoff`, `Human needed`
 
-*Related:* [Open question (crawler)](#crawler-open-question), [Server-side login](#server-side-login), [Decision (allowed / skipped)](#decision), [Environment (sandbox / production)](#environment)
+*Related:* [Open question (crawler)](#crawler-open-question), [Server-side login](#server-side-login), [Decision (allowed / skipped)](#decision), [Environment](#environment)
 
 <sub>Last changed in R-42, 2026-10-13.</sub>
 
@@ -2025,7 +2135,7 @@ keeps its choices unless you change them.
 
 *Labels:* `read-only`, `allow edits`, `skip images`, `Image skipped`
 
-*Related:* [Environment (sandbox / production)](#environment), [Portal settings (environments)](#portal-settings), [Workflow step](#workflow-step), [Scan focus](#scan-focus)
+*Related:* [Environment](#environment), [Portal settings (environments)](#portal-settings), [Workflow step](#workflow-step), [Scan focus](#scan-focus)
 
 <sub>Last changed in R-31, 2026-10-07.</sub>
 
@@ -2131,7 +2241,7 @@ choice is remembered by the browser.
 
 *Labels:* `portal`, `all portals`
 
-*Related:* [New portal](#new-portal), [Environment (sandbox / production)](#environment), [Chat](#chat)
+*Related:* [New portal](#new-portal), [Environment](#environment), [Chat](#chat)
 
 <sub>Last changed in R-31, 2026-10-06.</sub>
 
@@ -2176,7 +2286,7 @@ the top is something else: which local database the dashboard reads.
 
 *Labels:* `[settings]`, `[revoke]`, `production`, `staging`, `sandbox`
 
-*Related:* [New portal](#new-portal), [Portal (dropdown)](#portal-dropdown), [Environment (sandbox / production)](#environment)
+*Related:* [New portal](#new-portal), [Portal (dropdown)](#portal-dropdown), [Environment](#environment)
 
 <sub>Last changed in R-31, 2026-10-06.</sub>
 
@@ -2384,7 +2494,7 @@ not deploy anything.
 
 *Labels:* `Mark live`, `Live`, `Not marked`
 
-*Related:* [Variant (A as-is, B to-be)](#process-variant), [Environment (sandbox / production)](#environment), [Change spec](#change-spec)
+*Related:* [Variant (A as-is, B to-be)](#process-variant), [Environment](#environment), [Change spec](#change-spec)
 
 <sub>Last changed in R-43, 2026-10-14.</sub>
 
@@ -2604,9 +2714,32 @@ and adds a row to its index; triage turns them into roadmap items, findings or t
 
 *Labels:* `field issue`, `BI-`
 
-*Related:* [export-fork (field artifact)](#export-fork)
+*Related:* [export-fork (field artifact)](#export-fork), [Scar (scar-maker)](#scar)
 
 <sub>Last changed in R-49, 2026-10-11.</sub>
+
+<a id="scar"></a>
+
+#### Scar (scar-maker)
+
+**A real obstacle met at a customer site, rebuilt as a page of the local scar-maker portal so the harness can be proven against it.**
+
+`apps/scar-maker` serves one route per scar (a page-wide POST form, a 403 background call,
+German submit labels, a slow SSO login across two hosts, intermittent error pages, a three-step
+form with validators, a proxy-only portal …) on two loopback hosts with its own forward proxy.
+`scars.yaml` lists each with the field issue it came from, the symptom before and the
+behaviour after; every scar has a gate case and the portal is also an eval task. Roadmap
+category `[battle-tested-scar]`.
+
+*Example:* SC-16: login through an identity provider on 127.0.0.2 with a 1.5 s redirect chain.
+
+*Seen in:* apps/scar-maker/scars.yaml; gates (SC-nn)
+
+*Labels:* `scar`, `scar-maker`, `SC-`
+
+*Related:* [Field issue](#field-issue), [Fix-plugin](#fix-plugin)
+
+<sub>Last changed in R-56, 2026-10-16.</sub>
 
 ## Business-analysis terms
 

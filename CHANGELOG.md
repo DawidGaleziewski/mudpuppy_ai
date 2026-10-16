@@ -6,6 +6,35 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Added
+- [battle-tested-scar] R-56…R-65 from the field pack (spec 030; owner: "merge, leave all rest of
+  decisions for later"):
+  - **scar-maker (R-56):** a new app `apps/scar-maker` with 18 real-world scars (SC-01…SC-18) on
+    two loopback hosts plus a forward proxy with an egress allowlist; every scar is a gate, and
+    `scar-maker` is an eval task (two crawler-only trials, 54.3 % of 46 screens, no baseline yet).
+  - **Clicks and classification (R-57):** links inside a page-wide form are no longer submits, only
+    a main-document 403/429 stops a run, German submit/save/delete keywords, 15 s for slow
+    role-less tiles, text-first locating.
+  - **Frontier (R-58):** an `act` that crashes retires its item (`act_failed`).
+  - **fix-plugins (R-59):** `@pathfinder/fix-plugins` (`seed-cookie`, `expand-collapsed`,
+    `wait-for-mount`, `detect-stack`), turned on per portal with its own data under `fixes:`;
+    hook `inPage` gets the `__name` shim.
+  - **Evidence when ready (R-60):** render warnings for failed stylesheets and scripts; transient
+    error pages are re-opened and never become screens; a condition wait with quiet and hard limits.
+  - **Environments (R-61):** free names declared per portal (migration 0021), `PATHFINDER_ENV`
+    required by the servers, the chat and the operator scripts (no default, undeclared names
+    refused, `eval-*` admitted), the environment on every MCP result, a stray-server registry;
+    the export-fork export no longer pins `production`.
+  - **Login (R-62):** waits while the page makes progress, input/change/blur on every field, a
+    `pending` result after one silent re-check, a separate static-file rate budget
+    (`rate_limit.static_per_second`).
+  - **Network (R-63):** `network.proxy` and `ignore_https_errors`; `pnpm portal:doctor <portal>`
+    with a registry of checks.
+  - **Trace driver (R-64):** `portals/<id>/traces.yaml` and `pnpm portal:trace`, one trace run per
+    variant.
+  - **Documentation integrity (R-65):** `start_session` warns when trace runs were not narrowed;
+    `docs:audit` flags uncited steps, screens without requirements and duplicate screens.
+  - Open for the owner: R-62 transit zones, D-8, D-9, sub-resource 429, remaining env defaults,
+    F-16 numbered sections (with R-50), deferred guideline findings.
 - Owner decisions on the v1.0.31 questions (spec 029):
   - **Assumptions are checked:** an assumption or a use case can rest on a business rule
     (`depends_on`, migration 0020). Every assumption waits in Review under **Assumptions to

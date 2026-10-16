@@ -5,7 +5,7 @@
 
 ## Running the apps
 - Dashboard: `cd apps/dashboard && uv sync && uv run pathfinder-dashboard` → http://127.0.0.1:8765.
-- Chat service (the dashboard's Chat page needs it): `pnpm --dir apps/chat start` → 127.0.0.1:4310. Env: `PATHFINDER_ENV` (default `sandbox`), `PATHFINDER_CHAT_PORT`. It uses the user's Claude Code login and starts its own `pathfinder` MCP servers (with Chromium) per conversation.
+- Chat service (the dashboard's Chat page needs it): `PATHFINDER_ENV=sandbox pnpm --dir apps/chat start` → 127.0.0.1:4310. Env: `PATHFINDER_ENV` (required, no default: an environment a portal declares, spec 030 R-61), `PATHFINDER_CHAT_PORT`. It uses the user's Claude Code login and starts its own `pathfinder` MCP servers (with Chromium) per conversation.
 - After running the real chat service, stop it and check for orphaned `pathfinder` servers and Chromium processes.
 - BA-facing walkthrough: `docs/how-to-use.md`.
 - export-fork (Kiro field artifact, R-49): `pnpm --dir apps/exportfork-export export` (clean tree; writes and commits `../export-fork`) after each merged R-item; `import-issues` brings its `issues/` into `docs/field-issues/` for triage. Never fix things in export-fork itself.
@@ -25,7 +25,7 @@
 - Every commit (fast tier): `pnpm typecheck && pnpm lint && pnpm test:fast` in `apps/crawler` (the tests affected by your uncommitted changes, without browser end-to-end files and gates; the commit hook runs it), `pnpm typecheck && pnpm lint && pnpm test` in `apps/chat` and `packages/workflow`, and `uv run ruff check && uv run pytest` for Python (`uv run pytest -n auto -m 'not perf and not serial' && uv run pytest -m 'perf or serial'` in `apps/dashboard`: parallel, then the wall-clock and load-sensitive tests alone). Never commit an intermediate state that doesn't build.
 - Slow tier: also run `pnpm test:slow` in `apps/crawler` (the `*.e2e.test.ts` browser files and the whole gate set) before committing a task that changes `apps/crawler/packages/mcp-server/src/runtime/**`, `apps/crawler/packages/gates/**`, `apps/crawler/packages/crawler/src/**` or `apps/proving-ground/**`.
 - Close-out before merge: `pnpm test` (everything) in `apps/crawler` plus every app's suite.
-- The gates (in `pnpm test:slow` and `pnpm test`) start the proving ground on ports 4200/4201, so stop anything on those ports first. `uv run pytest` also applies in `apps/proving-ground/backend`.
+- The gates (in `pnpm test:slow` and `pnpm test`) start the proving ground on ports 4200/4201 and scar-maker on 4400 (127.0.0.1 and 127.0.0.2), so stop anything on those ports first. `uv run pytest` also applies in `apps/proving-ground/backend`.
 - A new browser test that drives a whole run is named `*.e2e.test.ts` so it lands in the slow tier.
 - Do NOT edit files with Python/sed text-replacement scripts. Use the Edit tool, then re-read the file to confirm the change landed (prettier reformatting silently breaks string matches).
 - Never use realistic secret shapes in tests (`sk_live_`, `ghp_`, `AKIA...`). Use obviously fake values like `test-key-not-real`.

@@ -632,7 +632,12 @@ export function seedDocRecords(fx: FixtureStore): SeededDocs {
     .prepare(
       `INSERT INTO followup_tasks (record_id, status, run_id, blocked_reason, updated_at) VALUES (?, 'blocked', ?, ?, ?)`,
     )
-    .run(ids[fup2], boundary.runId, 'ceiling:read: "Dalej" is mutating, above the read limit', tick());
+    .run(
+      ids[fup2],
+      boundary.runId,
+      'ceiling:read: "Dalej" is mutating, above the read limit',
+      tick(),
+    );
 
   for (const rel of pending)
     raw

@@ -60,7 +60,9 @@ describe('vault store', () => {
 
   it('rejects bad ref names and environments', async () => {
     await expect(store.set(P, 'sandbox', '1BAD', VALUE)).rejects.toThrow(/invalid ref name/);
-    expect(() => asEnvironment('prod')).toThrow(/unknown environment/);
+    // Free names (spec 030 R-61): any short lowercase name, never a malformed one.
+    expect(asEnvironment('acceptance')).toBe('acceptance');
+    expect(() => asEnvironment('Prod env')).toThrow(/invalid environment/);
   });
 
   it('resolves persona refs by auth field and names the missing ones', async () => {

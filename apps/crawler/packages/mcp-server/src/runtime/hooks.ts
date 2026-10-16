@@ -10,6 +10,7 @@ import {
   type HookRunner,
   type LoadedHook,
 } from '@pathfinder/hooks';
+import { NAME_SHIM } from '@pathfinder/crawler';
 import type { Attrs } from '@pathfinder/store';
 import type { ServerContext } from '../context.js';
 import type { RunState } from './run-state.js';
@@ -28,8 +29,12 @@ function browserOf(rs: RunState): HookBrowser {
       await context.addInitScript(script as never);
     },
     // Playwright sends a function as its source anyway; this keeps several arguments (it takes one).
+    // The `__name` shim first: under tsx a named function inside a hook body is wrapped in esbuild's
+    // `__name(…)`, which the page does not have (spec 030 FR-033, field H-* gotcha).
     evaluate: (fn, ...args) =>
-      page.evaluate(`(${fn.toString()}).apply(null, ${JSON.stringify(args)})`) as never,
+      page.evaluate(
+        `(function () { ${NAME_SHIM} return (${fn.toString()}).apply(null, ${JSON.stringify(args)}); })()`,
+      ) as never,
   };
 }
 

@@ -4,6 +4,7 @@
  */
 import { join, resolve } from 'node:path';
 import { compareRuns, dbPathFor, openDb } from '@pathfinder/store';
+import { scriptEnvironment } from './script-env.js';
 
 const args = process.argv
   .slice(2)
@@ -19,7 +20,9 @@ if (!runA || !runB) {
 }
 
 const root = resolve(flag('root', join(import.meta.dirname, '../../..')));
-const opened = openDb(dbPathFor(join(root, 'data'), flag('env', 'production')));
+const opened = openDb(
+  dbPathFor(join(root, 'data'), scriptEnvironment(root, flag('env', '') || undefined)),
+);
 try {
   const r = await compareRuns(opened.db, runA, runB);
   console.log(

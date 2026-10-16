@@ -48,7 +48,10 @@ export interface PageResult {
   mounts_pending?: string[];
 }
 
-export type LoginResult = PageResult & { outcome: 'logged_in' | 'failed'; reason?: string };
+export type LoginResult = PageResult & {
+  outcome: 'logged_in' | 'failed' | 'pending';
+  reason?: string;
+};
 
 export interface NavigateInput {
   run_id: string;

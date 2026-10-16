@@ -11,6 +11,7 @@ import { join, resolve } from 'node:path';
 import { newId, nowIso } from '@pathfinder/core';
 import { ExportError, exportSrs, writeExport, type ExportScope } from '@pathfinder/docs';
 import { dbPathFor, openDb } from '@pathfinder/store';
+import { scriptEnvironment } from './script-env.js';
 
 const arg = (name: string, fallback: string): string => {
   const i = process.argv.indexOf(`--${name}`);
@@ -24,7 +25,7 @@ if (!portal || portal.startsWith('--') || !/^[a-z0-9][a-z0-9_-]*$/.test(portal))
   process.exit(2);
 }
 const root = resolve(arg('root', join(import.meta.dirname, '../../..')));
-const env = arg('env', 'production');
+const env = scriptEnvironment(root, arg('env', '') || undefined);
 const confirmedOnly = process.argv.includes('--confirmed-only');
 const out = resolve(arg('out', join(root, 'data/exports', `${portal}-${env}-srs`)));
 const path = dbPathFor(join(root, 'data'), env);

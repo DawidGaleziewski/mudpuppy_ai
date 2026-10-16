@@ -10,6 +10,7 @@ import { existsSync, readFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { DocsError, applyReview, cancelFollowup } from '@pathfinder/docs';
 import { dbPathFor, openDb } from '@pathfinder/store';
+import { scriptEnvironment } from './script-env.js';
 
 const argv = process.argv.slice(2);
 const flag = (name: string): string | undefined => {
@@ -24,7 +25,7 @@ const refused = (code: string, message: string, details: Record<string, unknown>
   out({ ok: false, error: { code, message, ...details } }, 2);
 
 const root = resolve(flag('root') ?? join(import.meta.dirname, '../../..'));
-const env = flag('env') ?? 'production';
+const env = scriptEnvironment(root, flag('env'));
 const path = dbPathFor(join(root, 'data'), env);
 if (!existsSync(path)) refused('STORE_NOT_FOUND', `no store for environment ${env}: ${path}`);
 

@@ -7,3 +7,5 @@ export * from './secrets.js';
 export * from './load-portal.js';
 export * from './load-persona.js';
 export * from './effective.js';
+export * from './environments.js';
+export * from './traces.js';

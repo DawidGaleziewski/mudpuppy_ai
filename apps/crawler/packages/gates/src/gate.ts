@@ -3,8 +3,11 @@ import { dirname } from 'node:path';
 import { it } from 'vitest';
 import { RESULTS_FILE } from './paths.js';
 
-/** A catalogue id (`LO-13`) or a finding (`F-10@004`: finding F-10 of spec 004). */
-export const CASE_ID = /^(LO-\d{2,}|F-\d{2}@\d{3})$/;
+/**
+ * A catalogue id (`LO-13`), a finding (`F-10@004`: finding F-10 of spec 004) or a scar of
+ * apps/scar-maker (`SC-01`, spec 030).
+ */
+export const CASE_ID = /^(LO-\d{2,}|F-\d{2}@\d{3}|SC-\d{2,})$/;
 
 export type CaseResult = 'pass' | 'fail' | 'known_gap' | 'gap_fixed' | 'skipped_slow';
 
@@ -26,7 +29,7 @@ interface CaseOpts {
 }
 
 function check(id: string): void {
-  if (!CASE_ID.test(id)) throw new Error(`gate id ${id} is neither LO-nn nor F-nn@spec`);
+  if (!CASE_ID.test(id)) throw new Error(`gate id ${id} is neither LO-nn, F-nn@spec nor SC-nn`);
 }
 
 /** True when the case is skipped in this run; the report still lists it as `skipped_slow`. */

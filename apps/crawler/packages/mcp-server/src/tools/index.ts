@@ -72,7 +72,7 @@ export function registerTools(server: McpServer, ctx: ServerContext, runtime: Ru
           span.setOutput(value);
           return value;
         });
-        return ok(out);
+        return ok(out, ctx.dbEnvironment);
       } catch (e) {
         return fail(e, ctx);
       }
@@ -85,7 +85,7 @@ export function registerTools(server: McpServer, ctx: ServerContext, runtime: Ru
     {
       portal_id: z.string(),
       persona_id: z.string(),
-      environment: z.enum(['production', 'staging', 'sandbox']).optional(),
+      environment: z.string().optional(),
       max_action_class: z
         .enum(['read', 'mutating', 'destructive', 'external-side-effect'])
         .optional(),
@@ -169,7 +169,7 @@ export function registerTools(server: McpServer, ctx: ServerContext, runtime: Ru
   );
   tool(
     'login',
-    "Log in as the run's persona. The server fills and submits the portal's login form with the persona's stored credentials (you never see them) and records the landing page. Returns outcome logged_in or failed (reason rejected | locked | captcha | control_not_found); after a failure no further login is possible in this run. Expired sessions are re-logged in automatically (results then carry relogged_in).",
+    "Log in as the run's persona. The server fills and submits the portal's login form with the persona's stored credentials (you never see them) and records the landing page. Returns outcome logged_in, failed (reason rejected | locked | captcha | control_not_found; after a failure no further login is possible in this run) or pending (the page stopped moving with no success or failure sign, e.g. a slow single sign-on chain: wait or call login again). Expired sessions are re-logged in automatically (results then carry relogged_in).",
     { run_id: z.string(), rationale: z.string().trim().min(1).max(300) },
     async (a) => {
       if (!runtime.login)

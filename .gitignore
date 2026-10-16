@@ -26,6 +26,8 @@ data/gates/
 data/logs/
 # Mutation-testing reports and Stryker's sandbox, rewritten by `pnpm mutate` (spec 012 R-34)
 data/mutation/
+# One file per running MCP server, removed on exit (spec 030 R-61)
+data/servers/
 apps/dashboard/mutants/
 
 # SQLite side files, wherever a DB ends up

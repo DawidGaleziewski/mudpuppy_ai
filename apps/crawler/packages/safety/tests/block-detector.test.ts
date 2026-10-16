@@ -78,3 +78,14 @@ describe('detectBlock', () => {
     );
   });
 });
+
+describe('detectBlock scope (spec 030 SC-02, field C-1)', () => {
+  it('stops only on a refused or rate-limited page, not on a failing background call', () => {
+    const res = { url: 'https://portal.example.invalid/api/flags', status: 403 };
+    expect(detectBlock({ ...res, isMainDocument: false }).blocked).toBe(false);
+    expect(detectBlock({ ...res, status: 429, isMainDocument: false }).blocked).toBe(false);
+    expect(detectBlock({ ...res, isMainDocument: true })).toMatchObject({ kind: 'http_403' });
+    // Unknown origin keeps the old behaviour.
+    expect(detectBlock(res).blocked).toBe(true);
+  });
+});

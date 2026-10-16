@@ -6,6 +6,7 @@
 import { userInfo } from 'node:os';
 import { join, resolve } from 'node:path';
 import { PortalDataError, dbPathFor, exportPortal, migrateUp, openDb } from '@pathfinder/store';
+import { scriptEnvironment } from './script-env.js';
 
 const arg = (name: string, fallback: string): string => {
   const i = process.argv.indexOf(`--${name}`);
@@ -19,7 +20,7 @@ if (!portal || portal.startsWith('--') || !/^[a-z0-9][a-z0-9_-]*$/.test(portal))
   process.exit(2);
 }
 const root = resolve(arg('root', join(import.meta.dirname, '../../..')));
-const env = arg('env', 'production');
+const env = scriptEnvironment(root, arg('env', '') || undefined);
 const stamp = new Date()
   .toISOString()
   .replace(/[-:]/g, '')

@@ -1,0 +1,147 @@
+# Scar-maker catalogue (spec 030 FR-002): one entry per real-world obstacle, reproduced on a route of
+# apps/scar-maker. Source ids refer to the anonymised field pack user_input/mudpuppy-ground-challenge.zip.
+# status: gap while the harness fails it, gate once fixed (the gate case in packages/gates/tests/scars-*.test.ts).
+
+- id: SC-01
+  title: Navigation links inside one page-wide POST form
+  source: [C-2, H-4]
+  route: /sc01/
+  before: Every tile inherits the form's POST and is classified mutating; a read-only run cannot leave the overview.
+  after: A link that goes to its own URL ignores the enclosing form's method; tiles are read and clicked.
+  status: gate
+
+- id: SC-02
+  title: A background XHR answers 403 on a page that renders fine
+  source: [C-1]
+  route: /sc02/
+  before: Any 403 stops the run with zero further states.
+  after: Only a 403 main document stops the run; a 403 XHR is recorded and the crawl goes on.
+  status: gate
+
+- id: SC-03
+  title: javascript postback, mailto and tel links
+  source: [C-7, GC-15]
+  route: /sc03/
+  before: Route-template inference parses every href as a URL and crashes on a javascript href.
+  after: Non-http hrefs are never parsed as URLs; the postback link is clicked and step 2 is reached.
+  status: gate
+
+- id: SC-04
+  title: A select whose option values are server ids
+  source: [C-5]
+  route: /sc04/
+  before: Selecting by the visible label matches no option value and the step fails.
+  after: select falls back from value to visible label.
+  status: gate
+
+- id: SC-05
+  title: German send, submit, save and delete controls
+  source: [GC-14]
+  route: /sc05/
+  before: Senden, Absenden, Löschen and Speichern are not in the keyword rules, so a read-only run clicks them.
+  after: German keywords are built in; these controls are not read and a read-only run never triggers them.
+  status: gate
+
+- id: SC-06
+  title: Role-less tiles that re-render in a new order every second, and a tile that settles for 8 s
+  source: [C-3, C-4]
+  route: /sc06/
+  before: A DOM path captured at observe time points at another tile when the click comes (or at nothing); the slow tile is refused after a 5 s trial.
+  after: A tile with an unambiguous name is located by its text and the right page opens; a role-less tile gets a longer actionability budget.
+  status: gate
+
+- id: SC-07
+  title: Actions that cannot be done when their turn comes (popup link, vanished link, covered link)
+  source: [GC-15, GC-16, GC-18, SQ-3]
+  route: /sc07/
+  before: Such items are handed out, refused or crash, are handed out again, and finish_run refuses with FRONTIER_NOT_EMPTY; the run is wedged.
+  after: An item that cannot be acted on is retired with its reason, never handed out again, and the run finishes with the retired items listed.
+  status: gate
+
+- id: SC-08
+  title: Content shown only with a feature-flag cookie
+  source: [H-1]
+  route: /sc08/
+  before: The service list says "Nothing to show"; the crawl records a hollow screen.
+  after: The seed-cookie fix (portal fixes) sets the cookie; the services are listed and reached.
+  status: gate
+
+- id: SC-09
+  title: Links inside closed details, accordions and behind "Show more", in a page-wide form
+  source: [H-2, GC-19]
+  route: /sc09/
+  before: The snapshot misses every product link; a naive expander clicking the postback toggle would post the form.
+  after: The expand-collapsed fix opens all of them before observing and never posts the form.
+  status: gate
+
+- id: SC-10
+  title: Section headers that are already open by default
+  source: [H-2]
+  route: /sc10/
+  before: A naive "click every toggle" closes the open sections and the page loses most of its links.
+  after: Only the closed section is opened; every section's links are in the snapshot.
+  status: gate
+
+- id: SC-11
+  title: A form mounted by a micro-frontend 2.5 s after the shell settled, in an unknown host element
+  source: [H-3]
+  route: /sc11/
+  before: The snapshot and screenshot show an empty shell.
+  after: The wait-for-mount fix waits for the owner's selector; the form's fields are recorded.
+  status: gate
+
+- id: SC-12
+  title: Stylesheet and script from a CDN host the proxy refuses
+  source: [GC-13, SQ-4]
+  route: /sc12/
+  before: The state and its screenshot are recorded unstyled with no sign that anything failed.
+  after: The state carries a render warning naming the failed stylesheet and script.
+  status: gate
+
+- id: SC-13
+  title: A portal that admits only the corporate proxy's egress
+  source: [GC-03, GC-05]
+  route: /sc13/
+  before: Every request answers 403 "not whitelisted"; the run stops before any page (HTTPS_PROXY in the environment is not used by the browser).
+  after: network.proxy in the portal file sends the browser through the proxy; the pages are recorded.
+  status: gate
+
+- id: SC-14
+  title: Login inputs bound to a framework model that updates on change and blur only
+  source: [C-6]
+  route: /sc14/login
+  before: The fields look filled but the model is empty; the login is rejected and the run never leaves the form.
+  after: Login fills dispatch input, change and blur; the model commits and the login succeeds.
+  status: gate
+
+- id: SC-15
+  title: An SPA login form that renders after ~300 chunk scripts
+  source: [GC-08]
+  route: /sc15/login
+  before: At a polite rate the form appears after the fixed 5 s login wait; login reports control_not_found.
+  after: The login waits on the form while the page keeps loading (quiet and hard limits) and logs in.
+  status: gate
+
+- id: SC-16
+  title: Login through an identity provider on another host with a slow multi-hop redirect chain
+  source: [GC-09, D-2]
+  route: /sc16/
+  before: The single success check runs on the provider's host mid-chain and reports a failure; the run is locked out of login.
+  after: The success check waits while the chain moves; an undecided login is pending (one silent re-check, then returned to the agent, who may log in again), never a lockout.
+  status: gate
+
+- id: SC-17
+  title: Intermittent error pages (503, 500, an error page served with 200)
+  source: [owner 2026-10-15]
+  route: /sc17/
+  before: An error visit is recorded as a screen of its own, or a revisit's error replaces the good screen; the BA documents error pages.
+  after: A transient error is retried (or recorded as a transient error on the visit, never as a screen); the map and the documentation keep the real screens.
+  status: gate
+
+- id: SC-18
+  title: Three-step form with validators, disabled buttons, Back and a success or error page
+  source: [owner 2026-10-15, SQ-6, "03"]
+  route: /sc18/
+  before: The crawler stops at the first step or at a disabled button and never records the validation messages or the final page.
+  after: A trace records every validation message as its own state, goes back and forward, passes every validator and reaches the success page (and the error page with the reserved customer number).
+  status: gate

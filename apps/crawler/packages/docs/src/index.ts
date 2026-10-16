@@ -5,6 +5,7 @@ export * from './relations.js';
 export * from './observed-rule.js';
 export * from './evidence.js';
 export * from './audit.js';
+export * from './quality.js';
 export * from './review.js';
 export * from './render/mermaid.js';
 export * from './export.js';

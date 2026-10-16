@@ -10,12 +10,14 @@ import { ConfigError, Environment, loadEffectiveConfig, loadPortal } from '@path
 const args = process.argv.slice(2);
 const envIdx = args.indexOf('--env');
 const envArg = envIdx > -1 ? args[envIdx + 1] : undefined;
-const positional = args.filter((a, i) => !a.startsWith('--') && (envIdx === -1 || i !== envIdx + 1));
+const positional = args.filter(
+  (a, i) => !a.startsWith('--') && (envIdx === -1 || i !== envIdx + 1),
+);
 const [portal, persona] = positional;
 const root = resolve(join(import.meta.dirname, '../../..'));
 
 if (!portal || (envArg !== undefined && !Environment.safeParse(envArg).success)) {
-  console.error('usage: pnpm portal:check <portal> [<persona>] [--env production|staging|sandbox]');
+  console.error('usage: pnpm portal:check <portal> [<persona>] [--env <environment>]');
   process.exit(2);
 }
 const environment = envArg === undefined ? undefined : Environment.parse(envArg);

@@ -1,4 +1,4 @@
--- GENERATED from data/migrations/*.up.sql applied in order (currently through 0020_relation_rests_on_rule). Do not edit by hand.
+-- GENERATED from data/migrations/*.up.sql applied in order (currently through 0021_free_environment_names). Do not edit by hand.
 -- Regenerate after every migration; see data/schema/README.md.
 
 CREATE TABLE runs (
@@ -521,7 +521,7 @@ CREATE TABLE state_wireframes (
 CREATE TABLE credentials (
   id          TEXT PRIMARY KEY,                                   -- UUIDv7
   portal_id   TEXT NOT NULL CHECK (length(portal_id) > 0),        -- config id; portals are files, no FK
-  environment TEXT NOT NULL CHECK (environment IN ('sandbox','staging','production')),
+  environment TEXT NOT NULL CHECK (environment GLOB '[a-z]*' AND length(environment) BETWEEN 1 AND 40 AND environment NOT GLOB '*[^a-z0-9-]*'),  -- free name per portal (0021, spec 030 R-61)
   ref_name    TEXT NOT NULL CHECK (ref_name GLOB '[A-Za-z_]*' AND length(ref_name) <= 64),
   ciphertext  BLOB NOT NULL,                                      -- AES-256-GCM ciphertext || 16-byte tag
   nonce       BLOB NOT NULL CHECK (length(nonce) = 12),
@@ -800,7 +800,7 @@ CREATE TABLE process_drafts (
 CREATE TABLE process_live (
   id          TEXT PRIMARY KEY,                                      -- UUIDv7
   process_id  TEXT NOT NULL REFERENCES ba_processes(id),
-  environment TEXT NOT NULL CHECK (environment IN ('sandbox','staging','production')),
+  environment TEXT NOT NULL CHECK (environment GLOB '[a-z]*' AND length(environment) BETWEEN 1 AND 40 AND environment NOT GLOB '*[^a-z0-9-]*'),  -- free name per portal (0021, spec 030 R-61)
   variant_id  TEXT NOT NULL,
   variant_rev INTEGER NOT NULL CHECK (variant_rev >= 1),
   author      TEXT NOT NULL CHECK (length(author) > 0),

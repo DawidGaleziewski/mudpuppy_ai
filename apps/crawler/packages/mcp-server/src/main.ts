@@ -1,5 +1,6 @@
 import { fileURLToPath } from 'node:url';
 import { createBrowserRuntime } from './runtime/index.js';
+import { bootEnvironment } from './boot-environment.js';
 import { main } from './server.js';
 
 // packages/mcp-server/src -> repo root is five levels up.
@@ -8,7 +9,7 @@ const root =
 
 main({
   root,
-  environment: process.env.PATHFINDER_ENV ?? 'production',
+  environment: bootEnvironment(root),
   runtime: createBrowserRuntime(),
 }).catch((err: unknown) => {
   console.error(err);

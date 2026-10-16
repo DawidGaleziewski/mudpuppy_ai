@@ -102,8 +102,8 @@ describe('pnpm vault', () => {
     expect(await run('check', 'pg', 'client')).toBe(0);
   });
 
-  it('rejects an unknown environment and prints usage for unknown commands', async () => {
-    expect(await run('list', '--env', 'prod')).toBe(2);
+  it('rejects a malformed environment and prints usage for unknown commands', async () => {
+    expect(await run('list', '--env', 'Prod env')).toBe(2);
     expect(await run('frobnicate')).toBe(2);
     expect(io.errors.at(-1)).toContain('usage:');
   });

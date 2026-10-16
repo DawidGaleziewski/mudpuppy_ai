@@ -63,6 +63,9 @@ interface SessionParts {
   stabilizerOptions: StabilizerOptions;
 }
 
+/** Static files per second when the portal sets no `rate_limit.static_per_second` (spec 030). */
+export const DEFAULT_STATIC_PER_SECOND = 20;
+
 /** A portal may omit `rate_limit` on any environment; be gentle anyway. */
 export const DEFAULT_RATE_LIMIT = {
   requests_per_second: 2,
@@ -124,6 +127,18 @@ export class BrowserSession {
         permissions: [],
         acceptDownloads: false,
         serviceWorkers: 'block',
+        // A corporate proxy and TLS inspection (spec 030 R-63): only when the portal says so.
+        ...(portal.network?.proxy
+          ? {
+              proxy: {
+                server: portal.network.proxy.server,
+                ...(portal.network.proxy.bypass.length > 0
+                  ? { bypass: portal.network.proxy.bypass.join(',') }
+                  : {}),
+              },
+            }
+          : {}),
+        ...(portal.network?.ignore_https_errors ? { ignoreHTTPSErrors: true } : {}),
       });
       const limiter =
         opts.limiter ??
@@ -133,6 +148,10 @@ export class BrowserSession {
         });
       const gate = createRequestGate({
         limiter,
+        staticLimiter: createRateLimiter({
+          requestsPerSecond: portal.rate_limit?.static_per_second ?? DEFAULT_STATIC_PER_SECOND,
+          maxConcurrency: Math.max(rate.max_concurrency, 4),
+        }),
         userAgent: rate.user_agent,
         blockSignatures: portal.block_signatures,
         onStop: opts.onStop,

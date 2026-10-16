@@ -3,7 +3,15 @@ import { SafetyClass, maxSafetyClass } from '@pathfinder/core';
 import { BUILTIN_RULE_CLASSES, DENYLIST_RULE_IDS, RULE_ALIASES } from './rule-ids.js';
 import { urlEntryProblem } from './url-entry.js';
 
-export const Environment = z.enum(['production', 'staging', 'sandbox']);
+/**
+ * An environment name, declared by the user per portal (spec 030 R-61, owner D-1): any short
+ * lowercase name (`dev`, `acceptance`, `live`, `sandbox`, …). No name has a meaning of its own;
+ * each environment's limit is its `max_action_class`. The single definition: store, vault, MCP
+ * tools and the chat model take this one.
+ */
+export const Environment = z
+  .string()
+  .regex(/^[a-z][a-z0-9-]{0,39}$/, 'must be a short lowercase name (letters, digits, -)');
 export type Environment = z.infer<typeof Environment>;
 
 const Slug = z.string().regex(/^[a-z0-9][a-z0-9_-]*$/, 'must be a lowercase slug');
@@ -95,6 +103,21 @@ export const HookSpec = z
 export type HookSpec = z.infer<typeof HookSpec>;
 
 /**
+ * One fix-plugin turned on for the portal (spec 030 FR-031): `use` names it in
+ * `@pathfinder/fix-plugins`, `with` is the client's data it needs (validated by the plugin when the
+ * run starts), `match` and `timeout_ms` as for a hook.
+ */
+export const FixSpec = z
+  .object({
+    use: z.string().regex(/^[a-z][a-z0-9-]*$/, 'must be the id of a fix-plugin'),
+    with: z.record(z.string(), z.unknown()).default({}),
+    match: UrlEntry.optional(),
+    timeout_ms: z.number().int().min(100).max(120_000).default(10_000),
+  })
+  .strict();
+export type FixSpec = z.infer<typeof FixSpec>;
+
+/**
  * A portal's own action rule (spec 002 FR-015 to FR-017): a new id with its class, or extra
  * keywords/paths (and optionally a higher class) for a built-in id. Rules can only add or raise.
  * Keywords are plain phrases and paths are globs, never regular expressions (research §7).
@@ -178,8 +201,36 @@ export const RateLimit = z.object({
   requests_per_second: z.number().positive(),
   max_concurrency: PositiveInt,
   user_agent: z.string().min(1),
+  /**
+   * Budget for the portal's static files (scripts, stylesheets, fonts, images), apart from page
+   * loads and API calls (spec 030 FR-063, owner D-2 Q4): an SPA's dozens of chunk files at the
+   * polite rate made a login form take ~30 s to appear (GC-08). Default 20 per second.
+   */
+  static_per_second: z.number().positive().optional(),
 });
 export type RateLimit = z.infer<typeof RateLimit>;
+
+/**
+ * How the browser reaches the portal (spec 030 R-63, field GC-03/GC-05/GC-12): a corporate forward
+ * proxy (the portal admits only the proxy's address; hosts in `bypass` go direct, e.g. a CDN the
+ * proxy refuses; `<-loopback>` makes even loopback addresses go through it) and, behind a TLS-inspecting
+ * proxy whose CA the browser does not trust, `ignore_https_errors` (an explicit owner choice).
+ * Robots.txt is fetched by the server, not the browser: a proxy-only portal sets `robots: ignore`
+ * (the doctor says so).
+ */
+export const Network = z
+  .object({
+    proxy: z
+      .object({
+        server: z.string().regex(/^(https?|socks5):\/\/\S+$/, 'like http://proxy.corp:3128'),
+        bypass: z.array(z.string().min(1)).default([]),
+      })
+      .strict()
+      .optional(),
+    ignore_https_errors: z.boolean().default(false),
+  })
+  .strict();
+export type Network = z.infer<typeof Network>;
 
 /** ISO date (YYYY-MM-DD) or null while a person has not yet done the check (FR-026). */
 const IsoDateOrNull = z.iso.date().nullable();
@@ -267,6 +318,8 @@ export const PortalConfig = z
     scope: Scope,
     urls: UrlLists.default({ disallowed: [] }),
     hooks: z.array(HookSpec).default([]),
+    fixes: z.array(FixSpec).default([]),
+    network: Network.optional(),
     timeouts: Timeouts.optional(),
     denylist: z.array(DenylistEntry).default([]),
     obstacles: z.array(Obstacle).default([]),

@@ -27,6 +27,7 @@ export async function mainBa(opts: BaBootOptions): Promise<void> {
     raw: opened.raw,
     evidence: createEvidenceStore(join(dataDir, 'evidence')),
     logger,
+    environment: opts.environment,
   };
   // An agent that stopped mid-session a day ago is not coming back: leave its session resumable.
   const swept = sweepStaleSessions(ctx);

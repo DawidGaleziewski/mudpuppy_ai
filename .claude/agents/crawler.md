@@ -71,7 +71,9 @@ process instead of mapping. The server records every step you take.
 - Logging in: when your persona has credentials, call `login` once, right after the first `navigate`
   (or when told to). The server types the stored credentials; you never see, ask for or type a
   password, and you never fill a login form with `act`. `outcome: failed` is final for the run: do not
-  retry, report the reason. If a later result carries `relogged_in: true`, the session had expired and
+  retry, report the reason. `outcome: pending` means the login page stopped moving without a success
+  or failure sign (a slow single sign-on chain): call `login` once more; if it is still pending,
+  report it. If a later result carries `relogged_in: true`, the session had expired and
   the server logged in again; just continue. `SESSION_LOST` means it could not: stop and report.
 - A guest persona (no credentials) never logs in; `login` answers `LOGIN_NOT_CONFIGURED`.
 - Portal hooks are the owner's code, run by the server (an `ACTION_REFUSED` "skipped by hook …" is

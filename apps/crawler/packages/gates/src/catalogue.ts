@@ -90,6 +90,19 @@ export function findingIds(markdown: string, spec: string): string[] {
   return out;
 }
 
+/** A scar of apps/scar-maker/scars.yaml (spec 030 FR-002), as far as the gates need it. */
+export interface ScarRow {
+  id: string;
+  status: 'gap' | 'gate';
+}
+
+/** `scars.yaml` ids and statuses; the full schema lives in apps/scar-maker (`src/catalogue.ts`). */
+export function parseScars(text: string): ScarRow[] {
+  return z
+    .array(z.object({ id: z.string().regex(/^SC-\d{2,}$/), status: z.enum(['gap', 'gate']) }))
+    .parse(parse(text) ?? []);
+}
+
 /** Ids a gate test file registers with `gate('…'` or `gap('…'` (static scan, deterministic). */
 export function registeredIds(source: string): { gates: string[]; gaps: string[] } {
   const ids = (fn: string) =>

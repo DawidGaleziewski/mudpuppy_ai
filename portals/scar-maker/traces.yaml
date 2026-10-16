@@ -1,0 +1,34 @@
+# Trace catalogue of scar-maker (spec 030 R-64): the processes the trace driver walks to their end.
+# Run: pnpm --dir apps/crawler portal:trace scar-maker apply applicant --env sandbox
+traces:
+  - id: apply
+    name: Apply for a contract
+    goal: Complete the three-step application and reach the success page (SC-18).
+    start_url: /sc18/step-1
+    steps:
+      - { name: Full name, kind: fill, value: Test Person, intent: enter the full name }
+      - { name: E-mail, kind: fill, value: applicant@example.test, intent: enter the e-mail }
+      - { name: Year of birth, kind: fill, value: "1990", intent: enter the year of birth }
+      - { name: Next, kind: click, intent: go to step 2 }
+      - { name: Product, kind: select, value: Household insurance, intent: choose the product }
+      - { name: Start year, kind: fill, value: "2027", intent: enter the start year }
+      - { name: Customer number, kind: fill, value: KD-123456, intent: enter the customer number }
+      - { name: I accept the terms, kind: check, intent: accept the terms }
+      - { name: Next, kind: click, intent: go to the summary }
+      - { name: I confirm the data is correct, kind: check, intent: confirm the data }
+    submit: Submit application
+    variants:
+      - { id: happy-path, expect: proceed }
+      # The year of birth fails "at least 18": Next stays disabled and the form never moves on.
+      - id: too-young
+        expect: validation_error
+        steps:
+          - { name: Full name, kind: fill, value: Test Person, intent: enter the full name }
+          - { name: E-mail, kind: fill, value: applicant@example.test, intent: enter the e-mail }
+          - { name: Year of birth, kind: fill, value: "2015", intent: enter a year under 18 }
+          - { name: Next, kind: click, intent: try to go on }
+  - id: change-address
+    name: Change the postal address
+    goal: Change the address of the customer (not mapped yet).
+    start_url: /sc18/
+    to_be_discovered: true

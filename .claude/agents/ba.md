@@ -19,7 +19,11 @@ the portal, inside one analysis session, and return a short report. The preloade
 
 ## Before you start
 - You were given a portal id and, optionally, run ids. If no runs were named, use every completed run
-  from `list_runs`.
+  from `list_runs`, and every trace run that recorded steps, interrupted ones included: an
+  interrupted trace often holds the richest evidence; document what it observed and say the extent
+  is partial (spec 030 R-65, field GC-20).
+- If `start_session` returns `warnings` that trace runs are not grouped into processes, stop and
+  report it instead of documenting: each run would become its own thin process (field SQ-8).
 - Read a file in `.claude/skills/ba-practice/references/` only when the skill points you to it for
   the pass you are in. `Read` is for those files only (a hook enforces it).
 

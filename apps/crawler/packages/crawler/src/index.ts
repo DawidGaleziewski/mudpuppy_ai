@@ -23,3 +23,7 @@ export * from './locators.js';
 export * from './step-outcomes.js';
 export * from './navigation-recorder.js';
 export * from './client-redirect.js';
+export * from './asset-health.js';
+export * from './condition-wait.js';
+export * from './transient-error.js';
+export { NAME_SHIM } from './in-page.js';

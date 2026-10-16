@@ -22,6 +22,7 @@ import {
   type Thresholds,
 } from '@pathfinder/docs';
 import { dbPathFor, openDb } from '@pathfinder/store';
+import { scriptEnvironment } from './script-env.js';
 
 const fail = (message: string): never => {
   console.error(message);
@@ -58,7 +59,7 @@ if (groundTruth!.portal_id !== portal)
   fail(`the ground truth is for portal ${groundTruth!.portal_id}, not ${portal}`);
 
 const root = resolve(arg('root') ?? join(import.meta.dirname, '../../..'));
-const env = arg('env') ?? 'production';
+const env = scriptEnvironment(root, arg('env'));
 const path = dbPathFor(join(root, 'data'), env);
 if (!existsSync(path)) fail(`no store for environment ${env}: ${path}`);
 

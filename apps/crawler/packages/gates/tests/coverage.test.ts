@@ -5,10 +5,11 @@ import {
   findingIds,
   parseCatalogue,
   parseEvalCases,
+  parseScars,
   registeredIds,
   registeredInFolder,
 } from '../src/catalogue.js';
-import { CATALOGUE, EVAL_CASES, GATE_TESTS, REPO } from '../src/paths.js';
+import { CATALOGUE, EVAL_CASES, GATE_TESTS, REPO, SCAR_CATALOGUE } from '../src/paths.js';
 
 const FINDINGS: [string, string][] = [
   ['specs/004-ba-documentation/goal-run-findings.md', '004'],
@@ -23,6 +24,7 @@ describe('coverage (spec 009 FR-024, FR-025)', () => {
   const catalogue = parseCatalogue(readFileSync(CATALOGUE, 'utf8'));
   const cases = parseEvalCases(readFileSync(EVAL_CASES, 'utf8'));
   const { gates, gaps } = registeredInFolder(GATE_TESTS);
+  const scars = parseScars(readFileSync(SCAR_CATALOGUE, 'utf8'));
 
   it('every in-scope catalogue obstacle has a gate or a known gap', () => {
     const missing = catalogue
@@ -49,9 +51,18 @@ describe('coverage (spec 009 FR-024, FR-025)', () => {
     expect([...have].filter((h) => !want.includes(h))).toEqual([]);
   });
 
-  it('gate ids name real catalogue entries or indexed findings', () => {
-    const known = new Set([...catalogue.map((r) => r.id), ...cases.map((c) => c.id)]);
+  it('gate ids name real catalogue entries, indexed findings or scars', () => {
+    const known = new Set([
+      ...catalogue.map((r) => r.id),
+      ...cases.map((c) => c.id),
+      ...scars.map((s) => s.id),
+    ]);
     expect([...gates, ...gaps].filter((id) => !known.has(id))).toEqual([]);
+  });
+
+  it('every scar has its case, a gate when scars.yaml says gate and a gap when it says gap (spec 030)', () => {
+    const wrong = scars.filter((s) => !(s.status === 'gate' ? gates : gaps).has(s.id));
+    expect(wrong.map((s) => `${s.id} (${s.status})`)).toEqual([]);
   });
 });
 

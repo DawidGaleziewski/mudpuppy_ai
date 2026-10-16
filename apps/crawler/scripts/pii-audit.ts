@@ -5,6 +5,7 @@
  */
 import { join, resolve } from 'node:path';
 import { auditPii, dbPathFor, openDb } from '@pathfinder/store';
+import { scriptEnvironment } from './script-env.js';
 
 const arg = (name: string, fallback: string): string => {
   const i = process.argv.indexOf(`--${name}`);
@@ -12,7 +13,7 @@ const arg = (name: string, fallback: string): string => {
 };
 
 const root = resolve(arg('root', join(import.meta.dirname, '../../..')));
-const env = arg('env', 'production');
+const env = scriptEnvironment(root, arg('env', '') || undefined);
 const opened = openDb(dbPathFor(join(root, 'data'), env));
 try {
   const { scanned, findings } = await auditPii({

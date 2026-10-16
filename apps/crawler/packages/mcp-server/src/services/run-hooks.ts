@@ -3,12 +3,18 @@
 
 import { join } from 'node:path';
 import { ConfigError, type PortalConfig } from '@pathfinder/config';
+import { loadFixes } from '@pathfinder/fix-plugins';
 import { loadHooks, type LoadedHook } from '@pathfinder/hooks';
 import { ToolError } from '../errors.js';
 
 export async function loadRunHooks(root: string, portal: PortalConfig): Promise<LoadedHook[]> {
   try {
-    return await loadHooks(join(root, 'portals', portal.id, 'hooks.ts'), portal.hooks);
+    // Fixes (spec 030 FR-031) run before the portal's own hooks of the same point.
+    const fixes = loadFixes(join(root, 'portals', portal.id, 'portal.yaml'), portal.fixes);
+    return [
+      ...fixes,
+      ...(await loadHooks(join(root, 'portals', portal.id, 'hooks.ts'), portal.hooks)),
+    ];
   } catch (err) {
     if (!(err instanceof ConfigError)) throw err;
     throw new ToolError('CONFIG_INVALID', err.message, { reasons: err.problems });

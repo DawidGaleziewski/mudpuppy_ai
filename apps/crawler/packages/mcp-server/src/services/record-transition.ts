@@ -85,6 +85,7 @@ export function descriptorOf(action: z.infer<typeof ActionInput>): ActionDescrip
     ...(action.form !== undefined ? { form: action.form } : {}),
     ...(action.attributes !== undefined ? { attributes: action.attributes } : {}),
     ...(action.input !== undefined ? { input: action.input } : {}),
+    ...(action.tag !== undefined ? { tag: action.tag } : {}),
   };
 }
 

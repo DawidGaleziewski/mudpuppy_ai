@@ -1,5 +1,6 @@
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
+import { Environment } from '@pathfinder/config';
 import { minSafetyClass, newId, nowIso, SafetyClass } from '@pathfinder/core';
 import { preflight, type PreflightResult } from '@pathfinder/crawler';
 import { z } from 'zod';
@@ -56,7 +57,7 @@ const StartRunInput = z
       .optional(),
     followup_key: z.string().min(1).optional(),
     /** Which of the portal's environments (spec 011); a resumed run keeps its own. */
-    environment: z.enum(['production', 'staging', 'sandbox']).optional(),
+    environment: Environment.optional(),
     /**
      * The BA's choice for this run (spec 011 FR-013): lowers the run's limit below the portal's
      * and persona's, never raises it. A resumed run keeps its own unless given again.
@@ -155,7 +156,7 @@ export async function startRunRecord(
         .select('environment')
         .where('id', '=', input.resume_run_id)
         .executeTakeFirst();
-      environment = row?.environment as typeof environment;
+      environment = row?.environment;
     }
     const pre = preflight(input.portal_id, input.persona_id, {
       root: ctx.root,

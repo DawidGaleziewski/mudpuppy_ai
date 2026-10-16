@@ -20,6 +20,11 @@ export interface StopEvent {
 
 export interface RequestGateOptions {
   limiter: RateLimiter;
+  /**
+   * The portal's static files (scripts, stylesheets, fonts, images, media) go through this one when
+   * set, page loads and API calls through `limiter` (spec 030 FR-063). Halted together with it.
+   */
+  staticLimiter?: RateLimiter;
   /** User-Agent from `rate_limit.user_agent`, or the default one. */
   userAgent: string;
   blockSignatures?: readonly string[];
@@ -134,6 +139,15 @@ interface FetchedLike {
 
 const TEXTUAL = /^(text\/|application\/(json|xhtml|xml))/i;
 
+/** Resource types counted against the static budget (spec 030 FR-063). */
+const STATIC_TYPES: ReadonlySet<string> = new Set([
+  'script',
+  'stylesheet',
+  'font',
+  'image',
+  'media',
+]);
+
 /** True for the top-level document, false for sub-resources and iframe documents. Unknown → true. */
 function isMainFrameDocument(response: {
   request?: () => { resourceType?: () => string; frame?: () => { parentFrame?: () => unknown } };
@@ -237,6 +251,7 @@ export function createRequestGate(opts: RequestGateOptions): RequestGate {
     if (verdict.kind === 'captcha') return;
     stopped = { kind: verdict.kind, warning: verdict.warning };
     opts.limiter.halt();
+    opts.staticLimiter?.halt();
     opts.onStop(stopped);
   };
 
@@ -319,7 +334,11 @@ export function createRequestGate(opts: RequestGateOptions): RequestGate {
         try {
           // A main-frame navigation jumps the queue: at a low rate it would otherwise wait behind every
           // pending subresource of the page it leaves, and the click that started it times out.
-          release = await opts.limiter.acquire({ priority: mainNav });
+          const budget =
+            !mainNav && opts.staticLimiter && STATIC_TYPES.has(request.resourceType())
+              ? opts.staticLimiter
+              : opts.limiter;
+          release = await budget.acquire({ priority: mainNav });
         } catch (e) {
           limiterWaitMs = clock() - waitStart;
           if (e instanceof RateLimiterHalted) return halted();
@@ -397,17 +416,14 @@ export function createRequestGate(opts: RequestGateOptions): RequestGate {
           });
         }
         let body: string | undefined;
+        const isMainDocument = isMainFrameDocument(response);
         // Only the visited page can be a challenge page. A third-party script or a vendor iframe (the
         // reCAPTCHA loader that sits on every form of some portals) mentions the very markers we look for.
-        if (
-          status < 400 &&
-          TEXTUAL.test(headers['content-type'] ?? '') &&
-          isMainFrameDocument(response)
-        ) {
+        if (status < 400 && TEXTUAL.test(headers['content-type'] ?? '') && isMainDocument) {
           body = await response.text().catch(() => undefined);
         }
         const verdict = detectBlock(
-          { url: response.url(), status, headers, body },
+          { url: response.url(), status, headers, body, isMainDocument },
           opts.blockSignatures ?? [],
         );
         if (verdict.blocked && verdict.kind && verdict.warning) {

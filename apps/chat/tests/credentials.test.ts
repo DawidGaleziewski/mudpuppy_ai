@@ -97,7 +97,7 @@ describe('credentials endpoint', () => {
   it('rejects a bad environment, bad ref name and unknown conversation', async () => {
     await start(key);
     expect(
-      (await post({ portal: 'liveinsurer', environment: 'moon', values: { A_B: SECRET } })).status,
+      (await post({ portal: 'liveinsurer', environment: 'Moon base', values: { A_B: SECRET } })).status,
     ).toBe(400);
     expect((await post({ portal: 'liveinsurer', values: { '1bad': SECRET } })).status).toBe(400);
     expect((await post({ portal: 'liveinsurer', values: {} })).status).toBe(400);

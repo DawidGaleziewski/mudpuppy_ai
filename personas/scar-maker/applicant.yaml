@@ -1,0 +1,4 @@
+# Fills and submits scar-maker's forms (SC-18): anonymous, but allowed to send.
+id: applicant
+extends: ["../_mixins/anonymous-base.yaml"]
+max_action_class: external-side-effect

@@ -45,6 +45,7 @@ export function descriptorOf(a: ActionRow): ActionDescriptor {
     ...(a.json.form ? { form: a.json.form } : {}),
     ...(a.json.attributes ? { attributes: a.json.attributes } : {}),
     ...(a.json.input ? { input: a.json.input } : {}),
+    ...(a.json.tag ? { tag: a.json.tag } : {}),
   };
 }
 

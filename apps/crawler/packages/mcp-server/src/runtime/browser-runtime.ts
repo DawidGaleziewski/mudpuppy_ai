@@ -1,6 +1,6 @@
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
-import { BrowserSession, type StabilizerOptions } from '@pathfinder/crawler';
+import { BrowserSession, trackAssetHealth, type StabilizerOptions } from '@pathfinder/crawler';
 import { computeFingerprint } from '@pathfinder/fingerprint';
 import type { ServerContext } from '../context.js';
 import type { Runtime } from '../runtime.js';
@@ -153,6 +153,7 @@ export function createBrowserRuntime(opts: BrowserRuntimeOptions = {}): Runtime 
     });
     const rs = new RunState(run.id, session, approved.effective, approved.scope, robots, trace);
     rs.processId = (await processOfRun(ctx, run.id))?.id ?? null;
+    rs.assets = trackAssetHealth(session.context);
     holder.rs = rs;
     // Playwright traces keep DOM snapshots with typed input values: a run that logs in with vault
     // credentials pauses the trace around every login (spec 009 FR-019a), and says so. Every

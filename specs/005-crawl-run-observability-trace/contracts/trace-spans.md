@@ -81,6 +81,8 @@ the call's Playwright trace chunk, so its cost shows in the phase breakdown).
 | `error` | `code`, `message`, `stack_top?` |
 | `trace_health` | `dropped`, `truncated` |
 | `concurrent_calls` | `overlapping_calls` [span ids], `run_id` — once per overlap, on each call involved (research §3) |
+| `transient_error` (spec 030) | `kind` (`http_5xx`/`soft_error`), `attempt`, `recovered`, `url` (shaped) — an error page re-opened before it was observed |
+| `render_warning` (spec 030) | `state_id`, `failed` [{`resource_type`, `url` (shaped), `status?`, `failure?`}] — stylesheets, scripts or fonts that did not load |
 
 Any event attached through `eventForRun` while more than one browser call of the run is open also
 carries `overlapping_calls`.

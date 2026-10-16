@@ -18,7 +18,6 @@ import { SafetyClass } from '@pathfinder/core';
 import { portalFile, type WorkspacePaths } from './workflow-data.js';
 
 const SLUG = /^[a-z0-9][a-z0-9_-]*$/;
-const ENV_ORDER: readonly Environment[] = ['production', 'staging', 'sandbox'];
 
 export const EnvironmentBody = z.object({
   base_url: z.string().trim().min(1).max(2000),
@@ -30,7 +29,8 @@ export const NewPortalBody = z.object({
   /** Short name; proposed from the first address when left out. */
   id: z.string().trim().max(60).optional(),
   robots: z.enum(['respect', 'ignore']).default('ignore'),
-  environments: z.partialRecord(Environment, EnvironmentBody),
+  /** Free names the developer chooses (spec 030 R-61), in the order given. */
+  environments: z.record(Environment, EnvironmentBody),
 });
 export type NewPortalBody = z.input<typeof NewPortalBody>;
 
@@ -106,7 +106,7 @@ function check(paths: WorkspacePaths, id: string): PortalSummary {
 
 export function createPortal(paths: WorkspacePaths, input: NewPortalBody): PortalSummary {
   const body = NewPortalBody.parse(input);
-  const chosen = ENV_ORDER.filter((e) => body.environments[e] !== undefined);
+  const chosen = Object.keys(body.environments);
   if (chosen.length === 0)
     throw new PortalRefusal('INVALID', 'give the address of at least one environment');
   const environments: Record<string, Record<string, unknown>> = {};

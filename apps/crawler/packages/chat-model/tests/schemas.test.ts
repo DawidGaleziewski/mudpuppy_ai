@@ -297,7 +297,11 @@ describe('BA processes (0018)', () => {
     expect(ProcessVariantChange.options).toEqual(
       inList('process_variant_revisions', 'change', SQL_0018),
     );
-    expect(ProcessLiveEnvironment.options).toEqual(inList('process_live', 'environment', SQL_0018));
+    // process_live.environment is a free name since 0021 (spec 030 R-61): a format, not a list.
+    for (const name of ['sandbox', 'dev', 'acceptance', 'live-2'])
+      expect(ProcessLiveEnvironment.safeParse(name).success, name).toBe(true);
+    for (const name of ['', 'Dev', 'has space', '9lives'])
+      expect(ProcessLiveEnvironment.safeParse(name).success, name).toBe(false);
     expect(GroupingSuggestionStatus.options).toEqual(
       inList('grouping_suggestions', 'status', SQL_0018),
     );

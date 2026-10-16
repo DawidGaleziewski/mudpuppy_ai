@@ -8,3 +8,6 @@ export * from './runtime/index.js';
 export * from './services/ba/index.js';
 export * from './ba-tools/index.js';
 export * from './ba-server.js';
+export * from './server-context.js';
+export * from './local-client.js';
+export * from './trace-driver.js';

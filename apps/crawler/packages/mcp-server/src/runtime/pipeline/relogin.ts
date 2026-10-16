@@ -14,7 +14,7 @@ export function relogin(sc: StepContext, target: string): Promise<void> {
     const creds = loginPreconditions(rs);
     const out = await performLogin(ctx, rs, creds);
     if (out.outcome !== 'logged_in') {
-      rs.login = 'blocked';
+      if (out.outcome === 'failed') rs.login = 'blocked';
       const failed = decision({
         kind: 'note',
         rule: 'relogin',

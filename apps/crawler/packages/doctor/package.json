@@ -1,0 +1,18 @@
+{
+  "name": "@pathfinder/doctor",
+  "version": "0.0.0",
+  "private": true,
+  "description": "First-start diagnosis of a portal's environment (spec 030 R-63): a registry of checks that each name the cause and the fix",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "@pathfinder/config": "workspace:*",
+    "better-sqlite3": "^13.0.3",
+    "playwright": "^1.63.0"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^9.6.0"
+  }
+}

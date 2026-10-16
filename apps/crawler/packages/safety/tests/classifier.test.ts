@@ -163,3 +163,57 @@ describe('classifyAction in trace runs (spec 004 R-14)', () => {
     ).toBe('mutating');
   });
 });
+
+describe('links inside a page-wide form (spec 030 SC-01, field C-2)', () => {
+  const postForm = { method: 'POST', action: '/uebersicht', purpose: 'other' as const };
+
+  it('a link does not inherit the enclosing form method or target', () => {
+    expect(
+      classifyAction({ role: 'link', name: 'Verträge', href: '/vertraege', form: postForm })
+        .safetyClass,
+    ).toBe('read');
+  });
+
+  it('a role-less anchor is read evidence and ignores the form too', () => {
+    const tile = { role: 'generic', tag: 'a', name: 'Verträge', form: postForm };
+    expect(classifyAction(tile).safetyClass).toBe('read');
+    expect(classifyAction({ ...tile, tag: 'div' }).safetyClass).toBe('mutating');
+  });
+
+  it('a javascript postback link still submits the form', () => {
+    expect(
+      classifyAction({
+        role: 'link',
+        name: 'Weiter',
+        href: "javascript:__doPostBack('next','')",
+        form: postForm,
+      }).safetyClass,
+    ).toBe('mutating');
+  });
+
+  it('a submit button in the form keeps its method', () => {
+    expect(
+      classifyAction({ role: 'button', name: 'Aktualisieren', form: postForm }).safetyClass,
+    ).toBe('mutating');
+  });
+});
+
+describe('German controls (spec 030 SC-05, field GC-14)', () => {
+  const cls = (role: string, name: string) => classifyAction({ role, name }).safetyClass;
+
+  it('send, submit, save and delete are never read', () => {
+    for (const name of ['Senden', 'Antrag absenden', 'Abschicken', 'Bestätigen', 'Hochladen'])
+      expect(cls('button', name), name).toBe('external-side-effect');
+    expect(cls('button', 'Löschen')).toBe('destructive');
+    expect(cls('button', 'Speichern')).toBe('mutating');
+    expect(cls('link', 'Abmelden')).toBe('destructive');
+  });
+
+  it('search, filter and show-more stay read; a word inside another word does not match', () => {
+    expect(cls('button', 'Suchen')).toBe('read');
+    expect(cls('button', 'Mehr anzeigen')).toBe('read');
+    expect(
+      classifyAction({ role: 'link', name: 'Verkaufen Sie uns', href: '/x' }).safetyClass,
+    ).toBe('read');
+  });
+});

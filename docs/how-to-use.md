@@ -67,7 +67,7 @@ cd apps/dashboard && uv run pathfinder-dashboard --env sandbox
 #    add PATHFINDER_REVIEWER="Your Name" in front: your name is stamped on every change you make
 
 # 2. chat service (the assistant needs it)
-pnpm --dir apps/chat start                  # PATHFINDER_ENV=sandbox is the default
+PATHFINDER_ENV=sandbox pnpm --dir apps/chat start   # required: the environment to work on
 
 # 3. only for practice: the reference portal
 pnpm --dir apps/crawler reference-portal    # http://127.0.0.1:4010
@@ -411,7 +411,7 @@ them alone.
 
 | You see | What to do |
 | --- | --- |
-| **Assistant down** in the header, or "Assistant not running" | Start `pnpm --dir apps/chat start`, reload the page. Read-only pages keep working. |
+| **Assistant down** in the header, or "Assistant not running" | Start `PATHFINDER_ENV=sandbox pnpm --dir apps/chat start` (your environment), reload the page. Read-only pages keep working. |
 | "The assistant has used up its Claude usage limit. It resets …" | The Claude account behind the chat is out of usage. Wait until the time shown, then send again. |
 | Nothing recorded for 5 minutes | The assistant or the crawler may be stuck. Press **Stop**, then ask to resume the scan. |
 | The assistant seems confused | Press **Reset context**: fresh memory, same portal. |

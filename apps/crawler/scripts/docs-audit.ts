@@ -5,8 +5,9 @@
  */
 import { existsSync } from 'node:fs';
 import { join, resolve } from 'node:path';
-import { audit, elementKeysReader } from '@pathfinder/docs';
+import { audit, elementKeysReader, qualityFindings } from '@pathfinder/docs';
 import { dbPathFor, openDb } from '@pathfinder/store';
+import { scriptEnvironment } from './script-env.js';
 
 const arg = (name: string, fallback: string): string => {
   const i = process.argv.indexOf(`--${name}`);
@@ -19,7 +20,7 @@ if (portal !== undefined && !/^[a-z0-9][a-z0-9_-]*$/.test(portal)) {
   process.exit(2);
 }
 const root = resolve(arg('root', join(import.meta.dirname, '../../..')));
-const env = arg('env', 'production');
+const env = scriptEnvironment(root, arg('env', '') || undefined);
 const path = dbPathFor(join(root, 'data'), env);
 if (!existsSync(path)) {
   console.error(`no store for environment ${env}: ${path}`);
@@ -40,7 +41,10 @@ try {
     const report = audit(opened.raw, portal, {
       elementKeysOf: elementKeysReader(opened.raw, join(root, 'data', 'evidence')),
     });
-    console.log(JSON.stringify(report, null, 2));
+    // Quality flags (spec 030 R-65) are printed beside the integrity report; they never fail it.
+    console.log(
+      JSON.stringify({ ...report, quality: qualityFindings(opened.raw, portal) }, null, 2),
+    );
     if (!report.ok) process.exitCode = 1;
   }
 } finally {

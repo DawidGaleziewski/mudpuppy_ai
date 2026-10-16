@@ -29,7 +29,10 @@ export type ProcessVariantKind = z.infer<typeof ProcessVariantKind>;
 export const ProcessVariantChange = z.enum(['create', 'branch', 'save', 'restore', 'observe']);
 export type ProcessVariantChange = z.infer<typeof ProcessVariantChange>;
 
-export const ProcessLiveEnvironment = z.enum(['sandbox', 'staging', 'production']);
+/** An environment name as the portal declares it (free names, spec 030 R-61). */
+export const ProcessLiveEnvironment = z
+  .string()
+  .regex(/^[a-z][a-z0-9-]{0,39}$/, 'must be a short lowercase name');
 export type ProcessLiveEnvironment = z.infer<typeof ProcessLiveEnvironment>;
 
 export const GroupingSuggestionStatus = z.enum(['open', 'accepted', 'dismissed']);

@@ -37,8 +37,9 @@ over-claims. Complete, verbatim and honest beats elegant.
    (`revise_record` with `responds_to_review`), withdraw it with a reason, or raise an
    `open_question`. A reviewer's answer to an `OQ` is evidence (target `review`) for a
    `needs_confirmation` assumption or requirement.
-2. `list_runs`, choose the runs to read (all completed map runs, plus trace runs), `start_session`
-   with them. Evidence from other runs is refused (`RUN_NOT_IN_SESSION`).
+2. `list_runs`, choose the runs to read (all completed map runs, plus trace runs, interrupted ones
+   included when they recorded steps: their extent is partial), `start_session` with them; heed
+   its `warnings` (trace runs not grouped into processes: stop and report). Evidence from other runs is refused (`RUN_NOT_IN_SESSION`).
 3. `list_records` to see what exists; revise instead of duplicating. Revisions need `base_rev` equal to
    the latest (`STALE_REVISION` otherwise — re-read and retry once).
 4. Run the seven passes below in order; after each call `record_pass` with a 1–3 line summary.

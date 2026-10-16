@@ -53,6 +53,38 @@ export interface SessionOutput {
   passes: AnalysisPass[];
   resumed: boolean;
   pending_feedback: Record<string, number>;
+  /** Things the BA should know before it starts (spec 030 R-65: un-narrowed trace runs). */
+  warnings?: string[];
+}
+
+/**
+ * The narrow step was skipped (spec 030 R-65, owner question D-8, field SQ-8): several trace runs in
+ * the session, and the portal has neither grouped processes nor a process scope. Documenting them
+ * as they are makes one thin process per run (duplicates, one-step stubs). A warning, not a refusal.
+ */
+export function narrowWarnings(
+  ctx: BaContext,
+  portalId: string,
+  runIds: readonly string[],
+): string[] {
+  const traces = runIds.filter(
+    (id) =>
+      (
+        ctx.raw.prepare('SELECT mode FROM runs WHERE id = ?').get(id) as
+          { mode: string } | undefined
+      )?.mode === 'trace',
+  ).length;
+  if (traces < 2) return [];
+  const grouped = ctx.raw
+    .prepare(
+      `SELECT (SELECT count(*) FROM ba_processes WHERE portal_id = ?)
+            + (SELECT count(*) FROM process_scopes WHERE portal_id = ?) AS n`,
+    )
+    .get(portalId, portalId) as { n: number };
+  if (grouped.n > 0) return [];
+  return [
+    `${String(traces)} trace runs are not grouped into processes yet (the narrow step was skipped): documented as they are, each run becomes its own thin process. Group them first (Processes, or ask the assistant to suggest a grouping), then document each process with all its runs as variants.`,
+  ];
 }
 
 /** Every run must exist and belong to the portal the session documents. */
@@ -120,14 +152,17 @@ export function startSession(ctx: BaContext, raw: unknown): SessionOutput {
     }
     for (const runId of input.run_ids) addRun.run(sessionId, runId);
 
+    const runIds = sessionRunIds(ctx, sessionId);
+    const warnings = narrowWarnings(ctx, input.portal_id, runIds);
     return {
       session_id: sessionId,
       portal_id: input.portal_id,
       status: 'running',
-      run_ids: sessionRunIds(ctx, sessionId),
+      run_ids: runIds,
       passes,
       resumed: input.resume_session_id !== undefined,
       pending_feedback: feedbackSummary(pendingFeedback(ctx, input.portal_id)),
+      ...(warnings.length > 0 ? { warnings } : {}),
     };
   });
 }

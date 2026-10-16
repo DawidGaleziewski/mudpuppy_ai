@@ -37,6 +37,11 @@ Layer: servers (G-07; `apps/crawler/layers.json`)
   (`get_run_evidence`, incl. `page_visits`, `parameters`, spec 019), `runs.ts` (`list_runs` with
   persona attributes), `access.ts` (`get_access_matrix`, spec 024: same model as the dashboard's
   `queries_access.py`, both checked against `tests/fixtures/access/three-personas.json`).
+- Spec 030: `server-context.ts` (`openServerContext`, shared by `server.ts` and `local-client.ts`) and
+  `boot-environment.ts` (`PATHFINDER_ENV` has no default); `services/server-registry.ts` (live
+  servers, stray warnings); `local-client.ts` + `trace-driver.ts` (`pnpm portal:trace`: drive a trace
+  catalogue through the tools); `runtime/render-health.ts` (failed assets per page),
+  `pipeline/transient.ts` (re-open a page showing a passing error); `login` can end `pending`.
 - Entry points: `pnpm --filter @pathfinder/mcp-server start` (`src/main.ts`), `start:ba`.
 
 ## Invariants

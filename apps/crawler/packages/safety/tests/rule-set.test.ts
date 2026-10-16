@@ -54,7 +54,8 @@ describe('portal action rules (spec 002 FR-015 to FR-019)', () => {
       keywords: ['przedłuż polisę'],
       paths: ['/przedluzenie/*'],
     },
-    { id: 'purchase', keywords: ['jetzt kaufen'] },
+    // A language with no built-in keywords (German is built in since spec 030).
+    { id: 'purchase', keywords: ['comprar ahora'] },
     { id: 'logout', class: 'external-side-effect' as const, keywords: ['abmelden'] },
   ];
   const set = extendRuleSet(builtinRuleSet(), portalRules);
@@ -86,7 +87,7 @@ describe('portal action rules (spec 002 FR-015 to FR-019)', () => {
 
   it('extends a built-in rule: its own keywords still apply, the new ones are added', () => {
     expect(set.get('purchase')?.origin).toBe('builtin+portal');
-    expect(classifyAction({ role: 'button', name: 'Jetzt kaufen' }, set).rules).toContain(
+    expect(classifyAction({ role: 'button', name: 'Comprar ahora' }, set).rules).toContain(
       'purchase',
     );
     expect(classifyAction({ role: 'button', name: 'Kup teraz' }, set).rules).toContain('purchase');
@@ -112,7 +113,7 @@ describe('portal action rules (spec 002 FR-015 to FR-019)', () => {
     expect(builtinRuleSet().get('renew_policy')).toBeUndefined();
     expect(builtinRuleSet().get('purchase')?.origin).toBeUndefined();
     const other = extendRuleSet(builtinRuleSet(), []);
-    expect(classifyAction({ role: 'button', name: 'Jetzt kaufen' }, other).rules).not.toContain(
+    expect(classifyAction({ role: 'button', name: 'Comprar ahora' }, other).rules).not.toContain(
       'purchase',
     );
   });

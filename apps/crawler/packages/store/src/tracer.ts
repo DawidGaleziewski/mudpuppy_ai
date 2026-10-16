@@ -93,6 +93,9 @@ export const EVENT_NAMES = [
   'page_visit',
   // spec 023 (R-53): the timeouts a page was given when the portal sets `timeouts`
   'page_timeouts',
+  // spec 030 (R-60): an error page retried before observing; assets that failed to load
+  'transient_error',
+  'render_warning',
 ] as const;
 export type EventName = (typeof EVENT_NAMES)[number];
 

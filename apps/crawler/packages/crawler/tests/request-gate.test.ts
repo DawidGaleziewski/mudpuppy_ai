@@ -161,7 +161,10 @@ describe('request gate', () => {
     await f.respond(200, '<div class="g-recaptcha">', 'text/html', { mainFrame: false });
     expect(stops).toHaveLength(0);
     expect(verdicts).toHaveLength(0);
+    // A refused sub-resource is page chatter, not a refused page (spec 030 SC-02, field C-1).
     await f.respond(403, '', 'text/javascript', { resourceType: 'script' });
+    expect(stops).toHaveLength(0);
+    await f.respond(403, '<h1>Forbidden</h1>', 'text/html', { resourceType: 'document' });
     expect(stops[0]!.kind).toBe('http_403');
   });
 
@@ -683,5 +686,53 @@ describe('request gate: skip images (spec 011 FR-014)', () => {
     const img = await s.request('https://cdn.x.pl/a.png', 'image');
     expect(img.continue).toHaveBeenCalled();
     expect(img.fulfill).not.toHaveBeenCalled();
+  });
+});
+
+describe('request gate: static budget (spec 030 FR-063)', () => {
+  /** A limiter that only counts what it was asked for. */
+  const counting = () => {
+    const l = createRateLimiter({ requestsPerSecond: 1000, maxConcurrency: 4 });
+    let n = 0;
+    return {
+      limiter: {
+        ...l,
+        acquire: (o?: { priority?: boolean }) => {
+          n += 1;
+          return l.acquire(o);
+        },
+      },
+      count: () => n,
+    };
+  };
+
+  it('sends scripts, stylesheets, fonts and images through the static budget, the rest through the strict one', async () => {
+    const strict = counting();
+    const stat = counting();
+    const gate = createRequestGate({
+      limiter: strict.limiter,
+      staticLimiter: stat.limiter,
+      userAgent: 'UA',
+      onStop: () => {},
+    });
+    let handler!: RouteHandler;
+    await gate.install({
+      route: async (_p: string, h: RouteHandler) => void (handler = h),
+      on: () => {},
+    } as never);
+    const send = (resourceType: string, nav = false) =>
+      handler({ continue: vi.fn(async () => {}), abort: vi.fn(async () => {}) }, {
+        headers: () => ({}),
+        isNavigationRequest: () => nav,
+        resourceType: () => resourceType,
+        frame: () => ({ parentFrame: () => null }),
+        url: () => `https://x.pl/${resourceType}`,
+      } as never);
+    for (const t of ['script', 'stylesheet', 'font', 'image']) await send(t);
+    await send('xhr');
+    await send('fetch');
+    await send('document', true);
+    expect(stat.count()).toBe(4);
+    expect(strict.count()).toBe(3);
   });
 });

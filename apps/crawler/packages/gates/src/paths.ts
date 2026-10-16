@@ -19,6 +19,13 @@ export const GATE_BASE = `http://127.0.0.1:${GATE_PORT}`;
 /** Fixture users (hashes of `test-password-not-real`); never the developer's generated users. */
 export const FIXTURE_USERS = join(PROVING_GROUND, 'backend', 'tests', 'fixtures', 'users.json');
 export const FIXTURE_PASSWORD = 'test-password-not-real';
+/** Scar-maker (spec 030): dev instance on 4300, the gates' own on 4400, on two loopback hosts. */
+export const SCAR_MAKER = join(REPO, 'apps', 'scar-maker');
+export const SCAR_CATALOGUE = join(SCAR_MAKER, 'scars.yaml');
+export const SCAR_DEV_PORT = 4300;
+export const SCAR_PORT = 4400;
+export const SCAR_BASE = `http://127.0.0.1:${SCAR_PORT}`;
+export const SCAR_SECOND = `http://127.0.0.2:${SCAR_PORT}`;
 /** Session idle timeout the gate estate runs with (LO-32 cases wait it out). */
 // Long enough for a step on a page whose stabilizer runs to its timeout (SSE never idles).
 export const GATE_SESSION_TIMEOUT_S = 20;

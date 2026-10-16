@@ -1,4 +1,5 @@
 import { fileURLToPath } from 'node:url';
+import { bootEnvironment } from './boot-environment.js';
 import { mainBa } from './ba-server.js';
 
 // packages/mcp-server/src -> repo root is five levels up.
@@ -7,7 +8,7 @@ const root =
 
 mainBa({
   root,
-  environment: process.env.PATHFINDER_ENV ?? 'production',
+  environment: bootEnvironment(root),
 }).catch((err: unknown) => {
   console.error(err);
   process.exit(1);

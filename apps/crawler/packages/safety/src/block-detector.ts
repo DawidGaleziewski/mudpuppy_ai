@@ -4,6 +4,12 @@ export interface ResponseInfo {
   headers?: Record<string, string>;
   /** Response body for HTML/text responses; omit for binary. */
   body?: string;
+  /**
+   * The top-level page document, not one of its sub-resources or XHRs. Unknown → true. Only the
+   * page itself refused (403) or rate-limited (429) stops the run: a SPA routinely tolerates a
+   * failing background call (spec 030 SC-02, field C-1).
+   */
+  isMainDocument?: boolean;
 }
 
 export type BlockKind = 'http_403' | 'http_429' | 'captcha' | 'portal_signature';
@@ -42,11 +48,9 @@ export const CAPTCHA_SCRIPT_MARKERS: readonly string[] = [
   'datadome',
 ];
 
-/** Detect a block (never a normal 200 or a plain 404). No bypass is ever attempted (FR-008). */
-export function detectBlock(
-  res: ResponseInfo,
-  portalSignatures: readonly string[] = [],
-): BlockVerdict {
+/** A refusal or rate limit of the page document itself; null for anything else. */
+function statusBlock(res: ResponseInfo): BlockVerdict | null {
+  if (!(res.isMainDocument ?? true)) return null;
   if (res.status === 403) {
     return {
       blocked: true,
@@ -62,6 +66,16 @@ export function detectBlock(
       warning: `HTTP 429 from ${res.url}: rate limited${retry ? ` (Retry-After ${retry})` : ''}, stopping the run`,
     };
   }
+  return null;
+}
+
+/** Detect a block (never a normal 200 or a plain 404). No bypass is ever attempted (FR-008). */
+export function detectBlock(
+  res: ResponseInfo,
+  portalSignatures: readonly string[] = [],
+): BlockVerdict {
+  const byStatus = statusBlock(res);
+  if (byStatus) return byStatus;
   const body = res.body?.toLowerCase();
   if (body) {
     const ok = res.status >= 200 && res.status < 300;

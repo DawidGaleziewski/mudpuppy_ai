@@ -23,6 +23,7 @@ import {
   type StepContext,
 } from './context.js';
 import { relogin } from './relogin.js';
+import { retryTransientErrors } from './transient.js';
 import { throwIfStopped } from './stop.js';
 
 /** `event stabilization_timeout` when the page never settled (research §9). */
@@ -102,6 +103,8 @@ function settle(sc: StepContext) {
       navigating: () => rs.session.navigation.navigating(),
     });
     if (redirects.followed > 0) outcome = await rs.session.settleTraced(settleMs);
+    const transient = await retryTransientErrors(rs, () => rs.session.settleTraced(settleMs));
+    if (transient.outcome) outcome = transient.outcome;
     const mounts = await waitForMountsIn(
       rs.session.page,
       () => framesRead(rs),
@@ -113,6 +116,7 @@ function settle(sc: StepContext) {
       ...(t ? [event('page_timeouts', { ...t, url: rs.session.page.url() })] : []),
       ...settleReports(rs, outcome),
       ...clientRedirectReports(redirects),
+      ...transient.reports,
       ...mountReports(mounts),
       ...obstacleReports(rs),
     ];

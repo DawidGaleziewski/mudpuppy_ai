@@ -19,6 +19,8 @@ export interface ActionDescriptor {
     hasPassword?: boolean;
   };
   attributes?: Record<string, string>;
+  /** Element tag (`a`, `button`, `div` …) when known: role-less clickables (spec 015) carry it. */
+  tag?: string;
   /**
    * Trace mode only: the action types into, ticks or picks a value in a form control. It changes
    * page-local state and sends no request by itself, which counts as positive read evidence.

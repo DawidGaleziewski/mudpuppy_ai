@@ -54,25 +54,25 @@ entries:
     changed_on: 2026-10-13
 
   - id: environment
-    term: Environment (sandbox / production)
+    term: Environment
     category: pathfinder
     group: Runs and setup
-    short: Which copy of a site a scan targets, production (the live site), staging or sandbox; each has its own address and an optional limit of how far the crawler may go.
+    short: A copy of a site you declare per portal under a name of your choice (dev, acceptance, live, sandbox), with its own address, its own users and its own store.
     explanation: |
-      A portal has one or more environments (see Portal settings). The environment is a label:
-      since spec 021 (R-42) production behaves exactly like staging and sandbox. Without a limit
-      the crawler may fill, submit and log in, which on a live site really happens; the BA sets
-      a limit per environment to restrict it. Each scan from the chat only looks unless you allow
-      edits for it (see Scan choices). A CAPTCHA is handed to a human on every environment. Each
-      run records its environment. Separately, the dashboard's "data store" switch picks which
-      local database file (`data/db/<name>.sqlite`) it reads; runs of every environment can be in
-      one store.
-    example: "wikipedia-org: production https://www.wikipedia.org/ (only look); reference-insurer: sandbox"
-    appears_in: [Portal settings, Runs table → Environment]
+      A portal has one or more environments (see Portal settings), named by you; no name has a
+      meaning of its own, "production" included (spec 030, R-61). Each environment has its own
+      test users and its own database file (`data/db/<name>.sqlite`), so scans and documentation
+      of two environments never mix. Nothing opens a store for a name no portal declares (a typo
+      used to create a stray, empty store), and there is no default: the servers and the chat need
+      `PATHFINDER_ENV` set to a declared name, and every crawler result says which environment
+      answered. Without a limit the crawler may fill, submit and log in; the BA sets a limit per
+      environment to restrict it. A CAPTCHA is handed to a human on every environment.
+    example: "a portal with dev https://dev.portal.test/ and acceptance https://acc.portal.test/ (only look)"
+    appears_in: [Portal settings, Runs table → Environment, every crawler result]
     labels: [Environment, sandbox, staging, production]
     related: [safety-class, portal-scope, form-autofill, portal-settings, scan-choices]
-    changed_in: R-42
-    changed_on: 2026-10-13
+    changed_in: R-61
+    changed_on: 2026-10-16
 
   - id: persona
     term: Persona
@@ -279,9 +279,99 @@ entries:
     example: "An onRunStart hook adds a portal's consent cookie, so its banner never covers the page."
     appears_in: [Scan page → Portal hooks, Decisions]
     labels: [Hooks, patched by hook]
-    related: [portal-scope, environment]
+    related: [portal-scope, environment, fix-plugin]
     changed_in: R-53
     changed_on: 2026-10-14
+
+  - id: fix-plugin
+    term: Fix-plugin
+    category: pathfinder
+    group: Crawling
+    short: A tested, reusable solution to one kind of portal quirk, turned on per portal with that portal's own data instead of writing a hook.
+    explanation: |
+      Fixes live in Pathfinder (`@pathfinder/fix-plugins`); a portal turns one on under `fixes:` in
+      its portal file, with the data it needs (a cookie name, selectors, a URL pattern). Today:
+      `seed-cookie` (content shown only with a feature-flag cookie), `expand-collapsed` (open
+      accordions and "show more" before the page is read, never a real link or submit),
+      `wait-for-mount` (wait for a late micro-frontend) and `detect-stack` (tag a page as new SPA or
+      legacy). A fix runs like a hook and is recorded as `fix:<name>`; the client's data stays in the
+      portal file. Each fix is proven against a scar.
+    example: "fixes: [{ use: expand-collapsed, with: { max: 60 } }] opens the closed service sections of a page."
+    appears_in: [Portal file → fixes, Decisions (fix:…)]
+    labels: [fixes, fix-plugin]
+    related: [portal-hook, scar]
+    changed_in: R-59
+    changed_on: 2026-10-16
+
+  - id: transient-error-page
+    term: Transient error page
+    category: pathfinder
+    group: Crawling
+    short: A page that only says a server error happened (a 5xx, or a short "technical error, try again later"); the crawler opens it again before recording anything.
+    explanation: |
+      Some portals answer now and then with an error page although the screen works. The crawler
+      re-opens such a page (at most twice) before it reads it, and notes each attempt
+      (`transient_error`), so an error page never becomes a screen in place of the real one and the
+      documentation keeps the real screens. A page still failing after that is recorded as it is.
+    example: "item-3 answered a 503, was re-opened once and came back with its table."
+    appears_in: [Decisions (transient_error), Run trace]
+    labels: [transient_error]
+    related: [render-warning]
+    changed_in: R-60
+    changed_on: 2026-10-16
+
+  - id: render-warning
+    term: Render warning
+    category: pathfinder
+    group: Crawling
+    short: A note on a screen that some of its stylesheets, scripts or fonts did not load, so its screenshot may show a broken look that is not the portal's design.
+    explanation: |
+      Behind a corporate proxy a CDN can be refused and a page renders unstyled or half working.
+      The screen then carries a `render:assets_failed` warning naming each failed file, so nobody
+      documents the broken look as the design. Fix the network (a proxy bypass for the CDN) and
+      scan again.
+    example: "render:assets_failed: stylesheet …/theme.css (403), script …/widget.js (403)."
+    appears_in: [Decisions (render:assets_failed)]
+    labels: [render:assets_failed]
+    related: [transient-error-page, portal-network]
+    changed_in: R-60
+    changed_on: 2026-10-16
+
+  - id: portal-network
+    term: Portal network (proxy)
+    category: pathfinder
+    group: Runs and setup
+    short: How the browser reaches a portal behind a corporate network, through a forward proxy (with hosts that go direct) and, if needed, ignoring a TLS-inspecting proxy's certificates.
+    explanation: |
+      `network:` in the portal file: `proxy: { server, bypass }` and `ignore_https_errors`. A
+      portal that admits only the company's proxy answers 403 "not whitelisted" otherwise. Robots.txt
+      is read by the server, not the browser, so a proxy-only portal sets `robots: ignore`. Before
+      the first scan at a new site, `pnpm --dir apps/crawler portal:doctor <portal>` checks the
+      machine and the way to the portal and names the cause of each problem with its fix.
+    example: "network: { proxy: { server: http://proxy.corp:3128, bypass: [cdn.example.net] } }"
+    appears_in: [Portal file → network, portal:doctor]
+    labels: [network, proxy, doctor]
+    related: [environment, render-warning]
+    changed_in: R-63
+    changed_on: 2026-10-16
+
+  - id: trace-catalogue
+    term: Trace catalogue
+    category: pathfinder
+    group: Crawling
+    short: The list of a portal's processes to drive to their end, with the fields to fill by label and variants such as the happy path and each validation error.
+    explanation: |
+      `portals/<id>/traces.yaml` names each process (start page, steps by visible label, the submit)
+      and its variants; `pnpm --dir apps/crawler portal:trace <portal> <id|all> <persona>` walks each
+      variant as one trace run, the same way every time. The persona's limit decides whether the
+      submit is pressed; each step's snapshot keeps the validation messages. A process known to
+      exist but not mapped yet is a stub (`to_be_discovered`).
+    example: "apply: happy-path reaches the success page; too-young stops at a disabled Next."
+    appears_in: [portals/<id>/traces.yaml, portal:trace]
+    labels: [traces.yaml, portal:trace, variant]
+    related: [mode]
+    changed_in: R-64
+    changed_on: 2026-10-16
 
   - id: access-dependent
     term: Access-dependent content
@@ -2543,6 +2633,25 @@ entries:
     example: BI-20261012-01-crawler-stuck-on-cookie-banner, area crawler, severity blocker.
     appears_in: [docs/field-issues/README.md, specs/018-export-fork/contracts/field-issue.md]
     labels: [field issue, BI-]
-    related: [export-fork]
+    related: [export-fork, scar]
     changed_in: R-49
     changed_on: 2026-10-11
+
+  - id: scar
+    term: Scar (scar-maker)
+    category: pathfinder
+    group: Building Pathfinder
+    short: A real obstacle met at a customer site, rebuilt as a page of the local scar-maker portal so the harness can be proven against it.
+    explanation: |
+      `apps/scar-maker` serves one route per scar (a page-wide POST form, a 403 background call,
+      German submit labels, a slow SSO login across two hosts, intermittent error pages, a three-step
+      form with validators, a proxy-only portal …) on two loopback hosts with its own forward proxy.
+      `scars.yaml` lists each with the field issue it came from, the symptom before and the
+      behaviour after; every scar has a gate case and the portal is also an eval task. Roadmap
+      category `[battle-tested-scar]`.
+    example: "SC-16: login through an identity provider on 127.0.0.2 with a 1.5 s redirect chain."
+    appears_in: [apps/scar-maker/scars.yaml, gates (SC-nn)]
+    labels: [scar, scar-maker, SC-]
+    related: [field-issue, fix-plugin]
+    changed_in: R-56
+    changed_on: 2026-10-16

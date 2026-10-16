@@ -207,6 +207,7 @@ export function clickableCandidates(
     const dom = c.form !== null ? forms.find((f) => f.name === c.form) : undefined;
     const descriptor: ActionDescriptor = {
       role: 'generic',
+      tag: c.tag,
       ...(c.name ? { name: c.name } : {}),
       ...(c.form !== null
         ? {

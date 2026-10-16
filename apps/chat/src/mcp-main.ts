@@ -4,6 +4,7 @@
 import { fileURLToPath } from 'node:url';
 import { join } from 'node:path';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
+import { requireEnvironment } from '@pathfinder/config';
 import { createEvidenceStore } from '@pathfinder/core';
 import { dbPathFor, migrateUp, openDb } from '@pathfinder/store';
 import { createChatMcpServer } from './mcp-chat.js';
@@ -16,7 +17,10 @@ if (conversationId === undefined || conversationId === '') {
   process.exit(1);
 }
 
-const opened = openDb(dbPathFor(join(repoRoot, 'data'), process.env.PATHFINDER_ENV ?? 'sandbox'));
+// Started by the chat service with its own environment; never a default (spec 030 R-61).
+const opened = openDb(
+  dbPathFor(join(repoRoot, 'data'), requireEnvironment(repoRoot, process.env.PATHFINDER_ENV)),
+);
 migrateUp(opened.raw, join(repoRoot, 'data', 'migrations'));
 const server = createChatMcpServer({
   raw: opened.raw,

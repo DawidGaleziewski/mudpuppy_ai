@@ -297,6 +297,9 @@ EXPECTED_IDS = {
     "fast-tier", "slow-tier", "code-guidelines", "agent-notes",  # R-34
     "mutation-testing", "behaviour-lock",  # R-34
     "export-fork", "field-issue",  # R-49
+    # spec 030 (R-56..R-64): scars, fixes and the hardening around them
+    "scar", "fix-plugin", "transient-error-page", "render-warning", "portal-network",
+    "trace-catalogue",
     "page-visit", "navigation-hop", "parameter-inventory", "entry-url",  # R-37/R-38
     # BA (22)
     "confidence", "documentation-record", "evidence-link", "relations", "traceability", "review",
@@ -310,7 +313,7 @@ EXPECTED_IDS = {
 def test_real_glossary_is_valid_and_complete() -> None:
     g = load_ok(REPO_DOCS)
     assert {e.id for e in g.entries} == EXPECTED_IDS
-    assert len(EXPECTED_IDS) == 143
+    assert len(EXPECTED_IDS) == 149
     assert sum(e.category == "ba" for e in g.entries) == 22
 
 

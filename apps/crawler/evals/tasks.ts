@@ -63,6 +63,15 @@ const PROVING_GROUND_ESTATE: PortalServer = {
   ports: [4100, 4101],
 };
 
+/** Scar-maker (spec 030): the real-world scars, on 127.0.0.1/127.0.0.2:4300 and its proxy on 4302. */
+const SCAR_MAKER: PortalServer = {
+  probe: 'http://127.0.0.1:4300/healthz',
+  command: 'pnpm',
+  args: (root) => ['--dir', join(root, 'apps/scar-maker'), 'start'],
+  takesSessionTimeout: false,
+  ports: [4300, 4302],
+};
+
 const provingGround = (domain: 'shop' | 'bank' | 'insurer'): EvalTask => ({
   portal: `proving-ground-${domain}`,
   groundTruth: `apps/proving-ground/ground-truth/${domain}.yaml`,
@@ -101,6 +110,13 @@ export const SUITE: readonly EvalTask[] = [
   provingGround('shop'),
   provingGround('bank'),
   provingGround('insurer'),
+  // The scars (spec 030, owner: "tests and evals"): how much of the scarred portal a guest map
+  // reaches; best run with --crawler-only (the ground truth holds screens only).
+  {
+    portal: 'scar-maker',
+    groundTruth: 'apps/scar-maker/ground-truth.yaml',
+    server: SCAR_MAKER,
+  },
   // Live production site, owner's learning task (R-46): read-only, crawler only, one trace.
   {
     portal: 'wikipedia',

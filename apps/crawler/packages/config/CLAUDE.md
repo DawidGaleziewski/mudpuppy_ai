@@ -16,6 +16,11 @@ Used by: mcp-server, crawler, safety, vault, gates, apps/chat (`src/index.ts` re
   unusable one), `hooks` (point, fn, match, timeout), `timeouts` (portal and per URL); `scope`
   is strict, so a removed key such as `allowed_paths` fails to load.
 
+- Spec 030: `Environment` (free lowercase names declared per portal, R-61) and `environments.ts`
+  (`declaredEnvironments`, `requireEnvironment`: no default, eval names allowed); `FixSpec`
+  (`fixes:` of the portal, run by `@pathfinder/fix-plugins`); `Network` (`proxy`,
+  `ignore_https_errors`, R-63); `traces.ts` (`loadTraces`: the `traces.yaml` catalogue).
+
 ## Invariants
 
 - No browser, no LLM; reads files, never writes.

@@ -155,9 +155,11 @@ describe('pathfinder tools', () => {
     expect(
       (await call('add_rule_candidate', { run_id: run, text: 'x', about_ref: s.state_id })).isError,
     ).toBe(false);
+    // Every result names the server's environment (spec 030 FR-052).
     expect((await call('get_next_frontier_item', { run_id: run })).body).toEqual({
       item: null,
       reason: 'empty',
+      environment: 'production',
     });
     expect(
       (await call('finish_run', { run_id: run, rationale: 'frontier exhausted' })).body.status,

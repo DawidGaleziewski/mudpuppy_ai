@@ -3,6 +3,7 @@
 // completes, the chat service turns its input into a `ui_action` event the dashboard performs
 // (a credential request is also kept in the history, credentialLine). Pure.
 
+import { Environment } from '@pathfinder/config';
 import type { UiAction } from './events.js';
 
 const PREFIX = 'mcp__pathfinder-chat__';
@@ -16,13 +17,13 @@ const str = (v: unknown): string | null =>
 
 /** Vault reference names, as the credentials form accepts them. */
 export const REF_NAME = /^[A-Z][A-Z0-9_]{0,63}$/;
-const ENVIRONMENTS = ['sandbox', 'staging', 'production'] as const;
 
 function credentialOf(args: Record<string, unknown>): UiAction | null {
   const portal = str(args.portal);
   const persona = str(args.persona);
   const ref = str(args.ref);
-  const environment = ENVIRONMENTS.find((e) => e === args.environment);
+  const env = Environment.safeParse(args.environment);
+  const environment = env.success ? env.data : undefined;
   if (portal === null || persona === null || ref === null || environment === undefined) return null;
   if (!REF_NAME.test(ref)) return null;
   return {

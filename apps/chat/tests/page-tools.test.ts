@@ -58,7 +58,7 @@ describe('credential requests (FE-A05)', () => {
     expect(
       uiActionOf('mcp__pathfinder-chat__request_credential', {
         ...base,
-        environment: 'qa',
+        environment: 'Q A',
         ref: 'X',
       }),
     ).toBeNull();

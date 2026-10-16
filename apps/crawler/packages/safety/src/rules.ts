@@ -3,8 +3,11 @@ import type { SafetyClass } from '@pathfinder/core';
 /**
  * Keywords and path patterns are data, not special-cased logic. Text is matched after
  * {@link normalize} (lower-case, diacritics stripped, `ł`→`l`), so patterns are written without
- * Polish diacritics. Rule ids that are denylist ids (see `BUILTIN_RULE_CLASSES` in `config`) can be
- * listed in a portal's `denylist`, as can their aliases (`RULE_ALIASES`).
+ * Polish diacritics or umlauts (`löschen` → `loschen`; `ß` stays). Locales: Polish, English and
+ * German (spec 030 SC-05, field GC-14: a German "Senden" was read). Every locale is always on: a
+ * keyword can only raise a class, so an extra language never makes a run less safe. Rule ids that
+ * are denylist ids (see `BUILTIN_RULE_CLASSES` in `config`) can be listed in a portal's
+ * `denylist`, as can their aliases (`RULE_ALIASES`).
  */
 export interface ActionRule {
   id: string;
@@ -21,14 +24,40 @@ export const ACTION_RULES: readonly ActionRule[] = [
   {
     id: 'logout',
     safetyClass: 'destructive',
-    keywords: [/\bwyloguj/, /\bwylogowa/, /\blog ?out\b/, /\bsign ?out\b/],
-    paths: [/\/wyloguj/, /\/wylogowa/, /\/log-?out\b/, /\/sign-?out\b/],
+    keywords: [
+      /\bwyloguj/,
+      /\bwylogowa/,
+      /\blog ?out\b/,
+      /\bsign ?out\b/,
+      /\babmelden\b/,
+      /\bausloggen\b/,
+    ],
+    paths: [/\/wyloguj/, /\/wylogowa/, /\/log-?out\b/, /\/sign-?out\b/, /\/abmelden\b/],
   },
   {
     id: 'delete',
     safetyClass: 'destructive',
-    keywords: [/\busun/, /\busuw/, /\bkasuj/, /\bdelete\b/, /\bremove\b/],
-    paths: [/\/usun/, /\/usuw/, /\/kasuj/, /\/delete\b/, /\/remove\b/],
+    keywords: [
+      /\busun/,
+      /\busuw/,
+      /\bkasuj/,
+      /\bdelete\b/,
+      /\bremove\b/,
+      /\bloschen\b/,
+      /\bloeschen\b/,
+      /\bentfernen\b/,
+      /\bstornieren\b/,
+      /\bkundigen\b/,
+    ],
+    paths: [
+      /\/usun/,
+      /\/usuw/,
+      /\/kasuj/,
+      /\/delete\b/,
+      /\/remove\b/,
+      /\/lo(e)?schen\b/,
+      /\/entfernen\b/,
+    ],
   },
   {
     id: 'payment',
@@ -41,8 +70,21 @@ export const ACTION_RULES: readonly ActionRule[] = [
       /\bcheckout\b/,
       /\bzamow/,
       /\bplace order\b/,
+      /\bbezahlen\b/,
+      /\bzahlungspflichtig/,
+      /\bzur kasse\b/,
+      /\bkostenpflichtig bestellen\b/,
     ],
-    paths: [/\/platnos/, /\/zaplac/, /\/payment/, /\/checkout/, /\/zamowieni/, /\/pay\b/],
+    paths: [
+      /\/platnos/,
+      /\/zaplac/,
+      /\/payment/,
+      /\/checkout/,
+      /\/zamowieni/,
+      /\/pay\b/,
+      /\/bezahlen\b/,
+      /\/kasse\b/,
+    ],
   },
   {
     // Generic (spec 002 FR-012): buy now, bid, order, buy a policy or ticket. Aliases: bidding, buy_now.
@@ -62,6 +104,10 @@ export const ACTION_RULES: readonly ActionRule[] = [
       /\bbuy now\b/,
       /\bbuy\b/,
       /\bbuy (a )?(policy|ticket)\b/,
+      /\bjetzt kaufen\b/,
+      /\bkaufen\b/,
+      /\bbestellen\b/,
+      /\babschlie(ss|ß)en\b/,
     ],
     paths: [/\/licytuj/, /\/licytacj/, /\/bid\b/, /\/kup-teraz/, /\/kup\b/, /\/buy-now/, /\/buy\b/],
   },
@@ -81,8 +127,19 @@ export const ACTION_RULES: readonly ActionRule[] = [
       /\bzadaj pytanie\b/,
       /\bsend (a )?message\b/,
       /\bask a question\b/,
+      /\bsenden\b/,
+      /\babsenden\b/,
+      /\babschicken\b/,
+      /\bverschicken\b/,
+      /\bnachricht senden\b/,
     ],
-    paths: [/\/wiadomosci\/nowa/, /\/messages\/new/, /\/napisz\b/, /\/kontakt-ze-sprzedawca/],
+    paths: [
+      /\/wiadomosci\/nowa/,
+      /\/messages\/new/,
+      /\/napisz\b/,
+      /\/kontakt-ze-sprzedawca/,
+      /\/nachricht(en)?\/neu/,
+    ],
   },
   {
     // Generic: show a phone number or address. Alias: reveal_seller_contact.
@@ -112,6 +169,13 @@ export const ACTION_RULES: readonly ActionRule[] = [
       /\bsign me up\b/,
       /\bsubscribe\b/,
       /\bapply (now|for)\b/,
+      /\bbeantragen\b/,
+      /\bantrag stellen\b/,
+      /\banfrage senden\b/,
+      /\bbestatigen\b/,
+      /\bhochladen\b/,
+      /\beinreichen\b/,
+      /\bregistrieren\b/,
     ],
     paths: [/\/zapytanie\b/, /\/request-a-quote/, /\/newsletter\/(zapisz|subscribe)/],
   },
@@ -125,19 +189,20 @@ export const ACTION_RULES: readonly ActionRule[] = [
       /\bobserwuj/,
       /\bwatch\b/,
       /\bfollow\b/,
+      /\bmerken\b/,
     ],
     paths: [],
   },
   {
     id: 'mutating:cart',
     safetyClass: 'mutating',
-    keywords: [/\bdodaj do koszyka\b/, /\badd to (cart|basket)\b/],
+    keywords: [/\bdodaj do koszyka\b/, /\badd to (cart|basket)\b/, /\bin den warenkorb\b/],
     paths: [],
   },
   {
     id: 'mutating:save',
     safetyClass: 'mutating',
-    keywords: [/\bzapisz\b/, /\bsave\b/, /\bzglos\b/, /\breport\b/],
+    keywords: [/\bzapisz\b/, /\bsave\b/, /\bzglos\b/, /\breport\b/, /\bspeichern\b/, /\bmelden\b/],
     paths: [],
   },
 ];
@@ -164,6 +229,13 @@ export const READ_KEYWORDS: readonly RegExp[] = [
   /\bzwin\b/,
   /\bexpand\b/,
   /\bcollapse\b/,
+  /\bsuchen\b/,
+  /\bsuche\b/,
+  /\bfiltern\b/,
+  /\bsortieren\b/,
+  /\bmehr anzeigen\b/,
+  /\bausklappen\b/,
+  /\beinklappen\b/,
 ];
 
 /** Roles that only change client-side state or navigate, never submit anything by themselves. */

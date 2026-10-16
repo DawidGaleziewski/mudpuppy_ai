@@ -155,13 +155,14 @@ describe('portal settings: add and revoke environments', () => {
       'id: guest\nextends: ["../_mixins/anonymous-base.yaml"]\n',
     );
     const out = setEnvironment(paths(), 'old', 'staging', { base_url: 'http://127.0.0.2:4010/' });
+    // Declaration order (free names, spec 030 R-61): the existing one first, the added one after.
     expect(out.environments).toEqual([
+      { environment: 'sandbox', base_url: 'http://127.0.0.1:4010/', max_action_class: 'mutating' },
       {
         environment: 'staging',
         base_url: 'http://127.0.0.2:4010/',
         max_action_class: 'external-side-effect',
       },
-      { environment: 'sandbox', base_url: 'http://127.0.0.1:4010/', max_action_class: 'mutating' },
     ]);
     expect(readFileSync(join(root, 'portals', 'old', 'portal.yaml'), 'utf8')).toContain(
       '# keep me',
@@ -238,7 +239,7 @@ describe('portal routes', () => {
     expect(put.status).toBe(200);
     expect(((await put.json()) as { environments: unknown[] }).environments).toHaveLength(2);
     expect(
-      (await send('PUT', '/portals/wikipedia-org/environments/qa', { base_url: 'x' })).status,
+      (await send('PUT', '/portals/wikipedia-org/environments/Q_A', { base_url: 'x' })).status,
     ).toBe(400);
     expect((await send('DELETE', '/portals/wikipedia-org/environments/staging')).status).toBe(200);
     expect((await send('DELETE', '/portals/wikipedia-org/environments/production')).status).toBe(

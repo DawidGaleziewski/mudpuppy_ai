@@ -17,8 +17,12 @@ Layer: servers (G-07; `apps/crawler/layers.json`)
 
 ## Invariants
 
-- Files run one at a time (`fileParallelism: false`); shared estate on ports 4200/4201.
-- `src/global-setup.ts` starts the proving ground.
+- Files run one at a time (`fileParallelism: false`); shared estate on ports 4200/4201, and
+  scar-maker (`apps/scar-maker`, spec 030) on 4400 at 127.0.0.1 and 127.0.0.2.
+- `src/global-setup.ts` starts the proving ground and scar-maker; the report lists catalogue ids
+  (LO), gate findings and scars (`scars.yaml`) without a case as `uncovered`.
+- Case ids: `LO-nn`, `F-nn@spec`, `SC-nn`. Scar cases live in `tests/scars-*.test.ts` and use
+  `scarNav` / `resetScars` (portal `scar-maker`, read-only guest).
 - Slow cases run only with `PATHFINDER_SLOW_GATES=1` (`pnpm test:slow`).
 
 ## Where to add things
@@ -28,7 +32,7 @@ Layer: servers (G-07; `apps/crawler/layers.json`)
 ## Tests
 
 - Tier: gates (in `pnpm test:slow` and `pnpm test`, never in `test:fast`), except the pure
-  `tests/eval-*.test.ts`, which run in the fast tier. Stop anything on 4200/4201 first.
+  `tests/eval-*.test.ts`, which run in the fast tier. Stop anything on 4200/4201/4400 first.
 - Report in `data/gates/`.
 
 ## See also

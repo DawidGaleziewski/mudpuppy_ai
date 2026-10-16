@@ -1,3 +1,4 @@
+import { Environment } from '@pathfinder/config';
 import { newId, nowIso } from '@pathfinder/core';
 import type { CredentialsTable, PathfinderDb } from '@pathfinder/store';
 import { decrypt, encrypt, type VaultKey } from './crypto.js';
@@ -35,16 +36,18 @@ export interface VaultStore {
 }
 
 export type VaultEnvironment = CredentialsTable['environment'];
-const ENVIRONMENTS: readonly VaultEnvironment[] = ['sandbox', 'staging', 'production'];
 
-/** Narrow a CLI or config string to a store environment. */
+/**
+ * Narrow a CLI or config string to an environment name (free names declared per portal, spec 030
+ * R-61); which ones a portal declares is checked where the portal is loaded.
+ */
 export function asEnvironment(value: string): VaultEnvironment {
-  if (!(ENVIRONMENTS as readonly string[]).includes(value))
+  if (!Environment.safeParse(value).success)
     throw new VaultError(
       'INVALID_INPUT',
-      `unknown environment ${JSON.stringify(value)}; expected ${ENVIRONMENTS.join(', ')}`,
+      `invalid environment ${JSON.stringify(value)}; a short lowercase name such as dev or sandbox`,
     );
-  return value as VaultEnvironment;
+  return value;
 }
 
 /** Credentials over the `credentials` table (migration 0007); the key never touches the DB. */
