@@ -166,6 +166,32 @@ Every bug, gap and slip found while building, with a test or eval idea (memory
   route templates (or the fingerprint keeps them apart) and no trap-guard stop. Not built: needs
   the owner on R-50 (when is a numbered segment an id, when a section).
 
+## F-17 field: a process documented as one error page, the other runs ignored (open, R-70)
+
+- Reported by the owner 2026-10-17 from the field scans: a BA session recreated a process with an
+  error page as its only step, although other runs held the whole journey. The session saw only
+  the runs it was handed (`start_session` refuses evidence from other runs), and nothing marks an
+  error or transient state as unfit to stand for a process. Related: R-65 (one-step stubs), R-69
+  (4), SC-17.
+- **Eval idea**: a scar portal task where one run of a journey lands on an error page and two runs
+  complete it; the BA is handed all three; expected: the process has every step, with the error
+  page as an error branch, never as the only step.
+- **Test idea**: the server refuses a process record whose only step cites an error or transient
+  state.
+
+## F-18 field: a re-run BA session made the documentation worse (open, R-70)
+
+- Reported by the owner 2026-10-17: re-documenting after new scans replaced richer records with
+  poorer ones instead of adding the new evidence. Records persist with revisions, but a revision
+  that drops steps or evidence is accepted without a reason, and the session starts without "what
+  changed since the last revision". The 16 GB of evidence and many loose runs made picking the
+  right runs guesswork.
+- **Eval idea**: two BA sessions on the same process, the second with one extra run; grade that no
+  step or evidence link from the first session is lost without a change note, and the new run's
+  states are added.
+- **Test idea**: `revise_record` refuses a revision that drops steps or evidence links without a
+  `change_note`.
+
 ## Close-out review (code-reviewer, G-31, 2026-10-16)
 
 18 findings: 4 fixed, 13 deferred, 1 rejected. Fixed: G-19 comment wrap in `safety/src/rules.ts`;
