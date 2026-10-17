@@ -7,6 +7,9 @@
 // - Route group `route:<route>`: one route template holds two or more screens whose states are no
 //   form step and of kind `main` (form steps and validation/technical states are explained). A
 //   route with a parameter (`/produkt/:param`) holds different items by design and is skipped.
+// - A screen the owner merged into another (`screens.merged_into`, a confirmed `same` verdict)
+//   counts as that one, so its group goes away. The dashboard's `queries_differing.py` applies
+//   the same rules; the shared fixture `tests/fixtures/differing/` checks both.
 // - Replay groups (`replay:`) are not built: the trace masks the state ids of `replay_diverged`
 //   (spec 033 F-01).
 // Groups are computed from the store on each call; nothing here writes.
@@ -180,13 +183,23 @@ function lookups(ctx: BaContext, portal: string): Lookups {
 }
 
 /** Every differing-states group of a portal; `route` narrows to groups that touch that route. */
+/** Screen → the screen the owner merged it into (a confirmed `same` verdict, owner answer Q3). */
+function mergedScreens(ctx: BaContext, portal: string): Map<string, string> {
+  const rows = ctx.raw
+    .prepare('SELECT id, merged_into FROM screens WHERE portal_id = ? AND merged_into IS NOT NULL')
+    .all(portal) as { id: string; merged_into: string }[];
+  return new Map(rows.map((r) => [r.id, r.merged_into]));
+}
+
 export function differingStates(ctx: BaContext, portal: string, route?: string): DifferingGroup[] {
   const l = lookups(ctx, portal);
   const groups: DifferingGroup[] = [];
-  const acts = actionHits(ctx, portal).map((h) => ({
-    ...h,
-    group: `action:${h.from}:${h.role}:${h.name}`,
-  }));
+  const merged = mergedScreens(ctx, portal);
+  const to = (screen: string): string => merged.get(screen) ?? screen;
+  const acts = actionHits(ctx, portal)
+    .map((h) => ({ ...h, from: to(h.from), screen_id: to(h.screen_id) }))
+    .filter((h) => h.from !== h.screen_id)
+    .map((h) => ({ ...h, group: `action:${h.from}:${h.role}:${h.name}` }));
   for (const [key, hs] of differing(acts)) {
     const from = l.screens.get(hs[0]!.from);
     groups.push({
@@ -201,7 +214,11 @@ export function differingStates(ctx: BaContext, portal: string, route?: string):
       outcomes: outcomes(l, hs),
     });
   }
-  const routes = routeHits(ctx, portal).map((h) => ({ ...h, group: `route:${h.route}` }));
+  const routes = routeHits(ctx, portal).map((h) => ({
+    ...h,
+    screen_id: to(h.screen_id),
+    group: `route:${h.route}`,
+  }));
   for (const [key, hs] of differing(routes))
     groups.push({ key, kind: 'route', point: { route: hs[0]!.route }, outcomes: outcomes(l, hs) });
   return route

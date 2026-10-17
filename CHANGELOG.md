@@ -6,6 +6,12 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Added
+- R-69 owner answers (spec 033, 2026-10-17): a confirmed **Same state** verdict merges the two
+  screens (migration 0026 `screens.merged_into`, reversible); the map, the inspector and the
+  differing-states groups follow merges. **Review → Differing states lists every group**, also
+  those the BA has not proposed verdicts for ("No verdicts yet"); the dashboard's reader and the
+  BA tool share one fixture. The other marks and the next-scan plan moved to R-66. The owner
+  will review the merge again (roadmap R-69).
 - The map and differing states, R-69 (4)–(5) (spec 033; owner, 2026-10-17: "where can I see the
   graphs of the run in the UI?").
   - **Scans → Map:** every screen a portal's scans recorded is a node, laid out on the server from

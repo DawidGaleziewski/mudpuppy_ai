@@ -357,6 +357,7 @@ class Screen(Row):
     title: str
     first_seen_run: str
     created_at: str
+    merged_into: str | None = None  # 0026: owner-confirmed "same state" merge target
 
 
 class StateWireframe(Row):

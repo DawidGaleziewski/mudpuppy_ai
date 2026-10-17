@@ -1,7 +1,7 @@
 import { makeFixtureStore, type FixtureStore } from '@pathfinder/docs/testing';
 import { afterEach, describe, expect, it } from 'vitest';
 import { differingStates } from '../src/services/ba/differing-states.js';
-import { P, T, seedDiffering } from './differing-fixture.js';
+import { P, T, fixture, seedDiffering } from './differing-fixture.js';
 
 // Spec 033 US3, research R7: the groups of differing states on the seeded portal of
 // `differing-fixture.ts`.
@@ -63,5 +63,36 @@ describe('differing states (spec 033 R7)', () => {
     expect(personas).toEqual({ '/login': ['guest'], '/account': ['client'] });
     expect(differingStates(ctx(), P, '/news').map((g) => g.key)).toEqual(['route:/news']);
     expect(differingStates(ctx(), 'nobody')).toEqual([]);
+  });
+
+  it('counts a merged screen as its target, so its group goes (owner answer Q3)', async () => {
+    await seed();
+    fx!.raw.prepare("UPDATE screens SET merged_into = 'news-a' WHERE id = 'news-b'").run();
+    const keys = differingStates(ctx(), P).map((g) => g.key);
+    expect(keys).not.toContain('route:/news');
+    expect(keys).toContain('action:home:button:Calculate');
+  });
+
+  it('matches the shared fixture the dashboard reader is checked with too', async () => {
+    await seed();
+    const got = differingStates(ctx(), P)
+      .map((g) => ({
+        key: g.key,
+        kind: g.kind,
+        outcomes: g.outcomes
+          .map((o) => ({
+            screen_id: o.screen_id,
+            state_id: o.state_id,
+            state_kind: o.state_kind,
+            seen: o.frequency.seen,
+            of: o.frequency.of,
+            reproduced: o.reproduced,
+            http_status: o.http_status,
+            personas: [...new Set(o.scans.map((s) => s.persona))].sort(),
+          }))
+          .sort((a, b) => a.screen_id.localeCompare(b.screen_id)),
+      }))
+      .sort((a, b) => a.key.localeCompare(b.key));
+    expect(got).toEqual(fixture.expected);
   });
 });

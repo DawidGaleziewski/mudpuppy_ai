@@ -322,3 +322,22 @@ name, and the BA's next documentation pass reads them.
   BA; merging changes recorded evidence and needs its own decision)?
 - **Q4** Should Review show differing-states groups before the BA has proposed verdicts (current
   choice: listed only with a proposal; the BA sees all)?
+
+## Owner answers (2026-10-17, after the merge of v1.0.36)
+
+- The three bank proposals: "all fine" (confirmed as proposed).
+- **Q1:** the other marks move to R-66 (as built: not shown).
+- **Q2:** the map opens on all scans (as built).
+- **Q3:** "for now let's merge": a confirmed `same` verdict merges the screens in the store
+  (FR-021); the owner checks how it works and reviews it again later (roadmap R-69 note).
+- **Q4:** Review shows every group, with or without a BA proposal (FR-022).
+
+### Requirements from the answers
+
+- **FR-021**: Confirming a group where an outcome has the verdict `same` MUST merge that outcome's
+  screen into the group's main outcome's screen (the first outcome with `main`, else the first one
+  not `same`): the screen is drawn and grouped as part of the other from then on, its states and
+  evidence stay as recorded, and the merge can be undone by clearing it.
+- **FR-022**: Review → Differing states MUST list every current group of the portal: with the BA's
+  proposal when there is one (verdicts to confirm), else with its evidence and a note that the BA
+  has not proposed verdicts yet (nothing to confirm).

@@ -38,3 +38,11 @@ Branch `feature/033-r69-map-graph-and-reconcile`. Model tags per the owner's rul
 - [x] T016 [haiku] docs: `docs/how-to-use.md` (the map, differing states), package CLAUDE.md files, glossary (Map, Differing states, Verdict) + `pathfinder-glossary --write`
 - [x] T017 [opus] live check on the five test portals (map pages, one BA reconciliation session), slow tier, full test pass, code-reviewer, fix or defer. The first BA session's proposals were all refused (F-07, fixed); the second left three proposals for the owner in Review
 - [x] T018 [haiku] roadmap R-69 row, spec status, findings, changelog, merge
+
+## Phase 7: owner answers 2026-10-17 (branch `feature/033-r69-owner-answers`)
+
+- [x] T019 [sonnet] db-admin: migration 0026 `screens.merged_into` (nullable, a screen of the same portal; no self-merge), store types, dashboard model, schema.sql
+- [x] T020 [sonnet] chat confirm route: a confirmed `same` outcome sets its screen's `merged_into` to the main outcome's screen (FR-021); tests
+- [x] T021 [sonnet] readers follow merges: the map (a merged screen is drawn in its target's deck), the node inspector, the TS differing-states groups (a group whose outcomes merge into one screen disappears); tests
+- [x] T022 [opus] Review lists every group (FR-022): a Python reader of the same group rules (`queries_differing.py`), kept in step with the TS rules by a shared JSON fixture checked by both test suites (the access-matrix precedent, spec 024); groups without a proposal show evidence and "no verdicts proposed yet"
+- [x] T023 [haiku] roadmap (R-69 note: the owner checks the merge; R-66 gets the other marks and the next-scan plan), docs, changelog, merge

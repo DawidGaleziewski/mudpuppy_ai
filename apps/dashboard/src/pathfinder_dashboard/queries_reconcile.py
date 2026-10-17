@@ -1,6 +1,7 @@
 """Review's "Differing states" (spec 033 US4, design screen 16): the BA's open proposals of
-verdicts, each with the group snapshot it reasoned about (outcomes and their evidence). The
-dashboard only reads; the owner's confirmation goes through the chat service. Read-only."""
+verdicts, each with the group snapshot it reasoned about (outcomes and their evidence), and the
+current groups it has not proposed for yet (owner answer Q4). The dashboard only reads; the
+owner's confirmation goes through the chat service. Read-only."""
 
 from __future__ import annotations
 
@@ -8,6 +9,8 @@ import json
 import sqlite3
 from dataclasses import dataclass
 from typing import Any
+
+from . import queries_differing
 
 VERDICTS: tuple[tuple[str, str], ...] = (
     ("main", "Main state"),
@@ -56,7 +59,7 @@ class DifferingItem:
     title: str
     action: str | None  # "button · Calculate"
     outcomes: list[Outcome]
-    proposed_by: str
+    proposed_by: str  # empty: the BA has not proposed verdicts yet
     proposed_at: str
 
 
@@ -107,21 +110,50 @@ def _item(r: sqlite3.Row) -> DifferingItem:
     )
 
 
+def _from_group(g: queries_differing.Group) -> DifferingItem:
+    """A group the BA has not proposed verdicts for yet: its evidence, nothing to confirm."""
+    outcomes = [
+        Outcome(
+            o.state_id,
+            o.route,
+            o.title,
+            o.state_kind,
+            [{"run_id": s.run_id, "persona": s.persona} for s in o.scans],
+            o.first_seen,
+            o.last_seen,
+            o.http_status,
+            o.seen,
+            o.of,
+            o.reproduced,
+            "",
+            "",
+            "",
+        )
+        for o in g.outcomes
+    ]
+    action = f"{g.action[0]} · {g.action[1]}" if g.action else None
+    return DifferingItem(f"g:{g.key}", g.key, g.kind, g.route, g.title, action, outcomes, "", "")
+
+
 def open_reconciliations(conn: sqlite3.Connection, portal: str) -> list[DifferingItem]:
-    """Proposals waiting for the owner, oldest first (Q4: groups without one are not listed)."""
+    """Every group waiting for the owner (owner answer Q4, FR-022): the BA's open proposals (as
+    the BA saw them), then the current groups it has not proposed verdicts for. A group whose
+    verdicts are confirmed is decided and not listed."""
     rows = _rows(
         conn,
-        "SELECT * FROM reconciliations WHERE portal_id = ? AND status = 'proposed'"
+        "SELECT * FROM reconciliations WHERE portal_id = ? AND status <> 'superseded'"
         " ORDER BY proposed_at, id",
         (portal,),
     )
-    return [_item(r) for r in rows]
+    latest = {r["group_key"]: r for r in rows}
+    proposed = [_item(r) for r in latest.values() if r["status"] == "proposed"]
+    unproposed = [
+        _from_group(g)
+        for g in queries_differing.differing_groups(conn, portal)
+        if g.key not in latest
+    ]
+    return proposed + unproposed
 
 
 def open_count(conn: sqlite3.Connection, portal: str) -> int:
-    rows = _rows(
-        conn,
-        "SELECT count(*) FROM reconciliations WHERE portal_id = ? AND status = 'proposed'",
-        (portal,),
-    )
-    return int(rows[0][0]) if rows else 0
+    return len(open_reconciliations(conn, portal))

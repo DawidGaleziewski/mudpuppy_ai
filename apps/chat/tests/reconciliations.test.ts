@@ -83,4 +83,49 @@ describe('confirm verdicts on differing states', () => {
     ).toBe(400);
     expect(row('rc-1').status).toBe('proposed');
   });
+
+  it('merges a screen confirmed as the same state into the main one (owner answer Q3)', async () => {
+    const raw = t.opened.raw;
+    raw
+      .prepare(
+        `INSERT INTO runs (id, portal_id, persona_id, mode, environment, env_version_or_date, viewport, locale, browser, config_snapshot, status, started_at)
+         VALUES ('run-1', ?, 'quote-tester', 'map', 'sandbox', '2026-10-17', '1366x768', 'en-GB', 'chromium', '{}', 'completed', ?)`,
+      )
+      .run(P, T);
+    const screen = raw.prepare(
+      `INSERT INTO screens (id, portal_id, route_template, cluster_id, title, first_seen_run, created_at)
+       VALUES (?, ?, '/sc20/offer', ?, 'Offer', 'run-1', ?)`,
+    );
+    screen.run('sc-offer', P, 'cl-1', T);
+    screen.run('sc-again', P, 'cl-2', T);
+    const snapshot = {
+      outcomes: [
+        { state_id: 'st-offer', screen_id: 'sc-offer' },
+        { state_id: 'st-sold', screen_id: 'sc-again' },
+      ],
+    };
+    raw
+      .prepare(
+        `INSERT INTO reconciliations (id, portal_id, group_key, group_kind, snapshot_json, proposal_json,
+           proposed_by, proposed_at, status) VALUES ('rc-same', ?, 'route:/sc20/offer', 'route', ?, ?,
+           'session-1', ?, 'proposed')`,
+      )
+      .run(P, JSON.stringify(snapshot), JSON.stringify(PROPOSAL), T);
+    const same = {
+      author: 'Owner',
+      verdicts: [
+        { state_id: 'st-offer', verdict: 'main' },
+        { state_id: 'st-sold', verdict: 'same' },
+      ],
+    };
+    expect((await confirm('rc-same', same)).status).toBe(200);
+    const merged = raw.prepare('SELECT id, merged_into FROM screens ORDER BY id').all() as {
+      id: string;
+      merged_into: string | null;
+    }[];
+    expect(merged).toEqual([
+      { id: 'sc-again', merged_into: 'sc-offer' },
+      { id: 'sc-offer', merged_into: null },
+    ]);
+  });
 });

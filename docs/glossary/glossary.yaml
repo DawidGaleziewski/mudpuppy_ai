@@ -315,7 +315,8 @@ entries:
     explanation: |
       Main state (the step itself), variant by persona, input or feature flag, validation state,
       technical error state, temporary (recheck later) or same state (two recordings of one
-      screen). Until you confirm it, the BA documents with its own proposal, marked inferred.
+      screen: confirming it merges the two screens into one). Until you confirm it, the BA
+      documents with its own proposal, marked inferred.
     example: "The 503 page seen once, not again: Temporary · recheck."
     appears_in: [Review → Differing states]
     labels: [Verdict, Confirm verdicts]

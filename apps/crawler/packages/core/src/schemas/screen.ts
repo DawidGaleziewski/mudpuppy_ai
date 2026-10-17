@@ -15,5 +15,7 @@ export const Screen = z.object({
   title: z.string(),
   first_seen_run: Id,
   created_at: Timestamp,
+  /** 0026: the screen this one was merged into (owner-confirmed "same state"); null = stands alone. */
+  merged_into: Id.nullable().default(null),
 });
 export type Screen = z.infer<typeof Screen>;

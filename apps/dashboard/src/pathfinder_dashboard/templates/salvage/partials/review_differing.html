@@ -1,18 +1,25 @@
 {% import "salvage/macros.html" as sy %}
 {#- The selected differing-states group (spec 033 US4, screen 16): the graph point, each outcome
     with its evidence and the BA's proposed verdict and reason (drawn: a proposal until confirmed),
-    one select per outcome, and Confirm, which posts through the chat service. Technical outcomes
+    one select per outcome, and Confirm, which posts through the chat service. A group the BA has
+    not proposed verdicts for yet (owner answer Q4) shows its evidence only. Technical outcomes
     are the portal's error, not ours: a neutral status, never failure red. -#}
 {%- set d = sel %}
+{%- set proposed = d.proposed_by != "" %}
+{%- set can_confirm = proposed and c.settings.reviewer %}
 <aside class="sy-plate sy-plate--drawn" aria-labelledby="sel-h">
   <div class="sy-plate__head">
     <div class="sy-stack" style="--sy-gap: 8px">
+      {%- if proposed %}
       <div class="sy-cluster"><span class="sy-status" data-status="inferred">Proposed by the BA</span><span class="sy-meta">{{ d.proposed_at[:16] | replace("T", " ") }}Z</span></div>
+      {%- else %}
+      <div class="sy-cluster"><span class="sy-status" data-status="todo">No verdicts yet</span></div>
+      {%- endif %}
       <h2 id="sel-h" class="sy-plate__title sy-case-normal">Why does this differ?</h2>
       <p class="sy-small"><span class="sy-route">{{ d.route }}</span>{% if d.title %} · {{ d.title }}{% endif %}{% if d.action %} → <span class="sy-mono sy-mono--sm">{{ d.action }}</span>{% else %} showed several screens{% endif %}</p>
     </div>
   </div>
-  {%- if c.settings.reviewer %}
+  {%- if can_confirm %}
   <form class="sy-plate__body sy-stack" method="post" action="{{ c.url('/review/differing/' ~ (c.portal | urlencode) ~ '/' ~ (d.id | urlencode)) }}" aria-label="Confirm the verdicts">
   {%- else %}
   <div class="sy-plate__body sy-stack">
@@ -27,8 +34,9 @@
         <dt>Scans</dt><dd><span class="sy-tags">{% for s in o.scans %}{{ sy.tag(s.run_id[-8:], c.url('/runs/' ~ s.run_id), sm=true) }}{% endfor %}</span> <span class="sy-small sy-muted">{{ o.scans | map(attribute="persona") | unique | join(", ") }}</span></dd>
         <dt>When</dt><dd class="sy-small">{{ o.first_seen[:16] | replace("T", " ") }}Z{% if o.last_seen != o.first_seen %} → {{ o.last_seen[:16] | replace("T", " ") }}Z{% endif %}</dd>
       </dl>
+      {%- if proposed %}
       <p class="sy-small"><span class="sy-label">Why · {{ v.hypotheses.get(o.hypothesis, o.hypothesis) }}</span> {{ o.reason }}</p>
-      {%- if c.settings.reviewer %}
+      {%- if can_confirm %}
       <label class="sy-field"><span class="sy-field__label">Verdict</span>
         <select class="sy-select sy-select--drawn" name="verdict:{{ o.state_id }}">
           {%- for value, word in v.verdicts %}
@@ -38,14 +46,19 @@
       {%- else %}
       <p class="sy-small"><span class="sy-label">Verdict</span> {{ (v.verdicts | selectattr(0, "equalto", o.verdict) | map(attribute=1) | first) or o.verdict }}</p>
       {%- endif %}
+      {%- endif %}
     </fieldset>
     {%- endfor %}
-    <p class="sy-callout sy-small">An error page is never the step: the step is documented by its main state, and a temporary outcome becomes an open question, not a process step.</p>
-  {%- if c.settings.reviewer %}
+    <p class="sy-callout sy-small">An error page is never the step: the step is documented by its main state, and a temporary outcome becomes an open question, not a process step. "Same state" merges the screens.</p>
+  {%- if can_confirm %}
     <div class="sy-actions"><button class="sy-btn sy-btn--strong" type="submit">Confirm verdicts</button></div>
   </form>
   {%- else %}
+    {%- if not proposed %}
+    <p class="sy-small sy-muted">The BA has not proposed verdicts for this group yet. Ask the assistant to have the BA reconcile the differing states.</p>
+    {%- else %}
     <p class="sy-small sy-muted">Set PATHFINDER_REVIEWER to your name to confirm verdicts.</p>
+    {%- endif %}
   </div>
   {%- endif %}
 </aside>

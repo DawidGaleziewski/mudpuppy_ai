@@ -1,4 +1,4 @@
--- GENERATED from data/migrations/*.up.sql applied in order (currently through 0025_reconciliations). Do not edit by hand.
+-- GENERATED from data/migrations/*.up.sql applied in order (currently through 0026_screens_merged_into). Do not edit by hand.
 -- Regenerate after every migration; see data/schema/README.md.
 
 CREATE TABLE runs (
@@ -650,6 +650,7 @@ CREATE TABLE screens (
   title          TEXT NOT NULL,                                     -- title of the latest revision (display only)
   first_seen_run TEXT NOT NULL REFERENCES runs(id),
   created_at     TEXT NOT NULL,
+  merged_into    TEXT REFERENCES screens(id) CHECK (merged_into IS NULL OR merged_into <> id), -- 0026: owner-confirmed "same state" merge target; NULL = stands alone
   UNIQUE (portal_id, route_template, cluster_id)
 ) STRICT;
 

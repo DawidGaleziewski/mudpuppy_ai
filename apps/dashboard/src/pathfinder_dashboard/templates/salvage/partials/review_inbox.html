@@ -51,7 +51,7 @@
         {%- set current = sel_kind == kind and sel.id == it.id %}
         <a class="sy-row{% if current %} sy-row--current{% endif %}" href="{{ c.url('/review', show=v.show, select=kind ~ ':' ~ it.id) }}"{% if current %} aria-current="true"{% endif %}>
           <span class="sy-row__main">
-            <span class="sy-cluster"><span class="sy-status" data-status="inferred">Proposed</span><span class="sy-route">{{ it.route }}</span><span class="sy-meta">{{ it.outcomes | length }} outcomes</span></span>
+            <span class="sy-cluster">{% if it.proposed_by %}<span class="sy-status" data-status="inferred">Proposed</span>{% else %}<span class="sy-status" data-status="todo">No verdicts yet</span>{% endif %}<span class="sy-route">{{ it.route }}</span><span class="sy-meta">{{ it.outcomes | length }} outcomes</span></span>
             <span class="sy-case-normal">{% if it.action %}{{ it.action }}{% else %}One route, several screens{% endif %}</span>
           </span>
         </a>

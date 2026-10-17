@@ -14,6 +14,8 @@ from typing import Any
 from .queries_map import MapState, ScanChoice
 
 MAX_ITEMS = 30
+# The screen and every screen the owner merged into it (a confirmed `same` verdict, FR-021).
+MEMBERS = "(SELECT id FROM screens WHERE id = ? OR merged_into = ?)"
 
 
 @dataclass(frozen=True)
@@ -61,8 +63,8 @@ def _states(conn: sqlite3.Connection, screen_id: str) -> list[MapState]:
         " EXISTS (SELECT 1 FROM marks m WHERE m.kind = 'probe' AND m.target_kind = 'form_step'"
         "   AND m.target_id = s.form_step_id AND m.used_by_run_id IS NULL) AS marked"
         " FROM states s LEFT JOIN form_steps f ON f.id = s.form_step_id"
-        " WHERE s.screen_id = ? ORDER BY f.step_index, s.created_at, s.id",
-        (screen_id,),
+        f" WHERE s.screen_id IN {MEMBERS} ORDER BY f.step_index, s.created_at, s.id",
+        (screen_id, screen_id),
     )
     return [
         MapState(
@@ -86,9 +88,10 @@ def _moves(conn: sqlite3.Connection, screen_id: str) -> list[Move]:
         " count(*) AS times, max(e.error IS NOT NULL) AS failed"
         " FROM edges e JOIN states f ON f.id = e.from_state JOIN states t ON t.id = e.to_state"
         " JOIN screens sc ON sc.id = t.screen_id"
-        " WHERE f.screen_id = ? AND e.status = 'executed' AND t.screen_id <> f.screen_id"
+        f" WHERE f.screen_id IN {MEMBERS} AND e.status = 'executed'"
+        f" AND t.screen_id NOT IN {MEMBERS}"
         " GROUP BY label, t.screen_id ORDER BY sc.route_template, label",
-        (screen_id,),
+        (screen_id, screen_id, screen_id, screen_id),
     )
     return [
         Move(
@@ -105,13 +108,13 @@ def _items(conn: sqlite3.Connection, screen_id: str) -> list[LeftItem]:
         "SELECT DISTINCT fr.status, coalesce(json_extract(fr.action_json, '$.accessible_name'),"
         "   json_extract(fr.action_json, '$.url'), '') AS label, fr.reason"
         " FROM frontier fr JOIN states s ON s.id = fr.state_id"
-        " WHERE s.screen_id = ? AND fr.status <> 'done'"
+        f" WHERE s.screen_id IN {MEMBERS} AND fr.status <> 'done'"
         " AND NOT EXISTS (SELECT 1 FROM frontier d JOIN states ds ON ds.id = d.state_id"
         "   WHERE ds.screen_id = s.screen_id AND d.status = 'done'"
         "   AND d.action_json ->> '$.accessible_name' IS fr.action_json ->> '$.accessible_name'"
         "   AND d.action_json ->> '$.role' IS fr.action_json ->> '$.role')"
         " ORDER BY fr.status, label LIMIT ?",
-        (screen_id, MAX_ITEMS),
+        (screen_id, screen_id, MAX_ITEMS),
     )
     return [LeftItem(r["status"], r["label"], r["reason"]) for r in rows]
 
@@ -130,15 +133,15 @@ def node_detail(conn: sqlite3.Connection, portal: str, screen_id: str) -> NodeDe
         conn,
         "SELECT DISTINCT r.id, r.persona_id, r.status, r.started_at FROM state_observations o"
         " JOIN states s ON s.id = o.state_id JOIN runs r ON r.id = o.run_id"
-        " WHERE s.screen_id = ? ORDER BY r.started_at DESC",
-        (screen_id,),
+        f" WHERE s.screen_id IN {MEMBERS} ORDER BY r.started_at DESC",
+        (screen_id, screen_id),
     )
     outcomes = _rows(
         conn,
         "SELECT o.outcome_kind, count(*) AS n FROM probe_outcomes o"
         " JOIN states s ON s.id = o.from_state_id"
-        " WHERE s.screen_id = ? AND o.probe_id <> 'happy-path' GROUP BY o.outcome_kind",
-        (screen_id,),
+        f" WHERE s.screen_id IN {MEMBERS} AND o.probe_id <> 'happy-path' GROUP BY o.outcome_kind",
+        (screen_id, screen_id),
     )
     step = next((s for s in states if s.form_step_id), None)
     return NodeDetail(

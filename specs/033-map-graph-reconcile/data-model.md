@@ -61,6 +61,18 @@
 - Portal export and delete include the table (`portal-data.ts`).
 - Dashboard read model `Reconciliation` in `models.py` (drift test).
 
+## Changed table `screens`: `screens.merged_into` (migration 0026, through db-admin)
+
+| Column | Type | Rule |
+|---|---|---|
+| `merged_into` | TEXT NULL, `REFERENCES screens(id)` | NULL by default = the screen stands alone; set = the owner's confirmed `same` verdict (FR-021) merged this screen into the one named. CHECK `merged_into IS NULL OR merged_into <> id` (never into itself). |
+
+- Reversible: clearing the column undoes the merge; nothing is deleted, states and evidence stay on the merged screen.
+- No index (no tool in `contracts/` looks screens up by it; the map reads the whole portal). Chains and
+  cycles beyond self-merge are not checked in the schema: the writer merges into a screen that is not itself merged.
+- Down migration rebuilds `screens` without the column (SQLite cannot drop a column with a FOREIGN KEY or CHECK).
+- Zod `Screen` (`@pathfinder/core`), `ScreensTable` (`db-types.ts`) and the dashboard `Screen` model carry the column.
+
 ### State transitions
 
 `proposed` → `confirmed` (owner, through the chat service) · `proposed` → `superseded` (a newer BA

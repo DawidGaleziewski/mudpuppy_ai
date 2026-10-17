@@ -1,0 +1,777 @@
+{
+  "_comment": "Spec 033 differing-states rules, shared by mcp-server tests/differing-states.test.ts and the dashboard tests/test_differing.py (the access-matrix precedent, spec 024). Calculate: quote form twice, a 503 once; My policies: account for the client, sign-in for guests; a probe press explained; /news two screens; /apply form steps and /p/:param items explained.",
+  "portal_id": "diff",
+  "rows": {
+    "runs": [
+      {
+        "id": "r1",
+        "portal_id": "diff",
+        "persona_id": "guest",
+        "mode": "map",
+        "environment": "sandbox",
+        "env_version_or_date": "2026-10-17",
+        "seed_id": null,
+        "viewport": "1366x768",
+        "locale": "pl-PL",
+        "browser": "chromium",
+        "config_snapshot": "{}",
+        "status": "completed",
+        "warning": null,
+        "steps_used": 1,
+        "elapsed_ms": 1,
+        "max_depth_reached": 1,
+        "started_at": "2026-10-17T10:00:00.000Z",
+        "ended_at": "2026-10-17T10:01:00.000Z",
+        "coverage": null,
+        "owner_id": null,
+        "owner_pid": null
+      },
+      {
+        "id": "r2",
+        "portal_id": "diff",
+        "persona_id": "guest",
+        "mode": "map",
+        "environment": "sandbox",
+        "env_version_or_date": "2026-10-17",
+        "seed_id": null,
+        "viewport": "1366x768",
+        "locale": "pl-PL",
+        "browser": "chromium",
+        "config_snapshot": "{}",
+        "status": "completed",
+        "warning": null,
+        "steps_used": 1,
+        "elapsed_ms": 1,
+        "max_depth_reached": 1,
+        "started_at": "2026-10-17T10:10:00.000Z",
+        "ended_at": "2026-10-17T10:11:00.000Z",
+        "coverage": null,
+        "owner_id": null,
+        "owner_pid": null
+      },
+      {
+        "id": "r3",
+        "portal_id": "diff",
+        "persona_id": "guest",
+        "mode": "map",
+        "environment": "sandbox",
+        "env_version_or_date": "2026-10-17",
+        "seed_id": null,
+        "viewport": "1366x768",
+        "locale": "pl-PL",
+        "browser": "chromium",
+        "config_snapshot": "{}",
+        "status": "completed",
+        "warning": null,
+        "steps_used": 1,
+        "elapsed_ms": 1,
+        "max_depth_reached": 1,
+        "started_at": "2026-10-17T10:20:00.000Z",
+        "ended_at": "2026-10-17T10:21:00.000Z",
+        "coverage": null,
+        "owner_id": null,
+        "owner_pid": null
+      },
+      {
+        "id": "r4",
+        "portal_id": "diff",
+        "persona_id": "client",
+        "mode": "map",
+        "environment": "sandbox",
+        "env_version_or_date": "2026-10-17",
+        "seed_id": null,
+        "viewport": "1366x768",
+        "locale": "pl-PL",
+        "browser": "chromium",
+        "config_snapshot": "{}",
+        "status": "completed",
+        "warning": null,
+        "steps_used": 1,
+        "elapsed_ms": 1,
+        "max_depth_reached": 1,
+        "started_at": "2026-10-17T10:30:00.000Z",
+        "ended_at": "2026-10-17T10:31:00.000Z",
+        "coverage": null,
+        "owner_id": null,
+        "owner_pid": null
+      }
+    ],
+    "form_steps": [
+      {
+        "id": "fs-1",
+        "portal_id": "diff",
+        "route_template": "/apply",
+        "step_index": 1,
+        "form_name": null,
+        "controls_json": "[]",
+        "label": "Step 1",
+        "first_seen_run": "r1",
+        "created_at": "2026-10-17T10:00:00.000Z"
+      },
+      {
+        "id": "fs-2",
+        "portal_id": "diff",
+        "route_template": "/apply",
+        "step_index": 2,
+        "form_name": null,
+        "controls_json": "[]",
+        "label": "Step 2",
+        "first_seen_run": "r1",
+        "created_at": "2026-10-17T10:00:00.000Z"
+      }
+    ],
+    "screens": [
+      {
+        "id": "account",
+        "portal_id": "diff",
+        "route_template": "/account",
+        "cluster_id": "cl-account",
+        "title": "Your policies",
+        "first_seen_run": "r1",
+        "created_at": "2026-10-17T10:00:00.000Z"
+      },
+      {
+        "id": "apply-1",
+        "portal_id": "diff",
+        "route_template": "/apply",
+        "cluster_id": "cl-apply-1",
+        "title": "Apply",
+        "first_seen_run": "r1",
+        "created_at": "2026-10-17T10:00:00.000Z"
+      },
+      {
+        "id": "apply-2",
+        "portal_id": "diff",
+        "route_template": "/apply",
+        "cluster_id": "cl-apply-2",
+        "title": "Apply",
+        "first_seen_run": "r1",
+        "created_at": "2026-10-17T10:00:00.000Z"
+      },
+      {
+        "id": "down",
+        "portal_id": "diff",
+        "route_template": "/quote",
+        "cluster_id": "cl-down",
+        "title": "Service unavailable",
+        "first_seen_run": "r1",
+        "created_at": "2026-10-17T10:00:00.000Z"
+      },
+      {
+        "id": "home",
+        "portal_id": "diff",
+        "route_template": "/",
+        "cluster_id": "cl-home",
+        "title": "Home",
+        "first_seen_run": "r1",
+        "created_at": "2026-10-17T10:00:00.000Z"
+      },
+      {
+        "id": "login",
+        "portal_id": "diff",
+        "route_template": "/login",
+        "cluster_id": "cl-login",
+        "title": "Sign in",
+        "first_seen_run": "r1",
+        "created_at": "2026-10-17T10:00:00.000Z"
+      },
+      {
+        "id": "news-a",
+        "portal_id": "diff",
+        "route_template": "/news",
+        "cluster_id": "cl-news-a",
+        "title": "News",
+        "first_seen_run": "r1",
+        "created_at": "2026-10-17T10:00:00.000Z"
+      },
+      {
+        "id": "news-b",
+        "portal_id": "diff",
+        "route_template": "/news",
+        "cluster_id": "cl-news-b",
+        "title": "News archive",
+        "first_seen_run": "r1",
+        "created_at": "2026-10-17T10:00:00.000Z"
+      },
+      {
+        "id": "p-1",
+        "portal_id": "diff",
+        "route_template": "/p/:param",
+        "cluster_id": "cl-p-1",
+        "title": "Boots",
+        "first_seen_run": "r1",
+        "created_at": "2026-10-17T10:00:00.000Z"
+      },
+      {
+        "id": "p-2",
+        "portal_id": "diff",
+        "route_template": "/p/:param",
+        "cluster_id": "cl-p-2",
+        "title": "Hat",
+        "first_seen_run": "r1",
+        "created_at": "2026-10-17T10:00:00.000Z"
+      },
+      {
+        "id": "quote",
+        "portal_id": "diff",
+        "route_template": "/quote",
+        "cluster_id": "cl-quote",
+        "title": "Your quote",
+        "first_seen_run": "r1",
+        "created_at": "2026-10-17T10:00:00.000Z"
+      },
+      {
+        "id": "quote-v",
+        "portal_id": "diff",
+        "route_template": "/quote",
+        "cluster_id": "cl-quote-v",
+        "title": "Your quote",
+        "first_seen_run": "r1",
+        "created_at": "2026-10-17T10:00:00.000Z"
+      }
+    ],
+    "states": [
+      {
+        "id": "01a14982-5871-7000-b599-4bfe9180655b",
+        "portal_id": "diff",
+        "fingerprint": "fp-01a14982-5871-7000-b599-4bfe9180655b",
+        "cluster_id": "cl-down",
+        "route_template": "/quote",
+        "title": "Service unavailable",
+        "evidence_ref": "ev",
+        "confidence": "observed",
+        "stabilization": "settled",
+        "first_seen_run": "r1",
+        "created_at": "2026-10-17T10:00:00.000Z",
+        "screenshot_ref": null,
+        "layout_ref": null,
+        "screen_id": "down",
+        "screen_rev": 1,
+        "form_step_id": null,
+        "state_kind": "technical"
+      },
+      {
+        "id": "st-account",
+        "portal_id": "diff",
+        "fingerprint": "fp-st-account",
+        "cluster_id": "cl-account",
+        "route_template": "/account",
+        "title": "Your policies",
+        "evidence_ref": "ev",
+        "confidence": "observed",
+        "stabilization": "settled",
+        "first_seen_run": "r1",
+        "created_at": "2026-10-17T10:00:00.000Z",
+        "screenshot_ref": null,
+        "layout_ref": null,
+        "screen_id": "account",
+        "screen_rev": 1,
+        "form_step_id": null,
+        "state_kind": "main"
+      },
+      {
+        "id": "st-apply-1",
+        "portal_id": "diff",
+        "fingerprint": "fp-st-apply-1",
+        "cluster_id": "cl-apply-1",
+        "route_template": "/apply",
+        "title": "Apply",
+        "evidence_ref": "ev",
+        "confidence": "observed",
+        "stabilization": "settled",
+        "first_seen_run": "r1",
+        "created_at": "2026-10-17T10:00:00.000Z",
+        "screenshot_ref": null,
+        "layout_ref": null,
+        "screen_id": "apply-1",
+        "screen_rev": 1,
+        "form_step_id": "fs-1",
+        "state_kind": "main"
+      },
+      {
+        "id": "st-apply-2",
+        "portal_id": "diff",
+        "fingerprint": "fp-st-apply-2",
+        "cluster_id": "cl-apply-2",
+        "route_template": "/apply",
+        "title": "Apply",
+        "evidence_ref": "ev",
+        "confidence": "observed",
+        "stabilization": "settled",
+        "first_seen_run": "r1",
+        "created_at": "2026-10-17T10:00:00.000Z",
+        "screenshot_ref": null,
+        "layout_ref": null,
+        "screen_id": "apply-2",
+        "screen_rev": 1,
+        "form_step_id": "fs-2",
+        "state_kind": "main"
+      },
+      {
+        "id": "st-home",
+        "portal_id": "diff",
+        "fingerprint": "fp-st-home",
+        "cluster_id": "cl-home",
+        "route_template": "/",
+        "title": "Home",
+        "evidence_ref": "ev",
+        "confidence": "observed",
+        "stabilization": "settled",
+        "first_seen_run": "r1",
+        "created_at": "2026-10-17T10:00:00.000Z",
+        "screenshot_ref": null,
+        "layout_ref": null,
+        "screen_id": "home",
+        "screen_rev": 1,
+        "form_step_id": null,
+        "state_kind": "main"
+      },
+      {
+        "id": "st-login",
+        "portal_id": "diff",
+        "fingerprint": "fp-st-login",
+        "cluster_id": "cl-login",
+        "route_template": "/login",
+        "title": "Sign in",
+        "evidence_ref": "ev",
+        "confidence": "observed",
+        "stabilization": "settled",
+        "first_seen_run": "r1",
+        "created_at": "2026-10-17T10:00:00.000Z",
+        "screenshot_ref": null,
+        "layout_ref": null,
+        "screen_id": "login",
+        "screen_rev": 1,
+        "form_step_id": null,
+        "state_kind": "main"
+      },
+      {
+        "id": "st-news-a",
+        "portal_id": "diff",
+        "fingerprint": "fp-st-news-a",
+        "cluster_id": "cl-news-a",
+        "route_template": "/news",
+        "title": "News",
+        "evidence_ref": "ev",
+        "confidence": "observed",
+        "stabilization": "settled",
+        "first_seen_run": "r1",
+        "created_at": "2026-10-17T10:00:00.000Z",
+        "screenshot_ref": null,
+        "layout_ref": null,
+        "screen_id": "news-a",
+        "screen_rev": 1,
+        "form_step_id": null,
+        "state_kind": "main"
+      },
+      {
+        "id": "st-news-b",
+        "portal_id": "diff",
+        "fingerprint": "fp-st-news-b",
+        "cluster_id": "cl-news-b",
+        "route_template": "/news",
+        "title": "News archive",
+        "evidence_ref": "ev",
+        "confidence": "observed",
+        "stabilization": "settled",
+        "first_seen_run": "r1",
+        "created_at": "2026-10-17T10:00:00.000Z",
+        "screenshot_ref": null,
+        "layout_ref": null,
+        "screen_id": "news-b",
+        "screen_rev": 1,
+        "form_step_id": null,
+        "state_kind": "main"
+      },
+      {
+        "id": "st-p1",
+        "portal_id": "diff",
+        "fingerprint": "fp-st-p1",
+        "cluster_id": "cl-p-1",
+        "route_template": "/p/:param",
+        "title": "Boots",
+        "evidence_ref": "ev",
+        "confidence": "observed",
+        "stabilization": "settled",
+        "first_seen_run": "r1",
+        "created_at": "2026-10-17T10:00:00.000Z",
+        "screenshot_ref": null,
+        "layout_ref": null,
+        "screen_id": "p-1",
+        "screen_rev": 1,
+        "form_step_id": null,
+        "state_kind": "main"
+      },
+      {
+        "id": "st-p2",
+        "portal_id": "diff",
+        "fingerprint": "fp-st-p2",
+        "cluster_id": "cl-p-2",
+        "route_template": "/p/:param",
+        "title": "Hat",
+        "evidence_ref": "ev",
+        "confidence": "observed",
+        "stabilization": "settled",
+        "first_seen_run": "r1",
+        "created_at": "2026-10-17T10:00:00.000Z",
+        "screenshot_ref": null,
+        "layout_ref": null,
+        "screen_id": "p-2",
+        "screen_rev": 1,
+        "form_step_id": null,
+        "state_kind": "main"
+      },
+      {
+        "id": "st-quote",
+        "portal_id": "diff",
+        "fingerprint": "fp-st-quote",
+        "cluster_id": "cl-quote",
+        "route_template": "/quote",
+        "title": "Your quote",
+        "evidence_ref": "ev",
+        "confidence": "observed",
+        "stabilization": "settled",
+        "first_seen_run": "r1",
+        "created_at": "2026-10-17T10:00:00.000Z",
+        "screenshot_ref": null,
+        "layout_ref": null,
+        "screen_id": "quote",
+        "screen_rev": 1,
+        "form_step_id": null,
+        "state_kind": "main"
+      },
+      {
+        "id": "st-quote-v",
+        "portal_id": "diff",
+        "fingerprint": "fp-st-quote-v",
+        "cluster_id": "cl-quote-v",
+        "route_template": "/quote",
+        "title": "Your quote",
+        "evidence_ref": "ev",
+        "confidence": "observed",
+        "stabilization": "settled",
+        "first_seen_run": "r1",
+        "created_at": "2026-10-17T10:00:00.000Z",
+        "screenshot_ref": null,
+        "layout_ref": null,
+        "screen_id": "quote-v",
+        "screen_rev": 1,
+        "form_step_id": null,
+        "state_kind": "validation"
+      }
+    ],
+    "state_observations": [
+      {
+        "run_id": "r1",
+        "state_id": "st-apply-1",
+        "persona_id": "guest",
+        "evidence_ref": "ev",
+        "observed_at": "2026-10-17T10:04:00.000Z",
+        "composition_json": null
+      },
+      {
+        "run_id": "r1",
+        "state_id": "st-apply-2",
+        "persona_id": "guest",
+        "evidence_ref": "ev",
+        "observed_at": "2026-10-17T10:05:00.000Z",
+        "composition_json": null
+      },
+      {
+        "run_id": "r1",
+        "state_id": "st-home",
+        "persona_id": "guest",
+        "evidence_ref": "ev",
+        "observed_at": "2026-10-17T10:00:00.000Z",
+        "composition_json": null
+      },
+      {
+        "run_id": "r1",
+        "state_id": "st-news-a",
+        "persona_id": "guest",
+        "evidence_ref": "ev",
+        "observed_at": "2026-10-17T10:03:00.000Z",
+        "composition_json": null
+      },
+      {
+        "run_id": "r1",
+        "state_id": "st-p1",
+        "persona_id": "guest",
+        "evidence_ref": "ev",
+        "observed_at": "2026-10-17T10:06:00.000Z",
+        "composition_json": null
+      },
+      {
+        "run_id": "r1",
+        "state_id": "st-p2",
+        "persona_id": "guest",
+        "evidence_ref": "ev",
+        "observed_at": "2026-10-17T10:07:00.000Z",
+        "composition_json": null
+      },
+      {
+        "run_id": "r2",
+        "state_id": "st-home",
+        "persona_id": "guest",
+        "evidence_ref": "ev",
+        "observed_at": "2026-10-17T10:10:00.000Z",
+        "composition_json": null
+      },
+      {
+        "run_id": "r2",
+        "state_id": "st-news-b",
+        "persona_id": "guest",
+        "evidence_ref": "ev",
+        "observed_at": "2026-10-17T10:12:00.000Z",
+        "composition_json": null
+      },
+      {
+        "run_id": "r3",
+        "state_id": "st-home",
+        "persona_id": "guest",
+        "evidence_ref": "ev",
+        "observed_at": "2026-10-17T10:20:00.000Z",
+        "composition_json": null
+      },
+      {
+        "run_id": "r4",
+        "state_id": "st-home",
+        "persona_id": "client",
+        "evidence_ref": "ev",
+        "observed_at": "2026-10-17T10:30:00.000Z",
+        "composition_json": null
+      }
+    ],
+    "edges": [
+      {
+        "id": "e1",
+        "run_id": "r1",
+        "from_state": "st-home",
+        "to_state": "st-quote",
+        "action_json": "{\"role\":\"button\",\"accessible_name\":\"Calculate\"}",
+        "safety_class": "read",
+        "status": "executed",
+        "evidence_ref": "ev",
+        "confidence": "observed",
+        "error": null,
+        "stabilization": "settled",
+        "created_at": "2026-10-17T10:01:00.000Z"
+      },
+      {
+        "id": "e2",
+        "run_id": "r2",
+        "from_state": "st-home",
+        "to_state": "01a14982-5871-7000-b599-4bfe9180655b",
+        "action_json": "{\"role\":\"button\",\"accessible_name\":\"Calculate\"}",
+        "safety_class": "read",
+        "status": "executed",
+        "evidence_ref": "ev",
+        "confidence": "observed",
+        "error": null,
+        "stabilization": "settled",
+        "created_at": "2026-10-17T10:11:00.000Z"
+      },
+      {
+        "id": "e3",
+        "run_id": "r3",
+        "from_state": "st-home",
+        "to_state": "st-quote",
+        "action_json": "{\"role\":\"button\",\"accessible_name\":\"Calculate\"}",
+        "safety_class": "read",
+        "status": "executed",
+        "evidence_ref": "ev",
+        "confidence": "observed",
+        "error": null,
+        "stabilization": "settled",
+        "created_at": "2026-10-17T10:21:00.000Z"
+      },
+      {
+        "id": "e4",
+        "run_id": "r1",
+        "from_state": "st-home",
+        "to_state": "st-login",
+        "action_json": "{\"role\":\"link\",\"accessible_name\":\"My policies\"}",
+        "safety_class": "read",
+        "status": "executed",
+        "evidence_ref": "ev",
+        "confidence": "observed",
+        "error": null,
+        "stabilization": "settled",
+        "created_at": "2026-10-17T10:02:00.000Z"
+      },
+      {
+        "id": "e5",
+        "run_id": "r4",
+        "from_state": "st-home",
+        "to_state": "st-account",
+        "action_json": "{\"role\":\"link\",\"accessible_name\":\"My policies\"}",
+        "safety_class": "read",
+        "status": "executed",
+        "evidence_ref": "ev",
+        "confidence": "observed",
+        "error": null,
+        "stabilization": "settled",
+        "created_at": "2026-10-17T10:31:00.000Z"
+      },
+      {
+        "id": "e6",
+        "run_id": "r3",
+        "from_state": "st-quote",
+        "to_state": "st-quote-v",
+        "action_json": "{\"role\":\"button\",\"accessible_name\":\"Next\"}",
+        "safety_class": "read",
+        "status": "executed",
+        "evidence_ref": "ev",
+        "confidence": "observed",
+        "error": null,
+        "stabilization": "settled",
+        "created_at": "2026-10-17T10:22:00.000Z"
+      },
+      {
+        "id": "e7",
+        "run_id": "r3",
+        "from_state": "st-quote",
+        "to_state": "st-home",
+        "action_json": "{\"role\":\"button\",\"accessible_name\":\"Next\"}",
+        "safety_class": "read",
+        "status": "executed",
+        "evidence_ref": "ev",
+        "confidence": "observed",
+        "error": null,
+        "stabilization": "settled",
+        "created_at": "2026-10-17T10:23:00.000Z"
+      }
+    ],
+    "network_calls": [
+      {
+        "id": "n1",
+        "run_id": "r2",
+        "edge_id": "e2",
+        "method": "POST",
+        "url_template": "/quote",
+        "status": 503,
+        "req_schema": "{}",
+        "res_schema": "{}",
+        "console_errors": "[]",
+        "created_at": "2026-10-17T10:11:00.000Z",
+        "url": null
+      }
+    ],
+    "probe_outcomes": [
+      {
+        "id": "po1",
+        "run_id": "r3",
+        "from_state_id": "st-quote",
+        "form_step_id": null,
+        "probe_id": "required-empty-all",
+        "probe_group": "validation",
+        "target": null,
+        "inputs_json": "[]",
+        "path_json": "{}",
+        "fault": null,
+        "outcome_kind": "validation",
+        "to_state_id": "st-quote-v",
+        "accepted": 0,
+        "possible_new_process": 0,
+        "messages_json": "[]",
+        "http_status": null,
+        "reason": null,
+        "evidence_ref": "ev",
+        "edge_id": "e6",
+        "created_at": "2026-10-17T10:22:00.000Z"
+      }
+    ]
+  },
+  "expected": [
+    {
+      "key": "action:home:button:Calculate",
+      "kind": "action",
+      "outcomes": [
+        {
+          "screen_id": "down",
+          "state_id": "01a14982-5871-7000-b599-4bfe9180655b",
+          "state_kind": "technical",
+          "seen": 1,
+          "of": 3,
+          "reproduced": false,
+          "http_status": 503,
+          "personas": [
+            "guest"
+          ]
+        },
+        {
+          "screen_id": "quote",
+          "state_id": "st-quote",
+          "state_kind": "main",
+          "seen": 2,
+          "of": 3,
+          "reproduced": true,
+          "http_status": null,
+          "personas": [
+            "guest"
+          ]
+        }
+      ]
+    },
+    {
+      "key": "action:home:link:My policies",
+      "kind": "action",
+      "outcomes": [
+        {
+          "screen_id": "account",
+          "state_id": "st-account",
+          "state_kind": "main",
+          "seen": 1,
+          "of": 2,
+          "reproduced": false,
+          "http_status": null,
+          "personas": [
+            "client"
+          ]
+        },
+        {
+          "screen_id": "login",
+          "state_id": "st-login",
+          "state_kind": "main",
+          "seen": 1,
+          "of": 2,
+          "reproduced": false,
+          "http_status": null,
+          "personas": [
+            "guest"
+          ]
+        }
+      ]
+    },
+    {
+      "key": "route:/news",
+      "kind": "route",
+      "outcomes": [
+        {
+          "screen_id": "news-a",
+          "state_id": "st-news-a",
+          "state_kind": "main",
+          "seen": 1,
+          "of": 2,
+          "reproduced": false,
+          "http_status": null,
+          "personas": [
+            "guest"
+          ]
+        },
+        {
+          "screen_id": "news-b",
+          "state_id": "st-news-b",
+          "state_kind": "main",
+          "seen": 1,
+          "of": 2,
+          "reproduced": false,
+          "http_status": null,
+          "personas": [
+            "guest"
+          ]
+        }
+      ]
+    }
+  ]
+}

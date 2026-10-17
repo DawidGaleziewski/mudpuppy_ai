@@ -806,7 +806,8 @@ step is documented by its main state, and a temporary outcome becomes an open qu
 
 Main state (the step itself), variant by persona, input or feature flag, validation state,
 technical error state, temporary (recheck later) or same state (two recordings of one
-screen). Until you confirm it, the BA documents with its own proposal, marked inferred.
+screen: confirming it merges the two screens into one). Until you confirm it, the BA
+documents with its own proposal, marked inferred.
 
 *Example:* The 503 page seen once, not again: Temporary · recheck.
 

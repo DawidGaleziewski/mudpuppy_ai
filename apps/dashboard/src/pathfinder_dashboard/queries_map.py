@@ -212,11 +212,13 @@ def _screen_nodes(
     )
     states = _states(conn, portal)
     seen, starts = _seen(conn, portal)
+    merged = _merged(conn, portal)
+    own_screens = [r for r in screens if r["id"] not in merged]
     drawn = map_layout.collapse_families(
-        {r["id"]: r["route_template"] for r in screens}, open_family
+        {r["id"]: r["route_template"] for r in own_screens}, open_family
     )
     nodes: dict[str, MapNode] = {}
-    for r in screens:
+    for r in own_screens:
         did, shown = drawn[r["id"]], bool(seen[r["id"]] & runs)
         own = states.get(r["id"], [])
         if did == r["id"]:
@@ -231,7 +233,40 @@ def _screen_nodes(
         fam.title = f"{fam.count} pages"
         if shown:
             fam.status = "observed"
+    _fold_merged(nodes, drawn, merged, states, seen, runs)
     return nodes, drawn, starts
+
+
+def _merged(conn: sqlite3.Connection, portal: str) -> dict[str, str]:
+    """Screen → the screen the owner merged it into (a confirmed `same` verdict, FR-021)."""
+    rows = _rows(
+        conn,
+        "SELECT id, merged_into FROM screens WHERE portal_id = ? AND merged_into IS NOT NULL",
+        (portal,),
+    )
+    return {r["id"]: r["merged_into"] for r in rows}
+
+
+def _fold_merged(
+    nodes: dict[str, MapNode],
+    drawn: dict[str, str],
+    merged: dict[str, str],
+    states: dict[str, list[MapState]],
+    seen: dict[str, set[str]],
+    runs: set[str],
+) -> None:
+    """A merged screen is drawn as part of its target: its states join the target's deck."""
+    for screen, into in merged.items():
+        target = drawn.get(into)
+        if target is None:
+            continue
+        drawn[screen] = target
+        node = nodes[target]
+        if node.kind == "screen":
+            node.states = [*node.states, *states.get(screen, [])]
+            node.marked = node.marked or any(s.marked for s in states.get(screen, []))
+        if seen[screen] & runs and node.status == "unobserved":
+            node.status = "observed"
 
 
 def _count_items(

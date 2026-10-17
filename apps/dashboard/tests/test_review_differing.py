@@ -111,3 +111,28 @@ def test_without_a_reviewer_nothing_is_sent_and_the_page_says_why(empty_store: S
                    follow_redirects=False)  # fmt: skip
     assert "Confirm verdicts" not in page and "PATHFINDER_REVIEWER" in page
     assert chat.calls == [] and "PATHFINDER_REVIEWER" in r.headers["location"]
+
+
+def test_every_group_is_listed_and_a_confirmed_one_leaves(empty_store: Store) -> None:
+    """Owner answer Q4 (FR-022): groups the BA has not proposed for are listed with their
+    evidence and nothing to confirm; a group whose verdicts are confirmed is decided."""
+    from .test_differing import seed as seed_groups
+
+    fx = seed_groups(empty_store)
+    portal = fx["portal_id"]
+    conn = empty_store.connect()
+    conn.execute(
+        "INSERT INTO reconciliations (id, portal_id, group_key, group_kind, snapshot_json,"
+        " proposal_json, proposed_by, proposed_at, status, confirmed_json, confirmed_by,"
+        " confirmed_at) VALUES ('rc-news', ?, 'route:/news', 'route', '{}', '[]', 'BA', ?,"
+        " 'confirmed', '[]', 'Owner', ?)",
+        (portal, ts(40), ts(41)),
+    )
+    conn.commit()
+    conn.close()
+    with client(empty_store, Chat()) as c:
+        page = c.get(f"/review?portal={portal}&show=differing").text
+    flat = text(page)
+    assert flat.count("No verdicts yet") >= 2 and "button · Calculate" in flat
+    assert "link · My policies" in flat and "/news" not in flat
+    assert "Confirm verdicts" not in page and "has not proposed verdicts" in flat

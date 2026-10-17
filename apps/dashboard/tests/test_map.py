@@ -168,6 +168,23 @@ def test_a_marked_form_step_is_a_marked_node(empty_store: Store) -> None:
     assert nodes(view(empty_store))["sc-form"].marked
 
 
+def test_a_merged_screen_is_drawn_in_its_targets_deck(empty_store: Store) -> None:
+    """Owner answer Q3 (spec 033 FR-021): a confirmed `same` verdict merged /a/b into /a."""
+    seed(empty_store)
+    conn = empty_store.connect()
+    conn.execute("UPDATE screens SET merged_into = 'sc-a' WHERE id = 'sc-ab'")
+    conn.commit()
+    conn.row_factory = sqlite3.Row
+    try:
+        detail = queries_map_node.node_detail(conn, P, "sc-a")
+    finally:
+        conn.close()
+    n = nodes(view(empty_store))
+    assert "sc-ab" not in n and [s.id for s in n["sc-a"].states] == ["st-a", "st-ab"]
+    assert detail and {s.id for s in detail.states} == {"st-a", "st-ab"}
+    assert "/a/b" not in {m.to_route for m in detail.moves}  # a move inside the merge is no move
+
+
 def test_node_detail_has_states_scans_moves_and_items(empty_store: Store) -> None:
     seed(empty_store)
     conn = empty_store.connect()

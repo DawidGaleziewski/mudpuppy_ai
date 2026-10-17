@@ -211,6 +211,8 @@ export interface ScreensTable {
   title: string;
   first_seen_run: string;
   created_at: string;
+  /** 0026: id of the screen this one was merged into (owner-confirmed "same state"); NULL = stands alone. */
+  merged_into: string | null;
 }
 
 /** 0006: derived wireframe of a state, rebuilt when `generator_version` is stale. */

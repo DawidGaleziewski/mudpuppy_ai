@@ -263,6 +263,8 @@ async def review_differing(
         note = "Set PATHFINDER_REVIEWER to your name to confirm verdicts."
     elif item is None:
         note = "This proposal is no longer open."
+    elif not item.proposed_by:
+        note = "The BA has not proposed verdicts for this group yet."
     else:
         verdicts = [
             {
