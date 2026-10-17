@@ -4,6 +4,7 @@
 // A process known to exist but not mapped yet is a stub (`to_be_discovered: true`, no steps).
 
 import { existsSync } from 'node:fs';
+import { ProbeFault } from '@pathfinder/core';
 import { z } from 'zod';
 import { ConfigError, zodProblems } from './errors.js';
 import { readYaml } from './read.js';
@@ -26,12 +27,26 @@ export type TraceStep = z.infer<typeof TraceStep>;
 export const TraceVariant = z
   .object({
     id: z.string().regex(/^[a-z][a-z0-9-]*$/),
-    /** `proceed`: the form gets past its submit; `validation_error`: it refuses (messages kept). */
-    expect: z.enum(['proceed', 'validation_error']),
+    /**
+     * `proceed`: the form gets past its submit; `validation_error`: it refuses (messages kept);
+     * `technical_error`: a simulated fault shows an error (spec 032); `branch`: an option leads
+     * somewhere else than the happy path.
+     */
+    expect: z.enum(['proceed', 'validation_error', 'technical_error', 'branch']),
     /** Replaces the trace's steps for this variant (e.g. a required field left out). */
     steps: z.array(TraceStep).optional(),
+    /**
+     * A technical fault the browser simulates on the request the variant's last action sends
+     * (spec 032 plan decision 8): nothing malformed ever reaches the server.
+     */
+    fault: ProbeFault.optional(),
+    /** The form probe this variant came from (spec 032 US3), for the reader; not used to drive. */
+    probe: z.string().min(1).optional(),
   })
-  .strict();
+  .strict()
+  .refine((v) => (v.expect === 'technical_error') === (v.fault !== undefined), {
+    message: 'a technical_error variant needs a fault, and only it takes one',
+  });
 export type TraceVariant = z.infer<typeof TraceVariant>;
 
 export const TraceSpecEntry = z

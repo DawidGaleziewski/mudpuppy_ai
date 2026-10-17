@@ -7,7 +7,7 @@ store, vault, workflow.
 
 ## Public API
 - HTTP + SSE API (127.0.0.1:4310); used by apps/dashboard.
-- MCP chat server: `workflow_state`, `save_persona`, `request_scan`, `stop_scan`, `list_process_candidates`, `set_process_scope`, `request_documentation`, `list_amendments`; spec 022: `page_context`, `highlight_element`, `open_page`, `request_credential` (mcp-page-tools), `propose_change`, `list_grouping_inputs`, `suggest_grouping` (mcp-process-tools).
+- MCP chat server: `workflow_state`, `save_persona`, `save_test_data`, `request_scan`, `stop_scan`, `list_process_candidates`, `set_process_scope`, `request_documentation`, `list_amendments`; spec 022: `page_context`, `highlight_element`, `open_page`, `request_credential` (mcp-page-tools), `propose_change`, `list_grouping_inputs`, `suggest_grouping` (mcp-process-tools).
 
 ## Modules
 - `acp-client`: ACP session lifecycle.
@@ -31,7 +31,13 @@ store, vault, workflow.
   `process-service` (create, rename/stage, branch, drafts, save, rebase, restore, live, change
   spec), `process-suggestions` (the assistant's groupings: suggest, accept, dismiss),
   `api-processes` (routes), `mcp-process-tools` (`list_grouping_inputs`, `suggest_grouping`).
-- `portals`, `personas`, `credentials`: portal/user data.
+- `portals`, `personas`, `credentials`: portal/user data. `test-data` (`save_test_data`, spec 032:
+  merge test values into an existing persona's `test_data`).
+- Probe suites (spec 032 US3): `probe-suites` (approve: kept variants, changed expectations, the
+  trace written into `portals/<p>/traces.yaml` with comments kept; dismiss) and
+  `api-probe-suites` (`POST /portals/{p}/probe-suites/{id}/approve|dismiss`). Probe marks
+  (US5): `marks` and `api-marks` (`POST|DELETE /portals/{p}/marks`); `request_scan`
+  `probe_marked` starts a probe scan.
 - `scan`, `scope`: process scanning and scope management.
 - `fence`: permission control.
 

@@ -1,4 +1,11 @@
-import { Confidence, PageComposition, Stabilization, newId, nowIso } from '@pathfinder/core';
+import {
+  Confidence,
+  PageComposition,
+  Stabilization,
+  StateKind,
+  newId,
+  nowIso,
+} from '@pathfinder/core';
 import type { PathfinderDb } from '@pathfinder/store';
 import { z } from 'zod';
 import type { ServerContext } from '../context.js';
@@ -18,6 +25,9 @@ export const RecordStateInput = z
     stabilization: Stabilization.default('settled'),
     /** What the page is made of (spec 015); stored with this run's sighting of the state. */
     composition: PageComposition.optional(),
+    /** Spec 032 US1: the form step the state belongs to, and its kind. */
+    form_step_id: z.string().min(1).nullable().default(null),
+    state_kind: StateKind.default('main'),
   })
   .strict();
 export type RecordStateInput = z.input<typeof RecordStateInput>;
@@ -96,7 +106,7 @@ export async function recordState(
   return ctx.db.transaction().execute(async (trx) => {
     const existing = await trx
       .selectFrom('states')
-      .select('id')
+      .select(['id', 'form_step_id'])
       // State identity is per portal: an identical page on another portal is another state (FR-027).
       .where('portal_id', '=', run.portal_id)
       .where('fingerprint', '=', input.fingerprint)
@@ -106,6 +116,13 @@ export async function recordState(
     if (existing) {
       stateId = existing.id;
       created = false;
+      // A state recorded before spec 032 gets its step (and kind) on its next sighting.
+      if (existing.form_step_id === null && input.form_step_id !== null)
+        await trx
+          .updateTable('states')
+          .set({ form_step_id: input.form_step_id, state_kind: input.state_kind })
+          .where('id', '=', stateId)
+          .execute();
     } else {
       stateId = newId();
       created = true;
@@ -126,6 +143,8 @@ export async function recordState(
           created_at: ts,
           screen_id: screen.id,
           screen_rev: screen.nextRev,
+          form_step_id: input.form_step_id,
+          state_kind: input.state_kind,
         })
         .execute();
     }

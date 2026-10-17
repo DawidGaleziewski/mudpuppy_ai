@@ -144,8 +144,11 @@ def test_settings_section_needs_a_portal() -> None:
     assert nav.current_section("run") == "scans"
 
 
-def test_assistant_status_fragment_says_down_without_the_chat_service(salvage: TestClient) -> None:
-    html = salvage.get("/fragments/assistant-status").text
+def test_assistant_status_fragment_says_down_without_the_chat_service(liveinsurer_store: Store) -> None:
+    # A port nothing listens on: a real chat service running on this machine must not matter
+    # (spec 032 F-26).
+    with make_client(liveinsurer_store, chat_url="http://127.0.0.1:9") as c:
+        html = c.get("/fragments/assistant-status").text
     assert 'data-status="failed">Assistant down' in html
 
 

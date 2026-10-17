@@ -6,3 +6,4 @@ export * from './runs.js';
 export * from './feedback.js';
 export * from './run-evidence.js';
 export * from './access.js';
+export * from './probe-suites.js';

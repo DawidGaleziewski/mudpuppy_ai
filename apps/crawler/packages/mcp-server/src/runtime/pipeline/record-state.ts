@@ -6,6 +6,7 @@ import type { RunState } from '../run-state.js';
 import { pageComposition } from './composition.js';
 import { event, reported, step, type StepContext } from './context.js';
 import type { Fingerprinted, Observed } from './fingerprint-step.js';
+import { assignFormStep, formStepReports } from './form-step.js';
 
 /** Store the snapshot as evidence and record (or find) the state of this fingerprint. */
 export function recordStateStep(
@@ -23,6 +24,10 @@ export function recordStateStep(
   const scrub = rs.effective.portal.pii_scrub;
   return step(sc, 'record_state', async () => {
     const evidenceRef = await ctx.evidence.storeText(storedSnapshot, 'yaml');
+    const formStep = await assignFormStep(ctx, sc, {
+      routeTemplate,
+      snapshot: args.fingerprinted.masked,
+    });
     const alreadyInRun = await ctx.db
       .selectFrom('state_observations')
       .innerJoin('states', 'states.id', 'state_observations.state_id')
@@ -40,14 +45,18 @@ export function recordStateStep(
       confidence: 'observed',
       stabilization,
       composition: pageComposition(observed, sc.rs.lastMounts),
+      form_step_id: formStep.stepId,
+      state_kind: formStep.kind,
     });
+    if (formStep.stepId !== null) rs.stepOfState.set(state_id, formStep.stepId);
     const stateRow = await ctx.db
       .selectFrom('states')
       .select(['cluster_id', 'title', 'route_template'])
       .where('id', '=', state_id)
       .executeTakeFirstOrThrow();
-    return reported({ evidenceRef, alreadyInRun, state_id, created, stateRow }, [
+    return reported({ evidenceRef, alreadyInRun, state_id, created, stateRow, formStep }, [
       event('state_recorded', { state_id, created, evidence_ref: evidenceRef }),
+      ...formStepReports(state_id, formStep),
     ]);
   });
 }

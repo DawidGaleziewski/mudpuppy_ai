@@ -16,6 +16,10 @@ Layer: models
   not inherit the method or action of the form around it (SC-01); `detectBlock` stops the run only
   on a 403 or 429 of the main document (`isMainDocument`, SC-02).
 
+- Spec 032: pager words (`next`, `previous`, `następny`, `poprzedni`: `PAGER_KEYWORDS`) are read
+  evidence only outside a form; a form step's "Next" is `mutating` unless the form's purpose is
+  `paginate` (owner 2026-10-17).
+
 ## Invariants
 
 - Pure (no browser, no network).

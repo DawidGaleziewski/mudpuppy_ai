@@ -40,6 +40,8 @@ describe('record schemas', () => {
     created_at: ts,
     screen_id: null,
     screen_rev: null,
+    form_step_id: null,
+    state_kind: 'main',
   };
   it('accepts a valid state and rejects empty evidence_ref or bad confidence', () => {
     expect(State.safeParse(state).success).toBe(true);

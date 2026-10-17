@@ -22,6 +22,7 @@ import {
 } from '../services/ba/reads.js';
 import { RunEvidenceKind, getRunEvidence } from '../services/ba/run-evidence.js';
 import { listRuns } from '../services/ba/runs.js';
+import { proposeProbeSuite } from '../services/ba/probe-suites.js';
 import {
   addressCrawlerQuestion,
   createRecord,
@@ -53,6 +54,7 @@ export const BA_TOOL_NAMES = [
   'withdraw_record',
   'address_crawler_question',
   'get_access_matrix',
+  'propose_probe_suite',
 ] as const;
 export type BaToolName = (typeof BA_TOOL_NAMES)[number];
 
@@ -139,6 +141,19 @@ export function registerBaTools(server: McpServer, ctx: BaContext): void {
     "Which personas reached each screen, the variant (state) each saw, and the elements only some personas see: seen_by / not_seen_by, with depends_on_access marks and each persona's attributes. \"Not seen\" counts only completed map runs. Document an access rule with one persona that sees the element and one that does not as evidence: the element's screen_region on a seer's variant state and the non-seer's variant state. explained_by / reach_explained_by name the records that already do; an empty list is an unexplained difference the reviewer sees in Review. Pass screen_id for one screen.",
     { portal_id: z.string(), screen_id: z.string().optional() },
     (a) => getAccessMatrix(ctx, a),
+  );
+  tool(
+    'propose_probe_suite',
+    "Spec 032: propose one probe suite per form, built from a probing run's probe outcomes (get_run_evidence kind probe_outcomes). Give the run, the trace (id: a lowercase slug; name and goal in the portal's terms) and one variant per outcome worth running every time: { id (slug), probe_outcome_id, why }. Include the happy-path outcome. The server builds each variant's steps from the outcome and maps its outcome kind to what the variant expects; temporary and blocked outcomes are refused. The suite waits in Review for the owner and never runs before approval.",
+    {
+      session_id: z.string(),
+      run_id: z.string(),
+      trace: z.object({ id: z.string(), name: z.string(), goal: z.string() }),
+      variants: z.array(
+        z.object({ id: z.string(), probe_outcome_id: z.string(), why: z.string() }),
+      ),
+    },
+    (a) => Promise.resolve(proposeProbeSuite(ctx, a)),
   );
   tool(
     'get_run_evidence',

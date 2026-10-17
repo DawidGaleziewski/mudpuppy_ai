@@ -112,7 +112,7 @@ export async function processPage(sc: StepContext): Promise<PageResult> {
 
 /** The page's actions as the agent sees them, with the persona's trace value where one fits. */
 function issuedForAgent(sc: StepContext, issued: IssuedAction[]): PageResult['actions'] {
-  const inputs = sc.rs.effective.persona.trace_inputs ?? {};
+  const inputs = sc.rs.effective.persona.test_data;
   return issued.map((a) => ({
     action_id: a.actionId,
     role: a.role,

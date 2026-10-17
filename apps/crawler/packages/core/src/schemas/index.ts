@@ -4,6 +4,7 @@ export * from './common.js';
 export * from './run.js';
 export * from './state.js';
 export * from './screen.js';
+export * from './probe.js';
 export * from './edge.js';
 export * from './form.js';
 export * from './network-call.js';

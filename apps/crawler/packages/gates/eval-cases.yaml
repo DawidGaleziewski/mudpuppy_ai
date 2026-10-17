@@ -412,3 +412,109 @@
   title: Commits on the branch took another session's staged and edited files
   tier: not_testable
   reason: a process slip; the idea is a pre-commit check on staged paths outside the command
+
+# ---- spec 032 (findings.md, table rows) ----
+- id: F-01@032
+  title: An item of a same-URL wizard's step 2 was refused once the browser was on another state
+  tier: not_testable
+  reason: covered by the SC-19 gates (an item of step 2 acted while on step 3, in-run replay)
+- id: F-02@032
+  title: A validation state showed as revision r2 of its step's screen
+  tier: not_testable
+  reason: covered by the SC-19 gates (the start-date error state has kind validation)
+- id: F-03@032
+  title: Map-mode autofill typed Test into a date field with a DD.MM.YYYY mask
+  tier: not_testable
+  reason: unit tests in test-values.test.ts (date masks) lock the fix
+- id: F-04@032
+  title: Every typed value gives a new level-1 state
+  tier: not_testable
+  reason: by design, form steps group them; a state-count eval belongs to R-50/R-24
+- id: F-05@032
+  title: A heading with a colon was missing from the canonical ARIA (YAML-quoted line)
+  tier: not_testable
+  reason: unit tests of canonicalizeAria (quoted lines read like bare ones) and the stability goldens
+- id: F-06@032
+  title: The maxlength + 1 boundary try came out accepted
+  tier: not_testable
+  reason: the try is gone from the catalogue; the probes unit test checks no maxlength key
+- id: F-07@032
+  title: A second Python status vocabulary named outcome silently replaced the first
+  tier: not_testable
+  reason: a process slip; ruff's repeated-key rule catches it
+- id: F-08@032
+  title: probe_form on SC-19 step 2 never returned (a locator waited without a time limit)
+  tier: not_testable
+  reason: covered by the SC-19 probe gates (step 2 with a press that moves on)
+- id: F-09@032
+  title: The HTTP 500 try recorded step 1 instead of the error page (transient retry)
+  tier: not_testable
+  reason: covered by the SC-19 probe gate (the http-500 outcome lands on a technical state)
+- id: F-10@032
+  title: A read-only persona could probe SC-19
+  tier: not_testable
+  reason: covered by the SC-19 gate (a read-only persona gets one blocked outcome) and classifier unit tests
+- id: F-11@032
+  title: One probe_form call with 12 tries took over the MCP client's 60 s limit
+  tier: not_testable
+  reason: the 40 s call limit with more is covered by the SC-19 probe gates; time per try is an R-24 cost item
+- id: F-12@032
+  title: The SC-19 suite gate and SC-11 failed once beside another browser run
+  tier: not_testable
+  reason: a process slip (two browser tiers at once); both pass alone
+- id: F-13@032
+  title: The coverage gate failed on another session's spec 030 findings
+  tier: not_testable
+  reason: another session's rows to add; the coverage gate is the check
+- id: F-14@032
+  title: The SC-19 suite gate failed in 2 of 3 full gate runs (another form step reached)
+  tier: not_testable
+  reason: open flake; the SC-19 suite gate prints each drive's outcome for the next failure
+- id: F-15@032
+  title: Stabilizer timing tests failed under the commit hook's parallel load
+  tier: not_testable
+  reason: a timing issue under load; they pass alone
+- id: F-16@032
+  title: The shop chat scan stopped with 345 frontier items pending after depth refusals
+  tier: eval
+  check: frontier_empty_at_finish
+- id: F-17@032
+  title: The slow-request probe hung for good on a form that submits as a page load
+  tier: gate
+  reason: SC-04 (a plain GET form) probed with delay ends in time and lands on the result page
+- id: F-18@032
+  title: A filter that is no form could be marked but never probed
+  tier: gate
+  reason: the shop catalogue filter (Zastosuj) is probed and records outcomes
+- id: F-19@032
+  title: A Probe mark was lost when the probe run filed the page under another route template
+  tier: not_testable
+  reason: open; idea is a store test of form step identity across runs with different templates
+- id: F-20@032
+  title: The blocked-request outcome of a page load lands on a state with route /
+  tier: not_testable
+  reason: open, cosmetic; idea is a unit test that a browser error page gets its own route label
+- id: F-21@032
+  title: The pipeline golden recorded an extra offers fetch once under load
+  tier: not_testable
+  reason: a timing flake of the golden test itself; it passes alone
+- id: F-22@032
+  title: Home's process link had no portal, so every portal's PRC-001 was a 404
+  tier: not_testable
+  reason: a dashboard link; its pytest case and the real-sandbox smoke crawl lock the fix
+- id: F-23@032
+  title: A probe run refused marked pages for the map's depth limit
+  tier: not_testable
+  reason: the unit test gate-context.test.ts locks the lifted limit; a gate waits on F-25
+- id: F-24@032
+  title: The way back to a hash-route wizard step diverged (its URL does not show the step)
+  tier: not_testable
+  reason: open, R-66 (reach a step by replaying its path); idea is a hash-route wizard scar
+- id: F-25@032
+  title: A second gate server's edited portal file did not limit depth
+  tier: not_testable
+  reason: a gate-harness question, open
+- id: F-26@032
+  title: A dashboard test asked the real chat service running on this machine
+  tier: not_testable
+  reason: a test fix; the test now points at a dead port

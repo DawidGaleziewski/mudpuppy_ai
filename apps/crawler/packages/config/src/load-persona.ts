@@ -21,25 +21,29 @@ function merge(base: Plain, over: Plain): Plain {
 }
 
 /**
- * `trace_inputs` must be synthetic: a value the PII scrubber would change (e-mail, phone, token, name
+ * `test_data` must be synthetic: a value the PII scrubber would change (e-mail, phone, token, name
  * after a label, ...) is refused, except an e-mail on a reserved test TLD (`.invalid`, `.test`,
  * `.example`). Names the label only, never the value.
  */
-function findPiiTraceInputs(inputs: Record<string, string> | undefined): string[] {
-  return Object.entries(inputs ?? {})
+function findPiiTestData(data: Record<string, string> | undefined): string[] {
+  return Object.entries(data ?? {})
     .filter(([, value]) => !isSyntheticInput(value))
-    .map(
-      ([label]) => `trace_inputs.${label}: value looks like personal data; use a synthetic value`,
-    );
+    .map(([label]) => `test_data.${label}: value looks like personal data; use a synthetic value`);
 }
+
+/** The old key, named so a persona written before the rename says what to change (spec 032). */
+const RENAMED =
+  'trace_inputs: renamed to test_data (same map, label → synthetic value); rename the key';
 
 /** Load one file, validate it as a persona/mixin fragment and reject inline secrets. */
 function loadFragment(file: string): PersonaFile {
-  const parsed = PersonaFile.safeParse(readYaml(file));
+  const raw = readYaml(file);
+  if (isPlain(raw) && 'trace_inputs' in raw) throw new ConfigError(file, [RENAMED]);
+  const parsed = PersonaFile.safeParse(raw);
   if (!parsed.success) throw new ConfigError(file, zodProblems(parsed.error));
   const secrets = findInlineSecrets(parsed.data.auth);
   if (secrets.length > 0) throw new ConfigError(file, secrets);
-  const pii = findPiiTraceInputs(parsed.data.trace_inputs);
+  const pii = findPiiTestData(parsed.data.test_data);
   if (pii.length > 0) throw new ConfigError(file, pii);
   return parsed.data;
 }

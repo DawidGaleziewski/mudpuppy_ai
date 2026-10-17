@@ -99,6 +99,7 @@ Put the mapping in **one** place in the backend or view layer, for example a tem
 
 **Allowed inline styles:** layout only (`display`, `flex*`, `grid*`, `gap`, `width`/`min-`/`max-width`,
 `margin`, `align-*`, `justify-*`, image `height`) and the hooks `--sy-gap`, `--sy-min` (for `.sy-grid`) and `--value` (for `.sy-meter`).
+Graph layout is the one exception: `.sy-node`, `.sy-node-group` and `.sy-graph__canvas` take `left`, `top`, `width`, `height` and `--sy-node-w` from the server's layout, and `path.sy-edge` takes its `d`.
 
 **Forbidden everywhere outside `tokens.css`:**
 - hex, `rgb()` or named colours (use roles)
@@ -175,7 +176,7 @@ Wrap classes like this, but never re-implement the CSS in JS. The stylesheet sta
 | Pattern | JS responsibility |
 |---|---|
 | Assistant drawer | Ctrl J toggles `hidden` on `aside.sy-drawer`, moves focus to the message field, and Esc closes and returns focus. Switch the nav to `.sy-nav--compact` while open. |
-| Context switch | Flip `aria-pressed` on the two segments; swap the context tags (`hidden`) and the textarea placeholder; send `context: page|project` with each message. |
+| Context switch | Flip `aria-pressed` on the two segments; swap the context tags (`hidden`) and the textarea placeholder; send `context: page\|project` with each message. |
 | Tabs | Roving tabindex; arrows move; `aria-selected` + `hidden` on panels. |
 | Dialog | `dialog.showModal()`; Esc closes; focus returns to the trigger. |
 | Toast | `role="status"`; auto-dismiss ≥ 10s unless it has Undo, then stay until dismissed or navigated. |

@@ -8,4 +8,5 @@ export type { ActionRow } from './actions.js';
 export { navigationPolicy } from './gate.js';
 export { login } from './login-step.js';
 export { navigate } from './navigate.js';
+export { probeForm } from './probe-form.js';
 export { beginStep, persistStop } from './stop.js';

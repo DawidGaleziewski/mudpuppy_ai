@@ -52,6 +52,10 @@ export const PORTAL_TABLES = [
   'process_drafts',
   'process_live',
   'change_spec_revisions',
+  'form_steps',
+  'probe_outcomes',
+  'probe_suites',
+  'marks',
 ] as const;
 export type PortalTable = (typeof PORTAL_TABLES)[number];
 
@@ -78,6 +82,9 @@ export type PortalTable = (typeof PORTAL_TABLES)[number];
  * `decision_log` and `runs`.
  */
 const DELETE_ORDER: readonly PortalTable[] = [
+  'marks', // 0024: references runs (used_by_run_id)
+  'probe_suites', // 0023: reference runs and form_steps
+  'probe_outcomes', // 0023: reference runs, states, form_steps and edges
   'change_spec_revisions', // 0018: the BA process tables, children first
   'process_live',
   'process_drafts',
@@ -118,6 +125,7 @@ const DELETE_ORDER: readonly PortalTable[] = [
   'state_observations',
   'state_wireframes',
   'states',
+  'form_steps', // 0022: states reference form_steps, form_steps reference runs
   'screens',
   'runs',
 ];
@@ -160,6 +168,9 @@ export function where(table: PortalTable, side: 'mine' | 'others'): string {
     case 'screens':
     case 'ba_processes':
     case 'grouping_suggestions':
+    case 'form_steps':
+    case 'probe_suites':
+    case 'marks':
       return `portal_id ${op} ?`;
     case 'chat_messages':
       return `conversation_id IN (SELECT id FROM chat_conversations WHERE portal_id ${op} ?)`;

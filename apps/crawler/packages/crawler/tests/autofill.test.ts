@@ -1,6 +1,6 @@
 import type { Browser } from 'playwright';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { autofillForm } from '../src/autofill.js';
+import { autofillForm, nativeMessages, readFormFields, writeFormFields } from '../src/autofill.js';
 import { browserAvailable, launch } from './browser.js';
 
 const available = await browserAvailable();
@@ -76,6 +76,25 @@ describe.skipIf(!available)('autofillForm (spec 008 FR-002)', () => {
     expect(await page.locator('input[placeholder=Miasto]').inputValue()).not.toBe('');
     // a click whose text does not read like a submit fills nothing
     expect(await autofillForm(page.locator('#prev'))).toBeNull();
+    await page.close();
+  });
+});
+
+describe.skipIf(!available)('form probe readers (spec 032)', () => {
+  it('read and write the controls of a step control with any text (F-18)', async () => {
+    const page = await browser.newPage();
+    // The shop's filter and add-to-cart: no <form>, and texts that do not read like a submit.
+    await page.setContent(`<!doctype html>
+      <section><input placeholder="Cena od" type="number" min="0"><div id="apply">Zastosuj</div></section>`);
+    const apply = page.locator('#apply');
+    expect(await autofillForm(apply)).toBeNull();
+    const fields = await readFormFields(apply);
+    expect(fields!.map((f) => [f.label, f.min])).toEqual([['Cena od', '0']]);
+    expect(await writeFormFields(apply, [{ index: 0, value: '-1' }])).toBe(1);
+    expect(await page.locator('input').inputValue()).toBe('-1');
+    expect(await nativeMessages(apply)).toEqual([
+      { field: 'Cena od', text: expect.stringMatching(/./) },
+    ]);
     await page.close();
   });
 });

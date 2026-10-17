@@ -1,0 +1,13 @@
+{
+  "name": "@pathfinder/probes",
+  "version": "0.0.0",
+  "private": true,
+  "description": "The form probe catalogue (spec 032 R-69): repeatable tries per control beyond the happy path, and the deterministic outcome classifier",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "@pathfinder/core": "workspace:*"
+  }
+}

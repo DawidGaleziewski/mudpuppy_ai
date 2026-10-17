@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { Confidence, EvidenceRef, Id, JsonValue, Stabilization, Timestamp } from './common.js';
+import { StateKind } from './probe.js';
 
 export const State = z.object({
   id: Id,
@@ -17,6 +18,10 @@ export const State = z.object({
   screen_id: Id.nullable(),
   /** 0015: r1, r2, ... by first sighting within the screen (>= 1); NULL with screen_id. */
   screen_rev: z.number().int().min(1).nullable(),
+  /** 0022: the form step this state shows; NULL: no controls, or recorded before 0022. */
+  form_step_id: Id.nullable(),
+  /** 0022: `main` (default), `validation` (error signals shown) or `technical` (reached by a fault). */
+  state_kind: StateKind,
 });
 export type State = z.infer<typeof State>;
 

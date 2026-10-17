@@ -29,6 +29,10 @@ RunStatus = Literal["running", "completed", "stopped_warning", "interrupted"]
 SafetyClass = Literal["read", "mutating", "destructive", "external-side-effect"]
 Confidence = Literal["observed", "inferred", "needs_confirmation"]
 Stabilization = Literal["settled", "never_stabilized"]
+StateKind = Literal["main", "validation", "technical"]
+ProbeGroup = Literal["validation", "branch", "technical"]
+ProbeFault = Literal["block_request", "http_500", "delay", "offline"]
+OutcomeKind = Literal["next", "branch", "validation", "technical", "temporary", "blocked"]
 FrontierStatus = Literal[
     "pending",
     "done",
@@ -252,6 +256,78 @@ class State(Row):
     layout_ref: str | None = None  # spec 008: Layout JSON (element keys and boxes)
     screen_id: str | None = None  # 0015: the screen this state is a revision of
     screen_rev: int | None = None  # 0015: r1, r2, ... by first sighting within the screen
+    form_step_id: str | None = None  # 0022: the form step this state shows
+    state_kind: StateKind = "main"  # 0022: validation / technical states are not main screens
+
+
+class FormStep(Row):
+    """One step of a form flow on a route template (0022), numbered in first-seen order."""
+
+    id: str
+    portal_id: str
+    route_template: str
+    step_index: int
+    form_name: str | None
+    controls_json: Json  # sorted `role|name` strings
+    label: str
+    first_seen_run: str
+    created_at: str
+
+
+class ProbeOutcome(Row):
+    """What one form probe did (0023); `path_json` is how the step was reached in that run."""
+
+    id: str
+    run_id: str
+    from_state_id: str
+    form_step_id: str | None
+    probe_id: str
+    probe_group: ProbeGroup
+    target: str | None
+    inputs_json: Json
+    path_json: Json
+    fault: ProbeFault | None
+    outcome_kind: OutcomeKind
+    to_state_id: str | None
+    accepted: bool
+    possible_new_process: bool
+    messages_json: Json
+    http_status: int | None
+    reason: str | None
+    evidence_ref: str
+    edge_id: str | None
+    created_at: str
+
+
+class ProbeSuite(Row):
+    """A trace entry proposed from probe outcomes, waiting for the owner (0023)."""
+
+    id: str
+    portal_id: str
+    run_id: str
+    form_step_id: str | None
+    trace_json: Json
+    notes_json: Json
+    status: Literal["open", "approved", "dismissed"]
+    approved_json: Json | None
+    replaced_json: Json | None
+    decided_by: str | None
+    decided_at: str | None
+    created_at: str
+
+
+class Mark(Row):
+    """A person's instruction on a map target for the next scan (0024); open until a run uses it."""
+
+    id: str
+    portal_id: str
+    kind: Literal["start", "focus", "probe", "retry", "recheck", "skip"]
+    target_kind: Literal["form_step", "state", "edge"]
+    target_id: str
+    created_by: str
+    created_at: str
+    used_by_run_id: str | None
+    used_at: str | None
 
 
 class Screen(Row):
@@ -813,6 +889,10 @@ TABLE_MODELS: dict[str, type[Row]] = {
     "process_drafts": ProcessDraft,
     "process_live": ProcessLive,
     "change_spec_revisions": ChangeSpecRevision,
+    "form_steps": FormStep,
+    "probe_outcomes": ProbeOutcome,
+    "probe_suites": ProbeSuite,
+    "marks": Mark,
 }
 
 

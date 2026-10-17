@@ -20,6 +20,7 @@ import { sc15 } from './sc15-late-login.js';
 import { sc16 } from './sc16-sso-hops.js';
 import { sc17 } from './sc17-intermittent-errors.js';
 import { sc18 } from './sc18-wizard-form.js';
+import { sc19 } from './sc19-quote-wizard.js';
 
 export const SCARS: readonly Scar[] = [
   sc01,
@@ -40,4 +41,5 @@ export const SCARS: readonly Scar[] = [
   sc16,
   sc17,
   sc18,
+  sc19,
 ];

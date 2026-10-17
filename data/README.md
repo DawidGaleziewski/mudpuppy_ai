@@ -41,6 +41,11 @@ rather than editing this folder ad hoc.
   `process_variant_revisions`, `process_drafts`, `process_live`, `grouping_suggestions`, `change_spec_revisions` —
   the BA's cut of the portal, written only by `@pathfinder/chat`; `process_scopes` were migrated in. In the
   portal export/delete partition.
+  **Form steps and probes** (since spec 032, `0022_form_steps`, `0023_probe_outcomes_and_suites`): `form_steps`
+  (a step of a form flow per portal and route template; `states.form_step_id` and `states.state_kind` link
+  and classify states), `probe_outcomes` (what each form probe did; Layer A, `evidence_ref` NOT NULL),
+  `probe_suites` (trace entries proposed from probe outcomes; `open`, `approved` or `dismissed`). All in the
+  portal export/delete partition. Shapes: `specs/032-form-states-probes/data-model.md`.
 - `evidence/` — content-addressed (`sha256`) evidence blobs: ARIA snapshots, robots.txt
   policies and trace payloads too large for their column, referenced by `evidence_ref` columns;
   since spec 008 also state screenshots (`.png`, unmasked), layouts (`.json`: element keys and

@@ -1,0 +1,72 @@
+{% import "salvage/macros.html" as sy %}
+{#- The form step this state belongs to (spec 032 US1, a cut of design screen 13): its number on the
+    route, every recorded state of it with its kind, and what each form probe did from it. `fs` is
+    a FormStepView, absent for a state that is no form step. Probing only when asked (spec 032
+    US5): the step's Probe mark is a marker tag (a person's mark, colour guide), its coverage per
+    probe group follows screen 13, and the mark is set or removed through the chat service. -#}
+{%- if fs %}
+<section class="sy-plate" aria-labelledby="h-form-step">
+  <div class="sy-plate__head">
+    <h2 id="h-form-step" class="sy-plate__title">States of this step</h2>
+    <span class="sy-meta sy-case-normal">Step {{ fs.step_index }} · {{ fs.label }} · <span class="sy-route">{{ fs.route }}</span></span>
+    {%- if fs.mark %}<span class="sy-tags"><span class="sy-tag sy-tag--intent sy-tag--sm">Probe</span></span>{% endif %}
+  </div>
+  <div class="sy-plate__body sy-stack" style="--sy-gap: 8px">
+    <span class="sy-cluster" style="--sy-gap: 4px">
+      {%- if fs.outcomes %}
+      {%- for group, n in fs.group_counts() %}
+      {%- if n %}<span class="sy-chip">{{ n }} {{ group }}</span>{% else %}<span class="sy-chip sy-chip--dashed">{{ group }} not probed</span>{% endif %}
+      {%- endfor %}
+      {%- else %}
+      <span class="sy-status" data-status="todo">Not probed</span>
+      {%- endif %}
+    </span>
+    {%- if fs.mark %}
+    <p class="sy-small">Marked for probing by {{ fs.mark.by }}, {{ fs.mark.at | when }}. The next probe scan tries this step with wrong and empty values, other options and failing requests; ask the assistant to probe the marked forms.</p>
+    {%- else %}
+    <p class="sy-small">Scans press this step once with test values. Mark it to have a probe scan try it beyond that.</p>
+    {%- endif %}
+    {%- if probe_note %}<p class="sy-small" role="status">{{ probe_note }}</p>{% endif %}
+    {%- if can_mark %}
+    <form method="post" action="{{ c.url('/states/' ~ st.id ~ '/probe-mark') }}" class="sy-actions">
+      {%- if fs.mark %}
+      <button class="sy-btn sy-btn--sm sy-btn--quiet" type="submit" name="action" value="remove">Remove the mark</button>
+      {%- else %}
+      <button class="sy-btn sy-btn--sm" type="submit" name="action" value="mark">Mark for probing</button>
+      {%- endif %}
+    </form>
+    {%- else %}
+    <p class="sy-small sy-muted">Set PATHFINDER_REVIEWER to your name to mark form steps.</p>
+    {%- endif %}
+  </div>
+  <div class="sy-rows">
+    {%- for s in fs.states %}
+    <a class="sy-row{% if s.id == st.id %} sy-row--current{% endif %}" href="{{ c.url('/states/' ~ s.id) }}"{% if s.id == st.id %} aria-current="true"{% endif %}>
+      <span class="sy-row__main"><span class="sy-cluster">{{ sy.status("state_kind", s.kind) }}<span class="sy-case-normal">{{ s.title or "(untitled page)" }}</span></span></span>
+    </a>
+    {%- endfor %}
+  </div>
+  {%- if fs.outcomes %}
+  <div class="sy-plate__body"><h3 class="sy-label">Form probes <span class="sy-count sy-count--muted">{{ fs.outcomes | length }}</span></h3></div>
+  <div class="sy-table-wrap sy-table-wrap--flush">
+    <table class="sy-table sy-table--dense">
+      <caption class="sy-sr-only">What each form probe did from this step</caption>
+      <thead><tr><th scope="col">Probe</th><th scope="col">On</th><th scope="col">Outcome</th><th scope="col">Messages</th></tr></thead>
+      <tbody>
+        {%- for o in fs.outcomes %}
+        <tr>
+          <td class="sy-mono sy-mono--sm">{{ o.probe }}{% if o.fault %}<br><span class="sy-muted">{{ o.fault | replace("_", " ") }}</span>{% endif %}</td>
+          <td class="sy-small sy-case-normal">{{ o.target or "the whole form" }}</td>
+          <td>{{ sy.status("probe_outcome", o.kind) }}
+            {%- if o.accepted %}<br><span class="sy-small">accepted wrong input</span>{% endif %}
+            {%- if o.possible_new_process %}<br><span class="sy-small">possible new process</span>{% endif %}
+            {%- if o.to_state %}<br><a class="sy-small" href="{{ c.url('/states/' ~ o.to_state) }}">Landing state</a>{% endif %}</td>
+          <td class="sy-small">{% for m in o.messages %}{% if m.field %}<span class="sy-muted">{{ m.field }}:</span> {% endif %}{{ m.text }}{% if m.source == "native" %} <span class="sy-muted">(browser)</span>{% endif %}{% if not loop.last %}<br>{% endif %}{% else %}<span class="sy-muted">{{ o.reason or "" }}</span>{% endfor %}</td>
+        </tr>
+        {%- endfor %}
+      </tbody>
+    </table>
+  </div>
+  {%- endif %}
+</section>
+{%- endif %}

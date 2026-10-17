@@ -138,6 +138,8 @@ def home_values(conn: sqlite3.Connection, portal: str | None) -> dict[str, Any]:
             ],
             "processes": queries_home.processes(conn, portal),
             "processes_href": nav.href_of("processes", portal),
+            # The conversation's portal: a process key is per portal, and the header may name none.
+            "portal": portal,
         }
     }
 

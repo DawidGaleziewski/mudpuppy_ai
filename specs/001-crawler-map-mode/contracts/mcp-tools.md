@@ -153,3 +153,5 @@ directly.
 - The checks "outside the agent's control" (Principle III/V) hold because the agent has no path
   to the browser, network or DB except through these tools: even if prompted to claim a
   mutating action is read-only, the server re-derives the class before executing.
+- Spec 032 adds `probe_form` (map runs: form probes on one step) and `act`'s `fault` (trace runs);
+  contract: `specs/032-form-states-probes/contracts/probe-tools.md`.

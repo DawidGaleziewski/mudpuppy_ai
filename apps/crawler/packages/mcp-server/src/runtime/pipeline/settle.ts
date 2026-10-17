@@ -103,7 +103,10 @@ function settle(sc: StepContext) {
       navigating: () => rs.session.navigation.navigating(),
     });
     if (redirects.followed > 0) outcome = await settleAgain();
-    const transient = await retryTransientErrors(rs, settleAgain);
+    // A technical probe broke the request on purpose: its error page is the observation (spec 032).
+    const transient = rs.keepErrorPages
+      ? { outcome: null, reports: [] }
+      : await retryTransientErrors(rs, settleAgain);
     if (transient.outcome) outcome = transient.outcome;
     // The shared wait (spec 031 US1): up to the mount limit, ended early when nothing happens.
     const mounts = await waitForMountsIn(rs.session.page, () => framesRead(rs), {

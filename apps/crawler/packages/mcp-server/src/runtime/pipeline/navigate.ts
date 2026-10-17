@@ -17,6 +17,7 @@ import {
 } from './gate.js';
 import { withNext } from './next-item.js';
 import { processPage } from './process-page.js';
+import { pathByNavigate } from './run-path.js';
 import { beginStep, bumpRun, throwIfStopped } from './stop.js';
 
 export async function navigate(
@@ -114,6 +115,7 @@ async function navigateStep(
     reloginTarget: input.url,
     ...(input.include_actions ? { includeActions: true } : {}),
   });
+  pathByNavigate(state, result.state_id, input.url);
   await step({ ctx, run }, 'run_bookkeeping', async () => {
     for (const pending of await pendingNavigateItems(ctx.db, run.id, input.url))
       await settleFrontierItem(ctx.db, pending.id, 'done', null);

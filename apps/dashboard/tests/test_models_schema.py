@@ -62,6 +62,8 @@ def test_model_literals_equal_table_checks(empty_store: Store, table: str) -> No
         literal = literal_values(field.annotation)
         bool_flags = {
             "allowed",
+            "accepted",
+            "possible_new_process",
             "truncated",
             "between_calls",
             "matched",

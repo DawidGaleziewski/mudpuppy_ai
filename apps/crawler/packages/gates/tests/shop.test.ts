@@ -9,6 +9,7 @@ import {
   gateServer,
   GATE_BASE,
   lastVisit,
+  markForProbing,
   nav,
   navWait,
   resetEstate,
@@ -388,4 +389,25 @@ gate(
       expect(text).not.toContain(refused);
     expect(text).toContain('option "Warszawa" [selected]');
   },
+);
+
+gate(
+  'F-18@032',
+  'a probe reads the catalogue filter, which is no <form> and does not read like a submit',
+  async () => {
+    markForProbing(gs, 'proving-ground-shop', catalogue.route_template as string);
+    const probing = await startRun(gs.call, 'proving-ground-shop', 'guest', { probe_marked: true });
+    const page = await nav(gs.call, probing, '/sklep');
+    const r = await gs.call('probe_form', {
+      run_id: probing,
+      action_id: actionNamed(page, 'Zastosuj')!.action_id,
+      probes: ['validation', 'branch'],
+      rationale: 'gate: probe the filter',
+    });
+    if (r.isError) throw new Error(`probe_form: ${JSON.stringify(r.body).slice(0, 400)}`);
+    expect(r.body.form_step).not.toBeNull();
+    const tried = rows(gs, 'SELECT probe_id FROM probe_outcomes WHERE run_id = ?', probing);
+    expect(tried.length, JSON.stringify(r.body).slice(0, 600)).toBeGreaterThan(0);
+  },
+  { timeout: 120_000 },
 );

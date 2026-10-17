@@ -92,6 +92,7 @@ describe('pathfinder-chat MCP server', () => {
       'request_documentation',
       'request_scan',
       'save_persona',
+      'save_test_data',
       'set_process_scope',
       'stop_scan',
       'workflow_state',
@@ -271,6 +272,28 @@ describe('pathfinder-chat MCP server', () => {
     expect(prompt).toContain('Drain the frontier by acting on each result');
     expect(prompt).toContain('get_next_frontier_item when a result has none');
     expect(prompt).not.toContain('resume_run_id');
+  });
+
+  it('a probe scan needs Probe marks and briefs the crawler to probe only them (spec 032 US5)', async () => {
+    const probe = { portal: 'reference-insurer', persona: 'guest', probe_marked: true };
+    const none = await call('request_scan', probe);
+    expect(none.body.error).toMatchObject({ code: 'MISSING_INPUT' });
+    expect(JSON.stringify(none.body.error)).toContain('Mark for probing');
+    const readOnly = await call('request_scan', { ...probe, allow_writes: false });
+    expect(readOnly.body.error).toMatchObject({ code: 'INVALID' });
+
+    opened.raw
+      .prepare(
+        `INSERT INTO marks (id, portal_id, kind, target_kind, target_id, created_by, created_at)
+         VALUES ('m-1', 'reference-insurer', 'probe', 'form_step', 'fs-1', 'BA', '2026-10-17T00:00:00Z')`,
+      )
+      .run();
+    const { isError, body } = await call('request_scan', probe);
+    expect(isError).toBe(false);
+    const prompt = (body.handoff as { prompt: string }).prompt;
+    expect(prompt).toContain('probe_marked true');
+    expect(prompt).toContain('Do not follow the frontier');
+    expect(prompt).not.toContain('Drain the frontier');
   });
 
   it('stop_scan stops the running scan; request_scan resumes it (T041)', async () => {

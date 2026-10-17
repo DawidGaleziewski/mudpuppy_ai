@@ -15,6 +15,7 @@ from typing import Any, NamedTuple
 from . import queries_access, queries_chat
 from .models import Amendment
 from .queries_proposals import ProposalView, views_of
+from .queries_suites import SuiteItem, open_suite_count, open_suites
 
 KINDS: tuple[tuple[str, str], ...] = (
     ("records", "Records to confirm"),
@@ -22,6 +23,7 @@ KINDS: tuple[tuple[str, str], ...] = (
     ("differences", "Unexplained differences"),
     ("reanchor", "Amendments to re-anchor"),
     ("proposals", "Assistant proposals"),
+    ("suites", "Probe suites to approve"),
     ("conflicts", "Edit conflicts"),
 )
 
@@ -48,6 +50,7 @@ class Inbox(NamedTuple):
     differences: list[queries_access.Difference]
     reanchor: list[Amendment]
     proposals: list[ProposalView]
+    suites: list[SuiteItem]
     conflicts: list[Any]
 
     def count(self, kind: str) -> int:
@@ -105,7 +108,7 @@ def differences(conn: sqlite3.Connection, portal: str) -> list[queries_access.Di
 
 def inbox(conn: sqlite3.Connection, portal: str | None) -> Inbox:
     if not portal:
-        return Inbox([], [], [], [], [], [])
+        return Inbox([], [], [], [], [], [], [])
     reanchor = [
         a
         for a in queries_chat.superseded_amendments(conn, portal, "superseded")
@@ -117,6 +120,7 @@ def inbox(conn: sqlite3.Connection, portal: str | None) -> Inbox:
         differences(conn, portal),
         reanchor,
         open_proposals(conn, portal),
+        open_suites(conn, portal),
         [],
     )
 
@@ -137,8 +141,13 @@ def count(conn: sqlite3.Connection, portal: str | None) -> int:
         "   AND status IN ('open', 'stale'))",
         (portal,),
     )
-    # Differences need the access model's set logic, not one more subquery.
-    return (int(rows[0][0]) if rows else 0) + len(differences(conn, portal))
+    # Differences need the access model's set logic, not one more subquery; suites came later
+    # (spec 032) and stay readable on a store without their table.
+    return (
+        (int(rows[0][0]) if rows else 0)
+        + len(differences(conn, portal))
+        + open_suite_count(conn, portal)
+    )
 
 
 def cited_screens(conn: sqlite3.Connection, portal: str, key: str, rev: int) -> list[CitedScreen]:

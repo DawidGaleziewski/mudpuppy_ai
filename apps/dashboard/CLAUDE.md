@@ -28,7 +28,8 @@ Layer: app (Python, FastAPI + Jinja + htmx, uv; outside the TS layers)
   history, compare), `queries_access.py` (which personas see which screen and element, spec 024;
   the same model as the BA tool `get_access_matrix`, both checked against
   `apps/crawler/tests/fixtures/access/three-personas.json`), `queries_review.py` (records, assumptions to check, unexplained differences, re-anchoring,
-  proposals), `queries_scans.py`, `queries_settings.py`, `queries_home.py` (Home beside the
+  proposals, probe suites), `queries_suites.py` (spec 032: open probe suites for Review, and a
+  state's form step with its states and probe outcomes for the screen page), `queries_scans.py`, `queries_settings.py`, `queries_home.py` (Home beside the
   assistant): read models.
 - `stores.py`: the stores a request may open (main data dir + eval workspaces), chosen by key.
 - `servers.py`: live `pathfinder` servers read from `<data_dir>/servers/*.json`; the header names

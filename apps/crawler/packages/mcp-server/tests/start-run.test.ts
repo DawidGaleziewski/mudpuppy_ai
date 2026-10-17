@@ -229,6 +229,7 @@ describe('start_run (database part)', () => {
       max_action_class: 'read',
       skip_images: true,
       focus: null,
+      probe: false,
     });
     await ctx.db
       .updateTable('runs')
@@ -323,6 +324,74 @@ describe('start_run (database part)', () => {
       ),
     ).toBe('SCHEMA_INVALID');
     expect(await ctx.db.selectFrom('runs').select('id').execute()).toEqual([]);
+  });
+
+  it('a probe run needs marks and lists them; a resume or trace cannot probe (spec 032 US5)', async () => {
+    const ctx = await repo(files());
+    expect(
+      await code(
+        startRunRecord(ctx, { portal_id: 'shop', persona_id: 'guest', probe_marked: true }),
+      ),
+    ).toBe('NO_PROBE_MARKS');
+    expect(await ctx.db.selectFrom('runs').select('id').execute()).toEqual([]);
+    expect(
+      await code(
+        startRunRecord(ctx, {
+          portal_id: 'shop',
+          persona_id: 'guest',
+          probe_marked: true,
+          mode: 'trace',
+          process: { name: 'Buy', goal: 'Paid' },
+        }),
+      ),
+    ).toBe('SCHEMA_INVALID');
+
+    const first = await startRunRecord(ctx, { portal_id: 'shop', persona_id: 'guest' });
+    const at = '2026-10-17T00:00:00.000Z';
+    await ctx.db
+      .insertInto('form_steps')
+      .values({
+        id: 'fs-1',
+        portal_id: 'shop',
+        route_template: '/apply',
+        step_index: 2,
+        form_name: null,
+        controls_json: '[]',
+        label: 'Your car',
+        first_seen_run: first.output.run_id,
+        created_at: at,
+      })
+      .execute();
+    await ctx.db
+      .insertInto('marks')
+      .values({
+        id: 'm-1',
+        portal_id: 'shop',
+        kind: 'probe',
+        target_kind: 'form_step',
+        target_id: 'fs-1',
+        created_by: 'BA',
+        created_at: at,
+        used_by_run_id: null,
+        used_at: null,
+      })
+      .execute();
+    const probe = await startRunRecord(ctx, {
+      portal_id: 'shop',
+      persona_id: 'guest',
+      probe_marked: true,
+    });
+    expect(probe.output.probe_marks).toEqual([
+      {
+        mark_id: 'm-1',
+        form_step_id: 'fs-1',
+        route: '/apply',
+        step_index: 2,
+        label: 'Your car',
+        url: null,
+      },
+    ]);
+    expect(first.output.probe_marks).toBeUndefined();
   });
 
   it('never raises the limit above the portal’s and persona’s', async () => {

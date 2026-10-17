@@ -17,10 +17,11 @@ export const Viewport = z.object({
 });
 
 /**
- * Trace-mode form input: control label (verbatim, as the portal shows it) -> synthetic value.
- * The persona loader refuses any value the PII scrubber would change (see `load-persona.ts`).
+ * The persona's test data: form control label (verbatim, as the portal shows it) -> synthetic
+ * value, used by trace runs, map-mode autofill and form probes (named `trace_inputs` until spec 032,
+ * owner 2026-10-17). The persona loader refuses any value the PII scrubber would change.
  */
-export const TraceInputs = z.record(z.string().min(1), z.string());
+export const TestData = z.record(z.string().min(1), z.string());
 
 const AttributeValue = z.union([z.string(), z.number(), z.boolean()]);
 
@@ -45,7 +46,7 @@ const shape = {
   consent: Consent,
   viewport: Viewport,
   locale: z.string().min(1),
-  trace_inputs: TraceInputs,
+  test_data: TestData,
   attributes: PersonaAttributes,
 };
 
@@ -61,7 +62,7 @@ export const PersonaFile = z
     consent: shape.consent.optional(),
     viewport: shape.viewport.optional(),
     locale: shape.locale.optional(),
-    trace_inputs: shape.trace_inputs.optional(),
+    test_data: shape.test_data.optional(),
     attributes: shape.attributes.optional(),
   })
   .strict();
@@ -79,7 +80,7 @@ export const PersonaConfig = z
     consent: shape.consent.default({}),
     viewport: shape.viewport,
     locale: shape.locale,
-    trace_inputs: shape.trace_inputs.default({}),
+    test_data: shape.test_data.default({}),
     attributes: shape.attributes.default({}),
   })
   .strict();

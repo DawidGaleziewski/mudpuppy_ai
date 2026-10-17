@@ -19,6 +19,8 @@ import { StepRecorder } from './step-recorder.js';
 import { openingMessage } from './opening.js';
 import { createPortal, describePortal, removeEnvironment, setEnvironment } from './portals.js';
 import { createProcessService } from './process-service.js';
+import { createProbeSuiteService } from './probe-suites.js';
+import { createMarkService } from './marks.js';
 import { createProposalService } from './proposal-service.js';
 import { conversationsOfRun, runningRunsOfConversation, stopRun, stoppedNotice } from './runs.js';
 import { setProcessScope } from './scope.js';
@@ -84,6 +86,8 @@ async function main(): Promise<void> {
     amendments,
     proposals: createProposalService({ db: opened.db, amendments }),
     processes: createProcessService({ db: opened.db }),
+    probeSuites: createProbeSuiteService({ db: opened.db, repoRoot }),
+    marks: createMarkService({ db: opened.db }),
     // T041: tell every conversation following the run; the timer moves its step on.
     stopRun: (runId) => {
       const stopped = stopRun(opened.raw, runId, { byBa: true });

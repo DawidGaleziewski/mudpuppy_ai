@@ -4,13 +4,23 @@ from __future__ import annotations
 
 import sqlite3
 from typing import Any
+from urllib.parse import parse_qs, quote
 
 from fastapi import APIRouter, Request
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, PlainTextResponse, RedirectResponse, Response
 
-from .. import db, queries_chat, queries_revisions, queries_screens, queries_urls, visuals
+from .. import (
+    chat_client,
+    db,
+    queries_chat,
+    queries_revisions,
+    queries_screens,
+    queries_suites,
+    queries_urls,
+    visuals,
+)
 from . import views_access
-from .deps import Ctx, web_of
+from .deps import Ctx, same_origin, web_of
 
 router = APIRouter()
 
@@ -55,6 +65,7 @@ def state_detail(
     hl: str | None = None,
     side: str = "amendments",
     pins: bool = True,
+    probe_note: str | None = None,
 ) -> HTMLResponse:
     """A recorded state's screenshot, wireframe and the records citing it (spec 008), as one
     observed revision of its screen (spec 022 screen 08). `hl` is the assistant's highlight
@@ -79,6 +90,9 @@ def state_detail(
                 ac=views_access.screen_values(web, c, conn, page.figure.state),
                 screen=queries_revisions.screen_of_state(conn, state_id),
                 processes=queries_screens.processes_of_state(conn, state_id),
+                fs=queries_suites.form_step_of_state(conn, state_id),
+                probe_note=probe_note,
+                can_mark=bool(web.settings.reviewer),
                 view="wireframe" if view == "wireframe" else "screenshot",
                 show_elements=elements,
                 assistant_hl=hl,
@@ -124,3 +138,53 @@ def fragment_state_amendments(
     except db.StoreMissing as err:
         return web.missing(c, err, fragment=True)
     return web.render(c, "partials/state_amendments.html", am=am, st=page.figure.state)
+
+
+PROBE_MARK_DONE = {
+    "mark": "Marked for probing. Ask the assistant to probe the marked forms.",
+    "remove": "Probe mark removed.",
+}
+
+
+async def _mark_call(web: Any, method: str, portal: str, body: dict[str, Any]) -> str | None:
+    """One chat service call on the portal's marks; the refusal's message, or None."""
+    path = f"/portals/{quote(portal, safe='')}/marks"
+    try:
+        status, answer = await chat_client.call(
+            web.settings, method, path, body, web.chat_transport
+        )
+    except chat_client.ChatUnavailable:
+        return chat_client.NOT_RUNNING
+    if status in (200, 201):
+        return None
+    message = answer.get("message") if isinstance(answer, dict) else None
+    return str(message or status)
+
+
+@router.post("/states/{state_id}/probe-mark", response_model=None)
+async def state_probe_mark(request: Request, state_id: str, env: str | None = None) -> Response:
+    """Mark the state's form step for probing, or remove the mark (spec 032 US5), through the
+    chat service (the dashboard never writes); back to the screen page with the outcome."""
+    if not same_origin(request):
+        return PlainTextResponse("Cross-origin request refused.", status_code=403)
+    web = web_of(request)
+    c = web.ctx(request, env)
+    form = parse_qs((await request.body()).decode("utf-8", "replace"))
+    action = (form.get("action") or [""])[0]
+    author = web.settings.reviewer
+    try:
+        with c.conn() as conn:
+            fs = queries_suites.form_step_of_state(conn, state_id)
+    except db.StoreMissing as err:
+        return web.missing(c, err)
+    if not author:
+        note = "Set PATHFINDER_REVIEWER to your name to mark form steps."
+    elif fs is None or action not in PROBE_MARK_DONE:
+        note = "Unknown action, or this screen is no form step."
+    else:
+        body = {"author": author, "kind": "probe", "target_kind": "form_step", "target_id": fs.id}
+        method = "POST" if action == "mark" else "DELETE"
+        refused = await _mark_call(web, method, fs.portal, body)
+        note = f"Not recorded: {refused}." if refused else PROBE_MARK_DONE[action]
+    target = c.url(f"/states/{state_id}", probe_note=note)
+    return RedirectResponse(target + "#h-form-step", status_code=303)

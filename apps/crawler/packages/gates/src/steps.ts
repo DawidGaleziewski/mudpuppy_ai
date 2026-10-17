@@ -45,6 +45,27 @@ export async function actOn(
 export const rows = <T = Record<string, unknown>>(gs: GateServer, sql: string, ...p: unknown[]) =>
   gs.ctx.raw.prepare(sql).all(...p) as T[];
 
+/**
+ * Mark every main-path form step on a route for probing, as the BA does on the screen page (the
+ * chat service writes it there; spec 032 US5). Returns the marked form step ids in step order.
+ */
+export function markForProbing(gs: GateServer, portal: string, route: string): string[] {
+  const steps = rows<{ id: string }>(
+    gs,
+    'SELECT id FROM form_steps WHERE portal_id = ? AND route_template = ? ORDER BY step_index',
+    portal,
+    route,
+  ).map((s) => s.id);
+  const insert = gs.ctx.raw.prepare(
+    `INSERT OR IGNORE INTO marks (id, portal_id, kind, target_kind, target_id, created_by, created_at)
+     VALUES (?, ?, 'probe', 'form_step', ?, 'gate', ?)`,
+  );
+  // A used mark keeps its row, so each new open mark needs a fresh id; one open mark per step.
+  const at = new Date().toISOString();
+  for (const id of steps) insert.run(`mark-${id}-${at}`, portal, id, at);
+  return steps;
+}
+
 /** The stored ARIA snapshot of a state. */
 export function snapshot(gs: GateServer, stateId: string): string {
   const [s] = rows<{ evidence_ref: string }>(

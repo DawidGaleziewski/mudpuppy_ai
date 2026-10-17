@@ -33,6 +33,20 @@ const errorOf = (r: ToolReply): { code: string; message: string } =>
 const actionNamed = (page: Page, name: string): string | undefined =>
   page.actions?.find((a) => a.accessible_name === name)?.action_id;
 
+/** The `act` arguments of one planned step; a technical variant breaks its last action's request (spec 032 US3). */
+function stepArgs(
+  step: { intent: string; value?: string },
+  variant: TraceVariant,
+  last: boolean,
+): Record<string, unknown> {
+  return {
+    intent: step.intent,
+    include_actions: true,
+    ...(step.value !== undefined ? { value: step.value } : {}),
+    ...(variant.fault && last ? { fault: variant.fault } : {}),
+  };
+}
+
 /** Run one variant of a trace; never throws for a refusal, it ends the variant with a reason. */
 export async function driveVariant(
   call: ToolCall,
@@ -85,7 +99,7 @@ export async function driveVariant(
     ...trace.advance.map((name) => ({ name, kind: 'click' as const, intent: `move on (${name})` })),
     ...(trace.submit ? [{ name: trace.submit, kind: 'click' as const, intent: 'submit' }] : []),
   ];
-  for (const step of plan) {
+  for (const [i, step] of plan.entries()) {
     const actionId = actionNamed(page.body, step.name);
     if (!actionId)
       return finish(
@@ -96,9 +110,7 @@ export async function driveVariant(
       run_id: runId,
       action_id: actionId,
       rationale: `trace ${trace.id}`,
-      intent: step.intent,
-      include_actions: true,
-      ...('value' in step && step.value !== undefined ? { value: step.value } : {}),
+      ...stepArgs(step, variant, i === plan.length - 1),
     });
     if (page.isError) {
       const e = errorOf(page);

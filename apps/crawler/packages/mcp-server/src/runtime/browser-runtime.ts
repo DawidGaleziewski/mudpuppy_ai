@@ -4,7 +4,14 @@ import { BrowserSession, trackAssetHealth, type StabilizerOptions } from '@pathf
 import { computeFingerprint } from '@pathfinder/fingerprint';
 import type { ServerContext } from '../context.js';
 import type { Runtime } from '../runtime.js';
-import { act, login, navigate, navigationPolicy, persistStop } from './pipeline/index.js';
+import {
+  act,
+  login,
+  navigate,
+  navigationPolicy,
+  persistStop,
+  probeForm,
+} from './pipeline/index.js';
 import { RunState } from './run-state.js';
 import { processOfRun } from '../services/trace.js';
 import { runChoices } from '../services/start-run.js';
@@ -50,6 +57,7 @@ export function createBrowserRuntime(opts: BrowserRuntimeOptions = {}): Runtime 
     },
     navigate: (ctx, input) => navigate(ctx, runs.get(input.run_id), input),
     act: (ctx, input) => act(ctx, runs.get(input.run_id), input),
+    probeForm: (ctx, input) => probeForm(ctx, runs.get(input.run_id), input),
     login: (ctx, input) => login(ctx, runs.get(input.run_id), input),
     closeRun,
     robotsStats: (runId) => runs.get(runId)?.session.gate.robotsStats(),
@@ -160,6 +168,7 @@ export function createBrowserRuntime(opts: BrowserRuntimeOptions = {}): Runtime 
       trace,
     });
     rs.processId = (await processOfRun(ctx, run.id))?.id ?? null;
+    rs.isProbe = runChoices(run).probe;
     rs.assets = trackAssetHealth(session.context);
     holder.rs = rs;
     // Playwright traces keep DOM snapshots with typed input values: a run that logs in with vault

@@ -1,7 +1,7 @@
 ---
 name: ba
 description: Documents a portal from recorded crawl evidence into keyed, evidence-linked documentation records (screens, requirements, rules, data items, glossary, questions) through the pathfinder-ba server. Use when a portal's runs should be analysed or reviewer feedback answered. Never browses; not for crawling, testing or UI work.
-tools: mcp__pathfinder-ba__list_runs, mcp__pathfinder-ba__get_run_evidence, mcp__pathfinder-ba__get_evidence, mcp__pathfinder-ba__list_records, mcp__pathfinder-ba__get_record, mcp__pathfinder-ba__list_processes, mcp__pathfinder-ba__get_process, mcp__pathfinder-ba__get_pending_feedback, mcp__pathfinder-ba__start_session, mcp__pathfinder-ba__record_pass, mcp__pathfinder-ba__finish_session, mcp__pathfinder-ba__create_record, mcp__pathfinder-ba__revise_record, mcp__pathfinder-ba__withdraw_record, mcp__pathfinder-ba__address_crawler_question, mcp__pathfinder-ba__get_access_matrix, Read
+tools: mcp__pathfinder-ba__list_runs, mcp__pathfinder-ba__get_run_evidence, mcp__pathfinder-ba__get_evidence, mcp__pathfinder-ba__list_records, mcp__pathfinder-ba__get_record, mcp__pathfinder-ba__list_processes, mcp__pathfinder-ba__get_process, mcp__pathfinder-ba__get_pending_feedback, mcp__pathfinder-ba__start_session, mcp__pathfinder-ba__record_pass, mcp__pathfinder-ba__finish_session, mcp__pathfinder-ba__create_record, mcp__pathfinder-ba__revise_record, mcp__pathfinder-ba__withdraw_record, mcp__pathfinder-ba__address_crawler_question, mcp__pathfinder-ba__get_access_matrix, mcp__pathfinder-ba__propose_probe_suite, Read
 model: opus
 skills:
   - ba-practice
@@ -31,7 +31,9 @@ the portal, inside one analysis session, and return a short report. The preloade
 1. `get_pending_feedback`, and answer every rejection and comment first.
 2. `start_session` with the chosen runs (or `resume_session_id` when told to resume).
 3. Run the seven passes of the skill in order, `record_pass` after each.
-4. `finish_session` with a summary and the gaps.
+4. When the runs hold probe outcomes, propose one probe suite per form (`propose_probe_suite`, skill:
+   "Form steps and probe outcomes"); the owner approves it in Review.
+5. `finish_session` with a summary and the gaps.
 
 ## Rules
 - Every record cites evidence from the session's runs; the server refuses anything else, because an

@@ -17,6 +17,7 @@
     "@pathfinder/docs-model": "workspace:*",
     "@pathfinder/fingerprint": "workspace:*",
     "@pathfinder/fix-plugins": "workspace:*",
+    "@pathfinder/probes": "workspace:*",
     "@pathfinder/hooks": "workspace:*",
     "@pathfinder/obstacles": "workspace:*",
     "@pathfinder/safety": "workspace:*",

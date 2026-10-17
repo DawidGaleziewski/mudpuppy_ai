@@ -25,6 +25,10 @@ obstacles, safety, store.
   also budgets static files apart (`static_per_second`).
 - Spec 031: `trusted-ca.ts` (`trustInNode`, `chromiumCaArgs`: a portal's `network.ca_file` is
   trusted by Node and, by SPKI key, by Chromium; preflight refuses an unusable file).
+- Spec 032: `autofill.ts` also exports `readFormFields`, `writeFormFields` (`false` unchecks) and
+  `nativeMessages` (the browser's own constraint messages after a refused submit), used by form
+  probes, which take the control the agent named as the submit whatever its text (F-18; map-mode
+  autofill keeps its submit words); autofill results carry each field's `label`, and fields carry `autocomplete`.
 - In-page code with helpers goes through `evalWithHelpers` (`in-page.ts`; Playwright's `evaluate`, not an eval): top-level helper
   functions only, no closures (the `__name` shim, G-02).
 

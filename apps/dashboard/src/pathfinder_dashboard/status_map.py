@@ -123,6 +123,26 @@ VOCABULARIES: dict[str, dict[str, Status]] = {
         "undone": _s("skipped", "Undone"),
         "stale": _s("stopped", "Out of date"),
     },
+    # Form probes (spec 032): a suite the BA proposed waits for the owner; what a probe produced;
+    # the kind of a form step's state. Red is kept for technical errors (a failure the user sees).
+    "suite": {
+        "proposed": _s("draft", "Proposed"),
+        "approved": _s("ok", "Approved"),
+        "dismissed": _s("skipped", "Dismissed"),
+    },
+    "probe_outcome": {
+        "next": _s("ok", "Next"),
+        "branch": _s("live", "Branch"),
+        "validation": _s("todo", "Validation"),
+        "technical": _s("failed", "Technical error"),
+        "temporary": _s("queued", "Temporary"),
+        "blocked": _s("skipped", "Blocked"),
+    },
+    "state_kind": {
+        "main": _s("ok", "Main"),
+        "validation": _s("todo", "Validation"),
+        "technical": _s("failed", "Technical"),
+    },
     "confidence": {
         "observed": _s("ok", "Observed"),
         "inferred": _s("inferred", "Inferred"),

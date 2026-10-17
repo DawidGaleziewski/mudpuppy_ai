@@ -551,6 +551,9 @@ importers:
       '@pathfinder/obstacles':
         specifier: workspace:*
         version: link:../obstacles
+      '@pathfinder/probes':
+        specifier: workspace:*
+        version: link:../probes
       '@pathfinder/safety':
         specifier: workspace:*
         version: link:../safety
@@ -582,6 +585,12 @@ importers:
       playwright:
         specifier: ^1.63.0
         version: 1.63.0
+
+  apps/crawler/packages/probes:
+    dependencies:
+      '@pathfinder/core':
+        specifier: workspace:*
+        version: link:../core
 
   apps/crawler/packages/reference-portal:
     dependencies:

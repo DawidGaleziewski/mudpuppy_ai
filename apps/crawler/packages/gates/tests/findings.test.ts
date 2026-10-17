@@ -329,7 +329,7 @@ gate('F-04@020', 'a pop-up window that opens a URL is queued and its screen visi
   expect(queued().map((q) => q.status)).toEqual(['pending', 'done']);
 });
 
-const REF_PERSONA = `${GUEST()}trace_inputs:\n  Model: Octavia\n`;
+const REF_PERSONA = `${GUEST()}test_data:\n  Model: Octavia\n`;
 
 async function reference(env: 'sandbox' | 'production', persona = REF_PERSONA) {
   const portal: ReferencePortal = await startReferencePortal({ host: '127.0.0.1', port: 0 });

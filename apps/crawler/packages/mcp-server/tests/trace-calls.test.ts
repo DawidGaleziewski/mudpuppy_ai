@@ -99,6 +99,8 @@ describe('call spans for the agent tools (US1)', () => {
       action_id: 'a1',
       rationale: 'exploring the next frontier item',
     });
+    // a browserless runtime: refused (BROWSER_UNAVAILABLE), still one call span
+    await call('probe_form', { run_id: run, action_id: 'a1', rationale: 'probe the form step' });
     // a guest persona: refused (LOGIN_NOT_CONFIGURED), still one call span
     await call('login', { run_id: run, rationale: 'log in as the persona' });
     await call('add_open_question', { run_id: run, text: 'why', about_ref: s.state_id });
@@ -111,6 +113,7 @@ describe('call spans for the agent tools (US1)', () => {
       'get_next_frontier_item',
       'navigate',
       'act',
+      'probe_form',
       'login',
       'add_open_question',
       'add_rule_candidate',

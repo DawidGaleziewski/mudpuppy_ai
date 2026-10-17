@@ -63,3 +63,7 @@ Spec 001 codes where they apply (`SCHEMA_INVALID`, `UNKNOWN_REF`, `MISSING_EVIDE
 `MISSING_EVIDENCE`: empty `evidence[]`. `INVALID_CONFIDENCE`: `observed` without an observed Layer A
 target (details: which targets were checked). Prose fields are PII-scrubbed; if scrubbing would
 change them the write is refused with `PII_SUSPECTED`.
+
+Spec 032 adds `propose_probe_suite` (a probe suite per form, waiting for the owner in Review) and
+the `get_run_evidence` kind `probe_outcomes` (states also carry `form_step_id`, `step_index`,
+`step_label` and `state_kind`); contract: `specs/032-form-states-probes/contracts/probe-tools.md`.

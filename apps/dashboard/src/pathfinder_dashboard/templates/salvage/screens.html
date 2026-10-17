@@ -5,7 +5,8 @@
 {% block main %}
 <div class="sy-pagehead">
   <h1 class="sy-h1">Screens</h1>
-  <p class="sy-meta"><span class="sy-num">{{ rows | length }}</span> recorded screen{{ "" if rows | length == 1 else "s" }}{% if c.portal %} of {{ c.portal }}{% else %} across all portals{% endif %}{% if c.portal %} · <a href="{{ c.url('/access') }}">Access by persona</a>{% endif %}</p>
+  <p class="sy-meta"><span class="sy-num">{{ rows | length }}</span> recorded screen{{ "" if rows | length == 1 else "s" }}{% if c.portal %} of {{ c.portal }}{% else %} across all portals{% endif %}{% if c.portal %} · <a href="{{ c.url('/access') }}">Access by persona</a>{% endif %}
+  {%- if steps.total %} · <span class="sy-num">{{ steps.total }}</span> form step{{ "" if steps.total == 1 else "s" }}: <span class="sy-num">{{ steps.marked }}</span> marked for probing, <span class="sy-num">{{ steps.unprobed }}</span> not probed{% endif %}</p>
 </div>
 {%- if not rows %}
 {{ sy.empty("No screens recorded yet", "Ask the assistant to scan the portal; every page it records shows up here.") }}
@@ -16,7 +17,7 @@
     <thead><tr>
       <th scope="col">{{ sy.term("screenshot", "Picture") }}</th><th scope="col">Title</th><th scope="col">Route template</th>
       {%- if not c.portal %}<th scope="col">Portal</th>{% endif %}
-      <th scope="col">{{ sy.term("confidence", "Confidence") }}</th><th scope="col" class="sy-num">Scans</th><th scope="col">{{ sy.term("persona", "Personas") }}</th><th scope="col">Last seen (UTC)</th>
+      <th scope="col">{{ sy.term("confidence", "Confidence") }}</th><th scope="col">{{ sy.term("probe-mark", "Form probes") }}</th><th scope="col" class="sy-num">Scans</th><th scope="col">{{ sy.term("persona", "Personas") }}</th><th scope="col">Last seen (UTC)</th>
     </tr></thead>
     <tbody>
       {%- for r in rows %}{% set st = r.state %}
@@ -26,6 +27,11 @@
         <td class="sy-route mp-break">{{ st.route_template }}</td>
         {%- if not c.portal %}<td>{{ st.portal_id }}</td>{% endif %}
         <td>{{ sy.confidence(st.confidence) }}</td>
+        <td>{%- set cov = coverage.get(st.id) %}
+          {%- if not cov %}<span class="sy-muted">—</span>
+          {%- elif cov.marked %}<span class="sy-tag sy-tag--intent sy-tag--sm">Probe</span>
+          {%- elif cov.outcomes %}<span class="sy-status" data-status="ok">Probed · {{ cov.outcomes }}</span>
+          {%- else %}<span class="sy-status" data-status="todo">Not probed</span>{% endif %}</td>
         <td class="sy-num">{{ r.runs }}</td>
         <td class="sy-small">{{ r.personas | join(", ") or "—" }}</td>
         <td class="sy-mono sy-mono--sm">{{ r.last_seen | when }}</td>

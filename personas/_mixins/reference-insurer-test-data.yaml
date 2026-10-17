@@ -1,8 +1,8 @@
-# Trace-mode inputs for the local reference portal (label verbatim as the portal shows it ->
+# Test data for the local reference portal (label verbatim as the portal shows it ->
 # synthetic value), shared by `reference-insurer` and `reference-insurer-readonly` personas. The
 # loader refuses anything the PII scrubber would change, except an e-mail on a reserved test TLD
 # (.invalid, .test, .example). No "Telefon": the form needs only one of "Telefon" / "E-mail".
-trace_inputs:
+test_data:
   # Kalkulator OC/AC: Dane pojazdu
   Marka: Toyota
   Model: Testowy

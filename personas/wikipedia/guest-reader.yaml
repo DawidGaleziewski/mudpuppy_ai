@@ -7,5 +7,5 @@ budgets:
   max_states: 10
   max_run_time_minutes: 15
   max_steps: 30
-trace_inputs:
+test_data:
   search_query: pickles

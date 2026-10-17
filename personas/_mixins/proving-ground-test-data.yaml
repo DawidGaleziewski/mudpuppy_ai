@@ -1,7 +1,7 @@
-# Trace-mode inputs for the local proving-ground estate (control label or placeholder verbatim ->
+# Test data for the local proving-ground estate (control label or placeholder verbatim ->
 # synthetic value), shared by all three brands' guest and client personas. The IBAN is a
 # mod-97-valid test number that is not one of the seeded accounts.
-trace_inputs:
+test_data:
   # Bank: przelew
   Numer rachunku: PL25109010140000000712178333
   Kwota: "12,34"

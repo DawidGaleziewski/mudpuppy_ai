@@ -20,6 +20,7 @@ const FINDINGS: [string, string][] = [
   ['specs/026-frontier-order/findings.md', '026'],
   ['specs/030-battle-tested-scars/findings.md', '030'],
   ['specs/031-roadmap-declutter-2/findings.md', '031'],
+  ['specs/032-form-states-probes/findings.md', '032'],
 ];
 
 describe('coverage (spec 009 FR-024, FR-025)', () => {
@@ -90,11 +91,13 @@ describe('catalogue and index parsers', () => {
     expect(parseEvalCases('- {id: F-01@004, title: t, tier: gate}')).toHaveLength(1);
   });
 
-  it('finds finding headings at levels 2 and 3, and gate registrations', () => {
-    expect(findingIds('## F-01 a\n### F-12 b\n#### F-99 no\ntext F-03', '009')).toEqual([
-      'F-01@009',
-      'F-12@009',
-    ]);
+  it('finds finding headings at levels 2 and 3, table rows, and gate registrations', () => {
+    expect(
+      findingIds(
+        '## F-01 a\n### F-12 b\n#### F-99 no\ntext F-03\n| F-14 | x |\n| 1 | F-05 |',
+        '009',
+      ),
+    ).toEqual(['F-01@009', 'F-12@009', 'F-14@009']);
     expect(registeredIds("gate('LO-13', 't', f);\ngap(\n  'F-02@008', 'x'")).toEqual({
       gates: ['LO-13'],
       gaps: ['F-02@008'],

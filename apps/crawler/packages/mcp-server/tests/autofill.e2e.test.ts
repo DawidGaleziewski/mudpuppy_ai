@@ -39,7 +39,7 @@ auth: none
 max_action_class: external-side-effect
 viewport: { width: 1280, height: 800 }
 locale: pl-PL
-trace_inputs:
+test_data:
   Imię: Testowy
 `;
 

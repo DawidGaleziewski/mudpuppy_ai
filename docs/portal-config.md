@@ -208,6 +208,51 @@ Run: `pnpm --dir apps/crawler portal:trace <portal> <trace-id|all> <persona> --e
 kept, so every validation message is in the evidence; a lower action limit ends the run at the
 submit (`boundary_reached`), honestly.
 
+Spec 032 adds two variant fields, used by probe suites:
+- `fault`: `block_request`, `http_500`, `delay` or `offline`. It goes with `expect:
+  technical_error`, and only with it. The variant's last action has its request broken in the
+  crawler's browser.
+- `probe`: the probe a variant came from.
+
+`expect` also takes `branch`: an option leads somewhere other than the happy path. Suites the
+owner approves in Review are written into this file (comments kept).
+
+## Form probes (`probes`, spec 032 R-69)
+
+A probe run (`start_run` `probe_marked: true`, the chat's "probe the marked forms") tries the form
+steps a person marked for probing beyond their happy path, when the crawler calls `probe_form`. A
+plain map run never probes (owner answer of 2026-10-17, spec 032 US5). The tries:
+- empty required fields, wrong formats, below the minimum and above the maximum;
+- every other option;
+- a blocked request, HTTP 500, a held request and going offline, all simulated in the crawler's own
+  browser.
+
+Each outcome is recorded as a state with its probe. Probes run only where the action limit allows
+submitting forms (at least `mutating`), production included (owner answer O-M1). A step that asks
+for a one-time code or a CAPTCHA is recorded as `blocked`.
+
+```yaml
+probes:
+  per_step: 12   # tries per form step (default 12)
+  per_run: 60    # tries per run (default 60); 0 turns probing off
+```
+
+## Test data (persona `test_data`, spec 032)
+
+The valid values a form needs, by the field's label exactly as the form shows it. Probes and
+autofill press with them first. A step those values do not pass is reported as
+`missing_test_data`, and the assistant asks the BA once and saves the answers
+(`save_test_data`). Values must be obviously synthetic: personal data is refused.
+Trace runs fill fields from the same map. Before spec 032 it was called `trace_inputs`; a persona
+that still uses that key is refused with a note to rename it.
+
+```yaml
+test_data:
+  Start date: "01.01.2027"
+  Promo code (optional): ""      # an empty value leaves the field empty
+  Tax number: "1234567890"
+```
+
 ## Timeouts (`timeouts`, spec 023 US4)
 
 ```yaml

@@ -1,4 +1,5 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
+import { ProbeFault } from '@pathfinder/core';
 import { shapeUrl } from '@pathfinder/trace';
 import type { CallStart, SpanHandle } from '@pathfinder/store';
 import { z } from 'zod';
@@ -26,6 +27,7 @@ export const AGENT_TOOL_NAMES = [
   'get_next_frontier_item',
   'navigate',
   'act',
+  'probe_form',
   'login',
   'add_open_question',
   'add_rule_candidate',
@@ -81,7 +83,7 @@ export function registerTools(server: McpServer, ctx: ServerContext, runtime: Ru
 
   tool(
     'start_run',
-    'Start (or resume with resume_run_id) a run: mode "map" (default) explores the portal; mode "trace" records one named process (process {name, goal}, optional followup_key of an open FUP). environment picks one of the portal\'s environments (required when it has several; a resumed run keeps its own). max_action_class lowers this run\'s limit (e.g. "read" = only look; never raises the portal\'s); skip_images answers image requests with an "Image skipped" placeholder; focus {start_url, only_domains, only_paths, exclude_paths} narrows the run to part of the portal (start there, stay on those hosts and path globs, never open the excluded ones; never widens) and base_url in the result is the page to start on; a resumed run keeps all three unless given again. Validates config and the environment guard before any browser opens.',
+    'Start (or resume with resume_run_id) a run: mode "map" (default) explores the portal; mode "trace" records one named process (process {name, goal}, optional followup_key of an open FUP). environment picks one of the portal\'s environments (required when it has several; a resumed run keeps its own). max_action_class lowers this run\'s limit (e.g. "read" = only look; never raises the portal\'s); skip_images answers image requests with an "Image skipped" placeholder; focus {start_url, only_domains, only_paths, exclude_paths} narrows the run to part of the portal (start there, stay on those hosts and path globs, never open the excluded ones; never widens) and base_url in the result is the page to start on; a resumed run keeps all three unless given again. probe_marked true starts a probe run (map mode, new run only): the result lists probe_marks, the form steps a person marked for probing; only those may be probed with probe_form, and the run finishes without draining the frontier (NO_PROBE_MARKS when none is marked). Validates config and the environment guard before any browser opens.',
     {
       portal_id: z.string(),
       persona_id: z.string(),
@@ -102,6 +104,7 @@ export function registerTools(server: McpServer, ctx: ServerContext, runtime: Ru
       mode: z.enum(['map', 'trace']).optional(),
       process: z.object({ name: z.string(), goal: z.string() }).optional(),
       followup_key: z.string().optional(),
+      probe_marked: z.boolean().optional(),
     },
     async (args, span) => {
       const { output, run, approved, robots } = await startRunRecord(ctx, args);
@@ -155,6 +158,7 @@ export function registerTools(server: McpServer, ctx: ServerContext, runtime: Ru
       intent: z.string().trim().min(1).max(200).optional(),
       value: z.string().max(500).optional(),
       include_actions: z.boolean().optional(),
+      fault: ProbeFault.optional(),
     },
     async (a) => {
       try {
@@ -165,6 +169,21 @@ export function registerTools(server: McpServer, ctx: ServerContext, runtime: Ru
           await runtime.closeRun?.(a.run_id);
         throw e;
       }
+    },
+  );
+  tool(
+    'probe_form',
+    "Probe runs only (start_run probe_marked), spec 032: try a marked form step beyond its happy path; PROBE_NOT_ASKED in a plain run, STEP_NOT_MARKED on a step that is not in probe_marks. Give the action_id of the step's submit or Next control, on a step you reached. The server presses it with test values first, then with each probe of the catalogue within the budget (empty required fields, wrong formats, boundaries, every other option, and in the browser only: a blocked request, HTTP 500, a slow request, offline) and records every outcome as a state: next, branch, validation, technical, temporary or blocked. Optional `probes`: probe ids or groups (validation, branch, technical). Call it again while the result has `more`; the step's mark is used when it has none. A `branch` outcome with possible_new_process is worth exploring. `missing_test_data` names fields the persona needs test values for: ask the BA, then probe again.",
+    {
+      run_id: z.string(),
+      action_id: z.string(),
+      probes: z.array(z.string().min(1)).max(20).optional(),
+      rationale: z.string().trim().min(1).max(300),
+    },
+    async (a) => {
+      if (!runtime.probeForm)
+        throw new ToolError('BROWSER_UNAVAILABLE', 'this server runtime cannot probe forms');
+      return runtime.probeForm(ctx, a);
     },
   );
   tool(

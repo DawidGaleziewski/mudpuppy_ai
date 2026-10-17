@@ -28,6 +28,8 @@ export interface AutofillField {
   maxlength?: number;
   pattern?: string;
   options?: { value: string; text: string; disabled: boolean }[];
+  /** `one-time-code` marks a field form probes never type into (spec 032, O-M2). */
+  autocomplete?: string;
 }
 
 /** A value to write: text for inputs, an option value for selects, `true` to check. */
@@ -95,8 +97,25 @@ const KINDS: readonly [RegExp, string][] = [
  * A text field's value: a format mask in the placeholder wins (its digits already fit), then a kind
  * named in the label or name, else `fallback` (spec 031 T012: the shop's postal code took "Test").
  */
+/**
+ * A date mask in the placeholder ("DD.MM.YYYY", "RRRR-MM-DD", "TT.MM.JJJJ", "MM/DD/YYYY"): a date
+ * in that format. A birth date gets a past one, any other date a future one, so a start date
+ * passes too (spec 032 F-03: the quote form took "Test").
+ */
+const DATE_MASK = /^(?=.*(?:DD|TT))(?=.*MM)(?=.*(?:YYYY|RRRR|JJJJ))[DTMYRJ.\-/ ]+$/i;
+
+function dateFromMask(mask: string, label: string): string {
+  const [y, m, d] = /birth|urodz|geburt/i.test(label) ? ['1990', '01', '15'] : ['2027', '01', '15'];
+  return mask
+    .replace(/YYYY|RRRR|JJJJ/i, y)
+    .replace(/MM/, m)
+    .replace(/DD|TT/i, d);
+}
+
 function plainText(f: AutofillField, fallback: string): string {
-  if (f.placeholder && MASK.test(f.placeholder.trim())) return textValue(f, f.placeholder.trim());
+  const mask = f.placeholder?.trim();
+  if (mask && DATE_MASK.test(mask)) return dateFromMask(mask, `${f.label} ${f.name}`);
+  if (mask && MASK.test(mask)) return textValue(f, mask);
   const kind = KINDS.find(([re]) => re.test(`${f.label} ${f.name}`));
   return textValue(f, kind ? kind[1] : fallback);
 }
@@ -113,7 +132,7 @@ function textValue(f: AutofillField, preferred: string): string {
 
 /**
  * The value for one field, or null to leave it alone. `override` is the persona's input for the
- * field's label (`trace_inputs`); for a select it names the option by its visible text or value.
+ * field's label (`test_data`); for a select it names the option by its visible text or value.
  */
 export function testValueFor(f: AutofillField, override?: string): TestValue | null {
   if (f.type === 'checkbox') return f.required && f.empty ? true : null;

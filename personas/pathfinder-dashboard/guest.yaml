@@ -5,8 +5,8 @@ extends:
 # message is external-side-effect (it calls the assistant), so traces may chat.
 max_action_class: external-side-effect
 locale: en-US
-# Synthetic inputs for trace runs (labels as the dashboard shows them).
-trace_inputs:
+# Test data: synthetic values by field label, as the dashboard shows them.
+test_data:
   Message: What can you do here?
   Short name: demo-portal
   Address: http://127.0.0.1:4010/

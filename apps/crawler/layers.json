@@ -4,7 +4,7 @@
     { "name": "kernel", "packages": ["core", "fingerprint", "obstacles"] },
     { "name": "models", "packages": ["config", "safety", "trace", "docs-model", "chat-model"] },
     { "name": "store", "packages": ["store"] },
-    { "name": "features", "packages": ["crawler", "docs", "doctor", "fix-plugins", "hooks", "vault", "wireframe", "workflow"] },
+    { "name": "features", "packages": ["crawler", "docs", "doctor", "fix-plugins", "hooks", "probes", "vault", "wireframe", "workflow"] },
     { "name": "servers", "packages": ["mcp-server", "chat", "gates", "reference-portal"] }
   ],
   "exceptions": []

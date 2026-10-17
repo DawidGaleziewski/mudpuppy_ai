@@ -14,6 +14,7 @@ import { workflowState } from '@pathfinder/workflow';
 import { existsSync } from 'node:fs';
 import { PersonaFile, portalEnvironments } from '@pathfinder/config';
 import { PersonaRefusal, savePersona } from './personas.js';
+import { SaveTestDataInput, saveTestData } from './test-data.js';
 import { ProposalRefusal, ProposeInput, proposeChange } from './proposals.js';
 import { RunRefusal, runningRunOf, stopRun } from './runs.js';
 import { RequestScanInput, ScanRefusal, requestScan } from './scan.js';
@@ -133,10 +134,26 @@ export function createChatMcpServer(ctx: ChatMcpContext): McpServer {
   );
 
   server.registerTool(
+    'save_test_data',
+    {
+      description:
+        "Add test values to an existing persona's test_data (spec 032): field label exactly as the form shows it → an obviously synthetic value. Use it when a scan reports missing_test_data: ask the BA once per field, then save. Personal data is refused; the persona must still load.",
+      inputSchema: SaveTestDataInput.shape,
+    },
+    (args) => {
+      try {
+        return ok(saveTestData(ctx.paths, args));
+      } catch (error) {
+        return fail(error);
+      }
+    },
+  );
+
+  server.registerTool(
     'request_scan',
     {
       description:
-        'Ask to scan (map) a portal as one persona in one of its environments (production, staging, sandbox; workflow_state lists them; may be left out when it has one), or with resume_run_id to continue a stopped (interrupted) scan (persona may then be left out: the run keeps its own). allow_writes defaults to true (the scan may fill and submit forms); pass false only when the BA asks the scan to only look; skip_images is the BA\'s answer to "skip loading images?" (default false); focus narrows the scan to the part the BA asked for: start_url (where to start, e.g. https://en.wikipedia.org/), only_domains (hosts to stay on, e.g. ["en.wikipedia.org"]), only_paths and exclude_paths (path globs, * matches anything, e.g. ["/wiki/Special:*"]); leave it out to map the whole portal; it never widens the portal. process {name, goal} traces that one process instead of mapping (the "map a process" step; a new run, not with resume_run_id). A resume keeps the run\'s own choices unless given. Checks the portal, persona and stored test-user credentials; on success records the scan step as pending and returns a hand-off: start the crawler agent with exactly that prompt. On MISSING_INPUT ask the BA only for the listed items.',
+        'Ask to scan (map) a portal as one persona in one of its environments (production, staging, sandbox; workflow_state lists them; may be left out when it has one), or with resume_run_id to continue a stopped (interrupted) scan (persona may then be left out: the run keeps its own). allow_writes defaults to true (the scan may fill and submit forms); pass false only when the BA asks the scan to only look; skip_images is the BA\'s answer to "skip loading images?" (default false); focus narrows the scan to the part the BA asked for: start_url (where to start, e.g. https://en.wikipedia.org/), only_domains (hosts to stay on, e.g. ["en.wikipedia.org"]), only_paths and exclude_paths (path globs, * matches anything, e.g. ["/wiki/Special:*"]); leave it out to map the whole portal; it never widens the portal. process {name, goal} traces that one process instead of mapping (the "map a process" step; a new run, not with resume_run_id). probe_marked true is a "Probe forms" scan: it probes only the form steps the BA marked for probing (a plain scan never probes); a new run, not with resume_run_id or process. A resume keeps the run\'s own choices unless given. Checks the portal, persona and stored test-user credentials; on success records the scan step as pending and returns a hand-off: start the crawler agent with exactly that prompt. On MISSING_INPUT ask the BA only for the listed items.',
       inputSchema: RequestScanInput.shape,
     },
     (args) => {

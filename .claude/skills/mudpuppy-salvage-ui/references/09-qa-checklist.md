@@ -45,6 +45,15 @@ Copy this into the PR template for any UI change.
 - [ ] Visual-regression baseline updated.
 - [ ] `UI_SALVAGE` flag can switch the route back (until Phase 5).
 
+## Map runs (screens 12–16)
+- [ ] Every node is reachable with Tab and the arrow keys, announces route, state and marks, and toggles `aria-pressed`.
+- [ ] The List view shows the same nodes, statuses, queue counts and marks as the graph.
+- [ ] Red appears only for crawler failures; recorded technical states use neutral chips.
+- [ ] Marks persist after reload and appear in Plan next scan; marks a scan used are cleared when it finishes.
+- [ ] On production, technical probes are off and the safety callout says so.
+- [ ] A replay mismatch stops the scan with "Replay diverged at step N" and a diff.
+- [ ] Generated documentation never uses an error page as a step (fixture with a one-off 503).
+
 ## Visual regression setup (Playwright)
 
 ```js

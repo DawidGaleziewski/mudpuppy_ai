@@ -74,6 +74,8 @@
   {{ sc.figure(f, hl=[], legend=false, caption="Drawn from the recorded page structure", view="wireframe") }}
   {%- endif %}
 
+  {% include "salvage/partials/state_form_step.html" %}
+
   <div class="sy-plate">
     <div class="sy-plate__head"><h2 class="sy-plate__title">Reached under <span class="sy-count sy-count--muted">{{ urls.entry_urls | length if urls else 0 }}</span></h2></div>
     <div class="sy-plate__body"><p class="sy-small sy-muted">Every URL this screen was observed under, with the redirects that led there, and every parameter those URLs carried (spec 019). Nothing is normalised away.</p></div>

@@ -145,3 +145,11 @@
   before: The crawler stops at the first step or at a disabled button and never records the validation messages or the final page.
   after: A trace records every validation message as its own state, goes back and forward, passes every validator and reaches the success page (and the error page with the reserved customer number).
   status: gate
+
+- id: SC-19
+  title: Quote wizard rendered by script on one URL, with native validation, a branching radio and a quote request
+  source: [owner 2026-10-16, graph_handler]
+  route: /sc19/
+  before: A map run records the happy path only. The three steps share one URL, so a step-2 item queued earlier is unreachable; native messages, the Business branch and a failed quote request are never recorded.
+  after: Each step is its own numbered form step; probes record validation, branch, technical and blocked outcomes with evidence within the budget, and an approved probe suite runs the same way every time.
+  status: gate

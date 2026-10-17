@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { SafetyClass, maxSafetyClass } from '@pathfinder/core';
+import { DEFAULT_PROBE_BUDGET, ProbeBudget } from './probe-budget.js';
 import { BUILTIN_RULE_CLASSES, DENYLIST_RULE_IDS, RULE_ALIASES } from './rule-ids.js';
 import { urlEntryProblem } from './url-entry.js';
 
@@ -358,6 +359,7 @@ export const PortalConfig = z
     pii_scrub: z.boolean().default(false),
     /** How to sign in; required for any persona that has `ref:` credentials (spec 009). */
     login: LoginSpec.optional(),
+    probes: ProbeBudget.default(DEFAULT_PROBE_BUDGET),
   })
   .strict()
   .superRefine((p, ctx) => {

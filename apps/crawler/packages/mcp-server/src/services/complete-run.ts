@@ -8,6 +8,7 @@ import { getRun, type RunRow } from './common.js';
 import { isBudgetExhausted } from './run-budget.js';
 import { robotsCoverage } from './robots.js';
 import { closeProcess, processOfRun } from './trace.js';
+import { runChoices } from './start-run.js';
 
 /** Live robots counters of the request gate, when the session is still open. */
 export type LiveRobotsStats = { pageRequestsBlocked: number; pageRequestsAllowed: number };
@@ -97,6 +98,8 @@ export async function finishRun(ctx: ServerContext, raw: unknown, live?: LiveRob
   if (input.outcome !== undefined || input.observed_result !== undefined)
     throw new ToolError('SCHEMA_INVALID', 'outcome and observed_result are for trace runs only');
   if (run.status !== 'running') return finishedRun(ctx, run);
+  // A probe run visits only the marked form steps (spec 032 US5); its frontier is not drained.
+  if (runChoices(run).probe) return completeRun(ctx, { run_id: run.id, status: 'completed' }, live);
   const pending = await ctx.db
     .selectFrom('frontier')
     .select((eb) => eb.fn.countAll<number>().as('n'))

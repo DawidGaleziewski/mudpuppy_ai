@@ -1,4 +1,4 @@
-import { FingerprintIndex } from '@pathfinder/fingerprint';
+import { FingerprintIndex, type FormStepIndex } from '@pathfinder/fingerprint';
 import { inferRouteTemplates, type RouteTemplater } from '@pathfinder/fingerprint';
 import type { EffectiveConfig } from '@pathfinder/config';
 import {
@@ -12,6 +12,19 @@ import type { HookRunner } from '@pathfinder/hooks';
 import type { RunRobots } from '../services/robots.js';
 import type { PwTrace } from './pw-trace.js';
 import type { RunTraceHooks } from './trace-hooks.js';
+
+/** One acted step on the way to a state: the issued action and the value typed or chosen. */
+export interface PathStep {
+  actionId: string;
+  value: string | null;
+  /** What map-mode autofill typed before this press, by label (the suite repeats it, spec 032). */
+  fills?: { name: string; kind: 'fill' | 'select' | 'check'; value?: string }[];
+}
+
+export interface RunPath {
+  url: string;
+  steps: PathStep[];
+}
 
 /** In-memory, per-run browser-side state. Everything durable lives in the database. */
 export class RunState {
@@ -34,6 +47,8 @@ export class RunState {
   obstacleCursor = 0;
   /** Trace runs (spec 004 R-14): the run's process; null for map runs. */
   processId: string | null = null;
+  /** A probe run (spec 032 US5): it visits marked form steps, it does not explore. */
+  isProbe = false;
   /** The page as last observed, compared with the next one for a trace step's outcomes. */
   lastObserved: { url: string; title: string; snapshot: string } | null = null;
   /** The mount wait of the latest settle (spec 015 R4), for the page composition. */
@@ -51,6 +66,25 @@ export class RunState {
   hooks: HookRunner | null = null;
   /** Stylesheets, scripts and fonts that failed since the last page (spec 030 FR-041). */
   assets: AssetHealth | null = null;
+  /** The portal's form steps (spec 032 US1), loaded from the store on the first form of the run. */
+  formSteps: FormStepIndex | null = null;
+  /** True while a technical probe's fault is armed: the error page is not re-opened (spec 032). */
+  keepErrorPages = false;
+  /** Each state's form step, as assigned in this run (spec 032). */
+  readonly stepOfState = new Map<string, string>();
+  /**
+   * How the run reached each state (spec 032 plan decision 4): the URL of the last `navigate` and
+   * the acted steps since then. Kept in memory for the run only; R-66 makes it durable.
+   */
+  readonly pathTo = new Map<string, RunPath>();
+  /**
+   * Form probing per step state (spec 032): the tries done and where the happy values led, so a
+   * `probe_form` that stopped at its time limit continues on the next call.
+   */
+  readonly probing = new Map<
+    string,
+    { done: Set<string>; happyNext: { stepId: string | null; route: string } }
+  >();
 
   get isTrace(): boolean {
     return this.processId !== null;

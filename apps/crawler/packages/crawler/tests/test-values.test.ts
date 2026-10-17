@@ -73,6 +73,22 @@ describe('testValueFor (spec 008 research R9)', () => {
     expect(testValueFor(f)).toBe(testValueFor({ ...f }));
   });
 
+  it('writes a date in the format a date mask asks for, a past one for a birth date (F-03@032)', () => {
+    expect(testValueFor(field({ placeholder: 'DD.MM.YYYY', label: 'Start date' }))).toBe(
+      '15.01.2027',
+    );
+    expect(testValueFor(field({ placeholder: 'RRRR-MM-DD', label: 'Data początku' }))).toBe(
+      '2027-01-15',
+    );
+    expect(testValueFor(field({ placeholder: 'TT.MM.JJJJ', label: 'Geburtsdatum' }))).toBe(
+      '15.01.1990',
+    );
+    expect(testValueFor(field({ placeholder: 'MM/DD/YYYY', label: 'Date of birth' }))).toBe(
+      '01/15/1990',
+    );
+    expect(testValueFor(field({ placeholder: 'DD', label: 'Day' }))).toBe('Test');
+  });
+
   it('follows a placeholder mask, then a kind in the label or name (spec 031 T012)', () => {
     expect(testValueFor(field({ placeholder: '00-000', label: 'Kod pocztowy' }))).toBe('00-000');
     expect(testValueFor(field({ placeholder: '+48 000 000 000' }))).toBe('+48 000 000 000');

@@ -22,6 +22,7 @@ import { resolveRunCredentials, runSecrets } from './credentials.js';
 import { personaRefs } from '@pathfinder/vault';
 import type { LoadedHook } from '@pathfinder/hooks';
 import { loadRunHooks } from './run-hooks.js';
+import { openProbeMarks, type ProbeMarkItem } from './probe-marks.js';
 
 const Globs = z
   .array(z.string().trim().regex(/^\//, 'a path starting with /; * matches anything'))
@@ -70,9 +71,20 @@ const StartRunInput = z
      * paths to leave out. Only narrows the scope; a resumed run keeps its own unless given again.
      */
     focus: ScanFocusInput.optional(),
+    /**
+     * A probe run (spec 032 US5): probe only the form steps a person marked for probing. A new
+     * map run only; a plain run never probes.
+     */
+    probe_marked: z.boolean().optional(),
   })
   .strict()
   .superRefine((v, c) => {
+    if (v.probe_marked === true && (v.resume_run_id !== undefined || v.mode === 'trace'))
+      c.addIssue({
+        code: 'custom',
+        path: ['probe_marked'],
+        message: 'a probe run is a new map run; not with resume_run_id or mode trace',
+      });
     // A resumed run keeps its own mode and process.
     if (v.resume_run_id !== undefined) return;
     if (v.mode === 'trace' && v.process === undefined)
@@ -101,6 +113,8 @@ export interface StartRunOutput {
   /** Images are answered with a placeholder in this run (spec 011 FR-014). */
   skip_images: boolean;
   budgets: { steps: number; run_time_minutes: number; states: number };
+  /** A probe run's marked form steps (spec 032 US5): the only steps `probe_form` accepts. */
+  probe_marks?: ProbeMarkItem[];
 }
 
 type Approved = Extract<PreflightResult, { ok: true }> & { hooks: readonly LoadedHook[] };
@@ -216,6 +230,7 @@ export async function startRunRecord(
       max_action_class: input.max_action_class ?? prior.max_action_class,
       skip_images: input.skip_images ?? prior.skip_images,
       focus: input.focus ?? prior.focus,
+      probe: prior.probe,
     };
     const { effectiveMaxActionClass, approved, startUrl } = limited(choices);
     // A resumed run reads robots.txt again; a change is logged by the policy writer (FR-006).
@@ -268,8 +283,16 @@ export async function startRunRecord(
     max_action_class: input.max_action_class ?? null,
     skip_images: input.skip_images ?? false,
     focus: input.focus ?? null,
+    probe: input.probe_marked === true,
   };
   const { effectiveMaxActionClass, approved, startUrl } = limited(choices);
+  // Nothing to probe: refused before any browser opens or row is written.
+  const probeMarks = choices.probe ? await openProbeMarks(ctx, portal.id) : undefined;
+  if (probeMarks?.length === 0)
+    throw new ToolError(
+      'NO_PROBE_MARKS',
+      `no form step of ${portal.id} is marked for probing; a person marks one on its screen page first`,
+    );
 
   const followupRecordId =
     input.followup_key === undefined
@@ -341,6 +364,7 @@ export async function startRunRecord(
       effective_max_action_class: effectiveMaxActionClass,
       skip_images: choices.skip_images,
       budgets: remainingBudgets(run),
+      ...(probeMarks ? { probe_marks: probeMarks } : {}),
     },
     run,
     approved,
@@ -355,6 +379,8 @@ export interface RunChoices {
   skip_images: boolean;
   /** Narrows the run's scope and start page (spec 011 FR-017); null = the whole portal. */
   focus: ScanFocus | null;
+  /** A probe run (spec 032 US5): only marked form steps are probed; plain runs never probe. */
+  probe: boolean;
 }
 
 export function runChoices(run: Pick<RunRow, 'config_snapshot'>): RunChoices {
@@ -364,9 +390,10 @@ export function runChoices(run: Pick<RunRow, 'config_snapshot'>): RunChoices {
       max_action_class: SafetyClass.safeParse(c?.max_action_class).data ?? null,
       skip_images: c?.skip_images === true,
       focus: ScanFocusInput.safeParse(c?.focus).data ?? null,
+      probe: c?.probe === true,
     };
   } catch {
-    return { max_action_class: null, skip_images: false, focus: null };
+    return { max_action_class: null, skip_images: false, focus: null, probe: false };
   }
 }
 

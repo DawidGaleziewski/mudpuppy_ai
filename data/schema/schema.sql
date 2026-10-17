@@ -1,4 +1,4 @@
--- GENERATED from data/migrations/*.up.sql applied in order (currently through 0021_free_environment_names). Do not edit by hand.
+-- GENERATED from data/migrations/*.up.sql applied in order (currently through 0024_marks). Do not edit by hand.
 -- Regenerate after every migration; see data/schema/README.md.
 
 CREATE TABLE runs (
@@ -132,7 +132,10 @@ CREATE TABLE states (
   layout_ref     TEXT CHECK (layout_ref IS NULL OR length(layout_ref) > 0),
   -- 0015 (ALTER TABLE): the screen this state is a revision of, and its number (r1, r2, ... by first sighting).
   screen_id      TEXT REFERENCES screens(id),
-  screen_rev     INTEGER CHECK (screen_rev IS NULL OR screen_rev >= 1)
+  screen_rev     INTEGER CHECK (screen_rev IS NULL OR screen_rev >= 1),
+  -- 0022 (ALTER TABLE): the form step this state shows (NULL: no controls, or recorded before 0022) and its kind.
+  form_step_id   TEXT REFERENCES form_steps(id),
+  state_kind     TEXT NOT NULL DEFAULT 'main' CHECK (state_kind IN ('main','validation','technical'))
 ) STRICT;
 CREATE UNIQUE INDEX ux_states_portal_fingerprint ON states(portal_id, fingerprint);
 CREATE INDEX ix_states_portal_cluster ON states(portal_id, cluster_id);
@@ -828,3 +831,78 @@ CREATE TABLE change_spec_revisions (
   FOREIGN KEY (left_variant_id, left_rev) REFERENCES process_variant_revisions(variant_id, rev),
   FOREIGN KEY (right_variant_id, right_rev) REFERENCES process_variant_revisions(variant_id, rev)
 ) STRICT, WITHOUT ROWID;
+
+-- 0022: one step of a form flow on a route template, numbered per (portal, route) in first-seen order.
+CREATE TABLE form_steps (
+  id             TEXT PRIMARY KEY,                                   -- UUIDv7
+  portal_id      TEXT NOT NULL CHECK (length(portal_id) > 0),
+  route_template TEXT NOT NULL CHECK (length(route_template) > 0),
+  step_index     INTEGER NOT NULL CHECK (step_index >= 1),
+  form_name      TEXT,                                               -- the form's accessible name, when it has one
+  controls_json  TEXT NOT NULL CHECK (json_valid(controls_json) AND json_type(controls_json) = 'array'),  -- sorted role|name
+  label          TEXT NOT NULL CHECK (length(label) > 0),            -- first heading in or above the form, else 'step N'
+  first_seen_run TEXT NOT NULL REFERENCES runs(id),
+  created_at     TEXT NOT NULL,
+  UNIQUE (portal_id, route_template, step_index)
+) STRICT;
+
+-- 0023: what each form probe did, and the trace suites built from them (spec 032).
+CREATE TABLE probe_outcomes (
+  id                   TEXT PRIMARY KEY,                             -- UUIDv7
+  run_id               TEXT NOT NULL REFERENCES runs(id),
+  from_state_id        TEXT NOT NULL REFERENCES states(id),          -- the happy-path state the probe started on
+  form_step_id         TEXT REFERENCES form_steps(id),
+  probe_id             TEXT NOT NULL CHECK (length(probe_id) > 0),   -- catalogue id, e.g. required-empty-one
+  probe_group          TEXT NOT NULL CHECK (probe_group IN ('validation','branch','technical')),
+  target               TEXT,                                         -- field label, option label or request
+  inputs_json          TEXT NOT NULL CHECK (json_valid(inputs_json) AND json_type(inputs_json) = 'array'),
+  path_json            TEXT NOT NULL CHECK (json_valid(path_json) AND json_type(path_json) = 'object'),  -- { start_url, steps }
+  fault                TEXT CHECK (fault IS NULL OR fault IN ('block_request','http_500','delay','offline')),
+  outcome_kind         TEXT NOT NULL CHECK (outcome_kind IN ('next','branch','validation','technical','temporary','blocked')),
+  to_state_id          TEXT REFERENCES states(id),                   -- NULL when blocked before any page
+  accepted             INTEGER NOT NULL DEFAULT 0 CHECK (accepted IN (0,1)),  -- a validation probe the form accepted
+  possible_new_process INTEGER NOT NULL DEFAULT 0 CHECK (possible_new_process IN (0,1)),  -- a branch to a screen not seen before
+  messages_json        TEXT NOT NULL CHECK (json_valid(messages_json) AND json_type(messages_json) = 'array'),  -- [{field, text, source}]
+  http_status          INTEGER,
+  reason               TEXT,                                         -- why blocked or skipped
+  evidence_ref         TEXT NOT NULL CHECK (length(evidence_ref) > 0),
+  edge_id              TEXT REFERENCES edges(id),                    -- the edge the probe's submit produced
+  created_at           TEXT NOT NULL
+) STRICT;
+
+CREATE INDEX ix_probe_outcomes_run ON probe_outcomes (run_id);
+CREATE INDEX ix_probe_outcomes_form_step ON probe_outcomes (form_step_id);
+
+CREATE TABLE probe_suites (
+  id            TEXT PRIMARY KEY,                                    -- UUIDv7
+  portal_id     TEXT NOT NULL CHECK (length(portal_id) > 0),
+  run_id        TEXT NOT NULL REFERENCES runs(id),                   -- the probing run it was built from
+  form_step_id  TEXT REFERENCES form_steps(id),                      -- the form's first step
+  trace_json    TEXT NOT NULL CHECK (json_valid(trace_json) AND json_type(trace_json) = 'object'),  -- one TraceSpecEntry
+  notes_json    TEXT NOT NULL CHECK (json_valid(notes_json) AND json_type(notes_json) = 'array'),   -- [{variant, probe_outcome_id, why}]
+  status        TEXT NOT NULL DEFAULT 'open' CHECK (status IN ('open','approved','dismissed')),
+  approved_json TEXT CHECK (approved_json IS NULL OR json_valid(approved_json)),
+  replaced_json TEXT CHECK (replaced_json IS NULL OR json_valid(replaced_json)),
+  decided_by    TEXT,
+  decided_at    TEXT,
+  created_at    TEXT NOT NULL,
+  CHECK (status = 'open' OR decided_at IS NOT NULL),
+  CHECK (status <> 'approved' OR approved_json IS NOT NULL)
+) STRICT;
+
+CREATE INDEX ix_probe_suites_portal_status ON probe_suites (portal_id, status);
+
+CREATE TABLE marks (
+  id             TEXT PRIMARY KEY,                                   -- UUIDv7
+  portal_id      TEXT NOT NULL CHECK (length(portal_id) > 0),
+  kind           TEXT NOT NULL CHECK (kind IN ('start','focus','probe','retry','recheck','skip')),
+  target_kind    TEXT NOT NULL CHECK (target_kind IN ('form_step','state','edge')),
+  target_id      TEXT NOT NULL CHECK (length(target_id) > 0),
+  created_by     TEXT NOT NULL CHECK (length(created_by) > 0),       -- the person (reviewer name)
+  created_at     TEXT NOT NULL,
+  used_by_run_id TEXT REFERENCES runs(id),                           -- set when a scan used the mark
+  used_at        TEXT,
+  CHECK ((used_by_run_id IS NULL) = (used_at IS NULL))
+) STRICT;
+
+CREATE UNIQUE INDEX ux_marks_open ON marks (portal_id, kind, target_kind, target_id) WHERE used_by_run_id IS NULL;

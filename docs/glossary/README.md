@@ -273,9 +273,162 @@ records which states it observed.
 
 *Labels:* `State`, `States`, `States observed`
 
-*Related:* [Fingerprint](#fingerprint), [Cluster](#cluster), [Settled / never stabilized](#settled), [Transition (edge)](#transition)
+*Related:* [Fingerprint](#fingerprint), [Cluster](#cluster), [Settled / never stabilized](#settled), [Transition (edge)](#transition), [Form step](#form-step), [State kind](#state-kind)
 
 <sub>Last changed in R-22, 2026-10-03.</sub>
+
+<a id="form-step"></a>
+
+#### Form step
+
+**One step of a form flow on one address, numbered in the order the crawler first saw it (step 1, step 2, ...).**
+
+A wizard drawn by script shows its steps on one URL. The crawler tells them apart by their
+form controls: the same form name, or mostly the same fields, is the same step; other fields
+start the next step. An option that reveals more fields stays in the same step. Every state
+of the step (filled in, with an error message, after a failed request) belongs to it. The
+screen page shows them under "States of this step".
+
+*Example:* /sc19/apply holds step 1 "Your details" and step 2 "Your contract".
+
+*Seen in:* Screen page → States of this step
+
+*Labels:* `Form step`, `States of this step`
+
+*Related:* [State](#state), [State kind](#state-kind), [Form probe](#form-probe)
+
+<sub>Last changed in R-69, 2026-10-17.</sub>
+
+<a id="state-kind"></a>
+
+#### State kind
+
+**What a state of a form step is - main, validation (the form refused input and says why) or technical (what a user sees when a request fails).**
+
+A step is documented by its main state. Validation and technical states are states of that
+step, never steps of the process. An error page seen once during a scan is not the step.
+
+*Example:* The start-date message "Enter the start date as DD.MM.YYYY." is a validation state of step 2.
+
+*Seen in:* Screen page → States of this step
+
+*Labels:* `Main`, `Validation`, `Technical`
+
+*Related:* [Form step](#form-step), [Form probe](#form-probe)
+
+<sub>Last changed in R-69, 2026-10-17.</sub>
+
+<a id="form-probe"></a>
+
+#### Form probe
+
+**A deliberate try on a form step beyond its happy path, defined once in a catalogue; every outcome is recorded as a state of the step.**
+
+Probing happens only when asked: in a probe scan, on the steps you marked for probing (a
+plain scan presses each form once with test values and never probes). After the happy path
+the crawler calls `probe_form` on a marked step. The server tries:
+- required fields left empty, wrong formats, values outside the limits (validation);
+- every other option (branch);
+- the step's request blocked, answered with a server error, held, or the browser offline
+  (technical, simulated in the crawler's own browser only).
+
+Each outcome is one of: next, branch, validation, technical, temporary, blocked. Probes run
+where the action limit allows submitting forms, at most 12 per step and 60 per scan unless
+the portal file says otherwise.
+
+*Example:* On the quote form, "Business" led to a code confirmation (a branch, possibly a new process).
+
+*Seen in:* Screen page → States of this step; Review → Probe suites to approve
+
+*Labels:* `Form probes`
+
+*Related:* [Form step](#form-step), [State kind](#state-kind), [Probe suite](#probe-suite), [Test data](#test-data), [Probe mark](#probe-mark), [Probe scan](#probe-scan)
+
+<sub>Last changed in R-69, 2026-10-17.</sub>
+
+<a id="probe-mark"></a>
+
+#### Probe mark
+
+**Your instruction on a form step to have the next probe scan try it beyond the happy path; shown as an orange Probe tag.**
+
+Map the portal first and see what it has, then mark the form steps worth probing: open the
+step's screen (Screens) and press "Mark for probing". The orange tag is a person's mark for
+the next scan. Screens lists every form step as marked, probed (with the number of
+outcomes) or not probed. A probe scan uses the mark when it has probed the step to the end;
+"Remove the mark" drops it before that.
+
+*Example:* Step 2 "Your contract" of /sc19/apply carries a Probe tag until the probe scan has tried it.
+
+*Seen in:* Screens → Form probes; Screen page → States of this step
+
+*Labels:* `Probe`, `Mark for probing`, `Remove the mark`, `Not probed`, `Probed`
+
+*Related:* [Form probe](#form-probe), [Probe scan](#probe-scan), [Form step](#form-step)
+
+<sub>Last changed in R-69, 2026-10-17.</sub>
+
+<a id="probe-scan"></a>
+
+#### Probe scan
+
+**A scan that only probes the marked form steps of a portal; it does not map.**
+
+Ask the assistant to "probe the marked forms". The crawler opens each marked step, presses
+on with test values until it is there, and probes it within the budget (12 tries per step,
+60 per scan). It does not follow other links. Without marks it is refused with what to do
+first. It may submit forms, so a scan that only looks cannot probe.
+
+*Example:* "Probe the marked forms of scar-maker as quote-tester."
+
+*Seen in:* Chat
+
+*Labels:* `Probe forms`
+
+*Related:* [Probe mark](#probe-mark), [Form probe](#form-probe), [Run](#run)
+
+<sub>Last changed in R-69, 2026-10-17.</sub>
+
+<a id="probe-suite"></a>
+
+#### Probe suite
+
+**The form probes worth repeating every time, proposed by the BA agent per form and run only after the owner approves it in Review.**
+
+The BA picks outcomes of a probing scan; the server builds a trace from them (the way to the
+step, the values typed, the fault). In Review you keep or drop each variant and say what it
+should do, then approve it: it is written into the portal's traces.yaml and runs the same
+way every time with `pnpm portal:trace`.
+
+*Example:* "Get a quote": happy-path, business, quote-500, bad-date.
+
+*Seen in:* Review → Probe suites to approve
+
+*Labels:* `Probe suites to approve`, `Approve the suite`
+
+*Related:* [Form probe](#form-probe), [Trace catalogue](#trace-catalogue)
+
+<sub>Last changed in R-69, 2026-10-17.</sub>
+
+<a id="test-data"></a>
+
+#### Test data
+
+**The persona's valid, synthetic values for form fields, by the field's label; probes and autofill use them first.**
+
+When a step's happy path fails with the values the crawler has, the scan names the fields
+(missing test data) and the assistant asks you once, then saves your answers in the
+persona's test_data. Personal data is refused.
+
+*Example:* Start date: 01.01.2027 for the quote form.
+
+*Seen in:* Assistant; persona files
+
+*Labels:* `Test data`, `missing test data`
+
+*Related:* [Persona](#persona), [Form probe](#form-probe)
+
+<sub>Last changed in R-69, 2026-10-17.</sub>
 
 <a id="fingerprint"></a>
 

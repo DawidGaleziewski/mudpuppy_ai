@@ -6,6 +6,7 @@ service."""
 from __future__ import annotations
 
 import json
+import re
 
 import httpx2
 from fastapi.testclient import TestClient
@@ -154,6 +155,20 @@ def test_home_shows_needs_you_processes_picker_and_suggestions(empty_store: Stor
     assert "Test process" in flat and "2 screens" in flat and "/ → /faq" in flat
     assert 'name="conversation"' in body and f'value="{CONV}" selected' in body
     assert 'data-chat-say="Continue the stopped scan"' in body
+
+
+def test_home_process_links_name_the_conversations_portal(empty_store: Store) -> None:
+    """A process key is per portal: with no portal in the header, Home's link names the
+    conversation's portal, or every portal's PRC-001 is a 404 (spec 032 F-22)."""
+    from .test_processes_pages import seed as seed_process  # portal liveinsurer, PRC-001
+
+    seed_conversation(empty_store)
+    seed_process(empty_store)
+    with client(empty_store, Service()) as c:
+        body = c.get("/chat", params={"conversation": CONV}).text
+    procs = body[body.index('id="proc-h"') :]
+    href = re.search(r'href="(/processes/PRC-001[^"]*)"', procs)
+    assert href is not None and "portal=liveinsurer" in href.group(1)
 
 
 def test_home_without_waiting_work_has_no_intent_plate(empty_store: Store) -> None:

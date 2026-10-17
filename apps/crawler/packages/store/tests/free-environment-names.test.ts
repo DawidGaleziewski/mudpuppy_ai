@@ -21,11 +21,14 @@ it('0021 free environment names: format check, round-trip keeps rows, down refus
     expect(() => ins(bad), bad).toThrow(/CHECK/);
   expect(() => ins('dev-2')).toThrow(/UNIQUE/);
   // down refuses while a free name exists, and rolls back
+  expect(migrateDown(o.raw, MIGRATIONS)).toBe('0024');
+  expect(migrateDown(o.raw, MIGRATIONS)).toBe('0023');
+  expect(migrateDown(o.raw, MIGRATIONS)).toBe('0022');
   expect(() => migrateDown(o.raw, MIGRATIONS)).toThrow(/CHECK/);
   o.raw.prepare(`DELETE FROM credentials WHERE environment = 'dev-2'`).run();
   expect(migrateDown(o.raw, MIGRATIONS)).toBe('0021');
   expect(() => ins('dev')).toThrow(/CHECK/);
-  expect(migrateUp(o.raw, MIGRATIONS)).toEqual(['0021']);
+  expect(migrateUp(o.raw, MIGRATIONS)).toEqual(['0021', '0022', '0023', '0024']);
   expect(o.raw.prepare('SELECT count(*) AS n FROM credentials').get()).toEqual({ n: 1 });
   expect(
     o.raw

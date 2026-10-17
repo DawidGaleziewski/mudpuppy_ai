@@ -86,6 +86,36 @@ PII check reads an id in prose as a token and refuses the write (`PII_SUSPECTED`
 - To see more than the traces show (a process you only know as a link, or one that stopped at a
   boundary and could run in a sandbox), write a `followup` (below) rather than guessing.
 
+### Form steps and probe outcomes (passes 1, 3, 4, 6; spec 032)
+
+A probe scan tried the form steps a person marked for probing beyond their happy path (plain
+scans never probe, so a form without outcomes was simply not marked yet). `get_run_evidence` kind `states` gives
+each state's `form_step_id`, `step_index` and `state_kind` (`main`, `validation`, `technical`);
+kind `probe_outcomes` gives what every try did: `probe`, `target`, `outcome_kind` (`next`,
+`branch`, `validation`, `technical`, `temporary`, `blocked`), the messages with their field and
+source (`dom` or `native`, the browser's own message), the state it landed on, `accepted`
+(the form let wrong data through) and `possible_new_process`.
+
+- **A step is documented by its main state.** Validation, technical and variant states are states
+  *of that step* (list them on the step's `screen`), never steps of the process.
+- **An error-only step is not the step.** If a step was only ever seen as an error page, it is not
+  observed: write an `open_question` and a `followup` (map, to recheck it). Never write "the step
+  is an error page".
+- **A `temporary` outcome is an environment issue**, not behaviour: an `open_question` or an `nfr`
+  candidate (`inferred`), and a `followup` to recheck it.
+- **Candidates, all `inferred`, all citing the outcome's state:** each validation message becomes a
+  `business_rule` quoting the message and the field label (a `native` message is the browser's
+  wording: quote it, and say the rule comes from the field's own constraint); each `branch`
+  becomes a process variant on the `process` (or, with `possible_new_process`, a `followup` to
+  trace the new process); each `technical` outcome becomes an `nfr` about error handling (what the
+  user sees when the request fails). An `accepted: true` validation try is a finding: an
+  `open_question` asking whether the portal should refuse that input.
+- **Propose a suite per form** after the passes: `propose_probe_suite` with the run, a trace id,
+  name and goal in the portal's terms, and one variant per outcome worth repeating (each with a
+  `why`). Include the happy press (probe `happy-path`). The server builds the steps from the
+  outcomes; the suite waits in Review for the owner and never runs before approval. Leave
+  `temporary` and `blocked` outcomes out (the server refuses them).
+
 ### URLs and parameters (inside passes 1, 4 and 5)
 
 Legacy systems wire screens together through URLs: old and new address schemes, redirects, and

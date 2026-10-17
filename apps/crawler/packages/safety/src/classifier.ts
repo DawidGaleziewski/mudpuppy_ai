@@ -1,5 +1,5 @@
 import { maxSafetyClass, type SafetyClass } from '@pathfinder/core';
-import { LINK_ROLES, READ_KEYWORDS, READ_ROLES, normalize } from './rules.js';
+import { LINK_ROLES, PAGER_KEYWORDS, READ_KEYWORDS, READ_ROLES, normalize } from './rules.js';
 import { builtinRuleSet, type RuleSet } from './rule-set.js';
 import type { ActionDescriptor, Classification } from './types.js';
 
@@ -86,6 +86,7 @@ function readEvidence(d: ActionDescriptor, text: string, opts: ClassifyOptions):
     readByShape(d) ||
     safeForm ||
     READ_KEYWORDS.some((k) => k.test(text)) ||
+    (d.form === undefined && PAGER_KEYWORDS.some((k) => k.test(text))) ||
     (d.form?.purpose !== undefined && d.form.purpose !== 'other') ||
     d.attributes?.['aria-expanded'] !== undefined ||
     d.attributes?.['aria-haspopup'] !== undefined

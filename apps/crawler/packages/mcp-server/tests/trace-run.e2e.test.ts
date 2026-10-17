@@ -33,7 +33,7 @@ auth: none
 max_action_class: read
 viewport: { width: 1280, height: 800 }
 locale: pl-PL
-trace_inputs:
+test_data:
   Model: Octavia
 `;
 
@@ -151,7 +151,7 @@ describe.skipIf(!available)('trace mode on the reference portal (spec 004 R-14, 
       rationale: 'trace start',
     });
     expect(page.step).toMatchObject({ ord: 1 });
-    // The persona's trace_inputs value is offered with the matching field.
+    // The persona's test_data value is offered with the matching field.
     expect(find(page, 'textbox', 'Model')).toMatchObject({
       safety_class: 'read',
       suggested_value: 'Octavia',

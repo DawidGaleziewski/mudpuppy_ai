@@ -9,6 +9,7 @@ MCP server `pathfinder-chat` tools (Zod inputs; every tool returns structured JS
 | `workflow_state(portal?)` | Pure workflow state: steps with status, valid next moves, what is missing. |
 | `list_process_candidates(portal, description)` | Candidate processes from Layer B and the state graph with their states. |
 | `save_persona(portal, persona)` | Validate and write `personas/<portal>/<name>.yaml`; refuses inline secrets; `ref:` names only. |
+| `save_test_data(portal, persona, values)` | Spec 032: merge test values (label → synthetic value) into an existing persona's `test_data`; refuses personal data and a persona that would not load. |
 | `request_scan(portal, persona, env, resume_run_id?)` | Starts a scan after validating URL, persona and credential reference exist; hands off to the `crawler` subagent; refuses on gates. With `resume_run_id` (T041) it continues a stopped (`interrupted`) map run of that portal and persona (`RUN_NOT_RESUMABLE` otherwise) and links the step to it. The hand-off tells the crawler to drain the frontier (F-13). |
 | `stop_scan(portal)` | Stops the portal's running run (T041): it becomes `interrupted`, recorded work stays; `NO_RUNNING_SCAN` when nothing runs. |
 | `set_process_scope(...)` | Records scope after the BA confirmed in the UI list. |

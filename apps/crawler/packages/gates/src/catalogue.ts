@@ -78,13 +78,13 @@ export function parseEvalCases(text: string): EvalCase[] {
 }
 
 /**
- * Finding ids of a findings document: headings `## F-07 …` or `### F-07 …`, tagged with the spec
- * number (`F-07@008`).
+ * Finding ids of a findings document: headings `## F-07 …` or `### F-07 …`, or table rows whose
+ * first cell is the id (`| F-07 | …`, spec 032), tagged with the spec number (`F-07@008`).
  */
 export function findingIds(markdown: string, spec: string): string[] {
   const out: string[] = [];
   for (const line of markdown.split('\n')) {
-    const m = /^#{2,3}\s+(F-\d{2})\b/.exec(line);
+    const m = /^(?:#{2,3}\s+|\|\s*)(F-\d{2})\b/.exec(line);
     if (m) out.push(`${m[1]}@${spec}`);
   }
   return out;

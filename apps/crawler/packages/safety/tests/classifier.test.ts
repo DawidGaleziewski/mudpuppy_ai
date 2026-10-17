@@ -13,6 +13,15 @@ describe('classifyAction', () => {
     expect(classifyAction(a.descriptor).safetyClass).toBe(a.expected);
   });
 
+  it('reads a pager "Next" as read, but a form step\'s "Next" submits (F-10@032)', () => {
+    expect(classifyAction({ role: 'button', name: 'Next' }).safetyClass).toBe('read');
+    expect(classifyAction({ role: 'button', name: 'Następna strona' }).safetyClass).toBe('read');
+    expect(classifyAction({ role: 'button', name: 'Next', form: {} }).safetyClass).toBe('mutating');
+    expect(
+      classifyAction({ role: 'button', name: 'Next', form: { purpose: 'paginate' } }).safetyClass,
+    ).toBe('read');
+  });
+
   it('returns the most dangerous class across signals', () => {
     const r = classifyAction({ role: 'button', name: 'Kup teraz i usuń z ulubionych' });
     expect(r.safetyClass).toBe('external-side-effect');

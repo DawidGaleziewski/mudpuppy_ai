@@ -219,6 +219,25 @@ describe('complete_run / finish_run', () => {
     ).toBe('running');
   });
 
+  it('a probe run finishes with links left: it visits only marked steps (spec 032 US5)', async () => {
+    const ctx = await makeCtx();
+    const run = await seedRun(ctx);
+    await ctx.db
+      .updateTable('runs')
+      .set({ config_snapshot: JSON.stringify({ choices: { probe: true } }) })
+      .where('id', '=', run)
+      .execute();
+    const s = await recordState(ctx, st(run, 'a'));
+    await addFrontierItem(ctx, {
+      run_id: run,
+      state_id: s.state_id,
+      action: { role: 'link' },
+      safety_class: 'read',
+      status: 'pending',
+    });
+    expect(await finishRun(ctx, { run_id: run })).toMatchObject({ status: 'completed' });
+  });
+
   it('finish_run completes when empty, computing coverage (FR-021)', async () => {
     const ctx = await makeCtx();
     const run = await seedRun(ctx);

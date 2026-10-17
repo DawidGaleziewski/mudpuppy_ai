@@ -6,6 +6,38 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Added
+- Every state of a form, R-69 (1)–(3) (spec 032; owner, 2026-10-16 `graph_handler`, answers
+  O-M1…O-M5 and 2026-10-17): map runs record more than a form's happy path.
+  - **Form steps on one URL:** a same-URL React wizard's steps and their error states are told
+    apart (`form_steps`, `states.state_kind`: validation, technical…); the run replays its own
+    path back to a step (`REPLAY_DIVERGED` when it lands elsewhere). YAML-quoted ARIA lines and
+    date masks in autofill fixed on the way (F-05, F-03); a form's "Next" is `mutating`.
+  - **Form probes, only when asked:** a plain scan never probes (`PROBE_NOT_ASKED`). The owner
+    marks form steps for probing on the screen page (Probe mark, orange tag, coverage chips; the
+    Screens list says marked, probed or not probed) and asks for a probe scan; `probe_form` runs
+    the catalogue on marked steps: all and each required field empty, wrong formats, boundaries,
+    every other option (a branch, one level), and in the browser only a blocked request, HTTP 500,
+    a slow request and offline. Each outcome is a recorded state with its probe and kind (next,
+    branch, validation, technical, temporary, blocked). Budget 12 per step and 60 per run
+    (portal file); probes need a limit of at least `mutating`, wherever the environment allows
+    submitting (O-M1); a CAPTCHA or one-time code is `blocked` (O-M2).
+  - **Test data:** a persona's `test_data` (renamed from `trace_inputs`; the old key is refused
+    with a rename note) gives the happy values; a missing one is named and asked for once in chat.
+  - **Owner-reviewed probe suite:** after a probe scan the BA proposes a suite per form
+    (`propose_probe_suite`); the owner edits and approves it in Review, and it runs as
+    deterministic `traces.yaml` variants with faults.
+  - Scar SC-19 (a three-step wizard) and gate cases for steps, probes, marks and the suite.
+  - **Fixed after the first live probe scans (2026-10-17):** the slow-request probe hung for good
+    on a form that submits as a page load (F-17: the page load is now let through after 10 s);
+    a filter or add-to-cart that is no `<form>` could be marked but never probed, and a step that
+    applies in place read as refused (F-18); a probe run was refused marked pages for the map's
+    depth limit (F-23: a probe run, like a trace, has none); Home's process links had no portal,
+    a 404 once several portals had a PRC-001 (F-22). The coverage gate now reads findings kept as
+    table rows (spec 032 indexed).
+  - Not done (spec findings): a mark lost when a later run files a page under another route
+    template (F-19), the browser's error page labelled `/` (F-20), the way back to a hash-route
+    wizard step (F-24, R-66), the shop map stopping early (F-16, agent behaviour); R-69 (4)
+    reconciliation and (5) the map graph page come next.
 - Roadmap declutter 2, R-67 (spec 031; owner: "merge all smaller and maybe some larger tasks into
   one branch"): the decision-free leftovers after v1.0.33.
   - **One wait for slow pages (R-60):** settle (navigate, act) and the micro-frontend mount wait

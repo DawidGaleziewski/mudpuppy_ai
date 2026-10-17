@@ -1,0 +1,10 @@
+# Probes scar-maker's quote wizard (SC-19, spec 032): like the applicant, plus the test data the
+# wizard's own checks need (O-M3: the persona holds valid test values).
+id: quote-tester
+extends: ["../_mixins/anonymous-base.yaml"]
+max_action_class: external-side-effect
+test_data:
+  Start date: "01.01.2027"
+  Promo code (optional): ""
+  Company name: Test Company
+  Tax number: "1234567890"

@@ -207,6 +207,17 @@ export const ACTION_RULES: readonly ActionRule[] = [
   },
 ];
 
+/**
+ * Pager words: read only outside a form. A form's "Next" / "Dalej" submits the step it belongs to
+ * (owner 2026-10-17, spec 032 F-10); a pager form is still read through its `paginate` purpose.
+ */
+export const PAGER_KEYWORDS: readonly RegExp[] = [
+  /\bnastepn/,
+  /\bpoprzedni/,
+  /\bnext\b/,
+  /\bprev(ious)?\b/,
+];
+
 /** Controls whose name marks a pure read/navigation interaction (used for buttons and other non-link roles). */
 export const READ_KEYWORDS: readonly RegExp[] = [
   /\bszukaj/,
@@ -217,10 +228,6 @@ export const READ_KEYWORDS: readonly RegExp[] = [
   /\bsort\b/,
   /\bzastosuj\b/,
   /\bapply\b/,
-  /\bnastepn/,
-  /\bpoprzedni/,
-  /\bnext\b/,
-  /\bprev(ious)?\b/,
   /\bpokaz wiecej\b/,
   /\bwiecej\b/,
   /\bshow more\b/,

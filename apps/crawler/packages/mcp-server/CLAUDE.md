@@ -1,6 +1,6 @@
 # @pathfinder/mcp-server
 
-The `pathfinder` stdio MCP server (the crawler agent's only tools: start_run, navigate, act, login,
+The `pathfinder` stdio MCP server (the crawler agent's only tools: start_run, navigate, act, probe_form, login,
 get_known_states, get_next_frontier_item, add_open_question, add_rule_candidate, finish_run) and the
 `pathfinder-ba` server (BA tools: `src/ba-server.ts`, `src/ba-tools/`, `src/services/ba/`).
 
@@ -45,6 +45,21 @@ Layer: servers (G-07; `apps/crawler/layers.json`)
 - Spec 031: `services/trace-grouping.ts` (after `pnpm portal:trace`, the best variant run's screens
   become one open grouping suggestion; the BA accepts it, nothing is created here); `credentials.ts`
   and `run-state.ts` (`RunState` takes one options object).
+- Spec 032 (form states, R-69): `pipeline/form-step.ts` (every recorded state gets its form step
+  and kind in `record_state`; steps persisted in `form_steps`), `run-path.ts` + `replay.ts` (the
+  run's own path to each state, kept in `RunState.pathTo`; `reachState` replays it on a same-URL
+  wizard, `REPLAY_DIVERGED` when it lands elsewhere), the `probe_form` tool:
+  - `probe-form.ts`: probe runs only, marked steps only (`services/probe-marks.ts`, US5), gate,
+    limit ≥ mutating, budget, the happy press, a 40 s limit per call with `more`;
+  - `probe.ts`: one press with values, a fault and an observation, classified and recorded in
+    `probe_outcomes`;
+  - `probe-steps.ts`: label steps for suites;
+  - `fault.ts`: browser-side faults, also `act`'s `fault` in trace runs; error pages are kept
+    while a fault is armed.
+
+  BA: `services/ba/probe-suites.ts` (`propose_probe_suite`, suites stored `open`) and the
+  `get_run_evidence` kind `probe_outcomes`. `find-again.ts` holds `findAgain` (moved out of
+  `act.ts`).
 - Entry points: `pnpm --filter @pathfinder/mcp-server start` (`src/main.ts`), `start:ba`.
 
 ## Invariants

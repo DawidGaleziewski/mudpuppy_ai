@@ -83,8 +83,10 @@ export async function usage(
 export function gateContext(rs: RunState, u: GateContext['usage']): GateContext {
   return {
     // A trace follows one process as deep as it goes; its step budget bounds it, not the map's
-    // depth budget (spec 004 F-14).
-    scope: rs.isTrace ? { ...rs.scope, max_depth: Number.MAX_SAFE_INTEGER } : rs.scope,
+    // depth budget (spec 004 F-14). A probe run goes from one marked step to the next: depth
+    // bounds exploring, which it does not do (spec 032 F-23).
+    scope:
+      rs.isTrace || rs.isProbe ? { ...rs.scope, max_depth: Number.MAX_SAFE_INTEGER } : rs.scope,
     denylist: rs.effective.portal.denylist,
     rules: rs.ruleSet,
     robots: rs.robots.registry,

@@ -12,14 +12,17 @@ import { testValueFor, type AutofillField, type TestValue } from './test-values.
 
 /** `field` (not `name`): the decision log redacts values under a `name` key as personal data. */
 export interface AutofillResult {
-  filled: { field: string; type: string; value: string }[];
+  /** `label`: the visible label, so a run can repeat the fill by label (spec 032 suites). */
+  filled: { field: string; type: string; value: string; label: string }[];
   skipped: { field: string; reason: string }[];
 }
 
 /**
  * The controls a click on `el` sends: a native submit's form; for a script-driven submit (a `div` or
  * `type=button` whose text reads like a submit, spec 015) its `<form>`, else the nearest container
- * with controls outside any form (a `div` form). Null when the click submits nothing.
+ * with controls outside any form (a `div` form). Null when the click submits nothing. `named`: the
+ * caller chose the control as a step's submit (a form probe, spec 032 F-18), so its text need not
+ * read like a submit ("Zastosuj", "Dodaj do koszyka").
  */
 function pfNativeSubmitForm(el: Element): HTMLFormElement | null {
   const form = (el as HTMLButtonElement).form;
@@ -32,7 +35,7 @@ function pfNativeSubmitForm(el: Element): HTMLFormElement | null {
   return submits ? form : null;
 }
 
-function pfControlsFor(el: Element): Element[] | null {
+function pfControlsFor(el: Element, named?: boolean): Element[] | null {
   const native = pfNativeSubmitForm(el);
   if (native) return Array.from(native.elements);
   const text = ((el as HTMLElement).innerText || el.getAttribute('aria-label') || '')
@@ -40,7 +43,7 @@ function pfControlsFor(el: Element): Element[] | null {
     .trim();
   const submitWord =
     /^(wyślij|zapisz|wykonaj|dalej|zamów|zamawiam|potwierdź|oblicz|submit|send|save|next|continue|order|confirm)/i;
-  if (text.length > 40 || !submitWord.test(text)) return null;
+  if (!named && (text.length > 40 || !submitWord.test(text))) return null;
   const form = el.closest('form');
   if (form) return Array.from(form.elements);
   for (let cur = el.parentElement; cur; cur = cur.parentElement) {
@@ -71,8 +74,8 @@ function pfNearLabel(field: Element): HTMLLabelElement | null {
 const HELPERS = [pfNativeSubmitForm, pfControlsFor, pfNearLabel];
 
 /** The submit control's form fields, or null when the control does not submit a form. */
-function readForm(el: Element): AutofillField[] | null {
-  const controls = pfControlsFor(el);
+function readForm(el: Element, named?: boolean): AutofillField[] | null {
+  const controls = pfControlsFor(el, named);
   if (controls === null) return null;
   const skip = ['hidden', 'submit', 'button', 'image', 'reset'];
   const out: AutofillField[] = [];
@@ -112,7 +115,7 @@ function readForm(el: Element): AutofillField[] | null {
             : field.value === '',
     };
     if (ftype === 'radio' && field.name) entry.group = field.name;
-    for (const a of ['min', 'max', 'step', 'pattern', 'placeholder'] as const) {
+    for (const a of ['min', 'max', 'step', 'pattern', 'placeholder', 'autocomplete'] as const) {
       const v = field.getAttribute(a);
       if (v !== null && v !== '') entry[a] = v;
     }
@@ -131,9 +134,17 @@ function readForm(el: Element): AutofillField[] | null {
   return out;
 }
 
-/** Write the values into the form like a user would (native setters, input + change events). */
-function writeForm(el: Element, values: { index: number; value: string | true }[]): number {
-  const controls = pfControlsFor(el);
+/**
+ * Write the values into the form like a user would (native setters, input + change events). `true`
+ * checks a box or radio; `false` unchecks it (form probes, spec 032: a radio cannot be unclicked,
+ * so it is cleared with a change event).
+ */
+function writeForm(
+  el: Element,
+  arg: { values: { index: number; value: string | boolean }[]; named?: boolean },
+): number {
+  const { values, named } = arg;
+  const controls = pfControlsFor(el, named);
   if (!controls) return 0;
   let written = 0;
   for (const { index, value } of values) {
@@ -143,6 +154,13 @@ function writeForm(el: Element, values: { index: number; value: string | true }[
     if (value === true) {
       const box = field as HTMLInputElement;
       if (!box.checked) box.click();
+    } else if (value === false) {
+      const box = field as HTMLInputElement;
+      if (box.type === 'checkbox' && box.checked) box.click();
+      else if (box.checked) {
+        box.checked = false;
+        box.dispatchEvent(new Event('change', { bubbles: true }));
+      }
     } else {
       const proto = Object.getPrototypeOf(field) as object;
       // eslint-disable-next-line @typescript-eslint/unbound-method -- called with `.call(field, …)` below
@@ -160,7 +178,7 @@ function writeForm(el: Element, values: { index: number; value: string | true }[
 
 /**
  * Fill the empty fields of the form `submit` belongs to. `inputs` are the persona's values by
- * field label (`trace_inputs`); everything else comes from {@link testValueFor}. Returns null when
+ * field label (`test_data`); everything else comes from {@link testValueFor}. Returns null when
  * `submit` is not a form's submit control (nothing is touched then).
  */
 export async function autofillForm(
@@ -190,8 +208,60 @@ export async function autofillForm(
       continue;
     }
     plan.push({ index: f.index, value });
-    result.filled.push({ field: f.name, type: f.type, value: value === true ? 'checked' : value });
+    result.filled.push({
+      field: f.name,
+      type: f.type,
+      value: value === true ? 'checked' : value,
+      label: f.label,
+    });
   }
-  if (plan.length > 0) await evalOnElementWithHelpers(submit, HELPERS, writeForm, plan);
+  if (plan.length > 0) await evalOnElementWithHelpers(submit, HELPERS, writeForm, { values: plan });
   return result;
+}
+
+/**
+ * The fields of the form `submit` belongs to (form probes, spec 032); null when it submits none.
+ * The probe named `submit` as the step's control, so any text counts as a submit (F-18).
+ */
+export function readFormFields(submit: Locator): Promise<AutofillField[] | null> {
+  return evalOnElementWithHelpers(submit, HELPERS, readForm, true);
+}
+
+/** Write values into the form `submit` belongs to, by field index; `false` unchecks. */
+export function writeFormFields(
+  submit: Locator,
+  values: { index: number; value: string | boolean }[],
+): Promise<number> {
+  return evalOnElementWithHelpers(submit, HELPERS, writeForm, { values, named: true });
+}
+
+/**
+ * The browser's own constraint messages of the form's invalid fields (`validationMessage`), read
+ * after a refused submit: they never appear in the DOM or the ARIA snapshot (spec 032 research).
+ * A form with `novalidate` shows none.
+ */
+function readNativeMessages(el: Element): { field: string | null; text: string }[] {
+  const form = (el as HTMLButtonElement).form ?? el.closest('form');
+  if (form?.noValidate) return [];
+  const controls = pfControlsFor(el, true) ?? [];
+  const out: { field: string | null; text: string }[] = [];
+  for (const c of controls) {
+    const f = c as HTMLInputElement;
+    if (typeof f.checkValidity !== 'function' || f.checkValidity() || !f.validationMessage)
+      continue;
+    const labelEl = (f.labels && f.labels[0]) || pfNearLabel(f);
+    // Named like `readForm` names the field, so a message pairs with the probe's target.
+    const names = [
+      labelEl ? labelEl.textContent : null,
+      f.getAttribute('aria-label'),
+      f.getAttribute('placeholder'),
+    ];
+    const label = (names.find((n) => n) ?? '').replace(/\s+/g, ' ').trim();
+    out.push({ field: label || null, text: f.validationMessage });
+  }
+  return out;
+}
+
+export function nativeMessages(submit: Locator): Promise<{ field: string | null; text: string }[]> {
+  return evalOnElementWithHelpers(submit, HELPERS, readNativeMessages, undefined);
 }

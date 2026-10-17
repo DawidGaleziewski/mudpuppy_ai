@@ -75,7 +75,7 @@ export async function getAction(
 }
 
 /**
- * The value a fill/select step types or picks: the agent's, else the persona's `trace_inputs` value
+ * The value a fill/select step types or picks: the agent's, else the persona's `test_data` value
  * for the field's label. On a portal with `pii_scrub`, values must be synthetic
  * ({@link isSyntheticInput}): one the PII scrubber would change is refused, except an e-mail on a
  * reserved test TLD.
@@ -94,12 +94,12 @@ export function inputValue(
   const v =
     value ??
     (action.accessible_name !== null
-      ? rs.effective.persona.trace_inputs?.[action.accessible_name]
+      ? rs.effective.persona.test_data[action.accessible_name]
       : undefined);
   if (v === undefined)
     throw new ToolError(
       'SCHEMA_INVALID',
-      `value: required for ${kind} "${action.accessible_name ?? action.role}" (no trace_inputs value for it)`,
+      `value: required for ${kind} "${action.accessible_name ?? action.role}" (no test_data value for it)`,
     );
   // Since constitution 2.0.0 the check guards only portals that still scrub PII (`pii_scrub`).
   if (rs.effective.portal.pii_scrub && !isSyntheticInput(v))

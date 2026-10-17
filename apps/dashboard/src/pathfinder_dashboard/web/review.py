@@ -8,13 +8,22 @@ from __future__ import annotations
 
 import sqlite3
 from typing import Any
-from urllib.parse import parse_qs
+from urllib.parse import parse_qs, quote
 
 from fastapi import APIRouter, Request
 from fastapi.concurrency import run_in_threadpool
 from fastapi.responses import HTMLResponse, PlainTextResponse, RedirectResponse, Response
 
-from .. import db, queries_chat, queries_docs, queries_review, review
+from .. import (
+    chat_client,
+    db,
+    queries_chat,
+    queries_docs,
+    queries_review,
+    queries_suites,
+    review,
+    suite_form,
+)
 from . import views_access
 from .deps import Ctx, same_origin, web_of
 
@@ -35,6 +44,7 @@ def _selected(
         "differences": lambda: next((d for d in inbox.differences if d.id == ident), None),
         "reanchor": lambda: next((a for a in inbox.reanchor if a.key == ident), None),
         "proposals": lambda: next((p for p in inbox.proposals if p.p.id == ident), None),
+        "suites": lambda: next((s for s in inbox.suites if s.id == ident), None),
     }
     if kind in finders and (item := finders[kind]()) is not None:
         return kind, item
@@ -148,4 +158,74 @@ async def review_record(
             else f"Not recorded: {outcome.message or outcome.code or 'failed'}."
         )
     target = c.url("/review", portal=portal, select=f"{group}:{key}", note=note)
+    return RedirectResponse(target, status_code=303)
+
+
+SUITE_DONE = {
+    "save": "Changes saved; the suite waits for approval.",
+    "approve": "Suite approved: written into traces.yaml.",
+    "dismiss": "Suite dismissed.",
+}
+
+
+def suite_calls(
+    action: str, trace: dict[str, Any] | None, form: dict[str, list[str]], author: str
+) -> list[tuple[str, dict[str, Any]]] | None:
+    """The chat service calls for a probe suite form (spec 032 US3): Save keeps the edited suite
+    open; Approve saves the edit first, then approves it; Dismiss. None for an unknown action."""
+    if action == "dismiss":
+        return [("dismiss", {"author": author})]
+    if action not in ("save", "approve") or trace is None:
+        return None
+    calls = [("edit", {"author": author, "trace": suite_form.edited_trace(trace, form)})]
+    return calls + ([("approve", {"author": author})] if action == "approve" else [])
+
+
+async def _suite_call(web: Any, path: str, body: dict[str, Any]) -> str | None:
+    """One chat service call; the refusal's message, or None when it went through."""
+    try:
+        status, answer = await chat_client.call(
+            web.settings, "POST", path, body, web.chat_transport
+        )
+    except chat_client.ChatUnavailable:
+        return chat_client.NOT_RUNNING
+    if status == 200:
+        return None
+    message = answer.get("message") if isinstance(answer, dict) else None
+    return str(message or status)
+
+
+@router.post("/review/suites/{portal}/{suite_id}", response_model=None)
+async def review_suite(
+    request: Request, portal: str, suite_id: str, env: str | None = None
+) -> Response:
+    """Save, approve or dismiss a probe suite through the chat service (the dashboard never
+    writes), then back to the suite with the outcome as a note (post, redirect, get)."""
+    if not same_origin(request):
+        return PlainTextResponse("Cross-origin request refused.", status_code=403)
+    web = web_of(request)
+    c = web.ctx(request, env)
+    form = parse_qs((await request.body()).decode("utf-8", "replace"), keep_blank_values=True)
+    action = (form.get("action") or [""])[0]
+    author = web.settings.reviewer
+    try:
+        with c.conn() as conn:
+            suite = queries_suites.suite_by_id(conn, portal, suite_id)
+    except db.StoreMissing as err:
+        return web.missing(c, err)
+    calls = suite_calls(action, suite.trace if suite else None, form, author) if author else None
+    if not author:
+        note = "Set PATHFINDER_REVIEWER to your name to decide on suites."
+    elif calls is None:
+        note = "Unknown action or suite."
+    else:
+        base = f"/portals/{quote(portal, safe='')}/probe-suites/{quote(suite_id, safe='')}/"
+        refused = None
+        for verb, body in calls:
+            refused = await _suite_call(web, base + verb, body)
+            if refused:
+                break
+        note = f"Not recorded: {refused}." if refused else SUITE_DONE[action]
+    select = f"suites:{suite_id}" if action == "save" else None
+    target = c.url("/review", portal=portal, show="suites", select=select, note=note)
     return RedirectResponse(target, status_code=303)

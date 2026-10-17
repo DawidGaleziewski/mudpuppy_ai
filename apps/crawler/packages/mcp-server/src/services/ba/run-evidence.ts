@@ -22,6 +22,7 @@ export const RunEvidenceKind = z.enum([
   'open_questions',
   'rule_candidates',
   'decisions',
+  'probe_outcomes',
 ]);
 export type RunEvidenceKind = z.infer<typeof RunEvidenceKind>;
 
@@ -57,10 +58,26 @@ interface Source {
 /** Per kind: the page query (keyset on `id`) and the compact summary of one row. */
 const RUN_EVIDENCE: Record<Exclude<RunEvidenceKind, 'parameters'>, Source> = {
   states: {
-    sql: `SELECT s.id, s.title, s.route_template, s.cluster_id, s.confidence, s.stabilization
+    // Spec 032: the form step a state belongs to (its number and label on the route) and its kind.
+    sql: `SELECT s.id, s.title, s.route_template, s.cluster_id, s.confidence, s.stabilization,
+                 s.form_step_id, f.step_index, f.label AS step_label, s.state_kind
           FROM state_observations o JOIN states s ON s.id = o.state_id
+          LEFT JOIN form_steps f ON f.id = s.form_step_id
           WHERE o.run_id = ? AND s.id > ? ORDER BY s.id LIMIT ?`,
     summarise: (r) => r,
+  },
+  // Spec 032 US4: what each form probe did, with the field messages and the state it landed on.
+  probe_outcomes: {
+    sql: `SELECT id, from_state_id, form_step_id, probe_id AS probe, probe_group, target, fault,
+                 outcome_kind, to_state_id, accepted, possible_new_process, messages_json,
+                 http_status, reason
+          FROM probe_outcomes WHERE run_id = ? AND id > ? ORDER BY id LIMIT ?`,
+    summarise: ({ messages_json, accepted, possible_new_process, ...r }) => ({
+      ...r,
+      messages: json(messages_json as string),
+      accepted: accepted === 1,
+      possible_new_process: possible_new_process === 1,
+    }),
   },
   edges: {
     sql: `SELECT e.id, e.from_state, e.to_state, e.action_json, e.safety_class, e.status, e.confidence,
@@ -133,7 +150,8 @@ function requireRun(ctx: BaContext, runId: string): { id: string; portal_id: str
  * network calls are always seen by the server, so their `confidence` is always the default.
  */
 const PAGE_DEFAULTS: Partial<Record<RunEvidenceKind, Row>> = {
-  states: { confidence: 'observed', stabilization: 'settled' },
+  states: { confidence: 'observed', stabilization: 'settled', state_kind: 'main' },
+  probe_outcomes: { accepted: false, possible_new_process: false },
   edges: { safety_class: 'read', status: 'executed', confidence: 'observed' },
   actions: { safety_class: 'read', allowed: true, confidence: 'observed' },
   forms: { confidence: 'observed' },

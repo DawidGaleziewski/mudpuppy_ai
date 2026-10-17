@@ -74,6 +74,12 @@ export const RequestScanInput = z.object({
     .object({ name: z.string().trim().min(1).max(200), goal: z.string().trim().min(1).max(500) })
     .strict()
     .optional(),
+  /**
+   * A "Probe forms" scan (spec 032 US5, owner answer 3 of 2026-10-17): probe only the form steps
+   * the BA marked for probing, without mapping. A plain scan never probes. Not with
+   * `resume_run_id` or `process`.
+   */
+  probe_marked: z.boolean().optional(),
 });
 export type RequestScanInput = z.input<typeof RequestScanInput>;
 
@@ -110,12 +116,14 @@ export function requestScan(
   conversationId: string,
   input: RequestScanInput,
 ): ScanHandoff {
-  const { portal, resume_run_id, process, ...rest } = RequestScanInput.parse(input);
+  const { portal, resume_run_id, process, probe_marked, ...rest } = RequestScanInput.parse(input);
   if (process !== undefined && resume_run_id !== undefined)
     throw new ScanRefusal(
       'INVALID',
       'a process trace starts a new run; resume_run_id continues a stopped scan',
     );
+  const probe = probe_marked === true;
+  if (probe) probeScanCheck(raw, portal, { resume_run_id, process, ...rest });
   // After [reset assistant] the orchestrator does not know a stopped run's persona and guessed
   // one (F-02): a resume takes the run's own.
   const persona =
@@ -251,12 +259,75 @@ export function requestScan(
     status: 'pending',
     handoff: {
       agent: 'crawler',
-      prompt:
-        process === undefined
-          ? scanPrompt(portal, persona, environment, resume_run_id, choices)
-          : tracePrompt(portal, persona, environment, process, choices),
+      prompt: briefFor({ portal, persona, environment, resume_run_id, process, probe }, choices),
     },
   };
+}
+
+function briefFor(
+  s: {
+    portal: string;
+    persona: string;
+    environment: string;
+    resume_run_id: string | undefined;
+    process: { name: string; goal: string } | undefined;
+    probe: boolean;
+  },
+  choices: ScanChoices,
+): string {
+  if (s.probe) return probePrompt(s.portal, s.persona, s.environment, choices);
+  if (s.process !== undefined)
+    return tracePrompt(s.portal, s.persona, s.environment, s.process, choices);
+  return scanPrompt(s.portal, s.persona, s.environment, s.resume_run_id, choices);
+}
+
+/**
+ * A probe scan needs marks and a new run that may submit forms (probes type and submit, O-M1).
+ * The pathfinder server checks the marks again when the run starts.
+ */
+function probeScanCheck(
+  raw: BetterSqlite3.Database,
+  portal: string,
+  rest: { resume_run_id?: string; process?: unknown; allow_writes?: boolean },
+): void {
+  if (rest.resume_run_id !== undefined || rest.process !== undefined)
+    throw new ScanRefusal(
+      'INVALID',
+      'a probe scan is a new run of its own; it cannot resume a scan or trace a process',
+    );
+  if (rest.allow_writes === false)
+    throw new ScanRefusal(
+      'INVALID',
+      'probing types wrong values and submits forms; a scan that only looks cannot probe',
+    );
+  const open = raw
+    .prepare(
+      `SELECT COUNT(*) AS n FROM marks WHERE portal_id = ? AND kind = 'probe' AND used_by_run_id IS NULL`,
+    )
+    .get(portal) as { n: number };
+  if (open.n === 0)
+    throw new ScanRefusal('MISSING_INPUT', 'no form step of this portal is marked for probing', [
+      'Probe marks: the BA presses "Mark for probing" on a form step\'s screen page (Screens)',
+    ]);
+}
+
+/** The crawler brief for a "Probe forms" scan (spec 032 US5). */
+export function probePrompt(
+  portal: string,
+  persona: string,
+  environment: string,
+  choices: ScanChoices = {},
+): string {
+  return (
+    `Probe the marked forms of portal "${portal}" as persona "${persona}" in environment ` +
+    `"${environment}" (a probe scan): call start_run with probe_marked true and environment ` +
+    `"${environment}".${choiceArgs(choices)} Use only the pathfinder tools. Follow the "Probe forms" ` +
+    'procedure: for each of the probe_marks start_run returns, open its URL, press on with Next ' +
+    'until the marked step shows, then call probe_form on that step\'s submit or Next until its ' +
+    'result has no "more". Do not follow the frontier. Then finish_run. Stop early only on ' +
+    'RUN_STOPPED or a refusal to start, and report its message word for word. Finish with the run ' +
+    'id, its status, and per mark the step and how many outcomes it got.'
+  );
 }
 
 /** The `start_run` arguments for the BA's choices, as text for the crawler brief. */

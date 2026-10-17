@@ -1,7 +1,7 @@
 ---
 name: crawler
 description: Maps a portal or traces one named process through the pathfinder MCP server as a guest or logged-in persona, recording states, transitions, forms and API shapes or the steps of one process, with evidence, plus a worklist of what it skipped. Use to map a portal or trace a named process; never interprets business intent or tests.
-tools: mcp__pathfinder__start_run, mcp__pathfinder__get_known_states, mcp__pathfinder__get_next_frontier_item, mcp__pathfinder__navigate, mcp__pathfinder__act, mcp__pathfinder__login, mcp__pathfinder__add_open_question, mcp__pathfinder__add_rule_candidate, mcp__pathfinder__finish_run
+tools: mcp__pathfinder__start_run, mcp__pathfinder__get_known_states, mcp__pathfinder__get_next_frontier_item, mcp__pathfinder__navigate, mcp__pathfinder__act, mcp__pathfinder__probe_form, mcp__pathfinder__login, mcp__pathfinder__add_open_question, mcp__pathfinder__add_rule_candidate, mcp__pathfinder__finish_run
 model: sonnet
 ---
 
@@ -23,9 +23,31 @@ tools: no shell, no files, no web, no other browser.
 6. Pressing a form's submit button is allowed when the server issues it: the server first fills the
    form's empty fields with test data (form autofill) and records the page behind the form. You do not
    type anything in map mode. When the run's action limit refuses a submit, that is final.
+   A map scan never probes forms: probing happens only in a probe scan (see "Probe forms" below);
+   `probe_form` in a plain scan answers `PROBE_NOT_ASKED`. (Map mode only.)
 7. Actions may come from click signals (`role: generic`, with `found_by`) or live inside a frame; act
    on them with `act` like any other. A page result with `mounts_pending` means a micro-frontend had
    not rendered yet; `navigate` to the same URL once more before moving on. (Both modes.)
+
+## Probe forms
+
+When you are asked to probe the marked forms of a portal (spec 032 US5), you visit only the form
+steps a person marked for probing; you do not map.
+
+1. `start_run` with `probe_marked: true` (a map run). Its result lists `probe_marks`: each marked
+   step with its route, step number, label and a URL of a page of it. `NO_PROBE_MARKS` means
+   nothing is marked: report it and stop.
+2. For each mark: `navigate` to its URL. When the step is not the first one on that page, press the
+   form's Next with `act` (the server fills the form with test data) until the page shows the
+   marked step's label. Then call `probe_form` with the `action_id` of that step's submit or Next:
+   the server presses it with the happy values first, then tries wrong data, other options and
+   broken requests within the budget, and records every outcome. While a result has `more`, call
+   `probe_form` again with the same `action_id`; the step is done when `more` is absent.
+3. `STEP_NOT_MARKED` means you are on another step than the mark's: go back to its URL and press on
+   until the label matches. A `missing_test_data` answer names fields the persona needs values for:
+   report them, do not guess values, and go on with the next mark.
+4. Do not follow the frontier. After the last mark, `finish_run` (a probe run finishes with links
+   left unvisited) and report each mark's step and how many outcomes it got.
 
 ## Trace
 

@@ -5,11 +5,18 @@ import type {
   DecisionKind,
   EdgeStatus,
   FrontierItemStatus,
+  MarkKind,
+  MarkTargetKind,
+  OutcomeKind,
   PortalDataLogAction,
+  ProbeFault,
+  ProbeGroup,
+  ProbeSuiteStatus,
   RobotsOutcome,
   RunStatus,
   SafetyClass,
   Stabilization,
+  StateKind,
 } from '@pathfinder/core';
 // Trace model.
 import type {
@@ -104,6 +111,77 @@ export interface StatesTable {
   screen_id: ColumnType<string | null, string | null | undefined, string | null>;
   /** 0015: r1, r2, ... by first sighting within the screen. */
   screen_rev: ColumnType<number | null, number | null | undefined, number | null>;
+  /** 0022: the form step this state shows; NULL: no controls, or recorded before 0022. */
+  form_step_id: ColumnType<string | null, string | null | undefined, string | null>;
+  /** 0022: `main` unless the state shows validation errors or was reached by a technical fault. */
+  state_kind: ColumnType<StateKind, StateKind | undefined, StateKind>;
+}
+
+/** 0022: one step of a form flow on a route template, numbered per (portal, route). */
+export interface FormStepsTable {
+  id: string;
+  portal_id: string;
+  route_template: string;
+  step_index: number;
+  form_name: string | null;
+  /** JSON array of sorted `role|name`. */
+  controls_json: string;
+  label: string;
+  first_seen_run: string;
+  created_at: string;
+}
+
+/** 0023: what one form probe did. JSON columns are stringified JSON; flags are 0/1. */
+export interface ProbeOutcomesTable {
+  id: string;
+  run_id: string;
+  from_state_id: string;
+  form_step_id: string | null;
+  probe_id: string;
+  probe_group: ProbeGroup;
+  target: string | null;
+  inputs_json: string;
+  path_json: string;
+  fault: ProbeFault | null;
+  outcome_kind: OutcomeKind;
+  to_state_id: string | null;
+  accepted: ColumnType<number, number | undefined, number>;
+  possible_new_process: ColumnType<number, number | undefined, number>;
+  messages_json: string;
+  http_status: number | null;
+  reason: string | null;
+  evidence_ref: string;
+  edge_id: string | null;
+  created_at: string;
+}
+
+/** 0023: a proposed trace entry built from probe outcomes; the owner approves or dismisses it. */
+export interface ProbeSuitesTable {
+  id: string;
+  portal_id: string;
+  run_id: string;
+  form_step_id: string | null;
+  trace_json: string;
+  notes_json: string;
+  status: ColumnType<ProbeSuiteStatus, ProbeSuiteStatus | undefined, ProbeSuiteStatus>;
+  approved_json: string | null;
+  replaced_json: string | null;
+  decided_by: string | null;
+  decided_at: string | null;
+  created_at: string;
+}
+
+/** 0024: a person's instruction on a map target for the next scan; `target_id` has no foreign key. */
+export interface MarksTable {
+  id: string;
+  portal_id: string;
+  kind: MarkKind;
+  target_kind: MarkTargetKind;
+  target_id: string;
+  created_by: string;
+  created_at: string;
+  used_by_run_id: string | null;
+  used_at: string | null;
 }
 
 /** 0015: a screen is (portal_id, route_template, cluster_id); its states are its observed revisions. */
@@ -738,4 +816,8 @@ export interface Database {
   process_drafts: ProcessDraftsTable;
   process_live: ProcessLiveTable;
   change_spec_revisions: ChangeSpecRevisionsTable;
+  form_steps: FormStepsTable;
+  probe_outcomes: ProbeOutcomesTable;
+  probe_suites: ProbeSuitesTable;
+  marks: MarksTable;
 }

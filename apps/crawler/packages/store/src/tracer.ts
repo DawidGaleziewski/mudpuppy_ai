@@ -50,6 +50,9 @@ export const PHASE_NAMES = [
   'relogin',
   // spec 023 (R-53): one per portal hook run; attrs say which point and function
   'hook',
+  // spec 032 (R-69): back to a form step within the run; one try of a form probe
+  'replay',
+  'probe',
 ] as const;
 export type PhaseName = (typeof PHASE_NAMES)[number];
 
@@ -96,6 +99,10 @@ export const EVENT_NAMES = [
   // spec 030 (R-60): an error page retried before observing; assets that failed to load
   'transient_error',
   'render_warning',
+  // spec 032 (R-69): a state's form step and kind; a probe's outcome; a replay that diverged
+  'form_step',
+  'probe_outcome',
+  'replay_diverged',
 ] as const;
 export type EventName = (typeof EVENT_NAMES)[number];
 

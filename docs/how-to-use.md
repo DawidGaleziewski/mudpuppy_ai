@@ -210,6 +210,40 @@ Wikipedia"*. The assistant starts a **process trace**: the crawler walks that on
 toward its goal. It asks the same question as for a scan, follows "only look" and takes a
 focus too. A stopped trace is started again, not resumed.
 
+### Every state of a form (probes)
+
+A scan presses each form once with test values (the happy path) and records the steps it
+reaches. Probing goes further, and happens only when you ask for it:
+1. Scan the portal first and look at what it has.
+2. Open a form step's screen (Screens) and press **Mark for probing**. The step gets an orange
+   **Probe** tag. Screens lists every form step as marked, probed (with the number of outcomes)
+   or **Not probed**.
+3. Ask the assistant to *"probe the marked forms"*. That starts a probe scan: it visits only the
+   marked steps and does not map. Once a step has been probed, its mark goes away; **Remove the
+   mark** drops it before that.
+
+On each marked step the crawler tries the step on purpose:
+- required fields left empty;
+- a wrong e-mail, number, date or postal code;
+- values just outside the limits;
+- every other option of a radio button or a list;
+- the step's request breaking: blocked, a server error, slow, or offline. This happens in the
+  crawler's own browser; nothing broken is sent to the portal.
+
+Every result is recorded as a **state of that step**:
+- **validation**: the form refused, with the message it showed;
+- **branch**: an option leads somewhere else, maybe another process;
+- **technical error**: what a user sees when the request fails;
+- **blocked**: a one-time code, a CAPTCHA, or the action limit.
+
+Several steps on one address (a wizard drawn by script) are numbered as steps 1, 2, 3. A
+screen's page shows **States of this step**, with every probe and what it did.
+
+Probes need test data that passes the step. When the persona has none for a field, the assistant
+asks you once (*"A valid start date for the quote form?"*) and keeps your answer in the persona.
+Probes run where the scan may fill in and submit forms (a scan that only looks cannot probe),
+and stop at 12 tries per step and 60 per scan; the portal file can change both (`probes`).
+
 ## 8. Stop and resume a scan
 
 - **Stop** next to **Send** stops everything this conversation started: the answer in progress
@@ -365,6 +399,13 @@ deleted.
 | **Unexplained differences** | Something only some personas see (or a screen only some reach). See who sees it, compare two personas side by side, then have the BA write the rule (or, for a screen, a rule or an open question) that cites both sides. It leaves Review when that record exists. |
 | **Amendments to re-anchor** | Pick the element or screen the amendment belongs to now, or dismiss it. |
 | **Assistant proposals** | Changes the assistant suggested that you have not applied or discarded. |
+| **Probe suites to approve** | After a scan with form probes, the BA proposes one suite per form: the tries worth repeating every time, each with why. For each variant:
+<ul>
+  <li>keep or drop it, and change what it should do;</li>
+  <li>open <b>Steps</b> to change a value, drop a step, or add one in the empty row;</li>
+  <li>use <b>Add a variant</b> to copy one under a new id.</li>
+</ul>
+<b>Save changes</b> keeps the suite waiting. <b>Approve the suite</b> writes it into the portal's <code>traces.yaml</code>, and <code>pnpm portal:trace</code> runs it. <b>Dismiss</b> drops it. Nothing runs before you approve. |
 | **Edit conflicts** | Two saves on the same process or amendment. Compare them and keep one. |
 
 Things leave the inbox when you decide. Nothing in it is deleted behind your back.

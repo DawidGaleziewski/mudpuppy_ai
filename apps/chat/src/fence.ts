@@ -14,6 +14,8 @@ export const CHAT_TOOLS = [
   'workflow_state',
   'list_process_candidates',
   'save_persona',
+  // Spec 032: test values a form needs, asked once in chat (O-M3).
+  'save_test_data',
   'request_scan',
   'stop_scan',
   'set_process_scope',
@@ -51,6 +53,8 @@ export const BA_WRITE_TOOLS = [
   'revise_record',
   'withdraw_record',
   'address_crawler_question',
+  // Spec 032: a probe suite the owner approves in Review before it ever runs.
+  'propose_probe_suite',
 ].map((t) => BA + t);
 
 export const CRAWLER_TOOLS = [
@@ -59,6 +63,7 @@ export const CRAWLER_TOOLS = [
   'get_next_frontier_item',
   'navigate',
   'act',
+  'probe_form',
   'login',
   'add_open_question',
   'add_rule_candidate',

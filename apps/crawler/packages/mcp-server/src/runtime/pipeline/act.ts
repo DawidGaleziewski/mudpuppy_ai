@@ -1,8 +1,6 @@
 import { maskText } from '@pathfinder/core';
 import {
   decide,
-  frameByPath,
-  locateClickable,
   pendingItemForAction,
   settleFrontierItem,
   type GateContext,
@@ -16,6 +14,8 @@ import type { RunState } from '../run-state.js';
 import { getAction, inputValue, type ActionRow } from './actions.js';
 import { gateAct } from './act-gate.js';
 import { autofillBeforeSubmit } from './autofill.js';
+import { withFault } from './fault.js';
+import { findAgain, type Locator } from './find-again.js';
 import {
   ANSI_STYLE,
   counted,
@@ -31,6 +31,8 @@ import { actionTarget, gateEvent, itemCapChecked, refuse, requireIntent } from '
 import { withNext } from './next-item.js';
 import { queueOpenedWindows } from './popups.js';
 import { processPage } from './process-page.js';
+import { needsReplay, returnToState } from './replay.js';
+import { pathByAct } from './run-path.js';
 import { settleReports } from './settle.js';
 import { beginStep, bumpRun, throwIfStopped } from './stop.js';
 
@@ -70,10 +72,6 @@ export async function retireOnCrash(
 
 /** Tool errors that mean the action could not be done (the agent's own mistakes are not). */
 const CRASH_CODES: ReadonlySet<string> = new Set(['NAVIGATION_FAILED', 'SAFETY_CLASS_MISMATCH']);
-
-/** The Playwright locator of the element (mcp-server has no direct playwright dependency). */
-type Locator = Parameters<typeof autofillBeforeSubmit>[2];
-type Page = Parameters<typeof frameByPath>[0];
 
 /** One `act` call after its gate passed: the action, its gate context and the decision. */
 interface ActCall {
@@ -122,6 +120,8 @@ async function actStep(
 ): Promise<PageResult> {
   const started = performance.now();
   state.obstacleCursor = state.session.obstacles.events.length;
+  if (input.fault && !state.isTrace)
+    throw new ToolError('SCHEMA_INVALID', 'fault: trace runs only (map runs use probe_form)');
   if (state.isTrace) await requireCurrentState(ctx, run, state, input.action_id);
   const { action, g, d } = await step({ ctx, run }, 'gate', () =>
     gateAct(ctx, run, state, input.action_id),
@@ -135,34 +135,43 @@ async function actStep(
   await beforeClickAction(call, input.action_id);
   // Map mode fills a form before pressing its submit control (spec 008 FR-002) on every
   // environment, within the portal's limit when it sets one (spec 021).
-  if (!state.isTrace && !action.json.input)
-    await step(call, 'autofill', () => autofillBeforeSubmit(state, action, locator));
+  const fills =
+    !state.isTrace && !action.json.input
+      ? await step(call, 'autofill', () => autofillBeforeSubmit(state, action, locator))
+      : [];
   // The hops of this action start on the page it was taken on (spec 019, R-38).
   state.session.navigation.begin(state.session.page.url());
   state.session.takeOpened(); // windows opened before this action are not its pop-ups
-  await perform(call, locator, matches, value);
-
   const fromDepth = state.depthByState.get(action.state_id) ?? 0;
   // Typing into a form stays on the same page: only clicks take the trace one level deeper.
   const toDepth = action.json.input ? fromDepth : fromDepth + 1;
-  const result = await processPage({
-    ctx,
-    run,
-    rs: state,
-    via: { kind: 'act', action },
-    depth: toDepth,
-    ...(state.isTrace
-      ? {
-          step: {
-            intent: input.intent!,
-            kind: action.json.input ?? 'click',
-            action_id: action.id,
-            value,
-          },
-        }
-      : {}),
-    reloginTarget: action.json.page_url,
-    ...(input.include_actions ? { includeActions: true } : {}),
+  // A trace variant's technical fault breaks this action's request in the browser (spec 032 US3).
+  const result = await withFault(state, input.fault, async () => {
+    await perform(call, locator, matches, value);
+    return processPage({
+      ctx,
+      run,
+      rs: state,
+      via: { kind: 'act', action },
+      depth: toDepth,
+      ...(state.isTrace
+        ? {
+            step: {
+              intent: input.intent!,
+              kind: action.json.input ?? 'click',
+              action_id: action.id,
+              value,
+            },
+          }
+        : {}),
+      reloginTarget: action.json.page_url,
+      ...(input.include_actions ? { includeActions: true } : {}),
+    });
+  });
+  pathByAct(state, action.state_id, result.state_id, {
+    actionId: action.id,
+    value,
+    ...(fills.length > 0 ? { fills } : {}),
   });
   // After the page settled, so a pop-up's window has opened by now (LO-27).
   await queueOpenedWindows(ctx, run, state, action, fromDepth + 1);
@@ -200,6 +209,9 @@ async function requireCurrentState(
 async function reachState(call: ActCall): Promise<void> {
   const { ctx, state, action } = call;
   const to = action.json.page_url;
+  // A step of a same-URL form: its URL shows the first step, so go the run's own way (F-01@032).
+  if (needsReplay(state, action.state_id, to))
+    return returnToState({ ctx, run: call.run, rs: state }, action.state_id);
   await gateReach(call, to);
   await step(call, 'reach_state', async () => {
     await state.session.goto(to);
@@ -283,28 +295,6 @@ function locate(call: ActCall) {
     }
     return reported({ locator: found.locator, matches: found.matches });
   });
-}
-
-type Found =
-  | { locator: Locator; matches: number }
-  | { locator: null; matches: number; outcome: 'absent' | 'ambiguous' };
-
-async function findAgain(page: Page, action: ActionRow): Promise<Found> {
-  // An action inside a frame resolves in that frame (spec 015 R3); a frame that is gone means the
-  // element is gone.
-  const doc = action.json.frame !== undefined ? frameByPath(page, action.json.frame) : page;
-  if (doc === null) return { locator: null, matches: 0, outcome: 'absent' };
-  const path = action.json.locators.find((l) => l.kind === 'path')?.value;
-  if (action.json.found_by !== undefined && path !== undefined)
-    return locateClickable(doc, { path, name: action.accessible_name });
-  const all = doc.getByRole(
-    action.role as never,
-    action.accessible_name ? { name: action.accessible_name, exact: true } : {},
-  );
-  const matches = await all.count();
-  const locator = all.nth(action.json.nth);
-  if ((await locator.count()) === 0) return { locator: null, matches, outcome: 'absent' };
-  return { locator, matches };
 }
 
 /** Click, fill, select or check the element; a failure is a refusal with Playwright's reason. */

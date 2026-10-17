@@ -6,7 +6,7 @@ from __future__ import annotations
 from fastapi import APIRouter, Request
 from fastapi.responses import HTMLResponse
 
-from .. import db, queries_screens
+from .. import db, queries_screens, queries_suites
 from .deps import web_of
 
 router = APIRouter()
@@ -19,9 +19,17 @@ def screens_page(request: Request, env: str | None = None) -> HTMLResponse:
     try:
         with c.conn() as conn:
             rows = queries_screens.portal_screens(conn, c.portal)
+            coverage = queries_suites.step_coverage(conn, c.portal)
     except db.StoreMissing as err:
         return web.missing(c, err)
-    return web.render(c, "salvage/screens.html", nav_current="screens", rows=rows)
+    return web.render(
+        c,
+        "salvage/screens.html",
+        nav_current="screens",
+        rows=rows,
+        coverage=coverage,
+        steps=queries_suites.step_summary(coverage),
+    )
 
 
 @router.get("/search", response_class=HTMLResponse)
