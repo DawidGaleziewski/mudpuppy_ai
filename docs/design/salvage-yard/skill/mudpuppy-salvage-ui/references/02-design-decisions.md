@@ -102,7 +102,7 @@ Status key: **Accepted** (build it) · **Open** (needs a product decision, see e
 ### D-14 · The portal is the project context — Accepted
 - **Decision.** The portal is picked once in the header. Five tool-shaped top tabs become seven portal-scoped sections: Home, Processes, Screens, Docs, Review, Scans, Settings. Nothing is removed; everything moves to where you'd look for it (see wireframe 01-IA).
 
-### D-15 · Processes are a workspace; saving never overwrites — Accepted (see Open O-1)
+### D-15 · Processes are a workspace; saving never overwrites — Accepted (see Open O-1; full spec in `10-processes.md`)
 - **Decision.** Processes have variants (A as-is, B to-be) and revisions. The assistant drafts groupings that you accept, edit or dismiss. Editing the to-be is a draft over the as-is; saving creates a new revision; restore creates a new revision; a conflict notice appears when someone saved first.
 
 ### D-16 · Credentials only when needed — Accepted
@@ -140,6 +140,23 @@ Status key: **Accepted** (build it) · **Open** (needs a product decision, see e
   - **Mark:** the existing pixel mudpuppy on its survey grid, recoloured pixel by pixel to Salvage tokens. It is used on brand surfaces only, not in the app header.
   - **Tag icon:** a marker tag with a punched hole, used under 24px (favicon). This closes the mission doc's open item for a small mark.
 
+## Map runs (`11-map-runs.md`)
+
+### D-26 · The map is a graph of buttons over decorative edges — Accepted
+- **Decision.** Nodes are real `button`s positioned from the server's layout; edges are an `aria-hidden` SVG behind them. A List view carries the same facts. Several pages or states collapse into a **deck**: offset plates drawn with hard, unblurred offsets. They depict stacked plates, not elevation, so D-10 still holds.
+- **Why.** Clickable nodes are the point (they steer the crawler), so they must work with a keyboard and a screen reader. A canvas or SVG-only graph would not.
+
+### D-27 · Red means the crawler failed, not that the portal showed an error — Accepted
+- **Decision.** An error page, toast or timeout that probing provoked or recorded is a **state** with a neutral chip ("technical"). Failure red is kept for our own failures: a stopped scan, a failed action, replay divergence.
+- **Why.** One paint, one job (D-05). Probing produces many error states on purpose; painting them red would make a healthy probe run look broken.
+
+### D-28 · Marks are a person's intent, the replay path is a drawing — Accepted
+- **Decision.** Marks (Start here, Focus, Probe, Retry, Recheck, Skip) are marker tags on the nodes and collect in the Next scan plan, the view's one intent plate. The path the next scan will replay is a dashed blueprint edge.
+- **Why.** Marks are instructions from a person, like "needs you"; the planned path is a to-be that hasn't happened yet.
+
+### D-29 · In the UI a run is a "scan" — Accepted
+- **Decision.** Screens say scan ("Plan next scan", "Resume scan"). Specs and the API say run. The scan types are Full map, Continue frontier, Focused, Probe forms, Recheck and Retry path.
+
 ---
 
 ## Open items (need a product decision)
@@ -147,4 +164,6 @@ Status key: **Accepted** (build it) · **Open** (needs a product decision, see e
 - **O-1 · Product rule 4 "As-is only" vs the to-be workspace.** The mission doc says MudPuppy describes the current state and does not propose the target design. The redesign, at the product owner's request, adds drawing the to-be, variants and a change spec. Update the rule (for example "MudPuppy *records* the as-is; people *draw* the to-be in it; the assistant only proposes"), or scope the to-be features out.
 - **O-2 · Wordmark scope.** Use `[MUD]PUPPY` alone, or `[MUD]PUPPY console` when other surfaces exist (CLI, docs site)?
 - **O-3 · Glossary entry point.** The wireframes had a "Glossary and BA wiki" nav link. The screens fold it into the header "?" button. Confirm this.
+- **O-5 … O-8 · Processes.** Who may mark live, what "Migrated" means per portal, export formats, auto-documenting accepted suggestions. See `10-processes.md` §14.
+- **O-M1 … O-M5 · Map runs.** Technical probes outside sandbox, captchas and one-time codes, where test data per persona lives, the probe budget, approval for rechecks on production. See `11-map-runs.md` §12.
 - **O-4 · Run-id casing in the UI.** Ids are shown as stored (lowercase hex, e.g. `01a110d5`). Confirm that no uppercase display convention exists elsewhere (docs exports, CLI).

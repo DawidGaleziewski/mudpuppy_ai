@@ -330,6 +330,23 @@ class Mark(Row):
     used_at: str | None
 
 
+class Reconciliation(Row):
+    """The BA's proposed reading of a group of differing states, and its confirmation (0025)."""
+
+    id: str
+    portal_id: str
+    group_key: str
+    group_kind: Literal["action", "route", "replay"]
+    snapshot_json: str
+    proposal_json: str
+    proposed_by: str
+    proposed_at: str
+    status: Literal["proposed", "confirmed", "superseded"]
+    confirmed_json: str | None
+    confirmed_by: str | None
+    confirmed_at: str | None
+
+
 class Screen(Row):
     """A screen (0015): (portal, route template, cluster); its states are its observed revisions."""
 
@@ -893,6 +910,7 @@ TABLE_MODELS: dict[str, type[Row]] = {
     "probe_outcomes": ProbeOutcome,
     "probe_suites": ProbeSuite,
     "marks": Mark,
+    "reconciliations": Reconciliation,
 }
 
 

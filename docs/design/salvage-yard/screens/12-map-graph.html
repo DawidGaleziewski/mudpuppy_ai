@@ -1,0 +1,293 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MudPuppy · Map</title>
+<link rel="icon" href="../brand/logo/tag-icon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../design-system/css/tokens.css">
+<link rel="stylesheet" href="../design-system/css/fonts.css">
+<link rel="stylesheet" href="../design-system/css/salvage.css">
+<style>
+  /* Screen layout only. Graph geometry (node left/top, edge paths) comes from the server's layout. */
+  .mp-map-tools { display: flex; flex-wrap: wrap; align-items: flex-end; gap: var(--sy-space-3) var(--sy-space-5); }
+  .mp-map-tools fieldset { display: flex; flex-wrap: wrap; gap: 0 var(--sy-space-3); }
+  .mp-inspector-marks { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+  .mp-inspector-marks .sy-btn { justify-content: center; padding-inline: 6px; }
+</style>
+</head>
+<body class="sy-ground">
+<a class="sy-skip" href="#main">Skip to content</a>
+<div class="sy-app">
+  <header class="sy-header">
+    <a class="sy-wordmark" href="01-home.html"><span class="sy-wordmark__paint">MUD</span>PUPPY</a>
+    <label class="sy-portal"><span class="sy-label">Portal</span>
+      <select class="sy-select"><option>reference-insurer</option><option>wikipedia</option><option>All portals</option><option>+ New portal</option></select></label>
+    <label class="sy-search">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+      <input type="search" aria-label="Search" placeholder="Search parts: screens, processes, records"><span class="sy-kbd">Ctrl K</span></label>
+    <span class="sy-status" data-status="ok">Assistant up</span>
+    <a class="sy-btn" href="02-screen-with-assistant.html">Ask the assistant <span class="sy-kbd">Ctrl J</span></a>
+    <a class="sy-btn sy-btn--icon" href="#" aria-label="Help and glossary">?</a>
+  </header>
+  <div class="sy-app__body">
+    <nav class="sy-nav" aria-label="Portal sections">
+      <a class="sy-nav__item" href="01-home.html">Home</a>
+      <a class="sy-nav__item" href="04-processes.html">Processes <span class="sy-nav__count">1·4</span></a>
+      <a class="sy-nav__item" href="08-screen-detail.html">Screens <span class="sy-nav__count">21</span></a>
+      <a class="sy-nav__item" href="#">Docs</a>
+      <a class="sy-nav__item" href="09-review.html">Review <span class="sy-count">3</span></a>
+      <a class="sy-nav__item" href="10-scans.html" aria-current="page">Scans</a>
+      <a class="sy-nav__item" href="11-settings.html">Settings</a>
+      <div class="sy-nav__foot">store: sandbox · read-only</div>
+    </nav>
+    <main id="main" class="sy-main">
+<div class="sy-pagehead">
+        <nav class="sy-crumbs" aria-label="Breadcrumb"><a href="10-scans.html">Scans</a> / <span aria-current="page">Map</span></nav>
+        <div class="sy-pagehead__row">
+          <div class="sy-stack" style="--sy-gap: 4px">
+            <h1 class="sy-h1">Map</h1>
+            <p class="sy-meta">reference-insurer · 17 pages from 3 scans · 113 still queued · last scan <span class="sy-tag sy-tag--sm">01a110d5</span> stopped at <span class="sy-route">/kontakt</span></p>
+          </div>
+          <aside class="sy-callout sy-callout--drawn" aria-label="About this data" style="max-width: 400px">
+            <span class="sy-callout__title">New: map runs</span>
+            <span>Pages, routes, scans and the stop are real. The form outcomes, marks and per-page queue split are illustrative.</span>
+          </aside>
+        </div>
+      </div>
+
+      <nav class="sy-tabs" aria-label="Scan views">
+        <a class="sy-tab" href="10-scans.html">Scans <span class="sy-count sy-count--muted">3</span></a>
+        <a class="sy-tab" href="12-map-graph.html" aria-current="page">Map</a>
+        <a class="sy-tab" href="10-scans.html#server">Server activity</a>
+      </nav>
+
+      <!-- Toolbar: what the graph shows. Filters change the overlay, never the data. -->
+      <form class="mp-map-tools" aria-label="Map filters">
+        <label class="sy-stack" style="--sy-gap: 4px"><span class="sy-label">Scans</span>
+          <select class="sy-select sy-select--md" style="min-width: 220px"><option>All 3 scans (merged)</option><option>01a110d5 · stopped</option><option>01a10eb9 · stopped</option><option>01a1083f · completed</option></select></label>
+        <label class="sy-stack" style="--sy-gap: 4px"><span class="sy-label">Persona</span>
+          <select class="sy-select sy-select--md" style="min-width: 140px"><option>guest</option></select></label>
+        <fieldset>
+          <legend class="sy-legend-label">Layers</legend>
+          <label class="sy-check"><input type="checkbox" checked> States</label>
+          <label class="sy-check"><input type="checkbox" checked> Errors</label>
+          <label class="sy-check"><input type="checkbox" checked> Queue</label>
+          <label class="sy-check"><input type="checkbox" checked> Marks</label>
+        </fieldset>
+        <div class="sy-seg" role="group" aria-label="View" style="margin-left: auto">
+          <button type="button" aria-pressed="true">Graph</button>
+          <button type="button" aria-pressed="false">List</button>
+        </div>
+      </form>
+
+      <div class="sy-columns">
+        <div class="sy-col-main sy-stack" style="--sy-gap: var(--sy-space-3)">
+
+          <!-- The graph. Nodes are buttons; edges are decoration (the list view carries the same facts). -->
+          <section class="sy-graph" aria-label="Map of reference-insurer, layered from the start page">
+            <div class="sy-graph__canvas" style="width: 690px; height: 540px">
+              <svg class="sy-graph__edges" aria-hidden="true" focusable="false">
+                <!-- / → row 1, / → family -->
+                <path class="sy-edge" d="M345 96 C345 118 75 118 75 140"/>
+                <path class="sy-edge" d="M345 96 C345 118 255 118 255 140"/>
+                <path class="sy-edge" d="M345 96 C345 118 435 118 435 140"/>
+                <path class="sy-edge" d="M345 96 C345 118 615 118 615 140"/>
+                <path class="sy-edge" d="M420 48 H540"/>
+                <!-- Samochód → calculator route (its first state is step 1) -->
+                <path class="sy-edge" d="M75 236 V280"/>
+                <!-- steps on one URL -->
+                <path class="sy-edge" d="M126 350 H144"/>
+                <path class="sy-edge sy-edge--frontier" d="M260 350 H278"/>
+                <!-- step 2 → recorded outcomes -->
+                <path class="sy-edge" d="M202 390 C202 420 125 420 125 448"/>
+                <path class="sy-edge" d="M202 390 C202 420 279 420 279 448"/>
+                <!-- /kontakt: the crawler failed on the next action -->
+                <path class="sy-edge sy-edge--failed" d="M435 236 C435 264 485 262 485 290"/>
+                <text class="sy-edge-label sy-edge-label--failed" x="440" y="266" text-anchor="end">✕ 01a110d5</text>
+                <!-- /logowanie → /moje-polisy: needs a credential -->
+                <path class="sy-edge sy-edge--blocked" d="M615 236 C615 264 625 262 625 290"/>
+                <!-- next scan: replay path to the Start here mark, drawn beside the observed edges (blueprint) -->
+                <path class="sy-edge sy-edge--planned" d="M337 96 C337 112 67 112 67 140"/>
+                <path class="sy-edge sy-edge--planned" d="M67 236 V280"/>
+                <path class="sy-edge sy-edge--planned" d="M126 343 H144"/>
+              </svg>
+
+              <button class="sy-node" type="button" aria-pressed="false" style="left: 270px; top: 0; height: 96px"
+                aria-label="/ · Ubezpieczenia dla Ciebie · observed · 12 queued">
+                <span class="sy-node__route">/</span>
+                <span class="sy-node__title">Ubezpieczenia dla Ciebie</span>
+                <span class="sy-node__meta"><span class="sy-status" data-status="ok">OK</span><span class="sy-chip sy-chip--dashed">+12 queued</span></span>
+              </button>
+
+              <button class="sy-node sy-node--deck" type="button" aria-pressed="false" style="left: 540px; top: 0; height: 96px"
+                aria-label="10 more pages, collapsed: /ubezpieczenia/dom, /ubezpieczenia/podroze, /faq, /slowniczek and 6 more · 51 queued">
+                <span class="sy-node__route">+10 pages</span>
+                <span class="sy-node__title">/ubezpieczenia/dom, /podroze, /faq, …</span>
+                <span class="sy-node__meta"><span class="sy-status" data-status="ok">OK</span><span class="sy-chip sy-chip--dashed">+51 queued</span></span>
+              </button>
+
+              <button class="sy-node" type="button" aria-pressed="false" style="left: 0; top: 140px; height: 96px"
+                aria-label="/ubezpieczenia/samochod · Samochód · observed · 9 queued">
+                <span class="sy-node__route">/ubezpieczenia/ samochod</span>
+                <span class="sy-node__title">Samochód</span>
+                <span class="sy-node__meta"><span class="sy-status" data-status="ok">OK</span><span class="sy-chip sy-chip--dashed">+9 queued</span></span>
+              </button>
+
+              <button class="sy-node" type="button" aria-pressed="false" style="left: 180px; top: 140px; height: 96px"
+                aria-label="/porownanie · observed · 38 queued · marked Focus">
+                <span class="sy-node__marks"><span class="sy-tag sy-tag--intent sy-tag--sm">Focus</span></span>
+                <span class="sy-node__route">/porownanie</span>
+                <span class="sy-node__meta"><span class="sy-status" data-status="ok">OK</span><span class="sy-chip sy-chip--dashed">+38 queued</span></span>
+              </button>
+
+              <button class="sy-node" type="button" data-state="failed" aria-pressed="false" style="left: 360px; top: 140px; height: 96px"
+                aria-label="/kontakt · scan 01a110d5 failed here · marked Retry">
+                <span class="sy-node__marks"><span class="sy-tag sy-tag--intent sy-tag--sm">Retry</span></span>
+                <span class="sy-node__route">/kontakt</span>
+                <span class="sy-node__title">last page of 01a110d5</span>
+                <span class="sy-node__meta"><span class="sy-status" data-status="failed">Failed</span><span class="sy-chip sy-chip--fail">step 171</span></span>
+              </button>
+
+              <button class="sy-node" type="button" aria-pressed="false" style="left: 540px; top: 140px; height: 96px"
+                aria-label="/logowanie · observed · 3 queued · marked Skip">
+                <span class="sy-node__marks"><span class="sy-tag sy-tag--intent sy-tag--sm">Skip</span></span>
+                <span class="sy-node__route">/logowanie</span>
+                <span class="sy-node__meta"><span class="sy-status" data-status="ok">OK</span><span class="sy-chip sy-chip--dashed">+3 queued</span></span>
+              </button>
+
+              <!-- One route, three states: the React form's steps on the same URL -->
+              <div class="sy-node-group" style="left: 0; top: 280px" role="group" aria-label="/kalkulator/kierowca: 3 steps on one URL">
+                <span class="sy-node-group__label"><span>/kalkulator/kierowca</span><span>3 steps · 1 URL</span></span>
+                <button class="sy-node" type="button" aria-pressed="false" style="--sy-node-w: 116px; height: 80px"
+                  aria-label="Step 1 · Kalkulator OC/AC — dane kierowcy · observed in 3 scans · 2 extra states">
+                  <span class="sy-node__route">step 1</span>
+                  <span class="sy-node__title">dane kierowcy</span>
+                  <span class="sy-node__meta"><span class="sy-status" data-status="ok">OK</span><span class="sy-chip">+2</span></span>
+                </button>
+                <button class="sy-node" type="button" aria-pressed="true" style="--sy-node-w: 116px; height: 80px"
+                  aria-label="Step 2 · Kalkulator OC/AC — opcje · observed · 2 extra states · next step not reached · marked Start here and Probe · selected">
+                  <span class="sy-node__marks"><span class="sy-tag sy-tag--intent sy-tag--sm">Start · Probe</span></span>
+                  <span class="sy-node__route">step 2</span>
+                  <span class="sy-node__title">opcje</span>
+                  <span class="sy-node__meta"><span class="sy-status" data-status="ok">OK</span><span class="sy-chip">+2</span></span>
+                </button>
+                <button class="sy-node" type="button" data-state="unobserved" aria-pressed="false" style="--sy-node-w: 116px; height: 80px"
+                  aria-label="Step 3 · not reached yet">
+                  <span class="sy-node__route">step 3</span>
+                  <span class="sy-node__title">not reached</span>
+                  <span class="sy-node__meta"><span class="sy-status" data-status="unobserved">Gap</span></span>
+                </button>
+              </div>
+
+              <button class="sy-node" type="button" aria-pressed="false" style="left: 60px; top: 448px; --sy-node-w: 130px; height: 84px"
+                aria-label="Validation state of step 2 · required option empty · browser message Zaznacz jedną z tych opcji · same URL">
+                <span class="sy-node__route">validation</span>
+                <span class="sy-node__title">browser message</span>
+                <span class="sy-node__meta"><span class="sy-chip">same URL</span></span>
+              </button>
+              <button class="sy-node" type="button" aria-pressed="false" style="left: 214px; top: 448px; --sy-node-w: 130px; height: 84px"
+                aria-label="Technical state of step 2 · error page after HTTP 500 · simulated">
+                <span class="sy-node__route">technical</span>
+                <span class="sy-node__title">error page</span>
+                <span class="sy-node__meta"><span class="sy-chip">500 · simulated</span></span>
+              </button>
+
+              <button class="sy-node" type="button" data-state="unobserved" aria-pressed="false" style="left: 420px; top: 290px; --sy-node-w: 130px; height: 80px"
+                aria-label="Not reached: the action after /kontakt failed">
+                <span class="sy-node__route">?</span>
+                <span class="sy-node__title">after the failed action</span>
+                <span class="sy-node__meta"><span class="sy-status" data-status="unobserved">Gap</span></span>
+              </button>
+              <button class="sy-node" type="button" data-state="blocked" aria-pressed="false" style="left: 560px; top: 290px; --sy-node-w: 130px; height: 80px"
+                aria-label="/moje-polisy · blocked: needs a credential">
+                <span class="sy-node__route">/moje-polisy</span>
+                <span class="sy-node__title">needs a credential</span>
+                <span class="sy-node__meta"><span class="sy-status" data-status="skipped">Blocked</span></span>
+              </button>
+            </div>
+          </section>
+
+          <div class="sy-split">
+            <ul class="sy-legend" aria-label="Legend">
+              <li><span class="sy-status" data-status="ok">Observed</span></li>
+              <li><span class="sy-status" data-status="failed">Crawler failed</span></li>
+              <li><span class="sy-status" data-status="unobserved">Not reached</span></li>
+              <li><span class="sy-status" data-status="skipped">Blocked</span></li>
+              <li class="sy-legend__drawn">- - Planned for next scan</li>
+              <li>Deck = several states</li>
+            </ul>
+            <p class="sy-small sy-muted">Click to inspect · <span class="sy-kbd">Shift</span> click to select several · <span class="sy-kbd">M</span> mark · arrows move along edges</p>
+          </div>
+        </div>
+
+        <div class="sy-col-side">
+          <!-- Inspector: follows the selection -->
+          <section class="sy-plate" aria-labelledby="insp-h">
+            <div class="sy-plate__head">
+              <h2 id="insp-h" class="sy-plate__title">Step 2 · opcje</h2>
+              <a class="sy-small" href="13-screen-states.html">All states</a>
+            </div>
+            <div class="sy-plate__body">
+              <dl class="sy-facts">
+                <dt>Screen</dt><dd>Kalkulator OC/AC — opcje</dd>
+                <dt>Route</dt><dd><span class="sy-route">/kalkulator/kierowca</span> (same URL as step 1)</dd>
+                <dt>Seen in</dt><dd><span class="sy-tags"><span class="sy-tag sy-tag--sm">01a1083f</span><span class="sy-tag sy-tag--sm">01a10eb9</span><span class="sy-tag sy-tag--sm">01a110d5</span></span></dd>
+                <dt>Process</dt><dd><a href="05-process-edit.html">Oblicz składkę OC/AC</a></dd>
+              </dl>
+              <div class="sy-stack" style="--sy-gap: 6px">
+                <span class="sy-label">Outcomes of "submit"</span>
+                <ul class="sy-rows" style="margin-inline: calc(-1 * var(--sy-space-4))">
+                  <li class="sy-row"><span>Next step</span><span class="sy-status" data-status="unobserved">Not reached</span></li>
+                  <li class="sy-row"><span>Option empty → message</span><span class="sy-chip">validation</span></li>
+                  <li class="sy-row"><span>500 → error page</span><span class="sy-chip">technical</span></li>
+                </ul>
+              </div>
+              <div class="sy-stack" style="--sy-gap: 6px">
+                <span class="sy-label">Checkpoint</span>
+                <ol class="sy-path" aria-label="Replay recipe">
+                  <li><span class="sy-path__step">/</span></li>
+                  <li><span class="sy-path__step">Samochód</span></li>
+                  <li><span class="sy-path__step">step 1 · test data</span></li>
+                  <li><span class="sy-path__step sy-path__step--here">step 2</span></li>
+                </ol>
+                <span class="sy-small sy-muted">Replays in about 20 s instead of mapping from <span class="sy-route">/</span>.</span>
+              </div>
+              <fieldset class="sy-stack" style="--sy-gap: 6px">
+                <legend class="sy-legend-label">Mark for the next scan</legend>
+                <div class="mp-inspector-marks">
+                  <button class="sy-btn sy-btn--sm" type="button" aria-pressed="true">Start here</button>
+                  <button class="sy-btn sy-btn--sm" type="button" aria-pressed="false">Focus</button>
+                  <button class="sy-btn sy-btn--sm" type="button" aria-pressed="true">Probe</button>
+                  <button class="sy-btn sy-btn--sm" type="button" aria-pressed="false">Retry</button>
+                  <button class="sy-btn sy-btn--sm" type="button" aria-pressed="false">Recheck</button>
+                  <button class="sy-btn sy-btn--sm" type="button" aria-pressed="false">Skip</button>
+                </div>
+              </fieldset>
+            </div>
+          </section>
+
+          <!-- Next scan plan: marks collect here; they persist per portal until used or cleared -->
+          <section class="sy-plate sy-plate--intent" aria-labelledby="plan-h">
+            <div class="sy-plate__head">
+              <h2 id="plan-h" class="sy-plate__title">Next scan plan</h2>
+              <span class="sy-count">4</span>
+            </div>
+            <ul class="sy-rows">
+              <li class="sy-row"><span class="sy-row__main"><span class="sy-route">/kalkulator/kierowca</span><span class="sy-small sy-muted">step 2 · opcje</span><span class="sy-tags"><span class="sy-tag sy-tag--intent sy-tag--sm">Start here</span><span class="sy-tag sy-tag--intent sy-tag--sm">Probe</span></span></span><button class="sy-btn sy-btn--sm sy-btn--quiet" type="button" aria-label="Remove marks on step 2">Remove</button></li>
+              <li class="sy-row"><span class="sy-row__main"><span class="sy-route">/kontakt</span><span class="sy-tags"><span class="sy-tag sy-tag--intent sy-tag--sm">Retry</span></span></span><button class="sy-btn sy-btn--sm sy-btn--quiet" type="button" aria-label="Remove mark on /kontakt">Remove</button></li>
+              <li class="sy-row"><span class="sy-row__main"><span class="sy-route">/porownanie</span><span class="sy-tags"><span class="sy-tag sy-tag--intent sy-tag--sm">Focus</span></span></span><button class="sy-btn sy-btn--sm sy-btn--quiet" type="button" aria-label="Remove mark on /porownanie">Remove</button></li>
+              <li class="sy-row"><span class="sy-row__main"><span class="sy-route">/logowanie</span><span class="sy-tags"><span class="sy-tag sy-tag--intent sy-tag--sm">Skip</span></span></span><button class="sy-btn sy-btn--sm sy-btn--quiet" type="button" aria-label="Remove mark on /logowanie">Remove</button></li>
+            </ul>
+            <div class="sy-plate__foot">
+              <button class="sy-btn sy-btn--sm sy-btn--quiet" type="button">Clear all</button>
+              <a class="sy-btn sy-btn--primary" href="14-plan-run.html">Plan next scan</a>
+            </div>
+          </section>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+</body>
+</html>

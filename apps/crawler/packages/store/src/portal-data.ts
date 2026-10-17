@@ -56,6 +56,7 @@ export const PORTAL_TABLES = [
   'probe_outcomes',
   'probe_suites',
   'marks',
+  'reconciliations',
 ] as const;
 export type PortalTable = (typeof PORTAL_TABLES)[number];
 
@@ -82,6 +83,7 @@ export type PortalTable = (typeof PORTAL_TABLES)[number];
  * `decision_log` and `runs`.
  */
 const DELETE_ORDER: readonly PortalTable[] = [
+  'reconciliations', // 0025: no references
   'marks', // 0024: references runs (used_by_run_id)
   'probe_suites', // 0023: reference runs and form_steps
   'probe_outcomes', // 0023: reference runs, states, form_steps and edges
@@ -171,6 +173,7 @@ export function where(table: PortalTable, side: 'mine' | 'others'): string {
     case 'form_steps':
     case 'probe_suites':
     case 'marks':
+    case 'reconciliations':
       return `portal_id ${op} ?`;
     case 'chat_messages':
       return `conversation_id IN (SELECT id FROM chat_conversations WHERE portal_id ${op} ?)`;

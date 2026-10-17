@@ -70,4 +70,54 @@ describe('scoreBaShapes (spec 019 F-09/F-13/F-14)', () => {
     setContent('data_item', { name_verbatim: 'rok_produkcji' });
     expect(scoreBaShapes(fx.raw, fx.portalId, GT).data_items_code_names).toBe(1);
   });
+
+  it('counts process steps on an error page or a state the owner confirmed as temporary (spec 033)', () => {
+    const T = '2026-10-17T10:00:00.000Z';
+    const state = (id: string, kind: string) =>
+      fx.raw
+        .prepare(
+          `INSERT INTO states (id, portal_id, fingerprint, cluster_id, route_template, title,
+             evidence_ref, confidence, stabilization, first_seen_run, created_at, state_kind)
+           VALUES (?, ?, ?, ?, '/quote', 'Quote', 'ev', 'observed', 'settled', ?, ?, ?)`,
+        )
+        .run(id, fx.portalId, `fp-${id}`, `cl-${id}`, fx.runId, T, kind);
+    state('st-ok', 'main');
+    state('st-500', 'technical');
+    state('st-flaky', 'main');
+    const step = (id: string, stateId: string) => ({
+      id,
+      title: id,
+      route: '/quote',
+      state_id: stateId,
+    });
+    fx.raw
+      .prepare(
+        `INSERT INTO ba_processes (id, portal_id, key, name, persona, stage, rev, source, scope_id,
+           suggestion_id, created_at, updated_at)
+         VALUES ('pr-x', ?, 'PRC-900', 'Quote', 'guest', 'as_is_documented', 1, 'new', NULL, NULL, ?, ?)`,
+      )
+      .run(fx.portalId, T, T);
+    fx.raw
+      .prepare(
+        `INSERT INTO process_variants (id, process_id, label, kind, rev, branched_from_variant_id,
+           branched_from_rev, created_at) VALUES ('va-x', 'pr-x', 'A', 'as_is', 1, NULL, NULL, ?)`,
+      )
+      .run(T);
+    fx.raw
+      .prepare(
+        `INSERT INTO process_variant_revisions (variant_id, rev, base_rev, change, author, steps,
+           note, run_id, restored_from, created_at) VALUES ('va-x', 1, NULL, 'create', 'BA', ?,
+           NULL, NULL, NULL, ?)`,
+      )
+      .run(JSON.stringify([step('s1', 'st-ok'), step('s2', 'st-500'), step('s3', 'st-flaky')]), T);
+    expect(scoreBaShapes(fx.raw, fx.portalId, GT).error_pages_as_steps).toBe(1);
+    fx.raw
+      .prepare(
+        `INSERT INTO reconciliations (id, portal_id, group_key, group_kind, snapshot_json,
+           proposal_json, proposed_by, proposed_at, status, confirmed_json, confirmed_by, confirmed_at)
+         VALUES ('rc-x', ?, 'route:/quote', 'route', '{}', '[]', 'BA', ?, 'confirmed', ?, 'Owner', ?)`,
+      )
+      .run(fx.portalId, T, JSON.stringify([{ state_id: 'st-flaky', verdict: 'temporary' }]), T);
+    expect(scoreBaShapes(fx.raw, fx.portalId, GT).error_pages_as_steps).toBe(2);
+  });
 });

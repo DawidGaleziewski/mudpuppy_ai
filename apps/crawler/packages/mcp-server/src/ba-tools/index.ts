@@ -5,8 +5,10 @@ import {
   AnalysisPass,
   DocKind,
   EvidenceTargetKind,
+  Hypothesis,
   RelationType,
   RevisionStatus,
+  Verdict,
 } from '@pathfinder/docs-model';
 import { z } from 'zod';
 import type { BaContext } from '../context.js';
@@ -23,6 +25,7 @@ import {
 import { RunEvidenceKind, getRunEvidence } from '../services/ba/run-evidence.js';
 import { listRuns } from '../services/ba/runs.js';
 import { proposeProbeSuite } from '../services/ba/probe-suites.js';
+import { listDifferingStates, proposeVerdicts } from '../services/ba/reconcile.js';
 import {
   addressCrawlerQuestion,
   createRecord,
@@ -55,6 +58,8 @@ export const BA_TOOL_NAMES = [
   'address_crawler_question',
   'get_access_matrix',
   'propose_probe_suite',
+  'list_differing_states',
+  'propose_verdicts',
 ] as const;
 export type BaToolName = (typeof BA_TOOL_NAMES)[number];
 
@@ -154,6 +159,30 @@ export function registerBaTools(server: McpServer, ctx: BaContext): void {
       ),
     },
     (a) => Promise.resolve(proposeProbeSuite(ctx, a)),
+  );
+  tool(
+    'list_differing_states',
+    `Spec 033: where scans saw different screens at one point of the map, as groups. kind action: the same page and action (role, name) led to two or more screens; kind route: one route showed two or more screens that form steps and state kinds do not explain. Each outcome: its state, kind, scans (persona, environment), first and last seen, HTTP status, frequency (seen in N of M scans that took the action) and reproduced (seen again in a later scan). reconciliation: the verdicts already proposed or confirmed in Review. Check the reasons in order: ${oneOf(Hypothesis.options)}. Pass route to narrow to groups that touch it.`,
+    { portal_id: z.string(), route: z.string().optional() },
+    (a) => Promise.resolve(listDifferingStates(ctx, a)),
+  );
+  tool(
+    'propose_verdicts',
+    `Spec 033: propose one verdict per outcome of a group from list_differing_states (all of its outcome states, no others): { state_id, verdict, hypothesis, reason (the evidence, e.g. "seen in 2 of 3 guest scans; the 503 page once, not reproduced") }. Verdicts: ${oneOf(Verdict.options)}. The owner confirms them in Review; until then document with your proposal, inferred. A newer proposal for the group replaces the open one.`,
+    {
+      session_id: z.string(),
+      portal_id: z.string(),
+      group_key: z.string(),
+      verdicts: z.array(
+        z.object({
+          state_id: z.string(),
+          verdict: z.string(),
+          hypothesis: z.string(),
+          reason: z.string(),
+        }),
+      ),
+    },
+    (a) => Promise.resolve(proposeVerdicts(ctx, a)),
   );
   tool(
     'get_run_evidence',

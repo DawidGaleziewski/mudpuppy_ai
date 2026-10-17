@@ -31,6 +31,7 @@ from .web import events as events_page
 from .web import evidence as evidence_page
 from .web import glossary as glossary_page
 from .web import health as health_page
+from .web import map as map_page
 from .web import overview as overview_page
 from .web import portals as portals_page
 from .web import processes as processes_page
@@ -135,6 +136,7 @@ def create_app(
     app.include_router(access_page.router)
     app.include_router(review_page.router)
     app.include_router(scans_page.router)
+    app.include_router(map_page.router)
     # Last: its /chat/portals/{portal}/{rest} forwarder must not shadow the routes above.
     app.include_router(processes_page.router)
     return app

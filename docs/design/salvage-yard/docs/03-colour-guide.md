@@ -63,6 +63,11 @@ Something "on top" is one step lighter. There are no drop shadows anywhere.
 | Secondary information | ash text | timestamps, helper copy |
 | Disabled | ash text, line border, `not-allowed` cursor | `<button disabled>` |
 | The assistant is pointing at part of a recorded screen | `.sy-mark`: marker outline + steel inner ring | "MARKED BY ASSISTANT" |
+| A person marked a map node for the next scan | marker tag `.sy-tag--intent` on the node | "START · PROBE", "RETRY", "SKIP" |
+| The crawler failed on this action | failure: `.sy-edge--failed`, `data-state="failed"` node | `/kontakt` ✕ 01a110d5 |
+| The portal showed an error we provoked or recorded | **neutral** chip `.sy-chip`, never failure red | "technical", "500 · simulated" |
+| Where the next scan will replay | blueprint dashed `.sy-edge--planned` | `/ → Samochód → step 2` |
+| Queued, or not reached yet | ash dashed: `.sy-chip--dashed`, `data-state="unobserved"` | "+38 queued", "step 3 · not reached" |
 
 ---
 

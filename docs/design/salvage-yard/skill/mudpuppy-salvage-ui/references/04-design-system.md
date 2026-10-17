@@ -1,6 +1,6 @@
 # 04 · Design system: Salvage Yard
 
-The reference for building any MudPuppy UI. Live versions of everything here are in
+The reference for building any MudPuppy UI. (How the Processes feature behaves is in `10-processes.md`.) Live versions of everything here are in
 `design-system/components.html`. The CSS is `design-system/css/` (see `05-css-guide.md`).
 Colour meanings are in `03-colour-guide.md`, and the reasons behind the rules are in `02-design-decisions.md`.
 
@@ -165,7 +165,21 @@ Links are underlined text (chalk with a marker underline); buttons are boxes. Ne
 `.sy-meter[data-status=running|ok|failed|stopped]` with `style="--value: 42.75%"` > `.sy-meter__label` + `.sy-meter__track[role=progressbar][aria-valuenow…]` > `.sy-meter__fill`.
 
 ### Timeline (revisions)
-`ol.sy-timeline` > `li[data-status=live|draft|ok]` > `.sy-timeline__head` (tag + status) + `.sy-timeline__body`. The newest revision goes first. Restoring creates a new revision, never a rollback.
+`ol.sy-timeline` > `li[data-status=live|draft|ok|failed]` > `.sy-timeline__head` (tag + status) + `.sy-timeline__body`. The newest revision goes first. Restoring creates a new revision, never a rollback. The same component lists retry attempts on a failing path (15), oldest first, with the next attempt as `draft`.
+
+### Map graph (Scans ▸ Map)
+| Part | Classes | Rules |
+|---|---|---|
+| Graph | `section.sy-graph` > `.sy-graph__canvas` (inline `width`/`height` from the layout) | Pans inside its plate; never scrolls the page sideways. Give it an `aria-label`. |
+| Edges | `svg.sy-graph__edges[aria-hidden]` > `path.sy-edge` (`--failed`, `--frontier`, `--blocked`, `--planned`) + `text.sy-edge-label` (`--failed`) | Solid = observed · red = the crawler failed on this action · dashed ash = queued / not reached · dotted ash = blocked · dashed blueprint = the next scan's replay path. Decoration only: the node labels and the List view carry the facts. |
+| Node | `button.sy-node[aria-pressed]` (inline `left`/`top`, `--sy-node-w`, `height`) > `.sy-node__route` + `.sy-node__title` + `.sy-node__meta` (status + chips) + `.sy-node__marks` (marker tags) | `data-state="failed\|unobserved\|frontier\|blocked"`. `.sy-node--deck` = several pages or states collapsed (always add a count chip). Selected = 2px chalk outline. |
+| Route group | `.sy-node-group[role=group]` > `.sy-node-group__label` + nodes | Several states on one URL (form steps), expanded. |
+| Chip | `.sy-chip` (`--fail`, `--ok`, `--tobe`, `--dashed`) | Small counts and kinds: "+2", "validation", "+38 queued". Kinds of state are neutral: a recorded technical error is the portal's, not a failure of ours. |
+
+### Cards, choices and paths
+- **Card:** `.sy-card` (`__title`; `--drawn`, `--failed`, `--muted`; `aria-current="true"` when selected): a compact plate for a step or an outcome. `.sy-flow` + `.sy-flow__arrow` lines cards up.
+- **Choice card:** `label.sy-choice` > `input.sy-choice__input[type=radio]` + `.sy-choice__body` (`<b>` title + `<span>` text). A real radio: arrow keys, one checked, chalk weld when checked.
+- **Path:** `ol.sy-path` > `li` > `.sy-path__step` (`--here`, `--failed`): a replay recipe or the way to a failure. Arrows are drawn by CSS.
 
 ### Assistant
 | Part | Classes |

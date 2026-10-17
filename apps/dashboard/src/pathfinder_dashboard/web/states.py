@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import sqlite3
 from typing import Any
-from urllib.parse import parse_qs, quote
+from urllib.parse import parse_qs, quote, urlencode
 
 from fastapi import APIRouter, Request
 from fastapi.responses import HTMLResponse, PlainTextResponse, RedirectResponse, Response
@@ -186,5 +186,10 @@ async def state_probe_mark(request: Request, state_id: str, env: str | None = No
         method = "POST" if action == "mark" else "DELETE"
         refused = await _mark_call(web, method, fs.portal, body)
         note = f"Not recorded: {refused}." if refused else PROBE_MARK_DONE[action]
+    # The map's inspector sends `back` (spec 033 FR-011); only a map address is followed.
+    back = (form.get("back") or [""])[0]
+    if back.startswith("/map?") or back == "/map":
+        sep = "&" if "?" in back else "?"
+        return RedirectResponse(f"{back}{sep}{urlencode({'probe_note': note})}", status_code=303)
     target = c.url(f"/states/{state_id}", probe_note=note)
     return RedirectResponse(target + "#h-form-step", status_code=303)

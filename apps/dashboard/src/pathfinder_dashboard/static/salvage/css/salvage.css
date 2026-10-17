@@ -510,6 +510,8 @@
       var(--_k) left bottom / 3px 1.5px no-repeat, var(--_k) left bottom / 1.5px 3px no-repeat,
       var(--_k) right bottom / 3px 1.5px no-repeat, var(--_k) right bottom / 1.5px 3px no-repeat, var(--sy-bg-plate); }
   .sy-timeline > li[data-status="ok"]::before { background: var(--sy-ok); }
+  .sy-timeline > li[data-status="failed"]::before { background: var(--sy-fail);
+    clip-path: polygon(20% 0, 50% 30%, 80% 0, 100% 20%, 70% 50%, 100% 80%, 80% 100%, 50% 70%, 20% 100%, 0 80%, 30% 50%, 0 20%); }
   .sy-timeline__head { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sy-space-2); }
   .sy-timeline__body { grid-column: 2; font-size: var(--sy-fs-sm); color: var(--sy-text-muted); }
 
@@ -636,6 +638,91 @@
   /* Long names (e.g. Polish process names) as titles: keep sentence case */
   .sy-case-normal { text-transform: none; letter-spacing: 0; font-stretch: 100%; }
 
+  /* ===== Map graph (Scans ▸ Map) ========================================= */
+  /* <div class="sy-graph"><div class="sy-graph__canvas" style="width:…;height:…">
+       <svg class="sy-graph__edges" aria-hidden="true">…<path class="sy-edge …"/></svg>
+       <button class="sy-node" data-state="ok" aria-pressed="false" style="left:…;top:…">…</button>
+     </div></div>
+     Nodes are real buttons (keyboard, screen readers). Positions are layout (inline left/top). */
+  .sy-graph { position: relative; overflow: auto; background: var(--sy-bg-plate); border: var(--sy-weld) solid var(--sy-border-plate); }
+  .sy-graph__canvas { position: relative; margin: var(--sy-space-4); }
+  .sy-graph__edges { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; }
+  .sy-edge { fill: none; stroke: var(--sy-border-control); stroke-width: 1.5; }
+  .sy-edge--failed { stroke: var(--sy-fail); stroke-width: 2; }
+  .sy-edge--frontier { stroke: var(--sy-text-muted); stroke-dasharray: 4 4; }
+  .sy-edge--blocked { stroke: var(--sy-text-muted); stroke-dasharray: 1 5; stroke-linecap: square; stroke-width: 2; }
+  .sy-edge--planned { stroke: var(--sy-tobe); stroke-dasharray: 7 4; stroke-width: 2; }
+  .sy-edge-label { fill: var(--sy-text-muted); font-family: var(--sy-font-mono); font-size: 11px; }
+  .sy-edge-label--failed { fill: var(--sy-fail); }
+
+  .sy-node { position: absolute; display: flex; flex-direction: column; gap: 3px;
+    width: var(--sy-node-w, 150px); min-height: 66px; padding: 8px 10px; text-align: left; cursor: pointer;
+    background: var(--sy-bg-raised); border: var(--sy-weld) solid var(--sy-border-control); color: var(--sy-text);
+    font-family: var(--sy-font-sans); font-size: var(--sy-fs-xs); line-height: 1.3;
+    transition: border-color var(--sy-dur-hover) linear; }
+  .sy-node:hover { border-color: var(--sy-text); }
+  .sy-node[aria-pressed="true"] { outline: var(--sy-weld-strong) solid var(--sy-text); outline-offset: 3px; }
+  .sy-node[aria-pressed="true"]:focus-visible, .sy-node:focus-visible { outline: var(--sy-weld-strong) solid var(--sy-focus); outline-offset: 3px; }
+  .sy-node__route { font-family: var(--sy-font-mono); font-size: var(--sy-fs-mono-sm); font-weight: 500; overflow-wrap: anywhere; }
+  .sy-node__title { color: var(--sy-text-muted); overflow-wrap: anywhere; }
+  .sy-node__meta { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; margin-top: 2px; }
+  .sy-node__meta .sy-status { font-size: var(--sy-fs-micro); }
+  .sy-node__marks { position: absolute; top: -12px; right: 6px; display: flex; gap: 4px; }
+  /* Node states: observed (default) · failed · unobserved · blocked · frontier */
+  .sy-node[data-state="failed"] { border-color: var(--sy-fail); border-width: 2px; }
+  .sy-node[data-state="unobserved"], .sy-node[data-state="frontier"] { background: transparent; border-style: dashed; border-color: var(--sy-text-muted); }
+  .sy-node[data-state="unobserved"] .sy-node__route, .sy-node[data-state="frontier"] .sy-node__route { color: var(--sy-text-muted); }
+  .sy-node[data-state="blocked"] { background: transparent; border-color: var(--sy-text-muted); }
+  /* Several states on one route, collapsed: a deck of plates behind the node (+ a "3 states" chip) */
+  .sy-node--deck { box-shadow:
+      4px 4px 0 -1px var(--sy-bg-raised), 4px 4px 0 0 var(--sy-border-control),
+      8px 8px 0 -1px var(--sy-bg-raised), 8px 8px 0 0 var(--sy-border-control); }
+  /* Same route, expanded: a frame that holds the route's states (form steps on one URL) */
+  .sy-node-group { position: absolute; display: flex; align-items: flex-start; gap: var(--sy-node-gap, 18px);
+    padding: 30px 10px 10px; border: var(--sy-weld) solid var(--sy-border-weld); background: var(--sy-bg-well); }
+  .sy-node-group__label { position: absolute; top: 6px; left: 10px; right: 10px; display: flex; justify-content: space-between; gap: 8px;
+    font-family: var(--sy-font-mono); font-size: var(--sy-fs-micro); color: var(--sy-text-muted); white-space: nowrap; }
+  .sy-node-group .sy-node { position: relative; flex: none; }
+
+  /* Small count chip on nodes and cards: "2 states", "3 errors" */
+  .sy-chip { display: inline-flex; align-items: center; height: 18px; padding: 0 5px; white-space: nowrap;
+    border: var(--sy-weld) solid var(--sy-border-weld); font-family: var(--sy-font-mono); font-size: var(--sy-fs-micro);
+    color: var(--sy-text-muted); }
+  .sy-chip--fail { color: var(--sy-fail); border-color: var(--sy-fail); }
+  .sy-chip--tobe { color: var(--sy-tobe); border-style: dashed; border-color: var(--sy-tobe); }
+  .sy-chip--ok { color: var(--sy-ok); }
+  .sy-chip--dashed { border-style: dashed; }   /* queued / not reached */
+
+  /* ===== Flow of cards (steps on one route, outcomes) ==================== */
+  .sy-flow { display: flex; flex-wrap: wrap; align-items: stretch; gap: var(--sy-space-2); }
+  .sy-flow__arrow { align-self: center; flex: none; color: var(--sy-text-muted); font-family: var(--sy-font-mono); }
+  .sy-card { display: flex; flex-direction: column; gap: 6px; min-width: 0; padding: 10px 12px;
+    background: var(--sy-bg-raised); border: var(--sy-weld) solid var(--sy-border-control); font-size: var(--sy-fs-xs); }
+  .sy-card__title { font-size: var(--sy-fs-sm); font-weight: 600; }
+  .sy-card--drawn { background: transparent; border-style: dashed; border-color: var(--sy-tobe); }
+  .sy-card--failed { border-color: var(--sy-fail); }
+  .sy-card--muted { background: transparent; border-style: dashed; border-color: var(--sy-text-muted); color: var(--sy-text-muted); }
+  .sy-card[aria-current="true"] { outline: var(--sy-weld-strong) solid var(--sy-text); outline-offset: -1px; }
+
+  /* ===== Choice cards (radio as a card, e.g. run type) =================== */
+  /* <label class="sy-choice"><input class="sy-choice__input" type="radio" name="t"><span class="sy-choice__body">…</span></label> */
+  .sy-choice { position: relative; display: block; cursor: pointer; }
+  .sy-choice__input { position: absolute; top: 14px; left: 14px; width: 18px; height: 18px; margin: 0; accent-color: var(--sy-intent); }
+  .sy-choice__body { display: flex; flex-direction: column; gap: 4px; height: 100%; padding: 12px 14px 12px 42px;
+    background: var(--sy-bg-raised); border: var(--sy-weld) solid var(--sy-border-control); font-size: var(--sy-fs-xs); }
+  .sy-choice__body b { font-size: var(--sy-fs-sm); }
+  .sy-choice:hover .sy-choice__body { border-color: var(--sy-text); }
+  .sy-choice__input:checked + .sy-choice__body { outline: var(--sy-weld-strong) solid var(--sy-text); outline-offset: -2px; }
+  .sy-choice__input:focus-visible + .sy-choice__body { outline: var(--sy-weld-strong) solid var(--sy-focus); outline-offset: 2px; }
+
+  /* ===== Path (checkpoint recipe, route trail) =========================== */
+  .sy-path { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; font-size: var(--sy-fs-xs); }
+  .sy-path > li { display: inline-flex; align-items: center; gap: 6px; }
+  .sy-path > li + li::before { content: "→"; color: var(--sy-text-muted); font-family: var(--sy-font-mono); }
+  .sy-path__step { padding: 3px 8px; border: var(--sy-weld) solid var(--sy-border-weld); background: var(--sy-bg-well); }
+  .sy-path__step--here { border-color: var(--sy-text); }
+  .sy-path__step--failed { border-color: var(--sy-fail); color: var(--sy-fail); }
+
   /* ===== Definition list (key facts) ===================================== */
   .sy-facts { display: grid; grid-template-columns: max-content 1fr; gap: 6px var(--sy-space-4); font-size: var(--sy-fs-sm); }
   .sy-facts dt { color: var(--sy-text-muted); }
@@ -685,6 +772,7 @@
   .sy-btn--sm, .sy-btn--md, .sy-seg > button, .sy-seg > a,
   .sy-select--md, .sy-input--md, .sy-check { min-height: var(--sy-control); }
   .sy-btn--icon.sy-btn--md { width: var(--sy-control); }
+  .sy-node { min-height: 72px; }
   a.sy-tag { min-height: var(--sy-control); }
   a.sy-tag::before { inset: 10px 0; }
 }
@@ -704,4 +792,7 @@
   .sy-tag::before { display: none; }
   .sy-wordmark__paint, .sy-count { forced-color-adjust: none; }
   .sy-mark { outline-color: Highlight; }
+  .sy-edge, .sy-edge--failed, .sy-edge--frontier, .sy-edge--blocked, .sy-edge--planned { stroke: CanvasText; }
+  .sy-node { border-color: CanvasText; }
+  .sy-node[aria-pressed="true"] { outline-color: Highlight; }
 }

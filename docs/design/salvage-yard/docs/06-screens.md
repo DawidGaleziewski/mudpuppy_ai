@@ -23,6 +23,7 @@ Wireframe numbers are offset by one because wireframe 01 is the IA overview:
 | 09-review | 10-Review |
 | 10-scans | 11-Runs |
 | 11-settings | 12-Settings |
+| 12–16 (map runs) | none: designed straight in Salvage Yard (canvas page "Map runs", boards MapGraph, MapStates, MapRunPlan, MapRecovery, MapReconcile) |
 
 The screens show different moments of the same project: Home is before the first grouping is
 accepted (1 saved process, 4 drafted), Processes is just after accepting "Oblicz składkę OC/AC".
@@ -69,6 +70,9 @@ Six states side by side, each at real drawer width:
 5. **Page changed underneath you:** a new revision (r2) was observed, so the answer may be stale; switch the context to r2 or compare r1 and r2.
 6. **Assistant not running:** failure state with the reference recorded in the alert (ERR-01M48DVAT5E1GS5K42CTCTTDTJ in the fixture), the start command (a placeholder: fill it from the deployment's alert text), Retry, and a note that the unsent message is kept and read-only pages keep working (the current console's 503 behaviour).
 
+## 04–07 · Processes
+How the whole process feature works (lifecycle, flows, rules, diff, data model, API, migration of today's scope form) is in **`10-processes.md`**, with a visual overview in `10-processes-flow.html`. The four screens below are its UI.
+
 ## 04 · Processes: list and AI suggestions — `screens/04-processes.html`
 - **Grievance solved:** process scope doesn't belong in chat; it gets its own workspace.
 - **Regions:** process table ("Test process", the saved scope `/` → `/faq`, persona guest; "Oblicz składkę OC/AC" just accepted) → stage legend → the assistant's **suggested groupings** as dashed blueprint plates with Accept / Edit first / Dismiss → *In no process* (loose screens to assign).
@@ -100,10 +104,37 @@ Six states side by side, each at real drawer width:
 ## 10 · Scans: live monitor and history — `screens/10-scans.html`
 - **Regions:** live monitor for 01a110d5 (progress meter 171 / 400 steps, 17 pages, 113 queued, page map from `/` to `/kontakt`, Resume primary) → history table (01a1083f OK 320 steps · 01a10eb9 interrupted 84 · 01a110d5 interrupted 171) → *What changed* per scan, linking to Review.
 - **Rule:** scan progress and the live map live here, not in chat. Chat shows only a one-line scan status that links here.
+- **Links:** the map plate's "Open map" goes to 12; the stop reason's "Recover" goes to 15.
 
 ## 11 · Settings: environments and credentials — `screens/11-settings.html`
 - **Grievance solved:** credentials were always on screen. They are now collapsed, never shown, and requested by the assistant only when a scan needs them.
 - **Regions:** section links → environments table for **wikipedia** (production `https://www.wikipedia.org/` "only look, never submit"; staging `http://127.0.0.1:4010/` "fill and submit forms (everything)"; sandbox not configured), add-or-change form (Save environment primary), Revoke (danger, confirm dialog: "Runs already recorded are kept.") → Credentials (`details` collapsed, "none stored · values are never shown") → personas → crawl rules (robots.txt) → data store (read-only SQLite path).
+
+
+## 12–16 · Map runs
+
+How mapping works now: what the crawler records beyond the happy path, how to restart or narrow a scan without starting from `/`, how nodes steer the next scan, and how the BA agent reconciles a screen that came out differently. Spec: **`11-map-runs.md`**. In the UI a run is called a **scan**.
+
+### 12 · Map: graph, inspector, marks — `screens/12-map-graph.html`
+- **Need:** a graph of what was mapped, and nodes that steer the crawler.
+- **Regions:** page head (17 pages, 113 queued, 01a110d5 stopped at `/kontakt`) → Scans · **Map** · Server activity → filters (scans, persona, layers, Graph / List) → **graph** (`.sy-graph`): `/`, a collapsed family deck (+10 pages), Samochód, `/porownanie`, `/kontakt` (failed ✕ 01a110d5), `/logowanie`, the `/kalkulator/kierowca` route group with step 1 → step 2 → step 3 (not reached), step 2's validation and technical states, the gap after `/kontakt`, `/moje-polisy` (blocked) → legend + keyboard hint. Side: **inspector** for the selection (screen, route, status, seen in, outcomes, checkpoint, six mark buttons) and the **Next scan plan** (intent plate, one row per marked node, Remove, Clear all, Plan next scan primary).
+- **Rules:** nodes are buttons; selection is `aria-pressed`; marks are `.sy-tag--intent` (a person's intent); the next scan's replay path is a dashed blueprint edge (`.sy-edge--planned`); a failure is red only where the crawler failed. The interactive version is the canvas board MapGraph.
+
+### 13 · One URL, many states — `screens/13-screen-states.html`
+- **Need:** record every state of a form step, not only the happy path.
+- **Regions:** steps on this URL (step 1 · dane kierowcy, step 2 · opcje selected, step 3 not reached) → **what each input does** on step 2 (happy path, required empty, each option, HTTP 500, block request, delay 30 s, offline: what happened and what it is recorded as) → **coverage** matrix (probe group × step) → side: the selected outcome (error page shot, facts, how the BA agent uses it) and the probe-safety callout for the environment.
+- **Rules:** technical states are neutral chips, not failure red (the portal's error, not ours). Inferred candidates (rule, variant, NFR) are dashed blueprint statuses.
+
+### 14 · Plan next scan — `screens/14-plan-run.html`
+- **Regions:** 1 scan type (six choice cards; Focused picked) → 2 where it starts (each Start here / Focus mark with its replay recipe, excluded Skip marks) → 3 probes (validation, branch, technical; allowed-on-sandbox callout; budget) → 4 persona, environment, limits. Side: **What will happen** (intent plate: plain steps, type, estimate, Save plan, Start scan primary).
+- **Rule:** nothing runs until Start scan. Marks a scan uses are cleared when it finishes.
+
+### 15 · Stopped scan: recover — `screens/15-run-recovery.html`
+- **Regions:** where it stopped (failure plate: path `/ → /kontakt → ✕ next action · step 171`, stop reason with ERR reference and Copy, inferred failure class, last good checkpoint) → **pick up from here** (Resume primary · Retry this path · Skip it) → **attempts on this path** (timeline: #1 original failed, #2 wait longer failed, #3 draft with one variation) → side: failure classes and their defaults, other stopped scans.
+
+### 16 · Why does this differ? — `screens/16-reconcile-states.html` (Review section)
+- **Regions:** the graph point (`/` → "Oblicz składkę OC/AC" → outcomes A step 1, B 503, C sign-in) → evidence table → reasons checked in order (persona, input, temporary, session, flag, data) → documentation preview (drawn) → side: **verdicts** (intent plate, one select per outcome, Recheck first, Confirm verdicts primary) and the rule "An error page is never the step".
+- **Rule:** the agent proposes (inferred), a person confirms. Review gets a fifth kind, **Differing states**.
 
 ---
 
@@ -130,5 +161,7 @@ Six states side by side, each at real drawer width:
 | Credentials (11, 03) | After saving, a credential shows only its state: name, environment, saved time, Replace and Delete. Never the value, not even masked. |
 | Amendments | **Withdraw** marks an amendment withdrawn; it stays in history and can be restored as a new revision. Nothing is deleted. |
 | Suggestions (04) | **Edit first** opens the grouping as a draft process; **Dismiss** hides it and records the dismissal in the process history, so it is never suggested again for the same screens. |
+| Map (12) | Positions come from the server's layout; the client pans (and zooms) inside `.sy-graph`. Over ~150 nodes, collapse route families by default. Below 720px open in List view. Marks save immediately (optimistic) and persist per portal. |
+| Probing and replay (13–15) | Live progress like any scan. "Replay diverged at step N" stops the scan and opens a reconciliation item with the expected and seen states. |
 | Toasts | A toast with Undo stays until dismissed or the user navigates; other toasts auto-dismiss after at least 10 s. |
 | Out of scope (restyle only, use the library) | Search results, the Screens list page, the "All portals" overview, Server activity (Scans tab), Docs sections, New portal, Run detail tabs. |

@@ -6,6 +6,24 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Added
+- The map and differing states, R-69 (4)–(5) (spec 033; owner, 2026-10-17: "where can I see the
+  graphs of the run in the UI?").
+  - **Scans → Map:** every screen a portal's scans recorded is a node, laid out on the server from
+    the start page down. The lines are the first move into each screen; **All links** adds the
+    rest. Several states of one screen stack as a deck. Queued, failed and blocked items are chips
+    on their page. Filters for one scan or persona grey out what it did not see; a list view for
+    phones and screen readers. The inspector shows a node's states, the scans that saw it, where
+    its actions lead, what was left there and its probe outcomes, and marks a form step for
+    probing. Route families fold over 150 screens; 300 screens open in about 0.1 s.
+  - **Differing states:** where the same button or route showed different screens across scans,
+    the BA gets the group with its evidence (scans, personas, HTTP status, how often, whether it
+    came back; `list_differing_states`), checks the reasons in order (persona, input, temporary,
+    session, flag, data) and proposes a verdict per outcome (`propose_verdicts`). You confirm or
+    change them in **Review → Differing states**; the BA documents by them, and an error page is
+    never a process step (BA guidance; eval diagnostic `error_pages_as_steps`).
+  - Scar SC-20 (one button, two pages) and its gate; the design package refreshed (screens 12–16).
+  - Not done: replay groups (the trace masks their state ids, F-01@033); the other marks (Start
+    here, Focus, Retry, Recheck, Skip) and the next-scan plan come with R-66.
 - Every state of a form, R-69 (1)–(3) (spec 032; owner, 2026-10-16 `graph_handler`, answers
   O-M1…O-M5 and 2026-10-17): map runs record more than a form's happy path.
   - **Form steps on one URL:** a same-URL React wizard's steps and their error states are told

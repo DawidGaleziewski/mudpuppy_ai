@@ -153,3 +153,11 @@
   before: A map run records the happy path only. The three steps share one URL, so a step-2 item queued earlier is unreachable; native messages, the Business branch and a failed quote request are never recorded.
   after: Each step is its own numbered form step; probes record validation, branch, technical and blocked outcomes with evidence within the budget, and an approved probe suite runs the same way every time.
   status: gate
+
+- id: SC-20
+  title: The same button leads to the offer on one visit and to a sold-out page on the next
+  source: [owner 2026-10-16, graph_handler]
+  route: /sc20/
+  before: Two scans record two different pages behind one button; the BA documents whichever page its runs held, or both as steps.
+  after: The two outcomes are one differing-states group with their scans and frequency; the BA proposes a verdict per outcome and the owner confirms it in Review.
+  status: gate

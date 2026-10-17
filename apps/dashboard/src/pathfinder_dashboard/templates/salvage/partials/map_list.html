@@ -1,0 +1,24 @@
+{#- The list view (FR-008): the same nodes for screen readers and phones; under the graph it is
+    the text version, with `view=list` (and below phone width) it is the view. -#}
+{%- import "salvage/macros.html" as sy %}
+<section class="sy-plate{% if view != 'list' %} mp-map-list--extra{% endif %}" aria-labelledby="map-list-h">
+  <div class="sy-plate__head"><h2 id="map-list-h" class="sy-plate__title">Screens by depth <span class="sy-count sy-count--muted">{{ m.screens }}</span></h2></div>
+  <div class="sy-table-wrap sy-table-wrap--flush">
+    <table class="sy-table sy-table--dense">
+      <thead><tr><th scope="col">Depth</th><th scope="col">Route</th><th scope="col">Title</th><th scope="col">States</th><th scope="col">Status</th><th scope="col" class="sy-num">Queued</th></tr></thead>
+      <tbody>
+        {%- for n in m.nodes | sort(attribute="depth") %}
+        <tr>
+          <td class="sy-num">{{ n.depth }}</td>
+          <th scope="row">{% if n.kind == "family" %}<a class="sy-route" href="{{ c.url('/map', scan=f.scan, persona=f.persona, open=n.route, view='list') }}">{{ n.route }}/…</a>{% elif n.states %}<a class="sy-route" href="{{ c.url('/states/' ~ n.states[0].id) }}">{{ n.route }}</a>{% else %}<span class="sy-route">{{ n.route }}</span>{% endif %}
+            {%- if n.marked %} <span class="sy-tag sy-tag--intent sy-tag--sm">Probe</span>{% endif %}</th>
+          <td class="sy-case-normal">{{ n.title }}</td>
+          <td class="sy-num">{{ n.count if n.kind == "family" else n.states | length }}</td>
+          <td>{{ sy.status("map_node", n.status) }}</td>
+          <td class="sy-num">{{ n.queued or "" }}</td>
+        </tr>
+        {%- endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>

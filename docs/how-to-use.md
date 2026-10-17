@@ -244,6 +244,17 @@ asks you once (*"A valid start date for the quote form?"*) and keeps your answer
 Probes run where the scan may fill in and submit forms (a scan that only looks cannot probe),
 and stop at 12 tries per step and 60 per scan; the portal file can change both (`probes`).
 
+### See what was mapped (the map)
+
+**Scans → Map** draws every screen the portal's scans recorded as a node, from the start page down:
+the lines show the first move into each screen (tick **All links** for the rest). Several states
+of one screen stack as a deck ("5 states"); a page's queued, failed and blocked items are chips on
+its node ("+3 queued"). Pick one scan or persona and **Apply** to grey out what it did not see;
+**List** shows the same screens as a table (the view on a phone). Click a node, or reach it with
+**Tab** and **Enter**, and the side shows its states, the scans that saw it, where its actions lead
+and what was left there; arrows move along the lines. On a form step, **Mark for probing** sets the
+Probe mark from here too.
+
 ## 8. Stop and resume a scan
 
 - **Stop** next to **Send** stops everything this conversation started: the answer in progress
@@ -397,6 +408,7 @@ deleted.
 | **Records to confirm** | Read the record and its evidence. **Confirm**, **Reject** (a reason is required) or **Comment**. |
 | **Assumptions to check** | Every assumption the BA wrote, until you confirm it (same buttons as records). A rule or use case that rests on an unchecked assumption shows it as **To check**. |
 | **Unexplained differences** | Something only some personas see (or a screen only some reach). See who sees it, compare two personas side by side, then have the BA write the rule (or, for a screen, a rule or an open question) that cites both sides. It leaves Review when that record exists. |
+| **Differing states** | Scans saw different screens at one place (one button, two pages; one route, two screens). The BA checked why (persona, input, a temporary error, session, a feature flag, data) and proposed a verdict per outcome, with the evidence: how often each was seen and whether it came back. Keep or change each verdict and **Confirm verdicts**; the BA documents by them, and an error page is never documented as a step. |
 | **Amendments to re-anchor** | Pick the element or screen the amendment belongs to now, or dismiss it. |
 | **Assistant proposals** | Changes the assistant suggested that you have not applied or discarded. |
 | **Probe suites to approve** | After a scan with form probes, the BA proposes one suite per form: the tries worth repeating every time, each with why. For each variant:

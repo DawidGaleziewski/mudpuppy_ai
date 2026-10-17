@@ -7,3 +7,5 @@ export * from './feedback.js';
 export * from './run-evidence.js';
 export * from './access.js';
 export * from './probe-suites.js';
+export * from './differing-states.js';
+export * from './reconcile.js';

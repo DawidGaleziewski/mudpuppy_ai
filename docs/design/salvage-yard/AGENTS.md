@@ -12,6 +12,8 @@ bracket statuses like `[ OK ]`, or the `mudpuppy://console` wordmark.
 - Design system in the repo: `static/salvage/` (`css/tokens.css`, `css/fonts.css`, `css/salvage.css`, `fonts/`). Copied from this package's `design-system/`.
 - Target designs: this package's `screens/NN-*.html` and `screenshots/screens/NN-*.png`.
 - Requirements: `docs/07-requirements.md` (cite FE-IDs in PRs).
+- Processes feature (behaviour, rules, data model, API): `docs/10-processes.md`.
+- Map runs (graph, marks, probing, checkpoints, resume, directed scans, reconciliation): `docs/11-map-runs.md`, screens 12–16.
 - Migration plan: `docs/08-migration-guide.md` (track 1 re-skin first, then track 2 redesign).
 
 ## How to work
@@ -30,4 +32,5 @@ bracket statuses like `[ OK ]`, or the `mudpuppy://console` wordmark.
 ## Ask a human before
 - Adding a colour, font, radius, shadow or animation.
 - Changing a meaning in `docs/03-colour-guide.md` or a decision in `docs/02-design-decisions.md`.
+- Running technical probes anywhere but sandbox, or changing what a probe may submit (open items O-M1…O-M5 in `docs/11-map-runs.md`).
 - Building the to-be features (screens 05–07: editing the to-be, compare, history) before open item O-1 ("As-is only" product rule) is resolved. Screen 04 (process list and groupings) is not blocked.

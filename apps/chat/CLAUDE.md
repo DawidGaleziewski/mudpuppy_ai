@@ -2,7 +2,7 @@
 
 Chat orchestrator service (R-30): talks to an ACP agent (Claude Code login of the user) and exposes HTTP + SSE to the dashboard's Chat page; starts its own `pathfinder` MCP servers (with Chromium) per conversation.
 
-Layer: servers (G-07; `apps/crawler/layers.json`). Depends on config, core, chat-model, docs,
+Layer: servers (G-07; `apps/crawler/layers.json`). Depends on config, core, chat-model, docs, docs-model,
 store, vault, workflow.
 
 ## Public API
@@ -38,6 +38,8 @@ store, vault, workflow.
   `api-probe-suites` (`POST /portals/{p}/probe-suites/{id}/approve|dismiss`). Probe marks
   (US5): `marks` and `api-marks` (`POST|DELETE /portals/{p}/marks`); `request_scan`
   `probe_marked` starts a probe scan.
+- Differing states (spec 033 US4): `reconciliations` and `api-reconciliations`
+  (`POST /portals/{p}/reconciliations/{id}/confirm`: the owner's verdicts from Review).
 - `scan`, `scope`: process scanning and scope management.
 - `fence`: permission control.
 

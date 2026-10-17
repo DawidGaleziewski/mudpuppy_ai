@@ -1,5 +1,6 @@
-{#- The two views of Scans (screen 10): scans of the portal, and calls outside any scan. -#}
+{#- The views of Scans (screens 10, 12): scans of the portal, their map, and calls outside any scan. -#}
 <nav class="sy-tabs" aria-label="Scan views">
   <a class="sy-tab" href="{{ c.url('/scans') }}"{% if scan_tab == "scans" %} aria-current="page"{% endif %}>Scans{% if scan_total is defined and scan_total is not none %} <span class="sy-count sy-count--muted">{{ scan_total }}</span>{% endif %}</a>
+  <a class="sy-tab" href="{{ c.url('/map') }}"{% if scan_tab == "map" %} aria-current="page"{% endif %}>Map</a>
   <a class="sy-tab" href="{{ c.url('/activity') }}"{% if scan_tab == "activity" %} aria-current="page"{% endif %}>Server activity</a>
 </nav>

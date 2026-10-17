@@ -10,6 +10,8 @@ import { probeSuiteRoutes } from './api-probe-suites.js';
 import type { ProbeSuiteService } from './probe-suites.js';
 import { markRoutes } from './api-marks.js';
 import type { MarkService } from './marks.js';
+import { reconciliationRoutes } from './api-reconciliations.js';
+import type { ReconciliationService } from './reconciliations.js';
 import { proposalRoutes } from './api-proposals.js';
 import { type ProcessService } from './process-service.js';
 import { type ProposalService } from './proposal-service.js';
@@ -45,6 +47,8 @@ export interface ApiOptions {
   probeSuites?: ProbeSuiteService;
   /** The BA's Probe marks on form steps (spec 032 US5). Without it the route answers 404. */
   marks?: MarkService;
+  /** The owner's verdicts on differing states (spec 033 US4). Without it the route answers 404. */
+  reconciliations?: ReconciliationService;
   /** Save a process scope (T027); throws `ScopeRefusal`. Without it the route answers 404. */
   scope?: (conversationId: string, body: SetScopeInput) => ProcessScope;
   /** Stop a running run (T041); throws `RunRefusal`. Without it the route answers 404. */
@@ -264,6 +268,7 @@ export function createApi(opts: ApiOptions): Server {
     if (await processRoutes(req, res, method, path, opts.processes)) return;
     if (await probeSuiteRoutes(req, res, method, path, opts.probeSuites)) return;
     if (await markRoutes(req, res, method, path, opts.marks)) return;
+    if (await reconciliationRoutes(req, res, method, path, opts.reconciliations)) return;
     // T050: the chat's [stop] button. Ends the assistant's turn and stops every run the
     // conversation follows (interrupted, so they can be resumed); answers what was stopped.
     const cancel = /^\/conversations\/([^/]+)\/cancel$/.exec(path);

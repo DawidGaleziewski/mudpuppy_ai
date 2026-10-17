@@ -138,6 +138,14 @@ VOCABULARIES: dict[str, dict[str, Status]] = {
         "temporary": _s("queued", "Temporary"),
         "blocked": _s("skipped", "Blocked"),
     },
+    # The map (spec 033): a node's `data-state` and its word. Red only where the crawler failed.
+    "map_node": {
+        "observed": _s("ok", "Observed"),
+        "unobserved": _s("unobserved", "Not in these scans"),
+        "failed": _s("failed", "Failed"),
+        "blocked": _s("skipped", "Blocked"),
+        "frontier": _s("queued", "Queued"),
+    },
     "state_kind": {
         "main": _s("ok", "Main"),
         "validation": _s("todo", "Validation"),

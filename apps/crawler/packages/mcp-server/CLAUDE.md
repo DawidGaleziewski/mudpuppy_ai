@@ -58,7 +58,8 @@ Layer: servers (G-07; `apps/crawler/layers.json`)
     while a fault is armed.
 
   BA: `services/ba/probe-suites.ts` (`propose_probe_suite`, suites stored `open`) and the
-  `get_run_evidence` kind `probe_outcomes`. `find-again.ts` holds `findAgain` (moved out of
+  `get_run_evidence` kind `probe_outcomes`. Spec 033: `services/ba/differing-states.ts` (groups
+  of differing states) and `reconcile.ts` (`list_differing_states`, `propose_verdicts`). `find-again.ts` holds `findAgain` (moved out of
   `act.ts`).
 - Entry points: `pnpm --filter @pathfinder/mcp-server start` (`src/main.ts`), `start:ba`.
 

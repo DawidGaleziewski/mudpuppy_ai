@@ -25,12 +25,12 @@ mudpuppy-salvage-yard/
 │   ├── css/                    tokens.css → fonts.css → salvage.css (load in this order)
 │   ├── fonts/                  Archivo (variable), IBM Plex Mono, Special Elite (WOFF2, subset, licences)
 │   └── tokens/                 tokens.json (Console design-system list format) · tokens.dtcg.json (W3C DTCG)
-├── screens/                    11 detailed screens, static HTML, real scan data
+├── screens/                    16 detailed screens, static HTML, real scan data (12–16: map runs)
 ├── wireframes/                 the 12 redesign wireframes (.dc.html, open offline via support.js)
 ├── screenshots/
 │   ├── screens/                1280px PNG of every detailed screen (visual-regression baselines)
 │   ├── wireframes/             PNG of every wireframe
-│   └── system/                 brand book and component library
+│   └── system/                 brand book, component library, process flow
 ├── docs/
 │   ├── 01-brand-book.md        mission, personality, names, wordmark, mark, voice, misuse
 │   ├── 02-design-decisions.md  why it looks like this (decision records + open items)
@@ -40,7 +40,10 @@ mudpuppy-salvage-yard/
 │   ├── 06-screens.md           each screen: purpose, regions, rules, acceptance
 │   ├── 07-requirements.md      testable frontend requirements (FE-xx)
 │   ├── 08-migration-guide.md   Console → Salvage: maps, plan, tips, migrating the skill
-│   └── 09-qa-checklist.md      PR and release checklist, visual regression setup
+│   ├── 09-qa-checklist.md      PR and release checklist, visual regression setup
+│   ├── 10-processes.md         the process redesign: lifecycle, flows, rules, diff, data model, API, scope migration
+│   ├── 10-processes-flow.html  visual overview of how processes work now
+│   └── 11-map-runs.md          map runs: graph and marks, form probing, checkpoints and resume, directed scans, BA reconciliation
 ├── skill/mudpuppy-salvage-ui/  the frontend skill: SKILL.md + references/ + scripts/ (copy to .claude/skills/)
 └── migration/
     ├── token-map.csv           Console (and never-shipped rust) tokens → Salvage roles

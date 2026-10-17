@@ -10,6 +10,9 @@
  * - `rules_on_screens_pct`: business rules linked to a screen with `applies_on`, of all rules.
  * - `data_items_code_names`: data items named by the input's code name (`rok_produkcji`,
  *   `postalCode`) instead of its visible label (spec 026 F-05, spec 031 T016).
+ * - `error_pages_as_steps`: steps of the processes' as-is (variant A, latest revision) on a state of
+ *   kind `technical`, or on one the owner confirmed as `temporary` or `technical` in Review: an
+ *   error page is never a step (spec 033 SC-007, design §7.5). Must be 0.
  */
 import type { GroundTruth } from '@pathfinder/docs';
 import type { RawDb } from '../../queries.js';
@@ -19,6 +22,52 @@ export interface BaShapes {
   data_items_joined: number;
   rules_on_screens_pct: number;
   data_items_code_names: number;
+  error_pages_as_steps: number;
+}
+
+const ERROR_VERDICTS = new Set(['temporary', 'technical']);
+
+/** States the owner confirmed as an error or a temporary state (spec 033); none on an old store. */
+function confirmedErrors(db: RawDb, portal: string): Set<string> {
+  try {
+    const rows = db
+      .prepare(
+        "SELECT confirmed_json FROM reconciliations WHERE portal_id = ? AND status = 'confirmed'",
+      )
+      .all(portal) as { confirmed_json: string }[];
+    return new Set(
+      rows.flatMap((r) =>
+        (JSON.parse(r.confirmed_json) as { state_id: string; verdict: string }[])
+          .filter((v) => ERROR_VERDICTS.has(v.verdict))
+          .map((v) => v.state_id),
+      ),
+    );
+  } catch {
+    return new Set();
+  }
+}
+
+/** Steps of the processes' as-is on an error page (see the module comment). */
+export function errorPagesAsSteps(db: RawDb, portal: string): number {
+  const technical = new Set(
+    (
+      db
+        .prepare("SELECT id FROM states WHERE portal_id = ? AND state_kind = 'technical'")
+        .all(portal) as { id: string }[]
+    ).map((r) => r.id),
+  );
+  const errors = new Set([...technical, ...confirmedErrors(db, portal)]);
+  const steps = db
+    .prepare(
+      `SELECT r.steps FROM ba_processes p
+         JOIN process_variants v ON v.process_id = p.id AND v.label = 'A'
+         JOIN process_variant_revisions r ON r.variant_id = v.id AND r.rev = v.rev
+        WHERE p.portal_id = ?`,
+    )
+    .all(portal) as { steps: string }[];
+  return steps
+    .flatMap((s) => JSON.parse(s.steps) as { state_id: string | null }[])
+    .filter((s) => s.state_id !== null && errors.has(s.state_id)).length;
 }
 
 /**
@@ -77,5 +126,6 @@ export function scoreBaShapes(db: RawDb, portal: string, gt: GroundTruth): BaSha
     data_items_code_names: latest.filter(
       (r) => r.kind === 'data_item' && isCodeName(asText(content(r).name_verbatim), labels),
     ).length,
+    error_pages_as_steps: errorPagesAsSteps(db, portal),
   };
 }

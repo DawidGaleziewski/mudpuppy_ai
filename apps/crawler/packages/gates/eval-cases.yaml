@@ -518,3 +518,33 @@
   title: A dashboard test asked the real chat service running on this machine
   tier: not_testable
   reason: a test fix; the test now points at a dead port
+
+# ---- spec 033 (findings.md, table rows) ----
+- id: F-01@033
+  title: Replay groups cannot be built because the trace masks the state ids of replay_diverged
+  tier: not_testable
+  reason: open; idea is recording divergences with their ids, then a gate with a hash-route scar
+- id: F-02@033
+  title: Route groups grouped unrelated pages under a route template with a parameter
+  tier: not_testable
+  reason: unit test differing-states.test.ts (/p/:param makes no group)
+- id: F-03@033
+  title: Queued, failed and blocked items drawn as nodes made the map twice as wide
+  tier: not_testable
+  reason: dashboard test test_map.py (+2 queued chip on the form node)
+- id: F-04@033
+  title: Deck nodes failed axe label-content-name-mismatch
+  tier: not_testable
+  reason: the dashboard ui:check at 1280 and 390 on /map
+- id: F-05@033
+  title: Long titles made map nodes overlap the next row
+  tier: not_testable
+  reason: a layout constant; the screenshot check at 1280
+- id: F-06@033
+  title: A pkill pattern matched Claude's own shell and killed it
+  tier: not_testable
+  reason: a process slip, agent behaviour
+- id: F-07@033
+  title: propose_verdicts refused every real state id as personal data
+  tier: not_testable
+  reason: unit test reconcile-tools.test.ts with a UUID state id

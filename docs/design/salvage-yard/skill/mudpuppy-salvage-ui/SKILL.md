@@ -25,6 +25,8 @@ If DESIGN_PKG is missing, the rules here and in `references/` still apply. Ask t
 | `05-css-guide.md` | Files, cascade layers, ARIA state, allowed inline styles, JS duties, lint rules |
 | `07-requirements.md` | Writing the PR (cite FE-IDs) |
 | `08-migration-guide.md` | Converting a Console-era page; token, status, component and IA maps |
+| `10-processes.md` | Anything about processes: lifecycle, variants A/B, revisions, drafts, conflicts, compare and change spec, live per environment, data model, API, rules PR-01–PR-17 |
+| `11-map-runs.md` | Anything about the map, marks, probing form states, checkpoints and replay, resume or retry of a stopped scan, scan types, reconciliation of differing states; requirements FE-M01–M13 |
 | `02-design-decisions.md` | Before "fixing" something that looks odd: it is probably intentional |
 | `01-brand-book.md` | Wordmark, mark, voice |
 | `09-qa-checklist.md` | Before saying done |
@@ -101,10 +103,12 @@ Copy the exact header and nav markup from any `DESIGN_PKG/screens/*.html`.
 | People | `.sy-note` (`--sm`, `__by`) · `.sy-annot` > `__target` + `__line` + `.sy-note` |
 | To-be | `.sy-drawn` (`--fill`, `[aria-current=true]`) · `.sy-drawn-text` · `.sy-legend` (`__drawn`) · `.sy-diff--removed` · `.sy-diff__change` (`--drawn`) |
 | Messages | `.sy-callout` (`--intent`, `--failure`, `--drawn`, `--ok`, `__title`) · `.sy-state` (`--failure`, `__title`) · `.sy-caret` · `dialog.sy-dialog` (`__head/__body/__foot`) · `.sy-toast` (`--fixed`) |
-| Table | `.sy-table-wrap` (`--flush` in a plate) > `table.sy-table` (`--interactive`, `--dense`, `--middle`), `th[scope=col|row]`, `.sy-num` |
+| Table | `.sy-table-wrap` (`--flush` in a plate) > `table.sy-table` (`--interactive`, `--dense`, `--middle`), `th[scope=col\|row]`, `.sy-num` |
 | Tabs | `.sy-tabs[role=tablist]` > `.sy-tab[role=tab][aria-selected]` |
 | Progress | `.sy-meter[data-status]` (`style="--value: N%"`) > `__label` + `__track[role=progressbar]` > `__fill` |
-| Revisions | `ol.sy-timeline` > `li[data-status]` > `__head` + `__body` |
+| Revisions, attempts | `ol.sy-timeline` > `li[data-status=live\|draft\|ok\|failed]` > `__head` + `__body` |
+| Map graph | `section.sy-graph` > `.sy-graph__canvas` > `svg.sy-graph__edges` (`path.sy-edge` `--failed` `--frontier` `--blocked` `--planned`, `text.sy-edge-label` `--failed`) + `button.sy-node[aria-pressed]` (`--deck`, `data-state=failed\|unobserved\|frontier\|blocked`; `__route` `__title` `__meta` `__marks`) + `.sy-node-group` (`__label`) · `.sy-chip` (`--fail` `--ok` `--tobe` `--dashed`) |
+| Cards, choices, paths | `.sy-card` (`__title`; `--drawn` `--failed` `--muted`; `aria-current`) · `.sy-flow` + `.sy-flow__arrow` · `label.sy-choice` > `input.sy-choice__input` + `.sy-choice__body` · `ol.sy-path` > `li` > `.sy-path__step` (`--here` `--failed`) |
 | Assistant | `.sy-chat`, `.sy-chat__log[role=log]`, `.sy-chat__divider`, `.sy-msg` (`--user`, `__who`), `.sy-chips`, `.sy-composer`, `.sy-scanline`, `.sy-proposal` (`__head/__title/__body/__foot`, `--applied`), `aside.sy-drawer` (`__head`, `__context`) |
 | Recorded screen | `figure.sy-shot` (`__title`, `__link` for mocks) + `.sy-mark` (assistant highlight; `--overlay`; `__label`) / `.sy-mark--note` (a person's amendment pin) · `.sy-thumb` (`--locked`) · `pre.sy-code` |
 | Type | `.sy-h1` `.sy-h2` `.sy-h3` `.sy-label` `.sy-meta` `.sy-small` `.sy-muted` `.sy-prose` `.sy-mono` (`--sm`) `.sy-route` `.sy-num` `.sy-case-normal` `.sy-truncate` `.sy-sr-only` |

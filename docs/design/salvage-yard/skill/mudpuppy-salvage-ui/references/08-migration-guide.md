@@ -159,6 +159,8 @@ Order by traffic: Overview/Home → Run detail → Docs → Settings → State d
 5. Check: lint = 0, axe = 0 serious, compare screenshots at 1280 and 390.
 
 ### Phase 4 · Redesign (Track 2), screen by screen
+For Processes, build from `10-processes.md`: data model and API (§9–10), then the scope migration (existing chat scopes → processes, FE-P12), then screens 04 → 05 → 06 → 07.
+
 Value order: **Home + assistant drawer (01–03)** → **Review (09)** → **Settings and credentials (11)** → **Scans (10)** → **Processes (04–07)** → **Screen detail (08)**. Each screen in `screens/` is the target; the requirements are in `07-requirements.md`. Processes needs backend work (variants, revisions, change spec), so start the API in parallel.
 
 ### Phase 5 · Clean up

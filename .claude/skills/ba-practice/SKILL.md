@@ -116,6 +116,29 @@ source (`dom` or `native`, the browser's own message), the state it landed on, `
   outcomes; the suite waits in Review for the owner and never runs before approval. Leave
   `temporary` and `blocked` outcomes out (the server refuses them).
 
+### Differing states (before pass 3; spec 033, design §7)
+
+`list_differing_states` returns each place where scans saw different screens: an **action group**
+(the same page and action led to two or more screens) or a **route group** (one route showed two
+or more screens that form steps and state kinds do not explain). Each outcome carries its scans
+with persona and environment, first and last seen, HTTP status, frequency ("1 of 3 scans") and
+whether a later scan saw it again (`reproduced`). Confirmed verdicts from Review come with it.
+
+- **Check the reasons in this order** and stop at the first that explains the outcome: persona
+  (differs only between personas), input (follows a probe or other values), temporary (5xx or a
+  maintenance text, seen once, not reproduced), session or time (expired session, cookie banner,
+  time of day), feature flag (a stable split across scans with the same persona), data (differs
+  with the test data).
+- **Propose one verdict per outcome** with `propose_verdicts`: `main` (the step's state),
+  `variant_persona` / `variant_input` / `variant_flag`, `validation`, `technical`, `temporary`
+  (recheck later) or `same` (two recordings of one screen). The reason names the hypothesis and the
+  evidence ("seen in 2 of 3 guest scans; the 503 page once, not reproduced"). Every outcome of the
+  group gets a verdict; the owner confirms in Review.
+- **Document with the verdicts:** confirmed ones where they exist, else your own (`inferred`). The
+  rules of "Form steps and probe outcomes" apply: the main state is the step; the others are states
+  of that step; `temporary` is an environment issue, never a step; `variant_persona` is documented
+  per persona.
+
 ### URLs and parameters (inside passes 1, 4 and 5)
 
 Legacy systems wire screens together through URLs: old and new address schemes, redirects, and

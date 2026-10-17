@@ -270,6 +270,59 @@ entries:
     changed_in: R-69
     changed_on: 2026-10-17
 
+  - id: portal-map
+    term: Portal map
+    category: pathfinder
+    group: Crawling
+    short: Every screen your scans recorded as a node, laid out by how far it is from the start page, under Scans → Map.
+    explanation: |
+      Each screen is one node; several states of one screen (form steps, a validation or error
+      state) stack as a deck with a count. The lines show the first move into each screen; tick
+      All links for the rest (every page links to the footer pages, so all of them at once hide
+      the map). A page's queued, failed and blocked items are chips on its node. Pick one scan or
+      persona to grey out what it did not see; the list view shows the same screens as a table.
+      Select a node to see its states, the scans that saw it and where its actions lead, and mark
+      a form step for probing from there.
+    example: "/kalkulator/pojazd · 5 states · +3 queued, under / in the second row"
+    appears_in: [Scans → Map]
+    labels: [Screens by depth, All links, Not in these scans]
+    related: [live-map, probe-mark, state, frontier]
+    changed_in: R-69
+    changed_on: 2026-10-17
+
+  - id: differing-states
+    term: Differing states
+    category: pathfinder
+    group: Documentation
+    short: A place where scans saw different screens (one button, two pages; one route, two screens), so the BA explains each outcome before documenting.
+    explanation: |
+      The system finds them; the BA agent checks the reasons in order (persona, input, a
+      temporary error, session or time, a feature flag, data) and proposes a verdict per outcome;
+      you confirm or change it in Review → Differing states. An error page is never the step: the
+      step is documented by its main state, and a temporary outcome becomes an open question.
+    example: "\"See the offer\" led to the offer in one scan and to \"Sold out today\" in the next."
+    appears_in: [Review → Differing states]
+    labels: [Differing states, Why does this differ?]
+    related: [verdict, state, portal-map]
+    changed_in: R-69
+    changed_on: 2026-10-17
+
+  - id: verdict
+    term: Verdict
+    category: pathfinder
+    group: Documentation
+    short: What one outcome of a differing-states group is, proposed by the BA and confirmed by you; the BA documents the screen by it.
+    explanation: |
+      Main state (the step itself), variant by persona, input or feature flag, validation state,
+      technical error state, temporary (recheck later) or same state (two recordings of one
+      screen). Until you confirm it, the BA documents with its own proposal, marked inferred.
+    example: "The 503 page seen once, not again: Temporary · recheck."
+    appears_in: [Review → Differing states]
+    labels: [Verdict, Confirm verdicts]
+    related: [differing-states]
+    changed_in: R-69
+    changed_on: 2026-10-17
+
   - id: probe-suite
     term: Probe suite
     category: pathfinder

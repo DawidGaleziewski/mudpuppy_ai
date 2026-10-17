@@ -103,4 +103,19 @@
   /* Mermaid diagrams render on the light paper ground, like recorded pages. */
   .mp-diagram { margin: 0; }
   .mp-diagram .mermaid { overflow: auto; background: var(--sy-paper); color: var(--sy-paper-ink); padding: var(--sy-space-3); }
+
+  /* The map (spec 033, screen 12): filter bar, zoom, and the edges the design has no class for. */
+  .mp-map-tools { display: flex; flex-wrap: wrap; align-items: end; gap: var(--sy-space-3); margin-block: var(--sy-space-3); }
+  .mp-map-tools fieldset { display: flex; flex-wrap: wrap; gap: var(--sy-space-2); }
+  .mp-map { --mp-map-scale: 1; max-block-size: 75vh; } /* map.js sets the scale on the canvas */
+  .mp-map-zoom { position: sticky; top: var(--sy-space-2); left: var(--sy-space-2); z-index: 1; inline-size: max-content; padding: var(--sy-space-2); background: var(--sy-bg-plate); }
+  .mp-map-canvas { transform: scale(var(--mp-map-scale)); transform-origin: 0 0; }
+  .mp-edge--link { stroke: var(--sy-border-weld); stroke-dasharray: 2 3; }
+  .mp-edge--other { stroke: var(--sy-border-weld); }
+  /* The graph is the view from tablet width up; below it the list is (FR-008). */
+  .mp-map-list--extra { display: none; }
+  @media (max-width: 639px) {
+    .mp-map, .mp-map + .sy-split { display: none; }
+    .mp-map-list--extra { display: block; }
+  }
 }

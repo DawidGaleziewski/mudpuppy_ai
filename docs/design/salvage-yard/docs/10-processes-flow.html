@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MudPuppy · How processes work</title>
+<link rel="icon" href="../brand/logo/tag-icon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../design-system/css/tokens.css">
+<link rel="stylesheet" href="../design-system/css/fonts.css">
+<link rel="stylesheet" href="../design-system/css/salvage.css">
+<style>
+  /* Docs-page layout only. */
+  .pf { max-width: 1240px; margin: 0 auto; padding: 40px 44px 80px; display: flex; flex-direction: column; gap: 44px; }
+  .pf-sec { display: flex; flex-direction: column; gap: 14px; }
+  .pf-sec > header { display: flex; flex-direction: column; gap: 4px; padding-bottom: 10px; border-bottom: 1px solid var(--sy-border-plate); }
+  .pf-num { font-family: var(--sy-font-mono); font-size: 12px; color: var(--sy-intent); }
+  .pf-lane { display: grid; grid-template-columns: 170px minmax(0, 1fr); gap: 12px 16px; align-items: center; padding: 14px 16px; border-bottom: 1px solid var(--sy-border-weld); }
+  .pf-lane:last-child { border-bottom: 0; }
+  .pf-flow { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; min-width: 0; }
+  .pf-step { display: flex; flex-direction: column; gap: 2px; min-width: 120px; padding: 8px 10px; border: 1px solid var(--sy-border-control); background: var(--sy-bg-raised); font-size: 13px; }
+  .pf-step--drawn { border: 1px dashed var(--sy-tobe); background: transparent; color: var(--sy-tobe); }
+  .pf-step--gone { border-style: dashed; color: var(--sy-text-muted); text-decoration: line-through; background: transparent; }
+  .pf-arrow { color: var(--sy-text-muted); font-family: var(--sy-font-mono); }
+  .pf-stages { display: flex; flex-wrap: wrap; align-items: stretch; gap: 8px; }
+  .pf-stage { flex: 1 1 150px; display: flex; flex-direction: column; gap: 6px; padding: 12px; background: var(--sy-bg-plate); border: 1px solid var(--sy-border-plate); font-size: 13px; }
+  .pf-stage--drawn { border-style: dashed; border-color: var(--sy-tobe); }
+  .pf-stage b { font-size: 12px; font-weight: 800; font-stretch: 112%; letter-spacing: .06em; text-transform: uppercase; }
+  .pf-journey { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(210px, 100%), 1fr)); gap: 12px; counter-reset: hop; }
+  .pf-hop { display: flex; flex-direction: column; text-decoration: none; color: var(--sy-text); background: var(--sy-bg-plate); border: 1px solid var(--sy-border-plate); }
+  .pf-hop:hover { background: var(--sy-bg-raised); color: var(--sy-text); }
+  .pf-hop img { width: 100%; aspect-ratio: 16 / 10; object-fit: cover; object-position: top left; border-bottom: 1px solid var(--sy-border-weld); }
+  .pf-hop > div { display: flex; flex-direction: column; gap: 4px; padding: 10px 12px; font-size: 13px; }
+  @media (max-width: 760px) { .pf { padding: 24px 16px 56px; } .pf-lane { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body class="sy-ground">
+<main class="pf">
+
+<header class="sy-stack" style="--sy-gap: 10px">
+  <span class="sy-wordmark"><span class="sy-wordmark__paint">MUD</span>PUPPY<span class="sy-wordmark__scope">processes</span></span>
+  <h1 class="sy-h1">How processes work now</h1>
+  <p class="sy-meta sy-prose">A process is a named path through the portal for one persona. <b>A</b> is what the scans saw. <b>B</b> is what people draw over it. Every change is a new revision, the assistant only proposes, and scans tell you which variant each environment runs. Full spec: <a href="10-processes.md">10-processes.md</a>.</p>
+</header>
+
+<section class="pf-sec" aria-labelledby="p1">
+  <header><span class="pf-num">01</span><h2 id="p1" class="sy-h2">One process, two variants</h2><p class="sy-meta">"Oblicz składkę OC/AC" as guest, from the reference-insurer scans.</p></header>
+  <div class="sy-plate">
+    <div class="pf-lane">
+      <div class="sy-stack" style="--sy-gap: 4px; align-items: flex-start"><span class="sy-tag">A r1</span><span class="sy-label">As-is · observed</span><span class="sy-small sy-muted">Built by scans. Read-only.</span></div>
+      <div class="pf-flow" aria-label="As-is steps">
+        <div class="pf-step"><span class="sy-small sy-muted">1 · start</span>Ubezpieczenia dla Ciebie<span class="sy-route">/</span></div><span class="pf-arrow" aria-hidden="true">→</span>
+        <div class="pf-step"><span class="sy-small sy-muted">2</span>Samochód<span class="sy-route">/ubezpieczenia/samochod</span></div><span class="pf-arrow" aria-hidden="true">→</span>
+        <div class="pf-step"><span class="sy-small sy-muted">3</span>Kalkulator — dane kierowcy<span class="sy-route">/kalkulator/kierowca</span></div><span class="pf-arrow" aria-hidden="true">→</span>
+        <div class="pf-step"><span class="sy-small sy-muted">4</span>Kalkulator — opcje</div><span class="pf-arrow" aria-hidden="true">→</span>
+        <span class="sy-status" data-status="needs">End not reached</span>
+      </div>
+    </div>
+    <div class="pf-lane">
+      <div class="sy-stack" style="--sy-gap: 4px; align-items: flex-start"><span class="sy-tag">B r2</span><span class="sy-label">To-be · drawn</span><span class="sy-small sy-muted">Branched from A r1. Drawn by people.</span></div>
+      <div class="pf-flow" aria-label="To-be steps">
+        <div class="pf-step"><span class="sy-small sy-muted">1 · start · unchanged</span>Ubezpieczenia dla Ciebie<span class="sy-route">/</span></div><span class="pf-arrow" aria-hidden="true">→</span>
+        <div class="pf-step pf-step--gone"><span class="sy-small">removed</span>Samochód</div><span class="pf-arrow" aria-hidden="true">→</span>
+        <div class="pf-step pf-step--drawn"><span class="sy-small">2 · merged 2 → 1</span>Kalkulator — kierowca i opcje<span class="sy-route">/oc-ac/wycena</span></div><span class="pf-arrow" aria-hidden="true">→</span>
+        <div class="pf-step pf-step--drawn"><span class="sy-small">3 · end · added</span>Podsumowanie i oferta<span class="sy-route">/oc-ac/oferta</span></div>
+      </div>
+    </div>
+    <div class="pf-lane">
+      <div class="sy-stack" style="--sy-gap: 4px; align-items: flex-start"><span class="sy-label">Compare A ↔ B</span><span class="sy-small sy-muted">Generates the change spec.</span></div>
+      <div class="sy-cluster" style="--sy-gap: 8px 16px">
+        <span class="sy-small">Scope · As-is · To-be · Delta · Records <span class="sy-tags"><span class="sy-tag sy-tag--sm">CAP-005</span><span class="sy-tag sy-tag--sm">NFR-001</span><span class="sy-tag sy-tag--sm">SCR-001</span></span> · Migration cut <span class="sy-mono sy-mono--sm">/kalkulator/* → /oc-ac/*</span> · Open questions</span>
+        <a class="sy-btn sy-btn--sm sy-btn--strong" href="../screens/06-process-compare.html">See compare (06)</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="pf-sec" aria-labelledby="p2">
+  <header><span class="pf-num">02</span><h2 id="p2" class="sy-h2">Lifecycle</h2><p class="sy-meta">Stages are derived from data, never set by hand, and a process can move back (a scan detects a rollback).</p></header>
+  <div class="pf-stages" role="list">
+    <div class="pf-stage pf-stage--drawn" role="listitem"><b style="color: var(--sy-tobe)">Suggested</b><span class="sy-status" data-status="inferred">Inferred</span><span class="sy-muted">The assistant groups screens and says why. Nothing saved. Accept, Edit first or Dismiss.</span></div>
+    <div class="pf-stage" role="listitem"><b>Scoped</b><span class="sy-status" data-status="ok">A r1</span><span class="sy-muted">Accepted or created by hand (name, persona, start, end). A r1 built from the scans.</span></div>
+    <div class="pf-stage" role="listitem"><b>As-is documented</b><span class="sy-status" data-status="ok">Confirmed</span><span class="sy-muted">End reached in a scan and the PROC record confirmed in Review.</span></div>
+    <div class="pf-stage pf-stage--drawn" role="listitem"><b style="color: var(--sy-tobe)">To-be in design</b><span class="sy-status" data-status="draft">B r1+</span><span class="sy-muted">A to-be variant has a saved revision. Compare and spec available.</span></div>
+    <div class="pf-stage" role="listitem"><b>Migrating</b><span class="sy-status" data-status="live">Live · sandbox</span><span class="sy-muted">A to-be variant is live in some environment (scan-detected or marked).</span></div>
+    <div class="pf-stage" role="listitem"><b>Migrated</b><span class="sy-status" data-status="live">Live · production</span><span class="sy-muted">The to-be runs in production.</span></div>
+  </div>
+</section>
+
+<section class="pf-sec" aria-labelledby="p3">
+  <header><span class="pf-num">03</span><h2 id="p3" class="sy-h2">Who changes what</h2></header>
+  <div class="sy-grid" style="--sy-min: 280px">
+    <div class="sy-plate"><div class="sy-plate__head"><h3 class="sy-plate__title">Scans</h3><span class="sy-status" data-status="ok">Observed</span></div><div class="sy-plate__body sy-small">
+      <span>Create <b>A</b> revisions when the observed path changes or the end is first reached.</span>
+      <span>Detect which variant each environment runs (live).</span>
+      <span class="sy-muted">Never touch B.</span></div></div>
+    <div class="sy-plate sy-plate--drawn"><div class="sy-plate__head"><h3 class="sy-plate__title">Assistant</h3><span class="sy-status" data-status="inferred">Proposes</span></div><div class="sy-plate__body sy-small">
+      <span>Suggests processes, with a Why line from links it saw.</span>
+      <span>Proposes changes into your draft; drafts the PROC doc and the change spec text.</span>
+      <span class="sy-muted">Never saves a process, a revision or live status.</span></div></div>
+    <div class="sy-plate"><div class="sy-plate__head"><h3 class="sy-plate__title">People</h3><span class="sy-status" data-status="needs">Decide</span></div><div class="sy-plate__body sy-small">
+      <span>Accept, edit or dismiss suggestions; create scopes.</span>
+      <span>Branch, draft and save B revisions; annotate steps <span class="sy-note sy-note--sm">One form instead of two.</span></span>
+      <span>Compare, export, restore, mark live (confirmed).</span>
+      <span class="sy-muted">Can't edit A by hand. Branch instead.</span></div></div>
+  </div>
+</section>
+
+<section class="pf-sec" aria-labelledby="p4">
+  <header><span class="pf-num">04</span><h2 id="p4" class="sy-h2">The journey across screens</h2></header>
+  <div class="pf-journey">
+    <a class="pf-hop" href="../screens/01-home.html"><img src="../screenshots/screens/01-home.png" alt=""><div><b>01 · Home</b><span class="sy-muted">"Sort screens into processes": the assistant drafts 4 groupings.</span></div></a>
+    <a class="pf-hop" href="../screens/04-processes.html"><img src="../screenshots/screens/04-processes.png" alt=""><div><b>04 · Processes</b><span class="sy-muted">Accept "Oblicz składkę OC/AC" → Scoped, A r1. Or New process.</span></div></a>
+    <a class="pf-hop" href="../screens/05-process-edit.html"><img src="../screenshots/screens/05-process-edit.png" alt=""><div><b>05 · Edit the to-be</b><span class="sy-muted">+ Variant → B. Draft: merge, add, remove, annotate. Save as B r2.</span></div></a>
+    <a class="pf-hop" href="../screens/06-process-compare.html"><img src="../screenshots/screens/06-process-compare.png" alt=""><div><b>06 · Compare</b><span class="sy-muted">A ↔ B diff and change spec. Export spec for the migration team.</span></div></a>
+    <a class="pf-hop" href="../screens/07-process-history.html"><img src="../screenshots/screens/07-process-history.png" alt=""><div><b>07 · History</b><span class="sy-muted">Revisions, restore, conflicts, and which variant is live where.</span></div></a>
+  </div>
+</section>
+
+<section class="pf-sec" aria-labelledby="p5">
+  <header><span class="pf-num">05</span><h2 id="p5" class="sy-h2">Before and after</h2></header>
+  <div class="sy-table-wrap">
+    <table class="sy-table">
+      <thead><tr><th scope="col">Topic</th><th scope="col">Today (chat "Process scope" panel)</th><th scope="col">Now (Processes workspace)</th></tr></thead>
+      <tbody>
+        <tr><th scope="row">Where</th><td>Side panel inside Guided chat</td><td>Its own section with list, page, compare, history</td></tr>
+        <tr><th scope="row">Create</th><td>Name, persona, tick screens, start/end, notes; <span class="sy-mono sy-mono--sm">POST /chat/conversations/:id/scope</span></td><td>Accept a suggestion or New process (same rules, BR-011); A r1 built from scans</td></tr>
+        <tr><th scope="row">To-be</th><td>Only screen amendments (AMD-…)</td><td>Variants B, C… drawn over A; step annotations; amendments still for screens</td></tr>
+        <tr><th scope="row">Changes</th><td>Re-saving replaces the scope</td><td>New revision every time; restore and rebase; conflicts detected</td></tr>
+        <tr><th scope="row">Output</th><td>Ask the assistant for documentation</td><td>PROC record for the as-is; change spec from A ↔ B</td></tr>
+        <tr><th scope="row">Workflow step</th><td>"Narrow" stays to do after saving</td><td>"Sort into processes" done when one process is scoped</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+</main>
+</body>
+</html>

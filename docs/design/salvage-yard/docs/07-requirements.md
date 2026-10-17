@@ -52,6 +52,14 @@ Screens referenced are in `screens/`; behaviour comes from the redesign wirefram
 | FE-P03 | M | Compare shows a step diff (unchanged, removed, merged, added) and a generated, editable change spec; Export spec downloads it. | Matches `06-process-compare.png`; export file contains as-is, to-be, delta, records, migration cut. |
 | FE-P04 | M | History shows variants, revisions, which variant is live per environment, and Restore as a new revision. | Matches `07-process-history.png`. |
 | FE-P05 | M | A conflict notice appears when someone saved a newer revision than the draft's base; nothing is overwritten. | Concurrency e2e with two sessions. |
+| FE-P06 | M | Assistant suggestions carry name (from link text), path, screen count and a Why line; locked ones say what blocks them. Nothing is saved until accepted (`10-processes.md` 6.1, PR-09, PR-10). | Regroup → suggestions appear dashed; DB has no new process. |
+| FE-P07 | M | Accept creates the process and A r1; Edit first opens the prefilled scope; Dismiss hides it and is remembered (6.2). | e2e for all three; dismissed suggestion not re-suggested. |
+| FE-P08 | M | New process keeps BR-011: name required ≤ 200 and unique, persona required, exactly one start and one end, notes ≤ 2000; "New process from these" from loose screens (6.3, PR-01, PR-02). | Form validation e2e; toast "Saved · “Test process”, 2 screens." |
+| FE-P09 | M | Only scans create A revisions; a changed path or first end reached → A r(n+1); "End not reached" marker when the end was never observed (6.4, PR-03, PR-11). | Fixture rescan creates A r2; B untouched. |
+| FE-P10 | M | Diff pairs steps by identity → built-from → screen/route, labelling Unchanged, Changed, Merged, Split, Added, Removed, Moved (section 8). Change spec sections are editable and exportable as Markdown. | Unit tests on the pairing; export contains all seven sections. |
+| FE-P11 | S | Live per environment is detected by scans (match against each variant) or marked manually with confirmation; a later scan overrides a manual mark (6.11, PR-13). | Fixture: scan walking B sets "B live in sandbox". |
+| FE-P12 | M | Existing chat scopes migrate to processes (source `migrated_scope`, A r1 from start/end/selected screens, comments → annotations); the workflow step "Sort into processes" is done when one process is scoped (PR-17). | "Test process" appears as Scoped with A r1 of 2 steps. |
+| FE-P13 | M | Revisions are immutable; restore, rebase and accept create new revisions; processes are archived, never deleted (PR-05, PR-16). | No UPDATE/DELETE on revision rows in the API layer. |
 | FE-S01 | M | Rescans add observed revisions (r1, r2…) to a screen instead of replacing it. | Data + UI check (08). |
 | FE-S02 | M | Amendments carry forward; if their element disappears they are flagged for re-anchoring (needs you), never deleted. | e2e with a fixture where the element is removed. |
 | FE-R01 | M | Review lists every open decision (re-anchor, proposals, records to confirm, conflicts) with counts and a detail pane. | Matches `09-review.png`. |
@@ -59,6 +67,24 @@ Screens referenced are in `screens/`; behaviour comes from the redesign wirefram
 | FE-C02 | M | Chat shows only a one-line scan status that links to Scans. | `01-home.png` (composer). |
 | FE-T01 | M | Settings: environments table, add or change form, Revoke with confirmation ("Runs already recorded are kept."). | Matches `11-settings.png`. |
 | FE-T02 | M | Credentials are collapsed by default and values are never shown. | DOM check. |
+
+## D2. Map runs (spec: `11-map-runs.md`)
+
+| ID | P | Requirement | Acceptance |
+|---|---|---|---|
+| FE-M01 | M | Scans ▸ Map shows nodes, edges and states for the picked portal, with scan, persona and layer filters, a legend, and a Graph / List toggle (the list carries the same facts). | Matches `12-map-graph.png`; List view lists every node with kind, status, queue and marks. |
+| FE-M02 | M | Nodes are `button`s with an `aria-label` that states route, state and marks. Click selects (`aria-pressed`) and fills the inspector; Shift-click adds to the selection; arrow keys move along edges; `M` opens the marks. | Keyboard-only pass on the map; screen reader reads a node's route, status and marks. |
+| FE-M03 | M | Marks (Start here, Focus, Probe, Retry, Recheck, Skip) can be set on nodes and edges, show as `.sy-tag--intent` on the node, collect in the Next scan plan (remove one, clear all), persist per portal until used or cleared, and pre-fill Plan next scan. | e2e: mark → tray count +1 → reload → still there → Plan next scan shows it. |
+| FE-M04 | M | Steps rendered on the same URL are separate states ("step 1, 2, 3") inside a route group; collapsed, they show as a deck with a count. | Fixture: a React multi-step form produces 3 states on one route (`13-screen-states.png`). |
+| FE-M05 | M | Probing records validation, branch and technical outcomes as states of the step, with evidence (screenshot, messages, network), deduplicated by fingerprint. Technical states use neutral chips, never failure red. | Matches `13-screen-states.png`; probing twice adds no duplicate states. |
+| FE-M06 | M | Technical probes are browser-side simulations and are off on production unless the portal allows them; submit probes respect the environment limit; actions whose side effects aren't allowed are recorded as blocked, never probed. The safety callout shows the rule for the current environment. | Unit tests on the probe planner per environment limit; production run has no technical probes. |
+| FE-M07 | M | Every state has a checkpoint. A scan can start by replay; each replayed step is checked against its fingerprint, and a mismatch stops the scan with "Replay diverged at step N" and a diff. | Fixture with a changed page between runs stops with the diff. |
+| FE-M08 | M | A stopped scan can be resumed from the last good checkpoint as a new scan linked "continues <id>", keeping the stopped scan's queue. | `15-run-recovery.png`; queue count carried over. |
+| FE-M09 | M | A failing path can be retried as attempts, one variation each (wait longer, record without submitting, other inputs, skip); attempts are listed with results; the path is solved when one passes. | e2e on a fixture with a missing selector. |
+| FE-M10 | M | Plan next scan offers Full map, Continue frontier, Focused, Probe forms, Recheck and Retry path, shows the start points with their replay recipes, the excluded nodes, the probes, persona, environment and limits, and a plain "What will happen" preview before Start scan. | Matches `14-plan-run.png`. |
+| FE-M11 | M | Reconciliation groups different outcomes of one graph point, shows evidence per outcome and the reasons checked in order, and records a verdict per outcome proposed by the agent (inferred) and confirmed by a person in Review. | Matches `16-reconcile-states.png`; Review gets a "Differing states" kind. |
+| FE-M12 | M | Documentation follows `11-map-runs.md` §7.5: a step is documented by its main state; an error page is never the step; an error-only step is "not observed" with an open question and a recheck. | Generated doc for the fixture lists the 503 under environment issues, not as a step. |
+| FE-M13 | S | Validation messages, branches and technical states produce inferred rule, process-variant and NFR candidates, linked to their evidence, that land in Review. | Probe fixture creates candidates with evidence links. |
 
 ## E. Non-functional
 

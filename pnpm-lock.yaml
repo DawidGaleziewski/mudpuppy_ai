@@ -218,6 +218,9 @@ importers:
       '@pathfinder/docs':
         specifier: workspace:*
         version: link:../crawler/packages/docs
+      '@pathfinder/docs-model':
+        specifier: workspace:*
+        version: link:../crawler/packages/docs-model
       '@pathfinder/store':
         specifier: workspace:*
         version: link:../crawler/packages/store

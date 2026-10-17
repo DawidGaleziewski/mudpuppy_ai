@@ -389,6 +389,30 @@ first. It may submit forms, so a scan that only looks cannot probe.
 
 <sub>Last changed in R-69, 2026-10-17.</sub>
 
+<a id="portal-map"></a>
+
+#### Portal map
+
+**Every screen your scans recorded as a node, laid out by how far it is from the start page, under Scans → Map.**
+
+Each screen is one node; several states of one screen (form steps, a validation or error
+state) stack as a deck with a count. The lines show the first move into each screen; tick
+All links for the rest (every page links to the footer pages, so all of them at once hide
+the map). A page's queued, failed and blocked items are chips on its node. Pick one scan or
+persona to grey out what it did not see; the list view shows the same screens as a table.
+Select a node to see its states, the scans that saw it and where its actions lead, and mark
+a form step for probing from there.
+
+*Example:* /kalkulator/pojazd · 5 states · +3 queued, under / in the second row
+
+*Seen in:* Scans → Map
+
+*Labels:* `Screens by depth`, `All links`, `Not in these scans`
+
+*Related:* [Map (live)](#live-map), [Probe mark](#probe-mark), [State](#state), [Frontier](#frontier)
+
+<sub>Last changed in R-69, 2026-10-17.</sub>
+
 <a id="probe-suite"></a>
 
 #### Probe suite
@@ -750,6 +774,49 @@ them as a form. The container's structure shows which fields belong together.
 *Related:* [Form autofill](#form-autofill), [State](#state)
 
 <sub>Last changed in R-28, 2026-10-09.</sub>
+
+### Documentation
+
+<a id="differing-states"></a>
+
+#### Differing states
+
+**A place where scans saw different screens (one button, two pages; one route, two screens), so the BA explains each outcome before documenting.**
+
+The system finds them; the BA agent checks the reasons in order (persona, input, a
+temporary error, session or time, a feature flag, data) and proposes a verdict per outcome;
+you confirm or change it in Review → Differing states. An error page is never the step: the
+step is documented by its main state, and a temporary outcome becomes an open question.
+
+*Example:* "See the offer" led to the offer in one scan and to "Sold out today" in the next.
+
+*Seen in:* Review → Differing states
+
+*Labels:* `Differing states`, `Why does this differ?`
+
+*Related:* [Verdict](#verdict), [State](#state), [Portal map](#portal-map)
+
+<sub>Last changed in R-69, 2026-10-17.</sub>
+
+<a id="verdict"></a>
+
+#### Verdict
+
+**What one outcome of a differing-states group is, proposed by the BA and confirmed by you; the BA documents the screen by it.**
+
+Main state (the step itself), variant by persona, input or feature flag, validation state,
+technical error state, temporary (recheck later) or same state (two recordings of one
+screen). Until you confirm it, the BA documents with its own proposal, marked inferred.
+
+*Example:* The 503 page seen once, not again: Temporary · recheck.
+
+*Seen in:* Review → Differing states
+
+*Labels:* `Verdict`, `Confirm verdicts`
+
+*Related:* [Differing states](#differing-states)
+
+<sub>Last changed in R-69, 2026-10-17.</sub>
 
 ### Actions and safety
 

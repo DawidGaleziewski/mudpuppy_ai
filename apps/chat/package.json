@@ -21,6 +21,7 @@
     "@pathfinder/core": "workspace:*",
     "@pathfinder/store": "workspace:*",
     "@pathfinder/docs": "workspace:*",
+    "@pathfinder/docs-model": "workspace:*",
     "@pathfinder/vault": "workspace:*",
     "@pathfinder/workflow": "workspace:*",
     "yaml": "^2.9.1",

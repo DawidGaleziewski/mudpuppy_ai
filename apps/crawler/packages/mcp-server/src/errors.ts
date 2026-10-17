@@ -45,6 +45,9 @@ export const ERROR_CODES = [
   'PROBE_NOT_ASKED',
   'STEP_NOT_MARKED',
   'NO_PROBE_MARKS',
+  // Differing states (spec 033): no such group now; a proposal that leaves an outcome out.
+  'GROUP_UNKNOWN',
+  'VERDICTS_INCOMPLETE',
 ] as const;
 export type ErrorCode = (typeof ERROR_CODES)[number];
 

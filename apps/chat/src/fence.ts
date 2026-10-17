@@ -43,6 +43,8 @@ export const BA_READ_TOOLS = [
   'get_process',
   'get_pending_feedback',
   'get_access_matrix',
+  // Spec 033: where scans saw different screens at one point.
+  'list_differing_states',
 ].map((t) => BA + t);
 
 export const BA_WRITE_TOOLS = [
@@ -55,6 +57,8 @@ export const BA_WRITE_TOOLS = [
   'address_crawler_question',
   // Spec 032: a probe suite the owner approves in Review before it ever runs.
   'propose_probe_suite',
+  // Spec 033: verdicts on differing states the owner confirms in Review.
+  'propose_verdicts',
 ].map((t) => BA + t);
 
 export const CRAWLER_TOOLS = [

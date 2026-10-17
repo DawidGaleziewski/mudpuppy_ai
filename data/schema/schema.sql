@@ -1,4 +1,4 @@
--- GENERATED from data/migrations/*.up.sql applied in order (currently through 0024_marks). Do not edit by hand.
+-- GENERATED from data/migrations/*.up.sql applied in order (currently through 0025_reconciliations). Do not edit by hand.
 -- Regenerate after every migration; see data/schema/README.md.
 
 CREATE TABLE runs (
@@ -906,3 +906,23 @@ CREATE TABLE marks (
 ) STRICT;
 
 CREATE UNIQUE INDEX ux_marks_open ON marks (portal_id, kind, target_kind, target_id) WHERE used_by_run_id IS NULL;
+
+CREATE TABLE reconciliations (
+  id             TEXT PRIMARY KEY,                                   -- UUIDv7
+  portal_id      TEXT NOT NULL CHECK (length(portal_id) > 0),
+  group_key      TEXT NOT NULL CHECK (length(group_key) > 0),
+  group_kind     TEXT NOT NULL CHECK (group_kind IN ('action','route','replay')),
+  snapshot_json  TEXT NOT NULL CHECK (json_valid(snapshot_json) AND json_type(snapshot_json) = 'object'),
+  proposal_json  TEXT NOT NULL CHECK (json_valid(proposal_json) AND json_type(proposal_json) = 'array'),
+  proposed_by    TEXT NOT NULL CHECK (length(proposed_by) > 0),      -- BA session id or 'BA'
+  proposed_at    TEXT NOT NULL,
+  status         TEXT NOT NULL CHECK (status IN ('proposed','confirmed','superseded')),
+  confirmed_json TEXT CHECK (confirmed_json IS NULL OR (json_valid(confirmed_json) AND json_type(confirmed_json) = 'array')),
+  confirmed_by   TEXT CHECK (confirmed_by IS NULL OR length(confirmed_by) > 0),
+  confirmed_at   TEXT,
+  CHECK ((status = 'confirmed') = (confirmed_json IS NOT NULL)),
+  CHECK ((confirmed_json IS NULL) = (confirmed_by IS NULL) AND (confirmed_json IS NULL) = (confirmed_at IS NULL))
+) STRICT;
+
+CREATE INDEX ix_reconciliations_portal_status ON reconciliations (portal_id, status);
+CREATE UNIQUE INDEX ux_reconciliations_open ON reconciliations (portal_id, group_key) WHERE status = 'proposed';

@@ -38,6 +38,8 @@ import type {
   ProcessStatus,
   ProcessStepKind,
   RelationType,
+  ReconcileGroupKind,
+  ReconciliationStatus,
   ReviewAction,
   RevisionChange,
   RevisionStatus,
@@ -182,6 +184,22 @@ export interface MarksTable {
   created_at: string;
   used_by_run_id: string | null;
   used_at: string | null;
+}
+
+/** 0025: the BA's proposed reading of a group of differing states and the owner's confirmation; JSON columns validated by `ReconciliationRow` (docs-model). */
+export interface ReconciliationsTable {
+  id: string;
+  portal_id: string;
+  group_key: string;
+  group_kind: ReconcileGroupKind;
+  snapshot_json: string;
+  proposal_json: string;
+  proposed_by: string;
+  proposed_at: string;
+  status: ReconciliationStatus;
+  confirmed_json: string | null;
+  confirmed_by: string | null;
+  confirmed_at: string | null;
 }
 
 /** 0015: a screen is (portal_id, route_template, cluster_id); its states are its observed revisions. */
@@ -820,4 +838,5 @@ export interface Database {
   probe_outcomes: ProbeOutcomesTable;
   probe_suites: ProbeSuitesTable;
   marks: MarksTable;
+  reconciliations: ReconciliationsTable;
 }
