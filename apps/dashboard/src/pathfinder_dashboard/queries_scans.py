@@ -36,6 +36,7 @@ class HistoryRow(NamedTuple):
     run: Run
     pages: int
     changes: Changes
+    failed: int = 0  # failed actions and controls not found again (the scan's graph, R-74)
 
 
 class Monitor(NamedTuple):
@@ -194,6 +195,19 @@ def history(
             (portal,),
         )
     }
+    failed = {
+        r[0]: r[1]
+        for r in _rows(
+            conn,
+            "SELECT run_id, count(*) FROM ("
+            " SELECT e.run_id FROM edges e JOIN runs r ON r.id = e.run_id"
+            "  WHERE r.portal_id = ? AND e.error IS NOT NULL"
+            " UNION ALL SELECT f.run_id FROM frontier f JOIN runs r ON r.id = f.run_id"
+            "  WHERE r.portal_id = ? AND f.status = 'unreachable')"
+            " GROUP BY run_id",
+            (portal, portal),
+        )
+    }
     changed = _changed_by_run(conn, portal)
     flagged = _flagged_by_run(conn, portal)
     first = _rows(
@@ -213,6 +227,7 @@ def history(
                     flagged.get(run.id, 0),
                     run.id == first_id,
                 ),
+                failed.get(run.id, 0),
             )
         )
     return rows

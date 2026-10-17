@@ -201,7 +201,8 @@ def test_run_detail_header_and_tabs(client: TestClient) -> None:
         ("Decisions", 54),
     ]:
         assert f"{label} {count}" in t, label
-    assert 'aria-current="page">States' in html
+    # an interrupted scan opens on its graph (spec 035, R-74)
+    assert 'aria-current="page">Graph' in html and 'id="region-graph"' in html
     assert "Config snapshot" in t
     assert "&#34;liveinsurer&#34;" in html or "&quot;liveinsurer&quot;" in html  # JSON escaped in <pre>
 
@@ -209,7 +210,9 @@ def test_run_detail_header_and_tabs(client: TestClient) -> None:
 def test_run_detail_stopped_run_shows_warning(client: TestClient) -> None:
     html = client.get("/runs/run-005").text
     assert 'data-status="failed">Stopped' in html and CAPTCHA_1 in html
-    assert "No screens observed in this scan" in text(html)
+    assert "No screens recorded in this scan" in text(html)  # its graph (spec 035)
+    states = client.get("/runs/run-005", params={"tab": "states"}).text
+    assert "No screens observed in this scan" in text(states)
 
 
 def test_states_show_confidence_and_evidence(client: TestClient) -> None:
@@ -296,9 +299,10 @@ def test_unknown_run_is_not_found(client: TestClient) -> None:
     assert client.get(f"/fragments/runs/{BIG_RUN}/bogus").status_code == 404
 
 
-def test_unknown_tab_falls_back_to_states(client: TestClient) -> None:
+def test_unknown_tab_falls_back_to_the_default(client: TestClient) -> None:
+    # the default of an interrupted scan is its graph (spec 035), of a clean one its states
     html = client.get(f"/runs/{BIG_RUN}?tab=bogus").text
-    assert 'id="region-states"' in html
+    assert 'id="region-graph"' in html
 
 
 # --- US1 (R-17): trace tab and activity -------------------------------------------------------

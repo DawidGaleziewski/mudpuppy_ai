@@ -52,6 +52,10 @@ Layer: app (Python, FastAPI + Jinja + htmx, uv; outside the TS layers)
   `pnpm docs:process-export` into a temp folder (kept until the store changes) and renders it
   without raw HTML; `web/process_export.py`: `/docs/{portal}/{PROC}/export` and
   `/processes/{PRC}/export` (one tab per file, images, `openapi.yaml`/`process.json`, zip).
+- Spec 035 (R-74): `queries_run_graph.py` + `partials/graph.html`: a scan's Graph tab (its
+  screens and moves in the map's layout, failures and the stop screen, path, Resume, Retry /
+  Skip / Start here per screen); a scan that stopped or failed opens on it. Forms posted with
+  `from=graph` (or a `/runs/…` mark `back`) return to the graph.
 - `servers.py`: live `pathfinder` servers read from `<data_dir>/servers/*.json`; the header names
   those on another environment or checkout (spec 031 R-61). Read-only, dead files are skipped.
 - `models.py`: read-only models of SQLite schema; drift test vs. `data/schema/schema.sql`.

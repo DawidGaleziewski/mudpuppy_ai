@@ -1,0 +1,172 @@
+{#- A scan's graph (spec 035, R-74): where the scan went and what failed, with the restarts of
+    screen 15 next to the screen they belong to. Nodes are links (`node=`), placed by the server
+    with the map's layout; the table under the graph carries the same facts for phones and
+    screen readers. -#}
+{% import "salvage/macros.html" as sy %}
+{% set v = section %}
+{% set g = v.graph %}
+{% call sy.region("graph", v.self_url, "Graph of this scan") %}
+{%- if g is none or not g.nodes %}
+<div class="sy-plate"><div class="sy-plate__body">{{ sy.empty("No screens recorded in this scan", "A scan's graph shows the screens it saw and the moves it made.") }}</div></div>
+{%- else %}
+{%- set r = g.recovery %}
+{%- set node_url = "/runs/" ~ v.run.id %}
+{%- set here = g.nodes | selectattr("id", "equalto", v.selected) | first if v.selected else none %}
+{%- set here = here or g.stop_node or (g.nodes | selectattr("status", "equalto", "failed") | first) %}
+{%- if v.note %}<p class="sy-callout" role="status">{{ v.note }}</p>{% endif %}
+
+<section class="sy-plate{% if g.stopped %} sy-plate--failure{% endif %}" aria-labelledby="graph-status-h">
+  <div class="sy-plate__head">
+    <h2 id="graph-status-h" class="sy-plate__title">{% if g.stopped %}Where it stopped{% else %}How it went{% endif %}</h2>
+    {{ sy.run_status(r.status) }}
+  </div>
+  <div class="sy-plate__body sy-stack">
+    <p>
+      <span class="sy-num">{{ r.steps }}</span> steps · <span class="sy-num">{{ g.nodes | length }}</span> screens ·
+      <span class="sy-num">{{ g.failures }}</span> failed action{{ "" if g.failures == 1 else "s" }} ·
+      {%- if g.unreachable %} <span class="sy-num">{{ g.unreachable }}</span> control{{ "" if g.unreachable == 1 else "s" }} not found again ·{% endif %}
+      <span class="sy-num">{{ r.pending }}</span> queued.
+      {%- if g.stopped %} Stopped on <b class="sy-case-normal">{{ g.stop_node.title if g.stop_node else "an unknown screen" }}</b>{% if g.stop_node %} <span class="sy-route">{{ g.stop_node.route }}</span>{% endif %}: {{ r.warning or "stopped by the BA or the session" }}.
+      {%- elif g.failures or g.unreachable %} Completed; pick a red screen to see what failed there.
+      {%- else %} Completed without a failed action.{% endif %}
+    </p>
+    {%- if g.path | length > 1 %}
+    <ol class="sy-path" aria-label="Path to where it stopped">
+      {%- for n in g.path %}
+      <li><a class="sy-path__step{% if loop.last %} sy-path__step--here{% endif %}" href="{{ c.url(node_url, tab='graph', node=n.id) }}">{{ n.route }}</a></li>
+      {%- endfor %}
+      {%- if g.stop_node and g.stop_node.failures %}<li><span class="sy-path__step sy-path__step--failed">✕ {{ g.stop_node.failures[-1].label }}</span></li>{% endif %}
+    </ol>
+    {%- endif %}
+    {%- if g.stopped %}
+    <div class="sy-actions">
+      <form method="post" action="{{ c.url('/scans/plan/start') }}">
+        <input type="hidden" name="run_type" value="continue">
+        <input type="hidden" name="parent_run_id" value="{{ r.run_id }}">
+        <input type="hidden" name="persona" value="{{ r.persona }}">
+        <input type="hidden" name="environment" value="{{ r.environment }}">
+        <input type="hidden" name="from" value="graph">
+        <button class="sy-btn sy-btn--primary" type="submit">Resume</button>
+      </form>
+      <a class="sy-small" href="{{ c.url('/scans/recover/' ~ r.run_id) }}">Recovery page with attempts</a>
+    </div>
+    <p class="sy-small sy-muted">Resume starts a new scan linked to this one: it replays to the screens with queued items and carries on, without redoing what this scan did.</p>
+    {%- endif %}
+  </div>
+</section>
+
+<div class="sy-columns">
+  <div class="sy-col-main sy-stack">
+    <section class="sy-graph mp-map" aria-label="Graph of this scan, from its first screen" data-map>
+      <div class="mp-map-zoom sy-cluster" role="group" aria-label="Zoom">
+        <button class="sy-btn sy-btn--sm sy-btn--icon" type="button" data-zoom="out" aria-label="Zoom out">−</button>
+        <button class="sy-btn sy-btn--sm" type="button" data-zoom="fit">Fit</button>
+        <button class="sy-btn sy-btn--sm sy-btn--icon" type="button" data-zoom="in" aria-label="Zoom in">+</button>
+      </div>
+      <div class="sy-graph__canvas mp-map-canvas" style="width: {{ g.width }}px; height: {{ g.height }}px">
+        <svg class="sy-graph__edges" aria-hidden="true" focusable="false">
+          {%- for e in g.edges %}
+          <path class="sy-edge{% if e.kind == 'failed' %} sy-edge--failed{% endif %}" d="{{ e.d }}"/>
+          {%- endfor %}
+        </svg>
+        {%- for n in g.nodes %}
+        <a class="sy-node" href="{{ c.url(node_url, tab='graph', node=n.id) }}" data-state="{{ n.status }}" data-screen="{{ n.id }}" data-near="{{ n.near | join(' ') }}"
+           {%- if here and here.id == n.id %} aria-current="true"{% endif %} style="left: {{ n.x }}px; top: {{ n.y }}px; height: {{ v.node_h }}px">
+          {%- if n.stopped_here %}<span class="sy-node__marks"><span class="sy-tag sy-tag--intent sy-tag--sm">Stopped here</span></span>{% endif %}
+          <span class="sy-node__route">{{ n.route }}</span>
+          <span class="sy-node__title sy-truncate" title="{{ n.title }}">{{ n.title }}</span>
+          <span class="sy-node__meta">{{ sy.status("map_node", n.status) }}
+            {%- if n.failures %}<span class="sy-chip sy-chip--fail">{{ n.failures | length }} failed</span>{% endif %}
+            {%- if n.unreachable %}<span class="sy-chip sy-chip--fail">{{ n.unreachable }} not found</span>{% endif %}
+            {%- if n.queued %}<span class="sy-chip sy-chip--dashed">+{{ n.queued }} queued</span>{% endif %}
+            {%- if n.blocked %}<span class="sy-chip">{{ n.blocked }} blocked</span>{% endif %}</span>
+        </a>
+        {%- endfor %}
+      </div>
+    </section>
+    <div class="sy-split">
+      <ul class="sy-legend" aria-label="Legend">
+        <li><span class="sy-status" data-status="ok">Observed</span></li>
+        <li><span class="sy-status" data-status="failed">Something failed here</span></li>
+        <li><span class="sy-status" data-status="queued">Queued</span></li>
+      </ul>
+      <p class="sy-small sy-muted">Pick a screen to see what failed there and restart it · arrows move along the tree · red lines are moves that failed</p>
+    </div>
+
+    <section class="sy-plate" aria-labelledby="graph-list-h">
+      <div class="sy-plate__head"><h2 id="graph-list-h" class="sy-plate__title">Screens in the order seen</h2><span class="sy-count sy-count--muted">{{ g.nodes | length }}</span></div>
+      <div class="sy-table-wrap sy-table-wrap--flush">
+        <table class="sy-table sy-table--dense">
+          <caption class="sy-sr-only">Screens this scan saw, in the order it first saw them</caption>
+          <thead><tr><th scope="col">#</th><th scope="col">Screen</th><th scope="col">State</th><th scope="col">Failed</th><th scope="col">Queued</th></tr></thead>
+          <tbody>
+            {%- for n in g.nodes %}
+            <tr{% if here and here.id == n.id %} aria-current="true"{% endif %}>
+              <td class="sy-num">{{ n.order }}</td>
+              <th scope="row"><a class="sy-case-normal" href="{{ c.url(node_url, tab='graph', node=n.id) }}">{{ n.title }}</a> <span class="sy-route">{{ n.route }}</span>{% if n.stopped_here %} <span class="sy-tag sy-tag--intent sy-tag--sm">Stopped here</span>{% endif %}</th>
+              <td>{{ sy.status("map_node", n.status) }}</td>
+              <td class="sy-num">{{ n.failures | length + n.unreachable }}</td>
+              <td class="sy-num">{{ n.queued }}</td>
+            </tr>
+            {%- endfor %}
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+
+  <aside class="sy-col-side">
+    <section class="sy-plate" aria-labelledby="graph-insp-h" id="graph-inspector">
+      {%- if not here %}
+      <div class="sy-plate__head"><h2 id="graph-insp-h" class="sy-plate__title">Screen</h2></div>
+      <div class="sy-plate__body"><p class="sy-small sy-muted">Pick a screen to see what failed on it and to restart from it.</p></div>
+      {%- else %}
+      <div class="sy-plate__head"><h2 id="graph-insp-h" class="sy-plate__title sy-case-normal">{{ here.title }}</h2>{{ sy.status("map_node", here.status) }}</div>
+      <div class="sy-plate__body sy-stack">
+        <p><span class="sy-route">{{ here.route }}</span> · screen {{ here.order }} of {{ g.nodes | length }}{% if here.stopped_here %} · the scan stopped here{% endif %}</p>
+        <a class="sy-small" href="{{ c.url('/states/' ~ here.state_id) }}">Open the screen this scan recorded</a>
+
+        <span class="sy-label">Failed here <span class="sy-count sy-count--muted">{{ here.failures | length }}</span></span>
+        {%- for f in here.failures %}
+        <div class="sy-stack" style="--sy-gap: 6px">
+          <span><b class="sy-case-normal">{{ f.label }}</b> <span class="sy-small sy-muted">{{ f.error }}</span></span>
+          <form class="sy-cluster" style="--sy-gap: 6px" method="post" action="{{ c.url('/scans/plan/start') }}">
+            <input type="hidden" name="run_type" value="retry">
+            <input type="hidden" name="target_edge_id" value="{{ f.edge_id }}">
+            <input type="hidden" name="parent_run_id" value="{{ r.run_id }}">
+            <input type="hidden" name="persona" value="{{ r.persona }}">
+            <input type="hidden" name="environment" value="{{ r.environment }}">
+            <input type="hidden" name="from" value="graph">
+            <input type="hidden" name="node" value="{{ here.id }}">
+            <label class="sy-field"><span class="sy-sr-only">Variation for {{ f.label }}</span>
+              <select class="sy-select" name="variation">{% for val, label in v.variations %}<option value="{{ val }}">{{ label }}</option>{% endfor %}</select></label>
+            <button class="sy-btn sy-btn--sm sy-btn--strong" type="submit">Retry this path</button>
+          </form>
+          <form method="post" action="{{ c.url('/scans/recover/' ~ r.run_id ~ '/skip') }}">
+            <input type="hidden" name="edge_id" value="{{ f.edge_id }}">
+            <input type="hidden" name="from" value="graph">
+            <input type="hidden" name="node" value="{{ here.id }}">
+            <button class="sy-btn sy-btn--sm sy-btn--quiet" type="submit">Skip it in the next scans</button>
+          </form>
+        </div>
+        {%- else %}
+        <p class="sy-small sy-muted">No action of this scan failed on this screen.</p>
+        {%- endfor %}
+        {%- if here.unreachable %}<p class="sy-small">{{ here.unreachable }} control{{ "" if here.unreachable == 1 else "s" }} the crawler could not find again; Resume or a scan from here tries {{ "it" if here.unreachable == 1 else "them" }} anew.</p>{% endif %}
+        {%- if here.queued %}<p class="sy-small">{{ here.queued }} item{{ "" if here.queued == 1 else "s" }} still queued here.</p>{% endif %}
+
+        <span class="sy-label">Scan from here</span>
+        <form method="post" action="{{ c.url('/states/' ~ here.state_id ~ '/mark') }}">
+          <input type="hidden" name="kind" value="start">
+          <input type="hidden" name="action" value="mark">
+          <input type="hidden" name="back" value="{{ c.url(node_url, tab='graph', node=here.id) }}">
+          <button class="sy-btn sy-btn--sm" type="submit">Mark Start here</button>
+        </form>
+        <p class="sy-small sy-muted">The next focused scan replays to this screen and explores from it. <a href="{{ c.url('/scans/plan') }}">Plan the next scan</a></p>
+      </div>
+      {%- endif %}
+    </section>
+  </aside>
+</div>
+{%- endif %}
+{% endcall %}

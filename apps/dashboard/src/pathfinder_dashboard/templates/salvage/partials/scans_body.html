@@ -77,7 +77,8 @@
           <tr>
             <td>{{ sy.run_status(r.status) }}</td>
             <th scope="row">{{ sy.tag(r.id, c.url('/runs/' ~ r.id), sm=true, label=r.id[:8]) }}
-              {%- if r.status in ("interrupted", "stopped_warning") %} <a class="sy-small" href="{{ c.url('/scans/recover/' ~ r.id) }}">Pick up</a>{% endif %}</th>
+              {%- if r.status in ("interrupted", "stopped_warning") %} <a class="sy-small" href="{{ c.url('/runs/' ~ r.id, tab='graph') }}">Where it stopped</a>
+              {%- elif h.failed %} <a class="sy-small" href="{{ c.url('/runs/' ~ r.id, tab='graph') }}">{{ h.failed }} failed</a>{% endif %}</th>
             <td>{{ r.persona_id }}</td>
             <td>{{ r.mode }} · {{ r.environment }}</td>
             <td class="sy-num">{{ r.steps_used }}</td>

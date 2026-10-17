@@ -139,6 +139,15 @@ def plan(conn: sqlite3.Connection, portal: str) -> Plan:
     return Plan(marks, personas, envs)
 
 
+# How a retry may vary the failed action (screen 15); the recovery page and the run graph offer it.
+VARIATIONS = (
+    ("none", "As before"),
+    ("wait_longer", "Wait longer"),
+    ("other_input", "Other input"),
+    ("no_submit", "Don't submit"),
+)
+
+
 @dataclass(frozen=True)
 class FailedAction:
     edge_id: str
@@ -184,7 +193,8 @@ class Recovery:
         return "crawler error"
 
 
-def _error_text(raw: str | None) -> str:
+def error_text(raw: str | None) -> str:
+    """An edge's stored error as one line (its message, else its code)."""
     if not raw:
         return ""
     try:
@@ -238,13 +248,14 @@ def recovery(conn: sqlite3.Connection, run_id: str) -> Recovery | None:
             or json.loads(r["action_json"]).get("role")
             or "action",
             r["route_template"],
-            _error_text(r["error"]),
+            error_text(r["error"]),
             r["created_at"],
         )
         for r in conn.execute(
             "SELECT e.id, e.action_json, e.error, e.created_at, s.route_template FROM edges e"
             " JOIN states s ON s.id = e.from_state WHERE e.run_id = ? AND e.error IS NOT NULL"
-            " ORDER BY e.created_at DESC LIMIT 20",
+            # Skip checks its action against this list; the run graph offers it on every failure
+            " ORDER BY e.created_at DESC LIMIT 500",
             (run_id,),
         )
     ]

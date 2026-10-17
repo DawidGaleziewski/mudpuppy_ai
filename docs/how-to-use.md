@@ -288,11 +288,18 @@ or not) and does not repeat recorded work.
 If the crawler ends before the queue is empty, the scan is marked stopped, the assistant tells
 you and you can resume it.
 
-A stopped scan has **Pick up** in the scan history. Its page says where and why it stopped and
-offers **Resume** (a new scan, linked to this one, that replays to the screens with queued items
-and carries on without redoing anything), **Retry this path** for each failed action, with a
-variation (wait longer, other input, don't submit), and **Skip it in the next scans**. The
-attempts so far are listed with their result.
+**A scan's graph.** A scan that stopped or had something fail opens on its **Graph** tab; the
+scan history links it as **Where it stopped** or **N failed**. The graph shows the screens this
+scan saw and the moves it made, from its first screen down. Red screens are where an action
+failed or a control could not be found again, red lines are moves that failed, and the screen
+it stopped on carries **Stopped here**. Above the graph: the counts, why it stopped, the path
+from the start to that screen and **Resume** (a new scan, linked to this one, that replays to
+the screens with queued items and carries on without redoing anything). Pick a screen to see
+what failed on it, each with **Retry this path** (with a variation: wait longer, other input,
+don't submit) and **Skip it in the next scans**, and **Mark Start here** to explore from that
+screen in the next focused scan. On a phone the graph gives way to the list of screens in the
+order seen. The older recovery page (**Recovery page with attempts**) still lists the attempts
+so far with their result.
 
 ## 9. Screens and their revisions
 

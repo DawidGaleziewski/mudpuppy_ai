@@ -456,6 +456,29 @@ button). Probe marks on form steps are the same idea for probe scans.
 
 <sub>Last changed in R-66, 2026-10-17.</sub>
 
+<a id="scan-graph"></a>
+
+#### Scan graph
+
+**One scan drawn as a graph, the screens it saw and the moves it made, with what failed where and the screen it stopped on.**
+
+The Graph tab of a scan's page, and where a scan that stopped or had something fail
+opens. Red screens are where an action failed or a control could not be found again; red
+lines are moves that failed; "Stopped here" marks the screen the scan ended on, with the
+path to it from the first screen. Pick a screen to retry or skip what failed on it, or to
+mark it Start here. Resume continues the whole scan. The map (Scans → Map) is every scan
+of the portal at once; the scan graph is one.
+
+*Example:* A shop scan stopped on /sklep/produkt/:param: the graph shows /sklep → product, Stopped here, Resume.
+
+*Seen in:* A scan's page → Graph; Scans (Where it stopped; N failed)
+
+*Labels:* `Graph`, `Where it stopped`, `How it went`, `Stopped here`, `Path to where it stopped`, `Screens in the order seen`, `Mark Start here`, `Retry this path`, `Skip it in the next scans`, `Resume`
+
+*Related:* [Directed scan](#directed-scan), [Scan mark](#scan-mark), [Checkpoint](#checkpoint), [Run](#run)
+
+<sub>Last changed in R-74, 2026-10-18.</sub>
+
 <a id="portal-map"></a>
 
 #### Portal map

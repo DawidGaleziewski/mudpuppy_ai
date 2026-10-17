@@ -26,12 +26,7 @@ SCAN_TYPES = (
     ("continue", "Continue a stopped scan", "Picks up where a stopped scan left off."),
 )
 TYPE_LABELS = {t: label for t, label, _ in SCAN_TYPES}
-VARIATIONS = (
-    ("none", "As before"),
-    ("wait_longer", "Wait longer"),
-    ("other_input", "Other input"),
-    ("no_submit", "Don't submit"),
-)
+VARIATIONS = queries_plan.VARIATIONS
 
 
 def scan_request_text(
@@ -141,6 +136,9 @@ async def _send_to_chat(web: Any, portal: str, text: str) -> tuple[str | None, s
 
 def _back(c: Ctx, form: dict[str, str], note: str) -> RedirectResponse:
     run = form.get("parent_run_id")
+    if form.get("from") == "graph" and run:  # the scan's graph, on the screen it was sent from
+        url = c.url(f"/runs/{run}", tab="graph", node=form.get("node") or None, note=note)
+        return RedirectResponse(url, status_code=303)
     path = f"/scans/recover/{run}" if form.get("from") == "recover" and run else "/scans/plan"
     return RedirectResponse(c.url(path, note=note), status_code=303)
 
@@ -207,4 +205,7 @@ async def recover_skip(request: Request, run_id: str, env: str | None = None) ->
             )
         except chat_client.ChatUnavailable:
             note = f"Not recorded: {chat_client.NOT_RUNNING}."
+    form = {k: v[0] for k, v in raw.items()}
+    if form.get("from") == "graph":
+        return _back(c, {**form, "parent_run_id": run_id}, note)
     return RedirectResponse(c.url(f"/scans/recover/{run_id}", note=note), status_code=303)

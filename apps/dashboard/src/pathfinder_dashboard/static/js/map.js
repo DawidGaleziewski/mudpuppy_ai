@@ -11,7 +11,7 @@
   const reveal = (map) => {
     const nodes = [...map.querySelectorAll(".sy-node")];
     const target =
-      map.querySelector('.sy-node[aria-pressed="true"]') ||
+      map.querySelector('.sy-node[aria-pressed="true"], .sy-node[aria-current="true"]') ||
       nodes.reduce((a, b) => (b.offsetTop < a.offsetTop ? b : a), nodes[0]);
     if (target) map.scrollLeft = target.offsetLeft + target.offsetWidth / 2 - map.clientWidth / 2;
   };

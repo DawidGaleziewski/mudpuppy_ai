@@ -6,6 +6,17 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Added
+- **A graph of each scan, R-74** (spec 035, v1.0.39, 2026-10-18; owner: "graphs on runs so I
+  know where something fails and are able to restart it"). A scan's page has a **Graph** tab,
+  and a scan that stopped or had something fail opens on it: the screens it saw and the moves it
+  made, in the map's layout; red where an action failed or a control was not found again, red
+  lines for failed moves, **Stopped here** on the screen it ended on. Above it the counts, why it
+  stopped, the path from the first screen to there and **Resume**. Pick a screen for its failed
+  actions with **Retry this path** (with a variation) and **Skip it in the next scans**, or **Mark
+  Start here**; each comes back to the graph with its note. The scan history links it as **Where
+  it stopped** or **N failed**. On a phone the graph gives way to the list of screens in the
+  order seen. Glossary `scan-graph`. Deferred: split the scan page's `section_values` per tab
+  (one statement over the limit).
 - Spec 034, four roadmap items on one branch (v1.0.38, 2026-10-18):
   - **Scan from a known screen, R-66:** every scan stores the way back to each screen
     (checkpoints, migration 0027); a new scan reaches a chosen screen by replaying that path

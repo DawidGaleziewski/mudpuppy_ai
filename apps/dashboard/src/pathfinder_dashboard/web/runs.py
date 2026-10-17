@@ -10,13 +10,23 @@ from fastapi import APIRouter, Query, Request
 from fastapi.responses import HTMLResponse
 from starlette.exceptions import HTTPException
 
-from .. import db, diagrams, queries, queries_docs, queries_hooks
+from .. import (
+    db,
+    diagrams,
+    map_layout,
+    queries,
+    queries_docs,
+    queries_hooks,
+    queries_plan,
+    queries_run_graph,
+)
 from ..models import DECISION_KINDS, FRONTIER_STATUSES, SAFETY_CLASSES, Run
 from .deps import Ctx, web_of
 
 router = APIRouter()
 
 SECTIONS: tuple[tuple[str, str], ...] = (
+    ("graph", "Graph"),  # where the scan went and what failed, with restarts (spec 035, R-74)
     ("states", "States"),
     ("actions", "Actions"),
     ("frontier", "Frontier"),
@@ -35,16 +45,18 @@ SPAN_CHILD_KINDS: tuple[str, ...] = ("phase", "event")
 
 @router.get("/runs/{run_id}", response_class=HTMLResponse)
 def run_detail(
-    request: Request, run_id: str, env: str | None = None, tab: str = "states"
+    request: Request, run_id: str, env: str | None = None, tab: str | None = None
 ) -> HTMLResponse:
     web = web_of(request)
     c = web.ctx(request, env)
-    tab = tab if tab in SECTION_IDS else "states"
     try:
         with c.conn() as conn:
             summary = queries.run_summary(conn, run_id)
             if summary is None:
                 return web.not_found(c, run_id)
+            if tab not in SECTION_IDS:
+                # a scan that stopped or failed somewhere opens on its graph (R-74)
+                tab = "graph" if queries_run_graph.needs_attention(conn, run_id) else "states"
             return web.render(
                 c,
                 "run_detail.html",
@@ -140,6 +152,7 @@ def fragment_span_children(
 def header_values(c: Ctx, conn: sqlite3.Connection, summary: Any, tab: str) -> dict[str, Any]:
     run: Run = summary.run
     counts = {
+        "graph": queries_run_graph.screen_count(conn, run.id),
         "states": summary.states,
         "actions": summary.actions,
         "frontier": summary.frontier,
@@ -166,6 +179,21 @@ def header_values(c: Ctx, conn: sqlite3.Connection, summary: Any, tab: str) -> d
     }
 
 
+def graph_values(
+    conn: sqlite3.Connection, run: Run, params: Any
+) -> tuple[dict[str, Any], dict[str, Any]]:
+    """The Graph tab: its values and its filter (the selected screen); the note is a restart's."""
+    selected = params.get("node") or None
+    data = {
+        "graph": queries_run_graph.run_graph(conn, run.id),
+        "selected": selected,
+        "note": params.get("note") or None,
+        "node_h": map_layout.NODE_H,
+        "variations": queries_plan.VARIATIONS,
+    }
+    return data, {"node": selected}
+
+
 def section_values(
     c: Ctx, conn: sqlite3.Connection, run: Run, section: str, params: Any
 ) -> dict[str, Any]:
@@ -184,7 +212,9 @@ def section_values(
     filters: dict[str, Any] = {}
     data: dict[str, Any] = {}
 
-    if section == "states":
+    if section == "graph":
+        data, filters = graph_values(conn, run, params)
+    elif section == "states":
         data["items"] = queries.run_states(conn, run.id)
     elif section == "actions":
         safety = params.get("safety_class")

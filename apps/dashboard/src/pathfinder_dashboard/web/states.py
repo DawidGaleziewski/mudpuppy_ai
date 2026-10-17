@@ -204,6 +204,9 @@ async def state_mark(request: Request, state_id: str, env: str | None = None) ->
     if back.startswith("/map?") or back == "/map":
         sep = "&" if "?" in back else "?"
         return RedirectResponse(f"{back}{sep}{urlencode({'probe_note': note})}", status_code=303)
+    if back.startswith("/runs/"):  # a scan's graph (spec 035): its note shows above the graph
+        sep = "&" if "?" in back else "?"
+        return RedirectResponse(f"{back}{sep}{urlencode({'note': note})}", status_code=303)
     return RedirectResponse(c.url(f"/states/{state_id}", probe_note=note), status_code=303)
 
 
