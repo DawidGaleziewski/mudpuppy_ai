@@ -3052,10 +3052,11 @@
         "status": "ok",
         "attrs_json": {
           "by_type_decision": {
-            "document:fulfill": 1
+            "document:fulfill": 1,
+            "fetch:continue": 2
           },
           "limiter_wait_ms_total": "<ms>",
-          "count": 1
+          "count": 3
         },
         "summary": "request_aggregate",
         "decision": 0,
@@ -6442,10 +6443,11 @@
         "status": "ok",
         "attrs_json": {
           "by_type_decision": {
-            "document:fulfill": 1
+            "document:fulfill": 1,
+            "fetch:continue": 2
           },
           "limiter_wait_ms_total": "<ms>",
-          "count": 1
+          "count": 3
         },
         "summary": "request_aggregate",
         "decision": 0,
@@ -9792,10 +9794,11 @@
         "status": "ok",
         "attrs_json": {
           "by_type_decision": {
-            "document:fulfill": 1
+            "document:fulfill": 1,
+            "fetch:continue": 2
           },
           "limiter_wait_ms_total": "<ms>",
-          "count": 1
+          "count": 3
         },
         "summary": "request_aggregate",
         "decision": 0,
@@ -10387,10 +10390,11 @@
         "status": "ok",
         "attrs_json": {
           "by_type_decision": {
-            "document:fulfill": 1
+            "document:fulfill": 1,
+            "fetch:continue": 2
           },
           "limiter_wait_ms_total": "<ms>",
-          "count": 1
+          "count": 3
         },
         "summary": "request_aggregate",
         "decision": 0,
@@ -10417,7 +10421,7 @@
               "actions_executed": 13,
               "actions_inferred": 0,
               "actions_skipped_by_class": {},
-              "api_endpoints": 0,
+              "api_endpoints": 2,
               "item_page_visits": 0,
               "robots": {
                 "hosts": [

@@ -51,6 +51,26 @@
     </ul>
   </div>
   {%- endif %}
+  {%- if detail.target_state %}
+  {#- Spec 034 R-66 (design §6): marks for the next scan; they collect in the Next scan plan. -#}
+  <div class="sy-stack" style="--sy-gap: 6px">
+    <span class="sy-label">Next scan</span>
+    {%- set have = detail.screen_marks or {} %}
+    {%- if have %}<span class="sy-cluster" style="--sy-gap: 4px">{% for kind, label, _ in SCREEN_MARKS if kind in have %}<span class="sy-tag sy-tag--intent sy-tag--sm">{{ label }}</span>{% endfor %}</span>{% endif %}
+    <div class="sy-cluster" style="--sy-gap: 6px">
+      {%- for kind, label, hint in SCREEN_MARKS %}
+      {%- set on = kind in have %}
+      <form method="post" action="{{ c.url('/states/' ~ (have[kind] if on else detail.target_state) ~ '/mark') }}">
+        <input type="hidden" name="kind" value="{{ kind }}">
+        <input type="hidden" name="action" value="{{ 'remove' if on else 'mark' }}">
+        <input type="hidden" name="back" value="{{ back }}">
+        <button class="sy-btn sy-btn--sm sy-btn--quiet" type="submit" title="{{ hint }}" aria-pressed="{{ 'true' if on else 'false' }}">{{ ('✓ ' if on else '') ~ label }}</button>
+      </form>
+      {%- endfor %}
+    </div>
+    <a class="sy-small" href="{{ c.url('/scans/plan') }}">Plan the next scan</a>
+  </div>
+  {%- endif %}
   {%- if detail.mark_state %}
   <form class="sy-stack" method="post" action="{{ c.url('/states/' ~ detail.mark_state ~ '/probe-mark') }}">
     <span class="sy-label">Probing</span>

@@ -41,7 +41,16 @@ over-claims. Complete, verbatim and honest beats elegant.
    included when they recorded steps: their extent is partial), `start_session` with them; heed
    its `warnings` (trace runs not grouped into processes: stop and report). Evidence from other runs is refused (`RUN_NOT_IN_SESSION`).
 3. `list_records` to see what exists; revise instead of duplicating. Revisions need `base_rev` equal to
-   the latest (`STALE_REVISION` otherwise — re-read and retry once).
+   the latest (`STALE_REVISION` otherwise — re-read and retry once). **Documentation grows**
+   (spec 034): for a process that is already documented (a `PROC` record, or a `PRC` you were
+   named), call `open_process_update` first. It returns the process's records, every run of the
+   process (runs that walked its screens, not only the runs you were handed: put them all in
+   `start_session`), the runs new since its last change, the screens no record cites yet and the
+   error pages. Revise the listed records with what is new and create records for the uncited
+   screens. A revision keeps the previous revision's evidence and use-case steps; leaving any out
+   needs `dropped` (each link or the step count, and a reason) or it is refused
+   (`REVISION_DROPS`). A process citing only error pages is refused (`PROCESS_ONLY_ERRORS`): cite
+   the runs that walked the journey and keep the error page as an error branch.
 4. Run the seven passes below in order; after each call `record_pass` with a 1–3 line summary.
 5. `finish_session` with a summary and `gaps` (what you could not document and why).
 
@@ -63,7 +72,7 @@ PII check reads an id in prose as a token and refuses the write (`PII_SUSPECTED`
 | 1 | `inventory` | `get_run_evidence` states, forms, network_calls, actions, decisions, page_visits | one `screen` per distinct page/UI state cluster: purpose, **route templates exactly as recorded**, elements (role + verbatim label; an element with no visible label is left out of `elements` and cited as a screen region instead), entry points (every URL it was reached under) |
 | 2 | `capabilities` | your screens, nav labels | `capability` records (what the business offers, e.g. "Book reservation"); relations `capability contains screen|process` |
 | 3 | `processes` | `list_processes`, then `get_process` per process (ordered steps), edges between screens | `process` (goal, persona, trigger, outcome, `observed_extent`) and `use_case` (Cockburn, see `references/use-cases.md`); if no trace exists, a `followup` asking for one |
-| 4 | `rules` | forms (required, pattern, min/max), disabled controls and their hints, validation messages, computed values, refused actions, rule candidates | `business_rule` and `requirement` records (`references/business-rules.md`, `references/requirements-writing.md`); a field limit with business meaning is a rule too, besides the data item's constraint; every rule quotes the label of the control it is about |
+| 4 | `rules` | forms (required, pattern, min/max), disabled controls and their hints, validation messages, computed values, refused actions, rule candidates | `business_rule` and `requirement` records (`references/business-rules.md`, `references/requirements-writing.md`); a field limit with business meaning is a rule too, besides the data item's constraint; every rule quotes the label of the control it is about; give every requirement, rule (and in pass 6 every NFR) its `ears` form: `{pattern, text}`, pattern one of ubiquitous ("The <system> shall …"), event ("When …, the <system> shall …"), state ("While …"), unwanted ("If …, then …"), optional ("Where …"), complex; one statement, verbatim labels kept (the export prints it as written) |
 | 5 | `data` | form fields, network call shapes, labels, state `elements` | one `data_item` per field of every form (`name_verbatim` = the label exactly, constraints observed, evidence includes the field's screen region), checkboxes, selects and login fields included, also when a rule or process already covers the field; `glossary_term` per domain term (`references/glossary.md`), related to every screen that shows it with `appears_on` (`glossary_term appears_on screen`) |
 | 6 | `nfr` | status codes, console errors, robots policy, languages, accessibility of labels | `nfr` records only for what was measured; everything else goes to gaps |
 | 7 | `synthesis` | your records | `assumption` records, remaining `open_question`s, gap list; check every screen has data items and rules linked, every rule cites its form/screen; count the fields of each form in the runs against your data items and write the missing ones now; go through your data items: each constraint with business meaning (a range, a date limit, a maximum duration, a code format, "one of two needed") without a `business_rule` gets one now |

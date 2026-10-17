@@ -29,6 +29,8 @@ obstacles, safety, store.
   `nativeMessages` (the browser's own constraint messages after a refused submit), used by form
   probes, which take the control the agent named as the submit whatever its text (F-18; map-mode
   autofill keeps its submit words); autofill results carry each field's `label`, and fields carry `autocomplete`.
+- Spec 034: `NetworkRecorder` keeps cut sample bodies (`req_sample`, `res_sample`, ≤ 4096) only
+  when the session's `keepSamples` is on (the runtime sets it outside production).
 - In-page code with helpers goes through `evalWithHelpers` (`in-page.ts`; Playwright's `evaluate`, not an eval): top-level helper
   functions only, no closures (the `__name` shim, G-02).
 

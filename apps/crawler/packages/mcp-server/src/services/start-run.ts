@@ -23,6 +23,8 @@ import { personaRefs } from '@pathfinder/vault';
 import type { LoadedHook } from '@pathfinder/hooks';
 import { loadRunHooks } from './run-hooks.js';
 import { openProbeMarks, type ProbeMarkItem } from './probe-marks.js';
+import { DirectedType, PlanInput } from './run-plan.js';
+import { resolveDirected, useMarks, type StartPoint } from './run-plan-resolve.js';
 
 const Globs = z
   .array(z.string().trim().regex(/^\//, 'a path starting with /; * matches anything'))
@@ -76,6 +78,13 @@ const StartRunInput = z
      * map run only; a plain run never probes.
      */
     probe_marked: z.boolean().optional(),
+    /**
+     * A directed run (spec 034 R-66): `continue` a stopped run, `focused` from marked screens,
+     * `recheck` marked screens, `retry` a failed action. Start points come back in `start_points`;
+     * reach each with `go_to_state`. A new map run only.
+     */
+    run_type: DirectedType.optional(),
+    plan: PlanInput.optional(),
   })
   .strict()
   .superRefine((v, c) => {
@@ -84,6 +93,16 @@ const StartRunInput = z
         code: 'custom',
         path: ['probe_marked'],
         message: 'a probe run is a new map run; not with resume_run_id or mode trace',
+      });
+    if (
+      v.run_type !== undefined &&
+      (v.resume_run_id !== undefined || v.mode === 'trace' || v.probe_marked === true)
+    )
+      c.addIssue({
+        code: 'custom',
+        path: ['run_type'],
+        message:
+          'a directed run is a new map run; not with resume_run_id, mode trace or probe_marked',
       });
     // A resumed run keeps its own mode and process.
     if (v.resume_run_id !== undefined) return;
@@ -115,6 +134,9 @@ export interface StartRunOutput {
   budgets: { steps: number; run_time_minutes: number; states: number };
   /** A probe run's marked form steps (spec 032 US5): the only steps `probe_form` accepts. */
   probe_marks?: ProbeMarkItem[];
+  /** A directed run (spec 034 R-66): its type and where it starts; reach each with go_to_state. */
+  run_type?: DirectedType;
+  start_points?: StartPoint[];
 }
 
 type Approved = Extract<PreflightResult, { ok: true }> & { hooks: readonly LoadedHook[] };
@@ -164,11 +186,12 @@ export async function startRunRecord(
     // The environment the run targets: asked for, or the resumed run's own (spec 011 FR-009).
     // Runs of every environment are recorded in this server's store, labelled with it.
     let environment = input.environment;
-    if (environment === undefined && input.resume_run_id !== undefined) {
+    const ownRun = input.resume_run_id ?? input.plan?.parent_run_id;
+    if (environment === undefined && ownRun !== undefined) {
       const row = await ctx.db
         .selectFrom('runs')
         .select('environment')
-        .where('id', '=', input.resume_run_id)
+        .where('id', '=', ownRun)
         .executeTakeFirst();
       environment = row?.environment;
     }
@@ -285,7 +308,24 @@ export async function startRunRecord(
     focus: input.focus ?? null,
     probe: input.probe_marked === true,
   };
-  const { effectiveMaxActionClass, approved, startUrl } = limited(choices);
+  const limits = limited(choices);
+  const { effectiveMaxActionClass, startUrl } = limits;
+  // A directed run's plan, before any row is written: nothing to start from refuses it. Depth
+  // counts from its start points (spec 034 A-4).
+  const directed =
+    input.run_type === undefined
+      ? null
+      : await resolveDirected(
+          ctx,
+          { portal: portal.id, persona: persona.id },
+          input.run_type,
+          input.plan ?? {},
+        );
+  const depth = directed?.plan.depth ?? null;
+  const approved: Approved =
+    depth === null
+      ? limits.approved
+      : { ...limits.approved, scope: { ...limits.approved.scope, max_depth: Math.max(depth, 1) } };
   // Nothing to probe: refused before any browser opens or row is written.
   const probeMarks = choices.probe ? await openProbeMarks(ctx, portal.id) : undefined;
   if (probeMarks?.length === 0)
@@ -336,9 +376,17 @@ export async function startRunRecord(
         ended_at: null,
         coverage: null,
         ...ownerColumns(ctx),
+        ...(directed
+          ? {
+              run_type: directed.plan.type,
+              parent_run_id: directed.plan.parent_run_id,
+              plan_json: JSON.stringify(directed.plan),
+            }
+          : {}),
       })
       .execute();
     await robots.flush();
+    if (directed) await useMarks(ctx, directed.plan.mark_ids, id);
     return getRun(ctx, id);
   });
   const processId =
@@ -365,6 +413,7 @@ export async function startRunRecord(
       skip_images: choices.skip_images,
       budgets: remainingBudgets(run),
       ...(probeMarks ? { probe_marks: probeMarks } : {}),
+      ...(directed ? { run_type: directed.plan.type, start_points: directed.startPoints } : {}),
     },
     run,
     approved,

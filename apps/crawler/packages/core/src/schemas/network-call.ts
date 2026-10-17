@@ -15,5 +15,8 @@ export const NetworkCall = z.object({
   created_at: Timestamp,
   /** 0012 (spec 019): the verbatim request URL, query kept; null on rows recorded before. */
   url: z.string().min(1).nullable().optional(),
+  /** 0027 (spec 034): masked sample bodies, at most 4096 characters, recorded only outside production. */
+  req_sample: z.string().max(4096).nullable().optional(),
+  res_sample: z.string().max(4096).nullable().optional(),
 });
 export type NetworkCall = z.infer<typeof NetworkCall>;

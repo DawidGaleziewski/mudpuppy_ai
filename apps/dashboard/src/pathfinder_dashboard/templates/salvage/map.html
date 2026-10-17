@@ -10,6 +10,7 @@
   <p class="sy-meta">
     {%- if not c.portal %}Pick a portal in the header to see its map.
     {%- elif m and m.screens %}{{ c.portal }} · <span class="sy-num">{{ m.screens }}</span> screen{{ "" if m.screens == 1 else "s" }} · <span class="sy-num">{{ m.transitions }}</span> transition{{ "" if m.transitions == 1 else "s" }} · <span class="sy-num">{{ m.queued }}</span> queued
+      · <a href="{{ c.url('/scans/plan') }}">Next scan plan{% if open_marks %} <span class="sy-count">{{ open_marks }}</span>{% endif %}</a>
     {%- else %}{{ c.portal }} · nothing mapped yet{% endif %}</p>
 </div>
 {% set scan_tab = "map" %}

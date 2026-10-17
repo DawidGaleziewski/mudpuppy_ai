@@ -203,9 +203,11 @@ def test_docs_pages_render_in_salvage(ba_fixture: Store) -> None:
 
 
 def test_screens_list_shows_recorded_screens(client: TestClient) -> None:
-    html = client.get("/screens").text
+    html = client.get("/screens", params={"q": "Kup"}).text
     _salvage_page(html)
-    assert "Kup ubezpieczenia" in html and 'href="/states/state-home"' in html
+    # Rows carry the list they were opened from, for Prev / Next on the screen page (R-71).
+    assert "Kup ubezpieczenia" in html
+    assert 'href="/states/state-home?list=%2Fscreens%3Fq%3DKup"' in html
     assert re.search(r'class="sy-nav__item" href="/screens"[^>]*aria-current="page"', html)
 
 

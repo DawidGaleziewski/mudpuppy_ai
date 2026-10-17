@@ -11,6 +11,7 @@ import {
 import type { Refusal } from '@pathfinder/safety';
 import type { ServerContext } from '../../context.js';
 import type { RunRow } from '../../services/index.js';
+import { mayQueue } from '../../services/run-plan.js';
 import type { RunState } from '../run-state.js';
 import { decision, event, reported, type Report, type Reported } from './context.js';
 import { gateContext, TRACE_CLASSIFY, usage } from './gate.js';
@@ -46,11 +47,23 @@ export async function issueAndEnqueue(
   const { issued, g } = await issueActions(ctx, run, rs, observed, page);
   const capped = clickablesCapped(observed, issued);
   // Queue for exploration only the first time this run sees the state, and only if the policy admits it.
-  // A trace run follows one process and uses no frontier.
-  if (page.alreadyInRun || rs.isTrace) return reported(issued, capped);
+  // A trace run follows one process and uses no frontier. A replay passes the pages on its way
+  // without queuing them: the frontier starts at its target (spec 034 A-2).
+  // The target is its screen: the replay may land on another state of it (typed values, spec 034 F-05).
+  const r = rs.replay;
+  const onTarget =
+    r?.target === page.state_id ||
+    (r?.route === page.routeTemplate && r?.cluster === page.clusterId);
+  const passing = r?.target !== undefined && !onTarget;
+  if (page.alreadyInRun || rs.isTrace || passing) return reported(issued, capped);
+  // A directed run queues what its plan allows: no Skip-marked action, a retry's one action,
+  // nothing in a recheck (spec 034 R-66).
+  const allowed = issued.filter((a) =>
+    mayQueue(rs.plan, { state_id: page.state_id, role: a.role, name: a.name ?? null }),
+  );
   return reported(issued, [
     ...capped,
-    ...(await queueForExploration(ctx, run, rs, { observed, page, issued, g })),
+    ...(await queueForExploration(ctx, run, rs, { observed, page, issued: allowed, g })),
   ]);
 }
 

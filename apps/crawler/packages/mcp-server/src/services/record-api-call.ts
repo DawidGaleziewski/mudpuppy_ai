@@ -19,6 +19,13 @@ export const RecordApiCallInput = z
      * included; not checked for raw payloads like the shapes are ("capture everything").
      */
     url: z.string().min(1).nullable().default(null),
+    /**
+     * Sample bodies (spec 034 R-68, A-9): kept only outside production (the caller leaves them out
+     * there), masked when the portal asks for it, at most 4096 characters. Unlike the shapes they
+     * are raw data on purpose: the contracts export shows what was sent and returned per attempt.
+     */
+    req_sample: z.string().max(4096).nullable().default(null),
+    res_sample: z.string().max(4096).nullable().default(null),
   })
   .strict();
 
@@ -63,6 +70,8 @@ export async function recordApiCall(
       console_errors: JSON.stringify(input.console_errors),
       created_at: nowIso(),
       url: input.url,
+      req_sample: input.req_sample,
+      res_sample: input.res_sample,
     })
     .execute();
   return { api_call_id: id };

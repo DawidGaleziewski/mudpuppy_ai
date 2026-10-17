@@ -296,6 +296,73 @@ describe('pathfinder-chat MCP server', () => {
     expect(prompt).not.toContain('Drain the frontier');
   });
 
+  it('a directed scan needs what it starts from and briefs the replay (spec 034 R-66)', async () => {
+    const base = { portal: 'reference-insurer', persona: 'guest' };
+    const errorOf = async (args: Record<string, unknown>) =>
+      (await call('request_scan', { ...base, ...args })).body.error as { code: string };
+    expect(await errorOf({ run_type: 'focused' })).toMatchObject({ code: 'MISSING_INPUT' });
+    expect(await errorOf({ run_type: 'continue' })).toMatchObject({ code: 'MISSING_INPUT' });
+    expect(await errorOf({ run_type: 'retry' })).toMatchObject({ code: 'MISSING_INPUT' });
+    expect(await errorOf({ run_type: 'focused', probe_marked: true })).toMatchObject({
+      code: 'INVALID',
+    });
+    expect(
+      await errorOf({ run_type: 'continue', plan: { parent_run_id: 'not-a-run' } }),
+    ).toMatchObject({ code: 'INVALID' });
+
+    opened.raw
+      .prepare(
+        `INSERT INTO marks (id, portal_id, kind, target_kind, target_id, created_by, created_at)
+         VALUES ('m-2', 'reference-insurer', 'start', 'state', 'st-1', 'BA', '2026-10-17T00:00:00Z')`,
+      )
+      .run();
+    const { isError, body } = await call('request_scan', {
+      ...base,
+      run_type: 'focused',
+      plan: { depth: 2 },
+    });
+    expect(isError).toBe(false);
+    const prompt = (body.handoff as { prompt: string }).prompt;
+    expect(prompt).toContain('run_type "focused" and plan {"depth":2}');
+    expect(prompt).toContain('go_to_state');
+    expect(prompt).toContain('never navigate to a start point yourself');
+  });
+
+  it('request_documentation updates a documented process by its key (spec 034 F-08)', async () => {
+    const base = { portal: 'reference-insurer' };
+    const errorOf = async (args: Record<string, unknown>) =>
+      (await call('request_documentation', { ...base, ...args })).body.error as { code: string };
+    expect(await errorOf({ process_key: 'PROC-001' })).toMatchObject({ code: 'NOT_FOUND' });
+    expect(await errorOf({})).toMatchObject({ code: 'INVALID' });
+    opened.raw
+      .prepare(
+        `INSERT INTO doc_records (id, portal_id, kind, key, seq, title, latest_rev, confirmed_rev, withdrawn, created_at, updated_at)
+         VALUES ('r-1', 'reference-insurer', 'process', 'PROC-001', 1, 'Quote', 1, NULL, 0, '2026-10-17T00:00:00Z', '2026-10-17T00:00:00Z')`,
+      )
+      .run();
+    const { isError, body } = await call('request_documentation', {
+      ...base,
+      process_key: 'PROC-001',
+    });
+    expect(isError).toBe(false);
+    const prompt = (body.handoff as { prompt: string }).prompt;
+    expect(prompt).toContain('open_process_update');
+    expect(prompt).toContain('do not rebuild it');
+  });
+
+  it('a continued scan takes the parent run persona and environment', async () => {
+    const parent = seedRun('interrupted', 'guest');
+    const { isError, body } = await call('request_scan', {
+      portal: 'reference-insurer',
+      run_type: 'continue',
+      plan: { parent_run_id: parent },
+    });
+    expect(isError).toBe(false);
+    const prompt = (body.handoff as { prompt: string }).prompt;
+    expect(prompt).toContain('as persona "guest"');
+    expect(prompt).toContain(`"parent_run_id":"${parent}"`);
+  });
+
   it('stop_scan stops the running scan; request_scan resumes it (T041)', async () => {
     expect((await call('stop_scan', { portal: 'reference-insurer' })).body.error?.code).toBe(
       'NO_RUNNING_SCAN',

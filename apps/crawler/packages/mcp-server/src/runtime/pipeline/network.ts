@@ -20,7 +20,14 @@ export async function recordNetwork(
   { edgeId, stateId: state_id, scrub }: NetworkAt,
 ): Promise<Reported<void>> {
   const reports: Report[] = [];
-  for (const call of net.calls) {
+  // Sample bodies for the contracts export (spec 034 A-9): never kept on production; masked like
+  // the URL when the portal asks for masking.
+  const keepSamples = run.environment !== 'production';
+  const sample = (body: string | null | undefined): string | null => {
+    if (!keepSamples || body === null || body === undefined) return null;
+    return (scrub ? maskText(body) : body).slice(0, 4096);
+  };
+  for (const { req_sample, res_sample, ...call } of net.calls) {
     try {
       await recordApiCall(ctx, {
         run_id: run.id,
@@ -29,6 +36,8 @@ export async function recordNetwork(
         // Verbatim unless the portal asks for masking (spec 019, research R2).
         url: scrub ? maskText(call.url) : call.url,
         console_errors: net.console_errors,
+        req_sample: sample(req_sample),
+        res_sample: sample(res_sample),
       });
     } catch (e) {
       if (!(e instanceof ToolError)) fail(reports, e);

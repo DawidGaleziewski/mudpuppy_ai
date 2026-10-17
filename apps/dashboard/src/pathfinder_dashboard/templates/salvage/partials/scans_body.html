@@ -76,7 +76,8 @@
           {%- set r = h.run %}
           <tr>
             <td>{{ sy.run_status(r.status) }}</td>
-            <th scope="row">{{ sy.tag(r.id, c.url('/runs/' ~ r.id), sm=true, label=r.id[:8]) }}</th>
+            <th scope="row">{{ sy.tag(r.id, c.url('/runs/' ~ r.id), sm=true, label=r.id[:8]) }}
+              {%- if r.status in ("interrupted", "stopped_warning") %} <a class="sy-small" href="{{ c.url('/scans/recover/' ~ r.id) }}">Pick up</a>{% endif %}</th>
             <td>{{ r.persona_id }}</td>
             <td>{{ r.mode }} · {{ r.environment }}</td>
             <td class="sy-num">{{ r.steps_used }}</td>
@@ -111,6 +112,7 @@
         </tbody>
       </table>
     </div>
+    {{ sy.pages(v.pages, "Scan history pages") }}
   </section>
 {%- endif %}
 </div>

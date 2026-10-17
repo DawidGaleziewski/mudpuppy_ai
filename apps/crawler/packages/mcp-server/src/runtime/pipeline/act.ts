@@ -8,6 +8,7 @@ import {
 import type { Refusal } from '@pathfinder/safety';
 import type { ServerContext } from '../../context.js';
 import { ToolError } from '../../errors.js';
+import { saveCheckpoint } from '../../services/checkpoints.js';
 import type { ActInput, PageResult } from '../../runtime.js';
 import type { RunRow } from '../../services/index.js';
 import type { RunState } from '../run-state.js';
@@ -178,6 +179,7 @@ async function actStep(
   await step(call, 'run_bookkeeping', async () => {
     const pending = await pendingItemForAction(ctx.db, run.id, action.id);
     if (pending) await settleFrontierItem(ctx.db, pending.id, 'done', null);
+    await saveCheckpoint(ctx, run.id, result.state_id, state.pathTo.get(result.state_id));
     return bumpRun(ctx, run, started, toDepth);
   });
   await flushObstacles(ctx, state);

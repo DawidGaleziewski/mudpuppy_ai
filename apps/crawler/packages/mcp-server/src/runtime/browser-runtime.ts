@@ -6,6 +6,7 @@ import type { ServerContext } from '../context.js';
 import type { Runtime } from '../runtime.js';
 import {
   act,
+  goToState,
   login,
   navigate,
   navigationPolicy,
@@ -14,6 +15,7 @@ import {
 } from './pipeline/index.js';
 import { RunState } from './run-state.js';
 import { processOfRun } from '../services/trace.js';
+import { parsePlan } from '../services/run-plan.js';
 import { runChoices } from '../services/start-run.js';
 import { startPwTrace } from './pw-trace.js';
 import { runSecrets } from '../services/credentials.js';
@@ -58,6 +60,7 @@ export function createBrowserRuntime(opts: BrowserRuntimeOptions = {}): Runtime 
     navigate: (ctx, input) => navigate(ctx, runs.get(input.run_id), input),
     act: (ctx, input) => act(ctx, runs.get(input.run_id), input),
     probeForm: (ctx, input) => probeForm(ctx, runs.get(input.run_id), input),
+    goToState: (ctx, input) => goToState(ctx, runs.get(input.run_id), input),
     login: (ctx, input) => login(ctx, runs.get(input.run_id), input),
     closeRun,
     robotsStats: (runId) => runs.get(runId)?.session.gate.robotsStats(),
@@ -108,6 +111,8 @@ export function createBrowserRuntime(opts: BrowserRuntimeOptions = {}): Runtime 
       ...(skipImages ? { skipImages } : {}),
       observe: trace.observe,
       effective: approved.effective,
+      // Sample bodies for the contracts export, never on production (spec 034 A-9).
+      keepSamples: run.environment !== 'production',
       headless: opts.headless ?? true,
       ...(opts.stabilizer ? { stabilizer: opts.stabilizer } : {}),
       onStop: (e) => {
@@ -169,6 +174,7 @@ export function createBrowserRuntime(opts: BrowserRuntimeOptions = {}): Runtime 
     });
     rs.processId = (await processOfRun(ctx, run.id))?.id ?? null;
     rs.isProbe = runChoices(run).probe;
+    rs.plan = parsePlan(run.plan_json);
     rs.assets = trackAssetHealth(session.context);
     holder.rs = rs;
     // Playwright traces keep DOM snapshots with typed input values: a run that logs in with vault

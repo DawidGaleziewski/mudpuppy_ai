@@ -6,6 +6,7 @@
 export { act } from './act.js';
 export type { ActionRow } from './actions.js';
 export { navigationPolicy } from './gate.js';
+export { goToState } from './go-to-state.js';
 export { login } from './login-step.js';
 export { navigate } from './navigate.js';
 export { probeForm } from './probe-form.js';

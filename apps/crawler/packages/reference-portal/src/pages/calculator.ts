@@ -6,6 +6,8 @@ import {
   MIN_DRIVER_AGE,
   MIN_PRODUCTION_YEAR,
   POSTCODE_PATTERN,
+  VEHICLE_VALUE_MAX,
+  VEHICLE_VALUE_MIN,
   acAllowed,
   ageOn,
   birthDateBounds,
@@ -39,7 +41,7 @@ const DRIVER = [
   'zgoda_dane',
   'zgoda_owu',
 ] as const;
-const OPTIONS = ['zakres', 'assistance', 'kod_rabatowy'] as const;
+const OPTIONS = ['zakres', 'wartosc_pojazdu', 'assistance', 'kod_rabatowy'] as const;
 
 function pick(p: Params, keys: readonly string[]): Params {
   const out: Params = {};
@@ -92,6 +94,12 @@ export function optionErrors(p: Params): string[] {
   if (p.zakres !== 'oc' && p.zakres !== 'oc_ac') e.push('Wybierz zakres ubezpieczenia.');
   if (p.zakres === 'oc_ac' && !acAllowed(Number(p.rok_produkcji)))
     e.push('AC dostępne tylko dla pojazdów młodszych niż 15 lat.');
+  const value = int(p.wartosc_pojazdu);
+  if (
+    p.zakres === 'oc_ac' &&
+    (value === null || value < VEHICLE_VALUE_MIN || value > VEHICLE_VALUE_MAX)
+  )
+    e.push('Podaj wartość pojazdu od 5 000 do 500 000 zł.');
   if (p.kod_rabatowy && !matches(DISCOUNT_CODE_PATTERN, p.kod_rabatowy))
     e.push('Kod rabatowy musi składać się z wielkich liter i dwóch cyfr, np. WIOSNA10.');
   return e;
@@ -178,6 +186,7 @@ export function optionsStep(p: Params): PageResult {
   if (p.krok === '3' && errors.length === 0)
     return { redirect: `/kalkulator/wynik?${query(pick(p, [...VEHICLE, ...DRIVER, ...OPTIONS]))}` };
   const ac = acAllowed(Number(p.rok_produkcji));
+  const acChosen = p.zakres === 'oc_ac' && ac;
   return {
     status: 200,
     html: layout(
@@ -187,16 +196,48 @@ export function optionsStep(p: Params): PageResult {
 <input type="hidden" name="krok" value="3">${hidden(pick(p, [...VEHICLE, ...DRIVER]))}
 <fieldset><legend>Zakres</legend>
 <p><input id="zakres_oc" name="zakres" type="radio" value="oc" required${p.zakres !== 'oc_ac' ? ' checked' : ''}> <label for="zakres_oc">Tylko OC</label></p>
-<p><input id="zakres_oc_ac" name="zakres" type="radio" value="oc_ac" aria-describedby="ac-hint"${ac ? '' : ' disabled'}${p.zakres === 'oc_ac' && ac ? ' checked' : ''}> <label for="zakres_oc_ac">OC + Autocasco (AC)</label></p>
+<p><input id="zakres_oc_ac" name="zakres" type="radio" value="oc_ac" aria-describedby="ac-hint"${ac ? '' : ' disabled'}${acChosen ? ' checked' : ''}> <label for="zakres_oc_ac">OC + Autocasco (AC)</label></p>
 <small id="ac-hint">AC dostępne tylko dla pojazdów młodszych niż 15 lat.</small>
 </fieldset>
+${acChosen ? acBox(p.wartosc_pojazdu) : ''}<template id="ac-box-template">${acBox(undefined)}</template>
 ${checkbox({ id: 'assistance', label: 'Assistance', checked: Boolean(p.assistance) })}
 ${input({ id: 'kod_rabatowy', label: 'Kod rabatowy', type: 'text', value: p.kod_rabatowy, pattern: DISCOUNT_CODE_PATTERN, maxlength: 12, hint: 'Wielkie litery i dwie cyfry, np. WIOSNA10' })}
 <p><button type="submit">Oblicz składkę</button></p>
-</form>`,
+</form>${AC_BOX_SCRIPT}`,
     ),
   };
 }
+
+/** The vehicle value box: in the page only while AC is chosen (rendered, or added by the script). */
+function acBox(value: string | undefined): string {
+  return `<div id="ac-box">${input({ id: 'wartosc_pojazdu', label: 'Wartość pojazdu (zł)', type: 'number', value, required: true, min: VEHICLE_VALUE_MIN, max: VEHICLE_VALUE_MAX, hint: 'Wartość rynkowa, od 5 000 do 500 000 zł.' })}<p id="ac-typical"></p></div>`;
+}
+
+/**
+ * Choosing AC adds the vehicle value box and asks the typical value API (a call of the process);
+ * choosing OC removes the box, so the form a crawler reads differs between the two (variant 4b).
+ */
+const AC_BOX_SCRIPT = `<script>
+(function () {
+  var form = document.querySelector('form[aria-label="Opcje"]');
+  var template = document.getElementById('ac-box-template');
+  function typical() {
+    var q = new URLSearchParams({ marka: form.elements.marka.value, rok_produkcji: form.elements.rok_produkcji.value });
+    fetch('/api/wartosc-pojazdu?' + q).then(function (r) { return r.json(); }).then(function (d) {
+      var p = document.getElementById('ac-typical');
+      if (p) p.textContent = 'Typowa wartość dla tego pojazdu: ' + d.typowa_tekst + '.';
+    }).catch(function () {});
+  }
+  function sync() {
+    var box = document.getElementById('ac-box');
+    var ac = document.getElementById('zakres_oc_ac').checked;
+    if (ac && !box) { form.querySelector('fieldset').after(template.content.cloneNode(true)); typical(); }
+    if (!ac && box) box.remove();
+  }
+  form.querySelectorAll('input[name=zakres]').forEach(function (r) { r.addEventListener('change', sync); });
+  if (document.getElementById('ac-box')) typical();
+})();
+</script>`;
 
 export function resultPage(p: Params): PageResult {
   if (vehicleErrors(p).length > 0) return missingEarlier('Twoja składka');

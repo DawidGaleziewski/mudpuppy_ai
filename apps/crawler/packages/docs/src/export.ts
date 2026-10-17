@@ -112,9 +112,9 @@ export function isReplaceableExportDir(dir: string): boolean {
   if (!existsSync(dir)) return true;
   if (!statSync(dir).isDirectory()) return false;
   const entries = readdirSync(dir);
-  return (
-    entries.length === 0 || (entries.includes('records.json') && entries.includes('README.md'))
-  );
+  // An SRS export, a process export (spec 034: process.json) or a portal export (APIS.md).
+  const marker = ['records.json', 'process.json', 'APIS.md'].some((f) => entries.includes(f));
+  return entries.length === 0 || (marker && entries.includes('README.md'));
 }
 
 /**

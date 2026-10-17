@@ -1,0 +1,133 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="1051" viewBox="0 0 960 1051" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">
+<title>Wireframe: Twoja składka | Towarzystwo Ubezpieczeń Wzorcowych</title>
+<rect x="0" y="0" width="960" height="1051" fill="#FFFFFF"/>
+<g data-key="navigation &quot;Menu główne&quot;">
+<rect x="40" y="98" width="880" height="232" fill="none" stroke="#D0D7DE" stroke-width="1" stroke-dasharray="4 3"/>
+</g>
+<g data-key="banner">
+<rect x="24" y="48" width="912" height="294" fill="none" stroke="#D0D7DE" stroke-width="1" stroke-dasharray="4 3"/>
+</g>
+<g data-key="navigation &quot;Kroki kalkulatora&quot;">
+<rect x="40" y="429" width="880" height="124" fill="none" stroke="#D0D7DE" stroke-width="1" stroke-dasharray="4 3"/>
+</g>
+<g data-key="form &quot;Zakup polisy&quot;">
+<rect x="40" y="725" width="880" height="50" fill="none" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="main">
+<rect x="24" y="354" width="912" height="459" fill="none" stroke="#D0D7DE" stroke-width="1" stroke-dasharray="4 3"/>
+</g>
+<g data-key="navigation &quot;Stopka&quot;">
+<rect x="40" y="889" width="880" height="126" fill="none" stroke="#D0D7DE" stroke-width="1" stroke-dasharray="4 3"/>
+</g>
+<g data-key="contentinfo">
+<rect x="24" y="825" width="912" height="202" fill="none" stroke="#D0D7DE" stroke-width="1" stroke-dasharray="4 3"/>
+</g>
+<g data-key="page">
+<text x="24" y="36" font-size="12" fill="#6E7781">Twoja składka | Towarzystwo Ubezpieczeń Wzorcowych</text>
+</g>
+<g data-key="banner">
+<text x="32" y="63" font-size="11" fill="#6E7781">banner</text>
+</g>
+<g data-key="paragraph#t1">
+<rect x="40" y="72" width="374" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="navigation &quot;Menu główne&quot;">
+<text x="48" y="113" font-size="11" fill="#6E7781">navigation · Menu główne</text>
+</g>
+<g data-key="list">
+<ellipse cx="59" cy="131" rx="3" ry="3" fill="#FFFFFF" stroke="#1F2328" stroke-width="1"/>
+<text x="70" y="135" font-size="13" fill="#1F2328">Start</text>
+<line x1="70" y1="139" x2="105" y2="139" stroke="#1F2328" stroke-width="1"/>
+<ellipse cx="59" cy="153" rx="3" ry="3" fill="#FFFFFF" stroke="#1F2328" stroke-width="1"/>
+<text x="70" y="157" font-size="13" fill="#1F2328">Samochód</text>
+<line x1="70" y1="161" x2="126" y2="161" stroke="#1F2328" stroke-width="1"/>
+<ellipse cx="59" cy="175" rx="3" ry="3" fill="#FFFFFF" stroke="#1F2328" stroke-width="1"/>
+<text x="70" y="179" font-size="13" fill="#1F2328">Dom</text>
+<line x1="70" y1="183" x2="91" y2="183" stroke="#1F2328" stroke-width="1"/>
+<ellipse cx="59" cy="197" rx="3" ry="3" fill="#FFFFFF" stroke="#1F2328" stroke-width="1"/>
+<text x="70" y="201" font-size="13" fill="#1F2328">Podróże</text>
+<line x1="70" y1="205" x2="119" y2="205" stroke="#1F2328" stroke-width="1"/>
+<ellipse cx="59" cy="219" rx="3" ry="3" fill="#FFFFFF" stroke="#1F2328" stroke-width="1"/>
+<text x="70" y="223" font-size="13" fill="#1F2328">Porównanie</text>
+<line x1="70" y1="227" x2="140" y2="227" stroke="#1F2328" stroke-width="1"/>
+<ellipse cx="59" cy="241" rx="3" ry="3" fill="#FFFFFF" stroke="#1F2328" stroke-width="1"/>
+<text x="70" y="245" font-size="13" fill="#1F2328">Oblicz składkę</text>
+<line x1="70" y1="249" x2="168" y2="249" stroke="#1F2328" stroke-width="1"/>
+<ellipse cx="59" cy="263" rx="3" ry="3" fill="#FFFFFF" stroke="#1F2328" stroke-width="1"/>
+<text x="70" y="267" font-size="13" fill="#1F2328">Kontakt</text>
+<line x1="70" y1="271" x2="119" y2="271" stroke="#1F2328" stroke-width="1"/>
+<ellipse cx="59" cy="285" rx="3" ry="3" fill="#FFFFFF" stroke="#1F2328" stroke-width="1"/>
+<text x="70" y="289" font-size="13" fill="#1F2328">FAQ</text>
+<line x1="70" y1="293" x2="91" y2="293" stroke="#1F2328" stroke-width="1"/>
+<text x="70" y="309" font-size="11" fill="#6E7781">+3 more</text>
+</g>
+<g data-key="main">
+<text x="32" y="369" font-size="11" fill="#6E7781">main</text>
+</g>
+<g data-key="heading &quot;Twoja składka&quot;">
+<text x="40" y="406" font-size="28" font-weight="600" fill="#1F2328">Twoja składka</text>
+</g>
+<g data-key="navigation &quot;Kroki kalkulatora&quot;">
+<text x="48" y="444" font-size="11" fill="#6E7781">navigation · Kroki kalkulatora</text>
+</g>
+<g data-key="list#2">
+<ellipse cx="59" cy="462" rx="3" ry="3" fill="#FFFFFF" stroke="#1F2328" stroke-width="1"/>
+<text x="70" y="466" font-size="13" fill="#1F2328">Pojazd</text>
+<ellipse cx="59" cy="484" rx="3" ry="3" fill="#FFFFFF" stroke="#1F2328" stroke-width="1"/>
+<text x="70" y="488" font-size="13" fill="#1F2328">Kierowca</text>
+<ellipse cx="59" cy="506" rx="3" ry="3" fill="#FFFFFF" stroke="#1F2328" stroke-width="1"/>
+<text x="70" y="510" font-size="13" fill="#1F2328">Opcje</text>
+<ellipse cx="59" cy="528" rx="3" ry="3" fill="#FFFFFF" stroke="#1F2328" stroke-width="1"/>
+<text x="70" y="532" font-size="13" fill="#1F2328">Wynik</text>
+</g>
+<g data-key="table &quot;Wyliczenie składki rocznej&quot;">
+<rect x="40" y="565" width="180" height="32" fill="#FFFFFF" stroke="#8C959F" stroke-width="1"/>
+<text x="48" y="586" font-size="12" fill="#1F2328">Składka bazowa</text>
+<rect x="220" y="565" width="180" height="32" fill="#FFFFFF" stroke="#8C959F" stroke-width="1"/>
+<text x="228" y="586" font-size="12" fill="#1F2328">800,00 zł</text>
+<rect x="40" y="597" width="180" height="32" fill="#FFFFFF" stroke="#8C959F" stroke-width="1"/>
+<text x="48" y="618" font-size="12" fill="#1F2328">Współczynnik wieku</text>
+<rect x="220" y="597" width="180" height="32" fill="#FFFFFF" stroke="#8C959F" stroke-width="1"/>
+<text x="228" y="618" font-size="12" fill="#1F2328">1,00</text>
+<rect x="40" y="629" width="180" height="32" fill="#FFFFFF" stroke="#8C959F" stroke-width="1"/>
+<text x="48" y="650" font-size="12" fill="#1F2328">Współczynnik silnika</text>
+<rect x="220" y="629" width="180" height="32" fill="#FFFFFF" stroke="#8C959F" stroke-width="1"/>
+<text x="228" y="650" font-size="12" fill="#1F2328">1,00</text>
+<rect x="40" y="661" width="180" height="32" fill="#FFFFFF" stroke="#8C959F" stroke-width="1"/>
+<text x="48" y="682" font-size="12" fill="#1F2328">Zniżka za bezszkodo…</text>
+<rect x="220" y="661" width="180" height="32" fill="#FFFFFF" stroke="#8C959F" stroke-width="1"/>
+<text x="228" y="682" font-size="12" fill="#1F2328">−80,00 zł</text>
+<text x="40" y="708" font-size="11" fill="#6E7781">+3 more rows</text>
+</g>
+<g data-key="form &quot;Zakup polisy&quot;">
+<text x="48" y="740" font-size="11" fill="#6E7781">form · Zakup polisy</text>
+</g>
+<g data-key="paragraph#t2">
+<rect x="56" y="749" width="106" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="paragraph#t3">
+<rect x="40" y="787" width="121" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="contentinfo">
+<text x="32" y="840" font-size="11" fill="#6E7781">contentinfo</text>
+</g>
+<g data-key="paragraph#t4">
+<rect x="40" y="849" width="880" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+<rect x="40" y="863" width="132" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="navigation &quot;Stopka&quot;">
+<text x="48" y="904" font-size="11" fill="#6E7781">navigation · Stopka</text>
+</g>
+<g data-key="link &quot;FAQ&quot;#2">
+<text x="56" y="927" font-size="14" fill="#1F2328">FAQ</text>
+<line x1="56" y1="931" x2="80" y2="931" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="link &quot;Słowniczek&quot;#2">
+<text x="56" y="961" font-size="14" fill="#1F2328">Słowniczek</text>
+<line x1="56" y1="965" x2="136" y2="965" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="link &quot;Kontakt&quot;#2">
+<text x="56" y="995" font-size="14" fill="#1F2328">Kontakt</text>
+<line x1="56" y1="999" x2="112" y2="999" stroke="#1F2328" stroke-width="1"/>
+</g>
+</svg>

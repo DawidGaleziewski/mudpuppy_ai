@@ -10,6 +10,7 @@ import {
 import { portalRuleSet, type RuleSet, type RunScope } from '@pathfinder/safety';
 import type { HookRunner } from '@pathfinder/hooks';
 import type { RunRobots } from '../services/robots.js';
+import type { ResolvedPlan } from '../services/run-plan.js';
 import type { PwTrace } from './pw-trace.js';
 import type { RunTraceHooks } from './trace-hooks.js';
 
@@ -19,6 +20,8 @@ export interface PathStep {
   value: string | null;
   /** What map-mode autofill typed before this press, by label (the suite repeats it, spec 032). */
   fills?: { name: string; kind: 'fill' | 'select' | 'check'; value?: string }[];
+  /** The state the step led to: a replay checks it (spec 034 checkpoints). */
+  toState?: string;
 }
 
 export interface RunPath {
@@ -49,6 +52,13 @@ export class RunState {
   processId: string | null = null;
   /** A probe run (spec 032 US5): it visits marked form steps, it does not explore. */
   isProbe = false;
+  /** A directed run's plan (spec 034 R-66): what it may queue; null for a plain run. */
+  plan: ResolvedPlan | null = null;
+  /**
+   * While `go_to_state` replays a recorded path (spec 034 A-2): pages on the way are recorded but
+   * not queued, only the target's actions are; depth and the depth limit do not apply.
+   */
+  replay: { target: string; route?: string; cluster?: string } | null = null;
   /** The page as last observed, compared with the next one for a trace step's outcomes. */
   lastObserved: { url: string; title: string; snapshot: string } | null = null;
   /** The mount wait of the latest settle (spec 015 R4), for the page composition. */

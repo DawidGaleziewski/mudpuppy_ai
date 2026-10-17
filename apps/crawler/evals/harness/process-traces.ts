@@ -13,6 +13,8 @@ import type { ScoredOutcome } from './outcome.js';
 
 export interface ProcessTraceRun {
   processId: string;
+  /** The process's name, as the trace was asked for it (the name it is grouped under). */
+  name: string;
   runId: string;
   /** The CLI session, for the password sweep. */
   session: string;
@@ -36,7 +38,14 @@ export async function runProcessTraces(
       (await findCrawlRun(c, ws, since)) ??
       abort(`the crawler made no run for process trace ${t.processId} (session ${session})`);
     console.log(`process trace ${t.processId}: run ${runId}, ${agent.outcome}`);
-    done.push({ processId: t.processId, runId, session, outcome: agent.outcome, out: agent.out });
+    done.push({
+      processId: t.processId,
+      name: t.name,
+      runId,
+      session,
+      outcome: agent.outcome,
+      out: agent.out,
+    });
   }
   return done;
 }

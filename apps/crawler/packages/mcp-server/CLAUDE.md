@@ -61,6 +61,24 @@ Layer: servers (G-07; `apps/crawler/layers.json`)
   `get_run_evidence` kind `probe_outcomes`. Spec 033: `services/ba/differing-states.ts` (groups
   of differing states) and `reconcile.ts` (`list_differing_states`, `propose_verdicts`). `find-again.ts` holds `findAgain` (moved out of
   `act.ts`).
+- Spec 034 (R-70, documentation that grows): `services/ba/run-groups.ts` (runs grouped by the
+  documented process whose screens they walked; same model as the dashboard's
+  `queries_run_groups.py`, both checked against `tests/fixtures/run-groups/cases.json`),
+  `process-update.ts` (`open_process_update`), `revision-guard.ts` (`revise_record` refuses
+  silent drops of evidence or use-case steps, `REVISION_DROPS`; a process citing only error
+  pages is refused, `PROCESS_ONLY_ERRORS`).
+- Spec 034 (F-21, data pass): `services/ba/data-pass-check.ts` (`record_pass` for `data` returns
+  `warnings`: form fields no data item names, terms the pages define that no glossary term names);
+  `data-item-fields.ts` also refuses a data item named by a field's technical name.
+- Spec 034 (R-66, map from a known screen): `services/checkpoints.ts` (every run stores its shortest
+  path per state from `navigate`/`act` bookkeeping; `resolveRecipe`: a recorded direct visit, else
+  the shortest checkpoint of the persona, else a path rebuilt from page visits; `NO_PATH`),
+  `pipeline/go-to-state.ts` (the `go_to_state` tool: replays through `navigate`/`act`, checks
+  each landing state, `REPLAY_DIVERGED`; `RunState.replay` keeps pages on the way out of the
+  frontier and lifts the depth limit; the target gets depth 0), `services/run-plan.ts` (directed
+  run types, `mayQueue`: Skip marks, a retry's one action, nothing in a recheck, a continue run's
+  parent's done actions) and `run-plan-resolve.ts` (`start_run` `run_type` + `plan` → plan on the
+  run row, `start_points`, marks used).
 - Entry points: `pnpm --filter @pathfinder/mcp-server start` (`src/main.ts`), `start:ba`.
 
 ## Invariants

@@ -72,6 +72,11 @@ describe('BA end to end on the fixture store', () => {
       ],
       change_note: 'Corrected to the limit the page states, as the reviewer pointed out.',
       responds_to_review: rejection,
+      // Documentation grows (spec 034): replacing a citation is said, not done silently.
+      dropped: {
+        reason: 'the rule candidate stated the wrong limit; the page and the review replace it',
+        evidence: [{ target_kind: 'rule_candidate', target_id: fx.ruleCandidate }],
+      },
     });
 
     // 1. inventory

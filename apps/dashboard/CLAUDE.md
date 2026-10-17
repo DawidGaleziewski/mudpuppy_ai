@@ -34,7 +34,24 @@ Layer: app (Python, FastAPI + Jinja + htmx, uv; outside the TS layers)
   layers, families), `queries_map.py` + `queries_map_node.py` (nodes, edges, inspector),
   `web/map.py` + `static/js/map.js`; `queries_reconcile.py` (Review ▸ Differing states, confirmed
   through the chat service).
-- `stores.py`: the stores a request may open (main data dir + eval workspaces), chosen by key.
+- `stores.py`: the stores a request may open (main data dir + eval workspaces), chosen by key;
+  `portals_in` (cached per file write) backs the header's store menu, which lists the stores
+  holding the chosen portal, and the portal menu's links, which land on such a store (R-71).
+- Spec 034 (R-71): `pager.py` (25 a page, `paginate` / `paged_from_count`, the `sy.pages`
+  macro) on Screens (`?q=` filter), scan history, Review group tabs, Processes; keyset lists
+  use `settings.page_size` = 25. `neighbours.py`: Prev / Next on screen and record pages from
+  the `list=` link the list adds (Screens, Docs sections, a scan's states); Review's side pane
+  walks the selected item's group. R-70: `queries_run_groups.py` + `web/run_groups.py`
+  (Scans ▸ By process: scans per documented process, unassigned, proposed groups; the same model
+  as the BA server's `run-groups.ts`, both checked against
+  `apps/crawler/tests/fixtures/run-groups/cases.json`). R-66: the map inspector sets Start here,
+  Focus, Recheck, Retry and Skip (`web/states.py` `/states/{id}/mark`, through the chat service);
+  `web/plan.py` + `queries_plan.py`: Scans ▸ Plan next scan (screen 14; Start scan posts one
+  precise `request_scan` request to the portal's conversation) and `/scans/recover/{run}` (screen
+  15: Resume, Retry this path with a variation, Skip it, attempts). R-68: `process_export.py` runs
+  `pnpm docs:process-export` into a temp folder (kept until the store changes) and renders it
+  without raw HTML; `web/process_export.py`: `/docs/{portal}/{PROC}/export` and
+  `/processes/{PRC}/export` (one tab per file, images, `openapi.yaml`/`process.json`, zip).
 - `servers.py`: live `pathfinder` servers read from `<data_dir>/servers/*.json`; the header names
   those on another environment or checkout (spec 031 R-61). Read-only, dead files are skipped.
 - `models.py`: read-only models of SQLite schema; drift test vs. `data/schema/schema.sql`.

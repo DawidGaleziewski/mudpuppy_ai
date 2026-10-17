@@ -61,11 +61,12 @@ it('0025 reconciliations: CHECKs hold, one open proposal per group, down drops t
   ).toThrow(/CHECK/);
   insert('k', { status: 'confirmed', confirmed: '[]', by: 'Ola', at: ts });
   insert('l', { status: 'superseded' });
+  expect(migrateDown(o.raw, MIGRATIONS)).toBe('0027');
   expect(migrateDown(o.raw, MIGRATIONS)).toBe('0026');
   expect(migrateDown(o.raw, MIGRATIONS)).toBe('0025');
   expect(
     o.raw.prepare("SELECT name FROM sqlite_master WHERE name LIKE '%reconciliations%'").all(),
   ).toEqual([]);
-  expect(migrateUp(o.raw, MIGRATIONS)).toEqual(['0025', '0026']);
+  expect(migrateUp(o.raw, MIGRATIONS)).toEqual(['0025', '0026', '0027']);
   expect(o.raw.pragma('foreign_key_check')).toEqual([]);
 });

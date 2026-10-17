@@ -24,6 +24,7 @@
       {%- set to_be = view.variants | selectattr("variant.kind", "equalto", "to_be") | list %}
       {%- if to_be %}<a class="sy-btn" href="{{ c.url('/processes/' ~ p.key ~ '/compare', left='A', right=(vv.variant.label if vv.variant.kind == 'to_be' else to_be[0].variant.label)) }}">Compare A and {{ vv.variant.label if vv.variant.kind == 'to_be' else to_be[0].variant.label }}</a>{% endif %}
       <a class="sy-btn" href="{{ c.url('/processes/' ~ p.key ~ '/history') }}">History</a>
+      <a class="sy-btn" href="{{ c.url('/processes/' ~ p.key ~ '/export') }}">Documentation</a>
     </div>
   </div>
 </div>

@@ -57,7 +57,10 @@ function recorded(ctx: Ctx, runId: string, origin: string): Row[] {
     spans: all(
       `SELECT id, parent_id, kind, name, status, attrs_json, summary, decision_id IS NOT NULL AS
               decision, between_calls
-         FROM trace_spans WHERE run_id = ? ORDER BY seq`,
+         FROM trace_spans WHERE run_id = ?
+          -- a slow limiter wait depends on machine load, not on the pipeline (F-19@034)
+          AND NOT (name = 'limiter_wait' AND json_extract(attrs_json, '$.halted') = 0)
+        ORDER BY seq`,
     ),
   };
   for (const span of out.spans)

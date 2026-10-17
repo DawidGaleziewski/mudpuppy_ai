@@ -1,0 +1,72 @@
+openapi: 3.1.0
+info:
+  title: "Kalkulator OC/AC: wycena i zakup polisy samochodowej (as recorded)"
+  version: recorded
+  description: Built by MudPuppy from the request and response shapes the portal sent and returned; not the provider's own contract.
+servers:
+  - url: https://127.0.0.1:4010
+paths:
+  /api/wartosc-pojazdu:
+    get:
+      summary: Called from step 4
+      responses:
+        "200":
+          description: Seen 1 time
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  marka:
+                    type: string
+                  typowa:
+                    type: integer
+                  typowa_tekst:
+                    type: string
+              example: '{"marka":"toyota","typowa":47800,"typowa_tekst":"47 800,00 zł"}'
+  /kalkulator/zakup:
+    post:
+      summary: Called from step 5
+      responses:
+        "200":
+          description: Seen 2 times
+          content:
+            application/json:
+              schema:
+                type: string
+                description: an HTML page
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                content_type:
+                  type: string
+                fields:
+                  type: object
+                  properties:
+                    data_urodzenia:
+                      type: string
+                    kod_pocztowy:
+                      type: string
+                    kod_rabatowy:
+                      type: string
+                    lata_bezszkodowe:
+                      type: string
+                    marka:
+                      type: string
+                    model:
+                      type: string
+                    pojemnosc:
+                      type: string
+                    rok_prawa_jazdy:
+                      type: string
+                    rok_produkcji:
+                      type: string
+                    zakres:
+                      type: string
+                    zgoda_dane:
+                      type: string
+                    zgoda_owu:
+                      type: string

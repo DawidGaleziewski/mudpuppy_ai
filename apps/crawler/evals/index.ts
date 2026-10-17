@@ -27,16 +27,29 @@ import {
   findCrawlRun,
   preflight,
   runAgent,
+  runProbeScan,
   runProcessTraces,
   stopServer,
+  type CliOut,
+  type ProbeScanRun,
+  type ProcessTraceRun,
+  type ScoredOutcome,
   type StartedServer,
 } from './harness/index.js';
+import { groupTraceRuns, type TraceToGroup } from './harness/group-traces.js';
 import { acquireEvalLock } from './harness/lock.js';
 import { PROMPTS } from './prompts.js';
 import { buildResult, saveResult } from './results.js';
 import { grade, portalSecrets } from './graders/index.js';
 import { judgeLoginLine, judgeTrial } from './graders/model/index.js';
-import { loadGroundTruth, processTracesFor, SUITE, taskFor, type EvalTask } from './tasks.js';
+import {
+  loadGroundTruth,
+  probeFormsFor,
+  processTracesFor,
+  SUITE,
+  taskFor,
+  type EvalTask,
+} from './tasks.js';
 
 const parsed = parseConfig(process.argv.slice(2));
 if (!parsed.ok) die(parsed.error);
@@ -66,8 +79,9 @@ async function dryRun(c: EvalConfig, task: EvalTask, gt: GroundTruth): Promise<n
   const ws = createWorkspace(c.root, c.portal, c.env);
   const secrets = await portalSecrets(ws, c.portal, c.env);
   const traces = processTracesFor(task, c.persona, c.processTraces);
+  const probe = probeFormsFor(task, c.probeScan);
   console.log(
-    `dry run ok: ${c.portal} as ${c.persona}, budget $${c.budgetUsd}/agent, ground truth ${gt.portal_id}, ${secrets.length} secret(s) to sweep for, ${traces.length} process trace(s)`,
+    `dry run ok: ${c.portal} as ${c.persona}, budget $${c.budgetUsd}/agent, ground truth ${gt.portal_id}, ${secrets.length} secret(s) to sweep for, ${traces.length} process trace(s), ${probe.length ? `a probe scan of ${probe.join(', ')}` : 'no probe scan'}`,
   );
   console.log(judgeLoginLine(c));
   return 0;
@@ -96,21 +110,17 @@ async function runTrial(c: EvalConfig, task: EvalTask, gt: GroundTruth): Promise
       baTraces: withBa && traceTasks.length > 0 ? randomUUID() : null,
     };
     const crawler = runAgent(c, ws, 'crawler', crawlerPrompt(c, task), sessions.crawler);
-    let cost = addCost(emptyCost(), crawler.out);
     const crawlRunId =
       (await findCrawlRun(c, ws, startedAt)) ??
       abort(`the crawler made no run (session ${sessions.crawler})`);
+    const probe = await runProbeScan(c, ws, probeFormsFor(task, c.probeScan));
     const traces = await runProcessTraces(c, ws, traceTasks);
-    for (const t of traces) cost = addCost(cost, t.out);
-    const { ba, baTraces } = runBaSessions(c, ws, crawlRunId, traces, sessions);
-    if (ba) cost = addCost(cost, ba.out);
-    if (baTraces) cost = addCost(cost, baTraces.out);
-    const outcomes = {
-      crawler: crawler.outcome,
-      ...(ba && { ba: ba.outcome }),
-      ...(baTraces && { ba_traces: baTraces.outcome }),
-      ...(traces.length > 0 && { process_traces: traces.map((t) => t.outcome) }),
-    };
+    const runs = { crawlRunId, probeRunId: probe?.runId, traces };
+    const { ba, baTraces } = await runBaSessions(c, ws, runs, sessions);
+    const { cost, outcomes, sessionIds } = ledger(
+      { crawler, probe, traces, ba, baTraces },
+      sessions,
+    );
     const grades = await grade({
       config: c,
       task,
@@ -119,12 +129,7 @@ async function runTrial(c: EvalConfig, task: EvalTask, gt: GroundTruth): Promise
       groundTruth: gt,
       crawlRunId,
       processTraces: traces.map((t) => ({ processId: t.processId, runId: t.runId })),
-      sessionIds: [
-        sessions.crawler,
-        ...traces.map((t) => t.session),
-        ...(sessions.ba ? [sessions.ba] : []),
-        ...(baTraces && sessions.baTraces ? [sessions.baTraces] : []),
-      ],
+      sessionIds,
     });
     const judges = await judgeTrial(c, ws, gt);
     const workspace = c.inPlace ? undefined : ws;
@@ -139,6 +144,7 @@ async function runTrial(c: EvalConfig, task: EvalTask, gt: GroundTruth): Promise
           run: t.runId,
           cli_session: t.session,
         })),
+        probeScan: probe && { run: probe.runId, cli_session: probe.session },
         outcomes,
         cost,
         grades,
@@ -155,31 +161,60 @@ async function runTrial(c: EvalConfig, task: EvalTask, gt: GroundTruth): Promise
   }
 }
 
-/** Two BA sessions (spec 025 F-12): the map as before, then the traces for processes only. */
-function runBaSessions(
+/**
+ * Two BA sessions (spec 025 F-12): the map (with the probe scan, spec 034 phase 9) as before,
+ * then the traces for processes only, after the harness grouped each trace run under its
+ * process as the owner would (F-20@034).
+ */
+async function runBaSessions(
   c: EvalConfig,
   ws: string,
-  crawlRunId: string,
-  traces: Awaited<ReturnType<typeof runProcessTraces>>,
+  runs: { crawlRunId: string; probeRunId: string | undefined; traces: readonly TraceToGroup[] },
   sessions: { ba: string | null; baTraces: string | null },
 ) {
   const ba = sessions.ba
-    ? runAgent(c, ws, 'ba', PROMPTS.ba(c.portal, crawlRunId), sessions.ba)
+    ? runAgent(c, ws, 'ba', PROMPTS.ba(c.portal, runs.crawlRunId, runs.probeRunId), sessions.ba)
     : null;
+  if (!sessions.baTraces || runs.traces.length === 0) return { ba, baTraces: null };
+  const grouped = await groupTraceRuns(c, ws, runs.traces);
   const baTraces =
-    sessions.baTraces && traces.length > 0
-      ? runAgent(
-          c,
-          ws,
-          'ba',
-          PROMPTS.baTraces(
-            c.portal,
-            traces.map((t) => t.runId),
-          ),
-          sessions.baTraces,
-        )
+    grouped.length > 0
+      ? runAgent(c, ws, 'ba', PROMPTS.baTraces(c.portal, grouped), sessions.baTraces)
       : null;
   return { ba, baTraces };
+}
+
+type Agent = { outcome: ScoredOutcome; out: CliOut };
+
+/** What the trial's agent sessions cost, how each ended, and their ids for the password sweep. */
+function ledger(
+  a: {
+    crawler: Agent;
+    probe: ProbeScanRun | null;
+    traces: readonly ProcessTraceRun[];
+    ba: Agent | null;
+    baTraces: Agent | null;
+  },
+  sessions: { crawler: string; ba: string | null; baTraces: string | null },
+) {
+  const ran = [a.crawler, a.probe, ...a.traces, a.ba, a.baTraces].filter((x) => x !== null);
+  return {
+    cost: ran.reduce((sum, x) => addCost(sum, x.out), emptyCost()),
+    outcomes: {
+      crawler: a.crawler.outcome,
+      ...(a.probe && { probe_scan: a.probe.outcome }),
+      ...(a.ba && { ba: a.ba.outcome }),
+      ...(a.baTraces && { ba_traces: a.baTraces.outcome }),
+      ...(a.traces.length > 0 && { process_traces: a.traces.map((t) => t.outcome) }),
+    },
+    sessionIds: [
+      sessions.crawler,
+      ...(a.probe ? [a.probe.session] : []),
+      ...a.traces.map((t) => t.session),
+      ...(a.ba && sessions.ba ? [sessions.ba] : []),
+      ...(a.baTraces && sessions.baTraces ? [sessions.baTraces] : []),
+    ],
+  };
 }
 
 function crawlerPrompt(c: EvalConfig, task: EvalTask): string {

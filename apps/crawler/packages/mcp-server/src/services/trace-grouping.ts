@@ -27,7 +27,7 @@ export function bestRun(results: readonly DriveResult[]): DriveResult | null {
 }
 
 /** The run's screens in the order it went through them, each once. */
-export function runStates(ctx: ServerContext, runId: string): StateRow[] {
+export function runStates(ctx: Pick<ServerContext, 'raw'>, runId: string): StateRow[] {
   const rows = ctx.raw
     .prepare(
       `SELECT ps.ord, ps.state_before, ps.state_after FROM process_steps ps

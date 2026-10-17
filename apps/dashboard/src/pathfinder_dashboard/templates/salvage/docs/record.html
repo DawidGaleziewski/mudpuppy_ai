@@ -1,4 +1,5 @@
 {% extends "salvage/base.html" %}
+{% import "salvage/macros.html" as sy %}
 {% set nav_current = "docs" %}
 {#- "This page" for the assistant (spec 022 R6): the record and its newest revision. -#}
 {% set page_ctx = {"type": "docs", "id": r.detail.record.id, "rev": r.detail.record.latest_rev, "label": r.detail.record.title, "ids": [r.key]} %}
@@ -8,7 +9,11 @@
 {% set panel = r.panel %}
 <div class="sy-pagehead">
   <nav class="sy-crumbs" aria-label="Breadcrumb"><a href="{{ c.url('/docs') }}">Docs</a> / <a href="{{ c.url('/docs/' ~ portal) }}">{{ portal }}</a> / {{ r.key }}</nav>
+  {{ sy.neighbours(nb) }}
   <h1 class="sy-h1 sy-case-normal"><span class="sy-mono">{{ r.key }}</span> {{ r.detail.record.title }}</h1>
+  {%- if r.detail.record.kind == "process" %}
+  <p class="sy-meta"><a href="{{ c.url('/docs/' ~ portal ~ '/' ~ r.key ~ '/export') }}">Documentation of this process</a>: steps, requirements, EARS, contracts and gaps, as a folder to download (spec 034).</p>
+  {%- endif %}
 </div>
 <div class="sy-columns">
   <div class="sy-col-main sy-stack">

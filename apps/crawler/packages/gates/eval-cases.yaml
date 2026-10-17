@@ -359,6 +359,14 @@
   title: Numbered section paths collapse to /:param and the trap guard stops the map
   tier: eval
   check: crawl_screens
+- id: F-17@030
+  title: A process documented as one error page, the other runs ignored
+  tier: not_testable
+  reason: fixed server side in R-70 (spec 034); PROCESS_ONLY_ERRORS and the run grouping are locked by ba-records.test.ts and the shared run-groups fixture
+- id: F-18@030
+  title: A re-run BA session made the documentation worse
+  tier: not_testable
+  reason: fixed server side in R-70 (spec 034); the REVISION_DROPS guard is locked by ba-records.test.ts, and the eval's traces session updates the map session's processes (F-20@034)
 # Spec 031 (roadmap declutter 2).
 - id: F-01@031
   title: The no-script-edits hook let heredoc, cd and Python writes through

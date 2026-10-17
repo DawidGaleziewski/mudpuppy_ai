@@ -1,0 +1,40 @@
+{
+  "_mock": "MOCK for rating (spec 034, R-68). Made-up data; abridged to one step.",
+  "format": "mudpuppy-process-export/1",
+  "portal": { "id": "demo-insurer", "name": "Demo Ubezpieczenia", "environment": "sandbox" },
+  "process": {
+    "key": "PROC-001",
+    "title": "Wycena ubezpieczenia turystycznego",
+    "goal": "Get the price of travel insurance and send a purchase application",
+    "persona": "guest",
+    "trigger": "\"Oblicz cenę\" on /podroze",
+    "outcome": "Page \"Wniosek przyjęty\" with the application number",
+    "observed_extent": "full",
+    "status": "confirmed"
+  },
+  "steps": [
+    {
+      "n": 1,
+      "screen": "SCR-002",
+      "title": "Szczegóły podróży",
+      "route": "/podroz/kalkulator",
+      "form_step": 1,
+      "states": [
+        { "state_id": "01a1f1aa-0000-7000-8000-000000000001", "kind": "main", "label": "Empty form", "screenshot": "images/step-1-happy.svg" },
+        { "state_id": "01a2ca00-0000-7000-8000-000000000002", "kind": "validation", "label": "Uzupełnij daty podróży", "probe": "required", "screenshot": "images/step-1-validation.svg" }
+      ],
+      "wireframe": "images/step-1-wireframe.svg",
+      "fields": [
+        { "n": 1, "data_item": "DI-001", "label_verbatim": "Kraj docelowy", "name_en": "Destination country", "type": "select", "required": true, "options_source": "GET /api/countries" },
+        { "n": 2, "data_item": "DI-002", "label_verbatim": "Data wyjazdu", "name_en": "Departure date", "type": "date", "required": true, "validation": "today … today + 365 days" }
+      ],
+      "records": ["BR-001", "BR-002", "REQ-001", "NFR-002"],
+      "transitions": [{ "action": "Dalej", "to_step": 2, "calls": [] }],
+      "evidence": [{ "run": "01a2c4…", "state": "01a1f1aa…", "at": "2026-10-15" }]
+    }
+  ],
+  "network": {
+    "endpoints": [{ "method": "POST", "path": "/api/quotes", "steps": [2, 3], "statuses": [200, 500, 503] }],
+    "noise": { "static": 34, "analytics": 12, "flags": 4, "other": 1 }
+  }
+}

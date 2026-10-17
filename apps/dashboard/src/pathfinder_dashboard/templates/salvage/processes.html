@@ -34,7 +34,7 @@
 </div>
 
 <section class="sy-stack" style="--sy-gap: 10px" aria-labelledby="yours-h">
-  <h2 id="yours-h" class="sy-h2">Your processes · {{ v.rows | length }}</h2>
+  <h2 id="yours-h" class="sy-h2">Your processes · {{ v.pages.paged.total }}</h2>
   {%- if not v.rows %}
   {{ sy.empty("No processes yet", "Accept one of the assistant's suggestions below, or start one from the screens in no process.") }}
   {%- else %}
@@ -68,6 +68,7 @@
       </tbody>
     </table>
   </div>
+  {{ sy.pages(v.pages, "Process pages") }}
   {%- endif %}
 </section>
 

@@ -4,6 +4,18 @@ import { Id, JsonValue, RunStatus, Timestamp } from './common.js';
 /** `mode` is a plain string in SQL (no CHECK, FR-022); Zod is the only place the values are enforced. */
 export const RunMode = z.enum(['map', 'trace']);
 
+/** `runs.run_type` (0027): CHECK-constrained in SQL; null means a plain run. */
+export const RunType = z.enum([
+  'full',
+  'continue',
+  'focused',
+  'recheck',
+  'retry',
+  'probe',
+  'trace',
+]);
+export type RunType = z.infer<typeof RunType>;
+
 export const Run = z
   .object({
     id: Id,
@@ -28,6 +40,12 @@ export const Run = z
     /** The pathfinder server instance driving the run and its process id (0009, F-14). */
     owner_id: z.string().min(1).nullable(),
     owner_pid: z.number().int().positive().nullable(),
+    /** 0027 (spec 034): the kind of directed run; null = a plain run (full map or trace by `mode`). */
+    run_type: RunType.nullable().default(null),
+    /** 0027: the run a directed run continues or retries. */
+    parent_run_id: Id.nullable().default(null),
+    /** 0027: the plan the run came from (start state ids, skip targets, depth, variation, target edge, marks used). */
+    plan_json: JsonValue.nullable().default(null),
   })
   .refine((r) => r.status !== 'stopped_warning' || r.warning !== null, {
     message: 'warning is required when status is stopped_warning',

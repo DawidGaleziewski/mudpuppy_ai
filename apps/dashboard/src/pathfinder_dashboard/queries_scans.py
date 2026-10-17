@@ -170,12 +170,20 @@ def _flagged_by_run(conn: sqlite3.Connection, portal: str) -> dict[str, int]:
     }
 
 
-def history(conn: sqlite3.Connection, portal: str, limit: int = HISTORY_LIMIT) -> list[HistoryRow]:
-    """The portal's scans, newest first, with pages recorded and what each one changed."""
+def count_runs(conn: sqlite3.Connection, portal: str) -> int:
+    rows = _rows(conn, "SELECT count(*) FROM runs WHERE portal_id = ?", (portal,))
+    return int(rows[0][0]) if rows else 0
+
+
+def history(
+    conn: sqlite3.Connection, portal: str, limit: int = HISTORY_LIMIT, offset: int = 0
+) -> list[HistoryRow]:
+    """The portal's scans, newest first, with pages recorded and what each one changed; one page
+    of them from `offset` (R-71)."""
     runs = _runs(
         conn,
-        "SELECT * FROM runs WHERE portal_id = ? ORDER BY started_at DESC, id DESC LIMIT ?",
-        (portal, limit),
+        "SELECT * FROM runs WHERE portal_id = ? ORDER BY started_at DESC, id DESC LIMIT ? OFFSET ?",
+        (portal, limit, offset),
     )
     pages = {
         r[0]: r[1]

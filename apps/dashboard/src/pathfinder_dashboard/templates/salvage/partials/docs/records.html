@@ -45,7 +45,8 @@
   {%- endif %}
 {%- endmacro %}
 
-{% macro record_link(c, portal, row) -%}{{ sy.tag(row.record.key, c.url('/docs/' ~ portal ~ '/' ~ row.record.key), sm=true) }}{%- endmacro %}
+{#- `list_url` gives the record page Prev / Next in this list (R-71). -#}
+{% macro record_link(c, portal, row, list_url=none) -%}{{ sy.tag(row.record.key, c.url('/docs/' ~ portal ~ '/' ~ row.record.key, list=list_url), sm=true) }}{%- endmacro %}
 
 {% macro notes(row) -%}
   {%- if row.not_observable %}{{ sy.not_observable() }} {% endif -%}
@@ -95,7 +96,7 @@
       <tbody>
         {%- for row in rows %}
         <tr>
-          <td>{{ record_link(c, portal, row) }} {{ row.record.title }}
+          <td>{{ record_link(c, portal, row, v.list_url) }} {{ row.record.title }}
             {%- if v.kind_options %}<div class="sy-small sy-muted">{{ row.record.kind | replace("_", " ") }}</div>{% endif %}
             {%- if row.summary %}<div class="sy-small sy-muted">{{ row.summary }}</div>{% endif %}</td>
           <td>{{ sy.doc_status(row.status) }}</td>

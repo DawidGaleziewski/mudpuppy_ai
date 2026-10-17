@@ -12,7 +12,9 @@ from fastapi.responses import HTMLResponse, PlainTextResponse, RedirectResponse,
 from .. import (
     chat_client,
     db,
+    neighbours,
     queries_chat,
+    queries_map_node,
     queries_revisions,
     queries_screens,
     queries_suites,
@@ -99,6 +101,9 @@ def state_detail(
                 marked=[e for e in page.elements if e.key == hl] if hl else [],
                 pins=amendment_pins(page, am["items"]) if pins else None,
                 side=side if side in SIDE_TABS else "amendments",
+                nb=neighbours.neighbours(
+                    conn, c.portal, request.query_params.get("list"), state_id, c.url
+                ),
             )
     except db.StoreMissing as err:
         return web.missing(c, err)
@@ -159,6 +164,47 @@ async def _mark_call(web: Any, method: str, portal: str, body: dict[str, Any]) -
         return None
     message = answer.get("message") if isinstance(answer, dict) else None
     return str(message or status)
+
+
+SCREEN_MARK_KINDS = {kind: label for kind, label, _ in queries_map_node.SCREEN_MARKS}
+
+
+@router.post("/states/{state_id}/mark", response_model=None)
+async def state_mark(request: Request, state_id: str, env: str | None = None) -> Response:
+    """Set or remove a Start here / Focus / Recheck / Retry / Skip mark on a screen state (spec 034
+    R-66, design §6) through the chat service; back to the map (or the screen page)."""
+    if not same_origin(request):
+        return PlainTextResponse("Cross-origin request refused.", status_code=403)
+    web = web_of(request)
+    c = web.ctx(request, env)
+    form = parse_qs((await request.body()).decode("utf-8", "replace"))
+    kind = (form.get("kind") or [""])[0]
+    action = (form.get("action") or [""])[0]
+    try:
+        with c.conn() as conn:
+            portal = queries_screens.portal_of_state(conn, state_id)
+    except db.StoreMissing as err:
+        return web.missing(c, err)
+    if not web.settings.reviewer:
+        note = "Set PATHFINDER_REVIEWER to your name to mark screens."
+    elif portal is None or kind not in SCREEN_MARK_KINDS or action not in ("mark", "remove"):
+        note = "Unknown mark, action or screen."
+    else:
+        body = {
+            "author": web.settings.reviewer,
+            "kind": kind,
+            "target_kind": "state",
+            "target_id": state_id,
+        }
+        refused = await _mark_call(web, "POST" if action == "mark" else "DELETE", portal, body)
+        label = SCREEN_MARK_KINDS[kind]
+        done = f"Marked {label}." if action == "mark" else f"{label} mark removed."
+        note = f"Not recorded: {refused}." if refused else done
+    back = (form.get("back") or [""])[0]
+    if back.startswith("/map?") or back == "/map":
+        sep = "&" if "?" in back else "?"
+        return RedirectResponse(f"{back}{sep}{urlencode({'probe_note': note})}", status_code=303)
+    return RedirectResponse(c.url(f"/states/{state_id}", probe_note=note), status_code=303)
 
 
 @router.post("/states/{state_id}/probe-mark", response_model=None)

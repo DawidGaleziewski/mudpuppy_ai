@@ -1,3 +1,4 @@
+import { writeFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { STALE_SESSION_MS, sweepStaleSessions } from '../src/index.js';
 import { CONTENT, startBa } from './ba-harness.js';
@@ -120,6 +121,77 @@ describe('record_pass and finish_session', () => {
     expect(stored.map((p: { pass: string }) => p.pass)).toEqual(['inventory', 'capabilities']);
     expect(stored[0]).toMatchObject({ summary: '4 screens.' });
     expect(stored[0].completed_at).toMatch(/^\d{4}-\d{2}-\d{2}T.*Z$/);
+  });
+
+  it('lists the form fields no data item names when the data pass is recorded (F-21@034)', async () => {
+    const h = await startBa();
+    const id = await h.session();
+    h.fx.raw.prepare('UPDATE forms SET fields_json = ? WHERE id = ?').run(
+      JSON.stringify([
+        { name: 'kod_pocztowy', type: 'text', label: 'Kod pocztowy' },
+        { name: 'zakres', type: 'radio', label: 'Tylko OC' },
+        { name: 'zakres', type: 'radio', label: 'OC + AC' },
+        { name: 'token', type: 'hidden', label: 'token' },
+        { name: 'go', type: 'submit', label: 'Dalej' },
+      ]),
+      h.fx.forms.vehicle,
+    );
+    const data = () => h.must('record_pass', { session_id: id, pass: 'data', summary: 'Data.' });
+    const first = await data();
+    expect(first.warnings).toHaveLength(1);
+    expect(first.warnings[0]).toContain('2 form field(s)');
+    expect(first.warnings[0]).toContain('"Kod pocztowy"');
+    expect(first.warnings[0]).toContain('the radio group with "Tylko OC", "OC + AC"');
+    const item = (name: string, allowed?: string[]) =>
+      h.must('create_record', {
+        session_id: id,
+        kind: 'data_item',
+        confidence: 'observed',
+        content: {
+          title: name,
+          name_verbatim: name,
+          lang: 'pl',
+          name_en: name,
+          data_type: 'string',
+          constraints: allowed ? { allowed_values: allowed } : {},
+          seen_in: [{ kind: 'form', target_id: h.fx.forms.vehicle }],
+        },
+        evidence: [{ target_kind: 'form', target_id: h.fx.forms.vehicle }],
+      });
+    await item('Kod pocztowy');
+    await item('Zakres', ['Tylko OC', 'OC + AC']);
+    expect((await data()).warnings).toBeUndefined();
+    // other passes are not checked
+    const other = await h.must('record_pass', { session_id: id, pass: 'nfr', summary: 'x' });
+    expect(other.warnings).toBeUndefined();
+  });
+
+  it('lists the terms the pages define that no glossary term names (F-21@034)', async () => {
+    const h = await startBa();
+    const id = await h.session();
+    const { evidence_ref } = h.fx.raw
+      .prepare('SELECT evidence_ref FROM state_observations WHERE run_id = ? LIMIT 1')
+      .get(h.fx.runId) as { evidence_ref: string };
+    writeFileSync(
+      h.fx.evidence.resolve(evidence_ref),
+      '- main:\n  - term: Autocasco (AC)\n  - definition: Dobrowolne.\n  - term: Składka\n  - definition: Kwota.\n',
+    );
+    const data = async () => {
+      const out = await h.must('record_pass', { session_id: id, pass: 'data', summary: 'Data.' });
+      return (out.warnings as string[]).find((w) => w.includes('glossary_term'));
+    };
+    expect(await data()).toContain('2 term(s) the pages define');
+    await h.must('create_record', {
+      session_id: id,
+      kind: 'glossary_term',
+      confidence: 'observed',
+      content: CONTENT.glossary_term, // "Autocasco (AC)"
+      evidence: [{ target_kind: 'form', target_id: h.fx.forms.vehicle }],
+    });
+    const left = await data();
+    expect(left).toContain('1 term(s)');
+    expect(left).toContain('"Składka"');
+    expect(left).not.toContain('Autocasco');
   });
 
   it('refuses an unknown pass and a summary carrying personal data', async () => {

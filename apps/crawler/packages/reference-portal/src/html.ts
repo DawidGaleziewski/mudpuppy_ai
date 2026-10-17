@@ -24,6 +24,22 @@ const NAV: readonly [string, string][] = [
 
 export const BRAND = 'Towarzystwo Ubezpieczeń Wzorcowych';
 
+/**
+ * Calls every page makes that belong to no process (owner review 2026-10-17, point d): an icon
+ * sprite and an analytics ping, both by fetch so the crawler records them, both GET so the portal
+ * still receives no POST from a read-only crawl. Both read their answer: an unread fetch body
+ * keeps the crawler's settle waiting until its timeout (spec 034 F-13).
+ */
+const NOISE_SCRIPT = `<script>
+fetch('/static/ikony.svg').then(function (r) { return r.text(); }).then(function (svg) {
+  var sprite = document.createElement('div');
+  sprite.hidden = true;
+  sprite.innerHTML = svg;
+  document.body.appendChild(sprite);
+}).catch(function () {});
+fetch('/analytics/collect?e=page_view&p=' + encodeURIComponent(location.pathname)).then(function (r) { return r.json(); }).catch(function () {});
+</script>`;
+
 export function layout(title: string, body: string): string {
   const nav = NAV.map(([href, label]) => `<li><a href="${href}">${esc(label)}</a></li>`).join('');
   return `<!doctype html>
@@ -39,6 +55,7 @@ ${body}
 </main>
 <footer><p>${BRAND} S.A. — portal demonstracyjny. Wszystkie dane są fikcyjne.</p>
 <nav aria-label="Stopka"><a href="/faq">FAQ</a> <a href="/slowniczek">Słowniczek</a> <a href="/kontakt">Kontakt</a></nav></footer>
+${NOISE_SCRIPT}
 </body>
 </html>`;
 }

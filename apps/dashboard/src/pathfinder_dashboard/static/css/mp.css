@@ -118,4 +118,8 @@
     .mp-map, .mp-map + .sy-split { display: none; }
     .mp-map-list--extra { display: block; }
   }
+  /* Spec 034 R-68: a rendered export file; its tables and code scroll in their own boxes. */
+  .mp-export { overflow-wrap: anywhere; }  /* recorded URLs are long and have no spaces */
+  .mp-export > * { min-width: 0; max-width: 100%; }
+  .mp-export img { max-width: 100%; height: auto; }
 }

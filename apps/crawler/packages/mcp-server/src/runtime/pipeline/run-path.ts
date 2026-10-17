@@ -16,5 +16,5 @@ export function pathByAct(rs: RunState, from: string, to: string, step: PathStep
   if (base === undefined) return;
   const known = rs.pathTo.get(to);
   if (known !== undefined && known.steps.length <= base.steps.length + 1) return;
-  rs.pathTo.set(to, { url: base.url, steps: [...base.steps, step] });
+  rs.pathTo.set(to, { url: base.url, steps: [...base.steps, { ...step, toState: to }] });
 }

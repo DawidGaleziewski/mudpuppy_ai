@@ -12,6 +12,7 @@
 {% block main %}
 <div class="sy-pagehead">
   <nav class="sy-crumbs" aria-label="Breadcrumb"><a href="{{ c.url('/screens') }}">Screens</a> / {{ st.portal_id }}</nav>
+  {{ sy.neighbours(nb) }}
   <h1 class="sy-h1 sy-case-normal">{{ st.title or "(untitled page)" }}</h1>
   <div class="sy-cluster sy-meta" style="--sy-gap: 6px 14px">
     <span class="sy-route">{{ st.route_template }}</span>

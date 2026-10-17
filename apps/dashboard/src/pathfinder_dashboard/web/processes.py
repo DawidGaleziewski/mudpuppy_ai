@@ -13,7 +13,7 @@ from urllib.parse import quote
 from fastapi import APIRouter, Request
 from fastapi.responses import HTMLResponse, JSONResponse, PlainTextResponse, Response
 
-from .. import change_spec, db, process_diff, queries_processes
+from .. import change_spec, db, pager, process_diff, queries_processes
 from .chat_forward import chat_refused, forward, invalid, read_json
 from .deps import Ctx, same_origin, web_of
 
@@ -45,9 +45,15 @@ async def process_write(request: Request, portal: str, rest: str) -> JSONRespons
     return await forward(web_of(request), request.method, path, body)
 
 
-def list_values(conn: sqlite3.Connection, portal: str | None) -> dict[str, Any]:
+def list_values(
+    c: Ctx, conn: sqlite3.Connection, portal: str | None, page: str | None = None
+) -> dict[str, Any]:
+    paged = pager.paginate(
+        queries_processes.portal_processes(conn, portal), pager.page_number(page)
+    )
     return {
-        "rows": queries_processes.portal_processes(conn, portal),
+        "rows": paged.items,
+        "pages": pager.links(paged, lambda n: c.url("/processes", page=n)),
         "suggestions": queries_processes.open_suggestions(conn, portal),
         "loose": queries_processes.loose_screens(conn, portal),
         "stages": queries_processes.STAGES,
@@ -55,12 +61,14 @@ def list_values(conn: sqlite3.Connection, portal: str | None) -> dict[str, Any]:
 
 
 @router.get("/processes", response_class=HTMLResponse)
-def processes_page(request: Request, env: str | None = None) -> HTMLResponse:
+def processes_page(
+    request: Request, env: str | None = None, page: str | None = None
+) -> HTMLResponse:
     web = web_of(request)
     c = web.ctx(request, env)
     try:
         with c.conn() as conn:
-            v = list_values(conn, c.portal)
+            v = list_values(c, conn, c.portal, page)
     except db.StoreMissing as err:
         return web.missing(c, err)
     return web.render(c, "salvage/processes.html", nav_current="processes", v=v)

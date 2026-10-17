@@ -23,16 +23,52 @@ class ScreenRow(BaseModel):
     last_seen: str | None
 
 
-def portal_screens(conn: sqlite3.Connection, portal: str | None) -> list[ScreenRow]:
-    """Every recorded screen of a portal (or of all portals), by route then title."""
-    where, args = ("WHERE s.portal_id = ?", (portal,)) if portal else ("", ())
+def _screens_where(portal: str | None, q: str | None) -> tuple[str, tuple[str, ...]]:
+    """The Screens list filter: the portal, and `q` in the title or route (R-71: over every
+    screen, not only the page shown)."""
+    where: list[str] = []
+    args: list[str] = []
+    if portal:
+        where.append("s.portal_id = ?")
+        args.append(portal)
+    if q and q.strip():
+        like = _like(q.strip())
+        where.append("(s.title LIKE ? ESCAPE '\\' OR s.route_template LIKE ? ESCAPE '\\')")
+        args += [like, like]
+    return ("WHERE " + " AND ".join(where) if where else ""), tuple(args)
+
+
+SCREEN_ORDER = "ORDER BY s.portal_id, s.route_template, s.title, s.id"
+
+
+def count_screens(conn: sqlite3.Connection, portal: str | None, q: str | None = None) -> int:
+    where, args = _screens_where(portal, q)
+    return int(conn.execute(f"SELECT count(*) FROM states s {where}", args).fetchone()[0])
+
+
+def screen_ids(conn: sqlite3.Connection, portal: str | None, q: str | None = None) -> list[str]:
+    """Every screen id of the list in its order (Prev / Next on the screen page, R-71)."""
+    where, args = _screens_where(portal, q)
+    return [r[0] for r in conn.execute(f"SELECT s.id FROM states s {where} {SCREEN_ORDER}", args)]
+
+
+def portal_screens(
+    conn: sqlite3.Connection,
+    portal: str | None,
+    q: str | None = None,
+    limit: int = -1,
+    offset: int = 0,
+) -> list[ScreenRow]:
+    """Recorded screens of a portal (or of all portals), by route then title; one page when
+    `limit` is set (-1: all)."""
+    where, args = _screens_where(portal, q)
     rows = conn.execute(
         f"""SELECT s.*, COUNT(o.run_id) AS observations, COUNT(DISTINCT o.run_id) AS runs,
                    GROUP_CONCAT(DISTINCT o.persona_id) AS personas, MAX(o.observed_at) AS last_seen
-            FROM states s LEFT JOIN state_observations o ON o.state_id = s.id
-            {where}
-            GROUP BY s.id ORDER BY s.portal_id, s.route_template, s.title""",
-        args,
+            FROM (SELECT s.* FROM states s {where} {SCREEN_ORDER} LIMIT ? OFFSET ?) s
+            LEFT JOIN state_observations o ON o.state_id = s.id
+            GROUP BY s.id {SCREEN_ORDER}""",
+        (*args, limit, offset),
     ).fetchall()
     out = []
     for r in rows:
@@ -93,6 +129,11 @@ def search(conn: sqlite3.Connection, q: str, portal: str | None) -> SearchResult
         records=[DocRecord.model_validate(dict(r)) for r in records],
         runs=[Run.model_validate(dict(r)) for r in runs],
     )
+
+
+def portal_of_state(conn: sqlite3.Connection, state_id: str) -> str | None:
+    row = conn.execute("SELECT portal_id FROM states WHERE id = ?", (state_id,)).fetchone()
+    return str(row[0]) if row else None
 
 
 class ProcessUse(BaseModel):

@@ -34,6 +34,22 @@ describe('record_api_call', () => {
     expect(row).toMatchObject({ method: 'GET', edge_id: null, console_errors: '[]', url: null });
   });
 
+  it('keeps sample bodies beside the shapes, at most 4096 characters (spec 034 R-68)', async () => {
+    const ctx = await makeCtx();
+    const run = await seedRun(ctx);
+    const req_sample = '{"destination":"ES"}';
+    const { api_call_id } = await recordApiCall(ctx, call(run, { req_sample, res_sample: null }));
+    const row = await ctx.db
+      .selectFrom('network_calls')
+      .select(['req_sample', 'res_sample'])
+      .where('id', '=', api_call_id)
+      .executeTakeFirstOrThrow();
+    expect(row).toEqual({ req_sample, res_sample: null });
+    expect(await code(recordApiCall(ctx, call(run, { req_sample: 'x'.repeat(4097) })))).toBe(
+      'SCHEMA_INVALID',
+    );
+  });
+
   it('keeps the verbatim URL, query and session id included (spec 019, R-37)', async () => {
     const ctx = await makeCtx();
     const run = await seedRun(ctx);

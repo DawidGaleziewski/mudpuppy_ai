@@ -6,6 +6,39 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Added
+- Spec 034, four roadmap items on one branch (v1.0.38, 2026-10-18):
+  - **Scan from a known screen, R-66:** every scan stores the way back to each screen
+    (checkpoints, migration 0027); a new scan reaches a chosen screen by replaying that path
+    (`go_to_state`, a deep link only where a recorded visit opened the screen; `REPLAY_DIVERGED`
+    when it lands elsewhere) and maps from there. Scan types continue, focused, recheck and retry
+    with their plan on the run; all six marks on the map (Start here, Focus, Retry, Recheck,
+    Skip, Probe); **Plan next scan**; **Pick up** a stopped scan from where it failed. Live: a
+    focused scan reached the premium result page by a 1-step replay.
+  - **Documentation you can rebuild from, R-68:** `pnpm docs:process-export` and a zip on the
+    process page: per process a README, steps with screenshots, states, tagged fields and buttons,
+    validation messages from the probes, business and functional requirements in EARS, contracts
+    with sample payloads and OpenAPI, gaps and `process.json`; a portal folder with glossary, APIs
+    and screens. The owner approved the PROC-001 export; it is the reference solution of a new
+    **export quality eval** (steps, fields, validation messages, actions, calls; extra steps,
+    stray destinations and leaked noise must be 0). Fixes it found are R-73.
+  - **Documentation that grows, R-70:** runs grouped by the process whose screens they walked
+    (Scans → By process, unassigned runs listed); `open_process_update` gives the BA a process's
+    records, all its runs and what is new; `revise_record` refuses a silent drop of evidence or
+    steps (`REVISION_DROPS`) and a process citing only error pages (`PROCESS_ONLY_ERRORS`).
+  - **Dashboard for larger portals, R-71:** 25 a page with totals, Prev / Next on screen, record
+    and Review items, the store picker in the header listing the stores that hold the portal.
+  - **The BA writes the whole data pass again (F-20, F-21):** the eval groups each trace run as a
+    process before the traces session, as the owner does, and asks for an update; `create_record`
+    refuses a data item named by a field's technical name (`rok_produkcji` for "Rok produkcji");
+    `record_pass` for the data pass lists the form fields and page-defined glossary terms no
+    record names yet. With a probe scan in the trial the map session had dropped to 7–18 % of
+    fields; after the fixes fields 100, constraints 100, processes 80, terms 100, rules 70.6, and
+    that trial is the new baseline. `pnpm eval:transcript` shows what each agent session of a
+    trial did.
+  - Tests: the map e2e test expects API sample bodies as they came (no masking outside
+    production, F-18); the golden test leaves out slow limiter waits (F-19).
+  - Open: T021 (a scar gate for a data-dependent result page), the owner's mock ratings, F-09
+    EARS backfill, F-11–F-17 in R-73, and a second look at the screen merge (R-69).
 - R-69 owner answers (spec 033, 2026-10-17): a confirmed **Same state** verdict merges the two
   screens (migration 0026 `screens.merged_into`, reversible); the map, the inspector and the
   differing-states groups follow merges. **Review → Differing states lists every group**, also

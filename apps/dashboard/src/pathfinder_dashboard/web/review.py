@@ -17,6 +17,8 @@ from fastapi.responses import HTMLResponse, PlainTextResponse, RedirectResponse,
 from .. import (
     chat_client,
     db,
+    neighbours,
+    pager,
     queries_chat,
     queries_docs,
     queries_reconcile,
@@ -57,13 +59,49 @@ def _selected(
     return None
 
 
+def _ident(kind: str, item: Any) -> str:
+    """The `select=kind:<this>` part of an inbox item (the same ids `_selected` looks up)."""
+    if kind in ("records", "assumptions", "reanchor"):
+        return str(item.key)
+    if kind == "proposals":
+        return str(item.p.id)
+    return str(item.id)
+
+
+def _review_neighbours(
+    c: Ctx, inbox: queries_review.Inbox, selected: tuple[str, Any] | None, show: str | None
+) -> neighbours.Neighbours | None:
+    """Prev / Next through the selected item's group (R-71 (b)), in inbox order."""
+    if selected is None:
+        return None
+    kind, item = selected
+    ids = [_ident(kind, it) for it in getattr(inbox, kind)]
+    i = ids.index(_ident(kind, item))
+    label = dict(queries_review.KINDS)[kind]
+
+    def link(j: int) -> str | None:
+        return c.url("/review", show=show, select=f"{kind}:{ids[j]}") if 0 <= j < len(ids) else None
+
+    return neighbours.Neighbours(
+        i + 1, len(ids), c.url("/review", show=kind), label, link(i - 1), link(i + 1)
+    )
+
+
 def review_values(
-    c: Ctx, conn: sqlite3.Connection, select: str | None, show: str | None, note: str | None
+    c: Ctx,
+    conn: sqlite3.Connection,
+    select: str | None,
+    show: str | None,
+    note: str | None,
+    page: str | None = None,
 ) -> dict[str, Any]:
     portal = c.portal
     show = show if show in KIND_KEYS else None
     inbox = queries_review.inbox(conn, portal)
     selected = _selected(inbox, select, show)
+    # A group's own tab lists every item, 25 a page (R-71); "All" keeps the first 10 of each.
+    group = pager.paginate(getattr(inbox, show), pager.page_number(page)) if show else None
+    shown_page = group.page if group and group.page > 1 else None
     cited: list[queries_review.CitedScreen] = []
     if portal and selected and selected[0] in ("records", "assumptions"):
         cited = queries_review.cited_screens(conn, portal, selected[1].key, selected[1].rev)
@@ -81,7 +119,12 @@ def review_values(
         "cited": cited,
         "states": queries_chat.portal_states(conn, portal) if portal else [],
         "note": note,
-        "self_url": c.url("/fragments/review", select=select, show=show),
+        "group": group,
+        "pages": pager.links(group, lambda n: c.url("/review", show=show, page=n))
+        if group
+        else None,
+        "nb": _review_neighbours(c, inbox, selected, show),
+        "self_url": c.url("/fragments/review", select=select, show=show, page=shown_page),
     }
 
 
@@ -92,12 +135,13 @@ def review_page(
     select: str | None = None,
     show: str | None = None,
     note: str | None = None,
+    page: str | None = None,
 ) -> HTMLResponse:
     web = web_of(request)
     c = web.ctx(request, env)
     try:
         with c.conn() as conn:
-            v = review_values(c, conn, select, show, note)
+            v = review_values(c, conn, select, show, note, page)
     except db.StoreMissing as err:
         return web.missing(c, err)
     return web.render(c, "salvage/review.html", nav_current="review", v=v)
@@ -105,13 +149,17 @@ def review_page(
 
 @router.get("/fragments/review", response_class=HTMLResponse)
 def fragment_review(
-    request: Request, env: str | None = None, select: str | None = None, show: str | None = None
+    request: Request,
+    env: str | None = None,
+    select: str | None = None,
+    show: str | None = None,
+    page: str | None = None,
 ) -> HTMLResponse:
     web = web_of(request)
     c = web.ctx(request, env)
     try:
         with c.conn() as conn:
-            v = review_values(c, conn, select, show, None)
+            v = review_values(c, conn, select, show, None, page)
     except db.StoreMissing as err:
         return web.missing(c, err, fragment=True)
     return web.render(c, "salvage/partials/review_inbox.html", v=v)

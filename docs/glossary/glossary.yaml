@@ -270,6 +270,134 @@ entries:
     changed_in: R-69
     changed_on: 2026-10-17
 
+  - id: checkpoint
+    term: Checkpoint
+    category: pathfinder
+    group: Crawling
+    short: The recorded way back to a screen state, the shortest one a scan took, so a later scan can reach the state again by replaying it.
+    explanation: |
+      Every scan stores, for each state it reached, the address it last opened and the actions it
+      pressed after it, with the values typed. A later scan replays this instead of exploring from
+      the start page. Scans from before checkpoints existed are replayed from their page visits.
+      Where a scan once opened the screen straight from its address, that address is used (a
+      deep link); a screen only reachable by clicking is reached by clicking.
+    example: "The premium result page: open /kalkulator/opcje?…, press \"Oblicz składkę\" (1 step)."
+    appears_in: [Scans → Plan next scan ("replays 1 step"), the crawler's go_to_state]
+    labels: [replays N steps, opens by its URL]
+    related: [directed-scan, state, page-visit]
+    changed_in: R-66
+    changed_on: 2026-10-17
+
+  - id: directed-scan
+    term: Directed scan
+    category: pathfinder
+    group: Crawling
+    short: A scan that starts at recorded screens by replaying how they were reached, instead of mapping from the start page.
+    explanation: |
+      Four kinds. **Focused**: from the screens marked Start here or Focus, only as deep as you set.
+      **Recheck**: replay to the Recheck-marked screens and record what each shows now, nothing
+      more. **Retry a path**: replay to a failed action and press it once more, with a variation
+      (wait longer, other input, don't submit); each try is an attempt. **Continue**: pick up a
+      stopped scan from the screens with queued items, without redoing what it did. If a replayed
+      step lands on another screen, the scan says where ("diverged at step 2") and goes on with the
+      next start point. Skip marks keep actions and screens out of every scan while they are open.
+    example: "A focused scan from the premium result page with depth 1 recorded 15 screens one step from it."
+    appears_in: [Scans → Plan next scan, Scans → Pick up (a stopped scan), Chat]
+    labels: [Focused, Recheck, Retry a path, Continue a stopped scan, Resume, Retry this path, Skip it]
+    related: [checkpoint, scan-mark, run, probe-scan]
+    changed_in: R-66
+    changed_on: 2026-10-17
+
+  - id: scan-mark
+    term: Scan mark
+    category: pathfinder
+    group: Crawling
+    short: Your instruction on a screen or an action for the next scan, Start here, Focus, Recheck, Retry or Skip, set from the map's side panel.
+    explanation: |
+      Marks are a person's intent, shown as orange tags; they collect in the Next scan plan. A
+      scan that uses Start here, Focus, Recheck or Retry marks closes them. Skip marks stay until
+      you remove them and keep the target out of every scan (for example a logout or a delete
+      button). Probe marks on form steps are the same idea for probe scans.
+    example: "Start here on /kalkulator/wynik, then Plan next scan → Focused → Start scan."
+    appears_in: [Scans → Map side panel ("Next scan"), Scans → Plan next scan]
+    labels: [Start here, Focus, Recheck, Retry, Skip, Next scan plan, Plan the next scan]
+    related: [directed-scan, probe-mark]
+    changed_in: R-66
+    changed_on: 2026-10-17
+
+  - id: scans-by-process
+    term: Scans by process
+    category: pathfinder
+    group: Documentation
+    short: Which scans belong to which documented process, which belong to none, and which look like one process nobody documented yet.
+    explanation: |
+      A scan belongs to a process when the process's documentation cites it or when it walked at
+      least two of the process's screens (error pages don't count). Scans in no process are listed
+      so they are not forgotten; scans in no process that share at least half of their screens are
+      proposed as one group. The BA gets the same list for a process from `open_process_update`.
+    example: "PROC-001 has six scans; two contact-form traces sit in no process and are proposed as one group."
+    appears_in: [Scans → By process]
+    labels: [By process, In no process, Look like one process]
+    related: [documentation-update, process-record, run]
+    changed_in: R-70
+    changed_on: 2026-10-17
+
+  - id: documentation-update
+    term: Documentation update
+    category: pathfinder
+    group: Documentation
+    short: The BA documents a process again by revising its records with what new scans show, never by rebuilding them from fewer scans.
+    explanation: |
+      Ask the assistant to update a process (PROC-… or PRC-…). The BA first reads the process as
+      it stands, every scan of it (new ones marked), the screens no record cites yet and the error
+      pages; then it revises. The server refuses a revision that silently drops evidence or
+      use-case steps (the BA must name what it leaves out and why) and a process that cites only
+      error pages.
+    example: "Updating PROC-001 revised the process, its use case and four screens and added 12 screen records, from all six scans."
+    appears_in: ["Chat (\"update PROC-001\")", "A revision's change note (\"Dropped 1 evidence link(s) …\")"]
+    labels: [Dropped]
+    related: [scans-by-process, revision, process-record]
+    changed_in: R-70
+    changed_on: 2026-10-17
+
+  - id: ears
+    term: EARS statement
+    category: ba
+    group: Documentation
+    short: A requirement written in one fixed sentence pattern (Easy Approach to Requirements Syntax), such as "When … the system shall …".
+    explanation: |
+      Patterns: ubiquitous ("The calculator shall …"), event ("When …"), state ("While …"),
+      unwanted ("If …, then …"), optional ("Where …") and complex (a mix). The BA writes one for
+      every requirement, business rule and NFR while documenting; the export prints them in
+      EARS.md and lists the records that have none yet.
+    example: "If \"Rok produkcji\" is below 1990 when \"Dalej\" is pressed, then the calculator shall stay on \"Dane pojazdu\"."
+    appears_in: [Process documentation → EARS]
+    labels: [EARS]
+    related: [requirement, business-rule, nfr, process-documentation]
+    changed_in: R-68
+    changed_on: 2026-10-17
+
+  - id: process-documentation
+    term: Process documentation (export)
+    category: pathfinder
+    group: Documentation
+    short: The documentation a team (or an agent) rebuilds a process from, a folder with its steps, business and functional requirements, EARS, contracts, gaps, pictures and process.json.
+    explanation: |
+      One folder per process: README (what the service does), PROCESS_STEPS (each step's states
+      with screenshots, the wireframe and a table of its fields), BUSINESS_REQUIREMENTS (goals and
+      rules with decision tables and pseudo-code), FUNCTIONAL_REQUIREMENTS (requirements with
+      acceptance criteria, NFRs), EARS, CONTRACTS (the APIs each step calls, attempts, samples
+      recorded outside production) with openapi.yaml, GAPS and process.json for agents. A whole
+      portal is a folder with its README, glossary, API index and screen list and one folder per
+      process. Open it on a process record's or process's page (Documentation), download the zip,
+      or run `pnpm docs:process-export`.
+    example: "reference-insurer PROC-001: 6 steps, 14 fields, 1 endpoint (POST /kalkulator/zakup)."
+    appears_in: [Docs → a PROC record → Documentation, Processes → a process → Documentation]
+    labels: [Documentation, Download the folder (zip)]
+    related: [ears, srs-export, process-record]
+    changed_in: R-68
+    changed_on: 2026-10-17
+
   - id: portal-map
     term: Portal map
     category: pathfinder
@@ -2084,11 +2212,35 @@ entries:
       listed ground-truth process as a guest, and the BA documents from all the runs, so its
       processes can be scored from traces. `--no-process-traces` leaves them out; the number that
       ran is a condition of the trial.
+
+      A task may also list forms to probe (`probeForms`, spec 034): after the map, the eval marks
+      the form steps the map recorded there for probing and runs one probe scan, so the export's
+      Validation section can be scored. `--no-probe-scan` leaves it out.
     appears_in: [apps/crawler/evals/tasks.ts]
-    labels: [task, suite, SUITE, trace task, process traces, processTraces]
-    related: [eval, eval-trial, reference-portal]
-    changed_in: R-39
-    changed_on: 2026-10-14
+    labels: [task, suite, SUITE, trace task, process traces, processTraces, probeForms]
+    related: [eval, eval-trial, reference-portal, probe-scan, export-quality-score]
+    changed_in: R-68
+    changed_on: 2026-10-17
+
+  - id: export-quality-score
+    term: Export quality score
+    category: pathfinder
+    group: Gates and evals
+    short: How closely a process export matches the ground truth of its portal - steps, fields, validation messages, actions and API calls.
+    explanation: |
+      Scored by `export-quality.ts` in an eval over each exported process's `process.json`, for
+      ground-truth processes that list export facts (`actions`, `apis`, field `messages`). Five
+      goal scores (`export_steps`, `export_fields`, `export_validation`, `export_actions`,
+      `export_apis`) and three counts that should be 0: steps that are not part of the process,
+      actions leading outside it, and noise calls (icons, analytics) listed as APIs. The export
+      the owner approved on 2026-10-17 is kept as the reference solution
+      (`apps/crawler/evals/reference-solutions/`); its test pins its scores, so the problems it
+      has (R-73) are the only points it loses.
+    appears_in: [data/evals/<portal>/*.json → scores.export_*, apps/crawler/evals/reference-solutions]
+    labels: [export_steps, export_fields, export_validation, export_actions, export_apis, reference solution]
+    related: [eval, grader, eval-task, process-documentation]
+    changed_in: R-68
+    changed_on: 2026-10-17
 
   - id: eval-trial
     term: Eval trial

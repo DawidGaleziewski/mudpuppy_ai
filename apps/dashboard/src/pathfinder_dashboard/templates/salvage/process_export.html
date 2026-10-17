@@ -1,0 +1,30 @@
+{% extends "salvage/base.html" %}
+{% import "salvage/macros.html" as sy %}
+{% set nav_current = "docs" %}
+{% block title %}{{ key }} documentation{% endblock %}
+{#- Spec 034 R-68: a process in the export's layout, one tab per file (owner answer 5 of
+    2026-10-16), and the whole folder as a zip. -#}
+{% block main %}
+<div class="sy-pagehead">
+  <nav class="sy-crumbs" aria-label="Breadcrumb">
+    {%- if key.startswith("PRC-") %}<a href="{{ c.url('/processes') }}">Processes</a> / <a href="{{ c.url('/processes/' ~ key) }}">{{ key }}</a>
+    {%- else %}<a href="{{ c.url('/docs') }}">Docs</a> / <a href="{{ c.url('/docs/' ~ portal) }}">{{ portal }}</a> / <a href="{{ c.url('/docs/' ~ portal ~ '/' ~ key) }}">{{ key }}</a>{% endif %} / <span aria-current="page">Documentation</span></nav>
+  <div class="sy-split">
+    <h1 class="sy-h1">{{ key }} documentation</h1>
+    {%- if html %}<a class="sy-btn sy-btn--primary" href="{{ c.url(base ~ '.zip') }}" download>Download the folder (zip)</a>{% endif %}
+  </div>
+  <p class="sy-meta">The rebuild-grade export of this process: the same files the download holds, built from the recorded scans and the BA's records.</p>
+</div>
+{%- if error %}
+{{ sy.empty("No documentation export for " ~ key, "The export could not be built: " ~ error) }}
+{%- else %}
+<nav class="sy-tabs" aria-label="Files of the export">
+  {%- for file, label in tabs %}
+  <a class="sy-tab" href="{{ c.url(base, tab=file) }}"{% if file == tab %} aria-current="page"{% endif %}>{{ label }}</a>
+  {%- endfor %}
+</nav>
+<article class="sy-plate" aria-label="{{ tab }}">
+  <div class="sy-plate__body sy-stack mp-export">{{ html }}</div>
+</article>
+{%- endif %}
+{% endblock %}

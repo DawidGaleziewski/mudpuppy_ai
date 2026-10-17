@@ -91,6 +91,28 @@ export const AcceptanceCriterion = z.object({
 });
 export type AcceptanceCriterion = z.infer<typeof AcceptanceCriterion>;
 
+/**
+ * EARS (Easy Approach to Requirements Syntax) patterns (spec 034 R-68, owner answer 2 of
+ * 2026-10-16): the BA writes one EARS statement per requirement, rule and NFR while documenting;
+ * the export prints it and never derives one.
+ */
+export const EarsPattern = z.enum([
+  'ubiquitous',
+  'event',
+  'state',
+  'unwanted',
+  'optional',
+  'complex',
+]);
+export type EarsPattern = z.infer<typeof EarsPattern>;
+
+export const Ears = z.object({
+  pattern: EarsPattern,
+  /** "The <system> shall …", "When …, the <system> shall …", "If …, then the <system> shall …". */
+  text: z.string().min(1),
+});
+export type Ears = z.infer<typeof Ears>;
+
 export const RequirementPriority = z.enum(['must', 'should', 'could', 'wont', 'unset']);
 export type RequirementPriority = z.infer<typeof RequirementPriority>;
 
@@ -103,6 +125,7 @@ export const RequirementContent = z.object({
   rationale_confidence: Confidence.optional(),
   acceptance_criteria: z.array(AcceptanceCriterion),
   priority: RequirementPriority,
+  ears: Ears.optional(),
 });
 export type RequirementContent = z.infer<typeof RequirementContent>;
 
@@ -130,6 +153,7 @@ export const NfrContent = z.object({
   category: NfrCategory,
   statement: z.string().min(1),
   measured: NfrMeasured.optional(),
+  ears: Ears.optional(),
 });
 export type NfrContent = z.infer<typeof NfrContent>;
 
@@ -155,6 +179,7 @@ export const BusinessRuleContent = z.object({
   statement: z.string().min(1),
   rule_type: BusinessRuleType,
   decision_table: DecisionTable.optional(),
+  ears: Ears.optional(),
 });
 export type BusinessRuleContent = z.infer<typeof BusinessRuleContent>;
 

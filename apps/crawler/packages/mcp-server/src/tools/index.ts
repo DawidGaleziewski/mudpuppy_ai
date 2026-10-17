@@ -28,6 +28,7 @@ export const AGENT_TOOL_NAMES = [
   'navigate',
   'act',
   'probe_form',
+  'go_to_state',
   'login',
   'add_open_question',
   'add_rule_candidate',
@@ -105,6 +106,21 @@ export function registerTools(server: McpServer, ctx: ServerContext, runtime: Ru
       process: z.object({ name: z.string(), goal: z.string() }).optional(),
       followup_key: z.string().optional(),
       probe_marked: z.boolean().optional(),
+      run_type: z
+        .enum(['continue', 'focused', 'recheck', 'retry'])
+        .optional()
+        .describe(
+          'Spec 034 directed run (new map run): continue a stopped run (plan.parent_run_id), focused from marked screens within plan.depth, recheck marked screens (record only), retry a failed action (plan.target_edge_id). The result lists start_points: reach each with go_to_state.',
+        ),
+      plan: z
+        .object({
+          parent_run_id: z.string().optional(),
+          start_state_ids: z.array(z.string()).optional(),
+          depth: z.number().optional(),
+          target_edge_id: z.string().optional(),
+          variation: z.enum(['none', 'wait_longer', 'other_input', 'no_submit']).optional(),
+        })
+        .optional(),
     },
     async (args, span) => {
       const { output, run, approved, robots } = await startRunRecord(ctx, args);
@@ -184,6 +200,16 @@ export function registerTools(server: McpServer, ctx: ServerContext, runtime: Ru
       if (!runtime.probeForm)
         throw new ToolError('BROWSER_UNAVAILABLE', 'this server runtime cannot probe forms');
       return runtime.probeForm(ctx, a);
+    },
+  );
+  tool(
+    'go_to_state',
+    "Spec 034: reach a recorded screen state again in one call, by replaying the recorded path to it (the server opens the recorded start URL and redoes the recorded actions through the usual gates, checking each landing page); a deep link only where a recorded visit opened the state directly. Use it for each of the `start_points` a directed run's start_run returns; never navigate to a start point yourself. Pages on the way are recorded but not explored; the result is the target page (with `next`, its first frontier item) plus `reached` (how and from which run's recording). REPLAY_DIVERGED: a hop landed elsewhere (say which, the run can go on with the other start points); NO_PATH: this persona has no recorded way there. Log in first when the persona logs in.",
+    { run_id: z.string(), state_id: z.string(), rationale: z.string().trim().min(1).max(300) },
+    async (a) => {
+      if (!runtime.goToState)
+        throw new ToolError('BROWSER_UNAVAILABLE', 'this server runtime cannot replay paths');
+      return runtime.goToState(ctx, { run_id: a.run_id, state_id: a.state_id });
     },
   );
   tool(

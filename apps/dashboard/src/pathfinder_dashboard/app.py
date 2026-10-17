@@ -19,7 +19,7 @@ from fastapi.responses import RedirectResponse, Response
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
-from . import glossary, live, nav, queries_docs, status_map
+from . import glossary, live, nav, queries_docs, queries_map_node, status_map
 from .models import DECISION_KINDS, FRONTIER_STATUSES, RUN_STATUSES, SAFETY_CLASSES
 from .settings import Settings
 from .web import access as access_page
@@ -33,9 +33,12 @@ from .web import glossary as glossary_page
 from .web import health as health_page
 from .web import map as map_page
 from .web import overview as overview_page
+from .web import plan as plan_page
 from .web import portals as portals_page
+from .web import process_export as process_export_page
 from .web import processes as processes_page
 from .web import review as review_page
+from .web import run_groups as run_groups_page
 from .web import runs as runs_page
 from .web import scans as scans_page
 from .web import screens as screens_page
@@ -84,6 +87,7 @@ def create_app(
     templates.env.globals["sy_status_of"] = status_map.status_of
     templates.env.globals["sy_options"] = status_map.options
     templates.env.globals["NAV_SECTIONS"] = nav.SECTIONS
+    templates.env.globals["SCREEN_MARKS"] = queries_map_node.SCREEN_MARKS
     templates.env.globals["nav_section"] = nav.current_section
     templates.env.globals["section_href"] = nav.href_of
 
@@ -136,6 +140,9 @@ def create_app(
     app.include_router(access_page.router)
     app.include_router(review_page.router)
     app.include_router(scans_page.router)
+    app.include_router(run_groups_page.router)
+    app.include_router(plan_page.router)
+    app.include_router(process_export_page.router)
     app.include_router(map_page.router)
     # Last: its /chat/portals/{portal}/{rest} forwarder must not shadow the routes above.
     app.include_router(processes_page.router)

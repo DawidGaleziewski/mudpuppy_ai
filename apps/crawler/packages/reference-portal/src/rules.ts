@@ -56,6 +56,22 @@ export function acAllowed(productionYear: number): boolean {
   return CURRENT_YEAR - productionYear < AC_MAX_VEHICLE_AGE;
 }
 
+/** With AC, the vehicle's value is asked (the 4b variant of the options step, owner review 2026-10-17). */
+export const VEHICLE_VALUE_MIN = 5000;
+export const VEHICLE_VALUE_MAX = 500000;
+const NEW_VEHICLE_VALUE: Readonly<Record<string, number>> = {
+  toyota: 90000,
+  skoda: 80000,
+  volkswagen: 85000,
+  fiat: 50000,
+};
+
+/** The typical value the AC box suggests: the make's new price, less 10 % a year. */
+export function typicalVehicleValue(make: string, productionYear: number): number {
+  const age = Math.max(0, CURRENT_YEAR - productionYear);
+  return Math.round(((NEW_VEHICLE_VALUE[make] ?? 60000) * 0.9 ** age) / 100) * 100;
+}
+
 export interface PremiumInput {
   scope: 'oc' | 'oc_ac';
   age: number;

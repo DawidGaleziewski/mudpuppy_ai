@@ -235,19 +235,17 @@ _OQ_FLAG = (
 )
 
 
-def list_records(
-    conn: sqlite3.Connection,
+def _records_clause(
     portal: str,
     kinds: tuple[str, ...] | list[str],
     *,
-    kind: str | None = None,
-    status: str | None = None,
-    confidence: str | None = None,
-    flag: str | None = None,
-    cursor: str | None = None,
-    limit: int = 50,
-) -> Page[DocRecordRow]:
-    """Records of `kinds` (narrowed by `kind`), latest revision shown, ordered by (kind, seq)."""
+    kind: str | None,
+    status: str | None,
+    confidence: str | None,
+    flag: str | None,
+) -> tuple[str, list[Any]]:
+    """The WHERE clause of a Docs section list with its filters (shared by the list and by the
+    record page's Prev / Next, R-71)."""
     shown = [kind] if kind in kinds else list(kinds)
     where = ["r.portal_id = ?", f"r.kind IN ({','.join('?' for _ in shown)})"]
     args: list[Any] = [portal, *shown]
@@ -261,7 +259,45 @@ def list_records(
         where.append("v.not_observable = 1")
     elif flag == "open_question":
         where.append(_OQ_FLAG)
-    clause = " AND ".join(where)
+    return " AND ".join(where), args
+
+
+def record_keys(
+    conn: sqlite3.Connection,
+    portal: str,
+    kinds: tuple[str, ...] | list[str],
+    *,
+    kind: str | None = None,
+    status: str | None = None,
+    confidence: str | None = None,
+    flag: str | None = None,
+) -> list[str]:
+    """The keys of a Docs section list in its order (kind, seq), every page."""
+    clause, args = _records_clause(
+        portal, kinds, kind=kind, status=status, confidence=confidence, flag=flag
+    )
+    rows = conn.execute(
+        f"SELECT r.key FROM {_ROW_FROM} WHERE {clause} ORDER BY r.kind, r.seq", tuple(args)
+    ).fetchall()
+    return [r[0] for r in rows]
+
+
+def list_records(
+    conn: sqlite3.Connection,
+    portal: str,
+    kinds: tuple[str, ...] | list[str],
+    *,
+    kind: str | None = None,
+    status: str | None = None,
+    confidence: str | None = None,
+    flag: str | None = None,
+    cursor: str | None = None,
+    limit: int = 50,
+) -> Page[DocRecordRow]:
+    """Records of `kinds` (narrowed by `kind`), latest revision shown, ordered by (kind, seq)."""
+    clause, args = _records_clause(
+        portal, kinds, kind=kind, status=status, confidence=confidence, flag=flag
+    )
     total = _count(conn, f"SELECT count(*) FROM {_LATEST} WHERE {clause}", tuple(args))
     keyset, key_args = _kind_seq_keyset(cursor)
     rows = _rows(

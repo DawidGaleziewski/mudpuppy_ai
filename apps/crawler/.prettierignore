@@ -5,3 +5,4 @@ tests/fixtures
 packages/*/tests/fixtures
 packages/wireframe/tests/golden
 packages/docs/tests/golden
+evals/reference-solutions

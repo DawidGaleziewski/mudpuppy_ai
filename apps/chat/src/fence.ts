@@ -45,6 +45,8 @@ export const BA_READ_TOOLS = [
   'get_access_matrix',
   // Spec 033: where scans saw different screens at one point.
   'list_differing_states',
+  // Spec 034 (R-70): a documented process, all its runs and what no record cites yet.
+  'open_process_update',
 ].map((t) => BA + t);
 
 export const BA_WRITE_TOOLS = [
@@ -68,6 +70,8 @@ export const CRAWLER_TOOLS = [
   'navigate',
   'act',
   'probe_form',
+  // Spec 034 R-66: reach a recorded screen by replaying the recorded path.
+  'go_to_state',
   'login',
   'add_open_question',
   'add_rule_candidate',

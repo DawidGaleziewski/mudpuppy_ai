@@ -16,6 +16,30 @@ import { canonical } from './render/records-json.js';
 // ---- ground truth ---------------------------------------------------------------------------------
 
 const Id = z.string().min(1);
+
+/** A variant of a process step: on `step`, the field `field` appears when `when` is chosen. */
+export const GtVariant = z.object({
+  step: z.string().min(1),
+  field: z.string().min(1),
+  when: z.string().min(1),
+});
+export type GtVariant = z.infer<typeof GtVariant>;
+
+/** The action that moves a process step on, and the step it leads to (spec 034 phase 9). */
+export const GtAction = z.object({
+  step: z.string().min(1),
+  name: z.string().min(1),
+  leads_to: z.string().min(1),
+});
+export type GtAction = z.infer<typeof GtAction>;
+
+/** A call a process step makes to the portal's back end. */
+export const GtApi = z.object({
+  step: z.string().min(1),
+  method: z.string().min(1),
+  path: z.string().min(1),
+});
+export type GtApi = z.infer<typeof GtApi>;
 const Value = z.union([z.number(), z.string()]);
 
 export const GroundTruth = z.object({
@@ -37,6 +61,10 @@ export const GroundTruth = z.object({
         z.object({
           id: Id,
           label: z.string().min(1),
+          /** Not scored here; the export quality grader (spec 034 phase 9) uses it. */
+          type: z.string().optional(),
+          /** What the form says to wrong input in the field, verbatim. Export quality grader. */
+          messages: z.array(z.string().min(1)).optional(),
           constraints: z
             .object({
               required: z.boolean().optional(),
@@ -70,6 +98,14 @@ export const GroundTruth = z.object({
       ends_with: z.enum(['mutation', 'result', 'login_wall']),
       /** The routes in order; not scored here, kept for the eval's trace grader (R-46). */
       steps: z.array(z.string().min(1)).optional(),
+      /**
+       * Steps whose form differs by an earlier choice (spec 034, owner review 2026-10-17): one
+       * step with variants, not two steps. Not scored here; the eval's `process_variants` grader.
+       */
+      variants: z.array(GtVariant).optional(),
+      /** Not scored here; the export quality grader (spec 034 phase 9). */
+      actions: z.array(GtAction).optional(),
+      apis: z.array(GtApi).optional(),
     }),
   ),
   terms: z.array(
@@ -94,6 +130,8 @@ export const GroundTruth = z.object({
       }),
     )
     .optional(),
+  /** Calls every page makes that belong to no process; an export must leave them out. */
+  noise: z.array(z.object({ path: z.string().min(1), kind: z.string().min(1) })).optional(),
 });
 export type GroundTruth = z.infer<typeof GroundTruth>;
 

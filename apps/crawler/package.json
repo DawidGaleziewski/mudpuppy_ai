@@ -29,6 +29,7 @@
     "docs:audit": "tsx scripts/docs-audit.ts",
     "docs:review": "tsx scripts/docs-review.ts",
     "docs:export": "tsx scripts/docs-export.ts",
+    "docs:process-export": "tsx scripts/docs-process-export.ts",
     "docs:evaluate": "tsx scripts/docs-evaluate.ts",
     "wireframes:build": "tsx scripts/wireframes-build.ts",
     "trace:smoke": "tsx packages/mcp-server/scripts/trace-smoke.ts",
@@ -40,6 +41,7 @@
     "eval:draw": "tsx evals/draw.ts",
     "eval:calibrate": "tsx evals/calibrate.ts",
     "eval:judge-check": "tsx evals/judge-check.ts",
+    "eval:transcript": "tsx evals/transcript.ts",
     "tokens:ba": "tsx scripts/tokens-ba-reads.ts",
     "gt:check": "vitest run --project gates tests/ground-truth.test.ts"
   },

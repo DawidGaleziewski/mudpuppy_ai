@@ -18,6 +18,13 @@ schemas) and store (record keys are allocated in the DB, `src/keys.ts`).
   it from `appears_on` / `contains`, spec 028), audit, review, export, process scope, evaluation; used by the
   crawler app scripts (`pnpm docs:*`). `readGroundTruth()` reads a YAML ground truth (G-34); used
   by `apps/crawler/evals/`, `docs:evaluate` and the gates.
+- Spec 034 (R-68, rebuild-grade export): `src/process-export/` — `steps.ts`
+  (`resolveProcessSteps`: a PROC record's steps from its trace, trace steps or chained edges, a
+  PRC's from A's head; states collapsed per kind and form step), `contracts.ts` (API calls per
+  step, noise, OpenAPI from shapes), `model.ts`, the renderers (`render-steps.ts`,
+  `render-records.ts`, `render-contracts.ts`) and `index.ts` (`exportProcess`, `exportPortal`);
+  used by `pnpm docs:process-export` and the dashboard's process tabs. Layout = the owner-rated
+  mocks in `specs/034-…/mocks/`.
 - Test helpers in `src/testing/` (a migrated scratch store, record fixtures).
 
 ## Invariants

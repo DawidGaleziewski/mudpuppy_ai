@@ -14,6 +14,7 @@ import type {
   ProbeSuiteStatus,
   RobotsOutcome,
   RunStatus,
+  RunType,
   SafetyClass,
   Stabilization,
   StateKind,
@@ -91,6 +92,12 @@ export interface RunsTable {
   /** 0009: the pathfinder server instance driving the run, and its process id (F-14). */
   owner_id: string | null;
   owner_pid: number | null;
+  /** 0027: the kind of directed run; NULL = a plain run (full map or trace by `mode`). */
+  run_type: ColumnType<RunType | null, RunType | null | undefined, RunType | null>;
+  /** 0027: the run a directed run continues or retries. */
+  parent_run_id: ColumnType<string | null, string | null | undefined, string | null>;
+  /** 0027: JSON the run's plan came from (start states, skip targets, depth, variation, target edge, marks used). */
+  plan_json: ColumnType<string | null, string | null | undefined, string | null>;
 }
 
 export interface StatesTable {
@@ -200,6 +207,17 @@ export interface ReconciliationsTable {
   confirmed_json: string | null;
   confirmed_by: string | null;
   confirmed_at: string | null;
+}
+
+/** 0027: the shortest recorded way back to a state, one per (run, state); `steps_json` is validated by `CheckpointRow` (core). */
+export interface CheckpointsTable {
+  id: string;
+  run_id: string;
+  state_id: string;
+  start_url: string;
+  steps_json: string;
+  created_at: string;
+  updated_at: string;
 }
 
 /** 0015: a screen is (portal_id, route_template, cluster_id); its states are its observed revisions. */
@@ -528,6 +546,9 @@ export interface NetworkCallsTable {
   created_at: string;
   /** 0012: the verbatim request URL (query kept); NULL before 0012. */
   url: ColumnType<string | null, string | null | undefined, string | null>;
+  /** 0027: masked sample bodies (at most 4096 characters), recorded only outside production; NULL otherwise. */
+  req_sample: ColumnType<string | null, string | null | undefined, string | null>;
+  res_sample: ColumnType<string | null, string | null | undefined, string | null>;
 }
 
 /** 0012: one arrival on a page, its verbatim URL and the hops (JSON `NavigationHop[]`) that led there. */
@@ -841,4 +862,5 @@ export interface Database {
   probe_suites: ProbeSuitesTable;
   marks: MarksTable;
   reconciliations: ReconciliationsTable;
+  checkpoints: CheckpointsTable;
 }

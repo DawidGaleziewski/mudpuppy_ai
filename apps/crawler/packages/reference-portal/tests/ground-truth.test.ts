@@ -109,6 +109,48 @@ describe('ground truth ⇔ served HTML', () => {
     }
   });
 
+  it("every field's messages are Chromium's for its constraints (spec 034 phase 9)", () => {
+    const empty: Record<string, string> = {
+      select: 'Please select an item in the list.',
+      checkbox: 'Please check this box if you want to proceed.',
+      radio: 'Please select one of these options.',
+    };
+    for (const field of gt.forms.flatMap((f) => f.fields).filter((x) => x.messages)) {
+      const c = field.constraints;
+      const numeric = field.type === 'number';
+      const expected = [
+        ...(c.required ? [empty[field.type] ?? 'Please fill out this field.'] : []),
+        ...(numeric && c.min !== undefined
+          ? [`Value must be greater than or equal to ${c.min}.`]
+          : []),
+        ...(numeric && c.max !== undefined
+          ? [`Value must be less than or equal to ${c.max}.`]
+          : []),
+        ...(c.pattern !== undefined ? ['Please match the requested format.'] : []),
+      ];
+      expect(field.messages, field.label).toEqual(expected);
+    }
+  });
+
+  it("each process action is on its step's page and leads to a step of the process", async () => {
+    for (const p of gt.processes)
+      for (const a of p.actions ?? []) {
+        expect(text(await screenHtml(portal, a.step)), `${p.id}: ${a.name}`).toContain(a.name);
+        expect(p.steps, `${p.id}: ${a.name}`).toContain(a.leads_to);
+      }
+  });
+
+  it("each process call is made by its step's page, and every page makes the noise calls", async () => {
+    for (const p of gt.processes)
+      for (const a of p.apis ?? [])
+        expect(await screenHtml(portal, a.step), `${p.id}: ${a.path}`).toContain(a.path);
+    for (const s of gt.screens.filter((x) => x.guest_visible)) {
+      const html = await screenHtml(portal, s.route_template);
+      for (const n of gt.noise ?? [])
+        expect(html, `${s.route_template}: ${n.path}`).toContain(n.path);
+    }
+  });
+
   it('robots.txt allows everything but /__admin/', async () => {
     const r = await fetchText(portal, '/robots.txt');
     expect(r.text).toBe('User-agent: *\nDisallow: /__admin/\n');

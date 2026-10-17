@@ -76,6 +76,22 @@ export interface ActInput {
   include_actions?: boolean;
 }
 
+/** `go_to_state` (spec 034 R-66): a recorded state to reach again by replay. */
+export interface GoToStateInput {
+  run_id: string;
+  state_id: string;
+}
+
+/** The target page, and how it was reached (`deep_link`, a stored `checkpoint`, a `rebuilt` path). */
+export type GoToStateResult = PageResult & {
+  reached: {
+    state_id: string;
+    how: 'deep_link' | 'checkpoint' | 'rebuilt';
+    replayed_steps: number;
+    from_run: string;
+  };
+};
+
 /** `probe_form` (spec 032 US2): the form step's submit or advance control, and the probes to try. */
 export interface ProbeFormInput {
   run_id: string;
@@ -130,6 +146,8 @@ export interface Runtime {
   act(ctx: ServerContext, input: ActInput): Promise<PageResult>;
   /** Form probes (spec 032); optional so browserless test runtimes need not. */
   probeForm?(ctx: ServerContext, input: ProbeFormInput): Promise<ProbeFormResult>;
+  /** Replay the recorded path to a state (spec 034 R-66); optional for browserless test runtimes. */
+  goToState?(ctx: ServerContext, input: GoToStateInput): Promise<GoToStateResult>;
   /** Server-side login from the vault (spec 009); optional so browserless test runtimes need not. */
   login?(ctx: ServerContext, input: { run_id: string }): Promise<LoginResult>;
   /** Release the browser of a run that has ended (finished, stopped or interrupted). */

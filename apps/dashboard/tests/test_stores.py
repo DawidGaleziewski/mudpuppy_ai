@@ -51,8 +51,31 @@ def test_lists_eval_workspaces_newest_first_after_the_main_stores(
     assert listed[1].label.startswith("eval · proving-ground-bank · ")
     with make_client(empty_store) as c:
         html = c.get("/").text
-    assert '<optgroup label="Eval workspaces">' in html
-    assert html.index("proving-ground-bank") < html.index("proving-ground-shop")
+    menu = html.split('aria-label="Switch data store"')[1].split("</ul>")[0]
+    assert "eval workspace" in menu
+    assert menu.index("proving-ground-bank") < menu.index("proving-ground-shop")
+
+
+def test_store_menu_lists_the_stores_holding_the_portal(
+    empty_store: Store, eval_root: Path
+) -> None:
+    """R-71 (d): with a portal chosen, only stores with its runs (and the open one) are listed."""
+    with make_client(empty_store) as c:
+        c.cookies.set("pf_portal", "proving-ground-bank")
+        html = c.get("/").text
+    menu = html.split('aria-label="Switch data store"')[1].split("</ul>")[0]
+    assert "store=eval%3Apf-eval-proving-ground-bank-AbC123%3Asandbox" in menu
+    assert "proving-ground-shop" not in menu
+    # The open store (no bank runs) stays listed, marked current, so the menu never hides it.
+    assert menu.count("<li>") == 2 and 'aria-current="true">test' in menu
+
+
+def test_portal_switch_lands_on_a_store_with_its_data(empty_store: Store, eval_root: Path) -> None:
+    """R-71 (d): the main store has no shop runs, so the shop link opens the shop's eval store."""
+    with make_client(empty_store) as c:
+        html = c.get("/").text
+    menu = html.split('aria-label="Switch portal"')[1].split("</ul>")[0]
+    assert "store=eval%3Apf-eval-proving-ground-shop-XyZ789%3Asandbox" in menu
 
 
 def test_opens_an_eval_store_and_keeps_it_on_links(empty_store: Store, eval_root: Path) -> None:

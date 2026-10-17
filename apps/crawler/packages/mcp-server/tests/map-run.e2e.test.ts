@@ -145,11 +145,12 @@ describe.skipIf(!available)('map run against the mock portal', () => {
       expect(
         edges.filter((e) => e.status === 'executed').every((e) => e.safety_class === 'read'),
       ).toBe(true);
-      // the seller's PII from the API response is never stored
+      // API responses keep their sample body as it came outside production, the seller's contact
+      // too: no masking unless the portal asks for it (spec 019 R2, spec 034 A-9, F-18@034)
       const calls = await ctx.db.selectFrom('network_calls').selectAll().execute();
       expect(calls.length).toBeGreaterThan(0);
-      expect(JSON.stringify(calls)).not.toMatch(/jan\.kowalski|601 234/);
-      expect(calls.some((c) => c.url_template === '/api/offers/:param')).toBe(true);
+      const offer = calls.find((c) => c.url_template === '/api/offers/:param');
+      expect(offer?.res_sample).toMatch(/jan\.kowalski@example\.com/);
       // forms recorded, never submitted
       expect(portal.requests.filter((r) => r.method === 'POST')).toEqual([]);
       const form = JSON.parse(forms.find((f) => f.fields_json.includes('body'))!.fields_json);

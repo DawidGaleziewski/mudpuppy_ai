@@ -25,6 +25,7 @@ import {
 import { RunEvidenceKind, getRunEvidence } from '../services/ba/run-evidence.js';
 import { listRuns } from '../services/ba/runs.js';
 import { proposeProbeSuite } from '../services/ba/probe-suites.js';
+import { openProcessUpdate } from '../services/ba/process-update.js';
 import { listDifferingStates, proposeVerdicts } from '../services/ba/reconcile.js';
 import {
   addressCrawlerQuestion,
@@ -60,6 +61,7 @@ export const BA_TOOL_NAMES = [
   'propose_probe_suite',
   'list_differing_states',
   'propose_verdicts',
+  'open_process_update',
 ] as const;
 export type BaToolName = (typeof BA_TOOL_NAMES)[number];
 
@@ -185,6 +187,12 @@ export function registerBaTools(server: McpServer, ctx: BaContext): void {
     (a) => Promise.resolve(proposeVerdicts(ctx, a)),
   );
   tool(
+    'open_process_update',
+    'Spec 034: update a documented process instead of rewriting it. Give a process record key (PROC-…) or a workspace process key (PRC-…). Returns its records at their latest revisions, every run of the process (runs that walked its screens, not only the ones you were handed), which runs are new since its last change, the screens those runs saw that no record cites yet (the difference to document) and the error pages to keep as error branches. Call it first when a process is documented again after new scans.',
+    { portal_id: z.string(), key: z.string() },
+    (a) => Promise.resolve(openProcessUpdate(ctx, a)),
+  );
+  tool(
     'get_run_evidence',
     'One page of what a run recorded, of one kind, with ids, confidence and a compact summary. Items omit null fields and fields equal to the page\'s `defaults` (e.g. confidence "observed", safety_class "read"): a missing field is null or the default. Pass next_cursor back as cursor for the next page, until it is null.',
     {
@@ -294,7 +302,7 @@ export function registerBaTools(server: McpServer, ctx: BaContext): void {
   );
   tool(
     'revise_record',
-    'Write a new draft revision of a record. base_rev must be its latest revision; content, evidence and relations replace the previous ones. Content shapes and relations: as in create_record.',
+    'Write a new draft revision of a record. base_rev must be its latest revision; content, evidence and relations replace the previous ones. Content shapes and relations: as in create_record. Documentation grows: keep the previous evidence links and use-case steps and add the new ones; a revision that drops any of them is refused (REVISION_DROPS, listing them) unless "dropped" names each with a reason.',
     {
       session_id: z.string(),
       key: z.string().describe('Key of the record to revise'),
@@ -309,6 +317,19 @@ export function registerBaTools(server: McpServer, ctx: BaContext): void {
         .string()
         .optional()
         .describe('review_id this revision answers (from get_pending_feedback)'),
+      dropped: z
+        .looseObject({
+          reason: z
+            .string()
+            .describe('Why these are left out (e.g. "the page was an error branch")'),
+          evidence: z
+            .array(z.looseObject({ target_kind: z.string(), target_id: z.string() }))
+            .optional()
+            .describe('Each previous evidence link this revision leaves out'),
+          steps: z.number().optional().describe('How many use-case main-flow steps it removes'),
+        })
+        .optional()
+        .describe('Only when this revision leaves out evidence or steps of the previous one'),
     },
     (a) => reviseRecord(ctx, a),
   );

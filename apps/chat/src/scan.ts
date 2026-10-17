@@ -13,6 +13,7 @@ import {
   portalEnvironments,
   Environment,
 } from '@pathfinder/config';
+import { directedPrompt, directedScanCheck } from './scan-directed.js';
 import { recordStep } from './steps.js';
 import { portalFile, type WorkspacePaths } from './workflow-data.js';
 
@@ -80,8 +81,29 @@ export const RequestScanInput = z.object({
    * `resume_run_id` or `process`.
    */
   probe_marked: z.boolean().optional(),
+  /**
+   * A directed scan (spec 034 R-66, design 11-map-runs §5): a new run that starts at recorded
+   * screens by replaying the recorded path. `continue` picks up a stopped scan (plan.parent_run_id),
+   * `focused` explores from the Start here / Focus marks (or plan.start_state_ids) within
+   * plan.depth, `recheck` only records the current state of the Recheck-marked screens, `retry`
+   * repeats one failed action (plan.target_edge_id) with a variation. Not with `resume_run_id`,
+   * `process` or `probe_marked`.
+   */
+  run_type: z.enum(['continue', 'focused', 'recheck', 'retry']).optional(),
+  plan: z
+    .object({
+      parent_run_id: z.string().min(1).optional(),
+      start_state_ids: z.array(z.string().min(1)).min(1).max(20).optional(),
+      depth: z.number().int().min(0).max(10).optional(),
+      target_edge_id: z.string().min(1).optional(),
+      variation: z.enum(['none', 'wait_longer', 'other_input', 'no_submit']).optional(),
+    })
+    .strict()
+    .optional(),
 });
 export type RequestScanInput = z.input<typeof RequestScanInput>;
+export type ScanPlan = NonNullable<z.infer<typeof RequestScanInput>['plan']>;
+export type DirectedType = NonNullable<z.infer<typeof RequestScanInput>['run_type']>;
 
 /** What the scan may do, as told to the crawler; undefined keeps a resumed run's own. */
 export interface ScanChoices {
@@ -116,22 +138,26 @@ export function requestScan(
   conversationId: string,
   input: RequestScanInput,
 ): ScanHandoff {
-  const { portal, resume_run_id, process, probe_marked, ...rest } = RequestScanInput.parse(input);
+  const { portal, resume_run_id, process, probe_marked, run_type, plan, ...rest } =
+    RequestScanInput.parse(input);
   if (process !== undefined && resume_run_id !== undefined)
     throw new ScanRefusal(
       'INVALID',
       'a process trace starts a new run; resume_run_id continues a stopped scan',
     );
   const probe = probe_marked === true;
+  if (run_type !== undefined)
+    directedScanCheck(raw, portal, { run_type, plan, resume_run_id, process, probe });
   if (probe) probeScanCheck(raw, portal, { resume_run_id, process, ...rest });
-  // After [reset assistant] the orchestrator does not know a stopped run's persona and guessed
-  // one (F-02): a resume takes the run's own.
+  // The run this scan continues: a resumed one, or a directed scan's parent. After [reset
+  // assistant] the orchestrator does not know its persona and guessed one (F-02): take the run's.
+  const ownRun = resume_run_id ?? plan?.parent_run_id;
   const persona =
     rest.persona ??
-    (resume_run_id === undefined
+    (ownRun === undefined
       ? undefined
       : (
-          raw.prepare(`SELECT persona_id FROM runs WHERE id = ?`).get(resume_run_id) as
+          raw.prepare(`SELECT persona_id FROM runs WHERE id = ?`).get(ownRun) as
             { persona_id: string } | undefined
         )?.persona_id);
   const portalPath = portalFile(paths, portal);
@@ -147,13 +173,13 @@ export function requestScan(
   let auth: 'none' | Record<string, string>;
   let environment: Environment;
   try {
-    // The portal's environment to scan (spec 011 FR-009): asked for, a resumed run's own, or
+    // The portal's environment to scan (spec 011 FR-009): asked for, the continued run's own, or
     // the only one; with several and none named, the BA is asked which.
     const resumed =
-      resume_run_id === undefined
+      ownRun === undefined
         ? undefined
         : (
-            raw.prepare(`SELECT environment FROM runs WHERE id = ?`).get(resume_run_id) as
+            raw.prepare(`SELECT environment FROM runs WHERE id = ?`).get(ownRun) as
               { environment: Environment } | undefined
           )?.environment;
     const declared = portalEnvironments(portalPath).map((e) => e.environment);
@@ -259,7 +285,10 @@ export function requestScan(
     status: 'pending',
     handoff: {
       agent: 'crawler',
-      prompt: briefFor({ portal, persona, environment, resume_run_id, process, probe }, choices),
+      prompt: briefFor(
+        { portal, persona, environment, resume_run_id, process, probe, run_type, plan },
+        choices,
+      ),
     },
   };
 }
@@ -272,9 +301,18 @@ function briefFor(
     resume_run_id: string | undefined;
     process: { name: string; goal: string } | undefined;
     probe: boolean;
+    run_type: DirectedType | undefined;
+    plan: ScanPlan | undefined;
   },
   choices: ScanChoices,
 ): string {
+  if (s.run_type !== undefined)
+    return directedPrompt(
+      { portal: s.portal, persona: s.persona, environment: s.environment },
+      s.run_type,
+      s.plan ?? {},
+      choiceArgs(choices),
+    );
   if (s.probe) return probePrompt(s.portal, s.persona, s.environment, choices);
   if (s.process !== undefined)
     return tracePrompt(s.portal, s.persona, s.environment, s.process, choices);

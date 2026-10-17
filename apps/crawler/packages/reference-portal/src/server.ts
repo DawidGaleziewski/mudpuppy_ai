@@ -22,6 +22,8 @@ import {
   travelResult,
 } from './pages/forms.js';
 import { car, faq, glossary, home, house, notFound } from './pages/static.js';
+import { pln } from './html.js';
+import { typicalVehicleValue } from './rules.js';
 
 export const ROBOTS_TXT = 'User-agent: *\nDisallow: /__admin/\n';
 
@@ -116,6 +118,44 @@ const GET_ROUTES: Record<string, GetHandler> = {
   '/moje-polisy/przedluz': () => loginWall('Przedłuż polisę'),
 };
 
+interface Asset {
+  status: number;
+  type: string;
+  body: (p: Params) => string;
+}
+
+/**
+ * Files that are not pages: robots.txt and what the pages' scripts fetch: the typical vehicle value (an API of the OC/AC process, step 4b)
+ * and two calls unrelated to any process, which an export must leave out as noise (owner review
+ * 2026-10-17, point d): an icon sprite every page loads, and an analytics ping.
+ */
+const ASSETS: Record<string, Asset> = {
+  '/robots.txt': { status: 200, type: 'text/plain; charset=utf-8', body: () => ROBOTS_TXT },
+  '/api/wartosc-pojazdu': {
+    status: 200,
+    type: 'application/json; charset=utf-8',
+    body: (p) => {
+      const value = typicalVehicleValue(p.marka ?? '', Number(p.rok_produkcji));
+      return JSON.stringify({ marka: p.marka ?? '', typowa: value, typowa_tekst: pln(value) });
+    },
+  },
+  '/static/ikony.svg': {
+    status: 200,
+    type: 'image/svg+xml',
+    body: () =>
+      '<svg xmlns="http://www.w3.org/2000/svg"><symbol id="auto" viewBox="0 0 16 16"><rect width="16" height="8" y="4"/></symbol></svg>',
+  },
+};
+// 200 with a body: Chromium reports a fetch answered 204 as aborted, which the recorder never keeps.
+const ANALYTICS: Asset = {
+  status: 200,
+  type: 'application/json; charset=utf-8',
+  body: () => '{"ok":true}',
+};
+
+const assetFor = (path: string): Asset | undefined =>
+  ASSETS[path] ?? (path.startsWith('/analytics/') ? ANALYTICS : undefined);
+
 export function startReferencePortal(opts: StartOptions): Promise<ReferencePortal> {
   const requests: LoggedRequest[] = [];
   const portal = { state: freshState() };
@@ -127,7 +167,8 @@ export function startReferencePortal(opts: StartOptions): Promise<ReferencePorta
     const path = url.pathname.length > 1 ? url.pathname.replace(/\/$/, '') : url.pathname;
 
     if (method === 'GET' || method === 'HEAD') {
-      if (path === '/robots.txt') return send(res, 200, ROBOTS_TXT, 'text/plain; charset=utf-8');
+      const asset = assetFor(path);
+      if (asset) return send(res, asset.status, asset.body(params(url)), asset.type);
       const handler = GET_ROUTES[path];
       if (!handler) return send(res, 404, notFound());
       const out = handler(params(url));

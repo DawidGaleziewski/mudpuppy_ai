@@ -26,7 +26,7 @@
       </div>
       <div class="sy-rows">
         {#- "All" shows the first rows of each group; its tab lists every row. #}
-        {%- for it in (items if v.show else items[:10]) %}
+        {%- for it in (v.group.items if v.show else items[:10]) %}
         {%- if kind in ("records", "assumptions") %}
         {%- set ident, current = it.key, sel_kind == kind and sel.key == it.key %}
         <a class="sy-row{% if current %} sy-row--current{% endif %}" href="{{ c.url('/review', show=v.show, select=kind ~ ':' ~ ident) }}"{% if current %} aria-current="true"{% endif %}>
@@ -84,6 +84,8 @@
       </div>
       {%- if not v.show and items | length > 10 %}
       <div class="sy-plate__foot"><a href="{{ c.url('/review', show=kind) }}">Show all {{ items | length }}</a></div>
+      {%- elif v.show and v.pages and v.pages.paged.pages > 1 %}
+      <div class="sy-plate__foot">{{ sy.pages(v.pages, label ~ " pages") }}</div>
       {%- endif %}
     </section>
     {%- else %}
@@ -106,6 +108,7 @@
     {%- endfor %}
   </div>
   <div class="sy-col-side mp-review-side">
+    {{ sy.neighbours(v.nb) }}
     {%- if sel_kind in ("records", "assumptions") %}{% include "salvage/partials/review_record.html" %}
     {%- elif sel_kind == "differences" %}{% include "salvage/partials/review_difference.html" %}
     {%- elif sel_kind == "differing" %}{% include "salvage/partials/review_differing.html" %}

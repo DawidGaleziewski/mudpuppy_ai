@@ -55,6 +55,11 @@ export const GtField = z
       'radio',
     ]),
     constraints: GtConstraints,
+    /**
+     * What the form says to wrong input in this field, verbatim (the export's Validation section,
+     * spec 034 phase 9). Chromium's own messages in English where the browser checks first.
+     */
+    messages: z.array(z.string().min(1)).min(1).optional(),
   })
   .strict();
 
@@ -93,6 +98,50 @@ export const GtProcess = z
     first_route: z.string().startsWith('/'),
     last_observable_route: z.string().startsWith('/'),
     ends_with: z.enum(['mutation', 'result', 'login_wall']),
+    /** A step whose form differs by an earlier choice: `field` appears on `step` when `when` is chosen. */
+    variants: z
+      .array(
+        z
+          .object({
+            step: z.string().startsWith('/'),
+            field: z.string().min(1),
+            when: z.string().min(1),
+          })
+          .strict(),
+      )
+      .optional(),
+    /** The action that moves a step on, and the step it leads to (the export's element table). */
+    actions: z
+      .array(
+        z
+          .object({
+            step: z.string().startsWith('/'),
+            name: z.string().min(1),
+            leads_to: z.string().startsWith('/'),
+          })
+          .strict(),
+      )
+      .optional(),
+    /** The calls a step makes to the portal's back end (the export's contracts). */
+    apis: z
+      .array(
+        z
+          .object({
+            step: z.string().startsWith('/'),
+            method: z.enum(['GET', 'POST', 'PUT', 'PATCH', 'DELETE']),
+            path: z.string().startsWith('/'),
+          })
+          .strict(),
+      )
+      .optional(),
+  })
+  .strict();
+
+/** A call every page makes that is not part of any process: the export must leave it out. */
+export const GtNoise = z
+  .object({
+    path: z.string().startsWith('/'),
+    kind: z.enum(['static', 'analytics']),
   })
   .strict();
 
@@ -137,6 +186,14 @@ export const GtObstacle = z
   })
   .strict();
 
+/** An action or call must sit on one of its process's steps. */
+const stepsOutsideProcess = (processes: readonly z.infer<typeof GtProcess>[]): string[] =>
+  processes.flatMap((p) =>
+    [...(p.actions ?? []), ...(p.apis ?? [])]
+      .filter((x) => !p.steps.includes(x.step))
+      .map((x) => `process ${p.id}: ${x.step} is not one of its steps`),
+  );
+
 export const GroundTruth = z
   .object({
     portal_id: z.string().min(1),
@@ -149,6 +206,7 @@ export const GroundTruth = z
     users: z.array(GtUser).optional(),
     redirects: z.array(GtRedirect).optional(),
     obstacles: z.array(GtObstacle).optional(),
+    noise: z.array(GtNoise).optional(),
   })
   .strict()
   .superRefine((gt, ctx) => {
@@ -188,6 +246,7 @@ export const GroundTruth = z
     for (const f of gt.forms)
       if (!screens.has(f.screen))
         ctx.addIssue({ code: 'custom', message: `form ${f.id}: unknown screen ${f.screen}` });
+    stepsOutsideProcess(gt.processes).forEach(issue);
     for (const r of gt.rules)
       if (!screens.has(r.anchor.screen))
         ctx.addIssue({

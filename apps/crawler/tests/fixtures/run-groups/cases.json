@@ -1,0 +1,28 @@
+{
+  "_about": "Run grouping (spec 034 R-70 (1), A-6). One case checked by both the BA server (services/ba/run-groups.ts) and the dashboard (queries_run_groups.py). Screens are given without error states (the loaders leave technical states out).",
+  "input": {
+    "runs": ["r1", "r2", "r3", "r4", "r5", "r6", "r7", "r8"],
+    "screens_of_run": {
+      "r1": ["a", "b"],
+      "r2": ["a"],
+      "r3": ["x", "y"],
+      "r4": [],
+      "r5": ["m", "n", "o"],
+      "r6": ["n", "o", "p"],
+      "r7": ["q"],
+      "r8": ["a", "b", "x"]
+    },
+    "processes": [
+      { "key": "PROC-001", "title": "Car quote", "screens": ["a", "b", "c"], "runs": ["r4"] },
+      { "key": "PRC-001", "title": "Contact", "screens": ["x"], "runs": [] }
+    ]
+  },
+  "expected": {
+    "processes": [
+      { "key": "PROC-001", "title": "Car quote", "runs": ["r1", "r4", "r8"] },
+      { "key": "PRC-001", "title": "Contact", "runs": ["r3", "r8"] }
+    ],
+    "unassigned": ["r2", "r5", "r6", "r7"],
+    "proposed": [["r5", "r6"]]
+  }
+}

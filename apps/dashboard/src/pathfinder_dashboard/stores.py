@@ -111,22 +111,41 @@ def _main(data_dir: Path, env: str | None, default_env: str) -> Store:
     )
 
 
+# Portals per store file, keyed by the file's and its WAL's write times, so the header asks each
+# store once per change instead of on every page (R-71 (d)).
+_PORTALS: dict[tuple[str, float, float], frozenset[str]] = {}
+
+
+def portals_in(s: Store) -> frozenset[str]:
+    """The portals with at least one run in a store; empty for a missing or unreadable one."""
+    path = db.store_path(s.data_dir, s.env)
+    key = (str(path), _mtime(path), _mtime(path.with_name(path.name + "-wal")))
+    if key in _PORTALS:
+        return _PORTALS[key]
+    try:
+        conn = db.connect(s.data_dir, s.env)
+    except db.StoreMissing:
+        return frozenset()
+    try:
+        found = frozenset(r[0] for r in conn.execute("SELECT DISTINCT portal_id FROM runs"))
+    except sqlite3.Error:  # a store of an older schema or a locked file: not listed
+        found = frozenset()
+    finally:
+        conn.close()
+    _PORTALS[key] = found
+    return found
+
+
 def stores_with_portal(stores: list[Store], portal: str) -> list[Store]:
-    """The stores whose runs include `portal` (the empty-portal page lists them, AS5.3)."""
-    out: list[Store] = []
-    for s in stores:
-        try:
-            conn = db.connect(s.data_dir, s.env)
-        except db.StoreMissing:
-            continue
-        try:
-            row = conn.execute(
-                "SELECT 1 FROM runs WHERE portal_id = ? LIMIT 1", (portal,)
-            ).fetchone()
-        except sqlite3.Error:  # a store of an older schema or a locked file: not listed
-            row = None
-        finally:
-            conn.close()
-        if row is not None:
-            out.append(s)
-    return out
+    """The stores whose runs include `portal` (the empty-portal page and the header's store
+    picker list them, AS5.3, R-71 (d)), in `list_stores` order."""
+    return [s for s in stores if portal in portals_in(s)]
+
+
+def store_for_portal(stores: list[Store], current: Store, portal: str) -> Store:
+    """The store a switch to `portal` lands on (R-71 (d)): the current one when it holds the
+    portal, else the first that does, else the current one (a portal not scanned yet)."""
+    if portal in portals_in(current):
+        return current
+    holding = stores_with_portal(stores, portal)
+    return holding[0] if holding else current

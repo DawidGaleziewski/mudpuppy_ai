@@ -111,6 +111,31 @@ class Ctx:
             return None
         return self.store.key
 
+    def store_choices(self) -> list[stores.Store]:
+        """The header's store picker (R-71 (d)): the stores with runs for the chosen portal (all
+        stores when no portal is chosen), the open store always included."""
+        every = self.stores
+        if not self.portal:
+            return every
+        shown = stores.stores_with_portal(every, self.portal)
+        return shown if any(s.key == self.store.key for s in shown) else [self.store, *shown]
+
+    def _store_param(self, store: stores.Store) -> str | None:
+        default = db.resolve_env(self.settings.data_dir, None, self.settings.default_env)
+        return None if store.kind == "main" and store.env == default else store.key
+
+    def store_url(self, store: stores.Store) -> str:
+        """This page in another store (the header's store picker)."""
+        return build_url(self.request.url.path, store=self._store_param(store))
+
+    def portal_url(self, path: str, portal: str) -> str:
+        """A portal-menu link: switching portals lands on a store that has the portal's data
+        (R-71 (d)); `portal=""` (all portals) keeps the store."""
+        if not portal:
+            return self.url(path, portal=portal)
+        store = stores.store_for_portal(self.stores, self.store, portal)
+        return build_url(path, store=self._store_param(store), portal=portal)
+
     def url(self, path: str, **params: Any) -> str:
         """A link that keeps the store; a link to something named by a per-portal key also names
         the portal, so it opens the same thing from another tab or after a portal switch

@@ -145,6 +145,12 @@ class Run(Row):
     coverage: Json | None
     owner_id: str | None = None  # 0009: pathfinder server driving the run (F-14)
     owner_pid: int | None = None
+    # 0027 (spec 034): directed runs; NULL run_type = a plain run (full map or trace by mode)
+    run_type: (
+        Literal["full", "continue", "focused", "recheck", "retry", "probe", "trace"] | None
+    ) = None
+    parent_run_id: str | None = None
+    plan_json: Json | None = None
 
 
 class StateObservation(Row):
@@ -206,6 +212,8 @@ class NetworkCall(Row):
     console_errors: Json
     created_at: str
     url: str | None = None  # 0012: verbatim request URL; NULL before 0012
+    req_sample: str | None = None  # 0027: masked sample body (<= 4096 chars), non-production only
+    res_sample: str | None = None
 
 
 class PageVisit(Row):
@@ -345,6 +353,18 @@ class Reconciliation(Row):
     confirmed_json: str | None
     confirmed_by: str | None
     confirmed_at: str | None
+
+
+class Checkpoint(Row):
+    """The shortest recorded way back to a state, one per (run, state) (0027, spec 034)."""
+
+    id: str
+    run_id: str
+    state_id: str
+    start_url: str
+    steps_json: Json
+    created_at: str
+    updated_at: str
 
 
 class Screen(Row):
@@ -912,6 +932,7 @@ TABLE_MODELS: dict[str, type[Row]] = {
     "probe_suites": ProbeSuite,
     "marks": Mark,
     "reconciliations": Reconciliation,
+    "checkpoints": Checkpoint,
 }
 
 

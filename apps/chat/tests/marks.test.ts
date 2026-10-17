@@ -82,4 +82,57 @@ describe('Probe marks on form steps', () => {
     expect((await send('POST', { ...MARK, target_id: 'fs-9' })).status).toBe(404);
     expect((await send('PUT', MARK)).status).toBe(405);
   });
+
+  describe('the other marks (spec 034 R-66, design §6)', () => {
+    beforeEach(() => {
+      const raw = t.opened.raw;
+      for (const id of ['st-a', 'st-b'])
+        raw
+          .prepare(
+            `INSERT INTO states (id, portal_id, fingerprint, cluster_id, route_template, title, evidence_ref, confidence, stabilization, first_seen_run, created_at)
+             VALUES (?, ?, ?, 'c', '/sc19', 'Apply', 'ev', 'observed', 'settled', 'run-1', ?)`,
+          )
+          .run(id, P, `fp-${id}`, T);
+      raw
+        .prepare(
+          `INSERT INTO edges (id, run_id, from_state, to_state, action_json, safety_class, status, evidence_ref, confidence, stabilization, created_at)
+           VALUES ('e-1', 'run-1', 'st-a', 'st-b', '{}', 'read', 'executed', 'ev', 'observed', 'settled', ?)`,
+        )
+        .run(T);
+    });
+    const mark = (kind: string, target_kind: string, target_id: string) => ({
+      author: 'owner',
+      kind,
+      target_kind,
+      target_id,
+    });
+
+    it('marks screens and actions with the kinds that go on them', async () => {
+      for (const m of [
+        mark('start', 'state', 'st-b'),
+        mark('focus', 'state', 'st-b'),
+        mark('focus', 'edge', 'e-1'),
+        mark('retry', 'edge', 'e-1'),
+        mark('recheck', 'state', 'st-a'),
+        mark('skip', 'edge', 'e-1'),
+      ])
+        expect((await send('POST', m)).status, `${m.kind} on ${m.target_kind}`).toBe(201);
+      const kinds = t.opened.raw.prepare('SELECT kind FROM marks ORDER BY kind').all();
+      expect(kinds.map((r) => (r as { kind: string }).kind)).toEqual([
+        'focus',
+        'focus',
+        'recheck',
+        'retry',
+        'skip',
+        'start',
+      ]);
+    });
+
+    it('refuses a kind on a target it does not go on, and an unknown screen or action', async () => {
+      expect((await send('POST', mark('start', 'edge', 'e-1'))).status).toBe(400);
+      expect((await send('POST', mark('recheck', 'edge', 'e-1'))).status).toBe(400);
+      expect((await send('POST', mark('start', 'state', 'st-zz'))).status).toBe(404);
+      expect((await send('POST', mark('skip', 'edge', 'e-zz'))).status).toBe(404);
+    });
+  });
 });

@@ -21,6 +21,9 @@ checks the setup for free.
 - **Exit codes**: 0 ok, 1 regression against the baseline, 2 bad input, preflight or an API
   error, 3 usage limit. Chain evals with `&&` so the chain stops on anything but 0:
   `pnpm eval proving-ground-bank && pnpm eval proving-ground-insurer`.
+- **Why a score moved:** `pnpm eval:transcript <portal>` (or a result file) reads the transcripts
+  of the trial's agent sessions: tool calls, records written per kind, refusals with their codes,
+  each BA pass with the records written before it and its warnings, the largest context. Free.
 
 ## Terminology
 
@@ -39,7 +42,7 @@ guideline G-33 makes it the rule for new code. This folder is the reference layo
 | Outcome            | The final state of the environment after a trial                    | The workspace store and documentation                           |
 | Evaluation harness | Runs evals end to end                                               | This folder                                                     |
 | Agent harness      | What lets a model act as an agent                                   | The `pathfinder` MCP servers + Claude Code                      |
-| Reference solution | A known working output that passes all graders                      | None yet                                                        |
+| Reference solution | A known working output that passes all graders                      | `reference-solutions/` (the approved export of PROC-001)        |
 | Ground truth       | (our term, kept) Facts about the portal the graders compare against | Next to each portal, see below                                  |
 
 Not eval terms, so they keep their crawler meaning: _crawl run_ (`runs` table), _state_,
@@ -83,7 +86,40 @@ What the code-based graders measure:
   `route_templates_with_query`, `data_items_joined` — a data item holding two or more ground-truth
   field labels — `rules_on_screens_pct`, rules linked to a screen with `applies_on`, and
   `data_items_code_names`, data items named by the input's code name such as `rok_produkcji`
-  instead of its label, spec 031).
+  instead of its label, spec 031), and `export-completeness.ts` (spec 034 R-68: every documented
+  process exported as `pnpm docs:process-export` does; scores `export_steps_pictured`,
+  `export_records_once`, `export_ears` — records with the BA's EARS statement —,
+  `export_fields_documented` and `export_steps_distinct` — no page shown as two steps; skipped
+  under `--crawler-only`), and `process-variants.ts` (owner review 2026-10-17: a goal score,
+  `process_variants`, of the ground truth's `variants` per process — a step whose form changes
+  with a choice — that the export shows as one step with that variant, its field and the choice
+  leading to it; only when the ground truth lists variants and the BA ran).
+- **Export quality** (spec 034 phase 9, the owner, 2026-10-17: "check the quality of our
+  exports"): `export-quality.ts` scores the `process.json` of every exported process against the
+  ground truth's export facts, for each ground-truth process that lists `actions` or `apis`: goal
+  scores `export_steps` (its steps in order), `export_fields` (each field of its forms on its step
+  with label, type, required, options and limits; a field only one variant shows marked so),
+  `export_validation` (the fields' `messages`, verbatim), `export_actions` (the action that moves
+  each step on, to the right step) and `export_apis` (each step's back-end calls); checks that
+  must be 0: `export_extra_steps` (a page that is not a step, F-15@034), `export_action_strays`
+  (an action leading outside the process, F-11@034) and `export_noise_leaked` (a `noise` call
+  listed as an API). Skipped under `--crawler-only`.
+
+### Reference solution
+
+`reference-solutions/reference-insurer/PROC-001/` is the export the owner approved on 2026-10-17,
+kept byte for byte. `tests/export-quality.test.ts` pins its scores (it loses points only for
+the known flaws listed in R-73) and gives a copy with those flaws put right by hand full marks,
+which shows the grader can reach 100 %.
+
+### Probe scan (reference portal)
+
+A task with `probeForms` (the reference portal: the three calculator forms) gets a probe scan
+after the map: the harness marks the form steps the map recorded on those routes for probing,
+as the owner does in the dashboard, and one crawler session probes them. The BA's map session
+covers the probe run too. Recorded as `runs.probe_scan`, `outcomes.probe_scan` and the condition
+`probe_scan`; `--no-probe-scan` skips it. The P01 trace chooses "OC + Autocasco (AC)", so the
+options step's variant 4b is recorded (the map's happy path records 4a).
 
 ### Judges (model-based graders, spec 017)
 

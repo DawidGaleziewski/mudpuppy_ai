@@ -17,6 +17,20 @@ export interface ObservedCall {
   status: number;
   req_schema: Shape;
   res_schema: Shape | DocumentResSchema;
+  /**
+   * The bodies as sent and received, cut to `SAMPLE_MAX` (spec 034 R-68 contracts): the caller
+   * decides whether they are kept (not on production) and masked (the portal's `pii_scrub`).
+   */
+  req_sample?: string | null;
+  res_sample?: string | null;
+}
+
+/** Longest sample body kept per call (the `network_calls` CHECK allows 4096). */
+export const SAMPLE_MAX = 4096;
+
+export function cutSample(body: string | null | undefined): string | null {
+  if (body === null || body === undefined || body.length === 0) return null;
+  return body.length <= SAMPLE_MAX ? body : `${body.slice(0, SAMPLE_MAX - 1)}…`;
 }
 
 export interface Observation {
@@ -67,7 +81,8 @@ export class NetworkRecorder {
 
   constructor(
     private readonly page: Page,
-    private readonly opts: { bodyTimeoutMs?: number } = {},
+    /** `samples`: keep cut bodies beside the shapes (spec 034 R-68); off unless the run asks. */
+    private readonly opts: { bodyTimeoutMs?: number; samples?: boolean } = {},
   ) {
     this.ready = this.installSubmitProbe();
     this.on('response', (res: Response) => this.track(this.onResponse(res)));
@@ -121,6 +136,9 @@ export class NetworkRecorder {
       status: res.status(),
       req_schema: shapeOfBody(req.postData(), req.headers()['content-type']),
       res_schema: shapeOfBody(resBody, res.headers()['content-type']),
+      ...(this.opts.samples === true
+        ? { req_sample: cutSample(req.postData()), res_sample: cutSample(resBody) }
+        : {}),
     });
   }
 

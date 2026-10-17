@@ -77,8 +77,12 @@ Open http://127.0.0.1:8765. If the header says **Assistant down**, start termina
 
 ## 4. Find your way around
 
-The **header** holds the portal you work on, a search box (**Ctrl K**), the assistant status
-and **Ask the assistant** (**Ctrl J**). The **side menu** has seven places:
+The **header** holds the portal you work on, the **Data store** it reads (only the stores that
+hold scans of that portal are listed; switching the portal moves to one that has its data), a
+search box (**Ctrl K**), the assistant status and **Ask the assistant** (**Ctrl J**). Long lists
+show 25 rows a page with **← Previous** / **Next →**; Screens has a filter that searches every
+screen. A screen or record opened from a list has **← Prev** / **Next →** at the top to walk the
+same list without going back. The **side menu** has seven places:
 
 | Place | What you do there |
 | --- | --- |
@@ -255,6 +259,21 @@ its node ("+3 queued"). Pick one scan or persona and **Apply** to grey out what 
 and what was left there; arrows move along the lines. On a form step, **Mark for probing** sets the
 Probe mark from here too.
 
+### Scan from a screen you choose
+
+In the map's side panel, **Next scan** marks the screen: **Start here** (the next focused scan
+starts there), **Focus** (explore deeper from there), **Recheck** (record what it shows now),
+**Retry** (press its failed action again) or **Skip** (leave it out of every scan while marked).
+**Next scan plan** (above the map) or **Plan the next scan** opens the plan: pick the kind of scan,
+see how each marked screen will be reached (*"replays 1 step"*, *"opens by its URL"*), pick the
+persona and the depth, and press **Start scan**. The assistant starts it in this portal's chat.
+The crawler reaches each screen by repeating the clicks a scan recorded, so a screen deep in a
+form is reached without mapping everything before it; if a page on the way looks different, it
+says at which step and goes on with the next screen.
+
+**Scans → By process** lists which scans belong to which documented process, the scans in no
+process (kept, not forgotten) and groups of them that look like one process nobody documented.
+
 ## 8. Stop and resume a scan
 
 - **Stop** next to **Send** stops everything this conversation started: the answer in progress
@@ -268,6 +287,12 @@ or not) and does not repeat recorded work.
 
 If the crawler ends before the queue is empty, the scan is marked stopped, the assistant tells
 you and you can resume it.
+
+A stopped scan has **Pick up** in the scan history. Its page says where and why it stopped and
+offers **Resume** (a new scan, linked to this one, that replays to the screens with queued items
+and carries on without redoing anything), **Retry this path** for each failed action, with a
+variation (wait longer, other input, don't submit), and **Skip it in the next scans**. The
+attempts so far are listed with their result.
 
 ## 9. Screens and their revisions
 
@@ -372,6 +397,11 @@ and regions it comes from.
 
 ![Docs](how-to-use/29-docs.png)
 
+When a process is documented already and new scans came in, ask *"Update PROC-001 with what is
+new."* The BA starts from the process as it stands and every scan of it, revises the records with
+what the new scans show and adds records for screens nobody documented. It does not rebuild the
+process from fewer scans: the server refuses a revision that silently drops evidence.
+
 Records start as drafts. You confirm or reject them in **Review** (section 13). A rejection,
 with its reason, goes back to the BA agent the next time it runs. Confirming and rejecting
 need `PATHFINDER_REVIEWER` to be set when the dashboard starts.
@@ -432,7 +462,19 @@ kept for 30 days.
 
 ## 15. Hand the documentation over (export)
 
-From `apps/crawler`:
+For a team (or an agent) that rebuilds a process, open the process record in **Docs** (or the
+process in **Processes**) and choose **Documentation**: the steps with their states, screenshots,
+wireframes and fields, the business and functional requirements, the EARS statements, the APIs
+each step calls (with samples recorded outside production) and the gaps, one tab per file.
+**Download the folder (zip)** hands it over. From `apps/crawler` the same folder, or the whole
+portal as a folder of process folders:
+
+```bash
+pnpm docs:process-export reference-insurer PROC-001 --env sandbox
+pnpm docs:process-export reference-insurer --portal --env sandbox
+```
+
+The older SRS export, by record kind, from `apps/crawler`:
 
 ```bash
 pnpm docs:export reference-insurer --env sandbox                     # everything

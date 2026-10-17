@@ -34,6 +34,13 @@ import {
 } from './common.js';
 import { outsideSessionLinks, type CarriedLink } from './carry-over.js';
 import { assertOneFieldPerDataItem } from './data-item-fields.js';
+import {
+  assertProcessNotOnlyErrors,
+  checkDrops,
+  droppedLinks,
+  droppedSteps,
+  revisionContent,
+} from './revision-guard.js';
 
 type RecordRow = Selectable<DocRecordsTable>;
 
@@ -79,6 +86,20 @@ export const ReviseRecordInput = z
     relations: z.array(RelationInput).default([]),
     change_note: z.string().trim().min(1).max(2000),
     responds_to_review: z.string().min(1).optional(),
+    /**
+     * What this revision leaves out of the previous one on purpose (spec 034 R-70 (3)): evidence
+     * links and use-case flow steps it drops must be listed here with a reason, or it is refused.
+     */
+    dropped: z
+      .object({
+        reason: z.string().trim().min(1).max(1000),
+        evidence: z
+          .array(z.object({ target_kind: z.string().min(1), target_id: z.string().min(1) }))
+          .optional(),
+        steps: z.number().int().positive().optional(),
+      })
+      .strict()
+      .optional(),
   })
   .strict();
 
@@ -345,6 +366,7 @@ export function createRecord(ctx: BaContext, raw: unknown): WriteOutput {
 
   return inTransaction(ctx, () => {
     const session = requireActiveSession(ctx, input.session_id);
+    assertProcessNotOnlyErrors(ctx, input.kind, input.evidence);
     const { targets, relations } = validateWrite(ctx, session, {
       kind: input.kind,
       key: null,
@@ -433,6 +455,12 @@ export function reviseRecord(ctx: BaContext, raw: unknown): WriteOutput {
     const content = parseContent(record.kind, input.content);
     assertNoPii(content, 'content', isIdPath);
     assertOneFieldPerDataItem(ctx, content, input.evidence);
+    assertProcessNotOnlyErrors(ctx, record.kind, input.evidence);
+    const dropNote = checkDrops(
+      droppedLinks(ctx, record.id, record.latest_rev, session.id, input.evidence),
+      droppedSteps(revisionContent(ctx, record.id, record.latest_rev), content),
+      input.dropped,
+    );
 
     if (input.responds_to_review !== undefined) {
       const review = ctx.raw
@@ -474,7 +502,7 @@ export function reviseRecord(ctx: BaContext, raw: unknown): WriteOutput {
         content,
         confidence: input.confidence,
         notObservable: input.not_observable,
-        changeNote: input.change_note,
+        changeNote: dropNote === null ? input.change_note : `${input.change_note} ${dropNote}`,
         respondsToReview: input.responds_to_review ?? null,
         evidence: input.evidence,
         targets,

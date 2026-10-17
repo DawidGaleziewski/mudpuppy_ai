@@ -11,7 +11,7 @@ from fastapi.concurrency import run_in_threadpool
 from fastapi.responses import HTMLResponse, PlainTextResponse, RedirectResponse, Response
 from starlette.exceptions import HTTPException
 
-from .. import db, queries, queries_docs, review, stores
+from .. import db, neighbours, queries, queries_docs, review, stores
 from .deps import Ctx, Web, build_url, same_origin, web_of
 from .views_docs import (
     docs_index_values,
@@ -185,7 +185,10 @@ def docs_record(
             values = record_values(c, conn, portal, key, rev)
             if values is None:
                 return docs_not_found(web, c, f"record “{key}” in portal “{portal}”")
-            return web.render(c, "docs/record.html", nav_current="docs", portal=portal, r=values)
+            nb = neighbours.neighbours(conn, portal, request.query_params.get("list"), key, c.url)
+            return web.render(
+                c, "docs/record.html", nav_current="docs", portal=portal, r=values, nb=nb
+            )
     except db.StoreMissing as err:
         return web.missing(c, err)
 

@@ -40,6 +40,11 @@ export interface EvalTask {
    * trace evidence for them (spec 025 FR-006). Guest persona only; `--no-process-traces` skips.
    */
   processTraces?: readonly TraceSpec[];
+  /**
+   * Routes whose recorded form steps are marked for probing after the map, then probed in one
+   * probe scan (spec 034 phase 9: the export's Validation section). `--no-probe-scan` skips it.
+   */
+  probeForms?: readonly string[];
 }
 
 const REFERENCE_PORTAL: PortalServer = {
@@ -88,7 +93,9 @@ export const SUITE: readonly EvalTask[] = [
       {
         processId: 'P01',
         name: 'Oblicz składkę OC/AC',
-        goal: 'Get a car insurance premium: fill every step of the calculator and open the result with the premium.',
+        // Choosing AC records the options step's variant 4b (spec 034 phase 9); "Tylko OC" is
+        // the map's happy path, so both variants are recorded.
+        goal: 'Get a car insurance premium with "OC + Autocasco (AC)": fill every step of the calculator, choose "OC + Autocasco (AC)" and fill the vehicle value it asks for, and open the result with the premium.',
       },
       {
         processId: 'P02',
@@ -106,6 +113,8 @@ export const SUITE: readonly EvalTask[] = [
         goal: 'Send a question through the contact form.',
       },
     ],
+    // The OC/AC calculator (P01), whose export the owner approved (evals/reference-solutions/).
+    probeForms: ['/kalkulator/pojazd', '/kalkulator/kierowca', '/kalkulator/opcje'],
   },
   provingGround('shop'),
   provingGround('bank'),
@@ -136,6 +145,11 @@ export function taskFor(portal: string): EvalTask | undefined {
 /** The process traces a trial of this task runs: the task's list, for the guest persona only. */
 export function processTracesFor(task: EvalTask, persona: string, enabled: boolean): TraceSpec[] {
   return enabled && persona === 'guest' ? [...(task.processTraces ?? [])] : [];
+}
+
+/** The routes to probe after the map; none when `--no-probe-scan` is given. */
+export function probeFormsFor(task: EvalTask, enabled: boolean): string[] {
+  return enabled ? [...(task.probeForms ?? [])] : [];
 }
 
 export function loadGroundTruth(root: string, task: EvalTask): GroundTruth {

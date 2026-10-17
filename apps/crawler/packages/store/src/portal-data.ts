@@ -57,6 +57,7 @@ export const PORTAL_TABLES = [
   'probe_suites',
   'marks',
   'reconciliations',
+  'checkpoints',
 ] as const;
 export type PortalTable = (typeof PORTAL_TABLES)[number];
 
@@ -83,6 +84,7 @@ export type PortalTable = (typeof PORTAL_TABLES)[number];
  * `decision_log` and `runs`.
  */
 const DELETE_ORDER: readonly PortalTable[] = [
+  'checkpoints', // 0027: references runs and states (no portal_id: the default run_id partition)
   'reconciliations', // 0025: no references
   'marks', // 0024: references runs (used_by_run_id)
   'probe_suites', // 0023: reference runs and form_steps

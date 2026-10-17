@@ -108,7 +108,7 @@ def test_empty_form_values_mean_any(client: TestClient) -> None:
     all_runs = client.get("/fragments/runs?portal=&status=&cursor=")
     assert "Scans 9" in text(all_runs.text)
     actions = client.get(f"/fragments/runs/{BIG_RUN}/actions?safety_class=&allowed=&cursor=")
-    assert "1–50 of 600" in text(actions.text)
+    assert "1–25 of 600" in text(actions.text)
     decisions = client.get(f"/fragments/runs/{BIG_RUN}/decisions?kind=&rule=")
     assert "No decisions" not in decisions.text
 
@@ -174,7 +174,8 @@ def test_environment_switch(liveinsurer_store: Store) -> None:
     make_store(liveinsurer_store.data_dir, "scratch")
     with make_client(liveinsurer_store) as c:
         html = c.get("/").text
-        assert '<option value="main:scratch"' in html
+        # The header's store menu (R-71): with no portal chosen it lists every store.
+        assert 'href="/?store=main%3Ascratch"' in html
         scratch = c.get("/?store=main:scratch")
         # the older `?env=` links keep working (spec 019)
         assert "No scans recorded yet" in text(c.get("/?env=scratch").text)
@@ -222,9 +223,9 @@ def test_actions_section(client: TestClient) -> None:
     html = client.get(f"/runs/{BIG_RUN}?tab=actions").text
     t = text(html)
     assert "Actions extracted 600" in t
-    assert "1–50 of 600" in t
+    assert "1–25 of 600" in t
     skipped = client.get(f"/fragments/runs/{BIG_RUN}/actions?allowed=0").text
-    assert skipped.split("<tbody>")[1].count('data-status="skipped">Skipped') >= 30
+    assert skipped.split("<tbody>")[1].count('data-status="skipped">Skipped') == 25
     assert 'data-status="ok">Allowed' not in skipped.split("<tbody>")[1]
     assert "above ceiling read" in skipped
 
@@ -283,7 +284,7 @@ def test_frontier_pagination_uses_cursor(client: TestClient) -> None:
     nxt = re.search(r'hx-get="([^"]*cursor=[^"]+)"', html)
     assert nxt
     second = client.get(nxt.group(1).replace("&amp;", "&"))
-    assert "51–100 of 600" in text(second.text)
+    assert "26–50 of 600" in text(second.text)
     assert second.headers["HX-Push-Url"].startswith(f"/runs/{BIG_RUN}?tab=frontier&cursor=")
 
 

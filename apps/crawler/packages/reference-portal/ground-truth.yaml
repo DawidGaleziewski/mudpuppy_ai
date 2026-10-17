@@ -100,6 +100,12 @@ screens:
     title: Przedłuż polisę
     guest_visible: false
     reached_by: login
+# messages (spec 034 phase 9): what the form says to wrong input, verbatim. The calculator's inputs
+# carry HTML constraints (required, min, max, pattern), so Chromium (English, as the crawler runs
+# it) answers before the server: these are its messages for each constraint (those the probe scans
+# of 2026-10-17 reached match word for word; the max ones were not reached). Left out until seen: the date limits of "Data urodzenia" (Chromium writes
+# them as a date in the browser's format), and max_length (the box stops typing; no message). The
+# server's Polish messages (calculator.ts `*Errors`) only show when the browser check is bypassed.
 forms:
   - id: F01
     screen: S08
@@ -109,6 +115,8 @@ forms:
       - id: F01.1
         label: Marka
         type: select
+        messages:
+          - Please select an item in the list.
         constraints:
           required: true
           allowed_values:
@@ -120,12 +128,18 @@ forms:
       - id: F01.2
         label: Model
         type: text
+        messages:
+          - Please fill out this field.
         constraints:
           required: true
           max_length: 40
       - id: F01.3
         label: Rok produkcji
         type: number
+        messages:
+          - Please fill out this field.
+          - Value must be greater than or equal to 1990.
+          - Value must be less than or equal to 2026.
         constraints:
           required: true
           min: 1990
@@ -133,6 +147,10 @@ forms:
       - id: F01.4
         label: Pojemność silnika (cm³)
         type: number
+        messages:
+          - Please fill out this field.
+          - Value must be greater than or equal to 50.
+          - Value must be less than or equal to 8000.
         constraints:
           required: true
           min: 50
@@ -140,6 +158,9 @@ forms:
       - id: F01.5
         label: Kod pocztowy
         type: text
+        messages:
+          - Please fill out this field.
+          - Please match the requested format.
         constraints:
           required: true
           pattern: "[0-9]{2}-[0-9]{3}"
@@ -151,6 +172,8 @@ forms:
       - id: F02.1
         label: Data urodzenia
         type: date
+        messages:
+          - Please fill out this field.
         constraints:
           required: true
           min: 1950-01-16
@@ -158,6 +181,10 @@ forms:
       - id: F02.2
         label: Rok uzyskania prawa jazdy
         type: number
+        messages:
+          - Please fill out this field.
+          - Value must be greater than or equal to 1968.
+          - Value must be less than or equal to 2026.
         constraints:
           required: true
           min: 1968
@@ -165,6 +192,10 @@ forms:
       - id: F02.3
         label: Lata bezszkodowej jazdy
         type: number
+        messages:
+          - Please fill out this field.
+          - Value must be greater than or equal to 0.
+          - Value must be less than or equal to 60.
         constraints:
           required: true
           min: 0
@@ -172,11 +203,15 @@ forms:
       - id: F02.4
         label: Zgoda na przetwarzanie danych osobowych
         type: checkbox
+        messages:
+          - Please check this box if you want to proceed.
         constraints:
           required: true
       - id: F02.5
         label: Oświadczam, że zapoznałem się z OWU
         type: checkbox
+        messages:
+          - Please check this box if you want to proceed.
         constraints:
           required: true
   - id: F03
@@ -187,6 +222,8 @@ forms:
       - id: F03.1
         label: Zakres
         type: radio
+        messages:
+          - Please select one of these options.
         constraints:
           required: true
           allowed_values:
@@ -199,9 +236,23 @@ forms:
       - id: F03.3
         label: Kod rabatowy
         type: text
+        messages:
+          - Please match the requested format.
         constraints:
           pattern: "[A-Z]+[0-9]{2}"
           max_length: 12
+      # In the form only while "OC + Autocasco (AC)" is chosen (R20).
+      - id: F03.4
+        label: Wartość pojazdu (zł)
+        type: number
+        messages:
+          - Please fill out this field.
+          - Value must be greater than or equal to 5000.
+          - Value must be less than or equal to 500000.
+        constraints:
+          required: true
+          min: 5000
+          max: 500000
   - id: F04
     screen: S13
     label: Formularz kontaktowy
@@ -533,6 +584,21 @@ rules:
       - 12 %
       - commission
       - prowizj
+  # Added 2026-10-17 (owner review of the first process export): the options step has a variant.
+  - id: R20
+    statement: The vehicle value (5 000 to 500 000 PLN) is asked, and required, only when OC + AC is
+      chosen; choosing AC shows the box with the typical value for the vehicle.
+    type: ui_enablement
+    anchor:
+      screen: S10
+      label: OC + Autocasco (AC)
+    guest_observable: true
+    claim_markers:
+      - "500 000"
+      - "500000"
+      - 500,000
+      - Wartość pojazdu
+      - vehicle value
 processes:
   - id: P01
     name: Oblicz składkę OC/AC
@@ -545,6 +611,38 @@ processes:
     first_route: /kalkulator/pojazd
     last_observable_route: /kalkulator/wynik
     ends_with: mutation
+    # One step with two variants (4a, 4b), never two steps (owner review 2026-10-17).
+    variants:
+      - step: /kalkulator/opcje
+        field: Wartość pojazdu (zł)
+        when: OC + Autocasco (AC)
+    # What the export's element tables and contracts must show (spec 034 phase 9). Each step's
+    # form submits to itself and redirects to the next step when valid (calculator.ts).
+    actions:
+      - step: /kalkulator/pojazd
+        name: Dalej
+        leads_to: /kalkulator/kierowca
+      - step: /kalkulator/kierowca
+        name: Dalej
+        leads_to: /kalkulator/opcje
+      - step: /kalkulator/opcje
+        name: Oblicz składkę
+        leads_to: /kalkulator/wynik
+      - step: /kalkulator/wynik
+        name: Kup polisę
+        leads_to: /kalkulator/zakup
+      - step: /kalkulator/wynik
+        name: Zmień opcje
+        leads_to: /kalkulator/opcje
+    apis:
+      # The typical vehicle value, asked when "OC + Autocasco (AC)" adds the box (AC_BOX_SCRIPT).
+      - step: /kalkulator/opcje
+        method: GET
+        path: /api/wartosc-pojazdu
+      # The purchase: the "Kup polisę" form posts to the back end.
+      - step: /kalkulator/wynik
+        method: POST
+        path: /kalkulator/zakup
   - id: P02
     name: Oblicz składkę podróżną
     steps:
@@ -618,3 +716,10 @@ terms:
     term: Kod rabatowy
     lang: pl
     meaning: Kod promocyjny obniżający składkę.
+# Calls every page makes that belong to no process (html.ts NOISE_SCRIPT): an export must leave
+# them out of its contracts (spec 034 phase 9).
+noise:
+  - path: /static/ikony.svg
+    kind: static
+  - path: /analytics/collect
+    kind: analytics

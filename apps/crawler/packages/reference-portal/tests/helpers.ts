@@ -20,7 +20,12 @@ export const DRIVER = {
   zgoda_dane: 'tak',
   zgoda_owu: 'tak',
 };
-export const OPTIONS = { zakres: 'oc_ac', assistance: 'tak', kod_rabatowy: 'WIOSNA10' };
+export const OPTIONS = {
+  zakres: 'oc_ac',
+  wartosc_pojazdu: '45000',
+  assistance: 'tak',
+  kod_rabatowy: 'WIOSNA10',
+};
 export const TRAVEL = {
   region: 'europa',
   data_wyjazdu: '2026-02-01',

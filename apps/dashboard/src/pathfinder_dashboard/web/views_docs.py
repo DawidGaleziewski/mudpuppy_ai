@@ -7,7 +7,7 @@ import sqlite3
 from typing import Any
 
 from .. import diagrams, queries_docs, visuals
-from .deps import Ctx
+from .deps import Ctx, build_url
 
 
 def refusal(code: str, message: str) -> dict[str, Any]:
@@ -160,7 +160,9 @@ def docs_section_values(
         page.total if page else 0,
         limit,
     )
-    return {**values, **paging, "filters": filters}
+    # The list a record page walks with Prev / Next (R-71): this section and its filters.
+    list_url = build_url(f"/docs/{portal}", section=section, **filters)
+    return {**values, **paging, "filters": filters, "list_url": list_url}
 
 
 def session_values(

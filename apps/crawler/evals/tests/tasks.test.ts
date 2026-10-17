@@ -1,6 +1,6 @@
 import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { loadGroundTruth, processTracesFor, SUITE, taskFor } from '../tasks.js';
+import { loadGroundTruth, probeFormsFor, processTracesFor, SUITE, taskFor } from '../tasks.js';
 
 const root = resolve(import.meta.dirname, '../../../..');
 
@@ -63,6 +63,15 @@ describe('eval suite', () => {
     expect(processTracesFor(task, 'client', true)).toEqual([]);
     expect(processTracesFor(task, 'guest', false)).toEqual([]);
     expect(processTracesFor(taskFor('proving-ground-shop')!, 'guest', true)).toEqual([]);
+  });
+
+  it('probes the forms of ground-truth screens, unless turned off (spec 034 phase 9)', () => {
+    const task = taskFor('reference-insurer')!;
+    const routes = new Set(loadGroundTruth(root, task).screens.map((s) => s.route_template));
+    expect(probeFormsFor(task, true).length).toBeGreaterThan(0);
+    for (const r of probeFormsFor(task, true)) expect(routes).toContain(r);
+    expect(probeFormsFor(task, false)).toEqual([]);
+    expect(probeFormsFor(taskFor('proving-ground-shop')!, true)).toEqual([]);
   });
 
   it('a live site has no server to start', () => {

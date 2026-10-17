@@ -72,6 +72,8 @@ export const EvalResult = z
             z.object({ process_id: z.string(), run: z.string(), cli_session: z.string() }).strict(),
           )
           .optional(),
+        /** The probe scan of the task's forms after the map (spec 034 phase 9). */
+        probe_scan: z.object({ run: z.string(), cli_session: z.string() }).strict().optional(),
       })
       .strict(),
     conditions: z
@@ -81,6 +83,8 @@ export const EvalResult = z
         crawler_only: z.boolean().optional(),
         /** How many process traces ran after the map; absent means none (spec 025 FR-006). */
         process_traces: z.number().int().positive().optional(),
+        /** A probe scan ran after the map; absent means none (spec 034 phase 9). */
+        probe_scan: z.boolean().optional(),
       })
       .strict()
       .optional(),
@@ -88,6 +92,7 @@ export const EvalResult = z
     outcomes: z
       .object({
         crawler: ScoredOutcome,
+        probe_scan: ScoredOutcome.optional(),
         ba: ScoredOutcome.optional(),
         ba_traces: ScoredOutcome.optional(),
         process_traces: z.array(ScoredOutcome).optional(),
@@ -207,6 +212,7 @@ export function comparisonMarkdown(current: EvalResult, cmp: Comparison): string
     ...(current.conditions?.process_traces
       ? [`conditions: ${current.conditions.process_traces} process trace(s) after the map`]
       : []),
+    ...(current.conditions?.probe_scan ? ['conditions: a probe scan after the map'] : []),
     '',
     '| Measure | Baseline | Now | Change | |',
     '| --- | --- | --- | --- | --- |',

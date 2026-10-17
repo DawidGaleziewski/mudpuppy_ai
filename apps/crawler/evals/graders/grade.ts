@@ -13,8 +13,11 @@ import { scoreCrawl } from './code/crawl-coverage.js';
 import { scoreDocs } from './code/docs-coverage.js';
 import { scoreBaShapes } from './code/ba-shapes.js';
 import { scoreBaWrites } from './code/ba-writes.js';
+import { scoreExport, type ExportScores } from './code/export-completeness.js';
+import { exportedProcesses, scoreExportQuality } from './code/export-quality.js';
 import { sweepLeaks, transcriptPath } from './code/leaks.js';
 import { scoreTrace, sumTraces } from './code/process-trace.js';
+import { scoreVariants } from './code/process-variants.js';
 import { runChecks } from './code/run-checks.js';
 
 export interface GradeInput {
@@ -97,6 +100,46 @@ function gradeProcessTraces(db: RawDb, m: GradeInput) {
   };
 }
 
+function logExport(exported: ExportScores | null): void {
+  if (!exported) return;
+  console.log(
+    `export: steps pictured ${exported.export_steps_pictured.pct} %, distinct ${exported.export_steps_distinct.pct} %, records once ${exported.export_records_once.pct} %, EARS ${exported.export_ears.pct} %, fields documented ${exported.export_fields_documented.pct} %`,
+  );
+}
+
+/**
+ * Owner review 2026-10-17: a step's variants documented as one step (a goal score against the
+ * ground truth); no score when the BA did not run or the ground truth lists no variant.
+ */
+function gradeVariants(db: RawDb, m: GradeInput) {
+  if (m.config.crawlerOnly) return {};
+  const v = scoreVariants(db, m.config.portal, m.groundTruth, { environment: m.config.env });
+  if (v.process_variants.total === 0) return {};
+  console.log(
+    `variants: ${v.process_variants.matched}/${v.process_variants.total} reconciled as one step${v.missing.length ? `, missing ${v.missing.join('; ')}` : ''}`,
+  );
+  return { process_variants: v.process_variants };
+}
+
+/**
+ * Spec 034 phase 9: the export scored against the ground truth's export facts (goal scores, with
+ * checks that must stay 0); nothing when the BA did not run or the ground truth lists none.
+ */
+function gradeExportQuality(db: RawDb, m: GradeInput, evidenceRoot: string) {
+  if (m.config.crawlerOnly) return { scores: {}, checks: {} };
+  const exports = exportedProcesses(db, m.config.portal, {
+    environment: m.config.env,
+    evidenceRoot,
+  });
+  const q = scoreExportQuality(m.groundTruth, exports);
+  if (!q) return { scores: {}, checks: {} };
+  const s = q.scores;
+  console.log(
+    `export quality: steps ${s.export_steps.pct} %, fields ${s.export_fields.pct} %, validation ${s.export_validation.pct} %, actions ${s.export_actions.pct} %, calls ${s.export_apis.pct} %; extra steps ${q.checks.export_extra_steps}, stray destinations ${q.checks.export_action_strays}, noise leaked ${q.checks.export_noise_leaked}${q.missing.length ? `\n  missing: ${q.missing.join('; ')}` : ''}`,
+  );
+  return { scores: q.scores, checks: q.checks };
+}
+
 export async function grade(m: GradeInput) {
   const { portal, persona, env } = m.config;
   const loggedIn = persona !== 'guest';
@@ -110,7 +153,16 @@ export async function grade(m: GradeInput) {
   const processTraces = gradeProcessTraces(opened.raw, m);
   const run = runChecks(opened.raw, m.crawlRunId, loggedIn);
   const shapes = docs ? scoreBaShapes(opened.raw, portal, m.groundTruth) : null;
+  const exported = docs
+    ? scoreExport(opened.raw, portal, {
+        environment: env,
+        evidenceRoot: join(m.ws, 'data', 'evidence'),
+      })
+    : null;
+  const variants = gradeVariants(opened.raw, m);
+  const quality = gradeExportQuality(opened.raw, m, join(m.ws, 'data', 'evidence'));
   await opened.close();
+  logExport(exported);
   console.log(
     `crawl: ${crawl.matched}/${crawl.total} ground-truth screens${crawl.missing.length ? `, missing ${crawl.missing.join(', ')}` : ''}; frontier pending ${run.frontier_pending}`,
   );
@@ -134,6 +186,10 @@ export async function grade(m: GradeInput) {
         },
       }),
       ...processTraces.scores,
+      // spec 034 R-68: how usable the documentation is as a rebuild-grade export (diagnostics)
+      ...exported,
+      ...variants,
+      ...quality.scores,
     },
     // No BA, no claims: 0 is exact, not a default.
     overclaims: docs?.overclaims ?? 0,
@@ -145,6 +201,7 @@ export async function grade(m: GradeInput) {
       ...(docs && baChecks(sessions, docs.handoffs, writes, shapes)),
       ...(trace && { trace_goal_reached: trace.goalReached }),
       ...processTraces.checks,
+      ...quality.checks,
       relogins: run.relogins,
       logged_in: run.logged_in,
       password_hits: leaks.total,

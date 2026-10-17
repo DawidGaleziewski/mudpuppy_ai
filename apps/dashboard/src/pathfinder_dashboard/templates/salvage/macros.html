@@ -108,6 +108,35 @@
   {%- endif -%}
 {%- endmacro %}
 
+{#- Offset pager (R-71, `pager.py`): position and total, then Previous / Next. Drawn only when
+    the list has more than one page. `pl` is a `PageLinks`. -#}
+{% macro pages(pl, label="Pages") -%}
+  {%- set p = pl.paged -%}
+  {%- if p.pages > 1 -%}
+  <nav class="sy-split sy-small mp-pages" aria-label="{{ label }}">
+    <span class="sy-num sy-muted">{{ p.first }}–{{ p.last }} of {{ p.total }} · page {{ p.page }} of {{ p.pages }}</span>
+    <span class="sy-actions">
+      {%- if pl.prev_url %}<a class="sy-btn sy-btn--sm sy-btn--quiet" href="{{ pl.prev_url }}" rel="prev">← Previous</a>{% endif %}
+      {%- if pl.next_url %}<a class="sy-btn sy-btn--sm sy-btn--quiet" href="{{ pl.next_url }}" rel="next">Next →</a>{% endif %}
+    </span>
+  </nav>
+  {%- endif -%}
+{%- endmacro %}
+
+{#- Prev / Next on a detail page (R-71 (b), `neighbours.py`): the neighbours in the list it was
+    opened from. `nb` is a `Neighbours` or None. -#}
+{% macro neighbours(nb) -%}
+  {%- if nb -%}
+  <nav class="sy-split sy-small mp-neighbours" aria-label="In this list">
+    <span class="sy-muted">{{ nb.position }} of {{ nb.total }} in <a href="{{ nb.list_url }}">{{ nb.list_label }}</a></span>
+    <span class="sy-actions">
+      {%- if nb.prev_url %}<a class="sy-btn sy-btn--sm sy-btn--quiet" href="{{ nb.prev_url }}" rel="prev">← Prev</a>{% else %}<span class="sy-btn sy-btn--sm sy-btn--quiet" aria-disabled="true">← Prev</span>{% endif %}
+      {%- if nb.next_url %}<a class="sy-btn sy-btn--sm sy-btn--quiet" href="{{ nb.next_url }}" rel="next">Next →</a>{% else %}<span class="sy-btn sy-btn--sm sy-btn--quiet" aria-disabled="true">Next →</span>{% endif %}
+    </span>
+  </nav>
+  {%- endif -%}
+{%- endmacro %}
+
 {% macro empty(title, body=None, level=2) -%}
   <section class="sy-state"><h{{ level }} class="sy-state__title">{{ title }}</h{{ level }}>{% if body %}<p class="sy-muted">{{ body }}</p>{% endif %}</section>
 {%- endmacro %}

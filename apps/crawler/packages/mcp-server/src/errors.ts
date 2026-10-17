@@ -48,6 +48,11 @@ export const ERROR_CODES = [
   // Differing states (spec 033): no such group now; a proposal that leaves an outcome out.
   'GROUP_UNKNOWN',
   'VERDICTS_INCOMPLETE',
+  // Documentation that grows (spec 034 R-70): a revision that drops evidence or flow steps without
+  // saying so; a process whose only cited screens are error pages; an unknown process to update.
+  'REVISION_DROPS',
+  'PROCESS_ONLY_ERRORS',
+  'PROCESS_UNKNOWN',
 ] as const;
 export type ErrorCode = (typeof ERROR_CODES)[number];
 

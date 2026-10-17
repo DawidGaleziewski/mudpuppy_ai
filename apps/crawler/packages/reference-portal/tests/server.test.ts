@@ -1,4 +1,5 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
+import { pln } from '../src/html.js';
 import type { ReferencePortal } from '../src/index.js';
 import { ageOn, premium, travelDays } from '../src/rules.js';
 import {
@@ -112,6 +113,38 @@ describe('calculator flow (read-only GET steps)', () => {
       `/kalkulator/opcje?krok=3&${qs({ ...VEHICLE, rok_produkcji: '2011', ...DRIVER, zakres: 'oc_ac' })}`,
     );
     expect(text(forced.text)).toContain('AC dostępne tylko dla pojazdów młodszych niż 15 lat.');
+  });
+
+  it('with AC the vehicle value box is in the form and required; with OC it is not', async () => {
+    const box = '<div id="ac-box">';
+    const oc = await get(`/kalkulator/opcje?${qs({ ...VEHICLE, ...DRIVER, zakres: 'oc' })}`);
+    // Only the template holds it, which is not part of the form until AC is chosen.
+    expect(oc.text.split(box).length - 1).toBe(1);
+    expect(oc.text).toContain(`<template id="ac-box-template">${box}`);
+    const ac = await get(`/kalkulator/opcje?${qs({ ...VEHICLE, ...DRIVER, zakres: 'oc_ac' })}`);
+    expect(ac.text.split(box).length - 1).toBe(2);
+    const missing = await get(
+      `/kalkulator/opcje?krok=3&${qs({ ...VEHICLE, ...DRIVER, zakres: 'oc_ac' })}`,
+    );
+    expect(text(missing.text)).toContain('Podaj wartość pojazdu od 5 000 do 500 000 zł.');
+    const given = await get(
+      `/kalkulator/opcje?krok=3&${qs({ ...VEHICLE, ...DRIVER, zakres: 'oc_ac', wartosc_pojazdu: '45000' })}`,
+    );
+    expect(given.status).toBe(303);
+  });
+
+  it('answers the typical value API and the two noise calls every page makes', async () => {
+    const api = await get(`/api/wartosc-pojazdu?marka=toyota&rok_produkcji=2020`);
+    expect(JSON.parse(api.text)).toEqual({
+      marka: 'toyota',
+      typowa: 47800,
+      typowa_tekst: pln(47800),
+    });
+    expect((await get('/static/ikony.svg')).status).toBe(200);
+    expect((await get('/analytics/collect?e=page_view&p=%2F')).status).toBe(200);
+    const home = await get('/');
+    expect(home.text).toContain("fetch('/static/ikony.svg')");
+    expect(home.text).toContain("fetch('/analytics/collect?e=page_view");
   });
 
   it('discount code format is validated', async () => {

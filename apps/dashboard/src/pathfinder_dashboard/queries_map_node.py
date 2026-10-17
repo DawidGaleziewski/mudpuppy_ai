@@ -47,6 +47,31 @@ class NodeDetail:
     outcomes: dict[str, int]  # probe outcome kind → count (happy path left out)
     mark_state: str | None  # a state of the form step, for the Probe mark form
     marked: bool
+    # Spec 034 R-66: the state the other marks go on (the first main state, else the first one)
+    # and the open marks on any state of this screen, kind → state id.
+    target_state: str | None = None
+    screen_marks: dict[str, str] | None = None
+
+
+# The marks a person sets on a screen from the map (design §6), in the inspector's order.
+SCREEN_MARKS = (
+    ("start", "Start here", "The next focused scan starts here, by replaying the recorded path."),
+    ("focus", "Focus", "Explore deeper from here in the next focused scan."),
+    ("recheck", "Recheck", "A recheck scan replays to here and records what it shows now."),
+    ("retry", "Retry", "A retry scan repeats the action that failed here."),
+    ("skip", "Skip", "Leave this screen out of the next scans."),
+)
+
+
+def _screen_marks(conn: sqlite3.Connection, screen_id: str) -> dict[str, str]:
+    rows = _rows(
+        conn,
+        "SELECT m.kind, m.target_id FROM marks m JOIN states s ON s.id = m.target_id"
+        f" WHERE m.target_kind = 'state' AND m.used_by_run_id IS NULL AND s.screen_id IN {MEMBERS}"
+        " ORDER BY m.created_at",
+        (screen_id, screen_id),
+    )
+    return {r["kind"]: r["target_id"] for r in rows}
 
 
 def _rows(conn: sqlite3.Connection, sql: str, args: tuple[Any, ...]) -> list[sqlite3.Row]:
@@ -144,7 +169,10 @@ def node_detail(conn: sqlite3.Connection, portal: str, screen_id: str) -> NodeDe
         (screen_id, screen_id),
     )
     step = next((s for s in states if s.form_step_id), None)
+    main = next((s for s in states if s.kind == "main"), states[0] if states else None)
     return NodeDetail(
+        target_state=main.id if main else None,
+        screen_marks=_screen_marks(conn, screen_id),
         screen_id=screen_id,
         route=head[0]["route_template"],
         title=head[0]["title"],

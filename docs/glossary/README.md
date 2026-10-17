@@ -389,6 +389,73 @@ first. It may submit forms, so a scan that only looks cannot probe.
 
 <sub>Last changed in R-69, 2026-10-17.</sub>
 
+<a id="checkpoint"></a>
+
+#### Checkpoint
+
+**The recorded way back to a screen state, the shortest one a scan took, so a later scan can reach the state again by replaying it.**
+
+Every scan stores, for each state it reached, the address it last opened and the actions it
+pressed after it, with the values typed. A later scan replays this instead of exploring from
+the start page. Scans from before checkpoints existed are replayed from their page visits.
+Where a scan once opened the screen straight from its address, that address is used (a
+deep link); a screen only reachable by clicking is reached by clicking.
+
+*Example:* The premium result page: open /kalkulator/opcje?…, press "Oblicz składkę" (1 step).
+
+*Seen in:* Scans → Plan next scan ("replays 1 step"); the crawler's go_to_state
+
+*Labels:* `replays N steps`, `opens by its URL`
+
+*Related:* [Directed scan](#directed-scan), [State](#state), [Page visit](#page-visit)
+
+<sub>Last changed in R-66, 2026-10-17.</sub>
+
+<a id="directed-scan"></a>
+
+#### Directed scan
+
+**A scan that starts at recorded screens by replaying how they were reached, instead of mapping from the start page.**
+
+Four kinds. **Focused**: from the screens marked Start here or Focus, only as deep as you set.
+**Recheck**: replay to the Recheck-marked screens and record what each shows now, nothing
+more. **Retry a path**: replay to a failed action and press it once more, with a variation
+(wait longer, other input, don't submit); each try is an attempt. **Continue**: pick up a
+stopped scan from the screens with queued items, without redoing what it did. If a replayed
+step lands on another screen, the scan says where ("diverged at step 2") and goes on with the
+next start point. Skip marks keep actions and screens out of every scan while they are open.
+
+*Example:* A focused scan from the premium result page with depth 1 recorded 15 screens one step from it.
+
+*Seen in:* Scans → Plan next scan; Scans → Pick up (a stopped scan); Chat
+
+*Labels:* `Focused`, `Recheck`, `Retry a path`, `Continue a stopped scan`, `Resume`, `Retry this path`, `Skip it`
+
+*Related:* [Checkpoint](#checkpoint), [Scan mark](#scan-mark), [Run](#run), [Probe scan](#probe-scan)
+
+<sub>Last changed in R-66, 2026-10-17.</sub>
+
+<a id="scan-mark"></a>
+
+#### Scan mark
+
+**Your instruction on a screen or an action for the next scan, Start here, Focus, Recheck, Retry or Skip, set from the map's side panel.**
+
+Marks are a person's intent, shown as orange tags; they collect in the Next scan plan. A
+scan that uses Start here, Focus, Recheck or Retry marks closes them. Skip marks stay until
+you remove them and keep the target out of every scan (for example a logout or a delete
+button). Probe marks on form steps are the same idea for probe scans.
+
+*Example:* Start here on /kalkulator/wynik, then Plan next scan → Focused → Start scan.
+
+*Seen in:* Scans → Map side panel ("Next scan"); Scans → Plan next scan
+
+*Labels:* `Start here`, `Focus`, `Recheck`, `Retry`, `Skip`, `Next scan plan`, `Plan the next scan`
+
+*Related:* [Directed scan](#directed-scan), [Probe mark](#probe-mark)
+
+<sub>Last changed in R-66, 2026-10-17.</sub>
+
 <a id="portal-map"></a>
 
 #### Portal map
@@ -776,6 +843,74 @@ them as a form. The container's structure shows which fields belong together.
 <sub>Last changed in R-28, 2026-10-09.</sub>
 
 ### Documentation
+
+<a id="scans-by-process"></a>
+
+#### Scans by process
+
+**Which scans belong to which documented process, which belong to none, and which look like one process nobody documented yet.**
+
+A scan belongs to a process when the process's documentation cites it or when it walked at
+least two of the process's screens (error pages don't count). Scans in no process are listed
+so they are not forgotten; scans in no process that share at least half of their screens are
+proposed as one group. The BA gets the same list for a process from `open_process_update`.
+
+*Example:* PROC-001 has six scans; two contact-form traces sit in no process and are proposed as one group.
+
+*Seen in:* Scans → By process
+
+*Labels:* `By process`, `In no process`, `Look like one process`
+
+*Related:* [Documentation update](#documentation-update), [Process (PROC)](#process-record), [Run](#run)
+
+<sub>Last changed in R-70, 2026-10-17.</sub>
+
+<a id="documentation-update"></a>
+
+#### Documentation update
+
+**The BA documents a process again by revising its records with what new scans show, never by rebuilding them from fewer scans.**
+
+Ask the assistant to update a process (PROC-… or PRC-…). The BA first reads the process as
+it stands, every scan of it (new ones marked), the screens no record cites yet and the error
+pages; then it revises. The server refuses a revision that silently drops evidence or
+use-case steps (the BA must name what it leaves out and why) and a process that cites only
+error pages.
+
+*Example:* Updating PROC-001 revised the process, its use case and four screens and added 12 screen records, from all six scans.
+
+*Seen in:* Chat ("update PROC-001"); A revision's change note ("Dropped 1 evidence link(s) …")
+
+*Labels:* `Dropped`
+
+*Related:* [Scans by process](#scans-by-process), [Revision (Rev)](#revision), [Process (PROC)](#process-record)
+
+<sub>Last changed in R-70, 2026-10-17.</sub>
+
+<a id="process-documentation"></a>
+
+#### Process documentation (export)
+
+**The documentation a team (or an agent) rebuilds a process from, a folder with its steps, business and functional requirements, EARS, contracts, gaps, pictures and process.json.**
+
+One folder per process: README (what the service does), PROCESS_STEPS (each step's states
+with screenshots, the wireframe and a table of its fields), BUSINESS_REQUIREMENTS (goals and
+rules with decision tables and pseudo-code), FUNCTIONAL_REQUIREMENTS (requirements with
+acceptance criteria, NFRs), EARS, CONTRACTS (the APIs each step calls, attempts, samples
+recorded outside production) with openapi.yaml, GAPS and process.json for agents. A whole
+portal is a folder with its README, glossary, API index and screen list and one folder per
+process. Open it on a process record's or process's page (Documentation), download the zip,
+or run `pnpm docs:process-export`.
+
+*Example:* reference-insurer PROC-001: 6 steps, 14 fields, 1 endpoint (POST /kalkulator/zakup).
+
+*Seen in:* Docs → a PROC record → Documentation; Processes → a process → Documentation
+
+*Labels:* `Documentation`, `Download the folder (zip)`
+
+*Related:* [EARS statement](#ears), [SRS export](#srs-export), [Process (PROC)](#process-record)
+
+<sub>Last changed in R-68, 2026-10-17.</sub>
 
 <a id="differing-states"></a>
 
@@ -2060,13 +2195,40 @@ listed ground-truth process as a guest, and the BA documents from all the runs, 
 processes can be scored from traces. `--no-process-traces` leaves them out; the number that
 ran is a condition of the trial.
 
+A task may also list forms to probe (`probeForms`, spec 034): after the map, the eval marks
+the form steps the map recorded there for probing and runs one probe scan, so the export's
+Validation section can be scored. `--no-probe-scan` leaves it out.
+
 *Seen in:* apps/crawler/evals/tasks.ts
 
-*Labels:* `task`, `suite`, `SUITE`, `trace task`, `process traces`, `processTraces`
+*Labels:* `task`, `suite`, `SUITE`, `trace task`, `process traces`, `processTraces`, `probeForms`
 
-*Related:* [Eval (tier 2)](#eval), [Eval trial](#eval-trial), [Reference portal / ground truth](#reference-portal)
+*Related:* [Eval (tier 2)](#eval), [Eval trial](#eval-trial), [Reference portal / ground truth](#reference-portal), [Probe scan](#probe-scan), [Export quality score](#export-quality-score)
 
-<sub>Last changed in R-39, 2026-10-14.</sub>
+<sub>Last changed in R-68, 2026-10-17.</sub>
+
+<a id="export-quality-score"></a>
+
+#### Export quality score
+
+**How closely a process export matches the ground truth of its portal - steps, fields, validation messages, actions and API calls.**
+
+Scored by `export-quality.ts` in an eval over each exported process's `process.json`, for
+ground-truth processes that list export facts (`actions`, `apis`, field `messages`). Five
+goal scores (`export_steps`, `export_fields`, `export_validation`, `export_actions`,
+`export_apis`) and three counts that should be 0: steps that are not part of the process,
+actions leading outside it, and noise calls (icons, analytics) listed as APIs. The export
+the owner approved on 2026-10-17 is kept as the reference solution
+(`apps/crawler/evals/reference-solutions/`); its test pins its scores, so the problems it
+has (R-73) are the only points it loses.
+
+*Seen in:* data/evals/<portal>/*.json → scores.export_*; apps/crawler/evals/reference-solutions
+
+*Labels:* `export_steps`, `export_fields`, `export_validation`, `export_actions`, `export_apis`, `reference solution`
+
+*Related:* [Eval (tier 2)](#eval), [Grader](#grader), [Eval task / suite](#eval-task), [Process documentation (export)](#process-documentation)
+
+<sub>Last changed in R-68, 2026-10-17.</sub>
 
 <a id="eval-trial"></a>
 
@@ -2977,6 +3139,29 @@ category `[battle-tested-scar]`.
 <sub>Last changed in R-56, 2026-10-16.</sub>
 
 ## Business-analysis terms
+
+### Documentation
+
+<a id="ears"></a>
+
+#### EARS statement
+
+**A requirement written in one fixed sentence pattern (Easy Approach to Requirements Syntax), such as "When … the system shall …".**
+
+Patterns: ubiquitous ("The calculator shall …"), event ("When …"), state ("While …"),
+unwanted ("If …, then …"), optional ("Where …") and complex (a mix). The BA writes one for
+every requirement, business rule and NFR while documenting; the export prints them in
+EARS.md and lists the records that have none yet.
+
+*Example:* If "Rok produkcji" is below 1990 when "Dalej" is pressed, then the calculator shall stay on "Dane pojazdu".
+
+*Seen in:* Process documentation → EARS
+
+*Labels:* `EARS`
+
+*Related:* [Requirement (REQ)](#requirement), [Business rule (BR)](#business-rule), [Non-functional requirement (NFR)](#nfr), [Process documentation (export)](#process-documentation)
+
+<sub>Last changed in R-68, 2026-10-17.</sub>
 
 ### Statements and traceability
 

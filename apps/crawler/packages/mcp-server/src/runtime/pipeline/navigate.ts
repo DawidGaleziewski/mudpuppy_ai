@@ -3,6 +3,7 @@ import { pageTimeouts } from '@pathfinder/safety';
 import type { ServerContext } from '../../context.js';
 import { ToolError } from '../../errors.js';
 import type { NavigateInput, PageResult } from '../../runtime.js';
+import { saveCheckpoint } from '../../services/checkpoints.js';
 import type { RunRow } from '../../services/index.js';
 import type { RunState } from '../run-state.js';
 import { counted, flushObstacles, phase, reported, step } from './context.js';
@@ -119,6 +120,7 @@ async function navigateStep(
   await step({ ctx, run }, 'run_bookkeeping', async () => {
     for (const pending of await pendingNavigateItems(ctx.db, run.id, input.url))
       await settleFrontierItem(ctx.db, pending.id, 'done', null);
+    await saveCheckpoint(ctx, run.id, result.state_id, state.pathTo.get(result.state_id));
     return bumpRun(ctx, run, started, depth);
   });
   await flushObstacles(ctx, state);

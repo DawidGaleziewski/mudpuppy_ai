@@ -30,7 +30,8 @@ class Settings(BaseSettings):
     # How often the live stream checks the store for commits, and how often it pings.
     poll_interval_s: float = 1.0
     keepalive_s: float = 15.0
-    page_size: int = 50
+    # Items per page on every paged list (R-71: 25, owner 2026-10-17).
+    page_size: int = 25
     # Ends each event stream after this many seconds; None in normal use (tests set it).
     sse_max_s: float | None = None
     # Review actions in the Docs tab (spec 004 US3): disabled unless a reviewer name is set.

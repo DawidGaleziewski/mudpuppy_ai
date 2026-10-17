@@ -40,6 +40,8 @@ export interface SessionOptions {
   robots: NonNullable<RequestGateOptions['robots']>;
   /** The BA chose to skip images for this run (spec 011 FR-014). */
   skipImages?: RequestGateOptions['skipImages'];
+  /** Keep sample bodies of the API calls (spec 034 R-68); the runtime sets it outside production. */
+  keepSamples?: boolean;
   headless?: boolean;
   stabilizer?: StabilizerOptions;
   /** Observability hooks handed to the request gate (spec 005); they never change its behaviour. */
@@ -144,7 +146,7 @@ export class BrowserSession {
         Date.now,
         opts.observe?.onRequestFailed ? { onRequestFailed: opts.observe.onRequestFailed } : {},
       );
-      const recorder = new NetworkRecorder(page);
+      const recorder = new NetworkRecorder(page, { samples: opts.keepSamples === true });
       const navigation = new NavigationRecorder(page);
       // Their in-page probes (form submits, meta refresh) must be in place before the first page.
       await Promise.all([recorder.ready, navigation.ready]);

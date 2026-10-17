@@ -72,7 +72,7 @@ const attrs = (row: Record<string, unknown>) =>
   JSON.parse(row.attrs_json as string) as Record<string, unknown>;
 
 describe('call spans for the agent tools (US1)', () => {
-  it('writes exactly one call span per tool call, for each of the nine tools', async () => {
+  it('writes exactly one call span per tool call, for each of the agent tools', async () => {
     const { ctx, call, calls, writeFiles } = await connect();
     writeFiles(PORTAL_FILES);
     const start = await call('start_run', { portal_id: 'shop', persona_id: 'guest' });
@@ -101,6 +101,7 @@ describe('call spans for the agent tools (US1)', () => {
     });
     // a browserless runtime: refused (BROWSER_UNAVAILABLE), still one call span
     await call('probe_form', { run_id: run, action_id: 'a1', rationale: 'probe the form step' });
+    await call('go_to_state', { run_id: run, state_id: s.state_id, rationale: 'replay to it' });
     // a guest persona: refused (LOGIN_NOT_CONFIGURED), still one call span
     await call('login', { run_id: run, rationale: 'log in as the persona' });
     await call('add_open_question', { run_id: run, text: 'why', about_ref: s.state_id });
@@ -114,6 +115,7 @@ describe('call spans for the agent tools (US1)', () => {
       'navigate',
       'act',
       'probe_form',
+      'go_to_state',
       'login',
       'add_open_question',
       'add_rule_candidate',

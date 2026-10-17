@@ -3,6 +3,13 @@ import { CONTENT, layerBCounts, seedReview, startBa, type BaHarness } from './ba
 
 const stateEvidence = (h: BaHarness) => [{ target_kind: 'state', target_id: h.fx.states.vehicle }];
 
+/** The `dropped` notice of a revision that cites the screen instead of the create's form (R-70). */
+const dropsForm = (h: BaHarness) => ({
+  reason: 'cites the screen instead of the form',
+  evidence: [{ target_kind: 'form', target_id: h.fx.forms.vehicle }],
+});
+const DROP_NOTE = 'Dropped 1 evidence link(s): cites the screen instead of the form';
+
 /** A create_record call that succeeds unless a field is overridden. */
 const create = (h: BaHarness, session_id: string, over: Record<string, unknown> = {}) => ({
   session_id,
@@ -314,6 +321,16 @@ describe('one data item per form field (spec 019 F-16)', () => {
     await h.must('create_record', item('Data wyjazdu'));
     // a label with a comma is one field, not two
     await h.must('create_record', item('Oświadczam, że zapoznałem się z OWU'));
+    // the technical name instead of the label, alone or joined (spec 034 F-21)
+    const technical = await h.refused('create_record', item('data_powrotu'));
+    expect(technical).toMatchObject({ code: 'SCHEMA_INVALID', labels: ['Data powrotu'] });
+    expect(technical.message).toContain('the label exactly as the page shows it');
+    const joinedNames = await h.refused('create_record', item('data_wyjazdu / zgoda'));
+    expect(joinedNames).toMatchObject({
+      labels: ['Data wyjazdu', 'Oświadczam, że zapoznałem się z OWU'],
+    });
+    // a group's own label that reads like its options' name is kept (radio "Zakres" / `zakres`)
+    await h.must('create_record', item('Zgoda'));
   });
 });
 
@@ -549,6 +566,7 @@ describe('revise_record', () => {
       confidence: 'inferred',
       evidence: stateEvidence(h),
       change_note: 'Clearer title.',
+      dropped: dropsForm(h),
     });
     expect(out).toEqual({ key: 'REQ-001', rev_no: 2 });
     const record = await h.must('get_record', { portal_id: h.fx.portalId, key: 'REQ-001' });
@@ -559,7 +577,7 @@ describe('revise_record', () => {
     ]);
     expect(record.revisions[1]).toMatchObject({
       change: 'revise',
-      change_note: 'Clearer title.',
+      change_note: `Clearer title. ${DROP_NOTE}`,
       confidence: 'inferred',
       evidence: [{ target_kind: 'state', target_id: h.fx.states.vehicle, run_id: h.fx.runId }],
     });
@@ -577,6 +595,7 @@ describe('revise_record', () => {
       confidence: 'observed',
       evidence: stateEvidence(h),
       change_note: 'Second pass.',
+      dropped: dropsForm(h),
     };
     await h.must('revise_record', revise);
     const before = layerBCounts(h.fx);
@@ -627,7 +646,12 @@ describe('revise_record', () => {
       confidence: 'observed',
       evidence: stateEvidence(h),
     };
-    await h.must('revise_record', { ...revise, base_rev: 1, change_note: 'Tightened.' });
+    await h.must('revise_record', {
+      ...revise,
+      base_rev: 1,
+      change_note: 'Tightened.',
+      dropped: dropsForm(h),
+    });
     const reject = seedReview(h.fx, 'REQ-001', 2, 'reject', 'The format is NN-NNN, say so.');
 
     expect(
@@ -808,6 +832,10 @@ describe('address_crawler_question', () => {
       confidence: 'needs_confirmation',
       evidence: [{ target_kind: 'state', target_id: h.fx.states.vehicle }],
       change_note: 'Different evidence.',
+      dropped: {
+        reason: 'the question is answered elsewhere',
+        evidence: [{ target_kind: 'open_question', target_id: q1 }],
+      },
     });
     expect(
       (await h.refused('address_crawler_question', { ...address, open_question_id: q1 })).code,
@@ -907,14 +935,124 @@ describe('revise_record keeps evidence from runs outside the session (spec 004 F
     );
   });
 
-  it('does not carry links to the session’s own runs: the BA may drop them', async () => {
+  it('does not carry links to the session’s own runs: the BA may drop them when it says so', async () => {
     const h = await startBa();
     const s = await h.session();
     const { key } = await h.must('create_record', create(h, s));
-    await h.must('revise_record', revise(s, key, stateEvidence(h)));
+    await h.must('revise_record', { ...revise(s, key, stateEvidence(h)), dropped: dropsForm(h) });
     const record = await h.must('get_record', { portal_id: h.fx.portalId, key });
     expect(record.revisions[1].evidence.map((e: { target_kind: string }) => e.target_kind)).toEqual(
       ['state'],
+    );
+  });
+});
+
+describe('revise_record regression guard (spec 034 R-70 (3), F-18@030)', () => {
+  const base = (h: BaHarness, s: string) => ({
+    session_id: s,
+    key: 'REQ-001',
+    base_rev: 1,
+    content: CONTENT.requirement,
+    confidence: 'observed',
+    evidence: stateEvidence(h),
+    change_note: 'Rewritten from the new scan.',
+  });
+
+  it('refuses a revision that silently drops evidence, and writes nothing', async () => {
+    const h = await startBa();
+    const s = await h.session();
+    await h.must('create_record', create(h, s));
+    const before = layerBCounts(h.fx);
+    expect(await h.refused('revise_record', base(h, s))).toMatchObject({
+      code: 'REVISION_DROPS',
+      dropped_evidence: [{ target_kind: 'form', target_id: h.fx.forms.vehicle }],
+    });
+    expect(layerBCounts(h.fx)).toEqual(before);
+  });
+
+  it('refuses a drop list that leaves a dropped link out', async () => {
+    const h = await startBa();
+    const s = await h.session();
+    await h.must('create_record', create(h, s));
+    const partial = { reason: 'replaced', evidence: [{ target_kind: 'state', target_id: 'x' }] };
+    expect((await h.refused('revise_record', { ...base(h, s), dropped: partial })).code).toBe(
+      'REVISION_DROPS',
+    );
+  });
+
+  it('accepts a revision that keeps every link and adds one, without a drop notice', async () => {
+    const h = await startBa();
+    const s = await h.session();
+    await h.must('create_record', create(h, s));
+    const kept = [...create(h, s).evidence, ...stateEvidence(h)];
+    expect(await h.must('revise_record', { ...base(h, s), evidence: kept })).toEqual({
+      key: 'REQ-001',
+      rev_no: 2,
+    });
+  });
+
+  it('refuses a use case that loses main-flow steps unless it says how many', async () => {
+    const h = await startBa();
+    const s = await h.session();
+    const step = (n: number, text: string) => ({ n, actor_or_system: 'Guest', text });
+    const uc = {
+      kind: 'use_case',
+      title: 'Get a quote',
+      primary_actor: 'Guest',
+      preconditions: [],
+      trigger: 'Oblicz',
+      main_flow: [
+        step(1, 'Enters the vehicle'),
+        step(2, 'Enters the driver'),
+        step(3, 'Sees the price'),
+      ],
+      alternate_flows: [],
+      exception_flows: [],
+      postconditions: [],
+    };
+    const { key } = await h.must('create_record', {
+      ...create(h, s),
+      kind: 'use_case',
+      content: uc,
+      evidence: stateEvidence(h),
+    });
+    const shorter = { ...uc, main_flow: uc.main_flow.slice(0, 1) };
+    const lost = uc.main_flow.length - 1;
+    const revise = { ...base(h, s), key, content: shorter };
+    expect(await h.refused('revise_record', revise)).toMatchObject({
+      code: 'REVISION_DROPS',
+      dropped_steps: lost,
+    });
+    await h.must('revise_record', { ...revise, dropped: { reason: 'merged steps', steps: lost } });
+  });
+});
+
+describe('a process is never only an error page (spec 034 R-70 (3), F-17@030)', () => {
+  const process = {
+    title: 'Get a car insurance quote',
+    goal: 'Get a premium',
+    persona: 'guest',
+    trigger: 'Oblicz',
+    outcome: 'The premium is shown',
+    observed_extent: 'full',
+  };
+
+  it('refuses a process citing only an error state, then accepts the whole journey', async () => {
+    const h = await startBa();
+    const s = await h.session();
+    h.fx.raw
+      .prepare("UPDATE states SET state_kind = 'technical' WHERE id = ?")
+      .run(h.fx.states.vehicle);
+    const onlyError = {
+      ...create(h, s),
+      kind: 'process',
+      content: process,
+      evidence: stateEvidence(h),
+    };
+    expect((await h.refused('create_record', onlyError)).code).toBe('PROCESS_ONLY_ERRORS');
+    const journey = [...stateEvidence(h), { target_kind: 'state', target_id: h.fx.states.car }];
+    expect((await h.must('create_record', { ...onlyError, evidence: journey })).key).toBe(
+      'PROC-001',
     );
   });
 });

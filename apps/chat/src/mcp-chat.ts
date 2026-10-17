@@ -25,6 +25,7 @@ import {
   requestDocumentation,
   setProcessScope,
 } from './scope.js';
+import { requestProcessUpdate } from './documentation-update.js';
 import {
   listPortals,
   loadWorkflowInput,
@@ -153,7 +154,7 @@ export function createChatMcpServer(ctx: ChatMcpContext): McpServer {
     'request_scan',
     {
       description:
-        'Ask to scan (map) a portal as one persona in one of its environments (production, staging, sandbox; workflow_state lists them; may be left out when it has one), or with resume_run_id to continue a stopped (interrupted) scan (persona may then be left out: the run keeps its own). allow_writes defaults to true (the scan may fill and submit forms); pass false only when the BA asks the scan to only look; skip_images is the BA\'s answer to "skip loading images?" (default false); focus narrows the scan to the part the BA asked for: start_url (where to start, e.g. https://en.wikipedia.org/), only_domains (hosts to stay on, e.g. ["en.wikipedia.org"]), only_paths and exclude_paths (path globs, * matches anything, e.g. ["/wiki/Special:*"]); leave it out to map the whole portal; it never widens the portal. process {name, goal} traces that one process instead of mapping (the "map a process" step; a new run, not with resume_run_id). probe_marked true is a "Probe forms" scan: it probes only the form steps the BA marked for probing (a plain scan never probes); a new run, not with resume_run_id or process. A resume keeps the run\'s own choices unless given. Checks the portal, persona and stored test-user credentials; on success records the scan step as pending and returns a hand-off: start the crawler agent with exactly that prompt. On MISSING_INPUT ask the BA only for the listed items.',
+        'Ask to scan (map) a portal as one persona in one of its environments (production, staging, sandbox; workflow_state lists them; may be left out when it has one), or with resume_run_id to continue a stopped (interrupted) scan (persona may then be left out: the run keeps its own). allow_writes defaults to true (the scan may fill and submit forms); pass false only when the BA asks the scan to only look; skip_images is the BA\'s answer to "skip loading images?" (default false); focus narrows the scan to the part the BA asked for: start_url (where to start, e.g. https://en.wikipedia.org/), only_domains (hosts to stay on, e.g. ["en.wikipedia.org"]), only_paths and exclude_paths (path globs, * matches anything, e.g. ["/wiki/Special:*"]); leave it out to map the whole portal; it never widens the portal. process {name, goal} traces that one process instead of mapping (the "map a process" step; a new run, not with resume_run_id). probe_marked true is a "Probe forms" scan: it probes only the form steps the BA marked for probing (a plain scan never probes); a new run, not with resume_run_id or process. run_type starts a directed scan that reaches recorded screens by replaying the recorded path instead of mapping from the start page: "focused" (from the Start here / Focus marks, or plan.start_state_ids, within plan.depth), "continue" (a stopped scan: plan.parent_run_id), "recheck" (only record what the Recheck-marked screens show now), "retry" (repeat one failed action: plan.target_edge_id, plan.variation wait_longer / other_input / no_submit); persona and environment default to the parent run\'s. A resume keeps the run\'s own choices unless given. Checks the portal, persona and stored test-user credentials; on success records the scan step as pending and returns a hand-off: start the crawler agent with exactly that prompt. On MISSING_INPUT ask the BA only for the listed items.',
       inputSchema: RequestScanInput.shape,
     },
     (args) => {
@@ -217,12 +218,22 @@ export function createChatMcpServer(ctx: ChatMcpContext): McpServer {
     'request_documentation',
     {
       description:
-        'Ask for as-is documentation of one recorded process scope. On success records the document step as pending and returns a hand-off: start the ba agent with exactly that prompt.',
-      inputSchema: { portal: z.string(), scope_id: z.string() },
+        'Ask for as-is documentation of one recorded process scope (scope_id), or for an update of a process that is already documented (process_key: a process record PROC-… or a workspace process PRC-…; the BA then updates it with the new scans instead of rebuilding it). Give exactly one of them. On success records the document step as pending and returns a hand-off: start the ba agent with exactly that prompt.',
+      inputSchema: {
+        portal: z.string(),
+        scope_id: z.string().optional(),
+        process_key: z.string().optional(),
+      },
     },
-    ({ portal, scope_id }) => {
+    ({ portal, scope_id, process_key }) => {
       try {
-        return ok(requestDocumentation(ctx.raw, ctx.conversationId, portal, scope_id));
+        if ((scope_id === undefined) === (process_key === undefined))
+          throw new ScopeRefusal('INVALID', 'give scope_id or process_key, one of them');
+        return ok(
+          process_key !== undefined
+            ? requestProcessUpdate(ctx.raw, ctx.conversationId, portal, process_key)
+            : requestDocumentation(ctx.raw, ctx.conversationId, portal, scope_id!),
+        );
       } catch (error) {
         return fail(error);
       }

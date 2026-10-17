@@ -15,6 +15,7 @@ import {
   sessionRunIds,
   type SessionRow,
 } from './common.js';
+import { dataPassWarnings } from './data-pass-check.js';
 import { feedbackSummary, pendingFeedback } from './feedback.js';
 
 /** A `running` session with no write for this long is taken to be abandoned (data-model.md). */
@@ -171,7 +172,7 @@ export function startSession(ctx: BaContext, raw: unknown): SessionOutput {
 export function recordPass(
   ctx: BaContext,
   raw: unknown,
-): { session_id: string; passes: AnalysisPass[] } {
+): { session_id: string; passes: AnalysisPass[]; warnings?: string[] } {
   const input = parseInput(RecordPassInput, raw);
   assertNoPii(input.summary, 'summary');
   return inTransaction(ctx, () => {
@@ -181,7 +182,13 @@ export function recordPass(
     ctx.raw
       .prepare('UPDATE analysis_sessions SET passes_json = ? WHERE id = ?')
       .run(JSON.stringify(passes), session.id);
-    return { session_id: session.id, passes: passes.map((p) => p.pass) };
+    const warnings =
+      input.pass === 'data' ? dataPassWarnings(ctx, session.id, session.portal_id) : [];
+    return {
+      session_id: session.id,
+      passes: passes.map((p) => p.pass),
+      ...(warnings.length > 0 ? { warnings } : {}),
+    };
   });
 }
 

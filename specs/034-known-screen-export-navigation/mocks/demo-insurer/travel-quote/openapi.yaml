@@ -1,0 +1,112 @@
+# MOCK for rating (spec 034, R-68). Made-up data. Built by MudPuppy from recorded shapes; examples
+# from recorded samples (sandbox, masked). Fields seen missing in some calls are not required.
+openapi: 3.1.0
+info:
+  title: Demo Ubezpieczenia — travel quote (as recorded)
+  version: recorded-2026-10-17
+  description: >-
+    Endpoints called by process PROC-001. Shapes are what the portal sent and returned in 11 calls
+    over 4 scans; they are not the provider's own contract.
+servers:
+  - url: https://api.demo-ubezpieczenia.test
+paths:
+  /api/countries:
+    get:
+      summary: Countries for "Kraj docelowy" (step 1)
+      responses:
+        '200':
+          description: Seen 4 times, same 197 items
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  required: [code, name, region]
+                  properties:
+                    code: { type: string, example: ES }
+                    name: { type: string, example: Hiszpania }
+                    region: { type: string, example: EUROPE }
+  /api/quotes:
+    post:
+      summary: Price a trip (step 2 "Pokaż oferty", step 3 add-ons)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/QuoteRequest' }
+            examples:
+              attempt-1:
+                value: { destination: ES, departure: '2026-11-02', return: '2026-11-09', tripType: TOURIST, travellers: [{ age: 34 }] }
+      responses:
+        '200':
+          description: Seen 8 times
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Quote' }
+        '503':
+          description: Seen once (2026-10-17); the page shows "Nie udało się obliczyć ceny"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties: { error: { type: string, example: PRICING_UNAVAILABLE } }
+  /api/applications:
+    post:
+      summary: Register an application (step 3 "Kupuję")
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [quoteId, variant, addons]
+              properties:
+                quoteId: { type: string, format: uuid }
+                variant: { type: string, enum: [BASIC, STANDARD, PREMIUM] }
+                addons: { type: array, items: { type: string } }
+      responses:
+        '201':
+          description: Seen once
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  number: { type: string, example: TR/2026/000123 }
+                  status: { type: string, example: NEW }
+components:
+  schemas:
+    QuoteRequest:
+      type: object
+      required: [destination, departure, return, tripType, travellers]
+      properties:
+        destination: { type: string }
+        departure: { type: string, format: date }
+        return: { type: string, format: date }
+        tripType: { type: string, enum: [TOURIST, BUSINESS, EXTREME] }
+        travellers:
+          type: array
+          maxItems: 9
+          items: { type: object, required: [age], properties: { age: { type: integer, minimum: 0, maximum: 99 } } }
+        addons: { type: array, items: { type: string, enum: [LUGGAGE_PLUS, WINTER_SPORTS] } }
+    Quote:
+      type: object
+      required: [quoteId, validUntil, variants]
+      properties:
+        quoteId: { type: string, format: uuid }
+        validUntil: { type: string, format: date-time }
+        variants:
+          type: array
+          items:
+            type: object
+            properties:
+              code: { type: string, enum: [BASIC, STANDARD, PREMIUM] }
+              price: { type: number }
+              currency: { type: string }
+              sums:
+                type: object
+                properties:
+                  medical: { type: number }
+                  luggage: { type: number }
+                  liability: { type: number }

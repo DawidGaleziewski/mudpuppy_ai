@@ -1,4 +1,4 @@
--- GENERATED from data/migrations/*.up.sql applied in order (currently through 0026_screens_merged_into). Do not edit by hand.
+-- GENERATED from data/migrations/*.up.sql applied in order (currently through 0027_checkpoints_directed_runs). Do not edit by hand.
 -- Regenerate after every migration; see data/schema/README.md.
 
 CREATE TABLE runs (
@@ -25,6 +25,11 @@ CREATE TABLE runs (
   -- 0009 (ALTER TABLE): the pathfinder server process driving the run; NULL before 0009 (F-14).
   owner_id            TEXT CHECK (owner_id IS NULL OR length(owner_id) > 0),
   owner_pid           INTEGER CHECK (owner_pid IS NULL OR owner_pid > 0),
+  -- 0027 (ALTER TABLE): the kind of directed run (NULL = a plain run: full map or trace by mode), the run it
+  -- continues or retries, and the plan it came from (spec 034).
+  run_type            TEXT CHECK (run_type IS NULL OR run_type IN ('full','continue','focused','recheck','retry','probe','trace')),
+  parent_run_id       TEXT REFERENCES runs(id),
+  plan_json           TEXT CHECK (plan_json IS NULL OR json_valid(plan_json)),
   CHECK (status <> 'stopped_warning' OR warning IS NOT NULL)
 ) STRICT;
 
@@ -91,7 +96,10 @@ CREATE TABLE network_calls (
   console_errors TEXT NOT NULL DEFAULT '[]' CHECK (json_valid(console_errors) AND json_type(console_errors) = 'array'),
   created_at     TEXT NOT NULL,
   -- 0012 (ALTER TABLE): the verbatim request URL (query kept); NULL before 0012 (spec 019).
-  url            TEXT
+  url            TEXT,
+  -- 0027 (ALTER TABLE): masked sample bodies, at most 4096 characters, recorded only outside production (spec 034).
+  req_sample     TEXT CHECK (req_sample IS NULL OR length(req_sample) <= 4096),
+  res_sample     TEXT CHECK (res_sample IS NULL OR length(res_sample) <= 4096)
 ) STRICT;
 
 CREATE TABLE open_questions (
@@ -927,3 +935,18 @@ CREATE TABLE reconciliations (
 
 CREATE INDEX ix_reconciliations_portal_status ON reconciliations (portal_id, status);
 CREATE UNIQUE INDEX ux_reconciliations_open ON reconciliations (portal_id, group_key) WHERE status = 'proposed';
+
+CREATE TABLE checkpoints (
+  id         TEXT PRIMARY KEY,                                               -- UUIDv7
+  run_id     TEXT NOT NULL REFERENCES runs(id),
+  state_id   TEXT NOT NULL REFERENCES states(id),
+  start_url  TEXT NOT NULL CHECK (length(start_url) > 0),
+  steps_json TEXT NOT NULL CHECK (json_valid(steps_json) AND json_type(steps_json) = 'array'),
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
+  UNIQUE (run_id, state_id)
+) STRICT;
+
+CREATE INDEX ix_checkpoints_state ON checkpoints (state_id);
+
+CREATE INDEX ix_runs_parent ON runs (parent_run_id);

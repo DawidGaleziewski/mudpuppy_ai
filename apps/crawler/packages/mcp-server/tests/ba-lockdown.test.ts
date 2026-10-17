@@ -41,6 +41,7 @@ describe('BA server lockdown (contracts/ba-mcp-tools.md)', () => {
       'propose_probe_suite',
       'list_differing_states',
       'propose_verdicts',
+      'open_process_update',
     ]);
     const names = (await baTools()).map((t) => t.name).sort();
     expect(names).toEqual([...BA_TOOL_NAMES].sort());
@@ -83,7 +84,7 @@ describe('BA server lockdown (contracts/ba-mcp-tools.md)', () => {
         .filter((t) => props(t.name).includes('key'))
         .map((t) => t.name)
         .sort(),
-    ).toEqual(['get_record', 'revise_record', 'withdraw_record']);
+    ).toEqual(['get_record', 'open_process_update', 'revise_record', 'withdraw_record']);
     // `status` exists only as a read filter on list_records.
     expect(tools.filter((t) => props(t.name).includes('status')).map((t) => t.name)).toEqual([
       'list_records',

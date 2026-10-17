@@ -8,7 +8,7 @@ from __future__ import annotations
 from fastapi import APIRouter, Request
 from fastapi.responses import HTMLResponse
 
-from .. import db, map_layout, queries_map, queries_map_node
+from .. import db, map_layout, queries_map, queries_map_node, queries_plan
 from .deps import Ctx, web_of
 
 router = APIRouter()
@@ -65,6 +65,7 @@ def map_page(
         with c.conn() as conn:
             m = queries_map.map_view(conn, c.portal, f)
             detail = queries_map_node.node_detail(conn, c.portal, node) if node else None
+            marks = queries_plan.open_mark_count(conn, c.portal)
     except db.StoreMissing as err:
         return web.missing(c, err)
     return web.render(
@@ -78,6 +79,7 @@ def map_page(
         selected=detail.screen_id if detail else None,
         back=_back_of(_self_url(c, f, view), detail.screen_id) if detail else "/map",
         probe_note=probe_note,
+        open_marks=marks,
         node_h=map_layout.NODE_H,
         self_url=_self_url(c, f, view),
         list_url=_self_url(c, f, "list"),
