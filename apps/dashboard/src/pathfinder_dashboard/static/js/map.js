@@ -19,6 +19,38 @@
     for (const map of document.querySelectorAll("[data-map]")) reveal(map);
   });
 
+  // A scan's graph (spec 035) is swapped whole by htmx when a screen is picked or the store
+  // changes: keep its scroll, zoom and the focused screen link (same screen, same position among
+  // that screen's links) instead of jumping back to the start.
+  let kept = null;
+  document.addEventListener("htmx:before:swap", () => {
+    const map = document.querySelector("[data-map]");
+    if (!map) return;
+    const focused = document.activeElement?.closest?.("[data-screen]");
+    const same = focused
+      ? [...document.querySelectorAll(`[data-screen="${CSS.escape(focused.dataset.screen)}"]`)]
+      : [];
+    kept = {
+      left: map.scrollLeft,
+      top: map.scrollTop,
+      scale: map.querySelector(".mp-map-canvas")?.style.getPropertyValue("--mp-map-scale"),
+      screen: focused?.dataset.screen,
+      index: same.indexOf(focused),
+    };
+  });
+  document.addEventListener("htmx:after:swap", () => {
+    const map = document.querySelector("[data-map]");
+    if (!map || !kept) return;
+    if (kept.scale) map.querySelector(".mp-map-canvas")?.style.setProperty("--mp-map-scale", kept.scale);
+    map.scrollLeft = kept.left;
+    map.scrollTop = kept.top;
+    if (kept.screen) {
+      const same = document.querySelectorAll(`[data-screen="${CSS.escape(kept.screen)}"]`);
+      same[Math.max(kept.index, 0)]?.focus({ preventScroll: true });
+    }
+    kept = null;
+  });
+
   const select = (node) => {
     const map = node.closest("[data-map]");
     for (const n of map.querySelectorAll("button.sy-node[aria-pressed]"))

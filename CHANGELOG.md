@@ -16,7 +16,9 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   Start here**; each comes back to the graph with its note. The scan history links it as **Where
   it stopped** or **N failed**. On a phone the graph gives way to the list of screens in the
   order seen. Glossary `scan-graph`. Deferred: split the scan page's `section_values` per tab
-  (one statement over the limit).
+  (one statement over the limit). Amended the same day (owner: "when I click on an item on the
+  graph the whole page reloads"): picking a screen in the graph, the path or the table swaps
+  only the graph region (htmx, URL pushed), and the graph keeps its scroll, zoom and focus.
 - Spec 034, four roadmap items on one branch (v1.0.38, 2026-10-18):
   - **Scan from a known screen, R-66:** every scan stores the way back to each screen
     (checkpoints, migration 0027); a new scan reaches a chosen screen by replaying that path

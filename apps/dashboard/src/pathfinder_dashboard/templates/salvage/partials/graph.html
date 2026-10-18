@@ -5,6 +5,11 @@
 {% import "salvage/macros.html" as sy %}
 {% set v = section %}
 {% set g = v.graph %}
+{#- A screen link swaps this region in place (map.js keeps the graph's scroll, zoom and focus);
+    its href is the same screen as a full page. -#}
+{% macro pick(id) -%}
+href="{{ c.url('/runs/' ~ section.run.id, tab='graph', node=id) }}" hx-get="{{ c.url(section.fragment_url, node=id, push=1) }}" hx-target="#region-graph" hx-swap="outerHTML" data-screen="{{ id }}"
+{%- endmacro %}
 {% call sy.region("graph", v.self_url, "Graph of this scan") %}
 {%- if g is none or not g.nodes %}
 <div class="sy-plate"><div class="sy-plate__body">{{ sy.empty("No screens recorded in this scan", "A scan's graph shows the screens it saw and the moves it made.") }}</div></div>
@@ -33,7 +38,7 @@
     {%- if g.path | length > 1 %}
     <ol class="sy-path" aria-label="Path to where it stopped">
       {%- for n in g.path %}
-      <li><a class="sy-path__step{% if loop.last %} sy-path__step--here{% endif %}" href="{{ c.url(node_url, tab='graph', node=n.id) }}">{{ n.route }}</a></li>
+      <li><a class="sy-path__step{% if loop.last %} sy-path__step--here{% endif %}" {{ pick(n.id) }}>{{ n.route }}</a></li>
       {%- endfor %}
       {%- if g.stop_node and g.stop_node.failures %}<li><span class="sy-path__step sy-path__step--failed">✕ {{ g.stop_node.failures[-1].label }}</span></li>{% endif %}
     </ol>
@@ -70,7 +75,7 @@
           {%- endfor %}
         </svg>
         {%- for n in g.nodes %}
-        <a class="sy-node" href="{{ c.url(node_url, tab='graph', node=n.id) }}" data-state="{{ n.status }}" data-screen="{{ n.id }}" data-near="{{ n.near | join(' ') }}"
+        <a class="sy-node" {{ pick(n.id) }} data-state="{{ n.status }}" data-near="{{ n.near | join(' ') }}"
            {%- if here and here.id == n.id %} aria-current="true"{% endif %} style="left: {{ n.x }}px; top: {{ n.y }}px; height: {{ v.node_h }}px">
           {%- if n.stopped_here %}<span class="sy-node__marks"><span class="sy-tag sy-tag--intent sy-tag--sm">Stopped here</span></span>{% endif %}
           <span class="sy-node__route">{{ n.route }}</span>
@@ -103,7 +108,7 @@
             {%- for n in g.nodes %}
             <tr{% if here and here.id == n.id %} aria-current="true"{% endif %}>
               <td class="sy-num">{{ n.order }}</td>
-              <th scope="row"><a class="sy-case-normal" href="{{ c.url(node_url, tab='graph', node=n.id) }}">{{ n.title }}</a> <span class="sy-route">{{ n.route }}</span>{% if n.stopped_here %} <span class="sy-tag sy-tag--intent sy-tag--sm">Stopped here</span>{% endif %}</th>
+              <th scope="row"><a class="sy-case-normal" {{ pick(n.id) }}>{{ n.title }}</a> <span class="sy-route">{{ n.route }}</span>{% if n.stopped_here %} <span class="sy-tag sy-tag--intent sy-tag--sm">Stopped here</span>{% endif %}</th>
               <td>{{ sy.status("map_node", n.status) }}</td>
               <td class="sy-num">{{ n.failures | length + n.unreachable }}</td>
               <td class="sy-num">{{ n.queued }}</td>
