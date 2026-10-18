@@ -63,6 +63,15 @@ export const PORTAL_TABLES = [
   'journeys',
   'attribute_writes',
   'observation_builds',
+  'model_versions',
+  'model_screens',
+  'screen_members',
+  'screen_lineage',
+  'state_pair_labels',
+  'parameter_roles',
+  'action_classes',
+  'model_transitions',
+  'build_epochs',
 ] as const;
 export type PortalTable = (typeof PORTAL_TABLES)[number];
 
@@ -89,6 +98,16 @@ export type PortalTable = (typeof PORTAL_TABLES)[number];
  * `decision_log` and `runs`.
  */
 const DELETE_ORDER: readonly PortalTable[] = [
+  // 0030 (spec 039): the portal model references edges, page visits, builds, states and itself
+  'model_transitions',
+  'action_classes',
+  'screen_lineage',
+  'screen_members',
+  'build_epochs',
+  'model_screens',
+  'model_versions',
+  'parameter_roles',
+  'state_pair_labels',
   'checkpoints', // 0027: references runs and states (no portal_id: the default run_id partition)
   'reconciliations', // 0025: no references
   'marks', // 0024: references runs (used_by_run_id)
@@ -187,7 +206,19 @@ export function where(table: PortalTable, side: 'mine' | 'others'): string {
     case 'marks':
     case 'reconciliations':
     case 'builds':
+    case 'model_versions':
+    case 'model_screens':
+    case 'state_pair_labels':
+    case 'parameter_roles':
+    case 'build_epochs':
       return `portal_id ${op} ?`;
+    case 'screen_members':
+    case 'action_classes':
+      return `screen_id IN (SELECT id FROM model_screens WHERE portal_id ${op} ?)`;
+    case 'model_transitions':
+      return `from_screen_id IN (SELECT id FROM model_screens WHERE portal_id ${op} ?)`;
+    case 'screen_lineage':
+      return `model_version_id IN (SELECT id FROM model_versions WHERE portal_id ${op} ?)`;
     case 'state_components':
       return `state_id IN (SELECT id FROM states WHERE portal_id ${op} ?)`;
     case 'attribute_writes':

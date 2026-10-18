@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { ToolError, recordApiCall, recordState, recordTransition } from '../src/index.js';
-import { FP, REF, makeCtx, seedRun } from './helpers.js';
+import { FP, REF, makeCtx, seedRun, transitionStep } from './helpers.js';
 
 const call = (run_id: string, over: Record<string, unknown> = {}) => ({
   run_id,
@@ -92,6 +92,7 @@ describe('record_api_call', () => {
       confidence: 'observed',
     });
     const { edge_id } = await recordTransition(ctx, {
+      ...(await transitionStep(ctx, run)),
       run_id: run,
       from_state: a.state_id,
       to_state: null,

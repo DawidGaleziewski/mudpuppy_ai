@@ -1,6 +1,11 @@
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
-import { BrowserSession, trackAssetHealth, type StabilizerOptions } from '@pathfinder/crawler';
+import {
+  BrowserSession,
+  recordAssets,
+  trackAssetHealth,
+  type StabilizerOptions,
+} from '@pathfinder/crawler';
 import { computeFingerprint } from '@pathfinder/fingerprint';
 import type { ServerContext } from '../context.js';
 import type { Runtime } from '../runtime.js';
@@ -176,6 +181,8 @@ export function createBrowserRuntime(opts: BrowserRuntimeOptions = {}): Runtime 
     rs.isProbe = runChoices(run).probe;
     rs.plan = parsePlan(run.plan_json);
     rs.assets = trackAssetHealth(session.context);
+    const markerHeader = approved.effective.portal.model.build_marker?.header;
+    rs.loaded = recordAssets(session.context, session.page, markerHeader ? { markerHeader } : {});
     holder.rs = rs;
     // Playwright traces keep DOM snapshots with typed input values: a run that logs in with vault
     // credentials pauses the trace around every login (spec 009 FR-019a), and says so. Every

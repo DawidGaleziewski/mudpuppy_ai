@@ -15,9 +15,10 @@ def test_check_reports_every_library(capsys: pytest.CaptureFixture[str]) -> None
     assert set(out["libraries"]) == {"scikit-learn", "igraph", "leidenalg"}
 
 
-def test_unbuilt_commands_say_where_they_land(capsys: pytest.CaptureFixture[str]) -> None:
+def test_rules_and_communities_need_an_input_file(capsys: pytest.CaptureFixture[str]) -> None:
     assert main(["rules"]) == 2
-    assert "M4" in json.loads(capsys.readouterr().out)["error"]
+    assert "--in" in json.loads(capsys.readouterr().out)["error"]
+    assert main(["communities"]) == 2
 
 
 def test_store_is_opened_read_only(tmp_path: Path) -> None:

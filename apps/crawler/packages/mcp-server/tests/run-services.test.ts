@@ -12,7 +12,7 @@ import {
   recordState,
   recordTransition,
 } from '../src/index.js';
-import { FP, REF, makeCtx, seedRun } from './helpers.js';
+import { FP, REF, makeCtx, seedRun, transitionStep } from './helpers.js';
 
 async function code(p: Promise<unknown>): Promise<string> {
   try {
@@ -244,6 +244,7 @@ describe('complete_run / finish_run', () => {
     const a = await recordState(ctx, st(run, 'a'));
     const b = await recordState(ctx, st(run, 'b'));
     const { edge_id } = await recordTransition(ctx, {
+      ...(await transitionStep(ctx, run)),
       run_id: run,
       from_state: a.state_id,
       to_state: b.state_id,

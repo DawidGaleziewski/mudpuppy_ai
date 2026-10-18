@@ -1,5 +1,6 @@
 import type { ServerContext } from '../../context.js';
 import type { PageResult } from '../../runtime.js';
+import { beginJourney } from './journey.js';
 import { loginPreconditions, performLogin } from '../login.js';
 import type { RunState } from '../run-state.js';
 import { counted, decision, flushObstacles, phase, reported, step } from './context.js';
@@ -34,6 +35,8 @@ export async function login(
   return counted(state, async () => {
     const started = performance.now();
     const creds = loginPreconditions(state);
+    // A login starts a journey of its own (spec 039 design § 5.7).
+    await beginJourney(ctx, state, { kind: 'login' }, 'reset');
     const out = await step({ ctx, run }, 'login', async () => {
       state.session.navigation.begin(state.session.page.url());
       const out = await performLogin(ctx, state, creds);

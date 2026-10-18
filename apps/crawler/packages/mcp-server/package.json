@@ -19,6 +19,7 @@
     "@pathfinder/fix-plugins": "workspace:*",
     "@pathfinder/probes": "workspace:*",
     "@pathfinder/hooks": "workspace:*",
+    "@pathfinder/model": "workspace:*",
     "@pathfinder/obstacles": "workspace:*",
     "@pathfinder/safety": "workspace:*",
     "@pathfinder/store": "workspace:*",

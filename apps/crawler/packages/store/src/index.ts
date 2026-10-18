@@ -8,4 +8,5 @@ export * from './tracer.js';
 export * from './decision-log.js';
 export * from './import-agent.js';
 export * from './store-reset.js';
+export * from './model-writer.js';
 export type { Selectable, Insertable } from 'kysely';

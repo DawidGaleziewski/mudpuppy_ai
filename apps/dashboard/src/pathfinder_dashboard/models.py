@@ -265,6 +265,125 @@ class ObservationBuild(Row):
     build_id: str
 
 
+CoverageStatus = Literal["active", "not_seen_since", "untested", "retired"]
+
+
+class ModelVersion(Row):
+    """0030 (spec 039): one reconcile of one portal."""
+
+    id: str
+    portal_id: str
+    seq: int
+    built_at: str
+    algorithm: str
+    threshold: float
+    observation_watermark: str | None
+    decision_watermark: str | None
+    stats_json: Json
+
+
+class ModelScreen(Row):
+    """0030 (spec 039): a screen of the portal model (abstract state) with a stable id."""
+
+    id: str
+    key: str
+    portal_id: str
+    route_key: str
+    title: str
+    status: Literal["active", "merged", "retired"]
+    first_model_version: str
+    created_at: str
+
+
+class ScreenMember(Row):
+    """0030: a page version's membership of a model screen, per model version."""
+
+    screen_id: str
+    state_id: str
+    ordinal: int
+    assigned_by: Literal["clustering", "constraint"]
+    from_model_version: str
+    to_model_version: str | None
+
+
+class ScreenLineage(Row):
+    """0030: a split, merge, retirement or revival of a model screen."""
+
+    id: str
+    model_version_id: str
+    kind: Literal["split", "merge", "retire", "revive"]
+    from_screen_id: str
+    to_screen_id: str | None
+    members_moved: int
+
+
+class StatePairLabel(Row):
+    """0030: a person's "same screen?" answer for two page versions."""
+
+    portal_id: str
+    state_a: str
+    state_b: str
+    label: Literal["clone", "near_duplicate", "distinct"]
+    nd_kind: Literal["cosmetic", "dynamic_data", "duplication"] | None
+    labelled_by: str
+    labelled_at: str
+    reason: str | None
+
+
+class ParameterRoleRow(Row):
+    """0030: what a parameter of a route template does."""
+
+    portal_id: str
+    route_template: str
+    param: str
+    role: Literal["identity", "data", "ignored"]
+    decided_by: Literal["reconciler", "person"]
+    decided_at: str
+
+
+class ActionClass(Row):
+    """0030: one element of a model screen, matched across runs, with its coverage."""
+
+    id: str
+    screen_id: str
+    element_key: str
+    kind: TransitionKind
+    is_global: bool
+    status: CoverageStatus
+    streak_json: Json
+    status_model_version: str
+
+
+class ModelTransition(Row):
+    """0030: screen → action → screen across runs."""
+
+    id: str
+    from_screen_id: str
+    action_class_id: str
+    to_screen_id: str | None
+    result: StepResult
+    internal: bool
+    support: int
+    first_seen_edge_id: str
+    last_seen_edge_id: str
+    status: CoverageStatus
+    status_model_version: str
+
+
+class BuildEpoch(Row):
+    """0030: the period a build of a scope served, per environment."""
+
+    id: str
+    portal_id: str
+    scope: str
+    environment: str
+    build_id: str
+    first_visit_id: str
+    last_visit_id: str
+    overlaps_previous: bool
+    model_version_id: str
+
+
 class Form(Row):
     id: str
     run_id: str
@@ -1023,6 +1142,15 @@ TABLE_MODELS: dict[str, type[Row]] = {
     "journeys": Journey,
     "attribute_writes": AttributeWrite,
     "observation_builds": ObservationBuild,
+    "model_versions": ModelVersion,
+    "model_screens": ModelScreen,
+    "screen_members": ScreenMember,
+    "screen_lineage": ScreenLineage,
+    "state_pair_labels": StatePairLabel,
+    "parameter_roles": ParameterRoleRow,
+    "action_classes": ActionClass,
+    "model_transitions": ModelTransition,
+    "build_epochs": BuildEpoch,
 }
 
 

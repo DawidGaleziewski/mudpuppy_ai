@@ -4,6 +4,7 @@ import type { EffectiveConfig } from '@pathfinder/config';
 import {
   FrontierPolicy,
   type AssetHealth,
+  type AssetRecorder,
   type BrowserSession,
   type MountWait,
 } from '@pathfinder/crawler';
@@ -84,6 +85,18 @@ export class RunState {
   hooks: HookRunner | null = null;
   /** Stylesheets, scripts and fonts that failed since the last page (spec 030 FR-041). */
   assets: AssetHealth | null = null;
+  /** Scripts and stylesheets of the current document, for build signatures (spec 039 § 5.2). */
+  loaded: AssetRecorder | null = null;
+  /**
+   * The journey being recorded (spec 039 § 5.7): its id, the seq of its last transition, and the
+   * transition seq at which each state was reached (a backtrack branches there). Null until the
+   * first page of a journey.
+   */
+  journey: { id: string; seq: number; reached: Map<string, number> } | null = null;
+  /** The visit the next transition starts from; null at a journey's start. */
+  lastVisitId: string | null = null;
+  /** The run's last visit number; null until read from the store (a resumed run continues it). */
+  visitSeq: number | null = null;
   /** The portal's form steps (spec 032 US1), loaded from the store on the first form of the run. */
   formSteps: FormStepIndex | null = null;
   /** True while a technical probe's fault is armed: the error page is not re-opened (spec 032). */

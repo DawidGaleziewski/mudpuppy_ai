@@ -10,6 +10,7 @@ import { ToolError } from '../../errors.js';
 import type { GoToStateInput, GoToStateResult, PageResult } from '../../runtime.js';
 import { resolveRecipe, type Recipe } from '../../services/checkpoints.js';
 import { getRun } from '../../services/index.js';
+import { beginJourney } from './journey.js';
 import type { RunState } from '../run-state.js';
 import { act } from './act.js';
 import { navigate } from './navigate.js';
@@ -122,6 +123,8 @@ export async function goToState(
     input.state_id,
   );
   const screen = await screenOf(ctx, input.state_id);
+  // The replay walks the recorded path again: a journey of its own (spec 039 design § 5.7).
+  await beginJourney(ctx, rs, { kind: 'checkpoint' }, 'backtrack');
   rs.replay = {
     target: input.state_id,
     ...(screen ? { route: screen.route_template, cluster: screen.cluster_id } : {}),

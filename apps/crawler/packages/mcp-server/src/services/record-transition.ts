@@ -1,9 +1,12 @@
 import {
   Confidence,
+  Driver,
   EdgeStatus,
   FoundBy,
   SafetyClass,
   Stabilization,
+  StepResult,
+  TransitionKind,
   newId,
   nowIso,
 } from '@pathfinder/core';
@@ -60,6 +63,8 @@ export const ActionInput = z
     tag: z.string().min(1).optional(),
     /** Frame path of the document it lives in (spec 015 R3); absent for the top document. */
     frame: z.string().min(1).optional(),
+    /** The model's element key (spec 039 design § 5.5): matches the action across runs. */
+    element_key: z.string().min(1).optional(),
   })
   .strict();
 
@@ -75,6 +80,15 @@ export const RecordTransitionInput = z
     confidence: Confidence,
     error: z.record(z.string(), z.unknown()).nullable().default(null),
     stabilization: Stabilization.default('settled'),
+    // MudPuppy 2.0 (spec 039 design § 5.7): the edge as a step of a journey.
+    journey_id: z.string().min(1),
+    seq: z.number().int().positive(),
+    /** The visit the step started from; null only when the journey has none yet. */
+    from_visit_id: z.string().min(1).nullable(),
+    element_key: z.string().min(1),
+    kind: TransitionKind,
+    result: StepResult,
+    driver: Driver.default('agent'),
   })
   .strict();
 
@@ -153,6 +167,13 @@ export async function recordTransition(
       error: input.error === null ? null : JSON.stringify(input.error),
       stabilization: input.stabilization,
       created_at: nowIso(),
+      journey_id: input.journey_id,
+      seq: input.seq,
+      from_visit_id: input.from_visit_id,
+      element_key: input.element_key,
+      kind: input.kind,
+      result: input.result,
+      driver: input.driver,
     })
     .execute();
   return { edge_id: id };

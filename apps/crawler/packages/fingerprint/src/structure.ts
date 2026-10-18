@@ -119,6 +119,34 @@ export const ACTIONABLE_ROLES: ReadonlySet<string> = new Set([
   'slider',
 ]);
 
+/**
+ * The element key of each extracted action, in order (spec 039 design § 5.5). `keys` come from
+ * `modelElementKeys` over the snapshot the actions were extracted from; an action matches the k-th
+ * key with its role and masked name when it is the k-th action with them (both walk the snapshot in
+ * document order, frame blocks included). An action ARIA does not see (a role-less clickable) gets
+ * `role|masked name|frame|nth`.
+ */
+export function keysForActions(
+  keys: readonly ModelElementKey[],
+  actions: readonly { role: string; maskedName: string; frame?: string; nth: number }[],
+): string[] {
+  const byName = new Map<string, ModelElementKey[]>();
+  for (const k of keys) {
+    const id = `${k.role}\u0000${k.name}`;
+    byName.set(id, [...(byName.get(id) ?? []), k]);
+  }
+  const used = new Map<string, number>();
+  return actions.map((a) => {
+    const id = `${a.role}\u0000${a.maskedName}`;
+    const k = used.get(id) ?? 0;
+    used.set(id, k + 1);
+    return (
+      byName.get(id)?.[k]?.key ??
+      `${a.role}|${a.maskedName.toLowerCase().replace(/\s+/g, ' ').trim()}|${a.frame ?? ''}|${a.nth}`
+    );
+  });
+}
+
 /** Roles that form an element's container path. */
 const CONTAINER_ROLES = new Set([
   'banner',

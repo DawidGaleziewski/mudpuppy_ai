@@ -11,3 +11,4 @@ export * from './environments.js';
 export * from './traces.js';
 export * from './ca-file.js';
 export * from './probe-budget.js';
+export * from './model-hooks.js';

@@ -14,34 +14,32 @@ group, ids in the message. Gates per milestone in `plan.md` § 1. `[B: …]` = b
 
 ## M1 Capture
 
-- [ ] T010 [opus] `db-admin`: 0029 (`builds`, `entity_refs`, `network_calls.schema_hash` / `transition_id`), decide 0037 lands here (plan § 1)
-- [ ] T011 [opus] `db-admin`: 0030 `state_components`; 0031 journeys, `page_visits` → `observations`, `observation_builds`, `transitions`, `trace_runs`; drop `edges`, `processes`, `process_steps` and every `edge_id`
-- [ ] T012 [opus] `db-admin`: 0032 `attribute_writes`; 0033 `runs.build_flag`
-- [ ] T013 [opus] Fingerprint v2: masked names, repeated-sibling collapse, structural signatures, components, MinHash reuse; fixtures; remove v1
-- [ ] T014 [opus] Element keys (`@pathfinder/fingerprint`), on every action and in `state_components.element_keys`; fixtures with Polish names
-- [ ] T015 [opus] Build signatures and scopes (`observe` step, mount detection), portal hook schema `model:` in `@pathfinder/config`
-- [ ] T016 [opus] Step results on observations and transitions (error pages, HTTP ≥ 500, validation, business templates, timeout, blocked)
-- [ ] T017 [opus] Journeys: start kinds, child journeys on backtrack, end reasons; `record_transition` writes `transitions`; `record_visit` writes `observations` with seq and context key
-- [ ] T018 [opus] Attribute writes: persona at seq 0, inputs on fill/select/check, shown label–value pairs; snapshot function in `@pathfinder/model`
-- [ ] T019 [opus] Trace mode on `trace_runs` + transitions (intent, outcomes, boundary); Principle IV promotion on `trace_runs`
-- [ ] T020 [sonnet] Every reader of `edges`, `page_visits`, `process_steps` moved to transitions / observations (MCP tools, BA evidence, run graph R-74, export, dashboard read models); `rg` list in findings
+- [x] T010–T012 [opus] One migration, **0029_capture_v2** (additive, reversible): `builds`, `state_components`, `journeys`, `attribute_writes`, `observation_builds`; v2 columns on `edges` (journey, seq, `from_visit_id`, element key, kind, result, driver), `page_visits` (journey, seq, result, context key, flags) and `network_calls` (`schema_hash`). Physical names kept (F-06), target observation via `page_visits.edge_id` (F-07); `entity_refs` moves to M3/M5 with the tables it points at; `runs.build_flag` dropped (a portal without hashed builds shows from `builds.source = unknown`)
+- [x] T013 [opus] Fingerprint v2 (row-like repeated siblings collapse, F-01, F-02), components, `minhashBlob`; the fingerprint lock rewritten once for v2
+- [x] T014 [opus] Model element keys (`modelElementKeys`, `keysForActions`; F-03, F-08) on every issued action and in `state_components.element_keys`
+- [x] T015 [opus] Build signatures (`buildSignatures`, scopes F-04), `recordAssets` (crawler), `model:` portal hook (header or meta marker, F-09; experiment flags; business errors); bug F-16 fixed
+- [x] T016 [opus] Step results (`stepResult`, precedence F-05) on every visit and transition (`model_capture` step)
+- [x] T017 [opus] Journeys: `entry_url` on a typed navigate, `checkpoint` on `go_to_state` (F-10), `login`, `fresh_session`, `resume`; ended on the next start and at `finish_run`; visits numbered per run, transitions per journey; refused actions are `blocked` steps
+- [x] T018 [opus] Attribute writes: persona at seq 0, typed and autofilled inputs, shown label–value pairs; `snapshotAt`, `typeValue`, `ageOf`
+- [-] T019 [opus] Trace mode on `trace_runs`: **moved to M5** (one process concept); traces already write journeys, transitions and attributes
+- [-] T020 [sonnet] Readers of `edges` / `page_visits`: **not needed** while the physical names stay (F-06, owner question)
 - [ ] T021 [opus] Headless probe runs: `runs.mode = 'probe'`, driver on `local-client.ts` + `replay.ts`, prefix cache, checkpoints, budgets, `driver = 'headless'`
-- [ ] T022 [sonnet] Pipeline golden test and slow tier updated; gates green
-- [ ] T023 [opus] M1 gate (plan § 1) + findings + tag `v2.0.0-m1`
+- [x] T022 [sonnet] Pipeline golden and trace golden snapshots updated on purpose (`model_capture`, `model_reconciled`; diffs read: only the new step, one v2 cluster id); slow tier green
+- [ ] T023 [opus] M1 gate (plan § 1) + tag `v2.0.0-m1`
 
 ## M2 Model
 
-- [ ] T030 [opus] `db-admin`: 0034 (model tables, `screens` rebuilt, `provisional_*` rename)
-- [ ] T031 [opus] Parameter roles and route keys (`@pathfinder/model`), person override
-- [ ] T032 [opus] Canonical clustering: partitions, MinHash distance, LSH > 500, must-/cannot-link, average linkage, deterministic ties, label conflicts
-- [ ] T033 [opus] Stable ids and lineage; history-independence handling (design § 6.2)
-- [ ] T034 [opus] Action classes, global actions, model transitions (upsert key), internal transitions
-- [ ] T035 [opus] Coverage, absent streaks, statuses; build epochs and overlaps
-- [ ] T036 [opus] `model-writer.ts` + `pnpm model:reconcile [--rebuild]`; after `finish_run`; watermarks; one transaction
+- [x] T030 [opus] **0030_portal_model**: `model_versions`, `model_screens` (beside the crawler's `screens`, F-14), `screen_members`, `screen_lineage`, `state_pair_labels`, `parameter_roles`, `action_classes` (coverage folded in, F-14), `model_transitions`, `build_epochs`; Zod/Kysely/dashboard models, snapshot, portal export/delete
+- [x] T031 [opus] Parameter roles and route keys, person override
+- [x] T032 [opus] Canonical clustering (partitions, MinHash, LSH > 500, must-/cannot-link, average linkage, code-unit ties, label conflicts)
+- [x] T033 [opus] Stable ids and lineage (split, merge, retire, revive)
+- [x] T034 [opus] Action classes, global keys, model transitions folded by key, internal transitions
+- [x] T035 [opus] Coverage and statuses (F-11, F-12, F-13); build epochs and overlaps
+- [x] T036 [opus] `reconcile` (pure core) + `model-writer.ts` (`reconcilePortalModel`, watermarks, one transaction) + `pnpm model:reconcile [--rebuild]`; runs after `finish_run` (a failure is a decision-log warning, never a failed run)
 - [ ] T037 [opus] τ calibration, pair labels, labelling queue (read model); `model:decide label`
 - [ ] T038 [opus] Explorer seeding (F-01@038) from `screen_members`
-- [ ] T039 [sonnet] Map and screen read models on Layer M (`queries_map.py` lifting removed); functional Salvage Yard pages
-- [ ] T040 [opus] Reconciler gates: order independence, idempotence, rebuild, history independence (property tests)
+- [~] T039 [sonnet] Scans ▸ Map reads the model when the portal has one (`model_screens`, members as the deck, non-internal `model_transitions`, not-seen-since links greyed); one scan still reads its own edges. Screen pages and the inspector still read the crawler's screens
+- [x] T040 [opus] Reconciler gates: order independence, rebuild, history independence (`model` tests on the pure core), idempotence and rebuild on the writer (`store` tests)
 - [ ] T041 [opus] Scenarios: Numbered sections, Repeated rows, Not visited, Moved link (gates)
 - [ ] T042 [sonnet] Reference-insurer eval trial vs v1 baseline (screens); M2 gate; tag `v2.0.0-m2`
 

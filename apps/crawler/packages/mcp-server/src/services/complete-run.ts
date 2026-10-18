@@ -1,10 +1,11 @@
 import { RunStatus, nowIso } from '@pathfinder/core';
-import { emitForRun } from '@pathfinder/store';
+import { emitForRun, reconcilePortalModel } from '@pathfinder/store';
 import { z } from 'zod';
 import type { ServerContext } from '../context.js';
 import { ToolError, parseInput } from '../errors.js';
 import { computeCoverage, type Coverage } from '@pathfinder/crawler';
 import { getRun, type RunRow } from './common.js';
+import { endRunJourneys } from './journeys.js';
 import { isBudgetExhausted } from './run-budget.js';
 import { robotsCoverage } from './robots.js';
 import { closeProcess, processOfRun } from './trace.js';
@@ -33,6 +34,26 @@ const CompleteRunInput = z
   .strict();
 
 /** Server-internal: computes coverage and sets the final status. The agent never calls this. */
+/**
+ * Rebuild the portal model once the run's evidence is in (spec 039 design § 7). A failure never
+ * fails the run: the run's evidence is recorded either way, `pnpm model:reconcile` can rebuild
+ * later, and the failure is noted in the decision log.
+ */
+async function reconcileAfterRun(ctx: ServerContext, run: RunRow): Promise<void> {
+  try {
+    const r = reconcilePortalModel(ctx.raw, run.portal_id);
+    if (r.modelVersion !== null)
+      emitForRun(ctx.tracer, run.id, 'model_reconciled', { seq: r.seq, ...r.stats });
+  } catch (e) {
+    await ctx.decisions.record({
+      run_id: run.id,
+      kind: 'warning',
+      rule: 'model:reconcile_failed',
+      reason: `the portal model was not rebuilt after this run: ${(e as Error).message}`,
+    });
+  }
+}
+
 export async function completeRun(ctx: ServerContext, raw: unknown, live?: LiveRobotsStats) {
   const input = parseInput(CompleteRunInput, raw);
   const run = await getRun(ctx, input.run_id);
@@ -53,6 +74,9 @@ export async function completeRun(ctx: ServerContext, raw: unknown, live?: LiveR
     })
     .where('id', '=', run.id)
     .execute();
+  // Every journey still open ends with the run (spec 039 design § 5.7).
+  await endRunJourneys(ctx, run.id);
+  await reconcileAfterRun(ctx, run);
   emitForRun(ctx.tracer, run.id, 'run_status', {
     status: input.status,
     steps_used: run.steps_used,

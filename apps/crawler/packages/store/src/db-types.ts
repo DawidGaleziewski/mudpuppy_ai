@@ -606,6 +606,108 @@ export interface ObservationBuildsTable {
   build_id: string;
 }
 
+export type CoverageStatus = 'active' | 'not_seen_since' | 'untested' | 'retired';
+
+/** 0030 (spec 039 design § 6): one reconcile of one portal. */
+export interface ModelVersionsTable {
+  id: string;
+  portal_id: string;
+  seq: number;
+  built_at: string;
+  algorithm: string;
+  threshold: number;
+  observation_watermark: string | null;
+  decision_watermark: string | null;
+  stats_json: string;
+}
+
+/** 0030: a screen of the portal model with a stable id and key (F-14@039). */
+export interface ModelScreensTable {
+  id: string;
+  key: string;
+  portal_id: string;
+  route_key: string;
+  title: string;
+  status: 'active' | 'merged' | 'retired';
+  first_model_version: string;
+  created_at: string;
+}
+
+export interface ScreenMembersTable {
+  screen_id: string;
+  state_id: string;
+  ordinal: number;
+  assigned_by: 'clustering' | 'constraint';
+  from_model_version: string;
+  to_model_version: string | null;
+}
+
+export interface ScreenLineageTable {
+  id: string;
+  model_version_id: string;
+  kind: 'split' | 'merge' | 'retire' | 'revive';
+  from_screen_id: string;
+  to_screen_id: string | null;
+  members_moved: number;
+}
+
+export interface StatePairLabelsTable {
+  portal_id: string;
+  state_a: string;
+  state_b: string;
+  label: 'clone' | 'near_duplicate' | 'distinct';
+  nd_kind: 'cosmetic' | 'dynamic_data' | 'duplication' | null;
+  labelled_by: string;
+  labelled_at: string;
+  reason: string | null;
+}
+
+export interface ParameterRolesTable {
+  portal_id: string;
+  route_template: string;
+  param: string;
+  role: 'identity' | 'data' | 'ignored';
+  decided_by: 'reconciler' | 'person';
+  decided_at: string;
+}
+
+export interface ActionClassesTable {
+  id: string;
+  screen_id: string;
+  element_key: string;
+  kind: TransitionKind;
+  is_global: 0 | 1;
+  status: CoverageStatus;
+  streak_json: string;
+  status_model_version: string;
+}
+
+export interface ModelTransitionsTable {
+  id: string;
+  from_screen_id: string;
+  action_class_id: string;
+  to_screen_id: string | null;
+  result: StepResult;
+  internal: 0 | 1;
+  support: number;
+  first_seen_edge_id: string;
+  last_seen_edge_id: string;
+  status: CoverageStatus;
+  status_model_version: string;
+}
+
+export interface BuildEpochsTable {
+  id: string;
+  portal_id: string;
+  scope: string;
+  environment: string;
+  build_id: string;
+  first_visit_id: string;
+  last_visit_id: string;
+  overlaps_previous: 0 | 1;
+  model_version_id: string;
+}
+
 export interface FormsTable {
   id: string;
   run_id: string;
@@ -920,6 +1022,15 @@ export interface Database {
   journeys: JourneysTable;
   attribute_writes: AttributeWritesTable;
   observation_builds: ObservationBuildsTable;
+  model_versions: ModelVersionsTable;
+  model_screens: ModelScreensTable;
+  screen_members: ScreenMembersTable;
+  screen_lineage: ScreenLineageTable;
+  state_pair_labels: StatePairLabelsTable;
+  parameter_roles: ParameterRolesTable;
+  action_classes: ActionClassesTable;
+  model_transitions: ModelTransitionsTable;
+  build_epochs: BuildEpochsTable;
   frontier: FrontierTable;
   open_questions: OpenQuestionsTable;
   rule_candidates: RuleCandidatesTable;

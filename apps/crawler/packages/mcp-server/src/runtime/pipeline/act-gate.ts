@@ -1,6 +1,8 @@
 import { decide, type GateContext } from '@pathfinder/crawler';
 import type { ServerContext } from '../../context.js';
 import { recordTransition, type RunRow } from '../../services/index.js';
+import { ensureJourney } from './journey.js';
+import { transitionKind } from './record-page.js';
 import type { RunState } from '../run-state.js';
 import { descriptorOf, getAction, withoutPageUrl, type ActionRow } from './actions.js';
 import { orFail, ReportedFailure, reported, type Reported } from './context.js';
@@ -33,7 +35,7 @@ export async function gateAct(
   const reports = [gateEvent(state, { kind: 'act', action }, d)];
   if (d.allowed) return reported({ action, g, d }, reports);
 
-  await orFail(reports, recordSkippedEdge(ctx, run, action, d.classification.safetyClass));
+  await orFail(reports, recordSkippedEdge(ctx, run, state, action, d.classification.safetyClass));
   const refused = refuse(ctx, run, d, actionTarget(action, d.classification.safetyClass), reports);
   // A trace stops where the safety class does (a set ceiling below the action, spec 021):
   // robots, denylist and scope refusals stay plain ACTION_REFUSED.
@@ -50,6 +52,7 @@ export async function gateAct(
 async function recordSkippedEdge(
   ctx: ServerContext,
   run: RunRow,
+  state: RunState,
   action: ActionRow,
   safetyClass: ReturnType<typeof decide>['classification']['safetyClass'],
 ): Promise<void> {
@@ -58,7 +61,17 @@ async function recordSkippedEdge(
     .select('evidence_ref')
     .where('id', '=', action.state_id)
     .executeTakeFirstOrThrow();
+  // A refused action is a step of the journey that led nowhere (spec 039 design § 5.6: `blocked`).
+  const journeyId = await ensureJourney(ctx, state);
   await recordTransition(ctx, {
+    journey_id: journeyId,
+    seq: ++state.journey!.seq,
+    from_visit_id: state.lastVisitId,
+    element_key:
+      action.json.element_key ??
+      `${action.role}|${action.accessible_name ?? ''}||${action.json.nth}`,
+    kind: transitionKind(action),
+    result: 'blocked',
     run_id: run.id,
     from_state: action.state_id,
     to_state: null,

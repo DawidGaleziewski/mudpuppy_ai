@@ -11,6 +11,7 @@
     "@pathfinder/chat-model": "workspace:*",
     "@pathfinder/core": "workspace:*",
     "@pathfinder/docs-model": "workspace:*",
+    "@pathfinder/model": "workspace:*",
     "@pathfinder/trace": "workspace:*",
     "better-sqlite3": "^13.0.3",
     "kysely": "^0.29.6",

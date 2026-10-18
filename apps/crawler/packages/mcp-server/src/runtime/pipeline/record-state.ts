@@ -1,5 +1,7 @@
-import { maskText, nowIso } from '@pathfinder/core';
+import { StateComponents, maskText, nowIso } from '@pathfinder/core';
 import type { SettleOutcome } from '@pathfinder/crawler';
+import { computeComponents, minhashBlob } from '@pathfinder/fingerprint';
+import type { PageCapture } from './capture-v2.js';
 import type { ServerContext } from '../../context.js';
 import { recordState } from '../../services/index.js';
 import type { RunState } from '../run-state.js';
@@ -16,6 +18,7 @@ export function recordStateStep(
     fingerprinted: Fingerprinted;
     storedSnapshot: string;
     stabilization: SettleOutcome['result'];
+    capture: PageCapture;
   },
 ) {
   const { ctx, run, rs } = sc;
@@ -50,6 +53,11 @@ export function recordStateStep(
       state_kind: args.fingerprinted.browserError ? 'technical' : formStep.kind,
     });
     if (formStep.stepId !== null) rs.stepOfState.set(state_id, formStep.stepId);
+    await recordComponents(ctx, state_id, {
+      routeTemplate,
+      masked: args.fingerprinted.masked,
+      capture: args.capture,
+    });
     const stateRow = await ctx.db
       .selectFrom('states')
       .select(['cluster_id', 'title', 'route_template'])
@@ -60,6 +68,42 @@ export function recordStateStep(
       ...formStepReports(state_id, formStep),
     ]);
   });
+}
+
+/**
+ * The state's fingerprint v2 components (spec 039 design § 5.4), written once: the first sighting
+ * of a state decides them, a later one finds the row there.
+ */
+async function recordComponents(
+  ctx: ServerContext,
+  stateId: string,
+  page: { routeTemplate: string; masked: string; capture: PageCapture },
+): Promise<void> {
+  const c = computeComponents({
+    routeTemplate: page.routeTemplate,
+    ariaSnapshot: page.masked,
+    calls: page.capture.calls,
+    mounts: page.capture.mounts,
+  });
+  const row = StateComponents.parse({
+    state_id: stateId,
+    structure_hash: c.structureHash,
+    content_hash: c.contentHash,
+    overlay_hash: c.overlayHash,
+    calls_hash: c.callsHash,
+    mounts_hash: c.mountsHash,
+    minhash: c.minhash,
+    element_keys: c.elementKeys,
+  });
+  await ctx.db
+    .insertInto('state_components')
+    .values({
+      ...row,
+      minhash: minhashBlob(row.minhash),
+      element_keys: JSON.stringify(row.element_keys),
+    })
+    .onConflict((oc) => oc.column('state_id').doNothing())
+    .execute();
 }
 
 /**

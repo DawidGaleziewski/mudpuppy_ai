@@ -12,6 +12,10 @@ import { startHarness } from './harness.js';
  * must keep the fingerprint they had before spec 015 changed how pages are observed, or every
  * stored state of an existing portal stops being recognised. The snapshot was written before any
  * observer change; it must never be updated to make a spec 015 change pass.
+ *
+ * Rewritten once, on purpose, for MudPuppy 2.0 (spec 039 T013): fingerprint v2 collapses repeated
+ * rows, and 2.0 starts from an emptied store (data reset, plan § 2), so no stored state has the old
+ * fingerprints. From here on it locks v2: it must never be updated to make an observer change pass.
  */
 const available = await canLaunchBrowser();
 

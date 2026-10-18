@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { ToolError, recordForm, recordState, recordTransition } from '../src/index.js';
-import { FP, REF, makeCtx, seedRun } from './helpers.js';
+import { FP, REF, makeCtx, seedRun, transitionStep } from './helpers.js';
 
 const state = (run_id: string, over: Record<string, unknown> = {}) => ({
   run_id,
@@ -212,6 +212,7 @@ describe('portal workspaces (spec 002 FR-026, FR-027)', () => {
     expect(
       await code(
         recordTransition(ctx, {
+          ...(await transitionStep(ctx, insurer)),
           run_id: insurer,
           from_state: own.state_id,
           to_state: foreign.state_id,

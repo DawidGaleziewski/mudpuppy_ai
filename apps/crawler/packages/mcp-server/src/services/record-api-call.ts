@@ -1,4 +1,5 @@
 import { looksLikeRawPayload, newId, nowIso } from '@pathfinder/core';
+import { schemaHash } from '@pathfinder/model';
 import { z } from 'zod';
 import type { ServerContext } from '../context.js';
 import { ToolError, parseInput } from '../errors.js';
@@ -72,6 +73,11 @@ export async function recordApiCall(
       url: input.url,
       req_sample: input.req_sample,
       res_sample: input.res_sample,
+      // The endpoint schema (spec 039 design § 5.3): a backend change shows as a new hash.
+      schema_hash:
+        input.res_schema === undefined || input.res_schema === null
+          ? null
+          : schemaHash(input.res_schema as Parameters<typeof schemaHash>[0]),
     })
     .execute();
   return { api_call_id: id };

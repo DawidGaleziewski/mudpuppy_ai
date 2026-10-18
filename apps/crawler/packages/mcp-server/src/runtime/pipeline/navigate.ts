@@ -5,6 +5,7 @@ import { ToolError } from '../../errors.js';
 import type { NavigateInput, PageResult } from '../../runtime.js';
 import { saveCheckpoint } from '../../services/checkpoints.js';
 import type { RunRow } from '../../services/index.js';
+import { beginJourney } from './journey.js';
 import type { RunState } from '../run-state.js';
 import { counted, flushObstacles, phase, reported, step } from './context.js';
 import {
@@ -85,6 +86,10 @@ async function navigateStep(
     return reported(g, reports);
   });
 
+  // A typed navigation starts a journey (spec 039 design § 5.7); a replay's and the login's own
+  // navigations belong to the journey that `go_to_state` or `login` started.
+  if (!state.replay && !state.loggingIn)
+    await beginJourney(ctx, state, { kind: 'entry_url' }, 'reset');
   await phase(ctx, 'goto', async () => {
     state.session.navigation.begin(input.url);
     const timeouts = state.effective.portal.timeouts;

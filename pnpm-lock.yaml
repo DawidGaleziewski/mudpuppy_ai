@@ -551,6 +551,9 @@ importers:
       '@pathfinder/hooks':
         specifier: workspace:*
         version: link:../hooks
+      '@pathfinder/model':
+        specifier: workspace:*
+        version: link:../model
       '@pathfinder/obstacles':
         specifier: workspace:*
         version: link:../obstacles
@@ -637,6 +640,9 @@ importers:
       '@pathfinder/docs-model':
         specifier: workspace:*
         version: link:../docs-model
+      '@pathfinder/model':
+        specifier: workspace:*
+        version: link:../model
       '@pathfinder/trace':
         specifier: workspace:*
         version: link:../trace

@@ -70,6 +70,10 @@ def test_model_literals_equal_table_checks(empty_store: Store, table: str) -> No
             "is_error",
             "withdrawn",
             "not_observable",
+            # 0030 (spec 039): the portal model's flags
+            "is_global",
+            "internal",
+            "overlaps_previous",
         }
         if checked is None or name in bool_flags:
             continue  # unconstrained text, or a 0/1 flag mapped to bool

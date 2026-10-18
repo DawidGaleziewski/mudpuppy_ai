@@ -5,6 +5,7 @@ import {
   collapsedText,
   computeComponents,
   computeFingerprint,
+  keysForActions,
   minhashBlob,
   modelElementKeys,
 } from '../src/index.js';
@@ -121,6 +122,25 @@ describe('element keys (spec 039 design § 5.5)', () => {
     const a = modelElementKeys(tree('- banner:\n  - link "Koszyk (3)"'))[0]!.key;
     const b = modelElementKeys(tree('- banner:\n  - link "Koszyk (4)"'))[0]!.key;
     expect(a).toBe(b);
+  });
+
+  it('matches extracted actions to keys by role, masked name and order; others fall back', () => {
+    const keys = modelElementKeys(
+      tree('- main:\n  - link "Polisa 12"\n  - link "Polisa 13"\n  - button "Dalej"'),
+    );
+    expect(
+      keysForActions(keys, [
+        { role: 'link', maskedName: 'Polisa <n>', nth: 0 },
+        { role: 'link', maskedName: 'Polisa <n>', nth: 0 },
+        { role: 'button', maskedName: 'Dalej', nth: 0 },
+        { role: 'generic', maskedName: 'Ikona', nth: 0, frame: 'f1' },
+      ]),
+    ).toEqual([
+      'link|polisa <n>|main|1',
+      'link|polisa <n>|main|2',
+      'button|dalej|main|',
+      'generic|ikona|f1|0',
+    ]);
   });
 
   it('skips the options of a native select, as the action extractor does', () => {

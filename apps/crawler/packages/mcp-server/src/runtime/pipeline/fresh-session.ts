@@ -1,4 +1,5 @@
 import { ToolError } from '../../errors.js';
+import { beginJourney } from './journey.js';
 import { loginPreconditions, performLogin } from '../login.js';
 import { decision, event, fail, reported, step, type Report } from './context.js';
 import type { ReplayScope } from './replay.js';
@@ -31,6 +32,7 @@ function freshSession(sc: ReplayScope, why: string): Promise<void> {
     await rs.session.context.clearCookies();
     await rs.session.page.evaluate(CLEAR_STORAGE).catch(() => undefined);
     rs.currentStateId = null;
+    await beginJourney(ctx, rs, { kind: 'fresh_session' }, 'reset');
     const relogin = rs.login === 'logged_in';
     const reports: Report[] = [
       decision({

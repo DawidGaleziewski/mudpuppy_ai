@@ -80,3 +80,77 @@ Bugs, slips and design deviations found while building, each with a test or eval
   and BA screen-region citations). The model's element key (`role|masked name|container|ordinal`)
   is another thing. **Built:** the model's is `modelElementKeys` in `@pathfinder/fingerprint`; the
   column is `element_key`. Glossary must name both (T101).
+
+## F-09 No version endpoint as a build marker (T015), 2026-10-19
+
+- **What**: design § 5.10 lets a portal hook name a version endpoint. Fetching it would be a request
+  of the crawler's own, which spec 001 FR-025 forbids ("never issues a request of its own").
+  **Built:** `model.build_marker` takes a document response `header` or a `meta` name only; an
+  `endpoint` key is refused by the schema. If the page itself calls a version endpoint, its
+  response shape is still recorded.
+
+## F-10 `go_to_state` starts a root journey, not a child (T017), 2026-10-19
+
+- **What**: design § 5.7 makes a backtrack a child journey that inherits its parent's steps up to
+  the branch point. `go_to_state` replays the recorded path from its start, so the replayed steps
+  are transitions of their own; a child journey would count them twice. **Built:** `go_to_state`
+  starts a root `checkpoint` journey (the open one ends `backtrack`); child journeys stay in the
+  schema for a real browser back, which the crawler does not do yet.
+
+## F-11 Coverage: the latest runs decide (T035), 2026-10-19
+
+- **What**: design § 6.6 calls an action `active` when present in the current epoch and
+  `not_seen_since` when absent in two consecutive runs of it; an action present early in the epoch
+  and missed by the last two runs is both. **Built:** `not_seen_since` wins when every audience it
+  was on missed it in the last two runs.
+- **Test**: `transitions.test.ts` "present, then missed twice".
+
+## F-12 Audience = persona and environment of the run (T035), 2026-10-19
+
+- **What**: design § 5.6 defines the audience as a hash of the persona's attribute set and the
+  environment; visits store only the combined context key (builds + audience + arm), not the
+  audience apart. **Built:** the reconciler uses `<persona id>@<environment>` from the run. Two
+  personas with the same attributes count as two audiences (stricter, never wrong).
+
+## F-13 A screen's epoch is the set of builds of its latest visit (T035), 2026-10-19
+
+- **What**: design § 6.7 gives a screen's current epoch as "the latest epochs of the scopes mounted
+  on its members". **Built:** coverage compares the build set (scope = build, every scope) of each
+  run's last visit of the screen with that of the screen's latest visit; `build_epochs` per scope
+  are still computed and stored for display and rules. A build change in a scope the screen does
+  not use still starts a new epoch for it (a stricter reading; coverage then says `untested`
+  until a run looks again).
+
+## F-14 Model screens beside the crawler's screens; coverage folded into action classes (T030), 2026-10-19
+
+- **What**: design § 6.8 rebuilds `screens` as the model's registry. The crawler writes `screens`
+  at crawl time (route + cluster, revisions r1, r2…) and the dashboard reads them on most pages.
+  **Built:** migration 0030 adds `model_screens` (keys `SC-0001`…) with `screen_members` and
+  `screen_lineage`; `screens` stays the crawl-time provisional assignment the explorer uses. Coverage
+  (status and absent streak per audience) lives on `action_classes` (`status`, `streak_json`), not a
+  separate `action_coverage` table: the reconciler recomputes it from Layer A each time.
+- **Later** (M2 dashboard): Map and Screens read `model_screens`; F-01@038's seeding moves to
+  `screen_members` (T038).
+
+## F-15 The miner takes the observation table as JSON (T061), 2026-10-19
+
+- **What**: design § 11.2 has the miner read the store and build the observation tables itself.
+  The snapshot logic (journeys, branch points, missing values) is TypeScript (`snapshotAt`), and
+  rebuilding it in Python would make two implementations to keep equal. **Built:**
+  `pathfinder-miner rules --in <table.json>` takes one decision point's rows (features + target)
+  and returns the decision table; `communities --in <graph.json>` takes the weighted screen graph.
+  The miner still never writes the store. Also: rules with the same outcome that differ only in
+  one category feature covering every value seen are merged (design § 11.3 step 2); without it
+  the tree's split order showed as two exit rules.
+- **Order of rules**: `classify` runs R6 and R8 for their own deviation kinds first, then R1, R2,
+  R3, R7, R4 and R5 (R7 before R4: same-audience target changes are decision points, other-audience
+  ones go to the R4 replays).
+
+## F-16 Bug: the asset recorder threw on a pop-up's first request (T015), 2026-10-19
+
+- **What**: the gate F-04@020 (a pop-up window opens a URL) raised three uncaught errors:
+  `Request.frame()` throws for a navigation request issued before its frame exists, a case the
+  crawler's own docs name (spec 020). The tests passed, but vitest exits 1 on unhandled errors.
+  **Fixed:** the recorder skips a request whose frame is not there yet.
+- **Test idea**: a unit test of `recordAssets` with a fake context emitting such a response; the
+  pop-up gate already covers it end to end.

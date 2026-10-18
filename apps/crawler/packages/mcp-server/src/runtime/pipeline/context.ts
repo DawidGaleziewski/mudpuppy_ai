@@ -154,4 +154,12 @@ export interface StepContext {
   includeActions?: boolean;
   /** The page is the landing of the server-side login (its visit row says `login`, spec 019). */
   visitVia?: 'login';
+  /**
+   * What an `act` typed (spec 039 design § 5.8): its own fill or select value, and what map-mode
+   * autofill typed before the press.
+   */
+  typed?: {
+    value: string | null;
+    fills: readonly { name: string; kind: 'fill' | 'select' | 'check'; value?: string }[];
+  };
 }

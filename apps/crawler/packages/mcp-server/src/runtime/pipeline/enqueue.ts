@@ -1,4 +1,11 @@
-import { newId, nowIso } from '@pathfinder/core';
+import { maskText, newId, nowIso } from '@pathfinder/core';
+import {
+  buildTree,
+  canonicalizeAria,
+  keysForActions,
+  maskVolatile,
+  modelElementKeys,
+} from '@pathfinder/fingerprint';
 import {
   classifyCandidates,
   decide,
@@ -88,6 +95,7 @@ async function issueActions(
   // Actions: server-issued ids, stable per (state, role, name, nth) so a revisit reuses them.
   const { extracted, locatorSets } = extractPageCandidates(observed, rs.isTrace ? 'trace' : 'map');
   const candidates = classifyCandidates(extracted, rs.ruleSet, rs.isTrace ? TRACE_CLASSIFY : {});
+  const elementKeys = elementKeysOf(observed.ariaSnapshot, candidates);
   const existing = await ctx.db
     .selectFrom('actions')
     .selectAll()
@@ -116,6 +124,7 @@ async function issueActions(
       locators: locatorSets[ci] ?? [],
       evidenceRef,
       pageUrl: observed.url,
+      elementKey: elementKeys[ci]!,
     });
     const skipReason = d.allowed ? null : `${d.rule}: ${d.reason}`;
     let id = idFor(c);
@@ -168,10 +177,12 @@ function actionBody(
     locators: readonly unknown[];
     evidenceRef: string;
     pageUrl: string;
+    elementKey: string;
   },
 ) {
   return {
     nth: c.nth,
+    element_key: at.elementKey,
     ...(c.frame !== undefined ? { frame: c.frame } : {}),
     ...(c.found_by ? { found_by: c.found_by, tag: c.tag } : {}),
     ...(c.input ? { input: c.input } : {}),
@@ -184,6 +195,23 @@ function actionBody(
     snapshot_ref: at.evidenceRef,
     page_url: at.pageUrl,
   };
+}
+
+/**
+ * The model element key of each candidate (spec 039 design § 5.5), from the snapshot masked the way
+ * the fingerprint masks it, so the keys match `state_components.element_keys`.
+ */
+function elementKeysOf(ariaSnapshot: string, candidates: readonly ClassifiedAction[]): string[] {
+  const keys = modelElementKeys(buildTree(canonicalizeAria(maskText(ariaSnapshot)).nodes));
+  return keysForActions(
+    keys,
+    candidates.map((c) => ({
+      role: c.role,
+      maskedName: maskVolatile(maskText(c.name ?? '')),
+      nth: c.nth,
+      ...(c.frame !== undefined ? { frame: c.frame } : {}),
+    })),
+  );
 }
 
 /**

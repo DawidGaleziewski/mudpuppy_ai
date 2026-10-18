@@ -100,3 +100,50 @@ export async function seedRun(
 
 export const REF = 'a'.repeat(64) + '.yaml';
 export const FP = (c: string) => c.repeat(64);
+
+const journeysOfRun = new Map<string, { id: string; seq: number }>();
+
+/**
+ * The journey fields a v2 transition needs (spec 039 design § 5.7), for service tests that record
+ * transitions directly: one journey per run, created on first use, and the next step seq.
+ */
+export async function transitionStep(
+  ctx: ServerContext,
+  run: string,
+): Promise<{
+  journey_id: string;
+  seq: number;
+  from_visit_id: null;
+  element_key: string;
+  kind: 'click';
+  result: 'ok';
+}> {
+  let j = journeysOfRun.get(run);
+  if (!j) {
+    j = { id: newId(), seq: 0 };
+    await ctx.db
+      .insertInto('journeys')
+      .values({
+        id: j.id,
+        run_id: run,
+        parent_journey_id: null,
+        branch_seq: null,
+        start_kind: 'entry_url',
+        checkpoint_id: null,
+        end_reason: null,
+        started_at: nowIso(),
+        ended_at: null,
+      })
+      .execute();
+    journeysOfRun.set(run, j);
+  }
+  j.seq += 1;
+  return {
+    journey_id: j.id,
+    seq: j.seq,
+    from_visit_id: null,
+    element_key: 'button|test||',
+    kind: 'click',
+    result: 'ok',
+  };
+}

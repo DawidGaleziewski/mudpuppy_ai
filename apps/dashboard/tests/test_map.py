@@ -162,6 +162,68 @@ def test_one_scan_greys_out_what_it_did_not_see(empty_store: Store) -> None:
     assert unknown["sc-ab"].status == "observed"  # an unknown scan is ignored
 
 
+def model(store: Store) -> None:
+    """A portal model (spec 039) over the seed: /a and /a/b are one screen, the link back home is
+    not seen since."""
+    conn = store.connect()
+    conn.execute(
+        "INSERT INTO model_versions (id, portal_id, seq, built_at, algorithm, threshold,"
+        " stats_json) VALUES ('mv1', ?, 1, ?, 'minhash-avglink-v1', 0.9, '{}')",
+        (P, ts(30)),
+    )
+    screens = {
+        "M1": ("/", ["st-home"]),
+        "M2": ("/a", ["st-a", "st-ab"]),
+        "M3": ("/form", ["st-f1", "st-f1v"]),
+        "M4": ("/direct", ["st-d"]),
+    }
+    for n, (sid, (route, members)) in enumerate(screens.items(), start=1):
+        conn.execute(
+            "INSERT INTO model_screens (id, key, portal_id, route_key, title, status,"
+            " first_model_version, created_at) VALUES (?, ?, ?, ?, ?, 'active', 'mv1', ?)",
+            (sid, f"SC-{n:04d}", P, route, f"Model {route}", ts(30)),
+        )
+        for o, st in enumerate(members, start=1):
+            conn.execute(
+                "INSERT INTO screen_members (screen_id, state_id, ordinal, assigned_by,"
+                " from_model_version) VALUES (?, ?, ?, 'clustering', 'mv1')",
+                (sid, st, o),
+            )
+    for cid, sid, key in (("ac1", "M1", "link|a|main|"), ("ac2", "M2", "link|home|main|"),
+                          ("ac3", "M1", "link|form|main|")):  # fmt: skip
+        conn.execute(
+            "INSERT INTO action_classes (id, screen_id, element_key, kind, status,"
+            " status_model_version) VALUES (?, ?, ?, 'click', 'active', 'mv1')",
+            (cid, sid, key),
+        )
+    for tid, a, ac, b, status, edge in (
+        ("t1", "M1", "ac1", "M2", "active", "e1"),
+        ("t2", "M2", "ac2", "M1", "not_seen_since", "e4"),
+        ("t3", "M1", "ac3", "M3", "active", "e3"),
+    ):
+        conn.execute(
+            "INSERT INTO model_transitions (id, from_screen_id, action_class_id, to_screen_id,"
+            " result, internal, support, first_seen_edge_id, last_seen_edge_id, status,"
+            " status_model_version) VALUES (?, ?, ?, ?, 'ok', 0, 1, ?, ?, ?, 'mv1')",
+            (tid, a, ac, b, edge, edge, status),
+        )
+    conn.commit()
+    conn.close()
+
+
+def test_with_a_portal_model_the_map_shows_the_portal_as_it_is_now(empty_store: Store) -> None:
+    seed(empty_store)
+    model(empty_store)
+    v = view(empty_store)
+    n = nodes(v)
+    assert v.screens == 4  # /a and /a/b are one screen of the model
+    assert len(n["M2"].states) == 2 and n["M2"].title == "Model /a"
+    assert n["M2"].failed == 1  # the frontier item on /a hangs off the model screen
+    every = view(empty_store, layers=frozenset({"links"})).edges
+    assert [(e.kind, e.shown) for e in every if e.kind == "link"] == [("link", False)]
+    assert nodes(view(empty_store, scan="r1"))["sc-ab"].states  # one scan: its own graph
+
+
 def test_a_marked_form_step_is_a_marked_node(empty_store: Store) -> None:
     seed(empty_store)
     mark(empty_store)

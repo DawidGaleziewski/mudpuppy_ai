@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { ToolError, recordState, recordTransition } from '../src/index.js';
-import { FP, REF, makeCtx, seedRun } from './helpers.js';
+import { FP, REF, makeCtx, seedRun, transitionStep } from './helpers.js';
 
 async function setup(environment = 'production') {
   const ctx = await makeCtx();
@@ -23,7 +23,11 @@ async function setup(environment = 'production') {
     evidence_ref: REF,
     confidence: 'observed',
   });
+  const step = await transitionStep(ctx, run);
+  let seq = 0;
   const base = (over: Record<string, unknown> = {}) => ({
+    ...step,
+    seq: ++seq,
     run_id: run,
     from_state: a.state_id,
     to_state: b.state_id,

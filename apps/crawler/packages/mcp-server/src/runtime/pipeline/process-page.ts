@@ -7,6 +7,7 @@ import { noteFailedAssets } from '../render-health.js';
 import { reported, step, type StepContext } from './context.js';
 import type { IssuedAction } from './enqueue.js';
 import { issueAndEnqueue } from './enqueue.js';
+import { modelCaptureStep } from './capture-step.js';
 import { fingerprintStep, type Observed } from './fingerprint-step.js';
 import { compositionHints } from './composition.js';
 import { frameReports } from './frames.js';
@@ -44,11 +45,13 @@ export async function processPage(sc: StepContext): Promise<PageResult> {
   const fingerprinted = await fingerprintStep(sc, observed);
   const { masked, routeTemplate, assignment } = fingerprinted;
   const storedSnapshot = rs.effective.portal.pii_scrub ? masked : observed.ariaSnapshot;
+  const capture = await modelCaptureStep(sc, { url: observed.url, masked, net, stabilization });
   const recorded = await recordStateStep(sc, {
     observed,
     fingerprinted,
     storedSnapshot,
     stabilization,
+    capture,
   });
   const { evidenceRef, state_id, created, stateRow } = recorded;
   const alreadyInRun = recorded.alreadyInRun !== undefined;
@@ -62,7 +65,12 @@ export async function processPage(sc: StepContext): Promise<PageResult> {
   const page = { observed, stateId: state_id, evidenceRef, alreadyInRun };
   const formCount = await recordFormsStep(sc, page);
   // Edge (for act) first: API calls observed during an action hang off it.
-  const edgeId = await recordTransitionStep(sc, { stateId: state_id, evidenceRef, stabilization });
+  const edgeId = await recordTransitionStep(sc, {
+    stateId: state_id,
+    evidenceRef,
+    stabilization,
+    result: capture.result,
+  });
   await step(sc, 'record_api_calls', () =>
     recordNetwork(ctx, run, net, {
       edgeId,
@@ -70,7 +78,14 @@ export async function processPage(sc: StepContext): Promise<PageResult> {
       scrub: rs.effective.portal.pii_scrub,
     }),
   );
-  await recordVisitStep(sc, { stateId: state_id, url: observed.url, edgeId, relogged });
+  await recordVisitStep(sc, {
+    stateId: state_id,
+    url: observed.url,
+    edgeId,
+    relogged,
+    capture,
+    snapshot: storedSnapshot,
+  });
   const issued = await step(sc, 'enqueue_frontier', () =>
     issueAndEnqueue(ctx, run, rs, observed, {
       state_id,

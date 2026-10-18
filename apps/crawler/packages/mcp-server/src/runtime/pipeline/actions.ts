@@ -11,6 +11,10 @@ export interface ActionRow {
   accessible_name: string | null;
   json: {
     nth: number;
+    /** The model element key (spec 039); absent on actions issued before 2.0. */
+    element_key?: string;
+    /** An unnamed field's visible label (spec 038, LO-48). */
+    label?: string;
     /** Trace runs: a fill/check/select control. */
     input?: 'fill' | 'check' | 'select';
     href?: string;

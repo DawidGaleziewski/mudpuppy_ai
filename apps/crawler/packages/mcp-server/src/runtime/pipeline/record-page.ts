@@ -2,7 +2,11 @@ import { maskText } from '@pathfinder/core';
 import { stepOutcomes, type SettleOutcome } from '@pathfinder/crawler';
 import { classifyAction } from '@pathfinder/safety';
 import type { PageResult } from '../../runtime.js';
+import type { StepResult, TransitionKind } from '@pathfinder/core';
 import { recordForm, recordTransition } from '../../services/index.js';
+import { writeAttributes, type AttributeInput } from '../../services/journeys.js';
+import { ensureJourney } from './journey.js';
+import type { ActionRow } from './actions.js';
 import { appendStep } from '../../services/trace.js';
 import { descriptorOf, withoutPageUrl } from './actions.js';
 import { reported, step, type StepContext } from './context.js';
@@ -36,17 +40,38 @@ export function recordFormsStep(
   });
 }
 
+/** The transition kind of an action (spec 039 design § 5.7): its input, a form's press, or a click. */
+export function transitionKind(a: ActionRow): TransitionKind {
+  if (a.json.input) return a.json.input;
+  return a.json.form && a.role === 'button' ? 'submit' : 'click';
+}
+
 /** The executed edge of an `act` call; API calls observed during the action hang off it. */
 export async function recordTransitionStep(
   sc: StepContext,
-  page: { stateId: string; evidenceRef: string; stabilization: SettleOutcome['result'] },
+  page: {
+    stateId: string;
+    evidenceRef: string;
+    stabilization: SettleOutcome['result'];
+    result: StepResult;
+  },
 ): Promise<string | undefined> {
   const { ctx, run, rs, via } = sc;
   if (via.kind !== 'act') return undefined;
   const a = via.action;
   const transitionJson = withoutPageUrl(a.json);
   return step(sc, 'record_transition', async () => {
+    const journeyId = await ensureJourney(ctx, rs);
+    const seq = ++rs.journey!.seq;
+    const elementKey = a.json.element_key ?? `${a.role}|${a.accessible_name ?? ''}||${a.json.nth}`;
+    await writeAttributes(ctx, journeyId, typedInputs(sc, a, seq, elementKey));
     const { edge_id } = await recordTransition(ctx, {
+      journey_id: journeyId,
+      seq,
+      from_visit_id: rs.lastVisitId,
+      element_key: elementKey,
+      kind: transitionKind(a),
+      result: page.result,
       run_id: run.id,
       from_state: a.state_id,
       to_state: page.stateId,
@@ -60,6 +85,44 @@ export async function recordTransitionStep(
     });
     return reported(edge_id);
   });
+}
+
+/**
+ * The values this step typed (spec 039 design § 5.8): the action's own fill or select value, and
+ * what map-mode autofill typed into the form before the press, each as `input.<label>` at the
+ * step's seq.
+ */
+function typedInputs(
+  sc: StepContext,
+  a: ActionRow,
+  seq: number,
+  elementKey: string,
+): AttributeInput[] {
+  const out: AttributeInput[] = [];
+  const typed = sc.typed;
+  if (!typed) return out;
+  const label = a.json.label ?? a.accessible_name;
+  if (typed.value !== null && label)
+    out.push({
+      seq,
+      name: label,
+      source: 'input',
+      raw: typed.value,
+      elementKey,
+      asEnum: a.json.input === 'select',
+    });
+  if (a.json.input === 'check' && label)
+    out.push({ seq, name: label, source: 'input', raw: 'tak', elementKey });
+  for (const f of typed.fills)
+    if (f.value !== undefined)
+      out.push({
+        seq,
+        name: f.name,
+        source: 'input',
+        raw: f.kind === 'check' ? 'tak' : f.value,
+        asEnum: f.kind === 'select',
+      });
+  return out;
 }
 
 /** Trace runs: the process step this call is, with what visibly changed (spec 004 R-14). */

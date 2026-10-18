@@ -30,6 +30,8 @@ export const PHASE_NAMES = [
   'observe',
   'net_drain',
   'fingerprint',
+  // spec 039 (MudPuppy 2.0): the page's step result, builds and calls
+  'model_capture',
   'record_state',
   'capture',
   'wireframe',
@@ -59,6 +61,9 @@ export const PHASE_NAMES = [
 export type PhaseName = (typeof PHASE_NAMES)[number];
 
 export const EVENT_NAMES = [
+  // spec 039: a page's step result, build scopes and call count; the model rebuilt after a run
+  'model_capture',
+  'model_reconciled',
   'gate_decision',
   'item_cap',
   'locator',

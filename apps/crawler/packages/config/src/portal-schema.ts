@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { SafetyClass, maxSafetyClass } from '@pathfinder/core';
+import { ModelHooks } from './model-hooks.js';
 import { DEFAULT_PROBE_BUDGET, ProbeBudget } from './probe-budget.js';
 import { BUILTIN_RULE_CLASSES, DENYLIST_RULE_IDS, RULE_ALIASES } from './rule-ids.js';
 import { urlEntryProblem } from './url-entry.js';
@@ -360,6 +361,8 @@ export const PortalConfig = z
     /** How to sign in; required for any persona that has `ref:` credentials (spec 009). */
     login: LoginSpec.optional(),
     probes: ProbeBudget.default(DEFAULT_PROBE_BUDGET),
+    /** MudPuppy 2.0 model hooks (spec 039): build marker, experiment flags, business errors. */
+    model: ModelHooks.prefault({}),
   })
   .strict()
   .superRefine((p, ctx) => {

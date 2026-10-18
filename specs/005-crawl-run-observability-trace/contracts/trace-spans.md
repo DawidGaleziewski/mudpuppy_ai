@@ -52,7 +52,9 @@ Rules:
 last three added by spec 008), `record_forms`, `record_transition`,
 `record_api_calls`, `enqueue_frontier`, `record_step` (trace runs, spec 004 R-14), `run_bookkeeping`, `complete_run`, `pw_trace` (writing
 the call's Playwright trace chunk, so its cost shows in the phase breakdown). Spec 032: `replay`
-(back to a form step along the run's own path) and `probe` (one try of a form probe).
+(back to a form step along the run's own path) and `probe` (one try of a form probe). Spec 039
+(MudPuppy 2.0): `model_capture` (after `fingerprint`: the page's step result, the builds of its
+scopes, its calls and the meta build marker).
 
 **Events** and their required attributes:
 
