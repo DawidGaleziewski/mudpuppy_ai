@@ -13,6 +13,8 @@ are listed for review.
   `docs/design/salvage-yard/…/10-processes.md` still states the old rules.
 - **D-3 "Sign off A rN" again** while already `as_is_documented` writes another `stage` revision
   with the same stage (so the notice clears). Alternative: a dedicated `sign_off` change kind.
+- **D-1 to D-3 confirmed by the owner 2026-10-18** (all kept as built). `10-processes.md` (design
+  package, skill copies) updated: PR-03, PR-14, PR-15, section 4 lifecycle, roles, 6.4, 6.5, data model.
 
 ## Close-out review (code-reviewer, 2026-10-18)
 
