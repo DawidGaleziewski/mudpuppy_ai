@@ -9,7 +9,11 @@ store. Every write is one revision row; a write on a stale base answers **409** 
 | Method | Path | Body | Answer |
 |---|---|---|---|
 | POST | `/portals/:p/processes` | `{name, persona, state_ids[], author}` | 201 `{process, variant: A, revision: A r1}` (observed steps in the given order) |
-| POST | `/portals/:p/processes/:id` | `{name?, stage?, base_rev, author}` | 200 the process head (one `rename` or `stage` revision) |
+| POST | `/portals/:p/processes/:id` | `{name?, stage?, base_rev, author}` | 200 the process head (one `rename` or `stage` revision; a `stage` revision records A's head as `as_is_rev`, the as-is it signs off, spec 027 FR-005) |
+| POST | `/portals/:p/processes/from-record` | `{record_key: "PROC-…", author}` | 200 `{process, variant?, revision?, existing}`: "Open in Processes" (spec 027 US6.2). The process linked to that record (`record_key`) when there is one (`existing: true`, archived included); else a new one named after the record, its persona, A = the record's screens in walking order (`resolveProcessSteps`, "also cited" left out). 404 unknown record, 409 when it cites no screen to walk |
+| POST | `/portals/:p/processes/:id/archive` | `{base_rev, author}` | 200 the process head, `archived_at` set (one `archive` revision; spec 027). 409 `UNCHANGED` when archived already |
+| POST | `/portals/:p/processes/:id/unarchive` | `{base_rev, author}` | 200 the process head, `archived_at` NULL (one `unarchive` revision). 409 `UNCHANGED` when not archived |
+| POST | `/portals/:p/processes/:id/variants/A/edit` | `{base_rev, state_ids[], note?, author}` | 201 `{process, variant, revision}`: A's screens in the given order as one `edit` revision (spec 027 FR-004). A kept screen keeps its step (id, annotations); a new one gets an `sN` id no revision used. 409 on a to-be (draw in a draft), 409 `UNCHANGED` when nothing changes, 404 for an unknown screen |
 | POST | `/portals/:p/processes/:id/variants` | `{from = "A", from_rev?, author}` | 201 the new to-be variant (next label) and r1 = a copy whose steps come `from` the copied ones |
 | PUT | `/portals/:p/processes/:id/variants/:L/draft` | `{base_rev, steps, author}` | 200 the author's draft (autosave; replaces their previous one). To-be only (409 on the as-is) |
 | DELETE | `/portals/:p/processes/:id/variants/:L/draft` | `{author}` | 200 `{discarded}`; the last revision stays |

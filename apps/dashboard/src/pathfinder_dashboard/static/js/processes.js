@@ -85,7 +85,8 @@
       return;
     }
     const process = result.body.process;
-    if (button.dataset.open && process) {
+    if (button.dataset.reload === "page") window.location.reload();
+    else if (button.dataset.open && process) {
       const label = result.body.variant?.label ?? "A";
       window.location.assign(
         `/processes/${encodeURIComponent(process.key)}?variant=${label}`,
@@ -94,15 +95,98 @@
     else window.location.reload();
   });
 
-  // --- a new process from ticked screens ---------------------------------------------------
+  // --- the picker: ticked screens become numbered steps in tick order (spec 027 US1.3) -----
+  const picked = []; // state ids in the order they were ticked, then moved
+  const pickerForm = () =>
+    document.querySelector('form[data-process-form="new"]');
+  const box = (form, id) =>
+    form.querySelector(`input[name="state_ids"][value="${CSS.escape(id)}"]`);
+  const pickButton = (id, op, text, aria, disabled) => {
+    const b = document.createElement("button");
+    Object.assign(b, { type: "button", className: "sy-btn sy-btn--sm sy-btn--quiet", textContent: text, disabled });
+    Object.assign(b.dataset, { pickOp: op, pick: id });
+    b.setAttribute("aria-label", aria);
+    return b;
+  };
+  const renderPicked = (focus) => {
+    const form = pickerForm();
+    if (!form) return;
+    const rows = picked.map((id, i) => {
+      const { title, route } = box(form, id).dataset;
+      const li = document.createElement("li");
+      li.className = "sy-cluster";
+      li.style.setProperty("--sy-gap", "6px");
+      const name = document.createElement("span");
+      name.className = "sy-small sy-grow sy-case-normal";
+      name.textContent = `${i + 1} · ${title}`;
+      const where = document.createElement("span");
+      where.className = "sy-route mp-break";
+      where.textContent = route;
+      li.append(
+        name,
+        where,
+        pickButton(id, "up", "↑", `Move ${title} up`, i === 0),
+        pickButton(id, "down", "↓", `Move ${title} down`, i === picked.length - 1),
+        pickButton(id, "remove", "Remove", `Remove ${title}`, false),
+      );
+      return li;
+    });
+    form.querySelector("[data-picked]").replaceChildren(...rows);
+    form.querySelector("[data-picked-count]").textContent = String(picked.length);
+    form.querySelector("[data-picked-empty]").hidden = picked.length > 0;
+    if (focus) {
+      const same = form.querySelector(
+        `[data-pick="${CSS.escape(focus.id)}"][data-pick-op="${focus.op}"]:not(:disabled)`,
+      );
+      (same ?? form.querySelector(`[data-pick="${CSS.escape(focus.id)}"]:not(:disabled)`) ?? form)?.focus?.();
+    }
+  };
+  document.addEventListener("DOMContentLoaded", () => {
+    const form = pickerForm();
+    if (!form) return;
+    // A restored page keeps its ticks: take them in page order.
+    for (const input of form.querySelectorAll('input[name="state_ids"]:checked'))
+      picked.push(input.value);
+    renderPicked();
+  });
+  document.addEventListener("change", (e) => {
+    const input = e.target.closest?.(
+      'form[data-process-form="new"] input[name="state_ids"]',
+    );
+    if (!input) return;
+    const i = picked.indexOf(input.value);
+    if (input.checked && i < 0) picked.push(input.value);
+    if (!input.checked && i >= 0) picked.splice(i, 1);
+    renderPicked();
+  });
+  document.addEventListener("click", (e) => {
+    const b = e.target.closest?.("[data-pick-op]");
+    if (!b) return;
+    const { pick: id, pickOp: op } = b.dataset;
+    const i = picked.indexOf(id);
+    if (op === "remove") {
+      picked.splice(i, 1);
+      const input = box(pickerForm(), id);
+      input.checked = false;
+      renderPicked();
+      return input.focus();
+    }
+    const j = op === "up" ? i - 1 : i + 1;
+    if (j >= 0 && j < picked.length) [picked[i], picked[j]] = [picked[j], picked[i]];
+    renderPicked({ id, op });
+  });
+
+  // --- a new process from ticked screens, in the picked order ------------------------------
   document.addEventListener("submit", async (e) => {
     const form = e.target.closest?.('form[data-process-form="new"]');
     if (!form) return;
     e.preventDefault();
     const where = form.querySelector("[data-result]");
-    const state_ids = [
-      ...form.querySelectorAll('input[name="state_ids"]:checked'),
-    ].map((i) => i.value);
+    const state_ids = picked.length
+      ? [...picked]
+      : [...form.querySelectorAll('input[name="state_ids"]:checked')].map(
+          (i) => i.value,
+        );
     if (state_ids.length === 0)
       return say(where, false, "Tick at least one screen.");
     const result = await send("POST", form.action, {
@@ -251,6 +335,51 @@
       );
     reloadEditor();
   }
+
+  // --- editing A (spec 027 US4.2): the screens in their new order, one signed A revision -----
+  async function editA(region, stateIds, where) {
+    const result = await send("POST", region.dataset.edit, {
+      base_rev: Number(region.dataset.baseRev),
+      state_ids: stateIds,
+    });
+    if (!result.ok) {
+      say(where, false, result.body.message ?? "The as-is was not changed.");
+      if (result.status === 409) reloadEditor();
+      return;
+    }
+    reloadEditor();
+  }
+  const A_OPS = {
+    up: (steps, id) => swap(steps, at(steps, id), at(steps, id) - 1),
+    down: (steps, id) => swap(steps, at(steps, id), at(steps, id) + 1),
+    remove: (steps, id) => steps.filter((s) => s.id !== id),
+  };
+  document.addEventListener("click", (e) => {
+    const button = e.target.closest?.("button[data-a-op]");
+    const region = editor();
+    if (!button || !region || button.disabled) return;
+    if (button.dataset.confirm && !window.confirm(button.dataset.confirm))
+      return;
+    button.disabled = true;
+    const steps = A_OPS[button.dataset.aOp](draftOf(region), button.dataset.step);
+    editA(
+      region,
+      steps.map((s) => s.state_id),
+      region.querySelector("[data-editor-result]"),
+    );
+  });
+  document.addEventListener("submit", (e) => {
+    const form = e.target.closest?.('form[data-a-op="add"]');
+    const region = editor();
+    if (!form || !region) return;
+    e.preventDefault();
+    const ids = draftOf(region).map((s) => s.state_id);
+    editA(
+      region,
+      [...ids, form.elements.state_id.value],
+      region.querySelector("[data-editor-result]"),
+    );
+  });
 
   // A step button or a step form: [data-step-op] on the button or the form.
   document.addEventListener("click", (e) => {

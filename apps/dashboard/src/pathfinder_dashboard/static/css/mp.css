@@ -70,6 +70,13 @@
   .mp-frame { text-align: center; padding: var(--sy-space-3); }
   .mp-table-wide { min-inline-size: 860px; }
   .mp-process-side { flex-basis: 380px; }
+  /* Spec 027: a screen's thumbnail opens its picture in a dialog wide enough for a screenshot. */
+  .mp-plain-list { list-style: none; padding: 0; margin: 0; }
+  .mp-thumb-btn { inline-size: 96px; flex: none; padding: 0; border: 0; background: none; cursor: zoom-in; }
+  .mp-thumb-empty { display: flex; align-items: center; justify-content: center; text-align: center; }
+  .mp-dialog-wide { width: min(960px, calc(100vw - 32px)); }
+  .mp-shot-large { display: block; max-inline-size: 100%; max-block-size: 65vh; margin-inline: auto;
+    background: var(--sy-paper); border: var(--sy-weld) solid var(--sy-border-weld); }
 
   /* Screen page: the side pane with Amendments / Cited by / History (screen 08). */
   .mp-screen-side { flex-basis: 400px; }

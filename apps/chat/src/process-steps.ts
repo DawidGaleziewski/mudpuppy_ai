@@ -2,7 +2,7 @@
 // as-is steps from recorded states, the next variant label, the screens key of a grouping.
 // No database here; process-service.ts loads and writes.
 
-import { ProcessStep } from '@pathfinder/chat-model';
+import { observedSteps, ProcessStep, type StateRow } from '@pathfinder/chat-model';
 import { z } from 'zod';
 import { HttpError } from './http-error.js';
 
@@ -11,6 +11,48 @@ export type Steps = z.infer<typeof Steps>;
 
 // Shared with the trace driver's grouping suggestion (spec 031 US5).
 export { observedSteps, screensKey, type StateRow } from '@pathfinder/chat-model';
+
+/**
+ * A's steps after a person's edit (spec 027 FR-004): `states` in their new order. A step whose
+ * screen stays is kept as it was (id, annotations); a new screen gets an `sN` id above every id
+ * the variant ever used (`usedIds`), so History and Compare never pair it with an older step.
+ * The same screen twice keeps two steps.
+ */
+export function editedSteps(
+  current: readonly ProcessStep[],
+  states: readonly StateRow[],
+  usedIds: readonly string[],
+): ProcessStep[] {
+  const pool = [...current];
+  let last = Math.max(0, ...usedIds.map((id) => Number(/^s(\d+)$/.exec(id)?.[1] ?? 0)));
+  return states.map((state) => {
+    const i = pool.findIndex((s) => s.state_id === state.id);
+    if (i >= 0) return pool.splice(i, 1)[0]!;
+    last += 1;
+    return { ...observedSteps([state])[0]!, id: `s${String(last)}` };
+  });
+}
+
+/** The one line History shows for an edit of A; refuses an edit that changes nothing. */
+export function editNote(before: readonly ProcessStep[], after: readonly ProcessStep[]): string {
+  const was = new Set(before.map((s) => s.id));
+  const now = new Set(after.map((s) => s.id));
+  const added = after.filter((s) => !was.has(s.id)).length;
+  const removed = before.filter((s) => !now.has(s.id)).length;
+  const keptAfter = after.filter((s) => was.has(s.id)).map((s) => s.id);
+  const keptBefore = before.filter((s) => now.has(s.id)).map((s) => s.id);
+  const parts = [
+    added > 0 ? `added ${String(added)} screen${added === 1 ? '' : 's'}` : null,
+    removed > 0 ? `removed ${String(removed)} step${removed === 1 ? '' : 's'}` : null,
+    keptAfter.join() === keptBefore.join() ? null : 'changed the order',
+  ].filter((p): p is string => p !== null);
+  if (parts.length === 0)
+    throw new HttpError(409, 'The as-is already has these screens in this order.', {
+      code: 'UNCHANGED',
+    });
+  const line = parts.join(', ');
+  return line.charAt(0).toUpperCase() + line.slice(1);
+}
 
 /**
  * Check a variant's steps: unique ids, `from` pointing at steps of the variant it was branched

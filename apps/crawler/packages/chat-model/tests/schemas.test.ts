@@ -278,6 +278,12 @@ describe('BA processes (0018)', () => {
     ),
     'utf-8',
   );
+  const SQL_0028 = readFileSync(
+    fileURLToPath(
+      new URL('../../../../../data/migrations/0028_process_archive_edit.up.sql', import.meta.url),
+    ),
+    'utf-8',
+  );
   const step = {
     id: 's1',
     title: 'Home',
@@ -292,10 +298,11 @@ describe('BA processes (0018)', () => {
   it('Zod enums equal the CHECK lists in the migration', () => {
     expect(BaProcessStage.options).toEqual(inList('ba_processes', 'stage', SQL_0018));
     expect(BaProcessSource.options).toEqual(inList('ba_processes', 'source', SQL_0018));
-    expect(BaProcessChange.options).toEqual(inList('ba_process_revisions', 'change', SQL_0018));
+    // 0028 rebuilt both revision tables with longer lists (spec 027): archive, unarchive, edit.
+    expect(BaProcessChange.options).toEqual(inList('ba_process_revisions_new', 'change', SQL_0028));
     expect(ProcessVariantKind.options).toEqual(inList('process_variants', 'kind', SQL_0018));
     expect(ProcessVariantChange.options).toEqual(
-      inList('process_variant_revisions', 'change', SQL_0018),
+      inList('process_variant_revisions_new', 'change', SQL_0028),
     );
     // process_live.environment is a free name since 0021 (spec 030 R-61): a format, not a list.
     for (const name of ['sandbox', 'dev', 'acceptance', 'live-2'])
@@ -340,8 +347,11 @@ describe('BA processes (0018)', () => {
       suggestion_id: null,
       created_at: ts,
       updated_at: ts,
+      archived_at: null,
+      record_key: null,
     };
     expect(BaProcess.safeParse(process).success).toBe(true);
+    expect(BaProcess.safeParse({ ...process, archived_at: ts }).success).toBe(true);
     expect(BaProcess.safeParse({ ...process, key: 'X-1' }).success).toBe(false);
     expect(
       BaProcessRevision.safeParse({
@@ -352,6 +362,7 @@ describe('BA processes (0018)', () => {
         author: 'BA',
         name: 'Claim',
         stage: 'migrating',
+        as_is_rev: 3,
         created_at: ts,
       }).success,
     ).toBe(true);

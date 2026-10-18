@@ -2839,11 +2839,12 @@ new revision.
 
 **One version of a process, either A, the process as the scans observed it, or B and further letters, the process the business wants.**
 
-A process always has variant A, the as-is flow built from what was observed; you do not
-edit it. You start variant B from A (or from another variant) and draw the to-be: edit,
-reorder, merge and add steps. A variant has numbered revisions (A r1, B r2); every save
-makes a new one, with the reviewer's name and the time. Compare puts two variants side by
-side.
+A process always has variant A, the as-is flow built from what was observed. Rescans add
+its revisions; a person can also reorder, remove or add its screens, each change a signed
+revision of A (spec 027). You start variant B from A (or from another variant) and draw
+the to-be: edit, reorder, merge and add steps. A variant has numbered revisions (A r1,
+B r2); every save makes a new one, with the reviewer's name and the time. Compare puts two
+variants side by side.
 
 *Example:* PRC-001 "Oblicz składkę OC/AC" has A r1 (4 observed steps) and B r1 (3 designed steps).
 
@@ -2851,9 +2852,53 @@ side.
 
 *Labels:* `Variant`, `A`, `B`, `as-is`, `to-be`
 
-*Related:* [Draft (process draft)](#process-draft), [Change spec](#change-spec), [Live variant (per environment)](#live-variant), [Screen revision (observed)](#screen-revision), [Amendment (to-be)](#amendment)
+*Related:* [Draft (process draft)](#process-draft), [Change spec](#change-spec), [Live variant (per environment)](#live-variant), [Screen revision (observed)](#screen-revision), [Amendment (to-be)](#amendment), [As-is sign-off](#as-is-sign-off)
 
-<sub>Last changed in R-43, 2026-10-14.</sub>
+<sub>Last changed in R-54, 2026-10-18.</sub>
+
+<a id="as-is-sign-off"></a>
+
+#### As-is sign-off
+
+**Marking a process's as-is as documented, which records the revision of A it covered so a later change to A shows.**
+
+"Mark as-is documented" on a process page moves the process to the stage "as-is
+documented" as a signed revision and remembers which revision of A it covered. When a
+rescan or an edit changes A afterwards, the page says "As-is changed since documented
+(A r2 → r3)" until someone signs off again. The stage can be moved forward or back at any
+time; every move shows in History. The as-is is usually discussed with the business
+outside MudPuppy (from the downloaded documentation) before the sign-off.
+
+*Example:* PRC-001 signed off by Anna covering A r1; a rescan added A r2, so the page asks for a new sign-off.
+
+*Seen in:* Processes → a process → As-is documentation
+
+*Labels:* `Mark as-is documented`, `Sign off`, `As-is changed since documented`
+
+*Related:* [Variant (A as-is, B to-be)](#process-variant), [As-is documentation](#as-is-documentation), [Archived process](#archived-process)
+
+<sub>Last changed in R-54, 2026-10-18.</sub>
+
+<a id="archived-process"></a>
+
+#### Archived process
+
+**A process taken out of the list, for example one made by mistake; nothing of it is deleted and Restore brings it back.**
+
+Archive on a process page hides the process from Processes and makes its screens count as
+in no process again, also for the assistant's grouping suggestions. Its revisions, drafts,
+annotations and change specs stay in the store. Processes → Archived lists archived
+processes with Restore. Archive and restore are signed revisions of the process.
+
+*Example:* PRC-004 was a duplicate of PRC-002: archived, its 3 screens are back under In no process.
+
+*Seen in:* Processes → Archived; Processes → a process
+
+*Labels:* `Archive`, `Archived`, `Restore`
+
+*Related:* [Variant (A as-is, B to-be)](#process-variant), [As-is sign-off](#as-is-sign-off)
+
+<sub>Last changed in R-54, 2026-10-18.</sub>
 
 <a id="process-draft"></a>
 

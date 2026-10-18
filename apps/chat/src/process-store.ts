@@ -2,7 +2,12 @@
 // transactions. A write on a stale base answers 409 STALE_REVISION and overwrites nothing.
 
 import { newId, nowIso } from '@pathfinder/core';
-import { BaProcess, ProcessVariant, ProcessVariantRevision } from '@pathfinder/chat-model';
+import {
+  BaProcess,
+  type BaProcessChange,
+  ProcessVariant,
+  ProcessVariantRevision,
+} from '@pathfinder/chat-model';
 import { type PathfinderDb } from '@pathfinder/store';
 import type { z } from 'zod';
 import { HttpError } from './http-error.js';
@@ -113,6 +118,16 @@ export async function knownStates(
   return new Set(rows.map((r) => r.id));
 }
 
+/** Every step id any revision of a variant used (a new step's id never repeats one). */
+export async function usedStepIds(db: PathfinderDb, variantId: string): Promise<string[]> {
+  const rows = await db
+    .selectFrom('process_variant_revisions')
+    .select('steps')
+    .where('variant_id', '=', variantId)
+    .execute();
+  return rows.flatMap((r) => (JSON.parse(r.steps) as { id: string }[]).map((s) => s.id));
+}
+
 /** Step ids of the revision a variant was branched from (what `from` may point at). */
 export async function parentStepIds(db: PathfinderDb, v: ProcessVariant): Promise<Set<string>> {
   if (v.branched_from_variant_id === null || v.branched_from_rev === null) return new Set();
@@ -170,6 +185,69 @@ export async function writeVariant(
   return { variant: { ...head, rev: head.rev + 1 }, revision };
 }
 
+export interface ProcessWrite {
+  change: BaProcessChange;
+  author: string;
+  name?: string;
+  stage?: BaProcess['stage'];
+  /** true archives, false restores, absent keeps (spec 027 FR-003). */
+  archived?: boolean;
+  /** The A revision a stage change signs off (spec 027 FR-005). */
+  as_is_rev?: number | null;
+}
+
+function archivedAt(head: BaProcess, archived: boolean | undefined, now: string): string | null {
+  if (archived === undefined) return head.archived_at;
+  return archived ? now : null;
+}
+
+/** Move a process head on to a new revision (rename, stage, archive); refuses a stale base. */
+export async function writeProcess(
+  db: PathfinderDb,
+  head: BaProcess,
+  baseRev: number,
+  w: ProcessWrite,
+): Promise<BaProcess> {
+  if (baseRev !== head.rev) throw stale(head.key, baseRev, head.rev, head);
+  const now = nowIso();
+  const next = BaProcess.parse({
+    ...head,
+    name: w.name ?? head.name,
+    stage: w.stage ?? head.stage,
+    rev: head.rev + 1,
+    updated_at: now,
+    archived_at: archivedAt(head, w.archived, now),
+  });
+  const done = await db
+    .updateTable('ba_processes')
+    .set({
+      name: next.name,
+      stage: next.stage,
+      rev: next.rev,
+      updated_at: next.updated_at,
+      archived_at: next.archived_at,
+    })
+    .where('id', '=', head.id)
+    .where('rev', '=', head.rev) // another writer got there first: no lost update
+    .executeTakeFirst();
+  if (Number(done.numUpdatedRows) !== 1) throw stale(head.key, baseRev, next.rev, head);
+  await db
+    .insertInto('ba_process_revisions')
+    .values({
+      process_id: head.id,
+      rev: next.rev,
+      base_rev: head.rev,
+      change: w.change,
+      author: w.author,
+      name: next.name,
+      stage: next.stage,
+      as_is_rev: w.as_is_rev ?? null,
+      created_at: now,
+    })
+    .execute();
+  return next;
+}
+
 export interface ProcessOutcome {
   process: BaProcess;
   variant?: ProcessVariant;
@@ -183,6 +261,8 @@ export interface NewProcess {
   author: string;
   source: 'suggestion' | 'new';
   suggestion_id?: string;
+  /** The PROC record it is opened from (spec 027 US6). */
+  record_key?: string;
 }
 
 /** A new process with its revision r1 and its as-is A r1 built from recorded states. */
@@ -210,6 +290,8 @@ export async function insertProcess(
     suggestion_id: input.suggestion_id ?? null,
     created_at: now,
     updated_at: now,
+    archived_at: null,
+    record_key: input.record_key ?? null,
   });
   await db.insertInto('ba_processes').values(process).execute();
   await db

@@ -17,9 +17,33 @@ const ROUTES: {
   { method: 'POST', path: re(`${P}/processes$`), status: 201, run: (s, [p], b) => s.create(p!, b) },
   {
     method: 'POST',
+    path: re(`${P}/processes/from-record$`),
+    status: 200,
+    run: (s, [p], b) => s.fromRecord(p!, b),
+  },
+  {
+    method: 'POST',
     path: re(`${P}/processes/${SEG}$`),
     status: 200,
     run: (s, [p, id], b) => s.change(p!, id!, b),
+  },
+  {
+    method: 'POST',
+    path: re(`${P}/processes/${SEG}/archive$`),
+    status: 200,
+    run: (s, [p, id], b) => s.archive(p!, id!, b),
+  },
+  {
+    method: 'POST',
+    path: re(`${P}/processes/${SEG}/unarchive$`),
+    status: 200,
+    run: (s, [p, id], b) => s.unarchive(p!, id!, b),
+  },
+  {
+    method: 'POST',
+    path: re(`${P}/processes/${SEG}/variants/${SEG}/edit$`),
+    status: 201,
+    run: (s, [p, id, l], b) => s.editAsIs(p!, id!, l!, b),
   },
   {
     method: 'POST',

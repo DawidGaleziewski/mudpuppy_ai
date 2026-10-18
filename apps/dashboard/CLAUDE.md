@@ -56,6 +56,12 @@ Layer: app (Python, FastAPI + Jinja + htmx, uv; outside the TS layers)
   screens and moves in the map's layout, failures and the stop screen, path, Resume, Retry /
   Skip / Start here per screen); a scan that stopped or failed opens on it. Forms posted with
   `from=graph` (or a `/runs/…` mark `back`) return to the graph.
+- Spec 027 (R-54, processes as-is first): `queries_process_doc.py` (pictures per screen, A per
+  step with the records citing its screen, what is still open, the sign-off) and
+  `partials/picture.html` + `static/js/pictures.js` (thumbnail → picture dialog). The process
+  page leads with A as documentation until `to_be_design`; A is edited by screens (forwarded to
+  `…/variants/A/edit`), processes are archived (`?show=archived` lists them), a PROC record has
+  Open in Processes (`…/processes/from-record`). Archived processes' screens count as loose.
 - `servers.py`: live `pathfinder` servers read from `<data_dir>/servers/*.json`; the header names
   those on another environment or checkout (spec 031 R-61). Read-only, dead files are skipped.
 - `models.py`: read-only models of SQLite schema; drift test vs. `data/schema/schema.sql`.

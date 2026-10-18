@@ -5,7 +5,8 @@
     environment, the assistant's suggestions (drawn, not saved) with Accept / Edit first / Dismiss,
     and the screens in no process. Writes go through /chat/portals/… (forms.js data-process). -#}
 {% block title %}Processes{% endblock %}
-{% block head_extra %}<script src="/static/js/processes.js" defer></script>{% endblock %}
+{% import "salvage/partials/picture.html" as pic with context %}
+{% block head_extra %}<script src="/static/js/processes.js" defer></script><script src="/static/js/pictures.js" defer></script>{% endblock %}
 {% block main %}
 <div class="sy-pagehead">
   <div class="sy-pagehead__row">
@@ -34,9 +35,19 @@
 </div>
 
 <section class="sy-stack" style="--sy-gap: 10px" aria-labelledby="yours-h">
-  <h2 id="yours-h" class="sy-h2">Your processes · {{ v.pages.paged.total }}</h2>
+  <div class="sy-split" style="align-items: baseline">
+    <h2 id="yours-h" class="sy-h2">{% if v.archived %}Archived processes{% else %}Your processes{% endif %} · {{ v.pages.paged.total }}</h2>
+    {%- if v.archived or v.archived_count %}
+    <nav class="sy-seg" aria-label="Which processes">
+      <a href="{{ c.url('/processes') }}"{% if not v.archived %} aria-current="true"{% endif %}>In use</a>
+      <a href="{{ c.url('/processes', show='archived') }}"{% if v.archived %} aria-current="true"{% endif %}>Archived · {{ v.archived_count }}</a>
+    </nav>
+    {%- endif %}
+  </div>
+  {%- if v.archived %}<p class="sy-meta">Archived processes keep every revision, draft and spec. Restore one to put it back in the list.</p>{% endif %}
   {%- if not v.rows %}
-  {{ sy.empty("No processes yet", "Accept one of the assistant's suggestions below, or start one from the screens in no process.") }}
+  {%- if v.archived %}{{ sy.empty("No archived processes", "Archive a process from its page; nothing is deleted.") }}
+  {%- else %}{{ sy.empty("No processes yet", "Accept one of the assistant's suggestions below, or start one from the screens in no process.") }}{% endif %}
   {%- else %}
   <div class="sy-table-wrap">
     <table class="sy-table sy-table--interactive mp-table-wide">
@@ -62,7 +73,13 @@
           <td>{% for env, live in r.live.items() %}<span class="sy-cluster" style="--sy-gap: 4px">{{ sy.status("variant", "live", live) }}<span class="sy-small sy-muted">{{ env }}</span></span>{% else %}<span class="sy-muted">—</span>{% endfor %}</td>
           <td class="sy-num">{{ r.screens }}</td>
           <td class="sy-num">{{ r.amendments }}</td>
-          <td><span class="sy-meta">{{ r.last_by }} · <span class="sy-mono sy-mono--sm">{{ r.last_at | when }}</span></span></td>
+          <td><div class="sy-stack" style="--sy-gap: 6px" data-actions>
+            <span class="sy-meta">{{ r.last_by }} · <span class="sy-mono sy-mono--sm">{{ r.last_at | when }}</span></span>
+            {%- if v.archived and c.settings.reviewer %}
+            <div><button class="sy-btn sy-btn--sm" type="button" data-process="/chat/portals/{{ p.portal_id | urlencode }}/processes/{{ p.id | urlencode }}/unarchive" data-body='{"base_rev": {{ p.rev }}}' aria-label="Restore {{ p.name }}">Restore</button></div>
+            <p class="sy-small" role="status" data-result></p>
+            {%- endif %}
+          </div></td>
         </tr>
         {%- endfor %}
       </tbody>
@@ -117,18 +134,32 @@
       <label class="sy-field"><span class="sy-field__label">Persona</span>
         <input class="sy-input" name="persona" value="guest" required maxlength="200" autocomplete="off"></label>
     </div>
-    <fieldset class="mp-fieldset sy-stack" style="--sy-gap: 4px">
-      <legend class="sy-legend-label">Screens, in the order a person walks them</legend>
-      {%- for st in v.loose %}
-      <label class="sy-check"><input type="checkbox" name="state_ids" value="{{ st.id }}"> <span class="sy-route">{{ st.route_template }}</span> <span class="sy-small sy-muted">{{ st.title }}</span></label>
-      {%- endfor %}
-    </fieldset>
-    <div><button class="sy-btn" type="submit">New process from these</button></div>
-    <p class="sy-small" role="status" data-result></p>
+    <div class="sy-columns">
+      <fieldset class="mp-fieldset sy-stack sy-col-main" style="--sy-gap: 6px">
+        <legend class="sy-legend-label">Tick the screens in the order a person walks them</legend>
+        <p class="sy-small sy-muted">Open a picture to see the screen large; it does not tick it.</p>
+        <ul class="sy-stack mp-plain-list" style="--sy-gap: 6px">
+          {%- for st in v.loose %}
+          <li class="sy-cluster" style="--sy-gap: 10px; flex-wrap: nowrap">
+            {{ pic.thumb(st.id, v.pictures[st.id], st.title, st.route_template) }}
+            <label class="sy-check sy-grow"><input type="checkbox" name="state_ids" value="{{ st.id }}" data-title="{{ st.title or st.route_template }}" data-route="{{ st.route_template }}"> <span class="sy-stack" style="--sy-gap: 2px"><span class="sy-route mp-break">{{ st.route_template }}</span><span class="sy-small sy-muted sy-case-normal">{{ st.title }}</span></span></label>
+          </li>
+          {%- endfor %}
+        </ul>
+      </fieldset>
+      <aside class="sy-col-side sy-stack" style="--sy-gap: 8px" aria-labelledby="picked-h">
+        <h3 id="picked-h" class="sy-label">Steps of the new process · <span data-picked-count>0</span></h3>
+        <ol class="sy-stack" style="--sy-gap: 6px" data-picked aria-live="polite"></ol>
+        <p class="sy-small sy-muted" data-picked-empty>Ticked screens appear here as numbered steps; move them with ↑ and ↓.</p>
+        <div><button class="sy-btn" type="submit">New process from these</button></div>
+        <p class="sy-small" role="status" data-result></p>
+      </aside>
+    </div>
   </form>
   {%- else %}
   <p class="sy-muted">Every recorded screen is in a process.</p>
   {%- endif %}
 </section>
+{{ pic.dialog() }}
 {%- endif %}
 {% endblock %}

@@ -344,16 +344,46 @@ A **process** is a business flow you care about, made of screens in order, for e
 - Or tell the assistant: *"I want to document the product comparison."* It proposes the
   screens; you confirm start, end and the rest. It never invents screens that were not
   recorded.
+- Or pick the screens yourself under **In no process**. Each screen has a thumbnail: click it
+  to see the screen large, switch between **Screenshot** and **Wireframe**, or open its page
+  (clicking the picture never ticks the screen). Tick the screens in the order a person walks
+  them: they appear as numbered steps on the right, where **↑**, **↓** and **Remove** fix the
+  order. **New process from these** creates it in that order.
+- Or, on a BA process record in Docs (`PROC-…`), choose **Open in Processes**: the process
+  gets the record's screens in walking order and links back to it ("documented as
+  PROC-001"). A second click opens the same process.
 
 A process has a key such as `PRC-001`, a persona and a stage (suggested, scoped, as-is
 documented, to-be in design, migrating, migrated).
+
+### The as-is first
+
+While a process is **scoped** or **as-is documented**, its page opens on **A** as
+documentation: per step the picture, the title and route, and the records citing that screen
+(requirements, business rules, fields, NFRs, terms, open questions). **Select** a step to see
+everything about it in the side panel, with each record's status. Above the steps, **As-is
+documentation** says what is still open on these screens (open questions, records to confirm,
+amendments to re-anchor).
+
+- **Mark as-is documented** signs the as-is off: the stage moves and the sign-off remembers
+  which revision of A it covered. If a rescan or an edit changes A later, the page says **As-is
+  changed since documented (A r2 → r3)** until you sign off again.
+- **Stage** and **Set stage** move the process to any stage, forward or back. Every move is
+  signed and shows in History.
+- You can fix A by hand: **↑**, **↓**, **Remove** on a step, or **Add screen** below the steps.
+  Each change is a new revision of A with your name; the screens, their scans and records stay.
+  Rescans keep adding their revisions on top.
+- **Archive** takes a process you made by mistake out of the list; its screens count as in no
+  process again. Nothing is deleted: **Processes → Archived** lists it with **Restore**.
+- **Documentation** downloads the whole as-is (steps, requirements, contracts, gaps).
 
 ### Variants: A and B
 
 Each process has **variants**:
 
-- **A, as-is**: what the scans observed. You do not edit it. It is the reference.
-- **B, to-be**: what you want. Start one with **Variant from A** and draw it.
+- **A, as-is**: what the scans observed, fixed by hand where needed. It is the reference.
+- **B, to-be**: what you want. Start one with **Start a to-be design** (later **Variant from
+  A**) and draw it. From **to-be in design** on, the page opens on the to-be.
 
 A variant has revisions: **r1**, **r2**. Every save is a new revision with your name and the
 time. Nothing is overwritten or deleted.

@@ -781,18 +781,21 @@ class BaProcess(Row):
     suggestion_id: str | None
     created_at: str
     updated_at: str
+    archived_at: str | None = None  # 0028: set while archived (spec 027)
+    record_key: str | None = None  # 0028: the PROC record it was opened from (spec 027 US6)
 
 
 class BaProcessRevision(Row):
-    """One immutable revision of a BA process (0018, append-only)."""
+    """One immutable revision of a BA process (0018, append-only; 0028 archive and sign-off)."""
 
     process_id: str
     rev: int
     base_rev: int | None
-    change: Literal["create", "rename", "stage", "restore"]
+    change: Literal["create", "rename", "stage", "restore", "archive", "unarchive"]
     author: str
     name: str
     stage: BaProcessStage
+    as_is_rev: int | None = None  # 0028: the A revision a stage change signed off
     created_at: str
 
 
@@ -815,7 +818,7 @@ class ProcessVariantRevision(Row):
     variant_id: str
     rev: int
     base_rev: int | None
-    change: Literal["create", "branch", "save", "restore", "observe"]
+    change: Literal["create", "branch", "save", "restore", "observe", "edit"]
     author: str
     steps: Json
     note: str | None

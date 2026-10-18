@@ -396,6 +396,10 @@ export interface BaProcessesTable {
   suggestion_id: string | null;
   created_at: string;
   updated_at: string;
+  /** 0028: set while archived (spec 027). */
+  archived_at: string | null;
+  /** 0028: the PROC record it was opened from (spec 027 US6). */
+  record_key: string | null;
 }
 
 export interface BaProcessRevisionsTable {
@@ -406,6 +410,8 @@ export interface BaProcessRevisionsTable {
   author: string;
   name: string;
   stage: BaProcessStage;
+  /** 0028: the A revision a `stage` change signed off. */
+  as_is_rev: number | null;
   created_at: string;
 }
 

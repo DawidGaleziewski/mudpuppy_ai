@@ -1,6 +1,15 @@
 # Spec 027: Processes, as-is first (R-54)
 
-Branch `feature/027-r54-process-as-is-first` · Created 2026-10-14 · Status: Draft
+Branch `feature/027-r54-process-as-is-first` · Created 2026-10-14 · Status: In build (2026-10-18)
+
+**Scope as built (2026-10-18).** US5 (downloads) moved to R-68 by the owner (2026-10-16) and was
+built in spec 034 (`/processes/{PRC}/export`, `/docs/{portal}/{PROC}/export`, folder and zip);
+US6.1 (a PROC record's download) is that export too. This branch builds US1–US4 and US6.2–6.3.
+
+**Over the design package (`10-processes.md`), by the owner's word here:** A can be edited by a
+person (PR-03 said only scans change A; US4.2 adds signed `edit` revisions; rescans still add
+`observe` revisions on top), and the stage is moved by a person's sign-off (PR-14 said stages are
+derived; US3 makes them a signed choice, the existing `stage` change of the chat API).
 
 **Input**: user, 2026-10-14, after using the Processes pages of spec 022:
 
@@ -210,12 +219,12 @@ process (PRC) and has no variants.
 - **SC-004** On the reference portal, the as-is spec of the login process lists every record the
   current change spec lists, plus their fields, rules and requirements in full.
 
-## Open questions
+## Open questions (defaults taken 2026-10-18, owner away; listed for review)
 
-1. FR-054 of spec 004 copies no raw evidence files into exports; this feature adds screenshots
-   and wireframes to process downloads. Taken as decided by the user's request (and the memory
-   rule "usefulness over security" for test environments); confirm that the SRS export itself
-   stays without pictures.
-2. Where the stage control lives: in the page head (next to the stage tag) or in History.
-3. Should archived processes' screens count as "in no process" for the assistant's grouping
-   suggestions too (proposal: yes)?
+1. Pictures in exports: settled by R-68 (the process export carries screenshots and wireframes);
+   the SRS export stays without pictures.
+2. The stage control lives in the page head, next to the stage tag (one form: a stage select and
+   **Set stage**, plus **Mark as-is documented** as the one primary action while the stage is
+   `scoped`); every move shows in History.
+3. Archived processes' screens count as "in no process" everywhere, the assistant's grouping
+   inputs included (an archived process is out of the BA's cut).

@@ -1,4 +1,4 @@
--- GENERATED from data/migrations/*.up.sql applied in order (currently through 0027_checkpoints_directed_runs). Do not edit by hand.
+-- GENERATED from data/migrations/*.up.sql applied in order (currently through 0028_process_archive_edit). Do not edit by hand.
 -- Regenerate after every migration; see data/schema/README.md.
 
 CREATE TABLE runs (
@@ -753,17 +753,23 @@ CREATE TABLE ba_processes (
   suggestion_id TEXT REFERENCES grouping_suggestions(id),            -- the accepted suggestion
   created_at    TEXT NOT NULL,
   updated_at    TEXT NOT NULL,
+  -- 0028 (ALTER TABLE): NULL = in the list; set = archived, every row kept (spec 027 FR-003); the BA
+  -- `process` record it was opened from (spec 027 US6).
+  archived_at   TEXT,
+  record_key    TEXT CHECK (record_key IS NULL OR record_key GLOB 'PROC-[0-9]*'),
   UNIQUE (portal_id, key)
 ) STRICT;
 
+-- 0028 rebuilt it: 'archive' / 'unarchive' changes and as_is_rev (spec 027).
 CREATE TABLE ba_process_revisions (
   process_id TEXT NOT NULL REFERENCES ba_processes(id),
   rev        INTEGER NOT NULL CHECK (rev >= 1),
   base_rev   INTEGER CHECK (base_rev IS NULL OR base_rev >= 1),      -- NULL for r1
-  change     TEXT NOT NULL CHECK (change IN ('create','rename','stage','restore')),
+  change     TEXT NOT NULL CHECK (change IN ('create','rename','stage','restore','archive','unarchive')),
   author     TEXT NOT NULL CHECK (length(author) > 0),
   name       TEXT NOT NULL CHECK (length(name) > 0),                 -- the values after the change
   stage      TEXT NOT NULL CHECK (stage IN ('scoped','as_is_documented','to_be_design','migrating','migrated')),
+  as_is_rev  INTEGER CHECK (as_is_rev IS NULL OR as_is_rev >= 1),    -- the A revision a 'stage' change signed off
   created_at TEXT NOT NULL,
   PRIMARY KEY (process_id, rev),
   CHECK ((rev = 1) = (base_rev IS NULL))
@@ -782,11 +788,12 @@ CREATE TABLE process_variants (
   CHECK ((branched_from_variant_id IS NULL) = (branched_from_rev IS NULL))
 ) STRICT;
 
+-- 0028 rebuilt it: 'edit' = a person changed A's steps (spec 027 FR-004).
 CREATE TABLE process_variant_revisions (
   variant_id    TEXT NOT NULL REFERENCES process_variants(id),
   rev           INTEGER NOT NULL CHECK (rev >= 1),
   base_rev      INTEGER CHECK (base_rev IS NULL OR base_rev >= 1),   -- NULL for r1
-  change        TEXT NOT NULL CHECK (change IN ('create','branch','save','restore','observe')),
+  change        TEXT NOT NULL CHECK (change IN ('create','branch','save','restore','observe','edit')),
   author        TEXT NOT NULL CHECK (length(author) > 0),            -- reviewer name, or 'scan:<run id>' for observe
   steps         TEXT NOT NULL CHECK (json_valid(steps) AND json_type(steps) = 'array'),  -- ordered ProcessStep objects
   note          TEXT,                                                -- the one line the history shows

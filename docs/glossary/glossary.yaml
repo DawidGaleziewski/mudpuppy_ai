@@ -2754,17 +2754,54 @@ entries:
     group: Chat and workflow
     short: One version of a process, either A, the process as the scans observed it, or B and further letters, the process the business wants.
     explanation: |
-      A process always has variant A, the as-is flow built from what was observed; you do not
-      edit it. You start variant B from A (or from another variant) and draw the to-be: edit,
-      reorder, merge and add steps. A variant has numbered revisions (A r1, B r2); every save
-      makes a new one, with the reviewer's name and the time. Compare puts two variants side by
-      side.
+      A process always has variant A, the as-is flow built from what was observed. Rescans add
+      its revisions; a person can also reorder, remove or add its screens, each change a signed
+      revision of A (spec 027). You start variant B from A (or from another variant) and draw
+      the to-be: edit, reorder, merge and add steps. A variant has numbered revisions (A r1,
+      B r2); every save makes a new one, with the reviewer's name and the time. Compare puts two
+      variants side by side.
     example: PRC-001 "Oblicz składkę OC/AC" has A r1 (4 observed steps) and B r1 (3 designed steps).
     appears_in: [Processes → a process → variant tabs]
     labels: [Variant, A, B, as-is, to-be]
-    related: [process-draft, change-spec, live-variant, screen-revision, amendment]
-    changed_in: R-43
-    changed_on: 2026-10-14
+    related: [process-draft, change-spec, live-variant, screen-revision, amendment, as-is-sign-off]
+    changed_in: R-54
+    changed_on: 2026-10-18
+
+  - id: as-is-sign-off
+    term: As-is sign-off
+    category: pathfinder
+    group: Chat and workflow
+    short: Marking a process's as-is as documented, which records the revision of A it covered so a later change to A shows.
+    explanation: |
+      "Mark as-is documented" on a process page moves the process to the stage "as-is
+      documented" as a signed revision and remembers which revision of A it covered. When a
+      rescan or an edit changes A afterwards, the page says "As-is changed since documented
+      (A r2 → r3)" until someone signs off again. The stage can be moved forward or back at any
+      time; every move shows in History. The as-is is usually discussed with the business
+      outside MudPuppy (from the downloaded documentation) before the sign-off.
+    example: "PRC-001 signed off by Anna covering A r1; a rescan added A r2, so the page asks for a new sign-off."
+    appears_in: [Processes → a process → As-is documentation]
+    labels: [Mark as-is documented, Sign off, As-is changed since documented]
+    related: [process-variant, as-is-documentation, archived-process]
+    changed_in: R-54
+    changed_on: 2026-10-18
+
+  - id: archived-process
+    term: Archived process
+    category: pathfinder
+    group: Chat and workflow
+    short: A process taken out of the list, for example one made by mistake; nothing of it is deleted and Restore brings it back.
+    explanation: |
+      Archive on a process page hides the process from Processes and makes its screens count as
+      in no process again, also for the assistant's grouping suggestions. Its revisions, drafts,
+      annotations and change specs stay in the store. Processes → Archived lists archived
+      processes with Restore. Archive and restore are signed revisions of the process.
+    example: "PRC-004 was a duplicate of PRC-002: archived, its 3 screens are back under In no process."
+    appears_in: [Processes → Archived, Processes → a process]
+    labels: [Archive, Archived, Restore]
+    related: [process-variant, as-is-sign-off]
+    changed_in: R-54
+    changed_on: 2026-10-18
 
   - id: process-draft
     term: Draft (process draft)

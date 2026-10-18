@@ -6,15 +6,18 @@
 
 import { newId, nowIso } from '@pathfinder/core';
 import {
-  BaProcess,
+  type BaProcess,
   ChangeSpecRevision,
   ProcessDraft,
   ProcessVariant,
 } from '@pathfinder/chat-model';
-import { type PathfinderDb } from '@pathfinder/store';
+import { type OpenedDb, type PathfinderDb } from '@pathfinder/store';
+import { openFromRecord } from './process-from-record.js';
 import {
+  ArchiveBody,
   AuthorBody,
   BranchBody,
+  EditAsIsBody,
   ChangeSpecBody,
   CreateProcessBody,
   DraftBody,
@@ -25,7 +28,7 @@ import {
 } from './process-bodies.js';
 import { HttpError } from './http-error.js';
 import { parseBody } from './http-io.js';
-import { checkSteps, nextLabel } from './process-steps.js';
+import { checkSteps, editedSteps, editNote, nextLabel } from './process-steps.js';
 import {
   insertProcess,
   insertVariantRevision,
@@ -37,6 +40,8 @@ import {
   parseRow,
   stale,
   statesOf,
+  usedStepIds,
+  writeProcess,
   writeVariant,
   type ProcessOutcome,
 } from './process-store.js';
@@ -51,7 +56,7 @@ async function create(db: PathfinderDb, portal: string, raw: unknown): Promise<P
   });
 }
 
-/** Rename or move to another stage: one process revision. */
+/** Rename or move to another stage: one process revision; a stage move records A's revision. */
 async function change(
   db: PathfinderDb,
   portal: string,
@@ -61,35 +66,69 @@ async function change(
   const body = parseBody(ProcessChangeBody, raw);
   return db.transaction().execute(async (trx) => {
     const head = await loadProcess(trx, portal, id);
-    if (body.base_rev !== head.rev) throw stale(head.key, body.base_rev, head.rev, head);
-    const next = BaProcess.parse({
-      ...head,
-      name: body.name ?? head.name,
-      stage: body.stage ?? head.stage,
-      rev: head.rev + 1,
-      updated_at: nowIso(),
+    const asIs = body.stage === undefined ? null : await loadVariant(trx, head.id, 'A');
+    return writeProcess(trx, head, body.base_rev, {
+      change: body.name !== undefined ? 'rename' : 'stage',
+      author: body.author,
+      name: body.name,
+      stage: body.stage,
+      as_is_rev: asIs?.rev ?? null,
     });
-    const done = await trx
-      .updateTable('ba_processes')
-      .set({ name: next.name, stage: next.stage, rev: next.rev, updated_at: next.updated_at })
-      .where('id', '=', head.id)
-      .where('rev', '=', head.rev)
-      .executeTakeFirst();
-    if (Number(done.numUpdatedRows) !== 1) throw stale(head.key, body.base_rev, next.rev, head);
-    await trx
-      .insertInto('ba_process_revisions')
-      .values({
-        process_id: head.id,
-        rev: next.rev,
-        base_rev: head.rev,
-        change: body.name !== undefined ? 'rename' : 'stage',
-        author: body.author,
-        name: next.name,
-        stage: next.stage,
-        created_at: next.updated_at,
-      })
-      .execute();
-    return next;
+  });
+}
+
+/** Archive (`archived = true`) or restore a process: one revision, every row kept (FR-003). */
+async function archive(
+  db: PathfinderDb,
+  portal: string,
+  id: string,
+  archived: boolean,
+  raw: unknown,
+): Promise<BaProcess> {
+  const body = parseBody(ArchiveBody, raw);
+  return db.transaction().execute(async (trx) => {
+    const head = await loadProcess(trx, portal, id);
+    if ((head.archived_at !== null) === archived)
+      throw new HttpError(
+        409,
+        archived ? `${head.key} is archived already.` : `${head.key} is not archived.`,
+        { code: 'UNCHANGED' },
+      );
+    return writeProcess(trx, head, body.base_rev, {
+      change: archived ? 'archive' : 'unarchive',
+      author: body.author,
+      archived,
+    });
+  });
+}
+
+/**
+ * A person's edit of the as-is (FR-004): A's screens in a new order, added or removed. A step
+ * whose screen stays keeps its id and annotations; a new screen gets the next free `sN` id.
+ */
+async function editAsIs(
+  db: PathfinderDb,
+  portal: string,
+  id: string,
+  label: string,
+  raw: unknown,
+): Promise<ProcessOutcome> {
+  const body = parseBody(EditAsIsBody, raw);
+  return db.transaction().execute(async (trx) => {
+    const process = await loadProcess(trx, portal, id);
+    const head = await loadVariant(trx, process.id, label);
+    if (head.kind !== 'as_is')
+      throw new HttpError(409, 'A to-be variant changes in a draft; open it and save the draft.');
+    const current = await loadRevision(trx, head.id, head.rev);
+    const states = await statesOf(trx, portal, body.state_ids);
+    const steps = editedSteps(current.steps, states, await usedStepIds(trx, head.id));
+    const written = await writeVariant(trx, head, body.base_rev, {
+      change: 'edit',
+      author: body.author,
+      steps,
+      note: body.note ?? editNote(current.steps, steps),
+    });
+    return { process, ...written };
   });
 }
 
@@ -357,11 +396,20 @@ async function saveChangeSpec(
 }
 
 /** The service the HTTP routes and the MCP tools call; each method is one transaction. */
-export function createProcessService(deps: { db: PathfinderDb }) {
-  const { db } = deps;
+export function createProcessService(deps: { db: PathfinderDb; raw?: OpenedDb['raw'] }) {
+  const { db, raw: rawDb } = deps;
   return {
+    /** Spec 027 US6.2; needs the raw handle (the record's steps come from @pathfinder/docs). */
+    fromRecord: (portal: string, raw: unknown) => {
+      if (rawDb === undefined) throw new HttpError(404, 'This address does not exist.');
+      return openFromRecord(db, rawDb, portal, raw);
+    },
     create: (portal: string, raw: unknown) => create(db, portal, raw),
     change: (portal: string, id: string, raw: unknown) => change(db, portal, id, raw),
+    archive: (portal: string, id: string, raw: unknown) => archive(db, portal, id, true, raw),
+    unarchive: (portal: string, id: string, raw: unknown) => archive(db, portal, id, false, raw),
+    editAsIs: (portal: string, id: string, label: string, raw: unknown) =>
+      editAsIs(db, portal, id, label, raw),
     branch: (portal: string, id: string, raw: unknown) => branch(db, portal, id, raw),
     saveDraft: (portal: string, id: string, label: string, raw: unknown) =>
       saveDraft(db, portal, id, label, raw),

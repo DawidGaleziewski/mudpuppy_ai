@@ -1,0 +1,34 @@
+{#- A screen's picture (spec 027 US1): `thumb` is a button that opens the one `dialog` of the page
+    (pictures.js) with the large screenshot, a Screenshot / Wireframe switch and the screen page
+    link; it never ticks or selects anything. Without JavaScript the thumbnail links to the
+    screen page. `pic` is a queries_process_doc.Picture. -#}
+{% macro thumb(state_id, pic, title, route) -%}
+  {%- set href = c.url('/states/' ~ state_id) %}
+  <a class="mp-thumb-btn" href="{{ href }}" data-picture
+     data-shot="{{ '/evidence/' ~ pic.shot if pic.shot else '' }}" data-wire="{{ '/evidence/' ~ pic.wire if pic.wire else '' }}"
+     data-title="{{ title or '(untitled)' }}" data-route="{{ route or '' }}" data-scans="{{ pic.scans }}"
+     aria-label="Picture of {{ title or route }}">
+    {%- if pic.shot %}<img class="sy-thumb" src="/evidence/{{ pic.shot }}" alt="" loading="lazy">
+    {%- elif pic.wire %}<img class="sy-thumb" src="/evidence/{{ pic.wire }}" alt="" loading="lazy">
+    {%- else %}<span class="sy-thumb mp-thumb-empty sy-small sy-muted">No picture</span>{% endif -%}
+  </a>
+{%- endmacro %}
+
+{% macro dialog() -%}
+<dialog id="picture-dialog" class="sy-dialog mp-dialog-wide" aria-labelledby="picture-h">
+  <div class="sy-dialog__head sy-split">
+    <h2 id="picture-h" class="sy-h3 sy-case-normal" data-picture-title>Screen</h2>
+    <button class="sy-btn sy-btn--sm sy-btn--quiet" type="button" data-picture-close>Close</button>
+  </div>
+  <div class="sy-dialog__body">
+    <div class="sy-split"><span class="sy-route mp-break" data-picture-route></span><span class="sy-small sy-muted" data-picture-scans></span></div>
+    <div class="sy-seg" role="group" aria-label="Picture">
+      <button type="button" aria-pressed="true" data-picture-view="shot">Screenshot</button>
+      <button type="button" aria-pressed="false" data-picture-view="wire">Wireframe</button>
+    </div>
+    <img class="mp-shot-large" data-picture-img alt="">
+    <p class="sy-small sy-muted" data-picture-none hidden>Nothing recorded for this view.</p>
+  </div>
+  <div class="sy-dialog__foot"><a class="sy-btn" href="#" data-picture-href>Open screen page</a></div>
+</dialog>
+{%- endmacro %}

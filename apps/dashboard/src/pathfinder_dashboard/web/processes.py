@@ -13,7 +13,14 @@ from urllib.parse import quote
 from fastapi import APIRouter, Request
 from fastapi.responses import HTMLResponse, JSONResponse, PlainTextResponse, Response
 
-from .. import change_spec, db, pager, process_diff, queries_processes
+from .. import (
+    change_spec,
+    db,
+    pager,
+    process_diff,
+    queries_process_doc,
+    queries_processes,
+)
 from .chat_forward import chat_refused, forward, invalid, read_json
 from .deps import Ctx, same_origin, web_of
 
@@ -21,7 +28,8 @@ router = APIRouter()
 
 # The chat routes the forwarder may reach (contracts/processes-api.md); anything else is refused.
 WRITE_PATH = re.compile(
-    r"^processes(/[^/]+(/variants(/[A-Z]{1,2}/(draft|save|rebase|restore))?|/live|/change-spec)?)?$"
+    r"^processes(/[^/]+(/variants(/[A-Z]{1,2}/(draft|save|rebase|restore|edit))?"
+    r"|/live|/change-spec|/archive|/unarchive)?)?$"
     r"|^suggestions/[^/]+/(accept|dismiss)$"
 )
 
@@ -46,29 +54,42 @@ async def process_write(request: Request, portal: str, rest: str) -> JSONRespons
 
 
 def list_values(
-    c: Ctx, conn: sqlite3.Connection, portal: str | None, page: str | None = None
+    c: Ctx,
+    conn: sqlite3.Connection,
+    portal: str | None,
+    page: str | None = None,
+    show: str | None = None,
 ) -> dict[str, Any]:
+    """Screen 04; `show=archived` lists the archived processes instead (spec 027 US4)."""
+    archived = show == "archived"
     paged = pager.paginate(
-        queries_processes.portal_processes(conn, portal), pager.page_number(page)
+        queries_processes.portal_processes(conn, portal, archived=archived),
+        pager.page_number(page),
     )
+    loose = queries_processes.loose_screens(conn, portal)
     return {
         "rows": paged.items,
-        "pages": pager.links(paged, lambda n: c.url("/processes", page=n)),
+        "archived": archived,
+        "archived_count": queries_processes.archived_count(conn, portal),
+        "pages": pager.links(
+            paged, lambda n: c.url("/processes", page=n, show="archived" if archived else None)
+        ),
         "suggestions": queries_processes.open_suggestions(conn, portal),
-        "loose": queries_processes.loose_screens(conn, portal),
+        "loose": loose,
+        "pictures": queries_process_doc.pictures(conn, [s.id for s in loose]),
         "stages": queries_processes.STAGES,
     }
 
 
 @router.get("/processes", response_class=HTMLResponse)
 def processes_page(
-    request: Request, env: str | None = None, page: str | None = None
+    request: Request, env: str | None = None, page: str | None = None, show: str | None = None
 ) -> HTMLResponse:
     web = web_of(request)
     c = web.ctx(request, env)
     try:
         with c.conn() as conn:
-            v = list_values(c, conn, c.portal, page)
+            v = list_values(c, conn, c.portal, page, show)
     except db.StoreMissing as err:
         return web.missing(c, err)
     return web.render(c, "salvage/processes.html", nav_current="processes", v=v)
@@ -86,11 +107,40 @@ def _parent_steps(view: queries_processes.ProcessView, label: str) -> list[dict[
     return list(rev.steps) if rev else []
 
 
-def editor_values(
-    c: Ctx, view: queries_processes.ProcessView, label: str, step: str | None
+AS_IS_STAGES = ("scoped", "as_is_documented")
+
+
+def default_variant(view: queries_processes.ProcessView) -> str:
+    """US2.3: the page leads with A until a to-be design starts, then with the first to-be."""
+    if view.process.stage in AS_IS_STAGES:
+        return "A"
+    return next((v.variant.label for v in view.variants if v.variant.kind == "to_be"), "A")
+
+
+def as_is_values(
+    conn: sqlite3.Connection, view: queries_processes.ProcessView, steps: list[dict[str, Any]]
 ) -> dict[str, Any]:
-    """Screen 05: the variant shown, this reviewer's draft, and the rows against its parent."""
-    vv = view.variant(label) or view.as_is
+    """US2–US4 on A: each step as documentation, what is open, the sign-off, screens to add."""
+    portal = view.process.portal_id
+    docs = queries_process_doc.step_docs(conn, portal, steps)
+    in_a = {s.get("state_id") for s in steps}
+    return {
+        "docs": docs,
+        "open": queries_process_doc.still_open(docs),
+        "addable": [s for s in queries_processes.portal_screens(conn, portal) if s.id not in in_a],
+    }
+
+
+def editor_values(
+    c: Ctx,
+    conn: sqlite3.Connection,
+    view: queries_processes.ProcessView,
+    label: str | None,
+    step: str | None,
+) -> dict[str, Any]:
+    """Screen 05: the variant shown, this reviewer's draft, and the rows against its parent;
+    on A its documentation (spec 027)."""
+    vv = view.variant(label or default_variant(view)) or view.as_is
     assert vv is not None
     draft = vv.draft_of(c.settings.reviewer) if vv.variant.kind == "to_be" else None
     steps = list(draft.steps) if draft else vv.steps
@@ -110,6 +160,9 @@ def editor_values(
         "selected": next((s for s in steps if s["id"] == step), None),
         "conflict": draft is not None and draft.base_rev != vv.variant.rev,
         "self_url": c.url(f"/fragments/processes/{view.process.key}", variant=vv.variant.label),
+        "sign_off": queries_process_doc.sign_off(view),
+        "stages": queries_processes.STAGES,
+        **(as_is_values(conn, view, view.as_is.steps) if view.as_is else {}),
     }
 
 
@@ -133,7 +186,7 @@ def process_page(
     request: Request,
     key: str,
     env: str | None = None,
-    variant: str = "A",
+    variant: str | None = None,
     step: str | None = None,
 ) -> HTMLResponse:
     web = web_of(request)
@@ -141,7 +194,7 @@ def process_page(
     try:
         with c.conn() as conn:
             view = _view_or_404(c, conn, key)
-            v = editor_values(c, view, variant, step)
+            v = editor_values(c, conn, view, variant, step)
     except db.StoreMissing as err:
         return web.missing(c, err)
     except LookupError:
@@ -151,13 +204,17 @@ def process_page(
 
 @router.get("/fragments/processes/{key}", response_class=HTMLResponse)
 def fragment_process(
-    request: Request, key: str, env: str | None = None, variant: str = "A", step: str | None = None
+    request: Request,
+    key: str,
+    env: str | None = None,
+    variant: str | None = None,
+    step: str | None = None,
 ) -> HTMLResponse:
     web = web_of(request)
     c = web.ctx(request, env)
     try:
         with c.conn() as conn:
-            v = editor_values(c, _view_or_404(c, conn, key), variant, step)
+            v = editor_values(c, conn, _view_or_404(c, conn, key), variant, step)
     except db.StoreMissing as err:
         return web.missing(c, err, fragment=True)
     except LookupError:

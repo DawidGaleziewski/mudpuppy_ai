@@ -251,16 +251,24 @@ def test_a_draft_on_an_old_base_shows_someone_saved_first(empty_store: Store) ->
     assert "Save as" not in flat
 
 
-def test_the_as_is_is_read_only_and_drawing_needs_a_reviewer(empty_store: Store) -> None:
+def test_the_as_is_is_edited_by_screen_and_drawing_needs_a_reviewer(empty_store: Store) -> None:
+    """Spec 027: A is changed by screens (reorder, remove, add; one A revision each), never by
+    the to-be draft operations; without a reviewer nothing can be changed. On `to_be_design`
+    the page leads with the to-be (US2.3)."""
     store = seed(empty_store)
     with client(store) as c:
-        a = c.get(f"/processes/PRC-001?portal={P}").text
+        a = c.get(f"/processes/PRC-001?portal={P}&variant=A").text
+        lead = c.get(f"/processes/PRC-001?portal={P}").text
     with client(store, reviewer=None) as c:
         b = c.get(f"/processes/PRC-001?portal={P}&variant=B").text
+        a_unsigned = c.get(f"/processes/PRC-001?portal={P}&variant=A").text
         missing = c.get(f"/processes/PRC-999?portal={P}")
-    assert "Read-only: change it by rescanning" in text(a) and "data-step-op" not in a
+    assert "data-step-op" not in a and 'data-a-op="remove"' in a and 'data-a-op="add"' in a
+    assert 'data-edit="/chat/portals/liveinsurer/processes/pr-1/variants/A/edit"' in a
     assert "Live in sandbox:" in text(a)
+    assert "B · To-be r1" in text(lead)
     assert "Drawing is off" in text(b) and "data-step-op" not in b
+    assert "data-a-op" not in a_unsigned
     assert missing.status_code == 404
 
 

@@ -27,6 +27,23 @@ export const ProcessChangeBody = z
   })
   .refine((b) => b.name !== undefined || b.stage !== undefined, 'Give a new name or stage.');
 
+/** Archive or restore a process (spec 027 US4): one process revision, nothing deleted. */
+export const ArchiveBody = z.object({ base_rev: Rev, author: Author });
+
+/** A person's edit of the as-is (spec 027 FR-004): A's screens in their new order. */
+export const EditAsIsBody = z.object({
+  base_rev: Rev,
+  state_ids: StateIds,
+  note: z.string().trim().max(500).optional(),
+  author: Author,
+});
+
+/** "Open in Processes" from a BA process record (spec 027 US6.2). */
+export const FromRecordBody = z.object({
+  record_key: z.string().regex(/^PROC-\d{3,}$/),
+  author: Author,
+});
+
 export const BranchBody = z.object({
   from: Label.default('A'),
   from_rev: Rev.optional(),

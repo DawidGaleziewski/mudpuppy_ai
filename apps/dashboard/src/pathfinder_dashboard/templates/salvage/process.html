@@ -6,7 +6,8 @@
     over its last revision (autosaved, Save as rN+1, Discard). The editor is a live region. -#}
 {% set page_ctx = {"type": "process", "id": p.id ~ ":" ~ vv.variant.label, "label": p.key ~ " " ~ p.name ~ " · " ~ vv.variant.label, "rev": vv.variant.rev} %}
 {% block title %}{{ p.name }}{% endblock %}
-{% block head_extra %}<script src="/static/js/processes.js" defer></script>{% endblock %}
+{% import "salvage/partials/picture.html" as pic with context %}
+{% block head_extra %}<script src="/static/js/processes.js" defer></script><script src="/static/js/pictures.js" defer></script>{% endblock %}
 {% block main %}
 <div class="sy-pagehead">
   <nav class="sy-crumbs" aria-label="Breadcrumb"><a href="{{ c.url('/processes') }}">Processes</a> / <span aria-current="page">{{ p.name }}</span></nav>
@@ -18,16 +19,31 @@
         <span>persona <span class="sy-mono">{{ p.persona }}</span></span>
         {%- for lv in view.live %}<span>Live in {{ lv.environment }}: {{ sy.tag(lv.label ~ " r" ~ lv.rev, sm=true) }}</span>{% endfor %}
         <span>{{ view.as_is.steps | length if view.as_is else 0 }} screens</span>
+        {%- if p.record_key %}<span>documented as {{ sy.tag(p.record_key, c.url('/docs/' ~ p.portal_id ~ '/' ~ p.record_key), sm=true) }}</span>{% endif %}
       </div>
     </div>
-    <div class="sy-actions">
+    <div class="sy-actions" data-actions>
       {%- set to_be = view.variants | selectattr("variant.kind", "equalto", "to_be") | list %}
       {%- if to_be %}<a class="sy-btn" href="{{ c.url('/processes/' ~ p.key ~ '/compare', left='A', right=(vv.variant.label if vv.variant.kind == 'to_be' else to_be[0].variant.label)) }}">Compare A and {{ vv.variant.label if vv.variant.kind == 'to_be' else to_be[0].variant.label }}</a>{% endif %}
       <a class="sy-btn" href="{{ c.url('/processes/' ~ p.key ~ '/history') }}">History</a>
       <a class="sy-btn" href="{{ c.url('/processes/' ~ p.key ~ '/export') }}">Documentation</a>
+      {%- if c.settings.reviewer and not p.archived_at %}
+      <button class="sy-btn sy-btn--quiet" type="button" data-process="/chat/portals/{{ p.portal_id | urlencode }}/processes/{{ p.id | urlencode }}/archive" data-body='{"base_rev": {{ p.rev }}}' data-reload="page" data-confirm="Archive {{ p.name }}? It leaves the list and its screens count as in no process again. Every revision, draft and spec is kept; Restore puts it back.">Archive</button>
+      {%- endif %}
+      <p class="sy-small" role="status" data-result></p>
     </div>
   </div>
 </div>
+{%- if p.archived_at %}
+<div class="sy-callout" role="status" data-actions>
+  <p class="sy-callout__title">Archived</p>
+  <p>Archived <span class="sy-mono sy-mono--sm">{{ p.archived_at | when }}</span>. It is out of the list and its screens count as in no process; nothing was deleted.</p>
+  {%- if c.settings.reviewer %}
+  <div><button class="sy-btn sy-btn--md sy-btn--strong" type="button" data-process="/chat/portals/{{ p.portal_id | urlencode }}/processes/{{ p.id | urlencode }}/unarchive" data-body='{"base_rev": {{ p.rev }}}' data-reload="page">Restore</button></div>
+  {%- endif %}
+  <p class="sy-small" role="status" data-result></p>
+</div>
+{%- endif %}
 
 <div class="sy-cluster" data-actions>
   <nav class="sy-seg" aria-label="Variant">
@@ -36,10 +52,12 @@
     {%- endfor %}
   </nav>
   {%- if c.settings.reviewer %}
-  <button class="sy-btn sy-btn--md sy-btn--quiet" type="button" data-process="/chat/portals/{{ p.portal_id | urlencode }}/processes/{{ p.id | urlencode }}/variants" data-body='{"from": "{{ vv.variant.label }}"}' data-open="1">+ Variant from {{ vv.variant.label }} r{{ vv.variant.rev }}</button>
+  {#- US2.3: while the as-is is the work, the to-be is one quiet action. -#}
+  <button class="sy-btn sy-btn--md sy-btn--quiet" type="button" data-process="/chat/portals/{{ p.portal_id | urlencode }}/processes/{{ p.id | urlencode }}/variants" data-body='{"from": "{{ vv.variant.label }}"}' data-open="1">{% if to_be %}+ Variant from {{ vv.variant.label }} r{{ vv.variant.rev }}{% else %}Start a to-be design{% endif %}</button>
   {%- endif %}
   <p class="sy-small" role="status" data-result></p>
 </div>
 
 {% include "salvage/partials/process_editor.html" %}
+{{ pic.dialog() }}
 {% endblock %}

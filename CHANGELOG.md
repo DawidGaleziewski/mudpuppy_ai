@@ -6,6 +6,22 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Added
+- **Processes, as-is first, R-54** (spec 027, v1.0.40, 2026-10-18; owner 2026-10-14: "the as-is
+  documentation of a process is the product"). **Processes** shows each screen in no process
+  with a thumbnail; a click opens the large picture with Screenshot / Wireframe and the screen
+  page, and never ticks it; ticked screens become numbered steps in tick order with ↑ ↓ Remove.
+  A process page leads with **A as documentation** until a to-be design starts: per step its
+  picture and the records citing its screen, the side panel lists them with their status, and
+  the head says what is still open (open questions, records to confirm, amendments to
+  re-anchor). **Mark as-is documented** signs it off for the current revision of A, and **As-is
+  changed since documented (A r2 → r3)** shows when A moves after that; **Set stage** moves it
+  anywhere, signed. A is fixed by hand (↑ ↓ Remove, Add screen; one signed A revision each).
+  **Archive** takes a process out of the list without deleting anything (**Archived** lists it
+  with **Restore**; its screens are loose again, also for grouping suggestions). A PROC record
+  has **Open in Processes**, linked both ways. Migration 0028 (`archived_at`, `record_key`,
+  `as_is_rev`, `archive` / `unarchive` / `edit` revisions); chat routes archive, unarchive,
+  `variants/A/edit`, `processes/from-record`. Downloads (US5) were built by R-68 (v1.0.38).
+  Defaults taken while the owner was away: findings D-1–D-3.
 - **A graph of each scan, R-74** (spec 035, v1.0.39, 2026-10-18; owner: "graphs on runs so I
   know where something fails and are able to restart it"). A scan's page has a **Graph** tab,
   and a scan that stopped or had something fail opens on it: the screens it saw and the moves it

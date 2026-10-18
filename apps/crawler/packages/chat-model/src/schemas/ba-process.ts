@@ -20,13 +20,29 @@ export type BaProcessStage = z.infer<typeof BaProcessStage>;
 export const BaProcessSource = z.enum(['suggestion', 'scope', 'new']);
 export type BaProcessSource = z.infer<typeof BaProcessSource>;
 
-export const BaProcessChange = z.enum(['create', 'rename', 'stage', 'restore']);
+/** `archive` / `unarchive`: 0028, spec 027 (a process is archived, never deleted). */
+export const BaProcessChange = z.enum([
+  'create',
+  'rename',
+  'stage',
+  'restore',
+  'archive',
+  'unarchive',
+]);
 export type BaProcessChange = z.infer<typeof BaProcessChange>;
 
 export const ProcessVariantKind = z.enum(['as_is', 'to_be']);
 export type ProcessVariantKind = z.infer<typeof ProcessVariantKind>;
 
-export const ProcessVariantChange = z.enum(['create', 'branch', 'save', 'restore', 'observe']);
+/** `edit`: a person changed A's steps (0028, spec 027 FR-004). */
+export const ProcessVariantChange = z.enum([
+  'create',
+  'branch',
+  'save',
+  'restore',
+  'observe',
+  'edit',
+]);
 export type ProcessVariantChange = z.infer<typeof ProcessVariantChange>;
 
 /** An environment name as the portal declares it (free names, spec 030 R-61). */
@@ -81,6 +97,13 @@ export const BaProcess = z.object({
   suggestion_id: Id.nullable(),
   created_at: Timestamp,
   updated_at: Timestamp,
+  /** Set while archived (0028): hidden from the list, every row kept. */
+  archived_at: Timestamp.nullable(),
+  /** The BA `process` record (PROC-nnn) it was opened from (0028, spec 027 US6). */
+  record_key: z
+    .string()
+    .regex(/^PROC-\d/)
+    .nullable(),
 });
 export type BaProcess = z.infer<typeof BaProcess>;
 
@@ -104,6 +127,8 @@ export const BaProcessRevision = z
     /** The name and stage after the change. */
     name: z.string().min(1),
     stage: BaProcessStage,
+    /** The A revision a `stage` change signed off (0028, spec 027 FR-005). */
+    as_is_rev: z.number().int().min(1).nullable(),
     created_at: Timestamp,
   })
   .superRefine(revisionChain);

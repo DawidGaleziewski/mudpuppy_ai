@@ -86,7 +86,7 @@ async function main(): Promise<void> {
     scope: (conversationId, body) => setProcessScope(opened.raw, repoRoot, conversationId, body),
     amendments,
     proposals: createProposalService({ db: opened.db, amendments }),
-    processes: createProcessService({ db: opened.db }),
+    processes: createProcessService({ db: opened.db, raw: opened.raw }),
     probeSuites: createProbeSuiteService({ db: opened.db, repoRoot }),
     marks: createMarkService({ db: opened.db }),
     reconciliations: createReconciliationService({ db: opened.db }),

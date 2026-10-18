@@ -149,11 +149,15 @@ start, the last the end. Ids are unique within a variant and kept across its rev
 | scope_id TEXT → process_scopes(id) | the scope it was migrated from |
 | suggestion_id TEXT → grouping_suggestions(id) | the accepted suggestion |
 | created_at, updated_at TEXT NOT NULL | |
+| archived_at TEXT | 0028 (spec 027): NULL = in the list; set = archived. Nothing is deleted |
+| record_key TEXT | 0028 (spec 027 US6): the BA `process` record (`PROC-…`) it was opened from; a second "Open in Processes" finds it |
 
 ### `ba_process_revisions` (new, append-only)
 
 PK (process_id, rev); `base_rev` NULL exactly for rev 1; `change` IN (`create`, `rename`,
-`stage`, `restore`); `author`; `name`, `stage` (the values after the change); `created_at`.
+`stage`, `restore`, and since 0028 `archive`, `unarchive`); `author`; `name`, `stage` (the
+values after the change); `as_is_rev` (0028: the A revision a `stage` change signed off, spec
+027 FR-005); `created_at`.
 
 ### `process_variants` (new; head per variant)
 
@@ -170,7 +174,8 @@ PK (process_id, rev); `base_rev` NULL exactly for rev 1; `change` IN (`create`, 
 ### `process_variant_revisions` (new, append-only)
 
 PK (variant_id, rev); `base_rev` (NULL exactly for rev 1); `change` IN (`create`, `branch`,
-`save`, `restore`, `observe`); `author` (reviewer name, or `scan:<run>` for `observe`); `steps`
+`save`, `restore`, `observe`, and since 0028 `edit`: a person changed A's screens, spec 027
+FR-004); `author` (reviewer name, or `scan:<run>` for `observe`); `steps`
 JSON array (as above); `note` (the one line the history shows); `run_id` → runs(id) (for
 `observe`); `restored_from` INTEGER (for `restore`); `created_at`.
 

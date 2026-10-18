@@ -31,6 +31,9 @@ store, vault, workflow.
   `process-service` (create, rename/stage, branch, drafts, save, rebase, restore, live, change
   spec), `process-suggestions` (the assistant's groupings: suggest, accept, dismiss),
   `api-processes` (routes), `mcp-process-tools` (`list_grouping_inputs`, `suggest_grouping`).
+  Spec 027 (R-54): archive / unarchive (never delete), `variants/A/edit` (a person's edit of A,
+  an `edit` revision), sign-off records `as_is_rev`, and `process-from-record` (a PROC record
+  opens a process linked by `record_key`; routes `…/processes/from-record`).
 - `portals`, `personas`, `credentials`: portal/user data. `test-data` (`save_test_data`, spec 032:
   merge test values into an existing persona's `test_data`).
 - Probe suites (spec 032 US3): `probe-suites` (approve: kept variants, changed expectations, the

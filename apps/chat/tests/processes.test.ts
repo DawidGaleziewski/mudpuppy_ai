@@ -261,6 +261,80 @@ describe('BA processes', () => {
     expect(s2.body.rev).toBe(2);
   });
 
+  it('archives and restores as revisions, keeping every row; a stage sign-off records A (spec 027)', async () => {
+    const id = (await newProcess()).process.id;
+    const signed = await call('POST', `/processes/${id}`, {
+      stage: 'as_is_documented',
+      base_rev: 1,
+      author: 'Anna',
+    });
+    expect(signed.body).toMatchObject({ stage: 'as_is_documented', rev: 2, archived_at: null });
+    const archived = await call('POST', `/processes/${id}/archive`, {
+      base_rev: 2,
+      author: 'Anna',
+    });
+    expect(archived.status).toBe(200);
+    expect(archived.body.archived_at).toEqual(expect.any(String));
+    expect(
+      (await call('POST', `/processes/${id}/archive`, { base_rev: 3, author: 'Anna' })).body,
+    ).toMatchObject({ code: 'UNCHANGED' });
+    expect(
+      (await call('POST', `/processes/${id}/unarchive`, { base_rev: 2, author: 'Anna' })).status,
+    ).toBe(409); // stale base
+    const back = await call('POST', `/processes/${id}/unarchive`, { base_rev: 3, author: 'Anna' });
+    expect(back.body).toMatchObject({ rev: 4, archived_at: null, stage: 'as_is_documented' });
+    const revs = t.opened.raw
+      .prepare(
+        'SELECT rev, change, as_is_rev FROM ba_process_revisions WHERE process_id = ? ORDER BY rev',
+      )
+      .all(id);
+    expect(revs).toEqual([
+      { rev: 1, change: 'create', as_is_rev: null },
+      { rev: 2, change: 'stage', as_is_rev: 1 },
+      { rev: 3, change: 'archive', as_is_rev: null },
+      { rev: 4, change: 'unarchive', as_is_rev: null },
+    ]);
+  });
+
+  it('edits A: removed, added and reordered screens as one A revision; kept steps keep their id (spec 027)', async () => {
+    const made = await newProcess();
+    const id = made.process.id;
+    const a = made.variant.id;
+    const edit = (state_ids: string[], base_rev: number) =>
+      call('POST', `/processes/${id}/variants/A/edit`, { state_ids, base_rev, author: 'Anna' });
+    const r2 = await edit(['s-home', 's-driver', 's-car'], 1);
+    expect(r2.status).toBe(201);
+    expect(r2.body.revision).toMatchObject({
+      rev: 2,
+      change: 'edit',
+      author: 'Anna',
+      note: 'Removed 1 step, changed the order',
+    });
+    expect(steps(a, 2).map((s) => [s.id, s.state_id])).toEqual([
+      ['s1', 's-home'],
+      ['s3', 's-driver'],
+      ['s2', 's-car'],
+    ]);
+    const r3 = await edit(['s-home', 's-driver', 's-car', 's-options'], 2);
+    expect(r3.body.revision.note).toBe('Added 1 screen');
+    expect(steps(a, 3).at(-1)).toMatchObject({ id: 's5', state_id: 's-options', observed: true });
+    expect((await edit(['s-home', 's-driver', 's-car', 's-options'], 3)).body).toMatchObject({
+      code: 'UNCHANGED',
+    });
+    expect((await edit(['s-home'], 2)).status).toBe(409); // stale base
+    expect((await edit(['s-nowhere'], 3)).status).toBe(404);
+    await call('POST', `/processes/${id}/variants`, { author: 'Anna' });
+    expect(
+      (
+        await call('POST', `/processes/${id}/variants/B/edit`, {
+          state_ids: ['s-home'],
+          base_rev: 1,
+          author: 'Anna',
+        })
+      ).status,
+    ).toBe(409); // a to-be changes in a draft
+  });
+
   it('suggestions: accept makes a process, dismiss is final for that set of screens', async () => {
     const svc = createProcessService({ db: t.opened.db });
     const one = await svc.suggest(P, null, {

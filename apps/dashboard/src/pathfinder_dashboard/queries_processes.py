@@ -183,8 +183,11 @@ def _amendment_count(conn: sqlite3.Connection, portal: str, state_ids: list[str]
     return int(rows[0][0]) if rows else 0
 
 
-def portal_processes(conn: sqlite3.Connection, portal: str | None) -> list[ProcessRow]:
-    """Every BA process of the portal, by key, for the list (screen 04)."""
+def portal_processes(
+    conn: sqlite3.Connection, portal: str | None, archived: bool = False
+) -> list[ProcessRow]:
+    """The portal's BA processes by key for the list (screen 04): those in use, or with
+    `archived` the archived ones (spec 027 US4; a store before 0028 has none archived)."""
     if not portal:
         return []
     out = []
@@ -192,6 +195,8 @@ def portal_processes(conn: sqlite3.Connection, portal: str | None) -> list[Proce
     for (key,) in keys:
         view = process_view(conn, portal, key)
         if view is None or view.as_is is None:
+            continue
+        if (view.process.archived_at is not None) != archived:
             continue
         steps = view.as_is.steps
         newest = max([r for v in view.variants for r in v.revisions], key=lambda r: r.created_at)
@@ -235,6 +240,11 @@ def loose_screens(conn: sqlite3.Connection, portal: str | None) -> list[State]:
     if not portal:
         return []
     used = {s.get("state_id") for steps in _as_is_steps(conn, portal) for s in steps}
+    return [s for s in portal_screens(conn, portal) if s.id not in used]
+
+
+def portal_screens(conn: sqlite3.Connection, portal: str) -> list[State]:
+    """Every recorded screen of the portal, newest revision of each, by route."""
     try:
         rows = conn.execute(
             "SELECT * FROM states s WHERE s.portal_id = ? AND (s.screen_id IS NULL"
@@ -245,19 +255,48 @@ def loose_screens(conn: sqlite3.Connection, portal: str | None) -> list[State]:
         ).fetchall()
     except sqlite3.OperationalError:
         return []
-    return [State.model_validate(dict(r)) for r in rows if r["id"] not in used]
+    return [State.model_validate(dict(r)) for r in rows]
+
+
+def linked_process(conn: sqlite3.Connection, portal: str, record_key: str) -> str | None:
+    """The PRC key opened from a BA process record (spec 027 US6.2), if any."""
+    rows = _rows(
+        conn,
+        "SELECT key FROM ba_processes WHERE portal_id = ? AND record_key = ? ORDER BY key LIMIT 1",
+        (portal, record_key),
+    )
+    return str(rows[0][0]) if rows else None
+
+
+def archived_count(conn: sqlite3.Connection, portal: str | None) -> int:
+    """How many of the portal's processes are archived (0 on a store before 0028)."""
+    rows = _rows(
+        conn,
+        "SELECT count(*) FROM ba_processes WHERE portal_id = ? AND archived_at IS NOT NULL",
+        (portal,),
+    )
+    return int(rows[0][0]) if rows else 0
 
 
 def _as_is_steps(conn: sqlite3.Connection, portal: str) -> list[list[dict[str, Any]]]:
-    """The steps of every process's as-is head in the portal."""
+    """The steps of every process's as-is head in the portal; an archived process is out of
+    the BA's cut, so its screens count as in no process (spec 027, open question 3)."""
+    archived = {
+        r[0]
+        for r in _rows(
+            conn,
+            "SELECT id FROM ba_processes WHERE portal_id = ? AND archived_at IS NOT NULL",
+            (portal,),
+        )
+    }
     rows = _rows(
         conn,
-        "SELECT r.steps FROM ba_processes p JOIN process_variants v"
+        "SELECT p.id, r.steps FROM ba_processes p JOIN process_variants v"
         " ON v.process_id = p.id AND v.label = 'A' JOIN process_variant_revisions r"
         " ON r.variant_id = v.id AND r.rev = v.rev WHERE p.portal_id = ?",
         (portal,),
     )
-    return [json.loads(r[0]) for r in rows]
+    return [json.loads(r[1]) for r in rows if r[0] not in archived]
 
 
 def scans_of(conn: sqlite3.Connection, state_ids: list[str]) -> int:
