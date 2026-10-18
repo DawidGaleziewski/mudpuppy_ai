@@ -1,6 +1,7 @@
 import { maskText, type NavigationHop, type PageVisitVia } from '@pathfinder/core';
 import { parseUrlParams } from '@pathfinder/fingerprint';
 import { recordPageVisit } from '../../services/index.js';
+import { markTransitHops } from '../transit.js';
 import { event, reported, step, type Report, type StepContext } from './context.js';
 
 /** How this call reached its page, for the visit row. */
@@ -37,7 +38,10 @@ export function recordVisitStep(
   return step(sc, 'record_visit', async () => {
     const scrub = rs.effective.portal.pii_scrub;
     const keep = (u: string) => (scrub ? maskText(u) : u);
-    const hops = (await rs.session.navigation.drain()).map((h) => ({ ...h, url: keep(h.url) }));
+    const drained = (await rs.session.navigation.drain()).map((h) => ({ ...h, url: keep(h.url) }));
+    // A login's chain carries its transit pages (spec 037 FR-006); the zone ends with it.
+    const hops = rs.transit === null ? drained : markTransitHops(drained, rs.transit);
+    rs.transit = null;
     const url = keep(page.url);
     const via = visitVia(sc, page.relogged);
     const { visit_id } = await recordPageVisit(ctx, {

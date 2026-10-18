@@ -17,6 +17,8 @@ export interface ProbeField {
   required: boolean;
   /** Radio group name. */
   group?: string;
+  /** A radio group's visible name (legend or radiogroup label): how people and messages name it. */
+  groupLabel?: string;
   min?: string;
   max?: string;
   placeholder?: string;
@@ -50,6 +52,11 @@ export interface ProbeTry {
   target: string | null;
   /** Changes on top of the happy-path values, in order. */
   writes: ProbeWrite[];
+  /**
+   * Changes written after the form was read again, by index in that new reading: the fields an
+   * option in `writes` revealed (spec 037 FR-002).
+   */
+  after?: ProbeWrite[];
   fault?: ProbeFault;
   /** One line for the agent and the decision log. */
   summary: string;
@@ -91,6 +98,8 @@ export function clear(fields: readonly ProbeField[], f: ProbeField): ProbeWrite[
   return all.map((x) => ({ index: x.index, value: emptyValue(x) }));
 }
 
-/** A control's name for people: a radio group by its group name. */
+/** A control's name for people: a radio group by its visible name, else its group name. */
 export const nameOf = (f: ProbeField): string =>
-  f.type === 'radio' && f.group !== undefined ? f.group : f.label || `field ${f.index + 1}`;
+  f.type === 'radio' && f.group !== undefined
+    ? f.groupLabel || f.group
+    : f.label || `field ${f.index + 1}`;

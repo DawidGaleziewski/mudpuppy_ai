@@ -67,15 +67,25 @@ export async function armFault(rs: RunState, fault: ProbeFault): Promise<ArmedFa
   if (fault === 'offline') {
     // Hit only when the step tried to reach the network while it was gone.
     let failed: string | null = null;
+    const step = (r: Request): string => `${r.method()} ${new URL(r.url()).pathname}`;
     const onFailed = (r: Request): void => {
-      if (failed === null && isStepRequest(r, origin))
-        failed = `${r.method()} ${new URL(r.url()).pathname}`;
+      if (failed === null && isStepRequest(r, origin)) failed = step(r);
+    };
+    // The request gate answers documents through its own route, outside the emulated network, so
+    // a page-load submit went through while offline (F-03@036): the step's request fails here as
+    // a dropped connection does (spec 037 FR-003).
+    const cut = async (route: Route, request: Request): Promise<void> => {
+      if (failed !== null || !isStepRequest(request, origin)) return route.fallback();
+      failed = step(request);
+      return route.abort('internetdisconnected');
     };
     page.on('requestfailed', onFailed);
+    await page.route('**/*', cut);
     await rs.session.context.setOffline(true);
     return {
       async disarm() {
         await rs.session.context.setOffline(false);
+        await page.unroute('**/*', cut);
         page.off('requestfailed', onFailed);
         return { ...result, hit: failed !== null, request: failed };
       },

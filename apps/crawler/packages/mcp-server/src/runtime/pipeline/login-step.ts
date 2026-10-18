@@ -21,7 +21,14 @@ export async function login(
   ctx: ServerContext,
   rs: RunState | undefined,
   input: { run_id: string },
-): Promise<PageResult & { outcome: 'logged_in' | 'failed' | 'pending'; reason?: string }> {
+): Promise<
+  PageResult & {
+    outcome: 'logged_in' | 'failed' | 'pending';
+    reason?: string;
+    /** Hosts other than the portal's the login passed through (spec 037 FR-004). */
+    transit_hosts?: string[];
+  }
+> {
   const run = await phase(ctx, 'begin_step', () => beginStep(ctx, rs, input.run_id));
   const state = rs!;
   return counted(state, async () => {
@@ -33,12 +40,20 @@ export async function login(
       // `pending` changes nothing: the agent may log in again (spec 030 FR-062, owner D-2 Q2).
       if (out.outcome !== 'pending')
         state.login = out.outcome === 'logged_in' ? 'logged_in' : 'blocked';
-      return reported(out, [
+      // The hosts this login passed through (learned transit zone, spec 037 FR-004).
+      const transit = [...(state.transit?.hosts ?? [])];
+      return reported({ ...out, transit }, [
         decision({
           kind: 'note',
           rule: 'login',
           reason: LOGIN_NOTES[out.outcome](out.reason, out.at),
-          detail: { outcome: out.outcome, reason: out.reason ?? null, at: out.at ?? null },
+          detail: {
+            outcome: out.outcome,
+            reason: out.reason ?? null,
+            at: out.at ?? null,
+            transit_hosts: transit,
+            transit_pages: state.transit?.pages.length ?? 0,
+          },
         }),
       ]);
     });
@@ -52,6 +67,11 @@ export async function login(
     });
     await step({ ctx, run }, 'run_bookkeeping', () => bumpRun(ctx, run, started, 0));
     await flushObstacles(ctx, state);
-    return { ...page, outcome: out.outcome, ...(out.reason ? { reason: out.reason } : {}) };
+    return {
+      ...page,
+      outcome: out.outcome,
+      ...(out.reason ? { reason: out.reason } : {}),
+      ...(out.transit.length > 0 ? { transit_hosts: out.transit } : {}),
+    };
   });
 }

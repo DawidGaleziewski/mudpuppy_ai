@@ -351,11 +351,11 @@ gate(
   },
 );
 
-gap(
+gate(
   'F-11@031',
   'a link on a screen reached by a click is still there when act goes back to it (S07)',
-  'act goes back by loading the URL; opened directly, /sklep/konto is the shell login form, so the account screen’s link is gone (reach by navigation: R-66)',
   async () => {
+    // Opened directly, /sklep/konto is the shell's login form; act replays "Moje konto" (spec 037).
     const own = await startRun(gs.call, 'proving-ground-shop', 'guest');
     const sklep = await nav(gs.call, own, '/sklep');
     const konto = await actOn(gs.call, own, sklep, /^Moje konto$/);

@@ -211,9 +211,10 @@ async function requireCurrentState(
 async function reachState(call: ActCall): Promise<void> {
   const { ctx, state, action } = call;
   const to = action.json.page_url;
+  const replay = () => returnToState({ ctx, run: call.run, rs: state }, action.state_id);
   // A step of a same-URL form: its URL shows the first step, so go the run's own way (F-01@032).
-  if (needsReplay(state, action.state_id, to))
-    return returnToState({ ctx, run: call.run, rs: state }, action.state_id);
+  if (needsReplay(state, action.state_id, to) || state.replayOnly.has(action.state_id))
+    return replay();
   await gateReach(call, to);
   await step(call, 'reach_state', async () => {
     await state.session.goto(to);
@@ -222,7 +223,17 @@ async function reachState(call: ActCall): Promise<void> {
     await state.session.recorder.drain();
     return reported(undefined, settleReports(state, settled));
   });
+  // Loaded by its URL the page can be another screen than the one a click inside the app showed
+  // (F-11@031, shop S07): when the element is missing, go the way the run took (spec 037 FR-007).
+  if (!canReplay(state, action.state_id)) return;
+  if ((await findAgain(state.session.page, action)).locator !== null) return;
+  state.replayOnly.add(action.state_id);
+  await replay();
 }
+
+/** The run reached the state by acting, so it has a path of its own to replay. */
+const canReplay = (rs: RunState, stateId: string): boolean =>
+  (rs.pathTo.get(stateId)?.steps.length ?? 0) > 0;
 
 function gateReach(call: ActCall, to: string): Promise<void> {
   const { ctx, run, state, action, g } = call;

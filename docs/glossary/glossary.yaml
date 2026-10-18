@@ -221,19 +221,21 @@ entries:
       plain scan presses each form once with test values and never probes). After the happy path
       the crawler calls `probe_form` on a marked step. The server tries:
       - required fields left empty, wrong formats, values outside the limits (validation);
-      - every other option (branch);
+      - every other option (branch); when an option adds fields (AC adds "Wartość pojazdu"),
+        those fields get their own validation tries with that option chosen;
       - the step's request blocked, answered with a server error, held, or the browser offline
         (technical, simulated in the crawler's own browser only).
 
-      Each outcome is one of: next, branch, validation, technical, temporary, blocked. Probes run
-      where the action limit allows submitting forms, at most 24 per step and 120 per scan unless
-      the portal file says otherwise.
+      A radio group's messages are filed under the group's name (its legend, e.g. "Zakres"), not
+      one option. Each outcome is one of: next, branch, validation, technical, temporary,
+      blocked. Probes run where the action limit allows submitting forms, at most 24 per step and
+      120 per scan unless the portal file says otherwise.
     example: "On the quote form, \"Business\" led to a code confirmation (a branch, possibly a new process)."
     appears_in: [Screen page → States of this step, Review → Probe suites to approve]
     labels: [Form probes]
     related: [form-step, state-kind, probe-suite, test-data, probe-mark, probe-scan]
-    changed_in: R-69
-    changed_on: 2026-10-17
+    changed_in: R-76
+    changed_on: 2026-10-18
 
   - id: probe-mark
     term: Probe mark
@@ -592,9 +594,30 @@ entries:
     example: "reference-insurer allows 127.0.0.1 and lists /__admin/* in urls.disallowed."
     appears_in: [Frontier → Status, skip reasons]
     labels: [Scope, Denylist, out_of_scope, denylisted]
-    related: [frontier, budget, environment, portal-hook]
+    related: [frontier, budget, environment, portal-hook, transit-zone]
     changed_in: R-53
     changed_on: 2026-10-14
+
+  - id: transit-zone
+    term: Transit zone
+    category: pathfinder
+    group: Crawling
+    short: The hosts a login passes through on its way to the portal, such as an identity provider; learned on every login, not configured.
+    explanation: |
+      After "Log in" the browser may visit other hosts before it lands on the portal: a single
+      sign-on provider, a "checking your device" page, a callback. Every host other than the
+      portal's own that the browser enters while the login runs is that login's transit zone.
+      During the login the scan's scope does not block it (a focused scan can still log in);
+      the "do not touch" lists, robots.txt and the action limit still apply. "Logged in" by
+      address alone is not believed while the browser is still on a transit host. Each provider
+      page is kept with its snapshot and screenshot as a transit page of the login's redirect
+      chain (they matter for a migration), never as a screen of the portal, and never explored.
+    example: "Logging in to scar-maker-sso passes through 127.0.0.2 (the identity provider)."
+    appears_in: [login result (transit_hosts), URLs → redirect hops]
+    labels: [Transit zone, transit host, transit page]
+    related: [portal-scope, environment]
+    changed_in: R-62
+    changed_on: 2026-10-18
 
   - id: portal-hook
     term: Portal hook
@@ -1229,13 +1252,15 @@ entries:
       (a history-API or hash change without a page load), `reload`, and `blocked` when the
       request gate refused to follow, with the reason. The crawler waits through short
       client-side redirects (up to the portal's `client_redirect_wait_ms`, 5 s by default), so a
-      "Proszę czekać…" interstitial is a hop, not a screen.
+      "Proszę czekać…" interstitial is a hop, not a screen. A login's hops through its transit
+      zone (an identity provider) are marked `transit`, and the provider pages the browser
+      settled on carry their title, snapshot and screenshot.
     example: "`/polisa.php?id=7` → meta_refresh → `/stare/polisa/7` → script → `/ubezpieczenia#/polisy/7`."
     appears_in: [State page → Reached under, get_run_evidence page_visits]
     labels: [hops, client_redirect_wait_ms]
-    related: [page-visit, entry-url]
-    changed_in: R-38
-    changed_on: 2026-10-12
+    related: [page-visit, entry-url, transit-zone]
+    changed_in: R-62
+    changed_on: 2026-10-18
 
   - id: parameter-inventory
     term: Parameter inventory

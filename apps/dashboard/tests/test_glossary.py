@@ -310,6 +310,7 @@ EXPECTED_IDS = {
     "scans-by-process", "documentation-update",  # R-70 (spec 034)
     "process-documentation",  # R-68 (spec 034)
     "export-quality-score",  # R-68 (spec 034 phase 9)
+    "transit-zone",  # R-62 (spec 037)
     # BA (23)
     "ears",  # R-68 (spec 034)
     "confidence", "documentation-record", "evidence-link", "relations", "traceability", "review",
@@ -323,7 +324,7 @@ EXPECTED_IDS = {
 def test_real_glossary_is_valid_and_complete() -> None:
     g = load_ok(REPO_DOCS)
     assert {e.id for e in g.entries} == EXPECTED_IDS
-    assert len(EXPECTED_IDS) == 170
+    assert len(EXPECTED_IDS) == 171
     assert sum(e.category == "ba" for e in g.entries) == 23
 
 

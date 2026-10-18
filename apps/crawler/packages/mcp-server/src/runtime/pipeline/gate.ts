@@ -11,6 +11,7 @@ import type { ServerContext } from '../../context.js';
 import { ToolError } from '../../errors.js';
 import type { RunRow } from '../../services/index.js';
 import type { RunState } from '../run-state.js';
+import { loginScope, noteHost } from '../transit.js';
 import type { ActionRow } from './actions.js';
 import { decision, event, fail, orFail, reported, type Report, type Reported } from './context.js';
 
@@ -105,10 +106,13 @@ export const TRACE_CLASSIFY = { safeFormSubmitIsRead: true } as const;
 /** The navigation policy handed to the request gate: the same `decide` as `navigate`, minus budgets. */
 export function navigationPolicy(rs: RunState): (url: string) => Refusal | null {
   return (url) => {
-    const d = decide(
-      { kind: 'navigate', url },
-      { ...gateContext(rs, { depth: 0, states: 0, actionsInState: 0, elapsedMs: 0, steps: 0 }) },
-    );
+    const g = gateContext(rs, { depth: 0, states: 0, actionsInState: 0, elapsedMs: 0, steps: 0 });
+    // A login passes through its transit zone whatever the run's scope (spec 037 FR-004).
+    if (rs.loggingIn) {
+      noteHost(rs, url);
+      g.scope = loginScope(g.scope);
+    }
+    const d = decide({ kind: 'navigate', url }, g);
     if (d.allowed) return null;
     return {
       status: d.status,

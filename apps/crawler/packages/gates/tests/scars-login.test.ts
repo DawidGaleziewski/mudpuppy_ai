@@ -18,7 +18,9 @@ let gs: GateServer;
 
 beforeAll(async () => {
   await resetScars();
-  gs = await gateServer({ portals: ['scar-maker-bound', 'scar-maker-slow', 'scar-maker-sso'] });
+  gs = await gateServer({
+    portals: ['scar-maker-bound', 'scar-maker-slow', 'scar-maker-sso', 'scar-maker-sso-url'],
+  });
 });
 afterAll(async () => {
   await gs?.close();
@@ -50,6 +52,66 @@ gate(
   'a slow multi-hop login through a second host lands logged in',
   async () => {
     const { r } = await login('scar-maker-sso');
+    expect(r.body).toMatchObject({ outcome: 'logged_in' });
+    expect(lastVisit(gs, r.body.state_id as string).url).toBe(`${SCAR_BASE}/sc16/dashboard`);
+  },
+  { timeout: 120_000 },
+);
+
+/** A hop as the landing visit stores it, with the transit marks of spec 037. */
+interface Hop {
+  url: string;
+  kind: string;
+  transit?: true;
+  title?: string;
+  evidence_ref?: string;
+  screenshot_ref?: string;
+}
+
+gate(
+  'SC-16',
+  'a focused run logs in through the provider its focus fences out, and keeps the provider pages as transit',
+  async () => {
+    // Only the dashboard and messages on the portal host: the login page, the provider's host and
+    // the callback are all outside the focus (field SQ-5: "scan from a point starts over").
+    const run = await startRun(gs.call, 'scar-maker-sso', 'tester', {
+      focus: {
+        start_url: `${SCAR_BASE}/sc16/dashboard`,
+        only_domains: ['127.0.0.1'],
+        only_paths: ['/sc16/dashboard*', '/sc16/messages*'],
+      },
+    });
+    const r = await gs.call('login', { run_id: run, rationale: 'gate step' });
+    expect(r.body).toMatchObject({ outcome: 'logged_in', transit_hosts: ['127.0.0.2'] });
+    const visit = lastVisit(gs, r.body.state_id as string);
+    expect(visit.url).toBe(`${SCAR_BASE}/sc16/dashboard`);
+    const hops = visit.hops as Hop[];
+    const kept = hops.filter((h) => h.transit && h.evidence_ref);
+    expect(kept.map((h) => new URL(h.url).pathname)).toEqual(
+      expect.arrayContaining(['/sc16/idp/authorize', '/sc16/idp/check']),
+    );
+    for (const h of kept) expect(h.title?.length).toBeGreaterThan(0);
+    // Transit pages are not screens: no state was recorded on the provider's host.
+    const onIdp = gs.ctx.raw
+      .prepare(`SELECT count(*) AS n FROM page_visits WHERE run_id = ? AND url LIKE '%/sc16/idp/%'`)
+      .get(run) as { n: number };
+    expect(onIdp.n).toBe(0);
+    // Outside the login the focus holds again.
+    const after = await gs.call('navigate', {
+      run_id: run,
+      url: `${SCAR_BASE}/sc16/`,
+      rationale: 'gate: outside the focus',
+    });
+    expect(after.isError).toBe(true);
+  },
+  { timeout: 120_000 },
+);
+
+gate(
+  'SC-16',
+  'a URL-only success sign waits until the browser has left the provider',
+  async () => {
+    const { r } = await login('scar-maker-sso-url');
     expect(r.body).toMatchObject({ outcome: 'logged_in' });
     expect(lastVisit(gs, r.body.state_id as string).url).toBe(`${SCAR_BASE}/sc16/dashboard`);
   },

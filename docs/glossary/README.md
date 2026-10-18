@@ -328,13 +328,15 @@ Probing happens only when asked: in a probe scan, on the steps you marked for pr
 plain scan presses each form once with test values and never probes). After the happy path
 the crawler calls `probe_form` on a marked step. The server tries:
 - required fields left empty, wrong formats, values outside the limits (validation);
-- every other option (branch);
+- every other option (branch); when an option adds fields (AC adds "Wartość pojazdu"),
+  those fields get their own validation tries with that option chosen;
 - the step's request blocked, answered with a server error, held, or the browser offline
   (technical, simulated in the crawler's own browser only).
 
-Each outcome is one of: next, branch, validation, technical, temporary, blocked. Probes run
-where the action limit allows submitting forms, at most 24 per step and 120 per scan unless
-the portal file says otherwise.
+A radio group's messages are filed under the group's name (its legend, e.g. "Zakres"), not
+one option. Each outcome is one of: next, branch, validation, technical, temporary,
+blocked. Probes run where the action limit allows submitting forms, at most 24 per step and
+120 per scan unless the portal file says otherwise.
 
 *Example:* On the quote form, "Business" led to a code confirmation (a branch, possibly a new process).
 
@@ -344,7 +346,7 @@ the portal file says otherwise.
 
 *Related:* [Form step](#form-step), [State kind](#state-kind), [Probe suite](#probe-suite), [Test data](#test-data), [Probe mark](#probe-mark), [Probe scan](#probe-scan)
 
-<sub>Last changed in R-69, 2026-10-17.</sub>
+<sub>Last changed in R-76, 2026-10-18.</sub>
 
 <a id="probe-mark"></a>
 
@@ -650,9 +652,34 @@ that are forbidden even inside scope, such as logout or payment; those are skipp
 
 *Labels:* `Scope`, `Denylist`, `out_of_scope`, `denylisted`
 
-*Related:* [Frontier](#frontier), [Budget](#budget), [Environment](#environment), [Portal hook](#portal-hook)
+*Related:* [Frontier](#frontier), [Budget](#budget), [Environment](#environment), [Portal hook](#portal-hook), [Transit zone](#transit-zone)
 
 <sub>Last changed in R-53, 2026-10-14.</sub>
+
+<a id="transit-zone"></a>
+
+#### Transit zone
+
+**The hosts a login passes through on its way to the portal, such as an identity provider; learned on every login, not configured.**
+
+After "Log in" the browser may visit other hosts before it lands on the portal: a single
+sign-on provider, a "checking your device" page, a callback. Every host other than the
+portal's own that the browser enters while the login runs is that login's transit zone.
+During the login the scan's scope does not block it (a focused scan can still log in);
+the "do not touch" lists, robots.txt and the action limit still apply. "Logged in" by
+address alone is not believed while the browser is still on a transit host. Each provider
+page is kept with its snapshot and screenshot as a transit page of the login's redirect
+chain (they matter for a migration), never as a screen of the portal, and never explored.
+
+*Example:* Logging in to scar-maker-sso passes through 127.0.0.2 (the identity provider).
+
+*Seen in:* login result (transit_hosts); URLs → redirect hops
+
+*Labels:* `Transit zone`, `transit host`, `transit page`
+
+*Related:* [Scope / denylist](#portal-scope), [Environment](#environment)
+
+<sub>Last changed in R-62, 2026-10-18.</sub>
 
 <a id="portal-hook"></a>
 
@@ -1454,7 +1481,9 @@ step's own load), `http` with its 3xx status, `meta_refresh`, `script`, `same_do
 (a history-API or hash change without a page load), `reload`, and `blocked` when the
 request gate refused to follow, with the reason. The crawler waits through short
 client-side redirects (up to the portal's `client_redirect_wait_ms`, 5 s by default), so a
-"Proszę czekać…" interstitial is a hop, not a screen.
+"Proszę czekać…" interstitial is a hop, not a screen. A login's hops through its transit
+zone (an identity provider) are marked `transit`, and the provider pages the browser
+settled on carry their title, snapshot and screenshot.
 
 *Example:* `/polisa.php?id=7` → meta_refresh → `/stare/polisa/7` → script → `/ubezpieczenia#/polisy/7`.
 
@@ -1462,9 +1491,9 @@ client-side redirects (up to the portal's `client_redirect_wait_ms`, 5 s by defa
 
 *Labels:* `hops`, `client_redirect_wait_ms`
 
-*Related:* [Page visit](#page-visit), [Entry URL](#entry-url)
+*Related:* [Page visit](#page-visit), [Entry URL](#entry-url), [Transit zone](#transit-zone)
 
-<sub>Last changed in R-38, 2026-10-12.</sub>
+<sub>Last changed in R-62, 2026-10-18.</sub>
 
 <a id="parameter-inventory"></a>
 

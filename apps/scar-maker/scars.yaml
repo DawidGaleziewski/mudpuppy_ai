@@ -185,3 +185,11 @@
   before: Chromium's own error page (chrome-error://chromewebdata/, path "/") is recorded as a blank screen of the home page, and "Next" leads to "/".
   after: The error page is a technical state on the route of the page that submitted; "/" is never its destination.
   status: gate
+
+- id: SC-24
+  title: A required radio group whose second option adds a required number box with limits
+  source: [F-04@036]
+  route: /sc24/
+  before: Probes start from the happy option, so the group's "nothing chosen" message is filed under one option's label and the added box is filled but never probed.
+  after: The group's message is filed under "Cover"; the box is tried empty, below its minimum and above its maximum with "Comprehensive" chosen, within the step's budget.
+  status: gate

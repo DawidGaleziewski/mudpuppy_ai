@@ -1,7 +1,8 @@
-import { maxSafetyClass, newId, nowIso } from '@pathfinder/core';
+import { maxSafetyClass } from '@pathfinder/core';
 import { readFormFields, testValueFor, type AutofillField } from '@pathfinder/crawler';
 import {
   planTries,
+  revealedTries,
   unknownProbes,
   type HappyNext,
   type ProbeTry,
@@ -16,6 +17,7 @@ import { gateAct } from './act-gate.js';
 import { counted, flushObstacles, phase, step } from './context.js';
 import { findAgain } from './find-again.js';
 import { classifyPress, press, recordOutcome, type ProbeTarget } from './probe.js';
+import { formStepOf, outcomesInRun, recordBlocked } from './probe-records.js';
 import { returnToState } from './replay.js';
 import { beginStep, bumpRun } from './stop.js';
 
@@ -34,9 +36,6 @@ const HAPPY: ProbeTry = {
   writes: [],
   summary: 'the happy values',
 };
-
-/** Outcomes that are no probe try: the happy press and a step that could not be probed. */
-const NOT_TRIES = ['happy-path', 'step'];
 
 type Scope = { ctx: ServerContext; run: RunRow; rs: RunState; formStepId: string | null };
 
@@ -122,7 +121,8 @@ async function probeStep(
   const happy = progress?.happyNext ?? (await happyPress(sc, target, ready, result));
   if (happy === null) return result;
   const done = progress?.done ?? new Set<string>();
-  rs.probing.set(target.stateId, { done, happyNext: happy });
+  const revealed = progress?.revealed ?? [];
+  rs.probing.set(target.stateId, { done, happyNext: happy, revealed });
 
   const planned = planTries(
     { fields: ready.fields, base: ready.base },
@@ -131,19 +131,62 @@ async function probeStep(
       ...(input.probes ? { only: input.probes } : {}),
     },
   );
-  const todo = planned.tries.filter((t) => !done.has(t.key));
   result.skipped.push(...planned.skipped.map((k) => `budget: ${k}`));
-  for (const [i, t] of todo.entries()) {
-    if (performance.now() - started > PROBE_CALL_MS) {
-      result.more = todo.length - i;
-      break;
-    }
-    done.add(t.key);
-    if (await tryOne(sc, target, { t, base: ready.base, happyNext: happy }, result)) break;
-  }
+  await runTries(
+    sc,
+    target,
+    {
+      tries: [...planned.tries, ...revealed],
+      progress: { done, revealed },
+      limit,
+      started,
+      base: ready.base,
+      happyNext: happy,
+    },
+    result,
+  );
   await step({ ctx, run }, 'run_bookkeeping', () => bumpRun(ctx, run, started, target.depth + 1));
   result.budget.used_in_run = used + result.outcomes.length;
   return finishMark({ ctx, run, markId }, result);
+}
+
+/**
+ * The tries not done yet, within the call's time and the step's budget. An option's try queues the
+ * tries on the fields it revealed (spec 037 FR-002); they share the budget.
+ */
+async function runTries(
+  sc: Scope,
+  target: ProbeTarget,
+  o: {
+    tries: ProbeTry[];
+    progress: { done: Set<string>; revealed: ProbeTry[] };
+    limit: number;
+    started: number;
+    base: ReadonlyMap<number, ProbeValue>;
+    happyNext: HappyNext;
+  },
+  result: ProbeFormResult,
+): Promise<void> {
+  const { done, revealed } = o.progress;
+  const todo = o.tries.filter((t) => !done.has(t.key));
+  const queue = (more: ProbeTry[]) => {
+    revealed.push(...more);
+    todo.push(...more);
+  };
+  let left = o.limit;
+  for (const [i, t] of todo.entries()) {
+    if (performance.now() - o.started > PROBE_CALL_MS) {
+      result.more = todo.length - i;
+      return;
+    }
+    if (left-- <= 0) {
+      result.skipped.push(`budget: ${t.key}`);
+      continue;
+    }
+    done.add(t.key);
+    const press = { t, base: o.base, happyNext: o.happyNext, queue };
+    if (await tryOne(sc, target, press, result)) return;
+  }
 }
 
 /** A step probed to its end (no "more" left) uses up its mark. */
@@ -294,7 +337,12 @@ async function happyPress(
 async function tryOne(
   sc: Scope,
   target: ProbeTarget,
-  o: { t: ProbeTry; base: ReadonlyMap<number, ProbeValue>; happyNext: HappyNext },
+  o: {
+    t: ProbeTry;
+    base: ReadonlyMap<number, ProbeValue>;
+    happyNext: HappyNext;
+    queue: (tries: ProbeTry[]) => void;
+  },
   result: ProbeFormResult,
 ): Promise<boolean> {
   const { t } = o;
@@ -302,6 +350,7 @@ async function tryOne(
     const p = await press(sc, target, {
       base: o.base,
       writes: t.writes,
+      ...(t.after ? { after: t.after } : {}),
       ...(t.fault ? { fault: t.fault } : {}),
       fresh: false,
     });
@@ -316,6 +365,7 @@ async function tryOne(
     }
     const k = await classifyPress(sc, target, p, { group: t.group, happyNext: o.happyNext });
     await recordOutcome(sc, target, { t, p, ...k });
+    o.queue(revealedTries(t, p.revealed));
     result.outcomes.push({
       probe: t.probe,
       key: t.key,
@@ -345,67 +395,4 @@ function missingData(
   return fields
     .filter((f) => f.label && inputs[f.label] === undefined && f.type !== 'radio')
     .map((f) => f.label);
-}
-
-async function outcomesInRun(ctx: ServerContext, runId: string): Promise<number> {
-  const r = await ctx.db
-    .selectFrom('probe_outcomes')
-    .select((eb) => eb.fn.countAll<number>().as('n'))
-    .where('run_id', '=', runId)
-    .where('probe_id', 'not in', NOT_TRIES)
-    .executeTakeFirstOrThrow();
-  return Number(r.n);
-}
-
-async function formStepOf(
-  ctx: ServerContext,
-  id: string | null,
-): Promise<ProbeFormResult['form_step']> {
-  if (id === null) return null;
-  const r = await ctx.db
-    .selectFrom('form_steps')
-    .select(['id', 'step_index', 'label'])
-    .where('id', '=', id)
-    .executeTakeFirst();
-  return r ?? null;
-}
-
-/** A step that could not be probed at all: one `blocked` outcome on the step's own evidence. */
-async function recordBlocked(
-  ctx: ServerContext,
-  run: RunRow,
-  actionId: string,
-  reason: string,
-): Promise<void> {
-  const action = await ctx.db
-    .selectFrom('actions')
-    .innerJoin('states', 'states.id', 'actions.state_id')
-    .select(['actions.state_id', 'states.evidence_ref', 'states.form_step_id'])
-    .where('actions.id', '=', actionId)
-    .executeTakeFirstOrThrow();
-  await ctx.db
-    .insertInto('probe_outcomes')
-    .values({
-      id: newId(),
-      run_id: run.id,
-      from_state_id: action.state_id,
-      form_step_id: action.form_step_id,
-      probe_id: 'step',
-      probe_group: 'validation',
-      target: null,
-      inputs_json: '[]',
-      path_json: '{"start_url":"","steps":[]}',
-      fault: null,
-      outcome_kind: 'blocked',
-      to_state_id: null,
-      accepted: 0,
-      possible_new_process: 0,
-      messages_json: '[]',
-      http_status: null,
-      reason,
-      evidence_ref: action.evidence_ref,
-      edge_id: null,
-      created_at: nowIso(),
-    })
-    .execute();
 }

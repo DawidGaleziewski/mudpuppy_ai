@@ -70,8 +70,25 @@ function pfNearLabel(field: Element): HTMLLabelElement | null {
   return l.htmlFor || l.contains(field) ? null : l;
 }
 
+/**
+ * A radio group's own name: its fieldset's legend, else its radiogroup's accessible name (the rule
+ * of `forms.ts`, spec 036 FR-007), so a probe and a message name "Zakres", not one option.
+ */
+function pfGroupLabel(field: Element): string {
+  const clean = (s: string | null | undefined) => (s ?? '').replace(/\s+/g, ' ').trim();
+  const legend = clean(field.closest('fieldset')?.querySelector('legend')?.textContent);
+  if (legend) return legend;
+  const group = field.closest('[role=radiogroup]');
+  if (!group) return '';
+  const ids = (group.getAttribute('aria-labelledby') ?? '').split(/\s+/).filter(Boolean);
+  return (
+    clean(group.getAttribute('aria-label')) ||
+    clean(ids.map((id) => document.getElementById(id)?.textContent ?? '').join(' '))
+  );
+}
+
 /** In-page helpers sent with `readForm` / `writeForm`. */
-const HELPERS = [pfNativeSubmitForm, pfControlsFor, pfNearLabel];
+const HELPERS = [pfNativeSubmitForm, pfControlsFor, pfNearLabel, pfGroupLabel, pfMessageField];
 
 /** The submit control's form fields, or null when the control does not submit a form. */
 function readForm(el: Element, named?: boolean): AutofillField[] | null {
@@ -115,6 +132,8 @@ function readForm(el: Element, named?: boolean): AutofillField[] | null {
             : field.value === '',
     };
     if (ftype === 'radio' && field.name) entry.group = field.name;
+    const groupLabel = ftype === 'radio' ? pfGroupLabel(field) : '';
+    if (groupLabel) entry.groupLabel = groupLabel;
     for (const a of ['min', 'max', 'step', 'pattern', 'placeholder', 'autocomplete'] as const) {
       const v = field.getAttribute(a);
       if (v !== null && v !== '') entry[a] = v;
@@ -245,21 +264,31 @@ function readNativeMessages(el: Element): { field: string | null; text: string }
   if (form?.noValidate) return [];
   const controls = pfControlsFor(el, true) ?? [];
   const out: { field: string | null; text: string }[] = [];
+  const groups = new Set<string>();
   for (const c of controls) {
     const f = c as HTMLInputElement;
     if (typeof f.checkValidity !== 'function' || f.checkValidity() || !f.validationMessage)
       continue;
-    const labelEl = (f.labels && f.labels[0]) || pfNearLabel(f);
-    // Named like `readForm` names the field, so a message pairs with the probe's target.
-    const names = [
-      labelEl ? labelEl.textContent : null,
-      f.getAttribute('aria-label'),
-      f.getAttribute('placeholder'),
-    ];
-    const label = (names.find((n) => n) ?? '').replace(/\s+/g, ' ').trim();
-    out.push({ field: label || null, text: f.validationMessage });
+    // Every radio of an empty required group says it; the message is the group's, once (F-04@036).
+    if (f.type === 'radio' && f.name) {
+      if (groups.has(f.name)) continue;
+      groups.add(f.name);
+    }
+    out.push({ field: pfMessageField(f), text: f.validationMessage });
   }
   return out;
+}
+
+/** Named like `readForm` names the field (a radio by its group), so a message pairs with the probe's target. */
+function pfMessageField(f: HTMLInputElement): string | null {
+  const labelEl = (f.labels && f.labels[0]) || pfNearLabel(f);
+  const names = [
+    f.type === 'radio' ? pfGroupLabel(f) : null,
+    labelEl ? labelEl.textContent : null,
+    f.getAttribute('aria-label'),
+    f.getAttribute('placeholder'),
+  ];
+  return (names.find((n) => n) ?? '').replace(/\s+/g, ' ').trim() || null;
 }
 
 export function nativeMessages(submit: Locator): Promise<{ field: string | null; text: string }[]> {

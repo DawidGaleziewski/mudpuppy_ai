@@ -14,6 +14,10 @@ Layer: features (G-07; `apps/crawler/layers.json`). Depends on core only.
   budget, shared round-robin, plus the skipped keys; `unknownProbes(only)`.
 - `classifyOutcome(facts)` → `next` | `branch` | `validation` | `technical` | `temporary` |
   `blocked`, with `accepted` and `possibleNewProcess` (plan decision 7).
+- `revealedTries(optionTry, revealed)` (spec 037 FR-002): the per-field validation tries on the
+  fields an option revealed, with the option's `writes` and the try's own writes as `after` (by
+  index in the form read again). The runtime queues them after the option's try, in the step budget.
+- A radio group is named by `groupLabel` (legend / radiogroup name, spec 037 FR-001) in `nameOf`.
 - Used by mcp-server (`runtime/pipeline/probe.ts`, `services/probe-form.ts`).
 
 ## Probes

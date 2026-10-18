@@ -43,32 +43,44 @@ export interface Pressed {
   native: FieldMessage[];
   fault: FaultResult | null;
   captcha: string | null;
+  /** The fields the try's choices added to the form (none for most tries). */
+  revealed: Revealed;
 }
 
 type Locator = NonNullable<Awaited<ReturnType<typeof findAgain>>['locator']>;
 
+/** The fields an option revealed, by index in the form read after it, and their happy values. */
+export interface Revealed {
+  fields: AutofillField[];
+  base: Map<number, ProbeValue>;
+}
+
 /**
  * Fields an option revealed (Business shows "Company name"): filled with the persona's test data
- * or a test value, so the try can reach where the option leads instead of stopping on them.
+ * or a test value, so the try can reach where the option leads instead of stopping on them; then a
+ * try's own `after` writes on them (spec 037 FR-002).
  */
 async function fillRevealed(
   locator: Locator,
   before: readonly AutofillField[],
-  inputs: Readonly<Record<string, string>>,
-): Promise<LabelStep[]> {
+  o: { inputs: Readonly<Record<string, string>>; after: ProbeTry['after'] },
+): Promise<{ steps: LabelStep[]; revealed: Revealed }> {
   const known = new Set(before.map((f) => `${f.type}|${f.label}`));
-  const after = (await readFormFields(locator)) ?? [];
-  const values = new Map<number, ProbeValue>();
-  for (const f of after.filter((x) => !known.has(`${x.type}|${x.label}`))) {
-    const v = testValueFor({ ...f, empty: true }, inputs[f.label]);
-    if (v !== null) values.set(f.index, v);
+  const read = (await readFormFields(locator)) ?? [];
+  const fields = read.filter((x) => !known.has(`${x.type}|${x.label}`));
+  const base = new Map<number, ProbeValue>();
+  for (const f of fields) {
+    const v = testValueFor({ ...f, empty: true }, o.inputs[f.label]);
+    if (v !== null) base.set(f.index, v);
   }
-  if (values.size === 0) return [];
-  await writeFormFields(
-    locator,
-    [...values].map(([index, value]) => ({ index, value })),
-  );
-  return labelSteps(after, values);
+  const values = new Map(base);
+  for (const w of o.after ?? []) values.set(w.index, w.value);
+  if (values.size > 0)
+    await writeFormFields(
+      locator,
+      [...values].map(([index, value]) => ({ index, value })),
+    );
+  return { steps: labelSteps(read, values), revealed: { fields, base } };
 }
 
 /**
@@ -82,6 +94,7 @@ export async function press(
   opts: {
     base: ReadonlyMap<number, ProbeValue>;
     writes: ProbeTry['writes'];
+    after?: ProbeTry['after'];
     fault?: ProbeFault;
     fresh: boolean;
   },
@@ -98,9 +111,10 @@ export async function press(
     [...values].map(([index, value]) => ({ index, value })),
   );
   const inputs = rs.effective.persona.test_data;
+  const filled = await fillRevealed(found.locator, fields, { inputs, after: opts.after });
   const steps = [
     ...labelSteps(fields, values),
-    ...(await fillRevealed(found.locator, fields, inputs)),
+    ...filled.steps,
     { name: target.action.accessible_name ?? target.action.role, kind: 'click' as const },
   ];
   const armed = opts.fault ? await armFault(rs, opts.fault) : null;
@@ -123,7 +137,7 @@ export async function press(
     );
     fault = armed ? await armed.disarm() : null;
     const captcha = await captchaInDom(rs.session.page);
-    return { result, steps, native, fault, captcha };
+    return { result, steps, native, fault, captcha, revealed: filled.revealed };
   } finally {
     rs.keepErrorPages = false;
     if (armed && fault === null) await armed.disarm().catch(() => undefined);

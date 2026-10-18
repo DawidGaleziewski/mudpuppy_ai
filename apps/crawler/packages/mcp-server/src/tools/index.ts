@@ -214,7 +214,7 @@ export function registerTools(server: McpServer, ctx: ServerContext, runtime: Ru
   );
   tool(
     'login',
-    "Log in as the run's persona. The server fills and submits the portal's login form with the persona's stored credentials (you never see them) and records the landing page. Returns outcome logged_in, failed (reason rejected | locked | captcha | control_not_found; after a failure no further login is possible in this run) or pending (the page stopped moving with no success or failure sign, e.g. a slow single sign-on chain: wait or call login again). Expired sessions are re-logged in automatically (results then carry relogged_in).",
+    "Log in as the run's persona. The server fills and submits the portal's login form with the persona's stored credentials (you never see them) and records the landing page. Returns outcome logged_in, failed (reason rejected | locked | captcha | control_not_found; after a failure no further login is possible in this run) or pending (the page stopped moving with no success or failure sign, e.g. a slow single sign-on chain: wait or call login again). transit_hosts names the other hosts the login passed through (an identity provider): allowed during the login even outside the run's focus, its pages kept as transit evidence, never explored. Expired sessions are re-logged in automatically (results then carry relogged_in).",
     { run_id: z.string(), rationale: z.string().trim().min(1).max(300) },
     async (a) => {
       if (!runtime.login)

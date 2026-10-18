@@ -37,6 +37,26 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   only the graph region (htmx, URL pushed), and the graph keeps its scroll, zoom and focus.
 
 ### Fixed
+- **Probe leftovers, SSO transit zones and the shop's account link, R-76, R-62 (5), R-55 (2)**
+  (spec 037, v1.0.42, 2026-10-18; owner: "do these on new branch: 76, 62, 55"). **Probes:** a required
+  radio group left empty is reported under its own name ("Zakres", once) instead of each option;
+  when an option adds fields ("OC + Autocasco (AC)" adds "Wartość pojazdu (zł)") those fields are
+  probed with that option chosen (empty, below, above the limits) within the step's budget (scar
+  SC-24); the `offline` fault now also breaks a page-load form, which lands on a technical state
+  (gate F-03@036). **Logging in through single sign-on (transit zones, learned as the owner
+  decided):** while a login runs, the scan's scope no longer blocks the identity provider, so a
+  focused scan can log in (the "do not touch" lists, robots.txt and the action limit still
+  apply); the login names the hosts it passed (`transit_hosts`); "logged in" by address alone is
+  not believed while the browser is still on the provider; each provider page is kept with its
+  snapshot and screenshot (no screenshot when a password or other secret shows) and marked
+  transit on the landing page's redirect chain, never a screen and never explored. No migration.
+  **Shop S07:** when a screen opened by its address is a different screen than the one a click
+  showed (the shop's account page), `act` goes back the way the scan went, so "Zaloguj się, aby
+  zobaczyć zamówienia" is reached (gate F-11@031, was a known gap). Reference trial
+  (`data/evals/reference-insurer/2026-10-18T13-03-10-082Z.json`, not promoted): export validation
+  83.3 → 100 %, fields, steps, actions and calls 100 %, strays 0; the extra step (`/`, the BA
+  wrote that the calculator contains the home page) and rules 52.9 % come from the BA's records
+  (findings F-04, F-05). Glossary: `transit-zone`; `form-probe`, `navigation-hop` updated.
 - **Crawler and export fixes from the first real export, R-73** (spec 036, v1.0.41, 2026-10-18;
   owner 2026-10-17: "these issues you mentioned add them on roadmap to be fixed"). Every wait
   measures with a monotonic clock, so a wall clock that steps (this machine's WSL clock jumped

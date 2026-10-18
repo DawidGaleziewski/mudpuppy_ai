@@ -27,6 +27,15 @@ export const NavigationHop = z.object({
   status: z.number().int().optional(),
   /** Why the hop was not followed (kind `blocked` only). */
   reason: z.string().optional(),
+  /**
+   * The hop is on a login's transit host (spec 037 FR-006): an identity provider's page, kept for
+   * a migration, not a screen of the portal.
+   */
+  transit: z.literal(true).optional(),
+  /** A transit page kept with evidence: its title, masked snapshot and screenshot (if no secret showed). */
+  title: z.string().optional(),
+  evidence_ref: z.string().min(1).optional(),
+  screenshot_ref: z.string().min(1).optional(),
 });
 export type NavigationHop = z.infer<typeof NavigationHop>;
 

@@ -22,6 +22,8 @@ const FINDINGS: [string, string][] = [
   ['specs/031-roadmap-declutter-2/findings.md', '031'],
   ['specs/032-form-states-probes/findings.md', '032'],
   ['specs/033-map-graph-reconcile/findings.md', '033'],
+  ['specs/036-crawler-export-fixes/findings.md', '036'],
+  ['specs/037-probes-transit-shop/findings.md', '037'],
 ];
 
 describe('coverage (spec 009 FR-024, FR-025)', () => {

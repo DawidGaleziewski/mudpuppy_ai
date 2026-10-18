@@ -411,7 +411,7 @@
 - id: F-11@031
   title: A link on a screen reached by a click is gone when act goes back by loading the URL (S07)
   tier: gate
-  reason: known gap; shop account screen reached through "Moje konto", acted on after visiting another page
+  reason: shop account screen reached through "Moje konto", acted on after visiting another page; act replays the click path (spec 037 FR-007)
 - id: F-12@031
   title: Shared navigation is already cheap for links; buttons are left alone
   tier: not_testable
@@ -556,3 +556,43 @@
   title: propose_verdicts refused every real state id as personal data
   tier: not_testable
   reason: unit test reconcile-tools.test.ts with a UUID state id
+
+# ---- spec 036 (findings.md; F-03, F-04 built in spec 037) ----
+- id: F-01@036
+  title: A stepping wall clock stalled waits and failed browser tests at random
+  tier: not_testable
+  reason: machine clock; the code side is unit-tested with a jumping clock (condition-wait, tracker)
+- id: F-02@036
+  title: A 204 answer was reported as a failed request
+  tier: not_testable
+  reason: covered by scar SC-21's gate
+- id: F-03@036
+  title: The offline fault did not break a page-load form submit
+  tier: gate
+  reason: an offline probe on SC-04's GET form lands on a technical state of /sc04 (spec 037 FR-003)
+- id: F-04@036
+  title: Probes never left a required radio group empty under its name, nor tried the fields a branch reveals
+  tier: not_testable
+  reason: covered by scar SC-24's gate (spec 037 FR-001, FR-002); the reference trial's export_validation
+
+# ---- spec 037 (findings.md) ----
+- id: F-01@037
+  title: A shell heredoc edit of a tracked file was blocked by the hook
+  tier: not_testable
+  reason: a process slip, agent behaviour
+- id: F-02@037
+  title: probe-form.ts over 400 lines and two functions over complexity 15
+  tier: not_testable
+  reason: lint (max-lines, complexity) reports it; fixed by splitting
+- id: F-03@037
+  title: The commit hook failed a docs commit on the glossary id list and a same-command regenerate
+  tier: not_testable
+  reason: a process slip, agent behaviour
+- id: F-04@037
+  title: The BA wrote that the calculator process contains the home page, so its export starts at /
+  tier: eval
+  check: export_extra_steps
+- id: F-05@037
+  title: Rules score 52.9 % in one trial (BA spread)
+  tier: eval
+  check: rules

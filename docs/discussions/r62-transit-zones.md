@@ -1,6 +1,8 @@
 # R-62 open decision: transit zones (how the harness knows which hosts a login passes through)
 
-Status: **decided 2026-10-16: (b) learned, not declared** (see section 8). Roadmap: R-62 [battle-tested-scar].
+Status: **decided 2026-10-16: (b) learned, not declared** (see section 8); **built 2026-10-18 in
+spec 037** (`runtime/transit.ts`; transit pages kept on the landing visit's redirect hops; the
+chain's network backstop is the navigation recorder's request events, R-38). Roadmap: R-62 [battle-tested-scar].
 Source: `user_input/mudpuppy-ground-challenge.zip`, field issues GC-09 and GC-11, scan finding SQ-5,
 decision D-2.
 

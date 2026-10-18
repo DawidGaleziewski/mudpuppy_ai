@@ -9,9 +9,11 @@ import {
 } from '@pathfinder/crawler';
 import { portalRuleSet, type RuleSet, type RunScope } from '@pathfinder/safety';
 import type { HookRunner } from '@pathfinder/hooks';
+import type { ProbeTry } from '@pathfinder/probes';
 import type { RunRobots } from '../services/robots.js';
 import type { ResolvedPlan } from '../services/run-plan.js';
 import type { PwTrace } from './pw-trace.js';
+import type { TransitZone } from './transit.js';
 import type { RunTraceHooks } from './trace-hooks.js';
 
 /** One acted step on the way to a state: the issued action and the value typed or chosen. */
@@ -74,6 +76,8 @@ export class RunState {
   login: 'none' | 'logged_in' | 'blocked' = 'none';
   /** True while the server itself is logging in, so the login page is not a trace step. */
   loggingIn = false;
+  /** The latest login's transit zone (spec 037), until its landing page's hops are recorded. */
+  transit: TransitZone | null = null;
   /** The portal's hooks for this run (spec 023); null until the session is open. */
   hooks: HookRunner | null = null;
   /** Stylesheets, scripts and fonts that failed since the last page (spec 030 FR-041). */
@@ -90,12 +94,22 @@ export class RunState {
    */
   readonly pathTo = new Map<string, RunPath>();
   /**
+   * States whose URL, loaded directly, showed another screen (spec 037 FR-007, F-11@031): `act`
+   * goes back to them by replaying the run's path, not by a deep link.
+   */
+  readonly replayOnly = new Set<string>();
+  /**
    * Form probing per step state (spec 032): the tries done and where the happy values led, so a
    * `probe_form` that stopped at its time limit continues on the next call.
    */
   readonly probing = new Map<
     string,
-    { done: Set<string>; happyNext: { stepId: string | null; route: string } }
+    {
+      done: Set<string>;
+      happyNext: { stepId: string | null; route: string };
+      /** Tries on fields an option revealed, queued by that option's try (spec 037 FR-002). */
+      revealed: ProbeTry[];
+    }
   >();
 
   get isTrace(): boolean {

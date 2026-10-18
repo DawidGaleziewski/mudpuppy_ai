@@ -6,6 +6,7 @@ import { ToolError } from '../errors.js';
 import { runSecrets } from '../services/credentials.js';
 import { captchaInDom } from './handoff.js';
 import type { RunState } from './run-state.js';
+import { inTransit, keepTransitPage, openZone } from './transit.js';
 
 type Page = RunState['session']['page'];
 type Locator = ReturnType<Page['locator']>;
@@ -100,10 +101,14 @@ export async function performLogin(
   creds: { spec: LoginSpec; username: string; password: string },
 ): Promise<LoginOutcome> {
   rs.loggingIn = true;
+  rs.transit = openZone();
+  const keep = () => keepTransitPage(ctx, rs);
   try {
     // FR-019a: nothing of the login reaches the Playwright trace (snapshots keep typed values,
     // the network log keeps the POST body); the trace goes on after it.
-    return await (rs.pw ? rs.pw.untraced(() => loginSteps(rs, creds)) : loginSteps(rs, creds));
+    return await (rs.pw
+      ? rs.pw.untraced(() => loginSteps(rs, creds, keep))
+      : loginSteps(rs, creds, keep));
   } finally {
     rs.loggingIn = false;
     ctx.tracer.event('login', { run_id: rs.runId });
@@ -134,8 +139,13 @@ async function enter(field: Locator, value: string): Promise<void> {
   await field.blur();
 }
 
-/** The portal's own verdict on the page now: a failure text, the success signs, or none yet. */
-async function verdict(page: Page, spec: LoginSpec): Promise<LoginOutcome | null> {
+/**
+ * The portal's own verdict on the page now: a failure text, the success signs, or none yet. A
+ * success made of the URL alone does not count on a transit host (spec 037 FR-005): mid-chain the
+ * provider's URL already "does not match" the login page.
+ */
+async function verdict(rs: RunState, spec: LoginSpec): Promise<LoginOutcome | null> {
+  const page = rs.session.page;
   const text = await bodyText(page);
   const failed = list(spec.failure?.text).find((t) => text.includes(t));
   if (failed !== undefined) {
@@ -151,15 +161,26 @@ async function verdict(page: Page, spec: LoginSpec): Promise<LoginOutcome | null
     spec.success.url_not_matching === undefined ||
     !page.url().includes(spec.success.url_not_matching);
   const successTexts = list(spec.success.text);
+  if (successTexts.length === 0 && inTransit(rs, page.url())) return null;
   const textOk = successTexts.length === 0 || successTexts.some((t) => text.includes(t));
   return urlOk && textOk ? { outcome: 'logged_in' } : null;
 }
 
-/** Wait while the page moves until it gives a verdict; null when it went quiet without one. */
-async function awaitVerdict(rs: RunState, spec: LoginSpec): Promise<LoginOutcome | null> {
+/**
+ * Wait while the page moves until it gives a verdict; null when it went quiet without one. Each
+ * transit page the chain settles on is kept on the way (spec 037 FR-006).
+ */
+async function awaitVerdict(
+  rs: RunState,
+  spec: LoginSpec,
+  keep: () => Promise<void>,
+): Promise<LoginOutcome | null> {
   let v: LoginOutcome | null = null;
   await waitForCondition(
-    async () => (v = await verdict(rs.session.page, spec)) !== null,
+    async () => {
+      await keep();
+      return (v = await verdict(rs, spec)) !== null;
+    },
     progressOf(rs),
     LOGIN_WAIT,
   );
@@ -169,6 +190,7 @@ async function awaitVerdict(rs: RunState, spec: LoginSpec): Promise<LoginOutcome
 async function loginSteps(
   rs: RunState,
   creds: { spec: LoginSpec; username: string; password: string },
+  keep: () => Promise<void>,
 ): Promise<LoginOutcome> {
   const { spec, username, password } = creds;
   const page = rs.session.page;
@@ -193,11 +215,12 @@ async function loginSteps(
     );
     if (!form.met) {
       // Already logged in (a second `login` after a pending one): the portal skipped the form.
-      const already = await verdict(page, spec);
+      const already = await verdict(rs, spec);
       return already?.outcome === 'logged_in'
         ? already
         : { outcome: 'failed', reason: 'control_not_found' };
     }
+    await keep(); // the provider's sign-in page, before anything is typed into it
     typed.push(user, pass);
     try {
       await enter(user, username);
@@ -209,7 +232,7 @@ async function loginSteps(
     // The verdict waits while a redirect chain moves (D-2): checked on the provider's host
     // mid-chain, a successful login used to read as a failure (GC-09). Undecided after the wait:
     // one silent re-check, then `pending` (never a lockout).
-    const v = (await awaitVerdict(rs, spec)) ?? (await awaitVerdict(rs, spec));
+    const v = (await awaitVerdict(rs, spec, keep)) ?? (await awaitVerdict(rs, spec, keep));
     if (v) return v;
     if (await captchaInDom(page)) return { outcome: 'failed', reason: 'captcha' };
     return { outcome: 'pending', at: shapeUrl(page.url()).route };

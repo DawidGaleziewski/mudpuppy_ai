@@ -19,6 +19,8 @@ export interface AutofillField {
   empty: boolean;
   /** Radio group name; one value per group. */
   group?: string;
+  /** A radio group's visible name: its legend or radiogroup label (spec 037 FR-001). */
+  groupLabel?: string;
   min?: string;
   max?: string;
   step?: string;

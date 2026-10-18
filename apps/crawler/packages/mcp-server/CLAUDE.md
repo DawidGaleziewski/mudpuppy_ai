@@ -79,6 +79,14 @@ Layer: servers (G-07; `apps/crawler/layers.json`)
   run types, `mayQueue`: Skip marks, a retry's one action, nothing in a recheck, a continue run's
   parent's done actions) and `run-plan-resolve.ts` (`start_run` `run_type` + `plan` → plan on the
   run row, `start_points`, marks used).
+- Spec 037: `runtime/transit.ts` (R-62 Q3, learned transit zone: while `login` runs the navigation
+  policy uses `loginScope` (any domain, only `disallowed` lists) and notes every non-portal host;
+  a URL-only success does not count on a transit host; `keepTransitPage` keeps each provider page
+  (masked snapshot, a screenshot unless a secret shows) and `markTransitHops` puts them on the
+  landing visit's hops as `transit`; never states, never explored); `act` replays the run's path
+  when a deep link misses the element (`RunState.replayOnly`, F-11@031); probes queue the tries
+  on fields an option revealed (`pipeline/probe-form.ts` `runTries`, store helpers in
+  `probe-records.ts`).
 - Entry points: `pnpm --filter @pathfinder/mcp-server start` (`src/main.ts`), `start:ba`.
 
 ## Invariants

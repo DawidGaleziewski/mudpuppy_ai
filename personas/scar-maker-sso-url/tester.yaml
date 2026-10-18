@@ -1,0 +1,7 @@
+# Logs in with the scar-maker fixture user (the gates store it in a throwaway vault).
+id: tester
+extends: ["../_mixins/anonymous-base.yaml"]
+auth:
+  login: ref:SCAR_LOGIN
+  password: ref:SCAR_PASSWORD
+max_action_class: read

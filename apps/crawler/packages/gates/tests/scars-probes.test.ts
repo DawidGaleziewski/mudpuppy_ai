@@ -221,6 +221,80 @@ gate(
   { timeout: 90_000 },
 );
 
+gate(
+  'F-03@036',
+  'offline breaks a page-load form: the submit lands on a technical state of its own route',
+  async () => {
+    const map = await startRun(gs.call, PORTAL, 'quote-tester');
+    const mapped = await scarNav(gs.call, map, '/sc04/');
+    markForProbing(gs, PORTAL, mapped.route_template as string);
+    const run = await startRun(gs.call, PORTAL, 'quote-tester', { probe_marked: true });
+    const page = await scarNav(gs.call, run, '/sc04/');
+    const r = await gs.call('probe_form', {
+      run_id: run,
+      action_id: actionNamed(page, 'Show')!.action_id,
+      probes: ['offline'],
+      rationale: 'gate: offline on a page load',
+    });
+    if (r.isError) throw new Error(`probe_form: ${JSON.stringify(r.body).slice(0, 400)}`);
+    const offline = outcomes(run).find((o) => o.probe_id === 'offline');
+    expect(offline, JSON.stringify(r.body).slice(0, 400)).toBeDefined();
+    expect(offline!.outcome_kind).toBe('technical');
+    const [landed] = rows<{ route_template: string; state_kind: string }>(
+      gs,
+      'SELECT route_template, state_kind FROM states WHERE id = ?',
+      offline!.to_state_id,
+    );
+    expect(landed).toMatchObject({ state_kind: 'technical' });
+    expect(landed!.route_template).toMatch(/^\/sc04/);
+  },
+  { timeout: 90_000 },
+);
+
+gate(
+  'SC-24',
+  'a radio group is left empty under its name, and the box an option adds is probed from it',
+  async () => {
+    const map = await startRun(gs.call, PORTAL, 'quote-tester');
+    const mapped = await scarNav(gs.call, map, '/sc24/');
+    markForProbing(gs, PORTAL, mapped.route_template as string);
+    const run = await startRun(gs.call, PORTAL, 'quote-tester', { probe_marked: true });
+    const page = await scarNav(gs.call, run, '/sc24/');
+    const all: Probed = { outcomes: [], skipped: [] };
+    for (let call = 0; call < 6; call++) {
+      const r = await gs.call('probe_form', {
+        run_id: run,
+        action_id: actionNamed(page, 'Calculate')!.action_id,
+        probes: ['validation', 'branch'],
+        rationale: 'gate: probe the cover choice',
+      });
+      if (r.isError) throw new Error(`probe_form: ${JSON.stringify(r.body).slice(0, 400)}`);
+      all.outcomes.push(...(r.body as Probed).outcomes);
+      if (!(r.body as Probed).more) break;
+    }
+    const said = outcomes(run).flatMap((o) =>
+      (JSON.parse(o.messages_json) as { field: string | null; text: string }[]).map(
+        (m) => `${m.field} | ${m.text}`,
+      ),
+    );
+    expect(said, said.join('\n')).toContain('Cover | Please select one of these options.');
+    expect(said).not.toContain('Basic | Please select one of these options.');
+    for (const text of [
+      'Please fill out this field.',
+      'Value must be greater than or equal to 1000.',
+      'Value must be less than or equal to 90000.',
+    ])
+      expect(said).toContain(`Vehicle value | ${text}`);
+    // Each of those tries chose "Comprehensive" first, so a suite can repeat it.
+    const boxTries = outcomes(run).filter((o) => o.inputs_json.includes('Vehicle value'));
+    for (const o of boxTries)
+      expect(JSON.parse(o.inputs_json)).toEqual(
+        expect.arrayContaining([{ name: 'Comprehensive', kind: 'check' }]),
+      );
+  },
+  { timeout: 180_000 },
+);
+
 gate('SC-19', 'a read-only persona probes nothing, and the budget is the portal file', async () => {
   const run = await probeRun('guest');
   const step1 = await scarNav(gs.call, run, '/sc19/apply');
