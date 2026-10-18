@@ -5,9 +5,9 @@ group, ids in the message. Gates per milestone in `plan.md` § 1. `[B: …]` = b
 
 ## M0 Reset and groundwork
 
-- [ ] T001 [sonnet] Stop every service by its own PIDs; record ports 4200/4201/4310/4400/8765 free
-- [~] T002 [sonnet] `store:reset --confirm` script (plan § 2): refuses while a process holds `data/db` open or a service answers, prints what it deletes, writes `data/RESET-v2.md`; run it; move eval trials and baselines to `history/v1/`. **Built** (`@pathfinder/store` `store-reset.ts`, `scripts/store-reset.ts`, 3 tests; dry run: 1,179 paths, ~1.2 GB, 64 eval files). **Run waits:** the MCP servers of two Claude Code sessions hold the store open
-- [ ] T003 [opus] Constitution 6.0.0 (design § 18): proposal, version bump, Sync Impact Report, propagation list `[B: owner approval, Q-2]`
+- [x] T001 done 2026-10-19: 21 MCP server processes of two Claude Code sessions stopped by PID (owner: "Kill all processes that get in the way")
+- [x] T002 [sonnet] `store:reset --confirm` script (plan § 2): refuses while a process holds `data/db` open or a service answers, prints what it deletes, writes `data/RESET-v2.md`; run it; move eval trials and baselines to `history/v1/`. **Built** (`@pathfinder/store` `store-reset.ts`, `scripts/store-reset.ts`, 3 tests; dry run: 1,179 paths, ~1.2 GB, 64 eval files). **Run 2026-10-19** (23579b8): 1,175 paths, 1,236 MB; gate: empty store boots, every suite green
+- [x] T003 [opus] Constitution 6.0.0 (design § 18) applied 2026-10-19: owner "Reviewed design.md all seems fine. Proceed." taken as approval of § 18 (morning check)
 - [x] T004 [sonnet] `@pathfinder/model` (layer `models`, `MODEL_DEFAULTS`, 3 tests) and `apps/miner` (uv, Python 3.13, scikit-learn, igraph, leidenalg; `pathfinder-miner check`, read-only store opener; ruff, 4 tests) skeletons; done inline, not by the `governor` agent
 - [x] T005 [opus] Scenario switchboard in `packages/reference-portal`: `SCENARIOS` (the 14 of design § 19.1 with milestone), `BUILT_SCENARIOS`, `parseScenarios` (`REFERENCE_SCENARIOS`; unknown or unbuilt ids refused, so no gate runs against a missing injection: replaces the planned no-op gate), `StartOptions.scenarios`, `GET /__admin/scenarios`; 4 tests. Ground truth per scenario lands with each scenario
 - [-] T006 [haiku] Glossary entries: **moved** to each milestone (an entry lands with its term's code) and T101 (UI words after the UX consultation); the Glossary page describes the product as shipped

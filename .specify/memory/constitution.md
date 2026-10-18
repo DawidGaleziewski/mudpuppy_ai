@@ -1,6 +1,24 @@
 <!--
 SYNC IMPACT REPORT (amendment history, newest first)
-Version change: 4.0.0 → 5.0.0 (MAJOR: removes the production policy from Principle V; adds the
+Version change: 5.0.0 → 6.0.0 (MAJOR: redefines the data model and Principle III's outputs;
+MudPuppy 2.0, spec 039, R-81)
+Modified principles: III. Strict Role Separation: the crawler emits flagged hypotheses instead of
+`rule_candidates`; replays and probes MAY be run by deterministic code (the headless driver)
+through the same gated tools. VI. Human-in-the-Loop Validation: new "Derived facts" rule (the
+reconciler records facts that follow from evidence by a published rule, R1–R8 and clustering under
+person-made labels, without approval; reversible; overturns bind later reconciles; agents may save
+proposals directly).
+Modified sections: Product rule (agents' proposals may be saved, marked as theirs); Technical
+Constraints ▸ Data model (three layers A, M, B plus interpretation), ▸ Python (an analysis worker
+reads the store read-only; its output is written only through a TypeScript command that validates
+it with Zod), ▸ Logging (lineage and hypothesis events are the decision log of merges and splits).
+User decisions 2026-10-18: "We will do a full blown change as suggested" (user_input/system_design/
+Design.md); 2026-10-18 night: "Reviewed design.md all seems fine. Proceed." (design § 18 is the
+proposal applied here). Covers R-78 C1 (agent groupings saved as proposals).
+Templates/specs checked: specs/039-mudpuppy-2-portal-model (spec, design, plan Constitution
+Check); agent definitions `.claude/agents/crawler.md`, `ba.md` and `apps/chat/agents/orchestrator.md`
+change with the tools in spec 039 M3 and M5 (T055, T076, T077).
+Previous change: 4.0.0 → 5.0.0 (MAJOR: removes the production policy from Principle V; adds the
 to-be product rule; spec 021, R-42)
 Modified principles: V. Safety-First Exploration: every environment is equal; `environment` is a
 label. The action limit is optional (omitted = no limit) and set by the BA per portal,
@@ -61,8 +79,10 @@ documentation alone. It discovers processes with Playwright, records them as evi
 requirements, and generates static tests that verify them.
 
 **Product rule**: Pathfinder records the as-is; people draw the to-be in it; the assistant only
-proposes and changes nothing until a person applies it. Recorded evidence is never edited to look
-like the to-be.
+proposes and changes nothing until a person applies it. Agents MAY save their proposals (for
+example process groupings) directly, marked as theirs, for people to accept, edit or reject; facts
+derived by a published rule follow Principle VI. Recorded evidence is never edited to look like
+the to-be.
 
 ## Core Principles
 
@@ -84,7 +104,9 @@ guessed.
 - The Crawler is a single LLM + Playwright agent with two modes: `map` (site capability and
   route mapping) and `trace` (documenting one named process). There is no separate explorer.
   It records and does not interpret: it emits facts (steps, states, network calls, outcomes),
-  a few flagged `rule_candidates`, and open questions. It records processes at status
+  a few flagged hypotheses (decision rules, ambiguous behaviour), and open questions. Replays,
+  probes and boundary tests MAY be run by deterministic code (the headless driver) through the
+  same gated tools, without the LLM. It records processes at status
   `recorded` only and MUST NOT verify them or write tests. For every recorded action it stores
   ranked candidate locator descriptors (role + name, label/text, `data-testid`, container,
   ARIA snapshot reference) that QA can reuse. Its deterministic pieces (fingerprinting, safety
@@ -134,6 +156,14 @@ Review decisions (confirm, reject, comment) are stored as records with reviewer,
 the revision they apply to; a record's status is derived from them by deterministic code, never
 set directly by an agent or a UI.
 
+**Derived facts.** The reconciler MAY record facts that follow from evidence by a published rule
+(R1–R8 of spec 039, and clustering under person-made labels) without a person's approval. Each
+derived fact names its rule and its evidence, appears in Review, and can be overturned by a person.
+An overturn is recorded with a reason and binds later reconciles. Everything else, including any
+agent hypothesis, grouping, rule wording or merge, stays a proposal until a person confirms it.
+The list of rules that may write derived facts is part of this constitution; adding one is an
+amendment, not a code change.
+
 ### VII. Deterministic Core, Pure Functions, Static Outputs
 Fingerprinting, safety classification, and analysis MUST be pure functions with no browser or
 LLM dependency and MUST be unit-tested against saved fixtures (ARIA snapshots, HARs, labeled
@@ -163,7 +193,9 @@ Markdown, Mermaid and Gherkin are rendered from it. Generated tests MUST be plai
   (`mode=ro`); its read models MUST be tested against the migrations for drift. The dashboard
   MAY record human review decisions only by invoking the TypeScript review command
   (`docs:review`), which validates with Zod and writes through the same schemas; the dashboard
-  process itself opens the store read-only.
+  process itself opens the store read-only. A Python analysis worker (decision mining, community
+  detection) MAY compute from a read-only store connection; its output is written only through a
+  TypeScript command that validates it with Zod (`model:import`).
 - **Storage**: SQLite (better-sqlite3 with Kysely or Drizzle) including a `jobs` table for the
   queue; evidence on the filesystem under content-addressed (sha256) names. Postgres or a graph
   DB requires a documented justification.
@@ -176,14 +208,18 @@ Markdown, Mermaid and Gherkin are rendered from it. Generated tests MUST be plai
   describes who acts. Personas MUST be composable via `extends`, validated by Zod, and MUST
   reference secrets by reference only, never inline. The effective safety ceiling of a run is
   the minimum of the portal's and the persona's: a persona can only restrict, never widen.
-- **Data model**: two layers, A (mechanical UI state graph) and B (semantic process graph);
-  Layer B is the BA deliverable and Layer A is its evidence.
+- **Data model**: three layers. A (evidence: the mechanical UI state graph, append-only), M (the
+  portal model, rebuilt by deterministic code from A plus recorded decisions, with stable ids) and
+  B (the BA deliverable). Interpretation (deviations, hypotheses, decision rules, process
+  proposals) references A and M and never edits them. Layer B documents Layer M; Layer A is the
+  evidence of both.
 - **Generated test rules**: locator priority is getByRole, getByLabel, getByText, getByTestId,
   then CSS/XPath as a last resort. `waitForTimeout`, conditional logic in tests, and assertions
   hidden in page objects are banned. Tests are independent, tagged (`@REQ-…`, `@process:…`,
   `@characterization` or `@acceptance`), built on fixtures and reusable components, with API/DB
   arrange steps. Enforced mechanically by eslint-plugin-playwright and `tsc --noEmit`.
-- **Logging**: pino structured JSON; every skip, merge, and split is auditable via a decision log.
+- **Logging**: pino structured JSON; every skip, merge, and split is auditable via a decision log
+  (for screens of the portal model: `screen_lineage` and `hypothesis_events`).
 
 ## Development Workflow & Quality Gates
 
@@ -212,4 +248,4 @@ pull request review MUST verify compliance; any violation MUST be justified in w
 plan's complexity-tracking section or be corrected. Runtime guidance for agents lives in
 `user_input/raw_idea/agents/` until moved into the `agents/` and `skills/` packages.
 
-**Version**: 5.0.0 | **Ratified**: 2026-09-20 | **Last Amended**: 2026-10-13
+**Version**: 6.0.0 | **Ratified**: 2026-09-20 | **Last Amended**: 2026-10-19
