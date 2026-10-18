@@ -1,0 +1,37 @@
+import { describe, expect, it } from 'vitest';
+import { BUILT_SCENARIOS, SCENARIOS, parseScenarios, startReferencePortal } from '../src/index.js';
+import { HOST } from './helpers.js';
+
+describe('scenario switchboard (spec 039 T005)', () => {
+  it('lists the 14 scenarios of design § 19.1, each with what it injects and expects', () => {
+    expect(Object.keys(SCENARIOS)).toHaveLength(14);
+    for (const s of Object.values(SCENARIOS)) {
+      expect(s.injects.length).toBeGreaterThan(0);
+      expect(s.expects.length).toBeGreaterThan(0);
+      expect(s.milestone).toMatch(/^M[2-4]$/);
+    }
+  });
+
+  it('switches nothing on by default', () => {
+    expect(parseScenarios(undefined)).toEqual([]);
+    expect(parseScenarios(' , ')).toEqual([]);
+  });
+
+  it('refuses unknown ids and scenarios not built yet', () => {
+    expect(() => parseScenarios('earthquake')).toThrow(/unknown scenario "earthquake"/);
+    if (!BUILT_SCENARIOS.has('deployment'))
+      expect(() => parseScenarios('deployment')).toThrow(/not built yet \(lands in M3\)/);
+  });
+
+  it('reports its scenarios on the admin path, which robots.txt disallows', async () => {
+    const portal = await startReferencePortal({ host: HOST, port: 0 });
+    try {
+      const res = await fetch(`${portal.url}/__admin/scenarios`);
+      expect(await res.json()).toEqual({ scenarios: [] });
+      const robots = await (await fetch(`${portal.url}/robots.txt`)).text();
+      expect(robots).toContain('Disallow: /__admin/');
+    } finally {
+      await portal.close();
+    }
+  });
+});

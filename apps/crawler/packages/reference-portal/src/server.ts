@@ -24,6 +24,7 @@ import {
 import { car, faq, glossary, home, house, notFound } from './pages/static.js';
 import { pln } from './html.js';
 import { typicalVehicleValue } from './rules.js';
+import type { ScenarioId } from './scenarios.js';
 
 export const ROBOTS_TXT = 'User-agent: *\nDisallow: /__admin/\n';
 
@@ -44,6 +45,8 @@ export interface ReferencePortal {
   /** Every request received, in order (tests assert e.g. that no POST reached the portal). */
   requests: LoggedRequest[];
   state: PortalState;
+  /** The switchboard scenarios this instance injects. */
+  scenarios: readonly ScenarioId[];
   resetState(): void;
   close(): Promise<void>;
 }
@@ -53,6 +56,8 @@ export interface StartOptions {
   host: string;
   /** 0 picks a free port. */
   port: number;
+  /** Switchboard scenarios to inject (spec 039 design § 19.1); none by default. */
+  scenarios?: readonly ScenarioId[];
 }
 
 function freshState(): PortalState {
@@ -153,12 +158,24 @@ const ANALYTICS: Asset = {
   body: () => '{"ok":true}',
 };
 
-const assetFor = (path: string): Asset | undefined =>
-  ASSETS[path] ?? (path.startsWith('/analytics/') ? ANALYTICS : undefined);
+const assetFor = (assets: Record<string, Asset>, path: string): Asset | undefined =>
+  assets[path] ?? (path.startsWith('/analytics/') ? ANALYTICS : undefined);
+
+/** The assets of one instance: the shared ones plus the switchboard's admin report. */
+const instanceAssets = (scenarios: readonly ScenarioId[]): Record<string, Asset> => ({
+  ...ASSETS,
+  '/__admin/scenarios': {
+    status: 200,
+    type: 'application/json; charset=utf-8',
+    body: () => JSON.stringify({ scenarios }),
+  },
+});
 
 export function startReferencePortal(opts: StartOptions): Promise<ReferencePortal> {
   const requests: LoggedRequest[] = [];
   const portal = { state: freshState() };
+  const scenarios = [...(opts.scenarios ?? [])];
+  const assets = instanceAssets(scenarios);
 
   const handle = async (req: IncomingMessage, res: ServerResponse): Promise<void> => {
     const url = new URL(req.url ?? '/', 'http://portal.invalid');
@@ -167,7 +184,7 @@ export function startReferencePortal(opts: StartOptions): Promise<ReferencePorta
     const path = url.pathname.length > 1 ? url.pathname.replace(/\/$/, '') : url.pathname;
 
     if (method === 'GET' || method === 'HEAD') {
-      const asset = assetFor(path);
+      const asset = assetFor(assets, path);
       if (asset) return send(res, asset.status, asset.body(params(url)), asset.type);
       const handler = GET_ROUTES[path];
       if (!handler) return send(res, 404, notFound());
@@ -215,6 +232,7 @@ export function startReferencePortal(opts: StartOptions): Promise<ReferencePorta
       resolve({
         url: `http://${host}:${port}`,
         requests,
+        scenarios,
         get state() {
           return portal.state;
         },

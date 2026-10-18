@@ -22,6 +22,7 @@
     "stability": "tsx scripts/stability-check.ts",
     "portal:export": "tsx scripts/portal-export.ts",
     "portal:delete": "tsx scripts/portal-delete.ts",
+    "store:reset": "tsx scripts/store-reset.ts",
     "portal:check": "tsx scripts/portal-check.ts",
     "portal:doctor": "tsx scripts/doctor.ts",
     "portal:trace": "tsx scripts/trace.ts",

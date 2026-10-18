@@ -1,0 +1,34 @@
+import json
+import sqlite3
+from pathlib import Path
+
+import pytest
+
+from pathfinder_miner.__main__ import main
+from pathfinder_miner.store import open_read_only
+
+
+def test_check_reports_every_library(capsys: pytest.CaptureFixture[str]) -> None:
+    assert main(["check"]) == 0
+    out = json.loads(capsys.readouterr().out)
+    assert out["ok"] is True
+    assert set(out["libraries"]) == {"scikit-learn", "igraph", "leidenalg"}
+
+
+def test_unbuilt_commands_say_where_they_land(capsys: pytest.CaptureFixture[str]) -> None:
+    assert main(["rules"]) == 2
+    assert "M4" in json.loads(capsys.readouterr().out)["error"]
+
+
+def test_store_is_opened_read_only(tmp_path: Path) -> None:
+    db = tmp_path / "s.sqlite"
+    sqlite3.connect(db).execute("CREATE TABLE t (x)").connection.commit()
+    con = open_read_only(db)
+    with pytest.raises(sqlite3.OperationalError):
+        con.execute("INSERT INTO t VALUES (1)")
+
+
+def test_missing_store_is_never_created(tmp_path: Path) -> None:
+    with pytest.raises(FileNotFoundError):
+        open_read_only(tmp_path / "none.sqlite")
+    assert not (tmp_path / "none.sqlite").exists()

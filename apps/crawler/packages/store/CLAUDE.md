@@ -17,6 +17,8 @@ Layer: store (G-07; `apps/crawler/layers.json`)
 - `importAgent` (`import-agent.ts`): imports a crawler subagent transcript (`pnpm trace:import-agent`).
 - `auditPii`, `compareRuns` (`audit.ts`), portal export/delete (`portal-data.ts`, every portal
   table incl. `page_visits`, spec 019), `secretsPlugin`.
+- `planStoreReset`, `applyStoreReset`, `openHolders`, `answeringPorts` (`store-reset.ts`): the
+  MudPuppy 2.0 data reset (`pnpm store:reset [--confirm]`, spec 039 T002).
 - Used by: mcp-server, crawler, docs, gates, vault, apps/chat, the crawler app scripts.
 
 ## Invariants

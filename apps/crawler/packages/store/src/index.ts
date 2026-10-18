@@ -7,4 +7,5 @@ export * from './portal-data.js';
 export * from './tracer.js';
 export * from './decision-log.js';
 export * from './import-agent.js';
+export * from './store-reset.js';
 export type { Selectable, Insertable } from 'kysely';

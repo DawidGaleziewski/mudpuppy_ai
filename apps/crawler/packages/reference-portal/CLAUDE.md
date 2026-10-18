@@ -8,17 +8,22 @@ Layer: servers (G-07; `apps/crawler/layers.json`)
 - `server`: start the reference portal.
 - `ground-truth`: ground-truth manifest for the BA goal.
 - `TODAY`: deterministic test date.
+- `SCENARIOS`, `BUILT_SCENARIOS`, `parseScenarios` (`scenarios.ts`): the MudPuppy 2.0 scenario
+  switchboard (spec 039 design § 19.1); `REFERENCE_SCENARIOS=a,b` or `StartOptions.scenarios`;
+  `GET /__admin/scenarios` reports the active ones.
 
 ## Invariants
 - Deterministic content and dates (`TODAY`).
 - Ground truth must match the pages.
+- No scenario is on by default; a scenario not in `BUILT_SCENARIOS` is refused, so a gate never
+  passes against an injection that does not exist.
 
 ## Where to add things
 - New page or rule: `src/pages/` or `src/rules.ts`, and the matching entry in `ground-truth.yaml`
   (YAML, G-34; schema in `src/ground-truth.ts`) in the same commit.
 
 ## Tests
-- `pnpm exec vitest run --project reference-portal`; tier: fast. 3 files.
+- `pnpm exec vitest run --project reference-portal`; tier: fast. 4 files.
 - Start: `pnpm reference-portal` from apps/crawler.
 
 ## See also

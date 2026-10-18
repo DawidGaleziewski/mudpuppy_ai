@@ -583,6 +583,12 @@ importers:
         specifier: ^4.23.15
         version: 4.23.15
 
+  apps/crawler/packages/model:
+    dependencies:
+      '@pathfinder/core':
+        specifier: workspace:*
+        version: link:../core
+
   apps/crawler/packages/obstacles:
     dependencies:
       playwright:

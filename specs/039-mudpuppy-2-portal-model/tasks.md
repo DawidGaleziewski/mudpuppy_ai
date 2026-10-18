@@ -6,11 +6,11 @@ group, ids in the message. Gates per milestone in `plan.md` § 1. `[B: …]` = b
 ## M0 Reset and groundwork
 
 - [ ] T001 [sonnet] Stop every service by its own PIDs; record ports 4200/4201/4310/4400/8765 free
-- [ ] T002 [sonnet] `store:reset --confirm` script (plan § 2): refuses while a service answers, prints what it deletes, writes `data/RESET-v2.md`; run it; move eval trials and baselines to `history/v1/`
+- [~] T002 [sonnet] `store:reset --confirm` script (plan § 2): refuses while a process holds `data/db` open or a service answers, prints what it deletes, writes `data/RESET-v2.md`; run it; move eval trials and baselines to `history/v1/`. **Built** (`@pathfinder/store` `store-reset.ts`, `scripts/store-reset.ts`, 3 tests; dry run: 1,179 paths, ~1.2 GB, 64 eval files). **Run waits:** the MCP servers of two Claude Code sessions hold the store open
 - [ ] T003 [opus] Constitution 6.0.0 (design § 18): proposal, version bump, Sync Impact Report, propagation list `[B: owner approval, Q-2]`
-- [ ] T004 [sonnet] `governor`: `apps/crawler/packages/model` (`@pathfinder/model`, pure, Vitest) and `apps/miner` (uv, scikit-learn ≥ 1.3, igraph, leidenalg, ruff, pytest) skeletons wired into lint, typecheck and test tiers
-- [ ] T005 [opus] Scenario switchboard skeleton in `packages/reference-portal` (`REFERENCE_SCENARIOS`), ground-truth YAML layout per scenario (G-34), one no-op scenario gate
-- [ ] T006 [haiku] Glossary entries for design § 3 terms marked `changed_in: R-81` (draft; UI words wait for the UX consultation)
+- [x] T004 [sonnet] `@pathfinder/model` (layer `models`, `MODEL_DEFAULTS`, 3 tests) and `apps/miner` (uv, Python 3.13, scikit-learn, igraph, leidenalg; `pathfinder-miner check`, read-only store opener; ruff, 4 tests) skeletons; done inline, not by the `governor` agent
+- [x] T005 [opus] Scenario switchboard in `packages/reference-portal`: `SCENARIOS` (the 14 of design § 19.1 with milestone), `BUILT_SCENARIOS`, `parseScenarios` (`REFERENCE_SCENARIOS`; unknown or unbuilt ids refused, so no gate runs against a missing injection: replaces the planned no-op gate), `StartOptions.scenarios`, `GET /__admin/scenarios`; 4 tests. Ground truth per scenario lands with each scenario
+- [-] T006 [haiku] Glossary entries: **moved** to each milestone (an entry lands with its term's code) and T101 (UI words after the UX consultation); the Glossary page describes the product as shipped
 
 ## M1 Capture
 
