@@ -29,6 +29,12 @@ def reviewer_client(ba_fixture: Store):
         yield c
 
 
+@pytest.fixture
+def no_reviewer_client(ba_fixture: Store):
+    with make_client(ba_fixture, reviewer=None) as c:
+        yield c
+
+
 ALL_PAGES = [
     "/docs",
     f"/docs/{P}",
@@ -503,8 +509,8 @@ def test_store_without_process_tables_still_renders(ba_fixture: Store) -> None:
 # --- review panel (rendering and guards; the integration with docs:review is T067) -------------
 
 
-def test_review_panel_disabled_with_hint_when_no_reviewer(ba_client: TestClient) -> None:
-    html = ba_client.get(f"/docs/{P}/REQ-001").text
+def test_review_panel_disabled_with_hint_when_no_reviewer(no_reviewer_client: TestClient) -> None:
+    html = no_reviewer_client.get(f"/docs/{P}/REQ-001").text
     assert "PATHFINDER_REVIEWER" in html and "no reviewer is set" in html
     panel = html[html.index('id="region-reviews"') :]
     assert panel.count("disabled") >= 5  # three buttons, two textareas (comment too)
@@ -538,8 +544,8 @@ def origin() -> dict[str, str]:
 FORM = {"rev_no": "2", "action": "confirm"}
 
 
-def test_post_without_reviewer_is_403_with_inline_hint(ba_client: TestClient) -> None:
-    r = ba_client.post(f"/docs/{P}/REQ-001/reviews", data=FORM, headers=origin())
+def test_post_without_reviewer_is_403_with_inline_hint(no_reviewer_client: TestClient) -> None:
+    r = no_reviewer_client.post(f"/docs/{P}/REQ-001/reviews", data=FORM, headers=origin())
     assert r.status_code == 403
     assert "Review actions are disabled" in text(r.text) and 'id="region-reviews"' in r.text
 

@@ -35,7 +35,7 @@ the top bar (`?env=` on any URL).
 with diagrams, and each record page shows its revisions, evidence (linked to the runs it came
 from) and reviews. The run page's Docs tab lists the records citing that run.
 
-Review actions are off until a reviewer name is set:
+Review actions and process changes are signed "unknown" unless a reviewer name is set:
 
 ```bash
 PATHFINDER_REVIEWER="Your Name" uv run pathfinder-dashboard --env sandbox

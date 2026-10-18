@@ -538,7 +538,7 @@ def test_amendment_create_forwards_the_body_with_an_attachment(mapped: Store) ->
         r = c.post("/chat/portals/liveinsurer/amendments", json=body, headers=ORIGIN)
     assert r.status_code == 201 and r.json()["key"] == "AMD-001"
     sent = json.loads(service.requests[-1].content)
-    assert sent == {k: v for k, v in body.items() if k != "junk"}
+    assert sent == {**{k: v for k, v in body.items() if k != "junk"}, "author": "unknown"}
 
 
 def test_amendment_create_errors(mapped: Store) -> None:
@@ -685,7 +685,11 @@ def test_reapply_and_dismiss_forward_to_the_service(mapped: Store) -> None:
         )
         cross = c.post("/chat/portals/liveinsurer/amendments/amd-id-1/dismiss")
     assert r.status_code == 201 and r.json()["key"] == "AMD-004"
-    assert json.loads(service.requests[0].content) == {"target_kind": "state", "target_id": "st-2"}
+    assert json.loads(service.requests[0].content) == {
+        "target_kind": "state",
+        "target_id": "st-2",
+        "author": "unknown",
+    }
     assert d.status_code == 200 and d.json() == {"status": "dismissed"}
     assert bad.status_code == 422 and cross.status_code == 403
 

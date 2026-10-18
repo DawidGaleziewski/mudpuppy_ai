@@ -64,7 +64,7 @@ Use three terminals (the third only for practice), all from the repo root:
 ```bash
 # 1. dashboard: pick the environment whose data you want to see
 cd apps/dashboard && uv run pathfinder-dashboard --env sandbox
-#    add PATHFINDER_REVIEWER="Your Name" in front: your name is stamped on every change you make
+#    changes you make are signed "unknown"; add PATHFINDER_REVIEWER="Your Name" in front to sign them
 
 # 2. chat service (the assistant needs it)
 PATHFINDER_ENV=sandbox pnpm --dir apps/chat start   # required: the environment to work on
@@ -441,7 +441,7 @@ process from fewer scans: the server refuses a revision that silently drops evid
 
 Records start as drafts. You confirm or reject them in **Review** (section 13). A rejection,
 with its reason, goes back to the BA agent the next time it runs. Confirming and rejecting
-need `PATHFINDER_REVIEWER` to be set when the dashboard starts.
+are signed with `PATHFINDER_REVIEWER` ("unknown" when it is not set).
 
 ## 12. Write down the changes you want (amendments)
 

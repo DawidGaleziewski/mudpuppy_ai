@@ -51,6 +51,10 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   only the graph region (htmx, URL pushed), and the graph keeps its scroll, zoom and focus.
 
 ### Fixed
+- **The reviewer name defaults to "unknown"** (v1.0.44, 2026-10-18; owner: "let this value be
+  unknown by default so we don't have to set it each time"). Review actions and process changes
+  no longer fail with "Set PATHFINDER_REVIEWER to your name"; they are signed "unknown" unless
+  `PATHFINDER_REVIEWER` is set.
 - **Probe leftovers, SSO transit zones and the shop's account link, R-76, R-62 (5), R-55 (2)**
   (spec 037, v1.0.42, 2026-10-18; owner: "do these on new branch: 76, 62, 55"). **Probes:** a required
   radio group left empty is reported under its own name ("Zakres", once) instead of each option;

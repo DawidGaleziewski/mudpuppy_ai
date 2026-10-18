@@ -63,7 +63,7 @@ The whole flow, with the agents named in `.claude/agents/`:
 3. **Trace.** The crawler agent traces each open follow-up (`trace` mode); on production it stops
    at the first mutating action and records what could not be observed. Re-running the ba agent
    turns the traces into process and use-case records.
-4. **Review.** The dashboard's Docs tab shows the documentation; with `PATHFINDER_REVIEWER` set, a
+4. **Review.** The dashboard's Docs tab shows the documentation; signed with `PATHFINDER_REVIEWER` ("unknown" by default), a
    person confirms, rejects or comments (see `apps/dashboard/README.md`). Rejections come back to
    the BA as feedback in its next session.
 5. **Export.** `pnpm --dir apps/crawler docs:export <portal> --env <env> [--confirmed-only]` writes
