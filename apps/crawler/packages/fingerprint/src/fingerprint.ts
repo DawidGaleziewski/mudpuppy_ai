@@ -7,6 +7,7 @@
  */
 import { createHash } from 'node:crypto';
 import { canonicalizeAria, type AriaNode } from './aria-canonical.js';
+import { buildTree, collapsedText, elementKeys } from './structure.js';
 
 export const DEFAULT_CLUSTER_THRESHOLD = 0.9;
 const SIGNATURE_SIZE = 128;
@@ -104,10 +105,16 @@ function minHash(set: ReadonlySet<string>): number[] {
   return sig;
 }
 
+/**
+ * Fingerprint v2 (spec 039 design § 5.4): level 1 = sha256(route template ‖ collapsed masked tree ‖
+ * overlays), where runs of repeated siblings count once and without their text; level 2 = MinHash
+ * over the set of role-path shingles (a set, so repeats never changed it).
+ */
 export function computeFingerprint(input: FingerprintInput): Fingerprint {
   const canonical = canonicalizeAria(input.ariaSnapshot);
+  const collapsed = collapsedText(buildTree(canonical.nodes));
   const level1 = sha256Hex(
-    [input.routeTemplate, canonical.text, canonical.overlays.join('|')].join('\n--\n'),
+    [input.routeTemplate, collapsed.identity, canonical.overlays.join('|')].join('\n--\n'),
   );
   return {
     routeTemplate: input.routeTemplate,
@@ -115,6 +122,51 @@ export function computeFingerprint(input: FingerprintInput): Fingerprint {
     level2: minHash(shingles(canonical.nodes)),
     overlays: canonical.overlays,
   };
+}
+
+export interface ComponentsInput extends FingerprintInput {
+  /** Endpoint templates requested while the page settled (`GET /api/x/:id`). */
+  calls?: readonly string[];
+  /** Micro-frontend scopes mounted on the page. */
+  mounts?: readonly string[];
+}
+
+/** The fingerprint components stored per state (`state_components`, design § 5.4). */
+export interface StateComponents {
+  structureHash: string;
+  contentHash: string;
+  overlayHash: string;
+  callsHash: string;
+  mountsHash: string;
+  /** 128 MinHash values over the role-path shingle set. */
+  minhash: number[];
+  /** Element key of every actionable element, document order. */
+  elementKeys: string[];
+}
+
+const sortedHash = (xs: readonly string[] = []): string =>
+  sha256Hex([...new Set(xs)].sort().join('\n'));
+
+export function computeComponents(input: ComponentsInput): StateComponents {
+  const canonical = canonicalizeAria(input.ariaSnapshot);
+  const tree = buildTree(canonical.nodes);
+  const collapsed = collapsedText(tree);
+  return {
+    structureHash: sha256Hex(collapsed.structure),
+    contentHash: sha256Hex(collapsed.content),
+    overlayHash: sha256Hex(canonical.overlays.join('|')),
+    callsHash: sortedHash(input.calls),
+    mountsHash: sortedHash(input.mounts),
+    minhash: minHash(shingles(canonical.nodes)),
+    elementKeys: elementKeys(tree).map((k) => k.key),
+  };
+}
+
+/** The 128 MinHash values as the 512-byte big-endian blob `state_components.minhash` stores. */
+export function minhashBlob(minhash: readonly number[]): Buffer {
+  const buf = Buffer.alloc(minhash.length * 4);
+  minhash.forEach((v, i) => buf.writeUInt32BE(v >>> 0, i * 4));
+  return buf;
 }
 
 /** Estimated Jaccard similarity of two shingle sets from their MinHash signatures, in [0, 1]. */
