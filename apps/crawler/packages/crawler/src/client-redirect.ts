@@ -1,5 +1,6 @@
 /// <reference lib="dom" />
 import type { Page } from 'playwright';
+import { monotonicNow } from './clock.js';
 
 /** A meta refresh the current document announces. */
 export interface MetaRefresh {
@@ -62,14 +63,14 @@ const POLL_MS = 50;
  * committed before the wait began would never fire the event again.
  */
 async function nextDocument(page: Page, from: string, ms: number): Promise<boolean> {
-  const deadline = Date.now() + ms;
+  const deadline = monotonicNow() + ms;
   while (page.url() === from) {
-    if (Date.now() >= deadline || page.isClosed()) return false;
+    if (monotonicNow() >= deadline || page.isClosed()) return false;
     await new Promise((r) => setTimeout(r, POLL_MS));
   }
   try {
     await page.waitForLoadState('domcontentloaded', {
-      timeout: Math.max(1, deadline - Date.now()),
+      timeout: Math.max(1, Math.round(deadline - monotonicNow())),
     });
   } catch {
     // still loading at the bound: the settle that follows waits for it

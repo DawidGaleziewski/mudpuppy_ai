@@ -153,3 +153,67 @@ describe('probe catalogue (spec 032 US2)', () => {
     ).toBe('wrong');
   });
 });
+
+describe('the reference calculator within the default budget (spec 036 FR-008, F-17@034)', () => {
+  // The vehicle and driver steps as the form reader returns them; 24 is the owner's per-step budget.
+  const num = (index: number, label: string, min: string, max: string): ProbeField => ({
+    index,
+    tag: 'input',
+    type: 'number',
+    label,
+    required: true,
+    min,
+    max,
+  });
+  const VEHICLE: ProbeField[] = [
+    {
+      index: 0,
+      tag: 'select',
+      type: 'select',
+      label: 'Marka',
+      required: true,
+      options: [
+        { value: '', text: 'Wybierz', disabled: false },
+        { value: 'toyota', text: 'Toyota', disabled: false },
+      ],
+    },
+    { index: 1, tag: 'input', type: 'text', label: 'Model', required: true },
+    num(2, 'Rok produkcji', '1980', '2026'),
+    num(3, 'Pojemność silnika (cm³)', '50', '8000'),
+    {
+      index: 4,
+      tag: 'input',
+      type: 'text',
+      label: 'Kod pocztowy',
+      required: true,
+      pattern: '\\d{2}-\\d{3}',
+    },
+  ];
+  const DRIVER: ProbeField[] = [
+    { index: 0, tag: 'input', type: 'date', label: 'Data urodzenia', required: true },
+    num(1, 'Rok uzyskania prawa jazdy', '1968', '2026'),
+    num(2, 'Lata bezszkodowej jazdy', '0', '60'),
+  ];
+  const keys = (fields: ProbeField[], base: [number, ProbeValue][]) =>
+    planTries(ctx(fields, base), { limit: 24 }).tries.map((t) => t.key);
+
+  it('tries both limits of every number box and the postcode format', () => {
+    const vehicle = keys(VEHICLE, [
+      [0, 'toyota'],
+      [1, 'Corolla'],
+      [2, '2015'],
+      [3, '1600'],
+      [4, '00-950'],
+    ]);
+    const driver = keys(DRIVER, [
+      [0, '1985-05-05'],
+      [1, '2005'],
+      [2, '10'],
+    ]);
+    for (const label of ['Rok produkcji', 'Pojemność silnika (cm³)'])
+      for (const side of ['min', 'max']) expect(vehicle).toContain(`boundary:${label}:${side}`);
+    expect(vehicle).toContain('wrong-format:Kod pocztowy');
+    for (const label of ['Rok uzyskania prawa jazdy', 'Lata bezszkodowej jazdy'])
+      for (const side of ['min', 'max']) expect(driver).toContain(`boundary:${label}:${side}`);
+  });
+});

@@ -1,5 +1,6 @@
-import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 import type { Browser } from 'playwright';
+import { monotonicNow } from '../src/clock.js';
 import { settle, settleWithDiagnostics, trackNetworkActivity } from '../src/stabilizer.js';
 import { browserAvailable, launch } from './browser.js';
 
@@ -61,6 +62,25 @@ describe.skipIf(!available)('stabilizer', () => {
     expect(r.result).toBe('never_stabilized');
   });
 
+  it('settles on time while the wall clock steps back and forth (spec 036 F-01)', async () => {
+    // WSL stepped the wall clock by about ±6 s every few seconds; waits must not read it. Here it
+    // steps back 6 s right after the tracker starts, so a wall-clock wait never sees quiet.
+    const real = Date.now.bind(Date);
+    let calls = 0;
+    const jumping = vi.spyOn(Date, 'now').mockImplementation(() => {
+      calls += 1;
+      return calls === 1 ? real() : real() - 6000;
+    });
+    try {
+      const t0 = monotonicNow();
+      const r = await run('<h1>Static</h1>');
+      expect(r.result).toBe('settled');
+      expect(monotonicNow() - t0).toBeLessThan(1500);
+    } finally {
+      jumping.mockRestore();
+    }
+  });
+
   it('does not treat an infinite animation as unsettled forever', async () => {
     const r = await run(
       '<style>@keyframes s{to{transform:rotate(1turn)}} #s{animation:s 1s linear infinite}</style><div id="s">spin</div>',
@@ -83,7 +103,11 @@ describe.skipIf(!available)('stabilizer diagnostics', () => {
       if (path === '/ok') return route.fulfill({ contentType: 'application/json', body: '{}' });
       // '/hang': leave it pending
     });
-    const net = trackNetworkActivity(page, Date.now, onFailed ? { onRequestFailed: onFailed } : {});
+    const net = trackNetworkActivity(
+      page,
+      monotonicNow,
+      onFailed ? { onRequestFailed: onFailed } : {},
+    );
     await page.goto(`${ORIGIN}/`);
     return { page, net };
   };

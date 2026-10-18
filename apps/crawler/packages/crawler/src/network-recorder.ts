@@ -78,6 +78,8 @@ export class NetworkRecorder {
   readonly ready: Promise<void>;
   private submitted = new Map<string, Record<string, Shape>>();
   private readonly listeners: [string, (...a: never[]) => void][] = [];
+  /** Requests that got a response; held weakly, so a long run does not keep them. */
+  private readonly answered = new WeakSet<Request>();
 
   constructor(
     private readonly page: Page,
@@ -85,8 +87,14 @@ export class NetworkRecorder {
     private readonly opts: { bodyTimeoutMs?: number; samples?: boolean } = {},
   ) {
     this.ready = this.installSubmitProbe();
-    this.on('response', (res: Response) => this.track(this.onResponse(res)));
+    this.on('response', (res: Response) => {
+      this.answered.add(res.request());
+      this.track(this.onResponse(res));
+    });
     this.on('requestfailed', (req: Request) => {
+      // Chromium aborts the empty body of a 204 after its response: an answer, not a failure
+      // (spec 036 FR-004, F-02@036).
+      if (this.answered.has(req)) return;
       if (this.isApi(req))
         this.errors.push(
           maskText(

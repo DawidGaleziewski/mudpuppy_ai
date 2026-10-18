@@ -1,5 +1,6 @@
 /// <reference lib="dom" />
 import type { Page, Request } from 'playwright';
+import { monotonicNow } from './clock.js';
 import { waitForCondition } from './condition-wait.js';
 import { evalInPage } from './in-page.js';
 
@@ -12,10 +13,10 @@ export interface InFlightRequest {
 /** Tracks in-flight requests of a page so the stabilizer can wait for a network-idle window. */
 export interface NetworkActivity {
   readonly inFlight: number;
-  /** ms timestamp of the last request start or finish. */
+  /** Monotonic ms (the tracker's clock) of the last request start or finish. */
   readonly lastActivityAt: number;
   /**
-   * ms timestamp of the last request to a path the page had not asked for before (query ignored):
+   * Monotonic ms of the last request to a path the page had not asked for before (query ignored):
    * the page is still loading something new. A poll or a cache-busting beacon to a known path is
    * not progress (spec 031 US1, the shared wait).
    */
@@ -45,7 +46,7 @@ function pathOf(url: string): string {
 
 export function trackNetworkActivity(
   page: Page,
-  now: () => number = Date.now,
+  now: () => number = monotonicNow,
   opts: NetworkActivityOptions = {},
 ): NetworkActivity {
   let inFlight = 0;
@@ -221,7 +222,7 @@ export async function settleWithDiagnostics(
     try {
       await installClock();
       const dom = await domState();
-      const netQuiet = net.inFlight === 0 && Date.now() - net.lastActivityAt >= networkIdleMs;
+      const netQuiet = net.inFlight === 0 && monotonicNow() - net.lastActivityAt >= networkIdleMs;
       return netQuiet && dom.sinceMutation >= domQuietMs && dom.runningAnimations === 0;
     } catch {
       return false; // The document was replaced mid-check (navigation in flight); try again.
@@ -241,7 +242,7 @@ export async function settleWithDiagnostics(
       inFlight: net.inFlightRequests(),
       sinceMutationMs: dom ? Math.round(dom.sinceMutation) : null,
       runningAnimations: dom ? dom.runningAnimations : null,
-      msSinceNetworkActivity: Date.now() - net.lastActivityAt,
+      msSinceNetworkActivity: Math.round(monotonicNow() - net.lastActivityAt),
     },
   };
 }

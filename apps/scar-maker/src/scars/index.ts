@@ -22,6 +22,9 @@ import { sc17 } from './sc17-intermittent-errors.js';
 import { sc18 } from './sc18-wizard-form.js';
 import { sc19 } from './sc19-quote-wizard.js';
 import { sc20 } from './sc20-sold-out-offer.js';
+import { sc21 } from './sc21-unread-ping.js';
+import { sc22 } from './sc22-hidden-box.js';
+import { sc23 } from './sc23-blocked-submit.js';
 
 export const SCARS: readonly Scar[] = [
   sc01,
@@ -44,4 +47,7 @@ export const SCARS: readonly Scar[] = [
   sc18,
   sc19,
   sc20,
+  sc21,
+  sc22,
+  sc23,
 ];

@@ -20,10 +20,11 @@ const Params = z
 /** Polls in the page until `selector` matches or `waitMs` passes; true when it appeared. */
 const waitInPage = (selector: string, waitMs: number) =>
   new Promise<boolean>(function (resolve) {
-    const until = Date.now() + waitMs;
+    // The page's monotonic clock: a wall clock that steps must not cut or stretch the wait (spec 036).
+    const until = performance.now() + waitMs;
     const tick = function () {
       if (document.querySelector(selector)) return resolve(true);
-      if (Date.now() > until) return resolve(false);
+      if (performance.now() > until) return resolve(false);
       setTimeout(tick, 100);
     };
     tick();

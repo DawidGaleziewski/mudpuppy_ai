@@ -20,7 +20,7 @@ Used by: mcp-server, crawler, safety, vault, gates, apps/chat (`src/index.ts` re
   (`declaredEnvironments`, `requireEnvironment`: no default, eval names allowed); `FixSpec`
   (`fixes:` of the portal, run by `@pathfinder/fix-plugins`); `Network` (`proxy`,
   `ignore_https_errors`, R-63); `traces.ts` (`loadTraces`: the `traces.yaml` catalogue).
-- Spec 032: `probe-budget.ts` (portal `probes`: `per_step` 12, `per_run` 60); persona
+- Spec 032: `probe-budget.ts` (portal `probes`: `per_step` 24, `per_run` 120 since spec 036); persona
   `test_data` (label → synthetic value for traces, autofill and probes; renamed from `trace_inputs`,
   owner 2026-10-17: a file with the old key is refused with a rename note); `TraceVariant`
   `fault` and `expect` `technical_error` / `branch` (`ProbeFault` comes from core).

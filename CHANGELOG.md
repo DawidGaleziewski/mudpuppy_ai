@@ -37,6 +37,22 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   only the graph region (htmx, URL pushed), and the graph keeps its scroll, zoom and focus.
 
 ### Fixed
+- **Crawler and export fixes from the first real export, R-73** (spec 036, v1.0.41, 2026-10-18;
+  owner 2026-10-17: "these issues you mentioned add them on roadmap to be fixed"). Every wait
+  measures with a monotonic clock, so a wall clock that steps (this machine's WSL clock jumped
+  ±6 s; the owner turned `systemd-timesyncd` off) no longer stalls pages as "never stabilized" or
+  fails browser tests at random. A box hidden until a choice shows it is a field of that state
+  only (scar SC-22). A radio group is one field, named by its legend, with its options ("Zakres":
+  "Tylko OC", "OC + Autocasco (AC)"). A submit that gets no document lands on Chromium's error
+  page, which now stays on the submitting page's route as a technical state instead of a blank
+  screen of `/` (scar SC-23). A 204 answer is no longer logged as a failed request (scar SC-21).
+  A process export starts at the first screen the process contains, not where the trace set off.
+  **Probe budget raised by the owner: 24 tries per form step (was 12) and 120 per run (was 60)**,
+  so the boundary probe reaches both limits of every number box. Reference trial
+  (`data/evals/reference-insurer/2026-10-18T10-48-21-331Z.json`, not promoted): export extra steps
+  1 → 0, stray destinations 3 → 0, fields 92.9 → 100 %, validation 58.3 → 83.3 %; no regression.
+  Left open: the four messages of the AC branch and an empty required radio group (F-04), the
+  offline fault on page-load forms (F-03), both in R-76.
 - **Chat service start command** (2026-10-18; the owner's Resume did nothing while the service
   was down): every "chat service is not running" message, page and drawer gave
   `pnpm --dir apps/chat start`, which refuses to start without an environment; they now give

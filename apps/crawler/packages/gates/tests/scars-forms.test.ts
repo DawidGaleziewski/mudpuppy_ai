@@ -95,3 +95,24 @@ gate(
       expect(seen, message).toContain(message);
   },
 );
+
+/** The field names the crawler recorded for a state's forms. */
+const fieldNames = (stateId: string): string[] =>
+  rows<{ fields_json: string }>(gs, 'SELECT fields_json FROM forms WHERE state_id = ?', stateId)
+    .flatMap((f) => JSON.parse(f.fields_json) as { name: string }[])
+    .map((f) => f.name);
+
+// Spec 036 FR-003 (F-12@034): a hidden control is not a field of the state that hides it.
+gate('SC-22', 'a box shown only after a choice is a field of that state alone', async () => {
+  const run = await startRun(gs.call, PORTAL, 'applicant', {
+    mode: 'trace',
+    process: { name: 'Choose a cover', goal: 'pick comprehensive cover' },
+  });
+  const first = await scarNav(gs.call, run, '/sc22/', { intent: 'open the cover options' });
+  expect(fieldNames(first.state_id as string)).not.toContain('vehicle_value');
+  const chosen = await actOn(gs.call, run, first, 'Comprehensive', {
+    intent: 'choose comprehensive cover',
+  });
+  expect(chosen.state_id).not.toBe(first.state_id);
+  expect(fieldNames(chosen.state_id as string)).toContain('vehicle_value');
+});

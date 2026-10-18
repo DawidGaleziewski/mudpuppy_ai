@@ -25,6 +25,7 @@ import {
   type StabilizationResult,
   type StabilizerOptions,
 } from './stabilizer.js';
+import { monotonicNow } from './clock.js';
 import { chromiumCaArgs, trustInNode } from './trusted-ca.js';
 
 export interface SessionOptions {
@@ -143,7 +144,7 @@ export class BrowserSession {
       const page = await context.newPage();
       const net = trackNetworkActivity(
         page,
-        Date.now,
+        monotonicNow,
         opts.observe?.onRequestFailed ? { onRequestFailed: opts.observe.onRequestFailed } : {},
       );
       const recorder = new NetworkRecorder(page, { samples: opts.keepSamples === true });

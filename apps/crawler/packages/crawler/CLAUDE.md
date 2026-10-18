@@ -25,6 +25,9 @@ obstacles, safety, store.
   also budgets static files apart (`static_per_second`).
 - Spec 031: `trusted-ca.ts` (`trustInNode`, `chromiumCaArgs`: a portal's `network.ca_file` is
   trusted by Node and, by SPKI key, by Chromium; preflight refuses an unusable file).
+- Spec 036: `clock.ts` (`monotonicNow`: every wait and the network tracker measure durations with
+  it, never `Date.now()`; record timestamps stay wall-clock); `forms.ts` skips unrendered controls
+  and folds radios of one name into one field; the recorder ignores `requestfailed` after a response.
 - Spec 032: `autofill.ts` also exports `readFormFields`, `writeFormFields` (`false` unchecks) and
   `nativeMessages` (the browser's own constraint messages after a refused submit), used by form
   probes, which take the control the agent named as the submit whatever its text (F-18; map-mode

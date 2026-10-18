@@ -5,6 +5,9 @@ import { decision, event, reported, step, type StepContext } from './context.js'
 
 export type Observed = Awaited<ReturnType<typeof observePage>>;
 
+/** Chromium's own page for a navigation that never got a document (blocked, offline, aborted). */
+export const isBrowserErrorPage = (url: string): boolean => url.startsWith('chrome-error:');
+
 /** Fingerprint the observed page and assign it to a cluster; the assignment is a decision. */
 export function fingerprintStep(sc: StepContext, observed: Observed) {
   const { rs } = sc;
@@ -12,12 +15,20 @@ export function fingerprintStep(sc: StepContext, observed: Observed) {
     // Masking normalises personal values for the fingerprint either way, so clusters stay stable;
     // whether the stored snapshot is masked is the portal's `pii_scrub` (constitution 2.0.0).
     const masked = maskText(observed.ariaSnapshot);
-    const routeTemplate = rs.routeTemplateFor(observed.url);
+    // A blocked, offline or aborted submit shows Chromium's own error page, whose URL
+    // (`chrome-error://chromewebdata/`) parses to `/`: it belongs to the page that submitted, not
+    // to the home page (spec 036 FR-002, F-11@034).
+    const browserError = isBrowserErrorPage(observed.url);
+    const routeTemplate =
+      browserError && rs.lastPageRoute !== null
+        ? rs.lastPageRoute
+        : rs.routeTemplateFor(observed.url);
+    if (!browserError) rs.lastPageRoute = routeTemplate;
     const fp = computeFingerprint({ routeTemplate, ariaSnapshot: masked });
     const assignment = rs.index.assign(fp);
     const { kind, reason, similarity, threshold, matchedFingerprint } = assignment.decision;
     return Promise.resolve(
-      reported({ masked, routeTemplate, fp, assignment }, [
+      reported({ masked, routeTemplate, fp, assignment, browserError }, [
         decision({
           kind,
           rule: `fingerprint:${reason}`,

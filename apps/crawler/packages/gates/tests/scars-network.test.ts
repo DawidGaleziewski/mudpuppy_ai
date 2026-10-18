@@ -38,3 +38,33 @@ gate('SC-13', 'network.proxy reaches a portal that admits only the proxy egress'
   );
   expect(runStatus(proxied)).toBe('running');
 });
+
+// Spec 036 FR-004 (F-13@034, F-02@036): unread answers do not hold the settle, and a 204 is an
+// answer, not a failed request.
+gate(
+  'SC-21',
+  'a page with an unread ping and a 204 beacon settles; both calls recorded, no error',
+  async () => {
+    const run = await startRun(gs.call, 'scar-maker', 'guest');
+    const t = performance.now();
+    const p = await scarNav(gs.call, run, '/sc21/');
+    expect(performance.now() - t).toBeLessThan(8000);
+    const [state] = rows<{ stabilization: string }>(
+      gs,
+      'SELECT stabilization FROM states WHERE id = ?',
+      p.state_id as string,
+    );
+    expect(state!.stabilization).toBe('settled');
+    const calls = rows<{ url_template: string; status: number; console_errors: string }>(
+      gs,
+      'SELECT url_template, status, console_errors FROM network_calls WHERE run_id = ?',
+      run,
+    );
+    const status = (path: string) => calls.find((c) => c.url_template.includes(path))?.status;
+    expect(status('/sc21/ping')).toBe(200);
+    expect(status('/sc21/beacon')).toBe(204);
+    expect(calls.flatMap((c) => JSON.parse(c.console_errors) as string[]).join('\n')).not.toMatch(
+      /beacon failed/,
+    );
+  },
+);

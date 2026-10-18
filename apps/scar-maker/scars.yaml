@@ -161,3 +161,27 @@
   before: Two scans record two different pages behind one button; the BA documents whichever page its runs held, or both as steps.
   after: The two outcomes are one differing-states group with their scans and frequency; the BA proposes a verdict per outcome and the owner confirms it in Review.
   status: gate
+
+- id: SC-21
+  title: A page that fires a ping and a 204 beacon and never reads the answers
+  source: [F-13@034]
+  route: /sc21/
+  before: The settle counted the unread ping as in flight until its 10 s timeout, and the 204 beacon was reported as a failed request.
+  after: The page settles well before the timeout; both calls are recorded with their status and neither is an error.
+  status: gate
+
+- id: SC-22
+  title: A form box that is only hidden until a choice shows it
+  source: [F-12@034]
+  route: /sc22/
+  before: The form reader keeps every control of a form, so the hidden "Vehicle value" box is a field of every state, also where nobody can see it.
+  after: A control that is not rendered is not a field; the state after choosing "Comprehensive" has the box, the first state does not.
+  status: gate
+
+- id: SC-23
+  title: A page-load form whose submit gets no document
+  source: [F-11@034]
+  route: /sc23/
+  before: Chromium's own error page (chrome-error://chromewebdata/, path "/") is recorded as a blank screen of the home page, and "Next" leads to "/".
+  after: The error page is a technical state on the route of the page that submitted; "/" is never its destination.
+  status: gate

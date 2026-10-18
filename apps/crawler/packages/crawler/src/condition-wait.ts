@@ -3,6 +3,8 @@
 // "slow but working" from "stuck": in the field an SSO login page loaded ~60 script files at the
 // polite rate (~30 s) and a fixed 5 s wait reported the form missing (GC-08).
 
+import { monotonicNow } from './clock.js';
+
 export interface ConditionWaitOptions {
   /** Give up after this long with no progress, ms. */
   quietMs: number;
@@ -14,7 +16,7 @@ export interface ConditionWaitOptions {
 
 /** Signals that the page is still working: any change counts as progress. */
 export interface ProgressSignals {
-  /** ms timestamp of the last request start or finish (`NetworkActivity.lastActivityAt`). */
+  /** Monotonic ms of the last request start or finish (`NetworkActivity.lastActivityAt`). */
   lastNetworkActivityAt(): number;
   /** Something that changes when the page moves on: the URL, the DOM size. */
   fingerprint(): Promise<string>;
@@ -29,7 +31,8 @@ export interface Clock {
 }
 
 const realClock: Clock = {
-  now: () => Date.now(),
+  // Monotonic, like the tracker's `lastActivityAt` it is compared with (spec 036 FR-001).
+  now: monotonicNow,
   sleep: (ms) => new Promise((r) => setTimeout(r, ms)),
 };
 

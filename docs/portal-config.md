@@ -233,8 +233,8 @@ for a one-time code or a CAPTCHA is recorded as `blocked`.
 
 ```yaml
 probes:
-  per_step: 12   # tries per form step (default 12)
-  per_run: 60    # tries per run (default 60); 0 turns probing off
+  per_step: 24   # tries per form step (default 24)
+  per_run: 120   # tries per run (default 120); 0 turns probing off
 ```
 
 ## Test data (persona `test_data`, spec 032)

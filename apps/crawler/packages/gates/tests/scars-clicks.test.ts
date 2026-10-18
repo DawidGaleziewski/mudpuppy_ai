@@ -99,6 +99,33 @@ gate('SC-04', 'a trace selects an option by its visible label', async () => {
   expect(landed(shown)).toContain('contract=K-7731');
 });
 
+// Spec 036 FR-002: a submit that never gets a document shows Chromium's error page
+// (`chrome-error://chromewebdata/`, path `/`); it is a technical state of the submitting page.
+gate(
+  'SC-23',
+  'a blocked submit is a technical state of its own page, not the home page',
+  async () => {
+    const run = await startRun(gs.call, PORTAL, 'guest', {
+      mode: 'trace',
+      process: { name: 'Find a branch', goal: 'submit with the request blocked' },
+    });
+    const page = await scarNav(gs.call, run, '/sc23/', { intent: 'open the branch search' });
+    const failed = await actOn(gs.call, run, page, 'Next', {
+      intent: 'search with the request blocked',
+      fault: 'block_request',
+    });
+    const [state] = rows<{ route_template: string; state_kind: string }>(
+      gs,
+      'SELECT route_template, state_kind FROM states WHERE id = ?',
+      failed.state_id as string,
+    );
+    expect(state).toEqual({
+      route_template: page.route_template as string,
+      state_kind: 'technical',
+    });
+  },
+);
+
 gate('SC-05', 'German send, submit, delete and save controls are never read', async () => {
   const run = await startRun(gs.call, PORTAL, 'guest');
   await scarNav(gs.call, run, '/sc05/');

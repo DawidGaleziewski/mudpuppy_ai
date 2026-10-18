@@ -133,6 +133,47 @@ function describeField(el: Element, form: Element, position: number): DomFormFie
   return field;
 }
 
+/** The name of a radio group: its fieldset's legend, else its radiogroup's accessible name. */
+function groupLabel(el: Element): string {
+  const legend = collapseText(el.closest('fieldset')?.querySelector('legend')?.textContent);
+  if (legend) return legend;
+  const group = el.closest('[role=radiogroup]');
+  return group ? ariaText(group) : '';
+}
+
+/**
+ * Radios of one `name` as one field (spec 036 FR-007, F-16@034): labelled by the group, each
+ * radio's own label an option, required when any radio is. Other controls pass unchanged.
+ */
+function foldRadios(fields: DomFormField[], els: Element[]): DomFormField[] {
+  const out: DomFormField[] = [];
+  const groups = new Map<string, DomFormField>();
+  els.forEach((el, i) => {
+    const f = fields[i]!;
+    const name = el.getAttribute('name');
+    if ((el as HTMLInputElement).type !== 'radio' || !name) {
+      out.push(f);
+      return;
+    }
+    const option = f.label ?? (el as HTMLInputElement).value;
+    const known = groups.get(name);
+    if (known) {
+      known.options!.push(option);
+      known.required = known.required || f.required;
+      known.validation_messages ??= f.validation_messages;
+      return;
+    }
+    const field: DomFormField = { ...f, type: 'radio', options: [option] };
+    const label = groupLabel(el);
+    // The first radio's label names an option, not the group.
+    if (label) field.label = label;
+    else delete field.label;
+    groups.set(name, field);
+    out.push(field);
+  });
+  return out;
+}
+
 function formName(f: HTMLFormElement): string {
   const labelled = f.getAttribute('aria-labelledby');
   const fromLabelled = labelled
@@ -149,6 +190,14 @@ function readForm(f: HTMLFormElement): unknown {
   const SKIP = ['hidden', 'submit', 'button', 'image', 'reset'];
   const kept = ([...f.elements] as HTMLInputElement[]).filter((el) => {
     if (SKIP.includes(el.type ?? '')) return false;
+    // Not rendered (`hidden`, `display: none`, a hidden ancestor): not a field of this state, so a
+    // box shown only after a choice belongs to that state alone (spec 036 FR-003). A radio or
+    // checkbox drawn by its visible label is still a field.
+    if (
+      el.getClientRects().length === 0 &&
+      ![...(el.labels ?? [])].some((l) => l.getClientRects().length > 0)
+    )
+      return false;
     // Only real inputs may be nameless; fieldset/object/output stay as before (name or id).
     return /^(input|select|textarea)$/i.test(el.tagName) || !!(el.getAttribute('name') || el.id);
   });
@@ -162,7 +211,10 @@ function readForm(f: HTMLFormElement): unknown {
     action: f.action || '',
     hasPassword: !!f.querySelector('input[type=password]'),
     purpose: isSearch ? 'search' : 'other',
-    fields: kept.map((el, i) => describeField(el, f, i + 1)),
+    fields: foldRadios(
+      kept.map((el, i) => describeField(el, f, i + 1)),
+      kept,
+    ),
   };
 }
 
@@ -211,7 +263,10 @@ function readDivForms(): unknown[] {
         els.some((e) => (e as HTMLInputElement).type === 'search') || !!box.closest('[role=search]')
           ? 'search'
           : 'other',
-      fields: els.map((el, i) => describeField(el, box, i + 1)),
+      fields: foldRadios(
+        els.map((el, i) => describeField(el, box, i + 1)),
+        els,
+      ),
       kind: 'div_form',
     };
   });
@@ -238,6 +293,8 @@ export function extractForms(page: Page | Frame): Promise<DomForm[]> {
       fieldLabel,
       readConstraints,
       describeField,
+      groupLabel,
+      foldRadios,
       formName,
       readForm,
       isSubmitLike,

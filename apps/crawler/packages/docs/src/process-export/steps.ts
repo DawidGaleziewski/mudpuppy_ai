@@ -137,6 +137,35 @@ function toSteps(raw: RawDb, ordered: readonly string[], extra: readonly string[
   return out;
 }
 
+/** Routes of the screens the record says the process contains (R-51 `process contains screen`). */
+function containedRoutes(raw: RawDb, revId: string): Set<string> {
+  return new Set(
+    rows<{ route_template: string }>(
+      raw,
+      `SELECT DISTINCT s.route_template FROM doc_relations rel
+       JOIN doc_records scr ON scr.id = rel.to_record_id AND scr.kind = 'screen'
+       JOIN doc_revisions sv ON sv.record_id = scr.id AND sv.rev_no = scr.latest_rev
+       JOIN doc_evidence_links l ON l.revision_id = sv.id AND l.target_kind IN ('state', 'screen_region')
+       JOIN states s ON s.id = l.target_id
+       WHERE rel.from_revision_id = ? AND rel.type = 'contains'`,
+      revId,
+    ).map((r) => r.route_template),
+  );
+}
+
+/**
+ * The walk from the process's first page on (spec 036 FR-006, F-15@034): a trace that set off from
+ * the home page walked it first, but the process starts at its first contained screen. Without
+ * `contains` links, or when none of them is on the walk, the walk is kept as it is.
+ */
+function fromFirstContained(raw: RawDb, ordered: string[], routes: Set<string>): string[] {
+  const first = ordered.findIndex((id) => {
+    const head = headOf(raw, id);
+    return head !== undefined && routes.has(head.route_template);
+  });
+  return first > 0 ? ordered.slice(first) : ordered;
+}
+
 function recordProcess(raw: RawDb, portal: string, key: string): ResolvedProcess | null {
   const [rec] = rows<{ title: string; rev_id: string }>(
     raw,
@@ -156,6 +185,7 @@ function recordProcess(raw: RawDb, portal: string, key: string): ResolvedProcess
   let ordered = traceWalk(raw, of('process'));
   if (ordered.length === 0) ordered = stepsWalk(raw, of('process_step'));
   if (ordered.length === 0) ordered = edgeWalk(raw, of('edge'));
+  ordered = fromFirstContained(raw, ordered, containedRoutes(raw, rec.rev_id));
   const cited = [...of('state'), ...of('screen_region')];
   const extra = [...new Set(cited)].filter((s) => !ordered.includes(s));
   if (ordered.length === 0) ordered = extra.splice(0);

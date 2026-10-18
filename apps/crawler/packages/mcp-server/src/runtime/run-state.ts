@@ -42,6 +42,8 @@ export class RunState {
   private templater: RouteTemplater | null = null;
   currentStateId: string | null = null;
   currentUrl: string | null = null;
+  /** Route of the last page with a real URL: Chromium's own error page takes it (spec 036 FR-002). */
+  lastPageRoute: string | null = null;
   /** Per-call Playwright trace chunks; null when not recorded for this run (research §13). */
   pw: PwTrace | null = null;
   /** Resolves when a detected block has been persisted; undefined until one is detected. */

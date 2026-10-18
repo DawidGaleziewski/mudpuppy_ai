@@ -8,9 +8,9 @@ import { PORTAL_YAML, tmpTree } from './helpers.js';
 const OK = 'viewport: { width: 1, height: 1 }\nlocale: pl-PL\n';
 
 describe('spec 032: probe budget, test data, trace faults', () => {
-  it('gives every portal the owner budget of 12 probes per step and 60 per run (O-M4)', () => {
+  it('gives every portal the owner budget of 24 probes per step and 120 per run (O-M4, spec 036)', () => {
     const root = tmpTree({ 'portal.yaml': PORTAL_YAML });
-    expect(loadPortal(join(root, 'portal.yaml')).probes).toEqual({ per_step: 12, per_run: 60 });
+    expect(loadPortal(join(root, 'portal.yaml')).probes).toEqual({ per_step: 24, per_run: 120 });
     const own = tmpTree({ 'portal.yaml': `${PORTAL_YAML}probes: { per_step: 4, per_run: 0 }\n` });
     expect(loadPortal(join(own, 'portal.yaml')).probes).toEqual({ per_step: 4, per_run: 0 });
     const bad = tmpTree({ 'portal.yaml': `${PORTAL_YAML}probes: { per_form: 3 }\n` });

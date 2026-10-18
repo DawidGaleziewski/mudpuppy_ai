@@ -1,6 +1,7 @@
 /// <reference lib="dom" />
 import type { CompositionLoader } from '@pathfinder/core';
 import type { Frame, Page } from 'playwright';
+import { monotonicNow } from './clock.js';
 import { waitForCondition } from './condition-wait.js';
 import { evalWithHelpers } from './in-page.js';
 
@@ -132,7 +133,7 @@ export interface MountWaitLimits {
    * consent) then costs this, not `hardMs` (spec 031 F-03).
    */
   quietMs?: number;
-  /** ms timestamp of the page's last request to a new path (`NetworkActivity.lastNewPathAt`). */
+  /** Monotonic ms of the page's last request to a new path (`NetworkActivity.lastNewPathAt`). */
   lastNewPathAt?: () => number;
   pollMs?: number;
 }
@@ -213,9 +214,9 @@ export async function waitForMounts(
   maxMs: number,
   pollMs = 100,
 ): Promise<MountWait> {
-  const started = Date.now();
+  const started = monotonicNow();
   let probe = await probeMounts(target);
-  while (shouldWaitForMounts(probe) && Date.now() - started < maxMs) {
+  while (shouldWaitForMounts(probe) && monotonicNow() - started < maxMs) {
     await new Promise((r) => setTimeout(r, pollMs));
     try {
       probe = await probeMounts(target);
@@ -223,5 +224,9 @@ export async function waitForMounts(
       break; // navigated or detached: the next observation sees the new document
     }
   }
-  return { ...probe, waitedMs: Date.now() - started, timedOut: shouldWaitForMounts(probe) };
+  return {
+    ...probe,
+    waitedMs: Math.round(monotonicNow() - started),
+    timedOut: shouldWaitForMounts(probe),
+  };
 }

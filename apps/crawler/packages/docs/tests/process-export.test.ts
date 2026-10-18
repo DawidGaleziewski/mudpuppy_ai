@@ -47,6 +47,37 @@ describe('resolveProcessSteps', () => {
     expect(p.steps.every((s, i) => s.n === i + 1)).toBe(true);
   });
 
+  it('starts at the first screen the process contains, not where the trace set off (F-15@034)', () => {
+    const idOf = (key: string): string =>
+      (fx.raw.prepare('SELECT id FROM doc_records WHERE key = ?').get(key) as { id: string }).id;
+    const rev = (
+      fx.raw
+        .prepare(
+          `SELECT v.id FROM doc_revisions v JOIN doc_records r ON r.id = v.record_id
+           WHERE r.key = 'PROC-001' AND v.rev_no = r.latest_rev`,
+        )
+        .get() as { id: string }
+    ).id;
+    // SCR-002 is the vehicle calculator; the trace walked the car product page before it.
+    const add = fx.raw.prepare(
+      "INSERT INTO doc_relations (from_revision_id, to_record_id, type) VALUES (?, ?, 'contains')",
+    );
+    add.run(rev, idOf('SCR-002'));
+    try {
+      const order = resolveProcessSteps(fx.raw, fx.portalId, 'PROC-001')!.steps.map(
+        (s) => s.state_id,
+      );
+      expect(order[0]).toBe(fx.states.vehicle);
+      expect(order).not.toContain(fx.states.car);
+    } finally {
+      fx.raw
+        .prepare(
+          "DELETE FROM doc_relations WHERE from_revision_id = ? AND to_record_id = ? AND type = 'contains'",
+        )
+        .run(rev, idOf('SCR-002'));
+    }
+  });
+
   it('knows nothing of an unknown process and lists the documented ones', () => {
     expect(resolveProcessSteps(fx.raw, fx.portalId, 'PROC-999')).toBeNull();
     expect(processKeys(fx.raw, fx.portalId)).toEqual(['PROC-001', 'PROC-002']);

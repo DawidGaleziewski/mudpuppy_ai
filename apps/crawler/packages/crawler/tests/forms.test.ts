@@ -107,6 +107,47 @@ describe.skipIf(!available)('extractForms field naming (browser)', () => {
       <input type="button"><input type="image"><input type="reset"><button>x</button></form>`);
     expect(fields).toEqual([]);
   });
+
+  it('leaves out controls that are not rendered, keeps a radio drawn by its label (spec 036 FR-003)', async () => {
+    const fields = await fieldsOf(`<form>
+      <label>Marka <input name="marka"></label>
+      <label hidden>Wartość pojazdu <input name="wartosc"></label>
+      <div style="display:none"><label>Rabat <input name="rabat"></label></div>
+      <input name="ukryte" style="visibility:hidden;display:none">
+      <input type="radio" id="oc" name="zakres" style="display:none"><label for="oc">Tylko OC</label>
+      <button>Dalej</button></form>`);
+    expect(fields.map((f) => f.name)).toEqual(['marka', 'zakres']);
+  });
+});
+
+describe.skipIf(!available)('extractForms radio groups (browser, spec 036 FR-007)', () => {
+  it('records a radio group as one field named by its legend, with its options', async () => {
+    // The reference calculator's "Zakres" markup (F-16@034): required on the first radio only.
+    const fields = await fieldsOf(`<form aria-label="Opcje">
+      <fieldset><legend>Zakres</legend>
+      <p><input id="oc" name="zakres" type="radio" value="oc" required checked> <label for="oc">Tylko OC</label></p>
+      <p><input id="ac" name="zakres" type="radio" value="oc_ac"> <label for="ac">OC + Autocasco (AC)</label></p>
+      </fieldset>
+      <label><input type="checkbox" name="assistance"> Assistance</label>
+      <button>Oblicz składkę</button></form>`);
+    expect(fields.map((f) => [f.name, f.type, f.label, f.required, f.options])).toEqual([
+      ['zakres', 'radio', 'Zakres', true, ['Tylko OC', 'OC + Autocasco (AC)']],
+      ['assistance', 'checkbox', 'Assistance', false, undefined],
+    ]);
+  });
+
+  it('names a group without a legend by its radiogroup, else by its name', async () => {
+    const fields = await fieldsOf(`<form>
+      <div role="radiogroup" aria-label="Payment"><label><input type="radio" name="pay" value="c"> Card</label>
+      <label><input type="radio" name="pay" value="t"> Transfer</label></div>
+      <label><input type="radio" name="size" value="s"> Small</label>
+      <label><input type="radio" name="size" value="l"> Large</label>
+      <button>Go</button></form>`);
+    expect(fields.map((f) => [f.name, f.label, f.options])).toEqual([
+      ['pay', 'Payment', ['Card', 'Transfer']],
+      ['size', undefined, ['Small', 'Large']],
+    ]);
+  });
 });
 
 async function formsOf(html: string) {

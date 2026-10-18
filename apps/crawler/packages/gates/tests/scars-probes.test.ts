@@ -145,7 +145,7 @@ gate('SC-19', 'probes record validation, branch and technical outcomes with evid
   const step1 = await scarNav(gs.call, run, '/sc19/apply');
   const first = await probe(run, step1);
   // Step 1 sends no request: its technical tries are listed as skipped, not as states.
-  expect(first.outcomes.length).toBeLessThanOrEqual(12);
+  expect(first.outcomes.length).toBeLessThanOrEqual(24);
   expect(first.outcomes.every((o) => o.outcome_kind === 'validation')).toBe(true);
   expect(first.skipped.join(' ')).toMatch(/no request/);
   const native = outcomes(run).find((o) => o.probe_id === 'required-empty-all')!;
@@ -227,5 +227,5 @@ gate('SC-19', 'a read-only persona probes nothing, and the budget is the portal 
   const r = await probe(run, step1);
   expect(r.blocked).toMatch(/action limit/);
   expect(outcomes(run).map((o) => o.outcome_kind)).toEqual(['blocked']);
-  expect(r.budget).toMatchObject({ per_step: 12, per_run: 60 });
+  expect(r.budget).toMatchObject({ per_step: 24, per_run: 120 });
 });

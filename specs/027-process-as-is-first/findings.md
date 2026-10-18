@@ -37,7 +37,8 @@ Note: `apps/chat/src/process-service.ts` is at 395 of 400 counted lines; the nex
   the stabilizer file at random and the pipeline golden with the same `never_stabilized` diff,
   so it is the machine (Chromium settle timing on WSL today), not this branch. Test idea: mark
   the wall-clock ones `perf`-like (alone, after the rest), or widen their budgets under load;
-  look at why pages stopped settling (a Chromium or Playwright update?).
+  look at why pages stopped settling (a Chromium or Playwright update?). **Cause found
+  2026-10-18:** the wall clock jumping ±6 s (spec 036 F-01); fixed on the machine, code fix in R-73.
 - **F-02 The chat service cannot run on a copy of a store**: `apps/chat/src/main.ts` opens
   `<repo>/data/db/<env>.sqlite` and migrates it on start, so checking a branch with a new
   migration in the browser would migrate the owner's real store before the merge. The browser

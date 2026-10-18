@@ -18,6 +18,7 @@ import {
 import { frontierReports } from '../src/runtime/pipeline/enqueue.js';
 import { gateEvent } from '../src/runtime/pipeline/gate.js';
 import { settleReports } from '../src/runtime/pipeline/settle.js';
+import { isBrowserErrorPage } from '../src/runtime/pipeline/fingerprint-step.js';
 
 /**
  * G-18: pipeline steps return their decisions and events; `step()` writes them inside the step's
@@ -259,5 +260,13 @@ describe('report builders', () => {
         detail: { status: 'skipped_policy', safety_class: 'read', policy_id: 'pol' },
       }),
     );
+  });
+});
+
+describe('isBrowserErrorPage (spec 036 FR-002)', () => {
+  it("names Chromium's own error page, never a portal page or about:blank", () => {
+    expect(isBrowserErrorPage('chrome-error://chromewebdata/')).toBe(true);
+    for (const url of ['https://portal.test/', 'https://portal.test/chrome-error', 'about:blank'])
+      expect(isBrowserErrorPage(url), url).toBe(false);
   });
 });

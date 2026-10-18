@@ -46,7 +46,8 @@ export function recordStateStep(
       stabilization,
       composition: pageComposition(observed, sc.rs.lastMounts),
       form_step_id: formStep.stepId,
-      state_kind: formStep.kind,
+      // Chromium's error page is never a page of the portal's own (spec 036 FR-002).
+      state_kind: args.fingerprinted.browserError ? 'technical' : formStep.kind,
     });
     if (formStep.stepId !== null) rs.stepOfState.set(state_id, formStep.stepId);
     const stateRow = await ctx.db

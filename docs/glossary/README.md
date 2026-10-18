@@ -333,7 +333,7 @@ the crawler calls `probe_form` on a marked step. The server tries:
   (technical, simulated in the crawler's own browser only).
 
 Each outcome is one of: next, branch, validation, technical, temporary, blocked. Probes run
-where the action limit allows submitting forms, at most 12 per step and 60 per scan unless
+where the action limit allows submitting forms, at most 24 per step and 120 per scan unless
 the portal file says otherwise.
 
 *Example:* On the quote form, "Business" led to a code confirmation (a branch, possibly a new process).
@@ -375,8 +375,8 @@ outcomes) or not probed. A probe scan uses the mark when it has probed the step 
 **A scan that only probes the marked form steps of a portal; it does not map.**
 
 Ask the assistant to "probe the marked forms". The crawler opens each marked step, presses
-on with test values until it is there, and probes it within the budget (12 tries per step,
-60 per scan). It does not follow other links. Without marks it is refused with what to do
+on with test values until it is there, and probes it within the budget (24 tries per step,
+120 per scan). It does not follow other links. Without marks it is refused with what to do
 first. It may submit forms, so a scan that only looks cannot probe.
 
 *Example:* "Probe the marked forms of scar-maker as quote-tester."
