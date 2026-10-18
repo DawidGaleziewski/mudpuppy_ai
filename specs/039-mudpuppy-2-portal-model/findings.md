@@ -31,3 +31,21 @@ Bugs, slips and design deviations found while building, each with a test or eval
   Options under a native select are skipped, as the action extractor skips them.
 - **Risk** (design § 20, element-key churn): a renamed heading changes every key under it; R6
   pairs them as `replaces`. Test idea: the Renamed button scenario plus a renamed section heading.
+
+## F-04 Build scopes approximated from what the page loads (T015), 2026-10-19
+
+- **What**: design § 5.2 assigns assets "requested by a micro-frontend mount (by frame, initiator or
+  remote entry URL)" to that mount's scope. The crawler knows each asset's frame and whether the
+  document named it or a script loaded it (`MountProbe.bundles`), not which mount requested it.
+  **Built:** frames are their own scope (`frame:<host><path>`); a bundle loaded by script belongs to
+  the folder it was served from (`mfe:<folder>`, a remote entry and its chunks); the rest is
+  `shell`. Two micro-frontends served from one folder share a scope.
+- **Test idea**: a proving-ground page with two remote entries in two folders and one shared
+  library; drift of one remote changes only its scope.
+
+## F-05 Step results need a precedence (T016), 2026-10-19
+
+- **What**: design § 5.6 lists when each result applies but not which wins when several do (a
+  validation message on a page that never settled; a refusal text on a 500). **Built:** blocked >
+  technical_error > business_error > validation > timeout > ok.
+- **Test**: `capture.test.ts` step results table.
