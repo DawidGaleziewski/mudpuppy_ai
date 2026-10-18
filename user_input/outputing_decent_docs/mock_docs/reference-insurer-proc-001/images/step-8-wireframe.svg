@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="120" viewBox="0 0 960 120" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">
+<title>Wireframe: 500</title>
+<rect x="0" y="0" width="960" height="120" fill="#FFFFFF"/>
+<g data-key="page">
+<text x="24" y="36" font-size="12" fill="#6E7781">500</text>
+</g>
+<g data-key="heading &quot;Internal Server Error&quot;">
+<text x="24" y="76" font-size="28" font-weight="600" fill="#1F2328">Internal Server Error</text>
+</g>
+</svg>

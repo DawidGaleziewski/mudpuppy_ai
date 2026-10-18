@@ -1,0 +1,4555 @@
+{
+  "as_of": "2026-10-17T18:29:53.405Z",
+  "environment": "sandbox",
+  "format": "mudpuppy-process-export/1",
+  "network": {
+    "endpoints": [
+      {
+        "calls": 1,
+        "host": "127.0.0.1:4010",
+        "method": "GET",
+        "path": "/api/wartosc-pojazdu",
+        "statuses": {
+          "200": 1
+        },
+        "steps": [
+          4
+        ]
+      },
+      {
+        "calls": 2,
+        "host": "127.0.0.1:4010",
+        "method": "POST",
+        "path": "/kalkulator/zakup",
+        "statuses": {
+          "200": 2
+        },
+        "steps": [
+          5
+        ]
+      }
+    ],
+    "noise": {
+      "analytics": 4,
+      "static": 4,
+      "total": 8
+    }
+  },
+  "portal": "reference-insurer",
+  "process": {
+    "content": {
+      "goal": "Get the annual car insurance premium and submit an application to buy the policy.",
+      "kind": "process",
+      "observed_extent": "full",
+      "outcome": "Steps (one page each): 1 \"Kalkulator OC/AC — dane pojazdu\" (\"Marka\", \"Model\", \"Rok produkcji\", \"Pojemność silnika (cm³)\", \"Kod pocztowy\", \"Dalej\"); 2 \"Kalkulator OC/AC — dane kierowcy\" (\"Data urodzenia\", \"Rok uzyskania prawa jazdy\", \"Lata bezszkodowej jazdy\", the two consents, \"Dalej\"); 3 \"Kalkulator OC/AC — opcje\" (\"Zakres\", \"Assistance\", \"Kod rabatowy\", \"Oblicz składkę\"), with variant 3b: when \"OC + Autocasco (AC)\" is chosen the box \"Wartość pojazdu (zł)\" appears with \"Typowa wartość dla tego pojazdu: …\" and must be filled; 4 \"Twoja składka\" (table \"Wyliczenie składki rocznej\", \"Kup polisę\", \"Zmień opcje\"); 5 \"Wniosek przyjęty\" showing \"Numer wniosku\" and \"Składka do zapłaty\"; a consultant is to contact the customer about payment. The trace (guest) walked steps 1 to 4 with \"OC + Autocasco (AC)\" and \"Wartość pojazdu (zł)\" 50000 and did not buy; step 5 is known from the map runs (\"Kup polisę\" pressed with OC+AC, Assistance and WIOSNA10, and from the \"Tylko OC\" result). Variants observed across the map runs: \"Marka\" \"Toyota\", \"Skoda\" or \"Volkswagen\" all lead to step 2; on step 3 \"Tylko OC\" or \"OC + Autocasco (AC)\", with or without \"Assistance\" and \"Kod rabatowy\", all lead to \"Twoja składka\" (optional fields may stay empty); \"Zmień opcje\" returns to step 3 with the previous choices preselected. Each step stays on its page with a validation message when a required field is empty or out of range. Error branches (not steps): when a step's request fails with HTTP 500 the user sees a bare \"Internal Server Error\" page; when the request is blocked or the browser is offline the user sees an empty page; a slow response still reaches the next step.",
+      "persona": "guest (not logged in)",
+      "summary": "Guest walks the four calculator steps and submits a purchase application.",
+      "title": "Kalkulator OC/AC: wycena i zakup polisy samochodowej",
+      "trigger": "The guest follows \"Oblicz składkę\" (menu \"Menu główne\" on any page, or the product page \"Ubezpieczenie samochodu\")."
+    },
+    "key": "PROC-001",
+    "kind": "record",
+    "status": "draft",
+    "title": "Kalkulator OC/AC: wycena i zakup polisy samochodowej"
+  },
+  "records": [
+    {
+      "confidence": "observed",
+      "content": {
+        "goal": "Get the annual car insurance premium and submit an application to buy the policy.",
+        "kind": "process",
+        "observed_extent": "full",
+        "outcome": "Steps (one page each): 1 \"Kalkulator OC/AC — dane pojazdu\" (\"Marka\", \"Model\", \"Rok produkcji\", \"Pojemność silnika (cm³)\", \"Kod pocztowy\", \"Dalej\"); 2 \"Kalkulator OC/AC — dane kierowcy\" (\"Data urodzenia\", \"Rok uzyskania prawa jazdy\", \"Lata bezszkodowej jazdy\", the two consents, \"Dalej\"); 3 \"Kalkulator OC/AC — opcje\" (\"Zakres\", \"Assistance\", \"Kod rabatowy\", \"Oblicz składkę\"), with variant 3b: when \"OC + Autocasco (AC)\" is chosen the box \"Wartość pojazdu (zł)\" appears with \"Typowa wartość dla tego pojazdu: …\" and must be filled; 4 \"Twoja składka\" (table \"Wyliczenie składki rocznej\", \"Kup polisę\", \"Zmień opcje\"); 5 \"Wniosek przyjęty\" showing \"Numer wniosku\" and \"Składka do zapłaty\"; a consultant is to contact the customer about payment. The trace (guest) walked steps 1 to 4 with \"OC + Autocasco (AC)\" and \"Wartość pojazdu (zł)\" 50000 and did not buy; step 5 is known from the map runs (\"Kup polisę\" pressed with OC+AC, Assistance and WIOSNA10, and from the \"Tylko OC\" result). Variants observed across the map runs: \"Marka\" \"Toyota\", \"Skoda\" or \"Volkswagen\" all lead to step 2; on step 3 \"Tylko OC\" or \"OC + Autocasco (AC)\", with or without \"Assistance\" and \"Kod rabatowy\", all lead to \"Twoja składka\" (optional fields may stay empty); \"Zmień opcje\" returns to step 3 with the previous choices preselected. Each step stays on its page with a validation message when a required field is empty or out of range. Error branches (not steps): when a step's request fails with HTTP 500 the user sees a bare \"Internal Server Error\" page; when the request is blocked or the browser is offline the user sees an empty page; a slow response still reaches the next step.",
+        "persona": "guest (not logged in)",
+        "summary": "Guest walks the four calculator steps and submits a purchase application.",
+        "title": "Kalkulator OC/AC: wycena i zakup polisy samochodowej",
+        "trigger": "The guest follows \"Oblicz składkę\" (menu \"Menu główne\" on any page, or the product page \"Ubezpieczenie samochodu\")."
+      },
+      "evidence": [
+        {
+          "id": "01a148de-0708-7000-86af-c497d73cc50c",
+          "kind": "edge",
+          "run": "01a148dd-2f17-7000-ae2a-4e1aba488607"
+        },
+        {
+          "id": "01a148de-4330-7000-a2ca-987c0d5dc3c2",
+          "kind": "edge",
+          "run": "01a148dd-2f17-7000-ae2a-4e1aba488607"
+        },
+        {
+          "id": "01a148de-7acb-7000-92cf-f761139dcd76",
+          "kind": "edge",
+          "run": "01a148dd-2f17-7000-ae2a-4e1aba488607"
+        },
+        {
+          "id": "01a148de-8703-7000-bdd8-ffa156527d9a",
+          "kind": "edge",
+          "run": "01a148dd-2f17-7000-ae2a-4e1aba488607"
+        },
+        {
+          "id": "01a148de-f212-7000-b062-503f9d26e181",
+          "kind": "edge",
+          "run": "01a148dd-2f17-7000-ae2a-4e1aba488607"
+        },
+        {
+          "id": "01a149a3-fd0d-7000-a534-8fa1b2e06b93",
+          "kind": "edge",
+          "run": "01a149a3-e5fc-7000-8106-d2ad95b84f4b"
+        },
+        {
+          "id": "01a149a4-ddc6-7001-aeb1-957d0ae23147",
+          "kind": "edge",
+          "run": "01a149a3-e5fc-7000-8106-d2ad95b84f4b"
+        },
+        {
+          "id": "01a149a4-f9db-7000-92be-ec8d351f3941",
+          "kind": "edge",
+          "run": "01a149a3-e5fc-7000-8106-d2ad95b84f4b"
+        },
+        {
+          "id": "01a149a5-44fc-7000-9cc6-e0f9d6d35424",
+          "kind": "edge",
+          "run": "01a149a3-e5fc-7000-8106-d2ad95b84f4b"
+        },
+        {
+          "id": "01a14a99-4d5a-7000-9ea9-267dea80c137",
+          "kind": "edge",
+          "run": "01a14a98-bbba-7000-8a57-9bdeb4de5186"
+        },
+        {
+          "id": "01a14a99-6411-7000-af68-5235022fdc28",
+          "kind": "edge",
+          "run": "01a14a98-bbba-7000-8a57-9bdeb4de5186"
+        },
+        {
+          "id": "01a14b1a-1bf9-7000-b622-6a00f71270dc",
+          "kind": "process",
+          "run": "01a14b1a-1be6-7000-922f-1c6f3ac81d4e"
+        },
+        {
+          "id": "01a14b1a-3757-7000-856b-17ae14a28d0a",
+          "kind": "process_step",
+          "run": "01a14b1a-1be6-7000-922f-1c6f3ac81d4e"
+        },
+        {
+          "id": "01a14b1a-76ab-7000-884b-896ebe43c686",
+          "kind": "process_step",
+          "run": "01a14b1a-1be6-7000-922f-1c6f3ac81d4e"
+        },
+        {
+          "id": "01a14b1a-bb24-7001-8d9e-190ce327fe9c",
+          "kind": "process_step",
+          "run": "01a14b1a-1be6-7000-922f-1c6f3ac81d4e"
+        },
+        {
+          "id": "01a14b1a-c6f5-702d-9f0e-df0226051ade",
+          "kind": "process_step",
+          "run": "01a14b1a-1be6-7000-922f-1c6f3ac81d4e"
+        },
+        {
+          "id": "01a14b1a-c760-7000-9864-04d9e41a7a85",
+          "kind": "process_step",
+          "run": "01a14b1a-1be6-7000-922f-1c6f3ac81d4e"
+        },
+        {
+          "id": "01a14b1a-d566-7001-b957-9ec609c04f33",
+          "kind": "process_step",
+          "run": "01a14b1a-1be6-7000-922f-1c6f3ac81d4e"
+        },
+        {
+          "id": "01a148de-86d8-7000-9309-4349aaae8045",
+          "kind": "state",
+          "run": "01a148dd-2f17-7000-ae2a-4e1aba488607"
+        },
+        {
+          "id": "01a148df-3e8a-7000-8e16-b6b4d629a645",
+          "kind": "state",
+          "run": "01a14a98-bbba-7000-8a57-9bdeb4de5186"
+        },
+        {
+          "id": "01a14949-aa14-7000-866c-230923c8db86",
+          "kind": "state",
+          "run": "01a14949-2007-7000-b5ec-022312627061"
+        },
+        {
+          "id": "01a14949-af1c-7000-9ee1-cd717dfdd271",
+          "kind": "state",
+          "run": "01a14982-3e84-7000-9c57-a64fb95a2875"
+        },
+        {
+          "id": "01a14983-36e7-7000-aee7-a7f32d4fe555",
+          "kind": "state",
+          "run": "01a14a95-bb54-7000-8f7e-01d0a7edbb9b"
+        },
+        {
+          "id": "01a14983-43d5-7000-bece-1301a5f0b505",
+          "kind": "state",
+          "run": "01a14982-3e84-7000-9c57-a64fb95a2875"
+        },
+        {
+          "id": "01a14b1a-c6f5-7007-a287-efe4c22558a6",
+          "kind": "state",
+          "run": "01a14b1a-1be6-7000-922f-1c6f3ac81d4e"
+        }
+      ],
+      "key": "PROC-001",
+      "kind": "process",
+      "status": "draft",
+      "title": "Kalkulator OC/AC: wycena i zakup polisy samochodowej"
+    },
+    {
+      "confidence": "observed",
+      "content": {
+        "elements": [
+          {
+            "label_verbatim": "Kalkulator OC/AC — dane kierowcy",
+            "role": "heading"
+          },
+          {
+            "label_verbatim": "Kroki kalkulatora",
+            "role": "navigation"
+          },
+          {
+            "label_verbatim": "Dane kierowcy",
+            "role": "form"
+          },
+          {
+            "label_verbatim": "Data urodzenia",
+            "role": "textbox"
+          },
+          {
+            "label_verbatim": "Rok uzyskania prawa jazdy",
+            "role": "spinbutton"
+          },
+          {
+            "label_verbatim": "Lata bezszkodowej jazdy",
+            "role": "spinbutton"
+          },
+          {
+            "label_verbatim": "Zgoda na przetwarzanie danych osobowych",
+            "role": "checkbox"
+          },
+          {
+            "label_verbatim": "Oświadczam, że zapoznałem się z OWU",
+            "role": "checkbox"
+          },
+          {
+            "label_verbatim": "Dalej",
+            "role": "button"
+          }
+        ],
+        "entry_points": [
+          "Button \"Dalej\" on step 1: GET /kalkulator/pojazd?krok=1&marka=…&model=…&rok_produkcji=…&pojemnosc=…&kod_pocztowy=…, then HTTP 303 redirect to /kalkulator/kierowca?marka=…&model=…&rok_produkcji=…&pojemnosc=…&kod_pocztowy=…"
+        ],
+        "kind": "screen",
+        "purpose": "Step 2 of the OC/AC calculator (heading \"Kalkulator OC/AC — dane kierowcy\", steps navigation \"Kroki kalkulatora\"). The form \"Dane kierowcy\" collects \"Data urodzenia\" (hint \"Kierowca musi mieć od 18 do 75 lat.\"), \"Rok uzyskania prawa jazdy\", \"Lata bezszkodowej jazdy\" (hint \"Od 5 lat bezszkodowej jazdy przysługuje zniżka.\") and two checkboxes \"Zgoda na przetwarzanie danych osobowych\" and \"Oświadczam, że zapoznałem się z OWU\". The button \"Dalej\" is shown disabled on arrival, with the note \"Przycisk Dalej jest aktywny po zaznaczeniu obu zgód.\". The form uses method GET to /kalkulator/kierowca. The vehicle data from step 1 travels in the query string of this page.\n\nStates of this step seen by the probing map runs: (a) validation states, the same page with the browser's own messages: all empty gives \"Please fill out this field.\" on \"Data urodzenia\", \"Rok uzyskania prawa jazdy\" and \"Lata bezszkodowej jazdy\" and \"Please check this box if you want to proceed.\" on both consents; \"Rok uzyskania prawa jazdy\" out of range gives \"Value must be greater than or equal to 1968.\" or \"Value must be less than or equal to 2026.\"; a non-date \"Data urodzenia\" or a non-numeric \"Rok uzyskania prawa jazdy\" / \"Lata bezszkodowej jazdy\" is treated as empty (\"Please fill out this field.\"). (b) Error branches, not steps: HTTP 500 shows the bare \"Internal Server Error\" page; a blocked request or offline browser shows an empty page. A delayed response still reaches step 3.",
+        "route_templates": [
+          "/kalkulator/kierowca"
+        ],
+        "summary": "Second calculator step: driver data and two consents, form \"Dane kierowcy\".",
+        "title": "Kalkulator OC/AC — dane kierowcy (calculator step 2, driver)"
+      },
+      "evidence": [
+        {
+          "id": "01a148de-0708-7000-86af-c497d73cc50c",
+          "kind": "edge",
+          "run": "01a148dd-2f17-7000-ae2a-4e1aba488607"
+        },
+        {
+          "id": "01a149a4-6b70-7000-aaa9-c8b86b8e7e10",
+          "kind": "edge",
+          "run": "01a149a3-e5fc-7000-8106-d2ad95b84f4b"
+        },
+        {
+          "id": "01a149a4-754a-7000-8a5a-c8c11d23abdb",
+          "kind": "edge",
+          "run": "01a149a3-e5fc-7000-8106-d2ad95b84f4b"
+        },
+        {
+          "id": "01a149a4-abee-7000-b4f9-b63b241b3573",
+          "kind": "edge",
+          "run": "01a149a3-e5fc-7000-8106-d2ad95b84f4b"
+        },
+        {
+          "id": "01a148de-0707-7000-bfe9-5c15c8973895",
+          "kind": "form",
+          "run": "01a148dd-2f17-7000-ae2a-4e1aba488607"
+        },
+        {
+          "id": "01a148de-070a-7000-8271-bf32b816eb20",
+          "kind": "page_visit",
+          "run": "01a148dd-2f17-7000-ae2a-4e1aba488607"
+        },
+        {
+          "id": "01a148de-06d6-7001-9d80-bbe01feafe74",
+          "kind": "screen_region",
+          "run": "01a148dd-2f17-7000-ae2a-4e1aba488607"
+        },
+        {
+          "id": "01a148de-06d6-7001-9d80-bbe01feafe74",
+          "kind": "screen_region",
+          "run": "01a148dd-2f17-7000-ae2a-4e1aba488607"
+        },
+        {
+          "id": "01a148de-06d6-7001-9d80-bbe01feafe74",
+          "kind": "state",
+          "run": "01a148dd-2f17-7000-ae2a-4e1aba488607"
+        },
+        {
+          "id": "01a14949-aa14-7000-866c-230923c8db86",
+          "kind": "state",
+          "run": "01a149a3-e5fc-7000-8106-d2ad95b84f4b"
+        },
+        {
+          "id": "01a14949-b346-7000-9bde-a7e92b23b817",
+          "kind": "state",
+          "run": "01a149a3-e5fc-7000-8106-d2ad95b84f4b"
+        },
+        {
+          "id": "01a14949-bb23-7000-868e-294361b8d547",
+          "kind": "state",
+          "run": "01a149a3-e5fc-7000-8106-d2ad95b84f4b"
+        },
+        {
+          "id": "01a14983-1133-7000-b602-fd3089fa171c",
+          "kind": "state",
+          "run": "01a149a3-e5fc-7000-8106-d2ad95b84f4b"
+        },
+        {
+          "id": "01a14983-1cfa-7000-9e61-760511b50e1b",
+          "kind": "state",
+          "run": "01a149a3-e5fc-7000-8106-d2ad95b84f4b"
+        }
+      ],
+      "key": "SCR-003",
+      "kind": "screen",
+      "status": "draft",
+      "title": "Kalkulator OC/AC — dane kierowcy (calculator step 2, driver)"
+    },
+    {
+      "confidence": "observed",
+      "content": {
+        "elements": [
+          {
+            "label_verbatim": "Kalkulator OC/AC — opcje",
+            "role": "heading"
+          },
+          {
+            "label_verbatim": "Kroki kalkulatora",
+            "role": "navigation"
+          },
+          {
+            "label_verbatim": "Opcje",
+            "role": "form"
+          },
+          {
+            "label_verbatim": "Zakres",
+            "role": "group"
+          },
+          {
+            "label_verbatim": "Tylko OC",
+            "role": "radio"
+          },
+          {
+            "label_verbatim": "OC + Autocasco (AC)",
+            "role": "radio"
+          },
+          {
+            "label_verbatim": "Wartość pojazdu (zł)",
+            "role": "spinbutton"
+          },
+          {
+            "label_verbatim": "Assistance",
+            "role": "checkbox"
+          },
+          {
+            "label_verbatim": "Kod rabatowy",
+            "role": "textbox"
+          },
+          {
+            "label_verbatim": "Oblicz składkę",
+            "role": "button"
+          }
+        ],
+        "entry_points": [
+          "Button \"Dalej\" on step 2: GET /kalkulator/kierowca?krok=2&… (10 fields), then HTTP 303 redirect to /kalkulator/opcje?marka=…&model=…&rok_produkcji=…&pojemnosc=…&kod_pocztowy=…&data_urodzenia=…&rok_prawa_jazdy=…&lata_bezszkodowe=…&zgoda_dane=tak&zgoda_owu=tak",
+          "Link \"Zmień opcje\" on the result page: /kalkulator/opcje with the same 10 parameters plus zakres, assistance (when ticked) and kod_rabatowy (when given); the form opens with these values preselected"
+        ],
+        "kind": "screen",
+        "purpose": "Step 3 of the OC/AC calculator (heading \"Kalkulator OC/AC — opcje\"). The form \"Opcje\" has the radio group \"Zakres\" with \"Tylko OC\" (checked by default) and \"OC + Autocasco (AC)\", with the note \"AC dostępne tylko dla pojazdów młodszych niż 15 lat.\"; the checkbox \"Assistance\"; the text field \"Kod rabatowy\" (hint \"Wielkie litery i dwie cyfry, np. WIOSNA10\"); and the button \"Oblicz składkę\". The form uses method GET to /kalkulator/opcje. Data of steps 1 and 2 travels in the query string.\n\nVariant 3b (same step, form changed by a choice): when \"OC + Autocasco (AC)\" is chosen, the form shows the number box \"Wartość pojazdu (zł)\" (required, min 5000, max 500000) with the hint \"Wartość rynkowa, od 5 000 do 500 000 zł.\" and the line \"Typowa wartość dla tego pojazdu: 47 800,00 zł.\" (observed for \"Toyota\" 2020). On that choice the page requests GET /api/wartosc-pojazdu?marka=…&rok_produkcji=… which answered {marka, typowa, typowa_tekst} (sample: \"toyota\", 47800, \"47 800,00 zł\"). Pressing \"Oblicz składkę\" then sends zakres=oc_ac and wartosc_pojazdu (observed 50000) and is redirected (303) to the result.\n\nVariant reached from the result page by \"Zmień opcje\" (all values in the query): the form shows the previous choices preselected; observed with \"OC + Autocasco (AC)\" checked, \"Assistance\" checked and \"Kod rabatowy\" filled with \"WIOSNA10\".\n\nStates of this step seen by the probing map runs: (a) validation states with the browser's own messages: with no \"Zakres\" option chosen, \"Please select one of these options.\" on \"Tylko OC\" and \"OC + Autocasco (AC)\"; a \"Kod rabatowy\" not matching the pattern gives \"Please match the requested format.\". (b) Leaving \"Assistance\" and \"Kod rabatowy\" empty is accepted and leads to the result. (c) Error branches, not steps: HTTP 500 shows the bare \"Internal Server Error\" page; a blocked request or offline browser shows an empty page.",
+        "route_templates": [
+          "/kalkulator/opcje"
+        ],
+        "summary": "Third calculator step: coverage scope, vehicle value (AC only), Assistance and discount code, form \"Opcje\".",
+        "title": "Kalkulator OC/AC — opcje (calculator step 3, options)"
+      },
+      "evidence": [
+        {
+          "id": "01a148de-4330-7000-a2ca-987c0d5dc3c2",
+          "kind": "edge",
+          "run": "01a148dd-2f17-7000-ae2a-4e1aba488607"
+        },
+        {
+          "id": "01a148df-3ec1-7001-b1fb-fb229cf20267",
+          "kind": "edge",
+          "run": "01a148dd-2f17-7000-ae2a-4e1aba488607"
+        },
+        {
+          "id": "01a149a4-e0a8-7000-99ac-431a20fe8f2f",
+          "kind": "edge",
+          "run": "01a149a3-e5fc-7000-8106-d2ad95b84f4b"
+        },
+        {
+          "id": "01a149a4-efab-7001-945c-42b8864bf510",
+          "kind": "edge",
+          "run": "01a149a3-e5fc-7000-8106-d2ad95b84f4b"
+        },
+        {
+          "id": "01a149a4-f9db-7000-92be-ec8d351f3941",
+          "kind": "edge",
+          "run": "01a149a3-e5fc-7000-8106-d2ad95b84f4b"
+        },
+        {
+          "id": "01a14a99-6411-7000-af68-5235022fdc28",
+          "kind": "edge",
+          "run": "01a14a98-bbba-7000-8a57-9bdeb4de5186"
+        },
+        {
+          "id": "01a148de-432f-7000-bd50-88d0b85cf0a0",
+          "kind": "form",
+          "run": "01a148dd-2f17-7000-ae2a-4e1aba488607"
+        },
+        {
+          "id": "01a148df-3ec0-7000-9e50-b5e9931ec626",
+          "kind": "form",
+          "run": "01a148dd-2f17-7000-ae2a-4e1aba488607"
+        },
+        {
+          "id": "01a14b1a-c6f5-700e-898e-49f857208081",
+          "kind": "form",
+          "run": "01a14b1a-1be6-7000-922f-1c6f3ac81d4e"
+        },
+        {
+          "id": "01a14b1a-c6f5-7012-8efa-0a653b101159",
+          "kind": "network_call",
+          "run": "01a14b1a-1be6-7000-922f-1c6f3ac81d4e"
+        },
+        {
+          "id": "01a148de-4332-7000-b4fc-cad1af8b1a31",
+          "kind": "page_visit",
+          "run": "01a148dd-2f17-7000-ae2a-4e1aba488607"
+        },
+        {
+          "id": "01a14b1a-d55f-7002-85d0-89d1d0e2370e",
+          "kind": "page_visit",
+          "run": "01a14b1a-1be6-7000-922f-1c6f3ac81d4e"
+        },
+        {
+          "id": "01a14b1a-c6f5-702d-9f0e-df0226051ade",
+          "kind": "process_step",
+          "run": "01a14b1a-1be6-7000-922f-1c6f3ac81d4e"
+        },
+        {
+          "id": "01a148de-42ff-7001-b4db-971cb7465b8b",
+          "kind": "screen_region",
+          "run": "01a148dd-2f17-7000-ae2a-4e1aba488607"
+        },
+        {
+          "id": "01a148df-3e8a-7000-8e16-b6b4d629a645",
+          "kind": "screen_region",
+          "run": "01a14a98-bbba-7000-8a57-9bdeb4de5186"
+        },
+        {
+          "id": "01a14b1a-c6f5-7007-a287-efe4c22558a6",
+          "kind": "screen_region",
+          "run": "01a14b1a-1be6-7000-922f-1c6f3ac81d4e"
+        },
+        {
+          "id": "01a148de-42ff-7001-b4db-971cb7465b8b",
+          "kind": "state",
+          "run": "01a148dd-2f17-7000-ae2a-4e1aba488607"
+        },
+        {
+          "id": "01a148df-3e8a-7000-8e16-b6b4d629a645",
+          "kind": "state",
+          "run": "01a14a98-bbba-7000-8a57-9bdeb4de5186"
+        },
+        {
+          "id": "01a14983-43d5-7000-bece-1301a5f0b505",
+          "kind": "state",
+          "run": "01a149a3-e5fc-7000-8106-d2ad95b84f4b"
+        },
+        {
+          "id": "01a14983-4b92-7000-9e50-95af251651b7",
+          "kind": "state",
+          "run": "01a149a3-e5fc-7000-8106-d2ad95b84f4b"
+        },
+        {
+          "id": "01a14b1a-c6f5-7007-a287-efe4c22558a6",
+          "kind": "state",
+          "run": "01a14b1a-1be6-7000-922f-1c6f3ac81d4e"
+        },
+        {
+          "id": "01a14b1a-c714-7000-92aa-dfc1ebaf5a2d",
+          "kind": "state",
+          "run": "01a14b1a-1be6-7000-922f-1c6f3ac81d4e"
+        }
+      ],
+      "key": "SCR-004",
+      "kind": "screen",
+      "status": "draft",
+      "title": "Kalkulator OC/AC — opcje (calculator step 3, options)"
+    },
+    {
+      "confidence": "observed",
+      "content": {
+        "elements": [
+          {
+            "label_verbatim": "Twoja składka",
+            "role": "heading"
+          },
+          {
+            "label_verbatim": "Kroki kalkulatora",
+            "role": "navigation"
+          },
+          {
+            "label_verbatim": "Wyliczenie składki rocznej",
+            "role": "table"
+          },
+          {
+            "label_verbatim": "Składka bazowa",
+            "role": "rowheader"
+          },
+          {
+            "label_verbatim": "Współczynnik wieku",
+            "role": "rowheader"
+          },
+          {
+            "label_verbatim": "Współczynnik silnika",
+            "role": "rowheader"
+          },
+          {
+            "label_verbatim": "Zniżka za bezszkodową jazdę",
+            "role": "rowheader"
+          },
+          {
+            "label_verbatim": "Kod rabatowy",
+            "role": "rowheader"
+          },
+          {
+            "label_verbatim": "Assistance",
+            "role": "rowheader"
+          },
+          {
+            "label_verbatim": "Składka łączna",
+            "role": "rowheader"
+          },
+          {
+            "label_verbatim": "Zakup polisy",
+            "role": "form"
+          },
+          {
+            "label_verbatim": "Kup polisę",
+            "role": "button"
+          },
+          {
+            "label_verbatim": "Zmień opcje",
+            "role": "link"
+          }
+        ],
+        "entry_points": [
+          "Button \"Oblicz składkę\" on step 3: GET /kalkulator/opcje?krok=3&… (13 fields), then HTTP 303 redirect to /kalkulator/wynik?marka=…&model=…&rok_produkcji=…&pojemnosc=…&kod_pocztowy=…&data_urodzenia=…&rok_prawa_jazdy=…&lata_bezszkodowe=…&zgoda_dane=tak&zgoda_owu=tak&zakres=…&assistance=…&kod_rabatowy=…",
+          "Same button with \"OC + Autocasco (AC)\" and a vehicle value: GET /kalkulator/opcje?krok=3&…&zakres=oc_ac&wartosc_pojazdu=…&kod_rabatowy=, then HTTP 303 redirect to /kalkulator/wynik?…&zakres=oc_ac&wartosc_pojazdu=… (empty kod_rabatowy and unticked assistance are dropped from the redirect URL)"
+        ],
+        "kind": "screen",
+        "purpose": "Step 4 \"Wynik\" of the calculator (heading \"Twoja składka\"). Shows a status message about the discount code when one was given (observed: \"Kod rabatowy WIOSNA10 przyjęty.\"; no message without a code), the table \"Wyliczenie składki rocznej\" with the rows \"Składka bazowa\", \"Współczynnik wieku\", \"Współczynnik silnika\", \"Zniżka za bezszkodową jazdę\", \"Kod rabatowy\", \"Assistance\" and \"Składka łączna\", the form \"Zakup polisy\" with the button \"Kup polisę\" (POST /kalkulator/zakup) and the link \"Zmień opcje\" back to step 3 carrying all entered data. Observed results (same vehicle and driver): \"OC + Autocasco (AC)\" with Assistance and code WIOSNA10 (no vehicle value sent): 2 000,00 zł; 1,00; 1,00; −200,00 zł; −180,00 zł; 99,00 zł; total 1 719,00 zł. \"Tylko OC\" with code WIOSNA10, no Assistance: 800,00 zł; 1,00; 1,00; −80,00 zł; −72,00 zł; \"brak\"; total 648,00 zł. \"Tylko OC\" without code and Assistance: 800,00 zł; 1,00; 1,00; −80,00 zł; \"brak\"; \"brak\"; total 720,00 zł. A row that does not apply shows \"brak\". The OC + AC trace reached this page with \"OC + Autocasco (AC)\" and \"Wartość pojazdu (zł)\" 50000 (a table of 7 rows); the amounts it showed were not kept apart from an earlier recording, so the effect of the vehicle value on the table is not observed.",
+        "route_templates": [
+          "/kalkulator/wynik"
+        ],
+        "summary": "Result step: premium breakdown table, purchase button and link back to options.",
+        "title": "Twoja składka (calculator step 4, premium result)"
+      },
+      "evidence": [
+        {
+          "id": "01a14b1a-d556-7000-9335-a8311f9a068c",
+          "kind": "decision",
+          "run": "01a14b1a-1be6-7000-922f-1c6f3ac81d4e"
+        },
+        {
+          "id": "01a148de-7acb-7000-92cf-f761139dcd76",
+          "kind": "edge",
+          "run": "01a148dd-2f17-7000-ae2a-4e1aba488607"
+        },
+        {
+          "id": "01a14a98-c936-7000-830d-3f63b48c77b1",
+          "kind": "edge",
+          "run": "01a14a98-bbba-7000-8a57-9bdeb4de5186"
+        },
+        {
+          "id": "01a148de-7acd-7000-9a04-fe9412510423",
+          "kind": "page_visit",
+          "run": "01a148dd-2f17-7000-ae2a-4e1aba488607"
+        },
+        {
+          "id": "01a14b1a-d55f-7002-85d0-89d1d0e2370e",
+          "kind": "page_visit",
+          "run": "01a14b1a-1be6-7000-922f-1c6f3ac81d4e"
+        },
+        {
+          "id": "01a14b1a-d566-7001-b957-9ec609c04f33",
+          "kind": "process_step",
+          "run": "01a14b1a-1be6-7000-922f-1c6f3ac81d4e"
+        },
+        {
+          "id": "01a148de-7a83-7000-ad75-869b5fe717c8",
+          "kind": "screen_region",
+          "run": "01a148dd-2f17-7000-ae2a-4e1aba488607"
+        },
+        {
+          "id": "01a148de-7a83-7000-ad75-869b5fe717c8",
+          "kind": "screen_region",
+          "run": "01a148dd-2f17-7000-ae2a-4e1aba488607"
+        },
+        {
+          "id": "01a148de-7a83-7000-ad75-869b5fe717c8",
+          "kind": "screen_region",
+          "run": "01a148dd-2f17-7000-ae2a-4e1aba488607"
+        },
+        {
+          "id": "01a14983-36e7-7000-aee7-a7f32d4fe555",
+          "kind": "screen_region",
+          "run": "01a14a98-bbba-7000-8a57-9bdeb4de5186"
+        },
+        {
+          "id": "01a148de-7a83-7000-ad75-869b5fe717c8",
+          "kind": "state",
+          "run": "01a148dd-2f17-7000-ae2a-4e1aba488607"
+        },
+        {
+          "id": "01a14983-36e7-7000-aee7-a7f32d4fe555",
+          "kind": "state",
+          "run": "01a14a98-bbba-7000-8a57-9bdeb4de5186"
+        },
+        {
+          "id": "01a14983-5108-7008-b824-064d7b19b04b",
+          "kind": "state",
+          "run": "01a149a3-e5fc-7000-8106-d2ad95b84f4b"
+        }
+      ],
+      "key": "SCR-005",
+      "kind": "screen",
+      "status": "draft",
+      "title": "Twoja składka (calculator step 4, premium result)"
+    },
+    {
+      "confidence": "observed",
+      "content": {
+        "elements": [
+          {
+            "label_verbatim": "Wniosek przyjęty",
+            "role": "heading"
+          },
+          {
+            "label_verbatim": "Wróć na stronę główną",
+            "role": "link"
+          }
+        ],
+        "entry_points": [
+          "Button \"Kup polisę\" on the result page: POST /kalkulator/zakup (application/x-www-form-urlencoded, 13 fields), answered with status 200 and this page, no redirect"
+        ],
+        "kind": "screen",
+        "purpose": "Confirmation page (heading \"Wniosek przyjęty\") shown in response to the POST of \"Kup polisę\". A status message reads \"Dziękujemy. Numer wniosku:\" followed by the application number in bold (observed: RP/2026/0001), then \"Składka do zapłaty: 1 719,00 zł. Konsultant skontaktuje się z Tobą w sprawie płatności.\" and the link \"Wróć na stronę główną\" to /. The steps navigation \"Kroki kalkulatora\" is not shown here. The crawler did not try the actions of this page (depth limit).",
+        "route_templates": [
+          "/kalkulator/zakup"
+        ],
+        "summary": "Confirmation shown after \"Kup polisę\": application number and premium to pay.",
+        "title": "Wniosek przyjęty (purchase confirmation)"
+      },
+      "evidence": [
+        {
+          "id": "01a148de-8703-7000-bdd8-ffa156527d9a",
+          "kind": "edge",
+          "run": "01a148dd-2f17-7000-ae2a-4e1aba488607"
+        },
+        {
+          "id": "01a148de-8704-7000-97f3-46a7f60b274c",
+          "kind": "network_call",
+          "run": "01a148dd-2f17-7000-ae2a-4e1aba488607"
+        },
+        {
+          "id": "01a148de-8705-7000-8706-a34ecbc9db0c",
+          "kind": "page_visit",
+          "run": "01a148dd-2f17-7000-ae2a-4e1aba488607"
+        },
+        {
+          "id": "01a148de-86d8-7000-9309-4349aaae8045",
+          "kind": "screen_region",
+          "run": "01a148dd-2f17-7000-ae2a-4e1aba488607"
+        },
+        {
+          "id": "01a148de-86d8-7000-9309-4349aaae8045",
+          "kind": "state",
+          "run": "01a148dd-2f17-7000-ae2a-4e1aba488607"
+        }
+      ],
+      "key": "SCR-006",
+      "kind": "screen",
+      "status": "draft",
+      "title": "Wniosek przyjęty (purchase confirmation)"
+    },
+    {
+      "confidence": "needs_confirmation",
+      "content": {
+        "acceptance_criteria": [
+          {
+            "given": [
+              "a guest has a calculated premium on \"Twoja składka\""
+            ],
+            "then": [
+              "the page \"Wniosek przyjęty\" shows a \"Numer wniosku\" and \"Składka do zapłaty\"",
+              "a consultant contacts the customer about payment (not observable)"
+            ],
+            "when": [
+              "the guest presses \"Kup polisę\""
+            ]
+          }
+        ],
+        "kind": "requirement",
+        "priority": "unset",
+        "rationale": "Stated on the confirmation page; the process behind it is not visible.",
+        "rationale_confidence": "needs_confirmation",
+        "statement": "After \"Kup polisę\" the system shall register the application under a \"Numer wniosku\" and a consultant shall contact the customer about payment, as the confirmation \"Konsultant skontaktuje się z Tobą w sprawie płatności.\" states. Registration, contact and payment happen outside the portal and were not observed.",
+        "title": "Back-office handling of an accepted application"
+      },
+      "evidence": [
+        {
+          "id": "01a148ff-80cc-7000-b129-a201ec0e6903",
+          "kind": "doc_record",
+          "run": null
+        },
+        {
+          "id": "01a148de-86d8-7000-9309-4349aaae8045",
+          "kind": "state",
+          "run": "01a148dd-2f17-7000-ae2a-4e1aba488607"
+        }
+      ],
+      "key": "REQ-001",
+      "kind": "requirement",
+      "status": "draft",
+      "title": "Back-office handling of an accepted application"
+    },
+    {
+      "confidence": "observed",
+      "content": {
+        "acceptance_criteria": [
+          {
+            "given": [
+              "the guest is on \"Kalkulator OC/AC — dane pojazdu\" with valid data"
+            ],
+            "then": [
+              "the browser requests /kalkulator/pojazd?krok=1 with the 5 vehicle fields",
+              "the server redirects with 303 to /kalkulator/kierowca with the 5 fields in the query"
+            ],
+            "when": [
+              "the guest presses \"Dalej\""
+            ]
+          },
+          {
+            "given": [
+              "the guest is on \"Kalkulator OC/AC — opcje\""
+            ],
+            "then": [
+              "the server redirects with 303 to /kalkulator/wynik with all 13 fields in the query"
+            ],
+            "when": [
+              "the guest presses \"Oblicz składkę\""
+            ]
+          }
+        ],
+        "kind": "requirement",
+        "priority": "unset",
+        "rationale_confidence": "needs_confirmation",
+        "statement": "Each calculator step submits its form by GET to its own route with a step marker krok (1 on /kalkulator/pojazd, 2 on /kalkulator/kierowca, 3 on /kalkulator/opcje) plus all data entered so far, and the server answers with an HTTP 303 redirect to the next step's route (/kalkulator/kierowca, /kalkulator/opcje, /kalkulator/wynik) carrying the accumulated fields without krok: 5 fields after step 1 (marka, model, rok_produkcji, pojemnosc, kod_pocztowy), 10 after step 2 (plus data_urodzenia, rok_prawa_jazdy, lata_bezszkodowe, zgoda_dane, zgoda_owu), 13 after step 3 (plus zakres, assistance, kod_rabatowy). The link \"Zmień opcje\" on the result page carries the same 13 fields back to /kalkulator/opcje.",
+        "title": "Calculator steps pass all entered data in the URL"
+      },
+      "evidence": [
+        {
+          "id": "01a148df-3ec1-7001-b1fb-fb229cf20267",
+          "kind": "edge",
+          "run": "01a148dd-2f17-7000-ae2a-4e1aba488607"
+        },
+        {
+          "id": "01a148de-070a-7000-8271-bf32b816eb20",
+          "kind": "page_visit",
+          "run": "01a148dd-2f17-7000-ae2a-4e1aba488607"
+        },
+        {
+          "id": "01a148de-4332-7000-b4fc-cad1af8b1a31",
+          "kind": "page_visit",
+          "run": "01a148dd-2f17-7000-ae2a-4e1aba488607"
+        },
+        {
+          "id": "01a148de-7acd-7000-9a04-fe9412510423",
+          "kind": "page_visit",
+          "run": "01a148dd-2f17-7000-ae2a-4e1aba488607"
+        }
+      ],
+      "key": "REQ-002",
+      "kind": "requirement",
+      "status": "draft",
+      "title": "Calculator steps pass all entered data in the URL"
+    },
+    {
+      "confidence": "observed",
+      "content": {
+        "acceptance_criteria": [
+          {
+            "given": [
+              "\"Twoja składka\" shows \"Składka łączna\" 1 719,00 zł"
+            ],
+            "then": [
+              "\"Wniosek przyjęty\" is shown with a \"Numer wniosku\" and \"Składka do zapłaty: 1 719,00 zł.\""
+            ],
+            "when": [
+              "the guest presses \"Kup polisę\""
+            ]
+          }
+        ],
+        "kind": "requirement",
+        "priority": "unset",
+        "statement": "The button \"Kup polisę\" in the form \"Zakup polisy\" shall POST to /kalkulator/zakup (application/x-www-form-urlencoded) the 13 fields marka, model, rok_produkcji, pojemnosc, kod_pocztowy, data_urodzenia, rok_prawa_jazdy, lata_bezszkodowe, zgoda_dane, zgoda_owu, zakres, assistance, kod_rabatowy, and the response (status 200, no redirect) shall be the page \"Wniosek przyjęty\" with \"Dziękujemy. Numer wniosku:\" and the number, \"Składka do zapłaty:\" with the same amount as \"Składka łączna\", and the link \"Wróć na stronę główną\".",
+        "title": "\"Kup polisę\" submits the whole quote and confirms the application"
+      },
+      "evidence": [
+        {
+          "id": "01a148de-8703-7000-bdd8-ffa156527d9a",
+          "kind": "edge",
+          "run": "01a148dd-2f17-7000-ae2a-4e1aba488607"
+        },
+        {
+          "id": "01a148de-8704-7000-97f3-46a7f60b274c",
+          "kind": "network_call",
+          "run": "01a148dd-2f17-7000-ae2a-4e1aba488607"
+        },
+        {
+          "id": "01a148de-7a83-7000-ad75-869b5fe717c8",
+          "kind": "screen_region",
+          "run": "01a148dd-2f17-7000-ae2a-4e1aba488607"
+        },
+        {
+          "id": "01a148de-86d8-7000-9309-4349aaae8045",
+          "kind": "state",
+          "run": "01a148dd-2f17-7000-ae2a-4e1aba488607"
+        }
+      ],
+      "key": "REQ-003",
+      "kind": "requirement",
+      "status": "draft",
+      "title": "\"Kup polisę\" submits the whole quote and confirms the application"
+    },
+    {
+      "confidence": "observed",
+      "content": {
+        "acceptance_criteria": [
+          {
+            "given": [
+              "a result calculated with \"OC + Autocasco (AC)\", \"Assistance\" ticked and \"Kod rabatowy\" WIOSNA10"
+            ],
+            "then": [
+              "\"Kalkulator OC/AC — opcje\" opens with \"OC + Autocasco (AC)\" checked, \"Assistance\" checked and \"Kod rabatowy\" WIOSNA10"
+            ],
+            "when": [
+              "the guest selects \"Zmień opcje\""
+            ]
+          }
+        ],
+        "ears": {
+          "pattern": "event",
+          "text": "When the guest selects \"Zmień opcje\", the calculator shall show \"Kalkulator OC/AC — opcje\" with the previously chosen \"Zakres\", \"Assistance\" and \"Kod rabatowy\" preselected."
+        },
+        "kind": "requirement",
+        "priority": "unset",
+        "rationale": "Lets the guest change only the options without re-entering vehicle and driver data.",
+        "rationale_confidence": "inferred",
+        "statement": "The link \"Zmień opcje\" on \"Twoja składka\" shall open \"Kalkulator OC/AC — opcje\" with all data of steps 1 and 2 and the chosen \"Zakres\", \"Assistance\" and \"Kod rabatowy\" in the URL, and the form shall show those choices preselected.",
+        "title": "\"Zmień opcje\" reopens the options with the previous choices"
+      },
+      "evidence": [
+        {
+          "id": "01a148df-3ec1-7001-b1fb-fb229cf20267",
+          "kind": "edge",
+          "run": "01a148dd-2f17-7000-ae2a-4e1aba488607"
+        },
+        {
+          "id": "01a148df-3e8a-7000-8e16-b6b4d629a645",
+          "kind": "screen_region",
+          "run": "01a14a98-bbba-7000-8a57-9bdeb4de5186"
+        },
+        {
+          "id": "01a148df-3e8a-7000-8e16-b6b4d629a645",
+          "kind": "state",
+          "run": "01a14a98-bbba-7000-8a57-9bdeb4de5186"
+        }
+      ],
+      "key": "REQ-004",
+      "kind": "requirement",
+      "status": "draft",
+      "title": "\"Zmień opcje\" reopens the options with the previous choices"
+    },
+    {
+      "confidence": "observed",
+      "content": {
+        "ears": {
+          "pattern": "unwanted",
+          "text": "If \"Dalej\" is pressed while \"Marka\", \"Model\", \"Rok produkcji\", \"Pojemność silnika (cm³)\" or \"Kod pocztowy\" is empty, then the calculator shall stay on \"Dane pojazdu\" and show \"Please fill out this field.\" (\"Please select an item in the list.\" for \"Marka\") at that field."
+        },
+        "kind": "business_rule",
+        "rule_type": "constraint",
+        "statement": "In the form \"Dane pojazdu\" the fields \"Marka\", \"Model\", \"Rok produkcji\", \"Pojemność silnika (cm³)\" and \"Kod pocztowy\" are all required; \"Marka\" must be changed from \"— wybierz —\" to one of \"Toyota\", \"Skoda\", \"Volkswagen\", \"Fiat\", \"Inna\". The check is the browser's own field constraint: pressing \"Dalej\" with them empty keeps the guest on the step with \"Please select an item in the list.\" on \"Marka\" and \"Please fill out this field.\" on the others (observed by the probes, all empty and one at a time). A non-numeric value in \"Rok produkcji\" or \"Pojemność silnika (cm³)\" counts as empty.",
+        "title": "All vehicle fields are required"
+      },
+      "evidence": [
+        {
+          "id": "01a149a5-47d3-7000-985f-3bc079680db1",
+          "kind": "edge",
+          "run": "01a149a3-e5fc-7000-8106-d2ad95b84f4b"
+        },
+        {
+          "id": "01a148dd-7247-7000-9b9e-1869a6bb238b",
+          "kind": "form",
+          "run": "01a148dd-2f17-7000-ae2a-4e1aba488607"
+        },
+        {
+          "id": "01a148dd-7213-7000-bc0f-c1bef15714b5",
+          "kind": "screen_region",
+          "run": "01a148dd-2f17-7000-ae2a-4e1aba488607"
+        },
+        {
+          "id": "01a148dd-7213-7000-bc0f-c1bef15714b5",
+          "kind": "screen_region",
+          "run": "01a148dd-2f17-7000-ae2a-4e1aba488607"
+        },
+        {
+          "id": "01a14983-b4e4-7000-963a-3b18bd93ba2e",
+          "kind": "state",
+          "run": "01a149a3-e5fc-7000-8106-d2ad95b84f4b"
+        },
+        {
+          "id": "01a14983-e6d7-7000-88f1-7d1b3c0c78d6",
+          "kind": "state",
+          "run": "01a149a3-e5fc-7000-8106-d2ad95b84f4b"
+        },
+        {
+          "id": "01a14983-e9c4-7000-8c8a-bcb07c4013d5",
+          "kind": "state",
+          "run": "01a149a3-e5fc-7000-8106-d2ad95b84f4b"
+        }
+      ],
+      "key": "BR-001",
+      "kind": "business_rule",
+      "status": "draft",
+      "title": "All vehicle fields are required"
+    },
+    {
+      "confidence": "observed",
+      "content": {
+        "kind": "business_rule",
+        "rule_type": "constraint",
+        "statement": "The \"Model\" field accepts at most 40 characters (field maxlength 40).",
+        "title": "\"Model\" is at most 40 characters"
+      },
+      "evidence": [
+        {
+          "id": "01a148dd-7247-7000-9b9e-1869a6bb238b",
+          "kind": "form",
+          "run": "01a148dd-2f17-7000-ae2a-4e1aba488607"
+        },
+        {
+          "id": "01a148dd-7213-7000-bc0f-c1bef15714b5",
+          "kind": "screen_region",
+          "run": "01a148dd-2f17-7000-ae2a-4e1aba488607"
+        }
+      ],
+      "key": "BR-002",
+      "kind": "business_rule",
+      "status": "draft",
+      "title": "\"Model\" is at most 40 characters"
+    },
+    {
+      "confidence": "observed",
+      "content": {
+        "ears": {
+          "pattern": "unwanted",
+          "text": "If \"Rok produkcji\" is below 1990 or above 2026 when \"Dalej\" is pressed, then the calculator shall stay on \"Dane pojazdu\" and show the field's range message (\"Value must be greater than or equal to 1990.\")."
+        },
+        "kind": "business_rule",
+        "rule_type": "constraint",
+        "statement": "The \"Rok produkcji\" field accepts a number from 1990 to 2026 (field min 1990, max 2026). A value below 1990 keeps the guest on \"Dane pojazdu\" with the browser's message \"Value must be greater than or equal to 1990.\" (observed). The upper limit was not probed. Whether 2026 is a fixed value or the current year is not known (OQ-002).",
+        "title": "\"Rok produkcji\" between 1990 and 2026"
+      },
+      "evidence": [
+        {
+          "id": "01a149a5-5ec8-7000-8809-fd3cd0fbc94b",
+          "kind": "edge",
+          "run": "01a149a3-e5fc-7000-8106-d2ad95b84f4b"
+        },
+        {
+          "id": "01a148dd-7247-7000-9b9e-1869a6bb238b",
+          "kind": "form",
+          "run": "01a148dd-2f17-7000-ae2a-4e1aba488607"
+        },
+        {
+          "id": "01a148dd-7213-7000-bc0f-c1bef15714b5",
+          "kind": "screen_region",
+          "run": "01a148dd-2f17-7000-ae2a-4e1aba488607"
+        },
+        {
+          "id": "01a14983-b4e4-7000-963a-3b18bd93ba2e",
+          "kind": "state",
+          "run": "01a149a3-e5fc-7000-8106-d2ad95b84f4b"
+        }
+      ],
+      "key": "BR-003",
+      "kind": "business_rule",
+      "status": "draft",
+      "title": "\"Rok produkcji\" between 1990 and 2026"
+    },
+    {
+      "confidence": "observed",
+      "content": {
+        "kind": "business_rule",
+        "rule_type": "constraint",
+        "statement": "The \"Pojemność silnika (cm³)\" field accepts a number from 50 to 8000 (field min 50, max 8000).",
+        "title": "\"Pojemność silnika (cm³)\" between 50 and 8000"
+      },
+      "evidence": [
+        {
+          "id": "01a148dd-7247-7000-9b9e-1869a6bb238b",
+          "kind": "form",
+          "run": "01a148dd-2f17-7000-ae2a-4e1aba488607"
+        },
+        {
+          "id": "01a148dd-7213-7000-bc0f-c1bef15714b5",
+          "kind": "screen_region",
+          "run": "01a148dd-2f17-7000-ae2a-4e1aba488607"
+        }
+      ],
+      "key": "BR-004",
+      "kind": "business_rule",
+      "status": "draft",
+      "title": "\"Pojemność silnika (cm³)\" between 50 and 8000"
+    },
+    {
+      "confidence": "observed",
+      "content": {
+        "kind": "business_rule",
+        "rule_type": "constraint",
+        "statement": "The \"Kod pocztowy\" field accepts only two digits, a hyphen and three digits (pattern [0-9]{2}-[0-9]{3}); the hint under the field reads \"Format NN-NNN, np. 00-950\".",
+        "title": "\"Kod pocztowy\" format NN-NNN"
+      },
+      "evidence": [
+        {
+          "id": "01a148dd-7247-7000-9b9e-1869a6bb238b",
+          "kind": "form",
+          "run": "01a148dd-2f17-7000-ae2a-4e1aba488607"
+        },
+        {
+          "id": "01a148dd-7213-7000-bc0f-c1bef15714b5",
+          "kind": "screen_region",
+          "run": "01a148dd-2f17-7000-ae2a-4e1aba488607"
+        }
+      ],
+      "key": "BR-005",
+      "kind": "business_rule",
+      "status": "draft",
+      "title": "\"Kod pocztowy\" format NN-NNN"
+    },
+    {
+      "confidence": "observed",
+      "content": {
+        "kind": "business_rule",
+        "rule_type": "constraint",
+        "statement": "The \"Data urodzenia\" field is a required date limited to 1950-01-16 .. 2008-01-15 (field min and max); the hint under the field reads \"Kierowca musi mieć od 18 do 75 lat.\". The bounds match an age of 18 to 75 at a reference date of 2026-01-15 (inferred, see OQ-002).",
+        "title": "Driver must be 18 to 75 years old (\"Data urodzenia\")"
+      },
+      "evidence": [
+        {
+          "id": "01a148de-0707-7000-bfe9-5c15c8973895",
+          "kind": "form",
+          "run": "01a148dd-2f17-7000-ae2a-4e1aba488607"
+        },
+        {
+          "id": "01a148de-06d6-7001-9d80-bbe01feafe74",
+          "kind": "screen_region",
+          "run": "01a148dd-2f17-7000-ae2a-4e1aba488607"
+        }
+      ],
+      "key": "BR-006",
+      "kind": "business_rule",
+      "status": "draft",
+      "title": "Driver must be 18 to 75 years old (\"Data urodzenia\")"
+    },
+    {
+      "confidence": "observed",
+      "content": {
+        "ears": {
+          "pattern": "unwanted",
+          "text": "If \"Rok uzyskania prawa jazdy\" is empty, below 1968 or above 2026 when \"Dalej\" is pressed, then the calculator shall stay on \"Dane kierowcy\" and show the field's message."
+        },
+        "kind": "business_rule",
+        "rule_type": "constraint",
+        "statement": "The \"Rok uzyskania prawa jazdy\" field is required and accepts a number from 1968 to 2026 (field min 1968, max 2026). Below 1968 the browser shows \"Value must be greater than or equal to 1968.\", above 2026 \"Value must be less than or equal to 2026.\", empty or non-numeric \"Please fill out this field.\"; the guest stays on \"Dane kierowcy\" (all observed). No check against \"Data urodzenia\" (e.g. licence before age 18) was observed.",
+        "title": "\"Rok uzyskania prawa jazdy\" between 1968 and 2026"
+      },
+      "evidence": [
+        {
+          "id": "01a149a4-7fbc-7000-b314-a634d1547936",
+          "kind": "edge",
+          "run": "01a149a3-e5fc-7000-8106-d2ad95b84f4b"
+        },
+        {
+          "id": "01a149a4-c996-7000-97a8-63e3bf699609",
+          "kind": "edge",
+          "run": "01a149a3-e5fc-7000-8106-d2ad95b84f4b"
+        },
+        {
+          "id": "01a148de-0707-7000-bfe9-5c15c8973895",
+          "kind": "form",
+          "run": "01a148dd-2f17-7000-ae2a-4e1aba488607"
+        },
+        {
+          "id": "01a148de-06d6-7001-9d80-bbe01feafe74",
+          "kind": "screen_region",
+          "run": "01a148dd-2f17-7000-ae2a-4e1aba488607"
+        },
+        {
+          "id": "01a14949-bb23-7000-868e-294361b8d547",
+          "kind": "state",
+          "run": "01a149a3-e5fc-7000-8106-d2ad95b84f4b"
+        },
+        {
+          "id": "01a14983-1133-7000-b602-fd3089fa171c",
+          "kind": "state",
+          "run": "01a149a3-e5fc-7000-8106-d2ad95b84f4b"
+        }
+      ],
+      "key": "BR-007",
+      "kind": "business_rule",
+      "status": "draft",
+      "title": "\"Rok uzyskania prawa jazdy\" between 1968 and 2026"
+    },
+    {
+      "confidence": "observed",
+      "content": {
+        "kind": "business_rule",
+        "rule_type": "constraint",
+        "statement": "The \"Lata bezszkodowej jazdy\" field is required and accepts a number from 0 to 60 (field min 0, max 60).",
+        "title": "\"Lata bezszkodowej jazdy\" between 0 and 60"
+      },
+      "evidence": [
+        {
+          "id": "01a148de-0707-7000-bfe9-5c15c8973895",
+          "kind": "form",
+          "run": "01a148dd-2f17-7000-ae2a-4e1aba488607"
+        },
+        {
+          "id": "01a148de-06d6-7001-9d80-bbe01feafe74",
+          "kind": "screen_region",
+          "run": "01a148dd-2f17-7000-ae2a-4e1aba488607"
+        }
+      ],
+      "key": "BR-008",
+      "kind": "business_rule",
+      "status": "draft",
+      "title": "\"Lata bezszkodowej jazdy\" between 0 and 60"
+    },
+    {
+      "confidence": "observed",
+      "content": {
+        "decision_table": {
+          "actions": [
+            "\"Dalej\" enabled"
+          ],
+          "conditions": [
+            "\"Zgoda na przetwarzanie danych osobowych\" ticked",
+            "\"Oświadczam, że zapoznałem się z OWU\" ticked"
+          ],
+          "rows": [
+            [
+              "no",
+              "no",
+              "no"
+            ],
+            [
+              "yes",
+              "no",
+              "no"
+            ],
+            [
+              "no",
+              "yes",
+              "no"
+            ],
+            [
+              "yes",
+              "yes",
+              "yes"
+            ]
+          ]
+        },
+        "kind": "business_rule",
+        "rule_type": "action_enabler",
+        "statement": "On \"Kalkulator OC/AC — dane kierowcy\" the button \"Dalej\" is disabled until both checkboxes \"Zgoda na przetwarzanie danych osobowych\" and \"Oświadczam, że zapoznałem się z OWU\" are ticked; the page says \"Przycisk Dalej jest aktywny po zaznaczeniu obu zgód.\". Both checkboxes are also required fields (native message \"Please check this box if you want to proceed.\"). Ticked consents travel on as zgoda_dane=tak and zgoda_owu=tak.",
+        "title": "\"Dalej\" enabled only after both consents"
+      },
+      "evidence": [
+        {
+          "id": "01a148de-4330-7000-a2ca-987c0d5dc3c2",
+          "kind": "edge",
+          "run": "01a148dd-2f17-7000-ae2a-4e1aba488607"
+        },
+        {
+          "id": "01a148de-0707-7000-bfe9-5c15c8973895",
+          "kind": "form",
+          "run": "01a148dd-2f17-7000-ae2a-4e1aba488607"
+        },
+        {
+          "id": "01a148de-4332-7000-b4fc-cad1af8b1a31",
+          "kind": "page_visit",
+          "run": "01a148dd-2f17-7000-ae2a-4e1aba488607"
+        },
+        {
+          "id": "01a148de-06d6-7001-9d80-bbe01feafe74",
+          "kind": "screen_region",
+          "run": "01a148dd-2f17-7000-ae2a-4e1aba488607"
+        },
+        {
+          "id": "01a148de-06d6-7001-9d80-bbe01feafe74",
+          "kind": "screen_region",
+          "run": "01a148dd-2f17-7000-ae2a-4e1aba488607"
+        },
+        {
+          "id": "01a148de-06d6-7001-9d80-bbe01feafe74",
+          "kind": "screen_region",
+          "run": "01a148dd-2f17-7000-ae2a-4e1aba488607"
+        },
+        {
+          "id": "01a148de-06d6-7001-9d80-bbe01feafe74",
+          "kind": "state",
+          "run": "01a148dd-2f17-7000-ae2a-4e1aba488607"
+        }
+      ],
+      "key": "BR-009",
+      "kind": "business_rule",
+      "status": "draft",
+      "title": "\"Dalej\" enabled only after both consents"
+    },
+    {
+      "confidence": "observed",
+      "content": {
+        "ears": {
+          "pattern": "unwanted",
+          "text": "If no option of \"Zakres\" is selected when \"Oblicz składkę\" is pressed, then the calculator shall stay on \"Opcje\" and show \"Please select one of these options.\"."
+        },
+        "kind": "business_rule",
+        "rule_type": "constraint",
+        "statement": "In the form \"Opcje\" the group \"Zakres\" offers exactly one choice of \"Tylko OC\" or \"OC + Autocasco (AC)\"; it is required and \"Tylko OC\" is selected when the step opens. With no option chosen, \"Oblicz składkę\" keeps the guest on the step with the browser's \"Please select one of these options.\" (observed). The chosen value travels as zakres (observed oc for \"Tylko OC\" and oc_ac for \"OC + Autocasco (AC)\"). \"Assistance\" (assistance=tak when ticked) and \"Kod rabatowy\" are optional: leaving both empty is accepted and the result shows \"brak\" in their rows (observed).",
+        "title": "\"Zakres\" is required, default \"Tylko OC\""
+      },
+      "evidence": [
+        {
+          "id": "01a149a4-e0a8-7000-99ac-431a20fe8f2f",
+          "kind": "edge",
+          "run": "01a149a3-e5fc-7000-8106-d2ad95b84f4b"
+        },
+        {
+          "id": "01a149a4-f9db-7000-92be-ec8d351f3941",
+          "kind": "edge",
+          "run": "01a149a3-e5fc-7000-8106-d2ad95b84f4b"
+        },
+        {
+          "id": "01a148de-432f-7000-bd50-88d0b85cf0a0",
+          "kind": "form",
+          "run": "01a148dd-2f17-7000-ae2a-4e1aba488607"
+        },
+        {
+          "id": "01a148de-7acd-7000-9a04-fe9412510423",
+          "kind": "page_visit",
+          "run": "01a148dd-2f17-7000-ae2a-4e1aba488607"
+        },
+        {
+          "id": "01a148de-42ff-7001-b4db-971cb7465b8b",
+          "kind": "screen_region",
+          "run": "01a148dd-2f17-7000-ae2a-4e1aba488607"
+        },
+        {
+          "id": "01a148de-42ff-7001-b4db-971cb7465b8b",
+          "kind": "screen_region",
+          "run": "01a148dd-2f17-7000-ae2a-4e1aba488607"
+        },
+        {
+          "id": "01a14983-5108-7008-b824-064d7b19b04b",
+          "kind": "state",
+          "run": "01a149a3-e5fc-7000-8106-d2ad95b84f4b"
+        }
+      ],
+      "key": "BR-010",
+      "kind": "business_rule",
+      "status": "draft",
+      "title": "\"Zakres\" is required, default \"Tylko OC\""
+    },
+    {
+      "confidence": "inferred",
+      "content": {
+        "kind": "business_rule",
+        "rule_type": "constraint",
+        "statement": "\"OC + Autocasco (AC)\" is available only for vehicles younger than 15 years, as the note \"AC dostępne tylko dla pojazdów młodszych niż 15 lat.\" in the group \"Zakres\" states; the age presumably comes from \"Rok produkcji\". The note is observed; how the portal enforces it (option disabled, error message, or AC silently dropped) was not observed, because the only vehicle tried was from 2020 (OQ-003).",
+        "title": "AC only for vehicles younger than 15 years"
+      },
+      "evidence": [
+        {
+          "id": "01a148de-7acd-7000-9a04-fe9412510423",
+          "kind": "page_visit",
+          "run": "01a148dd-2f17-7000-ae2a-4e1aba488607"
+        },
+        {
+          "id": "01a148de-42ff-7001-b4db-971cb7465b8b",
+          "kind": "screen_region",
+          "run": "01a148dd-2f17-7000-ae2a-4e1aba488607"
+        },
+        {
+          "id": "01a148de-42ff-7001-b4db-971cb7465b8b",
+          "kind": "state",
+          "run": "01a148dd-2f17-7000-ae2a-4e1aba488607"
+        }
+      ],
+      "key": "BR-011",
+      "kind": "business_rule",
+      "status": "draft",
+      "title": "AC only for vehicles younger than 15 years"
+    },
+    {
+      "confidence": "observed",
+      "content": {
+        "ears": {
+          "pattern": "unwanted",
+          "text": "If \"Kod rabatowy\" is not empty and does not match capital letters followed by two digits when \"Oblicz składkę\" is pressed, then the calculator shall stay on \"Opcje\" and show \"Please match the requested format.\"."
+        },
+        "kind": "business_rule",
+        "rule_type": "constraint",
+        "statement": "The \"Kod rabatowy\" field is optional, accepts at most 12 characters and only one or more capital letters followed by two digits (pattern [A-Z]+[0-9]{2}); the hint reads \"Wielkie litery i dwie cyfry, np. WIOSNA10\". A value in another format keeps the guest on \"Opcje\" with the browser's \"Please match the requested format.\" (observed). When a valid code is used, the result page shows the status \"Kod rabatowy WIOSNA10 przyjęty.\" and a row \"Kod rabatowy\" with a negative amount (observed −180,00 zł for OC+AC with Assistance, −72,00 zł for \"Tylko OC\"). Which codes exist and what an unknown code does was not observed (OQ-004).",
+        "title": "\"Kod rabatowy\" format: capital letters and two digits"
+      },
+      "evidence": [
+        {
+          "id": "01a149a4-f255-7000-a0c3-08193bcb9424",
+          "kind": "edge",
+          "run": "01a149a3-e5fc-7000-8106-d2ad95b84f4b"
+        },
+        {
+          "id": "01a148de-432f-7000-bd50-88d0b85cf0a0",
+          "kind": "form",
+          "run": "01a148dd-2f17-7000-ae2a-4e1aba488607"
+        },
+        {
+          "id": "01a148de-42ff-7001-b4db-971cb7465b8b",
+          "kind": "screen_region",
+          "run": "01a148dd-2f17-7000-ae2a-4e1aba488607"
+        },
+        {
+          "id": "01a148de-7a83-7000-ad75-869b5fe717c8",
+          "kind": "state",
+          "run": "01a148dd-2f17-7000-ae2a-4e1aba488607"
+        },
+        {
+          "id": "01a14983-36e7-7000-aee7-a7f32d4fe555",
+          "kind": "state",
+          "run": "01a14a98-bbba-7000-8a57-9bdeb4de5186"
+        },
+        {
+          "id": "01a14983-4b92-7000-9e50-95af251651b7",
+          "kind": "state",
+          "run": "01a149a3-e5fc-7000-8106-d2ad95b84f4b"
+        }
+      ],
+      "key": "BR-012",
+      "kind": "business_rule",
+      "status": "draft",
+      "title": "\"Kod rabatowy\" format: capital letters and two digits"
+    },
+    {
+      "confidence": "inferred",
+      "content": {
+        "kind": "business_rule",
+        "rule_type": "computation",
+        "statement": "A discount \"Zniżka za bezszkodową jazdę\" applies when \"Lata bezszkodowej jazdy\" is 5 or more, as the hint \"Od 5 lat bezszkodowej jazdy przysługuje zniżka.\" states. Observed: with 6 years and \"Składka bazowa\" 2 000,00 zł the row shows −200,00 zł, i.e. 10% of the base (inferred). Whether the rate grows with more years is not known (OQ-005).",
+        "title": "No-claims discount from 5 years of \"Lata bezszkodowej jazdy\""
+      },
+      "evidence": [
+        {
+          "id": "01a148de-7acd-7000-9a04-fe9412510423",
+          "kind": "page_visit",
+          "run": "01a148dd-2f17-7000-ae2a-4e1aba488607"
+        },
+        {
+          "id": "01a148de-06d6-7001-9d80-bbe01feafe74",
+          "kind": "screen_region",
+          "run": "01a148dd-2f17-7000-ae2a-4e1aba488607"
+        },
+        {
+          "id": "01a148de-7a83-7000-ad75-869b5fe717c8",
+          "kind": "screen_region",
+          "run": "01a148dd-2f17-7000-ae2a-4e1aba488607"
+        }
+      ],
+      "key": "BR-013",
+      "kind": "business_rule",
+      "status": "draft",
+      "title": "No-claims discount from 5 years of \"Lata bezszkodowej jazdy\""
+    },
+    {
+      "confidence": "observed",
+      "content": {
+        "decision_table": {
+          "actions": [
+            "\"Wartość pojazdu (zł)\" shown",
+            "\"Wartość pojazdu (zł)\" required"
+          ],
+          "conditions": [
+            "\"Zakres\""
+          ],
+          "rows": [
+            [
+              "\"Tylko OC\"",
+              "no",
+              "no"
+            ],
+            [
+              "\"OC + Autocasco (AC)\"",
+              "yes",
+              "yes"
+            ]
+          ]
+        },
+        "ears": {
+          "pattern": "event",
+          "text": "When the guest chooses \"OC + Autocasco (AC)\" in \"Zakres\", the calculator shall show the required field \"Wartość pojazdu (zł)\" on the options step."
+        },
+        "kind": "business_rule",
+        "rule_type": "action_enabler",
+        "statement": "On the options step, when \"OC + Autocasco (AC)\" is chosen in \"Zakres\", the form shows the number box \"Wartość pojazdu (zł)\", which is required; with \"Tylko OC\" (the default) the box is not shown. The box appears on the same page without navigation (variant 3b of the step). Whether choosing \"Tylko OC\" again hides the box was not observed.",
+        "title": "Choosing \"OC + Autocasco (AC)\" asks for \"Wartość pojazdu (zł)\""
+      },
+      "evidence": [
+        {
+          "id": "01a14b1a-bb1a-7001-9c1a-d24350967e24",
+          "kind": "form",
+          "run": "01a14b1a-1be6-7000-922f-1c6f3ac81d4e"
+        },
+        {
+          "id": "01a14b1a-c6f5-700e-898e-49f857208081",
+          "kind": "form",
+          "run": "01a14b1a-1be6-7000-922f-1c6f3ac81d4e"
+        },
+        {
+          "id": "01a14b1a-c6f5-702d-9f0e-df0226051ade",
+          "kind": "process_step",
+          "run": "01a14b1a-1be6-7000-922f-1c6f3ac81d4e"
+        },
+        {
+          "id": "01a14b1a-c6f5-7007-a287-efe4c22558a6",
+          "kind": "screen_region",
+          "run": "01a14b1a-1be6-7000-922f-1c6f3ac81d4e"
+        },
+        {
+          "id": "01a14b1a-c6f5-7007-a287-efe4c22558a6",
+          "kind": "screen_region",
+          "run": "01a14b1a-1be6-7000-922f-1c6f3ac81d4e"
+        },
+        {
+          "id": "01a148de-42ff-7001-b4db-971cb7465b8b",
+          "kind": "state",
+          "run": "01a14b1a-1be6-7000-922f-1c6f3ac81d4e"
+        }
+      ],
+      "key": "BR-021",
+      "kind": "business_rule",
+      "status": "draft",
+      "title": "Choosing \"OC + Autocasco (AC)\" asks for \"Wartość pojazdu (zł)\""
+    },
+    {
+      "confidence": "observed",
+      "content": {
+        "ears": {
+          "pattern": "unwanted",
+          "text": "If the \"Wartość pojazdu (zł)\" value is empty, below 5000 or above 500000, then the calculator shall stay on the options step and not calculate the premium."
+        },
+        "kind": "business_rule",
+        "rule_type": "constraint",
+        "statement": "The \"Wartość pojazdu (zł)\" field accepts a number from 5000 to 500000, as its hint \"Wartość rynkowa, od 5 000 do 500 000 zł.\" says; the limit is the field's own constraint (min 5000, max 500000), so an out-of-range value is refused with the browser's own message. An empty field gives \"Please fill out this field.\". The message for an out-of-range value was not recorded (not probed).",
+        "title": "\"Wartość pojazdu (zł)\" between 5 000 and 500 000 zł"
+      },
+      "evidence": [
+        {
+          "id": "01a14b1a-c6f5-700e-898e-49f857208081",
+          "kind": "form",
+          "run": "01a14b1a-1be6-7000-922f-1c6f3ac81d4e"
+        },
+        {
+          "id": "01a14b1a-c760-7000-9864-04d9e41a7a85",
+          "kind": "process_step",
+          "run": "01a14b1a-1be6-7000-922f-1c6f3ac81d4e"
+        },
+        {
+          "id": "01a14b1a-c6f5-7007-a287-efe4c22558a6",
+          "kind": "screen_region",
+          "run": "01a14b1a-1be6-7000-922f-1c6f3ac81d4e"
+        }
+      ],
+      "key": "BR-022",
+      "kind": "business_rule",
+      "status": "draft",
+      "title": "\"Wartość pojazdu (zł)\" between 5 000 and 500 000 zł"
+    },
+    {
+      "confidence": "inferred",
+      "content": {
+        "ears": {
+          "pattern": "event",
+          "text": "When the guest chooses \"OC + Autocasco (AC)\", the calculator shall show \"Typowa wartość dla tego pojazdu\" for the vehicle's \"Marka\" and \"Rok produkcji\"."
+        },
+        "kind": "business_rule",
+        "rule_type": "computation",
+        "statement": "When \"OC + Autocasco (AC)\" is chosen, the options step requests GET /api/wartosc-pojazdu with the parameters marka and rok_produkcji taken from step 1 and shows the answer under \"Wartość pojazdu (zł)\" as \"Typowa wartość dla tego pojazdu: 47 800,00 zł.\" (observed for \"Toyota\" 2020; the answer carries typowa 47800 and typowa_tekst \"47 800,00 zł\"). The typical value is shown as a hint only; the box is not prefilled (the guest typed 50000). Inferred: that the value depends on make and year comes from the request parameters; how it is computed and whether it limits the entered value is not observed.",
+        "title": "Typical vehicle value suggested from \"Marka\" and \"Rok produkcji\""
+      },
+      "evidence": [
+        {
+          "id": "01a14b1a-c6f5-7012-8efa-0a653b101159",
+          "kind": "network_call",
+          "run": "01a14b1a-1be6-7000-922f-1c6f3ac81d4e"
+        },
+        {
+          "id": "01a14b1a-c6f5-702d-9f0e-df0226051ade",
+          "kind": "process_step",
+          "run": "01a14b1a-1be6-7000-922f-1c6f3ac81d4e"
+        },
+        {
+          "id": "01a14b1a-c6f5-7007-a287-efe4c22558a6",
+          "kind": "screen_region",
+          "run": "01a14b1a-1be6-7000-922f-1c6f3ac81d4e"
+        },
+        {
+          "id": "01a14b1a-c6f5-7007-a287-efe4c22558a6",
+          "kind": "state",
+          "run": "01a14b1a-1be6-7000-922f-1c6f3ac81d4e"
+        }
+      ],
+      "key": "BR-023",
+      "kind": "business_rule",
+      "status": "draft",
+      "title": "Typical vehicle value suggested from \"Marka\" and \"Rok produkcji\""
+    },
+    {
+      "confidence": "observed",
+      "content": {
+        "constraints": {
+          "allowed_values": [
+            "Toyota",
+            "Skoda",
+            "Volkswagen",
+            "Fiat",
+            "Inna"
+          ],
+          "pattern_observed": "placeholder option \"— wybierz —\" preselected; value sent in lower case (observed toyota); also sent to /api/wartosc-pojazdu when AC is chosen",
+          "required": true
+        },
+        "data_type": "select (single choice); request parameter marka",
+        "kind": "data_item",
+        "lang": "pl",
+        "name_en": "Vehicle make",
+        "name_verbatim": "Marka",
+        "seen_in": [
+          {
+            "kind": "form",
+            "target_id": "01a148dd-7247-7000-9b9e-1869a6bb238b"
+          },
+          {
+            "kind": "page_visit",
+            "target_id": "01a148de-070a-7000-8271-bf32b816eb20"
+          },
+          {
+            "kind": "network_call",
+            "target_id": "01a148de-8704-7000-97f3-46a7f60b274c"
+          },
+          {
+            "kind": "network_call",
+            "target_id": "01a14b1a-c6f5-7012-8efa-0a653b101159"
+          }
+        ],
+        "title": "Marka"
+      },
+      "evidence": [
+        {
+          "id": "01a148dd-7247-7000-9b9e-1869a6bb238b",
+          "kind": "form",
+          "run": "01a148dd-2f17-7000-ae2a-4e1aba488607"
+        },
+        {
+          "id": "01a14b1a-c6f5-7012-8efa-0a653b101159",
+          "kind": "network_call",
+          "run": "01a14b1a-1be6-7000-922f-1c6f3ac81d4e"
+        },
+        {
+          "id": "01a148dd-7213-7000-bc0f-c1bef15714b5",
+          "kind": "screen_region",
+          "run": "01a148dd-2f17-7000-ae2a-4e1aba488607"
+        }
+      ],
+      "key": "DI-001",
+      "kind": "data_item",
+      "status": "draft",
+      "title": "Marka"
+    },
+    {
+      "confidence": "observed",
+      "content": {
+        "constraints": {
+          "max_length": 40,
+          "required": true
+        },
+        "data_type": "text; request parameter model",
+        "kind": "data_item",
+        "lang": "pl",
+        "name_en": "Vehicle model",
+        "name_verbatim": "Model",
+        "seen_in": [
+          {
+            "kind": "form",
+            "target_id": "01a148dd-7247-7000-9b9e-1869a6bb238b"
+          },
+          {
+            "kind": "page_visit",
+            "target_id": "01a148de-070a-7000-8271-bf32b816eb20"
+          },
+          {
+            "kind": "network_call",
+            "target_id": "01a148de-8704-7000-97f3-46a7f60b274c"
+          }
+        ],
+        "title": "Model"
+      },
+      "evidence": [
+        {
+          "id": "01a148dd-7247-7000-9b9e-1869a6bb238b",
+          "kind": "form",
+          "run": "01a148dd-2f17-7000-ae2a-4e1aba488607"
+        },
+        {
+          "id": "01a148dd-7213-7000-bc0f-c1bef15714b5",
+          "kind": "screen_region",
+          "run": "01a148dd-2f17-7000-ae2a-4e1aba488607"
+        }
+      ],
+      "key": "DI-002",
+      "kind": "data_item",
+      "status": "draft",
+      "title": "Model"
+    },
+    {
+      "confidence": "observed",
+      "content": {
+        "constraints": {
+          "format": "min 1990, max 2026; also sent to /api/wartosc-pojazdu when AC is chosen",
+          "required": true
+        },
+        "data_type": "integer (number input); request parameter rok_produkcji",
+        "kind": "data_item",
+        "lang": "pl",
+        "name_en": "Production year",
+        "name_verbatim": "Rok produkcji",
+        "seen_in": [
+          {
+            "kind": "form",
+            "target_id": "01a148dd-7247-7000-9b9e-1869a6bb238b"
+          },
+          {
+            "kind": "page_visit",
+            "target_id": "01a148de-070a-7000-8271-bf32b816eb20"
+          },
+          {
+            "kind": "network_call",
+            "target_id": "01a148de-8704-7000-97f3-46a7f60b274c"
+          },
+          {
+            "kind": "network_call",
+            "target_id": "01a14b1a-c6f5-7012-8efa-0a653b101159"
+          }
+        ],
+        "title": "Rok produkcji"
+      },
+      "evidence": [
+        {
+          "id": "01a148dd-7247-7000-9b9e-1869a6bb238b",
+          "kind": "form",
+          "run": "01a148dd-2f17-7000-ae2a-4e1aba488607"
+        },
+        {
+          "id": "01a14b1a-c6f5-7012-8efa-0a653b101159",
+          "kind": "network_call",
+          "run": "01a14b1a-1be6-7000-922f-1c6f3ac81d4e"
+        },
+        {
+          "id": "01a148dd-7213-7000-bc0f-c1bef15714b5",
+          "kind": "screen_region",
+          "run": "01a148dd-2f17-7000-ae2a-4e1aba488607"
+        }
+      ],
+      "key": "DI-003",
+      "kind": "data_item",
+      "status": "draft",
+      "title": "Rok produkcji"
+    },
+    {
+      "confidence": "observed",
+      "content": {
+        "constraints": {
+          "format": "min 50, max 8000",
+          "required": true
+        },
+        "data_type": "integer (number input); request parameter pojemnosc",
+        "kind": "data_item",
+        "lang": "pl",
+        "name_en": "Engine capacity (cm³)",
+        "name_verbatim": "Pojemność silnika (cm³)",
+        "seen_in": [
+          {
+            "kind": "form",
+            "target_id": "01a148dd-7247-7000-9b9e-1869a6bb238b"
+          },
+          {
+            "kind": "page_visit",
+            "target_id": "01a148de-070a-7000-8271-bf32b816eb20"
+          },
+          {
+            "kind": "network_call",
+            "target_id": "01a148de-8704-7000-97f3-46a7f60b274c"
+          }
+        ],
+        "title": "Pojemność silnika (cm³)"
+      },
+      "evidence": [
+        {
+          "id": "01a148dd-7247-7000-9b9e-1869a6bb238b",
+          "kind": "form",
+          "run": "01a148dd-2f17-7000-ae2a-4e1aba488607"
+        },
+        {
+          "id": "01a148dd-7213-7000-bc0f-c1bef15714b5",
+          "kind": "screen_region",
+          "run": "01a148dd-2f17-7000-ae2a-4e1aba488607"
+        }
+      ],
+      "key": "DI-004",
+      "kind": "data_item",
+      "status": "draft",
+      "title": "Pojemność silnika (cm³)"
+    },
+    {
+      "confidence": "observed",
+      "content": {
+        "constraints": {
+          "format": "NN-NNN",
+          "pattern_observed": "[0-9]{2}-[0-9]{3}",
+          "required": true
+        },
+        "data_type": "text; request parameter kod_pocztowy",
+        "kind": "data_item",
+        "lang": "pl",
+        "name_en": "Postal code",
+        "name_verbatim": "Kod pocztowy",
+        "seen_in": [
+          {
+            "kind": "form",
+            "target_id": "01a148dd-7247-7000-9b9e-1869a6bb238b"
+          },
+          {
+            "kind": "page_visit",
+            "target_id": "01a148de-070a-7000-8271-bf32b816eb20"
+          },
+          {
+            "kind": "network_call",
+            "target_id": "01a148de-8704-7000-97f3-46a7f60b274c"
+          }
+        ],
+        "title": "Kod pocztowy"
+      },
+      "evidence": [
+        {
+          "id": "01a148dd-7247-7000-9b9e-1869a6bb238b",
+          "kind": "form",
+          "run": "01a148dd-2f17-7000-ae2a-4e1aba488607"
+        },
+        {
+          "id": "01a148dd-7213-7000-bc0f-c1bef15714b5",
+          "kind": "screen_region",
+          "run": "01a148dd-2f17-7000-ae2a-4e1aba488607"
+        }
+      ],
+      "key": "DI-005",
+      "kind": "data_item",
+      "status": "draft",
+      "title": "Kod pocztowy"
+    },
+    {
+      "confidence": "observed",
+      "content": {
+        "constraints": {
+          "format": "YYYY-MM-DD, min 1950-01-16, max 2008-01-15",
+          "required": true
+        },
+        "data_type": "date (YYYY-MM-DD in the URL); request parameter data_urodzenia",
+        "kind": "data_item",
+        "lang": "pl",
+        "name_en": "Driver's date of birth",
+        "name_verbatim": "Data urodzenia",
+        "seen_in": [
+          {
+            "kind": "form",
+            "target_id": "01a148de-0707-7000-bfe9-5c15c8973895"
+          },
+          {
+            "kind": "page_visit",
+            "target_id": "01a148de-4332-7000-b4fc-cad1af8b1a31"
+          },
+          {
+            "kind": "network_call",
+            "target_id": "01a148de-8704-7000-97f3-46a7f60b274c"
+          }
+        ],
+        "title": "Data urodzenia"
+      },
+      "evidence": [
+        {
+          "id": "01a148de-0707-7000-bfe9-5c15c8973895",
+          "kind": "form",
+          "run": "01a148dd-2f17-7000-ae2a-4e1aba488607"
+        },
+        {
+          "id": "01a148de-06d6-7001-9d80-bbe01feafe74",
+          "kind": "screen_region",
+          "run": "01a148dd-2f17-7000-ae2a-4e1aba488607"
+        }
+      ],
+      "key": "DI-006",
+      "kind": "data_item",
+      "status": "draft",
+      "title": "Data urodzenia"
+    },
+    {
+      "confidence": "observed",
+      "content": {
+        "constraints": {
+          "format": "min 1968, max 2026",
+          "required": true
+        },
+        "data_type": "integer (number input); request parameter rok_prawa_jazdy",
+        "kind": "data_item",
+        "lang": "pl",
+        "name_en": "Year the driving licence was obtained",
+        "name_verbatim": "Rok uzyskania prawa jazdy",
+        "seen_in": [
+          {
+            "kind": "form",
+            "target_id": "01a148de-0707-7000-bfe9-5c15c8973895"
+          },
+          {
+            "kind": "page_visit",
+            "target_id": "01a148de-4332-7000-b4fc-cad1af8b1a31"
+          },
+          {
+            "kind": "network_call",
+            "target_id": "01a148de-8704-7000-97f3-46a7f60b274c"
+          }
+        ],
+        "title": "Rok uzyskania prawa jazdy"
+      },
+      "evidence": [
+        {
+          "id": "01a148de-0707-7000-bfe9-5c15c8973895",
+          "kind": "form",
+          "run": "01a148dd-2f17-7000-ae2a-4e1aba488607"
+        },
+        {
+          "id": "01a148de-06d6-7001-9d80-bbe01feafe74",
+          "kind": "screen_region",
+          "run": "01a148dd-2f17-7000-ae2a-4e1aba488607"
+        }
+      ],
+      "key": "DI-007",
+      "kind": "data_item",
+      "status": "draft",
+      "title": "Rok uzyskania prawa jazdy"
+    },
+    {
+      "confidence": "observed",
+      "content": {
+        "constraints": {
+          "format": "min 0, max 60",
+          "required": true
+        },
+        "data_type": "integer (number input); request parameter lata_bezszkodowe",
+        "kind": "data_item",
+        "lang": "pl",
+        "name_en": "Claim-free driving years",
+        "name_verbatim": "Lata bezszkodowej jazdy",
+        "seen_in": [
+          {
+            "kind": "form",
+            "target_id": "01a148de-0707-7000-bfe9-5c15c8973895"
+          },
+          {
+            "kind": "page_visit",
+            "target_id": "01a148de-4332-7000-b4fc-cad1af8b1a31"
+          },
+          {
+            "kind": "network_call",
+            "target_id": "01a148de-8704-7000-97f3-46a7f60b274c"
+          }
+        ],
+        "title": "Lata bezszkodowej jazdy"
+      },
+      "evidence": [
+        {
+          "id": "01a148de-0707-7000-bfe9-5c15c8973895",
+          "kind": "form",
+          "run": "01a148dd-2f17-7000-ae2a-4e1aba488607"
+        },
+        {
+          "id": "01a148de-06d6-7001-9d80-bbe01feafe74",
+          "kind": "screen_region",
+          "run": "01a148dd-2f17-7000-ae2a-4e1aba488607"
+        }
+      ],
+      "key": "DI-008",
+      "kind": "data_item",
+      "status": "draft",
+      "title": "Lata bezszkodowej jazdy"
+    },
+    {
+      "confidence": "observed",
+      "content": {
+        "constraints": {
+          "allowed_values": [
+            "tak"
+          ],
+          "required": true
+        },
+        "data_type": "checkbox (boolean); request parameter zgoda_dane",
+        "kind": "data_item",
+        "lang": "pl",
+        "name_en": "Consent to personal data processing",
+        "name_verbatim": "Zgoda na przetwarzanie danych osobowych",
+        "seen_in": [
+          {
+            "kind": "form",
+            "target_id": "01a148de-0707-7000-bfe9-5c15c8973895"
+          },
+          {
+            "kind": "page_visit",
+            "target_id": "01a148de-4332-7000-b4fc-cad1af8b1a31"
+          },
+          {
+            "kind": "network_call",
+            "target_id": "01a148de-8704-7000-97f3-46a7f60b274c"
+          }
+        ],
+        "title": "Zgoda na przetwarzanie danych osobowych"
+      },
+      "evidence": [
+        {
+          "id": "01a148de-0707-7000-bfe9-5c15c8973895",
+          "kind": "form",
+          "run": "01a148dd-2f17-7000-ae2a-4e1aba488607"
+        },
+        {
+          "id": "01a148de-06d6-7001-9d80-bbe01feafe74",
+          "kind": "screen_region",
+          "run": "01a148dd-2f17-7000-ae2a-4e1aba488607"
+        }
+      ],
+      "key": "DI-009",
+      "kind": "data_item",
+      "status": "draft",
+      "title": "Zgoda na przetwarzanie danych osobowych"
+    },
+    {
+      "confidence": "observed",
+      "content": {
+        "constraints": {
+          "allowed_values": [
+            "tak"
+          ],
+          "required": true
+        },
+        "data_type": "checkbox (boolean); request parameter zgoda_owu",
+        "kind": "data_item",
+        "lang": "pl",
+        "name_en": "Declaration of having read the general insurance terms (OWU)",
+        "name_verbatim": "Oświadczam, że zapoznałem się z OWU",
+        "seen_in": [
+          {
+            "kind": "form",
+            "target_id": "01a148de-0707-7000-bfe9-5c15c8973895"
+          },
+          {
+            "kind": "page_visit",
+            "target_id": "01a148de-4332-7000-b4fc-cad1af8b1a31"
+          },
+          {
+            "kind": "network_call",
+            "target_id": "01a148de-8704-7000-97f3-46a7f60b274c"
+          }
+        ],
+        "title": "Oświadczam, że zapoznałem się z OWU"
+      },
+      "evidence": [
+        {
+          "id": "01a148de-0707-7000-bfe9-5c15c8973895",
+          "kind": "form",
+          "run": "01a148dd-2f17-7000-ae2a-4e1aba488607"
+        },
+        {
+          "id": "01a148de-06d6-7001-9d80-bbe01feafe74",
+          "kind": "screen_region",
+          "run": "01a148dd-2f17-7000-ae2a-4e1aba488607"
+        }
+      ],
+      "key": "DI-010",
+      "kind": "data_item",
+      "status": "draft",
+      "title": "Oświadczam, że zapoznałem się z OWU"
+    },
+    {
+      "confidence": "observed",
+      "content": {
+        "constraints": {
+          "allowed_values": [
+            "Tylko OC",
+            "OC + Autocasco (AC)"
+          ],
+          "pattern_observed": "\"Tylko OC\" checked by default; \"OC + Autocasco (AC)\" sent as oc_ac (the value for \"Tylko OC\" was not observed)",
+          "required": true
+        },
+        "data_type": "radio group (single choice); request parameter zakres",
+        "kind": "data_item",
+        "lang": "pl",
+        "name_en": "Coverage scope",
+        "name_verbatim": "Zakres",
+        "seen_in": [
+          {
+            "kind": "form",
+            "target_id": "01a148de-432f-7000-bd50-88d0b85cf0a0"
+          },
+          {
+            "kind": "page_visit",
+            "target_id": "01a148de-7acd-7000-9a04-fe9412510423"
+          },
+          {
+            "kind": "network_call",
+            "target_id": "01a148de-8704-7000-97f3-46a7f60b274c"
+          }
+        ],
+        "title": "Zakres"
+      },
+      "evidence": [
+        {
+          "id": "01a148de-432f-7000-bd50-88d0b85cf0a0",
+          "kind": "form",
+          "run": "01a148dd-2f17-7000-ae2a-4e1aba488607"
+        },
+        {
+          "id": "01a148de-42ff-7001-b4db-971cb7465b8b",
+          "kind": "screen_region",
+          "run": "01a148dd-2f17-7000-ae2a-4e1aba488607"
+        },
+        {
+          "id": "01a148de-42ff-7001-b4db-971cb7465b8b",
+          "kind": "screen_region",
+          "run": "01a148dd-2f17-7000-ae2a-4e1aba488607"
+        }
+      ],
+      "key": "DI-011",
+      "kind": "data_item",
+      "status": "draft",
+      "title": "Zakres"
+    },
+    {
+      "confidence": "observed",
+      "content": {
+        "constraints": {
+          "allowed_values": [
+            "tak"
+          ],
+          "required": false
+        },
+        "data_type": "checkbox (boolean); request parameter assistance",
+        "kind": "data_item",
+        "lang": "pl",
+        "name_en": "Assistance add-on",
+        "name_verbatim": "Assistance",
+        "seen_in": [
+          {
+            "kind": "form",
+            "target_id": "01a148de-432f-7000-bd50-88d0b85cf0a0"
+          },
+          {
+            "kind": "page_visit",
+            "target_id": "01a148de-7acd-7000-9a04-fe9412510423"
+          },
+          {
+            "kind": "network_call",
+            "target_id": "01a148de-8704-7000-97f3-46a7f60b274c"
+          }
+        ],
+        "title": "Assistance"
+      },
+      "evidence": [
+        {
+          "id": "01a148de-432f-7000-bd50-88d0b85cf0a0",
+          "kind": "form",
+          "run": "01a148dd-2f17-7000-ae2a-4e1aba488607"
+        },
+        {
+          "id": "01a148de-42ff-7001-b4db-971cb7465b8b",
+          "kind": "screen_region",
+          "run": "01a148dd-2f17-7000-ae2a-4e1aba488607"
+        }
+      ],
+      "key": "DI-012",
+      "kind": "data_item",
+      "status": "draft",
+      "title": "Assistance"
+    },
+    {
+      "confidence": "observed",
+      "content": {
+        "constraints": {
+          "format": "capital letters followed by two digits, e.g. WIOSNA10",
+          "max_length": 12,
+          "pattern_observed": "[A-Z]+[0-9]{2}",
+          "required": false
+        },
+        "data_type": "text; request parameter kod_rabatowy",
+        "kind": "data_item",
+        "lang": "pl",
+        "name_en": "Discount code",
+        "name_verbatim": "Kod rabatowy",
+        "seen_in": [
+          {
+            "kind": "form",
+            "target_id": "01a148de-432f-7000-bd50-88d0b85cf0a0"
+          },
+          {
+            "kind": "page_visit",
+            "target_id": "01a148de-7acd-7000-9a04-fe9412510423"
+          },
+          {
+            "kind": "network_call",
+            "target_id": "01a148de-8704-7000-97f3-46a7f60b274c"
+          }
+        ],
+        "title": "Kod rabatowy"
+      },
+      "evidence": [
+        {
+          "id": "01a148de-432f-7000-bd50-88d0b85cf0a0",
+          "kind": "form",
+          "run": "01a148dd-2f17-7000-ae2a-4e1aba488607"
+        },
+        {
+          "id": "01a148de-42ff-7001-b4db-971cb7465b8b",
+          "kind": "screen_region",
+          "run": "01a148dd-2f17-7000-ae2a-4e1aba488607"
+        }
+      ],
+      "key": "DI-013",
+      "kind": "data_item",
+      "status": "draft",
+      "title": "Kod rabatowy"
+    },
+    {
+      "confidence": "observed",
+      "content": {
+        "constraints": {
+          "format": "space as thousands separator, comma decimals, two decimals, suffix zł"
+        },
+        "data_type": "money, output (Polish format, e.g. 1 719,00 zł)",
+        "kind": "data_item",
+        "lang": "pl",
+        "name_en": "Total annual premium",
+        "name_verbatim": "Składka łączna",
+        "seen_in": [
+          {
+            "kind": "page_visit",
+            "target_id": "01a148de-7acd-7000-9a04-fe9412510423"
+          },
+          {
+            "kind": "page_visit",
+            "target_id": "01a148de-8705-7000-8706-a34ecbc9db0c"
+          }
+        ],
+        "title": "Składka łączna"
+      },
+      "evidence": [
+        {
+          "id": "01a148de-7a83-7000-ad75-869b5fe717c8",
+          "kind": "screen_region",
+          "run": "01a148dd-2f17-7000-ae2a-4e1aba488607"
+        },
+        {
+          "id": "01a148de-86d8-7000-9309-4349aaae8045",
+          "kind": "state",
+          "run": "01a148dd-2f17-7000-ae2a-4e1aba488607"
+        }
+      ],
+      "key": "DI-014",
+      "kind": "data_item",
+      "status": "draft",
+      "title": "Składka łączna"
+    },
+    {
+      "confidence": "observed",
+      "content": {
+        "constraints": {
+          "pattern_observed": "RP/2026/0001 (prefix RP, year, four-digit sequence; inferred from one value)"
+        },
+        "data_type": "text, output",
+        "kind": "data_item",
+        "lang": "pl",
+        "name_en": "Application number",
+        "name_verbatim": "Numer wniosku",
+        "seen_in": [
+          {
+            "kind": "page_visit",
+            "target_id": "01a148de-8705-7000-8706-a34ecbc9db0c"
+          }
+        ],
+        "title": "Numer wniosku"
+      },
+      "evidence": [
+        {
+          "id": "01a148de-86d8-7000-9309-4349aaae8045",
+          "kind": "screen_region",
+          "run": "01a148dd-2f17-7000-ae2a-4e1aba488607"
+        },
+        {
+          "id": "01a148de-86d8-7000-9309-4349aaae8045",
+          "kind": "state",
+          "run": "01a148dd-2f17-7000-ae2a-4e1aba488607"
+        }
+      ],
+      "key": "DI-015",
+      "kind": "data_item",
+      "status": "draft",
+      "title": "Numer wniosku"
+    },
+    {
+      "confidence": "observed",
+      "content": {
+        "constraints": {
+          "allowed_values": [],
+          "format": "number of złoty; shown only when \"Zakres\" is \"OC + Autocasco (AC)\"; hint \"Wartość rynkowa, od 5 000 do 500 000 zł.\"",
+          "pattern_observed": "min 5000, max 500000; observed value 50000",
+          "required": true
+        },
+        "data_type": "integer (number input), URL parameter wartosc_pojazdu",
+        "kind": "data_item",
+        "lang": "pl",
+        "name_en": "Vehicle value (PLN)",
+        "name_verbatim": "Wartość pojazdu (zł)",
+        "seen_in": [
+          {
+            "kind": "form",
+            "target_id": "01a14b1a-c6f5-700e-898e-49f857208081"
+          },
+          {
+            "kind": "form",
+            "target_id": "01a14b1a-c757-7000-8612-febdd928c0d4"
+          },
+          {
+            "kind": "page_visit",
+            "target_id": "01a14b1a-d55f-7002-85d0-89d1d0e2370e"
+          }
+        ],
+        "title": "Wartość pojazdu (zł)"
+      },
+      "evidence": [
+        {
+          "id": "01a14b1a-c6f5-700e-898e-49f857208081",
+          "kind": "form",
+          "run": "01a14b1a-1be6-7000-922f-1c6f3ac81d4e"
+        },
+        {
+          "id": "01a14b1a-d55f-7002-85d0-89d1d0e2370e",
+          "kind": "page_visit",
+          "run": "01a14b1a-1be6-7000-922f-1c6f3ac81d4e"
+        },
+        {
+          "id": "01a14b1a-c760-7000-9864-04d9e41a7a85",
+          "kind": "process_step",
+          "run": "01a14b1a-1be6-7000-922f-1c6f3ac81d4e"
+        },
+        {
+          "id": "01a14b1a-c6f5-7007-a287-efe4c22558a6",
+          "kind": "screen_region",
+          "run": "01a14b1a-1be6-7000-922f-1c6f3ac81d4e"
+        }
+      ],
+      "key": "DI-029",
+      "kind": "data_item",
+      "status": "draft",
+      "title": "Wartość pojazdu (zł)"
+    },
+    {
+      "confidence": "observed",
+      "content": {
+        "definition": "Premium reduction for claim-free driving, granted from 5 \"Lata bezszkodowej jazdy\" (\"Od 5 lat bezszkodowej jazdy przysługuje zniżka.\"); shown as a negative row in the premium breakdown.",
+        "kind": "glossary_term",
+        "lang": "pl",
+        "synonyms_verbatim": [
+          "Lata bezszkodowej jazdy"
+        ],
+        "term_verbatim": "Zniżka za bezszkodową jazdę",
+        "title": "Zniżka za bezszkodową jazdę"
+      },
+      "evidence": [
+        {
+          "id": "01a148de-06d6-7001-9d80-bbe01feafe74",
+          "kind": "screen_region",
+          "run": "01a148dd-2f17-7000-ae2a-4e1aba488607"
+        },
+        {
+          "id": "01a148de-7a83-7000-ad75-869b5fe717c8",
+          "kind": "screen_region",
+          "run": "01a148dd-2f17-7000-ae2a-4e1aba488607"
+        }
+      ],
+      "key": "GL-006",
+      "kind": "glossary_term",
+      "status": "draft",
+      "title": "Zniżka za bezszkodową jazdę"
+    },
+    {
+      "confidence": "observed",
+      "content": {
+        "definition": "Promotional code entered in the options step (capital letters and two digits, e.g. WIOSNA10) that reduces the premium; an accepted code is confirmed with \"Kod rabatowy … przyjęty.\" and shown as a negative row \"Kod rabatowy\".",
+        "kind": "glossary_term",
+        "lang": "pl",
+        "synonyms_verbatim": [],
+        "term_verbatim": "Kod rabatowy",
+        "title": "Kod rabatowy"
+      },
+      "evidence": [
+        {
+          "id": "01a148de-42ff-7001-b4db-971cb7465b8b",
+          "kind": "screen_region",
+          "run": "01a148dd-2f17-7000-ae2a-4e1aba488607"
+        },
+        {
+          "id": "01a148de-7a83-7000-ad75-869b5fe717c8",
+          "kind": "state",
+          "run": "01a148dd-2f17-7000-ae2a-4e1aba488607"
+        }
+      ],
+      "key": "GL-007",
+      "kind": "glossary_term",
+      "status": "draft",
+      "title": "Kod rabatowy"
+    },
+    {
+      "confidence": "observed",
+      "content": {
+        "definition": "The purchase application created when the guest presses \"Kup polisę\"; confirmed as \"Wniosek przyjęty\" with a \"Numer wniosku\". It is an application, not yet an issued policy: payment is arranged later by a consultant.",
+        "kind": "glossary_term",
+        "lang": "pl",
+        "synonyms_verbatim": [
+          "Wniosek przyjęty",
+          "Numer wniosku"
+        ],
+        "term_verbatim": "Wniosek",
+        "title": "Wniosek"
+      },
+      "evidence": [
+        {
+          "id": "01a148de-86d8-7000-9309-4349aaae8045",
+          "kind": "state",
+          "run": "01a148dd-2f17-7000-ae2a-4e1aba488607"
+        }
+      ],
+      "key": "GL-008",
+      "kind": "glossary_term",
+      "status": "draft",
+      "title": "Wniosek"
+    },
+    {
+      "confidence": "inferred",
+      "content": {
+        "definition": "The vehicle's market value in złoty that the guest enters for an \"OC + Autocasco (AC)\" quote (hint \"Wartość rynkowa, od 5 000 do 500 000 zł.\"); the portal suggests a \"Typowa wartość dla tego pojazdu\" for the make and year. That it is the basis of the AC cover is inferred, not stated.",
+        "kind": "glossary_term",
+        "lang": "pl",
+        "synonyms_verbatim": [
+          "Wartość rynkowa"
+        ],
+        "term_verbatim": "Wartość pojazdu",
+        "title": "Wartość pojazdu"
+      },
+      "evidence": [
+        {
+          "id": "01a14b1a-c6f5-7007-a287-efe4c22558a6",
+          "kind": "screen_region",
+          "run": "01a14b1a-1be6-7000-922f-1c6f3ac81d4e"
+        },
+        {
+          "id": "01a14b1a-c6f5-7007-a287-efe4c22558a6",
+          "kind": "state",
+          "run": "01a14b1a-1be6-7000-922f-1c6f3ac81d4e"
+        }
+      ],
+      "key": "GL-016",
+      "kind": "glossary_term",
+      "status": "draft",
+      "title": "Wartość pojazdu"
+    },
+    {
+      "confidence": "observed",
+      "content": {
+        "category": "localisation",
+        "kind": "nfr",
+        "statement": "All calculator screens are in Polish only (no language switch observed). Money is shown with a space as thousands separator, a comma as decimal separator, two decimals and the suffix \"zł\" (e.g. \"1 719,00 zł\"); negative amounts use the minus sign \"−\" (e.g. \"−200,00 zł\"); factors use a decimal comma (\"1,00\"). Dates travel in the URL as YYYY-MM-DD.",
+        "title": "Polish-only UI with Polish number and money formats"
+      },
+      "evidence": [
+        {
+          "id": "01a148de-4332-7000-b4fc-cad1af8b1a31",
+          "kind": "page_visit",
+          "run": "01a148dd-2f17-7000-ae2a-4e1aba488607"
+        },
+        {
+          "id": "01a148de-7a83-7000-ad75-869b5fe717c8",
+          "kind": "screen_region",
+          "run": "01a148dd-2f17-7000-ae2a-4e1aba488607"
+        }
+      ],
+      "key": "NFR-001",
+      "kind": "nfr",
+      "status": "draft",
+      "title": "Polish-only UI with Polish number and money formats"
+    },
+    {
+      "confidence": "observed",
+      "content": {
+        "category": "accessibility",
+        "kind": "nfr",
+        "measured": {
+          "how": "ARIA snapshots of the four calculator steps in the map run",
+          "unit": "fields",
+          "value": "3 of 3 forms, 13 of 13 fields labelled"
+        },
+        "statement": "Every field of the forms \"Dane pojazdu\", \"Dane kierowcy\" and \"Opcje\" exposes an accessible name equal to its visible label, the radio buttons are grouped as \"Zakres\", and the result is a captioned table \"Wyliczenie składki rocznej\" with row headers. The navigation \"Kroki kalkulatora\" lists \"Pojazd\", \"Kierowca\", \"Opcje\", \"Wynik\" as plain list items without marking the current step. Field hints (e.g. \"Format NN-NNN, np. 00-950\") are plain text next to the field, not exposed as the field's description in the snapshot.",
+        "title": "Calculator forms have accessible names; step indicator does not mark the current step"
+      },
+      "evidence": [
+        {
+          "id": "01a148dd-7213-7000-bc0f-c1bef15714b5",
+          "kind": "screen_region",
+          "run": "01a148dd-2f17-7000-ae2a-4e1aba488607"
+        },
+        {
+          "id": "01a148dd-7213-7000-bc0f-c1bef15714b5",
+          "kind": "state",
+          "run": "01a148dd-2f17-7000-ae2a-4e1aba488607"
+        },
+        {
+          "id": "01a148de-06d6-7001-9d80-bbe01feafe74",
+          "kind": "state",
+          "run": "01a148dd-2f17-7000-ae2a-4e1aba488607"
+        },
+        {
+          "id": "01a148de-42ff-7001-b4db-971cb7465b8b",
+          "kind": "state",
+          "run": "01a148dd-2f17-7000-ae2a-4e1aba488607"
+        }
+      ],
+      "key": "NFR-002",
+      "kind": "nfr",
+      "status": "draft",
+      "title": "Calculator forms have accessible names; step indicator does not mark the current step"
+    },
+    {
+      "confidence": "observed",
+      "content": {
+        "category": "security",
+        "kind": "nfr",
+        "measured": {
+          "how": "page visits and the network call of the map run",
+          "unit": "requests",
+          "value": "3 GET steps with data in the query, 1 POST"
+        },
+        "statement": "All quote data, including the driver's \"Data urodzenia\", \"Kod pocztowy\" and the consents, is carried in GET query strings between steps (and so ends up in browser history and server logs); only the final \"Kup polisę\" uses POST. The purchase POST returned status 200 with no console errors.",
+        "title": "Quote data and consents travel in the URL"
+      },
+      "evidence": [
+        {
+          "id": "01a148de-8704-7000-97f3-46a7f60b274c",
+          "kind": "network_call",
+          "run": "01a148dd-2f17-7000-ae2a-4e1aba488607"
+        },
+        {
+          "id": "01a148de-7acd-7000-9a04-fe9412510423",
+          "kind": "page_visit",
+          "run": "01a148dd-2f17-7000-ae2a-4e1aba488607"
+        }
+      ],
+      "key": "NFR-003",
+      "kind": "nfr",
+      "status": "draft",
+      "title": "Quote data and consents travel in the URL"
+    },
+    {
+      "confidence": "needs_confirmation",
+      "content": {
+        "impact_if_wrong": "If the server also keeps a session, deep links or the \"Zmień opcje\" link may behave differently, and a re-creation without that session would miss server-side checks.",
+        "kind": "assumption",
+        "statement": "The calculator state lives only in the URL query string (REQ-002) and in the final POST; the server keeps nothing between steps, so any step URL with the right parameters can be opened directly and the server recomputes the premium from them.",
+        "title": "The calculator keeps no server-side session"
+      },
+      "evidence": [
+        {
+          "id": "01a14901-74e2-7000-8ff5-4f4c3932892d",
+          "kind": "doc_record",
+          "run": null
+        },
+        {
+          "id": "01a148de-7acd-7000-9a04-fe9412510423",
+          "kind": "page_visit",
+          "run": "01a148dd-2f17-7000-ae2a-4e1aba488607"
+        }
+      ],
+      "key": "ASM-002",
+      "kind": "assumption",
+      "status": "draft",
+      "title": "The calculator keeps no server-side session"
+    },
+    {
+      "confidence": "needs_confirmation",
+      "content": {
+        "answer_needed_from": "sme",
+        "kind": "open_question",
+        "question": "After the application is accepted (\"Wniosek przyjęty\"), how is payment taken, when and how does the consultant contact the customer (phone, e-mail; no contact data is asked for in the calculator), when is the policy issued, and how is the \"Numer wniosku\" (seen as RP/2026/0001) numbered?",
+        "title": "What happens after \"Kup polisę\"?",
+        "why_it_matters": "The confirmation promises consultant contact and payment that the portal does not show; a re-created system must reproduce the back-office side and the numbering."
+      },
+      "evidence": [
+        {
+          "id": "01a148de-8704-7000-97f3-46a7f60b274c",
+          "kind": "network_call",
+          "run": "01a148dd-2f17-7000-ae2a-4e1aba488607"
+        },
+        {
+          "id": "01a148de-86d8-7000-9309-4349aaae8045",
+          "kind": "state",
+          "run": "01a148dd-2f17-7000-ae2a-4e1aba488607"
+        }
+      ],
+      "key": "OQ-001",
+      "kind": "open_question",
+      "status": "draft",
+      "title": "What happens after \"Kup polisę\"?"
+    },
+    {
+      "confidence": "needs_confirmation",
+      "content": {
+        "answer_needed_from": "sme",
+        "kind": "open_question",
+        "question": "The limits \"Rok produkcji\" max 2026, \"Rok uzyskania prawa jazdy\" max 2026 and \"Data urodzenia\" from 1950-01-16 to 2008-01-15 look derived from a reference date of 2026-01-15 (age 18 to 75). Are they computed from the current date on each visit, or fixed? And does the server check them again, or only the browser?",
+        "title": "Are the year and date limits fixed or relative to today?",
+        "why_it_matters": "A re-created calculator must compute the same bounds; a fixed date would freeze the portal in time."
+      },
+      "evidence": [
+        {
+          "id": "01a148dd-7247-7000-9b9e-1869a6bb238b",
+          "kind": "form",
+          "run": "01a148dd-2f17-7000-ae2a-4e1aba488607"
+        },
+        {
+          "id": "01a148de-0707-7000-bfe9-5c15c8973895",
+          "kind": "form",
+          "run": "01a148dd-2f17-7000-ae2a-4e1aba488607"
+        }
+      ],
+      "key": "OQ-002",
+      "kind": "open_question",
+      "status": "draft",
+      "title": "Are the year and date limits fixed or relative to today?"
+    },
+    {
+      "confidence": "needs_confirmation",
+      "content": {
+        "answer_needed_from": "either",
+        "kind": "open_question",
+        "question": "When the vehicle in \"Rok produkcji\" is 15 years old or older, what does the portal do with \"OC + Autocasco (AC)\": is the option disabled, is an error shown after \"Oblicz składkę\", or is AC dropped from the premium? Is the age counted from the year only?",
+        "title": "How is the 15-year AC limit enforced?",
+        "why_it_matters": "BR-011 is known only from the note on the page; the re-created portal needs the exact behaviour and message."
+      },
+      "evidence": [
+        {
+          "id": "01a148de-42ff-7001-b4db-971cb7465b8b",
+          "kind": "screen_region",
+          "run": "01a148dd-2f17-7000-ae2a-4e1aba488607"
+        }
+      ],
+      "key": "OQ-003",
+      "kind": "open_question",
+      "status": "draft",
+      "title": "How is the 15-year AC limit enforced?"
+    },
+    {
+      "confidence": "needs_confirmation",
+      "content": {
+        "answer_needed_from": "either",
+        "kind": "open_question",
+        "question": "Which values of \"Kod rabatowy\" are valid, what discount does each give (WIOSNA10 gave −180,00 zł, which looks like 10%), can a code expire, and what does the result page show for a code that matches the format but is unknown?",
+        "title": "Which discount codes exist and what does an unknown code do?",
+        "why_it_matters": "The discount is part of the premium computation (BR-014) and the message for a rejected code is not documented."
+      },
+      "evidence": [
+        {
+          "id": "01a148de-42ff-7001-b4db-971cb7465b8b",
+          "kind": "screen_region",
+          "run": "01a148dd-2f17-7000-ae2a-4e1aba488607"
+        },
+        {
+          "id": "01a148de-7a83-7000-ad75-869b5fe717c8",
+          "kind": "state",
+          "run": "01a148dd-2f17-7000-ae2a-4e1aba488607"
+        }
+      ],
+      "key": "OQ-004",
+      "kind": "open_question",
+      "status": "draft",
+      "title": "Which discount codes exist and what does an unknown code do?"
+    },
+    {
+      "confidence": "needs_confirmation",
+      "content": {
+        "answer_needed_from": "either",
+        "kind": "open_question",
+        "question": "Which driver ages and engine capacities give which values of \"Współczynnik wieku\" and \"Współczynnik silnika\" (only 1,00 was seen, for a 36-year-old driver and 1600 cm³)? Is the no-claims discount a flat 10% from 5 years, or does it grow? Does \"Kod pocztowy\" or \"Marka\" affect the premium? What is the rounding rule?",
+        "title": "Tables behind \"Współczynnik wieku\", \"Współczynnik silnika\" and the no-claims discount",
+        "why_it_matters": "BR-014 can only be reproduced exactly with these tables; one observed case cannot pin them down."
+      },
+      "evidence": [
+        {
+          "id": "01a148de-7a83-7000-ad75-869b5fe717c8",
+          "kind": "screen_region",
+          "run": "01a148dd-2f17-7000-ae2a-4e1aba488607"
+        }
+      ],
+      "key": "OQ-005",
+      "kind": "open_question",
+      "status": "draft",
+      "title": "Tables behind \"Współczynnik wieku\", \"Współczynnik silnika\" and the no-claims discount"
+    },
+    {
+      "confidence": "needs_confirmation",
+      "content": {
+        "answer_needed_from": "either",
+        "kind": "open_question",
+        "question": "With \"OC + Autocasco (AC)\" and \"Wartość pojazdu (zł)\" 50000 the trace reached \"Twoja składka\", but the amounts it showed were not kept apart from an earlier recording of that page. What does the table \"Wyliczenie składki rocznej\" show for AC with a vehicle value, and how does the value enter \"Składka bazowa\" (earlier, AC without a value gave 2 000,00 zł)?",
+        "title": "How does \"Wartość pojazdu (zł)\" change the AC premium?",
+        "why_it_matters": "The premium computation (BR-014) cannot be re-created for AC without knowing the role of the vehicle value."
+      },
+      "evidence": [
+        {
+          "id": "01a14b1a-d556-7000-9335-a8311f9a068c",
+          "kind": "decision",
+          "run": "01a14b1a-1be6-7000-922f-1c6f3ac81d4e"
+        },
+        {
+          "id": "01a14b1a-d55f-7002-85d0-89d1d0e2370e",
+          "kind": "page_visit",
+          "run": "01a14b1a-1be6-7000-922f-1c6f3ac81d4e"
+        },
+        {
+          "id": "01a14b1a-d566-7001-b957-9ec609c04f33",
+          "kind": "process_step",
+          "run": "01a14b1a-1be6-7000-922f-1c6f3ac81d4e"
+        }
+      ],
+      "key": "OQ-008",
+      "kind": "open_question",
+      "status": "draft",
+      "title": "How does \"Wartość pojazdu (zł)\" change the AC premium?"
+    },
+    {
+      "confidence": "needs_confirmation",
+      "content": {
+        "answer_needed_from": "either",
+        "kind": "open_question",
+        "question": "The first map run submitted the options step with \"OC + Autocasco (AC)\" and no vehicle value (zakres=oc_ac without wartosc_pojazdu) and got a result (\"Składka łączna\" 1 719,00 zł); the later trace shows a required \"Wartość pojazdu (zł)\" box after choosing AC. Was the box added to the portal between the scans, or does the server accept an AC quote without a vehicle value (for example from a hand-made URL)?",
+        "title": "Was \"Wartość pojazdu (zł)\" always required for AC?",
+        "why_it_matters": "Decides whether BR-021 is enforced by the server or only by the browser form, and whether the AC result without a value is still valid behaviour."
+      },
+      "evidence": [
+        {
+          "id": "01a148de-7acb-7000-92cf-f761139dcd76",
+          "kind": "edge",
+          "run": "01a148dd-2f17-7000-ae2a-4e1aba488607"
+        },
+        {
+          "id": "01a14b1a-c6f5-700e-898e-49f857208081",
+          "kind": "form",
+          "run": "01a14b1a-1be6-7000-922f-1c6f3ac81d4e"
+        },
+        {
+          "id": "01a148de-7acd-7000-9a04-fe9412510423",
+          "kind": "page_visit",
+          "run": "01a148dd-2f17-7000-ae2a-4e1aba488607"
+        }
+      ],
+      "key": "OQ-009",
+      "kind": "open_question",
+      "status": "draft",
+      "title": "Was \"Wartość pojazdu (zł)\" always required for AC?"
+    },
+    {
+      "confidence": "inferred",
+      "content": {
+        "kind": "followup",
+        "persona": "guest",
+        "question": "What are the ordered steps, values and outcomes of the calculator when traced, including the variants \"Tylko OC\", no \"Assistance\", no \"Kod rabatowy\", and the return via \"Zmień opcje\"?",
+        "reason": "PROC-001 and its use case are written from map data only (observed_extent map_only); a trace would give process steps to cite and show the variants and the second \"Opcje\" variant.",
+        "suggested_mode": "trace",
+        "target": {
+          "goal": "Calculate the car insurance premium in the four calculator steps and submit the purchase with \"Kup polisę\".",
+          "process_name": "Kalkulator OC/AC: wycena i zakup polisy samochodowej"
+        },
+        "title": "Trace the OC/AC calculator and purchase"
+      },
+      "evidence": [
+        {
+          "id": "01a148fe-efd3-7000-836c-9ae5b6b39fcd",
+          "kind": "doc_record",
+          "run": null
+        },
+        {
+          "id": "01a148df-3ec1-7001-b1fb-fb229cf20267",
+          "kind": "edge",
+          "run": "01a148dd-2f17-7000-ae2a-4e1aba488607"
+        }
+      ],
+      "key": "FUP-001",
+      "kind": "followup",
+      "status": "draft",
+      "title": "Trace the OC/AC calculator and purchase"
+    },
+    {
+      "confidence": "inferred",
+      "content": {
+        "kind": "followup",
+        "persona": "guest",
+        "question": "Still not tried by the probes: \"Kod pocztowy\" not in NN-NNN, \"Rok produkcji\" 2005 or older with \"OC + Autocasco (AC)\", \"Data urodzenia\" outside 18 to 75 years, \"Pojemność silnika (cm³)\" outside 50 to 8000, \"Rok produkcji\" above 2026, an unknown \"Kod rabatowy\" in the right format, \"Dalej\" with one consent only, and an older \"Rok uzyskania prawa jazdy\" than the 18th birthday.",
+        "reason": "BR-011, BR-005, BR-006 and BR-004 rest on hints or field constraints only, and OQ-003 and OQ-004 need the observed behaviour; the probes so far covered empty fields, year boundaries and the code pattern.",
+        "suggested_mode": "trace",
+        "target": {
+          "goal": "Probe the forms \"Dane pojazdu\", \"Dane kierowcy\" and \"Opcje\" with the remaining invalid values to record their messages and the AC age limit.",
+          "process_name": "Kalkulator OC/AC: wycena i zakup polisy samochodowej"
+        },
+        "title": "Probe the calculator forms for validation and the AC age limit"
+      },
+      "evidence": [
+        {
+          "id": "01a148dd-7247-7000-9b9e-1869a6bb238b",
+          "kind": "form",
+          "run": "01a148dd-2f17-7000-ae2a-4e1aba488607"
+        },
+        {
+          "id": "01a148de-0707-7000-bfe9-5c15c8973895",
+          "kind": "form",
+          "run": "01a148dd-2f17-7000-ae2a-4e1aba488607"
+        },
+        {
+          "id": "01a148de-432f-7000-bd50-88d0b85cf0a0",
+          "kind": "form",
+          "run": "01a148dd-2f17-7000-ae2a-4e1aba488607"
+        },
+        {
+          "id": "01a14983-b4e4-7000-963a-3b18bd93ba2e",
+          "kind": "state",
+          "run": "01a149a3-e5fc-7000-8106-d2ad95b84f4b"
+        }
+      ],
+      "key": "FUP-002",
+      "kind": "followup",
+      "status": "draft",
+      "title": "Probe the calculator forms for validation and the AC age limit"
+    },
+    {
+      "confidence": "inferred",
+      "content": {
+        "kind": "followup",
+        "persona": "guest",
+        "question": "When \"Kalkulator OC/AC — opcje\" is opened by \"Zmień opcje\" with zakres, assistance and kod_rabatowy in the URL, are the previous choices preselected, and does \"Oblicz składkę\" recompute the result?",
+        "reason": "The second variant of SCR-004 was recorded but its actions were skipped at the depth limit; the alternate flow of UC-001 stops there.",
+        "suggested_mode": "map",
+        "target": {
+          "url": "/kalkulator/opcje?marka=toyota&model=Testowy&rok_produkcji=2020&pojemnosc=1600&kod_pocztowy=00-950&data_urodzenia=1990-01-01&rok_prawa_jazdy=2010&lata_bezszkodowe=6&zgoda_dane=tak&zgoda_owu=tak&zakres=oc_ac&assistance=tak&kod_rabatowy=WIOSNA10"
+        },
+        "title": "Map the \"Opcje\" screen reached by \"Zmień opcje\""
+      },
+      "evidence": [
+        {
+          "id": "01a148df-3eca-7006-91ff-ecaf5158d1cb",
+          "kind": "decision",
+          "run": "01a148dd-2f17-7000-ae2a-4e1aba488607"
+        },
+        {
+          "id": "01a148df-3ec1-7001-b1fb-fb229cf20267",
+          "kind": "edge",
+          "run": "01a148dd-2f17-7000-ae2a-4e1aba488607"
+        }
+      ],
+      "key": "FUP-003",
+      "kind": "followup",
+      "status": "draft",
+      "title": "Map the \"Opcje\" screen reached by \"Zmień opcje\""
+    },
+    {
+      "confidence": "needs_confirmation",
+      "content": {
+        "kind": "followup",
+        "persona": "guest",
+        "question": "What does \"Twoja składka\" show for \"OC + Autocasco (AC)\" with two different vehicle values, what does the box say for a value below 5000 or above 500000, and does choosing \"Tylko OC\" again hide the box?",
+        "reason": "Answers OQ-008 and OQ-009 and completes BR-014, BR-021 and BR-022 for PROC-001 and UC-001 (alternate flow 7b).",
+        "suggested_mode": "trace",
+        "target": {
+          "goal": "Reach the premium result with AC and vehicle values 10000 and 100000, recording each result table, and probe the vehicle value box with 4999 and 500001.",
+          "process_name": "Oblicz składkę OC + AC"
+        },
+        "title": "Trace and probe the AC quote with \"Wartość pojazdu (zł)\""
+      },
+      "evidence": [
+        {
+          "id": "01a14b1a-c6f5-700e-898e-49f857208081",
+          "kind": "form",
+          "run": "01a14b1a-1be6-7000-922f-1c6f3ac81d4e"
+        },
+        {
+          "id": "01a14b1a-1bf9-7000-b622-6a00f71270dc",
+          "kind": "process",
+          "run": "01a14b1a-1be6-7000-922f-1c6f3ac81d4e"
+        }
+      ],
+      "key": "FUP-007",
+      "kind": "followup",
+      "status": "draft",
+      "title": "Trace and probe the AC quote with \"Wartość pojazdu (zł)\""
+    }
+  ],
+  "steps": [
+    {
+      "also_cited": false,
+      "elements": [
+        {
+          "kind": "action",
+          "leads_to": [
+            "/"
+          ],
+          "name": "Towarzystwo Ubezpieczeń Wzorcowych",
+          "role": "link",
+          "tag": "A"
+        },
+        {
+          "kind": "action",
+          "leads_to": [
+            "/"
+          ],
+          "name": "Start",
+          "role": "link",
+          "tag": "B"
+        },
+        {
+          "kind": "action",
+          "leads_to": [
+            "/ubezpieczenia/samochod"
+          ],
+          "name": "Samochód",
+          "role": "link",
+          "tag": "C"
+        },
+        {
+          "kind": "action",
+          "leads_to": [
+            "/ubezpieczenia/dom"
+          ],
+          "name": "Dom",
+          "role": "link",
+          "tag": "D"
+        },
+        {
+          "kind": "action",
+          "leads_to": [
+            "/ubezpieczenia/podroze"
+          ],
+          "name": "Podróże",
+          "role": "link",
+          "tag": "E"
+        },
+        {
+          "kind": "action",
+          "leads_to": [
+            "/porownanie"
+          ],
+          "name": "Porównanie",
+          "role": "link",
+          "tag": "F"
+        },
+        {
+          "kind": "action",
+          "leads_to": [
+            "/kalkulator/pojazd"
+          ],
+          "name": "Oblicz składkę",
+          "role": "link",
+          "tag": "G"
+        },
+        {
+          "kind": "action",
+          "leads_to": [
+            "/kontakt"
+          ],
+          "name": "Kontakt",
+          "role": "link",
+          "tag": "H"
+        },
+        {
+          "kind": "action",
+          "leads_to": [
+            "/faq"
+          ],
+          "name": "FAQ",
+          "role": "link",
+          "tag": "I"
+        },
+        {
+          "kind": "action",
+          "leads_to": [
+            "/slowniczek"
+          ],
+          "name": "Słowniczek",
+          "role": "link",
+          "tag": "J"
+        },
+        {
+          "kind": "action",
+          "leads_to": [
+            "/moje-polisy"
+          ],
+          "name": "Moje polisy",
+          "role": "link",
+          "tag": "K"
+        },
+        {
+          "kind": "action",
+          "leads_to": [
+            "/logowanie"
+          ],
+          "name": "Zaloguj się",
+          "role": "link",
+          "tag": "L"
+        },
+        {
+          "kind": "action",
+          "leads_to": [
+            "/ubezpieczenia/samochod"
+          ],
+          "name": "Ubezpieczenie samochodu (OC i AC)",
+          "role": "link",
+          "tag": "M"
+        },
+        {
+          "kind": "action",
+          "leads_to": [
+            "/ubezpieczenia/dom"
+          ],
+          "name": "Ubezpieczenie domu i mieszkania",
+          "role": "link",
+          "tag": "N"
+        },
+        {
+          "kind": "action",
+          "leads_to": [
+            "/ubezpieczenia/podroze"
+          ],
+          "name": "Ubezpieczenie turystyczne",
+          "role": "link",
+          "tag": "O"
+        },
+        {
+          "kind": "action",
+          "leads_to": [
+            "/kalkulator/pojazd"
+          ],
+          "name": "Oblicz składkę OC/AC",
+          "role": "link",
+          "tag": "P"
+        },
+        {
+          "kind": "action",
+          "leads_to": [
+            "/porownanie"
+          ],
+          "name": "Porównaj produkty",
+          "role": "link",
+          "tag": "Q"
+        },
+        {
+          "kind": "action",
+          "leads_to": [
+            "/moje-polisy/przedluz"
+          ],
+          "name": "Przedłuż polisę",
+          "role": "link",
+          "tag": "R"
+        },
+        {
+          "kind": "action",
+          "leads_to": [
+            "/kontakt"
+          ],
+          "name": "Napisz do nas",
+          "role": "link",
+          "tag": "S"
+        }
+      ],
+      "fields": [],
+      "n": 1,
+      "records": [
+        "PROC-001",
+        "SCR-003",
+        "SCR-004",
+        "FUP-007"
+      ],
+      "route": "/",
+      "state_id": "01a148dd-3aeb-7000-b722-0757ee45112e",
+      "states": [
+        {
+          "form_step": null,
+          "image": "images/step-1-1-main.png",
+          "kind": "main",
+          "layout_ref": "c0cc92e401ac56b61183277e7d69cae68e22480ec5789edc7a6d01983ec97f80.json",
+          "reached_by": [
+            "\"Start\" on /faq",
+            "\"Towarzystwo Ubezpieczeń Wzorcowych\" on /faq",
+            "\"Start\" on /kalkulator/kierowca",
+            "\"Towarzystwo Ubezpieczeń Wzorcowych\" on /kalkulator/kierowca",
+            "\"Start\" on /kalkulator/opcje",
+            "\"Towarzystwo Ubezpieczeń Wzorcowych\" on /kalkulator/opcje",
+            "its address, opened directly"
+          ],
+          "screenshot_ref": "2088a3b62ecc72f63f3428812600b9c2f4ee57085e74adbdc4608664b4c305ac.png",
+          "state_id": "01a148dd-3aeb-7000-b722-0757ee45112e",
+          "state_ids": [
+            "01a148dd-3aeb-7000-b722-0757ee45112e"
+          ],
+          "title": "Ubezpieczenia dla Ciebie | Towarzystwo Ubezpieczeń Wzorcowych",
+          "variant": null,
+          "variants": 1,
+          "wireframe_svg_ref": "4bb39a87b0b7a76a282a8ad3eb21a6706103c13b74d165d2377f32f8c7fd59ab.svg"
+        },
+        {
+          "form_step": null,
+          "image": "images/step-1-2-technical.png",
+          "kind": "technical",
+          "layout_ref": "56cb0d46f6640c580e091036d4dcd495c186bfb1905f685b5da2df4224d3d7a9.json",
+          "reached_by": [
+            "\"Dalej\" on /kalkulator/kierowca",
+            "\"Oblicz składkę\" on /kalkulator/opcje",
+            "\"Dalej\" on /kalkulator/pojazd",
+            "\"Wyślij zapytanie\" on /kontakt",
+            "\"Porównaj\" on /porownanie"
+          ],
+          "screenshot_ref": "031955752f3d332d1394c71c5b0cda3009f2ba39837c91e593ebf3302edf0062.png",
+          "state_id": "01a14949-af1c-7000-9ee1-cd717dfdd271",
+          "state_ids": [
+            "01a14949-af1c-7000-9ee1-cd717dfdd271"
+          ],
+          "title": "Blank page (no title, no content)",
+          "variant": null,
+          "variants": 1,
+          "wireframe_svg_ref": "2fa806ca461a45135335d25deb082d031fe3d844a142b7e80eb38d0a668a7d1a.svg"
+        }
+      ],
+      "title": "Ubezpieczenia dla Ciebie | Towarzystwo Ubezpieczeń Wzorcowych",
+      "validation": [],
+      "wireframe": "images/step-1-wireframe.svg"
+    },
+    {
+      "also_cited": false,
+      "elements": [
+        {
+          "kind": "action",
+          "leads_to": [
+            "/"
+          ],
+          "name": "Towarzystwo Ubezpieczeń Wzorcowych",
+          "role": "link",
+          "tag": "A"
+        },
+        {
+          "kind": "action",
+          "leads_to": [
+            "/"
+          ],
+          "name": "Start",
+          "role": "link",
+          "tag": "B"
+        },
+        {
+          "kind": "action",
+          "leads_to": [
+            "/ubezpieczenia/samochod"
+          ],
+          "name": "Samochód",
+          "role": "link",
+          "tag": "C"
+        },
+        {
+          "kind": "action",
+          "leads_to": [
+            "/ubezpieczenia/dom"
+          ],
+          "name": "Dom",
+          "role": "link",
+          "tag": "D"
+        },
+        {
+          "kind": "action",
+          "leads_to": [
+            "/ubezpieczenia/podroze"
+          ],
+          "name": "Podróże",
+          "role": "link",
+          "tag": "E"
+        },
+        {
+          "kind": "action",
+          "leads_to": [
+            "/porownanie"
+          ],
+          "name": "Porównanie",
+          "role": "link",
+          "tag": "F"
+        },
+        {
+          "kind": "action",
+          "leads_to": [
+            "/kalkulator/pojazd"
+          ],
+          "name": "Oblicz składkę",
+          "role": "link",
+          "tag": "G"
+        },
+        {
+          "kind": "action",
+          "leads_to": [
+            "/kontakt"
+          ],
+          "name": "Kontakt",
+          "role": "link",
+          "tag": "H"
+        },
+        {
+          "kind": "action",
+          "leads_to": [
+            "/faq"
+          ],
+          "name": "FAQ",
+          "role": "link",
+          "tag": "I"
+        },
+        {
+          "kind": "action",
+          "leads_to": [
+            "/slowniczek"
+          ],
+          "name": "Słowniczek",
+          "role": "link",
+          "tag": "J"
+        },
+        {
+          "kind": "action",
+          "leads_to": [
+            "/moje-polisy"
+          ],
+          "name": "Moje polisy",
+          "role": "link",
+          "tag": "K"
+        },
+        {
+          "kind": "action",
+          "leads_to": [
+            "/logowanie"
+          ],
+          "name": "Zaloguj się",
+          "role": "link",
+          "tag": "L"
+        },
+        {
+          "kind": "field",
+          "leads_to": [],
+          "name": "Marka",
+          "role": "combobox",
+          "tag": "1"
+        },
+        {
+          "kind": "field",
+          "leads_to": [],
+          "name": "Model",
+          "role": "textbox",
+          "tag": "2"
+        },
+        {
+          "kind": "field",
+          "leads_to": [],
+          "name": "Rok produkcji",
+          "role": "spinbutton",
+          "tag": "3"
+        },
+        {
+          "kind": "field",
+          "leads_to": [],
+          "name": "Pojemność silnika (cm³)",
+          "role": "spinbutton",
+          "tag": "4"
+        },
+        {
+          "kind": "field",
+          "leads_to": [],
+          "name": "Kod pocztowy",
+          "role": "textbox",
+          "tag": "5"
+        },
+        {
+          "kind": "action",
+          "leads_to": [
+            "/",
+            "/kalkulator/kierowca",
+            "/kalkulator/pojazd"
+          ],
+          "name": "Dalej",
+          "role": "button",
+          "tag": "M"
+        }
+      ],
+      "fields": [
+        {
+          "data_item": "DI-001",
+          "label": "Marka",
+          "name": "marka",
+          "name_en": "Vehicle make",
+          "only_in": null,
+          "options": "— wybierz —, Toyota, Skoda, Volkswagen, Fiat, Inna",
+          "required": true,
+          "type": "select",
+          "validation": "“Please select an item in the list.”"
+        },
+        {
+          "data_item": "DI-002",
+          "label": "Model",
+          "name": "model",
+          "name_en": "Vehicle model",
+          "only_in": null,
+          "options": "",
+          "required": true,
+          "type": "text",
+          "validation": "maxlength 40; “Please fill out this field.”"
+        },
+        {
+          "data_item": "DI-003",
+          "label": "Rok produkcji",
+          "name": "rok_produkcji",
+          "name_en": "Production year",
+          "only_in": null,
+          "options": "",
+          "required": true,
+          "type": "number",
+          "validation": "min 1990; max 2026; “Please fill out this field.”"
+        },
+        {
+          "data_item": "DI-004",
+          "label": "Pojemność silnika (cm³)",
+          "name": "pojemnosc",
+          "name_en": "Engine capacity (cm³)",
+          "only_in": null,
+          "options": "",
+          "required": true,
+          "type": "number",
+          "validation": "min 50; max 8000; “Please fill out this field.”"
+        },
+        {
+          "data_item": "DI-005",
+          "label": "Kod pocztowy",
+          "name": "kod_pocztowy",
+          "name_en": "Postal code",
+          "only_in": null,
+          "options": "",
+          "required": true,
+          "type": "text",
+          "validation": "pattern [0-9]{2}-[0-9]{3}; “Please fill out this field.”"
+        }
+      ],
+      "n": 2,
+      "records": [
+        "PROC-001",
+        "SCR-003",
+        "BR-001",
+        "BR-002",
+        "BR-003",
+        "BR-004",
+        "BR-005",
+        "DI-001",
+        "DI-002",
+        "DI-003",
+        "DI-004",
+        "DI-005",
+        "NFR-002",
+        "OQ-002",
+        "FUP-002",
+        "FUP-007"
+      ],
+      "route": "/kalkulator/pojazd",
+      "state_id": "01a148dd-7213-7000-bc0f-c1bef15714b5",
+      "states": [
+        {
+          "form_step": {
+            "index": 1,
+            "label": "Dane pojazdu"
+          },
+          "image": "images/step-2-1-main.png",
+          "kind": "main",
+          "layout_ref": "4f5b5e3bd5dd62d6fd593eb5da23598305bbe60d8efc3c2a50ffd48a032a9d0a.json",
+          "reached_by": [
+            "\"Oblicz składkę\" on /",
+            "\"Oblicz składkę OC/AC\" on /",
+            "\"Oblicz składkę\" on /faq",
+            "\"Oblicz składkę\" on /kalkulator/kierowca",
+            "\"Oblicz składkę\" on /kalkulator/opcje",
+            "\"Oblicz składkę\" on /kalkulator/wynik",
+            "its address, opened directly"
+          ],
+          "screenshot_ref": "f61c1f92c7d1277a1830e4f44fca72a899f79368e8a33d2615423498cbac48a4.png",
+          "state_id": "01a148dd-7213-7000-bc0f-c1bef15714b5",
+          "state_ids": [
+            "01a148dd-7213-7000-bc0f-c1bef15714b5",
+            "01a14983-b1fb-7000-9951-08c83bb4dcd7",
+            "01a14983-b4e4-7000-963a-3b18bd93ba2e",
+            "01a14983-e6d7-7000-88f1-7d1b3c0c78d6",
+            "01a14983-e9c4-7000-8c8a-bcb07c4013d5",
+            "01a14b1a-4746-7000-a91f-3a1ea4bff452",
+            "01a14b1a-5223-7000-90c0-a4b5483daa68",
+            "01a14b1a-5c3e-7000-95d9-07a5958e7c1a"
+          ],
+          "title": "Kalkulator OC/AC — dane pojazdu | Towarzystwo Ubezpieczeń Wzorcowych",
+          "variant": null,
+          "variants": 8,
+          "wireframe_svg_ref": "e60b5a82ed1a18f67f8b899eb4344bb48402fc4e7fe6458aa808e15c3eacc84e.svg"
+        },
+        {
+          "form_step": null,
+          "image": "images/step-2-2-technical.png",
+          "kind": "technical",
+          "layout_ref": "89c0d6f588914b84b2cfd62f7f69c8ffd6ceab09ec302102e80cdc5878a7d370.json",
+          "reached_by": [
+            "\"Dalej\" on /kalkulator/pojazd"
+          ],
+          "screenshot_ref": "bfdb81d6b49415f5d589aa966914d127ca23487bbfac865a621710cebbb2047f.png",
+          "state_id": "01a14983-aa24-7000-88cf-2788eef4fe4a",
+          "state_ids": [
+            "01a14983-aa24-7000-88cf-2788eef4fe4a"
+          ],
+          "title": "500",
+          "variant": null,
+          "variants": 1,
+          "wireframe_svg_ref": "669e31d406f27abd032c999c2723de63e61c3642827e11e4ebb83ab01a0d6332.svg"
+        }
+      ],
+      "title": "Kalkulator OC/AC — dane pojazdu | Towarzystwo Ubezpieczeń Wzorcowych",
+      "validation": [
+        {
+          "accepted": false,
+          "field": "Rok produkcji",
+          "message": "Value must be greater than or equal to 1990.",
+          "probe": "boundary",
+          "source": "native",
+          "tried": "typed \"1989\""
+        },
+        {
+          "accepted": false,
+          "field": "Marka",
+          "message": "Please select an item in the list.",
+          "probe": "required-empty-all",
+          "source": "native",
+          "tried": "every field left empty"
+        },
+        {
+          "accepted": false,
+          "field": "Model",
+          "message": "Please fill out this field.",
+          "probe": "required-empty-all",
+          "source": "native",
+          "tried": "every field left empty"
+        },
+        {
+          "accepted": false,
+          "field": "Rok produkcji",
+          "message": "Please fill out this field.",
+          "probe": "required-empty-all",
+          "source": "native",
+          "tried": "every field left empty"
+        },
+        {
+          "accepted": false,
+          "field": "Pojemność silnika (cm³)",
+          "message": "Please fill out this field.",
+          "probe": "required-empty-all",
+          "source": "native",
+          "tried": "every field left empty"
+        },
+        {
+          "accepted": false,
+          "field": "Kod pocztowy",
+          "message": "Please fill out this field.",
+          "probe": "required-empty-all",
+          "source": "native",
+          "tried": "every field left empty"
+        },
+        {
+          "accepted": false,
+          "field": "Marka",
+          "message": "Please select an item in the list.",
+          "probe": "required-empty-one",
+          "source": "native",
+          "tried": "left empty"
+        },
+        {
+          "accepted": false,
+          "field": "Model",
+          "message": "Please fill out this field.",
+          "probe": "required-empty-one",
+          "source": "native",
+          "tried": "left empty"
+        },
+        {
+          "accepted": false,
+          "field": "Pojemność silnika (cm³)",
+          "message": "Please fill out this field.",
+          "probe": "wrong-format",
+          "source": "native",
+          "tried": "typed \"abc\""
+        },
+        {
+          "accepted": false,
+          "field": "Rok produkcji",
+          "message": "Please fill out this field.",
+          "probe": "wrong-format",
+          "source": "native",
+          "tried": "typed \"abc\""
+        }
+      ],
+      "wireframe": "images/step-2-wireframe.svg"
+    },
+    {
+      "also_cited": false,
+      "elements": [
+        {
+          "kind": "action",
+          "leads_to": [
+            "/"
+          ],
+          "name": "Towarzystwo Ubezpieczeń Wzorcowych",
+          "role": "link",
+          "tag": "A"
+        },
+        {
+          "kind": "action",
+          "leads_to": [
+            "/"
+          ],
+          "name": "Start",
+          "role": "link",
+          "tag": "B"
+        },
+        {
+          "kind": "action",
+          "leads_to": [
+            "/ubezpieczenia/samochod"
+          ],
+          "name": "Samochód",
+          "role": "link",
+          "tag": "C"
+        },
+        {
+          "kind": "action",
+          "leads_to": [
+            "/ubezpieczenia/dom"
+          ],
+          "name": "Dom",
+          "role": "link",
+          "tag": "D"
+        },
+        {
+          "kind": "action",
+          "leads_to": [
+            "/ubezpieczenia/podroze"
+          ],
+          "name": "Podróże",
+          "role": "link",
+          "tag": "E"
+        },
+        {
+          "kind": "action",
+          "leads_to": [
+            "/porownanie"
+          ],
+          "name": "Porównanie",
+          "role": "link",
+          "tag": "F"
+        },
+        {
+          "kind": "action",
+          "leads_to": [
+            "/kalkulator/pojazd"
+          ],
+          "name": "Oblicz składkę",
+          "role": "link",
+          "tag": "G"
+        },
+        {
+          "kind": "action",
+          "leads_to": [
+            "/kontakt"
+          ],
+          "name": "Kontakt",
+          "role": "link",
+          "tag": "H"
+        },
+        {
+          "kind": "action",
+          "leads_to": [
+            "/faq"
+          ],
+          "name": "FAQ",
+          "role": "link",
+          "tag": "I"
+        },
+        {
+          "kind": "action",
+          "leads_to": [
+            "/slowniczek"
+          ],
+          "name": "Słowniczek",
+          "role": "link",
+          "tag": "J"
+        },
+        {
+          "kind": "action",
+          "leads_to": [
+            "/moje-polisy"
+          ],
+          "name": "Moje polisy",
+          "role": "link",
+          "tag": "K"
+        },
+        {
+          "kind": "action",
+          "leads_to": [
+            "/logowanie"
+          ],
+          "name": "Zaloguj się",
+          "role": "link",
+          "tag": "L"
+        },
+        {
+          "kind": "field",
+          "leads_to": [],
+          "name": "Data urodzenia",
+          "role": "textbox",
+          "tag": "1"
+        },
+        {
+          "kind": "field",
+          "leads_to": [],
+          "name": "Rok uzyskania prawa jazdy",
+          "role": "spinbutton",
+          "tag": "2"
+        },
+        {
+          "kind": "field",
+          "leads_to": [],
+          "name": "Lata bezszkodowej jazdy",
+          "role": "spinbutton",
+          "tag": "3"
+        },
+        {
+          "kind": "field",
+          "leads_to": [],
+          "name": "Zgoda na przetwarzanie danych osobowych",
+          "role": "checkbox",
+          "tag": "4"
+        },
+        {
+          "kind": "field",
+          "leads_to": [],
+          "name": "Oświadczam, że zapoznałem się z OWU",
+          "role": "checkbox",
+          "tag": "5"
+        },
+        {
+          "kind": "action",
+          "leads_to": [
+            "/",
+            "/kalkulator/kierowca",
+            "/kalkulator/opcje"
+          ],
+          "name": "Dalej",
+          "role": "button",
+          "tag": "M"
+        }
+      ],
+      "fields": [
+        {
+          "data_item": "DI-006",
+          "label": "Data urodzenia",
+          "name": "data_urodzenia",
+          "name_en": "Driver's date of birth",
+          "only_in": null,
+          "options": "",
+          "required": true,
+          "type": "date",
+          "validation": "min 1950-01-16; max 2008-01-15; “Please fill out this field.”"
+        },
+        {
+          "data_item": "DI-007",
+          "label": "Rok uzyskania prawa jazdy",
+          "name": "rok_prawa_jazdy",
+          "name_en": "Year the driving licence was obtained",
+          "only_in": null,
+          "options": "",
+          "required": true,
+          "type": "number",
+          "validation": "min 1968; max 2026; “Please fill out this field.”"
+        },
+        {
+          "data_item": "DI-008",
+          "label": "Lata bezszkodowej jazdy",
+          "name": "lata_bezszkodowe",
+          "name_en": "Claim-free driving years",
+          "only_in": null,
+          "options": "",
+          "required": true,
+          "type": "number",
+          "validation": "min 0; max 60; “Please fill out this field.”"
+        },
+        {
+          "data_item": "DI-009",
+          "label": "Zgoda na przetwarzanie danych osobowych",
+          "name": "zgoda_dane",
+          "name_en": "Consent to personal data processing",
+          "only_in": null,
+          "options": "",
+          "required": true,
+          "type": "checkbox",
+          "validation": "“Please check this box if you want to proceed.”"
+        },
+        {
+          "data_item": "DI-010",
+          "label": "Oświadczam, że zapoznałem się z OWU",
+          "name": "zgoda_owu",
+          "name_en": "Declaration of having read the general insurance terms (OWU)",
+          "only_in": null,
+          "options": "",
+          "required": true,
+          "type": "checkbox",
+          "validation": "“Please check this box if you want to proceed.”"
+        }
+      ],
+      "n": 3,
+      "records": [
+        "PROC-001",
+        "SCR-003",
+        "SCR-004",
+        "BR-006",
+        "BR-007",
+        "BR-008",
+        "BR-009",
+        "BR-013",
+        "DI-006",
+        "DI-007",
+        "DI-008",
+        "DI-009",
+        "DI-010",
+        "GL-006",
+        "NFR-002",
+        "OQ-002",
+        "FUP-002",
+        "FUP-007"
+      ],
+      "route": "/kalkulator/kierowca",
+      "state_id": "01a148de-06d6-7001-9d80-bbe01feafe74",
+      "states": [
+        {
+          "form_step": {
+            "index": 1,
+            "label": "Dane kierowcy"
+          },
+          "image": "images/step-3-1-main.png",
+          "kind": "main",
+          "layout_ref": "cb19a63b720f6eb5980b81de8a9c711257806d792f94b3441c037ad7aa21647f.json",
+          "reached_by": [
+            "\"Dalej\" on /kalkulator/pojazd",
+            "its address, opened directly"
+          ],
+          "screenshot_ref": "df9c4a62172c04470e8de9a36636d1f86d4d4d5e01587c499123becdd54b18f0.png",
+          "state_id": "01a148de-06d6-7001-9d80-bbe01feafe74",
+          "state_ids": [
+            "01a148de-06d6-7001-9d80-bbe01feafe74",
+            "01a14949-b346-7000-9bde-a7e92b23b817",
+            "01a14949-bb23-7000-868e-294361b8d547",
+            "01a14983-1133-7000-b602-fd3089fa171c",
+            "01a14983-1cfa-7000-9e61-760511b50e1b",
+            "01a14b1a-831b-7000-b836-2c61851d6d18"
+          ],
+          "title": "Kalkulator OC/AC — dane kierowcy | Towarzystwo Ubezpieczeń Wzorcowych",
+          "variant": null,
+          "variants": 6,
+          "wireframe_svg_ref": "8d9e7b47170b68d69800cd6df7ee8ef972719b8081c7518d323ade37da9673df.svg"
+        },
+        {
+          "form_step": null,
+          "image": "images/step-3-2-technical.png",
+          "kind": "technical",
+          "layout_ref": "89c0d6f588914b84b2cfd62f7f69c8ffd6ceab09ec302102e80cdc5878a7d370.json",
+          "reached_by": [
+            "\"Dalej\" on /kalkulator/kierowca"
+          ],
+          "screenshot_ref": "bfdb81d6b49415f5d589aa966914d127ca23487bbfac865a621710cebbb2047f.png",
+          "state_id": "01a14949-aa14-7000-866c-230923c8db86",
+          "state_ids": [
+            "01a14949-aa14-7000-866c-230923c8db86"
+          ],
+          "title": "500",
+          "variant": null,
+          "variants": 1,
+          "wireframe_svg_ref": "669e31d406f27abd032c999c2723de63e61c3642827e11e4ebb83ab01a0d6332.svg"
+        }
+      ],
+      "title": "Kalkulator OC/AC — dane kierowcy | Towarzystwo Ubezpieczeń Wzorcowych",
+      "validation": [
+        {
+          "accepted": false,
+          "field": "Rok uzyskania prawa jazdy",
+          "message": "Value must be greater than or equal to 1968.",
+          "probe": "boundary",
+          "source": "native",
+          "tried": "typed \"1967\""
+        },
+        {
+          "accepted": false,
+          "field": "Rok uzyskania prawa jazdy",
+          "message": "Value must be less than or equal to 2026.",
+          "probe": "boundary",
+          "source": "native",
+          "tried": "typed \"2027\""
+        },
+        {
+          "accepted": false,
+          "field": "Data urodzenia",
+          "message": "Please fill out this field.",
+          "probe": "required-empty-all",
+          "source": "native",
+          "tried": "every field left empty"
+        },
+        {
+          "accepted": false,
+          "field": "Rok uzyskania prawa jazdy",
+          "message": "Please fill out this field.",
+          "probe": "required-empty-all",
+          "source": "native",
+          "tried": "every field left empty"
+        },
+        {
+          "accepted": false,
+          "field": "Lata bezszkodowej jazdy",
+          "message": "Please fill out this field.",
+          "probe": "required-empty-all",
+          "source": "native",
+          "tried": "every field left empty"
+        },
+        {
+          "accepted": false,
+          "field": "Zgoda na przetwarzanie danych osobowych",
+          "message": "Please check this box if you want to proceed.",
+          "probe": "required-empty-all",
+          "source": "native",
+          "tried": "every field left empty"
+        },
+        {
+          "accepted": false,
+          "field": "Oświadczam, że zapoznałem się z OWU",
+          "message": "Please check this box if you want to proceed.",
+          "probe": "required-empty-all",
+          "source": "native",
+          "tried": "every field left empty"
+        },
+        {
+          "accepted": false,
+          "field": "Data urodzenia",
+          "message": "Please fill out this field.",
+          "probe": "required-empty-one",
+          "source": "native",
+          "tried": "left empty"
+        },
+        {
+          "accepted": false,
+          "field": "Rok uzyskania prawa jazdy",
+          "message": "Please fill out this field.",
+          "probe": "required-empty-one",
+          "source": "native",
+          "tried": "left empty"
+        },
+        {
+          "accepted": false,
+          "field": "Data urodzenia",
+          "message": "Please fill out this field.",
+          "probe": "wrong-format",
+          "source": "native",
+          "tried": "typed \"yesterday\""
+        },
+        {
+          "accepted": false,
+          "field": "Lata bezszkodowej jazdy",
+          "message": "Please fill out this field.",
+          "probe": "wrong-format",
+          "source": "native",
+          "tried": "typed \"abc\""
+        },
+        {
+          "accepted": false,
+          "field": "Rok uzyskania prawa jazdy",
+          "message": "Please fill out this field.",
+          "probe": "wrong-format",
+          "source": "native",
+          "tried": "typed \"abc\""
+        }
+      ],
+      "wireframe": "images/step-3-wireframe.svg"
+    },
+    {
+      "also_cited": false,
+      "elements": [
+        {
+          "kind": "action",
+          "leads_to": [
+            "/"
+          ],
+          "name": "Towarzystwo Ubezpieczeń Wzorcowych",
+          "role": "link",
+          "tag": "A"
+        },
+        {
+          "kind": "action",
+          "leads_to": [
+            "/"
+          ],
+          "name": "Start",
+          "role": "link",
+          "tag": "B"
+        },
+        {
+          "kind": "action",
+          "leads_to": [
+            "/ubezpieczenia/samochod"
+          ],
+          "name": "Samochód",
+          "role": "link",
+          "tag": "C"
+        },
+        {
+          "kind": "action",
+          "leads_to": [
+            "/ubezpieczenia/dom"
+          ],
+          "name": "Dom",
+          "role": "link",
+          "tag": "D"
+        },
+        {
+          "kind": "action",
+          "leads_to": [
+            "/ubezpieczenia/podroze"
+          ],
+          "name": "Podróże",
+          "role": "link",
+          "tag": "E"
+        },
+        {
+          "kind": "action",
+          "leads_to": [
+            "/porownanie"
+          ],
+          "name": "Porównanie",
+          "role": "link",
+          "tag": "F"
+        },
+        {
+          "kind": "action",
+          "leads_to": [
+            "/",
+            "/kalkulator/opcje",
+            "/kalkulator/pojazd",
+            "/kalkulator/wynik"
+          ],
+          "name": "Oblicz składkę",
+          "role": "link",
+          "tag": "G"
+        },
+        {
+          "kind": "action",
+          "leads_to": [
+            "/kontakt"
+          ],
+          "name": "Kontakt",
+          "role": "link",
+          "tag": "H"
+        },
+        {
+          "kind": "action",
+          "leads_to": [
+            "/faq"
+          ],
+          "name": "FAQ",
+          "role": "link",
+          "tag": "I"
+        },
+        {
+          "kind": "action",
+          "leads_to": [
+            "/slowniczek"
+          ],
+          "name": "Słowniczek",
+          "role": "link",
+          "tag": "J"
+        },
+        {
+          "kind": "action",
+          "leads_to": [
+            "/moje-polisy"
+          ],
+          "name": "Moje polisy",
+          "role": "link",
+          "tag": "K"
+        },
+        {
+          "kind": "action",
+          "leads_to": [
+            "/logowanie"
+          ],
+          "name": "Zaloguj się",
+          "role": "link",
+          "tag": "L"
+        },
+        {
+          "kind": "field",
+          "leads_to": [],
+          "name": "Tylko OC",
+          "role": "radio",
+          "tag": "1"
+        },
+        {
+          "kind": "field",
+          "leads_to": [],
+          "name": "OC + Autocasco (AC)",
+          "role": "radio",
+          "tag": "2"
+        },
+        {
+          "kind": "field",
+          "leads_to": [],
+          "name": "Assistance",
+          "role": "checkbox",
+          "tag": "3"
+        },
+        {
+          "kind": "field",
+          "leads_to": [],
+          "name": "Kod rabatowy",
+          "role": "textbox",
+          "tag": "4"
+        },
+        {
+          "kind": "action",
+          "leads_to": [
+            "/",
+            "/kalkulator/opcje",
+            "/kalkulator/pojazd",
+            "/kalkulator/wynik"
+          ],
+          "name": "Oblicz składkę",
+          "role": "button",
+          "tag": "M"
+        },
+        {
+          "kind": "field",
+          "leads_to": [],
+          "name": "Wartość pojazdu (zł)",
+          "role": "spinbutton",
+          "tag": "5"
+        }
+      ],
+      "fields": [
+        {
+          "data_item": null,
+          "label": "Tylko OC",
+          "name": "zakres",
+          "name_en": null,
+          "only_in": null,
+          "options": "",
+          "required": true,
+          "type": "radio",
+          "validation": ""
+        },
+        {
+          "data_item": null,
+          "label": "OC + Autocasco (AC)",
+          "name": "zakres",
+          "name_en": null,
+          "only_in": null,
+          "options": "",
+          "required": false,
+          "type": "radio",
+          "validation": ""
+        },
+        {
+          "data_item": "DI-012",
+          "label": "Assistance",
+          "name": "assistance",
+          "name_en": "Assistance add-on",
+          "only_in": null,
+          "options": "",
+          "required": false,
+          "type": "checkbox",
+          "validation": ""
+        },
+        {
+          "data_item": "DI-013",
+          "label": "Kod rabatowy",
+          "name": "kod_rabatowy",
+          "name_en": "Discount code",
+          "only_in": null,
+          "options": "",
+          "required": false,
+          "type": "text",
+          "validation": "maxlength 12; pattern [A-Z]+[0-9]{2}"
+        },
+        {
+          "data_item": "DI-029",
+          "label": "Wartość pojazdu (zł)",
+          "name": "wartosc_pojazdu",
+          "name_en": "Vehicle value (PLN)",
+          "only_in": [
+            "b"
+          ],
+          "options": "",
+          "required": true,
+          "type": "number",
+          "validation": "min 5000; max 500000; “Please fill out this field.”"
+        }
+      ],
+      "n": 4,
+      "records": [
+        "PROC-001",
+        "SCR-003",
+        "SCR-004",
+        "SCR-005",
+        "REQ-002",
+        "REQ-004",
+        "BR-009",
+        "BR-010",
+        "BR-011",
+        "BR-012",
+        "BR-021",
+        "BR-022",
+        "BR-023",
+        "DI-001",
+        "DI-003",
+        "DI-011",
+        "DI-012",
+        "DI-013",
+        "DI-029",
+        "GL-007",
+        "GL-016",
+        "NFR-002",
+        "OQ-003",
+        "OQ-004",
+        "OQ-008",
+        "OQ-009",
+        "FUP-001",
+        "FUP-002",
+        "FUP-003",
+        "FUP-007"
+      ],
+      "route": "/kalkulator/opcje",
+      "state_id": "01a148de-42ff-7001-b4db-971cb7465b8b",
+      "states": [
+        {
+          "form_step": {
+            "index": 1,
+            "label": "Opcje"
+          },
+          "image": "images/step-4-1-main.png",
+          "kind": "main",
+          "layout_ref": "fc7ce4748078b6d11fd4fd779c8b95c1a1e86d5826e4dbcb498aa576058810d0.json",
+          "reached_by": [
+            "\"Dalej\" on /kalkulator/kierowca",
+            "\"Zmień opcje\" on /kalkulator/wynik",
+            "its address, opened directly"
+          ],
+          "screenshot_ref": "7896aa71d710b0f304537aed83fc937432ac69969af06888aa10187d91e26b05.png",
+          "state_id": "01a148de-42ff-7001-b4db-971cb7465b8b",
+          "state_ids": [
+            "01a148de-42ff-7001-b4db-971cb7465b8b",
+            "01a148df-3e8a-7000-8e16-b6b4d629a645",
+            "01a14983-4b92-7000-9e50-95af251651b7"
+          ],
+          "title": "Kalkulator OC/AC — opcje | Towarzystwo Ubezpieczeń Wzorcowych",
+          "variant": "a",
+          "variants": 3,
+          "wireframe_svg_ref": "42296eed5b9214d35a834f7ab8e4029471b8e3041edbd483cd68a02a5282b5d9.svg"
+        },
+        {
+          "form_step": {
+            "index": 1,
+            "label": "Opcje"
+          },
+          "image": "images/step-4-2-main.png",
+          "kind": "main",
+          "layout_ref": "2da138c8fc50bb75dbcfd2a53511e8d171541154bb52dd81692398c73a6413d1.json",
+          "reached_by": [
+            "\"OC + Autocasco (AC)\" on /kalkulator/opcje"
+          ],
+          "screenshot_ref": "aadf3a635a6dae4e132fc20023087e347c5425cf59bf78107df7725c127ee1a5.png",
+          "state_id": "01a14b1a-c6f5-7007-a287-efe4c22558a6",
+          "state_ids": [
+            "01a14b1a-c6f5-7007-a287-efe4c22558a6",
+            "01a14b1a-c714-7000-92aa-dfc1ebaf5a2d"
+          ],
+          "title": "Kalkulator OC/AC — opcje | Towarzystwo Ubezpieczeń Wzorcowych",
+          "variant": "b",
+          "variants": 2,
+          "wireframe_svg_ref": "9e2364210ff7a5e6ac25d92b32cf968ec85b375c3bf527d5144e57ce142b35fc.svg"
+        },
+        {
+          "form_step": null,
+          "image": "images/step-4-3-technical.png",
+          "kind": "technical",
+          "layout_ref": "89c0d6f588914b84b2cfd62f7f69c8ffd6ceab09ec302102e80cdc5878a7d370.json",
+          "reached_by": [
+            "\"Oblicz składkę\" on /kalkulator/opcje"
+          ],
+          "screenshot_ref": "bfdb81d6b49415f5d589aa966914d127ca23487bbfac865a621710cebbb2047f.png",
+          "state_id": "01a14983-43d5-7000-bece-1301a5f0b505",
+          "state_ids": [
+            "01a14983-43d5-7000-bece-1301a5f0b505"
+          ],
+          "title": "500",
+          "variant": null,
+          "variants": 1,
+          "wireframe_svg_ref": "669e31d406f27abd032c999c2723de63e61c3642827e11e4ebb83ab01a0d6332.svg"
+        }
+      ],
+      "title": "Kalkulator OC/AC — opcje | Towarzystwo Ubezpieczeń Wzorcowych",
+      "validation": [
+        {
+          "accepted": true,
+          "field": null,
+          "message": null,
+          "probe": "optional-empty",
+          "source": null,
+          "tried": "only the required fields filled"
+        },
+        {
+          "accepted": false,
+          "field": "Tylko OC",
+          "message": "Please select one of these options.",
+          "probe": "required-empty-all",
+          "source": "native",
+          "tried": "every field left empty"
+        },
+        {
+          "accepted": false,
+          "field": "OC + Autocasco (AC)",
+          "message": "Please select one of these options.",
+          "probe": "required-empty-all",
+          "source": "native",
+          "tried": "every field left empty"
+        },
+        {
+          "accepted": false,
+          "field": "Tylko OC",
+          "message": "Please select one of these options.",
+          "probe": "required-empty-one",
+          "source": "native",
+          "tried": "left empty"
+        },
+        {
+          "accepted": false,
+          "field": "OC + Autocasco (AC)",
+          "message": "Please select one of these options.",
+          "probe": "required-empty-one",
+          "source": "native",
+          "tried": "left empty"
+        },
+        {
+          "accepted": false,
+          "field": "Kod rabatowy",
+          "message": "Please match the requested format.",
+          "probe": "wrong-format",
+          "source": "native",
+          "tried": "typed \"?\""
+        }
+      ],
+      "wireframe": "images/step-4-wireframe.svg"
+    },
+    {
+      "also_cited": false,
+      "elements": [
+        {
+          "kind": "action",
+          "leads_to": [
+            "/"
+          ],
+          "name": "Towarzystwo Ubezpieczeń Wzorcowych",
+          "role": "link",
+          "tag": "A"
+        },
+        {
+          "kind": "action",
+          "leads_to": [
+            "/"
+          ],
+          "name": "Start",
+          "role": "link",
+          "tag": "B"
+        },
+        {
+          "kind": "action",
+          "leads_to": [
+            "/ubezpieczenia/samochod"
+          ],
+          "name": "Samochód",
+          "role": "link",
+          "tag": "C"
+        },
+        {
+          "kind": "action",
+          "leads_to": [
+            "/ubezpieczenia/dom"
+          ],
+          "name": "Dom",
+          "role": "link",
+          "tag": "D"
+        },
+        {
+          "kind": "action",
+          "leads_to": [
+            "/ubezpieczenia/podroze"
+          ],
+          "name": "Podróże",
+          "role": "link",
+          "tag": "E"
+        },
+        {
+          "kind": "action",
+          "leads_to": [
+            "/porownanie"
+          ],
+          "name": "Porównanie",
+          "role": "link",
+          "tag": "F"
+        },
+        {
+          "kind": "action",
+          "leads_to": [
+            "/kalkulator/pojazd"
+          ],
+          "name": "Oblicz składkę",
+          "role": "link",
+          "tag": "G"
+        },
+        {
+          "kind": "action",
+          "leads_to": [
+            "/kontakt"
+          ],
+          "name": "Kontakt",
+          "role": "link",
+          "tag": "H"
+        },
+        {
+          "kind": "action",
+          "leads_to": [
+            "/faq"
+          ],
+          "name": "FAQ",
+          "role": "link",
+          "tag": "I"
+        },
+        {
+          "kind": "action",
+          "leads_to": [
+            "/slowniczek"
+          ],
+          "name": "Słowniczek",
+          "role": "link",
+          "tag": "J"
+        },
+        {
+          "kind": "action",
+          "leads_to": [
+            "/moje-polisy"
+          ],
+          "name": "Moje polisy",
+          "role": "link",
+          "tag": "K"
+        },
+        {
+          "kind": "action",
+          "leads_to": [
+            "/logowanie"
+          ],
+          "name": "Zaloguj się",
+          "role": "link",
+          "tag": "L"
+        },
+        {
+          "kind": "action",
+          "leads_to": [
+            "/kalkulator/zakup"
+          ],
+          "name": "Kup polisę",
+          "role": "button",
+          "tag": "M"
+        },
+        {
+          "kind": "action",
+          "leads_to": [
+            "/kalkulator/opcje"
+          ],
+          "name": "Zmień opcje",
+          "role": "link",
+          "tag": "N"
+        }
+      ],
+      "fields": [],
+      "n": 5,
+      "records": [
+        "PROC-001",
+        "SCR-004",
+        "SCR-005",
+        "SCR-006",
+        "REQ-002",
+        "REQ-003",
+        "REQ-004",
+        "BR-010",
+        "BR-012",
+        "BR-013",
+        "DI-014",
+        "GL-006",
+        "GL-007",
+        "NFR-001",
+        "NFR-003",
+        "OQ-001",
+        "OQ-004",
+        "OQ-005",
+        "OQ-008",
+        "OQ-009",
+        "FUP-001",
+        "FUP-003",
+        "FUP-007"
+      ],
+      "route": "/kalkulator/wynik",
+      "state_id": "01a14983-5108-7008-b824-064d7b19b04b",
+      "states": [
+        {
+          "form_step": null,
+          "image": "images/step-5-1-main.png",
+          "kind": "main",
+          "layout_ref": "9f732fd4336f093f68dbe814a592583fb34bff00fd06be730007030e00308880.json",
+          "reached_by": [
+            "\"Oblicz składkę\" on /kalkulator/opcje"
+          ],
+          "screenshot_ref": "25c2897e85bd685c3de94ae7e13536318498eb3a77d6418c4aab12af2e27ffbe.png",
+          "state_id": "01a14983-5108-7008-b824-064d7b19b04b",
+          "state_ids": [
+            "01a14983-5108-7008-b824-064d7b19b04b",
+            "01a148de-7a83-7000-ad75-869b5fe717c8",
+            "01a14983-36e7-7000-aee7-a7f32d4fe555"
+          ],
+          "title": "Twoja składka | Towarzystwo Ubezpieczeń Wzorcowych",
+          "variant": null,
+          "variants": 3,
+          "wireframe_svg_ref": "f8fcb731c6c7d13223b7974142a5d81ccfe0e4904453e79e070e178522c6b87c.svg"
+        }
+      ],
+      "title": "Twoja składka | Towarzystwo Ubezpieczeń Wzorcowych",
+      "validation": [],
+      "wireframe": "images/step-5-wireframe.svg"
+    },
+    {
+      "also_cited": true,
+      "elements": [
+        {
+          "kind": "action",
+          "leads_to": [],
+          "name": "Towarzystwo Ubezpieczeń Wzorcowych",
+          "role": "link",
+          "tag": "A"
+        },
+        {
+          "kind": "action",
+          "leads_to": [],
+          "name": "Start",
+          "role": "link",
+          "tag": "B"
+        },
+        {
+          "kind": "action",
+          "leads_to": [],
+          "name": "Samochód",
+          "role": "link",
+          "tag": "C"
+        },
+        {
+          "kind": "action",
+          "leads_to": [],
+          "name": "Dom",
+          "role": "link",
+          "tag": "D"
+        },
+        {
+          "kind": "action",
+          "leads_to": [],
+          "name": "Podróże",
+          "role": "link",
+          "tag": "E"
+        },
+        {
+          "kind": "action",
+          "leads_to": [],
+          "name": "Porównanie",
+          "role": "link",
+          "tag": "F"
+        },
+        {
+          "kind": "action",
+          "leads_to": [],
+          "name": "Oblicz składkę",
+          "role": "link",
+          "tag": "G"
+        },
+        {
+          "kind": "action",
+          "leads_to": [],
+          "name": "Kontakt",
+          "role": "link",
+          "tag": "H"
+        },
+        {
+          "kind": "action",
+          "leads_to": [],
+          "name": "FAQ",
+          "role": "link",
+          "tag": "I"
+        },
+        {
+          "kind": "action",
+          "leads_to": [],
+          "name": "Słowniczek",
+          "role": "link",
+          "tag": "J"
+        },
+        {
+          "kind": "action",
+          "leads_to": [],
+          "name": "Moje polisy",
+          "role": "link",
+          "tag": "K"
+        },
+        {
+          "kind": "action",
+          "leads_to": [],
+          "name": "Zaloguj się",
+          "role": "link",
+          "tag": "L"
+        },
+        {
+          "kind": "action",
+          "leads_to": [],
+          "name": "Wróć na stronę główną",
+          "role": "link",
+          "tag": "M"
+        }
+      ],
+      "fields": [],
+      "n": 6,
+      "records": [
+        "PROC-001",
+        "SCR-006",
+        "REQ-001",
+        "REQ-003",
+        "DI-014",
+        "DI-015",
+        "GL-008",
+        "NFR-003",
+        "OQ-001"
+      ],
+      "route": "/kalkulator/zakup",
+      "state_id": "01a148de-86d8-7000-9309-4349aaae8045",
+      "states": [
+        {
+          "form_step": null,
+          "image": "images/step-6-1-main.png",
+          "kind": "main",
+          "layout_ref": "05c1ad94d9175115ae354e72d0c955c90a0564ff0cb0561ff250b2cd808b6d78.json",
+          "reached_by": [
+            "\"Kup polisę\" on /kalkulator/wynik"
+          ],
+          "screenshot_ref": "1ab83a550dfef5c4879758f652d55350377a9cc99419a747e2246b90446a5a7a.png",
+          "state_id": "01a148de-86d8-7000-9309-4349aaae8045",
+          "state_ids": [
+            "01a148de-86d8-7000-9309-4349aaae8045"
+          ],
+          "title": "Wniosek przyjęty | Towarzystwo Ubezpieczeń Wzorcowych",
+          "variant": null,
+          "variants": 1,
+          "wireframe_svg_ref": "59a290a5880b72ba534e537d899da5e83a31bc70c3da0dcd0eee8a0f46a2a47a.svg"
+        }
+      ],
+      "title": "Wniosek przyjęty | Towarzystwo Ubezpieczeń Wzorcowych",
+      "validation": [],
+      "wireframe": "images/step-6-wireframe.svg"
+    }
+  ]
+}

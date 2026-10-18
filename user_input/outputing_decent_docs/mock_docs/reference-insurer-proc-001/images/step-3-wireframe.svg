@@ -1,0 +1,130 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="1035" viewBox="0 0 960 1035" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">
+<title>Wireframe: Kalkulator OC/AC — dane kierowcy | Towarzystwo Ubezpieczeń Wzorcowych</title>
+<rect x="0" y="0" width="960" height="1035" fill="#FFFFFF"/>
+<g data-key="navigation &quot;Menu główne&quot;">
+<rect x="40" y="98" width="880" height="232" fill="none" stroke="#D0D7DE" stroke-width="1" stroke-dasharray="4 3"/>
+</g>
+<g data-key="banner">
+<rect x="24" y="48" width="912" height="294" fill="none" stroke="#D0D7DE" stroke-width="1" stroke-dasharray="4 3"/>
+</g>
+<g data-key="navigation &quot;Kroki kalkulatora&quot;">
+<rect x="40" y="429" width="880" height="124" fill="none" stroke="#D0D7DE" stroke-width="1" stroke-dasharray="4 3"/>
+</g>
+<g data-key="form &quot;Dane kierowcy&quot;">
+<rect x="40" y="565" width="880" height="220" fill="none" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="main">
+<rect x="24" y="354" width="912" height="443" fill="none" stroke="#D0D7DE" stroke-width="1" stroke-dasharray="4 3"/>
+</g>
+<g data-key="navigation &quot;Stopka&quot;">
+<rect x="40" y="873" width="880" height="126" fill="none" stroke="#D0D7DE" stroke-width="1" stroke-dasharray="4 3"/>
+</g>
+<g data-key="contentinfo">
+<rect x="24" y="809" width="912" height="202" fill="none" stroke="#D0D7DE" stroke-width="1" stroke-dasharray="4 3"/>
+</g>
+<g data-key="page">
+<text x="24" y="36" font-size="12" fill="#6E7781">Kalkulator OC/AC — dane kierowcy | Towarzystwo Ubezpieczeń Wzorcowych</text>
+</g>
+<g data-key="banner">
+<text x="32" y="63" font-size="11" fill="#6E7781">banner</text>
+</g>
+<g data-key="paragraph#t1">
+<rect x="40" y="72" width="374" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="navigation &quot;Menu główne&quot;">
+<text x="48" y="113" font-size="11" fill="#6E7781">navigation · Menu główne</text>
+</g>
+<g data-key="list">
+<ellipse cx="59" cy="131" rx="3" ry="3" fill="#FFFFFF" stroke="#1F2328" stroke-width="1"/>
+<text x="70" y="135" font-size="13" fill="#1F2328">Start</text>
+<line x1="70" y1="139" x2="105" y2="139" stroke="#1F2328" stroke-width="1"/>
+<ellipse cx="59" cy="153" rx="3" ry="3" fill="#FFFFFF" stroke="#1F2328" stroke-width="1"/>
+<text x="70" y="157" font-size="13" fill="#1F2328">Samochód</text>
+<line x1="70" y1="161" x2="126" y2="161" stroke="#1F2328" stroke-width="1"/>
+<ellipse cx="59" cy="175" rx="3" ry="3" fill="#FFFFFF" stroke="#1F2328" stroke-width="1"/>
+<text x="70" y="179" font-size="13" fill="#1F2328">Dom</text>
+<line x1="70" y1="183" x2="91" y2="183" stroke="#1F2328" stroke-width="1"/>
+<ellipse cx="59" cy="197" rx="3" ry="3" fill="#FFFFFF" stroke="#1F2328" stroke-width="1"/>
+<text x="70" y="201" font-size="13" fill="#1F2328">Podróże</text>
+<line x1="70" y1="205" x2="119" y2="205" stroke="#1F2328" stroke-width="1"/>
+<ellipse cx="59" cy="219" rx="3" ry="3" fill="#FFFFFF" stroke="#1F2328" stroke-width="1"/>
+<text x="70" y="223" font-size="13" fill="#1F2328">Porównanie</text>
+<line x1="70" y1="227" x2="140" y2="227" stroke="#1F2328" stroke-width="1"/>
+<ellipse cx="59" cy="241" rx="3" ry="3" fill="#FFFFFF" stroke="#1F2328" stroke-width="1"/>
+<text x="70" y="245" font-size="13" fill="#1F2328">Oblicz składkę</text>
+<line x1="70" y1="249" x2="168" y2="249" stroke="#1F2328" stroke-width="1"/>
+<ellipse cx="59" cy="263" rx="3" ry="3" fill="#FFFFFF" stroke="#1F2328" stroke-width="1"/>
+<text x="70" y="267" font-size="13" fill="#1F2328">Kontakt</text>
+<line x1="70" y1="271" x2="119" y2="271" stroke="#1F2328" stroke-width="1"/>
+<ellipse cx="59" cy="285" rx="3" ry="3" fill="#FFFFFF" stroke="#1F2328" stroke-width="1"/>
+<text x="70" y="289" font-size="13" fill="#1F2328">FAQ</text>
+<line x1="70" y1="293" x2="91" y2="293" stroke="#1F2328" stroke-width="1"/>
+<text x="70" y="309" font-size="11" fill="#6E7781">+3 more</text>
+</g>
+<g data-key="main">
+<text x="32" y="369" font-size="11" fill="#6E7781">main</text>
+</g>
+<g data-key="heading &quot;Kalkulator OC/AC — dane kierowcy&quot;">
+<text x="40" y="406" font-size="28" font-weight="600" fill="#1F2328">Kalkulator OC/AC — dane kierowcy</text>
+</g>
+<g data-key="navigation &quot;Kroki kalkulatora&quot;">
+<text x="48" y="444" font-size="11" fill="#6E7781">navigation · Kroki kalkulatora</text>
+</g>
+<g data-key="list#2">
+<ellipse cx="59" cy="462" rx="3" ry="3" fill="#FFFFFF" stroke="#1F2328" stroke-width="1"/>
+<text x="70" y="466" font-size="13" fill="#1F2328">Pojazd</text>
+<ellipse cx="59" cy="484" rx="3" ry="3" fill="#FFFFFF" stroke="#1F2328" stroke-width="1"/>
+<text x="70" y="488" font-size="13" fill="#1F2328">Kierowca</text>
+<ellipse cx="59" cy="506" rx="3" ry="3" fill="#FFFFFF" stroke="#1F2328" stroke-width="1"/>
+<text x="70" y="510" font-size="13" fill="#1F2328">Opcje</text>
+<ellipse cx="59" cy="528" rx="3" ry="3" fill="#FFFFFF" stroke="#1F2328" stroke-width="1"/>
+<text x="70" y="532" font-size="13" fill="#1F2328">Wynik</text>
+</g>
+<g data-key="form &quot;Dane kierowcy&quot;">
+<text x="48" y="580" font-size="11" fill="#6E7781">form · Dane kierowcy</text>
+</g>
+<g data-key="paragraph#t2">
+<rect x="56" y="589" width="689" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="paragraph#t3">
+<rect x="56" y="615" width="541" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="paragraph#t4">
+<rect x="56" y="641" width="848" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+<rect x="56" y="655" width="159" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="paragraph#t5">
+<rect x="56" y="681" width="837" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="paragraph#t6">
+<rect x="56" y="707" width="753" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="paragraph#t7">
+<rect x="56" y="733" width="53" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="paragraph#t8">
+<rect x="56" y="759" width="551" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="contentinfo">
+<text x="32" y="824" font-size="11" fill="#6E7781">contentinfo</text>
+</g>
+<g data-key="paragraph#t9">
+<rect x="40" y="833" width="880" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+<rect x="40" y="847" width="132" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="navigation &quot;Stopka&quot;">
+<text x="48" y="888" font-size="11" fill="#6E7781">navigation · Stopka</text>
+</g>
+<g data-key="link &quot;FAQ&quot;#2">
+<text x="56" y="911" font-size="14" fill="#1F2328">FAQ</text>
+<line x1="56" y1="915" x2="80" y2="915" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="link &quot;Słowniczek&quot;#2">
+<text x="56" y="945" font-size="14" fill="#1F2328">Słowniczek</text>
+<line x1="56" y1="949" x2="136" y2="949" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="link &quot;Kontakt&quot;#2">
+<text x="56" y="979" font-size="14" fill="#1F2328">Kontakt</text>
+<line x1="56" y1="983" x2="112" y2="983" stroke="#1F2328" stroke-width="1"/>
+</g>
+</svg>
