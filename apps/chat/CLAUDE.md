@@ -48,6 +48,12 @@ store, vault, workflow.
 - `scan`, `scope`: process scanning and scope management.
 - `fence`: permission control.
 
+## Evals
+- `evals/` (spec 038, R-78 (5)): the grouping eval, `pnpm --dir apps/chat eval <portal>`: the
+  assistant cuts a crawler-eval store's scans into processes (orchestrator prompt, only the two
+  grouping tools), graded against the ground truth; results in `data/evals/grouping-<portal>/`.
+  Its unit tests (`evals/tests/`) run with `pnpm test`. See `evals/README.md`.
+
 ## Invariants
 - No hardcoded secrets; vault manages credentials.
 - Errors get `ERR-…` references in logs.

@@ -34,6 +34,8 @@ export interface RunPath {
 /** In-memory, per-run browser-side state. Everything durable lives in the database. */
 export class RunState {
   readonly index = new FingerprintIndex();
+  /** Routes whose known clusters are in `index` already (`seedKnownClusters`, spec 038 LO-35). */
+  readonly seededRoutes = new Set<string>();
   readonly policy: FrontierPolicy;
   /** Built once per run from the portal file; every classification of this run uses it. */
   readonly ruleSet: RuleSet;

@@ -175,6 +175,7 @@ function actionBody(
     ...(c.frame !== undefined ? { frame: c.frame } : {}),
     ...(c.found_by ? { found_by: c.found_by, tag: c.tag } : {}),
     ...(c.input ? { input: c.input } : {}),
+    ...(c.label ? { label: c.label } : {}),
     ...(c.href ? { href: c.href } : {}),
     ...(at.target ? { target_url: at.target } : {}),
     ...(c.descriptor.form ? { form: c.descriptor.form } : {}),

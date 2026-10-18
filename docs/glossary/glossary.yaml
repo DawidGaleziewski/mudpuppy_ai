@@ -955,9 +955,28 @@ entries:
     example: On reference-insurer, 319 transitions were recorded but only 32 were clicked; 287 were inferred.
     appears_in: [Frontier report, finish_run coverage (actions_inferred)]
     labels: [Inferred, inferred]
-    related: [frontier, transition, confidence]
+    related: [frontier, transition, confidence, shared-button]
     changed_in: R-35
     changed_on: 2026-10-14
+
+  - id: shared-button
+    term: Shared menu button
+    category: pathfinder
+    group: Frontier
+    short: A button in the page header, menu or footer that every page repeats; once its clicks in a run all lead to the same page, its copies on other pages are recorded as inferred, not clicked again.
+    explanation: |
+      A link in a shared menu is settled by its target address (an inferred link). A button has
+      no address, and the same button may do something else on another page, so it is only
+      settled when the run already clicked it from other pages and every one of those clicks
+      went to one other page. The item is then marked done (`shared_button`) with an inferred
+      transition to that page. If any click stayed on its page (a menu toggle) or two clicks
+      landed on different pages, the button is clicked as usual.
+    example: In one bank map the header's "Wyloguj" was clicked from 14 pages, every time to the start page; now it is clicked once.
+    appears_in: [Frontier report]
+    labels: [shared_button]
+    related: [inferred-link, frontier, transition]
+    changed_in: R-58
+    changed_on: 2026-10-18
 
   - id: next-item
     term: Next item
@@ -2305,6 +2324,25 @@ entries:
     related: [eval, eval-task, eval-baseline]
     changed_in: R-52
     changed_on: 2026-10-12
+
+  - id: grouping-eval
+    term: Grouping eval
+    category: pathfinder
+    group: Gates and evals
+    short: The eval of how well the assistant cuts a portal's recorded scans into processes, scored against the processes a person wrote down.
+    explanation: |
+      `pnpm --dir apps/chat eval <portal>` copies a finished crawler eval's store with every
+      grouping taken out, asks the assistant what the "Ask the assistant to regroup" button asks,
+      and scores the groupings it suggests: each known process found, starting on its own first
+      screen and not the page the user came from, no duplicates or one-screen groupings, and a
+      reason that cites the links between the screens. Results go to
+      `data/evals/grouping-<portal>/`.
+    example: On the reference portal 4 of 5 processes are found; the car quote starts one page too early.
+    appears_in: [data/evals/grouping-<portal>/<timestamp>.json]
+    labels: [processes_found, clean_starts, why_cites]
+    related: [eval, eval-trial, grader]
+    changed_in: R-78
+    changed_on: 2026-10-18
 
   - id: grader
     term: Grader

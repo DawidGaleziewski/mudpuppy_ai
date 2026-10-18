@@ -16,6 +16,7 @@ export * from './clickables.js';
 export * from './frames.js';
 export * from './mounts.js';
 export * from './page-candidates.js';
+export * from './field-labels.js';
 export * from './frontier.js';
 export * from './report.js';
 export * from './session.js';

@@ -596,3 +596,32 @@
   title: Rules score 52.9 % in one trial (BA spread)
   tier: eval
   check: rules
+# ---- spec 038 (findings.md) ----
+- id: F-01@038
+  title: LO-35 compared two stores and could never pass; screens now take revisions across scans
+  tier: not_testable
+  reason: covered by gate LO-35 (one store) and known-clusters.test.ts (cross-scan revision); the storage question is R-79
+- id: F-02@038
+  title: Labels not tied to their controls, so unnamed fields could not be told apart
+  tier: not_testable
+  reason: covered by gate LO-48 and field-labels.test.ts
+- id: F-03@038
+  title: Probes could not go back on a wizard that keeps its step on the server
+  tier: gate
+  reason: a probe run on the claim form tries both date-range values, refused, with one new session
+- id: F-04@038
+  title: The banner's logout button cost 14 agent turns in one bank map
+  tier: not_testable
+  reason: unit-tested in shared-button.test.ts; a bank gate or eval trial is a follow-up
+- id: F-05@038
+  title: The assistant's first grouping trials, 4 of 5 processes and 3 of 4 clean starts
+  tier: not_testable
+  reason: measured by the chat grouping eval (apps/chat/evals), not a crawler check
+- id: F-06@038
+  title: The api_endpoint kind waits for the frozen ba-practice skill
+  tier: not_testable
+  reason: a parked decision (R-77), no behaviour to test
+- id: F-07@038
+  title: A probe outcome misses a server message without an alert role
+  tier: not_testable
+  reason: not fixed yet; a gate comes with the fix (gate F-03@038 checks the state's snapshot meanwhile)

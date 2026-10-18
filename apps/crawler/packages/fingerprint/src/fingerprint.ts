@@ -146,6 +146,19 @@ export class FingerprintIndex {
     this.threshold = options.threshold ?? DEFAULT_CLUSTER_THRESHOLD;
   }
 
+  /**
+   * Add a cluster known from earlier runs, so a near-identical page joins it instead of starting a
+   * new one (spec 038, LO-35: an A/B variant seen by another run is the same screen). `members` are
+   * the level-1 fingerprints already recorded in it. A cluster id already known is left as it is.
+   */
+  seed(clusterId: string, representative: Fingerprint, members: readonly string[] = []): void {
+    if (this.clusters.some((c) => c.id === clusterId)) return;
+    const cluster: Cluster = { id: clusterId, representative };
+    this.clusters.push(cluster);
+    for (const level1 of [representative.level1, ...members])
+      if (!this.byLevel1.has(level1)) this.byLevel1.set(level1, cluster);
+  }
+
   assign(fp: Fingerprint): Assignment {
     const decide = (
       cluster: Cluster,

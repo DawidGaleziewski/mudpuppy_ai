@@ -2,7 +2,7 @@ import { newId, nowIso } from '@pathfinder/core';
 import type { ServerContext } from '../context.js';
 
 /** The executed, observed transition that already reached a link target. */
-interface SeenEdge {
+export interface SeenEdge {
   id: string;
   to_state: string;
   evidence_ref: string;
@@ -10,7 +10,7 @@ interface SeenEdge {
 }
 
 /** A pending frontier row as `getNextFrontierItem` reads it. */
-interface FrontierRow {
+export interface FrontierRow {
   id: string;
   run_id: string;
   state_id: string;
@@ -86,6 +86,20 @@ export async function inferSameTarget(ctx: ServerContext, row: FrontierRow): Pro
       .all(row.run_id, target) as (SeenEdge & { name: string | null })[]
   ).find((e) => linkNameKey(e.name) === key);
   if (!seen) return false;
+  await settleInferred(ctx, row, seen, `same_target: ${seen.id}`);
+  return true;
+}
+
+/**
+ * Record an `inferred` edge from the item's state to the state `seen` reached (with its evidence)
+ * and mark the item `done` with `reason`; one transaction, then a `frontier_infer` event.
+ */
+export async function settleInferred(
+  ctx: ServerContext,
+  row: FrontierRow,
+  seen: SeenEdge,
+  reason: string,
+): Promise<void> {
   // The edge carries the item's own action (locators, snapshot) like an executed one, without
   // the page it was found on (record-transition's shape).
   const action = JSON.parse(row.action_json) as Record<string, unknown>;
@@ -112,7 +126,7 @@ export async function inferSameTarget(ctx: ServerContext, row: FrontierRow): Pro
       .execute();
     await tx
       .updateTable('frontier')
-      .set({ status: 'done', reason: `same_target: ${seen.id}`, updated_at: ts })
+      .set({ status: 'done', reason, updated_at: ts })
       .where('id', '=', row.id)
       .execute();
   });
@@ -122,5 +136,4 @@ export async function inferSameTarget(ctx: ServerContext, row: FrontierRow): Pro
     same_as_edge_id: seen.id,
     to_state: seen.to_state,
   });
-  return true;
 }

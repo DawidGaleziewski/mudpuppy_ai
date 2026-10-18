@@ -16,6 +16,7 @@ import type { RunState } from '../run-state.js';
 import { gateAct } from './act-gate.js';
 import { counted, flushObstacles, phase, step } from './context.js';
 import { findAgain } from './find-again.js';
+import { againInFreshSession } from './fresh-session.js';
 import { classifyPress, press, recordOutcome, type ProbeTarget } from './probe.js';
 import { formStepOf, outcomesInRun, recordBlocked } from './probe-records.js';
 import { returnToState } from './replay.js';
@@ -265,7 +266,8 @@ interface Ready {
 /** On the step, its fields read and the happy values chosen; a one-time code blocks it (O-M2). */
 async function readyStep(sc: Scope, target: ProbeTarget): Promise<Ready | { blocked: string }> {
   const { ctx, run, rs } = sc;
-  if (rs.currentStateId !== target.stateId) await returnToState(sc, target.stateId);
+  if (rs.currentStateId !== target.stateId)
+    await againInFreshSession(sc, () => returnToState(sc, target.stateId));
   const found = await findAgain(rs.session.page, target.action);
   const fields = found.locator ? await readFormFields(found.locator) : null;
   if (fields === null)
@@ -378,7 +380,11 @@ async function tryOne(
     });
     return false;
   } catch (e) {
-    if (!(e instanceof ToolError) || !['REPLAY_DIVERGED', 'NO_PATH'].includes(e.code)) throw e;
+    if (
+      !(e instanceof ToolError) ||
+      !['REPLAY_DIVERGED', 'NO_PATH', 'SESSION_LOST'].includes(e.code)
+    )
+      throw e;
     result.skipped.push(`${t.key} and the rest: ${e.message}`);
     return true;
   }

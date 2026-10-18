@@ -6,6 +6,20 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Added
+- **Grouping eval, lost click, crawler gaps, R-78 (5) (6), R-35, R-36, R-58 (3)** (spec 038,
+  v1.0.43, 2026-10-18, built while the owner was away). **"Ask the assistant to regroup"**
+  no longer loses its text: the link hands it to the chat it opens, and a request made while the
+  assistant is busy shows as waiting and is sent when it is free. **`pnpm --dir apps/chat eval
+  reference-insurer`** measures how the assistant cuts recorded scans into processes; baseline:
+  4 of 5 processes found, the car quote starts one page early, the login-walled renewal is
+  missed. The crawler: a page that varies between scans (an A/B banner, one more button for
+  another persona) is **one screen with revisions**; an unnamed icon link says where it goes; an
+  unnamed field carries the label shown next to it; a **date-range** probe tries far dates; a
+  header, menu or footer button that always leads to the same page is clicked once (the bank's
+  logout had cost 14 turns). **Probes work on wizards that keep their step on the server** (the
+  claim form): a try that cannot get back to the step is done again in a new session, logged in
+  again. Gates LO-35, LO-47, LO-48 and F-03@038 now pass. The `api_endpoint` record kind
+  (R-65 (5)) is built on the parked branch `feature/038b-api-endpoint-kind`, waiting for R-77.
 - **Processes, as-is first, R-54** (spec 027, v1.0.40, 2026-10-18; owner 2026-10-14: "the as-is
   documentation of a process is the product"). **Processes** shows each screen in no process
   with a thumbnail; a click opens the large picture with Screenshot / Wireframe and the screen

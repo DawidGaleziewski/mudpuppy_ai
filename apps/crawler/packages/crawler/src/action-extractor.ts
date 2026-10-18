@@ -52,6 +52,8 @@ export interface CandidateAction {
   name: string | null;
   /** Trace mode only: the kind of input this control takes; absent for clicks. */
   input?: TraceInput;
+  /** An unnamed input's visible label, from the DOM form reader (`withFieldLabels`, spec 038). */
+  label?: string;
   /** Index among elements with the same role and name in document order; disambiguates repeats. */
   nth: number;
   href?: string;

@@ -39,6 +39,8 @@ export const ActionInput = z
     // Signals the classifier re-derives the class from.
     /** Trace runs: a fill/check/select control (spec 004 R-14). */
     input: z.enum(['fill', 'check', 'select']).optional(),
+    /** An unnamed field's visible label (spec 038, LO-48). */
+    label: z.string().min(1).optional(),
     href: z.string().optional(),
     /** The link's absolute target; same-target link items are inferred from it (spec 013 R3). */
     target_url: z.string().optional(),

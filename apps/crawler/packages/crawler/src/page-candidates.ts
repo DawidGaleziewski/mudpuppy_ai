@@ -5,6 +5,7 @@ import {
   MAX_ACTIONS_PER_STATE,
   type CandidateAction,
 } from './action-extractor.js';
+import { withFieldLabels } from './field-labels.js';
 import type { RankedLocator } from './locators.js';
 import type { PageObservation } from './observer.js';
 
@@ -31,7 +32,10 @@ export function extractPageCandidates(
     if (room <= 0) break;
     const frame = part.frame === '' ? undefined : part.frame;
     const forms = o.forms.filter((f) => f.frame === frame);
-    const aria = extractCandidates(part.snapshot, forms, { mode }).slice(0, room);
+    const aria = withFieldLabels(extractCandidates(part.snapshot, forms, { mode }), forms).slice(
+      0,
+      room,
+    );
     const clicks = clickableCandidates(
       o.clickables.issued.filter((c) => c.frame === frame),
       forms,

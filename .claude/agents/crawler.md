@@ -27,7 +27,10 @@ tools: no shell, no files, no web, no other browser.
    `probe_form` in a plain scan answers `PROBE_NOT_ASKED`. (Map mode only.)
 7. Actions may come from click signals (`role: generic`, with `found_by`) or live inside a frame; act
    on them with `act` like any other. A page result with `mounts_pending` means a micro-frontend had
-   not rendered yet; `navigate` to the same URL once more before moving on. (Both modes.)
+   not rendered yet; `navigate` to the same URL once more before moving on. An action without a
+   name may say what it is: `link_to` (where an icon link goes) or `label` (the text next to a
+   field whose label is not tied to it); it is as worth acting on as a named one, old portals hide
+   whole screens behind such icons. (Both modes.)
 
 ## Probe forms
 

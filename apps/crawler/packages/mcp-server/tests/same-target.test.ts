@@ -249,6 +249,32 @@ describe('getNextFrontierItem same-target inference', () => {
   });
 });
 
+describe('frontier item descriptions (spec 038)', () => {
+  it('says where an unnamed link goes and how an unnamed field is labelled', async () => {
+    const { ctx, runId, s1, s2 } = await setup();
+    // the bank's icon link to szczegoly.do (S11): no name, only an image without alt
+    seedItem(
+      ctx,
+      runId,
+      s1,
+      JSON.stringify({ role: 'link', accessible_name: null, href: '/legacy/bank/szczegoly.do' }),
+    );
+    expect(await getNextFrontierItem(ctx, { run_id: runId })).toMatchObject({
+      item: { description: 'link (no name) to /legacy/bank/szczegoly.do' },
+    });
+    ctx.raw.prepare("UPDATE frontier SET status = 'done'").run();
+    seedItem(
+      ctx,
+      runId,
+      s2,
+      JSON.stringify({ role: 'combobox', accessible_name: null, label: 'Miasto', input: 'select' }),
+    );
+    expect(await getNextFrontierItem(ctx, { run_id: runId })).toMatchObject({
+      item: { description: 'combobox labelled "Miasto"' },
+    });
+  });
+});
+
 describe('linkNameKey (spec 031 T014)', () => {
   it('keeps zero apart, folds other trailing counts, leaves other names alone', () => {
     expect(linkNameKey('Koszyk (0)')).toBe('Koszyk (0)');

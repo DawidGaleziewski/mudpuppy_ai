@@ -1,6 +1,7 @@
 import { maskText } from '@pathfinder/core';
 import type { observePage } from '@pathfinder/crawler';
 import { computeFingerprint } from '@pathfinder/fingerprint';
+import { seedKnownClusters } from '../../services/known-clusters.js';
 import { decision, event, reported, step, type StepContext } from './context.js';
 
 export type Observed = Awaited<ReturnType<typeof observePage>>;
@@ -24,6 +25,10 @@ export function fingerprintStep(sc: StepContext, observed: Observed) {
         ? rs.lastPageRoute
         : rs.routeTemplateFor(observed.url);
     if (!browserError) rs.lastPageRoute = routeTemplate;
+    if (!rs.seededRoutes.has(routeTemplate)) {
+      rs.seededRoutes.add(routeTemplate);
+      seedKnownClusters(sc.ctx, rs.index, sc.run.portal_id, routeTemplate);
+    }
     const fp = computeFingerprint({ routeTemplate, ariaSnapshot: masked });
     const assignment = rs.index.assign(fp);
     const { kind, reason, similarity, threshold, matchedFingerprint } = assignment.decision;

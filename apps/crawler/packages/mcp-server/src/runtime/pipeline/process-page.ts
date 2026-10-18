@@ -1,5 +1,6 @@
 import { observePage } from '@pathfinder/crawler';
 import type { PageResult } from '../../runtime.js';
+import { linkPath } from '../../services/link-path.js';
 import { handoffIfCaptcha } from '../handoff.js';
 import { notePatched, runPageLoadHooks } from '../hooks.js';
 import { noteFailedAssets } from '../render-health.js';
@@ -113,18 +114,25 @@ export async function processPage(sc: StepContext): Promise<PageResult> {
 /** The page's actions as the agent sees them, with the persona's trace value where one fits. */
 function issuedForAgent(sc: StepContext, issued: IssuedAction[]): PageResult['actions'] {
   const inputs = sc.rs.effective.persona.test_data;
-  return issued.map((a) => ({
-    action_id: a.actionId,
-    role: a.role,
-    accessible_name: a.name,
-    safety_class: a.safetyClass,
-    allowed: a.allowed,
-    ...(a.skip_reason ? { skip_reason: a.skip_reason } : {}),
-    ...(a.found_by ? { found_by: a.found_by } : {}),
-    ...(a.input && a.input !== 'check' && a.name !== null && inputs[a.name] !== undefined
-      ? { suggested_value: inputs[a.name] }
-      : {}),
-  }));
+  return issued.map((a) => {
+    // An unnamed field is known by its visible label: test data is looked up by it too.
+    const known = a.name ?? a.label ?? null;
+    const linkTo = a.name === null && a.role === 'link' && a.href ? linkPath(a.href) : null;
+    return {
+      action_id: a.actionId,
+      role: a.role,
+      accessible_name: a.name,
+      safety_class: a.safetyClass,
+      allowed: a.allowed,
+      ...(a.skip_reason ? { skip_reason: a.skip_reason } : {}),
+      ...(a.found_by ? { found_by: a.found_by } : {}),
+      ...(a.label ? { label: a.label } : {}),
+      ...(linkTo ? { link_to: linkTo } : {}),
+      ...(a.input && a.input !== 'check' && known !== null && inputs[known] !== undefined
+        ? { suggested_value: inputs[known] }
+        : {}),
+    };
+  });
 }
 
 export type { Observed };

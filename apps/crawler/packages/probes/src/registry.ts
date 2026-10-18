@@ -6,6 +6,7 @@ import { options } from './catalogue/branch.js';
 import { blockRequest, delay, http500, offline } from './catalogue/technical.js';
 import {
   boundaries,
+  dateRange,
   optionalEmpty,
   requiredEmptyAll,
   requiredEmptyOne,
@@ -22,6 +23,7 @@ export const PROBES: readonly Probe[] = [
   wrongFormat,
   requiredEmptyOne,
   boundaries,
+  dateRange,
   optionalEmpty,
   delay,
   offline,

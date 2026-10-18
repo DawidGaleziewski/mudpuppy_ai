@@ -34,6 +34,10 @@ obstacles, safety, store.
   autofill keeps its submit words); autofill results carry each field's `label`, and fields carry `autocomplete`.
 - Spec 034: `NetworkRecorder` keeps cut sample bodies (`req_sample`, `res_sample`, ≤ 4096) only
   when the session's `keepSamples` is on (the runtime sets it outside production).
+- Spec 038: `field-labels.ts` (`withFieldLabels`, called by `page-candidates.ts`): an input
+  candidate ARIA leaves unnamed gets the label the form reader found, matched by document order
+  per kind (inside `<form>` with the real forms, outside with the `div_form`s), only when the
+  counts agree (LO-48).
 - In-page code with helpers goes through `evalWithHelpers` (`in-page.ts`; Playwright's `evaluate`, not an eval): top-level helper
   functions only, no closures (the `__name` shim, G-02).
 

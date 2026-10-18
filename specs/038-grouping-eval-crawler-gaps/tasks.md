@@ -1,0 +1,12 @@
+# Tasks 038 (R-78 (5) (6), R-35 LO-35 S11, R-36 LO-47 LO-48, R-58 (3), R-65 (5))
+
+- [x] T001 [sonnet] FR-001 lost regroup click: `assistant.js` hands a link's text to the next page, waits while busy or on 409; browser test `chat-say-browser.e2e.test.ts` (2 cases)
+- [x] T002 [opus] FR-003 LO-35: gate on one store (F-01: the old case could never pass), `FingerprintIndex.seed` + `seedKnownClusters` per route; unit tests; `gap` → `gate`
+- [x] T003 [sonnet] FR-004 S11: `link (no name) to <path>` in frontier descriptions, `link_to` for the agent, crawler prompt line; unit test
+- [x] T004 [opus] FR-005 LO-48: `withFieldLabels` (unnamed fields get their visible label), stored and shown, used for test data; LO-48 trace gate (`gap` → `gate`); unit tests
+- [x] T005 [opus] FR-006 LO-47: `date-range` probe; LO-47 trace gate (`gap` → `gate`); probe tests; F-03 (probes and server-side wizard steps)
+- [x] T006 [opus] FR-007 R-58 (3): measured (F-04, 14 turns on the banner's logout), `inferSharedButton`; unit tests
+- [x] T007 [opus] FR-002 grouping eval `apps/chat/evals/` (README, config, tasks, prompts, queries, harness, graders, results, tests); first trials on the newest reference-insurer crawler-eval store; findings with the numbers (9b09d31, 3289dbd; F-05)
+- [~] T008 [opus] FR-008 `api_endpoint` record kind: docs-model kind `API` + content schema, migration 0029 (db-admin), BA tools refuse one without a matching `network_call` (`API_CALL_NOT_CITED`), export section in chapter 7, dashboard Docs block; tests. **Parked** on `feature/038b-api-endpoint-kind` (656083c, committed with `--no-verify`): `record-kinds-doc.test.ts` needs an `api_endpoint` row in `ba-practice/references/record-kinds.md`, frozen until the owner's R-77 review. Built in a worktree so the running chat service never sees migration 0029.
+- [x] T010 [opus] F-03 owner answer: a probe try whose way back diverged is done once more in a new session (`fresh-session.ts`, phase and event `fresh_session`, decision note), `SESSION_LOST` ends the step; gate F-03@038 (claim form, two `date-range` tries, one new session); F-07 (messages without an alert role)
+- [x] T009 [opus] close-out: slow tier (green before the T002–T006 commit), code review (1 fixed, 2 deferred, 3 rejected), roadmap (R-78, R-35, R-36, R-58, R-65), glossary (`shared-button`, `grouping-eval`), changelog, session dump with the owner's questions; merge left to the owner (F-01 review, R-77)

@@ -4,7 +4,6 @@ import { afterAll, beforeAll, expect } from 'vitest';
 import {
   actionNamed,
   actOn,
-  gap,
   gate,
   gateServer,
   GATE_BASE,
@@ -192,30 +191,32 @@ gate(
 /** The catalogue hero's title per A/B variant (`mfe-shop` Catalog.tsx, CMS `hero.a/b.title`). */
 const HERO = { A: 'Wszystko na każdą pogodę', B: 'Jesienne wyprzedaże do -30%' } as const;
 
-gap(
+gate(
   'LO-35',
   'A/B banner variants of the catalogue fall into one cluster',
-  'the two hero variants differ enough that the fingerprint splits them into two clusters',
   async () => {
-    // Fresh sessions until both variants were observed with their text (spec 012 F-03: a session
-    // draws its variant at random, and an observation before the CMS text arrives tells nothing).
-    const clusters = new Map<keyof typeof HERO, string>();
-    for (let i = 0; i < 10 && clusters.size < 2; i++) {
-      const other = await gateServer({ portals: ['proving-ground-shop'] });
-      try {
-        const r = await startRun(other.call, 'proving-ground-shop', 'guest');
-        const p = await nav(other.call, r, '/sklep');
-        const text = snapshot(other, p.state_id as string);
-        const seen = (Object.keys(HERO) as (keyof typeof HERO)[]).find((v) =>
-          text.includes(HERO[v]),
-        );
-        if (seen) clusters.set(seen, p.cluster_id as string);
-      } finally {
-        await other.close();
-      }
+    // Fresh runs (each its own browser session) on one store until both variants were observed with
+    // their text (spec 012 F-03: a session draws its variant at random, and an observation before
+    // the CMS text arrives tells nothing). Separate gate servers would mean separate stores, which
+    // can never share a screen (spec 038 F-01).
+    const seen = new Map<keyof typeof HERO, { cluster: string; screen: string }>();
+    for (let i = 0; i < 10 && seen.size < 2; i++) {
+      const r = await startRun(gs.call, 'proving-ground-shop', 'guest');
+      const p = await nav(gs.call, r, '/sklep');
+      const text = snapshot(gs, p.state_id as string);
+      const variant = (Object.keys(HERO) as (keyof typeof HERO)[]).find((v) =>
+        text.includes(HERO[v]),
+      );
+      const screen = rows<{ screen_id: string }>(
+        gs,
+        'SELECT screen_id FROM states WHERE id = ?',
+        p.state_id,
+      )[0]!.screen_id;
+      if (variant) seen.set(variant, { cluster: p.cluster_id as string, screen });
     }
-    expect([...clusters.keys()].sort()).toEqual(['A', 'B']);
-    expect(new Set(clusters.values()).size).toBe(1);
+    expect([...seen.keys()].sort()).toEqual(['A', 'B']);
+    expect(new Set([...seen.values()].map((s) => s.cluster)).size).toBe(1);
+    expect(new Set([...seen.values()].map((s) => s.screen)).size).toBe(1);
   },
   { timeout: 240_000, slow: true },
 );
@@ -246,23 +247,53 @@ gate('LO-42', 'one GraphQL endpoint is recorded per operation, not as one call',
   expect(ops.size).toBeGreaterThan(1);
 });
 
-gap(
-  'LO-48',
-  'the parcel-locker select loads after the city is chosen',
-  'map mode issues no field actions; only a trace run can choose the city (tier-2 eval)',
-  async () => {
-    const checkout = await nav(gs.call, run, '/sklep/zamowienie');
-    const city = actionNamed(checkout, /Miasto/);
-    expect(city).toBeDefined();
-    const after = await gs.call('act', {
-      run_id: run,
-      action_id: city!.action_id,
-      rationale: 'choose a city',
-      value: 'Warszawa',
+gate('LO-48', 'the parcel-locker select loads after the city is chosen', async () => {
+  // A trace run chooses field values, as a person would (spec 038): the city, then delivery to a
+  // parcel locker, whose list the shop loads for that city.
+  const own = await startRun(gs.call, 'proving-ground-shop', 'guest', {
+    mode: 'trace',
+    process: { name: 'Choose a parcel locker', goal: 'pick a parcel locker for the delivery' },
+  });
+  const go = async (path: string, intent: string) => {
+    const r = await gs.call('navigate', {
+      run_id: own,
+      url: `${GATE_BASE}${path}`,
+      rationale: 'gate step',
+      intent,
+      include_actions: true,
     });
-    expect(JSON.stringify(after.body)).toMatch(/Paczkomat|paczkomat/);
-  },
-);
+    expect(r.isError).toBe(false);
+    return r.body;
+  };
+  const product = await go('/sklep/produkt/kalosze-bagienne-klasyczne', 'open a product');
+  await actOn(gs.call, own, product, 'Dodaj do koszyka', { intent: 'add it to the cart' });
+  const checkout = await go('/sklep/zamowienie', 'open the checkout');
+  // The city `<label>` is not tied to its `<select>`: ARIA names it nothing, its label tells it.
+  const field = (checkout.actions as { action_id: string; label?: string }[]).find(
+    (a) => a.label === 'Miasto',
+  );
+  expect(field).toBeDefined();
+  const chosen = await gs.call('act', {
+    run_id: own,
+    action_id: field!.action_id,
+    rationale: 'gate step',
+    intent: 'choose a city',
+    value: 'Warszawa',
+    include_actions: true,
+  });
+  expect(chosen.isError, JSON.stringify(chosen.body).slice(0, 800)).toBe(false);
+  const city = chosen.body;
+  const locker = await actOn(gs.call, own, city, /^Paczkomat$/, {
+    intent: 'deliver to a locker',
+  });
+  expect(snapshot(gs, locker.state_id)).toContain('WAW01M');
+  const calls = rows<{ url_template: string }>(
+    gs,
+    "SELECT url_template FROM network_calls WHERE run_id = ? AND url_template LIKE '%/api/shop/lockers%'",
+    own,
+  );
+  expect(calls.length).toBeGreaterThan(0);
+});
 
 gate('LO-51', 'free delivery appears only past the threshold', async () => {
   const cart = await nav(gs.call, run, '/sklep/koszyk');

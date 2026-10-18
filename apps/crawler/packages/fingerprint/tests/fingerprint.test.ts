@@ -73,6 +73,21 @@ describe('level 2 clustering', () => {
     expect(form.clusterId).not.toBe(a.clusterId);
   });
 
+  it('joins a cluster seeded from an earlier run instead of starting its own (LO-35)', () => {
+    const earlier = fp('listing-laptops-a');
+    const index = new FingerprintIndex();
+    index.seed('cluster-known', earlier, ['f'.repeat(64)]);
+    const variant = index.assign(fp('listing-laptops-b'));
+    expect(variant.clusterId).toBe('cluster-known');
+    expect(variant.decision.reason).toBe('similar-structure');
+    // a recorded member and the representative itself are exact matches
+    expect(index.assign(earlier).decision.reason).toBe('identical-fingerprint');
+    expect(index.assign({ ...earlier, level1: 'f'.repeat(64) }).clusterId).toBe('cluster-known');
+    // seeding the same cluster twice changes nothing
+    index.seed('cluster-known', fp('form-login', '/konto/zaloguj'));
+    expect(index.assign(fp('form-login', '/konto/zaloguj')).clusterId).not.toBe('cluster-known');
+  });
+
   it('keeps the search results page apart from the login form', () => {
     const index = new FingerprintIndex();
     const form = index.assign(fp('form-login', '/konto/zaloguj'));

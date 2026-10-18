@@ -12,6 +12,7 @@ import {
   GATE_BASE,
   lastVisit,
   loginAs,
+  markForProbing,
   nav,
   PROVING_GROUND,
   resetEstate,
@@ -118,14 +119,90 @@ gate('LO-43', 'a classic form POST (no XHR) is recorded as an API shape', async 
   expect(posts.length).toBeGreaterThan(0);
 });
 
-gap(
+gate(
   'LO-47',
   'a client/server validation mismatch is recorded with both messages',
-  'map mode fills forms with generic test data; only a trace with an old date shows the server rule (tier-2 eval)',
   async () => {
-    const claim = await nav(gs.call, run, '/ubezpieczenia#/szkody/nowa');
-    expect(snapshot(gs, claim.state_id)).toContain('Szkodę można zgłosić do 30 dni od zdarzenia.');
+    // The claim date has no limit in the page; only the server knows the 30-day window. A trace
+    // types an old date as a person would: the browser lets it through, the server refuses it, and
+    // the step's state holds the server's message (the client side shows none: no min, no max).
+    // The same with a probe run: F-03@038 below (the wizard keeps its step on the server).
+    const own = await startRun(gs.call, 'proving-ground-insurer', 'client', {
+      mode: 'trace',
+      process: { name: 'Report a claim', goal: 'report a claim for an old event' },
+    });
+    const go = async (path: string, intent: string) => {
+      const r = await gs.call('navigate', {
+        run_id: own,
+        url: `${GATE_BASE}${path}`,
+        rationale: 'gate step',
+        intent,
+        include_actions: true,
+      });
+      expect(r.isError, JSON.stringify(r.body).slice(0, 400)).toBe(false);
+      return r.body;
+    };
+    await go('/ubezpieczenia', 'open the portal');
+    await loginAs(gs.call, own);
+    const step = await go('/ubezpieczenia#/szkody/nowa', 'open the claim form');
+    const dated = await actOn(gs.call, own, step, 'Data zdarzenia', {
+      value: '2000-01-01',
+      intent: 'an event long ago',
+    });
+    const refused = await actOn(gs.call, own, dated, 'Dalej', { intent: 'go to step 2' });
+    expect(snapshot(gs, refused.state_id)).toContain(
+      'Szkodę można zgłosić do 30 dni od zdarzenia.',
+    );
   },
+  { timeout: 180_000 },
+);
+
+gate(
+  'F-03@038',
+  'probes on a wizard that keeps its step on the server: each try in a new session when needed',
+  async () => {
+    // The happy press moves the server's claim to step 2, so the way back to step 1 in the same
+    // session diverges; the try is done again in a new session (logged in again), where the
+    // server starts the wizard at step 1. Both dates are refused by the server's 30-day window.
+    const claim = await nav(gs.call, run, '/ubezpieczenia#/szkody/nowa');
+    markForProbing(gs, 'proving-ground-insurer', routeOf(gs, claim.state_id));
+    const own = await startRun(gs.call, 'proving-ground-insurer', 'client', { probe_marked: true });
+    await nav(gs.call, own, '/ubezpieczenia');
+    await loginAs(gs.call, own);
+    const step1 = await nav(gs.call, own, '/ubezpieczenia#/szkody/nowa');
+    const skipped: string[] = [];
+    for (let call = 0; call < 6; call++) {
+      const r = await gs.call('probe_form', {
+        run_id: own,
+        action_id: actionNamed(step1, 'Dalej')!.action_id,
+        probes: ['date-range'],
+        rationale: 'gate: probe the claim date',
+      });
+      expect(r.isError, JSON.stringify(r.body).slice(0, 400)).toBe(false);
+      skipped.push(...(r.body.skipped as string[]));
+      if (!r.body.more) break;
+    }
+    expect(skipped.filter((s) => /diverged/.test(s))).toEqual([]);
+    const tries = rows<{ outcome_kind: string; to_state_id: string }>(
+      gs,
+      `SELECT outcome_kind, to_state_id FROM probe_outcomes
+       WHERE run_id = ? AND probe_id = 'date-range' ORDER BY created_at`,
+      own,
+    );
+    expect(tries).toHaveLength(2);
+    for (const t of tries) {
+      expect(t.outcome_kind).toBe('validation');
+      // The message is a plain <p>, no alert role, so the outcome's messages miss it (F-07@038).
+      expect(snapshot(gs, t.to_state_id)).toContain('Szkodę można zgłosić do 30 dni od zdarzenia.');
+    }
+    const fresh = rows<{ n: number }>(
+      gs,
+      `SELECT count(*) AS n FROM decision_log WHERE run_id = ? AND rule = 'fresh_session'`,
+      own,
+    );
+    expect(fresh[0]!.n).toBe(1);
+  },
+  { timeout: 240_000 },
 );
 
 gate('LO-50', 'the ground truth uses the portal clock, not the real date', async () => {

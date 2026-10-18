@@ -140,6 +140,40 @@ export const boundaries = defineProbe({
       }),
 });
 
+/** Far from any plausible event, fixed so a try is the same on every run (no clock). */
+const FAR_DATES = [
+  ['past', '2000-01-01', 'min'],
+  ['future', '2099-12-31', 'max'],
+] as const;
+
+/**
+ * A date field the page sets no limit on gets a far past and a far future date (spec 038, LO-47):
+ * legacy and React forms often leave the date open and let the server judge it ("a claim within
+ * 30 days"), so only such a try shows the rule and the client and server disagreeing. A side the
+ * field limits with `min`/`max` is the boundary probe's.
+ */
+export const dateRange = defineProbe({
+  id: 'date-range',
+  group: 'validation',
+  summary: 'A far past and a far future date in a date field the page sets no limit on',
+  // proven on the proving ground's claim form (gate LO-47), which already is this obstacle
+  scars: ['LO-47'],
+  tries: ({ fields }: ProbeContext) =>
+    controls(fields)
+      .filter((f) => f.type === 'date')
+      .flatMap((f) =>
+        FAR_DATES.filter(([, , limit]) => f[limit] === undefined).map(([side, value]) => ({
+          ...tryOf(
+            'date-range',
+            f,
+            [{ index: f.index, value }],
+            `type ${value} into "${nameOf(f)}" (no limit, ${side})`,
+          ),
+          key: `date-range:${nameOf(f)}:${side}`,
+        })),
+      ),
+});
+
 export const optionalEmpty = defineProbe({
   id: 'optional-empty',
   group: 'validation',

@@ -1,0 +1,94 @@
+{
+  "task": "reference-insurer",
+  "started_at": "2026-10-18T15:32:29.029Z",
+  "git_sha": "9b09d31",
+  "conditions": {
+    "model": null,
+    "budget_usd": "2",
+    "source_store": "/tmp/pf-eval-reference-insurer-RSFJFW"
+  },
+  "outcome": "success",
+  "cost_usd": 0.42593100000000006,
+  "duration_ms": 34646,
+  "turns": 9,
+  "scores": {
+    "processes_found": {
+      "matched": 4,
+      "total": 5,
+      "pct": 80
+    },
+    "clean_starts": {
+      "matched": 3,
+      "total": 4,
+      "pct": 75
+    },
+    "why_cites": {
+      "matched": 5,
+      "total": 5,
+      "pct": 100
+    }
+  },
+  "checks": {
+    "suggestions": 5,
+    "duplicates": 0,
+    "stubs": 0,
+    "error_screens_inside": 0,
+    "extra_screens": 1,
+    "unmatched": 1
+  },
+  "detail": {
+    "P01": "\"Get a car insurance quote (OC/AC) and apply\"",
+    "P02": "\"Get a travel insurance quote\"",
+    "P03": "\"Compare insurance products\"",
+    "P04": "\"Send a message to the insurer\"",
+    "P05": "no suggestion covers it"
+  },
+  "suggestions": [
+    {
+      "name": "Get a car insurance quote (OC/AC) and apply",
+      "routes": [
+        "/ubezpieczenia/samochod",
+        "/kalkulator/pojazd",
+        "/kalkulator/kierowca",
+        "/kalkulator/opcje",
+        "/kalkulator/wynik",
+        "/kalkulator/zakup"
+      ],
+      "why": "The car insurance page leads into the calculator; its steps follow one another by buttons: /kalkulator/pojazd (\"dane pojazdu\") → /kalkulator/kierowca (\"dane kierowcy\") → /kalkulator/opcje (\"opcje\") → button to /kalkulator/wynik (\"Twoja składka\") → button to /kalkulator/zakup (\"Wniosek przyjęty\")."
+    },
+    {
+      "name": "Get a travel insurance quote",
+      "routes": [
+        "/ubezpieczenia/podroze",
+        "/ubezpieczenia/podroze/wynik"
+      ],
+      "why": "On \"Ubezpieczenie turystyczne\" (/ubezpieczenia/podroze) the form's button leads to \"Twoja składka podróżna\" (/ubezpieczenia/podroze/wynik)."
+    },
+    {
+      "name": "Compare insurance products",
+      "routes": [
+        "/porownanie",
+        "/porownanie/wynik"
+      ],
+      "why": "On \"Porównanie produktów\" (/porownanie) a button leads to \"Wynik porównania\" (/porownanie/wynik); the result page links back to the comparison."
+    },
+    {
+      "name": "Send a message to the insurer",
+      "routes": [
+        "/kontakt",
+        "/kontakt/dziekujemy"
+      ],
+      "why": "On \"Kontakt\" (/kontakt) the form's button leads to \"Dziękujemy za wiadomość\" (/kontakt/dziekujemy)."
+    },
+    {
+      "name": "Log in",
+      "routes": [
+        "/logowanie",
+        "/logowanie"
+      ],
+      "why": "On \"Logowanie\" (/logowanie) the login button leads to a second \"Logowanie\" screen; the scan did not get past it (no link from it to \"Moje polisy\" was recorded)."
+    }
+  ],
+  "workspace": "/tmp/pf-grouping-reference-insurer-75GBLR",
+  "regraded_at": "2026-10-18T15:35:43.086Z"
+}

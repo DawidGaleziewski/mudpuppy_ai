@@ -24,6 +24,16 @@
     },
   };
 
+  // A request said by a link ("Ask the assistant to regroup" opens the chat) waits here until an
+  // assistant on the next page sends it; one that comes while the assistant is busy waits here too.
+  // Before, the link opened the chat and the text was lost (R-78 (6): the drawer was closed, or the
+  // assistant was busy and the click was dropped without a word).
+  const PENDING_KEY = "assistant-say";
+  document.addEventListener("click", (e) => {
+    const link = e.target.closest?.("a[data-chat-say][href]");
+    if (link) store.set(PENDING_KEY, link.dataset.chatSay);
+  });
+
   // [copy] next to an ERR- reference.
   document.addEventListener("click", async (e) => {
     const button = e.target.closest?.("[data-copy]");
@@ -242,6 +252,7 @@
         clearLiveAfterSwap = true;
         window.htmx?.trigger(document.body, "chat-settled");
         window.htmx?.trigger(document.body, "step-changed");
+        sendPending();
       },
     };
 
@@ -276,8 +287,29 @@
       };
     }
 
+    const wait = (text) => {
+      store.set(PENDING_KEY, text);
+      divider(`The assistant is busy. This is sent when it finishes: ${text}`);
+    };
+
+    const sendPending = () => {
+      const text = store.get(PENDING_KEY);
+      if (!text) return;
+      store.set(PENDING_KEY, null);
+      if (serviceUp) {
+        void submit(text); // its own failures show in the chat
+        return;
+      }
+      failure(`Not sent: ${text}. ${NOT_RUNNING}`, null);
+      if (input) input.value = text;
+    };
+
     const submit = async (text) => {
-      if (!text || window.chatBusy) return;
+      if (!text) return;
+      if (window.chatBusy) {
+        wait(text);
+        return;
+      }
       setBusy(true);
       const mine = msg("user", text);
       input.value = "";
@@ -297,9 +329,14 @@
           // not JSON
         }
         mine.div.remove();
+        // 409: still answering an earlier message (another tab, or before this page knew)
+        if (r.status === 409) {
+          wait(text);
+          return;
+        }
         failure(body.message ?? "The message could not be sent.", body.ref);
         input.value = text;
-        if (r.status !== 409) setBusy(false);
+        setBusy(false);
       } catch {
         sending = false;
         mine.div.remove();
@@ -321,7 +358,8 @@
     });
     document.addEventListener("click", (e) => {
       const say = e.target.closest?.("[data-chat-say]");
-      if (say && !say.disabled) submit(say.dataset.chatSay);
+      // a link's request goes with the page it opens (PENDING_KEY above)
+      if (say && !say.disabled && !say.matches("a[href]")) submit(say.dataset.chatSay);
     });
     stop?.addEventListener("click", async () => {
       stop.disabled = true;
@@ -351,6 +389,7 @@
 
     toBottom();
     refresh();
+    sendPending();
   };
 
   const wireAll = (root) => root.querySelectorAll?.("[data-assistant]").forEach(wire);

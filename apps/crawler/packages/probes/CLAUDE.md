@@ -23,7 +23,8 @@ Layer: features (G-07; `apps/crawler/layers.json`). Depends on core only.
 ## Probes
 
 - validation: `required-empty-all`, `required-empty-one`, `wrong-format`, `boundary`,
-  `optional-empty`
+  `date-range` (spec 038: a far past and a far future date where the date field sets no limit;
+  proven on the proving ground's LO-47, not a scar), `optional-empty`
 - branch: `option` (radio groups, selects (first 6 other options), optional checkboxes)
 - technical: `http-500`, `block-request`, `delay`, `offline` (simulated in the crawler's browser;
   owner answer O-M1: wherever the action limit allows the submit)

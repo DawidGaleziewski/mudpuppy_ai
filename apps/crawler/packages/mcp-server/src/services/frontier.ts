@@ -6,6 +6,8 @@ import { assertRunActive, getRun } from './common.js';
 import { isBudgetExhausted } from './run-budget.js';
 import { nextPendingRow } from './frontier-order.js';
 import { inferSameTarget } from './same-target.js';
+import { inferSharedButton } from './shared-button.js';
+import { linkPath } from './link-path.js';
 
 export const AddFrontierItemInput = z
   .object({
@@ -67,8 +69,18 @@ function describe(actionJson: string): string {
       url?: string;
       role?: string;
       accessible_name?: string | null;
+      href?: string;
+      label?: string;
     };
     if (a.kind === 'navigate' && a.url) return `navigate to ${a.url}`;
+    // An unnamed link says where it goes, an unnamed field what it is labelled: a bare "link"
+    // gave the agent no reason to open the bank's icon link to szczegoly.do (spec 038, S11).
+    if (!a.accessible_name && a.role === 'link' && a.href) {
+      const to = linkPath(a.href);
+      if (to) return `link (no name) to ${to}`;
+    }
+    if (!a.accessible_name && a.role && a.label)
+      return `${a.role} labelled ${JSON.stringify(a.label)}`;
     return (
       [a.role, a.accessible_name ? JSON.stringify(a.accessible_name) : null]
         .filter(Boolean)
@@ -105,7 +117,9 @@ export async function getNextFrontierItem(
   const run = await assertRunActive(ctx, input.run_id);
   const nextPending = () => nextPendingRow(ctx, input.run_id);
   let next = await nextPending();
-  while (next && (await inferSameTarget(ctx, next.row))) next = await nextPending();
+  const settled = async (row: Parameters<typeof inferSameTarget>[1]) =>
+    (await inferSameTarget(ctx, row)) || (await inferSharedButton(ctx, row));
+  while (next && (await settled(next.row))) next = await nextPending();
   const row = next?.row;
   const pick = async (attrs: Record<string, unknown>): Promise<void> => {
     if (ctx.tracer.level === 'off') return;

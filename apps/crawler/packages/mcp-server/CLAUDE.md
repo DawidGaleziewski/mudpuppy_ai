@@ -50,7 +50,8 @@ Layer: servers (G-07; `apps/crawler/layers.json`)
   run's own path to each state, kept in `RunState.pathTo`; `reachState` replays it on a same-URL
   wizard, `REPLAY_DIVERGED` when it lands elsewhere), the `probe_form` tool:
   - `probe-form.ts`: probe runs only, marked steps only (`services/probe-marks.ts`, US5), gate,
-    limit ≥ mutating, budget, the happy press, a 40 s limit per call with `more`;
+    limit ≥ mutating, budget, the happy press, a 40 s limit per call with `more`; a try whose
+    way back diverged is done once more in a new session (`fresh-session.ts`, F-03@038);
   - `probe.ts`: one press with values, a fault and an observation, classified and recorded in
     `probe_outcomes`;
   - `probe-steps.ts`: label steps for suites;
@@ -87,6 +88,14 @@ Layer: servers (G-07; `apps/crawler/layers.json`)
   when a deep link misses the element (`RunState.replayOnly`, F-11@031); probes queue the tries
   on fields an option revealed (`pipeline/probe-form.ts` `runTries`, store helpers in
   `probe-records.ts`).
+- Spec 038: `services/known-clusters.ts` (`seedKnownClusters`: per route, on first sight in a run,
+  the run's fingerprint index gets the clusters earlier runs recorded, so a page that varies
+  between runs is the next revision of its screen; `RunState.seededRoutes`); `services/shared-button.ts`
+  (`inferSharedButton`: a banner/navigation/footer button whose earlier clicks all went to one
+  other page is settled without a turn, `shared_button: <edge>`; `same-target.ts` `settleInferred`
+  is shared); `services/link-path.ts` (an unnamed link's `link_to` and frontier description);
+  unnamed fields carry `label` (from `@pathfinder/crawler` `withFieldLabels`) in results and
+  `action_json`, and test data is looked up by it.
 - Entry points: `pnpm --filter @pathfinder/mcp-server start` (`src/main.ts`), `start:ba`.
 
 ## Invariants

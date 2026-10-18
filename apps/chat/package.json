@@ -10,7 +10,9 @@
     "test": "vitest run --exclude 'tests/**/*.e2e.test.ts'",
     "test:e2e": "vitest run e2e.test.ts",
     "start": "tsx src/main.ts",
-    "mcp": "tsx src/mcp-main.ts"
+    "mcp": "tsx src/mcp-main.ts",
+    "eval": "tsx evals/index.ts",
+    "eval:regrade": "tsx evals/regrade.ts"
   },
   "dependencies": {
     "@agentclientprotocol/claude-agent-acp": "^0.85.1",

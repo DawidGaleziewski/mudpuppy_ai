@@ -33,6 +33,10 @@ export interface PageResult {
      * what to type, NOT what the field holds: forms start as the portal renders them.
      */
     suggested_value?: string;
+    /** An unnamed field's visible label (spec 038, LO-48): the text a person reads next to it. */
+    label?: string;
+    /** An unnamed link's target path, so an icon link is worth a look (spec 038, bank S11). */
+    link_to?: string;
   }[];
   /** How many issued actions a result without `actions` left out. */
   actions_omitted?: number;

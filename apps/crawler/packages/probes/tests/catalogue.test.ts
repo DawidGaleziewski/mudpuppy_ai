@@ -152,6 +152,21 @@ describe('probe catalogue (spec 032 US2)', () => {
       }),
     ).toBe('wrong');
   });
+
+  it('tries a far past and a far future date where the date field sets no limit (LO-47)', () => {
+    const claim: ProbeField[] = [
+      { index: 0, tag: 'input', type: 'date', label: 'Data zdarzenia', required: false },
+      { index: 1, tag: 'input', type: 'date', label: 'Od', required: false, min: '2026-01-01' },
+      { index: 2, tag: 'input', type: 'text', label: 'Opis', required: false },
+    ];
+    const tries = all(ctx(claim, [[0, '2026-10-18']])).filter((t) => t.probe === 'date-range');
+    expect(tries.map((t) => [t.key, t.writes])).toEqual([
+      ['date-range:Data zdarzenia:past', [{ index: 0, value: '2000-01-01' }]],
+      ['date-range:Data zdarzenia:future', [{ index: 0, value: '2099-12-31' }]],
+      // "Od" has a minimum: its past side is the boundary probe's
+      ['date-range:Od:future', [{ index: 1, value: '2099-12-31' }]],
+    ]);
+  });
 });
 
 describe('the reference calculator within the default budget (spec 036 FR-008, F-17@034)', () => {

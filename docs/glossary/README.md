@@ -1206,9 +1206,32 @@ footer menus.
 
 *Labels:* `Inferred`, `inferred`
 
-*Related:* [Frontier](#frontier), [Transition (edge)](#transition), [Confidence (observed / inferred / needs confirmation)](#confidence)
+*Related:* [Frontier](#frontier), [Transition (edge)](#transition), [Confidence (observed / inferred / needs confirmation)](#confidence), [Shared menu button](#shared-button)
 
 <sub>Last changed in R-35, 2026-10-14.</sub>
+
+<a id="shared-button"></a>
+
+#### Shared menu button
+
+**A button in the page header, menu or footer that every page repeats; once its clicks in a run all lead to the same page, its copies on other pages are recorded as inferred, not clicked again.**
+
+A link in a shared menu is settled by its target address (an inferred link). A button has
+no address, and the same button may do something else on another page, so it is only
+settled when the run already clicked it from other pages and every one of those clicks
+went to one other page. The item is then marked done (`shared_button`) with an inferred
+transition to that page. If any click stayed on its page (a menu toggle) or two clicks
+landed on different pages, the button is clicked as usual.
+
+*Example:* In one bank map the header's "Wyloguj" was clicked from 14 pages, every time to the start page; now it is clicked once.
+
+*Seen in:* Frontier report
+
+*Labels:* `shared_button`
+
+*Related:* [Inferred link](#inferred-link), [Frontier](#frontier), [Transition (edge)](#transition)
+
+<sub>Last changed in R-58, 2026-10-18.</sub>
 
 <a id="next-item"></a>
 
@@ -2304,6 +2327,29 @@ time, and each starts its own portal server, refusing a port something else hold
 *Related:* [Eval (tier 2)](#eval), [Eval task / suite](#eval-task), [Eval baseline](#eval-baseline)
 
 <sub>Last changed in R-52, 2026-10-12.</sub>
+
+<a id="grouping-eval"></a>
+
+#### Grouping eval
+
+**The eval of how well the assistant cuts a portal's recorded scans into processes, scored against the processes a person wrote down.**
+
+`pnpm --dir apps/chat eval <portal>` copies a finished crawler eval's store with every
+grouping taken out, asks the assistant what the "Ask the assistant to regroup" button asks,
+and scores the groupings it suggests: each known process found, starting on its own first
+screen and not the page the user came from, no duplicates or one-screen groupings, and a
+reason that cites the links between the screens. Results go to
+`data/evals/grouping-<portal>/`.
+
+*Example:* On the reference portal 4 of 5 processes are found; the car quote starts one page too early.
+
+*Seen in:* data/evals/grouping-<portal>/<timestamp>.json
+
+*Labels:* `processes_found`, `clean_starts`, `why_cites`
+
+*Related:* [Eval (tier 2)](#eval), [Eval trial](#eval-trial), [Grader](#grader)
+
+<sub>Last changed in R-78, 2026-10-18.</sub>
 
 <a id="grader"></a>
 

@@ -53,6 +53,8 @@ export const PHASE_NAMES = [
   // spec 032 (R-69): back to a form step within the run; one try of a form probe
   'replay',
   'probe',
+  // spec 038 (F-03): a new browser session for a probe try on a wizard that keeps its step on the server
+  'fresh_session',
 ] as const;
 export type PhaseName = (typeof PHASE_NAMES)[number];
 
@@ -103,6 +105,8 @@ export const EVENT_NAMES = [
   'form_step',
   'probe_outcome',
   'replay_diverged',
+  // spec 038 (F-03): the session a probe try was redone in
+  'fresh_session',
 ] as const;
 export type EventName = (typeof EVENT_NAMES)[number];
 

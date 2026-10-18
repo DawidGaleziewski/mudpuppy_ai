@@ -9,7 +9,8 @@ Layer: kernel (G-07)
 - `url-params`: `parseUrlParams`, every query, path and hash-route parameter of a URL as written
   (spec 019, R-37).
 - `aria-canonical`: ARIA canonicalisation.
-- `fingerprint`: two-level fingerprint.
+- `fingerprint`: two-level fingerprint; `FingerprintIndex.seed` adds a cluster known from earlier
+  runs (spec 038, mcp-server `seedKnownClusters`).
 - `form-step` (spec 032 US1): `formControls` (form name, control set, label), `errorSignals`
   (invalid controls, alert texts), `FormStepIndex` (steps of a route: same form name, else control
   overlap ≥ 0.5; numbered in first-seen order). Used by mcp-server's `record_state`. The `invalid`

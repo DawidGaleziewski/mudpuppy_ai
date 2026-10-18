@@ -22,6 +22,7 @@ import type { ActionRow } from './actions.js';
 import { event, reported, step } from './context.js';
 import { armFault, type FaultResult } from './fault.js';
 import { findAgain } from './find-again.js';
+import { againInFreshSession } from './fresh-session.js';
 import { labelSteps, pathJson, type LabelStep } from './probe-steps.js';
 import { processPage } from './process-page.js';
 import { returnToState, type ReplayScope } from './replay.js';
@@ -100,7 +101,8 @@ export async function press(
   },
 ): Promise<Pressed | { skipped: string }> {
   const { rs } = sc;
-  if (!opts.fresh || rs.currentStateId !== target.stateId) await returnToState(sc, target.stateId);
+  if (!opts.fresh || rs.currentStateId !== target.stateId)
+    await againInFreshSession(sc, () => returnToState(sc, target.stateId));
   const found = await findAgain(rs.session.page, target.action);
   if (found.locator === null) return { skipped: 'the step control is not on the page' };
   const fields = (await readFormFields(found.locator)) ?? [];
