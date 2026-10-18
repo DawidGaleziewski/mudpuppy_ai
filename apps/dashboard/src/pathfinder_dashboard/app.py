@@ -19,7 +19,7 @@ from fastapi.responses import RedirectResponse, Response
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
-from . import glossary, live, nav, queries_docs, queries_map_node, status_map
+from . import chat_client, glossary, live, nav, queries_docs, queries_map_node, status_map
 from .models import DECISION_KINDS, FRONTIER_STATUSES, RUN_STATUSES, SAFETY_CLASSES
 from .settings import Settings
 from .web import access as access_page
@@ -90,6 +90,7 @@ def create_app(
     templates.env.globals["SCREEN_MARKS"] = queries_map_node.SCREEN_MARKS
     templates.env.globals["nav_section"] = nav.current_section
     templates.env.globals["section_href"] = nav.href_of
+    templates.env.globals["chat_start_hint"] = chat_client.start_hint
 
     # Shared page helpers (web/deps.py); the page routers get them with `web_of(request)`.
     web = Web(settings, templates, chat_transport)

@@ -11,7 +11,7 @@
   <section class="sy-state sy-state--failure" role="alert">
     <h3 class="sy-state__title">Assistant not running</h3>
     <p>Start it in a terminal, then open the drawer again. Every page keeps working.</p>
-    <pre class="sy-code">pnpm --dir apps/chat start</pre>
+    <pre class="sy-code">{{ chat_start_hint(env) }}</pre>
   </section>
   {%- endif %}
 </div>

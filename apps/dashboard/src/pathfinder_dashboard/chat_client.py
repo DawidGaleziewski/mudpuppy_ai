@@ -13,11 +13,17 @@ import httpx2
 
 from .settings import Settings
 
-START_HINT = "pnpm --dir apps/chat start"
-NOT_RUNNING = (
-    "The chat service is not running. Start it in a terminal with "
-    f"`{START_HINT}`, then reload this page."
-)
+NOT_RUNNING = "The chat service is not running."
+
+
+def start_hint(env: str | None) -> str:
+    """The command that starts the chat service for `env`; it refuses to start without one."""
+    return f"PATHFINDER_ENV={env or '<environment>'} pnpm --dir apps/chat start"
+
+
+def not_running(env: str) -> str:
+    """The message shown when the chat service cannot be reached, with its start command."""
+    return f"{NOT_RUNNING} Start it in a terminal with `{start_hint(env)}`, then reload this page."
 
 
 class ChatUnavailable(Exception):

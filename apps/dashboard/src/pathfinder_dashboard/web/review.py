@@ -233,14 +233,14 @@ def suite_calls(
     return calls + ([("approve", {"author": author})] if action == "approve" else [])
 
 
-async def _suite_call(web: Any, path: str, body: dict[str, Any]) -> str | None:
+async def _suite_call(web: Any, env: str, path: str, body: dict[str, Any]) -> str | None:
     """One chat service call; the refusal's message, or None when it went through."""
     try:
         status, answer = await chat_client.call(
             web.settings, "POST", path, body, web.chat_transport
         )
     except chat_client.ChatUnavailable:
-        return chat_client.NOT_RUNNING
+        return chat_client.not_running(env)
     if status == 200:
         return None
     message = answer.get("message") if isinstance(answer, dict) else None
@@ -274,7 +274,7 @@ async def review_suite(
         base = f"/portals/{quote(portal, safe='')}/probe-suites/{quote(suite_id, safe='')}/"
         refused = None
         for verb, body in calls:
-            refused = await _suite_call(web, base + verb, body)
+            refused = await _suite_call(web, c.env, base + verb, body)
             if refused:
                 break
         note = f"Not recorded: {refused}." if refused else SUITE_DONE[action]
@@ -325,7 +325,7 @@ async def review_differing(
             f"/portals/{quote(portal, safe='')}/reconciliations/"
             f"{quote(reconciliation_id, safe='')}/confirm"
         )
-        refused = await _suite_call(web, path, {"author": author, "verdicts": verdicts})
+        refused = await _suite_call(web, c.env, path, {"author": author, "verdicts": verdicts})
         note = f"Not recorded: {refused}." if refused else "Verdicts confirmed."
     target = c.url("/review", portal=portal, show="differing", note=note)
     return RedirectResponse(target, status_code=303)

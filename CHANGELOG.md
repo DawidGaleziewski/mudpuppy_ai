@@ -15,10 +15,16 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   actions with **Retry this path** (with a variation) and **Skip it in the next scans**, or **Mark
   Start here**; each comes back to the graph with its note. The scan history links it as **Where
   it stopped** or **N failed**. On a phone the graph gives way to the list of screens in the
-  order seen. Glossary `scan-graph`. Deferred: split the scan page's `section_values` per tab
-  (one statement over the limit). Amended the same day (owner: "when I click on an item on the
+  order seen. Glossary `scan-graph`. The scan page's `section_values` was split per tab
+  afterwards (`_section_data`). Amended the same day (owner: "when I click on an item on the
   graph the whole page reloads"): picking a screen in the graph, the path or the table swaps
   only the graph region (htmx, URL pushed), and the graph keeps its scroll, zoom and focus.
+
+### Fixed
+- **Chat service start command** (2026-10-18; the owner's Resume did nothing while the service
+  was down): every "chat service is not running" message, page and drawer gave
+  `pnpm --dir apps/chat start`, which refuses to start without an environment; they now give
+  `PATHFINDER_ENV=<the store's environment> pnpm --dir apps/chat start`.
 - Spec 034, four roadmap items on one branch (v1.0.38, 2026-10-18):
   - **Scan from a known screen, R-66:** every scan stores the way back to each screen
     (checkpoints, migration 0027); a new scan reaches a chosen screen by replaying that path

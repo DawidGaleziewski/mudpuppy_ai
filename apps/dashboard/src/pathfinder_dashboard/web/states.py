@@ -151,7 +151,9 @@ PROBE_MARK_DONE = {
 }
 
 
-async def _mark_call(web: Any, method: str, portal: str, body: dict[str, Any]) -> str | None:
+async def _mark_call(
+    web: Any, env: str, method: str, portal: str, body: dict[str, Any]
+) -> str | None:
     """One chat service call on the portal's marks; the refusal's message, or None."""
     path = f"/portals/{quote(portal, safe='')}/marks"
     try:
@@ -159,7 +161,7 @@ async def _mark_call(web: Any, method: str, portal: str, body: dict[str, Any]) -
             web.settings, method, path, body, web.chat_transport
         )
     except chat_client.ChatUnavailable:
-        return chat_client.NOT_RUNNING
+        return chat_client.not_running(env)
     if status in (200, 201):
         return None
     message = answer.get("message") if isinstance(answer, dict) else None
@@ -196,7 +198,8 @@ async def state_mark(request: Request, state_id: str, env: str | None = None) ->
             "target_kind": "state",
             "target_id": state_id,
         }
-        refused = await _mark_call(web, "POST" if action == "mark" else "DELETE", portal, body)
+        method = "POST" if action == "mark" else "DELETE"
+        refused = await _mark_call(web, c.env, method, portal, body)
         label = SCREEN_MARK_KINDS[kind]
         done = f"Marked {label}." if action == "mark" else f"{label} mark removed."
         note = f"Not recorded: {refused}." if refused else done
@@ -233,7 +236,7 @@ async def state_probe_mark(request: Request, state_id: str, env: str | None = No
     else:
         body = {"author": author, "kind": "probe", "target_kind": "form_step", "target_id": fs.id}
         method = "POST" if action == "mark" else "DELETE"
-        refused = await _mark_call(web, method, fs.portal, body)
+        refused = await _mark_call(web, c.env, method, fs.portal, body)
         note = f"Not recorded: {refused}." if refused else PROBE_MARK_DONE[action]
     # The map's inspector sends `back` (spec 033 FR-011); only a map address is followed.
     back = (form.get("back") or [""])[0]

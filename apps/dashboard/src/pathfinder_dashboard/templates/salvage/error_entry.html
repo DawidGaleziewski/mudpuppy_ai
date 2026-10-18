@@ -14,7 +14,7 @@
 <section class="sy-state sy-state--failure" role="alert">
   <h2 class="sy-state__title">Assistant not running</h2>
   <p>The error log is read through the assistant service. Start it, then retry.</p>
-  <pre class="sy-code">pnpm --dir apps/chat start</pre>
+  <pre class="sy-code">{{ chat_start_hint(env) }}</pre>
   <p><a class="sy-btn sy-btn--sm" href="/chat/errors/{{ ref | urlencode }}">Retry</a></p>
 </section>
 {%- elif not entry %}

@@ -209,9 +209,41 @@ def section_values(
     page_no = max(int(params.get("page", "1") or 1), 1)
     base = f"/fragments/runs/{run.id}/{section}"
     page_base = f"/runs/{run.id}"
+    data, filters = _section_data(conn, run, section, params, limit)
+
+    pg = data.get("page")
+    next_cursor = pg.next_cursor if pg else None
+    page_arg = page_no if cursor else None
+    return {
+        "id": section,
+        "run": run,
+        "filters": filters,
+        "page_no": page_no,
+        "pages": max(1, -(-pg.total // limit)) if pg else 1,
+        "offset": (page_no - 1) * limit,
+        "self_url": c.url(base, **filters, cursor=cursor, page=page_arg),
+        "page_url": c.url(page_base, tab=section, **filters, cursor=cursor, page=page_arg),
+        "fragment_url": base,
+        "form_action": page_base,
+        "next_url": c.url(page_base, tab=section, **filters, cursor=next_cursor, page=page_no + 1)
+        if next_cursor
+        else None,
+        "next_fragment": c.url(base, **filters, cursor=next_cursor, page=page_no + 1, push=1)
+        if next_cursor
+        else None,
+        "first_url": c.url(page_base, tab=section, **filters) if cursor else None,
+        "first_fragment": c.url(base, **filters, push=1) if cursor else None,
+        **data,
+    }
+
+
+def _section_data(
+    conn: sqlite3.Connection, run: Run, section: str, params: Any, limit: int
+) -> tuple[dict[str, Any], dict[str, Any]]:
+    """One section's values and its filters (the query string keys it reads)."""
+    cursor = params.get("cursor") or None
     filters: dict[str, Any] = {}
     data: dict[str, Any] = {}
-
     if section == "graph":
         data, filters = graph_values(conn, run, params)
     elif section == "states":
@@ -251,31 +283,7 @@ def section_values(
         data["process"] = found[0] if found else None
         data["steps"] = found[1] if found else []
         data["diagram"] = process_run_diagram(conn, found) if found else None
-
-    pg = data.get("page")
-    next_cursor = pg.next_cursor if pg else None
-    page_arg = page_no if cursor else None
-    return {
-        "id": section,
-        "run": run,
-        "filters": filters,
-        "page_no": page_no,
-        "pages": max(1, -(-pg.total // limit)) if pg else 1,
-        "offset": (page_no - 1) * limit,
-        "self_url": c.url(base, **filters, cursor=cursor, page=page_arg),
-        "page_url": c.url(page_base, tab=section, **filters, cursor=cursor, page=page_arg),
-        "fragment_url": base,
-        "form_action": page_base,
-        "next_url": c.url(page_base, tab=section, **filters, cursor=next_cursor, page=page_no + 1)
-        if next_cursor
-        else None,
-        "next_fragment": c.url(base, **filters, cursor=next_cursor, page=page_no + 1, push=1)
-        if next_cursor
-        else None,
-        "first_url": c.url(page_base, tab=section, **filters) if cursor else None,
-        "first_fragment": c.url(base, **filters, push=1) if cursor else None,
-        **data,
-    }
+    return data, filters
 
 
 def _multi(params: Any, key: str) -> list[str]:

@@ -8,7 +8,7 @@ from typing import Any
 from fastapi import Request
 from fastapi.responses import JSONResponse
 
-from .. import chat_client
+from .. import chat_client, db
 from .deps import Web
 
 
@@ -16,8 +16,10 @@ def chat_json(status: int, body: object) -> JSONResponse:
     return JSONResponse(body, status_code=status, headers={"Cache-Control": "no-store"})
 
 
-def chat_down() -> JSONResponse:
-    return chat_json(503, {"ref": None, "message": chat_client.NOT_RUNNING})
+def chat_down(web: Web) -> JSONResponse:
+    """503 with the start command for the environment the dashboard opens by default."""
+    env = db.resolve_env(web.settings.data_dir, None, web.settings.default_env)
+    return chat_json(503, {"ref": None, "message": chat_client.not_running(env)})
 
 
 def chat_refused() -> JSONResponse:
@@ -43,5 +45,5 @@ async def forward(web: Web, method: str, path: str, payload: object | None = Non
             web.settings, method, path, payload, web.chat_transport
         )
     except chat_client.ChatUnavailable:
-        return chat_down()
+        return chat_down(web)
     return chat_json(status, body)

@@ -24,7 +24,7 @@
 <script src="/static/js/assistant.js" defer></script>
 {% block head_extra %}{% endblock %}
 </head>
-<body class="sy-ground"{% if dev %} data-dev="1"{% endif %} data-boot="{{ BOOT_ID }}">
+<body class="sy-ground"{% if dev %} data-dev="1"{% endif %} data-boot="{{ BOOT_ID }}" data-chat-start="{{ chat_start_hint(env) }}">
 <a class="sy-skip" href="#main">Skip to content</a>
 <div class="sy-app">
   {% include "salvage/partials/header.html" %}

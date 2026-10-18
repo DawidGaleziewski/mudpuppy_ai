@@ -29,8 +29,7 @@
   const stop = document.getElementById("chat-stop");
   const reset = document.getElementById("chat-reset");
   const serviceUp = root.dataset.serviceUp === "1";
-  const NOT_RUNNING =
-    "The chat service is not running. Start it with `pnpm --dir apps/chat start`, then reload.";
+  const NOT_RUNNING = `The chat service is not running. Start it with \`${document.body.dataset.chatStart}\`, then reload.`;
 
   window.chatBusy = false; // read by the history region's trigger filter
   let clearLiveAfterSwap = false;

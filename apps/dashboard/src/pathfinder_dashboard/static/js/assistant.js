@@ -4,7 +4,7 @@
 // context sent with each message (This page / Whole yard), and the assistant's browser actions
 // (`ui_action`: open a page, highlight an element). Agent and user text go in via textContent.
 (() => {
-  const NOT_RUNNING = "The assistant is not running. Start it with `pnpm --dir apps/chat start`, then reload.";
+  const NOT_RUNNING = `The assistant is not running. Start it with \`${document.body.dataset.chatStart}\`, then reload.`;
   const OPEN_KEY = "assistant-open";
   const store = {
     get: (k) => {

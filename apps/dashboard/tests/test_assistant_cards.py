@@ -99,7 +99,7 @@ def test_service_down_drawer_shows_the_failure_and_pages_keep_working(empty_stor
         screens = c.get("/screens")
         status = c.get("/fragments/assistant-status")
     assert drawer.status_code == 200 and "Assistant not running" in drawer.text
-    assert "pnpm --dir apps/chat start" in drawer.text
+    assert "PATHFINDER_ENV=test pnpm --dir apps/chat start" in drawer.text  # the store's env
     assert home.status_code == 200 and "Assistant not running" in home.text
     assert "disabled" in home.text  # composer and Send are off, history stays readable
     assert screens.status_code == 200

@@ -110,7 +110,9 @@ def recover_page(
     )
 
 
-async def _send_to_chat(web: Any, portal: str, text: str) -> tuple[str | None, str | None]:
+async def _send_to_chat(
+    web: Any, env: str, portal: str, text: str
+) -> tuple[str | None, str | None]:
     """Post the request to the portal's conversation: (conversation id, refusal message)."""
     try:
         status, body = await chat_client.call(
@@ -127,7 +129,7 @@ async def _send_to_chat(web: Any, portal: str, text: str) -> tuple[str | None, s
             web.chat_transport,
         )
     except chat_client.ChatUnavailable:
-        return None, chat_client.NOT_RUNNING
+        return None, chat_client.not_running(env)
     if status >= 300:
         message = body.get("message") if isinstance(body, dict) else None
         return conv, str(message or status)
@@ -160,7 +162,7 @@ async def plan_start(request: Request, env: str | None = None) -> Response:
     if plan is None:
         return _back(c, form, "Continuing needs the stopped scan; start it from its recovery page.")
     text = scan_request_text(portal, persona, form.get("environment") or None, run_type, plan)
-    conv, refused = await _send_to_chat(web, portal, text)
+    conv, refused = await _send_to_chat(web, c.env, portal, text)
     if refused:
         return _back(c, form, f"Not started: {refused}.")
     return RedirectResponse(c.url("/chat", conversation=conv), status_code=303)
@@ -204,7 +206,7 @@ async def recover_skip(request: Request, run_id: str, env: str | None = None) ->
                 else f"Not recorded: {answer}."
             )
         except chat_client.ChatUnavailable:
-            note = f"Not recorded: {chat_client.NOT_RUNNING}."
+            note = f"Not recorded: {chat_client.not_running(c.env)}"
     form = {k: v[0] for k, v in raw.items()}
     if form.get("from") == "graph":
         return _back(c, {**form, "parent_run_id": run_id}, note)

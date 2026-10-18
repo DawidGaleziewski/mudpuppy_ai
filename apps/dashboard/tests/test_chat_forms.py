@@ -293,6 +293,7 @@ def test_credentials_cross_origin_and_service_down(mapped: Store) -> None:
     with make_client(mapped, Service(up=False)) as c:
         r = c.post(f"/chat/conversations/{CONV}/credentials", json=ok, headers=ORIGIN)
     assert r.status_code == 503 and "not running" in r.json()["message"]
+    assert "PATHFINDER_ENV=" in r.json()["message"]  # the start command names an environment
     assert FAKE_SECRET not in r.text
 
 

@@ -214,7 +214,7 @@ async def chat_create(request: Request) -> JSONResponse:
             web.settings, "POST", "/conversations", sent, web.chat_transport
         )
     except chat_client.ChatUnavailable:
-        return chat_down()
+        return chat_down(web)
     return chat_json(status, body)
 
 
@@ -244,7 +244,7 @@ async def chat_send(request: Request, conversation_id: str) -> JSONResponse:
             web.chat_transport,
         )
     except chat_client.ChatUnavailable:
-        return chat_down()
+        return chat_down(web)
     return chat_json(status, body)
 
 
@@ -267,7 +267,7 @@ async def chat_events(
         upstream = await client.send(upstream_request, stream=True)
     except httpx2.HTTPError:
         await client.aclose()
-        return chat_down()
+        return chat_down(web)
     if upstream.status_code != 200:
         try:
             body = upstream.json() if await upstream.aread() else {}
