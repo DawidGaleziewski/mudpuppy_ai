@@ -14,8 +14,9 @@ Layer: kernel (G-07)
   keys) and `minhashBlob` for `state_components`; `FingerprintIndex.seed` adds a cluster known from
   earlier runs (spec 038, mcp-server `seedKnownClusters`).
 - `structure` (spec 039): `buildTree`, structural signatures, `collapsedText` (row-like repeated
-  siblings count once, without their text; leaves never collapse, F-02@039), `elementKeys`
-  (`role|masked name|container path|ordinal`, F-03@039), `ACTIONABLE_ROLES`.
+  siblings count once, without their text; leaves never collapse, F-02@039), `modelElementKeys`
+  (`role|masked name|container path|ordinal`, F-03@039; not core's spec-008 `elementKeys`,
+  F-08@039), `ACTIONABLE_ROLES`.
 - `form-step` (spec 032 US1): `formControls` (form name, control set, label), `errorSignals`
   (invalid controls, alert texts), `FormStepIndex` (steps of a route: same form name, else control
   overlap ≥ 0.5; numbered in first-seen order). Used by mcp-server's `record_state`. The `invalid`

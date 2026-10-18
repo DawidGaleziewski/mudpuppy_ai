@@ -5,8 +5,8 @@ import {
   collapsedText,
   computeComponents,
   computeFingerprint,
-  elementKeys,
   minhashBlob,
+  modelElementKeys,
 } from '../src/index.js';
 
 const tree = (aria: string) => buildTree(canonicalizeAria(aria).nodes);
@@ -92,21 +92,23 @@ describe('element keys (spec 039 design § 5.5)', () => {
   ].join('\n');
 
   it('role | masked lower-cased name | container path | ordinal', () => {
-    expect(elementKeys(tree(form)).map((k) => k.key)).toEqual([
+    expect(modelElementKeys(tree(form)).map((k) => k.key)).toEqual([
       'textbox|model|main>form "Dane pojazdu"|',
       'button|oblicz składkę|main>form "Dane pojazdu"|',
     ]);
   });
 
   it('adds the nearest heading above inside the container', () => {
-    const keys = elementKeys(
+    const keys = modelElementKeys(
       tree('- main:\n  - heading "Twoje dane" [level=2]\n  - button "Dalej"'),
     );
     expect(keys[0]!.key).toBe('button|dalej|main>heading "Twoje dane"|');
   });
 
   it('numbers elements only when role, name and container repeat', () => {
-    const keys = elementKeys(tree('- main:\n  - link "Więcej"\n  - link "Więcej"\n  - link "FAQ"'));
+    const keys = modelElementKeys(
+      tree('- main:\n  - link "Więcej"\n  - link "Więcej"\n  - link "FAQ"'),
+    );
     expect(keys.map((k) => k.key)).toEqual([
       'link|więcej|main|1',
       'link|więcej|main|2',
@@ -116,13 +118,15 @@ describe('element keys (spec 039 design § 5.5)', () => {
   });
 
   it('masks numbers in names, so a counter does not change the key', () => {
-    const a = elementKeys(tree('- banner:\n  - link "Koszyk (3)"'))[0]!.key;
-    const b = elementKeys(tree('- banner:\n  - link "Koszyk (4)"'))[0]!.key;
+    const a = modelElementKeys(tree('- banner:\n  - link "Koszyk (3)"'))[0]!.key;
+    const b = modelElementKeys(tree('- banner:\n  - link "Koszyk (4)"'))[0]!.key;
     expect(a).toBe(b);
   });
 
   it('skips the options of a native select, as the action extractor does', () => {
-    const keys = elementKeys(tree('- combobox "Marka":\n  - option "Skoda"\n  - option "Audi"'));
+    const keys = modelElementKeys(
+      tree('- combobox "Marka":\n  - option "Skoda"\n  - option "Audi"'),
+    );
     expect(keys.map((k) => k.role)).toEqual(['combobox']);
   });
 });

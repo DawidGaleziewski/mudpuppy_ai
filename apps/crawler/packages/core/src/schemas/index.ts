@@ -18,3 +18,4 @@ export * from './robots-policy.js';
 export * from './portal-data-log.js';
 export * from './composition.js';
 export * from './page-visit.js';
+export * from './capture.js';

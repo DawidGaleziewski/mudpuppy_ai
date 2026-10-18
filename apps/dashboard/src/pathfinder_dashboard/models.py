@@ -188,6 +188,81 @@ class Edge(Row):
     error: Json | None
     stabilization: Stabilization
     created_at: str
+    # 0029 (spec 039): the edge as a transition; NULL on v1 rows
+    journey_id: str | None = None
+    seq: int | None = None
+    from_visit_id: str | None = None
+    element_key: str | None = None
+    kind: TransitionKind | None = None
+    result: StepResult | None = None
+    driver: Literal["agent", "headless"] = "agent"
+
+
+StepResult = Literal["ok", "validation", "business_error", "technical_error", "timeout", "blocked"]
+TransitionKind = Literal["click", "fill", "select", "check", "submit", "navigate", "back"]
+
+
+class Build(Row):
+    """0029 (spec 039): one build of one scope of a portal."""
+
+    id: str
+    portal_id: str
+    scope: str
+    signature: str
+    source: Literal["assets", "marker", "unknown"]
+    assets_json: Json
+    first_seen: str
+
+
+class StateComponents(Row):
+    """0029 (spec 039): fingerprint v2 components of a state (MinHash kept as bytes)."""
+
+    state_id: str
+    structure_hash: str
+    content_hash: str
+    overlay_hash: str
+    calls_hash: str
+    mounts_hash: str
+    minhash: bytes
+    element_keys: Json
+
+
+class Journey(Row):
+    """0029 (spec 039): one continuous path of a run."""
+
+    id: str
+    run_id: str
+    parent_journey_id: str | None
+    branch_seq: int | None
+    start_kind: Literal["entry_url", "checkpoint", "login", "backtrack", "resume", "fresh_session"]
+    checkpoint_id: str | None
+    end_reason: (
+        Literal["outcome", "backtrack", "reset", "logout", "error", "budget", "run_end"] | None
+    )
+    started_at: str
+    ended_at: str | None
+
+
+class AttributeWrite(Row):
+    """0029 (spec 039): a persona attribute, typed input or shown value at a journey position."""
+
+    id: str
+    journey_id: str
+    seq: int
+    name: str
+    source: Literal["persona", "input", "shown"]
+    value_type: Literal["number", "date", "enum", "bool", "text", "missing"]
+    value_num: float | None
+    value_text: str | None
+    element_key: str | None
+    created_at: str
+
+
+class ObservationBuild(Row):
+    """0029 (spec 039): a build that served a visit."""
+
+    page_visit_id: str
+    build_id: str
 
 
 class Form(Row):
@@ -214,6 +289,7 @@ class NetworkCall(Row):
     url: str | None = None  # 0012: verbatim request URL; NULL before 0012
     req_sample: str | None = None  # 0027: masked sample body (<= 4096 chars), non-production only
     res_sample: str | None = None
+    schema_hash: str | None = None  # 0029: sha256 of the response shape; NULL for documents
 
 
 class PageVisit(Row):
@@ -227,6 +303,12 @@ class PageVisit(Row):
     url: str
     hops_json: Json
     created_at: str
+    # 0029 (spec 039): the visit as an observation; NULL on v1 rows
+    journey_id: str | None = None
+    seq: int | None = None
+    result: StepResult | None = None
+    context_key: str | None = None
+    flags_json: Json = None
 
 
 class OpenQuestion(Row):
@@ -936,6 +1018,11 @@ TABLE_MODELS: dict[str, type[Row]] = {
     "marks": Mark,
     "reconciliations": Reconciliation,
     "checkpoints": Checkpoint,
+    "builds": Build,
+    "state_components": StateComponents,
+    "journeys": Journey,
+    "attribute_writes": AttributeWrite,
+    "observation_builds": ObservationBuild,
 }
 
 

@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { Id, Timestamp } from './common.js';
+import { Id, StepResult, Timestamp } from './common.js';
 
 /**
  * How the browser got from one URL to the next within one step (spec 019 R4): `start` is the URL the
@@ -56,5 +56,17 @@ export const PageVisit = z.object({
   url: z.string().min(1),
   hops: z.array(NavigationHop),
   created_at: Timestamp,
+  /** 0029 (spec 039 design § 5.6): the visit as an observation. NULL on v1 rows. */
+  journey_id: Id.nullable().optional(),
+  seq: z.number().int().positive().nullable().optional(),
+  result: StepResult.nullable().optional(),
+  /** sha256 of the sorted build ids, the audience and the experiment arm. */
+  context_key: z
+    .string()
+    .regex(/^[0-9a-f]{64}$/)
+    .nullable()
+    .optional(),
+  /** Experiment flags seen (the portal hook's cookie and storage keys), name → value. */
+  flags: z.record(z.string(), z.string()).default({}),
 });
 export type PageVisit = z.infer<typeof PageVisit>;

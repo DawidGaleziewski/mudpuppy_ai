@@ -7,7 +7,7 @@
  */
 import { createHash } from 'node:crypto';
 import { canonicalizeAria, type AriaNode } from './aria-canonical.js';
-import { buildTree, collapsedText, elementKeys } from './structure.js';
+import { buildTree, collapsedText, modelElementKeys } from './structure.js';
 
 export const DEFAULT_CLUSTER_THRESHOLD = 0.9;
 const SIGNATURE_SIZE = 128;
@@ -158,7 +158,7 @@ export function computeComponents(input: ComponentsInput): StateComponents {
     callsHash: sortedHash(input.calls),
     mountsHash: sortedHash(input.mounts),
     minhash: minHash(shingles(canonical.nodes)),
-    elementKeys: elementKeys(tree).map((k) => k.key),
+    elementKeys: modelElementKeys(tree).map((k) => k.key),
   };
 }
 

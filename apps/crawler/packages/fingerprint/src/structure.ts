@@ -133,7 +133,11 @@ const CONTAINER_ROLES = new Set([
   'alertdialog',
 ]);
 
-export interface ElementKey {
+/**
+ * A model element key (spec 039, column `element_key`). Not core's `elementKeys` (spec 008, the
+ * `role:name#n` names of layout regions and screen-region citations): F-08@039.
+ */
+export interface ModelElementKey {
   role: string;
   /** The masked accessible name as the ARIA tree has it (not lower-cased). */
   name: string;
@@ -152,7 +156,7 @@ const containerLabel = (n: AriaNode): string => (n.name ? `${n.role} "${n.name}"
  * innermost container (or an enclosing one). Ordinal only when the role, name and container repeat.
  * Options of a native select (directly under a combobox) are skipped, as the extractor skips them.
  */
-export function elementKeys(roots: readonly TreeNode[]): ElementKey[] {
+export function modelElementKeys(roots: readonly TreeNode[]): ModelElementKey[] {
   type Frame = { heading: string | null };
   const found: { role: string; name: string; container: string }[] = [];
   const walk = (siblings: readonly TreeNode[], containers: string[], frames: Frame[]): void => {

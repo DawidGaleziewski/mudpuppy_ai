@@ -1,4 +1,4 @@
--- GENERATED from data/migrations/*.up.sql applied in order (currently through 0028_process_archive_edit). Do not edit by hand.
+-- GENERATED from data/migrations/*.up.sql applied in order (currently through 0029_capture_v2). Do not edit by hand.
 -- Regenerate after every migration; see data/schema/README.md.
 
 CREATE TABLE runs (
@@ -70,9 +70,18 @@ CREATE TABLE edges (
   confidence    TEXT NOT NULL CHECK (confidence IN ('observed','inferred','needs_confirmation')),
   error         TEXT CHECK (error IS NULL OR json_valid(error)),
   stabilization TEXT NOT NULL CHECK (stabilization IN ('settled','never_stabilized')),
-  created_at    TEXT NOT NULL
+  created_at    TEXT NOT NULL,
+  -- 0029 (ALTER TABLE, spec 039): the edge as a transition; NULL on v1 rows.
+  journey_id    TEXT REFERENCES journeys(id),
+  seq           INTEGER CHECK (seq IS NULL OR seq >= 1),
+  from_visit_id TEXT REFERENCES page_visits(id),
+  element_key   TEXT,
+  kind          TEXT CHECK (kind IS NULL OR kind IN ('click','fill','select','check','submit','navigate','back')),
+  result        TEXT CHECK (result IS NULL OR result IN ('ok','validation','business_error','technical_error','timeout','blocked')),
+  driver        TEXT NOT NULL DEFAULT 'agent' CHECK (driver IN ('agent','headless'))
 ) STRICT;
 CREATE INDEX ix_edges_run_id ON edges(run_id);
+CREATE UNIQUE INDEX ux_edges_journey_seq ON edges (journey_id, seq) WHERE journey_id IS NOT NULL;
 
 CREATE TABLE forms (
   id           TEXT PRIMARY KEY,
@@ -99,7 +108,9 @@ CREATE TABLE network_calls (
   url            TEXT,
   -- 0027 (ALTER TABLE): masked sample bodies, at most 4096 characters, recorded only outside production (spec 034).
   req_sample     TEXT CHECK (req_sample IS NULL OR length(req_sample) <= 4096),
-  res_sample     TEXT CHECK (res_sample IS NULL OR length(res_sample) <= 4096)
+  res_sample     TEXT CHECK (res_sample IS NULL OR length(res_sample) <= 4096),
+  -- 0029 (ALTER TABLE, spec 039): sha256 of the response shape; NULL for documents and v1 rows.
+  schema_hash    TEXT CHECK (schema_hash IS NULL OR length(schema_hash) = 64)
 ) STRICT;
 
 CREATE TABLE open_questions (
@@ -643,10 +654,17 @@ CREATE TABLE page_visits (
   via        TEXT NOT NULL CHECK (via IN ('navigate','action','relogin','login')),
   url        TEXT NOT NULL CHECK (length(url) > 0),
   hops_json  TEXT NOT NULL DEFAULT '[]' CHECK (json_valid(hops_json) AND json_type(hops_json) = 'array'),
-  created_at TEXT NOT NULL
+  created_at TEXT NOT NULL,
+  -- 0029 (ALTER TABLE, spec 039): the visit as an observation; NULL on v1 rows.
+  journey_id  TEXT REFERENCES journeys(id),
+  seq         INTEGER CHECK (seq IS NULL OR seq >= 1),
+  result      TEXT CHECK (result IS NULL OR result IN ('ok','validation','business_error','technical_error','timeout','blocked')),
+  context_key TEXT CHECK (context_key IS NULL OR length(context_key) = 64),
+  flags_json  TEXT NOT NULL DEFAULT '{}' CHECK (json_valid(flags_json) AND json_type(flags_json) = 'object')
 ) STRICT;
 CREATE INDEX idx_page_visits_run_state ON page_visits (run_id, state_id);
 CREATE INDEX idx_page_visits_state ON page_visits (state_id);
+CREATE UNIQUE INDEX ux_page_visits_run_seq ON page_visits (run_id, seq) WHERE seq IS NOT NULL;
 
 -- 0015_screens (spec 022): a screen is (portal_id, route_template, cluster_id); each state is one observed
 -- revision of it (states.screen_id + screen_rev). Created by the same migration that adds those columns.
@@ -957,3 +975,65 @@ CREATE TABLE checkpoints (
 CREATE INDEX ix_checkpoints_state ON checkpoints (state_id);
 
 CREATE INDEX ix_runs_parent ON runs (parent_run_id);
+
+-- 0029_capture_v2 (spec 039, MudPuppy 2.0 Layer A capture): builds per scope, fingerprint v2 components,
+-- journeys, attribute writes, the builds each visit was served by. `page_visits` = the design's
+-- observations, `edges` = its transitions (F-06@039); their 0029 columns are listed with each table above.
+CREATE TABLE builds (
+  id          TEXT PRIMARY KEY,                                      -- UUIDv7
+  portal_id   TEXT NOT NULL CHECK (length(portal_id) > 0),
+  scope       TEXT NOT NULL CHECK (length(scope) > 0),               -- 'shell', 'mfe:<folder>', 'frame:<host><path>'
+  signature   TEXT NOT NULL CHECK (length(signature) > 0),           -- sha256, 'marker:<value>' or 'unknown'
+  source      TEXT NOT NULL CHECK (source IN ('assets','marker','unknown')),
+  assets_json TEXT NOT NULL CHECK (json_valid(assets_json) AND json_type(assets_json) = 'array'),
+  first_seen  TEXT NOT NULL,
+  UNIQUE (portal_id, scope, signature)
+) STRICT;
+
+CREATE TABLE state_components (
+  state_id       TEXT PRIMARY KEY REFERENCES states(id),
+  structure_hash TEXT NOT NULL CHECK (length(structure_hash) = 64),
+  content_hash   TEXT NOT NULL CHECK (length(content_hash) = 64),
+  overlay_hash   TEXT NOT NULL CHECK (length(overlay_hash) = 64),
+  calls_hash     TEXT NOT NULL CHECK (length(calls_hash) = 64),
+  mounts_hash    TEXT NOT NULL CHECK (length(mounts_hash) = 64),
+  minhash        BLOB NOT NULL CHECK (length(minhash) = 512),         -- 128 × uint32, big-endian
+  element_keys   TEXT NOT NULL CHECK (json_valid(element_keys) AND json_type(element_keys) = 'array')
+) STRICT, WITHOUT ROWID;
+
+CREATE TABLE journeys (
+  id                TEXT PRIMARY KEY,
+  run_id            TEXT NOT NULL REFERENCES runs(id),
+  parent_journey_id TEXT REFERENCES journeys(id),
+  branch_seq        INTEGER CHECK (branch_seq IS NULL OR branch_seq >= 0),
+  start_kind        TEXT NOT NULL CHECK (start_kind IN ('entry_url','checkpoint','login','backtrack','resume','fresh_session')),
+  checkpoint_id     TEXT REFERENCES checkpoints(id),
+  end_reason        TEXT CHECK (end_reason IN ('outcome','backtrack','reset','logout','error','budget','run_end')),
+  started_at        TEXT NOT NULL,
+  ended_at          TEXT,
+  CHECK ((parent_journey_id IS NULL) = (branch_seq IS NULL)),
+  CHECK ((end_reason IS NULL) = (ended_at IS NULL))
+) STRICT;
+CREATE INDEX ix_journeys_run ON journeys (run_id, started_at);
+
+CREATE TABLE attribute_writes (
+  id          TEXT PRIMARY KEY,
+  journey_id  TEXT NOT NULL REFERENCES journeys(id),
+  seq         INTEGER NOT NULL CHECK (seq >= 0),         -- 0 = journey start; else the transition seq
+  name        TEXT NOT NULL CHECK (length(name) > 0),    -- 'persona.segment', 'input.wartość_pojazdu', 'shown.składka'
+  source      TEXT NOT NULL CHECK (source IN ('persona','input','shown')),
+  value_type  TEXT NOT NULL CHECK (value_type IN ('number','date','enum','bool','text','missing')),
+  value_num   REAL,
+  value_text  TEXT,
+  element_key TEXT,
+  created_at  TEXT NOT NULL,
+  UNIQUE (journey_id, seq, name)
+) STRICT;
+
+CREATE TABLE observation_builds (
+  page_visit_id TEXT NOT NULL REFERENCES page_visits(id),
+  build_id      TEXT NOT NULL REFERENCES builds(id),
+  PRIMARY KEY (page_visit_id, build_id)
+) STRICT, WITHOUT ROWID;
+
+CREATE INDEX ix_network_calls_schema ON network_calls (url_template, method, schema_hash);

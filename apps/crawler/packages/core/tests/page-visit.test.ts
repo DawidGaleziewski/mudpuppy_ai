@@ -19,7 +19,7 @@ const visit = {
 
 describe('PageVisit (spec 019)', () => {
   it('parses a visit with every hop kind it carries, URL kept verbatim', () => {
-    expect(PageVisit.parse(visit)).toEqual(visit);
+    expect(PageVisit.parse(visit)).toEqual({ ...visit, flags: {} });
   });
 
   it('refuses an unknown via, an unknown hop kind and an empty URL', () => {

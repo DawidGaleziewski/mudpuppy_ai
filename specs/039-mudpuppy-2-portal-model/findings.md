@@ -49,3 +49,34 @@ Bugs, slips and design deviations found while building, each with a test or eval
   validation message on a page that never settled; a refusal text on a 500). **Built:** blocked >
   technical_error > business_error > validation > timeout > ok.
 - **Test**: `capture.test.ts` step results table.
+- **Also**: the session does not expose the document's HTTP status. `technical_error` is the
+  browser's own error page, the transient-error page detector, or a 5xx among the page's own
+  calls (drained network). A 500 document with a normal-looking body is missed. Test idea: the
+  Flaky page scenario serves a plain 500 page.
+
+## F-06 Physical table names kept: `edges` = transitions, `page_visits` = observations (T010–T012), 2026-10-19
+
+- **What**: design § 5.9 renames `page_visits` to `observations` and replaces `edges` with
+  `transitions`. About 250 places name `edges`, `edge_id` or `page_visits` (tools, BA evidence, the
+  run graph, the export, the dashboard's SQL), and the repo forbids scripted edits. **Built:**
+  migration 0029 adds the design's columns to `edges` (journey, seq, start visit, element key,
+  kind, result, driver) and `page_visits` (journey, seq, result, context key, flags) and keeps
+  their names; code and docs say "transition" and "observation". The trace tables
+  (`processes`, `process_steps`) stay until M5 (one process concept), `reconciliations` and
+  `rule_candidates` until M3 (hypotheses), `entity_refs` lands with the tables it points at.
+- **Owner question (morning)**: rename the tables to the design's names before 2.0 merges (a
+  mechanical task, hours of hand edits), or keep the names and say it in the glossary?
+
+## F-07 A transition's target observation is the visit naming it (T011), 2026-10-19
+
+- **What**: the pipeline records the edge before the visit (API calls hang off the edge), and the
+  visit already names the edge that led to it (`page_visits.edge_id`). A `to_observation_id` on
+  the edge would point at a row not yet written. **Built:** the edge stores the visit it started
+  from (`from_visit_id`); its target is `SELECT id FROM page_visits WHERE edge_id = <edge>`.
+
+## F-08 Two "element keys" (T014), 2026-10-19
+
+- **What**: `@pathfinder/core` already has `elementKeys` (spec 008: `role:name#n`, layout regions
+  and BA screen-region citations). The model's element key (`role|masked name|container|ordinal`)
+  is another thing. **Built:** the model's is `modelElementKeys` in `@pathfinder/fingerprint`; the
+  column is `element_key`. Glossary must name both (T101).

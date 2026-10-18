@@ -70,6 +70,7 @@ it('0022/0023 round-trip (up, down, up), CHECKs hold, and down restores the stat
   expect(() => suite('dismissed')).toThrow(/CHECK/);
   suite('approved', `, '{}', '${ts}'`);
 
+  expect(migrateDown(o.raw, MIGRATIONS)).toBe('0029');
   expect(migrateDown(o.raw, MIGRATIONS)).toBe('0028');
   expect(migrateDown(o.raw, MIGRATIONS)).toBe('0027');
   expect(migrateDown(o.raw, MIGRATIONS)).toBe('0026');
@@ -94,6 +95,7 @@ it('0022/0023 round-trip (up, down, up), CHECKs hold, and down restores the stat
     '0026',
     '0027',
     '0028',
+    '0029',
   ]);
   expect(o.raw.prepare('SELECT state_kind FROM states').get()).toEqual({ state_kind: 'main' });
   expect(o.raw.pragma('foreign_key_check')).toEqual([]);
@@ -128,6 +130,7 @@ it('0024 marks: CHECKs hold, one open mark per target and kind, down drops the t
   expect(() => run(`UPDATE marks SET used_by_run_id = 'r1' WHERE id = 'm1'`)).toThrow(/CHECK/);
   run(`UPDATE marks SET used_by_run_id = 'r1', used_at = ? WHERE id = 'm1'`, ts);
   mark('m9'); // the used mark no longer blocks a new open one
+  expect(migrateDown(o.raw, MIGRATIONS)).toBe('0029');
   expect(migrateDown(o.raw, MIGRATIONS)).toBe('0028');
   expect(migrateDown(o.raw, MIGRATIONS)).toBe('0027');
   expect(migrateDown(o.raw, MIGRATIONS)).toBe('0026');

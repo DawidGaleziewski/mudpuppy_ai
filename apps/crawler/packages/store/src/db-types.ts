@@ -527,6 +527,83 @@ export interface EdgesTable {
   error: string | null;
   stabilization: Stabilization;
   created_at: string;
+  /** 0029 (spec 039): the edge as a transition: journey position, start visit, element key. NULL on v1 rows. */
+  journey_id: Nullable;
+  seq: ColumnType<number | null, number | null | undefined, number | null>;
+  from_visit_id: Nullable;
+  element_key: Nullable;
+  kind: ColumnType<TransitionKind | null, TransitionKind | null | undefined, TransitionKind | null>;
+  result: ColumnType<StepResult | null, StepResult | null | undefined, StepResult | null>;
+  driver: ColumnType<'agent' | 'headless', 'agent' | 'headless' | undefined, 'agent' | 'headless'>;
+}
+
+/** Nullable text column a v1 writer may leave out. */
+type Nullable = ColumnType<string | null, string | null | undefined, string | null>;
+
+/** 0029: what a page visit or a transition came to (spec 039 design § 5.6). */
+export type StepResult =
+  'ok' | 'validation' | 'business_error' | 'technical_error' | 'timeout' | 'blocked';
+export type TransitionKind = 'click' | 'fill' | 'select' | 'check' | 'submit' | 'navigate' | 'back';
+
+/** 0029: one build of one scope of a portal (spec 039 design § 5.2). */
+export interface BuildsTable {
+  id: string;
+  portal_id: string;
+  scope: string;
+  signature: string;
+  source: 'assets' | 'marker' | 'unknown';
+  assets_json: string;
+  first_seen: string;
+}
+
+/** 0029: fingerprint v2 components of a state (design § 5.4). */
+export interface StateComponentsTable {
+  state_id: string;
+  structure_hash: string;
+  content_hash: string;
+  overlay_hash: string;
+  calls_hash: string;
+  mounts_hash: string;
+  minhash: Buffer;
+  element_keys: string;
+}
+
+export type JourneyStartKind =
+  'entry_url' | 'checkpoint' | 'login' | 'backtrack' | 'resume' | 'fresh_session';
+export type JourneyEndReason =
+  'outcome' | 'backtrack' | 'reset' | 'logout' | 'error' | 'budget' | 'run_end';
+
+/** 0029: one continuous path of a run (design § 5.7). */
+export interface JourneysTable {
+  id: string;
+  run_id: string;
+  parent_journey_id: string | null;
+  branch_seq: number | null;
+  start_kind: JourneyStartKind;
+  checkpoint_id: string | null;
+  end_reason: JourneyEndReason | null;
+  started_at: string;
+  ended_at: string | null;
+}
+
+/** 0029: a persona attribute, typed input or shown value at a journey position (design § 5.8). */
+export interface AttributeWritesTable {
+  id: string;
+  journey_id: string;
+  seq: number;
+  name: string;
+  source: 'persona' | 'input' | 'shown';
+  value_type: 'number' | 'date' | 'enum' | 'bool' | 'text' | 'missing';
+  value_num: number | null;
+  value_text: string | null;
+  element_key: string | null;
+  created_at: string;
+}
+
+/** 0029: the builds a visit was served by, one per scope. */
+export interface ObservationBuildsTable {
+  page_visit_id: string;
+  build_id: string;
 }
 
 export interface FormsTable {
@@ -555,9 +632,14 @@ export interface NetworkCallsTable {
   /** 0027: masked sample bodies (at most 4096 characters), recorded only outside production; NULL otherwise. */
   req_sample: ColumnType<string | null, string | null | undefined, string | null>;
   res_sample: ColumnType<string | null, string | null | undefined, string | null>;
+  /** 0029: sha256 of the response shape (spec 039 design § 5.3); NULL for documents and v1 rows. */
+  schema_hash: Nullable;
 }
 
-/** 0012: one arrival on a page, its verbatim URL and the hops (JSON `NavigationHop[]`) that led there. */
+/**
+ * 0012: one arrival on a page, its verbatim URL and the hops (JSON `NavigationHop[]`) that led there.
+ * 0029: the design's observation (journey, order in the run, step result, context, flags).
+ */
 export interface PageVisitsTable {
   id: string;
   run_id: string;
@@ -567,6 +649,11 @@ export interface PageVisitsTable {
   url: string;
   hops_json: string;
   created_at: string;
+  journey_id: Nullable;
+  seq: ColumnType<number | null, number | null | undefined, number | null>;
+  result: ColumnType<StepResult | null, StepResult | null | undefined, StepResult | null>;
+  context_key: Nullable;
+  flags_json: ColumnType<string, string | undefined, string>;
 }
 
 export interface FrontierTable {
@@ -828,6 +915,11 @@ export interface Database {
   forms: FormsTable;
   network_calls: NetworkCallsTable;
   page_visits: PageVisitsTable;
+  builds: BuildsTable;
+  state_components: StateComponentsTable;
+  journeys: JourneysTable;
+  attribute_writes: AttributeWritesTable;
+  observation_builds: ObservationBuildsTable;
   frontier: FrontierTable;
   open_questions: OpenQuestionsTable;
   rule_candidates: RuleCandidatesTable;

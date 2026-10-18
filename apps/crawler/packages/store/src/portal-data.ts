@@ -58,6 +58,11 @@ export const PORTAL_TABLES = [
   'marks',
   'reconciliations',
   'checkpoints',
+  'builds',
+  'state_components',
+  'journeys',
+  'attribute_writes',
+  'observation_builds',
 ] as const;
 export type PortalTable = (typeof PORTAL_TABLES)[number];
 
@@ -118,16 +123,21 @@ const DELETE_ORDER: readonly PortalTable[] = [
   'agent_turns',
   'decision_log',
   'network_calls',
-  'page_visits',
+  'observation_builds', // 0029: references page_visits and builds
+  'builds',
+  'page_visits', // 0029: edges.from_visit_id is cleared first (cycle with page_visits.edge_id)
   'frontier',
   'actions',
   'edges',
+  'attribute_writes', // 0029: references journeys
+  'journeys', // 0029: edges and page_visits reference journeys; journeys reference runs, checkpoints
   'forms',
   'open_questions',
   'rule_candidates',
   'robots_policies',
   'state_observations',
   'state_wireframes',
+  'state_components', // 0029: references states
   'states',
   'form_steps', // 0022: states reference form_steps, form_steps reference runs
   'screens',
@@ -176,7 +186,14 @@ export function where(table: PortalTable, side: 'mine' | 'others'): string {
     case 'probe_suites':
     case 'marks':
     case 'reconciliations':
+    case 'builds':
       return `portal_id ${op} ?`;
+    case 'state_components':
+      return `state_id IN (SELECT id FROM states WHERE portal_id ${op} ?)`;
+    case 'attribute_writes':
+      return `journey_id IN (SELECT id FROM journeys WHERE run_id IN (SELECT id FROM runs WHERE portal_id ${op} ?))`;
+    case 'observation_builds':
+      return `page_visit_id IN (SELECT id FROM page_visits WHERE run_id IN (SELECT id FROM runs WHERE portal_id ${op} ?))`;
     case 'chat_messages':
       return `conversation_id IN (SELECT id FROM chat_conversations WHERE portal_id ${op} ?)`;
     case 'analysis_session_runs':
@@ -393,6 +410,10 @@ export function deletePortal(opts: {
     // point at within this single-statement-per-table delete pass.
     raw
       .prepare(`UPDATE trace_spans SET parent_id = NULL WHERE ${where('trace_spans', 'mine')}`)
+      .run(portal);
+    // 0029: a transition names the visit it started from and a visit the edge that led to it.
+    raw
+      .prepare(`UPDATE edges SET from_visit_id = NULL WHERE ${where('edges', 'mine')}`)
       .run(portal);
     raw
       .prepare(

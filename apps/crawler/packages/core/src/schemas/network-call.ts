@@ -18,5 +18,11 @@ export const NetworkCall = z.object({
   /** 0027 (spec 034): masked sample bodies, at most 4096 characters, recorded only outside production. */
   req_sample: z.string().max(4096).nullable().optional(),
   res_sample: z.string().max(4096).nullable().optional(),
+  /** 0029 (spec 039 design § 5.3): sha256 of the response shape; null for documents and v1 rows. */
+  schema_hash: z
+    .string()
+    .regex(/^[0-9a-f]{64}$/)
+    .nullable()
+    .optional(),
 });
 export type NetworkCall = z.infer<typeof NetworkCall>;
