@@ -70,9 +70,14 @@ def test_store_menu_lists_the_stores_holding_the_portal(
     assert menu.count("<li>") == 2 and 'aria-current="true">test' in menu
 
 
-def test_portal_switch_lands_on_a_store_with_its_data(empty_store: Store, eval_root: Path) -> None:
+def test_portal_switch_lands_on_a_store_with_its_data(
+    empty_store: Store, eval_root: Path, tmp_path: Path
+) -> None:
     """R-71 (d): the main store has no shop runs, so the shop link opens the shop's eval store."""
-    with make_client(empty_store) as c:
+    portals = tmp_path / "portals"  # its own config, not the repo's portals/ (field-owned in R-49)
+    (portals / "proving-ground-shop").mkdir(parents=True)
+    (portals / "proving-ground-shop" / "portal.yaml").write_text("id: proving-ground-shop\n")
+    with make_client(empty_store, portals_dir=portals) as c:
         html = c.get("/").text
     menu = html.split('aria-label="Switch portal"')[1].split("</ul>")[0]
     assert "store=eval%3Apf-eval-proving-ground-shop-XyZ789%3Asandbox" in menu
