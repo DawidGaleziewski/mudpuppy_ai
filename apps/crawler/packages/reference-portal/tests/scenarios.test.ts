@@ -50,6 +50,30 @@ describe('scenario switchboard (spec 039 T005)', () => {
     }
   });
 
+  it('removed-link drops a home link with a release; renamed-button renames in place', async () => {
+    const removed = await startReferencePortal({
+      host: HOST,
+      port: 0,
+      scenarios: ['removed-link'],
+    });
+    const renamed = await startReferencePortal({
+      host: HOST,
+      port: 0,
+      scenarios: ['renamed-button'],
+    });
+    try {
+      const home = await (await fetch(`${removed.url}/`)).text();
+      expect(home).not.toContain('href="/moje-polisy/przedluz"');
+      expect(home).not.toContain(BASE_BUILD);
+      const vehicle = await (await fetch(`${renamed.url}/kalkulator/pojazd`)).text();
+      expect(vehicle).toContain('Przejdź dalej');
+      expect(vehicle).toContain(BASE_BUILD);
+    } finally {
+      await removed.close();
+      await renamed.close();
+    }
+  });
+
   it('deterministic-error answers 500 for one model name every time, and only for it', async () => {
     const portal = await startReferencePortal({
       host: HOST,

@@ -113,8 +113,38 @@ function visitPair(
   }
   const latest = latestVisit(raw, members);
   const current = latest ? visitContext(raw, latest) : null;
-  const ref = current ? latestVisit(raw, members, current.at) : null;
+  // A missing action against the last page version that still had it: the runs that missed it
+  // may all be after the release that removed it (F-23@039).
+  const had =
+    d.kind === 'missing_action' && d.elementKey ? withElement(raw, members, d.elementKey) : members;
+  const ref = current ? latestVisit(raw, had, current.at) : null;
   return [current, ref ? visitContext(raw, ref) : null];
+}
+
+/** The states among `members` whose page shows the element `key`. */
+function withElement(raw: Raw, members: readonly string[], key: string): string[] {
+  const has = raw.prepare(
+    'SELECT 1 FROM state_components c, json_each(c.element_keys) k WHERE c.state_id = ? AND k.value = ?',
+  );
+  return members.filter((m) => has.get(m, key) !== undefined);
+}
+
+/** New actions recorded on `screen` by earlier versions, as deviations name them. */
+function earlierNewActions(raw: Raw, screen: string): Deviation[] {
+  const rows = raw
+    .prepare(
+      `SELECT dv.subject_key, a.element_key, a.kind FROM deviations dv
+       JOIN action_classes a ON a.id = dv.action_class_id
+       WHERE dv.kind = 'new_action' AND dv.screen_id = ?`,
+    )
+    .all(screen) as { subject_key: string; element_key: string; kind: string }[];
+  return rows.map((r) => ({
+    kind: 'new_action',
+    subjectKey: r.subject_key,
+    screen,
+    elementKey: r.element_key,
+    actionKind: r.kind,
+  }));
 }
 
 /** The evidence a rule looks at for one deviation (design § 8.1: the reference observation). */
@@ -130,7 +160,9 @@ function contextOf(
     current !== null && reference !== null && current.builds !== reference.builds;
   const contextDiffers =
     current !== null && reference !== null && current.audience !== reference.audience;
-  // R6: another action between the same two screens appeared in this version.
+  // R6: another action between the same two screens appeared in this epoch: in this version, or
+  // in an earlier one (an action goes missing only after two runs miss it, a version or more after
+  // its replacement appeared, F-23@039).
   const targets = (screen: string, key: string, kind: string) =>
     [...next.transitions]
       .map((t) => t.split('\u0000'))
@@ -138,14 +170,17 @@ function contextOf(
       .map(([, , , to]) => to);
   const missingTargets =
     d.elementKey && d.actionKind ? targets(d.screen, d.elementKey, d.actionKind) : [];
+  const newActions = [
+    ...deviations.filter((o) => o.kind === 'new_action' && o.screen === d.screen),
+    ...earlierNewActions(raw, d.screen),
+  ];
   const newActionSameScreens =
     d.kind === 'missing_action' &&
-    deviations.some(
+    newActions.some(
       (o) =>
-        o.kind === 'new_action' &&
-        o.screen === d.screen &&
         o.elementKey !== undefined &&
         o.actionKind !== undefined &&
+        o.elementKey !== d.elementKey &&
         targets(o.screen, o.elementKey, o.actionKind).some((t) => missingTargets.includes(t)),
     );
   return {
@@ -235,7 +270,15 @@ export function interpretVersion(
       );
     stats.deviations += 1;
     if (decision.decision === 'hypothesis') {
-      writeHypothesis(raw, portal, versionId, id, d, decision, nextKey(), now);
+      writeHypothesis(raw, {
+        portal,
+        versionId,
+        deviationId: id,
+        deviation: d,
+        decision,
+        key: nextKey(),
+        now,
+      });
       if (decision.derived) stats.derived += 1;
       else stats.forPerson += 1;
     } else if (decision.decision === 'replay') stats.replays += 1;
@@ -270,14 +313,17 @@ export function hypothesisKeys(raw: Raw, portal: string): () => string {
 /** A rule's hypothesis on one deviation, with its evidence and first event (derived = confirmed). */
 export function writeHypothesis(
   raw: Raw,
-  portal: string,
-  versionId: string,
-  deviationId: string,
-  d: Deviation,
-  decision: Extract<RuleDecision, { decision: 'hypothesis' }>,
-  key: string,
-  now: string,
+  h: {
+    portal: string;
+    versionId: string;
+    deviationId: string;
+    deviation: Deviation;
+    decision: Extract<RuleDecision, { decision: 'hypothesis' }>;
+    key: string;
+    now: string;
+  },
 ): void {
+  const { portal, versionId, deviationId, deviation: d, decision, key, now } = h;
   const claimJson = {
     deviation: d.subjectKey,
     kind: d.kind,

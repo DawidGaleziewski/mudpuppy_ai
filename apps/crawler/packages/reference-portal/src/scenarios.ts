@@ -84,6 +84,7 @@ export type ScenarioId = keyof typeof SCENARIOS;
 /** The release every page loads unless a scenario ships another: its bundle names the build. */
 export const BASE_BUILD = '3e1a9c21';
 const DEPLOYED_BUILD = '9c21aa07';
+const REMOVAL_BUILD = 'b7d40e15';
 
 /**
  * What a built scenario does to the portal: the build it ships, how it changes a page's HTML, and
@@ -108,6 +109,24 @@ const EFFECTS: Partial<Record<ScenarioId, ScenarioEffect>> = {
         ? html.replace(
             '<p><button type="submit">Dalej</button></p>',
             '<p><label for="drzwi">Liczba drzwi</label> <input id="drzwi" name="drzwi" type="number" min="2" max="5"></p>\n<p><button type="submit">Dalej</button></p>',
+          )
+        : html,
+  },
+  // M3: a release drops the "renew a policy" shortcut from the home page → removed, derived (R6).
+  'removed-link': {
+    build: REMOVAL_BUILD,
+    html: (path, html) =>
+      path === '/'
+        ? html.replace('<li><a href="/moje-polisy/przedluz">Przedłuż polisę</a></li>', '')
+        : html,
+  },
+  // M3: the vehicle form's button is renamed in place, same release → replaces, derived (R6).
+  'renamed-button': {
+    html: (path, html) =>
+      path === '/kalkulator/pojazd'
+        ? html.replace(
+            '<p><button type="submit">Dalej</button></p>',
+            '<p><button type="submit">Przejdź dalej</button></p>',
           )
         : html,
   },

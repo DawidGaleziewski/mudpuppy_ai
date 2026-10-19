@@ -152,7 +152,15 @@ export function resolveErrorReplays(
   };
   const key = hypothesisKeys(raw, portal)();
   return raw.transaction(() => {
-    writeHypothesis(raw, portal, d.model_version_id, d.id, deviation, decision, key, now);
+    writeHypothesis(raw, {
+      portal,
+      versionId: d.model_version_id,
+      deviationId: d.id,
+      deviation,
+      decision,
+      key,
+      now,
+    });
     raw
       .prepare('UPDATE deviations SET status = ? WHERE id = ?')
       .run(decision.derived ? 'explained' : 'open', d.id);

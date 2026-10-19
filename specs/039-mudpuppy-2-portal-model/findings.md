@@ -272,3 +272,27 @@ Bugs, slips and design deviations found while building, each with a test or eval
 - **Test**: `error-replay.e2e.test.ts` (a good and a failing run make the deviation, two replays
   fail, `deterministic_error` R1 for a person, nothing waits afterwards); `error-replays.test.ts`
   (plan, flaky derived, diverged replays keep waiting).
+
+## F-23 Bug: R6 looked only at the version an action went missing in (T052, T058), 2026-10-19
+
+- **What**: an action goes missing only after two runs in a row miss it (`absentRunsForMissing`),
+  so its `missing_action` deviation lands one or more model versions after the change. R6 read
+  the change from that version alone, which broke both of its derived answers (found by reading
+  the code while building the scenarios):
+  - **Removed by a release**: "build changed?" compared the screen's last two visits. Both are
+    after the release, so the builds are equal and the answer was "removed, a person decides".
+  - **Renamed in place**: "a new action connects the same screens?" looked only at this version's
+    deviations. The renamed button appeared one version earlier, so the answer was "removed, a
+    person decides" here too.
+- **Fixed**: a missing action's reference visit is the latest visit of a page version that still
+  shows its element key (`state_components.element_keys`). The new-action check also takes the
+  screen's `new_action` deviations of earlier versions (an action with another element key whose
+  transition reaches a target the missing one reached).
+- **Not done**: the paired `new_action` deviation of a rename stays where it was (open, nothing
+  explained it); the What changed page shows it under "needs you" next to the derived `replaces`.
+  Test idea: one hypothesis explains both deviations of a rename.
+- **Scenarios built**: `removed-link` (a release drops the home page's "Przedłuż polisę" shortcut;
+  the menu's links were not used, they are global) and `renamed-button` (the vehicle form's
+  "Dalej" becomes "Przejdź dalej", same release).
+- **Test**: `absence.e2e.test.ts`, both scenarios end to end on replay runs (removed → `removed`
+  R6 derived; renamed → `replaces` R6 derived).
