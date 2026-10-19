@@ -87,6 +87,8 @@ export const BASE_BUILD = '3e1a9c21';
 const DEPLOYED_BUILD = '9c21aa07';
 const REMOVAL_BUILD = 'b7d40e15';
 const DRIFT_BUILD = 'd5e2b9c4';
+/** The home page's "renew a policy" shortcut, which removed-link drops and moved-link moves. */
+const RENEW_SHORTCUT = '<li><a href="/moje-polisy/przedluz">Przedłuż polisę</a></li>';
 
 /**
  * What a built scenario does to the portal: the build it ships, how it changes a page's HTML, and
@@ -117,10 +119,17 @@ const EFFECTS: Partial<Record<ScenarioId, ScenarioEffect>> = {
   // M3: a release drops the "renew a policy" shortcut from the home page → removed, derived (R6).
   'removed-link': {
     build: REMOVAL_BUILD,
+    html: (path, html) => (path === '/' ? html.replace(RENEW_SHORTCUT, '') : html),
+  },
+  // M2: the "renew a policy" shortcut moves from the home page's body into the menu, same release
+  // → replaces, derived (R6); its element key changes with its container.
+  'moved-link': {
+    // Out of the body first: the menu comes before it in the page.
     html: (path, html) =>
-      path === '/'
-        ? html.replace('<li><a href="/moje-polisy/przedluz">Przedłuż polisę</a></li>', '')
-        : html,
+      (path === '/' ? html.replace(RENEW_SHORTCUT, '') : html).replace(
+        '<li><a href="/moje-polisy">Moje polisy</a></li>',
+        `<li><a href="/moje-polisy">Moje polisy</a></li>${RENEW_SHORTCUT}`,
+      ),
   },
   // M3: the vehicle form's button is renamed in place, same release → replaces, derived (R6).
   'renamed-button': {

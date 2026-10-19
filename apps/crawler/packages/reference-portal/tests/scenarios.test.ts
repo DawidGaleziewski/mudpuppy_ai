@@ -74,6 +74,20 @@ describe('scenario switchboard (spec 039 T005)', () => {
     }
   });
 
+  it('moved-link moves the home shortcut into the menu of every page, same release', async () => {
+    const portal = await startReferencePortal({ host: HOST, port: 0, scenarios: ['moved-link'] });
+    try {
+      const home = await (await fetch(`${portal.url}/`)).text();
+      const shortcuts = home.slice(home.indexOf('id="szybko"'));
+      expect(shortcuts).not.toContain('href="/moje-polisy/przedluz"');
+      const faq = await (await fetch(`${portal.url}/faq`)).text();
+      expect(faq).toContain('<li><a href="/moje-polisy/przedluz">Przedłuż polisę</a></li>');
+      expect(home).toContain(BASE_BUILD);
+    } finally {
+      await portal.close();
+    }
+  });
+
   it('rule-drift raises the driver age to 21 in the date field, with a release', async () => {
     const portal = await startReferencePortal({ host: HOST, port: 0, scenarios: ['rule-drift'] });
     try {

@@ -115,6 +115,36 @@ describe.skipIf(!available)('rule R6 on absent actions (spec 039 T052)', () => {
     }
   }, 120_000);
 
+  it('a link moved from the page into the menu replaces the old one, derived', async () => {
+    const s = await setup();
+    try {
+      const press = async (key: string) => {
+        const r = await replay(s.h.call, {
+          portal: 'reference-insurer',
+          persona: 'guest',
+          environment: 'sandbox',
+          startUrl: s.url('/'),
+          steps: [key],
+          inputs: {},
+          purpose: 'moved-link scenario',
+        });
+        expect(r.status, JSON.stringify(r)).toBe('reached');
+      };
+      const before = (await look(s.h, s.url('/'))).get('Przedłuż polisę')!;
+      expect(before).toContain('main');
+      await press(before);
+      await s.release('moved-link');
+      const after = (await look(s.h, s.url('/'))).get('Przedłuż polisę')!;
+      expect(after).not.toBe(before); // the container is part of the key
+      await press(after);
+      expect(r6Facts(s.h)).toEqual([
+        { kind: 'replaces', rule: 'R6', derived: 1, status: 'explained' },
+      ]);
+    } finally {
+      await s.close();
+    }
+  }, 120_000);
+
   it('a button renamed in place replaces the old one, derived', async () => {
     const s = await setup();
     try {

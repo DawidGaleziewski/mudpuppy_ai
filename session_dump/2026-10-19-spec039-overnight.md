@@ -73,9 +73,10 @@ to the end." Questions are at the bottom, in the order they unblock work.
   re-mining after a drift, DMN inside the process export.
 - M5 rest: triggers and outcomes on proposals, human edits as constraints, one process concept,
   anchors on `entity_refs`, explorations; BA guidance waits for the R-77 review.
-- Scenarios not built: persona variant, A/B test, flaky page, overlapping rule, moved link,
-  not visited, repeated rows, numbered sections (built: deployment, deterministic error, removed
-  link, renamed button, rule drift; threshold rule is the base portal).
+- Scenarios not built: persona variant (the reference portal has no working login), A/B test,
+  flaky page, overlapping rule, not visited, repeated rows, numbered sections (built: deployment,
+  deterministic error, removed link, moved link, renamed button, rule drift; threshold rule is the
+  base portal). They run as e2e tests, not yet as gates.
 - The UX designer's pages (T100).
 
 ## Questions for the owner
