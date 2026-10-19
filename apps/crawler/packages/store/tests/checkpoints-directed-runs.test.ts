@@ -92,6 +92,7 @@ it('0027 runs and network_calls columns: NULL by default, CHECKs hold, down keep
   call('n2', null);
   expect(() => call('n3', 'a'.repeat(4097))).toThrow(/CHECK/);
 
+  expect(migrateDown(o.raw, MIGRATIONS)).toBe('0031');
   expect(migrateDown(o.raw, MIGRATIONS)).toBe('0030');
   expect(migrateDown(o.raw, MIGRATIONS)).toBe('0029');
   expect(migrateDown(o.raw, MIGRATIONS)).toBe('0028');
@@ -108,6 +109,6 @@ it('0027 runs and network_calls columns: NULL by default, CHECKs hold, down keep
   expect(o.raw.prepare('SELECT count(*) AS n FROM network_calls').get()).toEqual({ n: 2 });
   expect(o.raw.pragma('foreign_key_check')).toEqual([]);
   expect(() => run(`UPDATE runs SET owner_pid = 0 WHERE id = 'r1'`)).toThrow(/CHECK/);
-  expect(migrateUp(o.raw, MIGRATIONS)).toEqual(['0027', '0028', '0029', '0030']);
+  expect(migrateUp(o.raw, MIGRATIONS)).toEqual(['0027', '0028', '0029', '0030', '0031']);
   expect(get("SELECT run_type FROM runs WHERE id = 'r1'")).toEqual({ run_type: null });
 });

@@ -72,6 +72,13 @@ export const PORTAL_TABLES = [
   'action_classes',
   'model_transitions',
   'build_epochs',
+  'entity_refs',
+  'deviations',
+  'deviation_occurrences',
+  'hypotheses',
+  'hypothesis_evidence',
+  'hypothesis_tests',
+  'hypothesis_events',
 ] as const;
 export type PortalTable = (typeof PORTAL_TABLES)[number];
 
@@ -98,6 +105,15 @@ export type PortalTable = (typeof PORTAL_TABLES)[number];
  * `decision_log` and `runs`.
  */
 const DELETE_ORDER: readonly PortalTable[] = [
+  // 0031 (spec 039): interpretation references the model; marks' and open questions' hypothesis
+  // links are cleared first (see `deletePortal`)
+  'hypothesis_events',
+  'hypothesis_tests',
+  'hypothesis_evidence',
+  'entity_refs',
+  'hypotheses',
+  'deviation_occurrences',
+  'deviations',
   // 0030 (spec 039): the portal model references edges, page visits, builds, states and itself
   'model_transitions',
   'action_classes',
@@ -184,6 +200,27 @@ const DOC_REVISIONS_OF_PORTAL = (op: string) =>
 const BA_PROCESSES_OF_PORTAL = (op: string) =>
   `SELECT id FROM ba_processes WHERE portal_id ${op} ?`;
 
+/**
+ * A typed reference belongs to the portal of its one target (0031). Each target kind is matched
+ * on its own, so the refs go whatever order their referrers are deleted in. The portal is bound
+ * once (`?`) and read through `x.p`, like every other clause here.
+ */
+const ENTITY_REFS_OF_PORTAL = (op: string): string => {
+  const runs = `SELECT id FROM runs WHERE portal_id ${op} x.p`;
+  const targets = [
+    `screen_id IN (SELECT id FROM model_screens WHERE portal_id ${op} x.p)`,
+    `state_id IN (SELECT id FROM states WHERE portal_id ${op} x.p)`,
+    `page_visit_id IN (SELECT id FROM page_visits WHERE run_id IN (${runs}))`,
+    `edge_id IN (SELECT id FROM edges WHERE run_id IN (${runs}))`,
+    `network_call_id IN (SELECT id FROM network_calls WHERE run_id IN (${runs}))`,
+    `action_class_id IN (SELECT a.id FROM action_classes a JOIN model_screens s ON s.id = a.screen_id WHERE s.portal_id ${op} x.p)`,
+    `model_transition_id IN (SELECT t.id FROM model_transitions t JOIN model_screens s ON s.id = t.from_screen_id WHERE s.portal_id ${op} x.p)`,
+    `hypothesis_id IN (SELECT id FROM hypotheses WHERE portal_id ${op} x.p)`,
+    `process_id IN (SELECT id FROM ba_processes WHERE portal_id ${op} x.p)`,
+  ];
+  return `EXISTS (SELECT 1 FROM (SELECT ? AS p) x WHERE ${targets.join(' OR ')})`;
+};
+
 /** `mine`: rows of the portal; `others`: rows of every other portal. */
 export function where(table: PortalTable, side: 'mine' | 'others'): string {
   const op = side === 'mine' ? '=' : '<>';
@@ -211,7 +248,17 @@ export function where(table: PortalTable, side: 'mine' | 'others'): string {
     case 'state_pair_labels':
     case 'parameter_roles':
     case 'build_epochs':
+    case 'deviations':
+    case 'hypotheses':
       return `portal_id ${op} ?`;
+    case 'deviation_occurrences':
+      return `deviation_id IN (SELECT id FROM deviations WHERE portal_id ${op} ?)`;
+    case 'hypothesis_evidence':
+    case 'hypothesis_tests':
+    case 'hypothesis_events':
+      return `hypothesis_id IN (SELECT id FROM hypotheses WHERE portal_id ${op} ?)`;
+    case 'entity_refs':
+      return ENTITY_REFS_OF_PORTAL(op);
     case 'screen_members':
     case 'action_classes':
       return `screen_id IN (SELECT id FROM model_screens WHERE portal_id ${op} ?)`;
@@ -441,6 +488,18 @@ export function deletePortal(opts: {
     // point at within this single-statement-per-table delete pass.
     raw
       .prepare(`UPDATE trace_spans SET parent_id = NULL WHERE ${where('trace_spans', 'mine')}`)
+      .run(portal);
+    // 0031: marks and open questions may name a hypothesis; hypotheses supersede each other.
+    raw
+      .prepare(`UPDATE marks SET hypothesis_id = NULL WHERE ${where('marks', 'mine')}`)
+      .run(portal);
+    raw
+      .prepare(
+        `UPDATE open_questions SET hypothesis_id = NULL WHERE ${where('open_questions', 'mine')}`,
+      )
+      .run(portal);
+    raw
+      .prepare(`UPDATE hypotheses SET superseded_by = NULL WHERE ${where('hypotheses', 'mine')}`)
       .run(portal);
     // 0029: a transition names the visit it started from and a visit the edge that led to it.
     raw

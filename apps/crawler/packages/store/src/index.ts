@@ -9,4 +9,6 @@ export * from './decision-log.js';
 export * from './import-agent.js';
 export * from './store-reset.js';
 export * from './model-writer.js';
+export * from './interpret-writer.js';
+export * from './model-decide.js';
 export type { Selectable, Insertable } from 'kysely';

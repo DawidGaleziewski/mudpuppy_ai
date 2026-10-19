@@ -3281,6 +3281,175 @@ category `[battle-tested-scar]`.
 
 <sub>Last changed in R-56, 2026-10-16.</sub>
 
+### Portal model
+
+<a id="portal-model"></a>
+
+#### Portal model
+
+**One stored picture of the portal as it is now, rebuilt from every scan by deterministic code after each run, with screens and links that keep their ids.**
+
+Scans add evidence; the portal model reads all of it and says what the portal looks like
+now: which screens exist (each a group of near-identical page versions), which links lead
+where, which ones were not seen lately, and which release served each page. It is rebuilt
+after every scan (and with `pnpm model:reconcile <portal>`); a rebuild never renames a screen.
+Each rebuild is a numbered model version. The raw scans are never changed by it.
+
+*Example:* After two scans, model version 2 of reference-insurer has 17 screens; SC-0008 is the vehicle form with two page versions.
+
+*Seen in:* Scans → Map; What changed
+
+*Labels:* `portal model`, `model version`, `model`
+
+*Related:* [Screen of the model (SC-)](#model-screen), [Change (deviation)](#deviation), [State](#state)
+
+<sub>Last changed in R-81, 2026-10-19.</sub>
+
+<a id="model-screen"></a>
+
+#### Screen of the model (SC-)
+
+**A screen as the portal model keeps it, a group of page versions that are the same page, with a key like SC-0012 that stays the same across scans.**
+
+The model groups page versions (states) by route and structure, whatever order the scans
+saw them in. When a later scan shows that two screens are one, or one is two, the model
+merges or splits them and records why (lineage), instead of renaming anything. A person
+can say "same screen" or "different screen" for two page versions; the next rebuild follows it.
+
+*Example:* SC-0001 is the start page; its members r1 and r2 differ only by the release.
+
+*Seen in:* Scans → Map; What changed
+
+*Labels:* `SC-`, `model screen`, `member`
+
+*Related:* [Portal model](#portal-model), [Screen revision (observed)](#screen-revision), [State](#state)
+
+<sub>Last changed in R-81, 2026-10-19.</sub>
+
+<a id="journey"></a>
+
+#### Journey
+
+**One continuous path of a scan, from where it started to where it stopped going on, so every step and every typed value has a position.**
+
+A scan is cut into journeys wherever the path is not continuous: a typed address, a replay
+to a known screen (Start here), a login, a fresh session. Steps are numbered within their
+journey and record the element, the kind (click, fill, select, submit), and what came of it.
+Values typed and shown along a journey are kept, so business rules can be found later.
+
+*Seen in:* scan evidence
+
+*Labels:* `journey`, `path`
+
+*Related:* [Run](#run), [Step result](#step-result), [Transition (edge)](#transition)
+
+<sub>Last changed in R-81, 2026-10-19.</sub>
+
+<a id="step-result"></a>
+
+#### Step result
+
+**What a visit or a step came to, one of ok, validation, business error, technical error, timeout or blocked.**
+
+Technical error is a server or browser failure; business error is a page that matches a
+message the portal names as a refusal (`model.business_errors` in portal.yaml); validation is
+the form pointing at its own fields; timeout is a page that never settled; blocked is an
+action the safety rules refused. A changed result on a known step is a change of its own.
+
+*Labels:* `step result`, `result`, `business error`, `technical error`
+
+*Related:* [Journey](#journey), [Change (deviation)](#deviation)
+
+<sub>Last changed in R-81, 2026-10-19.</sub>
+
+<a id="release"></a>
+
+#### Release (build)
+
+**The version of the portal's code a page was served by, read from its content-hashed bundle names or from a version header or meta tag the portal names.**
+
+Each visit records the release of the shell and of every embedded app (frame or
+micro-frontend). A change seen on a new release is drift; the same change on the same
+release needs another explanation (another persona, an A/B test, an error). A portal with
+no hashed bundles and no marker shows as "unknown" and changes are judged more slowly.
+
+*Labels:* `release`, `build`, `build epoch`
+
+*Related:* [Portal model](#portal-model), [Change (deviation)](#deviation)
+
+<sub>Last changed in R-81, 2026-10-19.</sub>
+
+<a id="deviation"></a>
+
+#### Change (deviation)
+
+**A place where a new model version does not fit the previous one, such as a new screen, a page that looks different, an action that is gone or leads elsewhere.**
+
+After each rebuild the model compares itself with the version before. Every difference is
+a change, recorded once (seeing it again adds to the same row). Rules R1–R8 explain most
+changes from the evidence; the rest wait for a person or for a check the system runs itself.
+The What changed page lists them in three groups: needs you, explained automatically, waiting
+for a check.
+
+*Seen in:* What changed
+
+*Labels:* `change`, `deviation`, `What changed`
+
+*Related:* [Claim (hypothesis, H-)](#hypothesis), [Explained automatically (derived fact)](#derived-fact), [Release (build)](#release)
+
+<sub>Last changed in R-81, 2026-10-19.</sub>
+
+<a id="hypothesis"></a>
+
+#### Claim (hypothesis, H-)
+
+**A testable statement about the portal, such as "this screen changed with a new release", with its evidence and the test that would refute it.**
+
+Every claim has a key (H-0001), a kind, its evidence and an event history in which every
+status change carries a reason. A claim a published rule decides is a derived fact; anything
+else stays proposed until a person confirms or rejects it (`pnpm model:decide`).
+
+*Seen in:* What changed
+
+*Labels:* `claim`, `hypothesis`, `H-`
+
+*Related:* [Change (deviation)](#deviation), [Explained automatically (derived fact)](#derived-fact)
+
+<sub>Last changed in R-81, 2026-10-19.</sub>
+
+<a id="derived-fact"></a>
+
+#### Explained automatically (derived fact)
+
+**A claim the system confirmed by itself because a published rule decides it from the evidence, shown with its rule and reversible by a person.**
+
+Constitution 6.0.0: the reconciler may record facts that follow from evidence by a published
+rule (R1–R8) without approval. Each names its rule, appears on What changed, and can be
+overturned with a reason; an overturned fact is never written again for the same change.
+
+*Labels:* `explained automatically`, `derived fact`, `overturn`
+
+*Related:* [Claim (hypothesis, H-)](#hypothesis), [Change (deviation)](#deviation)
+
+<sub>Last changed in R-81, 2026-10-19.</sub>
+
+<a id="model-element-key"></a>
+
+#### Element key of the model
+
+**The name that matches one element across scans, its role, masked name, the containers it sits in and its position when it repeats, such as button|oblicz składkę|main>form "Dane pojazdu"|.**
+
+Not the element key of a screen region (`role "name"#n`), which names elements of one
+recorded page. The model's key ignores numbers in names and adds the container path, so the
+same button is the same action in every scan; a moved link gets a new key and the model says
+which one it replaces.
+
+*Labels:* `element key of the model`, `action key`
+
+*Related:* [Element key](#element-key), [Screen of the model (SC-)](#model-screen)
+
+<sub>Last changed in R-81, 2026-10-19.</sub>
+
 ## Business-analysis terms
 
 ### Documentation

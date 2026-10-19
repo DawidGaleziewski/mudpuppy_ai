@@ -81,8 +81,58 @@ export const SCENARIOS = {
 
 export type ScenarioId = keyof typeof SCENARIOS;
 
+/** The release every page loads unless a scenario ships another: its bundle names the build. */
+export const BASE_BUILD = '3e1a9c21';
+const DEPLOYED_BUILD = '9c21aa07';
+
+/** What a built scenario does to the portal: the build it ships, and how it changes a page's HTML. */
+interface ScenarioEffect {
+  build?: string;
+  html?: (path: string, html: string) => string;
+}
+
+/** Built scenarios and their effects (each lands with the milestone whose rule it checks). */
+const EFFECTS: Partial<Record<ScenarioId, ScenarioEffect>> = {
+  // M3: a new bundle hash and one more field on the vehicle form → structural_drift (R2).
+  deployment: {
+    build: DEPLOYED_BUILD,
+    html: (path, html) =>
+      path === '/kalkulator/pojazd'
+        ? html.replace(
+            '<p><button type="submit">Dalej</button></p>',
+            '<p><label for="drzwi">Liczba drzwi</label> <input id="drzwi" name="drzwi" type="number" min="2" max="5"></p>\n<p><button type="submit">Dalej</button></p>',
+          )
+        : html,
+  },
+};
+
 /** Scenarios whose injection exists. Grows as each milestone builds its scenarios. */
-export const BUILT_SCENARIOS: ReadonlySet<ScenarioId> = new Set<ScenarioId>([]);
+export const BUILT_SCENARIOS: ReadonlySet<ScenarioId> = new Set(
+  Object.keys(EFFECTS) as ScenarioId[],
+);
+
+/** The build the instance serves: the last built scenario that ships one, else the base. */
+export function buildOf(scenarios: readonly ScenarioId[]): string {
+  const shipped = scenarios.map((s) => EFFECTS[s]?.build).filter((b) => b !== undefined);
+  return shipped.at(-1) ?? BASE_BUILD;
+}
+
+/**
+ * A page's HTML as the instance serves it: the release's bundle in the head (so the crawler can
+ * name the build), then each scenario's change in order.
+ */
+export function applyScenarios(
+  path: string,
+  html: string,
+  scenarios: readonly ScenarioId[],
+): string {
+  let out = html.replace(
+    '</head>',
+    `<script src="/static/app.${buildOf(scenarios)}.js"></script></head>`,
+  );
+  for (const s of scenarios) out = EFFECTS[s]?.html?.(path, out) ?? out;
+  return out;
+}
 
 const ScenarioIdSchema = z.enum(Object.keys(SCENARIOS) as [ScenarioId, ...ScenarioId[]]);
 

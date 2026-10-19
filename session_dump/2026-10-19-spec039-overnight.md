@@ -1,0 +1,62 @@
+# Session dump 2026-10-19: MudPuppy 2.0 overnight (spec 039, R-81)
+
+Branch `feature/039-r81-mudpuppy-2-portal-model` (main checkout). Not merged, not pushed. The owner
+went to sleep with: "Proceed. Try to do as much regarding 2.0 as possible. Any questions push them
+to the end." Questions are at the bottom, in the order they unblock work.
+
+## Done (committed)
+
+| Milestone | What | Commit |
+|---|---|---|
+| Docs | spec, design (adapted to the codebase), plan, tasks T001–T104, UX requirements, roadmap R-81 (R-79 decided) | 50e65f9 |
+| M0 | `store:reset` script, `@pathfinder/model`, `apps/miner`, scenario switchboard registry | b76dffa |
+| M0 | data reset: 21 MCP server processes of both Claude sessions stopped by PID, store, evidence, traces deleted (1.2 GB), v1 eval trials and baselines in `history/v1/` | 23579b8 |
+| M0 | constitution 6.0.0 (three layers, derived facts, crawler hypotheses and headless driver, Python through `model:import`) | f5c83b6 |
+| M1 | fingerprint v2 pure part (row-like repeated siblings), components, element keys | 40f4614 |
+| M1 | build signatures, schema hash, step results, attribute snapshots, shown values (pure) | d76cc4a |
+| M1 | migration 0029 capture | 851dcbc |
+| M1 + M2 | capture wired into the pipeline (`model_capture` step, journeys, visits and transitions with step results, builds, attribute writes, state components, element keys on actions); migration 0030 portal model; reconciler (`@pathfinder/model` `reconcile` + store `model-writer`), `pnpm model:reconcile`, reconcile after every `finish_run`; Map reads the model; pure M3–M5 parts; miner `rules` and `communities` | f7e5597 |
+
+## Done since (see the latest commit for the rest)
+
+- M3: migration 0031 interpretation (deviations, hypotheses with evidence, tests and events,
+  `entity_refs`), interpretation after every reconcile (R2, R6, R7 decide from the store), `pnpm
+  model:decide` (confirm, reject, overturn, pair labels, parameter roles), the **What changed**
+  page, glossary entries for the portal model, the **Deployment scenario** end to end.
+
+## How to look at it in the morning
+
+1. `cd apps/crawler && pnpm exec vitest run --project mcp-server tests/model-deployment.e2e.test.ts`
+   — two scans of the reference portal around a release; read the asserts (one vehicle screen,
+   both changes explained by R2).
+2. Run a map scan on the sandbox as usual, then `pnpm model:reconcile <portal> --env sandbox` (it
+   also runs after every scan) and open the dashboard: Scans ▸ Map shows the model's screens,
+   Review section ▸ `/changes` shows what changed.
+3. `specs/039-mudpuppy-2-portal-model/findings.md` F-01–F-17: every place the build differs from
+   the design, with why.
+
+## Not built yet (in order)
+
+- T021 the headless driver (deterministic replays): needed by R1, R4, R5, R8, boundary tests,
+  regression suites and the stopping rule. Deviations those rules need wait as "waiting for a check".
+- M4 wiring: the observation tables for the miner, `model:import`, boundary-test probe suites, DMN
+  in the export (the pure parts and the miner are done).
+- M5: correlation ids capture, process proposals from Leiden, one process concept, anchors on
+  `entity_refs`, explorations; BA guidance waits for the R-77 review.
+- Scenarios other than Deployment.
+- The UX designer's pages (T100).
+
+## Questions for the owner
+
+1. **Constitution 6.0.0** (`.specify/memory/constitution.md`): applied, taking "design.md all seems
+   fine" as approval of design § 18. Please confirm or change the wording.
+2. **F-06 table names**: `edges` = transitions and `page_visits` = observations kept their names
+   (about 250 places name them; renaming changes no behaviour). Rename before 2.0 merges, or keep
+   and say so in the glossary?
+3. **F-02 fingerprint v2**: only row-like repeats collapse (list items, table rows, cards); a form's
+   fields and menu links never do. Every reference-portal screen got a new fingerprint (each page
+   has a menu list); the 19 screens are still told apart. OK?
+4. **R-77 review**: M5's BA guidance (`ba-practice`) and dropping `reconciliations` /
+   `rule_candidates` wait for it.
+5. **UX designer**: `ux-requirements.md` is ready to send; the What changed page is a functional
+   stand-in.

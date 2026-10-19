@@ -154,3 +154,23 @@ Bugs, slips and design deviations found while building, each with a test or eval
   **Fixed:** the recorder skips a request whose frame is not there yet.
 - **Test idea**: a unit test of `recordAssets` with a fake context emitting such a response; the
   pop-up gate already covers it end to end.
+
+## F-17 M3 as built: what waits for the headless driver (T050–T056), 2026-10-19
+
+- **What**: the reconciler now records deviations between consecutive model versions and classifies
+  them (`interpret-writer.ts`): R2 drift, R6 removal / replacement and R7 decision points decide
+  from stored evidence; derived facts are confirmed by the reconciler with their rule as the reason.
+  Rules that need replays (R1, R4, R5, R8) leave the deviation `waiting_test`: the headless driver
+  that would run them (T021) is not built, so no planner marks are written yet. A deviation no rule
+  decides stays `open`: that is the agent's queue (no `ambiguous` hypothesis is written for it, so
+  no hypothesis exists without a rule or an author).
+- **Not yet**: `schemaChanged` (R3) and `presentForOtherAudience` (R6) are always false (they need
+  the endpoint-schema history and per-audience coverage of the reference visit); the first version
+  of a portal records no deviations (everything is new). `reconciliations` and `rule_candidates`
+  are not dropped yet: their readers (BA tools, Review, crawler `add_rule_candidate`) move with the
+  BA guidance, which waits for the owner's R-77 review (Q-1).
+- **Overturns bind**: deviations are unique per subject, so an overturned or rejected claim is never
+  written again for the same deviation.
+- **Clock note**: hypothesis events are ordered by `at` (wall clock); a WSL clock jump between a
+  reconcile and a person's decision would misorder them (`wsl-clock-jumps`). Test idea: a decision
+  stamped before the fact it decides is refused.

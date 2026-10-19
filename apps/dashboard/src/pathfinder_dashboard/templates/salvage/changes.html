@@ -1,0 +1,57 @@
+{% extends "salvage/base.html" %}
+{% import "salvage/macros.html" as sy %}
+{% set nav_current = "changes" %}
+{% block title %}What changed{% endblock %}
+{%- macro change_rows(items, empty) -%}
+{%- if not items %}
+<div class="sy-plate__body"><p class="sy-small sy-muted">{{ empty }}</p></div>
+{%- else %}
+<div class="sy-table-wrap sy-table-wrap--flush">
+  <table class="sy-table sy-table--dense">
+    <thead><tr>
+      <th scope="col">Change</th><th scope="col">Screen</th><th scope="col">Action</th>
+      <th scope="col">Explanation</th><th scope="col">Status</th><th scope="col">Model version</th>
+    </tr></thead>
+    <tbody>
+    {%- for ch in items %}
+      <tr>
+        <td>{{ ch.word }}</td>
+        <td>{% if ch.screen_key %}{{ sy.tag(ch.screen_key, sm=true) }} <span class="sy-small">{{ ch.screen_title }}</span>{% else %}<span class="sy-muted">—</span>{% endif %}</td>
+        <td>{% if ch.element_key %}<span class="sy-mono sy-mono--sm">{{ ch.element_key }}</span>{% else %}<span class="sy-muted">—</span>{% endif %}</td>
+        <td>
+          {%- if ch.hypothesis_key %}{{ sy.tag(ch.hypothesis_key, sm=true) }} {{ ch.claim }}
+            {%- if ch.reason %}<div class="sy-small sy-muted">{{ ch.reason }}</div>{% endif %}
+          {%- else %}<span class="sy-small sy-muted">Not explained yet: no rule decided it.</span>{% endif %}
+        </td>
+        <td>{{ sy.status("deviation", ch.status) }}{% if ch.hypothesis_status %} {{ sy.status("hypothesis", ch.hypothesis_status) }}{% endif %}</td>
+        <td class="sy-num">{{ ch.model_seq }}</td>
+      </tr>
+    {%- endfor %}
+    </tbody>
+  </table>
+</div>
+{%- endif %}
+{%- endmacro -%}
+{% block main %}
+<div class="sy-pagehead">
+  <h1 class="sy-h1">What changed</h1>
+  <p class="sy-meta sy-prose">
+    {%- if not c.portal %}Pick a portal in the header to see what changed between its scans.
+    {%- elif v.latest_seq is none %}{{ c.portal }} has no portal model yet. It is built after every scan, or with <span class="sy-mono">pnpm model:reconcile {{ c.portal }}</span>.
+    {%- else %}<span class="sy-num">{{ v.needs_you | length }}</span> need you · <span class="sy-num">{{ v.explained | length }}</span> explained automatically · <span class="sy-num">{{ v.waiting | length }}</span> waiting for a check. Model version <span class="sy-num">{{ v.latest_seq }}</span> of {{ c.portal }}. Overturn an explanation with <span class="sy-mono">pnpm model:decide</span>.{% endif %}</p>
+</div>
+{%- if c.portal and v.latest_seq is not none %}
+<section class="sy-plate" aria-labelledby="needs-you">
+  <div class="sy-plate__head"><h2 class="sy-plate__title" id="needs-you">Needs you</h2></div>
+  {{ change_rows(v.needs_you, "Nothing waits for a person.") }}
+</section>
+<section class="sy-plate" aria-labelledby="explained">
+  <div class="sy-plate__head"><h2 class="sy-plate__title" id="explained">Explained automatically</h2></div>
+  {{ change_rows(v.explained, "No change was explained by a rule yet.") }}
+</section>
+<section class="sy-plate" aria-labelledby="waiting">
+  <div class="sy-plate__head"><h2 class="sy-plate__title" id="waiting">Waiting for a check</h2></div>
+  {{ change_rows(v.waiting, "No change waits for a replay.") }}
+</section>
+{%- endif %}
+{% endblock %}

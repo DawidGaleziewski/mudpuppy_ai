@@ -3101,6 +3101,149 @@ entries:
     changed_in: R-49
     changed_on: 2026-10-11
 
+  # ---- Pathfinder: the portal model (MudPuppy 2.0, spec 039) ----------------------------------
+  - id: portal-model
+    term: Portal model
+    category: pathfinder
+    group: Portal model
+    short: One stored picture of the portal as it is now, rebuilt from every scan by deterministic code after each run, with screens and links that keep their ids.
+    explanation: |
+      Scans add evidence; the portal model reads all of it and says what the portal looks like
+      now: which screens exist (each a group of near-identical page versions), which links lead
+      where, which ones were not seen lately, and which release served each page. It is rebuilt
+      after every scan (and with `pnpm model:reconcile <portal>`); a rebuild never renames a screen.
+      Each rebuild is a numbered model version. The raw scans are never changed by it.
+    example: After two scans, model version 2 of reference-insurer has 17 screens; SC-0008 is the vehicle form with two page versions.
+    appears_in: [Scans → Map, What changed]
+    labels: [portal model, model version, model]
+    related: [model-screen, deviation, state]
+    changed_in: R-81
+    changed_on: 2026-10-19
+
+  - id: model-screen
+    term: Screen of the model (SC-)
+    category: pathfinder
+    group: Portal model
+    short: A screen as the portal model keeps it, a group of page versions that are the same page, with a key like SC-0012 that stays the same across scans.
+    explanation: |
+      The model groups page versions (states) by route and structure, whatever order the scans
+      saw them in. When a later scan shows that two screens are one, or one is two, the model
+      merges or splits them and records why (lineage), instead of renaming anything. A person
+      can say "same screen" or "different screen" for two page versions; the next rebuild follows it.
+    example: SC-0001 is the start page; its members r1 and r2 differ only by the release.
+    appears_in: [Scans → Map, What changed]
+    labels: [SC-, model screen, member]
+    related: [portal-model, screen-revision, state]
+    changed_in: R-81
+    changed_on: 2026-10-19
+
+  - id: journey
+    term: Journey
+    category: pathfinder
+    group: Portal model
+    short: One continuous path of a scan, from where it started to where it stopped going on, so every step and every typed value has a position.
+    explanation: |
+      A scan is cut into journeys wherever the path is not continuous: a typed address, a replay
+      to a known screen (Start here), a login, a fresh session. Steps are numbered within their
+      journey and record the element, the kind (click, fill, select, submit), and what came of it.
+      Values typed and shown along a journey are kept, so business rules can be found later.
+    appears_in: [scan evidence]
+    labels: [journey, path]
+    related: [run, step-result, transition]
+    changed_in: R-81
+    changed_on: 2026-10-19
+
+  - id: step-result
+    term: Step result
+    category: pathfinder
+    group: Portal model
+    short: What a visit or a step came to, one of ok, validation, business error, technical error, timeout or blocked.
+    explanation: |
+      Technical error is a server or browser failure; business error is a page that matches a
+      message the portal names as a refusal (`model.business_errors` in portal.yaml); validation is
+      the form pointing at its own fields; timeout is a page that never settled; blocked is an
+      action the safety rules refused. A changed result on a known step is a change of its own.
+    labels: [step result, result, business error, technical error]
+    related: [journey, deviation]
+    changed_in: R-81
+    changed_on: 2026-10-19
+
+  - id: release
+    term: Release (build)
+    category: pathfinder
+    group: Portal model
+    short: The version of the portal's code a page was served by, read from its content-hashed bundle names or from a version header or meta tag the portal names.
+    explanation: |
+      Each visit records the release of the shell and of every embedded app (frame or
+      micro-frontend). A change seen on a new release is drift; the same change on the same
+      release needs another explanation (another persona, an A/B test, an error). A portal with
+      no hashed bundles and no marker shows as "unknown" and changes are judged more slowly.
+    labels: [release, build, build epoch]
+    related: [portal-model, deviation]
+    changed_in: R-81
+    changed_on: 2026-10-19
+
+  - id: deviation
+    term: Change (deviation)
+    category: pathfinder
+    group: Portal model
+    short: A place where a new model version does not fit the previous one, such as a new screen, a page that looks different, an action that is gone or leads elsewhere.
+    explanation: |
+      After each rebuild the model compares itself with the version before. Every difference is
+      a change, recorded once (seeing it again adds to the same row). Rules R1–R8 explain most
+      changes from the evidence; the rest wait for a person or for a check the system runs itself.
+      The What changed page lists them in three groups: needs you, explained automatically, waiting
+      for a check.
+    appears_in: [What changed]
+    labels: [change, deviation, What changed]
+    related: [hypothesis, derived-fact, release]
+    changed_in: R-81
+    changed_on: 2026-10-19
+
+  - id: hypothesis
+    term: Claim (hypothesis, H-)
+    category: pathfinder
+    group: Portal model
+    short: A testable statement about the portal, such as "this screen changed with a new release", with its evidence and the test that would refute it.
+    explanation: |
+      Every claim has a key (H-0001), a kind, its evidence and an event history in which every
+      status change carries a reason. A claim a published rule decides is a derived fact; anything
+      else stays proposed until a person confirms or rejects it (`pnpm model:decide`).
+    appears_in: [What changed]
+    labels: [claim, hypothesis, H-]
+    related: [deviation, derived-fact]
+    changed_in: R-81
+    changed_on: 2026-10-19
+
+  - id: derived-fact
+    term: Explained automatically (derived fact)
+    category: pathfinder
+    group: Portal model
+    short: A claim the system confirmed by itself because a published rule decides it from the evidence, shown with its rule and reversible by a person.
+    explanation: |
+      Constitution 6.0.0: the reconciler may record facts that follow from evidence by a published
+      rule (R1–R8) without approval. Each names its rule, appears on What changed, and can be
+      overturned with a reason; an overturned fact is never written again for the same change.
+    labels: [explained automatically, derived fact, overturn]
+    related: [hypothesis, deviation]
+    changed_in: R-81
+    changed_on: 2026-10-19
+
+  - id: model-element-key
+    term: Element key of the model
+    category: pathfinder
+    group: Portal model
+    short: The name that matches one element across scans, its role, masked name, the containers it sits in and its position when it repeats, such as button|oblicz składkę|main>form "Dane pojazdu"|.
+    explanation: |
+      Not the element key of a screen region (`role "name"#n`), which names elements of one
+      recorded page. The model's key ignores numbers in names and adds the container path, so the
+      same button is the same action in every scan; a moved link gets a new key and the model says
+      which one it replaces.
+    labels: [element key of the model, action key]
+    related: [element-key, model-screen]
+    changed_in: R-81
+    changed_on: 2026-10-19
+
   - id: scar
     term: Scar (scar-maker)
     category: pathfinder

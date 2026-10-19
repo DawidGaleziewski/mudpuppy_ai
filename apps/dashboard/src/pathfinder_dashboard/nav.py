@@ -28,7 +28,9 @@ SECTIONS: tuple[Section, ...] = (
     Section("processes", "Processes", lambda p: "/processes", frozenset({"processes"})),
     Section("screens", "Screens", lambda p: "/screens", frozenset({"screens", "state", "access"})),
     Section("docs", "Docs", lambda p: f"/docs/{p}" if p else "/docs", frozenset({"docs"})),
-    Section("review", "Review", lambda p: "/review", frozenset({"review", "amendments"})),
+    Section(
+        "review", "Review", lambda p: "/review", frozenset({"review", "amendments", "changes"})
+    ),
     Section("scans", "Scans", lambda p: "/scans", frozenset({"scans", "activity", "run"})),
     Section("settings", "Settings", _settings, frozenset({"settings", "portals"})),
 )

@@ -191,6 +191,10 @@ export interface MarksTable {
   created_at: string;
   used_by_run_id: string | null;
   used_at: string | null;
+  /** 0031 (spec 039 § 14): a person's mark or the planner's; the hypothesis it tests; its priority. */
+  origin: ColumnType<'person' | 'planner', 'person' | 'planner' | undefined, 'person' | 'planner'>;
+  hypothesis_id: ColumnType<string | null, string | null | undefined, string | null>;
+  priority: ColumnType<number | null, number | null | undefined, number | null>;
 }
 
 /** 0025: the BA's proposed reading of a group of differing states and the owner's confirmation; JSON columns validated by `ReconciliationRow` (docs-model). */
@@ -696,6 +700,108 @@ export interface ModelTransitionsTable {
   status_model_version: string;
 }
 
+/** 0031 (spec 039 design § 15): a typed reference with real foreign keys, exactly one target. */
+export interface EntityRefsTable {
+  id: string;
+  page_visit_id: string | null;
+  edge_id: string | null;
+  state_id: string | null;
+  screen_id: string | null;
+  action_class_id: string | null;
+  model_transition_id: string | null;
+  process_id: string | null;
+  hypothesis_id: string | null;
+  network_call_id: string | null;
+  element_key: string | null;
+}
+
+export type DeviationKind =
+  | 'new_screen'
+  | 'new_member'
+  | 'new_action'
+  | 'missing_action'
+  | 'target_mismatch'
+  | 'result_mismatch'
+  | 'rule_mismatch';
+
+/** 0031 (design § 8.1): a place a new model version did not fit the previous one. */
+export interface DeviationsTable {
+  id: string;
+  portal_id: string;
+  model_version_id: string;
+  kind: DeviationKind;
+  subject_key: string;
+  screen_id: string | null;
+  state_id: string | null;
+  action_class_id: string | null;
+  before_json: string | null;
+  after_json: string | null;
+  changed_components: ColumnType<string, string | undefined, string>;
+  context_diff: ColumnType<string, string | undefined, string>;
+  status: 'open' | 'waiting_test' | 'explained';
+  created_at: string;
+}
+
+export interface DeviationOccurrencesTable {
+  deviation_id: string;
+  model_version_id: string;
+}
+
+export type HypothesisStatus =
+  'proposed' | 'testing' | 'supported' | 'refuted' | 'confirmed' | 'rejected' | 'superseded';
+
+/** 0031 (design § 10): a testable claim; its status is derived from its events. */
+export interface HypothesesTable {
+  id: string;
+  key: string;
+  portal_id: string;
+  kind: string;
+  claim: string;
+  claim_json: string;
+  claim_hash: string;
+  origin: 'rule' | 'agent' | 'person';
+  rule: string | null;
+  derived: ColumnType<0 | 1, 0 | 1 | undefined, 0 | 1>;
+  confidence: Confidence;
+  fitness: number | null;
+  precision: number | null;
+  support: number | null;
+  counterexamples: number | null;
+  deviation_id: string | null;
+  superseded_by: string | null;
+  model_version_id: string;
+  created_at: string;
+}
+
+export interface HypothesisEvidenceTable {
+  hypothesis_id: string;
+  ref_id: string;
+  role: 'supports' | 'contradicts' | 'context';
+}
+
+export interface HypothesisTestsTable {
+  id: string;
+  hypothesis_id: string;
+  probe_suite_id: string | null;
+  mark_id: string | null;
+  inputs_json: ColumnType<string, string | undefined, string>;
+  refutes_if_json: string;
+  result_json: string | null;
+  verdict: 'pass' | 'fail' | 'inconclusive' | null;
+  run_id: string | null;
+  created_at: string;
+}
+
+export interface HypothesisEventsTable {
+  id: string;
+  hypothesis_id: string;
+  from_status: HypothesisStatus | null;
+  to_status: HypothesisStatus;
+  actor: string;
+  reason: string;
+  at: string;
+}
+
 export interface BuildEpochsTable {
   id: string;
   portal_id: string;
@@ -780,6 +886,8 @@ export interface OpenQuestionsTable {
   about_ref: string;
   status: 'open' | 'addressed';
   created_at: string;
+  /** 0031 (spec 039): the hypothesis the question is about, when there is one. */
+  hypothesis_id: ColumnType<string | null, string | null | undefined, string | null>;
 }
 
 export interface RuleCandidatesTable {
@@ -1031,6 +1139,13 @@ export interface Database {
   action_classes: ActionClassesTable;
   model_transitions: ModelTransitionsTable;
   build_epochs: BuildEpochsTable;
+  entity_refs: EntityRefsTable;
+  deviations: DeviationsTable;
+  deviation_occurrences: DeviationOccurrencesTable;
+  hypotheses: HypothesesTable;
+  hypothesis_evidence: HypothesisEvidenceTable;
+  hypothesis_tests: HypothesisTestsTable;
+  hypothesis_events: HypothesisEventsTable;
   frontier: FrontierTable;
   open_questions: OpenQuestionsTable;
   rule_candidates: RuleCandidatesTable;

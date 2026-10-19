@@ -370,6 +370,137 @@ class ModelTransition(Row):
     status_model_version: str
 
 
+HypothesisStatus = Literal[
+    "proposed", "testing", "supported", "refuted", "confirmed", "rejected", "superseded"
+]
+
+
+class EntityRef(Row):
+    """0031 (spec 039): a typed reference, exactly one target."""
+
+    id: str
+    page_visit_id: str | None
+    edge_id: str | None
+    state_id: str | None
+    screen_id: str | None
+    action_class_id: str | None
+    model_transition_id: str | None
+    process_id: str | None
+    hypothesis_id: str | None
+    network_call_id: str | None
+    element_key: str | None
+
+
+class Deviation(Row):
+    """0031: a place a new model version did not fit the previous one."""
+
+    id: str
+    portal_id: str
+    model_version_id: str
+    kind: Literal[
+        "new_screen",
+        "new_member",
+        "new_action",
+        "missing_action",
+        "target_mismatch",
+        "result_mismatch",
+        "rule_mismatch",
+    ]
+    subject_key: str
+    screen_id: str | None
+    state_id: str | None
+    action_class_id: str | None
+    before_json: Json | None
+    after_json: Json | None
+    changed_components: Json
+    context_diff: Json
+    status: Literal["open", "waiting_test", "explained"]
+    created_at: str
+
+
+class DeviationOccurrence(Row):
+    """0031: a later model version that showed the same deviation again."""
+
+    deviation_id: str
+    model_version_id: str
+
+
+class Hypothesis(Row):
+    """0031: a testable claim; its status comes from its events."""
+
+    id: str
+    key: str
+    portal_id: str
+    kind: Literal[
+        "same_as",
+        "different_from",
+        "parameter_role",
+        "structural_drift",
+        "backend_drift",
+        "decision_drift",
+        "context_variant",
+        "ab_test",
+        "flaky",
+        "nondeterministic",
+        "deterministic_error",
+        "removed",
+        "replaces",
+        "coverage_gap",
+        "business_error_template",
+        "decision_point",
+        "decision_rule",
+        "process_boundary",
+        "correlation_id",
+        "ambiguous",
+    ]
+    claim: str
+    claim_json: Json
+    claim_hash: str
+    origin: Literal["rule", "agent", "person"]
+    rule: str | None
+    derived: bool
+    confidence: Confidence
+    fitness: float | None
+    precision: float | None
+    support: int | None
+    counterexamples: int | None
+    deviation_id: str | None
+    superseded_by: str | None
+    model_version_id: str
+    created_at: str
+
+
+class HypothesisEvidence(Row):
+    hypothesis_id: str
+    ref_id: str
+    role: Literal["supports", "contradicts", "context"]
+
+
+class HypothesisTest(Row):
+    id: str
+    hypothesis_id: str
+    probe_suite_id: str | None
+    mark_id: str | None
+    inputs_json: Json
+    refutes_if_json: Json
+    result_json: Json | None
+    verdict: Literal["pass", "fail", "inconclusive"] | None
+    run_id: str | None
+    created_at: str
+
+
+class HypothesisEvent(Row):
+    """0031: a hypothesis status change, with its reason."""
+
+    id: str
+    hypothesis_id: str
+    from_status: HypothesisStatus | None
+    to_status: HypothesisStatus
+    actor: str
+    reason: str
+    at: str
+
+
 class BuildEpoch(Row):
     """0030: the period a build of a scope served, per environment."""
 
@@ -437,6 +568,7 @@ class OpenQuestion(Row):
     about_ref: str
     status: Literal["open", "addressed"]
     created_at: str
+    hypothesis_id: str | None = None  # 0031 (spec 039): the hypothesis it is about
 
 
 class RuleCandidate(Row):
@@ -537,6 +669,10 @@ class Mark(Row):
     created_at: str
     used_by_run_id: str | None
     used_at: str | None
+    # 0031 (spec 039): a person's mark or the planner's, the hypothesis it tests, its priority
+    origin: Literal["person", "planner"] = "person"
+    hypothesis_id: str | None = None
+    priority: int | None = None
 
 
 class Reconciliation(Row):
@@ -1151,6 +1287,13 @@ TABLE_MODELS: dict[str, type[Row]] = {
     "action_classes": ActionClass,
     "model_transitions": ModelTransition,
     "build_epochs": BuildEpoch,
+    "entity_refs": EntityRef,
+    "deviations": Deviation,
+    "deviation_occurrences": DeviationOccurrence,
+    "hypotheses": Hypothesis,
+    "hypothesis_evidence": HypothesisEvidence,
+    "hypothesis_tests": HypothesisTest,
+    "hypothesis_events": HypothesisEvent,
 }
 
 

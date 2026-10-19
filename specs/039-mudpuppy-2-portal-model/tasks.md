@@ -45,15 +45,15 @@ group, ids in the message. Gates per milestone in `plan.md` § 1. `[B: …]` = b
 
 ## M3 Interpretation
 
-- [ ] T050 [opus] `db-admin`: 0035 (deviations, occurrences, hypotheses, evidence, tests, events; `open_questions` / `marks` columns); drop `reconciliations`, `rule_candidates`
-- [ ] T051 [opus] Deviation detection and reference observations, scope attribution by element-key diff
-- [ ] T052 [opus] Rules R1–R8 as pure functions with fixtures; replay requests as planner marks
-- [ ] T053 [opus] Hypothesis lifecycle (status from events), refuted-claim refusal, competing hypotheses
-- [ ] T054 [opus] Planner priorities 2–4; probe runs consume marks; test verdicts written back
+- [~] T050 [opus] **0031_interpretation**: `entity_refs`, `deviations`, `deviation_occurrences`, `hypotheses`, `hypothesis_evidence`, `hypothesis_tests`, `hypothesis_events`; `marks` (origin, hypothesis, priority) and `open_questions` (hypothesis) columns. Dropping `reconciliations` and `rule_candidates` waits for their readers (F-17)
+- [x] T051 [opus] Deviation detection between consecutive model versions (`deviationsBetween`, `interpretVersion`), reference visits, dedup by subject
+- [~] T052 [opus] Rules R1–R8 as pure functions with tests; R2, R6, R7 decide from the store; R1/R4/R5/R8 leave the deviation `waiting_test` until the headless driver (T021) runs replays (F-17)
+- [x] T053 [opus] Hypothesis lifecycle (status from events), claim hash, derived facts confirmed by the reconciler with their rule
+- [~] T054 [opus] Planner priorities 2–6 (`plan`, pure); marks and probe runs wait for T021
 - [ ] T055 [opus] Tools: crawler `add_hypothesis`; BA `list_hypotheses`, `get_hypothesis`, `propose_hypothesis`, `add_hypothesis_test`, `list_deviations`; remove `list_differing_states`, `propose_verdicts`, `add_rule_candidate`; crawler prompt tool names
-- [ ] T056 [opus] `pnpm model:decide` (confirm, reject, overturn, parameter role) with Zod; overturns bind the next reconcile
-- [ ] T057 [sonnet] Review and Changes read models and functional pages
-- [ ] T058 [opus] Scenarios: Deployment, Persona variant, A/B, Flaky, Deterministic error, Renamed button, Removed link (gates); M3 gate; tag `v2.0.0-m3`
+- [x] T056 [opus] `pnpm model:decide` (confirm, reject, overturn with a reason, pair labels, parameter roles); labels and roles are constraints of the next reconcile; overturns bind (F-17)
+- [~] T057 [sonnet] **What changed** page (`/changes`, Review section): deviations split into needs you / explained automatically / waiting for a check, with the hypothesis, its rule and reason; functional Salvage Yard until the UX designer's layout. Review itself does not list hypotheses yet
+- [~] T058 [opus] Scenarios: **Deployment built** (reference portal serves a hashed release bundle on every page; `deployment` ships another and adds a field) and checked end to end (`model-deployment.e2e.test.ts`: two scans, one vehicle screen with two members, new member + new field both `structural_drift` by R2, derived). Persona variant, A/B, Flaky, Deterministic error, Renamed button, Removed link not built (most need the headless driver's replays)
 
 ## M4 Rules
 

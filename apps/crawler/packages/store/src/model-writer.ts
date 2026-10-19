@@ -17,6 +17,8 @@ import {
   type ReconcileOutput,
 } from '@pathfinder/model';
 
+import { interpretVersion, modelSnapshot, type InterpretStats } from './interpret-writer.js';
+
 type Raw = BetterSqlite3.Database;
 
 export interface ReconcileResult {
@@ -33,6 +35,8 @@ export interface ReconcileResult {
     transitions: number;
     conflicts: number;
   };
+  /** Deviations of the new version and how rules R1–R8 classified them (spec 039 § 8). */
+  interpreted?: InterpretStats;
 }
 
 /** Big-endian 128 × uint32 (fingerprint `minhashBlob`) back to numbers. */
@@ -247,11 +251,20 @@ export function reconcilePortalModel(
         marks.decision,
         JSON.stringify(stats),
       );
+    const before = modelSnapshot(raw, portal);
     const screenIds = writeScreens(raw, portal, out, versionId, now);
     writeRoles(raw, portal, out, now);
     writeActionsAndTransitions(raw, out, screenIds, versionId);
     writeEpochs(raw, portal, out, versionId);
-    return { portal, modelVersion: versionId, seq, stats };
+    const interpreted = interpretVersion(
+      raw,
+      portal,
+      versionId,
+      before,
+      modelSnapshot(raw, portal),
+      now,
+    );
+    return { portal, modelVersion: versionId, seq, stats, interpreted };
   })();
 }
 

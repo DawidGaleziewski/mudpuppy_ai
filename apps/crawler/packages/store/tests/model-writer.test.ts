@@ -1,6 +1,15 @@
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { migrateUp, openDb, reconcilePortalModel, type OpenedDb } from '../src/index.js';
+import {
+  ModelDecisionError,
+  decideHypothesis,
+  labelPair,
+  migrateUp,
+  openDb,
+  reconcilePortalModel,
+  setParameterRole,
+  type OpenedDb,
+} from '../src/index.js';
 
 const MIGRATIONS = join(import.meta.dirname, '../../../../../data/migrations');
 
@@ -81,6 +90,159 @@ function open(): OpenedDb {
   seed(o);
   return o;
 }
+
+/** A second scan on a new release: one more page version of the home screen (Deployment). */
+function deploy(o: OpenedDb) {
+  const r = o.raw;
+  r.prepare(
+    `INSERT INTO runs (id, portal_id, persona_id, mode, environment, env_version_or_date, viewport, locale, browser,
+       config_snapshot, status, started_at) VALUES ('run2', 'shop', 'guest', 'map', 'sandbox', '2026-10-20',
+       '1280x800', 'pl-PL', 'chromium', '{}', 'completed', ?)`,
+  ).run(T(40));
+  r.prepare(
+    `INSERT INTO journeys (id, run_id, start_kind, started_at) VALUES ('j2', 'run2', 'entry_url', ?)`,
+  ).run(T(40));
+  r.prepare(
+    `INSERT INTO states (id, portal_id, fingerprint, cluster_id, route_template, title, evidence_ref, confidence,
+       stabilization, first_seen_run, created_at) VALUES ('c', 'shop', ?, 'c', '/', 'Title c', ?, 'observed', 'settled', 'run2', ?)`,
+  ).run(H('9'), `${H('e')}.yaml`, T(41));
+  r.prepare(
+    `INSERT INTO state_components (state_id, structure_hash, content_hash, overlay_hash, calls_hash, mounts_hash,
+       minhash, element_keys) VALUES ('c', ?, ?, ?, ?, ?, ?, ?)`,
+  ).run(
+    H('1'),
+    H('c'),
+    H('o'),
+    H('a'),
+    H('m'),
+    blob(1, 120),
+    JSON.stringify(['link|kontakt|main|']),
+  );
+  r.prepare(
+    `INSERT INTO builds (id, portal_id, scope, signature, source, assets_json, first_seen)
+             VALUES ('B2', 'shop', 'shell', ?, 'assets', '[]', ?)`,
+  ).run(H('f'), T(40));
+  r.prepare(
+    `INSERT INTO page_visits (id, run_id, state_id, edge_id, via, url, hops_json, created_at, journey_id, seq, result,
+       context_key, flags_json) VALUES ('v9', 'run2', 'c', NULL, 'navigate', 'https://shop.test/', '[]', ?, 'j2', 1, 'ok', ?, '{}')`,
+  ).run(T(42), H('x'));
+  r.prepare("INSERT INTO observation_builds (page_visit_id, build_id) VALUES ('v9', 'B2')").run();
+}
+
+describe('interpretation after a reconcile (spec 039 design § 8, § 10)', () => {
+  it('Deployment: a new page version on a new build is structural drift, derived by R2', async () => {
+    const o = open();
+    const first = reconcilePortalModel(o.raw, 'shop', { now: T(59) });
+    expect(first.interpreted?.deviations ?? 0).toBe(0); // the first version deviates from nothing
+    deploy(o);
+    const second = reconcilePortalModel(o.raw, 'shop', { now: T(59) });
+    expect(second.interpreted).toMatchObject({ deviations: 1, derived: 1 });
+    const h = o.raw.prepare('SELECT key, kind, rule, derived, confidence FROM hypotheses').all();
+    expect(h).toEqual([
+      { key: 'H-0001', kind: 'structural_drift', rule: 'R2', derived: 1, confidence: 'inferred' },
+    ]);
+    const ev = o.raw.prepare('SELECT to_status, actor FROM hypothesis_events').all();
+    expect(ev).toEqual([{ to_status: 'confirmed', actor: 'reconciler' }]);
+    const d = o.raw.prepare('SELECT kind, status FROM deviations').all();
+    expect(d).toEqual([{ kind: 'new_member', status: 'explained' }]);
+    await o.close();
+  });
+
+  it('the same deviation again attaches to the first row instead of a new one', async () => {
+    const o = open();
+    reconcilePortalModel(o.raw, 'shop', { now: T(59) });
+    deploy(o);
+    reconcilePortalModel(o.raw, 'shop', { now: T(59) });
+    reconcilePortalModel(o.raw, 'shop', { rebuild: true, now: T(59) });
+    expect(o.raw.prepare('SELECT count(*) AS n FROM deviations').get()).toEqual({ n: 1 });
+    await o.close();
+  });
+});
+
+describe("a person's decisions (spec 039 design § 10.3)", () => {
+  it('overturns a derived fact with a reason; a second decision on a final claim is refused', async () => {
+    const o = open();
+    reconcilePortalModel(o.raw, 'shop', { now: T(59) });
+    deploy(o);
+    reconcilePortalModel(o.raw, 'shop', { now: T(59) });
+    expect(() =>
+      decideHypothesis(o.raw, {
+        portal: 'shop',
+        key: 'H-0001',
+        decision: 'overturn',
+        actor: 'Owner',
+        reason: '',
+      }),
+    ).toThrow(ModelDecisionError);
+    expect(
+      decideHypothesis(o.raw, {
+        portal: 'shop',
+        key: 'H-0001',
+        decision: 'overturn',
+        actor: 'Owner',
+        reason: 'the menu moved, the release is the same',
+        now: T(58).replace('T00:00', 'T00:01'),
+      }),
+    ).toBe('rejected');
+    expect(() =>
+      decideHypothesis(o.raw, {
+        portal: 'shop',
+        key: 'H-0001',
+        decision: 'confirm',
+        actor: 'Owner',
+        reason: 'x',
+        now: T(59).replace('T00:00', 'T00:02'),
+      }),
+    ).toThrow(/not a lifecycle move/);
+    const events = o.raw
+      .prepare('SELECT to_status, actor, reason FROM hypothesis_events ORDER BY at, id')
+      .all();
+    expect(events.at(-1)).toEqual({
+      to_status: 'rejected',
+      actor: 'Owner',
+      reason: 'overturned: the menu moved, the release is the same',
+    });
+    await o.close();
+  });
+
+  it('a distinct label splits a screen on the next reconcile, with lineage', async () => {
+    const o = open();
+    reconcilePortalModel(o.raw, 'shop', { now: T(59) });
+    labelPair(o.raw, {
+      portal: 'shop',
+      a: 'a',
+      b: 'b',
+      label: 'distinct',
+      actor: 'Owner',
+      now: T(59),
+    });
+    const r = reconcilePortalModel(o.raw, 'shop', { now: T(59) });
+    expect(r.stats.screens).toBe(3);
+    const lineage = o.raw.prepare('SELECT kind, members_moved FROM screen_lineage').all();
+    expect(lineage).toEqual([{ kind: 'split', members_moved: 1 }]);
+    await o.close();
+  });
+
+  it("a person's parameter role wins over the reconciler's", async () => {
+    const o = open();
+    setParameterRole(o.raw, {
+      portal: 'shop',
+      routeTemplate: '/',
+      param: 'query:utm',
+      role: 'identity',
+      now: T(1),
+    });
+    reconcilePortalModel(o.raw, 'shop', { now: T(59) });
+    const role = o.raw
+      .prepare("SELECT role, decided_by FROM parameter_roles WHERE param = 'query:utm'")
+      .get();
+    expect(role).toEqual({ role: 'identity', decided_by: 'person' });
+    expect(() =>
+      setParameterRole(o.raw, { portal: 'shop', routeTemplate: '/', param: 'utm', role: 'data' }),
+    ).toThrow(ModelDecisionError);
+    await o.close();
+  });
+});
 
 describe('reconcilePortalModel (spec 039 design § 7)', () => {
   it('writes screens with SC keys, members, action classes and model transitions', async () => {

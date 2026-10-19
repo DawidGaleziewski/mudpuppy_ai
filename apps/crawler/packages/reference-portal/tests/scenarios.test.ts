@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { BUILT_SCENARIOS, SCENARIOS, parseScenarios, startReferencePortal } from '../src/index.js';
+import {
+  BASE_BUILD,
+  BUILT_SCENARIOS,
+  SCENARIOS,
+  parseScenarios,
+  startReferencePortal,
+} from '../src/index.js';
 import { HOST } from './helpers.js';
 
 describe('scenario switchboard (spec 039 T005)', () => {
@@ -19,8 +25,28 @@ describe('scenario switchboard (spec 039 T005)', () => {
 
   it('refuses unknown ids and scenarios not built yet', () => {
     expect(() => parseScenarios('earthquake')).toThrow(/unknown scenario "earthquake"/);
-    if (!BUILT_SCENARIOS.has('deployment'))
-      expect(() => parseScenarios('deployment')).toThrow(/not built yet \(lands in M3\)/);
+    expect(BUILT_SCENARIOS.has('ab-test')).toBe(false);
+    expect(() => parseScenarios('ab-test')).toThrow(/not built yet \(lands in M3\)/);
+    expect(parseScenarios('deployment')).toEqual(['deployment']);
+  });
+
+  it('every page names its release by a hashed bundle; deployment ships another and a new field', async () => {
+    const base = await startReferencePortal({ host: HOST, port: 0 });
+    const deployed = await startReferencePortal({ host: HOST, port: 0, scenarios: ['deployment'] });
+    try {
+      const page = async (p: typeof base) => (await fetch(`${p.url}/kalkulator/pojazd`)).text();
+      const before = await page(base);
+      const after = await page(deployed);
+      expect(before).toContain(`<script src="/static/app.${BASE_BUILD}.js"></script>`);
+      expect(after).not.toContain(BASE_BUILD);
+      expect(before).not.toContain('Liczba drzwi');
+      expect(after).toContain('<label for="drzwi">Liczba drzwi</label>');
+      expect((await fetch(`${base.url}/static/app.${BASE_BUILD}.js`)).status).toBe(200);
+      expect(await (await fetch(`${deployed.url}/`)).text()).not.toContain('Liczba drzwi');
+    } finally {
+      await base.close();
+      await deployed.close();
+    }
   });
 
   it('reports its scenarios on the admin path, which robots.txt disallows', async () => {

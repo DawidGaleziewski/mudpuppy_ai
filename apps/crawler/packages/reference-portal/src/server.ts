@@ -24,7 +24,7 @@ import {
 import { car, faq, glossary, home, house, notFound } from './pages/static.js';
 import { pln } from './html.js';
 import { typicalVehicleValue } from './rules.js';
-import type { ScenarioId } from './scenarios.js';
+import { applyScenarios, type ScenarioId } from './scenarios.js';
 
 export const ROBOTS_TXT = 'User-agent: *\nDisallow: /__admin/\n';
 
@@ -83,14 +83,20 @@ async function formBody(req: IncomingMessage): Promise<Params> {
   return out;
 }
 
+/** The page a response serves and the instance's scenarios (spec 039), set by the handler. */
+const pageOf = new WeakMap<ServerResponse, { path: string; scenarios: readonly ScenarioId[] }>();
+
 function send(
   res: ServerResponse,
   status: number,
   body: string,
   type = 'text/html; charset=utf-8',
 ) {
+  const page = pageOf.get(res);
+  const out =
+    page && type.startsWith('text/html') ? applyScenarios(page.path, body, page.scenarios) : body;
   res.writeHead(status, { 'content-type': type, 'cache-control': 'no-store' });
-  res.end(body);
+  res.end(out);
 }
 
 function sendPage(res: ServerResponse, r: PageResult) {
@@ -158,8 +164,18 @@ const ANALYTICS: Asset = {
   body: () => '{"ok":true}',
 };
 
+/** The release bundle every page loads (`/static/app.<build>.js`, spec 039): it does nothing. */
+const BUNDLE: Asset = {
+  status: 200,
+  type: 'text/javascript; charset=utf-8',
+  body: () => '/* reference portal release bundle */',
+};
+const BUNDLE_PATH = /^\/static\/app\.[0-9a-f]{8}\.js$/;
+
 const assetFor = (assets: Record<string, Asset>, path: string): Asset | undefined =>
-  assets[path] ?? (path.startsWith('/analytics/') ? ANALYTICS : undefined);
+  assets[path] ??
+  (path.startsWith('/analytics/') ? ANALYTICS : undefined) ??
+  (BUNDLE_PATH.test(path) ? BUNDLE : undefined);
 
 /** The assets of one instance: the shared ones plus the switchboard's admin report. */
 const instanceAssets = (scenarios: readonly ScenarioId[]): Record<string, Asset> => ({
@@ -182,6 +198,7 @@ export function startReferencePortal(opts: StartOptions): Promise<ReferencePorta
     const method = req.method ?? 'GET';
     requests.push({ method, path: url.pathname, query: url.search });
     const path = url.pathname.length > 1 ? url.pathname.replace(/\/$/, '') : url.pathname;
+    pageOf.set(res, { path, scenarios });
 
     if (method === 'GET' || method === 'HEAD') {
       const asset = assetFor(assets, path);

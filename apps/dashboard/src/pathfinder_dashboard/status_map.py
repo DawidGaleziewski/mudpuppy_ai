@@ -157,6 +157,21 @@ VOCABULARIES: dict[str, dict[str, Status]] = {
         "needs_confirmation": _s("needs", "Needs confirmation"),
     },
     "allowed": {"yes": _s("ok", "Allowed"), "no": _s("skipped", "Skipped")},
+    # spec 039: a deviation of the portal model and the hypothesis that explains it
+    "deviation": {
+        "open": _s("needs", "Needs you"),
+        "waiting_test": _s("queued", "Waiting for a check"),
+        "explained": _s("ok", "Explained automatically"),
+    },
+    "hypothesis": {
+        "proposed": _s("needs", "Proposed"),
+        "testing": _s("running", "Testing"),
+        "supported": _s("inferred", "Supported"),
+        "confirmed": _s("ok", "Confirmed"),
+        "refuted": _s("stopped", "Refuted"),
+        "rejected": _s("stopped", "Rejected"),
+        "superseded": _s("skipped", "Superseded"),
+    },
     "robots": {
         "rules": _s("ok", "Rules"),
         "no_rules": _s("ok", "No rules"),
