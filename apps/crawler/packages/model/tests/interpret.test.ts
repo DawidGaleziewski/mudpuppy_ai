@@ -43,6 +43,19 @@ describe('deviations (design § 8.1)', () => {
     ]);
   });
 
+  it('an element seen before under another kind is not a new action (F-24)', () => {
+    // The button was only seen (`click` placeholder), now pressed as the form's submit.
+    const seen: ModelSnapshot = {
+      ...prev,
+      classes: new Map([...prev.classes, [K('S1', 'button|dalej|main|', 'click'), 'active']]),
+    };
+    const pressed: ModelSnapshot = {
+      ...prev,
+      classes: new Map([...prev.classes, [K('S1', 'button|dalej|main|', 'submit'), 'active']]),
+    };
+    expect(deviationsBetween(seen, pressed)).toEqual([]);
+  });
+
   it('a known action leading elsewhere is a target mismatch; to another result, a result mismatch', () => {
     const next: ModelSnapshot = {
       ...prev,

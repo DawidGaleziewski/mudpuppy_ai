@@ -37,7 +37,9 @@ to the end." Questions are at the bottom, in the order they unblock work.
   end (F-22, d8ec4a7).
 - Rule R6 scenarios **removed-link** and **renamed-button** built and checked end to end; bug F-23
   fixed on the way (R6 looked only at the version an action went missing in, so both derived
-  answers fell to "a person decides").
+  answers fell to "a person decides") (85380a5).
+- Bug F-24 fixed: a button first seen and later pressed counted as a new action (one element, two
+  classes); a rename's new button is explained by the same `replaces` fact.
 
 ## How to look at it in the morning
 
@@ -50,7 +52,7 @@ to the end." Questions are at the bottom, in the order they unblock work.
 3. `cd apps/crawler && pnpm exec vitest run --project mcp-server tests/replay-driver.e2e.test.ts`
    — the rule loop with no LLM: replays make a decision point, a rule "under 18" is tested at 17,
    18 and 19 headless and ends `supported`.
-4. `specs/039-mudpuppy-2-portal-model/findings.md` F-01–F-23: every place the build differs from
+4. `specs/039-mudpuppy-2-portal-model/findings.md` F-01–F-24: every place the build differs from
    the design, with why.
 
 ## Not built yet (in order)

@@ -39,6 +39,15 @@ export interface Deviation {
 const split = (k: string) => k.split('\u0000');
 
 export function deviationsBetween(prev: ModelSnapshot, next: ModelSnapshot): Deviation[] {
+  return [
+    ...screenDeviations(prev, next),
+    ...classDeviations(prev, next),
+    ...transitionDeviations(prev, next),
+  ];
+}
+
+/** New screens, and new members of known screens. */
+function screenDeviations(prev: ModelSnapshot, next: ModelSnapshot): Deviation[] {
   const out: Deviation[] = [];
   for (const [screen, members] of [...next.screens].sort((a, b) => compare(a[0], b[0]))) {
     const before = prev.screens.get(screen);
@@ -50,11 +59,23 @@ export function deviationsBetween(prev: ModelSnapshot, next: ModelSnapshot): Dev
       if (!before.includes(m))
         out.push({ kind: 'new_member', subjectKey: `new_member:${screen}:${m}`, screen, state: m });
   }
+  return out;
+}
+
+/** New actions on known screens, and actions gone missing. */
+function classDeviations(prev: ModelSnapshot, next: ModelSnapshot): Deviation[] {
+  const out: Deviation[] = [];
+  // An element seen before under another kind is not new: a button first only seen (`click`) and
+  // then pressed as a form's submit is one action (F-24@039).
+  const prevElements = new Set(
+    [...prev.classes.keys()].map((k) => split(k).slice(0, 2).join('\u0000')),
+  );
   for (const [key, status] of [...next.classes].sort((a, b) => compare(a[0], b[0]))) {
     const [screen, elementKey, actionKind] = split(key) as [string, string, string];
     const was = prev.classes.get(key);
+    const seenBefore = prevElements.has(`${screen}\u0000${elementKey}`);
     // A class on a brand-new screen is part of that screen's deviation, not one of its own.
-    if (was === undefined && prev.screens.has(screen))
+    if (was === undefined && !seenBefore && prev.screens.has(screen))
       out.push({
         kind: 'new_action',
         subjectKey: `new_action:${key}`,
@@ -71,7 +92,12 @@ export function deviationsBetween(prev: ModelSnapshot, next: ModelSnapshot): Dev
         actionKind,
       });
   }
-  // A known action that now leads elsewhere, or to another result.
+  return out;
+}
+
+/** A known action that now leads elsewhere, or to another result. */
+function transitionDeviations(prev: ModelSnapshot, next: ModelSnapshot): Deviation[] {
+  const out: Deviation[] = [];
   const prevByAction = new Map<string, { toScreen: string; result: string }[]>();
   for (const t of prev.transitions) {
     const [s, e, k, to, r] = split(t) as [string, string, string, string, string];

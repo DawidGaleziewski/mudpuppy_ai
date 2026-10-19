@@ -368,6 +368,40 @@ function writeRoles(raw: Raw, portal: string, out: ReconcileOutput, now: string)
     for (const [param, role] of roles) upsert.run(portal, template, param, role, now);
 }
 
+/**
+ * An element only seen gets the placeholder kind `click`; once pressed, its class takes the kind
+ * the press recorded (`submit`, …) and the reconciler stops producing the placeholder. Its row
+ * folds into the real class: references move, the row goes (F-24@039). A placeholder some
+ * transition hangs on is kept (the element was clicked as well).
+ */
+function foldPlaceholderClasses(raw: Raw, out: ReconcileOutput, screenIds: Map<string, string>) {
+  const produced = new Set(
+    out.actionClasses.map((a) => `${a.screen}\u0000${a.elementKey}\u0000${a.kind}`),
+  );
+  const find = raw.prepare(
+    'SELECT id FROM action_classes WHERE screen_id = ? AND element_key = ? AND kind = ?',
+  );
+  const moveDeviations = raw.prepare(
+    'UPDATE deviations SET action_class_id = ? WHERE action_class_id = ?',
+  );
+  const moveRefs = raw.prepare(
+    'UPDATE entity_refs SET action_class_id = ? WHERE action_class_id = ?',
+  );
+  const drop = raw.prepare(
+    'DELETE FROM action_classes WHERE id = ? AND NOT EXISTS (SELECT 1 FROM model_transitions WHERE action_class_id = ?)',
+  );
+  for (const a of out.actionClasses) {
+    if (a.kind === 'click' || produced.has(`${a.screen}\u0000${a.elementKey}\u0000click`)) continue;
+    const screen = screenIds.get(a.screen)!;
+    const placeholder = find.get(screen, a.elementKey, 'click') as { id: string } | undefined;
+    const real = find.get(screen, a.elementKey, a.kind) as { id: string } | undefined;
+    if (!placeholder || !real) continue;
+    moveDeviations.run(real.id, placeholder.id);
+    moveRefs.run(real.id, placeholder.id);
+    drop.run(placeholder.id, placeholder.id);
+  }
+}
+
 function writeActionsAndTransitions(
   raw: Raw,
   out: ReconcileOutput,
@@ -398,6 +432,7 @@ function writeActionsAndTransitions(
       versionId,
     );
   }
+  foldPlaceholderClasses(raw, out, screenIds);
   const findTransition = raw.prepare(
     `SELECT id FROM model_transitions WHERE from_screen_id = ? AND action_class_id = ?
        AND IFNULL(to_screen_id, '') = ? AND result = ?`,

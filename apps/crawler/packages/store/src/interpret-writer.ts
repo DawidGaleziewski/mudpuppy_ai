@@ -147,13 +147,16 @@ function earlierNewActions(raw: Raw, screen: string): Deviation[] {
   }));
 }
 
-/** The evidence a rule looks at for one deviation (design § 8.1: the reference observation). */
+/**
+ * The evidence a rule looks at for one deviation (design § 8.1: the reference observation), and
+ * for a missing action, the new action that may replace it.
+ */
 function contextOf(
   raw: Raw,
   d: Deviation,
   next: ModelSnapshot,
   deviations: readonly Deviation[],
-): RuleContext {
+): { context: RuleContext; replacement: Deviation | undefined } {
   const members = next.screens.get(d.screen) ?? [];
   const [current, reference] = visitPair(raw, d, members);
   const buildChanged =
@@ -174,16 +177,17 @@ function contextOf(
     ...deviations.filter((o) => o.kind === 'new_action' && o.screen === d.screen),
     ...earlierNewActions(raw, d.screen),
   ];
-  const newActionSameScreens =
-    d.kind === 'missing_action' &&
-    newActions.some(
-      (o) =>
-        o.elementKey !== undefined &&
-        o.actionKind !== undefined &&
-        o.elementKey !== d.elementKey &&
-        targets(o.screen, o.elementKey, o.actionKind).some((t) => missingTargets.includes(t)),
-    );
-  return {
+  const replacement =
+    d.kind === 'missing_action'
+      ? newActions.find(
+          (o) =>
+            o.elementKey !== undefined &&
+            o.actionKind !== undefined &&
+            o.elementKey !== d.elementKey &&
+            targets(o.screen, o.elementKey, o.actionKind).some((t) => missingTargets.includes(t)),
+        )
+      : undefined;
+  const context: RuleContext = {
     kind: d.kind,
     result: d.after?.result ?? 'ok',
     buildChanged,
@@ -191,8 +195,9 @@ function contextOf(
     contextDiffers,
     sameEpochAndAudience: !buildChanged && !contextDiffers,
     presentForOtherAudience: false,
-    newActionSameScreens,
+    newActionSameScreens: replacement !== undefined,
   };
+  return { context, replacement };
 }
 
 const CLAIMS: Record<string, (d: Deviation) => string> = {
@@ -234,6 +239,7 @@ export function interpretVersion(
   if (prev.screens.size === 0) return stats; // the first version: everything is new, nothing deviates
   const found = deviationsBetween(prev, next);
   const nextKey = hypothesisKeys(raw, portal);
+  const replacements: Deviation[] = [];
   for (const d of found) {
     const existing = raw
       .prepare('SELECT id FROM deviations WHERE portal_id = ? AND kind = ? AND subject_key = ?')
@@ -246,7 +252,10 @@ export function interpretVersion(
         .run(existing.id, versionId);
       continue;
     }
-    const decision = classify(contextOf(raw, d, next, found));
+    const { context, replacement } = contextOf(raw, d, next, found);
+    const decision = classify(context);
+    if (decision.decision === 'hypothesis' && decision.kind === 'replaces' && replacement)
+      replacements.push(replacement);
     const id = newId();
     raw
       .prepare(
@@ -284,6 +293,12 @@ export function interpretVersion(
     } else if (decision.decision === 'replay') stats.replays += 1;
     else stats.open += 1;
   }
+  // A rename is one change: the `replaces` fact explains the new element's deviations too.
+  const explain = raw.prepare(
+    `UPDATE deviations SET status = 'explained' WHERE portal_id = ? AND kind = 'new_action' AND status = 'open'
+       AND action_class_id IN (SELECT id FROM action_classes WHERE screen_id = ? AND element_key = ?)`,
+  );
+  for (const r of replacements) explain.run(portal, r.screen, r.elementKey);
   return stats;
 }
 

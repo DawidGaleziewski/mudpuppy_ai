@@ -288,11 +288,29 @@ Bugs, slips and design deviations found while building, each with a test or eval
   shows its element key (`state_components.element_keys`). The new-action check also takes the
   screen's `new_action` deviations of earlier versions (an action with another element key whose
   transition reaches a target the missing one reached).
-- **Not done**: the paired `new_action` deviation of a rename stays where it was (open, nothing
-  explained it); the What changed page shows it under "needs you" next to the derived `replaces`.
-  Test idea: one hypothesis explains both deviations of a rename.
+- **Also**: a rename is one change. When R6 derives `replaces`, the new element's open
+  `new_action` deviations are set `explained` too, so the What changed page does not show it under
+  "needs you" next to the derived fact (the hypothesis still points at the missing action only).
 - **Scenarios built**: `removed-link` (a release drops the home page's "Przedłuż polisę" shortcut;
   the menu's links were not used, they are global) and `renamed-button` (the vehicle form's
   "Dalej" becomes "Przejdź dalej", same release).
 - **Test**: `absence.e2e.test.ts`, both scenarios end to end on replay runs (removed → `removed`
   R6 derived; renamed → `replaces` R6 derived).
+
+## F-24 Bug: one element, two action classes, once it was seen and then pressed (T034, T051), 2026-10-19
+
+- **What**: an element only seen on a page gets the placeholder kind `click`; once pressed, its
+  class takes the kind the press recorded (a form's button: `submit`). The reconciler then stopped
+  producing the `click` class, but the store kept its row (stale, still `active`), and the next
+  version reported the `submit` class as a **new action**. Every first press of a button an
+  earlier run had only seen raised a deviation nobody can explain (it went to "needs you").
+  Found by the renamed-button test, which saw two `new_action` rows for one button.
+- **Fixed**: `deviationsBetween` reports a new action only for an element (screen + element key)
+  the previous version did not have under any kind; the writer folds the placeholder row into the
+  real class (deviations and entity refs move to it, the row goes unless a transition hangs on it).
+- **Design note**: classes are keyed (screen, element key, kind) as design § 6.5 says; kind is
+  really a property of the element, and the placeholder exists only because presence carries no
+  kind. Capturing each action's kind with its element key (the issued action knows it) would
+  remove the placeholder; not done.
+- **Test**: `interpret.test.ts` "an element seen before under another kind is not a new action";
+  `absence.e2e.test.ts` checks one `submit` class for the renamed button.

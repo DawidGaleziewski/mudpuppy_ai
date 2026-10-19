@@ -143,6 +143,19 @@ describe.skipIf(!available)('rule R6 on absent actions (spec 039 T052)', () => {
       expect(r6Facts(s.h)).toEqual([
         { kind: 'replaces', rule: 'R6', derived: 1, status: 'explained' },
       ]);
+      // One change: the new button is explained by the same fact, it does not wait for a person.
+      const renamed = s.h.ctx.raw
+        .prepare(
+          `SELECT d.status FROM deviations d JOIN action_classes a ON a.id = d.action_class_id
+           WHERE d.kind = 'new_action' AND a.element_key LIKE 'button|przejdź dalej|%'`,
+        )
+        .all();
+      expect(renamed).toEqual([{ status: 'explained' }]);
+      // Seen first, pressed later: one class per element, the placeholder folded (F-24).
+      const classes = s.h.ctx.raw
+        .prepare("SELECT kind FROM action_classes WHERE element_key LIKE 'button|przejdź dalej|%'")
+        .all();
+      expect(classes).toEqual([{ kind: 'submit' }]);
     } finally {
       await s.close();
     }
