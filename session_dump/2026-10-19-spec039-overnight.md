@@ -54,7 +54,10 @@ to the end." Questions are at the bottom, in the order they unblock work.
   a form whose fields each sit in a paragraph collapsed into one field (F-26: the Deployment test
   would have missed a text field added next to another), and form field names are now part of
   the structure, so `/sekcja/1`…`6` are six screens with an identity parameter (F-27). **Owner
-  check:** F-26/F-27 change fingerprints and structure hashes of every page with a form.
+  check:** F-26/F-27 change fingerprints and structure hashes of every page with a form (57c6a1a).
+- how-to-use: a 2.0 subsection (What changed, decision rules, the model commands) (a795683).
+- τ calibration (T037): `pnpm model:pairs` shows the pairs worth labelling and the calibration;
+  with 30 labels on each side the reconciler uses the calibrated τ (F-28).
 
 ## How to look at it in the morning
 
@@ -67,7 +70,7 @@ to the end." Questions are at the bottom, in the order they unblock work.
 3. `cd apps/crawler && pnpm exec vitest run --project mcp-server tests/replay-driver.e2e.test.ts`
    — the rule loop with no LLM: replays make a decision point, a rule "under 18" is tested at 17,
    18 and 19 headless and ends `supported`.
-4. `specs/039-mudpuppy-2-portal-model/findings.md` F-01–F-27: every place the build differs from
+4. `specs/039-mudpuppy-2-portal-model/findings.md` F-01–F-28: every place the build differs from
    the design, with why.
 
 ## Not built yet (in order)
@@ -101,3 +104,8 @@ to the end." Questions are at the bottom, in the order they unblock work.
 6. **F-20 run name**: the headless driver's runs are "replay runs" (`start_run replay`), because
    "probe run" already means spec 032's marked-step probing. Keep that, or rename spec 032's runs
    and use `mode = 'probe'` as the design says?
+7. **F-28 calibrated τ**: once 30 labels on each side exist, the reconciler switches to the
+   calibrated τ by itself. Keep it automatic, or show it and let a person accept it?
+8. **F-26/F-27 fingerprint changes**: forms whose fields each sit in a paragraph no longer
+   collapse, and field names are part of the structure. Five reference-portal screens got new
+   fingerprints (snapshots updated on purpose). OK?

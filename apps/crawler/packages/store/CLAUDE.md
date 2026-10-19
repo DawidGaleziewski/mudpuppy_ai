@@ -27,7 +27,8 @@ Layer: store (G-07; `apps/crawler/layers.json`)
   `pendingErrorReplays`, `resolveErrorReplays` (`error-replays.ts`, rule R1 on the driver),
   `decisionRules`, `dmnFiles` (`rule-export.ts`, `pnpm model:dmn`), `queueRegressions`,
   `recordRuleMismatches`, `pendingMismatchReplays`, `resolveRuleMismatch` (`regressions.ts`,
-  decision drift by R8, `pnpm model:regress`).
+  decision drift by R8, `pnpm model:regress`), `pairsToLabel`, `tauCalibration`, `calibratedTau`
+  (`model-calibration.ts`, the labelling queue and τ, `pnpm model:pairs`).
 - Used by: mcp-server, crawler, docs, gates, vault, apps/chat, the crawler app scripts.
 
 ## Invariants

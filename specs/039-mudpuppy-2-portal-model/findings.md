@@ -375,3 +375,22 @@ Bugs, slips and design deviations found while building, each with a test or eval
   same route without a parameter.
 - **Test**: `model-structure.e2e.test.ts`: six sections over two scans are six screens
   (`/sekcja/1` … `/sekcja/6`, `path:2` identity); driver rows stay one screen with `query:n` data.
+
+## F-28 τ calibration as built (T037), 2026-10-19
+
+- **What**: design § 6.1 calibrates τ from a person's pair labels. **Built:** clone and near
+  duplicate count as "same screen", distinct as not; once each side has `labelsToCalibrate` (30)
+  labels, the sweep (0.50–0.99, step 0.01) picks the τ with the best F1 for "same screen", ties to
+  the higher τ (it merges less; a wrong merge hides a screen, a wrong split only shows it twice).
+  The reconciler then clusters with it automatically and writes it on the model version
+  (`threshold`); before that the default 0.9. Labels also stay must-link / cannot-link
+  constraints, as before.
+- **Queue**: unlabelled pairs of page versions on one route template within 0.05 of τ, nearest
+  first, each with the model's current answer (one screen or two). `pnpm model:pairs` prints it;
+  `pnpm model:decide label` answers. The queue compares every pair of a route (fine for the
+  reference portal; a route with hundreds of versions wants the LSH candidates instead).
+- **Owner question**: switch to the calibrated τ automatically (built), or show it and let a
+  person accept it?
+- **Test**: `calibration.test.ts` (waits for labels, perfect separation picks the higher τ,
+  overlap picks the best F1, queue order); `model-calibration.test.ts` (route pairs, label drops
+  a pair, default τ until enough labels).

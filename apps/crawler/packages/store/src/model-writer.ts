@@ -18,6 +18,7 @@ import {
 } from '@pathfinder/model';
 
 import { interpretVersion, modelSnapshot, type InterpretStats } from './interpret-writer.js';
+import { calibratedTau } from './model-calibration.js';
 
 type Raw = BetterSqlite3.Database;
 
@@ -193,6 +194,8 @@ export function loadReconcileInput(raw: Raw, portal: string): ReconcileInput {
     },
     roleOverrides,
     retired: new Set(),
+    // The calibrated τ once a person labelled enough pairs on each side (T037), else the default.
+    tau: calibratedTau(raw, portal),
   };
 }
 

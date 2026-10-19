@@ -15,7 +15,8 @@ Layer: models (G-07; `apps/crawler/layers.json`)
   (attribute writes); `shownValues` (label–value pairs of a page).
 - `model/` (design § 6–7): `clusterPartition`, `clusterPortal`, `lshCandidates`, `compare`
   (canonical clustering); `assignScreens`, `lineageFor` (stable ids); `parameterRoles`,
-  `routeKey`, `paramsOf`, `dominantRouteKey`; `globalKeys`, `foldTransitions`, `coverageOf`,
+  `routeKey`, `paramsOf`, `dominantRouteKey`; `calibrateTau`, `labellingQueue` (T037);
+  `globalKeys`, `foldTransitions`, `coverageOf`,
   `buildEpochs`; `reconcile` (the whole pure core).
 - `interpret/` (design § 8, § 10): `deviationsBetween`, `classify` (rules R1–R8), `statusOf`
   (hypothesis lifecycle), `mayConfirm`, `claimHash`.

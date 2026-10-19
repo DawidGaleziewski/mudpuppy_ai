@@ -25,7 +25,8 @@ own `CLAUDE.md`), the operator scripts under `scripts/`, and the test tiers.
 - MudPuppy 2.0 (spec 039): `pnpm store:reset`, `pnpm model:reconcile|decide` (the portal model and
   a person's decisions), `pnpm model:mine` (decision rules, apps/miner), `pnpm model:replay`
   (R1 error replays and boundary tests on the headless driver), `pnpm model:propose` (process
-  proposals, Leiden), `pnpm model:dmn` (decision rules as DMN files).
+  proposals, Leiden), `pnpm model:dmn` (decision rules as DMN files), `pnpm model:regress`
+  (regression rounds of confirmed rules), `pnpm model:pairs` (labelling queue and τ calibration).
 
 ## Layout
 

@@ -36,7 +36,7 @@ group, ids in the message. Gates per milestone in `plan.md` § 1. `[B: …]` = b
 - [x] T034 [opus] Action classes, global keys, model transitions folded by key, internal transitions
 - [x] T035 [opus] Coverage and statuses (F-11, F-12, F-13); build epochs and overlaps
 - [x] T036 [opus] `reconcile` (pure core) + `model-writer.ts` (`reconcilePortalModel`, watermarks, one transaction) + `pnpm model:reconcile [--rebuild]`; runs after `finish_run` (a failure is a decision-log warning, never a failed run)
-- [ ] T037 [opus] τ calibration, pair labels, labelling queue (read model); `model:decide label`
+- [x] T037 [opus] τ calibration, pair labels, labelling queue (read model); `model:decide label`. `calibrateTau`, `labellingQueue` (pure), `pairsToLabel`, `tauCalibration`, `calibratedTau` (store; the reconciler uses it), `pnpm model:pairs` (F-28). The dashboard queue is the UX designer's
 - [ ] T038 [opus] Explorer seeding (F-01@038) from `screen_members`
 - [~] T039 [sonnet] Scans ▸ Map reads the model when the portal has one (`model_screens`, members as the deck, non-internal `model_transitions`, not-seen-since links greyed); one scan still reads its own edges. Screen pages and the inspector still read the crawler's screens
 - [x] T040 [opus] Reconciler gates: order independence, rebuild, history independence (`model` tests on the pure core), idempotence and rebuild on the writer (`store` tests)
