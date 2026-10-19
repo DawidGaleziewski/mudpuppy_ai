@@ -53,10 +53,11 @@ describe('fingerprint v2: repeated siblings (spec 039 design § 5.4)', () => {
     expect(c.identity).toBe('button "A"\nlink "B"\nbutton "C"');
   });
 
-  it('marks a run as repeated without saying how long it is', () => {
+  it('marks a run as repeated without saying how long it is; field names are structure (F-27)', () => {
     const c = collapsedText(tree(drivers(4)));
     expect(c.structure).toBe(
-      'main\n  heading [level=1]\n  list\n    listitem [repeated]\n      textbox\n      textbox\n  button',
+      'main\n  heading [level=1]\n  list\n    listitem [repeated]\n' +
+        '      textbox "Imię kierowcy <n>"\n      textbox "Data urodzenia <n>"\n  button',
     );
     expect(collapsedText(tree(drivers(2))).structure).toBe(c.structure);
     expect(c.content).toBe('Kierowcy\nDodaj kierowcę');
@@ -69,6 +70,24 @@ describe('fingerprint v2: repeated siblings (spec 039 design § 5.4)', () => {
     expect(fp(fields(['Imię', 'Nazwisko'])).level1).not.toBe(
       fp(fields(['Imię', 'Nazwisko', 'PESEL'])).level1,
     );
+  });
+
+  it('a form whose fields each sit in a paragraph keeps its fields (F-26)', () => {
+    const form = (names: string[]) =>
+      names.map((n) => `- paragraph:\n  - text: ${n}\n  - textbox "${n}"`).join('\n');
+    expect(fp(form(['Imię', 'Nazwisko'])).level1).not.toBe(fp(form(['Ulica', 'Miasto'])).level1);
+    expect(fp(form(['Imię', 'Nazwisko'])).level1).not.toBe(
+      fp(form(['Imię', 'Nazwisko', 'PESEL'])).level1,
+    );
+  });
+
+  it('rows that ask for the same fields still collapse, however many there are', () => {
+    const rows = (n: number) =>
+      Array.from(
+        { length: n },
+        (_, i) => `- listitem:\n  - heading "Kierowca ${i + 1}" [level=3]\n  - textbox "Imię"`,
+      ).join('\n');
+    expect(fp(rows(2)).level1).toBe(fp(rows(5)).level1);
   });
 
   it('keeps consecutive paragraphs as content, not repeated rows', () => {

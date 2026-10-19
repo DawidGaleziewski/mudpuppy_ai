@@ -52,12 +52,45 @@ const holdsStructure = (t: TreeNode): boolean =>
  */
 const rowLike = (t: TreeNode): boolean => ROW_ROLES.has(t.node.role) || holdsStructure(t);
 
-/** Siblings grouped into runs of equal signature; a run of two or more row-like nodes is repeated. */
+/** Roles of form fields: their names are what a form asks for, never repeated data. */
+const FIELD_ROLES = new Set([
+  'textbox',
+  'searchbox',
+  'combobox',
+  'listbox',
+  'checkbox',
+  'radio',
+  'spinbutton',
+  'slider',
+  'switch',
+]);
+
+/** The names of the form fields in a subtree, in document order. */
+function fieldNames(t: TreeNode): string {
+  const out: string[] = [];
+  const walk = (n: TreeNode) => {
+    if (FIELD_ROLES.has(n.node.role)) out.push(n.node.name);
+    n.children.forEach(walk);
+  };
+  walk(t);
+  return out.join('\u0000');
+}
+
+/**
+ * Siblings grouped into runs of equal signature; a run of two or more row-like nodes is repeated.
+ * Rows also need the same field names: a form whose fields each sit in a paragraph is a form, not
+ * repeated rows (F-26@039); driver rows that each ask for a name and a year are rows.
+ */
 function runs(siblings: readonly TreeNode[]): TreeNode[][] {
   const out: TreeNode[][] = [];
   for (const s of siblings) {
     const last = out[out.length - 1];
-    if (last && last[0]!.signature === s.signature && rowLike(s)) last.push(s);
+    const same =
+      last !== undefined &&
+      last[0]!.signature === s.signature &&
+      rowLike(s) &&
+      fieldNames(last[0]!) === fieldNames(s);
+    if (same) last.push(s);
     else out.push([s]);
   }
   return out;
@@ -66,7 +99,7 @@ function runs(siblings: readonly TreeNode[]): TreeNode[][] {
 export interface CollapsedText {
   /** Roles, levels and masked names, repeated runs as one nameless node (level-1 input). */
   identity: string;
-  /** Roles and levels only, repeated runs collapsed. */
+  /** Roles and levels, and the names of form fields; repeated runs collapsed. */
   structure: string;
   /** Masked names and text outside repeated runs, in document order. */
   content: string;
@@ -86,7 +119,8 @@ export function collapsedText(roots: readonly TreeNode[]): CollapsedText {
       const indent = '  '.repeat(depth);
       const mark = run.length > 1 ? ' [repeated]' : '';
       identity.push(`${indent}${label(head.node, !repeated)}${mark}`);
-      structure.push(`${indent}${label(head.node, false)}${mark}`);
+      // A form's field names are its structure (what it asks for), unlike item text (F-27@039).
+      structure.push(`${indent}${label(head.node, FIELD_ROLES.has(head.node.role))}${mark}`);
       if (!repeated && head.node.name) content.push(head.node.name);
       walk(head.children, depth + 1, repeated);
     }

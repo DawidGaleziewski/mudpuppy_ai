@@ -341,3 +341,37 @@ Bugs, slips and design deviations found while building, each with a test or eval
 - **Test**: `regressions.test.ts` (queue on release / `--regress`, a passing round keeps the rule,
   the drift to 21 superseded via R8, a non-reproducing mismatch is flaky); `rule-drift.e2e.test.ts`
   end to end on the reference portal.
+
+## F-26 Bug: a form whose fields each sit in a paragraph collapsed to one field (T013), 2026-10-19
+
+- **What**: F-02 made "a subtree holding more than text" row-like, so it collapses when it repeats.
+  A form that wraps each field in its own paragraph (`<p><label/><input/></p>`, the reference
+  portal's own pattern) is a run of equal subtrees: with two or more fields of the same type, they
+  collapsed into one nameless row and the field names left identity. Sections 1, 2, 4 and 5 of
+  the numbered-sections scenario (different forms, all text fields) were one state. The
+  Deployment test passed only because its new field sat next to fields of other types: a text
+  field added next to another text field would not have been seen.
+- **Fixed**: siblings join a repeated run only when their form fields (textbox, combobox,
+  checkbox, radio, spinbutton, slider, switch, searchbox, listbox) carry the same names. Driver
+  rows that each ask for a name and a year still collapse; product cards (no fields) still collapse.
+- **Test**: `structure.test.ts` "a form whose fields each sit in a paragraph keeps its fields";
+  "rows that ask for the same fields still collapse"; `model-structure.e2e.test.ts`.
+- **Snapshots updated on purpose** (diffs read): the reference portal's fingerprint snapshot
+  changes for exactly its five pages with forms (`/porownanie`, `/porownanie/wynik`,
+  `/kalkulator/pojazd`, `/kontakt`, `/logowanie`), the 19 screens stay distinct; the pipeline golden
+  trace changes only cluster ids (named after the fingerprint), every similarity and decision equal.
+
+## F-27 Form field names are structure; identity parameters need them (T013, T033), 2026-10-19
+
+- **What**: the structure component (`state_components.structure_hash`) was roles and levels
+  only. Parameter roles (design § 6.4) call a parameter `identity` when its values' structures
+  never overlap, so two sections that ask for different things in the same shape (two text
+  fields: name and surname, e-mail and phone) overlapped, `/sekcja/:param` stayed `data`, and the
+  shared layout put both forms into one screen by MinHash similarity. **Changed:** the structure
+  text names form fields (masked), as the MinHash shingles already did; item text stays out, so a
+  product id is still `data`. All structure hashes of pages with forms changed (data is disposable).
+- **Also seen**: identity needs each value seen twice (by design); one scan of six sections gives
+  `data`. The τ calibration (T037) and pair labels remain the answer for different forms on the
+  same route without a parameter.
+- **Test**: `model-structure.e2e.test.ts`: six sections over two scans are six screens
+  (`/sekcja/1` … `/sekcja/6`, `path:2` identity); driver rows stay one screen with `query:n` data.

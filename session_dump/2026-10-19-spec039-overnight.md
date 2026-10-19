@@ -49,7 +49,12 @@ to the end." Questions are at the bottom, in the order they unblock work.
 - **Decision drift (R8)** and the **rule-drift** scenario: a release on a confirmed rule's screen
   queues its regression suite (`pnpm model:regress` queues all); a failed test is a rule
   mismatch, R8 replays it once, reproduced → decision drift (derived), the rule is superseded
-  (F-25).
+  (F-25, 4e01a22). Moved link scenario (f6dbfae).
+- **Repeated rows** and **numbered sections** scenarios, and two fingerprint fixes they found:
+  a form whose fields each sit in a paragraph collapsed into one field (F-26: the Deployment test
+  would have missed a text field added next to another), and form field names are now part of
+  the structure, so `/sekcja/1`…`6` are six screens with an identity parameter (F-27). **Owner
+  check:** F-26/F-27 change fingerprints and structure hashes of every page with a form.
 
 ## How to look at it in the morning
 
@@ -62,7 +67,7 @@ to the end." Questions are at the bottom, in the order they unblock work.
 3. `cd apps/crawler && pnpm exec vitest run --project mcp-server tests/replay-driver.e2e.test.ts`
    — the rule loop with no LLM: replays make a decision point, a rule "under 18" is tested at 17,
    18 and 19 headless and ends `supported`.
-4. `specs/039-mudpuppy-2-portal-model/findings.md` F-01–F-25: every place the build differs from
+4. `specs/039-mudpuppy-2-portal-model/findings.md` F-01–F-27: every place the build differs from
    the design, with why.
 
 ## Not built yet (in order)
@@ -74,8 +79,8 @@ to the end." Questions are at the bottom, in the order they unblock work.
 - M5 rest: triggers and outcomes on proposals, human edits as constraints, one process concept,
   anchors on `entity_refs`, explorations; BA guidance waits for the R-77 review.
 - Scenarios not built: persona variant (the reference portal has no working login), A/B test,
-  flaky page, overlapping rule, not visited, repeated rows, numbered sections (built: deployment,
-  deterministic error, removed link, moved link, renamed button, rule drift; threshold rule is the
+  flaky page, overlapping rule, not visited (built: deployment, deterministic error, removed link,
+  moved link, renamed button, rule drift, repeated rows, numbered sections; threshold rule is the
   base portal). They run as e2e tests, not yet as gates.
 - The UX designer's pages (T100).
 

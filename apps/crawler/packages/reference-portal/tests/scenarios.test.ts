@@ -88,6 +88,28 @@ describe('scenario switchboard (spec 039 T005)', () => {
     }
   });
 
+  it('repeated-rows and numbered-sections serve their pages only while switched on', async () => {
+    const base = await startReferencePortal({ host: HOST, port: 0 });
+    const on = await startReferencePortal({
+      host: HOST,
+      port: 0,
+      scenarios: ['repeated-rows', 'numbered-sections'],
+    });
+    try {
+      expect((await fetch(`${base.url}/kierowcy`)).status).toBe(404);
+      expect((await fetch(`${base.url}/sekcja/1`)).status).toBe(404);
+      const three = await (await fetch(`${on.url}/kierowcy?n=3`)).text();
+      expect(three.match(/<li><h3>Kierowca/g)).toHaveLength(3);
+      expect(three).toContain('href="/kierowcy?n=4"');
+      const s4 = await (await fetch(`${on.url}/sekcja/4`)).text();
+      expect(s4).toContain('<label for="f3">Przebieg</label>');
+      expect((await fetch(`${on.url}/sekcja/7`)).status).toBe(404);
+    } finally {
+      await base.close();
+      await on.close();
+    }
+  });
+
   it('rule-drift raises the driver age to 21 in the date field, with a release', async () => {
     const portal = await startReferencePortal({ host: HOST, port: 0, scenarios: ['rule-drift'] });
     try {

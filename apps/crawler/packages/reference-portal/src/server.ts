@@ -24,7 +24,13 @@ import {
 import { car, faq, glossary, home, house, notFound } from './pages/static.js';
 import { pln } from './html.js';
 import { typicalVehicleValue } from './rules.js';
-import { applyScenarios, failsUnder, SERVER_ERROR_PAGE, type ScenarioId } from './scenarios.js';
+import {
+  applyScenarios,
+  failsUnder,
+  scenarioPage,
+  SERVER_ERROR_PAGE,
+  type ScenarioId,
+} from './scenarios.js';
 
 export const ROBOTS_TXT = 'User-agent: *\nDisallow: /__admin/\n';
 
@@ -197,6 +203,8 @@ export function startReferencePortal(opts: StartOptions): Promise<ReferencePorta
   const serveGet = (res: ServerResponse, path: string, p: Params): void => {
     const asset = assetFor(assets, path);
     if (asset) return send(res, asset.status, asset.body(p), asset.type);
+    const extra = scenarioPage(path, p, scenarios);
+    if (extra !== null) return send(res, 200, extra);
     const handler = GET_ROUTES[path];
     if (!handler) return send(res, 404, notFound());
     if (failsUnder(path, p, scenarios)) return send(res, 500, SERVER_ERROR_PAGE);

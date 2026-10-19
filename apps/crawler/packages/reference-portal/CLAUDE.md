@@ -13,8 +13,9 @@ Layer: servers (G-07; `apps/crawler/layers.json`)
   `GET /__admin/scenarios` reports the active ones. Built: `deployment` (new bundle + field),
   `deterministic-error` (HTTP 500 for the model `FAILING_MODEL`, short error body),
   `removed-link`, `moved-link`, `renamed-button`, `rule-drift` (driver age 21 in the date
-  field); a scenario's
-  effect may change HTML, ship a build or fail GET requests (`failsUnder`).
+  field), `repeated-rows` (`/kierowcy?n=`), `numbered-sections` (`/sekcja/1`–`6`). A scenario's
+  effect may change HTML, ship a build, fail GET requests (`failsUnder`) or serve a page of its own
+  (`scenarioPage`; such pages are not in the ground truth).
 
 ## Invariants
 - Deterministic content and dates (`TODAY`).

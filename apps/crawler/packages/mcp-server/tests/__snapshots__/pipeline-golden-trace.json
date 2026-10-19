@@ -6,7 +6,7 @@
         "route_template": "/kalkulator/pojazd",
         "title": "Kalkulator OC/AC — dane pojazdu | Towarzystwo Ubezpieczeń Wzorcowych",
         "fingerprint": "<sha:1>",
-        "cluster_id": "cluster-6a922887af07",
+        "cluster_id": "cluster-1000a8808397",
         "evidence_ref": "<sha:2>.yaml",
         "confidence": "observed",
         "stabilization": "settled",
@@ -17,7 +17,7 @@
         "route_template": "/kalkulator/pojazd",
         "title": "Kalkulator OC/AC — dane pojazdu | Towarzystwo Ubezpieczeń Wzorcowych",
         "fingerprint": "<sha:3>",
-        "cluster_id": "cluster-6a922887af07",
+        "cluster_id": "cluster-1000a8808397",
         "evidence_ref": "<sha:4>.yaml",
         "confidence": "observed",
         "stabilization": "settled",
@@ -28,7 +28,7 @@
         "route_template": "/kalkulator/pojazd",
         "title": "Kalkulator OC/AC — dane pojazdu | Towarzystwo Ubezpieczeń Wzorcowych",
         "fingerprint": "<sha:5>",
-        "cluster_id": "cluster-6a922887af07",
+        "cluster_id": "cluster-1000a8808397",
         "evidence_ref": "<sha:6>.yaml",
         "confidence": "observed",
         "stabilization": "settled",
@@ -39,7 +39,7 @@
         "route_template": "/kalkulator/pojazd",
         "title": "Kalkulator OC/AC — dane pojazdu | Towarzystwo Ubezpieczeń Wzorcowych",
         "fingerprint": "<sha:7>",
-        "cluster_id": "cluster-6a922887af07",
+        "cluster_id": "cluster-1000a8808397",
         "evidence_ref": "<sha:8>.yaml",
         "confidence": "observed",
         "stabilization": "settled",
@@ -50,7 +50,7 @@
         "route_template": "/kalkulator/pojazd",
         "title": "Kalkulator OC/AC — dane pojazdu | Towarzystwo Ubezpieczeń Wzorcowych",
         "fingerprint": "<sha:9>",
-        "cluster_id": "cluster-6a922887af07",
+        "cluster_id": "cluster-1000a8808397",
         "evidence_ref": "<sha:10>.yaml",
         "confidence": "observed",
         "stabilization": "settled",
@@ -61,7 +61,7 @@
         "route_template": "/kalkulator/kierowca",
         "title": "Kalkulator OC/AC — dane kierowcy | Towarzystwo Ubezpieczeń Wzorcowych",
         "fingerprint": "<sha:11>",
-        "cluster_id": "cluster-93abef0c14ef",
+        "cluster_id": "cluster-083c2d1d629b",
         "evidence_ref": "<sha:12>.yaml",
         "confidence": "observed",
         "stabilization": "settled",
@@ -72,7 +72,7 @@
         "route_template": "/kalkulator/kierowca",
         "title": "Kalkulator OC/AC — dane kierowcy | Towarzystwo Ubezpieczeń Wzorcowych",
         "fingerprint": "<sha:13>",
-        "cluster_id": "cluster-93abef0c14ef",
+        "cluster_id": "cluster-083c2d1d629b",
         "evidence_ref": "<sha:14>.yaml",
         "confidence": "observed",
         "stabilization": "settled",
@@ -83,7 +83,7 @@
         "route_template": "/kalkulator/kierowca",
         "title": "Kalkulator OC/AC — dane kierowcy | Towarzystwo Ubezpieczeń Wzorcowych",
         "fingerprint": "<sha:15>",
-        "cluster_id": "cluster-93abef0c14ef",
+        "cluster_id": "cluster-083c2d1d629b",
         "evidence_ref": "<sha:16>.yaml",
         "confidence": "observed",
         "stabilization": "settled",
@@ -94,7 +94,7 @@
         "route_template": "/kalkulator/kierowca",
         "title": "Kalkulator OC/AC — dane kierowcy | Towarzystwo Ubezpieczeń Wzorcowych",
         "fingerprint": "<sha:17>",
-        "cluster_id": "cluster-93abef0c14ef",
+        "cluster_id": "cluster-083c2d1d629b",
         "evidence_ref": "<sha:18>.yaml",
         "confidence": "observed",
         "stabilization": "settled",
@@ -105,7 +105,7 @@
         "route_template": "/kalkulator/opcje",
         "title": "Kalkulator OC/AC — opcje | Towarzystwo Ubezpieczeń Wzorcowych",
         "fingerprint": "<sha:19>",
-        "cluster_id": "cluster-7d524117e518",
+        "cluster_id": "cluster-667935cb2e99",
         "evidence_ref": "<sha:20>.yaml",
         "confidence": "observed",
         "stabilization": "settled",
@@ -2309,91 +2309,91 @@
       {
         "kind": "split",
         "rule": "fingerprint:new-cluster",
-        "reason": "split into cluster-6a922887af07 (similarity 0.00, threshold 0.9)",
+        "reason": "split into cluster-1000a8808397 (similarity 0.00, threshold 0.9)",
         "subject_ref": "<sha:1>",
         "detail_json": "{\"matched\":null,\"route_template\":\"/kalkulator/pojazd\"}"
       },
       {
         "kind": "merge",
         "rule": "fingerprint:identical-fingerprint",
-        "reason": "merge into cluster-6a922887af07 (similarity 1.00, threshold 0.9)",
+        "reason": "merge into cluster-1000a8808397 (similarity 1.00, threshold 0.9)",
         "subject_ref": "<sha:1>",
         "detail_json": "{\"matched\":\"[token]\",\"route_template\":\"/kalkulator/pojazd\"}"
       },
       {
         "kind": "merge",
         "rule": "fingerprint:similar-structure",
-        "reason": "merge into cluster-6a922887af07 (similarity 0.98, threshold 0.9)",
+        "reason": "merge into cluster-1000a8808397 (similarity 0.98, threshold 0.9)",
         "subject_ref": "<sha:3>",
         "detail_json": "{\"matched\":\"[token]\",\"route_template\":\"/kalkulator/pojazd\"}"
       },
       {
         "kind": "merge",
         "rule": "fingerprint:similar-structure",
-        "reason": "merge into cluster-6a922887af07 (similarity 0.96, threshold 0.9)",
+        "reason": "merge into cluster-1000a8808397 (similarity 0.96, threshold 0.9)",
         "subject_ref": "<sha:5>",
         "detail_json": "{\"matched\":\"[token]\",\"route_template\":\"/kalkulator/pojazd\"}"
       },
       {
         "kind": "merge",
         "rule": "fingerprint:similar-structure",
-        "reason": "merge into cluster-6a922887af07 (similarity 0.96, threshold 0.9)",
+        "reason": "merge into cluster-1000a8808397 (similarity 0.96, threshold 0.9)",
         "subject_ref": "<sha:7>",
         "detail_json": "{\"matched\":\"[token]\",\"route_template\":\"/kalkulator/pojazd\"}"
       },
       {
         "kind": "merge",
         "rule": "fingerprint:similar-structure",
-        "reason": "merge into cluster-6a922887af07 (similarity 0.96, threshold 0.9)",
+        "reason": "merge into cluster-1000a8808397 (similarity 0.96, threshold 0.9)",
         "subject_ref": "<sha:9>",
         "detail_json": "{\"matched\":\"[token]\",\"route_template\":\"/kalkulator/pojazd\"}"
       },
       {
         "kind": "split",
         "rule": "fingerprint:new-cluster",
-        "reason": "split into cluster-93abef0c14ef (similarity 0.64, threshold 0.9)",
+        "reason": "split into cluster-083c2d1d629b (similarity 0.64, threshold 0.9)",
         "subject_ref": "<sha:11>",
         "detail_json": "{\"matched\":\"[token]\",\"route_template\":\"/kalkulator/kierowca\"}"
       },
       {
         "kind": "merge",
         "rule": "fingerprint:similar-structure",
-        "reason": "merge into cluster-93abef0c14ef (similarity 0.98, threshold 0.9)",
+        "reason": "merge into cluster-083c2d1d629b (similarity 0.98, threshold 0.9)",
         "subject_ref": "<sha:13>",
         "detail_json": "{\"matched\":\"[token]\",\"route_template\":\"/kalkulator/kierowca\"}"
       },
       {
         "kind": "merge",
         "rule": "fingerprint:similar-structure",
-        "reason": "merge into cluster-93abef0c14ef (similarity 0.97, threshold 0.9)",
+        "reason": "merge into cluster-083c2d1d629b (similarity 0.97, threshold 0.9)",
         "subject_ref": "<sha:15>",
         "detail_json": "{\"matched\":\"[token]\",\"route_template\":\"/kalkulator/kierowca\"}"
       },
       {
         "kind": "merge",
         "rule": "fingerprint:similar-structure",
-        "reason": "merge into cluster-93abef0c14ef (similarity 0.97, threshold 0.9)",
+        "reason": "merge into cluster-083c2d1d629b (similarity 0.97, threshold 0.9)",
         "subject_ref": "<sha:17>",
         "detail_json": "{\"matched\":\"[token]\",\"route_template\":\"/kalkulator/kierowca\"}"
       },
       {
         "kind": "merge",
         "rule": "fingerprint:identical-fingerprint",
-        "reason": "merge into cluster-93abef0c14ef (similarity 1.00, threshold 0.9)",
+        "reason": "merge into cluster-083c2d1d629b (similarity 1.00, threshold 0.9)",
         "subject_ref": "<sha:17>",
         "detail_json": "{\"matched\":\"[token]\",\"route_template\":\"/kalkulator/kierowca\"}"
       },
       {
         "kind": "merge",
         "rule": "fingerprint:identical-fingerprint",
-        "reason": "merge into cluster-93abef0c14ef (similarity 1.00, threshold 0.9)",
+        "reason": "merge into cluster-083c2d1d629b (similarity 1.00, threshold 0.9)",
         "subject_ref": "<sha:17>",
         "detail_json": "{\"matched\":\"[token]\",\"route_template\":\"/kalkulator/kierowca\"}"
       },
       {
         "kind": "split",
         "rule": "fingerprint:new-cluster",
-        "reason": "split into cluster-7d524117e518 (similarity 0.56, threshold 0.9)",
+        "reason": "split into cluster-667935cb2e99 (similarity 0.56, threshold 0.9)",
         "subject_ref": "<sha:19>",
         "detail_json": "{\"matched\":\"[token]\",\"route_template\":\"/kalkulator/opcje\"}"
       },
@@ -2517,7 +2517,7 @@
           "output": {
             "state_id": "<id:1>",
             "created": true,
-            "cluster_id": "cluster-6a922887af07",
+            "cluster_id": "cluster-1000a8808397",
             "title": "Kalkulator OC/AC — dane pojazdu | Towarzystwo Ubezpieczeń Wzorcowych",
             "route_template": "/kalkulator/pojazd",
             "forms": 1,
@@ -2824,7 +2824,7 @@
           "kind": "split",
           "rule": "fingerprint:new-cluster"
         },
-        "summary": "split: split into cluster-6a922887af07 (similarity 0.00, threshold 0.9)",
+        "summary": "split: split into cluster-1000a8808397 (similarity 0.00, threshold 0.9)",
         "decision": 1,
         "between_calls": 0
       },
@@ -2838,7 +2838,7 @@
           "route_template": "/kalkulator/pojazd",
           "level1": "<sha:1>",
           "decision": "split",
-          "cluster_id": "cluster-6a922887af07",
+          "cluster_id": "cluster-1000a8808397",
           "matched": null,
           "similarity": 0,
           "threshold": 0.9
@@ -3108,7 +3108,7 @@
           "output": {
             "state_id": "<id:1>",
             "created": false,
-            "cluster_id": "cluster-6a922887af07",
+            "cluster_id": "cluster-1000a8808397",
             "title": "Kalkulator OC/AC — dane pojazdu | Towarzystwo Ubezpieczeń Wzorcowych",
             "route_template": "/kalkulator/pojazd",
             "forms": 0,
@@ -3421,7 +3421,7 @@
           "kind": "merge",
           "rule": "fingerprint:identical-fingerprint"
         },
-        "summary": "merge: merge into cluster-6a922887af07 (similarity 1.00, threshold 0.9)",
+        "summary": "merge: merge into cluster-1000a8808397 (similarity 1.00, threshold 0.9)",
         "decision": 1,
         "between_calls": 0
       },
@@ -3435,7 +3435,7 @@
           "route_template": "/kalkulator/pojazd",
           "level1": "<sha:1>",
           "decision": "merge",
-          "cluster_id": "cluster-6a922887af07",
+          "cluster_id": "cluster-1000a8808397",
           "matched": "<sha:1>",
           "similarity": 1,
           "threshold": 0.9
@@ -3656,7 +3656,7 @@
           "output": {
             "state_id": "<id:2>",
             "created": true,
-            "cluster_id": "cluster-6a922887af07",
+            "cluster_id": "cluster-1000a8808397",
             "title": "Kalkulator OC/AC — dane pojazdu | Towarzystwo Ubezpieczeń Wzorcowych",
             "route_template": "/kalkulator/pojazd",
             "forms": 1,
@@ -3969,7 +3969,7 @@
           "kind": "merge",
           "rule": "fingerprint:similar-structure"
         },
-        "summary": "merge: merge into cluster-6a922887af07 (similarity 0.98, threshold 0.9)",
+        "summary": "merge: merge into cluster-1000a8808397 (similarity 0.98, threshold 0.9)",
         "decision": 1,
         "between_calls": 0
       },
@@ -3983,7 +3983,7 @@
           "route_template": "/kalkulator/pojazd",
           "level1": "<sha:3>",
           "decision": "merge",
-          "cluster_id": "cluster-6a922887af07",
+          "cluster_id": "cluster-1000a8808397",
           "matched": "<sha:1>",
           "similarity": 0.984375,
           "threshold": 0.9
@@ -4245,7 +4245,7 @@
           "output": {
             "state_id": "<id:3>",
             "created": true,
-            "cluster_id": "cluster-6a922887af07",
+            "cluster_id": "cluster-1000a8808397",
             "title": "Kalkulator OC/AC — dane pojazdu | Towarzystwo Ubezpieczeń Wzorcowych",
             "route_template": "/kalkulator/pojazd",
             "forms": 1,
@@ -4558,7 +4558,7 @@
           "kind": "merge",
           "rule": "fingerprint:similar-structure"
         },
-        "summary": "merge: merge into cluster-6a922887af07 (similarity 0.96, threshold 0.9)",
+        "summary": "merge: merge into cluster-1000a8808397 (similarity 0.96, threshold 0.9)",
         "decision": 1,
         "between_calls": 0
       },
@@ -4572,7 +4572,7 @@
           "route_template": "/kalkulator/pojazd",
           "level1": "<sha:5>",
           "decision": "merge",
-          "cluster_id": "cluster-6a922887af07",
+          "cluster_id": "cluster-1000a8808397",
           "matched": "<sha:1>",
           "similarity": 0.9609375,
           "threshold": 0.9
@@ -4834,7 +4834,7 @@
           "output": {
             "state_id": "<id:4>",
             "created": true,
-            "cluster_id": "cluster-6a922887af07",
+            "cluster_id": "cluster-1000a8808397",
             "title": "Kalkulator OC/AC — dane pojazdu | Towarzystwo Ubezpieczeń Wzorcowych",
             "route_template": "/kalkulator/pojazd",
             "forms": 1,
@@ -5147,7 +5147,7 @@
           "kind": "merge",
           "rule": "fingerprint:similar-structure"
         },
-        "summary": "merge: merge into cluster-6a922887af07 (similarity 0.96, threshold 0.9)",
+        "summary": "merge: merge into cluster-1000a8808397 (similarity 0.96, threshold 0.9)",
         "decision": 1,
         "between_calls": 0
       },
@@ -5161,7 +5161,7 @@
           "route_template": "/kalkulator/pojazd",
           "level1": "<sha:7>",
           "decision": "merge",
-          "cluster_id": "cluster-6a922887af07",
+          "cluster_id": "cluster-1000a8808397",
           "matched": "<sha:1>",
           "similarity": 0.9609375,
           "threshold": 0.9
@@ -5423,7 +5423,7 @@
           "output": {
             "state_id": "<id:5>",
             "created": true,
-            "cluster_id": "cluster-6a922887af07",
+            "cluster_id": "cluster-1000a8808397",
             "title": "Kalkulator OC/AC — dane pojazdu | Towarzystwo Ubezpieczeń Wzorcowych",
             "route_template": "/kalkulator/pojazd",
             "forms": 1,
@@ -5736,7 +5736,7 @@
           "kind": "merge",
           "rule": "fingerprint:similar-structure"
         },
-        "summary": "merge: merge into cluster-6a922887af07 (similarity 0.96, threshold 0.9)",
+        "summary": "merge: merge into cluster-1000a8808397 (similarity 0.96, threshold 0.9)",
         "decision": 1,
         "between_calls": 0
       },
@@ -5750,7 +5750,7 @@
           "route_template": "/kalkulator/pojazd",
           "level1": "<sha:9>",
           "decision": "merge",
-          "cluster_id": "cluster-6a922887af07",
+          "cluster_id": "cluster-1000a8808397",
           "matched": "<sha:1>",
           "similarity": 0.9609375,
           "threshold": 0.9
@@ -6011,7 +6011,7 @@
           "output": {
             "state_id": "<id:6>",
             "created": true,
-            "cluster_id": "cluster-93abef0c14ef",
+            "cluster_id": "cluster-083c2d1d629b",
             "title": "Kalkulator OC/AC — dane kierowcy | Towarzystwo Ubezpieczeń Wzorcowych",
             "route_template": "/kalkulator/kierowca",
             "forms": 1,
@@ -6371,7 +6371,7 @@
           "kind": "split",
           "rule": "fingerprint:new-cluster"
         },
-        "summary": "split: split into cluster-93abef0c14ef (similarity 0.64, threshold 0.9)",
+        "summary": "split: split into cluster-083c2d1d629b (similarity 0.64, threshold 0.9)",
         "decision": 1,
         "between_calls": 0
       },
@@ -6385,7 +6385,7 @@
           "route_template": "/kalkulator/kierowca",
           "level1": "<sha:11>",
           "decision": "split",
-          "cluster_id": "cluster-93abef0c14ef",
+          "cluster_id": "cluster-083c2d1d629b",
           "matched": "<sha:1>",
           "similarity": 0.640625,
           "threshold": 0.9
@@ -6668,7 +6668,7 @@
           "output": {
             "state_id": "<id:7>",
             "created": true,
-            "cluster_id": "cluster-93abef0c14ef",
+            "cluster_id": "cluster-083c2d1d629b",
             "title": "Kalkulator OC/AC — dane kierowcy | Towarzystwo Ubezpieczeń Wzorcowych",
             "route_template": "/kalkulator/kierowca",
             "forms": 1,
@@ -6981,7 +6981,7 @@
           "kind": "merge",
           "rule": "fingerprint:similar-structure"
         },
-        "summary": "merge: merge into cluster-93abef0c14ef (similarity 0.98, threshold 0.9)",
+        "summary": "merge: merge into cluster-083c2d1d629b (similarity 0.98, threshold 0.9)",
         "decision": 1,
         "between_calls": 0
       },
@@ -6995,7 +6995,7 @@
           "route_template": "/kalkulator/kierowca",
           "level1": "<sha:13>",
           "decision": "merge",
-          "cluster_id": "cluster-93abef0c14ef",
+          "cluster_id": "cluster-083c2d1d629b",
           "matched": "<sha:11>",
           "similarity": 0.984375,
           "threshold": 0.9
@@ -7257,7 +7257,7 @@
           "output": {
             "state_id": "<id:8>",
             "created": true,
-            "cluster_id": "cluster-93abef0c14ef",
+            "cluster_id": "cluster-083c2d1d629b",
             "title": "Kalkulator OC/AC — dane kierowcy | Towarzystwo Ubezpieczeń Wzorcowych",
             "route_template": "/kalkulator/kierowca",
             "forms": 1,
@@ -7570,7 +7570,7 @@
           "kind": "merge",
           "rule": "fingerprint:similar-structure"
         },
-        "summary": "merge: merge into cluster-93abef0c14ef (similarity 0.97, threshold 0.9)",
+        "summary": "merge: merge into cluster-083c2d1d629b (similarity 0.97, threshold 0.9)",
         "decision": 1,
         "between_calls": 0
       },
@@ -7584,7 +7584,7 @@
           "route_template": "/kalkulator/kierowca",
           "level1": "<sha:15>",
           "decision": "merge",
-          "cluster_id": "cluster-93abef0c14ef",
+          "cluster_id": "cluster-083c2d1d629b",
           "matched": "<sha:11>",
           "similarity": 0.96875,
           "threshold": 0.9
@@ -7846,7 +7846,7 @@
           "output": {
             "state_id": "<id:9>",
             "created": true,
-            "cluster_id": "cluster-93abef0c14ef",
+            "cluster_id": "cluster-083c2d1d629b",
             "title": "Kalkulator OC/AC — dane kierowcy | Towarzystwo Ubezpieczeń Wzorcowych",
             "route_template": "/kalkulator/kierowca",
             "forms": 1,
@@ -8159,7 +8159,7 @@
           "kind": "merge",
           "rule": "fingerprint:similar-structure"
         },
-        "summary": "merge: merge into cluster-93abef0c14ef (similarity 0.97, threshold 0.9)",
+        "summary": "merge: merge into cluster-083c2d1d629b (similarity 0.97, threshold 0.9)",
         "decision": 1,
         "between_calls": 0
       },
@@ -8173,7 +8173,7 @@
           "route_template": "/kalkulator/kierowca",
           "level1": "<sha:17>",
           "decision": "merge",
-          "cluster_id": "cluster-93abef0c14ef",
+          "cluster_id": "cluster-083c2d1d629b",
           "matched": "<sha:11>",
           "similarity": 0.96875,
           "threshold": 0.9
@@ -8434,7 +8434,7 @@
           "output": {
             "state_id": "<id:9>",
             "created": false,
-            "cluster_id": "cluster-93abef0c14ef",
+            "cluster_id": "cluster-083c2d1d629b",
             "title": "Kalkulator OC/AC — dane kierowcy | Towarzystwo Ubezpieczeń Wzorcowych",
             "route_template": "/kalkulator/kierowca",
             "forms": 0,
@@ -8747,7 +8747,7 @@
           "kind": "merge",
           "rule": "fingerprint:identical-fingerprint"
         },
-        "summary": "merge: merge into cluster-93abef0c14ef (similarity 1.00, threshold 0.9)",
+        "summary": "merge: merge into cluster-083c2d1d629b (similarity 1.00, threshold 0.9)",
         "decision": 1,
         "between_calls": 0
       },
@@ -8761,7 +8761,7 @@
           "route_template": "/kalkulator/kierowca",
           "level1": "<sha:17>",
           "decision": "merge",
-          "cluster_id": "cluster-93abef0c14ef",
+          "cluster_id": "cluster-083c2d1d629b",
           "matched": "<sha:11>",
           "similarity": 1,
           "threshold": 0.9
@@ -8981,7 +8981,7 @@
           "output": {
             "state_id": "<id:9>",
             "created": false,
-            "cluster_id": "cluster-93abef0c14ef",
+            "cluster_id": "cluster-083c2d1d629b",
             "title": "Kalkulator OC/AC — dane kierowcy | Towarzystwo Ubezpieczeń Wzorcowych",
             "route_template": "/kalkulator/kierowca",
             "forms": 0,
@@ -9294,7 +9294,7 @@
           "kind": "merge",
           "rule": "fingerprint:identical-fingerprint"
         },
-        "summary": "merge: merge into cluster-93abef0c14ef (similarity 1.00, threshold 0.9)",
+        "summary": "merge: merge into cluster-083c2d1d629b (similarity 1.00, threshold 0.9)",
         "decision": 1,
         "between_calls": 0
       },
@@ -9308,7 +9308,7 @@
           "route_template": "/kalkulator/kierowca",
           "level1": "<sha:17>",
           "decision": "merge",
-          "cluster_id": "cluster-93abef0c14ef",
+          "cluster_id": "cluster-083c2d1d629b",
           "matched": "<sha:11>",
           "similarity": 1,
           "threshold": 0.9
@@ -9528,7 +9528,7 @@
           "output": {
             "state_id": "<id:10>",
             "created": true,
-            "cluster_id": "cluster-7d524117e518",
+            "cluster_id": "cluster-667935cb2e99",
             "title": "Kalkulator OC/AC — opcje | Towarzystwo Ubezpieczeń Wzorcowych",
             "route_template": "/kalkulator/opcje",
             "forms": 1,
@@ -9891,7 +9891,7 @@
           "kind": "split",
           "rule": "fingerprint:new-cluster"
         },
-        "summary": "split: split into cluster-7d524117e518 (similarity 0.56, threshold 0.9)",
+        "summary": "split: split into cluster-667935cb2e99 (similarity 0.56, threshold 0.9)",
         "decision": 1,
         "between_calls": 0
       },
@@ -9905,7 +9905,7 @@
           "route_template": "/kalkulator/opcje",
           "level1": "<sha:19>",
           "decision": "split",
-          "cluster_id": "cluster-7d524117e518",
+          "cluster_id": "cluster-667935cb2e99",
           "matched": "<sha:1>",
           "similarity": 0.5625,
           "threshold": 0.9

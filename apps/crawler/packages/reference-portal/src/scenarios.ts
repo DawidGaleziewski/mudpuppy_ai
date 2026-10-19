@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { layout } from './html.js';
 import { CURRENT_YEAR, MIN_DRIVER_AGE } from './rules.js';
 
 /**
@@ -98,6 +99,48 @@ interface ScenarioEffect {
   build?: string;
   html?: (path: string, html: string) => string;
   fails?: (path: string, params: Readonly<Record<string, string>>) => boolean;
+  /** A page only this scenario serves (null: not one of its paths). Not in the ground truth. */
+  page?: (path: string, params: Readonly<Record<string, string>>) => string | null;
+}
+
+/** "Add another driver" adds a row: one to six driver rows of the same shape. */
+function driversPage(path: string, params: Readonly<Record<string, string>>): string | null {
+  if (path !== '/kierowcy') return null;
+  const n = Math.min(6, Math.max(1, Number(params.n ?? '1') || 1));
+  const rows = Array.from(
+    { length: n },
+    (_, i) =>
+      `<li><h3>Kierowca ${i + 1}</h3><p><label for="imie${i + 1}">Imię</label> <input id="imie${i + 1}" name="imie${i + 1}"></p>` +
+      `<p><label for="rok${i + 1}">Rok urodzenia</label> <input id="rok${i + 1}" name="rok${i + 1}" type="number"></p></li>`,
+  ).join('\n');
+  return layout(
+    'Dodatkowi kierowcy',
+    `<form aria-label="Kierowcy" method="get" action="/kierowcy">\n<ul>\n${rows}\n</ul>\n` +
+      `<p><a href="/kierowcy?n=${Math.min(6, n + 1)}">Dodaj kierowcę</a></p></form>`,
+  );
+}
+
+/** Six numbered sections, each a different form: the number is the screen. */
+const SECTION_FIELDS: readonly (readonly string[])[] = [
+  ['Imię', 'Nazwisko'],
+  ['Ulica', 'Miasto', 'Kod pocztowy'],
+  ['Numer polisy'],
+  ['Marka', 'Model', 'Rok produkcji', 'Przebieg'],
+  ['Adres e-mail', 'Telefon'],
+  ['Uwagi'],
+];
+
+function sectionPage(path: string): string | null {
+  const m = /^\/sekcja\/([1-6])$/.exec(path);
+  if (!m) return null;
+  const fields = SECTION_FIELDS[Number(m[1]) - 1]!;
+  const inputs = fields
+    .map((f, i) => `<p><label for="f${i}">${f}</label> <input id="f${i}" name="f${i}"></p>`)
+    .join('\n');
+  return layout(
+    `Wniosek: sekcja ${m[1]}`,
+    `<form aria-label="Sekcja ${m[1]}" method="get" action="${path}">\n${inputs}\n<p><button type="submit">Zapisz</button></p></form>`,
+  );
 }
 
 /** The value of the vehicle form's model field that the deterministic-error scenario breaks. */
@@ -155,12 +198,29 @@ const EFFECTS: Partial<Record<ScenarioId, ScenarioEffect>> = {
             .replace(`od ${MIN_DRIVER_AGE} do`, 'od 21 do')
         : html,
   },
+  // M2: /kierowcy?n=1..6 shows that many driver rows → one screen; rows collapse (F-02).
+  'repeated-rows': { page: driversPage },
+  // M2: /sekcja/1 to /sekcja/6, a different form each → the path parameter is identity, six screens.
+  'numbered-sections': { page: (path) => sectionPage(path) },
   // M3: the vehicle form answers HTTP 500 every time for one model name → deterministic_error (R1).
   'deterministic-error': {
     fails: (path, params) =>
       path === '/kalkulator/pojazd' && params.krok === '1' && params.model === FAILING_MODEL,
   },
 };
+
+/** The page a built scenario serves at this path, if one does. */
+export function scenarioPage(
+  path: string,
+  params: Readonly<Record<string, string>>,
+  scenarios: readonly ScenarioId[],
+): string | null {
+  for (const s of scenarios) {
+    const page = EFFECTS[s]?.page?.(path, params) ?? null;
+    if (page !== null) return page;
+  }
+  return null;
+}
 
 /** True when a built scenario answers this GET request with a server error. */
 export function failsUnder(

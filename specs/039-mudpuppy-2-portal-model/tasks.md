@@ -40,7 +40,7 @@ group, ids in the message. Gates per milestone in `plan.md` § 1. `[B: …]` = b
 - [ ] T038 [opus] Explorer seeding (F-01@038) from `screen_members`
 - [~] T039 [sonnet] Scans ▸ Map reads the model when the portal has one (`model_screens`, members as the deck, non-internal `model_transitions`, not-seen-since links greyed); one scan still reads its own edges. Screen pages and the inspector still read the crawler's screens
 - [x] T040 [opus] Reconciler gates: order independence, rebuild, history independence (`model` tests on the pure core), idempotence and rebuild on the writer (`store` tests)
-- [~] T041 [opus] Scenarios: Numbered sections, Repeated rows, Not visited, Moved link (gates). **Moved link built** (home shortcut into the menu, same release; `absence.e2e.test.ts`: `replaces` by R6, derived; e2e tests, not gates yet). Numbered sections and Repeated rows need new portal pages; Not visited is a run-side scenario (no portal injection)
+- [~] T041 [opus] Scenarios: Numbered sections, Repeated rows, Not visited, Moved link (gates). **Moved link built** (home shortcut into the menu, same release; `absence.e2e.test.ts`: `replaces` by R6, derived; e2e tests, not gates yet). **Repeated rows and Numbered sections built** (scenario-only pages; `model-structure.e2e.test.ts`; bugs F-26, F-27 fixed). Not visited is a run-side scenario (no portal injection), not built
 - [ ] T042 [sonnet] Reference-insurer eval trial vs v1 baseline (screens); M2 gate; tag `v2.0.0-m2`
 
 ## M3 Interpretation
