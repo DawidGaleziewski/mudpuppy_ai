@@ -1,14 +1,13 @@
 /**
- * Run the portal's untested boundary tests on the headless driver (spec 039 design § 9, § 11.5):
- * `pnpm model:replay <portal> --env <env> [--limit N] [--today YYYY-MM-DD]`. Each test is one
- * replay run of the latest recorded execution of its decision point, with the test's inputs, in a
- * fresh session through the gated tools (no LLM). Every finished run reconciles the model; then
- * the tests get their verdicts and the rules move (a failed test refutes, passing tests support).
- * `--today` is the day the portal counts ages from, when it is not today (a test portal).
+ * Run the portal's waiting replays on the headless driver (spec 039 design § 8.2, § 9, § 11.5):
+ * `pnpm model:replay <portal> --env <env> [--limit N] [--today YYYY-MM-DD]`. Rule R1 first (a step
+ * that ended in an error, replayed twice: flaky or deterministic), then the untested boundary
+ * tests of decision rules (a failed test refutes the rule, passing tests support it). Each replay
+ * is one run in a fresh session through the gated tools, no LLM; `--limit` caps the runs (default:
+ * the replay budget). `--today` is the day the portal counts ages from, when it is not today.
  */
 import { join, resolve } from 'node:path';
-import { createBrowserRuntime, openLocalClient, replay } from '@pathfinder/mcp-server';
-import { judgeReplays, pendingReplays, recordReplay } from '@pathfinder/store';
+import { createBrowserRuntime, openLocalClient, replayPortal } from '@pathfinder/mcp-server';
 import { scriptEnvironment } from './script-env.js';
 
 const args = process.argv.slice(2);
@@ -28,20 +27,17 @@ const today = flag('today');
 
 const local = await openLocalClient({ root, environment, runtime: createBrowserRuntime() });
 try {
-  const plans = pendingReplays(local.ctx.raw, portal, {
-    ...(limit ? { limit: Number(limit) } : {}), // default: the replay budget (MODEL_DEFAULTS)
+  const r = await replayPortal(local.call, local.ctx.raw, portal, {
+    ...(limit ? { limit: Number(limit) } : {}),
     ...(today ? { today } : {}),
   });
-  console.log(`${portal} (${environment}): ${plans.length} boundary test(s) to replay`);
-  for (const plan of plans) {
-    const outcome = await replay(local.call, plan);
-    recordReplay(local.ctx.raw, plan.testId, outcome);
+  console.log(`${portal} (${environment}): ${r.replays} replay run(s)`);
+  for (const e of r.errors)
     console.log(
-      `  ${plan.hypothesis} ${JSON.stringify(plan.inputs)}: ${outcome.status}` +
-        (outcome.status === 'diverged' ? ` (${outcome.reason})` : ` run ${outcome.runId}`),
+      `  R1 ${e.deviationId}: ${e.results.map((x) => x ?? 'diverged').join(', ')} → ${e.hypothesis ?? 'still waiting'}`,
     );
-  }
-  for (const m of judgeReplays(local.ctx.raw, portal)) console.log(`  ${m.hypothesis} → ${m.to}`);
+  console.log(`  ${r.tests} boundary test(s) replayed`);
+  for (const m of r.moves) console.log(`  ${m.hypothesis} → ${m.to}`);
 } finally {
   await local.close();
 }

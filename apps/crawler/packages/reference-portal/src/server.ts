@@ -24,7 +24,7 @@ import {
 import { car, faq, glossary, home, house, notFound } from './pages/static.js';
 import { pln } from './html.js';
 import { typicalVehicleValue } from './rules.js';
-import { applyScenarios, type ScenarioId } from './scenarios.js';
+import { applyScenarios, failsUnder, SERVER_ERROR_PAGE, type ScenarioId } from './scenarios.js';
 
 export const ROBOTS_TXT = 'User-agent: *\nDisallow: /__admin/\n';
 
@@ -193,6 +193,17 @@ export function startReferencePortal(opts: StartOptions): Promise<ReferencePorta
   const scenarios = [...(opts.scenarios ?? [])];
   const assets = instanceAssets(scenarios);
 
+  /** An asset, a page, or the error a scenario injects for this request. */
+  const serveGet = (res: ServerResponse, path: string, p: Params): void => {
+    const asset = assetFor(assets, path);
+    if (asset) return send(res, asset.status, asset.body(p), asset.type);
+    const handler = GET_ROUTES[path];
+    if (!handler) return send(res, 404, notFound());
+    if (failsUnder(path, p, scenarios)) return send(res, 500, SERVER_ERROR_PAGE);
+    const out = handler(p);
+    return typeof out === 'string' ? send(res, 200, out) : sendPage(res, out);
+  };
+
   const handle = async (req: IncomingMessage, res: ServerResponse): Promise<void> => {
     const url = new URL(req.url ?? '/', 'http://portal.invalid');
     const method = req.method ?? 'GET';
@@ -200,14 +211,7 @@ export function startReferencePortal(opts: StartOptions): Promise<ReferencePorta
     const path = url.pathname.length > 1 ? url.pathname.replace(/\/$/, '') : url.pathname;
     pageOf.set(res, { path, scenarios });
 
-    if (method === 'GET' || method === 'HEAD') {
-      const asset = assetFor(assets, path);
-      if (asset) return send(res, asset.status, asset.body(params(url)), asset.type);
-      const handler = GET_ROUTES[path];
-      if (!handler) return send(res, 404, notFound());
-      const out = handler(params(url));
-      return typeof out === 'string' ? send(res, 200, out) : sendPage(res, out);
-    }
+    if (method === 'GET' || method === 'HEAD') return serveGet(res, path, params(url));
 
     if (method === 'POST') {
       const body = await formBody(req);

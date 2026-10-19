@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   BASE_BUILD,
   BUILT_SCENARIOS,
+  FAILING_MODEL,
   SCENARIOS,
   parseScenarios,
   startReferencePortal,
@@ -46,6 +47,28 @@ describe('scenario switchboard (spec 039 T005)', () => {
     } finally {
       await base.close();
       await deployed.close();
+    }
+  });
+
+  it('deterministic-error answers 500 for one model name every time, and only for it', async () => {
+    const portal = await startReferencePortal({
+      host: HOST,
+      port: 0,
+      scenarios: ['deterministic-error'],
+    });
+    try {
+      const vehicle = (model: string) =>
+        `${portal.url}/kalkulator/pojazd?krok=1&marka=toyota&model=${encodeURIComponent(model)}` +
+        '&rok_produkcji=2018&pojemnosc=1600&kod_pocztowy=00-001';
+      for (let i = 0; i < 3; i++) {
+        const res = await fetch(vehicle(FAILING_MODEL), { redirect: 'manual' });
+        expect(res.status).toBe(500);
+        expect(await res.text()).toContain('Wystąpił błąd techniczny');
+      }
+      expect((await fetch(vehicle('Corolla'), { redirect: 'manual' })).status).toBe(303);
+      expect((await fetch(`${portal.url}/kalkulator/pojazd`)).status).toBe(200);
+    } finally {
+      await portal.close();
     }
   });
 

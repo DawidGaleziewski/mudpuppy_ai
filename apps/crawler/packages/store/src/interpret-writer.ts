@@ -258,7 +258,8 @@ function classId(raw: Raw, d: Deviation): string | null {
   return r?.id ?? null;
 }
 
-function hypothesisKeys(raw: Raw, portal: string): () => string {
+/** The next free hypothesis keys of a portal (`H-0001`, …), one per call. */
+export function hypothesisKeys(raw: Raw, portal: string): () => string {
   const max = raw
     .prepare('SELECT max(CAST(substr(key, 3) AS INTEGER)) AS n FROM hypotheses WHERE portal_id = ?')
     .get(portal) as { n: number | null };
@@ -266,7 +267,8 @@ function hypothesisKeys(raw: Raw, portal: string): () => string {
   return () => `H-${String(++n).padStart(4, '0')}`;
 }
 
-function writeHypothesis(
+/** A rule's hypothesis on one deviation, with its evidence and first event (derived = confirmed). */
+export function writeHypothesis(
   raw: Raw,
   portal: string,
   versionId: string,

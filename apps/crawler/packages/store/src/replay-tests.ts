@@ -39,6 +39,28 @@ export type ReplayResult =
 /** Typed by the step itself or by autofill at the submit: a replay presses only the rest. */
 const PRESSED = "e.kind NOT IN ('fill', 'select', 'check')";
 
+/**
+ * The way a replay walks journey `journeyId` up to transition `seq`: its first page and the
+ * element keys of the clicks and submits in order; null when the journey has no page.
+ */
+export function journeyPath(
+  raw: Raw,
+  journeyId: string,
+  seq: number,
+): { startUrl: string; steps: string[] } | null {
+  const start = raw
+    .prepare('SELECT url FROM page_visits WHERE journey_id = ? ORDER BY seq LIMIT 1')
+    .get(journeyId) as { url: string } | undefined;
+  if (!start) return null;
+  const steps = raw
+    .prepare(
+      `SELECT e.element_key FROM edges e WHERE e.journey_id = ? AND e.seq <= ?
+       AND e.status = 'executed' AND ${PRESSED} ORDER BY e.seq`,
+    )
+    .all(journeyId, seq) as { element_key: string }[];
+  return { startUrl: start.url, steps: steps.map((s) => s.element_key) };
+}
+
 interface Execution {
   journey_id: string;
   seq: number;
@@ -62,7 +84,10 @@ function latestExecution(raw: Raw, portal: string, screenKey: string, action: st
 }
 
 /** The attribute values the execution saw (its journey up to the step), with derived ages. */
-function referenceOf(raw: Raw, x: Execution): Record<string, number | string> {
+export function referenceOf(
+  raw: Raw,
+  x: Pick<Execution, 'journey_id' | 'seq' | 'created_at'>,
+): Record<string, number | string> {
   const out: Record<string, number | string> = {};
   const writes = raw
     .prepare(
@@ -125,18 +150,8 @@ export function pendingReplays(
       inconclusive(raw, t.id, `a replay cannot set ${inputs.unsupported.join(', ')}`);
       continue;
     }
-    const start = raw
-      .prepare('SELECT url FROM page_visits WHERE journey_id = ? ORDER BY seq LIMIT 1')
-      .get(x.journey_id) as { url: string } | undefined;
-    const steps = (
-      raw
-        .prepare(
-          `SELECT e.element_key FROM edges e WHERE e.journey_id = ? AND e.seq <= ?
-           AND e.status = 'executed' AND ${PRESSED} ORDER BY e.seq`,
-        )
-        .all(x.journey_id, x.seq) as { element_key: string }[]
-    ).map((s) => s.element_key);
-    if (!start) {
+    const path = journeyPath(raw, x.journey_id, x.seq);
+    if (!path) {
       inconclusive(raw, t.id, 'the recorded journey has no start page');
       continue;
     }
@@ -146,8 +161,7 @@ export function pendingReplays(
       portal,
       persona: x.persona_id,
       environment: x.environment,
-      startUrl: start.url,
-      steps,
+      ...path,
       inputs: inputs.values,
       purpose: `boundary test of ${t.key} (headless replay)`,
     });

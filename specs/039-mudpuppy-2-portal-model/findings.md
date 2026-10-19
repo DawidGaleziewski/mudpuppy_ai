@@ -249,3 +249,26 @@ Bugs, slips and design deviations found while building, each with a test or eval
 - **Test**: `capture.test.ts` "counts what the transition itself typed, not what it showed";
   `replay-driver.e2e.test.ts` reads the typed dates back from the table. Eval idea: seed the store
   tests from a recorded run instead of hand-written rows, so capture and mining meet in one test.
+
+## F-22 Rule R1 as built, and the runtime's own retries (T052, T058), 2026-10-19
+
+- **What**: a deviation whose new result is `technical_error` or `timeout` waits for R1. `pnpm
+  model:replay` now runs R1 first: the latest execution of the failing step is walked twice in
+  fresh replay runs with the inputs it typed (`pendingErrorReplays`), and `classify` decides with
+  their step results (`resolveErrorReplays`): any success → `flaky`, derived (deviation
+  explained); all fail → `deterministic_error` for a person (deviation open). A replay that never
+  reached the step counts as no result; with none the deviation keeps waiting. R1 and boundary
+  tests share one budget (R1 first: two runs per deviation).
+- **Context**: R1 runs first in `classify`, so its rule context is built from the deviation alone
+  (`sameEpochAndAudience` true, no build change); the other fields matter only to later rules.
+- **Overlap with spec 030**: the runtime already re-opens a page showing a 5xx or a short
+  technical-error text twice before observing it (`transient.ts`, SC-17). A flaky page is usually
+  absorbed there and never becomes a deviation; R1 sees the errors that survived those re-opens,
+  so `flaky` will be rare and mostly mean "fails in bursts". Not changed: the BA's documentation
+  depends on error pages not becoming screens.
+- **Scenario**: `deterministic-error` built (the vehicle form answers 500 when the model is
+  "Błąd"; a short error body, so the soft-error detector reads it). Flaky not built: a random 20 %
+  failure is not a deterministic gate, and the re-opens absorb it anyway.
+- **Test**: `error-replay.e2e.test.ts` (a good and a failing run make the deviation, two replays
+  fail, `deterministic_error` R1 for a person, nothing waits afterwards); `error-replays.test.ts`
+  (plan, flaky derived, diverged replays keep waiting).

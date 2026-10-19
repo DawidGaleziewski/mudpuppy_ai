@@ -85,11 +85,18 @@ export type ScenarioId = keyof typeof SCENARIOS;
 export const BASE_BUILD = '3e1a9c21';
 const DEPLOYED_BUILD = '9c21aa07';
 
-/** What a built scenario does to the portal: the build it ships, and how it changes a page's HTML. */
+/**
+ * What a built scenario does to the portal: the build it ships, how it changes a page's HTML, and
+ * which GET requests it answers with a server error.
+ */
 interface ScenarioEffect {
   build?: string;
   html?: (path: string, html: string) => string;
+  fails?: (path: string, params: Readonly<Record<string, string>>) => boolean;
 }
+
+/** The value of the vehicle form's model field that the deterministic-error scenario breaks. */
+export const FAILING_MODEL = 'Błąd';
 
 /** Built scenarios and their effects (each lands with the milestone whose rule it checks). */
 const EFFECTS: Partial<Record<ScenarioId, ScenarioEffect>> = {
@@ -104,7 +111,26 @@ const EFFECTS: Partial<Record<ScenarioId, ScenarioEffect>> = {
           )
         : html,
   },
+  // M3: the vehicle form answers HTTP 500 every time for one model name → deterministic_error (R1).
+  'deterministic-error': {
+    fails: (path, params) =>
+      path === '/kalkulator/pojazd' && params.krok === '1' && params.model === FAILING_MODEL,
+  },
 };
+
+/** True when a built scenario answers this GET request with a server error. */
+export function failsUnder(
+  path: string,
+  params: Readonly<Record<string, string>>,
+  scenarios: readonly ScenarioId[],
+): boolean {
+  return scenarios.some((s) => EFFECTS[s]?.fails?.(path, params) === true);
+}
+
+/** The server error page: short, so the crawler reads it as a technical error, not a screen. */
+export const SERVER_ERROR_PAGE =
+  '<!doctype html><html lang="pl"><head><meta charset="utf-8"><title>Błąd</title></head>' +
+  '<body><h1>Błąd techniczny</h1><p>Wystąpił błąd techniczny. Spróbuj ponownie później.</p></body></html>';
 
 /** Scenarios whose injection exists. Grows as each milestone builds its scenarios. */
 export const BUILT_SCENARIOS: ReadonlySet<ScenarioId> = new Set(

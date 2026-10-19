@@ -31,7 +31,10 @@ to the end." Questions are at the bottom, in the order they unblock work.
 - T021: the **headless driver**: replay runs (`start_run replay`), `replay-driver.ts`, `pnpm
   model:replay` runs the boundary tests and moves the rule to supported / refuted; a real-browser
   test on the reference portal's driver form (age 18). Bug F-21 found and fixed on the way:
-  map-mode inputs never reached decision mining.
+  map-mode inputs never reached decision mining (f3d30ec).
+- Rule R1 on the driver: a step that ended in an error is replayed twice, then `flaky` (derived) or
+  `deterministic_error` (a person); the **deterministic-error** scenario built and checked end to
+  end (F-22).
 
 ## How to look at it in the morning
 
@@ -44,12 +47,12 @@ to the end." Questions are at the bottom, in the order they unblock work.
 3. `cd apps/crawler && pnpm exec vitest run --project mcp-server tests/replay-driver.e2e.test.ts`
    — the rule loop with no LLM: replays make a decision point, a rule "under 18" is tested at 17,
    18 and 19 headless and ends `supported`.
-4. `specs/039-mudpuppy-2-portal-model/findings.md` F-01–F-21: every place the build differs from
+4. `specs/039-mudpuppy-2-portal-model/findings.md` F-01–F-22: every place the build differs from
    the design, with why.
 
 ## Not built yet (in order)
 
-- Driver follow-ups: prefix cache and checkpoint starts; replays for R1, R4, R5, R8 (those
+- Driver follow-ups: prefix cache and checkpoint starts; replays for R4, R5, R8 (those
   deviations still wait as "waiting for a check"); regression suites; the stopping rule.
 - M4 rest: boundary tests as probe suites for owner review, the reconciler calling the miner, DMN
   in the export.
