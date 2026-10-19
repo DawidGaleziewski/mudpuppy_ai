@@ -17,7 +17,7 @@ to the end." Questions are at the bottom, in the order they unblock work.
 | M1 | migration 0029 capture | 851dcbc |
 | M1 + M2 | capture wired into the pipeline (`model_capture` step, journeys, visits and transitions with step results, builds, attribute writes, state components, element keys on actions); migration 0030 portal model; reconciler (`@pathfinder/model` `reconcile` + store `model-writer`), `pnpm model:reconcile`, reconcile after every `finish_run`; Map reads the model; pure M3–M5 parts; miner `rules` and `communities` | f7e5597 |
 
-## Done since (see the latest commit for the rest)
+## Done since
 
 - M3: migration 0031 interpretation (deviations, hypotheses with evidence, tests and events,
   `entity_refs`), interpretation after every reconcile (R2, R6, R7 decide from the store), `pnpm
@@ -57,7 +57,11 @@ to the end." Questions are at the bottom, in the order they unblock work.
   check:** F-26/F-27 change fingerprints and structure hashes of every page with a form (57c6a1a).
 - how-to-use: a 2.0 subsection (What changed, decision rules, the model commands) (a795683).
 - τ calibration (T037): `pnpm model:pairs` shows the pairs worth labelling and the calibration;
-  with 30 labels on each side the reconciler uses the calibrated τ (F-28).
+  with 30 labels on each side the reconciler uses the calibrated τ (F-28, 54a04b8).
+
+**Verification** (last commit 54a04b8): fast tier green on every commit (the hook); slow tier green
+at 57c6a1a (every browser e2e test incl. the scenario tests, 170 gates, perf); after it only store,
+model and script code changed (fast tier). Dashboard, chat, workflow and miner suites green.
 
 ## How to look at it in the morning
 
@@ -69,7 +73,9 @@ to the end." Questions are at the bottom, in the order they unblock work.
    Review section ▸ `/changes` shows what changed.
 3. `cd apps/crawler && pnpm exec vitest run --project mcp-server tests/replay-driver.e2e.test.ts`
    — the rule loop with no LLM: replays make a decision point, a rule "under 18" is tested at 17,
-   18 and 19 headless and ends `supported`.
+   18 and 19 headless and ends `supported`. The other scenario tests, same command:
+   `error-replay` (R1), `absence` (R6: removed, moved, renamed), `rule-drift` (R8),
+   `model-structure` (repeated rows, numbered sections).
 4. `specs/039-mudpuppy-2-portal-model/findings.md` F-01–F-28: every place the build differs from
    the design, with why.
 
