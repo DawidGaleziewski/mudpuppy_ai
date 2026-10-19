@@ -21,6 +21,7 @@
         <td>
           {%- if ch.hypothesis_key %}{{ sy.tag(ch.hypothesis_key, sm=true) }} {{ ch.claim }}
             {%- if ch.reason %}<div class="sy-small sy-muted">{{ ch.reason }}</div>{% endif %}
+          {%- elif ch.status == "explained" %}<span class="sy-small sy-muted">Part of another change that a rule explained (a rename).</span>
           {%- else %}<span class="sy-small sy-muted">Not explained yet: no rule decided it.</span>{% endif %}
         </td>
         <td>{{ sy.status("deviation", ch.status) }}{% if ch.hypothesis_status %} {{ sy.status("hypothesis", ch.hypothesis_status) }}{% endif %}</td>
@@ -52,6 +53,38 @@
 <section class="sy-plate" aria-labelledby="waiting">
   <div class="sy-plate__head"><h2 class="sy-plate__title" id="waiting">Waiting for a check</h2></div>
   {{ change_rows(v.waiting, "No change waits for a replay.") }}
+</section>
+<section class="sy-plate" aria-labelledby="rules">
+  <div class="sy-plate__head"><h2 class="sy-plate__title" id="rules">Decision rules</h2></div>
+  {%- if not v.rules %}
+  <div class="sy-plate__body"><p class="sy-small sy-muted">No business rule was mined yet. Where an action leads to different screens depending on data, <span class="sy-mono">pnpm model:mine {{ c.portal }}</span> finds the rule and <span class="sy-mono">pnpm model:replay {{ c.portal }}</span> tests it at its boundaries.</p></div>
+  {%- else %}
+  <div class="sy-table-wrap sy-table-wrap--flush">
+    <table class="sy-table sy-table--dense">
+      <thead><tr>
+        <th scope="col">Rule</th><th scope="col">Decided on</th><th scope="col">Status</th>
+        <th scope="col" class="sy-num">Passed</th><th scope="col" class="sy-num">Failed</th>
+        <th scope="col" class="sy-num">Inconclusive</th><th scope="col" class="sy-num">Not run</th>
+        <th scope="col" class="sy-num">Fit</th>
+      </tr></thead>
+      <tbody>
+      {%- for r in v.rules %}
+        <tr>
+          <td>{{ sy.tag(r.key, sm=true) }} {{ r.claim }}{% if r.reason %}<div class="sy-small sy-muted">{{ r.reason }}</div>{% endif %}</td>
+          <td>{% if r.screen_key %}{{ sy.tag(r.screen_key, sm=true) }}{% else %}<span class="sy-muted">—</span>{% endif %}</td>
+          <td>{% if r.status %}{{ sy.status("hypothesis", r.status) }}{% else %}<span class="sy-muted">—</span>{% endif %}</td>
+          <td class="sy-num">{{ r.passed }}</td>
+          <td class="sy-num">{{ r.failed }}</td>
+          <td class="sy-num">{{ r.inconclusive }}</td>
+          <td class="sy-num">{{ r.untested }}</td>
+          <td class="sy-num">{% if r.fitness is not none %}{{ r.fitness }}{% if r.rows %} · {{ r.rows }} rows{% endif %}{% else %}—{% endif %}</td>
+        </tr>
+      {%- endfor %}
+      </tbody>
+    </table>
+  </div>
+  <div class="sy-plate__foot"><p class="sy-small sy-muted">Supported = the boundary tests gave the predicted outcome; a person confirms with <span class="sy-mono">pnpm model:decide</span>. Confirmed and supported rules export as DMN with <span class="sy-mono">pnpm model:dmn {{ c.portal }}</span>.</p></div>
+  {%- endif %}
 </section>
 {%- endif %}
 {% endblock %}

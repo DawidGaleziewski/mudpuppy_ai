@@ -41,7 +41,10 @@ to the end." Questions are at the bottom, in the order they unblock work.
 - Bug F-24 fixed: a button first seen and later pressed counted as a new action (one element, two
   classes); a rename's new button is explained by the same `replaces` fact (a87b2c9).
 - `pnpm model:dmn`: confirmed and supported decision rules as DMN 1.3 files plus a README index
-  with each rule's boundary-test verdicts.
+  with each rule's boundary-test verdicts (88f2552).
+- Dashboard ▸ What changed: a functional **Decision rules** section (status, passed / failed /
+  inconclusive / not run, fit); a rename's new button now counts as explained. Not screenshot-
+  checked (`ui:check` needs a running dashboard with a model; the page is the designer's to redo).
 
 ## How to look at it in the morning
 
