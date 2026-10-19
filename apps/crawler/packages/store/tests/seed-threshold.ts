@@ -122,23 +122,26 @@ export function withRule(cut: number): OpenedDb {
   return o;
 }
 
-/** What the seeded portal does: under 18 → the exit page (edge e0), else the price page (e5). */
-function portalAnswer(birth: string) {
+/** What the seeded portal does: under `min` → the exit page (edge e0), else the price page (e5). */
+export function portalAnswer(birth: string, min = 18) {
   const age =
     Number(TODAY.slice(0, 4)) -
     Number(birth.slice(0, 4)) -
     (birth.slice(5) > TODAY.slice(5) ? 1 : 0);
-  return age < 18 ? { stateId: 'exit', edgeId: 'e0' } : { stateId: 'price', edgeId: 'e5' };
+  return age < min ? { stateId: 'exit', edgeId: 'e0' } : { stateId: 'price', edgeId: 'e5' };
 }
 
-/** Every pending boundary test "replayed" against the seeded portal's answer, then judged. */
-export function replayAll(o: OpenedDb) {
+/**
+ * Every pending boundary test "replayed" against the seeded portal (drivers under `min` refused),
+ * then judged at `at`.
+ */
+export function replayAll(o: OpenedDb, min = 18, at = T(900)) {
   const plans = pendingReplays(o.raw, 'ins', { limit: 20, today: TODAY });
   for (const p of plans)
     recordReplay(o.raw, p.testId, {
       status: 'reached',
       runId: 'run1',
-      ...portalAnswer(p.inputs['input.data_urodzenia']!),
+      ...portalAnswer(p.inputs['input.data_urodzenia']!, min),
     });
-  return { plans, moves: judgeReplays(o.raw, 'ins', T(900)) };
+  return { plans, moves: judgeReplays(o.raw, 'ins', at) };
 }

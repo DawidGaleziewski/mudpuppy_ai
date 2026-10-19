@@ -133,40 +133,45 @@ export function pendingReplays(
   const out: PendingReplay[] = [];
   for (const t of tests) {
     if (out.length >= (opts.limit ?? MODEL_DEFAULTS.replayBudget)) break;
-    const point = (
-      JSON.parse(t.claim_json) as { decisionPoint?: { screen: string; action: string } }
-    ).decisionPoint;
-    const x = point ? latestExecution(raw, portal, point.screen, point.action) : undefined;
-    if (!point || !x) {
-      inconclusive(raw, t.id, 'no recorded execution of the decision point to replay');
-      continue;
-    }
-    const inputs = replayInputs(
-      JSON.parse(t.inputs_json) as Record<string, number | string>,
-      referenceOf(raw, x),
-      today,
-    );
-    if (inputs.unsupported.length > 0) {
-      inconclusive(raw, t.id, `a replay cannot set ${inputs.unsupported.join(', ')}`);
-      continue;
-    }
-    const path = journeyPath(raw, x.journey_id, x.seq);
-    if (!path) {
-      inconclusive(raw, t.id, 'the recorded journey has no start page');
-      continue;
-    }
-    out.push({
-      testId: t.id,
-      hypothesis: t.key,
-      portal,
-      persona: x.persona_id,
-      environment: x.environment,
-      ...path,
-      inputs: inputs.values,
-      purpose: `boundary test of ${t.key} (headless replay)`,
-    });
+    const plan = planForTest(raw, portal, t, today);
+    if (typeof plan === 'string') inconclusive(raw, t.id, plan);
+    else out.push(plan);
   }
   return out;
+}
+
+/**
+ * The replay of one test of a decision rule: the latest recorded execution of its decision
+ * point, with the test's inputs. A string says why there is none.
+ */
+export function planForTest(
+  raw: Raw,
+  portal: string,
+  t: { id: string; inputs_json: string; key: string; claim_json: string },
+  today: string,
+): PendingReplay | string {
+  const point = (JSON.parse(t.claim_json) as { decisionPoint?: { screen: string; action: string } })
+    .decisionPoint;
+  const x = point ? latestExecution(raw, portal, point.screen, point.action) : undefined;
+  if (!point || !x) return 'no recorded execution of the decision point to replay';
+  const inputs = replayInputs(
+    JSON.parse(t.inputs_json) as Record<string, number | string>,
+    referenceOf(raw, x),
+    today,
+  );
+  if (inputs.unsupported.length > 0) return `a replay cannot set ${inputs.unsupported.join(', ')}`;
+  const path = journeyPath(raw, x.journey_id, x.seq);
+  if (!path) return 'the recorded journey has no start page';
+  return {
+    testId: t.id,
+    hypothesis: t.key,
+    portal,
+    persona: x.persona_id,
+    environment: x.environment,
+    ...path,
+    inputs: inputs.values,
+    purpose: `boundary test of ${t.key} (headless replay)`,
+  };
 }
 
 function inconclusive(raw: Raw, testId: string, reason: string, runId: string | null = null) {
@@ -233,7 +238,10 @@ export function judgeReplays(
 }
 
 /** `<screen key> <result>`, the outcome form the decision table uses; null before a reconcile. */
-function outcomeOf(raw: Raw, seen: { state_id: string; edge_id: string | null }): string | null {
+export function outcomeOf(
+  raw: Raw,
+  seen: { state_id: string; edge_id: string | null },
+): string | null {
   const screen = raw
     .prepare(
       `SELECT s.key FROM screen_members m JOIN model_screens s ON s.id = m.screen_id
@@ -264,7 +272,9 @@ function moveHypothesis(raw: Raw, hypothesisId: string, now: string) {
   const to: HypothesisStatus = failed > 0 ? 'refuted' : 'supported';
   const events = hypothesisEvents(raw, hypothesisId);
   const from = statusOf(events);
-  if (from === to || from === 'refuted' || from === 'rejected' || from === 'superseded') return [];
+  // A confirmed rule is not refuted by a replay: its failed regression test is a rule mismatch
+  // for R8 (`regressions.ts`, design § 11.6).
+  if (from === to || (from !== 'proposed' && from !== 'testing' && from !== 'supported')) return [];
   // Testing comes first: a proposal moves to refuted only through it (design § 10.2).
   const path: HypothesisStatus[] = from === 'proposed' ? ['testing', to] : [to];
   const reason =

@@ -11,7 +11,8 @@ Layer: servers (G-07; `apps/crawler/layers.json`)
 - `SCENARIOS`, `BUILT_SCENARIOS`, `parseScenarios` (`scenarios.ts`): the MudPuppy 2.0 scenario
   switchboard (spec 039 design § 19.1); `REFERENCE_SCENARIOS=a,b` or `StartOptions.scenarios`;
   `GET /__admin/scenarios` reports the active ones. Built: `deployment` (new bundle + field),
-  `deterministic-error` (HTTP 500 for the model `FAILING_MODEL`, short error body); a scenario's
+  `deterministic-error` (HTTP 500 for the model `FAILING_MODEL`, short error body),
+  `removed-link`, `renamed-button`, `rule-drift` (driver age 21 in the date field); a scenario's
   effect may change HTML, ship a build or fail GET requests (`failsUnder`).
 
 ## Invariants

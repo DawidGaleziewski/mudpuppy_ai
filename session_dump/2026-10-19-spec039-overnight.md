@@ -44,7 +44,12 @@ to the end." Questions are at the bottom, in the order they unblock work.
   with each rule's boundary-test verdicts (88f2552).
 - Dashboard ▸ What changed: a functional **Decision rules** section (status, passed / failed /
   inconclusive / not run, fit); a rename's new button now counts as explained. Not screenshot-
-  checked (`ui:check` needs a running dashboard with a model; the page is the designer's to redo).
+  checked (`ui:check` needs a running dashboard with a model; the page is the designer's to redo)
+  (259d3cd). Glossary: headless driver, decision rule, boundary test, proposed process (8528c7f).
+- **Decision drift (R8)** and the **rule-drift** scenario: a release on a confirmed rule's screen
+  queues its regression suite (`pnpm model:regress` queues all); a failed test is a rule
+  mismatch, R8 replays it once, reproduced → decision drift (derived), the rule is superseded
+  (F-25).
 
 ## How to look at it in the morning
 
@@ -57,18 +62,20 @@ to the end." Questions are at the bottom, in the order they unblock work.
 3. `cd apps/crawler && pnpm exec vitest run --project mcp-server tests/replay-driver.e2e.test.ts`
    — the rule loop with no LLM: replays make a decision point, a rule "under 18" is tested at 17,
    18 and 19 headless and ends `supported`.
-4. `specs/039-mudpuppy-2-portal-model/findings.md` F-01–F-24: every place the build differs from
+4. `specs/039-mudpuppy-2-portal-model/findings.md` F-01–F-25: every place the build differs from
    the design, with why.
 
 ## Not built yet (in order)
 
-- Driver follow-ups: prefix cache and checkpoint starts; replays for R4, R5, R8 (those
-  deviations still wait as "waiting for a check"); regression suites; the stopping rule.
-- M4 rest: boundary tests as probe suites for owner review, the reconciler calling the miner, DMN
-  in the export.
+- Driver follow-ups: prefix cache and checkpoint starts; replays for R4 and R5 (those deviations
+  still wait as "waiting for a check"); the weekly regression schedule; the stopping rule.
+- M4 rest: boundary tests as probe suites for owner review, the reconciler calling the miner,
+  re-mining after a drift, DMN inside the process export.
 - M5 rest: triggers and outcomes on proposals, human edits as constraints, one process concept,
   anchors on `entity_refs`, explorations; BA guidance waits for the R-77 review.
-- Scenarios other than Deployment.
+- Scenarios not built: persona variant, A/B test, flaky page, overlapping rule, moved link,
+  not visited, repeated rows, numbered sections (built: deployment, deterministic error, removed
+  link, renamed button, rule drift; threshold rule is the base portal).
 - The UX designer's pages (T100).
 
 ## Questions for the owner

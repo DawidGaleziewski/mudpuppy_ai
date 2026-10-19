@@ -74,6 +74,22 @@ describe('scenario switchboard (spec 039 T005)', () => {
     }
   });
 
+  it('rule-drift raises the driver age to 21 in the date field, with a release', async () => {
+    const portal = await startReferencePortal({ host: HOST, port: 0, scenarios: ['rule-drift'] });
+    try {
+      const page = await (
+        await fetch(
+          `${portal.url}/kalkulator/kierowca?marka=toyota&model=Corolla&rok_produkcji=2018&pojemnosc=1600&kod_pocztowy=00-001`,
+        )
+      ).text();
+      expect(page).toContain('max="2005-01-15"');
+      expect(page).toContain('od 21 do');
+      expect(page).not.toContain(BASE_BUILD);
+    } finally {
+      await portal.close();
+    }
+  });
+
   it('deterministic-error answers 500 for one model name every time, and only for it', async () => {
     const portal = await startReferencePortal({
       host: HOST,

@@ -28,6 +28,7 @@
     "model:mine": "tsx scripts/model-mine.ts",
     "model:propose": "tsx scripts/model-propose.ts",
     "model:replay": "tsx scripts/model-replay.ts",
+    "model:regress": "tsx scripts/model-replay.ts --regress",
     "model:dmn": "tsx scripts/model-dmn.ts",
     "portal:check": "tsx scripts/portal-check.ts",
     "portal:doctor": "tsx scripts/doctor.ts",

@@ -47,7 +47,7 @@ group, ids in the message. Gates per milestone in `plan.md` § 1. `[B: …]` = b
 
 - [~] T050 [opus] **0031_interpretation**: `entity_refs`, `deviations`, `deviation_occurrences`, `hypotheses`, `hypothesis_evidence`, `hypothesis_tests`, `hypothesis_events`; `marks` (origin, hypothesis, priority) and `open_questions` (hypothesis) columns. Dropping `reconciliations` and `rule_candidates` waits for their readers (F-17)
 - [x] T051 [opus] Deviation detection between consecutive model versions (`deviationsBetween`, `interpretVersion`), reference visits, dedup by subject
-- [~] T052 [opus] Rules R1–R8 as pure functions with tests; R2, R6, R7 decide from the store; **R1 decides after two headless replays** (`error-replays.ts`, `pnpm model:replay`, F-22); R4/R5/R8 still leave the deviation `waiting_test` (F-17)
+- [~] T052 [opus] Rules R1–R8 as pure functions with tests; R2, R6, R7 decide from the store; **R1 decides after two headless replays** (`error-replays.ts`, `pnpm model:replay`, F-22); **R8 after one** (`regressions.ts`, F-25); R4/R5 still leave the deviation `waiting_test` (F-17)
 - [x] T053 [opus] Hypothesis lifecycle (status from events), claim hash, derived facts confirmed by the reconciler with their rule
 - [~] T054 [opus] Planner priorities 2–6 (`plan`, pure); marks and probe runs wait for T021
 - [ ] T055 [opus] Tools: crawler `add_hypothesis`; BA `list_hypotheses`, `get_hypothesis`, `propose_hypothesis`, `add_hypothesis_test`, `list_deviations`; remove `list_differing_states`, `propose_verdicts`, `add_rule_candidate`; crawler prompt tool names
@@ -60,10 +60,10 @@ group, ids in the message. Gates per milestone in `plan.md` § 1. `[B: …]` = b
 - [x] T060 [opus] Decision points and observation tables (snapshot, derived ages, dropped attributes); inputs typed at the step count (F-21)
 - [x] T061 [opus] Miner `rules`: tree, paths to rules, overlap step, fitness and precision, "needs data"; pytest on fixtures; `MinedRulesFile` Zod schema (`MinedRule`, F-15)
 - [~] T062 [opus] `pnpm model:import`; reconciler step 10 calls the miner when present. **Built as** `pnpm model:mine` (tables → miner → Zod import); the reconciler does not call the miner yet
-- [~] T063 [opus] Boundary tests as probe suites; regression suites on confirm; planner 1 and 5; `pnpm model:regress`. **Built:** boundary tests written on import and run by `pnpm model:replay` (verdicts, supported / refuted). **Not yet:** probe-suite rows for owner review, regression suites, `model:regress`
+- [~] T063 [opus] Boundary tests as probe suites; regression suites on confirm; planner 1 and 5; `pnpm model:regress`. **Built:** boundary tests written on import and run by `pnpm model:replay` (verdicts, supported / refuted); regression rounds of confirmed rules on a release or `pnpm model:regress`, failures → `rule_mismatch` → R8 (F-25). **Not yet:** probe-suite rows for owner review, the weekly schedule
 - [ ] T064 [opus] Guard intersection along process paths → `ambiguous`
 - [~] T065 [sonnet] DMN 1.3 XML export; Rules read model and functional page. **Built:** `decisionRules`, `dmnFiles` (`rule-export.ts`), `pnpm model:dmn` (one `.dmn` per confirmed or supported rule plus a README index with verdicts). **Functional Rules section** on What changed (status, boundary verdicts, fit; `queries_changes.decision_rules`); the explained bucket also takes a deviation another change's fact covers (F-23 rename). **Not yet:** the designed Rules page (UX designer); DMN inside the process export (T078)
-- [~] T066 [opus] Scenarios: Threshold rule, Overlapping rule, Rule drift (gates); M4 gate; tag `v2.0.0-m4`. Threshold rule: the base portal already refuses drivers under 18 (validation on the same screen), checked by `replay-driver.e2e.test.ts` (an e2e test, not a gate yet); its switchboard entry is not marked built
+- [~] T066 [opus] Scenarios: Threshold rule, Overlapping rule, Rule drift (gates); M4 gate; tag `v2.0.0-m4`. Threshold rule: the base portal already refuses drivers under 18 (validation on the same screen), checked by `replay-driver.e2e.test.ts` (an e2e test, not a gate yet); its switchboard entry is not marked built. **Rule drift built** (`rule-drift.e2e.test.ts`: regression round on the release, mismatch, R8 decision drift, rule superseded). Overlapping rule not built
 
 ## M5 Processes
 

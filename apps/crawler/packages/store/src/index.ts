@@ -16,4 +16,5 @@ export * from './process-proposals.js';
 export * from './replay-tests.js';
 export * from './error-replays.js';
 export * from './rule-export.js';
+export * from './regressions.js';
 export type { Selectable, Insertable } from 'kysely';

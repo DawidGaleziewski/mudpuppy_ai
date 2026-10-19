@@ -314,3 +314,30 @@ Bugs, slips and design deviations found while building, each with a test or eval
   remove the placeholder; not done.
 - **Test**: `interpret.test.ts` "an element seen before under another kind is not a new action";
   `absence.e2e.test.ts` checks one `submit` class for the renamed button.
+
+## F-25 Decision drift as built: regression rounds without a new column (T063, T066), 2026-10-19
+
+- **What**: design § 11.6 reruns a confirmed rule's regression suite on a new build epoch of its
+  decision screen, weekly, or by `pnpm model:regress`. **Built:** `queueRegressions` copies the
+  rule's passed boundary tests as new `hypothesis_tests` rows when the screen's latest visit shows
+  another build set than at the last round (or for every confirmed rule with `--regress`). A
+  regression test is a test row created after the rule's confirmation, so no `purpose` column was
+  added. A confirmed rule is never refuted by a replay (the lifecycle forbids it): its failed
+  regression test becomes one `rule_mismatch` deviation per rule (`recordRuleMismatches`), R8
+  replays the failing test once (`pendingMismatchReplays`, `resolveRuleMismatch`): reproduced →
+  `decision_drift`, derived, and the rule is superseded with the drift's key as the reason; not
+  reproduced → `flaky`. `replayPortal` runs R1, R8, then the tests, then R8 again for mismatches
+  the round found.
+- **Not done**: the weekly schedule (no scheduler in the repo; `pnpm model:regress` by hand);
+  re-mining after a drift (run `pnpm model:mine`: the new epoch's executions form a new table,
+  three replay rows may say "needs data"); a rule superseded by drift is not linked to its
+  successor rule (`superseded_by` stays empty until re-mining writes one).
+- **Scenario `rule-drift`**: a release raises the minimum driver age to 21 in the date field's
+  `max` (the browser refuses the submit; the server still says 18, so the scenario is client-side
+  only). A real drift in the backend would show the same way at the decision point.
+- **Test fixture note**: replays start from recorded absolute URLs, so the e2e test restarts the
+  reference portal on the same port for the release (the Deployment test uses a fresh port and
+  only navigates). On a real portal the origin does not move.
+- **Test**: `regressions.test.ts` (queue on release / `--regress`, a passing round keeps the rule,
+  the drift to 21 superseded via R8, a non-reproducing mismatch is flaky); `rule-drift.e2e.test.ts`
+  end to end on the reference portal.

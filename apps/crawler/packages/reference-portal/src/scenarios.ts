@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { CURRENT_YEAR, MIN_DRIVER_AGE } from './rules.js';
 
 /**
  * The scenario switchboard (spec 039 design § 19.1, T005): flags that each inject one known change
@@ -85,6 +86,7 @@ export type ScenarioId = keyof typeof SCENARIOS;
 export const BASE_BUILD = '3e1a9c21';
 const DEPLOYED_BUILD = '9c21aa07';
 const REMOVAL_BUILD = 'b7d40e15';
+const DRIFT_BUILD = 'd5e2b9c4';
 
 /**
  * What a built scenario does to the portal: the build it ships, how it changes a page's HTML, and
@@ -128,6 +130,20 @@ const EFFECTS: Partial<Record<ScenarioId, ScenarioEffect>> = {
             '<p><button type="submit">Dalej</button></p>',
             '<p><button type="submit">Przejdź dalej</button></p>',
           )
+        : html,
+  },
+  // M4: a release raises the minimum driver age to 21 → rule_mismatch, then decision_drift (R8).
+  // In the browser only: the date field's `max` refuses the submit, the server still says 18.
+  'rule-drift': {
+    build: DRIFT_BUILD,
+    html: (path, html) =>
+      path === '/kalkulator/kierowca'
+        ? html
+            .replace(
+              `max="${CURRENT_YEAR - MIN_DRIVER_AGE}-01-15"`,
+              `max="${CURRENT_YEAR - 21}-01-15"`,
+            )
+            .replace(`od ${MIN_DRIVER_AGE} do`, 'od 21 do')
         : html,
   },
   // M3: the vehicle form answers HTTP 500 every time for one model name → deterministic_error (R1).
