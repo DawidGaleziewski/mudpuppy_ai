@@ -25,6 +25,7 @@
     "store:reset": "tsx scripts/store-reset.ts",
     "model:reconcile": "tsx scripts/model-reconcile.ts",
     "model:decide": "tsx scripts/model-decide.ts",
+    "model:mine": "tsx scripts/model-mine.ts",
     "portal:check": "tsx scripts/portal-check.ts",
     "portal:doctor": "tsx scripts/doctor.ts",
     "portal:trace": "tsx scripts/trace.ts",

@@ -174,3 +174,18 @@ Bugs, slips and design deviations found while building, each with a test or eval
 - **Clock note**: hypothesis events are ordered by `at` (wall clock); a WSL clock jump between a
   reconcile and a person's decision would misorder them (`wsl-clock-jumps`). Test idea: a decision
   stamped before the fact it decides is refused.
+
+## F-18 A mined threshold is only as sharp as the data's gap (T061–T063), 2026-10-19
+
+- **What**: the real miner on eleven executions (drivers aged 14–16 refused, 19–51 priced) found
+  `< 22`, not `< 18`: no driver between 17 and 26 was seen, so any cut in that gap fits every row,
+  and the tree takes its middle. This is why design § 11.5 tests rules at their boundaries; the
+  tests at 21, 22, 23 refute `< 22` (21 is priced), and re-mining with those rows converges.
+- **Improvement** (not built): have the miner report the gap around each numeric cut
+  (`[17, 26)` here) and probe inside it by bisection: two or three replays find the real threshold
+  instead of three tests per iteration. Needs the headless driver (T021).
+- **Test**: `rule-mining.test.ts` "the real miner (PF_MINER=1)": the cut lies in (17, 26].
+- **Built in M4 so far**: `observationTables` (decision points, snapshots, derived ages),
+  `loadObservationTables`, `importMinedRule` (Zod-validated, `decision_rule` by R7 waiting for a
+  person, boundary tests as `hypothesis_tests`, recorded once), `pnpm model:mine`. Not yet: running
+  the boundary tests (driver), the regression suites, drift on a new epoch, DMN in the export.
