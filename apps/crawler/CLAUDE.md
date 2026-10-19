@@ -22,6 +22,9 @@ own `CLAUDE.md`), the operator scripts under `scripts/`, and the test tiers.
   the way to the portal, spec 030 R-63), `pnpm vault`, `pnpm eval`,
   `pnpm eval:judge|draw|calibrate|judge-check` (LLM judges, spec 017), `pnpm eval:transcript`
   (what each agent session of a trial did, spec 034 F-21), `pnpm tokens:ba`, `pnpm stability`, `pnpm trace:import-agent`, `pnpm wireframes:build`, `pnpm reference-portal`.
+- MudPuppy 2.0 (spec 039): `pnpm store:reset`, `pnpm model:reconcile|decide` (the portal model and
+  a person's decisions), `pnpm model:mine` (decision rules, apps/miner), `pnpm model:replay`
+  (boundary tests on the headless driver), `pnpm model:propose` (process proposals, Leiden).
 
 ## Layout
 

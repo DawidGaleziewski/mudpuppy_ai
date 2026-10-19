@@ -11,3 +11,4 @@ export * from './ba-server.js';
 export * from './server-context.js';
 export * from './local-client.js';
 export * from './trace-driver.js';
+export * from './replay-driver.js';

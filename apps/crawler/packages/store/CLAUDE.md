@@ -19,6 +19,11 @@ Layer: store (G-07; `apps/crawler/layers.json`)
   table incl. `page_visits`, spec 019), `secretsPlugin`.
 - `planStoreReset`, `applyStoreReset`, `openHolders`, `answeringPorts` (`store-reset.ts`): the
   MudPuppy 2.0 data reset (`pnpm store:reset [--confirm]`, spec 039 T002).
+- Spec 039 portal model: `reconcilePortalModel` (`model-writer.ts`), `interpretVersion`
+  (`interpret-writer.ts`), `decideHypothesis`, `labelPair`, `setParameterRole` (`model-decide.ts`),
+  `loadObservationTables`, `importMinedRule` (`rule-mining.ts`, `pnpm model:mine`),
+  `processGraph`, `writeProposals` (`process-proposals.ts`, `pnpm model:propose`),
+  `pendingReplays`, `recordReplay`, `judgeReplays` (`replay-tests.ts`, `pnpm model:replay`).
 - Used by: mcp-server, crawler, docs, gates, vault, apps/chat, the crawler app scripts.
 
 ## Invariants

@@ -106,6 +106,10 @@ export function registerTools(server: McpServer, ctx: ServerContext, runtime: Ru
       process: z.object({ name: z.string(), goal: z.string() }).optional(),
       followup_key: z.string().optional(),
       probe_marked: z.boolean().optional(),
+      replay: z
+        .object({ inputs: z.record(z.string(), z.string()) })
+        .optional()
+        .describe('The headless driver only (spec 039); never set it.'),
       run_type: z
         .enum(['continue', 'focused', 'recheck', 'retry'])
         .optional()

@@ -23,7 +23,7 @@ group, ids in the message. Gates per milestone in `plan.md` § 1. `[B: …]` = b
 - [x] T018 [opus] Attribute writes: persona at seq 0, typed and autofilled inputs, shown label–value pairs; `snapshotAt`, `typeValue`, `ageOf`
 - [-] T019 [opus] Trace mode on `trace_runs`: **moved to M5** (one process concept); traces already write journeys, transitions and attributes
 - [-] T020 [sonnet] Readers of `edges` / `page_visits`: **not needed** while the physical names stay (F-06, owner question)
-- [ ] T021 [opus] Headless probe runs: `runs.mode = 'probe'`, driver on `local-client.ts` + `replay.ts`, prefix cache, checkpoints, budgets, `driver = 'headless'`
+- [~] T021 [opus] Headless probe runs: `runs.mode = 'probe'`, driver on `local-client.ts` + `replay.ts`, prefix cache, checkpoints, budgets, `driver = 'headless'`. **Built:** replay runs (`start_run` `replay`, not a new mode: F-20), `replay-driver.ts`, element keys in replay results, autofill with the replay's inputs, `driver = 'headless'`, budget (`replayBudget`), boundary tests end to end (`pnpm model:replay`, `replay-driver.e2e.test.ts`). **Not yet:** prefix cache, checkpoint starts, R1/R4/R5/R8 replays (F-20)
 - [x] T022 [sonnet] Pipeline golden and trace golden snapshots updated on purpose (`model_capture`, `model_reconciled`; diffs read: only the new step, one v2 cluster id); slow tier green
 - [ ] T023 [opus] M1 gate (plan § 1) + tag `v2.0.0-m1`
 
@@ -57,10 +57,10 @@ group, ids in the message. Gates per milestone in `plan.md` § 1. `[B: …]` = b
 
 ## M4 Rules
 
-- [ ] T060 [opus] Decision points and observation tables (snapshot, derived ages, dropped attributes)
-- [ ] T061 [opus] Miner `rules`: tree, paths to rules, overlap step, fitness and precision, "needs data"; pytest on fixtures; `MinedRulesFile` Zod schema
-- [ ] T062 [opus] `pnpm model:import`; reconciler step 10 calls the miner when present
-- [ ] T063 [opus] Boundary tests as probe suites; regression suites on confirm; planner 1 and 5; `pnpm model:regress`
+- [x] T060 [opus] Decision points and observation tables (snapshot, derived ages, dropped attributes); inputs typed at the step count (F-21)
+- [x] T061 [opus] Miner `rules`: tree, paths to rules, overlap step, fitness and precision, "needs data"; pytest on fixtures; `MinedRulesFile` Zod schema (`MinedRule`, F-15)
+- [~] T062 [opus] `pnpm model:import`; reconciler step 10 calls the miner when present. **Built as** `pnpm model:mine` (tables → miner → Zod import); the reconciler does not call the miner yet
+- [~] T063 [opus] Boundary tests as probe suites; regression suites on confirm; planner 1 and 5; `pnpm model:regress`. **Built:** boundary tests written on import and run by `pnpm model:replay` (verdicts, supported / refuted). **Not yet:** probe-suite rows for owner review, regression suites, `model:regress`
 - [ ] T064 [opus] Guard intersection along process paths → `ambiguous`
 - [ ] T065 [sonnet] DMN 1.3 XML export; Rules read model and functional page
 - [ ] T066 [opus] Scenarios: Threshold rule, Overlapping rule, Rule drift (gates); M4 gate; tag `v2.0.0-m4`

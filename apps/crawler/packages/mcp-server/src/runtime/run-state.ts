@@ -59,6 +59,11 @@ export class RunState {
   processId: string | null = null;
   /** A probe run (spec 032 US5): it visits marked form steps, it does not explore. */
   isProbe = false;
+  /**
+   * A replay run of the headless driver (spec 039 design § 9): the inputs it types by attribute
+   * name (`input.<attribute>`), before the persona's test data. Null for every other run.
+   */
+  headless: { inputs: Record<string, string> } | null = null;
   /** A directed run's plan (spec 034 R-66): what it may queue; null for a plain run. */
   plan: ResolvedPlan | null = null;
   /**

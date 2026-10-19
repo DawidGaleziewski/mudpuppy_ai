@@ -48,6 +48,16 @@ const ScanFocusInput = z
   })
   .strict();
 
+/** Run kinds that are a new map run of their own, and the choices each refuses beside it. */
+const NEW_MAP_RUN_ONLY: Record<string, { run: string; excludes: string[] }> = {
+  probe_marked: { run: 'a probe run', excludes: ['resume_run_id', 'mode trace'] },
+  run_type: { run: 'a directed run', excludes: ['resume_run_id', 'mode trace', 'probe_marked'] },
+  replay: {
+    run: 'a replay run',
+    excludes: ['resume_run_id', 'mode trace', 'probe_marked', 'run_type'],
+  },
+};
+
 const StartRunInput = z
   .object({
     portal_id: z.string().min(1),
@@ -79,6 +89,15 @@ const StartRunInput = z
      */
     probe_marked: z.boolean().optional(),
     /**
+     * A replay run (spec 039 design § 9): the headless driver re-runs a recorded journey prefix;
+     * `inputs` (`input.<attribute>` → value) replace the persona's test data when a form is filled
+     * before its submit. A new map run only; its transitions carry `driver = 'headless'`.
+     */
+    replay: z
+      .object({ inputs: z.record(z.string().regex(/^input\./), z.string().max(500)) })
+      .strict()
+      .optional(),
+    /**
      * A directed run (spec 034 R-66): `continue` a stopped run, `focused` from marked screens,
      * `recheck` marked screens, `retry` a failed action. Start points come back in `start_points`;
      * reach each with `go_to_state`. A new map run only.
@@ -88,22 +107,22 @@ const StartRunInput = z
   })
   .strict()
   .superRefine((v, c) => {
-    if (v.probe_marked === true && (v.resume_run_id !== undefined || v.mode === 'trace'))
+    const set: Record<string, boolean> = {
+      resume_run_id: v.resume_run_id !== undefined,
+      'mode trace': v.mode === 'trace',
+      probe_marked: v.probe_marked === true,
+      run_type: v.run_type !== undefined,
+      replay: v.replay !== undefined,
+    };
+    for (const [choice, { run, excludes }] of Object.entries(NEW_MAP_RUN_ONLY)) {
+      if (!set[choice] || !excludes.some((x) => set[x])) continue;
+      const list = `${excludes.slice(0, -1).join(', ')} or ${excludes.at(-1)!}`;
       c.addIssue({
         code: 'custom',
-        path: ['probe_marked'],
-        message: 'a probe run is a new map run; not with resume_run_id or mode trace',
+        path: [choice],
+        message: `${run} is a new map run; not with ${list}`,
       });
-    if (
-      v.run_type !== undefined &&
-      (v.resume_run_id !== undefined || v.mode === 'trace' || v.probe_marked === true)
-    )
-      c.addIssue({
-        code: 'custom',
-        path: ['run_type'],
-        message:
-          'a directed run is a new map run; not with resume_run_id, mode trace or probe_marked',
-      });
+    }
     // A resumed run keeps its own mode and process.
     if (v.resume_run_id !== undefined) return;
     if (v.mode === 'trace' && v.process === undefined)
@@ -254,6 +273,7 @@ export async function startRunRecord(
       skip_images: input.skip_images ?? prior.skip_images,
       focus: input.focus ?? prior.focus,
       probe: prior.probe,
+      replay: prior.replay,
     };
     const { effectiveMaxActionClass, approved, startUrl } = limited(choices);
     // A resumed run reads robots.txt again; a change is logged by the policy writer (FR-006).
@@ -302,12 +322,7 @@ export async function startRunRecord(
     };
   }
 
-  const choices: RunChoices = {
-    max_action_class: input.max_action_class ?? null,
-    skip_images: input.skip_images ?? false,
-    focus: input.focus ?? null,
-    probe: input.probe_marked === true,
-  };
+  const choices = newRunChoices(input);
   const limits = limited(choices);
   const { effectiveMaxActionClass, startUrl } = limits;
   // A directed run's plan, before any row is written: nothing to start from refuses it. Depth
@@ -430,7 +445,22 @@ export interface RunChoices {
   focus: ScanFocus | null;
   /** A probe run (spec 032 US5): only marked form steps are probed; plain runs never probe. */
   probe: boolean;
+  /** A replay run of the headless driver (spec 039 design § 9) and the inputs it types. */
+  replay: { inputs: Record<string, string> } | null;
 }
+
+/** A new run's choices: what the BA gave, else the portal's and persona's defaults. */
+function newRunChoices(input: z.infer<typeof StartRunInput>): RunChoices {
+  return {
+    max_action_class: input.max_action_class ?? null,
+    skip_images: input.skip_images ?? false,
+    focus: input.focus ?? null,
+    probe: input.probe_marked === true,
+    replay: input.replay ?? null,
+  };
+}
+
+const ReplayChoice = StartRunInput.shape.replay.unwrap();
 
 export function runChoices(run: Pick<RunRow, 'config_snapshot'>): RunChoices {
   try {
@@ -440,9 +470,10 @@ export function runChoices(run: Pick<RunRow, 'config_snapshot'>): RunChoices {
       skip_images: c?.skip_images === true,
       focus: ScanFocusInput.safeParse(c?.focus).data ?? null,
       probe: c?.probe === true,
+      replay: ReplayChoice.safeParse(c?.replay).data ?? null,
     };
   } catch {
-    return { max_action_class: null, skip_images: false, focus: null, probe: false };
+    return { max_action_class: null, skip_images: false, focus: null, probe: false, replay: null };
   }
 }
 

@@ -24,11 +24,29 @@ export interface JourneyLink {
   branchSeq: number | null;
 }
 
+/** Per name, the latest write at or below `limit`, plus inputs typed at `typedAt`. */
+function latestWrites(
+  list: readonly AttributeWrite[],
+  limit: number,
+  typedAt: number | null,
+): Map<string, AttributeWrite> {
+  const best = new Map<string, AttributeWrite>();
+  for (const w of list) {
+    const typedHere = w.seq === typedAt && w.source === 'input';
+    if (w.seq > limit && !typedHere) continue;
+    const prev = best.get(w.name);
+    if (!prev || w.seq > prev.seq) best.set(w.name, w);
+  }
+  return best;
+}
+
 /**
  * The attribute snapshot just before transition `seq` of journey `journeyId`: per name, the write
  * with the largest seq below `seq` in the journey, else (for names it never wrote) the parent's
  * write at or below the branch point, and so on up. A name nobody wrote is absent: missing, never
- * a default.
+ * a default. Inputs the transition itself typed (map-mode autofill fills the form at its submit,
+ * same seq) are known before it is pressed, so they count (F-21@039); shown values at that seq
+ * are what it revealed, so they do not.
  */
 export function snapshotAt(
   writes: readonly AttributeWrite[],
@@ -48,12 +66,8 @@ export function snapshotAt(
   const visited = new Set<string>();
   while (current !== null && !visited.has(current)) {
     visited.add(current);
-    const best = new Map<string, AttributeWrite>();
-    for (const w of byJourney.get(current) ?? []) {
-      if (w.seq > limit) continue;
-      const prev = best.get(w.name);
-      if (!prev || w.seq > prev.seq) best.set(w.name, w);
-    }
+    const typedAt = current === journeyId ? seq : null;
+    const best = latestWrites(byJourney.get(current) ?? [], limit, typedAt);
     for (const [name, w] of best) if (!out.has(name)) out.set(name, w);
     const link = journeys.get(current);
     if (!link || link.parentId === null || link.branchSeq === null) break;

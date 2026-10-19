@@ -230,6 +230,7 @@ describe('start_run (database part)', () => {
       skip_images: true,
       focus: null,
       probe: false,
+      replay: null,
     });
     await ctx.db
       .updateTable('runs')

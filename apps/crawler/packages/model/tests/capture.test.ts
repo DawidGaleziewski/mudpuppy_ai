@@ -147,7 +147,15 @@ describe('attribute snapshots (design § 5.8)', () => {
   it('takes the latest write before the transition', () => {
     const s = snapshotAt(writes, journeys, 'root', 4);
     expect(s.get('input.age')?.valueText).toBe('17');
-    expect(snapshotAt(writes, journeys, 'root', 3).get('input.age')?.valueText).toBe('30');
+    expect(snapshotAt(writes, journeys, 'root', 2).get('input.age')?.valueText).toBe('30');
+  });
+
+  it('counts what the transition itself typed, not what it showed (F-21)', () => {
+    // Map-mode autofill fills the form at the submit: those inputs are known before the press.
+    expect(snapshotAt(writes, journeys, 'root', 3).get('input.age')?.valueText).toBe('17');
+    const shown: AttributeWrite = { ...w('root', 3, 'shown.premium', '900'), source: 'shown' };
+    expect(snapshotAt([...writes, shown], journeys, 'root', 3).has('shown.premium')).toBe(false);
+    expect(snapshotAt([...writes, shown], journeys, 'root', 4).has('shown.premium')).toBe(true);
   });
 
   it('a child journey inherits its parent up to the branch point only', () => {
@@ -158,7 +166,8 @@ describe('attribute snapshots (design § 5.8)', () => {
   });
 
   it('a name nobody wrote is missing, never a default', () => {
-    expect(snapshotAt(writes, journeys, 'root', 1).has('input.age')).toBe(false);
+    expect(snapshotAt(writes, journeys, 'root', 4).has('input.city')).toBe(false);
+    expect(snapshotAt(writes, journeys, 'root', 0).has('input.age')).toBe(false);
   });
 });
 

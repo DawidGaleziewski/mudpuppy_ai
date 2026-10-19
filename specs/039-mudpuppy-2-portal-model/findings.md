@@ -209,3 +209,43 @@ Bugs, slips and design deviations found while building, each with a test or eval
 - **Test**: `process-proposals.test.ts` (graph, flow order, once, dismissed); with `PF_MINER=1` the
   real Leiden keeps the form and its two outcomes together. Eval idea: the grouping eval (spec 038)
   scored on `model:propose` output against the reference portal's ground truth.
+
+## F-20 The headless driver as built: replay runs, not `mode = 'probe'` (T021, T063), 2026-10-19
+
+- **What**: design § 9 makes driver runs `runs.mode = 'probe'`. "Probe run" already names the
+  spec 032 run that probes marked form steps (`start_run probe_marked`, the dashboard's wording).
+  **Built:** a `replay` run choice (`start_run replay: {inputs}`, kept in `config_snapshot.choices`
+  like `probe`): a new map run; its results list each action's model element key; map-mode
+  autofill types the replay's inputs (by attribute name, `input.<attribute>`) before the persona's
+  test data; its transitions carry `driver = 'headless'`; it finishes without draining the
+  frontier. `replay-driver.ts` walks a plan (start URL, element keys of the clicks and submits);
+  a step it cannot find again ends it `diverged`, and the test is `inconclusive`, never `fail`.
+  `pnpm model:replay` plans the untested boundary tests (the latest execution of the decision
+  point is the path; fills are not replayed as steps, autofill types them at the submit), runs at
+  most `replayBudget` of them, and judges: a failed test refutes the rule, passing tests support it
+  (a person still confirms). The tool's `replay` field says "never set it" to the agent.
+- **Ages and the portal's day**: a test's age becomes a birth date half a year past the birthday on
+  "today". The reference portal counts ages from a fixed day (`TODAY` = 2026-01-15), so
+  `model:replay --today` exists; the observation table counts ages from the capture day, so on
+  that portal a mined threshold is off by up to a year until the boundary tests correct it. A real
+  portal counts from the real day. Test idea: a scenario whose rule depends on the date.
+- **Not yet**: the prefix cache, checkpoint starts and logged-in reuse (each test is one fresh run;
+  the e2e test's eight runs took about 4.4 s on the reference portal), the replays of rules R1, R4, R5 and R8 (their
+  deviations stay `waiting_test`), probe suites for owner review, regression suites. One reconcile
+  per finished replay run (complete-run does it): fine at 20 tests, worth batching later (R-24).
+- **Owner question (morning)**: keep the name "replay run", or rename spec 032's probe runs and
+  use `mode = 'probe'` as the design says?
+- **Test**: `replay-driver.e2e.test.ts` (four replays make the decision point, the rule "under 18"
+  is supported by its tests at 17, 18 and 19, every transition headless); `replay-tests.test.ts`
+  (plans, supported, the F-18 gap rule refuted at 21, diverged = inconclusive); `replay-inputs.test.ts`.
+
+## F-21 Bug: map-mode inputs were invisible to decision mining (T060), 2026-10-19
+
+- **What**: map-mode autofill fills the form at its submit, so its writes share the submit's seq.
+  `snapshotAt` read only writes below the transition's seq, so a real run's observation table had
+  no `input.*` features at all (the store tests had written inputs one seq earlier and passed).
+  Found by the first end-to-end replay. **Fixed:** inputs the transition itself typed count for it;
+  shown values at that seq (what it revealed) still do not.
+- **Test**: `capture.test.ts` "counts what the transition itself typed, not what it showed";
+  `replay-driver.e2e.test.ts` reads the typed dates back from the table. Eval idea: seed the store
+  tests from a recorded run instead of hand-written rows, so capture and mining meet in one test.

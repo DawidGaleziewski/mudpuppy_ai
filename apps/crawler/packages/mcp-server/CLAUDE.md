@@ -96,6 +96,10 @@ Layer: servers (G-07; `apps/crawler/layers.json`)
   is shared); `services/link-path.ts` (an unnamed link's `link_to` and frontier description);
   unnamed fields carry `label` (from `@pathfinder/crawler` `withFieldLabels`) in results and
   `action_json`, and test data is looked up by it.
+- Spec 039 (MudPuppy 2.0): `replay-driver.ts` (the headless driver: `replay(call, plan)` walks a
+  recorded prefix by model element keys in a replay run, no LLM; `pnpm model:replay`). Replay
+  runs: `start_run` `replay {inputs}` (`RunChoices.replay`, `RunState.headless`): element keys in
+  results, autofill types the inputs first, transitions `driver = 'headless'`, no frontier drain.
 - Entry points: `pnpm --filter @pathfinder/mcp-server start` (`src/main.ts`), `start:ba`.
 
 ## Invariants

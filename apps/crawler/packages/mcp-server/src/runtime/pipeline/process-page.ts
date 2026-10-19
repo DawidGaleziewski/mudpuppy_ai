@@ -143,6 +143,10 @@ function issuedForAgent(sc: StepContext, issued: IssuedAction[]): PageResult['ac
       ...(a.found_by ? { found_by: a.found_by } : {}),
       ...(a.label ? { label: a.label } : {}),
       ...(linkTo ? { link_to: linkTo } : {}),
+      // The headless driver finds a recorded step's action by its model element key (spec 039).
+      ...(sc.rs.headless
+        ? { element_key: (a.actionJson as { element_key: string }).element_key }
+        : {}),
       ...(a.input && a.input !== 'check' && known !== null && inputs[known] !== undefined
         ? { suggested_value: inputs[known] }
         : {}),

@@ -72,6 +72,7 @@ async function recordSkippedEdge(
       `${action.role}|${action.accessible_name ?? ''}||${action.json.nth}`,
     kind: transitionKind(action),
     result: 'blocked',
+    driver: state.headless ? 'headless' : 'agent',
     run_id: run.id,
     from_state: action.state_id,
     to_state: null,

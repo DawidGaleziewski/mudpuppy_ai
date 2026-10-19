@@ -123,7 +123,10 @@ export async function finishRun(ctx: ServerContext, raw: unknown, live?: LiveRob
     throw new ToolError('SCHEMA_INVALID', 'outcome and observed_result are for trace runs only');
   if (run.status !== 'running') return finishedRun(ctx, run);
   // A probe run visits only the marked form steps (spec 032 US5); its frontier is not drained.
-  if (runChoices(run).probe) return completeRun(ctx, { run_id: run.id, status: 'completed' }, live);
+  // A replay run walks one recorded prefix (spec 039 design § 9); it does not explore either.
+  const choices = runChoices(run);
+  if (choices.probe || choices.replay)
+    return completeRun(ctx, { run_id: run.id, status: 'completed' }, live);
   const pending = await ctx.db
     .selectFrom('frontier')
     .select((eb) => eb.fn.countAll<number>().as('n'))

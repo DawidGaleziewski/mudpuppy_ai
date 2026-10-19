@@ -22,7 +22,16 @@ to the end." Questions are at the bottom, in the order they unblock work.
 - M3: migration 0031 interpretation (deviations, hypotheses with evidence, tests and events,
   `entity_refs`), interpretation after every reconcile (R2, R6, R7 decide from the store), `pnpm
   model:decide` (confirm, reject, overturn, pair labels, parameter roles), the **What changed**
-  page, glossary entries for the portal model, the **Deployment scenario** end to end.
+  page, glossary entries for the portal model, the **Deployment scenario** end to end (cb742f6).
+- M4: observation tables, `pnpm model:mine` (miner → Zod import as `decision_rule` hypotheses with
+  boundary tests) (8a5ad8a).
+- M5: process proposals: weighted screen graph (correlation ids, mounts, API families, forms,
+  links), Leiden, `pnpm model:propose` writes open grouping suggestions for the Processes page
+  (a28bc7a).
+- T021: the **headless driver**: replay runs (`start_run replay`), `replay-driver.ts`, `pnpm
+  model:replay` runs the boundary tests and moves the rule to supported / refuted; a real-browser
+  test on the reference portal's driver form (age 18). Bug F-21 found and fixed on the way:
+  map-mode inputs never reached decision mining.
 
 ## How to look at it in the morning
 
@@ -32,17 +41,20 @@ to the end." Questions are at the bottom, in the order they unblock work.
 2. Run a map scan on the sandbox as usual, then `pnpm model:reconcile <portal> --env sandbox` (it
    also runs after every scan) and open the dashboard: Scans ▸ Map shows the model's screens,
    Review section ▸ `/changes` shows what changed.
-3. `specs/039-mudpuppy-2-portal-model/findings.md` F-01–F-17: every place the build differs from
+3. `cd apps/crawler && pnpm exec vitest run --project mcp-server tests/replay-driver.e2e.test.ts`
+   — the rule loop with no LLM: replays make a decision point, a rule "under 18" is tested at 17,
+   18 and 19 headless and ends `supported`.
+4. `specs/039-mudpuppy-2-portal-model/findings.md` F-01–F-21: every place the build differs from
    the design, with why.
 
 ## Not built yet (in order)
 
-- T021 the headless driver (deterministic replays): needed by R1, R4, R5, R8, boundary tests,
-  regression suites and the stopping rule. Deviations those rules need wait as "waiting for a check".
-- M4 wiring: the observation tables for the miner, `model:import`, boundary-test probe suites, DMN
-  in the export (the pure parts and the miner are done).
-- M5: correlation ids capture, process proposals from Leiden, one process concept, anchors on
-  `entity_refs`, explorations; BA guidance waits for the R-77 review.
+- Driver follow-ups: prefix cache and checkpoint starts; replays for R1, R4, R5, R8 (those
+  deviations still wait as "waiting for a check"); regression suites; the stopping rule.
+- M4 rest: boundary tests as probe suites for owner review, the reconciler calling the miner, DMN
+  in the export.
+- M5 rest: triggers and outcomes on proposals, human edits as constraints, one process concept,
+  anchors on `entity_refs`, explorations; BA guidance waits for the R-77 review.
 - Scenarios other than Deployment.
 - The UX designer's pages (T100).
 
@@ -60,3 +72,6 @@ to the end." Questions are at the bottom, in the order they unblock work.
    `rule_candidates` wait for it.
 5. **UX designer**: `ux-requirements.md` is ready to send; the What changed page is a functional
    stand-in.
+6. **F-20 run name**: the headless driver's runs are "replay runs" (`start_run replay`), because
+   "probe run" already means spec 032's marked-step probing. Keep that, or rename spec 032's runs
+   and use `mode = 'probe'` as the design says?

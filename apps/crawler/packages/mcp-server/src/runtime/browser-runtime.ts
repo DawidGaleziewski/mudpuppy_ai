@@ -179,6 +179,7 @@ export function createBrowserRuntime(opts: BrowserRuntimeOptions = {}): Runtime 
     });
     rs.processId = (await processOfRun(ctx, run.id))?.id ?? null;
     rs.isProbe = runChoices(run).probe;
+    rs.headless = runChoices(run).replay;
     rs.plan = parsePlan(run.plan_json);
     rs.assets = trackAssetHealth(session.context);
     const markerHeader = approved.effective.portal.model.build_marker?.header;

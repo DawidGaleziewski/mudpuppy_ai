@@ -72,6 +72,7 @@ export async function recordTransitionStep(
       element_key: elementKey,
       kind: transitionKind(a),
       result: page.result,
+      driver: rs.headless ? 'headless' : 'agent',
       run_id: run.id,
       from_state: a.state_id,
       to_state: page.stateId,
