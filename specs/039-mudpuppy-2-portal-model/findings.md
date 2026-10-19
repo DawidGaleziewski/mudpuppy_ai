@@ -189,3 +189,23 @@ Bugs, slips and design deviations found while building, each with a test or eval
   `loadObservationTables`, `importMinedRule` (Zod-validated, `decision_rule` by R7 waiting for a
   person, boundary tests as `hypothesis_tests`, recorded once), `pnpm model:mine`. Not yet: running
   the boundary tests (driver), the regression suites, drift on a new epoch, DMN in the export.
+
+## F-19 Process proposals reuse grouping suggestions, before 0036 (T071–T072), 2026-10-19
+
+- **What**: design § 13 stores correlation ids, process instances and triggers (migration 0036,
+  T070). **Built first, without 0036:** `processGraph` computes the weighted screen graph on read
+  (correlation ids from the masked `network_calls` samples, hashed, never stored; scopes from
+  `observation_builds`; endpoint families; form chains; direct non-global transitions), Leiden
+  cuts it (`pnpm model:propose`, apps/miner), and each community of two or more screens becomes an
+  open `grouping_suggestions` row (the Processes page and the chat's accept flow already read
+  them). Steps start at the screen reached from outside the community, then breadth first; each
+  screen is shown by its first page version. A set already suggested or dismissed is skipped
+  (`screens_key`, FR-007@029).
+- **Gaps**: samples are recorded only outside production (spec 034), so on production the
+  correlation weight is 0 and the graph leans on links and families. A dismissed set blocks only
+  the same set: Leiden returning one screen more proposes it again (human edits as constraints
+  are T072's open part). The name is the start screen's title; naming proposals are the chat's
+  (T077).
+- **Test**: `process-proposals.test.ts` (graph, flow order, once, dismissed); with `PF_MINER=1` the
+  real Leiden keeps the form and its two outcomes together. Eval idea: the grouping eval (spec 038)
+  scored on `model:propose` output against the reference portal's ground truth.

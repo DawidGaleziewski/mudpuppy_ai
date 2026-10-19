@@ -12,4 +12,5 @@ export * from './model-writer.js';
 export * from './interpret-writer.js';
 export * from './model-decide.js';
 export * from './rule-mining.js';
+export * from './process-proposals.js';
 export type { Selectable, Insertable } from 'kysely';
