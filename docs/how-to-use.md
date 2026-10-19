@@ -489,6 +489,36 @@ deleted.
 
 Things leave the inbox when you decide. Nothing in it is deleted behind your back.
 
+### What changed between scans, and business rules (MudPuppy 2.0)
+
+After every scan MudPuppy rebuilds its **portal model**: one set of screens (`SC-0001` …) across
+all scans, with the actions on them and where they lead. It then compares the new model with the
+one before. **What changed** (Review section) lists every difference in three groups:
+
+| Group | Meaning |
+| --- | --- |
+| **Needs you** | No rule could explain it. Decide, or have the BA look at it. |
+| **Explained automatically** | A published rule explained it from the evidence, such as "the screen changed with a new release" or "the button was renamed". Each one names its rule (R1–R8); you can overturn it with a reason. |
+| **Waiting for a check** | MudPuppy will repeat the path itself to decide, such as an error that may or may not come back. |
+
+The same page lists **Decision rules**: where one button leads to different screens depending on
+what was typed, MudPuppy finds the rule ("drivers under 18 are refused") and tests it just below,
+at and above its threshold. **Supported** means those tests gave the predicted outcome; it becomes
+**Confirmed** when you say so.
+
+Until the designed pages arrive, a developer runs these steps from `apps/crawler` (each takes the
+portal and `--env`):
+
+| Command | What it does |
+| --- | --- |
+| `pnpm model:reconcile <portal>` | Rebuild the model (also runs after every scan). |
+| `pnpm model:mine <portal>` | Find decision rules (needs `uv`; Python, no LLM). |
+| `pnpm model:replay <portal>` | Repeat paths to decide what waits for a check and to test new rules (headless, no LLM; 20 runs at most). |
+| `pnpm model:regress <portal>` | Re-test every confirmed rule; a rule that no longer holds is replaced and mined again. |
+| `pnpm model:decide <portal> --by "Your Name" confirm H-0002 --reason "…"` | Confirm, reject or overturn a claim, with your reason. |
+| `pnpm model:dmn <portal>` | Write confirmed and supported rules as DMN files with an index. |
+| `pnpm model:propose <portal>` | Propose processes from the model; they appear in **Processes** for you to accept or dismiss. |
+
 ## 14. When something fails (error references)
 
 When something goes wrong, the chat shows a reference like `ERR-01M480P5EMJSW94233H14WHWZ4` with
