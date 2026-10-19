@@ -24,7 +24,8 @@ Layer: store (G-07; `apps/crawler/layers.json`)
   `loadObservationTables`, `importMinedRule` (`rule-mining.ts`, `pnpm model:mine`),
   `processGraph`, `writeProposals` (`process-proposals.ts`, `pnpm model:propose`),
   `pendingReplays`, `recordReplay`, `judgeReplays` (`replay-tests.ts`, `pnpm model:replay`),
-  `pendingErrorReplays`, `resolveErrorReplays` (`error-replays.ts`, rule R1 on the driver).
+  `pendingErrorReplays`, `resolveErrorReplays` (`error-replays.ts`, rule R1 on the driver),
+  `decisionRules`, `dmnFiles` (`rule-export.ts`, `pnpm model:dmn`).
 - Used by: mcp-server, crawler, docs, gates, vault, apps/chat, the crawler app scripts.
 
 ## Invariants

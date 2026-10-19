@@ -1,6 +1,21 @@
-// A reconciled portal with one decision point, shared by the decision mining and process proposal
-// tests (spec 039): a form submitted eleven times with different birth dates.
-import type { OpenedDb } from '../src/index.js';
+// A reconciled portal with one decision point, shared by the decision mining, replay, rule export
+// and process proposal tests (spec 039): a form submitted eleven times with different birth dates.
+import { join } from 'node:path';
+import {
+  importMinedRule,
+  judgeReplays,
+  loadObservationTables,
+  migrateUp,
+  openDb,
+  pendingReplays,
+  reconcilePortalModel,
+  recordReplay,
+  type OpenedDb,
+} from '../src/index.js';
+
+const MIGRATIONS = join(import.meta.dirname, '../../../../../data/migrations');
+/** The day the boundary tests count ages from. */
+export const TODAY = '2026-10-19';
 
 const H = (c: string) => c.repeat(64);
 export const T = (s: number) =>
@@ -73,4 +88,57 @@ export function seedThreshold(o: OpenedDb): void {
          context_key, flags_json) VALUES (?, 'run1', ?, ?, 'action', 'https://ins.test/next', '[]', ?, ?, ?, 'ok', ?, '{}')`,
     ).run(`vn${i}`, adult ? 'price' : 'exit', `e${i}`, T(at + 2), j, i * 2 + 2, H('x'));
   });
+}
+
+/** The seeded portal, reconciled, with a mined rule "under `cut` → exit page" as H-0001. */
+export function withRule(cut: number): OpenedDb {
+  const o = openDb(':memory:');
+  migrateUp(o.raw, MIGRATIONS);
+  seedThreshold(o);
+  reconcilePortalModel(o.raw, 'ins', { now: T(500) });
+  const [table] = loadObservationTables(o.raw, 'ins');
+  const target = (birth: string) =>
+    table!.rows.find((r) => r.features['input.data_urodzenia'] === birth)!.target;
+  const age = 'derived.input.data_urodzenia.age_years';
+  importMinedRule(
+    o.raw,
+    'ins',
+    table!,
+    {
+      decisionPoint: { screen: table!.decision_point.screen, action: SUBMIT },
+      hitPolicy: 'U',
+      inputs: [{ name: age, type: 'number' }],
+      outputs: [{ name: 'next', type: 'screen' }],
+      rules: [
+        { when: { [age]: `< ${cut}` }, then: target('2010-03-01') },
+        { when: { [age]: `>= ${cut}` }, then: target('1980-05-01') },
+      ],
+      fitness: 1,
+      precision: 1,
+      rows: 11,
+    },
+    T(600),
+  );
+  return o;
+}
+
+/** What the seeded portal does: under 18 → the exit page (edge e0), else the price page (e5). */
+function portalAnswer(birth: string) {
+  const age =
+    Number(TODAY.slice(0, 4)) -
+    Number(birth.slice(0, 4)) -
+    (birth.slice(5) > TODAY.slice(5) ? 1 : 0);
+  return age < 18 ? { stateId: 'exit', edgeId: 'e0' } : { stateId: 'price', edgeId: 'e5' };
+}
+
+/** Every pending boundary test "replayed" against the seeded portal's answer, then judged. */
+export function replayAll(o: OpenedDb) {
+  const plans = pendingReplays(o.raw, 'ins', { limit: 20, today: TODAY });
+  for (const p of plans)
+    recordReplay(o.raw, p.testId, {
+      status: 'reached',
+      runId: 'run1',
+      ...portalAnswer(p.inputs['input.data_urodzenia']!),
+    });
+  return { plans, moves: judgeReplays(o.raw, 'ins', T(900)) };
 }

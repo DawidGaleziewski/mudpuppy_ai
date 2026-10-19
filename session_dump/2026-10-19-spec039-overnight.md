@@ -39,7 +39,9 @@ to the end." Questions are at the bottom, in the order they unblock work.
   fixed on the way (R6 looked only at the version an action went missing in, so both derived
   answers fell to "a person decides") (85380a5).
 - Bug F-24 fixed: a button first seen and later pressed counted as a new action (one element, two
-  classes); a rename's new button is explained by the same `replaces` fact.
+  classes); a rename's new button is explained by the same `replaces` fact (a87b2c9).
+- `pnpm model:dmn`: confirmed and supported decision rules as DMN 1.3 files plus a README index
+  with each rule's boundary-test verdicts.
 
 ## How to look at it in the morning
 

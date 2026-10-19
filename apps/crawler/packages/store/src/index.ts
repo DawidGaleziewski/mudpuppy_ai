@@ -15,4 +15,5 @@ export * from './rule-mining.js';
 export * from './process-proposals.js';
 export * from './replay-tests.js';
 export * from './error-replays.js';
+export * from './rule-export.js';
 export type { Selectable, Insertable } from 'kysely';
