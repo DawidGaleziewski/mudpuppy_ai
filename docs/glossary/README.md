@@ -3450,6 +3450,86 @@ which one it replaces.
 
 <sub>Last changed in R-81, 2026-10-19.</sub>
 
+<a id="headless-driver"></a>
+
+#### Headless driver (replay run)
+
+**Code that repeats a recorded path through the portal in a fresh browser session, without the LLM, to check a claim; each repeat is one replay run.**
+
+The crawler agent explores; the headless driver only repeats. It walks the clicks and
+submits of a recorded journey again, finding each element by its element key of the model,
+and fills forms with the values a check needs. Every step goes through the same safety
+gates and is recorded like the agent's, marked as driven headless. A step it cannot find
+again ends the replay: the check is inconclusive, never failed. `pnpm model:replay` runs
+the waiting checks within a budget (20 replay runs by default).
+
+*Seen in:* What changed; Scans
+
+*Labels:* `headless driver`, `replay run`, `replay`
+
+*Related:* [Boundary test](#boundary-test), [Change (deviation)](#deviation), [Journey](#journey)
+
+<sub>Last changed in R-81, 2026-10-19.</sub>
+
+<a id="decision-rule"></a>
+
+#### Decision rule
+
+**A business rule found in the scans, where one action leads to different screens depending on the data typed, written as a decision table (DMN).**
+
+When the same button sometimes leads to one screen and sometimes to another, the system
+compares the values typed before each press and finds the rule that separates the outcomes,
+such as "drivers under 18 are refused". The rule is a claim: its boundary tests check it,
+a person confirms it, and confirmed or supported rules export as DMN files (`pnpm model:dmn`).
+
+*Example:* H-0002 "Drivers under 18 are refused" on SC-0003, supported by 3 boundary tests.
+
+*Seen in:* What changed → Decision rules
+
+*Labels:* `decision rule`, `business rule`, `DMN`
+
+*Related:* [Boundary test](#boundary-test), [Claim (hypothesis, H-)](#hypothesis)
+
+<sub>Last changed in R-81, 2026-10-19.</sub>
+
+<a id="boundary-test"></a>
+
+#### Boundary test
+
+**A replay just below, at and just above a rule's threshold (age 17, 18 and 19 for "under 18"), which supports the rule or refutes it.**
+
+Scans rarely type values right at a threshold, so a mined rule may say "under 22" when the
+portal means "under 18". Boundary tests replay a recorded execution with the threshold's
+neighbours. All give the predicted outcome: the rule is supported (a person still confirms).
+One does not: the rule is refuted and is mined again with the new rows.
+
+*Seen in:* What changed → Decision rules
+
+*Labels:* `boundary test`, `supported`, `refuted`
+
+*Related:* [Decision rule](#decision-rule), [Headless driver (replay run)](#headless-driver)
+
+<sub>Last changed in R-81, 2026-10-19.</sub>
+
+<a id="process-proposal"></a>
+
+#### Proposed process (from the model)
+
+**A group of screens the system proposes as one process, because they share ids in their requests, embedded apps, API families, a form or direct links.**
+
+`pnpm model:propose` weighs how strongly each pair of screens belongs together and cuts the
+graph into groups (the Leiden method). Each group of two or more screens becomes an open
+grouping suggestion on the Processes page, starting at the screen reached from outside the
+group. A person accepts, edits or dismisses it; a dismissed group is not proposed again.
+
+*Seen in:* Processes
+
+*Labels:* `proposed process`, `grouping suggestion`
+
+*Related:* [Portal model](#portal-model), [Screen of the model (SC-)](#model-screen)
+
+<sub>Last changed in R-81, 2026-10-19.</sub>
+
 ## Business-analysis terms
 
 ### Documentation

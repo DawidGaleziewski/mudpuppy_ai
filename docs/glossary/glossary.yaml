@@ -3244,6 +3244,73 @@ entries:
     changed_in: R-81
     changed_on: 2026-10-19
 
+  - id: headless-driver
+    term: Headless driver (replay run)
+    category: pathfinder
+    group: Portal model
+    short: Code that repeats a recorded path through the portal in a fresh browser session, without the LLM, to check a claim; each repeat is one replay run.
+    explanation: |
+      The crawler agent explores; the headless driver only repeats. It walks the clicks and
+      submits of a recorded journey again, finding each element by its element key of the model,
+      and fills forms with the values a check needs. Every step goes through the same safety
+      gates and is recorded like the agent's, marked as driven headless. A step it cannot find
+      again ends the replay: the check is inconclusive, never failed. `pnpm model:replay` runs
+      the waiting checks within a budget (20 replay runs by default).
+    appears_in: [What changed, Scans]
+    labels: [headless driver, replay run, replay]
+    related: [boundary-test, deviation, journey]
+    changed_in: R-81
+    changed_on: 2026-10-19
+
+  - id: decision-rule
+    term: Decision rule
+    category: pathfinder
+    group: Portal model
+    short: A business rule found in the scans, where one action leads to different screens depending on the data typed, written as a decision table (DMN).
+    explanation: |
+      When the same button sometimes leads to one screen and sometimes to another, the system
+      compares the values typed before each press and finds the rule that separates the outcomes,
+      such as "drivers under 18 are refused". The rule is a claim: its boundary tests check it,
+      a person confirms it, and confirmed or supported rules export as DMN files (`pnpm model:dmn`).
+    example: H-0002 "Drivers under 18 are refused" on SC-0003, supported by 3 boundary tests.
+    appears_in: [What changed → Decision rules]
+    labels: [decision rule, business rule, DMN]
+    related: [boundary-test, hypothesis]
+    changed_in: R-81
+    changed_on: 2026-10-19
+
+  - id: boundary-test
+    term: Boundary test
+    category: pathfinder
+    group: Portal model
+    short: A replay just below, at and just above a rule's threshold (age 17, 18 and 19 for "under 18"), which supports the rule or refutes it.
+    explanation: |
+      Scans rarely type values right at a threshold, so a mined rule may say "under 22" when the
+      portal means "under 18". Boundary tests replay a recorded execution with the threshold's
+      neighbours. All give the predicted outcome: the rule is supported (a person still confirms).
+      One does not: the rule is refuted and is mined again with the new rows.
+    appears_in: [What changed → Decision rules]
+    labels: [boundary test, supported, refuted]
+    related: [decision-rule, headless-driver]
+    changed_in: R-81
+    changed_on: 2026-10-19
+
+  - id: process-proposal
+    term: Proposed process (from the model)
+    category: pathfinder
+    group: Portal model
+    short: A group of screens the system proposes as one process, because they share ids in their requests, embedded apps, API families, a form or direct links.
+    explanation: |
+      `pnpm model:propose` weighs how strongly each pair of screens belongs together and cuts the
+      graph into groups (the Leiden method). Each group of two or more screens becomes an open
+      grouping suggestion on the Processes page, starting at the screen reached from outside the
+      group. A person accepts, edits or dismisses it; a dismissed group is not proposed again.
+    appears_in: [Processes]
+    labels: [proposed process, grouping suggestion]
+    related: [portal-model, model-screen]
+    changed_in: R-81
+    changed_on: 2026-10-19
+
   - id: scar
     term: Scar (scar-maker)
     category: pathfinder
