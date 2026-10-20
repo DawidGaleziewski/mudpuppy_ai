@@ -103,7 +103,7 @@ describe.skipIf(!available)('the headless driver (spec 039 T021)', () => {
       expect(r.status, JSON.stringify(r)).toBe('reached');
     }
     const raw = h.ctx.raw;
-    const drivers = raw.prepare('SELECT DISTINCT driver FROM edges').all();
+    const drivers = raw.prepare('SELECT DISTINCT driver FROM transitions').all();
     expect(drivers).toEqual([{ driver: 'headless' }]);
 
     const tables = loadObservationTables(raw, 'reference-insurer');

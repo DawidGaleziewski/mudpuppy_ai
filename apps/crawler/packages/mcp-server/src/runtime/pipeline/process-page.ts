@@ -17,7 +17,7 @@ import { recordFormsStep, recordTraceStep, recordTransitionStep } from './record
 import { recordStateStep, trackDepth } from './record-state.js';
 import { settleStep } from './settle.js';
 import { throwIfStopped } from './stop.js';
-import { recordVisitStep } from './visits.js';
+import { recordObservationStep } from './observations.js';
 import { newStateVisuals } from './visuals.js';
 
 /**
@@ -64,8 +64,8 @@ export async function processPage(sc: StepContext): Promise<PageResult> {
   await trackDepth(sc, state_id, observed.url);
   const page = { observed, stateId: state_id, evidenceRef, alreadyInRun };
   const formCount = await recordFormsStep(sc, page);
-  // Edge (for act) first: API calls observed during an action hang off it.
-  const edgeId = await recordTransitionStep(sc, {
+  // Transition (for act) first: API calls observed during an action hang off it.
+  const transitionId = await recordTransitionStep(sc, {
     stateId: state_id,
     evidenceRef,
     stabilization,
@@ -73,15 +73,15 @@ export async function processPage(sc: StepContext): Promise<PageResult> {
   });
   await step(sc, 'record_api_calls', () =>
     recordNetwork(ctx, run, net, {
-      edgeId,
+      transitionId,
       stateId: state_id,
       scrub: rs.effective.portal.pii_scrub,
     }),
   );
-  await recordVisitStep(sc, {
+  await recordObservationStep(sc, {
     stateId: state_id,
     url: observed.url,
-    edgeId,
+    transitionId,
     relogged,
     capture,
     snapshot: storedSnapshot,
@@ -102,7 +102,7 @@ export async function processPage(sc: StepContext): Promise<PageResult> {
     masked,
     stateId: state_id,
     evidenceRef,
-    edgeId,
+    transitionId,
   });
   rs.lastObserved = { url: observed.url, title: observed.title, snapshot: masked };
   rs.currentStateId = state_id;
@@ -119,7 +119,7 @@ export async function processPage(sc: StepContext): Promise<PageResult> {
     ...(rs.isTrace || !alreadyInRun || sc.includeActions
       ? { actions: issuedForAgent(sc, issued) }
       : { actions_omitted: issued.length }),
-    ...(edgeId ? { edge_id: edgeId } : {}),
+    ...(transitionId ? { transition_id: transitionId } : {}),
     ...(recordedStep ? { step: recordedStep } : {}),
     ...(relogged ? { relogged_in: true } : {}),
     ...compositionHints(observed, rs.lastMounts),

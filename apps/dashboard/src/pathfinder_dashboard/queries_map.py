@@ -1,7 +1,7 @@
 """Read models for the portal map, Scans ▸ Map (spec 033 US1, US2; design screen 12).
 
 Every screen of the portal is a node; its states (form steps, validation and technical states)
-stack on it as a deck. Moves between screens come from executed edges; the drawing keeps the
+stack on it as a deck. Moves between screens come from executed transitions; the drawing keeps the
 discovery tree plus failed and blocked items, the other links only on the Links layer
 (`map_layout`). Queued, failed and blocked items hang off their page as one small node each.
 Read-only, like every dashboard query.
@@ -173,7 +173,8 @@ def _moves(conn: sqlite3.Connection, portal: str) -> list[sqlite3.Row]:
     return _rows(
         conn,
         "SELECT f.screen_id AS a, t.screen_id AS b, e.run_id, e.error IS NOT NULL AS failed"
-        " FROM edges e JOIN states f ON f.id = e.from_state JOIN states t ON t.id = e.to_state"
+        " FROM transitions e JOIN states f ON f.id = e.from_state"
+        " JOIN states t ON t.id = e.to_state"
         " WHERE f.portal_id = ? AND e.status = 'executed'"
         "   AND f.screen_id IS NOT NULL AND t.screen_id IS NOT NULL AND f.screen_id <> t.screen_id"
         " ORDER BY e.created_at, e.id",
@@ -256,7 +257,7 @@ def _model_moves(conn: sqlite3.Connection, portal: str) -> list[tuple[str, str, 
         conn,
         "SELECT t.from_screen_id AS a, t.to_screen_id AS b, t.status, t.result"
         " FROM model_transitions t JOIN model_screens s ON s.id = t.from_screen_id"
-        " JOIN edges e ON e.id = t.first_seen_edge_id"
+        " JOIN transitions e ON e.id = t.first_seen_transition_id"
         " WHERE s.portal_id = ? AND t.internal = 0 AND t.to_screen_id IS NOT NULL"
         "   AND t.status <> 'retired' ORDER BY e.created_at, t.id",
         (portal,),
@@ -402,7 +403,7 @@ def map_view(conn: sqlite3.Connection, portal: str, filters: MapFilters | None =
     layers = f.layers
     scans = scans_of(conn, portal)
     runs = _chosen(scans, f.scan, f.persona)
-    # The portal as it is now reads the model; one scan's own graph reads its edges (spec 039).
+    # The portal as it is now reads the model; one scan's graph reads its transitions (spec 039).
     model = _model(conn, portal) if f.scan is None else None
     nodes, drawn, starts = _screen_nodes(conn, portal, runs, f.open_family, model)
     pairs: dict[tuple[str, str], tuple[bool, bool]] = {}

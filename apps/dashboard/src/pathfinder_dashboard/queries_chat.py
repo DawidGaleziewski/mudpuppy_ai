@@ -228,7 +228,8 @@ SELECT e.created_at, CASE WHEN e.error IS NOT NULL OR e.stabilization = 'never_s
                           THEN 'problem' ELSE 'step' END,
        e.to_state, s1.route_template, s2.route_template,
        json_object('action', e.action_json, 'error', e.error, 'stab', e.stabilization)
-  FROM edges e JOIN states s1 ON s1.id = e.from_state LEFT JOIN states s2 ON s2.id = e.to_state
+  FROM transitions e JOIN states s1 ON s1.id = e.from_state
+  LEFT JOIN states s2 ON s2.id = e.to_state
  WHERE e.run_id = :run AND e.status = 'executed'
 UNION ALL
 SELECT f.created_at, 'form', f.state_id, s.title, NULL, NULL

@@ -127,13 +127,13 @@ describe.skipIf(!available)('map run against the mock portal', () => {
       expect(fin).toMatchObject({ isError: false, body: { status: 'completed' } });
 
       const states = await ctx.db.selectFrom('states').selectAll().execute();
-      const edges = await ctx.db.selectFrom('edges').selectAll().execute();
+      const transitions = await ctx.db.selectFrom('transitions').selectAll().execute();
       const forms = await ctx.db.selectFrom('forms').selectAll().execute();
       expect(states.length).toBeGreaterThan(3);
-      expect(edges.length).toBeGreaterThan(3);
+      expect(transitions.length).toBeGreaterThan(3);
       expect(forms.length).toBeGreaterThan(0);
-      // SC-003: every state/edge/form carries evidence_ref and confidence
-      for (const r of [...states, ...edges, ...forms]) {
+      // SC-003: every state/transition/form carries evidence_ref and confidence
+      for (const r of [...states, ...transitions, ...forms]) {
         expect(r.evidence_ref).toMatch(/^[0-9a-f]{64}\.yaml$/);
         expect(r.confidence).toBeTruthy();
       }
@@ -143,7 +143,7 @@ describe.skipIf(!available)('map run against the mock portal', () => {
       for (const r of states) expect(files).toContain(r.evidence_ref);
       // SC-002: everything executed is read
       expect(
-        edges.filter((e) => e.status === 'executed').every((e) => e.safety_class === 'read'),
+        transitions.filter((e) => e.status === 'executed').every((e) => e.safety_class === 'read'),
       ).toBe(true);
       // API responses keep their sample body as it came outside production, the seller's contact
       // too: no masking unless the portal asks for it (spec 019 R2, spec 034 A-9, F-18@034)
@@ -561,7 +561,7 @@ describe.skipIf(!available)('map run against the mock portal', () => {
     }
   }, 60_000);
 
-  it('interrupt + resume_run_id continues from the persisted frontier without duplicating states or edges (SC-010)', async () => {
+  it('interrupt + resume_run_id continues from the persisted frontier without duplicating states or transitions (SC-010)', async () => {
     const { ctx, call, runtime, cleanup } = await setup();
     try {
       const runId = (await call('start_run', { portal_id: 'mock', persona_id: 'guest' })).body
@@ -578,17 +578,17 @@ describe.skipIf(!available)('map run against the mock portal', () => {
           action_id: next.body.item.action_id,
           rationale: 'exploring the next frontier item',
         });
-        // spec 019 F-04: a step that failed after recording its edge must not pass unseen
+        // spec 019 F-04: a step that failed after recording its transition must not pass unseen
         expect(acted.isError, JSON.stringify(acted.body)).toBe(false);
       }
-      const edgesBefore = await ctx.db.selectFrom('edges').select('id').execute();
+      const transitionsBefore = await ctx.db.selectFrom('transitions').select('id').execute();
       const statesBefore = await ctx.db.selectFrom('states').select('id').execute();
       const pendingBefore = await ctx.db
         .selectFrom('frontier')
         .select('id')
         .where('status', '=', 'pending')
         .execute();
-      expect(edgesBefore.length).toBe(4);
+      expect(transitionsBefore.length).toBe(4);
 
       // crash: the browser is gone, the server restarts and marks the run interrupted
       await runtime.closeAll();
@@ -607,8 +607,8 @@ describe.skipIf(!available)('map run against the mock portal', () => {
         (await ctx.db.selectFrom('runs').select('steps_used').executeTakeFirstOrThrow()).steps_used,
       ).toBe(5);
       // nothing was re-recorded by resuming
-      expect((await ctx.db.selectFrom('edges').select('id').execute()).length).toBe(
-        edgesBefore.length,
+      expect((await ctx.db.selectFrom('transitions').select('id').execute()).length).toBe(
+        transitionsBefore.length,
       );
       expect(
         (await ctx.db.selectFrom('frontier').select('id').where('status', '=', 'pending').execute())
@@ -620,14 +620,14 @@ describe.skipIf(!available)('map run against the mock portal', () => {
         (await call('finish_run', { run_id: runId, rationale: 'frontier exhausted' })).body.status,
       ).toBe('completed');
 
-      const edges = await ctx.db.selectFrom('edges').selectAll().execute();
-      const keys = edges.map((e) => `${e.from_state}|${e.action_json}`);
-      expect(new Set(keys).size).toBe(keys.length); // no duplicate edge for the same action in the same state
-      for (const e of edgesBefore) expect(edges.map((x) => x.id)).toContain(e.id);
+      const transitions = await ctx.db.selectFrom('transitions').selectAll().execute();
+      const keys = transitions.map((e) => `${e.from_state}|${e.action_json}`);
+      expect(new Set(keys).size).toBe(keys.length); // no duplicate transition for the same action in the same state
+      for (const e of transitionsBefore) expect(transitions.map((x) => x.id)).toContain(e.id);
       const states = await ctx.db.selectFrom('states').selectAll().execute();
       expect(new Set(states.map((s) => s.fingerprint)).size).toBe(states.length);
       for (const s of statesBefore) expect(states.map((x) => x.id)).toContain(s.id);
-      expect(edges.length).toBeGreaterThan(edgesBefore.length);
+      expect(transitions.length).toBeGreaterThan(transitionsBefore.length);
     } finally {
       await cleanup();
     }
@@ -661,9 +661,9 @@ describe.skipIf(!available)('map run against the mock portal', () => {
         rationale: 'exploring the next frontier item',
       }); // refused, still recorded as a skipped transition
 
-      const edges = await ctx.db.selectFrom('edges').selectAll().execute();
+      const transitions = await ctx.db.selectFrom('transitions').selectAll().execute();
       const byName = (name: string) =>
-        JSON.parse(edges.find((e) => e.action_json.includes(name))!.action_json);
+        JSON.parse(transitions.find((e) => e.action_json.includes(name))!.action_json);
       const back = byName('Wróć do listy');
       expect(back.locators.map((l: Body) => l.kind)).toEqual([
         'role',
@@ -685,14 +685,14 @@ describe.skipIf(!available)('map run against the mock portal', () => {
 
       // every transition carries at least one locator and a reference to the snapshot it came from
       const files = readdirSync(join(ctx.dir, 'evidence'));
-      for (const e of edges) {
+      for (const e of transitions) {
         const a = JSON.parse(e.action_json);
         expect(a.locators.length).toBeGreaterThan(0);
         expect(a.locators.every((l: Body, i: number) => l.rank === i)).toBe(true);
         expect(files).toContain(a.snapshot_ref);
       }
       // an element without a data-testid still gets role/text/container candidates
-      const noId = JSON.parse(edges[0]!.action_json).locators.map((l: Body) => l.kind);
+      const noId = JSON.parse(transitions[0]!.action_json).locators.map((l: Body) => l.kind);
       expect(noId).toEqual(expect.arrayContaining(['role', 'container']));
     } finally {
       await cleanup();

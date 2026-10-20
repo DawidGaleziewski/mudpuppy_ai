@@ -54,7 +54,7 @@ def seed(store: Store) -> None:
         insert(conn, "state_observations", run_id="run-1", state_id=sid, observed_at=T)
     insert(
         conn,
-        "page_visits",
+        "observations",
         id="v-1",
         run_id="run-1",
         state_id="st-home",
@@ -69,7 +69,7 @@ def seed(store: Store) -> None:
     )
     insert(
         conn,
-        "edges",
+        "transitions",
         id="e-ok",
         run_id="run-1",
         from_state="st-home",
@@ -78,7 +78,7 @@ def seed(store: Store) -> None:
     )
     insert(
         conn,
-        "edges",
+        "transitions",
         id="e-bad",
         run_id="run-1",
         from_state="st-list",
@@ -88,7 +88,7 @@ def seed(store: Store) -> None:
     )
     for mid, kind, tk, tid in (
         ("m-1", "start", "state", "st-list"),
-        ("m-2", "skip", "edge", "e-ok"),
+        ("m-2", "skip", "transition", "e-ok"),
         ("m-3", "recheck", "state", "st-home"),
     ):
         conn.execute(
@@ -147,24 +147,24 @@ def test_recovery_page_offers_resume_retry_and_skip(empty_store: Store) -> None:
         html = c.get("/scans/recover/run-1").text
         assert "Pick up scan run-1" in html and "Last good screen" in html
         assert "Dalej" in html and "selector not found" in html and "crawler error" in html
-        assert 'name="target_edge_id" value="e-bad"' in html
+        assert 'name="target_transition_id" value="e-bad"' in html
         r = c.post(
             "/scans/recover/run-1/skip",
-            data={"edge_id": "e-bad"},
+            data={"transition_id": "e-bad"},
             headers=ORIGIN,
             follow_redirects=False,
         )
         assert r.status_code == 303
         refused = c.post(
             "/scans/recover/run-1/skip",
-            data={"edge_id": "e-ok"},
+            data={"transition_id": "e-ok"},
             headers=ORIGIN,
             follow_redirects=False,
         )
     assert (
         "POST",
         "/portals/liveinsurer/marks",
-        {"author": "Owner", "kind": "skip", "target_kind": "edge", "target_id": "e-bad"},
+        {"author": "Owner", "kind": "skip", "target_kind": "transition", "target_id": "e-bad"},
     ) in chat.calls
     assert "Not+recorded" in refused.headers["location"]  # not a failed action of this scan
 

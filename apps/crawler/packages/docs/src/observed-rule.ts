@@ -19,18 +19,18 @@ export interface ResolvedTarget {
 export const OBSERVABLE_KINDS: readonly EvidenceTargetKind[] = [
   'state',
   'screen_region',
-  'edge',
+  'transition',
   'form',
   'action',
   'network_call',
   'process_step',
   // spec 019: the browser was at that URL; refused in the first bank eval (findings F-07)
-  'page_visit',
+  'observation',
 ];
 
 /**
  * Kinds that never show behaviour. Every `EvidenceTargetKind` is in exactly one of the two lists
- * (tested), so a new kind cannot fall through unclassified as `page_visit` did (spec 019 F-07).
+ * (tested), so a new kind cannot fall through unclassified as the observation kind did (spec 019 F-07).
  */
 export const NOT_OBSERVABLE_KINDS: readonly EvidenceTargetKind[] = [
   'rule_candidate',

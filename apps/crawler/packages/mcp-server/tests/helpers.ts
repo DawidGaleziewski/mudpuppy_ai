@@ -113,7 +113,7 @@ export async function transitionStep(
 ): Promise<{
   journey_id: string;
   seq: number;
-  from_visit_id: null;
+  from_observation_id: null;
   element_key: string;
   kind: 'click';
   result: 'ok';
@@ -141,7 +141,7 @@ export async function transitionStep(
   return {
     journey_id: j.id,
     seq: j.seq,
-    from_visit_id: null,
+    from_observation_id: null,
     element_key: 'button|test||',
     kind: 'click',
     result: 'ok',

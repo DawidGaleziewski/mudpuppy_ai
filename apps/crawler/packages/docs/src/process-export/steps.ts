@@ -1,6 +1,6 @@
 // The steps of a documented process in walking order (spec 034 FR-013; spec 027 FR-010), shared by
 // the process export and the dashboard. A BA process record (PROC) is resolved from its latest
-// revision's evidence: the trace it cites, else its cited trace steps, else its cited edges chained
+// revision's evidence: the trace it cites, else its cited trace steps, else its cited transitions chained
 // from the screen nothing leads into. A workspace process (PRC) is A's latest revision. A cited
 // state of a page the walk already passed is a state of that step (a variant, an error), never a
 // step of its own (owner review 2026-10-17: "why is there a step 7?"); only a page the walk did
@@ -29,7 +29,7 @@ export interface ResolvedProcess {
   kind: 'record' | 'workspace';
   title: string;
   steps: ProcessStep[];
-  /** Runs the steps were read from (a trace, the cited edges' runs, the observed revisions). */
+  /** Runs the steps were read from (a trace, the cited transitions' runs, the observed revisions). */
   runs: string[];
 }
 
@@ -73,25 +73,26 @@ function stepsWalk(raw: RawDb, stepIds: readonly string[]): string[] {
   return walk(steps.flatMap((s) => [s.state_before, s.state_after]));
 }
 
-/** Cited edges chained from the state no cited edge leads into; a loop back is not a new step. */
-function edgeWalk(raw: RawDb, edgeIds: readonly string[]): string[] {
-  if (edgeIds.length === 0) return [];
-  const edges = rows<{ from_state: string; to_state: string | null; created_at: string }>(
+/** Cited transitions chained from the state none of them leads into; a loop back is not a new step. */
+function transitionWalk(raw: RawDb, transitionIds: readonly string[]): string[] {
+  if (transitionIds.length === 0) return [];
+  const transitions = rows<{ from_state: string; to_state: string | null; created_at: string }>(
     raw,
-    `SELECT from_state, to_state, created_at FROM edges WHERE id IN (${edgeIds.map(() => '?').join(',')})
-     ORDER BY created_at`,
-    ...edgeIds,
+    `SELECT from_state, to_state, created_at FROM transitions
+     WHERE id IN (${transitionIds.map(() => '?').join(',')}) ORDER BY created_at`,
+    ...transitionIds,
   );
-  const into = new Set(edges.map((e) => e.to_state));
+  const into = new Set(transitions.map((e) => e.to_state));
   let at: string | undefined =
-    edges.find((e) => !into.has(e.from_state))?.from_state ?? edges[0]?.from_state;
+    transitions.find((e) => !into.has(e.from_state))?.from_state ?? transitions[0]?.from_state;
   const out: string[] = [];
   while (at !== undefined && !out.includes(at)) {
     out.push(at);
     const here: string = at;
     at =
-      edges.find((e) => e.from_state === here && e.to_state !== null && !out.includes(e.to_state))
-        ?.to_state ?? undefined;
+      transitions.find(
+        (e) => e.from_state === here && e.to_state !== null && !out.includes(e.to_state),
+      )?.to_state ?? undefined;
   }
   return out;
 }
@@ -184,7 +185,7 @@ function recordProcess(raw: RawDb, portal: string, key: string): ResolvedProcess
   const of = (kind: string) => links.filter((l) => l.target_kind === kind).map((l) => l.target_id);
   let ordered = traceWalk(raw, of('process'));
   if (ordered.length === 0) ordered = stepsWalk(raw, of('process_step'));
-  if (ordered.length === 0) ordered = edgeWalk(raw, of('edge'));
+  if (ordered.length === 0) ordered = transitionWalk(raw, of('transition'));
   ordered = fromFirstContained(raw, ordered, containedRoutes(raw, rec.rev_id));
   const cited = [...of('state'), ...of('screen_region')];
   const extra = [...new Set(cited)].filter((s) => !ordered.includes(s));

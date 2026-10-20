@@ -83,7 +83,7 @@ group, ids in the message. Gates per milestone in `plan.md` § 1. `[B: …]` = b
 
 ## Owner decisions 2026-10-20 (questions 1–8 of the session dump)
 
-- [ ] T110 [opus] F-06: rename `edges` → `transitions` and `page_visits` → `observations` everywhere, the design's names (`db-admin` migration; code, SQL, Python, docs, glossary); every suite green, no old name left (grep)
+- [x] T110 [opus] F-06: rename `edges` → `transitions` and `page_visits` → `observations` everywhere, the design's names (`db-admin` migration; code, SQL, Python, docs, glossary); every suite green, no old name left (grep). **Done 2026-10-20** as migration 0032 (F-29), done inline
 - [ ] T111 [opus] Fingerprint profiles in the portal YAML (`fingerprint: { use, profiles }`, like `fixes`): the rules of `structure.ts` / `fingerprint.ts` as parameters (row roles, field roles, named roles, `ignore_names_in`, `cluster_threshold`), built-in `rows-v2` = today's behaviour, `extends`, Zod schema refused at `start_run` (`CONFIG_INVALID`); `docs/portal-config.md`
 - [ ] T112 [opus] Profile recorded on every observation and model version (name + rules hash); the reconciler never compares two profiles
 - [ ] T113 [opus] `pnpm model:refingerprint --profile <name>` (recompute from stored snapshots, no recrawl; check first that every observation keeps its full snapshot) and `pnpm model:compare-fingerprints <a> <b>` (which screens merge or split differently)

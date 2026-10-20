@@ -71,7 +71,7 @@ function reachedBy(raw: RawDb, ids: readonly string[]): string[] {
   const actions = rows<{ name: string | null; route: string }>(
     raw,
     `SELECT DISTINCT json_extract(e.action_json, '$.accessible_name') AS name, f.route_template AS route
-     FROM edges e JOIN states f ON f.id = e.from_state
+     FROM transitions e JOIN states f ON f.id = e.from_state
      WHERE e.to_state IN (${marks}) AND e.status = 'executed' AND e.from_state NOT IN (${marks})
      ORDER BY route, name LIMIT 6`,
     ...ids,
@@ -79,7 +79,7 @@ function reachedBy(raw: RawDb, ids: readonly string[]): string[] {
   ).map((a) => `"${a.name ?? 'an action'}" on ${a.route}`);
   const direct = rows(
     raw,
-    `SELECT 1 FROM page_visits WHERE state_id IN (${marks}) AND via = 'navigate' LIMIT 1`,
+    `SELECT 1 FROM observations WHERE state_id IN (${marks}) AND via = 'navigate' LIMIT 1`,
     ...ids,
   );
   return direct.length > 0 ? [...actions, 'its address, opened directly'] : actions;

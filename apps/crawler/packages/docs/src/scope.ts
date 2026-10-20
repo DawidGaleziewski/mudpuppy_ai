@@ -28,14 +28,14 @@ export function evidenceStates(raw: RawDb, e: ExportEvidence): string[] | null {
       return one('SELECT state_id AS s FROM actions WHERE id = @id');
     case 'form':
       return one('SELECT state_id AS s FROM forms WHERE id = @id');
-    case 'edge':
+    case 'transition':
       return one(
-        'SELECT from_state AS s FROM edges WHERE id = @id UNION SELECT to_state FROM edges WHERE id = @id',
+        'SELECT from_state AS s FROM transitions WHERE id = @id UNION SELECT to_state FROM transitions WHERE id = @id',
       );
     case 'network_call':
       return one(
-        `SELECT e.from_state AS s FROM network_calls n JOIN edges e ON e.id = n.edge_id WHERE n.id = @id
-         UNION SELECT e.to_state FROM network_calls n JOIN edges e ON e.id = n.edge_id WHERE n.id = @id`,
+        `SELECT e.from_state AS s FROM network_calls n JOIN transitions e ON e.id = n.transition_id WHERE n.id = @id
+         UNION SELECT e.to_state FROM network_calls n JOIN transitions e ON e.id = n.transition_id WHERE n.id = @id`,
       );
     case 'process_step':
       return one(

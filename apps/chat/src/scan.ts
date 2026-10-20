@@ -86,7 +86,7 @@ export const RequestScanInput = z.object({
    * screens by replaying the recorded path. `continue` picks up a stopped scan (plan.parent_run_id),
    * `focused` explores from the Start here / Focus marks (or plan.start_state_ids) within
    * plan.depth, `recheck` only records the current state of the Recheck-marked screens, `retry`
-   * repeats one failed action (plan.target_edge_id) with a variation. Not with `resume_run_id`,
+   * repeats one failed action (plan.target_transition_id) with a variation. Not with `resume_run_id`,
    * `process` or `probe_marked`.
    */
   run_type: z.enum(['continue', 'focused', 'recheck', 'retry']).optional(),
@@ -95,7 +95,7 @@ export const RequestScanInput = z.object({
       parent_run_id: z.string().min(1).optional(),
       start_state_ids: z.array(z.string().min(1)).min(1).max(20).optional(),
       depth: z.number().int().min(0).max(10).optional(),
-      target_edge_id: z.string().min(1).optional(),
+      target_transition_id: z.string().min(1).optional(),
       variation: z.enum(['none', 'wait_longer', 'other_input', 'no_submit']).optional(),
     })
     .strict()

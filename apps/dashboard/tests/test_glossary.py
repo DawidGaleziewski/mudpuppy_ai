@@ -303,7 +303,7 @@ EXPECTED_IDS = {
     "form-step", "state-kind", "form-probe", "probe-suite", "test-data",  # R-69 (spec 032)
     "probe-mark", "probe-scan",  # R-69 owner answer 3 (spec 032 US5)
     "portal-map", "differing-states", "verdict",  # R-69 (4)-(5) (spec 033)
-    "page-visit", "navigation-hop", "parameter-inventory", "entry-url",  # R-37/R-38
+    "observation", "navigation-hop", "parameter-inventory", "entry-url",  # R-37/R-38
     "checkpoint", "directed-scan", "scan-mark",  # R-66 (spec 034)
     "scan-graph",  # R-74 (spec 035)
     "as-is-sign-off", "archived-process",  # R-54 (spec 027)

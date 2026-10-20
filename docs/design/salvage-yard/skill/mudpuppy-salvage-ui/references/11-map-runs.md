@@ -183,7 +183,7 @@ The agent proposes a verdict (dashed, inferred); a person confirms it in Review.
 | `node` | id, portal_id, route_template, cluster_id, family |
 | `state` (exists) | + node_id, step_index (same-route steps), kind (`main` / `variant` / `validation` / `technical` / `temporary`) |
 | `edge` | id, from_state_id, action (type, selector, label), input_set_id, safety_class |
-| `outcome` | id, edge_id, run_id, to_state_id, outcome_kind, probe_id, http_status, messages[], screenshot, network_log, at |
+| `outcome` | id, transition_id, run_id, to_state_id, outcome_kind, probe_id, http_status, messages[], screenshot, network_log, at |
 | `probe` | id, kind (`validation_empty` / `format` / `boundary` / `branch` / `block_request` / `http_500` / `delay` / `offline`), target (field or request), params |
 | `checkpoint` | state_id, recipe (actions + inputs), prerequisites (persona, cookies), last_replayed_ok_at |
 | `mark` | id, portal_id, target (node or edge), kind, by, created_at, used_by_run_id |

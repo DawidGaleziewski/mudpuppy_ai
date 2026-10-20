@@ -80,7 +80,7 @@ export function compositions(db: RawDb, runId: string): string[] {
 export function executedActions(db: RawDb, runId: string): string[] {
   return column(
     db,
-    "SELECT action_json AS v FROM edges WHERE run_id = ? AND status = 'executed'",
+    "SELECT action_json AS v FROM transitions WHERE run_id = ? AND status = 'executed'",
     runId,
   );
 }
@@ -89,7 +89,7 @@ export function executedActions(db: RawDb, runId: string): string[] {
 export function actionCallUrls(db: RawDb, runId: string): string[] {
   return column(
     db,
-    'SELECT url_template AS v FROM network_calls WHERE run_id = ? AND edge_id IS NOT NULL',
+    'SELECT url_template AS v FROM network_calls WHERE run_id = ? AND transition_id IS NOT NULL',
     runId,
   );
 }

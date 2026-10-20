@@ -2,7 +2,7 @@ import { newId, nowIso } from '@pathfinder/core';
 import type { ServerContext } from '../context.js';
 
 /** The executed, observed transition that already reached a link target. */
-export interface SeenEdge {
+export interface SeenTransition {
   id: string;
   to_state: string;
   evidence_ref: string;
@@ -61,8 +61,8 @@ export function linkNameKey(name: string | null): string | null {
 
 /**
  * Settle a link item whose target this run already reached by an executed, observed transition:
- * record an `inferred` edge to the same state (that transition's evidence) and mark the item
- * `done` with `same_target: <edge id>`. Returns false, changing nothing, when the item must be
+ * record an `inferred` transition to the same state (that transition's evidence) and mark the
+ * item `done` with `same_target: <transition id>`. Returns false, changing nothing, when the item must be
  * executed: not a plain link, or no successful transition to its target yet (spec 013 US2, R2, R4).
  * The link's visible name must match too (spec 026 F-04): "Koszyk (1)" after an item was added
  * leads to a different page than the "Koszyk (0)" the run followed, though the URL is the same.
@@ -78,12 +78,12 @@ export async function inferSameTarget(ctx: ServerContext, row: FrontierRow): Pro
     ctx.raw
       .prepare(
         `SELECT id, to_state, evidence_ref, stabilization,
-                json_extract(action_json, '$.accessible_name') AS name FROM edges
+                json_extract(action_json, '$.accessible_name') AS name FROM transitions
          WHERE run_id = ? AND status = 'executed' AND confidence = 'observed'
            AND to_state IS NOT NULL AND json_extract(action_json, '$.target_url') = ?
          ORDER BY id`,
       )
-      .all(row.run_id, target) as (SeenEdge & { name: string | null })[]
+      .all(row.run_id, target) as (SeenTransition & { name: string | null })[]
   ).find((e) => linkNameKey(e.name) === key);
   if (!seen) return false;
   await settleInferred(ctx, row, seen, `same_target: ${seen.id}`);
@@ -91,26 +91,26 @@ export async function inferSameTarget(ctx: ServerContext, row: FrontierRow): Pro
 }
 
 /**
- * Record an `inferred` edge from the item's state to the state `seen` reached (with its evidence)
+ * Record an `inferred` transition from the item's state to the state `seen` reached (with its evidence)
  * and mark the item `done` with `reason`; one transaction, then a `frontier_infer` event.
  */
 export async function settleInferred(
   ctx: ServerContext,
   row: FrontierRow,
-  seen: SeenEdge,
+  seen: SeenTransition,
   reason: string,
 ): Promise<void> {
-  // The edge carries the item's own action (locators, snapshot) like an executed one, without
+  // The transition carries the item's own action (locators, snapshot) like an executed one, without
   // the page it was found on (record-transition's shape).
   const action = JSON.parse(row.action_json) as Record<string, unknown>;
   delete action.page_url;
-  const edgeId = newId();
+  const transitionId = newId();
   const ts = nowIso();
   await ctx.db.transaction().execute(async (tx) => {
     await tx
-      .insertInto('edges')
+      .insertInto('transitions')
       .values({
-        id: edgeId,
+        id: transitionId,
         run_id: row.run_id,
         from_state: row.state_id,
         to_state: seen.to_state,
@@ -132,8 +132,8 @@ export async function settleInferred(
   });
   ctx.tracer.event('frontier_infer', {
     frontier_id: row.id,
-    edge_id: edgeId,
-    same_as_edge_id: seen.id,
+    transition_id: transitionId,
+    same_as_transition_id: seen.id,
     to_state: seen.to_state,
   });
 }

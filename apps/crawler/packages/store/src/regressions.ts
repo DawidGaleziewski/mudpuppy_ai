@@ -48,8 +48,8 @@ function buildsOfScreen(raw: Raw, screen: string, at: string | null): string | n
   const row = raw
     .prepare(
       `SELECT (SELECT group_concat(x, '&') FROM (SELECT b.scope || '=' || b.id AS x FROM observation_builds ob
-                JOIN builds b ON b.id = ob.build_id WHERE ob.page_visit_id = v.id ORDER BY x)) AS builds
-       FROM page_visits v JOIN screen_members m ON m.state_id = v.state_id AND m.to_model_version IS NULL
+                JOIN builds b ON b.id = ob.build_id WHERE ob.observation_id = v.id ORDER BY x)) AS builds
+       FROM observations v JOIN screen_members m ON m.state_id = v.state_id AND m.to_model_version IS NULL
        WHERE m.screen_id = ? ${at ? 'AND v.created_at <= ?' : ''}
        ORDER BY v.created_at DESC, v.id DESC LIMIT 1`,
     )
@@ -204,7 +204,7 @@ export function resolveRuleMismatch(
   raw: Raw,
   portal: string,
   deviationId: string,
-  seen: { state_id: string; edge_id: string | null } | null,
+  seen: { state_id: string; transition_id: string | null } | null,
   now = nowIso(),
 ): string | null {
   const d = waitingMismatches(raw, portal).find((x) => x.id === deviationId);

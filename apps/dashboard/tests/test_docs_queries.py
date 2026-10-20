@@ -277,7 +277,7 @@ def test_screen_diagram_leaves_out_global_navigation(ba_fixture: Store) -> None:
         )
         insert(
             w,
-            "edges",
+            "transitions",
             id=f"edge-x{n}",
             run_id="run-map",
             from_state=f"st-x{n}",
@@ -286,7 +286,7 @@ def test_screen_diagram_leaves_out_global_navigation(ba_fixture: Store) -> None:
         )
     insert(
         w,
-        "edges",
+        "transitions",
         id="edge-x-calc",
         run_id="run-map",
         from_state="st-x3",

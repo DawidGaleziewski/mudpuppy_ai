@@ -69,8 +69,8 @@ function visitContext(raw: Raw, visitId: string): VisitContext | null {
     .prepare(
       `SELECT v.created_at AS at, r.persona_id || '@' || r.environment AS audience,
          (SELECT group_concat(x, '&') FROM (SELECT b.scope || '=' || b.id AS x FROM observation_builds ob
-            JOIN builds b ON b.id = ob.build_id WHERE ob.page_visit_id = v.id ORDER BY x)) AS builds
-       FROM page_visits v JOIN runs r ON r.id = v.run_id WHERE v.id = ?`,
+            JOIN builds b ON b.id = ob.build_id WHERE ob.observation_id = v.id ORDER BY x)) AS builds
+       FROM observations v JOIN runs r ON r.id = v.run_id WHERE v.id = ?`,
     )
     .get(visitId) as { at: string; audience: string; builds: string | null } | undefined;
   return v ? { at: v.at, audience: v.audience, builds: v.builds ?? '' } : null;
@@ -82,7 +82,7 @@ function latestVisit(raw: Raw, states: readonly string[], before?: string): stri
   const marks = states.map(() => '?').join(',');
   const row = raw
     .prepare(
-      `SELECT id FROM page_visits WHERE state_id IN (${marks}) ${before ? 'AND created_at < ?' : ''}
+      `SELECT id FROM observations WHERE state_id IN (${marks}) ${before ? 'AND created_at < ?' : ''}
        ORDER BY created_at DESC, id DESC LIMIT 1`,
     )
     .get(...states, ...(before ? [before] : [])) as { id: string } | undefined;
@@ -101,7 +101,7 @@ function visitPair(
 ): [VisitContext | null, VisitContext | null] {
   if (d.kind === 'new_member' && d.state) {
     const first = raw
-      .prepare('SELECT id FROM page_visits WHERE state_id = ? ORDER BY created_at, id LIMIT 1')
+      .prepare('SELECT id FROM observations WHERE state_id = ? ORDER BY created_at, id LIMIT 1')
       .get(d.state) as { id: string } | undefined;
     const current = first ? visitContext(raw, first.id) : null;
     const ref = latestVisit(

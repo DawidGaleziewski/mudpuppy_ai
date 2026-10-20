@@ -65,10 +65,10 @@ export async function recordTransitionStep(
     const seq = ++rs.journey!.seq;
     const elementKey = a.json.element_key ?? `${a.role}|${a.accessible_name ?? ''}||${a.json.nth}`;
     await writeAttributes(ctx, journeyId, typedInputs(sc, a, seq, elementKey));
-    const { edge_id } = await recordTransition(ctx, {
+    const { transition_id } = await recordTransition(ctx, {
       journey_id: journeyId,
       seq,
-      from_visit_id: rs.lastVisitId,
+      from_observation_id: rs.lastObservationId,
       element_key: elementKey,
       kind: transitionKind(a),
       result: page.result,
@@ -84,7 +84,7 @@ export async function recordTransitionStep(
       confidence: 'observed',
       stabilization: page.stabilization,
     });
-    return reported(edge_id);
+    return reported(transition_id);
   });
 }
 
@@ -134,7 +134,7 @@ export async function recordTraceStep(
     masked: string;
     stateId: string;
     evidenceRef: string;
-    edgeId: string | undefined;
+    transitionId: string | undefined;
   },
 ): Promise<PageResult['step']> {
   const { ctx, rs } = sc;
@@ -160,7 +160,7 @@ export async function recordTraceStep(
       intent: traceStep.intent,
       kind: traceStep.kind,
       action_id: traceStep.action_id,
-      edge_id: page.edgeId ?? null,
+      transition_id: page.transitionId ?? null,
       value: traceStep.value,
       state_before: rs.currentStateId,
       state_after: page.stateId,

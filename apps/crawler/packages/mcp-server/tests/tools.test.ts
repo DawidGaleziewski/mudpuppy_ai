@@ -21,7 +21,7 @@ function fakeRuntime(): Runtime & { openSession: ReturnType<typeof vi.fn> } {
       route_template: '/',
       forms: 0,
       actions: [],
-      edge_id: 'e',
+      transition_id: 'e',
     })),
     closeAll: vi.fn(async () => {}),
   };

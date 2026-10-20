@@ -19,7 +19,7 @@ schemas) and store (record keys are allocated in the DB, `src/keys.ts`).
   crawler app scripts (`pnpm docs:*`). `readGroundTruth()` reads a YAML ground truth (G-34); used
   by `apps/crawler/evals/`, `docs:evaluate` and the gates.
 - Spec 034 (R-68, rebuild-grade export): `src/process-export/` — `steps.ts`
-  (`resolveProcessSteps`: a PROC record's steps from its trace, trace steps or chained edges, a
+  (`resolveProcessSteps`: a PROC record's steps from its trace, trace steps or chained transitions, a
   PRC's from A's head; states collapsed per kind and form step), `contracts.ts` (API calls per
   step, noise, OpenAPI from shapes), `model.ts`, the renderers (`render-steps.ts`,
   `render-records.ts`, `render-contracts.ts`) and `index.ts` (`exportProcess`, `exportPortal`);

@@ -448,10 +448,10 @@ def _action_label(row: sqlite3.Row) -> str:
     return f'{row["role"]} "{row["accessible_name"] or ""}"'
 
 
-def _edge_label(row: sqlite3.Row) -> str:
+def _transition_label(row: sqlite3.Row) -> str:
     action = _json(row["action_json"])
     name = action.get("accessible_name") if isinstance(action, dict) else None
-    return f'edge: "{name}"' if name else f"edge {row['id']}"
+    return f'transition: "{name}"' if name else f"transition {row['id']}"
 
 
 # kind -> (table, run tab, label from the row). `doc_record` and `review` are handled apart.
@@ -459,7 +459,7 @@ _TARGETS: dict[str, tuple[str, str, Callable[[sqlite3.Row], str]]] = {
     "state": ("states", "states", lambda r: f"{r['title']} ({r['route_template']})"),
     # spec 008: a region of a state's screenshot; the element key is on the link (`region`).
     "screen_region": ("states", "states", lambda r: f"{r['title']} ({r['route_template']})"),
-    "edge": ("edges", "states", _edge_label),
+    "transition": ("transitions", "states", _transition_label),
     "action": ("actions", "actions", _action_label),
     "form": ("forms", "forms", _form_label),
     "network_call": ("network_calls", "network", lambda r: f"{r['method']} {r['url_template']}"),
@@ -472,8 +472,8 @@ _TARGETS: dict[str, tuple[str, str, Callable[[sqlite3.Row], str]]] = {
     ),
     "process": ("processes", "process", lambda r: r["name"]),
     "process_step": ("process_steps", "process", lambda r: f"step {r['ord']}: {r['intent']}"),
-    # spec 019 (R-37): a visit's verbatim URL, the evidence of a parameter dependency
-    "page_visit": ("page_visits", "states", lambda r: r["url"]),
+    # spec 019 (R-37): an observation's verbatim URL, the evidence of a parameter dependency
+    "observation": ("observations", "states", lambda r: r["url"]),
 }
 
 
@@ -769,8 +769,8 @@ def capability_diagram_input(conn: sqlite3.Connection, portal: str) -> dict[str,
 
 
 def screen_diagram_input(conn: sqlite3.Connection, portal: str, limit: int = 200) -> dict[str, Any]:
-    """`screen_nav` input: screens, and transitions where an edge leads from a state a screen
-    cites to a state another screen cites (edge label = the action's accessible name)."""
+    """`screen_nav` input: screens, and transitions that lead from a state a screen cites to a
+    state another screen cites (label = the action's accessible name)."""
     screens = _rows(
         conn,
         "SELECT r.id, r.key, r.title FROM doc_records r WHERE r.portal_id = ? AND r.kind = 'screen'"
@@ -792,7 +792,7 @@ def screen_diagram_input(conn: sqlite3.Connection, portal: str, limit: int = 200
         marks = ",".join("?" for _ in state_owner)
         for r in _rows(
             conn,
-            "SELECT from_state, to_state, action_json FROM edges"
+            "SELECT from_state, to_state, action_json FROM transitions"
             f" WHERE from_state IN ({marks}) AND to_state IN ({marks}) ORDER BY id LIMIT ?",
             (*state_owner, *state_owner, limit),
         ):

@@ -55,7 +55,7 @@ interface Hit {
   state_id: string;
   run_id: string;
   at: string;
-  edge_id: string | null;
+  transition_id: string | null;
 }
 
 interface ScreenRow {
@@ -74,11 +74,11 @@ function actionHits(
       `SELECT f.screen_id AS "from", coalesce(json_extract(e.action_json, '$.role'), '') AS role,
               coalesce(json_extract(e.action_json, '$.accessible_name'), '') AS name,
               t.screen_id AS screen_id, e.to_state AS state_id, e.run_id, e.created_at AS at,
-              e.id AS edge_id
-         FROM edges e JOIN states f ON f.id = e.from_state JOIN states t ON t.id = e.to_state
+              e.id AS transition_id
+         FROM transitions e JOIN states f ON f.id = e.from_state JOIN states t ON t.id = e.to_state
         WHERE f.portal_id = ? AND e.status = 'executed'
           AND f.screen_id IS NOT NULL AND t.screen_id IS NOT NULL AND t.screen_id <> f.screen_id
-          AND NOT EXISTS (SELECT 1 FROM probe_outcomes p WHERE p.edge_id = e.id)
+          AND NOT EXISTS (SELECT 1 FROM probe_outcomes p WHERE p.transition_id = e.id)
         ORDER BY e.created_at, e.id`,
     )
     .all(portal) as (Hit & { from: string; role: string; name: string })[];
@@ -89,7 +89,7 @@ function routeHits(ctx: BaContext, portal: string): (Hit & { route: string })[] 
   return ctx.raw
     .prepare(
       `SELECT s.route_template AS route, s.screen_id, s.id AS state_id, o.run_id,
-              o.observed_at AS at, NULL AS edge_id
+              o.observed_at AS at, NULL AS transition_id
          FROM state_observations o JOIN states s ON s.id = o.state_id
         WHERE s.portal_id = ? AND s.screen_id IS NOT NULL AND s.form_step_id IS NULL
           AND coalesce(s.state_kind, 'main') = 'main' AND instr(s.route_template, ':') = 0
@@ -120,12 +120,12 @@ function runsOf(ctx: BaContext, portal: string): Map<string, OutcomeScan> {
   return new Map(rows.map((r) => [r.run_id, r]));
 }
 
-function httpStatus(ctx: BaContext, edgeIds: string[]): number | null {
-  if (edgeIds.length === 0) return null;
-  const marks = edgeIds.map(() => '?').join(',');
+function httpStatus(ctx: BaContext, transitionIds: string[]): number | null {
+  if (transitionIds.length === 0) return null;
+  const marks = transitionIds.map(() => '?').join(',');
   const row = ctx.raw
-    .prepare(`SELECT max(status) AS status FROM network_calls WHERE edge_id IN (${marks})`)
-    .get(...edgeIds) as { status: number | null } | undefined;
+    .prepare(`SELECT max(status) AS status FROM network_calls WHERE transition_id IN (${marks})`)
+    .get(...transitionIds) as { status: number | null } | undefined;
   return row?.status ?? null;
 }
 
@@ -159,7 +159,7 @@ function outcomes(l: Lookups, hits: Hit[]): GroupOutcome[] {
       last_seen: hs[hs.length - 1]!.at,
       http_status: httpStatus(
         l.ctx,
-        hs.map((h) => h.edge_id).filter((e): e is string => !!e),
+        hs.map((h) => h.transition_id).filter((e): e is string => !!e),
       ),
       frequency: { seen: runIds.length, of: runsTaking.size },
       reproduced: runIds.some((r) => r !== firstRun),

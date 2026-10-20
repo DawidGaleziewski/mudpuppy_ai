@@ -1,4 +1,4 @@
-import type { HopKind, NavigationHop, PageVisitVia } from '@pathfinder/core';
+import type { HopKind, NavigationHop, ObservationVia } from '@pathfinder/core';
 import { parseUrlParams, type UrlParamLocation } from '@pathfinder/fingerprint';
 
 /**
@@ -6,12 +6,12 @@ import { parseUrlParams, type UrlParamLocation } from '@pathfinder/fingerprint';
  * alone. Pure: the BA server, the export and the gates call it on rows they read.
  */
 
-/** A recorded visit, as read from `page_visits` (hops parsed). */
+/** A recorded visit, as read from `observations` (hops parsed). */
 export interface VisitRow {
   id: string;
   state_id: string;
-  edge_id: string | null;
-  via: PageVisitVia;
+  transition_id: string | null;
+  via: ObservationVia;
   url: string;
   hops: NavigationHop[];
 }
@@ -19,14 +19,14 @@ export interface VisitRow {
 export interface EntryUrl {
   url: string;
   visits: number;
-  via: PageVisitVia[];
+  via: ObservationVia[];
   /** Hop kinds that led to this URL besides the start (empty: reached directly). */
   hop_kinds: HopKind[];
 }
 
 /** Where a parameter value first appeared: the action's edge (if any) and the hop that brought it. */
 export interface SetBy {
-  edge_id: string | null;
+  transition_id: string | null;
   hop: HopKind;
 }
 
@@ -88,8 +88,8 @@ function addParams(acc: Map<string, ParamAcc>, v: VisitRow): void {
     a.seen.add(valueKey);
     a.entry.distinct += 1;
     if (a.entry.values.length < MAX_VALUES) a.entry.values.push(p.value);
-    const by: SetBy = { edge_id: v.edge_id, hop: arrivalHop(v) };
-    if (!a.entry.set_by.some((s) => s.edge_id === by.edge_id && s.hop === by.hop))
+    const by: SetBy = { transition_id: v.transition_id, hop: arrivalHop(v) };
+    if (!a.entry.set_by.some((s) => s.transition_id === by.transition_id && s.hop === by.hop))
       a.entry.set_by.push(by);
   }
 }

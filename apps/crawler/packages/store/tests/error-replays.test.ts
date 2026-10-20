@@ -17,7 +17,7 @@ function withWaitingError(): { o: OpenedDb; deviation: string } {
   const o = openDb(':memory:');
   migrateUp(o.raw, MIGRATIONS);
   seedThreshold(o);
-  o.raw.prepare("UPDATE edges SET result = 'technical_error' WHERE id = 'e0'").run();
+  o.raw.prepare("UPDATE transitions SET result = 'technical_error' WHERE id = 'e0'").run();
   reconcilePortalModel(o.raw, 'ins', { now: T(500) });
   const ids = o.raw
     .prepare(

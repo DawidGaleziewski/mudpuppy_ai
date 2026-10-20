@@ -33,7 +33,7 @@ export interface PendingReplay {
 
 /** What the driver saw, as `recordReplay` keeps it. */
 export type ReplayResult =
-  | { status: 'reached'; runId: string; edgeId: string | null; stateId: string }
+  | { status: 'reached'; runId: string; transitionId: string | null; stateId: string }
   | { status: 'diverged'; runId: string | null; atStep: number; reason: string };
 
 /** Typed by the step itself or by autofill at the submit: a replay presses only the rest. */
@@ -49,12 +49,12 @@ export function journeyPath(
   seq: number,
 ): { startUrl: string; steps: string[] } | null {
   const start = raw
-    .prepare('SELECT url FROM page_visits WHERE journey_id = ? ORDER BY seq LIMIT 1')
+    .prepare('SELECT url FROM observations WHERE journey_id = ? ORDER BY seq LIMIT 1')
     .get(journeyId) as { url: string } | undefined;
   if (!start) return null;
   const steps = raw
     .prepare(
-      `SELECT e.element_key FROM edges e WHERE e.journey_id = ? AND e.seq <= ?
+      `SELECT e.element_key FROM transitions e WHERE e.journey_id = ? AND e.seq <= ?
        AND e.status = 'executed' AND ${PRESSED} ORDER BY e.seq`,
     )
     .all(journeyId, seq) as { element_key: string }[];
@@ -72,7 +72,7 @@ interface Execution {
 function latestExecution(raw: Raw, portal: string, screenKey: string, action: string) {
   return raw
     .prepare(
-      `SELECT e.journey_id, e.seq, e.created_at, r.persona_id, r.environment FROM edges e
+      `SELECT e.journey_id, e.seq, e.created_at, r.persona_id, r.environment FROM transitions e
        JOIN runs r ON r.id = e.run_id
        JOIN screen_members m ON m.state_id = e.from_state AND m.to_model_version IS NULL
        JOIN model_screens s ON s.id = m.screen_id
@@ -191,7 +191,7 @@ export function recordReplay(raw: Raw, testId: string, result: ReplayResult): vo
   raw
     .prepare('UPDATE hypothesis_tests SET result_json = ?, run_id = ? WHERE id = ?')
     .run(
-      JSON.stringify({ state_id: result.stateId, edge_id: result.edgeId }),
+      JSON.stringify({ state_id: result.stateId, transition_id: result.transitionId }),
       result.runId,
       testId,
     );
@@ -221,7 +221,7 @@ export function judgeReplays(
   }[];
   const touched = new Set<string>();
   for (const t of open) {
-    const seen = JSON.parse(t.result_json) as { state_id: string; edge_id: string | null };
+    const seen = JSON.parse(t.result_json) as { state_id: string; transition_id: string | null };
     const outcome = outcomeOf(raw, seen);
     if (outcome === null) continue; // not reconciled yet
     const expected = (JSON.parse(t.refutes_if_json) as { notIn: string[] }).notIn;
@@ -240,7 +240,7 @@ export function judgeReplays(
 /** `<screen key> <result>`, the outcome form the decision table uses; null before a reconcile. */
 export function outcomeOf(
   raw: Raw,
-  seen: { state_id: string; edge_id: string | null },
+  seen: { state_id: string; transition_id: string | null },
 ): string | null {
   const screen = raw
     .prepare(
@@ -249,8 +249,8 @@ export function outcomeOf(
     )
     .get(seen.state_id) as { key: string } | undefined;
   if (!screen) return null;
-  const result = seen.edge_id
-    ? (raw.prepare('SELECT result FROM edges WHERE id = ?').get(seen.edge_id) as
+  const result = seen.transition_id
+    ? (raw.prepare('SELECT result FROM transitions WHERE id = ?').get(seen.transition_id) as
         { result: string } | undefined)
     : undefined;
   return `${screen.key} ${result?.result ?? 'ok'}`;

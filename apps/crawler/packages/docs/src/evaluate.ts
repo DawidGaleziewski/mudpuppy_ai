@@ -703,9 +703,9 @@ export function loadEvalInput(
       case 'state':
       case 'screen_region': // target_id is the state; the element key is in `region`
         return stateRoute(id);
-      case 'page_visit':
+      case 'observation':
         return stateRoute(
-          one('SELECT state_id FROM page_visits WHERE id = ?', id)?.state_id ?? null,
+          one('SELECT state_id FROM observations WHERE id = ?', id)?.state_id ?? null,
         );
       case 'form':
       case 'action':
@@ -713,13 +713,13 @@ export function loadEvalInput(
           one(`SELECT state_id FROM ${kind === 'form' ? 'forms' : 'actions'} WHERE id = ?`, id)
             ?.state_id ?? null,
         );
-      case 'edge': {
-        const e = one('SELECT from_state, to_state FROM edges WHERE id = ?', id);
+      case 'transition': {
+        const e = one('SELECT from_state, to_state FROM transitions WHERE id = ?', id);
         return e ? [...stateRoute(e.from_state ?? null), ...stateRoute(e.to_state ?? null)] : [];
       }
       case 'network_call': {
         const e = one(
-          'SELECT e.from_state, e.to_state FROM network_calls n JOIN edges e ON e.id = n.edge_id WHERE n.id = ?',
+          'SELECT e.from_state, e.to_state FROM network_calls n JOIN transitions e ON e.id = n.transition_id WHERE n.id = ?',
           id,
         );
         return e ? [...stateRoute(e.from_state ?? null), ...stateRoute(e.to_state ?? null)] : [];

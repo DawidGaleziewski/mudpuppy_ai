@@ -75,12 +75,12 @@ export function closestKeys(wanted: string, keys: readonly string[], n = 10): st
 const RUN_BOUND: Partial<
   Record<EvidenceTargetKind, { table: string; confidence: 'column' | Confidence | null }>
 > = {
-  edge: { table: 'edges', confidence: 'column' },
+  transition: { table: 'transitions', confidence: 'column' },
   form: { table: 'forms', confidence: 'column' },
   action: { table: 'actions', confidence: 'observed' },
   network_call: { table: 'network_calls', confidence: 'observed' },
   // spec 019: the server saw the browser at that URL (R-37/R-38)
-  page_visit: { table: 'page_visits', confidence: 'observed' },
+  observation: { table: 'observations', confidence: 'observed' },
   rule_candidate: { table: 'rule_candidates', confidence: 'column' },
   open_question: { table: 'open_questions', confidence: null },
   decision: { table: 'decision_log', confidence: null },

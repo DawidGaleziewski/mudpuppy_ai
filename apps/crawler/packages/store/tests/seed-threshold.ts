@@ -70,7 +70,7 @@ export function seedThreshold(o: OpenedDb): void {
       "INSERT INTO journeys (id, run_id, start_kind, started_at) VALUES (?, 'run1', 'entry_url', ?)",
     ).run(j, T(at));
     r.prepare(
-      `INSERT INTO page_visits (id, run_id, state_id, edge_id, via, url, hops_json, created_at, journey_id, seq, result,
+      `INSERT INTO observations (id, run_id, state_id, transition_id, via, url, hops_json, created_at, journey_id, seq, result,
          context_key, flags_json) VALUES (?, 'run1', 'form', NULL, 'navigate', 'https://ins.test/kalkulator/kierowca', '[]', ?, ?, ?, 'ok', ?, '{}')`,
     ).run(`vf${i}`, T(at), j, i * 2 + 1, H('x'));
     r.prepare(
@@ -79,12 +79,12 @@ export function seedThreshold(o: OpenedDb): void {
     ).run(`w${i}`, j, birth, T(at));
     const adult = Number(birth.slice(0, 4)) < 2008;
     r.prepare(
-      `INSERT INTO edges (id, run_id, from_state, to_state, action_json, safety_class, status, evidence_ref, confidence,
-         stabilization, created_at, journey_id, seq, from_visit_id, element_key, kind, result)
+      `INSERT INTO transitions (id, run_id, from_state, to_state, action_json, safety_class, status, evidence_ref, confidence,
+         stabilization, created_at, journey_id, seq, from_observation_id, element_key, kind, result)
        VALUES (?, 'run1', 'form', ?, '{}', 'read', 'executed', ?, 'observed', 'settled', ?, ?, 2, ?, ?, 'submit', 'ok')`,
     ).run(`e${i}`, adult ? 'price' : 'exit', `${H('e')}.yaml`, T(at + 1), j, `vf${i}`, SUBMIT);
     r.prepare(
-      `INSERT INTO page_visits (id, run_id, state_id, edge_id, via, url, hops_json, created_at, journey_id, seq, result,
+      `INSERT INTO observations (id, run_id, state_id, transition_id, via, url, hops_json, created_at, journey_id, seq, result,
          context_key, flags_json) VALUES (?, 'run1', ?, ?, 'action', 'https://ins.test/next', '[]', ?, ?, ?, 'ok', ?, '{}')`,
     ).run(`vn${i}`, adult ? 'price' : 'exit', `e${i}`, T(at + 2), j, i * 2 + 2, H('x'));
   });
@@ -122,13 +122,15 @@ export function withRule(cut: number): OpenedDb {
   return o;
 }
 
-/** What the seeded portal does: under `min` → the exit page (edge e0), else the price page (e5). */
+/** What the seeded portal does: under `min` → the exit page (transition e0), else the price page (e5). */
 export function portalAnswer(birth: string, min = 18) {
   const age =
     Number(TODAY.slice(0, 4)) -
     Number(birth.slice(0, 4)) -
     (birth.slice(5) > TODAY.slice(5) ? 1 : 0);
-  return age < min ? { stateId: 'exit', edgeId: 'e0' } : { stateId: 'price', edgeId: 'e5' };
+  return age < min
+    ? { stateId: 'exit', transitionId: 'e0' }
+    : { stateId: 'price', transitionId: 'e5' };
 }
 
 /**

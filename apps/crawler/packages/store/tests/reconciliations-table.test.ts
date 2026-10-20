@@ -61,6 +61,7 @@ it('0025 reconciliations: CHECKs hold, one open proposal per group, down drops t
   ).toThrow(/CHECK/);
   insert('k', { status: 'confirmed', confirmed: '[]', by: 'Ola', at: ts });
   insert('l', { status: 'superseded' });
+  expect(migrateDown(o.raw, MIGRATIONS)).toBe('0032');
   expect(migrateDown(o.raw, MIGRATIONS)).toBe('0031');
   expect(migrateDown(o.raw, MIGRATIONS)).toBe('0030');
   expect(migrateDown(o.raw, MIGRATIONS)).toBe('0029');
@@ -79,6 +80,7 @@ it('0025 reconciliations: CHECKs hold, one open proposal per group, down drops t
     '0029',
     '0030',
     '0031',
+    '0032',
   ]);
   expect(o.raw.pragma('foreign_key_check')).toEqual([]);
 });

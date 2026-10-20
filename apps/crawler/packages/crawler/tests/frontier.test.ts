@@ -262,7 +262,7 @@ describe('enqueueActions + report', () => {
     const rep = await buildFrontierReport(d.db, d.runId, ['/oferta/:id']);
     expect(rep.skipped).toHaveLength(5);
     expect(rep.pending).toBe(1);
-    expect(rep.coverage).toMatchObject({ states: 1, actions_executed: 0, item_page_visits: 1 });
+    expect(rep.coverage).toMatchObject({ states: 1, actions_executed: 0, item_pages_visited: 1 });
     expect(rep.coverage.actions_skipped_by_class).toMatchObject({
       'external-side-effect': 2,
       destructive: 1,
@@ -272,6 +272,6 @@ describe('enqueueActions + report', () => {
     expect(text).toContain('[out of scope]');
     expect(text).toContain('[not read-only] mutating');
     expect(text).toContain('Item pages visited: 1');
-    expect((await computeCoverage(d.db, d.runId)).item_page_visits).toBe(0);
+    expect((await computeCoverage(d.db, d.runId)).item_pages_visited).toBe(0);
   });
 });

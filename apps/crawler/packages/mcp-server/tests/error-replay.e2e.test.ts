@@ -94,13 +94,16 @@ describe.skipIf(!available)('rule R1 on the headless driver (spec 039 T052)', ()
       purpose: 'deterministic-error scenario',
     });
     const raw = h.ctx.raw;
-    const resultOf = (edgeId: string | null) =>
-      (raw.prepare('SELECT result FROM edges WHERE id = ?').get(edgeId) as { result: string })
-        .result;
+    const resultOf = (transitionId: string | null) =>
+      (
+        raw.prepare('SELECT result FROM transitions WHERE id = ?').get(transitionId) as {
+          result: string;
+        }
+      ).result;
     const ok = await replay(h.call, plan('Corolla'));
-    expect(ok.status === 'reached' && resultOf(ok.edgeId)).toBe('ok');
+    expect(ok.status === 'reached' && resultOf(ok.transitionId)).toBe('ok');
     const broken = await replay(h.call, plan(FAILING_MODEL));
-    expect(broken.status === 'reached' && resultOf(broken.edgeId)).toBe('technical_error');
+    expect(broken.status === 'reached' && resultOf(broken.transitionId)).toBe('technical_error');
 
     const waiting = raw
       .prepare(

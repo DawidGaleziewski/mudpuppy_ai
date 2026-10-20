@@ -198,7 +198,7 @@ describe.skipIf(!available)('replay to a recorded screen (spec 034 R-66)', () =>
     try {
       const rec = await recordPath(call);
       const toItem = await ctx.db
-        .selectFrom('edges')
+        .selectFrom('transitions')
         .select(['id', 'action_json'])
         .where('run_id', '=', rec.runId)
         .where('from_state', '=', rec.list)
@@ -218,7 +218,7 @@ describe.skipIf(!available)('replay to a recorded screen (spec 034 R-66)', () =>
         portal_id: 'mock',
         persona_id: 'guest',
         run_type: 'retry',
-        plan: { target_edge_id: toItem.id, variation: 'wait_longer' },
+        plan: { target_transition_id: toItem.id, variation: 'wait_longer' },
       });
       expect(retry.body.start_points).toMatchObject([{ state_id: rec.list }]);
       const retryId = retry.body.run_id as string;
@@ -236,7 +236,7 @@ describe.skipIf(!available)('replay to a recorded screen (spec 034 R-66)', () =>
           id: 'mk-skip',
           portal_id: 'mock',
           kind: 'skip',
-          target_kind: 'edge',
+          target_kind: 'transition',
           target_id: toItem.id,
           created_by: 'owner',
           created_at: '2026-10-17T00:00:00.000Z',

@@ -137,7 +137,7 @@ href="{{ c.url('/runs/' ~ section.run.id, tab='graph', node=id) }}" hx-get="{{ c
           <span><b class="sy-case-normal">{{ f.label }}</b> <span class="sy-small sy-muted">{{ f.error }}</span></span>
           <form class="sy-cluster" style="--sy-gap: 6px" method="post" action="{{ c.url('/scans/plan/start') }}">
             <input type="hidden" name="run_type" value="retry">
-            <input type="hidden" name="target_edge_id" value="{{ f.edge_id }}">
+            <input type="hidden" name="target_transition_id" value="{{ f.transition_id }}">
             <input type="hidden" name="parent_run_id" value="{{ r.run_id }}">
             <input type="hidden" name="persona" value="{{ r.persona }}">
             <input type="hidden" name="environment" value="{{ r.environment }}">
@@ -148,7 +148,7 @@ href="{{ c.url('/runs/' ~ section.run.id, tab='graph', node=id) }}" hx-get="{{ c
             <button class="sy-btn sy-btn--sm sy-btn--strong" type="submit">Retry this path</button>
           </form>
           <form method="post" action="{{ c.url('/scans/recover/' ~ r.run_id ~ '/skip') }}">
-            <input type="hidden" name="edge_id" value="{{ f.edge_id }}">
+            <input type="hidden" name="transition_id" value="{{ f.transition_id }}">
             <input type="hidden" name="from" value="graph">
             <input type="hidden" name="node" value="{{ here.id }}">
             <button class="sy-btn sy-btn--sm sy-btn--quiet" type="submit">Skip it in the next scans</button>

@@ -55,7 +55,7 @@ interface Watermarks {
 function watermarks(raw: Raw, portal: string): Watermarks {
   const obs = raw
     .prepare(
-      'SELECT max(v.id) AS w FROM page_visits v JOIN runs r ON r.id = v.run_id WHERE r.portal_id = ?',
+      'SELECT max(v.id) AS w FROM observations v JOIN runs r ON r.id = v.run_id WHERE r.portal_id = ?',
     )
     .get(portal) as { w: string | null };
   const dec = raw
@@ -95,7 +95,7 @@ export function loadReconcileInput(raw: Raw, portal: string): ReconcileInput {
   const buildsOf = new Map<string, { scope: string; build: string }[]>();
   for (const b of raw
     .prepare(
-      `SELECT ob.page_visit_id AS visit, b.scope, b.id AS build FROM observation_builds ob
+      `SELECT ob.observation_id AS visit, b.scope, b.id AS build FROM observation_builds ob
        JOIN builds b ON b.id = ob.build_id WHERE b.portal_id = ?`,
     )
     .all(portal) as { visit: string; scope: string; build: string }[])
@@ -104,7 +104,7 @@ export function loadReconcileInput(raw: Raw, portal: string): ReconcileInput {
     raw
       .prepare(
         `SELECT v.id, v.run_id, v.state_id, v.url, v.created_at, r.persona_id, r.environment
-         FROM page_visits v JOIN runs r ON r.id = v.run_id
+         FROM observations v JOIN runs r ON r.id = v.run_id
          JOIN state_components c ON c.state_id = v.state_id WHERE r.portal_id = ?`,
       )
       .all(portal) as {
@@ -130,7 +130,7 @@ export function loadReconcileInput(raw: Raw, portal: string): ReconcileInput {
     raw
       .prepare(
         `SELECT e.id, e.run_id, e.from_state, e.to_state, e.element_key, e.kind, e.result, e.created_at
-         FROM edges e JOIN runs r ON r.id = e.run_id
+         FROM transitions e JOIN runs r ON r.id = e.run_id
          WHERE r.portal_id = ? AND e.element_key IS NOT NULL AND e.kind IS NOT NULL AND e.result IS NOT NULL`,
       )
       .all(portal) as {
@@ -442,11 +442,11 @@ function writeActionsAndTransitions(
   );
   const insertTransition = raw.prepare(
     `INSERT INTO model_transitions (id, from_screen_id, action_class_id, to_screen_id, result, internal, support,
-       first_seen_edge_id, last_seen_edge_id, status, status_model_version) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+       first_seen_transition_id, last_seen_transition_id, status, status_model_version) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
   );
   const updateTransition = raw.prepare(
-    `UPDATE model_transitions SET support = ?, last_seen_edge_id = ?, status = ?, status_model_version = ?
-     WHERE id = ? AND (support <> ? OR last_seen_edge_id <> ? OR status <> ?)`,
+    `UPDATE model_transitions SET support = ?, last_seen_transition_id = ?, status = ?, status_model_version = ?
+     WHERE id = ? AND (support <> ? OR last_seen_transition_id <> ? OR status <> ?)`,
   );
   for (const t of out.transitions) {
     const from = screenIds.get(t.fromScreen)!;
@@ -486,7 +486,7 @@ function writeEpochs(raw: Raw, portal: string, out: ReconcileOutput, versionId: 
   // Epochs are derived again on every version; the latest version's rows are the ones in force.
   raw.prepare('DELETE FROM build_epochs WHERE portal_id = ?').run(portal);
   const insert = raw.prepare(
-    `INSERT INTO build_epochs (id, portal_id, scope, environment, build_id, first_visit_id, last_visit_id,
+    `INSERT INTO build_epochs (id, portal_id, scope, environment, build_id, first_observation_id, last_observation_id,
        overlaps_previous, model_version_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
   );
   for (const e of out.epochs)

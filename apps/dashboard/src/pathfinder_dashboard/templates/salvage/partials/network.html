@@ -13,7 +13,7 @@
       <tbody>
         {%- for n in v.page["items"] %}
         <tr id="{{ n.id }}">
-          <td><span class="sy-route">{{ n.method }} {{ n.url_template }}</span><div class="sy-small sy-muted">{% if n.edge_id %}edge <span class="sy-mono sy-mono--sm">{{ n.edge_id }}</span>{% else %}on screen load{% endif %}</div></td>
+          <td><span class="sy-route">{{ n.method }} {{ n.url_template }}</span><div class="sy-small sy-muted">{% if n.transition_id %}transition <span class="sy-mono sy-mono--sm">{{ n.transition_id }}</span>{% else %}on screen load{% endif %}</div></td>
           <td class="sy-num">{{ sy.status("http", "error" if n.status >= 400 else "ok", n.status) }}</td>
           <td class="sy-stack" style="--sy-gap: 4px">{{ sy.json_block(n.req_schema, "Request") }}{{ sy.json_block(n.res_schema, "Response") }}</td>
           <td>{% if n.console_errors %}{{ sy.json_block(n.console_errors, (n.console_errors | length) ~ " errors") }}{% else %}<span class="sy-muted">None</span>{% endif %}</td>

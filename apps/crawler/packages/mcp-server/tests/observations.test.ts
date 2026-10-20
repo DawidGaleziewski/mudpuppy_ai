@@ -1,6 +1,6 @@
 import { newId, nowIso } from '@pathfinder/core';
 import { describe, expect, it } from 'vitest';
-import { recordPageVisit, recordState, upsertBuilds } from '../src/index.js';
+import { recordObservation, recordState, upsertBuilds } from '../src/index.js';
 import type { ServerContext } from '../src/context.js';
 import { FP, REF, makeCtx, seedRun } from './helpers.js';
 
@@ -25,7 +25,7 @@ async function journeyOf(ctx: ServerContext, run: string): Promise<string> {
   return id;
 }
 
-describe('recordPageVisit (spec 019, R-37/R-38; spec 039 observations)', () => {
+describe('recordObservation (spec 019, R-37/R-38; spec 039 observations)', () => {
   it('stores every arrival with its verbatim URL and hops, also on a known state', async () => {
     const ctx = await makeCtx();
     const run = await seedRun(ctx);
@@ -49,10 +49,10 @@ describe('recordPageVisit (spec 019, R-37/R-38; spec 039 observations)', () => {
       },
     ];
     const v2 = { journey_id: journey, result: 'ok' as const, context_key: CONTEXT, flags: {} };
-    await recordPageVisit(ctx, {
+    await recordObservation(ctx, {
       run_id: run,
       state_id,
-      edge_id: null,
+      transition_id: null,
       via: 'navigate',
       url: 'https://shop.test/sklep?kategoria=7&utm_source=x',
       hops,
@@ -60,10 +60,10 @@ describe('recordPageVisit (spec 019, R-37/R-38; spec 039 observations)', () => {
       seq: 1,
       build_ids: [],
     });
-    await recordPageVisit(ctx, {
+    await recordObservation(ctx, {
       run_id: run,
       state_id,
-      edge_id: null,
+      transition_id: null,
       via: 'navigate',
       url: 'https://shop.test/sklep?strona=2',
       hops: [],
@@ -72,7 +72,7 @@ describe('recordPageVisit (spec 019, R-37/R-38; spec 039 observations)', () => {
       build_ids: [],
     });
     const rows = await ctx.db
-      .selectFrom('page_visits')
+      .selectFrom('observations')
       .select(['url', 'hops_json', 'via', 'seq', 'journey_id'])
       .where('state_id', '=', state_id)
       .orderBy('created_at')
@@ -107,10 +107,10 @@ describe('recordPageVisit (spec 019, R-37/R-38; spec 039 observations)', () => {
     };
     const ids = await upsertBuilds(ctx, 'p1', [shell]);
     expect(await upsertBuilds(ctx, 'p1', [shell])).toEqual(ids);
-    await recordPageVisit(ctx, {
+    await recordObservation(ctx, {
       run_id: run,
       state_id,
-      edge_id: null,
+      transition_id: null,
       via: 'navigate',
       url: 'https://x.test/',
       hops: [],
@@ -123,7 +123,7 @@ describe('recordPageVisit (spec 019, R-37/R-38; spec 039 observations)', () => {
     });
     const links = await ctx.db.selectFrom('observation_builds').selectAll().execute();
     expect(links.map((l) => l.build_id)).toEqual(ids);
-    const visit = await ctx.db.selectFrom('page_visits').selectAll().executeTakeFirstOrThrow();
+    const visit = await ctx.db.selectFrom('observations').selectAll().executeTakeFirstOrThrow();
     expect(visit.result).toBe('technical_error');
     expect(JSON.parse(visit.flags_json)).toEqual({ 'cookie:ab': 'B' });
   });
@@ -132,10 +132,10 @@ describe('recordPageVisit (spec 019, R-37/R-38; spec 039 observations)', () => {
     const ctx = await makeCtx();
     const run = await seedRun(ctx);
     await expect(
-      recordPageVisit(ctx, {
+      recordObservation(ctx, {
         run_id: run,
         state_id: 's',
-        edge_id: null,
+        transition_id: null,
         via: 'navigate',
         url: 'https://x.test/',
         hops: [{ url: 'https://x.test/', kind: 'warp' as never }],
@@ -148,10 +148,10 @@ describe('recordPageVisit (spec 019, R-37/R-38; spec 039 observations)', () => {
       }),
     ).rejects.toThrow();
     await expect(
-      recordPageVisit(ctx, {
+      recordObservation(ctx, {
         run_id: run,
         state_id: 's',
-        edge_id: null,
+        transition_id: null,
         via: 'navigate',
         url: 'https://x.test/',
         hops: [],

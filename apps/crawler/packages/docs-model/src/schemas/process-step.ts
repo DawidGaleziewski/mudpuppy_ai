@@ -13,7 +13,7 @@ export const ProcessStep = z.object({
   kind: ProcessStepKind,
   /** NULL for `navigate`. */
   action_id: Id.nullable(),
-  edge_id: Id.nullable(),
+  transition_id: Id.nullable(),
   /** Scrubbed synthetic input for `fill`/`select`; NULL otherwise. */
   value: z.string().nullable(),
   state_before: Id.nullable(),

@@ -98,10 +98,10 @@ export class RunState {
    * first page of a journey.
    */
   journey: { id: string; seq: number; reached: Map<string, number> } | null = null;
-  /** The visit the next transition starts from; null at a journey's start. */
-  lastVisitId: string | null = null;
-  /** The run's last visit number; null until read from the store (a resumed run continues it). */
-  visitSeq: number | null = null;
+  /** The observation the next transition starts from; null at a journey's start. */
+  lastObservationId: string | null = null;
+  /** The run's last observation number; null until read from the store (a resumed run continues it). */
+  observationSeq: number | null = null;
   /** The portal's form steps (spec 032 US1), loaded from the store on the first form of the run. */
   formSteps: FormStepIndex | null = null;
   /** True while a technical probe's fault is armed: the error page is not re-opened (spec 032). */

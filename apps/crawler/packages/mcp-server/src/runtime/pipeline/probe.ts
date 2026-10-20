@@ -87,7 +87,7 @@ async function fillRevealed(
 /**
  * Back on the step (unless the browser is already there, untouched), the happy values plus the
  * try's changes written, the fault armed, the control pressed without autofill, and the page
- * recorded like any `act` (states, edges, frontier: a branch is explored from there).
+ * recorded like any `act` (states, transitions, frontier: a branch is explored from there).
  */
 export async function press(
   sc: ReplayScope,
@@ -167,11 +167,11 @@ export async function classifyPress(
   const stepAfter = rs.stepOfState.get(p.result.state_id) ?? null;
   const sameStep = p.result.route_template === target.route && stepAfter === target.stepId;
   const messages = [...domMessages(rs.lastObserved?.snapshot ?? ''), ...p.native];
-  const calls = p.result.edge_id
+  const calls = p.result.transition_id
     ? await ctx.db
         .selectFrom('network_calls')
         .select((eb) => eb.fn.max('status').as('status'))
-        .where('edge_id', '=', p.result.edge_id)
+        .where('transition_id', '=', p.result.transition_id)
         .executeTakeFirst()
     : undefined;
   const httpStatus = p.fault?.status ?? (calls?.status ? Number(calls.status) : null);
@@ -245,7 +245,7 @@ export function recordOutcome(
         http_status: o.httpStatus,
         reason: c.why,
         evidence_ref: evidence.evidence_ref,
-        edge_id: p.result.edge_id ?? null,
+        transition_id: p.result.transition_id ?? null,
         created_at: nowIso(),
       })
       .execute();

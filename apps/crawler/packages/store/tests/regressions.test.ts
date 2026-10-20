@@ -64,7 +64,7 @@ describe('decision drift (spec 039 design § 11.6, rule R8)', () => {
       o.raw,
       'ins',
       deviation!,
-      { state_id: answer.stateId, edge_id: answer.edgeId },
+      { state_id: answer.stateId, transition_id: answer.transitionId },
       T(1200),
     );
     const h = o.raw.prepare('SELECT kind, rule, derived FROM hypotheses WHERE key = ?').get(key);
@@ -85,7 +85,7 @@ describe('decision drift (spec 039 design § 11.6, rule R8)', () => {
       o.raw,
       'ins',
       deviation!,
-      { state_id: answer.stateId, edge_id: answer.edgeId },
+      { state_id: answer.stateId, transition_id: answer.transitionId },
       T(1200),
     );
     expect(o.raw.prepare('SELECT kind FROM hypotheses WHERE key = ?').get(key)).toEqual({

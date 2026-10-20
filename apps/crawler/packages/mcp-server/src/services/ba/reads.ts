@@ -18,7 +18,7 @@ export const EVIDENCE_CONTENT_LIMIT = 60_000;
 type Row = Record<string, unknown>;
 
 // list_runs lives in `runs.ts`; get_run_evidence lives in `run-evidence.ts` (spec 019: it grew
-// page visits and parameters).
+// observations and parameters).
 
 // ---------------------------------------------------------------------------------------------------
 // get_evidence
@@ -26,7 +26,7 @@ type Row = Record<string, unknown>;
 /** Layer A kinds this tool reads; records and reviews are read with `get_record`. */
 export const EvidenceReadKind = z.enum([
   'state',
-  'edge',
+  'transition',
   'action',
   'form',
   'network_call',
@@ -42,7 +42,7 @@ export const GetEvidenceInput = z
 
 const EVIDENCE_TABLE: Record<EvidenceReadKind, string> = {
   state: 'states',
-  edge: 'edges',
+  transition: 'transitions',
   action: 'actions',
   form: 'forms',
   network_call: 'network_calls',
@@ -346,7 +346,7 @@ export function getProcess(ctx: BaContext, raw: unknown): Row {
     });
 
   const calls = ctx.raw.prepare(
-    `SELECT id, method, url_template, status FROM network_calls WHERE edge_id = ? ORDER BY id`,
+    `SELECT id, method, url_template, status FROM network_calls WHERE transition_id = ? ORDER BY id`,
   );
   const steps = (
     ctx.raw
@@ -365,8 +365,8 @@ export function getProcess(ctx: BaContext, raw: unknown): Row {
     value: s.value,
     state_before: stateRef(ctx, s.state_before),
     state_after: stateRef(ctx, s.state_after),
-    edge_id: s.edge_id,
-    network_calls: s.edge_id === null ? [] : calls.all(s.edge_id),
+    transition_id: s.transition_id,
+    network_calls: s.transition_id === null ? [] : calls.all(s.transition_id),
     outcomes: json<string[]>(s.outcomes_json as string),
     evidence_ref: s.evidence_ref,
     confidence: s.confidence,

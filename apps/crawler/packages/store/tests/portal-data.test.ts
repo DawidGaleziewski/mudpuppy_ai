@@ -38,7 +38,7 @@ const SHARED = ref('a'); // the same cookie page on both portals
 const SHOP_ONLY = ref('b');
 const INSURER_ONLY = ref('c');
 const SHOP_ROBOTS = ref('d', 'json');
-const SHOP_SNAPSHOT = ref('e'); // referenced only inside edges.action_json
+const SHOP_SNAPSHOT = ref('e'); // referenced only inside transitions.action_json
 
 /** Two portals in one database: `shop` (to export and delete) and `insurer` (must stay untouched). */
 function seed() {
@@ -144,7 +144,7 @@ function seed() {
   const shopState2 = state2('shop', shopRun, SHOP_ONLY);
   raw
     .prepare(
-      `INSERT INTO edges (id, run_id, from_state, to_state, action_json, safety_class, status, evidence_ref,
+      `INSERT INTO transitions (id, run_id, from_state, to_state, action_json, safety_class, status, evidence_ref,
        confidence, stabilization, error, created_at)
        VALUES (?, ?, ?, ?, ?, 'read', 'executed', ?, 'observed', 'settled', NULL, ?)`,
     )
@@ -158,15 +158,15 @@ function seed() {
       ts,
     );
   // A visit references its edge and state: deleting the portal must drop it before both (0012).
-  const shopEdge = (
-    raw.prepare('SELECT id FROM edges WHERE run_id = ?').get(shopRun) as { id: string }
+  const shopTransition = (
+    raw.prepare('SELECT id FROM transitions WHERE run_id = ?').get(shopRun) as { id: string }
   ).id;
   raw
     .prepare(
-      `INSERT INTO page_visits (id, run_id, state_id, edge_id, via, url, hops_json, created_at)
+      `INSERT INTO observations (id, run_id, state_id, transition_id, via, url, hops_json, created_at)
        VALUES (?, ?, ?, ?, 'action', 'https://shop.pl/koszyk?sid=1', '[]', ?)`,
     )
-    .run(newId(), shopRun, shopState2, shopEdge, ts);
+    .run(newId(), shopRun, shopState2, shopTransition, ts);
   raw
     .prepare(
       `INSERT INTO robots_policies (id, run_id, host, source_url, final_url, outcome, http_status, product_token,
@@ -269,8 +269,8 @@ describe('portal export (spec 002 FR-028, contracts/operator-cli.md)', () => {
       runs: 1,
       states: 2,
       state_observations: 1,
-      edges: 1,
-      page_visits: 1,
+      transitions: 1,
+      observations: 1,
       decision_log: 1,
       robots_policies: 1,
       trace_spans: 2,
@@ -287,7 +287,7 @@ describe('portal export (spec 002 FR-028, contracts/operator-cli.md)', () => {
       environment: 'sandbox',
       counts: r.counts,
       evidence_files: 4,
-      schema_version: '0031',
+      schema_version: '0032',
     });
     expect(typeof manifest.exported_at).toBe('string');
     for (const t of PORTAL_TABLES) expect(existsSync(join(out, `${t}.ndjson`))).toBe(true);
@@ -332,7 +332,7 @@ describe('portal delete (spec 002 FR-028, SC-008)', () => {
   it('plans the delete: row counts, evidence to remove and evidence kept for another portal', () => {
     const s = seed();
     const plan = planPortalDelete({ raw: s.raw, evidenceDir: s.evidence, portal: 'shop' });
-    expect(plan.counts).toMatchObject({ runs: 1, states: 2, edges: 1, robots_policies: 1 });
+    expect(plan.counts).toMatchObject({ runs: 1, states: 2, transitions: 1, robots_policies: 1 });
     expect(plan.evidenceToRemove.sort()).toEqual([SHOP_ONLY, SHOP_ROBOTS, SHOP_SNAPSHOT].sort());
     expect(plan.evidenceKept).toEqual([SHARED]);
     expect(plan.running).toEqual([]);

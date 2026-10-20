@@ -11,7 +11,7 @@ import { traceBoundary } from './trace-boundary.js';
 
 type Gated = { action: ActionRow; g: GateContext; d: ReturnType<typeof decide> };
 
-/** Load the issued action and re-check it; refuses (and records a skipped edge) when not allowed. */
+/** Load the issued action and re-check it; refuses (and records a skipped transition) when not allowed. */
 export async function gateAct(
   ctx: ServerContext,
   run: RunRow,
@@ -23,7 +23,7 @@ export async function gateAct(
 
   // The server re-derives the class and re-checks everything; nothing the agent says is trusted.
   const priorActions = await ctx.db
-    .selectFrom('edges')
+    .selectFrom('transitions')
     .select((eb) => eb.fn.countAll<number>().as('n'))
     .where('run_id', '=', run.id)
     .where('from_state', '=', action.state_id)
@@ -35,7 +35,10 @@ export async function gateAct(
   const reports = [gateEvent(state, { kind: 'act', action }, d)];
   if (d.allowed) return reported({ action, g, d }, reports);
 
-  await orFail(reports, recordSkippedEdge(ctx, run, state, action, d.classification.safetyClass));
+  await orFail(
+    reports,
+    recordSkippedTransition(ctx, run, state, action, d.classification.safetyClass),
+  );
   const refused = refuse(ctx, run, d, actionTarget(action, d.classification.safetyClass), reports);
   // A trace stops where the safety class does (a set ceiling below the action, spec 021):
   // robots, denylist and scope refusals stay plain ACTION_REFUSED.
@@ -48,8 +51,8 @@ export async function gateAct(
   return refused;
 }
 
-/** The refused action as a `skipped` edge from its state, on that state's evidence. */
-async function recordSkippedEdge(
+/** The refused action as a `skipped` transition from its state, on that state's evidence. */
+async function recordSkippedTransition(
   ctx: ServerContext,
   run: RunRow,
   state: RunState,
@@ -66,7 +69,7 @@ async function recordSkippedEdge(
   await recordTransition(ctx, {
     journey_id: journeyId,
     seq: ++state.journey!.seq,
-    from_visit_id: state.lastVisitId,
+    from_observation_id: state.lastObservationId,
     element_key:
       action.json.element_key ??
       `${action.role}|${action.accessible_name ?? ''}||${action.json.nth}`,

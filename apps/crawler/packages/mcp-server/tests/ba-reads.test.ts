@@ -30,7 +30,7 @@ describe('list_runs', () => {
         ended_at: FIXTURE_TS,
         counts: {
           states: 4,
-          edges: 4,
+          transitions: 4,
           forms: 2,
           network_calls: 2,
           actions: 4,
@@ -75,8 +75,10 @@ describe('get_run_evidence', () => {
       cluster_id: expect.any(String),
     });
 
-    const edges = await page('edges');
-    expect(edges.find((e: { id: string }) => e.id === h.fx.edges.carToVehicle)).toMatchObject({
+    const transitions = await page('transitions');
+    expect(
+      transitions.find((e: { id: string }) => e.id === h.fx.transitions.carToVehicle),
+    ).toMatchObject({
       from_state: h.fx.states.car,
       to_state: h.fx.states.vehicle,
       from_route: '/ubezpieczenia/samochod',
@@ -126,7 +128,7 @@ describe('get_run_evidence', () => {
   it('reads page visits and the parameter inventory (spec 019, R-37/R-38)', async () => {
     const h = await startBa();
     const insert = h.fx.raw.prepare(
-      `INSERT INTO page_visits (id, run_id, state_id, edge_id, via, url, hops_json, created_at)
+      `INSERT INTO observations (id, run_id, state_id, transition_id, via, url, hops_json, created_at)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
     );
     const hops = [
@@ -147,13 +149,13 @@ describe('get_run_evidence', () => {
       'visit-b',
       h.fx.runId,
       h.fx.states.vehicle,
-      h.fx.edges.carToVehicle,
+      h.fx.transitions.carToVehicle,
       'action',
       'https://ref.test/kalkulator/pojazd?typ=ciezarowy&flag',
       '[]',
       FIXTURE_TS,
     );
-    const visits = await h.must('get_run_evidence', { run_id: h.fx.runId, kind: 'page_visits' });
+    const visits = await h.must('get_run_evidence', { run_id: h.fx.runId, kind: 'observations' });
     expect(visits.defaults).toEqual({ via: 'action' });
     expect(visits.items).toEqual([
       {
@@ -168,7 +170,7 @@ describe('get_run_evidence', () => {
         id: 'visit-b',
         state_id: h.fx.states.vehicle,
         route_template: '/kalkulator/pojazd',
-        edge_id: h.fx.edges.carToVehicle,
+        transition_id: h.fx.transitions.carToVehicle,
         url: 'https://ref.test/kalkulator/pojazd?typ=ciezarowy&flag',
         hops: [],
       },
@@ -217,7 +219,14 @@ describe('get_run_evidence', () => {
     expect(rules).not.toHaveProperty('defaults');
     expect(rules.items[0]).toHaveProperty('confidence', 'inferred');
 
-    for (const kind of ['states', 'edges', 'actions', 'forms', 'network_calls', 'decisions']) {
+    for (const kind of [
+      'states',
+      'transitions',
+      'actions',
+      'forms',
+      'network_calls',
+      'decisions',
+    ]) {
       const page = await get(kind);
       for (const item of page.items as Record<string, unknown>[])
         expect(Object.values(item)).not.toContain(null);
@@ -675,7 +684,7 @@ describe('list_processes, get_process', () => {
     expect(p.steps[1]).toMatchObject({
       kind: 'click',
       action: { role: 'link', name: 'Oblicz składkę' },
-      edge_id: t.edgeIds[1],
+      transition_id: t.transitionIds[1],
       state_before: { state_id: h.fx.states.car },
       state_after: { state_id: h.fx.states.vehicle, title: expect.stringContaining('Kalkulator') },
       outcomes: ['navigated to /kalkulator/pojazd'],
@@ -685,15 +694,15 @@ describe('list_processes, get_process', () => {
     expect(p.steps[2]).toMatchObject({ kind: 'fill', value: 'Test Model', state_after: null });
   });
 
-  it('attaches the network calls of a step through its edge', async () => {
+  it('attaches the network calls of a step through its transition', async () => {
     const h = await startBa();
     const t = h.fx.addTraceRun();
     h.fx.raw
       .prepare(
-        `INSERT INTO network_calls (id, run_id, edge_id, method, url_template, status, req_schema,
+        `INSERT INTO network_calls (id, run_id, transition_id, method, url_template, status, req_schema,
          res_schema, console_errors, created_at) VALUES (?, ?, ?, 'GET', '/api/x', 200, '{}', '{}', '[]', ?)`,
       )
-      .run(newId(), t.runId, t.edgeIds[1], FIXTURE_TS);
+      .run(newId(), t.runId, t.transitionIds[1], FIXTURE_TS);
     const p = await h.must('get_process', { process_id: t.processId });
     expect(p.steps[1].network_calls).toMatchObject([{ method: 'GET', url_template: '/api/x' }]);
     expect(p.steps[0].network_calls).toEqual([]);

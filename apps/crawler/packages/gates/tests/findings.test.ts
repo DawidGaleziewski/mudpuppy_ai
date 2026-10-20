@@ -596,7 +596,7 @@ gate('F-16@004', 'a revision keeps citations from runs outside the current sessi
     base_rev: 1,
     content: CONTENT.requirement,
     confidence: 'observed',
-    evidence: [{ target_kind: 'edge', target_id: other.edgeId }],
+    evidence: [{ target_kind: 'transition', target_id: other.transitionId }],
     change_note: 'Seen again in a later run.',
   });
   const record = await h.must('get_record', { portal_id: h.fx.portalId, key: created.key });

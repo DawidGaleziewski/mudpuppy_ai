@@ -1,29 +1,29 @@
-import { maskText, type NavigationHop, type PageVisitVia } from '@pathfinder/core';
+import { maskText, type NavigationHop, type ObservationVia } from '@pathfinder/core';
 import { parseUrlParams } from '@pathfinder/fingerprint';
 import { shownValues } from '@pathfinder/model';
-import { recordPageVisit, upsertBuilds } from '../../services/page-visits.js';
+import { recordObservation, upsertBuilds } from '../../services/observations.js';
 import { writeAttributes } from '../../services/journeys.js';
-import { ensureJourney, nextVisitSeq } from './journey.js';
+import { ensureJourney, nextObservationSeq } from './journey.js';
 import type { RunState } from '../run-state.js';
 import { markTransitHops } from '../transit.js';
 import { audienceKey, contextKey, type PageCapture } from './capture-v2.js';
 import { event, reported, step, type Report, type StepContext } from './context.js';
 
-/** How this call reached its page, for the visit row. */
-export function visitVia(sc: StepContext, relogged: boolean): PageVisitVia {
+/** How this call reached its page, for the observation row. */
+export function observationVia(sc: StepContext, relogged: boolean): ObservationVia {
   if (relogged) return 'relogin';
   if (sc.via.kind === 'act') return 'action';
-  return sc.visitVia ?? 'navigate';
+  return sc.observationVia ?? 'navigate';
 }
 
-/** `event page_visit`: the URL's parameter count and the hop kinds, never the values (trace size). */
-export function visitReports(
+/** `event observation`: the URL's parameter count and the hop kinds, never the values (trace size). */
+export function observationReports(
   url: string,
   hops: readonly NavigationHop[],
-  via: PageVisitVia,
+  via: ObservationVia,
 ): Report[] {
   return [
-    event('page_visit', {
+    event('observation', {
       via,
       params: parseUrlParams(url).length,
       hops: hops.map((h) => h.kind),
@@ -35,12 +35,12 @@ export function visitReports(
  * Record the page's verbatim URL and the hops that led to it (spec 019, R-37/R-38). A portal with
  * `pii_scrub` gets its URLs masked like every other stored text; otherwise nothing is dropped.
  */
-export function recordVisitStep(
+export function recordObservationStep(
   sc: StepContext,
   page: {
     stateId: string;
     url: string;
-    edgeId: string | undefined;
+    transitionId: string | undefined;
     relogged: boolean;
     capture: PageCapture;
     /** The stored snapshot (masked only when the portal scrubs PII): shown values come from it. */
@@ -48,7 +48,7 @@ export function recordVisitStep(
   },
 ): Promise<string> {
   const { ctx, run, rs } = sc;
-  return step(sc, 'record_visit', async () => {
+  return step(sc, 'record_observation', async () => {
     const scrub = rs.effective.portal.pii_scrub;
     const keep = (u: string) => (scrub ? maskText(u) : u);
     const drained = (await rs.session.navigation.drain()).map((h) => ({ ...h, url: keep(h.url) }));
@@ -56,19 +56,19 @@ export function recordVisitStep(
     const hops = rs.transit === null ? drained : markTransitHops(drained, rs.transit);
     rs.transit = null;
     const url = keep(page.url);
-    const via = visitVia(sc, page.relogged);
+    const via = observationVia(sc, page.relogged);
     const journeyId = await ensureJourney(ctx, rs);
     const buildIds = await upsertBuilds(ctx, run.portal_id, page.capture.builds);
     const flags = await experimentFlags(rs);
-    const { visit_id } = await recordPageVisit(ctx, {
+    const { observation_id } = await recordObservation(ctx, {
       run_id: run.id,
       state_id: page.stateId,
-      edge_id: page.edgeId ?? null,
+      transition_id: page.transitionId ?? null,
       via,
       url,
       hops,
       journey_id: journeyId,
-      seq: await nextVisitSeq(ctx, rs),
+      seq: await nextObservationSeq(ctx, rs),
       result: page.capture.result,
       context_key: contextKey(buildIds, audienceKey(rs), flags),
       flags,
@@ -76,7 +76,7 @@ export function recordVisitStep(
     });
     const at = rs.journey!.seq;
     if (!rs.journey!.reached.has(page.stateId)) rs.journey!.reached.set(page.stateId, at);
-    rs.lastVisitId = visit_id;
+    rs.lastObservationId = observation_id;
     // What the page shows (label: value) is known from this step on (design § 5.8).
     await writeAttributes(
       ctx,
@@ -88,7 +88,7 @@ export function recordVisitStep(
         raw: v.value,
       })),
     );
-    return reported(visit_id, visitReports(url, hops, via));
+    return reported(observation_id, observationReports(url, hops, via));
   });
 }
 

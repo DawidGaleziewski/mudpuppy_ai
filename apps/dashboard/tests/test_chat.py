@@ -525,11 +525,11 @@ def seed_progress_run(store: Store, status: str = "running") -> None:
     insert(conn, "state_observations", run_id="run-p", state_id="s-quote", observed_at=ts(2))
     link = json.dumps({"role": "link", "accessible_name": "Quote"})
     insert(
-        conn, "edges", id="e1", run_id="run-p", from_state="s-home", to_state="s-quote",
+        conn, "transitions", id="e1", run_id="run-p", from_state="s-home", to_state="s-quote",
         action_json=link, created_at=ts(2),
     )  # fmt: skip
     insert(
-        conn, "edges", id="e2", run_id="run-p", from_state="s-quote", to_state=None,
+        conn, "transitions", id="e2", run_id="run-p", from_state="s-quote", to_state=None,
         action_json=json.dumps({"role": "button", "accessible_name": "Next"}),
         error=json.dumps({"message": "timeout after 10s"}), created_at=ts(3),
     )  # fmt: skip

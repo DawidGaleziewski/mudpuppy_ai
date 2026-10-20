@@ -26,7 +26,7 @@ ORDER = (
     "screens",
     "states",
     "state_observations",
-    "edges",
+    "transitions",
     "network_calls",
     "probe_outcomes",
 )

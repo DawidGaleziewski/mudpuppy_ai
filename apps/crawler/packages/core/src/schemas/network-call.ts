@@ -5,7 +5,7 @@ import { Id, JsonValue, Timestamp } from './common.js';
 export const NetworkCall = z.object({
   id: Id,
   run_id: Id,
-  edge_id: Id.nullable(),
+  transition_id: Id.nullable(),
   method: z.string().min(1),
   url_template: z.string().min(1),
   status: z.number().int(),

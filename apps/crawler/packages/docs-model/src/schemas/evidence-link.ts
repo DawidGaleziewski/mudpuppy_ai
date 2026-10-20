@@ -4,7 +4,7 @@ import { Id } from '@pathfinder/core';
 /** Polymorphic evidence target kind (data-model.md "Evidence Link"; `screen_region` spec 008). */
 export const EvidenceTargetKind = z.enum([
   'state',
-  'edge',
+  'transition',
   'action',
   'form',
   'network_call',
@@ -16,8 +16,8 @@ export const EvidenceTargetKind = z.enum([
   'doc_record',
   'review',
   'screen_region',
-  // spec 019 (R-37): a visit's verbatim URL is the evidence for a parameter dependency
-  'page_visit',
+  // spec 019 (R-37): an observation's verbatim URL is the evidence for a parameter dependency
+  'observation',
 ]);
 export type EvidenceTargetKind = z.infer<typeof EvidenceTargetKind>;
 

@@ -129,7 +129,7 @@ describe('create_record', () => {
     const later = h.fx.addRun();
     const error = await h.refused(
       'create_record',
-      create(h, s, { evidence: [{ target_kind: 'edge', target_id: later.edgeId }] }),
+      create(h, s, { evidence: [{ target_kind: 'transition', target_id: later.transitionId }] }),
     );
     expect(error).toMatchObject({ code: 'RUN_NOT_IN_SESSION', run_id: later.runId });
   });
@@ -925,7 +925,7 @@ describe('revise_record keeps evidence from runs outside the session (spec 004 F
     const s2 = await h.session([other.runId]);
     await h.must(
       'revise_record',
-      revise(s2, key, [{ target_kind: 'edge', target_id: other.edgeId }]),
+      revise(s2, key, [{ target_kind: 'transition', target_id: other.transitionId }]),
     );
     const record = await h.must('get_record', { portal_id: h.fx.portalId, key });
     expect(runsOf(record).sort()).toEqual([h.fx.runId, other.runId].sort());

@@ -1,18 +1,18 @@
-import { NavigationHop, PageVisitVia, StepResult, newId, nowIso } from '@pathfinder/core';
+import { NavigationHop, ObservationVia, StepResult, newId, nowIso } from '@pathfinder/core';
 import type { BuildSignature } from '@pathfinder/model';
 import { z } from 'zod';
 import type { ServerContext } from '../context.js';
 import { parseInput } from '../errors.js';
 
-export const RecordPageVisitInput = z
+export const RecordObservationInput = z
   .object({
     run_id: z.string().min(1),
     state_id: z.string().min(1),
-    edge_id: z.string().min(1).nullable(),
-    via: PageVisitVia,
+    transition_id: z.string().min(1).nullable(),
+    via: ObservationVia,
     url: z.string().min(1),
     hops: z.array(NavigationHop),
-    // MudPuppy 2.0 (spec 039 design § 5.6): every v2 visit is an observation.
+    // MudPuppy 2.0 (spec 039 design § 5.6): journey position, result, context and builds.
     journey_id: z.string().min(1),
     seq: z.number().int().positive(),
     result: StepResult,
@@ -21,28 +21,28 @@ export const RecordPageVisitInput = z
     build_ids: z.array(z.string().min(1)),
   })
   .strict();
-export type RecordPageVisitInput = z.input<typeof RecordPageVisitInput>;
+export type RecordObservationInput = z.input<typeof RecordObservationInput>;
 
 /**
- * One arrival on a page (spec 019, table `page_visits`): the verbatim URL and the hops that led to
- * it, and since spec 039 its journey, order in the run, step result, context and builds. Every
- * arrival is a row, also on a state the run already knows: the second URL a screen is reached
- * under is exactly what R-38 wants recorded.
+ * One arrival on a page (spec 019; table `observations`, spec 039): the verbatim URL and the hops
+ * that led to it, its journey, order in the run, step result, context and builds. Every arrival is
+ * a row, also on a state the run already knows: the second URL a screen is reached under is
+ * exactly what R-38 wants recorded.
  */
-export async function recordPageVisit(
+export async function recordObservation(
   ctx: ServerContext,
-  raw: RecordPageVisitInput,
-): Promise<{ visit_id: string }> {
-  const input = parseInput(RecordPageVisitInput, raw);
+  raw: RecordObservationInput,
+): Promise<{ observation_id: string }> {
+  const input = parseInput(RecordObservationInput, raw);
   const id = newId();
   await ctx.db.transaction().execute(async (tx) => {
     await tx
-      .insertInto('page_visits')
+      .insertInto('observations')
       .values({
         id,
         run_id: input.run_id,
         state_id: input.state_id,
-        edge_id: input.edge_id,
+        transition_id: input.transition_id,
         via: input.via,
         url: input.url,
         hops_json: JSON.stringify(input.hops),
@@ -57,10 +57,10 @@ export async function recordPageVisit(
     if (input.build_ids.length > 0)
       await tx
         .insertInto('observation_builds')
-        .values(input.build_ids.map((build_id) => ({ page_visit_id: id, build_id })))
+        .values(input.build_ids.map((build_id) => ({ observation_id: id, build_id })))
         .execute();
   });
-  return { visit_id: id };
+  return { observation_id: id };
 }
 
 /**

@@ -15,10 +15,10 @@ export const PORTAL_TABLES = [
   'state_wireframes',
   'state_observations',
   'actions',
-  'edges',
+  'transitions',
   'forms',
   'network_calls',
-  'page_visits',
+  'observations',
   'frontier',
   'open_questions',
   'rule_candidates',
@@ -84,7 +84,7 @@ export type PortalTable = (typeof PORTAL_TABLES)[number];
 
 /**
  * Children before parents, so every foreign key still holds at each step. `process_steps` then
- * `processes` (`0005_trace_processes`) go first of all: steps reference actions, edges and states,
+ * `processes` (`0005_trace_processes`) go first of all: steps reference actions, transitions and states,
  * and processes reference runs, actions and doc_records. The chat tables (`0008_chat_orchestrator`)
  * go before even those: amendments reference process_scopes and runs; process_scopes reference
  * states; workflow_steps reference runs and analysis_sessions; all but amendments reference
@@ -114,7 +114,7 @@ const DELETE_ORDER: readonly PortalTable[] = [
   'hypotheses',
   'deviation_occurrences',
   'deviations',
-  // 0030 (spec 039): the portal model references edges, page visits, builds, states and itself
+  // 0030 (spec 039): the portal model references transitions, observations, builds, states and itself
   'model_transitions',
   'action_classes',
   'screen_lineage',
@@ -128,7 +128,7 @@ const DELETE_ORDER: readonly PortalTable[] = [
   'reconciliations', // 0025: no references
   'marks', // 0024: references runs (used_by_run_id)
   'probe_suites', // 0023: reference runs and form_steps
-  'probe_outcomes', // 0023: reference runs, states, form_steps and edges
+  'probe_outcomes', // 0023: reference runs, states, form_steps and transitions
   'change_spec_revisions', // 0018: the BA process tables, children first
   'process_live',
   'process_drafts',
@@ -158,14 +158,14 @@ const DELETE_ORDER: readonly PortalTable[] = [
   'agent_turns',
   'decision_log',
   'network_calls',
-  'observation_builds', // 0029: references page_visits and builds
+  'observation_builds', // 0029: references observations and builds
   'builds',
-  'page_visits', // 0029: edges.from_visit_id is cleared first (cycle with page_visits.edge_id)
+  'observations', // 0029: transitions.from_observation_id is cleared first (cycle with observations.transition_id)
   'frontier',
   'actions',
-  'edges',
+  'transitions',
   'attribute_writes', // 0029: references journeys
-  'journeys', // 0029: edges and page_visits reference journeys; journeys reference runs, checkpoints
+  'journeys', // 0029: transitions and observations reference journeys; journeys reference runs, checkpoints
   'forms',
   'open_questions',
   'rule_candidates',
@@ -210,8 +210,8 @@ const ENTITY_REFS_OF_PORTAL = (op: string): string => {
   const targets = [
     `screen_id IN (SELECT id FROM model_screens WHERE portal_id ${op} x.p)`,
     `state_id IN (SELECT id FROM states WHERE portal_id ${op} x.p)`,
-    `page_visit_id IN (SELECT id FROM page_visits WHERE run_id IN (${runs}))`,
-    `edge_id IN (SELECT id FROM edges WHERE run_id IN (${runs}))`,
+    `observation_id IN (SELECT id FROM observations WHERE run_id IN (${runs}))`,
+    `transition_id IN (SELECT id FROM transitions WHERE run_id IN (${runs}))`,
     `network_call_id IN (SELECT id FROM network_calls WHERE run_id IN (${runs}))`,
     `action_class_id IN (SELECT a.id FROM action_classes a JOIN model_screens s ON s.id = a.screen_id WHERE s.portal_id ${op} x.p)`,
     `model_transition_id IN (SELECT t.id FROM model_transitions t JOIN model_screens s ON s.id = t.from_screen_id WHERE s.portal_id ${op} x.p)`,
@@ -271,7 +271,7 @@ export function where(table: PortalTable, side: 'mine' | 'others'): string {
     case 'attribute_writes':
       return `journey_id IN (SELECT id FROM journeys WHERE run_id IN (SELECT id FROM runs WHERE portal_id ${op} ?))`;
     case 'observation_builds':
-      return `page_visit_id IN (SELECT id FROM page_visits WHERE run_id IN (SELECT id FROM runs WHERE portal_id ${op} ?))`;
+      return `observation_id IN (SELECT id FROM observations WHERE run_id IN (SELECT id FROM runs WHERE portal_id ${op} ?))`;
     case 'chat_messages':
       return `conversation_id IN (SELECT id FROM chat_conversations WHERE portal_id ${op} ?)`;
     case 'analysis_session_runs':
@@ -501,9 +501,12 @@ export function deletePortal(opts: {
     raw
       .prepare(`UPDATE hypotheses SET superseded_by = NULL WHERE ${where('hypotheses', 'mine')}`)
       .run(portal);
-    // 0029: a transition names the visit it started from and a visit the edge that led to it.
+    // 0029: a transition names the observation it started from and an observation the transition
+    // that led to it.
     raw
-      .prepare(`UPDATE edges SET from_visit_id = NULL WHERE ${where('edges', 'mine')}`)
+      .prepare(
+        `UPDATE transitions SET from_observation_id = NULL WHERE ${where('transitions', 'mine')}`,
+      )
       .run(portal);
     raw
       .prepare(

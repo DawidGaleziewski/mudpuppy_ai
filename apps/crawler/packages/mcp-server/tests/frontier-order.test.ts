@@ -28,7 +28,7 @@ function seedVisit(ctx: ServerContext, runId: string, path: string): string {
     .run(id, id.padEnd(64, '0').slice(0, 64), id, path, path, REF, runId, ts);
   ctx.raw
     .prepare(
-      `INSERT INTO page_visits (id, run_id, state_id, edge_id, via, url, created_at)
+      `INSERT INTO observations (id, run_id, state_id, transition_id, via, url, created_at)
        VALUES (?, ?, ?, NULL, 'navigate', ?, ?)`,
     )
     .run(newId(), runId, id, url(path), ts);

@@ -81,7 +81,9 @@ async function runMismatches(
     const outcome = await replay(call, m.plan);
     r.replays += 1;
     const seen =
-      outcome.status === 'reached' ? { state_id: outcome.stateId, edge_id: outcome.edgeId } : null;
+      outcome.status === 'reached'
+        ? { state_id: outcome.stateId, transition_id: outcome.transitionId }
+        : null;
     r.mismatches.push({
       deviationId: m.deviationId,
       hypothesis: resolveRuleMismatch(raw, portal, m.deviationId, seen),

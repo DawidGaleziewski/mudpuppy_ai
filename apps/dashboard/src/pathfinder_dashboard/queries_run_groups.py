@@ -90,12 +90,12 @@ def group_runs(inp: GroupInput) -> RunGroups:
 
 _STATES_OF_LINK = """
   SELECT l.target_id AS s FROM links l WHERE l.target_kind IN ('state', 'screen_region')
-  UNION SELECT e.from_state FROM links l JOIN edges e ON e.id = l.target_id
-    WHERE l.target_kind = 'edge'
-  UNION SELECT e.to_state FROM links l JOIN edges e ON e.id = l.target_id
-    WHERE l.target_kind = 'edge'
-  UNION SELECT p.state_id FROM links l JOIN page_visits p ON p.id = l.target_id
-    WHERE l.target_kind = 'page_visit'
+  UNION SELECT e.from_state FROM links l JOIN transitions e ON e.id = l.target_id
+    WHERE l.target_kind = 'transition'
+  UNION SELECT e.to_state FROM links l JOIN transitions e ON e.id = l.target_id
+    WHERE l.target_kind = 'transition'
+  UNION SELECT p.state_id FROM links l JOIN observations p ON p.id = l.target_id
+    WHERE l.target_kind = 'observation'
   UNION SELECT ps.state_before FROM links l JOIN process_steps ps ON ps.id = l.target_id
     WHERE l.target_kind = 'process_step'
   UNION SELECT ps.state_after FROM links l JOIN process_steps ps ON ps.id = l.target_id

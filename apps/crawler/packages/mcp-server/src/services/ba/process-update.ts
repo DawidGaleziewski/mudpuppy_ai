@@ -44,9 +44,9 @@ function recordScreens(ctx: BaContext, portal: string): ScreenRow[] {
          WHERE r.portal_id = ? AND r.withdrawn = 0),
        cited AS (
          SELECT key, target_id AS state FROM latest WHERE target_kind IN ('state', 'screen_region')
-         UNION SELECT key, e.from_state FROM latest JOIN edges e ON e.id = target_id WHERE target_kind = 'edge'
-         UNION SELECT key, e.to_state FROM latest JOIN edges e ON e.id = target_id WHERE target_kind = 'edge'
-         UNION SELECT key, p.state_id FROM latest JOIN page_visits p ON p.id = target_id WHERE target_kind = 'page_visit')
+         UNION SELECT key, e.from_state FROM latest JOIN transitions e ON e.id = target_id WHERE target_kind = 'transition'
+         UNION SELECT key, e.to_state FROM latest JOIN transitions e ON e.id = target_id WHERE target_kind = 'transition'
+         UNION SELECT key, p.state_id FROM latest JOIN observations p ON p.id = target_id WHERE target_kind = 'observation')
        SELECT DISTINCT cited.key AS record, ${SCREEN_KEY} AS screen
        FROM cited JOIN states s ON s.id = cited.state LEFT JOIN screens sc ON sc.id = s.screen_id`,
     )

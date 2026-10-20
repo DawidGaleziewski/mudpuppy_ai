@@ -13,7 +13,7 @@ over-claims. Complete, verbatim and honest beats elegant.
 
 ## Non-negotiables (and why)
 
-- **Every record cites evidence** (a state, a screen region of a state, edge, action, form, network
+- **Every record cites evidence** (a state, a screen region of a state, transition, action, form, network
   call, process step, rule candidate, crawler open question, another record, or a review). The server
   refuses a record without one (`MISSING_EVIDENCE`). Evidence is what makes the documentation
   trustworthy.
@@ -57,7 +57,7 @@ over-claims. Complete, verbatim and honest beats elegant.
 **Read every page of evidence.** `get_run_evidence` returns 50 items per call. Leave `limit` unset and
 call again with `cursor` = the returned `next_cursor` until it is `null`, for every kind you read. A
 larger `limit` can exceed your output limit, and then you see nothing of that page. Documenting from
-a partial list (e.g. edges from one page only) hides entry points and navigation; if you had to stop
+a partial list (e.g. transitions from one page only) hides entry points and navigation; if you had to stop
 early, say which kind and how many items you read in the session gaps.
 
 **No ids in prose.** Run, state and record ids belong in `evidence[]`, relations and
@@ -69,9 +69,9 @@ PII check reads an id in prose as a token and refuses the write (`PII_SUSPECTED`
 
 | # | Pass | Read | Write |
 |---|---|---|---|
-| 1 | `inventory` | `get_run_evidence` states, forms, network_calls, actions, decisions, page_visits | one `screen` per distinct page/UI state cluster: purpose, **route templates exactly as recorded**, elements (role + verbatim label; an element with no visible label is left out of `elements` and cited as a screen region instead), entry points (every URL it was reached under) |
+| 1 | `inventory` | `get_run_evidence` states, forms, network_calls, actions, decisions, observations | one `screen` per distinct page/UI state cluster: purpose, **route templates exactly as recorded**, elements (role + verbatim label; an element with no visible label is left out of `elements` and cited as a screen region instead), entry points (every URL it was reached under) |
 | 2 | `capabilities` | your screens, nav labels | `capability` records (what the business offers, e.g. "Book reservation"); relations `capability contains screen|process` |
-| 3 | `processes` | `list_processes`, then `get_process` per process (ordered steps), edges between screens | `process` (goal, persona, trigger, outcome, `observed_extent`) and `use_case` (Cockburn, see `references/use-cases.md`); if no trace exists, a `followup` asking for one |
+| 3 | `processes` | `list_processes`, then `get_process` per process (ordered steps), transitions between screens | `process` (goal, persona, trigger, outcome, `observed_extent`) and `use_case` (Cockburn, see `references/use-cases.md`); if no trace exists, a `followup` asking for one |
 | 4 | `rules` | forms (required, pattern, min/max), disabled controls and their hints, validation messages, computed values, refused actions, rule candidates | `business_rule` and `requirement` records (`references/business-rules.md`, `references/requirements-writing.md`); a field limit with business meaning is a rule too, besides the data item's constraint; every rule quotes the label of the control it is about; give every requirement, rule (and in pass 6 every NFR) its `ears` form: `{pattern, text}`, pattern one of ubiquitous ("The <system> shall …"), event ("When …, the <system> shall …"), state ("While …"), unwanted ("If …, then …"), optional ("Where …"), complex; one statement, verbatim labels kept (the export prints it as written) |
 | 5 | `data` | form fields, network call shapes, labels, state `elements` | one `data_item` per field of every form (`name_verbatim` = the label exactly, constraints observed, evidence includes the field's screen region), checkboxes, selects and login fields included, also when a rule or process already covers the field; `glossary_term` per domain term (`references/glossary.md`), related to every screen that shows it with `appears_on` (`glossary_term appears_on screen`) |
 | 6 | `nfr` | status codes, console errors, robots policy, languages, accessibility of labels | `nfr` records only for what was measured; everything else goes to gaps |
@@ -84,7 +84,7 @@ PII check reads an id in prose as a token and refuses the write (`PII_SUSPECTED`
   (`target_kind` `process` / `process_step`); a step is a server-observed fact and can carry `observed`.
 - `PROC` field `observed_extent`: `full` when the process ended `goal_reached`; `until_boundary` when it
   ended `boundary_reached` (a trace stopped at an action above the run's limit); `map_only` when you
-  know the process only from map data (screens and edges, no trace).
+  know the process only from map data (screens and transitions, no trace).
 - Relate each `process` to every screen its steps pass through with `contains`
   (`process contains screen`), in step order.
 - Write each `use_case` main flow from the steps, one entry per step: actor steps quote the verbatim
@@ -152,10 +152,10 @@ whether a later scan saw it again (`reproduced`). Confirmed verdicts from Review
 
 Legacy systems wire screens together through URLs: old and new address schemes, redirects, and
 query parameters that depend on each other. These are part of the documentation, not noise.
-`get_run_evidence` kind `page_visits` gives every URL a screen was reached under with the hops that
+`get_run_evidence` kind `observations` gives every URL a screen was reached under with the hops that
 led there (`http` 301/302, `meta_refresh`, `script`, `same_document`, `reload`, `blocked`); kind
 `parameters` gives, per screen, every query, path and hash-route parameter, the values seen and the
-action (`edge_id`) or hop that set them.
+action (`transition_id`) or hop that set them.
 
 - **Route templates stay as recorded** (pass 1): `route_templates` holds the state's
   `route_template` exactly, a path with no query (`/katalog/wyniki`, never
@@ -165,15 +165,15 @@ action (`edge_id`) or hop that set them.
   `/egzemplarz.asp?sygn=:sygn`, redirected (meta refresh, then script) to
   `/czytelnia#/egzemplarze/:sygn`".
 - **Parameters that change the screen** (pass 4): a value that switches the layout or content (e.g.
-  `widok=karta` gives a printable catalogue card) is a `business_rule` (`rule_type` `inference`) citing a visit
+  `widok=karta` gives a printable catalogue card) is a `business_rule` (`rule_type` `inference`) citing an observation
   with each value.
 - **Parameters that only matter together** (pass 4): when one parameter's format or meaning depends
   on another (e.g. `termin` is `DD.MM.YYYY` when `rodzaj=dzien` and `YYYY` when `rodzaj=rok`), write a
-  `business_rule`, with a `decision_table` when there are several combinations. Cite the visits
+  `business_rule`, with a `decision_table` when there are several combinations. Cite the observations
   that show each combination. Label it `inferred` unless a validation message or error page shows the
   dependency. Then it is `observed`, and that page is cited too.
 - **Parameters carried from page to page** (pass 5): a parameter set by one action and passed along
-  (`czytelnik`, a session id) is a `data_item` with `seen_in` kind `page_visit`. Say where it is set and
+  (`czytelnik`, a session id) is a `data_item` with `seen_in` kind `observation`. Say where it is set and
   where it is read.
 - Session ids and tracking parameters are recorded on purpose. Document a session id once, as a
   `data_item` ("Session identifier in the URL path"). Never list its values in prose.
@@ -252,7 +252,7 @@ server). Never `observed`. Checklist: `references/blind-spots.md`.
 
 Good: `business_rule` — statement `The "Zarezerwuj" button stays disabled until "Akceptuję
 regulamin" is ticked.`, rule_type `action_enabler`, confidence `observed`, evidence: state (button
-disabled) + edge (after ticking, enabled), relation `uses_term` → "Regulamin wypożyczalni" if it is a
+disabled) + transition (after ticking, enabled), relation `uses_term` → "Regulamin wypożyczalni" if it is a
 term.
 
 Bad: `Pickups are limited because of library policy.` — intent presented as fact, no verbatim

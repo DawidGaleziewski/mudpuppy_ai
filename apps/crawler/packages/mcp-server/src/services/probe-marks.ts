@@ -41,7 +41,7 @@ export async function openProbeMarks(
   const out: ProbeMarkItem[] = [];
   for (const r of rows) {
     const visit = await ctx.db
-      .selectFrom('page_visits as v')
+      .selectFrom('observations as v')
       .innerJoin('states as s', 's.id', 'v.state_id')
       .select('v.url')
       .where('s.form_step_id', '=', r.form_step_id)

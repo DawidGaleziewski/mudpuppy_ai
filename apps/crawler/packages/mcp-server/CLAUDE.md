@@ -13,9 +13,9 @@ Layer: servers (G-07; `apps/crawler/layers.json`)
   the crawl pipeline, one file per step or tool:
   - `process-page.ts`: the ordered steps for an observed page (`settle` → `observe` → `net_drain` →
     `fingerprint-step` → `record-state` → visuals → CAPTCHA hand-off → depth → `record-page`
-    forms/transition → network → `record_visit` → `enqueue` → trace step) on one `StepContext`.
-    `settle` waits through client redirects and for mounts in every frame read; `visits.ts`
-    stores the page visit (spec 019); `observe` reads frames (`frames.ts`); `composition.ts`
+    forms/transition → network → `record_observation` → `enqueue` → trace step) on one
+    `StepContext`. `settle` waits through client redirects and for mounts in every frame read;
+    `observations.ts` stores the observation (spec 019; `page_visits` until spec 039 T110); `observe` reads frames (`frames.ts`); `composition.ts`
     builds the page composition (spec 015).
   - Portal hooks (spec 023): `runtime/hooks.ts` (the run's runner: Playwright adapter, `hook`
     span and decision note per run, `runPageLoadHooks`, `notePatched`), loaded by
@@ -32,9 +32,9 @@ Layer: servers (G-07; `apps/crawler/layers.json`)
   - Map-mode results omit `actions` on a revisited state (`actions_omitted`; tests that read
     them pass `include_actions`). `index.ts` re-exports only the tool entry points and helpers.
 - `src/services/frontier.ts` + `same-target.ts`: link items whose target the run already reached
-  (same URL and same visible name, spec 026 F-04) become `inferred` edges (spec 013 US2).
+  (same URL and same visible name, spec 026 F-04) become `inferred` transitions (spec 013 US2).
   `frontier-order.ts`: pick order, links to unvisited route templates first (spec 026). BA reads: `services/ba/reads.ts`, `run-evidence.ts`
-  (`get_run_evidence`, incl. `page_visits`, `parameters`, spec 019), `runs.ts` (`list_runs` with
+  (`get_run_evidence`, incl. `observations`, `parameters`, spec 019), `runs.ts` (`list_runs` with
   persona attributes), `access.ts` (`get_access_matrix`, spec 024: same model as the dashboard's
   `queries_access.py`, both checked against `tests/fixtures/access/three-personas.json`).
 - Spec 030: `server-context.ts` (`openServerContext`, shared by `server.ts` and `local-client.ts`) and

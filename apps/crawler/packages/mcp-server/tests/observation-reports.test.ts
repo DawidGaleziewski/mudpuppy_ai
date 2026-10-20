@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { event } from '../src/runtime/pipeline/context.js';
 import type { StepContext } from '../src/runtime/pipeline/context.js';
 import { clientRedirectReports, mountReports } from '../src/runtime/pipeline/settle.js';
-import { visitReports, visitVia } from '../src/runtime/pipeline/visits.js';
+import { observationReports, observationVia } from '../src/runtime/pipeline/observations.js';
 
 /** G-18: the report builders of the spec 019 steps are plain functions. */
 describe('clientRedirectReports (spec 019 FR-007)', () => {
@@ -33,9 +33,9 @@ describe('clientRedirectReports (spec 019 FR-007)', () => {
   });
 });
 
-describe('visitReports and visitVia (spec 019)', () => {
+describe('observationReports and observationVia (spec 019)', () => {
   it('counts parameters and lists hop kinds, never values', () => {
-    const r = visitReports(
+    const r = observationReports(
       'http://h/a.do;jsessionid=S?konto=7&typ=M',
       [
         { url: 'http://h/menu.do', kind: 'start' },
@@ -43,17 +43,19 @@ describe('visitReports and visitVia (spec 019)', () => {
       ],
       'action',
     );
-    expect(r).toEqual([event('page_visit', { via: 'action', params: 3, hops: ['start', 'http'] })]);
+    expect(r).toEqual([
+      event('observation', { via: 'action', params: 3, hops: ['start', 'http'] }),
+    ]);
     expect(JSON.stringify(r)).not.toContain('konto');
   });
 
   it('names how the page was reached', () => {
     const sc = (over: Partial<StepContext>) =>
       ({ via: { kind: 'navigate' }, ...over }) as StepContext;
-    expect(visitVia(sc({}), false)).toBe('navigate');
-    expect(visitVia(sc({ via: { kind: 'act', action: {} as never } }), false)).toBe('action');
-    expect(visitVia(sc({ visitVia: 'login' }), false)).toBe('login');
-    expect(visitVia(sc({ via: { kind: 'act', action: {} as never } }), true)).toBe('relogin');
+    expect(observationVia(sc({}), false)).toBe('navigate');
+    expect(observationVia(sc({ via: { kind: 'act', action: {} as never } }), false)).toBe('action');
+    expect(observationVia(sc({ observationVia: 'login' }), false)).toBe('login');
+    expect(observationVia(sc({ via: { kind: 'act', action: {} as never } }), true)).toBe('relogin');
   });
 });
 

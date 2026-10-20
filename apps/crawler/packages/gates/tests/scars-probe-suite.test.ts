@@ -46,7 +46,7 @@ const landing = (runId: string | null) =>
   rows<{ route_template: string; form_step_id: string | null; state_kind: string; step: string }>(
     gs,
     `SELECT s.route_template, s.form_step_id, s.state_kind, f.step_index || ' ' || f.label AS step
-       FROM page_visits v JOIN states s ON s.id = v.state_id LEFT JOIN form_steps f ON f.id = s.form_step_id
+       FROM observations v JOIN states s ON s.id = v.state_id LEFT JOIN form_steps f ON f.id = s.form_step_id
        WHERE v.run_id = ? ORDER BY v.created_at DESC, v.rowid DESC LIMIT 1`,
     runId,
   )[0];

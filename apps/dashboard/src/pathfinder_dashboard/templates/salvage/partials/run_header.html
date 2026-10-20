@@ -19,7 +19,7 @@
         <dt>Ended (UTC)</dt><dd class="sy-mono sy-mono--sm">{{ r.ended_at | when }}</dd>
         <dt>Duration</dt><dd class="sy-num">{{ s.duration_ms | duration }}{% if r.status != "running" %} <span class="sy-muted">({{ r.elapsed_ms | duration }} active)</span>{% endif %}</dd>
         <dt>Steps · max depth</dt><dd class="sy-num">{{ r.steps_used }} · {{ r.max_depth_reached }}</dd>
-        <dt>Edges</dt><dd class="sy-num">{{ s.edges }}</dd>
+        <dt>Transitions</dt><dd class="sy-num">{{ s.transitions }}</dd>
         <dt>Open questions</dt><dd class="sy-num">{{ s.open_questions }}</dd>
         <dt>Rule candidates</dt><dd><span class="sy-num">{{ s.rule_candidates }}</span> {{ sy.confidence("inferred") }}</dd>
         <dt>Seed</dt><dd>{{ r.seed_id or "—" }}</dd>

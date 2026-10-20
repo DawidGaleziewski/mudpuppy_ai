@@ -1,11 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { NavigationHop, PageVisit } from '../src/index.js';
+import { NavigationHop, Observation } from '../src/index.js';
 
-const visit = {
+const observation = {
   id: 'v1',
   run_id: 'r1',
   state_id: 's1',
-  edge_id: null,
+  transition_id: null,
   via: 'navigate',
   url: 'http://127.0.0.1:4100/legacy/bank/wyciag.do;jsessionid=AB?konto=7&typ=M',
   hops: [
@@ -17,14 +17,14 @@ const visit = {
   created_at: '2026-10-11T10:00:00.000Z',
 };
 
-describe('PageVisit (spec 019)', () => {
-  it('parses a visit with every hop kind it carries, URL kept verbatim', () => {
-    expect(PageVisit.parse(visit)).toEqual({ ...visit, flags: {} });
+describe('Observation (spec 019, spec 039)', () => {
+  it('parses an observation with every hop kind it carries, URL kept verbatim', () => {
+    expect(Observation.parse(observation)).toEqual({ ...observation, flags: {} });
   });
 
   it('refuses an unknown via, an unknown hop kind and an empty URL', () => {
-    expect(PageVisit.safeParse({ ...visit, via: 'teleport' }).success).toBe(false);
+    expect(Observation.safeParse({ ...observation, via: 'teleport' }).success).toBe(false);
     expect(NavigationHop.safeParse({ url: 'http://x/', kind: 'warp' }).success).toBe(false);
-    expect(PageVisit.safeParse({ ...visit, url: '' }).success).toBe(false);
+    expect(Observation.safeParse({ ...observation, url: '' }).success).toBe(false);
   });
 });

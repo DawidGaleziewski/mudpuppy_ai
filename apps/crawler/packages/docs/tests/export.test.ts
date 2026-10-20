@@ -212,7 +212,7 @@ describe('writeExport and refusals', () => {
 const TABLES = [
   'runs',
   'states',
-  'edges',
+  'transitions',
   'actions',
   'forms',
   'network_calls',

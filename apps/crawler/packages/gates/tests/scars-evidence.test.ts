@@ -70,7 +70,7 @@ gate(
     expect(again.state_id).toBe(hub.state_id);
     const states = rows<{ state_id: string }>(
       gs,
-      'SELECT DISTINCT state_id FROM page_visits WHERE run_id = ?',
+      'SELECT DISTINCT state_id FROM observations WHERE run_id = ?',
       run,
     );
     for (const s of states) expect(snapshot(gs, s.state_id)).not.toMatch(ERROR_TEXT);

@@ -3,7 +3,7 @@ import type { ColumnType } from 'kysely';
 import type {
   Confidence,
   DecisionKind,
-  EdgeStatus,
+  TransitionStatus,
   FrontierItemStatus,
   MarkKind,
   MarkTargetKind,
@@ -96,7 +96,7 @@ export interface RunsTable {
   run_type: ColumnType<RunType | null, RunType | null | undefined, RunType | null>;
   /** 0027: the run a directed run continues or retries. */
   parent_run_id: ColumnType<string | null, string | null | undefined, string | null>;
-  /** 0027: JSON the run's plan came from (start states, skip targets, depth, variation, target edge, marks used). */
+  /** 0027: JSON the run's plan came from (start states, skip targets, depth, variation, target transition, marks used). */
   plan_json: ColumnType<string | null, string | null | undefined, string | null>;
 }
 
@@ -160,7 +160,7 @@ export interface ProbeOutcomesTable {
   http_status: number | null;
   reason: string | null;
   evidence_ref: string;
-  edge_id: string | null;
+  transition_id: string | null;
   created_at: string;
 }
 
@@ -518,23 +518,24 @@ export interface ActionsTable {
   created_at: string;
 }
 
-export interface EdgesTable {
+/** 0032: v1's `edges`, the design's transitions. */
+export interface TransitionsTable {
   id: string;
   run_id: string;
   from_state: string;
   to_state: string | null;
   action_json: string;
   safety_class: SafetyClass;
-  status: EdgeStatus;
+  status: TransitionStatus;
   evidence_ref: string;
   confidence: Confidence;
   error: string | null;
   stabilization: Stabilization;
   created_at: string;
-  /** 0029 (spec 039): the edge as a transition: journey position, start visit, element key. NULL on v1 rows. */
+  /** 0029 (spec 039): journey position, start observation, element key. NULL on v1 rows. */
   journey_id: Nullable;
   seq: ColumnType<number | null, number | null | undefined, number | null>;
-  from_visit_id: Nullable;
+  from_observation_id: Nullable;
   element_key: Nullable;
   kind: ColumnType<TransitionKind | null, TransitionKind | null | undefined, TransitionKind | null>;
   result: ColumnType<StepResult | null, StepResult | null | undefined, StepResult | null>;
@@ -604,9 +605,9 @@ export interface AttributeWritesTable {
   created_at: string;
 }
 
-/** 0029: the builds a visit was served by, one per scope. */
+/** 0029: the builds an observation was served by, one per scope. */
 export interface ObservationBuildsTable {
-  page_visit_id: string;
+  observation_id: string;
   build_id: string;
 }
 
@@ -694,8 +695,8 @@ export interface ModelTransitionsTable {
   result: StepResult;
   internal: 0 | 1;
   support: number;
-  first_seen_edge_id: string;
-  last_seen_edge_id: string;
+  first_seen_transition_id: string;
+  last_seen_transition_id: string;
   status: CoverageStatus;
   status_model_version: string;
 }
@@ -703,8 +704,8 @@ export interface ModelTransitionsTable {
 /** 0031 (spec 039 design § 15): a typed reference with real foreign keys, exactly one target. */
 export interface EntityRefsTable {
   id: string;
-  page_visit_id: string | null;
-  edge_id: string | null;
+  observation_id: string | null;
+  transition_id: string | null;
   state_id: string | null;
   screen_id: string | null;
   action_class_id: string | null;
@@ -808,8 +809,8 @@ export interface BuildEpochsTable {
   scope: string;
   environment: string;
   build_id: string;
-  first_visit_id: string;
-  last_visit_id: string;
+  first_observation_id: string;
+  last_observation_id: string;
   overlaps_previous: 0 | 1;
   model_version_id: string;
 }
@@ -827,7 +828,7 @@ export interface FormsTable {
 export interface NetworkCallsTable {
   id: string;
   run_id: string;
-  edge_id: string | null;
+  transition_id: string | null;
   method: string;
   url_template: string;
   status: number;
@@ -846,13 +847,13 @@ export interface NetworkCallsTable {
 
 /**
  * 0012: one arrival on a page, its verbatim URL and the hops (JSON `NavigationHop[]`) that led there.
- * 0029: the design's observation (journey, order in the run, step result, context, flags).
+ * 0029: journey, order in the run, step result, context, flags. 0032: renamed from `page_visits`.
  */
-export interface PageVisitsTable {
+export interface ObservationsTable {
   id: string;
   run_id: string;
   state_id: string;
-  edge_id: string | null;
+  transition_id: string | null;
   via: 'navigate' | 'action' | 'relogin' | 'login';
   url: string;
   hops_json: string;
@@ -1104,7 +1105,7 @@ export interface ProcessStepsTable {
   intent: string;
   kind: ProcessStepKind;
   action_id: string | null;
-  edge_id: string | null;
+  transition_id: string | null;
   value: string | null;
   state_before: string | null;
   state_after: string | null;
@@ -1121,10 +1122,10 @@ export interface Database {
   state_wireframes: StateWireframesTable;
   state_observations: StateObservationsTable;
   actions: ActionsTable;
-  edges: EdgesTable;
+  transitions: TransitionsTable;
   forms: FormsTable;
   network_calls: NetworkCallsTable;
-  page_visits: PageVisitsTable;
+  observations: ObservationsTable;
   builds: BuildsTable;
   state_components: StateComponentsTable;
   journeys: JourneysTable;

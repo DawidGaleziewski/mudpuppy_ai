@@ -68,7 +68,7 @@ gate(
     expect(titles.some((t) => /Proszę czekać/i.test(t))).toBe(false);
     const entries = rows<{ hops_json: string }>(
       gs,
-      'SELECT hops_json FROM page_visits WHERE state_id = ?',
+      'SELECT hops_json FROM observations WHERE state_id = ?',
       old.state_id,
     ).map((v) => (JSON.parse(v.hops_json) as { url: string }[])[0]?.url ?? '');
     expect(entries.some((u) => u.includes('/polisa.php?id=7'))).toBe(true);

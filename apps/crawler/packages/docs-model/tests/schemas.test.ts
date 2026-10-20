@@ -369,7 +369,7 @@ describe('process schemas (R-14)', () => {
     intent: 'Open the calculator',
     kind: 'navigate',
     action_id: null,
-    edge_id: null,
+    transition_id: null,
     value: null,
     state_before: null,
     state_after: 'st2',

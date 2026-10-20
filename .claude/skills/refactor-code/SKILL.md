@@ -13,7 +13,7 @@ The rules a refactor is measured against are `docs/code-guidelines.md` (G-01–G
 Before moving a line, know which test proves nothing changed:
 - Existing tests that exercise the code (find them: `grep -rl <function> */tests`).
 - Pipeline code (`mcp-server/src/runtime/**`): `tests/pipeline-golden.e2e.test.ts` snapshots
-  states, edges, the decision log in order and the trace span tree. It must stay identical.
+  states, transitions, the decision log in order and the trace span tree. It must stay identical.
 - Dashboard routes: the route tests request every page and fragment.
 - No test covers it: write a characterisation test of today's output first, in its own change.
 

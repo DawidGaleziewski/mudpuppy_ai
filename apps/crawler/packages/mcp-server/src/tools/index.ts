@@ -114,14 +114,14 @@ export function registerTools(server: McpServer, ctx: ServerContext, runtime: Ru
         .enum(['continue', 'focused', 'recheck', 'retry'])
         .optional()
         .describe(
-          'Spec 034 directed run (new map run): continue a stopped run (plan.parent_run_id), focused from marked screens within plan.depth, recheck marked screens (record only), retry a failed action (plan.target_edge_id). The result lists start_points: reach each with go_to_state.',
+          'Spec 034 directed run (new map run): continue a stopped run (plan.parent_run_id), focused from marked screens within plan.depth, recheck marked screens (record only), retry a failed action (plan.target_transition_id). The result lists start_points: reach each with go_to_state.',
         ),
       plan: z
         .object({
           parent_run_id: z.string().optional(),
           start_state_ids: z.array(z.string()).optional(),
           depth: z.number().optional(),
-          target_edge_id: z.string().optional(),
+          target_transition_id: z.string().optional(),
           variation: z.enum(['none', 'wait_longer', 'other_input', 'no_submit']).optional(),
         })
         .optional(),
@@ -228,13 +228,13 @@ export function registerTools(server: McpServer, ctx: ServerContext, runtime: Ru
   );
   tool(
     'add_open_question',
-    'Record something unexplained about a state, edge or form (intent goes here, never in facts).',
+    'Record something unexplained about a state, transition or form (intent goes here, never in facts).',
     { run_id: z.string(), text: z.string(), about_ref: z.string() },
     (a) => addOpenQuestion(ctx, a),
   );
   tool(
     'add_rule_candidate',
-    'Flag an inference about a state, edge or form. Stored as confidence "inferred" with the record\'s evidence.',
+    'Flag an inference about a state, transition or form. Stored as confidence "inferred" with the record\'s evidence.',
     { run_id: z.string(), text: z.string(), about_ref: z.string() },
     (a) => addRuleCandidate(ctx, a),
   );

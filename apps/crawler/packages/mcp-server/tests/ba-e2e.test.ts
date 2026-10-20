@@ -93,7 +93,11 @@ describe('BA end to end on the fixture store', () => {
       confidence: 'observed',
       evidence: [
         { target_kind: 'state', target_id: fx.states.vehicle, run_id: fx.runId },
-        { target_kind: 'edge', target_id: fx.edges.carToVehicle, note: 'entry from the car page' },
+        {
+          target_kind: 'transition',
+          target_id: fx.transitions.carToVehicle,
+          note: 'entry from the car page',
+        },
       ],
     });
     await pass('inventory', 'One screen documented from four recorded states.');

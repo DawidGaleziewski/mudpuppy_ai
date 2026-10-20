@@ -21,12 +21,12 @@ export interface ReplayPlan {
 }
 
 export type ReplayOutcome =
-  | { status: 'reached'; runId: string; edgeId: string | null; stateId: string }
+  | { status: 'reached'; runId: string; transitionId: string | null; stateId: string }
   | { status: 'diverged'; runId: string | null; atStep: number; reason: string };
 
 interface Page {
   state_id?: string;
-  edge_id?: string;
+  transition_id?: string;
   actions?: { action_id: string; element_key?: string; allowed: boolean }[];
 }
 
@@ -81,7 +81,7 @@ export async function replay(call: ToolCall, plan: ReplayPlan): Promise<ReplayOu
   return end({
     status: 'reached',
     runId,
-    edgeId: last.edge_id ?? null,
+    transitionId: last.transition_id ?? null,
     stateId: last.state_id!,
   });
 }

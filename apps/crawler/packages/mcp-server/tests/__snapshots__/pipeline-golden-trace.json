@@ -2159,7 +2159,7 @@
         "skip_reason": null
       }
     ],
-    "edges": [
+    "transitions": [
       {
         "from_state": "<id:1>",
         "to_state": "<id:1>",
@@ -2988,10 +2988,10 @@
         "id": "<id:271>",
         "parent_id": "<id:246>",
         "kind": "phase",
-        "name": "record_visit",
+        "name": "record_observation",
         "status": "ok",
         "attrs_json": {},
-        "summary": "record_visit ok",
+        "summary": "record_observation ok",
         "decision": 0,
         "between_calls": 0
       },
@@ -2999,7 +2999,7 @@
         "id": "<id:272>",
         "parent_id": "<id:271>",
         "kind": "event",
-        "name": "page_visit",
+        "name": "observation",
         "status": "ok",
         "attrs_json": {
           "via": "navigate",
@@ -3008,7 +3008,7 @@
             "start"
           ]
         },
-        "summary": "page_visit",
+        "summary": "observation",
         "decision": 0,
         "between_calls": 0
       },
@@ -3261,7 +3261,7 @@
                 "allowed": true
               }
             ],
-            "edge_id": "<id:280>",
+            "transition_id": "<id:280>",
             "step": {
               "ord": 2,
               "outcomes": []
@@ -3555,10 +3555,10 @@
         "id": "<id:303>",
         "parent_id": "<id:279>",
         "kind": "phase",
-        "name": "record_visit",
+        "name": "record_observation",
         "status": "ok",
         "attrs_json": {},
-        "summary": "record_visit ok",
+        "summary": "record_observation ok",
         "decision": 0,
         "between_calls": 0
       },
@@ -3566,7 +3566,7 @@
         "id": "<id:304>",
         "parent_id": "<id:303>",
         "kind": "event",
-        "name": "page_visit",
+        "name": "observation",
         "status": "ok",
         "attrs_json": {
           "via": "action",
@@ -3575,7 +3575,7 @@
             "start"
           ]
         },
-        "summary": "page_visit",
+        "summary": "observation",
         "decision": 0,
         "between_calls": 0
       },
@@ -3809,7 +3809,7 @@
                 "allowed": true
               }
             ],
-            "edge_id": "<id:311>",
+            "transition_id": "<id:311>",
             "step": {
               "ord": 3,
               "outcomes": []
@@ -4144,10 +4144,10 @@
         "id": "<id:337>",
         "parent_id": "<id:310>",
         "kind": "phase",
-        "name": "record_visit",
+        "name": "record_observation",
         "status": "ok",
         "attrs_json": {},
-        "summary": "record_visit ok",
+        "summary": "record_observation ok",
         "decision": 0,
         "between_calls": 0
       },
@@ -4155,7 +4155,7 @@
         "id": "<id:338>",
         "parent_id": "<id:337>",
         "kind": "event",
-        "name": "page_visit",
+        "name": "observation",
         "status": "ok",
         "attrs_json": {
           "via": "action",
@@ -4164,7 +4164,7 @@
             "start"
           ]
         },
-        "summary": "page_visit",
+        "summary": "observation",
         "decision": 0,
         "between_calls": 0
       },
@@ -4398,7 +4398,7 @@
                 "allowed": true
               }
             ],
-            "edge_id": "<id:345>",
+            "transition_id": "<id:345>",
             "step": {
               "ord": 4,
               "outcomes": []
@@ -4733,10 +4733,10 @@
         "id": "<id:371>",
         "parent_id": "<id:344>",
         "kind": "phase",
-        "name": "record_visit",
+        "name": "record_observation",
         "status": "ok",
         "attrs_json": {},
-        "summary": "record_visit ok",
+        "summary": "record_observation ok",
         "decision": 0,
         "between_calls": 0
       },
@@ -4744,7 +4744,7 @@
         "id": "<id:372>",
         "parent_id": "<id:371>",
         "kind": "event",
-        "name": "page_visit",
+        "name": "observation",
         "status": "ok",
         "attrs_json": {
           "via": "action",
@@ -4753,7 +4753,7 @@
             "start"
           ]
         },
-        "summary": "page_visit",
+        "summary": "observation",
         "decision": 0,
         "between_calls": 0
       },
@@ -4987,7 +4987,7 @@
                 "allowed": true
               }
             ],
-            "edge_id": "<id:379>",
+            "transition_id": "<id:379>",
             "step": {
               "ord": 5,
               "outcomes": []
@@ -5322,10 +5322,10 @@
         "id": "<id:405>",
         "parent_id": "<id:378>",
         "kind": "phase",
-        "name": "record_visit",
+        "name": "record_observation",
         "status": "ok",
         "attrs_json": {},
-        "summary": "record_visit ok",
+        "summary": "record_observation ok",
         "decision": 0,
         "between_calls": 0
       },
@@ -5333,7 +5333,7 @@
         "id": "<id:406>",
         "parent_id": "<id:405>",
         "kind": "event",
-        "name": "page_visit",
+        "name": "observation",
         "status": "ok",
         "attrs_json": {
           "via": "action",
@@ -5342,7 +5342,7 @@
             "start"
           ]
         },
-        "summary": "page_visit",
+        "summary": "observation",
         "decision": 0,
         "between_calls": 0
       },
@@ -5576,7 +5576,7 @@
                 "allowed": true
               }
             ],
-            "edge_id": "<id:413>",
+            "transition_id": "<id:413>",
             "step": {
               "ord": 6,
               "outcomes": []
@@ -5911,10 +5911,10 @@
         "id": "<id:439>",
         "parent_id": "<id:412>",
         "kind": "phase",
-        "name": "record_visit",
+        "name": "record_observation",
         "status": "ok",
         "attrs_json": {},
-        "summary": "record_visit ok",
+        "summary": "record_observation ok",
         "decision": 0,
         "between_calls": 0
       },
@@ -5922,7 +5922,7 @@
         "id": "<id:440>",
         "parent_id": "<id:439>",
         "kind": "event",
-        "name": "page_visit",
+        "name": "observation",
         "status": "ok",
         "attrs_json": {
           "via": "action",
@@ -5931,7 +5931,7 @@
             "start"
           ]
         },
-        "summary": "page_visit",
+        "summary": "observation",
         "decision": 0,
         "between_calls": 0
       },
@@ -6164,7 +6164,7 @@
                 "allowed": true
               }
             ],
-            "edge_id": "<id:447>",
+            "transition_id": "<id:447>",
             "step": {
               "ord": 7,
               "outcomes": [
@@ -6546,10 +6546,10 @@
         "id": "<id:475>",
         "parent_id": "<id:446>",
         "kind": "phase",
-        "name": "record_visit",
+        "name": "record_observation",
         "status": "ok",
         "attrs_json": {},
-        "summary": "record_visit ok",
+        "summary": "record_observation ok",
         "decision": 0,
         "between_calls": 0
       },
@@ -6557,7 +6557,7 @@
         "id": "<id:476>",
         "parent_id": "<id:475>",
         "kind": "event",
-        "name": "page_visit",
+        "name": "observation",
         "status": "ok",
         "attrs_json": {
           "via": "action",
@@ -6568,7 +6568,7 @@
             "http"
           ]
         },
-        "summary": "page_visit",
+        "summary": "observation",
         "decision": 0,
         "between_calls": 0
       },
@@ -6821,7 +6821,7 @@
                 "allowed": true
               }
             ],
-            "edge_id": "<id:484>",
+            "transition_id": "<id:484>",
             "step": {
               "ord": 8,
               "outcomes": []
@@ -7156,10 +7156,10 @@
         "id": "<id:510>",
         "parent_id": "<id:483>",
         "kind": "phase",
-        "name": "record_visit",
+        "name": "record_observation",
         "status": "ok",
         "attrs_json": {},
-        "summary": "record_visit ok",
+        "summary": "record_observation ok",
         "decision": 0,
         "between_calls": 0
       },
@@ -7167,7 +7167,7 @@
         "id": "<id:511>",
         "parent_id": "<id:510>",
         "kind": "event",
-        "name": "page_visit",
+        "name": "observation",
         "status": "ok",
         "attrs_json": {
           "via": "action",
@@ -7176,7 +7176,7 @@
             "start"
           ]
         },
-        "summary": "page_visit",
+        "summary": "observation",
         "decision": 0,
         "between_calls": 0
       },
@@ -7410,7 +7410,7 @@
                 "allowed": true
               }
             ],
-            "edge_id": "<id:518>",
+            "transition_id": "<id:518>",
             "step": {
               "ord": 9,
               "outcomes": []
@@ -7745,10 +7745,10 @@
         "id": "<id:544>",
         "parent_id": "<id:517>",
         "kind": "phase",
-        "name": "record_visit",
+        "name": "record_observation",
         "status": "ok",
         "attrs_json": {},
-        "summary": "record_visit ok",
+        "summary": "record_observation ok",
         "decision": 0,
         "between_calls": 0
       },
@@ -7756,7 +7756,7 @@
         "id": "<id:545>",
         "parent_id": "<id:544>",
         "kind": "event",
-        "name": "page_visit",
+        "name": "observation",
         "status": "ok",
         "attrs_json": {
           "via": "action",
@@ -7765,7 +7765,7 @@
             "start"
           ]
         },
-        "summary": "page_visit",
+        "summary": "observation",
         "decision": 0,
         "between_calls": 0
       },
@@ -7999,7 +7999,7 @@
                 "allowed": true
               }
             ],
-            "edge_id": "<id:552>",
+            "transition_id": "<id:552>",
             "step": {
               "ord": 10,
               "outcomes": []
@@ -8334,10 +8334,10 @@
         "id": "<id:578>",
         "parent_id": "<id:551>",
         "kind": "phase",
-        "name": "record_visit",
+        "name": "record_observation",
         "status": "ok",
         "attrs_json": {},
-        "summary": "record_visit ok",
+        "summary": "record_observation ok",
         "decision": 0,
         "between_calls": 0
       },
@@ -8345,7 +8345,7 @@
         "id": "<id:579>",
         "parent_id": "<id:578>",
         "kind": "event",
-        "name": "page_visit",
+        "name": "observation",
         "status": "ok",
         "attrs_json": {
           "via": "action",
@@ -8354,7 +8354,7 @@
             "start"
           ]
         },
-        "summary": "page_visit",
+        "summary": "observation",
         "decision": 0,
         "between_calls": 0
       },
@@ -8587,7 +8587,7 @@
                 "allowed": true
               }
             ],
-            "edge_id": "<id:586>",
+            "transition_id": "<id:586>",
             "step": {
               "ord": 11,
               "outcomes": []
@@ -8881,10 +8881,10 @@
         "id": "<id:609>",
         "parent_id": "<id:585>",
         "kind": "phase",
-        "name": "record_visit",
+        "name": "record_observation",
         "status": "ok",
         "attrs_json": {},
-        "summary": "record_visit ok",
+        "summary": "record_observation ok",
         "decision": 0,
         "between_calls": 0
       },
@@ -8892,7 +8892,7 @@
         "id": "<id:610>",
         "parent_id": "<id:609>",
         "kind": "event",
-        "name": "page_visit",
+        "name": "observation",
         "status": "ok",
         "attrs_json": {
           "via": "action",
@@ -8901,7 +8901,7 @@
             "start"
           ]
         },
-        "summary": "page_visit",
+        "summary": "observation",
         "decision": 0,
         "between_calls": 0
       },
@@ -9134,7 +9134,7 @@
                 "allowed": true
               }
             ],
-            "edge_id": "<id:617>",
+            "transition_id": "<id:617>",
             "step": {
               "ord": 12,
               "outcomes": []
@@ -9428,10 +9428,10 @@
         "id": "<id:640>",
         "parent_id": "<id:616>",
         "kind": "phase",
-        "name": "record_visit",
+        "name": "record_observation",
         "status": "ok",
         "attrs_json": {},
-        "summary": "record_visit ok",
+        "summary": "record_observation ok",
         "decision": 0,
         "between_calls": 0
       },
@@ -9439,7 +9439,7 @@
         "id": "<id:641>",
         "parent_id": "<id:640>",
         "kind": "event",
-        "name": "page_visit",
+        "name": "observation",
         "status": "ok",
         "attrs_json": {
           "via": "action",
@@ -9448,7 +9448,7 @@
             "start"
           ]
         },
-        "summary": "page_visit",
+        "summary": "observation",
         "decision": 0,
         "between_calls": 0
       },
@@ -9674,7 +9674,7 @@
                 "allowed": true
               }
             ],
-            "edge_id": "<id:648>",
+            "transition_id": "<id:648>",
             "step": {
               "ord": 13,
               "outcomes": [
@@ -10066,10 +10066,10 @@
         "id": "<id:676>",
         "parent_id": "<id:647>",
         "kind": "phase",
-        "name": "record_visit",
+        "name": "record_observation",
         "status": "ok",
         "attrs_json": {},
-        "summary": "record_visit ok",
+        "summary": "record_observation ok",
         "decision": 0,
         "between_calls": 0
       },
@@ -10077,7 +10077,7 @@
         "id": "<id:677>",
         "parent_id": "<id:676>",
         "kind": "event",
-        "name": "page_visit",
+        "name": "observation",
         "status": "ok",
         "attrs_json": {
           "via": "action",
@@ -10088,7 +10088,7 @@
             "http"
           ]
         },
-        "summary": "page_visit",
+        "summary": "observation",
         "decision": 0,
         "between_calls": 0
       },
@@ -10313,7 +10313,7 @@
                 "allowed": true
               }
             ],
-            "edge_id": "<id:685>",
+            "transition_id": "<id:685>",
             "step": {
               "ord": 14,
               "outcomes": [
@@ -10691,10 +10691,10 @@
         "id": "<id:711>",
         "parent_id": "<id:684>",
         "kind": "phase",
-        "name": "record_visit",
+        "name": "record_observation",
         "status": "ok",
         "attrs_json": {},
-        "summary": "record_visit ok",
+        "summary": "record_observation ok",
         "decision": 0,
         "between_calls": 0
       },
@@ -10702,7 +10702,7 @@
         "id": "<id:712>",
         "parent_id": "<id:711>",
         "kind": "event",
-        "name": "page_visit",
+        "name": "observation",
         "status": "ok",
         "attrs_json": {
           "via": "action",
@@ -10713,7 +10713,7 @@
             "http"
           ]
         },
-        "summary": "page_visit",
+        "summary": "observation",
         "decision": 0,
         "between_calls": 0
       },
@@ -10818,7 +10818,7 @@
               "actions_inferred": 0,
               "actions_skipped_by_class": {},
               "api_endpoints": 2,
-              "item_page_visits": 0,
+              "item_pages_visited": 0,
               "robots": {
                 "hosts": [
                   "<host>"

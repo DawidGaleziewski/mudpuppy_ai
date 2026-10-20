@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   DecisionKind,
   DecisionLogEntry,
-  Edge,
+  Transition,
   FrontierStatus,
   PortalDataLog,
   RobotsPolicy,
@@ -54,8 +54,8 @@ describe('record schemas', () => {
     expect(State.safeParse(noPortal).success).toBe(false);
     expect(State.safeParse({ ...state, portal_id: '' }).success).toBe(false);
   });
-  it('allows a nullable edge to_state', () => {
-    const edge = {
+  it('allows a nullable transition to_state', () => {
+    const transition = {
       id: 'e',
       run_id: 'r',
       from_state: 's',
@@ -69,7 +69,7 @@ describe('record schemas', () => {
       stabilization: 'settled',
       created_at: ts,
     };
-    expect(Edge.safeParse(edge).success).toBe(true);
+    expect(Transition.safeParse(transition).success).toBe(true);
   });
   it('fixes rule candidate confidence to inferred', () => {
     const rc = {

@@ -68,17 +68,17 @@ function seed(o: OpenedDb) {
   ).run(H('b'), T(0));
   const visit = (id: string, stateId: string, seq: number) => {
     r.prepare(
-      `INSERT INTO page_visits (id, run_id, state_id, edge_id, via, url, hops_json, created_at, journey_id, seq, result,
+      `INSERT INTO observations (id, run_id, state_id, transition_id, via, url, hops_json, created_at, journey_id, seq, result,
          context_key, flags_json) VALUES (?, 'run1', ?, NULL, 'navigate', 'https://shop.test/', '[]', ?, 'j1', ?, 'ok', ?, '{}')`,
     ).run(id, stateId, T(10 + seq), seq, H('x'));
-    r.prepare("INSERT INTO observation_builds (page_visit_id, build_id) VALUES (?, 'B1')").run(id);
+    r.prepare("INSERT INTO observation_builds (observation_id, build_id) VALUES (?, 'B1')").run(id);
   };
   visit('v1', 'a', 1);
   visit('v2', 'k', 2);
   visit('v3', 'b', 3);
   r.prepare(
-    `INSERT INTO edges (id, run_id, from_state, to_state, action_json, safety_class, status, evidence_ref, confidence,
-       stabilization, created_at, journey_id, seq, from_visit_id, element_key, kind, result)
+    `INSERT INTO transitions (id, run_id, from_state, to_state, action_json, safety_class, status, evidence_ref, confidence,
+       stabilization, created_at, journey_id, seq, from_observation_id, element_key, kind, result)
      VALUES ('e1', 'run1', 'a', 'k', '{}', 'read', 'executed', ?, 'observed', 'settled', ?, 'j1', 1, 'v1',
        'link|kontakt|main|', 'click', 'ok')`,
   ).run(`${H('e')}.yaml`, T(12));
@@ -123,10 +123,10 @@ function deploy(o: OpenedDb) {
              VALUES ('B2', 'shop', 'shell', ?, 'assets', '[]', ?)`,
   ).run(H('f'), T(40));
   r.prepare(
-    `INSERT INTO page_visits (id, run_id, state_id, edge_id, via, url, hops_json, created_at, journey_id, seq, result,
+    `INSERT INTO observations (id, run_id, state_id, transition_id, via, url, hops_json, created_at, journey_id, seq, result,
        context_key, flags_json) VALUES ('v9', 'run2', 'c', NULL, 'navigate', 'https://shop.test/', '[]', ?, 'j2', 1, 'ok', ?, '{}')`,
   ).run(T(42), H('x'));
-  r.prepare("INSERT INTO observation_builds (page_visit_id, build_id) VALUES ('v9', 'B2')").run();
+  r.prepare("INSERT INTO observation_builds (observation_id, build_id) VALUES ('v9', 'B2')").run();
 }
 
 describe('interpretation after a reconcile (spec 039 design § 8, § 10)', () => {

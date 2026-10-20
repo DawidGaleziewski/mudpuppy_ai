@@ -66,6 +66,7 @@ Bugs, slips and design deviations found while building, each with a test or eval
   `rule_candidates` until M3 (hypotheses), `entity_refs` lands with the tables it points at.
 - **Owner question (morning)**: rename the tables to the design's names before 2.0 merges (a
   mechanical task, hours of hand edits), or keep the names and say it in the glossary?
+- **Answered 2026-10-20**: rename. Done in T110, see F-29.
 
 ## F-07 A transition's target observation is the visit naming it (T011), 2026-10-19
 
@@ -394,3 +395,29 @@ Bugs, slips and design deviations found while building, each with a test or eval
 - **Test**: `calibration.test.ts` (waits for labels, perfect separation picks the higher τ,
   overlap picks the best F1, queue order); `model-calibration.test.ts` (route pairs, label drops
   a pair, default τ until enough labels).
+
+## F-29 Tables renamed to the design's names (T110), 2026-10-20
+
+- **What**: owner answer 2 (2026-10-20) reverses F-06. Migration **0032_transitions_observations**
+  renames `edges` → `transitions` and `page_visits` → `observations`, and every column naming them:
+  `edge_id` → `transition_id` (network calls, observations, trace steps, probe outcomes, entity
+  refs), `from_visit_id` → `from_observation_id`, `page_visit_id` → `observation_id`,
+  `first_/last_seen_edge_id` → `first_/last_seen_transition_id`, `first_/last_visit_id` →
+  `first_/last_observation_id`. The evidence and mark kinds `edge` / `page_visit` became
+  `transition` / `observation` (both tables rebuilt, rows mapped), and so did the BA's
+  `get_evidence` kind, `get_run_evidence` kinds (`transitions`, `observations`), `list_runs`
+  counts, `about_ref` kinds, data-item sightings, the plan's `target_transition_id`, the trace
+  phase `record_observation` and event `observation`, and `finish_run`'s coverage key
+  `item_pages_visited` (was `item_page_visits`, so a grep for the old table name stays clean).
+  Zod `Transition`, `TransitionStatus`, `Observation`, `ObservationVia`; Kysely
+  `TransitionsTable`, `ObservationsTable`; dashboard `Transition`, `Observation`.
+- **Naming rule applied** ("only when the same term would mean two things, rename the other
+  side"): the crawler's network drain type `Observation` became `NetworkObservation`, and the BA
+  access matrix's local `Observation` became `ScreenSighting`. "Edges" of drawn graphs (the
+  Map, Leiden's boundary graph, the miner) keep the word: a line in a picture, not the table.
+- **Kept on purpose**: migrations 0001–0031 and their tests (history), the roadmap and old specs.
+- **Snapshots updated on purpose** (diffs read): pipeline golden map/trace and trace golden
+  change only the renamed names (`record_observation`, `observation`, `transition_id`,
+  `same_as_transition_id`, `transitions`, `item_pages_visited`).
+- **Test**: `db.test.ts` (0032 up, down, up on every round trip); `pnpm test:slow`; a grep for
+  `page_visits|edge_id|FROM edges` over code returns only history.

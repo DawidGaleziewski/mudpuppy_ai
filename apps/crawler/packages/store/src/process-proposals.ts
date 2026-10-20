@@ -73,7 +73,7 @@ function scopesOf(raw: Raw, portal: string, screenOf: ReadonlyMap<string, string
   const scopes = new Map<string, Set<string>>();
   const rows = raw
     .prepare(
-      `SELECT v.state_id, b.scope FROM page_visits v JOIN observation_builds ob ON ob.page_visit_id = v.id
+      `SELECT v.state_id, b.scope FROM observations v JOIN observation_builds ob ON ob.observation_id = v.id
        JOIN builds b ON b.id = ob.build_id WHERE b.portal_id = ? AND b.scope <> 'shell'`,
     )
     .all(portal) as { state_id: string; scope: string }[];
@@ -153,7 +153,7 @@ export function processGraph(raw: Raw, portal: string): ProcessGraph {
   const calls = raw
     .prepare(
       `SELECT e.journey_id, e.seq, e.to_state, n.method, n.url_template, n.url, n.req_sample, n.res_sample
-       FROM network_calls n JOIN edges e ON e.id = n.edge_id JOIN runs r ON r.id = e.run_id
+       FROM network_calls n JOIN transitions e ON e.id = n.transition_id JOIN runs r ON r.id = e.run_id
        WHERE r.portal_id = ? AND e.journey_id IS NOT NULL ORDER BY e.journey_id, e.seq`,
     )
     .all(portal) as CallRow[];

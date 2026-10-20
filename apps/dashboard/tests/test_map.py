@@ -83,7 +83,9 @@ def seed(store: Store) -> None:
         ("e3", "r2", "st-home", "st-f1", 11),
         ("e4", "r2", "st-a", "st-home", 12),
     ):
-        insert(conn, "edges", id=eid, run_id=run, from_state=a, to_state=b, created_at=ts(minute))
+        insert(
+            conn, "transitions", id=eid, run_id=run, from_state=a, to_state=b, created_at=ts(minute)
+        )
     for fid, run, st, name, status in (
         ("f1", "r2", "st-f1", "Help", "pending"),
         ("f2", "r2", "st-f1", "Terms", "pending"),
@@ -203,7 +205,7 @@ def model(store: Store) -> None:
     ):
         conn.execute(
             "INSERT INTO model_transitions (id, from_screen_id, action_class_id, to_screen_id,"
-            " result, internal, support, first_seen_edge_id, last_seen_edge_id, status,"
+            " result, internal, support, first_seen_transition_id, last_seen_transition_id, status,"
             " status_model_version) VALUES (?, ?, ?, ?, 'ok', 0, 1, ?, ?, ?, 'mv1')",
             (tid, a, ac, b, edge, edge, status),
         )
@@ -338,8 +340,15 @@ def test_a_map_of_three_hundred_screens_opens_in_under_four_seconds(empty_store:
         )  # fmt: skip
         insert(conn, "state_observations", run_id="r1", state_id=f"st{i}")
     for i in range(1, 300):
-        insert(conn, "edges", id=f"e{i}", run_id="r1", from_state=f"st{i // 4}", to_state=f"st{i}")
-        insert(conn, "edges", id=f"h{i}", run_id="r1", from_state=f"st{i}", to_state="st0")
+        insert(
+            conn,
+            "transitions",
+            id=f"e{i}",
+            run_id="r1",
+            from_state=f"st{i // 4}",
+            to_state=f"st{i}",
+        )
+        insert(conn, "transitions", id=f"h{i}", run_id="r1", from_state=f"st{i}", to_state="st0")
     conn.commit()
     conn.close()
     with client(empty_store) as c:

@@ -1,10 +1,10 @@
 // What MudPuppy 2.0 records about each page beyond v1 (spec 039 design § 5.2–5.6): the step result,
 // the builds of its scopes and the endpoint templates it called. Pure over what the pipeline has
-// already observed; the writes happen in `record_visit` and `record_transition`.
+// already observed; the writes happen in `record_observation` and `record_transition`.
 
 import { createHash } from 'node:crypto';
 import type { StepResult } from '@pathfinder/core';
-import { transientError, type Observation } from '@pathfinder/crawler';
+import { transientError, type NetworkObservation } from '@pathfinder/crawler';
 import { canonicalizeAria, errorSignals, hasErrors } from '@pathfinder/fingerprint';
 import { buildSignatures, stepResult, type AssetRef, type BuildSignature } from '@pathfinder/model';
 import type { RunState } from '../run-state.js';
@@ -41,7 +41,7 @@ export function capturePage(
   page: {
     url: string;
     masked: string;
-    net: Observation;
+    net: NetworkObservation;
     settled: boolean;
     /** The meta tag marker's content, when the portal names one and the page has it. */
     metaMarker?: string | null;

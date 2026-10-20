@@ -1,4 +1,4 @@
-import type { Observation, SettleOutcome } from '@pathfinder/crawler';
+import type { NetworkObservation, SettleOutcome } from '@pathfinder/crawler';
 import { capturePage, type PageCapture } from './capture-v2.js';
 import { event, reported, step, type StepContext } from './context.js';
 
@@ -11,7 +11,7 @@ export function modelCaptureStep(
   page: {
     url: string;
     masked: string;
-    net: Observation;
+    net: NetworkObservation;
     stabilization: SettleOutcome['result'];
   },
 ): Promise<PageCapture> {

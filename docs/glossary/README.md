@@ -273,7 +273,7 @@ records which states it observed.
 
 *Labels:* `State`, `States`, `States observed`
 
-*Related:* [Fingerprint](#fingerprint), [Cluster](#cluster), [Settled / never stabilized](#settled), [Transition (edge)](#transition), [Form step](#form-step), [State kind](#state-kind)
+*Related:* [Fingerprint](#fingerprint), [Cluster](#cluster), [Settled / never stabilized](#settled), [Transition](#transition), [Form step](#form-step), [State kind](#state-kind)
 
 <sub>Last changed in R-22, 2026-10-03.</sub>
 
@@ -399,7 +399,7 @@ first. It may submit forms, so a scan that only looks cannot probe.
 
 Every scan stores, for each state it reached, the address it last opened and the actions it
 pressed after it, with the values typed. A later scan replays this instead of exploring from
-the start page. Scans from before checkpoints existed are replayed from their page visits.
+the start page. Scans from before checkpoints existed are replayed from their observations.
 Where a scan once opened the screen straight from its address, that address is used (a
 deep link); a screen only reachable by clicking is reached by clicking.
 
@@ -409,7 +409,7 @@ deep link); a screen only reachable by clicking is reached by clicking.
 
 *Labels:* `replays N steps`, `opens by its URL`
 
-*Related:* [Directed scan](#directed-scan), [State](#state), [Page visit](#page-visit)
+*Related:* [Directed scan](#directed-scan), [State](#state), [Observation](#observation)
 
 <sub>Last changed in R-66, 2026-10-17.</sub>
 
@@ -617,22 +617,24 @@ portal and per URL under `timeouts`.
 
 <a id="transition"></a>
 
-#### Transition (edge)
+#### Transition
 
 **An action that leads from one state to another, such as clicking a menu link, recorded with its safety class and locators.**
 
 States are the dots of the portal map and transitions are the arrows. A transition records
 the state it started from, the state it led to (or none), the action that caused it, its
 safety class and whether it was executed or skipped. Skipped transitions are kept so the
-map shows what exists even where the crawler did not go.
+map shows what exists even where the crawler did not go. Since MudPuppy 2.0 a transition is
+also a numbered step of its journey, with the element key, the kind of step and its
+result. Called an "edge" (table `edges`) until 2.0; the map still draws it as a line.
 
-*Seen in:* Map diagrams; Run trace
+*Seen in:* Map diagrams; Run trace; get_run_evidence transitions
 
-*Labels:* `Transition`, `Edge`
+*Labels:* `Transition`, `transitions`
 
 *Related:* [State](#state), [Safety class](#safety-class), [Top locator](#top-locator)
 
-<sub>Last changed in R-22, 2026-10-03.</sub>
+<sub>Last changed in R-81, 2026-10-20.</sub>
 
 <a id="portal-scope"></a>
 
@@ -1110,7 +1112,7 @@ validates a locator before relying on it.
 
 *Labels:* `Top locator`, `Locator`
 
-*Related:* [Accessible name](#accessible-name), [Role](#role), [Transition (edge)](#transition)
+*Related:* [Accessible name](#accessible-name), [Role](#role), [Transition](#transition)
 
 <sub>Last changed in R-22, 2026-10-03.</sub>
 
@@ -1206,7 +1208,7 @@ footer menus.
 
 *Labels:* `Inferred`, `inferred`
 
-*Related:* [Frontier](#frontier), [Transition (edge)](#transition), [Confidence (observed / inferred / needs confirmation)](#confidence), [Shared menu button](#shared-button)
+*Related:* [Frontier](#frontier), [Transition](#transition), [Confidence (observed / inferred / needs confirmation)](#confidence), [Shared menu button](#shared-button)
 
 <sub>Last changed in R-35, 2026-10-14.</sub>
 
@@ -1229,7 +1231,7 @@ landed on different pages, the button is clicked as usual.
 
 *Labels:* `shared_button`
 
-*Related:* [Inferred link](#inferred-link), [Frontier](#frontier), [Transition (edge)](#transition)
+*Related:* [Inferred link](#inferred-link), [Frontier](#frontier), [Transition](#transition)
 
 <sub>Last changed in R-58, 2026-10-18.</sub>
 
@@ -1471,27 +1473,30 @@ business rule record only when the evidence supports it.
 
 <sub>Last changed in R-22, 2026-10-03.</sub>
 
-<a id="page-visit"></a>
+<a id="observation"></a>
 
-#### Page visit
+#### Observation
 
-**One arrival of the crawler on a page, with the full URL exactly as the browser had it and the hops that led there.**
+**One arrival of the crawler on a page, with the full URL exactly as the browser had it, the hops that led there, and its place in the run.**
 
-Every `navigate`, every action that lands on a page and every return after a re-login is a
-visit, also when the run already knows the state. The URL is stored verbatim: every query
-and path parameter, the fragment, session ids and tracking parameters included. Nothing is
-normalised away, because legacy systems wire screens together through their URLs. The
-route template, which decides which screen a page is, still leaves the parameters out.
+Every `navigate`, every action that lands on a page and every return after a re-login is an
+observation, also when the run already knows the state. The URL is stored verbatim: every
+query and path parameter, the fragment, session ids and tracking parameters included.
+Nothing is normalised away, because legacy systems wire screens together through their
+URLs. The route template, which decides which screen a page is, still leaves the
+parameters out. Since MudPuppy 2.0 an observation also carries its journey, its number in
+the run, the step result, the builds it was served by and its context. Called a "page
+visit" (table `page_visits`) until 2.0.
 
-*Example:* A visit of the legacy bank statement at `wyciag.do;jsessionid=AB12?konto=4521&typ=M&okres=2026-03&tryb=podglad`, reached by a link from the menu.
+*Example:* An observation of the legacy bank statement at `wyciag.do;jsessionid=AB12?konto=4521&typ=M&okres=2026-03&tryb=podglad`, reached by a link from the menu.
 
-*Seen in:* State page → Reached under; get_run_evidence page_visits; SRS export (URLs observed)
+*Seen in:* State page → Reached under; get_run_evidence observations; SRS export (URLs observed)
 
-*Labels:* `page_visits`, `Reached under`
+*Labels:* `observations`, `Reached under`
 
 *Related:* [Navigation hop](#navigation-hop), [Parameter inventory](#parameter-inventory), [Entry URL](#entry-url), [State](#state)
 
-<sub>Last changed in R-37, 2026-10-12.</sub>
+<sub>Last changed in R-81, 2026-10-20.</sub>
 
 <a id="navigation-hop"></a>
 
@@ -1510,11 +1515,11 @@ settled on carry their title, snapshot and screenshot.
 
 *Example:* `/polisa.php?id=7` → meta_refresh → `/stare/polisa/7` → script → `/ubezpieczenia#/polisy/7`.
 
-*Seen in:* State page → Reached under; get_run_evidence page_visits
+*Seen in:* State page → Reached under; get_run_evidence observations
 
 *Labels:* `hops`, `client_redirect_wait_ms`
 
-*Related:* [Page visit](#page-visit), [Entry URL](#entry-url), [Transit zone](#transit-zone)
+*Related:* [Observation](#observation), [Entry URL](#entry-url), [Transit zone](#transit-zone)
 
 <sub>Last changed in R-62, 2026-10-18.</sub>
 
@@ -1537,7 +1542,7 @@ business rules and data items, citing the visits.
 
 *Labels:* `parameters`, `URL parameters`
 
-*Related:* [Page visit](#page-visit), [Business rule (BR)](#business-rule), [Data item (DI)](#data-item)
+*Related:* [Observation](#observation), [Business rule (BR)](#business-rule), [Data item (DI)](#data-item)
 
 <sub>Last changed in R-37, 2026-10-12.</sub>
 
@@ -1556,7 +1561,7 @@ working.
 
 *Labels:* `entry_urls`, `URLs observed`
 
-*Related:* [Page visit](#page-visit), [Navigation hop](#navigation-hop)
+*Related:* [Observation](#observation), [Navigation hop](#navigation-hop)
 
 <sub>Last changed in R-38, 2026-10-12.</sub>
 
@@ -1928,7 +1933,7 @@ Out of date; a process variant Observed, Drawn, Draft open or Live.
 **In a record's evidence table, the piece of recorded data the record cites, such as a state, form, action, network call or process step.**
 
 Each evidence link on a record points at one target and says what it supports. Target kinds
-are state, edge (transition), action, form, network call, rule candidate, open question,
+are state, transition, observation, action, form, network call, rule candidate, open question,
 decision, process, process step, another documentation record, or a review. Click the target
 to open it on its run page.
 
@@ -3204,7 +3209,8 @@ The score is the share of mutants killed. It runs on demand, never on every comm
 
 Before code is moved or split, the lock captures its observable result; after every step
 the lock must still match. The crawl pipeline's lock runs a map run and a trace run and
-compares the recorded states, edges, decision log and trace spans with a committed snapshot.
+compares the recorded states, transitions, decision log and trace spans with a committed
+snapshot.
 
 *Seen in:* tests/pipeline-golden.e2e.test.ts; docs/code-guidelines.md G-29
 
@@ -3341,7 +3347,7 @@ Values typed and shown along a journey are kept, so business rules can be found 
 
 *Labels:* `journey`, `path`
 
-*Related:* [Run](#run), [Step result](#step-result), [Transition (edge)](#transition)
+*Related:* [Run](#run), [Step result](#step-result), [Transition](#transition)
 
 <sub>Last changed in R-81, 2026-10-19.</sub>
 

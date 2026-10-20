@@ -40,23 +40,24 @@ export const NavigationHop = z.object({
 export type NavigationHop = z.infer<typeof NavigationHop>;
 
 /** How the step reached the page: the agent's `navigate`, an action, a re-login return, the login. */
-export const PageVisitVia = z.enum(['navigate', 'action', 'relogin', 'login']);
-export type PageVisitVia = z.infer<typeof PageVisitVia>;
+export const ObservationVia = z.enum(['navigate', 'action', 'relogin', 'login']);
+export type ObservationVia = z.infer<typeof ObservationVia>;
 
 /**
- * One arrival on a page (table `page_visits`, 0012): the verbatim URL with every query and path
- * parameter, session ids included (R-37), and the hops that led there (R-38).
+ * One arrival on a page (table `observations`, v1's `page_visits` of 0012; renamed by 0032): the
+ * verbatim URL with every query and path parameter, session ids included (R-37), and the hops that
+ * led there (R-38).
  */
-export const PageVisit = z.object({
+export const Observation = z.object({
   id: Id,
   run_id: Id,
   state_id: Id,
-  edge_id: Id.nullable(),
-  via: PageVisitVia,
+  transition_id: Id.nullable(),
+  via: ObservationVia,
   url: z.string().min(1),
   hops: z.array(NavigationHop),
   created_at: Timestamp,
-  /** 0029 (spec 039 design § 5.6): the visit as an observation. NULL on v1 rows. */
+  /** 0029 (spec 039 design § 5.6): journey position, result and context. NULL on v1 rows. */
   journey_id: Id.nullable().optional(),
   seq: z.number().int().positive().nullable().optional(),
   result: StepResult.nullable().optional(),
@@ -69,4 +70,4 @@ export const PageVisit = z.object({
   /** Experiment flags seen (the portal hook's cookie and storage keys), name → value. */
   flags: z.record(z.string(), z.string()).default({}),
 });
-export type PageVisit = z.infer<typeof PageVisit>;
+export type Observation = z.infer<typeof Observation>;

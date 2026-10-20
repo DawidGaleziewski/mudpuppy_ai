@@ -19,7 +19,7 @@ export const GetAccessMatrixInput = z
   .object({ portal_id: z.string().min(1), screen_id: z.string().min(1).optional() })
   .strict();
 
-interface Observation {
+interface ScreenSighting {
   screen_id: string;
   route_template: string;
   title: string;
@@ -69,9 +69,9 @@ const elementKey = (role: string, name: string | null): string =>
 /** Code-point order, as Python's `sorted` (not `localeCompare`): both sides list in one order. */
 const byText = (a: string, b: string): number => Number(a > b) - Number(a < b);
 
-/** Observations of one screen, oldest first: the newest per persona, flagged when any was complete. */
-function variantsOf(rows: Observation[]): Variant[] {
-  const newest = new Map<string, Observation>();
+/** ScreenSightings of one screen, oldest first: the newest per persona, flagged when any was complete. */
+function variantsOf(rows: ScreenSighting[]): Variant[] {
+  const newest = new Map<string, ScreenSighting>();
   const complete = new Set<string>();
   for (const r of rows) {
     newest.set(r.persona_id, r);
@@ -153,7 +153,7 @@ function explainingReach(ev: Evidence, screenStates: Set<string>, notReached: st
 }
 
 function screenAccess(
-  rows: Observation[],
+  rows: ScreenSighting[],
   keys: Map<string, Set<string>>,
   completePersonas: Set<string>,
   ev: Evidence,
@@ -228,7 +228,7 @@ export function getAccessMatrix(ctx: BaContext, raw: unknown) {
        WHERE sc.portal_id = ? AND (? IS NULL OR sc.id = ?)
        ORDER BY sc.route_template, sc.title, sc.id, o.observed_at, o.run_id`,
     )
-    .all(input.portal_id, input.screen_id ?? null, input.screen_id ?? null) as Observation[];
+    .all(input.portal_id, input.screen_id ?? null, input.screen_id ?? null) as ScreenSighting[];
   // Only the actions of the screens asked for (one screen when screen_id is given).
   const keys = new Map<string, Set<string>>();
   const actions = ctx.raw
@@ -248,7 +248,7 @@ export function getAccessMatrix(ctx: BaContext, raw: unknown) {
     keys.set(a.state_id, set);
   }
   const evidence = evidenceOf(ctx, input.portal_id);
-  const byScreen = new Map<string, Observation[]>();
+  const byScreen = new Map<string, ScreenSighting[]>();
   for (const o of observations) {
     const rows = byScreen.get(o.screen_id) ?? [];
     rows.push(o);

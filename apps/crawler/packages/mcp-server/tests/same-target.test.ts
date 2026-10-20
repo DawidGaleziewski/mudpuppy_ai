@@ -52,7 +52,7 @@ function seedState(ctx: Ctx, runId: string, tag: string): string {
   return id;
 }
 
-function seedEdge(
+function seedTransition(
   ctx: Ctx,
   runId: string,
   from: string,
@@ -67,7 +67,7 @@ function seedEdge(
   const id = newId();
   ctx.raw
     .prepare(
-      `INSERT INTO edges (id, run_id, from_state, to_state, action_json, safety_class, status,
+      `INSERT INTO transitions (id, run_id, from_state, to_state, action_json, safety_class, status,
          evidence_ref, confidence, error, stabilization, created_at)
        VALUES (?, ?, ?, ?, ?, 'read', ?, ?, ?, NULL, 'settled', ?)`,
     )
@@ -121,9 +121,9 @@ const frontierRow = (ctx: Ctx, id: string) =>
     reason: string | null;
   };
 
-const inferredEdges = (ctx: Ctx, runId: string) =>
+const inferredTransitions = (ctx: Ctx, runId: string) =>
   ctx.raw
-    .prepare(`SELECT * FROM edges WHERE run_id = ? AND confidence = 'inferred' ORDER BY id`)
+    .prepare(`SELECT * FROM transitions WHERE run_id = ? AND confidence = 'inferred' ORDER BY id`)
     .all(runId) as {
     id: string;
     from_state: string;
@@ -145,9 +145,9 @@ async function setup() {
 }
 
 describe('getNextFrontierItem same-target inference', () => {
-  it('AS2.1: settles link items whose target was already reached, as inferred edges', async () => {
+  it('AS2.1: settles link items whose target was already reached, as inferred transitions', async () => {
     const { ctx, runId, s1, s2, s3, s4 } = await setup();
-    const seen = seedEdge(ctx, runId, s1, { to: s2 });
+    const seen = seedTransition(ctx, runId, s1, { to: s2 });
     const a = seedItem(ctx, runId, s3, linkJson(T));
     const b = seedItem(ctx, runId, s4, linkJson(T));
     const btn = seedItem(ctx, runId, s3, linkJson('https://shop.test/other', { role: 'button' }));
@@ -159,7 +159,7 @@ describe('getNextFrontierItem same-target inference', () => {
     for (const id of [a, b]) {
       expect(frontierRow(ctx, id)).toEqual({ status: 'done', reason: `same_target: ${seen}` });
     }
-    const inferred = inferredEdges(ctx, runId);
+    const inferred = inferredTransitions(ctx, runId);
     expect(inferred).toHaveLength(2);
     expect(inferred.map((e) => e.from_state).sort()).toEqual([s3, s4].sort());
     for (const e of inferred) {
@@ -176,12 +176,16 @@ describe('getNextFrontierItem same-target inference', () => {
     // Trace event per settled item.
     const infers = events.mock.calls.filter(([name]) => name === 'frontier_infer');
     expect(infers).toHaveLength(2);
-    expect(infers[0]?.[1]).toMatchObject({ frontier_id: a, same_as_edge_id: seen, to_state: s2 });
+    expect(infers[0]?.[1]).toMatchObject({
+      frontier_id: a,
+      same_as_transition_id: seen,
+      to_state: s2,
+    });
   });
 
   it('AS2.1: with only inferable items the queue is empty', async () => {
     const { ctx, runId, s1, s2, s3 } = await setup();
-    seedEdge(ctx, runId, s1, { to: s2 });
+    seedTransition(ctx, runId, s1, { to: s2 });
     seedItem(ctx, runId, s3, linkJson(T));
     expect(await getNextFrontierItem(ctx, { run_id: runId })).toEqual({
       item: null,
@@ -189,20 +193,20 @@ describe('getNextFrontierItem same-target inference', () => {
     });
   });
 
-  it('AS2.2: a skipped / inferred / dead-end edge to the target does not settle the item', async () => {
+  it('AS2.2: a skipped / inferred / dead-end transition to the target does not settle the item', async () => {
     const { ctx, runId, s1, s3 } = await setup();
-    seedEdge(ctx, runId, s1, { to: null, status: 'skipped', confidence: 'inferred' });
-    seedEdge(ctx, runId, s1, { to: null });
+    seedTransition(ctx, runId, s1, { to: null, status: 'skipped', confidence: 'inferred' });
+    seedTransition(ctx, runId, s1, { to: null });
     const item = seedItem(ctx, runId, s3, linkJson(T));
     const next = await getNextFrontierItem(ctx, { run_id: runId });
     expect(next).toMatchObject({ item: { frontier_id: item } });
     expect(frontierRow(ctx, item).status).toBe('pending');
-    expect(inferredEdges(ctx, runId).filter((e) => e.to_state !== null)).toHaveLength(0);
+    expect(inferredTransitions(ctx, runId).filter((e) => e.to_state !== null)).toHaveLength(0);
   });
 
   it('AS2.3: buttons and links with a different target are handed out, not inferred', async () => {
     const { ctx, runId, s1, s2, s3 } = await setup();
-    seedEdge(ctx, runId, s1, { to: s2 });
+    seedTransition(ctx, runId, s1, { to: s2 });
     const button = seedItem(ctx, runId, s3, linkJson(T, { role: 'button' }));
     const other = seedItem(ctx, runId, s3, linkJson('https://shop.test/else'));
     const first = await getNextFrontierItem(ctx, { run_id: runId });
@@ -211,12 +215,12 @@ describe('getNextFrontierItem same-target inference', () => {
     expect(await inferSameTarget(ctx, { ...rowOf(ctx, other) })).toBe(false);
     expect(frontierRow(ctx, other).status).toBe('pending');
     expect(frontierRow(ctx, button).status).toBe('pending');
-    expect(inferredEdges(ctx, runId)).toHaveLength(0);
+    expect(inferredTransitions(ctx, runId)).toHaveLength(0);
   });
 
   it('queue order: a higher-priority inferable item ahead of a normal one returns the normal one', async () => {
     const { ctx, runId, s1, s2, s3 } = await setup();
-    seedEdge(ctx, runId, s1, { to: s2 });
+    seedTransition(ctx, runId, s1, { to: s2 });
     const inferable = seedItem(ctx, runId, s3, linkJson(T), 5);
     const normal = seedItem(ctx, runId, s3, linkJson('https://shop.test/else'), 0);
     const next = await getNextFrontierItem(ctx, { run_id: runId });
@@ -226,7 +230,7 @@ describe('getNextFrontierItem same-target inference', () => {
 
   it('spec 026 F-04: a link to the same URL with another visible name is handed out, not inferred', async () => {
     const { ctx, runId, s1, s2, s3 } = await setup();
-    seedEdge(ctx, runId, s1, { to: s2, name: 'Koszyk (0)' });
+    seedTransition(ctx, runId, s1, { to: s2, name: 'Koszyk (0)' });
     const filled = seedItem(ctx, runId, s3, linkJson(T, { accessible_name: 'Koszyk (1)' }));
     const same = seedItem(ctx, runId, s3, linkJson(T, { accessible_name: 'Koszyk (0)' }));
     expect(await inferSameTarget(ctx, { ...rowOf(ctx, filled) })).toBe(false);
@@ -237,7 +241,7 @@ describe('getNextFrontierItem same-target inference', () => {
 
   it('spec 031 T014: once "Koszyk (1)" was followed, "Koszyk (2)" and "(3)" are inferred; "(0)" is not', async () => {
     const { ctx, runId, s1, s2, s3 } = await setup();
-    seedEdge(ctx, runId, s1, { to: s2, name: 'Koszyk (1)' });
+    seedTransition(ctx, runId, s1, { to: s2, name: 'Koszyk (1)' });
     const two = seedItem(ctx, runId, s3, linkJson(T, { accessible_name: 'Koszyk (2)' }));
     const three = seedItem(ctx, runId, s3, linkJson(T, { accessible_name: 'Koszyk [3]' }));
     const empty = seedItem(ctx, runId, s3, linkJson(T, { accessible_name: 'Koszyk (0)' }));

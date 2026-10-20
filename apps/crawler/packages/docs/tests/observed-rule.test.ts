@@ -15,13 +15,20 @@ const target = (
 });
 
 describe('observed rule (research §5)', () => {
-  it('accepts one observed state, edge, form, action, network call or process step', () => {
-    for (const kind of ['state', 'edge', 'form', 'action', 'network_call', 'process_step'] as const)
+  it('accepts one observed state, transition, form, action, network call or process step', () => {
+    for (const kind of [
+      'state',
+      'transition',
+      'form',
+      'action',
+      'network_call',
+      'process_step',
+    ] as const)
       expect(checkObserved([target(kind, 'observed')]).ok, kind).toBe(true);
   });
 
   it('refuses a Layer A target that is not itself observed', () => {
-    for (const kind of ['state', 'edge', 'form'] as const) {
+    for (const kind of ['state', 'transition', 'form'] as const) {
       expect(checkObserved([target(kind, 'inferred')]).ok).toBe(false);
       expect(checkObserved([target(kind, 'needs_confirmation')]).ok).toBe(false);
     }

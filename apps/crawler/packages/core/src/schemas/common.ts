@@ -19,8 +19,8 @@ export const FrontierStatus = z.enum([
 ]);
 export type FrontierStatus = z.infer<typeof FrontierStatus>;
 
-export const EdgeStatus = z.enum(['executed', 'skipped']);
-export type EdgeStatus = z.infer<typeof EdgeStatus>;
+export const TransitionStatus = z.enum(['executed', 'skipped']);
+export type TransitionStatus = z.infer<typeof TransitionStatus>;
 
 export const Stabilization = z.enum(['settled', 'never_stabilized']);
 export type Stabilization = z.infer<typeof Stabilization>;

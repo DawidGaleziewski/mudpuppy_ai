@@ -18,7 +18,7 @@ const plan = (over: Partial<ResolvedPlan> = {}): ResolvedPlan => ({
   skip_actions: [],
   only_action: null,
   variation: 'none',
-  target_edge_id: null,
+  target_transition_id: null,
   parent_done: [],
   mark_ids: [],
   ...over,

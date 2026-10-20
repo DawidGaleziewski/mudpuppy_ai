@@ -11,7 +11,7 @@ describe('loadEvalInput evidence routes', () => {
       seedDocRecords(fx);
       fx.raw
         .prepare(
-          `INSERT INTO page_visits (id, run_id, state_id, via, url, created_at)
+          `INSERT INTO observations (id, run_id, state_id, via, url, created_at)
            VALUES ('visit-1', ?, ?, 'navigate', 'http://127.0.0.1:4010/kalkulator/pojazd', ?)`,
         )
         .run(fx.runId, fx.states.vehicle, '2026-01-15T10:00:00.000Z');
@@ -34,9 +34,9 @@ describe('loadEvalInput evidence routes', () => {
         fx.runId,
         'button "Dalej"',
       );
-      link.run('l-visit', revision_id, 'page_visit', 'visit-1', fx.runId, null);
+      link.run('l-visit', revision_id, 'observation', 'visit-1', fx.runId, null);
       const req = loadEvalInput(fx.raw, fx.portalId).records.find((r) => r.key === 'REQ-001')!;
-      for (const kind of ['screen_region', 'page_visit'])
+      for (const kind of ['screen_region', 'observation'])
         expect(req.evidence.find((e) => e.target_kind === kind)!.routes).toEqual([
           '/kalkulator/pojazd',
         ]);

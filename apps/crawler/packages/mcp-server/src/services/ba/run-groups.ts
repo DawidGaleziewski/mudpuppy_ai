@@ -95,12 +95,12 @@ export function statesOfLink(
     case 'state':
     case 'screen_region':
       return [l.target_id];
-    case 'edge':
+    case 'transition':
       return all(
-        'SELECT from_state AS s FROM edges WHERE id = @id UNION SELECT to_state FROM edges WHERE id = @id',
+        'SELECT from_state AS s FROM transitions WHERE id = @id UNION SELECT to_state FROM transitions WHERE id = @id',
       );
-    case 'page_visit':
-      return all('SELECT state_id AS s FROM page_visits WHERE id = @id');
+    case 'observation':
+      return all('SELECT state_id AS s FROM observations WHERE id = @id');
     case 'process_step':
       return all(
         'SELECT state_before AS s FROM process_steps WHERE id = @id UNION SELECT state_after FROM process_steps WHERE id = @id',

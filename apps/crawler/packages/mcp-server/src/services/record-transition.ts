@@ -1,7 +1,7 @@
 import {
   Confidence,
   Driver,
-  EdgeStatus,
+  TransitionStatus,
   FoundBy,
   SafetyClass,
   Stabilization,
@@ -75,16 +75,16 @@ export const RecordTransitionInput = z
     to_state: z.string().min(1).nullable(),
     action: ActionInput,
     safety_class: SafetyClass,
-    status: EdgeStatus,
+    status: TransitionStatus,
     evidence_ref: z.string().min(1),
     confidence: Confidence,
     error: z.record(z.string(), z.unknown()).nullable().default(null),
     stabilization: Stabilization.default('settled'),
-    // MudPuppy 2.0 (spec 039 design § 5.7): the edge as a step of a journey.
+    // MudPuppy 2.0 (spec 039 design § 5.7): the transition as a step of a journey.
     journey_id: z.string().min(1),
     seq: z.number().int().positive(),
-    /** The visit the step started from; null only when the journey has none yet. */
-    from_visit_id: z.string().min(1).nullable(),
+    /** The observation the step started from; null only when the journey has none yet. */
+    from_observation_id: z.string().min(1).nullable(),
     element_key: z.string().min(1),
     kind: TransitionKind,
     result: StepResult,
@@ -106,13 +106,13 @@ export function descriptorOf(action: z.infer<typeof ActionInput>): ActionDescrip
 }
 
 /**
- * Records an edge. The class is re-derived with the `safety` package and a differing supplied class
+ * Records a transition. The class is re-derived with the `safety` package and a differing supplied class
  * is rejected (FR-004). Whether the action may run at all is the action gate's decision.
  */
 export async function recordTransition(
   ctx: ServerContext,
   raw: unknown,
-): Promise<{ edge_id: string }> {
+): Promise<{ transition_id: string }> {
   requireEvidenceAndConfidence(raw);
   const input = parseInput(RecordTransitionInput, raw);
   const run = await getRun(ctx, input.run_id);
@@ -153,7 +153,7 @@ export async function recordTransition(
 
   const id = newId();
   await ctx.db
-    .insertInto('edges')
+    .insertInto('transitions')
     .values({
       id,
       run_id: run.id,
@@ -169,12 +169,12 @@ export async function recordTransition(
       created_at: nowIso(),
       journey_id: input.journey_id,
       seq: input.seq,
-      from_visit_id: input.from_visit_id,
+      from_observation_id: input.from_observation_id,
       element_key: input.element_key,
       kind: input.kind,
       result: input.result,
       driver: input.driver,
     })
     .execute();
-  return { edge_id: id };
+  return { transition_id: id };
 }

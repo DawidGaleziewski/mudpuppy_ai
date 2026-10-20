@@ -2,7 +2,7 @@
 // `go_to_state` replay (a root `checkpoint` journey: the replay walks the recorded path again, so
 // its steps are its own, F-10@039), a login or a fresh session starts a new one. Child journeys
 // (a parent and a branch seq) are for a browser back, which the crawler does not use yet. The
-// run's visits are numbered (`page_visits.seq`) and each journey's transitions (`edges.seq`).
+// run's observations are numbered (`observations.seq`) and each journey's transitions (`transitions.seq`).
 
 import type { JourneyEndReason } from '@pathfinder/core';
 import type { ServerContext } from '../../context.js';
@@ -10,7 +10,7 @@ import {
   closeJourney,
   hasJourney,
   insertJourney,
-  maxVisitSeq,
+  maxObservationSeq,
   writeAttributes,
   type AttributeInput,
   type JourneyStart,
@@ -26,7 +26,7 @@ export async function endJourney(
   if (!rs.journey) return;
   await closeJourney(ctx, rs.journey.id, reason);
   rs.journey = null;
-  rs.lastVisitId = null;
+  rs.lastObservationId = null;
 }
 
 /**
@@ -53,11 +53,11 @@ export async function ensureJourney(ctx: ServerContext, rs: RunState): Promise<s
   return beginJourney(ctx, rs, { kind: resumed ? 'resume' : 'entry_url' });
 }
 
-/** The next visit number of the run (read from the store once, so a resumed run continues). */
-export async function nextVisitSeq(ctx: ServerContext, rs: RunState): Promise<number> {
-  rs.visitSeq ??= await maxVisitSeq(ctx, rs.runId);
-  rs.visitSeq += 1;
-  return rs.visitSeq;
+/** The next observation number of the run (read from the store once, so a resumed run continues). */
+export async function nextObservationSeq(ctx: ServerContext, rs: RunState): Promise<number> {
+  rs.observationSeq ??= await maxObservationSeq(ctx, rs.runId);
+  rs.observationSeq += 1;
+  return rs.observationSeq;
 }
 
 function writePersonaAttributes(

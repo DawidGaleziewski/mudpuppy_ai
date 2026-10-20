@@ -23,7 +23,7 @@ interface PendingRow {
 /** The URLs this run has visited. */
 function visitedUrls(ctx: ServerContext, runId: string): string[] {
   const rows = ctx.raw
-    .prepare('SELECT DISTINCT url FROM page_visits WHERE run_id = ?')
+    .prepare('SELECT DISTINCT url FROM observations WHERE run_id = ?')
     .all(runId) as { url: string }[];
   return rows.map((r) => r.url);
 }

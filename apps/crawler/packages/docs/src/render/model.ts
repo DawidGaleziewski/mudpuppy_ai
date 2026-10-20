@@ -256,17 +256,17 @@ const TARGET_LABEL: Partial<
   Record<EvidenceTargetKind, { table: string; label: (r: Record<string, unknown>) => string }>
 > = {
   state: { table: 'states', label: (r) => `${String(r.title)} (${String(r.route_template)})` },
-  // spec 019: a visit is shown by its verbatim URL (the dashboard's `_TARGETS` does the same)
-  page_visit: { table: 'page_visits', label: (r) => String(r.url) },
+  // spec 019: an observation is shown by its verbatim URL (the dashboard's `_TARGETS` does the same)
+  observation: { table: 'observations', label: (r) => String(r.url) },
   screen_region: {
     table: 'states',
     label: (r) => `${String(r.title)} (${String(r.route_template)})`,
   },
-  edge: {
-    table: 'edges',
+  transition: {
+    table: 'transitions',
     label: (r) => {
       const name = accessibleName(r.action_json as string | null);
-      return name ? `edge: "${name}"` : 'edge';
+      return name ? `transition: "${name}"` : 'transition';
     },
   },
   action: {
@@ -688,8 +688,8 @@ function sightingLabels(raw: RawDb, rendered: ExportRecord[]): Record<string, st
           .prepare('SELECT method, url_template FROM network_calls WHERE id = ?')
           .get(s.target_id) as { method: string; url_template: string } | undefined;
         if (row) out[s.target_id] = `${row.method} ${row.url_template}`;
-      } else if (s.kind === 'page_visit') {
-        const row = raw.prepare('SELECT url FROM page_visits WHERE id = ?').get(s.target_id) as
+      } else if (s.kind === 'observation') {
+        const row = raw.prepare('SELECT url FROM observations WHERE id = ?').get(s.target_id) as
           { url: string } | undefined;
         if (row) out[s.target_id] = `URL ${row.url}`;
       }
@@ -699,8 +699,8 @@ function sightingLabels(raw: RawDb, rendered: ExportRecord[]): Record<string, st
 }
 
 /**
- * Mirror of the dashboard's `screen_diagram_input`: transitions where an edge leads from a state one
- * rendered screen cites to a state another cites; targets reached from more than half the screens
+ * Mirror of the dashboard's `screen_diagram_input`: transitions that lead from a state one rendered
+ * screen cites to a state another cites; targets reached from more than half the screens
  * (global navigation) are left out and counted.
  */
 function screenNavInput(
@@ -725,13 +725,13 @@ function screenNavInput(
   if (owner.size > 0) {
     const ids = [...owner.keys()];
     const marks = ids.map(() => '?').join(',');
-    const edges = raw
+    const transitions = raw
       .prepare(
-        `SELECT from_state, to_state, action_json FROM edges
+        `SELECT from_state, to_state, action_json FROM transitions
          WHERE from_state IN (${marks}) AND to_state IN (${marks}) ORDER BY id LIMIT 200`,
       )
       .all(...ids, ...ids) as { from_state: string; to_state: string; action_json: string }[];
-    for (const e of edges) {
+    for (const e of transitions) {
       const a = owner.get(e.from_state)!;
       const b = owner.get(e.to_state)!;
       const name = accessibleName(e.action_json);

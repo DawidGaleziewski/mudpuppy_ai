@@ -12,7 +12,7 @@ export const ListRunsInput = z.object({ portal_id: z.string().min(1) }).strict()
 
 const RUN_COUNTS: Record<string, string> = {
   states: 'state_observations',
-  edges: 'edges',
+  transitions: 'transitions',
   forms: 'forms',
   network_calls: 'network_calls',
   actions: 'actions',

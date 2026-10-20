@@ -81,15 +81,15 @@ function callsOfStep(raw: RawDb, step: ProcessStep): CallRow[] {
   const byAction = raw
     .prepare(
       `${SELECT}, json_extract(e.action_json, '$.accessible_name') AS trigger
-       FROM network_calls n JOIN edges e ON e.id = n.edge_id
+       FROM network_calls n JOIN transitions e ON e.id = n.transition_id
        WHERE e.from_state IN (${marks}) ORDER BY n.created_at`,
     )
     .all(...ids) as CallRow[];
   const visits = raw
     .prepare(
       `SELECT v.run_id, v.created_at,
-         (SELECT min(w.created_at) FROM page_visits w WHERE w.run_id = v.run_id AND w.created_at > v.created_at) AS until
-       FROM page_visits v WHERE v.state_id IN (${marks})`,
+         (SELECT min(w.created_at) FROM observations w WHERE w.run_id = v.run_id AND w.created_at > v.created_at) AS until
+       FROM observations v WHERE v.state_id IN (${marks})`,
     )
     .all(...ids) as { run_id: string; created_at: string; until: string | null }[];
   const onLoad: CallRow[] = [];
@@ -98,7 +98,7 @@ function callsOfStep(raw: RawDb, step: ProcessStep): CallRow[] {
       ...(raw
         .prepare(
           `${SELECT}, NULL AS trigger FROM network_calls n
-           WHERE n.run_id = ? AND n.edge_id IS NULL AND n.created_at >= ? AND (? IS NULL OR n.created_at < ?)
+           WHERE n.run_id = ? AND n.transition_id IS NULL AND n.created_at >= ? AND (? IS NULL OR n.created_at < ?)
            ORDER BY n.created_at`,
         )
         .all(v.run_id, v.created_at, v.until, v.until) as CallRow[]),

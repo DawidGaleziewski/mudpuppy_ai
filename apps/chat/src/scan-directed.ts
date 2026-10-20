@@ -44,9 +44,9 @@ export function directedScanCheck(
     throw new ScanRefusal('MISSING_INPUT', 'continuing a scan needs the scan to continue', [
       'plan.parent_run_id: the stopped scan',
     ]);
-  if (s.run_type === 'retry' && plan.target_edge_id === undefined)
+  if (s.run_type === 'retry' && plan.target_transition_id === undefined)
     throw new ScanRefusal('MISSING_INPUT', 'retrying a path needs the action that failed', [
-      'plan.target_edge_id: the failed action (Scans > the stopped scan > Retry this path)',
+      'plan.target_transition_id: the failed action (Scans > the stopped scan > Retry this path)',
     ]);
   const kinds = MARKS_FOR[s.run_type];
   if (kinds !== undefined && plan.start_state_ids === undefined && openMarks(raw, portal, kinds) === 0)

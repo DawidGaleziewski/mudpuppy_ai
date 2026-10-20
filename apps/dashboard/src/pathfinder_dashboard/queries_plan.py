@@ -46,7 +46,7 @@ class Plan:
 def _reach(conn: sqlite3.Connection, state_id: str) -> str | None:
     """How a replay would reach a state: a recorded direct visit, else the shortest checkpoint."""
     direct = conn.execute(
-        "SELECT 1 FROM page_visits WHERE state_id = ? AND via = 'navigate' LIMIT 1", (state_id,)
+        "SELECT 1 FROM observations WHERE state_id = ? AND via = 'navigate' LIMIT 1", (state_id,)
     ).fetchone()
     if direct:
         return "opens by its URL"
@@ -61,21 +61,21 @@ def _reach(conn: sqlite3.Connection, state_id: str) -> str | None:
         n = int(row[0])
         return "opens by its URL" if n == 0 else f"replays {n} step{'s' if n != 1 else ''}"
     visited = conn.execute(
-        "SELECT 1 FROM page_visits WHERE state_id = ? LIMIT 1", (state_id,)
+        "SELECT 1 FROM observations WHERE state_id = ? LIMIT 1", (state_id,)
     ).fetchone()
     return "replays the recorded visit" if visited else None
 
 
 def _target(conn: sqlite3.Connection, kind: str, target_id: str) -> tuple[str, str, str | None]:
-    """Title, route and the state a replay goes to, for a state, an edge or a form step."""
+    """Title, route and the state a replay goes to, for a state, a transition or a form step."""
     if kind == "state":
         r = conn.execute(
             "SELECT title, route_template FROM states WHERE id = ?", (target_id,)
         ).fetchone()
         return (r[0], r[1], target_id) if r else ("(gone)", "-", None)
-    if kind == "edge":
+    if kind == "transition":
         r = conn.execute(
-            "SELECT e.action_json, s.title, s.route_template, e.from_state FROM edges e"
+            "SELECT e.action_json, s.title, s.route_template, e.from_state FROM transitions e"
             " JOIN states s ON s.id = e.from_state WHERE e.id = ?",
             (target_id,),
         ).fetchone()
@@ -150,7 +150,7 @@ VARIATIONS = (
 
 @dataclass(frozen=True)
 class FailedAction:
-    edge_id: str
+    transition_id: str
     label: str
     route: str
     error: str
@@ -194,7 +194,7 @@ class Recovery:
 
 
 def error_text(raw: str | None) -> str:
-    """An edge's stored error as one line (its message, else its code)."""
+    """A transition's stored error as one line (its message, else its code)."""
     if not raw:
         return ""
     try:
@@ -213,13 +213,15 @@ def _attempt_passed(conn: sqlite3.Connection, run_id: str, plan_json: str | None
         return None
     if not isinstance(plan_obj, dict) or plan_obj.get("type") != "retry":
         return None
-    target = plan_obj.get("target_edge_id")
-    t = conn.execute("SELECT from_state, action_json FROM edges WHERE id = ?", (target,)).fetchone()
+    target = plan_obj.get("target_transition_id")
+    t = conn.execute(
+        "SELECT from_state, action_json FROM transitions WHERE id = ?", (target,)
+    ).fetchone()
     if not t:
         return None
     name = json.loads(t[1]).get("accessible_name")
     rows = conn.execute(
-        "SELECT action_json, error FROM edges WHERE run_id = ? AND from_state = ?"
+        "SELECT action_json, error FROM transitions WHERE run_id = ? AND from_state = ?"
         " AND status = 'executed'",
         (run_id, t[0]),
     ).fetchall()
@@ -252,7 +254,7 @@ def recovery(conn: sqlite3.Connection, run_id: str) -> Recovery | None:
             r["created_at"],
         )
         for r in conn.execute(
-            "SELECT e.id, e.action_json, e.error, e.created_at, s.route_template FROM edges e"
+            "SELECT e.id, e.action_json, e.error, e.created_at, s.route_template FROM transitions e"
             " JOIN states s ON s.id = e.from_state WHERE e.run_id = ? AND e.error IS NOT NULL"
             # Skip checks its action against this list; the run graph offers it on every failure
             " ORDER BY e.created_at DESC LIMIT 500",

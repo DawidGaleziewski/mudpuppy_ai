@@ -102,7 +102,7 @@ export async function appendStep(
     intent: string;
     kind: StepKind;
     action_id: string | null;
-    edge_id: string | null;
+    transition_id: string | null;
     value: string | null;
     state_before: string | null;
     state_after: string | null;
@@ -125,7 +125,7 @@ export async function appendStep(
       intent: maskText(step.intent),
       kind: step.kind,
       action_id: step.action_id,
-      edge_id: step.edge_id,
+      transition_id: step.transition_id,
       value: step.value === null ? null : maskText(step.value),
       state_before: step.state_before,
       state_after: step.state_after,

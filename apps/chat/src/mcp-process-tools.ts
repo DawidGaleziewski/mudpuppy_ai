@@ -34,7 +34,7 @@ function groupingInputs(raw: BetterSqlite3.Database, portal: string) {
     .prepare(
       `SELECT e.from_state, e.to_state, json_extract(e.action_json, '$.role') AS role,
               json_extract(e.action_json, '$.name') AS name, count(*) AS times
-       FROM edges e JOIN states f ON f.id = e.from_state
+       FROM transitions e JOIN states f ON f.id = e.from_state
        WHERE f.portal_id = ? AND e.to_state IS NOT NULL AND e.status = 'executed'
          AND e.from_state <> e.to_state
        GROUP BY e.from_state, e.to_state, role, name ORDER BY e.from_state LIMIT 2000`,

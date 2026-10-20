@@ -67,7 +67,7 @@ DocKind = Literal[
 ]
 EvidenceTargetKind = Literal[
     "state",
-    "edge",
+    "transition",
     "action",
     "form",
     "network_call",
@@ -79,7 +79,7 @@ EvidenceTargetKind = Literal[
     "doc_record",
     "review",
     "screen_region",
-    "page_visit",
+    "observation",
 ]
 RelationType = Literal[
     "contains",
@@ -175,7 +175,9 @@ class Action(Row):
     created_at: str
 
 
-class Edge(Row):
+class Transition(Row):
+    """v1's `edges`, renamed by 0032 (spec 039 T110)."""
+
     id: str
     run_id: str
     from_state: str
@@ -188,10 +190,10 @@ class Edge(Row):
     error: Json | None
     stabilization: Stabilization
     created_at: str
-    # 0029 (spec 039): the edge as a transition; NULL on v1 rows
+    # 0029 (spec 039): journey position, element key, kind, result; NULL on v1 rows
     journey_id: str | None = None
     seq: int | None = None
-    from_visit_id: str | None = None
+    from_observation_id: str | None = None
     element_key: str | None = None
     kind: TransitionKind | None = None
     result: StepResult | None = None
@@ -261,7 +263,7 @@ class AttributeWrite(Row):
 class ObservationBuild(Row):
     """0029 (spec 039): a build that served a visit."""
 
-    page_visit_id: str
+    observation_id: str
     build_id: str
 
 
@@ -364,8 +366,8 @@ class ModelTransition(Row):
     result: StepResult
     internal: bool
     support: int
-    first_seen_edge_id: str
-    last_seen_edge_id: str
+    first_seen_transition_id: str
+    last_seen_transition_id: str
     status: CoverageStatus
     status_model_version: str
 
@@ -379,8 +381,8 @@ class EntityRef(Row):
     """0031 (spec 039): a typed reference, exactly one target."""
 
     id: str
-    page_visit_id: str | None
-    edge_id: str | None
+    observation_id: str | None
+    transition_id: str | None
     state_id: str | None
     screen_id: str | None
     action_class_id: str | None
@@ -509,8 +511,8 @@ class BuildEpoch(Row):
     scope: str
     environment: str
     build_id: str
-    first_visit_id: str
-    last_visit_id: str
+    first_observation_id: str
+    last_observation_id: str
     overlaps_previous: bool
     model_version_id: str
 
@@ -528,7 +530,7 @@ class Form(Row):
 class NetworkCall(Row):
     id: str
     run_id: str
-    edge_id: str | None
+    transition_id: str | None
     method: str
     url_template: str
     status: int
@@ -542,18 +544,21 @@ class NetworkCall(Row):
     schema_hash: str | None = None  # 0029: sha256 of the response shape; NULL for documents
 
 
-class PageVisit(Row):
-    """0012 (spec 019): one arrival on a page, its verbatim URL and the hops that led there."""
+class Observation(Row):
+    """0012 (spec 019): one arrival on a page, its verbatim URL and the hops that led there.
+
+    `page_visits` until 0032 renamed it (spec 039 T110).
+    """
 
     id: str
     run_id: str
     state_id: str
-    edge_id: str | None
+    transition_id: str | None
     via: Literal["navigate", "action", "relogin", "login"]
     url: str
     hops_json: Json
     created_at: str
-    # 0029 (spec 039): the visit as an observation; NULL on v1 rows
+    # 0029 (spec 039): journey position, result, context, flags; NULL on v1 rows
     journey_id: str | None = None
     seq: int | None = None
     result: StepResult | None = None
@@ -636,7 +641,7 @@ class ProbeOutcome(Row):
     http_status: int | None
     reason: str | None
     evidence_ref: str
-    edge_id: str | None
+    transition_id: str | None
     created_at: str
 
 
@@ -663,7 +668,7 @@ class Mark(Row):
     id: str
     portal_id: str
     kind: Literal["start", "focus", "probe", "retry", "recheck", "skip"]
-    target_kind: Literal["form_step", "state", "edge"]
+    target_kind: Literal["form_step", "state", "transition"]
     target_id: str
     created_by: str
     created_at: str
@@ -945,7 +950,7 @@ class ProcessStep(Row):
     intent: str
     kind: Literal["navigate", "click", "fill", "check", "select"]
     action_id: str | None
-    edge_id: str | None
+    transition_id: str | None
     value: str | None
     state_before: str | None
     state_after: str | None
@@ -1225,10 +1230,10 @@ TABLE_MODELS: dict[str, type[Row]] = {
     "runs": Run,
     "state_observations": StateObservation,
     "actions": Action,
-    "edges": Edge,
+    "transitions": Transition,
     "forms": Form,
     "network_calls": NetworkCall,
-    "page_visits": PageVisit,
+    "observations": Observation,
     "open_questions": OpenQuestion,
     "rule_candidates": RuleCandidate,
     "screens": Screen,
@@ -1343,7 +1348,7 @@ class RunSummary(BaseModel):
     robots_policies: int
     decisions: int
     decisions_by_kind: dict[DecisionKind, int]
-    edges: int
+    transitions: int
     open_questions: int
     rule_candidates: int
 

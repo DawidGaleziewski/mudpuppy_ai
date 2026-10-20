@@ -1,4 +1,4 @@
--- GENERATED from data/migrations/*.up.sql applied in order (currently through 0031_interpretation). Do not edit by hand.
+-- GENERATED from data/migrations/*.up.sql applied in order (currently through 0032_transitions_observations). Do not edit by hand.
 -- Regenerate after every migration; see data/schema/README.md.
 
 CREATE TABLE runs (
@@ -58,11 +58,12 @@ CREATE TABLE actions (
   CHECK (allowed = 1 OR skip_reason IS NOT NULL)
 ) STRICT;
 
-CREATE TABLE edges (
+-- 0032 renamed `edges` to `transitions` (the design's name, spec 039 T110).
+CREATE TABLE transitions (
   id            TEXT PRIMARY KEY,
   run_id        TEXT NOT NULL REFERENCES runs(id),
   from_state    TEXT NOT NULL REFERENCES states(id),
-  to_state      TEXT REFERENCES states(id),  -- nullable: skipped edges and actions that led nowhere
+  to_state      TEXT REFERENCES states(id),  -- nullable: skipped transitions and actions that led nowhere
   action_json   TEXT NOT NULL CHECK (json_valid(action_json)),
   safety_class  TEXT NOT NULL CHECK (safety_class IN ('read','mutating','destructive','external-side-effect')),
   status        TEXT NOT NULL CHECK (status IN ('executed','skipped')),
@@ -71,17 +72,17 @@ CREATE TABLE edges (
   error         TEXT CHECK (error IS NULL OR json_valid(error)),
   stabilization TEXT NOT NULL CHECK (stabilization IN ('settled','never_stabilized')),
   created_at    TEXT NOT NULL,
-  -- 0029 (ALTER TABLE, spec 039): the edge as a transition; NULL on v1 rows.
+  -- 0029 (ALTER TABLE, spec 039): the design's transition columns; NULL on v1 rows.
   journey_id    TEXT REFERENCES journeys(id),
   seq           INTEGER CHECK (seq IS NULL OR seq >= 1),
-  from_visit_id TEXT REFERENCES page_visits(id),
+  from_observation_id TEXT REFERENCES observations(id),
   element_key   TEXT,
   kind          TEXT CHECK (kind IS NULL OR kind IN ('click','fill','select','check','submit','navigate','back')),
   result        TEXT CHECK (result IS NULL OR result IN ('ok','validation','business_error','technical_error','timeout','blocked')),
   driver        TEXT NOT NULL DEFAULT 'agent' CHECK (driver IN ('agent','headless'))
 ) STRICT;
-CREATE INDEX ix_edges_run_id ON edges(run_id);
-CREATE UNIQUE INDEX ux_edges_journey_seq ON edges (journey_id, seq) WHERE journey_id IS NOT NULL;
+CREATE INDEX ix_transitions_run_id ON transitions (run_id);
+CREATE UNIQUE INDEX ux_transitions_journey_seq ON transitions (journey_id, seq) WHERE journey_id IS NOT NULL;
 
 CREATE TABLE forms (
   id           TEXT PRIMARY KEY,
@@ -96,7 +97,7 @@ CREATE TABLE forms (
 CREATE TABLE network_calls (
   id             TEXT PRIMARY KEY,
   run_id         TEXT NOT NULL REFERENCES runs(id),
-  edge_id        TEXT REFERENCES edges(id),  -- null when observed passively on state load
+  transition_id  TEXT REFERENCES transitions(id),  -- null when observed passively on state load
   method         TEXT NOT NULL,
   url_template   TEXT NOT NULL,
   status         INTEGER NOT NULL,
@@ -117,7 +118,7 @@ CREATE TABLE open_questions (
   id         TEXT PRIMARY KEY,
   run_id     TEXT NOT NULL REFERENCES runs(id),
   text       TEXT NOT NULL,
-  about_ref  TEXT NOT NULL,  -- polymorphic (state/edge/form id), validated by the tool, no FK
+  about_ref  TEXT NOT NULL,  -- polymorphic (state/transition/form id), validated by the tool, no FK
   status     TEXT NOT NULL DEFAULT 'open' CHECK (status IN ('open','addressed')),
   created_at TEXT NOT NULL,
   -- 0031 (ALTER TABLE, spec 039): the hypothesis the question is about.
@@ -191,7 +192,7 @@ CREATE TABLE decision_log (
   kind        TEXT NOT NULL CHECK (kind IN ('skip','refuse','merge','split','warning','note')),
   rule        TEXT,             -- rule/cap that applied
   reason      TEXT NOT NULL,
-  subject_ref TEXT,             -- state/edge/frontier/action id concerned
+  subject_ref TEXT,             -- state/transition/frontier/action id concerned
   detail_json TEXT CHECK (detail_json IS NULL OR json_valid(detail_json)),
   created_at  TEXT NOT NULL
 ) STRICT;
@@ -381,9 +382,9 @@ CREATE TABLE doc_evidence_links (
   id          TEXT PRIMARY KEY,
   revision_id TEXT NOT NULL REFERENCES doc_revisions(id),
   target_kind TEXT NOT NULL CHECK (target_kind IN (
-                 'state','edge','action','form','network_call','rule_candidate','open_question',
+                 'state','transition','action','form','network_call','rule_candidate','open_question',
                  'decision','process','process_step','doc_record','review','screen_region',
-                 'page_visit'
+                 'observation'
                )),
   target_id   TEXT NOT NULL,
   run_id      TEXT REFERENCES runs(id),
@@ -519,7 +520,7 @@ CREATE TABLE process_steps (
   intent         TEXT NOT NULL,
   kind           TEXT NOT NULL CHECK (kind IN ('navigate','click','fill','check','select')),
   action_id      TEXT REFERENCES actions(id),   -- NULL for navigate
-  edge_id        TEXT REFERENCES edges(id),     -- network calls reach the step via network_calls.edge_id
+  transition_id  TEXT REFERENCES transitions(id),  -- network calls reach the step via network_calls.transition_id
   value          TEXT,                          -- scrubbed synthetic input for fill/select; NULL otherwise
   state_before   TEXT REFERENCES states(id),
   state_after    TEXT REFERENCES states(id),    -- NULL if nothing changed/settled
@@ -648,25 +649,26 @@ CREATE INDEX idx_amendments_target ON amendments (portal_id, target_kind, target
 CREATE INDEX idx_amendments_status ON amendments (portal_id, status);
 
 -- 0012_page_visits (spec 019): one row per arrival on a page, verbatim URL and the hops that led there.
-CREATE TABLE page_visits (
+-- 0032 renamed it `observations` (the design's name, spec 039 T110).
+CREATE TABLE observations (
   id         TEXT PRIMARY KEY,
   run_id     TEXT NOT NULL REFERENCES runs(id),
   state_id   TEXT NOT NULL REFERENCES states(id),
-  edge_id    TEXT REFERENCES edges(id),  -- the action edge that led here; NULL for navigate and re-login
+  transition_id TEXT REFERENCES transitions(id),  -- the action's transition that led here; NULL for navigate and re-login
   via        TEXT NOT NULL CHECK (via IN ('navigate','action','relogin','login')),
   url        TEXT NOT NULL CHECK (length(url) > 0),
   hops_json  TEXT NOT NULL DEFAULT '[]' CHECK (json_valid(hops_json) AND json_type(hops_json) = 'array'),
   created_at TEXT NOT NULL,
-  -- 0029 (ALTER TABLE, spec 039): the visit as an observation; NULL on v1 rows.
+  -- 0029 (ALTER TABLE, spec 039): the design's observation columns; NULL on v1 rows.
   journey_id  TEXT REFERENCES journeys(id),
   seq         INTEGER CHECK (seq IS NULL OR seq >= 1),
   result      TEXT CHECK (result IS NULL OR result IN ('ok','validation','business_error','technical_error','timeout','blocked')),
   context_key TEXT CHECK (context_key IS NULL OR length(context_key) = 64),
   flags_json  TEXT NOT NULL DEFAULT '{}' CHECK (json_valid(flags_json) AND json_type(flags_json) = 'object')
 ) STRICT;
-CREATE INDEX idx_page_visits_run_state ON page_visits (run_id, state_id);
-CREATE INDEX idx_page_visits_state ON page_visits (state_id);
-CREATE UNIQUE INDEX ux_page_visits_run_seq ON page_visits (run_id, seq) WHERE seq IS NOT NULL;
+CREATE INDEX idx_observations_run_state ON observations (run_id, state_id);
+CREATE INDEX idx_observations_state ON observations (state_id);
+CREATE UNIQUE INDEX ux_observations_run_seq ON observations (run_id, seq) WHERE seq IS NOT NULL;
 
 -- 0015_screens (spec 022): a screen is (portal_id, route_template, cluster_id); each state is one observed
 -- revision of it (states.screen_id + screen_rev). Created by the same migration that adds those columns.
@@ -902,7 +904,7 @@ CREATE TABLE probe_outcomes (
   http_status          INTEGER,
   reason               TEXT,                                         -- why blocked or skipped
   evidence_ref         TEXT NOT NULL CHECK (length(evidence_ref) > 0),
-  edge_id              TEXT REFERENCES edges(id),                    -- the edge the probe's submit produced
+  transition_id        TEXT REFERENCES transitions(id),              -- the transition the probe's submit produced
   created_at           TEXT NOT NULL
 ) STRICT;
 
@@ -932,7 +934,7 @@ CREATE TABLE marks (
   id             TEXT PRIMARY KEY,                                   -- UUIDv7
   portal_id      TEXT NOT NULL CHECK (length(portal_id) > 0),
   kind           TEXT NOT NULL CHECK (kind IN ('start','focus','probe','retry','recheck','skip')),
-  target_kind    TEXT NOT NULL CHECK (target_kind IN ('form_step','state','edge')),
+  target_kind    TEXT NOT NULL CHECK (target_kind IN ('form_step','state','transition')),
   target_id      TEXT NOT NULL CHECK (length(target_id) > 0),
   created_by     TEXT NOT NULL CHECK (length(created_by) > 0),       -- the person (reviewer name)
   created_at     TEXT NOT NULL,
@@ -983,8 +985,8 @@ CREATE INDEX ix_checkpoints_state ON checkpoints (state_id);
 CREATE INDEX ix_runs_parent ON runs (parent_run_id);
 
 -- 0029_capture_v2 (spec 039, MudPuppy 2.0 Layer A capture): builds per scope, fingerprint v2 components,
--- journeys, attribute writes, the builds each visit was served by. `page_visits` = the design's
--- observations, `edges` = its transitions (F-06@039); their 0029 columns are listed with each table above.
+-- journeys, attribute writes, the builds each observation was served by. The 0029 columns of `observations`
+-- and `transitions` (named so since 0032) are listed with each table above.
 CREATE TABLE builds (
   id          TEXT PRIMARY KEY,                                      -- UUIDv7
   portal_id   TEXT NOT NULL CHECK (length(portal_id) > 0),
@@ -1037,9 +1039,9 @@ CREATE TABLE attribute_writes (
 ) STRICT;
 
 CREATE TABLE observation_builds (
-  page_visit_id TEXT NOT NULL REFERENCES page_visits(id),
-  build_id      TEXT NOT NULL REFERENCES builds(id),
-  PRIMARY KEY (page_visit_id, build_id)
+  observation_id TEXT NOT NULL REFERENCES observations(id),
+  build_id       TEXT NOT NULL REFERENCES builds(id),
+  PRIMARY KEY (observation_id, build_id)
 ) STRICT, WITHOUT ROWID;
 
 CREATE INDEX ix_network_calls_schema ON network_calls (url_template, method, schema_hash);
@@ -1053,7 +1055,7 @@ CREATE TABLE model_versions (
   built_at              TEXT NOT NULL,
   algorithm             TEXT NOT NULL CHECK (length(algorithm) > 0),   -- 'minhash-avglink-v1'
   threshold             REAL NOT NULL CHECK (threshold > 0 AND threshold <= 1),
-  observation_watermark TEXT,                                           -- max page_visits.id included; NULL when none
+  observation_watermark TEXT,                                           -- max observations.id included; NULL when none
   decision_watermark    TEXT,                                           -- max decision id included; NULL when none
   stats_json            TEXT NOT NULL CHECK (json_valid(stats_json) AND json_type(stats_json) = 'object'),
   UNIQUE (portal_id, seq)
@@ -1138,8 +1140,8 @@ CREATE TABLE model_transitions (
   result                   TEXT NOT NULL CHECK (result IN ('ok','validation','business_error','technical_error','timeout','blocked')),
   internal                 INTEGER NOT NULL CHECK (internal IN (0,1)),   -- from = to: shown in the screen, not on the Map
   support                  INTEGER NOT NULL CHECK (support >= 1),
-  first_seen_edge_id       TEXT NOT NULL REFERENCES edges(id),
-  last_seen_edge_id        TEXT NOT NULL REFERENCES edges(id),
+  first_seen_transition_id TEXT NOT NULL REFERENCES transitions(id),
+  last_seen_transition_id  TEXT NOT NULL REFERENCES transitions(id),
   status                   TEXT NOT NULL CHECK (status IN ('active','not_seen_since','untested','retired')),
   status_model_version     TEXT NOT NULL REFERENCES model_versions(id)
 ) STRICT;
@@ -1152,8 +1154,8 @@ CREATE TABLE build_epochs (
   scope                TEXT NOT NULL CHECK (length(scope) > 0),
   environment          TEXT NOT NULL CHECK (length(environment) > 0),
   build_id             TEXT NOT NULL REFERENCES builds(id),
-  first_visit_id       TEXT NOT NULL REFERENCES page_visits(id),
-  last_visit_id        TEXT NOT NULL REFERENCES page_visits(id),
+  first_observation_id TEXT NOT NULL REFERENCES observations(id),
+  last_observation_id  TEXT NOT NULL REFERENCES observations(id),
   overlaps_previous    INTEGER NOT NULL DEFAULT 0 CHECK (overlaps_previous IN (0,1)),
   model_version_id     TEXT NOT NULL REFERENCES model_versions(id)
 ) STRICT;
@@ -1163,8 +1165,8 @@ CREATE INDEX ix_build_epochs_portal ON build_epochs (portal_id, scope, environme
 -- and `entity_refs`, the typed reference with real foreign keys. `marks` and `open_questions` gained columns above.
 CREATE TABLE entity_refs (
   id                  TEXT PRIMARY KEY,
-  page_visit_id       TEXT REFERENCES page_visits(id),       -- an observation
-  edge_id             TEXT REFERENCES edges(id),             -- a transition
+  observation_id      TEXT REFERENCES observations(id),
+  transition_id       TEXT REFERENCES transitions(id),
   state_id            TEXT REFERENCES states(id),
   screen_id           TEXT REFERENCES model_screens(id),
   action_class_id     TEXT REFERENCES action_classes(id),
@@ -1173,7 +1175,7 @@ CREATE TABLE entity_refs (
   hypothesis_id       TEXT REFERENCES hypotheses(id),
   network_call_id     TEXT REFERENCES network_calls(id),
   element_key         TEXT CHECK (element_key IS NULL OR length(element_key) > 0),
-  CHECK ((page_visit_id IS NOT NULL) + (edge_id IS NOT NULL) + (state_id IS NOT NULL)
+  CHECK ((observation_id IS NOT NULL) + (transition_id IS NOT NULL) + (state_id IS NOT NULL)
        + (screen_id IS NOT NULL) + (action_class_id IS NOT NULL)
        + (model_transition_id IS NOT NULL) + (process_id IS NOT NULL)
        + (hypothesis_id IS NOT NULL) + (network_call_id IS NOT NULL) = 1),

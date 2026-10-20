@@ -143,7 +143,7 @@ def docs_section_values(
         if data["screens"]:
             values["diagram"] = diagrams.screen_nav(data)
             omitted = data["omitted"]
-            values["diagram_caption"] = "Screen navigation: edges between screens" + (
+            values["diagram_caption"] = "Screen navigation: transitions between screens" + (
                 f" ({omitted} global-navigation links to widely linked screens left out)"
                 if omitted
                 else ""

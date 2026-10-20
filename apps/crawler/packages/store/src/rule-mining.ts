@@ -72,8 +72,8 @@ export function loadObservationTables(raw: Raw, portal: string): MinerTable[] {
       `SELECT e.journey_id, e.seq, e.from_state, e.to_state, e.element_key, e.kind, e.result, e.created_at,
          r.environment,
          (SELECT group_concat(x, '&') FROM (SELECT b.scope || '=' || b.id AS x FROM observation_builds ob
-            JOIN builds b ON b.id = ob.build_id WHERE ob.page_visit_id = e.from_visit_id ORDER BY x)) AS builds
-       FROM edges e JOIN runs r ON r.id = e.run_id
+            JOIN builds b ON b.id = ob.build_id WHERE ob.observation_id = e.from_observation_id ORDER BY x)) AS builds
+       FROM transitions e JOIN runs r ON r.id = e.run_id
        WHERE r.portal_id = ? AND e.journey_id IS NOT NULL AND e.status = 'executed'
          AND e.element_key IS NOT NULL AND e.kind IS NOT NULL AND e.result IS NOT NULL`,
     )

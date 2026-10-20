@@ -66,7 +66,7 @@ export async function login(
       rs: state,
       via: { kind: 'navigate' },
       depth: 0,
-      visitVia: 'login',
+      observationVia: 'login',
     });
     await step({ ctx, run }, 'run_bookkeeping', () => bumpRun(ctx, run, started, 0));
     await flushObstacles(ctx, state);

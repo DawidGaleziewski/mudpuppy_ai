@@ -44,7 +44,7 @@ export interface PageResult {
   actions_omitted?: number;
   /** Map runs: the item `get_next_frontier_item` would return now; act on it next (spec 013 US3). */
   next?: NextFrontierItem;
-  edge_id?: string;
+  transition_id?: string;
   /** Trace runs: the step this call recorded. */
   step?: { ord: number; outcomes: string[] };
   /** The session had expired; the server logged in again and returned here (spec 009). */

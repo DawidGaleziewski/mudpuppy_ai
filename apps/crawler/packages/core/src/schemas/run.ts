@@ -44,7 +44,7 @@ export const Run = z
     run_type: RunType.nullable().default(null),
     /** 0027: the run a directed run continues or retries. */
     parent_run_id: Id.nullable().default(null),
-    /** 0027: the plan the run came from (start state ids, skip targets, depth, variation, target edge, marks used). */
+    /** 0027: the plan the run came from (start state ids, skip targets, depth, variation, target transition, marks used). */
     plan_json: JsonValue.nullable().default(null),
   })
   .refine((r) => r.status !== 'stopped_warning' || r.warning !== null, {

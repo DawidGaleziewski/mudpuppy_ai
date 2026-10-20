@@ -218,7 +218,7 @@ def run_summary(conn: sqlite3.Connection, run_id: str) -> RunSummary | None:
         robots_policies=n("robots_policies"),
         decisions=sum(decisions_by.values()),
         decisions_by_kind=decisions_by,  # type: ignore[arg-type]
-        edges=n("edges"),
+        transitions=n("transitions"),
         open_questions=n("open_questions"),
         rule_candidates=n("rule_candidates"),
     )

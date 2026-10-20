@@ -40,11 +40,11 @@ function kindsIn(raw: string): string[] {
 const SCANNED: Record<string, string[]> = {
   states: ['title', 'route_template'],
   forms: ['fields_json'],
-  edges: ['action_json', 'error'],
+  transitions: ['action_json', 'error'],
   actions: ['accessible_name', 'action_json', 'skip_reason'],
   network_calls: ['url_template', 'req_schema', 'res_schema', 'console_errors', 'url'],
   // spec 019: verbatim URLs are kept on purpose; the audit still says where PII sits in them
-  page_visits: ['url', 'hops_json'],
+  observations: ['url', 'hops_json'],
   frontier: ['action_json', 'reason'],
   open_questions: ['text'],
   rule_candidates: ['text'],

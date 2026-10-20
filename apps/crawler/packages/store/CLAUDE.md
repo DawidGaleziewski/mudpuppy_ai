@@ -16,7 +16,7 @@ Layer: store (G-07; `apps/crawler/layers.json`)
 - `createTracer`, `emitForRun`, span/phase/event vocabulary (`tracer.ts`): writes `trace_spans`.
 - `importAgent` (`import-agent.ts`): imports a crawler subagent transcript (`pnpm trace:import-agent`).
 - `auditPii`, `compareRuns` (`audit.ts`), portal export/delete (`portal-data.ts`, every portal
-  table incl. `page_visits`, spec 019), `secretsPlugin`.
+  table incl. `observations`, spec 019), `secretsPlugin`.
 - `planStoreReset`, `applyStoreReset`, `openHolders`, `answeringPorts` (`store-reset.ts`): the
   MudPuppy 2.0 data reset (`pnpm store:reset [--confirm]`, spec 039 T002).
 - Spec 039 portal model: `reconcilePortalModel` (`model-writer.ts`), `interpretVersion`

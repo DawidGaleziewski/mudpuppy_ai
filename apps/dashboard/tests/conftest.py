@@ -100,7 +100,7 @@ DEFAULTS: dict[str, dict[str, object]] = {
         "skip_reason": None,
         "created_at": T0,
     },
-    "edges": {
+    "transitions": {
         "to_state": None,
         "action_json": json.dumps({"kind": "click"}),
         "safety_class": "read",
@@ -118,7 +118,7 @@ DEFAULTS: dict[str, dict[str, object]] = {
         "created_at": T0,
     },
     "network_calls": {
-        "edge_id": None,
+        "transition_id": None,
         "method": "GET",
         "url_template": "/api/:param",
         "status": 200,
@@ -447,8 +447,8 @@ def seed_liveinsurer_like(conn: sqlite3.Connection) -> None:
             run_id=f"run-{(k % 9) + 1:03d}",
             fetched_at=ts(k),
         )
-    insert(conn, "edges", id="edge-1", run_id=BIG_RUN, from_state="state-home")
-    insert(conn, "edges", id="edge-2", run_id=BIG_RUN, from_state="state-home")
+    insert(conn, "transitions", id="edge-1", run_id=BIG_RUN, from_state="state-home")
+    insert(conn, "transitions", id="edge-2", run_id=BIG_RUN, from_state="state-home")
 
 
 @pytest.fixture
@@ -633,9 +633,9 @@ def seed_process(conn: sqlite3.Connection, run_id: str, boundary_action: str) ->
     ]
     for ord_, intent, kind, action, value in steps:
         conn.execute(
-            "INSERT INTO process_steps (id, process_id, ord, intent, kind, action_id, edge_id,"
-            " value, state_before, state_after, outcomes_json, evidence_ref, confidence,"
-            " created_at)"
+            "INSERT INTO process_steps (id, process_id, ord, intent, kind, action_id,"
+            " transition_id, value, state_before, state_after, outcomes_json, evidence_ref,"
+            " confidence, created_at)"
             " VALUES (?, 'proc-1', ?, ?, ?, ?, NULL, ?, NULL, NULL, ?, ?, 'observed', ?)",
             (
                 f"step-{ord_}",
@@ -714,7 +714,7 @@ def seed_ba(conn: sqlite3.Connection) -> None:
     )
     insert(
         conn,
-        "edges",
+        "transitions",
         id="edge-1",
         run_id="run-map",
         from_state="st-home",
@@ -785,7 +785,7 @@ def seed_ba(conn: sqlite3.Connection) -> None:
         conn,
         "SCR-002",
         "Calculator, vehicle step",
-        [{"evidence": [obs, ("edge", "edge-1", "run-map", None)]}],
+        [{"evidence": [obs, ("transition", "edge-1", "run-map", None)]}],
         content={
             "purpose": "Vehicle data",
             "route_templates": ["/kalkulator/pojazd"],

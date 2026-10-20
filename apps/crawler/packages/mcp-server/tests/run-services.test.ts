@@ -243,7 +243,7 @@ describe('complete_run / finish_run', () => {
     const run = await seedRun(ctx);
     const a = await recordState(ctx, st(run, 'a'));
     const b = await recordState(ctx, st(run, 'b'));
-    const { edge_id } = await recordTransition(ctx, {
+    const { transition_id } = await recordTransition(ctx, {
       ...(await transitionStep(ctx, run)),
       run_id: run,
       from_state: a.state_id,
@@ -256,7 +256,7 @@ describe('complete_run / finish_run', () => {
     });
     await recordApiCall(ctx, {
       run_id: run,
-      edge_id,
+      transition_id,
       method: 'GET',
       url_template: '/api/x',
       status: 200,
@@ -287,7 +287,7 @@ describe('complete_run / finish_run', () => {
       actions_inferred: 0,
       actions_skipped_by_class: { 'external-side-effect': 1 },
       api_endpoints: 1,
-      item_page_visits: 0,
+      item_pages_visited: 0,
       robots: {
         hosts: [],
         refused_navigations: 0,

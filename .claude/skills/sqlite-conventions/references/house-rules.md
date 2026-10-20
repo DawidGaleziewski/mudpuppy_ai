@@ -10,18 +10,18 @@ Contents: Connection setup · Tables and types · Integrity · Indexes · Migrat
 ## Tables and types
 - Use `STRICT` tables so SQLite enforces the types the Zod schema already promises.
 - Ids are server-generated (task T016, `apps/crawler/packages/core/src/ids.ts`); no API accepts client-chosen ids. For
-  high-insert tables (`states`, `edges`, `network_calls`) prefer a time-ordered id (UUIDv7/ULID) for index
+  high-insert tables (`states`, `transitions`, `network_calls`) prefer a time-ordered id (UUIDv7/ULID) for index
   locality unless a natural key such as `states.fingerprint` is already the unique identity.
 - Timestamps are UTC and use one representation project-wide (ISO 8601 text or epoch integer). If
   `data-model.md` doesn't fix it, choose once and record the choice in `data/schema/`.
-- Genuinely document-shaped fields (`action_json`, `config_snapshot`, `edge.error`) stay JSON validated by
+- Genuinely document-shaped fields (`action_json`, `config_snapshot`, `transitions.error`) stay JSON validated by
   Zod; don't normalise them into columns for its own sake. `network_calls.req_schema`/`res_schema` hold
   shape only, never payloads that could contain PII (FR-012, FR-014).
 
 ## Integrity (Principle II lives in the schema)
-- `evidence_ref` and `confidence` are `NOT NULL` on State, Edge and Form, with a `CHECK` on the
+- `evidence_ref` and `confidence` are `NOT NULL` on State, Transition and Form, with a `CHECK` on the
   confidence enum. A record without evidence must be impossible to insert, not merely discouraged.
-- Cross-table invariants use `FOREIGN KEY` and `CHECK` (an edge references existing states); app-only
+- Cross-table invariants use `FOREIGN KEY` and `CHECK` (a transition references existing states); app-only
   discipline is not enough.
 - The Zod schema and the table must never diverge; Zod is the source of truth.
 

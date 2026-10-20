@@ -28,7 +28,7 @@ function crawlRows(raw: Awaited<ReturnType<typeof setupTraceRun>>['ctx']['raw'])
     ),
     q(
       `SELECT fs.fingerprint AS from_fp, ts.fingerprint AS to_fp, e.action_json, e.safety_class, e.status, e.confidence, e.error
-       FROM edges e JOIN states fs ON fs.id = e.from_state LEFT JOIN states ts ON ts.id = e.to_state ORDER BY e.id`,
+       FROM transitions e JOIN states fs ON fs.id = e.from_state LEFT JOIN states ts ON ts.id = e.to_state ORDER BY e.id`,
     ),
     q(
       'SELECT action_json, safety_class, status, priority, depth, reason FROM frontier ORDER BY id',

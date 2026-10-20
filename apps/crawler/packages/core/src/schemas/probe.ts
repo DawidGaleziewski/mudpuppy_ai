@@ -78,7 +78,7 @@ export const ProbeOutcomeRow = z.object({
   http_status: z.number().int().nullable(),
   reason: z.string().nullable(),
   evidence_ref: EvidenceRef,
-  edge_id: Id.nullable(),
+  transition_id: Id.nullable(),
   created_at: Timestamp,
 });
 export type ProbeOutcomeRow = z.infer<typeof ProbeOutcomeRow>;
@@ -113,7 +113,7 @@ export const MarkKind = z.enum(['start', 'focus', 'probe', 'retry', 'recheck', '
 export type MarkKind = z.infer<typeof MarkKind>;
 
 /** `marks.target_kind` (0024): what `target_id` points at (no foreign key; polymorphic). */
-export const MarkTargetKind = z.enum(['form_step', 'state', 'edge']);
+export const MarkTargetKind = z.enum(['form_step', 'state', 'transition']);
 export type MarkTargetKind = z.infer<typeof MarkTargetKind>;
 
 /** `marks` (0024): a person's instruction on a map target for the next scan. */

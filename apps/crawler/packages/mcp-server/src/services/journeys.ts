@@ -68,10 +68,10 @@ export async function hasJourney(ctx: ServerContext, runId: string): Promise<boo
   return row !== undefined;
 }
 
-/** The run's highest visit number so far (0 for none). */
-export async function maxVisitSeq(ctx: ServerContext, runId: string): Promise<number> {
+/** The run's highest observation number so far (0 for none). */
+export async function maxObservationSeq(ctx: ServerContext, runId: string): Promise<number> {
   const row = await ctx.db
-    .selectFrom('page_visits')
+    .selectFrom('observations')
     .select((eb) => eb.fn.max('seq').as('max'))
     .where('run_id', '=', runId)
     .executeTakeFirst();

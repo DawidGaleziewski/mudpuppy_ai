@@ -17,7 +17,7 @@ const FIXTURE = JSON.parse(
 const visit = (url: string, i: number): VisitRow => ({
   id: `v${i}`,
   state_id: 'S',
-  edge_id: null,
+  transition_id: null,
   via: 'navigate',
   url,
   hops: [{ url, kind: 'start' }],
@@ -49,7 +49,7 @@ describe('parameterInventory (spec 019, R-37/R-38)', () => {
         visits: 1,
         values: ['1', '2'],
         distinct: 2,
-        set_by: [{ edge_id: null, hop: 'navigate' }],
+        set_by: [{ transition_id: null, hop: 'navigate' }],
       },
     ]);
   });

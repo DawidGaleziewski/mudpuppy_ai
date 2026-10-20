@@ -66,7 +66,7 @@ export function pendingErrorReplays(
     const result = (JSON.parse(d.after_json!) as { result: string }).result;
     const x = raw
       .prepare(
-        `SELECT e.journey_id, e.seq, e.created_at, r.persona_id, r.environment FROM edges e
+        `SELECT e.journey_id, e.seq, e.created_at, r.persona_id, r.environment FROM transitions e
          JOIN runs r ON r.id = e.run_id
          JOIN screen_members m ON m.state_id = e.from_state AND m.to_model_version IS NULL
          WHERE m.screen_id = ? AND e.element_key = ? AND e.result = ? AND e.journey_id IS NOT NULL
@@ -106,9 +106,10 @@ export function pendingErrorReplays(
 
 /** The step result a replay ended with; null when it diverged before the step. */
 export function replayStepResult(raw: Raw, outcome: ReplayResult): string | null {
-  if (outcome.status !== 'reached' || outcome.edgeId === null) return null;
-  const row = raw.prepare('SELECT result FROM edges WHERE id = ?').get(outcome.edgeId) as
-    { result: string } | undefined;
+  if (outcome.status !== 'reached' || outcome.transitionId === null) return null;
+  const row = raw
+    .prepare('SELECT result FROM transitions WHERE id = ?')
+    .get(outcome.transitionId) as { result: string } | undefined;
   return row?.result ?? null;
 }
 

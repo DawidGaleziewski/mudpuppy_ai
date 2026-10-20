@@ -5,7 +5,7 @@ the ones the BA proposed verdicts for. Both are checked against one fixture,
 024); change them together.
 
 - Action group `action:<screen>:<role>:<name>`: the same from-screen and action led to two or more
-  screens; edges a probe pressed are left out (their input explains them).
+  screens; transitions a probe pressed are left out (their input explains them).
 - Route group `route:<route>`: one route holds two or more screens whose states are no form step
   and of kind `main`; routes with a parameter are skipped.
 - A screen merged into another (`screens.merged_into`, owner answer Q3) counts as that one.
@@ -61,7 +61,7 @@ class _Hit:
     state_id: str
     run_id: str
     at: str
-    edge_id: str | None
+    transition_id: str | None
 
 
 def _rows(conn: sqlite3.Connection, sql: str, args: tuple[Any, ...]) -> list[sqlite3.Row]:
@@ -87,11 +87,12 @@ def _action_hits(conn: sqlite3.Connection, portal: str, merged: dict[str, str]) 
         "SELECT f.screen_id AS frm, coalesce(json_extract(e.action_json, '$.role'), '') AS role,"
         " coalesce(json_extract(e.action_json, '$.accessible_name'), '') AS name,"
         " t.screen_id AS screen_id, e.to_state AS state_id, e.run_id, e.created_at AS at,"
-        " e.id AS edge_id"
-        " FROM edges e JOIN states f ON f.id = e.from_state JOIN states t ON t.id = e.to_state"
+        " e.id AS transition_id"
+        " FROM transitions e JOIN states f ON f.id = e.from_state"
+        " JOIN states t ON t.id = e.to_state"
         " WHERE f.portal_id = ? AND e.status = 'executed'"
         " AND f.screen_id IS NOT NULL AND t.screen_id IS NOT NULL AND t.screen_id <> f.screen_id"
-        " AND NOT EXISTS (SELECT 1 FROM probe_outcomes p WHERE p.edge_id = e.id)"
+        " AND NOT EXISTS (SELECT 1 FROM probe_outcomes p WHERE p.transition_id = e.id)"
         " ORDER BY e.created_at, e.id",
         (portal,),
     )
@@ -100,7 +101,7 @@ def _action_hits(conn: sqlite3.Connection, portal: str, merged: dict[str, str]) 
         frm, to = merged.get(r["frm"], r["frm"]), merged.get(r["screen_id"], r["screen_id"])
         if frm != to:
             group = f"action:{frm}:{r['role']}:{r['name']}"
-            hits.append(_Hit(group, to, r["state_id"], r["run_id"], r["at"], r["edge_id"]))
+            hits.append(_Hit(group, to, r["state_id"], r["run_id"], r["at"], r["transition_id"]))
     return hits
 
 
@@ -134,12 +135,14 @@ def _differing(hits: list[_Hit]) -> dict[str, list[_Hit]]:
     return {k: hs for k, hs in by.items() if len({h.screen_id for h in hs}) > 1}
 
 
-def _http(conn: sqlite3.Connection, edge_ids: list[str]) -> int | None:
-    if not edge_ids:
+def _http(conn: sqlite3.Connection, transition_ids: list[str]) -> int | None:
+    if not transition_ids:
         return None
-    marks = ",".join("?" for _ in edge_ids)
+    marks = ",".join("?" for _ in transition_ids)
     rows = _rows(
-        conn, f"SELECT max(status) FROM network_calls WHERE edge_id IN ({marks})", tuple(edge_ids)
+        conn,
+        f"SELECT max(status) FROM network_calls WHERE transition_id IN ({marks})",
+        tuple(transition_ids),
     )
     return rows[0][0] if rows else None
 
@@ -172,7 +175,7 @@ def _outcomes(lk: _Lookups, hits: list[_Hit]) -> list[GroupOutcome]:
                 scans=[lk.runs[r] for r in run_ids if r in lk.runs],
                 first_seen=hs[0].at,
                 last_seen=hs[-1].at,
-                http_status=_http(lk.conn, [h.edge_id for h in hs if h.edge_id]),
+                http_status=_http(lk.conn, [h.transition_id for h in hs if h.transition_id]),
                 seen=len(run_ids),
                 of=len(taking),
                 reproduced=any(r != hs[0].run_id for r in run_ids),

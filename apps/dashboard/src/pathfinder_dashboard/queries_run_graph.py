@@ -24,7 +24,7 @@ STOPPED = ("interrupted", "stopped_warning")
 class Failure:
     """An action of this scan that failed on the screen: what Retry this path and Skip take."""
 
-    edge_id: str
+    transition_id: str
     label: str
     error: str
     at: str
@@ -119,7 +119,7 @@ def _failures(
 ) -> None:
     rows = _rows(
         conn,
-        "SELECT e.id, e.action_json, e.error, e.created_at, s.screen_id FROM edges e"
+        "SELECT e.id, e.action_json, e.error, e.created_at, s.screen_id FROM transitions e"
         " JOIN states s ON s.id = e.from_state WHERE e.run_id = ? AND e.error IS NOT NULL"
         " ORDER BY e.created_at, e.id",
         (run_id,),
@@ -165,8 +165,9 @@ def _moves(
     """The scan's executed moves between two screens, in the order it made them."""
     rows = _rows(
         conn,
-        "SELECT f.screen_id AS a, t.screen_id AS b, e.error IS NOT NULL AS failed FROM edges e"
-        " JOIN states f ON f.id = e.from_state JOIN states t ON t.id = e.to_state"
+        "SELECT f.screen_id AS a, t.screen_id AS b, e.error IS NOT NULL AS failed"
+        " FROM transitions e JOIN states f ON f.id = e.from_state"
+        " JOIN states t ON t.id = e.to_state"
         " WHERE e.run_id = ? AND e.status = 'executed'"
         "   AND f.screen_id IS NOT NULL AND t.screen_id IS NOT NULL"
         " ORDER BY e.created_at, e.id",
@@ -244,7 +245,7 @@ def needs_attention(conn: sqlite3.Connection, run_id: str) -> bool:
     rows = _rows(
         conn,
         "SELECT status IN ('interrupted', 'stopped_warning')"
-        " OR EXISTS (SELECT 1 FROM edges WHERE run_id = runs.id AND error IS NOT NULL)"
+        " OR EXISTS (SELECT 1 FROM transitions WHERE run_id = runs.id AND error IS NOT NULL)"
         f" OR EXISTS (SELECT 1 FROM frontier WHERE run_id = runs.id AND status = '{FAILED_ITEM}')"
         " AS hot"
         " FROM runs WHERE id = ?",

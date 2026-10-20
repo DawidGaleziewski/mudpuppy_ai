@@ -12,7 +12,7 @@ export * from './start-run.js';
 export * from './run-lifecycle.js';
 export * from './robots.js';
 export * from './wireframes.js';
-export * from './page-visits.js';
+export * from './observations.js';
 export * from './journeys.js';
 export * from './trace-grouping.js';
 export * from './probe-marks.js';

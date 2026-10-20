@@ -4,7 +4,7 @@
     {
       "id": "v1",
       "state_id": "S-wyciag",
-      "edge_id": "E1",
+      "transition_id": "E1",
       "via": "action",
       "url": "http://pg.test/legacy/bank/wyciag.do;jsessionid=AB12?konto=7&typ=M&okres=2026-09&tryb=podglad",
       "hops": [
@@ -15,7 +15,7 @@
     {
       "id": "v2",
       "state_id": "S-wyciag",
-      "edge_id": "E2",
+      "transition_id": "E2",
       "via": "action",
       "url": "http://pg.test/legacy/bank/wyciag.do;jsessionid=AB12?konto=7&typ=R&okres=2026&tryb=podglad",
       "hops": [
@@ -26,7 +26,7 @@
     {
       "id": "v3",
       "state_id": "S-wyciag",
-      "edge_id": null,
+      "transition_id": null,
       "via": "navigate",
       "url": "http://pg.test/legacy/bank/wyciag.do;jsessionid=CD34?konto=7&typ=M&okres=2026-09&tryb=podglad&utm_source=mail&flag",
       "hops": [
@@ -37,7 +37,7 @@
     {
       "id": "v4",
       "state_id": "S-polisa",
-      "edge_id": null,
+      "transition_id": null,
       "via": "navigate",
       "url": "http://pg.test/ubezpieczenia#/polisy/7?zakladka=raty",
       "hops": [
@@ -72,13 +72,13 @@
       ],
       "entry_urls_more": 0,
       "params": [
-        { "name": "jsessionid", "in": "path", "visits": 3, "values": ["AB12", "CD34"], "distinct": 2, "set_by": [{ "edge_id": "E1", "hop": "navigate" }, { "edge_id": null, "hop": "http" }] },
-        { "name": "konto", "in": "query", "visits": 3, "values": ["7"], "distinct": 1, "set_by": [{ "edge_id": "E1", "hop": "navigate" }] },
-        { "name": "typ", "in": "query", "visits": 3, "values": ["M", "R"], "distinct": 2, "set_by": [{ "edge_id": "E1", "hop": "navigate" }, { "edge_id": "E2", "hop": "navigate" }] },
-        { "name": "okres", "in": "query", "visits": 3, "values": ["2026-09", "2026"], "distinct": 2, "set_by": [{ "edge_id": "E1", "hop": "navigate" }, { "edge_id": "E2", "hop": "navigate" }] },
-        { "name": "tryb", "in": "query", "visits": 3, "values": ["podglad"], "distinct": 1, "set_by": [{ "edge_id": "E1", "hop": "navigate" }] },
-        { "name": "utm_source", "in": "query", "visits": 1, "values": ["mail"], "distinct": 1, "set_by": [{ "edge_id": null, "hop": "http" }] },
-        { "name": "flag", "in": "query", "visits": 1, "values": [null], "distinct": 1, "set_by": [{ "edge_id": null, "hop": "http" }] }
+        { "name": "jsessionid", "in": "path", "visits": 3, "values": ["AB12", "CD34"], "distinct": 2, "set_by": [{ "transition_id": "E1", "hop": "navigate" }, { "transition_id": null, "hop": "http" }] },
+        { "name": "konto", "in": "query", "visits": 3, "values": ["7"], "distinct": 1, "set_by": [{ "transition_id": "E1", "hop": "navigate" }] },
+        { "name": "typ", "in": "query", "visits": 3, "values": ["M", "R"], "distinct": 2, "set_by": [{ "transition_id": "E1", "hop": "navigate" }, { "transition_id": "E2", "hop": "navigate" }] },
+        { "name": "okres", "in": "query", "visits": 3, "values": ["2026-09", "2026"], "distinct": 2, "set_by": [{ "transition_id": "E1", "hop": "navigate" }, { "transition_id": "E2", "hop": "navigate" }] },
+        { "name": "tryb", "in": "query", "visits": 3, "values": ["podglad"], "distinct": 1, "set_by": [{ "transition_id": "E1", "hop": "navigate" }] },
+        { "name": "utm_source", "in": "query", "visits": 1, "values": ["mail"], "distinct": 1, "set_by": [{ "transition_id": null, "hop": "http" }] },
+        { "name": "flag", "in": "query", "visits": 1, "values": [null], "distinct": 1, "set_by": [{ "transition_id": null, "hop": "http" }] }
       ]
     },
     {
@@ -93,7 +93,7 @@
       ],
       "entry_urls_more": 0,
       "params": [
-        { "name": "zakladka", "in": "fragment_query", "visits": 1, "values": ["raty"], "distinct": 1, "set_by": [{ "edge_id": null, "hop": "script" }] }
+        { "name": "zakladka", "in": "fragment_query", "visits": 1, "values": ["raty"], "distinct": 1, "set_by": [{ "transition_id": null, "hop": "script" }] }
       ]
     }
   ]
