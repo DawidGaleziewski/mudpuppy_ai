@@ -222,7 +222,7 @@ reaches. Probing goes further, and happens only when you ask for it:
 2. Open a form step's screen (Screens) and press **Mark for probing**. The step gets an orange
    **Probe** tag. Screens lists every form step as marked, probed (with the number of outcomes)
    or **Not probed**.
-3. Ask the assistant to *"probe the marked forms"*. That starts a probe scan: it visits only the
+3. Ask the assistant to *"probe the marked forms"*. That starts a form-probing scan: it visits only the
    marked steps and does not map. Once a step has been probed, its mark goes away; **Remove the
    mark** drops it before that.
 

@@ -13,7 +13,7 @@ import { startHarness } from './harness.js';
 /**
  * Rule R6 end to end (spec 039 design § 8.2; scenarios removed-link and renamed-button): an
  * action two runs in a row no longer find is missing. A release removed it → removed, derived;
- * a new action on the same screen leads where it led → replaces, derived. Runs are replay runs
+ * a new action on the same screen leads where it led → replaces, derived. Runs are probe runs
  * (headless, no LLM); the release is served on a fresh port, as in the Deployment test.
  */
 const available = await canLaunchBrowser();
@@ -69,11 +69,12 @@ async function setup() {
   };
 }
 
-/** One replay run that only looks at a page; returns its actions' names and element keys. */
+/** One probe run that only looks at a page; returns its actions' names and element keys. */
 async function look(h: Harness, url: string): Promise<Map<string, string>> {
   const start = await h.call('start_run', {
     portal_id: 'reference-insurer',
     persona_id: 'guest',
+    mode: 'probe',
     replay: { inputs: {} },
   });
   expect(start.isError, JSON.stringify(start.body)).toBeFalsy();

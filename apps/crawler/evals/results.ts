@@ -26,12 +26,12 @@ export interface TrialRecord {
   sessions: { crawler: string; ba: string | null; baTraces: string | null };
   /** The process traces run after the map, in order; empty when none ran (spec 025 FR-006). */
   processTraces: { process_id: string; run: string; cli_session: string }[];
-  /** The probe scan after the map (spec 034 phase 9); null when none ran. */
-  probeScan: { run: string; cli_session: string } | null;
+  /** The form-probing scan after the map (spec 034 phase 9); null when none ran. */
+  formProbing: { run: string; cli_session: string } | null;
   /** How each agent's session ended; `ba` is absent in a crawler-only trial (spec 020 T003). */
   outcomes: {
     crawler: ScoredOutcome;
-    probe_scan?: ScoredOutcome;
+    form_probing?: ScoredOutcome;
     ba?: ScoredOutcome;
     ba_traces?: ScoredOutcome;
     process_traces?: ScoredOutcome[];
@@ -45,12 +45,12 @@ export interface TrialRecord {
 }
 
 /** What makes trials comparable; absent when everything is default, as in older results. */
-function conditionsOf(config: EvalConfig, processTraces: number, probeScan: boolean) {
+function conditionsOf(config: EvalConfig, processTraces: number, formProbing: boolean) {
   const c = {
     ...(config.sessionTimeoutS !== undefined && { session_timeout_s: config.sessionTimeoutS }),
     ...(config.crawlerOnly && { crawler_only: true }),
     ...(processTraces > 0 && { process_traces: processTraces }),
-    ...(probeScan && { probe_scan: true }),
+    ...(formProbing && { form_probing: true }),
   };
   return Object.keys(c).length > 0 ? { conditions: c } : {};
 }
@@ -72,9 +72,9 @@ export function buildResult(config: EvalConfig, r: TrialRecord): EvalResult {
       ...(r.grades.tracesSession && { ba_traces_session: r.grades.tracesSession.id }),
       ...(r.sessions.baTraces && { ba_traces_cli_session: r.sessions.baTraces }),
       ...(r.processTraces.length > 0 && { process_traces: r.processTraces }),
-      ...(r.probeScan && { probe_scan: r.probeScan }),
+      ...(r.formProbing && { form_probing: r.formProbing }),
     },
-    ...conditionsOf(config, r.processTraces.length, r.probeScan !== null),
+    ...conditionsOf(config, r.processTraces.length, r.formProbing !== null),
     outcomes: r.outcomes,
     cost: r.cost,
     scores: r.grades.scores,
@@ -112,9 +112,9 @@ const CONDITION_CHECKS: {
       `the baseline ran ${was?.process_traces ?? 0} process trace(s), this eval ${now?.process_traces ?? 0}`,
   },
   {
-    value: (c) => !!c?.probe_scan,
+    value: (c) => !!c?.form_probing,
     warning: () =>
-      'one of the baseline and this eval ran a probe scan after the map, the other not',
+      'one of the baseline and this eval ran a form-probing scan after the map, the other not',
   },
 ];
 

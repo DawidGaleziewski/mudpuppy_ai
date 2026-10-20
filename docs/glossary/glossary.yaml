@@ -217,7 +217,7 @@ entries:
     group: Crawling
     short: A deliberate try on a form step beyond its happy path, defined once in a catalogue; every outcome is recorded as a state of the step.
     explanation: |
-      Probing happens only when asked: in a probe scan, on the steps you marked for probing (a
+      Probing happens only when asked: in a form-probing scan, on the steps you marked for probing (a
       plain scan presses each form once with test values and never probes). After the happy path
       the crawler calls `probe_form` on a marked step. The server tries:
       - required fields left empty, wrong formats, values outside the limits (validation);
@@ -233,7 +233,7 @@ entries:
     example: "On the quote form, \"Business\" led to a code confirmation (a branch, possibly a new process)."
     appears_in: [Screen page → States of this step, Review → Probe suites to approve]
     labels: [Form probes]
-    related: [form-step, state-kind, probe-suite, test-data, probe-mark, probe-scan]
+    related: [form-step, state-kind, probe-suite, test-data, probe-mark, form-probing-scan]
     changed_in: R-76
     changed_on: 2026-10-18
 
@@ -241,22 +241,22 @@ entries:
     term: Probe mark
     category: pathfinder
     group: Crawling
-    short: Your instruction on a form step to have the next probe scan try it beyond the happy path; shown as an orange Probe tag.
+    short: Your instruction on a form step to have the next form-probing scan try it beyond the happy path; shown as an orange Probe tag.
     explanation: |
       Map the portal first and see what it has, then mark the form steps worth probing: open the
       step's screen (Screens) and press "Mark for probing". The orange tag is a person's mark for
       the next scan. Screens lists every form step as marked, probed (with the number of
-      outcomes) or not probed. A probe scan uses the mark when it has probed the step to the end;
+      outcomes) or not probed. A form-probing scan uses the mark when it has probed the step to the end;
       "Remove the mark" drops it before that.
-    example: "Step 2 \"Your contract\" of /sc19/apply carries a Probe tag until the probe scan has tried it."
+    example: "Step 2 \"Your contract\" of /sc19/apply carries a Probe tag until the form-probing scan has tried it."
     appears_in: [Screens → Form probes, Screen page → States of this step]
     labels: [Probe, Mark for probing, Remove the mark, Not probed, Probed]
-    related: [form-probe, probe-scan, form-step]
+    related: [form-probe, form-probing-scan, form-step]
     changed_in: R-69
     changed_on: 2026-10-17
 
-  - id: probe-scan
-    term: Probe scan
+  - id: form-probing-scan
+    term: Form-probing scan
     category: pathfinder
     group: Crawling
     short: A scan that only probes the marked form steps of a portal; it does not map.
@@ -264,13 +264,14 @@ entries:
       Ask the assistant to "probe the marked forms". The crawler opens each marked step, presses
       on with test values until it is there, and probes it within the budget (24 tries per step,
       120 per scan). It does not follow other links. Without marks it is refused with what to do
-      first. It may submit forms, so a scan that only looks cannot probe.
+      first. It may submit forms, so a scan that only looks cannot probe. Called a "probe scan"
+      until MudPuppy 2.0, where a probe run is the headless driver's.
     example: "\"Probe the marked forms of scar-maker as quote-tester.\""
     appears_in: [Chat]
-    labels: [Probe forms]
-    related: [probe-mark, form-probe, run]
-    changed_in: R-69
-    changed_on: 2026-10-17
+    labels: [Probe forms, form_probing]
+    related: [probe-mark, form-probe, run, headless-driver]
+    changed_in: R-81
+    changed_on: 2026-10-20
 
   - id: checkpoint
     term: Checkpoint
@@ -306,7 +307,7 @@ entries:
     example: "A focused scan from the premium result page with depth 1 recorded 15 screens one step from it."
     appears_in: [Scans → Plan next scan, Scans → Pick up (a stopped scan), Chat]
     labels: [Focused, Recheck, Retry a path, Continue a stopped scan, Resume, Retry this path, Skip it]
-    related: [checkpoint, scan-mark, run, probe-scan]
+    related: [checkpoint, scan-mark, run, form-probing-scan]
     changed_in: R-66
     changed_on: 2026-10-17
 
@@ -319,7 +320,7 @@ entries:
       Marks are a person's intent, shown as orange tags; they collect in the Next scan plan. A
       scan that uses Start here, Focus, Recheck or Retry marks closes them. Skip marks stay until
       you remove them and keep the target out of every scan (for example a logout or a delete
-      button). Probe marks on form steps are the same idea for probe scans.
+      button). Probe marks on form steps are the same idea for form-probing scans.
     example: "Start here on /kalkulator/wynik, then Plan next scan → Focused → Start scan."
     appears_in: [Scans → Map side panel ("Next scan"), Scans → Plan next scan]
     labels: [Start here, Focus, Recheck, Retry, Skip, Next scan plan, Plan the next scan]
@@ -2282,11 +2283,11 @@ entries:
       ran is a condition of the trial.
 
       A task may also list forms to probe (`probeForms`, spec 034): after the map, the eval marks
-      the form steps the map recorded there for probing and runs one probe scan, so the export's
-      Validation section can be scored. `--no-probe-scan` leaves it out.
+      the form steps the map recorded there for probing and runs one form-probing scan, so the
+      export's Validation section can be scored. `--no-form-probing` leaves it out.
     appears_in: [apps/crawler/evals/tasks.ts]
     labels: [task, suite, SUITE, trace task, process traces, processTraces, probeForms]
-    related: [eval, eval-trial, reference-portal, probe-scan, export-quality-score]
+    related: [eval, eval-trial, reference-portal, form-probing-scan, export-quality-score]
     changed_in: R-68
     changed_on: 2026-10-17
 
@@ -3251,22 +3252,23 @@ entries:
     changed_on: 2026-10-19
 
   - id: headless-driver
-    term: Headless driver (replay run)
+    term: Headless driver (probe run)
     category: pathfinder
     group: Portal model
-    short: Code that repeats a recorded path through the portal in a fresh browser session, without the LLM, to check a claim; each repeat is one replay run.
+    short: Code that repeats a recorded path through the portal in a fresh browser session, without the LLM, to check a claim; each repeat (a replay) is one probe run.
     explanation: |
       The crawler agent explores; the headless driver only repeats. It walks the clicks and
       submits of a recorded journey again, finding each element by its element key of the model,
       and fills forms with the values a check needs. Every step goes through the same safety
       gates and is recorded like the agent's, marked as driven headless. A step it cannot find
       again ends the replay: the check is inconclusive, never failed. `pnpm model:replay` runs
-      the waiting checks within a budget (20 replay runs by default).
+      the waiting checks within a budget (20 replays by default). Its runs have the mode
+      `probe`; they are not form-probing scans, which try marked form steps with wrong data.
     appears_in: [What changed, Scans]
-    labels: [headless driver, replay run, replay]
-    related: [boundary-test, deviation, journey]
+    labels: [headless driver, probe run, replay]
+    related: [boundary-test, deviation, journey, form-probing-scan]
     changed_in: R-81
-    changed_on: 2026-10-19
+    changed_on: 2026-10-20
 
   - id: decision-rule
     term: Decision rule

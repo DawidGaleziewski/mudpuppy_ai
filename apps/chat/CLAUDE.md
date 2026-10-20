@@ -40,7 +40,7 @@ store, vault, workflow.
   trace written into `portals/<p>/traces.yaml` with comments kept; dismiss) and
   `api-probe-suites` (`POST /portals/{p}/probe-suites/{id}/approve|dismiss`). Probe marks
   (US5): `marks` and `api-marks` (`POST|DELETE /portals/{p}/marks`); `request_scan`
-  `probe_marked` starts a probe scan. Spec 034 (R-66): all six mark kinds on their targets
+  `form_probing` starts a form-probing scan. Spec 034 (R-66): all six mark kinds on their targets
   (`MARK_TARGETS`); `request_scan` `run_type` + `plan` (continue, focused, recheck, retry) with
   `scan-directed.ts` (the checks and the crawler brief: reach each start point with `go_to_state`).
 - Differing states (spec 033 US4): `reconciliations` and `api-reconciliations`

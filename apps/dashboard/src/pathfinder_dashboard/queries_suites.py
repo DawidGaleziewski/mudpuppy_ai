@@ -56,7 +56,7 @@ class StepState(NamedTuple):
 
 class ProbeMark(NamedTuple):
     """An open Probe mark on a form step (spec 032 US5): a person's instruction for the next
-    probe scan."""
+    form-probing scan."""
 
     id: str
     by: str

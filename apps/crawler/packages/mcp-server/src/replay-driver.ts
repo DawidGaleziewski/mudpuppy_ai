@@ -34,12 +34,13 @@ const messageOf = (r: ToolReply): string =>
   (r.body.error as { message?: string } | undefined)?.message ??
   JSON.stringify(r.body).slice(0, 200);
 
-/** Run one plan in a new replay run; never throws for a refusal or a divergence. */
+/** Run one plan in a new probe run; never throws for a refusal or a divergence. */
 export async function replay(call: ToolCall, plan: ReplayPlan): Promise<ReplayOutcome> {
   const started = await call('start_run', {
     portal_id: plan.portal,
     persona_id: plan.persona,
     environment: plan.environment,
+    mode: 'probe',
     replay: { inputs: plan.inputs },
   });
   if (started.isError)

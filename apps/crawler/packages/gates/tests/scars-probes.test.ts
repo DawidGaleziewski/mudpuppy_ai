@@ -19,7 +19,7 @@ import {
  * the browser's own messages and the script's (validation), the Business option leading to a code
  * confirmation (branch, blocked there), a broken quote request (technical). The budget holds, and a
  * read-only persona probes nothing. Probing only when asked (US5, owner 2026-10-17): a plain scan
- * maps the wizard and cannot probe; a probe run probes only the steps marked for probing.
+ * maps the wizard and cannot probe; a form-probing run probes only the steps marked for probing.
  */
 const PORTAL = 'scar-maker';
 let gs: GateServer;
@@ -82,10 +82,10 @@ interface Outcome {
 const outcomes = (run: string) =>
   rows<Outcome>(gs, 'SELECT * FROM probe_outcomes WHERE run_id = ? ORDER BY created_at', run);
 
-/** A probe run of the persona, after marking every step of the wizard. */
+/** A form-probing run of the persona, after marking every step of the wizard. */
 const probeRun = (persona: string) => {
   markForProbing(gs, PORTAL, route);
-  return startRun(gs.call, PORTAL, persona, { probe_marked: true });
+  return startRun(gs.call, PORTAL, persona, { form_probing: true });
 };
 
 const openMarks = () =>
@@ -95,50 +95,54 @@ const openMarks = () =>
     PORTAL,
   ).map((m) => m.target_id);
 
-gate('SC-19', 'a plain scan never probes; a probe run probes only marked steps', async () => {
-  const plain = await startRun(gs.call, PORTAL, 'quote-tester');
-  const page = await scarNav(gs.call, plain, '/sc19/apply');
-  const refused = await gs.call('probe_form', {
-    run_id: plain,
-    action_id: actionNamed(page, 'Next')!.action_id,
-    rationale: 'gate: probing a plain scan',
-  });
-  expect(refused.body).toMatchObject({ error: { code: 'PROBE_NOT_ASKED' } });
+gate(
+  'SC-19',
+  'a plain scan never probes; a form-probing run probes only marked steps',
+  async () => {
+    const plain = await startRun(gs.call, PORTAL, 'quote-tester');
+    const page = await scarNav(gs.call, plain, '/sc19/apply');
+    const refused = await gs.call('probe_form', {
+      run_id: plain,
+      action_id: actionNamed(page, 'Next')!.action_id,
+      rationale: 'gate: probing a plain scan',
+    });
+    expect(refused.body).toMatchObject({ error: { code: 'PROBE_NOT_ASKED' } });
 
-  gs.ctx.raw.prepare(`DELETE FROM marks WHERE used_by_run_id IS NULL`).run();
-  const none = await gs.call('start_run', {
-    portal_id: PORTAL,
-    persona_id: 'quote-tester',
-    probe_marked: true,
-  });
-  expect(none.body).toMatchObject({ error: { code: 'NO_PROBE_MARKS' } });
+    gs.ctx.raw.prepare(`DELETE FROM marks WHERE used_by_run_id IS NULL`).run();
+    const none = await gs.call('start_run', {
+      portal_id: PORTAL,
+      persona_id: 'quote-tester',
+      form_probing: true,
+    });
+    expect(none.body).toMatchObject({ error: { code: 'NO_PROBE_MARKS' } });
 
-  const [first, second] = markForProbing(gs, PORTAL, route);
-  gs.ctx.raw.prepare(`DELETE FROM marks WHERE target_id = ?`).run(second);
-  const started = await gs.call('start_run', {
-    portal_id: PORTAL,
-    persona_id: 'quote-tester',
-    probe_marked: true,
-  });
-  const run = started.body.run_id as string;
-  expect(started.body.probe_marks).toEqual([
-    expect.objectContaining({ form_step_id: first, step_index: 1, route }),
-  ]);
-  const step1 = await scarNav(gs.call, run, '/sc19/apply');
-  const step2 = await actOn(gs.call, run, step1, 'Next', { intent: 'go to step 2' });
-  const unmarked = await gs.call('probe_form', {
-    run_id: run,
-    action_id: actionNamed(step2, 'Next')!.action_id,
-    rationale: 'gate: an unmarked step',
-  });
-  expect(unmarked.body).toMatchObject({ error: { code: 'STEP_NOT_MARKED' } });
-  const done = await probe(run, step1);
-  expect(done.outcomes.length).toBeGreaterThan(0);
-  // Probed to the end: the mark is used, and the run finishes with its frontier left.
-  expect(openMarks()).not.toContain(first);
-  const finished = await gs.call('finish_run', { run_id: run, rationale: 'gate: marks probed' });
-  expect(finished.body).toMatchObject({ status: 'completed' });
-});
+    const [first, second] = markForProbing(gs, PORTAL, route);
+    gs.ctx.raw.prepare(`DELETE FROM marks WHERE target_id = ?`).run(second);
+    const started = await gs.call('start_run', {
+      portal_id: PORTAL,
+      persona_id: 'quote-tester',
+      form_probing: true,
+    });
+    const run = started.body.run_id as string;
+    expect(started.body.probe_marks).toEqual([
+      expect.objectContaining({ form_step_id: first, step_index: 1, route }),
+    ]);
+    const step1 = await scarNav(gs.call, run, '/sc19/apply');
+    const step2 = await actOn(gs.call, run, step1, 'Next', { intent: 'go to step 2' });
+    const unmarked = await gs.call('probe_form', {
+      run_id: run,
+      action_id: actionNamed(step2, 'Next')!.action_id,
+      rationale: 'gate: an unmarked step',
+    });
+    expect(unmarked.body).toMatchObject({ error: { code: 'STEP_NOT_MARKED' } });
+    const done = await probe(run, step1);
+    expect(done.outcomes.length).toBeGreaterThan(0);
+    // Probed to the end: the mark is used, and the run finishes with its frontier left.
+    expect(openMarks()).not.toContain(first);
+    const finished = await gs.call('finish_run', { run_id: run, rationale: 'gate: marks probed' });
+    expect(finished.body).toMatchObject({ status: 'completed' });
+  },
+);
 
 gate('SC-19', 'probes record validation, branch and technical outcomes with evidence', async () => {
   const run = await probeRun('quote-tester');
@@ -198,7 +202,7 @@ gate(
     const map = await startRun(gs.call, PORTAL, 'quote-tester');
     const mapped = await scarNav(gs.call, map, '/sc04/');
     markForProbing(gs, PORTAL, mapped.route_template as string);
-    const run = await startRun(gs.call, PORTAL, 'quote-tester', { probe_marked: true });
+    const run = await startRun(gs.call, PORTAL, 'quote-tester', { form_probing: true });
     const page = await scarNav(gs.call, run, '/sc04/');
     const t = Date.now();
     const r = await gs.call('probe_form', {
@@ -228,7 +232,7 @@ gate(
     const map = await startRun(gs.call, PORTAL, 'quote-tester');
     const mapped = await scarNav(gs.call, map, '/sc04/');
     markForProbing(gs, PORTAL, mapped.route_template as string);
-    const run = await startRun(gs.call, PORTAL, 'quote-tester', { probe_marked: true });
+    const run = await startRun(gs.call, PORTAL, 'quote-tester', { form_probing: true });
     const page = await scarNav(gs.call, run, '/sc04/');
     const r = await gs.call('probe_form', {
       run_id: run,
@@ -258,7 +262,7 @@ gate(
     const map = await startRun(gs.call, PORTAL, 'quote-tester');
     const mapped = await scarNav(gs.call, map, '/sc24/');
     markForProbing(gs, PORTAL, mapped.route_template as string);
-    const run = await startRun(gs.call, PORTAL, 'quote-tester', { probe_marked: true });
+    const run = await startRun(gs.call, PORTAL, 'quote-tester', { form_probing: true });
     const page = await scarNav(gs.call, run, '/sc24/');
     const all: Probed = { outcomes: [], skipped: [] };
     for (let call = 0; call < 6; call++) {

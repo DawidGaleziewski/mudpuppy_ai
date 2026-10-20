@@ -324,7 +324,7 @@ step, never steps of the process. An error page seen once during a scan is not t
 
 **A deliberate try on a form step beyond its happy path, defined once in a catalogue; every outcome is recorded as a state of the step.**
 
-Probing happens only when asked: in a probe scan, on the steps you marked for probing (a
+Probing happens only when asked: in a form-probing scan, on the steps you marked for probing (a
 plain scan presses each form once with test values and never probes). After the happy path
 the crawler calls `probe_form` on a marked step. The server tries:
 - required fields left empty, wrong formats, values outside the limits (validation);
@@ -344,7 +344,7 @@ blocked. Probes run where the action limit allows submitting forms, at most 24 p
 
 *Labels:* `Form probes`
 
-*Related:* [Form step](#form-step), [State kind](#state-kind), [Probe suite](#probe-suite), [Test data](#test-data), [Probe mark](#probe-mark), [Probe scan](#probe-scan)
+*Related:* [Form step](#form-step), [State kind](#state-kind), [Probe suite](#probe-suite), [Test data](#test-data), [Probe mark](#probe-mark), [Form-probing scan](#form-probing-scan)
 
 <sub>Last changed in R-76, 2026-10-18.</sub>
 
@@ -352,44 +352,45 @@ blocked. Probes run where the action limit allows submitting forms, at most 24 p
 
 #### Probe mark
 
-**Your instruction on a form step to have the next probe scan try it beyond the happy path; shown as an orange Probe tag.**
+**Your instruction on a form step to have the next form-probing scan try it beyond the happy path; shown as an orange Probe tag.**
 
 Map the portal first and see what it has, then mark the form steps worth probing: open the
 step's screen (Screens) and press "Mark for probing". The orange tag is a person's mark for
 the next scan. Screens lists every form step as marked, probed (with the number of
-outcomes) or not probed. A probe scan uses the mark when it has probed the step to the end;
+outcomes) or not probed. A form-probing scan uses the mark when it has probed the step to the end;
 "Remove the mark" drops it before that.
 
-*Example:* Step 2 "Your contract" of /sc19/apply carries a Probe tag until the probe scan has tried it.
+*Example:* Step 2 "Your contract" of /sc19/apply carries a Probe tag until the form-probing scan has tried it.
 
 *Seen in:* Screens → Form probes; Screen page → States of this step
 
 *Labels:* `Probe`, `Mark for probing`, `Remove the mark`, `Not probed`, `Probed`
 
-*Related:* [Form probe](#form-probe), [Probe scan](#probe-scan), [Form step](#form-step)
+*Related:* [Form probe](#form-probe), [Form-probing scan](#form-probing-scan), [Form step](#form-step)
 
 <sub>Last changed in R-69, 2026-10-17.</sub>
 
-<a id="probe-scan"></a>
+<a id="form-probing-scan"></a>
 
-#### Probe scan
+#### Form-probing scan
 
 **A scan that only probes the marked form steps of a portal; it does not map.**
 
 Ask the assistant to "probe the marked forms". The crawler opens each marked step, presses
 on with test values until it is there, and probes it within the budget (24 tries per step,
 120 per scan). It does not follow other links. Without marks it is refused with what to do
-first. It may submit forms, so a scan that only looks cannot probe.
+first. It may submit forms, so a scan that only looks cannot probe. Called a "probe scan"
+until MudPuppy 2.0, where a probe run is the headless driver's.
 
 *Example:* "Probe the marked forms of scar-maker as quote-tester."
 
 *Seen in:* Chat
 
-*Labels:* `Probe forms`
+*Labels:* `Probe forms`, `form_probing`
 
-*Related:* [Probe mark](#probe-mark), [Form probe](#form-probe), [Run](#run)
+*Related:* [Probe mark](#probe-mark), [Form probe](#form-probe), [Run](#run), [Headless driver (probe run)](#headless-driver)
 
-<sub>Last changed in R-69, 2026-10-17.</sub>
+<sub>Last changed in R-81, 2026-10-20.</sub>
 
 <a id="checkpoint"></a>
 
@@ -433,7 +434,7 @@ next start point. Skip marks keep actions and screens out of every scan while th
 
 *Labels:* `Focused`, `Recheck`, `Retry a path`, `Continue a stopped scan`, `Resume`, `Retry this path`, `Skip it`
 
-*Related:* [Checkpoint](#checkpoint), [Scan mark](#scan-mark), [Run](#run), [Probe scan](#probe-scan)
+*Related:* [Checkpoint](#checkpoint), [Scan mark](#scan-mark), [Run](#run), [Form-probing scan](#form-probing-scan)
 
 <sub>Last changed in R-66, 2026-10-17.</sub>
 
@@ -446,7 +447,7 @@ next start point. Skip marks keep actions and screens out of every scan while th
 Marks are a person's intent, shown as orange tags; they collect in the Next scan plan. A
 scan that uses Start here, Focus, Recheck or Retry marks closes them. Skip marks stay until
 you remove them and keep the target out of every scan (for example a logout or a delete
-button). Probe marks on form steps are the same idea for probe scans.
+button). Probe marks on form steps are the same idea for form-probing scans.
 
 *Example:* Start here on /kalkulator/wynik, then Plan next scan → Focused → Start scan.
 
@@ -2276,14 +2277,14 @@ processes can be scored from traces. `--no-process-traces` leaves them out; the 
 ran is a condition of the trial.
 
 A task may also list forms to probe (`probeForms`, spec 034): after the map, the eval marks
-the form steps the map recorded there for probing and runs one probe scan, so the export's
-Validation section can be scored. `--no-probe-scan` leaves it out.
+the form steps the map recorded there for probing and runs one form-probing scan, so the
+export's Validation section can be scored. `--no-form-probing` leaves it out.
 
 *Seen in:* apps/crawler/evals/tasks.ts
 
 *Labels:* `task`, `suite`, `SUITE`, `trace task`, `process traces`, `processTraces`, `probeForms`
 
-*Related:* [Eval (tier 2)](#eval), [Eval trial](#eval-trial), [Reference portal / ground truth](#reference-portal), [Probe scan](#probe-scan), [Export quality score](#export-quality-score)
+*Related:* [Eval (tier 2)](#eval), [Eval trial](#eval-trial), [Reference portal / ground truth](#reference-portal), [Form-probing scan](#form-probing-scan), [Export quality score](#export-quality-score)
 
 <sub>Last changed in R-68, 2026-10-17.</sub>
 
@@ -3458,24 +3459,25 @@ which one it replaces.
 
 <a id="headless-driver"></a>
 
-#### Headless driver (replay run)
+#### Headless driver (probe run)
 
-**Code that repeats a recorded path through the portal in a fresh browser session, without the LLM, to check a claim; each repeat is one replay run.**
+**Code that repeats a recorded path through the portal in a fresh browser session, without the LLM, to check a claim; each repeat (a replay) is one probe run.**
 
 The crawler agent explores; the headless driver only repeats. It walks the clicks and
 submits of a recorded journey again, finding each element by its element key of the model,
 and fills forms with the values a check needs. Every step goes through the same safety
 gates and is recorded like the agent's, marked as driven headless. A step it cannot find
 again ends the replay: the check is inconclusive, never failed. `pnpm model:replay` runs
-the waiting checks within a budget (20 replay runs by default).
+the waiting checks within a budget (20 replays by default). Its runs have the mode
+`probe`; they are not form-probing scans, which try marked form steps with wrong data.
 
 *Seen in:* What changed; Scans
 
-*Labels:* `headless driver`, `replay run`, `replay`
+*Labels:* `headless driver`, `probe run`, `replay`
 
-*Related:* [Boundary test](#boundary-test), [Change (deviation)](#deviation), [Journey](#journey)
+*Related:* [Boundary test](#boundary-test), [Change (deviation)](#deviation), [Journey](#journey), [Form-probing scan](#form-probing-scan)
 
-<sub>Last changed in R-81, 2026-10-19.</sub>
+<sub>Last changed in R-81, 2026-10-20.</sub>
 
 <a id="decision-rule"></a>
 
@@ -3513,7 +3515,7 @@ One does not: the rule is refuted and is mined again with the new rows.
 
 *Labels:* `boundary test`, `supported`, `refuted`
 
-*Related:* [Decision rule](#decision-rule), [Headless driver (replay run)](#headless-driver)
+*Related:* [Decision rule](#decision-rule), [Headless driver (probe run)](#headless-driver)
 
 <sub>Last changed in R-81, 2026-10-19.</sub>
 

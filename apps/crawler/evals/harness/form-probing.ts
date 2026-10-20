@@ -1,7 +1,7 @@
 /**
- * The probe scan of a map task (spec 034 phase 9): after the map, the form steps the map recorded
- * on the task's `probeForms` routes are marked for probing, as the owner marks them in the
- * dashboard, and one crawler session probes them (crawler.md "Probe forms"), so the export's
+ * The form-probing scan of a map task (spec 034 phase 9): after the map, the form steps the map
+ * recorded on the task's `probeForms` routes are marked for probing, as the owner marks them in
+ * the dashboard, and one crawler session probes them (crawler.md "Probe forms"), so the export's
  * Validation section has messages to show.
  */
 import { randomUUID } from 'node:crypto';
@@ -15,7 +15,7 @@ import { runAgent, type CliOut } from './agent.js';
 import { findCrawlRun } from './crawl-run.js';
 import type { ScoredOutcome } from './outcome.js';
 
-export interface ProbeScanRun {
+export interface FormProbingRun {
   runId: string;
   /** The CLI session, for the password sweep. */
   session: string;
@@ -44,15 +44,15 @@ async function markForProbing(c: EvalConfig, ws: string, routes: readonly string
 }
 
 /** Null when the task names no forms or the map recorded none of them. */
-export async function runProbeScan(
+export async function runFormProbing(
   c: EvalConfig,
   ws: string,
   routes: readonly string[],
-): Promise<ProbeScanRun | null> {
+): Promise<FormProbingRun | null> {
   if (routes.length === 0) return null;
   const marked = await markForProbing(c, ws, routes);
   if (marked === 0) {
-    console.log(`probe scan: the map recorded no form step on ${routes.join(', ')}; skipped`);
+    console.log(`form probing: the map recorded no form step on ${routes.join(', ')}; skipped`);
     return null;
   }
   const since = nowIso();
@@ -60,7 +60,7 @@ export async function runProbeScan(
   const agent = runAgent(c, ws, 'crawler', PROMPTS.crawlerProbe(c.portal, c.persona), session);
   const runId =
     (await findCrawlRun(c, ws, since)) ??
-    abort(`the crawler made no run for the probe scan (session ${session})`);
-  console.log(`probe scan: ${marked} form step(s) marked, run ${runId}, ${agent.outcome}`);
+    abort(`the crawler made no run for the form-probing scan (session ${session})`);
+  console.log(`form probing: ${marked} form step(s) marked, run ${runId}, ${agent.outcome}`);
   return { runId, session, outcome: agent.outcome, out: agent.out };
 }

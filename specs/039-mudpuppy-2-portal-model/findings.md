@@ -236,6 +236,7 @@ Bugs, slips and design deviations found while building, each with a test or eval
   per finished replay run (complete-run does it): fine at 20 tests, worth batching later (R-24).
 - **Owner question (morning)**: keep the name "replay run", or rename spec 032's probe runs and
   use `mode = 'probe'` as the design says?
+- **Answered 2026-10-20**: the design's naming. Done in T116, see F-30.
 - **Test**: `replay-driver.e2e.test.ts` (four replays make the decision point, the rule "under 18"
   is supported by its tests at 17, 18 and 19, every transition headless); `replay-tests.test.ts`
   (plans, supported, the F-18 gap rule refuted at 21, diverged = inconclusive); `replay-inputs.test.ts`.
@@ -421,3 +422,25 @@ Bugs, slips and design deviations found while building, each with a test or eval
   `same_as_transition_id`, `transitions`, `item_pages_visited`).
 - **Test**: `db.test.ts` (0032 up, down, up on every round trip); `pnpm test:slow`; a grep for
   `page_visits|edge_id|FROM edges` over code returns only history.
+
+## F-30 "Probe run" means the headless driver's run (T116), 2026-10-20
+
+- **What**: owner answer 6 reverses F-20's naming. **The driver's runs** are `runs.mode = 'probe'`
+  (`RunMode` gained `probe`): `start_run` takes `mode: 'probe'` exactly when it takes `replay
+  {inputs}` (either alone is `SCHEMA_INVALID`); one replayed path inside such a run stays "a
+  replay" (`replay_budget`). The dashboard's scan list calls them "Probe run". **Spec 032's run**
+  becomes **form probing**: `start_run` / `request_scan` `probe_marked` → `form_probing`,
+  `config_snapshot.choices.probe` → `choices.form_probing`, `RunState.isProbe` → `isFormProbing`,
+  "probe scan/run" → "form-probing scan/run" in tools, the crawler and orchestrator prompts,
+  `ba-practice`, docs and glossary (entry `form-probing-scan`, the headless driver's entry says
+  "probe run"). The eval's condition `probe_scan` → `form_probing` (`--no-form-probing`); trial files
+  written before keep `probe_scan` and are read under the new name (`EvalResult` preprocess), so the
+  v1 history stays comparable.
+- **Kept on purpose** (the designer's words, no second meaning): a *probe* (one try of the
+  catalogue), the *Probe* mark and `probe_marks`, `probe_form`, `probe_outcomes`, probe suites,
+  `NO_PROBE_MARKS` / `PROBE_NOT_ASKED`, the "Probe forms" run type.
+- **Not yet** (as before, F-20): one probe run per replay; the design's single run consuming
+  planner marks within its budget waits for T075 / the prefix cache.
+- **Test**: `start-run.test.ts` "a probe run is mode probe with a replay, and only that";
+  `results.test.ts` "reads a trial written before spec 039 T116"; the replay e2e tests start
+  `mode: 'probe'`.

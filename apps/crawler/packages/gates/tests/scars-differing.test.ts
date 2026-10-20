@@ -48,7 +48,7 @@ gate('SC-20', 'form steps and probe outcomes make no group (no false groups)', a
   const step1 = await scarNav(gs.call, map, '/sc19/apply');
   await actOn(gs.call, map, step1, 'Next', { intent: 'go to step 2' });
   markForProbing(gs, PORTAL, step1.route_template as string);
-  const probe = await startRun(gs.call, PORTAL, 'quote-tester', { probe_marked: true });
+  const probe = await startRun(gs.call, PORTAL, 'quote-tester', { form_probing: true });
   const page = await scarNav(gs.call, probe, '/sc19/apply');
   await gs.call('probe_form', {
     run_id: probe,

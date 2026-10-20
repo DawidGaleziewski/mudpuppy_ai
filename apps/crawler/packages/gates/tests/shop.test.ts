@@ -427,7 +427,7 @@ gate(
   'a probe reads the catalogue filter, which is no <form> and does not read like a submit',
   async () => {
     markForProbing(gs, 'proving-ground-shop', catalogue.route_template as string);
-    const probing = await startRun(gs.call, 'proving-ground-shop', 'guest', { probe_marked: true });
+    const probing = await startRun(gs.call, 'proving-ground-shop', 'guest', { form_probing: true });
     const page = await nav(gs.call, probing, '/sklep');
     const r = await gs.call('probe_form', {
       run_id: probing,

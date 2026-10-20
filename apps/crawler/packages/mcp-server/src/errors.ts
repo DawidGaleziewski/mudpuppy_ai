@@ -41,7 +41,7 @@ export const ERROR_CODES = [
   // Form probes (specs/032-form-states-probes): the way back to a form step in the run failed.
   'REPLAY_DIVERGED',
   'NO_PATH',
-  // Probing only when asked (spec 032 US5): a plain run, an unmarked step, a probe run without marks.
+  // Probing only when asked (spec 032 US5): a plain run, an unmarked step, a form-probing run without marks.
   'PROBE_NOT_ASKED',
   'STEP_NOT_MARKED',
   'NO_PROBE_MARKS',

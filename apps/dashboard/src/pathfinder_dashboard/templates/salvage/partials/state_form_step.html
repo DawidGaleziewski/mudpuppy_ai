@@ -22,9 +22,9 @@
       {%- endif %}
     </span>
     {%- if fs.mark %}
-    <p class="sy-small">Marked for probing by {{ fs.mark.by }}, {{ fs.mark.at | when }}. The next probe scan tries this step with wrong and empty values, other options and failing requests; ask the assistant to probe the marked forms.</p>
+    <p class="sy-small">Marked for probing by {{ fs.mark.by }}, {{ fs.mark.at | when }}. The next form-probing scan tries this step with wrong and empty values, other options and failing requests; ask the assistant to probe the marked forms.</p>
     {%- else %}
-    <p class="sy-small">Scans press this step once with test values. Mark it to have a probe scan try it beyond that.</p>
+    <p class="sy-small">Scans press this step once with test values. Mark it to have a form-probing scan try it beyond that.</p>
     {%- endif %}
     {%- if probe_note %}<p class="sy-small" role="status">{{ probe_note }}</p>{% endif %}
     {%- if can_mark %}

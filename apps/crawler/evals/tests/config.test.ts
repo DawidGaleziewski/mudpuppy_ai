@@ -23,7 +23,7 @@ describe('parseConfig', () => {
         inPlace: false,
         judges: true,
         processTraces: true,
-        probeScan: true,
+        formProbing: true,
         resultsDir: '/repo/data/evals/reference-insurer',
       },
     });
@@ -49,12 +49,12 @@ describe('parseConfig', () => {
       '--in-place',
       '--no-judges',
       '--no-process-traces',
-      '--no-probe-scan',
+      '--no-form-probing',
     );
     expect(r.ok && r.config).toMatchObject({
       judges: false,
       processTraces: false,
-      probeScan: false,
+      formProbing: false,
       persona: 'client',
       budgetUsd: '2',
       env: 'test',

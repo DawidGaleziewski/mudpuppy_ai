@@ -39,7 +39,7 @@ try {
     ...(today ? { today } : {}),
     regress,
   });
-  console.log(`${portal} (${environment}): ${r.replays} replay run(s)`);
+  console.log(`${portal} (${environment}): ${r.replays} probe run(s)`);
   for (const e of r.errors)
     console.log(
       `  R1 ${e.deviationId}: ${e.results.map((x) => x ?? 'diverged').join(', ')} → ${e.hypothesis ?? 'still waiting'}`,

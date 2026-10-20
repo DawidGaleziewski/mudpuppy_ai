@@ -3,10 +3,10 @@ import type { RunState } from '../src/runtime/run-state.js';
 import { gateContext } from '../src/runtime/pipeline/gate.js';
 
 /** The parts of a run's state that `gateContext` reads. */
-const runState = (kind: { isTrace?: boolean; isProbe?: boolean }): RunState =>
+const runState = (kind: { isTrace?: boolean; isFormProbing?: boolean }): RunState =>
   ({
     isTrace: kind.isTrace ?? false,
-    isProbe: kind.isProbe ?? false,
+    isFormProbing: kind.isFormProbing ?? false,
     scope: { max_depth: 6 },
     effective: { portal: { denylist: [] }, effectiveMaxActionClass: 'mutating' },
     ruleSet: {},
@@ -20,13 +20,13 @@ describe('gateContext depth budget', () => {
     expect(gateContext(runState({}), usage).scope.max_depth).toBe(6);
   });
 
-  it('lifts it in a trace run and in a probe run (spec 032 F-23)', () => {
-    // Live, a probe run's 7th marked page was refused "depth 7 exceeds 6": each probed step
-    // left the browser deeper, and a probe run does not explore.
+  it('lifts it in a trace run and in a form-probing run (spec 032 F-23)', () => {
+    // Live, a form-probing run's 7th marked page was refused "depth 7 exceeds 6": each probed
+    // step left the browser deeper, and a form-probing run does not explore.
     expect(gateContext(runState({ isTrace: true }), usage).scope.max_depth).toBe(
       Number.MAX_SAFE_INTEGER,
     );
-    expect(gateContext(runState({ isProbe: true }), usage).scope.max_depth).toBe(
+    expect(gateContext(runState({ isFormProbing: true }), usage).scope.max_depth).toBe(
       Number.MAX_SAFE_INTEGER,
     );
   });

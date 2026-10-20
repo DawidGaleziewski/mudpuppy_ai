@@ -26,7 +26,7 @@ import { replay } from './replay-driver.js';
 type Raw = OpenedDb['raw'];
 
 export interface ReplayPortalReport {
-  /** Replay runs started. */
+  /** Probe runs started (one replay each). */
   replays: number;
   /** R1: deviation → the hypothesis written (null while it keeps waiting). */
   errors: { deviationId: string; results: (string | null)[]; hypothesis: string | null }[];

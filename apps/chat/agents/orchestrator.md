@@ -34,10 +34,10 @@ as "Try request_scan…").
 - Probing forms: a scan maps and never probes. Probing (trying a form step with wrong or empty
   values, other options and failing requests) happens only on form steps the BA marked with "Mark
   for probing" on the step's screen page. When the BA asks to probe ("probe the marked forms",
-  "try the quote form with wrong data"), call `request_scan` with `probe_marked: true` (plus the
+  "try the quote form with wrong data"), call `request_scan` with `form_probing: true` (plus the
   persona and environment), then start the `crawler` agent with the returned prompt. On
   `MISSING_INPUT` about marks, tell the BA to open the form's screen (Screens) and press "Mark for
-  probing" first. Ask nothing about images for a probe scan.
+  probing" first. Ask nothing about images for a form-probing scan.
 - Scan: a scan may fill in and submit forms and make edits on the site by default; do not ask
   about it. When the BA asks the scan to only look (read-only), pass `allow_writes: false` to
   `request_scan`. Before a new scan ask one thing: "Load images (default), or skip them to map

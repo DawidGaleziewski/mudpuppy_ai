@@ -7,7 +7,7 @@ import { startHarness } from './harness.js';
  * The portal model's structure on two M2 scenarios (spec 039 design § 6, § 19.1): repeated rows
  * ("add another driver" adds a row) stay one screen and stop adding page versions once rows
  * collapse; six numbered sections with different forms are six screens, their path parameter an
- * identity parameter. Replay runs that only look (headless, no LLM).
+ * identity parameter. Probe runs that only look (headless, no LLM).
  */
 const available = await canLaunchBrowser();
 
@@ -41,11 +41,12 @@ async function setup(scenario: ScenarioId) {
     'portals/reference-insurer/portal.yaml': portalYaml(portal.url.replace(/\/$/, '')),
     'personas/reference-insurer/guest.yaml': PERSONA,
   });
-  /** One replay run that opens each path in turn. */
+  /** One probe run that opens each path in turn. */
   const look = async (paths: readonly string[]) => {
     const start = await h.call('start_run', {
       portal_id: 'reference-insurer',
       persona_id: 'guest',
+      mode: 'probe',
       replay: { inputs: {} },
     });
     expect(start.isError, JSON.stringify(start.body)).toBeFalsy();

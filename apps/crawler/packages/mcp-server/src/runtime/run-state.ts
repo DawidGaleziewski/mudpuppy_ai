@@ -57,11 +57,12 @@ export class RunState {
   obstacleCursor = 0;
   /** Trace runs (spec 004 R-14): the run's process; null for map runs. */
   processId: string | null = null;
-  /** A probe run (spec 032 US5): it visits marked form steps, it does not explore. */
-  isProbe = false;
+  /** A form-probing run (spec 032 US5): it visits marked form steps, it does not explore. */
+  isFormProbing = false;
   /**
-   * A replay run of the headless driver (spec 039 design § 9): the inputs it types by attribute
-   * name (`input.<attribute>`), before the persona's test data. Null for every other run.
+   * A probe run of the headless driver (`mode = 'probe'`, spec 039 design § 9): the inputs its
+   * replay types by attribute name (`input.<attribute>`), before the persona's test data. Null
+   * for every other run.
    */
   headless: { inputs: Record<string, string> } | null = null;
   /** A directed run's plan (spec 034 R-66): what it may queue; null for a plain run. */

@@ -70,6 +70,7 @@ async function nextKey(): Promise<string> {
   const start = await h.call('start_run', {
     portal_id: 'reference-insurer',
     persona_id: 'guest',
+    mode: 'probe',
     replay: { inputs: {} },
   });
   const runId = start.body.run_id as string;

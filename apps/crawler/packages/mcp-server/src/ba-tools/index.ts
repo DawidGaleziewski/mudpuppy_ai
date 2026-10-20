@@ -151,7 +151,7 @@ export function registerBaTools(server: McpServer, ctx: BaContext): void {
   );
   tool(
     'propose_probe_suite',
-    "Spec 032: propose one probe suite per form, built from a probing run's probe outcomes (get_run_evidence kind probe_outcomes). Give the run, the trace (id: a lowercase slug; name and goal in the portal's terms) and one variant per outcome worth running every time: { id (slug), probe_outcome_id, why }. Include the happy-path outcome. The server builds each variant's steps from the outcome and maps its outcome kind to what the variant expects; temporary and blocked outcomes are refused. The suite waits in Review for the owner and never runs before approval.",
+    "Spec 032: propose one probe suite per form, built from a form-probing run's probe outcomes (get_run_evidence kind probe_outcomes). Give the run, the trace (id: a lowercase slug; name and goal in the portal's terms) and one variant per outcome worth running every time: { id (slug), probe_outcome_id, why }. Include the happy-path outcome. The server builds each variant's steps from the outcome and maps its outcome kind to what the variant expects; temporary and blocked outcomes are refused. The suite waits in Review for the owner and never runs before approval.",
     {
       session_id: z.string(),
       run_id: z.string(),

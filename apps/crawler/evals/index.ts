@@ -27,11 +27,11 @@ import {
   findCrawlRun,
   preflight,
   runAgent,
-  runProbeScan,
+  runFormProbing,
   runProcessTraces,
   stopServer,
   type CliOut,
-  type ProbeScanRun,
+  type FormProbingRun,
   type ProcessTraceRun,
   type ScoredOutcome,
   type StartedServer,
@@ -79,9 +79,9 @@ async function dryRun(c: EvalConfig, task: EvalTask, gt: GroundTruth): Promise<n
   const ws = createWorkspace(c.root, c.portal, c.env);
   const secrets = await portalSecrets(ws, c.portal, c.env);
   const traces = processTracesFor(task, c.persona, c.processTraces);
-  const probe = probeFormsFor(task, c.probeScan);
+  const probe = probeFormsFor(task, c.formProbing);
   console.log(
-    `dry run ok: ${c.portal} as ${c.persona}, budget $${c.budgetUsd}/agent, ground truth ${gt.portal_id}, ${secrets.length} secret(s) to sweep for, ${traces.length} process trace(s), ${probe.length ? `a probe scan of ${probe.join(', ')}` : 'no probe scan'}`,
+    `dry run ok: ${c.portal} as ${c.persona}, budget $${c.budgetUsd}/agent, ground truth ${gt.portal_id}, ${secrets.length} secret(s) to sweep for, ${traces.length} process trace(s), ${probe.length ? `a form-probing scan of ${probe.join(', ')}` : 'no form probing'}`,
   );
   console.log(judgeLoginLine(c));
   return 0;
@@ -113,7 +113,7 @@ async function runTrial(c: EvalConfig, task: EvalTask, gt: GroundTruth): Promise
     const crawlRunId =
       (await findCrawlRun(c, ws, startedAt)) ??
       abort(`the crawler made no run (session ${sessions.crawler})`);
-    const probe = await runProbeScan(c, ws, probeFormsFor(task, c.probeScan));
+    const probe = await runFormProbing(c, ws, probeFormsFor(task, c.formProbing));
     const traces = await runProcessTraces(c, ws, traceTasks);
     const runs = { crawlRunId, probeRunId: probe?.runId, traces };
     const { ba, baTraces } = await runBaSessions(c, ws, runs, sessions);
@@ -144,7 +144,7 @@ async function runTrial(c: EvalConfig, task: EvalTask, gt: GroundTruth): Promise
           run: t.runId,
           cli_session: t.session,
         })),
-        probeScan: probe && { run: probe.runId, cli_session: probe.session },
+        formProbing: probe && { run: probe.runId, cli_session: probe.session },
         outcomes,
         cost,
         grades,
@@ -162,7 +162,7 @@ async function runTrial(c: EvalConfig, task: EvalTask, gt: GroundTruth): Promise
 }
 
 /**
- * Two BA sessions (spec 025 F-12): the map (with the probe scan, spec 034 phase 9) as before,
+ * Two BA sessions (spec 025 F-12): the map (with the form-probing scan, spec 034 phase 9) as before,
  * then the traces for processes only, after the harness grouped each trace run under its
  * process as the owner would (F-20@034).
  */
@@ -190,7 +190,7 @@ type Agent = { outcome: ScoredOutcome; out: CliOut };
 function ledger(
   a: {
     crawler: Agent;
-    probe: ProbeScanRun | null;
+    probe: FormProbingRun | null;
     traces: readonly ProcessTraceRun[];
     ba: Agent | null;
     baTraces: Agent | null;
@@ -202,7 +202,7 @@ function ledger(
     cost: ran.reduce((sum, x) => addCost(sum, x.out), emptyCost()),
     outcomes: {
       crawler: a.crawler.outcome,
-      ...(a.probe && { probe_scan: a.probe.outcome }),
+      ...(a.probe && { form_probing: a.probe.outcome }),
       ...(a.ba && { ba: a.ba.outcome }),
       ...(a.baTraces && { ba_traces: a.baTraces.outcome }),
       ...(a.traces.length > 0 && { process_traces: a.traces.map((t) => t.outcome) }),

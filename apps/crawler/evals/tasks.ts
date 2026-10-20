@@ -42,7 +42,8 @@ export interface EvalTask {
   processTraces?: readonly TraceSpec[];
   /**
    * Routes whose recorded form steps are marked for probing after the map, then probed in one
-   * probe scan (spec 034 phase 9: the export's Validation section). `--no-probe-scan` skips it.
+   * form-probing scan (spec 034 phase 9: the export's Validation section). `--no-form-probing`
+   * skips it.
    */
   probeForms?: readonly string[];
 }
@@ -147,7 +148,7 @@ export function processTracesFor(task: EvalTask, persona: string, enabled: boole
   return enabled && persona === 'guest' ? [...(task.processTraces ?? [])] : [];
 }
 
-/** The routes to probe after the map; none when `--no-probe-scan` is given. */
+/** The routes to probe after the map; none when `--no-form-probing` is given. */
 export function probeFormsFor(task: EvalTask, enabled: boolean): string[] {
   return enabled ? [...(task.probeForms ?? [])] : [];
 }

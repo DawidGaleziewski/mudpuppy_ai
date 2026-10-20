@@ -37,7 +37,7 @@ export interface PageResult {
     label?: string;
     /** An unnamed link's target path, so an icon link is worth a look (spec 038, bank S11). */
     link_to?: string;
-    /** Replay runs only: the model element key the headless driver matches (spec 039). */
+    /** Probe runs only: the model element key the headless driver matches (spec 039). */
     element_key?: string;
   }[];
   /** How many issued actions a result without `actions` left out. */

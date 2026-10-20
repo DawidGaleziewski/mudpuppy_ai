@@ -48,13 +48,13 @@ const ScanFocusInput = z
   })
   .strict();
 
-/** Run kinds that are a new map run of their own, and the choices each refuses beside it. */
-const NEW_MAP_RUN_ONLY: Record<string, { run: string; excludes: string[] }> = {
-  probe_marked: { run: 'a probe run', excludes: ['resume_run_id', 'mode trace'] },
-  run_type: { run: 'a directed run', excludes: ['resume_run_id', 'mode trace', 'probe_marked'] },
+/** Run kinds that are a new run of their own, and the choices each refuses beside it. */
+const NEW_RUN_ONLY: Record<string, { run: string; excludes: string[] }> = {
+  form_probing: { run: 'a form-probing run', excludes: ['resume_run_id', 'mode trace'] },
+  run_type: { run: 'a directed run', excludes: ['resume_run_id', 'mode trace', 'form_probing'] },
   replay: {
-    run: 'a replay run',
-    excludes: ['resume_run_id', 'mode trace', 'probe_marked', 'run_type'],
+    run: 'a probe run',
+    excludes: ['resume_run_id', 'mode trace', 'form_probing', 'run_type'],
   },
 };
 
@@ -63,7 +63,8 @@ const StartRunInput = z
     portal_id: z.string().min(1),
     persona_id: z.string().min(1),
     resume_run_id: z.string().min(1).optional(),
-    mode: z.enum(['map', 'trace']).default('map'),
+    /** `probe`: a run of the headless driver (spec 039 design § 9), always with `replay`. */
+    mode: z.enum(['map', 'trace', 'probe']).default('map'),
     process: z
       .object({ name: z.string().trim().min(1).max(200), goal: z.string().trim().min(1).max(500) })
       .strict()
@@ -84,14 +85,15 @@ const StartRunInput = z
      */
     focus: ScanFocusInput.optional(),
     /**
-     * A probe run (spec 032 US5): probe only the form steps a person marked for probing. A new
-     * map run only; a plain run never probes.
+     * A form-probing run (spec 032 US5): probe only the form steps a person marked for probing.
+     * A new map run only; a plain run never probes.
      */
-    probe_marked: z.boolean().optional(),
+    form_probing: z.boolean().optional(),
     /**
-     * A replay run (spec 039 design § 9): the headless driver re-runs a recorded journey prefix;
-     * `inputs` (`input.<attribute>` → value) replace the persona's test data when a form is filled
-     * before its submit. A new map run only; its transitions carry `driver = 'headless'`.
+     * The replay of a probe run (`mode: 'probe'`, spec 039 design § 9): the headless driver re-runs
+     * a recorded journey prefix; `inputs` (`input.<attribute>` → value) replace the persona's test
+     * data when a form is filled before its submit. A new run only; its transitions carry
+     * `driver = 'headless'`.
      */
     replay: z
       .object({ inputs: z.record(z.string().regex(/^input\./), z.string().max(500)) })
@@ -110,26 +112,33 @@ const StartRunInput = z
     const set: Record<string, boolean> = {
       resume_run_id: v.resume_run_id !== undefined,
       'mode trace': v.mode === 'trace',
-      probe_marked: v.probe_marked === true,
+      form_probing: v.form_probing === true,
       run_type: v.run_type !== undefined,
       replay: v.replay !== undefined,
     };
-    for (const [choice, { run, excludes }] of Object.entries(NEW_MAP_RUN_ONLY)) {
+    for (const [choice, { run, excludes }] of Object.entries(NEW_RUN_ONLY)) {
       if (!set[choice] || !excludes.some((x) => set[x])) continue;
       const list = `${excludes.slice(0, -1).join(', ')} or ${excludes.at(-1)!}`;
       c.addIssue({
         code: 'custom',
         path: [choice],
-        message: `${run} is a new map run; not with ${list}`,
+        message: `${run} is a new run; not with ${list}`,
       });
     }
+    // A probe run is the headless driver's, and the driver's runs are probe runs.
+    if ((v.mode === 'probe') !== (v.replay !== undefined))
+      c.addIssue({
+        code: 'custom',
+        path: ['replay'],
+        message: 'replay is given exactly when mode is probe',
+      });
     // A resumed run keeps its own mode and process.
     if (v.resume_run_id !== undefined) return;
     if (v.mode === 'trace' && v.process === undefined)
       c.addIssue({ code: 'custom', path: ['process'], message: 'required when mode is trace' });
-    if (v.mode === 'map' && v.process !== undefined)
+    if (v.mode !== 'trace' && v.process !== undefined)
       c.addIssue({ code: 'custom', path: ['process'], message: 'only allowed when mode is trace' });
-    if (v.mode === 'map' && v.followup_key !== undefined)
+    if (v.mode !== 'trace' && v.followup_key !== undefined)
       c.addIssue({
         code: 'custom',
         path: ['followup_key'],
@@ -139,7 +148,7 @@ const StartRunInput = z
 
 export interface StartRunOutput {
   run_id: string;
-  mode: 'map' | 'trace';
+  mode: 'map' | 'trace' | 'probe';
   /** The trace run's process; absent for map runs. */
   process_id?: string;
   /** Where the run starts: the focus's start page, else the portal's (a trace's first `navigate`). */
@@ -151,7 +160,7 @@ export interface StartRunOutput {
   /** Images are answered with a placeholder in this run (spec 011 FR-014). */
   skip_images: boolean;
   budgets: { steps: number; run_time_minutes: number; states: number };
-  /** A probe run's marked form steps (spec 032 US5): the only steps `probe_form` accepts. */
+  /** A form-probing run's marked form steps (spec 032 US5): the only steps `probe_form` accepts. */
   probe_marks?: ProbeMarkItem[];
   /** A directed run (spec 034 R-66): its type and where it starts; reach each with go_to_state. */
   run_type?: DirectedType;
@@ -272,7 +281,7 @@ export async function startRunRecord(
       max_action_class: input.max_action_class ?? prior.max_action_class,
       skip_images: input.skip_images ?? prior.skip_images,
       focus: input.focus ?? prior.focus,
-      probe: prior.probe,
+      form_probing: prior.form_probing,
       replay: prior.replay,
     };
     const { effectiveMaxActionClass, approved, startUrl } = limited(choices);
@@ -342,7 +351,7 @@ export async function startRunRecord(
       ? limits.approved
       : { ...limits.approved, scope: { ...limits.approved.scope, max_depth: Math.max(depth, 1) } };
   // Nothing to probe: refused before any browser opens or row is written.
-  const probeMarks = choices.probe ? await openProbeMarks(ctx, portal.id) : undefined;
+  const probeMarks = choices.form_probing ? await openProbeMarks(ctx, portal.id) : undefined;
   if (probeMarks?.length === 0)
     throw new ToolError(
       'NO_PROBE_MARKS',
@@ -443,9 +452,9 @@ export interface RunChoices {
   skip_images: boolean;
   /** Narrows the run's scope and start page (spec 011 FR-017); null = the whole portal. */
   focus: ScanFocus | null;
-  /** A probe run (spec 032 US5): only marked form steps are probed; plain runs never probe. */
-  probe: boolean;
-  /** A replay run of the headless driver (spec 039 design § 9) and the inputs it types. */
+  /** A form-probing run (spec 032 US5): only marked form steps are probed; plain runs never probe. */
+  form_probing: boolean;
+  /** A probe run's replay (the headless driver, spec 039 design § 9) and the inputs it types. */
   replay: { inputs: Record<string, string> } | null;
 }
 
@@ -455,7 +464,7 @@ function newRunChoices(input: z.infer<typeof StartRunInput>): RunChoices {
     max_action_class: input.max_action_class ?? null,
     skip_images: input.skip_images ?? false,
     focus: input.focus ?? null,
-    probe: input.probe_marked === true,
+    form_probing: input.form_probing === true,
     replay: input.replay ?? null,
   };
 }
@@ -469,11 +478,17 @@ export function runChoices(run: Pick<RunRow, 'config_snapshot'>): RunChoices {
       max_action_class: SafetyClass.safeParse(c?.max_action_class).data ?? null,
       skip_images: c?.skip_images === true,
       focus: ScanFocusInput.safeParse(c?.focus).data ?? null,
-      probe: c?.probe === true,
+      form_probing: c?.form_probing === true,
       replay: ReplayChoice.safeParse(c?.replay).data ?? null,
     };
   } catch {
-    return { max_action_class: null, skip_images: false, focus: null, probe: false, replay: null };
+    return {
+      max_action_class: null,
+      skip_images: false,
+      focus: null,
+      form_probing: false,
+      replay: null,
+    };
   }
 }
 

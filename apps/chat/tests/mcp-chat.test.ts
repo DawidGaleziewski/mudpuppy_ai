@@ -274,8 +274,8 @@ describe('pathfinder-chat MCP server', () => {
     expect(prompt).not.toContain('resume_run_id');
   });
 
-  it('a probe scan needs Probe marks and briefs the crawler to probe only them (spec 032 US5)', async () => {
-    const probe = { portal: 'reference-insurer', persona: 'guest', probe_marked: true };
+  it('a form-probing scan needs Probe marks and briefs the crawler to probe only them (spec 032 US5)', async () => {
+    const probe = { portal: 'reference-insurer', persona: 'guest', form_probing: true };
     const none = await call('request_scan', probe);
     expect(none.body.error).toMatchObject({ code: 'MISSING_INPUT' });
     expect(JSON.stringify(none.body.error)).toContain('Mark for probing');
@@ -291,7 +291,7 @@ describe('pathfinder-chat MCP server', () => {
     const { isError, body } = await call('request_scan', probe);
     expect(isError).toBe(false);
     const prompt = (body.handoff as { prompt: string }).prompt;
-    expect(prompt).toContain('probe_marked true');
+    expect(prompt).toContain('form_probing true');
     expect(prompt).toContain('Do not follow the frontier');
     expect(prompt).not.toContain('Drain the frontier');
   });
@@ -303,7 +303,7 @@ describe('pathfinder-chat MCP server', () => {
     expect(await errorOf({ run_type: 'focused' })).toMatchObject({ code: 'MISSING_INPUT' });
     expect(await errorOf({ run_type: 'continue' })).toMatchObject({ code: 'MISSING_INPUT' });
     expect(await errorOf({ run_type: 'retry' })).toMatchObject({ code: 'MISSING_INPUT' });
-    expect(await errorOf({ run_type: 'focused', probe_marked: true })).toMatchObject({
+    expect(await errorOf({ run_type: 'focused', form_probing: true })).toMatchObject({
       code: 'INVALID',
     });
     expect(

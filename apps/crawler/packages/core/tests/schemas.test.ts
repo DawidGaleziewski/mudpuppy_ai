@@ -193,7 +193,7 @@ describe('portal-agnostic safety additions (R-11)', () => {
 });
 
 describe('run mode (R-14)', () => {
-  it('accepts trace as a run mode', () => {
-    expect(RunMode.options).toEqual(['map', 'trace']);
+  it('accepts trace and probe (spec 039 T116) as run modes', () => {
+    expect(RunMode.options).toEqual(['map', 'trace', 'probe']);
   });
 });

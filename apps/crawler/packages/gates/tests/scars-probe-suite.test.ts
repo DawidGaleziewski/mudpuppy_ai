@@ -19,7 +19,7 @@ import {
 
 /**
  * The owner-reviewed probe suite (SC-19, spec 032 US3, owner decision D-2): the BA picks probe
- * outcomes of a probing run, the server builds a `traces.yaml` trace from them and keeps it open
+ * outcomes of a form-probing run, the server builds a `traces.yaml` trace from them and keeps it open
  * (not in the catalogue: it cannot run before the owner approves it, which the chat service does,
  * apps/chat tests/probe-suites.test.ts). Driven twice, each variant ends on the same kind of page.
  */
@@ -57,7 +57,7 @@ gate('SC-19', 'an owner-reviewed suite runs the same way every time', async () =
   const seen = await scarNav(gs.call, mapped, '/sc19/apply');
   await actOn(gs.call, mapped, seen, 'Next', { intent: 'go to step 2' });
   markForProbing(gs, PORTAL, seen.route_template as string);
-  const run = await startRun(gs.call, PORTAL, PERSONA, { probe_marked: true });
+  const run = await startRun(gs.call, PORTAL, PERSONA, { form_probing: true });
   const step1 = await scarNav(gs.call, run, '/sc19/apply');
   const step2 = await actOn(gs.call, run, step1, 'Next', { intent: 'go to step 2' });
   for (let call = 0; call < 6; call++) {

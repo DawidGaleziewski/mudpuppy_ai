@@ -84,11 +84,11 @@ export async function usage(
 export function gateContext(rs: RunState, u: GateContext['usage']): GateContext {
   return {
     // A trace follows one process as deep as it goes; its step budget bounds it, not the map's
-    // depth budget (spec 004 F-14). A probe run goes from one marked step to the next: depth
-    // bounds exploring, which it does not do (spec 032 F-23). A replay walks a recorded path to
-    // its start point: depth counts from there (spec 034 A-4).
+    // depth budget (spec 004 F-14). A form-probing run goes from one marked step to the next:
+    // depth bounds exploring, which it does not do (spec 032 F-23). A replay walks a recorded path
+    // to its start point: depth counts from there (spec 034 A-4).
     scope:
-      rs.isTrace || rs.isProbe || rs.replay?.target !== undefined
+      rs.isTrace || rs.isFormProbing || rs.replay?.target !== undefined
         ? { ...rs.scope, max_depth: Number.MAX_SAFE_INTEGER }
         : rs.scope,
     denylist: rs.effective.portal.denylist,

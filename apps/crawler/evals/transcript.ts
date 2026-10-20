@@ -36,8 +36,9 @@ function sessionsOf(result: { runs?: Record<string, unknown> }): [string, string
     ['ba (traces)', 'ba_traces_cli_session'],
   ] as const)
     if (typeof r[key] === 'string') out.push([role, r[key]]);
-  const probe = r.probe_scan as { cli_session?: string } | null | undefined;
-  if (probe?.cli_session) out.push(['probe scan', probe.cli_session]);
+  // Trials before spec 039 T116 call it `probe_scan`.
+  const probing = (r.form_probing ?? r.probe_scan) as { cli_session?: string } | null | undefined;
+  if (probing?.cli_session) out.push(['form probing', probing.cli_session]);
   return out;
 }
 

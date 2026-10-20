@@ -219,7 +219,7 @@ owner approves in Review are written into this file (comments kept).
 
 ## Form probes (`probes`, spec 032 R-69)
 
-A probe run (`start_run` `probe_marked: true`, the chat's "probe the marked forms") tries the form
+A form-probing run (`start_run` `form_probing: true`, the chat's "probe the marked forms") tries the form
 steps a person marked for probing beyond their happy path, when the crawler calls `probe_form`. A
 plain map run never probes (owner answer of 2026-10-17, spec 032 US5). The tries:
 - empty required fields, wrong formats, below the minimum and above the maximum;

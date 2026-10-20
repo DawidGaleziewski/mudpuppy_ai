@@ -1,5 +1,5 @@
 // The data pass's coverage (spec 034 F-21): one data item per form field is the skill's rule, but in
-// two eval trials over a map and a probe run the BA wrote 8 and 20 data items for 27 fields, some
+// two eval trials over a map and a form-probing run the BA wrote 8 and 20 data items for 27 fields, some
 // as one "payload" item per form. When the BA records the `data` pass, the server lists the
 // session's form fields no data item names yet, as a warning: the BA writes them before going on.
 

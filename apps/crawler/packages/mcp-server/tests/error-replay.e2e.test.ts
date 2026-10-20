@@ -62,11 +62,12 @@ afterAll(async () => {
   await portal?.close();
 });
 
-/** The element key of the vehicle form's "Dalej", as a replay run lists it. */
+/** The element key of the vehicle form's "Dalej", as a probe run lists it. */
 async function nextKey(): Promise<string> {
   const start = await h.call('start_run', {
     portal_id: 'reference-insurer',
     persona_id: 'guest',
+    mode: 'probe',
     replay: { inputs: {} },
   });
   const runId = start.body.run_id as string;

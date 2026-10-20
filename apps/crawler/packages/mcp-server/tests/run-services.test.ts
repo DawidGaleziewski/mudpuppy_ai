@@ -219,12 +219,12 @@ describe('complete_run / finish_run', () => {
     ).toBe('running');
   });
 
-  it('a probe run finishes with links left: it visits only marked steps (spec 032 US5)', async () => {
+  it('a form-probing run finishes with links left: it visits only marked steps (spec 032 US5)', async () => {
     const ctx = await makeCtx();
     const run = await seedRun(ctx);
     await ctx.db
       .updateTable('runs')
-      .set({ config_snapshot: JSON.stringify({ choices: { probe: true } }) })
+      .set({ config_snapshot: JSON.stringify({ choices: { form_probing: true } }) })
       .where('id', '=', run)
       .execute();
     const s = await recordState(ctx, st(run, 'a'));

@@ -112,13 +112,14 @@ kept byte for byte. `tests/export-quality.test.ts` pins its scores (it loses poi
 the known flaws listed in R-73) and gives a copy with those flaws put right by hand full marks,
 which shows the grader can reach 100 %.
 
-### Probe scan (reference portal)
+### Form-probing scan (reference portal)
 
-A task with `probeForms` (the reference portal: the three calculator forms) gets a probe scan
-after the map: the harness marks the form steps the map recorded on those routes for probing,
-as the owner does in the dashboard, and one crawler session probes them. The BA's map session
-covers the probe run too. Recorded as `runs.probe_scan`, `outcomes.probe_scan` and the condition
-`probe_scan`; `--no-probe-scan` skips it. The P01 trace chooses "OC + Autocasco (AC)", so the
+A task with `probeForms` (the reference portal: the three calculator forms) gets a form-probing
+scan after the map: the harness marks the form steps the map recorded on those routes for
+probing, as the owner does in the dashboard, and one crawler session probes them. The BA's map
+session covers the form-probing run too. Recorded as `runs.form_probing`, `outcomes.form_probing`
+and the condition `form_probing` (`probe_scan` in trials before spec 039 T116, read under the new
+name); `--no-form-probing` skips it. The P01 trace chooses "OC + Autocasco (AC)", so the
 options step's variant 4b is recorded (the map's happy path records 4a).
 
 ### Judges (model-based graders, spec 017)

@@ -2,7 +2,8 @@ import { z } from 'zod';
 import { Id, JsonValue, RunStatus, Timestamp } from './common.js';
 
 /** `mode` is a plain string in SQL (no CHECK, FR-022); Zod is the only place the values are enforced. */
-export const RunMode = z.enum(['map', 'trace']);
+/** `probe`: a run of the headless driver, one replay of a recorded path (spec 039 design § 9). */
+export const RunMode = z.enum(['map', 'trace', 'probe']);
 
 /** `runs.run_type` (0027): CHECK-constrained in SQL; null means a plain run. */
 export const RunType = z.enum([

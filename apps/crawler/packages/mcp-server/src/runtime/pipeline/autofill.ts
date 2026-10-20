@@ -30,7 +30,7 @@ function labelFills(
 }
 
 /**
- * The persona's test data by label; a replay run's inputs (by attribute name, spec 039 design
+ * The persona's test data by label; a probe run's inputs (by attribute name, spec 039 design
  * § 9) come first.
  */
 function inputsOf(state: RunState) {

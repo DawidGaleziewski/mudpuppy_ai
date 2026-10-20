@@ -97,7 +97,7 @@ PII check reads an id in prose as a token and refuses the write (`PII_SUSPECTED`
 
 ### Form steps and probe outcomes (passes 1, 3, 4, 6; spec 032)
 
-A probe scan tried the form steps a person marked for probing beyond their happy path (plain
+A form-probing scan tried the form steps a person marked for probing beyond their happy path (plain
 scans never probe, so a form without outcomes was simply not marked yet). `get_run_evidence` kind `states` gives
 each state's `form_step_id`, `step_index` and `state_kind` (`main`, `validation`, `technical`);
 kind `probe_outcomes` gives what every try did: `probe`, `target`, `outcome_kind` (`next`,

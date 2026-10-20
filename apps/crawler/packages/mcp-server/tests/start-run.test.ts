@@ -229,7 +229,7 @@ describe('start_run (database part)', () => {
       max_action_class: 'read',
       skip_images: true,
       focus: null,
-      probe: false,
+      form_probing: false,
       replay: null,
     });
     await ctx.db
@@ -327,11 +327,11 @@ describe('start_run (database part)', () => {
     expect(await ctx.db.selectFrom('runs').select('id').execute()).toEqual([]);
   });
 
-  it('a probe run needs marks and lists them; a resume or trace cannot probe (spec 032 US5)', async () => {
+  it('a form-probing run needs marks and lists them; a resume or trace cannot probe (spec 032 US5)', async () => {
     const ctx = await repo(files());
     expect(
       await code(
-        startRunRecord(ctx, { portal_id: 'shop', persona_id: 'guest', probe_marked: true }),
+        startRunRecord(ctx, { portal_id: 'shop', persona_id: 'guest', form_probing: true }),
       ),
     ).toBe('NO_PROBE_MARKS');
     expect(await ctx.db.selectFrom('runs').select('id').execute()).toEqual([]);
@@ -340,7 +340,7 @@ describe('start_run (database part)', () => {
         startRunRecord(ctx, {
           portal_id: 'shop',
           persona_id: 'guest',
-          probe_marked: true,
+          form_probing: true,
           mode: 'trace',
           process: { name: 'Buy', goal: 'Paid' },
         }),
@@ -380,7 +380,7 @@ describe('start_run (database part)', () => {
     const probe = await startRunRecord(ctx, {
       portal_id: 'shop',
       persona_id: 'guest',
-      probe_marked: true,
+      form_probing: true,
     });
     expect(probe.output.probe_marks).toEqual([
       {
@@ -393,6 +393,21 @@ describe('start_run (database part)', () => {
       },
     ]);
     expect(first.output.probe_marks).toBeUndefined();
+  });
+
+  it('a probe run is mode probe with a replay, and only that (spec 039 T116)', async () => {
+    const ctx = await repo(files());
+    const base = { portal_id: 'shop', persona_id: 'guest' };
+    const replay = { inputs: { 'input.age': '17' } };
+    expect(await code(startRunRecord(ctx, { ...base, replay }))).toBe('SCHEMA_INVALID');
+    expect(await code(startRunRecord(ctx, { ...base, mode: 'probe' }))).toBe('SCHEMA_INVALID');
+    expect(
+      await code(startRunRecord(ctx, { ...base, mode: 'probe', replay, form_probing: true })),
+    ).toBe('SCHEMA_INVALID');
+    expect(await ctx.db.selectFrom('runs').select('id').execute()).toEqual([]);
+    const { output, run } = await startRunRecord(ctx, { ...base, mode: 'probe', replay });
+    expect(output.mode).toBe('probe');
+    expect(run.mode).toBe('probe');
   });
 
   it('never raises the limit above the portal’s and persona’s', async () => {

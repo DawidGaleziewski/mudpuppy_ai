@@ -8,7 +8,7 @@ import { parseArgs } from 'node:util';
 export const USAGE =
   'usage: pnpm eval <portal> [--persona guest] [--budget-usd 5] [--model <m>] [--env sandbox]\n' +
   '       [--session-timeout <s>] [--crawler-only] [--promote [--force-promote]] [--dry-run]\n' +
-  '       [--in-place] [--no-judges] [--no-process-traces] [--no-probe-scan]';
+  '       [--in-place] [--no-judges] [--no-process-traces] [--no-form-probing]';
 
 export interface EvalConfig {
   /** The repo root: portals/, personas/, data/ and `.mcp.json` live here. */
@@ -32,8 +32,8 @@ export interface EvalConfig {
   judges: boolean;
   /** Trace the task's `processTraces` after the map (spec 025); `--no-process-traces` skips them. */
   processTraces: boolean;
-  /** Probe the task's `probeForms` after the map (spec 034 phase 9); `--no-probe-scan` skips it. */
-  probeScan: boolean;
+  /** Probe the task's `probeForms` after the map (spec 034 phase 9); `--no-form-probing` skips it. */
+  formProbing: boolean;
   /** `data/evals/<portal>/`: results, `baseline.json`, `tolerances.json`, `history/`. */
   resultsDir: string;
 }
@@ -56,7 +56,7 @@ const OPTIONS = {
   'in-place': { type: 'boolean', default: false },
   'no-judges': { type: 'boolean', default: false },
   'no-process-traces': { type: 'boolean', default: false },
-  'no-probe-scan': { type: 'boolean', default: false },
+  'no-form-probing': { type: 'boolean', default: false },
 } as const;
 
 /** Parse `pnpm eval` arguments; an unknown flag is an error, not silently ignored. */
@@ -91,7 +91,7 @@ export function parseConfig(argv: readonly string[], root = REPO_ROOT): ConfigRe
       inPlace: values['in-place'],
       judges: !values['no-judges'],
       processTraces: !values['no-process-traces'],
-      probeScan: !values['no-probe-scan'],
+      formProbing: !values['no-form-probing'],
       resultsDir: join(root, 'data', 'evals', portal),
     },
   };

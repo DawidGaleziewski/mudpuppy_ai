@@ -495,7 +495,7 @@
   tier: gate
   reason: the shop catalogue filter (Zastosuj) is probed and records outcomes
 - id: F-19@032
-  title: A Probe mark was lost when the probe run filed the page under another route template
+  title: A Probe mark was lost when the form-probing run filed the page under another route template
   tier: not_testable
   reason: open; idea is a store test of form step identity across runs with different templates
 - id: F-20@032
@@ -511,7 +511,7 @@
   tier: not_testable
   reason: a dashboard link; its pytest case and the real-sandbox smoke crawl lock the fix
 - id: F-23@032
-  title: A probe run refused marked pages for the map's depth limit
+  title: A form-probing run refused marked pages for the map's depth limit
   tier: not_testable
   reason: the unit test gate-context.test.ts locks the lifted limit; a gate waits on F-25
 - id: F-24@032
@@ -608,7 +608,7 @@
 - id: F-03@038
   title: Probes could not go back on a wizard that keeps its step on the server
   tier: gate
-  reason: a probe run on the claim form tries both date-range values, refused, with one new session
+  reason: a form-probing run on the claim form tries both date-range values, refused, with one new session
 - id: F-04@038
   title: The banner's logout button cost 14 agent turns in one bank map
   tier: not_testable

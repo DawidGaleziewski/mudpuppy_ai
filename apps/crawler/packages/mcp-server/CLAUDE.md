@@ -49,7 +49,7 @@ Layer: servers (G-07; `apps/crawler/layers.json`)
   and kind in `record_state`; steps persisted in `form_steps`), `run-path.ts` + `replay.ts` (the
   run's own path to each state, kept in `RunState.pathTo`; `reachState` replays it on a same-URL
   wizard, `REPLAY_DIVERGED` when it lands elsewhere), the `probe_form` tool:
-  - `probe-form.ts`: probe runs only, marked steps only (`services/probe-marks.ts`, US5), gate,
+  - `probe-form.ts`: form-probing runs only (`start_run form_probing`), marked steps only (`services/probe-marks.ts`, US5), gate,
     limit ≥ mutating, budget, the happy press, a 40 s limit per call with `more`; a try whose
     way back diverged is done once more in a new session (`fresh-session.ts`, F-03@038);
   - `probe.ts`: one press with values, a fault and an observation, classified and recorded in
@@ -97,11 +97,12 @@ Layer: servers (G-07; `apps/crawler/layers.json`)
   unnamed fields carry `label` (from `@pathfinder/crawler` `withFieldLabels`) in results and
   `action_json`, and test data is looked up by it.
 - Spec 039 (MudPuppy 2.0): `replay-driver.ts` (the headless driver: `replay(call, plan)` walks a
-  recorded prefix by model element keys in a replay run, no LLM) and `replay-portal.ts`
+  recorded prefix by model element keys in a probe run, no LLM) and `replay-portal.ts`
   (`replayPortal`: R1 error replays, R8 rule mismatches, then boundary and regression tests, one
-  budget; `pnpm model:replay`, `model:regress`). Replay
-  runs: `start_run` `replay {inputs}` (`RunChoices.replay`, `RunState.headless`): element keys in
-  results, autofill types the inputs first, transitions `driver = 'headless'`, no frontier drain.
+  budget; `pnpm model:replay`, `model:regress`). Probe runs (`runs.mode = 'probe'`, design § 9):
+  `start_run` `mode: 'probe'` + `replay {inputs}` (`RunChoices.replay`, `RunState.headless`):
+  element keys in results, autofill types the inputs first, transitions `driver = 'headless'`, no
+  frontier drain. Not spec 032's form-probing runs (`form_probing`, T116@039).
 - Entry points: `pnpm --filter @pathfinder/mcp-server start` (`src/main.ts`), `start:ba`.
 
 ## Invariants

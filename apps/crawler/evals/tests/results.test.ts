@@ -1,7 +1,7 @@
 import { existsSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import type { EvalResult } from '@pathfinder/gates';
+import { EvalResult } from '@pathfinder/gates';
 import { afterEach, beforeEach, expect, it, vi } from 'vitest';
 import { parseConfig, type EvalConfig } from '../config.js';
 import { buildResult, saveResult, type TrialRecord } from '../results.js';
@@ -65,7 +65,7 @@ it('records a crawler-only trial as a condition, and no conditions when all are 
     crawlRunId: 'run',
     sessions: { crawler: 'c', ba: null, baTraces: null },
     processTraces: [],
-    probeScan: null,
+    formProbing: null,
     outcomes: { crawler: 'budget_end' },
     cost: { usd: 0, input_tokens: 0, output_tokens: 0, duration_ms: 0 },
     grades: {
@@ -92,7 +92,7 @@ it('records the process traces as runs, outcomes and a condition, and warns on a
       { process_id: 'P01', run: 'run-t1', cli_session: 'cli-t1' },
       { process_id: 'P02', run: 'run-t2', cli_session: 'cli-t2' },
     ],
-    probeScan: null,
+    formProbing: null,
     outcomes: {
       crawler: 'success',
       ba: 'success',
@@ -127,14 +127,14 @@ it('records the process traces as runs, outcomes and a condition, and warns on a
   );
 });
 
-it('records the probe scan as a run, an outcome and a condition, and warns on a baseline without (spec 034)', () => {
+it('records the form-probing scan as a run, an outcome and a condition, and warns on a baseline without (spec 034)', () => {
   const probed: TrialRecord = {
     startedAt: '2026-10-17T00:00:00.000Z',
     crawlRunId: 'run',
     sessions: { crawler: 'c', ba: 'b', baTraces: null },
     processTraces: [],
-    probeScan: { run: 'run-p', cli_session: 'cli-p' },
-    outcomes: { crawler: 'success', probe_scan: 'success', ba: 'success' },
+    formProbing: { run: 'run-p', cli_session: 'cli-p' },
+    outcomes: { crawler: 'success', form_probing: 'success', ba: 'success' },
     cost: { usd: 0, input_tokens: 0, output_tokens: 0, duration_ms: 0 },
     grades: {
       session: undefined,
@@ -144,14 +144,27 @@ it('records the probe scan as a run, an outcome and a condition, and warns on a 
     } as unknown as TrialRecord['grades'],
   };
   const r = buildResult(config, probed);
-  expect(r.conditions).toEqual({ probe_scan: true });
-  expect(r.runs.probe_scan).toEqual({ run: 'run-p', cli_session: 'cli-p' });
-  expect(r.outcomes?.probe_scan).toBe('success');
+  expect(r.conditions).toEqual({ form_probing: true });
+  expect(r.runs.form_probing).toEqual({ run: 'run-p', cli_session: 'cli-p' });
+  expect(r.outcomes?.form_probing).toBe('success');
   writeFileSync(join(dir, 'baseline.json'), JSON.stringify(result('2026-10-16T00:00:00.000Z', 1)));
   saveResult({ ...config, promote: false }, r);
   expect(console.warn).toHaveBeenCalledWith(
-    'warning: one of the baseline and this eval ran a probe scan after the map, the other not: not comparable',
+    'warning: one of the baseline and this eval ran a form-probing scan after the map, the other not: not comparable',
   );
+});
+
+it('reads a trial written before spec 039 T116 (`probe_scan`) under the new name', () => {
+  const old = {
+    ...result('2026-10-16T00:00:00.000Z', 1),
+    runs: { crawler: 'run', ba_session: null, probe_scan: { run: 'run-p', cli_session: 'c' } },
+    conditions: { probe_scan: true },
+    outcomes: { crawler: 'success', probe_scan: 'success' },
+  };
+  const r = EvalResult.parse(old);
+  expect(r.runs.form_probing).toEqual({ run: 'run-p', cli_session: 'c' });
+  expect(r.conditions).toEqual({ form_probing: true });
+  expect(r.outcomes?.form_probing).toBe('success');
 });
 
 it('records the workspace and the judges, and leaves both out when absent (spec 017)', () => {
@@ -160,7 +173,7 @@ it('records the workspace and the judges, and leaves both out when absent (spec 
     crawlRunId: 'run',
     sessions: { crawler: 'c', ba: 'b', baTraces: null },
     processTraces: [],
-    probeScan: null,
+    formProbing: null,
     outcomes: { crawler: 'success', ba: 'success' },
     cost: { usd: 0, input_tokens: 0, output_tokens: 0, duration_ms: 0 },
     grades: {

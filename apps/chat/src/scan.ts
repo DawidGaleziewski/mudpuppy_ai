@@ -76,18 +76,18 @@ export const RequestScanInput = z.object({
     .strict()
     .optional(),
   /**
-   * A "Probe forms" scan (spec 032 US5, owner answer 3 of 2026-10-17): probe only the form steps
-   * the BA marked for probing, without mapping. A plain scan never probes. Not with
+   * A "Probe forms" (form-probing) scan (spec 032 US5, owner answer 3 of 2026-10-17): probe only
+   * the form steps the BA marked for probing, without mapping. A plain scan never probes. Not with
    * `resume_run_id` or `process`.
    */
-  probe_marked: z.boolean().optional(),
+  form_probing: z.boolean().optional(),
   /**
    * A directed scan (spec 034 R-66, design 11-map-runs §5): a new run that starts at recorded
    * screens by replaying the recorded path. `continue` picks up a stopped scan (plan.parent_run_id),
    * `focused` explores from the Start here / Focus marks (or plan.start_state_ids) within
    * plan.depth, `recheck` only records the current state of the Recheck-marked screens, `retry`
    * repeats one failed action (plan.target_transition_id) with a variation. Not with `resume_run_id`,
-   * `process` or `probe_marked`.
+   * `process` or `form_probing`.
    */
   run_type: z.enum(['continue', 'focused', 'recheck', 'retry']).optional(),
   plan: z
@@ -138,17 +138,17 @@ export function requestScan(
   conversationId: string,
   input: RequestScanInput,
 ): ScanHandoff {
-  const { portal, resume_run_id, process, probe_marked, run_type, plan, ...rest } =
+  const { portal, resume_run_id, process, form_probing, run_type, plan, ...rest } =
     RequestScanInput.parse(input);
   if (process !== undefined && resume_run_id !== undefined)
     throw new ScanRefusal(
       'INVALID',
       'a process trace starts a new run; resume_run_id continues a stopped scan',
     );
-  const probe = probe_marked === true;
+  const probe = form_probing === true;
   if (run_type !== undefined)
     directedScanCheck(raw, portal, { run_type, plan, resume_run_id, process, probe });
-  if (probe) probeScanCheck(raw, portal, { resume_run_id, process, ...rest });
+  if (probe) formProbingCheck(raw, portal, { resume_run_id, process, ...rest });
   // The run this scan continues: a resumed one, or a directed scan's parent. After [reset
   // assistant] the orchestrator does not know its persona and guessed one (F-02): take the run's.
   const ownRun = resume_run_id ?? plan?.parent_run_id;
@@ -320,10 +320,10 @@ function briefFor(
 }
 
 /**
- * A probe scan needs marks and a new run that may submit forms (probes type and submit, O-M1).
- * The pathfinder server checks the marks again when the run starts.
+ * A form-probing scan needs marks and a new run that may submit forms (probes type and submit,
+ * O-M1). The pathfinder server checks the marks again when the run starts.
  */
-function probeScanCheck(
+function formProbingCheck(
   raw: BetterSqlite3.Database,
   portal: string,
   rest: { resume_run_id?: string; process?: unknown; allow_writes?: boolean },
@@ -331,7 +331,7 @@ function probeScanCheck(
   if (rest.resume_run_id !== undefined || rest.process !== undefined)
     throw new ScanRefusal(
       'INVALID',
-      'a probe scan is a new run of its own; it cannot resume a scan or trace a process',
+      'a form-probing scan is a new run of its own; it cannot resume a scan or trace a process',
     );
   if (rest.allow_writes === false)
     throw new ScanRefusal(
@@ -358,7 +358,7 @@ export function probePrompt(
 ): string {
   return (
     `Probe the marked forms of portal "${portal}" as persona "${persona}" in environment ` +
-    `"${environment}" (a probe scan): call start_run with probe_marked true and environment ` +
+    `"${environment}" (a form-probing scan): call start_run with form_probing true and environment ` +
     `"${environment}".${choiceArgs(choices)} Use only the pathfinder tools. Follow the "Probe forms" ` +
     'procedure: for each of the probe_marks start_run returns, open its URL, press on with Next ' +
     'until the marked step shows, then call probe_form on that step\'s submit or Next until its ' +

@@ -126,7 +126,7 @@ gate(
     // The claim date has no limit in the page; only the server knows the 30-day window. A trace
     // types an old date as a person would: the browser lets it through, the server refuses it, and
     // the step's state holds the server's message (the client side shows none: no min, no max).
-    // The same with a probe run: F-03@038 below (the wizard keeps its step on the server).
+    // The same with a form-probing run: F-03@038 below (the wizard keeps its step on the server).
     const own = await startRun(gs.call, 'proving-ground-insurer', 'client', {
       mode: 'trace',
       process: { name: 'Report a claim', goal: 'report a claim for an old event' },
@@ -166,7 +166,7 @@ gate(
     // server starts the wizard at step 1. Both dates are refused by the server's 30-day window.
     const claim = await nav(gs.call, run, '/ubezpieczenia#/szkody/nowa');
     markForProbing(gs, 'proving-ground-insurer', routeOf(gs, claim.state_id));
-    const own = await startRun(gs.call, 'proving-ground-insurer', 'client', { probe_marked: true });
+    const own = await startRun(gs.call, 'proving-ground-insurer', 'client', { form_probing: true });
     await nav(gs.call, own, '/ubezpieczenia');
     await loginAs(gs.call, own);
     const step1 = await nav(gs.call, own, '/ubezpieczenia#/szkody/nowa');

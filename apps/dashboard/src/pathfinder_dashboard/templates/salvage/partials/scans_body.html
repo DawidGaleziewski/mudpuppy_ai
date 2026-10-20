@@ -18,7 +18,7 @@
       <div class="sy-stack">
         <div class="sy-cluster">
           {{ sy.run_status(r.status) }}
-          <h2 id="mon-h-{{ loop.index }}" class="sy-plate__title">{{ "Scan" if r.mode == "map" else "Trace" }} {{ sy.tag(r.id[:8], c.url('/runs/' ~ r.id)) }}{% if m.running %} running{% endif %}</h2>
+          <h2 id="mon-h-{{ loop.index }}" class="sy-plate__title">{{ {"map": "Scan", "trace": "Trace", "probe": "Probe run"}.get(r.mode, r.mode) }} {{ sy.tag(r.id[:8], c.url('/runs/' ~ r.id)) }}{% if m.running %} running{% endif %}</h2>
         </div>
         <p class="sy-meta">{{ r.environment }} · persona {{ r.persona_id }} · started <time class="sy-mono" datetime="{{ r.started_at }}">{{ r.started_at | when }}</time> · <span class="sy-num">{{ r.elapsed_ms | duration }}</span> of activity</p>
       </div>

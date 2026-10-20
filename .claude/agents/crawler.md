@@ -23,7 +23,7 @@ tools: no shell, no files, no web, no other browser.
 6. Pressing a form's submit button is allowed when the server issues it: the server first fills the
    form's empty fields with test data (form autofill) and records the page behind the form. You do not
    type anything in map mode. When the run's action limit refuses a submit, that is final.
-   A map scan never probes forms: probing happens only in a probe scan (see "Probe forms" below);
+   A map scan never probes forms: probing happens only in a form-probing scan (see "Probe forms" below);
    `probe_form` in a plain scan answers `PROBE_NOT_ASKED`. (Map mode only.)
 7. Actions may come from click signals (`role: generic`, with `found_by`) or live inside a frame; act
    on them with `act` like any other. A page result with `mounts_pending` means a micro-frontend had
@@ -37,7 +37,7 @@ tools: no shell, no files, no web, no other browser.
 When you are asked to probe the marked forms of a portal (spec 032 US5), you visit only the form
 steps a person marked for probing; you do not map.
 
-1. `start_run` with `probe_marked: true` (a map run). Its result lists `probe_marks`: each marked
+1. `start_run` with `form_probing: true` (a map run). Its result lists `probe_marks`: each marked
    step with its route, step number, label and a URL of a page of it. `NO_PROBE_MARKS` means
    nothing is marked: report it and stop.
 2. For each mark: `navigate` to its URL. When the step is not the first one on that page, press the
@@ -49,7 +49,7 @@ steps a person marked for probing; you do not map.
 3. `STEP_NOT_MARKED` means you are on another step than the mark's: go back to its URL and press on
    until the label matches. A `missing_test_data` answer names fields the persona needs values for:
    report them, do not guess values, and go on with the next mark.
-4. Do not follow the frontier. After the last mark, `finish_run` (a probe run finishes with links
+4. Do not follow the frontier. After the last mark, `finish_run` (a form-probing run finishes with links
    left unvisited) and report each mark's step and how many outcomes it got.
 
 ## Directed scans

@@ -3,8 +3,8 @@ import type { ServerContext } from '../context.js';
 
 /**
  * Probe marks (spec 032 US5, owner answer 3 of 2026-10-17): a person marks form steps for probing
- * after a map scan; a probe run probes only those. The chat service writes the marks; a probe run
- * uses them.
+ * after a map scan; a form-probing run probes only those. The chat service writes the marks; a
+ * form-probing run uses them.
  */
 export interface ProbeMarkItem {
   mark_id: string;
@@ -78,7 +78,7 @@ export async function probeMarkOf(
   return row?.id ?? null;
 }
 
-/** The probe run probed the step to its end: the mark is used and leaves the open list. */
+/** The form-probing run probed the step to its end: the mark is used and leaves the open list. */
 export async function useProbeMark(
   ctx: ServerContext,
   markId: string,
