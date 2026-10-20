@@ -97,7 +97,7 @@ group, ids in the message. Gates per milestone in `plan.md` § 1. `[B: …]` = b
 
 ## M7 Close-out
 
-- [ ] T100 [sonnet] `frontend-dev`: the UX designer's pages replace the functional ones; delivered 2026-10-20 in `user_input/MudPuppyRebrand/mudpuppy-salvage-yard (3).zip` (screens `v2-01`…`v2-16`, `docs/12-v2-ux.md`, `13-v2-fixtures.md`, updated `mudpuppy-salvage-ui` skill); first check the package against `ux-requirements.md` and list gaps
+- [~] T100 [sonnet] (step 1 done: `ux-gaps.md`, the package covers the brief; 15 backend gaps and 6 owner questions) `frontend-dev`: the UX designer's pages replace the functional ones; delivered 2026-10-20 in `user_input/MudPuppyRebrand/mudpuppy-salvage-yard (3).zip` (screens `v2-01`…`v2-16`, `docs/12-v2-ux.md`, `13-v2-fixtures.md`, updated `mudpuppy-salvage-ui` skill); first check the package against `ux-requirements.md` and list gaps
 - [ ] T101 [haiku] Glossary final (UI words), `uv run pathfinder-glossary --write`; `docs/how-to-use.md` and READMEs for 2.0
 - [ ] T102 [opus] `code-reviewer` on the branch; fix or defer findings
 - [ ] T103 [sonnet] `pnpm test` in `apps/crawler` and every app's suite; three reference-insurer trials; new baselines
