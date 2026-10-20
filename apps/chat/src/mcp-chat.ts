@@ -8,6 +8,7 @@ import type BetterSqlite3 from 'better-sqlite3';
 import { z } from 'zod';
 import { SECRETS, type EvidenceStore } from '@pathfinder/core';
 import { type PathfinderDb } from '@pathfinder/store';
+import { registerModelTools } from './mcp-model-tools.js';
 import { registerPageTools } from './mcp-page-tools.js';
 import { registerProcessTools } from './mcp-process-tools.js';
 import { workflowState } from '@pathfinder/workflow';
@@ -79,6 +80,7 @@ function fail(error: unknown): CallToolResult {
 export function createChatMcpServer(ctx: ChatMcpContext): McpServer {
   const server = new McpServer({ name: 'pathfinder-chat', version: '0.1.0' });
   registerPageTools(server, { raw: ctx.raw, evidence: ctx.evidence ?? null }, ok, refused);
+  registerModelTools(server, { raw: ctx.raw }, ok, refused);
   registerProcessTools(
     server,
     { raw: ctx.raw, db: ctx.db ?? null, conversationId: ctx.conversationId },

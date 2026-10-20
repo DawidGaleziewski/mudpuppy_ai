@@ -46,6 +46,9 @@ store, vault, workflow.
   (`MARK_TARGETS`); `request_scan` `run_type` + `plan` (continue, focused, recheck, retry) with
   `scan-directed.ts` (the checks and the crawler brief: reach each start point with `go_to_state`).
 - `scan`, `scope`: process scanning and scope management.
+- Spec 039 (T077): `mcp-model-tools` (`list_process_proposals`, `name_proposal`,
+  `reconcile_model`, `model_actions`: the model's proposals to name, a rebuild, the probe work
+  waiting for the owner to start).
 - `fence`: permission control.
 
 ## Evals

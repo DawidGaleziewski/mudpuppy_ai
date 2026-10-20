@@ -85,9 +85,13 @@ describe('pathfinder-chat MCP server', () => {
       'list_amendments',
       'list_grouping_inputs',
       'list_process_candidates',
+      'list_process_proposals',
+      'model_actions',
+      'name_proposal',
       'open_page',
       'page_context',
       'propose_change',
+      'reconcile_model',
       'request_credential',
       'request_documentation',
       'request_scan',
@@ -524,5 +528,46 @@ describe('pathfinder-chat MCP server', () => {
       status: 'active',
     });
     expect(body).toEqual({ portal: 'reference-insurer', amendments: [] });
+  });
+
+  it('names an open process proposal of the model and lists the probe work waiting (T077)', async () => {
+    const P = 'reference-insurer';
+    expect(
+      (await call('name_proposal', { portal: P, proposal_id: 'gs-1', name: 'Quote', why: 'w' }))
+        .body.error?.code,
+    ).toBe('NOT_FOUND');
+    opened.raw
+      .prepare(
+        `INSERT INTO grouping_suggestions (id, portal_id, name, persona, steps, why, screens_key, created_at)
+         VALUES ('gs-1', ?, 'Community 1', 'guest', ?, 'Leiden community', 's1,s2', '2026-10-20T00:00:00Z')`,
+      )
+      .run(P, JSON.stringify([{ title: 'Vehicle', route: '/kalkulator/pojazd' }]));
+    expect((await call('list_process_proposals', { portal: P })).body).toEqual({
+      proposals: [
+        {
+          id: 'gs-1',
+          name: 'Community 1',
+          why: 'Leiden community',
+          screens: ['Vehicle (/kalkulator/pojazd)'],
+        },
+      ],
+    });
+    const named = await call('name_proposal', {
+      portal: P,
+      proposal_id: 'gs-1',
+      name: 'Oblicz składkę OC/AC',
+      why: 'The calculator steps behind the "Oblicz składkę" button.',
+    });
+    expect(named.body).toEqual({ proposal: { id: 'gs-1', name: 'Oblicz składkę OC/AC' } });
+    expect(
+      opened.raw.prepare("SELECT name FROM grouping_suggestions WHERE id = 'gs-1'").get(),
+    ).toEqual({ name: 'Oblicz składkę OC/AC' });
+    expect((await call('model_actions', { portal: P })).body).toEqual({
+      error_replays: 0,
+      rule_tests: 0,
+      unexplored_processes: [],
+      commands: [],
+    });
+    expect((await call('reconcile_model', { portal: P })).isError).toBe(false);
   });
 });

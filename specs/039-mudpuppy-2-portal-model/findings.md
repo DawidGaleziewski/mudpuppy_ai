@@ -514,6 +514,19 @@ Bugs, slips and design deviations found while building, each with a test or eval
   purchase step. The approved reference export scores wrong start 1 (the home page, F-15@034),
   wrong end 0. Not run: the "several trials" part costs money and waits for the owner.
 
+## F-39 The chat orchestrator and the model as built (T077), 2026-10-20
+
+- New chat tools (`mcp-model-tools.ts`): `list_process_proposals` and `name_proposal` (the open
+  grouping suggestions `pnpm model:propose` writes get the business name and a reason; the person
+  still accepts them in Processes), `reconcile_model` (rebuild, no browser) and `model_actions`
+  (error replays, rule tests and unexplored processes waiting, with the command the owner runs).
+  Changes and hypotheses are read with the BA server's `list_deviations` / `get_hypothesis`
+  (already in the orchestrator's tools since T055), so the chat has no copy of them.
+- **Decision**: probe runs are not started from the chat. They drive a browser and spend a replay
+  budget, and the chat service is not run on this branch; the assistant proposes the command.
+  Starting them as a chat action (a button the owner presses) is an owner question for T100.
+- **Test**: `mcp-chat.test.ts` (contract list, naming, model actions, reconcile).
+
 ## F-38 The model in the process export as built (T078), 2026-10-20
 
 - `processModelFacts` (store) gives a process's model version, its triggers (screen pressed on,
