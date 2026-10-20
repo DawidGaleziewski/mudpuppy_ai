@@ -70,7 +70,7 @@ group, ids in the message. Gates per milestone in `plan.md` § 1. `[B: …]` = b
 - [x] T070 [opus] (F-34) `db-admin`: 0036 (correlation ids, instances, triggers, explorations, `ba_processes` columns, PROC 1:1 index and triggers, `process_models` rename); 0037 if not in M1
 - [x] T071 [opus] Correlation ids (hashed), endpoint families, boundary weights (computed on read from `network_calls` samples, not stored yet: F-19)
 - [~] T072 [opus] Miner `communities` (Leiden, seed 0); proposals with triggers, start screen, outcomes; `grouping_suggestions`; human edits as constraints. **Built:** `processGraph`, `writeProposals`, `pnpm model:propose` (start screen, flow order, dismissed sets refused). **Not yet:** triggers, outcomes, human edits as constraints (F-19)
-- [ ] T073 [opus] Process instances and outcomes; trace variants on read
+- [x] T073 [opus] Process instances and outcomes; trace variants on read (F-35)
 - [ ] T074 [opus] Anchors on `entity_refs`; review triggers from lineage and `not_seen_since`
 - [ ] T075 [opus] Stopping rule (depth 1, depth 2, random walks) on the driver; planner 6; `process_explorations`
 - [~] T076 [opus] (done except the `api_endpoint` row, which needs 038b; F-32) BA guidance (`ba.md`, `ba-practice`, record kinds) for the model, hypotheses, processes, DMN; with R-77 (1) (the owner accepted it 2026-10-20): what a process is (goal, trigger, own first screen, outcome), where it starts and ends, pages on the way are the trigger's context, never steps; the `api_endpoint` row (R-77 (4)); then drop `reconciliations` and `rule_candidates`

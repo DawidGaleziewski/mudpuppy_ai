@@ -24,7 +24,8 @@ Layer: models (G-07; `apps/crawler/layers.json`)
   `domainOf` (guard intersection along paths, § 11.6); `replayInputs`,
   `birthDateFor` (what a boundary test types on the headless driver, design § 9).
 - `plan/` (design § 13–14): `plan` (planner priorities), `correlationIds`, `endpointFamily`,
-  `boundaryGraph` (process boundary weights), `explorationGaps`, `explorationBound`.
+  `boundaryGraph` (process boundary weights), `explorationGaps`, `explorationBound`;
+  `processInstances`, `traceVariants` (instances from a trigger to an outcome, § 13.1).
 
 ## Invariants
 

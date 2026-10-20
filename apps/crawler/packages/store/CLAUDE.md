@@ -28,6 +28,9 @@ Layer: store (G-07; `apps/crawler/layers.json`)
   `activeProfile`, `tauInForce`, `acceptedTau` (`fingerprint-profiles.ts`: one fingerprint profile
   per reconcile, the accepted τ per portal and profile, T112/T115), `acceptTau`
   (`model-calibration.ts`), `refingerprintPortal`, `compareProfiles` (`refingerprint.ts`, T113),
+  `findProcessInstances`, `writeProcessInstances`, `processTraceVariants`
+  (`process-instances.ts`: journeys through each process from its trigger, written on every
+  reconcile; trace variants on read, T073),
   `decisionRules`, `dmnFiles` (`rule-export.ts`, `pnpm model:dmn`), `writeGuardConflicts`
   (`rule-guards.ts`: guards along a path that cannot all hold → `ambiguous`, after
   `pnpm model:mine`, T064), `queueRegressions`,

@@ -19,6 +19,7 @@ import {
 
 import { activeProfile, LEGACY_PROFILE, tauInForce } from './fingerprint-profiles.js';
 import { interpretVersion, modelSnapshot, type InterpretStats } from './interpret-writer.js';
+import { writeProcessInstances } from './process-instances.js';
 
 type Raw = BetterSqlite3.Database;
 
@@ -38,6 +39,8 @@ export interface ReconcileResult {
   };
   /** Deviations of the new version and how rules R1–R8 classified them (spec 039 § 8). */
   interpreted?: InterpretStats;
+  /** Process instances written for the new version (T073). */
+  instances?: number;
 }
 
 /** Big-endian 128 × uint32 (fingerprint `minhashBlob`) back to numbers. */
@@ -285,7 +288,9 @@ export function reconcilePortalModel(
       modelSnapshot(raw, portal),
       now,
     );
-    return { portal, modelVersion: versionId, seq, stats, interpreted };
+    // Design § 13.1 (T073): the journeys that entered each process, and how they ended.
+    const instances = writeProcessInstances(raw, portal, versionId);
+    return { portal, modelVersion: versionId, seq, stats, interpreted, instances };
   })();
 }
 

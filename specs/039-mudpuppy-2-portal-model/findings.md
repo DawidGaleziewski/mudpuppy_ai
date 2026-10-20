@@ -514,6 +514,26 @@ Bugs, slips and design deviations found while building, each with a test or eval
   purchase step. The approved reference export scores wrong start 1 (the home page, F-15@034),
   wrong end 0. Not run: the "several trials" part costs money and waits for the owner.
 
+## F-35 Process instances as built (T073), 2026-10-20
+
+- `processInstances` (model) walks each journey: a **trigger** is a non-global transition from a
+  screen outside the process into its start screen; the walk ends with `error` (a
+  `business_error` result), `abandoned` (global navigation), `exited` (a non-global move to a
+  screen outside the process), or, when the journey ends, `completed` on a terminal member (no
+  non-global model transition leads from it to another member) else `incomplete`. A journey can
+  enter twice; each entry is an instance. `traceVariants` counts the distinct screen sequences.
+- **Shape of a process** (store, `process-instances.ts`): the current model screens of A's
+  states (latest A revision), the start screen = `start_screen_id`, else A's first screen.
+  Archived processes and processes without A are skipped. Written on every reconcile that writes
+  a version (`reconcilePortalModel` returns `instances`); trace variants are read with
+  `processTraceVariants(portal, PRC key)` (screen keys).
+- **Not done here**: `process_triggers` rows and `correlation_id` on instances (correlation ids
+  are still computed on read, F-19); a journey that starts on the start screen by URL has no
+  trigger transition and is not an instance (the schema needs a trigger) — a deep link into a
+  process is an owner question.
+- **Test**: `instances.test.ts` (model), `process-instances.test.ts` (store, on the threshold
+  seed: a minor exits at the refusal page, an adult completes).
+
 ## F-34 One process concept as built (T070), 2026-10-20
 
 - **Migration 0036** adds `correlation_ids`, `process_instances`, `process_triggers`,
