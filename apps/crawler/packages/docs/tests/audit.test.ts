@@ -209,7 +209,7 @@ describe('docs audit', () => {
     const r = record();
     r.revise({
       confidence: 'observed',
-      links: [{ target_kind: 'rule_candidate', target_id: fx.ruleCandidate, run_id: fx.runId }],
+      links: [{ target_kind: 'open_question', target_id: fx.openQuestions[0], run_id: fx.runId }],
     });
     expect(checks()).toEqual(['observed_rule']);
     // A broken link does not count as observed evidence either.

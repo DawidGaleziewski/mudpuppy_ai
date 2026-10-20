@@ -724,13 +724,9 @@ export function loadEvalInput(
         );
         return e ? [...stateRoute(e.from_state ?? null), ...stateRoute(e.to_state ?? null)] : [];
       }
-      case 'rule_candidate':
       case 'open_question':
         return stateRoute(
-          one(
-            `SELECT about_ref FROM ${kind === 'rule_candidate' ? 'rule_candidates' : 'open_questions'} WHERE id = ?`,
-            id,
-          )?.about_ref ?? null,
+          one('SELECT about_ref FROM open_questions WHERE id = ?', id)?.about_ref ?? null,
         );
       case 'process': {
         const steps = raw

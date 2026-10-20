@@ -128,12 +128,6 @@ DEFAULTS: dict[str, dict[str, object]] = {
         "created_at": T0,
     },
     "open_questions": {"about_ref": "s", "status": "open", "created_at": T0},
-    "rule_candidates": {
-        "about_ref": "s",
-        "evidence_ref": EVIDENCE,
-        "confidence": "inferred",
-        "created_at": T0,
-    },
     "frontier": {
         "action_id": None,
         "action_json": json.dumps({"kind": "click"}),
@@ -740,14 +734,6 @@ def seed_ba(conn: sqlite3.Connection) -> None:
         about_ref="st-calc",
         text="Why is Model required?",
     )
-    insert(
-        conn,
-        "rule_candidates",
-        id="rc-1",
-        run_id="run-map",
-        about_ref="st-calc",
-        text="Model is required",
-    )
     seed_process(conn, "run-trace", "act-buy")
 
     add_session(conn, "sess-1", runs=("run-map",), started=30, gaps=("Login pages not observable",))
@@ -809,7 +795,6 @@ def seed_ba(conn: sqlite3.Connection) -> None:
                     ("action", "act-calc", "run-map", None),
                     ("network_call", "net-quote", "run-map", None),
                     ("decision", "dec-1", "run-map", None),
-                    ("rule_candidate", "rc-1", "run-map", None),
                     ("open_question", "oq-1", "run-map", None),
                     ("state", "st-deleted", "run-map", "target removed by a portal delete"),
                     ("process_step", "step-2", "run-trace", "step 2 enters the model"),

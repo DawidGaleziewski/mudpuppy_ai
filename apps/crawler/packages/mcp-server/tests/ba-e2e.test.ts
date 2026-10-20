@@ -24,7 +24,7 @@ describe('BA end to end on the fixture store', () => {
         rule_type: 'constraint',
       },
       confidence: 'inferred',
-      evidence: [{ target_kind: 'rule_candidate', target_id: fx.ruleCandidate }],
+      evidence: [{ target_kind: 'open_question', target_id: fx.openQuestions[0] }],
     });
     await must('record_pass', { session_id: earlier, pass: 'synthesis', summary: 'One rule.' });
     await must('finish_session', { session_id: earlier, summary: 'First look.', gaps: [] });
@@ -74,8 +74,8 @@ describe('BA end to end on the fixture store', () => {
       responds_to_review: rejection,
       // Documentation grows (spec 034): replacing a citation is said, not done silently.
       dropped: {
-        reason: 'the rule candidate stated the wrong limit; the page and the review replace it',
-        evidence: [{ target_kind: 'rule_candidate', target_id: fx.ruleCandidate }],
+        reason: 'the crawler question guessed the wrong limit; the page and the review replace it',
+        evidence: [{ target_kind: 'open_question', target_id: fx.openQuestions[0] }],
       },
     });
 
@@ -305,7 +305,7 @@ describe('BA end to end on the fixture store', () => {
       statement: 'The portal offers "Autocasco (AC)" only for vehicles up to 15 years old.',
       rule_type: 'constraint',
     };
-    const evidence = [{ target_kind: 'rule_candidate', target_id: fx.ruleCandidate }];
+    const evidence = [{ target_kind: 'open_question', target_id: fx.openQuestions[0] }];
 
     // Session 1 writes the rule; a reviewer confirms it (rev 1 is the baseline).
     const s1 = await h.session();

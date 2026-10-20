@@ -30,7 +30,6 @@ export const EvidenceReadKind = z.enum([
   'action',
   'form',
   'network_call',
-  'rule_candidate',
   'open_question',
   'decision',
 ]);
@@ -46,7 +45,6 @@ const EVIDENCE_TABLE: Record<EvidenceReadKind, string> = {
   action: 'actions',
   form: 'forms',
   network_call: 'network_calls',
-  rule_candidate: 'rule_candidates',
   open_question: 'open_questions',
   decision: 'decision_log',
 };

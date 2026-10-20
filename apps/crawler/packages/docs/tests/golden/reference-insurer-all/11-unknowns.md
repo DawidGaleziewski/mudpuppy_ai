@@ -51,7 +51,7 @@ What follows "Kup polisę"?
 
 Evidence:
 
-- decision `00000000-0000-7000-8000-000000000015` — skip ceiling:read: classified mutating, above the effective ceiling read (run `00000000-0000-7000-8000-000000000001`, map, 2026-01-15)
+- decision `00000000-0000-7000-8000-000000000014` — skip ceiling:read: classified mutating, above the effective ceiling read (run `00000000-0000-7000-8000-000000000001`, map, 2026-01-15)
 
 ## 11.5 Broken evidence links
 
@@ -60,7 +60,7 @@ delete). The statement is kept and flagged for BA attention.
 
 | Record | Rev | Evidence |
 | --- | --- | --- |
-| [REQ-002](05-functional-requirements.md#REQ-002) | 1 | form `00000000-0000-7000-8000-000000000053` |
+| [REQ-002](05-functional-requirements.md#REQ-002) | 1 | form `00000000-0000-7000-8000-000000000052` |
 
 ## 11.6 Open questions
 

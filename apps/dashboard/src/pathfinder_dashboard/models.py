@@ -71,7 +71,6 @@ EvidenceTargetKind = Literal[
     "action",
     "form",
     "network_call",
-    "rule_candidate",
     "open_question",
     "decision",
     "process",
@@ -602,16 +601,6 @@ class OpenQuestion(Row):
     hypothesis_id: str | None = None  # 0031 (spec 039): the hypothesis it is about
 
 
-class RuleCandidate(Row):
-    id: str
-    run_id: str
-    text: str
-    about_ref: str
-    evidence_ref: str
-    confidence: Literal["inferred"]
-    created_at: str
-
-
 class State(Row):
     id: str
     portal_id: str
@@ -704,23 +693,6 @@ class Mark(Row):
     origin: Literal["person", "planner"] = "person"
     hypothesis_id: str | None = None
     priority: int | None = None
-
-
-class Reconciliation(Row):
-    """The BA's proposed reading of a group of differing states, and its confirmation (0025)."""
-
-    id: str
-    portal_id: str
-    group_key: str
-    group_kind: Literal["action", "route", "replay"]
-    snapshot_json: str
-    proposal_json: str
-    proposed_by: str
-    proposed_at: str
-    status: Literal["proposed", "confirmed", "superseded"]
-    confirmed_json: str | None
-    confirmed_by: str | None
-    confirmed_at: str | None
 
 
 class Checkpoint(Row):
@@ -1262,7 +1234,6 @@ TABLE_MODELS: dict[str, type[Row]] = {
     "network_calls": NetworkCall,
     "observations": Observation,
     "open_questions": OpenQuestion,
-    "rule_candidates": RuleCandidate,
     "screens": Screen,
     "states": State,
     "state_wireframes": StateWireframe,
@@ -1303,7 +1274,6 @@ TABLE_MODELS: dict[str, type[Row]] = {
     "probe_outcomes": ProbeOutcome,
     "probe_suites": ProbeSuite,
     "marks": Mark,
-    "reconciliations": Reconciliation,
     "checkpoints": Checkpoint,
     "builds": Build,
     "state_components": StateComponents,
@@ -1351,7 +1321,6 @@ class PortalSummary(BaseModel):
     forms: int
     network_calls: int
     open_questions_open: int
-    rule_candidates: int
 
     @property
     def runs(self) -> int:
@@ -1379,7 +1348,6 @@ class RunSummary(BaseModel):
     decisions_by_kind: dict[DecisionKind, int]
     transitions: int
     open_questions: int
-    rule_candidates: int
 
 
 class PhaseStat(BaseModel):

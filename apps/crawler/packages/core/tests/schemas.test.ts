@@ -6,7 +6,6 @@ import {
   FrontierStatus,
   PortalDataLog,
   RobotsPolicy,
-  RuleCandidate,
   Run,
   RunMode,
   State,
@@ -70,18 +69,6 @@ describe('record schemas', () => {
       created_at: ts,
     };
     expect(Transition.safeParse(transition).success).toBe(true);
-  });
-  it('fixes rule candidate confidence to inferred', () => {
-    const rc = {
-      id: 'i',
-      run_id: 'r',
-      text: 't',
-      about_ref: 's',
-      evidence_ref: 'x.json',
-      created_at: ts,
-    };
-    expect(RuleCandidate.safeParse({ ...rc, confidence: 'inferred' }).success).toBe(true);
-    expect(RuleCandidate.safeParse({ ...rc, confidence: 'observed' }).success).toBe(false);
   });
   it('requires a warning for stopped_warning runs', () => {
     const run = {

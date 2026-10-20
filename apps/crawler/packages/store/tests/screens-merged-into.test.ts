@@ -45,6 +45,7 @@ it('0026 screens.merged_into: NULL by default, never into itself, down drops it 
   run(`UPDATE screens SET merged_into = NULL WHERE id = 's2'`); // the merge is reversible
   expect(merged('s2')).toBeNull();
 
+  expect(migrateDown(o.raw, MIGRATIONS)).toBe('0035');
   expect(migrateDown(o.raw, MIGRATIONS)).toBe('0034');
   expect(migrateDown(o.raw, MIGRATIONS)).toBe('0033');
   expect(migrateDown(o.raw, MIGRATIONS)).toBe('0032');
@@ -69,6 +70,7 @@ it('0026 screens.merged_into: NULL by default, never into itself, down drops it 
     '0032',
     '0033',
     '0034',
+    '0035',
   ]);
   expect(merged('s1')).toBeNull();
   expect(o.raw.pragma('foreign_key_check')).toEqual([]);

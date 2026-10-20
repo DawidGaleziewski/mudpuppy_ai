@@ -71,7 +71,7 @@ describe('scoreBaShapes (spec 019 F-09/F-13/F-14)', () => {
     expect(scoreBaShapes(fx.raw, fx.portalId, GT).data_items_code_names).toBe(1);
   });
 
-  it('counts process steps on an error page or a state the owner confirmed as temporary (spec 033)', () => {
+  it('counts process steps on an error page (spec 033)', () => {
     const T = '2026-10-17T10:00:00.000Z';
     const state = (id: string, kind: string) =>
       fx.raw
@@ -111,13 +111,5 @@ describe('scoreBaShapes (spec 019 F-09/F-13/F-14)', () => {
       )
       .run(JSON.stringify([step('s1', 'st-ok'), step('s2', 'st-500'), step('s3', 'st-flaky')]), T);
     expect(scoreBaShapes(fx.raw, fx.portalId, GT).error_pages_as_steps).toBe(1);
-    fx.raw
-      .prepare(
-        `INSERT INTO reconciliations (id, portal_id, group_key, group_kind, snapshot_json,
-           proposal_json, proposed_by, proposed_at, status, confirmed_json, confirmed_by, confirmed_at)
-         VALUES ('rc-x', ?, 'route:/quote', 'route', '{}', '[]', 'BA', ?, 'confirmed', ?, 'Owner', ?)`,
-      )
-      .run(fx.portalId, T, JSON.stringify([{ state_id: 'st-flaky', verdict: 'temporary' }]), T);
-    expect(scoreBaShapes(fx.raw, fx.portalId, GT).error_pages_as_steps).toBe(2);
   });
 });

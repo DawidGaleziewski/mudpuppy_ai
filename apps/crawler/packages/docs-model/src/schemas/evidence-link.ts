@@ -8,7 +8,6 @@ export const EvidenceTargetKind = z.enum([
   'action',
   'form',
   'network_call',
-  'rule_candidate',
   'open_question',
   'decision',
   'process',

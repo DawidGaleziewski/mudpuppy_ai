@@ -289,7 +289,6 @@ const TARGET_LABEL: Partial<
     table: 'network_calls',
     label: (r) => `${String(r.method)} ${String(r.url_template)}`,
   },
-  rule_candidate: { table: 'rule_candidates', label: (r) => String(r.text) },
   open_question: { table: 'open_questions', label: (r) => String(r.text) },
   decision: {
     table: 'decision_log',

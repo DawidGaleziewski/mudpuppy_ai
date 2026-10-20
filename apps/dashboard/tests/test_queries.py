@@ -32,7 +32,6 @@ def test_portal_summary_matches_direct_sql(conn: sqlite3.Connection) -> None:
     assert summary.forms == 6
     assert summary.network_calls == 9
     assert summary.open_questions_open == 0
-    assert summary.rule_candidates == 0
     assert summary.last_run_at == ts(45)
 
 

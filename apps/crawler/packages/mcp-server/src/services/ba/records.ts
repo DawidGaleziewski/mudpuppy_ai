@@ -135,7 +135,7 @@ function requireEvidence(raw: unknown): void {
   if (!Array.isArray(evidence) || evidence.length === 0)
     throw new ToolError(
       'MISSING_EVIDENCE',
-      'evidence is required: cite at least one state, edge, action, form, network call, rule candidate, crawler question, record or review',
+      'evidence is required: cite at least one state, edge, action, form, network call, crawler question, record or review',
     );
 }
 

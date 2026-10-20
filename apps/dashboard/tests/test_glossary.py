@@ -275,7 +275,7 @@ EXPECTED_IDS = {
     "unexplained-difference",  # R-33 P2
     "frontier", "inferred-link", "next-item", "priority-depth", "budget", "portal-scope",
     "network-call-shape",
-    "crawler-open-question", "rule-candidate", "evidence", "trace-process", "process-step",
+    "crawler-open-question", "evidence", "trace-process", "process-step",
     "submit-boundary", "tool-call", "run-less-call", "percentiles", "follow-up-task", "layers",
     "analysis-session", "analysis-pass", "gaps", "record-key", "revision", "record-status",
     "status-codes", "reference-portal",
@@ -302,7 +302,7 @@ EXPECTED_IDS = {
     "trace-catalogue",
     "form-step", "state-kind", "form-probe", "probe-suite", "test-data",  # R-69 (spec 032)
     "probe-mark", "form-probing-scan",  # R-69 owner answer 3 (spec 032 US5)
-    "portal-map", "differing-states", "verdict",  # R-69 (4)-(5) (spec 033)
+    "portal-map",  # R-69 (4)-(5) (spec 033; differing states and verdicts went with T076@039)
     "observation", "navigation-hop", "parameter-inventory", "entry-url",  # R-37/R-38
     "checkpoint", "directed-scan", "scan-mark",  # R-66 (spec 034)
     "scan-graph",  # R-74 (spec 035)
@@ -330,7 +330,7 @@ EXPECTED_IDS = {
 def test_real_glossary_is_valid_and_complete() -> None:
     g = load_ok(REPO_DOCS)
     assert {e.id for e in g.entries} == EXPECTED_IDS
-    assert len(EXPECTED_IDS) == 188
+    assert len(EXPECTED_IDS) == 185
     assert sum(e.category == "ba" for e in g.entries) == 23
 
 

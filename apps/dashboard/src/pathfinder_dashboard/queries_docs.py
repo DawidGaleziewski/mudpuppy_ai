@@ -463,7 +463,6 @@ _TARGETS: dict[str, tuple[str, str, Callable[[sqlite3.Row], str]]] = {
     "action": ("actions", "actions", _action_label),
     "form": ("forms", "forms", _form_label),
     "network_call": ("network_calls", "network", lambda r: f"{r['method']} {r['url_template']}"),
-    "rule_candidate": ("rule_candidates", "states", lambda r: r["text"]),
     "open_question": ("open_questions", "states", lambda r: r["text"]),
     "decision": (
         "decision_log",

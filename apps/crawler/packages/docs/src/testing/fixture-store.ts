@@ -59,7 +59,6 @@ export interface FixtureStore {
   networkCalls: { quote: string; contact: string };
   /** Crawler questions: [what follows "Dalej", what happens after "Kup polisę"]. */
   openQuestions: [string, string];
-  ruleCandidate: string;
   decision: string;
   /** A second portal with one run, for PORTAL_MISMATCH. */
   otherPortalId: string;
@@ -533,17 +532,6 @@ export async function makeFixtureStore(opts: FixtureStoreOptions = {}): Promise<
     question('What happens after "Kup polisę"? It was refused as mutating.', states.car),
   ];
 
-  const ruleCandidate = nextId();
-  insert('rule_candidates', {
-    id: ruleCandidate,
-    run_id: runId,
-    text: 'Autocasco (AC) seems to be offered only for vehicles younger than 15 years.',
-    about_ref: states.car,
-    evidence_ref: refs.car,
-    confidence: 'inferred',
-    created_at: FIXTURE_TS,
-  });
-
   const decision = nextId();
   insert('decision_log', {
     id: decision,
@@ -652,7 +640,6 @@ export async function makeFixtureStore(opts: FixtureStoreOptions = {}): Promise<
     actions,
     networkCalls,
     openQuestions,
-    ruleCandidate,
     decision,
     otherPortalId,
     otherRunId,

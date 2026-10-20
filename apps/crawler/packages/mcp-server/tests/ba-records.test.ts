@@ -89,10 +89,10 @@ describe('create_record', () => {
     expect(layerBCounts(h.fx).doc_records).toBe(0);
   });
 
-  it('refuses observed when only a rule candidate is cited (INVALID_CONFIDENCE)', async () => {
+  it('refuses observed when only a crawler question is cited (INVALID_CONFIDENCE)', async () => {
     const h = await startBa();
     const s = await h.session();
-    const candidate = [{ target_kind: 'rule_candidate', target_id: h.fx.ruleCandidate }];
+    const candidate = [{ target_kind: 'open_question', target_id: h.fx.openQuestions[0] }];
     const error = await h.refused(
       'create_record',
       create(h, s, { kind: 'business_rule', content: CONTENT.business_rule, evidence: candidate }),
@@ -100,9 +100,9 @@ describe('create_record', () => {
     expect(error.code).toBe('INVALID_CONFIDENCE');
     expect(error.checked).toEqual([
       {
-        target_kind: 'rule_candidate',
-        target_id: h.fx.ruleCandidate,
-        confidence: 'inferred',
+        target_kind: 'open_question',
+        target_id: h.fx.openQuestions[0],
+        confidence: null,
         qualifies: false,
       },
     ]);

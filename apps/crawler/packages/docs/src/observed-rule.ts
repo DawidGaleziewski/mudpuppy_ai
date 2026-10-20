@@ -33,7 +33,6 @@ export const OBSERVABLE_KINDS: readonly EvidenceTargetKind[] = [
  * (tested), so a new kind cannot fall through unclassified as the observation kind did (spec 019 F-07).
  */
 export const NOT_OBSERVABLE_KINDS: readonly EvidenceTargetKind[] = [
-  'rule_candidate',
   'open_question',
   'decision',
   'process',

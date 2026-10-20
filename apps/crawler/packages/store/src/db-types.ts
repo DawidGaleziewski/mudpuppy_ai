@@ -39,8 +39,6 @@ import type {
   ProcessStatus,
   ProcessStepKind,
   RelationType,
-  ReconcileGroupKind,
-  ReconciliationStatus,
   ReviewAction,
   RevisionChange,
   RevisionStatus,
@@ -195,22 +193,6 @@ export interface MarksTable {
   origin: ColumnType<'person' | 'planner', 'person' | 'planner' | undefined, 'person' | 'planner'>;
   hypothesis_id: ColumnType<string | null, string | null | undefined, string | null>;
   priority: ColumnType<number | null, number | null | undefined, number | null>;
-}
-
-/** 0025: the BA's proposed reading of a group of differing states and the owner's confirmation; JSON columns validated by `ReconciliationRow` (docs-model). */
-export interface ReconciliationsTable {
-  id: string;
-  portal_id: string;
-  group_key: string;
-  group_kind: ReconcileGroupKind;
-  snapshot_json: string;
-  proposal_json: string;
-  proposed_by: string;
-  proposed_at: string;
-  status: ReconciliationStatus;
-  confirmed_json: string | null;
-  confirmed_by: string | null;
-  confirmed_at: string | null;
 }
 
 /** 0027: the shortest recorded way back to a state, one per (run, state); `steps_json` is validated by `CheckpointRow` (core). */
@@ -918,16 +900,6 @@ export interface OpenQuestionsTable {
   hypothesis_id: ColumnType<string | null, string | null | undefined, string | null>;
 }
 
-export interface RuleCandidatesTable {
-  id: string;
-  run_id: string;
-  text: string;
-  about_ref: string;
-  evidence_ref: string;
-  confidence: 'inferred';
-  created_at: string;
-}
-
 export interface DecisionLogTable {
   id: string;
   run_id: string;
@@ -1180,7 +1152,6 @@ export interface Database {
   tau_acceptances: TauAcceptancesTable;
   frontier: FrontierTable;
   open_questions: OpenQuestionsTable;
-  rule_candidates: RuleCandidatesTable;
   decision_log: DecisionLogTable;
   robots_policies: RobotsPoliciesTable;
   portal_data_log: PortalDataLogTable;
@@ -1217,6 +1188,5 @@ export interface Database {
   probe_outcomes: ProbeOutcomesTable;
   probe_suites: ProbeSuitesTable;
   marks: MarksTable;
-  reconciliations: ReconciliationsTable;
   checkpoints: CheckpointsTable;
 }

@@ -21,7 +21,6 @@ from .. import (
     pager,
     queries_chat,
     queries_docs,
-    queries_reconcile,
     queries_review,
     queries_suites,
     review,
@@ -45,7 +44,6 @@ def _selected(
         "records": lambda: next((r for r in inbox.records if r.key == ident), None),
         "assumptions": lambda: next((r for r in inbox.assumptions if r.key == ident), None),
         "differences": lambda: next((d for d in inbox.differences if d.id == ident), None),
-        "differing": lambda: next((d for d in inbox.differing if d.id == ident), None),
         "reanchor": lambda: next((a for a in inbox.reanchor if a.key == ident), None),
         "proposals": lambda: next((p for p in inbox.proposals if p.p.id == ident), None),
         "suites": lambda: next((s for s in inbox.suites if s.id == ident), None),
@@ -112,8 +110,6 @@ def review_values(
         "attrs": attrs,
         "inbox": inbox,
         "kinds": queries_review.KINDS,
-        "verdicts": queries_reconcile.VERDICTS,
-        "hypotheses": queries_reconcile.HYPOTHESES,
         "show": show,
         "selected": selected,
         "cited": cited,
@@ -280,52 +276,4 @@ async def review_suite(
         note = f"Not recorded: {refused}." if refused else SUITE_DONE[action]
     select = f"suites:{suite_id}" if action == "save" else None
     target = c.url("/review", portal=portal, show="suites", select=select, note=note)
-    return RedirectResponse(target, status_code=303)
-
-
-@router.post("/review/differing/{portal}/{reconciliation_id}", response_model=None)
-async def review_differing(
-    request: Request, portal: str, reconciliation_id: str, env: str | None = None
-) -> Response:
-    """Confirm the verdicts on differing states (spec 033 US4), kept or changed per outcome
-    (`verdict:<state id>` fields), through the chat service; back to Review with a note."""
-    if not same_origin(request):
-        return PlainTextResponse("Cross-origin request refused.", status_code=403)
-    web = web_of(request)
-    c = web.ctx(request, env)
-    form = parse_qs((await request.body()).decode("utf-8", "replace"))
-    author = web.settings.reviewer
-    try:
-        with c.conn() as conn:
-            item = next(
-                (
-                    d
-                    for d in queries_reconcile.open_reconciliations(conn, portal)
-                    if d.id == reconciliation_id
-                ),
-                None,
-            )
-    except db.StoreMissing as err:
-        return web.missing(c, err)
-    if not author:
-        note = "Set PATHFINDER_REVIEWER to your name to confirm verdicts."
-    elif item is None:
-        note = "This proposal is no longer open."
-    elif not item.proposed_by:
-        note = "The BA has not proposed verdicts for this group yet."
-    else:
-        verdicts = [
-            {
-                "state_id": o.state_id,
-                "verdict": (form.get(f"verdict:{o.state_id}") or [o.verdict])[0],
-            }
-            for o in item.outcomes
-        ]
-        path = (
-            f"/portals/{quote(portal, safe='')}/reconciliations/"
-            f"{quote(reconciliation_id, safe='')}/confirm"
-        )
-        refused = await _suite_call(web, c.env, path, {"author": author, "verdicts": verdicts})
-        note = f"Not recorded: {refused}." if refused else "Verdicts confirmed."
-    target = c.url("/review", portal=portal, show="differing", note=note)
     return RedirectResponse(target, status_code=303)

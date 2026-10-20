@@ -20,7 +20,6 @@ export const RunEvidenceKind = z.enum([
   'observations',
   'parameters',
   'open_questions',
-  'rule_candidates',
   'decisions',
   'probe_outcomes',
 ]);
@@ -123,11 +122,6 @@ const RUN_EVIDENCE: Record<Exclude<RunEvidenceKind, 'parameters'>, Source> = {
   },
   open_questions: {
     sql: `SELECT id, text, about_ref, status FROM open_questions
-          WHERE run_id = ? AND id > ? ORDER BY id LIMIT ?`,
-    summarise: (r) => r,
-  },
-  rule_candidates: {
-    sql: `SELECT id, text, about_ref, confidence FROM rule_candidates
           WHERE run_id = ? AND id > ? ORDER BY id LIMIT ?`,
     summarise: (r) => r,
   },

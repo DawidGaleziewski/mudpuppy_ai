@@ -1,4 +1,4 @@
--- GENERATED from data/migrations/*.up.sql applied in order (currently through 0034_trace_trigger). Do not edit by hand.
+-- GENERATED from data/migrations/*.up.sql applied in order (currently through 0035_drop_v1_claims). Do not edit by hand.
 -- Regenerate after every migration; see data/schema/README.md.
 
 CREATE TABLE runs (
@@ -123,16 +123,6 @@ CREATE TABLE open_questions (
   created_at TEXT NOT NULL,
   -- 0031 (ALTER TABLE, spec 039): the hypothesis the question is about.
   hypothesis_id TEXT REFERENCES hypotheses(id)
-) STRICT;
-
-CREATE TABLE rule_candidates (
-  id           TEXT PRIMARY KEY,
-  run_id       TEXT NOT NULL REFERENCES runs(id),
-  text         TEXT NOT NULL,
-  about_ref    TEXT NOT NULL,
-  evidence_ref TEXT NOT NULL CHECK (length(evidence_ref) > 0),
-  confidence   TEXT NOT NULL CHECK (confidence = 'inferred'),
-  created_at   TEXT NOT NULL
 ) STRICT;
 
 -- Rebuilt by 0002_portal_workspaces: portal_id added, fingerprint uniqueness and the cluster index
@@ -377,12 +367,13 @@ CREATE TABLE doc_revisions (
 -- Evidence for a revision. target_id is polymorphic (resolved by the tool; no FK). run_id is the run the
 -- evidence came from, resolved at write time; NULL only for target_kind IN ('doc_record','review') since
 -- a human answer or another doc is not run-bound (research.md §5). Rebuilt by 0006: 'screen_region'
--- (target_id = state id) carries the cited element key in region (spec 008).
+-- (target_id = state id) carries the cited element key in region (spec 008). Rebuilt by 0035: no
+-- 'rule_candidate' (the table is gone, spec 039 T076).
 CREATE TABLE doc_evidence_links (
   id          TEXT PRIMARY KEY,
   revision_id TEXT NOT NULL REFERENCES doc_revisions(id),
   target_kind TEXT NOT NULL CHECK (target_kind IN (
-                 'state','transition','action','form','network_call','rule_candidate','open_question',
+                 'state','transition','action','form','network_call','open_question',
                  'decision','process','process_step','doc_record','review','screen_region',
                  'observation'
                )),
@@ -952,26 +943,6 @@ CREATE TABLE marks (
 ) STRICT;
 
 CREATE UNIQUE INDEX ux_marks_open ON marks (portal_id, kind, target_kind, target_id) WHERE used_by_run_id IS NULL;
-
-CREATE TABLE reconciliations (
-  id             TEXT PRIMARY KEY,                                   -- UUIDv7
-  portal_id      TEXT NOT NULL CHECK (length(portal_id) > 0),
-  group_key      TEXT NOT NULL CHECK (length(group_key) > 0),
-  group_kind     TEXT NOT NULL CHECK (group_kind IN ('action','route','replay')),
-  snapshot_json  TEXT NOT NULL CHECK (json_valid(snapshot_json) AND json_type(snapshot_json) = 'object'),
-  proposal_json  TEXT NOT NULL CHECK (json_valid(proposal_json) AND json_type(proposal_json) = 'array'),
-  proposed_by    TEXT NOT NULL CHECK (length(proposed_by) > 0),      -- BA session id or 'BA'
-  proposed_at    TEXT NOT NULL,
-  status         TEXT NOT NULL CHECK (status IN ('proposed','confirmed','superseded')),
-  confirmed_json TEXT CHECK (confirmed_json IS NULL OR (json_valid(confirmed_json) AND json_type(confirmed_json) = 'array')),
-  confirmed_by   TEXT CHECK (confirmed_by IS NULL OR length(confirmed_by) > 0),
-  confirmed_at   TEXT,
-  CHECK ((status = 'confirmed') = (confirmed_json IS NOT NULL)),
-  CHECK ((confirmed_json IS NULL) = (confirmed_by IS NULL) AND (confirmed_json IS NULL) = (confirmed_at IS NULL))
-) STRICT;
-
-CREATE INDEX ix_reconciliations_portal_status ON reconciliations (portal_id, status);
-CREATE UNIQUE INDEX ux_reconciliations_open ON reconciliations (portal_id, group_key) WHERE status = 'proposed';
 
 CREATE TABLE checkpoints (
   id         TEXT PRIMARY KEY,                                               -- UUIDv7

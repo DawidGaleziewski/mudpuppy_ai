@@ -11,8 +11,8 @@
  * - `data_items_code_names`: data items named by the input's code name (`rok_produkcji`,
  *   `postalCode`) instead of its visible label (spec 026 F-05, spec 031 T016).
  * - `error_pages_as_steps`: steps of the processes' as-is (variant A, latest revision) on a state of
- *   kind `technical`, or on one the owner confirmed as `temporary` or `technical` in Review: an
- *   error page is never a step (spec 033 SC-007, design §7.5). Must be 0.
+ *   kind `technical`: an error page is never a step (spec 033 SC-007, design §7.5). Must be 0.
+ *   (The owner's spec 033 verdicts went with `reconciliations`, spec 039 T076.)
  */
 import type { GroundTruth } from '@pathfinder/docs';
 import type { RawDb } from '../../queries.js';
@@ -25,38 +25,15 @@ export interface BaShapes {
   error_pages_as_steps: number;
 }
 
-const ERROR_VERDICTS = new Set(['temporary', 'technical']);
-
-/** States the owner confirmed as an error or a temporary state (spec 033); none on an old store. */
-function confirmedErrors(db: RawDb, portal: string): Set<string> {
-  try {
-    const rows = db
-      .prepare(
-        "SELECT confirmed_json FROM reconciliations WHERE portal_id = ? AND status = 'confirmed'",
-      )
-      .all(portal) as { confirmed_json: string }[];
-    return new Set(
-      rows.flatMap((r) =>
-        (JSON.parse(r.confirmed_json) as { state_id: string; verdict: string }[])
-          .filter((v) => ERROR_VERDICTS.has(v.verdict))
-          .map((v) => v.state_id),
-      ),
-    );
-  } catch {
-    return new Set();
-  }
-}
-
 /** Steps of the processes' as-is on an error page (see the module comment). */
 export function errorPagesAsSteps(db: RawDb, portal: string): number {
-  const technical = new Set(
+  const errors = new Set(
     (
       db
         .prepare("SELECT id FROM states WHERE portal_id = ? AND state_kind = 'technical'")
         .all(portal) as { id: string }[]
     ).map((r) => r.id),
   );
-  const errors = new Set([...technical, ...confirmedErrors(db, portal)]);
   const steps = db
     .prepare(
       `SELECT r.steps FROM ba_processes p

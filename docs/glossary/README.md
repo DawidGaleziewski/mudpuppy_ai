@@ -965,48 +965,6 @@ or run `pnpm docs:process-export`.
 
 <sub>Last changed in R-68, 2026-10-17.</sub>
 
-<a id="differing-states"></a>
-
-#### Differing states
-
-**A place where scans saw different screens (one button, two pages; one route, two screens), so the BA explains each outcome before documenting.**
-
-The system finds them; the BA agent checks the reasons in order (persona, input, a
-temporary error, session or time, a feature flag, data) and proposes a verdict per outcome;
-you confirm or change it in Review → Differing states. An error page is never the step: the
-step is documented by its main state, and a temporary outcome becomes an open question.
-
-*Example:* "See the offer" led to the offer in one scan and to "Sold out today" in the next.
-
-*Seen in:* Review → Differing states
-
-*Labels:* `Differing states`, `Why does this differ?`
-
-*Related:* [Verdict](#verdict), [State](#state), [Portal map](#portal-map)
-
-<sub>Last changed in R-69, 2026-10-17.</sub>
-
-<a id="verdict"></a>
-
-#### Verdict
-
-**What one outcome of a differing-states group is, proposed by the BA and confirmed by you; the BA documents the screen by it.**
-
-Main state (the step itself), variant by persona, input or feature flag, validation state,
-technical error state, temporary (recheck later) or same state (two recordings of one
-screen: confirming it merges the two screens into one). Until you confirm it, the BA
-documents with its own proposal, marked inferred.
-
-*Example:* The 503 page seen once, not again: Temporary · recheck.
-
-*Seen in:* Review → Differing states
-
-*Labels:* `Verdict`, `Confirm verdicts`
-
-*Related:* [Differing states](#differing-states)
-
-<sub>Last changed in R-69, 2026-10-17.</sub>
-
 ### Portal model
 
 <a id="fingerprint-profile"></a>
@@ -1749,25 +1707,7 @@ evidence or turns them into an open question record for a person.
 
 *Labels:* `Open question`
 
-*Related:* [Rule candidate](#rule-candidate)
-
-<sub>Last changed in R-22, 2026-10-03.</sub>
-
-<a id="rule-candidate"></a>
-
-#### Rule candidate
-
-**A possible business rule the crawler spotted, such as a limit stated in an error message, recorded as a hint for the BA and never as a fact.**
-
-The crawler may flag a few patterns that look like rules with `add_rule_candidate`. It does
-not decide whether they are rules. The BA checks each against the evidence and writes a
-business rule record only when the evidence supports it.
-
-*Seen in:* Run page; Docs evidence → rule candidate
-
-*Labels:* `Rule candidate`
-
-*Related:* [Business rule (BR)](#business-rule), [Open question (crawler)](#crawler-open-question)
+*Related:* [Claim (hypothesis, H-)](#hypothesis)
 
 <sub>Last changed in R-22, 2026-10-03.</sub>
 
@@ -2231,7 +2171,7 @@ Out of date; a process variant Observed, Drawn, Draft open or Live.
 **In a record's evidence table, the piece of recorded data the record cites, such as a state, form, action, network call or process step.**
 
 Each evidence link on a record points at one target and says what it supports. Target kinds
-are state, transition, observation, action, form, network call, rule candidate, open question,
+are state, transition, observation, action, form, network call, open question,
 decision, process, process step, another documentation record, or a review. Click the target
 to open it on its run page.
 
@@ -3947,7 +3887,7 @@ Rules are written once and linked to every requirement, data item and screen the
 
 *Labels:* `Business rule`, `BR`, `Rule`
 
-*Related:* [Decision table](#decision-table), [Rule candidate](#rule-candidate), [Data item (DI)](#data-item)
+*Related:* [Decision table](#decision-table), [Claim (hypothesis, H-)](#hypothesis), [Data item (DI)](#data-item)
 
 *Read more:* [BA wiki: Business rule](../wiki/business-rule.md)
 

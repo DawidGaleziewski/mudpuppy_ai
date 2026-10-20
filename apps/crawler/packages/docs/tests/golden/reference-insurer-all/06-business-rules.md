@@ -21,7 +21,7 @@ Related: uses term [GL-001](08-glossary.md#GL-001)
 
 Evidence:
 
-- rule candidate `00000000-0000-7000-8000-000000000014` — Autocasco (AC) seems to be offered only for vehicles younger than 15 years. (run `00000000-0000-7000-8000-000000000001`, map, 2026-01-15)
+- state `00000000-0000-7000-8000-000000000003` — Ubezpieczenie samochodu | Towarzystwo Ubezpieczeń Wzorcowych (/ubezpieczenia/samochod) (run `00000000-0000-7000-8000-000000000001`, map, 2026-01-15)
 
 ### <a id="BR-002"></a>BR-002 — Purchase issues a policy
 

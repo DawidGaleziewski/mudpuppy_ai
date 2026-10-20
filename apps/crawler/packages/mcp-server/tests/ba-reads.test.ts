@@ -35,7 +35,6 @@ describe('list_runs', () => {
           network_calls: 2,
           actions: 4,
           open_questions: 2,
-          rule_candidates: 1,
         },
         process_name: null,
       },
@@ -117,9 +116,6 @@ describe('get_run_evidence', () => {
     expect((await page('open_questions')).map((q: { id: string }) => q.id)).toEqual(
       h.fx.openQuestions,
     );
-    expect(await page('rule_candidates')).toMatchObject([
-      { id: h.fx.ruleCandidate, confidence: 'inferred', about_ref: h.fx.states.car },
-    ]);
     expect(await page('decisions')).toMatchObject([
       { id: h.fx.decision, kind: 'skip', rule: 'ceiling:read', subject_ref: h.fx.actions.buy },
     ]);
@@ -215,9 +211,9 @@ describe('get_run_evidence', () => {
     expect(calls.items[0]).not.toHaveProperty('confidence');
 
     // Kinds without defaults keep every non-null field on the item.
-    const rules = await get('rule_candidates');
-    expect(rules).not.toHaveProperty('defaults');
-    expect(rules.items[0]).toHaveProperty('confidence', 'inferred');
+    const questions = await get('open_questions');
+    expect(questions).not.toHaveProperty('defaults');
+    expect(questions.items[0]).toHaveProperty('status', 'open');
 
     for (const kind of [
       'states',

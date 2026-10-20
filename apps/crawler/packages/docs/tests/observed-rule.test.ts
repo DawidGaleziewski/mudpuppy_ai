@@ -34,15 +34,8 @@ describe('observed rule (research §5)', () => {
     }
   });
 
-  it('never accepts rule candidates, questions, decisions, records or reviews', () => {
-    for (const kind of [
-      'rule_candidate',
-      'open_question',
-      'decision',
-      'doc_record',
-      'review',
-      'process',
-    ] as const) {
+  it('never accepts questions, decisions, records or reviews', () => {
+    for (const kind of ['open_question', 'decision', 'doc_record', 'review', 'process'] as const) {
       expect(checkObserved([target(kind, 'observed')]).ok, kind).toBe(false);
       expect(checkObserved([target(kind, null)]).ok, kind).toBe(false);
     }
@@ -50,7 +43,7 @@ describe('observed rule (research §5)', () => {
 
   it('needs only one qualifying target among several', () => {
     const r = checkObserved([
-      target('rule_candidate', 'inferred'),
+      target('open_question', 'inferred'),
       target('review', null),
       target('form', 'observed'),
     ]);
@@ -60,12 +53,12 @@ describe('observed rule (research §5)', () => {
 
   it('refuses an empty list and reports what it checked', () => {
     expect(checkObserved([])).toEqual({ ok: false, checked: [] });
-    expect(checkObserved([target('rule_candidate', 'inferred')])).toEqual({
+    expect(checkObserved([target('open_question', 'inferred')])).toEqual({
       ok: false,
       checked: [
         {
-          target_kind: 'rule_candidate',
-          target_id: 'rule_candidate-1',
+          target_kind: 'open_question',
+          target_id: 'open_question-1',
           confidence: 'inferred',
           qualifies: false,
         },

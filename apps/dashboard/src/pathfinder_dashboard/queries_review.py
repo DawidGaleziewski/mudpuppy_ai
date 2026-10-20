@@ -15,14 +15,12 @@ from typing import Any, NamedTuple
 from . import queries_access, queries_chat
 from .models import Amendment
 from .queries_proposals import ProposalView, views_of
-from .queries_reconcile import DifferingItem, open_count, open_reconciliations
 from .queries_suites import SuiteItem, open_suite_count, open_suites
 
 KINDS: tuple[tuple[str, str], ...] = (
     ("records", "Records to confirm"),
     ("assumptions", "Assumptions to check"),
     ("differences", "Unexplained differences"),
-    ("differing", "Differing states"),
     ("reanchor", "Amendments to re-anchor"),
     ("proposals", "Assistant proposals"),
     ("suites", "Probe suites to approve"),
@@ -50,7 +48,6 @@ class Inbox(NamedTuple):
     records: list[RecordItem]
     assumptions: list[RecordItem]
     differences: list[queries_access.Difference]
-    differing: list[DifferingItem]
     reanchor: list[Amendment]
     proposals: list[ProposalView]
     suites: list[SuiteItem]
@@ -111,7 +108,7 @@ def differences(conn: sqlite3.Connection, portal: str) -> list[queries_access.Di
 
 def inbox(conn: sqlite3.Connection, portal: str | None) -> Inbox:
     if not portal:
-        return Inbox([], [], [], [], [], [], [], [])
+        return Inbox([], [], [], [], [], [], [])
     reanchor = [
         a
         for a in queries_chat.superseded_amendments(conn, portal, "superseded")
@@ -121,7 +118,6 @@ def inbox(conn: sqlite3.Connection, portal: str | None) -> Inbox:
         records_to_confirm(conn, portal),
         assumptions_to_check(conn, portal),
         differences(conn, portal),
-        open_reconciliations(conn, portal),
         reanchor,
         open_proposals(conn, portal),
         open_suites(conn, portal),
@@ -151,7 +147,6 @@ def count(conn: sqlite3.Connection, portal: str | None) -> int:
         (int(rows[0][0]) if rows else 0)
         + len(differences(conn, portal))
         + open_suite_count(conn, portal)
-        + open_count(conn, portal)
     )
 
 

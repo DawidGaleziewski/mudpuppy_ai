@@ -21,7 +21,6 @@ import { createPortal, describePortal, removeEnvironment, setEnvironment } from 
 import { createProcessService } from './process-service.js';
 import { createProbeSuiteService } from './probe-suites.js';
 import { createMarkService } from './marks.js';
-import { createReconciliationService } from './reconciliations.js';
 import { createProposalService } from './proposal-service.js';
 import { conversationsOfRun, runningRunsOfConversation, stopRun, stoppedNotice } from './runs.js';
 import { setProcessScope } from './scope.js';
@@ -89,7 +88,6 @@ async function main(): Promise<void> {
     processes: createProcessService({ db: opened.db, raw: opened.raw }),
     probeSuites: createProbeSuiteService({ db: opened.db, repoRoot }),
     marks: createMarkService({ db: opened.db }),
-    reconciliations: createReconciliationService({ db: opened.db }),
     // T041: tell every conversation following the run; the timer moves its step on.
     stopRun: (runId) => {
       const stopped = stopRun(opened.raw, runId, { byBa: true });

@@ -440,40 +440,6 @@ entries:
     changed_in: R-69
     changed_on: 2026-10-17
 
-  - id: differing-states
-    term: Differing states
-    category: pathfinder
-    group: Documentation
-    short: A place where scans saw different screens (one button, two pages; one route, two screens), so the BA explains each outcome before documenting.
-    explanation: |
-      The system finds them; the BA agent checks the reasons in order (persona, input, a
-      temporary error, session or time, a feature flag, data) and proposes a verdict per outcome;
-      you confirm or change it in Review → Differing states. An error page is never the step: the
-      step is documented by its main state, and a temporary outcome becomes an open question.
-    example: "\"See the offer\" led to the offer in one scan and to \"Sold out today\" in the next."
-    appears_in: [Review → Differing states]
-    labels: [Differing states, Why does this differ?]
-    related: [verdict, state, portal-map]
-    changed_in: R-69
-    changed_on: 2026-10-17
-
-  - id: verdict
-    term: Verdict
-    category: pathfinder
-    group: Documentation
-    short: What one outcome of a differing-states group is, proposed by the BA and confirmed by you; the BA documents the screen by it.
-    explanation: |
-      Main state (the step itself), variant by persona, input or feature flag, validation state,
-      technical error state, temporary (recheck later) or same state (two recordings of one
-      screen: confirming it merges the two screens into one). Until you confirm it, the BA
-      documents with its own proposal, marked inferred.
-    example: "The 503 page seen once, not again: Temporary · recheck."
-    appears_in: [Review → Differing states]
-    labels: [Verdict, Confirm verdicts]
-    related: [differing-states]
-    changed_in: R-69
-    changed_on: 2026-10-17
-
   - id: probe-suite
     term: Probe suite
     category: pathfinder
@@ -1265,22 +1231,7 @@ entries:
       evidence or turns them into an open question record for a person.
     appears_in: [Run page → open questions, Docs evidence → open question]
     labels: [Open question]
-    related: [rule-candidate]
-    changed_in: R-22
-    changed_on: 2026-10-03
-
-  - id: rule-candidate
-    term: Rule candidate
-    category: pathfinder
-    group: Recorded evidence
-    short: A possible business rule the crawler spotted, such as a limit stated in an error message, recorded as a hint for the BA and never as a fact.
-    explanation: |
-      The crawler may flag a few patterns that look like rules with `add_rule_candidate`. It does
-      not decide whether they are rules. The BA checks each against the evidence and writes a
-      business rule record only when the evidence supports it.
-    appears_in: [Run page, Docs evidence → rule candidate]
-    labels: [Rule candidate]
-    related: [business-rule, crawler-open-question]
+    related: [hypothesis]
     changed_in: R-22
     changed_on: 2026-10-03
 
@@ -1630,7 +1581,7 @@ entries:
     short: In a record's evidence table, the piece of recorded data the record cites, such as a state, form, action, network call or process step.
     explanation: |
       Each evidence link on a record points at one target and says what it supports. Target kinds
-      are state, transition, observation, action, form, network call, rule candidate, open question,
+      are state, transition, observation, action, form, network call, open question,
       decision, process, process step, another documentation record, or a review. Click the target
       to open it on its run page.
 
@@ -1947,7 +1898,7 @@ entries:
     example: 'BR-012 "Contact form: required fields, lengths and formats".'
     appears_in: [Docs tab → Business rules]
     labels: [Business rule, BR, Rule]
-    related: [decision-table, rule-candidate, data-item]
+    related: [decision-table, hypothesis, data-item]
     changed_in: R-22
     changed_on: 2026-10-03
 

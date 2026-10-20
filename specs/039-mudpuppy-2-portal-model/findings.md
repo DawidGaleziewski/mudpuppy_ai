@@ -482,3 +482,29 @@ Bugs, slips and design deviations found while building, each with a test or eval
   `model-writer.test.ts` "clusters one fingerprint profile only", `refingerprint.test.ts`,
   `partitions.test.ts`, `menu-link.e2e.test.ts`, dashboard `test_changes.py` threshold test.
   Eval idea: run the reference-insurer trial under `no-menu` and compare screens with rows-v2.
+
+## F-32 Process start, the trigger step and the v1 claim tables (T081, T076), 2026-10-20
+
+- **Trigger (T081, R-77 (3))**: the crawler marks the `act` that enters the process with
+  `trigger: true`; the server stores the step's ord in `processes.trigger_ord` (migration 0034,
+  first mark wins). `get_process` / `list_processes` return it, and the process export starts the
+  trace walk at the screen that step opened (`traceWalk` in `process-export/steps.ts`), before the
+  "first contained screen" rule (F-15@034). A trace without the mark behaves as before.
+- **Guidance (T076, R-77 (1))**: `ba-practice` pass 3 opens with "What a process is" (goal,
+  trigger, own first screen, outcome; start, end, one process per goal); `ba.md` says the same in
+  one rule; `record-kinds.md` limits `process contains screen`. Confirmed `decision_rule`
+  hypotheses become business rules, confirmed `process_boundary` ones set the first or last
+  contained screen. **Not done:** the `api_endpoint` row (R-77 (4)) needs the parked 038b branch.
+- **v1 claim tables dropped (migration 0035)**: `reconciliations` and `rule_candidates` are gone,
+  and with them the evidence kind `rule_candidate` (links citing one are dropped; store data is
+  test data), `get_run_evidence` kind `rule_candidates`, the run counts, the chat route
+  `POST /portals/{p}/reconciliations/{id}/confirm`, Review ▸ Differing states (nothing can be
+  confirmed there now; it would wait in the Review count for ever) and the rule-candidate counts on
+  the portal cards and the run header. `queries_differing.py` and the BA service
+  `differing-states.ts` stay (SC-20 gate, the shared fixture); the processes and changes pages
+  (T079/T100) may show the groups again, explained by hypotheses. The eval diagnostic
+  `error_pages_as_steps` counts only `technical` states now; the owner's spec 033 verdicts
+  (temporary) went with the table. Eval idea: count steps on states a confirmed `flaky` or
+  `deterministic_error` hypothesis cites instead.
+- **Test**: `process-export.test.ts` (trigger start), `trace-run.e2e.test.ts` (mark, second mark
+  ignored), the migration round-trips in `db.test.ts`.

@@ -21,7 +21,6 @@ export const PORTAL_TABLES = [
   'observations',
   'frontier',
   'open_questions',
-  'rule_candidates',
   'decision_log',
   'robots_policies',
   'trace_spans',
@@ -56,7 +55,6 @@ export const PORTAL_TABLES = [
   'probe_outcomes',
   'probe_suites',
   'marks',
-  'reconciliations',
   'checkpoints',
   'builds',
   'state_components',
@@ -130,7 +128,6 @@ const DELETE_ORDER: readonly PortalTable[] = [
   'parameter_roles',
   'state_pair_labels',
   'checkpoints', // 0027: references runs and states (no portal_id: the default run_id partition)
-  'reconciliations', // 0025: no references
   'marks', // 0024: references runs (used_by_run_id)
   'probe_suites', // 0023: reference runs and form_steps
   'probe_outcomes', // 0023: reference runs, states, form_steps and transitions
@@ -173,7 +170,6 @@ const DELETE_ORDER: readonly PortalTable[] = [
   'journeys', // 0029: transitions and observations reference journeys; journeys reference runs, checkpoints
   'forms',
   'open_questions',
-  'rule_candidates',
   'robots_policies',
   'state_observations',
   'state_wireframes',
@@ -246,7 +242,6 @@ export function where(table: PortalTable, side: 'mine' | 'others'): string {
     case 'form_steps':
     case 'probe_suites':
     case 'marks':
-    case 'reconciliations':
     case 'builds':
     case 'model_versions':
     case 'model_screens':

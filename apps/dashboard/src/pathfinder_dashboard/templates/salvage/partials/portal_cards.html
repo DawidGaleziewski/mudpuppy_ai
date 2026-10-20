@@ -20,7 +20,7 @@
         <dt>Actions</dt>
         <dd><span class="sy-num">{{ p.actions_allowed }}</span> allowed <span class="sy-muted">· {{ p.actions_skipped }} skipped by safety</span></dd>
         <dt>Open questions</dt>
-        <dd><span class="sy-num">{{ p.open_questions_open }}</span> <span class="sy-muted">· {{ p.rule_candidates }} rule candidates</span> {{ sy.status("confidence", "inferred") }}</dd>
+        <dd><span class="sy-num">{{ p.open_questions_open }}</span></dd>
       </dl>
     </div>
     {%- set stale = summary.superseded.get(p.portal_id, 0) %}

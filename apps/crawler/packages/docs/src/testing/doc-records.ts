@@ -425,7 +425,7 @@ export function seedDocRecords(fx: FixtureStore): SeededDocs {
       },
       confidence: 'inferred',
       status: 'draft',
-      evidence: [{ kind: 'rule_candidate', id: fx.ruleCandidate, run: map }],
+      evidence: [stateLink(st.car)],
       relations: [{ type: 'uses_term', to: 'GL-001' }],
     },
   ]);

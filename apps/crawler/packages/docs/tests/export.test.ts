@@ -217,7 +217,6 @@ const TABLES = [
   'forms',
   'network_calls',
   'open_questions',
-  'rule_candidates',
   'decision_log',
   'processes',
   'process_steps',

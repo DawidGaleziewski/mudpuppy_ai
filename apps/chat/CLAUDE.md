@@ -43,8 +43,6 @@ store, vault, workflow.
   `form_probing` starts a form-probing scan. Spec 034 (R-66): all six mark kinds on their targets
   (`MARK_TARGETS`); `request_scan` `run_type` + `plan` (continue, focused, recheck, retry) with
   `scan-directed.ts` (the checks and the crawler brief: reach each start point with `go_to_state`).
-- Differing states (spec 033 US4): `reconciliations` and `api-reconciliations`
-  (`POST /portals/{p}/reconciliations/{id}/confirm`: the owner's verdicts from Review).
 - `scan`, `scope`: process scanning and scope management.
 - `fence`: permission control.
 

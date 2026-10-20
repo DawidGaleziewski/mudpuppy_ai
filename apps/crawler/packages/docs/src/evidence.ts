@@ -81,7 +81,6 @@ const RUN_BOUND: Partial<
   network_call: { table: 'network_calls', confidence: 'observed' },
   // spec 019: the server saw the browser at that URL (R-37/R-38)
   observation: { table: 'observations', confidence: 'observed' },
-  rule_candidate: { table: 'rule_candidates', confidence: 'column' },
   open_question: { table: 'open_questions', confidence: null },
   decision: { table: 'decision_log', confidence: null },
 };

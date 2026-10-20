@@ -17,7 +17,6 @@ const RUN_COUNTS: Record<string, string> = {
   network_calls: 'network_calls',
   actions: 'actions',
   open_questions: 'open_questions',
-  rule_candidates: 'rule_candidates',
 };
 
 /**

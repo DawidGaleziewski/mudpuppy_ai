@@ -983,9 +983,9 @@
           "note": null,
           "region": null,
           "run_date": "2026-01-15",
-          "run_id": "00000000-0000-7000-8000-000000000018",
+          "run_id": "00000000-0000-7000-8000-000000000017",
           "run_mode": "trace",
-          "target_id": "00000000-0000-7000-8000-00000000001c",
+          "target_id": "00000000-0000-7000-8000-00000000001b",
           "target_kind": "process"
         },
         {
@@ -995,9 +995,9 @@
           "note": null,
           "region": null,
           "run_date": "2026-01-15",
-          "run_id": "00000000-0000-7000-8000-000000000018",
+          "run_id": "00000000-0000-7000-8000-000000000017",
           "run_mode": "trace",
-          "target_id": "00000000-0000-7000-8000-00000000001e",
+          "target_id": "00000000-0000-7000-8000-00000000001d",
           "target_kind": "process_step"
         }
       ],
@@ -1068,9 +1068,9 @@
           "note": null,
           "region": null,
           "run_date": "2026-01-15",
-          "run_id": "00000000-0000-7000-8000-000000000020",
+          "run_id": "00000000-0000-7000-8000-00000000001f",
           "run_mode": "trace",
-          "target_id": "00000000-0000-7000-8000-000000000024",
+          "target_id": "00000000-0000-7000-8000-000000000023",
           "target_kind": "process"
         },
         {
@@ -1080,9 +1080,9 @@
           "note": null,
           "region": null,
           "run_date": "2026-01-15",
-          "run_id": "00000000-0000-7000-8000-000000000020",
+          "run_id": "00000000-0000-7000-8000-00000000001f",
           "run_mode": "trace",
-          "target_id": "00000000-0000-7000-8000-000000000025",
+          "target_id": "00000000-0000-7000-8000-000000000024",
           "target_kind": "process_step"
         }
       ],
@@ -1174,9 +1174,9 @@
           "note": null,
           "region": null,
           "run_date": "2026-01-15",
-          "run_id": "00000000-0000-7000-8000-000000000018",
+          "run_id": "00000000-0000-7000-8000-000000000017",
           "run_mode": "trace",
-          "target_id": "00000000-0000-7000-8000-00000000001c",
+          "target_id": "00000000-0000-7000-8000-00000000001b",
           "target_kind": "process"
         }
       ],
@@ -1306,7 +1306,7 @@
           "run_date": "2026-01-15",
           "run_id": "00000000-0000-7000-8000-000000000001",
           "run_mode": "map",
-          "target_id": "00000000-0000-7000-8000-000000000053",
+          "target_id": "00000000-0000-7000-8000-000000000052",
           "target_kind": "form"
         }
       ],
@@ -1365,14 +1365,14 @@
         {
           "broken": false,
           "doc_key": null,
-          "label": "Autocasco (AC) seems to be offered only for vehicles younger than 15 years.",
+          "label": "Ubezpieczenie samochodu | Towarzystwo Ubezpieczeń Wzorcowych (/ubezpieczenia/samochod)",
           "note": null,
           "region": null,
           "run_date": "2026-01-15",
           "run_id": "00000000-0000-7000-8000-000000000001",
           "run_mode": "map",
-          "target_id": "00000000-0000-7000-8000-000000000014",
-          "target_kind": "rule_candidate"
+          "target_id": "00000000-0000-7000-8000-000000000003",
+          "target_kind": "state"
         }
       ],
       "followup": null,
@@ -1395,7 +1395,19 @@
       "status": "draft",
       "title": "Autocasco only for young vehicles",
       "trace": null,
-      "visuals": null
+      "visuals": {
+        "regions": [],
+        "screens": [
+          {
+            "route_template": "/ubezpieczenia/samochod",
+            "screenshot": null,
+            "state_id": "00000000-0000-7000-8000-000000000003",
+            "title": "Ubezpieczenie samochodu | Towarzystwo Ubezpieczeń Wzorcowych",
+            "wireframe_excalidraw": null,
+            "wireframe_svg": null
+          }
+        ]
+      }
     },
     {
       "baseline_rev": null,
@@ -1989,13 +2001,13 @@
           "run_date": "2026-01-15",
           "run_id": "00000000-0000-7000-8000-000000000001",
           "run_mode": "map",
-          "target_id": "00000000-0000-7000-8000-000000000015",
+          "target_id": "00000000-0000-7000-8000-000000000014",
           "target_kind": "decision"
         }
       ],
       "followup": {
         "blocked_reason": "ceiling:read: \"Dalej\" is mutating, above the read limit",
-        "run_id": "00000000-0000-7000-8000-000000000020",
+        "run_id": "00000000-0000-7000-8000-00000000001f",
         "status": "blocked"
       },
       "key": "FUP-002",
@@ -2034,7 +2046,7 @@
     {
       "date": "2026-01-15",
       "environment": "sandbox",
-      "id": "00000000-0000-7000-8000-000000000018",
+      "id": "00000000-0000-7000-8000-000000000017",
       "mode": "trace",
       "persona_id": "guest",
       "status": "completed"
@@ -2042,7 +2054,7 @@
     {
       "date": "2026-01-15",
       "environment": "production",
-      "id": "00000000-0000-7000-8000-000000000020",
+      "id": "00000000-0000-7000-8000-00000000001f",
       "mode": "trace",
       "persona_id": "guest",
       "status": "completed"

@@ -71,7 +71,6 @@ describe('the fixture store', () => {
     expect(count('SELECT COUNT(*) n FROM forms WHERE run_id = ?', fx.runId)).toBe(2);
     expect(count('SELECT COUNT(*) n FROM network_calls WHERE run_id = ?', fx.runId)).toBe(2);
     expect(count('SELECT COUNT(*) n FROM open_questions WHERE run_id = ?', fx.runId)).toBe(2);
-    expect(count('SELECT COUNT(*) n FROM rule_candidates WHERE run_id = ?', fx.runId)).toBe(1);
     expect(count('SELECT COUNT(*) n FROM runs WHERE portal_id = ?', fx.otherPortalId)).toBe(1);
     expect(
       fx.raw
@@ -100,7 +99,6 @@ describe('resolveTargets', () => {
       { target_kind: 'form', target_id: fx.forms.vehicle },
       { target_kind: 'action', target_id: fx.actions.buy },
       { target_kind: 'network_call', target_id: fx.networkCalls.quote },
-      { target_kind: 'rule_candidate', target_id: fx.ruleCandidate },
       { target_kind: 'open_question', target_id: fx.openQuestions[0] },
       { target_kind: 'decision', target_id: fx.decision },
     ]);
@@ -109,7 +107,6 @@ describe('resolveTargets', () => {
       ['form', 'observed'],
       ['action', 'observed'],
       ['network_call', 'observed'],
-      ['rule_candidate', 'inferred'],
       ['open_question', null],
       ['decision', null],
     ]);
