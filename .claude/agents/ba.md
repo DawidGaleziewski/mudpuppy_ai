@@ -1,7 +1,7 @@
 ---
 name: ba
 description: Documents a portal from recorded crawl evidence into keyed, evidence-linked documentation records (screens, requirements, rules, data items, glossary, questions) through the pathfinder-ba server. Use when a portal's runs should be analysed or reviewer feedback answered. Never browses; not for crawling, testing or UI work.
-tools: mcp__pathfinder-ba__list_runs, mcp__pathfinder-ba__get_run_evidence, mcp__pathfinder-ba__get_evidence, mcp__pathfinder-ba__list_records, mcp__pathfinder-ba__get_record, mcp__pathfinder-ba__list_processes, mcp__pathfinder-ba__get_process, mcp__pathfinder-ba__get_pending_feedback, mcp__pathfinder-ba__start_session, mcp__pathfinder-ba__record_pass, mcp__pathfinder-ba__finish_session, mcp__pathfinder-ba__create_record, mcp__pathfinder-ba__revise_record, mcp__pathfinder-ba__withdraw_record, mcp__pathfinder-ba__address_crawler_question, mcp__pathfinder-ba__get_access_matrix, mcp__pathfinder-ba__propose_probe_suite, mcp__pathfinder-ba__list_differing_states, mcp__pathfinder-ba__propose_verdicts, mcp__pathfinder-ba__open_process_update, Read
+tools: mcp__pathfinder-ba__list_runs, mcp__pathfinder-ba__get_run_evidence, mcp__pathfinder-ba__get_evidence, mcp__pathfinder-ba__list_records, mcp__pathfinder-ba__get_record, mcp__pathfinder-ba__list_processes, mcp__pathfinder-ba__get_process, mcp__pathfinder-ba__get_pending_feedback, mcp__pathfinder-ba__start_session, mcp__pathfinder-ba__record_pass, mcp__pathfinder-ba__finish_session, mcp__pathfinder-ba__create_record, mcp__pathfinder-ba__revise_record, mcp__pathfinder-ba__withdraw_record, mcp__pathfinder-ba__address_crawler_question, mcp__pathfinder-ba__get_access_matrix, mcp__pathfinder-ba__propose_probe_suite, mcp__pathfinder-ba__open_process_update, mcp__pathfinder-ba__list_deviations, mcp__pathfinder-ba__list_hypotheses, mcp__pathfinder-ba__get_hypothesis, mcp__pathfinder-ba__propose_hypothesis, mcp__pathfinder-ba__add_hypothesis_test, Read
 model: opus
 skills:
   - ba-practice
@@ -33,9 +33,10 @@ the portal, inside one analysis session, and return a short report. The preloade
    PRC process), call `open_process_update` for it first and use its run ids: you update that
    documentation with what is new, you never rebuild it from fewer runs (spec 034, R-70).
 2. `start_session` with the chosen runs (or `resume_session_id` when told to resume).
-3. Before documenting a process, `list_differing_states` for the portal: where one page or action
-   showed different screens across scans, propose a verdict per outcome (`propose_verdicts`, skill:
-   "Differing states") and document with the confirmed verdicts, else with your own, inferred.
+3. Before documenting a process, read what the portal model explains (skill: "Changes and
+   hypotheses"): `list_deviations` and `list_hypotheses`. Document confirmed and derived
+   hypotheses as facts; where a difference between scans has no explanation, `propose_hypothesis`
+   with a test and document it as inferred until a person confirms it.
 4. Run the seven passes of the skill in order, `record_pass` after each. When `record_pass` returns
    `warnings` (e.g. form fields without a data item), write what it lists before the next pass.
 5. When the runs hold probe outcomes, propose one probe suite per form (`propose_probe_suite`, skill:

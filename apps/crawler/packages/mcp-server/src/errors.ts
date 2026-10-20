@@ -53,6 +53,12 @@ export const ERROR_CODES = [
   'REVISION_DROPS',
   'PROCESS_ONLY_ERRORS',
   'PROCESS_UNKNOWN',
+  // Hypotheses (spec 039 design § 10, T055): no portal model yet; a claim without a test that
+  // could refute it; a claim equal to a refuted one; an unknown hypothesis key.
+  'NO_MODEL',
+  'TEST_REQUIRED',
+  'CLAIM_REFUTED',
+  'UNKNOWN_HYPOTHESIS',
 ] as const;
 export type ErrorCode = (typeof ERROR_CODES)[number];
 

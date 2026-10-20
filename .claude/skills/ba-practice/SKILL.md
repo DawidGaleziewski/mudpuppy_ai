@@ -125,28 +125,29 @@ source (`dom` or `native`, the browser's own message), the state it landed on, `
   outcomes; the suite waits in Review for the owner and never runs before approval. Leave
   `temporary` and `blocked` outcomes out (the server refuses them).
 
-### Differing states (before pass 3; spec 033, design §7)
+### Changes and hypotheses (before pass 3; spec 039, design § 8–10)
 
-`list_differing_states` returns each place where scans saw different screens: an **action group**
-(the same page and action led to two or more screens) or a **route group** (one route showed two
-or more screens that form steps and state kinds do not explain). Each outcome carries its scans
-with persona and environment, first and last seen, HTTP status, frequency ("1 of 3 scans") and
-whether a later scan saw it again (`reproduced`). Confirmed verdicts from Review come with it.
+The portal model compares every scan with what was known: a **deviation** is a change it found (a
+new screen, a screen that looks different, a new or missing action, an action that leads elsewhere,
+a changed result, a broken business rule). Rules R1–R8 explain most of them as **hypotheses**:
+`list_deviations` shows each change and the hypotheses on it; `list_hypotheses` / `get_hypothesis`
+show a hypothesis's claim, evidence, tests and status.
 
-- **Check the reasons in this order** and stop at the first that explains the outcome: persona
-  (differs only between personas), input (follows a probe or other values), temporary (5xx or a
-  maintenance text, seen once, not reproduced), session or time (expired session, cookie banner,
-  time of day), feature flag (a stable split across scans with the same persona), data (differs
-  with the test data).
-- **Propose one verdict per outcome** with `propose_verdicts`: `main` (the step's state),
-  `variant_persona` / `variant_input` / `variant_flag`, `validation`, `technical`, `temporary`
-  (recheck later) or `same` (two recordings of one screen). The reason names the hypothesis and the
-  evidence ("seen in 2 of 3 guest scans; the 503 page once, not reproduced"). Every outcome of the
-  group gets a verdict; the owner confirms in Review.
-- **Document with the verdicts:** confirmed ones where they exist, else your own (`inferred`). The
-  rules of "Form steps and probe outcomes" apply: the main state is the step; the others are states
-  of that step; `temporary` is an environment issue, never a step; `variant_persona` is documented
-  per persona.
+- **Document by status.** `confirmed` (by a person, or derived by a rule: a new release, a renamed
+  button, a flaky page) is a fact: cite it and write `observed` where its evidence is observed.
+  `supported` (its tests passed) and `proposed` are `inferred` until a person confirms them.
+  `refuted` and `rejected` are not true: never document them as behaviour.
+- **Explain what is left open.** A change without a hypothesis, or a difference the model cannot
+  decide (two readings of one page, a rule hidden in data), is yours to propose:
+  `propose_hypothesis` with the kind, one sentence in the portal's words, typed evidence (a screen
+  `SC-…` with its element key, observations, transitions) and a **test that could refute it**
+  (inputs and `refutes_if`). Check the reasons in this order: persona (differs only between
+  personas), input (follows other values), temporary (5xx, not seen again), session or time,
+  feature flag (a stable split across scans of one persona), data. `same_as`, `different_from` and
+  `process_boundary` need no test: a person's label or decision settles them.
+- **A refused claim stays refused**: `CLAIM_REFUTED` means the same claim was tested and failed;
+  look for another explanation. The rules of "Form steps and probe outcomes" apply: the main state
+  is the step, the others are states of that step, a temporary error is an environment issue.
 
 ### URLs and parameters (inside passes 1, 4 and 5)
 

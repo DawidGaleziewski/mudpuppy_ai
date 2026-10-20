@@ -7,8 +7,8 @@ import type { ServerContext } from '../context.js';
 import { ToolError } from '../errors.js';
 import type { Runtime } from '../runtime.js';
 import {
+  addHypothesis,
   addOpenQuestion,
-  addRuleCandidate,
   finishRun,
   getKnownStates,
   getNextFrontierItem,
@@ -31,7 +31,7 @@ export const AGENT_TOOL_NAMES = [
   'go_to_state',
   'login',
   'add_open_question',
-  'add_rule_candidate',
+  'add_hypothesis',
   'finish_run',
 ] as const;
 export type AgentToolName = (typeof AGENT_TOOL_NAMES)[number];
@@ -236,10 +236,21 @@ export function registerTools(server: McpServer, ctx: ServerContext, runtime: Ru
     (a) => addOpenQuestion(ctx, a),
   );
   tool(
-    'add_rule_candidate',
-    'Flag an inference about a state, transition or form. Stored as confidence "inferred" with the record\'s evidence.',
-    { run_id: z.string(), text: z.string(), about_ref: z.string() },
-    (a) => addRuleCandidate(ctx, a),
+    'add_hypothesis',
+    'Flag an inference about a state, transition or form as a hypothesis of the portal model (a person confirms it, never you). kind: decision_rule (where an action leads depends on data, e.g. an age limit), ambiguous (you cannot tell which of two readings holds), business_error_template (a page that is a business refusal, not a technical error). claim: one sentence in the portal\'s words. test: { inputs (input.<field label> → value), refutes_if (e.g. { "notIn": ["the outcome the claim predicts"] }) }, required: what would show the claim wrong. Returns the key (H-…).',
+    {
+      run_id: z.string(),
+      kind: z.enum(['decision_rule', 'ambiguous', 'business_error_template']),
+      claim: z.string(),
+      about_ref: z.string(),
+      test: z
+        .object({
+          inputs: z.record(z.string(), z.union([z.string(), z.number()])).optional(),
+          refutes_if: z.record(z.string(), z.unknown()),
+        })
+        .optional(),
+    },
+    (a) => addHypothesis(ctx, a),
   );
   tool(
     'finish_run',

@@ -1,7 +1,7 @@
 # @pathfinder/mcp-server
 
 The `pathfinder` stdio MCP server (the crawler agent's only tools: start_run, navigate, act, probe_form, login,
-get_known_states, get_next_frontier_item, add_open_question, add_rule_candidate, finish_run) and the
+get_known_states, get_next_frontier_item, add_open_question, add_hypothesis, finish_run) and the
 `pathfinder-ba` server (BA tools: `src/ba-server.ts`, `src/ba-tools/`, `src/services/ba/`).
 
 Layer: servers (G-07; `apps/crawler/layers.json`)
@@ -60,8 +60,12 @@ Layer: servers (G-07; `apps/crawler/layers.json`)
 
   BA: `services/ba/probe-suites.ts` (`propose_probe_suite`, suites stored `open`) and the
   `get_run_evidence` kind `probe_outcomes`. Spec 033: `services/ba/differing-states.ts` (groups
-  of differing states) and `reconcile.ts` (`list_differing_states`, `propose_verdicts`). `find-again.ts` holds `findAgain` (moved out of
-  `act.ts`).
+  of differing states, read by the SC-20 gate; its BA tools were replaced by spec 039's
+  hypotheses). Spec 039 (T055): `services/ba/hypotheses.ts` (`list_deviations`,
+  `list_hypotheses`, `get_hypothesis`, `propose_hypothesis`, `add_hypothesis_test` over
+  `@pathfinder/store`'s `agent-hypotheses.ts`) and the crawler's `add_hypothesis`
+  (`services/agent-notes.ts`; builds the portal model first when a run's portal has none).
+  `find-again.ts` holds `findAgain` (moved out of `act.ts`).
 - Spec 034 (R-70, documentation that grows): `services/ba/run-groups.ts` (runs grouped by the
   documented process whose screens they walked; same model as the dashboard's
   `queries_run_groups.py`, both checked against `tests/fixtures/run-groups/cases.json`),

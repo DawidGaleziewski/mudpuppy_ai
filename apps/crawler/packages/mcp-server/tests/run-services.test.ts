@@ -2,8 +2,8 @@ import { describe, expect, it } from 'vitest';
 import {
   ToolError,
   addFrontierItem,
+  addHypothesis,
   addOpenQuestion,
-  addRuleCandidate,
   completeRun,
   finishRun,
   getKnownStates,
@@ -51,39 +51,38 @@ describe('get_known_states', () => {
   });
 });
 
-describe('open questions and rule candidates', () => {
-  it('add_rule_candidate copies evidence_ref and forces inferred', async () => {
+describe('open questions and hypotheses', () => {
+  const TEST = { inputs: { 'input.Liczba wyników': 25 }, refutes_if: { notIn: ['24 results'] } };
+
+  it('add_hypothesis proposes on the portal model, building it when the run is the first', async () => {
     const ctx = await makeCtx();
     const run = await seedRun(ctx);
     const s = await recordState(ctx, st(run, 'a'));
-    const { rule_candidate_id } = await addRuleCandidate(ctx, {
+    const { key, created } = await addHypothesis(ctx, {
       run_id: run,
-      text: 'Guests see at most 24 results',
+      kind: 'decision_rule',
+      claim: 'Guests see at most 24 results',
       about_ref: s.state_id,
+      test: TEST,
     });
-    const row = await ctx.db
-      .selectFrom('rule_candidates')
-      .selectAll()
-      .where('id', '=', rule_candidate_id)
-      .executeTakeFirstOrThrow();
-    expect(row).toMatchObject({ evidence_ref: REF, confidence: 'inferred', about_ref: s.state_id });
+    expect({ key, created }).toEqual({ key: 'H-0001', created: true });
+    const row = ctx.raw
+      .prepare('SELECT origin, confidence, derived FROM hypotheses WHERE key = ?')
+      .get(key);
+    expect(row).toEqual({ origin: 'agent', confidence: 'needs_confirmation', derived: 0 });
+    expect(ctx.raw.prepare('SELECT count(*) AS n FROM model_versions').get()).toEqual({ n: 1 });
   });
 
-  it('cannot set evidence_ref or confidence, and rejects unknown refs', async () => {
+  it('needs a test, cannot set confidence, and rejects unknown refs', async () => {
     const ctx = await makeCtx();
     const run = await seedRun(ctx);
     const s = await recordState(ctx, st(run, 'a'));
-    expect(
-      await code(
-        addRuleCandidate(ctx, {
-          run_id: run,
-          text: 't',
-          about_ref: s.state_id,
-          confidence: 'observed',
-        }),
-      ),
-    ).toBe('SCHEMA_INVALID');
-    expect(await code(addRuleCandidate(ctx, { run_id: run, text: 't', about_ref: 'ghost' }))).toBe(
+    const base = { run_id: run, kind: 'decision_rule', claim: 't', about_ref: s.state_id };
+    expect(await code(addHypothesis(ctx, base))).toBe('TEST_REQUIRED');
+    expect(await code(addHypothesis(ctx, { ...base, test: TEST, confidence: 'observed' }))).toBe(
+      'SCHEMA_INVALID',
+    );
+    expect(await code(addHypothesis(ctx, { ...base, test: TEST, about_ref: 'ghost' }))).toBe(
       'UNKNOWN_REF',
     );
     expect(await code(addOpenQuestion(ctx, { run_id: run, text: 't', about_ref: 'ghost' }))).toBe(
@@ -122,9 +121,11 @@ describe('open questions and rule candidates', () => {
     expect(await code(addOpenQuestion(ctx, { run_id: run, text: 't', about_ref: 'x' }))).toBe(
       'RUN_STOPPED',
     );
-    expect(await code(addRuleCandidate(ctx, { run_id: run, text: 't', about_ref: 'x' }))).toBe(
-      'RUN_STOPPED',
-    );
+    expect(
+      await code(
+        addHypothesis(ctx, { run_id: run, kind: 'ambiguous', claim: 't', about_ref: 'x' }),
+      ),
+    ).toBe('RUN_STOPPED');
     expect(await code(getNextFrontierItem(ctx, { run_id: run }))).toBe('RUN_STOPPED');
   });
 });

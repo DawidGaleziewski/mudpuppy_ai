@@ -43,10 +43,12 @@ export const BA_READ_TOOLS = [
   'get_process',
   'get_pending_feedback',
   'get_access_matrix',
-  // Spec 033: where scans saw different screens at one point.
-  'list_differing_states',
   // Spec 034 (R-70): a documented process, all its runs and what no record cites yet.
   'open_process_update',
+  // Spec 039 (T055): what changed in the portal model and how it is explained.
+  'list_deviations',
+  'list_hypotheses',
+  'get_hypothesis',
 ].map((t) => BA + t);
 
 export const BA_WRITE_TOOLS = [
@@ -59,8 +61,9 @@ export const BA_WRITE_TOOLS = [
   'address_crawler_question',
   // Spec 032: a probe suite the owner approves in Review before it ever runs.
   'propose_probe_suite',
-  // Spec 033: verdicts on differing states the owner confirms in Review.
-  'propose_verdicts',
+  // Spec 039 (T055): hypotheses a person confirms (`model:decide`, What changed).
+  'propose_hypothesis',
+  'add_hypothesis_test',
 ].map((t) => BA + t);
 
 export const CRAWLER_TOOLS = [
@@ -74,7 +77,7 @@ export const CRAWLER_TOOLS = [
   'go_to_state',
   'login',
   'add_open_question',
-  'add_rule_candidate',
+  'add_hypothesis',
   'finish_run',
 ].map((t) => CRAWLER + t);
 

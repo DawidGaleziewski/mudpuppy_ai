@@ -20,4 +20,5 @@ export * from './regressions.js';
 export * from './model-calibration.js';
 export * from './fingerprint-profiles.js';
 export * from './refingerprint.js';
+export * from './agent-hypotheses.js';
 export type { Selectable, Insertable } from 'kysely';
