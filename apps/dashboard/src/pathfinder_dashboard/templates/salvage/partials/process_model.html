@@ -1,0 +1,28 @@
+{#- What the portal model knows of the process (spec 039 T100, UX-R51–R54, designer screen v2-10):
+    how journeys entered it, how they ended, how far it was explored and the rules on its screens.
+    Expects `v.model` (queries_process_model.ProcessModel). -#}
+{%- set m = v.model %}
+{%- if m and m.model_seq is not none %}
+<section class="sy-plate" aria-labelledby="model-h">
+  <div class="sy-plate__head">
+    <h2 class="sy-plate__title" id="model-h">In the portal model</h2>
+    <span class="sy-meta">model version <span class="sy-num">{{ m.model_seq }}</span></span>
+  </div>
+  <div class="sy-plate__body sy-stack">
+    <dl class="sy-facts">
+      <dt>Triggers</dt>
+      <dd>{%- if m.triggers %}{% for t in m.triggers %}<div>{% if t.screen_key %}{{ sy.tag(t.screen_key, sm=true) }} <span class="sy-case-normal">{{ t.screen_title or "" }}</span>{% else %}<span class="sy-muted">outside the model</span>{% endif %} → <span class="sy-mono sy-mono--sm">{{ t.element }}</span> · <span class="sy-num">{{ t.count }}</span>×</div>{% endfor %}
+        {%- else %}<span class="sy-muted">No scan entered the process through a link or button yet.</span>{% endif %}</dd>
+      <dt>Outcomes</dt>
+      <dd>{%- if m.outcomes %}{% for o, n in m.outcomes.items() %}<span class="sy-num">{{ n }}</span> {{ o }}{% if not loop.last %} · {% endif %}{% endfor %}
+        {%- else %}<span class="sy-muted">—</span>{% endif %}</dd>
+      <dt>Explored</dt>
+      <dd>{%- if m.explored %}{{ sy.status("explored", "thorough" if m.explored.new_deviations == 0 else "partial") }} to depth {{ m.explored.depth }} plus <span class="sy-num">{{ m.explored.random_walks }}</span> random walks, {{ m.explored.completed_at | when }}{% if m.explored.new_deviations %}: <span class="sy-num">{{ m.explored.new_deviations }}</span> new changes{% else %}: no counterexamples{% endif %}
+        {%- else %}{{ sy.status("explored", "not_explored") }} <span class="sy-small sy-muted">Check runs explore it: pnpm model:explore {{ p.portal_id }} {{ p.key }}</span>{% endif %}</dd>
+      <dt>Business rules</dt>
+      <dd>{%- if m.rules %}{% for r in m.rules %}<div>{{ sy.tag(r.key, c.url('/rules/' ~ r.key), sm=true) }} <span class="sy-case-normal">{{ r.claim }}</span> {{ sy.status("rule", r.status) }}</div>{% endfor %}
+        {%- else %}<span class="sy-muted">No rule decided on these screens.</span>{% endif %}</dd>
+    </dl>
+  </div>
+</section>
+{%- endif %}

@@ -19,6 +19,7 @@ from .. import (
     pager,
     process_diff,
     queries_process_doc,
+    queries_process_model,
     queries_processes,
 )
 from .chat_forward import chat_refused, forward, invalid, read_json
@@ -163,6 +164,10 @@ def editor_values(
         "sign_off": queries_process_doc.sign_off(view),
         "stages": queries_processes.STAGES,
         **(as_is_values(conn, view, view.as_is.steps) if view.as_is else {}),
+        # Spec 039 T100 (v2-10, UX-R51–R54): triggers, outcomes, explored, rules.
+        "model": queries_process_model.process_model(
+            conn, view.process.portal_id, view.process.id, view.as_is.steps if view.as_is else []
+        ),
     }
 
 

@@ -172,6 +172,11 @@ VOCABULARIES: dict[str, dict[str, Status]] = {
         "replaced": _s("skipped", "Replaced"),
         "rejected": _s("stopped", "Rejected"),
     },
+    "explored": {
+        "thorough": _s("ok", "Thorough"),
+        "partial": _s("needs", "Partial"),
+        "not_explored": _s("todo", "Not explored"),
+    },
     "boundary_test": {
         "pass": _s("ok", "Pass"),
         "fail": _s("failed", "Fail"),
