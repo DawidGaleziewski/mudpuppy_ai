@@ -334,10 +334,17 @@ describe('pathfinder-chat MCP server', () => {
       (await call('request_documentation', { ...base, ...args })).body.error as { code: string };
     expect(await errorOf({ process_key: 'PROC-001' })).toMatchObject({ code: 'NOT_FOUND' });
     expect(await errorOf({})).toMatchObject({ code: 'INVALID' });
+    // A PROC record documents its process (spec 039 T070).
     opened.raw
       .prepare(
-        `INSERT INTO doc_records (id, portal_id, kind, key, seq, title, latest_rev, confirmed_rev, withdrawn, created_at, updated_at)
-         VALUES ('r-1', 'reference-insurer', 'process', 'PROC-001', 1, 'Quote', 1, NULL, 0, '2026-10-17T00:00:00Z', '2026-10-17T00:00:00Z')`,
+        `INSERT INTO ba_processes (id, portal_id, key, name, persona, stage, rev, source, created_at, updated_at, record_key)
+         VALUES ('p-1', 'reference-insurer', 'PRC-901', 'Quote', 'guest', 'scoped', 1, 'new', '2026-10-17T00:00:00Z', '2026-10-17T00:00:00Z', 'PROC-001')`,
+      )
+      .run();
+    opened.raw
+      .prepare(
+        `INSERT INTO doc_records (id, portal_id, kind, key, seq, title, latest_rev, confirmed_rev, withdrawn, created_at, updated_at, process_id)
+         VALUES ('r-1', 'reference-insurer', 'process', 'PROC-001', 1, 'Quote', 1, NULL, 0, '2026-10-17T00:00:00Z', '2026-10-17T00:00:00Z', 'p-1')`,
       )
       .run();
     const { isError, body } = await call('request_documentation', {

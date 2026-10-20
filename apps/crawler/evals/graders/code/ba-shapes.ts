@@ -37,8 +37,8 @@ export function errorPagesAsSteps(db: RawDb, portal: string): number {
   const steps = db
     .prepare(
       `SELECT r.steps FROM ba_processes p
-         JOIN process_variants v ON v.process_id = p.id AND v.label = 'A'
-         JOIN process_variant_revisions r ON r.variant_id = v.id AND r.rev = v.rev
+         JOIN process_models v ON v.process_id = p.id AND v.label = 'A'
+         JOIN process_model_revisions r ON r.variant_id = v.id AND r.rev = v.rev
         WHERE p.portal_id = ?`,
     )
     .all(portal) as { steps: string }[];

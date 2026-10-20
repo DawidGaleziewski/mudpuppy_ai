@@ -33,7 +33,7 @@ def _as_documented(store: Store, *, signed_rev: int, head_rev: int) -> None:
     for rev in range(2, head_rev + 1):
         insert(
             conn,
-            "process_variant_revisions",
+            "process_model_revisions",
             variant_id="v-a",
             rev=rev,
             base_rev=rev - 1,
@@ -45,7 +45,7 @@ def _as_documented(store: Store, *, signed_rev: int, head_rev: int) -> None:
             restored_from=None,
             created_at=ts(10 + rev),
         )
-    conn.execute("UPDATE process_variants SET rev = ? WHERE id = 'v-a'", (head_rev,))
+    conn.execute("UPDATE process_models SET rev = ? WHERE id = 'v-a'", (head_rev,))
     conn.commit()
     conn.close()
 

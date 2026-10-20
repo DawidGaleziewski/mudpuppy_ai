@@ -514,6 +514,31 @@ Bugs, slips and design deviations found while building, each with a test or eval
   purchase step. The approved reference export scores wrong start 1 (the home page, F-15@034),
   wrong end 0. Not run: the "several trials" part costs money and waits for the owner.
 
+## F-34 One process concept as built (T070), 2026-10-20
+
+- **Migration 0036** adds `correlation_ids`, `process_instances`, `process_triggers`,
+  `process_explorations`, `ba_processes.start_screen_id` / `boundary_hypothesis_id` (the design's
+  `screens` are `model_screens`), `doc_records.process_id` with a unique index per process and
+  two triggers (insert, and an update of `kind` or `process_id`; an update of `latest_rev` does
+  not fire, so records written before 0036 keep working), and renames `process_variants` /
+  `process_variant_revisions` to `process_models` / `process_model_revisions`. The `variant_id`
+  columns, the UI's "variant" wording and the `/variants/A` routes stay until the designer's
+  pages (T100); the eval score `process_variants` (step variants) is a different thing and keeps
+  its name. 0037 was not needed.
+- **PROC ↔ PRC 1:1 in the BA path**: `create_record` for a `process` takes an optional
+  `process_key` (a process a person accepted); without it the server opens a PRC for the record
+  (source `new`, stage `scoped`, `record_key` set, no A yet). A process that has its record is
+  refused (`PROCESS_DOCUMENTED`). "Open in Processes" builds A on the record's own process
+  (`insertAsIs` in chat's `process-store.ts`), and the docs page offers it until A exists
+  (`linked_process` needs an A). `processKeys` (portal export) no longer lists a documented PRC a
+  second time.
+- **Portal delete order**: Layer B now goes before the BA process tables (PROC records reference
+  them). Dead error codes `GROUP_UNKNOWN` and `VERDICTS_INCOMPLETE` removed.
+- **Test**: `ba-records.test.ts` (opened, linked, refused, the store trigger),
+  `process-from-record.test.ts` (A built on the record's process), the migration round-trips.
+  Bug class worth an eval: a BA that writes two PROC records for one process now gets
+  `PROCESS_DOCUMENTED`; count those refusals per trial.
+
 ## F-33 Guard intersection as built (T064), 2026-10-20
 
 - `guardConflicts` (`@pathfinder/model` `rules/guards.ts`) chains the decision rules screen by

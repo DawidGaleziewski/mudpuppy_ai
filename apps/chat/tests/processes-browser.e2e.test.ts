@@ -16,13 +16,13 @@ let variantB: string;
 
 const head = () =>
   (
-    stack.opened.raw.prepare('SELECT rev FROM process_variants WHERE id = ?').get(variantB) as {
+    stack.opened.raw.prepare('SELECT rev FROM process_models WHERE id = ?').get(variantB) as {
       rev: number;
     }
   ).rev;
 const revision = (rev: number) =>
   stack.opened.raw
-    .prepare('SELECT author, steps FROM process_variant_revisions WHERE variant_id = ? AND rev = ?')
+    .prepare('SELECT author, steps FROM process_model_revisions WHERE variant_id = ? AND rev = ?')
     .get(variantB, rev) as { author: string; steps: string };
 const titles = (rev: number) =>
   (JSON.parse(revision(rev).steps) as { title: string }[]).map((s) => s.title);

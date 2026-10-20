@@ -527,6 +527,51 @@ class TauAcceptance(Row):
     accepted_at: str
 
 
+class CorrelationId(Row):
+    """0036 (spec 039 § 13.4): a value reused within a journey, stored hashed."""
+
+    id: str
+    journey_id: str
+    key_path: str
+    value_hash: str
+    endpoint_family: str
+    first_transition_id: str
+    last_transition_id: str
+
+
+class ProcessInstance(Row):
+    """0036: one journey through a process from its trigger, with the outcome."""
+
+    id: str
+    process_id: str
+    journey_id: str
+    trigger_transition_id: str
+    last_transition_id: str
+    outcome: Literal["completed", "exited", "error", "abandoned", "incomplete"]
+    outcome_screen_id: str | None
+    correlation_id: str | None
+    model_version_id: str
+
+
+class ProcessTrigger(Row):
+    """0036: a model transition that starts a process."""
+
+    process_id: str
+    model_transition_id: str
+
+
+class ProcessExploration(Row):
+    """0036: one completed exploration of a process (the stopping rule)."""
+
+    id: str
+    process_id: str
+    epoch_set: Json
+    depth: int
+    random_walks: int
+    new_deviations: int
+    completed_at: str
+
+
 class BuildEpoch(Row):
     """0030: the period a build of a scope served, per environment."""
 
@@ -874,6 +919,7 @@ class DocRecord(Row):
     withdrawn: bool
     created_at: str
     updated_at: str
+    process_id: str | None = None  # 0036: the process a PROC record documents (one per process)
 
 
 class DocRevision(Row):
@@ -1124,6 +1170,8 @@ class BaProcess(Row):
     updated_at: str
     archived_at: str | None = None  # 0028: set while archived (spec 027)
     record_key: str | None = None  # 0028: the PROC record it was opened from (spec 027 US6)
+    start_screen_id: str | None = None  # 0036: the screen its trigger opens
+    boundary_hypothesis_id: str | None = None  # 0036: the process_boundary hypothesis
 
 
 class BaProcessRevision(Row):
@@ -1265,8 +1313,8 @@ TABLE_MODELS: dict[str, type[Row]] = {
     "grouping_suggestions": GroupingSuggestion,
     "ba_processes": BaProcess,
     "ba_process_revisions": BaProcessRevision,
-    "process_variants": ProcessVariant,
-    "process_variant_revisions": ProcessVariantRevision,
+    "process_models": ProcessVariant,
+    "process_model_revisions": ProcessVariantRevision,
     "process_drafts": ProcessDraft,
     "process_live": ProcessLive,
     "change_spec_revisions": ChangeSpecRevision,
@@ -1298,6 +1346,10 @@ TABLE_MODELS: dict[str, type[Row]] = {
     "hypothesis_events": HypothesisEvent,
     "fingerprint_profiles": FingerprintProfile,
     "tau_acceptances": TauAcceptance,
+    "correlation_ids": CorrelationId,
+    "process_instances": ProcessInstance,
+    "process_triggers": ProcessTrigger,
+    "process_explorations": ProcessExploration,
 }
 
 

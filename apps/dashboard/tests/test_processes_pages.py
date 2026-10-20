@@ -94,7 +94,7 @@ def seed(store: Store, *, draft_base: int = 1, b_rev: int = 1) -> Store:
     )
     insert(
         conn,
-        "process_variants",
+        "process_models",
         id="v-a",
         process_id="pr-1",
         label="A",
@@ -106,7 +106,7 @@ def seed(store: Store, *, draft_base: int = 1, b_rev: int = 1) -> Store:
     )
     insert(
         conn,
-        "process_variant_revisions",
+        "process_model_revisions",
         variant_id="v-a",
         rev=1,
         base_rev=None,
@@ -120,7 +120,7 @@ def seed(store: Store, *, draft_base: int = 1, b_rev: int = 1) -> Store:
     )
     insert(
         conn,
-        "process_variants",
+        "process_models",
         id="v-b",
         process_id="pr-1",
         label="B",
@@ -133,7 +133,7 @@ def seed(store: Store, *, draft_base: int = 1, b_rev: int = 1) -> Store:
     for rev in range(1, b_rev + 1):
         insert(
             conn,
-            "process_variant_revisions",
+            "process_model_revisions",
             variant_id="v-b",
             rev=rev,
             base_rev=None if rev == 1 else rev - 1,

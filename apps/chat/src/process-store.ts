@@ -55,7 +55,7 @@ export async function loadVariant(
   label: string,
 ): Promise<ProcessVariant> {
   const row = await db
-    .selectFrom('process_variants')
+    .selectFrom('process_models')
     .selectAll()
     .where('process_id', '=', processId)
     .where('label', '=', label)
@@ -70,7 +70,7 @@ export async function loadRevision(
   rev: number,
 ): Promise<ProcessVariantRevision> {
   const row = await db
-    .selectFrom('process_variant_revisions')
+    .selectFrom('process_model_revisions')
     .selectAll()
     .where('variant_id', '=', variantId)
     .where('rev', '=', rev)
@@ -121,7 +121,7 @@ export async function knownStates(
 /** Every step id any revision of a variant used (a new step's id never repeats one). */
 export async function usedStepIds(db: PathfinderDb, variantId: string): Promise<string[]> {
   const rows = await db
-    .selectFrom('process_variant_revisions')
+    .selectFrom('process_model_revisions')
     .select('steps')
     .where('variant_id', '=', variantId)
     .execute();
@@ -141,7 +141,7 @@ export async function insertVariantRevision(
 ): Promise<ProcessVariantRevision> {
   const row = ProcessVariantRevision.parse({ ...r, created_at: nowIso() });
   await db
-    .insertInto('process_variant_revisions')
+    .insertInto('process_model_revisions')
     .values({ ...row, steps: JSON.stringify(row.steps) })
     .execute();
   return row;
@@ -165,7 +165,7 @@ export async function writeVariant(
   const what = `Variant ${head.label}`;
   if (baseRev !== head.rev) throw stale(what, baseRev, head.rev, head);
   const done = await db
-    .updateTable('process_variants')
+    .updateTable('process_models')
     .set({ rev: head.rev + 1 })
     .where('id', '=', head.id)
     .where('rev', '=', head.rev) // another writer got there first: no lost update
@@ -307,9 +307,22 @@ export async function insertProcess(
       created_at: now,
     })
     .execute();
+  return { process, ...(await insertAsIs(db, process.id, input, now)) };
+}
+
+/**
+ * The as-is model A r1 of a process, built from recorded states: with a new process, or for one
+ * the BA's process record opened without it (spec 039 T070).
+ */
+export async function insertAsIs(
+  db: PathfinderDb,
+  processId: string,
+  input: Pick<NewProcess, 'states' | 'author' | 'source'>,
+  now = nowIso(),
+): Promise<Omit<ProcessOutcome, 'process'>> {
   const variant = ProcessVariant.parse({
     id: newId(),
-    process_id: process.id,
+    process_id: processId,
     label: 'A',
     kind: 'as_is',
     rev: 1,
@@ -317,7 +330,7 @@ export async function insertProcess(
     branched_from_rev: null,
     created_at: now,
   });
-  await db.insertInto('process_variants').values(variant).execute();
+  await db.insertInto('process_models').values(variant).execute();
   const revision = await insertVariantRevision(db, {
     variant_id: variant.id,
     rev: 1,
@@ -329,5 +342,5 @@ export async function insertProcess(
     run_id: null,
     restored_from: null,
   });
-  return { process, variant, revision };
+  return { variant, revision };
 }

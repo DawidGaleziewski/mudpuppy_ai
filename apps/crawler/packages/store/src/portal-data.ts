@@ -46,8 +46,8 @@ export const PORTAL_TABLES = [
   'grouping_suggestions',
   'ba_processes',
   'ba_process_revisions',
-  'process_variants',
-  'process_variant_revisions',
+  'process_models',
+  'process_model_revisions',
   'process_drafts',
   'process_live',
   'change_spec_revisions',
@@ -79,6 +79,10 @@ export const PORTAL_TABLES = [
   'hypothesis_events',
   'fingerprint_profiles',
   'tau_acceptances',
+  'correlation_ids',
+  'process_instances',
+  'process_triggers',
+  'process_explorations',
 ] as const;
 export type PortalTable = (typeof PORTAL_TABLES)[number];
 
@@ -105,6 +109,12 @@ export type PortalTable = (typeof PORTAL_TABLES)[number];
  * `decision_log` and `runs`.
  */
 const DELETE_ORDER: readonly PortalTable[] = [
+  // 0036 (spec 039): processes' instances, triggers and explorations reference the model, journeys
+  // and ba_processes; instances reference correlation ids
+  'process_explorations',
+  'process_triggers',
+  'process_instances',
+  'correlation_ids',
   // 0033 (spec 039): no references
   'tau_acceptances',
   'fingerprint_profiles',
@@ -131,11 +141,21 @@ const DELETE_ORDER: readonly PortalTable[] = [
   'marks', // 0024: references runs (used_by_run_id)
   'probe_suites', // 0023: reference runs and form_steps
   'probe_outcomes', // 0023: reference runs, states, form_steps and transitions
+  // 0036: PROC records reference ba_processes, so Layer B (and the trace processes that reference
+  // it) go before the BA process tables
+  'process_steps',
+  'processes',
+  'doc_reviews',
+  'doc_relations',
+  'doc_evidence_links',
+  'followup_tasks',
+  'doc_revisions',
+  'doc_records',
   'change_spec_revisions', // 0018: the BA process tables, children first
   'process_live',
   'process_drafts',
-  'process_variant_revisions',
-  'process_variants',
+  'process_model_revisions',
+  'process_models',
   'ba_process_revisions',
   'ba_processes',
   'grouping_suggestions',
@@ -146,14 +166,6 @@ const DELETE_ORDER: readonly PortalTable[] = [
   'workflow_steps',
   'chat_messages',
   'chat_conversations',
-  'process_steps',
-  'processes',
-  'doc_reviews',
-  'doc_relations',
-  'doc_evidence_links',
-  'followup_tasks',
-  'doc_revisions',
-  'doc_records',
   'analysis_session_runs',
   'analysis_sessions',
   'trace_spans',
@@ -289,14 +301,19 @@ export function where(table: PortalTable, side: 'mine' | 'others'): string {
       return `record_id IN (${DOC_RECORDS_OF_PORTAL(op)})`;
     case 'amendment_revisions':
       return `amendment_id IN (SELECT id FROM amendments WHERE portal_id ${op} ?)`;
+    case 'correlation_ids':
+      return `journey_id IN (SELECT id FROM journeys WHERE run_id IN (SELECT id FROM runs WHERE portal_id ${op} ?))`;
     case 'ba_process_revisions':
-    case 'process_variants':
+    case 'process_models':
+    case 'process_instances':
+    case 'process_triggers':
+    case 'process_explorations':
     case 'process_live':
     case 'change_spec_revisions':
       return `process_id IN (${BA_PROCESSES_OF_PORTAL(op)})`;
-    case 'process_variant_revisions':
+    case 'process_model_revisions':
     case 'process_drafts':
-      return `variant_id IN (SELECT id FROM process_variants WHERE process_id IN (${BA_PROCESSES_OF_PORTAL(op)}))`;
+      return `variant_id IN (SELECT id FROM process_models WHERE process_id IN (${BA_PROCESSES_OF_PORTAL(op)}))`;
     case 'process_steps':
       return `process_id IN (SELECT id FROM processes WHERE portal_id ${op} ?)`;
     case 'state_wireframes':

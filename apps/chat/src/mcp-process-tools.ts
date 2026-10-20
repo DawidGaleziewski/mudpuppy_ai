@@ -43,8 +43,8 @@ function groupingInputs(raw: BetterSqlite3.Database, portal: string) {
   const processes = raw
     .prepare(
       `SELECT p.key, p.name, p.stage, r.steps FROM ba_processes p
-       JOIN process_variants v ON v.process_id = p.id AND v.label = 'A'
-       JOIN process_variant_revisions r ON r.variant_id = v.id AND r.rev = v.rev
+       JOIN process_models v ON v.process_id = p.id AND v.label = 'A'
+       JOIN process_model_revisions r ON r.variant_id = v.id AND r.rev = v.rev
        WHERE p.portal_id = ? AND p.archived_at IS NULL ORDER BY p.key`, // archived: out of the cut (spec 027)
     )
     .all(portal) as { key: string; name: string; stage: string; steps: string }[];

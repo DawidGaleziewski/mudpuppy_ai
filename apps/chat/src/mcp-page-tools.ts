@@ -140,8 +140,8 @@ function processContext(ctx: PageToolContext, ref: string): Record<string, unkno
   const variants = (
     ctx.raw
       .prepare(
-        `SELECT v.label, v.kind, v.rev, r.steps, r.author, r.created_at FROM process_variants v
-         JOIN process_variant_revisions r ON r.variant_id = v.id AND r.rev = v.rev
+        `SELECT v.label, v.kind, v.rev, r.steps, r.author, r.created_at FROM process_models v
+         JOIN process_model_revisions r ON r.variant_id = v.id AND r.rev = v.rev
          WHERE v.process_id = ? ORDER BY length(v.label), v.label`,
       )
       .all(id) as (Record<string, unknown> & { steps: string })[]
@@ -149,7 +149,7 @@ function processContext(ctx: PageToolContext, ref: string): Record<string, unkno
   const live = ctx.raw
     .prepare(
       `SELECT l.environment, v.label, l.variant_rev, l.author, l.created_at FROM process_live l
-       JOIN process_variants v ON v.id = l.variant_id
+       JOIN process_models v ON v.id = l.variant_id
        WHERE l.process_id = ? AND l.created_at = (SELECT max(m.created_at) FROM process_live m
          WHERE m.process_id = l.process_id AND m.environment = l.environment)`,
     )

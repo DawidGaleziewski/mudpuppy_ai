@@ -45,9 +45,6 @@ export const ERROR_CODES = [
   'PROBE_NOT_ASKED',
   'STEP_NOT_MARKED',
   'NO_PROBE_MARKS',
-  // Differing states (spec 033): no such group now; a proposal that leaves an outcome out.
-  'GROUP_UNKNOWN',
-  'VERDICTS_INCOMPLETE',
   // Documentation that grows (spec 034 R-70): a revision that drops evidence or flow steps without
   // saying so; a process whose only cited screens are error pages; an unknown process to update.
   'REVISION_DROPS',
@@ -59,6 +56,8 @@ export const ERROR_CODES = [
   'TEST_REQUIRED',
   'CLAIM_REFUTED',
   'UNKNOWN_HYPOTHESIS',
+  // One process concept (spec 039 design § 13.4, T070): a process already has its PROC record.
+  'PROCESS_DOCUMENTED',
 ] as const;
 export type ErrorCode = (typeof ERROR_CODES)[number];
 

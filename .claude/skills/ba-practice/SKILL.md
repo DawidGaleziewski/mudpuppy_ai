@@ -94,6 +94,10 @@ works from, so it starts where the business process starts, not where the browse
   after the outcome (back to home, another product) are not part of it.
 - One process per goal. Two goals reached one after the other (calculate, then buy) are two
   processes; relate them with `depends_on` when the second needs the first.
+- **One record per process.** Each `process` record documents exactly one process (PRC-nnn).
+  When a person accepted a process from a proposal (it is listed in Processes), name it with
+  `process_key` on `create_record`; otherwise the server opens a process for your record. A
+  process that already has its record is refused (`PROCESS_DOCUMENTED`): revise that record.
 
 - Read each trace with `get_process`: its steps (intent, kind, action label, value, states before and
   after, outcomes) are the evidence. Cite the `process` and the `process_step`s that show each claim

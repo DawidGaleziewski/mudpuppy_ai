@@ -217,8 +217,8 @@ function workspaceProcess(raw: RawDb, portal: string, key: string): ResolvedProc
   const [p] = rows<{ name: string; steps: string }>(
     raw,
     `SELECT p.name, r.steps FROM ba_processes p
-     JOIN process_variants v ON v.process_id = p.id AND v.kind = 'as_is'
-     JOIN process_variant_revisions r ON r.variant_id = v.id AND r.rev = v.rev
+     JOIN process_models v ON v.process_id = p.id AND v.kind = 'as_is'
+     JOIN process_model_revisions r ON r.variant_id = v.id AND r.rev = v.rev
      WHERE p.portal_id = ? AND p.key = ?`,
     portal,
     key,
@@ -229,7 +229,7 @@ function workspaceProcess(raw: RawDb, portal: string, key: string): ResolvedProc
     .filter((s): s is string => typeof s === 'string');
   const runs = rows<{ run_id: string }>(
     raw,
-    `SELECT DISTINCT r.run_id FROM process_variant_revisions r JOIN process_variants v ON v.id = r.variant_id
+    `SELECT DISTINCT r.run_id FROM process_model_revisions r JOIN process_models v ON v.id = r.variant_id
      JOIN ba_processes p ON p.id = v.process_id WHERE p.portal_id = ? AND p.key = ? AND r.run_id IS NOT NULL`,
     portal,
     key,
@@ -263,9 +263,12 @@ export function processKeys(raw: RawDb, portal: string): string[] {
   ).map((r) => r.key);
   let workspace: string[];
   try {
+    // A process its PROC record documents is that record's (one concept, spec 039 T070).
     workspace = rows<{ key: string }>(
       raw,
-      'SELECT key FROM ba_processes WHERE portal_id = ? ORDER BY key',
+      `SELECT p.key FROM ba_processes p WHERE p.portal_id = ? AND NOT EXISTS (
+         SELECT 1 FROM doc_records r WHERE r.process_id = p.id AND r.kind = 'process' AND r.withdrawn = 0)
+       ORDER BY p.key`,
       portal,
     ).map((r) => r.key);
   } catch {

@@ -21,6 +21,7 @@ it('0021 free environment names: format check, round-trip keeps rows, down refus
     expect(() => ins(bad), bad).toThrow(/CHECK/);
   expect(() => ins('dev-2')).toThrow(/UNIQUE/);
   // down refuses while a free name exists, and rolls back
+  expect(migrateDown(o.raw, MIGRATIONS)).toBe('0036');
   expect(migrateDown(o.raw, MIGRATIONS)).toBe('0035');
   expect(migrateDown(o.raw, MIGRATIONS)).toBe('0034');
   expect(migrateDown(o.raw, MIGRATIONS)).toBe('0033');
@@ -55,6 +56,7 @@ it('0021 free environment names: format check, round-trip keeps rows, down refus
     '0033',
     '0034',
     '0035',
+    '0036',
   ]);
   expect(o.raw.prepare('SELECT count(*) AS n FROM credentials').get()).toEqual({ n: 1 });
   expect(

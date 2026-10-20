@@ -536,9 +536,20 @@ def add_record(
     record_id = f"rec-{key}"
     latest = revisions[-1]
     confirmed = [n for n, r in enumerate(revisions, start=1) if r.get("status") == "confirmed"]
+    # A PROC record documents its own process (spec 039 T070); PRC-8nn keeps clear of the
+    # processes other fixtures create.
+    process_id = f"prc-{key}" if kind == "process" else None
+    if process_id:
+        conn.execute(
+            "INSERT INTO ba_processes (id, portal_id, key, name, persona, stage, rev, source,"
+            " created_at, updated_at, record_key) VALUES (?, ?, ?, ?, 'guest', 'scoped', 1, 'new',"
+            " ?, ?, ?)",
+            (process_id, portal, f"PRC-{800 + int(seq)}", title, T0, T0, key),
+        )
     conn.execute(
         "INSERT INTO doc_records (id, portal_id, kind, key, seq, title, latest_rev, confirmed_rev,"
-        " withdrawn, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+        " withdrawn, created_at, updated_at, process_id)"
+        " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
         (
             record_id,
             portal,
@@ -551,6 +562,7 @@ def add_record(
             1 if latest.get("change") == "withdraw" else 0,
             T0,
             ts(40),
+            process_id,
         ),
     )
     for n, rev in enumerate(revisions, start=1):

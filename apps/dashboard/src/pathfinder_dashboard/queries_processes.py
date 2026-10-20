@@ -93,7 +93,7 @@ def _variant_views(conn: sqlite3.Connection, process_id: str) -> list[VariantVie
         ProcessVariant.model_validate(dict(r))
         for r in _rows(
             conn,
-            "SELECT * FROM process_variants WHERE process_id = ? ORDER BY length(label), label",
+            "SELECT * FROM process_models WHERE process_id = ? ORDER BY length(label), label",
             (process_id,),
         )
     ]
@@ -103,7 +103,7 @@ def _variant_views(conn: sqlite3.Connection, process_id: str) -> list[VariantVie
             ProcessVariantRevision.model_validate(dict(r))
             for r in _rows(
                 conn,
-                "SELECT * FROM process_variant_revisions WHERE variant_id = ? ORDER BY rev",
+                "SELECT * FROM process_model_revisions WHERE variant_id = ? ORDER BY rev",
                 (v.id,),
             )
         ]
@@ -259,10 +259,13 @@ def portal_screens(conn: sqlite3.Connection, portal: str) -> list[State]:
 
 
 def linked_process(conn: sqlite3.Connection, portal: str, record_key: str) -> str | None:
-    """The PRC key opened from a BA process record (spec 027 US6.2), if any."""
+    """The PRC key opened from a BA process record (spec 027 US6.2), if any. Since spec 039 T070
+    every PROC record has its process from the start; it counts as opened once it has an A."""
     rows = _rows(
         conn,
-        "SELECT key FROM ba_processes WHERE portal_id = ? AND record_key = ? ORDER BY key LIMIT 1",
+        "SELECT p.key FROM ba_processes p WHERE p.portal_id = ? AND p.record_key = ?"
+        " AND EXISTS (SELECT 1 FROM process_models m WHERE m.process_id = p.id AND m.label = 'A')"
+        " ORDER BY p.key LIMIT 1",
         (portal, record_key),
     )
     return str(rows[0][0]) if rows else None
@@ -291,8 +294,8 @@ def _as_is_steps(conn: sqlite3.Connection, portal: str) -> list[list[dict[str, A
     }
     rows = _rows(
         conn,
-        "SELECT p.id, r.steps FROM ba_processes p JOIN process_variants v"
-        " ON v.process_id = p.id AND v.label = 'A' JOIN process_variant_revisions r"
+        "SELECT p.id, r.steps FROM ba_processes p JOIN process_models v"
+        " ON v.process_id = p.id AND v.label = 'A' JOIN process_model_revisions r"
         " ON r.variant_id = v.id AND r.rev = v.rev WHERE p.portal_id = ?",
         (portal,),
     )

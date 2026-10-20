@@ -386,6 +386,9 @@ export interface BaProcessesTable {
   archived_at: string | null;
   /** 0028: the PROC record it was opened from (spec 027 US6). */
   record_key: string | null;
+  /** 0036: the screen its trigger opens, and the process_boundary hypothesis it came from. */
+  start_screen_id: ColumnType<string | null, string | null | undefined, string | null>;
+  boundary_hypothesis_id: ColumnType<string | null, string | null | undefined, string | null>;
 }
 
 export interface BaProcessRevisionsTable {
@@ -401,7 +404,8 @@ export interface BaProcessRevisionsTable {
   created_at: string;
 }
 
-export interface ProcessVariantsTable {
+/** 0036: renamed from `process_variants` (spec 039 design § 13.4). */
+export interface ProcessModelsTable {
   id: string;
   process_id: string;
   label: string;
@@ -412,7 +416,8 @@ export interface ProcessVariantsTable {
   created_at: string;
 }
 
-export interface ProcessVariantRevisionsTable {
+/** 0036: renamed from `process_variant_revisions`. */
+export interface ProcessModelRevisionsTable {
   variant_id: string;
   rev: number;
   base_rev: number | null;
@@ -1029,6 +1034,49 @@ export interface DocRecordsTable {
   withdrawn: 0 | 1;
   created_at: string;
   updated_at: string;
+  /** 0036: the process a PROC record documents (required for `process`, one per process). */
+  process_id: ColumnType<string | null, string | null | undefined, string | null>;
+}
+
+/** 0036 (spec 039 design § 13.4): a value reused within a journey, stored hashed. */
+export interface CorrelationIdsTable {
+  id: string;
+  journey_id: string;
+  key_path: string;
+  value_hash: string;
+  endpoint_family: string;
+  first_transition_id: string;
+  last_transition_id: string;
+}
+
+/** 0036: one journey through a process from its trigger, with the outcome. */
+export interface ProcessInstancesTable {
+  id: string;
+  process_id: string;
+  journey_id: string;
+  trigger_transition_id: string;
+  last_transition_id: string;
+  outcome: 'completed' | 'exited' | 'error' | 'abandoned' | 'incomplete';
+  outcome_screen_id: string | null;
+  correlation_id: string | null;
+  model_version_id: string;
+}
+
+/** 0036: the model transitions that start a process. */
+export interface ProcessTriggersTable {
+  process_id: string;
+  model_transition_id: string;
+}
+
+/** 0036: one completed exploration of a process (the stopping rule, design § 14.2). */
+export interface ProcessExplorationsTable {
+  id: string;
+  process_id: string;
+  epoch_set: string;
+  depth: number;
+  random_walks: number;
+  new_deviations: number;
+  completed_at: string;
 }
 
 export interface DocRevisionsTable {
@@ -1179,8 +1227,12 @@ export interface Database {
   grouping_suggestions: GroupingSuggestionsTable;
   ba_processes: BaProcessesTable;
   ba_process_revisions: BaProcessRevisionsTable;
-  process_variants: ProcessVariantsTable;
-  process_variant_revisions: ProcessVariantRevisionsTable;
+  process_models: ProcessModelsTable;
+  process_model_revisions: ProcessModelRevisionsTable;
+  correlation_ids: CorrelationIdsTable;
+  process_instances: ProcessInstancesTable;
+  process_triggers: ProcessTriggersTable;
+  process_explorations: ProcessExplorationsTable;
   process_drafts: ProcessDraftsTable;
   process_live: ProcessLiveTable;
   change_spec_revisions: ChangeSpecRevisionsTable;

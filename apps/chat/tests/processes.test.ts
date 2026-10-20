@@ -68,7 +68,7 @@ describe('BA processes', () => {
     JSON.parse(
       (
         t.opened.raw
-          .prepare('SELECT steps FROM process_variant_revisions WHERE variant_id = ? AND rev = ?')
+          .prepare('SELECT steps FROM process_model_revisions WHERE variant_id = ? AND rev = ?')
           .get(variantId, rev) as { steps: string }
       ).steps,
     ) as Json[];

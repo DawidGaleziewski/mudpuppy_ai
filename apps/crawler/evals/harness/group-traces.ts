@@ -70,13 +70,13 @@ export async function groupTraceRuns(
         .run(processId, t.name, at);
       raw
         .prepare(
-          `INSERT INTO process_variants (id, process_id, label, kind, rev, branched_from_variant_id, branched_from_rev, created_at)
+          `INSERT INTO process_models (id, process_id, label, kind, rev, branched_from_variant_id, branched_from_rev, created_at)
            VALUES (?, ?, 'A', 'as_is', 1, NULL, NULL, ?)`,
         )
         .run(variantId, processId, at);
       raw
         .prepare(
-          `INSERT INTO process_variant_revisions (variant_id, rev, base_rev, change, author, steps, note, run_id, restored_from, created_at)
+          `INSERT INTO process_model_revisions (variant_id, rev, base_rev, change, author, steps, note, run_id, restored_from, created_at)
            VALUES (?, 1, NULL, 'create', 'eval', ?, 'Grouped from the trace run', ?, NULL, ?)`,
         )
         .run(variantId, steps, t.runId, at);

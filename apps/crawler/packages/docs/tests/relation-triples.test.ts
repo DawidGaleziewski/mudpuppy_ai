@@ -21,15 +21,22 @@ function seed(o: OpenedDb): Record<string, { record: string; revision: string }>
     )
     .run(ts);
   const out: Record<string, { record: string; revision: string }> = {};
+  // A PROC record documents its process (0036, spec 039 T070).
+  o.raw
+    .prepare(
+      `INSERT INTO ba_processes (id, portal_id, key, name, persona, stage, rev, source, created_at, updated_at)
+       VALUES ('prc', 'p', 'PRC-001', 't', 'guest', 'scoped', 1, 'new', ?, ?)`,
+    )
+    .run(ts, ts);
   DocKind.options.forEach((kind, i) => {
     const record = `rec-${kind}`;
     const revision = `rev-${kind}`;
     o.raw
       .prepare(
-        `INSERT INTO doc_records (id, portal_id, kind, key, seq, title, latest_rev, created_at, updated_at)
-         VALUES (?, 'p', ?, ?, ?, 't', 1, ?, ?)`,
+        `INSERT INTO doc_records (id, portal_id, kind, key, seq, title, latest_rev, created_at, updated_at, process_id)
+         VALUES (?, 'p', ?, ?, ?, 't', 1, ?, ?, ?)`,
       )
-      .run(record, kind, `K${i}-001`, 1, ts, ts);
+      .run(record, kind, `K${i}-001`, 1, ts, ts, kind === 'process' ? 'prc' : null);
     o.raw
       .prepare(
         `INSERT INTO doc_revisions (id, record_id, rev_no, session_id, change, content_json, confidence, status, created_at)
@@ -105,6 +112,7 @@ describe('doc_relations triple triggers (0013_relation_triples) match RELATION_R
     insert(opened, rev('process'), rec('screen'), 'contains');
     insert(opened, rev('data_item'), rec('screen'), 'appears_on');
     insert(opened, rev('capability'), rec('screen'), 'contains');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0036');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0035');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0034');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0033');
@@ -146,6 +154,7 @@ describe('doc_relations triple triggers (0013_relation_triples) match RELATION_R
     insert(opened, rev('assumption'), rec('business_rule'), 'depends_on');
     insert(opened, rev('use_case'), rec('business_rule'), 'depends_on');
     insert(opened, rev('process'), rec('process'), 'depends_on');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0036');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0035');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0034');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0033');

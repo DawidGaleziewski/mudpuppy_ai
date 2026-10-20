@@ -164,8 +164,8 @@ function workspaceProcesses(ctx: BaContext, portal: string): GroupProcess[] {
   const rows = ctx.raw
     .prepare(
       `SELECT p.key, p.name, r.steps FROM ba_processes p
-       JOIN process_variants v ON v.process_id = p.id AND v.kind = 'as_is'
-       JOIN process_variant_revisions r ON r.variant_id = v.id AND r.rev = v.rev
+       JOIN process_models v ON v.process_id = p.id AND v.kind = 'as_is'
+       JOIN process_model_revisions r ON r.variant_id = v.id AND r.rev = v.rev
        WHERE p.portal_id = ? ORDER BY p.key`,
     )
     .all(portal) as { key: string; name: string; steps: string }[];
@@ -174,8 +174,8 @@ function workspaceProcesses(ctx: BaContext, portal: string): GroupProcess[] {
     const states = steps.map((s) => s.state_id).filter((s): s is string => typeof s === 'string');
     const observed = ctx.raw
       .prepare(
-        `SELECT DISTINCT r.run_id FROM process_variant_revisions r
-         JOIN process_variants v ON v.id = r.variant_id JOIN ba_processes p ON p.id = v.process_id
+        `SELECT DISTINCT r.run_id FROM process_model_revisions r
+         JOIN process_models v ON v.id = r.variant_id JOIN ba_processes p ON p.id = v.process_id
          WHERE p.portal_id = ? AND p.key = ? AND r.run_id IS NOT NULL`,
       )
       .all(portal, p.key) as { run_id: string }[];

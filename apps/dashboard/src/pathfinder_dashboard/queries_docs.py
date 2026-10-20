@@ -198,7 +198,7 @@ def portal_sessions(
 
 def _row(r: sqlite3.Row) -> DocRecordRow:
     d = dict(r)
-    record = DocRecord.model_validate({k: d[k] for k in DocRecord.model_fields})
+    record = DocRecord.model_validate({k: d[k] for k in DocRecord.model_fields if k in d})
     content = _json(d.get("content_json")) or {}
     return DocRecordRow(
         record=record,

@@ -34,6 +34,7 @@ import {
 } from './common.js';
 import { outsideSessionLinks, type CarriedLink } from './carry-over.js';
 import { assertOneFieldPerDataItem } from './data-item-fields.js';
+import { processForRecord } from './process-link.js';
 import {
   assertProcessNotOnlyErrors,
   checkDrops,
@@ -43,6 +44,12 @@ import {
 } from './revision-guard.js';
 
 type RecordRow = Selectable<DocRecordsTable>;
+
+/** The persona a process record names (its schema requires one). */
+const personaOf = (content: unknown): string => {
+  const p = (content as { persona?: unknown }).persona;
+  return typeof p === 'string' && p ? p : 'guest';
+};
 
 const EvidenceInput = z
   .object({
@@ -71,6 +78,11 @@ export const CreateRecordInput = z
     not_observable: z.boolean().default(false),
     evidence: z.array(EvidenceInput),
     relations: z.array(RelationInput).default([]),
+    /** `process` only: the process (PRC-nnn) the record documents; without it one is opened. */
+    process_key: z
+      .string()
+      .regex(/^PRC-\d{3,}$/)
+      .optional(),
   })
   .strict();
 
@@ -386,12 +398,28 @@ export function createRecord(ctx: BaContext, raw: unknown): WriteOutput {
       change: 'create',
       title: content.title,
     });
+    if (input.process_key !== undefined && input.kind !== 'process')
+      throw new ToolError('SCHEMA_INVALID', 'process_key goes with a process record only');
+    const processId =
+      input.kind === 'process'
+        ? processForRecord(
+            ctx,
+            session.portal_id,
+            {
+              key,
+              title: content.title,
+              persona: personaOf(content),
+              processKey: input.process_key,
+            },
+            ts,
+          )
+        : null;
     ctx.raw
       .prepare(
         `INSERT INTO doc_records (id, portal_id, kind, key, seq, title, latest_rev, confirmed_rev, withdrawn,
-         created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, 1, NULL, 0, ?, ?)`,
+         created_at, updated_at, process_id) VALUES (?, ?, ?, ?, ?, ?, 1, NULL, 0, ?, ?, ?)`,
       )
-      .run(recordId, session.portal_id, input.kind, key, seq, content.title, ts, ts);
+      .run(recordId, session.portal_id, input.kind, key, seq, content.title, ts, ts, processId);
     writeRevision(
       ctx,
       {

@@ -145,7 +145,7 @@ async function branch(
     const from = await loadVariant(trx, process.id, body.from);
     const fromRev = await loadRevision(trx, from.id, body.from_rev ?? from.rev);
     const labels = await trx
-      .selectFrom('process_variants')
+      .selectFrom('process_models')
       .select('label')
       .where('process_id', '=', process.id)
       .execute();
@@ -159,7 +159,7 @@ async function branch(
       branched_from_rev: fromRev.rev,
       created_at: nowIso(),
     });
-    await trx.insertInto('process_variants').values(variant).execute();
+    await trx.insertInto('process_models').values(variant).execute();
     // Each copied step comes from the step it copies, so Compare starts as all "unchanged".
     const revision = await insertVariantRevision(trx, {
       variant_id: variant.id,

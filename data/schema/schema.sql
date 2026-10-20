@@ -1,4 +1,4 @@
--- GENERATED from data/migrations/*.up.sql applied in order (currently through 0035_drop_v1_claims). Do not edit by hand.
+-- GENERATED from data/migrations/*.up.sql applied in order (currently through 0036_processes). Do not edit by hand.
 -- Regenerate after every migration; see data/schema/README.md.
 
 CREATE TABLE runs (
@@ -340,9 +340,18 @@ CREATE TABLE doc_records (
   withdrawn     INTEGER NOT NULL DEFAULT 0 CHECK (withdrawn IN (0,1)),
   created_at    TEXT NOT NULL,
   updated_at    TEXT NOT NULL,
+  -- 0036 (ALTER TABLE, spec 039 design § 13.4): the process a PROC record documents, exactly one.
+  process_id    TEXT REFERENCES ba_processes(id),
   UNIQUE (portal_id, key),
   UNIQUE (portal_id, kind, seq)
 ) STRICT;
+CREATE UNIQUE INDEX ux_doc_records_one_proc ON doc_records (process_id) WHERE kind = 'process';
+CREATE TRIGGER doc_records_proc_needs_process BEFORE INSERT ON doc_records
+  WHEN NEW.kind = 'process' AND NEW.process_id IS NULL
+  BEGIN SELECT RAISE(ABORT, 'PROC record needs process_id'); END;
+CREATE TRIGGER doc_records_proc_keeps_process BEFORE UPDATE OF kind, process_id ON doc_records
+  WHEN NEW.kind = 'process' AND NEW.process_id IS NULL
+  BEGIN SELECT RAISE(ABORT, 'PROC record needs process_id'); END;
 
 -- Immutable except `status`, which only the status engine changes (research.md §4). `responds_to_review`
 -- forward-references doc_reviews, created further below (SQLite does not check a referenced table exists
@@ -774,6 +783,10 @@ CREATE TABLE ba_processes (
   -- `process` record it was opened from (spec 027 US6).
   archived_at   TEXT,
   record_key    TEXT CHECK (record_key IS NULL OR record_key GLOB 'PROC-[0-9]*'),
+  -- 0036 (ALTER TABLE, spec 039 design § 13.4): the screen its trigger opens, and the
+  -- process_boundary hypothesis it was accepted from.
+  start_screen_id        TEXT REFERENCES model_screens(id),
+  boundary_hypothesis_id TEXT REFERENCES hypotheses(id),
   UNIQUE (portal_id, key)
 ) STRICT;
 
@@ -792,22 +805,24 @@ CREATE TABLE ba_process_revisions (
   CHECK ((rev = 1) = (base_rev IS NULL))
 ) STRICT, WITHOUT ROWID;
 
-CREATE TABLE process_variants (
+-- Renamed by 0036 from process_variants (spec 039 design § 13.4): a process's as-is and to-be models.
+CREATE TABLE process_models (
   id                       TEXT PRIMARY KEY,                         -- UUIDv7
   process_id               TEXT NOT NULL REFERENCES ba_processes(id),
   label                    TEXT NOT NULL CHECK (length(label) > 0),  -- A, B, C...
   kind                     TEXT NOT NULL CHECK (kind IN ('as_is','to_be')),  -- as_is = A, observed, rescans add revisions
   rev                      INTEGER NOT NULL CHECK (rev >= 1),        -- the head's current revision
-  branched_from_variant_id TEXT REFERENCES process_variants(id),     -- NULL for A
+  branched_from_variant_id TEXT REFERENCES process_models(id),       -- NULL for A
   branched_from_rev        INTEGER CHECK (branched_from_rev IS NULL OR branched_from_rev >= 1),
   created_at               TEXT NOT NULL,
   UNIQUE (process_id, label),
   CHECK ((branched_from_variant_id IS NULL) = (branched_from_rev IS NULL))
 ) STRICT;
 
--- 0028 rebuilt it: 'edit' = a person changed A's steps (spec 027 FR-004).
-CREATE TABLE process_variant_revisions (
-  variant_id    TEXT NOT NULL REFERENCES process_variants(id),
+-- 0028 rebuilt it: 'edit' = a person changed A's steps (spec 027 FR-004). Renamed by 0036 from
+-- process_variant_revisions.
+CREATE TABLE process_model_revisions (
+  variant_id    TEXT NOT NULL REFERENCES process_models(id),
   rev           INTEGER NOT NULL CHECK (rev >= 1),
   base_rev      INTEGER CHECK (base_rev IS NULL OR base_rev >= 1),   -- NULL for r1
   change        TEXT NOT NULL CHECK (change IN ('create','branch','save','restore','observe','edit')),
@@ -824,7 +839,7 @@ CREATE TABLE process_variant_revisions (
 -- Scratch: one open draft of one person over one to-be variant, updated in place, deleted on save/discard.
 -- A base_rev older than the variant's head is an edit conflict (Review "Edit conflicts").
 CREATE TABLE process_drafts (
-  variant_id TEXT NOT NULL REFERENCES process_variants(id),
+  variant_id TEXT NOT NULL REFERENCES process_models(id),
   author     TEXT NOT NULL CHECK (length(author) > 0),
   base_rev   INTEGER NOT NULL CHECK (base_rev >= 1),
   steps      TEXT NOT NULL CHECK (json_valid(steps) AND json_type(steps) = 'array'),
@@ -842,7 +857,7 @@ CREATE TABLE process_live (
   author      TEXT NOT NULL CHECK (length(author) > 0),
   reason      TEXT,
   created_at  TEXT NOT NULL,
-  FOREIGN KEY (variant_id, variant_rev) REFERENCES process_variant_revisions(variant_id, rev)
+  FOREIGN KEY (variant_id, variant_rev) REFERENCES process_model_revisions(variant_id, rev)
 ) STRICT;
 
 CREATE INDEX ix_process_live_process_env ON process_live (process_id, environment, created_at);
@@ -861,8 +876,8 @@ CREATE TABLE change_spec_revisions (
   created_at       TEXT NOT NULL,
   PRIMARY KEY (process_id, rev),
   CHECK ((rev = 1) = (base_rev IS NULL)),
-  FOREIGN KEY (left_variant_id, left_rev) REFERENCES process_variant_revisions(variant_id, rev),
-  FOREIGN KEY (right_variant_id, right_rev) REFERENCES process_variant_revisions(variant_id, rev)
+  FOREIGN KEY (left_variant_id, left_rev) REFERENCES process_model_revisions(variant_id, rev),
+  FOREIGN KEY (right_variant_id, right_rev) REFERENCES process_model_revisions(variant_id, rev)
 ) STRICT, WITHOUT ROWID;
 
 -- 0022: one step of a form flow on a route template, numbered per (portal, route) in first-seen order.
@@ -1276,3 +1291,52 @@ CREATE TABLE tau_acceptances (
   accepted_at TEXT NOT NULL
 ) STRICT;
 CREATE INDEX ix_tau_acceptances_portal ON tau_acceptances (portal_id, profile, accepted_at);
+
+-- 0036_processes (spec 039 design § 13.4, T070): one process concept. Correlation ids (values seen in a
+-- response and reused later in the journey, stored hashed), process instances (a journey through a
+-- process from its trigger, with the outcome), the triggers and explorations of a process. The PROC
+-- link (doc_records.process_id), ba_processes.start_screen_id / boundary_hypothesis_id and the
+-- process_models rename are with their tables above.
+CREATE TABLE correlation_ids (
+  id                  TEXT PRIMARY KEY,
+  journey_id          TEXT NOT NULL REFERENCES journeys(id),
+  key_path            TEXT NOT NULL CHECK (length(key_path) > 0),   -- 'response:$.quote.id'
+  value_hash          TEXT NOT NULL CHECK (length(value_hash) = 64),
+  endpoint_family     TEXT NOT NULL CHECK (length(endpoint_family) > 0),
+  first_transition_id TEXT NOT NULL REFERENCES transitions(id),
+  last_transition_id  TEXT NOT NULL REFERENCES transitions(id)
+) STRICT;
+CREATE INDEX ix_correlation_ids_journey ON correlation_ids (journey_id);
+
+CREATE TABLE process_instances (
+  id                    TEXT PRIMARY KEY,
+  process_id            TEXT NOT NULL REFERENCES ba_processes(id),
+  journey_id            TEXT NOT NULL REFERENCES journeys(id),
+  trigger_transition_id TEXT NOT NULL REFERENCES transitions(id),
+  last_transition_id    TEXT NOT NULL REFERENCES transitions(id),
+  outcome               TEXT NOT NULL CHECK (outcome IN
+                          ('completed','exited','error','abandoned','incomplete')),
+  outcome_screen_id     TEXT REFERENCES model_screens(id),
+  correlation_id        TEXT REFERENCES correlation_ids(id),
+  model_version_id      TEXT NOT NULL REFERENCES model_versions(id)
+) STRICT;
+CREATE INDEX ix_process_instances_process ON process_instances (process_id, model_version_id);
+CREATE UNIQUE INDEX ux_process_instances_trigger ON process_instances
+  (process_id, trigger_transition_id, model_version_id);
+
+CREATE TABLE process_triggers (
+  process_id          TEXT NOT NULL REFERENCES ba_processes(id),
+  model_transition_id TEXT NOT NULL REFERENCES model_transitions(id),
+  PRIMARY KEY (process_id, model_transition_id)
+) STRICT, WITHOUT ROWID;
+
+CREATE TABLE process_explorations (
+  id             TEXT PRIMARY KEY,
+  process_id     TEXT NOT NULL REFERENCES ba_processes(id),
+  epoch_set      TEXT NOT NULL CHECK (json_valid(epoch_set) AND json_type(epoch_set) = 'array'),
+  depth          INTEGER NOT NULL CHECK (depth >= 0),
+  random_walks   INTEGER NOT NULL CHECK (random_walks >= 0),
+  new_deviations INTEGER NOT NULL CHECK (new_deviations >= 0),
+  completed_at   TEXT NOT NULL
+) STRICT;
+CREATE INDEX ix_process_explorations_process ON process_explorations (process_id, completed_at);

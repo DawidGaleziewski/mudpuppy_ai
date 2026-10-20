@@ -100,7 +100,7 @@ export const GroundTruth = z.object({
       steps: z.array(z.string().min(1)).optional(),
       /**
        * Steps whose form differs by an earlier choice (spec 034, owner review 2026-10-17): one
-       * step with variants, not two steps. Not scored here; the eval's `process_variants` grader.
+       * step with variants, not two steps. Not scored here; the eval's `process_models` grader.
        */
       variants: z.array(GtVariant).optional(),
       /** Not scored here; the export quality grader (spec 034 phase 9). */

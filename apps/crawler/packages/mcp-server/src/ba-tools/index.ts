@@ -336,6 +336,12 @@ export function registerBaTools(server: McpServer, ctx: BaContext): void {
       not_observable: notObservable,
       evidence,
       relations,
+      process_key: z
+        .string()
+        .optional()
+        .describe(
+          'process records only: the process (PRC-nnn) this record documents, e.g. one a person accepted from a proposal. Each process has exactly one process record (PROCESS_DOCUMENTED: revise that one). Without it the server opens a new process for the record.',
+        ),
     },
     (a) => createRecord(ctx, a),
   );

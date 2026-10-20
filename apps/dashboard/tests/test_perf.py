@@ -161,13 +161,19 @@ def docs_perf_store(tmp_path_factory: pytest.TempPathFactory) -> Store:
         " started_at, ended_at) VALUES ('perf-sess', ?, 'completed', '[]', 's', '[]', 't', 't')",
         (DOC_PORTAL,),
     )
-    records, revisions, links, relations = [], [], [], []
+    records, revisions, links, relations, processes = [], [], [], [], []
     n = 2_000
     for i in range(n):
         kind, prefix = DOC_KIND_PREFIX[i % len(DOC_KIND_PREFIX)]
         seq = i // len(DOC_KIND_PREFIX) + 1
         rid = f"rec-{i:05d}"
-        records.append((rid, DOC_PORTAL, kind, f"{prefix}-{seq:04d}", seq, f"Title {i}", 3, 1, 0))
+        # A PROC record documents its own process (spec 039 T070).
+        pid = f"prc-{i:05d}" if kind == "process" else None
+        if pid:
+            processes.append((pid, DOC_PORTAL, f"PRC-{seq:04d}", f"Title {i}"))
+        records.append(
+            (rid, DOC_PORTAL, kind, f"{prefix}-{seq:04d}", seq, f"Title {i}", 3, 1, 0, pid)
+        )
         for rev in (1, 2, 3):
             vid = f"{rid}-r{rev}"
             content = json.dumps({"kind": kind, "title": f"Title {i}", "statement": "s"})
@@ -182,8 +188,14 @@ def docs_perf_store(tmp_path_factory: pytest.TempPathFactory) -> Store:
         if i + len(DOC_KIND_PREFIX) < n:
             relations.append((f"{rid}-r3", f"rec-{i + len(DOC_KIND_PREFIX):05d}", "depends_on"))
     w.executemany(
+        "INSERT INTO ba_processes (id, portal_id, key, name, persona, stage, rev, source,"
+        " created_at, updated_at) VALUES (?, ?, ?, ?, 'guest', 'scoped', 1, 'new', 't', 't')",
+        processes,
+    )
+    w.executemany(
         "INSERT INTO doc_records (id, portal_id, kind, key, seq, title, latest_rev, confirmed_rev,"
-        " withdrawn, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 't', 't')",
+        " withdrawn, created_at, updated_at, process_id)"
+        " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 't', 't', ?)",
         records,
     )
     w.executemany(

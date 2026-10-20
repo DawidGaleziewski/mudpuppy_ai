@@ -1,7 +1,8 @@
 // "Open in Processes" (spec 027 US6.2): a workspace process (PRC) from a BA `process` record
 // (PROC), with A's screens in the record's walking order (the same steps its export shows,
 // `resolveProcessSteps`), linked to the record by `record_key`. A second open finds the linked
-// process instead of making another; so does an archived one (the person restores it).
+// process instead of making another; so does an archived one (the person restores it). Since spec
+// 039 T070 every PROC record has its process from the start; the first open builds its A.
 
 import { BaProcess } from '@pathfinder/chat-model';
 import { resolveProcessSteps } from '@pathfinder/docs';
@@ -9,7 +10,7 @@ import { type OpenedDb, type PathfinderDb } from '@pathfinder/store';
 import { FromRecordBody } from './process-bodies.js';
 import { HttpError } from './http-error.js';
 import { parseBody } from './http-io.js';
-import { insertProcess, statesOf, type ProcessOutcome } from './process-store.js';
+import { insertAsIs, insertProcess, statesOf, type ProcessOutcome } from './process-store.js';
 
 type RawDb = OpenedDb['raw'];
 
@@ -49,13 +50,26 @@ export async function openFromRecord(
       .where('record_key', '=', key)
       .orderBy('key')
       .executeTakeFirst();
-    if (linked !== undefined) return { process: BaProcess.parse(linked), existing: true };
+    const hasA =
+      linked !== undefined &&
+      (await trx
+        .selectFrom('process_models')
+        .select('id')
+        .where('process_id', '=', linked.id)
+        .where('label', '=', 'A')
+        .executeTakeFirst()) !== undefined;
+    if (linked !== undefined && hasA) return { process: BaProcess.parse(linked), existing: true };
     const head = recordHead(raw, portal, key);
     const resolved = resolveProcessSteps(raw, portal, key);
     const walked = (resolved?.steps ?? []).filter((s) => !s.also_cited).map((s) => s.state_id);
     if (walked.length === 0)
       throw new HttpError(409, `${key} cites no screens to walk, so there is nothing to put in A.`);
     const states = await statesOf(trx, portal, walked);
+    // The record's own process (spec 039 T070: every PROC record has one) gets its A now.
+    if (linked !== undefined) {
+      const made = await insertAsIs(trx, linked.id, { states, author, source: 'new' });
+      return { process: BaProcess.parse(linked), ...made, existing: false };
+    }
     const made = await insertProcess(trx, portal, {
       ...head,
       states,

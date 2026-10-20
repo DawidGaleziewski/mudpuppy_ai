@@ -84,10 +84,30 @@ export function seedDocRecords(fx: FixtureStore): SeededDocs {
     const latest = revs.at(-1)!;
     const confirmed = revs.map((r, i) => (r.status === 'confirmed' ? i + 1 : 0)).filter(Boolean);
     const created = seedTs(clock + 1);
+    // Spec 039 T070: a PROC record documents its own process. Its id is derived from the seq so
+    // the fixture's other ids stay as they were.
+    const processId =
+      kind === 'process' ? `00000000-0000-7000-9000-${String(seq).padStart(12, '0')}` : null;
+    if (processId)
+      raw
+        .prepare(
+          `INSERT INTO ba_processes (id, portal_id, key, name, persona, stage, rev, source, scope_id,
+             suggestion_id, created_at, updated_at, archived_at, record_key)
+           VALUES (?, ?, ?, ?, 'guest', 'scoped', 1, 'new', NULL, NULL, ?, ?, NULL, ?)`,
+        )
+        .run(
+          processId,
+          portalId,
+          `PRC-${String(seq).padStart(3, '0')}`,
+          latest.content.title,
+          created,
+          created,
+          key,
+        );
     raw
       .prepare(
         `INSERT INTO doc_records (id, portal_id, kind, key, seq, title, latest_rev, confirmed_rev, withdrawn,
-         created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+         created_at, updated_at, process_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       )
       .run(
         id,
@@ -101,6 +121,7 @@ export function seedDocRecords(fx: FixtureStore): SeededDocs {
         latest.change === 'withdraw' ? 1 : 0,
         created,
         created,
+        processId,
       );
     let updated = created;
     revs.forEach((rev, i) => {
