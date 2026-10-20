@@ -26,6 +26,8 @@ export const MODEL_DEFAULTS = {
   replayBudget: 20,
   /** Decision mining: rows per target before mining. */
   minRowsPerTarget: 5,
+  /** Guard intersection: decision points chained along one path at most (T064). */
+  guardPathDepth: 6,
   /** Stopping rule per process. */
   exploration: { depth: 2, randomWalks: 50, walkLength: 15 },
 } as const;

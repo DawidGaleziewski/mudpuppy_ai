@@ -15,6 +15,7 @@ import {
   loadObservationTables,
   migrateUp,
   openDb,
+  writeGuardConflicts,
 } from '@pathfinder/store';
 
 const arg = (name: string): string | undefined => {
@@ -49,6 +50,9 @@ try {
     const where = `${table.decision_point.action} on ${table.decision_point.screen}`;
     console.log(`  ${where}: ${key ?? 'already recorded'} (${table.rows.length} rows)`);
   });
+  // Design § 11.6: guards along each path that cannot all hold become `ambiguous` (T064).
+  for (const key of writeGuardConflicts(opened.raw, portal))
+    console.log(`  guards that cannot all hold: ${key} (ambiguous, for a person)`);
 } finally {
   await opened.close();
   rmSync(work, { recursive: true, force: true });

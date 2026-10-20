@@ -513,3 +513,23 @@ Bugs, slips and design deviations found while building, each with a test or eval
   the ground truth's steps: P01 ends in a mutation, and the approved export rightly shows the
   purchase step. The approved reference export scores wrong start 1 (the home page, F-15@034),
   wrong end 0. Not run: the "several trials" part costs money and waits for the owner.
+
+## F-33 Guard intersection as built (T064), 2026-10-20
+
+- `guardConflicts` (`@pathfinder/model` `rules/guards.ts`) chains the decision rules screen by
+  screen: from a decision point, each outcome screen leads to the decision points on it. Per path
+  it keeps every combination of the rules that lead on (a disjunction per step), intersecting
+  their conditions per attribute (numeric intervals with open or closed bounds, value sets);
+  a path where no combination survives is a conflict. A path never re-enters a screen (a
+  validation that stays on the page is not a path forward) and stops at its first conflict or at
+  `MODEL_DEFAULTS.guardPathDepth` (6). Conditions it cannot read never conflict.
+- **"Process paths"** are the model's decision-point chains, not a documented process's steps:
+  process models (T070) do not exist yet. When they do, the chains can be cut to a process's
+  screens.
+- `writeGuardConflicts` (store) runs at the end of `pnpm model:mine` over the rules not refuted,
+  rejected or superseded and writes one `ambiguous` hypothesis per new conflict (origin `rule`,
+  R7, `needs_confirmation`, citing the rules on the path through `entity_refs`); the claim hash
+  keeps it from being written twice. A person decides it (design § 10.3).
+- **Test**: `guards.test.ts` (model), `rule-guards.test.ts` (store). Eval idea: an "overlapping
+  rule" scenario where a later step's rule contradicts an earlier one; the grader counts the
+  `ambiguous` hypotheses written.

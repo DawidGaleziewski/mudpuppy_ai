@@ -20,7 +20,8 @@ Layer: models (G-07; `apps/crawler/layers.json`)
   `buildEpochs`; `reconcile` (the whole pure core).
 - `interpret/` (design § 8, § 10): `deviationsBetween`, `classify` (rules R1–R8), `statusOf`
   (hypothesis lifecycle), `mayConfirm`, `claimHash`.
-- `rules/` (design § 11): `outcomesFor`, `boundaryTests`, `toDmnXml`, `feel`; `replayInputs`,
+- `rules/` (design § 11): `outcomesFor`, `boundaryTests`, `toDmnXml`, `feel`; `guardConflicts`,
+  `domainOf` (guard intersection along paths, § 11.6); `replayInputs`,
   `birthDateFor` (what a boundary test types on the headless driver, design § 9).
 - `plan/` (design § 13–14): `plan` (planner priorities), `correlationIds`, `endpointFamily`,
   `boundaryGraph` (process boundary weights), `explorationGaps`, `explorationBound`.
