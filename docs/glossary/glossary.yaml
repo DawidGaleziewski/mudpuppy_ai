@@ -3271,8 +3271,8 @@ entries:
       such as "drivers under 18 are refused". The rule is a claim: its boundary tests check it,
       a person confirms it, and confirmed or supported rules export as DMN files (`pnpm model:dmn`).
     example: H-0002 "Drivers under 18 are refused" on SC-0003, supported by 3 boundary tests.
-    appears_in: [What changed → Decision rules]
-    labels: [decision rule, business rule, DMN]
+    appears_in: [Rules, What changed → Decision rules, process export rules/*.dmn]
+    labels: [decision rule, business rule, DMN, Broken, Tested, Replaced]
     related: [boundary-test, hypothesis]
     changed_in: R-81
     changed_on: 2026-10-19
@@ -3287,8 +3287,8 @@ entries:
       portal means "under 18". Boundary tests replay a recorded execution with the threshold's
       neighbours. All give the predicted outcome: the rule is supported (a person still confirms).
       One does not: the rule is refuted and is mined again with the new rows.
-    appears_in: [What changed → Decision rules]
-    labels: [boundary test, supported, refuted]
+    appears_in: [Rules → rule page, What changed → Decision rules]
+    labels: [boundary test, supported, refuted, Pass, Fail]
     related: [decision-rule, headless-driver]
     changed_in: R-81
     changed_on: 2026-10-19
@@ -3308,6 +3308,59 @@ entries:
     related: [portal-model, model-screen]
     changed_in: R-81
     changed_on: 2026-10-19
+
+  - id: process-instance
+    term: Process instance (trigger and outcome)
+    category: pathfinder
+    group: Portal model
+    short: One walk through a process in a scan, from its trigger (the link or button that entered it) to its outcome (completed, exited, error, abandoned or not finished).
+    explanation: |
+      A process starts at its own first screen. The click that opens that screen from outside the
+      process is its trigger; the pages walked before it are only the way there, never steps. The
+      walk ends when a business error shows (error), when the person leaves through the menu
+      (abandoned), when a link leads out of the process (exited), or, at the end of the scan, on
+      the screen where the process finishes (completed) or anywhere else (incomplete). The
+      distinct screen sequences of the instances are the process's paths.
+    example: "Pressed on SC-0004 → link Oblicz składkę · 3×; 2 completed · 1 exited."
+    appears_in: [Processes → process page → In the portal model, process export README]
+    labels: [trigger, outcome, ways in, paths]
+    related: [process-proposal, explored-process]
+    changed_in: R-81
+    changed_on: 2026-10-20
+
+  - id: explored-process
+    term: Explored (process)
+    category: pathfinder
+    group: Portal model
+    short: "How far a process was tried on the current releases: every action of its screens once per persona, every pair of consecutive actions once, then random walks inside it."
+    explanation: |
+      `pnpm model:explore` turns what is still missing into replays for the headless driver and
+      runs them. A pass where every gap could be reached is recorded; it counts as explored
+      (Thorough) when it found no new change, and the documentation states the bound, e.g.
+      "Explored to depth 2 plus 50 random walks on builds shell 3e1a; no counterexamples."
+      Processes not explored on the current releases are the planner's lowest priority.
+    appears_in: [Processes → process page → In the portal model, process export README]
+    labels: [explored, thorough, partial, not explored]
+    related: [process-instance, headless-driver]
+    changed_in: R-81
+    changed_on: 2026-10-20
+
+  - id: similarity-classifier
+    term: Similarity classifier
+    category: pathfinder
+    group: Portal model
+    short: A model trained on the "same screen?" labels that weighs every part of two page fingerprints; used instead of the single threshold τ once it tells screens apart better.
+    explanation: |
+      τ compares one number, the overlap of the pages' text and structure shingles. The
+      classifier also looks at the structure, content, overlay, background calls, embedded apps
+      and element keys. `pnpm model:classify` trains it on the labelled pairs, holds every fifth
+      pair back, and compares both on those: when the classifier finds distinct pairs better, the
+      next model rebuild groups pages with it.
+    appears_in: [pnpm model:classify]
+    labels: [similarity classifier, held-out F1]
+    related: [fingerprint-profile, screen-threshold]
+    changed_in: R-81
+    changed_on: 2026-10-20
 
   - id: scar
     term: Scar (scar-maker)

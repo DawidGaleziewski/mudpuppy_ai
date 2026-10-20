@@ -1216,9 +1216,9 @@ a person confirms it, and confirmed or supported rules export as DMN files (`pnp
 
 *Example:* H-0002 "Drivers under 18 are refused" on SC-0003, supported by 3 boundary tests.
 
-*Seen in:* What changed → Decision rules
+*Seen in:* Rules; What changed → Decision rules; process export rules/*.dmn
 
-*Labels:* `decision rule`, `business rule`, `DMN`
+*Labels:* `decision rule`, `business rule`, `DMN`, `Broken`, `Tested`, `Replaced`
 
 *Related:* [Boundary test](#boundary-test), [Claim (hypothesis, H-)](#hypothesis)
 
@@ -1235,9 +1235,9 @@ portal means "under 18". Boundary tests replay a recorded execution with the thr
 neighbours. All give the predicted outcome: the rule is supported (a person still confirms).
 One does not: the rule is refuted and is mined again with the new rows.
 
-*Seen in:* What changed → Decision rules
+*Seen in:* Rules → rule page; What changed → Decision rules
 
-*Labels:* `boundary test`, `supported`, `refuted`
+*Labels:* `boundary test`, `supported`, `refuted`, `Pass`, `Fail`
 
 *Related:* [Decision rule](#decision-rule), [Headless driver (probe run)](#headless-driver)
 
@@ -1261,6 +1261,69 @@ group. A person accepts, edits or dismisses it; a dismissed group is not propose
 *Related:* [Portal model](#portal-model), [Screen of the model (SC-)](#model-screen)
 
 <sub>Last changed in R-81, 2026-10-19.</sub>
+
+<a id="process-instance"></a>
+
+#### Process instance (trigger and outcome)
+
+**One walk through a process in a scan, from its trigger (the link or button that entered it) to its outcome (completed, exited, error, abandoned or not finished).**
+
+A process starts at its own first screen. The click that opens that screen from outside the
+process is its trigger; the pages walked before it are only the way there, never steps. The
+walk ends when a business error shows (error), when the person leaves through the menu
+(abandoned), when a link leads out of the process (exited), or, at the end of the scan, on
+the screen where the process finishes (completed) or anywhere else (incomplete). The
+distinct screen sequences of the instances are the process's paths.
+
+*Example:* Pressed on SC-0004 → link Oblicz składkę · 3×; 2 completed · 1 exited.
+
+*Seen in:* Processes → process page → In the portal model; process export README
+
+*Labels:* `trigger`, `outcome`, `ways in`, `paths`
+
+*Related:* [Proposed process (from the model)](#process-proposal), [Explored (process)](#explored-process)
+
+<sub>Last changed in R-81, 2026-10-20.</sub>
+
+<a id="explored-process"></a>
+
+#### Explored (process)
+
+**How far a process was tried on the current releases: every action of its screens once per persona, every pair of consecutive actions once, then random walks inside it.**
+
+`pnpm model:explore` turns what is still missing into replays for the headless driver and
+runs them. A pass where every gap could be reached is recorded; it counts as explored
+(Thorough) when it found no new change, and the documentation states the bound, e.g.
+"Explored to depth 2 plus 50 random walks on builds shell 3e1a; no counterexamples."
+Processes not explored on the current releases are the planner's lowest priority.
+
+*Seen in:* Processes → process page → In the portal model; process export README
+
+*Labels:* `explored`, `thorough`, `partial`, `not explored`
+
+*Related:* [Process instance (trigger and outcome)](#process-instance), [Headless driver (probe run)](#headless-driver)
+
+<sub>Last changed in R-81, 2026-10-20.</sub>
+
+<a id="similarity-classifier"></a>
+
+#### Similarity classifier
+
+**A model trained on the "same screen?" labels that weighs every part of two page fingerprints; used instead of the single threshold τ once it tells screens apart better.**
+
+τ compares one number, the overlap of the pages' text and structure shingles. The
+classifier also looks at the structure, content, overlay, background calls, embedded apps
+and element keys. `pnpm model:classify` trains it on the labelled pairs, holds every fifth
+pair back, and compares both on those: when the classifier finds distinct pairs better, the
+next model rebuild groups pages with it.
+
+*Seen in:* pnpm model:classify
+
+*Labels:* `similarity classifier`, `held-out F1`
+
+*Related:* [Fingerprint profile](#fingerprint-profile), [Screen threshold (τ)](#screen-threshold)
+
+<sub>Last changed in R-81, 2026-10-20.</sub>
 
 ### Actions and safety
 
