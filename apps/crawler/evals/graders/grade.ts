@@ -135,7 +135,7 @@ function gradeExportQuality(db: RawDb, m: GradeInput, evidenceRoot: string) {
   if (!q) return { scores: {}, checks: {} };
   const s = q.scores;
   console.log(
-    `export quality: steps ${s.export_steps.pct} %, fields ${s.export_fields.pct} %, validation ${s.export_validation.pct} %, actions ${s.export_actions.pct} %, calls ${s.export_apis.pct} %; extra steps ${q.checks.export_extra_steps}, stray destinations ${q.checks.export_action_strays}, noise leaked ${q.checks.export_noise_leaked}${q.missing.length ? `\n  missing: ${q.missing.join('; ')}` : ''}`,
+    `export quality: steps ${s.export_steps.pct} %, fields ${s.export_fields.pct} %, validation ${s.export_validation.pct} %, actions ${s.export_actions.pct} %, calls ${s.export_apis.pct} %; extra steps ${q.checks.export_extra_steps}, stray destinations ${q.checks.export_action_strays}, noise leaked ${q.checks.export_noise_leaked}, wrong start ${q.checks.export_wrong_start}, wrong end ${q.checks.export_wrong_end}${q.missing.length ? `\n  missing: ${q.missing.join('; ')}` : ''}`,
   );
   return { scores: q.scores, checks: q.checks };
 }

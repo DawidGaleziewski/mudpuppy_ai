@@ -13,8 +13,11 @@
  * - `export_actions`: the action that moves each step on, leading to the right step.
  * - `export_apis`: the back-end calls of each step.
  * Checks (must be 0): `export_extra_steps` (steps not in the process, F-15),
- * `export_action_strays` (destinations of those actions outside the process, F-11) and
- * `export_noise_leaked` (noise calls listed as endpoints).
+ * `export_action_strays` (destinations of those actions outside the process, F-11),
+ * `export_noise_leaked` (noise calls listed as endpoints), and `export_wrong_start` /
+ * `export_wrong_end` (an exported process whose first or last step is not the ground truth's
+ * `first_route` / `last_observable_route`: where a process starts and ends, R-77 (2), spec 039
+ * T082).
  */
 import { exportProcess, processKeys, type GroundTruth } from '@pathfinder/docs';
 import type { RawDb } from '../../queries.js';
@@ -52,6 +55,8 @@ export interface ExportQuality {
     export_extra_steps: number;
     export_action_strays: number;
     export_noise_leaked: number;
+    export_wrong_start: number;
+    export_wrong_end: number;
   };
   /** What was not found, one line each, for the log and the result. */
   missing: string[];
@@ -186,6 +191,17 @@ function scoreApis(c: Scoring) {
   return [found, (c.p.apis ?? []).length];
 }
 
+/**
+ * The export ends at the last observable screen, or at a step of the process past it (the
+ * boundary step of a process that ends in a mutation, e.g. the purchase).
+ */
+function endsRight(p: GtProcess, last: string | undefined): boolean {
+  if (last === p.last_observable_route) return true;
+  const steps = p.steps ?? [];
+  const at = last === undefined ? -1 : steps.indexOf(last);
+  return at >= 0 && at > steps.indexOf(p.last_observable_route);
+}
+
 function scoreProcess(gt: GroundTruth, p: GtProcess, e: ProcessJson | null) {
   const c: Scoring = { p, steps: p.steps ?? [], e, missing: [] };
   const routes = e?.steps.map((s) => s.route) ?? [];
@@ -197,6 +213,8 @@ function scoreProcess(gt: GroundTruth, p: GtProcess, e: ProcessJson | null) {
     ...scoreActions(c),
     apis: scoreApis(c),
     extra: routes.filter((r) => !c.steps.includes(r)).length,
+    start: e && routes[0] !== p.first_route ? 1 : 0,
+    end: e && !endsRight(p, routes.at(-1)) ? 1 : 0,
     leaked: endpoints.filter((x) => noise.some((n) => x.path.startsWith(n.path))).length,
     missing: c.missing,
   };
@@ -226,7 +244,8 @@ export function scoreExportQuality(
       parts.reduce((n, x) => n + x[k][0]!, 0),
       parts.reduce((n, x) => n + x[k][1]!, 0),
     );
-  const count = (k: 'extra' | 'strays' | 'leaked'): number => parts.reduce((n, x) => n + x[k], 0);
+  const count = (k: 'extra' | 'strays' | 'leaked' | 'start' | 'end'): number =>
+    parts.reduce((n, x) => n + x[k], 0);
   return {
     scores: {
       export_steps: sum('steps'),
@@ -239,6 +258,8 @@ export function scoreExportQuality(
       export_extra_steps: count('extra'),
       export_action_strays: count('strays'),
       export_noise_leaked: count('leaked'),
+      export_wrong_start: count('start'),
+      export_wrong_end: count('end'),
     },
     missing: parts.flatMap((x) => x.missing),
   };

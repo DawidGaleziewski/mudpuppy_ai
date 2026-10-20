@@ -102,8 +102,10 @@ What the code-based graders measure:
   `export_validation` (the fields' `messages`, verbatim), `export_actions` (the action that moves
   each step on, to the right step) and `export_apis` (each step's back-end calls); checks that
   must be 0: `export_extra_steps` (a page that is not a step, F-15@034), `export_action_strays`
-  (an action leading outside the process, F-11@034) and `export_noise_leaked` (a `noise` call
-  listed as an API). Skipped under `--crawler-only`.
+  (an action leading outside the process, F-11@034), `export_noise_leaked` (a `noise` call
+  listed as an API), `export_wrong_start` and `export_wrong_end` (the export's first step is not
+  the process's `first_route`, its last neither `last_observable_route` nor a step past it; R-77
+  (2), spec 039 T082). Skipped under `--crawler-only`.
 
 ### Reference solution
 

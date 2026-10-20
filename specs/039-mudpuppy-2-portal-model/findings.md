@@ -508,3 +508,8 @@ Bugs, slips and design deviations found while building, each with a test or eval
   `deterministic_error` hypothesis cites instead.
 - **Test**: `process-export.test.ts` (trigger start), `trace-run.e2e.test.ts` (mark, second mark
   ignored), the migration round-trips in `db.test.ts`.
+- **Eval check (T082, R-77 (2))**: the export-quality grader adds `export_wrong_start` and
+  `export_wrong_end` (must be 0). The end accepts a step past `last_observable_route` that is in
+  the ground truth's steps: P01 ends in a mutation, and the approved export rightly shows the
+  purchase step. The approved reference export scores wrong start 1 (the home page, F-15@034),
+  wrong end 0. Not run: the "several trials" part costs money and waits for the owner.
