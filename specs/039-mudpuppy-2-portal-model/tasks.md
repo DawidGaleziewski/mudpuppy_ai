@@ -25,7 +25,7 @@ group, ids in the message. Gates per milestone in `plan.md` § 1. `[B: …]` = b
 - [-] T020 [sonnet] Readers of `edges` / `page_visits`: **not needed** while the physical names stay (F-06, owner question)
 - [~] T021 [opus] Headless probe runs: `runs.mode = 'probe'`, driver on `local-client.ts` + `replay.ts`, prefix cache, checkpoints, budgets, `driver = 'headless'`. **Built:** replay runs (`start_run` `replay`, not a new mode: F-20), `replay-driver.ts`, element keys in replay results, autofill with the replay's inputs, `driver = 'headless'`, budget (`replayBudget`), boundary tests end to end (`pnpm model:replay`, `replay-driver.e2e.test.ts`). **Not yet:** prefix cache, checkpoint starts, R1/R4/R5/R8 replays (F-20)
 - [x] T022 [sonnet] Pipeline golden and trace golden snapshots updated on purpose (`model_capture`, `model_reconciled`; diffs read: only the new step, one v2 cluster id); slow tier green
-- [ ] T023 [opus] M1 gate (plan § 1) + tag `v2.0.0-m1`
+- [x] T023 [opus] M1 gate (plan § 1) + tag `v2.0.0-m1` (gate F-41@039 holds; tag left to the owner, F-41)
 
 ## M2 Model
 

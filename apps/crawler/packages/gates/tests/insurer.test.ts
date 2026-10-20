@@ -3,6 +3,7 @@ import { join } from 'node:path';
 import { afterAll, beforeAll, expect } from 'vitest';
 import { parse } from 'yaml';
 import { AGENT_TOOL_NAMES } from '@pathfinder/mcp-server';
+import { captureInvariants } from '@pathfinder/store';
 import {
   actionNamed,
   actOn,
@@ -250,4 +251,16 @@ gate('LO-18', 'the div date picker "Data rozpoczęcia" can be opened and a day p
   const picked = await actOn(gs.call, run, opened, /^15$/);
   expect(picked.state_id).not.toBe(opened.state_id);
   expect(snapshot(gs, picked.state_id)).toMatch(/\d{4}-\d{2}-15/);
+});
+
+// Last in the file: it reads everything the gates above recorded (a map run with fills, a trace,
+// a form-probing run) against the M1 capture rules (spec 039 plan § 1, T023).
+gate('F-41@039', 'every scan recorded what the portal model rebuilds from', async () => {
+  expect(captureInvariants(gs.ctx.raw, 'proving-ground-insurer')).toEqual({
+    observationsWithoutBuild: [],
+    transitionsWithoutJourney: [],
+    journeysWithGaps: [],
+    fillsWithoutWrite: [],
+    traceStepsWithoutTransition: [],
+  });
 });

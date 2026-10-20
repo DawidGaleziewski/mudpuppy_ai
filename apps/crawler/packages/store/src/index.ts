@@ -22,6 +22,7 @@ export * from './anchors.js';
 export * from './process-exploration.js';
 export * from './process-facts.js';
 export * from './similarity-classifier.js';
+export * from './capture-invariants.js';
 export * from './regressions.js';
 export * from './model-calibration.js';
 export * from './fingerprint-profiles.js';

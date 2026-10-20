@@ -514,6 +514,19 @@ Bugs, slips and design deviations found while building, each with a test or eval
   purchase step. The approved reference export scores wrong start 1 (the home page, F-15@034),
   wrong end 0. Not run: the "several trials" part costs money and waits for the owner.
 
+## F-41 The M1 capture gate (T023), 2026-10-20
+
+- `captureInvariants` (store) lists the rows that break the plan's M1 rules: observations without
+  a build (an `unknown` build counts as one), executed scan transitions outside a journey,
+  journeys whose transitions are not numbered 1..n, fills and selects without their input
+  attribute write, trace steps that pressed or typed without the transition they document.
+- Gate `F-41@039` (last in `insurer.test.ts`) reads everything the insurer gates recorded (a map
+  run with fills, a trace, a form-probing run) and expects no violation: it holds. The slow tier
+  was green on the whole branch just before (e2e 70, gates 170, perf).
+- **Not done**: the milestone tags (`v2.0.0-m1` …) were not set; tagging the feature branch is
+  left to the owner (the plan merges 2.0 as one `v2.0.0`).
+- Eval idea: run `captureInvariants` after every eval trial and count violations (must be 0).
+
 ## F-40 The similarity classifier as built (T090), 2026-10-20
 
 - **Features** (`pairFeatures`, model): MinHash similarity, equal structure, content, overlay,
