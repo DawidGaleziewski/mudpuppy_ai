@@ -78,6 +78,21 @@ describe('resolveProcessSteps', () => {
     }
   });
 
+  it('starts at the screen the trace marked as its trigger entering (spec 039 T081)', () => {
+    // Step 2 clicks "Calculate" on the car page: the page before it is the trigger's context.
+    const mark = fx.raw.prepare('UPDATE processes SET trigger_ord = ? WHERE id = ?');
+    mark.run(2, seeded.trace.processId);
+    try {
+      const order = resolveProcessSteps(fx.raw, fx.portalId, 'PROC-001')!.steps.map(
+        (s) => s.state_id,
+      );
+      expect(order[0]).toBe(fx.states.vehicle);
+      expect(order).not.toContain(fx.states.car);
+    } finally {
+      mark.run(null, seeded.trace.processId);
+    }
+  });
+
   it('knows nothing of an unknown process and lists the documented ones', () => {
     expect(resolveProcessSteps(fx.raw, fx.portalId, 'PROC-999')).toBeNull();
     expect(processKeys(fx.raw, fx.portalId)).toEqual(['PROC-001', 'PROC-002']);

@@ -7,7 +7,7 @@ import { recordForm, recordTransition } from '../../services/index.js';
 import { writeAttributes, type AttributeInput } from '../../services/journeys.js';
 import { ensureJourney } from './journey.js';
 import type { ActionRow } from './actions.js';
-import { appendStep } from '../../services/trace.js';
+import { appendStep, markTrigger } from '../../services/trace.js';
 import { descriptorOf, withoutPageUrl } from './actions.js';
 import { reported, step, type StepContext } from './context.js';
 import type { Observed } from './fingerprint-step.js';
@@ -167,6 +167,7 @@ export async function recordTraceStep(
       outcomes,
       evidence_ref: page.evidenceRef,
     });
+    if (traceStep.trigger) await markTrigger(ctx, processId, ord);
     return reported({ ord, outcomes });
   });
 }

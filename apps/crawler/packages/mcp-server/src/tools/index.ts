@@ -182,6 +182,12 @@ export function registerTools(server: McpServer, ctx: ServerContext, runtime: Ru
       value: z.string().max(500).optional(),
       include_actions: z.boolean().optional(),
       fault: ProbeFault.optional(),
+      trigger: z
+        .boolean()
+        .optional()
+        .describe(
+          'Trace runs: true on the click that enters the process (the menu link or button whose label names it). The pages before it are how you got there, not steps of the process. Mark it once.',
+        ),
     },
     async (a) => {
       try {

@@ -1123,6 +1123,8 @@ export interface ProcessesTable {
   not_observable: string | null;
   created_at: string;
   ended_at: string | null;
+  /** 0034 (spec 039 T081): the step whose click enters the process; null: none marked. */
+  trigger_ord: ColumnType<number | null, number | null | undefined, number | null>;
 }
 
 export interface ProcessStepsTable {

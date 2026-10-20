@@ -74,7 +74,7 @@ group, ids in the message. Gates per milestone in `plan.md` § 1. `[B: …]` = b
 - [ ] T074 [opus] Anchors on `entity_refs`; review triggers from lineage and `not_seen_since`
 - [ ] T075 [opus] Stopping rule (depth 1, depth 2, random walks) on the driver; planner 6; `process_explorations`
 - [ ] T076 [opus] BA guidance (`ba.md`, `ba-practice`, record kinds) for the model, hypotheses, processes, DMN; with R-77 (1) (the owner accepted it 2026-10-20): what a process is (goal, trigger, own first screen, outcome), where it starts and ends, pages on the way are the trigger's context, never steps; the `api_endpoint` row (R-77 (4)); then drop `reconciliations` and `rule_candidates`
-- [ ] T081 [opus] R-77 (3): the trace marks the trigger step (the click that enters the process); the BA and the export start the process there
+- [x] T081 [opus] R-77 (3): the trace marks the trigger step (the click that enters the process); the BA and the export start the process there
 - [ ] T082 [sonnet] R-77 (2): eval check on the reference portal, each process's first and last contained screens equal the ground truth's `first_route` / `last_observable_route`, `export_extra_steps` = 0 over several trials (`create-eval`)
 - [ ] T077 [opus] Chat orchestrator: naming proposals, changes and hypotheses tools, reconcile and probe runs as actions
 - [ ] T078 [sonnet] Export: DMN files, triggers and outcomes, explored bound, contracts by schema hash, model version; exportfork-export

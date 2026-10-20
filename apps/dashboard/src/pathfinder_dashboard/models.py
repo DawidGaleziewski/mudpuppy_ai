@@ -967,6 +967,7 @@ class Process(Row):
     not_observable: str | None
     created_at: str
     ended_at: str | None
+    trigger_ord: int | None = None  # 0034 (T081): the step that enters the process
 
 
 class ProcessStep(Row):

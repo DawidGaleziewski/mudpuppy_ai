@@ -78,6 +78,11 @@ export interface ActInput {
   value?: string;
   /** Trace runs (spec 032 suites): break the request this action sends, in the browser only. */
   fault?: ProbeFault;
+  /**
+   * Trace runs (spec 039 T081): this click enters the process, its trigger. Steps before it are how
+   * the trace reached the process; the BA and the export start the process here.
+   */
+  trigger?: boolean;
   /** Return the page's actions even when the run already knows the state. */
   include_actions?: boolean;
 }

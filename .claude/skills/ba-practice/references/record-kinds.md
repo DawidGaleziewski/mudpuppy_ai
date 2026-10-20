@@ -22,7 +22,8 @@ Portal-language text goes in `*_verbatim` fields with a `lang` code (e.g. `pl`).
 ## Relations (from → type → to)
 
 - `capability` contains `process` | `screen`
-- `process` contains `screen` (the screens its steps pass through)
+- `process` contains `screen` (the screens its steps pass through, from the screen its trigger
+  opens to its outcome; never the pages walked on the way to the trigger)
 - `use_case` describes `process`
 - `requirement` refines `use_case` | `capability`
 - `requirement` enforces `business_rule`

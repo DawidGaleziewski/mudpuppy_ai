@@ -132,6 +132,8 @@ export interface TraceStep {
   kind: StepKind;
   action_id: string | null;
   value: string | null;
+  /** The step enters the process (its trigger, spec 039 T081). */
+  trigger?: true;
 }
 
 /**

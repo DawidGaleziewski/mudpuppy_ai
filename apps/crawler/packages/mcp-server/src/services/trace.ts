@@ -138,6 +138,23 @@ export async function appendStep(
   return ord;
 }
 
+/**
+ * Mark step `ord` as the process's trigger (spec 039 T081): the click that enters the process.
+ * The first mark stands; a later one is ignored (the trace entered once).
+ */
+export async function markTrigger(
+  ctx: ServerContext,
+  processId: string,
+  ord: number,
+): Promise<void> {
+  await ctx.db
+    .updateTable('processes')
+    .set({ trigger_ord: ord })
+    .where('id', '=', processId)
+    .where('trigger_ord', 'is', null)
+    .execute();
+}
+
 export async function stepCount(ctx: ServerContext, processId: string): Promise<number> {
   const r = await ctx.db
     .selectFrom('process_steps')

@@ -163,6 +163,7 @@ async function actStep(
               kind: action.json.input ?? 'click',
               action_id: action.id,
               value,
+              ...(input.trigger ? { trigger: true } : {}),
             },
           }
         : {}),

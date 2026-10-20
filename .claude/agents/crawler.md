@@ -82,7 +82,10 @@ process instead of mapping. The server records every step you take.
    decide each step from the last result. Your first step is `navigate` to the `base_url` that
    `start_run` returned.
 2. Every `navigate` and `act` carries an `intent`: one sentence saying what the step is for ("Open the car
-   insurance calculator"). It is required in trace mode.
+   insurance calculator"). It is required in trace mode. The pages you pass on the way to the
+   process (home, a menu, a product page) are only the way in. On the `act` that enters the process
+   (the click that opens its first own screen, e.g. "Calculate premium"), add `trigger: true`; mark
+   it once. The documentation starts the process at the screen that step opens.
 3. A fillable control's `suggested_value` is the persona's input to type, not what the field holds:
    forms start as the portal renders them, usually empty. Fill every field a step needs, one `act`
    at a time with action ids from the latest result, before pressing its submit. Without a

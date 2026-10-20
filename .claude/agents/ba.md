@@ -57,6 +57,10 @@ the portal, inside one analysis session, and return a short report. The preloade
 - You cannot set a status or a key; don't try to work around refusals. If the same write is refused
   twice for the same reason, stop retrying and list it in the gaps.
 - You never browse: the crawler records, you interpret.
+- A process is a business goal with a trigger, its own first screen and an outcome (skill:
+  "What a process is"). It starts at the screen its trigger opens (a trace's `trigger_ord` marks
+  that step) and ends at its outcome or boundary; pages walked on the way to the trigger are the
+  trigger's context, written in `trigger`, never contained screens or steps.
 - An error page is never a process step: a step is documented by its main state; a temporary error
   is an environment issue (an open question), and a step only ever seen as an error is not
   observed (an open question), never "the step is an error page" (spec 033, design §7.5).

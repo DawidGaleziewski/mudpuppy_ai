@@ -317,7 +317,7 @@ export function listProcesses(ctx: BaContext, raw: unknown): { processes: Row[] 
     .prepare(
       `SELECT p.id AS process_id, p.run_id, p.name, p.goal, p.persona_id, p.outcome,
               (SELECT COUNT(*) FROM process_steps s WHERE s.process_id = p.id) AS step_count,
-              p.boundary_action_id
+              p.boundary_action_id, p.trigger_ord
        FROM processes p WHERE p.portal_id = ? ORDER BY p.run_id`,
     )
     .all(input.portal_id) as Row[];
@@ -401,6 +401,8 @@ export function getProcess(ctx: BaContext, raw: unknown): Row {
     observed_result: p.observed_result,
     boundary,
     followup_record_id: p.followup_record_id,
+    // spec 039 T081: the step that entered the process; the steps before it are its context.
+    trigger_ord: p.trigger_ord ?? null,
     steps,
   };
 }

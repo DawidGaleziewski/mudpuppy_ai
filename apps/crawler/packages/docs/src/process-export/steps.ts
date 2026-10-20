@@ -49,15 +49,25 @@ function walk(states: readonly (string | null)[]): string[] {
   return out;
 }
 
+/**
+ * The states a trace walked, in order. A trace that marked its trigger (spec 039 T081) starts at
+ * the screen its trigger step entered: the pages before it are the trigger's context, not steps.
+ */
 function traceWalk(raw: RawDb, processIds: readonly string[]): string[] {
   const out: (string | null)[] = [];
   for (const id of processIds) {
+    const trigger = rows<{ t: number | null }>(
+      raw,
+      'SELECT trigger_ord AS t FROM processes WHERE id = ?',
+      id,
+    )[0]?.t;
     const steps = rows<{ state_before: string | null; state_after: string | null }>(
       raw,
-      'SELECT state_before, state_after FROM process_steps WHERE process_id = ? ORDER BY ord',
+      'SELECT state_before, state_after FROM process_steps WHERE process_id = ? AND ord >= ? ORDER BY ord',
       id,
+      trigger ?? 0,
     );
-    for (const s of steps) out.push(s.state_before, s.state_after);
+    for (const s of steps) out.push(trigger ? null : s.state_before, s.state_after);
   }
   return walk(out);
 }

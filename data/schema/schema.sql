@@ -1,4 +1,4 @@
--- GENERATED from data/migrations/*.up.sql applied in order (currently through 0033_fingerprint_profiles). Do not edit by hand.
+-- GENERATED from data/migrations/*.up.sql applied in order (currently through 0034_trace_trigger). Do not edit by hand.
 -- Regenerate after every migration; see data/schema/README.md.
 
 CREATE TABLE runs (
@@ -508,6 +508,8 @@ CREATE TABLE processes (
   not_observable     TEXT,                         -- required when outcome = 'boundary_reached'
   created_at         TEXT NOT NULL,
   ended_at           TEXT,
+  -- 0034 (ALTER TABLE, spec 039 T081): the step whose click enters the process (its trigger); NULL: none marked.
+  trigger_ord        INTEGER CHECK (trigger_ord IS NULL OR trigger_ord >= 1),
   CHECK (outcome IS NOT 'boundary_reached'
          OR (boundary_action_id IS NOT NULL AND not_observable IS NOT NULL))
 ) STRICT;

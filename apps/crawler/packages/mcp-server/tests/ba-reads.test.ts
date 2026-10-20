@@ -631,6 +631,7 @@ describe('list_processes, get_process', () => {
         outcome: 'goal_reached',
         step_count: 3,
         boundary_action_id: null,
+        trigger_ord: null,
       },
       {
         process_id: boundary.processId,
@@ -641,6 +642,7 @@ describe('list_processes, get_process', () => {
         outcome: 'boundary_reached',
         step_count: 2,
         boundary_action_id: boundary.boundaryActionId,
+        trigger_ord: null,
       },
     ]);
     expect((await h.must('list_processes', { portal_id: h.fx.otherPortalId })).processes).toEqual(

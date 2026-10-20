@@ -79,6 +79,22 @@ PII check reads an id in prose as a token and refuses the write (`PII_SUSPECTED`
 
 ### Pass 3 in detail: processes from traces
 
+**What a process is.** A process is something the business does for a user: a **goal** in the
+portal's words ("Calculate a car premium"), a **trigger** (the menu link or button that starts it;
+its label is usually the trigger's name), its **own first screen** (the screen the trigger opens)
+and an **outcome** (what the user has at the end: a premium shown, a policy bought), or the
+boundary where the trace had to stop. It is the as-is documentation a rebuild or a migration
+works from, so it starts where the business process starts, not where the browser did.
+
+- **Start**: the first screen of its own, the one its trigger opens. The home page, a menu or a
+  product page walked on the way there are the trigger's context: name them in `trigger` ("the
+  'Oblicz składkę' button on the car insurance page"), never as screens the process `contains`
+  and never as use-case steps.
+- **End**: the screen that shows the outcome, or the last screen before the boundary. Pages
+  after the outcome (back to home, another product) are not part of it.
+- One process per goal. Two goals reached one after the other (calculate, then buy) are two
+  processes; relate them with `depends_on` when the second needs the first.
+
 - Read each trace with `get_process`: its steps (intent, kind, action label, value, states before and
   after, outcomes) are the evidence. Cite the `process` and the `process_step`s that show each claim
   (`target_kind` `process` / `process_step`); a step is a server-observed fact and can carry `observed`.
@@ -86,7 +102,9 @@ PII check reads an id in prose as a token and refuses the write (`PII_SUSPECTED`
   ended `boundary_reached` (a trace stopped at an action above the run's limit); `map_only` when you
   know the process only from map data (screens and transitions, no trace).
 - Relate each `process` to every screen its steps pass through with `contains`
-  (`process contains screen`), in step order.
+  (`process contains screen`), in step order, starting at the screen its trigger opens: a trace's
+  `trigger_ord` names the step that entered the process; the pages before it are where the
+  trigger sits (write them in the `trigger`), not screens of the process.
 - Write each `use_case` main flow from the steps, one entry per step: actor steps quote the verbatim
   label and value, system steps state the recorded outcome (`references/use-cases.md`).
 - A boundary is a `not_observable` gap: record what lies beyond it with `not_observable: true`,
@@ -145,6 +163,11 @@ show a hypothesis's claim, evidence, tests and status.
   personas), input (follows other values), temporary (5xx, not seen again), session or time,
   feature flag (a stable split across scans of one persona), data. `same_as`, `different_from` and
   `process_boundary` need no test: a person's label or decision settles them.
+- **Decision rules and process boundaries.** A `confirmed` `decision_rule` (a result that follows
+  input values, mined from the scans; the export writes it as a DMN table) is a `business_rule`:
+  write it in the portal's words, cite the hypothesis's evidence, and keep its conditions as the
+  hypothesis states them. A `confirmed` `process_boundary` says where a process starts or ends:
+  use it for the process's first or last contained screen.
 - **A refused claim stays refused**: `CLAIM_REFUTED` means the same claim was tested and failed;
   look for another explanation. The rules of "Form steps and probe outcomes" apply: the main state
   is the step, the others are states of that step, a temporary error is an environment issue.
