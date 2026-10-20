@@ -56,5 +56,49 @@ export function explorationBound(e: {
   return `Explored to depth ${e.depth}${walks}${builds}; ${found}.`;
 }
 
+/** A small seeded generator (mulberry32): the same seed gives the same walks. */
+function seeded(seed: number): () => number {
+  let a = seed >>> 0;
+  return () => {
+    a = (a + 0x6d2b79f5) >>> 0;
+    let t = a;
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+/**
+ * Random walks inside a process (design § 14.2): from the start screen, each step picks one of the
+ * current screen's action classes that leads to another member, until `length` steps or a screen
+ * with none. Returns the class ids of each walk; deterministic for a seed.
+ */
+export function randomWalks(
+  classes: readonly ProcessClass[],
+  start: string,
+  members: ReadonlySet<string>,
+  opts: { walks: number; length: number; seed: number },
+): string[][] {
+  const next = new Map<string, ProcessClass[]>();
+  for (const c of [...classes].sort((a, b) => compare(a.id, b.id)))
+    if (c.leadsTo !== null && members.has(c.leadsTo))
+      next.set(c.screen, [...(next.get(c.screen) ?? []), c]);
+  const rnd = seeded(opts.seed);
+  const out: string[][] = [];
+  for (let w = 0; w < opts.walks; w++) {
+    const walk: string[] = [];
+    let at = start;
+    while (walk.length < opts.length) {
+      const options = next.get(at) ?? [];
+      if (options.length === 0) break;
+      const c = options[Math.floor(rnd() * options.length)]!;
+      walk.push(c.id);
+      at = c.leadsTo!;
+    }
+    if (walk.length > 0) out.push(walk);
+  }
+  return out;
+}
+
 /** The full pass's parameters (design § 14.2), from the model defaults. */
 export const EXPLORATION = MODEL_DEFAULTS.exploration;

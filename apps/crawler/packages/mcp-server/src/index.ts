@@ -13,3 +13,4 @@ export * from './local-client.js';
 export * from './trace-driver.js';
 export * from './replay-driver.js';
 export * from './replay-portal.js';
+export * from './explore-process.js';

@@ -103,7 +103,8 @@ Layer: servers (G-07; `apps/crawler/layers.json`)
 - Spec 039 (MudPuppy 2.0): `replay-driver.ts` (the headless driver: `replay(call, plan)` walks a
   recorded prefix by model element keys in a probe run, no LLM) and `replay-portal.ts`
   (`replayPortal`: R1 error replays, R8 rule mismatches, then boundary and regression tests, one
-  budget; `pnpm model:replay`, `model:regress`). Probe runs (`runs.mode = 'probe'`, design § 9):
+  budget; `pnpm model:replay`, `model:regress`) and `explore-process.ts` (`exploreProcess`: one
+  pass of the stopping rule over a process, `pnpm model:explore`, T075). Probe runs (`runs.mode = 'probe'`, design § 9):
   `start_run` `mode: 'probe'` + `replay {inputs}` (`RunChoices.replay`, `RunState.headless`):
   element keys in results, autofill types the inputs first, transitions `driver = 'headless'`, no
   frontier drain. Not spec 032's form-probing runs (`form_probing`, T116@039).

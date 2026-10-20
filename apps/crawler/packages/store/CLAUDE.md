@@ -30,7 +30,9 @@ Layer: store (G-07; `apps/crawler/layers.json`)
   (`model-calibration.ts`), `refingerprintPortal`, `compareProfiles` (`refingerprint.ts`, T113),
   `findProcessInstances`, `writeProcessInstances`, `processTraceVariants`
   (`process-instances.ts`: journeys through each process from its trigger, written on every
-  reconcile; trace variants on read, T073),
+  reconcile; trace variants on read, T073), `explorationPlan`, `recordExploration`,
+  `unexploredProcesses` (`process-exploration.ts`: the stopping rule's replays, planner priority 6,
+  T075), `anchorReviewsOf` (`anchors.ts`, T074),
   `decisionRules`, `dmnFiles` (`rule-export.ts`, `pnpm model:dmn`), `writeGuardConflicts`
   (`rule-guards.ts`: guards along a path that cannot all hold → `ambiguous`, after
   `pnpm model:mine`, T064), `queueRegressions`,

@@ -28,7 +28,8 @@ own `CLAUDE.md`), the operator scripts under `scripts/`, and the test tiers.
   proposals, Leiden), `pnpm model:dmn` (decision rules as DMN files), `pnpm model:regress`
   (regression rounds of confirmed rules), `pnpm model:pairs` (labelling queue and τ calibration;
   `model:decide … accept-tau` puts a calibrated τ in force), `pnpm model:refingerprint` and
-  `pnpm model:compare-fingerprints` (fingerprint profiles, T113).
+  `pnpm model:compare-fingerprints` (fingerprint profiles, T113), `pnpm model:explore` (the
+  stopping rule per process on the headless driver; without a key, every unexplored process, T075).
 
 ## Layout
 

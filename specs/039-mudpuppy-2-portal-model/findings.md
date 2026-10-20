@@ -514,6 +514,27 @@ Bugs, slips and design deviations found while building, each with a test or eval
   purchase step. The approved reference export scores wrong start 1 (the home page, F-15@034),
   wrong end 0. Not run: the "several trials" part costs money and waits for the owner.
 
+## F-37 Exploring a process as built (T075), 2026-10-20
+
+- `explorationPlan` (store) turns the stopping rule into replays: depth-1 gaps (an action class of
+  a member screen a persona never pressed), depth-2 gaps (a class then one on its target, never
+  back to back) and `randomWalks` (model, seeded, inside the process, from the start screen).
+  Each replay starts from the first recorded way of that persona onto the screen (a journey's
+  first page or a transition into it, `journeyPath`). Fill, select and check classes are left
+  out: the driver types through autofill at the submit. Audiences are the personas whose
+  journeys reached a member screen, else the process's persona.
+- `exploreProcess` (mcp-server) runs them on the headless driver; a pass where every gap had a
+  replay is recorded in `process_explorations` with the deviations the model found meanwhile and
+  the bound sentence ("Explored to depth 2 plus N random walks on builds …"). `unexploredProcesses`
+  (priority 6) lists processes with no pass on the current build epochs without new deviations;
+  `pnpm model:explore <portal>` explores them all.
+- **Not done**: the planner does not write priority-6 marks (no store planner exists yet for any
+  priority); inputs are not sampled from observed values (autofill types the persona's test data);
+  gaps no recorded journey leads to are only reported (`unreachable`, a focused map run).
+  No browser test of `exploreProcess` yet (the store test covers the plan).
+- **Test**: `exploration-dmn.test.ts` (walks), `process-exploration.test.ts` (plan, depth-1 gap of
+  a second persona, priority 6).
+
 ## F-36 Anchors on entity_refs as built (T074), 2026-10-20
 
 - **Migration 0037** adds `amendments.ref_id` (an `entity_refs` row: the model screen of the

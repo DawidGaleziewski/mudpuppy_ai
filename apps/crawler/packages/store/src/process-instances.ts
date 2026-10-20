@@ -16,7 +16,7 @@ import {
 type Raw = BetterSqlite3.Database;
 
 /** The current model screen of each state of the portal. */
-function screenOfState(raw: Raw, portal: string): Map<string, string> {
+export function screenOfState(raw: Raw, portal: string): Map<string, string> {
   const rows = raw
     .prepare(
       `SELECT m.state_id, m.screen_id FROM screen_members m
@@ -28,7 +28,11 @@ function screenOfState(raw: Raw, portal: string): Map<string, string> {
 }
 
 /** The shape of each listed process: A's screens, its start screen and where it completes. */
-function processShapes(raw: Raw, portal: string, screenOf: ReadonlyMap<string, string>) {
+export function processShapes(
+  raw: Raw,
+  portal: string,
+  screenOf: ReadonlyMap<string, string>,
+): ProcessShape[] {
   const rows = raw
     .prepare(
       `SELECT p.id, p.start_screen_id, r.steps FROM ba_processes p

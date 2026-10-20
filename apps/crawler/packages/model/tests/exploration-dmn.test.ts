@@ -3,6 +3,7 @@ import {
   explorationBound,
   explorationGaps,
   feel,
+  randomWalks,
   toDmnXml,
   type DecisionTable,
 } from '../src/index.js';
@@ -23,6 +24,17 @@ describe('stopping rule (design § 14.2)', () => {
     );
     expect(gaps.depth1).toEqual(['guest\u0000c2']);
     expect(gaps.depth2).toEqual(['c1\u0000c2']);
+  });
+
+  it('walks inside the process, the same walks for the same seed (T075)', () => {
+    const loop = [...classes, { id: 'c4', screen: 'S2', leadsTo: 'S1' }];
+    const members = new Set(['S1', 'S2']);
+    const walks = randomWalks(loop, 'S1', members, { walks: 5, length: 4, seed: 7 });
+    expect(walks).toHaveLength(5);
+    // c3 leads out of the process and c2 nowhere: only c1 and c4 are taken, in turn.
+    for (const w of walks) expect(w).toEqual(['c1', 'c4', 'c1', 'c4']);
+    expect(randomWalks(loop, 'S1', members, { walks: 5, length: 4, seed: 7 })).toEqual(walks);
+    expect(randomWalks(classes, 'S3', members, { walks: 3, length: 4, seed: 1 })).toEqual([]);
   });
 
   it('states the bound the documentation carries', () => {
