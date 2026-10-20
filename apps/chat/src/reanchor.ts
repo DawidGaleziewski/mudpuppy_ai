@@ -7,10 +7,12 @@
 import { readFileSync } from 'node:fs';
 import type BetterSqlite3 from 'better-sqlite3';
 import { Layout, nowIso, type EvidenceStore } from '@pathfinder/core';
+import { anchorReviewsOf } from '@pathfinder/store';
 import {
   amendmentOutcomes,
   type AmendmentAnchor,
   type AmendmentOutcome,
+  type NeedsReanchor,
   type ObservedState,
 } from '@pathfinder/workflow';
 import { Amendment, AmendmentRevision } from '@pathfinder/chat-model';
@@ -151,6 +153,32 @@ function revisionOf(
   });
 }
 
+/**
+ * Amendments anchored on the portal model (spec 039 § 15, T074): only a screen merged, split or
+ * retired, or an element no longer seen, needs a person; another revision of the page does not.
+ */
+function modelReviews(
+  raw: BetterSqlite3.Database,
+  portalId: string,
+): (NeedsReanchor & { key: string })[] {
+  const keys = new Map(
+    (
+      raw.prepare('SELECT id, key FROM amendments WHERE portal_id = ?').all(portalId) as {
+        id: string;
+        key: string;
+      }[]
+    ).map((r) => [r.id, r.key]),
+  );
+  return anchorReviewsOf(raw, portalId).map((r) => ({
+    amendmentId: r.id,
+    outcome: 'needs_reanchor',
+    reason: r.reason === 'screen_moved' ? 'state_ambiguous' : 'element_removed',
+    detail: r.detail,
+    successorStateId: null,
+    key: keys.get(r.id) ?? r.id,
+  }));
+}
+
 export function reanchorAfterRun(
   raw: BetterSqlite3.Database,
   evidence: EvidenceStore,
@@ -158,15 +186,18 @@ export function reanchorAfterRun(
   runId: string,
   now: Date = new Date(),
 ): ReanchorResult {
+  // v1 anchors (fingerprint and element): amendments the model could not anchor yet.
   const rows = raw
     .prepare(
       `SELECT id, key, anchor_fingerprint, anchor_route_template, anchor_element, screen_id
        FROM amendments
-       WHERE portal_id = ? AND status = 'active'
+       WHERE portal_id = ? AND status = 'active' AND ref_id IS NULL
          AND anchor_fingerprint IS NOT NULL AND anchor_route_template IS NOT NULL`,
     )
     .all(portalId) as AnchorRow[];
-  if (rows.length === 0) return { runId, carried: [], needsReanchor: [] };
+  const modelOutcomes = modelReviews(raw, portalId);
+  if (rows.length === 0 && modelOutcomes.length === 0)
+    return { runId, carried: [], needsReanchor: [] };
 
   const anchors: AmendmentAnchor[] = rows.map((r) => ({
     id: r.id,
@@ -178,8 +209,14 @@ export function reanchorAfterRun(
         : (JSON.parse(r.anchor_element) as AmendmentAnchor['anchorElement']),
     screenId: r.screen_id,
   }));
-  const outcomes = amendmentOutcomes(anchors, observedStates(raw, evidence, runId));
-  const keyOf = new Map(rows.map((r) => [r.id, r.key]));
+  const outcomes = [
+    ...(anchors.length > 0 ? amendmentOutcomes(anchors, observedStates(raw, evidence, runId)) : []),
+    ...modelOutcomes,
+  ];
+  const keyOf = new Map([
+    ...rows.map((r): [string, string] => [r.id, r.key]),
+    ...modelOutcomes.map((o): [string, string] => [o.amendmentId, o.key]),
+  ]);
   const at = nowIso(now);
   const author = `scan:${runId}`;
 

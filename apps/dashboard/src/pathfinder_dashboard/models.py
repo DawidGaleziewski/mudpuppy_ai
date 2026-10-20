@@ -1100,6 +1100,7 @@ class Amendment(Row):
     withdrawn_at: str | None
     rev: int  # 0016: the head's current revision number
     screen_id: str | None  # 0016: the screen the amendment belongs to
+    ref_id: str | None = None  # 0037: the anchor, a model screen + element key (entity_refs)
 
 
 class AmendmentRevision(Row):

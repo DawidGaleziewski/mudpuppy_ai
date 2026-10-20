@@ -1,4 +1,4 @@
--- GENERATED from data/migrations/*.up.sql applied in order (currently through 0036_processes). Do not edit by hand.
+-- GENERATED from data/migrations/*.up.sql applied in order (currently through 0037_amendment_anchors). Do not edit by hand.
 -- Regenerate after every migration; see data/schema/README.md.
 
 CREATE TABLE runs (
@@ -641,6 +641,7 @@ CREATE TABLE amendments (
   withdrawn_at      TEXT,
   rev               INTEGER NOT NULL DEFAULT 1 CHECK (rev >= 1),  -- 0016: the head's current revision number
   screen_id         TEXT REFERENCES screens(id),                   -- 0016: the screen the amendment belongs to
+  ref_id            TEXT REFERENCES entity_refs(id),               -- 0037 (spec 039 § 15): the anchor, a model screen + element key
   UNIQUE (portal_id, key),
   CHECK (kind <> 'note' OR text IS NOT NULL),
   CHECK (kind <> 'attachment' OR (attachment_sha256 IS NOT NULL AND attachment_name IS NOT NULL)),

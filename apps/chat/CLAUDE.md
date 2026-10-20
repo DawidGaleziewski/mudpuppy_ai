@@ -19,7 +19,9 @@ store, vault, workflow.
 - `amendments`: amendment commands (create, withdraw, re-anchor, dismiss, edit, restore);
   `amendment-revisions`: the one write path (every change is a row in `amendment_revisions`, a
   stale `base_rev` answers 409 `STALE_REVISION`); `api-amendments`: their HTTP routes;
-  `reanchor`: after a scan, carries amendments forward or flags them for re-anchoring (spec 022).
+  `reanchor`: after a scan, carries amendments forward or flags them for re-anchoring (spec 022);
+  amendments anchored on the portal model (`ref_id`, spec 039 T074) only when their screen was
+  split, merged or retired or their element is no longer seen.
 - `http-io`, `http-error`: JSON in/out and the HTTP error with machine-readable extras.
 - `page-context`: the message's page context and the line the agent gets; `ui-actions`: completed
   browser tools → `ui_action` events (a credential request is also kept in the history);

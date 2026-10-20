@@ -514,6 +514,25 @@ Bugs, slips and design deviations found while building, each with a test or eval
   purchase step. The approved reference export scores wrong start 1 (the home page, F-15@034),
   wrong end 0. Not run: the "several trials" part costs money and waits for the owner.
 
+## F-36 Anchors on entity_refs as built (T074), 2026-10-20
+
+- **Migration 0037** adds `amendments.ref_id` (an `entity_refs` row: the model screen of the
+  state the amendment was written on, and the anchor's element key) and backfills it for
+  amendments on states that have a current screen. The chat service writes the anchor with every
+  new amendment and a new one whenever a revision moves it (`amendment-revisions.ts`).
+- **Review triggers** (`anchorReviews` in the model, `anchorReviewsOf` in the store): an anchored
+  amendment needs a person only when a lineage row of the latest model version split, merged or
+  retired its screen, or every action class on its element key is `not_seen_since`. A new member
+  of the screen never triggers one. `reanchorAfterRun` (chat) uses this for anchored amendments
+  and keeps the v1 fingerprint rule for those without an anchor. Lineage → `state_replaced`
+  (via `state_ambiguous`), element → `element_removed`.
+- **Limits**: an element that is not an action (a heading) has no action class, so its
+  disappearance is not seen; "for every audience" is approximated by the action class status
+  (the design's `action_coverage` table does not exist). v1's polymorphic `target_id` /
+  `about_ref` columns are not dropped yet (design § 15 lists them; a wider refactor).
+- **Test**: `anchors.test.ts` (model, store). No chat-level test of the model path yet (the
+  existing reanchor tests run on stores without a model).
+
 ## F-35 Process instances as built (T073), 2026-10-20
 
 - `processInstances` (model) walks each journey: a **trigger** is a non-global transition from a

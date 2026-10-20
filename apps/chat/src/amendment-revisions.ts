@@ -2,7 +2,7 @@
 // row to `amendment_revisions` and moves the `amendments` head to it, in the caller's transaction.
 // Nothing is deleted or overwritten without a revision; a write on a stale base is refused.
 
-import { nowIso } from '@pathfinder/core';
+import { newId, nowIso } from '@pathfinder/core';
 import { Amendment, AmendmentRevision, type AmendmentChange } from '@pathfinder/chat-model';
 import { type PathfinderDb } from '@pathfinder/store';
 import { HttpError } from './http-error.js';
@@ -26,6 +26,29 @@ export function parseRevision(row: RevisionRow): AmendmentRevision {
 
 const json = (a: Amendment['anchor_element']): string | null =>
   a === null ? null : JSON.stringify(a);
+
+/**
+ * The amendment's anchor on the portal model (spec 039 § 15, T074): the model screen of the state
+ * it is written on and its element key, as an `entity_refs` row. Null when the state is on no
+ * model screen yet (the v1 fingerprint anchor then decides re-anchoring).
+ */
+async function anchorRef(trx: PathfinderDb, head: Amendment): Promise<string | null> {
+  if (head.target_kind === 'evidence') return null;
+  const stateId = head.target_id.split('#')[0]!;
+  const member = await trx
+    .selectFrom('screen_members')
+    .select('screen_id')
+    .where('state_id', '=', stateId)
+    .where('to_model_version', 'is', null)
+    .executeTakeFirst();
+  if (member === undefined) return null;
+  const id = newId();
+  await trx
+    .insertInto('entity_refs')
+    .values({ id, screen_id: member.screen_id, element_key: head.anchor_element?.key ?? null })
+    .execute();
+  return id;
+}
 
 /** The head of an amendment of the portal, or 404. */
 export async function loadHead(db: PathfinderDb, portal: string, id: string): Promise<Amendment> {
@@ -84,7 +107,11 @@ export async function insertCreated(
 ): Promise<void> {
   await trx
     .insertInto('amendments')
-    .values({ ...head, anchor_element: json(head.anchor_element) })
+    .values({
+      ...head,
+      anchor_element: json(head.anchor_element),
+      ref_id: await anchorRef(trx, head),
+    })
     .execute();
   const r = revisionOf(head, 'create', author, null, {});
   await trx
@@ -108,7 +135,12 @@ export async function writeRevision(
   const next = Amendment.parse({ ...head, ...changes, rev: head.rev + 1 });
   const done = await trx
     .updateTable('amendments')
-    .set({ ...next, anchor_element: json(next.anchor_element) })
+    .set({
+      ...next,
+      anchor_element: json(next.anchor_element),
+      // A new place (re-anchored, moved along) gets a new model anchor.
+      ...(next.target_id !== head.target_id ? { ref_id: await anchorRef(trx, next) } : {}),
+    })
     .where('id', '=', head.id)
     .where('rev', '=', head.rev) // another writer got there first: no lost update
     .executeTakeFirst();

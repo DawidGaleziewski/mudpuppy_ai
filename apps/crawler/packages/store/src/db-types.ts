@@ -329,6 +329,8 @@ export interface AmendmentsTable {
   rev: ColumnType<number, number | undefined, number>;
   /** 0016: the screen the amendment belongs to. */
   screen_id: string | null;
+  /** 0037 (spec 039 § 15): the anchor, an `entity_refs` row (model screen + element key). */
+  ref_id: ColumnType<string | null, string | null | undefined, string | null>;
 }
 
 /** 0016: append-only history of an amendment. */
