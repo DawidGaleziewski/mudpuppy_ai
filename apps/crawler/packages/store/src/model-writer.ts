@@ -15,11 +15,13 @@ import {
   type ParameterRole,
   type ReconcileInput,
   type ReconcileOutput,
+  type SimilarityClassifier,
 } from '@pathfinder/model';
 
 import { activeProfile, LEGACY_PROFILE, tauInForce } from './fingerprint-profiles.js';
 import { interpretVersion, modelSnapshot, type InterpretStats } from './interpret-writer.js';
 import { writeProcessInstances } from './process-instances.js';
+import { activeClassifier } from './similarity-classifier.js';
 
 type Raw = BetterSqlite3.Database;
 
@@ -66,9 +68,10 @@ function watermarks(raw: Raw, portal: string): Watermarks {
       `SELECT max(w) AS w FROM (
          SELECT max(labelled_at) AS w FROM state_pair_labels WHERE portal_id = ?
          UNION ALL SELECT max(decided_at) FROM parameter_roles WHERE portal_id = ? AND decided_by = 'person'
-         UNION ALL SELECT max(accepted_at) FROM tau_acceptances WHERE portal_id = ?)`,
+         UNION ALL SELECT max(accepted_at) FROM tau_acceptances WHERE portal_id = ?
+         UNION ALL SELECT max(trained_at) FROM similarity_classifiers WHERE portal_id = ?)`,
     )
-    .get(portal, portal, portal) as { w: string | null };
+    .get(portal, portal, portal, portal) as { w: string | null };
   return { observation: obs.w, decision: dec.w };
 }
 
@@ -84,7 +87,8 @@ export function loadReconcileInput(
   const states = (
     raw
       .prepare(
-        `SELECT s.id, s.fingerprint, s.route_template, c.structure_hash, c.minhash, c.element_keys
+        `SELECT s.id, s.fingerprint, s.route_template, c.structure_hash, c.minhash, c.element_keys,
+           c.content_hash, c.overlay_hash, c.calls_hash, c.mounts_hash
          FROM states s JOIN state_components c ON c.state_id = s.id
          WHERE s.portal_id = ? AND coalesce(c.profile, ?) = ?`,
       )
@@ -95,6 +99,10 @@ export function loadReconcileInput(
       structure_hash: string;
       minhash: Buffer;
       element_keys: string;
+      content_hash: string;
+      overlay_hash: string;
+      calls_hash: string;
+      mounts_hash: string;
     }[]
   ).map((s) => ({
     id: s.id,
@@ -103,6 +111,12 @@ export function loadReconcileInput(
     structureHash: s.structure_hash,
     minhash: minhashOf(s.minhash),
     elementKeys: JSON.parse(s.element_keys) as string[],
+    hashes: {
+      content: s.content_hash,
+      overlay: s.overlay_hash,
+      calls: s.calls_hash,
+      mounts: s.mounts_hash,
+    },
   }));
   const buildsOf = new Map<string, { scope: string; build: string }[]>();
   for (const b of raw
@@ -211,8 +225,12 @@ export function loadReconcileInput(
     retired: new Set(),
     // The τ a person accepted for this profile (T115), else the profile's own threshold.
     tau: tauInForce(raw, portal, profile),
+    // A classifier that beat τ on held-out labels replaces it (T090).
+    ...withClassifier(activeClassifier(raw, portal, profile)),
   };
 }
+
+const withClassifier = (c: SimilarityClassifier | undefined) => (c ? { classifier: c } : {});
 
 /** Reconcile one portal and write the new model version. */
 export function reconcilePortalModel(

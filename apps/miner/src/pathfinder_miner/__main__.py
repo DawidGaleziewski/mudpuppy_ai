@@ -5,6 +5,8 @@ Subcommands print JSON for `pnpm model:import`; nothing here writes the store.
   whether its mining step can run).
 - `rules --in <table.json>`: mine one decision point's observation table into a decision table.
 - `communities --in <graph.json>`: Leiden communities of the weighted screen graph.
+- `classify --in <pairs.json>`: the similarity classifier over fingerprint components, with its
+  held-out F1 against the single threshold (T090).
 """
 
 from __future__ import annotations
@@ -30,7 +32,7 @@ def libraries() -> dict[str, str | None]:
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="pathfinder-miner")
-    parser.add_argument("command", choices=["check", "rules", "communities"])
+    parser.add_argument("command", choices=["check", "rules", "communities", "classify"])
     parser.add_argument("--in", dest="input", type=Path, help="the JSON input file")
     args = parser.parse_args(argv)
     if args.command == "check":
@@ -46,6 +48,10 @@ def main(argv: list[str] | None = None) -> int:
         from pathfinder_miner.rules import mine
 
         print(json.dumps(mine(data), ensure_ascii=False))
+    elif args.command == "classify":
+        from pathfinder_miner.classify import classify
+
+        print(json.dumps(classify(data), ensure_ascii=False))
     else:
         from pathfinder_miner.communities import communities
 

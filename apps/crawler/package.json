@@ -30,6 +30,7 @@
     "model:replay": "tsx scripts/model-replay.ts",
     "model:regress": "tsx scripts/model-replay.ts --regress",
     "model:explore": "tsx scripts/model-explore.ts",
+    "model:classify": "tsx scripts/model-classify.ts",
     "model:dmn": "tsx scripts/model-dmn.ts",
     "model:pairs": "tsx scripts/model-pairs.ts",
     "model:refingerprint": "tsx scripts/model-refingerprint.ts",

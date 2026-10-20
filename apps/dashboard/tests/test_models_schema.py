@@ -75,6 +75,7 @@ def test_model_literals_equal_table_checks(empty_store: Store, table: str) -> No
             "internal",
             "overlaps_previous",
             "derived",  # 0031
+            "better",  # 0038: the classifier beat τ
         }
         if checked is None or name in bool_flags:
             continue  # unconstrained text, or a 0/1 flag mapped to bool

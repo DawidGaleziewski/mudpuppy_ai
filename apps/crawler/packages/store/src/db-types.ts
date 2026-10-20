@@ -573,6 +573,23 @@ export interface FingerprintProfilesTable {
   first_seen: string;
 }
 
+/** 0038 (spec 039 FR-050, T090): a similarity classifier trained for a portal and profile. */
+export interface SimilarityClassifiersTable {
+  id: string;
+  portal_id: string;
+  profile: string;
+  features: string;
+  weights: string;
+  intercept: number;
+  labels: number;
+  held_out: number;
+  f1: number;
+  tau: number;
+  tau_f1: number;
+  better: 0 | 1;
+  trained_at: string;
+}
+
 /** 0033 (spec 039 T115): a τ a person accepted for a portal and profile; the latest is in force. */
 export interface TauAcceptancesTable {
   id: string;
@@ -1200,6 +1217,7 @@ export interface Database {
   hypothesis_events: HypothesisEventsTable;
   fingerprint_profiles: FingerprintProfilesTable;
   tau_acceptances: TauAcceptancesTable;
+  similarity_classifiers: SimilarityClassifiersTable;
   frontier: FrontierTable;
   open_questions: OpenQuestionsTable;
   decision_log: DecisionLogTable;

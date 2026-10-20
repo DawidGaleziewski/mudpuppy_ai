@@ -1,4 +1,4 @@
--- GENERATED from data/migrations/*.up.sql applied in order (currently through 0037_amendment_anchors). Do not edit by hand.
+-- GENERATED from data/migrations/*.up.sql applied in order (currently through 0038_similarity_classifiers). Do not edit by hand.
 -- Regenerate after every migration; see data/schema/README.md.
 
 CREATE TABLE runs (
@@ -1341,3 +1341,22 @@ CREATE TABLE process_explorations (
   completed_at   TEXT NOT NULL
 ) STRICT;
 CREATE INDEX ix_process_explorations_process ON process_explorations (process_id, completed_at);
+
+-- 0038_similarity_classifiers (spec 039 FR-050, T090): the similarity classifier per portal and profile, with
+-- its held-out F1 against τ; the reconciler clusters with the latest one that beat τ.
+CREATE TABLE similarity_classifiers (
+  id           TEXT PRIMARY KEY,                                    -- UUIDv7
+  portal_id    TEXT NOT NULL CHECK (length(portal_id) > 0),
+  profile      TEXT NOT NULL CHECK (length(profile) > 0),
+  features     TEXT NOT NULL CHECK (json_valid(features) AND json_type(features) = 'array'),
+  weights      TEXT NOT NULL CHECK (json_valid(weights) AND json_type(weights) = 'array'),
+  intercept    REAL NOT NULL,
+  labels       INTEGER NOT NULL CHECK (labels >= 0),
+  held_out     INTEGER NOT NULL CHECK (held_out >= 0),
+  f1           REAL NOT NULL CHECK (f1 >= 0 AND f1 <= 1),
+  tau          REAL NOT NULL CHECK (tau > 0 AND tau <= 1),
+  tau_f1       REAL NOT NULL CHECK (tau_f1 >= 0 AND tau_f1 <= 1),
+  better       INTEGER NOT NULL CHECK (better IN (0,1)),
+  trained_at   TEXT NOT NULL
+) STRICT;
+CREATE INDEX ix_similarity_classifiers_portal ON similarity_classifiers (portal_id, profile, trained_at);

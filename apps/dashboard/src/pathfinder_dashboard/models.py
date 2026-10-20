@@ -527,6 +527,24 @@ class TauAcceptance(Row):
     accepted_at: str
 
 
+class SimilarityClassifier(Row):
+    """0038 (spec 039 FR-050): a similarity classifier trained for a portal and profile."""
+
+    id: str
+    portal_id: str
+    profile: str
+    features: Json
+    weights: Json
+    intercept: float
+    labels: int
+    held_out: int
+    f1: float
+    tau: float
+    tau_f1: float
+    better: bool
+    trained_at: str
+
+
 class CorrelationId(Row):
     """0036 (spec 039 § 13.4): a value reused within a journey, stored hashed."""
 
@@ -1351,6 +1369,7 @@ TABLE_MODELS: dict[str, type[Row]] = {
     "process_instances": ProcessInstance,
     "process_triggers": ProcessTrigger,
     "process_explorations": ProcessExploration,
+    "similarity_classifiers": SimilarityClassifier,
 }
 
 

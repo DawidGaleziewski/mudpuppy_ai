@@ -83,6 +83,7 @@ export const PORTAL_TABLES = [
   'process_instances',
   'process_triggers',
   'process_explorations',
+  'similarity_classifiers',
 ] as const;
 export type PortalTable = (typeof PORTAL_TABLES)[number];
 
@@ -115,6 +116,8 @@ const DELETE_ORDER: readonly PortalTable[] = [
   'process_triggers',
   'process_instances',
   'correlation_ids',
+  // 0038 (spec 039): no references
+  'similarity_classifiers',
   // 0033 (spec 039): no references
   'tau_acceptances',
   'fingerprint_profiles',
@@ -264,6 +267,7 @@ export function where(table: PortalTable, side: 'mine' | 'others'): string {
     case 'hypotheses':
     case 'fingerprint_profiles':
     case 'tau_acceptances':
+    case 'similarity_classifiers':
       return `portal_id ${op} ?`;
     case 'deviation_occurrences':
       return `deviation_id IN (SELECT id FROM deviations WHERE portal_id ${op} ?)`;

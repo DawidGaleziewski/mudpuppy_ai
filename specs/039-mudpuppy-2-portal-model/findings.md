@@ -514,6 +514,25 @@ Bugs, slips and design deviations found while building, each with a test or eval
   purchase step. The approved reference export scores wrong start 1 (the home page, F-15@034),
   wrong end 0. Not run: the "several trials" part costs money and waits for the owner.
 
+## F-40 The similarity classifier as built (T090), 2026-10-20
+
+- **Features** (`pairFeatures`, model): MinHash similarity, equal structure, content, overlay,
+  calls and mounts hashes, and the Jaccard of the element keys (7, `PAIR_FEATURES`).
+- **Training** (`pathfinder-miner classify`): a logistic regression (random_state 0) on the
+  labelled pairs (`state_pair_labels`: clone and near-duplicate = one screen, distinct = two);
+  every fifth pair by pair id is held out. It reports the held-out F1 of detecting distinct pairs
+  for the classifier (P(same) < 0.5) and for τ (MinHash < τ), and the weights trained on all
+  pairs. `pnpm model:classify` records it (migration 0038, `similarity_classifiers`).
+- **Switch**: the reconciler clusters with the latest training's classifier when it beat τ
+  (distance = 1 − P(same), merge below 0.5); otherwise with τ. A training moves the decision
+  watermark, so the next reconcile writes a version. **Decision taken here**: the switch is
+  automatic (FR-050 says "replaces τ when it beats it"), unlike τ, which a person accepts (T115);
+  owner question whether a person should accept the classifier too.
+- **M6 gate not run**: it needs real labels (the switchboard ground truth plus owner labels);
+  `pnpm model:pairs` makes the queue. No tag set.
+- **Test**: `test_classify.py` (miner), `classifier.test.ts` (model: features, clustering by the
+  classifier), `similarity-classifier.test.ts` (store).
+
 ## F-39 The chat orchestrator and the model as built (T077), 2026-10-20
 
 - New chat tools (`mcp-model-tools.ts`): `list_process_proposals` and `name_proposal` (the open

@@ -1,4 +1,5 @@
 export * from './calibration.js';
+export * from './classifier.js';
 export * from './clustering.js';
 export * from './parameter-roles.js';
 export * from './partitions.js';

@@ -5,6 +5,13 @@
  * fingerprint of each cluster. Pure.
  */
 import { MODEL_DEFAULTS } from '../defaults.js';
+import {
+  CLASSIFIER_THRESHOLD,
+  classifierSimilarity,
+  type PairComponents,
+  type SimilarityClassifier,
+} from './classifier.js';
+import { similarity } from './minhash.js';
 
 export interface ClusterState {
   id: string;
@@ -14,6 +21,8 @@ export interface ClusterState {
   routeKey: string;
   /** 128 MinHash values. */
   minhash: readonly number[];
+  /** Every fingerprint component, for the similarity classifier (T090). */
+  components?: PairComponents;
 }
 
 export interface ClusterConstraints {
@@ -30,13 +39,7 @@ export interface Clustering {
   conflicts: string[][];
 }
 
-export function similarity(a: readonly number[], b: readonly number[]): number {
-  const n = Math.min(a.length, b.length);
-  if (n === 0) return 0;
-  let same = 0;
-  for (let i = 0; i < n; i++) if (a[i] === b[i]) same++;
-  return same / n;
-}
+export { similarity };
 
 /** Candidate pairs by LSH banding (design § 6.1): states sharing all rows of some band. */
 export function lshCandidates(
@@ -92,6 +95,7 @@ export function clusterPartition(
   input: readonly ClusterState[],
   constraints: ClusterConstraints,
   tau: number = MODEL_DEFAULTS.tau,
+  classifier?: SimilarityClassifier,
 ): Clustering {
   const states = [...input].sort((a, b) => compare(a.fingerprint, b.fingerprint));
   const n = states.length;
@@ -129,7 +133,11 @@ export function clusterPartition(
   const dist = (i: number, j: number): number => {
     const [x, y] = i < j ? [i, j] : [j, i];
     if (candidates && !candidates.has(`${x},${y}`)) return 1;
-    return 1 - similarity(states[x]!.minhash, states[y]!.minhash);
+    const [a, b] = [states[x]!, states[y]!];
+    // T090: a classifier the portal switched on scores the pair over all its components.
+    if (classifier && a.components && b.components)
+      return 1 - classifierSimilarity(classifier, a.components, b.components);
+    return 1 - similarity(a.minhash, b.minhash);
   };
   const blocked = (a: number[], b: number[]): boolean =>
     a.some((i) => b.some((j) => cannot.has(pairKey(states[i]!.id, states[j]!.id))));
@@ -139,7 +147,7 @@ export function clusterPartition(
     return sum / (a.length * b.length);
   };
   // Clusters keep their members sorted, so a cluster's first member holds its smallest fingerprint.
-  const limit = 1 - tau + 1e-12;
+  const limit = 1 - (classifier ? CLASSIFIER_THRESHOLD : tau) + 1e-12;
   for (;;) {
     let best: { a: number; b: number; d: number } | null = null;
     for (let a = 0; a < clusters.length; a++)
@@ -167,12 +175,13 @@ export function clusterPortal(
   states: readonly ClusterState[],
   constraints: ClusterConstraints,
   tau: number = MODEL_DEFAULTS.tau,
+  classifier?: SimilarityClassifier,
 ): Clustering {
   const byRoute = new Map<string, ClusterState[]>();
   for (const s of states) byRoute.set(s.routeKey, [...(byRoute.get(s.routeKey) ?? []), s]);
   const out: Clustering = { clusters: [], conflicts: [] };
   for (const route of [...byRoute.keys()].sort()) {
-    const r = clusterPartition(byRoute.get(route)!, constraints, tau);
+    const r = clusterPartition(byRoute.get(route)!, constraints, tau, classifier);
     out.clusters.push(...r.clusters);
     out.conflicts.push(...r.conflicts);
   }

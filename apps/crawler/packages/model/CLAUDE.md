@@ -16,6 +16,8 @@ Layer: models (G-07; `apps/crawler/layers.json`)
 - `model/` (design § 6–7): `clusterPartition`, `clusterPortal`, `lshCandidates`, `compare`
   (canonical clustering); `assignScreens`, `lineageFor` (stable ids); `parameterRoles`,
   `routeKey`, `paramsOf`, `dominantRouteKey`; `calibrateTau`, `labellingQueue` (T037);
+  `pairFeatures`, `classifierSimilarity` (the similarity classifier, FR-050, T090; clustering
+  takes it in place of τ);
   `globalKeys`, `foldTransitions`, `coverageOf`,
   `buildEpochs`; `reconcile` (the whole pure core).
 - `interpret/` (design § 8, § 10): `deviationsBetween`, `classify` (rules R1–R8), `statusOf`

@@ -33,7 +33,8 @@ Layer: store (G-07; `apps/crawler/layers.json`)
   reconcile; trace variants on read, T073), `explorationPlan`, `recordExploration`,
   `unexploredProcesses` (`process-exploration.ts`: the stopping rule's replays, planner priority 6,
   T075), `anchorReviewsOf` (`anchors.ts`, T074), `processModelFacts` (`process-facts.ts`: what
-  the model knows of a process, for its export, T078),
+  the model knows of a process, for its export, T078), `classifierTrainingSet`,
+  `recordClassifier`, `activeClassifier` (`similarity-classifier.ts`, T090),
   `decisionRules`, `dmnFiles` (`rule-export.ts`, `pnpm model:dmn`), `writeGuardConflicts`
   (`rule-guards.ts`: guards along a path that cannot all hold → `ambiguous`, after
   `pnpm model:mine`, T064), `queueRegressions`,

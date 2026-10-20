@@ -93,7 +93,7 @@ group, ids in the message. Gates per milestone in `plan.md` § 1. `[B: …]` = b
 
 ## M6 Classifier
 
-- [ ] T090 [opus] Similarity classifier over components (miner), held-out evaluation vs calibrated τ; switched on per portal when better; M6 gate; tag `v2.0.0-m6`
+- [~] T090 [opus] Similarity classifier over components (miner), held-out evaluation vs calibrated τ; switched on per portal when better; M6 gate; tag `v2.0.0-m6` (built, `pnpm model:classify`, F-40; the gate needs real labels, no tag)
 
 ## M7 Close-out
 

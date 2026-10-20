@@ -4,6 +4,7 @@
  * the store's model writer loads the inputs and writes the difference. Pure.
  */
 import { MODEL_DEFAULTS } from '../defaults.js';
+import type { SimilarityClassifier } from './classifier.js';
 import { clusterPortal, compare, type ClusterConstraints } from './clustering.js';
 import {
   dominantRouteKey,
@@ -31,6 +32,8 @@ export interface ReconcileState {
   structureHash: string;
   minhash: readonly number[];
   elementKeys: readonly string[];
+  /** Content, overlay, calls and mounts hashes, for the similarity classifier (T090). */
+  hashes?: { content: string; overlay: string; calls: string; mounts: string };
 }
 
 export interface ReconcileVisit {
@@ -69,6 +72,8 @@ export interface ReconcileInput {
   /** Action classes a confirmed `removed` hypothesis retired, keyed `screen\u0000elementKey\u0000kind`. */
   retired: ReadonlySet<string>;
   tau?: number;
+  /** The similarity classifier the portal switched on (T090); replaces τ when given. */
+  classifier?: SimilarityClassifier;
   globalNavShare?: number;
 }
 
@@ -145,9 +150,16 @@ export function reconcile(input: ReconcileInput): ReconcileOutput {
       fingerprint: s.fingerprint,
       routeKey: routeKeys.get(s.id)!,
       minhash: s.minhash,
+      components: {
+        minhash: s.minhash,
+        structureHash: s.structureHash,
+        elementKeys: s.elementKeys,
+        ...(s.hashes ? { hashes: s.hashes } : {}),
+      },
     })),
     input.constraints,
     tau,
+    input.classifier,
   );
   const assigned = assignScreens(clustering.clusters, input.screens);
   let fresh = 0;
