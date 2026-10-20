@@ -86,5 +86,16 @@
   <div class="sy-plate__foot"><p class="sy-small sy-muted">Supported = the boundary tests gave the predicted outcome; a person confirms with <span class="sy-mono">pnpm model:decide</span>. Confirmed and supported rules export as DMN with <span class="sy-mono">pnpm model:dmn {{ c.portal }}</span>.</p></div>
   {%- endif %}
 </section>
+{%- if v.threshold %}
+<section class="sy-plate" aria-labelledby="threshold">
+  <div class="sy-plate__head"><h2 class="sy-plate__title" id="threshold">When two page versions are one screen</h2></div>
+  <div class="sy-plate__body">
+    <p class="sy-small">Similarity threshold τ <span class="sy-num">{{ v.threshold.tau }}</span> under fingerprint profile <span class="sy-mono sy-mono--sm">{{ v.threshold.profile or "rows-v2" }}</span>:
+      {%- if v.threshold.accepted_by %} accepted by {{ v.threshold.accepted_by }}, {{ v.threshold.accepted_at | when }}.
+      {%- else %} the profile's default; no person accepted a τ yet.{% endif %}</p>
+    <p class="sy-small sy-muted"><span class="sy-num">{{ v.threshold.labels }}</span> page pairs labelled. <span class="sy-mono">pnpm model:pairs {{ c.portal }}</span> lists the pairs worth labelling and the τ they calibrate to; <span class="sy-mono">pnpm model:decide {{ c.portal }} --by "…" accept-tau</span> puts it in force for the next model version.</p>
+  </div>
+</section>
+{%- endif %}
 {%- endif %}
 {% endblock %}

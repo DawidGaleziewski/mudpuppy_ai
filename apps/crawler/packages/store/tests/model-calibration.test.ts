@@ -1,7 +1,10 @@
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import {
-  calibratedTau,
+  acceptedTau,
+  acceptTau,
+  LEGACY_PROFILE,
+  tauInForce,
   labelPair,
   migrateUp,
   openDb,
@@ -66,7 +69,7 @@ describe('labelling queue and τ calibration (spec 039 T037)', () => {
     await o.close();
   });
 
-  it('keeps the default τ until each side has enough labels', async () => {
+  it('keeps the default τ until each side has enough labels, and refuses to accept none', async () => {
     const o = open();
     labelPair(o.raw, { portal: 'ins', a: 'a', b: 'b', label: 'clone', actor: 'owner', now: T });
     labelPair(o.raw, { portal: 'ins', a: 'a', b: 'c', label: 'distinct', actor: 'owner', now: T });
@@ -76,7 +79,39 @@ describe('labelling queue and τ calibration (spec 039 T037)', () => {
       distinct: 1,
       needed: 30,
     });
-    expect(calibratedTau(o.raw, 'ins')).toBe(0.9);
+    expect(tauInForce(o.raw, 'ins', LEGACY_PROFILE)).toBe(0.9);
+    expect(() => acceptTau(o.raw, 'ins', { by: 'owner' })).toThrow(/no calibrated τ/);
+    await o.close();
+  });
+
+  it('uses the τ a person accepted for the profile, else the profile threshold (T115)', async () => {
+    const o = open();
+    o.raw
+      .prepare(
+        `INSERT INTO fingerprint_profiles (portal_id, id, name, rules_json, first_seen)
+         VALUES ('ins', 'loose@0123abcd', 'loose', '{"cluster_threshold":0.8}', ?)`,
+      )
+      .run(T);
+    expect(tauInForce(o.raw, 'ins', 'loose@0123abcd')).toBe(0.8);
+    o.raw
+      .prepare(
+        `INSERT INTO tau_acceptances (id, portal_id, profile, tau, labels, f1, accepted_by, accepted_at)
+         VALUES ('t1', 'ins', ?, 0.93, 60, 0.97, 'owner', ?)`,
+      )
+      .run(LEGACY_PROFILE, T);
+    expect(acceptedTau(o.raw, 'ins', LEGACY_PROFILE)).toMatchObject({ tau: 0.93, labels: 60 });
+    expect(tauInForce(o.raw, 'ins', LEGACY_PROFILE)).toBe(0.93);
+    expect(tauInForce(o.raw, 'ins', 'loose@0123abcd')).toBe(0.8);
+    await o.close();
+  });
+
+  it('never queues a pair across fingerprint profiles (T112)', async () => {
+    const o = open();
+    o.raw
+      .prepare("UPDATE state_components SET profile = 'loose@0123abcd' WHERE state_id = 'b'")
+      .run();
+    expect(pairsToLabel(o.raw, 'ins')).toEqual([]);
+    expect(pairsToLabel(o.raw, 'ins', { profile: 'loose@0123abcd' })).toEqual([]);
     await o.close();
   });
 });

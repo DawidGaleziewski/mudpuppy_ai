@@ -3,11 +3,14 @@
  *   pnpm model:decide <portal> --env <env> --by "<name>" confirm|reject|overturn <H-0001> --reason "…"
  *   pnpm model:decide <portal> --env <env> --by "<name>" label <state-a> <state-b> clone|near_duplicate|distinct [--reason "…"]
  *   pnpm model:decide <portal> --env <env> --by "<name>" role <route-template> <path:N|query:name> identity|data|ignored
- * The next `model:reconcile` (or the next run) applies labels and roles as constraints.
+ *   pnpm model:decide <portal> --env <env> --by "<name>" accept-tau [--profile <name@hash>]
+ * The next `model:reconcile` (or the next run) applies labels and roles as constraints, and
+ * clusters with the accepted τ (spec 039 T115; per portal and fingerprint profile).
  */
 import { join, resolve } from 'node:path';
 import {
   ModelDecisionError,
+  acceptTau,
   dbPathFor,
   decideHypothesis,
   labelPair,
@@ -18,9 +21,10 @@ import {
 
 const USAGE =
   'usage: pnpm model:decide <portal> --env <env> --by "<name>" ' +
-  '(confirm|reject|overturn <key> --reason "…" | label <a> <b> <label> | role <template> <param> <role>)';
+  '(confirm|reject|overturn <key> --reason "…" | label <a> <b> <label> | role <template> <param> <role>' +
+  ' | accept-tau [--profile <name@hash>])';
 
-const flags = new Set(['env', 'by', 'reason', 'root']);
+const flags = new Set(['env', 'by', 'reason', 'root', 'profile']);
 const arg = (name: string): string | undefined => {
   const i = process.argv.indexOf(`--${name}`);
   return i > -1 ? process.argv[i + 1] : undefined;
@@ -63,6 +67,14 @@ try {
     const [routeTemplate, param, role] = rest as [string, string, 'identity' | 'data' | 'ignored'];
     setParameterRole(opened.raw, { portal, routeTemplate, param, role });
     console.log(`${routeTemplate} ${param}: ${role}`);
+  } else if (verb === 'accept-tau') {
+    const a = acceptTau(opened.raw, portal, {
+      by,
+      ...(arg('profile') ? { profile: arg('profile')! } : {}),
+    });
+    console.log(
+      `${portal} (${a.profile}): τ ${a.tau} accepted (F1 ${a.f1}, ${a.labels} labels); the next reconcile clusters with it`,
+    );
   } else {
     console.error(USAGE);
     process.exitCode = 2;

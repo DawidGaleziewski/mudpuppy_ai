@@ -79,6 +79,11 @@ export const SCENARIOS = {
     expects: 'the path parameter becomes identity; six screens',
     milestone: 'M2',
   },
+  'menu-link': {
+    injects: 'one link added to the main menu of every page',
+    expects: 'every screen kept, under rows-v2 and a no-menu profile (T114)',
+    milestone: 'M2',
+  },
 } as const satisfies Record<string, { injects: string; expects: string; milestone: string }>;
 
 export type ScenarioId = keyof typeof SCENARIOS;
@@ -197,6 +202,14 @@ const EFFECTS: Partial<Record<ScenarioId, ScenarioEffect>> = {
             )
             .replace(`od ${MIN_DRIVER_AGE} do`, 'od 21 do')
         : html,
+  },
+  // M2 (T114): the main menu gains a link on every page, same release → every screen is kept.
+  'menu-link': {
+    html: (_path, html) =>
+      html.replace(
+        '<li><a href="/moje-polisy">Moje polisy</a></li>',
+        '<li><a href="/moje-polisy">Moje polisy</a></li><li><a href="/logowanie">Zaloguj się</a></li>',
+      ),
   },
   // M2: /kierowcy?n=1..6 shows that many driver rows → one screen; rows collapse (F-02).
   'repeated-rows': { page: driversPage },

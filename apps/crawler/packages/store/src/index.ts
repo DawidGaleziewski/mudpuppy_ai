@@ -18,4 +18,6 @@ export * from './error-replays.js';
 export * from './rule-export.js';
 export * from './regressions.js';
 export * from './model-calibration.js';
+export * from './fingerprint-profiles.js';
+export * from './refingerprint.js';
 export type { Selectable, Insertable } from 'kysely';

@@ -227,6 +227,7 @@ class StateComponents(Row):
     mounts_hash: str
     minhash: bytes
     element_keys: Json
+    profile: str | None = None  # 0033 (T112): the fingerprint profile; NULL = rows-v2
 
 
 class Journey(Row):
@@ -282,6 +283,7 @@ class ModelVersion(Row):
     observation_watermark: str | None
     decision_watermark: str | None
     stats_json: Json
+    fingerprint_profile: str | None = None  # 0033 (T112): the profile it was clustered under
 
 
 class ModelScreen(Row):
@@ -503,6 +505,29 @@ class HypothesisEvent(Row):
     at: str
 
 
+class FingerprintProfile(Row):
+    """0033 (spec 039 T111): a fingerprint profile a portal used, with its resolved rules."""
+
+    portal_id: str
+    id: str
+    name: str
+    rules_json: Json
+    first_seen: str
+
+
+class TauAcceptance(Row):
+    """0033 (spec 039 T115): a τ a person accepted for a portal and profile; the latest counts."""
+
+    id: str
+    portal_id: str
+    profile: str
+    tau: float
+    labels: int
+    f1: float | None
+    accepted_by: str
+    accepted_at: str
+
+
 class BuildEpoch(Row):
     """0030: the period a build of a scope served, per environment."""
 
@@ -564,6 +589,7 @@ class Observation(Row):
     result: StepResult | None = None
     context_key: str | None = None
     flags_json: Json = None
+    fingerprint_profile: str | None = None  # 0033 (T112): `name@hash`; NULL = rows-v2
 
 
 class OpenQuestion(Row):
@@ -1299,6 +1325,8 @@ TABLE_MODELS: dict[str, type[Row]] = {
     "hypothesis_evidence": HypothesisEvidence,
     "hypothesis_tests": HypothesisTest,
     "hypothesis_events": HypothesisEvent,
+    "fingerprint_profiles": FingerprintProfile,
+    "tau_acceptances": TauAcceptance,
 }
 
 

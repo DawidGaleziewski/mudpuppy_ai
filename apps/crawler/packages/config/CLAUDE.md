@@ -24,6 +24,9 @@ Used by: mcp-server, crawler, safety, vault, gates, apps/chat (`src/index.ts` re
   `test_data` (label → synthetic value for traces, autofill and probes; renamed from `trace_inputs`,
   owner 2026-10-17: a file with the old key is refused with a rename note); `TraceVariant`
   `fault` and `expect` `technical_error` / `branch` (`ProbeFault` comes from core).
+- Spec 039 T111: `fingerprint-profiles.ts` (portal `fingerprint: { use, profiles }`, validated by
+  resolving every profile; `portalFingerprintProfile(portal, name?)`); depends on
+  `@pathfinder/fingerprint` (kernel) for the built-ins.
 - Spec 031: `network.ca_file` (resolved against the portal folder by `loadPortal`) and
   `ca-file.ts` (`readTrustedCa`, `spkiHash`: shared by preflight, the session and the doctor).
 

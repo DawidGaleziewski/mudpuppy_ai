@@ -520,9 +520,48 @@ entries:
       the decision log with its similarity score.
     appears_in: [Run page → Decision log (merge, split), Run trace → fingerprint phase]
     labels: [Fingerprint]
-    related: [state, cluster]
+    related: [state, cluster, fingerprint-profile]
     changed_in: R-22
     changed_on: 2026-10-03
+
+  - id: fingerprint-profile
+    term: Fingerprint profile
+    category: pathfinder
+    group: Portal model
+    short: The rules a portal's pages are fingerprinted with, set in its portal file, such as "a menu link more is the same page".
+    explanation: |
+      Which parts of a page count for its identity is a choice, and portals differ: repeated rows
+      of a table are data, a form's field names are structure, a menu that gains a link may or
+      may not make a new page version. A profile writes these choices down: the roles whose
+      repeats are rows, the roles whose names are form fields, the containers whose names are
+      ignored, and the similarity threshold. The built-in `rows-v2` is the default; a portal may
+      define its own and say which one it uses. Every observation and model version records the
+      profile it was made with, and the portal model never mixes two. An existing portal is
+      switched by recomputing from the stored snapshots, without a new scan.
+    example: "`fingerprint: { use: no-menu, profiles: { no-menu: { ignore_names_in: [navigation] } } }`"
+    appears_in: [portal.yaml, What changed → When two page versions are one screen, pnpm model:refingerprint]
+    labels: [fingerprint profile, rows-v2, no-menu, ignore_names_in]
+    related: [fingerprint, state, screen-threshold]
+    changed_in: R-81
+    changed_on: 2026-10-20
+
+  - id: screen-threshold
+    term: Screen threshold (τ)
+    category: pathfinder
+    group: Portal model
+    short: How similar two versions of a page must be to count as one screen; a person accepts the value the labelled pairs suggest.
+    explanation: |
+      Two page versions on the same route are one screen when their similarity reaches τ. Until
+      a person accepts another value it is the fingerprint profile's own threshold (0.9 for
+      `rows-v2`). When enough page pairs are labelled "the same" and "different", the labels
+      suggest the τ that separates them best; `pnpm model:pairs` shows it, and `pnpm model:decide
+      … accept-tau` puts it in force for that portal and profile. The next model version uses it.
+    example: "τ 0.93, accepted by the owner after 60 labelled pairs."
+    appears_in: [What changed → When two page versions are one screen, pnpm model:pairs]
+    labels: [τ, accept-tau, threshold]
+    related: [fingerprint-profile, screen]
+    changed_in: R-81
+    changed_on: 2026-10-20
 
   - id: cluster
     term: Cluster

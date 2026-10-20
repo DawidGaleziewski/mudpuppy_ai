@@ -69,5 +69,7 @@ export const Observation = z.object({
     .optional(),
   /** Experiment flags seen (the portal hook's cookie and storage keys), name → value. */
   flags: z.record(z.string(), z.string()).default({}),
+  /** 0033 (spec 039 T112): the fingerprint profile, `name@hash`; null = rows-v2, before 0033. */
+  fingerprint_profile: z.string().min(1).nullable().optional(),
 });
 export type Observation = z.infer<typeof Observation>;

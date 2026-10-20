@@ -6,7 +6,12 @@
 
 import { readFileSync } from 'node:fs';
 import { maskText } from '@pathfinder/core';
-import { computeFingerprint, type FingerprintIndex } from '@pathfinder/fingerprint';
+import {
+  computeFingerprint,
+  ROWS_V2_PROFILE,
+  type FingerprintIndex,
+  type FingerprintProfile,
+} from '@pathfinder/fingerprint';
 import type { ServerContext } from '../context.js';
 
 interface StateRow {
@@ -27,6 +32,7 @@ export function seedKnownClusters(
   index: FingerprintIndex,
   portalId: string,
   routeTemplate: string,
+  profile: FingerprintProfile = ROWS_V2_PROFILE,
 ): number {
   const rows = ctx.raw
     .prepare(
@@ -45,7 +51,10 @@ export function seedKnownClusters(
     } catch {
       continue;
     }
-    const representative = computeFingerprint({ routeTemplate, ariaSnapshot: maskText(snapshot) });
+    const representative = computeFingerprint(
+      { routeTemplate, ariaSnapshot: maskText(snapshot) },
+      profile,
+    );
     index.seed(
       clusterId,
       representative,

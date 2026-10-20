@@ -67,6 +67,18 @@ class ChangesView:
     explained: list[Change]
     waiting: list[Change]
     rules: list[DecisionRule]
+    threshold: Threshold | None = None
+
+
+@dataclass(frozen=True)
+class Threshold:
+    """The screen threshold τ of the latest model version (spec 039 T115, owner answer 7)."""
+
+    profile: str | None
+    tau: float
+    accepted_by: str | None  # None: the profile's default, no person accepted one yet
+    accepted_at: str | None
+    labels: int  # pair labels of the portal so far
 
 
 def _rows(conn: sqlite3.Connection, sql: str, args: tuple[Any, ...]) -> list[sqlite3.Row]:
@@ -113,6 +125,35 @@ def decision_rules(conn: sqlite3.Connection, portal: str) -> list[DecisionRule]:
         )
         for r in rows
     ]
+
+
+def threshold_of(conn: sqlite3.Connection, portal: str) -> Threshold | None:
+    """τ as the reconciler last used it, and whether a person accepted it for that profile."""
+    version = _rows(
+        conn,
+        "SELECT threshold, fingerprint_profile FROM model_versions WHERE portal_id = ?"
+        " ORDER BY seq DESC LIMIT 1",
+        (portal,),
+    )
+    if not version:
+        return None
+    profile = version[0]["fingerprint_profile"]
+    accepted = _rows(
+        conn,
+        "SELECT accepted_by, accepted_at FROM tau_acceptances WHERE portal_id = ? AND profile = ?"
+        " ORDER BY accepted_at DESC, id DESC LIMIT 1",
+        (portal, profile),
+    )
+    labels = _rows(
+        conn, "SELECT count(*) AS n FROM state_pair_labels WHERE portal_id = ?", (portal,)
+    )
+    return Threshold(
+        profile=profile,
+        tau=version[0]["threshold"],
+        accepted_by=accepted[0]["accepted_by"] if accepted else None,
+        accepted_at=accepted[0]["accepted_at"] if accepted else None,
+        labels=labels[0]["n"] if labels else 0,
+    )
 
 
 def changes_view(conn: sqlite3.Connection, portal: str | None) -> ChangesView:
@@ -173,4 +214,5 @@ def changes_view(conn: sqlite3.Connection, portal: str | None) -> ChangesView:
         explained=explained,
         waiting=waiting,
         rules=decision_rules(conn, portal),
+        threshold=threshold_of(conn, portal),
     )

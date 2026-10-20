@@ -571,6 +571,29 @@ export interface StateComponentsTable {
   mounts_hash: string;
   minhash: Buffer;
   element_keys: string;
+  /** 0033 (T112): the fingerprint profile (`name@hash`) these were computed with; NULL = rows-v2. */
+  profile: Nullable;
+}
+
+/** 0033 (spec 039 T111): a fingerprint profile a portal used, its resolved rules. */
+export interface FingerprintProfilesTable {
+  portal_id: string;
+  id: string;
+  name: string;
+  rules_json: string;
+  first_seen: string;
+}
+
+/** 0033 (spec 039 T115): a τ a person accepted for a portal and profile; the latest is in force. */
+export interface TauAcceptancesTable {
+  id: string;
+  portal_id: string;
+  profile: string;
+  tau: number;
+  labels: number;
+  f1: number | null;
+  accepted_by: string;
+  accepted_at: string;
 }
 
 export type JourneyStartKind =
@@ -624,6 +647,8 @@ export interface ModelVersionsTable {
   observation_watermark: string | null;
   decision_watermark: string | null;
   stats_json: string;
+  /** 0033 (T112): the fingerprint profile the version was clustered under. */
+  fingerprint_profile: Nullable;
 }
 
 /** 0030: a screen of the portal model with a stable id and key (F-14@039). */
@@ -863,6 +888,8 @@ export interface ObservationsTable {
   result: ColumnType<StepResult | null, StepResult | null | undefined, StepResult | null>;
   context_key: Nullable;
   flags_json: ColumnType<string, string | undefined, string>;
+  /** 0033 (T112): the fingerprint profile of the run; NULL = rows-v2, before 0033. */
+  fingerprint_profile: Nullable;
 }
 
 export interface FrontierTable {
@@ -1147,6 +1174,8 @@ export interface Database {
   hypothesis_evidence: HypothesisEvidenceTable;
   hypothesis_tests: HypothesisTestsTable;
   hypothesis_events: HypothesisEventsTable;
+  fingerprint_profiles: FingerprintProfilesTable;
+  tau_acceptances: TauAcceptancesTable;
   frontier: FrontierTable;
   open_questions: OpenQuestionsTable;
   rule_candidates: RuleCandidatesTable;

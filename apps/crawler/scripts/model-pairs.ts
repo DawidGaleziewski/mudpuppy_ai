@@ -1,13 +1,22 @@
 /**
  * The labelling queue and τ calibration (spec 039 design § 6.1, T037):
  * `pnpm model:pairs <portal> --env <env> [--limit N]`. Prints the unlabelled pairs of page
- * versions nearest the τ in use (on one route, with the model's current answer) and the
- * calibration so far. Label a pair with `pnpm model:decide <portal> --by "…" label <a> <b>
- * clone|near_duplicate|distinct`; once each side has enough labels the reconciler clusters with
- * the calibrated τ.
+ * versions nearest the τ in force (on one route and fingerprint profile, with the model's current
+ * answer) and the calibration so far. Label a pair with `pnpm model:decide <portal> --by "…" label
+ * <a> <b> clone|near_duplicate|distinct`; once each side has enough labels the calibrated τ is
+ * proposed, and `pnpm model:decide … accept-tau` puts it in force (T115).
  */
 import { join, resolve } from 'node:path';
-import { dbPathFor, migrateUp, openDb, pairsToLabel, tauCalibration } from '@pathfinder/store';
+import {
+  acceptedTau,
+  activeProfile,
+  dbPathFor,
+  migrateUp,
+  openDb,
+  pairsToLabel,
+  tauCalibration,
+  tauInForce,
+} from '@pathfinder/store';
 
 const arg = (name: string): string | undefined => {
   const i = process.argv.indexOf(`--${name}`);
@@ -25,11 +34,16 @@ const root = resolve(join(import.meta.dirname, '../../..'));
 const opened = openDb(dbPathFor(join(root, 'data'), env));
 try {
   migrateUp(opened.raw, join(root, 'data/migrations'));
-  const c = tauCalibration(opened.raw, portal);
+  const profile = activeProfile(opened.raw, portal);
+  const c = tauCalibration(opened.raw, portal, profile);
+  console.log(
+    `${portal} (${env}, ${profile}): τ in force ${tauInForce(opened.raw, portal, profile)}` +
+      (acceptedTau(opened.raw, portal, profile) ? ' (accepted)' : ' (the profile default)'),
+  );
   console.log(
     c.tau === null
-      ? `${portal} (${env}): τ not calibrated yet: ${c.same} same / ${c.distinct} distinct labels, ${c.needed} of each needed`
-      : `${portal} (${env}): calibrated τ ${c.tau} (F1 ${c.f1}) from ${c.same} same / ${c.distinct} distinct labels`,
+      ? `  not calibrated yet: ${c.same} same / ${c.distinct} distinct labels, ${c.needed} of each needed`
+      : `  calibrated τ ${c.tau} (F1 ${c.f1}) from ${c.same} same / ${c.distinct} distinct labels; accept it with pnpm model:decide ${portal} --env ${env} --by "<name>" accept-tau`,
   );
   const limit = arg('limit');
   const queue = pairsToLabel(opened.raw, portal, limit ? { limit: Number(limit) } : {});

@@ -7,6 +7,7 @@
  */
 import { createHash } from 'node:crypto';
 import type { AriaNode } from './aria-canonical.js';
+import { ROWS_V2, type FingerprintRules } from './profile.js';
 
 export interface TreeNode {
   node: AriaNode;
@@ -39,8 +40,18 @@ export function buildTree(nodes: readonly AriaNode[]): TreeNode[] {
   return roots;
 }
 
-/** Roles whose siblings are rows of data even when each holds only text. */
-const ROW_ROLES = new Set(['listitem', 'row', 'article', 'option', 'treeitem']);
+/** The profile's role lists as sets (spec 039 T111). */
+interface RoleSets {
+  rows: ReadonlySet<string>;
+  fields: ReadonlySet<string>;
+  ignored: ReadonlySet<string>;
+}
+
+const roleSets = (rules: FingerprintRules): RoleSets => ({
+  rows: new Set(rules.row_roles),
+  fields: new Set(rules.field_roles),
+  ignored: new Set(rules.ignore_names_in),
+});
 
 const holdsStructure = (t: TreeNode): boolean =>
   t.children.some((c) => c.node.role !== 'text' || holdsStructure(c));
@@ -50,26 +61,14 @@ const holdsStructure = (t: TreeNode): boolean =>
  * than text. Leaves (two textboxes, three menu links, two paragraphs) never collapse: their names
  * are the page's structure (a form's fields), not repeated data.
  */
-const rowLike = (t: TreeNode): boolean => ROW_ROLES.has(t.node.role) || holdsStructure(t);
-
-/** Roles of form fields: their names are what a form asks for, never repeated data. */
-const FIELD_ROLES = new Set([
-  'textbox',
-  'searchbox',
-  'combobox',
-  'listbox',
-  'checkbox',
-  'radio',
-  'spinbutton',
-  'slider',
-  'switch',
-]);
+const rowLike = (t: TreeNode, roles: RoleSets): boolean =>
+  roles.rows.has(t.node.role) || holdsStructure(t);
 
 /** The names of the form fields in a subtree, in document order. */
-function fieldNames(t: TreeNode): string {
+function fieldNames(t: TreeNode, roles: RoleSets): string {
   const out: string[] = [];
   const walk = (n: TreeNode) => {
-    if (FIELD_ROLES.has(n.node.role)) out.push(n.node.name);
+    if (roles.fields.has(n.node.role)) out.push(n.node.name);
     n.children.forEach(walk);
   };
   walk(t);
@@ -79,17 +78,17 @@ function fieldNames(t: TreeNode): string {
 /**
  * Siblings grouped into runs of equal signature; a run of two or more row-like nodes is repeated.
  * Rows also need the same field names: a form whose fields each sit in a paragraph is a form, not
- * repeated rows (F-26@039); driver rows that each ask for a name and a year are rows.
+ * repeated rows (F-26@039); driver rows that each ask for a name and a year are rows. Inside a
+ * container whose names the profile ignores, any run of equal signatures is one (T111@039).
  */
-function runs(siblings: readonly TreeNode[]): TreeNode[][] {
+function runs(siblings: readonly TreeNode[], roles: RoleSets, ignored: boolean): TreeNode[][] {
   const out: TreeNode[][] = [];
   for (const s of siblings) {
     const last = out[out.length - 1];
     const same =
       last !== undefined &&
       last[0]!.signature === s.signature &&
-      rowLike(s) &&
-      fieldNames(last[0]!) === fieldNames(s);
+      (ignored || (rowLike(s, roles) && fieldNames(last[0]!, roles) === fieldNames(s, roles)));
     if (same) last.push(s);
     else out.push([s]);
   }
@@ -105,27 +104,42 @@ export interface CollapsedText {
   content: string;
 }
 
-/** Render the collapsed tree. A repeated run never says how many members it has. */
-export function collapsedText(roots: readonly TreeNode[]): CollapsedText {
+/**
+ * Render the collapsed tree under the profile's rules (`rows-v2` by default). A repeated run never
+ * says how many members it has. Inside an ignored container (`ignore_names_in`) names count for
+ * nothing, so the container stays the same when it gains or loses a link.
+ */
+export function collapsedText(
+  roots: readonly TreeNode[],
+  rules: FingerprintRules = ROWS_V2,
+): CollapsedText {
+  const roles = roleSets(rules);
   const identity: string[] = [];
   const structure: string[] = [];
   const content: string[] = [];
   const label = (n: AriaNode, named: boolean): string =>
     `${n.role}${named && n.name ? ` "${n.name}"` : ''}${n.level ? ` [level=${n.level}]` : ''}`;
-  const walk = (siblings: readonly TreeNode[], depth: number, inRepeat: boolean): void => {
-    for (const run of runs(siblings)) {
+  const walk = (
+    siblings: readonly TreeNode[],
+    depth: number,
+    inRepeat: boolean,
+    ignored: boolean,
+  ): void => {
+    for (const run of runs(siblings, roles, ignored)) {
       const head = run[0]!;
       const repeated = inRepeat || run.length > 1;
+      const quiet = ignored || roles.ignored.has(head.node.role);
       const indent = '  '.repeat(depth);
       const mark = run.length > 1 ? ' [repeated]' : '';
-      identity.push(`${indent}${label(head.node, !repeated)}${mark}`);
+      identity.push(`${indent}${label(head.node, !repeated && !quiet)}${mark}`);
       // A form's field names are its structure (what it asks for), unlike item text (F-27@039).
-      structure.push(`${indent}${label(head.node, FIELD_ROLES.has(head.node.role))}${mark}`);
-      if (!repeated && head.node.name) content.push(head.node.name);
-      walk(head.children, depth + 1, repeated);
+      const field = roles.fields.has(head.node.role) && !quiet;
+      structure.push(`${indent}${label(head.node, field)}${mark}`);
+      if (!repeated && !quiet && head.node.name) content.push(head.node.name);
+      walk(head.children, depth + 1, repeated, quiet);
     }
   };
-  walk(roots, 0, false);
+  walk(roots, 0, false, false);
   return {
     identity: identity.join('\n'),
     structure: structure.join('\n'),

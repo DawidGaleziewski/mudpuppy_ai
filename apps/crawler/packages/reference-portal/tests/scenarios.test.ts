@@ -10,8 +10,8 @@ import {
 import { HOST } from './helpers.js';
 
 describe('scenario switchboard (spec 039 T005)', () => {
-  it('lists the 14 scenarios of design § 19.1, each with what it injects and expects', () => {
-    expect(Object.keys(SCENARIOS)).toHaveLength(14);
+  it('lists the 14 scenarios of design § 19.1 and T114, each with what it injects and expects', () => {
+    expect(Object.keys(SCENARIOS)).toHaveLength(15);
     for (const s of Object.values(SCENARIOS)) {
       expect(s.injects.length).toBeGreaterThan(0);
       expect(s.expects.length).toBeGreaterThan(0);
@@ -47,6 +47,19 @@ describe('scenario switchboard (spec 039 T005)', () => {
     } finally {
       await base.close();
       await deployed.close();
+    }
+  });
+
+  it('menu-link adds one link to the main menu of every page, same release (T114)', async () => {
+    const menu = await startReferencePortal({ host: HOST, port: 0, scenarios: ['menu-link'] });
+    try {
+      for (const p of ['/', '/kalkulator/pojazd', '/faq']) {
+        const html = await (await fetch(`${menu.url}${p}`)).text();
+        expect(html).toContain('<li><a href="/logowanie">Zaloguj się</a></li>');
+        expect(html).toContain(`app.${BASE_BUILD}.js`);
+      }
+    } finally {
+      await menu.close();
     }
   });
 

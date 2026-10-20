@@ -12,3 +12,4 @@ export * from './traces.js';
 export * from './ca-file.js';
 export * from './probe-budget.js';
 export * from './model-hooks.js';
+export * from './fingerprint-profiles.js';

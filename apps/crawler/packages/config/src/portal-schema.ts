@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { SafetyClass, maxSafetyClass } from '@pathfinder/core';
 import { ModelHooks } from './model-hooks.js';
+import { FingerprintConfig } from './fingerprint-profiles.js';
 import { DEFAULT_PROBE_BUDGET, ProbeBudget } from './probe-budget.js';
 import { BUILTIN_RULE_CLASSES, DENYLIST_RULE_IDS, RULE_ALIASES } from './rule-ids.js';
 import { urlEntryProblem } from './url-entry.js';
@@ -363,6 +364,8 @@ export const PortalConfig = z
     probes: ProbeBudget.default(DEFAULT_PROBE_BUDGET),
     /** MudPuppy 2.0 model hooks (spec 039): build marker, experiment flags, business errors. */
     model: ModelHooks.prefault({}),
+    /** Fingerprint profiles (spec 039 T111): the rules state identity is computed with. */
+    fingerprint: FingerprintConfig.prefault({}),
   })
   .strict()
   .superRefine((p, ctx) => {

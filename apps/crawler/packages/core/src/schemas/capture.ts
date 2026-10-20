@@ -28,6 +28,8 @@ export const StateComponents = z.object({
   /** 128 MinHash values (stored as a 512-byte blob). */
   minhash: z.array(z.number().int().nonnegative()).length(128),
   element_keys: z.array(z.string()),
+  /** 0033 (spec 039 T112): the fingerprint profile, `name@hash`; null = rows-v2, before 0033. */
+  profile: z.string().min(1).nullable().default(null),
 });
 export type StateComponents = z.infer<typeof StateComponents>;
 

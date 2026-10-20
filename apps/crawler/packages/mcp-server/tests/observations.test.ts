@@ -5,6 +5,7 @@ import type { ServerContext } from '../src/context.js';
 import { FP, REF, makeCtx, seedRun } from './helpers.js';
 
 const CONTEXT = 'a'.repeat(64);
+const PROFILE = 'rows-v2@0123abcd';
 
 async function journeyOf(ctx: ServerContext, run: string): Promise<string> {
   const id = newId();
@@ -48,7 +49,13 @@ describe('recordObservation (spec 019, R-37/R-38; spec 039 observations)', () =>
         status: 302,
       },
     ];
-    const v2 = { journey_id: journey, result: 'ok' as const, context_key: CONTEXT, flags: {} };
+    const v2 = {
+      journey_id: journey,
+      result: 'ok' as const,
+      context_key: CONTEXT,
+      flags: {},
+      fingerprint_profile: PROFILE,
+    };
     await recordObservation(ctx, {
       run_id: run,
       state_id,
@@ -120,12 +127,14 @@ describe('recordObservation (spec 019, R-37/R-38; spec 039 observations)', () =>
       context_key: CONTEXT,
       flags: { 'cookie:ab': 'B' },
       build_ids: ids,
+      fingerprint_profile: PROFILE,
     });
     const links = await ctx.db.selectFrom('observation_builds').selectAll().execute();
     expect(links.map((l) => l.build_id)).toEqual(ids);
     const visit = await ctx.db.selectFrom('observations').selectAll().executeTakeFirstOrThrow();
     expect(visit.result).toBe('technical_error');
     expect(JSON.parse(visit.flags_json)).toEqual({ 'cookie:ab': 'B' });
+    expect(visit.fingerprint_profile).toBe(PROFILE);
   });
 
   it('refuses an unknown hop kind and a visit without its journey fields', async () => {
@@ -145,6 +154,7 @@ describe('recordObservation (spec 019, R-37/R-38; spec 039 observations)', () =>
         context_key: CONTEXT,
         flags: {},
         build_ids: [],
+        fingerprint_profile: PROFILE,
       }),
     ).rejects.toThrow();
     await expect(

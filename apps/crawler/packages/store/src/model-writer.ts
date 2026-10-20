@@ -17,8 +17,8 @@ import {
   type ReconcileOutput,
 } from '@pathfinder/model';
 
+import { activeProfile, LEGACY_PROFILE, tauInForce } from './fingerprint-profiles.js';
 import { interpretVersion, modelSnapshot, type InterpretStats } from './interpret-writer.js';
-import { calibratedTau } from './model-calibration.js';
 
 type Raw = BetterSqlite3.Database;
 
@@ -62,21 +62,30 @@ function watermarks(raw: Raw, portal: string): Watermarks {
     .prepare(
       `SELECT max(w) AS w FROM (
          SELECT max(labelled_at) AS w FROM state_pair_labels WHERE portal_id = ?
-         UNION ALL SELECT max(decided_at) FROM parameter_roles WHERE portal_id = ? AND decided_by = 'person')`,
+         UNION ALL SELECT max(decided_at) FROM parameter_roles WHERE portal_id = ? AND decided_by = 'person'
+         UNION ALL SELECT max(accepted_at) FROM tau_acceptances WHERE portal_id = ?)`,
     )
-    .get(portal, portal) as { w: string | null };
+    .get(portal, portal, portal) as { w: string | null };
   return { observation: obs.w, decision: dec.w };
 }
 
-/** Everything `reconcile` reads for one portal. */
-export function loadReconcileInput(raw: Raw, portal: string): ReconcileInput {
+/**
+ * Everything `reconcile` reads for one portal, under one fingerprint profile (T112): states whose
+ * components another profile computed, and their observations and transitions, stay out.
+ */
+export function loadReconcileInput(
+  raw: Raw,
+  portal: string,
+  profile: string = activeProfile(raw, portal),
+): ReconcileInput {
   const states = (
     raw
       .prepare(
         `SELECT s.id, s.fingerprint, s.route_template, c.structure_hash, c.minhash, c.element_keys
-         FROM states s JOIN state_components c ON c.state_id = s.id WHERE s.portal_id = ?`,
+         FROM states s JOIN state_components c ON c.state_id = s.id
+         WHERE s.portal_id = ? AND coalesce(c.profile, ?) = ?`,
       )
-      .all(portal) as {
+      .all(portal, LEGACY_PROFILE, profile) as {
       id: string;
       fingerprint: string;
       route_template: string;
@@ -105,9 +114,10 @@ export function loadReconcileInput(raw: Raw, portal: string): ReconcileInput {
       .prepare(
         `SELECT v.id, v.run_id, v.state_id, v.url, v.created_at, r.persona_id, r.environment
          FROM observations v JOIN runs r ON r.id = v.run_id
-         JOIN state_components c ON c.state_id = v.state_id WHERE r.portal_id = ?`,
+         JOIN state_components c ON c.state_id = v.state_id
+         WHERE r.portal_id = ? AND coalesce(c.profile, ?) = ?`,
       )
-      .all(portal) as {
+      .all(portal, LEGACY_PROFILE, profile) as {
       id: string;
       run_id: string;
       state_id: string;
@@ -131,9 +141,11 @@ export function loadReconcileInput(raw: Raw, portal: string): ReconcileInput {
       .prepare(
         `SELECT e.id, e.run_id, e.from_state, e.to_state, e.element_key, e.kind, e.result, e.created_at
          FROM transitions e JOIN runs r ON r.id = e.run_id
-         WHERE r.portal_id = ? AND e.element_key IS NOT NULL AND e.kind IS NOT NULL AND e.result IS NOT NULL`,
+         JOIN state_components c ON c.state_id = e.from_state
+         WHERE r.portal_id = ? AND e.element_key IS NOT NULL AND e.kind IS NOT NULL AND e.result IS NOT NULL
+           AND coalesce(c.profile, ?) = ?`,
       )
-      .all(portal) as {
+      .all(portal, LEGACY_PROFILE, profile) as {
       id: string;
       run_id: string;
       from_state: string;
@@ -194,8 +206,8 @@ export function loadReconcileInput(raw: Raw, portal: string): ReconcileInput {
     },
     roleOverrides,
     retired: new Set(),
-    // The calibrated τ once a person labelled enough pairs on each side (T037), else the default.
-    tau: calibratedTau(raw, portal),
+    // The τ a person accepted for this profile (T115), else the profile's own threshold.
+    tau: tauInForce(raw, portal, profile),
   };
 }
 
@@ -203,13 +215,15 @@ export function loadReconcileInput(raw: Raw, portal: string): ReconcileInput {
 export function reconcilePortalModel(
   raw: Raw,
   portal: string,
-  opts: { rebuild?: boolean; now?: string } = {},
+  opts: { rebuild?: boolean; now?: string; profile?: string } = {},
 ): ReconcileResult {
   return raw.transaction(() => {
     const marks = watermarks(raw, portal);
+    const profile = activeProfile(raw, portal, opts.profile);
     const last = raw
       .prepare(
-        'SELECT id, seq, observation_watermark, decision_watermark FROM model_versions WHERE portal_id = ? ORDER BY seq DESC LIMIT 1',
+        `SELECT id, seq, observation_watermark, decision_watermark, fingerprint_profile
+         FROM model_versions WHERE portal_id = ? ORDER BY seq DESC LIMIT 1`,
       )
       .get(portal) as
       | {
@@ -217,9 +231,10 @@ export function reconcilePortalModel(
           seq: number;
           observation_watermark: string | null;
           decision_watermark: string | null;
+          fingerprint_profile: string | null;
         }
       | undefined;
-    const input = loadReconcileInput(raw, portal);
+    const input = loadReconcileInput(raw, portal, profile);
     const out = reconcile(input);
     const stats = {
       states: input.states.length,
@@ -233,7 +248,8 @@ export function reconcilePortalModel(
     const unchanged =
       last !== undefined &&
       last.observation_watermark === marks.observation &&
-      last.decision_watermark === marks.decision;
+      last.decision_watermark === marks.decision &&
+      (last.fingerprint_profile ?? LEGACY_PROFILE) === profile;
     if (unchanged && !opts.rebuild) return { portal, modelVersion: null, seq: null, stats };
     const now = opts.now ?? nowIso();
     const versionId = newId();
@@ -241,7 +257,8 @@ export function reconcilePortalModel(
     raw
       .prepare(
         `INSERT INTO model_versions (id, portal_id, seq, built_at, algorithm, threshold,
-           observation_watermark, decision_watermark, stats_json) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+           observation_watermark, decision_watermark, stats_json, fingerprint_profile)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       )
       .run(
         versionId,
@@ -253,6 +270,7 @@ export function reconcilePortalModel(
         marks.observation,
         marks.decision,
         JSON.stringify(stats),
+        profile,
       );
     const before = modelSnapshot(raw, portal);
     const screenIds = writeScreens(raw, portal, out, versionId, now);

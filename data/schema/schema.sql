@@ -1,4 +1,4 @@
--- GENERATED from data/migrations/*.up.sql applied in order (currently through 0032_transitions_observations). Do not edit by hand.
+-- GENERATED from data/migrations/*.up.sql applied in order (currently through 0033_fingerprint_profiles). Do not edit by hand.
 -- Regenerate after every migration; see data/schema/README.md.
 
 CREATE TABLE runs (
@@ -664,7 +664,9 @@ CREATE TABLE observations (
   seq         INTEGER CHECK (seq IS NULL OR seq >= 1),
   result      TEXT CHECK (result IS NULL OR result IN ('ok','validation','business_error','technical_error','timeout','blocked')),
   context_key TEXT CHECK (context_key IS NULL OR length(context_key) = 64),
-  flags_json  TEXT NOT NULL DEFAULT '{}' CHECK (json_valid(flags_json) AND json_type(flags_json) = 'object')
+  flags_json  TEXT NOT NULL DEFAULT '{}' CHECK (json_valid(flags_json) AND json_type(flags_json) = 'object'),
+  -- 0033 (ALTER TABLE, spec 039 T112): the fingerprint profile (`name@hash`); NULL = rows-v2, before 0033.
+  fingerprint_profile TEXT CHECK (fingerprint_profile IS NULL OR length(fingerprint_profile) > 0)
 ) STRICT;
 CREATE INDEX idx_observations_run_state ON observations (run_id, state_id);
 CREATE INDEX idx_observations_state ON observations (state_id);
@@ -1006,7 +1008,9 @@ CREATE TABLE state_components (
   calls_hash     TEXT NOT NULL CHECK (length(calls_hash) = 64),
   mounts_hash    TEXT NOT NULL CHECK (length(mounts_hash) = 64),
   minhash        BLOB NOT NULL CHECK (length(minhash) = 512),         -- 128 × uint32, big-endian
-  element_keys   TEXT NOT NULL CHECK (json_valid(element_keys) AND json_type(element_keys) = 'array')
+  element_keys   TEXT NOT NULL CHECK (json_valid(element_keys) AND json_type(element_keys) = 'array'),
+  -- 0033 (ALTER TABLE, spec 039 T112): the profile these components were computed with; NULL = rows-v2.
+  profile        TEXT CHECK (profile IS NULL OR length(profile) > 0)
 ) STRICT, WITHOUT ROWID;
 
 CREATE TABLE journeys (
@@ -1058,6 +1062,8 @@ CREATE TABLE model_versions (
   observation_watermark TEXT,                                           -- max observations.id included; NULL when none
   decision_watermark    TEXT,                                           -- max decision id included; NULL when none
   stats_json            TEXT NOT NULL CHECK (json_valid(stats_json) AND json_type(stats_json) = 'object'),
+  -- 0033 (ALTER TABLE, spec 039 T112): the fingerprint profile the version was clustered under.
+  fingerprint_profile   TEXT CHECK (fingerprint_profile IS NULL OR length(fingerprint_profile) > 0),
   UNIQUE (portal_id, seq)
 ) STRICT;
 
@@ -1273,3 +1279,27 @@ CREATE TABLE hypothesis_events (
   at            TEXT NOT NULL
 ) STRICT;
 CREATE INDEX ix_hypothesis_events_hypothesis ON hypothesis_events (hypothesis_id, at);
+
+-- 0033_fingerprint_profiles (spec 039 T111–T115): the profiles a portal was fingerprinted with (per portal,
+-- `name@<8 hex of the rules hash>`), and the τ a person accepted per portal and profile (latest in force).
+-- The profile columns of observations, state_components and model_versions are listed with each table above.
+CREATE TABLE fingerprint_profiles (
+  portal_id  TEXT NOT NULL CHECK (length(portal_id) > 0),
+  id         TEXT NOT NULL CHECK (id GLOB '?*@[0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f]'),
+  name       TEXT NOT NULL CHECK (length(name) > 0),
+  rules_json TEXT NOT NULL CHECK (json_valid(rules_json) AND json_type(rules_json) = 'object'),
+  first_seen TEXT NOT NULL,
+  PRIMARY KEY (portal_id, id)
+) STRICT, WITHOUT ROWID;
+
+CREATE TABLE tau_acceptances (
+  id          TEXT PRIMARY KEY,                                   -- UUIDv7
+  portal_id   TEXT NOT NULL CHECK (length(portal_id) > 0),
+  profile     TEXT NOT NULL CHECK (length(profile) > 0),
+  tau         REAL NOT NULL CHECK (tau > 0 AND tau <= 1),
+  labels      INTEGER NOT NULL CHECK (labels >= 0),               -- pair labels it was calibrated on
+  f1          REAL CHECK (f1 IS NULL OR (f1 >= 0 AND f1 <= 1)),
+  accepted_by TEXT NOT NULL CHECK (length(accepted_by) > 0),
+  accepted_at TEXT NOT NULL
+) STRICT;
+CREATE INDEX ix_tau_acceptances_portal ON tau_acceptances (portal_id, profile, accepted_at);

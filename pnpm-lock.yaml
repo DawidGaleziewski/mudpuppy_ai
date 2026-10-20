@@ -342,6 +342,9 @@ importers:
       '@pathfinder/core':
         specifier: workspace:*
         version: link:../core
+      '@pathfinder/fingerprint':
+        specifier: workspace:*
+        version: link:../fingerprint
       yaml:
         specifier: ^2.9.1
         version: 2.9.1
@@ -640,6 +643,9 @@ importers:
       '@pathfinder/docs-model':
         specifier: workspace:*
         version: link:../docs-model
+      '@pathfinder/fingerprint':
+        specifier: workspace:*
+        version: link:../fingerprint
       '@pathfinder/model':
         specifier: workspace:*
         version: link:../model

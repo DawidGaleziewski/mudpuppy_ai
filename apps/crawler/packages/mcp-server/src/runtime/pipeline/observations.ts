@@ -73,6 +73,7 @@ export function recordObservationStep(
       context_key: contextKey(buildIds, audienceKey(rs), flags),
       flags,
       build_ids: buildIds,
+      fingerprint_profile: rs.profile.id,
     });
     const at = rs.journey!.seq;
     if (!rs.journey!.reached.has(page.stateId)) rs.journey!.reached.set(page.stateId, at);

@@ -441,6 +441,44 @@ Bugs, slips and design deviations found while building, each with a test or eval
   `NO_PROBE_MARKS` / `PROBE_NOT_ASKED`, the "Probe forms" run type.
 - **Not yet** (as before, F-20): one probe run per replay; the design's single run consuming
   planner marks within its budget waits for T075 / the prefix cache.
-- **Test**: `start-run.test.ts` "a probe run is mode probe with a replay, and only that";
+- **Test (F-30)**: `start-run.test.ts` "a probe run is mode probe with a replay, and only that";
   `results.test.ts` "reads a trial written before spec 039 T116"; the replay e2e tests start
   `mode: 'probe'`.
+
+## F-31 Fingerprint profiles and the accepted τ as built (T111–T115), 2026-10-20
+
+- **What** (owner answers 3 and 7): the rules of `structure.ts` / `fingerprint.ts` are a
+  `FingerprintRules` profile (`row_roles`, `field_roles`, `named_roles`, `ignore_names_in`,
+  `cluster_threshold`); the built-in `rows-v2` is exactly the behaviour before (every snapshot test
+  unchanged). `portal.yaml` `fingerprint: { use, profiles }` (each `extends` a built-in or another
+  profile); an unknown name or a cycle refuses the portal. The run's profile drives the level-1
+  fingerprint, the components, the run's `FingerprintIndex` threshold and the seeded clusters.
+  **`ignore_names_in`** means: inside such a container names count for nothing and any equal
+  siblings collapse (not only row-like ones), so a menu that gains or loses a plain link is the
+  same text; its shingles drop the names too.
+- **Recorded (T112, migration 0033)**: `fingerprint_profiles (portal_id, id = name@<8 hex>,
+  rules_json)`, `observations.fingerprint_profile`, `state_components.profile`,
+  `model_versions.fingerprint_profile` (NULL = rows-v2, read as `LEGACY_PROFILE`). The reconciler
+  clusters the states of **one** profile (asked, else the latest observation's) and writes it on
+  the version; a different profile than the last version's makes a new version.
+- **Re-fingerprint (T113)**: `pnpm model:refingerprint` recomputes `state_components` under a
+  profile from `states.evidence_ref` and rebuilds the model; it refuses while a snapshot is gone.
+  **Limit found:** a state keeps one snapshot (its first sighting), and pages that were one state
+  under the capture profile share it, so a re-fingerprint can only merge screens, never split one;
+  a profile finer than the capture's needs a new scan (said in `docs/portal-config.md`). `pnpm
+  model:compare-fingerprints a b` clusters the stored snapshots under both and prints the screens
+  merged or split differently (`comparePartitions` in `@pathfinder/model`).
+- **Scenario (T114)**: `menu-link` adds "Zaloguj się" to the main menu of every page. The reference
+  menu is a `<ul>` of `<li>`, so rows-v2 already collapses it: both rows-v2 and `no-menu` keep
+  every screen (`menu-link.e2e.test.ts`). A menu of plain links or buttons (no list) is where the
+  profiles differ (`profile.test.ts`, `refingerprint.test.ts`: rows-v2 two screens, no-menu one).
+- **τ (T115, R-82)**: the reconciler clusters with the τ a person accepted for the portal and
+  profile (`tau_acceptances`, latest wins; `pnpm model:decide … accept-tau`, refused until the
+  labels calibrate one), else the profile's `cluster_threshold`. The calibration (F-28) is only a
+  proposal now: `pnpm model:pairs` prints it with the τ in force. What changed shows τ, the profile
+  and who accepted it; accepting from the page waits for the designer's pages (T100) and a chat
+  service route. An acceptance moves the decision watermark, so the next reconcile writes a version.
+- **Test**: `profile.test.ts`, `fingerprint-profiles.test.ts` (config), `model-calibration.test.ts`,
+  `model-writer.test.ts` "clusters one fingerprint profile only", `refingerprint.test.ts`,
+  `partitions.test.ts`, `menu-link.e2e.test.ts`, dashboard `test_changes.py` threshold test.
+  Eval idea: run the reference-insurer trial under `no-menu` and compare screens with rows-v2.

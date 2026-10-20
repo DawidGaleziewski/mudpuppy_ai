@@ -26,7 +26,9 @@ own `CLAUDE.md`), the operator scripts under `scripts/`, and the test tiers.
   a person's decisions), `pnpm model:mine` (decision rules, apps/miner), `pnpm model:replay`
   (R1 error replays and boundary tests on the headless driver), `pnpm model:propose` (process
   proposals, Leiden), `pnpm model:dmn` (decision rules as DMN files), `pnpm model:regress`
-  (regression rounds of confirmed rules), `pnpm model:pairs` (labelling queue and τ calibration).
+  (regression rounds of confirmed rules), `pnpm model:pairs` (labelling queue and τ calibration;
+  `model:decide … accept-tau` puts a calibrated τ in force), `pnpm model:refingerprint` and
+  `pnpm model:compare-fingerprints` (fingerprint profiles, T113).
 
 ## Layout
 

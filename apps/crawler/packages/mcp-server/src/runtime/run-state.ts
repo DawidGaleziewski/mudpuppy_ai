@@ -1,6 +1,10 @@
-import { FingerprintIndex, type FormStepIndex } from '@pathfinder/fingerprint';
+import {
+  FingerprintIndex,
+  type FingerprintProfile,
+  type FormStepIndex,
+} from '@pathfinder/fingerprint';
 import { inferRouteTemplates, type RouteTemplater } from '@pathfinder/fingerprint';
-import type { EffectiveConfig } from '@pathfinder/config';
+import { portalFingerprintProfile, type EffectiveConfig } from '@pathfinder/config';
 import {
   FrontierPolicy,
   type AssetHealth,
@@ -34,7 +38,9 @@ export interface RunPath {
 
 /** In-memory, per-run browser-side state. Everything durable lives in the database. */
 export class RunState {
-  readonly index = new FingerprintIndex();
+  /** The portal's fingerprint profile (spec 039 T111): every fingerprint of this run uses it. */
+  readonly profile: FingerprintProfile;
+  readonly index: FingerprintIndex;
   /** Routes whose known clusters are in `index` already (`seedKnownClusters`, spec 038 LO-35). */
   readonly seededRoutes = new Set<string>();
   readonly policy: FrontierPolicy;
@@ -161,6 +167,8 @@ export class RunState {
     this.robots = parts.robots;
     this.trace = parts.trace;
     const { portal } = parts.effective;
+    this.profile = portalFingerprintProfile(portal);
+    this.index = new FingerprintIndex({ threshold: this.profile.rules.cluster_threshold });
     this.ruleSet = portalRuleSet(portal);
     this.policy = new FrontierPolicy({
       itemRouteTemplates: portal.item_route_templates,

@@ -25,6 +25,9 @@ Layer: store (G-07; `apps/crawler/layers.json`)
   `processGraph`, `writeProposals` (`process-proposals.ts`, `pnpm model:propose`),
   `pendingReplays`, `recordReplay`, `judgeReplays` (`replay-tests.ts`, `pnpm model:replay`),
   `pendingErrorReplays`, `resolveErrorReplays` (`error-replays.ts`, rule R1 on the driver),
+  `activeProfile`, `tauInForce`, `acceptedTau` (`fingerprint-profiles.ts`: one fingerprint profile
+  per reconcile, the accepted τ per portal and profile, T112/T115), `acceptTau`
+  (`model-calibration.ts`), `refingerprintPortal`, `compareProfiles` (`refingerprint.ts`, T113),
   `decisionRules`, `dmnFiles` (`rule-export.ts`, `pnpm model:dmn`), `queueRegressions`,
   `recordRuleMismatches`, `pendingMismatchReplays`, `resolveRuleMismatch` (`regressions.ts`,
   decision drift by R8, `pnpm model:regress`), `pairsToLabel`, `tauCalibration`, `calibratedTau`

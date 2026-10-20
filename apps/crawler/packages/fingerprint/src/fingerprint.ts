@@ -7,36 +7,16 @@
  */
 import { createHash } from 'node:crypto';
 import { canonicalizeAria, type AriaNode } from './aria-canonical.js';
+import {
+  ROWS_V2,
+  ROWS_V2_PROFILE,
+  type FingerprintProfile,
+  type FingerprintRules,
+} from './profile.js';
 import { buildTree, collapsedText, modelElementKeys } from './structure.js';
 
-export const DEFAULT_CLUSTER_THRESHOLD = 0.9;
+export const DEFAULT_CLUSTER_THRESHOLD = ROWS_V2.cluster_threshold;
 const SIGNATURE_SIZE = 128;
-
-/** Roles whose accessible name is structural (kept in shingles); other names are item content. */
-const NAMED_ROLES = new Set([
-  'button',
-  'textbox',
-  'searchbox',
-  'combobox',
-  'checkbox',
-  'radio',
-  'switch',
-  'slider',
-  'spinbutton',
-  'tab',
-  'menuitem',
-  'form',
-  'search',
-  'navigation',
-  'region',
-  'complementary',
-  'group',
-  'dialog',
-  'alertdialog',
-  'main',
-  'banner',
-  'contentinfo',
-]);
 
 export interface FingerprintInput {
   routeTemplate: string;
@@ -72,11 +52,18 @@ export interface Assignment {
 
 const sha256Hex = (s: string): string => createHash('sha256').update(s).digest('hex');
 
-function shingles(nodes: readonly AriaNode[]): Set<string> {
+/**
+ * Role-path shingles; the profile's named roles keep their name (other names are item content),
+ * except inside a container whose names it ignores.
+ */
+function shingles(nodes: readonly AriaNode[], rules: FingerprintRules = ROWS_V2): Set<string> {
+  const named = new Set(rules.named_roles);
+  const ignored = new Set(rules.ignore_names_in);
   const out = new Set<string>();
   for (const n of nodes) {
     const base = [...n.path, n.role].join('>');
-    out.add(NAMED_ROLES.has(n.role) && n.name ? `${base}|${n.name}` : base);
+    const quiet = ignored.has(n.role) || n.path.some((r) => ignored.has(r));
+    out.add(named.has(n.role) && n.name && !quiet ? `${base}|${n.name}` : base);
   }
   return out;
 }
@@ -108,18 +95,22 @@ function minHash(set: ReadonlySet<string>): number[] {
 /**
  * Fingerprint v2 (spec 039 design § 5.4): level 1 = sha256(route template ‖ collapsed masked tree ‖
  * overlays), where runs of repeated siblings count once and without their text; level 2 = MinHash
- * over the set of role-path shingles (a set, so repeats never changed it).
+ * over the set of role-path shingles (a set, so repeats never changed it). Both under the portal's
+ * fingerprint profile (T111@039; `rows-v2` by default).
  */
-export function computeFingerprint(input: FingerprintInput): Fingerprint {
+export function computeFingerprint(
+  input: FingerprintInput,
+  profile: FingerprintProfile = ROWS_V2_PROFILE,
+): Fingerprint {
   const canonical = canonicalizeAria(input.ariaSnapshot);
-  const collapsed = collapsedText(buildTree(canonical.nodes));
+  const collapsed = collapsedText(buildTree(canonical.nodes), profile.rules);
   const level1 = sha256Hex(
     [input.routeTemplate, collapsed.identity, canonical.overlays.join('|')].join('\n--\n'),
   );
   return {
     routeTemplate: input.routeTemplate,
     level1,
-    level2: minHash(shingles(canonical.nodes)),
+    level2: minHash(shingles(canonical.nodes, profile.rules)),
     overlays: canonical.overlays,
   };
 }
@@ -147,17 +138,20 @@ export interface StateComponents {
 const sortedHash = (xs: readonly string[] = []): string =>
   sha256Hex([...new Set(xs)].sort().join('\n'));
 
-export function computeComponents(input: ComponentsInput): StateComponents {
+export function computeComponents(
+  input: ComponentsInput,
+  profile: FingerprintProfile = ROWS_V2_PROFILE,
+): StateComponents {
   const canonical = canonicalizeAria(input.ariaSnapshot);
   const tree = buildTree(canonical.nodes);
-  const collapsed = collapsedText(tree);
+  const collapsed = collapsedText(tree, profile.rules);
   return {
     structureHash: sha256Hex(collapsed.structure),
     contentHash: sha256Hex(collapsed.content),
     overlayHash: sha256Hex(canonical.overlays.join('|')),
     callsHash: sortedHash(input.calls),
     mountsHash: sortedHash(input.mounts),
-    minhash: minHash(shingles(canonical.nodes)),
+    minhash: minHash(shingles(canonical.nodes, profile.rules)),
     elementKeys: modelElementKeys(tree).map((k) => k.key),
   };
 }

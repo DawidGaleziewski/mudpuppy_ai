@@ -1,4 +1,5 @@
 import { NavigationHop, ObservationVia, StepResult, newId, nowIso } from '@pathfinder/core';
+import type { FingerprintProfile } from '@pathfinder/fingerprint';
 import type { BuildSignature } from '@pathfinder/model';
 import { z } from 'zod';
 import type { ServerContext } from '../context.js';
@@ -19,6 +20,8 @@ export const RecordObservationInput = z
     context_key: z.string().regex(/^[0-9a-f]{64}$/),
     flags: z.record(z.string(), z.string()),
     build_ids: z.array(z.string().min(1)),
+    /** The run's fingerprint profile, `name@hash` (spec 039 T112). */
+    fingerprint_profile: z.string().min(1),
   })
   .strict();
 export type RecordObservationInput = z.input<typeof RecordObservationInput>;
@@ -52,6 +55,7 @@ export async function recordObservation(
         result: input.result,
         context_key: input.context_key,
         flags_json: JSON.stringify(input.flags),
+        fingerprint_profile: input.fingerprint_profile,
       })
       .execute();
     if (input.build_ids.length > 0)
@@ -61,6 +65,28 @@ export async function recordObservation(
         .execute();
   });
   return { observation_id: id };
+}
+
+/**
+ * The portal's fingerprint profile with its resolved rules (spec 039 T112), written the first time
+ * a run uses it, so the reconciler reads a profile's threshold from the store.
+ */
+export async function upsertFingerprintProfile(
+  ctx: ServerContext,
+  portalId: string,
+  profile: FingerprintProfile,
+): Promise<void> {
+  await ctx.db
+    .insertInto('fingerprint_profiles')
+    .values({
+      portal_id: portalId,
+      id: profile.id,
+      name: profile.name,
+      rules_json: JSON.stringify(profile.rules),
+      first_seen: nowIso(),
+    })
+    .onConflict((oc) => oc.columns(['portal_id', 'id']).doNothing())
+    .execute();
 }
 
 /**

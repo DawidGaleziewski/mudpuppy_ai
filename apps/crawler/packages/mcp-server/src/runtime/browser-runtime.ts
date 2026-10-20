@@ -20,6 +20,7 @@ import {
 } from './pipeline/index.js';
 import { RunState } from './run-state.js';
 import { processOfRun } from '../services/trace.js';
+import { upsertFingerprintProfile } from '../services/observations.js';
 import { parsePlan } from '../services/run-plan.js';
 import { runChoices } from '../services/start-run.js';
 import { startPwTrace } from './pw-trace.js';
@@ -177,6 +178,7 @@ export function createBrowserRuntime(opts: BrowserRuntimeOptions = {}): Runtime 
       robots,
       trace,
     });
+    await upsertFingerprintProfile(ctx, run.portal_id, rs.profile);
     rs.processId = (await processOfRun(ctx, run.id))?.id ?? null;
     rs.isFormProbing = runChoices(run).form_probing;
     rs.headless = runChoices(run).replay;
@@ -225,7 +227,10 @@ export function createBrowserRuntime(opts: BrowserRuntimeOptions = {}): Runtime 
       try {
         const snapshot = await readFile(ctx.evidence.resolve(s.evidence_ref), 'utf8');
         rs.index.assign(
-          computeFingerprint({ routeTemplate: s.route_template, ariaSnapshot: snapshot }),
+          computeFingerprint(
+            { routeTemplate: s.route_template, ariaSnapshot: snapshot },
+            rs.profile,
+          ),
         );
       } catch (err) {
         ctx.logger.warn(

@@ -79,6 +79,8 @@ export const PORTAL_TABLES = [
   'hypothesis_evidence',
   'hypothesis_tests',
   'hypothesis_events',
+  'fingerprint_profiles',
+  'tau_acceptances',
 ] as const;
 export type PortalTable = (typeof PORTAL_TABLES)[number];
 
@@ -105,6 +107,9 @@ export type PortalTable = (typeof PORTAL_TABLES)[number];
  * `decision_log` and `runs`.
  */
 const DELETE_ORDER: readonly PortalTable[] = [
+  // 0033 (spec 039): no references
+  'tau_acceptances',
+  'fingerprint_profiles',
   // 0031 (spec 039): interpretation references the model; marks' and open questions' hypothesis
   // links are cleared first (see `deletePortal`)
   'hypothesis_events',
@@ -250,6 +255,8 @@ export function where(table: PortalTable, side: 'mine' | 'others'): string {
     case 'build_epochs':
     case 'deviations':
     case 'hypotheses':
+    case 'fingerprint_profiles':
+    case 'tau_acceptances':
       return `portal_id ${op} ?`;
     case 'deviation_occurrences':
       return `deviation_id IN (SELECT id FROM deviations WHERE portal_id ${op} ?)`;

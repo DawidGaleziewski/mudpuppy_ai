@@ -147,6 +147,29 @@ def test_decision_rules_show_their_status_and_boundary_verdicts(empty_store: Sto
     assert "Part of another change that a rule explained" in html
 
 
+def test_the_threshold_says_whether_a_person_accepted_it(empty_store: Store) -> None:
+    """T115: τ is the profile's default until a person accepts a calibrated one."""
+    seed(empty_store)
+    t = view(empty_store).threshold
+    assert t is not None and t.tau == 0.9 and t.accepted_by is None and t.labels == 0
+    conn = empty_store.connect()
+    conn.execute(
+        "UPDATE model_versions SET fingerprint_profile = 'rows-v2@0123abcd', threshold = 0.93"
+    )
+    conn.execute(
+        "INSERT INTO tau_acceptances (id, portal_id, profile, tau, labels, f1, accepted_by,"
+        " accepted_at) VALUES ('t1', ?, 'rows-v2@0123abcd', 0.93, 60, 0.97, 'Owner', ?)",
+        (P, ts(3)),
+    )
+    conn.commit()
+    conn.close()
+    t = view(empty_store).threshold
+    assert t is not None and t.tau == 0.93 and t.accepted_by == "Owner"
+    settings = Settings(data_dir=empty_store.data_dir, default_env=empty_store.env)
+    html = TestClient(create_app(settings)).get(f"/changes?portal={P}").text
+    assert "accepted by Owner" in html and "rows-v2@0123abcd" in html
+
+
 def test_without_a_model_the_page_says_how_to_build_one(empty_store: Store) -> None:
     settings = Settings(data_dir=empty_store.data_dir, default_env=empty_store.env)
     html = TestClient(create_app(settings)).get(f"/changes?portal={P}").text

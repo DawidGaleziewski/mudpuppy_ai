@@ -1,6 +1,7 @@
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import {
+  LEGACY_PROFILE,
   ModelDecisionError,
   decideHypothesis,
   labelPair,
@@ -268,6 +269,22 @@ describe('reconcilePortalModel (spec 039 design § 7)', () => {
     ]);
     const t = o.raw.prepare('SELECT support, internal, status FROM model_transitions').all();
     expect(t).toEqual([{ support: 1, internal: 0, status: 'active' }]);
+    await o.close();
+  });
+
+  it('clusters one fingerprint profile only, and records it on the version (T112)', async () => {
+    const o = open();
+    o.raw
+      .prepare("UPDATE state_components SET profile = 'no-menu@0123abcd' WHERE state_id = 'k'")
+      .run();
+    const r = reconcilePortalModel(o.raw, 'shop', { now: T(59) });
+    expect(r.stats.states).toBe(2);
+    expect(o.raw.prepare('SELECT fingerprint_profile AS p FROM model_versions').get()).toEqual({
+      p: LEGACY_PROFILE,
+    });
+    const other = reconcilePortalModel(o.raw, 'shop', { now: T(59), profile: 'no-menu@0123abcd' });
+    expect(other.modelVersion).not.toBeNull();
+    expect(other.stats.states).toBe(1);
     await o.close();
   });
 

@@ -1,6 +1,6 @@
 import { StateComponents, maskText, nowIso } from '@pathfinder/core';
 import type { SettleOutcome } from '@pathfinder/crawler';
-import { computeComponents, minhashBlob } from '@pathfinder/fingerprint';
+import { computeComponents, minhashBlob, type FingerprintProfile } from '@pathfinder/fingerprint';
 import type { PageCapture } from './capture-v2.js';
 import type { ServerContext } from '../../context.js';
 import { recordState } from '../../services/index.js';
@@ -57,6 +57,7 @@ export function recordStateStep(
       routeTemplate,
       masked: args.fingerprinted.masked,
       capture: args.capture,
+      profile: rs.profile,
     });
     const stateRow = await ctx.db
       .selectFrom('states')
@@ -77,14 +78,22 @@ export function recordStateStep(
 async function recordComponents(
   ctx: ServerContext,
   stateId: string,
-  page: { routeTemplate: string; masked: string; capture: PageCapture },
+  page: {
+    routeTemplate: string;
+    masked: string;
+    capture: PageCapture;
+    profile: FingerprintProfile;
+  },
 ): Promise<void> {
-  const c = computeComponents({
-    routeTemplate: page.routeTemplate,
-    ariaSnapshot: page.masked,
-    calls: page.capture.calls,
-    mounts: page.capture.mounts,
-  });
+  const c = computeComponents(
+    {
+      routeTemplate: page.routeTemplate,
+      ariaSnapshot: page.masked,
+      calls: page.capture.calls,
+      mounts: page.capture.mounts,
+    },
+    page.profile,
+  );
   const row = StateComponents.parse({
     state_id: stateId,
     structure_hash: c.structureHash,
@@ -94,6 +103,7 @@ async function recordComponents(
     mounts_hash: c.mountsHash,
     minhash: c.minhash,
     element_keys: c.elementKeys,
+    profile: page.profile.id,
   });
   await ctx.db
     .insertInto('state_components')
