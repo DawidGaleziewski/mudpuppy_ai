@@ -54,6 +54,18 @@ Copy this into the PR template for any UI change.
 - [ ] A replay mismatch stops the scan with "Replay diverged at step N" and a diff.
 - [ ] Generated documentation never uses an error page as a step (fixture with a one-off 503).
 
+## MudPuppy 2.0 (screens v2-*)
+- [ ] The As of picker changes every model page and the URL (`as_of`); not-Now pages show the banner and disable writes.
+- [ ] Review opens on Needs you; Explained automatically and Decided are one click away with counts.
+- [ ] Every Reject and Overturn requires a one-line reason; the reason shows wherever the item appears (Changes, Screens, Map inspector, Process, Rule, export, Decided).
+- [ ] Overturned items show the manila Overturned status and the note everywhere, survive a rescan and a model rebuild, and Undo works.
+- [ ] Keyboard: J/K, X, C, R, M, O, Shift C, U, / and ? work in Review; focus moves to the next item; outcomes are announced.
+- [ ] Bulk confirm of a group is one command with one Undo.
+- [ ] Explained automatically uses blueprint (inferred); a recorded portal error is a neutral chip; red only for broken rules, failed tests and failed writes.
+- [ ] Decision tables: inputs ║ result, provenance and hit policy under the table, boundary tests per release; the export has the same table in Markdown.
+- [ ] The eight states of `v2-13-states.html` exist on every P1 page as in its matrix.
+- [ ] 1024 px: no page-level horizontal scroll; the header may wrap to two rows.
+
 ## Visual regression setup (Playwright)
 
 ```js

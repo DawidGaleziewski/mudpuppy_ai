@@ -14,6 +14,7 @@ bracket statuses like `[ OK ]`, or the `mudpuppy://console` wordmark.
 - Requirements: `docs/07-requirements.md` (cite FE-IDs in PRs).
 - Processes feature (behaviour, rules, data model, API): `docs/10-processes.md`.
 - Map runs (graph, marks, probing, checkpoints, resume, directed scans, reconciliation): `docs/11-map-runs.md`, screens 12–16.
+- MudPuppy 2.0 (one living model; What changed, Review with Needs you / Explained automatically / Overturn, Screens with variants and identity, Map now, Processes proposed, Business rules as decision tables): `docs/12-v2-ux.md`, screens `v2-01`…`v2-15`, fixture `docs/13-v2-fixtures.md`, requirements `docs/07-requirements.md` §F (UX-R ids).
 - Migration plan: `docs/08-migration-guide.md` (track 1 re-skin first, then track 2 redesign).
 
 ## How to work
@@ -32,5 +33,6 @@ bracket statuses like `[ OK ]`, or the `mudpuppy://console` wordmark.
 ## Ask a human before
 - Adding a colour, font, radius, shadow or animation.
 - Changing a meaning in `docs/03-colour-guide.md` or a decision in `docs/02-design-decisions.md`.
+- Shipping a 2.0 decision marked "Proposed" (D-30…D-35) or an open item OV-1…OV-5 without the product owner's yes.
 - Running technical probes anywhere but sandbox, or changing what a probe may submit (open items O-M1…O-M5 in `docs/11-map-runs.md`).
 - Building the to-be features (screens 05–07: editing the to-be, compare, history) before open item O-1 ("As-is only" product rule) is resolved. Screen 04 (process list and groupings) is not blocked.

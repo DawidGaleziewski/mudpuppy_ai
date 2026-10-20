@@ -87,7 +87,7 @@ After every action the crawler waits for the DOM to settle and fingerprints the 
 - Probes that **submit** run only where the environment's limit is "fill and submit forms".
 - **Technical probes are simulated in the crawler's own browser** (request interception). They never send malformed traffic to the server, and are **off for production** unless the portal's settings explicitly allow it.
 - Safety classes still apply: an action whose side effects are not allowed is recorded as `blocked`, never probed.
-- **Budget:** at most N probes per form step (default 24, owner 2026-10-18; was 12), plus the run's step limit.
+- **Budget:** at most N probes per form step (default 12), plus the run's step limit.
 - **Valid test data** comes from the persona's test-data set. Missing values are asked for once, in chat, like credentials.
 
 ### 3.5 What the BA agent gets from probing

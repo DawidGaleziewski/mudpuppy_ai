@@ -138,6 +138,38 @@ How mapping works now: what the crawler records beyond the happy path, how to re
 
 ---
 
+## MudPuppy 2.0 · `screens/v2-*`
+
+Designed for the 2.0 brief (spec 039 · R-81). They replace v1 screens as follows once 2.0 ships:
+Home 01 → **v2-01** · Review 09 → **v2-04/05** · Screen detail 08 → **v2-07** · Map 12 → **v2-08** (map runs' marks and plan
+stay: Plan next scan, recovery and reconciliation 13–16 keep working on the 2.0 model) · Processes 04 → **v2-09/10**.
+New: Changes (**v2-02/03**), Rules (**v2-11/12**), Same screen? (**v2-14**), All portals (**v2-15**), States (**v2-13**), Review ▸ Decided (**v2-16**).
+The 2.0 page skeleton adds the grouped nav and the **As of** picker (markup in the skill's SKILL.md, behaviour in `12-v2-ux.md` §1–2).
+What each screen must satisfy: `07-requirements.md` §F. The data on them: `13-v2-fixtures.md`.
+Widths (brief §7): 1280 px reference, checked at **1024 px** with no page-level horizontal scroll (the header wraps to two rows there).
+Phones are out of scope for 2.0; acceptance criterion 2 below (390 px) applies to the v1 screens only.
+
+| Screen | File |
+|---|---|
+| Home | `v2-01-home.html` |
+| What changed | `v2-02-changes.html` |
+| Before / after | `v2-03-change-detail.html` |
+| Review · Needs you | `v2-04-review.html` |
+| Review · Explained automatically | `v2-05-review-explained.html` |
+| Screens | `v2-06-screens.html` |
+| Screen detail | `v2-07-screen-detail.html` |
+| Map | `v2-08-map.html` |
+| Processes | `v2-09-processes.html` |
+| Process detail | `v2-10-process-detail.html` |
+| Business rules | `v2-11-rules.html` |
+| Rule detail | `v2-12-rule-detail.html` |
+| States | `v2-13-states.html` |
+| Same screen? | `v2-14-same-screen.html` |
+| Review · Decided | `v2-16-review-decided.html` |
+| Home, All portals | `v2-15-all-portals.html` |
+
+---
+
 ## Screen-level acceptance criteria (all screens)
 1. Matches the screenshot at 1280px within normal font-rendering differences.
 2. No horizontal page scroll at 390px. Wide tables scroll inside their wrapper.

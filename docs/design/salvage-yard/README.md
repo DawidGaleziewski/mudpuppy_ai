@@ -8,7 +8,8 @@ screenshots, the frontend skill for your AI harness, and a migration guide from 
 Console style. It works offline: fonts are bundled and nothing loads from the internet. The one
 exception is the original wireframes, which ask Google Fonts for IBM Plex Sans and fall back to system fonts offline.
 
-**Open `index.html` in a browser to browse it all.**
+**Open `index.html` in a browser to browse it all.** New: **MudPuppy 2.0** (`docs/12-v2-ux.md`, screens `v2-*`), the design answer
+to spec 039 · R-81: one living model of the portal, What changed, Needs you, business rules.
 
 ## What's inside
 
@@ -25,7 +26,7 @@ mudpuppy-salvage-yard/
 │   ├── css/                    tokens.css → fonts.css → salvage.css (load in this order)
 │   ├── fonts/                  Archivo (variable), IBM Plex Mono, Special Elite (WOFF2, subset, licences)
 │   └── tokens/                 tokens.json (Console design-system list format) · tokens.dtcg.json (W3C DTCG)
-├── screens/                    16 detailed screens, static HTML, real scan data (12–16: map runs)
+├── screens/                    16 v1 screens (12–16: map runs) + 16 MudPuppy 2.0 screens (v2-01 … v2-16)
 ├── wireframes/                 the 12 redesign wireframes (.dc.html, open offline via support.js)
 ├── screenshots/
 │   ├── screens/                1280px PNG of every detailed screen (visual-regression baselines)
@@ -43,7 +44,9 @@ mudpuppy-salvage-yard/
 │   ├── 09-qa-checklist.md      PR and release checklist, visual regression setup
 │   ├── 10-processes.md         the process redesign: lifecycle, flows, rules, diff, data model, API, scope migration
 │   ├── 10-processes-flow.html  visual overview of how processes work now
-│   └── 11-map-runs.md          map runs: graph and marks, form probing, checkpoints and resume, directed scans, BA reconciliation
+│   ├── 11-map-runs.md          map runs: graph and marks, form probing, checkpoints and resume, directed scans, BA reconciliation
+│   ├── 12-v2-ux.md             MudPuppy 2.0 UX: IA, time, vocabulary, review flow, overturn, before/after, decision tables, states, answers
+│   └── 13-v2-fixtures.md       the 2.0 data story every v2 screen uses (seed for tests)
 ├── skill/mudpuppy-salvage-ui/  the frontend skill: SKILL.md + references/ + scripts/ (copy to .claude/skills/)
 └── migration/
     ├── token-map.csv           Console (and never-shipped rust) tokens → Salvage roles
@@ -82,7 +85,7 @@ mudpuppy-salvage-yard/
 
 - Every text pair meets WCAG 2.2 AA (`docs/03-colour-guide.md` §5); status colours checked under deuteranopia and protanopia simulation.
 - All three fonts cover Polish (checked glyph by glyph).
-- Every screen renders offline at 1280 and 390 with no page-level horizontal scroll and no console errors.
+- Every v1 screen renders offline at 1280 and 390, and every 2.0 screen at 1280 and 1024 (desktop-first, per the brief), with no page-level horizontal scroll and no console errors.
 
 ## Open items
 

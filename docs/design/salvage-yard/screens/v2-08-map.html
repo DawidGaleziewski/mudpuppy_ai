@@ -1,0 +1,418 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MudPuppy 2.0 · Map</title>
+<link rel="icon" href="../brand/logo/tag-icon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../design-system/css/tokens.css">
+<link rel="stylesheet" href="../design-system/css/fonts.css">
+<link rel="stylesheet" href="../design-system/css/salvage.css">
+<style>
+  /* Screen layout only. Graph geometry (node left/top/height, edge paths) comes from the server's layered layout. */
+  .mp-map-tools { display: flex; flex-direction: column; gap: var(--sy-space-3); }
+  .mp-map-tools__row { display: flex; flex-wrap: wrap; align-items: flex-end; gap: var(--sy-space-3) var(--sy-space-5); }
+  .mp-map-tools fieldset { display: flex; flex-wrap: wrap; gap: 0 var(--sy-space-3); }
+  .mp-map-tools .sy-select { width: auto; }
+  .mp-map-tools .sy-seg > button { white-space: nowrap; }
+  .mp-legend li { display: inline-flex; align-items: center; gap: 6px; }
+  .mp-legend svg { flex: none; }
+  .mp-inset { margin-inline: calc(-1 * var(--sy-space-4)); }
+</style>
+</head>
+<body class="sy-ground">
+<a class="sy-skip" href="#main">Skip to content</a>
+<div class="sy-app">
+  <header class="sy-header">
+    <a class="sy-wordmark" href="v2-01-home.html"><span class="sy-wordmark__paint">MUD</span>PUPPY</a>
+    <label class="sy-portal sy-portal--compact"><span class="sy-label">Portal</span>
+      <select class="sy-select"><option selected>reference-insurer</option><option>wikipedia</option><option>All portals</option><option>+ New portal</option></select></label>
+    <div class="sy-portal sy-portal--compact"><span class="sy-label" id="asof-l">As of</span>
+      <button class="sy-select" type="button" aria-haspopup="menu" aria-expanded="false" aria-labelledby="asof-l asof-v" aria-describedby="asof-help"><span id="asof-v">Now · 17 Oct</span></button></div>
+    <span id="asof-help" class="sy-sr-only">Shows the portal model as it was at a release or scan. Changes compares two points.</span>
+    <label class="sy-search sy-search--compact">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+      <input type="search" aria-label="Search screens, processes and rules" placeholder="Search"><span class="sy-kbd">Ctrl K</span></label>
+    <span class="sy-status" data-status="ok">Assistant up</span>
+    <a class="sy-btn" href="02-screen-with-assistant.html">Ask <span class="sy-kbd">Ctrl J</span></a>
+    <a class="sy-btn sy-btn--icon" href="#" aria-label="Help and glossary">?</a>
+  </header>
+  <div class="sy-app__body">
+    <nav class="sy-nav" aria-label="Portal sections">
+      <a class="sy-nav__item" href="v2-01-home.html">Home</a>
+      <a class="sy-nav__item" href="v2-02-changes.html">Changes <span class="sy-nav__count">41</span></a>
+      <a class="sy-nav__item" href="v2-04-review.html">Review <span class="sy-count">24</span></a>
+      <div class="sy-nav__group" aria-hidden="true">Portal model</div>
+      <a class="sy-nav__item" href="v2-09-processes.html">Processes <span class="sy-nav__count">6</span></a>
+      <a class="sy-nav__item" href="v2-06-screens.html" aria-current="page">Screens <span class="sy-nav__count">19</span></a>
+      <a class="sy-nav__item" href="v2-11-rules.html">Rules <span class="sy-nav__count">6</span></a>
+      <a class="sy-nav__item" href="#">Docs</a>
+      <div class="sy-nav__group" aria-hidden="true">Machine</div>
+      <a class="sy-nav__item" href="10-scans.html">Scans</a>
+      <a class="sy-nav__item" href="11-settings.html">Settings</a>
+      <div class="sy-nav__foot">store: sandbox · writes go through commands</div>
+    </nav>
+    <main id="main" class="sy-main">
+<div class="sy-pagehead">
+        <nav class="sy-crumbs" aria-label="Breadcrumb"><a href="v2-06-screens.html">Screens</a> / <span aria-current="page">Map</span></nav>
+        <div class="sy-stack" style="--sy-gap: 4px">
+          <h1 class="sy-h1">Map</h1>
+          <p class="sy-meta">reference-insurer · 19 active screens · 61 links · as of now (17 Oct) · Shell <span class="sy-mono">3e1a</span> · Kalkulator app <span class="sy-mono">9c21</span></p>
+        </div>
+      </div>
+
+      <!-- Page-level tabs: two real pages over the same screens -->
+      <nav class="sy-tabs" aria-label="Screens views">
+        <a class="sy-tab" href="v2-06-screens.html">List <span class="sy-count sy-count--muted">23</span></a>
+        <a class="sy-tab" href="v2-08-map.html" aria-current="page">Map</a>
+      </nav>
+
+      <!-- Toolbar: what the graph shows. Views, overlays and layers change the drawing, never the model. -->
+      <form class="mp-map-tools" aria-label="Map view">
+        <div class="mp-map-tools__row">
+          <div class="sy-stack" style="--sy-gap: 4px">
+            <span id="view-l" class="sy-label">View</span>
+            <div class="sy-seg" role="group" aria-labelledby="view-l">
+              <button type="button" aria-pressed="true">Now</button>
+              <button type="button" aria-pressed="false">Since previous release</button>
+              <button type="button" aria-pressed="false">One scan's path</button>
+            </div>
+          </div>
+          <label class="sy-stack" style="--sy-gap: 4px"><span class="sy-label">Scan for the path</span>
+            <select class="sy-select sy-select--md" aria-describedby="scan-help" style="min-width: 210px">
+              <option>01a1340c · check run · 17 Oct</option><option>01a12f40 · AI scan · 15 Oct</option><option>01a110d5 · AI scan · 6 Oct</option><option>01a10eb9 · AI scan · 6 Oct</option><option>01a1083f · AI scan · 4 Oct</option>
+            </select></label>
+          <span id="scan-help" class="sy-sr-only">Used by the view One scan's path: draws the steps that scan took, for debugging.</span>
+          <div class="sy-seg" role="group" aria-label="Show as" style="margin-left: auto">
+            <button type="button" data-view="graph" aria-pressed="true">Graph</button>
+            <button type="button" data-view="list" aria-pressed="false">List</button>
+          </div>
+        </div>
+        <div class="mp-map-tools__row">
+          <label class="sy-stack" style="--sy-gap: 4px"><span class="sy-label">Overlay a process</span>
+            <select class="sy-select sy-select--md" style="min-width: 240px">
+              <option>None</option><option selected>Oblicz składkę OC/AC</option><option>Porównaj produkty</option><option>Test process</option><option>Napisz do nas (proposed)</option><option>Przedłuż polisę (proposed)</option>
+            </select></label>
+          <fieldset>
+            <legend class="sy-legend-label">Layers</legend>
+            <label class="sy-check"><input type="checkbox"> Retired links</label>
+            <label class="sy-check"><input type="checkbox" checked> Not seen since</label>
+            <label class="sy-check"><input type="checkbox" checked> Not checked</label>
+          </fieldset>
+        </div>
+        <p class="sy-small sy-muted">The map opens on <b>Now</b>: the portal as it is today. Opened from <a href="v2-02-changes.html">What changed</a>, it starts on <b>Since previous release</b> (Shell <span class="sy-case-normal">1d77</span> → <span class="sy-case-normal">3e1a</span>, Kalkulator app <span class="sy-case-normal">5f08</span> → <span class="sy-case-normal">9c21</span>).</p>
+      </form>
+
+      <div class="sy-columns">
+        <div class="sy-col-main sy-stack" style="--sy-gap: var(--sy-space-3)">
+
+          <!-- Global navigation is bundled, not drawn (61 links would hide the portal) -->
+          <div class="sy-split" style="--sy-gap: 8px 16px">
+            <div class="sy-bundle" role="group" aria-label="Bundled links">
+              <span>Menu on every page · <b>11 links</b> · bundled</span>
+              <span>1 drawn because it changed: Moje polisy</span>
+              <button class="sy-btn sy-btn--sm sy-btn--quiet" type="button" aria-expanded="false" aria-label="Show the 11 menu links">Show</button>
+            </div>
+            <span class="sy-small sy-muted">Overlay: <a href="v2-10-process-detail.html">Oblicz składkę OC/AC</a> · trigger + 5 screens · explored thorough on <span class="sy-mono">9c21</span></span>
+          </div>
+
+          <!-- The graph. Nodes are buttons; edges are decoration (the List view carries the same facts). -->
+          <section id="map-graph" class="sy-graph" aria-label="Map of reference-insurer now, layered from Ubezpieczenia dla Ciebie, with the process Oblicz składkę OC/AC highlighted">
+            <div class="sy-graph__canvas" style="width: 680px; height: 696px">
+              <svg class="sy-graph__edges" aria-hidden="true" focusable="false">
+                <!-- / → +8 more (content and footer links) -->
+                <path class="sy-edge" d="M240 44 H158"/>
+                <!-- menu link that changed: drawn out of the bundle -->
+                <path class="sy-edge sy-edge--unseen" d="M420 44 H594 Q610 44 610 60 V140"/>
+                <text class="sy-edge-label" x="428" y="34">menu link · not seen since 17 Oct</text>
+                <!-- / → row 1 (content links; one shared bus) -->
+                <path class="sy-edge" d="M330 88 V100 Q330 108 322 108 H78 Q70 108 70 116 V140"/>
+                <path class="sy-edge" d="M330 88 V100 Q330 108 322 108 H238 Q230 108 230 116 V140"/>
+                <text class="sy-edge-label" x="222" y="130" text-anchor="end">replaced /porownanie</text>
+                <path class="sy-edge" d="M330 88 V100 Q330 108 338 108 H432 Q440 108 440 116 V140"/>
+                <!-- Samochód → dane kierowcy -->
+                <path class="sy-edge" d="M70 236 V324 Q70 340 86 340 H242"/>
+                <!-- Process overlay: trigger, steps, outcomes -->
+                <path class="sy-edge sy-edge--process" d="M330 88 V296"/>
+                <text class="sy-edge-label" x="340" y="268">trigger · Na skróty</text>
+                <path class="sy-edge sy-edge--process" d="M330 384 V452"/>
+                <text class="sy-edge-label" x="340" y="422">age ≥ 21</text>
+                <path class="sy-edge sy-edge--process" d="M272 384 V412 Q272 420 264 420 H106 Q98 420 98 428 V452"/>
+                <text class="sy-edge-label" x="262" y="410" text-anchor="end">exit · age &lt; 21</text>
+                <path class="sy-edge sy-edge--process" d="M330 540 V604"/>
+                <path class="sy-edge sy-edge--process" d="M388 540 V566 Q388 574 396 574 H542 Q550 574 550 582 V604"/>
+                <text class="sy-edge-label" x="400" y="594">error · 1 case</text>
+                <!-- wynik → opcje "Wróć": not checked on 9c21 -->
+                <path class="sy-edge sy-edge--unchecked" d="M242 648 H222 Q214 648 214 640 V504 Q214 496 222 496 H242"/>
+                <text class="sy-edge-label" x="204" y="652" text-anchor="end">Wróć · not checked on 9c21</text>
+              </svg>
+
+              <!-- Row 0 -->
+              <button class="sy-node sy-node--deck sy-node--dim" type="button" aria-pressed="false" style="left: 0; top: 0; height: 88px"
+                aria-label="8 more active screens, collapsed: Dom, Podróże, FAQ, Słowniczek, Wiadomość wysłana and 3 more. Expand.">
+                <span class="sy-node__route">+8 screens</span>
+                <span class="sy-node__title">Dom, Podróże, FAQ, Słowniczek, …</span>
+              </button>
+              <button class="sy-node sy-node--dim" type="button" aria-pressed="false" style="left: 240px; top: 0; --sy-node-w: 180px; height: 88px"
+                aria-label="Ubezpieczenia dla Ciebie · / · active · 1 action inside · trigger of Oblicz składkę OC/AC">
+                <span class="sy-node__route">/</span>
+                <span class="sy-node__title">Ubezpieczenia dla Ciebie</span>
+                <span class="sy-node__meta"><span class="sy-chip">1 action inside</span></span>
+              </button>
+
+              <!-- Row 1 -->
+              <button class="sy-node sy-node--dim" type="button" aria-pressed="false" style="left: 0; top: 140px; --sy-node-w: 140px; height: 96px"
+                aria-label="Samochód · /ubezpieczenia/samochod · active · 2 actions inside">
+                <span class="sy-node__route">/ubezpieczenia/<wbr>samochod</span>
+                <span class="sy-node__title">Samochód</span>
+                <span class="sy-node__meta"><span class="sy-chip">2 actions inside</span></span>
+              </button>
+              <button class="sy-node sy-node--dim" type="button" aria-pressed="false" style="left: 160px; top: 140px; --sy-node-w: 140px; height: 96px"
+                aria-label="Porównanie produktów · /porownanie-2026 · active · the link from Ubezpieczenia dla Ciebie replaced /porownanie with release 3e1a · 3 actions inside">
+                <span class="sy-node__route">/porownanie-2026</span>
+                <span class="sy-node__title">Porównanie produktów</span>
+                <span class="sy-node__meta"><span class="sy-chip">3 actions inside</span></span>
+              </button>
+              <button class="sy-node sy-node--dim" type="button" aria-pressed="false" style="left: 370px; top: 140px; --sy-node-w: 140px; height: 96px"
+                aria-label="Kontakt · /kontakt · active · 5 actions inside">
+                <span class="sy-node__route">/kontakt</span>
+                <span class="sy-node__title">Kontakt</span>
+                <span class="sy-node__meta"><span class="sy-chip">5 actions inside</span></span>
+              </button>
+              <button class="sy-node sy-node--dim" type="button" data-state="blocked" aria-pressed="false" style="left: 540px; top: 140px; --sy-node-w: 140px; height: 96px"
+                aria-label="Moje polisy · /moje-polisy · needs a credential for persona client · not explored · its menu link not seen since 17 Oct">
+                <span class="sy-node__route">/moje-polisy</span>
+                <span class="sy-node__title">Moje polisy · needs a credential</span>
+                <span class="sy-node__meta"><span class="sy-chip sy-chip--dashed">not explored</span></span>
+              </button>
+
+              <!-- Row 2 -->
+              <button class="sy-node sy-node--process" type="button" aria-pressed="false" style="left: 242px; top: 296px; --sy-node-w: 176px; height: 88px"
+                aria-label="Kalkulator OC/AC — dane kierowcy · /kalkulator/kierowca · step 1 of Oblicz składkę OC/AC · 8 actions inside">
+                <span class="sy-node__route">/kalkulator/kierowca</span>
+                <span class="sy-node__title">Step 1 · dane kierowcy</span>
+                <span class="sy-node__meta"><span class="sy-chip">8 actions inside</span></span>
+              </button>
+              <button class="sy-node sy-node--dim" type="button" aria-pressed="false" style="left: 540px; top: 296px; --sy-node-w: 140px; height: 100px"
+                aria-label="Logowanie · /logowanie · active · reached only from the menu, which is bundled · 3 actions inside">
+                <span class="sy-node__route">/logowanie</span>
+                <span class="sy-node__title">Logowanie</span>
+                <span class="sy-node__meta"><span class="sy-chip">menu only</span><span class="sy-chip">3 actions inside</span></span>
+              </button>
+
+              <!-- Row 3 -->
+              <button class="sy-node sy-node--process" type="button" aria-pressed="false" style="left: 10px; top: 452px; --sy-node-w: 176px; height: 104px"
+                aria-label="Nie możemy Cię ubezpieczyć · /kalkulator/odmowa · outcome Exited of Oblicz składkę OC/AC (age under 21, 6 cases) · 0 actions inside">
+                <span class="sy-node__route">/kalkulator/odmowa</span>
+                <span class="sy-node__title">Nie możemy Cię ubezpieczyć</span>
+                <span class="sy-node__meta"><span class="sy-chip">0 actions inside</span></span>
+              </button>
+              <button class="sy-node sy-node--process" type="button" aria-pressed="false" style="left: 242px; top: 452px; --sy-node-w: 176px; height: 88px"
+                aria-label="Kalkulator OC/AC — opcje · /kalkulator/kierowca · step 2 of Oblicz składkę OC/AC · 5 actions inside">
+                <span class="sy-node__route">/kalkulator/kierowca</span>
+                <span class="sy-node__title">Step 2 · opcje</span>
+                <span class="sy-node__meta"><span class="sy-chip">5 actions inside</span></span>
+              </button>
+
+              <!-- Row 4 -->
+              <button class="sy-node sy-node--process" type="button" aria-pressed="true" style="left: 242px; top: 604px; --sy-node-w: 176px; height: 88px"
+                aria-label="Kalkulator OC/AC — wynik · /kalkulator/wynik · step 3 and outcome Completed of Oblicz składkę OC/AC · 5 actions inside · selected">
+                <span class="sy-node__route">/kalkulator/wynik</span>
+                <span class="sy-node__title">Step 3 · wynik</span>
+                <span class="sy-node__meta"><span class="sy-chip">5 actions inside</span></span>
+              </button>
+              <button class="sy-node sy-node--process" type="button" aria-pressed="false" style="left: 450px; top: 604px; --sy-node-w: 200px; height: 88px"
+                aria-label="Przepraszamy, wystąpił błąd · the portal's error page · outcome Error of Oblicz składkę OC/AC (1 case) · 0 actions inside">
+                <span class="sy-node__route">error page</span>
+                <span class="sy-node__title">Przepraszamy, wystąpił błąd</span>
+                <span class="sy-node__meta"><span class="sy-chip">error</span><span class="sy-chip">0 actions inside</span></span>
+              </button>
+            </div>
+          </section>
+
+          <!-- List view: the same nodes and links as text. Shown by the Graph / List toggle. -->
+          <section id="map-list" class="sy-table-wrap" aria-label="Map of reference-insurer as a list" hidden>
+            <table class="sy-table sy-table--dense" style="min-width: 640px">
+              <thead><tr><th scope="col">Screen</th><th scope="col">Links out (state)</th><th scope="col" class="sy-num">Actions inside</th><th scope="col">Overlay</th></tr></thead>
+              <tbody>
+                <tr><th scope="row">Ubezpieczenia dla Ciebie <span class="sy-route">/</span></th>
+                  <td>Samochód · Porównanie produktów (replaced /porownanie) · Kontakt · <b>dane kierowcy (trigger)</b> · 8 more · menu: Moje polisy <span class="sy-status" data-status="queued">Not seen since 17 Oct</span></td><td class="sy-num">1</td><td>trigger</td></tr>
+                <tr><th scope="row">Samochód <span class="sy-route">/ubezpieczenia/samochod</span></th><td>dane kierowcy <span class="sy-status" data-status="live">Active</span></td><td class="sy-num">2</td><td class="sy-muted">—</td></tr>
+                <tr><th scope="row">Porównanie produktów <span class="sy-route">/porownanie-2026</span></th><td class="sy-muted">only the menu (bundled)</td><td class="sy-num">3</td><td class="sy-muted">—</td></tr>
+                <tr><th scope="row">Kontakt <span class="sy-route">/kontakt</span></th><td>Wiadomość wysłana (in 8 more)</td><td class="sy-num">5</td><td class="sy-muted">—</td></tr>
+                <tr><th scope="row">Moje polisy <span class="sy-route">/moje-polisy</span></th><td class="sy-muted">not explored: needs a credential</td><td class="sy-num">—</td><td class="sy-muted">—</td></tr>
+                <tr><th scope="row">Logowanie <span class="sy-route">/logowanie</span></th><td class="sy-muted">reached from the menu only</td><td class="sy-num">3</td><td class="sy-muted">—</td></tr>
+                <tr><th scope="row">Kalkulator OC/AC — dane kierowcy</th><td>opcje (age ≥ 21) · Nie możemy Cię ubezpieczyć (age &lt; 21)</td><td class="sy-num">8</td><td>step 1</td></tr>
+                <tr><th scope="row">Kalkulator OC/AC — opcje</th><td>wynik · error page (1 case)</td><td class="sy-num">5</td><td>step 2</td></tr>
+                <tr><th scope="row">Kalkulator OC/AC — wynik</th><td>opcje "Wróć" <span class="sy-status" data-status="unobserved"><span>Not checked on <span class="sy-case-normal">9c21</span></span></span></td><td class="sy-num">5</td><td>step 3 · completed</td></tr>
+                <tr><th scope="row">Nie możemy Cię ubezpieczyć</th><td class="sy-muted">—</td><td class="sy-num">0</td><td>exited</td></tr>
+                <tr><th scope="row">Przepraszamy, wystąpił błąd</th><td class="sy-muted">—</td><td class="sy-num">0</td><td>error</td></tr>
+              </tbody>
+            </table>
+          </section>
+
+          <!-- Legend: link states (UX-R41) and node styles -->
+          <div class="sy-stack" style="--sy-gap: 6px">
+            <ul class="sy-legend mp-legend" aria-label="Link states">
+              <li><svg width="28" height="10" aria-hidden="true"><path class="sy-edge" d="M0 5H28"/></svg>Active</li>
+              <li><svg width="28" height="10" aria-hidden="true"><path class="sy-edge sy-edge--process" d="M0 5H28"/></svg>Process overlay</li>
+              <li><svg width="28" height="10" aria-hidden="true"><path class="sy-edge sy-edge--unseen" d="M0 5H28"/></svg>Not seen since</li>
+              <li><svg width="28" height="10" aria-hidden="true"><path class="sy-edge sy-edge--unchecked" d="M1 5H28"/></svg>Not checked</li>
+              <li><svg width="28" height="10" aria-hidden="true"><path class="sy-edge sy-edge--retired" d="M0 5H28"/></svg>Retired (layer off)</li>
+            </ul>
+            <ul class="sy-legend" aria-label="Screens">
+              <li>Bold box: in overlay</li>
+              <li>Faint box: outside overlay</li>
+              <li>Deck: collapsed screens</li>
+              <li>Actions: counted, not drawn</li>
+            </ul>
+            <p class="sy-small sy-muted">Not seen since: the link was missing after that date. Not checked: not followed yet on the part's current release. Retired links are kept; the Retired links layer shows them. A replaced link is drawn once, labelled with the old route. Bold boxes are the overlaid process's screens, faint boxes are outside it, a deck holds collapsed screens. Actions inside a screen are counted on its box, never drawn as links.</p>
+          </div>
+          <p class="sy-small sy-muted">Click a screen to inspect · arrows move along links · <span class="sy-kbd">Enter</span> opens the screen · <span class="sy-kbd">L</span> list view</p>
+
+          <!-- View "Since previous release" (UX-R42), shown statically below the Now graph.
+               In the app, choosing it in the View toggle redraws the graph above the same way. -->
+          <section class="sy-stack" aria-labelledby="rel-h" style="--sy-gap: var(--sy-space-2); margin-top: var(--sy-space-5)">
+            <div class="sy-split" style="--sy-gap: 4px 16px; align-items: flex-end">
+              <h2 id="rel-h" class="sy-h2">View: Since previous release</h2>
+              <span class="sy-small sy-muted">Shell <span class="sy-case-normal">1d77</span> → <span class="sy-case-normal">3e1a</span> · Kalkulator app <span class="sy-case-normal">5f08</span> → <span class="sy-case-normal">9c21</span></span>
+            </div>
+            <p class="sy-small sy-muted">An excerpt around Ubezpieczenia dla Ciebie, with the Retired links layer on. Changed links are dashed and labelled; each changed screen names the release that changed it.</p>
+            <div class="sy-graph" role="group" aria-label="Excerpt of the map since the previous release: links and screens around Ubezpieczenia dla Ciebie that changed with 3e1a or 9c21, or without a release">
+              <div class="sy-graph__canvas" style="width: 680px; height: 404px">
+                <svg class="sy-graph__edges" aria-hidden="true" focusable="false">
+                  <!-- / → Porównanie produktów: new link (replaced) and the old one (retired, layer on) -->
+                  <path class="sy-edge sy-edge--changed" d="M150 30 H500"/>
+                  <text class="sy-edge-label" x="162" y="22">Porównaj produkty → /porownanie-2026 · replaced</text>
+                  <path class="sy-edge sy-edge--retired" d="M150 70 H500"/>
+                  <text class="sy-edge-label" x="162" y="62">old → /porownanie · retired with 3e1a</text>
+                  <!-- / → Polityka cookies: new with 3e1a -->
+                  <path class="sy-edge sy-edge--changed" d="M118 100 V150 Q118 158 126 158 H500"/>
+                  <text class="sy-edge-label" x="136" y="150">Polityka cookies · new link · 3e1a</text>
+                  <!-- / → dane kierowcy: link unchanged, the screen changed with 9c21 -->
+                  <path class="sy-edge" d="M80 100 V254 Q80 262 88 262 H500"/>
+                  <text class="sy-edge-label" x="98" y="254">Oblicz składkę OC/AC · unchanged</text>
+                  <!-- menu → Moje polisy: removed without a release -->
+                  <path class="sy-edge sy-edge--changed" d="M42 100 V358 Q42 366 50 366 H500"/>
+                  <text class="sy-edge-label" x="60" y="358">menu · Moje polisy · removed without a release</text>
+                </svg>
+
+                <button class="sy-node" type="button" aria-pressed="false" style="left: 0; top: 0; --sy-node-w: 150px; height: 100px"
+                  aria-label="Ubezpieczenia dla Ciebie · / · links changed with release 3e1a">
+                  <span class="sy-node__route">/</span>
+                  <span class="sy-node__title">Ubezpieczenia dla Ciebie</span>
+                  <span class="sy-node__meta"><span class="sy-chip"><span>changed · <span class="sy-case-normal">3e1a</span></span></span></span>
+                </button>
+                <button class="sy-node" type="button" aria-pressed="false" style="left: 500px; top: 0; --sy-node-w: 180px; height: 96px"
+                  aria-label="Porównanie produktów · /porownanie-2026, was /porownanie · changed with release 3e1a · the link to it was replaced, the old link is retired">
+                  <span class="sy-node__route">/porownanie-2026</span>
+                  <span class="sy-node__title">Porównanie produktów</span>
+                  <span class="sy-node__meta"><span class="sy-chip"><span>changed · <span class="sy-case-normal">3e1a</span></span></span></span>
+                </button>
+                <button class="sy-node" type="button" aria-pressed="false" style="left: 500px; top: 120px; --sy-node-w: 180px; height: 80px"
+                  aria-label="Polityka cookies · /polityka-cookies · new screen with release 3e1a">
+                  <span class="sy-node__route">/polityka-cookies</span>
+                  <span class="sy-node__title">Polityka cookies</span>
+                  <span class="sy-node__meta"><span class="sy-chip"><span>new · <span class="sy-case-normal">3e1a</span></span></span></span>
+                </button>
+                <button class="sy-node" type="button" aria-pressed="false" style="left: 500px; top: 216px; --sy-node-w: 180px; height: 96px"
+                  aria-label="Kalkulator OC/AC — dane kierowcy · /kalkulator/kierowca · changed with release 9c21 · the link to it is unchanged">
+                  <span class="sy-node__route">/kalkulator/kierowca</span>
+                  <span class="sy-node__title">Kalkulator OC/AC — dane kierowcy</span>
+                  <span class="sy-node__meta"><span class="sy-chip"><span>changed · <span class="sy-case-normal">9c21</span></span></span></span>
+                </button>
+                <button class="sy-node sy-node--dim" type="button" aria-pressed="false" style="left: 500px; top: 328px; --sy-node-w: 180px; height: 76px"
+                  aria-label="Moje polisy · /moje-polisy · its menu link was removed without a release · needs you">
+                  <span class="sy-node__route">/moje-polisy</span>
+                  <span class="sy-node__title">Moje polisy</span>
+                  <span class="sy-node__meta"><span class="sy-status" data-status="needs">Needs you</span></span>
+                </button>
+              </div>
+            </div>
+            <ul class="sy-legend mp-legend" aria-label="Link states in this view">
+              <li><svg width="28" height="10" aria-hidden="true"><path class="sy-edge sy-edge--changed" d="M0 5H28"/></svg>Changed link</li>
+              <li><svg width="28" height="10" aria-hidden="true"><path class="sy-edge sy-edge--retired" d="M0 5H28"/></svg>Retired (layer on)</li>
+              <li><svg width="28" height="10" aria-hidden="true"><path class="sy-edge" d="M0 5H28"/></svg>Unchanged link</li>
+            </ul>
+            <p class="sy-small sy-muted">A chip on a screen names the release that changed it ("changed · <span class="sy-case-normal">9c21</span>") or added it ("new · <span class="sy-case-normal">3e1a</span>"). Also changed outside this excerpt: opcje and wynik (<span class="sy-case-normal">9c21</span>), Kontakt (<span class="sy-case-normal">3e1a</span>). The 12 links removed with <span class="sy-case-normal">3e1a</span> and the 2 retired screens are listed in <a href="v2-02-changes.html">What changed</a>.</p>
+          </section>
+        </div>
+
+        <!-- Inspector: follows the selected screen -->
+        <div class="sy-col-side">
+          <section class="sy-plate" aria-labelledby="insp-h">
+            <div class="sy-plate__head">
+              <h2 id="insp-h" class="sy-plate__title sy-case-normal">Kalkulator OC/AC — wynik</h2>
+            </div>
+            <div class="sy-plate__body">
+              <dl class="sy-facts">
+                <dt>Route</dt><dd><span class="sy-route">/kalkulator/wynik</span></dd>
+                <dt>Status</dt><dd><span class="sy-status" data-status="live">Active</span></dd>
+                <dt>Part</dt><dd>Kalkulator app · <span class="sy-mono">9c21</span></dd>
+                <dt>Process</dt><dd><a href="v2-10-process-detail.html">Oblicz składkę OC/AC</a> · step 3 · outcome Completed (23 cases)</dd>
+                <dt>Last seen</dt><dd><span class="sy-cluster" style="--sy-gap: 6px">17 Oct <span class="sy-tag sy-tag--sm">01a1340c</span></span></dd>
+              </dl>
+              <div class="sy-meter" style="--value: 83%">
+                <div class="sy-meter__label"><span>Actions checked on <span class="sy-case-normal">9c21</span></span><span>5 / 6</span></div>
+                <div class="sy-meter__track" role="progressbar" aria-label="Actions checked on 9c21" aria-valuemin="0" aria-valuemax="6" aria-valuenow="5"><div class="sy-meter__fill"></div></div>
+              </div>
+            </div>
+            <hr>
+            <div class="sy-plate__body">
+              <h3 class="sy-label">Variants · 3</h3>
+              <ul class="sy-rows mp-inset">
+                <li class="sy-row"><span class="sy-row__main"><span class="sy-cluster" style="--sy-gap: 6px"><b><span class="sy-case-normal">r1</span></b><span class="sy-chip">Baseline</span></span><span class="sy-small sy-muted"><span class="sy-case-normal">5f08</span> · guest · 15 Oct</span><span class="sy-status" data-status="ok">Observed</span></span></li>
+                <li class="sy-row"><span class="sy-row__main"><span class="sy-cluster" style="--sy-gap: 6px"><b><span class="sy-case-normal">r2</span></b><span class="sy-chip"><span>Release <span class="sy-case-normal">9c21</span></span></span></span><span class="sy-small sy-muted">new layout · first seen 17 Oct 10:05Z</span><span class="sy-cluster" style="--sy-gap: 6px 10px"><span class="sy-status" data-status="inferred">Explained automatically</span><button class="sy-btn sy-btn--sm sy-btn--quiet" type="button" aria-describedby="insp-ov">Overturn…</button></span></span></li>
+                <li class="sy-row"><span class="sy-row__main"><span class="sy-cluster" style="--sy-gap: 6px"><b><span class="sy-case-normal">r3</span></b><span class="sy-chip sy-chip--tobe">A/B test?</span></span><span class="sy-small sy-muted">banner "Oferta specjalna" · 6 of 11 visits</span><span class="sy-status" data-status="needs">Needs you</span></span></li>
+              </ul>
+              <p id="insp-ov" class="sy-small sy-muted">Overturn… opens the Overturn dialog: say what it is instead and give a one-line reason, shown wherever this decision appears.</p>
+            </div>
+            <hr>
+            <div class="sy-plate__body">
+              <h3 class="sy-label">Actions inside · 5</h3>
+              <ul class="sy-rows mp-inset">
+                <li class="sy-row"><span>"Jak liczymy składkę?" <span class="sy-muted">dialog</span></span><span class="sy-status" data-status="live">Active</span></li>
+                <li class="sy-row"><span>Szczegóły składki <span class="sy-muted">section</span></span><span class="sy-status" data-status="live">Active</span></li>
+                <li class="sy-row"><span>Płatność <span class="sy-muted">field</span></span><span class="sy-status" data-status="live">Active</span></li>
+                <li class="sy-row"><span>Pobierz ofertę (PDF) <span class="sy-muted">button</span></span><span class="sy-status" data-status="live">Active</span></li>
+                <li class="sy-row"><span>Kup online <span class="sy-muted">button</span></span><span class="sy-status" data-status="live">Active</span></li>
+              </ul>
+              <h3 class="sy-label">Links out · 1 + menu</h3>
+              <ul class="sy-rows mp-inset">
+                <li class="sy-row"><span class="sy-row__main"><span>"Wróć" → Kalkulator OC/AC — opcje</span><span class="sy-status" data-status="unobserved"><span>Not checked on <span class="sy-case-normal">9c21</span></span></span></span></li>
+                <li class="sy-row sy-row--muted"><span>Menu · 11 links</span><span class="sy-small">bundled</span></li>
+              </ul>
+            </div>
+            <hr>
+            <div class="sy-plate__body">
+              <h3 class="sy-label">Changes since previous release · 3</h3>
+              <ul class="sy-rows mp-inset">
+                <li class="sy-row"><span class="sy-row__main"><a href="v2-03-change-detail.html">Banner "Oferta specjalna" on 6 of 11 visits</a><span class="sy-cluster" style="--sy-gap: 6px"><span class="sy-chip sy-chip--tobe">A/B test?</span><span class="sy-status" data-status="needs">Needs you</span></span></span></li>
+                <li class="sy-row"><span class="sy-row__main"><span>New layout</span><span class="sy-cluster" style="--sy-gap: 6px"><span class="sy-chip"><span>Release <span class="sy-case-normal">9c21</span></span></span><span class="sy-status" data-status="inferred">Explained automatically</span></span></span></li>
+                <li class="sy-row"><span class="sy-row__main"><span>Answered 503 once · 17 Oct 10:21Z</span><span class="sy-cluster" style="--sy-gap: 6px"><span class="sy-chip">Flaky error</span><span class="sy-status" data-status="inferred">Explained automatically</span></span></span></li>
+              </ul>
+            </div>
+            <div class="sy-plate__foot">
+              <a class="sy-small" href="v2-03-change-detail.html">Before / after</a>
+              <a class="sy-small" href="v2-14-same-screen.html">Same screen? · 1 conflict</a>
+            </div>
+          </section>
+        </div>
+      </div>
+
+<script>
+  // Graph / List: the same facts in two views; the list is the keyboard and screen-reader fallback.
+  document.querySelectorAll('[data-view]').forEach(function (b) {
+    b.addEventListener('click', function () {
+      var list = b.getAttribute('data-view') === 'list';
+      document.getElementById('map-graph').hidden = list;
+      document.getElementById('map-list').hidden = !list;
+      document.querySelectorAll('[data-view]').forEach(function (o) { o.setAttribute('aria-pressed', String(o === b)); });
+    });
+  });
+</script>
+    </main>
+  </div>
+</div>
+</body>
+</html>

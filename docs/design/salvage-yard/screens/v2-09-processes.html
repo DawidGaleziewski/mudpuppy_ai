@@ -1,0 +1,358 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MudPuppy 2.0 · Processes</title>
+<link rel="icon" href="../brand/logo/tag-icon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../design-system/css/tokens.css">
+<link rel="stylesheet" href="../design-system/css/fonts.css">
+<link rel="stylesheet" href="../design-system/css/salvage.css">
+<style>
+  /* Screen layout only: thumbnail strips in proposal plates; plate bodies stretch so footers line up. */
+  .mp-thumbs { display: flex; flex-wrap: wrap; gap: var(--sy-space-3); }
+  .mp-thumbs > figure { width: 132px; display: flex; flex-direction: column; gap: 4px; }
+  .mp-thumbs .sy-thumb--locked { display: flex; align-items: center; justify-content: center; }
+  .mp-full { flex: 1 1 100%; }
+</style>
+</head>
+<body class="sy-ground">
+<a class="sy-skip" href="#main">Skip to content</a>
+<div class="sy-app">
+  <header class="sy-header">
+    <a class="sy-wordmark" href="v2-01-home.html"><span class="sy-wordmark__paint">MUD</span>PUPPY</a>
+    <label class="sy-portal sy-portal--compact"><span class="sy-label">Portal</span>
+      <select class="sy-select"><option selected>reference-insurer</option><option>wikipedia</option><option>All portals</option><option>+ New portal</option></select></label>
+    <div class="sy-portal sy-portal--compact"><span class="sy-label" id="asof-l">As of</span>
+      <button class="sy-select" type="button" aria-haspopup="menu" aria-expanded="false" aria-labelledby="asof-l asof-v" aria-describedby="asof-help"><span id="asof-v">Now · 17 Oct</span></button></div>
+    <span id="asof-help" class="sy-sr-only">Shows the portal model as it was at a release or scan. Changes compares two points.</span>
+    <label class="sy-search sy-search--compact">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+      <input type="search" aria-label="Search screens, processes and rules" placeholder="Search"><span class="sy-kbd">Ctrl K</span></label>
+    <span class="sy-status" data-status="ok">Assistant up</span>
+    <a class="sy-btn" href="02-screen-with-assistant.html">Ask <span class="sy-kbd">Ctrl J</span></a>
+    <a class="sy-btn sy-btn--icon" href="#" aria-label="Help and glossary">?</a>
+  </header>
+  <div class="sy-app__body">
+    <nav class="sy-nav" aria-label="Portal sections">
+      <a class="sy-nav__item" href="v2-01-home.html">Home</a>
+      <a class="sy-nav__item" href="v2-02-changes.html">Changes <span class="sy-nav__count">41</span></a>
+      <a class="sy-nav__item" href="v2-04-review.html">Review <span class="sy-count">24</span></a>
+      <div class="sy-nav__group" aria-hidden="true">Portal model</div>
+      <a class="sy-nav__item" href="v2-09-processes.html" aria-current="page">Processes <span class="sy-nav__count">6</span></a>
+      <a class="sy-nav__item" href="v2-06-screens.html">Screens <span class="sy-nav__count">19</span></a>
+      <a class="sy-nav__item" href="v2-11-rules.html">Rules <span class="sy-nav__count">6</span></a>
+      <a class="sy-nav__item" href="#">Docs</a>
+      <div class="sy-nav__group" aria-hidden="true">Machine</div>
+      <a class="sy-nav__item" href="10-scans.html">Scans</a>
+      <a class="sy-nav__item" href="11-settings.html">Settings</a>
+      <div class="sy-nav__foot">store: sandbox · writes go through commands</div>
+    </nav>
+    <main id="main" class="sy-main">
+<!-- Page head -->
+      <div class="sy-pagehead">
+        <div class="sy-pagehead__row">
+          <div class="sy-stack" style="--sy-gap: 4px">
+            <h1 class="sy-h1">Processes</h1>
+            <p class="sy-meta">6 · 3 accepted · 2 proposed after scan <span class="sy-case-normal">01a12f40</span> · 1 rejected</p>
+          </div>
+          <div class="sy-actions">
+            <a class="sy-btn sy-btn--md" href="v2-08-map.html">Show on the map</a>
+            <button class="sy-btn sy-btn--md" type="button">New process</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- How processes move: proposed → accepted; edits are never undone -->
+      <div class="sy-cluster sy-small" style="--sy-gap: 6px 12px" role="note" aria-label="How processes work">
+        <span class="sy-label">How it works</span>
+        <span class="sy-status" data-status="inferred">Proposed</span><span class="sy-muted">after a scan</span>
+        <span class="sy-muted" aria-hidden="true">→</span>
+        <span class="sy-status" data-status="ok">Accepted</span><span class="sy-muted">by you</span>
+        <span class="sy-muted" aria-hidden="true">→</span>
+        <span class="sy-muted">edited by you: later scans only <b>suggest</b></span>
+        <span class="sy-muted" aria-hidden="true">·</span>
+        <span class="sy-status" data-status="skipped">Rejected</span><span class="sy-muted">kept, with your reason</span>
+      </div>
+
+      <!-- PROPOSED: drawn until accepted -->
+      <section class="sy-stack" style="--sy-gap: 10px" aria-labelledby="prop-h">
+        <div class="sy-split" style="align-items: baseline">
+          <h2 id="prop-h" class="sy-h2">Proposed · 2</h2>
+          <p class="sy-cluster sy-meta" style="--sy-gap: 6px 8px">
+            <span class="sy-status" data-status="inferred">Inferred</span>
+            <span>after scan</span><span class="sy-tag sy-tag--sm">01a12f40</span><span>· 15 Oct · not documented until you accept</span>
+          </p>
+        </div>
+
+        <div class="sy-stack" style="--sy-gap: 14px">
+
+          <!-- Proposal 1: Napisz do nas (reject form open) -->
+          <article class="sy-plate sy-plate--drawn" aria-labelledby="p1-h">
+            <div class="sy-plate__head">
+              <h3 id="p1-h" class="sy-plate__title">Napisz do nas</h3>
+              <span class="sy-status" data-status="inferred">Proposed</span>
+            </div>
+            <div class="sy-plate__body sy-grid" style="--sy-min: 380px; --sy-gap: 16px 28px">
+              <dl class="sy-facts" style="align-content: start">
+                <dt>Trigger</dt>
+                <dd>Link "Napisz do nas" in "Na skróty" on <a href="v2-06-screens.html">Ubezpieczenia dla Ciebie</a>; also "Kontakt" in the menu (every page)</dd>
+                <dt>Screens</dt>
+                <dd><ol class="sy-path" aria-label="Screens in order"><li><span class="sy-path__step">Kontakt</span></li><li><span class="sy-path__step">Wiadomość wysłana</span></li></ol></dd>
+                <dt>Outcomes</dt>
+                <dd>
+                  <ul class="sy-stack" style="--sy-gap: 3px">
+                    <li><b>Sent</b> → Wiadomość wysłana</li>
+                    <li><b>Validation</b> · stays on Kontakt</li>
+                    <li class="sy-cluster" style="--sy-gap: 6px"><span><b>Error</b> → Przepraszamy, wystąpił błąd</span><span class="sy-chip">error</span></li>
+                  </ul>
+                </dd>
+                <dt>Explored</dt>
+                <dd><span class="sy-status" data-status="queued"><span>Partial · <span class="sy-case-normal">3e1a</span></span></span></dd>
+                <dt>Changes</dt>
+                <dd><a href="v2-02-changes.html">2 since the previous release · 1 needs you</a></dd>
+                <dt>Doc record</dt>
+                <dd class="sy-muted">PROC record after you accept</dd>
+              </dl>
+              <div class="sy-stack" style="--sy-gap: 14px">
+              <div class="sy-stack" style="--sy-gap: 6px">
+                <span class="sy-label">Evidence</span>
+                <div class="mp-thumbs">
+                  <figure><div class="sy-thumb" role="img" aria-label="Recorded screen Kontakt, /kontakt"></div><figcaption class="sy-route">/kontakt</figcaption></figure>
+                  <figure><div class="sy-thumb" role="img" aria-label="Recorded screen Wiadomość wysłana, /kontakt/wyslano"></div><figcaption class="sy-route">/kontakt/wyslano</figcaption></figure>
+                </div>
+                <p class="sy-small sy-muted">Why: both links open Kontakt, and sending the form led to Wiadomość wysłana on every visit in scan <span class="sy-case-normal">01a12f40</span>.</p>
+              </div>
+              <div class="sy-stack" style="--sy-gap: 6px">
+                <p class="sy-cluster sy-small" style="--sy-gap: 6px 8px"><span class="sy-status" data-status="overturned">Overturned</span><span>Kontakt: a phone starting +48 always ends on the error page</span></p>
+                <p class="sy-note sy-note--sm">Not flaky: it happens every time with +48.<span class="sy-note__by">you · 17 Oct 10:41Z</span></p>
+              </div>
+              </div>
+            </div>
+            <div class="sy-plate__foot">
+              <div class="sy-actions mp-full" style="--sy-gap: 6px">
+                <button class="sy-btn sy-btn--md sy-btn--strong" type="button" aria-describedby="p1-accept-d">Accept<span class="sy-sr-only"> Napisz do nas</span></button>
+                <button class="sy-btn sy-btn--sm" type="button">Rename</button>
+                <button class="sy-btn sy-btn--sm" type="button">Split</button>
+                <button class="sy-btn sy-btn--sm" type="button">Merge with…</button>
+                <button class="sy-btn sy-btn--sm" type="button">Move screens</button>
+                <button class="sy-btn sy-btn--sm sy-btn--quiet" type="button" aria-expanded="true" aria-controls="p1-reject">Reject…</button>
+              </div>
+              <p id="p1-accept-d" class="sy-field__help mp-full">Accept: it moves to Accepted and its PROC record is drafted for Review.</p>
+              <form id="p1-reject" class="sy-stack mp-full" style="--sy-gap: 6px" action="#" aria-label="Reject Napisz do nas">
+                <div class="sy-cluster" style="--sy-gap: 8px; align-items: flex-end">
+                  <label class="sy-field sy-grow" style="max-width: 520px"><span class="sy-field__label">Reason to reject</span>
+                    <input class="sy-input sy-input--md" type="text" aria-required="true" aria-describedby="p1-reason-help" placeholder="One line, e.g. Part of another process"></label>
+                  <button class="sy-btn sy-btn--md" type="submit" aria-describedby="p1-reject-d">Reject</button>
+                  <button class="sy-btn sy-btn--md sy-btn--quiet" type="button">Cancel</button>
+                </div>
+                <span id="p1-reason-help" class="sy-field__help">Required. Shown wherever this decision appears.</span>
+                <span id="p1-reject-d" class="sy-field__help">Reject moves it to Rejected with your reason; later scans won't propose it again.</span>
+              </form>
+            </div>
+          </article>
+
+          <!-- Proposal 2: Przedłuż polisę (not explored, needs a credential) -->
+          <article class="sy-plate sy-plate--drawn" aria-labelledby="p2-h">
+            <div class="sy-plate__head">
+              <h3 id="p2-h" class="sy-plate__title">Przedłuż polisę</h3>
+              <span class="sy-status" data-status="inferred">Proposed</span>
+            </div>
+            <div class="sy-plate__body sy-grid" style="--sy-min: 380px; --sy-gap: 16px 28px">
+              <dl class="sy-facts" style="align-content: start">
+                <dt>Trigger</dt>
+                <dd>Link "Przedłuż polisę" in "Na skróty" on <a href="v2-06-screens.html">Ubezpieczenia dla Ciebie</a></dd>
+                <dt>Precondition</dt>
+                <dd>Logged in as <span class="sy-mono">client</span></dd>
+                <dt>Screens</dt>
+                <dd class="sy-muted">Not known yet: the scan stopped at the login</dd>
+                <dt>Outcomes</dt>
+                <dd class="sy-muted">Not known yet</dd>
+                <dt>Explored</dt>
+                <dd><span class="sy-status" data-status="todo">Not explored</span></dd>
+                <dt>Changes</dt>
+                <dd class="sy-muted">None</dd>
+                <dt>Doc record</dt>
+                <dd class="sy-muted">PROC record after you accept</dd>
+              </dl>
+              <div class="sy-stack" style="--sy-gap: 14px">
+              <div class="sy-stack" style="--sy-gap: 6px">
+                <span class="sy-label">Evidence</span>
+                <div class="mp-thumbs">
+                  <figure><div class="sy-thumb" role="img" aria-label="Recorded screen Ubezpieczenia dla Ciebie, /"></div><figcaption class="sy-route">/ · trigger</figcaption></figure>
+                  <figure><div class="sy-thumb sy-thumb--locked"><span class="sy-status" data-status="unobserved">Needs login</span></div><figcaption class="sy-route">past the login</figcaption></figure>
+                </div>
+                <p class="sy-small sy-muted">Why: a "Na skróty" link that asks for a login before anything else.</p>
+              </div>
+              <div class="sy-callout">
+                <span class="sy-callout__title">To explore it</span>
+                <span>Add a credential for persona <span class="sy-mono">client</span>. Then Explore further can walk it with that login.</span>
+                <a href="11-settings.html">Add a credential in Settings</a>
+              </div>
+              <p class="sy-small sy-muted">Related: you rejected "Moje polisy" on 15 Oct as part of this process.</p>
+              </div>
+            </div>
+            <div class="sy-plate__foot">
+              <div class="sy-actions mp-full" style="--sy-gap: 6px">
+                <button class="sy-btn sy-btn--md sy-btn--strong" type="button" aria-describedby="p2-accept-d">Accept<span class="sy-sr-only"> Przedłuż polisę</span></button>
+                <button class="sy-btn sy-btn--sm" type="button">Rename</button>
+                <button class="sy-btn sy-btn--sm" type="button">Split</button>
+                <button class="sy-btn sy-btn--sm" type="button">Merge with…</button>
+                <button class="sy-btn sy-btn--sm" type="button">Move screens</button>
+                <button class="sy-btn sy-btn--sm sy-btn--quiet" type="button" aria-expanded="false">Reject…</button>
+              </div>
+              <p id="p2-accept-d" class="sy-field__help mp-full">Accept: it moves to Accepted as "not explored"; its screens are added after it is explored.</p>
+            </div>
+          </article>
+
+        </div>
+      </section>
+
+      <!-- ACCEPTED -->
+      <section class="sy-stack" style="--sy-gap: 10px" aria-labelledby="acc-h">
+        <div class="sy-split" style="align-items: baseline">
+          <h2 id="acc-h" class="sy-h2">Accepted · 3</h2>
+          <p class="sy-meta">A process you edited is never changed by a later scan. You get a suggestion instead.</p>
+        </div>
+        <div class="sy-table-wrap">
+          <table class="sy-table" style="min-width: 900px" aria-labelledby="acc-h">
+            <thead>
+              <tr>
+                <th scope="col">Process</th>
+                <th scope="col">Trigger</th>
+                <th scope="col">Screens</th>
+                <th scope="col">Outcomes</th>
+                <th scope="col">Explored</th>
+                <th scope="col">Rules</th>
+                <th scope="col">Changes</th>
+                <th scope="col">Doc record</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <th scope="row">
+                  <div class="sy-stack" style="--sy-gap: 4px">
+                    <a href="v2-10-process-detail.html">Oblicz składkę OC/AC</a>
+                    <span class="sy-status" data-status="ok">Accepted · you · 6 Oct</span>
+                    <span class="sy-small sy-muted">edited by you · 15 Oct</span>
+                  </div>
+                </th>
+                <td><span class="sy-small">"Oblicz składkę OC/AC" in "Na skróty" on Ubezpieczenia dla Ciebie · also in the menu</span></td>
+                <td>
+                  <div class="sy-stack" style="--sy-gap: 4px">
+                    <span>5 screens</span>
+                    <span class="sy-small sy-muted">3 steps: dane kierowcy → opcje → wynik · 2 outcome screens: odmowa, error page</span>
+                  </div>
+                </td>
+                <td><span class="sy-small">Completed<br>Exited<br>Error<br>Abandoned</span></td>
+                <td><div class="sy-stack" style="--sy-gap: 4px"><span class="sy-status" data-status="ok">Thorough</span><span class="sy-small sy-muted">on <span class="sy-case-normal">9c21</span></span></div></td>
+                <td>
+                  <div class="sy-stack" style="--sy-gap: 4px">
+                    <a href="v2-11-rules.html">6 rules</a>
+                    <span class="sy-status" data-status="failed">1 broken</span>
+                    <span class="sy-status" data-status="needs">1 changed</span>
+                  </div>
+                </td>
+                <td>
+                  <div class="sy-stack" style="--sy-gap: 4px">
+                    <a href="v2-02-changes.html">11 changes</a>
+                    <span class="sy-status" data-status="needs">4 need you</span>
+                  </div>
+                </td>
+                <td><div class="sy-stack" style="--sy-gap: 4px; align-items: flex-start"><a class="sy-tag sy-tag--sm" href="#">PROC-001</a><span class="sy-small sy-muted">rev 3</span></div></td>
+              </tr>
+              <!-- Suggestion: the system would change an edited process, so it asks instead -->
+              <tr>
+                <td colspan="8">
+                  <div class="sy-callout sy-callout--drawn">
+                    <div class="sy-split" style="--sy-gap: 8px 16px">
+                      <div class="sy-stack" style="--sy-gap: 4px">
+                        <span class="sy-callout__title">Suggestion for Oblicz składkę OC/AC</span>
+                        <span>You edited this on 15 Oct, so the system won't change it. Suggestion: <b>add wynik <span class="sy-case-normal">r3</span> (banner "Oferta specjalna") as a variant of step 3.</b></span>
+                        <span class="sy-small sy-muted">Evidence: banner on 6 of 11 visits, check run <span class="sy-tag sy-tag--sm">01a1340c</span> · <a href="v2-03-change-detail.html">Before / after</a> · open conflict in <a href="v2-14-same-screen.html">Same screen?</a></span>
+                      </div>
+                      <div class="sy-stack" style="--sy-gap: 4px; align-items: flex-start">
+                        <span class="sy-status" data-status="inferred">Not applied</span>
+                        <span class="sy-small">Decided with the <a href="v2-04-review.html">A/B test finding in Review</a></span>
+                      </div>
+                    </div>
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <th scope="row">
+                  <div class="sy-stack" style="--sy-gap: 4px">
+                    <a href="#">Porównaj produkty</a>
+                    <span class="sy-status" data-status="ok">Accepted</span>
+                  </div>
+                </th>
+                <td>
+                  <div class="sy-stack" style="--sy-gap: 4px">
+                    <span class="sy-small">"Porównaj produkty" in "Na skróty" on Ubezpieczenia dla Ciebie</span>
+                    <span class="sy-small sy-muted">now leads to <span class="sy-route">/porownanie-2026</span></span>
+                  </div>
+                </td>
+                <td><span class="sy-small">Porównanie produktów</span></td>
+                <td><span class="sy-small">Completed</span></td>
+                <td><div class="sy-stack" style="--sy-gap: 4px"><span class="sy-status" data-status="queued">Partial</span><span class="sy-small sy-muted">on <span class="sy-case-normal">3e1a</span></span></div></td>
+                <td><span class="sy-small sy-muted">None found</span></td>
+                <td>
+                  <div class="sy-stack" style="--sy-gap: 4px">
+                    <a href="v2-02-changes.html">1 change</a>
+                    <span class="sy-small sy-muted">explained automatically</span>
+                  </div>
+                </td>
+                <td><a class="sy-tag sy-tag--sm" href="#">PROC-002</a></td>
+              </tr>
+              <tr>
+                <th scope="row">
+                  <div class="sy-stack" style="--sy-gap: 4px">
+                    <a href="#">Test process</a>
+                    <span class="sy-status" data-status="ok">Accepted · yours</span>
+                    <span class="sy-small sy-muted">made in 1.x, scope migrated</span>
+                  </div>
+                </th>
+                <td><span class="sy-small">"FAQ" in the menu on Ubezpieczenia dla Ciebie</span></td>
+                <td><span class="sy-small">FAQ</span></td>
+                <td><span class="sy-small">Completed</span></td>
+                <td><div class="sy-stack" style="--sy-gap: 4px"><span class="sy-status" data-status="ok">Thorough</span><span class="sy-small sy-muted">on <span class="sy-case-normal">3e1a</span></span></div></td>
+                <td><span class="sy-small sy-muted">None found</span></td>
+                <td><span class="sy-small sy-muted">None</span></td>
+                <td><a class="sy-tag sy-tag--sm" href="#">PROC-003</a></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="sy-cluster sy-small sy-muted" style="--sy-gap: 6px 14px">
+          <span><span class="sy-status" data-status="ok">Thorough</span> every action and pair tried</span>
+          <span><span class="sy-status" data-status="queued">Partial</span> some actions not tried</span>
+          <span><span class="sy-status" data-status="todo">Not explored</span> nothing walked yet</span>
+          <span>· on the release named, per portal part</span>
+        </p>
+      </section>
+
+      <!-- REJECTED: kept, collapsed -->
+      <details class="sy-disclosure">
+        <summary>
+          <h2 class="sy-plate__title">Rejected · 1</h2>
+          <span class="sy-meta" style="margin-right: auto">Moje polisy · kept with your reason</span>
+        </summary>
+        <div class="sy-disclosure__body">
+          <div class="sy-split" style="--sy-gap: 10px 16px; align-items: flex-start">
+            <div class="sy-stack" style="--sy-gap: 6px">
+              <span class="sy-cluster" style="--sy-gap: 8px"><b>Moje polisy</b><span class="sy-status" data-status="skipped">Rejected · you · 15 Oct</span></span>
+              <span class="sy-small sy-muted">Proposed from menu links "Zaloguj się" and "Moje polisy" · screens Logowanie → Moje polisy</span>
+              <p class="sy-note sy-note--sm">Part of Przedłuż polisę.<span class="sy-note__by">you · 15 Oct</span></p>
+            </div>
+            <div class="sy-stack" style="--sy-gap: 4px">
+              <button class="sy-btn sy-btn--sm" type="button" aria-describedby="rj-what">Reopen…</button>
+              <span id="rj-what" class="sy-field__help">Asks for a reason, then moves it back to Proposed.</span>
+            </div>
+          </div>
+        </div>
+      </details>
+    </main>
+  </div>
+</div>
+</body>
+</html>

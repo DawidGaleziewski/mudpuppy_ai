@@ -68,6 +68,12 @@ Something "on top" is one step lighter. There are no drop shadows anywhere.
 | The portal showed an error we provoked or recorded | **neutral** chip `.sy-chip`, never failure red | "technical", "500 · simulated" |
 | Where the next scan will replay | blueprint dashed `.sy-edge--planned` | `/ → Samochód → step 2` |
 | Queued, or not reached yet | ash dashed: `.sy-chip--dashed`, `data-state="unobserved"` | "+38 queued", "step 3 · not reached" |
+| 2.0 · The system explained a change by itself | blueprint dashed: `data-status="inferred"` "Explained automatically" | "Release 9c21 · Explained automatically" |
+| 2.0 · A person overturned an automatic explanation | manila ■ `data-status="overturned"` + `.sy-note` reason | "■ OVERTURNED · Not flaky: it happens every time with +48." |
+| 2.0 · A rule broke / a boundary test failed | failure ✕ `data-status="failed"` | "BR-026 ✕ BROKEN" |
+| 2.0 · A link is not seen since / not checked on this release | ash dashed / dotted edge, `queued` / `unobserved` status | "Not seen since 17 Oct" |
+| 2.0 · Retired (kept, no longer there) | ash hollow `skipped`, `[data-state="retired"]` | "□ RETIRED · 3e1a" |
+| 2.0 · A value that differs between before and after | chalk bar `.sy-differs` + the word "differs" | cookie `ab_calc` A → B |
 
 ---
 
@@ -80,13 +86,14 @@ Something "on top" is one step lighter. There are no drop shadows anywhere.
 | `live` | ■ filled | coolant | Live · sandbox, Active |
 | `needs` | ■ filled | marker | Needs you, 4 to review, End not reached, Re-anchor |
 | `stopped` | □ hollow | ash | Interrupted, Stopped |
-| `skipped` | □ hollow | ash | Skipped |
+| `skipped` | □ hollow | ash | Skipped, Retired (2.0), Blocked |
 | `todo` | □ hollow | ash | To do, Not configured |
-| `queued` | ⌜⌟ dashed corners | ash | Queued, Pending, Connecting |
-| `unobserved` | ⌜⌟ dashed corners | ash | Not observed, Not observable |
+| `queued` | ⌜⌟ dashed corners | ash | Queued, Pending, Connecting, Partial (explored), Not seen since (2.0) |
+| `unobserved` | ⌜⌟ dashed corners | ash | Not observed, Not observable, Not checked on 〈release〉 (2.0) |
 | `draft` | ⌜⌟ dashed corners | blueprint | Draft, Proposed, Latest drawing |
-| `inferred` | ⌜⌟ dashed corners | blueprint | Inferred, Suggested |
-| `failed` | ✕ cross | failure | Failed, Error |
+| `inferred` | ⌜⌟ dashed corners | blueprint | Inferred, Suggested, Explained automatically, Proposed (2.0) |
+| `failed` | ✕ cross | failure | Failed, Error, Broken (rule), Fail (test) |
+| `overturned` (2.0) | ■ filled | manila | Overturned (always with the person's reason in a `.sy-note`) |
 
 Shape grammar: **filled** = it happened or is happening · **hollow** = it didn't (yet) ·
 **dashed** = unconfirmed · **cross** = it broke.

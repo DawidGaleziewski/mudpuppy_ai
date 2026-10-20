@@ -1,0 +1,265 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MudPuppy 2.0 · Before / after</title>
+<link rel="icon" href="../brand/logo/tag-icon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../design-system/css/tokens.css">
+<link rel="stylesheet" href="../design-system/css/fonts.css">
+<link rel="stylesheet" href="../design-system/css/salvage.css">
+<style>
+  /* Before / after: two recorded pages side by side; the changed region is the same size on both sides so the pages line up. */
+  .mp-region { position: relative; display: flex; align-items: center; min-height: 40px; padding: 8px 12px; }
+  .mp-slot { min-height: 40px; padding: 8px 12px; justify-content: center; }      /* on .sy-state: the empty region */
+  .mp-seg > button { flex: none; }
+</style>
+</head>
+<body class="sy-ground">
+<a class="sy-skip" href="#main">Skip to content</a>
+<div class="sy-app">
+  <header class="sy-header">
+    <a class="sy-wordmark" href="v2-01-home.html"><span class="sy-wordmark__paint">MUD</span>PUPPY</a>
+    <label class="sy-portal sy-portal--compact"><span class="sy-label">Portal</span>
+      <select class="sy-select"><option selected>reference-insurer</option><option>wikipedia</option><option>All portals</option><option>+ New portal</option></select></label>
+    <div class="sy-portal sy-portal--compact"><span class="sy-label" id="asof-l">As of</span>
+      <button class="sy-select" type="button" aria-haspopup="menu" aria-expanded="false" aria-labelledby="asof-l asof-v" aria-describedby="asof-help"><span id="asof-v">Now · 17 Oct</span></button></div>
+    <span id="asof-help" class="sy-sr-only">Shows the portal model as it was at a release or scan. Changes compares two points.</span>
+    <label class="sy-search sy-search--compact">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+      <input type="search" aria-label="Search screens, processes and rules" placeholder="Search"><span class="sy-kbd">Ctrl K</span></label>
+    <span class="sy-status" data-status="ok">Assistant up</span>
+    <a class="sy-btn" href="02-screen-with-assistant.html">Ask <span class="sy-kbd">Ctrl J</span></a>
+    <a class="sy-btn sy-btn--icon" href="#" aria-label="Help and glossary">?</a>
+  </header>
+  <div class="sy-app__body">
+    <nav class="sy-nav" aria-label="Portal sections">
+      <a class="sy-nav__item" href="v2-01-home.html">Home</a>
+      <a class="sy-nav__item" href="v2-02-changes.html" aria-current="page">Changes <span class="sy-nav__count">41</span></a>
+      <a class="sy-nav__item" href="v2-04-review.html">Review <span class="sy-count">24</span></a>
+      <div class="sy-nav__group" aria-hidden="true">Portal model</div>
+      <a class="sy-nav__item" href="v2-09-processes.html">Processes <span class="sy-nav__count">6</span></a>
+      <a class="sy-nav__item" href="v2-06-screens.html">Screens <span class="sy-nav__count">19</span></a>
+      <a class="sy-nav__item" href="v2-11-rules.html">Rules <span class="sy-nav__count">6</span></a>
+      <a class="sy-nav__item" href="#">Docs</a>
+      <div class="sy-nav__group" aria-hidden="true">Machine</div>
+      <a class="sy-nav__item" href="10-scans.html">Scans</a>
+      <a class="sy-nav__item" href="11-settings.html">Settings</a>
+      <div class="sy-nav__foot">store: sandbox · writes go through commands</div>
+    </nav>
+    <main id="main" class="sy-main">
+<div class="sy-pagehead">
+  <nav class="sy-crumbs" aria-label="Breadcrumb"><a href="v2-02-changes.html">Changes</a> / <a href="v2-02-changes.html?process=oblicz-skladke-oc-ac">Oblicz składkę OC/AC</a> / <span aria-current="page">Kalkulator OC/AC — wynik</span></nav>
+  <div class="sy-pagehead__row">
+    <div class="sy-stack" style="--sy-gap: 6px">
+      <h1 class="sy-h1">Before / after</h1>
+      <p class="sy-cluster sy-meta" style="--sy-gap: 4px 12px">
+        <span class="sy-status" data-status="needs">Needs you</span>
+        <span class="sy-status" data-status="inferred">A/B test?</span>
+        <span>Kalkulator OC/AC — wynik · <span class="sy-route">/kalkulator/wynik</span> · step 3 · Kalkulator app <span class="sy-case-normal">9c21</span></span>
+      </p>
+    </div>
+    <nav class="sy-cluster" aria-label="Changes that need you" style="--sy-gap: 8px 10px">
+      <span class="sy-small sy-muted">4 of 18 that need you</span>
+      <a class="sy-btn sy-btn--md" href="v2-02-changes.html">Previous <span class="sy-kbd">K</span></a>
+      <a class="sy-btn sy-btn--md" href="v2-02-changes.html">Next <span class="sy-kbd">J</span></a>
+    </nav>
+  </div>
+</div>
+
+<!-- ===== The finding and the two pages ===== -->
+<section class="sy-stack" aria-labelledby="finding-h" style="--sy-gap: var(--sy-space-3)">
+  <div class="sy-split" style="align-items: flex-end; --sy-gap: 12px 24px">
+    <div class="sy-stack" style="--sy-gap: 4px">
+      <h2 id="finding-h" class="sy-h2 sy-case-normal">Banner "Oferta specjalna" on 6 of 11 visits</h2>
+      <p class="sy-meta">Found by check run <span class="sy-tag sy-tag--sm">01a1340c</span> · 17 Oct · same release (<span class="sy-case-normal">9c21</span>) and persona (guest) on every visit</p>
+    </div>
+    <div class="sy-cluster" style="--sy-gap: 8px 14px">
+      <div class="sy-seg mp-seg" role="group" aria-label="How to compare">
+        <button type="button" aria-pressed="true">Side by side</button>
+        <button type="button" aria-pressed="false">Overlay</button>
+        <button type="button" aria-pressed="false">Wireframe</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="sy-compare" style="--sy-min: 380px">
+    <section class="sy-compare__side" aria-labelledby="before-h">
+      <header class="sy-compare__head">
+        <span id="before-h">Without banner</span>
+        <span class="sy-cluster sy-case-normal" style="--sy-gap: 6px 10px"><span class="sy-chip">variant r2</span><span class="sy-mono sy-mono--sm sy-muted">5 of 11 visits</span></span>
+      </header>
+      <p class="sy-cluster sy-mono sy-mono--sm sy-muted" style="--sy-gap: 4px 10px"><span class="sy-status" data-status="ok">Observed</span><span>visit 01a1340c#14 · <time datetime="2026-10-17T10:14Z">17 Oct 10:14Z</time> · ab_calc = A</span></p>
+      <figure class="sy-shot" aria-label="Recorded page Kalkulator OC/AC — wynik, visit 01a1340c#14, without the banner">
+        <u class="sy-shot__link">Towarzystwo Ubezpieczeń Wzorcowych</u>
+        <div class="sy-cluster" style="--sy-gap: 2px 12px">
+          <span class="sy-shot__link">Start</span><span class="sy-shot__link">Samochód</span><span class="sy-shot__link">Dom</span><span class="sy-shot__link">Podróże</span><span class="sy-shot__link">Porównanie</span><span class="sy-shot__link">Oblicz składkę</span><span class="sy-shot__link">Kontakt</span><span class="sy-shot__link">FAQ</span><span class="sy-shot__link">Słowniczek</span><span class="sy-shot__link">Zaloguj się</span>
+        </div>
+        <span class="sy-shot__title">Twoja składka</span>
+        <div class="sy-state mp-slot"><span class="sy-small">Empty here: no banner on this visit</span></div>
+        <b>OC 612 zł / rok</b>
+        <div class="sy-cluster" style="--sy-gap: 6px 18px"><span class="sy-shot__link"><b>Kup online</b></span><span class="sy-shot__link">Wróć</span></div>
+        <small>Towarzystwo Ubezpieczeń Wzorcowych S.A. — portal demonstracyjny. Wszystkie dane są fikcyjne. · v9c21</small>
+      </figure>
+    </section>
+
+    <section class="sy-compare__side" aria-labelledby="after-h">
+      <header class="sy-compare__head">
+        <span id="after-h">With banner</span>
+        <span class="sy-cluster sy-case-normal" style="--sy-gap: 6px 10px"><span class="sy-chip">variant r3</span><span class="sy-mono sy-mono--sm sy-muted">6 of 11 visits</span></span>
+      </header>
+      <p class="sy-cluster sy-mono sy-mono--sm sy-muted" style="--sy-gap: 4px 10px"><span class="sy-status" data-status="ok">Observed</span><span>visit 01a1340c#15 · <time datetime="2026-10-17T10:15Z">17 Oct 10:15Z</time> · ab_calc = B</span></p>
+      <figure class="sy-shot" aria-label="Recorded page Kalkulator OC/AC — wynik, visit 01a1340c#15, with the banner marked as changed">
+        <u class="sy-shot__link">Towarzystwo Ubezpieczeń Wzorcowych</u>
+        <div class="sy-cluster" style="--sy-gap: 2px 12px">
+          <span class="sy-shot__link">Start</span><span class="sy-shot__link">Samochód</span><span class="sy-shot__link">Dom</span><span class="sy-shot__link">Podróże</span><span class="sy-shot__link">Porównanie</span><span class="sy-shot__link">Oblicz składkę</span><span class="sy-shot__link">Kontakt</span><span class="sy-shot__link">FAQ</span><span class="sy-shot__link">Słowniczek</span><span class="sy-shot__link">Zaloguj się</span>
+        </div>
+        <span class="sy-shot__title">Twoja składka</span>
+        <div class="mp-region">
+          <b>Oferta specjalna: −10% przy zakupie dziś</b>
+          <mark class="sy-mark sy-mark--overlay" style="left: 0; top: 0; width: 100%; height: 100%"><span class="sy-mark__label">Changed</span></mark>
+        </div>
+        <b>OC 612 zł / rok</b>
+        <div class="sy-cluster" style="--sy-gap: 6px 18px"><span class="sy-shot__link"><b>Kup online</b></span><span class="sy-shot__link">Wróć</span></div>
+        <small>Towarzystwo Ubezpieczeń Wzorcowych S.A. — portal demonstracyjny. Wszystkie dane są fikcyjne. · v9c21</small>
+      </figure>
+    </section>
+  </div>
+  <div class="sy-stack" style="--sy-gap: 4px">
+    <p class="sy-legend" aria-hidden="true"><span>▣ Changed</span><span>┄ same place</span></p>
+    <p class="sy-small sy-muted">"Changed" marks the region that differs. The dashed box is the same place on the other page. The rest of the page is the same.</p>
+  </div>
+</section>
+
+<!-- ===== Context diff + proposed explanation ===== -->
+<div class="sy-columns">
+  <section class="sy-col-main sy-stack" aria-labelledby="ctx-h" style="--sy-gap: var(--sy-space-3)">
+    <h2 id="ctx-h" class="sy-h2">What differs</h2>
+    <div class="sy-table-wrap">
+      <table class="sy-table sy-table--middle" aria-labelledby="ctx-h">
+        <thead>
+          <tr><th scope="col">Context</th><th scope="col">Without banner · <span class="sy-case-normal">r2</span></th><th scope="col">With banner · <span class="sy-case-normal">r3</span></th><th scope="col"><span class="sy-sr-only">Same or differs</span></th></tr>
+        </thead>
+        <tbody>
+          <tr><th scope="row">Release</th><td>Kalkulator app <span class="sy-case-normal">9c21</span> · Shell <span class="sy-case-normal">3e1a</span></td><td>Kalkulator app <span class="sy-case-normal">9c21</span> · Shell <span class="sy-case-normal">3e1a</span></td><td class="sy-small sy-muted">same</td></tr>
+          <tr><th scope="row">Persona</th><td>guest</td><td>guest</td><td class="sy-small sy-muted">same</td></tr>
+          <tr><th scope="row">Inputs</th><td>Data urodzenia → wiek 35 · Zakres: OC · Kod pocztowy: 00-950</td><td>same</td><td class="sy-small sy-muted">same</td></tr>
+          <tr><th scope="row">Cookie <code class="sy-mono">ab_calc</code></th><td class="sy-differs"><b class="sy-mono">A</b></td><td class="sy-differs"><b class="sy-mono">B</b></td><td class="sy-small"><b>differs</b></td></tr>
+          <tr><th scope="row">Flags</th><td class="sy-muted">none seen</td><td class="sy-muted">none seen</td><td class="sy-small sy-muted">same</td></tr>
+          <tr><th scope="row">Time</th><td class="sy-mono sy-mono--sm">17 Oct 10:14Z</td><td class="sy-mono sy-mono--sm">17 Oct 10:15Z</td><td class="sy-small sy-muted">1 min apart</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="sy-small sy-muted">Checked in order: release, persona, inputs, cookies. Only the cookie differs.</p>
+  </section>
+
+  <aside class="sy-col-side" aria-label="Explanation and where it shows" style="flex-basis: 340px">
+    <section class="sy-plate sy-plate--drawn" aria-labelledby="exp-h">
+      <div class="sy-plate__head">
+        <h2 id="exp-h" class="sy-plate__title">Proposed explanation</h2>
+        <span class="sy-status" data-status="inferred">Inferred</span>
+      </div>
+      <div class="sy-plate__body" style="--sy-gap: 10px">
+        <p><b>A/B test:</b> cookie <code class="sy-mono">ab_calc</code> decides the banner.</p>
+        <h3 class="sy-label">Tests run · 20 replays</h3>
+        <ul class="sy-stack" style="--sy-gap: 8px">
+          <li class="sy-split"><span class="sy-small">10× with ab_calc = A → no banner, 10 / 10</span><span class="sy-status" data-status="ok">Pass</span></li>
+          <li class="sy-split"><span class="sy-small">10× with ab_calc = B → banner, 10 / 10</span><span class="sy-status" data-status="ok">Pass</span></li>
+        </ul>
+        <p class="sy-small sy-muted">Proposed by check run <span class="sy-tag sy-tag--sm">01a1340c</span> · 17 Oct. Not decided until you confirm.</p>
+      </div>
+    </section>
+
+    <section class="sy-plate" aria-labelledby="where-h">
+      <div class="sy-plate__head"><h2 id="where-h" class="sy-plate__title">Where it shows</h2></div>
+      <div class="sy-rows">
+        <a class="sy-row" href="v2-04-review.html"><span class="sy-row__main"><span>Review · Findings</span><span class="sy-small sy-muted">A/B test? · waiting since 17 Oct</span></span></a>
+        <a class="sy-row" href="v2-06-screens.html"><span class="sy-row__main"><span>Kalkulator OC/AC — wynik</span><span class="sy-small sy-muted">variants <span class="sy-case-normal">r2</span> and <span class="sy-case-normal">r3</span></span></span></a>
+        <a class="sy-row" href="v2-10-process-detail.html"><span class="sy-row__main"><span>Oblicz składkę OC/AC · step 3</span><span class="sy-small sy-muted">suggestion waiting: add <span class="sy-case-normal">r3</span> as a variant of step 3 · settled by your decision</span></span><span class="sy-tag sy-tag--sm">PROC-001</span></a>
+        <a class="sy-row" href="v2-14-same-screen.html"><span class="sy-row__main">
+          <span class="sy-cluster" style="--sy-gap: 4px 8px"><span>Same screen?</span><span class="sy-chip">conflict</span></span>
+          <span class="sy-small sy-muted">wynik <span class="sy-case-normal">r2</span> vs <span class="sy-case-normal">r3</span> · Marek labelled them different on 17 Oct 11:20Z · settled by your decision</span>
+        </span></a>
+      </div>
+    </section>
+  </aside>
+</div>
+
+<!-- ===== Decision bar ===== -->
+<section class="sy-plate sy-plate--intent" aria-labelledby="dec-h">
+  <div class="sy-plate__head">
+    <h2 id="dec-h" class="sy-plate__title">Your decision</h2>
+    <span class="sy-small sy-muted">Is this an A/B test?</span>
+  </div>
+  <!-- Linked decisions: the same banner is in two other places; one decision settles all three -->
+  <section class="sy-plate__body" aria-labelledby="also-h" style="--sy-gap: 8px">
+    <h3 id="also-h" class="sy-label">Also settles · 2</h3>
+    <div class="sy-table-wrap">
+      <table class="sy-table sy-table--dense" aria-labelledby="also-h">
+        <thead><tr><th scope="col">Linked item</th><th scope="col">Now</th><th scope="col">When you confirm</th></tr></thead>
+        <tbody>
+          <tr>
+            <th scope="row"><span class="sy-stack" style="--sy-gap: 2px"><span class="sy-small sy-muted">Same screen?</span><a href="v2-14-same-screen.html">Kalkulator OC/AC — wynik <span class="sy-case-normal">r2</span> vs <span class="sy-case-normal">r3</span></a></span></th>
+            <td><span class="sy-stack" style="--sy-gap: 6px">
+              <span class="sy-status" data-status="needs">Needs you</span>
+              <span class="sy-small sy-muted">Conflict: automatic grouping says same screen; Marek labelled them different.</span>
+              <span class="sy-note sy-note--sm">The offer banner changes the page's purpose.<span class="sy-note__by">Marek · 17 Oct 11:20Z</span></span></span></td>
+            <td>Settled as "same screen, variants". Your reason is shown next to Marek's.</td>
+          </tr>
+          <tr>
+            <th scope="row"><span class="sy-stack" style="--sy-gap: 2px"><span class="sy-small sy-muted">Process suggestion</span><a href="v2-10-process-detail.html"><span class="sy-case-normal">r3</span> as a variant of step 3 of Oblicz składkę OC/AC</a></span></th>
+            <td><span class="sy-status" data-status="inferred">Suggestion</span></td>
+            <td>Applied. The process shows "Decided with the A/B test finding in Review".</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="sy-small sy-muted">If Same screen? is settled first as "different screens", this finding becomes "New screen on 6 of 11 visits" instead.</p>
+  </section>
+  <hr>
+  <form class="sy-plate__body" aria-labelledby="dec-h" style="--sy-gap: 10px">
+    <div class="sy-cluster" style="--sy-gap: 12px; align-items: flex-end">
+      <label class="sy-field sy-grow" style="min-width: 260px; flex-basis: 360px"><span class="sy-field__label">Reason · one line</span>
+        <input id="reason" class="sy-input" type="text" aria-required="false" aria-describedby="reason-help reason-err" placeholder="Why?"></label>
+      <div class="sy-actions">
+        <button class="sy-btn sy-btn--primary" type="submit" aria-describedby="confirm-what">Confirm as A/B test</button>
+        <button id="reject" class="sy-btn" type="button" aria-describedby="reject-what">Reject…</button>
+        <button class="sy-btn sy-btn--quiet" type="button" aria-describedby="comment-what">Comment</button>
+      </div>
+    </div>
+    <p id="reason-help" class="sy-field__help">Required to reject, optional to confirm. Shown wherever this decision appears.</p>
+    <p id="reason-err" class="sy-field__error" hidden>Write one line on why this is not an A/B test.</p>
+    <ul class="sy-stack sy-small" style="--sy-gap: 4px">
+      <li id="confirm-what"><b>Confirm</b> documents both variants under step 3 of Oblicz składkę OC/AC (<span class="sy-case-normal">r2</span> without, <span class="sy-case-normal">r3</span> with the banner), adds cookie ab_calc as an A/B hint in Settings, settles the 2 linked items above and moves this change to Decided.</li>
+      <li id="reject-what" class="sy-muted"><b>Reject</b> needs a reason. Rejecting keeps <span class="sy-case-normal">r3</span> as a variant of wynik with why Unknown; the finding stays in Needs you until it's explained.</li>
+      <li id="comment-what" class="sy-muted"><b>Comment</b> adds a note for the team. Nothing is decided.</li>
+    </ul>
+  </form>
+  <div class="sy-keybar" aria-label="Keyboard shortcuts">
+    <span><span class="sy-kbd">C</span> confirm</span>
+    <span><span class="sy-kbd">R</span> reject (asks for a reason)</span>
+    <span><span class="sy-kbd">M</span> comment</span>
+    <span><span class="sy-kbd">J</span> / <span class="sy-kbd">K</span> next / previous change</span>
+    <span><span class="sy-kbd">Esc</span> back to What changed</span>
+  </div>
+</section>
+
+<script>
+  /* Reject needs a reason: make the field required and say so. */
+  (() => {
+    const reason = document.getElementById('reason');
+    const err = document.getElementById('reason-err');
+    document.getElementById('reject').addEventListener('click', () => {
+      reason.setAttribute('aria-required', 'true');
+      const empty = !reason.value.trim();
+      reason.setAttribute('aria-invalid', String(empty));
+      err.hidden = !empty;
+      if (empty) reason.focus();
+    });
+  })();
+</script>
+    </main>
+  </div>
+</div>
+</body>
+</html>

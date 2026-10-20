@@ -1,0 +1,390 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MudPuppy 2.0 · BR-021</title>
+<link rel="icon" href="../brand/logo/tag-icon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../design-system/css/tokens.css">
+<link rel="stylesheet" href="../design-system/css/fonts.css">
+<link rel="stylesheet" href="../design-system/css/salvage.css">
+<style>
+  /* Screen layout only: the decision table's caption reads left-aligned above the table, as a block of facts. */
+  .mp-caption { caption-side: top; text-align: left; padding: var(--sy-space-3) 12px; display: table-caption; }
+  .mp-sentences { list-style: decimal; padding-left: var(--sy-space-5); display: flex; flex-direction: column; gap: 4px; }
+</style>
+</head>
+<body class="sy-ground">
+<a class="sy-skip" href="#main">Skip to content</a>
+<div class="sy-app">
+  <header class="sy-header">
+    <a class="sy-wordmark" href="v2-01-home.html"><span class="sy-wordmark__paint">MUD</span>PUPPY</a>
+    <label class="sy-portal sy-portal--compact"><span class="sy-label">Portal</span>
+      <select class="sy-select"><option selected>reference-insurer</option><option>wikipedia</option><option>All portals</option><option>+ New portal</option></select></label>
+    <div class="sy-portal sy-portal--compact"><span class="sy-label" id="asof-l">As of</span>
+      <button class="sy-select" type="button" aria-haspopup="menu" aria-expanded="false" aria-labelledby="asof-l asof-v" aria-describedby="asof-help"><span id="asof-v">Now · 17 Oct</span></button></div>
+    <span id="asof-help" class="sy-sr-only">Shows the portal model as it was at a release or scan. Changes compares two points.</span>
+    <label class="sy-search sy-search--compact">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+      <input type="search" aria-label="Search screens, processes and rules" placeholder="Search"><span class="sy-kbd">Ctrl K</span></label>
+    <span class="sy-status" data-status="ok">Assistant up</span>
+    <a class="sy-btn" href="02-screen-with-assistant.html">Ask <span class="sy-kbd">Ctrl J</span></a>
+    <a class="sy-btn sy-btn--icon" href="#" aria-label="Help and glossary">?</a>
+  </header>
+  <div class="sy-app__body">
+    <nav class="sy-nav" aria-label="Portal sections">
+      <a class="sy-nav__item" href="v2-01-home.html">Home</a>
+      <a class="sy-nav__item" href="v2-02-changes.html">Changes <span class="sy-nav__count">41</span></a>
+      <a class="sy-nav__item" href="v2-04-review.html">Review <span class="sy-count">24</span></a>
+      <div class="sy-nav__group" aria-hidden="true">Portal model</div>
+      <a class="sy-nav__item" href="v2-09-processes.html">Processes <span class="sy-nav__count">6</span></a>
+      <a class="sy-nav__item" href="v2-06-screens.html">Screens <span class="sy-nav__count">19</span></a>
+      <a class="sy-nav__item" href="v2-11-rules.html" aria-current="page">Rules <span class="sy-nav__count">6</span></a>
+      <a class="sy-nav__item" href="#">Docs</a>
+      <div class="sy-nav__group" aria-hidden="true">Machine</div>
+      <a class="sy-nav__item" href="10-scans.html">Scans</a>
+      <a class="sy-nav__item" href="11-settings.html">Settings</a>
+      <div class="sy-nav__foot">store: sandbox · writes go through commands</div>
+    </nav>
+    <main id="main" class="sy-main">
+<!-- Page head -->
+      <div class="sy-pagehead">
+        <nav class="sy-crumbs" aria-label="Breadcrumb"><a href="v2-11-rules.html">Rules</a> / <span aria-current="page">BR-021</span></nav>
+        <div class="sy-pagehead__row">
+          <div class="sy-stack" style="--sy-gap: 8px">
+            <h1 class="sy-h1 sy-case-normal">Driver must be 21 or older</h1>
+            <p class="sy-cluster sy-meta" style="--sy-gap: 6px 12px">
+              <span class="sy-tag sy-tag--sm">BR-021</span>
+              <span class="sy-status" data-status="needs">Changed · needs you</span>
+              <span>Decided on <a href="v2-07-screen-detail.html">Kalkulator OC/AC — dane kierowcy</a> · "Dalej"</span>
+              <span>in <a href="v2-10-process-detail.html">Oblicz składkę OC/AC</a>, step 1</span>
+            </p>
+          </div>
+          <div class="sy-actions">
+            <a class="sy-btn sy-btn--md" href="v2-04-review.html">Review · rules 1 of 2</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="sy-columns">
+        <div class="sy-col-main sy-stack" style="--sy-gap: var(--sy-space-5)">
+
+          <!-- The finding, first -->
+          <div class="sy-callout">
+            <span class="sy-callout__title">What happened</span>
+            <span>On 17 Oct, check run <span class="sy-tag sy-tag--sm">01a1340c</span> got the exit page for ages 18 and 19 on release <span class="sy-case-normal">9c21</span>, where the table said opcje. A threshold search found the new limit: <b>21</b>. The table below is the new one; the old one is under <a href="#changes">Changes</a>.</span>
+            <span class="sy-cluster sy-small" style="--sy-gap: 6px 8px">
+              <span class="sy-chip"><span>Release <span class="sy-case-normal">9c21</span></span></span>
+              <span class="sy-muted">Explained as a new release: the app's code changed at 14:02Z on 16 Oct (marker <span class="sy-case-normal">5f08</span> → <span class="sy-case-normal">9c21</span>). Needs you because a rule changed.</span>
+            </span>
+          </div>
+
+          <!-- DECISION TABLE -->
+          <section id="table" class="sy-plate" aria-labelledby="dt-h">
+            <div class="sy-plate__head">
+              <h2 id="dt-h" class="sy-plate__title">Decision table</h2>
+              <span class="sy-status" data-status="inferred"><span>Inferred from tests · <span class="sy-case-normal">9c21</span></span></span>
+            </div>
+            <div class="sy-table-wrap sy-table-wrap--flush">
+              <table class="sy-table sy-table--decision" style="min-width: 560px">
+                <caption class="mp-caption">
+                  <span class="sy-sr-only">BR-021 decision table. </span>
+                  <dl class="sy-facts">
+                    <dt>Input</dt><dd><b>Wiek kierowcy</b> = age on today's date, from field "Data urodzenia" on dane kierowcy</dd>
+                    <dt>Hit policy</dt><dd><b>First match</b>: rows are checked top to bottom; the first that matches decides. The 2 rows cover every age and don't overlap.</dd>
+                    <dt>Decided</dt><dd>When "Dalej" is pressed on Kalkulator OC/AC — dane kierowcy</dd>
+                  </dl>
+                </caption>
+                <colgroup><col></colgroup>
+                <colgroup><col></colgroup>
+                <colgroup><col><col></colgroup>
+                <thead>
+                  <tr class="sy-dt-group">
+                    <td></td>
+                    <th scope="colgroup">Inputs</th>
+                    <th scope="colgroup" colspan="2" class="sy-dt-result">Result</th>
+                  </tr>
+                  <tr>
+                    <th scope="col" class="sy-dt-n"><abbr title="Rule row">#</abbr></th>
+                    <th scope="col">Wiek kierowcy</th>
+                    <th scope="col" class="sy-dt-result">→ Next screen</th>
+                    <th scope="col">Message</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <th scope="row" class="sy-dt-n">1</th>
+                    <td><div class="sy-stack" style="--sy-gap: 2px"><code class="sy-dt-cond">&lt; 21</code><span class="sy-small sy-muted">under 21</span></div></td>
+                    <td class="sy-dt-result">
+                      <div class="sy-stack" style="--sy-gap: 2px">
+                        <span class="sy-cluster" style="--sy-gap: 6px 8px"><a href="v2-06-screens.html">Nie możemy Cię ubezpieczyć</a><span class="sy-chip">exit page</span></span>
+                        <span class="sy-route">/kalkulator/odmowa</span>
+                      </div>
+                    </td>
+                    <td class="sy-dt-any">none</td>
+                  </tr>
+                  <tr>
+                    <th scope="row" class="sy-dt-n">2</th>
+                    <td><div class="sy-stack" style="--sy-gap: 2px"><code class="sy-dt-cond">≥ 21</code><span class="sy-small sy-muted">21 or older</span></div></td>
+                    <td class="sy-dt-result">
+                      <div class="sy-stack" style="--sy-gap: 2px">
+                        <span class="sy-cluster" style="--sy-gap: 6px 8px"><a href="v2-06-screens.html">Kalkulator OC/AC — opcje</a><span class="sy-chip">next step</span></span>
+                        <span class="sy-route">/kalkulator/kierowca · step 2, same URL</span>
+                      </div>
+                    </td>
+                    <td class="sy-dt-any">none</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="sy-plate__body">
+              <h3 class="sy-label" id="read-h">Read as sentences</h3>
+              <ol class="mp-sentences sy-small" aria-labelledby="read-h">
+                <li>If Wiek kierowcy is under 21, "Dalej" leads to the exit page <b>Nie możemy Cię ubezpieczyć</b>.</li>
+                <li>If it is 21 or more, "Dalej" leads to <b>Kalkulator OC/AC — opcje</b>.</li>
+              </ol>
+              <p class="sy-small sy-muted">Message: the portal shows none on dane kierowcy for this rule; the field's help text says "Musisz mieć ukończone 21 lat".</p>
+            </div>
+          </section>
+
+          <!-- BOUNDARY TESTS + RERUN HISTORY -->
+          <section id="tests" class="sy-plate" aria-labelledby="bt-h">
+            <div class="sy-plate__head">
+              <h2 id="bt-h" class="sy-plate__title">Boundary tests</h2>
+              <span class="sy-cluster" style="--sy-gap: 6px 12px"><span class="sy-meta">check run <span class="sy-tag sy-tag--sm">01a1340c</span> · 17 Oct 10:05Z</span><span class="sy-status" data-status="ok">Pass</span></span>
+            </div>
+            <div class="sy-table-wrap sy-table-wrap--flush">
+              <table class="sy-table sy-table--middle" style="min-width: 600px" aria-labelledby="bt-h">
+                <thead>
+                  <tr>
+                    <th scope="col">Release</th>
+                    <th scope="col">Scan</th>
+                    <th scope="col" class="sy-num">Wiek</th>
+                    <th scope="col">Expected</th>
+                    <th scope="col">Got</th>
+                    <th scope="col">Result</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><span class="sy-mono">9c21</span></td>
+                    <td><span class="sy-tag sy-tag--sm">01a1340c</span></td>
+                    <th scope="row" class="sy-num">20</th>
+                    <td><span class="sy-small sy-muted">row 1 →</span> Nie możemy Cię ubezpieczyć</td>
+                    <td><div class="sy-stack" style="--sy-gap: 2px"><span>Nie możemy Cię ubezpieczyć</span><a class="sy-small" href="10-scans.html">case 7</a></div></td>
+                    <td><span class="sy-status" data-status="ok">Pass</span></td>
+                  </tr>
+                  <tr>
+                    <td><span class="sy-mono">9c21</span></td>
+                    <td><span class="sy-tag sy-tag--sm">01a1340c</span></td>
+                    <th scope="row" class="sy-num">21</th>
+                    <td><span class="sy-small sy-muted">row 2 →</span> Kalkulator OC/AC — opcje</td>
+                    <td>Kalkulator OC/AC — opcje</td>
+                    <td><span class="sy-status" data-status="ok">Pass</span></td>
+                  </tr>
+                  <tr>
+                    <td><span class="sy-mono">9c21</span></td>
+                    <td><span class="sy-tag sy-tag--sm">01a1340c</span></td>
+                    <th scope="row" class="sy-num">22</th>
+                    <td><span class="sy-small sy-muted">row 2 →</span> Kalkulator OC/AC — opcje</td>
+                    <td>Kalkulator OC/AC — opcje</td>
+                    <td><span class="sy-status" data-status="ok">Pass</span></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="sy-plate__body">
+              <p class="sy-small sy-muted">Ages are set through "Data urodzenia", counted back from the day of the run. Every check run repeats these three after a new release.</p>
+              <h3 class="sy-label" id="rh-h">Rerun history</h3>
+              <ol class="sy-timeline" aria-labelledby="rh-h">
+                <li data-status="ok">
+                  <div class="sy-timeline__head"><b>17 Oct</b><span class="sy-mono sy-mono--sm">9c21 · 01a1340c</span><span class="sy-status" data-status="ok">Pass</span></div>
+                  <div class="sy-timeline__body">20 / 21 / 22 → exit / opcje / opcje, on the new table</div>
+                </li>
+                <li data-status="draft">
+                  <div class="sy-timeline__head"><b>17 Oct</b><span>Threshold search</span><span class="sy-status" data-status="inferred">Found 21</span></div>
+                  <div class="sy-timeline__body">The first age that leads to opcje on <span class="sy-case-normal">9c21</span> is 21. This became row 2 of the new table.</div>
+                </li>
+                <li data-status="failed">
+                  <div class="sy-timeline__head"><b>17 Oct</b><span class="sy-mono sy-mono--sm">9c21 · 01a1340c</span><span class="sy-status" data-status="failed">Failed on the old table</span></div>
+                  <div class="sy-timeline__body">17 / 18 / 19 → <b>exit / exit / exit</b>; the old table expected exit / opcje / opcje</div>
+                </li>
+                <li>
+                  <div class="sy-timeline__head"><b>16 Oct 14:02Z</b><span>Release <span class="sy-case-normal">9c21</span> · Kalkulator app</span></div>
+                  <div class="sy-timeline__body">Rollout: <span class="sy-case-normal">5f08</span> and <span class="sy-case-normal">9c21</span> served together until 17 Oct 09:30Z. Help text on dane kierowcy became "Musisz mieć ukończone 21 lat".</div>
+                </li>
+                <li data-status="ok">
+                  <div class="sy-timeline__head"><b>15 Oct</b><span class="sy-mono sy-mono--sm">5f08 · 01a12f40</span><span class="sy-status" data-status="ok">Pass</span></div>
+                  <div class="sy-timeline__body">17 / 18 / 19 → exit / opcje / opcje</div>
+                </li>
+                <li data-status="ok">
+                  <div class="sy-timeline__head"><b>4 Oct</b><span class="sy-mono sy-mono--sm">5f08 · 01a1083f</span><span class="sy-status" data-status="ok">Pass</span></div>
+                  <div class="sy-timeline__body">17 / 18 / 19 → exit / opcje / opcje · first table: &lt; 18 → exit</div>
+                </li>
+              </ol>
+            </div>
+          </section>
+
+          <!-- CHANGES: previous table kept, muted -->
+          <section id="changes" class="sy-plate" aria-labelledby="ch-h">
+            <div class="sy-plate__head">
+              <h2 id="ch-h" class="sy-plate__title">Changes</h2>
+              <span class="sy-meta">1 change · release <span class="sy-case-normal">9c21</span></span>
+            </div>
+            <div class="sy-plate__body">
+              <p><b>Threshold moved from 18 to 21 with release <span class="sy-case-normal">9c21</span>.</b></p>
+              <div class="sy-compare" style="--sy-min: 280px">
+                <section class="sy-compare__side" aria-labelledby="before-h">
+                  <header class="sy-compare__head"><span id="before-h">Before · <span class="sy-case-normal">5f08</span></span><span class="sy-status" data-status="skipped">Replaced · 16 Oct</span></header>
+                  <div class="sy-table-wrap">
+                    <table class="sy-table sy-table--decision sy-table--dense sy-muted" aria-labelledby="before-h">
+                      <thead>
+                        <tr><th scope="col" class="sy-dt-n">#</th><th scope="col">Wiek kierowcy</th><th scope="col" class="sy-dt-result">→ Next screen</th></tr>
+                      </thead>
+                      <tbody>
+                        <tr><th scope="row" class="sy-dt-n">1</th><td><del class="sy-dt-cond sy-diff--removed">&lt; 18</del></td><td class="sy-dt-result">Nie możemy Cię ubezpieczyć</td></tr>
+                        <tr><th scope="row" class="sy-dt-n">2</th><td><del class="sy-dt-cond sy-diff--removed">≥ 18</del></td><td class="sy-dt-result">Kalkulator OC/AC — opcje</td></tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </section>
+                <section class="sy-compare__side" aria-labelledby="after-h">
+                  <header class="sy-compare__head"><span id="after-h">Now · <span class="sy-case-normal">9c21</span></span><span class="sy-status" data-status="needs">Not confirmed</span></header>
+                  <div class="sy-table-wrap">
+                    <table class="sy-table sy-table--decision sy-table--dense" aria-labelledby="after-h">
+                      <thead>
+                        <tr><th scope="col" class="sy-dt-n">#</th><th scope="col">Wiek kierowcy</th><th scope="col" class="sy-dt-result">→ Next screen</th></tr>
+                      </thead>
+                      <tbody>
+                        <tr><th scope="row" class="sy-dt-n">1</th><td class="sy-differs"><span class="sy-cluster" style="--sy-gap: 6px"><code class="sy-dt-cond">&lt; 21</code><span class="sy-diff__change">differs</span></span></td><td class="sy-dt-result">Nie możemy Cię ubezpieczyć</td></tr>
+                        <tr><th scope="row" class="sy-dt-n">2</th><td class="sy-differs"><span class="sy-cluster" style="--sy-gap: 6px"><code class="sy-dt-cond">≥ 21</code><span class="sy-diff__change">differs</span></span></td><td class="sy-dt-result">Kalkulator OC/AC — opcje</td></tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </section>
+              </div>
+              <p class="sy-small sy-muted">Results and messages are the same in both. Ages 18, 19 and 20 changed outcome: they now get the exit page. The same release changed the help text on <a href="v2-07-screen-detail.html">dane kierowcy</a> (variant <span class="sy-case-normal">r2</span>).</p>
+            </div>
+          </section>
+        </div>
+
+        <!-- SIDE -->
+        <div class="sy-col-side">
+
+          <!-- DECISION -->
+          <section id="decide" class="sy-plate sy-plate--intent" aria-labelledby="dec-h">
+            <div class="sy-plate__head">
+              <h2 id="dec-h" class="sy-plate__title">Your decision</h2>
+            </div>
+            <form class="sy-plate__body" action="#" aria-label="Confirm BR-021">
+              <p class="sy-small">Is the new table what the portal should do? Confirm it, or reject it with a reason.</p>
+              <label class="sy-field"><span class="sy-field__label">Sentence in the docs</span>
+                <input class="sy-input sy-input--md" type="text" value="Driver must be 21 or older" aria-describedby="reword-help"></label>
+              <span id="reword-help" class="sy-field__help">Reword it if you like. Wording goes into PROC-001 and the export.</span>
+              <label class="sy-field"><span class="sy-field__label">Why you confirm (optional)</span>
+                <input class="sy-input sy-input--md" type="text" placeholder="One line" aria-describedby="why-help"></label>
+              <span id="why-help" class="sy-field__help">Shown wherever this decision appears.</span>
+              <div class="sy-actions">
+                <button class="sy-btn sy-btn--primary" type="submit" aria-describedby="confirm-what" aria-keyshortcuts="C">Confirm</button>
+              </div>
+              <span id="confirm-what" class="sy-field__help">BR-021 becomes Confirmed · you, with this sentence. Every new release is tested again at 20 / 21 / 22.</span>
+            </form>
+            <hr>
+            <form class="sy-plate__body" action="#" aria-label="Reject BR-021">
+              <label class="sy-field"><span class="sy-field__label">Reason to reject</span>
+                <input class="sy-input sy-input--md" type="text" placeholder="One line, required" aria-required="true" aria-describedby="rej-help"></label>
+              <span id="rej-help" class="sy-field__help">Required. Shown wherever this decision appears.</span>
+              <div class="sy-actions" style="--sy-gap: 6px">
+                <button class="sy-btn sy-btn--md" type="submit" aria-describedby="reject-what" aria-keyshortcuts="R">Reject</button>
+                <button class="sy-btn sy-btn--md sy-btn--quiet" type="button" aria-keyshortcuts="M">Comment</button>
+              </div>
+              <span id="reject-what" class="sy-field__help">The rule is kept as Rejected with your reason; the export marks it not confirmed.</span>
+            </form>
+            <div class="sy-plate__foot">
+              <span class="sy-cluster sy-small sy-muted" style="--sy-gap: 6px 12px"><span><span class="sy-kbd">C</span> confirm</span><span><span class="sy-kbd">R</span> reject</span><span><span class="sy-kbd">M</span> comment</span><span><span class="sy-kbd">J</span> next in Review</span></span>
+            </div>
+          </section>
+
+          <!-- EVIDENCE -->
+          <section class="sy-plate" aria-labelledby="ev-h">
+            <div class="sy-plate__head">
+              <h2 id="ev-h" class="sy-plate__title">Evidence</h2>
+              <span class="sy-status" data-status="ok">Observed</span>
+            </div>
+            <div class="sy-plate__body">
+              <figure class="sy-shot" style="max-width: 420px" aria-label="Recorded screen Kalkulator OC/AC — dane kierowcy, variant r2 on release 9c21, with the input and the button marked">
+                <span class="sy-shot__title">Kalkulator OC/AC</span>
+                <mark class="sy-mark" style="margin-top: 12px"><span class="sy-mark__label">Input</span>
+                  <span class="sy-stack" style="--sy-gap: 2px"><b>Data urodzenia</b><small>Musisz mieć ukończone 21 lat</small></span></mark>
+                <b>Kod pocztowy</b>
+                <span class="sy-cluster" style="--sy-gap: 18px; justify-content: flex-end">
+                  <span class="sy-shot__link">Wstecz</span>
+                  <mark class="sy-mark" style="margin-top: 14px"><span class="sy-mark__label">Decided here</span><b>Dalej</b></mark>
+                </span>
+                <small>v9c21</small>
+              </figure>
+              <p class="sy-small sy-muted">Variant <span class="sy-case-normal">r2</span> · check run <span class="sy-tag sy-tag--sm">01a1340c</span>, case 7 · release <span class="sy-case-normal">9c21</span> · persona <span class="sy-mono">guest</span></p>
+            </div>
+          </section>
+
+          <!-- FACTS -->
+          <section class="sy-plate" aria-labelledby="ab-h">
+            <div class="sy-plate__head"><h2 id="ab-h" class="sy-plate__title">About this rule</h2></div>
+            <div class="sy-plate__body">
+              <dl class="sy-facts">
+                <dt>Record</dt><dd><span class="sy-tag sy-tag--sm">BR-021</span></dd>
+                <dt>Process</dt><dd><a href="v2-10-process-detail.html">Oblicz składkę OC/AC</a> · step 1</dd>
+                <dt>Screen</dt><dd><a href="v2-07-screen-detail.html">Kalkulator OC/AC — dane kierowcy</a></dd>
+                <dt>Decided on</dt><dd>button "Dalej"</dd>
+                <dt>Input from</dt><dd>field "Data urodzenia"</dd>
+                <dt>Portal part</dt><dd>Kalkulator app</dd>
+                <dt>Last changed</dt><dd><span class="sy-case-normal">9c21</span> · 16 Oct</dd>
+                <dt>Last tested</dt><dd>17 Oct · <span class="sy-tag sy-tag--sm">01a1340c</span></dd>
+                <dt>In docs</dt><dd><a class="sy-tag sy-tag--sm" href="#">PROC-001</a></dd>
+              </dl>
+            </div>
+          </section>
+        </div>
+      </div>
+
+      <!-- IN THE EXPORT: what the migration team reads -->
+      <section id="export" class="sy-plate sy-plate--drawn" aria-labelledby="ex-h">
+        <div class="sy-plate__head">
+          <h2 id="ex-h" class="sy-plate__title">In the export</h2>
+          <span class="sy-status" data-status="draft">Preview · updates when you decide</span>
+        </div>
+        <div class="sy-plate__body">
+          <p class="sy-small">The migration team reads BR-021 like this in PROC-001 and in the rules appendix: plain Markdown, the sentence first for readers who skip tables, then the exact table. Screen names stay Polish; routes are in brackets.</p>
+          <pre class="sy-code" aria-label="BR-021 as Markdown">## BR-021 · Driver must be 21 or older
+
+If the driver is under 21 on the day of the quote, "Dalej" on Kalkulator OC/AC — dane kierowcy
+leads to the exit page Nie możemy Cię ubezpieczyć; from 21 it leads to Kalkulator OC/AC — opcje.
+
+- Where:      Kalkulator OC/AC — dane kierowcy (/kalkulator/kierowca, step 1), button "Dalej"
+- Process:    Oblicz składkę OC/AC (PROC-001), step 1
+- Input:      Wiek kierowcy = age on today's date, from field "Data urodzenia"
+- Hit policy: first match (rows are checked in order; the first that matches decides)
+
+| # | Wiek kierowcy | → Next screen                                           | Message |
+|---|---------------|---------------------------------------------------------|---------|
+| 1 | &lt; 21          | Nie możemy Cię ubezpieczyć (/kalkulator/odmowa)         | (none)  |
+| 2 | ≥ 21          | Kalkulator OC/AC — opcje (/kalkulator/kierowca, step 2) | (none)  |
+
+- Tested:   2026-10-17 · release 9c21 · check run 01a1340c · 20 → row 1, 21 → row 2, 22 → row 2: pass
+- Changed:  release 9c21 (2026-10-16): threshold 18 → 21. Before: &lt; 18 → exit page; ≥ 18 → opcje
+- Evidence: check run 01a1340c, case 7: age 20 → Nie możemy Cię ubezpieczyć
+- Status:   changed, not confirmed yet (needs a person)</pre>
+        </div>
+        <div class="sy-plate__foot">
+          <span class="sy-small sy-muted">Same layout for every rule: inputs on the left, results after the double line, one row per rule row.</span>
+          <div class="sy-actions" style="--sy-gap: 6px">
+            <button class="sy-btn sy-btn--sm sy-btn--quiet" type="button">Copy Markdown</button>
+            <a class="sy-btn sy-btn--sm" href="#">Open PROC-001 preview</a>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+</div>
+</body>
+</html>

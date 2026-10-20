@@ -126,6 +126,8 @@
   /* Portal (project context) picker in the header */
   .sy-portal { display: flex; align-items: center; gap: var(--sy-space-2); }
   .sy-portal .sy-select { min-width: 190px; }
+  .sy-portal .sy-label { white-space: nowrap; }
+  .sy-portal--compact .sy-select { min-width: 0; width: 170px; }   /* 2.0 header: portal + as-of pickers side by side */
 
   /* ===== Side navigation ================================================= */
   .sy-nav {
@@ -318,14 +320,17 @@
     font: inherit; font-weight: 600; cursor: pointer; }
   .sy-input::file-selector-button:hover { background: var(--sy-bg-raised); }
   .sy-select--drawn { border-style: dashed; border-color: var(--sy-tobe); }
+  button.sy-select { display: inline-flex; align-items: center; text-align: left; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }  /* menu button that looks like a select (2.0 As of) */
   .sy-check { display: inline-flex; align-items: center; gap: var(--sy-space-2); min-height: var(--sy-control-sm);
     font-size: var(--sy-fs-sm); cursor: pointer; }
   .sy-check input { width: 18px; height: 18px; margin: 0; accent-color: var(--sy-intent); }
 
   /* Search box with icon + shortcut */
-  .sy-search { flex: 1 1 240px; display: flex; align-items: center; gap: var(--sy-space-2);
+  .sy-search { flex: 1 1 200px; display: flex; align-items: center; gap: var(--sy-space-2);
     min-height: var(--sy-control); padding: 0 var(--sy-space-3);
     border: var(--sy-weld) solid var(--sy-border-control); background: var(--sy-bg-ground); color: var(--sy-text-muted); }
+  .sy-search--compact { flex-basis: 150px; }
+  .sy-search--compact input { width: 0; }
   .sy-search:focus-within { outline: var(--sy-weld-strong) solid var(--sy-focus); outline-offset: 2px; }
   .sy-search input { flex: 1; min-width: 0; border: 0; background: transparent; color: var(--sy-text); font-size: var(--sy-fs-sm); }
   .sy-search input:focus-visible { outline: none; }
@@ -723,6 +728,106 @@
   .sy-path__step--here { border-color: var(--sy-text); }
   .sy-path__step--failed { border-color: var(--sy-fail); color: var(--sy-fail); }
 
+  /* ===== 2.0 · Nav groups ================================================= */
+  .sy-nav__group { margin-top: var(--sy-space-3); padding: 6px var(--sy-space-3) 4px; font-family: var(--sy-font-mono);
+    font-size: var(--sy-fs-micro); letter-spacing: 0.04em; text-transform: uppercase; color: var(--sy-text-muted); }
+
+  /* ===== 2.0 · Overturned: a person replaced an automatic explanation ===== */
+  /* Manila = a person's hand (like notes and tags). Always pair with the reason in a .sy-note. */
+  .sy-status[data-status="overturned"] { --_c: var(--sy-tag); }
+
+  /* ===== 2.0 · Release timeline (portal parts × time, scans below) ========= */
+  /* <div class="sy-releases"> <div class="sy-releases__lane"> <span class="sy-releases__name">Shell</span>
+       <div class="sy-releases__track"> <span class="sy-releases__span" style="left:0;width:40%">1d77</span> … </div></div>
+       … <div class="sy-releases__axis"><span style="left:0">4 Oct</span>…</div></div>
+     Positions (left/width in %) come from the server: (date − range start) / range length. */
+  .sy-releases { position: relative; display: flex; flex-direction: column; gap: 6px; }
+  .sy-releases__lane { display: grid; grid-template-columns: var(--sy-releases-name, 140px) minmax(0, 1fr); align-items: center; gap: var(--sy-space-3); }
+  .sy-releases__name { font-size: var(--sy-fs-xs); font-weight: 600; overflow-wrap: anywhere; }
+  .sy-releases__name small { display: block; font-weight: 400; color: var(--sy-text-muted); font-family: var(--sy-font-mono); font-size: var(--sy-fs-micro); }
+  .sy-releases__track { position: relative; height: 30px; background: var(--sy-bg-well); border: var(--sy-weld) solid var(--sy-border-weld); }
+  .sy-releases__span { position: absolute; top: 3px; bottom: 3px; display: flex; align-items: center; gap: 6px; min-width: 0; padding: 0 6px;
+    overflow: hidden; white-space: nowrap; border: var(--sy-weld) solid var(--sy-border-control); background: var(--sy-bg-raised);
+    font-family: var(--sy-font-mono); font-size: var(--sy-fs-micro); color: var(--sy-text); text-decoration: none; }
+  a.sy-releases__span:hover { border-color: var(--sy-text); color: var(--sy-text); }
+  .sy-releases__span--current { border-color: var(--sy-text); }
+  .sy-releases__span--rollout { border-style: dashed; background: transparent; color: var(--sy-text-muted); }   /* old + new served together */
+  .sy-releases__span--unknown { border-style: dashed; border-color: var(--sy-text-muted); background: transparent; color: var(--sy-text-muted); }
+  .sy-releases__lane--scans .sy-releases__track { background: transparent; border-color: transparent; border-top-color: var(--sy-border-weld); }
+  .sy-releases__scan { position: absolute; top: 6px; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: 2px;
+    font-family: var(--sy-font-mono); font-size: var(--sy-fs-micro); color: var(--sy-text-muted); text-decoration: none; white-space: nowrap; }
+  .sy-releases__scan::before { content: ""; width: 9px; height: 9px; background: var(--sy-text); }
+  .sy-releases__scan--check::before { transform: rotate(45deg) scale(0.85); background: transparent; border: 1.5px solid var(--sy-text); }
+  .sy-releases__lane--scans .sy-releases__track { height: 34px; }
+  .sy-releases__axis { position: relative; height: 16px; margin-left: calc(var(--sy-releases-name, 140px) + var(--sy-space-3)); }
+  .sy-releases__axis > span { position: absolute; transform: translateX(-50%); font-family: var(--sy-font-mono); font-size: var(--sy-fs-micro); color: var(--sy-text-muted); white-space: nowrap; }
+  .sy-releases__axis > span:first-child { transform: none; }
+  .sy-releases__axis > span:last-child { transform: translateX(-100%); }
+  /* The chosen range: chalk brackets over the tracks (a selection, not an intent) */
+  .sy-releases__range { position: absolute; top: 0; bottom: 18px; pointer-events: none;
+    border-inline: var(--sy-weld-strong) solid var(--sy-text); background: transparent; }
+  .sy-releases__range > span { position: absolute; top: -18px; left: 50%; transform: translateX(-50%); padding: 0 6px; white-space: nowrap;
+    background: var(--sy-text); color: var(--sy-text-on-paint); font-family: var(--sy-font-mono); font-size: var(--sy-fs-micro); }
+
+  /* ===== 2.0 · Before / after =============================================== */
+  /* <div class="sy-compare"> <section class="sy-compare__side"> <header class="sy-compare__head">Before · 5f08</header>
+       <figure class="sy-shot">…<mark class="sy-mark sy-mark--overlay" …></figure> </section> … </div> */
+  .sy-compare { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(var(--sy-min, 320px), 100%), 1fr)); gap: var(--sy-space-4); }
+  .sy-compare__side { display: flex; flex-direction: column; gap: var(--sy-space-2); min-width: 0; }
+  .sy-compare__head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 4px 10px;
+    font-size: var(--sy-fs-label); font-weight: 800; font-stretch: var(--sy-stretch-semi); letter-spacing: var(--sy-track-caps); text-transform: uppercase; }
+  /* A value that differs between the two sides (context diff tables, decision tables) */
+  .sy-differs { box-shadow: inset 3px 0 0 var(--sy-text); background: var(--sy-bg-raised); }
+
+  /* ===== 2.0 · Decision table ================================================ */
+  /* <table class="sy-table sy-table--decision"> thead: group row (Inputs | Result) + column row; body: one rule per row.
+     First result column carries .sy-dt-result (double weld before the results). */
+  .sy-table--decision th, .sy-table--decision td { vertical-align: middle; }
+  .sy-table--decision .sy-dt-group th { padding-block: 4px; font-family: var(--sy-font-mono); font-size: var(--sy-fs-micro);
+    letter-spacing: 0.04em; color: var(--sy-text-muted); border-bottom: 0; }
+  .sy-table--decision .sy-dt-n { width: 1%; white-space: nowrap; font-family: var(--sy-font-mono); color: var(--sy-text-muted); }
+  .sy-table--decision .sy-dt-result { border-left: 3px double var(--sy-border-control); }
+  .sy-table--decision td.sy-dt-result, .sy-table--decision td.sy-dt-result ~ td { background: var(--sy-bg-well); }
+  .sy-table--decision .sy-dt-cond { font-family: var(--sy-font-mono); font-size: var(--sy-fs-mono-sm); }
+  .sy-table--decision .sy-dt-any { color: var(--sy-text-muted); }
+
+  /* ===== 2.0 · Review queue + keyboard bar =================================== */
+  /* <ol class="sy-queue"> <li class="sy-queue__item" aria-current="true"> <input type="checkbox" class="sy-queue__check" aria-label="Select">
+       <a class="sy-queue__main" href="…"> kind · claim · evidence line </a> <span class="sy-queue__meta">age</span> </li> </ol> */
+  .sy-queue { display: flex; flex-direction: column; }
+  .sy-queue__item { display: grid; grid-template-columns: 24px minmax(0, 1fr) auto; align-items: start; gap: 2px var(--sy-space-3);
+    padding: 10px var(--sy-space-4); border-bottom: var(--sy-weld) solid var(--sy-border-weld); }
+  .sy-queue__item:last-child { border-bottom: 0; }
+  .sy-queue__item[aria-current="true"] { background: var(--sy-bg-raised); outline: var(--sy-weld-strong) solid var(--sy-text); outline-offset: -2px; }
+  .sy-queue__check { width: 18px; height: 18px; margin: 3px 0 0; accent-color: var(--sy-intent); }
+  .sy-queue__main { display: flex; flex-direction: column; gap: 3px; min-width: 0; color: var(--sy-text); text-decoration: none; font-size: var(--sy-fs-sm); }
+  .sy-queue__main:hover { color: var(--sy-text); }
+  .sy-queue__main:hover .sy-queue__claim { text-decoration: underline; text-decoration-color: var(--sy-intent); }
+  .sy-queue__claim { font-weight: 600; }
+  .sy-queue__meta { font-family: var(--sy-font-mono); font-size: var(--sy-fs-micro); color: var(--sy-text-muted); white-space: nowrap; }
+  .sy-queue__group { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px 12px;
+    padding: 8px var(--sy-space-4); background: var(--sy-bg-well); border-bottom: var(--sy-weld) solid var(--sy-border-weld);
+    font-size: var(--sy-fs-xs); }
+  /* Key bar: in the app add --sticky so it rides the bottom of the viewport; static in previews and screenshots. */
+  .sy-keybar--sticky { position: sticky; bottom: 0; z-index: 2; }
+  .sy-keybar { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 16px;
+    padding: 8px var(--sy-space-4); background: var(--sy-bg-plate); border-top: var(--sy-weld) solid var(--sy-border-plate);
+    font-size: var(--sy-fs-xs); color: var(--sy-text-muted); }
+  .sy-keybar > span { display: inline-flex; align-items: center; gap: 6px; }
+
+  /* ===== 2.0 · Map: link states, overlays ===================================== */
+  .sy-edge--unseen { stroke: var(--sy-text-muted); stroke-dasharray: 6 4; }          /* not seen since a date */
+  .sy-edge--unchecked { stroke: var(--sy-text-muted); stroke-dasharray: 1 4; stroke-linecap: round; stroke-width: 2; } /* not checked on this release */
+  .sy-edge--retired { stroke: var(--sy-border-weld); stroke-dasharray: 2 6; }          /* kept, not shown by default */
+  .sy-edge--process { stroke: var(--sy-text); stroke-width: 3; }                     /* process overlay */
+  .sy-edge--changed { stroke: var(--sy-text); stroke-width: 2; stroke-dasharray: 8 3; } /* release overlay: link changed */
+  .sy-node[data-state="retired"] { background: transparent; border-color: var(--sy-border-weld); color: var(--sy-text-muted); }
+  .sy-node--process { border-color: var(--sy-text); border-width: 2px; }
+  .sy-node--dim { background: transparent; border-color: var(--sy-border-weld); color: var(--sy-text-muted); }  /* outside the overlay */
+  .sy-node--dim .sy-node__route { color: var(--sy-text-muted); }
+  .sy-bundle { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; padding: 6px 10px;
+    border: var(--sy-weld) dashed var(--sy-border-control); font-size: var(--sy-fs-xs); color: var(--sy-text-muted); }
+
   /* ===== Definition list (key facts) ===================================== */
   .sy-facts { display: grid; grid-template-columns: max-content 1fr; gap: 6px var(--sy-space-4); font-size: var(--sy-fs-sm); }
   .sy-facts dt { color: var(--sy-text-muted); }
@@ -795,4 +900,9 @@
   .sy-edge, .sy-edge--failed, .sy-edge--frontier, .sy-edge--blocked, .sy-edge--planned { stroke: CanvasText; }
   .sy-node { border-color: CanvasText; }
   .sy-node[aria-pressed="true"] { outline-color: Highlight; }
+  .sy-edge--unseen, .sy-edge--unchecked, .sy-edge--retired, .sy-edge--process, .sy-edge--changed { stroke: CanvasText; }
+  .sy-releases__span, .sy-releases__track { border-color: CanvasText; }
+  .sy-releases__scan::before { forced-color-adjust: none; background-color: CanvasText; }
+  .sy-queue__item[aria-current="true"] { outline-color: Highlight; }
+  .sy-differs { box-shadow: none; border-left: 3px solid CanvasText; }
 }

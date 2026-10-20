@@ -77,16 +77,12 @@ stateDiagram-v2
 |---|---|---|
 | **Suggested** | The assistant infers a grouping | Dashed plate in "Suggested by the assistant", with a *Why* line |
 | **Scoped** | A suggestion is accepted, or a process is created by hand. A r1 is built from the scope | Process row; A r1 |
-| **As-is documented** | A person presses **Mark as-is documented**, a signed sign-off that records which A revision it covers | Stage "As-is documented"; "As-is changed since documented (A r2 → r3)" once a later A revision arrives |
+| **As-is documented** | A has reached its end screen in a scan **and** the process's PROC record in Docs is confirmed by a reviewer | Stage "As-is documented" |
 | **To-be in design** | A to-be variant has at least one saved revision | Stage "To-be in design"; Compare enabled |
 | **Migrating** | A to-be variant is live in at least one environment (detected or marked) | Stage "Migrating" |
 | **Migrated** | A to-be variant is live in production | Stage "Migrated" |
 
-Stages are a **signed choice** of a person (owner, 2026-10-14; spec 027): the stage control in the
-process page's "As-is documentation" plate lists all five stages, and each move, back or on, is a
-signed `stage` revision in History. The "Enters when" column is when a person would normally move it.
-Signing off A again while already As-is documented writes another `stage` revision with the same
-stage, which clears the "changed since documented" notice.
+Stages are **derived** from data, never set by hand. A process can move back (rollback detected by a scan).
 "To-be saved early" (before the as-is is documented) is allowed but shows a needs-you hint: "The as-is end
 was never observed. Resume the scan before sign-off."
 
@@ -96,8 +92,8 @@ was never observed. Resume the scan before sign-off."
 |---|---|---|
 | **Scan** (crawler) | Create **A** revisions from observations; detect **live** per environment | Touch any to-be variant |
 | **Assistant** | Create **suggestions**; create **proposals** on a draft; draft PROC documentation; draft the change spec text | Save a process, a revision, or live status. Everything it makes is dashed until a person accepts |
-| **Person** (BA, dev, QA) | Accept/edit/dismiss suggestions; create and edit scope; branch, draft and save to-be revisions; annotate; restore; compare; export; mark a variant live (with confirmation); edit A by screens (add, remove, reorder steps) as signed `edit` revisions; set the stage; archive and restore a process | Delete a process (archive only) |
-| **Reviewer** | Confirm the PROC record; everything a person can do | — |
+| **Person** (BA, dev, QA) | Accept/edit/dismiss suggestions; create and edit scope; branch, draft and save to-be revisions; annotate; restore; compare; export; mark a variant live (with confirmation) | Edit A by hand (A changes only by rescanning; to change it, branch a new variant) |
+| **Reviewer** | Confirm the PROC record (moves the stage to As-is documented); everything a person can do | — |
 
 ## 6. Flows
 
@@ -128,12 +124,12 @@ Save → process created, A r1 built, status toast **"■ SAVED · “Test proce
    - same path → nothing new (the timeline shows "seen unchanged by scan N");
    - different path, or the end reached for the first time → **A r(n+1)**, author "scan N" ("Observed the last step; the end is now known");
    - a step's screen changed (new screen revision) → A r(n+1) pointing at the new screen revision; amendments on it carry forward or are flagged for re-anchoring (screen 08 rules).
-4. A person can **edit A by screens** (add a screen from the picker, remove or reorder steps); each change is a signed A revision (`change: 'edit'`). Later rescans still add `observe` revisions on top. To design a different path, branch a to-be variant.
+4. A is **read-only** to people. To change the path, branch a to-be variant.
 
 ### 6.5 Document the as-is — Docs, Review
 1. The person asks the assistant to document the process (from the process page or chat).
 2. The assistant drafts a **PROC record** in Docs from A's latest revision, with evidence links to scans and screens. It is a draft (dashed) and lands in **Review → Records to confirm**.
-3. A reviewer confirms it. When the as-is is complete, a person presses **Mark as-is documented** (section 4).
+3. When a reviewer confirms it, and A's end has been observed, the stage becomes **As-is documented**.
 
 ### 6.6 Draw the to-be (B) — Process edit (05)
 1. **+ Variant** branches **B** from a chosen revision (default: A's latest). B r1 is saved immediately as an exact copy, "Branched from A r1".
@@ -192,7 +188,7 @@ Save → process created, A r1 built, status toast **"■ SAVED · “Test proce
 ### 6.11 Live per environment — History (07)
 1. **Detection:** when a scan walks a process in an environment, it matches the observed path against the latest revision of each variant. Walks all steps of B → "B live in sandbox · scan 5 matched B". Walks A again → "A · rolled back".
 2. **Manual mark:** **Mark B as live…** opens a confirm dialog naming the environment and the revision; it records who marked it and is shown as "marked by you" until a scan confirms or contradicts it.
-3. Live status informs the stage a person sets (section 4) and shows in the process list ("Live in sandbox: A").
+3. Live status drives the stage (section 4) and shows in the process list ("Live in sandbox: A").
 
 ## 7. Rules
 
@@ -200,7 +196,7 @@ Save → process created, A r1 built, status toast **"■ SAVED · “Test proce
 |---|---|
 | PR-01 | A process belongs to one portal and one persona. Its name is required, ≤ 200 characters and unique within the portal. |
 | PR-02 | Scope has exactly one start screen and one end screen (BR-011). A note on start or end is ≤ 2000 characters. |
-| PR-03 | Variant A is created with the process and is the only as-is variant. Scans create A revisions (`observe`); a person can too, by screens, as signed `edit` revisions (owner, 2026-10-14). |
+| PR-03 | Variant A is created with the process and is the only as-is variant. Only scans create A revisions. |
 | PR-04 | To-be variants are created only by branching from an existing revision. B, C… are named in order; a display name is optional. |
 | PR-05 | Revisions are immutable. Save, restore, rebase and accept all create new revisions. Nothing is updated in place or deleted. |
 | PR-06 | A draft belongs to one person and one variant, has a base revision, is autosaved, and is invisible to others. |
@@ -211,8 +207,8 @@ Save → process created, A r1 built, status toast **"■ SAVED · “Test proce
 | PR-11 | If A's end screen was never observed, A ends with "End not reached" (needs you), and the change spec lists it as an open question. |
 | PR-12 | When a screen revision under a step changes, annotations and amendments carry forward. If their element disappears they are flagged for re-anchoring in Review, never deleted. |
 | PR-13 | Live status per environment comes from the latest scan that walked the process in that environment, or a manual mark; a later scan overrides a manual mark. |
-| PR-14 | Stage is a person's signed choice (section 4); each move is a `stage` revision. Marking the as-is documented records the A revision it covers. |
-| PR-15 | A screen can belong to several processes. Screens in no process are listed under "In no process"; screens of archived processes count as in no process, also for the assistant's groupings. |
+| PR-14 | Stage is derived from data (section 4) and never set directly. |
+| PR-15 | A screen can belong to several processes. Screens in no process are listed under "In no process". |
 | PR-16 | A process is archived, not deleted. Archiving keeps all revisions, specs and links. |
 | PR-17 | The workflow step "Sort into processes" is done when the portal has at least one scoped process. "Document as-is" is done when at least one process is As-is documented. "Draw the to-be" is done when at least one to-be revision is saved. |
 
@@ -244,7 +240,7 @@ erDiagram
 
 | Table | Key fields |
 |---|---|
-| `process` | id, portal_id, name, persona, start_screen_id, end_screen_id, included_screen_ids, stage (latest signed `stage` revision, which records the signed-off A revision as `as_is_rev`), archived_at, created_by, created_at, source (`suggestion` / `manual` / `migrated_scope`), suggestion_id |
+| `process` | id, portal_id, name, persona, start_screen_id, end_screen_id, included_screen_ids, stage (derived, cached), archived_at, created_by, created_at, source (`suggestion` / `manual` / `migrated_scope`), suggestion_id |
 | `variant` | id, process_id, letter (A, B…), kind (`as_is` / `to_be`), branched_from_revision_id, display_name |
 | `revision` | id, variant_id, number, author (`scan:<run_id>` / user), summary ("Merged driver data and options into one step"), created_at, based_on_revision_id |
 | `step` | id, revision_id, position, identity_id (stable across revisions), title, route, screen_revision_id (null when designed), kind (`observed` / `designed`), built_from_identity_ids[], removed_reason |

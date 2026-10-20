@@ -351,6 +351,58 @@
   </div>
 </section>
 
+<!-- ============ 2.0 ============ -->
+<section class="doc-sec" aria-labelledby="c-v2">
+  <header><h2 id="c-v2" class="sy-h2">MudPuppy 2.0: time, review, rules</h2><p class="sy-meta">Release timeline, before / after, the review queue with its key bar, the decision table, and the Overturned status. Spec: docs/12-v2-ux.md.</p></header>
+  <div class="doc-demo">
+    <div class="sy-releases" aria-label="Releases and scans, 4–17 Oct">
+      <div class="sy-releases__lane"><span class="sy-releases__name">Shell<small>meta build</small></span>
+        <div class="sy-releases__track"><span class="sy-releases__span" style="left: 0; width: 73.9%">1d77</span><span class="sy-releases__span sy-releases__span--current" style="left: 73.9%; width: 26.1%">3e1a</span></div></div>
+      <div class="sy-releases__lane"><span class="sy-releases__name">Kalkulator app<small>footer v…</small></span>
+        <div class="sy-releases__track"><span class="sy-releases__span" style="left: 0; width: 89.9%">5f08</span><span class="sy-releases__span sy-releases__span--rollout" style="left: 89.9%; width: 5.8%">rollout</span><span class="sy-releases__span sy-releases__span--current" style="left: 95.7%; width: 4.3%">9c21</span></div></div>
+      <div class="sy-releases__lane sy-releases__lane--scans"><span class="sy-releases__name">Scans</span>
+        <div class="sy-releases__track"><a class="sy-releases__scan" href="#" style="left: 5.6%">01a1083f</a><a class="sy-releases__scan" href="#" style="left: 80.8%">01a12f40</a><a class="sy-releases__scan sy-releases__scan--check" href="#" style="left: 95.9%">01a1340c</a></div></div>
+      <div class="sy-releases__axis"><span style="left: 0">4 Oct</span><span style="left: 50%">11 Oct</span><span style="left: 100%">17 Oct</span></div>
+      <div class="sy-releases__range" style="left: calc(140px + 12px + (100% - 152px) * 0.739); width: calc((100% - 152px) * 0.261)"><span>this range</span></div>
+    </div>
+<pre class="doc-code">&lt;div class="sy-releases"&gt;
+  &lt;div class="sy-releases__lane"&gt;&lt;span class="sy-releases__name"&gt;Kalkulator app&lt;small&gt;footer v…&lt;/small&gt;&lt;/span&gt;
+    &lt;div class="sy-releases__track"&gt;
+      &lt;span class="sy-releases__span" style="left:0;width:89.9%"&gt;5f08&lt;/span&gt;
+      &lt;span class="sy-releases__span sy-releases__span--rollout" style="left:89.9%;width:5.8%"&gt;rollout&lt;/span&gt;
+      &lt;span class="sy-releases__span sy-releases__span--current" style="left:95.7%;width:4.3%"&gt;9c21&lt;/span&gt;
+  &lt;/div&gt;&lt;/div&gt;
+  &lt;div class="sy-releases__lane sy-releases__lane--scans"&gt;… &lt;a class="sy-releases__scan sy-releases__scan--check" style="left:95.9%"&gt;01a1340c&lt;/a&gt;
+&lt;/div&gt;</pre>
+  </div>
+  <div class="sy-grid" style="--sy-min: 420px">
+    <div class="doc-demo">
+      <div class="sy-compare" style="--sy-min: 180px">
+        <section class="sy-compare__side"><header class="sy-compare__head"><span>Without banner</span><span class="sy-tag sy-tag--sm">r2</span></header>
+          <figure class="sy-shot" aria-label="Result page without banner"><span class="sy-shot__title">Twoja składka</span><span>OC 612 zł / rok</span><span class="sy-shot__link">Kup online</span></figure></section>
+        <section class="sy-compare__side"><header class="sy-compare__head"><span>With banner</span><span class="sy-tag sy-tag--sm">r3</span></header>
+          <figure class="sy-shot" aria-label="Result page with banner"><span class="sy-shot__title">Twoja składka</span><mark class="sy-mark"><span class="sy-mark__label">Changed</span>Oferta specjalna: −10% przy zakupie dziś</mark><span>OC 612 zł / rok</span></figure></section>
+      </div>
+      <table class="sy-table sy-table--dense"><thead><tr><th scope="col">Context</th><th scope="col">r2</th><th scope="col">r3</th></tr></thead>
+        <tbody><tr><th scope="row">Release</th><td>9c21</td><td>9c21</td></tr><tr><th scope="row">Cookie ab_calc</th><td class="sy-differs">A</td><td class="sy-differs">B · differs</td></tr></tbody></table>
+      <p class="sy-cluster" style="--sy-gap: 6px 10px"><span class="sy-status" data-status="inferred">Explained automatically</span><span class="sy-status" data-status="overturned">Overturned</span><span class="sy-note sy-note--sm">Not flaky: it happens every time with +48.<span class="sy-note__by">you · 17 Oct 10:41</span></span></p>
+    </div>
+    <div class="doc-demo">
+      <ol class="sy-queue sy-plate" aria-label="Needs you">
+        <li class="sy-queue__group"><label class="sy-check"><input type="checkbox"> <b>12 links removed with release 3e1a</b></label><button class="sy-btn sy-btn--sm" type="button">Confirm 12</button></li>
+        <li class="sy-queue__item" aria-current="true"><input class="sy-queue__check" type="checkbox" aria-label="Select"><a class="sy-queue__main" href="#"><span class="sy-cluster" style="--sy-gap: 6px"><span class="sy-chip">A/B test?</span><span class="sy-small sy-muted">Kalkulator OC/AC — wynik</span></span><span class="sy-queue__claim">Banner "Oferta specjalna" on 6 of 11 visits</span><span class="sy-small sy-muted">2 screenshots · cookie ab_calc differs · tests 20/20</span></a><span class="sy-queue__meta">1 d</span></li>
+        <li class="sy-queue__item"><input class="sy-queue__check" type="checkbox" aria-label="Select"><a class="sy-queue__main" href="#"><span class="sy-cluster" style="--sy-gap: 6px"><span class="sy-chip sy-chip--fail">Rule broke</span><span class="sy-small sy-muted">BR-026</span></span><span class="sy-queue__claim">"00950" is now accepted as a postal code</span></a><span class="sy-queue__meta">1 d</span></li>
+      </ol>
+      <div class="sy-keybar"><span><span class="sy-kbd">J</span><span class="sy-kbd">K</span> next / previous</span><span><span class="sy-kbd">C</span> confirm</span><span><span class="sy-kbd">R</span> reject</span><span><span class="sy-kbd">X</span> select</span><span><span class="sy-kbd">?</span> all keys</span></div>
+      <div class="sy-table-wrap"><table class="sy-table sy-table--decision" aria-label="BR-021 decision table">
+        <thead><tr class="sy-dt-group"><th scope="col" colspan="2">Inputs</th><th scope="col" class="sy-dt-result">Result</th></tr>
+          <tr><th scope="col" class="sy-dt-n">#</th><th scope="col">Wiek kierowcy</th><th scope="col" class="sy-dt-result">Next screen</th></tr></thead>
+        <tbody><tr><td class="sy-dt-n">1</td><td class="sy-dt-cond">&lt; 21</td><td class="sy-dt-result">Nie możemy Cię ubezpieczyć</td></tr>
+          <tr><td class="sy-dt-n">2</td><td class="sy-dt-cond">≥ 21</td><td class="sy-dt-result">Kalkulator OC/AC — opcje</td></tr></tbody></table></div>
+    </div>
+  </div>
+</section>
+
 <!-- ============ STATES ============ -->
 <section class="doc-sec" aria-labelledby="c-states">
   <header><h2 id="c-states" class="sy-h2">Empty, loading, error, dialog, toast</h2></header>

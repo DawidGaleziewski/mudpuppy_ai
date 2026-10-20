@@ -21,3 +21,11 @@ queued page (frontier),waiting to be visited,queued,dashed corners,--sy-text-mut
 workflow step not started,to do,todo,hollow,--sy-text-muted,To do
 environment not configured,to do,todo,hollow,--sy-text-muted,Not configured
 needs a person (any),decision required,needs,filled,--sy-intent,Needs you
+2.0: overturned by a person,a person replaced an automatic explanation,overturned,filled,--sy-tag,Overturned
+2.0: explained automatically,the system's own explanation (not confirmed),inferred,dashed,--sy-tobe,Explained automatically
+2.0: screen or link active,exists in the portal now,live,filled,--sy-active,Active
+2.0: retired,no longer in the portal (kept),skipped,hollow,--sy-text-muted,Retired
+2.0: not seen since,last seen on a date,queued,dashed,--sy-text-muted,Not seen since <date>
+2.0: not checked on this release,not tried on the current release,unobserved,dashed,--sy-text-muted,Not checked on <release>
+2.0: process explored partially,partly explored on a release,queued,dashed,--sy-text-muted,Partial
+2.0: rule broken / test failed,a boundary test fails,failed,cross,--sy-fail,Broken / Fail
