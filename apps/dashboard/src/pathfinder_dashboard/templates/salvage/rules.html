@@ -1,0 +1,55 @@
+{% extends "salvage/base.html" %}
+{% import "salvage/macros.html" as sy %}
+{% set nav_current = "rules" %}
+{% block title %}Business rules{% endblock %}
+{#- Spec 039 T100, UX-R60, designer screen v2-11: every rule with where it is decided, its status
+    and its last test; what needs a person first. -#}
+{% block main %}
+<div class="sy-pagehead">
+  <h1 class="sy-h1">Business rules</h1>
+  <p class="sy-meta">
+    {%- if not c.portal %}Pick a portal in the header to see its rules.
+    {%- else %}<span class="sy-num">{{ v.rules | length }}</span> rules
+      {%- for s, n in v.counts.items() %} · <span class="sy-num">{{ n }}</span> {{ s }}{% endfor %}{% endif %}</p>
+  <p class="sy-small sy-muted sy-prose">Each rule is a decision table the system found from the portal's behaviour. Check runs test it at its boundaries.</p>
+</div>
+{%- if c.portal %}
+{%- if not v.rules %}
+{{ sy.empty("No business rule yet", "Where an action leads to different screens depending on what was typed, mining finds the rule: pnpm model:mine " ~ c.portal ~ ". Check runs then test it: pnpm model:replay " ~ c.portal ~ ".") }}
+{%- else %}
+<div class="sy-seg" role="group" aria-label="Status">
+  <a class="sy-btn sy-btn--sm{% if v.status is none %} sy-selected{% endif %}" href="{{ c.url('/rules') }}"{% if v.status is none %} aria-current="true"{% endif %}>All {{ v.rules | length }}</a>
+  {%- for s, n in v.counts.items() %}
+  <a class="sy-btn sy-btn--sm{% if v.status == s %} sy-selected{% endif %}" href="{{ c.url('/rules', status=s) }}"{% if v.status == s %} aria-current="true"{% endif %}>{{ sy_status_of("rule", s).word }} {{ n }}</a>
+  {%- endfor %}
+</div>
+<div class="sy-table-wrap">
+  <table class="sy-table" aria-label="Business rules">
+    <thead><tr>
+      <th scope="col">Rule</th><th scope="col">Where decided</th><th scope="col">Status</th>
+      <th scope="col">Boundary tests</th><th scope="col">Last tested</th>
+    </tr></thead>
+    {%- for status, rows in v.groups() %}
+    <tbody>
+      <tr class="mp-group"><th scope="rowgroup" colspan="5">{{ sy_status_of("rule", status).word }} · {{ rows | length }}</th></tr>
+      {%- for r in rows %}
+      <tr>
+        <th scope="row">
+          <div class="sy-stack" style="--sy-gap: 6px; align-items: flex-start">
+            {{ sy.tag(r.key, c.url('/rules/' ~ r.key), sm=true) }}
+            <a class="sy-case-normal" href="{{ c.url('/rules/' ~ r.key) }}">{{ r.claim }}</a>
+          </div>
+        </th>
+        <td>{% if r.screen_key %}<div class="sy-stack" style="--sy-gap: 2px"><span class="sy-case-normal">{{ r.screen_title or r.screen_key }}</span><span class="sy-small sy-muted sy-mono sy-mono--sm">{{ r.action or "" }}</span></div>{% else %}<span class="sy-muted">—</span>{% endif %}</td>
+        <td>{{ sy.status("rule", r.status) }}</td>
+        <td class="sy-small"><span class="sy-num">{{ r.passed }}</span> pass · <span class="sy-num">{{ r.failed }}</span> fail{% if r.waiting %} · <span class="sy-num">{{ r.waiting }}</span> waiting{% endif %}</td>
+        <td class="sy-small">{% if r.last_tested %}{{ r.last_tested | when }}{% else %}<span class="sy-muted">Not tested</span>{% endif %}</td>
+      </tr>
+      {%- endfor %}
+    </tbody>
+    {%- endfor %}
+  </table>
+</div>
+{%- endif %}
+{%- endif %}
+{% endblock %}

@@ -3,6 +3,10 @@
 @layer sy.reset, sy.base, sy.layout, sy.components, sy.utilities, app;
 
 @layer app {
+  /* Spec 039 T100 (designer screens v2-11, v2-12): group rows in a table, a decision table's caption. */
+  .mp-group > th { padding-top: var(--sy-space-4); }
+  .mp-caption { caption-side: top; text-align: left; padding: var(--sy-space-3) 12px; display: table-caption; }
+
   /* htmx request indicators (htmx's own indicator CSS is off, htmx-config). */
   .htmx-indicator { visibility: hidden; }
   .htmx-request .htmx-indicator, .htmx-request.htmx-indicator { visibility: visible; }

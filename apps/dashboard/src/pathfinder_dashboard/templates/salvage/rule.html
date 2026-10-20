@@ -1,0 +1,97 @@
+{% extends "salvage/base.html" %}
+{% import "salvage/macros.html" as sy %}
+{% set nav_current = "rules" %}
+{% block title %}{{ key }}{% if r %} · {{ r.row.claim }}{% endif %}{% endblock %}
+{#- Spec 039 T100, UX-R61–R63, designer screen v2-12: one rule as a decision table (inputs left,
+    result right), its boundary tests and its history. A person decides it in What changed. -#}
+{%- macro outcome(then) -%}
+  {%- set screen = then.split(" ")[0] %}{% set result = then.split(" ")[1:] | join(" ") %}
+  {%- if screen.startswith("SC-") %}{{ sy.tag(screen, sm=true) }}{% else %}<span class="sy-case-normal">{{ screen }}</span>{% endif %}
+  {%- if result and result != "ok" %} <span class="sy-chip">{{ result }}</span>{% endif %}
+{%- endmacro -%}
+{% block main %}
+<div class="sy-pagehead">
+  <nav class="sy-crumbs" aria-label="Breadcrumb"><a href="{{ c.url('/rules') }}">Business rules</a></nav>
+  {%- if not r %}
+  <h1 class="sy-h1">Rule not found</h1>
+</div>
+{{ sy.empty("No rule " ~ key ~ (" in " ~ c.portal if c.portal else ""), "Pick the portal it belongs to in the header, or open the list of rules.") }}
+  {%- else %}
+  <div class="sy-pagehead__row">
+    <h1 class="sy-h1 sy-case-normal">{{ sy.tag(key) }} {{ r.row.claim }}</h1>
+    {{ sy.status("rule", r.row.status) }}
+  </div>
+  <p class="sy-meta">
+    {%- if r.row.screen_key %}Decided on {{ sy.tag(r.row.screen_key, sm=true) }} <span class="sy-case-normal">{{ r.row.screen_title or "" }}</span>{% if r.row.action %} · <span class="sy-mono sy-mono--sm">{{ r.row.action }}</span>{% endif %}{% endif %}
+    {%- if r.row.fitness is not none %} · fit {{ r.row.fitness }}{% if r.row.rows %} on <span class="sy-num">{{ r.row.rows }}</span> executions{% endif %}{% endif %}</p>
+</div>
+<section class="sy-plate" aria-labelledby="table-h">
+  <div class="sy-plate__head"><h2 class="sy-plate__title" id="table-h">Decision table</h2></div>
+  {%- if r.needs_data or not r.table %}
+  <div class="sy-plate__body"><p class="sy-small sy-drawn-text">Decided on data not visible from the UI, or too few executions to state the rule yet.</p></div>
+  {%- else %}
+  <div class="sy-table-wrap sy-table-wrap--flush">
+    <table class="sy-table sy-table--decision">
+      <caption class="mp-caption">
+        <dl class="sy-facts">
+          <dt>Inputs</dt><dd>{% for i in r.inputs %}<span class="sy-mono sy-mono--sm">{{ i }}</span>{% if not loop.last %}, {% endif %}{% endfor %}</dd>
+          <dt>Hit policy</dt><dd>{{ r.hit_policy | capitalize }}: rows are checked top to bottom.</dd>
+        </dl>
+      </caption>
+      <thead>
+        <tr class="sy-dt-group"><td></td><th scope="colgroup" colspan="{{ r.inputs | length }}">Inputs</th><th scope="colgroup" class="sy-dt-result">Result</th></tr>
+        <tr>
+          <th scope="col" class="sy-dt-n"><abbr title="Rule row">#</abbr></th>
+          {%- for i in r.inputs %}<th scope="col" class="sy-case-normal">{{ i }}</th>{% endfor %}
+          <th scope="col" class="sy-dt-result">→ Next screen</th>
+        </tr>
+      </thead>
+      <tbody>
+      {%- for conds, then in r.table %}
+        <tr>
+          <th scope="row" class="sy-dt-n">{{ loop.index }}</th>
+          {%- for cond in conds %}<td>{% if cond == "any" %}<span class="sy-dt-any">any</span>{% else %}<code class="sy-dt-cond">{{ cond }}</code>{% endif %}</td>{% endfor %}
+          <td class="sy-dt-result">{{ outcome(then) }}</td>
+        </tr>
+      {%- endfor %}
+      </tbody>
+    </table>
+  </div>
+  {%- endif %}
+</section>
+<section class="sy-plate" aria-labelledby="tests-h">
+  <div class="sy-plate__head"><h2 class="sy-plate__title" id="tests-h">Boundary tests</h2></div>
+  {%- if not r.tests %}
+  <div class="sy-plate__body"><p class="sy-small sy-muted">No boundary test yet.</p></div>
+  {%- else %}
+  <div class="sy-table-wrap sy-table-wrap--flush">
+    <table class="sy-table sy-table--dense">
+      <thead><tr><th scope="col">Inputs</th><th scope="col">Expected</th><th scope="col">Got</th><th scope="col">Result</th></tr></thead>
+      <tbody>
+      {%- for t in r.tests %}
+        <tr>
+          <td class="sy-small">{% for k, val in t.inputs.items() %}<span class="sy-mono sy-mono--sm">{{ k }} = {{ val }}</span>{% if not loop.last %}<br>{% endif %}{% endfor %}</td>
+          <td class="sy-small">{{ t.expect }}</td>
+          <td class="sy-small">{{ t.got or "—" }}</td>
+          <td>{{ sy.status("boundary_test", t.verdict or "waiting") }}</td>
+        </tr>
+      {%- endfor %}
+      </tbody>
+    </table>
+  </div>
+  {%- endif %}
+</section>
+<section class="sy-plate" aria-labelledby="history-h">
+  <div class="sy-plate__head"><h2 class="sy-plate__title" id="history-h">History</h2></div>
+  <ol class="sy-timeline">
+  {%- for e in r.history %}
+    <li data-status="{{ 'ok' if e.status == 'confirmed' else ('failed' if e.status == 'refuted' else 'draft') }}">
+      <div class="sy-timeline__head">{{ sy.status("hypothesis", e.status) }} <span class="sy-meta">{{ e.at | when }} · {{ e.actor }}</span></div>
+      <div class="sy-timeline__body">{% if e.actor in ("miner", "reconciler", "crawler", "ba-agent") %}<p class="sy-small">{{ e.reason }}</p>{% else %}{{ sy.note(e.reason, by=e.actor, at=e.at, sm=true) }}{% endif %}</div>
+    </li>
+  {%- endfor %}
+  </ol>
+  <div class="sy-plate__foot"><p class="sy-small sy-muted">Confirm or reject a rule in What changed, or with <span class="sy-mono">pnpm model:decide {{ c.portal }} {{ key }}</span>.</p></div>
+</section>
+  {%- endif %}
+{% endblock %}

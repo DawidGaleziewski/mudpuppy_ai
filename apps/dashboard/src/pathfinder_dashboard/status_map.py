@@ -163,6 +163,21 @@ VOCABULARIES: dict[str, dict[str, Status]] = {
         "waiting_test": _s("queued", "Waiting for a check"),
         "explained": _s("ok", "Explained automatically"),
     },
+    # spec 039 T100: a business rule in the UI's words (12-v2-ux.md § 4) and its boundary tests
+    "rule": {
+        "broken": _s("failed", "Broken"),
+        "proposed": _s("inferred", "Proposed"),
+        "tested": _s("inferred", "Tested"),
+        "confirmed": _s("ok", "Confirmed"),
+        "replaced": _s("skipped", "Replaced"),
+        "rejected": _s("stopped", "Rejected"),
+    },
+    "boundary_test": {
+        "pass": _s("ok", "Pass"),
+        "fail": _s("failed", "Fail"),
+        "inconclusive": _s("stopped", "Inconclusive"),
+        "waiting": _s("queued", "Waiting"),
+    },
     "hypothesis": {
         "proposed": _s("needs", "Proposed"),
         "testing": _s("running", "Testing"),

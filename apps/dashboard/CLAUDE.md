@@ -63,6 +63,10 @@ Layer: app (Python, FastAPI + Jinja + htmx, uv; outside the TS layers)
   page leads with A as documentation until `to_be_design`; A is edited by screens (forwarded to
   `…/variants/A/edit`), processes are archived (`?show=archived` lists them), a PROC record has
   Open in Processes (`…/processes/from-record`). Archived processes' screens count as loose.
+- Spec 039 (T100, the designer's 2.0 pages): `nav.py` groups the sections (Home · Changes · Review
+  | Portal model: Processes · Screens · Rules · Docs | Machine: Scans · Settings);
+  `queries_rules.py` + `web/rules.py` (Rules, v2-11 / v2-12: decision tables, boundary tests,
+  history; read-only).
 - `servers.py`: live `pathfinder` servers read from `<data_dir>/servers/*.json`; the header names
   those on another environment or checkout (spec 031 R-61). Read-only, dead files are skipped.
 - `models.py`: read-only models of SQLite schema; drift test vs. `data/schema/schema.sql`.

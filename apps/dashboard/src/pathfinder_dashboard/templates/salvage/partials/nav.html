@@ -1,9 +1,10 @@
-{#- The seven portal sections (FE-N03, nav.py), `aria-current="page"` on the current one; the
+{#- The portal sections in the 2.0 groups (FE-N03, nav.py, 12-v2-ux.md § 1.1), `aria-current="page"` on the current one; the
     Review count is the only marker count (FE-N04). The footer holds the store's live status; the
     data store picker is in the header (R-71). -#}
 {%- set section = nav_section(nav_current | default(none)) %}
 <nav class="sy-nav{% if nav_compact | default(false) %} sy-nav--compact{% endif %}" aria-label="Portal sections">
   {%- for s in NAV_SECTIONS %}
+  {%- if s.group %}<div class="sy-nav__group" aria-hidden="true">{{ s.group }}</div>{% endif %}
   {%- set href = section_href(s.key, c.portal) %}
   {#- A portal that was only scanned has no portal file, so nothing to set (spec 011). #}
   {%- if s.key == "settings" and not portal_configured(c.portal) %}{% set href = none %}{% endif %}
