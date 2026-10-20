@@ -20,6 +20,7 @@ export * from './rule-guards.js';
 export * from './process-instances.js';
 export * from './anchors.js';
 export * from './process-exploration.js';
+export * from './process-facts.js';
 export * from './regressions.js';
 export * from './model-calibration.js';
 export * from './fingerprint-profiles.js';

@@ -7,6 +7,7 @@
 import { explorationBound } from '@pathfinder/model';
 import {
   type OpenedDb,
+  buildsOf,
   currentEpochs,
   explorationPlan,
   recordExploration,
@@ -27,18 +28,6 @@ export interface ExploreReport {
   recorded: string | null;
   /** The sentence the documentation states, when the pass was complete (design § 14.2). */
   bound: string | null;
-}
-
-/** `scope build` per epoch, as the bound names them ("shell 3e1a"). */
-function buildsOf(raw: Raw, epochs: readonly string[]): string[] {
-  const get = raw.prepare(
-    `SELECT e.scope, substr(replace(b.signature, 'marker:', ''), 1, 4) AS build
-     FROM build_epochs e JOIN builds b ON b.id = e.build_id WHERE e.id = ?`,
-  );
-  return epochs.flatMap((id) => {
-    const r = get.get(id) as { scope: string; build: string } | undefined;
-    return r ? [`${r.scope} ${r.build}`] : [];
-  });
 }
 
 const deviationCount = (raw: Raw, portal: string): number =>

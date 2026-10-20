@@ -77,7 +77,7 @@ group, ids in the message. Gates per milestone in `plan.md` § 1. `[B: …]` = b
 - [x] T081 [opus] R-77 (3): the trace marks the trigger step (the click that enters the process); the BA and the export start the process there
 - [~] T082 [sonnet] (checks `export_wrong_start` / `export_wrong_end` built; the trials cost money and wait for the owner, F-32) R-77 (2): eval check on the reference portal, each process's first and last contained screens equal the ground truth's `first_route` / `last_observable_route`, `export_extra_steps` = 0 over several trials (`create-eval`)
 - [ ] T077 [opus] Chat orchestrator: naming proposals, changes and hypotheses tools, reconcile and probe runs as actions
-- [ ] T078 [sonnet] Export: DMN files, triggers and outcomes, explored bound, contracts by schema hash, model version; exportfork-export
+- [~] T078 [sonnet] Export: DMN files, triggers and outcomes, explored bound, contracts by schema hash, model version; exportfork-export (built except contracts by schema hash and the field's model commands, F-38)
 - [ ] T079 [sonnet] Processes read models and functional pages
 - [ ] T080 [sonnet] Grouping eval and reference-insurer eval vs baselines; M5 gate; tag `v2.0.0-m5`
 

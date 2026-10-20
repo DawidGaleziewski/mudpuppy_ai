@@ -514,6 +514,20 @@ Bugs, slips and design deviations found while building, each with a test or eval
   purchase step. The approved reference export scores wrong start 1 (the home page, F-15@034),
   wrong end 0. Not run: the "several trials" part costs money and waits for the owner.
 
+## F-38 The model in the process export as built (T078), 2026-10-20
+
+- `processModelFacts` (store) gives a process's model version, its triggers (screen pressed on,
+  element, times), outcomes and trace variants of its instances, the bound of its latest
+  exploration, and the decision rules on its screens in an exported status (supported, confirmed)
+  as DMN XML. The process export adds a README section "The process in the portal model", a
+  `model` block in `process.json` and `rules/<H-key>.dmn` per rule. A PROC record's export reads
+  its own process (`doc_records.process_id`); a PRC export the process itself.
+- **Not done**: "contracts by schema hash" (CONTRACTS.md still groups per endpoint and attempt);
+  export-fork ships no `model:*` command yet (its manifest lists the field's scripts; which 2.0
+  commands go to the field is an owner question).
+- **Test**: `process-facts.test.ts` (store; `addRule` split out of `withRule` so the process seed
+  can carry the rule).
+
 ## F-37 Exploring a process as built (T075), 2026-10-20
 
 - `explorationPlan` (store) turns the stopping rule into replays: depth-1 gaps (an action class of

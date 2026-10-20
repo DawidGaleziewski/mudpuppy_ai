@@ -96,6 +96,12 @@ export function withRule(cut: number): OpenedDb {
   migrateUp(o.raw, MIGRATIONS);
   seedThreshold(o);
   reconcilePortalModel(o.raw, 'ins', { now: T(500) });
+  addRule(o, cut);
+  return o;
+}
+
+/** Import the mined rule "under `cut` → exit page" (H-0001) into a reconciled threshold seed. */
+export function addRule(o: OpenedDb, cut: number): void {
   const [table] = loadObservationTables(o.raw, 'ins');
   const target = (birth: string) =>
     table!.rows.find((r) => r.features['input.data_urodzenia'] === birth)!.target;
@@ -119,7 +125,6 @@ export function withRule(cut: number): OpenedDb {
     },
     T(600),
   );
-  return o;
 }
 
 /** What the seeded portal does: under `min` → the exit page (transition e0), else the price page (e5). */

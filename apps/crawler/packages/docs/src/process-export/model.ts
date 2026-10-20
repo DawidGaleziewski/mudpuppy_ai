@@ -2,6 +2,7 @@
 // records of the process (the SRS export model scoped to its states, so records render exactly as
 // in the SRS export, spec 027 FR-006), each step's records and form fields, and the contracts.
 
+import { processModelFacts, type ProcessModelFacts } from '@pathfinder/store';
 import type { RawDb } from '../keys.js';
 import { loadExportModel, type ExportModel, type ExportRecord } from '../render/model.js';
 import { applyScope, evidenceStates } from '../scope.js';
@@ -43,6 +44,26 @@ export interface ProcessExportModel {
   srs: ExportModel;
   steps: StepModel[];
   contracts: Contracts;
+  /** What the portal model knows of the process (spec 039 T078); null without one. */
+  facts: ProcessModelFacts | null;
+}
+
+/** The process (PRC) behind an export key: a PROC record's own process, or the PRC itself. */
+function processIdOf(raw: RawDb, portal: string, key: string): string | null {
+  try {
+    const row = (
+      key.startsWith('PROC-')
+        ? raw
+            .prepare('SELECT process_id AS id FROM doc_records WHERE portal_id = ? AND key = ?')
+            .get(portal, key)
+        : raw
+            .prepare('SELECT id FROM ba_processes WHERE portal_id = ? AND key = ?')
+            .get(portal, key)
+    ) as { id: string | null } | undefined;
+    return row?.id ?? null;
+  } catch {
+    return null; // a store before spec 039
+  }
 }
 
 interface FormField {
@@ -142,6 +163,7 @@ export function loadProcessExport(
   const records =
     record && !srs.records.some((r) => r.key === key) ? [record, ...srs.records] : srs.records;
   const scoped = { ...srs, records };
+  const processId = processIdOf(raw, portal, key);
   return {
     portal,
     environment: opts.environment,
@@ -149,6 +171,7 @@ export function loadProcessExport(
     process,
     record,
     srs: scoped,
+    facts: processId ? processModelFacts(raw, portal, processId) : null,
     steps: process.steps.map((step) => {
       const fields = fieldsOf(raw, step, records);
       return {
