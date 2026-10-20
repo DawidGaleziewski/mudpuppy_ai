@@ -78,7 +78,7 @@ group, ids in the message. Gates per milestone in `plan.md` § 1. `[B: …]` = b
 - [~] T082 [sonnet] (checks `export_wrong_start` / `export_wrong_end` built; the trials cost money and wait for the owner, F-32) R-77 (2): eval check on the reference portal, each process's first and last contained screens equal the ground truth's `first_route` / `last_observable_route`, `export_extra_steps` = 0 over several trials (`create-eval`)
 - [~] T077 [opus] Chat orchestrator: naming proposals, changes and hypotheses tools, reconcile and probe runs as actions (built; probe runs are proposed as commands, not started from the chat, F-39)
 - [~] T078 [sonnet] Export: DMN files, triggers and outcomes, explored bound, contracts by schema hash, model version; exportfork-export (built except contracts by schema hash and the field's model commands, F-38)
-- [ ] T079 [sonnet] Processes read models and functional pages
+- [~] T079 [sonnet] Processes read models and functional pages (the process page shows triggers, outcomes, explored and rules, T100 step 4; trace variants on the page and the proposals' split/merge wait for T100)
 - [ ] T080 [sonnet] Grouping eval and reference-insurer eval vs baselines; M5 gate; tag `v2.0.0-m5`
 
 ## Owner decisions 2026-10-20 (questions 1–8 of the session dump)
@@ -97,8 +97,8 @@ group, ids in the message. Gates per milestone in `plan.md` § 1. `[B: …]` = b
 
 ## M7 Close-out
 
-- [~] T100 [sonnet] (step 1 done: `ux-gaps.md`, the package covers the brief; 15 backend gaps and 6 owner questions) `frontend-dev`: the UX designer's pages replace the functional ones; delivered 2026-10-20 in `user_input/MudPuppyRebrand/mudpuppy-salvage-yard (3).zip` (screens `v2-01`…`v2-16`, `docs/12-v2-ux.md`, `13-v2-fixtures.md`, updated `mudpuppy-salvage-ui` skill); first check the package against `ux-requirements.md` and list gaps
-- [ ] T101 [haiku] Glossary final (UI words), `uv run pathfinder-glossary --write`; `docs/how-to-use.md` and READMEs for 2.0
+- [~] T100 [sonnet] (steps 1–4 done: `ux-gaps.md` (15 backend gaps, 6 owner questions), the package imported (docs, skill, CSS), the grouped nav with Changes and Rules, the Rules pages v2-11/v2-12, the process page's model facts; the rest waits for the owner's answers in `ux-gaps.md` § 3) `frontend-dev`: the UX designer's pages replace the functional ones; delivered 2026-10-20 in `user_input/MudPuppyRebrand/mudpuppy-salvage-yard (3).zip` (screens `v2-01`…`v2-16`, `docs/12-v2-ux.md`, `13-v2-fixtures.md`, updated `mudpuppy-salvage-ui` skill); first check the package against `ux-requirements.md` and list gaps
+- [~] T101 [haiku] (entries for this session's terms added; the UI words of `12-v2-ux.md` § 3 wait for the pages) Glossary final (UI words), `uv run pathfinder-glossary --write`; `docs/how-to-use.md` and READMEs for 2.0
 - [ ] T102 [opus] `code-reviewer` on the branch; fix or defer findings
 - [ ] T103 [sonnet] `pnpm test` in `apps/crawler` and every app's suite; three reference-insurer trials; new baselines
 - [ ] T104 [sonnet] export-fork export; changelog 2.0.0 (po); squash-merge to master, tag `v2.0.0`, delete branch
