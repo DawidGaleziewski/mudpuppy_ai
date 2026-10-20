@@ -73,11 +73,22 @@ group, ids in the message. Gates per milestone in `plan.md` § 1. `[B: …]` = b
 - [ ] T073 [opus] Process instances and outcomes; trace variants on read
 - [ ] T074 [opus] Anchors on `entity_refs`; review triggers from lineage and `not_seen_since`
 - [ ] T075 [opus] Stopping rule (depth 1, depth 2, random walks) on the driver; planner 6; `process_explorations`
-- [ ] T076 [opus] BA guidance (`ba.md`, `ba-practice`, record kinds) for the model, hypotheses, processes, DMN `[B: owner's R-77 review, Q-1]`
+- [ ] T076 [opus] BA guidance (`ba.md`, `ba-practice`, record kinds) for the model, hypotheses, processes, DMN; with R-77 (1) (the owner accepted it 2026-10-20): what a process is (goal, trigger, own first screen, outcome), where it starts and ends, pages on the way are the trigger's context, never steps; the `api_endpoint` row (R-77 (4)); then drop `reconciliations` and `rule_candidates`
+- [ ] T081 [opus] R-77 (3): the trace marks the trigger step (the click that enters the process); the BA and the export start the process there
+- [ ] T082 [sonnet] R-77 (2): eval check on the reference portal, each process's first and last contained screens equal the ground truth's `first_route` / `last_observable_route`, `export_extra_steps` = 0 over several trials (`create-eval`)
 - [ ] T077 [opus] Chat orchestrator: naming proposals, changes and hypotheses tools, reconcile and probe runs as actions
 - [ ] T078 [sonnet] Export: DMN files, triggers and outcomes, explored bound, contracts by schema hash, model version; exportfork-export
 - [ ] T079 [sonnet] Processes read models and functional pages
 - [ ] T080 [sonnet] Grouping eval and reference-insurer eval vs baselines; M5 gate; tag `v2.0.0-m5`
+
+## Owner decisions 2026-10-20 (questions 1–8 of the session dump)
+
+- [ ] T110 [opus] F-06: rename `edges` → `transitions` and `page_visits` → `observations` everywhere, the design's names (`db-admin` migration; code, SQL, Python, docs, glossary); every suite green, no old name left (grep)
+- [ ] T111 [opus] Fingerprint profiles in the portal YAML (`fingerprint: { use, profiles }`, like `fixes`): the rules of `structure.ts` / `fingerprint.ts` as parameters (row roles, field roles, named roles, `ignore_names_in`, `cluster_threshold`), built-in `rows-v2` = today's behaviour, `extends`, Zod schema refused at `start_run` (`CONFIG_INVALID`); `docs/portal-config.md`
+- [ ] T112 [opus] Profile recorded on every observation and model version (name + rules hash); the reconciler never compares two profiles
+- [ ] T113 [opus] `pnpm model:refingerprint --profile <name>` (recompute from stored snapshots, no recrawl; check first that every observation keeps its full snapshot) and `pnpm model:compare-fingerprints <a> <b>` (which screens merge or split differently)
+- [ ] T114 [sonnet] Scenario: a portal-wide menu change (one link added to the main navigation) under `rows-v2` and a no-menu profile; the model keeps every screen
+- [ ] T115 [opus] F-28 as decided (R-82): the calibrated τ is shown and a person accepts it (`model:decide accept-tau`, the What changed page); one τ per portal and fingerprint profile; the profile's `cluster_threshold` is the default until one is accepted
 
 ## M6 Classifier
 
@@ -85,7 +96,7 @@ group, ids in the message. Gates per milestone in `plan.md` § 1. `[B: …]` = b
 
 ## M7 Close-out
 
-- [ ] T100 [sonnet] `frontend-dev`: the UX designer's pages replace the functional ones (as delivered) `[B: UX consultation, Q-6]`
+- [ ] T100 [sonnet] `frontend-dev`: the UX designer's pages replace the functional ones; delivered 2026-10-20 in `user_input/MudPuppyRebrand/mudpuppy-salvage-yard (3).zip` (screens `v2-01`…`v2-16`, `docs/12-v2-ux.md`, `13-v2-fixtures.md`, updated `mudpuppy-salvage-ui` skill); first check the package against `ux-requirements.md` and list gaps
 - [ ] T101 [haiku] Glossary final (UI words), `uv run pathfinder-glossary --write`; `docs/how-to-use.md` and READMEs for 2.0
 - [ ] T102 [opus] `code-reviewer` on the branch; fix or defer findings
 - [ ] T103 [sonnet] `pnpm test` in `apps/crawler` and every app's suite; three reference-insurer trials; new baselines
