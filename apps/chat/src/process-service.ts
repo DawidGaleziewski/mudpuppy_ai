@@ -45,7 +45,7 @@ import {
   writeModel,
   type ProcessOutcome,
 } from './process-store.js';
-import { acceptSuggestion, dismissSuggestion, suggestGrouping } from './process-suggestions.js';
+import * as suggestions from './process-suggestions.js';
 
 /** "New process" from chosen screens, in the given order. */
 async function create(db: PathfinderDb, portal: string, raw: unknown): Promise<ProcessOutcome> {
@@ -425,11 +425,15 @@ export function createProcessService(deps: { db: PathfinderDb; raw?: OpenedDb['r
     saveChangeSpec: (portal: string, id: string, raw: unknown) =>
       saveChangeSpec(db, portal, id, raw),
     suggest: (portal: string, conversationId: string | null, raw: unknown) =>
-      suggestGrouping(db, portal, conversationId, raw),
-    accept: (portal: string, suggestionId: string, raw: unknown) =>
-      acceptSuggestion(db, portal, suggestionId, raw),
-    dismiss: (portal: string, suggestionId: string, raw: unknown) =>
-      dismissSuggestion(db, portal, suggestionId, raw),
+      suggestions.suggestGrouping(db, portal, conversationId, raw),
+    accept: (portal: string, id: string, raw: unknown) =>
+      suggestions.acceptSuggestion(db, portal, id, raw),
+    dismiss: (portal: string, id: string, raw: unknown) =>
+      suggestions.dismissSuggestion(db, portal, id, raw),
+    split: (portal: string, id: string, raw: unknown) =>
+      suggestions.splitSuggestion(db, portal, id, raw),
+    merge: (portal: string, id: string, raw: unknown) =>
+      suggestions.mergeSuggestions(db, portal, id, raw),
   };
 }
 

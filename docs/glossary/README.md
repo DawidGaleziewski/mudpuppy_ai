@@ -984,7 +984,7 @@ switched by recomputing from the stored snapshots, without a new scan.
 
 *Example:* `fingerprint: { use: no-menu, profiles: { no-menu: { ignore_names_in: [navigation] } } }`
 
-*Seen in:* portal.yaml; What changed → When two page versions are one screen; pnpm model:refingerprint
+*Seen in:* portal.yaml; Settings → Screen identity; pnpm model:refingerprint
 
 *Labels:* `fingerprint profile`, `rows-v2`, `no-menu`, `ignore_names_in`
 
@@ -1001,12 +1001,13 @@ switched by recomputing from the stored snapshots, without a new scan.
 Two page versions on the same route are one screen when their similarity reaches τ. Until
 a person accepts another value it is the fingerprint profile's own threshold (0.9 for
 `rows-v2`). When enough page pairs are labelled "the same" and "different", the labels
-suggest the τ that separates them best; `pnpm model:pairs` shows it, and `pnpm model:decide
-… accept-tau` puts it in force for that portal and profile. The next model version uses it.
+suggest the τ that separates them best; Settings ▸ Screen identity (or `pnpm model:pairs`)
+shows it, and accepting it there (or `pnpm model:decide … accept-tau`) puts it in force for
+that portal and profile. The next model version uses it. Pairs are labelled on Same screen?.
 
 *Example:* τ 0.93, accepted by the owner after 60 labelled pairs.
 
-*Seen in:* What changed → When two page versions are one screen; pnpm model:pairs
+*Seen in:* Settings → Screen identity; Same screen?; pnpm model:pairs
 
 *Labels:* `τ`, `accept-tau`, `threshold`
 
@@ -1028,13 +1029,13 @@ Each rebuild is a numbered model version. The raw scans are never changed by it.
 
 *Example:* After two scans, model version 2 of reference-insurer has 17 screens; SC-0008 is the vehicle form with two page versions.
 
-*Seen in:* Scans → Map; What changed
+*Seen in:* Home; Changes; Screens; Screens → Map
 
-*Labels:* `portal model`, `model version`, `model`
+*Labels:* `portal model`, `model version`, `model`, `Rebuild model`
 
 *Related:* [Screen of the model (SC-)](#model-screen), [Change (deviation)](#deviation), [State](#state)
 
-<sub>Last changed in R-81, 2026-10-19.</sub>
+<sub>Last changed in R-81, 2026-10-21.</sub>
 
 <a id="model-screen"></a>
 
@@ -1046,16 +1047,59 @@ The model groups page versions (states) by route and structure, whatever order t
 saw them in. When a later scan shows that two screens are one, or one is two, the model
 merges or splits them and records why (lineage), instead of renaming anything. A person
 can say "same screen" or "different screen" for two page versions; the next rebuild follows it.
+On screen a screen is Active, Merged or Retired; retired screens are kept.
 
-*Example:* SC-0001 is the start page; its members r1 and r2 differ only by the release.
+*Example:* SC-0001 is the start page; its variants r1 and r2 differ only by the release.
 
-*Seen in:* Scans → Map; What changed
+*Seen in:* Screens; Screens → Map; Changes
 
-*Labels:* `SC-`, `model screen`, `member`
+*Labels:* `screen`, `SC-`, `model screen`, `Active`, `Merged`, `Retired`
 
-*Related:* [Portal model](#portal-model), [Screen revision (observed)](#screen-revision), [State](#state)
+*Related:* [Portal model](#portal-model), [Variant (r1, r2…)](#screen-variant), [Screen revision (observed)](#screen-revision), [State](#state)
 
-<sub>Last changed in R-81, 2026-10-19.</sub>
+<sub>Last changed in R-81, 2026-10-21.</sub>
+
+<a id="screen-variant"></a>
+
+#### Variant (r1, r2…)
+
+**One way a screen looked, a page version the model keeps in that screen, and why it differs from the first one.**
+
+Every variant says why it differs: Release (the portal part's release changed), Persona
+(only one persona sees it), Error, A/B test, Data (content that depends on what was typed)
+or Unknown. The why comes from the explanation of the change that brought the variant; the
+first one is the Baseline. A screen's page shows its variants side by side.
+
+*Example:* r3 · A/B test? · banner "Oferta specjalna" on 6 of 11 visits.
+
+*Seen in:* Screens → screen page; Screens → Map → inspector; Same screen?
+
+*Labels:* `variant`, `Baseline`, `why`
+
+*Related:* [Screen of the model (SC-)](#model-screen), [Change (deviation)](#deviation), [Same screen? (a pair label)](#same-screen-label)
+
+<sub>Last changed in R-81, 2026-10-21.</sub>
+
+<a id="model-link"></a>
+
+#### Link and action (link states)
+
+**A link leads to another screen and is drawn on the Map; an action stays inside its screen (a dialog, a field) and is only counted on it.**
+
+A link is Active, Not seen since a date (missing on later visits), Not checked (not followed
+yet on the part's current release), Retired (gone, kept) or Replaced by a new one. Links on
+every page, such as the menu, are bundled on the Map instead of drawn, unless one changed.
+"Checked 8 / 11" on a screen counts its actions tried on the current release.
+
+*Example:* Moje polisy · menu link · Not seen since 17 Oct.
+
+*Seen in:* Screens → Map; Screens → screen page
+
+*Labels:* `link`, `action`, `Not seen since`, `Not checked`, `Retired`, `checked`, `bundled`
+
+*Related:* [Screen of the model (SC-)](#model-screen), [Portal model](#portal-model)
+
+<sub>Last changed in R-81, 2026-10-21.</sub>
 
 <a id="journey"></a>
 
@@ -1103,12 +1147,18 @@ Each visit records the release of the shell and of every embedded app (frame or
 micro-frontend). A change seen on a new release is drift; the same change on the same
 release needs another explanation (another persona, an A/B test, an error). A portal with
 no hashed bundles and no marker shows as "unknown" and changes are judged more slowly.
+The shell and each embedded app are portal parts, each with its own releases; old and new
+release served at the same time is a rollout. The release marker is a Settings ▸ Hints item.
 
-*Labels:* `release`, `build`, `build epoch`
+*Example:* Shell 3e1a · Kalkulator app 9c21; rollout 16 Oct 14:02 – 17 Oct 09:30.
 
-*Related:* [Portal model](#portal-model), [Change (deviation)](#deviation)
+*Seen in:* Home; Changes → release lanes; Settings → Hints
 
-<sub>Last changed in R-81, 2026-10-19.</sub>
+*Labels:* `release`, `build`, `build epoch`, `portal part`, `rollout`
+
+*Related:* [Portal model](#portal-model), [Change (deviation)](#deviation), [Hints (Settings)](#portal-hints)
+
+<sub>Last changed in R-81, 2026-10-21.</sub>
 
 <a id="deviation"></a>
 
@@ -1119,34 +1169,37 @@ no hashed bundles and no marker shows as "unknown" and changes are judged more s
 After each rebuild the model compares itself with the version before. Every difference is
 a change, recorded once (seeing it again adds to the same row). Rules R1–R8 explain most
 changes from the evidence; the rest wait for a person or for a check the system runs itself.
-The What changed page lists them in three groups: needs you, explained automatically, waiting
-for a check.
+The Changes page lists them by process and screen, each with its explanation; what needs a
+person waits in Review, and Before / after shows the two recorded pages side by side.
 
-*Seen in:* What changed
+*Seen in:* Changes; Changes → Before / after; Review
 
-*Labels:* `change`, `deviation`, `What changed`
+*Labels:* `change`, `deviation`, `What changed`, `Before / after`
 
-*Related:* [Claim (hypothesis, H-)](#hypothesis), [Explained automatically (derived fact)](#derived-fact), [Release (build)](#release)
+*Related:* [Finding and explanation (hypothesis, H-)](#hypothesis), [Explained automatically (derived fact)](#derived-fact), [Release (build)](#release)
 
-<sub>Last changed in R-81, 2026-10-19.</sub>
+<sub>Last changed in R-81, 2026-10-21.</sub>
 
 <a id="hypothesis"></a>
 
-#### Claim (hypothesis, H-)
+#### Finding and explanation (hypothesis, H-)
 
-**A testable statement about the portal, such as "this screen changed with a new release", with its evidence and the test that would refute it.**
+**A finding is what the system noticed; its explanation is why it thinks it happened, such as "this screen changed with a new release", with the evidence and the test that would refute it.**
 
-Every claim has a key (H-0001), a kind, its evidence and an event history in which every
-status change carries a reason. A claim a published rule decides is a derived fact; anything
-else stays proposed until a person confirms or rejects it (`pnpm model:decide`).
+Inside, both are one claim with a key (H-0001), a kind, its evidence and an event history in
+which every status change carries a reason. A claim a published rule decides is explained
+automatically; anything else is a finding that needs you, until a person confirms or rejects
+it in Review (or with `pnpm model:decide`), always with a one-line reason.
 
-*Seen in:* What changed
+*Example:* Banner on 6 of 11 visits · A/B test? · Needs you.
 
-*Labels:* `claim`, `hypothesis`, `H-`
+*Seen in:* Review; Changes; Screens → screen page
+
+*Labels:* `finding`, `explanation`, `claim`, `hypothesis`, `H-`, `Needs you`
 
 *Related:* [Change (deviation)](#deviation), [Explained automatically (derived fact)](#derived-fact)
 
-<sub>Last changed in R-81, 2026-10-19.</sub>
+<sub>Last changed in R-81, 2026-10-21.</sub>
 
 <a id="derived-fact"></a>
 
@@ -1155,12 +1208,15 @@ else stays proposed until a person confirms or rejects it (`pnpm model:decide`).
 **A claim the system confirmed by itself because a published rule decides it from the evidence, shown with its rule and reversible by a person.**
 
 Constitution 6.0.0: the reconciler may record facts that follow from evidence by a published
-rule (R1–R8) without approval. Each names its rule, appears on What changed, and can be
-overturned with a reason; an overturned fact is never written again for the same change.
+rule (R1–R8) without approval. Each names its rule, appears on Changes and in Review's
+Explained automatically tab, and can be overturned with a reason (Overturn is planned, R-87);
+an overturned fact is never written again for the same change.
+
+*Seen in:* Review → Explained automatically; Changes
 
 *Labels:* `explained automatically`, `derived fact`, `overturn`
 
-*Related:* [Claim (hypothesis, H-)](#hypothesis), [Change (deviation)](#deviation)
+*Related:* [Finding and explanation (hypothesis, H-)](#hypothesis), [Change (deviation)](#deviation)
 
 <sub>Last changed in R-81, 2026-10-19.</sub>
 
@@ -1221,7 +1277,7 @@ the table) and one CSV (Rules → Export, or `pnpm model:rules-export`).
 
 *Labels:* `decision rule`, `business rule`, `DMN`, `Broken`, `Tested`, `Replaced`
 
-*Related:* [Boundary test](#boundary-test), [Claim (hypothesis, H-)](#hypothesis)
+*Related:* [Boundary test](#boundary-test), [Finding and explanation (hypothesis, H-)](#hypothesis)
 
 <sub>Last changed in R-81, 2026-10-19.</sub>
 
@@ -1318,13 +1374,76 @@ and element keys. `pnpm model:classify` trains it on the labelled pairs, holds e
 pair back, and compares both on those: when the classifier finds distinct pairs better, the
 next model rebuild groups pages with it.
 
-*Seen in:* pnpm model:classify
+*Seen in:* Settings → Screen identity; pnpm model:classify
 
 *Labels:* `similarity classifier`, `held-out F1`
 
 *Related:* [Fingerprint profile](#fingerprint-profile), [Screen threshold (τ)](#screen-threshold)
 
 <sub>Last changed in R-81, 2026-10-20.</sub>
+
+<a id="same-screen-label"></a>
+
+#### Same screen? (a pair label)
+
+**A person's answer for two recorded versions of a page, Same screen, Same with different data, or Different screens, which the next model rebuild follows.**
+
+The Same screen? page shows two versions side by side, a disagreement between your earlier
+label and the automatic grouping first, then each screen's variants against its first one.
+Press 1, 2 or 3, optionally say why, and save. The labels group the screens on the next
+rebuild and calibrate the screen threshold τ and the similarity classifier.
+
+*Example:* r2 and r3 of Kalkulator — wynik: Same, different data · "the banner depends on the date".
+
+*Seen in:* Review → Same screen?; Screens → Map → inspector
+
+*Labels:* `Same screen?`, `Same`, `different data`, `Different screens`, `pair label`
+
+*Related:* [Variant (r1, r2…)](#screen-variant), [Screen threshold (τ)](#screen-threshold), [Similarity classifier](#similarity-classifier)
+
+<sub>Last changed in R-81, 2026-10-21.</sub>
+
+<a id="check-run"></a>
+
+#### Check run
+
+**A run of replays and tests on the headless driver, with no AI, that checks rules at their boundaries, replays errors and explores processes, as opposed to an AI scan.**
+
+A check run repeats recorded steps exactly, so it costs no tokens and answers yes or no:
+did the error come back, did the rule's boundary give the predicted screen, is every action
+of a process still there. A person starts one from Rules or a process page (Run the rule
+tests, Explore); the assistant starts one after you confirm in the chat. The model takes the
+results on its next rebuild.
+
+*Example:* Check run 01a1340c · 64 checks · 20, 21, 22 → pass.
+
+*Seen in:* Rules; Processes → process page; Scans
+
+*Labels:* `check run`, `AI scan`, `Run the rule tests`
+
+*Related:* [Headless driver (probe run)](#headless-driver), [Boundary test](#boundary-test), [Explored (process)](#explored-process)
+
+<sub>Last changed in R-81, 2026-10-21.</sub>
+
+<a id="portal-hints"></a>
+
+#### Hints (Settings)
+
+**What the portal model is told about a portal, its release marker, the cookies that name an A/B test's arm and the texts that mean a business refusal, from the portal file.**
+
+Hints live in `model:` of portal.yaml. When you confirm an A/B test in Review, its cookie is
+added to the A/B cookies, so later scans record which arm each visit saw and the variants say
+A/B test instead of Unknown. The rest changes through the assistant.
+
+*Example:* Release marker: header x-app-version · A/B cookies: cookie ab_calc.
+
+*Seen in:* Settings → Hints
+
+*Labels:* `Hints`, `release marker`, `A/B cookie`, `business refusal`
+
+*Related:* [Release (build)](#release), [Variant (r1, r2…)](#screen-variant)
+
+<sub>Last changed in R-81, 2026-10-21.</sub>
 
 ### Actions and safety
 
@@ -1771,7 +1890,7 @@ evidence or turns them into an open question record for a person.
 
 *Labels:* `Open question`
 
-*Related:* [Claim (hypothesis, H-)](#hypothesis)
+*Related:* [Finding and explanation (hypothesis, H-)](#hypothesis)
 
 <sub>Last changed in R-22, 2026-10-03.</sub>
 
@@ -3908,7 +4027,7 @@ Rules are written once and linked to every requirement, data item and screen the
 
 *Labels:* `Business rule`, `BR`, `Rule`
 
-*Related:* [Decision table](#decision-table), [Claim (hypothesis, H-)](#hypothesis), [Data item (DI)](#data-item)
+*Related:* [Decision table](#decision-table), [Finding and explanation (hypothesis, H-)](#hypothesis), [Data item (DI)](#data-item)
 
 *Read more:* [BA wiki: Business rule](../wiki/business-rule.md)
 

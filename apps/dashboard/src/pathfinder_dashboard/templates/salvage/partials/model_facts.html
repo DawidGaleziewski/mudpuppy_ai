@@ -23,9 +23,35 @@
         {%- set run_back = c.url('/processes/' ~ p.key) %}
         {% include "salvage/partials/check_run.html" %}</dd>
       <dt>Business rules</dt>
-      <dd>{%- if m.rules %}{% for r in m.rules %}<div>{{ sy.tag(r.key, c.url('/rules/' ~ r.key), sm=true) }} <span class="sy-case-normal">{{ r.claim }}</span> {{ sy.status("rule", r.status) }}</div>{% endfor %}
+      <dd>{%- if m.rules %}{% for r in m.rules %}<div>{{ sy.tag(r.shown_key, c.url('/rules/' ~ r.shown_key), sm=true) }} <span class="sy-case-normal">{{ r.claim }}</span> {{ sy.status("rule", r.status) }}</div>{% endfor %}
         {%- else %}<span class="sy-muted">No rule decided on these screens.</span>{% endif %}</dd>
     </dl>
   </div>
+</section>
+{#- v2-10 Paths: the trace variants, the most walked first (T079). -#}
+<section id="paths" class="sy-plate" aria-labelledby="paths-h">
+  <div class="sy-plate__head">
+    <h2 id="paths-h" class="sy-plate__title">Paths</h2>
+    <span class="sy-meta">{{ m.paths | length }} path{{ "s" if m.paths | length != 1 }} · {{ m.paths | sum(attribute="count") }} case{{ "s" if m.paths | sum(attribute="count") != 1 }}</span>
+  </div>
+  {%- if m.paths %}
+  <div class="sy-table-wrap sy-table-wrap--flush">
+    <table class="sy-table sy-table--middle" aria-labelledby="paths-h">
+      <thead><tr><th scope="col">Path</th><th scope="col">Screens walked</th><th scope="col">Outcome</th><th scope="col" class="sy-num">Cases</th></tr></thead>
+      <tbody>
+        {%- for pth in m.paths %}
+        <tr>
+          <th scope="row">{{ pth.name }}</th>
+          <td><ol class="sy-path">{% for key, title in pth.screens %}<li><a class="sy-path__step sy-case-normal" href="{{ c.url('/screens/' ~ key) }}">{{ title or key }}</a></li>{% endfor %}</ol></td>
+          <td>{{ pth.outcome }}</td>
+          <td class="sy-num">{{ pth.count }}</td>
+        </tr>
+        {%- endfor %}
+      </tbody>
+    </table>
+  </div>
+  {%- else %}
+  <div class="sy-plate__body"><p class="sy-small sy-muted">No path yet: a scan that enters the process through its trigger adds one on the next model rebuild.</p></div>
+  {%- endif %}
 </section>
 {%- endif %}

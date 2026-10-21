@@ -184,7 +184,10 @@ describe('portal settings: add and revoke environments', () => {
     const e = loadEffectiveConfig(made.files[0]!, made.files[1]!, {
       fence: fence('wikipedia-org'),
     });
-    expect(e.portal.model.experiment_flags).toEqual([{ cookie: 'ab_calc' }, { storage: 'exp.hero' }]);
+    expect(e.portal.model.experiment_flags).toEqual([
+      { cookie: 'ab_calc' },
+      { storage: 'exp.hero' },
+    ]);
   });
 
   it('puts the file back when the change does not load, and knows unknown portals', () => {

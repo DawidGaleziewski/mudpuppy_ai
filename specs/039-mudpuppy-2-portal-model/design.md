@@ -1015,6 +1015,8 @@ CREATE TABLE process_instances (
   outcome_screen_id     TEXT REFERENCES screens(id),
   correlation_id        TEXT REFERENCES correlation_ids(id),
   model_version_id      TEXT NOT NULL REFERENCES model_versions(id)
+  -- 0043 (ALTER TABLE, T079): screens_json TEXT, JSON array of the model screen ids walked,
+  -- start screen first (the trace variant); NULL on rows written before 0043.
 ) STRICT;
 
 ALTER TABLE ba_processes ADD COLUMN start_screen_id TEXT REFERENCES screens(id);

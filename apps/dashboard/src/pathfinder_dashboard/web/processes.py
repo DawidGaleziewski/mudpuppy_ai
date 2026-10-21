@@ -31,7 +31,7 @@ router = APIRouter()
 WRITE_PATH = re.compile(
     r"^processes(/[^/]+(/models(/[A-Z]{1,2}/(draft|save|rebase|restore|edit))?"
     r"|/live|/change-spec|/archive|/unarchive)?)?$"
-    r"|^suggestions/[^/]+/(accept|dismiss)$"
+    r"|^suggestions/[^/]+/(accept|dismiss|split|merge)$"
 )
 
 

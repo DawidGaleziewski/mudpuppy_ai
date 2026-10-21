@@ -1004,3 +1004,26 @@ Bugs, slips and design deviations found while building, each with a test or eval
 - **Test**: store `rule-export.test.ts` (files, Markdown order, CSV lines, sentence, statuses);
   dashboard `test_rules_export.py` (zip, single files, names outside the export, the fragment);
   the real command against a scratch store: README and CSV written.
+
+## F-56 Process paths, split and merge of proposals, the 2.0 UI words (T079, T101), 2026-10-21
+
+- **Built**:
+  - **Paths** (v2-10) on the process page: each distinct screen sequence walked through the
+    process, how it ended and how many instances. Migration **0043** keeps each instance's walked
+    screens (`process_instances.screens_json`, written by the reconciler) so the dashboard does
+    not re-implement the walk (made by the `db-admin` agent; tests that list the latest migration
+    updated). Rows written before 0043 show after the next rebuild.
+  - **Split** before a step and **Merge with…** another open suggestion (v2-09) through the chat
+    service (`POST …/suggestions/{id}/split|merge`): the new suggestions are open, the replaced
+    ones dismissed, so the same set is never suggested again; a merge back into a set a split
+    dismissed is refused (409) and changes nothing.
+  - Glossary (T101): the UI words of `12-v2-ux.md` § 3 — finding and explanation, change and
+    Changes, variant, link and action with link states, release with portal part and rollout,
+    Same screen?, check run, Hints — and the 2.0 page names in every Portal model entry.
+- **Bug found**: the process page linked its rules by the hypothesis key, not the BR key once
+  documented (owner answer 18 (b)); it uses the shown key now.
+- **Not done**: Overturned and release watch are not in the glossary (R-87; no poller, G3).
+  Path letters on Outcomes ("path C") and the one-case drill-down of v2-10.
+- **Test**: chat `process-suggestions.test.ts` (split, merge, refusals), dashboard `test_processes_pages.py`
+  (buttons, forwarder), `test_model_facts.py` (paths), `test_glossary.py` (ids); store
+  `process-instances.test.ts` (screens_json written).

@@ -363,7 +363,9 @@ A **process** is a business flow you care about, made of screens in order, for e
 ### Make a process
 
 - The assistant **suggests groupings** from the scans. Each suggestion shows its screens and
-  why they belong together. Accept it, change it or ignore it.
+  why they belong together. Accept it, change it or ignore it. Under **Split or merge**, split
+  it in two before a step, or merge it with another suggestion; what you split or merged is not
+  suggested again as it was.
 - Or tell the assistant: *"I want to document the product comparison."* It proposes the
   screens; you confirm start, end and the rest. It never invents screens that were not
   recorded.
@@ -377,7 +379,10 @@ A **process** is a business flow you care about, made of screens in order, for e
   PROC-001"). A second click opens the same process.
 
 A process has a key such as `PRC-001`, a persona and a stage (suggested, scoped, as-is
-documented, to-be in design, migrating, migrated).
+documented, to-be in design, migrating, migrated). Its page shows, under **In the portal model**,
+how scans entered it (triggers), how they ended (outcomes), how far it was explored and its
+rules, and under **Paths** each distinct sequence of screens walked through it with how it ended
+and how many times.
 
 ### The as-is first
 

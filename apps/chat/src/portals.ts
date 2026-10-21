@@ -229,7 +229,11 @@ export interface ExperimentFlag {
  * a person confirmed the A/B test it separates. Already there: nothing changes. Returns whether
  * it was added.
  */
-export function addExperimentFlag(paths: WorkspacePaths, id: string, flag: ExperimentFlag): boolean {
+export function addExperimentFlag(
+  paths: WorkspacePaths,
+  id: string,
+  flag: ExperimentFlag,
+): boolean {
   let added = false;
   editPortal(paths, id, (doc) => {
     const flags = (doc.getIn(['model', 'experiment_flags']) ?? null) as {

@@ -586,6 +586,7 @@ class ProcessInstance(Row):
     outcome_screen_id: str | None
     correlation_id: str | None
     model_version_id: str
+    screens_json: str | None  # 0043: JSON array of the model screen ids walked, start first
 
 
 class ProcessTrigger(Row):

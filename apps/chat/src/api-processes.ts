@@ -105,6 +105,18 @@ const ROUTES: {
     status: 200,
     run: (s, [p, id], b) => s.dismiss(p!, id!, b),
   },
+  {
+    method: 'POST',
+    path: re(`${P}/suggestions/${SEG}/split$`),
+    status: 201,
+    run: (s, [p, id], b) => s.split(p!, id!, b),
+  },
+  {
+    method: 'POST',
+    path: re(`${P}/suggestions/${SEG}/merge$`),
+    status: 201,
+    run: (s, [p, id], b) => s.merge(p!, id!, b),
+  },
 ];
 
 function re(source: string): RegExp {

@@ -1378,6 +1378,8 @@ CREATE TABLE process_instances (
   outcome_screen_id      TEXT REFERENCES model_screens(id),
   correlation_id         TEXT REFERENCES correlation_ids(id),
   model_version_id       TEXT NOT NULL REFERENCES model_versions(id),
+  -- 0043 (ALTER TABLE, spec 039 T079): the model screen ids walked, start screen first (its trace variant); NULL before 0043.
+  screens_json           TEXT CHECK (screens_json IS NULL OR (json_valid(screens_json) AND json_type(screens_json) = 'array')),
   CHECK ((trigger_kind = 'transition') = (trigger_transition_id IS NOT NULL)),
   CHECK ((trigger_kind = 'deep_link') = (trigger_observation_id IS NOT NULL)),
   CHECK (trigger_kind = 'deep_link' OR last_transition_id IS NOT NULL)

@@ -505,7 +505,7 @@ entries:
       profile it was made with, and the portal model never mixes two. An existing portal is
       switched by recomputing from the stored snapshots, without a new scan.
     example: "`fingerprint: { use: no-menu, profiles: { no-menu: { ignore_names_in: [navigation] } } }`"
-    appears_in: [portal.yaml, What changed → When two page versions are one screen, pnpm model:refingerprint]
+    appears_in: [portal.yaml, Settings → Screen identity, pnpm model:refingerprint]
     labels: [fingerprint profile, rows-v2, no-menu, ignore_names_in]
     related: [fingerprint, state, screen-threshold]
     changed_in: R-81
@@ -520,10 +520,11 @@ entries:
       Two page versions on the same route are one screen when their similarity reaches τ. Until
       a person accepts another value it is the fingerprint profile's own threshold (0.9 for
       `rows-v2`). When enough page pairs are labelled "the same" and "different", the labels
-      suggest the τ that separates them best; `pnpm model:pairs` shows it, and `pnpm model:decide
-      … accept-tau` puts it in force for that portal and profile. The next model version uses it.
+      suggest the τ that separates them best; Settings ▸ Screen identity (or `pnpm model:pairs`)
+      shows it, and accepting it there (or `pnpm model:decide … accept-tau`) puts it in force for
+      that portal and profile. The next model version uses it. Pairs are labelled on Same screen?.
     example: "τ 0.93, accepted by the owner after 60 labelled pairs."
-    appears_in: [What changed → When two page versions are one screen, pnpm model:pairs]
+    appears_in: [Settings → Screen identity, Same screen?, pnpm model:pairs]
     labels: [τ, accept-tau, threshold]
     related: [fingerprint-profile, screen]
     changed_in: R-81
@@ -3076,11 +3077,11 @@ entries:
       after every scan (and with `pnpm model:reconcile <portal>`); a rebuild never renames a screen.
       Each rebuild is a numbered model version. The raw scans are never changed by it.
     example: After two scans, model version 2 of reference-insurer has 17 screens; SC-0008 is the vehicle form with two page versions.
-    appears_in: [Scans → Map, What changed]
-    labels: [portal model, model version, model]
+    appears_in: [Home, Changes, Screens, Screens → Map]
+    labels: [portal model, model version, model, Rebuild model]
     related: [model-screen, deviation, state]
     changed_in: R-81
-    changed_on: 2026-10-19
+    changed_on: 2026-10-21
 
   - id: model-screen
     term: Screen of the model (SC-)
@@ -3092,12 +3093,47 @@ entries:
       saw them in. When a later scan shows that two screens are one, or one is two, the model
       merges or splits them and records why (lineage), instead of renaming anything. A person
       can say "same screen" or "different screen" for two page versions; the next rebuild follows it.
-    example: SC-0001 is the start page; its members r1 and r2 differ only by the release.
-    appears_in: [Scans → Map, What changed]
-    labels: [SC-, model screen, member]
-    related: [portal-model, screen-revision, state]
+      On screen a screen is Active, Merged or Retired; retired screens are kept.
+    example: SC-0001 is the start page; its variants r1 and r2 differ only by the release.
+    appears_in: [Screens, Screens → Map, Changes]
+    labels: [screen, SC-, model screen, Active, Merged, Retired]
+    related: [portal-model, screen-variant, screen-revision, state]
     changed_in: R-81
-    changed_on: 2026-10-19
+    changed_on: 2026-10-21
+
+  - id: screen-variant
+    term: Variant (r1, r2…)
+    category: pathfinder
+    group: Portal model
+    short: One way a screen looked, a page version the model keeps in that screen, and why it differs from the first one.
+    explanation: |
+      Every variant says why it differs: Release (the portal part's release changed), Persona
+      (only one persona sees it), Error, A/B test, Data (content that depends on what was typed)
+      or Unknown. The why comes from the explanation of the change that brought the variant; the
+      first one is the Baseline. A screen's page shows its variants side by side.
+    example: "r3 · A/B test? · banner \"Oferta specjalna\" on 6 of 11 visits."
+    appears_in: [Screens → screen page, Screens → Map → inspector, Same screen?]
+    labels: [variant, Baseline, why]
+    related: [model-screen, deviation, same-screen-label]
+    changed_in: R-81
+    changed_on: 2026-10-21
+
+  - id: model-link
+    term: Link and action (link states)
+    category: pathfinder
+    group: Portal model
+    short: A link leads to another screen and is drawn on the Map; an action stays inside its screen (a dialog, a field) and is only counted on it.
+    explanation: |
+      A link is Active, Not seen since a date (missing on later visits), Not checked (not followed
+      yet on the part's current release), Retired (gone, kept) or Replaced by a new one. Links on
+      every page, such as the menu, are bundled on the Map instead of drawn, unless one changed.
+      "Checked 8 / 11" on a screen counts its actions tried on the current release.
+    example: "Moje polisy · menu link · Not seen since 17 Oct."
+    appears_in: [Screens → Map, Screens → screen page]
+    labels: [link, action, Not seen since, Not checked, Retired, checked, bundled]
+    related: [model-screen, portal-model]
+    changed_in: R-81
+    changed_on: 2026-10-21
 
   - id: journey
     term: Journey
@@ -3140,10 +3176,14 @@ entries:
       micro-frontend). A change seen on a new release is drift; the same change on the same
       release needs another explanation (another persona, an A/B test, an error). A portal with
       no hashed bundles and no marker shows as "unknown" and changes are judged more slowly.
-    labels: [release, build, build epoch]
-    related: [portal-model, deviation]
+      The shell and each embedded app are portal parts, each with its own releases; old and new
+      release served at the same time is a rollout. The release marker is a Settings ▸ Hints item.
+    example: "Shell 3e1a · Kalkulator app 9c21; rollout 16 Oct 14:02 – 17 Oct 09:30."
+    appears_in: [Home, Changes → release lanes, Settings → Hints]
+    labels: [release, build, build epoch, portal part, rollout]
+    related: [portal-model, deviation, portal-hints]
     changed_in: R-81
-    changed_on: 2026-10-19
+    changed_on: 2026-10-21
 
   - id: deviation
     term: Change (deviation)
@@ -3154,28 +3194,30 @@ entries:
       After each rebuild the model compares itself with the version before. Every difference is
       a change, recorded once (seeing it again adds to the same row). Rules R1–R8 explain most
       changes from the evidence; the rest wait for a person or for a check the system runs itself.
-      The What changed page lists them in three groups: needs you, explained automatically, waiting
-      for a check.
-    appears_in: [What changed]
-    labels: [change, deviation, What changed]
+      The Changes page lists them by process and screen, each with its explanation; what needs a
+      person waits in Review, and Before / after shows the two recorded pages side by side.
+    appears_in: [Changes, Changes → Before / after, Review]
+    labels: [change, deviation, What changed, Before / after]
     related: [hypothesis, derived-fact, release]
     changed_in: R-81
-    changed_on: 2026-10-19
+    changed_on: 2026-10-21
 
   - id: hypothesis
-    term: Claim (hypothesis, H-)
+    term: Finding and explanation (hypothesis, H-)
     category: pathfinder
     group: Portal model
-    short: A testable statement about the portal, such as "this screen changed with a new release", with its evidence and the test that would refute it.
+    short: A finding is what the system noticed; its explanation is why it thinks it happened, such as "this screen changed with a new release", with the evidence and the test that would refute it.
     explanation: |
-      Every claim has a key (H-0001), a kind, its evidence and an event history in which every
-      status change carries a reason. A claim a published rule decides is a derived fact; anything
-      else stays proposed until a person confirms or rejects it (`pnpm model:decide`).
-    appears_in: [What changed]
-    labels: [claim, hypothesis, H-]
+      Inside, both are one claim with a key (H-0001), a kind, its evidence and an event history in
+      which every status change carries a reason. A claim a published rule decides is explained
+      automatically; anything else is a finding that needs you, until a person confirms or rejects
+      it in Review (or with `pnpm model:decide`), always with a one-line reason.
+    example: "Banner on 6 of 11 visits · A/B test? · Needs you."
+    appears_in: [Review, Changes, Screens → screen page]
+    labels: [finding, explanation, claim, hypothesis, H-, Needs you]
     related: [deviation, derived-fact]
     changed_in: R-81
-    changed_on: 2026-10-19
+    changed_on: 2026-10-21
 
   - id: derived-fact
     term: Explained automatically (derived fact)
@@ -3184,8 +3226,10 @@ entries:
     short: A claim the system confirmed by itself because a published rule decides it from the evidence, shown with its rule and reversible by a person.
     explanation: |
       Constitution 6.0.0: the reconciler may record facts that follow from evidence by a published
-      rule (R1–R8) without approval. Each names its rule, appears on What changed, and can be
-      overturned with a reason; an overturned fact is never written again for the same change.
+      rule (R1–R8) without approval. Each names its rule, appears on Changes and in Review's
+      Explained automatically tab, and can be overturned with a reason (Overturn is planned, R-87);
+      an overturned fact is never written again for the same change.
+    appears_in: [Review → Explained automatically, Changes]
     labels: [explained automatically, derived fact, overturn]
     related: [hypothesis, deviation]
     changed_in: R-81
@@ -3322,11 +3366,62 @@ entries:
       and element keys. `pnpm model:classify` trains it on the labelled pairs, holds every fifth
       pair back, and compares both on those: when the classifier finds distinct pairs better, the
       next model rebuild groups pages with it.
-    appears_in: [pnpm model:classify]
+    appears_in: [Settings → Screen identity, pnpm model:classify]
     labels: [similarity classifier, held-out F1]
     related: [fingerprint-profile, screen-threshold]
     changed_in: R-81
     changed_on: 2026-10-20
+
+  - id: same-screen-label
+    term: Same screen? (a pair label)
+    category: pathfinder
+    group: Portal model
+    short: A person's answer for two recorded versions of a page, Same screen, Same with different data, or Different screens, which the next model rebuild follows.
+    explanation: |
+      The Same screen? page shows two versions side by side, a disagreement between your earlier
+      label and the automatic grouping first, then each screen's variants against its first one.
+      Press 1, 2 or 3, optionally say why, and save. The labels group the screens on the next
+      rebuild and calibrate the screen threshold τ and the similarity classifier.
+    example: "r2 and r3 of Kalkulator — wynik: Same, different data · \"the banner depends on the date\"."
+    appears_in: [Review → Same screen?, Screens → Map → inspector]
+    labels: [Same screen?, Same, different data, Different screens, pair label]
+    related: [screen-variant, screen-threshold, similarity-classifier]
+    changed_in: R-81
+    changed_on: 2026-10-21
+
+  - id: check-run
+    term: Check run
+    category: pathfinder
+    group: Portal model
+    short: A run of replays and tests on the headless driver, with no AI, that checks rules at their boundaries, replays errors and explores processes, as opposed to an AI scan.
+    explanation: |
+      A check run repeats recorded steps exactly, so it costs no tokens and answers yes or no:
+      did the error come back, did the rule's boundary give the predicted screen, is every action
+      of a process still there. A person starts one from Rules or a process page (Run the rule
+      tests, Explore); the assistant starts one after you confirm in the chat. The model takes the
+      results on its next rebuild.
+    example: "Check run 01a1340c · 64 checks · 20, 21, 22 → pass."
+    appears_in: [Rules, Processes → process page, Scans]
+    labels: [check run, AI scan, Run the rule tests]
+    related: [headless-driver, boundary-test, explored-process]
+    changed_in: R-81
+    changed_on: 2026-10-21
+
+  - id: portal-hints
+    term: Hints (Settings)
+    category: pathfinder
+    group: Portal model
+    short: What the portal model is told about a portal, its release marker, the cookies that name an A/B test's arm and the texts that mean a business refusal, from the portal file.
+    explanation: |
+      Hints live in `model:` of portal.yaml. When you confirm an A/B test in Review, its cookie is
+      added to the A/B cookies, so later scans record which arm each visit saw and the variants say
+      A/B test instead of Unknown. The rest changes through the assistant.
+    example: "Release marker: header x-app-version · A/B cookies: cookie ab_calc."
+    appears_in: [Settings → Hints]
+    labels: [Hints, release marker, A/B cookie, business refusal]
+    related: [release, screen-variant]
+    changed_in: R-81
+    changed_on: 2026-10-21
 
   - id: scar
     term: Scar (scar-maker)

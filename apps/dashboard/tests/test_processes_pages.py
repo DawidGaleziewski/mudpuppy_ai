@@ -211,6 +211,37 @@ def test_list_shows_processes_suggestions_and_loose_screens(empty_store: Store) 
     assert "In no process · 1 screens" in flat and 'value="st-faq"' in body
 
 
+def test_a_suggestion_can_be_split_or_merged_with_another(empty_store: Store) -> None:
+    """Spec 039 T079 (v2-09): Split before a step, Merge with another open suggestion."""
+    seed(empty_store)
+    conn = empty_store.connect()
+    insert(
+        conn, "grouping_suggestions", id="sg-2", portal_id=P, name="Quote again", persona="guest",
+        steps=json.dumps([step("s1", "Home", "/", "st-home"), step("s2", "FAQ", "/faq", "st-x")]),
+        why="form continues", screens_key="st-home,st-x", status="open", conversation_id=None,
+        process_id=None, decided_by=None, decided_at=None, created_at=ts(6),
+    )  # fmt: skip
+    conn.commit()
+    conn.close()
+    service = Service()
+    service.routes[("POST", "/portals/liveinsurer/suggestions/sg-2/split")] = httpx2.Response(
+        201, json=[]
+    )
+    with client(empty_store, service) as c:
+        body = c.get(f"/processes?portal={P}").text
+        split = c.post(
+            "/chat/portals/liveinsurer/suggestions/sg-2/split", json={"at": "2"}, headers=ORIGIN
+        )
+    assert 'data-process="/chat/portals/liveinsurer/suggestions/sg-2/split"' in body
+    assert 'data-from="#split-sg-2"' in body and '<option value="2">step 2 · /faq</option>' in body
+    assert 'data-process="/chat/portals/liveinsurer/suggestions/sg-1/merge"' in body
+    assert '<option value="sg-2">Quote again</option>' in body
+    assert body.count('id="split-') == 1  # a one-screen suggestion cannot be split
+    assert split.status_code == 201
+    sent = [r for r in service.requests if r.url.path.endswith("/split")]
+    assert json.loads(sent[0].content) == {"at": "2", "author": "Anna"}
+
+
 def test_process_links_name_their_portal(empty_store: Store) -> None:
     """Owner 2026-10-15 (spec 029): a process key is per portal, so its links say which portal;
     a second tab on another portal still opens the right process."""

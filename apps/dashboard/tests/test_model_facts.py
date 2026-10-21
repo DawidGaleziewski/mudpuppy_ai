@@ -48,8 +48,10 @@ def seed_model(store: Store) -> None:
     )
     conn.execute(
         "INSERT INTO process_instances (id, process_id, journey_id, trigger_kind,"
-        " trigger_transition_id, last_transition_id, outcome, outcome_screen_id, model_version_id)"
-        " VALUES ('i1', 'pr-1', 'j1', 'transition', 't1', 't1', 'completed', 'M2', 'mv1')"
+        " trigger_transition_id, last_transition_id, outcome, outcome_screen_id, model_version_id,"
+        " screens_json)"
+        " VALUES ('i1', 'pr-1', 'j1', 'transition', 't1', 't1', 'completed', 'M2', 'mv1',"
+        " '[\"M1\",\"M2\"]')"
     )
     # A second journey opened the calculator by URL (a deep link, owner answer 10).
     conn.execute(
@@ -64,8 +66,8 @@ def seed_model(store: Store) -> None:
     )
     conn.execute(
         "INSERT INTO process_instances (id, process_id, journey_id, trigger_kind,"
-        " trigger_observation_id, outcome, outcome_screen_id, model_version_id)"
-        " VALUES ('i2', 'pr-1', 'j2', 'deep_link', 'o2', 'incomplete', 'M2', 'mv1')"
+        " trigger_observation_id, outcome, outcome_screen_id, model_version_id, screens_json)"
+        " VALUES ('i2', 'pr-1', 'j2', 'deep_link', 'o2', 'incomplete', 'M2', 'mv1', '[\"M2\"]')"
     )
     conn.execute(
         "INSERT INTO process_explorations (id, process_id, epoch_set, depth, random_walks,"
@@ -89,6 +91,10 @@ def test_the_process_page_shows_triggers_outcomes_and_how_far_it_was_explored(
     assert "1 completed" in flat and "1 incomplete" in flat
     assert "A URL opened on the first screen (deep link)" in flat
     assert 'data-status="ok">Thorough' in body and "no counterexamples" in flat
+    # Paths (v2-10, T079): the walked screens of each instance, grouped
+    assert "2 paths · 2 cases" in flat
+    assert '<a class="sy-path__step sy-case-normal" href="/screens/SC-0001' in body
+    assert body.index(">Home</a>") < body.index(">Car</a>")
 
 
 def test_without_a_model_the_section_is_left_out(empty_store: Store) -> None:

@@ -1,10 +1,12 @@
 """What the portal model knows of one process (spec 039 design § 13–14, UX-R51–R54, designer
-screen v2-10): how journeys entered it (triggers), how they ended (outcomes), how far it was
-explored, and the business rules decided on its screens. The same facts as the store's
-`processModelFacts` (the export), read from the stored instances. Read-only."""
+screen v2-10): how journeys entered it (triggers), how they ended (outcomes), the paths walked
+(trace variants), how far it was explored, and the business rules decided on its screens. The
+same facts as the store's `processModelFacts` (the export), read from the stored instances.
+Read-only."""
 
 from __future__ import annotations
 
+import json
 import sqlite3
 from dataclasses import dataclass, field
 from typing import Any
@@ -31,12 +33,51 @@ class Exploration:
 
 
 @dataclass(frozen=True)
+class Path:
+    """A trace variant (v2-10 Paths): one distinct sequence of screens walked, how it ended and
+    how many instances walked it."""
+
+    name: str  # A, B, C… by how often it was walked
+    screens: list[tuple[str, str]]  # (SC key, title)
+    outcome: str
+    count: int
+
+
+@dataclass(frozen=True)
 class ModelFacts:
     model_seq: int | None
     triggers: list[Trigger] = field(default_factory=list)
     outcomes: dict[str, int] = field(default_factory=dict)
     explored: Exploration | None = None
     rules: list[RuleRow] = field(default_factory=list)
+    paths: list[Path] = field(default_factory=list)
+
+
+def _paths(conn: sqlite3.Connection, portal: str, process_id: str, version: str) -> list[Path]:
+    """The instances' walked screens (migration 0043), grouped; rows written before it are left
+    out until the next rebuild."""
+    names = {
+        r["id"]: (r["key"], r["title"])
+        for r in _rows(
+            conn, "SELECT id, key, title FROM model_screens WHERE portal_id = ?", (portal,)
+        )
+    }
+    rows = _rows(
+        conn,
+        "SELECT screens_json, outcome, count(*) AS n FROM process_instances"
+        " WHERE process_id = ? AND model_version_id = ? AND screens_json IS NOT NULL"
+        " GROUP BY screens_json, outcome ORDER BY n DESC, screens_json, outcome",
+        (process_id, version),
+    )
+    return [
+        Path(
+            name=chr(ord("A") + i) if i < 26 else str(i + 1),
+            screens=[names.get(s, (s, s)) for s in json.loads(r["screens_json"])],
+            outcome=r["outcome"],
+            count=r["n"],
+        )
+        for i, r in enumerate(rows)
+    ]
 
 
 def _rows(conn: sqlite3.Connection, sql: str, args: tuple[Any, ...]) -> list[sqlite3.Row]:
@@ -105,4 +146,6 @@ def model_facts(
     explored = Exploration(**dict(last[0])) if last else None
     keys = _screen_keys(conn, [s["state_id"] for s in as_is_steps if s.get("state_id")])
     rules = [r for r in rules_view(conn, portal, None).rules if r.screen_key in keys]
-    return ModelFacts(seq, triggers, outcomes, explored, rules)
+    return ModelFacts(
+        seq, triggers, outcomes, explored, rules, _paths(conn, portal, process_id, vid)
+    )

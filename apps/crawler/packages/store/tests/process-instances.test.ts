@@ -32,6 +32,19 @@ describe('process instances (T073)', () => {
       ['exited', 5, 1],
     ]);
     expect(variants[0]!.screens.every((k) => /^SC-\d{4}$/.test(k))).toBe(true);
+    // 0043: each row keeps the model screen ids it walked, start screen first.
+    const kept = o.raw
+      .prepare(
+        `SELECT screens_json FROM process_instances
+         WHERE model_version_id = ? AND journey_id = 'j6'`,
+      )
+      .get(done.modelVersion) as { screens_json: string };
+    const walked = JSON.parse(kept.screens_json) as string[];
+    expect(walked).toHaveLength(2);
+    const all = o.raw
+      .prepare('SELECT screens_json FROM process_instances WHERE model_version_id = ?')
+      .all(done.modelVersion) as { screens_json: string | null }[];
+    expect(all.every((r) => r.screens_json !== null)).toBe(true);
     await o.close();
   });
 });

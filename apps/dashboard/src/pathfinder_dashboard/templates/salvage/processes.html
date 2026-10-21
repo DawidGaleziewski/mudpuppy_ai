@@ -115,6 +115,34 @@
         <button class="sy-btn sy-btn--sm sy-btn--quiet" type="button" data-process="{{ base }}dismiss" data-confirm="Dismiss {{ s.name }}? It is not suggested again for the same screens." aria-label="Dismiss {{ s.name }}">Dismiss</button>
         <p class="sy-small" role="status" data-result></p>
       </div>
+      {#- Spec 039 T079 (v2-09): split in two, or merge with another suggestion; what it replaces is dismissed. -#}
+      {%- set others = v.suggestions | rejectattr("id", "equalto", s.id) | list %}
+      {%- if s.steps | length > 1 or others %}
+      <details class="sy-disclosure">
+        <summary><span class="sy-small">Split or merge</span></summary>
+        <div class="sy-disclosure__body sy-stack" style="--sy-gap: 8px" data-actions>
+          {%- if s.steps | length > 1 %}
+          <div class="sy-cluster">
+            <label class="sy-field"><span class="sy-field__label">Split before</span>
+              <select class="sy-select sy-select--md" id="split-{{ s.id }}" name="at">
+                {%- for st in s.steps[1:] %}<option value="{{ loop.index + 1 }}">step {{ loop.index + 1 }} · {{ st.route }}</option>{% endfor %}
+              </select></label>
+            <button class="sy-btn sy-btn--sm" type="button" data-process="{{ base }}split" data-from="#split-{{ s.id }}" data-confirm="Split {{ s.name }} in two? It is not suggested again as one." aria-label="Split {{ s.name }}">Split</button>
+          </div>
+          {%- endif %}
+          {%- if others %}
+          <div class="sy-cluster">
+            <label class="sy-field"><span class="sy-field__label">Merge with</span>
+              <select class="sy-select sy-select--md" id="merge-{{ s.id }}" name="with">
+                {%- for o in others %}<option value="{{ o.id }}">{{ o.name }}</option>{% endfor %}
+              </select></label>
+            <button class="sy-btn sy-btn--sm" type="button" data-process="{{ base }}merge" data-from="#merge-{{ s.id }}" aria-label="Merge {{ s.name }}">Merge</button>
+          </div>
+          {%- endif %}
+          <p class="sy-small" role="status" data-result></p>
+        </div>
+      </details>
+      {%- endif %}
     </article>
     {%- endfor %}
   </div>

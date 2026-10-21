@@ -166,8 +166,8 @@ export function writeProcessInstances(raw: Raw, portal: string, versionId: strin
   const insert = raw.prepare(
     `INSERT INTO process_instances (id, process_id, journey_id, trigger_kind,
        trigger_transition_id, trigger_observation_id, last_transition_id, outcome,
-       outcome_screen_id, correlation_id, model_version_id)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NULL, ?)`,
+       outcome_screen_id, correlation_id, model_version_id, screens_json)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NULL, ?, ?)`,
   );
   for (const i of found)
     insert.run(
@@ -181,6 +181,7 @@ export function writeProcessInstances(raw: Raw, portal: string, versionId: strin
       i.outcome,
       i.outcomeScreen,
       versionId,
+      JSON.stringify(i.screens),
     );
   return found.length;
 }

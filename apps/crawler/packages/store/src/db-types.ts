@@ -1112,6 +1112,8 @@ export interface ProcessInstancesTable {
   outcome_screen_id: string | null;
   correlation_id: string | null;
   model_version_id: string;
+  /** 0043: JSON array of the model screen ids walked, start screen first; null before 0043. */
+  screens_json: string | null;
 }
 
 /** 0036: the model transitions that start a process. */

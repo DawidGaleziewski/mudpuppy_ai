@@ -112,6 +112,7 @@ describe('doc_relations triple triggers (0013_relation_triples) match RELATION_R
     insert(opened, rev('process'), rec('screen'), 'contains');
     insert(opened, rev('data_item'), rec('screen'), 'appears_on');
     insert(opened, rev('capability'), rec('screen'), 'contains');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0043');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0042');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0041');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0040');
@@ -160,6 +161,7 @@ describe('doc_relations triple triggers (0013_relation_triples) match RELATION_R
     insert(opened, rev('assumption'), rec('business_rule'), 'depends_on');
     insert(opened, rev('use_case'), rec('business_rule'), 'depends_on');
     insert(opened, rev('process'), rec('process'), 'depends_on');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0043');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0042');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0041');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0040');

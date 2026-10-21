@@ -31,7 +31,7 @@ store, vault, workflow.
 - BA processes (spec 022 M5, contracts/processes-api.md): `process-steps` (pure step rules),
   `process-bodies` (request schemas), `process-store` (loads, the revision write with base check),
   `process-service` (create, rename/stage, branch, drafts, save, rebase, restore, live, change
-  spec; A and B are process models, `…/models/{label}/…`, spec 039 owner answer 8), `process-suggestions` (the assistant's groupings: suggest, accept, dismiss),
+  spec; A and B are process models, `…/models/{label}/…`, spec 039 owner answer 8), `process-suggestions` (the assistant's groupings: suggest, accept, dismiss, split, merge),
   `api-processes` (routes), `mcp-process-tools` (`list_grouping_inputs`, `suggest_grouping`).
   Spec 027 (R-54): archive / unarchive (never delete), `models/A/edit` (a person's edit of A,
   an `edit` revision), sign-off records `as_is_rev`, and `process-from-record` (a PROC record
