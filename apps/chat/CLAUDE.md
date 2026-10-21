@@ -51,7 +51,8 @@ store, vault, workflow.
   waiting for the owner to start).
 - Spec 039: `api-model` (`POST /portals/{p}/model/accept`: τ or the classifier, Settings;
   `…/model/decide`: confirm or reject hypotheses from Review, all keys in one transaction;
-  `…/model/label`: a Same screen? answer for two page versions),
+  `…/model/label`: a Same screen? answer for two page versions; a confirmed A/B test adds its
+  cookie to `portal.yaml` `model.experiment_flags` through `portals.addExperimentFlag`),
   `check-runs` + `api-check-runs` (headless check runs, one per portal).
 - `fence`: permission control.
 

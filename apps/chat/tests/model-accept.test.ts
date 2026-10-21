@@ -12,12 +12,14 @@ describe('model accept route', () => {
   let t: ReturnType<typeof testService>;
   let server: Server;
   let base: string;
+  let flags: string[];
   const accept = (body: unknown) =>
     fetch(`${base}/portals/${P}/model/accept`, { method: 'POST', body: JSON.stringify(body) }).then(
       async (r) => ({ status: r.status, body: (await r.json()) as Record<string, unknown> }),
     );
 
   beforeEach(async () => {
+    flags = [];
     t = testService();
     server = createApi({
       service: t.service,
@@ -25,6 +27,10 @@ describe('model accept route', () => {
       findError: () => Promise.resolve(null),
       version: 'test',
       modelStore: t.opened.raw,
+      addExperimentFlag: (portal, flag) => {
+        flags.push(`${portal} ${flag.kind}:${flag.name}`);
+        return true;
+      },
     });
     base = `http://127.0.0.1:${String(await listenLocal(server, 0))}`;
   });
@@ -106,6 +112,44 @@ describe('model accept route', () => {
     });
     expect((await decide({ keys: ['H-0001'], decision: 'confirm', by: 'Anna', reason: '' })).status).toBe(400);
     expect((await decide({ keys: ['H-0001'], decision: 'overturn', by: 'Anna', reason: 'x' })).status).toBe(400);
+    expect(flags).toEqual([]);
+
+    // OV-2: confirming an A/B test puts its cookie into the portal's Hints.
+    raw
+      .prepare(
+        `INSERT INTO hypotheses (id, key, portal_id, kind, claim, claim_json, claim_hash, origin,
+           rule, derived, confidence, model_version_id, created_at)
+         VALUES ('h3', 'H-0003', ?, 'ab_test', 'Screen S2 shows an A/B test.', '{}', ?, 'rule',
+           'R5', 0, 'needs_confirmation', 'mv1', '2026-10-21T10:00:00.000Z')`,
+      )
+      .run(P, 'h3'.repeat(32));
+    raw
+      .prepare(
+        `INSERT INTO hypothesis_events (id, hypothesis_id, from_status, to_status, actor, reason, at)
+         VALUES ('e-h3', 'h3', NULL, 'proposed', 'reconciler',
+           'waiting for a person (rule R5): separated by cookie:ab_calc', '2026-10-21T10:00:00.000Z')`,
+      )
+      .run();
+    const ab = await decide({ keys: ['H-0003'], decision: 'confirm', by: 'Anna', reason: 'banner test' });
+    expect(ab).toMatchObject({ status: 201, body: { hints: ['cookie ab_calc'] } });
+    expect(flags).toEqual([`${P} cookie:ab_calc`]);
+    // an agent's A/B claim names its cookie in claim_json
+    raw
+      .prepare(
+        `INSERT INTO hypotheses (id, key, portal_id, kind, claim, claim_json, claim_hash, origin,
+           derived, confidence, model_version_id, created_at)
+         VALUES ('h4', 'H-0004', ?, 'ab_test', 'A/B on the hero.', '{"storage":"exp.hero"}', ?,
+           'agent', 0, 'needs_confirmation', 'mv1', '2026-10-21T10:00:00.000Z')`,
+      )
+      .run(P, 'h4'.repeat(32));
+    raw
+      .prepare(
+        `INSERT INTO hypothesis_events (id, hypothesis_id, from_status, to_status, actor, reason, at)
+         VALUES ('e-h4', 'h4', NULL, 'proposed', 'ba-agent', 'two heroes', '2026-10-21T10:00:00.000Z')`,
+      )
+      .run();
+    await decide({ keys: ['H-0004'], decision: 'confirm', by: 'Anna', reason: 'yes' });
+    expect(flags).toEqual([`${P} cookie:ab_calc`, `${P} storage:exp.hero`]);
   });
 
   it('labels a pair of page versions from Same screen? (v2-14)', async () => {

@@ -143,6 +143,7 @@ def extra_values(web: Web, c: Ctx, portal: str) -> dict[str, Any]:
         "credentials_url": c.url(f"/fragments/portals/{quote(portal, safe='')}/credentials"),
         "personas": queries_settings.persona_rows(web.settings.personas_dir, portal),
         "rules": queries_settings.crawl_rules(web.settings.portals_dir, portal),
+        "hints": queries_settings.hints(web.settings.portals_dir, portal),
         "identity": screen_identity(c, portal),
         "identity_note": c.request.query_params.get("identity_note"),
     }

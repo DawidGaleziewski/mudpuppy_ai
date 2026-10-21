@@ -52,7 +52,7 @@
   <div class="sy-plate__body">
     {{ rel.lanes(tl, "this range · " ~ v.counts.all ~ " changes") }}
     {%- if not tl.lanes %}
-    <p class="sy-small sy-muted">No release was told apart yet: without a release marker, changes are found by comparing pages. Add the marker in <a href="{{ c.url('/portals/' ~ c.portal ~ '/settings') }}">Settings ▸ Hints</a>.</p>
+    <p class="sy-small sy-muted">No release was told apart yet: without a release marker, changes are found by comparing pages. Ask the assistant to add the marker; <a href="{{ c.url('/portals/' ~ c.portal ~ '/settings') }}#hints">Settings ▸ Hints</a> shows it.</p>
     {%- endif %}
   </div>
   {%- endif %}

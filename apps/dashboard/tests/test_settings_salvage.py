@@ -78,9 +78,10 @@ def test_settings_page_has_every_region(world: tuple[Store, Path, Path]) -> None
     assert r.status_code == 200
     body, plain = r.text, text(r.text)
     assert body.count("<h1") == 1 and "Settings · shop" in plain
-    for label in ("Environments", "Credentials", "Personas", "Crawl rules", "Data store"):
+    for label in ("Environments", "Credentials", "Personas", "Crawl rules", "Hints", "Data store"):
         assert f">{label}</a>" in body
-    for anchor in ("env", "cred", "personas", "crawl", "store"):
+    assert "confirming an A/B test in Review adds its cookie" in plain  # spec 039 OV-2
+    for anchor in ("env", "cred", "personas", "crawl", "hints", "store"):
         assert f'id="{anchor}"' in body
     assert "only look, never submit" in plain and "fill and submit forms (everything)" in plain
     assert body.count("sy-btn--primary") == 1 and "Save environment" in plain

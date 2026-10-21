@@ -17,6 +17,7 @@ import { loadEffectiveConfig } from '@pathfinder/config';
 import { createApi, listenLocal } from '../src/api.js';
 import {
   PortalRefusal,
+  addExperimentFlag,
   createPortal,
   describePortal,
   proposeId,
@@ -167,6 +168,23 @@ describe('portal settings: add and revoke environments', () => {
     expect(readFileSync(join(root, 'portals', 'old', 'portal.yaml'), 'utf8')).toContain(
       '# keep me',
     );
+  });
+
+  it("adds a confirmed A/B test's cookie to the Hints once, keeping the file's comments", () => {
+    const made = createPortal(paths(), WIKI);
+    expect(addExperimentFlag(paths(), 'wikipedia-org', { kind: 'cookie', name: 'ab_calc' })).toBe(
+      true,
+    );
+    expect(addExperimentFlag(paths(), 'wikipedia-org', { kind: 'cookie', name: 'ab_calc' })).toBe(
+      false,
+    );
+    addExperimentFlag(paths(), 'wikipedia-org', { kind: 'storage', name: 'exp.hero' });
+    const file = readFileSync(join(root, 'portals', 'wikipedia-org', 'portal.yaml'), 'utf8');
+    expect(file).toMatch(/^# Added from the dashboard/);
+    const e = loadEffectiveConfig(made.files[0]!, made.files[1]!, {
+      fence: fence('wikipedia-org'),
+    });
+    expect(e.portal.model.experiment_flags).toEqual([{ cookie: 'ab_calc' }, { storage: 'exp.hero' }]);
   });
 
   it('puts the file back when the change does not load, and knows unknown portals', () => {

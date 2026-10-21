@@ -119,3 +119,47 @@ def crawl_rules(portals_dir: Path, portal: str) -> CrawlRules | None:
         else None,
         disallowed_urls=_strings(urls.get("disallowed")),
     )
+
+
+@dataclass(frozen=True)
+class Hints:
+    """Settings ▸ Hints (spec 039 G11): what the portal model is told about the portal."""
+
+    release_marker: str | None  # "header x-app-version" · "meta app-version"
+    ab_flags: list[str]  # "cookie ab_calc" · "storage exp.hero"; confirmed A/B tests add theirs
+    refusals: list[str]  # texts that make a page a business error
+
+
+def _section(doc: dict[str, Any], key: str) -> dict[str, Any]:
+    value = doc.get(key)
+    return value if isinstance(value, dict) else {}
+
+
+def hints(portals_dir: Path, portal: str) -> Hints | None:
+    """The portal file's `model:` hooks; None when the file can't be read."""
+    if not queries_chat._SAFE_ID.match(portal):
+        return None
+    path = portals_dir / portal / "portal.yaml"
+    doc = queries_chat._load_yaml(path) if path.is_file() else None
+    if not isinstance(doc, dict):
+        return None
+    model = _section(doc, "model")
+    marker = _section(model, "build_marker")
+    where = [f"{k} {marker[k]}" for k in ("header", "meta") if isinstance(marker.get(k), str)]
+    flags = model.get("experiment_flags")
+    errors = model.get("business_errors")
+    return Hints(
+        release_marker=" · ".join(where) or None,
+        ab_flags=[
+            f"{k} {f[k]}"
+            for f in (flags if isinstance(flags, list) else [])
+            if isinstance(f, dict)
+            for k in ("cookie", "storage")
+            if isinstance(f.get(k), str)
+        ],
+        refusals=[
+            e["text"]
+            for e in (errors if isinstance(errors, list) else [])
+            if isinstance(e, dict) and isinstance(e.get("text"), str)
+        ],
+    )

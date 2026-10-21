@@ -965,3 +965,20 @@ Bugs, slips and design deviations found while building, each with a test or eval
   variant against first variant instead).
 - **Test**: `test_same_screen.py`; chat `model-accept.test.ts` (label route); `ui:check` at 1280
   and 390: ok. Eval idea: none.
+
+## F-54 Settings ▸ Hints and a confirmed A/B test's cookie (G11, OV-2), 2026-10-21
+
+- **Built**: Settings has a **Hints** plate read from the portal file's `model:` (release marker,
+  A/B cookies, business refusals). Confirming an `ab_test` finding in Review (chat
+  `POST …/model/decide`) adds its flag to `model.experiment_flags` in `portal.yaml` through the
+  same checked edit as environments (comments kept, the file put back when it no longer loads);
+  already there: nothing changes. The flag comes from an agent's claim (`cookie` / `storage` in
+  `claim_json`) or rule R5's note ("separated by cookie:NAME"). The answer lists `hints` added.
+- **Gap found**: rule R5 names the separating flag only when the replay context carries
+  `separatingFlag`, and nothing fills it: the R4/R5 repeat replays are not built (known since
+  2026-10-19). So today an A/B finding comes only from an agent, and a rule-made one never names
+  its cookie. Test idea: a scenario where two arms alternate by cookie produces an `ab_test`
+  finding naming the cookie, and confirming it lands in Hints.
+- **Not done**: editing hints from the page (the assistant changes the file), Budgets.
+- **Test**: chat `portals.test.ts` (added once, comments kept, loads), `model-accept.test.ts`
+  (rule note and agent claim); dashboard `test_queries_settings.py`, `test_settings_salvage.py`.

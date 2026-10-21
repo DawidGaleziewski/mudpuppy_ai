@@ -106,3 +106,21 @@ def test_crawl_rules_from_the_portal_file(tmp_path: Path) -> None:
     # no allowed list at all means everything on the allowed domains, not "nothing"
     assert bare.robots == "ignore" and bare.allowed_urls is None and bare.disallowed_urls == []
     assert queries_settings.crawl_rules(tmp_path, "missing") is None
+
+
+def test_hints_from_the_portal_files_model_section(tmp_path: Path) -> None:
+    """Spec 039 G11 / OV-2: release marker, A/B cookies (a confirmed A/B test adds one)."""
+    (tmp_path / "shop").mkdir()
+    (tmp_path / "shop" / "portal.yaml").write_text(
+        "id: shop\nmodel:\n  build_marker: {header: x-app-version}\n"
+        "  experiment_flags: [{cookie: ab_calc}, {storage: exp.hero}]\n"
+        "  business_errors: [{text: Nie możemy Cię ubezpieczyć}]\n"
+    )
+    (tmp_path / "bare").mkdir()
+    (tmp_path / "bare" / "portal.yaml").write_text("id: bare\n")
+    h = queries_settings.hints(tmp_path, "shop")
+    assert h and h.release_marker == "header x-app-version"
+    assert h.ab_flags == ["cookie ab_calc", "storage exp.hero"]
+    assert h.refusals == ["Nie możemy Cię ubezpieczyć"]
+    assert queries_settings.hints(tmp_path, "bare") == queries_settings.Hints(None, [], [])
+    assert queries_settings.hints(tmp_path, "missing") is None

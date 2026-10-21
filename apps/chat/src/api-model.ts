@@ -4,7 +4,8 @@
 //   refuses what is not ready. Same effect as `pnpm model:decide … accept-tau | accept-classifier`.
 // - `POST /portals/{p}/model/decide`: confirm or reject a finding or rule (H-nnnn) from Review
 //   (T100, designer screen v2-04), with the person's reason. Same effect as
-//   `pnpm model:decide … confirm|reject`. Overturn waits for R-87.
+//   `pnpm model:decide … confirm|reject`. Overturn waits for R-87. Confirming an A/B test adds
+//   its cookie to the portal's Hints (`model.experiment_flags`, owner answer OV-2).
 // - `POST /portals/{p}/model/label`: a person's answer to "Same screen?" for two page versions
 //   (designer screen v2-14): same screen, same with different data, or different screens. A
 //   constraint for the next rebuild. Same effect as `pnpm model:decide … label`.
@@ -21,6 +22,7 @@ import {
 import { z } from 'zod';
 import { HttpError } from './http-error.js';
 import { readJson, sendJson } from './http-io.js';
+import type { ExperimentFlag } from './portals.js';
 
 const ROUTE = /^\/portals\/([^/]+)\/model\/(accept|decide|label)$/;
 
@@ -78,8 +80,25 @@ function accept(raw: BetterSqlite3.Database, portal: string, body: unknown): unk
     : { classifier: acceptClassifier(raw, portal, opts) };
 }
 
-/** Every key in one transaction: a refused key decides none of them. */
-function decide(raw: BetterSqlite3.Database, portal: string, body: unknown): unknown {
+/** Adds a confirmed A/B test's flag to the portal's Hints; true when it was new (OV-2). */
+export type AddFlag = (portal: string, flag: ExperimentFlag) => boolean;
+
+/** The store the routes decide in, and where a confirmed A/B test's cookie goes. */
+export interface ModelDeps {
+  raw: BetterSqlite3.Database;
+  addFlag?: AddFlag;
+}
+
+/**
+ * Every key in one transaction: a refused key decides none of them. A confirmed A/B test adds
+ * its cookie to the portal's Hints (owner answer OV-2), so later scans read the arm.
+ */
+function decide(
+  raw: BetterSqlite3.Database,
+  portal: string,
+  body: unknown,
+  addFlag?: AddFlag,
+): unknown {
   const { keys, decision, by, reason } = parse(DecideBody, body);
   const decided = raw.transaction(() =>
     keys.map((key) => ({
@@ -87,7 +106,35 @@ function decide(raw: BetterSqlite3.Database, portal: string, body: unknown): unk
       status: decideHypothesis(raw, { portal, key, decision, actor: by, reason }),
     })),
   )();
-  return { decided };
+  if (decision !== 'confirm' || addFlag === undefined) return { decided };
+  const hints = keys.flatMap((key) => {
+    const flag = abFlagOf(raw, portal, key);
+    return flag !== null && addFlag(portal, flag) ? [`${flag.kind} ${flag.name}`] : [];
+  });
+  return { decided, hints };
+}
+
+/**
+ * The flag that separates a confirmed A/B test: `cookie` or `storage` in an agent's claim, or rule
+ * R5's note "separated by cookie:NAME" on the hypothesis's first event; null for any other
+ * hypothesis.
+ */
+function abFlagOf(raw: BetterSqlite3.Database, portal: string, key: string): ExperimentFlag | null {
+  const row = raw
+    .prepare(
+      `SELECT h.claim_json, e.reason FROM hypotheses h JOIN hypothesis_events e
+         ON e.hypothesis_id = h.id
+       WHERE h.portal_id = ? AND h.key = ? AND h.kind = 'ab_test' ORDER BY e.at, e.id LIMIT 1`,
+    )
+    .get(portal, key) as { claim_json: string; reason: string | null } | undefined;
+  if (row === undefined) return null;
+  const claim = JSON.parse(row.claim_json) as Record<string, unknown>;
+  for (const kind of ['cookie', 'storage'] as const) {
+    const name = claim[kind];
+    if (typeof name === 'string' && name.length > 0) return { kind, name };
+  }
+  const m = /separated by (cookie|storage):(\S+)/.exec(row.reason ?? '');
+  return m === null ? null : { kind: m[1] as ExperimentFlag['kind'], name: m[2]! };
 }
 
 function label(raw: BetterSqlite3.Database, portal: string, body: unknown): unknown {
@@ -111,16 +158,17 @@ export async function modelRoutes(
   res: ServerResponse,
   method: string,
   path: string,
-  raw: BetterSqlite3.Database | undefined,
+  deps: ModelDeps | undefined,
 ): Promise<boolean> {
   const m = ROUTE.exec(path);
   if (m === null) return false;
-  if (raw === undefined) throw new HttpError(404, 'This address does not exist.');
+  if (deps === undefined) throw new HttpError(404, 'This address does not exist.');
+  const { raw, addFlag } = deps;
   if (method !== 'POST') throw new HttpError(405, 'This method is not allowed here.');
   const portal = decodeURIComponent(m[1]!);
   const body = await readJson(req);
   try {
-    sendJson(res, 201, HANDLERS[m[2] as keyof typeof HANDLERS](raw, portal, body));
+    sendJson(res, 201, HANDLERS[m[2] as keyof typeof HANDLERS](raw, portal, body, addFlag));
   } catch (error) {
     if (error instanceof ModelDecisionError) throw new HttpError(409, error.message);
     throw error;

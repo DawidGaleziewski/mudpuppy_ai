@@ -10,7 +10,7 @@ import { probeSuiteRoutes } from './api-probe-suites.js';
 import type { ProbeSuiteService } from './probe-suites.js';
 import type BetterSqlite3 from 'better-sqlite3';
 import { checkRunRoutes } from './api-check-runs.js';
-import { modelRoutes } from './api-model.js';
+import { type AddFlag, modelRoutes } from './api-model.js';
 import { markRoutes } from './api-marks.js';
 import type { CheckRunDeps } from './check-runs.js';
 import type { MarkService } from './marks.js';
@@ -53,6 +53,8 @@ export interface ApiOptions {
   checkRuns?: CheckRunDeps;
   /** The store, for a person's acceptance of τ or the classifier (owner answers 5, 14). */
   modelStore?: BetterSqlite3.Database;
+  /** A confirmed A/B test's cookie into the portal's Hints (OV-2). Without it: not written. */
+  addExperimentFlag?: AddFlag;
   /** Save a process scope (T027); throws `ScopeRefusal`. Without it the route answers 404. */
   scope?: (conversationId: string, body: SetScopeInput) => ProcessScope;
   /** Stop a running run (T041); throws `RunRefusal`. Without it the route answers 404. */
@@ -273,7 +275,8 @@ export function createApi(opts: ApiOptions): Server {
     if (await probeSuiteRoutes(req, res, method, path, opts.probeSuites)) return;
     if (await markRoutes(req, res, method, path, opts.marks)) return;
     if (await checkRunRoutes(req, res, method, path, opts.checkRuns)) return;
-    if (await modelRoutes(req, res, method, path, opts.modelStore)) return;
+    const modelDeps = opts.modelStore && { raw: opts.modelStore, addFlag: opts.addExperimentFlag };
+    if (await modelRoutes(req, res, method, path, modelDeps)) return;
     // T050: the chat's [stop] button. Ends the assistant's turn and stops every run the
     // conversation follows (interrupted, so they can be resumed); answers what was stopped.
     const cancel = /^\/conversations\/([^/]+)\/cancel$/.exec(path);

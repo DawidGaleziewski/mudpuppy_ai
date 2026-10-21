@@ -94,7 +94,7 @@ same list without going back. The **side menu** has nine places in three groups:
 | **Rules** | Business rules found in the cases, as decision tables with their tests. |
 | **Docs** | The as-is documentation the BA agent wrote, by record kind. |
 | *Machine:* **Scans** | The live view of a running scan, the history of scans, and **Server activity**. |
-| **Settings** | Environments, credentials, personas, crawl rules, screen identity and the data store of the chosen portal. |
+| **Settings** | Environments, credentials, personas, crawl rules, hints, screen identity and the data store of the chosen portal. |
 
 Every status is a shape plus a word, never colour alone. Filled means it happened, hollow
 means it did not (yet), dashed corners mean unconfirmed, a cross means it broke.
@@ -136,6 +136,9 @@ through the chat service, so it has to be running.
   `persona_id,login,password` and then one column per attribute; see `personas/README.md`).
 - **Crawl rules**: allowed domains and paths, disallowed paths, robots.txt. Ask the assistant to
   change a rule.
+- **Hints**: what the portal model is told about the portal: the release marker, the A/B cookies
+  and the texts that mean a business refusal. When you confirm an A/B test in Review, its cookie
+  is added here, so later scans record which arm they saw. Ask the assistant to change a hint.
 - **Data store**: which database file the dashboard reads.
 
 ## 6. The assistant

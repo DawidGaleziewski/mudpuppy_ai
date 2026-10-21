@@ -17,7 +17,13 @@ import { createFence } from './fence.js';
 import { ChatService } from './service.js';
 import { StepRecorder } from './step-recorder.js';
 import { openingMessage } from './opening.js';
-import { createPortal, describePortal, removeEnvironment, setEnvironment } from './portals.js';
+import {
+  addExperimentFlag,
+  createPortal,
+  describePortal,
+  removeEnvironment,
+  setEnvironment,
+} from './portals.js';
 import { createProcessService } from './process-service.js';
 import { createProbeSuiteService } from './probe-suites.js';
 import { createMarkService } from './marks.js';
@@ -90,6 +96,7 @@ async function main(): Promise<void> {
     marks: createMarkService({ db: opened.db }),
     checkRuns: { repoRoot, environment },
     modelStore: opened.raw,
+    addExperimentFlag: (id, flag) => addExperimentFlag({ repoRoot }, id, flag),
     // T041: tell every conversation following the run; the timer moves its step on.
     stopRun: (runId) => {
       const stopped = stopRun(opened.raw, runId, { byBa: true });
