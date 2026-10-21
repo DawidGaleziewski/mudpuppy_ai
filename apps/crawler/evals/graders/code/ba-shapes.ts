@@ -10,9 +10,10 @@
  * - `rules_on_screens_pct`: business rules linked to a screen with `applies_on`, of all rules.
  * - `data_items_code_names`: data items named by the input's code name (`rok_produkcji`,
  *   `postalCode`) instead of its visible label (spec 026 F-05, spec 031 T016).
- * - `error_pages_as_steps`: steps of the processes' as-is (variant A, latest revision) on a state of
- *   kind `technical`: an error page is never a step (spec 033 SC-007, design §7.5). Must be 0.
- *   (The owner's spec 033 verdicts went with `reconciliations`, spec 039 T076.)
+ * - `error_pages_as_steps`: steps of the processes' as-is (process model A, latest revision) on an
+ *   error page: a state of kind `technical`, or a state cited by a confirmed `flaky` or
+ *   `deterministic_error` hypothesis (spec 039, owner answer 4). An error page is never a step
+ *   (spec 033 SC-007). Must be 0.
  */
 import type { GroundTruth } from '@pathfinder/docs';
 import type { RawDb } from '../../queries.js';
@@ -25,14 +26,30 @@ export interface BaShapes {
   error_pages_as_steps: number;
 }
 
+/**
+ * Error pages: technical states, and the states a confirmed `flaky` / `deterministic_error`
+ * hypothesis cites (directly, through an observation, or through its deviation). A hypothesis's
+ * status is its latest event.
+ */
+const ERROR_STATES = `
+  WITH confirmed AS (
+    SELECT h.id, h.deviation_id FROM hypotheses h
+     WHERE h.portal_id = @portal AND h.kind IN ('flaky', 'deterministic_error')
+       AND (SELECT e.to_status FROM hypothesis_events e WHERE e.hypothesis_id = h.id
+             ORDER BY e.at DESC, e.id DESC LIMIT 1) = 'confirmed')
+  SELECT id FROM states WHERE portal_id = @portal AND state_kind = 'technical'
+  UNION SELECT coalesce(r.state_id, o.state_id) FROM confirmed c
+    JOIN hypothesis_evidence he ON he.hypothesis_id = c.id
+    JOIN entity_refs r ON r.id = he.ref_id
+    LEFT JOIN observations o ON o.id = r.observation_id
+   WHERE coalesce(r.state_id, o.state_id) IS NOT NULL
+  UNION SELECT d.state_id FROM confirmed c JOIN deviations d ON d.id = c.deviation_id
+   WHERE d.state_id IS NOT NULL`;
+
 /** Steps of the processes' as-is on an error page (see the module comment). */
 export function errorPagesAsSteps(db: RawDb, portal: string): number {
   const errors = new Set(
-    (
-      db
-        .prepare("SELECT id FROM states WHERE portal_id = ? AND state_kind = 'technical'")
-        .all(portal) as { id: string }[]
-    ).map((r) => r.id),
+    (db.prepare(ERROR_STATES).all({ portal }) as { id: string }[]).map((r) => r.id),
   );
   const steps = db
     .prepare(

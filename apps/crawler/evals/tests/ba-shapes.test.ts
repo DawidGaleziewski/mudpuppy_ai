@@ -111,5 +111,31 @@ describe('scoreBaShapes (spec 019 F-09/F-13/F-14)', () => {
       )
       .run(JSON.stringify([step('s1', 'st-ok'), step('s2', 'st-500'), step('s3', 'st-flaky')]), T);
     expect(scoreBaShapes(fx.raw, fx.portalId, GT).error_pages_as_steps).toBe(1);
+
+    // A confirmed `flaky` hypothesis citing st-flaky makes it an error page too (owner answer 4).
+    fx.raw
+      .prepare(
+        `INSERT INTO model_versions (id, portal_id, seq, built_at, algorithm, threshold, stats_json)
+         VALUES ('mv-1', ?, 1, ?, 'minhash-avglink-v1', 0.8, '{}')`,
+      )
+      .run(fx.portalId, T);
+    fx.raw
+      .prepare(
+        `INSERT INTO hypotheses (id, key, portal_id, kind, claim, claim_json, claim_hash, origin,
+           confidence, model_version_id, created_at)
+         VALUES ('h-1', 'H-0001', ?, 'flaky', 'The quote page fails now and then.', '{}', ?,
+           'agent', 'inferred', 'mv-1', ?)`,
+      )
+      .run(fx.portalId, 'a'.repeat(64), T);
+    fx.raw.prepare("INSERT INTO entity_refs (id, state_id) VALUES ('ref-1', 'st-flaky')").run();
+    fx.raw.prepare("INSERT INTO hypothesis_evidence VALUES ('h-1', 'ref-1', 'supports')").run();
+    const event = fx.raw.prepare(
+      `INSERT INTO hypothesis_events (id, hypothesis_id, from_status, to_status, actor, reason, at)
+       VALUES (?, 'h-1', ?, ?, 'owner', 'checked', ?)`,
+    );
+    event.run('e-1', null, 'proposed', T);
+    expect(scoreBaShapes(fx.raw, fx.portalId, GT).error_pages_as_steps).toBe(1);
+    event.run('e-2', 'proposed', 'confirmed', '2026-10-17T11:00:00.000Z');
+    expect(scoreBaShapes(fx.raw, fx.portalId, GT).error_pages_as_steps).toBe(2);
   });
 });
