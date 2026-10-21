@@ -70,4 +70,4 @@ tiers green and an interim merge to master behind `UI_SALVAGE`.
 - [x] T039 [sonnet] Remove Console CSS, JetBrains Mono, the old base and the flag; `find-old-styles.sh` = 0 over the app
 - [x] T040 [sonnet] Visual baselines from the app with fixture data (FE-Q11), compared with the package screenshots; axe on every screen; keyboard pass notes (`baselines/README.md`; keyboard pass by hand not done)
 - [x] T041 [sonnet] how-to-use.md rewritten for the new IA; glossary entries (screen revision, variant, change spec, proposal, re-anchor, review inbox); glossary sync
-- [x] T042 [sonnet] Close-out: code-reviewer, roadmap R-43/R-44 rows, changelog, merge, tag, export-fork re-export (no dashboard there: check the leak list only)
+- [x] T042 [sonnet] Close-out: code-reviewer, roadmap R-43/R-44 rows, changelog, merge, tag

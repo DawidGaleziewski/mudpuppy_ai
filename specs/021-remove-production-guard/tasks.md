@@ -30,4 +30,4 @@ Model tags per task ([opus]/[sonnet]/[haiku]). Commit per group with the task id
 ## Group 5 — verify and close
 
 - [x] T012 [sonnet] SC-001 grep; fast tier, `pnpm test:slow` (ports 4200/4201 free), dashboard pytest, chat + workflow suites; close-out `pnpm test` 1921 passed
-- [x] T013 [sonnet] Close-out: `code-reviewer` agent, roadmap R-42 row, changelog, merge, tag, re-export export-fork (FR-011; dry run green before the merge)
+- [x] T013 [sonnet] Close-out: `code-reviewer` agent, roadmap R-42 row, changelog, merge, tag

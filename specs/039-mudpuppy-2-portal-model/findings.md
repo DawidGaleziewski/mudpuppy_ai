@@ -567,8 +567,7 @@ Bugs, slips and design deviations found while building, each with a test or eval
   as DMN XML. The process export adds a README section "The process in the portal model", a
   `model` block in `process.json` and `rules/<H-key>.dmn` per rule. A PROC record's export reads
   its own process (`doc_records.process_id`); a PRC export the process itself.
-- **Not done**: "contracts by schema hash" (CONTRACTS.md still groups per endpoint and attempt);
-  the export-fork part is void (the owner removed export-fork 2026-10-21).
+- **Not done**: "contracts by schema hash" (CONTRACTS.md still groups per endpoint and attempt).
 - **Test**: `process-facts.test.ts` (store; `addRule` split out of `withRule` so the process seed
   can carry the rule).
 
@@ -676,3 +675,12 @@ Bugs, slips and design deviations found while building, each with a test or eval
 - **Test**: `guards.test.ts` (model), `rule-guards.test.ts` (store). Eval idea: an "overlapping
   rule" scenario where a later step's rule contradicts an earlier one; the grader counts the
   `ambiguous` hypotheses written.
+
+## F-42 Bug: the M1 gate shipped without its eval-case entry (T023), 2026-10-21
+
+- **Symptom**: `coverage.test.ts` ("gate ids name … indexed findings") failed on `F-41@039`.
+  It runs in the gates project, so the commit hook's fast tier did not catch it, and the slow
+  tier was not re-run after T023.
+- **Fix**: spec 039's findings are indexed in `eval-cases.yaml` (F-01…F-42), and the spec is
+  listed in `coverage.test.ts`. Every new spec 039 finding now needs its entry.
+- **Test idea**: run `coverage.test.ts` in the fast tier; it is pure and needs no estate.

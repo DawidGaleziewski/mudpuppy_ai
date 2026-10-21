@@ -21,7 +21,7 @@ docs, specs, the glossary and code comments follow. Decisions are in [research.m
 **Primary Dependencies**: Zod (portal schema), Playwright (tracing, request gate)
 **Storage**: SQLite; no schema change. The stored `pw_trace` boot mode keeps reading `non_production` from older runs
 **Testing**: Vitest (fast tier + `pnpm test:slow`, since `mcp-server/src/runtime/**` and `crawler/src/**` change), pytest in `apps/dashboard`
-**Target Platform**: Linux/WSL dev machine; export-fork export (Kiro)
+**Target Platform**: Linux/WSL dev machine
 **Project Type**: monorepo (crawler MCP server + dashboard)
 **Performance Goals**: n/a
 **Constraints**: no behaviour change for portals with an explicit limit; the trace-boundary gate keeps running

@@ -18,7 +18,7 @@ own `CLAUDE.md`), the operator scripts under `scripts/`, and the test tiers.
   commit anything in `apps/crawler` while it runs (spec 012 F-16). Not incremental (F-15).
 - Operator scripts: `pnpm docs:*` (`docs:process-export <portal> <PROC-…|PRC-…> | --portal`: the
   rebuild-grade export folder, spec 034), `pnpm portal:export|delete|check|doctor` (`check`: validate a
-  portal and persona file without a run, R-49; `doctor`: first-start diagnosis of the machine and
+  portal and persona file without a run; `doctor`: first-start diagnosis of the machine and
   the way to the portal, spec 030 R-63), `pnpm vault`, `pnpm eval`,
   `pnpm eval:judge|draw|calibrate|judge-check` (LLM judges, spec 017), `pnpm eval:transcript`
   (what each agent session of a trial did, spec 034 F-21), `pnpm tokens:ba`, `pnpm stability`, `pnpm trace:import-agent`, `pnpm wireframes:build`, `pnpm reference-portal`.

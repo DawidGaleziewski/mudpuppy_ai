@@ -229,10 +229,6 @@
   title: LO-35 "fixed" reports were false; the gap made deterministic
   tier: not_testable
   reason: covered by the LO-35 known-gap case in gates/tests/shop.test.ts, which waits until both A/B variants were observed with their text, so it no longer reports "fixed" by chance or under load
-- id: F-08@020
-  title: The export-fork export broke on a Vitest config change
-  tier: not_testable
-  reason: a close-out process slip; the logged test idea is an export dry run before merging any R-item that touches a file in apps/exportfork-export/src/transforms/
 - id: F-01@023
   title: A page that only works with a cookie and a script patch opens with a portal hook
   tier: gate
@@ -289,10 +285,6 @@
   title: The squash commit took a file the owner had staged
   tier: not_testable
   reason: a process slip in the merge; the idea is a clean-status check before a squash merge
-- id: F-09@026
-  title: The export-fork export fails while the chat service runs
-  tier: not_testable
-  reason: dashboard test isolation, not crawler behaviour; the fix is pointing the dashboard tests' chat client at a closed port
 # Spec 030 (battle-tested scars): its scars are gates by SC id; the findings are indexed here
 # since spec 031 T006 added the first finding gate of spec 030 (F-08@030).
 - id: F-01@030
@@ -625,3 +617,173 @@
   title: A probe outcome misses a server message without an alert role
   tier: not_testable
   reason: not fixed yet; a gate comes with the fix (gate F-03@038 checks the state's snapshot meanwhile)
+# Spec 039 (R-81, MudPuppy 2.0): its findings are design notes, as-built records and fixed bugs;
+# the M1 capture gate is F-41@039.
+- id: F-01@039
+  title: "Fingerprint v1 already masked accessible names (T013)"
+  tier: not_testable
+  reason: a design or as-built note recorded for review; its tests are named in the finding
+- id: F-02@039
+  title: "Collapsing every repeated sibling run erased form fields (T013)"
+  tier: not_testable
+  reason: a bug fixed; fingerprint unit tests (form fields kept)
+- id: F-03@039
+  title: "Element key container path made precise (T014)"
+  tier: not_testable
+  reason: a design or as-built note recorded for review; its tests are named in the finding
+- id: F-04@039
+  title: "Build scopes approximated from what the page loads (T015)"
+  tier: not_testable
+  reason: a design or as-built note recorded for review; its tests are named in the finding
+- id: F-05@039
+  title: "Step results need a precedence (T016)"
+  tier: not_testable
+  reason: a design or as-built note recorded for review; its tests are named in the finding
+- id: F-06@039
+  title: "Physical table names kept: `edges` = transitions, `page_visits` = observations (T010–T012)"
+  tier: not_testable
+  reason: a design or as-built note recorded for review; its tests are named in the finding
+- id: F-07@039
+  title: "A transition's target observation is the visit naming it (T011)"
+  tier: not_testable
+  reason: a design or as-built note recorded for review; its tests are named in the finding
+- id: F-08@039
+  title: "Two 'element keys' (T014)"
+  tier: not_testable
+  reason: a design or as-built note recorded for review; its tests are named in the finding
+- id: F-09@039
+  title: "No version endpoint as a build marker (T015)"
+  tier: not_testable
+  reason: a design or as-built note recorded for review; its tests are named in the finding
+- id: F-10@039
+  title: "`go_to_state` starts a root journey, not a child (T017)"
+  tier: not_testable
+  reason: a design or as-built note recorded for review; its tests are named in the finding
+- id: F-11@039
+  title: "Coverage: the latest runs decide (T035)"
+  tier: not_testable
+  reason: a design or as-built note recorded for review; its tests are named in the finding
+- id: F-12@039
+  title: "Audience = persona and environment of the run (T035)"
+  tier: not_testable
+  reason: a design or as-built note recorded for review; its tests are named in the finding
+- id: F-13@039
+  title: "A screen's epoch is the set of builds of its latest visit (T035)"
+  tier: not_testable
+  reason: a design or as-built note recorded for review; its tests are named in the finding
+- id: F-14@039
+  title: "Model screens beside the crawler's screens; coverage folded into action classes (T030)"
+  tier: not_testable
+  reason: a design or as-built note recorded for review; its tests are named in the finding
+- id: F-15@039
+  title: "The miner takes the observation table as JSON (T061)"
+  tier: not_testable
+  reason: a design or as-built note recorded for review; its tests are named in the finding
+- id: F-16@039
+  title: "Bug: the asset recorder threw on a pop-up's first request (T015)"
+  tier: not_testable
+  reason: a bug fixed; unit test in the asset recorder tests
+- id: F-17@039
+  title: "M3 as built: what waits for the headless driver (T050–T056)"
+  tier: not_testable
+  reason: a design or as-built note recorded for review; its tests are named in the finding
+- id: F-18@039
+  title: "A mined threshold is only as sharp as the data's gap (T061–T063)"
+  tier: not_testable
+  reason: a design or as-built note recorded for review; its tests are named in the finding
+- id: F-19@039
+  title: "Process proposals reuse grouping suggestions, before 0036 (T071–T072)"
+  tier: not_testable
+  reason: a design or as-built note recorded for review; its tests are named in the finding
+- id: F-20@039
+  title: "The headless driver as built: replay runs, not `mode = 'probe'` (T021, T063)"
+  tier: not_testable
+  reason: a design or as-built note recorded for review; its tests are named in the finding
+- id: F-21@039
+  title: "Bug: map-mode inputs were invisible to decision mining (T060)"
+  tier: not_testable
+  reason: a bug fixed; unit test in the decision-mining tests
+- id: F-22@039
+  title: "Rule R1 as built, and the runtime's own retries (T052, T058)"
+  tier: not_testable
+  reason: a design or as-built note recorded for review; its tests are named in the finding
+- id: F-23@039
+  title: "Bug: R6 looked only at the version an action went missing in (T052, T058)"
+  tier: not_testable
+  reason: a bug fixed; covered by the removed-link and moved-link e2e scenarios
+- id: F-24@039
+  title: "Bug: one element, two action classes, once it was seen and then pressed (T034, T051)"
+  tier: not_testable
+  reason: a bug fixed; unit test in the action-class tests
+- id: F-25@039
+  title: "Decision drift as built: regression rounds without a new column (T063, T066)"
+  tier: not_testable
+  reason: a design or as-built note recorded for review; its tests are named in the finding
+- id: F-26@039
+  title: "Bug: a form whose fields each sit in a paragraph collapsed to one field (T013)"
+  tier: not_testable
+  reason: a bug fixed; fingerprint unit tests and the updated snapshots
+- id: F-27@039
+  title: "Form field names are structure; identity parameters need them (T013, T033)"
+  tier: not_testable
+  reason: a bug fixed; fingerprint unit tests and the updated snapshots
+- id: F-28@039
+  title: "τ calibration as built (T037)"
+  tier: not_testable
+  reason: a design or as-built note recorded for review; its tests are named in the finding
+- id: F-29@039
+  title: "Tables renamed to the design's names (T110)"
+  tier: not_testable
+  reason: a design or as-built note recorded for review; its tests are named in the finding
+- id: F-30@039
+  title: "'Probe run' means the headless driver's run (T116)"
+  tier: not_testable
+  reason: a design or as-built note recorded for review; its tests are named in the finding
+- id: F-31@039
+  title: "Fingerprint profiles and the accepted τ as built (T111–T115)"
+  tier: not_testable
+  reason: a design or as-built note recorded for review; its tests are named in the finding
+- id: F-32@039
+  title: "Process start, the trigger step and the v1 claim tables (T081, T076)"
+  tier: not_testable
+  reason: a design or as-built note recorded for review; its tests are named in the finding
+- id: F-33@039
+  title: "Guard intersection as built (T064)"
+  tier: not_testable
+  reason: a design or as-built note recorded for review; its tests are named in the finding
+- id: F-34@039
+  title: "One process concept as built (T070)"
+  tier: not_testable
+  reason: a design or as-built note recorded for review; its tests are named in the finding
+- id: F-35@039
+  title: "Process instances as built (T073)"
+  tier: not_testable
+  reason: a design or as-built note recorded for review; its tests are named in the finding
+- id: F-36@039
+  title: "Anchors on entity_refs as built (T074)"
+  tier: not_testable
+  reason: a design or as-built note recorded for review; its tests are named in the finding
+- id: F-37@039
+  title: "Exploring a process as built (T075)"
+  tier: not_testable
+  reason: a design or as-built note recorded for review; its tests are named in the finding
+- id: F-38@039
+  title: "The model in the process export as built (T078)"
+  tier: not_testable
+  reason: a design or as-built note recorded for review; its tests are named in the finding
+- id: F-39@039
+  title: "The chat orchestrator and the model as built (T077)"
+  tier: not_testable
+  reason: a design or as-built note recorded for review; its tests are named in the finding
+- id: F-40@039
+  title: "The similarity classifier as built (T090)"
+  tier: not_testable
+  reason: a design or as-built note recorded for review; its tests are named in the finding
+- id: F-41@039
+  title: "The M1 capture gate (T023)"
+  tier: gate
+  reason: every insurer gate scan records what the portal model rebuilds from (captureInvariants)
+- id: F-42@039
+  title: "Bug: the M1 gate shipped without its eval-case entry (T023)"
+  tier: not_testable
+  reason: a process slip; coverage.test.ts holds it

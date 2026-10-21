@@ -1,6 +1,6 @@
 /**
- * Validate a portal file, and optionally a persona with it, without starting a run (spec 018 R-49:
- * the field writes these files by hand and should not spend a crawl on a typo).
+ * Validate a portal file, and optionally a persona with it, without starting a run
+ * (a typo should not cost a crawl).
  * Usage: pnpm portal:check <portal> [<persona>] [--env <environment>]
  * Exit 0 when valid, 1 with each problem named when not, 2 on bad usage.
  */
