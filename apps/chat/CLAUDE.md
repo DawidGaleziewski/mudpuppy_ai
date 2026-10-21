@@ -49,6 +49,9 @@ store, vault, workflow.
 - Spec 039 (T077): `mcp-model-tools` (`list_process_proposals`, `name_proposal`,
   `reconcile_model`, `model_actions`: the model's proposals to name, a rebuild, the probe work
   waiting for the owner to start).
+- Spec 039: `api-model` (`POST /portals/{p}/model/accept`: τ or the classifier, Settings;
+  `…/model/decide`: confirm or reject hypotheses from Review, all keys in one transaction),
+  `check-runs` + `api-check-runs` (headless check runs, one per portal).
 - `fence`: permission control.
 
 ## Evals

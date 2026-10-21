@@ -847,3 +847,35 @@ Bugs, slips and design deviations found while building, each with a test or eval
   release lanes with a rollout, Before / after with a differing release and Previous / Next, 404),
   `test_identity.py`; `ui:check` on the three pages at 1280 and 390: ok. Eval idea: none (a
   read-only page over the model).
+
+## F-49 Review's 2.0 queue and tabs (T100 step 6), 2026-10-21
+
+- **Built** (designer screens v2-04, v2-05, v2-16):
+  - **Needs you** puts the portal model's groups first:
+    - **Findings**: changes no rule explained, apart from rules and removals.
+    - **Rules**: mined rules that are proposed, tested or broken, plus changes a rule decides.
+    - **Removals**: actions gone without a release, with one **Confirm N** for the group (UX-R24).
+    - **Processes**: open model proposals, decided on Processes.
+    - Records, assumptions, differences, re-anchoring, proposals and suites follow.
+  - **Explained automatically** lists the changes a rule explained (no Overturn: R-87).
+  - **Decided** lists a person's confirmations and rejections, with their reasons as notes. A
+    person is any event actor except the machine ones: reconciler, miner, replay, crawler,
+    ba-agent.
+  - The nav's Review count includes the four new groups.
+- **Writes**: the chat service's `POST /portals/{p}/model/decide` takes `{keys, decision, by,
+  reason}`. It decides all keys in one transaction: an unknown or refused key decides none and
+  answers 409. The dashboard posts `/review/hypotheses/{portal}` signed with the reviewer. An
+  empty reason on confirm becomes "Confirmed in Review." (the store requires one); a reject
+  without a reason is refused before the call.
+- **Changed on the way**: "All" shows only the groups with items. The empty ones are one line of
+  links (v2-04); each group's own tab keeps its explanation. Two tests moved to the group tab.
+- **Seen on the way**: a hypothesis with no events makes `decideHypothesis` throw `LifecycleError`,
+  which reaches the HTTP layer as a 500, not a 409. Real hypotheses always have a `proposed`
+  event, so only a bad fixture hits it. Worth turning into `ModelDecisionError` (not changed
+  here).
+- **Not done**: keyboard J/K/X/C/R on the queue, bulk selection beyond removals, Part and Age
+  filters, linked decisions ("also settles"), Same screen? (v2-14, next), the Undo toast.
+- **Test**: `test_review_queue.py` (groups and count, deciding a rule through the chat service,
+  reject needs a reason, the tabs), `model-accept.test.ts` (decide: none decided when one key is
+  unknown, reject two, empty reason and overturn refused); `ui:check` on the tabs at 1280 and 390:
+  ok. Eval idea: none (a person's decisions).

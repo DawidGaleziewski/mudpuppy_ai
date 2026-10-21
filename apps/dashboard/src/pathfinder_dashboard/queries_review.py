@@ -15,9 +15,15 @@ from typing import Any, NamedTuple
 from . import queries_access, queries_chat
 from .models import AmendmentWithTarget
 from .queries_proposals import ProposalView, views_of
+from .queries_queue import QueueItem, findings_rules_removals, process_proposals
 from .queries_suites import SuiteItem, open_suite_count, open_suites
 
 KINDS: tuple[tuple[str, str], ...] = (
+    # Spec 039 T100 (v2-04): the portal model's groups come first.
+    ("findings", "Findings"),
+    ("rules", "Rules"),
+    ("removals", "Removals"),
+    ("processes", "Processes"),
     ("records", "Records to confirm"),
     ("assumptions", "Assumptions to check"),
     ("differences", "Unexplained differences"),
@@ -52,6 +58,10 @@ class Inbox(NamedTuple):
     proposals: list[ProposalView]
     suites: list[SuiteItem]
     conflicts: list[Any]
+    findings: list[QueueItem]
+    rules: list[QueueItem]
+    removals: list[QueueItem]
+    processes: list[QueueItem]
 
     def count(self, kind: str) -> int:
         return len(getattr(self, kind))
@@ -108,12 +118,13 @@ def differences(conn: sqlite3.Connection, portal: str) -> list[queries_access.Di
 
 def inbox(conn: sqlite3.Connection, portal: str | None) -> Inbox:
     if not portal:
-        return Inbox([], [], [], [], [], [], [])
+        return Inbox([], [], [], [], [], [], [], [], [], [], [])
     reanchor = [
         a
         for a in queries_chat.superseded_amendments(conn, portal, "superseded")
         if not a.reapplied_as
     ]
+    findings, rules, removals = findings_rules_removals(conn, portal)
     return Inbox(
         records_to_confirm(conn, portal),
         assumptions_to_check(conn, portal),
@@ -122,6 +133,10 @@ def inbox(conn: sqlite3.Connection, portal: str | None) -> Inbox:
         open_proposals(conn, portal),
         open_suites(conn, portal),
         [],
+        findings,
+        rules,
+        removals,
+        process_proposals(conn, portal),
     )
 
 
@@ -143,10 +158,13 @@ def count(conn: sqlite3.Connection, portal: str | None) -> int:
     )
     # Differences need the access model's set logic, not one more subquery; suites came later
     # (spec 032) and stay readable on a store without their table.
+    model = sum(map(len, findings_rules_removals(conn, portal)))  # spec 039 T100
     return (
         (int(rows[0][0]) if rows else 0)
         + len(differences(conn, portal))
         + open_suite_count(conn, portal)
+        + model
+        + len(process_proposals(conn, portal))
     )
 
 

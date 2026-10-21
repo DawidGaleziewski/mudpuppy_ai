@@ -2,15 +2,72 @@
 {% import "salvage/macros.html" as sy %}
 {% set nav_current = "review" %}
 {% block title %}Review{% endblock %}
+{#- Spec 039 T100, designer screens v2-04 / v2-05 / v2-16: three tabs as real pages. Needs you is
+    the inbox (the portal model's findings, rules, removals and process proposals first, then
+    records, amendments, proposals and suites); Explained automatically lists what a rule
+    explained (Overturn waits for R-87); Decided is the audit of a person's decisions. -#}
 {% block main %}
 <div class="sy-pagehead">
   <h1 class="sy-h1">Review</h1>
   <p class="sy-meta sy-prose">
     {%- if not c.portal %}Pick a portal in the header to see what waits for a decision.
-    {%- else %}<span class="sy-num">{{ v.inbox.total }}</span> decision{{ "" if v.inbox.total == 1 else "s" }} waiting for {{ c.portal }}. Everything that waits for a decision lands here. Nothing here is deleted automatically.{% endif %}</p>
+    {%- else %}<span class="sy-num">{{ v.inbox.total }}</span> need you · <span class="sy-num">{{ explained | length }}</span> explained automatically · nothing is decided without a reason you can see later.{% endif %}</p>
 </div>
+{%- if c.portal %}
+<nav class="sy-tabs" aria-label="Review views">
+  <a class="sy-tab" href="{{ c.url('/review') }}"{% if tab == "needs" %} aria-current="page"{% endif %}>Needs you <span class="sy-count">{{ v.inbox.total }}</span></a>
+  <a class="sy-tab" href="{{ c.url('/review', tab='explained') }}"{% if tab == "explained" %} aria-current="page"{% endif %}>Explained automatically <span class="sy-count sy-count--muted">{{ explained | length }}</span></a>
+  <a class="sy-tab" href="{{ c.url('/review', tab='decided') }}"{% if tab == "decided" %} aria-current="page"{% endif %}>Decided <span class="sy-count sy-count--muted">{{ decided | length }}</span></a>
+</nav>
+{%- endif %}
 {%- if v.note %}
 <p class="sy-small" role="status">{{ v.note }}</p>
 {%- endif %}
+{%- if tab == "explained" %}
+<section class="sy-plate" aria-labelledby="exp-h">
+  <div class="sy-plate__head"><h2 id="exp-h" class="sy-plate__title">Explained automatically</h2><span class="sy-meta">newest first · reviewing is optional</span></div>
+  {%- if explained %}
+  <div class="sy-table-wrap sy-table-wrap--flush">
+    <table class="sy-table sy-table--dense" aria-labelledby="exp-h">
+      <thead><tr><th scope="col">Change</th><th scope="col">Explanation</th><th scope="col">Rule</th><th scope="col">When</th><th scope="col"><span class="sy-sr-only">Open</span></th></tr></thead>
+      <tbody>
+      {%- for ch in explained %}
+        <tr>
+          <th scope="row"><span class="sy-stack"><span class="sy-cluster"><span class="sy-chip">{{ ch.word }}</span>{% if ch.screen_key %}{{ sy.tag(ch.screen_key, sm=true) }}{% endif %}</span><span class="sy-case-normal">{{ ch.finding }}</span></span></th>
+          <td><span class="sy-stack"><span><span class="sy-chip{% if ch.explanation.chip %} sy-chip--{{ ch.explanation.chip }}{% endif %}">{{ ch.explanation.word }}</span></span><span class="sy-small sy-muted">{{ ch.explanation.text }}</span></span></td>
+          <td class="sy-mono sy-mono--sm">{{ ch.rule or "—" }}</td>
+          <td class="sy-mono sy-mono--sm sy-muted">{{ ch.created_at | when }}</td>
+          <td><a class="sy-small" href="{{ c.url('/changes/' ~ ch.id) }}">Before / after</a></td>
+        </tr>
+      {%- endfor %}
+      </tbody>
+    </table>
+  </div>
+  <div class="sy-plate__foot"><span class="sy-small sy-muted">Overturning an automatic explanation comes later (roadmap R-87).</span></div>
+  {%- else %}
+  <div class="sy-plate__body"><p class="sy-small sy-muted">No change was explained automatically yet. Changes start after the second scan.</p></div>
+  {%- endif %}
+</section>
+{%- elif tab == "decided" %}
+<section class="sy-plate" aria-labelledby="dec-h">
+  <div class="sy-plate__head"><h2 id="dec-h" class="sy-plate__title">Decided</h2><span class="sy-meta">a person's decisions on the portal model, newest first</span></div>
+  {%- if decided %}
+  <div class="sy-rows">
+    {%- for d in decided %}
+    <div class="sy-row">
+      <span class="sy-row__main">
+        <span class="sy-cluster">{{ sy.tag(d.key, c.url('/rules/' ~ d.key) if d.kind == "decision_rule" else None, sm=true) }}{{ sy.status("hypothesis", d.to_status) }}<span class="sy-meta">{{ d.kind | replace("_", " ") }}</span></span>
+        <span class="sy-case-normal">{{ d.claim }}</span>
+        {%- if d.reason %}{{ sy.note(d.reason, d.actor, d.at, sm=true) }}{% else %}<span class="sy-small sy-muted">{{ d.actor }} · {{ d.at | when }}</span>{% endif %}
+      </span>
+    </div>
+    {%- endfor %}
+  </div>
+  {%- else %}
+  <div class="sy-plate__body"><p class="sy-small sy-muted">Nothing decided yet. Your confirmations and rejections land here with their reasons, and stay.</p></div>
+  {%- endif %}
+</section>
+{%- else %}
 {% include "salvage/partials/review_inbox.html" %}
+{%- endif %}
 {% endblock %}

@@ -811,3 +811,7 @@
   title: "Changes and Before / after on today's read models (T100 step 5)"
   tier: not_testable
   reason: read-only dashboard pages; covered by test_changes.py and the UI check
+- id: F-49@039
+  title: "Review's 2.0 queue and tabs (T100 step 6)"
+  tier: not_testable
+  reason: a person's decisions; covered by test_review_queue.py, model-accept.test.ts and the UI check

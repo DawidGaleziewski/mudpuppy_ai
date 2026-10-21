@@ -21,6 +21,7 @@ from .. import (
     pager,
     queries_chat,
     queries_docs,
+    queries_queue,
     queries_review,
     queries_suites,
     review,
@@ -47,6 +48,10 @@ def _selected(
         "reanchor": lambda: next((a for a in inbox.reanchor if a.key == ident), None),
         "proposals": lambda: next((p for p in inbox.proposals if p.p.id == ident), None),
         "suites": lambda: next((s for s in inbox.suites if s.id == ident), None),
+        **{
+            k: (lambda k=k: queries_queue.by_id(getattr(inbox, k), ident))
+            for k in ("findings", "rules", "removals", "processes")
+        },
     }
     if kind in finders and (item := finders[kind]()) is not None:
         return kind, item
@@ -124,6 +129,9 @@ def review_values(
     }
 
 
+TABS = ("needs", "explained", "decided")
+
+
 @router.get("/review", response_class=HTMLResponse)
 def review_page(
     request: Request,
@@ -132,15 +140,59 @@ def review_page(
     show: str | None = None,
     note: str | None = None,
     page: str | None = None,
+    tab: str = "needs",
 ) -> HTMLResponse:
+    """Three tabs (v2-04 / v2-05 / v2-16): Needs you is the inbox; Explained automatically and
+    Decided list the portal model's changes a rule explained and a person's decisions."""
     web = web_of(request)
     c = web.ctx(request, env)
+    tab = tab if tab in TABS else "needs"
     try:
         with c.conn() as conn:
             v = review_values(c, conn, select, show, note, page)
+            other = {"explained": [], "decided": []}
+            if c.portal:
+                other["explained"] = queries_queue.explained(conn, c.portal)
+                other["decided"] = queries_queue.decided(conn, c.portal)
     except db.StoreMissing as err:
         return web.missing(c, err)
-    return web.render(c, "salvage/review.html", nav_current="review", v=v)
+    return web.render(c, "salvage/review.html", nav_current="review", v=v, tab=tab, **other)
+
+
+@router.post("/review/hypotheses/{portal}", response_model=None)
+async def review_hypotheses(request: Request, portal: str, env: str | None = None) -> Response:
+    """Confirm or reject findings, rules or a group of removals (v2-04) through the chat service
+    (the dashboard never writes), then back to the queue with the outcome as a note."""
+    if not same_origin(request):
+        return PlainTextResponse("Cross-origin request refused.", status_code=403)
+    web = web_of(request)
+    c = web.ctx(request, env)
+    form = parse_qs((await request.body()).decode("utf-8", "replace"), keep_blank_values=True)
+    keys = [k for k in form.get("keys", []) if k]
+    action = (form.get("action") or [""])[0]
+    reason = (form.get("reason") or [""])[0].strip()
+    select = (form.get("select") or [""])[0] or None
+    author = web.settings.reviewer
+    if not author:
+        note = "Set PATHFINDER_REVIEWER to your name to decide."
+    elif action not in ("confirm", "reject") or not keys:
+        note = "Unknown action, or nothing to decide."
+    elif action == "reject" and not reason:
+        note = "A reject needs a reason: say why."
+    else:
+        body = {
+            "keys": keys,
+            "decision": action,
+            "by": author,
+            "reason": reason or "Confirmed in Review.",
+        }
+        refused = await _suite_call(
+            web, c.env, f"/portals/{quote(portal, safe='')}/model/decide", body, ok=201
+        )
+        done = "Confirmed" if action == "confirm" else "Rejected"
+        note = f"Not recorded: {refused}." if refused else f"{done}: {', '.join(keys)}."
+    keep = select if note.startswith(("Not", "A reject", "Unknown")) else None
+    return RedirectResponse(c.url("/review", portal=portal, select=keep, note=note), 303)
 
 
 @router.get("/fragments/review", response_class=HTMLResponse)
@@ -229,7 +281,9 @@ def suite_calls(
     return calls + ([("approve", {"author": author})] if action == "approve" else [])
 
 
-async def _suite_call(web: Any, env: str, path: str, body: dict[str, Any]) -> str | None:
+async def _suite_call(
+    web: Any, env: str, path: str, body: dict[str, Any], ok: int = 200
+) -> str | None:
     """One chat service call; the refusal's message, or None when it went through."""
     try:
         status, answer = await chat_client.call(
@@ -237,7 +291,7 @@ async def _suite_call(web: Any, env: str, path: str, body: dict[str, Any]) -> st
         )
     except chat_client.ChatUnavailable:
         return chat_client.not_running(env)
-    if status == 200:
+    if status == ok:
         return None
     message = answer.get("message") if isinstance(answer, dict) else None
     return str(message or status)

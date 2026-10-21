@@ -1,28 +1,70 @@
-// A person's acceptance of the portal model's screen threshold or similarity classifier (spec 039
-// owner answers 5 and 14): the dashboard's Settings ▸ Screen identity posts here
-// (`POST /portals/{p}/model/accept`); the store computes the calibration and refuses what is not
-// ready. Same effect as `pnpm model:decide … accept-tau | accept-classifier`.
+// A person's decisions on the portal model from the dashboard (spec 039):
+// - `POST /portals/{p}/model/accept`: accept the screen threshold or the similarity classifier
+//   (owner answers 5 and 14; Settings ▸ Screen identity); the store computes the calibration and
+//   refuses what is not ready. Same effect as `pnpm model:decide … accept-tau | accept-classifier`.
+// - `POST /portals/{p}/model/decide`: confirm or reject a finding or rule (H-nnnn) from Review
+//   (T100, designer screen v2-04), with the person's reason. Same effect as
+//   `pnpm model:decide … confirm|reject`. Overturn waits for R-87.
 
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import type BetterSqlite3 from 'better-sqlite3';
-import { ModelDecisionError, acceptClassifier, acceptTau } from '@pathfinder/store';
+import { ModelDecisionError, acceptClassifier, acceptTau, decideHypothesis } from '@pathfinder/store';
 import { z } from 'zod';
 import { HttpError } from './http-error.js';
 import { readJson, sendJson } from './http-io.js';
 
-const ROUTE = /^\/portals\/([^/]+)\/model\/accept$/;
+const ROUTE = /^\/portals\/([^/]+)\/model\/(accept|decide)$/;
+
+/** Who decides (the dashboard's reviewer). */
+const By = z.string().trim().min(1).max(200);
 
 const AcceptBody = z
   .object({
     what: z.enum(['tau', 'classifier']),
-    /** Who accepts (the dashboard's reviewer). */
-    by: z.string().trim().min(1).max(200),
+    by: By,
     /** A fingerprint profile other than the portal's current one (`name@hash`). */
     profile: z.string().min(1).optional(),
   })
   .strict();
 
-/** Handles the request when it is the accept route; returns false otherwise. */
+const DecideBody = z
+  .object({
+    /** The hypotheses decided together (a group of removals is one decision, UX-R24). */
+    keys: z.array(z.string().regex(/^H-\d{4,}$/)).min(1).max(200),
+    decision: z.enum(['confirm', 'reject']),
+    by: By,
+    reason: z.string().trim().min(1).max(2000),
+  })
+  .strict();
+
+function parse<T>(schema: z.ZodType<T>, body: unknown): T {
+  const parsed = schema.safeParse(body);
+  if (!parsed.success)
+    throw new HttpError(400, parsed.error.issues.map((i) => i.message).join('; '));
+  return parsed.data;
+}
+
+function accept(raw: BetterSqlite3.Database, portal: string, body: unknown): unknown {
+  const { what, by, profile } = parse(AcceptBody, body);
+  const opts = { by, ...(profile === undefined ? {} : { profile }) };
+  return what === 'tau'
+    ? { tau: acceptTau(raw, portal, opts) }
+    : { classifier: acceptClassifier(raw, portal, opts) };
+}
+
+/** Every key in one transaction: a refused key decides none of them. */
+function decide(raw: BetterSqlite3.Database, portal: string, body: unknown): unknown {
+  const { keys, decision, by, reason } = parse(DecideBody, body);
+  const decided = raw.transaction(() =>
+    keys.map((key) => ({
+      key,
+      status: decideHypothesis(raw, { portal, key, decision, actor: by, reason }),
+    })),
+  )();
+  return { decided };
+}
+
+/** Handles the request when it is a model route; returns false otherwise. */
 export async function modelRoutes(
   req: IncomingMessage,
   res: ServerResponse,
@@ -35,18 +77,9 @@ export async function modelRoutes(
   if (raw === undefined) throw new HttpError(404, 'This address does not exist.');
   if (method !== 'POST') throw new HttpError(405, 'This method is not allowed here.');
   const portal = decodeURIComponent(m[1]!);
-  const body = AcceptBody.safeParse(await readJson(req));
-  if (!body.success) throw new HttpError(400, body.error.issues.map((i) => i.message).join('; '));
-  const { what, by, profile } = body.data;
-  const opts = { by, ...(profile === undefined ? {} : { profile }) };
+  const body = await readJson(req);
   try {
-    sendJson(
-      res,
-      201,
-      what === 'tau'
-        ? { tau: acceptTau(raw, portal, opts) }
-        : { classifier: acceptClassifier(raw, portal, opts) },
-    );
+    sendJson(res, 201, m[2] === 'accept' ? accept(raw, portal, body) : decide(raw, portal, body));
   } catch (error) {
     if (error instanceof ModelDecisionError) throw new HttpError(409, error.message);
     throw error;

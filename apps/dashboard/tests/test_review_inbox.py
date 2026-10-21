@@ -52,14 +52,19 @@ def test_inbox_groups_every_kind_with_counts_and_one_intent_plate(liveinsurer: S
     with client(liveinsurer) as c:
         body = c.get("/review?portal=liveinsurer").text
     flat = text(body)
-    assert "3 decisions waiting for liveinsurer" in flat  # 1 to re-anchor + 2 undecided proposals
+    assert "3 need you" in flat  # 1 to re-anchor + 2 undecided proposals
     assert body.count("sy-plate--intent") == 1
     assert "AMD-003" in group(body, "reanchor")
     proposals = group(body, "proposals")
     assert "Proposal p-open" in proposals and "Proposal p-moved" in proposals
     assert "Proposal p-new" not in proposals and "Proposal p-gone" not in proposals
-    assert "No draft records wait" in group(body, "records")
-    assert "No conflicts" in group(body, "conflicts")
+    # "All" lists only groups with items; the empty ones are one line of links (v2-04).
+    assert 'id="group-records"' not in body
+    empty = group(body, "empty")
+    assert "Records to confirm" in empty and "Edit conflicts" in empty
+    with client(liveinsurer) as c:
+        records = c.get("/review?portal=liveinsurer&show=records").text
+    assert "No draft records wait" in group(records, "records")
     # The first non-empty group's first item is selected: the amendment to re-anchor.
     assert "Re-anchor AMD-003" in body and "The element it was anchored to is gone" in flat
     assert 'action="/chat/portals/liveinsurer/amendments/amd-id-3/reapply"' in body

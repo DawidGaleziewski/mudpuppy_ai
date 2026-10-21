@@ -467,12 +467,20 @@ deleted.
 
 ## 13. Review: everything that waits for you
 
-**Review** is the one inbox. The side menu shows how many decisions wait. Filter by kind:
+**Review** is the one inbox. The side menu shows how many decisions wait. It has three tabs:
+**Needs you** (the inbox), **Explained automatically** (changes a rule explained; reviewing them
+is optional) and **Decided** (every confirmation and rejection you made on the portal model, with
+its reason). In **All**, only the kinds with something waiting are shown; the empty ones are one
+line of links. Filter by kind:
 
 ![Review inbox](how-to-use/25-review-inbox.png)
 
 | Kind | What to do |
 | --- | --- |
+| **Findings** | A change of the portal model no rule explained (see **Changes**). Open its **Before / after**. When it has a proposed explanation, **Confirm** or **Reject** it; a reject needs a reason. |
+| **Rules** | A business rule mined from the cases (proposed or tested), or one that broke or changed. **Confirm** or **Reject** it, or open the rule's decision table first. |
+| **Removals** | Actions gone while the release stayed the same. **Confirm N** in the group decides them all at once. |
+| **Processes** | Processes the portal model proposes after a scan. Accept or dismiss them on **Processes**. |
 | **Records to confirm** | Read the record and its evidence. **Confirm**, **Reject** (a reason is required) or **Comment**. |
 | **Assumptions to check** | Every assumption the BA wrote, until you confirm it (same buttons as records). A rule or use case that rests on an unchecked assumption shows it as **To check**. |
 | **Unexplained differences** | Something only some personas see (or a screen only some reach). See who sees it, compare two personas side by side, then have the BA write the rule (or, for a screen, a rule or an open question) that cites both sides. It leaves Review when that record exists. |
