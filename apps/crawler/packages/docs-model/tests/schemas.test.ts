@@ -298,6 +298,23 @@ describe('Layer B schemas (R-13)', () => {
         },
       ],
     },
+    api_endpoint: {
+      valid: {
+        title: 'Premium calculation',
+        method: 'POST',
+        path: '/api/quote/{id}/calculate',
+        purpose: 'Prices the policy for the entered vehicle.',
+        called_from: ['Vehicle details step'],
+        request_fields: ['vehicle_id'],
+        response_fields: ['premium'],
+        statuses: [200, 422],
+      },
+      invalid: [
+        { title: 't', path: '/x', purpose: 'p' },
+        { title: 't', method: 'GET', path: '', purpose: 'p' },
+        { title: 't', method: 'GET', path: '/x', purpose: 'p', statuses: ['200'] },
+      ],
+    },
   };
 
   for (const kind of DocKind.options) {

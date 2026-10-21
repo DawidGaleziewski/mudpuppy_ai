@@ -64,6 +64,7 @@ DocKind = Literal[
     "assumption",
     "open_question",
     "followup",
+    "api_endpoint",
 ]
 EvidenceTargetKind = Literal[
     "state",

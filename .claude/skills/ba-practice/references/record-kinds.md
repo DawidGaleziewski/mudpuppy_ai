@@ -18,6 +18,7 @@ Portal-language text goes in `*_verbatim` fields with a `lang` code (e.g. `pl`).
 | `assumption` (ASM) | `statement`, `impact_if_wrong` | records, reviews | "Fee shown is final" |
 | `open_question` (OQ) | `question`, `why_it_matters`, `answer_needed_from` (`sme`, `crawler`, `either`) | anything unexplained | — |
 | `followup` (FUP) | `question`, `suggested_mode` (`map`, `trace`), `target` (`{url}` or `{process_name, goal}`), `persona`, `reason` | the state with the entry point | — |
+| `api_endpoint` (API) | `method` and `path` exactly as the captured call's (its method and URL template; a create or revise that cites no such call is refused, `API_CALL_NOT_CITED`), `purpose` in business words, `called_from[]`, `request_fields[]`, `response_fields[]`, `statuses[]` | the network call (required), the screens it is called from | "Calculate the premium" |
 
 ## Relations (from → type → to)
 

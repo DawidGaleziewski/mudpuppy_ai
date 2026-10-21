@@ -48,6 +48,12 @@ function seed(o: OpenedDb): Record<string, { record: string; revision: string }>
   return out;
 }
 
+/** Drop the seeded api_endpoint record (0044's down refuses while one exists). */
+const dropApiEndpoint = (o: OpenedDb) => {
+  o.raw.prepare("DELETE FROM doc_revisions WHERE record_id = 'rec-api_endpoint'").run();
+  o.raw.prepare("DELETE FROM doc_records WHERE id = 'rec-api_endpoint'").run();
+};
+
 const insert = (o: OpenedDb, revision: string, to: string, type: string) =>
   o.raw
     .prepare('INSERT INTO doc_relations (from_revision_id, to_record_id, type) VALUES (?, ?, ?)')
@@ -112,6 +118,8 @@ describe('doc_relations triple triggers (0013_relation_triples) match RELATION_R
     insert(opened, rev('process'), rec('screen'), 'contains');
     insert(opened, rev('data_item'), rec('screen'), 'appears_on');
     insert(opened, rev('capability'), rec('screen'), 'contains');
+    dropApiEndpoint(opened);
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0044');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0043');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0042');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0041');
@@ -161,6 +169,8 @@ describe('doc_relations triple triggers (0013_relation_triples) match RELATION_R
     insert(opened, rev('assumption'), rec('business_rule'), 'depends_on');
     insert(opened, rev('use_case'), rec('business_rule'), 'depends_on');
     insert(opened, rev('process'), rec('process'), 'depends_on');
+    dropApiEndpoint(opened);
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0044');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0043');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0042');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0041');
@@ -200,5 +210,44 @@ describe('doc_relations triple triggers (0013_relation_triples) match RELATION_R
     expect(() => insert(opened!, 'no-such-rev', ids.screen!.record, 'appears_on')).toThrow(
       /FOREIGN KEY/,
     );
+  });
+});
+
+describe('0044 api_endpoint kind (spec 038 FR-008)', () => {
+  it('accepts the two new triples; down refuses while an api_endpoint exists, then restores the 0043 triggers', () => {
+    opened = openDb(':memory:');
+    migrateUp(opened.raw, MIGRATIONS);
+    const ids = seed(opened);
+    const rev = (k: string) => ids[k]!.revision;
+    const rec = (k: string) => ids[k]!.record;
+    insert(opened, rev('api_endpoint'), rec('screen'), 'appears_on');
+    insert(opened, rev('process'), rec('api_endpoint'), 'depends_on');
+    insert(opened, rev('use_case'), rec('api_endpoint'), 'depends_on');
+    insert(opened, rev('requirement'), rec('api_endpoint'), 'depends_on');
+    expect(() => insert(opened!, rev('api_endpoint'), rec('process'), 'depends_on')).toThrow(
+      /RELATION_NOT_ALLOWED/,
+    );
+    // Refused: the old CHECK cannot hold the kind, the transaction rolls back and the head stays 0044.
+    expect(() => migrateDown(opened!.raw, MIGRATIONS)).toThrow(/CHECK constraint failed/);
+    expect(
+      opened.raw.prepare("SELECT count(*) AS n FROM doc_records WHERE kind = 'api_endpoint'").get(),
+    ).toEqual({ n: 1 });
+    expect(opened.raw.prepare('SELECT count(*) AS n FROM doc_relations').get()).toEqual({ n: 4 });
+    // Without the api_endpoint rows the down runs and the 0020 triggers refuse the new triples again.
+    opened.raw.prepare('DELETE FROM doc_relations').run();
+    dropApiEndpoint(opened);
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0044');
+    expect(() => insert(opened!, rev('process'), rec('screen'), 'depends_on')).toThrow(
+      /RELATION_NOT_ALLOWED/,
+    );
+    expect(() =>
+      opened!.raw
+        .prepare(
+          `INSERT INTO doc_records (id, portal_id, kind, key, seq, title, latest_rev, created_at, updated_at)
+           VALUES ('x', 'p', 'api_endpoint', 'API-001', 1, 't', 1, 't', 't')`,
+        )
+        .run(),
+    ).toThrow(/CHECK constraint failed/);
+    migrateUp(opened.raw, MIGRATIONS);
   });
 });

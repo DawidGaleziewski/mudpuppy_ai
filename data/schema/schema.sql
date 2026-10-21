@@ -1,4 +1,4 @@
--- GENERATED from data/migrations/*.up.sql applied in order (currently through 0042_evidence_hypothesis). Do not edit by hand.
+-- GENERATED from data/migrations/*.up.sql applied in order (currently through 0044_api_endpoint_kind). Do not edit by hand.
 -- Regenerate after every migration; see data/schema/README.md.
 
 CREATE TABLE runs (
@@ -331,7 +331,7 @@ CREATE TABLE doc_records (
   portal_id     TEXT NOT NULL,
   kind          TEXT NOT NULL CHECK (kind IN (
                    'capability','screen','process','use_case','requirement','nfr','business_rule',
-                   'glossary_term','data_item','assumption','open_question','followup'
+                   'glossary_term','data_item','assumption','open_question','followup','api_endpoint'
                  )),
   key           TEXT NOT NULL,   -- '<PREFIX>-<seq 3+ digits>'
   seq           INTEGER NOT NULL,
@@ -428,7 +428,8 @@ CREATE TABLE doc_relations (
 ) STRICT, WITHOUT ROWID;
 -- Triple backstop (0013, extended by 0014 with applies_on, asks_about, follows_up, and by 0019 with
 -- glossary_term appears_on screen and process contains screen, and by 0020 with assumption|use_case
--- depends_on business_rule): the store refuses a relation whose (from kind, type, to kind) is not in
+-- depends_on business_rule, and by 0044 with api_endpoint appears_on screen and process|use_case|requirement
+-- depends_on api_endpoint): the store refuses a relation whose (from kind, type, to kind) is not in
 -- RELATION_RULES; the list equals relations.ts (drift test: docs/tests/relation-triples.test.ts).
 CREATE TRIGGER trg_doc_relations_triple_insert
 BEFORE INSERT ON doc_relations
@@ -444,11 +445,11 @@ WHEN EXISTS (
       (NEW.type = 'describes'  AND fr.kind = 'use_case'    AND tr.kind = 'process') OR
       (NEW.type = 'refines'    AND fr.kind = 'requirement' AND tr.kind IN ('use_case','capability')) OR
       (NEW.type = 'enforces'   AND fr.kind = 'requirement' AND tr.kind = 'business_rule') OR
-      (NEW.type = 'appears_on' AND fr.kind IN ('data_item','glossary_term') AND tr.kind = 'screen') OR
+      (NEW.type = 'appears_on' AND fr.kind IN ('data_item','glossary_term','api_endpoint') AND tr.kind = 'screen') OR
       (NEW.type = 'uses_term'  AND tr.kind = 'glossary_term') OR
       (NEW.type = 'synonym_of' AND fr.kind = 'glossary_term' AND tr.kind = 'glossary_term') OR
       (NEW.type = 'answers'    AND fr.kind IN ('assumption','requirement','business_rule') AND tr.kind = 'open_question') OR
-      (NEW.type = 'depends_on' AND (fr.kind = tr.kind OR (fr.kind IN ('assumption','use_case') AND tr.kind = 'business_rule'))) OR
+      (NEW.type = 'depends_on' AND (fr.kind = tr.kind OR (fr.kind IN ('assumption','use_case') AND tr.kind = 'business_rule') OR (fr.kind IN ('process','use_case','requirement') AND tr.kind = 'api_endpoint'))) OR
       (NEW.type = 'applies_on' AND fr.kind = 'business_rule' AND tr.kind = 'screen') OR
       (NEW.type = 'asks_about' AND fr.kind = 'open_question') OR
       (NEW.type = 'follows_up' AND fr.kind = 'followup' AND tr.kind IN ('process','capability','screen','business_rule','open_question','use_case'))
@@ -472,11 +473,11 @@ WHEN EXISTS (
       (NEW.type = 'describes'  AND fr.kind = 'use_case'    AND tr.kind = 'process') OR
       (NEW.type = 'refines'    AND fr.kind = 'requirement' AND tr.kind IN ('use_case','capability')) OR
       (NEW.type = 'enforces'   AND fr.kind = 'requirement' AND tr.kind = 'business_rule') OR
-      (NEW.type = 'appears_on' AND fr.kind IN ('data_item','glossary_term') AND tr.kind = 'screen') OR
+      (NEW.type = 'appears_on' AND fr.kind IN ('data_item','glossary_term','api_endpoint') AND tr.kind = 'screen') OR
       (NEW.type = 'uses_term'  AND tr.kind = 'glossary_term') OR
       (NEW.type = 'synonym_of' AND fr.kind = 'glossary_term' AND tr.kind = 'glossary_term') OR
       (NEW.type = 'answers'    AND fr.kind IN ('assumption','requirement','business_rule') AND tr.kind = 'open_question') OR
-      (NEW.type = 'depends_on' AND (fr.kind = tr.kind OR (fr.kind IN ('assumption','use_case') AND tr.kind = 'business_rule'))) OR
+      (NEW.type = 'depends_on' AND (fr.kind = tr.kind OR (fr.kind IN ('assumption','use_case') AND tr.kind = 'business_rule') OR (fr.kind IN ('process','use_case','requirement') AND tr.kind = 'api_endpoint'))) OR
       (NEW.type = 'applies_on' AND fr.kind = 'business_rule' AND tr.kind = 'screen') OR
       (NEW.type = 'asks_about' AND fr.kind = 'open_question') OR
       (NEW.type = 'follows_up' AND fr.kind = 'followup' AND tr.kind IN ('process','capability','screen','business_rule','open_question','use_case'))

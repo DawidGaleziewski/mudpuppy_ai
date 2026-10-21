@@ -181,6 +181,7 @@ export const KIND_ORDER: readonly DocKind[] = [
   'requirement',
   'business_rule',
   'data_item',
+  'api_endpoint',
   'glossary_term',
   'nfr',
   'assumption',

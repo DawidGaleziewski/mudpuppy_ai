@@ -54,7 +54,7 @@ DOC_SECTIONS: tuple[tuple[str, str, tuple[str, ...]], ...] = (
     ("processes", "Processes and use cases", ("process", "use_case")),
     ("requirements", "Requirements", ("requirement",)),
     ("rules", "Business rules", ("business_rule",)),
-    ("data", "Data dictionary", ("data_item",)),
+    ("data", "Data dictionary", ("data_item", "api_endpoint")),
     ("glossary", "Glossary", ("glossary_term",)),
     ("nfr", "Non-functional", ("nfr",)),
     ("assumptions", "Assumptions", ("assumption",)),

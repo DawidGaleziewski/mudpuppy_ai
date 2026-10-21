@@ -33,6 +33,7 @@ import {
   type SessionRow,
 } from './common.js';
 import { outsideSessionLinks, type CarriedLink } from './carry-over.js';
+import { assertApiEndpointCitesCall } from './api-endpoint-check.js';
 import { assertOneFieldPerDataItem } from './data-item-fields.js';
 import { processForRecord } from './process-link.js';
 import {
@@ -368,6 +369,7 @@ export function createRecord(ctx: BaContext, raw: unknown): WriteOutput {
   const content = parseContent(input.kind, input.content);
   assertNoPii(content, 'content', isIdPath);
   assertOneFieldPerDataItem(ctx, content, input.evidence);
+  assertApiEndpointCitesCall(ctx, content, input.evidence);
   assertNoPii(
     input.evidence.map((e) => e.note),
     'evidence.note',
@@ -480,6 +482,7 @@ export function reviseRecord(ctx: BaContext, raw: unknown): WriteOutput {
     const content = parseContent(record.kind, input.content);
     assertNoPii(content, 'content', isIdPath);
     assertOneFieldPerDataItem(ctx, content, input.evidence);
+    assertApiEndpointCitesCall(ctx, content, input.evidence);
     assertProcessNotOnlyErrors(ctx, record.kind, input.evidence);
     const dropNote = checkDrops(
       droppedLinks(ctx, record.id, record.latest_rev, session.id, input.evidence),

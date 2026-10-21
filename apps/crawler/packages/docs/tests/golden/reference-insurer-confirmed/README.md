@@ -18,6 +18,7 @@ from the Pathfinder documentation store. The outline is adapted from ISO/IEC/IEE
 | Functional requirements | 0 | 1 | 1 |
 | Business rules | 0 | 0 | 0 |
 | Data items | 0 | 1 | 1 |
+| API endpoints | 0 | 0 | 0 |
 | Glossary terms | 0 | 1 | 1 |
 | Non-functional requirements | 0 | 1 | 1 |
 | Assumptions | 0 | 0 | 0 |

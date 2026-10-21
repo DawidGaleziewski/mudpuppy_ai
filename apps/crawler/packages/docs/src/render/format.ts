@@ -11,6 +11,8 @@ export const FILE_OF_KIND: Record<DocKind, string> = {
   requirement: '05-functional-requirements.md',
   business_rule: '06-business-rules.md',
   data_item: '07-data-dictionary.md',
+  // the interfaces of the data: their own section of chapter 7 (spec 038 FR-008)
+  api_endpoint: '07-data-dictionary.md',
   glossary_term: '08-glossary.md',
   nfr: '09-non-functional.md',
   assumption: '10-assumptions-and-questions.md',
@@ -28,6 +30,7 @@ const KIND_OF_PREFIX: Record<string, DocKind> = {
   BR: 'business_rule',
   GL: 'glossary_term',
   DI: 'data_item',
+  API: 'api_endpoint',
   ASM: 'assumption',
   OQ: 'open_question',
   FUP: 'followup',

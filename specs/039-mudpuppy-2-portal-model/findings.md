@@ -1027,3 +1027,20 @@ Bugs, slips and design deviations found while building, each with a test or eval
 - **Test**: chat `process-suggestions.test.ts` (split, merge, refusals), dashboard `test_processes_pages.py`
   (buttons, forwarder), `test_model_facts.py` (paths), `test_glossary.py` (ids); store
   `process-instances.test.ts` (screens_json written).
+
+## F-57 The parked api_endpoint record kind (038b) brought onto 2.0 (T076, owner answer 23), 2026-10-21
+
+- **Built**: commit 656083c of `feature/038b-api-endpoint-kind` applied here (the rest of that
+  branch was already on master through the spec 038 squash): the `api_endpoint` (API) record kind,
+  `API_CALL_NOT_CITED` on create and revise, its export section and Docs block. Its migration was
+  written against 0028, so it was rewritten as **0044** against today's schema (`db-admin`):
+  `doc_records` rebuilt with every later column, index and trigger, the relation triple triggers
+  with `api_endpoint appears_on screen` and `process|use_case|requirement depends_on
+  api_endpoint`; down refuses while an API record exists. The BA's `record-kinds.md` has its row
+  now (frozen until the R-77 review, which the owner accepted).
+- **Bugs found**: the parked test wrote `network_calls.edge_id`, renamed `transition_id` by 0032;
+  a `describe` still named 0029. Test idea: a parked branch's migrations are checked for number
+  clashes and renamed columns before it is brought back (a script listing both).
+- **Not done**: the `feature/038b-api-endpoint-kind` branch is left as it was (delete at close-out).
+- **Test**: crawler fast tier (store, docs, docs-model, `api-endpoint-check.test.ts`,
+  `record-kinds-doc.test.ts`), dashboard and chat suites: green.

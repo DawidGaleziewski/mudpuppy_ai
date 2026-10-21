@@ -58,6 +58,8 @@ export const ERROR_CODES = [
   'UNKNOWN_HYPOTHESIS',
   // One process concept (spec 039 design § 13.4, T070): a process already has its PROC record.
   'PROCESS_DOCUMENTED',
+  // API endpoints (spec 038 FR-008): an api_endpoint record that cites no captured call matching it.
+  'API_CALL_NOT_CITED',
 ] as const;
 export type ErrorCode = (typeof ERROR_CODES)[number];
 
