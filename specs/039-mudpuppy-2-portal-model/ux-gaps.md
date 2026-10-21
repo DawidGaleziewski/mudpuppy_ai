@@ -51,3 +51,18 @@ Every P1 requirement has a screen; the P2 ones have notes (§ 10 of `12-v2-ux.md
    on today's read models first (Changes, Review tabs, Rules, Processes, Screens without "as of"),
    then the gaps, or the gaps first?
 6. The designer's open questions OV-1…OV-5 (`12-v2-ux.md` § 12).
+
+## 4. Owner answers (2026-10-21)
+
+1. **G1 Overturn**: to discuss later. It is roadmap R-87, so the pages show no Overturn yet.
+2. **G3**: no poller. Releases are known from scans only, and the release lanes show scan-time
+   markers.
+3. **G7**: the owner asked what the keys are; Claude explained them. Built on (b) until the owner
+   says otherwise: a rule is `H-nnnn` while it is a hypothesis, and gets a `BR-` key once
+   confirmed, the same key as the BA's business rule record for it.
+4. **G12**: yes. The assistant starts a check run after the owner confirms in the chat, and the
+   pages get a button for it (answer 12).
+5. **Order**: pages first on today's read models, then the gaps.
+6. **OV-1** any BA may overturn (for R-87). **OV-2** confirming an A/B test adds its cookie to
+   Settings ▸ Hints. **OV-3** retired screens and their screenshots are kept forever. **OV-4**
+   Decided is per portal. **OV-5** export DMN decision tables as well as Markdown and CSV.
