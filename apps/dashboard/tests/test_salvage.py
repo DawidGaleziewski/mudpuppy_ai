@@ -19,7 +19,7 @@ from .conftest import Store, make_client
 from .paths import REPO_ROOT
 
 PKG = REPO_ROOT / "apps/dashboard/src/pathfinder_dashboard"
-# The app's own copy of the design package's guard (the skill is not exported to export-fork).
+# The app's own copy of the design package's guard.
 GUARD = REPO_ROOT / "apps/dashboard/scripts/find-old-styles.sh"
 
 

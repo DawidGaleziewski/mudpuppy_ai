@@ -1104,7 +1104,7 @@ runs on the headless driver.
 
 Functional pages land per milestone in Salvage Yard; the UX designer's consultation
 (`ux-requirements.md`) decides the final information architecture. The export (`docs:export`,
-`docs:process-export`, `apps/exportfork-export`) gains: DMN files per confirmed rule, each process's
+`docs:process-export`) gains: DMN files per confirmed rule, each process's
 trigger, outcomes and explored bound, endpoint contracts by schema hash, and the model version
 it was built from.
 

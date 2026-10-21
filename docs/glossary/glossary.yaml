@@ -3062,42 +3062,6 @@ entries:
     changed_in: R-34
     changed_on: 2026-10-08
 
-  - id: export-fork
-    term: export-fork (field artifact)
-    category: pathfinder
-    group: Building Pathfinder
-    short: A generated, stripped and renamed copy of the crawler and BA for Kiro CLI, used to try Pathfinder on real portals where only Kiro is available.
-    explanation: |
-      `pnpm --dir apps/exportfork-export export` builds it from master into a separate local repository:
-      only the crawler and BA servers, their packages and the field commands, with the project
-      name replaced by "exportfork", the read-only dashboard (without Chat), Kiro agents (exportfork,
-      crawler, ba, reporter), skills and a steering file. No chat, evals, hooks or tracing. It is never edited by hand: fixes are made
-      here and carried out by the next export. A marker file records which commit it came from;
-      the field's own portals, personas, issues and data are never touched by an export.
-    example: "export: harness 668505a2352b → /home/dawid/projects/export-fork, 532 files, verified."
-    appears_in: [apps/exportfork-export, specs/018-export-fork]
-    labels: [export-fork, exportfork, field artifact, exportfork-export]
-    related: [field-issue]
-    changed_in: R-49
-    changed_on: 2026-10-11
-
-  - id: field-issue
-    term: Field issue
-    category: pathfinder
-    group: Building Pathfinder
-    short: One problem found while using export-fork on a real portal, written as one file by its reporter agent and imported here for triage.
-    explanation: |
-      The reporter agent writes `issues/BI-<date>-<nn>-<slug>.md`: area, severity, portal, run and
-      evidence ids, then symptom, steps, expected, actual and a suggested test or eval.
-      `pnpm --dir apps/exportfork-export import-issues` copies new valid ones to `docs/field-issues/`
-      and adds a row to its index; triage turns them into roadmap items, findings or tasks.
-    example: BI-20261012-01-crawler-stuck-on-cookie-banner, area crawler, severity blocker.
-    appears_in: [docs/field-issues/README.md, specs/018-export-fork/contracts/field-issue.md]
-    labels: [field issue, BI-]
-    related: [export-fork, scar]
-    changed_in: R-49
-    changed_on: 2026-10-11
-
   # ---- Pathfinder: the portal model (MudPuppy 2.0, spec 039) ----------------------------------
   - id: portal-model
     term: Portal model
@@ -3377,6 +3341,6 @@ entries:
     example: "SC-16: login through an identity provider on 127.0.0.2 with a 1.5 s redirect chain."
     appears_in: [apps/scar-maker/scars.yaml, gates (SC-nn)]
     labels: [scar, scar-maker, SC-]
-    related: [field-issue, fix-plugin]
+    related: [fix-plugin]
     changed_in: R-56
     changed_on: 2026-10-16
