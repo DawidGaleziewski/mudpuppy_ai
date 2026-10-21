@@ -1,7 +1,7 @@
 // The BA's hypothesis tools (spec 039 design § 10.4, T055): `list_hypotheses`, `get_hypothesis`,
-// `propose_hypothesis`, `add_hypothesis_test` and `list_deviations`. They replace spec 033's
-// `list_differing_states` / `propose_verdicts`: a difference between scans is a deviation, its
-// explanation a hypothesis with a test, and a person confirms (`pnpm model:decide`, Review).
+// `propose_hypothesis`, `add_hypothesis_test` and `list_deviations`: a difference between scans
+// is a deviation, its explanation a hypothesis with a test, and a person confirms
+// (`pnpm model:decide`, Review).
 
 import {
   addHypothesisTest,

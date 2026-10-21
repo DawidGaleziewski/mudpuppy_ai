@@ -32,9 +32,7 @@ Layer: app (Python, FastAPI + Jinja + htmx, uv; outside the TS layers)
   state's form step with its states and probe outcomes for the screen page), `queries_scans.py`, `queries_settings.py`, `queries_home.py` (Home beside the
   assistant): read models. Spec 033: `map_layout.py` (pure layout of Scans ▸ Map: discovery tree,
   layers, families), `queries_map.py` + `queries_map_node.py` (nodes, edges, inspector),
-  `web/map.py` + `static/js/map.js`; `queries_differing.py` (differing-states groups, the same
-  model as the BA tool; Review's Differing states section went with `reconciliations`, spec 039
-  T076).
+  `web/map.py` + `static/js/map.js`.
 - `stores.py`: the stores a request may open (main data dir + eval workspaces), chosen by key;
   `portals_in` (cached per file write) backs the header's store menu, which lists the stores
   holding the chosen portal, and the portal menu's links, which land on such a store (R-71).

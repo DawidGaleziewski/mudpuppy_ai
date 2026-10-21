@@ -159,7 +159,7 @@
   source: [owner 2026-10-16, graph_handler]
   route: /sc20/
   before: Two scans record two different pages behind one button; the BA documents whichever page its runs held, or both as steps.
-  after: The two outcomes are one differing-states group with their scans and frequency; the BA proposes a verdict per outcome and the owner confirms it in Review.
+  after: The portal model records one target mismatch for the button; a hypothesis explains it and a person confirms it in Review.
   status: gate
 
 - id: SC-21

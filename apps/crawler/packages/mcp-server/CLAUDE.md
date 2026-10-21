@@ -59,9 +59,7 @@ Layer: servers (G-07; `apps/crawler/layers.json`)
     while a fault is armed.
 
   BA: `services/ba/probe-suites.ts` (`propose_probe_suite`, suites stored `open`) and the
-  `get_run_evidence` kind `probe_outcomes`. Spec 033: `services/ba/differing-states.ts` (groups
-  of differing states, read by the SC-20 gate; its BA tools were replaced by spec 039's
-  hypotheses). Spec 039 (T055): `services/ba/hypotheses.ts` (`list_deviations`,
+  `get_run_evidence` kind `probe_outcomes`. Spec 039 (T055): `services/ba/hypotheses.ts` (`list_deviations`,
   `list_hypotheses`, `get_hypothesis`, `propose_hypothesis`, `add_hypothesis_test` over
   `@pathfinder/store`'s `agent-hypotheses.ts`) and the crawler's `add_hypothesis`
   (`services/agent-notes.ts`; builds the portal model first when a run's portal has none).

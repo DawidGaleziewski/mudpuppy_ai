@@ -301,7 +301,7 @@ EXPECTED_IDS = {
     "trace-catalogue",
     "form-step", "state-kind", "form-probe", "probe-suite", "test-data",  # R-69 (spec 032)
     "probe-mark", "form-probing-scan",  # R-69 owner answer 3 (spec 032 US5)
-    "portal-map",  # R-69 (4)-(5) (spec 033; differing states and verdicts went with T076@039)
+    "portal-map",  # R-69 (4)-(5) (spec 033)
     "observation", "navigation-hop", "parameter-inventory", "entry-url",  # R-37/R-38
     "checkpoint", "directed-scan", "scan-mark",  # R-66 (spec 034)
     "scan-graph",  # R-74 (spec 035)

@@ -2,8 +2,8 @@
 // the same button leads to the offer on one visit and to a "sold out today" page on the next, so
 // two scans record two outcomes of one action. Deterministic for a gate: odd presses (counted per
 // server, reset with `/__admin/reset`) show the offer, even presses the sold-out page. Before, the
-// BA documented whichever page its runs held; after, the outcomes are one differing-states group
-// with their scans, and the BA proposes a verdict per outcome for the owner to confirm.
+// BA documented whichever page its runs held; after, the portal model records one target mismatch
+// for the button, which a hypothesis explains and a person confirms.
 
 import { html, page } from '../page.js';
 import type { Scar, ScarContext } from '../types.js';

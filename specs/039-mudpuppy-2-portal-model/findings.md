@@ -684,3 +684,18 @@ Bugs, slips and design deviations found while building, each with a test or eval
 - **Fix**: spec 039's findings are indexed in `eval-cases.yaml` (F-01…F-42), and the spec is
   listed in `coverage.test.ts`. Every new spec 039 finding now needs its entry.
 - **Test idea**: run `coverage.test.ts` in the fast tier; it is pure and needs no estate.
+
+## F-43 Differing states removed; SC-20 proven on deviations (owner answer 3), 2026-10-21
+
+- **What**: the owner chose to drop whatever was left of spec 033's differing states: the
+  service `services/ba/differing-states.ts`, the dashboard's `queries_differing.py`, their shared
+  fixture and tests, and the how-to-use row. Gate SC-20 (`scars-one-button-two-pages.test.ts`)
+  now checks the portal model. The button that led to the offer and then to the sold-out page
+  is one `target_mismatch` deviation, and every SC-19 probe outcome is a `decision_point`, never
+  an unexplained mismatch.
+- **Note**: R7 also makes SC-20's button a decision point, although no input differed. Rule
+  mining finds no rule for it, so it stays with a person. The design's `nondeterministic` kind
+  would say more. The idea: R7 asks for a replay with the same input first, and if the replay
+  gets both targets, the kind is `nondeterministic`.
+- **Test**: the SC-20 gate. Eval idea: count the SC-20-like deviations the BA explains as
+  nondeterministic rather than as a rule.

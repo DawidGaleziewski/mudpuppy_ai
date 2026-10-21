@@ -527,7 +527,7 @@
 - id: F-02@033
   title: Route groups grouped unrelated pages under a route template with a parameter
   tier: not_testable
-  reason: unit test differing-states.test.ts (/p/:param makes no group)
+  reason: the differing-states groups were removed with spec 039 (owner 2026-10-21); deviations are per action class
 - id: F-03@033
   title: Queued, failed and blocked items drawn as nodes made the map twice as wide
   tier: not_testable
@@ -787,3 +787,7 @@
   title: "Bug: the M1 gate shipped without its eval-case entry (T023)"
   tier: not_testable
   reason: a process slip; coverage.test.ts holds it
+- id: F-43@039
+  title: "Differing states removed; SC-20 proven on deviations (owner answer 3)"
+  tier: not_testable
+  reason: covered by gate SC-20 (scars-one-button-two-pages.test.ts)
