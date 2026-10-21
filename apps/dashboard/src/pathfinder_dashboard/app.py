@@ -43,6 +43,7 @@ from .web import review as review_page
 from .web import rules as rules_page
 from .web import run_groups as run_groups_page
 from .web import runs as runs_page
+from .web import same_screen as same_screen_page
 from .web import scans as scans_page
 from .web import screens as screens_page
 from .web import states as states_page
@@ -151,6 +152,7 @@ def create_app(
     app.include_router(plan_page.router)
     app.include_router(process_export_page.router)
     app.include_router(map_page.router)
+    app.include_router(same_screen_page.router)
     # Last: its /chat/portals/{portal}/{rest} forwarder must not shadow the routes above.
     app.include_router(processes_page.router)
     return app

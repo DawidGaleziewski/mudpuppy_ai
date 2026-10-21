@@ -1,0 +1,44 @@
+{#- The model map's graph (v2-08): nodes are buttons placed by the server, edges are decoration in
+    their link state (the list carries the same facts). Positions are layout: inline left/top. -#}
+{%- import "salvage/macros.html" as sy %}
+<section class="sy-graph mp-map" aria-label="Map of {{ c.portal }}{% if f.view == 'since' %} since the previous release{% else %} now{% endif %}{% if m.overlay %}, with the process {{ m.overlay[1] }} highlighted{% endif %}" data-map>
+  <div class="mp-map-zoom sy-cluster" role="group" aria-label="Zoom">
+    <button class="sy-btn sy-btn--sm sy-btn--icon" type="button" data-zoom="out" aria-label="Zoom out">−</button>
+    <button class="sy-btn sy-btn--sm" type="button" data-zoom="fit">Fit</button>
+    <button class="sy-btn sy-btn--sm sy-btn--icon" type="button" data-zoom="in" aria-label="Zoom in">+</button>
+  </div>
+  <div class="sy-graph__canvas mp-map-canvas" style="width: {{ m.width }}px; height: {{ m.height }}px">
+    <svg class="sy-graph__edges" aria-hidden="true" focusable="false">
+      {%- for e in m.edges %}
+      <path class="sy-edge{% if e.state %} sy-edge--{{ e.state }}{% endif %}" d="{{ e.d }}"/>
+      {%- endfor %}
+    </svg>
+    {%- for n in m.nodes %}
+    {%- if n.kind == "family" %}
+    <a class="sy-node sy-node--deck{% if n.dim %} sy-node--dim{% endif %}" href="{{ url_of(open=n.route) }}" data-screen="{{ n.id }}" data-near="{{ n.near | join(' ') }}" style="left: {{ n.x }}px; top: {{ n.y }}px; height: {{ node_h }}px">
+      <span class="sy-node__route">{{ n.route }}/…</span>
+      <span class="sy-node__title">{{ n.title }}</span>
+    </a>
+    {%- else %}
+    <button class="sy-node{% if n.role %} sy-node--process{% endif %}{% if n.dim %} sy-node--dim{% endif %}" type="button"{% if n.status == "retired" %} data-state="retired"{% endif %} data-screen="{{ n.id }}" data-near="{{ n.near | join(' ') }}"
+            aria-pressed="{{ 'true' if selected == n.key else 'false' }}" style="left: {{ n.x }}px; top: {{ n.y }}px; height: {{ node_h }}px"            hx-get="{{ c.url('/fragments/map/screen/' ~ n.key) }}" hx-target="#map-inspector" hx-swap="innerHTML">
+      <span class="sy-node__route">{{ n.route }}</span>
+      <span class="sy-node__title sy-truncate" title="{{ n.title }}">{% if n.role %}{{ n.role }} · {% endif %}{{ n.title }}</span>
+      <span class="sy-node__meta">
+        {%- if n.status == "retired" %}{{ sy.status("model_screen", n.status) }}{% endif %}
+        {%- for word, chip in n.chips %}<span class="sy-chip{% if chip %} sy-chip--{{ chip }}{% endif %}">{{ word }}</span>{% endfor %}
+        <span class="sy-chip">{{ n.actions }} action{{ "s" if n.actions != 1 }} inside</span></span>
+    </button>
+    {%- endif %}
+    {%- endfor %}
+  </div>
+</section>
+<div class="sy-stack" style="--sy-gap: 6px">
+  <ul class="sy-legend mp-legend" aria-label="Link states">
+    {%- for state, label in (("", "Active"), ("process", "Process overlay"), ("changed", "Changed link"), ("unseen", "Not seen since"), ("unchecked", "Not checked"), ("retired", "Retired"), ("failed", "Error")) %}
+    <li><svg width="28" height="10" aria-hidden="true"><path class="sy-edge{% if state %} sy-edge--{{ state }}{% endif %}" d="M0 5H28"/></svg>{{ label }}</li>
+    {%- endfor %}
+  </ul>
+  <p class="sy-small sy-muted">Not seen since: the link was missing on later visits. Not checked: not followed yet on the part's current release. Retired links are kept; the Retired links layer shows them. Bold boxes are the overlaid process's screens, faint boxes are outside it{% if f.view == "since" %} or unchanged since the previous release{% endif %}. Actions inside a screen are counted on its box, never drawn as links.</p>
+  <p class="sy-small sy-muted">Click a screen to inspect · arrows move along links · <span class="sy-kbd">Enter</span> opens the inspector</p>
+</div>

@@ -6,7 +6,7 @@
     plan; nothing runs until Start scan, which asks the assistant through the chat service. -#}
 {% block main %}
 <div class="sy-pagehead">
-  <nav class="sy-crumbs" aria-label="Breadcrumb"><a href="{{ c.url('/scans') }}">Scans</a> / <a href="{{ c.url('/map') }}">Map</a> / <span aria-current="page">Plan next scan</span></nav>
+  <nav class="sy-crumbs" aria-label="Breadcrumb"><a href="{{ c.url('/scans') }}">Scans</a> / <span aria-current="page">Plan next scan</span></nav>
   <h1 class="sy-h1">Plan next scan</h1>
   <p class="sy-meta">
     {%- if not c.portal %}Pick a portal in the header first.
@@ -39,7 +39,7 @@
             <span class="sy-small {% if m.reach %}sy-muted{% endif %}">{{ m.reach or "no recorded way there for a replay" }}</span></li>
           {%- endfor %}
         </ul>
-        {%- else %}<p class="sy-small sy-muted">None. Mark screens on the <a href="{{ c.url('/map') }}">map</a>.</p>{% endif %}
+        {%- else %}<p class="sy-small sy-muted">None. Mark screens on the map's <a href="{{ c.url('/map', view='path') }}">One scan's path</a>.</p>{% endif %}
       </div>
       {%- endfor %}
     </fieldset>

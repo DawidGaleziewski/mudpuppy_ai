@@ -30,9 +30,9 @@ Layer: app (Python, FastAPI + Jinja + htmx, uv; outside the TS layers)
   `apps/crawler/tests/fixtures/access/three-personas.json`), `queries_review.py` (records, assumptions to check, unexplained differences, re-anchoring,
   proposals, probe suites), `queries_suites.py` (spec 032: open probe suites for Review, and a
   state's form step with its states and probe outcomes for the screen page), `queries_scans.py`, `queries_settings.py`, `queries_home.py` (Home beside the
-  assistant): read models. Spec 033: `map_layout.py` (pure layout of Scans ▸ Map: discovery tree,
-  layers, families), `queries_map.py` + `queries_map_node.py` (nodes, edges, inspector),
-  `web/map.py` + `static/js/map.js`.
+  assistant): read models. Spec 033: `map_layout.py` (pure layout of the map: discovery tree,
+  layers, families), `queries_map.py` + `queries_map_node.py` (the recorded map: Screens ▸ Map's
+  view One scan's path and a portal without a model), `web/map.py` + `static/js/map.js`.
 - `stores.py`: the stores a request may open (main data dir + eval workspaces), chosen by key;
   `portals_in` (cached per file write) backs the header's store menu, which lists the stores
   holding the chosen portal, and the portal menu's links, which land on such a store (R-71).
@@ -77,7 +77,11 @@ Layer: app (Python, FastAPI + Jinja + htmx, uv; outside the TS layers)
   `queries_portal_home.py` + `home.html` (no longer a redirect to `/chat`; the chat stays on
   `/chat` and in the drawer). Screens (v2-06 / v2-07): `queries_model_screens.py` +
   `model_screens.html` / `model_screen.html` (`/screens` for a portal with a model; `/screens/{SC-…}`);
-  `?recorded=1` keeps the recorded-pages list. A process's A and
+  `?recorded=1` keeps the recorded-pages list. Map (v2-08): `queries_model_map.py` +
+  `model_map.html` (`/map` views Now / Since previous release, link-state layers, the menu
+  bundled, process overlay; inspector `/fragments/map/screen/{SC-…}`); `view=path` is the
+  recorded map. Same screen? (v2-14): `queries_same_screen.py` + `web/same_screen.py`
+  (`/same-screen`, conflicts first; answers post to the chat service's `…/model/label`). A process's A and
   B are process models (`?model=B`, status vocabulary `process_model`; owner answer 8).
 - `servers.py`: live `pathfinder` servers read from `<data_dir>/servers/*.json`; the header names
   those on another environment or checkout (spec 031 R-61). Read-only, dead files are skipped.

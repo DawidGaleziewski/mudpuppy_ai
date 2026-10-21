@@ -107,4 +107,41 @@ describe('model accept route', () => {
     expect((await decide({ keys: ['H-0001'], decision: 'confirm', by: 'Anna', reason: '' })).status).toBe(400);
     expect((await decide({ keys: ['H-0001'], decision: 'overturn', by: 'Anna', reason: 'x' })).status).toBe(400);
   });
+
+  it('labels a pair of page versions from Same screen? (v2-14)', async () => {
+    const raw = t.opened.raw;
+    raw
+      .prepare(
+        `INSERT INTO runs (id, portal_id, persona_id, mode, environment, env_version_or_date, viewport, locale, browser, config_snapshot, status, started_at)
+         VALUES ('r1', ?, 'guest', 'map', 'sandbox', '2026-10-21', '1366x768', 'pl-PL', 'chromium', '{}', 'completed', '2026-10-21T10:00:00.000Z')`,
+      )
+      .run(P);
+    for (const id of ['st-b', 'st-a']) {
+      raw
+        .prepare(
+          `INSERT INTO states (id, portal_id, fingerprint, cluster_id, route_template, title, evidence_ref, confidence, stabilization, first_seen_run, created_at)
+           VALUES (?, ?, ?, 'cl', '/wynik', 'Wynik', 'ev', 'observed', 'settled', 'r1', '2026-10-21T10:00:00.000Z')`,
+        )
+        .run(id, P, `fp-${id}`);
+    }
+    const label = (body: unknown) =>
+      fetch(`${base}/portals/${P}/model/label`, { method: 'POST', body: JSON.stringify(body) }).then(
+        (r) => r.status,
+      );
+    expect(await label({ a: 'st-b', b: 'st-a', answer: 'same_data', by: 'Anna', reason: 'price' })).toBe(201);
+    const row = () =>
+      raw.prepare('SELECT state_a, label, nd_kind, labelled_by, reason FROM state_pair_labels').get();
+    expect(row()).toEqual({
+      state_a: 'st-a',
+      label: 'near_duplicate',
+      nd_kind: 'dynamic_data',
+      labelled_by: 'Anna',
+      reason: 'price',
+    });
+    expect(await label({ a: 'st-a', b: 'st-b', answer: 'different', by: 'Anna' })).toBe(201);
+    expect(row()).toMatchObject({ label: 'distinct', nd_kind: null, reason: null });
+    expect(await label({ a: 'st-a', b: 'st-a', answer: 'same', by: 'Anna' })).toBe(409);
+    expect(await label({ a: 'st-a', b: 'nope', answer: 'same', by: 'Anna' })).toBe(409);
+    expect(await label({ a: 'st-a', b: 'st-b', answer: 'clone', by: 'Anna' })).toBe(400);
+  });
 });

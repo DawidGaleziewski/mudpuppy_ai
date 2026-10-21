@@ -30,6 +30,10 @@
   .mp-variants { --sy-min: 220px; }   /* a screen's variants side by side (v2-07) */
   .mp-seg > button { flex: none; }
   .mp-shot-side { max-width: 100%; height: auto; }
+  /* Same screen? (v2-14): the three answers side by side, the why field beside Save. */
+  .mp-answers { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr)); gap: var(--sy-space-3); }
+  .mp-answer-foot { display: flex; flex-wrap: wrap; align-items: flex-end; gap: var(--sy-space-3) var(--sy-space-4); }
+  .mp-answer-foot .sy-field { flex: 1 1 320px; }
 
   /* htmx request indicators (htmx's own indicator CSS is off, htmx-config). */
   .htmx-indicator { visibility: hidden; }

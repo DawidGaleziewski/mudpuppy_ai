@@ -18,6 +18,8 @@
   <a class="sy-tab" href="{{ c.url('/review') }}"{% if tab == "needs" %} aria-current="page"{% endif %}>Needs you <span class="sy-count">{{ v.inbox.total }}</span></a>
   <a class="sy-tab" href="{{ c.url('/review', tab='explained') }}"{% if tab == "explained" %} aria-current="page"{% endif %}>Explained automatically <span class="sy-count sy-count--muted">{{ explained | length }}</span></a>
   <a class="sy-tab" href="{{ c.url('/review', tab='decided') }}"{% if tab == "decided" %} aria-current="page"{% endif %}>Decided <span class="sy-count sy-count--muted">{{ decided | length }}</span></a>
+  {#- Same screen? (v2-14) is its own page: one pair at a time, keyboard first. -#}
+  {%- if pairs %}<a class="sy-tab" href="{{ c.url('/same-screen') }}">Same screen? <span class="sy-count{% if not pairs | selectattr('conflict') | list %} sy-count--muted{% endif %}">{{ pairs | length }}</span></a>{% endif %}
 </nav>
 {%- endif %}
 {%- if v.note %}

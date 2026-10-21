@@ -213,17 +213,12 @@ def model(store: Store) -> None:
     conn.close()
 
 
-def test_with_a_portal_model_the_map_shows_the_portal_as_it_is_now(empty_store: Store) -> None:
+def test_the_recorded_map_ignores_a_portal_model(empty_store: Store) -> None:
+    """One scan's path draws what the scans recorded; the model's map is `queries_model_map`."""
     seed(empty_store)
     model(empty_store)
     v = view(empty_store)
-    n = nodes(v)
-    assert v.screens == 4  # /a and /a/b are one screen of the model
-    assert len(n["M2"].states) == 2 and n["M2"].title == "Model /a"
-    assert n["M2"].failed == 1  # the frontier item on /a hangs off the model screen
-    every = view(empty_store, layers=frozenset({"links"})).edges
-    assert [(e.kind, e.shown) for e in every if e.kind == "link"] == [("link", False)]
-    assert nodes(view(empty_store, scan="r1"))["sc-ab"].states  # one scan: its own graph
+    assert v.screens == 5 and "sc-ab" in nodes(v)
 
 
 def test_a_marked_form_step_is_a_marked_node(empty_store: Store) -> None:
@@ -277,7 +272,7 @@ def test_the_map_page_draws_nodes_tabs_filters_and_a_list(empty_store: Store) ->
     mark(empty_store)
     with client(empty_store) as c:
         page = c.get(f"/map?portal={P}").text
-        listed = c.get(f"/map?portal={P}&view=list").text
+        listed = c.get(f"/map?portal={P}&show=list").text
         junk = c.get(f"/map?portal={P}&layers=bogus&scan=nope&open=x&view=odd")
     assert page.count('<button class="sy-node') == 5 and 'aria-current="page">Map</a>' in page
     assert "5 screens · 4 transitions · 2 queued" in text(page)

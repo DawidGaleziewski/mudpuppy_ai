@@ -119,7 +119,7 @@ def _context(conn: sqlite3.Connection, state_id: str) -> dict[str, Any]:
     }
 
 
-def _side(conn: sqlite3.Connection, label: str, note: str, state: sqlite3.Row | None) -> Side:
+def side_of(conn: sqlite3.Connection, label: str, note: str, state: sqlite3.Row | None) -> Side:
     if state is None:
         return Side(label, note)
     pic = pictures(conn, [state["id"]]).get(state["id"])
@@ -160,21 +160,21 @@ def _sides(
     newest = members[-1] if members else None
     oldest = members[0] if members else None
     if c.kind == "new_screen":
-        return Side("Before", "No such screen yet."), _side(
+        return Side("Before", "No such screen yet."), side_of(
             conn, "After", "The new screen.", oldest
         )
     if c.kind == "new_member":
         new = next((m for m in members if m["id"] == state_id), newest)
         old = next((m for m in members if m["id"] != state_id), None)
         return (
-            _side(conn, "Known variant", "How the screen looked before.", old),
-            _side(conn, "New variant", "The way it looks now.", new),
+            side_of(conn, "Known variant", "How the screen looked before.", old),
+            side_of(conn, "New variant", "The way it looks now.", new),
         )
     before, after = _notes(conn, portal, c)
-    return _side(conn, "Before", before, oldest), _side(conn, "After", after, newest)
+    return side_of(conn, "Before", before, oldest), side_of(conn, "After", after, newest)
 
 
-def _differs(before: Side, after: Side) -> list[Differ]:
+def differs_of(before: Side, after: Side) -> list[Differ]:
     if before.state_id is None or after.state_id is None:
         return []
     parts = sorted(set(before.releases) | set(after.releases))
@@ -231,7 +231,7 @@ def change_detail(conn: sqlite3.Connection, portal: str, deviation_id: str) -> C
         process=process_of_screens(conn, portal).get(c.screen_key or ""),
         before=before,
         after=after,
-        differs=_differs(before, after),
+        differs=differs_of(before, after),
         tests=_tests(conn, c.hypothesis_key, portal),
         hypothesis_kind=state[0]["hkind"],
         needs_ids=needs,

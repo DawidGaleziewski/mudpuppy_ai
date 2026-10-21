@@ -1,9 +1,11 @@
-{#- What the map shows (FR-007): filters change the drawing, never the data. Apply submits; no
-    select navigates on change. The view buttons submit the same filters. -#}
+{#- What the recorded map shows (FR-007): filters change the drawing, never the data. Apply
+    submits; no select navigates on change. With a portal model it is the view One scan's path. -#}
 <form class="mp-map-tools" method="get" action="/map" aria-label="Map filters">
   {%- if c.store_param %}<input type="hidden" name="store" value="{{ c.store_param }}">{% endif %}
   {%- if f.open_family %}<input type="hidden" name="open" value="{{ f.open_family }}">{% endif %}
+  <input type="hidden" name="view" value="path">
   <input type="hidden" name="layers" value="">
+  {%- if has_model %}{% set map_view_now = "path" %}{% include "salvage/partials/map_views.html" %}{% endif %}
   <label class="sy-field"><span class="sy-field__label">Scans</span>
     <select class="sy-select sy-select--md" name="scan">
       <option value="">All {{ m.scans | length }} scans (merged)</option>
@@ -24,9 +26,9 @@
   </fieldset>
   <div class="sy-cluster">
     <button class="sy-btn" type="submit">Apply</button>
-    <div class="sy-seg" role="group" aria-label="View">
-      <button type="submit" name="view" value="graph" aria-pressed="{{ 'true' if view == 'graph' else 'false' }}">Graph</button>
-      <button type="submit" name="view" value="list" aria-pressed="{{ 'true' if view == 'list' else 'false' }}">List</button>
+    <div class="sy-seg" role="group" aria-label="Show as">
+      <button type="submit" name="show" value="graph" aria-pressed="{{ 'true' if show == 'graph' else 'false' }}">Graph</button>
+      <button type="submit" name="show" value="list" aria-pressed="{{ 'true' if show == 'list' else 'false' }}">List</button>
     </div>
   </div>
 </form>

@@ -5,15 +5,24 @@
 // - `POST /portals/{p}/model/decide`: confirm or reject a finding or rule (H-nnnn) from Review
 //   (T100, designer screen v2-04), with the person's reason. Same effect as
 //   `pnpm model:decide … confirm|reject`. Overturn waits for R-87.
+// - `POST /portals/{p}/model/label`: a person's answer to "Same screen?" for two page versions
+//   (designer screen v2-14): same screen, same with different data, or different screens. A
+//   constraint for the next rebuild. Same effect as `pnpm model:decide … label`.
 
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import type BetterSqlite3 from 'better-sqlite3';
-import { ModelDecisionError, acceptClassifier, acceptTau, decideHypothesis } from '@pathfinder/store';
+import {
+  ModelDecisionError,
+  acceptClassifier,
+  acceptTau,
+  decideHypothesis,
+  labelPair,
+} from '@pathfinder/store';
 import { z } from 'zod';
 import { HttpError } from './http-error.js';
 import { readJson, sendJson } from './http-io.js';
 
-const ROUTE = /^\/portals\/([^/]+)\/model\/(accept|decide)$/;
+const ROUTE = /^\/portals\/([^/]+)\/model\/(accept|decide|label)$/;
 
 /** Who decides (the dashboard's reviewer). */
 const By = z.string().trim().min(1).max(200);
@@ -36,6 +45,23 @@ const DecideBody = z
     reason: z.string().trim().min(1).max(2000),
   })
   .strict();
+
+const LabelBody = z
+  .object({
+    a: z.string().min(1).max(200),
+    b: z.string().min(1).max(200),
+    answer: z.enum(['same', 'same_data', 'different']),
+    by: By,
+    reason: z.string().trim().max(2000).optional(),
+  })
+  .strict();
+
+/** The UI's answers in the label vocabulary (design § 6.3). */
+const LABEL_OF = {
+  same: { label: 'near_duplicate', ndKind: 'cosmetic' },
+  same_data: { label: 'near_duplicate', ndKind: 'dynamic_data' },
+  different: { label: 'distinct' },
+} as const;
 
 function parse<T>(schema: z.ZodType<T>, body: unknown): T {
   const parsed = schema.safeParse(body);
@@ -64,6 +90,21 @@ function decide(raw: BetterSqlite3.Database, portal: string, body: unknown): unk
   return { decided };
 }
 
+function label(raw: BetterSqlite3.Database, portal: string, body: unknown): unknown {
+  const { a, b, answer, by, reason } = parse(LabelBody, body);
+  labelPair(raw, {
+    portal,
+    a,
+    b,
+    ...LABEL_OF[answer],
+    actor: by,
+    ...(reason ? { reason } : {}),
+  });
+  return { labelled: { a, b, answer } };
+}
+
+const HANDLERS = { accept, decide, label } as const;
+
 /** Handles the request when it is a model route; returns false otherwise. */
 export async function modelRoutes(
   req: IncomingMessage,
@@ -79,7 +120,7 @@ export async function modelRoutes(
   const portal = decodeURIComponent(m[1]!);
   const body = await readJson(req);
   try {
-    sendJson(res, 201, m[2] === 'accept' ? accept(raw, portal, body) : decide(raw, portal, body));
+    sendJson(res, 201, HANDLERS[m[2] as keyof typeof HANDLERS](raw, portal, body));
   } catch (error) {
     if (error instanceof ModelDecisionError) throw new HttpError(409, error.message);
     throw error;

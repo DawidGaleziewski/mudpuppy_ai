@@ -23,6 +23,7 @@ from .. import (
     queries_docs,
     queries_queue,
     queries_review,
+    queries_same_screen,
     queries_suites,
     review,
     suite_form,
@@ -150,10 +151,11 @@ def review_page(
     try:
         with c.conn() as conn:
             v = review_values(c, conn, select, show, note, page)
-            other = {"explained": [], "decided": []}
+            other: dict[str, Any] = {"explained": [], "decided": [], "pairs": []}
             if c.portal:
                 other["explained"] = queries_queue.explained(conn, c.portal)
                 other["decided"] = queries_queue.decided(conn, c.portal)
+                other["pairs"] = queries_same_screen.queue(conn, c.portal)
     except db.StoreMissing as err:
         return web.missing(c, err)
     return web.render(c, "salvage/review.html", nav_current="review", v=v, tab=tab, **other)

@@ -919,3 +919,49 @@ Bugs, slips and design deviations found while building, each with a test or eval
   of a screen.
 - **Test**: `test_model_screens.py`; `ui:check` on the list, an active and a retired screen at
   1280 and 390: ok. Eval idea: none.
+
+## F-52 Map of the portal model (T100 step 9), 2026-10-21
+
+- **Built** (v2-08, UX-R40–R44): Screens ▸ Map (`/map`, moved from Scans) draws the model for a
+  portal that has one: views **Now** and **Since previous release** (the latest model version's
+  changes chipped on their screens, the rest faint, a link whose action changed drawn as changed),
+  link states as layers (Not seen since, Not checked on by default; Retired off), links on every
+  page bundled ("Menu on every page · N links") unless their state changed, a **process overlay**
+  (its screens numbered Step 1…, joined, the rest faint), actions inside a screen counted on its
+  box (only those that do not lead to another screen), the model inspector (facts, checked meter,
+  variants with why, actions inside, links out, changes, Same screen?). **One scan's path** is the
+  recorded map (spec 033, with the Probe and next-scan marks), which also stays the map of a
+  portal without a model.
+- **Bug found**: with a model, the old map drew model screens but its inspector looked them up
+  among the crawler's `screens`, so selecting a node found nothing (404 inspector). The recorded
+  map no longer reads the model; the model map has its own inspector (`/fragments/map/screen/{SC}`).
+  Test idea: an inspector request for every drawn node id answers 200.
+- **Bug found while building**: the node's aria-label did not contain its visible text in order
+  (axe `label-content-name-mismatch`); the label is gone, the visible text carries it all.
+- **Deviation**: the toolbar form keeps the view in a hidden field and a view button adds a
+  second `view`; the router takes the last one, so Apply and Graph / List keep the view.
+  Layers named for the other map (after switching view) fall back to that map's default.
+- **Not done**: process triggers and outcomes on the overlay (steps only), edge labels (old route
+  of a replaced link, "age ≥ 21"), the "N more" deck of collapsed screens below 150 screens,
+  releases on Since chips (the explanation word instead).
+- **Test**: `test_model_map.py`, `test_map.py` (the recorded map ignores the model); `ui:check`
+  at 1280 and 390 on Now with a node, Since with layers, One scan's path: ok.
+
+## F-53 Same screen? (T100 step 10, G15), 2026-10-21
+
+- **Built** (v2-14, UX-R34): `/same-screen` asks one pair of page versions at a time. Conflicts
+  first (a person's label the current model disagrees with), then each screen's variants against
+  its first one, unlabelled, least similar first (MinHash from `state_components`, the crawler's
+  `similarity`). Three answers map to labels: Same screen = near_duplicate/cosmetic, Same,
+  different data = near_duplicate/dynamic_data, Different screens = distinct. Saving posts to the
+  chat service's new `POST /portals/{p}/model/label` (`labelPair`), signed with the reviewer;
+  the next rebuild applies it. Keys 1/2/3, W, Enter, S, Esc. Review shows a "Same screen? N" tab
+  when pairs wait; the map inspector links to the screen's pairs.
+- **Deviation**: the design keeps the earlier label in History ("Marek's label stays"); the store
+  keeps one label per pair (upsert), so a new answer replaces the old one and its reason. A
+  label history needs a table (owner question).
+- **Not done**: the "Also settles" bundle with the A/B finding and the process suggestion, the
+  changed region marked on the pictures, `pnpm model:pairs`' τ-nearest queue (the page asks
+  variant against first variant instead).
+- **Test**: `test_same_screen.py`; chat `model-accept.test.ts` (label route); `ui:check` at 1280
+  and 390: ok. Eval idea: none.

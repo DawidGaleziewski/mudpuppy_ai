@@ -66,6 +66,22 @@ class ScreenDetail:
     actions: list[Action]
     history: list[Change] = field(default_factory=list)
 
+    def _own(self) -> list[Action]:
+        return [a for a in self.actions if not a.is_global]
+
+    def links_out(self) -> list[tuple[Action, str, str | None]]:
+        """(action, screen key, title) for each other screen an action of its own leads to."""
+        key = self.row.key
+        return [(a, k, t) for a in self._own() for k, t, _ in a.leads_to if k and k != key]
+
+    def inside(self) -> list[Action]:
+        """Its own actions that stay on the screen or lead to no page (v2-08 "Actions inside")."""
+        key = self.row.key
+        return [a for a in self._own() if not any(k and k != key for k, _, _ in a.leads_to)]
+
+    def menu(self) -> int:
+        return sum(a.is_global for a in self.actions)
+
 
 SCREEN_SQL = (
     "SELECT s.id, s.key, s.title, s.route_key, s.status,"

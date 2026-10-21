@@ -50,7 +50,8 @@ store, vault, workflow.
   `reconcile_model`, `model_actions`: the model's proposals to name, a rebuild, the probe work
   waiting for the owner to start).
 - Spec 039: `api-model` (`POST /portals/{p}/model/accept`: τ or the classifier, Settings;
-  `…/model/decide`: confirm or reject hypotheses from Review, all keys in one transaction),
+  `…/model/decide`: confirm or reject hypotheses from Review, all keys in one transaction;
+  `…/model/label`: a Same screen? answer for two page versions),
   `check-runs` + `api-check-runs` (headless check runs, one per portal).
 - `fence`: permission control.
 

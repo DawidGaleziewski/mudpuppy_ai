@@ -252,7 +252,15 @@ and stop at 12 tries per step and 60 per scan; the portal file can change both (
 
 ### See what was mapped (the map)
 
-**Scans → Map** draws every screen the portal's scans recorded as a node, from the start page down:
+**Screens → Map** draws the portal model: one box per screen, its links in their state (dashed
+when not seen since or not checked yet; **Layers** show or hide them, Retired links too). The menu
+links on every page are bundled into one line unless one of them changed. **Since previous
+release** marks the screens the latest rebuild found changed and fades the rest; **Overlay a
+process** numbers its steps and fades the other screens. Click a screen for its variants, actions,
+links and changes; **Same screen?** there asks about its variants.
+
+**One scan's path** (the third view, and the only map of a portal without a model yet) draws every
+screen the portal's scans recorded as a node, from the start page down:
 the lines show the first move into each screen (tick **All links** for the rest). Several states
 of one screen stack as a deck ("5 states"); a page's queued, failed and blocked items are chips on
 its node ("+3 queued"). Pick one scan or persona and **Apply** to grey out what it did not see;
@@ -508,6 +516,12 @@ line of links. Filter by kind:
 | **Edit conflicts** | Two saves on the same process or amendment. Compare them and keep one. |
 
 Things leave the inbox when you decide. Nothing in it is deleted behind your back.
+
+**Same screen?** (a tab when pairs wait) shows two recorded versions of a page side by side and
+asks whether they are one screen: press **1** Same screen, **2** Same, different data or **3**
+Different screens, **W** to add why, **Enter** to save, **S** to skip. A pair where your earlier
+label and the automatic grouping disagree comes first. The next model rebuild groups the screens
+by your answer.
 
 ### What changed between scans, and business rules (MudPuppy 2.0)
 

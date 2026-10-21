@@ -1,11 +1,14 @@
 {% extends "salvage/base.html" %}
 {% import "salvage/macros.html" as sy %}
-{% set nav_current = "scans" %}
+{% set nav_current = "screens" %}
 {% block title %}Map{% endblock %}
 {% block head_extra %}<script src="/static/js/map.js" defer></script>{% endblock %}
+{#- The recorded map (spec 033, screen 12): Screens ▸ Map's view One scan's path, and the map of a
+    portal without a model. Every recorded screen, the discovery tree, items left on each page and
+    the inspector's Probe and next-scan marks. -#}
 {% block main %}
 <div class="sy-pagehead">
-  <nav class="sy-crumbs" aria-label="Breadcrumb"><a href="{{ c.url('/scans') }}">Scans</a> / <span aria-current="page">Map</span></nav>
+  <nav class="sy-crumbs" aria-label="Breadcrumb"><a href="{{ c.url('/screens') }}">Screens</a> / <span aria-current="page">Map</span></nav>
   <h1 class="sy-h1">Map</h1>
   <p class="sy-meta">
     {%- if not c.portal %}Pick a portal in the header to see its map.
@@ -13,8 +16,8 @@
       · <a href="{{ c.url('/scans/plan') }}">Next scan plan{% if open_marks %} <span class="sy-count">{{ open_marks }}</span>{% endif %}</a>
     {%- else %}{{ c.portal }} · nothing mapped yet{% endif %}</p>
 </div>
-{% set scan_tab = "map" %}
-{% include "salvage/partials/scan_tabs.html" %}
+{% set screens_tab = "map" %}
+{% include "salvage/partials/screens_tabs.html" %}
 {%- if not c.portal %}
 {{ sy.empty("No portal chosen", "Pick a portal in the header; its map shows every screen its scans recorded.") }}
 {%- elif not m or not m.screens %}
@@ -24,7 +27,7 @@
 {%- if probe_note %}<p class="sy-callout" role="status">{{ probe_note }}</p>{% endif %}
 <div class="sy-columns">
   <div class="sy-col-main sy-stack">
-    {%- if view == "list" %}
+    {%- if show == "list" %}
     {% include "salvage/partials/map_list.html" %}
     {%- else %}
     {% include "salvage/partials/map_graph.html" %}

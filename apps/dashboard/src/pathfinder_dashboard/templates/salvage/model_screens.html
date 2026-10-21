@@ -18,11 +18,8 @@
     {%- if needs %}<a class="sy-btn" href="{{ c.url('/review') }}">{{ needs }} screen{{ "s" if needs != 1 }} need{{ "" if needs != 1 else "s" }} you</a>{% endif %}
   </div>
 </div>
-<nav class="sy-tabs" aria-label="Screens views">
-  <a class="sy-tab" href="{{ c.url('/screens') }}" aria-current="page">List <span class="sy-count sy-count--muted">{{ total }}</span></a>
-  <a class="sy-tab" href="{{ c.url('/map') }}">Map</a>
-  <a class="sy-tab" href="{{ c.url('/screens', recorded=1) }}">Recorded pages</a>
-</nav>
+{% set screens_tab = "list" %}{% set screens_total = total %}
+{% include "salvage/partials/screens_tabs.html" %}
 <form class="sy-cluster" method="get" action="/screens" aria-label="Filter screens">
   <input type="hidden" name="portal" value="{{ c.portal }}">
   <div class="sy-field"><span class="sy-field__label" id="st-l">Status</span>
