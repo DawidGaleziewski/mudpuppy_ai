@@ -9,7 +9,7 @@ import { portalYaml as mockPortalYaml } from './trace-run-harness.js';
 
 /**
  * Behaviour lock for the pipeline split (spec 012 T031, SC-005): a map run and a trace run with
- * the real browser runtime, snapshotting what the pipeline records — states, actions, edges, the
+ * the real browser runtime, snapshotting what the pipeline records — states, actions, transitions, the
  * decision log in order and the trace span tree. Ids, hashes, times, durations and the random
  * port are normalised; screenshots are reduced to "present" (PNG bytes are not stable).
  */
@@ -41,11 +41,11 @@ function recorded(ctx: Ctx, runId: string, origin: string): Row[] {
       `SELECT id, state_id, role, accessible_name, safety_class, allowed, skip_reason
          FROM actions WHERE run_id = ? ORDER BY rowid`,
     ),
-    edges: all(
+    transitions: all(
       `SELECT from_state, to_state, json_extract(action_json, '$.role') AS role,
               json_extract(action_json, '$.accessible_name') AS name, safety_class, status,
               confidence, error, stabilization
-         FROM edges WHERE run_id = ? ORDER BY rowid`,
+         FROM transitions WHERE run_id = ? ORDER BY rowid`,
     ),
     frontier: all(
       `SELECT state_id, action_id, status, reason FROM frontier WHERE run_id = ? ORDER BY rowid`,
@@ -189,7 +189,7 @@ async function traceRun(): Promise<Row[]> {
 }
 
 describe.skipIf(!available)('pipeline golden behaviour lock (spec 012 SC-005)', () => {
-  it('a map run on the mock portal records the committed states, edges, decisions and spans', async () => {
+  it('a map run on the mock portal records the committed states, transitions, decisions and spans', async () => {
     const rows = await mapRun();
     await expect(JSON.stringify(rows, null, 2) + '\n').toMatchFileSnapshot(
       '__snapshots__/pipeline-golden-map.json',

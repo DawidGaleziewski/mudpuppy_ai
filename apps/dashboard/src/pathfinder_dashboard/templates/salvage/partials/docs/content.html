@@ -119,6 +119,15 @@ Scenario {{ loop.index }}
       </dd>
       <dt>Seen in</dt><dd>{% for s in x.seen_in or [] %}{{ s.kind | replace("_", " ") }} <span class="sy-mono sy-mono--sm">{{ s.target_id | short_id }}</span>{% if not loop.last %}, {% endif %}{% else %}<span class="sy-muted">Nowhere recorded</span>{% endfor %}</dd>
     </dl>
+  {%- elif kind == "api_endpoint" %}
+    <p class="sy-mono"><strong>{{ x.method }} {{ x.path }}</strong></p>
+    <dl class="sy-facts">
+      <dt>Purpose</dt><dd>{{ x.purpose }}</dd>
+      <dt>Called from</dt><dd>{% for c in x.called_from or [] %}{{ c }}{% if not loop.last %}; {% endif %}{% else %}<span class="sy-muted">Not recorded</span>{% endfor %}</dd>
+      <dt>Request fields</dt><dd>{% for f in x.request_fields or [] %}<span class="sy-mono sy-mono--sm">{{ f }}</span>{% if not loop.last %}, {% endif %}{% else %}<span class="sy-muted">None</span>{% endfor %}</dd>
+      <dt>Response fields</dt><dd>{% for f in x.response_fields or [] %}<span class="sy-mono sy-mono--sm">{{ f }}</span>{% if not loop.last %}, {% endif %}{% else %}<span class="sy-muted">None</span>{% endfor %}</dd>
+      <dt>Statuses seen</dt><dd>{% for s in x.statuses or [] %}{{ s }}{% if not loop.last %}, {% endif %}{% else %}<span class="sy-muted">None</span>{% endfor %}</dd>
+    </dl>
   {%- elif kind == "assumption" %}
     <p><strong>{{ x.statement }}</strong></p>
     <dl class="sy-facts"><dt>Impact if wrong</dt><dd>{{ x.impact_if_wrong }}</dd></dl>

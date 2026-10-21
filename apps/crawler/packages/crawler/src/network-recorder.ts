@@ -33,7 +33,8 @@ export function cutSample(body: string | null | undefined): string | null {
   return body.length <= SAMPLE_MAX ? body : `${body.slice(0, SAMPLE_MAX - 1)}…`;
 }
 
-export interface Observation {
+/** What the network showed between two drains (not an `Observation`, the arrival on a page). */
+export interface NetworkObservation {
   calls: ObservedCall[];
   console_errors: string[];
 }
@@ -215,7 +216,7 @@ export class NetworkRecorder {
   }
 
   /** Wait for in-flight body reads, then hand over and clear what was seen since the last drain. */
-  async drain(): Promise<Observation> {
+  async drain(): Promise<NetworkObservation> {
     await Promise.allSettled([...this.pending]);
     const out = { calls: this.calls, console_errors: this.errors };
     this.calls = [];

@@ -86,6 +86,49 @@ Screens referenced are in `screens/`; behaviour comes from the redesign wirefram
 | FE-M12 | M | Documentation follows `11-map-runs.md` §7.5: a step is documented by its main state; an error page is never the step; an error-only step is "not observed" with an open question and a recheck. | Generated doc for the fixture lists the 503 under environment issues, not as a step. |
 | FE-M13 | S | Validation messages, branches and technical states produce inferred rule, process-variant and NFR candidates, linked to their evidence, that land in Review. | Probe fixture creates candidates with evidence links. |
 
+## F. MudPuppy 2.0 (brief spec 039 · R-81; design `12-v2-ux.md`)
+
+The brief's `UX-R` ids are the requirements; this table maps each to its screen and an acceptance check. P = brief priority.
+
+| ID | P | Screen | Acceptance |
+|---|---|---|---|
+| UX-R01 | P1 | v2-01, v2-15 | Home shows latest release per part, last scan, changes since previous release (need you / auto), Needs you, processes explored / not. All portals shows the same per portal. |
+| UX-R02 | P1 | v2-01, v2-15, v2-13 (6) | A portal without release markers shows the warning and a link to Settings ▸ Hints. |
+| UX-R03 | P1 | v2-01 | One click to Changes and to Review ▸ Needs you. |
+| UX-R10 | P1 | v2-02 | From = previous release / a date / a scan; To = As of; URL carries both. |
+| UX-R11 | P1 | v2-02 | Changes grouped by process then screen; kinds: new screen, new/removed action, leads elsewhere, result changed, rule broke/changed, variant. |
+| UX-R12 | P1 | v2-02 | Every change shows its explanation and Needs you / Explained automatically / Overturned. |
+| UX-R13 | P1 | v2-03 | Before/after with the changed region marked, three modes, context diff with differing rows marked. |
+| UX-R14 | P1 | v2-02, v2-01 | One timeline lane per portal part, rollouts drawn, scans lane, range bracket. |
+| UX-R20 | P1 | v2-04 | One queue for findings, rules, removals, processes, same-screen conflicts, records. |
+| UX-R21 | P1 | v2-04 | Item: one-sentence finding, evidence, tests and results, Confirm / Reject (reason required) / Comment. |
+| UX-R22 | P1 | v2-05, v2-16 | Explained automatically tab with the rule in plain words and Overturn (reason required); overturned items marked everywhere. |
+| UX-R23 | P1 | v2-04 | Filters by kind, part, process, age, with counts. |
+| UX-R24 | P1 | v2-04 | Group of similar items confirms in one action ("Confirm 12"); one Undo. |
+| UX-R30 | P1 | v2-06 | Status (active, merged, retired), variants count with why, last seen, coverage on the current release. |
+| UX-R31 | P1 | v2-07 | Variants side by side, each with its why. |
+| UX-R32 | P1 | v2-07 | Actions with status (active, not seen since, not checked on this release, retired) and persona. |
+| UX-R33 | P1 | v2-07 | History: split from / merged into with the reason and the documentation affected. |
+| UX-R34 | P2 | v2-14 | Same / same with different data / different, optional why, keys 1–3, Enter, S. |
+| UX-R40 | P1 | v2-08 | Map of the model now; internal actions inside the node. |
+| UX-R41 | P1 | v2-08 | Link states drawn and in the legend. |
+| UX-R42 | P1 | v2-08 | Process overlay and release overlay. |
+| UX-R43 | P1 | v2-08 | "One scan's path" view. |
+| UX-R44 | P1 | v2-08 | Menu on every page bundled; families collapse over ~150 screens. |
+| UX-R50 | P1 | v2-09 | Proposals appear marked Proposed with Accept, Rename, Split, Merge, Move screens, Reject (reason); edited processes get suggestions, never silent changes. |
+| UX-R51 | P1 | v2-10 | Trigger, preconditions, screens in order, outcomes with their screens. |
+| UX-R52 | P1 | v2-10 | Paths with case counts; one case's path with the reason. |
+| UX-R53 | P1 | v2-09, v2-10 | Explored per release with what's missing and Explore further with an estimate. |
+| UX-R54 | P1 | v2-10 | Rules in the process and its PROC record. |
+| UX-R60 | P1 | v2-11 | Rules list: where decided, status, last tested, process. |
+| UX-R61 | P1 | v2-12 | Decision table readable by BA and developer; "decided on data not visible from the UI" when it applies. |
+| UX-R62 | P1 | v2-12 | Boundary tests, rerun history, the release where it last changed. |
+| UX-R63 | P1 | v2-12 | Confirm, Reject (reason), Reword (goes into the docs). |
+| UX-R70–72 | P2 | notes in `12-v2-ux.md` §10 | — |
+| UX-R80–81 | P2 | notes in `12-v2-ux.md` §10 | — |
+| UX-R90 | P2 | v2-01 (assistant chips), §1.1 | Assistant proposals marked "from the assistant" in the same queues. |
+| §6 states | P1 | v2-13 | Every P1 page handles the eight states as in the matrix. |
+
 ## E. Non-functional
 
 | ID | P | Requirement | Acceptance |
@@ -101,4 +144,4 @@ Screens referenced are in `screens/`; behaviour comes from the redesign wirefram
 | FE-Q09 | S | Works offline on a local console (no CDN). | Disconnect the network → full styling. |
 | FE-Q10 | M | Supported browsers: Chrome/Edge 111+, Firefox 115+, Safari 16.4+. | Smoke test. |
 | FE-Q11 | S | Visual regression: baselines are generated from the running app with fixture data at 1280px and reduced motion, after a designer signs them off against `screenshots/screens/*.png`. | CI diff ≤ an agreed threshold. |
-| FE-Q12 | M | The console store stays read-only from the UI except the existing write endpoints (amendments, scope, chat, credentials, settings). | Unchanged API surface. |
+| FE-Q12 | M | The console store stays read-only from the UI except the existing write endpoints (amendments, scope, chat, credentials, settings) and, in 2.0, the review commands (confirm, reject, overturn, label, accept, rebuild), which go through the command layer. | No other write paths; every 2.0 write is a command with a result the UI shows (toast or alert). |

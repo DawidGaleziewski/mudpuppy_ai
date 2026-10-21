@@ -11,7 +11,7 @@ import pytest
 
 from pathfinder_dashboard.visuals import Layout, highlights, load_layout
 
-from .conftest import PORTAL, T0, Store, add_record, insert, make_client
+from .conftest import PORTAL, T0, Store, add_evidence_link, add_record, insert, make_client
 
 PNG = b"\x89PNG\r\n\x1a\n" + b"\x00" * 32  # content is never decoded by the dashboard
 SHOT = "1" * 64 + ".png"
@@ -96,15 +96,13 @@ def visual_store(empty_store: Store) -> Store:
         "Pojemność silnika",
         [{"evidence": [("state", "st-shot", "run-1", "the calculator")]}],
     )
-    conn.execute(
-        "INSERT INTO doc_evidence_links (id, revision_id, target_kind, target_id, run_id, note,"
-        " region) VALUES ('ev-region-1', 'DI-001-r1', 'screen_region', 'st-shot', 'run-1',"
-        " 'the field', 'spinbutton \"Pojemność silnika\"')"
+    region = 'spinbutton "Pojemność silnika"'
+    add_evidence_link(
+        conn, "ev-region-1", "DI-001-r1", "screen_region", "st-shot", "run-1", "the field", region
     )
-    conn.execute(
-        "INSERT INTO doc_evidence_links (id, revision_id, target_kind, target_id, run_id, note,"
-        " region) VALUES ('ev-region-2', 'DI-001-r1', 'screen_region', 'st-shot', 'run-1',"
-        " NULL, 'button \"Ukryty\"')"
+    hidden = 'button "Ukryty"'
+    add_evidence_link(
+        conn, "ev-region-2", "DI-001-r1", "screen_region", "st-shot", "run-1", None, hidden
     )
     add_record(
         conn, "SCR-001", "Kontakt", [{"evidence": [("state", "st-plain", "run-1", "the page")]}]

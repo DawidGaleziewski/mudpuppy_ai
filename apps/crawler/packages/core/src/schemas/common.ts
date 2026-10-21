@@ -19,11 +19,38 @@ export const FrontierStatus = z.enum([
 ]);
 export type FrontierStatus = z.infer<typeof FrontierStatus>;
 
-export const EdgeStatus = z.enum(['executed', 'skipped']);
-export type EdgeStatus = z.infer<typeof EdgeStatus>;
+export const TransitionStatus = z.enum(['executed', 'skipped']);
+export type TransitionStatus = z.infer<typeof TransitionStatus>;
 
 export const Stabilization = z.enum(['settled', 'never_stabilized']);
 export type Stabilization = z.infer<typeof Stabilization>;
+
+/** What a visit or a transition came to (spec 039 design § 5.6; migration 0029). */
+export const StepResult = z.enum([
+  'ok',
+  'validation',
+  'business_error',
+  'technical_error',
+  'timeout',
+  'blocked',
+]);
+export type StepResult = z.infer<typeof StepResult>;
+
+/** The kind of a transition (spec 039 design § 5.7). */
+export const TransitionKind = z.enum([
+  'click',
+  'fill',
+  'select',
+  'check',
+  'submit',
+  'navigate',
+  'back',
+]);
+export type TransitionKind = z.infer<typeof TransitionKind>;
+
+/** Who drove a transition: the crawler agent or the headless driver (spec 039 design § 9). */
+export const Driver = z.enum(['agent', 'headless']);
+export type Driver = z.infer<typeof Driver>;
 
 const DANGER_ORDER: readonly SafetyClass[] = SafetyClass.options;
 

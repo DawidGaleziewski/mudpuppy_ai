@@ -37,11 +37,11 @@ interface HeadRow {
   status: Amendment['status'];
 }
 
-type Draft = Pick<ChatProposal, 'target_kind' | 'target_id' | 'base_rev' | 'payload'>;
+type Draft = Pick<ChatProposal, 'amendment_id' | 'base_rev' | 'payload'>;
 
 /** An edit (active amendment) or a re-anchor (one that needs it), on the head's revision. */
 function changeOf(head: HeadRow, input: ProposeInput): Draft {
-  const base = { target_kind: 'amendment' as const, target_id: head.id, base_rev: head.rev };
+  const base = { amendment_id: head.id, base_rev: head.rev };
   if (head.status === 'active') {
     if (input.text === undefined)
       throw new ProposalRefusal('INVALID', `say the new text of ${head.key}`);
@@ -74,8 +74,7 @@ function creationOf(raw: BetterSqlite3.Database, input: ProposeInput): Draft {
   if (found === undefined)
     throw new ProposalRefusal('NOT_FOUND', `${input.portal} has no recorded screen ${stateId}`);
   return {
-    target_kind: 'new_amendment',
-    target_id: null,
+    amendment_id: null,
     base_rev: null,
     payload: {
       kind: input.target_kind === 'wireframe_element' ? 'element_ref' : 'note',
@@ -118,9 +117,9 @@ export function proposeChange(
   });
   raw
     .prepare(
-      `INSERT INTO chat_proposals (id, conversation_id, portal_id, target_kind, target_id, base_rev,
+      `INSERT INTO chat_proposals (id, conversation_id, portal_id, amendment_id, base_rev,
          payload, summary, status, created_at)
-       VALUES (@id, @conversation_id, @portal_id, @target_kind, @target_id, @base_rev, @payload,
+       VALUES (@id, @conversation_id, @portal_id, @amendment_id, @base_rev, @payload,
          @summary, @status, @created_at)`,
     )
     .run({ ...row, payload: JSON.stringify(row.payload) });

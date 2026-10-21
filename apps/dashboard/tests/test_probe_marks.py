@@ -58,7 +58,7 @@ def seed(store: Store) -> None:
     conn.execute(
         "INSERT INTO probe_outcomes (id, run_id, from_state_id, form_step_id, probe_id,"
         " probe_group, target, inputs_json, path_json, fault, outcome_kind, to_state_id, accepted,"
-        " possible_new_process, messages_json, http_status, reason, evidence_ref, edge_id,"
+        " possible_new_process, messages_json, http_status, reason, evidence_ref, transition_id,"
         " created_at) VALUES ('o-1', ?, 'st-1', 'fs-1', 'required-empty-all', 'validation',"
         " NULL, '[]', '{}', NULL, 'validation', 'st-1', 0, 0, '[]', NULL, NULL, 'ev', NULL, ?)",
         (RUN, T),
@@ -70,8 +70,8 @@ def seed(store: Store) -> None:
 def mark(store: Store, form_step_id: str) -> None:
     conn = store.connect()
     conn.execute(
-        "INSERT INTO marks (id, portal_id, kind, target_kind, target_id, created_by, created_at)"
-        " VALUES ('m-1', 'liveinsurer', 'probe', 'form_step', ?, 'Owner', ?)",
+        "INSERT INTO marks (id, portal_id, kind, form_step_id, created_by, created_at)"
+        " VALUES ('m-1', 'liveinsurer', 'probe', ?, 'Owner', ?)",
         (form_step_id, T),
     )
     conn.commit()

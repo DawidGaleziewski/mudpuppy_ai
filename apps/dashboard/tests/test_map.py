@@ -83,7 +83,9 @@ def seed(store: Store) -> None:
         ("e3", "r2", "st-home", "st-f1", 11),
         ("e4", "r2", "st-a", "st-home", 12),
     ):
-        insert(conn, "edges", id=eid, run_id=run, from_state=a, to_state=b, created_at=ts(minute))
+        insert(
+            conn, "transitions", id=eid, run_id=run, from_state=a, to_state=b, created_at=ts(minute)
+        )
     for fid, run, st, name, status in (
         ("f1", "r2", "st-f1", "Help", "pending"),
         ("f2", "r2", "st-f1", "Terms", "pending"),
@@ -100,8 +102,8 @@ def seed(store: Store) -> None:
 def mark(store: Store) -> None:
     conn = store.connect()
     conn.execute(
-        "INSERT INTO marks (id, portal_id, kind, target_kind, target_id, created_by, created_at)"
-        " VALUES ('m-1', ?, 'probe', 'form_step', 'fs-1', 'Owner', ?)",
+        "INSERT INTO marks (id, portal_id, kind, form_step_id, created_by, created_at)"
+        " VALUES ('m-1', ?, 'probe', 'fs-1', 'Owner', ?)",
         (P, ts(20)),
     )
     conn.commit()
@@ -162,6 +164,63 @@ def test_one_scan_greys_out_what_it_did_not_see(empty_store: Store) -> None:
     assert unknown["sc-ab"].status == "observed"  # an unknown scan is ignored
 
 
+def model(store: Store) -> None:
+    """A portal model (spec 039) over the seed: /a and /a/b are one screen, the link back home is
+    not seen since."""
+    conn = store.connect()
+    conn.execute(
+        "INSERT INTO model_versions (id, portal_id, seq, built_at, algorithm, threshold,"
+        " stats_json) VALUES ('mv1', ?, 1, ?, 'minhash-avglink-v1', 0.9, '{}')",
+        (P, ts(30)),
+    )
+    screens = {
+        "M1": ("/", ["st-home"]),
+        "M2": ("/a", ["st-a", "st-ab"]),
+        "M3": ("/form", ["st-f1", "st-f1v"]),
+        "M4": ("/direct", ["st-d"]),
+    }
+    for n, (sid, (route, members)) in enumerate(screens.items(), start=1):
+        conn.execute(
+            "INSERT INTO model_screens (id, key, portal_id, route_key, title, status,"
+            " first_model_version, created_at) VALUES (?, ?, ?, ?, ?, 'active', 'mv1', ?)",
+            (sid, f"SC-{n:04d}", P, route, f"Model {route}", ts(30)),
+        )
+        for o, st in enumerate(members, start=1):
+            conn.execute(
+                "INSERT INTO screen_members (screen_id, state_id, ordinal, assigned_by,"
+                " from_model_version) VALUES (?, ?, ?, 'clustering', 'mv1')",
+                (sid, st, o),
+            )
+    for cid, sid, key in (("ac1", "M1", "link|a|main|"), ("ac2", "M2", "link|home|main|"),
+                          ("ac3", "M1", "link|form|main|")):  # fmt: skip
+        conn.execute(
+            "INSERT INTO action_classes (id, screen_id, element_key, kind, status,"
+            " status_model_version) VALUES (?, ?, ?, 'click', 'active', 'mv1')",
+            (cid, sid, key),
+        )
+    for tid, a, ac, b, status, edge in (
+        ("t1", "M1", "ac1", "M2", "active", "e1"),
+        ("t2", "M2", "ac2", "M1", "not_seen_since", "e4"),
+        ("t3", "M1", "ac3", "M3", "active", "e3"),
+    ):
+        conn.execute(
+            "INSERT INTO model_transitions (id, from_screen_id, action_class_id, to_screen_id,"
+            " result, internal, support, first_seen_transition_id, last_seen_transition_id, status,"
+            " status_model_version) VALUES (?, ?, ?, ?, 'ok', 0, 1, ?, ?, ?, 'mv1')",
+            (tid, a, ac, b, edge, edge, status),
+        )
+    conn.commit()
+    conn.close()
+
+
+def test_the_recorded_map_ignores_a_portal_model(empty_store: Store) -> None:
+    """One scan's path draws what the scans recorded; the model's map is `queries_model_map`."""
+    seed(empty_store)
+    model(empty_store)
+    v = view(empty_store)
+    assert v.screens == 5 and "sc-ab" in nodes(v)
+
+
 def test_a_marked_form_step_is_a_marked_node(empty_store: Store) -> None:
     seed(empty_store)
     mark(empty_store)
@@ -213,7 +272,7 @@ def test_the_map_page_draws_nodes_tabs_filters_and_a_list(empty_store: Store) ->
     mark(empty_store)
     with client(empty_store) as c:
         page = c.get(f"/map?portal={P}").text
-        listed = c.get(f"/map?portal={P}&view=list").text
+        listed = c.get(f"/map?portal={P}&show=list").text
         junk = c.get(f"/map?portal={P}&layers=bogus&scan=nope&open=x&view=odd")
     assert page.count('<button class="sy-node') == 5 and 'aria-current="page">Map</a>' in page
     assert "5 screens · 4 transitions · 2 queued" in text(page)
@@ -276,8 +335,15 @@ def test_a_map_of_three_hundred_screens_opens_in_under_four_seconds(empty_store:
         )  # fmt: skip
         insert(conn, "state_observations", run_id="r1", state_id=f"st{i}")
     for i in range(1, 300):
-        insert(conn, "edges", id=f"e{i}", run_id="r1", from_state=f"st{i // 4}", to_state=f"st{i}")
-        insert(conn, "edges", id=f"h{i}", run_id="r1", from_state=f"st{i}", to_state="st0")
+        insert(
+            conn,
+            "transitions",
+            id=f"e{i}",
+            run_id="r1",
+            from_state=f"st{i // 4}",
+            to_state=f"st{i}",
+        )
+        insert(conn, "transitions", id=f"h{i}", run_id="r1", from_state=f"st{i}", to_state="st0")
     conn.commit()
     conn.close()
     with client(empty_store) as c:

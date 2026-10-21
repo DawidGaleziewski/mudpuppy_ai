@@ -22,7 +22,9 @@ describe('Probe marks on form steps', () => {
     }));
   const open = () =>
     t.opened.raw
-      .prepare('SELECT target_id, created_by FROM marks WHERE used_by_run_id IS NULL')
+      .prepare(
+        'SELECT form_step_id AS target_id, created_by FROM marks WHERE used_by_run_id IS NULL',
+      )
       .all();
 
   beforeEach(async () => {
@@ -95,7 +97,7 @@ describe('Probe marks on form steps', () => {
           .run(id, P, `fp-${id}`, T);
       raw
         .prepare(
-          `INSERT INTO edges (id, run_id, from_state, to_state, action_json, safety_class, status, evidence_ref, confidence, stabilization, created_at)
+          `INSERT INTO transitions (id, run_id, from_state, to_state, action_json, safety_class, status, evidence_ref, confidence, stabilization, created_at)
            VALUES ('e-1', 'run-1', 'st-a', 'st-b', '{}', 'read', 'executed', 'ev', 'observed', 'settled', ?)`,
         )
         .run(T);
@@ -111,10 +113,10 @@ describe('Probe marks on form steps', () => {
       for (const m of [
         mark('start', 'state', 'st-b'),
         mark('focus', 'state', 'st-b'),
-        mark('focus', 'edge', 'e-1'),
-        mark('retry', 'edge', 'e-1'),
+        mark('focus', 'transition', 'e-1'),
+        mark('retry', 'transition', 'e-1'),
         mark('recheck', 'state', 'st-a'),
-        mark('skip', 'edge', 'e-1'),
+        mark('skip', 'transition', 'e-1'),
       ])
         expect((await send('POST', m)).status, `${m.kind} on ${m.target_kind}`).toBe(201);
       const kinds = t.opened.raw.prepare('SELECT kind FROM marks ORDER BY kind').all();
@@ -129,10 +131,10 @@ describe('Probe marks on form steps', () => {
     });
 
     it('refuses a kind on a target it does not go on, and an unknown screen or action', async () => {
-      expect((await send('POST', mark('start', 'edge', 'e-1'))).status).toBe(400);
-      expect((await send('POST', mark('recheck', 'edge', 'e-1'))).status).toBe(400);
+      expect((await send('POST', mark('start', 'transition', 'e-1'))).status).toBe(400);
+      expect((await send('POST', mark('recheck', 'transition', 'e-1'))).status).toBe(400);
       expect((await send('POST', mark('start', 'state', 'st-zz'))).status).toBe(404);
-      expect((await send('POST', mark('skip', 'edge', 'e-zz'))).status).toBe(404);
+      expect((await send('POST', mark('skip', 'transition', 'e-zz'))).status).toBe(404);
     });
   });
 });

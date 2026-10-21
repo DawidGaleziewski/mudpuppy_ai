@@ -24,7 +24,7 @@ export function runChecks(db: RawDb, runId: string, loggedIn: boolean) {
     relogins: decisionCount(db, runId, 'relogin'),
     logged_in: decisionCount(db, runId, 'login') > 0 && loggedIn,
     widget_actions: widgetActions({
-      edgeActions: executedActions(db, runId),
+      transitionActions: executedActions(db, runId),
       actionCalls: actionCallUrls(db, runId),
     }),
   };

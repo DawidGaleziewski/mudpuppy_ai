@@ -105,8 +105,7 @@ describe('proposals', () => {
     const stored = row(proposalId(r.body));
     expect(stored).toMatchObject({
       conversation_id: CONV,
-      target_kind: 'new_amendment',
-      target_id: null,
+      amendment_id: null, // a new amendment
       base_rev: null,
       status: 'open',
     });
@@ -176,7 +175,7 @@ describe('proposals', () => {
     const id = proposalId(
       (await propose({ summary: 'Clearer wording', amendment_id: head.id, text: 'clearer' })).body,
     );
-    expect(row(id)).toMatchObject({ target_kind: 'amendment', target_id: head.id, base_rev: 1 });
+    expect(row(id)).toMatchObject({ amendment_id: head.id, base_rev: 1 });
     const applied = await decide(id, 'apply');
     expect(applied.body).toMatchObject({ amendment: { rev: 2, text: 'clearer' } });
     const undone = await decide(id, 'undo');

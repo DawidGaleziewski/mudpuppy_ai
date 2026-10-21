@@ -7,8 +7,8 @@ import type { ServerContext } from '../context.js';
 import { ToolError } from '../errors.js';
 import type { Runtime } from '../runtime.js';
 import {
+  addHypothesis,
   addOpenQuestion,
-  addRuleCandidate,
   finishRun,
   getKnownStates,
   getNextFrontierItem,
@@ -31,7 +31,7 @@ export const AGENT_TOOL_NAMES = [
   'go_to_state',
   'login',
   'add_open_question',
-  'add_rule_candidate',
+  'add_hypothesis',
   'finish_run',
 ] as const;
 export type AgentToolName = (typeof AGENT_TOOL_NAMES)[number];
@@ -84,7 +84,7 @@ export function registerTools(server: McpServer, ctx: ServerContext, runtime: Ru
 
   tool(
     'start_run',
-    'Start (or resume with resume_run_id) a run: mode "map" (default) explores the portal; mode "trace" records one named process (process {name, goal}, optional followup_key of an open FUP). environment picks one of the portal\'s environments (required when it has several; a resumed run keeps its own). max_action_class lowers this run\'s limit (e.g. "read" = only look; never raises the portal\'s); skip_images answers image requests with an "Image skipped" placeholder; focus {start_url, only_domains, only_paths, exclude_paths} narrows the run to part of the portal (start there, stay on those hosts and path globs, never open the excluded ones; never widens) and base_url in the result is the page to start on; a resumed run keeps all three unless given again. probe_marked true starts a probe run (map mode, new run only): the result lists probe_marks, the form steps a person marked for probing; only those may be probed with probe_form, and the run finishes without draining the frontier (NO_PROBE_MARKS when none is marked). Validates config and the environment guard before any browser opens.',
+    'Start (or resume with resume_run_id) a run: mode "map" (default) explores the portal; mode "trace" records one named process (process {name, goal}, optional followup_key of an open FUP). environment picks one of the portal\'s environments (required when it has several; a resumed run keeps its own). max_action_class lowers this run\'s limit (e.g. "read" = only look; never raises the portal\'s); skip_images answers image requests with an "Image skipped" placeholder; focus {start_url, only_domains, only_paths, exclude_paths} narrows the run to part of the portal (start there, stay on those hosts and path globs, never open the excluded ones; never widens) and base_url in the result is the page to start on; a resumed run keeps all three unless given again. form_probing true starts a form-probing run (map mode, new run only): the result lists probe_marks, the form steps a person marked for probing; only those may be probed with probe_form, and the run finishes without draining the frontier (NO_PROBE_MARKS when none is marked). Validates config and the environment guard before any browser opens.',
     {
       portal_id: z.string(),
       persona_id: z.string(),
@@ -102,22 +102,29 @@ export function registerTools(server: McpServer, ctx: ServerContext, runtime: Ru
         })
         .optional(),
       resume_run_id: z.string().optional(),
-      mode: z.enum(['map', 'trace']).optional(),
+      mode: z
+        .enum(['map', 'trace', 'probe'])
+        .optional()
+        .describe('"probe" is the headless driver\'s (spec 039); never set it.'),
       process: z.object({ name: z.string(), goal: z.string() }).optional(),
       followup_key: z.string().optional(),
-      probe_marked: z.boolean().optional(),
+      form_probing: z.boolean().optional(),
+      replay: z
+        .object({ inputs: z.record(z.string(), z.string()) })
+        .optional()
+        .describe('The headless driver only (spec 039); never set it.'),
       run_type: z
         .enum(['continue', 'focused', 'recheck', 'retry'])
         .optional()
         .describe(
-          'Spec 034 directed run (new map run): continue a stopped run (plan.parent_run_id), focused from marked screens within plan.depth, recheck marked screens (record only), retry a failed action (plan.target_edge_id). The result lists start_points: reach each with go_to_state.',
+          'Spec 034 directed run (new map run): continue a stopped run (plan.parent_run_id), focused from marked screens within plan.depth, recheck marked screens (record only), retry a failed action (plan.target_transition_id). The result lists start_points: reach each with go_to_state.',
         ),
       plan: z
         .object({
           parent_run_id: z.string().optional(),
           start_state_ids: z.array(z.string()).optional(),
           depth: z.number().optional(),
-          target_edge_id: z.string().optional(),
+          target_transition_id: z.string().optional(),
           variation: z.enum(['none', 'wait_longer', 'other_input', 'no_submit']).optional(),
         })
         .optional(),
@@ -175,6 +182,12 @@ export function registerTools(server: McpServer, ctx: ServerContext, runtime: Ru
       value: z.string().max(500).optional(),
       include_actions: z.boolean().optional(),
       fault: ProbeFault.optional(),
+      trigger: z
+        .boolean()
+        .optional()
+        .describe(
+          'Trace runs: true on the click that enters the process (the menu link or button whose label names it). The pages before it are how you got there, not steps of the process. Mark it once.',
+        ),
     },
     async (a) => {
       try {
@@ -189,7 +202,7 @@ export function registerTools(server: McpServer, ctx: ServerContext, runtime: Ru
   );
   tool(
     'probe_form',
-    "Probe runs only (start_run probe_marked), spec 032: try a marked form step beyond its happy path; PROBE_NOT_ASKED in a plain run, STEP_NOT_MARKED on a step that is not in probe_marks. Give the action_id of the step's submit or Next control, on a step you reached. The server presses it with test values first, then with each probe of the catalogue within the budget (empty required fields, wrong formats, boundaries, every other option, and in the browser only: a blocked request, HTTP 500, a slow request, offline) and records every outcome as a state: next, branch, validation, technical, temporary or blocked. Optional `probes`: probe ids or groups (validation, branch, technical). Call it again while the result has `more`; the step's mark is used when it has none. A `branch` outcome with possible_new_process is worth exploring. `missing_test_data` names fields the persona needs test values for: ask the BA, then probe again.",
+    "Form-probing runs only (start_run form_probing), spec 032: try a marked form step beyond its happy path; PROBE_NOT_ASKED in a plain run, STEP_NOT_MARKED on a step that is not in probe_marks. Give the action_id of the step's submit or Next control, on a step you reached. The server presses it with test values first, then with each probe of the catalogue within the budget (empty required fields, wrong formats, boundaries, every other option, and in the browser only: a blocked request, HTTP 500, a slow request, offline) and records every outcome as a state: next, branch, validation, technical, temporary or blocked. Optional `probes`: probe ids or groups (validation, branch, technical). Call it again while the result has `more`; the step's mark is used when it has none. A `branch` outcome with possible_new_process is worth exploring. `missing_test_data` names fields the persona needs test values for: ask the BA, then probe again.",
     {
       run_id: z.string(),
       action_id: z.string(),
@@ -224,15 +237,26 @@ export function registerTools(server: McpServer, ctx: ServerContext, runtime: Ru
   );
   tool(
     'add_open_question',
-    'Record something unexplained about a state, edge or form (intent goes here, never in facts).',
+    'Record something unexplained about a state, transition or form (intent goes here, never in facts).',
     { run_id: z.string(), text: z.string(), about_ref: z.string() },
     (a) => addOpenQuestion(ctx, a),
   );
   tool(
-    'add_rule_candidate',
-    'Flag an inference about a state, edge or form. Stored as confidence "inferred" with the record\'s evidence.',
-    { run_id: z.string(), text: z.string(), about_ref: z.string() },
-    (a) => addRuleCandidate(ctx, a),
+    'add_hypothesis',
+    'Flag an inference about a state, transition or form as a hypothesis of the portal model (a person confirms it, never you). kind: decision_rule (where an action leads depends on data, e.g. an age limit), ambiguous (you cannot tell which of two readings holds), business_error_template (a page that is a business refusal, not a technical error). claim: one sentence in the portal\'s words. test: { inputs (input.<field label> → value), refutes_if (e.g. { "notIn": ["the outcome the claim predicts"] }) }, required: what would show the claim wrong. Returns the key (H-…).',
+    {
+      run_id: z.string(),
+      kind: z.enum(['decision_rule', 'ambiguous', 'business_error_template']),
+      claim: z.string(),
+      about_ref: z.string(),
+      test: z
+        .object({
+          inputs: z.record(z.string(), z.union([z.string(), z.number()])).optional(),
+          refutes_if: z.record(z.string(), z.unknown()),
+        })
+        .optional(),
+    },
+    (a) => addHypothesis(ctx, a),
   );
   tool(
     'finish_run',

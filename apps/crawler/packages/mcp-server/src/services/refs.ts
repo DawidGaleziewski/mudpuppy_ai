@@ -1,8 +1,8 @@
 import type { ServerContext } from '../context.js';
 
-export type RefKind = 'state' | 'edge' | 'form';
+export type RefKind = 'state' | 'transition' | 'form';
 
-/** Resolve `about_ref` to a state (seen in this run), edge or form of this run, with its evidence_ref. */
+/** Resolve `about_ref` to a state (seen in this run), transition or form of this run, with its evidence_ref. */
 export async function resolveRef(
   ctx: ServerContext,
   runId: string,
@@ -17,13 +17,13 @@ export async function resolveRef(
     .executeTakeFirst();
   if (state) return { kind: 'state', evidence_ref: state.evidence_ref };
 
-  const edge = await ctx.db
-    .selectFrom('edges')
+  const transition = await ctx.db
+    .selectFrom('transitions')
     .select('evidence_ref')
     .where('run_id', '=', runId)
     .where('id', '=', ref)
     .executeTakeFirst();
-  if (edge) return { kind: 'edge', evidence_ref: edge.evidence_ref };
+  if (transition) return { kind: 'transition', evidence_ref: transition.evidence_ref };
 
   const form = await ctx.db
     .selectFrom('forms')

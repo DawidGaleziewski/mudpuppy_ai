@@ -7,7 +7,7 @@ import sqlite3
 
 from pydantic import BaseModel
 
-from .models import AmendmentRevision, Screen
+from .models import AmendmentRevisionWithTarget, Screen
 
 
 class ObservedRevision(BaseModel):
@@ -70,13 +70,15 @@ def screen_of_state(conn: sqlite3.Connection, state_id: str) -> ScreenRevisions 
     )
 
 
-def amendment_history(conn: sqlite3.Connection, amendment_id: str) -> list[AmendmentRevision]:
-    """Every revision of an amendment, oldest first; [] before migration 0016."""
+def amendment_history(
+    conn: sqlite3.Connection, amendment_id: str
+) -> list[AmendmentRevisionWithTarget]:
+    """Every revision of an amendment with what it was written on, oldest first; [] before 0016."""
     try:
         rows = conn.execute(
-            "SELECT * FROM amendment_revisions WHERE amendment_id = ? ORDER BY rev",
+            "SELECT * FROM amendment_revisions_with_target WHERE amendment_id = ? ORDER BY rev",
             (amendment_id,),
         ).fetchall()
     except sqlite3.OperationalError:
         return []
-    return [AmendmentRevision.model_validate(dict(r)) for r in rows]
+    return [AmendmentRevisionWithTarget.model_validate(dict(r)) for r in rows]

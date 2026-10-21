@@ -8,6 +8,7 @@ import type {
   RevisionChange,
   RevisionStatus,
 } from '@pathfinder/docs-model';
+import { EVIDENCE_COLUMN } from '@pathfinder/store';
 import { formatKey } from '../keys.js';
 import type { FixtureStore, TraceFixture } from './fixture-store.js';
 
@@ -38,18 +39,15 @@ export interface SeededDocs {
   sessionId: string;
   trace: TraceFixture;
   boundary: TraceFixture;
-  /** The evidence target id that no longer exists (cited by REQ-002). */
-  goneFormId: string;
 }
 
 /**
  * A fixed Layer B record set over the fixture store's map run and two trace runs (tasks.md T072):
  * all 12 kinds; statuses draft, confirmed, rejected, superseded (SCR-002: a draft over a confirmed
  * baseline), a withdrawn record (DI-004); every confidence and one not-observable flag (BR-002);
- * confirm/reject/comment reviews; an open and a blocked follow-up; a BA and two crawler questions; one
- * evidence link whose target is gone (REQ-002). Rows are written directly with the statuses the status
- * engine would have left, so `audit()` reports only that broken link. Call on a store made with
- * `deterministicIds: true` for byte-stable output.
+ * confirm/reject/comment reviews; an open and a blocked follow-up; a BA and two crawler questions.
+ * Rows are written directly with the statuses the status engine would have left, so `audit()` reports
+ * nothing. Call on a store made with `deterministicIds: true` for byte-stable output.
  */
 export function seedDocRecords(fx: FixtureStore): SeededDocs {
   const { raw, portalId, nextId } = fx;
@@ -84,10 +82,30 @@ export function seedDocRecords(fx: FixtureStore): SeededDocs {
     const latest = revs.at(-1)!;
     const confirmed = revs.map((r, i) => (r.status === 'confirmed' ? i + 1 : 0)).filter(Boolean);
     const created = seedTs(clock + 1);
+    // Spec 039 T070: a PROC record documents its own process. Its id is derived from the seq so
+    // the fixture's other ids stay as they were.
+    const processId =
+      kind === 'process' ? `00000000-0000-7000-9000-${String(seq).padStart(12, '0')}` : null;
+    if (processId)
+      raw
+        .prepare(
+          `INSERT INTO ba_processes (id, portal_id, key, name, persona, stage, rev, source, scope_id,
+             suggestion_id, created_at, updated_at, archived_at, record_key)
+           VALUES (?, ?, ?, ?, 'guest', 'scoped', 1, 'new', NULL, NULL, ?, ?, NULL, ?)`,
+        )
+        .run(
+          processId,
+          portalId,
+          `PRC-${String(seq).padStart(3, '0')}`,
+          latest.content.title,
+          created,
+          created,
+          key,
+        );
     raw
       .prepare(
         `INSERT INTO doc_records (id, portal_id, kind, key, seq, title, latest_rev, confirmed_rev, withdrawn,
-         created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+         created_at, updated_at, process_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       )
       .run(
         id,
@@ -101,6 +119,7 @@ export function seedDocRecords(fx: FixtureStore): SeededDocs {
         latest.change === 'withdraw' ? 1 : 0,
         created,
         created,
+        processId,
       );
     let updated = created;
     revs.forEach((rev, i) => {
@@ -125,13 +144,19 @@ export function seedDocRecords(fx: FixtureStore): SeededDocs {
           rev.note ?? (i === 0 ? null : 'Revised after a new run'),
           updated,
         );
-      for (const link of rev.evidence)
+      for (const link of rev.evidence) {
+        // What a link cites is a typed ref (spec 039 § 15, migration 0040).
+        const ref = nextId();
+        raw
+          .prepare(`INSERT INTO entity_refs (id, ${EVIDENCE_COLUMN[link.kind]}) VALUES (?, ?)`)
+          .run(ref, link.id);
         raw
           .prepare(
-            `INSERT INTO doc_evidence_links (id, revision_id, target_kind, target_id, run_id, note)
-             VALUES (?, ?, ?, ?, ?, ?)`,
+            `INSERT INTO doc_evidence_links (id, revision_id, ref_id, run_id, note)
+             VALUES (?, ?, ?, ?, ?)`,
           )
-          .run(nextId(), revisionId, link.kind, link.id, link.run, link.note ?? null);
+          .run(nextId(), revisionId, ref, link.run, link.note ?? null);
+      }
       for (const rel of rev.relations ?? [])
         pending.push({ from: revisionId, to: rel.to, type: rel.type });
       for (const review of rev.reviews ?? []) {
@@ -371,7 +396,6 @@ export function seedDocRecords(fx: FixtureStore): SeededDocs {
       reviews: confirm,
     },
   ]);
-  const goneFormId = nextId();
   record('requirement', [
     {
       content: {
@@ -387,7 +411,6 @@ export function seedDocRecords(fx: FixtureStore): SeededDocs {
       status: 'draft',
       evidence: [
         { kind: 'form', id: fx.forms.contact, run: map, note: 'hint "Podaj telefon lub e-mail."' },
-        { kind: 'form', id: goneFormId, run: map, note: 'earlier sighting of the form' },
       ],
       reviews: [{ action: 'comment', text: 'Is either field enough on its own?' }],
     },
@@ -425,7 +448,7 @@ export function seedDocRecords(fx: FixtureStore): SeededDocs {
       },
       confidence: 'inferred',
       status: 'draft',
-      evidence: [{ kind: 'rule_candidate', id: fx.ruleCandidate, run: map }],
+      evidence: [stateLink(st.car)],
       relations: [{ type: 'uses_term', to: 'GL-001' }],
     },
   ]);
@@ -644,5 +667,5 @@ export function seedDocRecords(fx: FixtureStore): SeededDocs {
       .prepare('INSERT INTO doc_relations (from_revision_id, to_record_id, type) VALUES (?, ?, ?)')
       .run(rel.from, ids[rel.to], rel.type);
 
-  return { ids, sessionId, trace, boundary, goneFormId };
+  return { ids, sessionId, trace, boundary };
 }

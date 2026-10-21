@@ -7,6 +7,7 @@ import { noteFailedAssets } from '../render-health.js';
 import { reported, step, type StepContext } from './context.js';
 import type { IssuedAction } from './enqueue.js';
 import { issueAndEnqueue } from './enqueue.js';
+import { modelCaptureStep } from './capture-step.js';
 import { fingerprintStep, type Observed } from './fingerprint-step.js';
 import { compositionHints } from './composition.js';
 import { frameReports } from './frames.js';
@@ -16,7 +17,7 @@ import { recordFormsStep, recordTraceStep, recordTransitionStep } from './record
 import { recordStateStep, trackDepth } from './record-state.js';
 import { settleStep } from './settle.js';
 import { throwIfStopped } from './stop.js';
-import { recordVisitStep } from './visits.js';
+import { recordObservationStep } from './observations.js';
 import { newStateVisuals } from './visuals.js';
 
 /**
@@ -44,11 +45,13 @@ export async function processPage(sc: StepContext): Promise<PageResult> {
   const fingerprinted = await fingerprintStep(sc, observed);
   const { masked, routeTemplate, assignment } = fingerprinted;
   const storedSnapshot = rs.effective.portal.pii_scrub ? masked : observed.ariaSnapshot;
+  const capture = await modelCaptureStep(sc, { url: observed.url, masked, net, stabilization });
   const recorded = await recordStateStep(sc, {
     observed,
     fingerprinted,
     storedSnapshot,
     stabilization,
+    capture,
   });
   const { evidenceRef, state_id, created, stateRow } = recorded;
   const alreadyInRun = recorded.alreadyInRun !== undefined;
@@ -61,16 +64,28 @@ export async function processPage(sc: StepContext): Promise<PageResult> {
   await trackDepth(sc, state_id, observed.url);
   const page = { observed, stateId: state_id, evidenceRef, alreadyInRun };
   const formCount = await recordFormsStep(sc, page);
-  // Edge (for act) first: API calls observed during an action hang off it.
-  const edgeId = await recordTransitionStep(sc, { stateId: state_id, evidenceRef, stabilization });
+  // Transition (for act) first: API calls observed during an action hang off it.
+  const transitionId = await recordTransitionStep(sc, {
+    stateId: state_id,
+    evidenceRef,
+    stabilization,
+    result: capture.result,
+  });
   await step(sc, 'record_api_calls', () =>
     recordNetwork(ctx, run, net, {
-      edgeId,
+      transitionId,
       stateId: state_id,
       scrub: rs.effective.portal.pii_scrub,
     }),
   );
-  await recordVisitStep(sc, { stateId: state_id, url: observed.url, edgeId, relogged });
+  await recordObservationStep(sc, {
+    stateId: state_id,
+    url: observed.url,
+    transitionId,
+    relogged,
+    capture,
+    snapshot: storedSnapshot,
+  });
   const issued = await step(sc, 'enqueue_frontier', () =>
     issueAndEnqueue(ctx, run, rs, observed, {
       state_id,
@@ -87,7 +102,7 @@ export async function processPage(sc: StepContext): Promise<PageResult> {
     masked,
     stateId: state_id,
     evidenceRef,
-    edgeId,
+    transitionId,
   });
   rs.lastObserved = { url: observed.url, title: observed.title, snapshot: masked };
   rs.currentStateId = state_id;
@@ -104,7 +119,7 @@ export async function processPage(sc: StepContext): Promise<PageResult> {
     ...(rs.isTrace || !alreadyInRun || sc.includeActions
       ? { actions: issuedForAgent(sc, issued) }
       : { actions_omitted: issued.length }),
-    ...(edgeId ? { edge_id: edgeId } : {}),
+    ...(transitionId ? { transition_id: transitionId } : {}),
     ...(recordedStep ? { step: recordedStep } : {}),
     ...(relogged ? { relogged_in: true } : {}),
     ...compositionHints(observed, rs.lastMounts),
@@ -128,6 +143,10 @@ function issuedForAgent(sc: StepContext, issued: IssuedAction[]): PageResult['ac
       ...(a.found_by ? { found_by: a.found_by } : {}),
       ...(a.label ? { label: a.label } : {}),
       ...(linkTo ? { link_to: linkTo } : {}),
+      // The headless driver finds a recorded step's action by its model element key (spec 039).
+      ...(sc.rs.headless
+        ? { element_key: (a.actionJson as { element_key: string }).element_key }
+        : {}),
       ...(a.input && a.input !== 'check' && known !== null && inputs[known] !== undefined
         ? { suggested_value: inputs[known] }
         : {}),

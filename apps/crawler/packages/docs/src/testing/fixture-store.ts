@@ -49,12 +49,16 @@ export interface FixtureStore {
   runId: string;
   states: { home: string; car: string; vehicle: string; contact: string };
   forms: { vehicle: string; contact: string };
-  edges: { homeToCar: string; carToVehicle: string; homeToContact: string; buySkipped: string };
+  transitions: {
+    homeToCar: string;
+    carToVehicle: string;
+    homeToContact: string;
+    buySkipped: string;
+  };
   actions: { calculate: string; next: string; buy: string; send: string };
   networkCalls: { quote: string; contact: string };
   /** Crawler questions: [what follows "Dalej", what happens after "Kup polisę"]. */
   openQuestions: [string, string];
-  ruleCandidate: string;
   decision: string;
   /** A second portal with one run, for PORTAL_MISMATCH. */
   otherPortalId: string;
@@ -64,9 +68,9 @@ export interface FixtureStore {
   visuals: { vehicle: { screenshot_ref: string; layout_ref: string; layout: Layout } };
   /**
    * Another completed run (of `portalId` unless told otherwise) that saw the home state again and
-   * recorded one edge of its own; for RUN_NOT_IN_SESSION and multi-run sessions.
+   * recorded one transition of its own; for RUN_NOT_IN_SESSION and multi-run sessions.
    */
-  addRun(portalId?: string): { runId: string; edgeId: string };
+  addRun(portalId?: string): { runId: string; transitionId: string };
   /**
    * A completed sandbox trace run of `portalId`: process "Calculate a car premium", outcome
    * `goal_reached`, three steps (navigate, click, fill). Added on demand so the default fixture
@@ -87,8 +91,8 @@ export interface TraceFixture {
   processId: string;
   /** Step ids in `ord` order (1..n). */
   stepIds: string[];
-  /** The edge each click step executed as, by step index (undefined for navigate/fill). */
-  edgeIds: (string | undefined)[];
+  /** The transition each click step executed as, by step index (undefined for navigate/fill). */
+  transitionIds: (string | undefined)[];
   /** Set on the boundary trace: the refused action that ended it. */
   boundaryActionId: string | null;
 }
@@ -314,7 +318,7 @@ export async function makeFixtureStore(opts: FixtureStoreOptions = {}): Promise<
     form: { method, action, hasPassword: false, purpose: 'other' },
   });
 
-  const edge = (
+  const transition = (
     runId: string,
     from: string,
     to: string | null,
@@ -323,7 +327,7 @@ export async function makeFixtureStore(opts: FixtureStoreOptions = {}): Promise<
     over: { safety_class?: string; status?: string } = {},
   ): string => {
     const id = nextId();
-    insert('edges', {
+    insert('transitions', {
       id,
       run_id: runId,
       from_state: from,
@@ -447,30 +451,30 @@ export async function makeFixtureStore(opts: FixtureStoreOptions = {}): Promise<
     send: action(runId, states.contact, send, 'mutating', ceiling),
   };
 
-  const edges = {
-    homeToCar: edge(
+  const transitions = {
+    homeToCar: transition(
       runId,
       states.home,
       states.car,
       link('Samochód', '/ubezpieczenia/samochod', refs.home),
       refs.car,
     ),
-    carToVehicle: edge(runId, states.car, states.vehicle, calculate, refs.vehicle),
-    homeToContact: edge(
+    carToVehicle: transition(runId, states.car, states.vehicle, calculate, refs.vehicle),
+    homeToContact: transition(
       runId,
       states.home,
       states.contact,
       link('Kontakt', '/kontakt', refs.home),
       refs.contact,
     ),
-    buySkipped: edge(runId, states.car, null, buy, refs.car, {
+    buySkipped: transition(runId, states.car, null, buy, refs.car, {
       safety_class: 'mutating',
       status: 'skipped',
     }),
   };
 
   const networkCall = (
-    edgeId: string,
+    transitionId: string,
     method: string,
     urlTemplate: string,
     req: object,
@@ -480,7 +484,7 @@ export async function makeFixtureStore(opts: FixtureStoreOptions = {}): Promise<
     insert('network_calls', {
       id,
       run_id: runId,
-      edge_id: edgeId,
+      transition_id: transitionId,
       method,
       url_template: urlTemplate,
       status: 200,
@@ -493,14 +497,14 @@ export async function makeFixtureStore(opts: FixtureStoreOptions = {}): Promise<
   };
   const networkCalls = {
     quote: networkCall(
-      edges.carToVehicle,
+      transitions.carToVehicle,
       'GET',
       '/api/kalkulator/marki',
       {},
       { marki: 'array<string>' },
     ),
     contact: networkCall(
-      edges.homeToContact,
+      transitions.homeToContact,
       'GET',
       '/api/kontakt/tematy',
       {},
@@ -508,13 +512,15 @@ export async function makeFixtureStore(opts: FixtureStoreOptions = {}): Promise<
     ),
   };
 
-  const question = (text: string, aboutRef: string): string => {
+  const question = (text: string, aboutState: string): string => {
     const id = nextId();
+    const ref = nextId();
+    insert('entity_refs', { id: ref, state_id: aboutState });
     insert('open_questions', {
       id,
       run_id: runId,
       text,
-      about_ref: aboutRef,
+      ref_id: ref,
       status: 'open',
       created_at: FIXTURE_TS,
     });
@@ -527,17 +533,6 @@ export async function makeFixtureStore(opts: FixtureStoreOptions = {}): Promise<
     ),
     question('What happens after "Kup polisę"? It was refused as mutating.', states.car),
   ];
-
-  const ruleCandidate = nextId();
-  insert('rule_candidates', {
-    id: ruleCandidate,
-    run_id: runId,
-    text: 'Autocasco (AC) seems to be offered only for vehicles younger than 15 years.',
-    about_ref: states.car,
-    evidence_ref: refs.car,
-    confidence: 'inferred',
-    created_at: FIXTURE_TS,
-  });
 
   const decision = nextId();
   insert('decision_log', {
@@ -558,7 +553,7 @@ export async function makeFixtureStore(opts: FixtureStoreOptions = {}): Promise<
     intent: string;
     kind: 'navigate' | 'click' | 'fill' | 'check' | 'select';
     actionId: string | null;
-    edgeId: string | null;
+    transitionId: string | null;
     value: string | null;
     before: string | null;
     after: string | null;
@@ -612,7 +607,7 @@ export async function makeFixtureStore(opts: FixtureStoreOptions = {}): Promise<
         intent: s.intent,
         kind: s.kind,
         action_id: s.actionId,
-        edge_id: s.edgeId,
+        transition_id: s.transitionId,
         value: s.value,
         state_before: s.before,
         state_after: s.after,
@@ -627,7 +622,7 @@ export async function makeFixtureStore(opts: FixtureStoreOptions = {}): Promise<
       runId: traceRun,
       processId,
       stepIds,
-      edgeIds: built.steps.map((s) => s.edgeId ?? undefined),
+      transitionIds: built.steps.map((s) => s.transitionId ?? undefined),
       boundaryActionId: built.boundaryActionId,
     };
   };
@@ -643,11 +638,10 @@ export async function makeFixtureStore(opts: FixtureStoreOptions = {}): Promise<
     runId,
     states,
     forms,
-    edges,
+    transitions,
     actions,
     networkCalls,
     openQuestions,
-    ruleCandidate,
     decision,
     otherPortalId,
     otherRunId,
@@ -657,7 +651,10 @@ export async function makeFixtureStore(opts: FixtureStoreOptions = {}): Promise<
       const id = run(portal);
       const home = portal === portalId ? states.home : otherState;
       observe(id, home, portal === portalId ? refs.home : refs.other);
-      return { runId: id, edgeId: edge(id, home, home, link('Start', '/', refs.home), refs.home) };
+      return {
+        runId: id,
+        transitionId: transition(id, home, home, link('Start', '/', refs.home), refs.home),
+      };
     },
     addTraceRun() {
       return trace('sandbox', 'Calculate a car premium', 'See an OC/AC premium for a car', (r) => {
@@ -669,7 +666,7 @@ export async function makeFixtureStore(opts: FixtureStoreOptions = {}): Promise<
           'read',
           null,
         );
-        const toVehicle = edge(r, states.car, states.vehicle, calculate, refs.vehicle);
+        const toVehicle = transition(r, states.car, states.vehicle, calculate, refs.vehicle);
         return {
           outcome: 'goal_reached',
           boundaryActionId: null,
@@ -681,7 +678,7 @@ export async function makeFixtureStore(opts: FixtureStoreOptions = {}): Promise<
               intent: 'Open the car insurance page',
               kind: 'navigate',
               actionId: null,
-              edgeId: null,
+              transitionId: null,
               value: null,
               before: null,
               after: states.car,
@@ -692,7 +689,7 @@ export async function makeFixtureStore(opts: FixtureStoreOptions = {}): Promise<
               intent: 'Open the premium calculator',
               kind: 'click',
               actionId: calc,
-              edgeId: toVehicle,
+              transitionId: toVehicle,
               value: null,
               before: states.car,
               after: states.vehicle,
@@ -703,7 +700,7 @@ export async function makeFixtureStore(opts: FixtureStoreOptions = {}): Promise<
               intent: 'Enter the vehicle model',
               kind: 'fill',
               actionId: model,
-              edgeId: null,
+              transitionId: null,
               value: 'Test Model',
               before: states.vehicle,
               after: null,
@@ -718,7 +715,7 @@ export async function makeFixtureStore(opts: FixtureStoreOptions = {}): Promise<
       return trace('production', 'Buy a car policy', 'Reach the purchase confirmation', (r) => {
         const calc = action(r, states.car, calculate, 'read', null);
         const dalej = action(r, states.vehicle, next, 'mutating', ceiling);
-        const toVehicle = edge(r, states.car, states.vehicle, calculate, refs.vehicle);
+        const toVehicle = transition(r, states.car, states.vehicle, calculate, refs.vehicle);
         return {
           outcome: 'boundary_reached',
           boundaryActionId: dalej,
@@ -729,7 +726,7 @@ export async function makeFixtureStore(opts: FixtureStoreOptions = {}): Promise<
               intent: 'Open the car insurance page',
               kind: 'navigate',
               actionId: null,
-              edgeId: null,
+              transitionId: null,
               value: null,
               before: null,
               after: states.car,
@@ -740,7 +737,7 @@ export async function makeFixtureStore(opts: FixtureStoreOptions = {}): Promise<
               intent: 'Open the premium calculator',
               kind: 'click',
               actionId: calc,
-              edgeId: toVehicle,
+              transitionId: toVehicle,
               value: null,
               before: states.car,
               after: states.vehicle,

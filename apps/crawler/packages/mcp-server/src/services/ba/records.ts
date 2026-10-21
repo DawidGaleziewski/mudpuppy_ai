@@ -7,7 +7,7 @@ import {
   type DocContent,
   type RevisionChange,
 } from '@pathfinder/docs-model';
-import type { DocRecordsTable, Selectable } from '@pathfinder/store';
+import { insertEvidenceRef, type DocRecordsTable, type Selectable } from '@pathfinder/store';
 import {
   applyStatusEvent,
   checkObserved,
@@ -33,7 +33,9 @@ import {
   type SessionRow,
 } from './common.js';
 import { outsideSessionLinks, type CarriedLink } from './carry-over.js';
+import { assertApiEndpointCitesCall } from './api-endpoint-check.js';
 import { assertOneFieldPerDataItem } from './data-item-fields.js';
+import { processForRecord } from './process-link.js';
 import {
   assertProcessNotOnlyErrors,
   checkDrops,
@@ -43,6 +45,12 @@ import {
 } from './revision-guard.js';
 
 type RecordRow = Selectable<DocRecordsTable>;
+
+/** The persona a process record names (its schema requires one). */
+const personaOf = (content: unknown): string => {
+  const p = (content as { persona?: unknown }).persona;
+  return typeof p === 'string' && p ? p : 'guest';
+};
 
 const EvidenceInput = z
   .object({
@@ -71,6 +79,11 @@ export const CreateRecordInput = z
     not_observable: z.boolean().default(false),
     evidence: z.array(EvidenceInput),
     relations: z.array(RelationInput).default([]),
+    /** `process` only: the process (PRC-nnn) the record documents; without it one is opened. */
+    process_key: z
+      .string()
+      .regex(/^PRC-\d{3,}$/)
+      .optional(),
   })
   .strict();
 
@@ -135,7 +148,7 @@ function requireEvidence(raw: unknown): void {
   if (!Array.isArray(evidence) || evidence.length === 0)
     throw new ToolError(
       'MISSING_EVIDENCE',
-      'evidence is required: cite at least one state, edge, action, form, network call, rule candidate, crawler question, record or review',
+      'evidence is required: cite at least one state, edge, action, form, network call, crawler question, record or review',
     );
 }
 
@@ -286,23 +299,20 @@ function writeRevision(ctx: BaContext, w: RevisionWrite, ts: string): void {
       ts,
     );
 
-  const addLink = ctx.raw.prepare(
-    `INSERT INTO doc_evidence_links (id, revision_id, target_kind, target_id, run_id, note, region)
-     VALUES (?, ?, ?, ?, ?, ?, ?)`,
+  // What a link cites is a typed ref (spec 039 § 15, migration 0040).
+  const insertLink = ctx.raw.prepare(
+    'INSERT INTO doc_evidence_links (id, revision_id, ref_id, run_id, note) VALUES (?, ?, ?, ?, ?)',
   );
   w.targets.forEach((t, i) =>
-    addLink.run(
+    insertLink.run(
       newId(),
       revisionId,
-      t.target_kind,
-      t.target_id,
+      insertEvidenceRef(ctx.raw, t.target_kind, t.target_id, t.region),
       t.run_id,
       w.evidence[i]!.note ?? null,
-      t.region ?? null,
     ),
   );
-  for (const l of w.carried ?? [])
-    addLink.run(newId(), revisionId, l.target_kind, l.target_id, l.run_id, l.note, l.region);
+  for (const l of w.carried ?? []) insertLink.run(newId(), revisionId, l.ref_id, l.run_id, l.note);
 
   const addRelation = ctx.raw.prepare(
     'INSERT INTO doc_relations (from_revision_id, to_record_id, type) VALUES (?, ?, ?)',
@@ -359,6 +369,7 @@ export function createRecord(ctx: BaContext, raw: unknown): WriteOutput {
   const content = parseContent(input.kind, input.content);
   assertNoPii(content, 'content', isIdPath);
   assertOneFieldPerDataItem(ctx, content, input.evidence);
+  assertApiEndpointCitesCall(ctx, content, input.evidence);
   assertNoPii(
     input.evidence.map((e) => e.note),
     'evidence.note',
@@ -386,12 +397,28 @@ export function createRecord(ctx: BaContext, raw: unknown): WriteOutput {
       change: 'create',
       title: content.title,
     });
+    if (input.process_key !== undefined && input.kind !== 'process')
+      throw new ToolError('SCHEMA_INVALID', 'process_key goes with a process record only');
+    const processId =
+      input.kind === 'process'
+        ? processForRecord(
+            ctx,
+            session.portal_id,
+            {
+              key,
+              title: content.title,
+              persona: personaOf(content),
+              processKey: input.process_key,
+            },
+            ts,
+          )
+        : null;
     ctx.raw
       .prepare(
         `INSERT INTO doc_records (id, portal_id, kind, key, seq, title, latest_rev, confirmed_rev, withdrawn,
-         created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, 1, NULL, 0, ?, ?)`,
+         created_at, updated_at, process_id) VALUES (?, ?, ?, ?, ?, ?, 1, NULL, 0, ?, ?, ?)`,
       )
-      .run(recordId, session.portal_id, input.kind, key, seq, content.title, ts, ts);
+      .run(recordId, session.portal_id, input.kind, key, seq, content.title, ts, ts, processId);
     writeRevision(
       ctx,
       {
@@ -455,6 +482,7 @@ export function reviseRecord(ctx: BaContext, raw: unknown): WriteOutput {
     const content = parseContent(record.kind, input.content);
     assertNoPii(content, 'content', isIdPath);
     assertOneFieldPerDataItem(ctx, content, input.evidence);
+    assertApiEndpointCitesCall(ctx, content, input.evidence);
     assertProcessNotOnlyErrors(ctx, record.kind, input.evidence);
     const dropNote = checkDrops(
       droppedLinks(ctx, record.id, record.latest_rev, session.id, input.evidence),
@@ -618,7 +646,7 @@ export function addressCrawlerQuestion(
     const record = findRecord(ctx, session.portal_id, input.by_key);
     const cites = ctx.raw
       .prepare(
-        `SELECT 1 FROM doc_evidence_links l JOIN doc_revisions rev ON rev.id = l.revision_id
+        `SELECT 1 FROM doc_evidence l JOIN doc_revisions rev ON rev.id = l.revision_id
          WHERE rev.record_id = ? AND rev.rev_no = ? AND l.target_kind = 'open_question' AND l.target_id = ?`,
       )
       .get(record.id, record.latest_rev, question.id);

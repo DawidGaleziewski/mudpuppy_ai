@@ -1,9 +1,12 @@
 import {
   Confidence,
-  EdgeStatus,
+  Driver,
+  TransitionStatus,
   FoundBy,
   SafetyClass,
   Stabilization,
+  StepResult,
+  TransitionKind,
   newId,
   nowIso,
 } from '@pathfinder/core';
@@ -60,6 +63,8 @@ export const ActionInput = z
     tag: z.string().min(1).optional(),
     /** Frame path of the document it lives in (spec 015 R3); absent for the top document. */
     frame: z.string().min(1).optional(),
+    /** The model's element key (spec 039 design § 5.5): matches the action across runs. */
+    element_key: z.string().min(1).optional(),
   })
   .strict();
 
@@ -70,11 +75,20 @@ export const RecordTransitionInput = z
     to_state: z.string().min(1).nullable(),
     action: ActionInput,
     safety_class: SafetyClass,
-    status: EdgeStatus,
+    status: TransitionStatus,
     evidence_ref: z.string().min(1),
     confidence: Confidence,
     error: z.record(z.string(), z.unknown()).nullable().default(null),
     stabilization: Stabilization.default('settled'),
+    // MudPuppy 2.0 (spec 039 design § 5.7): the transition as a step of a journey.
+    journey_id: z.string().min(1),
+    seq: z.number().int().positive(),
+    /** The observation the step started from; null only when the journey has none yet. */
+    from_observation_id: z.string().min(1).nullable(),
+    element_key: z.string().min(1),
+    kind: TransitionKind,
+    result: StepResult,
+    driver: Driver.default('agent'),
   })
   .strict();
 
@@ -92,13 +106,13 @@ export function descriptorOf(action: z.infer<typeof ActionInput>): ActionDescrip
 }
 
 /**
- * Records an edge. The class is re-derived with the `safety` package and a differing supplied class
+ * Records a transition. The class is re-derived with the `safety` package and a differing supplied class
  * is rejected (FR-004). Whether the action may run at all is the action gate's decision.
  */
 export async function recordTransition(
   ctx: ServerContext,
   raw: unknown,
-): Promise<{ edge_id: string }> {
+): Promise<{ transition_id: string }> {
   requireEvidenceAndConfidence(raw);
   const input = parseInput(RecordTransitionInput, raw);
   const run = await getRun(ctx, input.run_id);
@@ -139,7 +153,7 @@ export async function recordTransition(
 
   const id = newId();
   await ctx.db
-    .insertInto('edges')
+    .insertInto('transitions')
     .values({
       id,
       run_id: run.id,
@@ -153,7 +167,14 @@ export async function recordTransition(
       error: input.error === null ? null : JSON.stringify(input.error),
       stabilization: input.stabilization,
       created_at: nowIso(),
+      journey_id: input.journey_id,
+      seq: input.seq,
+      from_observation_id: input.from_observation_id,
+      element_key: input.element_key,
+      kind: input.kind,
+      result: input.result,
+      driver: input.driver,
     })
     .execute();
-  return { edge_id: id };
+  return { transition_id: id };
 }

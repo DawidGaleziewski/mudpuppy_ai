@@ -1,4 +1,12 @@
 import { maskText, newId, nowIso } from '@pathfinder/core';
+import {
+  CRAWLER_HYPOTHESIS_KINDS,
+  HypothesisInputError,
+  HypothesisTestInput,
+  insertEvidenceRef,
+  proposeHypothesis,
+  reconcilePortalModel,
+} from '@pathfinder/store';
 import { z } from 'zod';
 import type { ServerContext } from '../context.js';
 import { ToolError, parseInput } from '../errors.js';
@@ -31,17 +39,18 @@ const NoteInput = z
   })
   .strict();
 
-/** Intent and unexplained behaviour go here, never into a rule candidate (FR-002). */
+/** Intent and unexplained behaviour go here, never into a hypothesis's facts (FR-002). */
 export async function addOpenQuestion(
   ctx: ServerContext,
   raw: unknown,
 ): Promise<{ open_question_id: string }> {
   const input = parseInput(NoteInput, raw);
   await assertRunActive(ctx, input.run_id);
-  if (!(await resolveRef(ctx, input.run_id, input.about_ref))) {
+  const about = await resolveRef(ctx, input.run_id, input.about_ref);
+  if (!about) {
     throw new ToolError(
       'UNKNOWN_REF',
-      `about_ref ${input.about_ref} is not a state, edge or form of this run`,
+      `about_ref ${input.about_ref} is not a state, transition or form of this run`,
     );
   }
   const id = newId();
@@ -51,7 +60,7 @@ export async function addOpenQuestion(
       id,
       run_id: input.run_id,
       text: maskText(input.text),
-      about_ref: input.about_ref,
+      ref_id: insertEvidenceRef(ctx.raw, about.kind, input.about_ref),
       status: 'open',
       created_at: nowIso(),
     })
@@ -59,31 +68,60 @@ export async function addOpenQuestion(
   return { open_question_id: id };
 }
 
-/** The server copies the referenced record's evidence_ref and forces `inferred`; the agent sets neither. */
-export async function addRuleCandidate(
+export const AddHypothesisInput = z
+  .object({
+    run_id: z.string().min(1),
+    kind: z.enum(CRAWLER_HYPOTHESIS_KINDS),
+    claim: z.string().trim().min(1).max(600),
+    about_ref: z.string().min(1),
+    test: HypothesisTestInput.optional(),
+  })
+  .strict();
+
+/**
+ * The crawler's inference (spec 039 design § 10.4, replacing `add_rule_candidate`): a hypothesis
+ * on the portal model with origin agent, citing the state, transition or form it is about, and a
+ * test that could refute it. A run's first page may come before the portal has a model: the
+ * model is built from what is recorded so far. Only a person confirms it.
+ */
+export async function addHypothesis(
   ctx: ServerContext,
   raw: unknown,
-): Promise<{ rule_candidate_id: string }> {
-  const input = parseInput(NoteInput, raw);
-  await assertRunActive(ctx, input.run_id);
+): Promise<{ key: string; created: boolean }> {
+  const input = parseInput(AddHypothesisInput, raw);
+  const run = await assertRunActive(ctx, input.run_id);
   const ref = await resolveRef(ctx, input.run_id, input.about_ref);
   if (!ref)
     throw new ToolError(
       'UNKNOWN_REF',
-      `about_ref ${input.about_ref} is not a state, edge or form of this run`,
+      `about_ref ${input.about_ref} is not a state, transition or form of this run`,
     );
-  const id = newId();
-  await ctx.db
-    .insertInto('rule_candidates')
-    .values({
-      id,
-      run_id: input.run_id,
-      text: maskText(input.text),
-      about_ref: input.about_ref,
-      evidence_ref: ref.evidence_ref,
-      confidence: 'inferred',
-      created_at: nowIso(),
-    })
-    .execute();
-  return { rule_candidate_id: id };
+  const evidence =
+    ref.kind === 'form'
+      ? {
+          kind: 'state' as const,
+          id: (
+            ctx.raw.prepare('SELECT state_id FROM forms WHERE id = ?').get(input.about_ref) as {
+              state_id: string;
+            }
+          ).state_id,
+        }
+      : { kind: ref.kind, id: input.about_ref };
+  const hasModel = ctx.raw
+    .prepare('SELECT 1 FROM model_versions WHERE portal_id = ? LIMIT 1')
+    .get(run.portal_id);
+  if (!hasModel) reconcilePortalModel(ctx.raw, run.portal_id);
+  try {
+    return proposeHypothesis(ctx.raw, {
+      portal: run.portal_id,
+      kind: input.kind,
+      claim: maskText(input.claim),
+      evidence: [evidence],
+      tests: input.test ? [input.test] : [],
+      actor: 'crawler',
+    });
+  } catch (e) {
+    if (e instanceof HypothesisInputError) throw new ToolError(e.code, e.message);
+    throw e;
+  }
 }

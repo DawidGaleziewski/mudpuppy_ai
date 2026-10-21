@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { ToolError, recordApiCall, recordState, recordTransition } from '../src/index.js';
-import { FP, REF, makeCtx, seedRun } from './helpers.js';
+import { FP, REF, makeCtx, seedRun, transitionStep } from './helpers.js';
 
 const call = (run_id: string, over: Record<string, unknown> = {}) => ({
   run_id,
@@ -22,7 +22,7 @@ async function code(p: Promise<unknown>): Promise<string> {
 }
 
 describe('record_api_call', () => {
-  it('accepts shape-only records, with no edge_id (passive load)', async () => {
+  it('accepts shape-only records, with no transition_id (passive load)', async () => {
     const ctx = await makeCtx();
     const run = await seedRun(ctx);
     const { api_call_id } = await recordApiCall(ctx, call(run));
@@ -31,7 +31,12 @@ describe('record_api_call', () => {
       .selectAll()
       .where('id', '=', api_call_id)
       .executeTakeFirstOrThrow();
-    expect(row).toMatchObject({ method: 'GET', edge_id: null, console_errors: '[]', url: null });
+    expect(row).toMatchObject({
+      method: 'GET',
+      transition_id: null,
+      console_errors: '[]',
+      url: null,
+    });
   });
 
   it('keeps sample bodies beside the shapes, at most 4096 characters (spec 034 R-68)', async () => {
@@ -91,7 +96,8 @@ describe('record_api_call', () => {
       evidence_ref: REF,
       confidence: 'observed',
     });
-    const { edge_id } = await recordTransition(ctx, {
+    const { transition_id } = await recordTransition(ctx, {
+      ...(await transitionStep(ctx, run)),
       run_id: run,
       from_state: a.state_id,
       to_state: null,
@@ -106,8 +112,8 @@ describe('record_api_call', () => {
       evidence_ref: REF,
       confidence: 'observed',
     });
-    expect((await recordApiCall(ctx, call(run, { edge_id }))).api_call_id).toBeTruthy();
-    expect(await code(recordApiCall(ctx, call(other, { edge_id })))).toBe('UNKNOWN_REF');
+    expect((await recordApiCall(ctx, call(run, { transition_id }))).api_call_id).toBeTruthy();
+    expect(await code(recordApiCall(ctx, call(other, { transition_id })))).toBe('UNKNOWN_REF');
   });
 
   it('validates the shape and stores console errors', async () => {

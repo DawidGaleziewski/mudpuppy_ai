@@ -12,28 +12,28 @@ const browser: Browser | null = await chromium.launch().catch(() => null);
 let stack: Stack;
 let anna: string;
 let bob: string;
-let variantB: string;
+let modelB: string;
 
 const head = () =>
   (
-    stack.opened.raw.prepare('SELECT rev FROM process_variants WHERE id = ?').get(variantB) as {
+    stack.opened.raw.prepare('SELECT rev FROM process_models WHERE id = ?').get(modelB) as {
       rev: number;
     }
   ).rev;
 const revision = (rev: number) =>
   stack.opened.raw
-    .prepare('SELECT author, steps FROM process_variant_revisions WHERE variant_id = ? AND rev = ?')
-    .get(variantB, rev) as { author: string; steps: string };
+    .prepare('SELECT author, steps FROM process_model_revisions WHERE model_id = ? AND rev = ?')
+    .get(modelB, rev) as { author: string; steps: string };
 const titles = (rev: number) =>
   (JSON.parse(revision(rev).steps) as { title: string }[]).map((s) => s.title);
 const draftOf = (author: string) =>
   stack.opened.raw
-    .prepare('SELECT base_rev, steps FROM process_drafts WHERE variant_id = ? AND author = ?')
-    .get(variantB, author) as { base_rev: number; steps: string } | undefined;
+    .prepare('SELECT base_rev, steps FROM process_drafts WHERE model_id = ? AND author = ?')
+    .get(modelB, author) as { base_rev: number; steps: string } | undefined;
 
 async function open(base: string): Promise<Page> {
   const page = await browser!.newPage();
-  await page.goto(`${base}/processes/PRC-001?portal=${P}&variant=B`);
+  await page.goto(`${base}/processes/PRC-001?portal=${P}&model=B`);
   await page.locator('#process-editor').waitFor();
   return page;
 }
@@ -62,7 +62,7 @@ beforeAll(async () => {
     state_ids: ['s-home', 's-car', 's-driver', 's-options'],
     author: 'Anna',
   });
-  variantB = (await svc.branch(P, made.process.id, { author: 'Anna' })).variant!.id;
+  modelB = (await svc.branch(P, made.process.id, { author: 'Anna' })).model!.id;
   anna = await stack.dashboard('Anna', `/processes?portal=${P}`);
   bob = await stack.dashboard('Bob', `/processes?portal=${P}`);
 }, 180_000);

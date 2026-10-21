@@ -78,6 +78,10 @@ export const AcceptBody = z.object({
   name: z.string().trim().min(1).max(200).optional(),
   author: Author,
 });
+/** Split a suggestion before its step `at` (1-based: the first step of the second part). */
+export const SplitBody = z.object({ author: Author, at: z.coerce.number().int().min(2) });
+/** Merge a suggestion with another open one; the other's steps follow. */
+export const MergeBody = z.object({ author: Author, with: z.string().min(1).max(100) });
 export const SuggestBody = z.object({
   name: z.string().trim().min(1).max(200),
   persona: z.string().trim().min(1).max(200),

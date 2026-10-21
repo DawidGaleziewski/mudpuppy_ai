@@ -100,7 +100,7 @@ export const GroundTruth = z.object({
       steps: z.array(z.string().min(1)).optional(),
       /**
        * Steps whose form differs by an earlier choice (spec 034, owner review 2026-10-17): one
-       * step with variants, not two steps. Not scored here; the eval's `process_variants` grader.
+       * step with variants, not two steps. Not scored here; the eval's `process_models` grader.
        */
       variants: z.array(GtVariant).optional(),
       /** Not scored here; the export quality grader (spec 034 phase 9). */
@@ -703,9 +703,9 @@ export function loadEvalInput(
       case 'state':
       case 'screen_region': // target_id is the state; the element key is in `region`
         return stateRoute(id);
-      case 'page_visit':
+      case 'observation':
         return stateRoute(
-          one('SELECT state_id FROM page_visits WHERE id = ?', id)?.state_id ?? null,
+          one('SELECT state_id FROM observations WHERE id = ?', id)?.state_id ?? null,
         );
       case 'form':
       case 'action':
@@ -713,24 +713,23 @@ export function loadEvalInput(
           one(`SELECT state_id FROM ${kind === 'form' ? 'forms' : 'actions'} WHERE id = ?`, id)
             ?.state_id ?? null,
         );
-      case 'edge': {
-        const e = one('SELECT from_state, to_state FROM edges WHERE id = ?', id);
+      case 'transition': {
+        const e = one('SELECT from_state, to_state FROM transitions WHERE id = ?', id);
         return e ? [...stateRoute(e.from_state ?? null), ...stateRoute(e.to_state ?? null)] : [];
       }
       case 'network_call': {
         const e = one(
-          'SELECT e.from_state, e.to_state FROM network_calls n JOIN edges e ON e.id = n.edge_id WHERE n.id = ?',
+          'SELECT e.from_state, e.to_state FROM network_calls n JOIN transitions e ON e.id = n.transition_id WHERE n.id = ?',
           id,
         );
         return e ? [...stateRoute(e.from_state ?? null), ...stateRoute(e.to_state ?? null)] : [];
       }
-      case 'rule_candidate':
       case 'open_question':
         return stateRoute(
           one(
-            `SELECT about_ref FROM ${kind === 'rule_candidate' ? 'rule_candidates' : 'open_questions'} WHERE id = ?`,
+            'SELECT r.state_id FROM open_questions q JOIN entity_refs r ON r.id = q.ref_id WHERE q.id = ?',
             id,
-          )?.about_ref ?? null,
+          )?.state_id ?? null,
         );
       case 'process': {
         const steps = raw
@@ -755,7 +754,7 @@ export function loadEvalInput(
   for (const row of latest.values()) {
     const links = raw
       .prepare(
-        'SELECT target_kind, target_id FROM doc_evidence_links WHERE revision_id = ? ORDER BY target_kind, target_id, id',
+        'SELECT target_kind, target_id FROM doc_evidence WHERE revision_id = ? ORDER BY target_kind, target_id, id',
       )
       .all(row.revision_id) as { target_kind: EvidenceTargetKind; target_id: string }[];
     let content: Record<string, unknown> = {};
@@ -791,7 +790,8 @@ export function loadEvalInput(
     raw
       .prepare(
         `SELECT DISTINCT s.route_template AS route FROM open_questions q
-         JOIN runs ru ON ru.id = q.run_id JOIN states s ON s.id = q.about_ref
+         JOIN runs ru ON ru.id = q.run_id JOIN entity_refs er ON er.id = q.ref_id
+         JOIN states s ON s.id = er.state_id
          WHERE ru.portal_id = ? AND q.text LIKE 'Human needed: CAPTCHA on %'
          ORDER BY route`,
       )

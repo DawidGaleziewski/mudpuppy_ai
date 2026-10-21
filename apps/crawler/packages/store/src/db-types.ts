@@ -3,10 +3,9 @@ import type { ColumnType } from 'kysely';
 import type {
   Confidence,
   DecisionKind,
-  EdgeStatus,
+  TransitionStatus,
   FrontierItemStatus,
   MarkKind,
-  MarkTargetKind,
   OutcomeKind,
   PortalDataLogAction,
   ProbeFault,
@@ -39,8 +38,6 @@ import type {
   ProcessStatus,
   ProcessStepKind,
   RelationType,
-  ReconcileGroupKind,
-  ReconciliationStatus,
   ReviewAction,
   RevisionChange,
   RevisionStatus,
@@ -58,12 +55,11 @@ import type {
   ChatConversationStatus,
   ChatMessageRole,
   ChatProposalStatus,
-  ChatProposalTargetKind,
   GroupingSuggestionStatus,
   ProcessLiveEnvironment,
   ProcessScopeSource,
-  ProcessVariantChange,
-  ProcessVariantKind,
+  ProcessModelChange,
+  ProcessModelKind,
   WorkflowStepName,
   WorkflowStepStatus,
 } from '@pathfinder/chat-model';
@@ -96,7 +92,7 @@ export interface RunsTable {
   run_type: ColumnType<RunType | null, RunType | null | undefined, RunType | null>;
   /** 0027: the run a directed run continues or retries. */
   parent_run_id: ColumnType<string | null, string | null | undefined, string | null>;
-  /** 0027: JSON the run's plan came from (start states, skip targets, depth, variation, target edge, marks used). */
+  /** 0027: JSON the run's plan came from (start states, skip targets, depth, variation, target transition, marks used). */
   plan_json: ColumnType<string | null, string | null | undefined, string | null>;
 }
 
@@ -160,7 +156,7 @@ export interface ProbeOutcomesTable {
   http_status: number | null;
   reason: string | null;
   evidence_ref: string;
-  edge_id: string | null;
+  transition_id: string | null;
   created_at: string;
 }
 
@@ -185,28 +181,18 @@ export interface MarksTable {
   id: string;
   portal_id: string;
   kind: MarkKind;
-  target_kind: MarkTargetKind;
-  target_id: string;
+  /** 0041 (spec 039 § 15): the target in a typed column, exactly one of the three. */
+  form_step_id: OptionalRef;
+  state_id: OptionalRef;
+  transition_id: OptionalRef;
   created_by: string;
   created_at: string;
   used_by_run_id: string | null;
   used_at: string | null;
-}
-
-/** 0025: the BA's proposed reading of a group of differing states and the owner's confirmation; JSON columns validated by `ReconciliationRow` (docs-model). */
-export interface ReconciliationsTable {
-  id: string;
-  portal_id: string;
-  group_key: string;
-  group_kind: ReconcileGroupKind;
-  snapshot_json: string;
-  proposal_json: string;
-  proposed_by: string;
-  proposed_at: string;
-  status: ReconciliationStatus;
-  confirmed_json: string | null;
-  confirmed_by: string | null;
-  confirmed_at: string | null;
+  /** 0031 (spec 039 § 14): a person's mark or the planner's; the hypothesis it tests; its priority. */
+  origin: ColumnType<'person' | 'planner', 'person' | 'planner' | undefined, 'person' | 'planner'>;
+  hypothesis_id: ColumnType<string | null, string | null | undefined, string | null>;
+  priority: ColumnType<number | null, number | null | undefined, number | null>;
 }
 
 /** 0027: the shortest recorded way back to a state, one per (run, state); `steps_json` is validated by `CheckpointRow` (core). */
@@ -319,8 +305,8 @@ export interface AmendmentsTable {
   key: string;
   portal_id: string;
   scope_id: string | null;
-  target_kind: AmendmentTargetKind;
-  target_id: string;
+  /** 0041 (spec 039 § 15): what it is written on, an `entity_refs` row (a state, a state's element, an evidence file). */
+  ref_id: string;
   kind: AmendmentKind;
   text: string | null;
   attachment_sha256: string | null;
@@ -343,6 +329,15 @@ export interface AmendmentsTable {
   rev: ColumnType<number, number | undefined, number>;
   /** 0016: the screen the amendment belongs to. */
   screen_id: string | null;
+  /** 0037 (spec 039 § 15; 0041 renamed from `ref_id`): the anchor, a model screen + element key. */
+  anchor_ref_id: ColumnType<string | null, string | null | undefined, string | null>;
+}
+
+/** The target an amendment (head or revision) is written on, as the views of 0041 name it. */
+export interface AmendmentTarget {
+  target_kind: AmendmentTargetKind;
+  /** A state id, `<state id>#<element key>` or an evidence file. */
+  target_id: string;
 }
 
 /** 0016: append-only history of an amendment. */
@@ -353,8 +348,8 @@ export interface AmendmentRevisionsTable {
   change: AmendmentChange;
   author: string;
   status: AmendmentStatus;
-  target_kind: AmendmentTargetKind;
-  target_id: string;
+  /** 0041: what this revision is written on, an `entity_refs` row. */
+  ref_id: string;
   text: string | null;
   anchor_fingerprint: string | null;
   anchor_route_template: string | null;
@@ -369,8 +364,8 @@ export interface ChatProposalsTable {
   id: string;
   conversation_id: string;
   portal_id: string;
-  target_kind: ChatProposalTargetKind;
-  target_id: string | null;
+  /** 0041: the amendment the proposal changes; null for a new amendment. */
+  amendment_id: string | null;
   base_rev: number | null;
   payload: string;
   summary: string;
@@ -400,6 +395,9 @@ export interface BaProcessesTable {
   archived_at: string | null;
   /** 0028: the PROC record it was opened from (spec 027 US6). */
   record_key: string | null;
+  /** 0036: the screen its trigger opens, and the process_boundary hypothesis it came from. */
+  start_screen_id: ColumnType<string | null, string | null | undefined, string | null>;
+  boundary_hypothesis_id: ColumnType<string | null, string | null | undefined, string | null>;
 }
 
 export interface BaProcessRevisionsTable {
@@ -415,22 +413,25 @@ export interface BaProcessRevisionsTable {
   created_at: string;
 }
 
-export interface ProcessVariantsTable {
+/** 0036: renamed from `process_variants` (spec 039 design § 13.4). */
+export interface ProcessModelsTable {
   id: string;
   process_id: string;
   label: string;
-  kind: ProcessVariantKind;
+  kind: ProcessModelKind;
   rev: number;
-  branched_from_variant_id: string | null;
+  /** 0039: was `branched_from_variant_id`. */
+  branched_from_model_id: string | null;
   branched_from_rev: number | null;
   created_at: string;
 }
 
-export interface ProcessVariantRevisionsTable {
-  variant_id: string;
+/** 0036: renamed from `process_variant_revisions`; 0039: `variant_id` → `model_id`. */
+export interface ProcessModelRevisionsTable {
+  model_id: string;
   rev: number;
   base_rev: number | null;
-  change: ProcessVariantChange;
+  change: ProcessModelChange;
   author: string;
   steps: string;
   note: string | null;
@@ -440,7 +441,7 @@ export interface ProcessVariantRevisionsTable {
 }
 
 export interface ProcessDraftsTable {
-  variant_id: string;
+  model_id: string;
   author: string;
   base_rev: number;
   steps: string;
@@ -451,8 +452,8 @@ export interface ProcessLiveTable {
   id: string;
   process_id: string;
   environment: ProcessLiveEnvironment;
-  variant_id: string;
-  variant_rev: number;
+  model_id: string;
+  model_rev: number;
   author: string;
   reason: string | null;
   created_at: string;
@@ -482,9 +483,9 @@ export interface ChangeSpecRevisionsTable {
   process_id: string;
   rev: number;
   base_rev: number | null;
-  left_variant_id: string;
+  left_model_id: string;
   left_rev: number;
-  right_variant_id: string;
+  right_model_id: string;
   right_rev: number;
   sections: string;
   author: string;
@@ -514,19 +515,375 @@ export interface ActionsTable {
   created_at: string;
 }
 
-export interface EdgesTable {
+/** 0032: v1's `edges`, the design's transitions. */
+export interface TransitionsTable {
   id: string;
   run_id: string;
   from_state: string;
   to_state: string | null;
   action_json: string;
   safety_class: SafetyClass;
-  status: EdgeStatus;
+  status: TransitionStatus;
   evidence_ref: string;
   confidence: Confidence;
   error: string | null;
   stabilization: Stabilization;
   created_at: string;
+  /** 0029 (spec 039): journey position, start observation, element key. NULL on v1 rows. */
+  journey_id: Nullable;
+  seq: ColumnType<number | null, number | null | undefined, number | null>;
+  from_observation_id: Nullable;
+  element_key: Nullable;
+  kind: ColumnType<TransitionKind | null, TransitionKind | null | undefined, TransitionKind | null>;
+  result: ColumnType<StepResult | null, StepResult | null | undefined, StepResult | null>;
+  driver: ColumnType<'agent' | 'headless', 'agent' | 'headless' | undefined, 'agent' | 'headless'>;
+}
+
+/** Nullable text column a v1 writer may leave out. */
+type Nullable = ColumnType<string | null, string | null | undefined, string | null>;
+
+/** 0029: what a page visit or a transition came to (spec 039 design § 5.6). */
+export type StepResult =
+  'ok' | 'validation' | 'business_error' | 'technical_error' | 'timeout' | 'blocked';
+export type TransitionKind = 'click' | 'fill' | 'select' | 'check' | 'submit' | 'navigate' | 'back';
+
+/** 0029: one build of one scope of a portal (spec 039 design § 5.2). */
+export interface BuildsTable {
+  id: string;
+  portal_id: string;
+  scope: string;
+  signature: string;
+  source: 'assets' | 'marker' | 'unknown';
+  assets_json: string;
+  first_seen: string;
+}
+
+/** 0029: fingerprint v2 components of a state (design § 5.4). */
+export interface StateComponentsTable {
+  state_id: string;
+  structure_hash: string;
+  content_hash: string;
+  overlay_hash: string;
+  calls_hash: string;
+  mounts_hash: string;
+  minhash: Buffer;
+  element_keys: string;
+  /** 0033 (T112): the fingerprint profile (`name@hash`) these were computed with; NULL = rows-v2. */
+  profile: Nullable;
+}
+
+/** 0033 (spec 039 T111): a fingerprint profile a portal used, its resolved rules. */
+export interface FingerprintProfilesTable {
+  portal_id: string;
+  id: string;
+  name: string;
+  rules_json: string;
+  first_seen: string;
+}
+
+/** 0038 (spec 039 FR-050, T090): a similarity classifier trained for a portal and profile. */
+export interface SimilarityClassifiersTable {
+  id: string;
+  portal_id: string;
+  profile: string;
+  features: string;
+  weights: string;
+  intercept: number;
+  labels: number;
+  held_out: number;
+  f1: number;
+  tau: number;
+  tau_f1: number;
+  better: 0 | 1;
+  trained_at: string;
+  /** 0039 (owner answer 14): who put it in force; null until a person accepts it. */
+  accepted_by: string | null;
+  accepted_at: string | null;
+}
+
+/** 0033 (spec 039 T115): a τ a person accepted for a portal and profile; the latest is in force. */
+export interface TauAcceptancesTable {
+  id: string;
+  portal_id: string;
+  profile: string;
+  tau: number;
+  labels: number;
+  f1: number | null;
+  accepted_by: string;
+  accepted_at: string;
+}
+
+export type JourneyStartKind =
+  'entry_url' | 'checkpoint' | 'login' | 'backtrack' | 'resume' | 'fresh_session';
+export type JourneyEndReason =
+  'outcome' | 'backtrack' | 'reset' | 'logout' | 'error' | 'budget' | 'run_end';
+
+/** 0029: one continuous path of a run (design § 5.7). */
+export interface JourneysTable {
+  id: string;
+  run_id: string;
+  parent_journey_id: string | null;
+  branch_seq: number | null;
+  start_kind: JourneyStartKind;
+  checkpoint_id: string | null;
+  end_reason: JourneyEndReason | null;
+  started_at: string;
+  ended_at: string | null;
+}
+
+/** 0029: a persona attribute, typed input or shown value at a journey position (design § 5.8). */
+export interface AttributeWritesTable {
+  id: string;
+  journey_id: string;
+  seq: number;
+  name: string;
+  source: 'persona' | 'input' | 'shown';
+  value_type: 'number' | 'date' | 'enum' | 'bool' | 'text' | 'missing';
+  value_num: number | null;
+  value_text: string | null;
+  element_key: string | null;
+  created_at: string;
+}
+
+/** 0029: the builds an observation was served by, one per scope. */
+export interface ObservationBuildsTable {
+  observation_id: string;
+  build_id: string;
+}
+
+export type CoverageStatus = 'active' | 'not_seen_since' | 'untested' | 'retired';
+
+/** 0030 (spec 039 design § 6): one reconcile of one portal. */
+export interface ModelVersionsTable {
+  id: string;
+  portal_id: string;
+  seq: number;
+  built_at: string;
+  algorithm: string;
+  threshold: number;
+  observation_watermark: string | null;
+  decision_watermark: string | null;
+  stats_json: string;
+  /** 0033 (T112): the fingerprint profile the version was clustered under. */
+  fingerprint_profile: Nullable;
+}
+
+/** 0030: a screen of the portal model with a stable id and key (F-14@039). */
+export interface ModelScreensTable {
+  id: string;
+  key: string;
+  portal_id: string;
+  route_key: string;
+  title: string;
+  status: 'active' | 'merged' | 'retired';
+  first_model_version: string;
+  created_at: string;
+}
+
+export interface ScreenMembersTable {
+  screen_id: string;
+  state_id: string;
+  ordinal: number;
+  assigned_by: 'clustering' | 'constraint';
+  from_model_version: string;
+  to_model_version: string | null;
+}
+
+export interface ScreenLineageTable {
+  id: string;
+  model_version_id: string;
+  kind: 'split' | 'merge' | 'retire' | 'revive';
+  from_screen_id: string;
+  to_screen_id: string | null;
+  members_moved: number;
+}
+
+export interface StatePairLabelsTable {
+  portal_id: string;
+  state_a: string;
+  state_b: string;
+  label: 'clone' | 'near_duplicate' | 'distinct';
+  nd_kind: 'cosmetic' | 'dynamic_data' | 'duplication' | null;
+  labelled_by: string;
+  labelled_at: string;
+  reason: string | null;
+}
+
+/** 0045: one row per "Same screen?" answer, append-only; state_pair_labels keeps the current one. */
+export interface StatePairLabelHistoryTable {
+  id: string;
+  portal_id: string;
+  state_a: string;
+  state_b: string;
+  label: 'clone' | 'near_duplicate' | 'distinct';
+  nd_kind: 'cosmetic' | 'dynamic_data' | 'duplication' | null;
+  labelled_by: string;
+  labelled_at: string;
+  reason: string | null;
+}
+
+export interface ParameterRolesTable {
+  portal_id: string;
+  route_template: string;
+  param: string;
+  role: 'identity' | 'data' | 'ignored';
+  decided_by: 'reconciler' | 'person';
+  decided_at: string;
+}
+
+export interface ActionClassesTable {
+  id: string;
+  screen_id: string;
+  element_key: string;
+  kind: TransitionKind;
+  is_global: 0 | 1;
+  status: CoverageStatus;
+  streak_json: string;
+  status_model_version: string;
+}
+
+export interface ModelTransitionsTable {
+  id: string;
+  from_screen_id: string;
+  action_class_id: string;
+  to_screen_id: string | null;
+  result: StepResult;
+  internal: 0 | 1;
+  support: number;
+  first_seen_transition_id: string;
+  last_seen_transition_id: string;
+  status: CoverageStatus;
+  status_model_version: string;
+}
+
+/** 0031 (spec 039 design § 15): a typed reference with real foreign keys, exactly one target. */
+export interface EntityRefsTable {
+  id: string;
+  observation_id: string | null;
+  transition_id: string | null;
+  state_id: string | null;
+  screen_id: string | null;
+  action_class_id: string | null;
+  model_transition_id: string | null;
+  process_id: string | null;
+  hypothesis_id: string | null;
+  network_call_id: string | null;
+  /** 0040 (spec 039 § 15): the kinds the BA cites; trace processes and steps are v1's tables. */
+  action_id: OptionalRef;
+  form_id: OptionalRef;
+  open_question_id: OptionalRef;
+  decision_id: OptionalRef;
+  review_id: OptionalRef;
+  doc_record_id: OptionalRef;
+  trace_process_id: OptionalRef;
+  trace_step_id: OptionalRef;
+  form_step_id: OptionalRef;
+  /** 0040: an evidence store file (content-addressed; no row). */
+  evidence_file: OptionalRef;
+  /** With a model screen (an anchor) or, since 0040, a state (a screen region). */
+  element_key: string | null;
+}
+
+/** A column 0040 added to `entity_refs`: null unless it is the ref's one target. */
+type OptionalRef = ColumnType<string | null, string | null | undefined, string | null>;
+
+export type DeviationKind =
+  | 'new_screen'
+  | 'new_member'
+  | 'new_action'
+  | 'missing_action'
+  | 'target_mismatch'
+  | 'result_mismatch'
+  | 'rule_mismatch';
+
+/** 0031 (design § 8.1): a place a new model version did not fit the previous one. */
+export interface DeviationsTable {
+  id: string;
+  portal_id: string;
+  model_version_id: string;
+  kind: DeviationKind;
+  subject_key: string;
+  screen_id: string | null;
+  state_id: string | null;
+  action_class_id: string | null;
+  before_json: string | null;
+  after_json: string | null;
+  changed_components: ColumnType<string, string | undefined, string>;
+  context_diff: ColumnType<string, string | undefined, string>;
+  status: 'open' | 'waiting_test' | 'explained';
+  created_at: string;
+}
+
+export interface DeviationOccurrencesTable {
+  deviation_id: string;
+  model_version_id: string;
+}
+
+export type HypothesisStatus =
+  'proposed' | 'testing' | 'supported' | 'refuted' | 'confirmed' | 'rejected' | 'superseded';
+
+/** 0031 (design § 10): a testable claim; its status is derived from its events. */
+export interface HypothesesTable {
+  id: string;
+  key: string;
+  portal_id: string;
+  kind: string;
+  claim: string;
+  claim_json: string;
+  claim_hash: string;
+  origin: 'rule' | 'agent' | 'person';
+  rule: string | null;
+  derived: ColumnType<0 | 1, 0 | 1 | undefined, 0 | 1>;
+  confidence: Confidence;
+  fitness: number | null;
+  precision: number | null;
+  support: number | null;
+  counterexamples: number | null;
+  deviation_id: string | null;
+  superseded_by: string | null;
+  model_version_id: string;
+  created_at: string;
+}
+
+export interface HypothesisEvidenceTable {
+  hypothesis_id: string;
+  ref_id: string;
+  role: 'supports' | 'contradicts' | 'context';
+}
+
+export interface HypothesisTestsTable {
+  id: string;
+  hypothesis_id: string;
+  probe_suite_id: string | null;
+  mark_id: string | null;
+  inputs_json: ColumnType<string, string | undefined, string>;
+  refutes_if_json: string;
+  result_json: string | null;
+  verdict: 'pass' | 'fail' | 'inconclusive' | null;
+  run_id: string | null;
+  created_at: string;
+}
+
+export interface HypothesisEventsTable {
+  id: string;
+  hypothesis_id: string;
+  from_status: HypothesisStatus | null;
+  to_status: HypothesisStatus;
+  actor: string;
+  reason: string;
+  at: string;
+}
+
+export interface BuildEpochsTable {
+  id: string;
+  portal_id: string;
+  scope: string;
+  environment: string;
+  build_id: string;
+  first_observation_id: string;
+  last_observation_id: string;
+  overlaps_previous: 0 | 1;
+  model_version_id: string;
 }
 
 export interface FormsTable {
@@ -542,7 +899,7 @@ export interface FormsTable {
 export interface NetworkCallsTable {
   id: string;
   run_id: string;
-  edge_id: string | null;
+  transition_id: string | null;
   method: string;
   url_template: string;
   status: number;
@@ -555,18 +912,30 @@ export interface NetworkCallsTable {
   /** 0027: masked sample bodies (at most 4096 characters), recorded only outside production; NULL otherwise. */
   req_sample: ColumnType<string | null, string | null | undefined, string | null>;
   res_sample: ColumnType<string | null, string | null | undefined, string | null>;
+  /** 0029: sha256 of the response shape (spec 039 design § 5.3); NULL for documents and v1 rows. */
+  schema_hash: Nullable;
 }
 
-/** 0012: one arrival on a page, its verbatim URL and the hops (JSON `NavigationHop[]`) that led there. */
-export interface PageVisitsTable {
+/**
+ * 0012: one arrival on a page, its verbatim URL and the hops (JSON `NavigationHop[]`) that led there.
+ * 0029: journey, order in the run, step result, context, flags. 0032: renamed from `page_visits`.
+ */
+export interface ObservationsTable {
   id: string;
   run_id: string;
   state_id: string;
-  edge_id: string | null;
+  transition_id: string | null;
   via: 'navigate' | 'action' | 'relogin' | 'login';
   url: string;
   hops_json: string;
   created_at: string;
+  journey_id: Nullable;
+  seq: ColumnType<number | null, number | null | undefined, number | null>;
+  result: ColumnType<StepResult | null, StepResult | null | undefined, StepResult | null>;
+  context_key: Nullable;
+  flags_json: ColumnType<string, string | undefined, string>;
+  /** 0033 (T112): the fingerprint profile of the run; NULL = rows-v2, before 0033. */
+  fingerprint_profile: Nullable;
 }
 
 export interface FrontierTable {
@@ -588,19 +957,12 @@ export interface OpenQuestionsTable {
   id: string;
   run_id: string;
   text: string;
-  about_ref: string;
+  /** 0040 (spec 039 § 15): the subject, a state, transition or form ref (was `about_ref`). */
+  ref_id: string;
   status: 'open' | 'addressed';
   created_at: string;
-}
-
-export interface RuleCandidatesTable {
-  id: string;
-  run_id: string;
-  text: string;
-  about_ref: string;
-  evidence_ref: string;
-  confidence: 'inferred';
-  created_at: string;
+  /** 0031 (spec 039): the hypothesis the question is about, when there is one. */
+  hypothesis_id: ColumnType<string | null, string | null | undefined, string | null>;
 }
 
 export interface DecisionLogTable {
@@ -732,6 +1094,56 @@ export interface DocRecordsTable {
   withdrawn: 0 | 1;
   created_at: string;
   updated_at: string;
+  /** 0036: the process a PROC record documents (required for `process`, one per process). */
+  process_id: ColumnType<string | null, string | null | undefined, string | null>;
+}
+
+/** 0036 (spec 039 design § 13.4): a value reused within a journey, stored hashed. */
+export interface CorrelationIdsTable {
+  id: string;
+  journey_id: string;
+  key_path: string;
+  value_hash: string;
+  endpoint_family: string;
+  first_transition_id: string;
+  last_transition_id: string;
+}
+
+/**
+ * 0036: one journey through a process from its trigger, with the outcome. 0039: the trigger is a
+ * transition or a deep link (an observation of a URL opened on the start screen).
+ */
+export interface ProcessInstancesTable {
+  id: string;
+  process_id: string;
+  journey_id: string;
+  trigger_kind: 'transition' | 'deep_link';
+  trigger_transition_id: string | null;
+  trigger_observation_id: string | null;
+  last_transition_id: string | null;
+  outcome: 'completed' | 'exited' | 'error' | 'abandoned' | 'incomplete';
+  outcome_screen_id: string | null;
+  correlation_id: string | null;
+  model_version_id: string;
+  /** 0043: JSON array of the model screen ids walked, start screen first; null before 0043. */
+  screens_json: string | null;
+}
+
+/** 0036: the model transitions that start a process. */
+export interface ProcessTriggersTable {
+  process_id: string;
+  model_transition_id: string;
+}
+
+/** 0036: one completed exploration of a process (the stopping rule, design § 14.2). */
+export interface ProcessExplorationsTable {
+  id: string;
+  process_id: string;
+  epoch_set: string;
+  depth: number;
+  random_walks: number;
+  new_deviations: number;
+  completed_at: string;
 }
 
 export interface DocRevisionsTable {
@@ -749,15 +1161,26 @@ export interface DocRevisionsTable {
   created_at: string;
 }
 
+/** 0040 (spec 039 § 15): what a link cites is an `entity_refs` row. */
 export interface DocEvidenceLinksTable {
   id: string;
   revision_id: string;
-  target_kind: EvidenceTargetKind;
-  target_id: string;
+  ref_id: string;
   run_id: string | null;
   note: string | null;
-  /** 0006: element key; set iff `target_kind = 'screen_region'`. */
-  region: ColumnType<string | null, string | null | undefined, string | null>;
+}
+
+/** The view `doc_evidence` (0040): a link with the kind, id and region its ref names. Read only. */
+export interface DocEvidenceView {
+  id: string;
+  revision_id: string;
+  ref_id: string;
+  run_id: string | null;
+  note: string | null;
+  target_kind: EvidenceTargetKind;
+  target_id: string;
+  /** The element key of a `screen_region`. */
+  region: string | null;
 }
 
 export interface DocRelationsTable {
@@ -798,6 +1221,8 @@ export interface ProcessesTable {
   not_observable: string | null;
   created_at: string;
   ended_at: string | null;
+  /** 0034 (spec 039 T081): the step whose click enters the process; null: none marked. */
+  trigger_ord: ColumnType<number | null, number | null | undefined, number | null>;
 }
 
 export interface ProcessStepsTable {
@@ -807,7 +1232,7 @@ export interface ProcessStepsTable {
   intent: string;
   kind: ProcessStepKind;
   action_id: string | null;
-  edge_id: string | null;
+  transition_id: string | null;
   value: string | null;
   state_before: string | null;
   state_after: string | null;
@@ -824,13 +1249,37 @@ export interface Database {
   state_wireframes: StateWireframesTable;
   state_observations: StateObservationsTable;
   actions: ActionsTable;
-  edges: EdgesTable;
+  transitions: TransitionsTable;
   forms: FormsTable;
   network_calls: NetworkCallsTable;
-  page_visits: PageVisitsTable;
+  observations: ObservationsTable;
+  builds: BuildsTable;
+  state_components: StateComponentsTable;
+  journeys: JourneysTable;
+  attribute_writes: AttributeWritesTable;
+  observation_builds: ObservationBuildsTable;
+  model_versions: ModelVersionsTable;
+  model_screens: ModelScreensTable;
+  screen_members: ScreenMembersTable;
+  screen_lineage: ScreenLineageTable;
+  state_pair_labels: StatePairLabelsTable;
+  state_pair_label_history: StatePairLabelHistoryTable;
+  parameter_roles: ParameterRolesTable;
+  action_classes: ActionClassesTable;
+  model_transitions: ModelTransitionsTable;
+  build_epochs: BuildEpochsTable;
+  entity_refs: EntityRefsTable;
+  deviations: DeviationsTable;
+  deviation_occurrences: DeviationOccurrencesTable;
+  hypotheses: HypothesesTable;
+  hypothesis_evidence: HypothesisEvidenceTable;
+  hypothesis_tests: HypothesisTestsTable;
+  hypothesis_events: HypothesisEventsTable;
+  fingerprint_profiles: FingerprintProfilesTable;
+  tau_acceptances: TauAcceptancesTable;
+  similarity_classifiers: SimilarityClassifiersTable;
   frontier: FrontierTable;
   open_questions: OpenQuestionsTable;
-  rule_candidates: RuleCandidatesTable;
   decision_log: DecisionLogTable;
   robots_policies: RobotsPoliciesTable;
   portal_data_log: PortalDataLogTable;
@@ -842,6 +1291,7 @@ export interface Database {
   doc_records: DocRecordsTable;
   doc_revisions: DocRevisionsTable;
   doc_evidence_links: DocEvidenceLinksTable;
+  doc_evidence: DocEvidenceView;
   doc_relations: DocRelationsTable;
   doc_reviews: DocReviewsTable;
   followup_tasks: FollowupTasksTable;
@@ -854,12 +1304,19 @@ export interface Database {
   process_scopes: ProcessScopesTable;
   amendments: AmendmentsTable;
   amendment_revisions: AmendmentRevisionsTable;
+  /** The views of 0041 (read only): each row with the target it is written on. */
+  amendments_with_target: AmendmentsTable & AmendmentTarget;
+  amendment_revisions_with_target: AmendmentRevisionsTable & AmendmentTarget;
   chat_proposals: ChatProposalsTable;
   grouping_suggestions: GroupingSuggestionsTable;
   ba_processes: BaProcessesTable;
   ba_process_revisions: BaProcessRevisionsTable;
-  process_variants: ProcessVariantsTable;
-  process_variant_revisions: ProcessVariantRevisionsTable;
+  process_models: ProcessModelsTable;
+  process_model_revisions: ProcessModelRevisionsTable;
+  correlation_ids: CorrelationIdsTable;
+  process_instances: ProcessInstancesTable;
+  process_triggers: ProcessTriggersTable;
+  process_explorations: ProcessExplorationsTable;
   process_drafts: ProcessDraftsTable;
   process_live: ProcessLiveTable;
   change_spec_revisions: ChangeSpecRevisionsTable;
@@ -867,6 +1324,5 @@ export interface Database {
   probe_outcomes: ProbeOutcomesTable;
   probe_suites: ProbeSuitesTable;
   marks: MarksTable;
-  reconciliations: ReconciliationsTable;
   checkpoints: CheckpointsTable;
 }

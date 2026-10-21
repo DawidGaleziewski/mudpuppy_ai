@@ -13,16 +13,20 @@ import sqlite3
 from typing import Any, NamedTuple
 
 from . import queries_access, queries_chat
-from .models import Amendment
+from .models import AmendmentWithTarget
 from .queries_proposals import ProposalView, views_of
-from .queries_reconcile import DifferingItem, open_count, open_reconciliations
+from .queries_queue import QueueItem, findings_rules_removals, process_proposals
 from .queries_suites import SuiteItem, open_suite_count, open_suites
 
 KINDS: tuple[tuple[str, str], ...] = (
+    # Spec 039 T100 (v2-04): the portal model's groups come first.
+    ("findings", "Findings"),
+    ("rules", "Rules"),
+    ("removals", "Removals"),
+    ("processes", "Processes"),
     ("records", "Records to confirm"),
     ("assumptions", "Assumptions to check"),
     ("differences", "Unexplained differences"),
-    ("differing", "Differing states"),
     ("reanchor", "Amendments to re-anchor"),
     ("proposals", "Assistant proposals"),
     ("suites", "Probe suites to approve"),
@@ -50,11 +54,14 @@ class Inbox(NamedTuple):
     records: list[RecordItem]
     assumptions: list[RecordItem]
     differences: list[queries_access.Difference]
-    differing: list[DifferingItem]
-    reanchor: list[Amendment]
+    reanchor: list[AmendmentWithTarget]
     proposals: list[ProposalView]
     suites: list[SuiteItem]
     conflicts: list[Any]
+    findings: list[QueueItem]
+    rules: list[QueueItem]
+    removals: list[QueueItem]
+    processes: list[QueueItem]
 
     def count(self, kind: str) -> int:
         return len(getattr(self, kind))
@@ -111,21 +118,25 @@ def differences(conn: sqlite3.Connection, portal: str) -> list[queries_access.Di
 
 def inbox(conn: sqlite3.Connection, portal: str | None) -> Inbox:
     if not portal:
-        return Inbox([], [], [], [], [], [], [], [])
+        return Inbox([], [], [], [], [], [], [], [], [], [], [])
     reanchor = [
         a
         for a in queries_chat.superseded_amendments(conn, portal, "superseded")
         if not a.reapplied_as
     ]
+    findings, rules, removals = findings_rules_removals(conn, portal)
     return Inbox(
         records_to_confirm(conn, portal),
         assumptions_to_check(conn, portal),
         differences(conn, portal),
-        open_reconciliations(conn, portal),
         reanchor,
         open_proposals(conn, portal),
         open_suites(conn, portal),
         [],
+        findings,
+        rules,
+        removals,
+        process_proposals(conn, portal),
     )
 
 
@@ -147,11 +158,13 @@ def count(conn: sqlite3.Connection, portal: str | None) -> int:
     )
     # Differences need the access model's set logic, not one more subquery; suites came later
     # (spec 032) and stay readable on a store without their table.
+    model = sum(map(len, findings_rules_removals(conn, portal)))  # spec 039 T100
     return (
         (int(rows[0][0]) if rows else 0)
         + len(differences(conn, portal))
         + open_suite_count(conn, portal)
-        + open_count(conn, portal)
+        + model
+        + len(process_proposals(conn, portal))
     )
 
 
@@ -161,7 +174,7 @@ def cited_screens(conn: sqlite3.Connection, portal: str, key: str, rev: int) -> 
         conn,
         "SELECT DISTINCT s.id, s.title, s.route_template, s.screenshot_ref"
         " FROM doc_records r JOIN doc_revisions v ON v.record_id = r.id AND v.rev_no = ?"
-        " JOIN doc_evidence_links l ON l.revision_id = v.id"
+        " JOIN doc_evidence l ON l.revision_id = v.id"
         "  AND l.target_kind IN ('state', 'screen_region')"
         " JOIN states s ON s.id = l.target_id"
         " WHERE r.portal_id = ? AND r.key = ? ORDER BY s.route_template",

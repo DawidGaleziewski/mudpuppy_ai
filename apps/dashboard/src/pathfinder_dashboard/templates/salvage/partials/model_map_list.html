@@ -1,0 +1,26 @@
+{#- The model map as a list (v2-08): the same screens and links as text. Under the graph it is the
+    text version (shown below phone width); with `show=list` it is the view. -#}
+{%- import "salvage/macros.html" as sy %}
+<section class="sy-plate{% if show != 'list' %} mp-map-list--extra{% endif %}" aria-labelledby="map-list-h">
+  <div class="sy-plate__head"><h2 id="map-list-h" class="sy-plate__title">Screens and links <span class="sy-count sy-count--muted">{{ m.nodes | length }}</span></h2></div>
+  <div class="sy-table-wrap sy-table-wrap--flush">
+    <table class="sy-table sy-table--dense">
+      <thead><tr><th scope="col">Screen</th><th scope="col">Links out (state)</th><th scope="col" class="sy-num">Actions inside</th><th scope="col">Overlay</th></tr></thead>
+      <tbody>
+        {%- for n in m.nodes | sort(attribute="depth") %}
+        <tr>
+          <th scope="row">{% if n.kind == "family" %}<a class="sy-route" href="{{ url_of(open=n.route, show='list') }}">{{ n.route }}/…</a> <span class="sy-muted">{{ n.title }}</span>
+            {%- else %}{{ sy.tag(n.key, c.url('/screens/' ~ n.key), sm=true) }} <span class="sy-case-normal">{{ n.title }}</span> <span class="sy-route">{{ n.route }}</span>
+            {%- for word, chip in n.chips %} <span class="sy-chip{% if chip %} sy-chip--{{ chip }}{% endif %}">{{ word }}</span>{% endfor %}{% endif %}</th>
+          <td>{%- set links = m.out_links.get(n.id, []) %}
+            {%- if links %}<span class="sy-stack" style="--sy-gap: 2px">
+            {%- for l in links %}<span class="sy-cluster" style="--sy-gap: 6px"><span class="sy-case-normal">{{ l.to_title }}</span>{% if l.state != "active" %}{{ sy.status("action", l.state) }}{% endif %}</span>{% endfor %}</span>
+            {%- else %}<span class="sy-muted">—</span>{% endif %}</td>
+          <td class="sy-num">{{ n.actions if n.kind == "screen" else "" }}</td>
+          <td>{{ n.role | lower if n.role else "" }}</td>
+        </tr>
+        {%- endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>

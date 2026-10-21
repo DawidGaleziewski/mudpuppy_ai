@@ -218,6 +218,35 @@ export function setEnvironment(
   );
 }
 
+/** An A/B test's flag: the cookie or storage key whose value names the arm. */
+export interface ExperimentFlag {
+  kind: 'cookie' | 'storage';
+  name: string;
+}
+
+/**
+ * Add an A/B flag to the portal's Hints (`model.experiment_flags`, spec 039 owner answer OV-2):
+ * a person confirmed the A/B test it separates. Already there: nothing changes. Returns whether
+ * it was added.
+ */
+export function addExperimentFlag(
+  paths: WorkspacePaths,
+  id: string,
+  flag: ExperimentFlag,
+): boolean {
+  let added = false;
+  editPortal(paths, id, (doc) => {
+    const flags = (doc.getIn(['model', 'experiment_flags']) ?? null) as {
+      toJSON?: () => unknown;
+    } | null;
+    const now = (flags?.toJSON?.() ?? []) as Record<string, string>[];
+    if (now.some((f) => f[flag.kind] === flag.name)) return;
+    doc.setIn(['model', 'experiment_flags'], doc.createNode([...now, { [flag.kind]: flag.name }]));
+    added = true;
+  });
+  return added;
+}
+
 /** Revoke an environment; the last one stays (FR-012). Runs already recorded are kept. */
 export function removeEnvironment(
   paths: WorkspacePaths,

@@ -7,7 +7,7 @@
 // click stayed on its page, or two clicks landed on different pages, nothing is inferred.
 
 import type { ServerContext } from '../context.js';
-import { settleInferred, type FrontierRow, type SeenEdge } from './same-target.js';
+import { settleInferred, type FrontierRow, type SeenTransition } from './same-target.js';
 
 /** Landmarks a site repeats on every page (the container locator starts with one of them). */
 const SHARED = /^(banner|navigation|contentinfo)( "[^"]*")? > /;
@@ -44,12 +44,15 @@ export async function inferSharedButton(ctx: ServerContext, row: FrontierRow): P
   const clicks = (
     ctx.raw
       .prepare(
-        `SELECT id, from_state, to_state, evidence_ref, stabilization, action_json FROM edges
+        `SELECT id, from_state, to_state, evidence_ref, stabilization, action_json FROM transitions
          WHERE run_id = ? AND status = 'executed' AND confidence = 'observed'
            AND json_extract(action_json, '$.role') = 'button' AND from_state <> ?
          ORDER BY id`,
       )
-      .all(row.run_id, row.state_id) as (SeenEdge & { from_state: string; action_json: string })[]
+      .all(row.run_id, row.state_id) as (SeenTransition & {
+      from_state: string;
+      action_json: string;
+    })[]
   ).filter((e) => sharedButtonKey(e.action_json) === key);
   const first = clicks[0];
   if (first === undefined || first.to_state === null) return false;

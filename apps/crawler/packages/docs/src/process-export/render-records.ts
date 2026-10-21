@@ -15,7 +15,7 @@ const of = (m: ProcessExportModel, ...kinds: string[]) =>
   m.srs.records.filter((r) => kinds.includes(r.kind));
 
 const evidence = (e: ExportEvidence): string =>
-  `- ${e.target_kind.replace(/_/g, ' ')}${e.label ? ` ${inline(e.label)}` : ''}${e.run_id ? ` · scan \`${e.run_id}\`` : ''}${e.run_date ? ` · ${e.run_date}` : ''}${e.broken ? ' · **gone from the store**' : ''}`;
+  `- ${e.target_kind.replace(/_/g, ' ')}${e.label ? ` ${inline(e.label)}` : ''}${e.run_id ? ` · scan \`${e.run_id}\`` : ''}${e.run_date ? ` · ${e.run_date}` : ''}`;
 
 /** Anchored heading, status line, draft callout; the body; the evidence. */
 function block(r: ExportRecord, body: readonly string[]): string[] {

@@ -43,7 +43,7 @@ export function loadAmendments(raw: RawDb, portalId: string): ExportAmendment[] 
               a.superseded_detail, a.superseded_at, a.dismissed_at,
               (SELECT b.key FROM amendments b WHERE b.id = a.reapplied_as) AS reapplied_as,
               (SELECT b.key FROM amendments b WHERE b.id = a.reapplies) AS reapplies
-       FROM amendments a WHERE a.portal_id = ? AND a.status <> 'withdrawn'
+       FROM amendments_with_target a WHERE a.portal_id = ? AND a.status <> 'withdrawn'
        ORDER BY length(a.key), a.key`,
     )
     .all(portalId) as ExportAmendment[];

@@ -117,7 +117,7 @@ gate(
     });
     expect(direct.isError).toBe(true);
     expect(
-      rows(hooked, "SELECT 1 FROM page_visits WHERE run_id = ? AND url LIKE '%/druk%'", hookedRun),
+      rows(hooked, "SELECT 1 FROM observations WHERE run_id = ? AND url LIKE '%/druk%'", hookedRun),
     ).toEqual([]);
   },
 );

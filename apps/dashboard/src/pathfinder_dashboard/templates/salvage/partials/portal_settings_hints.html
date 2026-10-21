@@ -1,0 +1,21 @@
+{#- Settings ▸ Hints (spec 039 G11, owner answer OV-2): what the portal model is told about the
+    portal, read from the portal file's `model:`. Confirming an A/B test in Review adds its cookie
+    here; the rest changes through the assistant. -#}
+<section id="hints" class="sy-plate" aria-labelledby="hints-h">
+  <div class="sy-plate__head"><h2 id="hints-h" class="sy-plate__title">Hints</h2></div>
+  {%- if hints %}
+  <div class="sy-plate__body sy-stack">
+    <dl class="sy-facts">
+      <dt>Release marker</dt>
+      <dd>{% if hints.release_marker %}<span class="sy-mono">{{ hints.release_marker }}</span>{% else %}<span class="sy-muted">none: releases are told apart by the names of the page's files</span>{% endif %}</dd>
+      <dt>A/B cookies</dt>
+      <dd>{% for f in hints.ab_flags %}<span class="sy-mono">{{ f }}</span>{{ ", " if not loop.last }}{% else %}<span class="sy-muted">none yet: confirming an A/B test in Review adds its cookie</span>{% endfor %}</dd>
+      <dt>Business refusals</dt>
+      <dd>{% for t in hints.refusals %}<span class="sy-case-normal">"{{ t }}"</span>{{ ", " if not loop.last }}{% else %}<span class="sy-muted">none listed</span>{% endfor %}</dd>
+    </dl>
+    <p class="sy-small sy-muted">Read from the portal file. Later scans read the A/B arm from these cookies. Ask the assistant to change a hint.</p>
+  </div>
+  {%- else %}
+  <div class="sy-plate__body"><p class="sy-meta">The portal file for {{ portal }} could not be read, so no hints are shown.</p></div>
+  {%- endif %}
+</section>

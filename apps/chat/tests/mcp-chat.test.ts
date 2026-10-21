@@ -39,6 +39,26 @@ function seedRun(status: string, persona = 'guest', mode = 'map'): string {
   return id;
 }
 
+/** A recorded state `st-1` and form step `fs-1` for marks to point at (0041: real foreign keys). */
+function seedMarkTargets(): void {
+  const run = seedRun('completed');
+  opened.raw
+    .prepare(
+      `INSERT INTO states (id, portal_id, fingerprint, cluster_id, route_template, title,
+         evidence_ref, confidence, stabilization, first_seen_run, created_at)
+       VALUES ('st-1', 'reference-insurer', 'fp-1', 'c', '/', 'Home', 'e.yaml', 'observed',
+         'settled', ?, '2026-10-17T00:00:00Z')`,
+    )
+    .run(run);
+  opened.raw
+    .prepare(
+      `INSERT INTO form_steps (id, portal_id, route_template, step_index, controls_json, label,
+         first_seen_run, created_at)
+       VALUES ('fs-1', 'reference-insurer', '/', 1, '[]', 'step', ?, '2026-10-17T00:00:00Z')`,
+    )
+    .run(run);
+}
+
 async function call(name: string, args: Record<string, unknown>) {
   const result = await client.callTool({ name, arguments: args });
   return {
@@ -85,9 +105,13 @@ describe('pathfinder-chat MCP server', () => {
       'list_amendments',
       'list_grouping_inputs',
       'list_process_candidates',
+      'list_process_proposals',
+      'model_actions',
+      'name_proposal',
       'open_page',
       'page_context',
       'propose_change',
+      'reconcile_model',
       'request_credential',
       'request_documentation',
       'request_scan',
@@ -274,24 +298,25 @@ describe('pathfinder-chat MCP server', () => {
     expect(prompt).not.toContain('resume_run_id');
   });
 
-  it('a probe scan needs Probe marks and briefs the crawler to probe only them (spec 032 US5)', async () => {
-    const probe = { portal: 'reference-insurer', persona: 'guest', probe_marked: true };
+  it('a form-probing scan needs Probe marks and briefs the crawler to probe only them (spec 032 US5)', async () => {
+    const probe = { portal: 'reference-insurer', persona: 'guest', form_probing: true };
     const none = await call('request_scan', probe);
     expect(none.body.error).toMatchObject({ code: 'MISSING_INPUT' });
     expect(JSON.stringify(none.body.error)).toContain('Mark for probing');
     const readOnly = await call('request_scan', { ...probe, allow_writes: false });
     expect(readOnly.body.error).toMatchObject({ code: 'INVALID' });
 
+    seedMarkTargets();
     opened.raw
       .prepare(
-        `INSERT INTO marks (id, portal_id, kind, target_kind, target_id, created_by, created_at)
-         VALUES ('m-1', 'reference-insurer', 'probe', 'form_step', 'fs-1', 'BA', '2026-10-17T00:00:00Z')`,
+        `INSERT INTO marks (id, portal_id, kind, form_step_id, created_by, created_at)
+         VALUES ('m-1', 'reference-insurer', 'probe', 'fs-1', 'BA', '2026-10-17T00:00:00Z')`,
       )
       .run();
     const { isError, body } = await call('request_scan', probe);
     expect(isError).toBe(false);
     const prompt = (body.handoff as { prompt: string }).prompt;
-    expect(prompt).toContain('probe_marked true');
+    expect(prompt).toContain('form_probing true');
     expect(prompt).toContain('Do not follow the frontier');
     expect(prompt).not.toContain('Drain the frontier');
   });
@@ -303,17 +328,18 @@ describe('pathfinder-chat MCP server', () => {
     expect(await errorOf({ run_type: 'focused' })).toMatchObject({ code: 'MISSING_INPUT' });
     expect(await errorOf({ run_type: 'continue' })).toMatchObject({ code: 'MISSING_INPUT' });
     expect(await errorOf({ run_type: 'retry' })).toMatchObject({ code: 'MISSING_INPUT' });
-    expect(await errorOf({ run_type: 'focused', probe_marked: true })).toMatchObject({
+    expect(await errorOf({ run_type: 'focused', form_probing: true })).toMatchObject({
       code: 'INVALID',
     });
     expect(
       await errorOf({ run_type: 'continue', plan: { parent_run_id: 'not-a-run' } }),
     ).toMatchObject({ code: 'INVALID' });
 
+    seedMarkTargets();
     opened.raw
       .prepare(
-        `INSERT INTO marks (id, portal_id, kind, target_kind, target_id, created_by, created_at)
-         VALUES ('m-2', 'reference-insurer', 'start', 'state', 'st-1', 'BA', '2026-10-17T00:00:00Z')`,
+        `INSERT INTO marks (id, portal_id, kind, state_id, created_by, created_at)
+         VALUES ('m-2', 'reference-insurer', 'start', 'st-1', 'BA', '2026-10-17T00:00:00Z')`,
       )
       .run();
     const { isError, body } = await call('request_scan', {
@@ -334,10 +360,17 @@ describe('pathfinder-chat MCP server', () => {
       (await call('request_documentation', { ...base, ...args })).body.error as { code: string };
     expect(await errorOf({ process_key: 'PROC-001' })).toMatchObject({ code: 'NOT_FOUND' });
     expect(await errorOf({})).toMatchObject({ code: 'INVALID' });
+    // A PROC record documents its process (spec 039 T070).
     opened.raw
       .prepare(
-        `INSERT INTO doc_records (id, portal_id, kind, key, seq, title, latest_rev, confirmed_rev, withdrawn, created_at, updated_at)
-         VALUES ('r-1', 'reference-insurer', 'process', 'PROC-001', 1, 'Quote', 1, NULL, 0, '2026-10-17T00:00:00Z', '2026-10-17T00:00:00Z')`,
+        `INSERT INTO ba_processes (id, portal_id, key, name, persona, stage, rev, source, created_at, updated_at, record_key)
+         VALUES ('p-1', 'reference-insurer', 'PRC-901', 'Quote', 'guest', 'scoped', 1, 'new', '2026-10-17T00:00:00Z', '2026-10-17T00:00:00Z', 'PROC-001')`,
+      )
+      .run();
+    opened.raw
+      .prepare(
+        `INSERT INTO doc_records (id, portal_id, kind, key, seq, title, latest_rev, confirmed_rev, withdrawn, created_at, updated_at, process_id)
+         VALUES ('r-1', 'reference-insurer', 'process', 'PROC-001', 1, 'Quote', 1, NULL, 0, '2026-10-17T00:00:00Z', '2026-10-17T00:00:00Z', 'p-1')`,
       )
       .run();
     const { isError, body } = await call('request_documentation', {
@@ -517,5 +550,47 @@ describe('pathfinder-chat MCP server', () => {
       status: 'active',
     });
     expect(body).toEqual({ portal: 'reference-insurer', amendments: [] });
+  });
+
+  it('names an open process proposal of the model and lists the probe work waiting (T077)', async () => {
+    const P = 'reference-insurer';
+    expect(
+      (await call('name_proposal', { portal: P, proposal_id: 'gs-1', name: 'Quote', why: 'w' }))
+        .body.error?.code,
+    ).toBe('NOT_FOUND');
+    opened.raw
+      .prepare(
+        `INSERT INTO grouping_suggestions (id, portal_id, name, persona, steps, why, screens_key, created_at)
+         VALUES ('gs-1', ?, 'Community 1', 'guest', ?, 'Leiden community', 's1,s2', '2026-10-20T00:00:00Z')`,
+      )
+      .run(P, JSON.stringify([{ title: 'Vehicle', route: '/kalkulator/pojazd' }]));
+    expect((await call('list_process_proposals', { portal: P })).body).toEqual({
+      proposals: [
+        {
+          id: 'gs-1',
+          name: 'Community 1',
+          why: 'Leiden community',
+          screens: ['Vehicle (/kalkulator/pojazd)'],
+        },
+      ],
+    });
+    const named = await call('name_proposal', {
+      portal: P,
+      proposal_id: 'gs-1',
+      name: 'Oblicz składkę OC/AC',
+      why: 'The calculator steps behind the "Oblicz składkę" button.',
+    });
+    expect(named.body).toEqual({ proposal: { id: 'gs-1', name: 'Oblicz składkę OC/AC' } });
+    expect(
+      opened.raw.prepare("SELECT name FROM grouping_suggestions WHERE id = 'gs-1'").get(),
+    ).toEqual({ name: 'Oblicz składkę OC/AC' });
+    expect((await call('model_actions', { portal: P })).body).toEqual({
+      error_replays: 0,
+      rule_tests: 0,
+      unexplored_processes: [],
+      check_runs: [],
+      running: null,
+    });
+    expect((await call('reconcile_model', { portal: P })).isError).toBe(false);
   });
 });

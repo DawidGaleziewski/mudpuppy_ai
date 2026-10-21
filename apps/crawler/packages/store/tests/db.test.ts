@@ -38,6 +38,23 @@ const ALL = [
   '0026',
   '0027',
   '0028',
+  '0029',
+  '0030',
+  '0031',
+  '0032',
+  '0033',
+  '0034',
+  '0035',
+  '0036',
+  '0037',
+  '0038',
+  '0039',
+  '0040',
+  '0041',
+  '0042',
+  '0043',
+  '0044',
+  '0045',
 ];
 
 let opened: OpenedDb | undefined;
@@ -59,7 +76,7 @@ const tables = (o: OpenedDb) =>
     .sort();
 
 describe('migrations', () => {
-  it('finds 0001_init through 0028_process_archive_edit, each with an up and a down', () => {
+  it('finds 0001_init through 0045_state_pair_label_history, each with an up and a down', () => {
     expect(loadMigrations(MIGRATIONS).map((m) => m.version)).toEqual(ALL);
   });
 
@@ -92,6 +109,23 @@ describe('migrations', () => {
         'credentials',
       ]),
     );
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0045');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0044');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0043');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0042');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0041');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0040');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0039');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0038');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0037');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0036');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0035');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0034');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0033');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0032');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0031');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0030');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0029');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0028');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0027');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0026');
@@ -128,6 +162,23 @@ describe('migrations', () => {
     opened = openDb(':memory:');
     expect(migrateUp(opened.raw, MIGRATIONS)).toEqual(ALL);
     expect(migrateUp(opened.raw, MIGRATIONS)).toEqual([]);
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0045');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0044');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0043');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0042');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0041');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0040');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0039');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0038');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0037');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0036');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0035');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0034');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0033');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0032');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0031');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0030');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0029');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0028');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0027');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0026');
@@ -163,6 +214,23 @@ describe('migrations', () => {
   it('0003_trace applies and reverts on a DB holding 0001/0002 data (up, down, up round-trips cleanly)', () => {
     opened = openDb(':memory:');
     migrateUp(opened.raw, MIGRATIONS);
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0045');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0044');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0043');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0042');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0041');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0040');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0039');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0038');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0037');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0036');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0035');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0034');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0033');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0032');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0031');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0030');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0029');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0028');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0027');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0026');
@@ -220,6 +288,23 @@ describe('migrations', () => {
       '0026',
       '0027',
       '0028',
+      '0029',
+      '0030',
+      '0031',
+      '0032',
+      '0033',
+      '0034',
+      '0035',
+      '0036',
+      '0037',
+      '0038',
+      '0039',
+      '0040',
+      '0041',
+      '0042',
+      '0043',
+      '0044',
+      '0045',
     ]);
     expect(appliedVersions(opened.raw)).toEqual(ALL);
     expect(tables(opened)).toEqual(
@@ -404,16 +489,34 @@ describe('Layer B tables (0004_ba_documentation)', () => {
          VALUES (?, ?, 1, ?, 'create', '{"kind":"capability","title":"Compare products","description":"..."}', 'observed', 0, 'draft', NULL, NULL, ?)`,
       )
       .run(revisionId, recordId, sessionId, ts);
+    opened.raw.prepare(`INSERT INTO entity_refs (id, state_id) VALUES ('ref-1', ?)`).run(stateId);
     opened.raw
       .prepare(
-        `INSERT INTO doc_evidence_links (id, revision_id, target_kind, target_id, run_id, note) VALUES (?, ?, 'state', ?, ?, NULL)`,
+        `INSERT INTO doc_evidence_links (id, revision_id, ref_id, run_id, note) VALUES (?, ?, 'ref-1', ?, NULL)`,
       )
-      .run(newId(), revisionId, stateId, runId);
+      .run(newId(), revisionId, runId);
     opened.raw
       .prepare(
         `INSERT INTO doc_reviews (id, revision_id, action, reviewer, text, created_at) VALUES (?, ?, 'comment', 'dawid', 'looks good', ?)`,
       )
       .run(newId(), revisionId, ts);
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0045');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0044');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0043');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0042');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0041');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0040');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0039');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0038');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0037');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0036');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0035');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0034');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0033');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0032');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0031');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0030');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0029');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0028');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0027');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0026');
@@ -466,6 +569,23 @@ describe('Layer B tables (0004_ba_documentation)', () => {
       '0026',
       '0027',
       '0028',
+      '0029',
+      '0030',
+      '0031',
+      '0032',
+      '0033',
+      '0034',
+      '0035',
+      '0036',
+      '0037',
+      '0038',
+      '0039',
+      '0040',
+      '0041',
+      '0042',
+      '0043',
+      '0044',
+      '0045',
     ]);
     expect(opened.raw.prepare('SELECT count(*) AS n FROM doc_records').get()).toEqual({ n: 0 });
   });
@@ -503,28 +623,41 @@ describe('screenshots and wireframes (0006_screenshots_wireframes)', () => {
       .run(revisionId, recordId, sessionId, ts);
     return { runId, stateId, revisionId };
   }
-  const link = (
-    o: OpenedDb,
-    revisionId: string,
-    kind: string,
-    target: string,
-    run: string,
-    region: string | null,
-  ) =>
+  /** A screen region (spec 008) is, since 0040, a state ref with an element key (spec 039 § 15). */
+  const region = (o: OpenedDb, revisionId: string, stateId: string, run: string, key: string) => {
+    const ref = newId();
+    o.raw
+      .prepare('INSERT INTO entity_refs (id, state_id, element_key) VALUES (?, ?, ?)')
+      .run(ref, stateId, key);
     o.raw
       .prepare(
-        `INSERT INTO doc_evidence_links (id, revision_id, target_kind, target_id, run_id, note, region) VALUES (?, ?, ?, ?, ?, 'n', ?)`,
+        `INSERT INTO doc_evidence_links (id, revision_id, ref_id, run_id, note) VALUES (?, ?, ?, ?, 'n')`,
       )
-      .run(newId(), revisionId, kind, target, run, region);
+      .run(newId(), revisionId, ref, run);
+  };
 
-  it('requires region exactly for screen_region links and keeps screenshot refs nullable', async () => {
+  it('keeps a screen region as a state ref with a key, and screenshot refs nullable', async () => {
     opened = openDb(':memory:');
     migrateUp(opened.raw, MIGRATIONS);
     const { runId, stateId, revisionId } = await seedRevision(opened);
-    link(opened, revisionId, 'screen_region', stateId, runId, 'textbox "Pojemność silnika"');
-    expect(() => link(opened!, revisionId, 'screen_region', stateId, runId, null)).toThrow(/CHECK/);
-    expect(() => link(opened!, revisionId, 'state', stateId, runId, 'button "x"')).toThrow(/CHECK/);
-    expect(() => link(opened!, revisionId, 'screen_region', stateId, runId, '')).toThrow(/CHECK/);
+    region(opened, revisionId, stateId, runId, 'textbox "Pojemność silnika"');
+    expect(
+      opened.raw.prepare('SELECT target_kind, target_id, region FROM doc_evidence').all(),
+    ).toEqual([
+      { target_kind: 'screen_region', target_id: stateId, region: 'textbox "Pojemność silnika"' },
+    ]);
+    expect(() => region(opened!, revisionId, stateId, runId, '')).toThrow(/CHECK/);
+    const ref = opened.raw.prepare(
+      'INSERT INTO entity_refs (id, transition_id, element_key) VALUES (?, NULL, ?)',
+    );
+    expect(() => ref.run(newId(), 'button "x"')).toThrow(/CHECK/); // a key needs a state or a screen
+    expect(() =>
+      opened!.raw
+        .prepare(
+          `INSERT INTO doc_evidence_links (id, revision_id, ref_id, run_id) VALUES (?, ?, 'nope', ?)`,
+        )
+        .run(newId(), revisionId, runId),
+    ).toThrow(/FOREIGN KEY/);
     const s = opened.raw
       .prepare('SELECT screenshot_ref, layout_ref FROM states WHERE id = ?')
       .get(stateId);
@@ -540,10 +673,27 @@ describe('screenshots and wireframes (0006_screenshots_wireframes)', () => {
     opened = openDb(':memory:');
     migrateUp(opened.raw, MIGRATIONS);
     const { runId, stateId, revisionId } = await seedRevision(opened);
-    link(opened, revisionId, 'screen_region', stateId, runId, 'button "Oblicz"');
+    region(opened, revisionId, stateId, runId, 'button "Oblicz"');
     opened.raw
       .prepare(`INSERT INTO state_wireframes VALUES (?, '1', 'a.svg', 'a.excalidraw', ?)`)
       .run(stateId, nowIso());
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0045');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0044');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0043');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0042');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0041');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0040');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0039');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0038');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0037');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0036');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0035');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0034');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0033');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0032');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0031');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0030');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0029');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0028');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0027');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0026');
@@ -595,8 +745,25 @@ describe('screenshots and wireframes (0006_screenshots_wireframes)', () => {
       '0026',
       '0027',
       '0028',
+      '0029',
+      '0030',
+      '0031',
+      '0032',
+      '0033',
+      '0034',
+      '0035',
+      '0036',
+      '0037',
+      '0038',
+      '0039',
+      '0040',
+      '0041',
+      '0042',
+      '0043',
+      '0044',
+      '0045',
     ]);
-    expect(opened.raw.prepare('SELECT target_kind, region FROM doc_evidence_links').all()).toEqual([
+    expect(opened.raw.prepare('SELECT target_kind, region FROM doc_evidence').all()).toEqual([
       { target_kind: 'state', region: null },
     ]);
   });
@@ -626,6 +793,23 @@ describe('credentials (0007_credentials)', () => {
   it('round-trips (up, down, up)', () => {
     opened = openDb(':memory:');
     migrateUp(opened.raw, MIGRATIONS);
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0045');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0044');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0043');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0042');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0041');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0040');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0039');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0038');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0037');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0036');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0035');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0034');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0033');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0032');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0031');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0030');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0029');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0028');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0027');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0026');
@@ -672,6 +856,23 @@ describe('credentials (0007_credentials)', () => {
       '0026',
       '0027',
       '0028',
+      '0029',
+      '0030',
+      '0031',
+      '0032',
+      '0033',
+      '0034',
+      '0035',
+      '0036',
+      '0037',
+      '0038',
+      '0039',
+      '0040',
+      '0041',
+      '0042',
+      '0043',
+      '0044',
+      '0045',
     ]);
     expect(tables(opened)).toContain('credentials');
   });
@@ -689,13 +890,17 @@ describe('chat orchestrator tables (0008_chat_orchestrator)', () => {
       .run(id, portal, ts(), ts());
     return id;
   };
-  const amd = (o: OpenedDb, cols: string, vals: unknown[]) =>
-    o.raw
+  // 0041: an amendment cites what it is written on through a ref (an evidence file needs no row).
+  const amd = (o: OpenedDb, cols: string, vals: unknown[]) => {
+    const ref = newId();
+    o.raw.prepare(`INSERT INTO entity_refs (id, evidence_file) VALUES (?, 'e.png')`).run(ref);
+    return o.raw
       .prepare(
-        `INSERT INTO amendments (id, key, portal_id, target_kind, target_id, kind, author, created_at, ${cols})
-         VALUES (?, ?, 'p', 'state', 's1', 'note', 'ba', ?, ${vals.map(() => '?').join(',')})`,
+        `INSERT INTO amendments (id, key, portal_id, ref_id, kind, author, created_at, ${cols})
+         VALUES (?, ?, 'p', ?, 'note', 'ba', ?, ${vals.map(() => '?').join(',')})`,
       )
-      .run(newId(), `AMD-${String(++amdSeq).padStart(3, '0')}`, ts(), ...vals);
+      .run(newId(), `AMD-${String(++amdSeq).padStart(3, '0')}`, ref, ts(), ...vals);
+  };
 
   it('enforces enums, message order and amendment invariants', () => {
     opened = openDb(':memory:');
@@ -733,6 +938,23 @@ describe('chat orchestrator tables (0008_chat_orchestrator)', () => {
   it('round-trips (up, down, up)', () => {
     opened = openDb(':memory:');
     migrateUp(opened.raw, MIGRATIONS);
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0045');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0044');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0043');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0042');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0041');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0040');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0039');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0038');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0037');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0036');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0035');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0034');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0033');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0032');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0031');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0030');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0029');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0028');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0027');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0026');
@@ -778,6 +1000,23 @@ describe('chat orchestrator tables (0008_chat_orchestrator)', () => {
       '0026',
       '0027',
       '0028',
+      '0029',
+      '0030',
+      '0031',
+      '0032',
+      '0033',
+      '0034',
+      '0035',
+      '0036',
+      '0037',
+      '0038',
+      '0039',
+      '0040',
+      '0041',
+      '0042',
+      '0043',
+      '0044',
+      '0045',
     ]);
     expect(tables(opened)).toEqual(
       expect.arrayContaining([
@@ -838,7 +1077,7 @@ describe('process tables (0005_trace_processes)', () => {
     const insertStep = (ord: number, kind: string, outcomes: string, ref: string, conf: string) =>
       raw
         .prepare(
-          `INSERT INTO process_steps (id, process_id, ord, intent, kind, action_id, edge_id, value, state_before,
+          `INSERT INTO process_steps (id, process_id, ord, intent, kind, action_id, transition_id, value, state_before,
              state_after, outcomes_json, evidence_ref, confidence, created_at)
            VALUES (?, ?, ?, 'Open it', ?, NULL, NULL, NULL, ?, NULL, ?, ?, ?, ?)`,
         )
@@ -1037,6 +1276,23 @@ describe('run owner (0009_run_owner)', () => {
     expect(() =>
       opened!.raw.prepare(`UPDATE runs SET owner_pid = 0 WHERE id = ?`).run(runId),
     ).toThrow(/CHECK/);
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0045');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0044');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0043');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0042');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0041');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0040');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0039');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0038');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0037');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0036');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0035');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0034');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0033');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0032');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0031');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0030');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0029');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0028');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0027');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0026');
@@ -1084,16 +1340,34 @@ describe('run owner (0009_run_owner)', () => {
       '0026',
       '0027',
       '0028',
+      '0029',
+      '0030',
+      '0031',
+      '0032',
+      '0033',
+      '0034',
+      '0035',
+      '0036',
+      '0037',
+      '0038',
+      '0039',
+      '0040',
+      '0041',
+      '0042',
+      '0043',
+      '0044',
+      '0045',
     ]);
     expect(cols()).toEqual(expect.arrayContaining(['owner_id', 'owner_pid']));
   });
 });
 
-describe('page visits (0012_page_visits)', () => {
+// The table is `observations` since 0032 (spec 039 T110); 0012 created it as `page_visits`.
+describe('observations (0012_page_visits)', () => {
   const visit = (o: OpenedDb, runId: string, stateId: string, via: string, hops: string) =>
     o.raw
       .prepare(
-        `INSERT INTO page_visits (id, run_id, state_id, edge_id, via, url, hops_json, created_at)
+        `INSERT INTO observations (id, run_id, state_id, transition_id, via, url, hops_json, created_at)
          VALUES (?, ?, ?, NULL, ?, 'http://x/a.do;jsessionid=1?b=2', ?, ?)`,
       )
       .run(newId(), runId, stateId, via, hops, nowIso());
@@ -1107,10 +1381,27 @@ describe('page visits (0012_page_visits)', () => {
     expect(() => visit(opened!, runId, stateId, 'action', '{}')).toThrow(/CHECK/);
     opened.raw
       .prepare(
-        `INSERT INTO network_calls (id, run_id, edge_id, method, url_template, status, req_schema, res_schema, created_at, url)
+        `INSERT INTO network_calls (id, run_id, transition_id, method, url_template, status, req_schema, res_schema, created_at, url)
          VALUES (?, ?, NULL, 'GET', '/api/x', 200, '{}', '{}', ?, 'http://x/api/x?q=1')`,
       )
       .run(newId(), runId, nowIso());
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0045');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0044');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0043');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0042');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0041');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0040');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0039');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0038');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0037');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0036');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0035');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0034');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0033');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0032');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0031');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0030');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0029');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0028');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0027');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0026');
@@ -1150,6 +1441,23 @@ describe('page visits (0012_page_visits)', () => {
       '0026',
       '0027',
       '0028',
+      '0029',
+      '0030',
+      '0031',
+      '0032',
+      '0033',
+      '0034',
+      '0035',
+      '0036',
+      '0037',
+      '0038',
+      '0039',
+      '0040',
+      '0041',
+      '0042',
+      '0043',
+      '0044',
+      '0045',
     ]);
     expect(opened.raw.prepare('SELECT url FROM network_calls').all()).toEqual([{ url: null }]);
   });
@@ -1203,6 +1511,23 @@ describe('screens and amendment revisions (0015, 0016; spec 022)', () => {
   it('backfills screens, revision numbers, amendment heads and revisions; down restores the 0014 shape', async () => {
     opened = openDb(':memory:');
     migrateUp(opened.raw, MIGRATIONS);
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0045');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0044');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0043');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0042');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0041');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0040');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0039');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0038');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0037');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0036');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0035');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0034');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0033');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0032');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0031');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0030');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0029');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0028');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0027');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0026');
@@ -1237,6 +1562,23 @@ describe('screens and amendment revisions (0015, 0016; spec 022)', () => {
       '0026',
       '0027',
       '0028',
+      '0029',
+      '0030',
+      '0031',
+      '0032',
+      '0033',
+      '0034',
+      '0035',
+      '0036',
+      '0037',
+      '0038',
+      '0039',
+      '0040',
+      '0041',
+      '0042',
+      '0043',
+      '0044',
+      '0045',
     ]);
 
     const screens = opened.raw.prepare('SELECT * FROM screens ORDER BY route_template').all() as {
@@ -1287,6 +1629,23 @@ describe('screens and amendment revisions (0015, 0016; spec 022)', () => {
     ]);
     expect(opened.raw.pragma('foreign_key_check')).toEqual([]);
 
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0045');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0044');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0043');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0042');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0041');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0040');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0039');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0038');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0037');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0036');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0035');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0034');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0033');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0032');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0031');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0030');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0029');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0028');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0027');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0026');
@@ -1314,14 +1673,21 @@ describe('screens and amendment revisions (0015, 0016; spec 022)', () => {
   it('refuses a revision without a base after r1, a second r1, or an unknown change', async () => {
     opened = openDb(':memory:');
     migrateUp(opened.raw, MIGRATIONS);
-    const { runId, stateId } = await seedRunAndState(opened, 'p', 'f'.repeat(64));
-    insertAmendment(opened, 'AMD-001', 'active', stateId, runId);
-    const aid = (opened.raw.prepare('SELECT id FROM amendments').get() as { id: string }).id;
+    const { stateId } = await seedRunAndState(opened, 'p', 'f'.repeat(64));
+    // 0041: an amendment and its revisions cite their state through a ref.
+    opened.raw.prepare(`INSERT INTO entity_refs (id, state_id) VALUES ('ref-s', ?)`).run(stateId);
+    const aid = newId();
+    opened.raw
+      .prepare(
+        `INSERT INTO amendments (id, key, portal_id, ref_id, kind, text, author, created_at)
+         VALUES (?, 'AMD-001', 'p', 'ref-s', 'note', 't', 'ba', ?)`,
+      )
+      .run(aid, nowIso());
     const add = (rev: number, base: number | null, change: string, status = 'active') =>
       opened!.raw
         .prepare(
-          `INSERT INTO amendment_revisions (amendment_id, rev, base_rev, change, author, status, target_kind, target_id, created_at)
-           VALUES (?, ?, ?, ?, 'ba', ?, 'state', 's', ?)`,
+          `INSERT INTO amendment_revisions (amendment_id, rev, base_rev, change, author, status, ref_id, created_at)
+           VALUES (?, ?, ?, ?, 'ba', ?, 'ref-s', ?)`,
         )
         .run(aid, rev, base, change, status, nowIso());
     add(1, null, 'create');
@@ -1334,7 +1700,7 @@ describe('screens and amendment revisions (0015, 0016; spec 022)', () => {
 });
 
 describe('chat proposals (0017; spec 022)', () => {
-  it('enforces the target, applied and decided CHECKs, keeps both indexes, and the down drops the table', () => {
+  it('enforces the amendment, applied and decided CHECKs, keeps both indexes, and the down drops the table', () => {
     opened = openDb(':memory:');
     migrateUp(opened.raw, MIGRATIONS);
     const now = nowIso();
@@ -1343,9 +1709,16 @@ describe('chat proposals (0017; spec 022)', () => {
         `INSERT INTO chat_conversations (id, portal_id, goal, created_at, updated_at) VALUES ('c1', 'p', 'g', ?, ?)`,
       )
       .run(now, now);
+    opened.raw.prepare(`INSERT INTO entity_refs (id, evidence_file) VALUES ('r1', 'e.png')`).run();
+    opened.raw
+      .prepare(
+        `INSERT INTO amendments (id, key, portal_id, ref_id, kind, text, author, created_at)
+         VALUES ('a1', 'AMD-001', 'p', 'r1', 'note', 't', 'ba', ?)`,
+      )
+      .run(now);
+    // 0041: `amendment_id` names the amendment a proposal changes; NULL is a new amendment.
     const add = (
-      kind: string,
-      targetId: string | null,
+      amendmentId: string | null,
       baseRev: number | null,
       payload: string,
       status = 'open',
@@ -1355,12 +1728,11 @@ describe('chat proposals (0017; spec 022)', () => {
     ) =>
       opened!.raw
         .prepare(
-          `INSERT INTO chat_proposals (id, conversation_id, portal_id, target_kind, target_id, base_rev, payload, summary, status, applied_amendment_id, applied_rev, decided_at, created_at)
-           VALUES (lower(hex(randomblob(8))), 'c1', 'p', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          `INSERT INTO chat_proposals (id, conversation_id, portal_id, amendment_id, base_rev, payload, summary, status, applied_amendment_id, applied_rev, decided_at, created_at)
+           VALUES (lower(hex(randomblob(8))), 'c1', 'p', ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         )
         .run(
-          kind,
-          targetId,
+          amendmentId,
           baseRev,
           payload,
           summary,
@@ -1370,24 +1742,19 @@ describe('chat proposals (0017; spec 022)', () => {
           decidedAt,
           now,
         );
-    add('amendment', 'a1', 1, '{"text":"x"}');
-    add('new_amendment', null, null, '{"text":"x"}');
-    expect(() => add('amendment', null, null, '{}')).toThrow(/CHECK/);
-    expect(() => add('amendment', 'a1', null, '{}')).toThrow(/CHECK/);
-    expect(() => add('new_amendment', 'a1', 1, '{}')).toThrow(/CHECK/);
-    expect(() => add('other', null, null, '{}')).toThrow(/CHECK/);
-    expect(() => add('new_amendment', null, null, '[]')).toThrow(/CHECK/);
-    expect(() => add('new_amendment', null, null, 'nope')).toThrow(/CHECK/);
-    expect(() => add('new_amendment', null, null, '{}', 'open', [null, null], null, '')).toThrow(
-      /CHECK/,
-    );
-    expect(() => add('new_amendment', null, null, '{}', 'applied', [null, null], now)).toThrow(
-      /CHECK/,
-    );
-    expect(() => add('new_amendment', null, null, '{}', 'discarded')).toThrow(/CHECK/);
-    expect(() => add('new_amendment', null, null, '{}', 'stale')).toThrow(/CHECK/);
-    expect(() => add('new_amendment', null, null, '{}', 'bogus')).toThrow(/CHECK/);
-    add('new_amendment', null, null, '{}', 'discarded', [null, null], now);
+    add('a1', 1, '{"text":"x"}');
+    add(null, null, '{"text":"x"}');
+    expect(() => add('a1', null, '{}')).toThrow(/CHECK/);
+    expect(() => add(null, 1, '{}')).toThrow(/CHECK/);
+    expect(() => add('nope', 1, '{}')).toThrow(/FOREIGN KEY/);
+    expect(() => add(null, null, '[]')).toThrow(/CHECK/);
+    expect(() => add(null, null, 'nope')).toThrow(/CHECK/);
+    expect(() => add(null, null, '{}', 'open', [null, null], null, '')).toThrow(/CHECK/);
+    expect(() => add(null, null, '{}', 'applied', [null, null], now)).toThrow(/CHECK/);
+    expect(() => add(null, null, '{}', 'discarded')).toThrow(/CHECK/);
+    expect(() => add(null, null, '{}', 'stale')).toThrow(/CHECK/);
+    expect(() => add(null, null, '{}', 'bogus')).toThrow(/CHECK/);
+    add(null, null, '{}', 'discarded', [null, null], now);
     expect(
       (
         opened.raw
@@ -1400,6 +1767,23 @@ describe('chat proposals (0017; spec 022)', () => {
         .filter((n) => n.startsWith('ix_'))
         .sort(),
     ).toEqual(['ix_chat_proposals_conversation', 'ix_chat_proposals_portal_status']);
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0045');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0044');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0043');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0042');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0041');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0040');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0039');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0038');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0037');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0036');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0035');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0034');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0033');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0032');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0031');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0030');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0029');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0028');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0027');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0026');
@@ -1426,6 +1810,23 @@ describe('chat proposals (0017; spec 022)', () => {
       '0026',
       '0027',
       '0028',
+      '0029',
+      '0030',
+      '0031',
+      '0032',
+      '0033',
+      '0034',
+      '0035',
+      '0036',
+      '0037',
+      '0038',
+      '0039',
+      '0040',
+      '0041',
+      '0042',
+      '0043',
+      '0044',
+      '0045',
     ]);
   });
 });
@@ -1471,6 +1872,23 @@ describe('BA processes (0018; spec 022 M5)', () => {
   it('backfills the newest scope per name with ordered steps; down drops the tables', async () => {
     opened = openDb(':memory:');
     migrateUp(opened.raw, MIGRATIONS);
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0045');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0044');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0043');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0042');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0041');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0040');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0039');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0038');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0037');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0036');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0035');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0034');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0033');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0032');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0031');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0030');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0029');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0028');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0027');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0026');
@@ -1517,6 +1935,23 @@ describe('BA processes (0018; spec 022 M5)', () => {
       '0026',
       '0027',
       '0028',
+      '0029',
+      '0030',
+      '0031',
+      '0032',
+      '0033',
+      '0034',
+      '0035',
+      '0036',
+      '0037',
+      '0038',
+      '0039',
+      '0040',
+      '0041',
+      '0042',
+      '0043',
+      '0044',
+      '0045',
     ]);
 
     const procs = opened.raw
@@ -1551,15 +1986,15 @@ describe('BA processes (0018; spec 022 M5)', () => {
 
     const variants = opened.raw
       .prepare(
-        'SELECT id, label, kind, rev, branched_from_variant_id FROM process_variants WHERE process_id = ?',
+        'SELECT id, label, kind, rev, branched_from_model_id FROM process_models WHERE process_id = ?',
       )
       .all(procs[1]!.id) as { id: string; label: string; kind: string; rev: number }[];
     expect(variants).toMatchObject([
-      { label: 'A', kind: 'as_is', rev: 1, branched_from_variant_id: null },
+      { label: 'A', kind: 'as_is', rev: 1, branched_from_model_id: null },
     ]);
     const rev = opened.raw
       .prepare(
-        'SELECT base_rev, change, author, steps, created_at FROM process_variant_revisions WHERE variant_id = ? AND rev = 1',
+        'SELECT base_rev, change, author, steps, created_at FROM process_model_revisions WHERE model_id = ? AND rev = 1',
       )
       .get(variants[0]!.id) as {
       base_rev: null;
@@ -1595,6 +2030,23 @@ describe('BA processes (0018; spec 022 M5)', () => {
     expect(opened.raw.pragma('foreign_key_check')).toEqual([]);
     expect(tables(opened)).not.toContain('_scope_backfill');
 
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0045');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0044');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0043');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0042');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0041');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0040');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0039');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0038');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0037');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0036');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0035');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0034');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0033');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0032');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0031');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0030');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0029');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0028');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0027');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0026');
@@ -1658,24 +2110,24 @@ describe('BA processes (0018; spec 022 M5)', () => {
     prRev(2, 1, 'stage');
 
     run(
-      `INSERT INTO process_variants (id, process_id, label, kind, rev, created_at) VALUES ('v1', 'pr1', 'A', 'as_is', 1, ?)`,
+      `INSERT INTO process_models (id, process_id, label, kind, rev, created_at) VALUES ('v1', 'pr1', 'A', 'as_is', 1, ?)`,
       now,
     );
     expect(() =>
       run(
-        `INSERT INTO process_variants (id, process_id, label, kind, rev, created_at) VALUES ('v2', 'pr1', 'A', 'to_be', 1, ?)`,
+        `INSERT INTO process_models (id, process_id, label, kind, rev, created_at) VALUES ('v2', 'pr1', 'A', 'to_be', 1, ?)`,
         now,
       ),
     ).toThrow(/UNIQUE/);
     expect(() =>
       run(
-        `INSERT INTO process_variants (id, process_id, label, kind, rev, branched_from_variant_id, created_at) VALUES ('v2', 'pr1', 'B', 'to_be', 1, 'v1', ?)`,
+        `INSERT INTO process_models (id, process_id, label, kind, rev, branched_from_model_id, created_at) VALUES ('v2', 'pr1', 'B', 'to_be', 1, 'v1', ?)`,
         now,
       ),
     ).toThrow(/CHECK/);
     const vRev = (rev: number, base: number | null, steps: string, change = 'create') =>
       run(
-        `INSERT INTO process_variant_revisions (variant_id, rev, base_rev, change, author, steps, created_at)
+        `INSERT INTO process_model_revisions (model_id, rev, base_rev, change, author, steps, created_at)
          VALUES ('v1', ?, ?, ?, 'ba', ?, ?)`,
         rev,
         base,
@@ -1692,7 +2144,7 @@ describe('BA processes (0018; spec 022 M5)', () => {
 
     const draft = (steps: string) =>
       run(
-        `INSERT INTO process_drafts (variant_id, author, base_rev, steps, updated_at) VALUES ('v1', 'ba', 1, ?, ?)`,
+        `INSERT INTO process_drafts (model_id, author, base_rev, steps, updated_at) VALUES ('v1', 'ba', 1, ?, ?)`,
         steps,
         now,
       );
@@ -1702,7 +2154,7 @@ describe('BA processes (0018; spec 022 M5)', () => {
 
     const live = (env: string, rev = 1) =>
       run(
-        `INSERT INTO process_live (id, process_id, environment, variant_id, variant_rev, author, created_at)
+        `INSERT INTO process_live (id, process_id, environment, model_id, model_rev, author, created_at)
          VALUES (lower(hex(randomblob(8))), 'pr1', ?, 'v1', ?, 'ba', ?)`,
         env,
         rev,
@@ -1738,7 +2190,7 @@ describe('BA processes (0018; spec 022 M5)', () => {
 
     const spec = (rev: number, base: number | null, sections: string) =>
       run(
-        `INSERT INTO change_spec_revisions (process_id, rev, base_rev, left_variant_id, left_rev, right_variant_id, right_rev, sections, author, created_at)
+        `INSERT INTO change_spec_revisions (process_id, rev, base_rev, left_model_id, left_rev, right_model_id, right_rev, sections, author, created_at)
          VALUES ('pr1', ?, ?, 'v1', 1, 'v1', 2, ?, 'ba', ?)`,
         rev,
         base,
@@ -1753,7 +2205,7 @@ describe('BA processes (0018; spec 022 M5)', () => {
       opened.raw
         .prepare(
           `SELECT name FROM sqlite_master WHERE type='index' AND name LIKE 'ix_%' AND tbl_name IN
-         ('ba_processes','ba_process_revisions','process_variants','process_variant_revisions','process_drafts','process_live','grouping_suggestions','change_spec_revisions')`,
+         ('ba_processes','ba_process_revisions','process_models','process_model_revisions','process_drafts','process_live','grouping_suggestions','change_spec_revisions')`,
         )
         .all() as { name: string }[]
     )

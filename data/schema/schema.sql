@@ -1,4 +1,4 @@
--- GENERATED from data/migrations/*.up.sql applied in order (currently through 0028_process_archive_edit). Do not edit by hand.
+-- GENERATED from data/migrations/*.up.sql applied in order (currently through 0045_state_pair_label_history). Do not edit by hand.
 -- Regenerate after every migration; see data/schema/README.md.
 
 CREATE TABLE runs (
@@ -58,11 +58,12 @@ CREATE TABLE actions (
   CHECK (allowed = 1 OR skip_reason IS NOT NULL)
 ) STRICT;
 
-CREATE TABLE edges (
+-- 0032 renamed `edges` to `transitions` (the design's name, spec 039 T110).
+CREATE TABLE transitions (
   id            TEXT PRIMARY KEY,
   run_id        TEXT NOT NULL REFERENCES runs(id),
   from_state    TEXT NOT NULL REFERENCES states(id),
-  to_state      TEXT REFERENCES states(id),  -- nullable: skipped edges and actions that led nowhere
+  to_state      TEXT REFERENCES states(id),  -- nullable: skipped transitions and actions that led nowhere
   action_json   TEXT NOT NULL CHECK (json_valid(action_json)),
   safety_class  TEXT NOT NULL CHECK (safety_class IN ('read','mutating','destructive','external-side-effect')),
   status        TEXT NOT NULL CHECK (status IN ('executed','skipped')),
@@ -70,9 +71,18 @@ CREATE TABLE edges (
   confidence    TEXT NOT NULL CHECK (confidence IN ('observed','inferred','needs_confirmation')),
   error         TEXT CHECK (error IS NULL OR json_valid(error)),
   stabilization TEXT NOT NULL CHECK (stabilization IN ('settled','never_stabilized')),
-  created_at    TEXT NOT NULL
+  created_at    TEXT NOT NULL,
+  -- 0029 (ALTER TABLE, spec 039): the design's transition columns; NULL on v1 rows.
+  journey_id    TEXT REFERENCES journeys(id),
+  seq           INTEGER CHECK (seq IS NULL OR seq >= 1),
+  from_observation_id TEXT REFERENCES observations(id),
+  element_key   TEXT,
+  kind          TEXT CHECK (kind IS NULL OR kind IN ('click','fill','select','check','submit','navigate','back')),
+  result        TEXT CHECK (result IS NULL OR result IN ('ok','validation','business_error','technical_error','timeout','blocked')),
+  driver        TEXT NOT NULL DEFAULT 'agent' CHECK (driver IN ('agent','headless'))
 ) STRICT;
-CREATE INDEX ix_edges_run_id ON edges(run_id);
+CREATE INDEX ix_transitions_run_id ON transitions (run_id);
+CREATE UNIQUE INDEX ux_transitions_journey_seq ON transitions (journey_id, seq) WHERE journey_id IS NOT NULL;
 
 CREATE TABLE forms (
   id           TEXT PRIMARY KEY,
@@ -87,7 +97,7 @@ CREATE TABLE forms (
 CREATE TABLE network_calls (
   id             TEXT PRIMARY KEY,
   run_id         TEXT NOT NULL REFERENCES runs(id),
-  edge_id        TEXT REFERENCES edges(id),  -- null when observed passively on state load
+  transition_id  TEXT REFERENCES transitions(id),  -- null when observed passively on state load
   method         TEXT NOT NULL,
   url_template   TEXT NOT NULL,
   status         INTEGER NOT NULL,
@@ -99,26 +109,21 @@ CREATE TABLE network_calls (
   url            TEXT,
   -- 0027 (ALTER TABLE): masked sample bodies, at most 4096 characters, recorded only outside production (spec 034).
   req_sample     TEXT CHECK (req_sample IS NULL OR length(req_sample) <= 4096),
-  res_sample     TEXT CHECK (res_sample IS NULL OR length(res_sample) <= 4096)
+  res_sample     TEXT CHECK (res_sample IS NULL OR length(res_sample) <= 4096),
+  -- 0029 (ALTER TABLE, spec 039): sha256 of the response shape; NULL for documents and v1 rows.
+  schema_hash    TEXT CHECK (schema_hash IS NULL OR length(schema_hash) = 64)
 ) STRICT;
 
+-- Rebuilt by 0040 (spec 039 § 15): the subject (a state, transition or form) is an `entity_refs` row,
+-- no longer the polymorphic `about_ref`.
 CREATE TABLE open_questions (
-  id         TEXT PRIMARY KEY,
-  run_id     TEXT NOT NULL REFERENCES runs(id),
-  text       TEXT NOT NULL,
-  about_ref  TEXT NOT NULL,  -- polymorphic (state/edge/form id), validated by the tool, no FK
-  status     TEXT NOT NULL DEFAULT 'open' CHECK (status IN ('open','addressed')),
-  created_at TEXT NOT NULL
-) STRICT;
-
-CREATE TABLE rule_candidates (
-  id           TEXT PRIMARY KEY,
-  run_id       TEXT NOT NULL REFERENCES runs(id),
-  text         TEXT NOT NULL,
-  about_ref    TEXT NOT NULL,
-  evidence_ref TEXT NOT NULL CHECK (length(evidence_ref) > 0),
-  confidence   TEXT NOT NULL CHECK (confidence = 'inferred'),
-  created_at   TEXT NOT NULL
+  id            TEXT PRIMARY KEY,
+  run_id        TEXT NOT NULL REFERENCES runs(id),
+  text          TEXT NOT NULL,
+  ref_id        TEXT NOT NULL REFERENCES entity_refs(id) DEFERRABLE INITIALLY DEFERRED,
+  status        TEXT NOT NULL DEFAULT 'open' CHECK (status IN ('open','addressed')),
+  created_at    TEXT NOT NULL,
+  hypothesis_id TEXT REFERENCES hypotheses(id)   -- 0031 (spec 039): the hypothesis it is about
 ) STRICT;
 
 -- Rebuilt by 0002_portal_workspaces: portal_id added, fingerprint uniqueness and the cluster index
@@ -178,7 +183,7 @@ CREATE TABLE decision_log (
   kind        TEXT NOT NULL CHECK (kind IN ('skip','refuse','merge','split','warning','note')),
   rule        TEXT,             -- rule/cap that applied
   reason      TEXT NOT NULL,
-  subject_ref TEXT,             -- state/edge/frontier/action id concerned
+  subject_ref TEXT,             -- state/transition/frontier/action id concerned
   detail_json TEXT CHECK (detail_json IS NULL OR json_valid(detail_json)),
   created_at  TEXT NOT NULL
 ) STRICT;
@@ -326,7 +331,7 @@ CREATE TABLE doc_records (
   portal_id     TEXT NOT NULL,
   kind          TEXT NOT NULL CHECK (kind IN (
                    'capability','screen','process','use_case','requirement','nfr','business_rule',
-                   'glossary_term','data_item','assumption','open_question','followup'
+                   'glossary_term','data_item','assumption','open_question','followup','api_endpoint'
                  )),
   key           TEXT NOT NULL,   -- '<PREFIX>-<seq 3+ digits>'
   seq           INTEGER NOT NULL,
@@ -336,9 +341,18 @@ CREATE TABLE doc_records (
   withdrawn     INTEGER NOT NULL DEFAULT 0 CHECK (withdrawn IN (0,1)),
   created_at    TEXT NOT NULL,
   updated_at    TEXT NOT NULL,
+  -- 0036 (ALTER TABLE, spec 039 design § 13.4): the process a PROC record documents, exactly one.
+  process_id    TEXT REFERENCES ba_processes(id),
   UNIQUE (portal_id, key),
   UNIQUE (portal_id, kind, seq)
 ) STRICT;
+CREATE UNIQUE INDEX ux_doc_records_one_proc ON doc_records (process_id) WHERE kind = 'process';
+CREATE TRIGGER doc_records_proc_needs_process BEFORE INSERT ON doc_records
+  WHEN NEW.kind = 'process' AND NEW.process_id IS NULL
+  BEGIN SELECT RAISE(ABORT, 'PROC record needs process_id'); END;
+CREATE TRIGGER doc_records_proc_keeps_process BEFORE UPDATE OF kind, process_id ON doc_records
+  WHEN NEW.kind = 'process' AND NEW.process_id IS NULL
+  BEGIN SELECT RAISE(ABORT, 'PROC record needs process_id'); END;
 
 -- Immutable except `status`, which only the status engine changes (research.md §4). `responds_to_review`
 -- forward-references doc_reviews, created further below (SQLite does not check a referenced table exists
@@ -360,29 +374,45 @@ CREATE TABLE doc_revisions (
   CHECK (change NOT IN ('revise','withdraw') OR change_note IS NOT NULL)
 ) STRICT;
 
--- Evidence for a revision. target_id is polymorphic (resolved by the tool; no FK). run_id is the run the
--- evidence came from, resolved at write time; NULL only for target_kind IN ('doc_record','review') since
--- a human answer or another doc is not run-bound (research.md §5). Rebuilt by 0006: 'screen_region'
--- (target_id = state id) carries the cited element key in region (spec 008).
+-- Evidence for a revision. Rebuilt by 0040 (spec 039 § 15): what it cites is an `entity_refs` row with a
+-- real foreign key (a screen region: a state ref with an element key); the view `doc_evidence` reads it
+-- back as target_kind / target_id / region. run_id is the run the evidence came from, resolved at write
+-- time; NULL only for a doc record or a review, which are not run-bound (research.md §5).
 CREATE TABLE doc_evidence_links (
   id          TEXT PRIMARY KEY,
   revision_id TEXT NOT NULL REFERENCES doc_revisions(id),
-  target_kind TEXT NOT NULL CHECK (target_kind IN (
-                 'state','edge','action','form','network_call','rule_candidate','open_question',
-                 'decision','process','process_step','doc_record','review','screen_region',
-                 'page_visit'
-               )),
-  target_id   TEXT NOT NULL,
+  ref_id      TEXT NOT NULL REFERENCES entity_refs(id) DEFERRABLE INITIALLY DEFERRED,
   run_id      TEXT REFERENCES runs(id),
-  note        TEXT,
-  region      TEXT CHECK (region IS NULL OR length(region) > 0),  -- element key; screen_region only
-  CHECK (run_id IS NOT NULL OR target_kind IN ('doc_record','review')),
-  CHECK ((target_kind = 'screen_region') = (region IS NOT NULL))
+  note        TEXT
 ) STRICT;
 -- run_id -> records reverse lookups (FR-033).
 CREATE INDEX ix_doc_evidence_links_run_id ON doc_evidence_links(run_id);
--- get_evidence(target_kind, target_id) and evidence resolution.
-CREATE INDEX ix_doc_evidence_links_target ON doc_evidence_links(target_kind, target_id);
+CREATE INDEX ix_doc_evidence_links_revision ON doc_evidence_links(revision_id);
+CREATE INDEX ix_doc_evidence_links_ref ON doc_evidence_links(ref_id);
+-- 0040: the kind and id a link cites, in the vocabulary the BA cites with.
+CREATE VIEW doc_evidence AS
+SELECT l.id, l.revision_id, l.ref_id, l.run_id, l.note,
+  CASE
+    WHEN r.state_id IS NOT NULL AND r.element_key IS NOT NULL THEN 'screen_region'
+    WHEN r.state_id IS NOT NULL THEN 'state'
+    WHEN r.transition_id IS NOT NULL THEN 'transition'
+    WHEN r.action_id IS NOT NULL THEN 'action'
+    WHEN r.form_id IS NOT NULL THEN 'form'
+    WHEN r.network_call_id IS NOT NULL THEN 'network_call'
+    WHEN r.open_question_id IS NOT NULL THEN 'open_question'
+    WHEN r.decision_id IS NOT NULL THEN 'decision'
+    WHEN r.trace_process_id IS NOT NULL THEN 'process'
+    WHEN r.trace_step_id IS NOT NULL THEN 'process_step'
+    WHEN r.doc_record_id IS NOT NULL THEN 'doc_record'
+    WHEN r.review_id IS NOT NULL THEN 'review'
+    WHEN r.observation_id IS NOT NULL THEN 'observation'
+    WHEN r.hypothesis_id IS NOT NULL THEN 'hypothesis'   -- 0042 (owner answer 18)
+  END AS target_kind,
+  coalesce(r.state_id, r.transition_id, r.action_id, r.form_id, r.network_call_id,
+    r.open_question_id, r.decision_id, r.trace_process_id, r.trace_step_id, r.doc_record_id,
+    r.review_id, r.observation_id, r.hypothesis_id) AS target_id,
+  CASE WHEN r.state_id IS NOT NULL THEN r.element_key END AS region
+FROM doc_evidence_links l JOIN entity_refs r ON r.id = l.ref_id;
 
 -- Typed record -> record relations, versioned with the revision that asserts them. Process steps and
 -- personas are not records: steps live in process_steps (0005), the persona in the process record's
@@ -398,7 +428,8 @@ CREATE TABLE doc_relations (
 ) STRICT, WITHOUT ROWID;
 -- Triple backstop (0013, extended by 0014 with applies_on, asks_about, follows_up, and by 0019 with
 -- glossary_term appears_on screen and process contains screen, and by 0020 with assumption|use_case
--- depends_on business_rule): the store refuses a relation whose (from kind, type, to kind) is not in
+-- depends_on business_rule, and by 0044 with api_endpoint appears_on screen and process|use_case|requirement
+-- depends_on api_endpoint): the store refuses a relation whose (from kind, type, to kind) is not in
 -- RELATION_RULES; the list equals relations.ts (drift test: docs/tests/relation-triples.test.ts).
 CREATE TRIGGER trg_doc_relations_triple_insert
 BEFORE INSERT ON doc_relations
@@ -414,11 +445,11 @@ WHEN EXISTS (
       (NEW.type = 'describes'  AND fr.kind = 'use_case'    AND tr.kind = 'process') OR
       (NEW.type = 'refines'    AND fr.kind = 'requirement' AND tr.kind IN ('use_case','capability')) OR
       (NEW.type = 'enforces'   AND fr.kind = 'requirement' AND tr.kind = 'business_rule') OR
-      (NEW.type = 'appears_on' AND fr.kind IN ('data_item','glossary_term') AND tr.kind = 'screen') OR
+      (NEW.type = 'appears_on' AND fr.kind IN ('data_item','glossary_term','api_endpoint') AND tr.kind = 'screen') OR
       (NEW.type = 'uses_term'  AND tr.kind = 'glossary_term') OR
       (NEW.type = 'synonym_of' AND fr.kind = 'glossary_term' AND tr.kind = 'glossary_term') OR
       (NEW.type = 'answers'    AND fr.kind IN ('assumption','requirement','business_rule') AND tr.kind = 'open_question') OR
-      (NEW.type = 'depends_on' AND (fr.kind = tr.kind OR (fr.kind IN ('assumption','use_case') AND tr.kind = 'business_rule'))) OR
+      (NEW.type = 'depends_on' AND (fr.kind = tr.kind OR (fr.kind IN ('assumption','use_case') AND tr.kind = 'business_rule') OR (fr.kind IN ('process','use_case','requirement') AND tr.kind = 'api_endpoint'))) OR
       (NEW.type = 'applies_on' AND fr.kind = 'business_rule' AND tr.kind = 'screen') OR
       (NEW.type = 'asks_about' AND fr.kind = 'open_question') OR
       (NEW.type = 'follows_up' AND fr.kind = 'followup' AND tr.kind IN ('process','capability','screen','business_rule','open_question','use_case'))
@@ -442,11 +473,11 @@ WHEN EXISTS (
       (NEW.type = 'describes'  AND fr.kind = 'use_case'    AND tr.kind = 'process') OR
       (NEW.type = 'refines'    AND fr.kind = 'requirement' AND tr.kind IN ('use_case','capability')) OR
       (NEW.type = 'enforces'   AND fr.kind = 'requirement' AND tr.kind = 'business_rule') OR
-      (NEW.type = 'appears_on' AND fr.kind IN ('data_item','glossary_term') AND tr.kind = 'screen') OR
+      (NEW.type = 'appears_on' AND fr.kind IN ('data_item','glossary_term','api_endpoint') AND tr.kind = 'screen') OR
       (NEW.type = 'uses_term'  AND tr.kind = 'glossary_term') OR
       (NEW.type = 'synonym_of' AND fr.kind = 'glossary_term' AND tr.kind = 'glossary_term') OR
       (NEW.type = 'answers'    AND fr.kind IN ('assumption','requirement','business_rule') AND tr.kind = 'open_question') OR
-      (NEW.type = 'depends_on' AND (fr.kind = tr.kind OR (fr.kind IN ('assumption','use_case') AND tr.kind = 'business_rule'))) OR
+      (NEW.type = 'depends_on' AND (fr.kind = tr.kind OR (fr.kind IN ('assumption','use_case') AND tr.kind = 'business_rule') OR (fr.kind IN ('process','use_case','requirement') AND tr.kind = 'api_endpoint'))) OR
       (NEW.type = 'applies_on' AND fr.kind = 'business_rule' AND tr.kind = 'screen') OR
       (NEW.type = 'asks_about' AND fr.kind = 'open_question') OR
       (NEW.type = 'follows_up' AND fr.kind = 'followup' AND tr.kind IN ('process','capability','screen','business_rule','open_question','use_case'))
@@ -494,6 +525,8 @@ CREATE TABLE processes (
   not_observable     TEXT,                         -- required when outcome = 'boundary_reached'
   created_at         TEXT NOT NULL,
   ended_at           TEXT,
+  -- 0034 (ALTER TABLE, spec 039 T081): the step whose click enters the process (its trigger); NULL: none marked.
+  trigger_ord        INTEGER CHECK (trigger_ord IS NULL OR trigger_ord >= 1),
   CHECK (outcome IS NOT 'boundary_reached'
          OR (boundary_action_id IS NOT NULL AND not_observable IS NOT NULL))
 ) STRICT;
@@ -506,7 +539,7 @@ CREATE TABLE process_steps (
   intent         TEXT NOT NULL,
   kind           TEXT NOT NULL CHECK (kind IN ('navigate','click','fill','check','select')),
   action_id      TEXT REFERENCES actions(id),   -- NULL for navigate
-  edge_id        TEXT REFERENCES edges(id),     -- network calls reach the step via network_calls.edge_id
+  transition_id  TEXT REFERENCES transitions(id),  -- network calls reach the step via network_calls.transition_id
   value          TEXT,                          -- scrubbed synthetic input for fill/select; NULL otherwise
   state_before   TEXT REFERENCES states(id),
   state_after    TEXT REFERENCES states(id),    -- NULL if nothing changed/settled
@@ -603,8 +636,7 @@ CREATE TABLE amendments (
   key               TEXT NOT NULL CHECK (key GLOB 'AMD-[0-9][0-9][0-9]*'),  -- AMD-nnn, per portal
   portal_id         TEXT NOT NULL CHECK (length(portal_id) > 0),
   scope_id          TEXT REFERENCES process_scopes(id),
-  target_kind       TEXT NOT NULL CHECK (target_kind IN ('state','evidence','wireframe_element')),
-  target_id         TEXT NOT NULL CHECK (length(target_id) > 0),   -- polymorphic, no FK; the write tool resolves it
+  ref_id            TEXT NOT NULL REFERENCES entity_refs(id) DEFERRABLE INITIALLY DEFERRED,  -- 0041 (spec 039 § 15): what it is written on (a state, a state's element, an evidence file)
   kind              TEXT NOT NULL CHECK (kind IN ('note','element_ref','attachment')),
   text              TEXT,
   attachment_sha256 TEXT CHECK (attachment_sha256 IS NULL OR length(attachment_sha256) = 64),
@@ -625,28 +657,39 @@ CREATE TABLE amendments (
   withdrawn_at      TEXT,
   rev               INTEGER NOT NULL DEFAULT 1 CHECK (rev >= 1),  -- 0016: the head's current revision number
   screen_id         TEXT REFERENCES screens(id),                   -- 0016: the screen the amendment belongs to
+  anchor_ref_id     TEXT REFERENCES entity_refs(id) DEFERRABLE INITIALLY DEFERRED,  -- 0037 (spec 039 § 15; 0041 renamed from ref_id): the anchor, a model screen + element key
   UNIQUE (portal_id, key),
   CHECK (kind <> 'note' OR text IS NOT NULL),
   CHECK (kind <> 'attachment' OR (attachment_sha256 IS NOT NULL AND attachment_name IS NOT NULL)),
   CHECK (status <> 'dismissed' OR dismissed_at IS NOT NULL),
   CHECK (status <> 'withdrawn' OR withdrawn_at IS NOT NULL)
 ) STRICT;
-CREATE INDEX idx_amendments_target ON amendments (portal_id, target_kind, target_id);
 CREATE INDEX idx_amendments_status ON amendments (portal_id, status);
+CREATE INDEX idx_amendments_ref ON amendments (ref_id);
 
 -- 0012_page_visits (spec 019): one row per arrival on a page, verbatim URL and the hops that led there.
-CREATE TABLE page_visits (
+-- 0032 renamed it `observations` (the design's name, spec 039 T110).
+CREATE TABLE observations (
   id         TEXT PRIMARY KEY,
   run_id     TEXT NOT NULL REFERENCES runs(id),
   state_id   TEXT NOT NULL REFERENCES states(id),
-  edge_id    TEXT REFERENCES edges(id),  -- the action edge that led here; NULL for navigate and re-login
+  transition_id TEXT REFERENCES transitions(id),  -- the action's transition that led here; NULL for navigate and re-login
   via        TEXT NOT NULL CHECK (via IN ('navigate','action','relogin','login')),
   url        TEXT NOT NULL CHECK (length(url) > 0),
   hops_json  TEXT NOT NULL DEFAULT '[]' CHECK (json_valid(hops_json) AND json_type(hops_json) = 'array'),
-  created_at TEXT NOT NULL
+  created_at TEXT NOT NULL,
+  -- 0029 (ALTER TABLE, spec 039): the design's observation columns; NULL on v1 rows.
+  journey_id  TEXT REFERENCES journeys(id),
+  seq         INTEGER CHECK (seq IS NULL OR seq >= 1),
+  result      TEXT CHECK (result IS NULL OR result IN ('ok','validation','business_error','technical_error','timeout','blocked')),
+  context_key TEXT CHECK (context_key IS NULL OR length(context_key) = 64),
+  flags_json  TEXT NOT NULL DEFAULT '{}' CHECK (json_valid(flags_json) AND json_type(flags_json) = 'object'),
+  -- 0033 (ALTER TABLE, spec 039 T112): the fingerprint profile (`name@hash`); NULL = rows-v2, before 0033.
+  fingerprint_profile TEXT CHECK (fingerprint_profile IS NULL OR length(fingerprint_profile) > 0)
 ) STRICT;
-CREATE INDEX idx_page_visits_run_state ON page_visits (run_id, state_id);
-CREATE INDEX idx_page_visits_state ON page_visits (state_id);
+CREATE INDEX idx_observations_run_state ON observations (run_id, state_id);
+CREATE INDEX idx_observations_state ON observations (state_id);
+CREATE UNIQUE INDEX ux_observations_run_seq ON observations (run_id, seq) WHERE seq IS NOT NULL;
 
 -- 0015_screens (spec 022): a screen is (portal_id, route_template, cluster_id); each state is one observed
 -- revision of it (states.screen_id + screen_rev). Created by the same migration that adds those columns.
@@ -671,8 +714,7 @@ CREATE TABLE amendment_revisions (
   change                TEXT NOT NULL CHECK (change IN ('create','edit','carry_forward','needs_reanchor','reanchor','withdraw','restore','dismiss')),
   author                TEXT NOT NULL CHECK (length(author) > 0),           -- reviewer, or 'scan:<run id>' for automatic carry-forward
   status                TEXT NOT NULL CHECK (status IN ('active','needs_reanchor','dismissed','withdrawn')),
-  target_kind           TEXT NOT NULL CHECK (target_kind IN ('state','evidence','wireframe_element')),
-  target_id             TEXT NOT NULL CHECK (length(target_id) > 0),
+  ref_id                TEXT NOT NULL REFERENCES entity_refs(id) DEFERRABLE INITIALLY DEFERRED,  -- 0041: what this revision is written on
   text                  TEXT,
   anchor_fingerprint    TEXT,
   anchor_route_template TEXT,
@@ -683,6 +725,26 @@ CREATE TABLE amendment_revisions (
   PRIMARY KEY (amendment_id, rev),
   CHECK ((rev = 1) = (base_rev IS NULL))
 ) STRICT, WITHOUT ROWID;
+-- 0041: an amendment (head and revisions) with what it is written on, as the chat and the dashboard
+-- name it: a state, a wireframe element (`<state id>#<element key>`) or an evidence file.
+CREATE VIEW amendments_with_target AS
+SELECT a.*,
+  CASE WHEN r.evidence_file IS NOT NULL THEN 'evidence'
+       WHEN r.element_key IS NOT NULL THEN 'wireframe_element'
+       ELSE 'state' END AS target_kind,
+  CASE WHEN r.evidence_file IS NOT NULL THEN r.evidence_file
+       WHEN r.element_key IS NOT NULL THEN r.state_id || '#' || r.element_key
+       ELSE r.state_id END AS target_id
+FROM amendments a JOIN entity_refs r ON r.id = a.ref_id;
+CREATE VIEW amendment_revisions_with_target AS
+SELECT v.*,
+  CASE WHEN r.evidence_file IS NOT NULL THEN 'evidence'
+       WHEN r.element_key IS NOT NULL THEN 'wireframe_element'
+       ELSE 'state' END AS target_kind,
+  CASE WHEN r.evidence_file IS NOT NULL THEN r.evidence_file
+       WHEN r.element_key IS NOT NULL THEN r.state_id || '#' || r.element_key
+       ELSE r.state_id END AS target_id
+FROM amendment_revisions v JOIN entity_refs r ON r.id = v.ref_id;
 
 -- 0017_chat_proposals (spec 022 R6): changes the chat assistant proposes and a person applies or discards.
 -- The assistant never writes amendments; applying runs the same revision write path as a BA edit.
@@ -690,9 +752,8 @@ CREATE TABLE chat_proposals (
   id                    TEXT PRIMARY KEY,                          -- UUIDv7
   conversation_id       TEXT NOT NULL REFERENCES chat_conversations(id),
   portal_id             TEXT NOT NULL CHECK (length(portal_id) > 0),
-  target_kind           TEXT NOT NULL CHECK (target_kind IN ('amendment','new_amendment')),  -- amendment = edit text / re-anchor; new_amendment = create
-  target_id             TEXT CHECK (target_id IS NULL OR length(target_id) > 0),  -- the amendment id; NULL for new_amendment (no FK, like amendments.target_id)
-  base_rev              INTEGER CHECK (base_rev IS NULL OR base_rev >= 1),         -- the amendment revision the proposal was made on; NULL for new_amendment
+  amendment_id          TEXT REFERENCES amendments(id),            -- 0041: the amendment it changes (text, re-anchor); NULL = a new amendment
+  base_rev              INTEGER CHECK (base_rev IS NULL OR base_rev >= 1),         -- the amendment revision the proposal was made on; NULL for a new one
   payload               TEXT NOT NULL CHECK (json_valid(payload) AND json_type(payload) = 'object'),  -- what to change, e.g. {"text": "..."}
   summary               TEXT NOT NULL CHECK (length(summary) > 0),  -- the one line the drawer shows
   status                TEXT NOT NULL DEFAULT 'open' CHECK (status IN ('open','applied','discarded','stale')),
@@ -701,8 +762,7 @@ CREATE TABLE chat_proposals (
   decided_by            TEXT,
   decided_at            TEXT,
   created_at            TEXT NOT NULL,
-  CHECK ((target_kind = 'amendment' AND target_id IS NOT NULL AND base_rev IS NOT NULL)
-      OR (target_kind = 'new_amendment' AND target_id IS NULL AND base_rev IS NULL)),
+  CHECK ((amendment_id IS NULL) = (base_rev IS NULL)),
   CHECK (status <> 'applied' OR (applied_amendment_id IS NOT NULL AND applied_rev IS NOT NULL AND decided_at IS NOT NULL)),
   CHECK (status NOT IN ('discarded','stale') OR decided_at IS NOT NULL)
 ) STRICT;
@@ -757,6 +817,10 @@ CREATE TABLE ba_processes (
   -- `process` record it was opened from (spec 027 US6).
   archived_at   TEXT,
   record_key    TEXT CHECK (record_key IS NULL OR record_key GLOB 'PROC-[0-9]*'),
+  -- 0036 (ALTER TABLE, spec 039 design § 13.4): the screen its trigger opens, and the
+  -- process_boundary hypothesis it was accepted from.
+  start_screen_id        TEXT REFERENCES model_screens(id),
+  boundary_hypothesis_id TEXT REFERENCES hypotheses(id),
   UNIQUE (portal_id, key)
 ) STRICT;
 
@@ -775,22 +839,25 @@ CREATE TABLE ba_process_revisions (
   CHECK ((rev = 1) = (base_rev IS NULL))
 ) STRICT, WITHOUT ROWID;
 
-CREATE TABLE process_variants (
+-- Renamed by 0036 from process_variants (spec 039 design § 13.4): a process's as-is and to-be models.
+-- 0039 renamed the variant columns of the process model tables to model columns (owner answer 8).
+CREATE TABLE process_models (
   id                       TEXT PRIMARY KEY,                         -- UUIDv7
   process_id               TEXT NOT NULL REFERENCES ba_processes(id),
   label                    TEXT NOT NULL CHECK (length(label) > 0),  -- A, B, C...
   kind                     TEXT NOT NULL CHECK (kind IN ('as_is','to_be')),  -- as_is = A, observed, rescans add revisions
   rev                      INTEGER NOT NULL CHECK (rev >= 1),        -- the head's current revision
-  branched_from_variant_id TEXT REFERENCES process_variants(id),     -- NULL for A
+  branched_from_model_id   TEXT REFERENCES process_models(id),       -- NULL for A
   branched_from_rev        INTEGER CHECK (branched_from_rev IS NULL OR branched_from_rev >= 1),
   created_at               TEXT NOT NULL,
   UNIQUE (process_id, label),
-  CHECK ((branched_from_variant_id IS NULL) = (branched_from_rev IS NULL))
+  CHECK ((branched_from_model_id IS NULL) = (branched_from_rev IS NULL))
 ) STRICT;
 
--- 0028 rebuilt it: 'edit' = a person changed A's steps (spec 027 FR-004).
-CREATE TABLE process_variant_revisions (
-  variant_id    TEXT NOT NULL REFERENCES process_variants(id),
+-- 0028 rebuilt it: 'edit' = a person changed A's steps (spec 027 FR-004). Renamed by 0036 from
+-- process_variant_revisions.
+CREATE TABLE process_model_revisions (
+  model_id      TEXT NOT NULL REFERENCES process_models(id),
   rev           INTEGER NOT NULL CHECK (rev >= 1),
   base_rev      INTEGER CHECK (base_rev IS NULL OR base_rev >= 1),   -- NULL for r1
   change        TEXT NOT NULL CHECK (change IN ('create','branch','save','restore','observe','edit')),
@@ -800,32 +867,32 @@ CREATE TABLE process_variant_revisions (
   run_id        TEXT REFERENCES runs(id),                            -- for observe
   restored_from INTEGER CHECK (restored_from IS NULL OR restored_from >= 1),  -- for restore
   created_at    TEXT NOT NULL,
-  PRIMARY KEY (variant_id, rev),
+  PRIMARY KEY (model_id, rev),
   CHECK ((rev = 1) = (base_rev IS NULL))
 ) STRICT, WITHOUT ROWID;
 
--- Scratch: one open draft of one person over one to-be variant, updated in place, deleted on save/discard.
--- A base_rev older than the variant's head is an edit conflict (Review "Edit conflicts").
+-- Scratch: one open draft of one person over one to-be model, updated in place, deleted on save/discard.
+-- A base_rev older than the model's head is an edit conflict (Review "Edit conflicts").
 CREATE TABLE process_drafts (
-  variant_id TEXT NOT NULL REFERENCES process_variants(id),
+  model_id   TEXT NOT NULL REFERENCES process_models(id),
   author     TEXT NOT NULL CHECK (length(author) > 0),
   base_rev   INTEGER NOT NULL CHECK (base_rev >= 1),
   steps      TEXT NOT NULL CHECK (json_valid(steps) AND json_type(steps) = 'array'),
   updated_at TEXT NOT NULL,
-  PRIMARY KEY (variant_id, author)
+  PRIMARY KEY (model_id, author)
 ) STRICT, WITHOUT ROWID;
 
--- The live variant per environment is the newest row for (process_id, environment).
+-- The live process model per environment is the newest row for (process_id, environment).
 CREATE TABLE process_live (
   id          TEXT PRIMARY KEY,                                      -- UUIDv7
   process_id  TEXT NOT NULL REFERENCES ba_processes(id),
   environment TEXT NOT NULL CHECK (environment GLOB '[a-z]*' AND length(environment) BETWEEN 1 AND 40 AND environment NOT GLOB '*[^a-z0-9-]*'),  -- free name per portal (0021, spec 030 R-61)
-  variant_id  TEXT NOT NULL,
-  variant_rev INTEGER NOT NULL CHECK (variant_rev >= 1),
+  model_id    TEXT NOT NULL,
+  model_rev   INTEGER NOT NULL CHECK (model_rev >= 1),
   author      TEXT NOT NULL CHECK (length(author) > 0),
   reason      TEXT,
   created_at  TEXT NOT NULL,
-  FOREIGN KEY (variant_id, variant_rev) REFERENCES process_variant_revisions(variant_id, rev)
+  FOREIGN KEY (model_id, model_rev) REFERENCES process_model_revisions(model_id, rev)
 ) STRICT;
 
 CREATE INDEX ix_process_live_process_env ON process_live (process_id, environment, created_at);
@@ -834,9 +901,9 @@ CREATE TABLE change_spec_revisions (
   process_id       TEXT NOT NULL REFERENCES ba_processes(id),
   rev              INTEGER NOT NULL CHECK (rev >= 1),
   base_rev         INTEGER CHECK (base_rev IS NULL OR base_rev >= 1),  -- NULL for r1
-  left_variant_id  TEXT NOT NULL,                                    -- what was compared
+  left_model_id    TEXT NOT NULL,                                    -- what was compared
   left_rev         INTEGER NOT NULL CHECK (left_rev >= 1),
-  right_variant_id TEXT NOT NULL,
+  right_model_id   TEXT NOT NULL,
   right_rev        INTEGER NOT NULL CHECK (right_rev >= 1),
   sections         TEXT NOT NULL CHECK (json_valid(sections) AND json_type(sections) = 'object'),  -- scope, as_is, to_be, delta, records, migration_cut, open_questions
   author           TEXT NOT NULL CHECK (length(author) > 0),
@@ -844,8 +911,8 @@ CREATE TABLE change_spec_revisions (
   created_at       TEXT NOT NULL,
   PRIMARY KEY (process_id, rev),
   CHECK ((rev = 1) = (base_rev IS NULL)),
-  FOREIGN KEY (left_variant_id, left_rev) REFERENCES process_variant_revisions(variant_id, rev),
-  FOREIGN KEY (right_variant_id, right_rev) REFERENCES process_variant_revisions(variant_id, rev)
+  FOREIGN KEY (left_model_id, left_rev) REFERENCES process_model_revisions(model_id, rev),
+  FOREIGN KEY (right_model_id, right_rev) REFERENCES process_model_revisions(model_id, rev)
 ) STRICT, WITHOUT ROWID;
 
 -- 0022: one step of a form flow on a route template, numbered per (portal, route) in first-seen order.
@@ -882,7 +949,7 @@ CREATE TABLE probe_outcomes (
   http_status          INTEGER,
   reason               TEXT,                                         -- why blocked or skipped
   evidence_ref         TEXT NOT NULL CHECK (length(evidence_ref) > 0),
-  edge_id              TEXT REFERENCES edges(id),                    -- the edge the probe's submit produced
+  transition_id        TEXT REFERENCES transitions(id),              -- the transition the probe's submit produced
   created_at           TEXT NOT NULL
 ) STRICT;
 
@@ -912,36 +979,24 @@ CREATE TABLE marks (
   id             TEXT PRIMARY KEY,                                   -- UUIDv7
   portal_id      TEXT NOT NULL CHECK (length(portal_id) > 0),
   kind           TEXT NOT NULL CHECK (kind IN ('start','focus','probe','retry','recheck','skip')),
-  target_kind    TEXT NOT NULL CHECK (target_kind IN ('form_step','state','edge')),
-  target_id      TEXT NOT NULL CHECK (length(target_id) > 0),
+  -- 0041 (spec 039 § 15): the target in a typed column, exactly one.
+  form_step_id   TEXT REFERENCES form_steps(id),
+  state_id       TEXT REFERENCES states(id),
+  transition_id  TEXT REFERENCES transitions(id),
   created_by     TEXT NOT NULL CHECK (length(created_by) > 0),       -- the person (reviewer name)
   created_at     TEXT NOT NULL,
   used_by_run_id TEXT REFERENCES runs(id),                           -- set when a scan used the mark
   used_at        TEXT,
+  -- 0031 (spec 039): a person's mark or the planner's, the hypothesis it tests, its priority.
+  origin         TEXT NOT NULL DEFAULT 'person' CHECK (origin IN ('person','planner')),
+  hypothesis_id  TEXT REFERENCES hypotheses(id),
+  priority       INTEGER CHECK (priority IS NULL OR priority BETWEEN 1 AND 6),
+  CHECK ((form_step_id IS NOT NULL) + (state_id IS NOT NULL) + (transition_id IS NOT NULL) = 1),
   CHECK ((used_by_run_id IS NULL) = (used_at IS NULL))
 ) STRICT;
 
-CREATE UNIQUE INDEX ux_marks_open ON marks (portal_id, kind, target_kind, target_id) WHERE used_by_run_id IS NULL;
-
-CREATE TABLE reconciliations (
-  id             TEXT PRIMARY KEY,                                   -- UUIDv7
-  portal_id      TEXT NOT NULL CHECK (length(portal_id) > 0),
-  group_key      TEXT NOT NULL CHECK (length(group_key) > 0),
-  group_kind     TEXT NOT NULL CHECK (group_kind IN ('action','route','replay')),
-  snapshot_json  TEXT NOT NULL CHECK (json_valid(snapshot_json) AND json_type(snapshot_json) = 'object'),
-  proposal_json  TEXT NOT NULL CHECK (json_valid(proposal_json) AND json_type(proposal_json) = 'array'),
-  proposed_by    TEXT NOT NULL CHECK (length(proposed_by) > 0),      -- BA session id or 'BA'
-  proposed_at    TEXT NOT NULL,
-  status         TEXT NOT NULL CHECK (status IN ('proposed','confirmed','superseded')),
-  confirmed_json TEXT CHECK (confirmed_json IS NULL OR (json_valid(confirmed_json) AND json_type(confirmed_json) = 'array')),
-  confirmed_by   TEXT CHECK (confirmed_by IS NULL OR length(confirmed_by) > 0),
-  confirmed_at   TEXT,
-  CHECK ((status = 'confirmed') = (confirmed_json IS NOT NULL)),
-  CHECK ((confirmed_json IS NULL) = (confirmed_by IS NULL) AND (confirmed_json IS NULL) = (confirmed_at IS NULL))
-) STRICT;
-
-CREATE INDEX ix_reconciliations_portal_status ON reconciliations (portal_id, status);
-CREATE UNIQUE INDEX ux_reconciliations_open ON reconciliations (portal_id, group_key) WHERE status = 'proposed';
+CREATE UNIQUE INDEX ux_marks_open ON marks
+  (portal_id, kind, coalesce(form_step_id, state_id, transition_id)) WHERE used_by_run_id IS NULL;
 
 CREATE TABLE checkpoints (
   id         TEXT PRIMARY KEY,                                               -- UUIDv7
@@ -957,3 +1012,436 @@ CREATE TABLE checkpoints (
 CREATE INDEX ix_checkpoints_state ON checkpoints (state_id);
 
 CREATE INDEX ix_runs_parent ON runs (parent_run_id);
+
+-- 0029_capture_v2 (spec 039, MudPuppy 2.0 Layer A capture): builds per scope, fingerprint v2 components,
+-- journeys, attribute writes, the builds each observation was served by. The 0029 columns of `observations`
+-- and `transitions` (named so since 0032) are listed with each table above.
+CREATE TABLE builds (
+  id          TEXT PRIMARY KEY,                                      -- UUIDv7
+  portal_id   TEXT NOT NULL CHECK (length(portal_id) > 0),
+  scope       TEXT NOT NULL CHECK (length(scope) > 0),               -- 'shell', 'mfe:<folder>', 'frame:<host><path>'
+  signature   TEXT NOT NULL CHECK (length(signature) > 0),           -- sha256, 'marker:<value>' or 'unknown'
+  source      TEXT NOT NULL CHECK (source IN ('assets','marker','unknown')),
+  assets_json TEXT NOT NULL CHECK (json_valid(assets_json) AND json_type(assets_json) = 'array'),
+  first_seen  TEXT NOT NULL,
+  UNIQUE (portal_id, scope, signature)
+) STRICT;
+
+CREATE TABLE state_components (
+  state_id       TEXT PRIMARY KEY REFERENCES states(id),
+  structure_hash TEXT NOT NULL CHECK (length(structure_hash) = 64),
+  content_hash   TEXT NOT NULL CHECK (length(content_hash) = 64),
+  overlay_hash   TEXT NOT NULL CHECK (length(overlay_hash) = 64),
+  calls_hash     TEXT NOT NULL CHECK (length(calls_hash) = 64),
+  mounts_hash    TEXT NOT NULL CHECK (length(mounts_hash) = 64),
+  minhash        BLOB NOT NULL CHECK (length(minhash) = 512),         -- 128 × uint32, big-endian
+  element_keys   TEXT NOT NULL CHECK (json_valid(element_keys) AND json_type(element_keys) = 'array'),
+  -- 0033 (ALTER TABLE, spec 039 T112): the profile these components were computed with; NULL = rows-v2.
+  profile        TEXT CHECK (profile IS NULL OR length(profile) > 0)
+) STRICT, WITHOUT ROWID;
+
+CREATE TABLE journeys (
+  id                TEXT PRIMARY KEY,
+  run_id            TEXT NOT NULL REFERENCES runs(id),
+  parent_journey_id TEXT REFERENCES journeys(id),
+  branch_seq        INTEGER CHECK (branch_seq IS NULL OR branch_seq >= 0),
+  start_kind        TEXT NOT NULL CHECK (start_kind IN ('entry_url','checkpoint','login','backtrack','resume','fresh_session')),
+  checkpoint_id     TEXT REFERENCES checkpoints(id),
+  end_reason        TEXT CHECK (end_reason IN ('outcome','backtrack','reset','logout','error','budget','run_end')),
+  started_at        TEXT NOT NULL,
+  ended_at          TEXT,
+  CHECK ((parent_journey_id IS NULL) = (branch_seq IS NULL)),
+  CHECK ((end_reason IS NULL) = (ended_at IS NULL))
+) STRICT;
+CREATE INDEX ix_journeys_run ON journeys (run_id, started_at);
+
+CREATE TABLE attribute_writes (
+  id          TEXT PRIMARY KEY,
+  journey_id  TEXT NOT NULL REFERENCES journeys(id),
+  seq         INTEGER NOT NULL CHECK (seq >= 0),         -- 0 = journey start; else the transition seq
+  name        TEXT NOT NULL CHECK (length(name) > 0),    -- 'persona.segment', 'input.wartość_pojazdu', 'shown.składka'
+  source      TEXT NOT NULL CHECK (source IN ('persona','input','shown')),
+  value_type  TEXT NOT NULL CHECK (value_type IN ('number','date','enum','bool','text','missing')),
+  value_num   REAL,
+  value_text  TEXT,
+  element_key TEXT,
+  created_at  TEXT NOT NULL,
+  UNIQUE (journey_id, seq, name)
+) STRICT;
+
+CREATE TABLE observation_builds (
+  observation_id TEXT NOT NULL REFERENCES observations(id),
+  build_id       TEXT NOT NULL REFERENCES builds(id),
+  PRIMARY KEY (observation_id, build_id)
+) STRICT, WITHOUT ROWID;
+
+CREATE INDEX ix_network_calls_schema ON network_calls (url_template, method, schema_hash);
+
+-- 0030_portal_model (spec 039, MudPuppy 2.0 Layer M): the portal model, rebuilt by the reconciler from Layer A
+-- plus recorded decisions; `screens` stays the crawler's provisional assignment (F-14@039).
+CREATE TABLE model_versions (
+  id                    TEXT PRIMARY KEY,                               -- UUIDv7
+  portal_id             TEXT NOT NULL CHECK (length(portal_id) > 0),
+  seq                   INTEGER NOT NULL CHECK (seq >= 1),              -- 1, 2, 3… per portal
+  built_at              TEXT NOT NULL,
+  algorithm             TEXT NOT NULL CHECK (length(algorithm) > 0),   -- 'minhash-avglink-v1'
+  threshold             REAL NOT NULL CHECK (threshold > 0 AND threshold <= 1),
+  observation_watermark TEXT,                                           -- max observations.id included; NULL when none
+  decision_watermark    TEXT,                                           -- max decision id included; NULL when none
+  stats_json            TEXT NOT NULL CHECK (json_valid(stats_json) AND json_type(stats_json) = 'object'),
+  -- 0033 (ALTER TABLE, spec 039 T112): the fingerprint profile the version was clustered under.
+  fingerprint_profile   TEXT CHECK (fingerprint_profile IS NULL OR length(fingerprint_profile) > 0),
+  UNIQUE (portal_id, seq)
+) STRICT;
+
+CREATE TABLE model_screens (
+  id                  TEXT PRIMARY KEY,
+  key                 TEXT NOT NULL CHECK (key GLOB 'SC-[0-9][0-9][0-9][0-9]*'),   -- cited by people
+  portal_id           TEXT NOT NULL CHECK (length(portal_id) > 0),
+  route_key           TEXT NOT NULL CHECK (length(route_key) > 0),
+  title               TEXT NOT NULL,                                    -- latest member's title, display only
+  status              TEXT NOT NULL CHECK (status IN ('active','merged','retired')),
+  first_model_version TEXT NOT NULL REFERENCES model_versions(id),
+  created_at          TEXT NOT NULL,
+  UNIQUE (portal_id, key)
+) STRICT;
+CREATE INDEX ix_model_screens_portal ON model_screens (portal_id, status);
+
+CREATE TABLE screen_members (
+  screen_id          TEXT NOT NULL REFERENCES model_screens(id),
+  state_id           TEXT NOT NULL REFERENCES states(id),
+  ordinal            INTEGER NOT NULL CHECK (ordinal >= 1),             -- r1, r2… by first sighting
+  assigned_by        TEXT NOT NULL CHECK (assigned_by IN ('clustering','constraint')),
+  from_model_version TEXT NOT NULL REFERENCES model_versions(id),
+  to_model_version   TEXT REFERENCES model_versions(id),
+  PRIMARY KEY (screen_id, state_id, from_model_version)
+) STRICT, WITHOUT ROWID;
+CREATE UNIQUE INDEX ux_screen_members_current ON screen_members (state_id) WHERE to_model_version IS NULL;
+
+CREATE TABLE screen_lineage (
+  id               TEXT PRIMARY KEY,
+  model_version_id TEXT NOT NULL REFERENCES model_versions(id),
+  kind             TEXT NOT NULL CHECK (kind IN ('split','merge','retire','revive')),
+  from_screen_id   TEXT NOT NULL REFERENCES model_screens(id),
+  to_screen_id     TEXT REFERENCES model_screens(id),
+  members_moved    INTEGER NOT NULL CHECK (members_moved >= 0),
+  CHECK ((kind = 'retire') = (to_screen_id IS NULL))
+) STRICT;
+CREATE INDEX ix_screen_lineage_version ON screen_lineage (model_version_id);
+
+CREATE TABLE state_pair_labels (
+  portal_id   TEXT NOT NULL CHECK (length(portal_id) > 0),
+  state_a     TEXT NOT NULL REFERENCES states(id),
+  state_b     TEXT NOT NULL REFERENCES states(id),
+  label       TEXT NOT NULL CHECK (label IN ('clone','near_duplicate','distinct')),
+  nd_kind     TEXT CHECK (nd_kind IS NULL OR nd_kind IN ('cosmetic','dynamic_data','duplication')),
+  labelled_by TEXT NOT NULL CHECK (length(labelled_by) > 0),
+  labelled_at TEXT NOT NULL,
+  reason      TEXT,
+  CHECK (state_a < state_b),
+  CHECK (nd_kind IS NULL OR label = 'near_duplicate'),
+  PRIMARY KEY (state_a, state_b)
+) STRICT, WITHOUT ROWID;
+
+-- 0045 (spec 039 R-81): every "Same screen?" answer stays; state_pair_labels above is the current label.
+-- Append-only by convention (the code only inserts).
+CREATE TABLE state_pair_label_history (
+  id          TEXT PRIMARY KEY,
+  portal_id   TEXT NOT NULL CHECK (length(portal_id) > 0),
+  state_a     TEXT NOT NULL REFERENCES states(id),
+  state_b     TEXT NOT NULL REFERENCES states(id),
+  label       TEXT NOT NULL CHECK (label IN ('clone','near_duplicate','distinct')),
+  nd_kind     TEXT CHECK (nd_kind IS NULL OR nd_kind IN ('cosmetic','dynamic_data','duplication')),
+  labelled_by TEXT NOT NULL CHECK (length(labelled_by) > 0),
+  labelled_at TEXT NOT NULL,
+  reason      TEXT,
+  CHECK (state_a < state_b),
+  CHECK (nd_kind IS NULL OR label = 'near_duplicate')
+) STRICT;
+CREATE INDEX idx_state_pair_label_history_pair ON state_pair_label_history (state_a, state_b, labelled_at);
+CREATE INDEX idx_state_pair_label_history_portal ON state_pair_label_history (portal_id);
+
+CREATE TABLE parameter_roles (
+  portal_id      TEXT NOT NULL CHECK (length(portal_id) > 0),
+  route_template TEXT NOT NULL CHECK (length(route_template) > 0),
+  param          TEXT NOT NULL CHECK (param GLOB 'path:[0-9]*' OR param GLOB 'query:?*'),
+  role           TEXT NOT NULL CHECK (role IN ('identity','data','ignored')),
+  decided_by     TEXT NOT NULL CHECK (decided_by IN ('reconciler','person')),
+  decided_at     TEXT NOT NULL,
+  PRIMARY KEY (portal_id, route_template, param)
+) STRICT, WITHOUT ROWID;
+
+CREATE TABLE action_classes (
+  id                   TEXT PRIMARY KEY,
+  screen_id            TEXT NOT NULL REFERENCES model_screens(id),
+  element_key          TEXT NOT NULL CHECK (length(element_key) > 0),
+  kind                 TEXT NOT NULL CHECK (kind IN ('click','fill','select','check','submit','navigate','back')),
+  is_global            INTEGER NOT NULL DEFAULT 0 CHECK (is_global IN (0,1)),
+  status               TEXT NOT NULL CHECK (status IN ('active','not_seen_since','untested','retired')),
+  streak_json          TEXT NOT NULL DEFAULT '{}' CHECK (json_valid(streak_json) AND json_type(streak_json) = 'object'),
+  status_model_version TEXT NOT NULL REFERENCES model_versions(id),
+  UNIQUE (screen_id, element_key, kind)
+) STRICT;
+
+CREATE TABLE model_transitions (
+  id                       TEXT PRIMARY KEY,
+  from_screen_id           TEXT NOT NULL REFERENCES model_screens(id),
+  action_class_id          TEXT NOT NULL REFERENCES action_classes(id),
+  to_screen_id             TEXT REFERENCES model_screens(id),            -- NULL when no page resulted
+  result                   TEXT NOT NULL CHECK (result IN ('ok','validation','business_error','technical_error','timeout','blocked')),
+  internal                 INTEGER NOT NULL CHECK (internal IN (0,1)),   -- from = to: shown in the screen, not on the Map
+  support                  INTEGER NOT NULL CHECK (support >= 1),
+  first_seen_transition_id TEXT NOT NULL REFERENCES transitions(id),
+  last_seen_transition_id  TEXT NOT NULL REFERENCES transitions(id),
+  status                   TEXT NOT NULL CHECK (status IN ('active','not_seen_since','untested','retired')),
+  status_model_version     TEXT NOT NULL REFERENCES model_versions(id)
+) STRICT;
+CREATE UNIQUE INDEX ux_model_transitions_key ON model_transitions
+  (from_screen_id, action_class_id, IFNULL(to_screen_id, ''), result);
+
+CREATE TABLE build_epochs (
+  id                   TEXT PRIMARY KEY,
+  portal_id            TEXT NOT NULL CHECK (length(portal_id) > 0),
+  scope                TEXT NOT NULL CHECK (length(scope) > 0),
+  environment          TEXT NOT NULL CHECK (length(environment) > 0),
+  build_id             TEXT NOT NULL REFERENCES builds(id),
+  first_observation_id TEXT NOT NULL REFERENCES observations(id),
+  last_observation_id  TEXT NOT NULL REFERENCES observations(id),
+  overlaps_previous    INTEGER NOT NULL DEFAULT 0 CHECK (overlaps_previous IN (0,1)),
+  model_version_id     TEXT NOT NULL REFERENCES model_versions(id)
+) STRICT;
+CREATE INDEX ix_build_epochs_portal ON build_epochs (portal_id, scope, environment);
+
+-- 0031_interpretation (spec 039, design § 8, § 10, § 15): deviations, hypotheses with evidence, tests and events,
+-- and `entity_refs`, the typed reference with real foreign keys. `marks` and `open_questions` gained columns above.
+-- Rebuilt by 0040 (§ 15, owner answer 13): a column per kind the BA cites (trace processes and steps are
+-- v1's `processes` / `process_steps`; `process_id` is a BA process), an evidence store file, and an element
+-- key with a state (a screen region) as well as with a model screen (an anchor). Exactly one target.
+CREATE TABLE entity_refs (
+  id                  TEXT PRIMARY KEY,
+  observation_id      TEXT REFERENCES observations(id),
+  transition_id       TEXT REFERENCES transitions(id),
+  state_id            TEXT REFERENCES states(id),
+  screen_id           TEXT REFERENCES model_screens(id),
+  action_class_id     TEXT REFERENCES action_classes(id),
+  model_transition_id TEXT REFERENCES model_transitions(id),
+  process_id          TEXT REFERENCES ba_processes(id),
+  hypothesis_id       TEXT REFERENCES hypotheses(id),
+  network_call_id     TEXT REFERENCES network_calls(id),
+  action_id           TEXT REFERENCES actions(id),
+  form_id             TEXT REFERENCES forms(id),
+  open_question_id    TEXT REFERENCES open_questions(id),
+  decision_id         TEXT REFERENCES decision_log(id),
+  review_id           TEXT REFERENCES doc_reviews(id),
+  doc_record_id       TEXT REFERENCES doc_records(id),
+  trace_process_id    TEXT REFERENCES processes(id),
+  trace_step_id       TEXT REFERENCES process_steps(id),
+  form_step_id        TEXT REFERENCES form_steps(id),
+  evidence_file       TEXT CHECK (evidence_file IS NULL OR length(evidence_file) > 0),
+  element_key         TEXT CHECK (element_key IS NULL OR length(element_key) > 0),
+  CHECK ((observation_id IS NOT NULL) + (transition_id IS NOT NULL) + (state_id IS NOT NULL)
+       + (screen_id IS NOT NULL) + (action_class_id IS NOT NULL)
+       + (model_transition_id IS NOT NULL) + (process_id IS NOT NULL)
+       + (hypothesis_id IS NOT NULL) + (network_call_id IS NOT NULL)
+       + (action_id IS NOT NULL) + (form_id IS NOT NULL) + (open_question_id IS NOT NULL)
+       + (decision_id IS NOT NULL) + (review_id IS NOT NULL) + (doc_record_id IS NOT NULL)
+       + (trace_process_id IS NOT NULL) + (trace_step_id IS NOT NULL)
+       + (form_step_id IS NOT NULL) + (evidence_file IS NOT NULL) = 1),
+  CHECK (element_key IS NULL OR screen_id IS NOT NULL OR state_id IS NOT NULL)
+) STRICT;
+
+CREATE TABLE deviations (
+  id                       TEXT PRIMARY KEY,
+  portal_id                TEXT NOT NULL CHECK (length(portal_id) > 0),
+  model_version_id         TEXT NOT NULL REFERENCES model_versions(id),
+  kind                     TEXT NOT NULL CHECK (kind IN ('new_screen','new_member','new_action',
+                             'missing_action','target_mismatch','result_mismatch','rule_mismatch')),
+  subject_key              TEXT NOT NULL CHECK (length(subject_key) > 0),   -- dedup key
+  screen_id                TEXT REFERENCES model_screens(id),
+  state_id                 TEXT REFERENCES states(id),
+  action_class_id          TEXT REFERENCES action_classes(id),
+  before_json              TEXT CHECK (before_json IS NULL OR json_valid(before_json)),
+  after_json               TEXT CHECK (after_json IS NULL OR json_valid(after_json)),
+  changed_components       TEXT NOT NULL DEFAULT '[]' CHECK (json_valid(changed_components) AND json_type(changed_components) = 'array'),
+  context_diff             TEXT NOT NULL DEFAULT '{}' CHECK (json_valid(context_diff) AND json_type(context_diff) = 'object'),
+  status                   TEXT NOT NULL CHECK (status IN ('open','waiting_test','explained')),
+  created_at               TEXT NOT NULL,
+  UNIQUE (portal_id, kind, subject_key)
+) STRICT;
+CREATE INDEX ix_deviations_portal_status ON deviations (portal_id, status);
+
+CREATE TABLE deviation_occurrences (
+  deviation_id     TEXT NOT NULL REFERENCES deviations(id),
+  model_version_id TEXT NOT NULL REFERENCES model_versions(id),
+  PRIMARY KEY (deviation_id, model_version_id)
+) STRICT, WITHOUT ROWID;
+
+CREATE TABLE hypotheses (
+  id               TEXT PRIMARY KEY,
+  key              TEXT NOT NULL CHECK (key GLOB 'H-[0-9][0-9][0-9][0-9]*'),     -- cited by people
+  portal_id        TEXT NOT NULL CHECK (length(portal_id) > 0),
+  kind             TEXT NOT NULL CHECK (kind IN (
+                     'same_as','different_from','parameter_role',
+                     'structural_drift','backend_drift','decision_drift',
+                     'context_variant','ab_test','flaky','nondeterministic','deterministic_error',
+                     'removed','replaces','coverage_gap','business_error_template',
+                     'decision_point','decision_rule','process_boundary','correlation_id','ambiguous')),
+  claim            TEXT NOT NULL CHECK (length(claim) > 0),          -- one sentence a BA can read
+  claim_json       TEXT NOT NULL CHECK (json_valid(claim_json)),
+  claim_hash       TEXT NOT NULL CHECK (length(claim_hash) = 64),
+  origin           TEXT NOT NULL CHECK (origin IN ('rule','agent','person')),
+  rule             TEXT CHECK (rule IS NULL OR rule GLOB 'R[1-8]'),
+  derived          INTEGER NOT NULL DEFAULT 0 CHECK (derived IN (0,1)),  -- applied without a person
+  confidence       TEXT NOT NULL CHECK (confidence IN ('observed','inferred','needs_confirmation')),
+  fitness          REAL,
+  precision        REAL,
+  support          INTEGER,
+  counterexamples  INTEGER,
+  deviation_id     TEXT REFERENCES deviations(id),
+  superseded_by    TEXT REFERENCES hypotheses(id),
+  model_version_id TEXT NOT NULL REFERENCES model_versions(id),
+  created_at       TEXT NOT NULL,
+  CHECK ((origin = 'rule') = (rule IS NOT NULL)),
+  CHECK (derived = 0 OR origin = 'rule'),
+  UNIQUE (portal_id, key)
+) STRICT;
+CREATE INDEX ix_hypotheses_portal_kind ON hypotheses (portal_id, kind);
+CREATE INDEX ix_hypotheses_claim ON hypotheses (portal_id, kind, claim_hash);
+
+CREATE TABLE hypothesis_evidence (
+  hypothesis_id TEXT NOT NULL REFERENCES hypotheses(id),
+  ref_id        TEXT NOT NULL REFERENCES entity_refs(id),
+  role          TEXT NOT NULL CHECK (role IN ('supports','contradicts','context')),
+  PRIMARY KEY (hypothesis_id, ref_id)
+) STRICT, WITHOUT ROWID;
+
+CREATE TABLE hypothesis_tests (
+  id              TEXT PRIMARY KEY,
+  hypothesis_id   TEXT NOT NULL REFERENCES hypotheses(id),
+  probe_suite_id  TEXT REFERENCES probe_suites(id),
+  mark_id         TEXT REFERENCES marks(id),
+  inputs_json     TEXT NOT NULL DEFAULT '{}' CHECK (json_valid(inputs_json) AND json_type(inputs_json) = 'object'),
+  refutes_if_json TEXT NOT NULL CHECK (json_valid(refutes_if_json)),
+  result_json     TEXT CHECK (result_json IS NULL OR json_valid(result_json)),
+  verdict         TEXT CHECK (verdict IS NULL OR verdict IN ('pass','fail','inconclusive')),
+  run_id          TEXT REFERENCES runs(id),
+  created_at      TEXT NOT NULL
+) STRICT;
+CREATE INDEX ix_hypothesis_tests_hypothesis ON hypothesis_tests (hypothesis_id);
+
+CREATE TABLE hypothesis_events (
+  id            TEXT PRIMARY KEY,
+  hypothesis_id TEXT NOT NULL REFERENCES hypotheses(id),
+  from_status   TEXT CHECK (from_status IS NULL OR from_status IN
+                  ('proposed','testing','supported','refuted','confirmed','rejected','superseded')),
+  to_status     TEXT NOT NULL CHECK (to_status IN
+                  ('proposed','testing','supported','refuted','confirmed','rejected','superseded')),
+  actor         TEXT NOT NULL CHECK (length(actor) > 0),    -- 'reconciler', 'ba-agent', 'crawler' or a reviewer
+  reason        TEXT NOT NULL CHECK (length(reason) > 0),
+  at            TEXT NOT NULL
+) STRICT;
+CREATE INDEX ix_hypothesis_events_hypothesis ON hypothesis_events (hypothesis_id, at);
+
+-- 0033_fingerprint_profiles (spec 039 T111–T115): the profiles a portal was fingerprinted with (per portal,
+-- `name@<8 hex of the rules hash>`), and the τ a person accepted per portal and profile (latest in force).
+-- The profile columns of observations, state_components and model_versions are listed with each table above.
+CREATE TABLE fingerprint_profiles (
+  portal_id  TEXT NOT NULL CHECK (length(portal_id) > 0),
+  id         TEXT NOT NULL CHECK (id GLOB '?*@[0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f][0-9a-f]'),
+  name       TEXT NOT NULL CHECK (length(name) > 0),
+  rules_json TEXT NOT NULL CHECK (json_valid(rules_json) AND json_type(rules_json) = 'object'),
+  first_seen TEXT NOT NULL,
+  PRIMARY KEY (portal_id, id)
+) STRICT, WITHOUT ROWID;
+
+CREATE TABLE tau_acceptances (
+  id          TEXT PRIMARY KEY,                                   -- UUIDv7
+  portal_id   TEXT NOT NULL CHECK (length(portal_id) > 0),
+  profile     TEXT NOT NULL CHECK (length(profile) > 0),
+  tau         REAL NOT NULL CHECK (tau > 0 AND tau <= 1),
+  labels      INTEGER NOT NULL CHECK (labels >= 0),               -- pair labels it was calibrated on
+  f1          REAL CHECK (f1 IS NULL OR (f1 >= 0 AND f1 <= 1)),
+  accepted_by TEXT NOT NULL CHECK (length(accepted_by) > 0),
+  accepted_at TEXT NOT NULL
+) STRICT;
+CREATE INDEX ix_tau_acceptances_portal ON tau_acceptances (portal_id, profile, accepted_at);
+
+-- 0036_processes (spec 039 design § 13.4, T070): one process concept. Correlation ids (values seen in a
+-- response and reused later in the journey, stored hashed), process instances (a journey through a
+-- process from its trigger, with the outcome), the triggers and explorations of a process. The PROC
+-- link (doc_records.process_id), ba_processes.start_screen_id / boundary_hypothesis_id and the
+-- process_models rename are with their tables above.
+CREATE TABLE correlation_ids (
+  id                  TEXT PRIMARY KEY,
+  journey_id          TEXT NOT NULL REFERENCES journeys(id),
+  key_path            TEXT NOT NULL CHECK (length(key_path) > 0),   -- 'response:$.quote.id'
+  value_hash          TEXT NOT NULL CHECK (length(value_hash) = 64),
+  endpoint_family     TEXT NOT NULL CHECK (length(endpoint_family) > 0),
+  first_transition_id TEXT NOT NULL REFERENCES transitions(id),
+  last_transition_id  TEXT NOT NULL REFERENCES transitions(id)
+) STRICT;
+CREATE INDEX ix_correlation_ids_journey ON correlation_ids (journey_id);
+
+-- Rebuilt by 0039 (owner answer 10): a journey enters by a transition or by a deep link (a URL
+-- opened on the start screen, `trigger_observation_id`).
+CREATE TABLE process_instances (
+  id                     TEXT PRIMARY KEY,
+  process_id             TEXT NOT NULL REFERENCES ba_processes(id),
+  journey_id             TEXT NOT NULL REFERENCES journeys(id),
+  trigger_kind           TEXT NOT NULL CHECK (trigger_kind IN ('transition','deep_link')),
+  trigger_transition_id  TEXT REFERENCES transitions(id),
+  trigger_observation_id TEXT REFERENCES observations(id),
+  last_transition_id     TEXT REFERENCES transitions(id),   -- NULL: the deep link was the whole walk
+  outcome                TEXT NOT NULL CHECK (outcome IN
+                           ('completed','exited','error','abandoned','incomplete')),
+  outcome_screen_id      TEXT REFERENCES model_screens(id),
+  correlation_id         TEXT REFERENCES correlation_ids(id),
+  model_version_id       TEXT NOT NULL REFERENCES model_versions(id),
+  -- 0043 (ALTER TABLE, spec 039 T079): the model screen ids walked, start screen first (its trace variant); NULL before 0043.
+  screens_json           TEXT CHECK (screens_json IS NULL OR (json_valid(screens_json) AND json_type(screens_json) = 'array')),
+  CHECK ((trigger_kind = 'transition') = (trigger_transition_id IS NOT NULL)),
+  CHECK ((trigger_kind = 'deep_link') = (trigger_observation_id IS NOT NULL)),
+  CHECK (trigger_kind = 'deep_link' OR last_transition_id IS NOT NULL)
+) STRICT;
+CREATE INDEX ix_process_instances_process ON process_instances (process_id, model_version_id);
+CREATE UNIQUE INDEX ux_process_instances_trigger ON process_instances
+  (process_id, coalesce(trigger_transition_id, trigger_observation_id), model_version_id);
+
+CREATE TABLE process_triggers (
+  process_id          TEXT NOT NULL REFERENCES ba_processes(id),
+  model_transition_id TEXT NOT NULL REFERENCES model_transitions(id),
+  PRIMARY KEY (process_id, model_transition_id)
+) STRICT, WITHOUT ROWID;
+
+CREATE TABLE process_explorations (
+  id             TEXT PRIMARY KEY,
+  process_id     TEXT NOT NULL REFERENCES ba_processes(id),
+  epoch_set      TEXT NOT NULL CHECK (json_valid(epoch_set) AND json_type(epoch_set) = 'array'),
+  depth          INTEGER NOT NULL CHECK (depth >= 0),
+  random_walks   INTEGER NOT NULL CHECK (random_walks >= 0),
+  new_deviations INTEGER NOT NULL CHECK (new_deviations >= 0),
+  completed_at   TEXT NOT NULL
+) STRICT;
+CREATE INDEX ix_process_explorations_process ON process_explorations (process_id, completed_at);
+
+-- 0038_similarity_classifiers (spec 039 FR-050, T090): the similarity classifier per portal and profile, with
+-- its held-out F1 against τ; the reconciler clusters with the latest one that beat τ.
+CREATE TABLE similarity_classifiers (
+  id           TEXT PRIMARY KEY,                                    -- UUIDv7
+  portal_id    TEXT NOT NULL CHECK (length(portal_id) > 0),
+  profile      TEXT NOT NULL CHECK (length(profile) > 0),
+  features     TEXT NOT NULL CHECK (json_valid(features) AND json_type(features) = 'array'),
+  weights      TEXT NOT NULL CHECK (json_valid(weights) AND json_type(weights) = 'array'),
+  intercept    REAL NOT NULL,
+  labels       INTEGER NOT NULL CHECK (labels >= 0),
+  held_out     INTEGER NOT NULL CHECK (held_out >= 0),
+  f1           REAL NOT NULL CHECK (f1 >= 0 AND f1 <= 1),
+  tau          REAL NOT NULL CHECK (tau > 0 AND tau <= 1),
+  tau_f1       REAL NOT NULL CHECK (tau_f1 >= 0 AND tau_f1 <= 1),
+  better       INTEGER NOT NULL CHECK (better IN (0,1)),
+  trained_at   TEXT NOT NULL,
+  -- 0039 (ALTER TABLE, owner answer 14): the person who put it in force; NULL = not accepted.
+  accepted_by  TEXT CHECK (accepted_by IS NULL OR length(accepted_by) > 0),
+  accepted_at  TEXT
+) STRICT;
+CREATE INDEX ix_similarity_classifiers_portal ON similarity_classifiers (portal_id, profile, trained_at);

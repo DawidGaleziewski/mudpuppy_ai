@@ -1,19 +1,19 @@
 {% import "salvage/macros.html" as sy %}
 {% import "salvage/partials/picture.html" as pic with context %}
-{#- The editor of one variant (screen 05): live region. A to-be variant shows the reviewer's draft
+{#- The editor of one model (screen 05): live region. A to-be model shows the reviewer's draft
     (or the last revision until a first edit starts one); every step operation autosaves the draft
     (processes.js). The as-is (A) reads as documentation, step by step (spec 027 US2): its picture
     and the records citing its screen; a person can reorder, remove and add its screens, each a
     signed A revision (US4.2). Above both: what the as-is still lacks and its sign-off (US3). -#}
 {%- set view = v.view %}{% set p = view.process %}{% set vv = v.vv %}
-{%- set label = vv.variant.label %}{% set rev = vv.variant.rev %}
-{%- set editable = vv.variant.kind == "to_be" and c.settings.reviewer %}
-{%- set edit_a = vv.variant.kind == "as_is" and c.settings.reviewer and not p.archived_at %}
-{%- set base = "/chat/portals/" ~ (p.portal_id | urlencode) ~ "/processes/" ~ (p.id | urlencode) ~ "/variants/" ~ label ~ "/" %}
+{%- set label = vv.model.label %}{% set rev = vv.model.rev %}
+{%- set editable = vv.model.kind == "to_be" and c.settings.reviewer %}
+{%- set edit_a = vv.model.kind == "as_is" and c.settings.reviewer and not p.archived_at %}
+{%- set base = "/chat/portals/" ~ (p.portal_id | urlencode) ~ "/processes/" ~ (p.id | urlencode) ~ "/models/" ~ label ~ "/" %}
 {%- set head_url = "/chat/portals/" ~ (p.portal_id | urlencode) ~ "/processes/" ~ (p.id | urlencode) %}
 {%- set base_rev = v.draft.base_rev if v.draft else rev %}
 {%- set KINDS = {"requirement": "Requirements", "business_rule": "Business rules", "data_item": "Fields", "nfr": "NFRs", "glossary_term": "Terms", "open_question": "Open questions", "assumption": "Assumptions", "followup": "Follow-ups"} %}
-<section id="process-editor" class="sy-stack mp-region" aria-label="Variant {{ label }}"
+<section id="process-editor" class="sy-stack mp-region" aria-label="Process model {{ label }}"
          data-self="{{ v.self_url }}" data-draft="{{ base }}draft" data-edit="{{ base }}edit" data-base-rev="{{ base_rev }}"
          data-author="{{ c.settings.reviewer or '' }}"
          hx-get="{{ v.self_url }}" hx-trigger="store-changed[!(window.formsDirty && window.formsDirty())] from:body" hx-swap="outerHTML">
@@ -44,7 +44,7 @@
       {%- if c.settings.reviewer and not p.archived_at %}
       <div class="sy-cluster" style="--sy-gap: 8px 12px; align-items: flex-end" data-actions>
         {%- if p.stage == "scoped" or (so and so.changed) %}
-        <button class="sy-btn {{ 'sy-btn--primary' if vv.variant.kind == 'as_is' else 'sy-btn--strong' }}" type="button" data-process="{{ head_url }}" data-body='{"stage": "as_is_documented", "base_rev": {{ p.rev }}}' data-reload="page">{% if p.stage == "scoped" %}Mark as-is documented{% else %}Sign off A r{{ view.as_is.variant.rev }}{% endif %}</button>
+        <button class="sy-btn {{ 'sy-btn--primary' if vv.model.kind == 'as_is' else 'sy-btn--strong' }}" type="button" data-process="{{ head_url }}" data-body='{"stage": "as_is_documented", "base_rev": {{ p.rev }}}' data-reload="page">{% if p.stage == "scoped" %}Mark as-is documented{% else %}Sign off A r{{ view.as_is.model.rev }}{% endif %}</button>
         {%- endif %}
         <label class="sy-field"><span class="sy-field__label">Stage</span>
           <select class="sy-select" id="stage-select" name="stage">
@@ -59,7 +59,7 @@
   </section>
   {%- endif %}
 
-  {%- if vv.variant.kind == "to_be" %}
+  {%- if vv.model.kind == "to_be" %}
   {%- if not c.settings.reviewer %}
   <div class="sy-callout"><p>Drawing is off: set <span class="sy-mono sy-mono--sm">PATHFINDER_REVIEWER</span> to your name and restart the dashboard. Every revision is signed.</p></div>
   {%- elif v.conflict %}
@@ -77,7 +77,7 @@
     <div class="sy-plate__body">
       <div class="sy-split" style="--sy-gap: 10px 16px" data-actions>
         <p class="sy-cluster sy-small" style="--sy-gap: 6px 8px" role="status">
-          {{ sy.status("variant", "draft") }}
+          {{ sy.status("process_model","draft") }}
           <span>of</span>{{ sy.tag(label ~ " r" ~ (rev + 1), sm=true) }}
           <span>· {{ v.pending }} change{{ "" if v.pending == 1 else "s" }} since</span>{{ sy.tag(label ~ " r" ~ rev, sm=true) }}
           <span>· autosaved <span class="sy-mono">{{ v.draft.updated_at | when }}</span> · only you see this draft</span>
@@ -97,7 +97,7 @@
 
   <div class="sy-columns">
     <div class="sy-col-main sy-stack" style="--sy-gap: 14px">
-      {%- if vv.variant.kind == "as_is" %}
+      {%- if vv.model.kind == "as_is" %}
       <section class="sy-plate" aria-labelledby="var-h">
         <div class="sy-plate__head">
           <h2 id="var-h" class="sy-plate__title">A · As-is r{{ rev }}</h2>
@@ -124,7 +124,7 @@
                 </div>
               </div>
               <span class="sy-actions" style="--sy-gap: 4px" data-actions>
-                <a class="sy-btn sy-btn--sm sy-btn--quiet" href="{{ c.url('/processes/' ~ p.key, variant=label, step=s.id) }}">{{ "Selected" if is_sel else "Select" }}</a>
+                <a class="sy-btn sy-btn--sm sy-btn--quiet" href="{{ c.url('/processes/' ~ p.key, model=label, step=s.id) }}">{{ "Selected" if is_sel else "Select" }}</a>
                 {%- if edit_a %}
                 {%- if not loop.first %}<button class="sy-btn sy-btn--sm sy-btn--quiet" type="button" data-a-op="up" data-step="{{ s.id }}" aria-label="Move step {{ d.n }} up">↑</button>{% endif %}
                 {%- if not loop.last %}<button class="sy-btn sy-btn--sm sy-btn--quiet" type="button" data-a-op="down" data-step="{{ s.id }}" aria-label="Move step {{ d.n }} down">↓</button>{% endif %}
@@ -167,7 +167,7 @@
               <span class="sy-route mp-break">{{ s.route or "—" }}{% if s["from"] | length > 1 %} · merges {{ s["from"] | length }} steps{% endif %}</span>
               {%- if s.annotations %}<span class="sy-small">{{ s.annotations | length }} annotation{{ "" if s.annotations | length == 1 else "s" }}</span>{% endif %}
               <span class="sy-actions" style="--sy-gap: 4px">
-                <a class="sy-btn sy-btn--sm sy-btn--quiet" href="{{ c.url('/processes/' ~ p.key, variant=label, step=s.id) }}">{{ "Selected" if is_sel else "Select" }}</a>
+                <a class="sy-btn sy-btn--sm sy-btn--quiet" href="{{ c.url('/processes/' ~ p.key, model=label, step=s.id) }}">{{ "Selected" if is_sel else "Select" }}</a>
                 {%- if editable %}
                 {%- if not loop.first %}<button class="sy-btn sy-btn--sm sy-btn--quiet" type="button" data-step-op="up" data-step="{{ s.id }}" aria-label="Move step {{ loop.index }} up">↑</button>{% endif %}
                 {%- if not loop.last %}<button class="sy-btn sy-btn--sm sy-btn--quiet" type="button" data-step-op="down" data-step="{{ s.id }}" aria-label="Move step {{ loop.index }} down">↓</button>
@@ -188,7 +188,7 @@
           </ol>
           {%- if v.removed %}
           <p class="sy-cluster sy-small" style="--sy-gap: 6px 10px">
-            <span class="sy-label">Removed from {{ view.variants[0].variant.label }}</span>
+            <span class="sy-label">Removed from {{ view.models[0].model.label }}</span>
             {%- for r in v.removed %}{% set s = r.left[0] %}<del class="sy-diff--removed">{{ s.title }} · <span class="sy-mono sy-mono--sm">{{ s.route }}</span></del>{% endfor %}
           </p>
           {%- endif %}
@@ -198,7 +198,7 @@
       {%- if view.as_is %}
       <section class="sy-plate" aria-labelledby="ref-h">
         <div class="sy-plate__head">
-          <h2 id="ref-h" class="sy-plate__title">A · As-is r{{ view.as_is.variant.rev }}</h2>
+          <h2 id="ref-h" class="sy-plate__title">A · As-is r{{ view.as_is.model.rev }}</h2>
           <span class="sy-meta">For reference (ghosted)</span>
         </div>
         <div class="sy-plate__body">
@@ -214,12 +214,12 @@
     <aside class="sy-col-side mp-process-side">
       {%- set s = v.selected %}
       {%- if not s %}
-      {%- if vv.variant.kind == "as_is" %}
+      {%- if vv.model.kind == "as_is" %}
       {{ sy.empty("No step selected", "Select a step to see everything documented on its screen.", level=2) }}
       {%- else %}
       {{ sy.empty("No step selected", "Select a step to see what it is built from and its annotations" ~ (", or to change it." if editable else "."), level=2) }}
       {%- endif %}
-      {%- elif vv.variant.kind == "as_is" %}
+      {%- elif vv.model.kind == "as_is" %}
       {%- set d = v.docs | selectattr("step.id", "equalto", s.id) | first %}
       <div class="sy-plate">
         <div class="sy-plate__head"><div class="sy-stack" style="--sy-gap: 6px">
@@ -261,7 +261,7 @@
       {%- set idx = (v.steps | map(attribute="id") | list).index(s.id) + 1 %}
       <div class="sy-plate">
         <div class="sy-plate__head"><div class="sy-stack" style="--sy-gap: 6px">
-          <span class="sy-cluster sy-small">Step {{ idx }} of {{ label }}{% if v.draft %} · {{ sy.status("variant", "draft") }}{% endif %}</span>
+          <span class="sy-cluster sy-small">Step {{ idx }} of {{ label }}{% if v.draft %} · {{ sy.status("process_model","draft") }}{% endif %}</span>
           <h2 class="sy-plate__title sy-case-normal">{{ s.title }}</h2>
         </div></div>
         {%- if s["from"] %}

@@ -18,10 +18,19 @@ own `CLAUDE.md`), the operator scripts under `scripts/`, and the test tiers.
   commit anything in `apps/crawler` while it runs (spec 012 F-16). Not incremental (F-15).
 - Operator scripts: `pnpm docs:*` (`docs:process-export <portal> <PROC-…|PRC-…> | --portal`: the
   rebuild-grade export folder, spec 034), `pnpm portal:export|delete|check|doctor` (`check`: validate a
-  portal and persona file without a run, R-49; `doctor`: first-start diagnosis of the machine and
+  portal and persona file without a run; `doctor`: first-start diagnosis of the machine and
   the way to the portal, spec 030 R-63), `pnpm vault`, `pnpm eval`,
   `pnpm eval:judge|draw|calibrate|judge-check` (LLM judges, spec 017), `pnpm eval:transcript`
   (what each agent session of a trial did, spec 034 F-21), `pnpm tokens:ba`, `pnpm stability`, `pnpm trace:import-agent`, `pnpm wireframes:build`, `pnpm reference-portal`.
+- MudPuppy 2.0 (spec 039): `pnpm store:reset`, `pnpm model:reconcile|decide` (the portal model and
+  a person's decisions), `pnpm model:mine` (decision rules, apps/miner), `pnpm model:replay`
+  (R1 error replays and boundary tests on the headless driver), `pnpm model:propose` (process
+  proposals, Leiden), `pnpm model:rules-export` (decision rules as DMN, Markdown and CSV, OV-5), `pnpm model:regress`
+  (regression rounds of confirmed rules), `pnpm model:pairs` (labelling queue and τ calibration;
+  `model:decide … accept-tau` puts a calibrated τ in force), `pnpm model:refingerprint` and
+  `pnpm model:compare-fingerprints` (fingerprint profiles, T113), `pnpm model:explore` (the
+  stopping rule per process on the headless driver; without a key, every unexplored process, T075),
+  `pnpm model:classify` (the similarity classifier on the pair labels, used when it beats τ, T090).
 
 ## Layout
 

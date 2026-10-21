@@ -147,7 +147,7 @@ def _citing(conn: sqlite3.Connection, portal: str, states: set[str]) -> list[Ste
         conn,
         "SELECT DISTINCT r.key, r.kind, r.title, v.status, r.seq FROM doc_records r"
         " JOIN doc_revisions v ON v.record_id = r.id AND v.rev_no = r.latest_rev"
-        " JOIN doc_evidence_links l ON l.revision_id = v.id"
+        " JOIN doc_evidence l ON l.revision_id = v.id"
         " WHERE r.portal_id = ? AND r.withdrawn = 0"
         f" AND r.kind IN ({kinds}) AND l.target_kind IN ('state', 'screen_region')"
         f" AND l.target_id IN ({_marks(len(states))})"
@@ -215,7 +215,7 @@ def sign_off(view: ProcessView) -> SignOff | None:
     last = moves[-1]
     return SignOff(
         signed_rev=last.as_is_rev,
-        head_rev=view.as_is.variant.rev,
+        head_rev=view.as_is.model.rev,
         by=last.author,
         at=last.created_at,
     )

@@ -31,7 +31,7 @@ def seed_graph(store: Store) -> None:
     conn.execute(
         "UPDATE state_observations SET observed_at = ? WHERE state_id = 'st-list'", (T2,)
     )  # the list is seen after the start page
-    conn.execute("UPDATE edges SET status = 'executed'")
+    conn.execute("UPDATE transitions SET status = 'executed'")
     insert(
         conn,
         "frontier",
@@ -60,7 +60,7 @@ def test_graph_model_marks_failures_and_where_it_stopped(empty_store: Store) -> 
     ]
     home, oferty = g.nodes
     assert home.unreachable == 1 and oferty.queued == 1
-    assert [(f.edge_id, f.label, f.error) for f in oferty.failures] == [
+    assert [(f.transition_id, f.label, f.error) for f in oferty.failures] == [
         ("e-bad", "Dalej", "selector not found")
     ]
     assert g.stopped and g.stop_node is oferty and oferty.stopped_here
@@ -95,7 +95,7 @@ def test_restarts_from_the_graph_come_back_to_it(empty_store: Store) -> None:
     with client(empty_store, chat) as c:
         skip = c.post(
             "/scans/recover/run-1/skip",
-            data={"edge_id": "e-bad", "from": "graph", "node": "sc-list"},
+            data={"transition_id": "e-bad", "from": "graph", "node": "sc-list"},
             headers=ORIGIN,
             follow_redirects=False,
         )

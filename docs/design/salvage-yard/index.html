@@ -23,7 +23,7 @@
     <div class="sy-stack" style="--sy-gap: 12px">
       <span class="sy-wordmark sy-wordmark--lg"><span class="sy-wordmark__paint">MUD</span>PUPPY</span>
       <h1 class="sy-h1">Salvage Yard · design package</h1>
-      <p class="sy-meta sy-prose">Brand book, design system, CSS library, 16 detailed screens (12–16: map runs), the original wireframes, screenshots, the frontend skill for the harness, and the Console → Salvage migration guide. Everything works offline (the original wireframes fall back to system fonts).</p>
+      <p class="sy-meta sy-prose">Brand book, design system, CSS library, 16 detailed screens (12–16: map runs), 16 MudPuppy 2.0 screens, the original wireframes, screenshots, the frontend skill for the harness, and the Console → Salvage migration guide. Everything works offline (the original wireframes fall back to system fonts).</p>
     </div>
     <img src="brand/logo/mark-grid-path.svg" width="128" height="128" alt="MudPuppy mark" style="image-rendering: pixelated">
   </header>
@@ -47,6 +47,8 @@
         <a class="sy-row" href="docs/09-qa-checklist.md">09 · QA checklist</a>
         <a class="sy-row" href="docs/10-processes.md">10 · Processes: how it works (spec)</a>
         <a class="sy-row" href="docs/11-map-runs.md">11 · Map runs: graph, probing, resume, reconciliation (spec)</a>
+        <a class="sy-row" href="docs/12-v2-ux.md">12 · MudPuppy 2.0: UX design (IA, time, words, review, rules)</a>
+        <a class="sy-row" href="docs/13-v2-fixtures.md">13 · MudPuppy 2.0: the data on the screens</a>
       </div></div>
       <div class="sy-plate"><div class="sy-plate__head"><h3 class="sy-plate__title">For the harness and devs</h3></div><div class="sy-rows">
         <a class="sy-row" href="skill/mudpuppy-salvage-ui/SKILL.md">Frontend skill · SKILL.md</a>
@@ -60,6 +62,29 @@
         <a class="sy-row" href="migration/component-map.csv">component-map.csv</a>
         <a class="sy-row" href="migration/find-old-styles.sh">find-old-styles.sh · CI guard</a>
       </div></div>
+    </div>
+  </section>
+
+  <section class="sy-stack" aria-labelledby="pk-v2">
+    <div class="sy-split"><h2 id="pk-v2" class="sy-h2">MudPuppy 2.0</h2><span class="sy-meta">Design answer to spec 039 · R-81: one living model, what changed, needs you, business rules</span></div>
+    <div class="sy-grid" style="--sy-min: 280px">
+      <a class="pk-card" href="docs/12-v2-overview.html"><img src="screenshots/system/v2-overview.png" alt=""><div><b>How 2.0 works</b><span class="sy-meta">Nav, time, after every scan, review loop, overturn, words</span></div></a>
+      <a class="pk-card" href="screens/v2-01-home.html"><img src="screenshots/screens/v2-01-home.png" alt=""><div><b>Home</b><span class="sy-meta">Releases, counts, top of Needs you</span></div></a>
+      <a class="pk-card" href="screens/v2-15-all-portals.html"><img src="screenshots/screens/v2-15-all-portals.png" alt=""><div><b>Home · All portals</b><span class="sy-meta">Per-portal counts; global inbox</span></div></a>
+      <a class="pk-card" href="screens/v2-02-changes.html"><img src="screenshots/screens/v2-02-changes.png" alt=""><div><b>What changed</b><span class="sy-meta">Range, release timeline, grouped changes</span></div></a>
+      <a class="pk-card" href="screens/v2-03-change-detail.html"><img src="screenshots/screens/v2-03-change-detail.png" alt=""><div><b>Before / after</b><span class="sy-meta">Changed region, context diff, decision</span></div></a>
+      <a class="pk-card" href="screens/v2-04-review.html"><img src="screenshots/screens/v2-04-review.png" alt=""><div><b>Review · Needs you</b><span class="sy-meta">Queue, groups, keys, evidence, reasons</span></div></a>
+      <a class="pk-card" href="screens/v2-05-review-explained.html"><img src="screenshots/screens/v2-05-review-explained.png" alt=""><div><b>Explained automatically</b><span class="sy-meta">Rules in plain words, Overturn</span></div></a>
+      <a class="pk-card" href="screens/v2-16-review-decided.html"><img src="screenshots/screens/v2-16-review-decided.png" alt=""><div><b>Review · Decided</b><span class="sy-meta">Every decision with its reason; the overturn audit</span></div></a>
+      <a class="pk-card" href="screens/v2-14-same-screen.html"><img src="screenshots/screens/v2-14-same-screen.png" alt=""><div><b>Same screen?</b><span class="sy-meta">Fast labelling, conflict</span></div></a>
+      <a class="pk-card" href="screens/v2-06-screens.html"><img src="screenshots/screens/v2-06-screens.png" alt=""><div><b>Screens</b><span class="sy-meta">Status, variants and why, coverage</span></div></a>
+      <a class="pk-card" href="screens/v2-07-screen-detail.html"><img src="screenshots/screens/v2-07-screen-detail.png" alt=""><div><b>Screen detail</b><span class="sy-meta">Variants, actions, history</span></div></a>
+      <a class="pk-card" href="screens/v2-08-map.html"><img src="screenshots/screens/v2-08-map.png" alt=""><div><b>Map, now</b><span class="sy-meta">Link states, process overlay, bundled menu</span></div></a>
+      <a class="pk-card" href="screens/v2-09-processes.html"><img src="screenshots/screens/v2-09-processes.png" alt=""><div><b>Processes</b><span class="sy-meta">Proposed first, suggestions, explored</span></div></a>
+      <a class="pk-card" href="screens/v2-10-process-detail.html"><img src="screenshots/screens/v2-10-process-detail.png" alt=""><div><b>Process detail</b><span class="sy-meta">Trigger, outcomes, paths, explored, rules</span></div></a>
+      <a class="pk-card" href="screens/v2-11-rules.html"><img src="screenshots/screens/v2-11-rules.png" alt=""><div><b>Business rules</b><span class="sy-meta">Where decided, status, last tested</span></div></a>
+      <a class="pk-card" href="screens/v2-12-rule-detail.html"><img src="screenshots/screens/v2-12-rule-detail.png" alt=""><div><b>Rule detail</b><span class="sy-meta">Decision table, boundary tests, export</span></div></a>
+      <a class="pk-card" href="screens/v2-13-states.html"><img src="screenshots/screens/v2-13-states.png" alt=""><div><b>States</b><span class="sy-meta">Empty, running, rebuilding, 500+, conflict, failed write</span></div></a>
     </div>
   </section>
 

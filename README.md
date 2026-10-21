@@ -90,6 +90,29 @@ local fake Polish insurer whose full truth is written down in `ground-truth.yaml
 `pnpm --dir apps/crawler reference-portal` (http://127.0.0.1:4010) and run the flow above with the MCP
 servers on `PATHFINDER_ENV=sandbox`; step 6 then says how close the documentation gets.
 
+## MudPuppy 2.0: the portal model
+
+Since 2.0 (`specs/039-mudpuppy-2-portal-model/`, design in `design.md`) every scan is reconciled
+into one **portal model** that lives over time: screens (`SC-…`) with their page versions
+(variants), actions and the links between screens, each with a state (active, not seen since,
+not checked, retired), on releases detected from the portal's builds. Scans are never rewritten;
+the model is rebuilt from them (`pnpm --dir apps/crawler model:reconcile <portal>`).
+
+- **Changes.** Each new model version is compared with the previous one. Rules R1–R8 explain the
+  differences as findings (a new release, a persona variant, an A/B test, a flaky error, a renamed
+  button, a business rule that changed); a fact the rules can derive is confirmed by itself, the
+  rest waits for a person in **Review**. Decided items, with the person's reason, stay listed.
+- **Rules.** `model:mine` mines decision rules (inputs → which screen comes next) from the scans,
+  `model:replay` tests their boundaries on the headless driver (no LLM), `model:regress` re-runs
+  them after a release, and `model:rules-export` writes them as DMN, Markdown and CSV.
+- **Processes.** `model:propose` suggests processes from the model; a person names, splits or
+  merges them, and each process shows its triggers, outcomes, paths and rules.
+- **Same screen?** A person labels two page versions as one screen or two; every answer is kept,
+  and the labels calibrate the threshold the reconciler groups pages by.
+- **Dashboard.** Home, Changes and Review; Processes, Screens (list and map), Rules and Docs under
+  "Portal model"; Scans and Settings under "Machine". [`docs/how-to-use.md`](docs/how-to-use.md)
+  walks through them.
+
 New to the vocabulary (run, frontier, evidence, settled, …)? Read the
 [MudPuppy glossary](docs/glossary/README.md), also in the dashboard's Glossary tab, and the
 [BA wiki](docs/wiki/README.md) for the business-analysis concepts behind the documentation.

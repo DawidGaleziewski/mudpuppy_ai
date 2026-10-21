@@ -25,6 +25,7 @@ export * from './step-outcomes.js';
 export * from './navigation-recorder.js';
 export * from './client-redirect.js';
 export * from './asset-health.js';
+export * from './asset-recorder.js';
 export * from './condition-wait.js';
 export * from './clock.js';
 export * from './transient-error.js';

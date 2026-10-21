@@ -1,13 +1,11 @@
 import type { BaContext } from '../../context.js';
 import { sessionRunIds } from './common.js';
 
-/** An evidence link of the previous revision, copied as it was onto the new one. */
+/** An evidence link of the previous revision, copied as it was onto the new one (same ref). */
 export interface CarriedLink {
-  target_kind: string;
-  target_id: string;
+  ref_id: string;
   run_id: string;
   note: string | null;
-  region: string | null;
 }
 
 /**
@@ -25,7 +23,7 @@ export function outsideSessionLinks(
   const inSession = new Set(sessionRunIds(ctx, sessionId));
   const rows = ctx.raw
     .prepare(
-      `SELECT l.target_kind, l.target_id, l.run_id, l.note, l.region
+      `SELECT l.ref_id, l.run_id, l.note
        FROM doc_evidence_links l JOIN doc_revisions rev ON rev.id = l.revision_id
        WHERE rev.record_id = ? AND rev.rev_no = ? AND l.run_id IS NOT NULL
        ORDER BY l.rowid`,

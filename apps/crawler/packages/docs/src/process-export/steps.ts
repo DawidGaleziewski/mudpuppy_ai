@@ -1,6 +1,6 @@
 // The steps of a documented process in walking order (spec 034 FR-013; spec 027 FR-010), shared by
 // the process export and the dashboard. A BA process record (PROC) is resolved from its latest
-// revision's evidence: the trace it cites, else its cited trace steps, else its cited edges chained
+// revision's evidence: the trace it cites, else its cited trace steps, else its cited transitions chained
 // from the screen nothing leads into. A workspace process (PRC) is A's latest revision. A cited
 // state of a page the walk already passed is a state of that step (a variant, an error), never a
 // step of its own (owner review 2026-10-17: "why is there a step 7?"); only a page the walk did
@@ -29,7 +29,7 @@ export interface ResolvedProcess {
   kind: 'record' | 'workspace';
   title: string;
   steps: ProcessStep[];
-  /** Runs the steps were read from (a trace, the cited edges' runs, the observed revisions). */
+  /** Runs the steps were read from (a trace, the cited transitions' runs, the observed revisions). */
   runs: string[];
 }
 
@@ -49,15 +49,25 @@ function walk(states: readonly (string | null)[]): string[] {
   return out;
 }
 
+/**
+ * The states a trace walked, in order. A trace that marked its trigger (spec 039 T081) starts at
+ * the screen its trigger step entered: the pages before it are the trigger's context, not steps.
+ */
 function traceWalk(raw: RawDb, processIds: readonly string[]): string[] {
   const out: (string | null)[] = [];
   for (const id of processIds) {
+    const trigger = rows<{ t: number | null }>(
+      raw,
+      'SELECT trigger_ord AS t FROM processes WHERE id = ?',
+      id,
+    )[0]?.t;
     const steps = rows<{ state_before: string | null; state_after: string | null }>(
       raw,
-      'SELECT state_before, state_after FROM process_steps WHERE process_id = ? ORDER BY ord',
+      'SELECT state_before, state_after FROM process_steps WHERE process_id = ? AND ord >= ? ORDER BY ord',
       id,
+      trigger ?? 0,
     );
-    for (const s of steps) out.push(s.state_before, s.state_after);
+    for (const s of steps) out.push(trigger ? null : s.state_before, s.state_after);
   }
   return walk(out);
 }
@@ -73,25 +83,26 @@ function stepsWalk(raw: RawDb, stepIds: readonly string[]): string[] {
   return walk(steps.flatMap((s) => [s.state_before, s.state_after]));
 }
 
-/** Cited edges chained from the state no cited edge leads into; a loop back is not a new step. */
-function edgeWalk(raw: RawDb, edgeIds: readonly string[]): string[] {
-  if (edgeIds.length === 0) return [];
-  const edges = rows<{ from_state: string; to_state: string | null; created_at: string }>(
+/** Cited transitions chained from the state none of them leads into; a loop back is not a new step. */
+function transitionWalk(raw: RawDb, transitionIds: readonly string[]): string[] {
+  if (transitionIds.length === 0) return [];
+  const transitions = rows<{ from_state: string; to_state: string | null; created_at: string }>(
     raw,
-    `SELECT from_state, to_state, created_at FROM edges WHERE id IN (${edgeIds.map(() => '?').join(',')})
-     ORDER BY created_at`,
-    ...edgeIds,
+    `SELECT from_state, to_state, created_at FROM transitions
+     WHERE id IN (${transitionIds.map(() => '?').join(',')}) ORDER BY created_at`,
+    ...transitionIds,
   );
-  const into = new Set(edges.map((e) => e.to_state));
+  const into = new Set(transitions.map((e) => e.to_state));
   let at: string | undefined =
-    edges.find((e) => !into.has(e.from_state))?.from_state ?? edges[0]?.from_state;
+    transitions.find((e) => !into.has(e.from_state))?.from_state ?? transitions[0]?.from_state;
   const out: string[] = [];
   while (at !== undefined && !out.includes(at)) {
     out.push(at);
     const here: string = at;
     at =
-      edges.find((e) => e.from_state === here && e.to_state !== null && !out.includes(e.to_state))
-        ?.to_state ?? undefined;
+      transitions.find(
+        (e) => e.from_state === here && e.to_state !== null && !out.includes(e.to_state),
+      )?.to_state ?? undefined;
   }
   return out;
 }
@@ -145,7 +156,7 @@ function containedRoutes(raw: RawDb, revId: string): Set<string> {
       `SELECT DISTINCT s.route_template FROM doc_relations rel
        JOIN doc_records scr ON scr.id = rel.to_record_id AND scr.kind = 'screen'
        JOIN doc_revisions sv ON sv.record_id = scr.id AND sv.rev_no = scr.latest_rev
-       JOIN doc_evidence_links l ON l.revision_id = sv.id AND l.target_kind IN ('state', 'screen_region')
+       JOIN doc_evidence l ON l.revision_id = sv.id AND l.target_kind IN ('state', 'screen_region')
        JOIN states s ON s.id = l.target_id
        WHERE rel.from_revision_id = ? AND rel.type = 'contains'`,
       revId,
@@ -178,13 +189,13 @@ function recordProcess(raw: RawDb, portal: string, key: string): ResolvedProcess
   if (rec === undefined) return null;
   const links = rows<Link>(
     raw,
-    'SELECT target_kind, target_id, run_id FROM doc_evidence_links WHERE revision_id = ? ORDER BY rowid',
+    'SELECT target_kind, target_id, run_id FROM doc_evidence WHERE revision_id = ? ORDER BY id',
     rec.rev_id,
   );
   const of = (kind: string) => links.filter((l) => l.target_kind === kind).map((l) => l.target_id);
   let ordered = traceWalk(raw, of('process'));
   if (ordered.length === 0) ordered = stepsWalk(raw, of('process_step'));
-  if (ordered.length === 0) ordered = edgeWalk(raw, of('edge'));
+  if (ordered.length === 0) ordered = transitionWalk(raw, of('transition'));
   ordered = fromFirstContained(raw, ordered, containedRoutes(raw, rec.rev_id));
   const cited = [...of('state'), ...of('screen_region')];
   const extra = [...new Set(cited)].filter((s) => !ordered.includes(s));
@@ -206,8 +217,8 @@ function workspaceProcess(raw: RawDb, portal: string, key: string): ResolvedProc
   const [p] = rows<{ name: string; steps: string }>(
     raw,
     `SELECT p.name, r.steps FROM ba_processes p
-     JOIN process_variants v ON v.process_id = p.id AND v.kind = 'as_is'
-     JOIN process_variant_revisions r ON r.variant_id = v.id AND r.rev = v.rev
+     JOIN process_models v ON v.process_id = p.id AND v.kind = 'as_is'
+     JOIN process_model_revisions r ON r.model_id = v.id AND r.rev = v.rev
      WHERE p.portal_id = ? AND p.key = ?`,
     portal,
     key,
@@ -218,7 +229,7 @@ function workspaceProcess(raw: RawDb, portal: string, key: string): ResolvedProc
     .filter((s): s is string => typeof s === 'string');
   const runs = rows<{ run_id: string }>(
     raw,
-    `SELECT DISTINCT r.run_id FROM process_variant_revisions r JOIN process_variants v ON v.id = r.variant_id
+    `SELECT DISTINCT r.run_id FROM process_model_revisions r JOIN process_models v ON v.id = r.model_id
      JOIN ba_processes p ON p.id = v.process_id WHERE p.portal_id = ? AND p.key = ? AND r.run_id IS NOT NULL`,
     portal,
     key,
@@ -252,9 +263,12 @@ export function processKeys(raw: RawDb, portal: string): string[] {
   ).map((r) => r.key);
   let workspace: string[];
   try {
+    // A process its PROC record documents is that record's (one concept, spec 039 T070).
     workspace = rows<{ key: string }>(
       raw,
-      'SELECT key FROM ba_processes WHERE portal_id = ? ORDER BY key',
+      `SELECT p.key FROM ba_processes p WHERE p.portal_id = ? AND NOT EXISTS (
+         SELECT 1 FROM doc_records r WHERE r.process_id = p.id AND r.kind = 'process' AND r.withdrawn = 0)
+       ORDER BY p.key`,
       portal,
     ).map((r) => r.key);
   } catch {

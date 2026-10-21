@@ -154,7 +154,8 @@ def test_amendments_for_state_covers_state_and_its_elements_only(mapped: Store) 
         target_id='st-1#button "A#B"',
         kind="element_ref",
     )
-    seed_amendment(mapped, 3, target_id="st-10")  # another state with the same prefix
+    seed_state(mapped, "st-10", "Kontakt 10", "/kontakt-10")  # another state, same id prefix
+    seed_amendment(mapped, 3, target_id="st-10")
     seed_amendment(
         mapped, 4, target_kind="wireframe_element", target_id="st-10#x", kind="element_ref"
     )
@@ -650,9 +651,11 @@ def test_superseded_url_redirects_to_the_review_reanchor_group(mapped: Store) ->
 def test_review_reanchor_group_empty_state_and_unknown_filter(mapped: Store) -> None:
     with make_client(mapped, Service()) as c:
         r = c.get("/review", params={"portal": "liveinsurer", "show": "bogus"})
-    body = text(r.text)
-    assert r.status_code == 200 and "Nothing to re-anchor" in body
-    assert "a scan changes a screen" in body
+        group = c.get("/review", params={"portal": "liveinsurer", "show": "reanchor"})
+    # An unknown filter shows All, where an empty group is one link (v2-04); its own tab explains.
+    assert r.status_code == 200 and "Amendments to re-anchor" in text(r.text)
+    body = text(group.text)
+    assert "Nothing to re-anchor" in body and "a scan changes a screen" in body
 
 
 def test_count_badge_on_chat_tracker_and_portal_card(mapped: Store) -> None:

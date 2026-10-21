@@ -58,11 +58,14 @@ describe('scoreExportQuality', () => {
       export_actions: { matched: 5, total: 5, pct: 100 },
       export_apis: { matched: 2, total: 2, pct: 100 },
     });
-    // The home page as step 1 (F-15); "/" as a destination of Dalej, Dalej, Oblicz składkę (F-11).
+    // The home page as step 1 (F-15, so the process starts at the wrong screen); "/" as a
+    // destination of Dalej, Dalej, Oblicz składkę (F-11).
     expect(q.checks).toEqual({
       export_extra_steps: 1,
       export_action_strays: 3,
       export_noise_leaked: 0,
+      export_wrong_start: 1,
+      export_wrong_end: 0,
     });
     expect(q.missing).toContain('P01: field "Zakres"'); // F-16
     expect(q.missing).toContain(
@@ -80,6 +83,8 @@ describe('scoreExportQuality', () => {
       export_extra_steps: 0,
       export_action_strays: 0,
       export_noise_leaked: 0,
+      export_wrong_start: 0,
+      export_wrong_end: 0,
     });
     expect(q.missing).toEqual([]);
   });
@@ -91,6 +96,8 @@ describe('scoreExportQuality', () => {
     const q = scoreExportQuality(gt, [e])!;
     expect(q.scores.export_steps.matched).toBe(1);
     expect(q.checks.export_noise_leaked).toBe(1);
+    // Reversed: it starts at the result and ends at the first step (R-77 (2)).
+    expect([q.checks.export_wrong_start, q.checks.export_wrong_end]).toEqual([1, 1]);
     const none = scoreExportQuality(gt, [])!;
     expect(none.scores.export_steps).toEqual({ matched: 0, total: 5, pct: 0 });
     expect(none.scores.export_fields.matched).toBe(0);

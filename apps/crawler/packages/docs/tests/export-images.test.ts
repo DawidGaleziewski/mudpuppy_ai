@@ -1,7 +1,7 @@
 import { mkdtempSync, readFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { newId } from '@pathfinder/core';
+import { addEvidenceLink } from '@pathfinder/store';
 import { PNG } from 'pngjs';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { exportSrs, writeExport } from '../src/export.js';
@@ -32,18 +32,22 @@ beforeAll(async () => {
        WHERE r.key = 'DI-001' AND v.rev_no = r.latest_rev`,
     )
     .get() as { id: string };
-  const addRegion = fx.raw.prepare(
-    `INSERT INTO doc_evidence_links (id, revision_id, target_kind, target_id, run_id, note, region)
-     VALUES (?, ?, 'screen_region', ?, ?, ?, ?)`,
-  );
-  addRegion.run(newId(), rev.id, fx.states.vehicle, fx.runId, 'the field', FIELD);
-  addRegion.run(newId(), rev.id, fx.states.vehicle, fx.runId, null, 'link "Kontakt"');
+  const addRegion = (note: string | null, region: string) =>
+    addEvidenceLink(fx.raw, rev.id, {
+      target_kind: 'screen_region',
+      target_id: fx.states.vehicle,
+      run_id: fx.runId,
+      note,
+      region,
+    });
+  addRegion('the field', FIELD);
+  addRegion(null, 'link "Kontakt"');
   files = exportSrs(fx.raw, fx.portalId, { environment: 'sandbox', evidenceRoot: fx.evidenceDir });
   scrKey = (
     fx.raw
       .prepare(
         `SELECT r.key FROM doc_records r JOIN doc_revisions v ON v.record_id = r.id AND v.rev_no = r.latest_rev
-         JOIN doc_evidence_links l ON l.revision_id = v.id
+         JOIN doc_evidence l ON l.revision_id = v.id
          WHERE r.kind = 'screen' AND l.target_kind = 'state' AND l.target_id = ? ORDER BY r.key`,
       )
       .get(fx.states.vehicle) as { key: string }

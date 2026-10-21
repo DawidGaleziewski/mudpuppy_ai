@@ -1,0 +1,342 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MudPuppy 2.0 · Kalkulator OC/AC — dane kierowcy</title>
+<link rel="icon" href="../brand/logo/tag-icon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../design-system/css/tokens.css">
+<link rel="stylesheet" href="../design-system/css/fonts.css">
+<link rel="stylesheet" href="../design-system/css/salvage.css">
+<style>
+  /* Screen layout only: compact screenshot mocks in the variant cards, section heads. */
+  .mp-mini { padding: var(--sy-space-3); gap: 6px; }
+  .mp-mini .sy-mark { margin-top: 12px; padding: 4px 6px; }
+  .mp-variant { display: flex; flex-direction: column; gap: var(--sy-space-2); }
+  .mp-section { display: flex; flex-direction: column; gap: var(--sy-space-3); scroll-margin-top: 80px; }
+  .mp-section__head { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: var(--sy-space-2) var(--sy-space-4); }
+  .mp-cell { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; }
+  /* 4 variants: one row at 1280, 2 × 2 when the main column is narrower (no lone card on a second row) */
+  @media (max-width: 1180px) { .mp-variants { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+</style>
+</head>
+<body class="sy-ground">
+<a class="sy-skip" href="#main">Skip to content</a>
+<div class="sy-app">
+  <header class="sy-header">
+    <a class="sy-wordmark" href="v2-01-home.html"><span class="sy-wordmark__paint">MUD</span>PUPPY</a>
+    <label class="sy-portal sy-portal--compact"><span class="sy-label">Portal</span>
+      <select class="sy-select"><option selected>reference-insurer</option><option>wikipedia</option><option>All portals</option><option>+ New portal</option></select></label>
+    <div class="sy-portal sy-portal--compact"><span class="sy-label" id="asof-l">As of</span>
+      <button class="sy-select" type="button" aria-haspopup="menu" aria-expanded="false" aria-labelledby="asof-l asof-v" aria-describedby="asof-help"><span id="asof-v">Now · 17 Oct</span></button></div>
+    <span id="asof-help" class="sy-sr-only">Shows the portal model as it was at a release or scan. Changes compares two points.</span>
+    <label class="sy-search sy-search--compact">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+      <input type="search" aria-label="Search screens, processes and rules" placeholder="Search"><span class="sy-kbd">Ctrl K</span></label>
+    <span class="sy-status" data-status="ok">Assistant up</span>
+    <a class="sy-btn" href="02-screen-with-assistant.html">Ask <span class="sy-kbd">Ctrl J</span></a>
+    <a class="sy-btn sy-btn--icon" href="#" aria-label="Help and glossary">?</a>
+  </header>
+  <div class="sy-app__body">
+    <nav class="sy-nav" aria-label="Portal sections">
+      <a class="sy-nav__item" href="v2-01-home.html">Home</a>
+      <a class="sy-nav__item" href="v2-02-changes.html">Changes <span class="sy-nav__count">41</span></a>
+      <a class="sy-nav__item" href="v2-04-review.html">Review <span class="sy-count">24</span></a>
+      <div class="sy-nav__group" aria-hidden="true">Portal model</div>
+      <a class="sy-nav__item" href="v2-09-processes.html">Processes <span class="sy-nav__count">6</span></a>
+      <a class="sy-nav__item" href="v2-06-screens.html" aria-current="page">Screens <span class="sy-nav__count">19</span></a>
+      <a class="sy-nav__item" href="v2-11-rules.html">Rules <span class="sy-nav__count">6</span></a>
+      <a class="sy-nav__item" href="#">Docs</a>
+      <div class="sy-nav__group" aria-hidden="true">Machine</div>
+      <a class="sy-nav__item" href="10-scans.html">Scans</a>
+      <a class="sy-nav__item" href="11-settings.html">Settings</a>
+      <div class="sy-nav__foot">store: sandbox · writes go through commands</div>
+    </nav>
+    <main id="main" class="sy-main">
+<div class="sy-pagehead">
+        <nav class="sy-crumbs" aria-label="Breadcrumb"><a href="v2-06-screens.html">Screens</a> / <span aria-current="page">Kalkulator OC/AC — dane kierowcy</span></nav>
+        <div class="sy-pagehead__row">
+          <div class="sy-stack" style="--sy-gap: 8px">
+            <h1 class="sy-h1">Kalkulator OC/AC — dane kierowcy</h1>
+            <div class="sy-cluster sy-meta" style="--sy-gap: 6px 16px">
+              <span class="sy-route">/kalkulator/kierowca · step 1</span>
+              <span>part Kalkulator app · <span class="sy-mono">9c21</span></span>
+              <span class="sy-status" data-status="live">Active</span>
+              <span class="sy-cluster" style="--sy-gap: 6px">last seen 17 Oct <span class="sy-tag sy-tag--sm">01a1340c</span></span>
+              <span>Checked 8 / 11 actions on <span class="sy-mono">9c21</span></span>
+            </div>
+            <p class="sy-cluster sy-meta" style="--sy-gap: 6px 16px">
+              <span class="sy-cluster" style="--sy-gap: 6px">record <a class="sy-tag sy-tag--sm" href="#">SCR-012</a></span>
+              <span>in process <a href="v2-10-process-detail.html">Oblicz składkę OC/AC</a> · step 1</span>
+            </p>
+          </div>
+          <a class="sy-btn" href="v2-08-map.html">Open in map</a>
+        </div>
+      </div>
+
+      <!-- Section links (in-page anchors): all three sections are on this page, stacked, so none is "current" -->
+      <nav class="sy-tabs" aria-label="Screen sections">
+        <a class="sy-tab" href="#variants">Variants <span class="sy-count sy-count--muted">4</span></a>
+        <a class="sy-tab" href="#actions">Actions <span class="sy-count sy-count--muted">12</span></a>
+        <a class="sy-tab" href="#history">History <span class="sy-count sy-count--muted">6</span></a>
+      </nav>
+
+      <!-- Exceptions first: what on this screen waits for a person -->
+      <section class="sy-plate sy-plate--intent" aria-labelledby="needs-h">
+        <div class="sy-plate__head">
+          <h2 id="needs-h" class="sy-plate__title">Needs you on this screen</h2>
+          <span class="sy-count">2</span>
+        </div>
+        <ul class="sy-rows">
+          <li class="sy-row">
+            <span class="sy-row__main">
+              <span class="sy-cluster" style="--sy-gap: 6px 8px"><span class="sy-chip">Rule changed</span><a class="sy-tag sy-tag--sm" href="v2-12-rule-detail.html">BR-021</a><span class="sy-muted">on "Dalej"</span></span>
+              <span>Driver age threshold moved from 18 to 21 with release <span class="sy-case-normal">9c21</span>. Tested at 20, 21, 22: pass.</span>
+            </span>
+            <span class="sy-cluster" style="--sy-gap: 6px 12px"><span class="sy-status" data-status="needs">Needs you</span><span class="sy-small sy-muted">today</span></span>
+          </li>
+          <li class="sy-row">
+            <span class="sy-row__main">
+              <span class="sy-cluster" style="--sy-gap: 6px 8px"><span class="sy-chip sy-chip--fail">Rule broke</span><a class="sy-tag sy-tag--sm" href="v2-11-rules.html">BR-026</a><span class="sy-muted">on "Kod pocztowy"</span></span>
+              <span>Postal code "00950" is now accepted (was refused on <span class="sy-case-normal">5f08</span>). <span class="sy-status" data-status="failed">Fail</span></span>
+            </span>
+            <span class="sy-cluster" style="--sy-gap: 6px 12px"><span class="sy-status" data-status="needs">Needs you</span><span class="sy-small sy-muted">today</span></span>
+          </li>
+        </ul>
+        <div class="sy-plate__foot">
+          <span class="sy-small sy-muted">Each decision asks for a one-line reason, shown here afterwards.</span>
+          <a class="sy-btn sy-btn--primary" href="v2-04-review.html">Open in Review</a>
+        </div>
+      </section>
+
+      <!-- ===== Variants: each says why it differs ===== -->
+      <section id="variants" class="mp-section" aria-labelledby="var-h">
+        <div class="mp-section__head">
+          <h2 id="var-h" class="sy-h2">Variants · 4</h2>
+          <p class="sy-small sy-muted">Changed regions are marked. Mocks stand in for the recorded screenshots.</p>
+        </div>
+        <p id="ov-help" class="sy-small sy-muted">Overturn… opens the Overturn dialog (as in Review › Explained automatically): say what it is instead and give a one-line reason, shown wherever this decision appears. The item moves to Needs you.</p>
+        <div class="sy-compare mp-variants" style="--sy-min: 220px">
+
+          <section class="sy-compare__side mp-variant" aria-labelledby="r1-h">
+            <header class="sy-compare__head"><h3 id="r1-h" class="sy-h3"><span class="sy-case-normal">r1</span></h3><span class="sy-chip">Baseline</span></header>
+            <figure class="sy-shot mp-mini" aria-label="Variant r1 as recorded on release 5f08, persona guest (mock)">
+              <b>Kalkulator OC/AC</b>
+              <span>Data urodzenia [ __________ ]</span>
+              <span>Musisz mieć ukończone 18 lat</span>
+              <span>Kod pocztowy [ 00-950 ]</span>
+              <span class="sy-shot__link">Jak liczymy składkę?</span>
+              <span>[ Wstecz ] [ Dalej ]</span>
+              <span>[ Zapisz kalkulację ]</span>
+              <span>v5f08</span>
+            </figure>
+            <p class="sy-small sy-muted sy-cluster" style="--sy-gap: 4px 6px"><span><span class="sy-case-normal">5f08</span> · guest · seen 4–15 Oct · scans</span><span class="sy-tag sy-tag--sm">01a1083f</span><span>…</span><span class="sy-tag sy-tag--sm">01a12f40</span></p>
+            <span class="sy-status" data-status="ok">Observed</span>
+          </section>
+
+          <section class="sy-compare__side mp-variant" aria-labelledby="r2-h">
+            <header class="sy-compare__head"><h3 id="r2-h" class="sy-h3"><span class="sy-case-normal">r2</span></h3><span class="sy-chip"><span>Release <span class="sy-case-normal">9c21</span></span></span></header>
+            <figure class="sy-shot mp-mini" aria-label="Variant r2 on release 9c21: help text changed, Zapisz kalkulację gone (mock)">
+              <b>Kalkulator OC/AC</b>
+              <span>Data urodzenia [ __________ ]</span>
+              <mark class="sy-mark"><span class="sy-mark__label">Changed</span><span>Musisz mieć ukończone 21 lat</span></mark>
+              <span>Kod pocztowy [ 00-950 ]</span>
+              <span class="sy-shot__link">Jak liczymy składkę?</span>
+              <span>[ Wstecz ] [ Dalej ]</span>
+              <mark class="sy-mark"><span class="sy-mark__label">Gone</span><del>[ Zapisz kalkulację ]</del></mark>
+              <span>v9c21</span>
+            </figure>
+            <p class="sy-small sy-muted sy-cluster" style="--sy-gap: 4px 6px"><span><span class="sy-case-normal">9c21</span> · guest · first seen 17 Oct 10:05Z · 13 of 14 visits · check run</span><span class="sy-tag sy-tag--sm">01a1340c</span></p>
+            <span class="sy-status" data-status="inferred">Explained automatically</span>
+            <p class="sy-small">Explained as a new release because the app's code changed at 14:02Z on 16 Oct (marker <span class="sy-case-normal">5f08</span> → <span class="sy-case-normal">9c21</span>, seen by release watch).</p>
+            <button class="sy-btn sy-btn--sm sy-btn--quiet" type="button" aria-describedby="ov-help" style="align-self: flex-start">Overturn…</button>
+          </section>
+
+          <section class="sy-compare__side mp-variant" aria-labelledby="r3-h">
+            <header class="sy-compare__head"><h3 id="r3-h" class="sy-h3"><span class="sy-case-normal">r3</span></h3><span class="sy-chip">Persona premium</span></header>
+            <figure class="sy-shot mp-mini" aria-label="Variant r3 for persona premium: extra field Rabat dla stałych klientów (mock)">
+              <b>Kalkulator OC/AC</b>
+              <span>Data urodzenia [ __________ ]</span>
+              <span>Musisz mieć ukończone 18 lat</span>
+              <span>Kod pocztowy [ 00-950 ]</span>
+              <mark class="sy-mark"><span class="sy-mark__label">New</span>Rabat dla stałych klientów [ ____ ]</mark>
+              <span>[ Wstecz ] [ Dalej ]</span>
+              <span>[ Zapisz kalkulację ]</span>
+              <span>v5f08</span>
+            </figure>
+            <p class="sy-small sy-muted"><span class="sy-case-normal">5f08</span> · persona premium · not explored on <span class="sy-case-normal">9c21</span> yet</p>
+            <span class="sy-status" data-status="inferred">Explained automatically</span>
+            <p class="sy-small">Explained as another persona: only premium customers see this field.</p>
+            <span class="sy-cluster" style="--sy-gap: 4px 6px"><a class="sy-tag sy-tag--sm" href="v2-11-rules.html">BR-025</a><span class="sy-small sy-muted">rule proposed</span></span>
+            <button class="sy-btn sy-btn--sm sy-btn--quiet" type="button" aria-describedby="ov-help" style="align-self: flex-start">Overturn…</button>
+          </section>
+
+          <section class="sy-compare__side mp-variant" aria-labelledby="r4-h">
+            <header class="sy-compare__head"><h3 id="r4-h" class="sy-h3"><span class="sy-case-normal">r4</span></h3><span class="sy-chip">Error</span></header>
+            <figure class="sy-shot mp-mini" aria-label="Variant r4 on release 9c21: field Kod pocztowy missing after a script error (mock)">
+              <b>Kalkulator OC/AC</b>
+              <span>Data urodzenia [ __________ ]</span>
+              <span>Musisz mieć ukończone 21 lat</span>
+              <mark class="sy-mark"><span class="sy-mark__label">Missing</span><del>Kod pocztowy [ ]</del></mark>
+              <span class="sy-shot__link">Jak liczymy składkę?</span>
+              <span>[ Wstecz ] [ Dalej ]</span>
+              <span>v9c21</span>
+            </figure>
+            <p class="sy-small sy-muted sy-cluster" style="--sy-gap: 4px 6px"><span><span class="sy-case-normal">9c21</span> · guest · 1 of 14 visits · 17 Oct 10:12Z · check run</span><span class="sy-tag sy-tag--sm">01a1340c</span></p>
+            <span class="sy-status" data-status="inferred">Explained automatically</span>
+            <p class="sy-small">Explained as a flaky error: the page logged a script error on that visit; the field was there on the other 13.</p>
+            <button class="sy-btn sy-btn--sm sy-btn--quiet" type="button" aria-describedby="ov-help" style="align-self: flex-start">Overturn…</button>
+          </section>
+        </div>
+      </section>
+
+      <div class="sy-columns">
+        <div class="sy-col-main sy-stack" style="--sy-gap: var(--sy-space-6)">
+
+          <!-- ===== Actions: status per release and persona ===== -->
+          <section id="actions" class="mp-section" aria-labelledby="act-h">
+            <div class="mp-section__head">
+              <h2 id="act-h" class="sy-h2">Actions · 12</h2>
+              <p class="sy-small sy-muted">11 on <span class="sy-case-normal">9c21</span> · Checked 8 / 11 · 1 retired · actions inside stay on this screen</p>
+            </div>
+            <div class="sy-table-wrap">
+              <table class="sy-table sy-table--dense" style="min-width: 620px" aria-labelledby="act-h">
+                <thead>
+                  <tr><th scope="col">Action</th><th scope="col">Kind</th><th scope="col">Status</th><th scope="col">Personas</th><th scope="col">Leads to</th></tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <th scope="row">Dalej</th>
+                    <td>button</td>
+                    <td><span class="sy-status" data-status="live">Active</span></td>
+                    <td>all</td>
+                    <td><span class="mp-cell"><span>Kalkulator OC/AC — opcje <span class="sy-muted">· age ≥ 21</span></span><span>Nie możemy Cię ubezpieczyć <span class="sy-muted">· age &lt; 21</span></span><a class="sy-tag sy-tag--sm" href="v2-12-rule-detail.html">BR-021</a></span></td>
+                  </tr>
+                  <tr>
+                    <th scope="row">Wstecz</th>
+                    <td>button</td>
+                    <td><span class="sy-status" data-status="live">Active</span></td>
+                    <td>all</td>
+                    <td>the previous screen</td>
+                  </tr>
+                  <tr>
+                    <th scope="row">"Jak liczymy składkę?"</th>
+                    <td>dialog</td>
+                    <td><span class="sy-status" data-status="live">Active</span></td>
+                    <td>all</td>
+                    <td class="sy-muted">inside this screen</td>
+                  </tr>
+                  <tr>
+                    <th scope="row">Kod pocztowy lookup</th>
+                    <td>field lookup</td>
+                    <td><span class="sy-status" data-status="unobserved"><span>Not checked on <span class="sy-case-normal">9c21</span></span></span></td>
+                    <td>all</td>
+                    <td><span class="mp-cell"><span class="sy-muted">inside this screen</span><a class="sy-tag sy-tag--sm" href="v2-11-rules.html">BR-026</a></span></td>
+                  </tr>
+                  <tr>
+                    <th scope="row">"Rabat dla stałych klientów"</th>
+                    <td>field</td>
+                    <td><span class="mp-cell"><span class="sy-status" data-status="unobserved"><span>Not checked on <span class="sy-case-normal">9c21</span></span></span><span class="sy-small sy-muted">premium not explored on <span class="sy-case-normal">9c21</span></span></span></td>
+                    <td><b>only premium</b></td>
+                    <td><span class="mp-cell"><span class="sy-muted">inside this screen</span><a class="sy-tag sy-tag--sm" href="v2-11-rules.html">BR-025</a></span></td>
+                  </tr>
+                  <tr>
+                    <th scope="row">5 form fields</th>
+                    <td>field</td>
+                    <td><span class="sy-status" data-status="live">Active</span></td>
+                    <td>all</td>
+                    <td><span class="sy-muted">inside this screen · Data urodzenia, Kod pocztowy and 3 more</span></td>
+                  </tr>
+                  <tr>
+                    <th scope="row">"Regulamin"</th>
+                    <td>link</td>
+                    <td><span class="sy-status" data-status="queued">Not seen since 15 Oct</span></td>
+                    <td>all</td>
+                    <td class="sy-muted">—</td>
+                  </tr>
+                  <tr>
+                    <th scope="row" class="sy-muted">"Zapisz kalkulację"</th>
+                    <td class="sy-muted">button</td>
+                    <td><span class="sy-status" data-status="skipped"><span>Retired with <span class="sy-case-normal">9c21</span></span></span></td>
+                    <td class="sy-muted">all</td>
+                    <td class="sy-muted">— · last seen on <span class="sy-case-normal">5f08</span></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+          <!-- ===== History: splits, merges, variants, with reasons and the documentation they touched ===== -->
+          <section id="history" class="mp-section" aria-labelledby="hist-h">
+            <div class="mp-section__head">
+              <h2 id="hist-h" class="sy-h2">History · 6</h2>
+              <p class="sy-small sy-muted">newest first · nothing is removed</p>
+            </div>
+            <ol class="sy-timeline">
+              <li>
+                <div class="sy-timeline__head"><time class="sy-mono sy-mono--sm" datetime="2026-10-17T10:12Z">17 Oct 10:12Z</time><b>Variant <span class="sy-case-normal">r4</span> appeared</b><span class="sy-chip">Error</span></div>
+                <div class="sy-timeline__body">"Kod pocztowy" missing on 1 of 14 visits in check run <span class="sy-tag sy-tag--sm">01a1340c</span>; the page logged a script error. Reason: automatic rule, flaky error. Documentation affected: none.</div>
+              </li>
+              <li>
+                <div class="sy-timeline__head"><time class="sy-mono sy-mono--sm" datetime="2026-10-17T10:05Z">17 Oct 10:05Z</time><b>Variant <span class="sy-case-normal">r2</span> first seen</b><span class="sy-chip"><span>Release <span class="sy-case-normal">9c21</span></span></span></div>
+                <div class="sy-timeline__body">Check run <span class="sy-tag sy-tag--sm">01a1340c</span>, the first scan on <span class="sy-case-normal">9c21</span>: help text now "Musisz mieć ukończone 21 lat"; "Zapisz kalkulację" gone; <a class="sy-tag sy-tag--sm" href="v2-12-rule-detail.html">BR-021</a> threshold 18 → 21 (needs you). Reason: automatic rule, the app's code changed. Documentation affected: <a class="sy-tag sy-tag--sm" href="#">SCR-012</a> <a class="sy-tag sy-tag--sm" href="v2-10-process-detail.html">PROC-001</a></div>
+              </li>
+              <li>
+                <div class="sy-timeline__head"><time class="sy-mono sy-mono--sm" datetime="2026-10-16T14:02Z">16 Oct 14:02Z</time><b>Release <span class="sy-case-normal">9c21</span> (release watch)</b></div>
+                <div class="sy-timeline__body">Release watch saw marker <span class="sy-case-normal">9c21</span> on Kalkulator app for the first time (<span class="sy-case-normal">5f08</span> → <span class="sy-case-normal">9c21</span>); both were served until 17 Oct 09:30Z (rollout). No scan ran then, so this screen's <span class="sy-case-normal">9c21</span> variants were first seen by the next scan. Documentation affected: none yet.</div>
+              </li>
+              <li>
+                <div class="sy-timeline__head"><time class="sy-mono sy-mono--sm" datetime="2026-10-15">15 Oct</time><b>Merged in "Kalkulator OC/AC — dane kierowcy (?src=menu)"</b></div>
+                <div class="sy-timeline__body sy-stack" style="--sy-gap: 6px">
+                  <span>Reason: automatic grouping, same form, only the query string differs. Documentation affected: <a class="sy-tag sy-tag--sm" href="#">SCR-012</a></span>
+                  <span class="sy-cluster" style="--sy-gap: 8px"><button class="sy-btn sy-btn--sm sy-btn--quiet" type="button" aria-describedby="split-help">Split again…</button><span id="split-help" class="sy-small">Asks for a one-line reason. The (?src=menu) copy becomes its own screen again and <span class="sy-tag sy-tag--sm">SCR-012</span> is redrafted.</span></span>
+                </div>
+              </li>
+              <li>
+                <div class="sy-timeline__head"><time class="sy-mono sy-mono--sm" datetime="2026-10-06">6 Oct</time><b>Split: "Kalkulator OC/AC — opcje" became its own screen</b></div>
+                <div class="sy-timeline__body">A new step on the same URL. Reason: automatic, the form changed after "Dalej" without a new URL. Documentation affected: <a class="sy-tag sy-tag--sm" href="#">SCR-012</a> <a class="sy-tag sy-tag--sm" href="v2-10-process-detail.html">PROC-001</a></div>
+              </li>
+              <li>
+                <div class="sy-timeline__head"><time class="sy-mono sy-mono--sm" datetime="2026-10-04T18:48Z">4 Oct 18:48Z</time><b>First seen</b></div>
+                <div class="sy-timeline__body">AI scan <span class="sy-tag sy-tag--sm">01a1083f</span> · release <span class="sy-case-normal">5f08</span> · persona guest.</div>
+              </li>
+            </ol>
+          </section>
+        </div>
+
+        <div class="sy-col-side">
+          <section class="sy-plate" aria-labelledby="same-h">
+            <div class="sy-plate__head"><h2 id="same-h" class="sy-plate__title">Same screen?</h2></div>
+            <div class="sy-plate__body">
+              <p class="sy-small">Think two of these variants are different screens, or that another screen is this one? Label them side by side; keys <span class="sy-kbd">1</span> <span class="sy-kbd">2</span> <span class="sy-kbd">3</span>.</p>
+              <a href="v2-14-same-screen.html">Open Same screen?</a>
+            </div>
+          </section>
+
+          <section class="sy-plate" aria-labelledby="doc-h">
+            <div class="sy-plate__head"><h2 id="doc-h" class="sy-plate__title">Documentation</h2></div>
+            <ul class="sy-rows">
+              <li class="sy-row"><span class="sy-row__main"><span><a class="sy-tag sy-tag--sm" href="#">SCR-012</a></span><span class="sy-small sy-muted">this screen · affected by <span class="sy-case-normal">9c21</span> and the 15 Oct merge</span></span><span class="sy-status" data-status="draft">Draft</span></li>
+              <li class="sy-row"><span class="sy-row__main"><span><a class="sy-tag sy-tag--sm" href="v2-10-process-detail.html">PROC-001</a></span><span class="sy-small sy-muted">Oblicz składkę OC/AC · rev 3 · step 1</span></span><span class="sy-status" data-status="ok">Accepted</span></li>
+            </ul>
+            <div class="sy-plate__foot"><span class="sy-cluster sy-small sy-muted" style="--sy-gap: 4px 6px"><a class="sy-tag sy-tag--sm" href="#">SCR-012</a><span>is redrafted after you decide</span><a class="sy-tag sy-tag--sm" href="v2-12-rule-detail.html">BR-021</a><span>and</span><a class="sy-tag sy-tag--sm" href="v2-11-rules.html">BR-026</a></span></div>
+          </section>
+
+          <section class="sy-plate" aria-labelledby="asst-h">
+            <div class="sy-plate__head"><h2 id="asst-h" class="sy-plate__title">Ask the assistant</h2></div>
+            <div class="sy-plate__body">
+              <div class="sy-chips" style="--sy-gap: 6px">
+                <a class="sy-btn sy-btn--sm sy-btn--quiet" href="02-screen-with-assistant.html"><span>Compare <span class="sy-case-normal">r1</span> and <span class="sy-case-normal">r2</span></span></a>
+                <a class="sy-btn sy-btn--sm sy-btn--quiet" href="02-screen-with-assistant.html">Why is the lookup not checked?</a>
+                <a class="sy-btn sy-btn--sm sy-btn--quiet" href="02-screen-with-assistant.html"><span>Explore persona premium on <span class="sy-case-normal">9c21</span></span></a>
+              </div>
+              <p class="sy-small sy-muted sy-cluster" style="--sy-gap: 4px 6px"><span>Last scan: check run</span><span class="sy-tag sy-tag--sm">01a1340c</span><span>17 Oct · 64 checks</span></p>
+            </div>
+          </section>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+</body>
+</html>

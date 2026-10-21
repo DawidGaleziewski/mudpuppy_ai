@@ -132,6 +132,8 @@ export interface TraceStep {
   kind: StepKind;
   action_id: string | null;
   value: string | null;
+  /** The step enters the process (its trigger, spec 039 T081). */
+  trigger?: true;
 }
 
 /**
@@ -152,6 +154,14 @@ export interface StepContext {
   reloginTarget?: string;
   /** List the page's actions even when the run already knows the state (spec 013 US1). */
   includeActions?: boolean;
-  /** The page is the landing of the server-side login (its visit row says `login`, spec 019). */
-  visitVia?: 'login';
+  /** The page is the landing of the server-side login (its observation row says `login`, spec 019). */
+  observationVia?: 'login';
+  /**
+   * What an `act` typed (spec 039 design § 5.8): its own fill or select value, and what map-mode
+   * autofill typed before the press.
+   */
+  typed?: {
+    value: string | null;
+    fills: readonly { name: string; kind: 'fill' | 'select' | 'check'; value?: string }[];
+  };
 }

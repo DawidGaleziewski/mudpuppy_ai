@@ -18,9 +18,8 @@ if (conversationId === undefined || conversationId === '') {
 }
 
 // Started by the chat service with its own environment; never a default (spec 030 R-61).
-const opened = openDb(
-  dbPathFor(join(repoRoot, 'data'), requireEnvironment(repoRoot, process.env.PATHFINDER_ENV)),
-);
+const environment = requireEnvironment(repoRoot, process.env.PATHFINDER_ENV);
+const opened = openDb(dbPathFor(join(repoRoot, 'data'), environment));
 migrateUp(opened.raw, join(repoRoot, 'data', 'migrations'));
 const server = createChatMcpServer({
   raw: opened.raw,
@@ -28,5 +27,6 @@ const server = createChatMcpServer({
   paths: { repoRoot },
   conversationId,
   evidence: createEvidenceStore(join(repoRoot, 'data', 'evidence')),
+  checkRuns: { repoRoot, environment },
 });
 await server.connect(new StdioServerTransport());

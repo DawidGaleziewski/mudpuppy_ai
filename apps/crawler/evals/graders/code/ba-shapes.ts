@@ -10,9 +10,10 @@
  * - `rules_on_screens_pct`: business rules linked to a screen with `applies_on`, of all rules.
  * - `data_items_code_names`: data items named by the input's code name (`rok_produkcji`,
  *   `postalCode`) instead of its visible label (spec 026 F-05, spec 031 T016).
- * - `error_pages_as_steps`: steps of the processes' as-is (variant A, latest revision) on a state of
- *   kind `technical`, or on one the owner confirmed as `temporary` or `technical` in Review: an
- *   error page is never a step (spec 033 SC-007, design §7.5). Must be 0.
+ * - `error_pages_as_steps`: steps of the processes' as-is (process model A, latest revision) on an
+ *   error page: a state of kind `technical`, or a state cited by a confirmed `flaky` or
+ *   `deterministic_error` hypothesis (spec 039, owner answer 4). An error page is never a step
+ *   (spec 033 SC-007). Must be 0.
  */
 import type { GroundTruth } from '@pathfinder/docs';
 import type { RawDb } from '../../queries.js';
@@ -25,43 +26,36 @@ export interface BaShapes {
   error_pages_as_steps: number;
 }
 
-const ERROR_VERDICTS = new Set(['temporary', 'technical']);
-
-/** States the owner confirmed as an error or a temporary state (spec 033); none on an old store. */
-function confirmedErrors(db: RawDb, portal: string): Set<string> {
-  try {
-    const rows = db
-      .prepare(
-        "SELECT confirmed_json FROM reconciliations WHERE portal_id = ? AND status = 'confirmed'",
-      )
-      .all(portal) as { confirmed_json: string }[];
-    return new Set(
-      rows.flatMap((r) =>
-        (JSON.parse(r.confirmed_json) as { state_id: string; verdict: string }[])
-          .filter((v) => ERROR_VERDICTS.has(v.verdict))
-          .map((v) => v.state_id),
-      ),
-    );
-  } catch {
-    return new Set();
-  }
-}
+/**
+ * Error pages: technical states, and the states a confirmed `flaky` / `deterministic_error`
+ * hypothesis cites (directly, through an observation, or through its deviation). A hypothesis's
+ * status is its latest event.
+ */
+const ERROR_STATES = `
+  WITH confirmed AS (
+    SELECT h.id, h.deviation_id FROM hypotheses h
+     WHERE h.portal_id = @portal AND h.kind IN ('flaky', 'deterministic_error')
+       AND (SELECT e.to_status FROM hypothesis_events e WHERE e.hypothesis_id = h.id
+             ORDER BY e.at DESC, e.id DESC LIMIT 1) = 'confirmed')
+  SELECT id FROM states WHERE portal_id = @portal AND state_kind = 'technical'
+  UNION SELECT coalesce(r.state_id, o.state_id) FROM confirmed c
+    JOIN hypothesis_evidence he ON he.hypothesis_id = c.id
+    JOIN entity_refs r ON r.id = he.ref_id
+    LEFT JOIN observations o ON o.id = r.observation_id
+   WHERE coalesce(r.state_id, o.state_id) IS NOT NULL
+  UNION SELECT d.state_id FROM confirmed c JOIN deviations d ON d.id = c.deviation_id
+   WHERE d.state_id IS NOT NULL`;
 
 /** Steps of the processes' as-is on an error page (see the module comment). */
 export function errorPagesAsSteps(db: RawDb, portal: string): number {
-  const technical = new Set(
-    (
-      db
-        .prepare("SELECT id FROM states WHERE portal_id = ? AND state_kind = 'technical'")
-        .all(portal) as { id: string }[]
-    ).map((r) => r.id),
+  const errors = new Set(
+    (db.prepare(ERROR_STATES).all({ portal }) as { id: string }[]).map((r) => r.id),
   );
-  const errors = new Set([...technical, ...confirmedErrors(db, portal)]);
   const steps = db
     .prepare(
       `SELECT r.steps FROM ba_processes p
-         JOIN process_variants v ON v.process_id = p.id AND v.label = 'A'
-         JOIN process_variant_revisions r ON r.variant_id = v.id AND r.rev = v.rev
+         JOIN process_models v ON v.process_id = p.id AND v.label = 'A'
+         JOIN process_model_revisions r ON r.model_id = v.id AND r.rev = v.rev
         WHERE p.portal_id = ?`,
     )
     .all(portal) as { steps: string }[];

@@ -1,15 +1,15 @@
 // The write path for BA processes (spec 022 M5, FR-004, FR-005, FR-008): processes, their
-// variants and revisions, per-person drafts, the live variant per environment and change spec
+// models and revisions, per-person drafts, the live model per environment and change spec
 // revisions. Every change is a new revision row; a write on a stale base answers 409
 // STALE_REVISION. A draft is the only row updated in place: one person's scratch over one to-be
-// variant. Grouping suggestions are in process-suggestions.ts.
+// model. Grouping suggestions are in process-suggestions.ts.
 
 import { newId, nowIso } from '@pathfinder/core';
 import {
   type BaProcess,
   ChangeSpecRevision,
   ProcessDraft,
-  ProcessVariant,
+  ProcessModel,
 } from '@pathfinder/chat-model';
 import { type OpenedDb, type PathfinderDb } from '@pathfinder/store';
 import { openFromRecord } from './process-from-record.js';
@@ -31,21 +31,21 @@ import { parseBody } from './http-io.js';
 import { checkSteps, editedSteps, editNote, nextLabel } from './process-steps.js';
 import {
   insertProcess,
-  insertVariantRevision,
+  insertModelRevision,
   knownStates,
   loadProcess,
   loadRevision,
-  loadVariant,
+  loadModel,
   parentStepIds,
   parseRow,
   stale,
   statesOf,
   usedStepIds,
   writeProcess,
-  writeVariant,
+  writeModel,
   type ProcessOutcome,
 } from './process-store.js';
-import { acceptSuggestion, dismissSuggestion, suggestGrouping } from './process-suggestions.js';
+import * as suggestions from './process-suggestions.js';
 
 /** "New process" from chosen screens, in the given order. */
 async function create(db: PathfinderDb, portal: string, raw: unknown): Promise<ProcessOutcome> {
@@ -66,7 +66,7 @@ async function change(
   const body = parseBody(ProcessChangeBody, raw);
   return db.transaction().execute(async (trx) => {
     const head = await loadProcess(trx, portal, id);
-    const asIs = body.stage === undefined ? null : await loadVariant(trx, head.id, 'A');
+    const asIs = body.stage === undefined ? null : await loadModel(trx, head.id, 'A');
     return writeProcess(trx, head, body.base_rev, {
       change: body.name !== undefined ? 'rename' : 'stage',
       author: body.author,
@@ -116,13 +116,13 @@ async function editAsIs(
   const body = parseBody(EditAsIsBody, raw);
   return db.transaction().execute(async (trx) => {
     const process = await loadProcess(trx, portal, id);
-    const head = await loadVariant(trx, process.id, label);
+    const head = await loadModel(trx, process.id, label);
     if (head.kind !== 'as_is')
-      throw new HttpError(409, 'A to-be variant changes in a draft; open it and save the draft.');
+      throw new HttpError(409, 'A to-be model changes in a draft; open it and save the draft.');
     const current = await loadRevision(trx, head.id, head.rev);
     const states = await statesOf(trx, portal, body.state_ids);
     const steps = editedSteps(current.steps, states, await usedStepIds(trx, head.id));
-    const written = await writeVariant(trx, head, body.base_rev, {
+    const written = await writeModel(trx, head, body.base_rev, {
       change: 'edit',
       author: body.author,
       steps,
@@ -132,7 +132,7 @@ async function editAsIs(
   });
 }
 
-/** A new to-be variant (B, C…) starting as a copy of a revision of another variant. */
+/** A new to-be model (B, C…) starting as a copy of a revision of another model. */
 async function branch(
   db: PathfinderDb,
   portal: string,
@@ -142,27 +142,27 @@ async function branch(
   const body = parseBody(BranchBody, raw);
   return db.transaction().execute(async (trx) => {
     const process = await loadProcess(trx, portal, id);
-    const from = await loadVariant(trx, process.id, body.from);
+    const from = await loadModel(trx, process.id, body.from);
     const fromRev = await loadRevision(trx, from.id, body.from_rev ?? from.rev);
     const labels = await trx
-      .selectFrom('process_variants')
+      .selectFrom('process_models')
       .select('label')
       .where('process_id', '=', process.id)
       .execute();
-    const variant = ProcessVariant.parse({
+    const model = ProcessModel.parse({
       id: newId(),
       process_id: process.id,
       label: nextLabel(labels.map((l) => l.label)),
       kind: 'to_be',
       rev: 1,
-      branched_from_variant_id: from.id,
+      branched_from_model_id: from.id,
       branched_from_rev: fromRev.rev,
       created_at: nowIso(),
     });
-    await trx.insertInto('process_variants').values(variant).execute();
+    await trx.insertInto('process_models').values(model).execute();
     // Each copied step comes from the step it copies, so Compare starts as all "unchanged".
-    const revision = await insertVariantRevision(trx, {
-      variant_id: variant.id,
+    const revision = await insertModelRevision(trx, {
+      model_id: model.id,
       rev: 1,
       base_rev: null,
       change: 'branch',
@@ -172,38 +172,38 @@ async function branch(
       run_id: null,
       restored_from: null,
     });
-    return { process, variant, revision };
+    return { process, model, revision };
   });
 }
 
-/** The to-be variant `label` of process `id`; the as-is is changed only by rescanning. */
+/** The to-be model `label` of process `id`; the as-is is changed only by rescanning. */
 async function toBe(trx: PathfinderDb, portal: string, id: string, label: string) {
   const process = await loadProcess(trx, portal, id);
-  const variant = await loadVariant(trx, process.id, label);
-  if (variant.kind !== 'to_be')
+  const model = await loadModel(trx, process.id, label);
+  if (model.kind !== 'to_be')
     throw new HttpError(
       409,
-      'The as-is changes only by rescanning; branch a to-be variant to draw.',
+      'The as-is changes only by rescanning; branch a to-be model to draw.',
     );
-  return { process, variant };
+  return { process, model };
 }
 
 async function loadDraft(
   trx: PathfinderDb,
-  variantId: string,
+  modelId: string,
   author: string,
 ): Promise<ProcessDraft> {
   const row = await trx
     .selectFrom('process_drafts')
     .selectAll()
-    .where('variant_id', '=', variantId)
+    .where('model_id', '=', modelId)
     .where('author', '=', author)
     .executeTakeFirst();
-  if (row === undefined) throw new HttpError(404, 'There is no draft of yours on this variant.');
+  if (row === undefined) throw new HttpError(404, 'There is no draft of yours on this model.');
   return parseRow(ProcessDraft, row, ['steps']);
 }
 
-/** Autosave one person's draft over a to-be variant (replaces their previous draft). */
+/** Autosave one person's draft over a to-be model (replaces their previous draft). */
 async function saveDraft(
   db: PathfinderDb,
   portal: string,
@@ -213,13 +213,13 @@ async function saveDraft(
 ): Promise<ProcessDraft> {
   const body = parseBody(DraftBody, raw);
   return db.transaction().execute(async (trx) => {
-    const { variant } = await toBe(trx, portal, id, label);
+    const { model } = await toBe(trx, portal, id, label);
     checkSteps(body.steps, {
       knownStates: await knownStates(trx, portal, body.steps),
-      parentStepIds: await parentStepIds(trx, variant),
+      parentStepIds: await parentStepIds(trx, model),
     });
     const draft = ProcessDraft.parse({
-      variant_id: variant.id,
+      model_id: model.id,
       author: body.author,
       base_rev: body.base_rev,
       steps: body.steps,
@@ -229,7 +229,7 @@ async function saveDraft(
     await trx
       .insertInto('process_drafts')
       .values(values)
-      .onConflict((oc) => oc.columns(['variant_id', 'author']).doUpdateSet(values))
+      .onConflict((oc) => oc.columns(['model_id', 'author']).doUpdateSet(values))
       .execute();
     return draft;
   });
@@ -245,10 +245,10 @@ async function discardDraft(
 ) {
   const { author } = parseBody(AuthorBody, raw);
   return db.transaction().execute(async (trx) => {
-    const { variant } = await toBe(trx, portal, id, label);
+    const { model } = await toBe(trx, portal, id, label);
     const done = await trx
       .deleteFrom('process_drafts')
-      .where('variant_id', '=', variant.id)
+      .where('model_id', '=', model.id)
       .where('author', '=', author)
       .executeTakeFirst();
     return { discarded: Number(done.numDeletedRows) === 1 };
@@ -265,9 +265,9 @@ async function saveRevision(
 ): Promise<ProcessOutcome> {
   const body = parseBody(SaveBody, raw);
   return db.transaction().execute(async (trx) => {
-    const { process, variant: head } = await toBe(trx, portal, id, label);
+    const { process, model: head } = await toBe(trx, portal, id, label);
     const draft = await loadDraft(trx, head.id, body.author);
-    const written = await writeVariant(trx, head, body.base_rev, {
+    const written = await writeModel(trx, head, body.base_rev, {
       change: 'save',
       author: body.author,
       steps: draft.steps,
@@ -275,7 +275,7 @@ async function saveRevision(
     });
     await trx
       .deleteFrom('process_drafts')
-      .where('variant_id', '=', head.id)
+      .where('model_id', '=', head.id)
       .where('author', '=', body.author)
       .execute();
     return { process, ...written };
@@ -292,13 +292,13 @@ async function rebaseDraft(
 ): Promise<ProcessDraft> {
   const { author } = parseBody(AuthorBody, raw);
   return db.transaction().execute(async (trx) => {
-    const { variant } = await toBe(trx, portal, id, label);
-    const draft = await loadDraft(trx, variant.id, author);
-    const rebased = { ...draft, base_rev: variant.rev, updated_at: nowIso() };
+    const { model } = await toBe(trx, portal, id, label);
+    const draft = await loadDraft(trx, model.id, author);
+    const rebased = { ...draft, base_rev: model.rev, updated_at: nowIso() };
     await trx
       .updateTable('process_drafts')
       .set({ base_rev: rebased.base_rev, updated_at: rebased.updated_at })
-      .where('variant_id', '=', variant.id)
+      .where('model_id', '=', model.id)
       .where('author', '=', author)
       .execute();
     return rebased;
@@ -316,9 +316,9 @@ async function restore(
   const body = parseBody(RestoreBody, raw);
   return db.transaction().execute(async (trx) => {
     const process = await loadProcess(trx, portal, id);
-    const head = await loadVariant(trx, process.id, label);
+    const head = await loadModel(trx, process.id, label);
     const old = await loadRevision(trx, head.id, body.rev);
-    const written = await writeVariant(trx, head, body.base_rev, {
+    const written = await writeModel(trx, head, body.base_rev, {
       change: 'restore',
       author: body.author,
       steps: old.steps,
@@ -329,26 +329,26 @@ async function restore(
   });
 }
 
-/** The BA marks which variant runs in an environment (append-only, newest wins). */
+/** The BA marks which model runs in an environment (append-only, newest wins). */
 async function markLive(db: PathfinderDb, portal: string, id: string, raw: unknown) {
   const body = parseBody(LiveBody, raw);
   return db.transaction().execute(async (trx) => {
     const process = await loadProcess(trx, portal, id);
-    const variant = await loadVariant(trx, process.id, body.label);
-    const rev = body.rev ?? variant.rev;
-    await loadRevision(trx, variant.id, rev);
+    const model = await loadModel(trx, process.id, body.label);
+    const rev = body.rev ?? model.rev;
+    await loadRevision(trx, model.id, rev);
     const row = {
       id: newId(),
       process_id: process.id,
       environment: body.environment,
-      variant_id: variant.id,
-      variant_rev: rev,
+      model_id: model.id,
+      model_rev: rev,
       author: body.author,
       reason: body.reason ?? null,
       created_at: nowIso(),
     };
     await trx.insertInto('process_live').values(row).execute();
-    return { ...row, label: variant.label };
+    return { ...row, label: model.label };
   });
 }
 
@@ -362,8 +362,8 @@ async function saveChangeSpec(
   const body = parseBody(ChangeSpecBody, raw);
   return db.transaction().execute(async (trx) => {
     const process = await loadProcess(trx, portal, id);
-    const left = await loadVariant(trx, process.id, body.left.label);
-    const right = await loadVariant(trx, process.id, body.right.label);
+    const left = await loadModel(trx, process.id, body.left.label);
+    const right = await loadModel(trx, process.id, body.right.label);
     await loadRevision(trx, left.id, body.left.rev);
     await loadRevision(trx, right.id, body.right.rev);
     const last = await trx
@@ -378,9 +378,9 @@ async function saveChangeSpec(
       process_id: process.id,
       rev: (head ?? 0) + 1,
       base_rev: head,
-      left_variant_id: left.id,
+      left_model_id: left.id,
       left_rev: body.left.rev,
-      right_variant_id: right.id,
+      right_model_id: right.id,
       right_rev: body.right.rev,
       sections: body.sections,
       author: body.author,
@@ -425,11 +425,15 @@ export function createProcessService(deps: { db: PathfinderDb; raw?: OpenedDb['r
     saveChangeSpec: (portal: string, id: string, raw: unknown) =>
       saveChangeSpec(db, portal, id, raw),
     suggest: (portal: string, conversationId: string | null, raw: unknown) =>
-      suggestGrouping(db, portal, conversationId, raw),
-    accept: (portal: string, suggestionId: string, raw: unknown) =>
-      acceptSuggestion(db, portal, suggestionId, raw),
-    dismiss: (portal: string, suggestionId: string, raw: unknown) =>
-      dismissSuggestion(db, portal, suggestionId, raw),
+      suggestions.suggestGrouping(db, portal, conversationId, raw),
+    accept: (portal: string, id: string, raw: unknown) =>
+      suggestions.acceptSuggestion(db, portal, id, raw),
+    dismiss: (portal: string, id: string, raw: unknown) =>
+      suggestions.dismissSuggestion(db, portal, id, raw),
+    split: (portal: string, id: string, raw: unknown) =>
+      suggestions.splitSuggestion(db, portal, id, raw),
+    merge: (portal: string, id: string, raw: unknown) =>
+      suggestions.mergeSuggestions(db, portal, id, raw),
   };
 }
 

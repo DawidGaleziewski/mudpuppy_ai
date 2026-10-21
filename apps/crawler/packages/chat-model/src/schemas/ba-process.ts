@@ -31,11 +31,11 @@ export const BaProcessChange = z.enum([
 ]);
 export type BaProcessChange = z.infer<typeof BaProcessChange>;
 
-export const ProcessVariantKind = z.enum(['as_is', 'to_be']);
-export type ProcessVariantKind = z.infer<typeof ProcessVariantKind>;
+export const ProcessModelKind = z.enum(['as_is', 'to_be']);
+export type ProcessModelKind = z.infer<typeof ProcessModelKind>;
 
 /** `edit`: a person changed A's steps (0028, spec 027 FR-004). */
-export const ProcessVariantChange = z.enum([
+export const ProcessModelChange = z.enum([
   'create',
   'branch',
   'save',
@@ -43,7 +43,7 @@ export const ProcessVariantChange = z.enum([
   'observe',
   'edit',
 ]);
-export type ProcessVariantChange = z.infer<typeof ProcessVariantChange>;
+export type ProcessModelChange = z.infer<typeof ProcessModelChange>;
 
 /** An environment name as the portal declares it (free names, spec 030 R-61). */
 export const ProcessLiveEnvironment = z
@@ -63,9 +63,10 @@ export const ProcessStepAnnotation = z.object({
 export type ProcessStepAnnotation = z.infer<typeof ProcessStepAnnotation>;
 
 /**
- * One step of a variant (element of the `steps` JSON array). `observed` steps point at a recorded state;
- * drawn steps have none. `from` names the steps of the variant it was branched from that this step replaces
- * (one = changed, two or more = merged). Ids are unique within a variant and kept across its revisions.
+ * One step of a process model (element of the `steps` JSON array). `observed` steps point at a recorded
+ * state; drawn steps have none. `from` names the steps of the model it was branched from that this step
+ * replaces (one = changed, two or more = merged). Ids are unique within a model and kept across its
+ * revisions.
  */
 export const ProcessStep = z.object({
   id: z.string().min(1),
@@ -134,34 +135,34 @@ export const BaProcessRevision = z
   .superRefine(revisionChain);
 export type BaProcessRevision = z.infer<typeof BaProcessRevision>;
 
-/** Head of a variant; label `A`, `B`, ... unique per process. */
-export const ProcessVariant = z
+/** Head of a process model; label `A`, `B`, ... unique per process (0039: was "variant"). */
+export const ProcessModel = z
   .object({
     id: Id,
     process_id: Id,
     label: z.string().min(1),
-    kind: ProcessVariantKind,
+    kind: ProcessModelKind,
     rev: z.number().int().min(1),
-    branched_from_variant_id: Id.nullable(),
+    branched_from_model_id: Id.nullable(),
     branched_from_rev: z.number().int().min(1).nullable(),
     created_at: Timestamp,
   })
   .superRefine((v, ctx) => {
-    if ((v.branched_from_variant_id === null) !== (v.branched_from_rev === null))
+    if ((v.branched_from_model_id === null) !== (v.branched_from_rev === null))
       ctx.addIssue({
         code: 'custom',
         path: ['branched_from_rev'],
-        message: 'branched_from_variant_id and branched_from_rev are set together',
+        message: 'branched_from_model_id and branched_from_rev are set together',
       });
   });
-export type ProcessVariant = z.infer<typeof ProcessVariant>;
+export type ProcessModel = z.infer<typeof ProcessModel>;
 
-export const ProcessVariantRevision = z
+export const ProcessModelRevision = z
   .object({
-    variant_id: Id,
+    model_id: Id,
     rev: z.number().int().min(1),
     base_rev: z.number().int().min(1).nullable(),
-    change: ProcessVariantChange,
+    change: ProcessModelChange,
     /** A reviewer name, or `scan:<run id>` for `observe`. */
     author: z.string().min(1),
     steps: z.array(ProcessStep),
@@ -172,11 +173,11 @@ export const ProcessVariantRevision = z
     created_at: Timestamp,
   })
   .superRefine(revisionChain);
-export type ProcessVariantRevision = z.infer<typeof ProcessVariantRevision>;
+export type ProcessModelRevision = z.infer<typeof ProcessModelRevision>;
 
-/** Scratch: one open draft of one person over one to-be variant, updated in place. */
+/** Scratch: one open draft of one person over one to-be model, updated in place. */
 export const ProcessDraft = z.object({
-  variant_id: Id,
+  model_id: Id,
   author: z.string().min(1),
   base_rev: z.number().int().min(1),
   steps: z.array(ProcessStep),
@@ -184,13 +185,13 @@ export const ProcessDraft = z.object({
 });
 export type ProcessDraft = z.infer<typeof ProcessDraft>;
 
-/** The live variant per environment is the newest row for (process_id, environment). */
+/** The live process model per environment is the newest row for (process_id, environment). */
 export const ProcessLive = z.object({
   id: Id,
   process_id: Id,
   environment: ProcessLiveEnvironment,
-  variant_id: Id,
-  variant_rev: z.number().int().min(1),
+  model_id: Id,
+  model_rev: z.number().int().min(1),
   author: z.string().min(1),
   reason: z.string().nullable(),
   created_at: Timestamp,
@@ -245,9 +246,9 @@ export const ChangeSpecRevision = z
     process_id: Id,
     rev: z.number().int().min(1),
     base_rev: z.number().int().min(1).nullable(),
-    left_variant_id: Id,
+    left_model_id: Id,
     left_rev: z.number().int().min(1),
-    right_variant_id: Id,
+    right_model_id: Id,
     right_rev: z.number().int().min(1),
     sections: ChangeSpecSections,
     author: z.string().min(1),

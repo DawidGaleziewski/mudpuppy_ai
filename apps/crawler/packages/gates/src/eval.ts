@@ -50,6 +50,16 @@ export type JudgeRunResult = z.infer<typeof JudgeRunResult>;
 /** A fair end of an agent session: it finished, or used up the eval's budget. */
 export const ScoredOutcome = z.enum(['success', 'budget_end']);
 
+/**
+ * Trial files written before spec 039 T116 call the form-probing scan `probe_scan`; they are read
+ * under the new name, so the v1 history stays comparable.
+ */
+function formProbingKey(v: unknown): unknown {
+  if (v === null || typeof v !== 'object' || !('probe_scan' in v)) return v;
+  const { probe_scan, ...rest } = v as Record<string, unknown>;
+  return { ...rest, form_probing: probe_scan };
+}
+
 /** A tier-2 eval result (contracts/gates-evals.md), one JSON file per run under data/evals/. */
 export const EvalResult = z
   .object({
@@ -57,48 +67,59 @@ export const EvalResult = z
     persona_id: z.string().min(1),
     started_at: z.string().min(1),
     git_sha: z.string().min(1),
-    runs: z
-      .object({
-        crawler: z.string().nullable(),
-        ba_session: z.string().nullable(),
-        crawler_cli_session: z.string().nullable().optional(),
-        ba_cli_session: z.string().nullable().optional(),
-        /** The BA's second session, over the process traces only (spec 025 F-12). */
-        ba_traces_session: z.string().optional(),
-        ba_traces_cli_session: z.string().optional(),
-        /** The crawler traces of ground-truth processes run after the map (spec 025 FR-006). */
-        process_traces: z
-          .array(
-            z.object({ process_id: z.string(), run: z.string(), cli_session: z.string() }).strict(),
-          )
-          .optional(),
-        /** The probe scan of the task's forms after the map (spec 034 phase 9). */
-        probe_scan: z.object({ run: z.string(), cli_session: z.string() }).strict().optional(),
-      })
-      .strict(),
-    conditions: z
-      .object({
-        session_timeout_s: z.number().int().positive().optional(),
-        /** Only the crawler ran (`--crawler-only`): no BA, so no documentation scores. */
-        crawler_only: z.boolean().optional(),
-        /** How many process traces ran after the map; absent means none (spec 025 FR-006). */
-        process_traces: z.number().int().positive().optional(),
-        /** A probe scan ran after the map; absent means none (spec 034 phase 9). */
-        probe_scan: z.boolean().optional(),
-      })
-      .strict()
-      .optional(),
+    runs: z.preprocess(
+      formProbingKey,
+      z
+        .object({
+          crawler: z.string().nullable(),
+          ba_session: z.string().nullable(),
+          crawler_cli_session: z.string().nullable().optional(),
+          ba_cli_session: z.string().nullable().optional(),
+          /** The BA's second session, over the process traces only (spec 025 F-12). */
+          ba_traces_session: z.string().optional(),
+          ba_traces_cli_session: z.string().optional(),
+          /** The crawler traces of ground-truth processes run after the map (spec 025 FR-006). */
+          process_traces: z
+            .array(
+              z
+                .object({ process_id: z.string(), run: z.string(), cli_session: z.string() })
+                .strict(),
+            )
+            .optional(),
+          /** The form-probing scan of the task's forms after the map (spec 034 phase 9). */
+          form_probing: z.object({ run: z.string(), cli_session: z.string() }).strict().optional(),
+        })
+        .strict(),
+    ),
+    conditions: z.preprocess(
+      formProbingKey,
+      z
+        .object({
+          session_timeout_s: z.number().int().positive().optional(),
+          /** Only the crawler ran (`--crawler-only`): no BA, so no documentation scores. */
+          crawler_only: z.boolean().optional(),
+          /** How many process traces ran after the map; absent means none (spec 025 FR-006). */
+          process_traces: z.number().int().positive().optional(),
+          /** A form-probing scan ran after the map; absent means none (spec 034 phase 9). */
+          form_probing: z.boolean().optional(),
+        })
+        .strict()
+        .optional(),
+    ),
     /** How each agent's session ended; only fair ends are ever written (spec 020 T003). */
-    outcomes: z
-      .object({
-        crawler: ScoredOutcome,
-        probe_scan: ScoredOutcome.optional(),
-        ba: ScoredOutcome.optional(),
-        ba_traces: ScoredOutcome.optional(),
-        process_traces: z.array(ScoredOutcome).optional(),
-      })
-      .strict()
-      .optional(),
+    outcomes: z.preprocess(
+      formProbingKey,
+      z
+        .object({
+          crawler: ScoredOutcome,
+          form_probing: ScoredOutcome.optional(),
+          ba: ScoredOutcome.optional(),
+          ba_traces: ScoredOutcome.optional(),
+          process_traces: z.array(ScoredOutcome).optional(),
+        })
+        .strict()
+        .optional(),
+    ),
     cost: z
       .object({
         usd: z.number(),
@@ -212,7 +233,7 @@ export function comparisonMarkdown(current: EvalResult, cmp: Comparison): string
     ...(current.conditions?.process_traces
       ? [`conditions: ${current.conditions.process_traces} process trace(s) after the map`]
       : []),
-    ...(current.conditions?.probe_scan ? ['conditions: a probe scan after the map'] : []),
+    ...(current.conditions?.form_probing ? ['conditions: a form-probing scan after the map'] : []),
     '',
     '| Measure | Baseline | Now | Change | |',
     '| --- | --- | --- | --- | --- |',

@@ -1,0 +1,57 @@
+{#- What the portal model knows of the process (spec 039 T100, UX-R51–R54, designer screen v2-10):
+    how journeys entered it, how they ended, how far it was explored and the rules on its screens.
+    Expects `v.facts` (queries_model_facts.ModelFacts). -#}
+{%- set m = v.facts %}
+{%- if m and m.model_seq is not none %}
+<section class="sy-plate" aria-labelledby="model-h">
+  <div class="sy-plate__head">
+    <h2 class="sy-plate__title" id="model-h">In the portal model</h2>
+    <span class="sy-meta">model version <span class="sy-num">{{ m.model_seq }}</span></span>
+  </div>
+  <div class="sy-plate__body sy-stack">
+    <dl class="sy-facts">
+      <dt>Triggers</dt>
+      <dd>{%- if m.triggers %}{% for t in m.triggers %}<div>{% if t.deep_link %}<span class="sy-case-normal">A URL opened on the first screen</span> (deep link){% elif t.screen_key %}{{ sy.tag(t.screen_key, sm=true) }} <span class="sy-case-normal">{{ t.screen_title or "" }}</span>{% else %}<span class="sy-muted">outside the model</span>{% endif %}{% if not t.deep_link %} → <span class="sy-mono sy-mono--sm">{{ t.element }}</span>{% endif %} · <span class="sy-num">{{ t.count }}</span>×</div>{% endfor %}
+        {%- else %}<span class="sy-muted">No scan entered the process yet.</span>{% endif %}</dd>
+      <dt>Outcomes</dt>
+      <dd>{%- if m.outcomes %}{% for o, n in m.outcomes.items() %}<span class="sy-num">{{ n }}</span> {{ o }}{% if not loop.last %} · {% endif %}{% endfor %}
+        {%- else %}<span class="sy-muted">—</span>{% endif %}</dd>
+      <dt>Explored</dt>
+      <dd>{%- if m.explored %}{{ sy.status("explored", "thorough" if m.explored.new_deviations == 0 else "partial") }} to depth {{ m.explored.depth }} plus <span class="sy-num">{{ m.explored.random_walks }}</span> random walks, {{ m.explored.completed_at | when }}{% if m.explored.new_deviations %}: <span class="sy-num">{{ m.explored.new_deviations }}</span> new changes{% else %}: no counterexamples{% endif %}
+        {%- else %}{{ sy.status("explored", "not_explored") }}{% endif %}
+        {%- set run_portal, run_kind, run_key, run_label = p.portal_id, "explore", p.key, "Explore now" %}
+        {%- set run_back = c.url('/processes/' ~ p.key) %}
+        {% include "salvage/partials/check_run.html" %}</dd>
+      <dt>Business rules</dt>
+      <dd>{%- if m.rules %}{% for r in m.rules %}<div>{{ sy.tag(r.shown_key, c.url('/rules/' ~ r.shown_key), sm=true) }} <span class="sy-case-normal">{{ r.claim }}</span> {{ sy.status("rule", r.status) }}</div>{% endfor %}
+        {%- else %}<span class="sy-muted">No rule decided on these screens.</span>{% endif %}</dd>
+    </dl>
+  </div>
+</section>
+{#- v2-10 Paths: the trace variants, the most walked first (T079). -#}
+<section id="paths" class="sy-plate" aria-labelledby="paths-h">
+  <div class="sy-plate__head">
+    <h2 id="paths-h" class="sy-plate__title">Paths</h2>
+    <span class="sy-meta">{{ m.paths | length }} path{{ "s" if m.paths | length != 1 }} · {{ m.paths | sum(attribute="count") }} case{{ "s" if m.paths | sum(attribute="count") != 1 }}</span>
+  </div>
+  {%- if m.paths %}
+  <div class="sy-table-wrap sy-table-wrap--flush">
+    <table class="sy-table sy-table--middle" aria-labelledby="paths-h">
+      <thead><tr><th scope="col">Path</th><th scope="col">Screens walked</th><th scope="col">Outcome</th><th scope="col" class="sy-num">Cases</th></tr></thead>
+      <tbody>
+        {%- for pth in m.paths %}
+        <tr>
+          <th scope="row">{{ pth.name }}</th>
+          <td><ol class="sy-path">{% for key, title in pth.screens %}<li><a class="sy-path__step sy-case-normal" href="{{ c.url('/screens/' ~ key) }}">{{ title or key }}</a></li>{% endfor %}</ol></td>
+          <td>{{ pth.outcome }}</td>
+          <td class="sy-num">{{ pth.count }}</td>
+        </tr>
+        {%- endfor %}
+      </tbody>
+    </table>
+  </div>
+  {%- else %}
+  <div class="sy-plate__body"><p class="sy-small sy-muted">No path yet: a scan that enters the process through its trigger adds one on the next model rebuild.</p></div>
+  {%- endif %}
+</section>
+{%- endif %}

@@ -1,5 +1,5 @@
 """Process history (spec 022 screen 07, FE-P04): who is live where, the revisions of every
-variant newest first with Restore, the conflict notice with Rebase, and escaping."""
+model newest first with Restore, the conflict notice with Rebase, and escaping."""
 
 from __future__ import annotations
 
@@ -14,20 +14,20 @@ def test_history_shows_live_markers_revisions_and_restore(empty_store: Store) ->
     with client(seed(empty_store, draft_base=2, b_rev=3)) as c:
         body = c.get(URL).text
     flat = text(body)
-    assert "2 variants · 4 revisions · live in sandbox" in flat
-    assert "Which variant runs where" in flat and "Revisions" in flat
+    assert "2 process models · 4 revisions · live in sandbox" in flat
+    assert "Which process model runs where" in flat and "Revisions" in flat
     assert "A r1" in flat and "Live" in flat and "Anna" in flat
     assert flat.count("Not marked") == 2  # staging and production
     assert 'data-process="/chat/portals/liveinsurer/processes/pr-1/live"' in body
     assert 'data-from="#live-label-staging #live-reason-staging"' in body
     # newest first, Restore only on the older to-be revisions
     assert body.index("B r3") < body.index("B r2") < body.index("B r1")
-    assert body.count("/variants/B/restore") == 2
+    assert body.count("/models/B/restore") == 2
     assert 'data-body=\'{"rev": 1, "base_rev": 3}\'' in body
     assert 'data-confirm="Restore B r1 as B r4? Nothing is deleted."' in body
-    assert "/variants/A/restore" not in body
+    assert "/models/A/restore" not in body
     assert "Latest" in flat and "superseded" in flat and "branch" in flat
-    assert "Someone saved first" in flat and "/variants/B/rebase" in body
+    assert "Someone saved first" in flat and "/models/B/rebase" in body
     assert body.count("<h1") == 1 and "sy-btn--primary" not in body
 
 
@@ -52,8 +52,8 @@ def test_human_text_is_escaped_and_missing_is_404(empty_store: Store) -> None:
         id="lv-2",
         process_id="pr-1",
         environment="staging",
-        variant_id="v-b",
-        variant_rev=1,
+        model_id="v-b",
+        model_rev=1,
         author="Anna",
         reason="<script>alert(1)</script>",
         created_at=ts(7),

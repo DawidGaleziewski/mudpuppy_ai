@@ -25,7 +25,7 @@ class ProposalView(BaseModel):
 
     @property
     def is_new(self) -> bool:
-        return self.p.target_kind == "new_amendment"
+        return self.p.amendment_id is None
 
     @property
     def stale(self) -> bool:
@@ -59,8 +59,8 @@ def views_of(conn: sqlite3.Connection, where: str, args: tuple[Any, ...]) -> lis
         rows = conn.execute(
             "SELECT p.*, a.key AS a_key, a.rev AS a_rev, r.text AS r_text, r.target_id AS r_target"
             " FROM chat_proposals p"
-            " LEFT JOIN amendments a ON a.id = coalesce(p.target_id, p.applied_amendment_id)"
-            " LEFT JOIN amendment_revisions r ON r.amendment_id = p.target_id"
+            " LEFT JOIN amendments a ON a.id = coalesce(p.amendment_id, p.applied_amendment_id)"
+            " LEFT JOIN amendment_revisions_with_target r ON r.amendment_id = p.amendment_id"
             "  AND r.rev = p.base_rev"
             f" WHERE {where} ORDER BY p.created_at, p.id",
             args,

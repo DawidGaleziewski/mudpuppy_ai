@@ -13,12 +13,16 @@ import { die } from '../failures.js';
 
 /** Everything that says how the portal is cut into processes, children first (foreign keys). */
 const GROUPING_TABLES = [
+  // spec 039: what the model derived per process (T070, T073, T075)
+  'process_triggers',
+  'process_explorations',
+  'process_instances',
   'grouping_suggestions',
   'change_spec_revisions',
   'process_live',
   'process_drafts',
-  'process_variant_revisions',
-  'process_variants',
+  'process_model_revisions',
+  'process_models',
   'ba_process_revisions',
   'ba_processes',
   'process_scopes',
@@ -54,6 +58,9 @@ export function createWorkspace(config: EvalConfig): Workspace {
   from.raw.close();
   const conversationId = newId();
   const { raw } = openDb(storePath);
+  // A PROC record must name its process (spec 039 T070) and the grouping tools never read records:
+  // in this throwaway copy the BA's PROC records keep the id of a process taken out.
+  raw.pragma('foreign_keys = OFF');
   raw.transaction(() => {
     for (const t of GROUPING_TABLES) raw.prepare(`DELETE FROM ${t}`).run();
     raw

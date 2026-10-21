@@ -49,18 +49,26 @@ function state(id: string, fp: string, route: string, runId: string, layoutRef: 
     .run(runId, id, T0);
 }
 
-function amendment(id: string, key: string, element: object | null): void {
+function amendment(
+  id: string,
+  key: string,
+  element: { key: string; role: string; name: string; roleIndex: number } | null,
+): void {
+  // 0041: written on the state (or one of its elements) through a ref.
+  opened.raw
+    .prepare(`INSERT INTO entity_refs (id, state_id, element_key) VALUES (?, 's-quote-1', ?)`)
+    .run(`ref-${id}`, element?.key ?? null);
   opened.raw
     .prepare(
-      `INSERT INTO amendments (id, key, portal_id, target_kind, target_id, kind, text, author, created_at,
+      `INSERT INTO amendments (id, key, portal_id, ref_id, kind, text, author, created_at,
          anchor_fingerprint, anchor_route_template, anchor_element)
-       VALUES (?, ?, ?, ?, 's-quote-1', ?, 'make it green', 'BA', ?, 'fp-1', '/quote', ?)`,
+       VALUES (?, ?, ?, ?, ?, 'make it green', 'BA', ?, 'fp-1', '/quote', ?)`,
     )
     .run(
       id,
       key,
       P,
-      element === null ? 'state' : 'wireframe_element',
+      `ref-${id}`,
       element === null ? 'note' : 'element_ref',
       T0,
       element === null ? null : JSON.stringify(element),
@@ -71,7 +79,7 @@ function status(id: string): Record<string, unknown> {
   return opened.raw
     .prepare(
       `SELECT status, rev, target_id, anchor_fingerprint, superseded_by_run, superseded_reason, superseded_detail
-       FROM amendments WHERE id = ?`,
+       FROM amendments_with_target WHERE id = ?`,
     )
     .get(id) as Record<string, unknown>;
 }
@@ -79,8 +87,8 @@ function status(id: string): Record<string, unknown> {
 function revisions(id: string): Record<string, unknown>[] {
   return opened.raw
     .prepare(
-      `SELECT rev, base_rev, change, author, status, target_id, run_id FROM amendment_revisions
-       WHERE amendment_id = ? ORDER BY rev`,
+      `SELECT rev, base_rev, change, author, status, target_id, run_id
+       FROM amendment_revisions_with_target WHERE amendment_id = ? ORDER BY rev`,
     )
     .all(id) as Record<string, unknown>[];
 }
@@ -126,7 +134,7 @@ describe('reanchorAfterRun (spec 022 R4)', () => {
     expect(status('a-1')).toEqual({
       status: 'needs_reanchor',
       rev: 2,
-      target_id: 's-quote-1',
+      target_id: 's-quote-1#button "Buy now"', // an element note keeps its element key
       anchor_fingerprint: 'fp-1',
       superseded_by_run: 'run-2',
       superseded_reason: 'element_changed',

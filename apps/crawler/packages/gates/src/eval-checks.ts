@@ -96,15 +96,15 @@ export function passwordHits(
 
 const WIDGET_CALLS = ['/widget/recaptcha/api2/userverify', '/widget/recaptcha/api2/payload'];
 
-/** D4: edge actions that touch the captcha widget, plus action-caused widget calls. */
+/** D4: transition actions that touch the captcha widget, plus action-caused widget calls. */
 export function widgetActions(input: {
-  edgeActions: readonly string[];
+  transitionActions: readonly string[];
   actionCalls: readonly string[];
 }): number {
-  const edges = input.edgeActions.filter((a) => {
+  const transitions = input.transitionActions.filter((a) => {
     const lower = a.toLowerCase();
     return lower.includes('recaptcha') || lower.includes('127.0.0.1:4101');
   }).length;
   const calls = input.actionCalls.filter((u) => WIDGET_CALLS.some((w) => u.includes(w))).length;
-  return edges + calls;
+  return transitions + calls;
 }

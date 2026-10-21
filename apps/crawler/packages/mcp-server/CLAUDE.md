@@ -1,7 +1,7 @@
 # @pathfinder/mcp-server
 
 The `pathfinder` stdio MCP server (the crawler agent's only tools: start_run, navigate, act, probe_form, login,
-get_known_states, get_next_frontier_item, add_open_question, add_rule_candidate, finish_run) and the
+get_known_states, get_next_frontier_item, add_open_question, add_hypothesis, finish_run) and the
 `pathfinder-ba` server (BA tools: `src/ba-server.ts`, `src/ba-tools/`, `src/services/ba/`).
 
 Layer: servers (G-07; `apps/crawler/layers.json`)
@@ -13,9 +13,9 @@ Layer: servers (G-07; `apps/crawler/layers.json`)
   the crawl pipeline, one file per step or tool:
   - `process-page.ts`: the ordered steps for an observed page (`settle` → `observe` → `net_drain` →
     `fingerprint-step` → `record-state` → visuals → CAPTCHA hand-off → depth → `record-page`
-    forms/transition → network → `record_visit` → `enqueue` → trace step) on one `StepContext`.
-    `settle` waits through client redirects and for mounts in every frame read; `visits.ts`
-    stores the page visit (spec 019); `observe` reads frames (`frames.ts`); `composition.ts`
+    forms/transition → network → `record_observation` → `enqueue` → trace step) on one
+    `StepContext`. `settle` waits through client redirects and for mounts in every frame read;
+    `observations.ts` stores the observation (spec 019; `page_visits` until spec 039 T110); `observe` reads frames (`frames.ts`); `composition.ts`
     builds the page composition (spec 015).
   - Portal hooks (spec 023): `runtime/hooks.ts` (the run's runner: Playwright adapter, `hook`
     span and decision note per run, `runPageLoadHooks`, `notePatched`), loaded by
@@ -32,9 +32,9 @@ Layer: servers (G-07; `apps/crawler/layers.json`)
   - Map-mode results omit `actions` on a revisited state (`actions_omitted`; tests that read
     them pass `include_actions`). `index.ts` re-exports only the tool entry points and helpers.
 - `src/services/frontier.ts` + `same-target.ts`: link items whose target the run already reached
-  (same URL and same visible name, spec 026 F-04) become `inferred` edges (spec 013 US2).
+  (same URL and same visible name, spec 026 F-04) become `inferred` transitions (spec 013 US2).
   `frontier-order.ts`: pick order, links to unvisited route templates first (spec 026). BA reads: `services/ba/reads.ts`, `run-evidence.ts`
-  (`get_run_evidence`, incl. `page_visits`, `parameters`, spec 019), `runs.ts` (`list_runs` with
+  (`get_run_evidence`, incl. `observations`, `parameters`, spec 019), `runs.ts` (`list_runs` with
   persona attributes), `access.ts` (`get_access_matrix`, spec 024: same model as the dashboard's
   `queries_access.py`, both checked against `tests/fixtures/access/three-personas.json`).
 - Spec 030: `server-context.ts` (`openServerContext`, shared by `server.ts` and `local-client.ts`) and
@@ -49,7 +49,7 @@ Layer: servers (G-07; `apps/crawler/layers.json`)
   and kind in `record_state`; steps persisted in `form_steps`), `run-path.ts` + `replay.ts` (the
   run's own path to each state, kept in `RunState.pathTo`; `reachState` replays it on a same-URL
   wizard, `REPLAY_DIVERGED` when it lands elsewhere), the `probe_form` tool:
-  - `probe-form.ts`: probe runs only, marked steps only (`services/probe-marks.ts`, US5), gate,
+  - `probe-form.ts`: form-probing runs only (`start_run form_probing`), marked steps only (`services/probe-marks.ts`, US5), gate,
     limit ≥ mutating, budget, the happy press, a 40 s limit per call with `more`; a try whose
     way back diverged is done once more in a new session (`fresh-session.ts`, F-03@038);
   - `probe.ts`: one press with values, a fault and an observation, classified and recorded in
@@ -59,9 +59,11 @@ Layer: servers (G-07; `apps/crawler/layers.json`)
     while a fault is armed.
 
   BA: `services/ba/probe-suites.ts` (`propose_probe_suite`, suites stored `open`) and the
-  `get_run_evidence` kind `probe_outcomes`. Spec 033: `services/ba/differing-states.ts` (groups
-  of differing states) and `reconcile.ts` (`list_differing_states`, `propose_verdicts`). `find-again.ts` holds `findAgain` (moved out of
-  `act.ts`).
+  `get_run_evidence` kind `probe_outcomes`. Spec 039 (T055): `services/ba/hypotheses.ts` (`list_deviations`,
+  `list_hypotheses`, `get_hypothesis`, `propose_hypothesis`, `add_hypothesis_test` over
+  `@pathfinder/store`'s `agent-hypotheses.ts`) and the crawler's `add_hypothesis`
+  (`services/agent-notes.ts`; builds the portal model first when a run's portal has none).
+  `find-again.ts` holds `findAgain` (moved out of `act.ts`).
 - Spec 034 (R-70, documentation that grows): `services/ba/run-groups.ts` (runs grouped by the
   documented process whose screens they walked; same model as the dashboard's
   `queries_run_groups.py`, both checked against `tests/fixtures/run-groups/cases.json`),
@@ -96,6 +98,14 @@ Layer: servers (G-07; `apps/crawler/layers.json`)
   is shared); `services/link-path.ts` (an unnamed link's `link_to` and frontier description);
   unnamed fields carry `label` (from `@pathfinder/crawler` `withFieldLabels`) in results and
   `action_json`, and test data is looked up by it.
+- Spec 039 (MudPuppy 2.0): `replay-driver.ts` (the headless driver: `replay(call, plan)` walks a
+  recorded prefix by model element keys in a probe run, no LLM) and `replay-portal.ts`
+  (`replayPortal`: R1 error replays, R8 rule mismatches, then boundary and regression tests, one
+  budget; `pnpm model:replay`, `model:regress`) and `explore-process.ts` (`exploreProcess`: one
+  pass of the stopping rule over a process, `pnpm model:explore`, T075). Probe runs (`runs.mode = 'probe'`, design § 9):
+  `start_run` `mode: 'probe'` + `replay {inputs}` (`RunChoices.replay`, `RunState.headless`):
+  element keys in results, autofill types the inputs first, transitions `driver = 'headless'`, no
+  frontier drain. Not spec 032's form-probing runs (`form_probing`, T116@039).
 - Entry points: `pnpm --filter @pathfinder/mcp-server start` (`src/main.ts`), `start:ba`.
 
 ## Invariants

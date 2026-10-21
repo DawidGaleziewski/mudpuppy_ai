@@ -14,7 +14,7 @@ pnpm --dir apps/chat eval reference-insurer [--store <workspace>] [--budget-usd 
 - **Input (the scans)**: a finished crawler-eval workspace, by default the newest
   `pf-eval-<portal>-*` in the temp folder (map + process traces of the reference portal). Its store
   is copied into a fresh workspace (`pf-grouping-<portal>-*`) with **every grouping taken out**
-  (suggestions, BA processes and their variants, process scopes): the assistant starts where a
+  (suggestions, BA processes and their process models, process scopes): the assistant starts where a
   person stands after scanning, before the narrow step. The source is only read.
 - **The trial**: one headless `claude -p` session with the orchestrator's own system prompt
   (`apps/chat/agents/orchestrator.md`), the chat service's fresh-session handover and exactly what

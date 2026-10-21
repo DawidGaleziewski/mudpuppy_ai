@@ -1,4 +1,4 @@
-"""Entry URLs and the parameter inventory of a state (spec 019, R-37/R-38), from `page_visits`.
+"""Entry URLs and the parameter inventory of a state (spec 019, R-37/R-38), from `observations`.
 
 The same read model as `@pathfinder/docs` `parameterInventory` (TypeScript); both are tested on
 `apps/crawler/tests/fixtures/params/param-inventory.json`, so the dashboard and the BA see the same
@@ -110,7 +110,7 @@ def _add_params(acc: ParamAcc, v: dict[str, Any]) -> None:
         entry.distinct += 1
         if len(entry.values) < MAX_VALUES:
             entry.values.append(p.value)
-        by = {"edge_id": v["edge_id"], "hop": _arrival_hop(v["hops"])}
+        by = {"transition_id": v["transition_id"], "hop": _arrival_hop(v["hops"])}
         if by not in entry.set_by:
             entry.set_by.append(by)
 
@@ -144,17 +144,17 @@ def state_visits(conn: sqlite3.Connection, state_id: str) -> list[dict[str, Any]
     """Every recorded visit of a state, oldest first; `[]` on a store from before 0012."""
     try:
         rows = conn.execute(
-            "SELECT id, state_id, edge_id, via, url, hops_json FROM page_visits"
+            "SELECT id, state_id, transition_id, via, url, hops_json FROM observations"
             " WHERE state_id = ? ORDER BY created_at, rowid",
             (state_id,),
         ).fetchall()
-    except sqlite3.OperationalError:  # no page_visits table: a store older than spec 019
+    except sqlite3.OperationalError:  # no observations table: a store older than spec 019
         return []
     return [
         {
             "id": r["id"],
             "state_id": r["state_id"],
-            "edge_id": r["edge_id"],
+            "transition_id": r["transition_id"],
             "via": r["via"],
             "url": r["url"],
             "hops": json.loads(r["hops_json"]),

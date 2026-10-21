@@ -159,7 +159,7 @@ def test_the_screen_page_lists_the_states_of_its_form_step_and_the_probe_outcome
     conn.execute(
         "INSERT INTO probe_outcomes (id, run_id, from_state_id, form_step_id, probe_id,"
         " probe_group, target, inputs_json, path_json, fault, outcome_kind, to_state_id, accepted,"
-        " possible_new_process, messages_json, http_status, reason, evidence_ref, edge_id,"
+        " possible_new_process, messages_json, http_status, reason, evidence_ref, transition_id,"
         " created_at) VALUES ('o-1', ?, 'st-1', 'fs-1', 'wrong-format', 'validation',"
         " 'Start date', '[]', '{}', NULL, 'validation', 'st-2', 0, 0, ?, NULL,"
         " 'the form refused it', 'ev', NULL, ?)",

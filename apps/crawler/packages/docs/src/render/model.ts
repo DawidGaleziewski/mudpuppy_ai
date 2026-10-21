@@ -52,15 +52,13 @@ export interface ExportRevisionEntry {
 export interface ExportEvidence {
   target_kind: EvidenceTargetKind;
   target_id: string;
-  /** Short human label of the target (no evidence file content), null when broken. */
+  /** Short human label of the target (no evidence file content); null for a kind without one. */
   label: string | null;
   run_id: string | null;
   run_mode: string | null;
   /** `YYYY-MM-DD` of the run's start. */
   run_date: string | null;
   note: string | null;
-  /** The target row no longer exists. */
-  broken: boolean;
   /** For a `doc_record` target: its key, when that record is part of the export. */
   doc_key: string | null;
   /** For a `screen_region` target: the cited element key (spec 008). */
@@ -183,6 +181,7 @@ export const KIND_ORDER: readonly DocKind[] = [
   'requirement',
   'business_rule',
   'data_item',
+  'api_endpoint',
   'glossary_term',
   'nfr',
   'assumption',
@@ -256,17 +255,17 @@ const TARGET_LABEL: Partial<
   Record<EvidenceTargetKind, { table: string; label: (r: Record<string, unknown>) => string }>
 > = {
   state: { table: 'states', label: (r) => `${String(r.title)} (${String(r.route_template)})` },
-  // spec 019: a visit is shown by its verbatim URL (the dashboard's `_TARGETS` does the same)
-  page_visit: { table: 'page_visits', label: (r) => String(r.url) },
+  // spec 019: an observation is shown by its verbatim URL (the dashboard's `_TARGETS` does the same)
+  observation: { table: 'observations', label: (r) => String(r.url) },
   screen_region: {
     table: 'states',
     label: (r) => `${String(r.title)} (${String(r.route_template)})`,
   },
-  edge: {
-    table: 'edges',
+  transition: {
+    table: 'transitions',
     label: (r) => {
       const name = accessibleName(r.action_json as string | null);
-      return name ? `edge: "${name}"` : 'edge';
+      return name ? `transition: "${name}"` : 'transition';
     },
   },
   action: {
@@ -289,7 +288,6 @@ const TARGET_LABEL: Partial<
     table: 'network_calls',
     label: (r) => `${String(r.method)} ${String(r.url_template)}`,
   },
-  rule_candidate: { table: 'rule_candidates', label: (r) => String(r.text) },
   open_question: { table: 'open_questions', label: (r) => String(r.text) },
   decision: {
     table: 'decision_log',
@@ -419,7 +417,7 @@ export function loadExportModel(
     links.push(
       ...(raw
         .prepare(
-          `SELECT revision_id, target_kind, target_id, run_id, note, region FROM doc_evidence_links
+          `SELECT revision_id, target_kind, target_id, run_id, note, region FROM doc_evidence
            WHERE revision_id = ? ORDER BY target_kind, target_id, region, id`,
         )
         .all(id) as LinkRow[]),
@@ -466,7 +464,6 @@ export function loadExportModel(
           run_mode: run?.mode ?? null,
           run_date: run ? run.started_at.slice(0, 10) : null,
           note: l.note,
-          broken: label === null,
           doc_key:
             docKey && (renderedIds.has(l.target_id) || changeLogKeys.has(docKey)) ? docKey : null,
           region: l.target_kind === 'screen_region' ? l.region : null,
@@ -525,7 +522,7 @@ export function loadExportModel(
     const screens: ExportScreen[] = [];
     const regions: ExportRegion[] = [];
     for (const e of evidence) {
-      if ((e.target_kind !== 'state' && e.target_kind !== 'screen_region') || e.broken) continue;
+      if (e.target_kind !== 'state' && e.target_kind !== 'screen_region') continue;
       const s = screenOf(e.target_id);
       if (!s) continue;
       if (!screens.some((x) => x.state_id === e.target_id)) screens.push(s.screen);
@@ -688,8 +685,8 @@ function sightingLabels(raw: RawDb, rendered: ExportRecord[]): Record<string, st
           .prepare('SELECT method, url_template FROM network_calls WHERE id = ?')
           .get(s.target_id) as { method: string; url_template: string } | undefined;
         if (row) out[s.target_id] = `${row.method} ${row.url_template}`;
-      } else if (s.kind === 'page_visit') {
-        const row = raw.prepare('SELECT url FROM page_visits WHERE id = ?').get(s.target_id) as
+      } else if (s.kind === 'observation') {
+        const row = raw.prepare('SELECT url FROM observations WHERE id = ?').get(s.target_id) as
           { url: string } | undefined;
         if (row) out[s.target_id] = `URL ${row.url}`;
       }
@@ -699,8 +696,8 @@ function sightingLabels(raw: RawDb, rendered: ExportRecord[]): Record<string, st
 }
 
 /**
- * Mirror of the dashboard's `screen_diagram_input`: transitions where an edge leads from a state one
- * rendered screen cites to a state another cites; targets reached from more than half the screens
+ * Mirror of the dashboard's `screen_diagram_input`: transitions that lead from a state one rendered
+ * screen cites to a state another cites; targets reached from more than half the screens
  * (global navigation) are left out and counted.
  */
 function screenNavInput(
@@ -715,7 +712,7 @@ function screenNavInput(
     .sort((a, b) => a.record.seq - b.record.seq)) {
     const states = raw
       .prepare(
-        `SELECT target_id FROM doc_evidence_links WHERE revision_id = ? AND target_kind = 'state' ORDER BY id`,
+        `SELECT target_id FROM doc_evidence WHERE revision_id = ? AND target_kind = 'state' ORDER BY id`,
       )
       .all(s.shown.id) as { target_id: string }[];
     for (const { target_id } of states)
@@ -725,13 +722,13 @@ function screenNavInput(
   if (owner.size > 0) {
     const ids = [...owner.keys()];
     const marks = ids.map(() => '?').join(',');
-    const edges = raw
+    const transitions = raw
       .prepare(
-        `SELECT from_state, to_state, action_json FROM edges
+        `SELECT from_state, to_state, action_json FROM transitions
          WHERE from_state IN (${marks}) AND to_state IN (${marks}) ORDER BY id LIMIT 200`,
       )
       .all(...ids, ...ids) as { from_state: string; to_state: string; action_json: string }[];
-    for (const e of edges) {
+    for (const e of transitions) {
       const a = owner.get(e.from_state)!;
       const b = owner.get(e.to_state)!;
       const name = accessibleName(e.action_json);

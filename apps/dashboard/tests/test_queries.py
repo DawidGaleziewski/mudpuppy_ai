@@ -32,7 +32,6 @@ def test_portal_summary_matches_direct_sql(conn: sqlite3.Connection) -> None:
     assert summary.forms == 6
     assert summary.network_calls == 9
     assert summary.open_questions_open == 0
-    assert summary.rule_candidates == 0
     assert summary.last_run_at == ts(45)
 
 
@@ -104,7 +103,7 @@ def test_run_summary_counts(conn: sqlite3.Connection) -> None:
     assert s.actions == 600
     assert s.frontier == 600
     assert s.frontier_by_status == FRONTIER_MIX
-    assert s.forms == 6 and s.network_calls == 9 and s.edges == 2
+    assert s.forms == 6 and s.network_calls == 9 and s.transitions == 2
     assert s.robots_policies == scalar(
         conn, "SELECT count(*) FROM robots_policies WHERE run_id = ?", BIG_RUN
     )

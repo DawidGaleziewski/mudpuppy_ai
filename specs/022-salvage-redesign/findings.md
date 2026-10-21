@@ -10,14 +10,6 @@
 - **Test idea**: mark the CLI-driving review tests `serial` (like `perf`) or give each its own
   scratch store path, and record the CLI's stderr in the assertion message.
 
-## F-02 The export-fork export would have shipped a broken dashboard test, 2026-10-13
-
-- **Symptom**: the export dry run failed on `test_salvage.py`: the style guard lived only in the
-  `.claude/skills/` skill, which the export does not ship.
-- **Fix**: the dashboard keeps its own copy of `find-old-styles.sh` under `apps/dashboard/scripts/`.
-- **Lesson**: spec 020 F-08's idea (dry-run the export before merging) caught it before the
-  interim merge. Keep doing it at every interim merge.
-
 ## F-04 db-admin edited files with perl/python substitutions, 2026-10-13
 
 - **Symptom**: the db-admin agent (migrations 0015/0016) reported editing several files with perl
@@ -104,14 +96,6 @@
 - **Test idea**: the browser e2e for FE-A03 should send a message from the drawer and assert the
   request body has `kind: page`; ui:check could warn when a `data-*-context` attribute does not
   parse as JSON.
-
-## F-12 The export-fork rename lengthens lines past the lint limit, 2026-10-13
-
-- **Symptom**: the M3 export dry run failed at `dashboard lint` (E501) on a test line that is 98
-  characters here; the export renames `liveinsurer` to `insuro` and `LIVEINSURER_` to `INSURO_`.
-- **Fix**: a shorter fixture string (ruff format joins split literals back when they fit).
-- **Test idea**: the fast tier could lint with the line limit minus the longest rename delta, or
-  the export could rewrap; for now the dry run before each merge catches it.
 
 ## F-13 A Sonnet agent edited a file with a Python string replace, 2026-10-14
 

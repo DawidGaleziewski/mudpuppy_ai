@@ -94,7 +94,7 @@ Each entry gives the classes to use, when to use the component, and the rules th
 | Header | `.sy-header` | Order: wordmark, portal picker, search (Ctrl K), assistant status, "Ask the assistant" (Ctrl J), help. Same on every page. |
 | Portal picker | `label.sy-portal` > `.sy-label` + `select.sy-select` (reference look) | The project context. Changing the selection must **not** navigate on its own (WCAG 3.2.2): implement as a menu button listing portals as links, or a select plus an explicit "Switch" button. "+ New portal" and "All portals" are links in that menu. |
 | Search | `label.sy-search` > svg + `input` + `.sy-kbd` | Searches parts: screens, processes, records. |
-| Side nav | `nav.sy-nav` > `a.sy-nav__item[aria-current=page]`, `.sy-nav__count`, `.sy-count`, `.sy-nav__foot` | Seven sections. The selected item is an inverse chalk plate. Use the marker `.sy-count` only for things that need you (Review). Processes shows "saved·drafted" (e.g. `1·4`); Screens shows the screen count for the picked portal. |
+| Side nav | `nav.sy-nav` > `a.sy-nav__item[aria-current=page]`, `.sy-nav__count`, `.sy-count`, `.sy-nav__foot` | v1: seven sections. 2.0: nine sections in three groups (`.sy-nav__group`: none · Portal model · Machine). The selected item is an inverse chalk plate. Use the marker `.sy-count` only for things that need you (Review). Processes shows "saved·drafted" (e.g. `1·4`); Screens shows the screen count for the picked portal. |
 
 ### Page head
 `.sy-pagehead` > `.sy-crumbs` + `.sy-pagehead__row` (`h1.sy-h1` + `.sy-actions`) + `.sy-meta`.
@@ -180,6 +180,19 @@ Links are underlined text (chalk with a marker underline); buttons are boxes. Ne
 - **Card:** `.sy-card` (`__title`; `--drawn`, `--failed`, `--muted`; `aria-current="true"` when selected): a compact plate for a step or an outcome. `.sy-flow` + `.sy-flow__arrow` lines cards up.
 - **Choice card:** `label.sy-choice` > `input.sy-choice__input[type=radio]` + `.sy-choice__body` (`<b>` title + `<span>` text). A real radio: arrow keys, one checked, chalk weld when checked.
 - **Path:** `ol.sy-path` > `li` > `.sy-path__step` (`--here`, `--failed`): a replay recipe or the way to a failure. Arrows are drawn by CSS.
+
+### 2.0 components (`12-v2-ux.md`)
+| Part | Classes | Rules |
+|---|---|---|
+| Nav groups | `.sy-nav__group` (`aria-hidden` label between nav items) | Three groups: none · Portal model · Machine |
+| Header pickers | `.sy-portal.sy-portal--compact` (Portal, As of) · `.sy-search.sy-search--compact` | One row at 1280; wraps at 1024 |
+| Overturned | `.sy-status[data-status="overturned"]` + `.sy-note` (+ `__by`) | Never without the reason |
+| Release timeline | `.sy-releases` > `.sy-releases__lane` (`--scans`) > `__name` (+ `small`) + `__track` > `__span` (`--current`, `--rollout`, `--unknown`) / `__scan` (`--check`); `.sy-releases__axis` > `span`; `.sy-releases__range` > `span` | Positions in % of the shown period (`left`/`width` inline). One lane per portal part, scans last. Rollouts dashed. |
+| Before / after | `.sy-compare` (`--sy-min`) > `.sy-compare__side` > `.sy-compare__head` + `figure.sy-shot` (+ `.sy-mark--overlay` "Changed") · `.sy-differs` on differing cells | Label sides by what differs; mark the region on one side, a dashed box on the other |
+| Decision table | `table.sy-table.sy-table--decision` · `tr.sy-dt-group` · `.sy-dt-n` · `.sy-dt-cond` · `.sy-dt-any` · `.sy-dt-result` (first result column) | Inputs ║ result; provenance + hit policy in the caption |
+| Review queue | `ol.sy-queue` > `li.sy-queue__group` / `li.sy-queue__item[aria-current]` > `input.sy-queue__check` + `a.sy-queue__main` (`.sy-queue__claim`) + `.sy-queue__meta` | One line per finding; groups carry the bulk action |
+| Key bar | `.sy-keybar` (`--sticky` in the app) > `span` (`.sy-kbd` + label) | Rides the bottom of the queue column in the app (`--sticky`); static in previews; five keys max |
+| Map 2.0 | `.sy-edge--unseen` `--unchecked` `--retired` `--process` `--changed` · `.sy-node--process` · `.sy-node--dim` · `.sy-node[data-state="retired"]` · `.sy-bundle` | Internal actions are a chip on the node, never a line; the menu on every page is one bundle |
 
 ### Assistant
 | Part | Classes |

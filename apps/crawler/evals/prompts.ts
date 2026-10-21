@@ -12,10 +12,10 @@ export const PROMPTS = {
   /** Spec 034 phase 9: probe the form steps the harness marked, as the owner marks them. */
   crawlerProbe: (portal: string, persona: string) =>
     `Probe the marked forms of the portal "${portal}" as persona "${persona}", following your Probe forms procedure. Report as your Return section says.`,
-  /** With a probe run (spec 034 phase 9) the session covers it too; without one, as before. */
+  /** With a form-probing run (spec 034 phase 9) the session covers it too; without one, as before. */
   ba: (portal: string, runId: string, probeRunId?: string) =>
     probeRunId
-      ? `Document the portal "${portal}" from the recorded map run ${runId} and the probe run ${probeRunId}: start one analysis session over both runs, do all seven passes as the ba-practice skill says, answer any pending feedback, and finish the session. Report as your Return section says.`
+      ? `Document the portal "${portal}" from the recorded map run ${runId} and the form-probing run ${probeRunId}: start one analysis session over both runs, do all seven passes as the ba-practice skill says, answer any pending feedback, and finish the session. Report as your Return section says.`
       : `Document the portal "${portal}" from the recorded map run ${runId}: start one analysis session over that run, do all seven passes as the ba-practice skill says, answer any pending feedback, and finish the session. Report as your Return section says.`,
   /**
    * The second BA session of a trial with process traces (spec 025 F-12, owner decision c): the

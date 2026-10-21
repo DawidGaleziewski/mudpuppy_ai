@@ -1,4 +1,5 @@
 import { looksLikeRawPayload, newId, nowIso } from '@pathfinder/core';
+import { schemaHash } from '@pathfinder/model';
 import { z } from 'zod';
 import type { ServerContext } from '../context.js';
 import { ToolError, parseInput } from '../errors.js';
@@ -7,7 +8,7 @@ import { getRun } from './common.js';
 export const RecordApiCallInput = z
   .object({
     run_id: z.string().min(1),
-    edge_id: z.string().min(1).nullable().default(null),
+    transition_id: z.string().min(1).nullable().default(null),
     method: z.string().min(1),
     url_template: z.string().min(1),
     status: z.number().int(),
@@ -46,14 +47,18 @@ export async function recordApiCall(
       'req_schema/res_schema/url_template look like raw data; record the shape only',
     );
   }
-  if (input.edge_id !== null) {
+  if (input.transition_id !== null) {
     const e = await ctx.db
-      .selectFrom('edges')
+      .selectFrom('transitions')
       .select('id')
-      .where('id', '=', input.edge_id)
+      .where('id', '=', input.transition_id)
       .where('run_id', '=', input.run_id)
       .executeTakeFirst();
-    if (!e) throw new ToolError('UNKNOWN_REF', `edge ${input.edge_id} does not exist in this run`);
+    if (!e)
+      throw new ToolError(
+        'UNKNOWN_REF',
+        `transition ${input.transition_id} does not exist in this run`,
+      );
   }
   const id = newId();
   await ctx.db
@@ -61,7 +66,7 @@ export async function recordApiCall(
     .values({
       id,
       run_id: input.run_id,
-      edge_id: input.edge_id,
+      transition_id: input.transition_id,
       method: input.method.toUpperCase(),
       url_template: input.url_template,
       status: input.status,
@@ -72,6 +77,11 @@ export async function recordApiCall(
       url: input.url,
       req_sample: input.req_sample,
       res_sample: input.res_sample,
+      // The endpoint schema (spec 039 design § 5.3): a backend change shows as a new hash.
+      schema_hash:
+        input.res_schema === undefined || input.res_schema === null
+          ? null
+          : schemaHash(input.res_schema as Parameters<typeof schemaHash>[0]),
     })
     .execute();
   return { api_call_id: id };

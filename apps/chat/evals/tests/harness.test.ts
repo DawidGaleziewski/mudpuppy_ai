@@ -63,6 +63,19 @@ describe('createWorkspace', () => {
            NULL, NULL, NULL, NULL, '2026-10-18T00:00:00Z')`,
       )
       .run();
+    // A documented process: its PROC record names it (spec 039 T070), yet the process goes.
+    store.raw
+      .prepare(
+        `INSERT INTO ba_processes (id, portal_id, key, name, persona, stage, rev, source, created_at, updated_at, record_key)
+         VALUES ('p-1', 'reference-insurer', 'PRC-001', 'Quote', 'guest', 'scoped', 1, 'new', '2026-10-17T00:00:00Z', '2026-10-17T00:00:00Z', 'PROC-001')`,
+      )
+      .run();
+    store.raw
+      .prepare(
+        `INSERT INTO doc_records (id, portal_id, kind, key, seq, title, latest_rev, confirmed_rev, withdrawn, created_at, updated_at, process_id)
+         VALUES ('r-1', 'reference-insurer', 'process', 'PROC-001', 1, 'Quote', 1, NULL, 0, '2026-10-17T00:00:00Z', '2026-10-17T00:00:00Z', 'p-1')`,
+      )
+      .run();
     store.raw.close();
     const parsed = parseConfig(['reference-insurer', '--store', src]);
     if (!parsed.ok) throw new Error(parsed.error);
@@ -70,6 +83,7 @@ describe('createWorkspace', () => {
     made.push(ws.dir);
     const copy = openDb(ws.storePath);
     expect(copy.raw.prepare('SELECT count(*) AS n FROM grouping_suggestions').get()).toEqual({ n: 0 });
+    expect(copy.raw.prepare('SELECT count(*) AS n FROM ba_processes').get()).toEqual({ n: 0 });
     expect(copy.raw.prepare('SELECT portal_id FROM chat_conversations WHERE id = ?').get(ws.conversationId)).toEqual({
       portal_id: 'reference-insurer',
     });

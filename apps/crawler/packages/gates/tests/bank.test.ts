@@ -145,13 +145,13 @@ gate(
     await nav(gs.call, run, `${base}&typ=M&okres=2026&tryb=podglad`); // the error combination
     const visits = rows<{
       id: string;
-      edge_id: string | null;
+      transition_id: string | null;
       via: string;
       url: string;
       hops_json: string;
     }>(
       gs,
-      `SELECT v.id, v.edge_id, v.via, v.url, v.hops_json FROM page_visits v
+      `SELECT v.id, v.transition_id, v.via, v.url, v.hops_json FROM observations v
        JOIN states s ON s.id = v.state_id
        WHERE v.run_id = ? AND s.route_template = '/legacy/bank/wyciag.do'`,
       run,
@@ -161,7 +161,7 @@ gate(
       visits.map((v) => ({
         id: v.id,
         state_id: 'wyciag',
-        edge_id: v.edge_id,
+        transition_id: v.transition_id,
         via: v.via as 'navigate',
         url: v.url,
         hops: JSON.parse(v.hops_json) as never,

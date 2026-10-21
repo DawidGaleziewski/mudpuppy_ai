@@ -68,57 +68,57 @@
       "evidence": [
         {
           "id": "01a148de-0708-7000-86af-c497d73cc50c",
-          "kind": "edge",
+          "kind": "transition",
           "run": "01a148dd-2f17-7000-ae2a-4e1aba488607"
         },
         {
           "id": "01a148de-4330-7000-a2ca-987c0d5dc3c2",
-          "kind": "edge",
+          "kind": "transition",
           "run": "01a148dd-2f17-7000-ae2a-4e1aba488607"
         },
         {
           "id": "01a148de-7acb-7000-92cf-f761139dcd76",
-          "kind": "edge",
+          "kind": "transition",
           "run": "01a148dd-2f17-7000-ae2a-4e1aba488607"
         },
         {
           "id": "01a148de-8703-7000-bdd8-ffa156527d9a",
-          "kind": "edge",
+          "kind": "transition",
           "run": "01a148dd-2f17-7000-ae2a-4e1aba488607"
         },
         {
           "id": "01a148de-f212-7000-b062-503f9d26e181",
-          "kind": "edge",
+          "kind": "transition",
           "run": "01a148dd-2f17-7000-ae2a-4e1aba488607"
         },
         {
           "id": "01a149a3-fd0d-7000-a534-8fa1b2e06b93",
-          "kind": "edge",
+          "kind": "transition",
           "run": "01a149a3-e5fc-7000-8106-d2ad95b84f4b"
         },
         {
           "id": "01a149a4-ddc6-7001-aeb1-957d0ae23147",
-          "kind": "edge",
+          "kind": "transition",
           "run": "01a149a3-e5fc-7000-8106-d2ad95b84f4b"
         },
         {
           "id": "01a149a4-f9db-7000-92be-ec8d351f3941",
-          "kind": "edge",
+          "kind": "transition",
           "run": "01a149a3-e5fc-7000-8106-d2ad95b84f4b"
         },
         {
           "id": "01a149a5-44fc-7000-9cc6-e0f9d6d35424",
-          "kind": "edge",
+          "kind": "transition",
           "run": "01a149a3-e5fc-7000-8106-d2ad95b84f4b"
         },
         {
           "id": "01a14a99-4d5a-7000-9ea9-267dea80c137",
-          "kind": "edge",
+          "kind": "transition",
           "run": "01a14a98-bbba-7000-8a57-9bdeb4de5186"
         },
         {
           "id": "01a14a99-6411-7000-af68-5235022fdc28",
-          "kind": "edge",
+          "kind": "transition",
           "run": "01a14a98-bbba-7000-8a57-9bdeb4de5186"
         },
         {
@@ -252,22 +252,22 @@
       "evidence": [
         {
           "id": "01a148de-0708-7000-86af-c497d73cc50c",
-          "kind": "edge",
+          "kind": "transition",
           "run": "01a148dd-2f17-7000-ae2a-4e1aba488607"
         },
         {
           "id": "01a149a4-6b70-7000-aaa9-c8b86b8e7e10",
-          "kind": "edge",
+          "kind": "transition",
           "run": "01a149a3-e5fc-7000-8106-d2ad95b84f4b"
         },
         {
           "id": "01a149a4-754a-7000-8a5a-c8c11d23abdb",
-          "kind": "edge",
+          "kind": "transition",
           "run": "01a149a3-e5fc-7000-8106-d2ad95b84f4b"
         },
         {
           "id": "01a149a4-abee-7000-b4f9-b63b241b3573",
-          "kind": "edge",
+          "kind": "transition",
           "run": "01a149a3-e5fc-7000-8106-d2ad95b84f4b"
         },
         {
@@ -277,7 +277,7 @@
         },
         {
           "id": "01a148de-070a-7000-8271-bf32b816eb20",
-          "kind": "page_visit",
+          "kind": "observation",
           "run": "01a148dd-2f17-7000-ae2a-4e1aba488607"
         },
         {
@@ -386,32 +386,32 @@
       "evidence": [
         {
           "id": "01a148de-4330-7000-a2ca-987c0d5dc3c2",
-          "kind": "edge",
+          "kind": "transition",
           "run": "01a148dd-2f17-7000-ae2a-4e1aba488607"
         },
         {
           "id": "01a148df-3ec1-7001-b1fb-fb229cf20267",
-          "kind": "edge",
+          "kind": "transition",
           "run": "01a148dd-2f17-7000-ae2a-4e1aba488607"
         },
         {
           "id": "01a149a4-e0a8-7000-99ac-431a20fe8f2f",
-          "kind": "edge",
+          "kind": "transition",
           "run": "01a149a3-e5fc-7000-8106-d2ad95b84f4b"
         },
         {
           "id": "01a149a4-efab-7001-945c-42b8864bf510",
-          "kind": "edge",
+          "kind": "transition",
           "run": "01a149a3-e5fc-7000-8106-d2ad95b84f4b"
         },
         {
           "id": "01a149a4-f9db-7000-92be-ec8d351f3941",
-          "kind": "edge",
+          "kind": "transition",
           "run": "01a149a3-e5fc-7000-8106-d2ad95b84f4b"
         },
         {
           "id": "01a14a99-6411-7000-af68-5235022fdc28",
-          "kind": "edge",
+          "kind": "transition",
           "run": "01a14a98-bbba-7000-8a57-9bdeb4de5186"
         },
         {
@@ -436,12 +436,12 @@
         },
         {
           "id": "01a148de-4332-7000-b4fc-cad1af8b1a31",
-          "kind": "page_visit",
+          "kind": "observation",
           "run": "01a148dd-2f17-7000-ae2a-4e1aba488607"
         },
         {
           "id": "01a14b1a-d55f-7002-85d0-89d1d0e2370e",
-          "kind": "page_visit",
+          "kind": "observation",
           "run": "01a14b1a-1be6-7000-922f-1c6f3ac81d4e"
         },
         {
@@ -577,22 +577,22 @@
         },
         {
           "id": "01a148de-7acb-7000-92cf-f761139dcd76",
-          "kind": "edge",
+          "kind": "transition",
           "run": "01a148dd-2f17-7000-ae2a-4e1aba488607"
         },
         {
           "id": "01a14a98-c936-7000-830d-3f63b48c77b1",
-          "kind": "edge",
+          "kind": "transition",
           "run": "01a14a98-bbba-7000-8a57-9bdeb4de5186"
         },
         {
           "id": "01a148de-7acd-7000-9a04-fe9412510423",
-          "kind": "page_visit",
+          "kind": "observation",
           "run": "01a148dd-2f17-7000-ae2a-4e1aba488607"
         },
         {
           "id": "01a14b1a-d55f-7002-85d0-89d1d0e2370e",
-          "kind": "page_visit",
+          "kind": "observation",
           "run": "01a14b1a-1be6-7000-922f-1c6f3ac81d4e"
         },
         {
@@ -668,7 +668,7 @@
       "evidence": [
         {
           "id": "01a148de-8703-7000-bdd8-ffa156527d9a",
-          "kind": "edge",
+          "kind": "transition",
           "run": "01a148dd-2f17-7000-ae2a-4e1aba488607"
         },
         {
@@ -678,7 +678,7 @@
         },
         {
           "id": "01a148de-8705-7000-8706-a34ecbc9db0c",
-          "kind": "page_visit",
+          "kind": "observation",
           "run": "01a148dd-2f17-7000-ae2a-4e1aba488607"
         },
         {
@@ -775,22 +775,22 @@
       "evidence": [
         {
           "id": "01a148df-3ec1-7001-b1fb-fb229cf20267",
-          "kind": "edge",
+          "kind": "transition",
           "run": "01a148dd-2f17-7000-ae2a-4e1aba488607"
         },
         {
           "id": "01a148de-070a-7000-8271-bf32b816eb20",
-          "kind": "page_visit",
+          "kind": "observation",
           "run": "01a148dd-2f17-7000-ae2a-4e1aba488607"
         },
         {
           "id": "01a148de-4332-7000-b4fc-cad1af8b1a31",
-          "kind": "page_visit",
+          "kind": "observation",
           "run": "01a148dd-2f17-7000-ae2a-4e1aba488607"
         },
         {
           "id": "01a148de-7acd-7000-9a04-fe9412510423",
-          "kind": "page_visit",
+          "kind": "observation",
           "run": "01a148dd-2f17-7000-ae2a-4e1aba488607"
         }
       ],
@@ -823,7 +823,7 @@
       "evidence": [
         {
           "id": "01a148de-8703-7000-bdd8-ffa156527d9a",
-          "kind": "edge",
+          "kind": "transition",
           "run": "01a148dd-2f17-7000-ae2a-4e1aba488607"
         },
         {
@@ -877,7 +877,7 @@
       "evidence": [
         {
           "id": "01a148df-3ec1-7001-b1fb-fb229cf20267",
-          "kind": "edge",
+          "kind": "transition",
           "run": "01a148dd-2f17-7000-ae2a-4e1aba488607"
         },
         {
@@ -911,7 +911,7 @@
       "evidence": [
         {
           "id": "01a149a5-47d3-7000-985f-3bc079680db1",
-          "kind": "edge",
+          "kind": "transition",
           "run": "01a149a3-e5fc-7000-8106-d2ad95b84f4b"
         },
         {
@@ -990,7 +990,7 @@
       "evidence": [
         {
           "id": "01a149a5-5ec8-7000-8809-fd3cd0fbc94b",
-          "kind": "edge",
+          "kind": "transition",
           "run": "01a149a3-e5fc-7000-8106-d2ad95b84f4b"
         },
         {
@@ -1104,12 +1104,12 @@
       "evidence": [
         {
           "id": "01a149a4-7fbc-7000-b314-a634d1547936",
-          "kind": "edge",
+          "kind": "transition",
           "run": "01a149a3-e5fc-7000-8106-d2ad95b84f4b"
         },
         {
           "id": "01a149a4-c996-7000-97a8-63e3bf699609",
-          "kind": "edge",
+          "kind": "transition",
           "run": "01a149a3-e5fc-7000-8106-d2ad95b84f4b"
         },
         {
@@ -1205,7 +1205,7 @@
       "evidence": [
         {
           "id": "01a148de-4330-7000-a2ca-987c0d5dc3c2",
-          "kind": "edge",
+          "kind": "transition",
           "run": "01a148dd-2f17-7000-ae2a-4e1aba488607"
         },
         {
@@ -1215,7 +1215,7 @@
         },
         {
           "id": "01a148de-4332-7000-b4fc-cad1af8b1a31",
-          "kind": "page_visit",
+          "kind": "observation",
           "run": "01a148dd-2f17-7000-ae2a-4e1aba488607"
         },
         {
@@ -1259,12 +1259,12 @@
       "evidence": [
         {
           "id": "01a149a4-e0a8-7000-99ac-431a20fe8f2f",
-          "kind": "edge",
+          "kind": "transition",
           "run": "01a149a3-e5fc-7000-8106-d2ad95b84f4b"
         },
         {
           "id": "01a149a4-f9db-7000-92be-ec8d351f3941",
-          "kind": "edge",
+          "kind": "transition",
           "run": "01a149a3-e5fc-7000-8106-d2ad95b84f4b"
         },
         {
@@ -1274,7 +1274,7 @@
         },
         {
           "id": "01a148de-7acd-7000-9a04-fe9412510423",
-          "kind": "page_visit",
+          "kind": "observation",
           "run": "01a148dd-2f17-7000-ae2a-4e1aba488607"
         },
         {
@@ -1309,7 +1309,7 @@
       "evidence": [
         {
           "id": "01a148de-7acd-7000-9a04-fe9412510423",
-          "kind": "page_visit",
+          "kind": "observation",
           "run": "01a148dd-2f17-7000-ae2a-4e1aba488607"
         },
         {
@@ -1343,7 +1343,7 @@
       "evidence": [
         {
           "id": "01a149a4-f255-7000-a0c3-08193bcb9424",
-          "kind": "edge",
+          "kind": "transition",
           "run": "01a149a3-e5fc-7000-8106-d2ad95b84f4b"
         },
         {
@@ -1388,7 +1388,7 @@
       "evidence": [
         {
           "id": "01a148de-7acd-7000-9a04-fe9412510423",
-          "kind": "page_visit",
+          "kind": "observation",
           "run": "01a148dd-2f17-7000-ae2a-4e1aba488607"
         },
         {
@@ -1575,7 +1575,7 @@
             "target_id": "01a148dd-7247-7000-9b9e-1869a6bb238b"
           },
           {
-            "kind": "page_visit",
+            "kind": "observation",
             "target_id": "01a148de-070a-7000-8271-bf32b816eb20"
           },
           {
@@ -1629,7 +1629,7 @@
             "target_id": "01a148dd-7247-7000-9b9e-1869a6bb238b"
           },
           {
-            "kind": "page_visit",
+            "kind": "observation",
             "target_id": "01a148de-070a-7000-8271-bf32b816eb20"
           },
           {
@@ -1674,7 +1674,7 @@
             "target_id": "01a148dd-7247-7000-9b9e-1869a6bb238b"
           },
           {
-            "kind": "page_visit",
+            "kind": "observation",
             "target_id": "01a148de-070a-7000-8271-bf32b816eb20"
           },
           {
@@ -1728,7 +1728,7 @@
             "target_id": "01a148dd-7247-7000-9b9e-1869a6bb238b"
           },
           {
-            "kind": "page_visit",
+            "kind": "observation",
             "target_id": "01a148de-070a-7000-8271-bf32b816eb20"
           },
           {
@@ -1774,7 +1774,7 @@
             "target_id": "01a148dd-7247-7000-9b9e-1869a6bb238b"
           },
           {
-            "kind": "page_visit",
+            "kind": "observation",
             "target_id": "01a148de-070a-7000-8271-bf32b816eb20"
           },
           {
@@ -1819,7 +1819,7 @@
             "target_id": "01a148de-0707-7000-bfe9-5c15c8973895"
           },
           {
-            "kind": "page_visit",
+            "kind": "observation",
             "target_id": "01a148de-4332-7000-b4fc-cad1af8b1a31"
           },
           {
@@ -1864,7 +1864,7 @@
             "target_id": "01a148de-0707-7000-bfe9-5c15c8973895"
           },
           {
-            "kind": "page_visit",
+            "kind": "observation",
             "target_id": "01a148de-4332-7000-b4fc-cad1af8b1a31"
           },
           {
@@ -1909,7 +1909,7 @@
             "target_id": "01a148de-0707-7000-bfe9-5c15c8973895"
           },
           {
-            "kind": "page_visit",
+            "kind": "observation",
             "target_id": "01a148de-4332-7000-b4fc-cad1af8b1a31"
           },
           {
@@ -1956,7 +1956,7 @@
             "target_id": "01a148de-0707-7000-bfe9-5c15c8973895"
           },
           {
-            "kind": "page_visit",
+            "kind": "observation",
             "target_id": "01a148de-4332-7000-b4fc-cad1af8b1a31"
           },
           {
@@ -2003,7 +2003,7 @@
             "target_id": "01a148de-0707-7000-bfe9-5c15c8973895"
           },
           {
-            "kind": "page_visit",
+            "kind": "observation",
             "target_id": "01a148de-4332-7000-b4fc-cad1af8b1a31"
           },
           {
@@ -2052,7 +2052,7 @@
             "target_id": "01a148de-432f-7000-bd50-88d0b85cf0a0"
           },
           {
-            "kind": "page_visit",
+            "kind": "observation",
             "target_id": "01a148de-7acd-7000-9a04-fe9412510423"
           },
           {
@@ -2104,7 +2104,7 @@
             "target_id": "01a148de-432f-7000-bd50-88d0b85cf0a0"
           },
           {
-            "kind": "page_visit",
+            "kind": "observation",
             "target_id": "01a148de-7acd-7000-9a04-fe9412510423"
           },
           {
@@ -2151,7 +2151,7 @@
             "target_id": "01a148de-432f-7000-bd50-88d0b85cf0a0"
           },
           {
-            "kind": "page_visit",
+            "kind": "observation",
             "target_id": "01a148de-7acd-7000-9a04-fe9412510423"
           },
           {
@@ -2191,11 +2191,11 @@
         "name_verbatim": "Składka łączna",
         "seen_in": [
           {
-            "kind": "page_visit",
+            "kind": "observation",
             "target_id": "01a148de-7acd-7000-9a04-fe9412510423"
           },
           {
-            "kind": "page_visit",
+            "kind": "observation",
             "target_id": "01a148de-8705-7000-8706-a34ecbc9db0c"
           }
         ],
@@ -2231,7 +2231,7 @@
         "name_verbatim": "Numer wniosku",
         "seen_in": [
           {
-            "kind": "page_visit",
+            "kind": "observation",
             "target_id": "01a148de-8705-7000-8706-a34ecbc9db0c"
           }
         ],
@@ -2278,7 +2278,7 @@
             "target_id": "01a14b1a-c757-7000-8612-febdd928c0d4"
           },
           {
-            "kind": "page_visit",
+            "kind": "observation",
             "target_id": "01a14b1a-d55f-7002-85d0-89d1d0e2370e"
           }
         ],
@@ -2292,7 +2292,7 @@
         },
         {
           "id": "01a14b1a-d55f-7002-85d0-89d1d0e2370e",
-          "kind": "page_visit",
+          "kind": "observation",
           "run": "01a14b1a-1be6-7000-922f-1c6f3ac81d4e"
         },
         {
@@ -2432,7 +2432,7 @@
       "evidence": [
         {
           "id": "01a148de-4332-7000-b4fc-cad1af8b1a31",
-          "kind": "page_visit",
+          "kind": "observation",
           "run": "01a148dd-2f17-7000-ae2a-4e1aba488607"
         },
         {
@@ -2507,7 +2507,7 @@
         },
         {
           "id": "01a148de-7acd-7000-9a04-fe9412510423",
-          "kind": "page_visit",
+          "kind": "observation",
           "run": "01a148dd-2f17-7000-ae2a-4e1aba488607"
         }
       ],
@@ -2532,7 +2532,7 @@
         },
         {
           "id": "01a148de-7acd-7000-9a04-fe9412510423",
-          "kind": "page_visit",
+          "kind": "observation",
           "run": "01a148dd-2f17-7000-ae2a-4e1aba488607"
         }
       ],
@@ -2678,7 +2678,7 @@
         },
         {
           "id": "01a14b1a-d55f-7002-85d0-89d1d0e2370e",
-          "kind": "page_visit",
+          "kind": "observation",
           "run": "01a14b1a-1be6-7000-922f-1c6f3ac81d4e"
         },
         {
@@ -2704,7 +2704,7 @@
       "evidence": [
         {
           "id": "01a148de-7acb-7000-92cf-f761139dcd76",
-          "kind": "edge",
+          "kind": "transition",
           "run": "01a148dd-2f17-7000-ae2a-4e1aba488607"
         },
         {
@@ -2714,7 +2714,7 @@
         },
         {
           "id": "01a148de-7acd-7000-9a04-fe9412510423",
-          "kind": "page_visit",
+          "kind": "observation",
           "run": "01a148dd-2f17-7000-ae2a-4e1aba488607"
         }
       ],
@@ -2745,7 +2745,7 @@
         },
         {
           "id": "01a148df-3ec1-7001-b1fb-fb229cf20267",
-          "kind": "edge",
+          "kind": "transition",
           "run": "01a148dd-2f17-7000-ae2a-4e1aba488607"
         }
       ],
@@ -2816,7 +2816,7 @@
         },
         {
           "id": "01a148df-3ec1-7001-b1fb-fb229cf20267",
-          "kind": "edge",
+          "kind": "transition",
           "run": "01a148dd-2f17-7000-ae2a-4e1aba488607"
         }
       ],

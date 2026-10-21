@@ -30,10 +30,9 @@ Layer: app (Python, FastAPI + Jinja + htmx, uv; outside the TS layers)
   `apps/crawler/tests/fixtures/access/three-personas.json`), `queries_review.py` (records, assumptions to check, unexplained differences, re-anchoring,
   proposals, probe suites), `queries_suites.py` (spec 032: open probe suites for Review, and a
   state's form step with its states and probe outcomes for the screen page), `queries_scans.py`, `queries_settings.py`, `queries_home.py` (Home beside the
-  assistant): read models. Spec 033: `map_layout.py` (pure layout of Scans ▸ Map: discovery tree,
-  layers, families), `queries_map.py` + `queries_map_node.py` (nodes, edges, inspector),
-  `web/map.py` + `static/js/map.js`; `queries_reconcile.py` (Review ▸ Differing states, confirmed
-  through the chat service).
+  assistant): read models. Spec 033: `map_layout.py` (pure layout of the map: discovery tree,
+  layers, families), `queries_map.py` + `queries_map_node.py` (the recorded map: Screens ▸ Map's
+  view One scan's path and a portal without a model), `web/map.py` + `static/js/map.js`.
 - `stores.py`: the stores a request may open (main data dir + eval workspaces), chosen by key;
   `portals_in` (cached per file write) backs the header's store menu, which lists the stores
   holding the chosen portal, and the portal menu's links, which land on such a store (R-71).
@@ -60,8 +59,31 @@ Layer: app (Python, FastAPI + Jinja + htmx, uv; outside the TS layers)
   step with the records citing its screen, what is still open, the sign-off) and
   `partials/picture.html` + `static/js/pictures.js` (thumbnail → picture dialog). The process
   page leads with A as documentation until `to_be_design`; A is edited by screens (forwarded to
-  `…/variants/A/edit`), processes are archived (`?show=archived` lists them), a PROC record has
+  `…/models/A/edit`), processes are archived (`?show=archived` lists them), a PROC record has
   Open in Processes (`…/processes/from-record`). Archived processes' screens count as loose.
+- Spec 039 (T100, the designer's 2.0 pages): `nav.py` groups the sections (Home · Changes · Review
+  | Portal model: Processes · Screens · Rules · Docs | Machine: Scans · Settings);
+  `queries_rules.py` + `web/rules.py` (Rules, v2-11 / v2-12: decision tables, boundary tests,
+  history; read-only; `rules_export.py` runs `pnpm model:rules-export` into a cached temp folder
+  for the zip, single files and a rule's "In the export", OV-5); `queries_model_facts.py` + `partials/model_facts.html` (a process page's
+  "In the portal model": triggers incl. deep links, outcomes, explored, rules).
+  `queries_changes.py` + `web/changes.py` (Changes, v2-02: a range of model versions, grouped by
+  process and screen, explanations in the UI's words) and `queries_change_detail.py` +
+  `change.html` (Before / after, v2-03; `static/js/change-keys.js`); `queries_releases.py` +
+  `partials/releases.html` (release lanes from the latest model version's build epochs, scans,
+  range bracket). Review (v2-04 / v2-05 / v2-16): `queries_queue.py` (Findings, Rules, Removals,
+  Processes ahead of `queries_review`'s kinds; Explained automatically and Decided tabs,
+  `?tab=`), `partials/review_queue_item.html`; deciding posts `/review/hypotheses/{portal}` →
+  the chat service's `POST /portals/{p}/model/decide`. Home of a picked portal (v2-01):
+  `queries_portal_home.py` + `home.html` (no longer a redirect to `/chat`; the chat stays on
+  `/chat` and in the drawer). Screens (v2-06 / v2-07): `queries_model_screens.py` +
+  `model_screens.html` / `model_screen.html` (`/screens` for a portal with a model; `/screens/{SC-…}`);
+  `?recorded=1` keeps the recorded-pages list. Map (v2-08): `queries_model_map.py` +
+  `model_map.html` (`/map` views Now / Since previous release, link-state layers, the menu
+  bundled, process overlay; inspector `/fragments/map/screen/{SC-…}`); `view=path` is the
+  recorded map. Same screen? (v2-14): `queries_same_screen.py` + `web/same_screen.py`
+  (`/same-screen`, conflicts first; answers post to the chat service's `…/model/label`). A process's A and
+  B are process models (`?model=B`, status vocabulary `process_model`; owner answer 8).
 - `servers.py`: live `pathfinder` servers read from `<data_dir>/servers/*.json`; the header names
   those on another environment or checkout (spec 031 R-61). Read-only, dead files are skipped.
 - `models.py`: read-only models of SQLite schema; drift test vs. `data/schema/schema.sql`.

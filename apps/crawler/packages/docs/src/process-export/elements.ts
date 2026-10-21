@@ -74,7 +74,7 @@ function leadsTo(raw: RawDb, ids: readonly string[], name: string): string[] {
   return (
     raw
       .prepare(
-        `SELECT DISTINCT t.route_template AS route FROM edges e JOIN states t ON t.id = e.to_state
+        `SELECT DISTINCT t.route_template AS route FROM transitions e JOIN states t ON t.id = e.to_state
          WHERE e.from_state IN (${ids.map(() => '?').join(',')}) AND e.status = 'executed'
            AND json_extract(e.action_json, '$.accessible_name') = ? ORDER BY route`,
       )

@@ -49,7 +49,7 @@ function state(ctx: ServerContext, run: string, tag: string): string {
 function click(ctx: ServerContext, run: string, from: string, to: string | null): void {
   ctx.raw
     .prepare(
-      `INSERT INTO edges (id, run_id, from_state, to_state, action_json, safety_class, status,
+      `INSERT INTO transitions (id, run_id, from_state, to_state, action_json, safety_class, status,
          evidence_ref, confidence, error, stabilization, created_at)
        VALUES (?, ?, ?, ?, ?, 'destructive', 'executed', ?, 'observed', NULL, 'settled', ?)`,
     )
@@ -102,7 +102,7 @@ describe('inferSharedButton', () => {
     expect(frontier(ctx, row.id).reason).toMatch(/^shared_button: /);
     const edge = ctx.raw
       .prepare(
-        "SELECT to_state, confidence FROM edges WHERE from_state = ? AND confidence = 'inferred'",
+        "SELECT to_state, confidence FROM transitions WHERE from_state = ? AND confidence = 'inferred'",
       )
       .get(c) as { to_state: string; confidence: string };
     expect(edge).toEqual({ to_state: home, confidence: 'inferred' });

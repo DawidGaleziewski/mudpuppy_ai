@@ -6,6 +6,48 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Added
+- **MudPuppy 2.0, the portal model, R-81** (spec 039, v2.0.0, 2026-10-21, last work commit
+  3201e7b; **breaking, see below**). MudPuppy no longer keeps the latest scan as the truth. It
+  keeps one **portal model**: **screens with variants**, **actions and links with states**, and
+  **releases** cut from build epochs. A new scan is **reconciled** into the model, never
+  rewritten over it; a person's answer is kept next to what the machine found.
+  **What changed** explains each difference between two releases by rules R1–R8 (error replayed
+  twice, persona variant, A/B test, moved or renamed link, decision drift, ...). An explanation is
+  a **finding** (derived fact, confirmed automatically) or a **hypothesis** (a claim a person
+  confirms, refutes or overturns). **Review** has Findings, Rules, Removals, Processes, **Same
+  screen?** (every earlier answer stays in its history), **Explained automatically** and
+  **Decided**. **Decision rules** are mined from what the portal did with each input (DMN 1.3,
+  with **boundary tests** and **regression** rounds of confirmed rules) and exported as DMN,
+  Markdown or CSV. **Processes** are proposed from the model (Leiden communities), each with
+  triggers, outcomes, paths, **Split / Merge**, how far it was explored, and exactly one process
+  per PROC record. The **similarity classifier** and the threshold τ are used only after a person
+  accepts them. Check runs use the **headless driver** (a replay without the LLM); the probe
+  scan is now called **form probing**. The `api_endpoint` record kind (parked 038b, R-65 (5)) is
+  built. Dashboard, from the designer's 2.0 pages: grouped nav, **Home**, **Changes** with
+  Before / after, **Review**, **Processes**, **Screens** with the **Map** of the model (Now /
+  Since previous release / One scan's path), **Rules** (list, decision table, boundary tests,
+  history, Export), **Docs**, **Scans**, **Settings** with **Hints** (a confirmed A/B test adds
+  its cookie to `portal.yaml`). Constitution 6.0.0 (three layers, derived facts, the headless
+  driver, the Python miner `apps/miner`); new package `@pathfinder/model`.
+  **Breaking.** No v1 data is migrated (store, evidence, traces and v1 eval baselines were reset;
+  baselines live in `history/v1/`): run `pnpm store:reset`, then re-scan. Migrations
+  **0029–0045**; tables renamed `edges` → `transitions` and `page_visits` → `observations`; the
+  probe scan is **form probing** (`runs.mode` `probe` is the headless driver's); `pnpm
+  model:dmn` is now `pnpm model:rules-export`; `model:import` was built as `model:mine`;
+  `list_differing_states`, `propose_verdicts` and `add_rule_candidate` are gone (hypotheses
+  replace them). New commands in `apps/crawler`: `store:reset`, `model:reconcile`,
+  `model:decide`, `model:mine`, `model:propose`, `model:replay`, `model:regress`,
+  `model:explore`, `model:classify`, `model:rules-export`, `model:pairs`,
+  `model:refingerprint`, `model:compare-fingerprints`.
+  **Evals.** Five reference-insurer trials ($5.58–$7.15 each): no overclaims, hard checks 0,
+  export quality at or above v1 (EARS, validation, fields documented), no wrong start / end /
+  extra steps. **Known gap: rules recall 6, 7, 8, 7, 8 of 17** (v1 median 9): the BA writes
+  validation and format limits as data item constraints only (R-89). Grouping eval equal to v1.
+  New v2 baselines (trial 4; grouping 2026-10-21T20-26-47). Details in findings F-01–F-60.
+  **Not in 2.0:** overturn stickiness and undo (R-87), repeat replays for R4/R5, so an A/B finding
+  from rules names no cookie (R-88), BA rules recall (R-89), roadmap review (R-86, first after
+  the merge), the rename to MudPuppy in code (R-83), and the constitution still names
+  `model:import`.
 - **Grouping eval, lost click, crawler gaps, R-78 (5) (6), R-35, R-36, R-58 (3)** (spec 038,
   v1.0.43, 2026-10-18, built while the owner was away). **"Ask the assistant to regroup"**
   no longer loses its text: the link hands it to the chat it opens, and a request made while the

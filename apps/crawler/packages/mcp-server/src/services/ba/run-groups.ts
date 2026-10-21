@@ -95,12 +95,12 @@ export function statesOfLink(
     case 'state':
     case 'screen_region':
       return [l.target_id];
-    case 'edge':
+    case 'transition':
       return all(
-        'SELECT from_state AS s FROM edges WHERE id = @id UNION SELECT to_state FROM edges WHERE id = @id',
+        'SELECT from_state AS s FROM transitions WHERE id = @id UNION SELECT to_state FROM transitions WHERE id = @id',
       );
-    case 'page_visit':
-      return all('SELECT state_id AS s FROM page_visits WHERE id = @id');
+    case 'observation':
+      return all('SELECT state_id AS s FROM observations WHERE id = @id');
     case 'process_step':
       return all(
         'SELECT state_before AS s FROM process_steps WHERE id = @id UNION SELECT state_after FROM process_steps WHERE id = @id',
@@ -136,9 +136,7 @@ function recordProcesses(ctx: BaContext, portal: string): GroupProcess[] {
     .all(portal) as { key: string; title: string; rev_id: string }[];
   return records.map((rec) => {
     const links = ctx.raw
-      .prepare(
-        'SELECT target_kind, target_id, run_id FROM doc_evidence_links WHERE revision_id = ?',
-      )
+      .prepare('SELECT target_kind, target_id, run_id FROM doc_evidence WHERE revision_id = ?')
       .all(rec.rev_id) as LinkRow[];
     const runs = new Set(links.map((l) => l.run_id).filter((r): r is string => r !== null));
     for (const l of links.filter((x) => x.target_kind === 'process')) {
@@ -164,8 +162,8 @@ function workspaceProcesses(ctx: BaContext, portal: string): GroupProcess[] {
   const rows = ctx.raw
     .prepare(
       `SELECT p.key, p.name, r.steps FROM ba_processes p
-       JOIN process_variants v ON v.process_id = p.id AND v.kind = 'as_is'
-       JOIN process_variant_revisions r ON r.variant_id = v.id AND r.rev = v.rev
+       JOIN process_models v ON v.process_id = p.id AND v.kind = 'as_is'
+       JOIN process_model_revisions r ON r.model_id = v.id AND r.rev = v.rev
        WHERE p.portal_id = ? ORDER BY p.key`,
     )
     .all(portal) as { key: string; name: string; steps: string }[];
@@ -174,8 +172,8 @@ function workspaceProcesses(ctx: BaContext, portal: string): GroupProcess[] {
     const states = steps.map((s) => s.state_id).filter((s): s is string => typeof s === 'string');
     const observed = ctx.raw
       .prepare(
-        `SELECT DISTINCT r.run_id FROM process_variant_revisions r
-         JOIN process_variants v ON v.id = r.variant_id JOIN ba_processes p ON p.id = v.process_id
+        `SELECT DISTINCT r.run_id FROM process_model_revisions r
+         JOIN process_models v ON v.id = r.model_id JOIN ba_processes p ON p.id = v.process_id
          WHERE p.portal_id = ? AND p.key = ? AND r.run_id IS NOT NULL`,
       )
       .all(portal, p.key) as { run_id: string }[];

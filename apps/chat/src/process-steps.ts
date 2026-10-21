@@ -1,5 +1,5 @@
 // Pure rules for BA process steps (spec 022 M5, data-model "Steps"): validation, building the
-// as-is steps from recorded states, the next variant label, the screens key of a grouping.
+// as-is steps from recorded states, the next model label, the screens key of a grouping.
 // No database here; process-service.ts loads and writes.
 
 import { observedSteps, ProcessStep, type StateRow } from '@pathfinder/chat-model';
@@ -15,7 +15,7 @@ export { observedSteps, screensKey, type StateRow } from '@pathfinder/chat-model
 /**
  * A's steps after a person's edit (spec 027 FR-004): `states` in their new order. A step whose
  * screen stays is kept as it was (id, annotations); a new screen gets an `sN` id above every id
- * the variant ever used (`usedIds`), so History and Compare never pair it with an older step.
+ * the model ever used (`usedIds`), so History and Compare never pair it with an older step.
  * The same screen twice keeps two steps.
  */
 export function editedSteps(
@@ -55,7 +55,7 @@ export function editNote(before: readonly ProcessStep[], after: readonly Process
 }
 
 /**
- * Check a variant's steps: unique ids, `from` pointing at steps of the variant it was branched
+ * Check a model's steps: unique ids, `from` pointing at steps of the model it was branched
  * from, observed steps naming a state of the portal. Throws 400 with every problem.
  */
 export function checkSteps(
@@ -71,7 +71,7 @@ export function checkSteps(
       problems.push(`step ${s.id} is marked observed but names no recorded screen of this portal`);
     for (const f of s.from)
       if (!opts.parentStepIds.has(f))
-        problems.push(`step ${s.id} comes from ${f}, which the variant it was branched from lacks`);
+        problems.push(`step ${s.id} comes from ${f}, which the model it was branched from lacks`);
   }
   if (problems.length > 0)
     throw new HttpError(400, `The steps are not valid: ${problems.join('; ')}.`, {

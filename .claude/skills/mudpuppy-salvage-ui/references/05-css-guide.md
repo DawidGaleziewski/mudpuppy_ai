@@ -99,7 +99,7 @@ Put the mapping in **one** place in the backend or view layer, for example a tem
 
 **Allowed inline styles:** layout only (`display`, `flex*`, `grid*`, `gap`, `width`/`min-`/`max-width`,
 `margin`, `align-*`, `justify-*`, image `height`) and the hooks `--sy-gap`, `--sy-min` (for `.sy-grid`) and `--value` (for `.sy-meter`).
-Graph layout is the one exception: `.sy-node`, `.sy-node-group` and `.sy-graph__canvas` take `left`, `top`, `width`, `height` and `--sy-node-w` from the server's layout, and `path.sy-edge` takes its `d`.
+Graph and timeline layout are the exceptions: `.sy-node`, `.sy-node-group` and `.sy-graph__canvas` take `left`, `top`, `width`, `height` and `--sy-node-w` from the server's layout, and `path.sy-edge` takes its `d`; `.sy-releases__span`, `__scan` and `__range` take `left`/`width` in %, `.sy-releases` takes `--sy-releases-name`.
 
 **Forbidden everywhere outside `tokens.css`:**
 - hex, `rgb()` or named colours (use roles)

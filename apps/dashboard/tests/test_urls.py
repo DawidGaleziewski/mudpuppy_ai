@@ -52,11 +52,11 @@ def test_state_page_shows_entry_urls_hops_and_parameters(liveinsurer_store: Stor
     state = conn.execute("SELECT id, first_seen_run FROM states LIMIT 1").fetchone()
     insert(
         conn,
-        "page_visits",
+        "observations",
         id="visit-1",
         run_id=state[1],
         state_id=state[0],
-        edge_id=None,
+        transition_id=None,
         via="navigate",
         url="https://liveinsurer.test/oc?wariant=pelny&sid=AB12",
         hops_json=json.dumps(

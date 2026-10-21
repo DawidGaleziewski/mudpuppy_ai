@@ -64,7 +64,7 @@ export async function recordBlocked(
       http_status: null,
       reason,
       evidence_ref: action.evidence_ref,
-      edge_id: null,
+      transition_id: null,
       created_at: nowIso(),
     })
     .execute();

@@ -30,12 +30,11 @@ describe('list_runs', () => {
         ended_at: FIXTURE_TS,
         counts: {
           states: 4,
-          edges: 4,
+          transitions: 4,
           forms: 2,
           network_calls: 2,
           actions: 4,
           open_questions: 2,
-          rule_candidates: 1,
         },
         process_name: null,
       },
@@ -75,8 +74,10 @@ describe('get_run_evidence', () => {
       cluster_id: expect.any(String),
     });
 
-    const edges = await page('edges');
-    expect(edges.find((e: { id: string }) => e.id === h.fx.edges.carToVehicle)).toMatchObject({
+    const transitions = await page('transitions');
+    expect(
+      transitions.find((e: { id: string }) => e.id === h.fx.transitions.carToVehicle),
+    ).toMatchObject({
       from_state: h.fx.states.car,
       to_state: h.fx.states.vehicle,
       from_route: '/ubezpieczenia/samochod',
@@ -115,9 +116,6 @@ describe('get_run_evidence', () => {
     expect((await page('open_questions')).map((q: { id: string }) => q.id)).toEqual(
       h.fx.openQuestions,
     );
-    expect(await page('rule_candidates')).toMatchObject([
-      { id: h.fx.ruleCandidate, confidence: 'inferred', about_ref: h.fx.states.car },
-    ]);
     expect(await page('decisions')).toMatchObject([
       { id: h.fx.decision, kind: 'skip', rule: 'ceiling:read', subject_ref: h.fx.actions.buy },
     ]);
@@ -126,7 +124,7 @@ describe('get_run_evidence', () => {
   it('reads page visits and the parameter inventory (spec 019, R-37/R-38)', async () => {
     const h = await startBa();
     const insert = h.fx.raw.prepare(
-      `INSERT INTO page_visits (id, run_id, state_id, edge_id, via, url, hops_json, created_at)
+      `INSERT INTO observations (id, run_id, state_id, transition_id, via, url, hops_json, created_at)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
     );
     const hops = [
@@ -147,13 +145,13 @@ describe('get_run_evidence', () => {
       'visit-b',
       h.fx.runId,
       h.fx.states.vehicle,
-      h.fx.edges.carToVehicle,
+      h.fx.transitions.carToVehicle,
       'action',
       'https://ref.test/kalkulator/pojazd?typ=ciezarowy&flag',
       '[]',
       FIXTURE_TS,
     );
-    const visits = await h.must('get_run_evidence', { run_id: h.fx.runId, kind: 'page_visits' });
+    const visits = await h.must('get_run_evidence', { run_id: h.fx.runId, kind: 'observations' });
     expect(visits.defaults).toEqual({ via: 'action' });
     expect(visits.items).toEqual([
       {
@@ -168,7 +166,7 @@ describe('get_run_evidence', () => {
         id: 'visit-b',
         state_id: h.fx.states.vehicle,
         route_template: '/kalkulator/pojazd',
-        edge_id: h.fx.edges.carToVehicle,
+        transition_id: h.fx.transitions.carToVehicle,
         url: 'https://ref.test/kalkulator/pojazd?typ=ciezarowy&flag',
         hops: [],
       },
@@ -213,11 +211,18 @@ describe('get_run_evidence', () => {
     expect(calls.items[0]).not.toHaveProperty('confidence');
 
     // Kinds without defaults keep every non-null field on the item.
-    const rules = await get('rule_candidates');
-    expect(rules).not.toHaveProperty('defaults');
-    expect(rules.items[0]).toHaveProperty('confidence', 'inferred');
+    const questions = await get('open_questions');
+    expect(questions).not.toHaveProperty('defaults');
+    expect(questions.items[0]).toHaveProperty('status', 'open');
 
-    for (const kind of ['states', 'edges', 'actions', 'forms', 'network_calls', 'decisions']) {
+    for (const kind of [
+      'states',
+      'transitions',
+      'actions',
+      'forms',
+      'network_calls',
+      'decisions',
+    ]) {
       const page = await get(kind);
       for (const item of page.items as Record<string, unknown>[])
         expect(Object.values(item)).not.toContain(null);
@@ -246,11 +251,14 @@ describe('get_run_evidence', () => {
 
   it('caps the page at 200 and refuses unknown kinds and runs', async () => {
     const h = await startBa();
+    h.fx.raw
+      .prepare(`INSERT INTO entity_refs (id, state_id) VALUES ('ref-home', ?)`)
+      .run(h.fx.states.home);
     const insert = h.fx.raw.prepare(
-      `INSERT INTO open_questions (id, run_id, text, about_ref, status, created_at)
-       VALUES (?, ?, 'q', ?, 'open', ?)`,
+      `INSERT INTO open_questions (id, run_id, text, ref_id, status, created_at)
+       VALUES (?, ?, 'q', 'ref-home', 'open', ?)`,
     );
-    for (let i = 0; i < 210; i++) insert.run(newId(), h.fx.runId, h.fx.states.home, FIXTURE_TS);
+    for (let i = 0; i < 210; i++) insert.run(newId(), h.fx.runId, FIXTURE_TS);
     const args = { run_id: h.fx.runId, kind: 'open_questions' };
 
     const full = await h.must('get_run_evidence', { ...args, limit: 200 });
@@ -622,6 +630,7 @@ describe('list_processes, get_process', () => {
         outcome: 'goal_reached',
         step_count: 3,
         boundary_action_id: null,
+        trigger_ord: null,
       },
       {
         process_id: boundary.processId,
@@ -632,6 +641,7 @@ describe('list_processes, get_process', () => {
         outcome: 'boundary_reached',
         step_count: 2,
         boundary_action_id: boundary.boundaryActionId,
+        trigger_ord: null,
       },
     ]);
     expect((await h.must('list_processes', { portal_id: h.fx.otherPortalId })).processes).toEqual(
@@ -675,7 +685,7 @@ describe('list_processes, get_process', () => {
     expect(p.steps[1]).toMatchObject({
       kind: 'click',
       action: { role: 'link', name: 'Oblicz składkę' },
-      edge_id: t.edgeIds[1],
+      transition_id: t.transitionIds[1],
       state_before: { state_id: h.fx.states.car },
       state_after: { state_id: h.fx.states.vehicle, title: expect.stringContaining('Kalkulator') },
       outcomes: ['navigated to /kalkulator/pojazd'],
@@ -685,15 +695,15 @@ describe('list_processes, get_process', () => {
     expect(p.steps[2]).toMatchObject({ kind: 'fill', value: 'Test Model', state_after: null });
   });
 
-  it('attaches the network calls of a step through its edge', async () => {
+  it('attaches the network calls of a step through its transition', async () => {
     const h = await startBa();
     const t = h.fx.addTraceRun();
     h.fx.raw
       .prepare(
-        `INSERT INTO network_calls (id, run_id, edge_id, method, url_template, status, req_schema,
+        `INSERT INTO network_calls (id, run_id, transition_id, method, url_template, status, req_schema,
          res_schema, console_errors, created_at) VALUES (?, ?, ?, 'GET', '/api/x', 200, '{}', '{}', '[]', ?)`,
       )
-      .run(newId(), t.runId, t.edgeIds[1], FIXTURE_TS);
+      .run(newId(), t.runId, t.transitionIds[1], FIXTURE_TS);
     const p = await h.must('get_process', { process_id: t.processId });
     expect(p.steps[1].network_calls).toMatchObject([{ method: 'GET', url_template: '/api/x' }]);
     expect(p.steps[0].network_calls).toEqual([]);

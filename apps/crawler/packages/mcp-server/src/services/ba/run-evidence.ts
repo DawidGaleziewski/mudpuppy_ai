@@ -4,7 +4,7 @@ import type { BaContext } from '../../context.js';
 import { ToolError, parseInput } from '../../errors.js';
 import { json } from './common.js';
 
-/** `get_run_evidence` (moved out of `reads.ts`, G-01/G-06; spec 019 adds visits and parameters). */
+/** `get_run_evidence` (moved out of `reads.ts`, G-01/G-06; spec 019 adds observations and parameters). */
 
 export const EVIDENCE_PAGE_MAX = 200;
 const EVIDENCE_PAGE_DEFAULT = 50;
@@ -13,14 +13,13 @@ type Row = Record<string, unknown>;
 
 export const RunEvidenceKind = z.enum([
   'states',
-  'edges',
+  'transitions',
   'actions',
   'forms',
   'network_calls',
-  'page_visits',
+  'observations',
   'parameters',
   'open_questions',
-  'rule_candidates',
   'decisions',
   'probe_outcomes',
 ]);
@@ -79,10 +78,10 @@ const RUN_EVIDENCE: Record<Exclude<RunEvidenceKind, 'parameters'>, Source> = {
       possible_new_process: possible_new_process === 1,
     }),
   },
-  edges: {
+  transitions: {
     sql: `SELECT e.id, e.from_state, e.to_state, e.action_json, e.safety_class, e.status, e.confidence,
                  f.route_template AS from_route, t.route_template AS to_route
-          FROM edges e JOIN states f ON f.id = e.from_state LEFT JOIN states t ON t.id = e.to_state
+          FROM transitions e JOIN states f ON f.id = e.from_state LEFT JOIN states t ON t.id = e.to_state
           WHERE e.run_id = ? AND e.id > ? ORDER BY e.id LIMIT ?`,
     summarise: ({ action_json, ...r }) => ({ ...r, action: actionSummary(action_json as string) }),
   },
@@ -105,7 +104,7 @@ const RUN_EVIDENCE: Record<Exclude<RunEvidenceKind, 'parameters'>, Source> = {
     summarise: ({ fields_json, ...r }) => ({ ...r, fields: json(fields_json as string) }),
   },
   network_calls: {
-    sql: `SELECT id, edge_id, method, url_template, url, status, req_schema, res_schema, console_errors
+    sql: `SELECT id, transition_id, method, url_template, url, status, req_schema, res_schema, console_errors
           FROM network_calls WHERE run_id = ? AND id > ? ORDER BY id LIMIT ?`,
     summarise: ({ req_schema, res_schema, console_errors, ...r }) => ({
       ...r,
@@ -115,20 +114,16 @@ const RUN_EVIDENCE: Record<Exclude<RunEvidenceKind, 'parameters'>, Source> = {
     }),
   },
   // Spec 019 (R-37/R-38): every arrival on a page, its verbatim URL and the hops that led there.
-  page_visits: {
-    sql: `SELECT v.id, v.state_id, s.route_template, v.via, v.edge_id, v.url, v.hops_json
-          FROM page_visits v JOIN states s ON s.id = v.state_id
+  observations: {
+    sql: `SELECT v.id, v.state_id, s.route_template, v.via, v.transition_id, v.url, v.hops_json
+          FROM observations v JOIN states s ON s.id = v.state_id
           WHERE v.run_id = ? AND v.id > ? ORDER BY v.id LIMIT ?`,
     summarise: ({ hops_json, ...r }) => ({ ...r, hops: json(hops_json as string) }),
   },
   open_questions: {
-    sql: `SELECT id, text, about_ref, status FROM open_questions
-          WHERE run_id = ? AND id > ? ORDER BY id LIMIT ?`,
-    summarise: (r) => r,
-  },
-  rule_candidates: {
-    sql: `SELECT id, text, about_ref, confidence FROM rule_candidates
-          WHERE run_id = ? AND id > ? ORDER BY id LIMIT ?`,
+    sql: `SELECT q.id, q.text, coalesce(r.state_id, r.transition_id, r.form_id) AS about_ref,
+            q.status FROM open_questions q JOIN entity_refs r ON r.id = q.ref_id
+          WHERE q.run_id = ? AND q.id > ? ORDER BY q.id LIMIT ?`,
     summarise: (r) => r,
   },
   decisions: {
@@ -152,11 +147,11 @@ function requireRun(ctx: BaContext, runId: string): { id: string; portal_id: str
 const PAGE_DEFAULTS: Partial<Record<RunEvidenceKind, Row>> = {
   states: { confidence: 'observed', stabilization: 'settled', state_kind: 'main' },
   probe_outcomes: { accepted: false, possible_new_process: false },
-  edges: { safety_class: 'read', status: 'executed', confidence: 'observed' },
+  transitions: { safety_class: 'read', status: 'executed', confidence: 'observed' },
   actions: { safety_class: 'read', allowed: true, confidence: 'observed' },
   forms: { confidence: 'observed' },
   network_calls: { confidence: 'observed' },
-  page_visits: { via: 'action' },
+  observations: { via: 'action' },
 };
 
 /** The item without null fields and without fields equal to the page's default. */
@@ -175,7 +170,7 @@ function parameterPage(ctx: BaContext, runId: string, cursor: string, limit: num
   const visits = (
     ctx.raw
       .prepare(
-        `SELECT id, state_id, edge_id, via, url, hops_json FROM page_visits
+        `SELECT id, state_id, transition_id, via, url, hops_json FROM observations
          WHERE run_id = ? ORDER BY created_at, rowid`,
       )
       .all(runId) as (Omit<VisitRow, 'hops'> & { hops_json: string })[]

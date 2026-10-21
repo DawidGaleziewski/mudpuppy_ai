@@ -93,7 +93,7 @@ describe.skipIf(!available)('token budget of a scripted map drain (spec 013 SC-0
       expect(sum.calls).toBeLessThanOrEqual(20);
       expect(context.reread).toBeLessThanOrEqual(400_000);
       const inferred = await ctx.db
-        .selectFrom('edges')
+        .selectFrom('transitions')
         .select('id')
         .where('run_id', '=', runId)
         .where('confidence', '=', 'inferred')

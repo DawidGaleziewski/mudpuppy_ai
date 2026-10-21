@@ -7,22 +7,24 @@ Portal-language text goes in `*_verbatim` fields with a `lang` code (e.g. `pl`).
 | Kind (key) | Required content | Typical evidence | Good title |
 |---|---|---|---|
 | `capability` (CAP) | `description` | nav states, screens | "Book reservation" |
-| `screen` (SCR) | `purpose`, `route_templates[]` (exactly as recorded, e.g. `/katalog/szukaj`), `elements[]` `{role, label_verbatim}`, `entry_points[]` | states, edges | "Catalogue search" |
+| `screen` (SCR) | `purpose`, `route_templates[]` (exactly as recorded, e.g. `/katalog/szukaj`), `elements[]` `{role, label_verbatim}`, `entry_points[]` | states, transitions | "Catalogue search" |
 | `process` (PROC) | `goal`, `persona`, `trigger`, `outcome`, `observed_extent` (`full`, `until_boundary`, `map_only`) | trace process, steps | "Reserve a book" |
 | `use_case` (UC) | `primary_actor`, `preconditions[]`, `trigger`, `main_flow[]` `{n, actor_or_system, text}`, `alternate_flows[]`, `exception_flows[]`, `postconditions[]` | process steps | "Reader reserves a book" |
-| `requirement` (REQ) | `statement`, `rationale?` + `rationale_confidence`, `acceptance_criteria[]` `{given[], when[], then[]}`, `priority` (`unset` unless a reviewer said) | forms, edges, steps | "Reject invalid card number" |
+| `requirement` (REQ) | `statement`, `rationale?` + `rationale_confidence`, `acceptance_criteria[]` `{given[], when[], then[]}`, `priority` (`unset` unless a reviewer said) | forms, transitions, steps | "Reject invalid card number" |
 | `nfr` (NFR) | `category` (`performance`, `security`, `accessibility`, `availability`, `compliance`, `usability`, `localisation`), `statement`, `measured?` `{value, unit, how}`, all three strings (`value: "200"`, not `200`) | network calls, robots, states | "Pages served in Polish" |
 | `business_rule` (BR) | `statement`, `rule_type` (`constraint`, `computation`, `inference`, `action_enabler`), `decision_table?` | forms, states, validation messages, screen regions of the controls | "Pickup window" |
 | `glossary_term` (GL) | `term_verbatim`, `lang`, `definition` (English), `synonyms_verbatim[]` | states where the term appears | "Prolongata" |
-| `data_item` (DI) | `name_verbatim` (= field label exactly), `lang`, `name_en`, `data_type`, `constraints` `{required?, format?, min_length?, max_length?, allowed_values[]?, pattern_observed?}`, `seen_in[]` `{kind, target_id}` with `kind` `form`, `network_call` or `page_visit` (a URL parameter) and `target_id` that form's, call's or visit's id | form, network call, page visit, screen region of the field | "Numer karty" |
+| `data_item` (DI) | `name_verbatim` (= field label exactly), `lang`, `name_en`, `data_type`, `constraints` `{required?, format?, min_length?, max_length?, allowed_values[]?, pattern_observed?}`, `seen_in[]` `{kind, target_id}` with `kind` `form`, `network_call` or `observation` (a URL parameter) and `target_id` that form's, call's or observation's id | form, network call, observation, screen region of the field | "Numer karty" |
 | `assumption` (ASM) | `statement`, `impact_if_wrong` | records, reviews | "Fee shown is final" |
 | `open_question` (OQ) | `question`, `why_it_matters`, `answer_needed_from` (`sme`, `crawler`, `either`) | anything unexplained | — |
 | `followup` (FUP) | `question`, `suggested_mode` (`map`, `trace`), `target` (`{url}` or `{process_name, goal}`), `persona`, `reason` | the state with the entry point | — |
+| `api_endpoint` (API) | `method` and `path` exactly as the captured call's (its method and URL template; a create or revise that cites no such call is refused, `API_CALL_NOT_CITED`), `purpose` in business words, `called_from[]`, `request_fields[]`, `response_fields[]`, `statuses[]` | the network call (required), the screens it is called from | "Calculate the premium" |
 
 ## Relations (from → type → to)
 
 - `capability` contains `process` | `screen`
-- `process` contains `screen` (the screens its steps pass through)
+- `process` contains `screen` (the screens its steps pass through, from the screen its trigger
+  opens to its outcome; never the pages walked on the way to the trigger)
 - `use_case` describes `process`
 - `requirement` refines `use_case` | `capability`
 - `requirement` enforces `business_rule`

@@ -1,0 +1,72 @@
+{% extends "salvage/base.html" %}
+{% import "salvage/macros.html" as sy %}
+{% set nav_current = "screens" %}
+{% block title %}Map{% endblock %}
+{% block head_extra %}<script src="/static/js/map.js" defer></script>{% endblock %}
+{#- Spec 039 T100, designer screen v2-08 (UX-R40–R44): the portal model's map. Views, overlays and
+    layers change the drawing, never the model. Links on every page are bundled; actions inside a
+    screen are counted on its box. The list carries the same facts for keyboards and readers. -#}
+{% block main %}
+<div class="sy-pagehead">
+  <nav class="sy-crumbs" aria-label="Breadcrumb"><a href="{{ c.url('/screens') }}">Screens</a> / <span aria-current="page">Map</span></nav>
+  <h1 class="sy-h1">Map</h1>
+  <p class="sy-meta">{{ c.portal }} · {{ m.screens }} active screen{{ "s" if m.screens != 1 }} · {{ m.links }} link{{ "s" if m.links != 1 }}
+    {%- if f.view == "since" %} · since model version {{ m.since }} · {{ m.changed }} change{{ "s" if m.changed != 1 }}{% else %} · now{% endif %}</p>
+</div>
+{% set screens_tab = "map" %}
+{% include "salvage/partials/screens_tabs.html" %}
+
+<form class="mp-map-tools" method="get" action="/map" aria-label="Map view">
+  {%- if c.store_param %}<input type="hidden" name="store" value="{{ c.store_param }}">{% endif %}
+  {%- if f.open_family %}<input type="hidden" name="open" value="{{ f.open_family }}">{% endif %}
+  <input type="hidden" name="view" value="{{ f.view }}">
+  <input type="hidden" name="layers" value="">
+  {%- set map_view_now = f.view %}
+  {% include "salvage/partials/map_views.html" %}
+  <label class="sy-field"><span class="sy-field__label">Overlay a process</span>
+    <select class="sy-select sy-select--md" name="process">
+      <option value="">None</option>
+      {%- for key, name in m.processes %}<option value="{{ key }}"{% if f.process == key %} selected{% endif %}>{{ name }}</option>{% endfor %}
+    </select></label>
+  <fieldset>
+    <legend class="sy-legend-label">Layers</legend>
+    {%- for key, label in (("retired", "Retired links"), ("unseen", "Not seen since"), ("unchecked", "Not checked")) %}
+    <label class="sy-check"><input type="checkbox" name="layers" value="{{ key }}"{% if key in f.layers %} checked{% endif %}> {{ label }}</label>
+    {%- endfor %}
+  </fieldset>
+  <div class="sy-cluster">
+    <button class="sy-btn" type="submit">Apply</button>
+    <div class="sy-seg" role="group" aria-label="Show as">
+      <button type="submit" name="show" value="graph" aria-pressed="{{ 'true' if show == 'graph' else 'false' }}">Graph</button>
+      <button type="submit" name="show" value="list" aria-pressed="{{ 'true' if show == 'list' else 'false' }}">List</button>
+    </div>
+  </div>
+</form>
+
+<div class="sy-columns">
+  <div class="sy-col-main sy-stack">
+    <div class="sy-split">
+      {%- if m.bundled %}
+      <div class="sy-bundle" role="group" aria-label="Bundled links">
+        <span>Menu on every page · <b>{{ m.bundled }} link{{ "s" if m.bundled != 1 }}</b> · bundled</span>
+        {%- if m.bundled_drawn %}<span class="sy-case-normal">{{ m.bundled_drawn | length }} drawn because it changed: {{ m.bundled_drawn | join(", ") }}</span>{% endif %}
+      </div>
+      {%- endif %}
+      {%- if m.overlay %}<span class="sy-small sy-muted">Overlay: <a class="sy-case-normal" href="{{ c.url('/processes/' ~ m.overlay[0]) }}">{{ m.overlay[1] }}</a></span>{% endif %}
+    </div>
+    {%- if show != "list" %}
+    {% include "salvage/partials/model_map_graph.html" %}
+    {%- endif %}
+    {% include "salvage/partials/model_map_list.html" %}
+  </div>
+  <aside class="sy-col-side">
+    <section class="sy-plate" aria-labelledby="insp-h" id="map-inspector" aria-live="polite">
+      {%- if d %}{% include "salvage/partials/model_map_inspector.html" %}
+      {%- else %}
+      <div class="sy-plate__head"><h2 id="insp-h" class="sy-plate__title">Inspector</h2></div>
+      <div class="sy-plate__body"><p class="sy-small sy-muted">Select a screen to see its variants, actions, links and changes.</p></div>
+      {%- endif %}
+    </section>
+  </aside>
+</div>
+{% endblock %}

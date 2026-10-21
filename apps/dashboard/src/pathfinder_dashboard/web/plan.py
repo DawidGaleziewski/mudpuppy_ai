@@ -54,8 +54,8 @@ def _plan_from_form(run_type: str, form: dict[str, str]) -> dict[str, Any] | Non
     if run_type in ("continue", "retry") and form.get("parent_run_id"):
         plan["parent_run_id"] = form["parent_run_id"]
     if run_type == "retry":
-        if form.get("target_edge_id"):
-            plan["target_edge_id"] = form["target_edge_id"]
+        if form.get("target_transition_id"):
+            plan["target_transition_id"] = form["target_transition_id"]
         variation = form.get("variation", "none")
         plan["variation"] = variation if variation in dict(VARIATIONS) else "none"
     if run_type == "continue" and "parent_run_id" not in plan:
@@ -176,20 +176,24 @@ async def recover_skip(request: Request, run_id: str, env: str | None = None) ->
     web = web_of(request)
     c = web.ctx(request, env)
     raw = parse_qs((await request.body()).decode("utf-8", "replace"))
-    edge_id = (raw.get("edge_id") or [""])[0]
+    transition_id = (raw.get("transition_id") or [""])[0]
     try:
         with c.conn() as conn:
             r = queries_plan.recovery(conn, run_id)
     except db.StoreMissing as err:
         return web.missing(c, err)
-    if r is None or not web.settings.reviewer or edge_id not in {f.edge_id for f in r.failed}:
+    if (
+        r is None
+        or not web.settings.reviewer
+        or transition_id not in {f.transition_id for f in r.failed}
+    ):
         note = "Not recorded: set PATHFINDER_REVIEWER, and skip a failed action of this scan."
     else:
         body = {
             "author": web.settings.reviewer,
             "kind": "skip",
-            "target_kind": "edge",
-            "target_id": edge_id,
+            "target_kind": "transition",
+            "target_id": transition_id,
         }
         try:
             status, answer = await chat_client.call(

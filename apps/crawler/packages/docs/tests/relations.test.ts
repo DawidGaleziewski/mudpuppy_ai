@@ -12,6 +12,7 @@ const ALLOWED: [DocKind, RelationType, DocKind][] = [
   ['requirement', 'enforces', 'business_rule'],
   ['data_item', 'appears_on', 'screen'],
   ['glossary_term', 'appears_on', 'screen'],
+  ['api_endpoint', 'appears_on', 'screen'],
   ['glossary_term', 'synonym_of', 'glossary_term'],
   ['assumption', 'answers', 'open_question'],
   ['requirement', 'answers', 'open_question'],
@@ -52,6 +53,9 @@ describe('relation table', () => {
     expect(isAllowed('use_case', 'depends_on', 'business_rule').ok).toBe(true);
     expect(isAllowed('requirement', 'depends_on', 'business_rule').ok).toBe(false);
     expect(isAllowed('business_rule', 'depends_on', 'assumption').ok).toBe(false);
+    for (const from of ['process', 'use_case', 'requirement'] as const)
+      expect(isAllowed(from, 'depends_on', 'api_endpoint').ok).toBe(true);
+    expect(isAllowed('api_endpoint', 'depends_on', 'process').ok).toBe(false);
   });
 
   it('allows nothing outside the table', () => {

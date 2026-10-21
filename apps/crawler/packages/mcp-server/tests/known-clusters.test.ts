@@ -45,4 +45,48 @@ describe('seedKnownClusters', () => {
     expect(seedKnownClusters(ctx, new FingerprintIndex(), 'shop', '/inne')).toBe(0);
     expect(seedKnownClusters(ctx, new FingerprintIndex(), 'other-portal', ROUTE)).toBe(0);
   });
+
+  it('seeds one group per screen of the portal model, across crawler clusters (spec 039 T038)', async () => {
+    const ctx = await makeCtx();
+    const run = await seedRun(ctx);
+    const ids: string[] = [];
+    for (const [i, page] of [PAGE(), PAGE(['    - button "Oferta premium"'])].entries()) {
+      const ref = await ctx.evidence.storeText(page, 'yaml');
+      const { state_id } = await recordState(ctx, {
+        run_id: run,
+        fingerprint: fp(page).level1,
+        cluster_id: `cluster-${i}`,
+        route_template: ROUTE,
+        title: 'Konto',
+        evidence_ref: ref,
+        confidence: 'observed',
+      });
+      ids.push(state_id);
+    }
+    expect(seedKnownClusters(ctx, new FingerprintIndex(), 'shop', ROUTE)).toBe(2);
+    const at = '2026-10-20T00:00:00.000Z';
+    ctx.raw
+      .prepare(
+        `INSERT INTO model_versions (id, portal_id, seq, built_at, algorithm, threshold, stats_json)
+         VALUES ('mv1', 'shop', 1, ?, 'minhash-avglink-v1', 0.9, '{}')`,
+      )
+      .run(at);
+    ctx.raw
+      .prepare(
+        `INSERT INTO model_screens (id, key, portal_id, route_key, title, status, first_model_version, created_at)
+         VALUES ('M1', 'SC-0001', 'shop', ?, 'Konto', 'active', 'mv1', ?)`,
+      )
+      .run(ROUTE, at);
+    for (const [i, id] of ids.entries())
+      ctx.raw
+        .prepare(
+          `INSERT INTO screen_members (screen_id, state_id, ordinal, assigned_by, from_model_version)
+           VALUES ('M1', ?, ?, 'clustering', 'mv1')`,
+        )
+        .run(id, i + 1);
+    const index = new FingerprintIndex();
+    expect(seedKnownClusters(ctx, index, 'shop', ROUTE)).toBe(1);
+    // Both recorded pages are exact members of the model screen's group.
+    expect(index.assign(fp(PAGE(['    - button "Oferta premium"']))).clusterId).toBe('cluster-0');
+  });
 });

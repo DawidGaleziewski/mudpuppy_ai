@@ -200,7 +200,7 @@ def history(
         for r in _rows(
             conn,
             "SELECT run_id, count(*) FROM ("
-            " SELECT e.run_id FROM edges e JOIN runs r ON r.id = e.run_id"
+            " SELECT e.run_id FROM transitions e JOIN runs r ON r.id = e.run_id"
             "  WHERE r.portal_id = ? AND e.error IS NOT NULL"
             " UNION ALL SELECT f.run_id FROM frontier f JOIN runs r ON r.id = f.run_id"
             "  WHERE r.portal_id = ? AND f.status = 'unreachable')"

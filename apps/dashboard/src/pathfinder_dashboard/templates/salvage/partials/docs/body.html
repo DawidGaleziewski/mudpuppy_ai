@@ -35,11 +35,11 @@
           <tr id="evidence-{{ e.link.id }}">
             <td>
               <span class="sy-small sy-muted">{{ e.link.target_kind | replace("_", " ") }}</span>
-              {% if e.broken %}<span class="sy-status" data-status="unobserved">Broken link</span> <span class="sy-mono sy-mono--sm">{{ e.link.target_id | short_id }}</span> <span class="sy-small sy-muted">no longer exists</span>
-              {%- elif not e.resolved %}<span class="sy-status" data-status="unobserved">Unresolved</span> <span class="sy-small sy-muted">this store cannot look up {{ e.link.target_kind | replace("_", " ") }} targets</span>
+              {% if not e.resolved %}<span class="sy-status" data-status="unobserved">Unresolved</span> <span class="sy-small sy-muted">this store cannot look up {{ e.link.target_kind | replace("_", " ") }} targets</span>
                 {%- if e.link.run_id %} <a href="{{ c.url('/runs/' ~ e.link.run_id, tab='process' if e.link.target_kind in ('process', 'process_step') else none) }}">Open scan</a>{% endif %}
               {%- elif e.link.target_kind == "doc_record" %}{{ sy.tag(e.doc_key, c.url('/docs/' ~ portal ~ '/' ~ e.doc_key), sm=true, label=e.label) }}
               {%- elif e.link.target_kind == "review" %}<a href="#review-{{ e.link.target_id }}">{{ e.label }}</a>
+              {%- elif e.link.target_kind == "hypothesis" %}{{ sy.tag(e.doc_key, c.url('/rules/' ~ e.doc_key), sm=true) }} <span class="sy-case-normal">{{ e.label.split(": ", 1)[1] if e.label else "" }}</span>
               {%- elif e.link.target_kind in ("state", "screen_region") %}<a class="sy-case-normal" href="{{ c.url('/states/' ~ e.link.target_id) }}">{{ e.label }}</a>
                 {%- if e.link.region %} <span class="sy-mono sy-mono--sm">{{ e.link.region }}</span>{% endif %}
               {%- else %}<a href="{{ c.url('/runs/' ~ e.link.run_id, tab=e.tab) }}#{{ e.link.target_id }}">{{ e.label }}</a>{% endif %}

@@ -122,18 +122,6 @@ A test page with the dashboard's own CSS and JS and a 40-node left-to-right Merm
 - **Eval idea**: a gap or gate must name what it observed (here: the variant), so a pass for the
   wrong reason is visible.
 
-## F-08 The export-fork export broke on T001's Vitest config change, 2026-10-13
-
-- **Symptom**: after the merge, `pnpm --dir apps/exportfork-export export` stopped with
-  `vitest.config.ts: expected text not found: , 'evals/tests/**/*.test.ts'`.
-- **Cause**: T001 reformatted the crawler's `repo` project include list (one entry per line) and
-  added `packages/gates/tests/eval-*.test.ts`; the exporter's anchored rewrite still expected the
-  old one-line form. The anchor did its job (stopped the export), but only after the merge.
-- **Fix**: the transform removes both include lines (the field has neither `evals/` nor `gates`).
-  Dry run green; export done.
-- **Test idea**: run `export --dry-run` in the close-out of any R-item that touches a file listed
-  in `apps/exportfork-export/src/transforms/`, before the merge.
-
 ## Close-out review (code-reviewer agent, G-31), 2026-10-12
 
 | # | File | Guideline | Finding | Outcome |

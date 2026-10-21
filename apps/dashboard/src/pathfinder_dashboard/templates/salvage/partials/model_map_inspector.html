@@ -1,0 +1,74 @@
+{#- The model map's inspector (v2-08 side): one screen's facts, variants with why, actions inside,
+    links out (the menu bundled) and its latest changes. Machine facts only; deciding is in Review. -#}
+{%- import "salvage/macros.html" as sy %}
+{%- if not d %}
+<div class="sy-plate__head"><h2 id="insp-h" class="sy-plate__title">Inspector</h2></div>
+<div class="sy-plate__body"><p class="sy-small sy-muted">This screen is not in the model of {{ c.portal or "this portal" }}.</p></div>
+{%- else %}
+{%- set r = d.row %}
+<div class="sy-plate__head">
+  <h2 id="insp-h" class="sy-plate__title sy-case-normal">{{ r.title or "(untitled page)" }}</h2>
+  <a class="sy-small" href="{{ c.url('/screens/' ~ r.key) }}">Open screen</a>
+</div>
+<div class="sy-plate__body sy-stack">
+  <dl class="sy-facts">
+    <dt>Screen</dt><dd>{{ sy.tag(r.key, c.url('/screens/' ~ r.key), sm=true) }}</dd>
+    <dt>Route</dt><dd><span class="sy-route">{{ r.route }}</span></dd>
+    <dt>Status</dt><dd>{{ sy.status("model_screen", r.status) }}</dd>
+    {%- if r.parts %}<dt>Part</dt><dd>{{ r.parts | join(", ") }}</dd>{% endif %}
+    {%- if r.process %}<dt>Process</dt><dd><a class="sy-case-normal" href="{{ c.url('/processes/' ~ r.process[0]) }}">{{ r.process[1] }}</a></dd>{% endif %}
+    {%- if r.last_seen %}<dt>Last seen</dt><dd><span class="sy-cluster" style="--sy-gap: 6px">{{ r.last_seen | when }}{% if r.last_run %} {{ sy.tag(r.last_run[:8], c.url('/runs/' ~ r.last_run), sm=true) }}{% endif %}</span></dd>{% endif %}
+  </dl>
+  {%- set pct = (100 * r.checked / r.actions) | round | int if r.actions else 0 %}
+  <div class="sy-meter" style="--value: {{ pct }}%">
+    <div class="sy-meter__label"><span>Actions checked</span><span>{{ r.checked }} / {{ r.actions }}</span></div>
+    <div class="sy-meter__track" role="progressbar" aria-label="Actions checked" aria-valuemin="0" aria-valuemax="{{ r.actions }}" aria-valuenow="{{ r.checked }}"><div class="sy-meter__fill"></div></div>
+  </div>
+</div>
+<hr>
+<div class="sy-plate__body sy-stack">
+  <h3 class="sy-label">Variants · {{ d.variants | length }}</h3>
+  <ul class="sy-rows mp-inset">
+    {%- for v in d.variants %}
+    <li class="sy-row"><span class="sy-row__main">
+      <span class="sy-cluster" style="--sy-gap: 6px"><b class="sy-case-normal">r{{ v.ordinal }}</b><span class="sy-chip{% if v.why.chip %} sy-chip--{{ v.why.chip }}{% endif %}">{{ v.why.word }}</span></span>
+      <span class="sy-small sy-muted sy-case-normal">{% if v.releases %}{{ v.releases | join(", ") }} · {% endif %}{{ v.personas | join(", ") or "—" }}{% if v.first_seen %} · {{ v.first_seen | when }}{% endif %}</span>
+      {%- if v.status %}{{ sy.status("deviation", v.status) }}{% else %}<span class="sy-status" data-status="ok">Observed</span>{% endif %}
+    </span></li>
+    {%- endfor %}
+  </ul>
+</div>
+<hr>
+<div class="sy-plate__body sy-stack">
+  {%- set inside = d.inside() %}{% set links = d.links_out() %}{% set menu = d.menu() %}
+  <h3 class="sy-label">Actions inside · {{ inside | length }}</h3>
+  {%- if inside %}
+  <ul class="sy-rows mp-inset">
+    {%- for a in inside[:12] %}<li class="sy-row"><span class="sy-mono sy-mono--sm mp-break">{{ a.element_key }}</span>{{ sy.status("action", a.status) }}</li>{% endfor %}
+  </ul>
+  {%- if inside | length > 12 %}<p class="sy-small sy-muted">and {{ inside | length - 12 }} more on the screen page</p>{% endif %}
+  {%- else %}<p class="sy-small sy-muted">None.</p>{% endif %}
+  <h3 class="sy-label">Links out · {{ links | length }}{% if menu %} + menu{% endif %}</h3>
+  <ul class="sy-rows mp-inset">
+    {%- for a, key, title in links %}
+    <li class="sy-row"><span class="sy-row__main"><span class="sy-case-normal"><span class="sy-mono sy-mono--sm mp-break">{{ a.element_key }}</span> → {{ title }}</span>{{ sy.status("action", a.status) }}</span></li>
+    {%- endfor %}
+    {%- if menu %}<li class="sy-row sy-row--muted"><span>Menu · {{ menu }} link{{ "s" if menu != 1 }}</span><span class="sy-small">bundled</span></li>{% endif %}
+  </ul>
+</div>
+{%- if d.history %}
+<hr>
+<div class="sy-plate__body sy-stack">
+  <h3 class="sy-label">Changes · {{ d.history | length }}</h3>
+  <ul class="sy-rows mp-inset">
+    {%- for ch in d.history[:5] %}
+    <li class="sy-row"><span class="sy-row__main"><a class="sy-case-normal" href="{{ c.url('/changes/' ~ ch.id) }}">{{ ch.finding }}</a><span class="sy-cluster" style="--sy-gap: 6px"><span class="sy-chip{% if ch.explanation.chip %} sy-chip--{{ ch.explanation.chip }}{% endif %}">{{ ch.explanation.word }}</span>{{ sy.status("deviation", ch.status) }}</span></span></li>
+    {%- endfor %}
+  </ul>
+</div>
+{%- endif %}
+<div class="sy-plate__foot">
+  <a class="sy-small" href="{{ c.url('/screens/' ~ r.key) }}">Open screen</a>
+  {%- if d.variants | length > 1 %}<a class="sy-small" href="{{ c.url('/same-screen', screen=r.key) }}">Same screen?</a>{% endif %}
+</div>
+{%- endif %}

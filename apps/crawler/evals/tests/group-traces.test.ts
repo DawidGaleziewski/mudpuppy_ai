@@ -54,8 +54,8 @@ it('groups each trace run as a workspace process with the screens it walked; ski
     const row = opened.raw
       .prepare(
         `SELECT p.name, p.stage, v.label, r.steps, r.run_id FROM ba_processes p
-         JOIN process_variants v ON v.process_id = p.id
-         JOIN process_variant_revisions r ON r.variant_id = v.id`,
+         JOIN process_models v ON v.process_id = p.id
+         JOIN process_model_revisions r ON r.model_id = v.id`,
       )
       .get() as { name: string; stage: string; label: string; steps: string; run_id: string };
     expect(row).toMatchObject({ name: 'Buy a thing', stage: 'scoped', label: 'A', run_id: 'r1' });

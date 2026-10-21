@@ -34,17 +34,24 @@ type Mark = { id: string; kind: string; target_kind: string; target_id: string }
 type MarkKind = 'start' | 'focus' | 'probe' | 'retry' | 'recheck' | 'skip';
 
 async function openMarks(ctx: ServerContext, portal: string, kinds: MarkKind[]): Promise<Mark[]> {
-  return ctx.db
+  const rows = await ctx.db
     .selectFrom('marks')
-    .select(['id', 'kind', 'target_kind', 'target_id'])
+    .select(['id', 'kind', 'form_step_id', 'state_id', 'transition_id'])
     .where('portal_id', '=', portal)
     .where('kind', 'in', kinds)
     .where('used_by_run_id', 'is', null)
     .orderBy('created_at')
     .execute();
+  // The target is a typed column since 0041; the plan reads it as a kind and an id.
+  return rows.map((m) => {
+    let [target_kind, target_id] = ['transition', m.transition_id!];
+    if (m.form_step_id) [target_kind, target_id] = ['form_step', m.form_step_id];
+    else if (m.state_id) [target_kind, target_id] = ['state', m.state_id];
+    return { id: m.id, kind: m.kind, target_kind, target_id };
+  });
 }
 
-interface EdgeRow {
+interface TransitionRow {
   id: string;
   run_id: string;
   from_state: string;
@@ -52,16 +59,16 @@ interface EdgeRow {
   action_json: string;
 }
 
-async function edge(ctx: ServerContext, id: string): Promise<EdgeRow | undefined> {
+async function transition(ctx: ServerContext, id: string): Promise<TransitionRow | undefined> {
   return ctx.db
-    .selectFrom('edges')
+    .selectFrom('transitions')
     .select(['id', 'run_id', 'from_state', 'to_state', 'action_json'])
     .where('id', '=', id)
     .executeTakeFirst();
 }
 
-/** The `actionKey` of an edge's action (an edge stores role and name, not the action id). */
-function keyOfEdge(e: Pick<EdgeRow, 'from_state' | 'action_json'>): string {
+/** The `actionKey` of a transition's action (it stores role and name, not the action id). */
+function keyOfTransition(e: Pick<TransitionRow, 'from_state' | 'action_json'>): string {
   const a = JSON.parse(e.action_json) as { role?: string; accessible_name?: string | null };
   return actionKey({ state_id: e.from_state, role: a.role ?? '', name: a.accessible_name ?? null });
 }
@@ -71,28 +78,28 @@ async function skips(ctx: ServerContext, portal: string) {
   const marks = await openMarks(ctx, portal, ['skip']);
   const states = marks.filter((m) => m.target_kind === 'state').map((m) => m.target_id);
   const actions: string[] = [];
-  for (const m of marks.filter((x) => x.target_kind === 'edge')) {
-    const e = await edge(ctx, m.target_id);
-    if (e) actions.push(keyOfEdge(e));
+  for (const m of marks.filter((x) => x.target_kind === 'transition')) {
+    const e = await transition(ctx, m.target_id);
+    if (e) actions.push(keyOfTransition(e));
   }
   if (states.length > 0) {
     const into = await ctx.db
-      .selectFrom('edges')
+      .selectFrom('transitions')
       .select(['from_state', 'action_json'])
       .where('to_state', 'in', states)
       .execute();
-    actions.push(...into.map(keyOfEdge));
+    actions.push(...into.map(keyOfTransition));
   }
   return { states, actions: [...new Set(actions)] };
 }
 
-/** The failed action a retry repeats: the plan's edge, else the latest failed edge of a Retry mark. */
+/** The failed action a retry repeats: the plan's transition, else the latest failed one of a Retry mark. */
 async function retryTarget(ctx: ServerContext, plan: PlanInput, marks: Mark[]) {
-  if (plan.target_edge_id !== undefined) return edge(ctx, plan.target_edge_id);
+  if (plan.target_transition_id !== undefined) return transition(ctx, plan.target_transition_id);
   for (const m of marks) {
-    if (m.target_kind === 'edge') return edge(ctx, m.target_id);
+    if (m.target_kind === 'transition') return transition(ctx, m.target_id);
     const failed = await ctx.db
-      .selectFrom('edges')
+      .selectFrom('transitions')
       .select(['id', 'run_id', 'from_state', 'to_state', 'action_json'])
       .where('from_state', '=', m.target_id)
       .where('error', 'is not', null)
@@ -179,8 +186,8 @@ async function markedPlan(
   const fromMarks: string[] = [];
   for (const m of marks) {
     if (m.target_kind === 'state') fromMarks.push(m.target_id);
-    else if (m.target_kind === 'edge') {
-      const e = await edge(ctx, m.target_id);
+    else if (m.target_kind === 'transition') {
+      const e = await transition(ctx, m.target_id);
       if (e?.to_state) fromMarks.push(e.to_state);
     }
   }
@@ -192,7 +199,7 @@ async function markedPlan(
   };
 }
 
-/** A retry run replays one failed action, from a Retry mark or the given edge. */
+/** A retry run replays one failed action, from a Retry mark or the given transition. */
 async function retryPlan(
   ctx: ServerContext,
   scope: Scope,
@@ -204,15 +211,15 @@ async function retryPlan(
   if (target === undefined)
     throw new ToolError(
       'NO_PATH',
-      'no failed action to retry: give plan.target_edge_id or a Retry mark',
+      'no failed action to retry: give plan.target_transition_id or a Retry mark',
     );
   return {
     ...base,
     parent_run_id: input.parent_run_id ?? target.run_id,
     start_state_ids: [target.from_state],
-    only_action: keyOfEdge(target),
-    target_edge_id: target.id,
-    mark_ids: input.target_edge_id ? [] : marks.map((m) => m.id),
+    only_action: keyOfTransition(target),
+    target_transition_id: target.id,
+    mark_ids: input.target_transition_id ? [] : marks.map((m) => m.id),
   };
 }
 
@@ -250,7 +257,7 @@ export async function resolveDirected(
     skip_actions: skip.actions,
     only_action: null,
     variation: input.variation ?? 'none',
-    target_edge_id: null,
+    target_transition_id: null,
     parent_done: [],
     mark_ids: [],
   };

@@ -8,6 +8,7 @@ import type BetterSqlite3 from 'better-sqlite3';
 import { z } from 'zod';
 import { SECRETS, type EvidenceStore } from '@pathfinder/core';
 import { type PathfinderDb } from '@pathfinder/store';
+import { registerModelTools } from './mcp-model-tools.js';
 import { registerPageTools } from './mcp-page-tools.js';
 import { registerProcessTools } from './mcp-process-tools.js';
 import { workflowState } from '@pathfinder/workflow';
@@ -16,6 +17,7 @@ import { PersonaFile, portalEnvironments } from '@pathfinder/config';
 import { PersonaRefusal, savePersona } from './personas.js';
 import { SaveTestDataInput, saveTestData } from './test-data.js';
 import { ProposalRefusal, ProposeInput, proposeChange } from './proposals.js';
+import type { CheckRunDeps } from './check-runs.js';
 import { RunRefusal, runningRunOf, stopRun } from './runs.js';
 import { RequestScanInput, ScanRefusal, requestScan } from './scan.js';
 import {
@@ -42,6 +44,8 @@ export interface ChatMcpContext {
   evidence?: EvidenceStore | null;
   /** The typed store for suggest_grouping (spec 022 M5); without it the tool is not offered. */
   db?: PathfinderDb | null;
+  /** Check runs (spec 039 owner answer 19); without it start_check_run is not offered. */
+  checkRuns?: CheckRunDeps | null;
 }
 
 function ok(value: unknown): CallToolResult {
@@ -79,6 +83,7 @@ function fail(error: unknown): CallToolResult {
 export function createChatMcpServer(ctx: ChatMcpContext): McpServer {
   const server = new McpServer({ name: 'pathfinder-chat', version: '0.1.0' });
   registerPageTools(server, { raw: ctx.raw, evidence: ctx.evidence ?? null }, ok, refused);
+  registerModelTools(server, { raw: ctx.raw, checkRuns: ctx.checkRuns ?? null }, ok, refused);
   registerProcessTools(
     server,
     { raw: ctx.raw, db: ctx.db ?? null, conversationId: ctx.conversationId },
@@ -154,7 +159,7 @@ export function createChatMcpServer(ctx: ChatMcpContext): McpServer {
     'request_scan',
     {
       description:
-        'Ask to scan (map) a portal as one persona in one of its environments (production, staging, sandbox; workflow_state lists them; may be left out when it has one), or with resume_run_id to continue a stopped (interrupted) scan (persona may then be left out: the run keeps its own). allow_writes defaults to true (the scan may fill and submit forms); pass false only when the BA asks the scan to only look; skip_images is the BA\'s answer to "skip loading images?" (default false); focus narrows the scan to the part the BA asked for: start_url (where to start, e.g. https://en.wikipedia.org/), only_domains (hosts to stay on, e.g. ["en.wikipedia.org"]), only_paths and exclude_paths (path globs, * matches anything, e.g. ["/wiki/Special:*"]); leave it out to map the whole portal; it never widens the portal. process {name, goal} traces that one process instead of mapping (the "map a process" step; a new run, not with resume_run_id). probe_marked true is a "Probe forms" scan: it probes only the form steps the BA marked for probing (a plain scan never probes); a new run, not with resume_run_id or process. run_type starts a directed scan that reaches recorded screens by replaying the recorded path instead of mapping from the start page: "focused" (from the Start here / Focus marks, or plan.start_state_ids, within plan.depth), "continue" (a stopped scan: plan.parent_run_id), "recheck" (only record what the Recheck-marked screens show now), "retry" (repeat one failed action: plan.target_edge_id, plan.variation wait_longer / other_input / no_submit); persona and environment default to the parent run\'s. A resume keeps the run\'s own choices unless given. Checks the portal, persona and stored test-user credentials; on success records the scan step as pending and returns a hand-off: start the crawler agent with exactly that prompt. On MISSING_INPUT ask the BA only for the listed items.',
+        'Ask to scan (map) a portal as one persona in one of its environments (production, staging, sandbox; workflow_state lists them; may be left out when it has one), or with resume_run_id to continue a stopped (interrupted) scan (persona may then be left out: the run keeps its own). allow_writes defaults to true (the scan may fill and submit forms); pass false only when the BA asks the scan to only look; skip_images is the BA\'s answer to "skip loading images?" (default false); focus narrows the scan to the part the BA asked for: start_url (where to start, e.g. https://en.wikipedia.org/), only_domains (hosts to stay on, e.g. ["en.wikipedia.org"]), only_paths and exclude_paths (path globs, * matches anything, e.g. ["/wiki/Special:*"]); leave it out to map the whole portal; it never widens the portal. process {name, goal} traces that one process instead of mapping (the "map a process" step; a new run, not with resume_run_id). form_probing true is a "Probe forms" (form-probing) scan: it probes only the form steps the BA marked for probing (a plain scan never probes); a new run, not with resume_run_id or process. run_type starts a directed scan that reaches recorded screens by replaying the recorded path instead of mapping from the start page: "focused" (from the Start here / Focus marks, or plan.start_state_ids, within plan.depth), "continue" (a stopped scan: plan.parent_run_id), "recheck" (only record what the Recheck-marked screens show now), "retry" (repeat one failed action: plan.target_transition_id, plan.variation wait_longer / other_input / no_submit); persona and environment default to the parent run\'s. A resume keeps the run\'s own choices unless given. Checks the portal, persona and stored test-user credentials; on success records the scan step as pending and returns a hand-off: start the crawler agent with exactly that prompt. On MISSING_INPUT ask the BA only for the listed items.',
       inputSchema: RequestScanInput.shape,
     },
     (args) => {
@@ -256,7 +261,8 @@ export function createChatMcpServer(ctx: ChatMcpContext): McpServer {
           .prepare(
             `SELECT id, key, rev, target_kind, target_id, kind, text, attachment_name, status,
                     superseded_reason, superseded_detail, superseded_by_run, superseded_at, created_at
-             FROM amendments WHERE portal_id = ? AND (? IS NULL OR status = ?) ORDER BY created_at`,
+             FROM amendments_with_target WHERE portal_id = ? AND (? IS NULL OR status = ?)
+             ORDER BY created_at`,
           )
           .all(portal, status ?? null, status ?? null);
         return ok({ portal, amendments: rows });

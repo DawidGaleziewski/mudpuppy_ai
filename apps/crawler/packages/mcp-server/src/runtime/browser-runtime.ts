@@ -1,6 +1,11 @@
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
-import { BrowserSession, trackAssetHealth, type StabilizerOptions } from '@pathfinder/crawler';
+import {
+  BrowserSession,
+  recordAssets,
+  trackAssetHealth,
+  type StabilizerOptions,
+} from '@pathfinder/crawler';
 import { computeFingerprint } from '@pathfinder/fingerprint';
 import type { ServerContext } from '../context.js';
 import type { Runtime } from '../runtime.js';
@@ -15,6 +20,7 @@ import {
 } from './pipeline/index.js';
 import { RunState } from './run-state.js';
 import { processOfRun } from '../services/trace.js';
+import { upsertFingerprintProfile } from '../services/observations.js';
 import { parsePlan } from '../services/run-plan.js';
 import { runChoices } from '../services/start-run.js';
 import { startPwTrace } from './pw-trace.js';
@@ -172,10 +178,14 @@ export function createBrowserRuntime(opts: BrowserRuntimeOptions = {}): Runtime 
       robots,
       trace,
     });
+    await upsertFingerprintProfile(ctx, run.portal_id, rs.profile);
     rs.processId = (await processOfRun(ctx, run.id))?.id ?? null;
-    rs.isProbe = runChoices(run).probe;
+    rs.isFormProbing = runChoices(run).form_probing;
+    rs.headless = runChoices(run).replay;
     rs.plan = parsePlan(run.plan_json);
     rs.assets = trackAssetHealth(session.context);
+    const markerHeader = approved.effective.portal.model.build_marker?.header;
+    rs.loaded = recordAssets(session.context, session.page, markerHeader ? { markerHeader } : {});
     holder.rs = rs;
     // Playwright traces keep DOM snapshots with typed input values: a run that logs in with vault
     // credentials pauses the trace around every login (spec 009 FR-019a), and says so. Every
@@ -217,7 +227,10 @@ export function createBrowserRuntime(opts: BrowserRuntimeOptions = {}): Runtime 
       try {
         const snapshot = await readFile(ctx.evidence.resolve(s.evidence_ref), 'utf8');
         rs.index.assign(
-          computeFingerprint({ routeTemplate: s.route_template, ariaSnapshot: snapshot }),
+          computeFingerprint(
+            { routeTemplate: s.route_template, ariaSnapshot: snapshot },
+            rs.profile,
+          ),
         );
       } catch (err) {
         ctx.logger.warn(

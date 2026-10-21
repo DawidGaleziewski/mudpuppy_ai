@@ -30,14 +30,16 @@ export function addStepVariant(
     .run({ fid: `form-${v.id}`, id: v.id, fields: JSON.stringify(fields), src: fx.states.vehicle });
   fx.raw
     .prepare(
-      `INSERT INTO edges SELECT @eid, run_id, @from, @id, @action, safety_class, 'executed',
-         evidence_ref, confidence, NULL, stabilization, created_at FROM edges WHERE id = @src`,
+      `INSERT INTO transitions (id, run_id, from_state, to_state, action_json, safety_class, status,
+         evidence_ref, confidence, error, stabilization, created_at)
+       SELECT @eid, run_id, @from, @id, @action, safety_class, 'executed',
+         evidence_ref, confidence, NULL, stabilization, created_at FROM transitions WHERE id = @src`,
     )
     .run({
-      eid: `edge-${v.id}`,
+      eid: `transition-${v.id}`,
       from: v.from,
       id: v.id,
       action: JSON.stringify({ accessible_name: v.label }),
-      src: fx.edges.carToVehicle,
+      src: fx.transitions.carToVehicle,
     });
 }

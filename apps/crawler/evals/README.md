@@ -102,8 +102,10 @@ What the code-based graders measure:
   `export_validation` (the fields' `messages`, verbatim), `export_actions` (the action that moves
   each step on, to the right step) and `export_apis` (each step's back-end calls); checks that
   must be 0: `export_extra_steps` (a page that is not a step, F-15@034), `export_action_strays`
-  (an action leading outside the process, F-11@034) and `export_noise_leaked` (a `noise` call
-  listed as an API). Skipped under `--crawler-only`.
+  (an action leading outside the process, F-11@034), `export_noise_leaked` (a `noise` call
+  listed as an API), `export_wrong_start` and `export_wrong_end` (the export's first step is not
+  the process's `first_route`, its last neither `last_observable_route` nor a step past it; R-77
+  (2), spec 039 T082). Skipped under `--crawler-only`.
 
 ### Reference solution
 
@@ -112,13 +114,14 @@ kept byte for byte. `tests/export-quality.test.ts` pins its scores (it loses poi
 the known flaws listed in R-73) and gives a copy with those flaws put right by hand full marks,
 which shows the grader can reach 100 %.
 
-### Probe scan (reference portal)
+### Form-probing scan (reference portal)
 
-A task with `probeForms` (the reference portal: the three calculator forms) gets a probe scan
-after the map: the harness marks the form steps the map recorded on those routes for probing,
-as the owner does in the dashboard, and one crawler session probes them. The BA's map session
-covers the probe run too. Recorded as `runs.probe_scan`, `outcomes.probe_scan` and the condition
-`probe_scan`; `--no-probe-scan` skips it. The P01 trace chooses "OC + Autocasco (AC)", so the
+A task with `probeForms` (the reference portal: the three calculator forms) gets a form-probing
+scan after the map: the harness marks the form steps the map recorded on those routes for
+probing, as the owner does in the dashboard, and one crawler session probes them. The BA's map
+session covers the form-probing run too. Recorded as `runs.form_probing`, `outcomes.form_probing`
+and the condition `form_probing` (`probe_scan` in trials before spec 039 T116, read under the new
+name); `--no-form-probing` skips it. The P01 trace chooses "OC + Autocasco (AC)", so the
 options step's variant 4b is recorded (the map's happy path records 4a).
 
 ### Judges (model-based graders, spec 017)

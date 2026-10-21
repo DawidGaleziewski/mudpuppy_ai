@@ -1,7 +1,9 @@
-"""Read models for the portal map, Scans ▸ Map (spec 033 US1, US2; design screen 12).
+"""Read models for the recorded map (spec 033 US1, US2; design screen 12): Screens ▸ Map's view
+One scan's path, and the whole map of a portal without a model (the model's is
+`queries_model_map`, spec 039 T100).
 
 Every screen of the portal is a node; its states (form steps, validation and technical states)
-stack on it as a deck. Moves between screens come from executed edges; the drawing keeps the
+stack on it as a deck. Moves between screens come from executed transitions; the drawing keeps the
 discovery tree plus failed and blocked items, the other links only on the Links layer
 (`map_layout`). Queued, failed and blocked items hang off their page as one small node each.
 Read-only, like every dashboard query.
@@ -109,16 +111,19 @@ def _chosen(scans: list[ScanChoice], scan: str | None, persona: str | None) -> s
 def _states(conn: sqlite3.Connection, portal: str) -> dict[str, list[MapState]]:
     rows = _rows(
         conn,
-        "SELECT s.id, s.screen_id, s.state_kind, s.form_step_id, f.step_index, f.label,"
-        " EXISTS (SELECT 1 FROM marks m WHERE m.kind = 'probe' AND m.target_kind = 'form_step'"
-        "   AND m.target_id = s.form_step_id AND m.used_by_run_id IS NULL) AS marked"
+        "SELECT s.id, s.screen_id, s.state_kind, s.form_step_id, f.step_index,"
+        " f.label, EXISTS (SELECT 1 FROM marks m WHERE m.kind = 'probe'"
+        "   AND m.form_step_id = s.form_step_id AND m.used_by_run_id IS NULL) AS marked"
         " FROM states s LEFT JOIN form_steps f ON f.id = s.form_step_id"
-        " WHERE s.portal_id = ? AND s.screen_id IS NOT NULL ORDER BY s.created_at, s.id",
+        " WHERE s.portal_id = ? ORDER BY s.created_at, s.id",
         (portal,),
     )
     out: dict[str, list[MapState]] = defaultdict(list)
     for r in rows:
-        out[r["screen_id"]].append(
+        screen = r["screen_id"]
+        if screen is None:
+            continue
+        out[screen].append(
             MapState(
                 r["id"],
                 r["state_kind"] or "main",
@@ -137,18 +142,21 @@ def _seen(conn: sqlite3.Connection, portal: str) -> tuple[dict[str, set[str]], l
         conn,
         "SELECT o.run_id, s.screen_id, o.observed_at FROM state_observations o"
         " JOIN states s ON s.id = o.state_id"
-        " WHERE s.portal_id = ? AND s.screen_id IS NOT NULL ORDER BY o.observed_at, s.id",
+        " WHERE s.portal_id = ? ORDER BY o.observed_at, s.id",
         (portal,),
     )
     seen: dict[str, set[str]] = defaultdict(set)
     starts: list[str] = []
     started: set[str] = set()
     for r in rows:
-        seen[r["screen_id"]].add(r["run_id"])
+        screen = r["screen_id"]
+        if screen is None:
+            continue
+        seen[screen].add(r["run_id"])
         if r["run_id"] not in started:
             started.add(r["run_id"])
-            if r["screen_id"] not in starts:
-                starts.append(r["screen_id"])
+            if screen not in starts:
+                starts.append(screen)
     return seen, starts
 
 
@@ -157,7 +165,8 @@ def _moves(conn: sqlite3.Connection, portal: str) -> list[sqlite3.Row]:
     return _rows(
         conn,
         "SELECT f.screen_id AS a, t.screen_id AS b, e.run_id, e.error IS NOT NULL AS failed"
-        " FROM edges e JOIN states f ON f.id = e.from_state JOIN states t ON t.id = e.to_state"
+        " FROM transitions e JOIN states f ON f.id = e.from_state"
+        " JOIN states t ON t.id = e.to_state"
         " WHERE f.portal_id = ? AND e.status = 'executed'"
         "   AND f.screen_id IS NOT NULL AND t.screen_id IS NOT NULL AND f.screen_id <> t.screen_id"
         " ORDER BY e.created_at, e.id",
@@ -176,16 +185,19 @@ def _items(conn: sqlite3.Connection, portal: str, runs: set[str]) -> dict[str, d
         " coalesce(json_extract(fr.action_json, '$.href'),"
         "   json_extract(fr.action_json, '$.url'), '') AS k"
         " FROM frontier fr JOIN states s ON s.id = fr.state_id"
-        " WHERE s.portal_id = ? AND s.screen_id IS NOT NULL",
+        " WHERE s.portal_id = ?",
         (portal,),
     )
     done: dict[str, set[str]] = defaultdict(set)
     seen: dict[str, dict[str, set[str]]] = defaultdict(lambda: defaultdict(set))
     for r in rows:
+        screen = r["screen_id"]
+        if screen is None:
+            continue
         if r["status"] == "done":
-            done[r["screen_id"]].add(r["k"])
+            done[screen].add(r["k"])
         elif r["run_id"] in runs:
-            seen[r["screen_id"]][_item_kind(r["status"])].add(r["k"])
+            seen[screen][_item_kind(r["status"])].add(r["k"])
     return {
         screen: {kind: len(keys - done[screen]) for kind, keys in kinds.items() if kind}
         for screen, kinds in seen.items()
@@ -203,8 +215,8 @@ def _item_kind(status: str) -> str:
 def _screen_nodes(
     conn: sqlite3.Connection, portal: str, runs: set[str], open_family: str | None
 ) -> tuple[dict[str, MapNode], dict[str, str], list[str]]:
-    """Nodes for the screens (or their folded families), the screen → drawn-node map and the
-    start screens."""
+    """Nodes for the recorded screens (or their folded families), the screen → drawn-node map and
+    the start screens."""
     screens = _rows(
         conn,
         "SELECT id, route_template, title FROM screens WHERE portal_id = ? ORDER BY created_at, id",

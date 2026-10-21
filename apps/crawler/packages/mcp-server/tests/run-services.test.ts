@@ -2,8 +2,8 @@ import { describe, expect, it } from 'vitest';
 import {
   ToolError,
   addFrontierItem,
+  addHypothesis,
   addOpenQuestion,
-  addRuleCandidate,
   completeRun,
   finishRun,
   getKnownStates,
@@ -12,7 +12,7 @@ import {
   recordState,
   recordTransition,
 } from '../src/index.js';
-import { FP, REF, makeCtx, seedRun } from './helpers.js';
+import { FP, REF, makeCtx, seedRun, transitionStep } from './helpers.js';
 
 async function code(p: Promise<unknown>): Promise<string> {
   try {
@@ -51,39 +51,38 @@ describe('get_known_states', () => {
   });
 });
 
-describe('open questions and rule candidates', () => {
-  it('add_rule_candidate copies evidence_ref and forces inferred', async () => {
+describe('open questions and hypotheses', () => {
+  const TEST = { inputs: { 'input.Liczba wyników': 25 }, refutes_if: { notIn: ['24 results'] } };
+
+  it('add_hypothesis proposes on the portal model, building it when the run is the first', async () => {
     const ctx = await makeCtx();
     const run = await seedRun(ctx);
     const s = await recordState(ctx, st(run, 'a'));
-    const { rule_candidate_id } = await addRuleCandidate(ctx, {
+    const { key, created } = await addHypothesis(ctx, {
       run_id: run,
-      text: 'Guests see at most 24 results',
+      kind: 'decision_rule',
+      claim: 'Guests see at most 24 results',
       about_ref: s.state_id,
+      test: TEST,
     });
-    const row = await ctx.db
-      .selectFrom('rule_candidates')
-      .selectAll()
-      .where('id', '=', rule_candidate_id)
-      .executeTakeFirstOrThrow();
-    expect(row).toMatchObject({ evidence_ref: REF, confidence: 'inferred', about_ref: s.state_id });
+    expect({ key, created }).toEqual({ key: 'H-0001', created: true });
+    const row = ctx.raw
+      .prepare('SELECT origin, confidence, derived FROM hypotheses WHERE key = ?')
+      .get(key);
+    expect(row).toEqual({ origin: 'agent', confidence: 'needs_confirmation', derived: 0 });
+    expect(ctx.raw.prepare('SELECT count(*) AS n FROM model_versions').get()).toEqual({ n: 1 });
   });
 
-  it('cannot set evidence_ref or confidence, and rejects unknown refs', async () => {
+  it('needs a test, cannot set confidence, and rejects unknown refs', async () => {
     const ctx = await makeCtx();
     const run = await seedRun(ctx);
     const s = await recordState(ctx, st(run, 'a'));
-    expect(
-      await code(
-        addRuleCandidate(ctx, {
-          run_id: run,
-          text: 't',
-          about_ref: s.state_id,
-          confidence: 'observed',
-        }),
-      ),
-    ).toBe('SCHEMA_INVALID');
-    expect(await code(addRuleCandidate(ctx, { run_id: run, text: 't', about_ref: 'ghost' }))).toBe(
+    const base = { run_id: run, kind: 'decision_rule', claim: 't', about_ref: s.state_id };
+    expect(await code(addHypothesis(ctx, base))).toBe('TEST_REQUIRED');
+    expect(await code(addHypothesis(ctx, { ...base, test: TEST, confidence: 'observed' }))).toBe(
+      'SCHEMA_INVALID',
+    );
+    expect(await code(addHypothesis(ctx, { ...base, test: TEST, about_ref: 'ghost' }))).toBe(
       'UNKNOWN_REF',
     );
     expect(await code(addOpenQuestion(ctx, { run_id: run, text: 't', about_ref: 'ghost' }))).toBe(
@@ -122,9 +121,11 @@ describe('open questions and rule candidates', () => {
     expect(await code(addOpenQuestion(ctx, { run_id: run, text: 't', about_ref: 'x' }))).toBe(
       'RUN_STOPPED',
     );
-    expect(await code(addRuleCandidate(ctx, { run_id: run, text: 't', about_ref: 'x' }))).toBe(
-      'RUN_STOPPED',
-    );
+    expect(
+      await code(
+        addHypothesis(ctx, { run_id: run, kind: 'ambiguous', claim: 't', about_ref: 'x' }),
+      ),
+    ).toBe('RUN_STOPPED');
     expect(await code(getNextFrontierItem(ctx, { run_id: run }))).toBe('RUN_STOPPED');
   });
 });
@@ -219,12 +220,12 @@ describe('complete_run / finish_run', () => {
     ).toBe('running');
   });
 
-  it('a probe run finishes with links left: it visits only marked steps (spec 032 US5)', async () => {
+  it('a form-probing run finishes with links left: it visits only marked steps (spec 032 US5)', async () => {
     const ctx = await makeCtx();
     const run = await seedRun(ctx);
     await ctx.db
       .updateTable('runs')
-      .set({ config_snapshot: JSON.stringify({ choices: { probe: true } }) })
+      .set({ config_snapshot: JSON.stringify({ choices: { form_probing: true } }) })
       .where('id', '=', run)
       .execute();
     const s = await recordState(ctx, st(run, 'a'));
@@ -243,7 +244,8 @@ describe('complete_run / finish_run', () => {
     const run = await seedRun(ctx);
     const a = await recordState(ctx, st(run, 'a'));
     const b = await recordState(ctx, st(run, 'b'));
-    const { edge_id } = await recordTransition(ctx, {
+    const { transition_id } = await recordTransition(ctx, {
+      ...(await transitionStep(ctx, run)),
       run_id: run,
       from_state: a.state_id,
       to_state: b.state_id,
@@ -255,7 +257,7 @@ describe('complete_run / finish_run', () => {
     });
     await recordApiCall(ctx, {
       run_id: run,
-      edge_id,
+      transition_id,
       method: 'GET',
       url_template: '/api/x',
       status: 200,
@@ -286,7 +288,7 @@ describe('complete_run / finish_run', () => {
       actions_inferred: 0,
       actions_skipped_by_class: { 'external-side-effect': 1 },
       api_endpoints: 1,
-      item_page_visits: 0,
+      item_pages_visited: 0,
       robots: {
         hosts: [],
         refused_navigations: 0,

@@ -1,15 +1,17 @@
 {
   "task": "reference-insurer",
-  "started_at": "2026-10-18T15:32:29.029Z",
-  "git_sha": "9b09d31",
+  "started_at": "2026-10-21T20:26:47.855Z",
+  "git_sha": "e7ada23",
   "conditions": {
     "model": null,
     "budget_usd": "2",
-    "source_store": "/tmp/pf-eval-reference-insurer-RSFJFW"
+    "source_store": "/tmp/pf-eval-reference-insurer-ws26rS",
+    "env": "sandbox"
   },
+  "workspace": "/tmp/pf-grouping-reference-insurer-XPFFLX",
   "outcome": "success",
-  "cost_usd": 0.42593100000000006,
-  "duration_ms": 34646,
+  "cost_usd": 0.409194,
+  "duration_ms": 32376,
   "turns": 9,
   "scores": {
     "processes_found": {
@@ -37,15 +39,15 @@
     "unmatched": 1
   },
   "detail": {
-    "P01": "\"Get a car insurance quote (OC/AC) and apply\"",
-    "P02": "\"Get a travel insurance quote\"",
-    "P03": "\"Compare insurance products\"",
-    "P04": "\"Send a message to the insurer\"",
+    "P01": "\"Car insurance (OC/AC) quote and purchase\"",
+    "P02": "\"Travel insurance quote\"",
+    "P03": "\"Product comparison\"",
+    "P04": "\"Contact form\"",
     "P05": "no suggestion covers it"
   },
   "suggestions": [
     {
-      "name": "Get a car insurance quote (OC/AC) and apply",
+      "name": "Car insurance (OC/AC) quote and purchase",
       "routes": [
         "/ubezpieczenia/samochod",
         "/kalkulator/pojazd",
@@ -54,10 +56,10 @@
         "/kalkulator/wynik",
         "/kalkulator/zakup"
       ],
-      "why": "The car insurance page leads into the calculator; its steps follow one another by buttons: /kalkulator/pojazd (\"dane pojazdu\") → /kalkulator/kierowca (\"dane kierowcy\") → /kalkulator/opcje (\"opcje\") → button to /kalkulator/wynik (\"Twoja składka\") → button to /kalkulator/zakup (\"Wniosek przyjęty\")."
+      "why": "The calculator steps under /kalkulator follow each other: \"Kalkulator OC/AC — dane pojazdu\" → \"dane kierowcy\" → \"opcje\", whose button leads to \"Twoja składka\" (/kalkulator/wynik), and the purchase button ends at \"Wniosek przyjęty\" (/kalkulator/zakup). It starts from the \"Ubezpieczenie samochodu\" product page."
     },
     {
-      "name": "Get a travel insurance quote",
+      "name": "Travel insurance quote",
       "routes": [
         "/ubezpieczenia/podroze",
         "/ubezpieczenia/podroze/wynik"
@@ -65,30 +67,28 @@
       "why": "On \"Ubezpieczenie turystyczne\" (/ubezpieczenia/podroze) the form's button leads to \"Twoja składka podróżna\" (/ubezpieczenia/podroze/wynik)."
     },
     {
-      "name": "Compare insurance products",
+      "name": "Product comparison",
       "routes": [
         "/porownanie",
         "/porownanie/wynik"
       ],
-      "why": "On \"Porównanie produktów\" (/porownanie) a button leads to \"Wynik porównania\" (/porownanie/wynik); the result page links back to the comparison."
+      "why": "On \"Porównanie produktów\" (/porownanie) the button leads to \"Wynik porównania\" (/porownanie/wynik)."
     },
     {
-      "name": "Send a message to the insurer",
+      "name": "Contact form",
       "routes": [
         "/kontakt",
         "/kontakt/dziekujemy"
       ],
-      "why": "On \"Kontakt\" (/kontakt) the form's button leads to \"Dziękujemy za wiadomość\" (/kontakt/dziekujemy)."
+      "why": "On \"Kontakt\" (/kontakt) the send button leads to \"Dziękujemy za wiadomość\" (/kontakt/dziekujemy)."
     },
     {
-      "name": "Log in",
+      "name": "Logging in",
       "routes": [
         "/logowanie",
         "/logowanie"
       ],
-      "why": "On \"Logowanie\" (/logowanie) the login button leads to a second \"Logowanie\" screen; the scan did not get past it (no link from it to \"Moje polisy\" was recorded)."
+      "why": "On \"Logowanie\" (/logowanie) the login button leads to the second \"Logowanie\" screen, the result of submitting the login form."
     }
-  ],
-  "workspace": "/tmp/pf-grouping-reference-insurer-75GBLR",
-  "regraded_at": "2026-10-18T15:35:43.086Z"
+  ]
 }

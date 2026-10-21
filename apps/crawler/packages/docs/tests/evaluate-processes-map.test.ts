@@ -30,8 +30,8 @@ const proc = (
   evidence,
   ...over,
 });
-const edge = (id: string, from: string, to: string) => ({
-  target_kind: 'edge' as const,
+const transition = (id: string, from: string, to: string) => ({
+  target_kind: 'transition' as const,
   target_id: id,
   routes: [from, to],
 });
@@ -39,13 +39,13 @@ const run = (records: EvalRecord[], groundTruth = gt) =>
   evaluate({ portal_id: 'sample-portal', as_of: '2026-10-14T00:00:00.000Z', groundTruth, records });
 
 describe('processes_map (spec 025 FR-005)', () => {
-  it('a map-only process whose edges cover the first and last routes matches; processes stays 0', () => {
+  it('a map-only process whose transitions cover the first and last routes matches; processes stays 0', () => {
     const r = run([
-      proc('PROC-001', 'map_only', [edge('e1', '/a', '/b'), edge('e2', '/b', '/c')]),
-      proc('PROC-002', 'map_only', [edge('e3', '/a', '/b')]),
+      proc('PROC-001', 'map_only', [transition('e1', '/a', '/b'), transition('e2', '/b', '/c')]),
+      proc('PROC-002', 'map_only', [transition('e3', '/a', '/b')]),
     ]);
     expect(r.scores.processes.matched).toBe(0);
-    // P01 covered by its edges; P02 lacks its last route; P03's route is never cited.
+    // P01 covered by its transitions; P02 lacks its last route; P03's route is never cited.
     expect(r.scores.processes_map).toMatchObject({
       matched: 1,
       total: 3,

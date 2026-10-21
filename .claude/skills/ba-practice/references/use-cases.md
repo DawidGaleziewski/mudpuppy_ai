@@ -15,7 +15,7 @@ route) and the recorded `outcomes`. Cite the process and the steps you turn into
 | `preconditions[]` | state before step 1 (e.g. "on the home page, no quote in progress") |
 | `trigger` | the first step's intent + the verbatim label clicked |
 | `main_flow[]` | one entry per step: `{n, actor_or_system: "actor" or "system", text}`; actor steps quote labels/values, system steps state the observed outcome |
-| `alternate_flows[]` | other paths seen in edges or other traces (e.g. going back a step) |
+| `alternate_flows[]` | other paths seen in transitions or other traces (e.g. going back a step) |
 | `exception_flows[]` | validation messages and refusals seen (verbatim) |
 | `postconditions[]` | last observed state; if the trace hit a boundary, say so |
 

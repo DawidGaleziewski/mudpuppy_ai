@@ -27,6 +27,8 @@ If DESIGN_PKG is missing, the rules here and in `references/` still apply. Ask t
 | `08-migration-guide.md` | Converting a Console-era page; token, status, component and IA maps |
 | `10-processes.md` | Anything about processes: lifecycle, variants A/B, revisions, drafts, conflicts, compare and change spec, live per environment, data model, API, rules PR-01–PR-17 |
 | `11-map-runs.md` | Anything about the map, marks, probing form states, checkpoints and replay, resume or retry of a stopped scan, scan types, reconciliation of differing states; requirements FE-M01–M13 |
+| `12-v2-ux.md` | Anything for MudPuppy 2.0: IA and grouped nav, the As of / From time model, UI vocabulary, review flow and keys, overturn, before/after, decision tables, states; screens `v2-*` |
+| `13-v2-fixtures.md` | The 2.0 demo/test data (releases, changes, findings, rules, processes) the v2 screens use |
 | `02-design-decisions.md` | Before "fixing" something that looks odd: it is probably intentional |
 | `01-brand-book.md` | Wordmark, mark, voice |
 | `09-qa-checklist.md` | Before saying done |
@@ -47,7 +49,8 @@ If DESIGN_PKG is missing, the rules here and in `references/` still apply. Ask t
 
 `ok` (■ green: OK, observed, confirmed, saved) · `running` (■ cyan, pulses) · `live` (■ cyan) ·
 `needs` (■ orange: a person must act) · `stopped` / `skipped` / `todo` (□ grey) ·
-`queued` / `unobserved` (dashed grey) · `draft` / `inferred` (dashed blue) · `failed` (✕ red).
+`queued` / `unobserved` (dashed grey) · `draft` / `inferred` (dashed blue) · `failed` (✕ red) ·
+2.0: `overturned` (■ manila, always with the person's reason in a `.sy-note`).
 Console mapping: `[ OK ]`→ok · `[RUN.]`→running · `[INT.]`→stopped ("Interrupted") · `[SKIP]`→skipped ·
 `[FAIL]`→failed · `[DRFT]`→draft · `[LIVE]`→live. Full table: `references/status-map.csv`.
 
@@ -71,7 +74,7 @@ Console mapping: `[ OK ]`→ok · `[RUN.]`→running · `[INT.]`→stopped ("Int
 <div class="sy-app">
   <header class="sy-header">…wordmark · portal picker · search (Ctrl K) · assistant status · Ask the assistant (Ctrl J) · ?</header>
   <div class="sy-app__body">
-    <nav class="sy-nav" aria-label="Portal sections">…7 items, aria-current="page" on the current one…</nav>
+    <nav class="sy-nav" aria-label="Portal sections">…7 items in v1 (9 in three groups in 2.0, see below), aria-current="page" on the current one…</nav>
     <main id="main" class="sy-main">
       <div class="sy-pagehead"><div class="sy-crumbs">…</div><h1 class="sy-h1">…</h1><p class="sy-meta">…</p></div>
       …plates…
@@ -83,6 +86,22 @@ Console mapping: `[ OK ]`→ok · `[RUN.]`→running · `[INT.]`→stopped ("Int
 </html>
 ```
 Copy the exact header and nav markup from any `DESIGN_PKG/screens/*.html`.
+
+### 2.0 skeleton differences
+For MudPuppy 2.0 pages (`screens/v2-*`): the header has two compact pickers and a compact search, and the nav is grouped.
+```html
+<label class="sy-portal sy-portal--compact"><span class="sy-label">Portal</span><select class="sy-select">…</select></label>
+<label class="sy-portal sy-portal--compact"><span class="sy-label">As of</span><select class="sy-select" aria-describedby="asof-help">
+  <option selected>Now · 17 Oct</option><option>9c21 · kalkulator · 16 Oct</option>…</select></label>
+<label class="sy-search sy-search--compact">…<input type="search" aria-label="Search screens, processes and rules" placeholder="Search">…</label>
+…
+<nav class="sy-nav" aria-label="Portal sections">
+  <a class="sy-nav__item" href="…">Home</a> <a …>Changes <span class="sy-nav__count">41</span></a> <a …>Review <span class="sy-count">24</span></a>
+  <div class="sy-nav__group" aria-hidden="true">Portal model</div> Processes · Screens · Rules · Docs
+  <div class="sy-nav__group" aria-hidden="true">Machine</div> Scans · Settings
+</nav>
+```
+Model pages read `as_of` from the URL; when it isn't Now they open with the "As of release …" banner and disable writes.
 
 ## Class reference (complete list of what you may use)
 
@@ -102,7 +121,7 @@ Copy the exact header and nav markup from any `DESIGN_PKG/screens/*.html`.
 | Status | `.sy-status[data-status]` (`--plain`) |
 | People | `.sy-note` (`--sm`, `__by`) · `.sy-annot` > `__target` + `__line` + `.sy-note` |
 | To-be | `.sy-drawn` (`--fill`, `[aria-current=true]`) · `.sy-drawn-text` · `.sy-legend` (`__drawn`) · `.sy-diff--removed` · `.sy-diff__change` (`--drawn`) |
-| Messages | `.sy-callout` (`--intent`, `--failure`, `--drawn`, `--ok`, `__title`) · `.sy-state` (`--failure`, `__title`) · `.sy-caret` · `dialog.sy-dialog` (`__head/__body/__foot`) · `.sy-toast` (`--fixed`) |
+| Messages | `.sy-callout` (`--intent`, `--failure`, `--drawn`, `--ok`, `__title`) · `.sy-state` (`--failure`, `__title`) · `.sy-caret` · `dialog.sy-dialog` (`__head/__body/__foot`; `--static` for previews) · `.sy-toast` (`--fixed`) |
 | Table | `.sy-table-wrap` (`--flush` in a plate) > `table.sy-table` (`--interactive`, `--dense`, `--middle`), `th[scope=col\|row]`, `.sy-num` |
 | Tabs | `.sy-tabs[role=tablist]` > `.sy-tab[role=tab][aria-selected]` |
 | Progress | `.sy-meter[data-status]` (`style="--value: N%"`) > `__label` + `__track[role=progressbar]` > `__fill` |
@@ -113,6 +132,8 @@ Copy the exact header and nav markup from any `DESIGN_PKG/screens/*.html`.
 | Recorded screen | `figure.sy-shot` (`__title`, `__link` for mocks) + `.sy-mark` (assistant highlight; `--overlay`; `__label`) / `.sy-mark--note` (a person's amendment pin) · `.sy-thumb` (`--locked`) · `pre.sy-code` |
 | Type | `.sy-h1` `.sy-h2` `.sy-h3` `.sy-label` `.sy-meta` `.sy-small` `.sy-muted` `.sy-prose` `.sy-mono` (`--sm`) `.sy-route` `.sy-num` `.sy-case-normal` `.sy-truncate` `.sy-sr-only` |
 | Layout | `.sy-stack` `.sy-cluster` `.sy-split` `.sy-grid` (`--sy-gap`, `--sy-min`) `.sy-grow` |
+
+| 2.0 | `.sy-nav__group` · `.sy-portal--compact` · `.sy-search--compact` · `.sy-status[data-status=overturned]` · `.sy-releases` (`__lane` `--scans`, `__name`, `__track`, `__span` `--current` `--rollout` `--unknown`, `__scan` `--check`, `__axis`, `__range`) · `.sy-compare` (`__side`, `__head`) · `.sy-differs` · `table.sy-table--decision` (`.sy-dt-group` `.sy-dt-n` `.sy-dt-cond` `.sy-dt-any` `.sy-dt-result`) · `ol.sy-queue` (`__group`, `__item[aria-current]`, `__check`, `__main`, `__claim`, `__meta`) · `.sy-keybar` (`--sticky`) · `.sy-edge--unseen` `--unchecked` `--retired` `--process` `--changed` · `.sy-node--process` `.sy-node--dim` `[data-state=retired]` · `.sy-bundle` |
 
 Anything not in this table is not a library class. Product-only layout classes use the `mp-` prefix and live in `@layer app`.
 
@@ -147,7 +168,7 @@ next move and what still works. No emoji, no exclamation marks, no "oops".
 
 1. `SY_DS_PATH={DS_PATH} bash .claude/skills/mudpuppy-salvage-ui/scripts/find-old-styles.sh <changed paths>` → TOTAL 0.
 2. stylelint (rules in `references/05-css-guide.md` §4) → 0.
-3. Screenshot the page at **1280** and **390** with reduced motion: no page-level horizontal scroll; compare by eye with `DESIGN_PKG/screenshots/screens/NN-*.png` if a reference exists.
+3. Screenshot the page at **1280** and **390** (v1 pages) or **1280** and **1024** (2.0 pages, desktop-first) with reduced motion: no page-level horizontal scroll; compare by eye with `DESIGN_PKG/screenshots/screens/NN-*.png` if a reference exists.
 4. axe-core → 0 serious or critical; keyboard pass (focus visible, Esc closes drawer and dialogs, Ctrl/⌘ K and J).
 5. Count: one `h1`, at most one `.sy-btn--primary`, at most one `.sy-plate--intent`.
 6. In the PR description, list the FE-IDs covered and attach the two screenshots.

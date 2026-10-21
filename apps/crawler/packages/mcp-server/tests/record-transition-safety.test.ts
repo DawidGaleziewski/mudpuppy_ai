@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { ToolError, recordState, recordTransition } from '../src/index.js';
-import { FP, REF, makeCtx, seedRun } from './helpers.js';
+import { FP, REF, makeCtx, seedRun, transitionStep } from './helpers.js';
 
 async function setup(environment = 'production') {
   const ctx = await makeCtx();
@@ -23,7 +23,11 @@ async function setup(environment = 'production') {
     evidence_ref: REF,
     confidence: 'observed',
   });
+  const step = await transitionStep(ctx, run);
+  let seq = 0;
   const base = (over: Record<string, unknown> = {}) => ({
+    ...step,
+    seq: ++seq,
     run_id: run,
     from_state: a.state_id,
     to_state: b.state_id,
@@ -60,9 +64,9 @@ describe('record_transition safety', () => {
   it('records an executed read transition', async () => {
     const { ctx, base } = await setup();
     const r = await recordTransition(ctx, base());
-    expect(r.edge_id).toBeTruthy();
+    expect(r.transition_id).toBeTruthy();
     expect(
-      (await ctx.db.selectFrom('edges').selectAll().executeTakeFirstOrThrow()).safety_class,
+      (await ctx.db.selectFrom('transitions').selectAll().executeTakeFirstOrThrow()).safety_class,
     ).toBe('read');
   });
 
@@ -70,7 +74,7 @@ describe('record_transition safety', () => {
     // the limit is enforced before acting (the action gate); recording what happened is allowed
     const { ctx, base } = await setup('production');
     await recordTransition(ctx, base({ action: bid, safety_class: 'external-side-effect' }));
-    expect(await ctx.db.selectFrom('edges').selectAll().execute()).toHaveLength(1);
+    expect(await ctx.db.selectFrom('transitions').selectAll().execute()).toHaveLength(1);
   });
 
   it('rejects a supplied class that differs from the re-derived one (agent claims read for a bid button)', async () => {
@@ -100,13 +104,13 @@ describe('record_transition safety', () => {
     ];
     for (const c of cases)
       await recordTransition(ctx, base({ ...c, status: 'skipped', to_state: null }));
-    expect(await ctx.db.selectFrom('edges').selectAll().execute()).toHaveLength(3);
+    expect(await ctx.db.selectFrom('transitions').selectAll().execute()).toHaveLength(3);
   });
 
   it('allows an executed non-read action off production only when the derived class matches', async () => {
     const { ctx, base } = await setup('sandbox');
     await recordTransition(ctx, base({ action: bid, safety_class: 'external-side-effect' }));
-    expect(await ctx.db.selectFrom('edges').selectAll().execute()).toHaveLength(1);
+    expect(await ctx.db.selectFrom('transitions').selectAll().execute()).toHaveLength(1);
   });
 
   it('requires evidence, confidence and at least one ranked locator', async () => {

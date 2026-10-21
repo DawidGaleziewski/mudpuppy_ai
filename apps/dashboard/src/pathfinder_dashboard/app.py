@@ -25,7 +25,9 @@ from .settings import Settings
 from .web import access as access_page
 from .web import activity as activity_page
 from .web import amendments as amendments_page
+from .web import changes as changes_page
 from .web import chat as chat_page
+from .web import check_runs as check_runs_page
 from .web import docs as docs_page
 from .web import events as events_page
 from .web import evidence as evidence_page
@@ -38,8 +40,10 @@ from .web import portals as portals_page
 from .web import process_export as process_export_page
 from .web import processes as processes_page
 from .web import review as review_page
+from .web import rules as rules_page
 from .web import run_groups as run_groups_page
 from .web import runs as runs_page
+from .web import same_screen as same_screen_page
 from .web import scans as scans_page
 from .web import screens as screens_page
 from .web import states as states_page
@@ -139,12 +143,16 @@ def create_app(
     app.include_router(events_page.router)
     app.include_router(screens_page.router)
     app.include_router(access_page.router)
+    app.include_router(changes_page.router)
+    app.include_router(rules_page.router)
+    app.include_router(check_runs_page.router)
     app.include_router(review_page.router)
     app.include_router(scans_page.router)
     app.include_router(run_groups_page.router)
     app.include_router(plan_page.router)
     app.include_router(process_export_page.router)
     app.include_router(map_page.router)
+    app.include_router(same_screen_page.router)
     # Last: its /chat/portals/{portal}/{rest} forwarder must not shadow the routes above.
     app.include_router(processes_page.router)
     return app

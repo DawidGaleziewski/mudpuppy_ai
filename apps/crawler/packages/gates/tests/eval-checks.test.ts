@@ -120,9 +120,9 @@ describe('passwordHits', () => {
 });
 
 describe('widgetActions', () => {
-  it('counts edges naming the widget host or recaptcha, and widget calls', () => {
+  it('counts transitions naming the widget host or recaptcha, and widget calls', () => {
     const n = widgetActions({
-      edgeActions: [
+      transitionActions: [
         '{"click":"http://127.0.0.1:4101/widget"}',
         '{"frame":"reCAPTCHA challenge"}',
         '{"click":"Submit"}',
@@ -136,9 +136,9 @@ describe('widgetActions', () => {
     expect(n).toBe(4);
   });
 
-  it('is 0 for unrelated edges and calls', () => {
+  it('is 0 for unrelated transitions and calls', () => {
     expect(
-      widgetActions({ edgeActions: ['{"click":"Next"}'], actionCalls: ['/api/policies'] }),
+      widgetActions({ transitionActions: ['{"click":"Next"}'], actionCalls: ['/api/policies'] }),
     ).toBe(0);
   });
 });

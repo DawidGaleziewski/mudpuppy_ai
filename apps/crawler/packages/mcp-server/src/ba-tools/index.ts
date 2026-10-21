@@ -5,10 +5,8 @@ import {
   AnalysisPass,
   DocKind,
   EvidenceTargetKind,
-  Hypothesis,
   RelationType,
   RevisionStatus,
-  Verdict,
 } from '@pathfinder/docs-model';
 import { z } from 'zod';
 import type { BaContext } from '../context.js';
@@ -26,7 +24,14 @@ import { RunEvidenceKind, getRunEvidence } from '../services/ba/run-evidence.js'
 import { listRuns } from '../services/ba/runs.js';
 import { proposeProbeSuite } from '../services/ba/probe-suites.js';
 import { openProcessUpdate } from '../services/ba/process-update.js';
-import { listDifferingStates, proposeVerdicts } from '../services/ba/reconcile.js';
+import {
+  addHypothesisTestTool,
+  getHypothesisTool,
+  listDeviationsTool,
+  listHypothesesTool,
+  proposeHypothesisTool,
+} from '../services/ba/hypotheses.js';
+import { AgentHypothesisKind } from '@pathfinder/store';
 import {
   addressCrawlerQuestion,
   createRecord,
@@ -59,9 +64,13 @@ export const BA_TOOL_NAMES = [
   'address_crawler_question',
   'get_access_matrix',
   'propose_probe_suite',
-  'list_differing_states',
-  'propose_verdicts',
   'open_process_update',
+  // spec 039 (T055): the portal model's changes and their explanations
+  'list_deviations',
+  'list_hypotheses',
+  'get_hypothesis',
+  'propose_hypothesis',
+  'add_hypothesis_test',
 ] as const;
 export type BaToolName = (typeof BA_TOOL_NAMES)[number];
 
@@ -82,7 +91,7 @@ const evidenceItem = z.looseObject({
   target_id: z
     .string()
     .describe(
-      'Id from get_run_evidence / get_record; a doc_record may be given by its key; a screen_region gives the state id',
+      'Id from get_run_evidence / get_record; a doc_record may be given by its key, a hypothesis by its H-nnnn key; a screen_region gives the state id',
     ),
   run_id: z
     .string()
@@ -151,7 +160,7 @@ export function registerBaTools(server: McpServer, ctx: BaContext): void {
   );
   tool(
     'propose_probe_suite',
-    "Spec 032: propose one probe suite per form, built from a probing run's probe outcomes (get_run_evidence kind probe_outcomes). Give the run, the trace (id: a lowercase slug; name and goal in the portal's terms) and one variant per outcome worth running every time: { id (slug), probe_outcome_id, why }. Include the happy-path outcome. The server builds each variant's steps from the outcome and maps its outcome kind to what the variant expects; temporary and blocked outcomes are refused. The suite waits in Review for the owner and never runs before approval.",
+    "Spec 032: propose one probe suite per form, built from a form-probing run's probe outcomes (get_run_evidence kind probe_outcomes). Give the run, the trace (id: a lowercase slug; name and goal in the portal's terms) and one variant per outcome worth running every time: { id (slug), probe_outcome_id, why }. Include the happy-path outcome. The server builds each variant's steps from the outcome and maps its outcome kind to what the variant expects; temporary and blocked outcomes are refused. The suite waits in Review for the owner and never runs before approval.",
     {
       session_id: z.string(),
       run_id: z.string(),
@@ -163,28 +172,58 @@ export function registerBaTools(server: McpServer, ctx: BaContext): void {
     (a) => Promise.resolve(proposeProbeSuite(ctx, a)),
   );
   tool(
-    'list_differing_states',
-    `Spec 033: where scans saw different screens at one point of the map, as groups. kind action: the same page and action (role, name) led to two or more screens; kind route: one route showed two or more screens that form steps and state kinds do not explain. Each outcome: its state, kind, scans (persona, environment), first and last seen, HTTP status, frequency (seen in N of M scans that took the action) and reproduced (seen again in a later scan). reconciliation: the verdicts already proposed or confirmed in Review. Check the reasons in order: ${oneOf(Hypothesis.options)}. Pass route to narrow to groups that touch it.`,
-    { portal_id: z.string(), route: z.string().optional() },
-    (a) => Promise.resolve(listDifferingStates(ctx, a)),
+    'list_deviations',
+    'Spec 039: what changed in the portal model between versions (new screen, a screen that looks different, new or missing action, an action that leads elsewhere, a changed result, a broken business rule), newest first, with the hypotheses that explain each. status: open (no explanation yet), waiting_test (a replay decides), explained. Document changes from here, not by comparing runs yourself.',
+    {
+      portal_id: z.string(),
+      status: z.string().optional().describe('open, waiting_test or explained'),
+      limit: z.number().optional(),
+    },
+    (a) => listDeviationsTool(ctx, a),
   );
   tool(
-    'propose_verdicts',
-    `Spec 033: propose one verdict per outcome of a group from list_differing_states (all of its outcome states, no others): { state_id, verdict, hypothesis, reason (the evidence, e.g. "seen in 2 of 3 guest scans; the 503 page once, not reproduced") }. Verdicts: ${oneOf(Verdict.options)}. The owner confirms them in Review; until then document with your proposal, inferred. A newer proposal for the group replaces the open one.`,
+    'list_hypotheses',
+    "Spec 039: the portal model's hypotheses, newest first: key (H-…), kind, one-sentence claim, status (proposed, testing, supported, refuted, confirmed, rejected, superseded), who made it (rule R1–R8, agent, person), whether it was derived without a person, and its tests' verdicts. Document only confirmed and derived ones as facts; a supported one is inferred until a person confirms it.",
+    {
+      portal_id: z.string(),
+      status: z.string().optional(),
+      kind: z.string().optional(),
+      limit: z.number().optional(),
+    },
+    (a) => listHypothesesTool(ctx, a),
+  );
+  tool(
+    'get_hypothesis',
+    'Spec 039: one hypothesis with its structured claim (a decision table for a business rule), the evidence it cites (screens SC-…, element keys, observations, transitions), its tests (inputs, what would refute it, result, verdict) and its history with reasons.',
+    { portal_id: z.string(), key: z.string() },
+    (a) => getHypothesisTool(ctx, a),
+  );
+  tool(
+    'propose_hypothesis',
+    `Spec 039: propose an explanation for something the evidence cannot settle alone. kind: ${oneOf(AgentHypothesisKind.options)}. claim: one sentence in the portal's words. evidence: typed references { kind: observation | transition | state | screen | action_class | model_transition | network_call | hypothesis, id (a screen by its key SC-…, a hypothesis by H-…), element_key (screens only), role: supports | contradicts | context }. tests: each { inputs (input.<field> or persona.<attribute> → value), refutes_if (e.g. { "notIn": ["SC-0040 ok"] }: the outcomes the claim allows) }; required except same_as, different_from and process_boundary, which a person's label or decision settles. A claim equal to a refuted one is refused (CLAIM_REFUTED); an equal open one comes back with created false. You propose; only a person confirms.`,
     {
       session_id: z.string(),
       portal_id: z.string(),
-      group_key: z.string(),
-      verdicts: z.array(
-        z.object({
-          state_id: z.string(),
-          verdict: z.string(),
-          hypothesis: z.string(),
-          reason: z.string(),
-        }),
-      ),
+      kind: z.string(),
+      claim: z.string(),
+      claim_json: z.record(z.string(), z.unknown()).optional(),
+      evidence: z.array(z.looseObject({ kind: z.string(), id: z.string() })),
+      tests: z
+        .array(z.looseObject({ inputs: z.record(z.string(), z.unknown()).optional() }))
+        .optional(),
     },
-    (a) => Promise.resolve(proposeVerdicts(ctx, a)),
+    (a) => proposeHypothesisTool(ctx, a),
+  );
+  tool(
+    'add_hypothesis_test',
+    'Spec 039: add a test to an open hypothesis: { inputs, refutes_if } as in propose_hypothesis. The headless driver runs it; the verdict lands on the hypothesis.',
+    {
+      session_id: z.string(),
+      portal_id: z.string(),
+      key: z.string(),
+      test: z.looseObject({ inputs: z.record(z.string(), z.unknown()).optional() }),
+    },
+    (a) => addHypothesisTestTool(ctx, a),
   );
   tool(
     'open_process_update',
@@ -297,6 +336,12 @@ export function registerBaTools(server: McpServer, ctx: BaContext): void {
       not_observable: notObservable,
       evidence,
       relations,
+      process_key: z
+        .string()
+        .optional()
+        .describe(
+          'process records only: the process (PRC-nnn) this record documents, e.g. one a person accepted from a proposal. Each process has exactly one process record (PROCESS_DOCUMENTED: revise that one). Without it the server opens a new process for the record.',
+        ),
     },
     (a) => createRecord(ctx, a),
   );

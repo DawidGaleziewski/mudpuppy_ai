@@ -74,10 +74,10 @@ export async function probeForm(
   if (rs!.isTrace)
     throw new ToolError('SCHEMA_INVALID', 'probe_form is for map runs; a trace walks one process');
   // Probing only when asked (spec 032 US5, owner answer 3 of 2026-10-17).
-  if (!runChoices(run).probe)
+  if (!runChoices(run).form_probing)
     throw new ToolError(
       'PROBE_NOT_ASKED',
-      'this scan maps; forms are probed only in a probe run (start_run probe_marked) on marked steps',
+      'this scan maps; forms are probed only in a form-probing run (start_run form_probing) on marked steps',
     );
   const unknown = unknownProbes(input.probes ?? []);
   if (unknown.length > 0)

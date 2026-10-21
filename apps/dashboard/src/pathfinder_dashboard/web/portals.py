@@ -9,7 +9,7 @@ from urllib.parse import parse_qs, quote
 from fastapi import APIRouter, Request
 from fastapi.responses import HTMLResponse, PlainTextResponse, RedirectResponse, Response
 
-from .. import chat_client, db, queries_settings
+from .. import chat_client, db, queries_identity, queries_settings
 from .deps import PORTAL_COOKIE, Ctx, Web, same_origin, web_of
 
 router = APIRouter()
@@ -126,13 +126,26 @@ def stored_credentials(c: Ctx, portal: str) -> list[queries_settings.StoredCrede
         return []
 
 
+def screen_identity(c: Ctx, portal: str) -> queries_identity.Identity:
+    """Settings ▸ Screen identity (spec 039 owner answers 5 and 14); empty without a store."""
+    try:
+        with c.conn() as conn:
+            return queries_identity.screen_identity(conn, portal)
+    except db.StoreMissing:
+        return queries_identity.Identity(None, None, 0, 0, None)
+
+
 def extra_values(web: Web, c: Ctx, portal: str) -> dict[str, Any]:
-    """Settings beside the environments (screen 11): credentials, personas, crawl rules."""
+    """Settings beside the environments (screen 11): credentials, personas, crawl rules, and how
+    the portal model tells screens apart."""
     return {
         "credentials": stored_credentials(c, portal),
         "credentials_url": c.url(f"/fragments/portals/{quote(portal, safe='')}/credentials"),
         "personas": queries_settings.persona_rows(web.settings.personas_dir, portal),
         "rules": queries_settings.crawl_rules(web.settings.portals_dir, portal),
+        "hints": queries_settings.hints(web.settings.portals_dir, portal),
+        "identity": screen_identity(c, portal),
+        "identity_note": c.request.query_params.get("identity_note"),
     }
 
 

@@ -100,7 +100,7 @@ DEFAULTS: dict[str, dict[str, object]] = {
         "skip_reason": None,
         "created_at": T0,
     },
-    "edges": {
+    "transitions": {
         "to_state": None,
         "action_json": json.dumps({"kind": "click"}),
         "safety_class": "read",
@@ -118,7 +118,7 @@ DEFAULTS: dict[str, dict[str, object]] = {
         "created_at": T0,
     },
     "network_calls": {
-        "edge_id": None,
+        "transition_id": None,
         "method": "GET",
         "url_template": "/api/:param",
         "status": 200,
@@ -127,13 +127,7 @@ DEFAULTS: dict[str, dict[str, object]] = {
         "console_errors": "[]",
         "created_at": T0,
     },
-    "open_questions": {"about_ref": "s", "status": "open", "created_at": T0},
-    "rule_candidates": {
-        "about_ref": "s",
-        "evidence_ref": EVIDENCE,
-        "confidence": "inferred",
-        "created_at": T0,
-    },
+    "open_questions": {"status": "open", "created_at": T0},
     "frontier": {
         "action_id": None,
         "action_json": json.dumps({"kind": "click"}),
@@ -221,8 +215,98 @@ DEFAULTS: dict[str, dict[str, object]] = {
 }
 
 
+#: 0040 (spec 039 § 15): the `entity_refs` column each kind the BA cites lands in.
+EVIDENCE_COLUMN = {
+    "state": "state_id",
+    "screen_region": "state_id",
+    "transition": "transition_id",
+    "action": "action_id",
+    "form": "form_id",
+    "network_call": "network_call_id",
+    "open_question": "open_question_id",
+    "decision": "decision_id",
+    "process": "trace_process_id",
+    "process_step": "trace_step_id",
+    "doc_record": "doc_record_id",
+    "review": "review_id",
+    "observation": "observation_id",
+    "hypothesis": "hypothesis_id",
+}
+
+
+def add_ref(
+    conn: sqlite3.Connection, ref_id: str, kind: str, target: str, region: str | None = None
+) -> str:
+    """One `entity_refs` row for what a link or question cites."""
+    conn.execute(
+        f"INSERT INTO entity_refs (id, {EVIDENCE_COLUMN[kind]}, element_key) VALUES (?, ?, ?)",
+        (ref_id, target, region if kind == "screen_region" else None),
+    )
+    return ref_id
+
+
+def add_evidence_link(
+    conn: sqlite3.Connection,
+    link_id: str,
+    revision_id: str,
+    kind: str,
+    target: str,
+    run_id: str | None,
+    note: str | None = None,
+    region: str | None = None,
+) -> None:
+    """An evidence link as the BA states it: its ref, then the link."""
+    add_ref(conn, f"ref-{link_id}", kind, target, region)
+    conn.execute(
+        "INSERT INTO doc_evidence_links (id, revision_id, ref_id, run_id, note)"
+        " VALUES (?, ?, ?, ?, ?)",
+        (link_id, revision_id, f"ref-{link_id}", run_id, note),
+    )
+
+
 def insert(conn: sqlite3.Connection, table: str, **row: object) -> None:
-    """Insert one row, filling the table's defaults for columns not given."""
+    """Insert one row, filling the table's defaults for columns not given. An open question names
+    its subject state with `about_ref` (any state of the store when not given) and gets its ref;
+    an evidence link given as the BA states it (`target_kind`, `target_id`, `region`) too."""
+    if table == "doc_evidence_links" and "ref_id" not in row:
+        link = {**DEFAULTS.get(table, {}), **row}
+        add_evidence_link(
+            conn,
+            str(link["id"]),
+            str(link["revision_id"]),
+            str(link.get("target_kind", "state")),
+            str(link["target_id"]),
+            link.get("run_id"),  # type: ignore[arg-type]
+            link.get("note"),  # type: ignore[arg-type]
+            link.get("region"),  # type: ignore[arg-type]
+        )
+        return
+    # 0041: amendments and their revisions cite their target through a ref, a chat proposal names
+    # its amendment, a mark its target in a typed column; fixtures still state kind and id.
+    if table in ("amendments", "amendment_revisions") and "target_kind" in row:
+        kind, target = str(row.pop("target_kind")), str(row.pop("target_id"))
+        ref = f"ref-{table}-{row.get('id') or row['amendment_id']}-{row.get('rev', 1)}"
+        state, _, key = target.partition("#")
+        conn.execute(
+            "INSERT INTO entity_refs (id, state_id, element_key, evidence_file)"
+            " VALUES (?, ?, ?, ?)",
+            (
+                ref,
+                None if kind == "evidence" else state,
+                key if kind == "wireframe_element" else None,
+                target if kind == "evidence" else None,
+            ),
+        )
+        row["ref_id"] = ref
+    if table == "chat_proposals" and "target_kind" in row:
+        row.pop("target_kind")
+        row["amendment_id"] = row.pop("target_id", None)
+    if table == "marks" and "target_kind" in row:
+        column = {"form_step": "form_step_id", "state": "state_id", "transition": "transition_id"}
+        row[column[str(row.pop("target_kind"))]] = row.pop("target_id")
+    if table == "open_questions" and "ref_id" not in row:
+        about = row.pop("about_ref", None) or conn.execute("SELECT id FROM states").fetchone()[0]
+        row["ref_id"] = add_ref(conn, f"ref-{row['id']}", "state", str(about))
     full = {**DEFAULTS.get(table, {}), **row}
     cols = ", ".join(full)
     marks = ", ".join("?" for _ in full)
@@ -447,8 +531,8 @@ def seed_liveinsurer_like(conn: sqlite3.Connection) -> None:
             run_id=f"run-{(k % 9) + 1:03d}",
             fetched_at=ts(k),
         )
-    insert(conn, "edges", id="edge-1", run_id=BIG_RUN, from_state="state-home")
-    insert(conn, "edges", id="edge-2", run_id=BIG_RUN, from_state="state-home")
+    insert(conn, "transitions", id="edge-1", run_id=BIG_RUN, from_state="state-home")
+    insert(conn, "transitions", id="edge-2", run_id=BIG_RUN, from_state="state-home")
 
 
 @pytest.fixture
@@ -542,9 +626,20 @@ def add_record(
     record_id = f"rec-{key}"
     latest = revisions[-1]
     confirmed = [n for n, r in enumerate(revisions, start=1) if r.get("status") == "confirmed"]
+    # A PROC record documents its own process (spec 039 T070); PRC-8nn keeps clear of the
+    # processes other fixtures create.
+    process_id = f"prc-{key}" if kind == "process" else None
+    if process_id:
+        conn.execute(
+            "INSERT INTO ba_processes (id, portal_id, key, name, persona, stage, rev, source,"
+            " created_at, updated_at, record_key) VALUES (?, ?, ?, ?, 'guest', 'scoped', 1, 'new',"
+            " ?, ?, ?)",
+            (process_id, portal, f"PRC-{800 + int(seq)}", title, T0, T0, key),
+        )
     conn.execute(
         "INSERT INTO doc_records (id, portal_id, kind, key, seq, title, latest_rev, confirmed_rev,"
-        " withdrawn, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+        " withdrawn, created_at, updated_at, process_id)"
+        " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
         (
             record_id,
             portal,
@@ -557,6 +652,7 @@ def add_record(
             1 if latest.get("change") == "withdraw" else 0,
             T0,
             ts(40),
+            process_id,
         ),
     )
     for n, rev in enumerate(revisions, start=1):
@@ -582,12 +678,7 @@ def add_record(
             ),
         )
         for i, (tk, target, run, note) in enumerate(rev.get("evidence", [])):  # type: ignore[attr-defined]
-            conn.execute(
-                "INSERT INTO doc_evidence_links"
-                " (id, revision_id, target_kind, target_id, run_id, note)"
-                " VALUES (?, ?, ?, ?, ?, ?)",
-                (f"ev-{key}-{n}-{i}", rev_id, tk, target, run, note),
-            )
+            add_evidence_link(conn, f"ev-{key}-{n}-{i}", rev_id, tk, target, run, note)
     return record_id
 
 
@@ -633,9 +724,9 @@ def seed_process(conn: sqlite3.Connection, run_id: str, boundary_action: str) ->
     ]
     for ord_, intent, kind, action, value in steps:
         conn.execute(
-            "INSERT INTO process_steps (id, process_id, ord, intent, kind, action_id, edge_id,"
-            " value, state_before, state_after, outcomes_json, evidence_ref, confidence,"
-            " created_at)"
+            "INSERT INTO process_steps (id, process_id, ord, intent, kind, action_id,"
+            " transition_id, value, state_before, state_after, outcomes_json, evidence_ref,"
+            " confidence, created_at)"
             " VALUES (?, 'proc-1', ?, ?, ?, ?, NULL, ?, NULL, NULL, ?, ?, 'observed', ?)",
             (
                 f"step-{ord_}",
@@ -714,7 +805,7 @@ def seed_ba(conn: sqlite3.Connection) -> None:
     )
     insert(
         conn,
-        "edges",
+        "transitions",
         id="edge-1",
         run_id="run-map",
         from_state="st-home",
@@ -739,14 +830,6 @@ def seed_ba(conn: sqlite3.Connection) -> None:
         run_id="run-map",
         about_ref="st-calc",
         text="Why is Model required?",
-    )
-    insert(
-        conn,
-        "rule_candidates",
-        id="rc-1",
-        run_id="run-map",
-        about_ref="st-calc",
-        text="Model is required",
     )
     seed_process(conn, "run-trace", "act-buy")
 
@@ -785,7 +868,7 @@ def seed_ba(conn: sqlite3.Connection) -> None:
         conn,
         "SCR-002",
         "Calculator, vehicle step",
-        [{"evidence": [obs, ("edge", "edge-1", "run-map", None)]}],
+        [{"evidence": [obs, ("transition", "edge-1", "run-map", None)]}],
         content={
             "purpose": "Vehicle data",
             "route_templates": ["/kalkulator/pojazd"],
@@ -809,9 +892,7 @@ def seed_ba(conn: sqlite3.Connection) -> None:
                     ("action", "act-calc", "run-map", None),
                     ("network_call", "net-quote", "run-map", None),
                     ("decision", "dec-1", "run-map", None),
-                    ("rule_candidate", "rc-1", "run-map", None),
                     ("open_question", "oq-1", "run-map", None),
-                    ("state", "st-deleted", "run-map", "target removed by a portal delete"),
                     ("process_step", "step-2", "run-trace", "step 2 enters the model"),
                     ("doc_record", "rec-SCR-002", None, "see the screen"),
                 ],

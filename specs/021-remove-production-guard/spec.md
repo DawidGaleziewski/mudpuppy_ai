@@ -122,7 +122,6 @@ staging.
   or marked superseded by spec 021.
 - **FR-010**: Tests and gates that assert a removed rule MUST be rewritten to assert the new
   behaviour; the trace-boundary gate keeps running on an explicit `read` limit.
-- **FR-011**: The export-fork export MUST carry the change (re-export after merge, per CLAUDE.md).
 
 ## Success criteria
 

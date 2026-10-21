@@ -89,10 +89,10 @@ describe('create_record', () => {
     expect(layerBCounts(h.fx).doc_records).toBe(0);
   });
 
-  it('refuses observed when only a rule candidate is cited (INVALID_CONFIDENCE)', async () => {
+  it('refuses observed when only a crawler question is cited (INVALID_CONFIDENCE)', async () => {
     const h = await startBa();
     const s = await h.session();
-    const candidate = [{ target_kind: 'rule_candidate', target_id: h.fx.ruleCandidate }];
+    const candidate = [{ target_kind: 'open_question', target_id: h.fx.openQuestions[0] }];
     const error = await h.refused(
       'create_record',
       create(h, s, { kind: 'business_rule', content: CONTENT.business_rule, evidence: candidate }),
@@ -100,9 +100,9 @@ describe('create_record', () => {
     expect(error.code).toBe('INVALID_CONFIDENCE');
     expect(error.checked).toEqual([
       {
-        target_kind: 'rule_candidate',
-        target_id: h.fx.ruleCandidate,
-        confidence: 'inferred',
+        target_kind: 'open_question',
+        target_id: h.fx.openQuestions[0],
+        confidence: null,
         qualifies: false,
       },
     ]);
@@ -129,7 +129,7 @@ describe('create_record', () => {
     const later = h.fx.addRun();
     const error = await h.refused(
       'create_record',
-      create(h, s, { evidence: [{ target_kind: 'edge', target_id: later.edgeId }] }),
+      create(h, s, { evidence: [{ target_kind: 'transition', target_id: later.transitionId }] }),
     );
     expect(error).toMatchObject({ code: 'RUN_NOT_IN_SESSION', run_id: later.runId });
   });
@@ -925,7 +925,7 @@ describe('revise_record keeps evidence from runs outside the session (spec 004 F
     const s2 = await h.session([other.runId]);
     await h.must(
       'revise_record',
-      revise(s2, key, [{ target_kind: 'edge', target_id: other.edgeId }]),
+      revise(s2, key, [{ target_kind: 'transition', target_id: other.transitionId }]),
     );
     const record = await h.must('get_record', { portal_id: h.fx.portalId, key });
     expect(runsOf(record).sort()).toEqual([h.fx.runId, other.runId].sort());
@@ -1054,5 +1054,74 @@ describe('a process is never only an error page (spec 034 R-70 (3), F-17@030)', 
     expect((await h.must('create_record', { ...onlyError, evidence: journey })).key).toBe(
       'PROC-001',
     );
+  });
+
+  it('gives every process record exactly one process (spec 039 T070)', async () => {
+    const h = await startBa();
+    const s = await h.session();
+    const journey = [...stateEvidence(h), { target_kind: 'state', target_id: h.fx.states.car }];
+    const proc = { ...create(h, s), kind: 'process', content: process, evidence: journey };
+    // Without process_key the server opens a process for the record.
+    expect((await h.must('create_record', proc)).key).toBe('PROC-001');
+    const opened = h.fx.raw
+      .prepare(
+        `SELECT p.key, p.name, p.source, p.record_key FROM doc_records r
+         JOIN ba_processes p ON p.id = r.process_id WHERE r.key = 'PROC-001'`,
+      )
+      .get();
+    expect(opened).toEqual({
+      key: 'PRC-001',
+      name: process.title,
+      source: 'new',
+      record_key: 'PROC-001',
+    });
+    // A named process is linked; a process that has its record already is refused.
+    expect((await h.must('create_record', proc)).key).toBe('PROC-002');
+    expect((await h.refused('create_record', { ...proc, process_key: 'PRC-001' })).code).toBe(
+      'PROCESS_DOCUMENTED',
+    );
+    expect((await h.refused('create_record', { ...proc, process_key: 'PRC-404' })).code).toBe(
+      'PROCESS_UNKNOWN',
+    );
+    expect(
+      (await h.refused('create_record', { ...create(h, s), process_key: 'PRC-001' })).code,
+    ).toBe('SCHEMA_INVALID');
+    // The store holds the rule too: a PROC row without its process is refused.
+    expect(() =>
+      h.fx.raw
+        .prepare(
+          `INSERT INTO doc_records (id, portal_id, kind, key, seq, title, latest_rev, created_at, updated_at)
+           VALUES ('x', ?, 'process', 'PROC-099', 99, 't', 1, 'now', 'now')`,
+        )
+        .run(h.fx.portalId),
+    ).toThrow(/PROC record needs process_id/);
+  });
+
+  it('links a process record to the process it names', async () => {
+    const h = await startBa();
+    const s = await h.session();
+    const now = '2026-10-20T00:00:00.000Z';
+    h.fx.raw
+      .prepare(
+        `INSERT INTO ba_processes (id, portal_id, key, name, persona, stage, rev, source, created_at, updated_at)
+         VALUES ('prc-x', ?, 'PRC-007', 'Quote', 'guest', 'scoped', 1, 'suggestion', ?, ?)`,
+      )
+      .run(h.fx.portalId, now, now);
+    const journey = [...stateEvidence(h), { target_kind: 'state', target_id: h.fx.states.car }];
+    const { key } = await h.must('create_record', {
+      ...create(h, s),
+      kind: 'process',
+      content: process,
+      evidence: journey,
+      process_key: 'PRC-007',
+    });
+    expect(
+      h.fx.raw
+        .prepare(
+          `SELECT r.process_id, p.record_key FROM doc_records r JOIN ba_processes p ON p.id = r.process_id
+           WHERE r.key = ?`,
+        )
+        .get(key),
+    ).toEqual({ process_id: 'prc-x', record_key: key });
   });
 });

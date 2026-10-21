@@ -40,13 +40,13 @@ function recordScreens(ctx: BaContext, portal: string): ScreenRow[] {
       `WITH latest AS (
          SELECT r.key, l.target_kind, l.target_id FROM doc_records r
          JOIN doc_revisions v ON v.record_id = r.id AND v.rev_no = r.latest_rev
-         JOIN doc_evidence_links l ON l.revision_id = v.id
+         JOIN doc_evidence l ON l.revision_id = v.id
          WHERE r.portal_id = ? AND r.withdrawn = 0),
        cited AS (
          SELECT key, target_id AS state FROM latest WHERE target_kind IN ('state', 'screen_region')
-         UNION SELECT key, e.from_state FROM latest JOIN edges e ON e.id = target_id WHERE target_kind = 'edge'
-         UNION SELECT key, e.to_state FROM latest JOIN edges e ON e.id = target_id WHERE target_kind = 'edge'
-         UNION SELECT key, p.state_id FROM latest JOIN page_visits p ON p.id = target_id WHERE target_kind = 'page_visit')
+         UNION SELECT key, e.from_state FROM latest JOIN transitions e ON e.id = target_id WHERE target_kind = 'transition'
+         UNION SELECT key, e.to_state FROM latest JOIN transitions e ON e.id = target_id WHERE target_kind = 'transition'
+         UNION SELECT key, p.state_id FROM latest JOIN observations p ON p.id = target_id WHERE target_kind = 'observation')
        SELECT DISTINCT cited.key AS record, ${SCREEN_KEY} AS screen
        FROM cited JOIN states s ON s.id = cited.state LEFT JOIN screens sc ON sc.id = s.screen_id`,
     )
@@ -60,8 +60,8 @@ function lastChanged(ctx: BaContext, portal: string, key: string): string | null
       ? ctx.raw
           .prepare(
             `SELECT r.created_at AS at FROM ba_processes p
-             JOIN process_variants v ON v.process_id = p.id AND v.kind = 'as_is'
-             JOIN process_variant_revisions r ON r.variant_id = v.id AND r.rev = v.rev
+             JOIN process_models v ON v.process_id = p.id AND v.kind = 'as_is'
+             JOIN process_model_revisions r ON r.model_id = v.id AND r.rev = v.rev
              WHERE p.portal_id = ? AND p.key = ?`,
           )
           .get(portal, key)

@@ -17,7 +17,8 @@ export const RELATION_RULES: Record<RelationType, readonly Rule[]> = {
   describes: [{ from: ['use_case'], to: ['process'] }],
   refines: [{ from: ['requirement'], to: ['use_case', 'capability'] }],
   enforces: [{ from: ['requirement'], to: ['business_rule'] }],
-  appears_on: [{ from: ['data_item', 'glossary_term'], to: ['screen'] }],
+  // + an api_endpoint is called on a screen (spec 038 FR-008; migration 0044)
+  appears_on: [{ from: ['data_item', 'glossary_term', 'api_endpoint'], to: ['screen'] }],
   uses_term: [{ from: 'any', to: ['glossary_term'] }],
   synonym_of: [{ from: ['glossary_term'], to: ['glossary_term'] }],
   answers: [{ from: ['assumption', 'requirement', 'business_rule'], to: ['open_question'] }],
@@ -25,6 +26,7 @@ export const RELATION_RULES: Record<RelationType, readonly Rule[]> = {
   depends_on: [
     { from: 'any', to: 'same' },
     { from: ['assumption', 'use_case'], to: ['business_rule'] },
+    { from: ['process', 'use_case', 'requirement'], to: ['api_endpoint'] },
   ],
   // spec 019 F-14: a rule applies on a screen; a question is about any record; a follow-up is
   // for the process, capability, screen or rule it would observe. Mirrored by migration 0014.

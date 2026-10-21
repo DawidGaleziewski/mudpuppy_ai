@@ -10,7 +10,7 @@ beforeAll(async () => {
   fx = await makeFixtureStore({ portalId: 'reference-insurer', deterministicIds: true });
   seedDocRecords(fx);
   const insert = fx.raw.prepare(
-    `INSERT INTO page_visits (id, run_id, state_id, edge_id, via, url, hops_json, created_at)
+    `INSERT INTO observations (id, run_id, state_id, transition_id, via, url, hops_json, created_at)
      VALUES (?, ?, ?, NULL, 'navigate', ?, ?, ?)`,
   );
   for (const [i, state] of Object.values(fx.states).entries()) {

@@ -157,6 +157,53 @@ VOCABULARIES: dict[str, dict[str, Status]] = {
         "needs_confirmation": _s("needs", "Needs confirmation"),
     },
     "allowed": {"yes": _s("ok", "Allowed"), "no": _s("skipped", "Skipped")},
+    # spec 039: a deviation of the portal model and the hypothesis that explains it
+    "deviation": {
+        "open": _s("needs", "Needs you"),
+        "waiting_test": _s("queued", "Waiting for a check"),
+        "explained": _s("inferred", "Explained automatically"),  # v2-02: overturnable, not ok
+    },
+    # spec 039 T100: a business rule in the UI's words (12-v2-ux.md § 4) and its boundary tests
+    "rule": {
+        "broken": _s("failed", "Broken"),
+        "proposed": _s("inferred", "Proposed"),
+        "tested": _s("inferred", "Tested"),
+        "confirmed": _s("ok", "Confirmed"),
+        "replaced": _s("skipped", "Replaced"),
+        "rejected": _s("stopped", "Rejected"),
+    },
+    # spec 039 T100 (v2-06 / v2-07): a screen of the portal model, and an action or link on it
+    "model_screen": {
+        "active": _s("live", "Active"),
+        "merged": _s("skipped", "Merged"),
+        "retired": _s("stopped", "Retired"),
+    },
+    "action": {
+        "active": _s("live", "Active"),
+        "not_seen_since": _s("unobserved", "Not seen lately"),
+        "untested": _s("todo", "Not checked"),
+        "retired": _s("skipped", "Retired"),
+    },
+    "explored": {
+        "thorough": _s("ok", "Thorough"),
+        "partial": _s("needs", "Partial"),
+        "not_explored": _s("todo", "Not explored"),
+    },
+    "boundary_test": {
+        "pass": _s("ok", "Pass"),
+        "fail": _s("failed", "Fail"),
+        "inconclusive": _s("stopped", "Inconclusive"),
+        "waiting": _s("queued", "Waiting"),
+    },
+    "hypothesis": {
+        "proposed": _s("needs", "Proposed"),
+        "testing": _s("running", "Testing"),
+        "supported": _s("inferred", "Supported"),
+        "confirmed": _s("ok", "Confirmed"),
+        "refuted": _s("stopped", "Refuted"),
+        "rejected": _s("stopped", "Rejected"),
+        "superseded": _s("skipped", "Superseded"),
+    },
     "robots": {
         "rules": _s("ok", "Rules"),
         "no_rules": _s("ok", "No rules"),
@@ -210,7 +257,7 @@ VOCABULARIES: dict[str, dict[str, Status]] = {
         "added": _s("draft", "Added"),
         "removed": _s("skipped", "Removed"),
     },
-    "variant": {
+    "process_model": {
         "as_is": _s("ok", "Observed"),
         "to_be": _s("draft", "Drawn"),
         "draft": _s("draft", "Draft open"),

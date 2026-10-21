@@ -59,7 +59,7 @@ A `running` session with no write for 24 h is swept to `interrupted` on server s
 |---|---|---|
 | `id` | TEXT PK | UUIDv7 |
 | `portal_id` | TEXT NOT NULL | |
-| `kind` | TEXT NOT NULL | CHECK: `capability, screen, process, use_case, requirement, nfr, business_rule, glossary_term, data_item, assumption, open_question, followup` |
+| `kind` | TEXT NOT NULL | CHECK: `capability, screen, process, use_case, requirement, nfr, business_rule, glossary_term, data_item, assumption, open_question, followup, api_endpoint` (the last since `0044_api_endpoint_kind`, spec 038 FR-008) |
 | `key` | TEXT NOT NULL | `<PREFIX>-<seq 3+ digits>`; UNIQUE(`portal_id`, `key`) |
 | `seq` | INTEGER NOT NULL | per (portal, kind); UNIQUE(`portal_id`, `kind`, `seq`) |
 | `title` | TEXT NOT NULL | Copied from the latest revision's content for listing |
@@ -70,7 +70,7 @@ A `running` session with no write for 24 h is swept to `interrupted` on server s
 
 Key prefixes: `CAP` capability, `SCR` screen, `PROC` process, `UC` use case, `REQ` requirement,
 `NFR`, `BR` business rule, `GL` glossary term, `DI` data item, `ASM` assumption, `OQ` open question,
-`FUP` follow-up. `latest_rev`, `confirmed_rev`, `title`, `withdrawn` are denormalised by the status
+`FUP` follow-up, `API` api endpoint. `latest_rev`, `confirmed_rev`, `title`, `withdrawn` are denormalised by the status
 engine in the same transaction as the revision/review write (fast listing; checked by `docs:audit`).
 
 ## Revision — `doc_revisions`
@@ -120,6 +120,7 @@ as shown in the portal with a `lang` code (D6).
 | `assumption` | `statement`, `impact_if_wrong` |
 | `open_question` | `question`, `why_it_matters`, `answer_needed_from` (`sme, crawler, either`) |
 | `followup` | `question`, `suggested_mode` (`map, trace`), `target` (`{url?} \| {process_name, goal}`), `persona`, `reason` |
+| `api_endpoint` | `method`, `path` (the URL template as captured), `purpose`, `called_from[]`, `request_fields[]`, `response_fields[]`, `statuses[]` (ints) — spec 038 FR-008, field source C-10 |
 
 ## Evidence Link — `doc_evidence_links`
 
@@ -141,7 +142,7 @@ Every revision has ≥ 1 link (enforced by the tool in the same transaction and 
 |---|---|---|
 | `from_revision_id` | TEXT FK → doc_revisions | Relations are versioned with the revision that asserts them |
 | `to_record_id` | TEXT FK → doc_records | Points at a record (its current revision at read time) |
-| `type` | TEXT NOT NULL | `contains, describes, refines, enforces, appears_on, uses_term, synonym_of, answers, depends_on`, plus `applies_on, asks_about, follows_up` since `0014_relation_vocabulary` (spec 019 F-14); `0019_relation_screens` (R-51) adds the triples `glossary_term appears_on screen` and `process contains screen` (process steps and personas are not records: steps live in `process_steps`, the persona in `process` content) |
+| `type` | TEXT NOT NULL | `contains, describes, refines, enforces, appears_on, uses_term, synonym_of, answers, depends_on`, plus `applies_on, asks_about, follows_up` since `0014_relation_vocabulary` (spec 019 F-14); `0019_relation_screens` (R-51) adds the triples `glossary_term appears_on screen` and `process contains screen` (process steps and personas are not records: steps live in `process_steps`, the persona in `process` content); `0044_api_endpoint_kind` (spec 038 FR-008) adds `api_endpoint appears_on screen` and `process/use_case/requirement depends_on api_endpoint` |
 | PK | (`from_revision_id`, `to_record_id`, `type`) | |
 
 Allowed (from kind, type, to kind) triples are a table in `@pathfinder/docs` (tasks.md T009). Since

@@ -205,8 +205,8 @@ export type DataItemConstraints = z.infer<typeof DataItemConstraints>;
 
 /** Assumption: where the field was seen, resolved like an evidence target (`form` or `network_call` id). */
 export const DataItemSighting = z.object({
-  /** `page_visit`: a URL parameter, seen on that visit's URL (spec 019, R-37). */
-  kind: z.enum(['form', 'network_call', 'page_visit']),
+  /** `observation`: a URL parameter, seen on that observation's URL (spec 019, R-37). */
+  kind: z.enum(['form', 'network_call', 'observation']),
   target_id: Id,
 });
 export type DataItemSighting = z.infer<typeof DataItemSighting>;
@@ -264,6 +264,20 @@ export const FollowupContent = z.object({
 });
 export type FollowupContent = z.infer<typeof FollowupContent>;
 
+/** An HTTP call the portal makes, documented from a captured network shape (spec 038 FR-008, field source C-10). */
+export const ApiEndpointContent = z.object({
+  kind: z.literal('api_endpoint'),
+  ...base,
+  method: z.string().min(1), // HTTP method as captured, e.g. GET, POST
+  path: z.string().min(1), // the URL template as captured (network_calls.url_template)
+  purpose: z.string().min(1), // what the call is for, in business words
+  called_from: z.array(z.string().min(1)).default([]), // screens or steps it is called from (titles or routes)
+  request_fields: z.array(z.string().min(1)).default([]), // field names of the request shape
+  response_fields: z.array(z.string().min(1)).default([]), // field names of the response shape
+  statuses: z.array(z.number().int()).default([]), // HTTP statuses seen
+});
+export type ApiEndpointContent = z.infer<typeof ApiEndpointContent>;
+
 /** Discriminated union on `kind`, matching `DocKind` 1:1. */
 export const DocContent = z.discriminatedUnion('kind', [
   CapabilityContent,
@@ -278,6 +292,7 @@ export const DocContent = z.discriminatedUnion('kind', [
   AssumptionContent,
   OpenQuestionContent,
   FollowupContent,
+  ApiEndpointContent,
 ]);
 export type DocContent = z.infer<typeof DocContent>;
 
@@ -295,4 +310,5 @@ export const DOC_CONTENT_BY_KIND = {
   assumption: AssumptionContent,
   open_question: OpenQuestionContent,
   followup: FollowupContent,
+  api_endpoint: ApiEndpointContent,
 } satisfies Record<DocKind, z.ZodTypeAny>;

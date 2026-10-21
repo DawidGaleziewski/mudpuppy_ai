@@ -33,8 +33,8 @@ def _as_documented(store: Store, *, signed_rev: int, head_rev: int) -> None:
     for rev in range(2, head_rev + 1):
         insert(
             conn,
-            "process_variant_revisions",
-            variant_id="v-a",
+            "process_model_revisions",
+            model_id="v-a",
             rev=rev,
             base_rev=rev - 1,
             change="observe",
@@ -45,7 +45,7 @@ def _as_documented(store: Store, *, signed_rev: int, head_rev: int) -> None:
             restored_from=None,
             created_at=ts(10 + rev),
         )
-    conn.execute("UPDATE process_variants SET rev = ? WHERE id = 'v-a'", (head_rev,))
+    conn.execute("UPDATE process_models SET rev = ? WHERE id = 'v-a'", (head_rev,))
     conn.commit()
     conn.close()
 
@@ -79,7 +79,7 @@ def test_a_reads_as_documentation_per_step(empty_store: Store) -> None:
     store = seed(empty_store)
     _record(store)
     with client(store) as c:
-        body = c.get(f"/processes/PRC-001?portal={P}&variant=A&step=s2").text
+        body = c.get(f"/processes/PRC-001?portal={P}&model=A&step=s2").text
     flat = text(body)
     assert "As-is documentation" in flat
     assert "Still open on these screens: 1 open question · 0 records to confirm" in flat
@@ -105,7 +105,7 @@ def test_sign_off_and_changed_since_documented(empty_store: Store) -> None:
 
     _as_documented(store, signed_rev=1, head_rev=3)
     with client(store) as c:
-        changed = text(c.get(f"/processes/PRC-001?portal={P}&variant=A").text)
+        changed = text(c.get(f"/processes/PRC-001?portal={P}&model=A").text)
     assert "Signed off as documented by Anna" in changed and "covering A r1" in changed
     assert "As-is changed since documented" in changed and "A r1 → r3" in changed
     assert "Sign off A r3" in changed
@@ -158,7 +158,7 @@ def test_the_forwarder_reaches_the_spec_027_routes(empty_store: Store) -> None:
     for path in (
         "/portals/liveinsurer/processes/pr-1/archive",
         "/portals/liveinsurer/processes/pr-1/unarchive",
-        "/portals/liveinsurer/processes/pr-1/variants/A/edit",
+        "/portals/liveinsurer/processes/pr-1/models/A/edit",
         "/portals/liveinsurer/processes/from-record",
     ):
         service.routes[("POST", path)] = httpx2.Response(200, json={})
@@ -168,7 +168,7 @@ def test_the_forwarder_reaches_the_spec_027_routes(empty_store: Store) -> None:
             for path in (
                 "/portals/liveinsurer/processes/pr-1/archive",
                 "/portals/liveinsurer/processes/pr-1/unarchive",
-                "/portals/liveinsurer/processes/pr-1/variants/A/edit",
+                "/portals/liveinsurer/processes/pr-1/models/A/edit",
                 "/portals/liveinsurer/processes/from-record",
             )
         ]

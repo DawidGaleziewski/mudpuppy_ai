@@ -1,0 +1,134 @@
+{% extends "salvage/base.html" %}
+{% import "salvage/macros.html" as sy %}
+{% import "salvage/partials/picture.html" as pic with context %}
+{% set nav_current = "screens" %}
+{% block title %}{% if d %}{{ d.row.title }}{% else %}Screen not found{% endif %}{% endblock %}
+{% block head_extra %}<script src="/static/js/pictures.js" defer></script>{% endblock %}
+{#- Spec 039 T100, designer screen v2-07 (UX-R31–R33): one screen of the portal model. What needs a
+    person on it first, then its variants (each says why it differs), its actions with where they
+    lead, and its history of changes. Overturn waits for R-87. -#}
+{% block main %}
+{%- if not d %}
+<div class="sy-pagehead">
+  <nav class="sy-crumbs" aria-label="Breadcrumb"><a href="{{ c.url('/screens') }}">Screens</a></nav>
+  <h1 class="sy-h1">Screen not found</h1>
+</div>
+{{ sy.empty("No screen " ~ key ~ (" in " ~ c.portal if c.portal else ""), "Pick the portal it belongs to in the header, or open the list of screens.") }}
+{%- else %}
+{%- set r = d.row %}
+<div class="sy-pagehead">
+  <nav class="sy-crumbs" aria-label="Breadcrumb"><a href="{{ c.url('/screens') }}">Screens</a> / <span aria-current="page" class="sy-case-normal">{{ r.title }}</span></nav>
+  <div class="sy-pagehead__row">
+    <div class="sy-stack">
+      <h1 class="sy-h1 sy-case-normal">{{ sy.tag(r.key) }} {{ r.title or "(untitled page)" }}</h1>
+      <p class="sy-cluster sy-meta">
+        <span class="sy-route">{{ r.route }}</span>
+        {%- if r.parts %}<span>part {{ r.parts | join(", ") }}</span>{% endif %}
+        {{ sy.status("model_screen", r.status) }}
+        {%- if r.last_seen %}<span class="sy-cluster">last seen {{ r.last_seen | when }}{% if r.last_run %} {{ sy.tag(r.last_run[:8], c.url('/runs/' ~ r.last_run), sm=true) }}{% endif %}</span>{% endif %}
+        <span>Checked {{ r.checked }} / {{ r.actions }} actions</span>
+        {%- if r.process %}<span>in process <a class="sy-case-normal" href="{{ c.url('/processes/' ~ r.process[0]) }}">{{ r.process[1] }}</a></span>{% endif %}
+      </p>
+    </div>
+    <a class="sy-btn" href="{{ c.url('/map') }}">Open in map</a>
+  </div>
+</div>
+<nav class="sy-tabs" aria-label="Screen sections">
+  <a class="sy-tab" href="#variants">Variants <span class="sy-count sy-count--muted">{{ d.variants | length }}</span></a>
+  <a class="sy-tab" href="#actions">Actions <span class="sy-count sy-count--muted">{{ d.actions | length }}</span></a>
+  <a class="sy-tab" href="#history">History <span class="sy-count sy-count--muted">{{ d.history | length + labels | length }}</span></a>
+</nav>
+
+{%- if d.needs %}
+<section class="sy-plate sy-plate--intent" aria-labelledby="needs-h">
+  <div class="sy-plate__head"><h2 id="needs-h" class="sy-plate__title">Needs you on this screen</h2><span class="sy-count">{{ d.needs | length }}</span></div>
+  <ul class="sy-rows">
+    {%- for kind, it in d.needs %}
+    <li><a class="sy-row" href="{{ c.url('/review', select=kind ~ ':' ~ it.id) }}">
+      <span class="sy-row__main">
+        <span class="sy-cluster"><span class="sy-chip{% if it.chip.chip %} sy-chip--{{ it.chip.chip }}{% endif %}">{{ it.chip.word }}</span>{% for k in it.keys %}{{ sy.tag(k, sm=true) }}{% endfor %}</span>
+        <span class="sy-case-normal">{{ it.claim }}</span>
+      </span>
+      <span class="sy-mono sy-mono--sm sy-muted">{{ it.at | when }}</span>
+    </a></li>
+    {%- endfor %}
+  </ul>
+  <div class="sy-plate__foot"><span class="sy-small sy-muted">Each decision asks for a one-line reason, shown afterwards.</span><a class="sy-btn sy-btn--primary" href="{{ c.url('/review') }}">Open in Review</a></div>
+</section>
+{%- endif %}
+
+<section id="variants" class="sy-stack" aria-labelledby="var-h">
+  <h2 id="var-h" class="sy-h2">Variants · {{ d.variants | length }}</h2>
+  <div class="sy-compare mp-variants">
+    {%- for v in d.variants %}
+    <section class="sy-compare__side" aria-labelledby="r{{ v.ordinal }}-h">
+      <header class="sy-compare__head"><h3 id="r{{ v.ordinal }}-h" class="sy-h3"><span class="sy-case-normal">r{{ v.ordinal }}</span></h3><span class="sy-chip{% if v.why.chip %} sy-chip--{{ v.why.chip }}{% endif %}">{{ v.why.word }}</span></header>
+      {%- if v.picture and (v.picture.shot or v.picture.wire) %}
+      {{ pic.thumb(v.state_id, v.picture, v.title, r.route) }}
+      {%- else %}
+      <p class="sy-small">No picture was recorded. <a href="{{ c.url('/states/' ~ v.state_id) }}">Open the recorded page</a></p>
+      {%- endif %}
+      <p class="sy-small sy-muted sy-case-normal">{% if v.releases %}{{ v.releases | join(", ") }} · {% endif %}{{ v.personas | join(", ") or "—" }} · {{ v.visits }} visit{{ "s" if v.visits != 1 }}{% if v.first_seen %} · {{ v.first_seen | when }}{% if v.last_seen and v.last_seen != v.first_seen %} – {{ v.last_seen | when }}{% endif %}{% endif %}</p>
+      {%- if v.status %}{{ sy.status("deviation", v.status) }}{% else %}<span class="sy-status" data-status="ok">Observed</span>{% endif %}
+      <p class="sy-small">{{ v.why.text }}</p>
+    </section>
+    {%- endfor %}
+  </div>
+</section>
+
+<section id="actions" class="sy-stack" aria-labelledby="act-h">
+  <h2 id="act-h" class="sy-h2">Actions · {{ d.actions | length }}</h2>
+  {%- if d.actions %}
+  <div class="sy-table-wrap">
+    <table class="sy-table sy-table--dense" aria-labelledby="act-h">
+      <thead><tr><th scope="col">Action</th><th scope="col">Kind</th><th scope="col">Status</th><th scope="col">Leads to</th></tr></thead>
+      <tbody>
+      {%- for a in d.actions %}
+        <tr>
+          <th scope="row"><span class="sy-mono sy-mono--sm mp-break">{{ a.element_key }}</span>{% if a.is_global %} <span class="sy-chip">on every page</span>{% endif %}</th>
+          <td>{{ a.kind }}</td>
+          <td>{{ sy.status("action", a.status) }}</td>
+          <td><span class="sy-stack">
+            {%- for key, title, result in a.leads_to %}
+            <span class="sy-cluster">{% if key == r.key %}<span class="sy-muted">inside this screen</span>{% elif key %}{{ sy.tag(key, c.url('/screens/' ~ key), sm=true) }} <span class="sy-case-normal">{{ title }}</span>{% else %}<span class="sy-muted">no page</span>{% endif %}{% if result != "ok" %} <span class="sy-chip">{{ result | replace("_", " ") }}</span>{% endif %}</span>
+            {%- else %}<span class="sy-muted">not tried yet</span>{% endfor %}</span></td>
+        </tr>
+      {%- endfor %}
+      </tbody>
+    </table>
+  </div>
+  {%- else %}
+  <p class="sy-small sy-muted">No action recorded on this screen.</p>
+  {%- endif %}
+</section>
+
+<section id="history" class="sy-stack" aria-labelledby="hist-h">
+  <h2 id="hist-h" class="sy-h2">History · {{ d.history | length + labels | length }}</h2>
+  {%- if d.history %}
+  <ol class="sy-timeline">
+    {%- for ch in d.history %}
+    <li data-status="{{ 'ok' if ch.status == 'explained' else 'draft' }}">
+      <div class="sy-timeline__head"><span class="sy-chip">{{ ch.word }}</span> {{ sy.status("deviation", ch.status) }} <span class="sy-mono sy-mono--sm sy-muted">model version {{ ch.model_seq }} · {{ ch.created_at | when }}</span></div>
+      <div class="sy-timeline__body"><span class="sy-case-normal">{{ ch.finding }}</span> · <a class="sy-small" href="{{ c.url('/changes/' ~ ch.id) }}">Before / after</a></div>
+    </li>
+    {%- endfor %}
+  </ol>
+  {%- else %}
+  <p class="sy-small sy-muted">No change since the screen was first seen.</p>
+  {%- endif %}
+  {%- if labels %}
+  <h3 class="sy-h3">Same screen? answers · {{ labels | length }}</h3>
+  <ol class="sy-timeline">
+    {%- for e in labels %}
+    <li data-status="ok">
+      <div class="sy-timeline__head"><b>{{ e.label.by }}</b>: {{ words[e.label.answer] | lower }} <span class="sy-mono sy-mono--sm sy-muted">{{ e.label.at | when }}</span></div>
+      <div class="sy-timeline__body sy-stack"><span><span class="sy-case-normal">{{ e.a }} and {{ e.b }}</span> · <a class="sy-small" href="{{ c.url('/same-screen', a=e.a_id, b=e.b_id) }}">Compare</a></span>
+        {%- if e.label.reason %}{{ sy.note(e.label.reason, e.label.by, e.label.at, sm=true) }}{% endif %}</div>
+    </li>
+    {%- endfor %}
+  </ol>
+  {%- endif %}
+</section>
+{{ pic.dialog() }}
+{%- endif %}
+{% endblock %}

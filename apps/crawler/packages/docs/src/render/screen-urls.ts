@@ -13,7 +13,7 @@ export function screenUrls(
   runIds: ReadonlySet<string>,
 ): Record<string, StateInventory> {
   const visitsOf = raw.prepare(
-    `SELECT id, run_id, state_id, edge_id, via, url, hops_json FROM page_visits
+    `SELECT id, run_id, state_id, transition_id, via, url, hops_json FROM observations
      WHERE state_id = ? ORDER BY created_at, rowid`,
   );
   const out: Record<string, StateInventory> = {};
@@ -21,9 +21,7 @@ export function screenUrls(
     if (screen.kind !== 'screen') continue;
     const states = new Set(
       screen.evidence
-        .filter(
-          (e) => (e.target_kind === 'state' || e.target_kind === 'screen_region') && !e.broken,
-        )
+        .filter((e) => e.target_kind === 'state' || e.target_kind === 'screen_region')
         .map((e) => e.target_id),
     );
     const visits: VisitRow[] = [];
@@ -37,7 +35,7 @@ export function screenUrls(
             id: v.id,
             // one inventory per screen: its states' visits are pooled under the screen's key
             state_id: screen.key,
-            edge_id: v.edge_id,
+            transition_id: v.transition_id,
             via: v.via,
             url: v.url,
             hops: JSON.parse(v.hops_json) as VisitRow['hops'],

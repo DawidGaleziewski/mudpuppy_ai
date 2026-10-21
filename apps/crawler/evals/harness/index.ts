@@ -7,7 +7,7 @@ export { classifyOutcome, type AgentOutcome, type ScoredOutcome } from './outcom
 export { addCost, emptyCost, type Cost } from './cost.js';
 export { findCrawlRun } from './crawl-run.js';
 export { runProcessTraces, type ProcessTraceRun } from './process-traces.js';
-export { runProbeScan, type ProbeScanRun } from './probe-scan.js';
+export { runFormProbing, type FormProbingRun } from './form-probing.js';
 export { ensurePortal, stopServer, type StartedServer } from './portal-server.js';
 export { preflight } from './preflight.js';
 export { createWorkspace } from './workspace.js';

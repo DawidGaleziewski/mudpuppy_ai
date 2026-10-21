@@ -1,9 +1,14 @@
-import { FingerprintIndex, type FormStepIndex } from '@pathfinder/fingerprint';
+import {
+  FingerprintIndex,
+  type FingerprintProfile,
+  type FormStepIndex,
+} from '@pathfinder/fingerprint';
 import { inferRouteTemplates, type RouteTemplater } from '@pathfinder/fingerprint';
-import type { EffectiveConfig } from '@pathfinder/config';
+import { portalFingerprintProfile, type EffectiveConfig } from '@pathfinder/config';
 import {
   FrontierPolicy,
   type AssetHealth,
+  type AssetRecorder,
   type BrowserSession,
   type MountWait,
 } from '@pathfinder/crawler';
@@ -33,7 +38,9 @@ export interface RunPath {
 
 /** In-memory, per-run browser-side state. Everything durable lives in the database. */
 export class RunState {
-  readonly index = new FingerprintIndex();
+  /** The portal's fingerprint profile (spec 039 T111): every fingerprint of this run uses it. */
+  readonly profile: FingerprintProfile;
+  readonly index: FingerprintIndex;
   /** Routes whose known clusters are in `index` already (`seedKnownClusters`, spec 038 LO-35). */
   readonly seededRoutes = new Set<string>();
   readonly policy: FrontierPolicy;
@@ -56,8 +63,14 @@ export class RunState {
   obstacleCursor = 0;
   /** Trace runs (spec 004 R-14): the run's process; null for map runs. */
   processId: string | null = null;
-  /** A probe run (spec 032 US5): it visits marked form steps, it does not explore. */
-  isProbe = false;
+  /** A form-probing run (spec 032 US5): it visits marked form steps, it does not explore. */
+  isFormProbing = false;
+  /**
+   * A probe run of the headless driver (`mode = 'probe'`, spec 039 design § 9): the inputs its
+   * replay types by attribute name (`input.<attribute>`), before the persona's test data. Null
+   * for every other run.
+   */
+  headless: { inputs: Record<string, string> } | null = null;
   /** A directed run's plan (spec 034 R-66): what it may queue; null for a plain run. */
   plan: ResolvedPlan | null = null;
   /**
@@ -84,6 +97,18 @@ export class RunState {
   hooks: HookRunner | null = null;
   /** Stylesheets, scripts and fonts that failed since the last page (spec 030 FR-041). */
   assets: AssetHealth | null = null;
+  /** Scripts and stylesheets of the current document, for build signatures (spec 039 § 5.2). */
+  loaded: AssetRecorder | null = null;
+  /**
+   * The journey being recorded (spec 039 § 5.7): its id, the seq of its last transition, and the
+   * transition seq at which each state was reached (a backtrack branches there). Null until the
+   * first page of a journey.
+   */
+  journey: { id: string; seq: number; reached: Map<string, number> } | null = null;
+  /** The observation the next transition starts from; null at a journey's start. */
+  lastObservationId: string | null = null;
+  /** The run's last observation number; null until read from the store (a resumed run continues it). */
+  observationSeq: number | null = null;
   /** The portal's form steps (spec 032 US1), loaded from the store on the first form of the run. */
   formSteps: FormStepIndex | null = null;
   /** True while a technical probe's fault is armed: the error page is not re-opened (spec 032). */
@@ -142,6 +167,8 @@ export class RunState {
     this.robots = parts.robots;
     this.trace = parts.trace;
     const { portal } = parts.effective;
+    this.profile = portalFingerprintProfile(portal);
+    this.index = new FingerprintIndex({ threshold: this.profile.rules.cluster_threshold });
     this.ruleSet = portalRuleSet(portal);
     this.policy = new FrontierPolicy({
       itemRouteTemplates: portal.item_route_templates,

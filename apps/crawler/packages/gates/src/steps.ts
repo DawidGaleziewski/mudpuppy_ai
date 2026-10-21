@@ -57,8 +57,8 @@ export function markForProbing(gs: GateServer, portal: string, route: string): s
     route,
   ).map((s) => s.id);
   const insert = gs.ctx.raw.prepare(
-    `INSERT OR IGNORE INTO marks (id, portal_id, kind, target_kind, target_id, created_by, created_at)
-     VALUES (?, ?, 'probe', 'form_step', ?, 'gate', ?)`,
+    `INSERT OR IGNORE INTO marks (id, portal_id, kind, form_step_id, created_by, created_at)
+     VALUES (?, ?, 'probe', ?, 'gate', ?)`,
   );
   // A used mark keeps its row, so each new open mark needs a fresh id; one open mark per step.
   const at = new Date().toISOString();
@@ -90,7 +90,7 @@ export function lastVisit(
 ): { url: string; via: string; hops: { url: string; kind: string; status?: number }[] } {
   const [v] = rows<{ url: string; via: string; hops_json: string }>(
     gs,
-    'SELECT url, via, hops_json FROM page_visits WHERE state_id = ? ORDER BY created_at DESC, rowid DESC LIMIT 1',
+    'SELECT url, via, hops_json FROM observations WHERE state_id = ? ORDER BY created_at DESC, rowid DESC LIMIT 1',
     stateId,
   );
   if (!v) throw new Error(`no visit recorded for state ${stateId}`);

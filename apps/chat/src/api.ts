@@ -8,10 +8,12 @@ import { type AmendmentService } from './amendments.js';
 import { processRoutes } from './api-processes.js';
 import { probeSuiteRoutes } from './api-probe-suites.js';
 import type { ProbeSuiteService } from './probe-suites.js';
+import type BetterSqlite3 from 'better-sqlite3';
+import { checkRunRoutes } from './api-check-runs.js';
+import { type AddFlag, modelRoutes } from './api-model.js';
 import { markRoutes } from './api-marks.js';
+import type { CheckRunDeps } from './check-runs.js';
 import type { MarkService } from './marks.js';
-import { reconciliationRoutes } from './api-reconciliations.js';
-import type { ReconciliationService } from './reconciliations.js';
 import { proposalRoutes } from './api-proposals.js';
 import { type ProcessService } from './process-service.js';
 import { type ProposalService } from './proposal-service.js';
@@ -41,14 +43,18 @@ export interface ApiOptions {
   amendments?: AmendmentService;
   /** The assistant's proposals (spec 022 R6). Without it the proposal routes answer 404. */
   proposals?: ProposalService;
-  /** BA processes, variants, drafts, suggestions (spec 022 M5). Without it the routes answer 404. */
+  /** BA processes, process models, drafts, suggestions (spec 022 M5). Without it the routes answer 404. */
   processes?: ProcessService;
   /** The owner's decision on a probe suite (spec 032 US3). Without it the routes answer 404. */
   probeSuites?: ProbeSuiteService;
   /** The BA's Probe marks on form steps (spec 032 US5). Without it the route answers 404. */
   marks?: MarkService;
-  /** The owner's verdicts on differing states (spec 033 US4). Without it the route answers 404. */
-  reconciliations?: ReconciliationService;
+  /** Check runs on the headless driver (spec 039 owner answer 12). Without it the route answers 404. */
+  checkRuns?: CheckRunDeps;
+  /** The store, for a person's acceptance of τ or the classifier (owner answers 5, 14). */
+  modelStore?: BetterSqlite3.Database;
+  /** A confirmed A/B test's cookie into the portal's Hints (OV-2). Without it: not written. */
+  addExperimentFlag?: AddFlag;
   /** Save a process scope (T027); throws `ScopeRefusal`. Without it the route answers 404. */
   scope?: (conversationId: string, body: SetScopeInput) => ProcessScope;
   /** Stop a running run (T041); throws `RunRefusal`. Without it the route answers 404. */
@@ -268,7 +274,9 @@ export function createApi(opts: ApiOptions): Server {
     if (await processRoutes(req, res, method, path, opts.processes)) return;
     if (await probeSuiteRoutes(req, res, method, path, opts.probeSuites)) return;
     if (await markRoutes(req, res, method, path, opts.marks)) return;
-    if (await reconciliationRoutes(req, res, method, path, opts.reconciliations)) return;
+    if (await checkRunRoutes(req, res, method, path, opts.checkRuns)) return;
+    const modelDeps = opts.modelStore && { raw: opts.modelStore, addFlag: opts.addExperimentFlag };
+    if (await modelRoutes(req, res, method, path, modelDeps)) return;
     // T050: the chat's [stop] button. Ends the assistant's turn and stops every run the
     // conversation follows (interrupted, so they can be resumed); answers what was stopped.
     const cancel = /^\/conversations\/([^/]+)\/cancel$/.exec(path);

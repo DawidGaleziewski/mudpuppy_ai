@@ -93,7 +93,9 @@ gate(
     for (const h of kept) expect(h.title?.length).toBeGreaterThan(0);
     // Transit pages are not screens: no state was recorded on the provider's host.
     const onIdp = gs.ctx.raw
-      .prepare(`SELECT count(*) AS n FROM page_visits WHERE run_id = ? AND url LIKE '%/sc16/idp/%'`)
+      .prepare(
+        `SELECT count(*) AS n FROM observations WHERE run_id = ? AND url LIKE '%/sc16/idp/%'`,
+      )
       .get(run) as { n: number };
     expect(onIdp.n).toBe(0);
     // Outside the login the focus holds again.

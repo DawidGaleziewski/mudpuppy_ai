@@ -15,7 +15,7 @@
     </svg>
     {%- for n in m.nodes %}
     {%- if n.kind == "family" %}
-    <a class="sy-node sy-node--deck" href="{{ c.url('/map', scan=f.scan, persona=f.persona, open=n.route) }}" data-state="{{ n.status }}" data-screen="{{ n.id }}" data-near="{{ n.near | join(' ') }}" style="left: {{ n.x }}px; top: {{ n.y }}px; height: {{ node_h }}px">
+    <a class="sy-node sy-node--deck" href="{{ c.url('/map', view='path', scan=f.scan, persona=f.persona, open=n.route) }}" data-state="{{ n.status }}" data-screen="{{ n.id }}" data-near="{{ n.near | join(' ') }}" style="left: {{ n.x }}px; top: {{ n.y }}px; height: {{ node_h }}px">
       <span class="sy-node__route">{{ n.route }}/…</span>
       <span class="sy-node__title">{{ n.title }}</span>
       <span class="sy-node__meta">{{ sy.status("map_node", n.status) }}{% if n.queued and 'frontier' in f.layers %}<span class="sy-chip sy-chip--dashed">+{{ n.queued }} queued</span>{% endif %}</span>

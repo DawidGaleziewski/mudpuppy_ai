@@ -1,7 +1,7 @@
 // Checkpoints (spec 034 R-66, FR-001, A-1; design 11-map-runs §4): the recorded way back to a state.
 // Every run stores, per state it reached by navigate or act, the shortest path it took (the URL of
 // the last navigate and the acted steps with their values), so a later run can replay it. Runs from
-// before checkpoints existed fall back to a path rebuilt from their page visits and edges.
+// before checkpoints existed fall back to a path rebuilt from their observations and transitions.
 
 import { newId, nowIso } from '@pathfinder/core';
 import type { ServerContext } from '../context.js';
@@ -112,7 +112,7 @@ async function directVisit(
   stateId: string,
 ): Promise<{ run_id: string; url: string } | undefined> {
   return ctx.db
-    .selectFrom('page_visits as v')
+    .selectFrom('observations as v')
     .innerJoin('runs as r', 'r.id', 'v.run_id')
     .select(['v.run_id', 'v.url'])
     .where('v.state_id', '=', stateId)
@@ -127,8 +127,8 @@ async function directVisit(
 const MAX_REBUILT_STEPS = 30;
 
 /**
- * A path rebuilt from a run's page visits (runs recorded before checkpoints): from the visit of the
- * state back along the edges that led to it, to the last navigate. Values are not known; the
+ * A path rebuilt from a run's observations (runs recorded before checkpoints): from the observation
+ * of the state back along the transitions that led to it, to the last navigate. Values are not known; the
  * replay types the persona's test data, as a map run does.
  */
 async function rebuiltPath(
@@ -138,9 +138,9 @@ async function rebuiltPath(
   stateId: string,
 ): Promise<{ run_id: string; start_url: string; steps: RecipeStep[] } | undefined> {
   const visits = await ctx.db
-    .selectFrom('page_visits as v')
+    .selectFrom('observations as v')
     .innerJoin('runs as r', 'r.id', 'v.run_id')
-    .leftJoin('edges as e', 'e.id', 'v.edge_id')
+    .leftJoin('transitions as e', 'e.id', 'v.transition_id')
     .select(['v.run_id', 'v.state_id', 'v.via', 'v.url', 'v.created_at', 'e.from_state'])
     .select(['e.action_json'])
     .where('r.portal_id', '=', portal)
@@ -157,7 +157,7 @@ async function rebuiltPath(
       if (v.via === 'navigate' || v.via === 'login')
         return { run_id: run, start_url: v.url, steps: steps.reverse() };
       if (v.via !== 'action' || v.from_state === null) break;
-      const actionId = await actionOfEdge(ctx, run, v.from_state, v.action_json);
+      const actionId = await actionOfTransition(ctx, run, v.from_state, v.action_json);
       if (actionId === null) break;
       steps.push({ action_id: actionId, value: null, to_state: v.state_id });
       const from = v.from_state;
@@ -167,8 +167,8 @@ async function rebuiltPath(
   return undefined;
 }
 
-/** The run's action an edge executed: an edge stores the action's role and name, not its id. */
-async function actionOfEdge(
+/** The run's action a transition executed: it stores the action's role and name, not its id. */
+async function actionOfTransition(
   ctx: ServerContext,
   runId: string,
   fromState: string,

@@ -30,6 +30,13 @@ export const CHAT_TOOLS = [
   // Spec 022 M5: drafting process groupings (a person accepts them in Processes).
   'list_grouping_inputs',
   'suggest_grouping',
+  // Spec 039 (T077): the portal model's process proposals, a rebuild, the probe work waiting, and
+  // starting a check run once the owner said yes (owner answer 19).
+  'list_process_proposals',
+  'name_proposal',
+  'reconcile_model',
+  'model_actions',
+  'start_check_run',
 ].map((t) => CHAT + t);
 
 /** pathfinder-ba tools that only read; the orchestrator may use these itself. */
@@ -43,10 +50,12 @@ export const BA_READ_TOOLS = [
   'get_process',
   'get_pending_feedback',
   'get_access_matrix',
-  // Spec 033: where scans saw different screens at one point.
-  'list_differing_states',
   // Spec 034 (R-70): a documented process, all its runs and what no record cites yet.
   'open_process_update',
+  // Spec 039 (T055): what changed in the portal model and how it is explained.
+  'list_deviations',
+  'list_hypotheses',
+  'get_hypothesis',
 ].map((t) => BA + t);
 
 export const BA_WRITE_TOOLS = [
@@ -59,8 +68,9 @@ export const BA_WRITE_TOOLS = [
   'address_crawler_question',
   // Spec 032: a probe suite the owner approves in Review before it ever runs.
   'propose_probe_suite',
-  // Spec 033: verdicts on differing states the owner confirms in Review.
-  'propose_verdicts',
+  // Spec 039 (T055): hypotheses a person confirms (`model:decide`, What changed).
+  'propose_hypothesis',
+  'add_hypothesis_test',
 ].map((t) => BA + t);
 
 export const CRAWLER_TOOLS = [
@@ -74,7 +84,7 @@ export const CRAWLER_TOOLS = [
   'go_to_state',
   'login',
   'add_open_question',
-  'add_rule_candidate',
+  'add_hypothesis',
   'finish_run',
 ].map((t) => CRAWLER + t);
 

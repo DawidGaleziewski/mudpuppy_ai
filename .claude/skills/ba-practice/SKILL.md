@@ -13,7 +13,7 @@ over-claims. Complete, verbatim and honest beats elegant.
 
 ## Non-negotiables (and why)
 
-- **Every record cites evidence** (a state, a screen region of a state, edge, action, form, network
+- **Every record cites evidence** (a state, a screen region of a state, transition, action, form, network
   call, process step, rule candidate, crawler open question, another record, or a review). The server
   refuses a record without one (`MISSING_EVIDENCE`). Evidence is what makes the documentation
   trustworthy.
@@ -57,7 +57,7 @@ over-claims. Complete, verbatim and honest beats elegant.
 **Read every page of evidence.** `get_run_evidence` returns 50 items per call. Leave `limit` unset and
 call again with `cursor` = the returned `next_cursor` until it is `null`, for every kind you read. A
 larger `limit` can exceed your output limit, and then you see nothing of that page. Documenting from
-a partial list (e.g. edges from one page only) hides entry points and navigation; if you had to stop
+a partial list (e.g. transitions from one page only) hides entry points and navigation; if you had to stop
 early, say which kind and how many items you read in the session gaps.
 
 **No ids in prose.** Run, state and record ids belong in `evidence[]`, relations and
@@ -69,9 +69,9 @@ PII check reads an id in prose as a token and refuses the write (`PII_SUSPECTED`
 
 | # | Pass | Read | Write |
 |---|---|---|---|
-| 1 | `inventory` | `get_run_evidence` states, forms, network_calls, actions, decisions, page_visits | one `screen` per distinct page/UI state cluster: purpose, **route templates exactly as recorded**, elements (role + verbatim label; an element with no visible label is left out of `elements` and cited as a screen region instead), entry points (every URL it was reached under) |
+| 1 | `inventory` | `get_run_evidence` states, forms, network_calls, actions, decisions, observations | one `screen` per distinct page/UI state cluster: purpose, **route templates exactly as recorded**, elements (role + verbatim label; an element with no visible label is left out of `elements` and cited as a screen region instead), entry points (every URL it was reached under) |
 | 2 | `capabilities` | your screens, nav labels | `capability` records (what the business offers, e.g. "Book reservation"); relations `capability contains screen|process` |
-| 3 | `processes` | `list_processes`, then `get_process` per process (ordered steps), edges between screens | `process` (goal, persona, trigger, outcome, `observed_extent`) and `use_case` (Cockburn, see `references/use-cases.md`); if no trace exists, a `followup` asking for one |
+| 3 | `processes` | `list_processes`, then `get_process` per process (ordered steps), transitions between screens | `process` (goal, persona, trigger, outcome, `observed_extent`) and `use_case` (Cockburn, see `references/use-cases.md`); if no trace exists, a `followup` asking for one |
 | 4 | `rules` | forms (required, pattern, min/max), disabled controls and their hints, validation messages, computed values, refused actions, rule candidates | `business_rule` and `requirement` records (`references/business-rules.md`, `references/requirements-writing.md`); a field limit with business meaning is a rule too, besides the data item's constraint; every rule quotes the label of the control it is about; give every requirement, rule (and in pass 6 every NFR) its `ears` form: `{pattern, text}`, pattern one of ubiquitous ("The <system> shall …"), event ("When …, the <system> shall …"), state ("While …"), unwanted ("If …, then …"), optional ("Where …"), complex; one statement, verbatim labels kept (the export prints it as written) |
 | 5 | `data` | form fields, network call shapes, labels, state `elements` | one `data_item` per field of every form (`name_verbatim` = the label exactly, constraints observed, evidence includes the field's screen region), checkboxes, selects and login fields included, also when a rule or process already covers the field; `glossary_term` per domain term (`references/glossary.md`), related to every screen that shows it with `appears_on` (`glossary_term appears_on screen`) |
 | 6 | `nfr` | status codes, console errors, robots policy, languages, accessibility of labels | `nfr` records only for what was measured; everything else goes to gaps |
@@ -79,14 +79,36 @@ PII check reads an id in prose as a token and refuses the write (`PII_SUSPECTED`
 
 ### Pass 3 in detail: processes from traces
 
+**What a process is.** A process is something the business does for a user: a **goal** in the
+portal's words ("Calculate a car premium"), a **trigger** (the menu link or button that starts it;
+its label is usually the trigger's name), its **own first screen** (the screen the trigger opens)
+and an **outcome** (what the user has at the end: a premium shown, a policy bought), or the
+boundary where the trace had to stop. It is the as-is documentation a rebuild or a migration
+works from, so it starts where the business process starts, not where the browser did.
+
+- **Start**: the first screen of its own, the one its trigger opens. The home page, a menu or a
+  product page walked on the way there are the trigger's context: name them in `trigger` ("the
+  'Oblicz składkę' button on the car insurance page"), never as screens the process `contains`
+  and never as use-case steps.
+- **End**: the screen that shows the outcome, or the last screen before the boundary. Pages
+  after the outcome (back to home, another product) are not part of it.
+- One process per goal. Two goals reached one after the other (calculate, then buy) are two
+  processes; relate them with `depends_on` when the second needs the first.
+- **One record per process.** Each `process` record documents exactly one process (PRC-nnn).
+  When a person accepted a process from a proposal (it is listed in Processes), name it with
+  `process_key` on `create_record`; otherwise the server opens a process for your record. A
+  process that already has its record is refused (`PROCESS_DOCUMENTED`): revise that record.
+
 - Read each trace with `get_process`: its steps (intent, kind, action label, value, states before and
   after, outcomes) are the evidence. Cite the `process` and the `process_step`s that show each claim
   (`target_kind` `process` / `process_step`); a step is a server-observed fact and can carry `observed`.
 - `PROC` field `observed_extent`: `full` when the process ended `goal_reached`; `until_boundary` when it
   ended `boundary_reached` (a trace stopped at an action above the run's limit); `map_only` when you
-  know the process only from map data (screens and edges, no trace).
+  know the process only from map data (screens and transitions, no trace).
 - Relate each `process` to every screen its steps pass through with `contains`
-  (`process contains screen`), in step order.
+  (`process contains screen`), in step order, starting at the screen its trigger opens: a trace's
+  `trigger_ord` names the step that entered the process; the pages before it are where the
+  trigger sits (write them in the `trigger`), not screens of the process.
 - Write each `use_case` main flow from the steps, one entry per step: actor steps quote the verbatim
   label and value, system steps state the recorded outcome (`references/use-cases.md`).
 - A boundary is a `not_observable` gap: record what lies beyond it with `not_observable: true`,
@@ -97,7 +119,7 @@ PII check reads an id in prose as a token and refuses the write (`PII_SUSPECTED`
 
 ### Form steps and probe outcomes (passes 1, 3, 4, 6; spec 032)
 
-A probe scan tried the form steps a person marked for probing beyond their happy path (plain
+A form-probing scan tried the form steps a person marked for probing beyond their happy path (plain
 scans never probe, so a form without outcomes was simply not marked yet). `get_run_evidence` kind `states` gives
 each state's `form_step_id`, `step_index` and `state_kind` (`main`, `validation`, `technical`);
 kind `probe_outcomes` gives what every try did: `probe`, `target`, `outcome_kind` (`next`,
@@ -125,37 +147,44 @@ source (`dom` or `native`, the browser's own message), the state it landed on, `
   outcomes; the suite waits in Review for the owner and never runs before approval. Leave
   `temporary` and `blocked` outcomes out (the server refuses them).
 
-### Differing states (before pass 3; spec 033, design §7)
+### Changes and hypotheses (before pass 3; spec 039, design § 8–10)
 
-`list_differing_states` returns each place where scans saw different screens: an **action group**
-(the same page and action led to two or more screens) or a **route group** (one route showed two
-or more screens that form steps and state kinds do not explain). Each outcome carries its scans
-with persona and environment, first and last seen, HTTP status, frequency ("1 of 3 scans") and
-whether a later scan saw it again (`reproduced`). Confirmed verdicts from Review come with it.
+The portal model compares every scan with what was known: a **deviation** is a change it found (a
+new screen, a screen that looks different, a new or missing action, an action that leads elsewhere,
+a changed result, a broken business rule). Rules R1–R8 explain most of them as **hypotheses**:
+`list_deviations` shows each change and the hypotheses on it; `list_hypotheses` / `get_hypothesis`
+show a hypothesis's claim, evidence, tests and status.
 
-- **Check the reasons in this order** and stop at the first that explains the outcome: persona
-  (differs only between personas), input (follows a probe or other values), temporary (5xx or a
-  maintenance text, seen once, not reproduced), session or time (expired session, cookie banner,
-  time of day), feature flag (a stable split across scans with the same persona), data (differs
-  with the test data).
-- **Propose one verdict per outcome** with `propose_verdicts`: `main` (the step's state),
-  `variant_persona` / `variant_input` / `variant_flag`, `validation`, `technical`, `temporary`
-  (recheck later) or `same` (two recordings of one screen). The reason names the hypothesis and the
-  evidence ("seen in 2 of 3 guest scans; the 503 page once, not reproduced"). Every outcome of the
-  group gets a verdict; the owner confirms in Review.
-- **Document with the verdicts:** confirmed ones where they exist, else your own (`inferred`). The
-  rules of "Form steps and probe outcomes" apply: the main state is the step; the others are states
-  of that step; `temporary` is an environment issue, never a step; `variant_persona` is documented
-  per persona.
+- **Document by status.** `confirmed` (by a person, or derived by a rule: a new release, a renamed
+  button, a flaky page) is a fact: cite it and write `observed` where its evidence is observed.
+  `supported` (its tests passed) and `proposed` are `inferred` until a person confirms them.
+  `refuted` and `rejected` are not true: never document them as behaviour.
+- **Explain what is left open.** A change without a hypothesis, or a difference the model cannot
+  decide (two readings of one page, a rule hidden in data), is yours to propose:
+  `propose_hypothesis` with the kind, one sentence in the portal's words, typed evidence (a screen
+  `SC-…` with its element key, observations, transitions) and a **test that could refute it**
+  (inputs and `refutes_if`). Check the reasons in this order: persona (differs only between
+  personas), input (follows other values), temporary (5xx, not seen again), session or time,
+  feature flag (a stable split across scans of one persona), data. `same_as`, `different_from` and
+  `process_boundary` need no test: a person's label or decision settles them.
+- **Decision rules and process boundaries.** A `confirmed` `decision_rule` (a result that follows
+  input values, mined from the scans; the export writes it as a DMN table) is a `business_rule`:
+  write it in the portal's words, cite the hypothesis itself (`target_kind: hypothesis`, its key
+  `H-nnnn`) and the hypothesis's evidence, and keep its conditions as the hypothesis states them.
+  Citing the hypothesis gives the rule your record's BR key everywhere (Rules, the export). A `confirmed` `process_boundary` says where a process starts or ends:
+  use it for the process's first or last contained screen.
+- **A refused claim stays refused**: `CLAIM_REFUTED` means the same claim was tested and failed;
+  look for another explanation. The rules of "Form steps and probe outcomes" apply: the main state
+  is the step, the others are states of that step, a temporary error is an environment issue.
 
 ### URLs and parameters (inside passes 1, 4 and 5)
 
 Legacy systems wire screens together through URLs: old and new address schemes, redirects, and
 query parameters that depend on each other. These are part of the documentation, not noise.
-`get_run_evidence` kind `page_visits` gives every URL a screen was reached under with the hops that
+`get_run_evidence` kind `observations` gives every URL a screen was reached under with the hops that
 led there (`http` 301/302, `meta_refresh`, `script`, `same_document`, `reload`, `blocked`); kind
 `parameters` gives, per screen, every query, path and hash-route parameter, the values seen and the
-action (`edge_id`) or hop that set them.
+action (`transition_id`) or hop that set them.
 
 - **Route templates stay as recorded** (pass 1): `route_templates` holds the state's
   `route_template` exactly, a path with no query (`/katalog/wyniki`, never
@@ -165,15 +194,15 @@ action (`edge_id`) or hop that set them.
   `/egzemplarz.asp?sygn=:sygn`, redirected (meta refresh, then script) to
   `/czytelnia#/egzemplarze/:sygn`".
 - **Parameters that change the screen** (pass 4): a value that switches the layout or content (e.g.
-  `widok=karta` gives a printable catalogue card) is a `business_rule` (`rule_type` `inference`) citing a visit
+  `widok=karta` gives a printable catalogue card) is a `business_rule` (`rule_type` `inference`) citing an observation
   with each value.
 - **Parameters that only matter together** (pass 4): when one parameter's format or meaning depends
   on another (e.g. `termin` is `DD.MM.YYYY` when `rodzaj=dzien` and `YYYY` when `rodzaj=rok`), write a
-  `business_rule`, with a `decision_table` when there are several combinations. Cite the visits
+  `business_rule`, with a `decision_table` when there are several combinations. Cite the observations
   that show each combination. Label it `inferred` unless a validation message or error page shows the
   dependency. Then it is `observed`, and that page is cited too.
 - **Parameters carried from page to page** (pass 5): a parameter set by one action and passed along
-  (`czytelnik`, a session id) is a `data_item` with `seen_in` kind `page_visit`. Say where it is set and
+  (`czytelnik`, a session id) is a `data_item` with `seen_in` kind `observation`. Say where it is set and
   where it is read.
 - Session ids and tracking parameters are recorded on purpose. Document a session id once, as a
   `data_item` ("Session identifier in the URL path"). Never list its values in prose.
@@ -252,7 +281,7 @@ server). Never `observed`. Checklist: `references/blind-spots.md`.
 
 Good: `business_rule` — statement `The "Zarezerwuj" button stays disabled until "Akceptuję
 regulamin" is ticked.`, rule_type `action_enabler`, confidence `observed`, evidence: state (button
-disabled) + edge (after ticking, enabled), relation `uses_term` → "Regulamin wypożyczalni" if it is a
+disabled) + transition (after ticking, enabled), relation `uses_term` → "Regulamin wypożyczalni" if it is a
 term.
 
 Bad: `Pickups are limited because of library policy.` — intent presented as fact, no verbatim

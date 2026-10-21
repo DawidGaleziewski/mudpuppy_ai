@@ -42,7 +42,7 @@ gate('SC-18', 'the trace driver walks every variant of a traces.yaml process', a
   const happy = apply[0]!;
   const last = rows<{ url: string }>(
     gs,
-    `SELECT pv.url FROM page_visits pv WHERE pv.run_id = ? ORDER BY pv.created_at DESC, pv.rowid DESC LIMIT 1`,
+    `SELECT pv.url FROM observations pv WHERE pv.run_id = ? ORDER BY pv.created_at DESC, pv.rowid DESC LIMIT 1`,
     happy.runId,
   )[0];
   expect(last?.url).toContain('/sc18/success');

@@ -1,0 +1,216 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MudPuppy 2.0 · States</title>
+<link rel="icon" href="../brand/logo/tag-icon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../design-system/css/tokens.css">
+<link rel="stylesheet" href="../design-system/css/fonts.css">
+<link rel="stylesheet" href="../design-system/css/salvage.css">
+<style>
+  /* Screen layout only: a catalogue of states, each a framed excerpt of the page it belongs to */
+  .mp-states { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(460px, 100%), 1fr)); gap: var(--sy-space-5); align-items: start; }
+  .mp-state { display: flex; flex-direction: column; gap: var(--sy-space-3); }
+  .mp-state__head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 4px 12px; }
+  .mp-frame { display: flex; flex-direction: column; gap: var(--sy-space-3); padding: var(--sy-space-4); background: var(--sy-bg-ground);
+    border: var(--sy-weld) solid var(--sy-border-weld); }
+  .mp-matrix th[scope="row"] { white-space: nowrap; }
+</style>
+</head>
+<body class="sy-ground">
+<a class="sy-skip" href="#main">Skip to content</a>
+<div class="sy-app">
+  <header class="sy-header">
+    <a class="sy-wordmark" href="v2-01-home.html"><span class="sy-wordmark__paint">MUD</span>PUPPY</a>
+    <label class="sy-portal sy-portal--compact"><span class="sy-label">Portal</span>
+      <select class="sy-select"><option selected>reference-insurer</option><option>wikipedia</option><option>All portals</option><option>+ New portal</option></select></label>
+    <div class="sy-portal sy-portal--compact"><span class="sy-label" id="asof-l">As of</span>
+      <button class="sy-select" type="button" aria-haspopup="menu" aria-expanded="false" aria-labelledby="asof-l asof-v" aria-describedby="asof-help"><span id="asof-v">Now · 17 Oct</span></button></div>
+    <span id="asof-help" class="sy-sr-only">Shows the portal model as it was at a release or scan. Changes compares two points.</span>
+    <label class="sy-search sy-search--compact">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+      <input type="search" aria-label="Search screens, processes and rules" placeholder="Search"><span class="sy-kbd">Ctrl K</span></label>
+    <span class="sy-status" data-status="ok">Assistant up</span>
+    <a class="sy-btn" href="02-screen-with-assistant.html">Ask <span class="sy-kbd">Ctrl J</span></a>
+    <a class="sy-btn sy-btn--icon" href="#" aria-label="Help and glossary">?</a>
+  </header>
+  <div class="sy-app__body">
+    <nav class="sy-nav" aria-label="Portal sections">
+      <a class="sy-nav__item" href="v2-01-home.html">Home</a>
+      <a class="sy-nav__item" href="v2-02-changes.html">Changes <span class="sy-nav__count">41</span></a>
+      <a class="sy-nav__item" href="v2-04-review.html">Review <span class="sy-count">24</span></a>
+      <div class="sy-nav__group" aria-hidden="true">Portal model</div>
+      <a class="sy-nav__item" href="v2-09-processes.html">Processes <span class="sy-nav__count">6</span></a>
+      <a class="sy-nav__item" href="v2-06-screens.html">Screens <span class="sy-nav__count">19</span></a>
+      <a class="sy-nav__item" href="v2-11-rules.html">Rules <span class="sy-nav__count">6</span></a>
+      <a class="sy-nav__item" href="#">Docs</a>
+      <div class="sy-nav__group" aria-hidden="true">Machine</div>
+      <a class="sy-nav__item" href="10-scans.html">Scans</a>
+      <a class="sy-nav__item" href="11-settings.html">Settings</a>
+      <div class="sy-nav__foot">store: sandbox · writes go through commands</div>
+    </nav>
+    <main id="main" class="sy-main">
+<div class="sy-pagehead">
+        <div class="sy-pagehead__row">
+          <div class="sy-stack" style="--sy-gap: 4px">
+            <h1 class="sy-h1">States</h1>
+            <p class="sy-meta">The eight states every 2.0 page must handle (brief §6), each shown on the page where it matters most. The matrix says what each page shows.</p>
+          </div>
+        </div>
+      </div>
+
+      <section class="sy-stack" aria-labelledby="mx-h" style="--sy-gap: var(--sy-space-3)">
+        <h2 id="mx-h" class="sy-h2">Page × state</h2>
+        <div class="sy-table-wrap">
+          <table class="sy-table sy-table--dense mp-matrix" style="min-width: 900px" aria-labelledby="mx-h">
+            <thead>
+              <tr><th scope="col">Page</th><th scope="col">1 Empty</th><th scope="col">2 First scan</th><th scope="col">3 Rebuilding</th><th scope="col">4 All clear</th><th scope="col">5 500+ items</th><th scope="col">6 No marker</th><th scope="col">7 Conflict</th><th scope="col">8 Failed write</th></tr>
+            </thead>
+            <tbody>
+              <tr><th scope="row">Home</th><td>Start card</td><td>Live meter</td><td>Banner</td><td>"All clear" line</td><td>Count + top 5</td><td>Warning</td><td>Counted in Needs you</td><td>—</td></tr>
+              <tr><th scope="row">What changed</th><td>Explains when changes appear</td><td>"After the 2nd scan"</td><td>Banner, old model</td><td>All explained automatically</td><td>Grouped, paged</td><td>Page-compare lane</td><td>Row status</td><td>—</td></tr>
+              <tr><th scope="row">Review</th><td>Empty queue</td><td>Records only</td><td>Banner, writes paused</td><td>All clear + link</td><td>Groups, bulk, paging</td><td>—</td><td>Conflict item</td><td>Inline alert</td></tr>
+              <tr><th scope="row">Screens</th><td>Empty table</td><td>Live rows</td><td>Banner, old model</td><td>—</td><td>Paged table</td><td>"Release unknown"</td><td>Status chip</td><td>Inline alert</td></tr>
+              <tr><th scope="row">Map</th><td>Empty canvas</td><td>Grows live</td><td>Banner, old model</td><td>—</td><td>Families collapsed</td><td>No release overlay</td><td>Node chip</td><td>—</td></tr>
+              <tr><th scope="row">Processes</th><td>"After the first scan"</td><td>Proposals wait</td><td>Banner, old model</td><td>—</td><td>Paged</td><td>Explored "on 1 Oct"</td><td>Edited vs suggested</td><td>Inline alert</td></tr>
+              <tr><th scope="row">Rules</th><td>"Rules appear after probing"</td><td>Proposed only</td><td>Banner, old model</td><td>—</td><td>Paged</td><td>Re-test on change</td><td>Two explanations</td><td>Inline alert</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <div class="mp-states">
+
+        <!-- 1 · Empty -->
+        <section class="mp-state" aria-labelledby="s1">
+          <div class="mp-state__head"><h2 id="s1" class="sy-h3">1 · Empty: new portal, no scans</h2><span class="sy-meta">Home · every page</span></div>
+          <div class="mp-frame">
+            <div class="sy-state">
+              <span class="sy-state__title">Yard's empty</span>
+              <p>No scans of <b>bank-klient</b> yet, so there's no model to show. The first AI scan maps the portal; changes appear from the second scan on.</p>
+              <ol class="sy-steps">
+                <li><span>1 · Add the portal address and an environment</span><span class="sy-status" data-status="ok">Done</span></li>
+                <li aria-current="step"><span>2 · Start the first scan</span><span class="sy-status" data-status="needs">Next</span></li>
+                <li data-state="todo"><span>3 · Optional: tell us where the release version shows</span><span class="sy-status" data-status="todo">To do</span></li>
+              </ol>
+              <div class="sy-actions"><button class="sy-btn sy-btn--strong" type="button">Start first scan</button><a class="sy-small" href="11-settings.html">Add release hint</a></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 2 · First scan running -->
+        <section class="mp-state" aria-labelledby="s2">
+          <div class="mp-state__head"><h2 id="s2" class="sy-h3">2 · First scan running</h2><span class="sy-meta">Home · Screens · Map</span></div>
+          <div class="mp-frame">
+            <div class="sy-meter" data-status="running" style="--value: 21%">
+              <div class="sy-meter__label"><span>AI scan · bank-klient</span><span>84 / 400 steps</span></div>
+              <div class="sy-meter__track" role="progressbar" aria-label="First scan" aria-valuemin="0" aria-valuemax="400" aria-valuenow="84"><div class="sy-meter__fill"></div></div>
+            </div>
+            <p class="sy-small">9 screens and 31 links so far. They appear here as they're found. <b>What changed</b> and <b>Needs you</b> start after the second scan, or as soon as a release changes.</p>
+            <div class="sy-cluster sy-small sy-muted" style="--sy-gap: 6px 14px"><span class="sy-status" data-status="running">Running</span><span>Started 10:02Z</span><span>About 6 min left</span></div>
+          </div>
+        </section>
+
+        <!-- 3 · Model being rebuilt -->
+        <section class="mp-state" aria-labelledby="s3">
+          <div class="mp-state__head"><h2 id="s3" class="sy-h3">3 · Model being rebuilt</h2><span class="sy-meta">Every model page · Scans (UX-R72)</span></div>
+          <div class="mp-frame">
+            <div class="sy-callout" role="status">
+              <span class="sy-callout__title">Rebuilding the model · 62%</span>
+              <span>Started 10:20Z by you. Pages show the previous model until it's done; decisions you make now are kept and applied to the new one.</span>
+            </div>
+            <div class="sy-callout sy-callout--ok">
+              <span class="sy-callout__title">Rebuilt · 10:24Z</span>
+              <span>23 screens (2 merged, 1 split) · 61 links · 6 rules. 3 changes in the model: <a href="v2-02-changes.html">see them</a>.</span>
+            </div>
+          </div>
+        </section>
+
+        <!-- 4 · Nothing needs you -->
+        <section class="mp-state" aria-labelledby="s4">
+          <div class="mp-state__head"><h2 id="s4" class="sy-h3">4 · Nothing needs you</h2><span class="sy-meta">Review · Home</span></div>
+          <div class="mp-frame">
+            <div class="sy-state">
+              <span class="sy-state__title">Nothing needs you</span>
+              <p>Every change since release <span class="sy-case-normal">3e1a</span> was explained automatically. Reviewing them is optional.</p>
+              <div class="sy-actions"><a class="sy-btn" href="v2-05-review-explained.html">Browse 23 explained automatically</a></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 5 · Very long queue -->
+        <section class="mp-state" aria-labelledby="s5">
+          <div class="mp-state__head"><h2 id="s5" class="sy-h3">5 · Very long queue: 512 need you</h2><span class="sy-meta">Review · What changed · example portal bank-klient</span></div>
+          <div class="mp-frame">
+            <p class="sy-small"><b>512 items in 41 groups.</b> Similar items are grouped, so the BA decides groups, not rows. Largest groups first.</p>
+            <ol class="sy-queue sy-plate" aria-label="Largest groups">
+              <li class="sy-queue__group"><span class="sy-cluster" style="--sy-gap: 6px 10px"><label class="sy-check"><input type="checkbox"> <b>214 links removed with one shell release</b></label></span><button class="sy-btn sy-btn--sm" type="button">Confirm 214</button></li>
+              <li class="sy-queue__group"><span class="sy-cluster" style="--sy-gap: 6px 10px"><label class="sy-check"><input type="checkbox"> <b>96 new screens under /oferta/*</b></label></span><button class="sy-btn sy-btn--sm" type="button">Review as one</button></li>
+              <li class="sy-queue__group"><span class="sy-cluster" style="--sy-gap: 6px 10px"><label class="sy-check"><input type="checkbox"> <b>38 findings: error for one input</b></label></span><span class="sy-queue__meta">open</span></li>
+            </ol>
+            <p class="sy-small sy-muted">Showing 3 of 41 groups · <a href="#">Show 38 more</a> · Filters and counts stay at the top; J / K moves between groups.</p>
+          </div>
+        </section>
+
+        <!-- 6 · No release marker -->
+        <section class="mp-state" aria-labelledby="s6">
+          <div class="mp-state__head"><h2 id="s6" class="sy-h3">6 · Portal without release markers</h2><span class="sy-meta">Home · What changed (UX-R02)</span></div>
+          <div class="mp-frame">
+            <div class="sy-callout" role="note">
+              <span class="sy-callout__title"><span class="sy-status" data-status="unobserved">No release marker</span></span>
+              <span><b>wikipedia</b> shows no release version, so changes are detected more slowly: by comparing pages, not releases, and fewer are explained automatically.</span>
+              <a class="sy-small" href="11-settings.html">Tell us where the version shows (Settings ▸ Hints)</a>
+            </div>
+            <div class="sy-releases" style="--sy-releases-name: 110px">
+              <div class="sy-releases__lane"><span class="sy-releases__name">Site<small>marker: none</small></span>
+                <div class="sy-releases__track"><span class="sy-releases__span sy-releases__span--unknown" style="left: 0; width: 100%">release unknown · compared page by page</span></div></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 7 · Conflict -->
+        <section class="mp-state" aria-labelledby="s7">
+          <div class="mp-state__head"><h2 id="s7" class="sy-h3">7 · Conflict: two labels contradict</h2><span class="sy-meta">Review · Screens · Map</span></div>
+          <div class="mp-frame">
+            <div class="sy-callout sy-callout--intent">
+              <span class="sy-callout__title">Two labels disagree</span>
+              <span>"Kalkulator OC/AC — wynik" <span class="sy-case-normal">r2</span> and <span class="sy-case-normal">r3</span>: automatic grouping says <b>same screen</b>; Marek (BA) labelled <b>different screens</b>.</span>
+              <span class="sy-note sy-note--sm">The offer banner changes the page's purpose.<span class="sy-note__by">Marek · 17 Oct 11:20Z</span></span>
+              <div class="sy-actions"><a class="sy-btn sy-btn--strong" href="v2-14-same-screen.html">Decide: same screen?</a><span class="sy-small sy-muted">Until decided, docs show both and mark the step "in dispute".</span></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 8 · Failed write -->
+        <section class="mp-state" aria-labelledby="s8">
+          <div class="mp-state__head"><h2 id="s8" class="sy-h3">8 · Failed write</h2><span class="sy-meta">Every confirm, reject, overturn, accept, rebuild</span></div>
+          <div class="mp-frame">
+            <div class="sy-callout sy-callout--failure" role="alert">
+              <span class="sy-callout__title">Not confirmed</span>
+              <span>The command refused: "BR-021 changed since you opened it (new test result at 10:31Z)." Nothing was saved. Your reason is kept below.</span>
+              <div class="sy-actions"><button class="sy-btn sy-btn--sm" type="button">Reload and try again</button><button class="sy-btn sy-btn--sm sy-btn--quiet" type="button">Copy details</button><span class="sy-mono sy-mono--sm sy-muted">ERR-01M4KQ…</span></div>
+            </div>
+            <label class="sy-field"><span class="sy-field__label">Reason</span><input class="sy-input sy-input--md" type="text" value="New threshold matches the 9c21 release notes"></label>
+            <div role="status" class="sy-toast"><span class="sy-status" data-status="ok">Confirmed</span><span>BR-021 · "Driver must be 21 or older"</span><button class="sy-btn sy-btn--sm sy-btn--quiet" type="button">Undo</button></div>
+            <p class="sy-small sy-muted">Above: the same action after a reload. Writes go through commands; the button reads "Saving…" (aria-busy) and the result is announced in a live region.</p>
+          </div>
+        </section>
+
+        <!-- Extra · Viewing the past -->
+        <section class="mp-state" aria-labelledby="s9">
+          <div class="mp-state__head"><h2 id="s9" class="sy-h3">Also · Viewing the model as of a release</h2><span class="sy-meta">Map · Screens · Processes · Rules</span></div>
+          <div class="mp-frame">
+            <div class="sy-callout" role="note">
+              <span class="sy-callout__title">As of release <span class="sy-case-normal">3e1a</span> · 14 Oct</span>
+              <span>You're looking at the model as it was then. Later changes are hidden, and decisions wait until you're back at Now.</span>
+              <div class="sy-actions"><a class="sy-btn sy-btn--sm" href="v2-01-home.html">Back to now</a><a class="sy-small" href="v2-02-changes.html">Compare <span class="sy-case-normal">3e1a</span> → now</a></div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+</div>
+</body>
+</html>

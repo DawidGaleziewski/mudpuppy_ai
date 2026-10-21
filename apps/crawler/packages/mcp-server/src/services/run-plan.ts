@@ -17,7 +17,7 @@ export const PlanInput = z
     parent_run_id: z.string().min(1).optional(),
     start_state_ids: z.array(z.string().min(1)).min(1).max(20).optional(),
     depth: z.number().int().min(0).max(10).optional(),
-    target_edge_id: z.string().min(1).optional(),
+    target_transition_id: z.string().min(1).optional(),
     variation: Variation.optional(),
   })
   .strict();
@@ -45,7 +45,7 @@ export const ResolvedPlan = z.object({
   /** A retry run queues only this action (its `actionKey`). */
   only_action: z.string().nullable(),
   variation: Variation,
-  target_edge_id: z.string().nullable(),
+  target_transition_id: z.string().nullable(),
   /** `actionKey`s the parent run already did (a continue run does not redo them). */
   parent_done: z.array(z.string()),
   mark_ids: z.array(z.string()),

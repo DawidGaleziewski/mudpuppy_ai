@@ -17,6 +17,7 @@ class Section(NamedTuple):
     label: str
     href: Callable[[str | None], str | None]  # portal → path, None when it needs a portal
     pages: frozenset[str]
+    group: str | None = None  # 2.0 nav groups (12-v2-ux.md § 1.1): label shown above the first item
 
 
 def _settings(portal: str | None) -> str | None:
@@ -25,11 +26,17 @@ def _settings(portal: str | None) -> str | None:
 
 SECTIONS: tuple[Section, ...] = (
     Section("home", "Home", lambda p: "/", frozenset({"home", "overview", "chat"})),
-    Section("processes", "Processes", lambda p: "/processes", frozenset({"processes"})),
-    Section("screens", "Screens", lambda p: "/screens", frozenset({"screens", "state", "access"})),
-    Section("docs", "Docs", lambda p: f"/docs/{p}" if p else "/docs", frozenset({"docs"})),
+    Section("changes", "Changes", lambda p: "/changes", frozenset({"changes"})),
     Section("review", "Review", lambda p: "/review", frozenset({"review", "amendments"})),
-    Section("scans", "Scans", lambda p: "/scans", frozenset({"scans", "activity", "run"})),
+    Section(
+        "processes", "Processes", lambda p: "/processes", frozenset({"processes"}), "Portal model"
+    ),
+    Section("screens", "Screens", lambda p: "/screens", frozenset({"screens", "state", "access"})),
+    Section("rules", "Rules", lambda p: "/rules", frozenset({"rules"})),
+    Section("docs", "Docs", lambda p: f"/docs/{p}" if p else "/docs", frozenset({"docs"})),
+    Section(
+        "scans", "Scans", lambda p: "/scans", frozenset({"scans", "activity", "run"}), "Machine"
+    ),
     Section("settings", "Settings", _settings, frozenset({"settings", "portals"})),
 )
 

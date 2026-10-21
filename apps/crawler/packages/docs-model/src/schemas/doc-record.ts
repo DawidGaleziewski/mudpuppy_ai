@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { Id, Timestamp } from '@pathfinder/core';
 
-/** The 12 kinds of Layer B documentation record (data-model.md "Documentation Record"). */
+/** The 13 kinds of Layer B documentation record (data-model.md "Documentation Record"). */
 export const DocKind = z.enum([
   'capability',
   'screen',
@@ -15,6 +15,7 @@ export const DocKind = z.enum([
   'assumption',
   'open_question',
   'followup',
+  'api_endpoint',
 ]);
 export type DocKind = z.infer<typeof DocKind>;
 
@@ -32,6 +33,7 @@ export const KEY_PREFIX: Record<DocKind, string> = {
   assumption: 'ASM',
   open_question: 'OQ',
   followup: 'FUP',
+  api_endpoint: 'API',
 };
 
 export const DocRecord = z.object({

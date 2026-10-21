@@ -41,18 +41,25 @@ export const ERROR_CODES = [
   // Form probes (specs/032-form-states-probes): the way back to a form step in the run failed.
   'REPLAY_DIVERGED',
   'NO_PATH',
-  // Probing only when asked (spec 032 US5): a plain run, an unmarked step, a probe run without marks.
+  // Probing only when asked (spec 032 US5): a plain run, an unmarked step, a form-probing run without marks.
   'PROBE_NOT_ASKED',
   'STEP_NOT_MARKED',
   'NO_PROBE_MARKS',
-  // Differing states (spec 033): no such group now; a proposal that leaves an outcome out.
-  'GROUP_UNKNOWN',
-  'VERDICTS_INCOMPLETE',
   // Documentation that grows (spec 034 R-70): a revision that drops evidence or flow steps without
   // saying so; a process whose only cited screens are error pages; an unknown process to update.
   'REVISION_DROPS',
   'PROCESS_ONLY_ERRORS',
   'PROCESS_UNKNOWN',
+  // Hypotheses (spec 039 design § 10, T055): no portal model yet; a claim without a test that
+  // could refute it; a claim equal to a refuted one; an unknown hypothesis key.
+  'NO_MODEL',
+  'TEST_REQUIRED',
+  'CLAIM_REFUTED',
+  'UNKNOWN_HYPOTHESIS',
+  // One process concept (spec 039 design § 13.4, T070): a process already has its PROC record.
+  'PROCESS_DOCUMENTED',
+  // API endpoints (spec 038 FR-008): an api_endpoint record that cites no captured call matching it.
+  'API_CALL_NOT_CITED',
 ] as const;
 export type ErrorCode = (typeof ERROR_CODES)[number];
 

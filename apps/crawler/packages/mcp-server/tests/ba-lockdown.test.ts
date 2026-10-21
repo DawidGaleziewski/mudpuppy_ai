@@ -20,7 +20,7 @@ async function baTools() {
 }
 
 describe('BA server lockdown (contracts/ba-mcp-tools.md)', () => {
-  it('lists exactly the 19 BA tools (13 of R-13, the R-14 process reads, spec 024 access, spec 032 suites, spec 033 differing states)', async () => {
+  it('lists exactly the 22 BA tools (13 of R-13, the R-14 process reads, spec 024 access, spec 032 suites, spec 034 updates, spec 039 hypotheses)', async () => {
     expect(BA_TOOL_NAMES).toEqual([
       'list_runs',
       'get_run_evidence',
@@ -39,9 +39,12 @@ describe('BA server lockdown (contracts/ba-mcp-tools.md)', () => {
       'address_crawler_question',
       'get_access_matrix',
       'propose_probe_suite',
-      'list_differing_states',
-      'propose_verdicts',
       'open_process_update',
+      'list_deviations',
+      'list_hypotheses',
+      'get_hypothesis',
+      'propose_hypothesis',
+      'add_hypothesis_test',
     ]);
     const names = (await baTools()).map((t) => t.name).sort();
     expect(names).toEqual([...BA_TOOL_NAMES].sort());
@@ -78,17 +81,28 @@ describe('BA server lockdown (contracts/ba-mcp-tools.md)', () => {
       expect(props(t.name), t.name).not.toContain('record_id');
       expect(props(t.name), t.name).not.toContain('rev_no');
     }
-    // `key` only names an existing record to look up; nothing lets the agent choose a new one.
+    // `key` only names an existing record or hypothesis to look up; nothing lets the agent choose
+    // a new one.
     expect(
       tools
         .filter((t) => props(t.name).includes('key'))
         .map((t) => t.name)
         .sort(),
-    ).toEqual(['get_record', 'open_process_update', 'revise_record', 'withdraw_record']);
-    // `status` exists only as a read filter on list_records.
-    expect(tools.filter((t) => props(t.name).includes('status')).map((t) => t.name)).toEqual([
-      'list_records',
+    ).toEqual([
+      'add_hypothesis_test',
+      'get_hypothesis',
+      'get_record',
+      'open_process_update',
+      'revise_record',
+      'withdraw_record',
     ]);
+    // `status` exists only as a read filter.
+    expect(
+      tools
+        .filter((t) => props(t.name).includes('status'))
+        .map((t) => t.name)
+        .sort(),
+    ).toEqual(['list_deviations', 'list_hypotheses', 'list_records']);
   });
 
   it('accepts an evidence run_id only to pick the observation run of a state', async () => {

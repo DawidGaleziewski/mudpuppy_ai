@@ -56,7 +56,7 @@ class StepState(NamedTuple):
 
 class ProbeMark(NamedTuple):
     """An open Probe mark on a form step (spec 032 US5): a person's instruction for the next
-    probe scan."""
+    form-probing scan."""
 
     id: str
     by: str
@@ -108,7 +108,7 @@ def probe_mark(conn: sqlite3.Connection, form_step_id: str) -> ProbeMark | None:
     rows = _rows(
         conn,
         "SELECT id, created_by, created_at FROM marks WHERE kind = 'probe'"
-        " AND target_kind = 'form_step' AND target_id = ? AND used_by_run_id IS NULL",
+        " AND form_step_id = ? AND used_by_run_id IS NULL",
         (form_step_id,),
     )
     return ProbeMark(rows[0]["id"], rows[0]["created_by"], rows[0]["created_at"]) if rows else None
@@ -120,8 +120,8 @@ def step_coverage(conn: sqlite3.Connection, portal: str | None) -> dict[str, Ste
     rows = _rows(
         conn,
         "SELECT s.id AS state_id, s.form_step_id,"
-        " EXISTS (SELECT 1 FROM marks m WHERE m.kind = 'probe' AND m.target_kind = 'form_step'"
-        "   AND m.target_id = s.form_step_id AND m.used_by_run_id IS NULL) AS marked,"
+        " EXISTS (SELECT 1 FROM marks m WHERE m.kind = 'probe'"
+        "   AND m.form_step_id = s.form_step_id AND m.used_by_run_id IS NULL) AS marked,"
         " (SELECT COUNT(*) FROM probe_outcomes o WHERE o.form_step_id = s.form_step_id"
         "   AND o.probe_id <> 'happy-path') AS outcomes"
         f" FROM states s {where}{' AND' if where else ' WHERE'} s.form_step_id IS NOT NULL",

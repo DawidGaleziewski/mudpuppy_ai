@@ -87,7 +87,7 @@ After every action the crawler waits for the DOM to settle and fingerprints the 
 - Probes that **submit** run only where the environment's limit is "fill and submit forms".
 - **Technical probes are simulated in the crawler's own browser** (request interception). They never send malformed traffic to the server, and are **off for production** unless the portal's settings explicitly allow it.
 - Safety classes still apply: an action whose side effects are not allowed is recorded as `blocked`, never probed.
-- **Budget:** at most N probes per form step (default 24, owner 2026-10-18; was 12), plus the run's step limit.
+- **Budget:** at most N probes per form step (default 12), plus the run's step limit.
 - **Valid test data** comes from the persona's test-data set. Missing values are asked for once, in chat, like credentials.
 
 ### 3.5 What the BA agent gets from probing
@@ -183,7 +183,7 @@ The agent proposes a verdict (dashed, inferred); a person confirms it in Review.
 | `node` | id, portal_id, route_template, cluster_id, family |
 | `state` (exists) | + node_id, step_index (same-route steps), kind (`main` / `variant` / `validation` / `technical` / `temporary`) |
 | `edge` | id, from_state_id, action (type, selector, label), input_set_id, safety_class |
-| `outcome` | id, edge_id, run_id, to_state_id, outcome_kind, probe_id, http_status, messages[], screenshot, network_log, at |
+| `outcome` | id, transition_id, run_id, to_state_id, outcome_kind, probe_id, http_status, messages[], screenshot, network_log, at |
 | `probe` | id, kind (`validation_empty` / `format` / `boundary` / `branch` / `block_request` / `http_500` / `delay` / `offline`), target (field or request), params |
 | `checkpoint` | state_id, recipe (actions + inputs), prerequisites (persona, cookies), last_replayed_ok_at |
 | `mark` | id, portal_id, target (node or edge), kind, by, created_at, used_by_run_id |

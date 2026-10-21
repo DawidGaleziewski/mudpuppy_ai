@@ -74,7 +74,7 @@ def test_portal_switch_lands_on_a_store_with_its_data(
     empty_store: Store, eval_root: Path, tmp_path: Path
 ) -> None:
     """R-71 (d): the main store has no shop runs, so the shop link opens the shop's eval store."""
-    portals = tmp_path / "portals"  # its own config, not the repo's portals/ (field-owned in R-49)
+    portals = tmp_path / "portals"  # its own config, not the repo's portals/
     (portals / "proving-ground-shop").mkdir(parents=True)
     (portals / "proving-ground-shop" / "portal.yaml").write_text("id: proving-ground-shop\n")
     with make_client(empty_store, portals_dir=portals) as c:

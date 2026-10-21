@@ -1,4 +1,4 @@
-# apps/dashboard — mudpuppy://console
+# apps/dashboard — the MudPuppy dashboard
 
 A local, **read-only** operator dashboard over the crawler's SQLite store
 (`data/db/<env>.sqlite`). It shows every portal's runs, how they ended and why, and for each run
@@ -27,6 +27,18 @@ Settings can also come from the environment: `PATHFINDER_DATA_DIR`, `PATHFINDER_
 `PATHFINDER_PORT`, `PATHFINDER_DEV`. The data dir defaults to the repo's `data/` (the nearest
 ancestor holding `data/migrations`). Every `data/db/*.sqlite` file is an environment; switch in
 the top bar (`?env=` on any URL).
+
+## MudPuppy 2.0 pages (spec 039)
+
+For a portal with a portal model, the navigation is grouped: **Home** (what changed and what needs
+you), **Changes** (findings per model version, with release lanes and Before / after) and
+**Review** (Findings, Rules, Removals, Processes, Same screen?, Explained automatically,
+Decided); under **Portal model**: Processes, Screens (list, a screen's variants, actions and
+History, and the Map with views Now, Since previous release and One scan's path), Rules (decision
+tables, boundary tests, the DMN / Markdown / CSV export) and Docs; under **Machine**: Scans and
+Settings (thresholds, the classifier, Hints). The pages read the store; every decision (confirm,
+reject, a Same screen? answer, split or merge of a proposal) goes through the chat service
+(`PATHFINDER_CHAT_URL`). The designer's reference screens are `docs/design/salvage-yard/screens/v2-*`.
 
 ## Docs tab and review
 

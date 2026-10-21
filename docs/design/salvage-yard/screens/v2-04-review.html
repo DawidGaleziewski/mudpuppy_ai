@@ -1,0 +1,423 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MudPuppy 2.0 · Review</title>
+<link rel="icon" href="../brand/logo/tag-icon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../design-system/css/tokens.css">
+<link rel="stylesheet" href="../design-system/css/fonts.css">
+<link rel="stylesheet" href="../design-system/css/salvage.css">
+<style>
+  /* Screen layout only: queue (left) + the open item (right, wide) */
+  .mp-review { display: grid; grid-template-columns: minmax(300px, 2fr) minmax(0, 3fr); gap: var(--sy-space-5); align-items: start; }
+  .mp-filters { display: flex; flex-direction: column; align-items: flex-start; gap: var(--sy-space-3); }
+  .mp-filters__row { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sy-space-3) var(--sy-space-4); }
+  .mp-filters .sy-seg > button { white-space: nowrap; }
+  .mp-filters__pick { display: inline-flex; align-items: center; gap: var(--sy-space-2); }
+  .mp-filters__pick .sy-select { width: auto; min-width: 150px; }
+  .mp-evidence { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--sy-space-3); }
+  .mp-evidence figure { display: flex; flex-direction: column; gap: var(--sy-space-2); min-width: 0; }
+  .mp-evidence .sy-shot { flex: 1 1 auto; padding: var(--sy-space-3); gap: var(--sy-space-2); }
+  .mp-gap { min-height: 40px; }
+  .mp-section { display: flex; flex-direction: column; gap: var(--sy-space-2); }
+  .mp-confidence { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sy-space-2) var(--sy-space-3); }
+  @media (max-width: 760px) { .mp-review { grid-template-columns: minmax(0, 1fr); } }
+</style>
+</head>
+<body class="sy-ground">
+<a class="sy-skip" href="#main">Skip to content</a>
+<div class="sy-app">
+  <header class="sy-header">
+    <a class="sy-wordmark" href="v2-01-home.html"><span class="sy-wordmark__paint">MUD</span>PUPPY</a>
+    <label class="sy-portal sy-portal--compact"><span class="sy-label">Portal</span>
+      <select class="sy-select"><option selected>reference-insurer</option><option>wikipedia</option><option>All portals</option><option>+ New portal</option></select></label>
+    <div class="sy-portal sy-portal--compact"><span class="sy-label" id="asof-l">As of</span>
+      <button class="sy-select" type="button" aria-haspopup="menu" aria-expanded="false" aria-labelledby="asof-l asof-v" aria-describedby="asof-help"><span id="asof-v">Now · 17 Oct</span></button></div>
+    <span id="asof-help" class="sy-sr-only">Shows the portal model as it was at a release or scan. Changes compares two points.</span>
+    <label class="sy-search sy-search--compact">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+      <input type="search" aria-label="Search screens, processes and rules" placeholder="Search"><span class="sy-kbd">Ctrl K</span></label>
+    <span class="sy-status" data-status="ok">Assistant up</span>
+    <a class="sy-btn" href="02-screen-with-assistant.html">Ask <span class="sy-kbd">Ctrl J</span></a>
+    <a class="sy-btn sy-btn--icon" href="#" aria-label="Help and glossary">?</a>
+  </header>
+  <div class="sy-app__body">
+    <nav class="sy-nav" aria-label="Portal sections">
+      <a class="sy-nav__item" href="v2-01-home.html">Home</a>
+      <a class="sy-nav__item" href="v2-02-changes.html">Changes <span class="sy-nav__count">41</span></a>
+      <a class="sy-nav__item" href="v2-04-review.html" aria-current="page">Review <span class="sy-count">24</span></a>
+      <div class="sy-nav__group" aria-hidden="true">Portal model</div>
+      <a class="sy-nav__item" href="v2-09-processes.html">Processes <span class="sy-nav__count">6</span></a>
+      <a class="sy-nav__item" href="v2-06-screens.html">Screens <span class="sy-nav__count">19</span></a>
+      <a class="sy-nav__item" href="v2-11-rules.html">Rules <span class="sy-nav__count">6</span></a>
+      <a class="sy-nav__item" href="#">Docs</a>
+      <div class="sy-nav__group" aria-hidden="true">Machine</div>
+      <a class="sy-nav__item" href="10-scans.html">Scans</a>
+      <a class="sy-nav__item" href="11-settings.html">Settings</a>
+      <div class="sy-nav__foot">store: sandbox · writes go through commands</div>
+    </nav>
+    <main id="main" class="sy-main">
+<div class="sy-pagehead">
+        <h1 class="sy-h1">Review</h1>
+        <p class="sy-meta">24 need you · 23 explained automatically in this range · nothing is decided without a reason you can see later</p>
+      </div>
+
+      <!-- Page-level tabs: real pages, so links with aria-current (not role=tab) -->
+      <nav class="sy-tabs" aria-label="Review views">
+        <a class="sy-tab" href="v2-04-review.html" aria-current="page">Needs you <span class="sy-count">24</span></a>
+        <a class="sy-tab" href="v2-05-review-explained.html">Explained automatically <span class="sy-count sy-count--muted">23</span></a>
+        <a class="sy-tab" href="v2-16-review-decided.html">Decided <span class="sy-count sy-count--muted">31</span></a>
+      </nav>
+
+      <!-- Polite live region: after a write the page announces the result here, e.g. "Confirmed. 23 left." -->
+      <div id="announce" class="sy-sr-only" role="status" aria-live="polite"></div>
+
+      <!-- Filters. Kind buttons are multi-select toggles (aria-pressed); none pressed = every kind is shown. -->
+      <form class="mp-filters" aria-label="Filter the queue">
+        <div class="sy-seg" role="group" aria-label="Kind">
+          <button type="button" aria-pressed="false">Findings 4</button>
+          <button type="button" aria-pressed="false">Rules 2</button>
+          <button type="button" aria-pressed="false">Removals 12</button>
+          <button type="button" aria-pressed="false">Processes 2</button>
+          <button type="button" aria-pressed="false">Same screen? 1</button>
+          <button type="button" aria-pressed="false">Records 3</button>
+        </div>
+        <div class="mp-filters__row">
+        <label class="mp-filters__pick"><span class="sy-label">Part</span>
+          <select class="sy-select sy-select--md"><option>All parts</option><option>Shell</option><option>Kalkulator app</option></select></label>
+        <label class="mp-filters__pick"><span class="sy-label">Process</span>
+          <select class="sy-select sy-select--md"><option>All processes</option><option>Oblicz składkę OC/AC</option><option>Napisz do nas</option><option>Porównaj produkty</option><option>Przedłuż polisę</option><option>Not in a process</option></select></label>
+        <label class="mp-filters__pick"><span class="sy-label">Age</span>
+          <select class="sy-select sy-select--md"><option>Any age</option><option>Older than 7 days</option></select></label>
+        <span class="sy-small sy-muted">Showing all 24 · sorted by kind, newest first</span>
+        </div>
+      </form>
+
+      <div class="mp-review">
+
+        <!-- ===== The queue ===== -->
+        <section class="sy-plate" aria-labelledby="q-h">
+          <div class="sy-plate__head">
+            <h2 id="q-h" class="sy-plate__title">Queue</h2>
+            <span class="sy-mono sy-mono--sm sy-muted">24 · oldest 6 Oct · newest 17 Oct 11:20Z</span>
+          </div>
+
+          <!-- Each item's link selects it (#id) and opens its detail on the right; this page shows the A/B item's detail (#item). -->
+          <div class="sy-queue__group"><h3 class="sy-label">Findings · 4</h3><span class="sy-muted">newest first</span></div>
+          <ol class="sy-queue" aria-label="Findings, 4 items">
+            <li class="sy-queue__item" aria-current="true">
+              <input type="checkbox" class="sy-queue__check" aria-label="Select: Banner Oferta specjalna on 6 of 11 visits">
+              <a class="sy-queue__main" href="#item">
+                <span class="sy-cluster" style="--sy-gap: 6px"><span class="sy-chip sy-chip--tobe">A/B test?</span><span class="sy-small sy-muted">wynik</span></span>
+                <span class="sy-queue__claim">Banner "Oferta specjalna" on 6 of 11 visits</span>
+                <span class="sy-small sy-muted">2 screenshots · cookie ab_calc A vs B · replayed 10 / 10 · also settles 2</span>
+              </a>
+              <span class="sy-queue__meta">today</span>
+            </li>
+            <li class="sy-queue__item" id="kontakt">
+              <input type="checkbox" class="sy-queue__check" aria-label="Select: Kontakt form ends on the error page with +48">
+              <a class="sy-queue__main" href="#kontakt">
+                <span class="sy-cluster" style="--sy-gap: 6px"><span class="sy-chip">Error for one input</span><span class="sy-small sy-muted">Kontakt</span></span>
+                <span class="sy-queue__claim">Sending the form always ends on the error page when the phone starts with +48</span>
+                <span class="sy-small sy-muted">+48&nbsp;600&nbsp;000&nbsp;000&nbsp;→ error&nbsp;page&nbsp;5&nbsp;/&nbsp;5 · 600&nbsp;000&nbsp;000&nbsp;→ Wiadomość&nbsp;wysłana&nbsp;5&nbsp;/&nbsp;5</span>
+                <span class="sy-status" data-status="overturned">Overturned · was Flaky error</span>
+                <span class="sy-note sy-note--sm">Not flaky: it happens every time with +48.<span class="sy-note__by">you · 17 Oct 10:41Z</span></span>
+              </a>
+              <span class="sy-queue__meta">today</span>
+            </li>
+            <li class="sy-queue__item" id="moje-polisy">
+              <input type="checkbox" class="sy-queue__check" aria-label="Select: Link Moje polisy gone from the menu">
+              <a class="sy-queue__main" href="#moje-polisy">
+                <span class="sy-cluster" style="--sy-gap: 6px"><span class="sy-chip">Removed without a release</span><span class="sy-small sy-muted">menu</span></span>
+                <span class="sy-queue__claim">Link "Moje polisy" gone from the menu since 17 Oct</span>
+                <span class="sy-small sy-muted">shell still <span class="sy-case-normal">3e1a</span> · check run <span class="sy-tag sy-tag--sm">01a1340c</span></span>
+              </a>
+              <span class="sy-queue__meta">today</span>
+            </li>
+            <li class="sy-queue__item" id="assistance">
+              <input type="checkbox" class="sy-queue__check" aria-label="Select: Assistance 24h shows 0 zł">
+              <a class="sy-queue__main" href="#assistance">
+                <span class="sy-cluster" style="--sy-gap: 6px"><span class="sy-chip">Unexplained</span><span class="sy-small sy-muted">opcje</span></span>
+                <span class="sy-queue__claim">"Assistance 24h" shows 0 zł on 2 of 9 visits</span>
+                <span class="sy-small sy-muted">no difference in release, persona, inputs or cookies</span>
+              </a>
+              <span class="sy-queue__meta">today</span>
+            </li>
+          </ol>
+
+          <div class="sy-queue__group"><h3 class="sy-label">Rules · 2</h3></div>
+          <ol class="sy-queue" aria-label="Rules, 2 items">
+            <li class="sy-queue__item">
+              <input type="checkbox" class="sy-queue__check" aria-label="Select: BR-021 changed">
+              <a class="sy-queue__main" href="v2-12-rule-detail.html">
+                <span class="sy-cluster" style="--sy-gap: 6px"><span class="sy-chip">Rule changed</span><span class="sy-tag sy-tag--sm">BR-021</span></span>
+                <span class="sy-queue__claim">Driver age threshold moved from 18 to 21 with release <span class="sy-case-normal">9c21</span></span>
+                <span class="sy-small sy-muted">tested at 20, 21, 22 · <span class="sy-status" data-status="ok">Pass</span></span>
+              </a>
+              <span class="sy-queue__meta">today</span>
+            </li>
+            <li class="sy-queue__item" id="br-026">
+              <input type="checkbox" class="sy-queue__check" aria-label="Select: BR-026 broken">
+              <a class="sy-queue__main" href="#br-026">
+                <span class="sy-cluster" style="--sy-gap: 6px"><span class="sy-chip sy-chip--fail">Rule broke</span><span class="sy-tag sy-tag--sm">BR-026</span></span>
+                <span class="sy-queue__claim">Postal code "00950" is now accepted (was refused on <span class="sy-case-normal">5f08</span>)</span>
+                <span class="sy-small sy-muted">dane kierowcy · "Kod pocztowy" · <span class="sy-status" data-status="failed">Fail</span></span>
+              </a>
+              <span class="sy-queue__meta">today</span>
+            </li>
+          </ol>
+
+          <!-- One group, one decision: 12 similar removals confirm together (UX-R24) -->
+          <div class="sy-queue__group">
+            <h3 class="sy-label">Removals · 12</h3>
+            <span class="sy-actions" style="--sy-gap: 12px">
+              <label class="sy-check"><input type="checkbox" aria-describedby="bulk-what"> Select all 12</label>
+              <button class="sy-btn sy-btn--sm sy-btn--strong" type="button" aria-describedby="bulk-what" aria-keyshortcuts="Shift+C">Confirm 12</button>
+            </span>
+            <span id="bulk-what" class="sy-muted" style="flex-basis: 100%">Similar items, one decision. Confirming marks all 12 links Retired with release <span class="sy-case-normal">3e1a</span>; they stay in the model and in History.</span>
+          </div>
+          <ol class="sy-queue" aria-label="Removals, 12 links, one group">
+            <li class="sy-queue__item" id="removals">
+              <span aria-hidden="true"></span><!-- no own checkbox: "Select all 12" above selects this group -->
+              <a class="sy-queue__main" href="#removals">
+                <span class="sy-cluster" style="--sy-gap: 6px"><span class="sy-chip">Removed</span><span class="sy-small sy-muted">12 links · release <span class="sy-case-normal">3e1a</span></span></span>
+                <span class="sy-queue__claim">12 links gone with release <span class="sy-case-normal">3e1a</span>: footer and "Promocja wakacyjna" teasers</span>
+                <span class="sy-small sy-muted">they are in documented screen records, so removal waits for you · <u>Show the 12</u></span>
+              </a>
+              <span class="sy-queue__meta">2 d</span>
+            </li>
+          </ol>
+
+          <div class="sy-queue__group"><h3 class="sy-label">Processes · 2</h3><span class="sy-muted">proposed after scan <span class="sy-tag sy-tag--sm">01a12f40</span></span></div>
+          <ol class="sy-queue" aria-label="Processes, 2 items">
+            <li class="sy-queue__item">
+              <input type="checkbox" class="sy-queue__check" aria-label="Select: process Napisz do nas">
+              <a class="sy-queue__main" href="v2-09-processes.html">
+                <span class="sy-cluster" style="--sy-gap: 6px"><span class="sy-chip sy-chip--tobe">Proposed</span><span class="sy-small sy-muted">process</span></span>
+                <span class="sy-queue__claim">Napisz do nas: Kontakt → Wiadomość wysłana</span>
+                <span class="sy-small sy-muted">trigger "Napisz do nas" on / · explored partial on <span class="sy-case-normal">3e1a</span></span>
+              </a>
+              <span class="sy-queue__meta">2 d</span>
+            </li>
+            <li class="sy-queue__item">
+              <input type="checkbox" class="sy-queue__check" aria-label="Select: process Przedłuż polisę">
+              <a class="sy-queue__main" href="v2-09-processes.html">
+                <span class="sy-cluster" style="--sy-gap: 6px"><span class="sy-chip sy-chip--tobe">Proposed</span><span class="sy-small sy-muted">process</span></span>
+                <span class="sy-queue__claim">Przedłuż polisę: starts at "Przedłuż polisę" on /</span>
+                <span class="sy-small sy-muted">not explored: needs a credential for persona client</span>
+              </a>
+              <span class="sy-queue__meta">2 d</span>
+            </li>
+          </ol>
+
+          <div class="sy-queue__group"><h3 class="sy-label">Same screen? · 1</h3></div>
+          <ol class="sy-queue" aria-label="Same screen, 1 item">
+            <li class="sy-queue__item">
+              <input type="checkbox" class="sy-queue__check" aria-label="Select: same screen conflict on wynik">
+              <a class="sy-queue__main" href="v2-14-same-screen.html">
+                <span class="sy-cluster" style="--sy-gap: 6px"><span class="sy-chip">Conflict</span><span class="sy-small sy-muted">wynik <span class="sy-case-normal">r2</span> vs <span class="sy-case-normal">r3</span></span></span>
+                <span class="sy-queue__claim">Automatic grouping says same screen; Marek labelled them different</span>
+                <span class="sy-small sy-muted">2 screenshots · Marek's reason · 17 Oct 11:20Z</span>
+                <span class="sy-small sy-muted">Linked to the A/B test finding above: confirming it settles this as "same screen, variants"</span>
+              </a>
+              <span class="sy-queue__meta">today</span>
+            </li>
+          </ol>
+
+          <div class="sy-queue__group"><h3 class="sy-label">Records · 3</h3><span class="sy-muted">drafts, rev 1</span></div>
+          <ol class="sy-queue" aria-label="Records, 3 items">
+            <li class="sy-queue__item" id="cap-005">
+              <input type="checkbox" class="sy-queue__check" aria-label="Select: CAP-005">
+              <a class="sy-queue__main" href="#cap-005">
+                <span class="sy-cluster" style="--sy-gap: 6px"><span class="sy-tag sy-tag--sm">CAP-005</span><span class="sy-status" data-status="draft">Draft · rev 1</span></span>
+                <span class="sy-queue__claim">Product and help information</span>
+                <span class="sy-small sy-muted">capability · cites Ubezpieczenia dla Ciebie</span>
+              </a>
+              <span class="sy-queue__meta">11 d</span>
+            </li>
+            <li class="sy-queue__item" id="nfr-001">
+              <input type="checkbox" class="sy-queue__check" aria-label="Select: NFR-001">
+              <a class="sy-queue__main" href="#nfr-001">
+                <span class="sy-cluster" style="--sy-gap: 6px"><span class="sy-tag sy-tag--sm">NFR-001</span><span class="sy-status" data-status="draft">Draft · rev 1</span></span>
+                <span class="sy-queue__claim">Portal content in Polish; field validation uses browser-native messages</span>
+                <span class="sy-small sy-muted">non-functional</span>
+              </a>
+              <span class="sy-queue__meta">11 d</span>
+            </li>
+            <li class="sy-queue__item" id="scr-001">
+              <input type="checkbox" class="sy-queue__check" aria-label="Select: SCR-001">
+              <a class="sy-queue__main" href="#scr-001">
+                <span class="sy-cluster" style="--sy-gap: 6px"><span class="sy-tag sy-tag--sm">SCR-001</span><span class="sy-status" data-status="draft">Draft · rev 1</span></span>
+                <span class="sy-queue__claim">Home page regions: navigation "Menu główne", region "Na skróty"</span>
+                <span class="sy-small sy-muted">screen · Ubezpieczenia dla Ciebie</span>
+              </a>
+              <span class="sy-queue__meta">11 d</span>
+            </li>
+          </ol>
+
+          <!-- Static here; in the app add .sy-keybar--sticky so it stays at the bottom of the viewport while the queue scrolls -->
+          <!-- Five keys here; the rest (M comment, Shift C confirm selected …) are listed behind "?" -->
+          <div class="sy-keybar" aria-label="Keyboard shortcuts">
+            <span><span class="sy-kbd">J</span><span class="sy-kbd">K</span> next / previous</span>
+            <span><span class="sy-kbd">X</span> select</span>
+            <span><span class="sy-kbd">C</span> confirm</span>
+            <span><span class="sy-kbd">R</span> reject</span>
+            <span><span class="sy-kbd">?</span> all keys</span>
+            <span style="flex-basis: 100%">Single keys work when you're not typing; turn them off in Settings ▸ Keyboard.</span>
+          </div>
+        </section>
+
+        <!-- ===== The open item: evidence → tests → explanation → decision ===== -->
+        <article id="item" class="sy-plate" aria-labelledby="item-h">
+          <div class="sy-plate__head">
+            <span class="sy-cluster" style="--sy-gap: 8px">
+              <span class="sy-chip sy-chip--tobe">A/B test?</span>
+              <span class="sy-small"><a href="v2-06-screens.html">Kalkulator OC/AC — wynik</a> · step 3 of <a href="v2-10-process-detail.html">Oblicz składkę OC/AC</a></span>
+            </span>
+            <span class="sy-actions">
+              <span class="sy-mono sy-mono--sm sy-muted">1 of 24</span>
+              <button class="sy-btn sy-btn--sm" type="button" aria-keyshortcuts="K" disabled>Previous <span class="sy-kbd">K</span></button>
+              <button class="sy-btn sy-btn--sm" type="button" aria-label="Next item" aria-keyshortcuts="J">Next <span class="sy-kbd">J</span></button>
+            </span>
+          </div>
+
+          <div class="sy-plate__body" style="gap: var(--sy-space-5)">
+            <div class="sy-stack" style="--sy-gap: 10px">
+              <h2 id="item-h" class="sy-h2 sy-case-normal">Banner "Oferta specjalna" on 6 of 11 visits</h2>
+              <div class="mp-confidence">
+                <span class="sy-status" data-status="inferred">Inferred · A/B test</span>
+                <span class="sy-muted" aria-hidden="true">→</span>
+                <span class="sy-status" data-status="needs">Needs you</span>
+                <span class="sy-small sy-muted">An A/B test is never explained automatically: it changes what customers see.</span>
+              </div>
+            </div>
+
+            <!-- 1 Evidence -->
+            <section class="mp-section" aria-labelledby="ev-h">
+              <div class="sy-split"><h3 id="ev-h" class="sy-label">1 · Evidence</h3><a class="sy-small" href="v2-03-change-detail.html">Before / after, full size</a></div>
+              <!-- Production: two <img class="sy-thumb"> of the captures with <mark class="sy-mark sy-mark--overlay"> on the banner region. -->
+              <div class="mp-evidence">
+                <figure>
+                  <div class="sy-shot" role="img" aria-label="Screenshot of wynik without the banner, visit 01a1340c#14">
+                    <span class="sy-shot__link">Towarzystwo Ubezpieczeń Wzorcowych</span>
+                    <span class="sy-shot__title">Twoja składka</span>
+                    <b>OC 612 zł / rok</b>
+                    <span class="sy-card sy-card--muted mp-gap" aria-hidden="true"></span>
+                    <span><b>[ Kup online ]</b> <span class="sy-shot__link">Wróć</span></span>
+                    <span>v9c21</span>
+                  </div>
+                  <figcaption class="sy-stack" style="--sy-gap: 2px">
+                    <span class="sy-small"><b>Without banner</b> · variant <span class="sy-case-normal">r2</span></span>
+                    <span class="sy-mono sy-mono--sm sy-muted">01a1340c#14 · 17 Oct 10:14Z</span>
+                  </figcaption>
+                </figure>
+                <figure>
+                  <div class="sy-shot" role="img" aria-label="Screenshot of wynik with the banner Oferta specjalna, visit 01a1340c#15">
+                    <span class="sy-shot__link">Towarzystwo Ubezpieczeń Wzorcowych</span>
+                    <span class="sy-shot__title">Twoja składka</span>
+                    <b>OC 612 zł / rok</b>
+                    <mark class="sy-mark" style="margin-top: 6px"><span class="sy-mark__label">Banner</span>Oferta specjalna: −10% przy zakupie dziś</mark>
+                    <span><b>[ Kup online ]</b> <span class="sy-shot__link">Wróć</span></span>
+                    <span>v9c21</span>
+                  </div>
+                  <figcaption class="sy-stack" style="--sy-gap: 2px">
+                    <span class="sy-small"><b>With banner</b> · variant <span class="sy-case-normal">r3</span></span>
+                    <span class="sy-mono sy-mono--sm sy-muted">01a1340c#15 · 17 Oct 10:15Z</span>
+                  </figcaption>
+                </figure>
+              </div>
+              <div class="sy-table-wrap">
+                <table class="sy-table sy-table--dense" aria-label="What differs between the two visits">
+                  <thead><tr><th scope="col">Context</th><th scope="col">Without banner</th><th scope="col">With banner</th></tr></thead>
+                  <tbody>
+                    <tr><th scope="row">Release</th><td><span class="sy-mono">9c21</span></td><td><span class="sy-mono">9c21</span></td></tr>
+                    <tr><th scope="row">Persona</th><td>guest</td><td>guest</td></tr>
+                    <tr><th scope="row">Inputs</th><td>wiek 35, OC, 00-950</td><td>same</td></tr>
+                    <tr><th scope="row">Cookie <span class="sy-mono">ab_calc</span> <span class="sy-diff__change">differs</span></th><td class="sy-differs"><span class="sy-mono">A</span></td><td class="sy-differs"><span class="sy-mono">B</span></td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </section>
+
+            <!-- 2 Tests run -->
+            <section class="mp-section" aria-labelledby="t-h">
+              <h3 id="t-h" class="sy-label">2 · Tests run · check run <span class="sy-tag sy-tag--sm">01a1340c</span></h3>
+              <div class="sy-table-wrap">
+                <table class="sy-table sy-table--dense sy-table--middle" aria-labelledby="t-h">
+                  <thead><tr><th scope="col">Replay</th><th scope="col">Expected</th><th scope="col" class="sy-num">Got</th><th scope="col">Result</th></tr></thead>
+                  <tbody>
+                    <tr><th scope="row">10 times with <span class="sy-mono">ab_calc=A</span></th><td>no banner</td><td class="sy-num">10&nbsp;/&nbsp;10</td><td><span class="sy-status" data-status="ok">Pass</span></td></tr>
+                    <tr><th scope="row">10 times with <span class="sy-mono">ab_calc=B</span></th><td>banner</td><td class="sy-num">10&nbsp;/&nbsp;10</td><td><span class="sy-status" data-status="ok">Pass</span></td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </section>
+
+            <!-- 3 Proposed explanation (blueprint: not real until you confirm) -->
+            <section class="sy-callout sy-callout--drawn" aria-labelledby="x-h">
+              <span id="x-h" class="sy-callout__title">3 · Proposed explanation: A/B test</span>
+              <span>Cookie <span class="sy-mono">ab_calc</span> decides the banner: A shows none, B shows "Oferta specjalna". Same release <span class="sy-case-normal">9c21</span>, same persona guest, same inputs.</span>
+            </section>
+
+            <!-- 4 Linked decisions: the same banner shows up in two other places; one decision settles all three -->
+            <section class="mp-section" aria-labelledby="ls-h">
+              <h3 id="ls-h" class="sy-label">4 · Also settles · 2</h3>
+              <div class="sy-table-wrap">
+                <table class="sy-table sy-table--dense" aria-labelledby="ls-h">
+                  <thead><tr><th scope="col" style="width: 52%">Linked item · now</th><th scope="col">When you confirm</th></tr></thead>
+                  <tbody>
+                    <tr><th scope="row"><span class="sy-stack" style="--sy-gap: 4px"><span class="sy-small sy-muted">Same screen? · conflict</span><a href="v2-14-same-screen.html">Kalkulator OC/AC — wynik <span class="sy-case-normal">r2</span> vs <span class="sy-case-normal">r3</span></a><span class="sy-status" data-status="needs">Needs you</span></span></th>
+                      <td>Settled as "same screen, variants"; your reason is shown next to Marek's.</td></tr>
+                    <tr><th scope="row"><span class="sy-stack" style="--sy-gap: 4px"><span class="sy-small sy-muted">Process suggestion · Oblicz składkę OC/AC</span><a href="v2-10-process-detail.html"><span class="sy-case-normal">r3</span> as a variant of step 3</a><span class="sy-status" data-status="inferred">Suggestion</span></span></th>
+                      <td>Applied; the process shows "Decided with the A/B test finding in Review".</td></tr>
+                  </tbody>
+                </table>
+              </div>
+              <p class="sy-small sy-muted">If Same screen? is settled first as "different screens", this finding becomes "New screen on 6 of 11 visits" instead.</p>
+            </section>
+
+            <!-- 5 Decision -->
+            <form class="mp-section" aria-labelledby="d-h" style="gap: var(--sy-space-3)">
+              <h3 id="d-h" class="sy-label">5 · Your decision</h3>
+              <label class="sy-field"><span class="sy-field__label">Reason · one line</span>
+                <input class="sy-input" id="reason" name="reason" aria-describedby="reason-help" autocomplete="off" placeholder="Why you confirm or reject">
+                <span class="sy-field__help" id="reason-help">Optional to confirm, required to reject. Shown wherever this decision appears.</span>
+                <span class="sy-field__error" id="reason-error" hidden>Write a reason to reject.</span></label>
+              <div class="sy-actions">
+                <button class="sy-btn sy-btn--primary" type="button" aria-describedby="confirm-what" aria-keyshortcuts="C">Confirm A/B test</button>
+                <button class="sy-btn" type="button" id="reject" aria-describedby="reject-what" aria-keyshortcuts="R">Reject… <span class="sy-kbd">R</span></button>
+                <button class="sy-btn sy-btn--quiet" type="button" aria-keyshortcuts="M">Comment <span class="sy-kbd">M</span></button>
+                <span class="sy-small sy-muted"><span class="sy-kbd">C</span> confirms</span>
+              </div>
+              <p id="confirm-what" class="sy-small"><b>What happens:</b> confirming documents both variants (<span class="sy-case-normal">r2</span> without, <span class="sy-case-normal">r3</span> with the banner) under step 3 of Oblicz składkę OC/AC, adds cookie <span class="sy-mono">ab_calc</span> as a hint in Settings and settles the 2 linked items above. The next item opens.</p>
+              <p id="reject-what" class="sy-small sy-muted">Reason required. Rejecting keeps <span class="sy-case-normal">r3</span> as a variant of wynik with why Unknown; the finding stays in Needs you until it's explained.</p>
+            </form>
+          </div>
+
+          <div class="sy-plate__foot">
+            <span class="sy-small sy-muted">Created 17 Oct 10:30Z by check run <span class="sy-tag sy-tag--sm">01a1340c</span> · no comments yet</span>
+            <span class="sy-small sy-muted">Also shown in <a href="v2-02-changes.html">What changed</a> · <a href="v2-06-screens.html">wynik</a></span>
+          </div>
+        </article>
+      </div>
+<script>
+  /* Reject asks for a reason: empty reason → mark the field required + invalid and focus it. */
+  (() => {
+    const reason = document.getElementById('reason');
+    const error = document.getElementById('reason-error');
+    document.getElementById('reject').addEventListener('click', () => {
+      reason.setAttribute('aria-required', 'true');
+      const empty = !reason.value.trim();
+      reason.setAttribute('aria-invalid', String(empty));
+      reason.setAttribute('aria-describedby', empty ? 'reason-error reason-help' : 'reason-help');
+      error.hidden = !empty;
+      if (empty) reason.focus();
+    });
+  })();
+</script>
+    </main>
+  </div>
+</div>
+</body>
+</html>

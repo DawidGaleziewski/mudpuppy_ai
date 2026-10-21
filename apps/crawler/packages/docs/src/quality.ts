@@ -47,7 +47,7 @@ export function qualityFindings(raw: RawDb, portalId?: string): QualityFinding[]
     )
     .all(portalId ?? null, portalId ?? null) as LatestRow[];
   const regions = raw.prepare(
-    `SELECT count(DISTINCT target_id || '#' || coalesce(region, '')) AS n FROM doc_evidence_links
+    `SELECT count(DISTINCT target_id || '#' || coalesce(region, '')) AS n FROM doc_evidence
       WHERE revision_id = ? AND target_kind = 'screen_region'`,
   );
   const out: QualityFinding[] = [];

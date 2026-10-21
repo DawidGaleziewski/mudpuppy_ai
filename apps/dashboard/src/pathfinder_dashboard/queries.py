@@ -127,7 +127,6 @@ def portal_summaries(conn: sqlite3.Connection) -> list[PortalSummary]:
     forms = via_runs("forms")
     network = via_runs("network_calls")
     questions = via_runs("open_questions", "WHERE t.status = 'open'")
-    rules = via_runs("rule_candidates")
     return [
         PortalSummary(
             portal_id=p,
@@ -139,7 +138,6 @@ def portal_summaries(conn: sqlite3.Connection) -> list[PortalSummary]:
             forms=forms.get(p, 0),
             network_calls=network.get(p, 0),
             open_questions_open=questions.get(p, 0),
-            rule_candidates=rules.get(p, 0),
         )
         for p in portals(conn)
     ]
@@ -218,9 +216,8 @@ def run_summary(conn: sqlite3.Connection, run_id: str) -> RunSummary | None:
         robots_policies=n("robots_policies"),
         decisions=sum(decisions_by.values()),
         decisions_by_kind=decisions_by,  # type: ignore[arg-type]
-        edges=n("edges"),
+        transitions=n("transitions"),
         open_questions=n("open_questions"),
-        rule_candidates=n("rule_candidates"),
     )
 
 

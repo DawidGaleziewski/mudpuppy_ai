@@ -9,7 +9,7 @@ import pytest
 from pathfinder_dashboard import db
 from pathfinder_dashboard import queries_docs as q
 
-from .conftest import EVIDENCE, Store, insert, make_client, ts
+from .conftest import EVIDENCE, Store, add_evidence_link, insert, make_client, ts
 
 PORTAL = "reference-insurer"
 
@@ -110,11 +110,11 @@ def test_withdrawn_rejected_and_followup_states(conn: sqlite3.Connection) -> Non
     assert fup.followup is not None and fup.followup.status == "blocked"
 
 
-def test_resolved_evidence_carries_run_mode_date_and_flags_broken(conn: sqlite3.Connection) -> None:
+def test_resolved_evidence_carries_run_mode_and_date(conn: sqlite3.Connection) -> None:
     d = q.record_detail(conn, PORTAL, "REQ-001")
     by_kind = {(e.link.target_kind, e.link.target_id): e for e in d.evidence}
     form = by_kind[("form", "form-vehicle")]
-    assert form.resolved and not form.broken and form.run_mode == "map"
+    assert form.resolved and form.run_mode == "map"
     assert form.run_started_at == "2026-09-25T19:10:00.000Z" and form.tab == "forms"
     assert by_kind[("action", "act-calc")].label == 'button "Oblicz składkę"'
     assert by_kind[("network_call", "net-quote")].tab == "network"
@@ -127,8 +127,6 @@ def test_resolved_evidence_carries_run_mode_date_and_flags_broken(conn: sqlite3.
     )
     doc = by_kind[("doc_record", "rec-SCR-002")]
     assert doc.doc_key == "SCR-002" and doc.link.run_id is None and doc.tab is None
-    broken = by_kind[("state", "st-deleted")]
-    assert broken.broken and not broken.resolved and broken.link.note
 
 
 def test_process_evidence_resolves_to_the_process(conn: sqlite3.Connection) -> None:
@@ -207,11 +205,7 @@ def add_variant_run(store: Store) -> None:
         "SELECT v.id FROM doc_revisions v JOIN doc_records r ON r.id = v.record_id"
         " AND v.rev_no = r.latest_rev WHERE r.key = 'PROC-001'"
     ).fetchone()[0]
-    w.execute(
-        "INSERT INTO doc_evidence_links (id, revision_id, target_kind, target_id, run_id, note)"
-        " VALUES ('ev-variant-2', ?, 'process', 'proc-2', 'run-trace-2', 'variant run')",
-        (rev,),
-    )
+    add_evidence_link(w, "ev-variant-2", rev, "process", "proc-2", "run-trace-2", "variant run")
     w.commit()
     w.close()
 
@@ -240,19 +234,6 @@ def test_capability_and_screen_diagram_inputs(conn: sqlite3.Connection) -> None:
     assert nav["transitions"] == [{"from": "SCR-001", "to": "SCR-002", "label": "Oblicz składkę"}]
 
 
-def test_store_without_process_tables_still_works(ba_fixture: Store) -> None:
-    w = ba_fixture.connect()
-    w.execute("DROP TABLE process_steps")
-    w.execute("DROP TABLE processes")
-    w.commit()
-    c = db.connect(ba_fixture.data_dir, ba_fixture.env)
-    assert q.process_for_run(c, "run-trace") is None and q.process_step_count(c, "run-trace") == 0
-    d = q.record_detail(c, PORTAL, "PROC-001")
-    kinds = {e.link.target_kind: e for e in d.evidence}
-    assert not kinds["process"].broken and not kinds["process"].resolved
-    assert q.process_diagram_input(c, d) is None
-
-
 def test_screen_diagram_leaves_out_global_navigation(ba_fixture: Store) -> None:
     """A target reached from more than half of the screens (a global menu) is only counted."""
     from .conftest import add_record, insert
@@ -277,7 +258,7 @@ def test_screen_diagram_leaves_out_global_navigation(ba_fixture: Store) -> None:
         )
         insert(
             w,
-            "edges",
+            "transitions",
             id=f"edge-x{n}",
             run_id="run-map",
             from_state=f"st-x{n}",
@@ -286,7 +267,7 @@ def test_screen_diagram_leaves_out_global_navigation(ba_fixture: Store) -> None:
         )
     insert(
         w,
-        "edges",
+        "transitions",
         id="edge-x-calc",
         run_id="run-map",
         from_state="st-x3",

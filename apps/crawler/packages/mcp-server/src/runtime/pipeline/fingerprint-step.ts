@@ -27,9 +27,9 @@ export function fingerprintStep(sc: StepContext, observed: Observed) {
     if (!browserError) rs.lastPageRoute = routeTemplate;
     if (!rs.seededRoutes.has(routeTemplate)) {
       rs.seededRoutes.add(routeTemplate);
-      seedKnownClusters(sc.ctx, rs.index, sc.run.portal_id, routeTemplate);
+      seedKnownClusters(sc.ctx, rs.index, sc.run.portal_id, routeTemplate, rs.profile);
     }
-    const fp = computeFingerprint({ routeTemplate, ariaSnapshot: masked });
+    const fp = computeFingerprint({ routeTemplate, ariaSnapshot: masked }, rs.profile);
     const assignment = rs.index.assign(fp);
     const { kind, reason, similarity, threshold, matchedFingerprint } = assignment.decision;
     return Promise.resolve(

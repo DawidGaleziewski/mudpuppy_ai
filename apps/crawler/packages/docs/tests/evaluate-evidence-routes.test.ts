@@ -1,4 +1,6 @@
 import { describe, expect, it } from 'vitest';
+import type { EvidenceTargetKind } from '@pathfinder/docs-model';
+import { addEvidenceLink } from '@pathfinder/store';
 import { loadEvalInput } from '../src/evaluate.js';
 import { makeFixtureStore, seedDocRecords } from '../src/testing/index.js';
 
@@ -11,7 +13,7 @@ describe('loadEvalInput evidence routes', () => {
       seedDocRecords(fx);
       fx.raw
         .prepare(
-          `INSERT INTO page_visits (id, run_id, state_id, via, url, created_at)
+          `INSERT INTO observations (id, run_id, state_id, via, url, created_at)
            VALUES ('visit-1', ?, ?, 'navigate', 'http://127.0.0.1:4010/kalkulator/pojazd', ?)`,
         )
         .run(fx.runId, fx.states.vehicle, '2026-01-15T10:00:00.000Z');
@@ -22,10 +24,22 @@ describe('loadEvalInput evidence routes', () => {
            WHERE r.key = 'REQ-001'`,
         )
         .get() as { revision_id: string };
-      const link = fx.raw.prepare(
-        `INSERT INTO doc_evidence_links (id, revision_id, target_kind, target_id, run_id, region)
-         VALUES (?, ?, ?, ?, ?, ?)`,
-      );
+      const link = {
+        run: (
+          id: string,
+          revisionId: string,
+          kind: EvidenceTargetKind,
+          target: string,
+          runId: string,
+          region: string | null,
+        ) =>
+          addEvidenceLink(
+            fx.raw,
+            revisionId,
+            { target_kind: kind, target_id: target, run_id: runId, region },
+            { link: id, ref: `ref-${id}` },
+          ),
+      };
       link.run(
         'l-region',
         revision_id,
@@ -34,9 +48,9 @@ describe('loadEvalInput evidence routes', () => {
         fx.runId,
         'button "Dalej"',
       );
-      link.run('l-visit', revision_id, 'page_visit', 'visit-1', fx.runId, null);
+      link.run('l-visit', revision_id, 'observation', 'visit-1', fx.runId, null);
       const req = loadEvalInput(fx.raw, fx.portalId).records.find((r) => r.key === 'REQ-001')!;
-      for (const kind of ['screen_region', 'page_visit'])
+      for (const kind of ['screen_region', 'observation'])
         expect(req.evidence.find((e) => e.target_kind === kind)!.routes).toEqual([
           '/kalkulator/pojazd',
         ]);

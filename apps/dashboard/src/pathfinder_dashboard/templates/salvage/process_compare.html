@@ -2,38 +2,38 @@
 {% import "salvage/macros.html" as sy %}
 {% set nav_current = "processes" %}
 {%- set view = v.view %}{% set p = view.process %}
-{#- Compare two variants (screen 06, FE-P03): the step diff (unchanged, changed, merged, added,
+{#- Compare two models (screen 06, FE-P03): the step diff (unchanged, changed, merged, added,
     removed) and the change spec: generated, editable per section, saved as a revision, exported
-    as Markdown. Your open draft stands in for its variant on the right. -#}
-{% set page_ctx = {"type": "process", "id": p.id ~ ":" ~ (v.right.variant.label if v.right else "A"), "label": p.key ~ " " ~ p.name ~ " · compare"} %}
+    as Markdown. Your open draft stands in for its model on the right. -#}
+{% set page_ctx = {"type": "process", "id": p.id ~ ":" ~ (v.right.model.label if v.right else "A"), "label": p.key ~ " " ~ p.name ~ " · compare"} %}
 {% block title %}Compare · {{ p.name }}{% endblock %}
 {% block head_extra %}<script src="/static/js/processes.js" defer></script>{% endblock %}
 {% block main %}
 <div class="sy-pagehead">
   <nav class="sy-crumbs" aria-label="Breadcrumb"><a href="{{ c.url('/processes') }}">Processes</a> / <a href="{{ c.url('/processes/' ~ p.key) }}">{{ p.name }}</a> / <span aria-current="page">Compare</span></nav>
-  <h1 class="sy-h1">Compare {{ v.left.variant.label }} and {{ v.right.variant.label if v.right else "—" }}</h1>
+  <h1 class="sy-h1">Compare {{ v.left.model.label }} and {{ v.right.model.label if v.right else "—" }}</h1>
 </div>
 <div class="sy-cluster" style="--sy-gap: 8px 16px">
   <span class="sy-label">Left</span>
-  <nav class="sy-seg" aria-label="Left variant">
-    {%- for x in view.variants %}<a href="{{ c.url('/processes/' ~ p.key ~ '/compare', left=x.variant.label, right=v.right.variant.label if v.right else none) }}"{% if x.variant.id == v.left.variant.id %} aria-current="true"{% endif %}>{{ x.variant.label }} r{{ x.variant.rev }}</a>{% endfor %}
+  <nav class="sy-seg" aria-label="Left process model">
+    {%- for x in view.models %}<a href="{{ c.url('/processes/' ~ p.key ~ '/compare', left=x.model.label, right=v.right.model.label if v.right else none) }}"{% if x.model.id == v.left.model.id %} aria-current="true"{% endif %}>{{ x.model.label }} r{{ x.model.rev }}</a>{% endfor %}
   </nav>
   <span aria-hidden="true">↔</span>
   <span class="sy-label">Right</span>
-  <nav class="sy-seg" aria-label="Right variant">
-    {%- for x in view.variants %}<a href="{{ c.url('/processes/' ~ p.key ~ '/compare', left=v.left.variant.label, right=x.variant.label) }}"{% if v.right and x.variant.id == v.right.variant.id %} aria-current="true"{% endif %}>{{ x.variant.label }} r{{ x.variant.rev }}{% if x.draft_of(c.settings.reviewer) %} · your draft{% endif %}</a>{% endfor %}
+  <nav class="sy-seg" aria-label="Right process model">
+    {%- for x in view.models %}<a href="{{ c.url('/processes/' ~ p.key ~ '/compare', left=v.left.model.label, right=x.model.label) }}"{% if v.right and x.model.id == v.right.model.id %} aria-current="true"{% endif %}>{{ x.model.label }} r{{ x.model.rev }}{% if x.draft_of(c.settings.reviewer) %} · your draft{% endif %}</a>{% endfor %}
   </nav>
 </div>
 {%- if not v.right %}
-{{ sy.empty("Nothing to compare yet", "Branch a to-be variant from the as-is to draw the change.") }}
+{{ sy.empty("Nothing to compare yet", "Branch a to-be process model from the as-is to draw the change.") }}
 {%- else %}
 <ol class="sy-legend" aria-label="Legend">
   {%- for k, n in v.counts.items() %}<li>{{ sy.status("step_change", k) }} <span class="sy-num">{{ n }}</span></li>{% endfor %}
 </ol>
 <div class="sy-table-wrap">
   <table class="sy-table">
-    <caption class="sy-sr-only">Steps of {{ v.left.variant.label }} r{{ v.left.variant.rev }} against {{ v.right_label }}{% if v.draft %} (your draft){% endif %}</caption>
-    <thead><tr><th scope="col">{{ v.left.variant.label }} · r{{ v.left.variant.rev }}</th><th scope="col">{{ v.right_label }}{% if v.draft %} · your draft{% endif %}</th><th scope="col">Change</th></tr></thead>
+    <caption class="sy-sr-only">Steps of {{ v.left.model.label }} r{{ v.left.model.rev }} against {{ v.right_label }}{% if v.draft %} (your draft){% endif %}</caption>
+    <thead><tr><th scope="col">{{ v.left.model.label }} · r{{ v.left.model.rev }}</th><th scope="col">{{ v.right_label }}{% if v.draft %} · your draft{% endif %}</th><th scope="col">Change</th></tr></thead>
     <tbody>
       {%- for r in v.rows %}
       <tr>
@@ -57,8 +57,8 @@
   </div>
   <form class="sy-plate__body sy-stack" data-process-form="spec" method="post"
         action="/chat/portals/{{ p.portal_id | urlencode }}/processes/{{ p.id | urlencode }}/change-spec"
-        data-left="{{ v.left.variant.label }}" data-left-rev="{{ v.left.variant.rev }}"
-        data-right="{{ v.right.variant.label }}" data-right-rev="{{ v.right.variant.rev }}"
+        data-left="{{ v.left.model.label }}" data-left-rev="{{ v.left.model.rev }}"
+        data-right="{{ v.right.model.label }}" data-right-rev="{{ v.right.model.rev }}"
         {%- if v.spec_head %} data-base-rev="{{ v.spec_head }}"{% endif %}>
     {%- for key, title in v.section_titles %}
     {%- set value = v.sections.get(key) %}
@@ -67,7 +67,7 @@
     {%- endfor %}
     <div class="sy-actions">
       {%- if c.settings.reviewer %}<button class="sy-btn sy-btn--primary" type="submit">Save spec as r{{ (v.spec_head or 0) + 1 }}</button>{% endif %}
-      <a class="sy-btn" href="{{ c.url('/processes/' ~ p.key ~ '/spec.md', left=v.left.variant.label, right=v.right.variant.label) }}" download>Export spec</a>
+      <a class="sy-btn" href="{{ c.url('/processes/' ~ p.key ~ '/spec.md', left=v.left.model.label, right=v.right.model.label) }}" download>Export spec</a>
     </div>
     <p class="sy-small sy-muted">Saved specs are to-be documents: they stay with the process and are not mixed into the observed documentation.</p>
     <p class="sy-small" role="status" data-result></p>

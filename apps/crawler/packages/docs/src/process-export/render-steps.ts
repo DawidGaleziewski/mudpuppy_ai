@@ -134,9 +134,18 @@ export function readme(m: ProcessExportModel): string {
       ? ['', '(n): cited by the documentation, not on the walked path.']
       : []),
     '',
+    ...modelSection(m),
     '## Files',
     '',
-    ...table(['File', 'What it holds'], FILE_ROWS),
+    ...table(
+      ['File', 'What it holds'],
+      [
+        ...FILE_ROWS,
+        ...(m.facts && m.facts.rules.length > 0
+          ? [['`rules/*.dmn`', 'The decision rules on these screens as DMN 1.3 tables']]
+          : []),
+      ],
+    ),
     '',
     '## Scans behind this documentation',
     '',
@@ -147,6 +156,49 @@ export function readme(m: ProcessExportModel): string {
         .map((x) => [`\`${x.id}\``, x.mode, x.persona_id, x.date]),
     ),
   ]);
+}
+
+/**
+ * What the portal model knows of the process (spec 039 T078): how journeys entered it, how they
+ * ended, the paths walked, how far it was explored and the decision rules on its screens.
+ */
+function modelSection(m: ProcessExportModel): string[] {
+  const f = m.facts;
+  if (!f || f.modelVersion === null) return [];
+  const outcomes = Object.entries(f.outcomes)
+    .sort(([a], [b]) => (a < b ? -1 : 1))
+    .map(([o, n]) => `${o.replace(/_/g, ' ')} ${n}`)
+    .join(' · ');
+  return [
+    '## The process in the portal model',
+    '',
+    `Model version ${f.modelVersion}. ${f.explored ?? 'Not explored yet: the stopping rule has not run on this process.'}`,
+    '',
+    ...(f.triggers.length > 0
+      ? [
+          'Ways in (triggers):',
+          '',
+          ...table(
+            ['Pressed on', 'Element', 'Times'],
+            f.triggers.map((t) => [t.screen, `\`${t.element}\``, String(t.count)]),
+          ),
+          '',
+          `How the walks ended: ${outcomes}.`,
+          '',
+          ...table(
+            ['Screens walked', 'Outcome', 'Times'],
+            f.variants.map((v) => [v.screens.join(' → '), v.outcome, String(v.count)]),
+          ),
+          '',
+        ]
+      : ['No journey entered the process through a trigger yet.', '']),
+    ...(f.rules.length > 0
+      ? [
+          `Decision rules: ${f.rules.map((r) => `[${r.key}](rules/${r.key}.dmn) (${r.status})`).join(', ')}.`,
+          '',
+        ]
+      : []),
+  ];
 }
 
 /** `4b` for a variant of step 4, else the kind ("technical (error)"). */

@@ -1,0 +1,133 @@
+{% extends "salvage/base.html" %}
+{% import "salvage/macros.html" as sy %}
+{% import "salvage/partials/picture.html" as pic with context %}
+{% set nav_current = "changes" %}
+{% block title %}Before / after{% if d %} · {{ d.change.finding }}{% endif %}{% endblock %}
+{% block head_extra %}<script src="/static/js/pictures.js" defer></script><script src="/static/js/change-keys.js" defer></script>{% endblock %}
+{#- Spec 039 T100, designer screen v2-03 (UX-R13): one change's two recorded pages side by side,
+    what differs between their contexts, the explanation with its tests, and where it shows.
+    Read-only: a person decides in Review (the decision bar and Overturn come with R-87). -#}
+{%- macro side(s, id) -%}
+<section class="sy-compare__side" aria-labelledby="{{ id }}">
+  <header class="sy-compare__head">
+    <span id="{{ id }}">{{ s.label }}</span>
+    {%- if s.state_id %}<span class="sy-mono sy-mono--sm sy-muted sy-case-normal">{{ s.title or "(untitled)" }}</span>{% endif %}
+  </header>
+  <p class="sy-small">{{ s.note }}</p>
+  {%- if s.state_id %}
+  <p class="sy-cluster sy-mono sy-mono--sm sy-muted"><span class="sy-status" data-status="ok">Observed</span>
+    {%- if s.run_id %}<span>scan {{ s.run_id[:8] }} · {{ s.at | when }}</span>{% endif %}</p>
+  {%- if s.picture and (s.picture.shot or s.picture.wire) %}
+  {{ pic.thumb(s.state_id, s.picture, s.title, s.route) }}
+  {%- else %}
+  <p class="sy-small">No picture was recorded. <a href="{{ c.url('/states/' ~ s.state_id) }}">Open the recorded screen</a></p>
+  {%- endif %}
+  {%- else %}
+  <div class="sy-state"><span class="sy-small">Nothing recorded on this side.</span></div>
+  {%- endif %}
+</section>
+{%- endmacro -%}
+{% block main %}
+{%- if not d %}
+<div class="sy-pagehead">
+  <nav class="sy-crumbs" aria-label="Breadcrumb"><a href="{{ c.url('/changes') }}">Changes</a></nav>
+  <h1 class="sy-h1">Change not found</h1>
+</div>
+{{ sy.empty("No change " ~ deviation_id ~ (" in " ~ c.portal if c.portal else ""), "Pick the portal it belongs to in the header, or open What changed.") }}
+{%- else %}
+{%- set ch = d.change %}
+<div class="sy-pagehead">
+  <nav class="sy-crumbs" aria-label="Breadcrumb"><a href="{{ c.url('/changes') }}">Changes</a>
+    {%- if d.process %} / <a href="{{ c.url('/changes?process=' ~ d.process[0]) }}">{{ d.process[1] }}</a>{% endif %}
+    {%- if ch.screen_title %} / <span aria-current="page">{{ ch.screen_title }}</span>{% endif %}</nav>
+  <div class="sy-pagehead__row">
+    <div class="sy-stack">
+      <h1 class="sy-h1">Before / after</h1>
+      <p class="sy-cluster sy-meta">{{ sy.status("deviation", ch.status) }}
+        <span class="sy-chip{% if ch.explanation.chip %} sy-chip--{{ ch.explanation.chip }}{% endif %}">{{ ch.explanation.word }}</span>
+        {%- if ch.screen_key %} <span>{{ sy.tag(ch.screen_key, sm=true) }} {{ ch.screen_title }}{% if ch.screen_route %} · <span class="sy-route">{{ ch.screen_route }}</span>{% endif %}</span>{% endif %}</p>
+    </div>
+    {%- if d.position %}
+    <nav class="sy-cluster" aria-label="Changes that need you">
+      <span class="sy-small sy-muted">{{ d.position }} of {{ d.needs_ids | length }} that need you</span>
+      {%- set prev = d.neighbour(-1) %}{% set next = d.neighbour(1) %}
+      {%- if prev %}<a class="sy-btn sy-btn--md" href="{{ c.url('/changes/' ~ prev) }}" data-key="k">Previous <span class="sy-kbd">K</span></a>{% endif %}
+      {%- if next %}<a class="sy-btn sy-btn--md" href="{{ c.url('/changes/' ~ next) }}" data-key="j">Next <span class="sy-kbd">J</span></a>{% endif %}
+    </nav>
+    {%- endif %}
+  </div>
+</div>
+
+<section class="sy-stack" aria-labelledby="finding-h">
+  <div class="sy-stack">
+    <h2 id="finding-h" class="sy-h2 sy-case-normal">{{ ch.finding }}</h2>
+    <p class="sy-meta"><span class="sy-chip{% if ch.kind == 'rule_mismatch' %} sy-chip--fail{% endif %}">{{ ch.word }}</span> · first seen in model version {{ ch.model_seq }} · {{ ch.created_at | when }}{% if ch.element_key %} · <span class="sy-mono sy-mono--sm">{{ ch.element_key }}</span>{% endif %}</p>
+  </div>
+  <div class="sy-compare">
+    {{ side(d.before, "before-h") }}
+    {{ side(d.after, "after-h") }}
+  </div>
+</section>
+
+<div class="sy-columns">
+  <section class="sy-col-main sy-stack" aria-labelledby="ctx-h">
+    <h2 id="ctx-h" class="sy-h2">What differs</h2>
+    {%- if d.differs %}
+    <div class="sy-table-wrap">
+      <table class="sy-table sy-table--middle" aria-labelledby="ctx-h">
+        <thead><tr><th scope="col">Context</th><th scope="col">{{ d.before.label }}</th><th scope="col">{{ d.after.label }}</th><th scope="col"><span class="sy-sr-only">Same or differs</span></th></tr></thead>
+        <tbody>
+        {%- for x in d.differs %}
+          <tr><th scope="row">{{ x.label }}</th>
+            <td{% if x.differs %} class="sy-differs"{% endif %}><span class="sy-mono sy-mono--sm sy-case-normal">{{ x.before }}</span></td>
+            <td{% if x.differs %} class="sy-differs"{% endif %}><span class="sy-mono sy-mono--sm sy-case-normal">{{ x.after }}</span></td>
+            <td class="sy-small{% if not x.differs %} sy-muted{% endif %}">{% if x.differs %}<b>differs</b>{% else %}same{% endif %}</td></tr>
+        {%- endfor %}
+        </tbody>
+      </table>
+    </div>
+    <p class="sy-small sy-muted">Each side's latest recorded visit: the release of each portal part, the persona and the scan.</p>
+    {%- else %}
+    <p class="sy-small sy-muted">Only one side was recorded, so there is nothing to set side by side.</p>
+    {%- endif %}
+  </section>
+
+  <aside class="sy-col-side" aria-label="Explanation and where it shows">
+    <section class="sy-plate{% if ch.status != 'explained' %} sy-plate--drawn{% endif %}" aria-labelledby="exp-h">
+      <div class="sy-plate__head">
+        <h2 id="exp-h" class="sy-plate__title">{% if ch.status == "explained" %}Explanation{% else %}Proposed explanation{% endif %}</h2>
+        {%- if ch.hypothesis_status %}{{ sy.status("hypothesis", ch.hypothesis_status) }}{% endif %}
+      </div>
+      <div class="sy-plate__body sy-stack">
+        <p><b>{{ ch.explanation.word }}:</b> {{ ch.explanation.text }}</p>
+        {%- if ch.hypothesis_key %}<p class="sy-small">{{ sy.tag(ch.hypothesis_key, sm=true) }} {{ ch.finding }}{% if ch.rule %} <span class="sy-muted">· rule {{ ch.rule }}</span>{% endif %}</p>{% endif %}
+        {%- if ch.reason %}<p class="sy-small sy-muted">{{ ch.reason }}</p>{% endif %}
+        {%- if d.tests %}
+        <h3 class="sy-label">Tests run · {{ d.tests | length }}</h3>
+        <ul class="sy-stack">
+          {%- for t in d.tests %}
+          <li class="sy-split"><span class="sy-small sy-case-normal">{{ t.inputs }}{% if t.result %} → {{ t.result }}{% endif %}</span>{{ sy.status("boundary_test", t.verdict) }}</li>
+          {%- endfor %}
+        </ul>
+        {%- endif %}
+        {%- if ch.status != "explained" %}<p class="sy-small sy-muted">Not decided until a person confirms it in Review.</p>{% endif %}
+      </div>
+    </section>
+    <section class="sy-plate" aria-labelledby="where-h">
+      <div class="sy-plate__head"><h2 id="where-h" class="sy-plate__title">Where it shows</h2></div>
+      <div class="sy-rows">
+        {%- if ch.status != "explained" %}<a class="sy-row" href="{{ c.url('/review') }}"><span class="sy-row__main"><span>Review · Needs you</span><span class="sy-small sy-muted">{{ ch.explanation.word }} · since {{ ch.created_at | when }}</span></span></a>{% endif %}
+        {%- if ch.screen_key %}<a class="sy-row" href="{{ c.url('/screens/' ~ ch.screen_key) }}"><span class="sy-row__main"><span class="sy-case-normal">{{ ch.screen_title }}</span><span class="sy-small sy-muted">the screen and its variants</span></span>{{ sy.tag(ch.screen_key, sm=true) }}</a>{% endif %}
+        {%- if d.process %}<a class="sy-row" href="{{ c.url('/processes/' ~ d.process[0]) }}"><span class="sy-row__main"><span class="sy-case-normal">{{ d.process[1] }}</span><span class="sy-small sy-muted">walks this screen</span></span>{{ sy.tag(d.process[0], sm=true) }}</a>{% endif %}
+        {%- if d.hypothesis_kind in ("decision_point", "decision_drift") or ch.kind == "rule_mismatch" %}<a class="sy-row" href="{{ c.url('/rules') }}"><span class="sy-row__main"><span>Business rules</span><span class="sy-small sy-muted">the rule that decides it</span></span></a>{% endif %}
+      </div>
+    </section>
+  </aside>
+</div>
+<div class="sy-keybar" aria-label="Keyboard shortcuts">
+  <span><span class="sy-kbd">J</span> / <span class="sy-kbd">K</span> next / previous change</span>
+  <span><span class="sy-kbd">Esc</span> back to What changed</span>
+</div>
+{{ pic.dialog() }}
+{%- endif %}
+{% endblock %}

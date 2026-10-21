@@ -10,6 +10,7 @@ export const KIND_LABEL: Record<DocKind, string> = {
   requirement: 'Functional requirements',
   business_rule: 'Business rules',
   data_item: 'Data items',
+  api_endpoint: 'API endpoints',
   glossary_term: 'Glossary terms',
   nfr: 'Non-functional requirements',
   assumption: 'Assumptions',

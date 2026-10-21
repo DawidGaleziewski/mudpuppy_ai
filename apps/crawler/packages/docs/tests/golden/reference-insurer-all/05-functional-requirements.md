@@ -43,4 +43,3 @@ _No acceptance criteria recorded._
 Evidence:
 
 - form `00000000-0000-7000-8000-000000000007` — form: imie, temat, wiadomosc, telefon (run `00000000-0000-7000-8000-000000000001`, map, 2026-01-15) — note: hint "Podaj telefon lub e-mail."
-- form `00000000-0000-7000-8000-000000000053` — **broken: the target no longer exists** (run `00000000-0000-7000-8000-000000000001`, map, 2026-01-15) — note: earlier sighting of the form

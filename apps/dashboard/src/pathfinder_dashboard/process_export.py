@@ -100,12 +100,8 @@ def export(settings: Settings, data_dir: Path, env: str, portal: str, key: str) 
     """The process's export folder, built again only after the store changed."""
     if not KEY.match(key):
         raise ExportFailed(f"not a process key: {key}")
-    store = db.store_path(data_dir, env)
-    wal = store.with_name(store.name + "-wal")
-    # A reader creates an empty WAL file: only a WAL that holds pages means a write.
-    written = [p for p in (store, wal) if p.exists() and (p is store or p.stat().st_size > 0)]
-    stamp = max((p.stat().st_mtime for p in written), default=0.0)
-    cache_key = (str(store), portal, key, stamp)
+    store, stamp = db.store_stamp(data_dir, env)
+    cache_key = (store, portal, key, stamp)
     known = _CACHE.get(cache_key)
     if known is not None and (known / "README.md").is_file():
         return Exported(known)

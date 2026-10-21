@@ -357,6 +357,7 @@ describe.skipIf(!available)('trace mode on the reference portal (spec 004 R-14, 
       action_id: find(page, 'textbox', 'Model').action_id,
       value: 'jan.kowalski@example.com',
       intent: 'Enter the model',
+      trigger: true,
       rationale: 'x',
     });
     expect(filled.state_id).not.toBe(page.state_id);
@@ -375,6 +376,8 @@ describe.skipIf(!available)('trace mode on the reference portal (spec 004 R-14, 
       run_id: runId,
       action_id: find(filled, 'button', 'Dalej').action_id,
       intent: 'Try to continue with missing fields',
+      // A second mark is ignored: the trace entered its process once (T081@039).
+      trigger: true,
       rationale: 'x',
     });
     expect(held.step.outcomes[0]).toBe('No visible change after the step');
@@ -394,10 +397,11 @@ describe.skipIf(!available)('trace mode on the reference portal (spec 004 R-14, 
     });
     const proc = await ctx.db
       .selectFrom('processes')
-      .select('outcome')
+      .select(['outcome', 'trigger_ord'])
       .where('run_id', '=', runId)
       .executeTakeFirstOrThrow();
     expect(proc.outcome).toBe('abandoned');
+    expect(proc.trigger_ord).toBe(2);
 
     // Map mode: no step in results, form fields are not actions, no process row.
     const mapRun = (await ok('start_run', { portal_id: id, persona_id: 'guest' })).run_id as string;

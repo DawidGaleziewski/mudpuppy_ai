@@ -102,7 +102,7 @@ export async function appendStep(
     intent: string;
     kind: StepKind;
     action_id: string | null;
-    edge_id: string | null;
+    transition_id: string | null;
     value: string | null;
     state_before: string | null;
     state_after: string | null;
@@ -125,7 +125,7 @@ export async function appendStep(
       intent: maskText(step.intent),
       kind: step.kind,
       action_id: step.action_id,
-      edge_id: step.edge_id,
+      transition_id: step.transition_id,
       value: step.value === null ? null : maskText(step.value),
       state_before: step.state_before,
       state_after: step.state_after,
@@ -136,6 +136,23 @@ export async function appendStep(
     })
     .execute();
   return ord;
+}
+
+/**
+ * Mark step `ord` as the process's trigger (spec 039 T081): the click that enters the process.
+ * The first mark stands; a later one is ignored (the trace entered once).
+ */
+export async function markTrigger(
+  ctx: ServerContext,
+  processId: string,
+  ord: number,
+): Promise<void> {
+  await ctx.db
+    .updateTable('processes')
+    .set({ trigger_ord: ord })
+    .where('id', '=', processId)
+    .where('trigger_ord', 'is', null)
+    .execute();
 }
 
 export async function stepCount(ctx: ServerContext, processId: string): Promise<number> {

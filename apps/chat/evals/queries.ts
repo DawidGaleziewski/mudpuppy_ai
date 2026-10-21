@@ -47,7 +47,7 @@ export function technicalStates(raw: Db, portal: string): Set<string> {
 export function followedNames(raw: Db, portal: string): Set<string> {
   const rows = raw
     .prepare(
-      `SELECT DISTINCT json_extract(e.action_json, '$.accessible_name') AS n FROM edges e
+      `SELECT DISTINCT json_extract(e.action_json, '$.accessible_name') AS n FROM transitions e
        JOIN runs r ON r.id = e.run_id
        WHERE r.portal_id = ? AND e.status = 'executed' AND n IS NOT NULL AND length(n) > 1`,
     )

@@ -12,8 +12,7 @@ export interface ExportScope {
 
 /**
  * The states one evidence target sits on. `null` means the target has no state of its own
- * (another record, a review, a rule candidate): neutral, it neither keeps nor drops a record.
- * A broken target resolves to `[]` and counts as out of scope.
+ * (another record, a review): neutral, it neither keeps nor drops a record.
  */
 export function evidenceStates(raw: RawDb, e: ExportEvidence): string[] | null {
   const one = (sql: string): string[] =>
@@ -28,14 +27,14 @@ export function evidenceStates(raw: RawDb, e: ExportEvidence): string[] | null {
       return one('SELECT state_id AS s FROM actions WHERE id = @id');
     case 'form':
       return one('SELECT state_id AS s FROM forms WHERE id = @id');
-    case 'edge':
+    case 'transition':
       return one(
-        'SELECT from_state AS s FROM edges WHERE id = @id UNION SELECT to_state FROM edges WHERE id = @id',
+        'SELECT from_state AS s FROM transitions WHERE id = @id UNION SELECT to_state FROM transitions WHERE id = @id',
       );
     case 'network_call':
       return one(
-        `SELECT e.from_state AS s FROM network_calls n JOIN edges e ON e.id = n.edge_id WHERE n.id = @id
-         UNION SELECT e.to_state FROM network_calls n JOIN edges e ON e.id = n.edge_id WHERE n.id = @id`,
+        `SELECT e.from_state AS s FROM network_calls n JOIN transitions e ON e.id = n.transition_id WHERE n.id = @id
+         UNION SELECT e.to_state FROM network_calls n JOIN transitions e ON e.id = n.transition_id WHERE n.id = @id`,
       );
     case 'process_step':
       return one(

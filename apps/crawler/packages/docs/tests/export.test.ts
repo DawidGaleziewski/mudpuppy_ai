@@ -5,12 +5,7 @@ import { fileURLToPath } from 'node:url';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { audit } from '../src/audit.js';
 import { exportSrs, writeExport } from '../src/export.js';
-import {
-  makeFixtureStore,
-  seedDocRecords,
-  type FixtureStore,
-  type SeededDocs,
-} from '../src/testing/index.js';
+import { makeFixtureStore, seedDocRecords, type FixtureStore } from '../src/testing/index.js';
 
 /**
  * T072 (contracts/srs-export.md, FR-050–FR-054, SC-007). Goldens live in tests/golden/; regenerate
@@ -20,13 +15,12 @@ const GOLDEN = fileURLToPath(new URL('./golden', import.meta.url));
 const UPDATE = process.env.UPDATE_GOLDEN === '1';
 
 let fx: FixtureStore;
-let seeded: SeededDocs;
 let all: Map<string, string>;
 let confirmed: Map<string, string>;
 
 beforeAll(async () => {
   fx = await makeFixtureStore({ portalId: 'reference-insurer', deterministicIds: true });
-  seeded = seedDocRecords(fx);
+  seedDocRecords(fx);
   // No evidenceRoot: text files only (images are covered by export-images.test.ts).
   all = exportSrs(fx.raw, fx.portalId, { environment: 'sandbox' }) as Map<string, string>;
   confirmed = exportSrs(fx.raw, fx.portalId, {
@@ -85,11 +79,8 @@ interface Json {
 const json = (files: Map<string, string>): Json => JSON.parse(files.get('records.json')!) as Json;
 
 describe('seeded store', () => {
-  it('audits clean except the deliberately broken evidence link', () => {
-    const findings = audit(fx.raw, fx.portalId).findings;
-    expect(findings).toEqual([
-      expect.objectContaining({ check: 'broken_link', key: 'REQ-002', rev_no: 1 }),
-    ]);
+  it('audits clean', () => {
+    expect(audit(fx.raw, fx.portalId).findings).toEqual([]);
   });
 });
 
@@ -143,11 +134,10 @@ describe('exportSrs (contracts/srs-export.md)', () => {
     }
   });
 
-  it('lists unknowns: needs_confirmation, not observable, follow-ups, broken evidence (FR-052)', () => {
+  it('lists unknowns: needs_confirmation, not observable, follow-ups (FR-052)', () => {
     const unknowns = all.get('11-unknowns.md')!;
     for (const key of ['REQ-002', 'BR-002', 'FUP-001', 'FUP-002', 'PROC-002'])
       expect(unknowns, key).toContain(key);
-    expect(unknowns).toContain(seeded.goneFormId);
     expect(unknowns).toContain('ceiling:read: "Dalej" is mutating, above the read limit');
     expect(all.get('06-business-rules.md')).toContain('not observable');
   });
@@ -161,7 +151,6 @@ describe('exportSrs (contracts/srs-export.md)', () => {
       const blob = files.get('records.json')!;
       for (const id of new Set(text.match(UUID))) {
         expect(blob.includes(id), id).toBe(true);
-        if (id === seeded.goneFormId) continue;
         expect(existsInStore(id), id).toBe(true);
       }
     }
@@ -212,12 +201,11 @@ describe('writeExport and refusals', () => {
 const TABLES = [
   'runs',
   'states',
-  'edges',
+  'transitions',
   'actions',
   'forms',
   'network_calls',
   'open_questions',
-  'rule_candidates',
   'decision_log',
   'processes',
   'process_steps',

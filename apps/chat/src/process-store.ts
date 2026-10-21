@@ -5,8 +5,8 @@ import { newId, nowIso } from '@pathfinder/core';
 import {
   BaProcess,
   type BaProcessChange,
-  ProcessVariant,
-  ProcessVariantRevision,
+  ProcessModel,
+  ProcessModelRevision,
 } from '@pathfinder/chat-model';
 import { type PathfinderDb } from '@pathfinder/store';
 import type { z } from 'zod';
@@ -49,34 +49,34 @@ export async function loadProcess(
   return BaProcess.parse(row);
 }
 
-export async function loadVariant(
+export async function loadModel(
   db: PathfinderDb,
   processId: string,
   label: string,
-): Promise<ProcessVariant> {
+): Promise<ProcessModel> {
   const row = await db
-    .selectFrom('process_variants')
+    .selectFrom('process_models')
     .selectAll()
     .where('process_id', '=', processId)
     .where('label', '=', label)
     .executeTakeFirst();
-  if (row === undefined) throw new HttpError(404, `This process has no variant ${label}.`);
-  return ProcessVariant.parse(row);
+  if (row === undefined) throw new HttpError(404, `This process has no model ${label}.`);
+  return ProcessModel.parse(row);
 }
 
 export async function loadRevision(
   db: PathfinderDb,
-  variantId: string,
+  modelId: string,
   rev: number,
-): Promise<ProcessVariantRevision> {
+): Promise<ProcessModelRevision> {
   const row = await db
-    .selectFrom('process_variant_revisions')
+    .selectFrom('process_model_revisions')
     .selectAll()
-    .where('variant_id', '=', variantId)
+    .where('model_id', '=', modelId)
     .where('rev', '=', rev)
     .executeTakeFirst();
-  if (row === undefined) throw new HttpError(404, `This variant has no revision ${String(rev)}.`);
-  return parseRow(ProcessVariantRevision, row, ['steps']);
+  if (row === undefined) throw new HttpError(404, `This model has no revision ${String(rev)}.`);
+  return parseRow(ProcessModelRevision, row, ['steps']);
 }
 
 /** Recorded states of the portal in the given order; 404 naming the unknown ones. */
@@ -118,61 +118,61 @@ export async function knownStates(
   return new Set(rows.map((r) => r.id));
 }
 
-/** Every step id any revision of a variant used (a new step's id never repeats one). */
-export async function usedStepIds(db: PathfinderDb, variantId: string): Promise<string[]> {
+/** Every step id any revision of a model used (a new step's id never repeats one). */
+export async function usedStepIds(db: PathfinderDb, modelId: string): Promise<string[]> {
   const rows = await db
-    .selectFrom('process_variant_revisions')
+    .selectFrom('process_model_revisions')
     .select('steps')
-    .where('variant_id', '=', variantId)
+    .where('model_id', '=', modelId)
     .execute();
   return rows.flatMap((r) => (JSON.parse(r.steps) as { id: string }[]).map((s) => s.id));
 }
 
-/** Step ids of the revision a variant was branched from (what `from` may point at). */
-export async function parentStepIds(db: PathfinderDb, v: ProcessVariant): Promise<Set<string>> {
-  if (v.branched_from_variant_id === null || v.branched_from_rev === null) return new Set();
-  const parent = await loadRevision(db, v.branched_from_variant_id, v.branched_from_rev);
+/** Step ids of the revision a model was branched from (what `from` may point at). */
+export async function parentStepIds(db: PathfinderDb, v: ProcessModel): Promise<Set<string>> {
+  if (v.branched_from_model_id === null || v.branched_from_rev === null) return new Set();
+  const parent = await loadRevision(db, v.branched_from_model_id, v.branched_from_rev);
   return new Set(parent.steps.map((s) => s.id));
 }
 
-export async function insertVariantRevision(
+export async function insertModelRevision(
   db: PathfinderDb,
-  r: Omit<ProcessVariantRevision, 'created_at'>,
-): Promise<ProcessVariantRevision> {
-  const row = ProcessVariantRevision.parse({ ...r, created_at: nowIso() });
+  r: Omit<ProcessModelRevision, 'created_at'>,
+): Promise<ProcessModelRevision> {
+  const row = ProcessModelRevision.parse({ ...r, created_at: nowIso() });
   await db
-    .insertInto('process_variant_revisions')
+    .insertInto('process_model_revisions')
     .values({ ...row, steps: JSON.stringify(row.steps) })
     .execute();
   return row;
 }
 
-export interface VariantWrite {
-  change: ProcessVariantRevision['change'];
+export interface ModelWrite {
+  change: ProcessModelRevision['change'];
   author: string;
   steps: Steps;
   note?: string | null;
   restored_from?: number | null;
 }
 
-/** Move a variant head on to a new revision; refuses a stale base. */
-export async function writeVariant(
+/** Move a model head on to a new revision; refuses a stale base. */
+export async function writeModel(
   db: PathfinderDb,
-  head: ProcessVariant,
+  head: ProcessModel,
   baseRev: number,
-  w: VariantWrite,
-): Promise<{ variant: ProcessVariant; revision: ProcessVariantRevision }> {
-  const what = `Variant ${head.label}`;
+  w: ModelWrite,
+): Promise<{ model: ProcessModel; revision: ProcessModelRevision }> {
+  const what = `Model ${head.label}`;
   if (baseRev !== head.rev) throw stale(what, baseRev, head.rev, head);
   const done = await db
-    .updateTable('process_variants')
+    .updateTable('process_models')
     .set({ rev: head.rev + 1 })
     .where('id', '=', head.id)
     .where('rev', '=', head.rev) // another writer got there first: no lost update
     .executeTakeFirst();
   if (Number(done.numUpdatedRows) !== 1) throw stale(what, baseRev, head.rev + 1, head);
-  const revision = await insertVariantRevision(db, {
-    variant_id: head.id,
+  const revision = await insertModelRevision(db, {
+    model_id: head.id,
     rev: head.rev + 1,
     base_rev: head.rev,
     change: w.change,
@@ -182,7 +182,7 @@ export async function writeVariant(
     run_id: null,
     restored_from: w.restored_from ?? null,
   });
-  return { variant: { ...head, rev: head.rev + 1 }, revision };
+  return { model: { ...head, rev: head.rev + 1 }, revision };
 }
 
 export interface ProcessWrite {
@@ -250,8 +250,8 @@ export async function writeProcess(
 
 export interface ProcessOutcome {
   process: BaProcess;
-  variant?: ProcessVariant;
-  revision?: ProcessVariantRevision;
+  model?: ProcessModel;
+  revision?: ProcessModelRevision;
 }
 
 export interface NewProcess {
@@ -307,19 +307,32 @@ export async function insertProcess(
       created_at: now,
     })
     .execute();
-  const variant = ProcessVariant.parse({
+  return { process, ...(await insertAsIs(db, process.id, input, now)) };
+}
+
+/**
+ * The as-is model A r1 of a process, built from recorded states: with a new process, or for one
+ * the BA's process record opened without it (spec 039 T070).
+ */
+export async function insertAsIs(
+  db: PathfinderDb,
+  processId: string,
+  input: Pick<NewProcess, 'states' | 'author' | 'source'>,
+  now = nowIso(),
+): Promise<Omit<ProcessOutcome, 'process'>> {
+  const model = ProcessModel.parse({
     id: newId(),
-    process_id: process.id,
+    process_id: processId,
     label: 'A',
     kind: 'as_is',
     rev: 1,
-    branched_from_variant_id: null,
+    branched_from_model_id: null,
     branched_from_rev: null,
     created_at: now,
   });
-  await db.insertInto('process_variants').values(variant).execute();
-  const revision = await insertVariantRevision(db, {
-    variant_id: variant.id,
+  await db.insertInto('process_models').values(model).execute();
+  const revision = await insertModelRevision(db, {
+    model_id: model.id,
     rev: 1,
     base_rev: null,
     change: 'create',
@@ -329,5 +342,5 @@ export async function insertProcess(
     run_id: null,
     restored_from: null,
   });
-  return { process, variant, revision };
+  return { model, revision };
 }

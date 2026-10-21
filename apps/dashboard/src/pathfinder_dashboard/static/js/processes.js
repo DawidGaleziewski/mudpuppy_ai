@@ -87,9 +87,9 @@
     const process = result.body.process;
     if (button.dataset.reload === "page") window.location.reload();
     else if (button.dataset.open && process) {
-      const label = result.body.variant?.label ?? "A";
+      const label = result.body.model?.label ?? "A";
       window.location.assign(
-        `/processes/${encodeURIComponent(process.key)}?variant=${label}`,
+        `/processes/${encodeURIComponent(process.key)}?model=${label}`,
       );
     } else if (editor()) reloadEditor();
     else window.location.reload();

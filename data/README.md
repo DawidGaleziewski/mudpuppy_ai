@@ -10,7 +10,7 @@ rather than editing this folder ad hoc.
   ERD/markdown doc), regenerated with every migration (tracked in git).
 - `db/` — actual SQLite database files, one per environment/run context. Generated artifacts,
   not source (git-ignored).
-  Each store holds two layers. **Layer A** is what the crawler recorded (runs, states, edges,
+  Each store holds two layers. **Layer A** is what the crawler recorded (runs, states, transitions, observations,
   actions, forms, network call shapes, frontier, decisions, crawler questions, trace spans, and
   for trace runs `processes` + `process_steps`). **Layer B** is the BA agent's documentation,
   written only through the `pathfinder-ba` MCP tools and the `docs:review` command:

@@ -34,7 +34,7 @@ function groupingInputs(raw: BetterSqlite3.Database, portal: string) {
     .prepare(
       `SELECT e.from_state, e.to_state, json_extract(e.action_json, '$.role') AS role,
               json_extract(e.action_json, '$.name') AS name, count(*) AS times
-       FROM edges e JOIN states f ON f.id = e.from_state
+       FROM transitions e JOIN states f ON f.id = e.from_state
        WHERE f.portal_id = ? AND e.to_state IS NOT NULL AND e.status = 'executed'
          AND e.from_state <> e.to_state
        GROUP BY e.from_state, e.to_state, role, name ORDER BY e.from_state LIMIT 2000`,
@@ -43,8 +43,8 @@ function groupingInputs(raw: BetterSqlite3.Database, portal: string) {
   const processes = raw
     .prepare(
       `SELECT p.key, p.name, p.stage, r.steps FROM ba_processes p
-       JOIN process_variants v ON v.process_id = p.id AND v.label = 'A'
-       JOIN process_variant_revisions r ON r.variant_id = v.id AND r.rev = v.rev
+       JOIN process_models v ON v.process_id = p.id AND v.label = 'A'
+       JOIN process_model_revisions r ON r.model_id = v.id AND r.rev = v.rev
        WHERE p.portal_id = ? AND p.archived_at IS NULL ORDER BY p.key`, // archived: out of the cut (spec 027)
     )
     .all(portal) as { key: string; name: string; stage: string; steps: string }[];

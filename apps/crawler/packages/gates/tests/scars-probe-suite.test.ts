@@ -19,7 +19,7 @@ import {
 
 /**
  * The owner-reviewed probe suite (SC-19, spec 032 US3, owner decision D-2): the BA picks probe
- * outcomes of a probing run, the server builds a `traces.yaml` trace from them and keeps it open
+ * outcomes of a form-probing run, the server builds a `traces.yaml` trace from them and keeps it open
  * (not in the catalogue: it cannot run before the owner approves it, which the chat service does,
  * apps/chat tests/probe-suites.test.ts). Driven twice, each variant ends on the same kind of page.
  */
@@ -46,7 +46,7 @@ const landing = (runId: string | null) =>
   rows<{ route_template: string; form_step_id: string | null; state_kind: string; step: string }>(
     gs,
     `SELECT s.route_template, s.form_step_id, s.state_kind, f.step_index || ' ' || f.label AS step
-       FROM page_visits v JOIN states s ON s.id = v.state_id LEFT JOIN form_steps f ON f.id = s.form_step_id
+       FROM observations v JOIN states s ON s.id = v.state_id LEFT JOIN form_steps f ON f.id = s.form_step_id
        WHERE v.run_id = ? ORDER BY v.created_at DESC, v.rowid DESC LIMIT 1`,
     runId,
   )[0];
@@ -57,7 +57,7 @@ gate('SC-19', 'an owner-reviewed suite runs the same way every time', async () =
   const seen = await scarNav(gs.call, mapped, '/sc19/apply');
   await actOn(gs.call, mapped, seen, 'Next', { intent: 'go to step 2' });
   markForProbing(gs, PORTAL, seen.route_template as string);
-  const run = await startRun(gs.call, PORTAL, PERSONA, { probe_marked: true });
+  const run = await startRun(gs.call, PORTAL, PERSONA, { form_probing: true });
   const step1 = await scarNav(gs.call, run, '/sc19/apply');
   const step2 = await actOn(gs.call, run, step1, 'Next', { intent: 'go to step 2' });
   for (let call = 0; call < 6; call++) {

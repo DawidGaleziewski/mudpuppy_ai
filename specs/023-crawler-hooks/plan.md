@@ -10,7 +10,7 @@ Three parts, one branch, one close-out:
 |---|---|---|
 | P1 | URL lists `urls: { allowed, disallowed }` replace `scope.allowed_paths` and the `url:`/`path:` denylist entries; every portal file migrated; skipped edges "excluded by rule" | US3 |
 | P2 | Hooks: `portals/<id>/hooks.ts` + `hooks:` in the portal YAML; loader, runner, five hook points in the pipeline, traced, never fatal | US1, US2 |
-| P3 | Timeouts per portal and per URL pattern; export-fork carries hooks; dashboard lists hooks that ran | US4, US5 |
+| P3 | Timeouts per portal and per URL pattern; dashboard lists hooks that ran | US4 |
 
 Owner decisions 2026-10-14 (memory `r42-r43-r53-r33-kickoff`): no `afterLogin` in v1; per-hook
 timeout default 10 s; hooks run in every run (CLI, chat, gates); old keys removed outright, no
@@ -120,10 +120,6 @@ timeouts:
 `scope.mfe_wait_ms` and `scope.client_redirect_wait_ms` move into `timeouts` (removed from
 scope, migrated). Bounds as today (Zod). `effectiveTimeouts(config, url)`: first `per_url` match
 wins over the portal values over the defaults; recorded on each page's trace span.
-
-### Export (P3)
-
-`apps/exportfork-export` manifest includes `portals/*/hooks.ts` and the hooks package; leak-checked.
 
 ## Constitution check
 

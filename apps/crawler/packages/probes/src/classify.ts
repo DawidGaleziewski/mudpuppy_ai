@@ -1,5 +1,5 @@
 // What a probe's try produced, as one outcome kind (spec 032 plan decision 7, design §1). Pure and
-// deterministic: the same facts give the same kind, so a probing run and the suite built from it
+// deterministic: the same facts give the same kind, so a form-probing run and the suite built from it
 // agree. Rules in order: blocked, technical, validation, temporary, branch, next.
 
 import type { OutcomeKind, ProbeGroup } from '@pathfinder/core';

@@ -57,6 +57,19 @@ function processJson(m: ProcessExportModel): string {
         title: m.process.title,
         ...(m.record ? { content: m.record.content, status: m.record.status } : {}),
       },
+      // Spec 039 T078: the portal model's view; DMN files themselves are under rules/.
+      ...(m.facts
+        ? {
+            model: {
+              version: m.facts.modelVersion,
+              triggers: m.facts.triggers,
+              outcomes: m.facts.outcomes,
+              variants: m.facts.variants,
+              explored: m.facts.explored,
+              rules: m.facts.rules.map((r) => ({ key: r.key, status: r.status })),
+            },
+          }
+        : {}),
       steps: m.steps.map((s) => ({
         n: s.step.n,
         title: s.step.title,
@@ -172,6 +185,7 @@ export function exportProcess(
     ['GAPS.md', gaps(m)],
     ['process.json', processJson(m)],
   ]);
+  for (const r of m.facts?.rules ?? []) files.set(`rules/${r.key}.dmn`, r.dmn);
   if (opts.evidenceRoot) for (const [p, b] of images(m, opts.evidenceRoot)) files.set(p, b);
   return files;
 }

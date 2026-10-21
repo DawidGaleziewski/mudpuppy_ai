@@ -71,7 +71,6 @@ describe('the fixture store', () => {
     expect(count('SELECT COUNT(*) n FROM forms WHERE run_id = ?', fx.runId)).toBe(2);
     expect(count('SELECT COUNT(*) n FROM network_calls WHERE run_id = ?', fx.runId)).toBe(2);
     expect(count('SELECT COUNT(*) n FROM open_questions WHERE run_id = ?', fx.runId)).toBe(2);
-    expect(count('SELECT COUNT(*) n FROM rule_candidates WHERE run_id = ?', fx.runId)).toBe(1);
     expect(count('SELECT COUNT(*) n FROM runs WHERE portal_id = ?', fx.otherPortalId)).toBe(1);
     expect(
       fx.raw
@@ -96,20 +95,18 @@ describe('the fixture store', () => {
 describe('resolveTargets', () => {
   it('resolves run-bound Layer A targets with their run, portal and confidence', () => {
     const out = resolve([
-      { target_kind: 'edge', target_id: fx.edges.homeToCar },
+      { target_kind: 'transition', target_id: fx.transitions.homeToCar },
       { target_kind: 'form', target_id: fx.forms.vehicle },
       { target_kind: 'action', target_id: fx.actions.buy },
       { target_kind: 'network_call', target_id: fx.networkCalls.quote },
-      { target_kind: 'rule_candidate', target_id: fx.ruleCandidate },
       { target_kind: 'open_question', target_id: fx.openQuestions[0] },
       { target_kind: 'decision', target_id: fx.decision },
     ]);
     expect(out.map((t) => [t.target_kind, t.confidence])).toEqual([
-      ['edge', 'observed'],
+      ['transition', 'observed'],
       ['form', 'observed'],
       ['action', 'observed'],
       ['network_call', 'observed'],
-      ['rule_candidate', 'inferred'],
       ['open_question', null],
       ['decision', null],
     ]);
@@ -117,7 +114,7 @@ describe('resolveTargets', () => {
       expect(t.run_id).toBe(fx.runId);
       expect(t.portal_id).toBe(fx.portalId);
     }
-    expect(out[0]!.target_id).toBe(fx.edges.homeToCar);
+    expect(out[0]!.target_id).toBe(fx.transitions.homeToCar);
   });
 
   it('ties a state to the session run that observed it', () => {
@@ -154,9 +151,11 @@ describe('resolveTargets', () => {
 
   it('refuses evidence from a run outside the session (RUN_NOT_IN_SESSION)', () => {
     const later = fx.addRun();
-    const edge = failure(() => resolve([{ target_kind: 'edge', target_id: later.edgeId }]));
-    expect(edge.code).toBe('RUN_NOT_IN_SESSION');
-    expect(edge.details).toMatchObject({ run_id: later.runId, index: 0 });
+    const transition = failure(() =>
+      resolve([{ target_kind: 'transition', target_id: later.transitionId }]),
+    );
+    expect(transition.code).toBe('RUN_NOT_IN_SESSION');
+    expect(transition.details).toMatchObject({ run_id: later.runId, index: 0 });
 
     const state = failure(() =>
       resolve([{ target_kind: 'state', target_id: fx.states.home, run_id: later.runId }]),
@@ -180,7 +179,7 @@ describe('resolveTargets', () => {
     expect(e.details).toMatchObject({ index: 1, target_kind: 'form', target_id: 'nope' });
     // An id of the wrong kind is unknown too.
     expect(
-      failure(() => resolve([{ target_kind: 'edge', target_id: fx.forms.contact }])).code,
+      failure(() => resolve([{ target_kind: 'transition', target_id: fx.forms.contact }])).code,
     ).toBe('UNKNOWN_REF');
   });
 
@@ -188,7 +187,7 @@ describe('resolveTargets', () => {
     const other = fx.addRun(fx.otherPortalId);
     for (const link of [
       { target_kind: 'state', target_id: fx.otherState },
-      { target_kind: 'edge', target_id: other.edgeId },
+      { target_kind: 'transition', target_id: other.transitionId },
     ] as const) {
       const e = failure(() => resolve([link], [fx.runId, fx.otherRunId, other.runId]));
       expect(e.code).toBe('PORTAL_MISMATCH');
@@ -198,9 +197,39 @@ describe('resolveTargets', () => {
 
   it('accepts run_id only on a state link', () => {
     const e = failure(() =>
-      resolve([{ target_kind: 'edge', target_id: fx.edges.homeToCar, run_id: fx.runId }]),
+      resolve([
+        { target_kind: 'transition', target_id: fx.transitions.homeToCar, run_id: fx.runId },
+      ]),
     );
     expect(e.code).toBe('SCHEMA_INVALID');
+  });
+
+  it('resolves a hypothesis of the portal model by its key, with a null run (owner answer 18)', () => {
+    fx.raw
+      .prepare(
+        `INSERT INTO model_versions (id, portal_id, seq, built_at, algorithm, threshold, stats_json)
+         VALUES ('mv-1', ?, 1, ?, 'minhash-avglink-v1', 0.8, '{}')`,
+      )
+      .run(fx.portalId, FIXTURE_TS);
+    fx.raw
+      .prepare(
+        `INSERT INTO hypotheses (id, key, portal_id, kind, claim, claim_json, claim_hash, origin,
+           rule, confidence, model_version_id, created_at)
+         VALUES ('h-1', 'H-0007', ?, 'decision_rule', 'Drivers under 18 are refused.', '{}', ?,
+           'rule', 'R7', 'needs_confirmation', 'mv-1', ?)`,
+      )
+      .run(fx.portalId, 'b'.repeat(64), FIXTURE_TS);
+    expect(resolve([{ target_kind: 'hypothesis', target_id: 'H-0007' }])).toEqual([
+      {
+        target_kind: 'hypothesis',
+        target_id: 'h-1',
+        run_id: null,
+        portal_id: fx.portalId,
+        confidence: null,
+      },
+    ]);
+    const e = failure(() => resolve([{ target_kind: 'hypothesis', target_id: 'H-9999' }]));
+    expect(e.code).toBe('UNKNOWN_REF');
   });
 
   it('resolves doc_record (by key or id) and review targets with a null run', () => {
@@ -289,15 +318,15 @@ describe('resolveTargets', () => {
     );
   });
 
-  it('lets a page visit qualify for observed (spec 019 F-07)', () => {
+  it('lets an observation qualify for observed (spec 019 F-07)', () => {
     fx.raw
       .prepare(
-        `INSERT INTO page_visits (id, run_id, state_id, edge_id, via, url, hops_json, created_at)
+        `INSERT INTO observations (id, run_id, state_id, transition_id, via, url, hops_json, created_at)
          VALUES ('visit-obs', ?, ?, NULL, 'navigate', 'https://ref.test/a?b=1', '[]', '2026-10-01T00:00:00.000Z')`,
       )
       .run(fx.runId, fx.states.home);
-    const [t] = resolve([{ target_kind: 'page_visit', target_id: 'visit-obs' }]);
-    expect(t).toMatchObject({ target_kind: 'page_visit', confidence: 'observed' });
+    const [t] = resolve([{ target_kind: 'observation', target_id: 'visit-obs' }]);
+    expect(t).toMatchObject({ target_kind: 'observation', confidence: 'observed' });
     expect(qualifiesAsObserved(t!)).toBe(true);
   });
 

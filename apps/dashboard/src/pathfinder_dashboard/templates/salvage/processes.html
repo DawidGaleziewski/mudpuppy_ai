@@ -1,7 +1,7 @@
 {% extends "salvage/base.html" %}
 {% import "salvage/macros.html" as sy %}
 {% set nav_current = "processes" %}
-{#- Processes (screen 04, FE-P01): the BA's processes with stage, variants and live per
+{#- Processes (screen 04, FE-P01): the BA's processes with stage, models and live per
     environment, the assistant's suggestions (drawn, not saved) with Accept / Edit first / Dismiss,
     and the screens in no process. Writes go through /chat/portals/… (forms.js data-process). -#}
 {% block title %}Processes{% endblock %}
@@ -53,7 +53,7 @@
     <table class="sy-table sy-table--interactive mp-table-wide">
       <caption class="sy-sr-only">The BA's processes of {{ c.portal }}</caption>
       <thead><tr>
-        <th scope="col">Process</th><th scope="col">Stage</th><th scope="col">Variants</th>
+        <th scope="col">Process</th><th scope="col">Stage</th><th scope="col">Process models</th>
         <th scope="col">Live</th><th scope="col" class="sy-num">Screens</th>
         <th scope="col" class="sy-num">Amendments</th><th scope="col">Last change</th>
       </tr></thead>
@@ -66,11 +66,11 @@
           </div></th>
           <td>{{ sy.status("stage", p.stage) }}</td>
           <td><div class="sy-stack" style="--sy-gap: 6px">
-            {%- for label, kind, rev, drafts in r.variants %}
-            <span class="sy-cluster" style="--sy-gap: 6px">{{ sy.tag(label ~ " r" ~ rev, c.url('/processes/' ~ p.key, variant=label), sm=true) }}<span class="sy-small sy-muted">{{ kind | replace("_", "-") }}</span>{% if drafts %}{{ sy.status("variant", "draft") }}{% endif %}</span>
+            {%- for label, kind, rev, drafts in r.models %}
+            <span class="sy-cluster" style="--sy-gap: 6px">{{ sy.tag(label ~ " r" ~ rev, c.url('/processes/' ~ p.key, model=label), sm=true) }}<span class="sy-small sy-muted">{{ kind | replace("_", "-") }}</span>{% if drafts %}{{ sy.status("process_model","draft") }}{% endif %}</span>
             {%- endfor %}
           </div></td>
-          <td>{% for env, live in r.live.items() %}<span class="sy-cluster" style="--sy-gap: 4px">{{ sy.status("variant", "live", live) }}<span class="sy-small sy-muted">{{ env }}</span></span>{% else %}<span class="sy-muted">—</span>{% endfor %}</td>
+          <td>{% for env, live in r.live.items() %}<span class="sy-cluster" style="--sy-gap: 4px">{{ sy.status("process_model", "live", live) }}<span class="sy-small sy-muted">{{ env }}</span></span>{% else %}<span class="sy-muted">—</span>{% endfor %}</td>
           <td class="sy-num">{{ r.screens }}</td>
           <td class="sy-num">{{ r.amendments }}</td>
           <td><div class="sy-stack" style="--sy-gap: 6px" data-actions>
@@ -115,6 +115,34 @@
         <button class="sy-btn sy-btn--sm sy-btn--quiet" type="button" data-process="{{ base }}dismiss" data-confirm="Dismiss {{ s.name }}? It is not suggested again for the same screens." aria-label="Dismiss {{ s.name }}">Dismiss</button>
         <p class="sy-small" role="status" data-result></p>
       </div>
+      {#- Spec 039 T079 (v2-09): split in two, or merge with another suggestion; what it replaces is dismissed. -#}
+      {%- set others = v.suggestions | rejectattr("id", "equalto", s.id) | list %}
+      {%- if s.steps | length > 1 or others %}
+      <details class="sy-disclosure">
+        <summary><span class="sy-small">Split or merge</span></summary>
+        <div class="sy-disclosure__body sy-stack" style="--sy-gap: 8px" data-actions>
+          {%- if s.steps | length > 1 %}
+          <div class="sy-cluster">
+            <label class="sy-field"><span class="sy-field__label">Split before</span>
+              <select class="sy-select sy-select--md" id="split-{{ s.id }}" name="at">
+                {%- for st in s.steps[1:] %}<option value="{{ loop.index + 1 }}">step {{ loop.index + 1 }} · {{ st.route }}</option>{% endfor %}
+              </select></label>
+            <button class="sy-btn sy-btn--sm" type="button" data-process="{{ base }}split" data-from="#split-{{ s.id }}" data-confirm="Split {{ s.name }} in two? It is not suggested again as one." aria-label="Split {{ s.name }}">Split</button>
+          </div>
+          {%- endif %}
+          {%- if others %}
+          <div class="sy-cluster">
+            <label class="sy-field"><span class="sy-field__label">Merge with</span>
+              <select class="sy-select sy-select--md" id="merge-{{ s.id }}" name="with">
+                {%- for o in others %}<option value="{{ o.id }}">{{ o.name }}</option>{% endfor %}
+              </select></label>
+            <button class="sy-btn sy-btn--sm" type="button" data-process="{{ base }}merge" data-from="#merge-{{ s.id }}" aria-label="Merge {{ s.name }}">Merge</button>
+          </div>
+          {%- endif %}
+          <p class="sy-small" role="status" data-result></p>
+        </div>
+      </details>
+      {%- endif %}
     </article>
     {%- endfor %}
   </div>

@@ -145,6 +145,38 @@ fit refuse `start_run` (`CONFIG_INVALID`) naming the field. A new fix: a file in
 gate. Rule of thumb (roadmap R-59): plain web-platform behaviour every portal benefits from goes
 into the crawler itself; what needs one client's data, or is risky everywhere, is a fix.
 
+## Fingerprint profiles (`fingerprint`, spec 039 T111)
+
+A page's fingerprint decides which recorded pages are the same screen. Its rules are a
+**profile**; a portal picks one with `use` and may define its own, like `fixes`:
+
+```yaml
+fingerprint:
+  use: no-menu                       # default: the built-in rows-v2
+  profiles:
+    no-menu:
+      extends: rows-v2               # a built-in or another of this portal's profiles
+      ignore_names_in: [navigation]  # a menu link more or less is the same page
+      cluster_threshold: 0.9         # τ until a person accepts a calibrated one
+```
+
+| Rule | What it says | `rows-v2` |
+|---|---|---|
+| `row_roles` | roles whose repeated siblings are rows of data (collapse to one, text left out) | listitem, row, article, option, treeitem |
+| `field_roles` | form field roles: their names are what a form asks for, part of the structure | textbox, combobox, checkbox, radio… |
+| `named_roles` | roles whose names count in the similarity (MinHash) shingles | button, textbox, tab, navigation, region… |
+| `ignore_names_in` | container roles whose inside counts as roles only (names out, equal siblings collapse) | none |
+| `cluster_threshold` | similarity at or above which two page versions are one screen | 0.9 |
+
+A profile is recorded as `name@<hash of its rules>` on every observation, component row and model
+version; the reconciler never clusters two profiles together. To switch an existing portal: set
+`use`, then `pnpm model:refingerprint <portal> --env <env> --profile <name>` (recomputed from the
+stored snapshots, no new scan; it can merge screens, never split one, because a state keeps one
+snapshot). `pnpm model:compare-fingerprints <portal> <a> <b> --env <env>` shows which screens two
+profiles merge or split differently, first. An unknown profile or an `extends` cycle refuses
+`start_run` (`CONFIG_INVALID`). The τ a person accepts (`pnpm model:decide … accept-tau`, spec
+039 T115) is kept per portal and profile.
+
 ## Network (`network`, spec 030 R-63)
 
 For a portal behind a corporate network: the browser goes through a forward proxy, and hosts in
@@ -219,7 +251,7 @@ owner approves in Review are written into this file (comments kept).
 
 ## Form probes (`probes`, spec 032 R-69)
 
-A probe run (`start_run` `probe_marked: true`, the chat's "probe the marked forms") tries the form
+A form-probing run (`start_run` `form_probing: true`, the chat's "probe the marked forms") tries the form
 steps a person marked for probing beyond their happy path, when the crawler calls `probe_form`. A
 plain map run never probes (owner answer of 2026-10-17, spec 032 US5). The tries:
 - empty required fields, wrong formats, below the minimum and above the maximum;

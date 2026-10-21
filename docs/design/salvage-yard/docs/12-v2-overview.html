@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MudPuppy 2.0 · How it works</title>
+<link rel="icon" href="../brand/logo/tag-icon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../design-system/css/tokens.css">
+<link rel="stylesheet" href="../design-system/css/fonts.css">
+<link rel="stylesheet" href="../design-system/css/salvage.css">
+<style>
+  /* Docs-page layout only. */
+  .ov { max-width: 1240px; margin: 0 auto; padding: 40px 44px 80px; display: flex; flex-direction: column; gap: 44px; }
+  .ov-sec { display: flex; flex-direction: column; gap: 14px; }
+  .ov-sec > header { display: flex; flex-direction: column; gap: 4px; padding-bottom: 10px; border-bottom: var(--sy-weld) solid var(--sy-border-plate); }
+  .ov-num { font-family: var(--sy-font-mono); font-size: var(--sy-fs-mono-sm); color: var(--sy-intent); }
+  .ov-nav { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(300px, 100%), 1fr)); gap: var(--sy-space-4); }
+  .ov-nav .sy-row { align-items: flex-start; }
+  .ov-flow { display: flex; flex-wrap: wrap; align-items: stretch; gap: 8px; }
+  .ov-step { flex: 1 1 150px; display: flex; flex-direction: column; gap: 6px; padding: 12px; background: var(--sy-bg-plate);
+    border: var(--sy-weld) solid var(--sy-border-plate); font-size: var(--sy-fs-xs); min-width: 0; }
+  .ov-step--drawn { border-style: dashed; border-color: var(--sy-tobe); }
+  .ov-step--person { border-color: var(--sy-tag); }
+  .ov-step--needs { border-color: var(--sy-intent); }
+  .ov-step b { font-size: var(--sy-fs-label); font-weight: 800; font-stretch: var(--sy-stretch-semi); letter-spacing: var(--sy-track-caps); text-transform: uppercase; }
+  .ov-arrow { align-self: center; color: var(--sy-text-muted); font-family: var(--sy-font-mono); }
+  .ov-split { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(360px, 100%), 1fr)); gap: var(--sy-space-4); }
+  .ov-journey { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(210px, 100%), 1fr)); gap: 12px; }
+  .ov-hop { display: flex; flex-direction: column; text-decoration: none; color: var(--sy-text); background: var(--sy-bg-plate); border: var(--sy-weld) solid var(--sy-border-plate); }
+  .ov-hop:hover { background: var(--sy-bg-raised); color: var(--sy-text); }
+  .ov-hop img { width: 100%; aspect-ratio: 16 / 10; object-fit: cover; object-position: top left; border-bottom: var(--sy-weld) solid var(--sy-border-weld); }
+  .ov-hop > div { display: flex; flex-direction: column; gap: 4px; padding: 10px 12px; font-size: var(--sy-fs-xs); }
+  @media (max-width: 760px) { .ov { padding: 24px 16px 56px; } }
+</style>
+</head>
+<body class="sy-ground">
+<main class="ov">
+
+<header class="sy-stack" style="--sy-gap: 10px">
+  <span class="sy-wordmark"><span class="sy-wordmark__paint">MUD</span>PUPPY<span class="sy-wordmark__scope">2.0</span></span>
+  <h1 class="sy-h1">How 2.0 works</h1>
+  <p class="sy-meta sy-prose">One living model of the portal. After every scan the system works out what changed, when and why, explains what it can by itself, and asks a person only about the rest. Full write-up: <a href="12-v2-ux.md">12-v2-ux.md</a>. Data: the real reference-insurer portal plus an illustrative 2.0 fixture (<a href="13-v2-fixtures.md">13-v2-fixtures.md</a>).</p>
+</header>
+
+<section class="ov-sec" aria-labelledby="o1">
+  <header><span class="ov-num">01</span><h2 id="o1" class="sy-h2">Where things live</h2><p class="sy-meta">Nine sections in three groups. New: Changes and Rules. Map moves under Screens.</p></header>
+  <div class="ov-nav">
+    <section class="sy-plate" aria-labelledby="g1"><div class="sy-plate__head"><h3 id="g1" class="sy-plate__title">Look and decide</h3></div>
+      <div class="sy-rows">
+        <a class="sy-row" href="../screens/v2-01-home.html"><span class="sy-row__main"><b>Home</b><span class="sy-small sy-muted">Releases, last scan, counts, top of the queue. All portals view.</span></span></a>
+        <a class="sy-row" href="../screens/v2-02-changes.html"><span class="sy-row__main"><span class="sy-cluster" style="--sy-gap: 6px"><b>Changes</b><span class="sy-chip">new</span></span><span class="sy-small sy-muted">What changed between two points; before / after.</span></span></a>
+        <a class="sy-row" href="../screens/v2-04-review.html"><span class="sy-row__main"><b>Review</b><span class="sy-small sy-muted">Needs you · Explained automatically · Decided.</span></span><span class="sy-count">24</span></a>
+      </div></section>
+    <section class="sy-plate" aria-labelledby="g2"><div class="sy-plate__head"><h3 id="g2" class="sy-plate__title">Portal model</h3></div>
+      <div class="sy-rows">
+        <a class="sy-row" href="../screens/v2-09-processes.html"><span class="sy-row__main"><b>Processes</b><span class="sy-small sy-muted">Proposed after scans, accepted, explored per release.</span></span></a>
+        <a class="sy-row" href="../screens/v2-06-screens.html"><span class="sy-row__main"><b>Screens · List · Map</b><span class="sy-small sy-muted">Identity, variants and why, actions, history; the map of the portal now.</span></span></a>
+        <a class="sy-row" href="../screens/v2-11-rules.html"><span class="sy-row__main"><span class="sy-cluster" style="--sy-gap: 6px"><b>Rules</b><span class="sy-chip">new</span></span><span class="sy-small sy-muted">Business rules as decision tables, tested at their boundaries.</span></span></a>
+        <div class="sy-row"><span class="sy-row__main"><b>Docs</b><span class="sy-small sy-muted">Records and export; PROC records carry rules.</span></span></div>
+      </div></section>
+    <section class="sy-plate" aria-labelledby="g3"><div class="sy-plate__head"><h3 id="g3" class="sy-plate__title">Machine</h3></div>
+      <div class="sy-rows">
+        <a class="sy-row" href="../screens/10-scans.html"><span class="sy-row__main"><b>Scans</b><span class="sy-small sy-muted">AI scans and check runs, a scan's paths, Rebuild model.</span></span></a>
+        <a class="sy-row" href="../screens/11-settings.html"><span class="sy-row__main"><b>Settings</b><span class="sy-small sy-muted">Hints: release marker, A/B cookies, business refusals; budgets.</span></span></a>
+      </div></section>
+  </div>
+</section>
+
+<section class="ov-sec" aria-labelledby="o2">
+  <header><span class="ov-num">02</span><h2 id="o2" class="sy-h2">Time: As of and From</h2><p class="sy-meta">One picker in the header sets the model every page shows. Changes adds where to compare from.</p></header>
+  <div class="sy-plate"><div class="sy-plate__body">
+    <div class="sy-releases" aria-label="Releases and scans, 4 to 17 Oct">
+      <div class="sy-releases__lane"><span class="sy-releases__name">Shell<small>meta build</small></span>
+        <div class="sy-releases__track"><span class="sy-releases__span" style="left: 0; width: 73.9%">1d77</span><span class="sy-releases__span sy-releases__span--current" style="left: 73.9%; width: 26.1%">3e1a</span></div></div>
+      <div class="sy-releases__lane"><span class="sy-releases__name">Kalkulator app<small>footer v…</small></span>
+        <div class="sy-releases__track"><span class="sy-releases__span" style="left: 0; width: 89.9%">5f08</span><span class="sy-releases__span sy-releases__span--rollout" style="left: 89.9%; width: 5.8%">both</span><span class="sy-releases__span sy-releases__span--current" style="left: 95.7%; width: 4.3%">9c21</span></div></div>
+      <div class="sy-releases__lane sy-releases__lane--scans"><span class="sy-releases__name">Scans</span>
+        <div class="sy-releases__track"><span class="sy-releases__scan" style="left: 5.6%">01a1083f</span><span class="sy-releases__scan" style="left: 17.5%">01a110d5</span><span class="sy-releases__scan" style="left: 80.8%">01a12f40</span><span class="sy-releases__scan sy-releases__scan--check" style="left: 95.9%">01a1340c</span></div></div>
+      <div class="sy-releases__axis"><span style="left: 0">4 Oct</span><span style="left: 50%">11 Oct</span><span style="left: 100%">17 Oct · now</span></div>
+    </div>
+    <div class="ov-split">
+      <div class="sy-callout"><span class="sy-callout__title">As of (header, every page)</span><span>Now · a release · a scan. Screens, Map, Processes and Rules show the model as it was; a banner says so and offers Back to now. Writes wait until you're back at Now.</span></div>
+      <div class="sy-callout"><span class="sy-callout__title">From (Changes only)</span><span>Previous release of each part (default) · a date · a scan. Changes lists what differs from From to As of. The range shows as a bracket on this timeline.</span></div>
+    </div>
+  </div></div>
+</section>
+
+<section class="ov-sec" aria-labelledby="o3">
+  <header><span class="ov-num">03</span><h2 id="o3" class="sy-h2">After every scan</h2><p class="sy-meta">The system explains what it can by itself. A person sees only the rest, and can overturn anything.</p></header>
+  <div class="ov-flow" role="list">
+    <div class="ov-step" role="listitem"><b>Scan or check run</b><span>AI scan explores; check run replays and tests (no AI).</span><span class="sy-status" data-status="ok">Observed</span></div>
+    <span class="ov-arrow" aria-hidden="true">→</span>
+    <div class="ov-step" role="listitem"><b>Model updated</b><span>Screens keep their identity; splits and merges get a reason.</span></div>
+    <span class="ov-arrow" aria-hidden="true">→</span>
+    <div class="ov-step" role="listitem"><b>Changes found</b><span>New, removed, leads elsewhere, result changed, rule broke.</span></div>
+    <span class="ov-arrow" aria-hidden="true">→</span>
+    <div class="ov-step ov-step--drawn" role="listitem"><b>Explained automatically</b><span>New release · another persona · flaky error · rollout · replaced.</span><span class="sy-status" data-status="inferred">23</span></div>
+    <span class="ov-arrow" aria-hidden="true">or</span>
+    <div class="ov-step ov-step--needs" role="listitem"><b>Needs you</b><span>A/B test? error for one input, removed without a release, rule changed, unexplained.</span><span class="sy-status" data-status="needs">18</span></div>
+    <span class="ov-arrow" aria-hidden="true">→</span>
+    <div class="ov-step ov-step--person" role="listitem"><b>You decide</b><span>Confirm · Reject (reason) · Overturn (reason). The reason travels with the item.</span></div>
+  </div>
+</section>
+
+<section class="ov-sec" aria-labelledby="o4">
+  <header><span class="ov-num">04</span><h2 id="o4" class="sy-h2">The review loop</h2><p class="sy-meta">Fast with the keyboard, in groups, and every decision explains itself later.</p></header>
+  <div class="ov-split">
+    <div class="sy-plate"><div class="sy-plate__head"><h3 class="sy-plate__title">Work through the queue</h3></div><div class="sy-plate__body">
+      <ol class="sy-steps">
+        <li><span>1 · Filter by kind (counts on each)</span><span class="sy-kbd">/</span></li>
+        <li><span>2 · Groups first: "12 links removed with 3e1a"</span><span class="sy-kbd">X · Shift C</span></li>
+        <li><span>3 · Next item, read the evidence and the tests</span><span class="sy-kbd">J / K</span></li>
+        <li><span>4 · Confirm, or reject with a one-line reason</span><span class="sy-kbd">C · R</span></li>
+        <li><span>5 · Undo if it was wrong</span><span class="sy-kbd">U</span></li>
+      </ol>
+    </div></div>
+    <div class="sy-plate"><div class="sy-plate__head"><h3 class="sy-plate__title">Where your reason shows</h3></div><div class="sy-plate__body">
+      <p class="sy-small">Changes · the screen's variants · the map inspector · the process · the rule · the export · Review ▸ Decided.</p>
+      <span class="sy-cluster" style="--sy-gap: 6px 10px"><span class="sy-status" data-status="ok">Confirmed</span><span class="sy-note sy-note--sm">New threshold matches the 9c21 release notes.<span class="sy-note__by">you · 17 Oct 11:02Z</span></span></span>
+    </div></div>
+  </div>
+</section>
+
+<section class="ov-sec" aria-labelledby="o5">
+  <header><span class="ov-num">05</span><h2 id="o5" class="sy-h2">Overturning an automatic explanation</h2><p class="sy-meta">Safe because it is visible everywhere, sticky across scans, and one click to undo.</p></header>
+  <div class="ov-flow" role="list">
+    <div class="ov-step ov-step--drawn" role="listitem"><b>Explained automatically</b><span>"Kontakt: error page" → Flaky error (rechecked once, passed).</span><span class="sy-status" data-status="inferred">Inferred</span></div>
+    <span class="ov-arrow" aria-hidden="true">→</span>
+    <div class="ov-step ov-step--person" role="listitem"><b>Overturn</b><span>What it is instead + a required reason.</span><span class="sy-note sy-note--sm">Not flaky: it happens every time with +48.<span class="sy-note__by">you · 17 Oct 10:41Z</span></span></div>
+    <span class="ov-arrow" aria-hidden="true">→</span>
+    <div class="ov-step ov-step--needs" role="listitem"><b>Back in Needs you</b><span>The system tests your explanation: "+48 → error 5/5; without → sent 5/5".</span><span class="sy-status" data-status="overturned">Overturned</span></div>
+    <span class="ov-arrow" aria-hidden="true">→</span>
+    <div class="ov-step" role="listitem"><b>Decided</b><span>Confirmed as "error for one input". Later scans keep it; new contrary evidence becomes a new finding, never a silent flip.</span><span class="sy-status" data-status="ok">Confirmed</span></div>
+  </div>
+</section>
+
+<section class="ov-sec" aria-labelledby="o6">
+  <header><span class="ov-num">06</span><h2 id="o6" class="sy-h2">Words on screen</h2><p class="sy-meta">The model's vocabulary stays internal.</p></header>
+  <div class="sy-table-wrap"><table class="sy-table sy-table--dense" style="min-width: 640px">
+    <thead><tr><th scope="col">Internal</th><th scope="col">On screen</th><th scope="col">Example</th></tr></thead>
+    <tbody>
+      <tr><th scope="row">abstract state</th><td>screen</td><td>Kalkulator OC/AC — dane kierowcy · Active</td></tr>
+      <tr><th scope="row">screen variant</th><td>variant + why</td><td>r3 · Persona premium</td></tr>
+      <tr><th scope="row">transition</th><td>link (states: Active, Not seen since, Not checked on, Retired, Replaced)</td><td>Not seen since 17 Oct</td></tr>
+      <tr><th scope="row">in-screen transition</th><td>action</td><td>6 actions inside</td></tr>
+      <tr><th scope="row">deviation</th><td>change</td><td>New action · Assistance 24h</td></tr>
+      <tr><th scope="row">claim, hypothesis</th><td>finding + explanation</td><td>Banner on 6 of 11 visits · A/B test?</td></tr>
+      <tr><th scope="row">build epoch</th><td>release (per portal part)</td><td>Release 9c21 · Kalkulator app</td></tr>
+      <tr><th scope="row">journey</th><td>path</td><td>dane kierowcy → opcje → wynik</td></tr>
+      <tr><th scope="row">case</th><td>case</td><td>Case 7 · age 20</td></tr>
+    </tbody></table></div>
+</section>
+
+<section class="ov-sec" aria-labelledby="o7">
+  <header><span class="ov-num">07</span><h2 id="o7" class="sy-h2">A BA's session after a release</h2><p class="sy-meta">Click through.</p></header>
+  <div class="ov-journey">
+    <a class="ov-hop" href="../screens/v2-01-home.html"><img src="../screenshots/screens/v2-01-home.png" alt=""><div><b>1 · Home</b><span class="sy-muted">Kalkulator 9c21 is out: 41 changes, 24 need you.</span></div></a>
+    <a class="ov-hop" href="../screens/v2-02-changes.html"><img src="../screenshots/screens/v2-02-changes.png" alt=""><div><b>2 · What changed</b><span class="sy-muted">Grouped by process; 23 explained automatically.</span></div></a>
+    <a class="ov-hop" href="../screens/v2-03-change-detail.html"><img src="../screenshots/screens/v2-03-change-detail.png" alt=""><div><b>3 · Before / after</b><span class="sy-muted">The banner: an A/B test on cookie ab_calc.</span></div></a>
+    <a class="ov-hop" href="../screens/v2-04-review.html"><img src="../screenshots/screens/v2-04-review.png" alt=""><div><b>4 · Review</b><span class="sy-muted">Confirm 12 removals at once, then the findings.</span></div></a>
+    <a class="ov-hop" href="../screens/v2-12-rule-detail.html"><img src="../screenshots/screens/v2-12-rule-detail.png" alt=""><div><b>5 · BR-021</b><span class="sy-muted">Threshold 18 → 21: tested at 20, 21, 22. Confirm.</span></div></a>
+    <a class="ov-hop" href="../screens/v2-10-process-detail.html"><img src="../screenshots/screens/v2-10-process-detail.png" alt=""><div><b>6 · Process</b><span class="sy-muted">Explored thorough on 9c21; explore premium next.</span></div></a>
+  </div>
+</section>
+
+</main>
+</body>
+</html>

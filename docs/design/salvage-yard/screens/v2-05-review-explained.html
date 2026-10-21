@@ -1,0 +1,291 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MudPuppy 2.0 · Review: Explained automatically</title>
+<link rel="icon" href="../brand/logo/tag-icon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../design-system/css/tokens.css">
+<link rel="stylesheet" href="../design-system/css/fonts.css">
+<link rel="stylesheet" href="../design-system/css/salvage.css">
+<style>
+  /* Screen layout only: list (left) + the Overturn dialog, shown open in place of the modal (right) */
+  .mp-filters { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sy-space-3) var(--sy-space-4); }
+  .mp-filters__pick { display: inline-flex; align-items: center; gap: var(--sy-space-2); }
+  .mp-filters__pick .sy-select { width: auto; min-width: 150px; }
+  .mp-filters .sy-seg > button { white-space: nowrap; }
+  .mp-dialog-col { position: sticky; top: var(--sy-space-4); }
+  .mp-dialog-col .sy-dialog { width: 100%; }
+  .mp-change { display: flex; flex-direction: column; gap: 3px; }
+  .mp-overturned { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: var(--sy-space-2) var(--sy-space-4); align-items: start; padding: var(--sy-space-4); }
+  .mp-steps { display: flex; flex-direction: column; gap: 6px; padding-left: var(--sy-space-5); list-style: disc; }
+  @media (max-width: 1180px) { .mp-dialog-col { order: -1; position: static; } .mp-dialog-col .sy-dialog { max-width: 600px; } .mp-filters .sy-seg { flex-wrap: wrap; } .mp-filters .sy-seg > button { flex: none; } }
+  @media (max-width: 760px) { .mp-overturned { grid-template-columns: minmax(0, 1fr); } }
+</style>
+</head>
+<body class="sy-ground">
+<a class="sy-skip" href="#main">Skip to content</a>
+<div class="sy-app">
+  <header class="sy-header">
+    <a class="sy-wordmark" href="v2-01-home.html"><span class="sy-wordmark__paint">MUD</span>PUPPY</a>
+    <label class="sy-portal sy-portal--compact"><span class="sy-label">Portal</span>
+      <select class="sy-select"><option selected>reference-insurer</option><option>wikipedia</option><option>All portals</option><option>+ New portal</option></select></label>
+    <div class="sy-portal sy-portal--compact"><span class="sy-label" id="asof-l">As of</span>
+      <button class="sy-select" type="button" aria-haspopup="menu" aria-expanded="false" aria-labelledby="asof-l asof-v" aria-describedby="asof-help"><span id="asof-v">Now · 17 Oct</span></button></div>
+    <span id="asof-help" class="sy-sr-only">Shows the portal model as it was at a release or scan. Changes compares two points.</span>
+    <label class="sy-search sy-search--compact">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+      <input type="search" aria-label="Search screens, processes and rules" placeholder="Search"><span class="sy-kbd">Ctrl K</span></label>
+    <span class="sy-status" data-status="ok">Assistant up</span>
+    <a class="sy-btn" href="02-screen-with-assistant.html">Ask <span class="sy-kbd">Ctrl J</span></a>
+    <a class="sy-btn sy-btn--icon" href="#" aria-label="Help and glossary">?</a>
+  </header>
+  <div class="sy-app__body">
+    <nav class="sy-nav" aria-label="Portal sections">
+      <a class="sy-nav__item" href="v2-01-home.html">Home</a>
+      <a class="sy-nav__item" href="v2-02-changes.html">Changes <span class="sy-nav__count">41</span></a>
+      <a class="sy-nav__item" href="v2-04-review.html" aria-current="page">Review <span class="sy-count">24</span></a>
+      <div class="sy-nav__group" aria-hidden="true">Portal model</div>
+      <a class="sy-nav__item" href="v2-09-processes.html">Processes <span class="sy-nav__count">6</span></a>
+      <a class="sy-nav__item" href="v2-06-screens.html">Screens <span class="sy-nav__count">19</span></a>
+      <a class="sy-nav__item" href="v2-11-rules.html">Rules <span class="sy-nav__count">6</span></a>
+      <a class="sy-nav__item" href="#">Docs</a>
+      <div class="sy-nav__group" aria-hidden="true">Machine</div>
+      <a class="sy-nav__item" href="10-scans.html">Scans</a>
+      <a class="sy-nav__item" href="11-settings.html">Settings</a>
+      <div class="sy-nav__foot">store: sandbox · writes go through commands</div>
+    </nav>
+    <main id="main" class="sy-main">
+<div class="sy-pagehead">
+        <h1 class="sy-h1">Review</h1>
+        <p class="sy-meta">24 need you · 23 explained automatically in this range · nothing is decided without a reason you can see later</p>
+      </div>
+
+      <nav class="sy-tabs" aria-label="Review views">
+        <a class="sy-tab" href="v2-04-review.html">Needs you <span class="sy-count">24</span></a>
+        <a class="sy-tab" href="v2-05-review-explained.html" aria-current="page">Explained automatically <span class="sy-count sy-count--muted">23</span></a>
+        <a class="sy-tab" href="v2-16-review-decided.html">Decided <span class="sy-count sy-count--muted">31</span></a>
+      </nav>
+
+      <div class="sy-stack" style="--sy-gap: 6px">
+        <p class="sy-prose">The system explained these by itself. Each shows the rule it used. <b>Overturn</b> any of them: your reason is shown wherever the item appears, and later scans won't explain it again the same way.</p>
+        <p class="sy-small sy-muted">Needs you isn't time-bound. This tab follows the Changes range: since the previous release (Shell <span class="sy-case-normal">1d77</span>, Kalkulator <span class="sy-case-normal">5f08</span>) to now · 23 in this range · 96 all time · <a href="v2-02-changes.html">Change the range</a></p>
+      </div>
+
+      <form class="mp-filters" aria-label="Filter explanations">
+        <div class="sy-seg" role="group" aria-label="Explained as">
+          <button type="button" aria-pressed="false">Release 16</button>
+          <button type="button" aria-pressed="false">Another persona 1</button>
+          <button type="button" aria-pressed="false">Flaky error 2</button>
+          <button type="button" aria-pressed="false">Replaced 1</button>
+          <button type="button" aria-pressed="false">Rollout 1</button>
+          <button type="button" aria-pressed="false">Retired 2</button>
+        </div>
+        <label class="mp-filters__pick"><span class="sy-label">Part</span>
+          <select class="sy-select sy-select--md"><option>All parts</option><option>Shell</option><option>Kalkulator app</option></select></label>
+        <label class="mp-filters__pick"><span class="sy-label">Process</span>
+          <select class="sy-select sy-select--md"><option>All processes</option><option>Oblicz składkę OC/AC</option><option>Napisz do nas</option><option>Porównaj produkty</option><option>Not in a process</option></select></label>
+      </form>
+
+      <div class="sy-columns">
+        <div class="sy-col-main sy-stack">
+
+          <!-- Overturned: kept visible here, counted in Needs you -->
+          <section class="sy-plate" aria-labelledby="ov-h">
+            <div class="sy-plate__head">
+              <h2 id="ov-h" class="sy-plate__title">Overturned by you · 1</h2>
+              <span class="sy-small sy-muted">moved to Needs you, not counted in the 23</span>
+            </div>
+            <div class="mp-overturned">
+              <div class="mp-change">
+                <span class="sy-small sy-muted">Kontakt · Napisz do nas</span>
+                <b>Sending the form always ends on the error page when the phone starts with +48</b>
+                <span class="sy-cluster" style="--sy-gap: 8px">
+                  <span class="sy-chip"><s>Flaky error</s></span><span class="sy-muted" aria-hidden="true">→</span>
+                  <span class="sy-chip">Error for one input</span>
+                  <span class="sy-status" data-status="overturned">Overturned · you · 17 Oct 10:41Z</span>
+                </span>
+                <span class="sy-note">Not flaky: it happens every time with +48.<span class="sy-note__by">you · 17 Oct 10:41Z</span></span>
+              </div>
+              <div class="sy-stack" style="--sy-gap: 8px; align-items: flex-end">
+                <a class="sy-small" href="v2-04-review.html#kontakt">Open in Needs you</a>
+                <button class="sy-btn sy-btn--sm" type="button" aria-describedby="undo-what">Undo overturn</button>
+                <span id="undo-what" class="sy-small sy-muted" style="max-width: 220px">Puts back "Flaky error". Your reason stays in History.</span>
+              </div>
+            </div>
+          </section>
+
+          <section class="sy-plate" aria-labelledby="list-h">
+            <div class="sy-plate__head">
+              <h2 id="list-h" class="sy-plate__title">Explained automatically · 23</h2>
+              <span class="sy-status" data-status="inferred">The system's own explanation</span>
+            </div>
+            <div class="sy-table-wrap sy-table-wrap--flush">
+              <table class="sy-table" aria-labelledby="list-h" style="min-width: 560px">
+                <thead><tr><th scope="col">Change and the rule it used</th><th scope="col">Explained as</th><th scope="col"><span class="sy-sr-only">Action</span></th></tr></thead>
+                <tbody>
+                  <tr><th scope="rowgroup" colspan="3" class="sy-label">Oblicz składkę OC/AC · 7</th></tr>
+                  <tr>
+                    <td><div class="mp-change"><span class="sy-small sy-muted">dane kierowcy</span><b>Help text now "Musisz mieć ukończone 21 lat"</b>
+                      <span class="sy-small sy-muted">New release: the app's code changed at 14:02Z on 16 Oct (marker <span class="sy-case-normal">5f08</span> → <span class="sy-case-normal">9c21</span>, seen by release watch). · <a href="v2-07-screen-detail.html#variants">Variant <span class="sy-case-normal">r2</span></a></span></div></td>
+                    <td><span class="sy-chip"><span>Release <span class="sy-case-normal">9c21</span></span></span></td>
+                    <td><button class="sy-btn sy-btn--sm sy-btn--quiet" type="button" data-overturn>Overturn…</button></td>
+                  </tr>
+                  <tr>
+                    <td><div class="mp-change"><span class="sy-small sy-muted">dane kierowcy</span><b>"Zapisz kalkulację" button removed</b>
+                      <span class="sy-small sy-muted">New release: the app's code changed at 14:02Z on 16 Oct (marker <span class="sy-case-normal">5f08</span> → <span class="sy-case-normal">9c21</span>, seen by release watch). · <a href="v2-07-screen-detail.html#actions">Actions of dane kierowcy</a></span></div></td>
+                    <td><span class="sy-chip"><span>Release <span class="sy-case-normal">9c21</span></span></span></td>
+                    <td><button class="sy-btn sy-btn--sm sy-btn--quiet" type="button" data-overturn>Overturn…</button></td>
+                  </tr>
+                  <tr>
+                    <td><div class="mp-change"><span class="sy-small sy-muted">dane kierowcy</span><b>"Rabat dla stałych klientów" field only for premium</b>
+                      <span class="sy-small sy-muted">Another persona: the field shows only with persona premium, on the same release. · <a href="v2-07-screen-detail.html#variants">Variant <span class="sy-case-normal">r3</span></a></span></div></td>
+                    <td><span class="sy-chip">Another persona</span></td>
+                    <td><button class="sy-btn sy-btn--sm sy-btn--quiet" type="button" data-overturn>Overturn…</button></td>
+                  </tr>
+                  <tr>
+                    <td><div class="mp-change"><span class="sy-small sy-muted">dane kierowcy</span><b>"Kod pocztowy" field missing once, with a script error</b>
+                      <span class="sy-small sy-muted">Flaky error: missing on 1 of 14 visits (17 Oct 10:12Z) and the page logged a script error. · <a href="v2-07-screen-detail.html#variants">Variant <span class="sy-case-normal">r4</span></a></span></div></td>
+                    <td><span class="sy-chip">Flaky error</span></td>
+                    <td><button class="sy-btn sy-btn--sm sy-btn--quiet" type="button" data-overturn>Overturn…</button></td>
+                  </tr>
+                  <tr>
+                    <td><div class="mp-change"><span class="sy-small sy-muted">opcje</span><b>New checkbox "Assistance 24h"</b>
+                      <span class="sy-small sy-muted">New release: the app's code changed at 14:02Z on 16 Oct (marker <span class="sy-case-normal">5f08</span> → <span class="sy-case-normal">9c21</span>, seen by release watch). · <a href="v2-02-changes.html">In What changed</a></span></div></td>
+                    <td><span class="sy-chip"><span>Release <span class="sy-case-normal">9c21</span></span></span></td>
+                    <td><button class="sy-btn sy-btn--sm sy-btn--quiet" type="button" data-overturn>Overturn…</button></td>
+                  </tr>
+                  <tr>
+                    <td><div class="mp-change"><span class="sy-small sy-muted">wynik</span><b>New layout</b>
+                      <span class="sy-small sy-muted">New release: the app's code changed at 14:02Z on 16 Oct (marker <span class="sy-case-normal">5f08</span> → <span class="sy-case-normal">9c21</span>, seen by release watch). · <a href="v2-02-changes.html">In What changed</a></span></div></td>
+                    <td><span class="sy-chip"><span>Release <span class="sy-case-normal">9c21</span></span></span></td>
+                    <td><button class="sy-btn sy-btn--sm sy-btn--quiet" type="button" data-overturn>Overturn…</button></td>
+                  </tr>
+                  <tr id="row-503" aria-selected="true">
+                    <td><div class="mp-change"><span class="sy-small sy-muted">wynik</span><b>Answered 503 once (17 Oct 10:21Z)</b>
+                      <span class="sy-small sy-muted">Flaky error: one 503 in check run <span class="sy-tag sy-tag--sm">01a1340c</span>, rechecked 3 times: OK. · <a href="v2-02-changes.html">In What changed</a></span></div></td>
+                    <td><span class="sy-chip">Flaky error</span></td>
+                    <td><button class="sy-btn sy-btn--sm sy-btn--quiet" type="button" data-overturn aria-expanded="true" aria-controls="ov-dlg">Overturn…</button></td>
+                  </tr>
+                </tbody>
+                <tbody>
+                  <tr><th scope="rowgroup" colspan="3" class="sy-label">Napisz do nas · 1</th></tr>
+                  <tr>
+                    <td><div class="mp-change"><span class="sy-small sy-muted">Kontakt</span><b>Phone field now required</b>
+                      <span class="sy-small sy-muted">New release: the shell's code changed on 14 Oct 08:10Z (marker <span class="sy-case-normal">1d77</span> → <span class="sy-case-normal">3e1a</span>, seen by release watch). · <a href="v2-02-changes.html">In What changed</a></span></div></td>
+                    <td><span class="sy-chip"><span>Release <span class="sy-case-normal">3e1a</span></span></span></td>
+                    <td><button class="sy-btn sy-btn--sm sy-btn--quiet" type="button" data-overturn>Overturn…</button></td>
+                  </tr>
+                </tbody>
+                <tbody>
+                  <tr><th scope="rowgroup" colspan="3" class="sy-label">Porównaj produkty · 1</th></tr>
+                  <tr>
+                    <td><div class="mp-change"><span class="sy-small sy-muted">Ubezpieczenia dla Ciebie</span><b>Link "Porównaj produkty" now leads to <span class="sy-route">/porownanie-2026</span></b>
+                      <span class="sy-small sy-muted">Replaced with release <span class="sy-case-normal">3e1a</span>: same link, new target; the old one is kept as Replaced. · <a href="v2-02-changes.html">In What changed</a></span></div></td>
+                    <td><span class="sy-chip">Replaced</span></td>
+                    <td><button class="sy-btn sy-btn--sm sy-btn--quiet" type="button" data-overturn>Overturn…</button></td>
+                  </tr>
+                </tbody>
+                <tbody>
+                  <tr><th scope="rowgroup" colspan="3" class="sy-label">Not in a process · 14</th></tr>
+                  <tr>
+                    <td><div class="mp-change"><span class="sy-small sy-muted">2 screens</span><b>"Promocja wakacyjna" and "Newsletter" retired</b>
+                      <span class="sy-small sy-muted">Retired with <span class="sy-case-normal">3e1a</span>: not seen since the shell changed to <span class="sy-case-normal">3e1a</span>. Kept and browsable in Screens. · <a href="v2-06-screens.html">Retired screens</a></span></div></td>
+                    <td><span class="sy-chip">Retired · 2</span></td>
+                    <td><button class="sy-btn sy-btn--sm sy-btn--quiet" type="button" data-overturn>Overturn…</button></td>
+                  </tr>
+                  <tr>
+                    <td><div class="mp-change"><span class="sy-small sy-muted">Kalkulator app</span><b><span class="sy-case-normal">5f08</span> and <span class="sy-case-normal">9c21</span> served together</b>
+                      <span class="sy-small sy-muted">Rollout: both markers seen from 16 Oct 14:02Z to 17 Oct 09:30Z; <span class="sy-case-normal">9c21</span> only since then. · <a href="v2-02-changes.html">Release timeline</a></span></div></td>
+                    <td><span class="sy-chip">Rollout</span></td>
+                    <td><button class="sy-btn sy-btn--sm sy-btn--quiet" type="button" data-overturn>Overturn…</button></td>
+                  </tr>
+                  <tr>
+                    <td><div class="mp-change"><span class="sy-small sy-muted">Polityka cookies · <span class="sy-route">/polityka-cookies</span></span><b>New screen "Polityka cookies"</b>
+                      <span class="sy-small sy-muted">New release: first seen after the shell's code changed on 14 Oct 08:10Z (marker <span class="sy-case-normal">1d77</span> → <span class="sy-case-normal">3e1a</span>, seen by release watch). · <a href="v2-06-screens.html">In Screens</a></span></div></td>
+                    <td><span class="sy-chip"><span>Release <span class="sy-case-normal">3e1a</span></span></span></td>
+                    <td><button class="sy-btn sy-btn--sm sy-btn--quiet" type="button" data-overturn>Overturn…</button></td>
+                  </tr>
+                  <tr>
+                    <td><div class="mp-change"><span class="sy-small sy-muted">footer and other pages</span><b>10 text changes: footer text ×3 and 7 others</b>
+                      <span class="sy-small sy-muted">New release: the shell's code changed on 14 Oct 08:10Z (marker <span class="sy-case-normal">1d77</span> → <span class="sy-case-normal">3e1a</span>, seen by release watch). · <a href="v2-02-changes.html">In What changed</a></span></div></td>
+                    <td><span class="sy-chip"><span>Release <span class="sy-case-normal">3e1a</span> · 10</span></span></td>
+                    <td><button class="sy-btn sy-btn--sm sy-btn--quiet" type="button" data-overturn>Overturn…</button></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="sy-keybar" aria-label="Keyboard shortcuts">
+              <span><span class="sy-kbd">J</span><span class="sy-kbd">K</span> next / previous</span>
+              <span><span class="sy-kbd">O</span> overturn (asks for a reason)</span>
+              <span><span class="sy-kbd">Enter</span> open evidence</span>
+              <span><span class="sy-kbd">?</span> all keys</span>
+              <span style="flex-basis: 100%">Single keys work when you're not typing; turn them off in Settings ▸ Keyboard.</span>
+            </div>
+          </section>
+        </div>
+
+        <!-- The Overturn dialog for the selected row. In the app: <dialog class="sy-dialog"> opened with showModal()
+             (focus moves to "What is it instead?", Esc cancels). Shown open in place here so the page stays readable. -->
+        <div class="sy-col-side mp-dialog-col" style="flex-basis: 400px">
+          <dialog id="ov-dlg" class="sy-dialog sy-dialog--static" open aria-labelledby="dlg-h">
+            <form method="dialog">
+              <div class="sy-dialog__head">
+                <h2 id="dlg-h" class="sy-h3">Overturn this explanation?</h2>
+              </div>
+              <div class="sy-dialog__body">
+                <div class="sy-callout">
+                  <span class="sy-callout__title">It says now</span>
+                  <b>Kalkulator OC/AC — wynik answered 503 once (17 Oct 10:21Z)</b>
+                  <span class="sy-cluster" style="--sy-gap: 8px"><span class="sy-chip">Flaky error</span><span class="sy-status" data-status="inferred">Explained automatically</span></span>
+                  <span class="sy-muted">One 503 in check run <span class="sy-tag sy-tag--sm">01a1340c</span>, rechecked 3 times: OK.</span>
+                </div>
+                <label class="sy-field"><span class="sy-field__label">What is it instead?</span>
+                  <select class="sy-select" name="instead" aria-describedby="instead-help">
+                    <option>Error that always happens</option><option>Error for one input</option><option selected>Unexplained</option><option>Other…</option>
+                  </select>
+                  <span id="instead-help" class="sy-field__help">Not sure? Unexplained keeps it open in Needs you.</span></label>
+                <label class="sy-field"><span class="sy-field__label">Reason (required)</span>
+                  <input class="sy-input" name="reason" aria-required="true" aria-describedby="ov-reason-help" autocomplete="off" placeholder="One line: why the explanation is wrong">
+                  <span id="ov-reason-help" class="sy-field__help">Shown wherever this decision appears.</span></label>
+                <div class="sy-stack" style="--sy-gap: 6px">
+                  <span class="sy-label">What happens</span>
+                  <ul id="ov-what" class="mp-steps sy-small">
+                    <li>Moves to Needs you as "Unexplained".</li>
+                    <li>Shown as Overturned, with your reason, in What changed, on Screens (wynik) and in the process Oblicz składkę OC/AC.</li>
+                    <li>The automatic rule won't re-explain this change.</li>
+                    <li>You can undo it from this tab.</li>
+                  </ul>
+                </div>
+              </div>
+              <div class="sy-dialog__foot">
+                <button class="sy-btn" type="button" data-cancel>Cancel <span class="sy-kbd">Esc</span></button>
+                <button class="sy-btn sy-btn--strong" type="submit" aria-describedby="ov-what">Overturn <span class="sy-kbd">Enter</span></button>
+              </div>
+            </form>
+          </dialog>
+        </div>
+      </div>
+<script>
+  /* Overturn… opens the dialog for its row; Cancel / × closes it. (The app uses showModal().) */
+  (() => {
+    const dlg = document.getElementById('ov-dlg');
+    const col = dlg.parentElement;
+    const rows = () => document.querySelectorAll('tr[aria-selected]');
+    document.querySelectorAll('[data-overturn]').forEach((b) => b.addEventListener('click', () => {
+      rows().forEach((r) => r.removeAttribute('aria-selected'));
+      b.closest('tr').setAttribute('aria-selected', 'true');
+      document.querySelectorAll('[data-overturn]').forEach((x) => x.setAttribute('aria-expanded', String(x === b)));
+      col.hidden = false; dlg.querySelector('select').focus();
+    }));
+    dlg.querySelectorAll('[data-cancel]').forEach((b) => b.addEventListener('click', () => {
+      col.hidden = true; rows().forEach((r) => r.removeAttribute('aria-selected'));
+      document.querySelectorAll('[data-overturn]').forEach((x) => x.setAttribute('aria-expanded', 'false'));
+    }));
+  })();
+</script>
+    </main>
+  </div>
+</div>
+</body>
+</html>

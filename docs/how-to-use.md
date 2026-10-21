@@ -34,7 +34,7 @@ chat is described in words.
 | --- | --- | --- |
 | Dashboard | The web app you use: home, processes, screens, docs, review, scans, settings, glossary. | http://127.0.0.1:8765 |
 | Chat service | Runs the assistant and saves your changes. | 127.0.0.1:4310 (no page of its own) |
-| Assistant | Guides you. It calls the **crawler** (scans the portal) and the **BA agent** (writes the documentation). | the Home page and the drawer |
+| Assistant | Guides you. It calls the **crawler** (scans the portal) and the **BA agent** (writes the documentation). | the Chat page and the drawer |
 | Reference portal | A fake Polish insurer for practice. | http://127.0.0.1:4010 |
 
 The assistant can not change the tool itself (agents, code, safety settings). If you ask, it
@@ -82,17 +82,19 @@ hold scans of that portal are listed; switching the portal moves to one that has
 search box (**Ctrl K**), the assistant status and **Ask the assistant** (**Ctrl J**). Long lists
 show 25 rows a page with **← Previous** / **Next →**; Screens has a filter that searches every
 screen. A screen or record opened from a list has **← Prev** / **Next →** at the top to walk the
-same list without going back. The **side menu** has seven places:
+same list without going back. The **side menu** has nine places in three groups:
 
 | Place | What you do there |
 | --- | --- |
-| **Home** | Talk to the assistant. Beside the chat: **Needs you** (what waits for a decision) and a short list of your processes. |
-| **Processes** | Group screens into business processes, draw the to-be, compare, see history. |
-| **Screens** | Every screen the scans saw, with its revisions and your amendments. |
-| **Docs** | The as-is documentation the BA agent wrote, by record kind. |
+| **Home** | The portal now: the latest release of each portal part and the last scan, **Needs you** with the top five, what changed by process, and the counts of processes and rules. |
+| **Changes** | What changed between scans, grouped by process and screen, with Before / after (section 13). |
 | **Review** | One inbox for every open decision (section 13). |
-| **Scans** | The live view of a running scan, the history of scans, and **Server activity**. |
-| **Settings** | Environments, credentials, personas, crawl rules and the data store of the chosen portal. |
+| *Portal model:* **Processes** | Group screens into business processes, draw the to-be, compare, see history. |
+| **Screens** | Every screen the scans saw, with its revisions and your amendments. |
+| **Rules** | Business rules found in the cases, as decision tables with their tests. |
+| **Docs** | The as-is documentation the BA agent wrote, by record kind. |
+| *Machine:* **Scans** | The live view of a running scan, the history of scans, and **Server activity**. |
+| **Settings** | Environments, credentials, personas, crawl rules, hints, screen identity and the data store of the chosen portal. |
 
 Every status is a shape plus a word, never colour alone. Filled means it happened, hollow
 means it did not (yet), dashed corners mean unconfirmed, a cross means it broke.
@@ -134,15 +136,18 @@ through the chat service, so it has to be running.
   `persona_id,login,password` and then one column per attribute; see `personas/README.md`).
 - **Crawl rules**: allowed domains and paths, disallowed paths, robots.txt. Ask the assistant to
   change a rule.
+- **Hints**: what the portal model is told about the portal: the release marker, the A/B cookies
+  and the texts that mean a business refusal. When you confirm an A/B test in Review, its cookie
+  is added here, so later scans record which arm they saw. Ask the assistant to change a hint.
 - **Data store**: which database file the dashboard reads.
 
 ## 6. The assistant
 
-The assistant lives on **Home**, and on every other page in a drawer: press **Ask the
-assistant** or **Ctrl J**. The drawer has two contexts:
+The assistant has its own page, **Chat** (Home's **Open the chat**), and sits beside every other
+page in a drawer: press **Ask the assistant** or **Ctrl J**. The drawer has two contexts:
 
 - **This page** sends what you are looking at: the screen and its revision, the process, its
-  variant and step, or the item selected in Review. You can say "this step" or "that
+  process model and step, or the item selected in Review. You can say "this step" or "that
   amendment".
 - **Whole yard** sends only the portal.
 
@@ -222,7 +227,7 @@ reaches. Probing goes further, and happens only when you ask for it:
 2. Open a form step's screen (Screens) and press **Mark for probing**. The step gets an orange
    **Probe** tag. Screens lists every form step as marked, probed (with the number of outcomes)
    or **Not probed**.
-3. Ask the assistant to *"probe the marked forms"*. That starts a probe scan: it visits only the
+3. Ask the assistant to *"probe the marked forms"*. That starts a form-probing scan: it visits only the
    marked steps and does not map. Once a step has been probed, its mark goes away; **Remove the
    mark** drops it before that.
 
@@ -250,7 +255,15 @@ and stop at 12 tries per step and 60 per scan; the portal file can change both (
 
 ### See what was mapped (the map)
 
-**Scans → Map** draws every screen the portal's scans recorded as a node, from the start page down:
+**Screens → Map** draws the portal model: one box per screen, its links in their state (dashed
+when not seen since or not checked yet; **Layers** show or hide them, Retired links too). The menu
+links on every page are bundled into one line unless one of them changed. **Since previous
+release** marks the screens the latest rebuild found changed and fades the rest; **Overlay a
+process** numbers its steps and fades the other screens. Click a screen for its variants, actions,
+links and changes; **Same screen?** there asks about its variants.
+
+**One scan's path** (the third view, and the only map of a portal without a model yet) draws every
+screen the portal's scans recorded as a node, from the start page down:
 the lines show the first move into each screen (tick **All links** for the rest). Several states
 of one screen stack as a deck ("5 states"); a page's queued, failed and blocked items are chips on
 its node ("+3 queued"). Pick one scan or persona and **Apply** to grey out what it did not see;
@@ -278,7 +291,7 @@ process (kept, not forgotten) and groups of them that look like one process nobo
 
 - **Stop** next to **Send** stops everything this conversation started: the answer in progress
   and any scan. Use it when the assistant is stuck or busy with the wrong thing.
-- The scan's own **Stop scan** button (on Home and in Scans) stops only the scan. Confirm it.
+- The scan's own **Stop scan** button (on Chat and in Scans) stops only the scan. Confirm it.
 
 A stopped scan shows as **Interrupted**, not failed, and keeps everything it recorded. To
 continue, press **Resume with the assistant** on the scan in **Scans**, or say *"resume the
@@ -303,7 +316,17 @@ so far with their result.
 
 ## 9. Screens and their revisions
 
-**Screens** lists every screen the scans saw, per portal.
+**Screens** lists the portal model's screens (`SC-0001` …), what needs you first. Each row shows
+its status (**Active**, **Merged**, **Retired**: retired screens are kept), how many variants it
+has and why they differ (Release, Another persona, Flaky error…), when it was last seen, how many
+of its actions were checked, its portal part and its process. Filter by status or by text.
+
+A screen's page (`/screens/SC-0001`) starts with what needs you on it, then its **Variants** side
+by side (r1 is the baseline; each later one says why it differs), its **Actions** with where each
+leads, and its **History** of changes, each with Before / after.
+
+The pages the model is built from are on the **Recorded pages** tab, the list described below (and
+the only list for a portal without a model yet).
 
 ![Screens list](how-to-use/23-screens-list.png)
 
@@ -340,7 +363,9 @@ A **process** is a business flow you care about, made of screens in order, for e
 ### Make a process
 
 - The assistant **suggests groupings** from the scans. Each suggestion shows its screens and
-  why they belong together. Accept it, change it or ignore it.
+  why they belong together. Accept it, change it or ignore it. Under **Split or merge**, split
+  it in two before a step, or merge it with another suggestion; what you split or merged is not
+  suggested again as it was.
 - Or tell the assistant: *"I want to document the product comparison."* It proposes the
   screens; you confirm start, end and the rest. It never invents screens that were not
   recorded.
@@ -354,7 +379,10 @@ A **process** is a business flow you care about, made of screens in order, for e
   PROC-001"). A second click opens the same process.
 
 A process has a key such as `PRC-001`, a persona and a stage (suggested, scoped, as-is
-documented, to-be in design, migrating, migrated).
+documented, to-be in design, migrating, migrated). Its page shows, under **In the portal model**,
+how scans entered it (triggers), how they ended (outcomes), how far it was explored and its
+rules, and under **Paths** each distinct sequence of screens walked through it with how it ended
+and how many times.
 
 ### The as-is first
 
@@ -377,22 +405,23 @@ amendments to re-anchor).
   process again. Nothing is deleted: **Processes → Archived** lists it with **Restore**.
 - **Documentation** downloads the whole as-is (steps, requirements, contracts, gaps).
 
-### Variants: A and B
+### Process models: A and B
 
-Each process has **variants**:
+Each process has **process models**:
 
 - **A, as-is**: what the scans observed, fixed by hand where needed. It is the reference.
-- **B, to-be**: what you want. Start one with **Start a to-be design** (later **Variant from
-  A**) and draw it. From **to-be in design** on, the page opens on the to-be.
+- **B, to-be**: what you want. Start one with **Start a to-be design** (later **Process model
+  from A**) and draw it. From **to-be in design** on, the page opens on the to-be.
 
-A variant has revisions: **r1**, **r2**. Every save is a new revision with your name and the
-time. Nothing is overwritten or deleted.
+A process model has revisions: **r1**, **r2**. Every save is a new revision with your name and
+the time. Nothing is overwritten or deleted. ("Variant" means a screen variant only: one way a
+screen looked.)
 
 ### Draw the to-be
 
-Open variant B. Your work is a **draft** until you save it.
+Open process model B. Your work is a **draft** until you save it.
 
-![The to-be variant as a draft](how-to-use/21-process-to-be-draft.png)
+![The to-be process model as a draft](how-to-use/21-process-to-be-draft.png)
 
 - Each step is a plate: select it, move it up or down, **Merge** it with the next one, or add
   a **new step** with a name and a route.
@@ -406,7 +435,7 @@ Open variant B. Your work is a **draft** until you save it.
 
 ### Compare and the change spec
 
-**Compare A and B** puts the variants side by side.
+**Compare A and B** puts the two process models side by side.
 
 ![Compare A and B](how-to-use/22-process-compare.png)
 
@@ -416,10 +445,10 @@ as **Markdown** for the people who build the new portal.
 
 ### History and live
 
-**History** shows the variants and revisions, who saved what and when, and a scan-by-scan
+**History** shows the process models and revisions, who saved what and when, and a scan-by-scan
 timeline. **Restore** brings an older revision back as a new revision.
 
-**Mark live** says which variant runs in which environment (for example B r2 is live in
+**Mark live** says which process model runs in which environment (for example B r2 is live in
 sandbox). Each environment has its own marker. Until you mark one, the environment shows
 **Not marked**.
 
@@ -466,16 +495,23 @@ deleted.
 
 ## 13. Review: everything that waits for you
 
-**Review** is the one inbox. The side menu shows how many decisions wait. Filter by kind:
+**Review** is the one inbox. The side menu shows how many decisions wait. It has three tabs:
+**Needs you** (the inbox), **Explained automatically** (changes a rule explained; reviewing them
+is optional) and **Decided** (every confirmation and rejection you made on the portal model, with
+its reason). In **All**, only the kinds with something waiting are shown; the empty ones are one
+line of links. Filter by kind:
 
 ![Review inbox](how-to-use/25-review-inbox.png)
 
 | Kind | What to do |
 | --- | --- |
+| **Findings** | A change of the portal model no rule explained (see **Changes**). Open its **Before / after**. When it has a proposed explanation, **Confirm** or **Reject** it; a reject needs a reason. |
+| **Rules** | A business rule mined from the cases (proposed or tested), or one that broke or changed. **Confirm** or **Reject** it, or open the rule's decision table first. |
+| **Removals** | Actions gone while the release stayed the same. **Confirm N** in the group decides them all at once. |
+| **Processes** | Processes the portal model proposes after a scan. Accept or dismiss them on **Processes**. |
 | **Records to confirm** | Read the record and its evidence. **Confirm**, **Reject** (a reason is required) or **Comment**. |
 | **Assumptions to check** | Every assumption the BA wrote, until you confirm it (same buttons as records). A rule or use case that rests on an unchecked assumption shows it as **To check**. |
 | **Unexplained differences** | Something only some personas see (or a screen only some reach). See who sees it, compare two personas side by side, then have the BA write the rule (or, for a screen, a rule or an open question) that cites both sides. It leaves Review when that record exists. |
-| **Differing states** | Scans saw different screens at one place (one button, two pages; one route, two screens). The BA checked why (persona, input, a temporary error, session, a feature flag, data) and proposed a verdict per outcome, with the evidence: how often each was seen and whether it came back. Keep or change each verdict and **Confirm verdicts**; the BA documents by them, and an error page is never documented as a step. **Same state** merges the two screens into one (the map draws them as one deck). Groups the BA has not looked at yet are listed too, marked **No verdicts yet**: ask the assistant to have the BA reconcile them. |
 | **Amendments to re-anchor** | Pick the element or screen the amendment belongs to now, or dismiss it. |
 | **Assistant proposals** | Changes the assistant suggested that you have not applied or discarded. |
 | **Probe suites to approve** | After a scan with form probes, the BA proposes one suite per form: the tries worth repeating every time, each with why. For each variant:
@@ -488,6 +524,50 @@ deleted.
 | **Edit conflicts** | Two saves on the same process or amendment. Compare them and keep one. |
 
 Things leave the inbox when you decide. Nothing in it is deleted behind your back.
+
+**Same screen?** (a tab when pairs wait) shows two recorded versions of a page side by side and
+asks whether they are one screen: press **1** Same screen, **2** Same, different data or **3**
+Different screens, **W** to add why, **Enter** to save, **S** to skip. A pair where your earlier
+label and the automatic grouping disagree comes first. The next model rebuild groups the screens
+by your answer.
+
+### What changed between scans, and business rules (MudPuppy 2.0)
+
+After every scan MudPuppy rebuilds its **portal model**: one set of screens (`SC-0001` …) across
+all scans, with the actions on them and where they lead. It then compares the new model with the
+one before. **Changes** (in the menu) lists the differences in a range: pick **From** and **To**
+(a model version is built after each scan; Now is the latest) and press **Show**. Above the list,
+each portal part's releases are drawn as lanes with the scans under them and the range as a
+bracket. The list is grouped by process, then screen; in each group what needs you comes first.
+Every change has a status:
+
+| Status | Meaning |
+| --- | --- |
+| **Needs you** | No rule could explain it. Decide, or have the BA look at it. |
+| **Explained automatically** | A published rule explained it from the evidence, such as "Release" (the screen changed with a new release) or "Part of a rename". Each one names its rule (R1–R8). |
+| **Waiting for a check** | MudPuppy will repeat the path itself to decide, such as an error that may or may not come back. |
+
+**Before / after** on a row opens the two recorded pages side by side, what differs between them
+(the release of each portal part, the persona, the scan), the explanation with its tests and
+where the change shows. `J` / `K` step through the changes that need you; `Esc` goes back.
+
+Business rules have their own page, **Rules**: where one button leads to different screens
+depending on what was typed, MudPuppy finds the rule ("drivers under 18 are refused") and tests it
+just below, at and above its threshold. Once a BA's business rule record cites it, the rule goes
+by that record's `BR-` key.
+
+Until the designed pages arrive, a developer runs these steps from `apps/crawler` (each takes the
+portal and `--env`):
+
+| Command | What it does |
+| --- | --- |
+| `pnpm model:reconcile <portal>` | Rebuild the model (also runs after every scan). |
+| `pnpm model:mine <portal>` | Find decision rules (needs `uv`; Python, no LLM). |
+| `pnpm model:replay <portal>` | Repeat paths to decide what waits for a check and to test new rules (headless, no LLM; 20 runs at most). |
+| `pnpm model:regress <portal>` | Re-test every confirmed rule; a rule that no longer holds is replaced and mined again. |
+| `pnpm model:decide <portal> --by "Your Name" confirm H-0002 --reason "…"` | Confirm, reject or overturn a claim, with your reason. |
+| `pnpm model:rules-export <portal>` | Write confirmed and supported rules (`--status all`: every rule) as DMN tables and Markdown pages, `rules.csv` and an index. **Rules** has the same export as a zip, and each rule's page shows its Markdown under **In the export**. |
+| `pnpm model:propose <portal>` | Propose processes from the model; they appear in **Processes** for you to accept or dismiss. |
 
 ## 14. When something fails (error references)
 

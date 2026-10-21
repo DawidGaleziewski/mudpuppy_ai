@@ -21,6 +21,23 @@ it('0021 free environment names: format check, round-trip keeps rows, down refus
     expect(() => ins(bad), bad).toThrow(/CHECK/);
   expect(() => ins('dev-2')).toThrow(/UNIQUE/);
   // down refuses while a free name exists, and rolls back
+  expect(migrateDown(o.raw, MIGRATIONS)).toBe('0045');
+  expect(migrateDown(o.raw, MIGRATIONS)).toBe('0044');
+  expect(migrateDown(o.raw, MIGRATIONS)).toBe('0043');
+  expect(migrateDown(o.raw, MIGRATIONS)).toBe('0042');
+  expect(migrateDown(o.raw, MIGRATIONS)).toBe('0041');
+  expect(migrateDown(o.raw, MIGRATIONS)).toBe('0040');
+  expect(migrateDown(o.raw, MIGRATIONS)).toBe('0039');
+  expect(migrateDown(o.raw, MIGRATIONS)).toBe('0038');
+  expect(migrateDown(o.raw, MIGRATIONS)).toBe('0037');
+  expect(migrateDown(o.raw, MIGRATIONS)).toBe('0036');
+  expect(migrateDown(o.raw, MIGRATIONS)).toBe('0035');
+  expect(migrateDown(o.raw, MIGRATIONS)).toBe('0034');
+  expect(migrateDown(o.raw, MIGRATIONS)).toBe('0033');
+  expect(migrateDown(o.raw, MIGRATIONS)).toBe('0032');
+  expect(migrateDown(o.raw, MIGRATIONS)).toBe('0031');
+  expect(migrateDown(o.raw, MIGRATIONS)).toBe('0030');
+  expect(migrateDown(o.raw, MIGRATIONS)).toBe('0029');
   expect(migrateDown(o.raw, MIGRATIONS)).toBe('0028');
   expect(migrateDown(o.raw, MIGRATIONS)).toBe('0027');
   expect(migrateDown(o.raw, MIGRATIONS)).toBe('0026');
@@ -41,6 +58,23 @@ it('0021 free environment names: format check, round-trip keeps rows, down refus
     '0026',
     '0027',
     '0028',
+    '0029',
+    '0030',
+    '0031',
+    '0032',
+    '0033',
+    '0034',
+    '0035',
+    '0036',
+    '0037',
+    '0038',
+    '0039',
+    '0040',
+    '0041',
+    '0042',
+    '0043',
+    '0044',
+    '0045',
   ]);
   expect(o.raw.prepare('SELECT count(*) AS n FROM credentials').get()).toEqual({ n: 1 });
   expect(

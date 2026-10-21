@@ -53,13 +53,13 @@ def run_map(conn: sqlite3.Connection, run_id: str, now: datetime) -> LiveMap | N
             "  SELECT from_state, to_state,"
             "         json_extract(action_json, '$.accessible_name') AS label,"
             "         row_number() OVER (PARTITION BY to_state ORDER BY created_at, id) AS n"
-            "    FROM edges WHERE run_id = ? AND status = 'executed'"
+            "    FROM transitions WHERE run_id = ? AND status = 'executed'"
             "     AND to_state IS NOT NULL AND to_state != from_state"
             ") WHERE n = 1 ORDER BY to_state",
             (run_id,),
         ).fetchall()
         last = conn.execute(
-            "SELECT to_state FROM edges WHERE run_id = ? AND to_state IS NOT NULL"
+            "SELECT to_state FROM transitions WHERE run_id = ? AND to_state IS NOT NULL"
             " ORDER BY created_at DESC, id DESC LIMIT 1",
             (run_id,),
         ).fetchone()

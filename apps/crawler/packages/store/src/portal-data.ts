@@ -15,13 +15,12 @@ export const PORTAL_TABLES = [
   'state_wireframes',
   'state_observations',
   'actions',
-  'edges',
+  'transitions',
   'forms',
   'network_calls',
-  'page_visits',
+  'observations',
   'frontier',
   'open_questions',
-  'rule_candidates',
   'decision_log',
   'robots_policies',
   'trace_spans',
@@ -47,8 +46,8 @@ export const PORTAL_TABLES = [
   'grouping_suggestions',
   'ba_processes',
   'ba_process_revisions',
-  'process_variants',
-  'process_variant_revisions',
+  'process_models',
+  'process_model_revisions',
   'process_drafts',
   'process_live',
   'change_spec_revisions',
@@ -56,21 +55,49 @@ export const PORTAL_TABLES = [
   'probe_outcomes',
   'probe_suites',
   'marks',
-  'reconciliations',
   'checkpoints',
+  'builds',
+  'state_components',
+  'journeys',
+  'attribute_writes',
+  'observation_builds',
+  'model_versions',
+  'model_screens',
+  'screen_members',
+  'screen_lineage',
+  'state_pair_labels',
+  'state_pair_label_history',
+  'parameter_roles',
+  'action_classes',
+  'model_transitions',
+  'build_epochs',
+  'entity_refs',
+  'deviations',
+  'deviation_occurrences',
+  'hypotheses',
+  'hypothesis_evidence',
+  'hypothesis_tests',
+  'hypothesis_events',
+  'fingerprint_profiles',
+  'tau_acceptances',
+  'correlation_ids',
+  'process_instances',
+  'process_triggers',
+  'process_explorations',
+  'similarity_classifiers',
 ] as const;
 export type PortalTable = (typeof PORTAL_TABLES)[number];
 
 /**
  * Children before parents, so every foreign key still holds at each step. `process_steps` then
- * `processes` (`0005_trace_processes`) go first of all: steps reference actions, edges and states,
+ * `processes` (`0005_trace_processes`) go first of all: steps reference actions, transitions and states,
  * and processes reference runs, actions and doc_records. The chat tables (`0008_chat_orchestrator`)
  * go before even those: amendments reference process_scopes and runs; process_scopes reference
  * states; workflow_steps reference runs and analysis_sessions; all but amendments reference
  * chat_conversations, and chat_messages are its children. `amendment_revisions` (`0016`) precede
  * amendments, and `screens` (`0015`) follow states (states and amendments reference them) and precede
  * runs (`first_seen_run`). The BA process tables (`0018`) go first of all: change specs, live records, drafts,
- * variant revisions and variants, process revisions, `ba_processes`, then `grouping_suggestions`; the cycle
+ * process model revisions and models, process revisions, `ba_processes`, then `grouping_suggestions`; the cycle
  * between `ba_processes.suggestion_id` and `grouping_suggestions.process_id` is cut by clearing the latter first
  * (see `deletePortal`). amendments' self-references
  * (`reapplied_as`, `reapplies`) are within one portal and go in one DELETE statement. Layer B
@@ -84,16 +111,56 @@ export type PortalTable = (typeof PORTAL_TABLES)[number];
  * `decision_log` and `runs`.
  */
 const DELETE_ORDER: readonly PortalTable[] = [
+  // 0036 (spec 039): processes' instances, triggers and explorations reference the model, journeys
+  // and ba_processes; instances reference correlation ids
+  'process_explorations',
+  'process_triggers',
+  'process_instances',
+  'correlation_ids',
+  // 0038 (spec 039): no references
+  'similarity_classifiers',
+  // 0033 (spec 039): no references
+  'tau_acceptances',
+  'fingerprint_profiles',
+  // 0031 (spec 039): interpretation references the model; marks' and open questions' hypothesis
+  // links are cleared first (see `deletePortal`)
+  'hypothesis_events',
+  'hypothesis_tests',
+  'hypothesis_evidence',
+  'entity_refs',
+  'hypotheses',
+  'deviation_occurrences',
+  'deviations',
+  // 0030 (spec 039): the portal model references transitions, observations, builds, states and itself
+  'model_transitions',
+  'action_classes',
+  'screen_lineage',
+  'screen_members',
+  'build_epochs',
+  'model_screens',
+  'model_versions',
+  'parameter_roles',
+  'state_pair_labels',
+  'state_pair_label_history', // 0045: references states
   'checkpoints', // 0027: references runs and states (no portal_id: the default run_id partition)
-  'reconciliations', // 0025: no references
   'marks', // 0024: references runs (used_by_run_id)
   'probe_suites', // 0023: reference runs and form_steps
-  'probe_outcomes', // 0023: reference runs, states, form_steps and edges
+  'probe_outcomes', // 0023: reference runs, states, form_steps and transitions
+  // 0036: PROC records reference ba_processes, so Layer B (and the trace processes that reference
+  // it) go before the BA process tables
+  'process_steps',
+  'processes',
+  'doc_reviews',
+  'doc_relations',
+  'doc_evidence_links',
+  'followup_tasks',
+  'doc_revisions',
+  'doc_records',
   'change_spec_revisions', // 0018: the BA process tables, children first
   'process_live',
   'process_drafts',
-  'process_variant_revisions',
-  'process_variants',
+  'process_model_revisions',
+  'process_models',
   'ba_process_revisions',
   'ba_processes',
   'grouping_suggestions',
@@ -104,30 +171,26 @@ const DELETE_ORDER: readonly PortalTable[] = [
   'workflow_steps',
   'chat_messages',
   'chat_conversations',
-  'process_steps',
-  'processes',
-  'doc_reviews',
-  'doc_relations',
-  'doc_evidence_links',
-  'followup_tasks',
-  'doc_revisions',
-  'doc_records',
   'analysis_session_runs',
   'analysis_sessions',
   'trace_spans',
   'agent_turns',
   'decision_log',
   'network_calls',
-  'page_visits',
+  'observation_builds', // 0029: references observations and builds
+  'builds',
+  'observations', // 0029: transitions.from_observation_id is cleared first (cycle with observations.transition_id)
   'frontier',
   'actions',
-  'edges',
+  'transitions',
+  'attribute_writes', // 0029: references journeys
+  'journeys', // 0029: transitions and observations reference journeys; journeys reference runs, checkpoints
   'forms',
   'open_questions',
-  'rule_candidates',
   'robots_policies',
   'state_observations',
   'state_wireframes',
+  'state_components', // 0029: references states
   'states',
   'form_steps', // 0022: states reference form_steps, form_steps reference runs
   'screens',
@@ -155,6 +218,27 @@ const DOC_REVISIONS_OF_PORTAL = (op: string) =>
 const BA_PROCESSES_OF_PORTAL = (op: string) =>
   `SELECT id FROM ba_processes WHERE portal_id ${op} ?`;
 
+/**
+ * A typed reference belongs to the portal of its one target (0031). Each target kind is matched
+ * on its own, so the refs go whatever order their referrers are deleted in. The portal is bound
+ * once (`?`) and read through `x.p`, like every other clause here.
+ */
+const ENTITY_REFS_OF_PORTAL = (op: string): string => {
+  const runs = `SELECT id FROM runs WHERE portal_id ${op} x.p`;
+  const targets = [
+    `screen_id IN (SELECT id FROM model_screens WHERE portal_id ${op} x.p)`,
+    `state_id IN (SELECT id FROM states WHERE portal_id ${op} x.p)`,
+    `observation_id IN (SELECT id FROM observations WHERE run_id IN (${runs}))`,
+    `transition_id IN (SELECT id FROM transitions WHERE run_id IN (${runs}))`,
+    `network_call_id IN (SELECT id FROM network_calls WHERE run_id IN (${runs}))`,
+    `action_class_id IN (SELECT a.id FROM action_classes a JOIN model_screens s ON s.id = a.screen_id WHERE s.portal_id ${op} x.p)`,
+    `model_transition_id IN (SELECT t.id FROM model_transitions t JOIN model_screens s ON s.id = t.from_screen_id WHERE s.portal_id ${op} x.p)`,
+    `hypothesis_id IN (SELECT id FROM hypotheses WHERE portal_id ${op} x.p)`,
+    `process_id IN (SELECT id FROM ba_processes WHERE portal_id ${op} x.p)`,
+  ];
+  return `EXISTS (SELECT 1 FROM (SELECT ? AS p) x WHERE ${targets.join(' OR ')})`;
+};
+
 /** `mine`: rows of the portal; `others`: rows of every other portal. */
 export function where(table: PortalTable, side: 'mine' | 'others'): string {
   const op = side === 'mine' ? '=' : '<>';
@@ -175,8 +259,40 @@ export function where(table: PortalTable, side: 'mine' | 'others'): string {
     case 'form_steps':
     case 'probe_suites':
     case 'marks':
-    case 'reconciliations':
+    case 'builds':
+    case 'model_versions':
+    case 'model_screens':
+    case 'state_pair_labels':
+    case 'state_pair_label_history':
+    case 'parameter_roles':
+    case 'build_epochs':
+    case 'deviations':
+    case 'hypotheses':
+    case 'fingerprint_profiles':
+    case 'tau_acceptances':
+    case 'similarity_classifiers':
       return `portal_id ${op} ?`;
+    case 'deviation_occurrences':
+      return `deviation_id IN (SELECT id FROM deviations WHERE portal_id ${op} ?)`;
+    case 'hypothesis_evidence':
+    case 'hypothesis_tests':
+    case 'hypothesis_events':
+      return `hypothesis_id IN (SELECT id FROM hypotheses WHERE portal_id ${op} ?)`;
+    case 'entity_refs':
+      return ENTITY_REFS_OF_PORTAL(op);
+    case 'screen_members':
+    case 'action_classes':
+      return `screen_id IN (SELECT id FROM model_screens WHERE portal_id ${op} ?)`;
+    case 'model_transitions':
+      return `from_screen_id IN (SELECT id FROM model_screens WHERE portal_id ${op} ?)`;
+    case 'screen_lineage':
+      return `model_version_id IN (SELECT id FROM model_versions WHERE portal_id ${op} ?)`;
+    case 'state_components':
+      return `state_id IN (SELECT id FROM states WHERE portal_id ${op} ?)`;
+    case 'attribute_writes':
+      return `journey_id IN (SELECT id FROM journeys WHERE run_id IN (SELECT id FROM runs WHERE portal_id ${op} ?))`;
+    case 'observation_builds':
+      return `observation_id IN (SELECT id FROM observations WHERE run_id IN (SELECT id FROM runs WHERE portal_id ${op} ?))`;
     case 'chat_messages':
       return `conversation_id IN (SELECT id FROM chat_conversations WHERE portal_id ${op} ?)`;
     case 'analysis_session_runs':
@@ -192,14 +308,19 @@ export function where(table: PortalTable, side: 'mine' | 'others'): string {
       return `record_id IN (${DOC_RECORDS_OF_PORTAL(op)})`;
     case 'amendment_revisions':
       return `amendment_id IN (SELECT id FROM amendments WHERE portal_id ${op} ?)`;
+    case 'correlation_ids':
+      return `journey_id IN (SELECT id FROM journeys WHERE run_id IN (SELECT id FROM runs WHERE portal_id ${op} ?))`;
     case 'ba_process_revisions':
-    case 'process_variants':
+    case 'process_models':
+    case 'process_instances':
+    case 'process_triggers':
+    case 'process_explorations':
     case 'process_live':
     case 'change_spec_revisions':
       return `process_id IN (${BA_PROCESSES_OF_PORTAL(op)})`;
-    case 'process_variant_revisions':
+    case 'process_model_revisions':
     case 'process_drafts':
-      return `variant_id IN (SELECT id FROM process_variants WHERE process_id IN (${BA_PROCESSES_OF_PORTAL(op)}))`;
+      return `model_id IN (SELECT id FROM process_models WHERE process_id IN (${BA_PROCESSES_OF_PORTAL(op)}))`;
     case 'process_steps':
       return `process_id IN (SELECT id FROM processes WHERE portal_id ${op} ?)`;
     case 'state_wireframes':
@@ -393,6 +514,25 @@ export function deletePortal(opts: {
     // point at within this single-statement-per-table delete pass.
     raw
       .prepare(`UPDATE trace_spans SET parent_id = NULL WHERE ${where('trace_spans', 'mine')}`)
+      .run(portal);
+    // 0031: marks and open questions may name a hypothesis; hypotheses supersede each other.
+    raw
+      .prepare(`UPDATE marks SET hypothesis_id = NULL WHERE ${where('marks', 'mine')}`)
+      .run(portal);
+    raw
+      .prepare(
+        `UPDATE open_questions SET hypothesis_id = NULL WHERE ${where('open_questions', 'mine')}`,
+      )
+      .run(portal);
+    raw
+      .prepare(`UPDATE hypotheses SET superseded_by = NULL WHERE ${where('hypotheses', 'mine')}`)
+      .run(portal);
+    // 0029: a transition names the observation it started from and an observation the transition
+    // that led to it.
+    raw
+      .prepare(
+        `UPDATE transitions SET from_observation_id = NULL WHERE ${where('transitions', 'mine')}`,
+      )
       .run(portal);
     raw
       .prepare(

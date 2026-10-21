@@ -8,13 +8,13 @@ export interface Coverage {
   actions_skipped_by_class: Record<string, number>;
   api_endpoints: number;
   /** Distinct item/listing pages visited in this run (FR-024). */
-  item_page_visits: number;
+  item_pages_visited: number;
 }
 
 const num = (v: number | string | bigint): number => Number(v);
 
 /** Count item pages: states this run saw whose route template is one of the portal's `item_route_templates`. */
-export async function countItemPageVisits(
+export async function countItemPagesVisited(
   db: PathfinderDb,
   runId: string,
   itemRouteTemplates: readonly string[],
@@ -42,15 +42,15 @@ export async function computeCoverage(
     .where('run_id', '=', runId)
     .executeTakeFirstOrThrow();
   // A link inferred from an earlier transition to the same target was not clicked (spec 013 US2).
-  const edges = await db
-    .selectFrom('edges')
+  const transitions = await db
+    .selectFrom('transitions')
     .select(['confidence', (eb) => eb.fn.countAll<number>().as('n')])
     .where('run_id', '=', runId)
     .where('status', '=', 'executed')
     .groupBy('confidence')
     .execute();
-  const inferred = num(edges.find((e) => e.confidence === 'inferred')?.n ?? 0);
-  const executed = edges.reduce((s, e) => s + num(e.n), 0) - inferred;
+  const inferred = num(transitions.find((t) => t.confidence === 'inferred')?.n ?? 0);
+  const executed = transitions.reduce((s, t) => s + num(t.n), 0) - inferred;
   const skipped = await db
     .selectFrom('frontier')
     .select(['safety_class', (eb) => eb.fn.countAll<number>().as('n')])
@@ -70,7 +70,7 @@ export async function computeCoverage(
     actions_inferred: inferred,
     actions_skipped_by_class: Object.fromEntries(skipped.map((r) => [r.safety_class, num(r.n)])),
     api_endpoints: endpoints.length,
-    item_page_visits: await countItemPageVisits(db, runId, itemRouteTemplates),
+    item_pages_visited: await countItemPagesVisited(db, runId, itemRouteTemplates),
   };
 }
 
@@ -168,7 +168,7 @@ export function renderReport(r: FrontierReport): string {
         .join(', ') || 'none'
     }`,
     `- API endpoints seen: ${c.api_endpoints}`,
-    `- Item pages visited: ${c.item_page_visits}`,
+    `- Item pages visited: ${c.item_pages_visited}`,
     `- Still pending: ${r.pending}`,
     '',
     '## Skipped actions',

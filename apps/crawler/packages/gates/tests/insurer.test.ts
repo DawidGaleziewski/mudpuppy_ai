@@ -3,6 +3,7 @@ import { join } from 'node:path';
 import { afterAll, beforeAll, expect } from 'vitest';
 import { parse } from 'yaml';
 import { AGENT_TOOL_NAMES } from '@pathfinder/mcp-server';
+import { captureInvariants } from '@pathfinder/store';
 import {
   actionNamed,
   actOn,
@@ -68,7 +69,7 @@ gate(
     expect(titles.some((t) => /Proszę czekać/i.test(t))).toBe(false);
     const entries = rows<{ hops_json: string }>(
       gs,
-      'SELECT hops_json FROM page_visits WHERE state_id = ?',
+      'SELECT hops_json FROM observations WHERE state_id = ?',
       old.state_id,
     ).map((v) => (JSON.parse(v.hops_json) as { url: string }[])[0]?.url ?? '');
     expect(entries.some((u) => u.includes('/polisa.php?id=7'))).toBe(true);
@@ -126,7 +127,7 @@ gate(
     // The claim date has no limit in the page; only the server knows the 30-day window. A trace
     // types an old date as a person would: the browser lets it through, the server refuses it, and
     // the step's state holds the server's message (the client side shows none: no min, no max).
-    // The same with a probe run: F-03@038 below (the wizard keeps its step on the server).
+    // The same with a form-probing run: F-03@038 below (the wizard keeps its step on the server).
     const own = await startRun(gs.call, 'proving-ground-insurer', 'client', {
       mode: 'trace',
       process: { name: 'Report a claim', goal: 'report a claim for an old event' },
@@ -166,7 +167,7 @@ gate(
     // server starts the wizard at step 1. Both dates are refused by the server's 30-day window.
     const claim = await nav(gs.call, run, '/ubezpieczenia#/szkody/nowa');
     markForProbing(gs, 'proving-ground-insurer', routeOf(gs, claim.state_id));
-    const own = await startRun(gs.call, 'proving-ground-insurer', 'client', { probe_marked: true });
+    const own = await startRun(gs.call, 'proving-ground-insurer', 'client', { form_probing: true });
     await nav(gs.call, own, '/ubezpieczenia');
     await loginAs(gs.call, own);
     const step1 = await nav(gs.call, own, '/ubezpieczenia#/szkody/nowa');
@@ -250,4 +251,16 @@ gate('LO-18', 'the div date picker "Data rozpoczęcia" can be opened and a day p
   const picked = await actOn(gs.call, run, opened, /^15$/);
   expect(picked.state_id).not.toBe(opened.state_id);
   expect(snapshot(gs, picked.state_id)).toMatch(/\d{4}-\d{2}-15/);
+});
+
+// Last in the file: it reads everything the gates above recorded (a map run with fills, a trace,
+// a form-probing run) against the M1 capture rules (spec 039 plan § 1, T023).
+gate('F-41@039', 'every scan recorded what the portal model rebuilds from', async () => {
+  expect(captureInvariants(gs.ctx.raw, 'proving-ground-insurer')).toEqual({
+    observationsWithoutBuild: [],
+    transitionsWithoutJourney: [],
+    journeysWithGaps: [],
+    fillsWithoutWrite: [],
+    traceStepsWithoutTransition: [],
+  });
 });

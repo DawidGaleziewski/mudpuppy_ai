@@ -155,6 +155,7 @@ async function actStep(
       rs: state,
       via: { kind: 'act', action },
       depth: toDepth,
+      typed: { value, fills },
       ...(state.isTrace
         ? {
             step: {
@@ -162,6 +163,7 @@ async function actStep(
               kind: action.json.input ?? 'click',
               action_id: action.id,
               value,
+              ...(input.trigger ? { trigger: true } : {}),
             },
           }
         : {}),

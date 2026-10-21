@@ -1,0 +1,146 @@
+{% extends "salvage/base.html" %}
+{% import "salvage/macros.html" as sy %}
+{% import "salvage/partials/releases.html" as rel with context %}
+{% set nav_current = "home" %}
+{% block title %}{{ h.portal }}{% endblock %}
+{#- Spec 039 T100, designer screen v2-01 (UX-R01–R03): the portal now. Latest releases and the last
+    scan, Needs you (the one intent plate, its primary button opens Review), counts of changes,
+    processes and rules, and what changed by process. The assistant is beside every page (Ctrl J)
+    and on Chat. Releases come from scans (owner answer 17). -#}
+{%- macro count_link(n, href, label) -%}
+<a class="sy-h2 sy-num" href="{{ href }}" aria-label="{{ n }} {{ label }}">{{ n }}</a>
+{%- endmacro -%}
+{% block main %}
+{%- set ch = h.changes %}
+<div class="sy-pagehead">
+  <h1 class="sy-h1 sy-case-normal">{{ h.portal }}</h1>
+  <p class="sy-meta">{{ c.env }} · {% if h.model_built_at %}model as of {{ h.model_built_at | when }} (version {{ h.model_seq }}){% else %}no portal model yet: it is built after every scan{% endif %}</p>
+</div>
+
+<section class="sy-plate" aria-labelledby="rel-h">
+  <div class="sy-plate__head">
+    <h2 id="rel-h" class="sy-plate__title">Latest releases</h2>
+    <a class="sy-small" href="{{ c.url('/changes') }}">Release timeline</a>
+  </div>
+  <div class="sy-plate__body sy-stack">
+    <div class="sy-grid mp-release-grid">
+      {%- for lane in (h.timeline.lanes if h.timeline else []) %}
+      {%- set cur = lane.spans[-1] %}{% set was = lane.spans | rejectattr("rollout") | list %}
+      <div class="sy-stack">
+        <span class="sy-label">{{ lane.name }}</span>
+        <span class="sy-cluster"><span class="sy-tag sy-case-normal">{{ cur.name }}</span>{% if lane.marker %}<span class="sy-status" data-status="ok">Observed</span>{% else %}<span class="sy-status" data-status="unobserved">No release marker</span>{% endif %}</span>
+        <span class="sy-small sy-muted">since {{ cur.start | when }}{% if was | length > 1 %} · was <span class="sy-case-normal">{{ was[-2].name }}</span>{% endif %}</span>
+      </div>
+      {%- endfor %}
+      <div class="sy-stack">
+        <span class="sy-label">Last scan</span>
+        {%- if h.last_scan %}
+        <span class="sy-cluster"><span class="sy-small">{{ "Check run" if h.last_scan.check else "AI scan" }}</span>{{ sy.tag(h.last_scan.id[:8], c.url('/runs/' ~ h.last_scan.id)) }}</span>
+        <span class="sy-small sy-muted">{{ h.last_scan.started_at | when }} · {{ h.last_scan.steps }} steps · {{ h.last_scan.status }}</span>
+        {%- else %}
+        <span class="sy-status" data-status="todo">No scan yet</span>
+        {%- endif %}
+      </div>
+      <div class="sy-stack">
+        <span class="sy-label">Next scan</span>
+        <span class="sy-status" data-status="todo">None scheduled</span>
+        <a class="sy-small" href="{{ c.url('/scans/plan') }}">Plan a scan</a>
+      </div>
+    </div>
+    {%- if h.timeline %}{{ rel.lanes(h.timeline) }}{% endif %}
+  </div>
+</section>
+
+<div class="mp-glance">
+  <section class="sy-plate sy-plate--intent" aria-labelledby="needs-h">
+    <div class="sy-plate__head"><h2 id="needs-h" class="sy-plate__title">Needs you</h2></div>
+    <div class="sy-plate__body sy-stack">
+      <p class="sy-cluster">{{ count_link(h.inbox.total, c.url('/review'), "items need you: open Review") }}<span>item{{ "" if h.inbox.total == 1 else "s" }} wait for a decision</span></p>
+      <p class="sy-cluster sy-small">
+        {%- for kind, label in queries_kinds if h.inbox.count(kind) %}<a href="{{ c.url('/review', show=kind) }}">{{ label }} {{ h.inbox.count(kind) }}</a>{% endfor %}</p>
+    </div>
+    {%- if h.top %}
+    <h3 class="sy-label mp-top-label" id="top-h">Top {{ h.top | length }} · broken rules first</h3>
+    <ol class="sy-rows" aria-labelledby="top-h">
+      {%- for kind, it in h.top %}
+      <li><a class="sy-row" href="{{ c.url('/review', select=kind ~ ':' ~ it.id) }}">
+        <span class="sy-row__main">
+          <span class="sy-cluster"><span class="sy-chip{% if it.chip.chip %} sy-chip--{{ it.chip.chip }}{% endif %}">{{ it.chip.word }}</span>{% if it.status %}{{ sy.status("rule", it.status) }}{% endif %}</span>
+          <span class="sy-case-normal">{{ it.claim }}</span>
+          <span class="sy-small sy-muted sy-case-normal">{% if it.where %}{{ it.where }} · {% endif %}{{ it.hint }}</span>
+        </span>
+        <span class="sy-mono sy-mono--sm sy-muted">{{ it.at | when }}</span>
+      </a></li>
+      {%- endfor %}
+    </ol>
+    {%- endif %}
+    <div class="sy-plate__foot">
+      <span class="sy-small sy-muted">{% if h.inbox.total > h.top | length %}{{ h.inbox.total - h.top | length }} more in Review{% elif not h.inbox.total %}Nothing needs you.{% endif %}</span>
+      <a class="sy-btn sy-btn--primary" href="{{ c.url('/review') }}">Open Review ({{ h.inbox.total }})</a>
+    </div>
+  </section>
+
+  <div class="mp-counts">
+    <section class="sy-plate" aria-labelledby="chg-h">
+      <div class="sy-plate__head"><h2 id="chg-h" class="sy-plate__title">What changed</h2><span class="sy-meta">all model versions</span></div>
+      <div class="sy-plate__body sy-stack">
+        <p class="sy-cluster">{{ count_link(ch.counts.all or 0, c.url('/changes'), "changes: open What changed") }}<span class="sy-small sy-muted">changes</span></p>
+        <p class="sy-cluster">
+          <a class="sy-small" href="{{ c.url('/changes?show=needs') }}"><span class="sy-status" data-status="needs">{{ ch.counts.needs or 0 }} need you</span></a>
+          <a class="sy-small" href="{{ c.url('/review', tab='explained') }}"><span class="sy-status" data-status="inferred">{{ ch.counts.explained or 0 }} explained automatically</span></a>
+        </p>
+      </div>
+    </section>
+    <section class="sy-plate" aria-labelledby="proc-h">
+      <div class="sy-plate__head"><h2 id="proc-h" class="sy-plate__title">Processes</h2></div>
+      <div class="sy-plate__body sy-stack">
+        <p class="sy-cluster">{{ count_link(h.processes, c.url('/processes'), "processes: open Processes") }}<span class="sy-small sy-muted">processes{% if h.proposed %} · {{ h.proposed }} proposed{% endif %}</span></p>
+      </div>
+    </section>
+    <section class="sy-plate" aria-labelledby="rules-h">
+      <div class="sy-plate__head"><h2 id="rules-h" class="sy-plate__title">Business rules</h2></div>
+      <div class="sy-plate__body sy-stack">
+        <p class="sy-cluster">{{ count_link(h.rules.rules | length, c.url('/rules'), "business rules: open Rules") }}<span class="sy-small sy-muted">rules</span></p>
+        <p class="sy-cluster">{% for s, n in h.rules.counts.items() if n %}{{ sy.status("rule", s, n | string) }}{% endfor %}</p>
+      </div>
+    </section>
+  </div>
+</div>
+
+<div class="sy-columns">
+  <section class="sy-col-main sy-plate" aria-labelledby="byproc-h">
+    <div class="sy-plate__head"><h2 id="byproc-h" class="sy-plate__title">What changed, by process</h2><span class="sy-meta">{{ ch.counts.all or 0 }} changes</span></div>
+    {%- if ch.groups %}
+    <div class="sy-table-wrap sy-table-wrap--flush">
+      <table class="sy-table sy-table--middle" aria-labelledby="byproc-h">
+        <thead><tr><th scope="col">Process</th><th scope="col" class="sy-num">Changes</th><th scope="col" class="sy-num">Need you</th><th scope="col" class="sy-num">Explained</th><th scope="col">Where</th></tr></thead>
+        <tbody>
+        {%- for g in ch.groups %}
+        {%- set n = g.changes | rejectattr("status", "equalto", "explained") | list | length %}
+          <tr>
+            <th scope="row"><a class="sy-case-normal" href="{{ c.url('/changes', process=g.key or 'none') }}">{{ g.name }}</a></th>
+            <td class="sy-num">{{ g.changes | length }}</td>
+            <td class="sy-num">{% if n %}<span class="sy-status" data-status="needs">{{ n }}</span>{% else %}<span class="sy-muted">0</span>{% endif %}</td>
+            <td class="sy-num">{{ g.changes | length - n }}</td>
+            <td class="sy-small sy-muted sy-case-normal">{% for s in g.screens %}{{ s.title }} {{ s.changes | length }}{{ " · " if not loop.last }}{% endfor %}</td>
+          </tr>
+        {%- endfor %}
+        </tbody>
+      </table>
+    </div>
+    {%- else %}
+    <div class="sy-plate__body"><p class="sy-small sy-muted">No change yet. Changes start after the second scan.</p></div>
+    {%- endif %}
+  </section>
+  <aside class="sy-col-side" aria-label="Assistant">
+    <section class="sy-plate" aria-labelledby="asst-h">
+      <div class="sy-plate__head"><h2 id="asst-h" class="sy-plate__title">Assistant</h2><span class="sy-small sy-muted">whole portal</span></div>
+      <div class="sy-plate__body sy-stack">
+        <p class="sy-small">Ask what changed, or have it explain a finding, start a check run or rebuild the model. Its proposals land in Review and Processes.</p>
+        <p><a class="sy-btn sy-btn--md" href="{{ c.url('/chat') }}">Open the chat</a></p>
+        <p class="sy-small sy-muted"><span class="sy-kbd">Ctrl J</span> opens it beside any page.</p>
+      </div>
+    </section>
+  </aside>
+</div>
+{% endblock %}

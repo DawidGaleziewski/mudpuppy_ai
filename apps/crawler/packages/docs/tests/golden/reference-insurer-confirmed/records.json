@@ -243,7 +243,7 @@
       "text": "\"Dalej\" is classified mutating and blocked at the read ceiling. How many calculator steps follow?"
     },
     {
-      "id": "00000000-0000-7000-8000-000000000013",
+      "id": "00000000-0000-7000-8000-000000000014",
       "run_id": "00000000-0000-7000-8000-000000000001",
       "text": "What happens after \"Kup polisę\"? It was refused as mutating."
     }
@@ -262,7 +262,6 @@
       },
       "evidence": [
         {
-          "broken": false,
           "doc_key": null,
           "label": "Ubezpieczenie samochodu | Towarzystwo Ubezpieczeń Wzorcowych (/ubezpieczenia/samochod)",
           "note": null,
@@ -274,7 +273,6 @@
           "target_kind": "state"
         },
         {
-          "broken": false,
           "doc_key": null,
           "label": "Kalkulator OC/AC — dane pojazdu | Towarzystwo Ubezpieczeń Wzorcowych (/kalkulator/pojazd)",
           "note": null,
@@ -373,7 +371,6 @@
       },
       "evidence": [
         {
-          "broken": false,
           "doc_key": null,
           "label": "Ubezpieczenie samochodu | Towarzystwo Ubezpieczeń Wzorcowych (/ubezpieczenia/samochod)",
           "note": null,
@@ -464,7 +461,6 @@
       },
       "evidence": [
         {
-          "broken": false,
           "doc_key": null,
           "label": "form: marka, model, rok_produkcji, pojemnosc",
           "note": null,
@@ -476,7 +472,6 @@
           "target_kind": "form"
         },
         {
-          "broken": false,
           "doc_key": null,
           "label": "Kalkulator OC/AC — dane pojazdu | Towarzystwo Ubezpieczeń Wzorcowych (/kalkulator/pojazd)",
           "note": null,
@@ -538,27 +533,25 @@
       },
       "evidence": [
         {
-          "broken": false,
           "doc_key": null,
           "label": "Calculate a car premium",
           "note": null,
           "region": null,
           "run_date": "2026-01-15",
-          "run_id": "00000000-0000-7000-8000-000000000018",
+          "run_id": "00000000-0000-7000-8000-000000000019",
           "run_mode": "trace",
-          "target_id": "00000000-0000-7000-8000-00000000001c",
+          "target_id": "00000000-0000-7000-8000-00000000001d",
           "target_kind": "process"
         },
         {
-          "broken": false,
           "doc_key": null,
           "label": "step 2: Open the premium calculator",
           "note": null,
           "region": null,
           "run_date": "2026-01-15",
-          "run_id": "00000000-0000-7000-8000-000000000018",
+          "run_id": "00000000-0000-7000-8000-000000000019",
           "run_mode": "trace",
-          "target_id": "00000000-0000-7000-8000-00000000001e",
+          "target_id": "00000000-0000-7000-8000-00000000001f",
           "target_kind": "process_step"
         }
       ],
@@ -634,7 +627,6 @@
       },
       "evidence": [
         {
-          "broken": false,
           "doc_key": null,
           "label": "form: marka, model, rok_produkcji, pojemnosc",
           "note": "field \"Marka\" marked required",
@@ -697,7 +689,6 @@
       },
       "evidence": [
         {
-          "broken": false,
           "doc_key": null,
           "label": "form: marka, model, rok_produkcji, pojemnosc",
           "note": null,
@@ -753,7 +744,6 @@
       },
       "evidence": [
         {
-          "broken": false,
           "doc_key": null,
           "label": "Ubezpieczenie samochodu | Towarzystwo Ubezpieczeń Wzorcowych (/ubezpieczenia/samochod)",
           "note": null,
@@ -817,7 +807,6 @@
       },
       "evidence": [
         {
-          "broken": false,
           "doc_key": null,
           "label": "Start | Towarzystwo Ubezpieczeń Wzorcowych (/)",
           "note": null,
@@ -829,7 +818,6 @@
           "target_kind": "state"
         },
         {
-          "broken": false,
           "doc_key": null,
           "label": "Ubezpieczenie samochodu | Towarzystwo Ubezpieczeń Wzorcowych (/ubezpieczenia/samochod)",
           "note": null,
@@ -902,7 +890,6 @@
       },
       "evidence": [
         {
-          "broken": false,
           "doc_key": null,
           "label": "skip ceiling:read: classified mutating, above the effective ceiling read",
           "note": null,
@@ -910,13 +897,13 @@
           "run_date": "2026-01-15",
           "run_id": "00000000-0000-7000-8000-000000000001",
           "run_mode": "map",
-          "target_id": "00000000-0000-7000-8000-000000000015",
+          "target_id": "00000000-0000-7000-8000-000000000016",
           "target_kind": "decision"
         }
       ],
       "followup": {
         "blocked_reason": "ceiling:read: \"Dalej\" is mutating, above the read limit",
-        "run_id": "00000000-0000-7000-8000-000000000020",
+        "run_id": "00000000-0000-7000-8000-000000000021",
         "status": "blocked"
       },
       "key": "FUP-002",
@@ -955,7 +942,7 @@
     {
       "date": "2026-01-15",
       "environment": "sandbox",
-      "id": "00000000-0000-7000-8000-000000000018",
+      "id": "00000000-0000-7000-8000-000000000019",
       "mode": "trace",
       "persona_id": "guest",
       "status": "completed"
@@ -963,7 +950,7 @@
     {
       "date": "2026-01-15",
       "environment": "production",
-      "id": "00000000-0000-7000-8000-000000000020",
+      "id": "00000000-0000-7000-8000-000000000021",
       "mode": "trace",
       "persona_id": "guest",
       "status": "completed"

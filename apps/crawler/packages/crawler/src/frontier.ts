@@ -3,7 +3,7 @@ import type { PathfinderDb } from '@pathfinder/store';
 import type { Refusal } from '@pathfinder/safety';
 import type { ClassifiedAction } from './action-extractor.js';
 import { decide, type GateContext } from './action-gate.js';
-import { countItemPageVisits } from './report.js';
+import { countItemPagesVisited } from './report.js';
 
 export interface FrontierPolicyOptions {
   /** How many recent states the same-cluster window remembers. Default 20. */
@@ -117,7 +117,7 @@ export class FrontierPolicy {
   ): Promise<{ count: number; cap: number; refusal: Refusal | null } | null> {
     if (this.o.itemViewCap === undefined || !this.isItemTemplate(routeTemplate)) return null;
     const cap = this.o.itemViewCap;
-    const visited = await countItemPageVisits(db, runId, this.o.itemRouteTemplates);
+    const visited = await countItemPagesVisited(db, runId, this.o.itemRouteTemplates);
     return {
       count: visited,
       cap,

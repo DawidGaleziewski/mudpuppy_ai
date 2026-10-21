@@ -90,12 +90,12 @@ def group_runs(inp: GroupInput) -> RunGroups:
 
 _STATES_OF_LINK = """
   SELECT l.target_id AS s FROM links l WHERE l.target_kind IN ('state', 'screen_region')
-  UNION SELECT e.from_state FROM links l JOIN edges e ON e.id = l.target_id
-    WHERE l.target_kind = 'edge'
-  UNION SELECT e.to_state FROM links l JOIN edges e ON e.id = l.target_id
-    WHERE l.target_kind = 'edge'
-  UNION SELECT p.state_id FROM links l JOIN page_visits p ON p.id = l.target_id
-    WHERE l.target_kind = 'page_visit'
+  UNION SELECT e.from_state FROM links l JOIN transitions e ON e.id = l.target_id
+    WHERE l.target_kind = 'transition'
+  UNION SELECT e.to_state FROM links l JOIN transitions e ON e.id = l.target_id
+    WHERE l.target_kind = 'transition'
+  UNION SELECT p.state_id FROM links l JOIN observations p ON p.id = l.target_id
+    WHERE l.target_kind = 'observation'
   UNION SELECT ps.state_before FROM links l JOIN process_steps ps ON ps.id = l.target_id
     WHERE l.target_kind = 'process_step'
   UNION SELECT ps.state_after FROM links l JOIN process_steps ps ON ps.id = l.target_id
@@ -128,15 +128,15 @@ def _record_processes(conn: sqlite3.Connection, portal: str) -> list[GroupProces
     ).fetchall()
     out = []
     for key, title, rev_id in records:
-        cte = "WITH links AS (SELECT * FROM doc_evidence_links WHERE revision_id = ?)"
+        cte = "WITH links AS (SELECT * FROM doc_evidence WHERE revision_id = ?)"
         states = [
             r[0] for r in conn.execute(f"{cte} {_STATES_OF_LINK}", (rev_id,)) if r[0] is not None
         ]
         runs = {
             r[0]
             for r in conn.execute(
-                "SELECT run_id FROM doc_evidence_links WHERE revision_id = ? AND run_id IS NOT NULL"
-                " UNION SELECT p.run_id FROM doc_evidence_links l JOIN processes p"
+                "SELECT run_id FROM doc_evidence WHERE revision_id = ? AND run_id IS NOT NULL"
+                " UNION SELECT p.run_id FROM doc_evidence l JOIN processes p"
                 " ON p.id = l.target_id WHERE l.revision_id = ? AND l.target_kind = 'process'",
                 (rev_id, rev_id),
             )
@@ -148,8 +148,8 @@ def _record_processes(conn: sqlite3.Connection, portal: str) -> list[GroupProces
 def _workspace_processes(conn: sqlite3.Connection, portal: str) -> list[GroupProcess]:
     rows = conn.execute(
         "SELECT p.key, p.name, r.steps FROM ba_processes p"
-        " JOIN process_variants v ON v.process_id = p.id AND v.kind = 'as_is'"
-        " JOIN process_variant_revisions r ON r.variant_id = v.id AND r.rev = v.rev"
+        " JOIN process_models v ON v.process_id = p.id AND v.kind = 'as_is'"
+        " JOIN process_model_revisions r ON r.model_id = v.id AND r.rev = v.rev"
         " WHERE p.portal_id = ? ORDER BY p.key",
         (portal,),
     ).fetchall()
@@ -159,8 +159,8 @@ def _workspace_processes(conn: sqlite3.Connection, portal: str) -> list[GroupPro
         runs = [
             r[0]
             for r in conn.execute(
-                "SELECT DISTINCT r.run_id FROM process_variant_revisions r"
-                " JOIN process_variants v ON v.id = r.variant_id"
+                "SELECT DISTINCT r.run_id FROM process_model_revisions r"
+                " JOIN process_models v ON v.id = r.model_id"
                 " JOIN ba_processes p ON p.id = v.process_id"
                 " WHERE p.portal_id = ? AND p.key = ? AND r.run_id IS NOT NULL ORDER BY 1",
                 (portal, key),

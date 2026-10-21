@@ -102,7 +102,7 @@ screens:
     reached_by: login
 # messages (spec 034 phase 9): what the form says to wrong input, verbatim. The calculator's inputs
 # carry HTML constraints (required, min, max, pattern), so Chromium (English, as the crawler runs
-# it) answers before the server: these are its messages for each constraint (those the probe scans
+# it) answers before the server: these are its messages for each constraint (those the form-probing scans
 # of 2026-10-17 reached match word for word; the max ones were not reached). Left out until seen: the date limits of "Data urodzenia" (Chromium writes
 # them as a date in the browser's format), and max_length (the box stops typing; no message). The
 # server's Polish messages (calculator.ts `*Errors`) only show when the browser check is bypassed.

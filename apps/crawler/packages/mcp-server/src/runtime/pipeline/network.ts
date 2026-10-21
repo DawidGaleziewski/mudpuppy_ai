@@ -5,9 +5,9 @@ import { recordApiCall, type RunRow } from '../../services/index.js';
 import type { RunState } from '../run-state.js';
 import { decision, fail, reported, type Report, type Reported } from './context.js';
 
-/** Where the calls were observed: the action's edge (if any), the page's state, the portal's masking. */
+/** Where the calls were observed: the action's transition (if any), the page's state, the portal's masking. */
 export interface NetworkAt {
-  edgeId: string | undefined;
+  transitionId: string | undefined;
   stateId: string;
   scrub: boolean;
 }
@@ -17,7 +17,7 @@ export async function recordNetwork(
   ctx: ServerContext,
   run: RunRow,
   net: Awaited<ReturnType<RunState['session']['recorder']['drain']>>,
-  { edgeId, stateId: state_id, scrub }: NetworkAt,
+  { transitionId, stateId: state_id, scrub }: NetworkAt,
 ): Promise<Reported<void>> {
   const reports: Report[] = [];
   // Sample bodies for the contracts export (spec 034 A-9): never kept on production; masked like
@@ -31,7 +31,7 @@ export async function recordNetwork(
     try {
       await recordApiCall(ctx, {
         run_id: run.id,
-        edge_id: edgeId ?? null,
+        transition_id: transitionId ?? null,
         ...call,
         // Verbatim unless the portal asks for masking (spec 019, research R2).
         url: scrub ? maskText(call.url) : call.url,

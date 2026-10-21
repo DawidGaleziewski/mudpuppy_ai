@@ -1,0 +1,130 @@
+{% extends "salvage/base.html" %}
+{% import "salvage/macros.html" as sy %}
+{% import "salvage/partials/picture.html" as pic with context %}
+{% set nav_current = "review" %}
+{% block title %}Same screen?{% endblock %}
+{% block head_extra %}<script src="/static/js/pictures.js" defer></script><script src="/static/js/same-screen-keys.js" defer></script>{% endblock %}
+{#- Spec 039 T100, designer screen v2-14 (UX-R34): are two page versions one screen? Conflicts
+    first (a person's label the model disagrees with), then each screen's variants against its
+    first one. Keyboard first: 1 / 2 / 3 pick, W why, Enter save, S skip, Esc back. -#}
+{%- macro side(s, v, id) -%}
+<section class="sy-compare__side" aria-labelledby="{{ id }}">
+  <header class="sy-compare__head"><span id="{{ id }}"><span class="sy-case-normal">{{ s.label }}</span>{% if v.screen_key %} · {{ sy.tag(v.screen_key, c.url('/screens/' ~ v.screen_key), sm=true) }}{% endif %}</span><span class="sy-status" data-status="ok">Observed</span></header>
+  {%- if s.picture and (s.picture.shot or s.picture.wire) %}
+  {{ pic.thumb(s.state_id, s.picture, s.title, s.route) }}
+  {%- else %}
+  <p class="sy-small">No picture was recorded. <a href="{{ c.url('/states/' ~ s.state_id) }}">Open the recorded page</a></p>
+  {%- endif %}
+  <dl class="sy-facts">
+    <dt>Title</dt><dd class="sy-case-normal">{{ s.title or "(untitled)" }}</dd>
+    <dt>Route</dt><dd><span class="sy-route">{{ s.route }}</span></dd>
+    {%- if s.run_id %}<dt>Last visit</dt><dd><span class="sy-cluster" style="--sy-gap: 6px">{{ sy.tag(s.run_id[:8], c.url('/runs/' ~ s.run_id), sm=true) }} {{ s.at | when }}</span></dd>{% endif %}
+    <dt>Release · persona</dt><dd class="sy-case-normal">{{ s.releases.values() | join(", ") or "—" }} · {{ s.persona or "—" }}</dd>
+  </dl>
+</section>
+{%- endmacro -%}
+{% block main %}
+<div class="sy-pagehead">
+  <nav class="sy-crumbs" aria-label="Breadcrumb"><a href="{{ c.url('/review') }}">Review</a> / <span aria-current="page">Same screen?</span></nav>
+  <div class="sy-pagehead__row">
+    <div class="sy-stack" style="--sy-gap: 4px">
+      <h1 class="sy-h1">Same screen?</h1>
+      {%- if d %}<p class="sy-meta">{% if d.position %}{{ d.position }} of {{ d.total }}{% else %}not in the queue{% endif %}{% if screen %} · screen {{ screen }}{% endif %}{% if d.pair.conflict %} · conflict{% endif %}</p>{% endif %}
+    </div>
+    <a class="sy-btn sy-btn--md" href="{{ c.url('/review') }}">Back to Review <span class="sy-kbd">Esc</span></a>
+  </div>
+</div>
+{%- if note %}<p class="sy-callout" role="status">{{ note }}</p>{% endif %}
+{%- if not c.portal %}
+{{ sy.empty("No portal chosen", "Pick a portal in the header; its pairs of page versions to compare show up here.") }}
+{%- elif not d %}
+{{ sy.empty("Nothing to compare", "Every pair of variants is labelled and no label disagrees with the model. New variants show up here after the next scan.") }}
+{%- else %}
+{%- set p = d.pair %}
+{%- if p.conflict %}
+<section class="sy-callout sy-callout--intent" aria-labelledby="cf-h">
+  <h2 id="cf-h" class="sy-callout__title">A label and the model disagree</h2>
+  <p><b>Automatic grouping says {{ words[p.model_answer] | lower }}</b>{% if p.similarity is not none %}: the two versions are {{ (p.similarity * 100) | round | int }}% alike{% endif %}.</p>
+  <p><b>{{ p.label.by }} labelled them {{ words[p.label.answer] | lower }}</b> on {{ p.label.at | when }}{% if p.label.reason %}:{% else %}.{% endif %}</p>
+  {%- if p.label.reason %}<p>{{ sy.note(p.label.reason, p.label.by, p.label.at) }}</p>{% endif %}
+  <p class="sy-small">Your answer settles it. The next model rebuild applies it. Every earlier answer stays in the screen's History.</p>
+</section>
+{%- endif %}
+
+<section class="sy-stack" aria-labelledby="cmp-h">
+  <div class="sy-split">
+    <h2 id="cmp-h" class="sy-h2 sy-case-normal">{{ p.a.screen_title or d.a.title }}: {{ d.a.label }} and {{ d.b.label }}</h2>
+    {%- if p.similarity is not none %}<span class="sy-small sy-muted">{{ (p.similarity * 100) | round | int }}% alike (MinHash)</span>{% endif %}
+  </div>
+  <div class="sy-compare" style="--sy-min: 340px">
+    {{ side(d.a, p.a, "side-a") }}
+    {{ side(d.b, p.b, "side-b") }}
+  </div>
+  {%- set differ = d.differs | selectattr("differs") | list %}
+  {%- if differ %}
+  <dl class="sy-facts">
+    {%- for x in differ %}<dt>{{ x.label }}</dt><dd class="sy-differs sy-case-normal">{{ x.before }} → {{ x.after }} <span class="sy-diff__change">differs</span></dd>{% endfor %}
+  </dl>
+  {%- endif %}
+</section>
+
+<form class="sy-plate" method="post" action="{{ c.url('/same-screen/' ~ c.portal) }}" aria-labelledby="ans-h" data-same-screen>
+  <input type="hidden" name="a" value="{{ p.a.state_id }}">
+  <input type="hidden" name="b" value="{{ p.b.state_id }}">
+  {%- if screen %}<input type="hidden" name="screen" value="{{ screen }}">{% endif %}
+  {%- if d.next_pair %}<input type="hidden" name="next_a" value="{{ d.next_pair[0] }}"><input type="hidden" name="next_b" value="{{ d.next_pair[1] }}">{% endif %}
+  <div class="sy-plate__head">
+    <h2 id="ans-h" class="sy-plate__title">Your answer</h2>
+    <span class="sy-small sy-muted">Press 1, 2 or 3</span>
+  </div>
+  <div class="sy-plate__body sy-stack">
+    <fieldset>
+      <legend class="sy-sr-only">Are {{ d.a.label }} and {{ d.b.label }} the same screen?</legend>
+      <div class="mp-answers">
+        {%- for key, what in (("same", "Keep one screen; the two stay variants of it."), ("same_data", "Keep one screen; what differs is content that depends on data, documented once."), ("different", "Two screens: the next rebuild splits them apart.")) %}
+        <label class="sy-choice"><input class="sy-choice__input" type="radio" name="answer" value="{{ key }}" aria-keyshortcuts="{{ loop.index }}" aria-describedby="a{{ loop.index }}-what">
+          <span class="sy-choice__body">
+            <span class="sy-split"><b>{{ words[key] }}</b><span class="sy-kbd">{{ loop.index }}</span></span>
+            <span id="a{{ loop.index }}-what">{{ what }}</span>
+            {%- if p.model_answer == key %}<span><span class="sy-status" data-status="inferred">Automatic grouping</span></span>{% endif %}
+            {%- if p.label and p.label.answer == key %}<span><span class="sy-chip">{{ p.label.by }}'s label · {{ p.label.at | when }}</span></span>{% endif %}
+          </span></label>
+        {%- endfor %}
+      </div>
+    </fieldset>
+    <div class="mp-answer-foot">
+      <label class="sy-field"><span class="sy-field__label">Why (optional) <span class="sy-kbd">W</span></span>
+        <input class="sy-input" name="why" aria-keyshortcuts="W" aria-describedby="why-help" autocomplete="off" placeholder="One line" maxlength="2000">
+        <span id="why-help" class="sy-field__help">Shown with the label.</span></label>
+      <div class="sy-actions">
+        {%- if d.next_pair %}<a class="sy-btn" data-key="s" href="{{ c.url('/same-screen', screen=screen, a=d.next_pair[0], b=d.next_pair[1]) }}" aria-keyshortcuts="S" aria-describedby="skip-what">Skip <span class="sy-kbd">S</span></a>{% endif %}
+        <button class="sy-btn sy-btn--primary" type="submit" aria-keyshortcuts="Enter" aria-describedby="save-what">Save</button>
+      </div>
+    </div>
+    <p id="save-what" class="sy-small"><b>What happens:</b> your answer is saved as a label for these two page versions{% if p.label %} and replaces {{ p.label.by }}'s; {{ p.label.by }}'s label and reason stay in History{% endif %}. The next model rebuild groups them by it{% if d.process %}; the process <a class="sy-case-normal" href="{{ c.url('/processes/' ~ d.process[0]) }}">{{ d.process[1] }}</a> walks this screen{% endif %}.</p>
+    <p id="skip-what" class="sy-small sy-muted">Skip leaves this pair in the queue.</p>
+  </div>
+  <div class="sy-keybar" aria-label="Keyboard shortcuts">
+    <span><span class="sy-kbd">1</span><span class="sy-kbd">2</span><span class="sy-kbd">3</span> answer</span>
+    <span><span class="sy-kbd">W</span> why</span>
+    <span><span class="sy-kbd">Enter</span> save</span>
+    <span><span class="sy-kbd">S</span> skip</span>
+    <span><span class="sy-kbd">Esc</span> back to Review</span>
+  </div>
+</form>
+{%- if d.earlier %}
+<section class="sy-plate" aria-labelledby="earlier-h">
+  <div class="sy-plate__head"><h2 id="earlier-h" class="sy-plate__title">Earlier answers</h2><span class="sy-count sy-count--muted">{{ d.earlier | length }}</span></div>
+  <ul class="sy-rows">
+    {%- for e in d.earlier %}
+    <li class="sy-row sy-row--muted"><div class="sy-row__main">
+      <span><b>{{ e.by }}</b>: {{ words[e.answer] | lower }}</span>
+      {%- if e.reason %}{{ sy.note(e.reason, e.by, e.at, sm=true) }}{% endif %}
+    </div><span class="sy-mono sy-mono--sm sy-muted">{{ e.at | when }}</span></li>
+    {%- endfor %}
+  </ul>
+</section>
+{%- endif %}
+{{ pic.dialog() }}
+{%- endif %}
+{% endblock %}

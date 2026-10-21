@@ -15,8 +15,7 @@ all, but if overwritten only these in allowed array will be traced."
 Decisions taken in the session: the hook context has two parts (crawler side: `url`, `persona`,
 `cookies`, `route()`, `config`; page side: `ctx.inPage(fn)` for `window`); a small typed return
 contract; no guard limits on hooks (spec 021 removed the production guard), but every hook run
-is traced; portal YAML also overrides crawl timeouts, optionally per URL regex; `hooks.ts` ships
-in the export-fork export; URL lists replace `allowed_paths` and the `url:`/`path:` denylist
+is traced; portal YAML also overrides crawl timeouts, optionally per URL regex; URL lists replace `allowed_paths` and the `url:`/`path:` denylist
 entries.
 
 ## Problem
@@ -83,11 +82,6 @@ A developer fixes a portal's quirk in that portal's folder, without touching the
    whole portal or per URL pattern (first match wins).
 2. The effective timeouts of each page are recorded in its trace span.
 
-### US5 Hooks travel to the field — P3
-
-1. The export-fork export carries `hooks.ts` files and the hook runner, renamed and
-   leak-checked like the rest.
-
 ## Edge cases
 
 - A hook mapped in YAML whose function `hooks.ts` does not export → config error at run start.
@@ -121,7 +115,6 @@ A developer fixes a portal's quirk in that portal's folder, without touching the
 - **FR-008**: Timeout overrides as in US4, validated with the existing bounds.
 - **FR-009**: The crawler agent never writes hooks; it MAY file an open question suggesting
   one.
-- **FR-010**: The export-fork export includes hooks (US5).
 
 ## Success criteria
 

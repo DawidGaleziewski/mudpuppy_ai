@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { newId } from '@pathfinder/core';
 import type { DocKind } from '@pathfinder/docs-model';
+import { addEvidenceLink } from '@pathfinder/store';
 import { audit } from '../src/audit.js';
 import { DocsError } from '../src/errors.js';
 import { formatKey, nextSeq } from '../src/keys.js';
@@ -51,12 +52,11 @@ function record(kind: DocKind = 'requirement', revs = 1): { id: string; key: str
         n === 1 ? null : 'changed',
         FIXTURE_TS,
       );
-    fx.raw
-      .prepare(
-        `INSERT INTO doc_evidence_links (id, revision_id, target_kind, target_id, run_id, note)
-         VALUES (?, ?, 'form', ?, ?, NULL)`,
-      )
-      .run(newId(), revisionId, fx.forms.vehicle, fx.runId);
+    addEvidenceLink(fx.raw, revisionId, {
+      target_kind: 'form',
+      target_id: fx.forms.vehicle,
+      run_id: fx.runId,
+    });
   }
   if (kind === 'followup')
     fx.raw

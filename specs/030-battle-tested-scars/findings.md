@@ -102,8 +102,7 @@ Every bug, gap and slip found while building, with a test or eval idea (memory
   schemas); `PATHFINDER_ENV` required by both MCP servers and the chat (no default; an undeclared
   name is refused naming the declared ones, `eval-*` admitted); every MCP result carries
   `environment`; a server registry (`data/servers/<pid>.json`) warns at start about live servers on
-  another environment or from another checkout; the export-fork export no longer pins
-  `production`.
+  another environment or from another checkout.
 - Not done: the dashboard header does not show the environment beyond its store picker; no
   start-up agreement check between dashboard, chat and MCP (the chat passes its own environment to
   the MCP servers it starts, so they agree by construction); the vault CLI keeps a `sandbox`

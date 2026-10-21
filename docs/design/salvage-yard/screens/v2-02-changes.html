@@ -1,0 +1,446 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MudPuppy 2.0 · What changed</title>
+<link rel="icon" href="../brand/logo/tag-icon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../design-system/css/tokens.css">
+<link rel="stylesheet" href="../design-system/css/fonts.css">
+<link rel="stylesheet" href="../design-system/css/salvage.css">
+<style>
+  /* What changed: range + release timeline, filters, one table grouped by process (row band) then screen (sub-band). */
+  .mp-releases { margin-top: 22px; }                                               /* room for the "this range" label */
+  .mp-releases .sy-releases__lane--scans .sy-releases__track { height: 48px; }   /* one staggered scan label */
+  @media (max-width: 1209px) { .mp-wide-only { display: none; } }                 /* 9c21 span too narrow for its label */
+  .mp-process > th { background: var(--sy-bg-raised); }
+  .mp-screen > th { background: var(--sy-bg-well); padding-block: 8px; }
+  .mp-changes td, .mp-changes th[scope="row"] { vertical-align: top; }
+  .mp-seg > button { flex: none; }                                               /* segments size to their label */
+</style>
+</head>
+<body class="sy-ground">
+<a class="sy-skip" href="#main">Skip to content</a>
+<div class="sy-app">
+  <header class="sy-header">
+    <a class="sy-wordmark" href="v2-01-home.html"><span class="sy-wordmark__paint">MUD</span>PUPPY</a>
+    <label class="sy-portal sy-portal--compact"><span class="sy-label">Portal</span>
+      <select class="sy-select"><option selected>reference-insurer</option><option>wikipedia</option><option>All portals</option><option>+ New portal</option></select></label>
+    <div class="sy-portal sy-portal--compact"><span class="sy-label" id="asof-l">As of</span>
+      <button class="sy-select" type="button" aria-haspopup="menu" aria-expanded="false" aria-labelledby="asof-l asof-v" aria-describedby="asof-help"><span id="asof-v">Now · 17 Oct</span></button></div>
+    <span id="asof-help" class="sy-sr-only">Shows the portal model as it was at a release or scan. Changes compares two points.</span>
+    <label class="sy-search sy-search--compact">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+      <input type="search" aria-label="Search screens, processes and rules" placeholder="Search"><span class="sy-kbd">Ctrl K</span></label>
+    <span class="sy-status" data-status="ok">Assistant up</span>
+    <a class="sy-btn" href="02-screen-with-assistant.html">Ask <span class="sy-kbd">Ctrl J</span></a>
+    <a class="sy-btn sy-btn--icon" href="#" aria-label="Help and glossary">?</a>
+  </header>
+  <div class="sy-app__body">
+    <nav class="sy-nav" aria-label="Portal sections">
+      <a class="sy-nav__item" href="v2-01-home.html">Home</a>
+      <a class="sy-nav__item" href="v2-02-changes.html" aria-current="page">Changes <span class="sy-nav__count">41</span></a>
+      <a class="sy-nav__item" href="v2-04-review.html">Review <span class="sy-count">24</span></a>
+      <div class="sy-nav__group" aria-hidden="true">Portal model</div>
+      <a class="sy-nav__item" href="v2-09-processes.html">Processes <span class="sy-nav__count">6</span></a>
+      <a class="sy-nav__item" href="v2-06-screens.html">Screens <span class="sy-nav__count">19</span></a>
+      <a class="sy-nav__item" href="v2-11-rules.html">Rules <span class="sy-nav__count">6</span></a>
+      <a class="sy-nav__item" href="#">Docs</a>
+      <div class="sy-nav__group" aria-hidden="true">Machine</div>
+      <a class="sy-nav__item" href="10-scans.html">Scans</a>
+      <a class="sy-nav__item" href="11-settings.html">Settings</a>
+      <div class="sy-nav__foot">store: sandbox · writes go through commands</div>
+    </nav>
+    <main id="main" class="sy-main">
+<div class="sy-pagehead">
+  <div class="sy-pagehead__row">
+    <div class="sy-stack" style="--sy-gap: 4px">
+      <h1 class="sy-h1">What changed</h1>
+      <p class="sy-meta">reference-insurer · 41 changes · 18 need you · 23 explained automatically</p>
+    </div>
+    <div class="sy-actions">
+      <a class="sy-btn" href="v2-05-review-explained.html">Explained automatically (23)</a>
+      <a class="sy-btn" href="v2-04-review.html">Open Review (24)</a>
+    </div>
+  </div>
+</div>
+
+<!-- ===== Range: presets, from → to, and the release timeline with the chosen range ===== -->
+<section class="sy-plate" aria-labelledby="range-h">
+  <div class="sy-plate__head">
+    <h2 id="range-h" class="sy-plate__title">Range</h2>
+    <div class="sy-seg mp-seg" role="group" aria-label="Compare" aria-describedby="mode-help">
+      <button type="button" aria-pressed="true" aria-controls="from">Since previous release</button>
+      <button type="button" aria-pressed="false" aria-controls="from">Since a date</button>
+      <button type="button" aria-pressed="false" aria-controls="from">Between two scans</button>
+    </div>
+  </div>
+  <form class="sy-plate__body" aria-label="Choose what to compare">
+    <div class="sy-cluster" style="--sy-gap: 12px 16px; align-items: flex-start">
+      <div class="sy-field" style="min-width: 300px; max-width: 380px">
+        <label class="sy-field__label" for="from">From · previous release</label>
+        <select id="from" class="sy-select sy-select--md" aria-describedby="mode-help">
+          <option selected>Previous release of each part (1d77 / 5f08)</option>
+          <option>Previous Shell release (1d77)</option>
+          <option>Previous Kalkulator app release (5f08)</option>
+        </select>
+        <span id="mode-help" class="sy-field__help">The buttons above choose what From lists: releases here, a date for Since a date, scans for Between two scans.</span>
+      </div>
+      <span class="sy-flow__arrow" aria-hidden="true" style="align-self: flex-start; margin-top: 31px">→</span>
+      <div class="sy-field" style="min-width: 240px; max-width: 300px">
+        <label class="sy-field__label" for="to">To</label>
+        <select id="to" class="sy-select sy-select--md" aria-describedby="to-help">
+          <option selected>Now · 17 Oct</option>
+          <option>Scan 01a1340c · 17 Oct</option>
+          <option>9c21 · kalkulator · 16 Oct</option>
+          <option>Scan 01a12f40 · 15 Oct</option>
+          <option>3e1a · shell · 14 Oct</option>
+        </select>
+        <span id="to-help" class="sy-field__help">Starts at As of in the header. Changing it here doesn't move the rest of the app.</span>
+      </div>
+    </div>
+  </form>
+  <hr>
+  <div class="sy-plate__body">
+    <p id="tl-sum" class="sy-sr-only">Release timeline, 4 Oct to 17 Oct. Shell: <span class="sy-case-normal">1d77</span> until 14 Oct 08:10Z, then <span class="sy-case-normal">3e1a</span>. Kalkulator app: <span class="sy-case-normal">5f08</span> until 16 Oct 14:02Z; rollout with <span class="sy-case-normal">5f08</span> and <span class="sy-case-normal">9c21</span> served together until 17 Oct 09:30Z; then <span class="sy-case-normal">9c21</span> only. Scans: <span class="sy-case-normal">01a1083f</span> 4 Oct, <span class="sy-case-normal">01a10eb9</span> and <span class="sy-case-normal">01a110d5</span> 6 Oct, <span class="sy-case-normal">01a12f40</span> 15 Oct, check run <span class="sy-case-normal">01a1340c</span> 17 Oct. This range: from 14 Oct 08:10Z to now.</p>
+    <div class="sy-releases mp-releases" style="--sy-releases-name: 112px" aria-describedby="tl-sum">
+      <div class="sy-releases__lane">
+        <span class="sy-releases__name">Shell<small>main site</small></span>
+        <div class="sy-releases__track">
+          <a class="sy-releases__span" href="#" style="left: 0; width: 73.9%" aria-label="Shell 1d77, seen 4 Oct to 13 Oct, marker in meta build"><span><span class="sy-case-normal">1d77</span> · seen 4–13 Oct</span></a>
+          <a class="sy-releases__span sy-releases__span--current" href="#" style="left: 73.9%; width: 26.1%" aria-label="Shell 3e1a, current, since 14 Oct 08:10Z"><span><span class="sy-case-normal">3e1a</span> · 14 Oct 08:10Z</span></a>
+        </div>
+      </div>
+      <div class="sy-releases__lane">
+        <span class="sy-releases__name">Kalkulator app<small>/kalkulator/</small></span>
+        <div class="sy-releases__track">
+          <a class="sy-releases__span" href="#" style="left: 0; width: 89.9%" aria-label="Kalkulator app 5f08, seen from 4 Oct, marker in footer text"><span><span class="sy-case-normal">5f08</span> · seen from 4 Oct</span></a>
+          <span class="sy-releases__span sy-releases__span--rollout" style="left: 89.9%; width: 5.8%" title="Rollout: 5f08 and 9c21 served together, 16 Oct 14:02Z – 17 Oct 09:30Z" aria-label="Rollout: 5f08 and 9c21 served together, 16 Oct 14:02Z to 17 Oct 09:30Z">both</span>
+          <a class="sy-releases__span sy-releases__span--current" href="#" style="left: 95.7%; width: 4.3%" title="9c21 only since 17 Oct 09:30Z" aria-label="Kalkulator app 9c21, current, the only release since 17 Oct 09:30Z"><span class="mp-wide-only"><span class="sy-case-normal">9c21</span></span></a>
+        </div>
+      </div>
+      <div class="sy-releases__lane sy-releases__lane--scans">
+        <span class="sy-releases__name">Scans<small>■ AI · ◇ check</small></span>
+        <div class="sy-releases__track">
+          <a class="sy-releases__scan" href="10-scans.html" style="left: 5.6%" aria-label="AI scan 01a1083f, 4 Oct 18:48Z, completed, 320 steps"><span class="sy-case-normal">01a1083f</span></a>
+          <a class="sy-releases__scan" href="10-scans.html" style="left: 14.6%" aria-label="AI scan 01a10eb9, 6 Oct 00:59Z, interrupted, 84 steps"><span style="margin-top: 14px"><span class="sy-case-normal">01a10eb9</span></span></a>
+          <a class="sy-releases__scan" href="10-scans.html" style="left: 17.5%" aria-label="AI scan 01a110d5, 6 Oct 10:49Z, interrupted at 171 of 400 steps"><span class="sy-case-normal">01a110d5</span></a>
+          <a class="sy-releases__scan" href="10-scans.html" style="left: 80.8%" aria-label="AI scan 01a12f40, 15 Oct 07:30Z, completed, 388 steps, saw 3e1a and 5f08"><span class="sy-case-normal">01a12f40</span></a>
+          <a class="sy-releases__scan sy-releases__scan--check" href="10-scans.html" style="left: 95.9%" aria-label="Check run 01a1340c, 17 Oct 10:05Z, 64 checks, 9 findings, saw 3e1a and 9c21"><span style="margin-right: 18px"><span class="sy-case-normal">01a1340c</span></span></a>
+        </div>
+      </div>
+      <div class="sy-releases__axis" aria-hidden="true">
+        <span style="left: 0">4 Oct</span><span style="left: 14.29%">6 Oct</span><span style="left: 28.57%">8 Oct</span><span style="left: 42.86%">10 Oct</span><span style="left: 57.14%">12 Oct</span><span style="left: 71.43%">14 Oct</span><span style="left: 85.71%">16 Oct</span><span style="left: 92.86%">17 Oct</span><span style="left: 100%">now</span>
+      </div>
+      <div class="sy-releases__range" style="left: calc(var(--sy-releases-name) + var(--sy-space-3) + (100% - var(--sy-releases-name) - var(--sy-space-3)) * 0.7386); width: calc((100% - var(--sy-releases-name) - var(--sy-space-3)) * 0.2614)"><span>this range · 41 changes</span></div>
+    </div>
+    <div class="sy-stack" style="--sy-gap: 4px">
+      <p class="sy-legend" aria-hidden="true"><span>▭ release served</span><span>┄ rollout</span><span>■ AI scan</span><span>◇ check run</span><span>[ ] this range</span></p>
+      <p class="sy-small sy-muted">Rollout: <span class="sy-case-normal">5f08</span> and <span class="sy-case-normal">9c21</span> served together, 16 Oct 14:02Z – 17 Oct 09:30Z. Release times come from release watch (each part's marker, fetched every 30 min). wikipedia has no release marker: there, changes are found by comparing pages.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ===== The change list ===== -->
+<section class="sy-stack" aria-labelledby="list-h" style="--sy-gap: var(--sy-space-3)">
+  <div class="sy-split" style="align-items: flex-end; --sy-gap: 12px 24px">
+    <div class="sy-stack" style="--sy-gap: 4px">
+      <h2 id="list-h" class="sy-h2">41 changes</h2>
+      <p class="sy-meta">Grouped by process, then screen. In each group, what needs you comes first.</p>
+      <p id="overturn-what" class="sy-small sy-muted">Overturn… asks for a reason, then moves the change to Needs you. Your reason shows wherever the change appears.</p>
+    </div>
+    <form class="sy-cluster" aria-label="Filter changes" style="--sy-gap: 12px; align-items: flex-end">
+      <div class="sy-field"><span class="sy-field__label" id="show-l">Show</span>
+        <div class="sy-seg mp-seg" role="group" aria-labelledby="show-l">
+          <button type="button" aria-pressed="false">Needs you 18</button>
+          <button type="button" aria-pressed="false">Explained automatically 23</button>
+          <button type="button" aria-pressed="true">All 41</button>
+        </div></div>
+      <label class="sy-field"><span class="sy-field__label">Kind</span>
+        <select class="sy-select sy-select--md" style="width: 150px"><option>Any kind</option><option>New screen</option><option>New action</option><option>Removed</option><option>Leads elsewhere</option><option>Result changed</option><option>Rule broke</option><option>Rule changed</option><option>Variant</option></select></label>
+      <label class="sy-field"><span class="sy-field__label">Process</span>
+        <select class="sy-select sy-select--md" style="width: 170px"><option>All processes</option><option>Oblicz składkę OC/AC · 11</option><option>Napisz do nas · 2</option><option>Porównaj produkty · 1</option><option>Not in a process · 27</option></select></label>
+      <label class="sy-field"><span class="sy-field__label">Portal part</span>
+        <select class="sy-select sy-select--md" style="width: 150px"><option>Both parts</option><option>Shell</option><option>Kalkulator app</option></select></label>
+    </form>
+  </div>
+
+  <div class="sy-plate">
+    <div class="sy-table-wrap sy-table-wrap--flush">
+      <table class="sy-table mp-changes">
+        <caption class="sy-sr-only">Changes from the previous release of each part (<span class="sy-case-normal">1d77</span> / <span class="sy-case-normal">5f08</span>) to now, grouped by process and screen</caption>
+        <colgroup><col><col style="width: 22%"><col style="width: 210px"><col style="width: 100px"></colgroup>
+        <thead>
+          <tr><th scope="col">Change · evidence</th><th scope="col">Explanation</th><th scope="col">Status</th><th scope="col"><span class="sy-sr-only">Open</span></th></tr>
+        </thead>
+
+        <!-- ===== Process: Oblicz składkę OC/AC ===== -->
+        <tbody>
+          <tr class="mp-process"><th scope="rowgroup" colspan="4">
+            <span class="sy-split" style="--sy-gap: 6px 16px">
+              <span class="sy-cluster" style="--sy-gap: 6px 12px"><a class="sy-plate__title sy-case-normal" href="v2-10-process-detail.html">Oblicz składkę OC/AC</a><span class="sy-tag sy-tag--sm">PROC-001</span></span>
+              <span class="sy-cluster sy-case-normal" style="--sy-gap: 6px 16px"><span>11 changes</span><span class="sy-status" data-status="needs">4 need you</span><span class="sy-status" data-status="inferred">7 explained</span></span>
+            </span>
+          </th></tr>
+
+          <tr class="mp-screen"><th scope="rowgroup" colspan="4">
+            <span class="sy-split sy-case-normal" style="--sy-gap: 4px 16px">
+              <span class="sy-cluster" style="--sy-gap: 4px 10px"><a href="v2-07-screen-detail.html">Kalkulator OC/AC — dane kierowcy</a><span class="sy-route">/kalkulator/kierowca · step 1</span></span>
+              <span class="sy-cluster" style="--sy-gap: 4px 12px"><span>6 changes · 2 need you</span><button class="sy-btn sy-btn--sm sy-btn--quiet sy-case-normal" type="button" aria-expanded="false">+2 explained automatically</button></span>
+            </span>
+          </th></tr>
+          <tr>
+            <th scope="row"><span class="sy-stack" style="--sy-gap: 4px">
+              <span class="sy-cluster" style="--sy-gap: 4px 8px"><span class="sy-chip">Rule changed</span><span class="sy-tag sy-tag--sm">BR-021</span></span>
+              <span>Driver must be 21 or older: threshold moved from 18 to 21</span>
+              <span class="sy-mono sy-mono--sm sy-muted">check run 01a1340c · 20 → exit · 21 → step 2 · 22 → step 2</span></span></th>
+            <td><span class="sy-stack" style="--sy-gap: 4px"><span><span class="sy-chip"><span>Release <span class="sy-case-normal">9c21</span></span></span></span><span class="sy-small sy-muted">A rule changed, so a person confirms it.</span></span></td>
+            <td><span class="sy-status" data-status="needs">Needs you</span></td>
+            <td><a class="sy-small" href="v2-12-rule-detail.html">Rule</a></td>
+          </tr>
+          <tr>
+            <th scope="row"><span class="sy-stack" style="--sy-gap: 4px">
+              <span class="sy-cluster" style="--sy-gap: 4px 8px"><span class="sy-chip sy-chip--fail">Rule broke</span><span class="sy-tag sy-tag--sm">BR-026</span></span>
+              <span>Postal code must be NN-NNN: "00950" is now accepted</span>
+              <span class="sy-mono sy-mono--sm sy-muted">check run 01a1340c · "00-950" accepted (ok) · "00950" accepted, was refused on 5f08</span></span></th>
+            <td><span class="sy-stack" style="--sy-gap: 4px"><span><span class="sy-chip"><span>Release <span class="sy-case-normal">9c21</span></span></span></span><span class="sy-small sy-muted">A boundary test failed.</span></span></td>
+            <td><span class="sy-status" data-status="needs">Needs you</span></td>
+            <td><a class="sy-small" href="v2-11-rules.html">Rule</a></td>
+          </tr>
+          <tr>
+            <th scope="row"><span class="sy-stack" style="--sy-gap: 4px">
+              <span class="sy-cluster"><span class="sy-chip">Variant</span></span>
+              <span>Field "Rabat dla stałych klientów" shows only for persona premium</span>
+              <span class="sy-mono sy-mono--sm sy-muted">variant r3 · persona premium</span></span></th>
+            <td><span class="sy-stack" style="--sy-gap: 4px"><span><span class="sy-chip">Another persona</span></span><span class="sy-small sy-muted">Only premium sees it; guest never did.</span></span></td>
+            <td><span class="sy-stack" style="--sy-gap: 4px"><span class="sy-status" data-status="inferred">Explained automatically</span><button class="sy-btn sy-btn--sm sy-btn--quiet" type="button" aria-describedby="overturn-what" style="align-self: flex-start">Overturn…</button></span></td>
+            <td><a class="sy-small" href="#">Before / after</a></td>
+          </tr>
+          <tr>
+            <th scope="row"><span class="sy-stack" style="--sy-gap: 4px">
+              <span class="sy-cluster"><span class="sy-chip">Variant</span></span>
+              <span>"Kod pocztowy" field missing on 1 of 14 visits</span>
+              <span class="sy-mono sy-mono--sm sy-muted">variant r4 · 17 Oct 10:12Z · the page logged a script error</span></span></th>
+            <td><span class="sy-stack" style="--sy-gap: 4px"><span><span class="sy-chip">Flaky error</span></span><span class="sy-small sy-muted">Seen once with a script error; the other 13 visits had the field.</span></span></td>
+            <td><span class="sy-stack" style="--sy-gap: 4px"><span class="sy-status" data-status="inferred">Explained automatically</span><button class="sy-btn sy-btn--sm sy-btn--quiet" type="button" aria-describedby="overturn-what" style="align-self: flex-start">Overturn…</button></span></td>
+            <td><a class="sy-small" href="#">Before / after</a></td>
+          </tr>
+
+          <tr class="mp-screen"><th scope="rowgroup" colspan="4">
+            <span class="sy-split sy-case-normal" style="--sy-gap: 4px 16px">
+              <span class="sy-cluster" style="--sy-gap: 4px 10px"><a href="v2-06-screens.html">Kalkulator OC/AC — opcje</a><span class="sy-route">/kalkulator/kierowca · step 2</span></span>
+              <span>2 changes · 1 needs you</span>
+            </span>
+          </th></tr>
+          <tr>
+            <th scope="row"><span class="sy-stack" style="--sy-gap: 4px">
+              <span class="sy-cluster"><span class="sy-chip">Variant</span></span>
+              <span>"Assistance 24h" shows 0 zł on 2 of 9 visits</span>
+              <span class="sy-mono sy-mono--sm sy-muted">variant r3 · 2 of 9 visits</span></span></th>
+            <td><span class="sy-stack" style="--sy-gap: 4px"><span><span class="sy-chip sy-chip--dashed">Unexplained</span></span><span class="sy-small sy-muted">No difference in release, persona, inputs or cookies.</span></span></td>
+            <td><span class="sy-status" data-status="needs">Needs you</span></td>
+            <td><a class="sy-small" href="#">Before / after</a></td>
+          </tr>
+          <tr>
+            <th scope="row"><span class="sy-stack" style="--sy-gap: 4px">
+              <span class="sy-cluster"><span class="sy-chip">New action</span></span>
+              <span>New checkbox "Assistance 24h"</span>
+              <span class="sy-mono sy-mono--sm sy-muted">first seen on 9c21</span></span></th>
+            <td><span class="sy-stack" style="--sy-gap: 4px"><span><span class="sy-chip"><span>Release <span class="sy-case-normal">9c21</span></span></span></span><span class="sy-small sy-muted">The app's code changed at 14:02Z on 16 Oct (marker <span class="sy-case-normal">5f08</span> → <span class="sy-case-normal">9c21</span>, seen by release watch).</span></span></td>
+            <td><span class="sy-stack" style="--sy-gap: 4px"><span class="sy-status" data-status="inferred">Explained automatically</span><button class="sy-btn sy-btn--sm sy-btn--quiet" type="button" aria-describedby="overturn-what" style="align-self: flex-start">Overturn…</button></span></td>
+            <td><a class="sy-small" href="#">Before / after</a></td>
+          </tr>
+
+          <tr class="mp-screen"><th scope="rowgroup" colspan="4">
+            <span class="sy-split sy-case-normal" style="--sy-gap: 4px 16px">
+              <span class="sy-cluster" style="--sy-gap: 4px 10px"><a href="v2-06-screens.html">Kalkulator OC/AC — wynik</a><span class="sy-route">/kalkulator/wynik · step 3</span></span>
+              <span class="sy-cluster" style="--sy-gap: 4px 12px"><span>3 changes · 1 needs you</span><button class="sy-btn sy-btn--sm sy-btn--quiet sy-case-normal" type="button" aria-expanded="false">+1 explained automatically</button></span>
+            </span>
+          </th></tr>
+          <tr>
+            <th scope="row"><span class="sy-stack" style="--sy-gap: 4px">
+              <span class="sy-cluster"><span class="sy-chip">Variant</span></span>
+              <span>Banner "Oferta specjalna" on 6 of 11 visits</span>
+              <span class="sy-mono sy-mono--sm sy-muted">variant r3 · check run 01a1340c · same release and persona</span></span></th>
+            <td><span class="sy-stack" style="--sy-gap: 4px"><span><span class="sy-chip sy-chip--tobe">A/B test?</span></span><span class="sy-small sy-muted">Cookie ab_calc = B shows the banner; replayed 10 / 10.</span></span></td>
+            <td><span class="sy-status" data-status="needs">Needs you</span></td>
+            <td><a class="sy-small" href="v2-03-change-detail.html">Before / after</a></td>
+          </tr>
+          <tr>
+            <th scope="row"><span class="sy-stack" style="--sy-gap: 4px">
+              <span class="sy-cluster" style="--sy-gap: 4px 8px"><span class="sy-chip">Result changed</span><span class="sy-chip">error</span></span>
+              <span>Answered 503 once</span>
+              <span class="sy-mono sy-mono--sm sy-muted">17 Oct 10:21Z · rechecked 3 times: OK</span></span></th>
+            <td><span class="sy-stack" style="--sy-gap: 4px"><span><span class="sy-chip">Flaky error</span></span><span class="sy-small sy-muted">An error seen once and gone on recheck.</span></span></td>
+            <td><span class="sy-stack" style="--sy-gap: 4px"><span class="sy-status" data-status="inferred">Explained automatically</span><button class="sy-btn sy-btn--sm sy-btn--quiet" type="button" aria-describedby="overturn-what" style="align-self: flex-start">Overturn…</button></span></td>
+            <td><a class="sy-small" href="#">Before / after</a></td>
+          </tr>
+        </tbody>
+
+        <!-- ===== Process: Napisz do nas ===== -->
+        <tbody>
+          <tr class="mp-process"><th scope="rowgroup" colspan="4">
+            <span class="sy-split" style="--sy-gap: 6px 16px">
+              <span class="sy-cluster" style="--sy-gap: 6px 12px"><a class="sy-plate__title sy-case-normal" href="v2-09-processes.html">Napisz do nas</a><span class="sy-status sy-case-normal" data-status="inferred">Proposed</span></span>
+              <span class="sy-cluster sy-case-normal" style="--sy-gap: 6px 16px"><span>2 changes</span><span class="sy-status" data-status="needs">1 needs you</span><span class="sy-status" data-status="inferred">1 explained</span></span>
+            </span>
+          </th></tr>
+          <tr class="mp-screen"><th scope="rowgroup" colspan="4">
+            <span class="sy-split sy-case-normal" style="--sy-gap: 4px 16px">
+              <span class="sy-cluster" style="--sy-gap: 4px 10px"><a href="v2-06-screens.html">Kontakt</a><span class="sy-route">/kontakt</span></span>
+              <span class="sy-cluster" style="--sy-gap: 4px 12px"><span>2 changes · 1 needs you</span><button class="sy-btn sy-btn--sm sy-btn--quiet sy-case-normal" type="button" aria-expanded="false">+1 explained automatically</button></span>
+            </span>
+          </th></tr>
+          <tr>
+            <th scope="row"><span class="sy-stack" style="--sy-gap: 4px">
+              <span class="sy-cluster" style="--sy-gap: 4px 8px"><span class="sy-chip">Result changed</span><span class="sy-chip">error</span></span>
+              <span>Sending the form always ends on the error page when the phone starts with +48</span>
+              <span class="sy-mono sy-mono--sm sy-muted">Kontakt → Przepraszamy, wystąpił błąd · every time with +48</span></span></th>
+            <td><span class="sy-stack" style="--sy-gap: 4px"><span><span class="sy-chip">Error for one input</span></span><span class="sy-small sy-muted">was <span class="sy-diff--removed">Flaky error</span>, explained automatically</span></span></td>
+            <td><span class="sy-stack" style="--sy-gap: 6px">
+              <span class="sy-status" data-status="overturned">Overturned</span>
+              <span class="sy-note sy-note--sm">Not flaky: it happens every time with +48.<span class="sy-note__by">you · 17 Oct 10:41Z</span></span>
+              <span class="sy-status" data-status="needs">Needs you</span></span></td>
+            <td><a class="sy-small" href="v2-04-review.html">Review</a></td>
+          </tr>
+        </tbody>
+
+        <!-- ===== Process: Porównaj produkty ===== -->
+        <tbody>
+          <tr class="mp-process"><th scope="rowgroup" colspan="4">
+            <span class="sy-split" style="--sy-gap: 6px 16px">
+              <a class="sy-plate__title sy-case-normal" href="v2-09-processes.html">Porównaj produkty</a>
+              <span class="sy-cluster sy-case-normal" style="--sy-gap: 6px 16px"><span>1 change</span><span class="sy-muted">0 need you</span><span class="sy-status" data-status="inferred">1 explained</span></span>
+            </span>
+          </th></tr>
+          <tr class="mp-screen"><th scope="rowgroup" colspan="4">
+            <span class="sy-split sy-case-normal" style="--sy-gap: 4px 16px">
+              <span class="sy-cluster" style="--sy-gap: 4px 10px"><a href="v2-06-screens.html">Ubezpieczenia dla Ciebie</a><span class="sy-route">/ · trigger link</span></span>
+              <span>1 change</span>
+            </span>
+          </th></tr>
+          <tr>
+            <th scope="row"><span class="sy-stack" style="--sy-gap: 4px">
+              <span class="sy-cluster"><span class="sy-chip">Leads elsewhere</span></span>
+              <span>Link "Porównaj produkty" now leads to <span class="sy-route">/porownanie-2026</span></span>
+              <span class="sy-mono sy-mono--sm sy-muted">was /porownanie · seen in 01a12f40</span></span></th>
+            <td><span class="sy-stack" style="--sy-gap: 4px"><span><span class="sy-chip">Replaced</span></span><span class="sy-small sy-muted">Replaced with release <span class="sy-case-normal">3e1a</span>; the old screen is kept.</span></span></td>
+            <td><span class="sy-stack" style="--sy-gap: 4px"><span class="sy-status" data-status="inferred">Explained automatically</span><button class="sy-btn sy-btn--sm sy-btn--quiet" type="button" aria-describedby="overturn-what" style="align-self: flex-start">Overturn…</button></span></td>
+            <td><a class="sy-small" href="v2-08-map.html">Map</a></td>
+          </tr>
+        </tbody>
+
+        <!-- ===== Not in a process ===== -->
+        <tbody>
+          <tr class="mp-process"><th scope="rowgroup" colspan="4">
+            <span class="sy-split" style="--sy-gap: 6px 16px">
+              <span class="sy-plate__title sy-case-normal">Not in a process</span>
+              <span class="sy-cluster sy-case-normal" style="--sy-gap: 6px 16px"><span>27 changes</span><span class="sy-status" data-status="needs">13 need you</span><span class="sy-status" data-status="inferred">14 explained</span></span>
+            </span>
+          </th></tr>
+          <tr class="mp-screen"><th scope="rowgroup" colspan="4">
+            <span class="sy-split sy-case-normal" style="--sy-gap: 4px 16px">
+              <span class="sy-cluster" style="--sy-gap: 4px 10px"><span>Across the portal</span><span class="sy-route">menu · footer · teasers · new and retired screens</span></span>
+              <span class="sy-cluster" style="--sy-gap: 4px 12px"><button class="sy-btn sy-btn--sm sy-btn--quiet sy-case-normal" type="button" aria-expanded="false">+1 explained automatically</button></span>
+            </span>
+          </th></tr>
+          <tr>
+            <th scope="row"><span class="sy-stack" style="--sy-gap: 4px">
+              <span class="sy-cluster"><span class="sy-chip">Removed</span></span>
+              <span>Link "Moje polisy" gone from the menu since 17 Oct</span>
+              <span class="sy-mono sy-mono--sm sy-muted">in the menu in 01a12f40 (15 Oct) · missing in 01a1340c (17 Oct)</span></span></th>
+            <td><span class="sy-stack" style="--sy-gap: 4px"><span><span class="sy-chip sy-chip--dashed">No release</span></span><span class="sy-small sy-muted">Removed without a release: the shell is still <span class="sy-case-normal">3e1a</span>.</span></span></td>
+            <td><span class="sy-status" data-status="needs">Needs you</span></td>
+            <td><a class="sy-small" href="v2-08-map.html">Map</a></td>
+          </tr>
+          <tr>
+            <th scope="row"><span class="sy-stack" style="--sy-gap: 4px">
+              <span class="sy-cluster" style="--sy-gap: 4px 8px"><span class="sy-chip">Removed</span><span class="sy-chip">×12</span></span>
+              <span>12 links removed with release <span class="sy-case-normal">3e1a</span></span>
+              <span class="sy-small sy-muted">Footer links and "Promocja wakacyjna" teasers. They are in documented screen records, so removal waits for you.</span>
+              <span class="sy-cluster" style="--sy-gap: 8px 16px"><button class="sy-btn sy-btn--sm sy-btn--quiet" type="button" aria-expanded="false" aria-controls="links-12">12 links · Show</button><a class="sy-small" href="v2-04-review.html">Decide in Review (12 together)</a></span></span></th>
+            <td><span class="sy-stack" style="--sy-gap: 4px"><span><span class="sy-chip"><span>Release <span class="sy-case-normal">3e1a</span></span></span></span><span class="sy-small sy-muted">One group: decide all 12 together in Review.</span></span></td>
+            <td><span class="sy-status" data-status="needs">Needs you · 12</span></td>
+            <td></td>
+          </tr>
+          <!-- Expanded by "12 links · Show": one row per link — link text · on which screen · where it led · documented in (PROC/SCR). -->
+          <tr id="links-12" hidden><td colspan="4"></td></tr>
+          <tr>
+            <th scope="row"><span class="sy-stack" style="--sy-gap: 4px">
+              <span class="sy-cluster"><span class="sy-chip">New screen</span></span>
+              <span>New screen: Polityka cookies (<span class="sy-route">/polityka-cookies</span>)</span>
+              <span class="sy-mono sy-mono--sm sy-muted">first seen in 01a12f40 (15 Oct) · shell 3e1a</span></span></th>
+            <td><span class="sy-stack" style="--sy-gap: 4px"><span><span class="sy-chip"><span>Release <span class="sy-case-normal">3e1a</span></span></span></span><span class="sy-small sy-muted">New in the portal with the shell release <span class="sy-case-normal">3e1a</span> (14 Oct 08:10Z).</span></span></td>
+            <td><span class="sy-stack" style="--sy-gap: 4px"><span class="sy-status" data-status="inferred">Explained automatically</span><button class="sy-btn sy-btn--sm sy-btn--quiet" type="button" aria-describedby="overturn-what" style="align-self: flex-start">Overturn…</button></span></td>
+            <td><a class="sy-small" href="v2-06-screens.html">Screens</a></td>
+          </tr>
+          <tr>
+            <th scope="row"><span class="sy-stack" style="--sy-gap: 4px">
+              <span class="sy-cluster" style="--sy-gap: 4px 8px"><span class="sy-chip">Removed</span><span class="sy-chip">×2</span></span>
+              <span>2 screens retired: Promocja wakacyjna (<span class="sy-route">/promocja-lato</span>) and Newsletter (<span class="sy-route">/newsletter</span>)</span>
+              <span class="sy-mono sy-mono--sm sy-muted">not seen since 3e1a · kept in Screens as Retired</span></span></th>
+            <td><span class="sy-stack" style="--sy-gap: 4px"><span><span class="sy-chip"><span>Retired with <span class="sy-case-normal">3e1a</span></span></span></span><span class="sy-small sy-muted">Gone since the shell release; nothing is deleted.</span></span></td>
+            <td><span class="sy-stack" style="--sy-gap: 4px"><span class="sy-status" data-status="inferred">Explained automatically</span><button class="sy-btn sy-btn--sm sy-btn--quiet" type="button" aria-describedby="overturn-what" style="align-self: flex-start">Overturn…</button></span></td>
+            <td><a class="sy-small" href="v2-06-screens.html">Screens</a></td>
+          </tr>
+          <tr>
+            <th scope="row"><span class="sy-stack" style="--sy-gap: 4px">
+              <span class="sy-cluster" style="--sy-gap: 4px 8px"><span class="sy-chip">Variant</span><span class="sy-chip">×10</span></span>
+              <span>Text changed: footer text on every page (3) and 7 other text changes</span>
+              <span class="sy-mono sy-mono--sm sy-muted">10 changes · first seen in 01a12f40 (15 Oct)</span></span></th>
+            <td><span class="sy-stack" style="--sy-gap: 4px"><span><span class="sy-chip"><span>Release <span class="sy-case-normal">3e1a</span></span></span></span><span class="sy-small sy-muted">The shell's marker changed <span class="sy-case-normal">1d77</span> → <span class="sy-case-normal">3e1a</span> on 14 Oct 08:10Z.</span></span></td>
+            <td><span class="sy-stack" style="--sy-gap: 4px"><span class="sy-status" data-status="inferred">Explained automatically</span><button class="sy-btn sy-btn--sm sy-btn--quiet" type="button" aria-describedby="overturn-what" style="align-self: flex-start">Overturn…</button></span></td>
+            <td><a class="sy-small" href="#">Before / after</a></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="sy-plate__foot">
+      <span class="sy-small sy-muted">Showing 15 rows · 36 of 41 changes · all 18 that need you</span>
+      <button class="sy-btn sy-btn--md" type="button" aria-expanded="false">Show 5 more explained automatically</button>
+    </div>
+  </div>
+</section>
+
+<!-- ===== Legend: every explanation, in plain words ===== -->
+<section class="sy-plate" aria-labelledby="legend-h">
+  <div class="sy-plate__head">
+    <h2 id="legend-h" class="sy-plate__title">Explanations</h2>
+    <p class="sy-cluster sy-small" style="--sy-gap: 6px 16px">
+      <span class="sy-status" data-status="needs">Needs you</span>
+      <span class="sy-status" data-status="inferred">Explained automatically</span>
+      <span class="sy-status" data-status="overturned">Overturned</span><span class="sy-muted">· your reason shows wherever the change appears</span>
+    </p>
+  </div>
+  <div class="sy-plate__body">
+    <div class="sy-grid" style="--sy-min: 380px; --sy-gap: var(--sy-space-4) var(--sy-space-8)">
+      <div class="sy-stack" style="--sy-gap: 10px">
+        <h3 class="sy-label">Explained automatically · 23</h3>
+        <dl class="sy-facts">
+          <dt><span class="sy-chip"><span>Release <span class="sy-case-normal">9c21</span></span></span></dt><dd>The page changed when its portal part's release marker changed. <span class="sy-muted">16 in this range.</span></dd>
+          <dt><span class="sy-chip">Another persona</span></dt><dd>Only one persona sees it. <span class="sy-muted">1.</span></dd>
+          <dt><span class="sy-chip">Flaky error</span></dt><dd>An error seen once and gone when rechecked. <span class="sy-muted">2.</span></dd>
+          <dt><span class="sy-chip">Replaced</span></dt><dd>A link now leads to a new screen that took the old one's place. <span class="sy-muted">1.</span></dd>
+          <dt><span class="sy-chip">Rollout</span></dt><dd>Old and new release served together for a while: <span class="sy-case-normal">5f08</span> and <span class="sy-case-normal">9c21</span> on 16–17 Oct. <span class="sy-muted">1.</span></dd>
+          <dt><span class="sy-chip">Retired</span></dt><dd>A screen not seen since a release. Kept and marked Retired. <span class="sy-muted">2.</span></dd>
+        </dl>
+      </div>
+      <div class="sy-stack" style="--sy-gap: 10px">
+        <h3 class="sy-label">Needs you · 18</h3>
+        <dl class="sy-facts">
+          <dt><span class="sy-chip">Rule changed</span></dt><dd>A business rule now decides differently, even with a release behind it.</dd>
+          <dt><span class="sy-chip sy-chip--fail">Rule broke</span></dt><dd>A boundary test of a rule failed.</dd>
+          <dt><span class="sy-chip sy-chip--tobe">A/B test?</span></dt><dd>Proposed: a cookie splits visitors. Confirm or reject it.</dd>
+          <dt><span class="sy-chip">Error for one input</span></dt><dd>An error that happens every time for one input.</dd>
+          <dt><span class="sy-chip sy-chip--dashed">Unexplained</span></dt><dd>No difference found in release, persona, inputs or cookies.</dd>
+          <dt><span class="sy-chip sy-chip--dashed">No release</span></dt><dd>Changed while the release marker stayed the same.</dd>
+        </dl>
+      </div>
+    </div>
+  </div>
+</section>
+    </main>
+  </div>
+</div>
+</body>
+</html>

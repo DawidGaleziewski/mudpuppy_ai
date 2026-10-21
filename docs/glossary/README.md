@@ -273,7 +273,7 @@ records which states it observed.
 
 *Labels:* `State`, `States`, `States observed`
 
-*Related:* [Fingerprint](#fingerprint), [Cluster](#cluster), [Settled / never stabilized](#settled), [Transition (edge)](#transition), [Form step](#form-step), [State kind](#state-kind)
+*Related:* [Fingerprint](#fingerprint), [Cluster](#cluster), [Settled / never stabilized](#settled), [Transition](#transition), [Form step](#form-step), [State kind](#state-kind)
 
 <sub>Last changed in R-22, 2026-10-03.</sub>
 
@@ -324,7 +324,7 @@ step, never steps of the process. An error page seen once during a scan is not t
 
 **A deliberate try on a form step beyond its happy path, defined once in a catalogue; every outcome is recorded as a state of the step.**
 
-Probing happens only when asked: in a probe scan, on the steps you marked for probing (a
+Probing happens only when asked: in a form-probing scan, on the steps you marked for probing (a
 plain scan presses each form once with test values and never probes). After the happy path
 the crawler calls `probe_form` on a marked step. The server tries:
 - required fields left empty, wrong formats, values outside the limits (validation);
@@ -344,7 +344,7 @@ blocked. Probes run where the action limit allows submitting forms, at most 24 p
 
 *Labels:* `Form probes`
 
-*Related:* [Form step](#form-step), [State kind](#state-kind), [Probe suite](#probe-suite), [Test data](#test-data), [Probe mark](#probe-mark), [Probe scan](#probe-scan)
+*Related:* [Form step](#form-step), [State kind](#state-kind), [Probe suite](#probe-suite), [Test data](#test-data), [Probe mark](#probe-mark), [Form-probing scan](#form-probing-scan)
 
 <sub>Last changed in R-76, 2026-10-18.</sub>
 
@@ -352,44 +352,45 @@ blocked. Probes run where the action limit allows submitting forms, at most 24 p
 
 #### Probe mark
 
-**Your instruction on a form step to have the next probe scan try it beyond the happy path; shown as an orange Probe tag.**
+**Your instruction on a form step to have the next form-probing scan try it beyond the happy path; shown as an orange Probe tag.**
 
 Map the portal first and see what it has, then mark the form steps worth probing: open the
 step's screen (Screens) and press "Mark for probing". The orange tag is a person's mark for
 the next scan. Screens lists every form step as marked, probed (with the number of
-outcomes) or not probed. A probe scan uses the mark when it has probed the step to the end;
+outcomes) or not probed. A form-probing scan uses the mark when it has probed the step to the end;
 "Remove the mark" drops it before that.
 
-*Example:* Step 2 "Your contract" of /sc19/apply carries a Probe tag until the probe scan has tried it.
+*Example:* Step 2 "Your contract" of /sc19/apply carries a Probe tag until the form-probing scan has tried it.
 
 *Seen in:* Screens → Form probes; Screen page → States of this step
 
 *Labels:* `Probe`, `Mark for probing`, `Remove the mark`, `Not probed`, `Probed`
 
-*Related:* [Form probe](#form-probe), [Probe scan](#probe-scan), [Form step](#form-step)
+*Related:* [Form probe](#form-probe), [Form-probing scan](#form-probing-scan), [Form step](#form-step)
 
 <sub>Last changed in R-69, 2026-10-17.</sub>
 
-<a id="probe-scan"></a>
+<a id="form-probing-scan"></a>
 
-#### Probe scan
+#### Form-probing scan
 
 **A scan that only probes the marked form steps of a portal; it does not map.**
 
 Ask the assistant to "probe the marked forms". The crawler opens each marked step, presses
 on with test values until it is there, and probes it within the budget (24 tries per step,
 120 per scan). It does not follow other links. Without marks it is refused with what to do
-first. It may submit forms, so a scan that only looks cannot probe.
+first. It may submit forms, so a scan that only looks cannot probe. Called a "probe scan"
+until MudPuppy 2.0, where a probe run is the headless driver's.
 
 *Example:* "Probe the marked forms of scar-maker as quote-tester."
 
 *Seen in:* Chat
 
-*Labels:* `Probe forms`
+*Labels:* `Probe forms`, `form_probing`
 
-*Related:* [Probe mark](#probe-mark), [Form probe](#form-probe), [Run](#run)
+*Related:* [Probe mark](#probe-mark), [Form probe](#form-probe), [Run](#run), [Headless driver (probe run)](#headless-driver)
 
-<sub>Last changed in R-69, 2026-10-17.</sub>
+<sub>Last changed in R-81, 2026-10-20.</sub>
 
 <a id="checkpoint"></a>
 
@@ -399,7 +400,7 @@ first. It may submit forms, so a scan that only looks cannot probe.
 
 Every scan stores, for each state it reached, the address it last opened and the actions it
 pressed after it, with the values typed. A later scan replays this instead of exploring from
-the start page. Scans from before checkpoints existed are replayed from their page visits.
+the start page. Scans from before checkpoints existed are replayed from their observations.
 Where a scan once opened the screen straight from its address, that address is used (a
 deep link); a screen only reachable by clicking is reached by clicking.
 
@@ -409,7 +410,7 @@ deep link); a screen only reachable by clicking is reached by clicking.
 
 *Labels:* `replays N steps`, `opens by its URL`
 
-*Related:* [Directed scan](#directed-scan), [State](#state), [Page visit](#page-visit)
+*Related:* [Directed scan](#directed-scan), [State](#state), [Observation](#observation)
 
 <sub>Last changed in R-66, 2026-10-17.</sub>
 
@@ -433,7 +434,7 @@ next start point. Skip marks keep actions and screens out of every scan while th
 
 *Labels:* `Focused`, `Recheck`, `Retry a path`, `Continue a stopped scan`, `Resume`, `Retry this path`, `Skip it`
 
-*Related:* [Checkpoint](#checkpoint), [Scan mark](#scan-mark), [Run](#run), [Probe scan](#probe-scan)
+*Related:* [Checkpoint](#checkpoint), [Scan mark](#scan-mark), [Run](#run), [Form-probing scan](#form-probing-scan)
 
 <sub>Last changed in R-66, 2026-10-17.</sub>
 
@@ -446,7 +447,7 @@ next start point. Skip marks keep actions and screens out of every scan while th
 Marks are a person's intent, shown as orange tags; they collect in the Next scan plan. A
 scan that uses Start here, Focus, Recheck or Retry marks closes them. Skip marks stay until
 you remove them and keep the target out of every scan (for example a logout or a delete
-button). Probe marks on form steps are the same idea for probe scans.
+button). Probe marks on form steps are the same idea for form-probing scans.
 
 *Example:* Start here on /kalkulator/wynik, then Plan next scan → Focused → Start scan.
 
@@ -562,7 +563,7 @@ the decision log with its similarity score.
 
 *Labels:* `Fingerprint`
 
-*Related:* [State](#state), [Cluster](#cluster)
+*Related:* [State](#state), [Cluster](#cluster), [Fingerprint profile](#fingerprint-profile)
 
 <sub>Last changed in R-22, 2026-10-03.</sub>
 
@@ -617,22 +618,24 @@ portal and per URL under `timeouts`.
 
 <a id="transition"></a>
 
-#### Transition (edge)
+#### Transition
 
 **An action that leads from one state to another, such as clicking a menu link, recorded with its safety class and locators.**
 
 States are the dots of the portal map and transitions are the arrows. A transition records
 the state it started from, the state it led to (or none), the action that caused it, its
 safety class and whether it was executed or skipped. Skipped transitions are kept so the
-map shows what exists even where the crawler did not go.
+map shows what exists even where the crawler did not go. Since MudPuppy 2.0 a transition is
+also a numbered step of its journey, with the element key, the kind of step and its
+result. Called an "edge" (table `edges`) until 2.0; the map still draws it as a line.
 
-*Seen in:* Map diagrams; Run trace
+*Seen in:* Map diagrams; Run trace; get_run_evidence transitions
 
-*Labels:* `Transition`, `Edge`
+*Labels:* `Transition`, `transitions`
 
 *Related:* [State](#state), [Safety class](#safety-class), [Top locator](#top-locator)
 
-<sub>Last changed in R-22, 2026-10-03.</sub>
+<sub>Last changed in R-81, 2026-10-20.</sub>
 
 <a id="portal-scope"></a>
 
@@ -962,47 +965,487 @@ or run `pnpm docs:process-export`.
 
 <sub>Last changed in R-68, 2026-10-17.</sub>
 
-<a id="differing-states"></a>
+### Portal model
 
-#### Differing states
+<a id="fingerprint-profile"></a>
 
-**A place where scans saw different screens (one button, two pages; one route, two screens), so the BA explains each outcome before documenting.**
+#### Fingerprint profile
 
-The system finds them; the BA agent checks the reasons in order (persona, input, a
-temporary error, session or time, a feature flag, data) and proposes a verdict per outcome;
-you confirm or change it in Review → Differing states. An error page is never the step: the
-step is documented by its main state, and a temporary outcome becomes an open question.
+**The rules a portal's pages are fingerprinted with, set in its portal file, such as "a menu link more is the same page".**
 
-*Example:* "See the offer" led to the offer in one scan and to "Sold out today" in the next.
+Which parts of a page count for its identity is a choice, and portals differ: repeated rows
+of a table are data, a form's field names are structure, a menu that gains a link may or
+may not make a new page version. A profile writes these choices down: the roles whose
+repeats are rows, the roles whose names are form fields, the containers whose names are
+ignored, and the similarity threshold. The built-in `rows-v2` is the default; a portal may
+define its own and say which one it uses. Every observation and model version records the
+profile it was made with, and the portal model never mixes two. An existing portal is
+switched by recomputing from the stored snapshots, without a new scan.
 
-*Seen in:* Review → Differing states
+*Example:* `fingerprint: { use: no-menu, profiles: { no-menu: { ignore_names_in: [navigation] } } }`
 
-*Labels:* `Differing states`, `Why does this differ?`
+*Seen in:* portal.yaml; Settings → Screen identity; pnpm model:refingerprint
 
-*Related:* [Verdict](#verdict), [State](#state), [Portal map](#portal-map)
+*Labels:* `fingerprint profile`, `rows-v2`, `no-menu`, `ignore_names_in`
 
-<sub>Last changed in R-69, 2026-10-17.</sub>
+*Related:* [Fingerprint](#fingerprint), [State](#state), [Screen threshold (τ)](#screen-threshold)
 
-<a id="verdict"></a>
+<sub>Last changed in R-81, 2026-10-20.</sub>
 
-#### Verdict
+<a id="screen-threshold"></a>
 
-**What one outcome of a differing-states group is, proposed by the BA and confirmed by you; the BA documents the screen by it.**
+#### Screen threshold (τ)
 
-Main state (the step itself), variant by persona, input or feature flag, validation state,
-technical error state, temporary (recheck later) or same state (two recordings of one
-screen: confirming it merges the two screens into one). Until you confirm it, the BA
-documents with its own proposal, marked inferred.
+**How similar two versions of a page must be to count as one screen; a person accepts the value the labelled pairs suggest.**
 
-*Example:* The 503 page seen once, not again: Temporary · recheck.
+Two page versions on the same route are one screen when their similarity reaches τ. Until
+a person accepts another value it is the fingerprint profile's own threshold (0.9 for
+`rows-v2`). When enough page pairs are labelled "the same" and "different", the labels
+suggest the τ that separates them best; Settings ▸ Screen identity (or `pnpm model:pairs`)
+shows it, and accepting it there (or `pnpm model:decide … accept-tau`) puts it in force for
+that portal and profile. The next model version uses it. Pairs are labelled on Same screen?.
 
-*Seen in:* Review → Differing states
+*Example:* τ 0.93, accepted by the owner after 60 labelled pairs.
 
-*Labels:* `Verdict`, `Confirm verdicts`
+*Seen in:* Settings → Screen identity; Same screen?; pnpm model:pairs
 
-*Related:* [Differing states](#differing-states)
+*Labels:* `τ`, `accept-tau`, `threshold`
 
-<sub>Last changed in R-69, 2026-10-17.</sub>
+*Related:* [Fingerprint profile](#fingerprint-profile), [Screen (SCR)](#screen)
+
+<sub>Last changed in R-81, 2026-10-20.</sub>
+
+<a id="portal-model"></a>
+
+#### Portal model
+
+**One stored picture of the portal as it is now, rebuilt from every scan by deterministic code after each run, with screens and links that keep their ids.**
+
+Scans add evidence; the portal model reads all of it and says what the portal looks like
+now: which screens exist (each a group of near-identical page versions), which links lead
+where, which ones were not seen lately, and which release served each page. It is rebuilt
+after every scan (and with `pnpm model:reconcile <portal>`); a rebuild never renames a screen.
+Each rebuild is a numbered model version. The raw scans are never changed by it.
+
+*Example:* After two scans, model version 2 of reference-insurer has 17 screens; SC-0008 is the vehicle form with two page versions.
+
+*Seen in:* Home; Changes; Screens; Screens → Map
+
+*Labels:* `portal model`, `model version`, `model`, `Rebuild model`
+
+*Related:* [Screen of the model (SC-)](#model-screen), [Change (deviation)](#deviation), [State](#state)
+
+<sub>Last changed in R-81, 2026-10-21.</sub>
+
+<a id="model-screen"></a>
+
+#### Screen of the model (SC-)
+
+**A screen as the portal model keeps it, a group of page versions that are the same page, with a key like SC-0012 that stays the same across scans.**
+
+The model groups page versions (states) by route and structure, whatever order the scans
+saw them in. When a later scan shows that two screens are one, or one is two, the model
+merges or splits them and records why (lineage), instead of renaming anything. A person
+can say "same screen" or "different screen" for two page versions; the next rebuild follows it.
+On screen a screen is Active, Merged or Retired; retired screens are kept.
+
+*Example:* SC-0001 is the start page; its variants r1 and r2 differ only by the release.
+
+*Seen in:* Screens; Screens → Map; Changes
+
+*Labels:* `screen`, `SC-`, `model screen`, `Active`, `Merged`, `Retired`
+
+*Related:* [Portal model](#portal-model), [Variant (r1, r2…)](#screen-variant), [Screen revision (observed)](#screen-revision), [State](#state)
+
+<sub>Last changed in R-81, 2026-10-21.</sub>
+
+<a id="screen-variant"></a>
+
+#### Variant (r1, r2…)
+
+**One way a screen looked, a page version the model keeps in that screen, and why it differs from the first one.**
+
+Every variant says why it differs: Release (the portal part's release changed), Persona
+(only one persona sees it), Error, A/B test, Data (content that depends on what was typed)
+or Unknown. The why comes from the explanation of the change that brought the variant; the
+first one is the Baseline. A screen's page shows its variants side by side.
+
+*Example:* r3 · A/B test? · banner "Oferta specjalna" on 6 of 11 visits.
+
+*Seen in:* Screens → screen page; Screens → Map → inspector; Same screen?
+
+*Labels:* `variant`, `Baseline`, `why`
+
+*Related:* [Screen of the model (SC-)](#model-screen), [Change (deviation)](#deviation), [Same screen? (a pair label)](#same-screen-label)
+
+<sub>Last changed in R-81, 2026-10-21.</sub>
+
+<a id="model-link"></a>
+
+#### Link and action (link states)
+
+**A link leads to another screen and is drawn on the Map; an action stays inside its screen (a dialog, a field) and is only counted on it.**
+
+A link is Active, Not seen since a date (missing on later visits), Not checked (not followed
+yet on the part's current release), Retired (gone, kept) or Replaced by a new one. Links on
+every page, such as the menu, are bundled on the Map instead of drawn, unless one changed.
+"Checked 8 / 11" on a screen counts its actions tried on the current release.
+
+*Example:* Moje polisy · menu link · Not seen since 17 Oct.
+
+*Seen in:* Screens → Map; Screens → screen page
+
+*Labels:* `link`, `action`, `Not seen since`, `Not checked`, `Retired`, `checked`, `bundled`
+
+*Related:* [Screen of the model (SC-)](#model-screen), [Portal model](#portal-model)
+
+<sub>Last changed in R-81, 2026-10-21.</sub>
+
+<a id="journey"></a>
+
+#### Journey
+
+**One continuous path of a scan, from where it started to where it stopped going on, so every step and every typed value has a position.**
+
+A scan is cut into journeys wherever the path is not continuous: a typed address, a replay
+to a known screen (Start here), a login, a fresh session. Steps are numbered within their
+journey and record the element, the kind (click, fill, select, submit), and what came of it.
+Values typed and shown along a journey are kept, so business rules can be found later.
+
+*Seen in:* scan evidence
+
+*Labels:* `journey`, `path`
+
+*Related:* [Run](#run), [Step result](#step-result), [Transition](#transition)
+
+<sub>Last changed in R-81, 2026-10-19.</sub>
+
+<a id="step-result"></a>
+
+#### Step result
+
+**What a visit or a step came to, one of ok, validation, business error, technical error, timeout or blocked.**
+
+Technical error is a server or browser failure; business error is a page that matches a
+message the portal names as a refusal (`model.business_errors` in portal.yaml); validation is
+the form pointing at its own fields; timeout is a page that never settled; blocked is an
+action the safety rules refused. A changed result on a known step is a change of its own.
+
+*Labels:* `step result`, `result`, `business error`, `technical error`
+
+*Related:* [Journey](#journey), [Change (deviation)](#deviation)
+
+<sub>Last changed in R-81, 2026-10-19.</sub>
+
+<a id="release"></a>
+
+#### Release (build)
+
+**The version of the portal's code a page was served by, read from its content-hashed bundle names or from a version header or meta tag the portal names.**
+
+Each visit records the release of the shell and of every embedded app (frame or
+micro-frontend). A change seen on a new release is drift; the same change on the same
+release needs another explanation (another persona, an A/B test, an error). A portal with
+no hashed bundles and no marker shows as "unknown" and changes are judged more slowly.
+The shell and each embedded app are portal parts, each with its own releases; old and new
+release served at the same time is a rollout. The release marker is a Settings ▸ Hints item.
+
+*Example:* Shell 3e1a · Kalkulator app 9c21; rollout 16 Oct 14:02 – 17 Oct 09:30.
+
+*Seen in:* Home; Changes → release lanes; Settings → Hints
+
+*Labels:* `release`, `build`, `build epoch`, `portal part`, `rollout`
+
+*Related:* [Portal model](#portal-model), [Change (deviation)](#deviation), [Hints (Settings)](#portal-hints)
+
+<sub>Last changed in R-81, 2026-10-21.</sub>
+
+<a id="deviation"></a>
+
+#### Change (deviation)
+
+**A place where a new model version does not fit the previous one, such as a new screen, a page that looks different, an action that is gone or leads elsewhere.**
+
+After each rebuild the model compares itself with the version before. Every difference is
+a change, recorded once (seeing it again adds to the same row). Rules R1–R8 explain most
+changes from the evidence; the rest wait for a person or for a check the system runs itself.
+The Changes page lists them by process and screen, each with its explanation; what needs a
+person waits in Review, and Before / after shows the two recorded pages side by side.
+
+*Seen in:* Changes; Changes → Before / after; Review
+
+*Labels:* `change`, `deviation`, `What changed`, `Before / after`
+
+*Related:* [Finding and explanation (hypothesis, H-)](#hypothesis), [Explained automatically (derived fact)](#derived-fact), [Release (build)](#release)
+
+<sub>Last changed in R-81, 2026-10-21.</sub>
+
+<a id="hypothesis"></a>
+
+#### Finding and explanation (hypothesis, H-)
+
+**A finding is what the system noticed; its explanation is why it thinks it happened, such as "this screen changed with a new release", with the evidence and the test that would refute it.**
+
+Inside, both are one claim with a key (H-0001), a kind, its evidence and an event history in
+which every status change carries a reason. A claim a published rule decides is explained
+automatically; anything else is a finding that needs you, until a person confirms or rejects
+it in Review (or with `pnpm model:decide`), always with a one-line reason.
+
+*Example:* Banner on 6 of 11 visits · A/B test? · Needs you.
+
+*Seen in:* Review; Changes; Screens → screen page
+
+*Labels:* `finding`, `explanation`, `claim`, `hypothesis`, `H-`, `Needs you`
+
+*Related:* [Change (deviation)](#deviation), [Explained automatically (derived fact)](#derived-fact)
+
+<sub>Last changed in R-81, 2026-10-21.</sub>
+
+<a id="derived-fact"></a>
+
+#### Explained automatically (derived fact)
+
+**A claim the system confirmed by itself because a published rule decides it from the evidence, shown with its rule and reversible by a person.**
+
+Constitution 6.0.0: the reconciler may record facts that follow from evidence by a published
+rule (R1–R8) without approval. Each names its rule, appears on Changes and in Review's
+Explained automatically tab, and can be overturned with a reason (Overturn is planned, R-87);
+an overturned fact is never written again for the same change.
+
+*Seen in:* Review → Explained automatically; Changes
+
+*Labels:* `explained automatically`, `derived fact`, `overturn`
+
+*Related:* [Finding and explanation (hypothesis, H-)](#hypothesis), [Change (deviation)](#deviation)
+
+<sub>Last changed in R-81, 2026-10-19.</sub>
+
+<a id="model-element-key"></a>
+
+#### Element key of the model
+
+**The name that matches one element across scans, its role, masked name, the containers it sits in and its position when it repeats, such as button|oblicz składkę|main>form "Dane pojazdu"|.**
+
+Not the element key of a screen region (`role "name"#n`), which names elements of one
+recorded page. The model's key ignores numbers in names and adds the container path, so the
+same button is the same action in every scan; a moved link gets a new key and the model says
+which one it replaces.
+
+*Labels:* `element key of the model`, `action key`
+
+*Related:* [Element key](#element-key), [Screen of the model (SC-)](#model-screen)
+
+<sub>Last changed in R-81, 2026-10-19.</sub>
+
+<a id="headless-driver"></a>
+
+#### Headless driver (probe run)
+
+**Code that repeats a recorded path through the portal in a fresh browser session, without the LLM, to check a claim; each repeat (a replay) is one probe run.**
+
+The crawler agent explores; the headless driver only repeats. It walks the clicks and
+submits of a recorded journey again, finding each element by its element key of the model,
+and fills forms with the values a check needs. Every step goes through the same safety
+gates and is recorded like the agent's, marked as driven headless. A step it cannot find
+again ends the replay: the check is inconclusive, never failed. `pnpm model:replay` runs
+the waiting checks within a budget (20 replays by default). Its runs have the mode
+`probe`; they are not form-probing scans, which try marked form steps with wrong data.
+
+*Seen in:* What changed; Scans
+
+*Labels:* `headless driver`, `probe run`, `replay`
+
+*Related:* [Boundary test](#boundary-test), [Change (deviation)](#deviation), [Journey](#journey), [Form-probing scan](#form-probing-scan)
+
+<sub>Last changed in R-81, 2026-10-20.</sub>
+
+<a id="decision-rule"></a>
+
+#### Decision rule
+
+**A business rule found in the scans, where one action leads to different screens depending on the data typed, written as a decision table (DMN).**
+
+When the same button sometimes leads to one screen and sometimes to another, the system
+compares the values typed before each press and finds the rule that separates the outcomes,
+such as "drivers under 18 are refused". The rule is a claim: its boundary tests check it,
+a person confirms it, and the rules export as DMN tables, Markdown pages (the sentence, then
+the table) and one CSV (Rules → Export, or `pnpm model:rules-export`).
+
+*Example:* H-0002 "Drivers under 18 are refused" on SC-0003, supported by 3 boundary tests.
+
+*Seen in:* Rules; Rules → In the export; What changed → Decision rules; process export rules/*.dmn
+
+*Labels:* `decision rule`, `business rule`, `DMN`, `Broken`, `Tested`, `Replaced`
+
+*Related:* [Boundary test](#boundary-test), [Finding and explanation (hypothesis, H-)](#hypothesis)
+
+<sub>Last changed in R-81, 2026-10-19.</sub>
+
+<a id="boundary-test"></a>
+
+#### Boundary test
+
+**A replay just below, at and just above a rule's threshold (age 17, 18 and 19 for "under 18"), which supports the rule or refutes it.**
+
+Scans rarely type values right at a threshold, so a mined rule may say "under 22" when the
+portal means "under 18". Boundary tests replay a recorded execution with the threshold's
+neighbours. All give the predicted outcome: the rule is supported (a person still confirms).
+One does not: the rule is refuted and is mined again with the new rows.
+
+*Seen in:* Rules → rule page; What changed → Decision rules
+
+*Labels:* `boundary test`, `supported`, `refuted`, `Pass`, `Fail`
+
+*Related:* [Decision rule](#decision-rule), [Headless driver (probe run)](#headless-driver)
+
+<sub>Last changed in R-81, 2026-10-19.</sub>
+
+<a id="process-proposal"></a>
+
+#### Proposed process (from the model)
+
+**A group of screens the system proposes as one process, because they share ids in their requests, embedded apps, API families, a form or direct links.**
+
+`pnpm model:propose` weighs how strongly each pair of screens belongs together and cuts the
+graph into groups (the Leiden method). Each group of two or more screens becomes an open
+grouping suggestion on the Processes page, starting at the screen reached from outside the
+group. A person accepts, edits or dismisses it; a dismissed group is not proposed again.
+
+*Seen in:* Processes
+
+*Labels:* `proposed process`, `grouping suggestion`
+
+*Related:* [Portal model](#portal-model), [Screen of the model (SC-)](#model-screen)
+
+<sub>Last changed in R-81, 2026-10-19.</sub>
+
+<a id="process-instance"></a>
+
+#### Process instance (trigger and outcome)
+
+**One walk through a process in a scan, from its trigger (the link or button that entered it) to its outcome (completed, exited, error, abandoned or not finished).**
+
+A process starts at its own first screen. The click that opens that screen from outside the
+process is its trigger; the pages walked before it are only the way there, never steps. The
+walk ends when a business error shows (error), when the person leaves through the menu
+(abandoned), when a link leads out of the process (exited), or, at the end of the scan, on
+the screen where the process finishes (completed) or anywhere else (incomplete). The
+distinct screen sequences of the instances are the process's paths.
+
+*Example:* Pressed on SC-0004 → link Oblicz składkę · 3×; 2 completed · 1 exited.
+
+*Seen in:* Processes → process page → In the portal model; process export README
+
+*Labels:* `trigger`, `outcome`, `ways in`, `paths`
+
+*Related:* [Proposed process (from the model)](#process-proposal), [Explored (process)](#explored-process)
+
+<sub>Last changed in R-81, 2026-10-20.</sub>
+
+<a id="explored-process"></a>
+
+#### Explored (process)
+
+**How far a process was tried on the current releases: every action of its screens once per persona, every pair of consecutive actions once, then random walks inside it.**
+
+`pnpm model:explore` turns what is still missing into replays for the headless driver and
+runs them. A pass where every gap could be reached is recorded; it counts as explored
+(Thorough) when it found no new change, and the documentation states the bound, e.g.
+"Explored to depth 2 plus 50 random walks on builds shell 3e1a; no counterexamples."
+Processes not explored on the current releases are the planner's lowest priority.
+
+*Seen in:* Processes → process page → In the portal model; process export README
+
+*Labels:* `explored`, `thorough`, `partial`, `not explored`
+
+*Related:* [Process instance (trigger and outcome)](#process-instance), [Headless driver (probe run)](#headless-driver)
+
+<sub>Last changed in R-81, 2026-10-20.</sub>
+
+<a id="similarity-classifier"></a>
+
+#### Similarity classifier
+
+**A model trained on the "same screen?" labels that weighs every part of two page fingerprints; used instead of the single threshold τ once it tells screens apart better.**
+
+τ compares one number, the overlap of the pages' text and structure shingles. The
+classifier also looks at the structure, content, overlay, background calls, embedded apps
+and element keys. `pnpm model:classify` trains it on the labelled pairs, holds every fifth
+pair back, and compares both on those: when the classifier finds distinct pairs better, the
+next model rebuild groups pages with it.
+
+*Seen in:* Settings → Screen identity; pnpm model:classify
+
+*Labels:* `similarity classifier`, `held-out F1`
+
+*Related:* [Fingerprint profile](#fingerprint-profile), [Screen threshold (τ)](#screen-threshold)
+
+<sub>Last changed in R-81, 2026-10-20.</sub>
+
+<a id="same-screen-label"></a>
+
+#### Same screen? (a pair label)
+
+**A person's answer for two recorded versions of a page, Same screen, Same with different data, or Different screens, which the next model rebuild follows.**
+
+The Same screen? page shows two versions side by side, a disagreement between your earlier
+label and the automatic grouping first, then each screen's variants against its first one.
+Press 1, 2 or 3, optionally say why, and save. The labels group the screens on the next
+rebuild and calibrate the screen threshold τ and the similarity classifier. A new answer
+replaces the label; every earlier answer, with who gave it and why, stays under Earlier
+answers on the pair and in the screen's History.
+
+*Example:* r2 and r3 of Kalkulator — wynik: Same, different data · "the banner depends on the date".
+
+*Seen in:* Review → Same screen?; Screens → Map → inspector; Screens → screen → History
+
+*Labels:* `Same screen?`, `Same`, `different data`, `Different screens`, `pair label`
+
+*Related:* [Variant (r1, r2…)](#screen-variant), [Screen threshold (τ)](#screen-threshold), [Similarity classifier](#similarity-classifier)
+
+<sub>Last changed in R-81, 2026-10-21.</sub>
+
+<a id="check-run"></a>
+
+#### Check run
+
+**A run of replays and tests on the headless driver, with no AI, that checks rules at their boundaries, replays errors and explores processes, as opposed to an AI scan.**
+
+A check run repeats recorded steps exactly, so it costs no tokens and answers yes or no:
+did the error come back, did the rule's boundary give the predicted screen, is every action
+of a process still there. A person starts one from Rules or a process page (Run the rule
+tests, Explore); the assistant starts one after you confirm in the chat. The model takes the
+results on its next rebuild.
+
+*Example:* Check run 01a1340c · 64 checks · 20, 21, 22 → pass.
+
+*Seen in:* Rules; Processes → process page; Scans
+
+*Labels:* `check run`, `AI scan`, `Run the rule tests`
+
+*Related:* [Headless driver (probe run)](#headless-driver), [Boundary test](#boundary-test), [Explored (process)](#explored-process)
+
+<sub>Last changed in R-81, 2026-10-21.</sub>
+
+<a id="portal-hints"></a>
+
+#### Hints (Settings)
+
+**What the portal model is told about a portal, its release marker, the cookies that name an A/B test's arm and the texts that mean a business refusal, from the portal file.**
+
+Hints live in `model:` of portal.yaml. When you confirm an A/B test in Review, its cookie is
+added to the A/B cookies, so later scans record which arm each visit saw and the variants say
+A/B test instead of Unknown. The rest changes through the assistant.
+
+*Example:* Release marker: header x-app-version · A/B cookies: cookie ab_calc.
+
+*Seen in:* Settings → Hints
+
+*Labels:* `Hints`, `release marker`, `A/B cookie`, `business refusal`
+
+*Related:* [Release (build)](#release), [Variant (r1, r2…)](#screen-variant)
+
+<sub>Last changed in R-81, 2026-10-21.</sub>
 
 ### Actions and safety
 
@@ -1110,7 +1553,7 @@ validates a locator before relying on it.
 
 *Labels:* `Top locator`, `Locator`
 
-*Related:* [Accessible name](#accessible-name), [Role](#role), [Transition (edge)](#transition)
+*Related:* [Accessible name](#accessible-name), [Role](#role), [Transition](#transition)
 
 <sub>Last changed in R-22, 2026-10-03.</sub>
 
@@ -1206,7 +1649,7 @@ footer menus.
 
 *Labels:* `Inferred`, `inferred`
 
-*Related:* [Frontier](#frontier), [Transition (edge)](#transition), [Confidence (observed / inferred / needs confirmation)](#confidence), [Shared menu button](#shared-button)
+*Related:* [Frontier](#frontier), [Transition](#transition), [Confidence (observed / inferred / needs confirmation)](#confidence), [Shared menu button](#shared-button)
 
 <sub>Last changed in R-35, 2026-10-14.</sub>
 
@@ -1229,7 +1672,7 @@ landed on different pages, the button is clicked as usual.
 
 *Labels:* `shared_button`
 
-*Related:* [Inferred link](#inferred-link), [Frontier](#frontier), [Transition (edge)](#transition)
+*Related:* [Inferred link](#inferred-link), [Frontier](#frontier), [Transition](#transition)
 
 <sub>Last changed in R-58, 2026-10-18.</sub>
 
@@ -1449,49 +1892,34 @@ evidence or turns them into an open question record for a person.
 
 *Labels:* `Open question`
 
-*Related:* [Rule candidate](#rule-candidate)
+*Related:* [Finding and explanation (hypothesis, H-)](#hypothesis)
 
 <sub>Last changed in R-22, 2026-10-03.</sub>
 
-<a id="rule-candidate"></a>
+<a id="observation"></a>
 
-#### Rule candidate
+#### Observation
 
-**A possible business rule the crawler spotted, such as a limit stated in an error message, recorded as a hint for the BA and never as a fact.**
+**One arrival of the crawler on a page, with the full URL exactly as the browser had it, the hops that led there, and its place in the run.**
 
-The crawler may flag a few patterns that look like rules with `add_rule_candidate`. It does
-not decide whether they are rules. The BA checks each against the evidence and writes a
-business rule record only when the evidence supports it.
+Every `navigate`, every action that lands on a page and every return after a re-login is an
+observation, also when the run already knows the state. The URL is stored verbatim: every
+query and path parameter, the fragment, session ids and tracking parameters included.
+Nothing is normalised away, because legacy systems wire screens together through their
+URLs. The route template, which decides which screen a page is, still leaves the
+parameters out. Since MudPuppy 2.0 an observation also carries its journey, its number in
+the run, the step result, the builds it was served by and its context. Called a "page
+visit" (table `page_visits`) until 2.0.
 
-*Seen in:* Run page; Docs evidence → rule candidate
+*Example:* An observation of the legacy bank statement at `wyciag.do;jsessionid=AB12?konto=4521&typ=M&okres=2026-03&tryb=podglad`, reached by a link from the menu.
 
-*Labels:* `Rule candidate`
+*Seen in:* State page → Reached under; get_run_evidence observations; SRS export (URLs observed)
 
-*Related:* [Business rule (BR)](#business-rule), [Open question (crawler)](#crawler-open-question)
-
-<sub>Last changed in R-22, 2026-10-03.</sub>
-
-<a id="page-visit"></a>
-
-#### Page visit
-
-**One arrival of the crawler on a page, with the full URL exactly as the browser had it and the hops that led there.**
-
-Every `navigate`, every action that lands on a page and every return after a re-login is a
-visit, also when the run already knows the state. The URL is stored verbatim: every query
-and path parameter, the fragment, session ids and tracking parameters included. Nothing is
-normalised away, because legacy systems wire screens together through their URLs. The
-route template, which decides which screen a page is, still leaves the parameters out.
-
-*Example:* A visit of the legacy bank statement at `wyciag.do;jsessionid=AB12?konto=4521&typ=M&okres=2026-03&tryb=podglad`, reached by a link from the menu.
-
-*Seen in:* State page → Reached under; get_run_evidence page_visits; SRS export (URLs observed)
-
-*Labels:* `page_visits`, `Reached under`
+*Labels:* `observations`, `Reached under`
 
 *Related:* [Navigation hop](#navigation-hop), [Parameter inventory](#parameter-inventory), [Entry URL](#entry-url), [State](#state)
 
-<sub>Last changed in R-37, 2026-10-12.</sub>
+<sub>Last changed in R-81, 2026-10-20.</sub>
 
 <a id="navigation-hop"></a>
 
@@ -1510,11 +1938,11 @@ settled on carry their title, snapshot and screenshot.
 
 *Example:* `/polisa.php?id=7` → meta_refresh → `/stare/polisa/7` → script → `/ubezpieczenia#/polisy/7`.
 
-*Seen in:* State page → Reached under; get_run_evidence page_visits
+*Seen in:* State page → Reached under; get_run_evidence observations
 
 *Labels:* `hops`, `client_redirect_wait_ms`
 
-*Related:* [Page visit](#page-visit), [Entry URL](#entry-url), [Transit zone](#transit-zone)
+*Related:* [Observation](#observation), [Entry URL](#entry-url), [Transit zone](#transit-zone)
 
 <sub>Last changed in R-62, 2026-10-18.</sub>
 
@@ -1537,7 +1965,7 @@ business rules and data items, citing the visits.
 
 *Labels:* `parameters`, `URL parameters`
 
-*Related:* [Page visit](#page-visit), [Business rule (BR)](#business-rule), [Data item (DI)](#data-item)
+*Related:* [Observation](#observation), [Business rule (BR)](#business-rule), [Data item (DI)](#data-item)
 
 <sub>Last changed in R-37, 2026-10-12.</sub>
 
@@ -1556,7 +1984,7 @@ working.
 
 *Labels:* `entry_urls`, `URLs observed`
 
-*Related:* [Page visit](#page-visit), [Navigation hop](#navigation-hop)
+*Related:* [Observation](#observation), [Navigation hop](#navigation-hop)
 
 <sub>Last changed in R-38, 2026-10-12.</sub>
 
@@ -1911,13 +2339,13 @@ word mean the same thing on every page.
 A kind that is not a state (a decision "merge", a trace "phase") has no shape and shows as
 a plain label. A run can be Completed, Running, Interrupted or Stopped; a record Draft,
 Confirmed, Rejected, Superseded or Withdrawn; a proposal Proposed, Applied, Discarded or
-Out of date; a process variant Observed, Drawn, Draft open or Live.
+Out of date; a process model Observed, Drawn, Draft open or Live.
 
 *Seen in:* Every status column and badge
 
 *Labels:* `Status`, `Live`, `Draft`, `Failed`, `Interrupted`
 
-*Related:* [Record status](#record-status), [Run](#run), [Frontier](#frontier), [Submit boundary](#submit-boundary), [Variant (A as-is, B to-be)](#process-variant)
+*Related:* [Record status](#record-status), [Run](#run), [Frontier](#frontier), [Submit boundary](#submit-boundary), [Process model (A as-is, B to-be)](#process-model)
 
 <sub>Last changed in R-43, 2026-10-14.</sub>
 
@@ -1928,7 +2356,7 @@ Out of date; a process variant Observed, Drawn, Draft open or Live.
 **In a record's evidence table, the piece of recorded data the record cites, such as a state, form, action, network call or process step.**
 
 Each evidence link on a record points at one target and says what it supports. Target kinds
-are state, edge (transition), action, form, network call, rule candidate, open question,
+are state, transition, observation, action, form, network call, open question,
 decision, process, process step, another documentation record, or a review. Click the target
 to open it on its run page.
 
@@ -2271,14 +2699,14 @@ processes can be scored from traces. `--no-process-traces` leaves them out; the 
 ran is a condition of the trial.
 
 A task may also list forms to probe (`probeForms`, spec 034): after the map, the eval marks
-the form steps the map recorded there for probing and runs one probe scan, so the export's
-Validation section can be scored. `--no-probe-scan` leaves it out.
+the form steps the map recorded there for probing and runs one form-probing scan, so the
+export's Validation section can be scored. `--no-form-probing` leaves it out.
 
 *Seen in:* apps/crawler/evals/tasks.ts
 
 *Labels:* `task`, `suite`, `SUITE`, `trace task`, `process traces`, `processTraces`, `probeForms`
 
-*Related:* [Eval (tier 2)](#eval), [Eval trial](#eval-trial), [Reference portal / ground truth](#reference-portal), [Probe scan](#probe-scan), [Export quality score](#export-quality-score)
+*Related:* [Eval (tier 2)](#eval), [Eval trial](#eval-trial), [Reference portal / ground truth](#reference-portal), [Form-probing scan](#form-probing-scan), [Export quality score](#export-quality-score)
 
 <sub>Last changed in R-68, 2026-10-17.</sub>
 
@@ -2904,32 +3332,33 @@ new revision.
 
 *Labels:* `r1`, `r2`, `Observed revision`, `latest`
 
-*Related:* [Re-anchor](#re-anchor), [Amendment (to-be)](#amendment), [Variant (A as-is, B to-be)](#process-variant), [Run](#run)
+*Related:* [Re-anchor](#re-anchor), [Amendment (to-be)](#amendment), [Process model (A as-is, B to-be)](#process-model), [Run](#run)
 
 <sub>Last changed in R-43, 2026-10-14.</sub>
 
-<a id="process-variant"></a>
+<a id="process-model"></a>
 
-#### Variant (A as-is, B to-be)
+#### Process model (A as-is, B to-be)
 
 **One version of a process, either A, the process as the scans observed it, or B and further letters, the process the business wants.**
 
-A process always has variant A, the as-is flow built from what was observed. Rescans add
-its revisions; a person can also reorder, remove or add its screens, each change a signed
-revision of A (spec 027). You start variant B from A (or from another variant) and draw
-the to-be: edit, reorder, merge and add steps. A variant has numbered revisions (A r1,
+A process always has process model A, the as-is flow built from what was observed. Rescans
+add its revisions; a person can also reorder, remove or add its screens, each change a
+signed revision of A (spec 027). You start model B from A (or from another model) and draw
+the to-be: edit, reorder, merge and add steps. A process model has numbered revisions (A r1,
 B r2); every save makes a new one, with the reviewer's name and the time. Compare puts two
-variants side by side.
+process models side by side. Called "variant" before 2.0; "variant" now means a screen
+variant only.
 
 *Example:* PRC-001 "Oblicz składkę OC/AC" has A r1 (4 observed steps) and B r1 (3 designed steps).
 
-*Seen in:* Processes → a process → variant tabs
+*Seen in:* Processes → a process → process model tabs
 
-*Labels:* `Variant`, `A`, `B`, `as-is`, `to-be`
+*Labels:* `Process model`, `A`, `B`, `as-is`, `to-be`
 
-*Related:* [Draft (process draft)](#process-draft), [Change spec](#change-spec), [Live variant (per environment)](#live-variant), [Screen revision (observed)](#screen-revision), [Amendment (to-be)](#amendment), [As-is sign-off](#as-is-sign-off)
+*Related:* [Draft (process draft)](#process-draft), [Change spec](#change-spec), [Live process model (per environment)](#live-process-model), [Screen revision (observed)](#screen-revision), [Amendment (to-be)](#amendment), [As-is sign-off](#as-is-sign-off)
 
-<sub>Last changed in R-54, 2026-10-18.</sub>
+<sub>Last changed in R-81, 2026-10-21.</sub>
 
 <a id="as-is-sign-off"></a>
 
@@ -2950,7 +3379,7 @@ outside MudPuppy (from the downloaded documentation) before the sign-off.
 
 *Labels:* `Mark as-is documented`, `Sign off`, `As-is changed since documented`
 
-*Related:* [Variant (A as-is, B to-be)](#process-variant), [As-is documentation](#as-is-documentation), [Archived process](#archived-process)
+*Related:* [Process model (A as-is, B to-be)](#process-model), [As-is documentation](#as-is-documentation), [Archived process](#archived-process)
 
 <sub>Last changed in R-54, 2026-10-18.</sub>
 
@@ -2971,7 +3400,7 @@ processes with Restore. Archive and restore are signed revisions of the process.
 
 *Labels:* `Archive`, `Archived`, `Restore`
 
-*Related:* [Variant (A as-is, B to-be)](#process-variant), [As-is sign-off](#as-is-sign-off)
+*Related:* [Process model (A as-is, B to-be)](#process-model), [As-is sign-off](#as-is-sign-off)
 
 <sub>Last changed in R-54, 2026-10-18.</sub>
 
@@ -2979,19 +3408,19 @@ processes with Restore. Archive and restore are signed revisions of the process.
 
 #### Draft (process draft)
 
-**Your unsaved work on a variant, which saves itself and which only you see, until you save it as the next revision or discard it.**
+**Your unsaved work on a to-be process model, which saves itself and which only you see, until you save it as the next revision or discard it.**
 
-Opening a variant to change it starts a draft of its latest revision. The page shows how
+Opening a process model to change it starts a draft of its latest revision. The page shows how
 many changes it holds since that revision. Save as rN+1 turns the draft into a revision
 with your name and the time. Discard draft drops it and keeps the last revision. If
 someone saved a newer revision while you drew, saving shows "Someone saved first" and both
 versions go to the review inbox as an edit conflict, so you can compare them.
 
-*Seen in:* Processes → a variant → Draft open
+*Seen in:* Processes → a process model → Draft open
 
 *Labels:* `Draft open`, `Save as`, `Discard draft`, `Someone saved first`
 
-*Related:* [Variant (A as-is, B to-be)](#process-variant), [Review inbox](#review-inbox), [Status (shape and word)](#status-codes)
+*Related:* [Process model (A as-is, B to-be)](#process-model), [Review inbox](#review-inbox), [Status (shape and word)](#status-codes)
 
 <sub>Last changed in R-43, 2026-10-14.</sub>
 
@@ -2999,27 +3428,27 @@ versions go to the review inbox as an edit conflict, so you can compare them.
 
 #### Change spec
 
-**The document built from the difference between a process's as-is and to-be variants, saying what must change and why, ready to hand to the builders.**
+**The document built from the difference between a process's as-is and to-be process models, saying what must change and why, ready to hand to the builders.**
 
 Compare generates it. It has sections: scope, as-is, to-be, the delta step by step, the
 records it affects, the migration cut and open questions. You edit any section, and each
 save is a revision of the spec. Export it as Markdown, or save it as a documentation
-record. It is generated from the variants, so it follows them when you save a new
+record. It is generated from the process models, so it follows them when you save a new
 revision.
 
 *Seen in:* Processes → Compare; Processes → spec.md
 
 *Labels:* `Change spec`, `Compare`, `spec.md`
 
-*Related:* [Variant (A as-is, B to-be)](#process-variant), [Amendment (to-be)](#amendment), [SRS export](#srs-export)
+*Related:* [Process model (A as-is, B to-be)](#process-model), [Amendment (to-be)](#amendment), [SRS export](#srs-export)
 
 <sub>Last changed in R-43, 2026-10-14.</sub>
 
-<a id="live-variant"></a>
+<a id="live-process-model"></a>
 
-#### Live variant (per environment)
+#### Live process model (per environment)
 
-**The variant of a process the BA marked as the one that runs in an environment, such as sandbox or production; each environment has its own marker.**
+**The process model the BA marked as the one that runs in an environment, such as sandbox or production; each environment has its own marker.**
 
 Mark live in a process's History says "B r2 is what runs in sandbox". The marker is a
 revision too: changing it keeps the old one in the history, so you can see what was live
@@ -3030,7 +3459,7 @@ not deploy anything.
 
 *Labels:* `Mark live`, `Live`, `Not marked`
 
-*Related:* [Variant (A as-is, B to-be)](#process-variant), [Environment](#environment), [Change spec](#change-spec)
+*Related:* [Process model (A as-is, B to-be)](#process-model), [Environment](#environment), [Change spec](#change-spec)
 
 <sub>Last changed in R-43, 2026-10-14.</sub>
 
@@ -3080,7 +3509,7 @@ the inbox when decided; nothing is deleted without a decision.
 
 After a scan the assistant looks at the screens, the links between them and the forms, and
 suggests candidate processes. A suggestion has the Suggested status until you accept it.
-Accepting it makes a process with variant A built from those screens. It never invents a
+Accepting it makes a process with process model A built from those screens. It never invents a
 screen that was not recorded.
 
 `pnpm portal:trace` also suggests one per process it drove: the screens of its best run, and
@@ -3091,7 +3520,7 @@ them as one process. A process record then shows one flowchart per cited variant
 
 *Labels:* `Suggested`, `grouping`
 
-*Related:* [Process scope](#process-scope), [Variant (A as-is, B to-be)](#process-variant), [Proposal (assistant proposal)](#proposal)
+*Related:* [Process scope](#process-scope), [Process model (A as-is, B to-be)](#process-model), [Proposal (assistant proposal)](#proposal)
 
 <sub>Last changed in R-67, 2026-10-16.</sub>
 
@@ -3204,7 +3633,8 @@ The score is the share of mutants killed. It runs on demand, never on every comm
 
 Before code is moved or split, the lock captures its observable result; after every step
 the lock must still match. The crawl pipeline's lock runs a map run and a trace run and
-compares the recorded states, edges, decision log and trace spans with a committed snapshot.
+compares the recorded states, transitions, decision log and trace spans with a committed
+snapshot.
 
 *Seen in:* tests/pipeline-golden.e2e.test.ts; docs/code-guidelines.md G-29
 
@@ -3213,50 +3643,6 @@ compares the recorded states, edges, decision log and trace spans with a committ
 *Related:* [Code guidelines](#code-guidelines), [Slow tier](#slow-tier)
 
 <sub>Last changed in R-34, 2026-10-08.</sub>
-
-<a id="export-fork"></a>
-
-#### export-fork (field artifact)
-
-**A generated, stripped and renamed copy of the crawler and BA for Kiro CLI, used to try Pathfinder on real portals where only Kiro is available.**
-
-`pnpm --dir apps/exportfork-export export` builds it from master into a separate local repository:
-only the crawler and BA servers, their packages and the field commands, with the project
-name replaced by "exportfork", the read-only dashboard (without Chat), Kiro agents (exportfork,
-crawler, ba, reporter), skills and a steering file. No chat, evals, hooks or tracing. It is never edited by hand: fixes are made
-here and carried out by the next export. A marker file records which commit it came from;
-the field's own portals, personas, issues and data are never touched by an export.
-
-*Example:* export: harness 668505a2352b → /home/dawid/projects/export-fork, 532 files, verified.
-
-*Seen in:* apps/exportfork-export; specs/018-export-fork
-
-*Labels:* `export-fork`, `exportfork`, `field artifact`, `exportfork-export`
-
-*Related:* [Field issue](#field-issue)
-
-<sub>Last changed in R-49, 2026-10-11.</sub>
-
-<a id="field-issue"></a>
-
-#### Field issue
-
-**One problem found while using export-fork on a real portal, written as one file by its reporter agent and imported here for triage.**
-
-The reporter agent writes `issues/BI-<date>-<nn>-<slug>.md`: area, severity, portal, run and
-evidence ids, then symptom, steps, expected, actual and a suggested test or eval.
-`pnpm --dir apps/exportfork-export import-issues` copies new valid ones to `docs/field-issues/`
-and adds a row to its index; triage turns them into roadmap items, findings or tasks.
-
-*Example:* BI-20261012-01-crawler-stuck-on-cookie-banner, area crawler, severity blocker.
-
-*Seen in:* docs/field-issues/README.md; specs/018-export-fork/contracts/field-issue.md
-
-*Labels:* `field issue`, `BI-`
-
-*Related:* [export-fork (field artifact)](#export-fork), [Scar (scar-maker)](#scar)
-
-<sub>Last changed in R-49, 2026-10-11.</sub>
 
 <a id="scar"></a>
 
@@ -3277,7 +3663,7 @@ category `[battle-tested-scar]`.
 
 *Labels:* `scar`, `scar-maker`, `SC-`
 
-*Related:* [Field issue](#field-issue), [Fix-plugin](#fix-plugin)
+*Related:* [Fix-plugin](#fix-plugin)
 
 <sub>Last changed in R-56, 2026-10-16.</sub>
 
@@ -3643,7 +4029,7 @@ Rules are written once and linked to every requirement, data item and screen the
 
 *Labels:* `Business rule`, `BR`, `Rule`
 
-*Related:* [Decision table](#decision-table), [Rule candidate](#rule-candidate), [Data item (DI)](#data-item)
+*Related:* [Decision table](#decision-table), [Finding and explanation (hypothesis, H-)](#hypothesis), [Data item (DI)](#data-item)
 
 *Read more:* [BA wiki: Business rule](../wiki/business-rule.md)
 

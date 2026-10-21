@@ -1,7 +1,7 @@
-"""The step diff of two process variants (spec 022 screen 06, FE-P03). Pure: no database.
+"""The step diff of two process models (spec 022 screen 06, FE-P03). Pure: no database.
 
-A to-be step names, in `from`, the steps of the variant it was branched from that it replaces.
-Against that variant each right step is:
+A to-be step names, in `from`, the steps of the model it was branched from that it replaces.
+Against that model each right step is:
 - `unchanged`: from one step, same screen (or same title and route when drawn);
 - `changed`: from one step, something differs;
 - `merged`: from two or more steps;

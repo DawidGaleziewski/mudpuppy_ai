@@ -197,12 +197,13 @@ function writeForm(
 
 /**
  * Fill the empty fields of the form `submit` belongs to. `inputs` are the persona's values by
- * field label (`test_data`); everything else comes from {@link testValueFor}. Returns null when
- * `submit` is not a form's submit control (nothing is touched then).
+ * field label (`test_data`), or a lookup by label (a replay's inputs, spec 039); everything else
+ * comes from {@link testValueFor}. Returns null when `submit` is not a form's submit control
+ * (nothing is touched then).
  */
 export async function autofillForm(
   submit: Locator,
-  inputs: Readonly<Record<string, string>> = {},
+  inputs: Readonly<Record<string, string>> | ((label: string) => string | undefined) = {},
 ): Promise<AutofillResult | null> {
   const fields = await evalOnElementWithHelpers(submit, HELPERS, readForm, undefined);
   if (fields === null) return null;
@@ -218,7 +219,7 @@ export async function autofillForm(
       result.skipped.push({ field: f.name, reason: 'already filled' });
       continue;
     }
-    const value = testValueFor(f, inputs[f.label]);
+    const value = testValueFor(f, typeof inputs === 'function' ? inputs(f.label) : inputs[f.label]);
     if (value === null) {
       result.skipped.push({
         field: f.name,

@@ -1,0 +1,301 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MudPuppy 2.0 · Business rules</title>
+<link rel="icon" href="../brand/logo/tag-icon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../design-system/css/tokens.css">
+<link rel="stylesheet" href="../design-system/css/fonts.css">
+<link rel="stylesheet" href="../design-system/css/salvage.css">
+<style>
+  /* Screen layout only: group header rows inside the rules table; status key as a grid. */
+  .mp-group > th { padding-top: var(--sy-space-4); }
+  .mp-key { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(280px, 100%), 1fr)); gap: var(--sy-space-2) var(--sy-space-5); }
+  .mp-key > div { display: flex; flex-direction: column; gap: 2px; }
+  .mp-caption { caption-side: bottom; text-align: left; padding: var(--sy-space-3) 12px; }
+</style>
+</head>
+<body class="sy-ground">
+<a class="sy-skip" href="#main">Skip to content</a>
+<div class="sy-app">
+  <header class="sy-header">
+    <a class="sy-wordmark" href="v2-01-home.html"><span class="sy-wordmark__paint">MUD</span>PUPPY</a>
+    <label class="sy-portal sy-portal--compact"><span class="sy-label">Portal</span>
+      <select class="sy-select"><option selected>reference-insurer</option><option>wikipedia</option><option>All portals</option><option>+ New portal</option></select></label>
+    <div class="sy-portal sy-portal--compact"><span class="sy-label" id="asof-l">As of</span>
+      <button class="sy-select" type="button" aria-haspopup="menu" aria-expanded="false" aria-labelledby="asof-l asof-v" aria-describedby="asof-help"><span id="asof-v">Now · 17 Oct</span></button></div>
+    <span id="asof-help" class="sy-sr-only">Shows the portal model as it was at a release or scan. Changes compares two points.</span>
+    <label class="sy-search sy-search--compact">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+      <input type="search" aria-label="Search screens, processes and rules" placeholder="Search"><span class="sy-kbd">Ctrl K</span></label>
+    <span class="sy-status" data-status="ok">Assistant up</span>
+    <a class="sy-btn" href="02-screen-with-assistant.html">Ask <span class="sy-kbd">Ctrl J</span></a>
+    <a class="sy-btn sy-btn--icon" href="#" aria-label="Help and glossary">?</a>
+  </header>
+  <div class="sy-app__body">
+    <nav class="sy-nav" aria-label="Portal sections">
+      <a class="sy-nav__item" href="v2-01-home.html">Home</a>
+      <a class="sy-nav__item" href="v2-02-changes.html">Changes <span class="sy-nav__count">41</span></a>
+      <a class="sy-nav__item" href="v2-04-review.html">Review <span class="sy-count">24</span></a>
+      <div class="sy-nav__group" aria-hidden="true">Portal model</div>
+      <a class="sy-nav__item" href="v2-09-processes.html">Processes <span class="sy-nav__count">6</span></a>
+      <a class="sy-nav__item" href="v2-06-screens.html">Screens <span class="sy-nav__count">19</span></a>
+      <a class="sy-nav__item" href="v2-11-rules.html" aria-current="page">Rules <span class="sy-nav__count">6</span></a>
+      <a class="sy-nav__item" href="#">Docs</a>
+      <div class="sy-nav__group" aria-hidden="true">Machine</div>
+      <a class="sy-nav__item" href="10-scans.html">Scans</a>
+      <a class="sy-nav__item" href="11-settings.html">Settings</a>
+      <div class="sy-nav__foot">store: sandbox · writes go through commands</div>
+    </nav>
+    <main id="main" class="sy-main">
+<!-- Page head -->
+      <div class="sy-pagehead">
+        <div class="sy-pagehead__row">
+          <div class="sy-stack" style="--sy-gap: 4px">
+            <h1 class="sy-h1">Business rules</h1>
+            <p class="sy-meta">6 rules · 1 broken · 1 changed · 1 confirmed · 1 tested · 2 proposed</p>
+          </div>
+          <div class="sy-actions">
+            <a class="sy-btn sy-btn--md" href="v2-12-rule-detail.html#export">Export preview</a>
+          </div>
+        </div>
+        <p class="sy-small sy-muted sy-prose">Each rule is a decision table the system found from the portal's behaviour. Check runs test it at its boundaries after every release.</p>
+      </div>
+
+      <!-- Filters -->
+      <form class="sy-cluster" style="--sy-gap: 10px 20px" action="#" aria-label="Filter rules">
+        <div class="sy-seg" role="group" aria-label="Status">
+          <button type="button" aria-pressed="true" style="flex: none">All 6</button>
+          <button type="button" aria-pressed="false" style="flex: none">Broken 1</button>
+          <button type="button" aria-pressed="false" style="flex: none">Changed 1</button>
+          <button type="button" aria-pressed="false" style="flex: none">Proposed 2</button>
+          <button type="button" aria-pressed="false" style="flex: none">Tested 1</button>
+          <button type="button" aria-pressed="false" style="flex: none">Confirmed 1</button>
+        </div>
+        <label class="sy-cluster" style="--sy-gap: 8px"><span class="sy-field__label">Process</span>
+          <select class="sy-select sy-select--md" style="width: 250px">
+            <option>All processes</option>
+            <option>Oblicz składkę OC/AC · 6</option>
+            <option>Porównaj produkty · 0</option>
+            <option>Test process · 0</option>
+          </select></label>
+        <label class="sy-check"><input type="checkbox"> Show replaced versions</label>
+      </form>
+
+      <!-- Rules table, exceptions first -->
+      <div class="sy-table-wrap">
+        <table class="sy-table" style="min-width: 900px" aria-label="Business rules">
+          <thead>
+            <tr>
+              <th scope="col" style="min-width: 230px">Rule</th>
+              <th scope="col">Where decided</th>
+              <th scope="col">Status</th>
+              <th scope="col">Last tested</th>
+              <th scope="col" style="min-width: 120px">Process</th>
+              <th scope="col">Last changed</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            <tr class="mp-group"><th scope="rowgroup" colspan="6">Needs you · 2</th></tr>
+            <tr>
+              <th scope="row">
+                <div class="sy-stack" style="--sy-gap: 6px; align-items: flex-start">
+                  <span class="sy-tag sy-tag--sm">BR-026</span>
+                  <a href="#">Postal code must be NN-NNN</a>
+                </div>
+              </th>
+              <td><div class="sy-stack" style="--sy-gap: 2px"><span>Kalkulator OC/AC — dane kierowcy</span><span class="sy-small sy-muted">field "Kod pocztowy"</span></div></td>
+              <td><div class="sy-stack" style="--sy-gap: 4px"><span class="sy-status" data-status="failed">Broken</span><span class="sy-small sy-muted">since <span class="sy-case-normal">9c21</span></span></div></td>
+              <td>
+                <div class="sy-stack" style="--sy-gap: 4px">
+                  <span class="sy-cluster sy-small" style="--sy-gap: 6px">17 Oct · <span class="sy-tag sy-tag--sm">01a1340c</span></span>
+                  <span class="sy-small">"00-950" accepted: ok · "00950" now accepted, was refused on <span class="sy-case-normal">5f08</span></span>
+                  <span class="sy-status" data-status="failed">Fail</span>
+                </div>
+              </td>
+              <td><a class="sy-small" href="v2-10-process-detail.html">Oblicz składkę OC/AC</a></td>
+              <td><span class="sy-small"><span class="sy-case-normal">9c21</span> · 16 Oct</span></td>
+            </tr>
+            <tr>
+              <th scope="row">
+                <div class="sy-stack" style="--sy-gap: 6px; align-items: flex-start">
+                  <a class="sy-tag sy-tag--sm" href="v2-12-rule-detail.html">BR-021</a>
+                  <a href="v2-12-rule-detail.html">Driver must be 21 or older</a>
+                </div>
+              </th>
+              <td><div class="sy-stack" style="--sy-gap: 2px"><span>Kalkulator OC/AC — dane kierowcy</span><span class="sy-small sy-muted">button "Dalej"</span></div></td>
+              <td><div class="sy-stack" style="--sy-gap: 4px"><span class="sy-status" data-status="needs">Changed · needs you</span><span class="sy-small sy-muted">threshold moved from 18 to 21 with release <span class="sy-case-normal">9c21</span></span></div></td>
+              <td>
+                <div class="sy-stack" style="--sy-gap: 4px">
+                  <span class="sy-cluster sy-small" style="--sy-gap: 6px">17 Oct · <span class="sy-tag sy-tag--sm">01a1340c</span></span>
+                  <span class="sy-small">20 / 21 / 22 → exit / opcje / opcje</span>
+                  <span class="sy-status" data-status="ok">Pass</span>
+                </div>
+              </td>
+              <td><a class="sy-small" href="v2-10-process-detail.html">Oblicz składkę OC/AC</a></td>
+              <td><span class="sy-small"><span class="sy-case-normal">9c21</span> · 16 Oct</span></td>
+            </tr>
+          </tbody>
+
+          <tbody>
+            <tr class="mp-group"><th scope="rowgroup" colspan="6">Proposed · 2</th></tr>
+            <tr>
+              <th scope="row">
+                <div class="sy-stack" style="--sy-gap: 6px; align-items: flex-start">
+                  <span class="sy-tag sy-tag--sm">BR-024</span>
+                  <a href="#br-024">Price depends on data not visible from the UI</a>
+                  <span class="sy-small sy-drawn-text">Decided on data not visible from the UI</span>
+                </div>
+              </th>
+              <td><div class="sy-stack" style="--sy-gap: 2px"><span>Kalkulator OC/AC — wynik</span><span class="sy-small sy-muted">the price shown</span></div></td>
+              <td><span class="sy-status" data-status="inferred">Proposed</span></td>
+              <td>
+                <div class="sy-stack" style="--sy-gap: 4px">
+                  <span class="sy-small">Identical visible inputs gave 612 zł and 688 zł</span>
+                  <span class="sy-status" data-status="unobserved">No boundary test</span>
+                </div>
+              </td>
+              <td><a class="sy-small" href="v2-10-process-detail.html">Oblicz składkę OC/AC</a></td>
+              <td><span class="sy-small sy-muted">No change recorded</span></td>
+            </tr>
+            <tr>
+              <th scope="row">
+                <div class="sy-stack" style="--sy-gap: 6px; align-items: flex-start">
+                  <span class="sy-tag sy-tag--sm">BR-025</span>
+                  <a href="#">Premium customers get a discount field</a>
+                </div>
+              </th>
+              <td><div class="sy-stack" style="--sy-gap: 2px"><span>Kalkulator OC/AC — dane kierowcy</span><span class="sy-small sy-muted">field "Rabat dla stałych klientów"</span></div></td>
+              <td><span class="sy-status" data-status="inferred">Proposed</span></td>
+              <td>
+                <div class="sy-stack" style="--sy-gap: 4px">
+                  <span class="sy-small">Persona premium only; not explored on <span class="sy-case-normal">9c21</span></span>
+                  <span class="sy-status" data-status="unobserved"><span>Not checked on <span class="sy-case-normal">9c21</span></span></span>
+                </div>
+              </td>
+              <td><a class="sy-small" href="v2-10-process-detail.html">Oblicz składkę OC/AC</a></td>
+              <td><span class="sy-small sy-muted">No change recorded</span></td>
+            </tr>
+          </tbody>
+
+          <tbody>
+            <tr class="mp-group"><th scope="rowgroup" colspan="6">Tested and confirmed · 2</th></tr>
+            <tr>
+              <th scope="row">
+                <div class="sy-stack" style="--sy-gap: 6px; align-items: flex-start">
+                  <span class="sy-tag sy-tag--sm">BR-023</span>
+                  <a href="#">OC + AC needs the vehicle value</a>
+                </div>
+              </th>
+              <td><div class="sy-stack" style="--sy-gap: 2px"><span>Kalkulator OC/AC — opcje</span><span class="sy-small sy-muted">choice "Zakres"</span></div></td>
+              <td><span class="sy-status" data-status="ok">Tested</span></td>
+              <td>
+                <div class="sy-stack" style="--sy-gap: 4px">
+                  <span class="sy-cluster sy-small" style="--sy-gap: 6px">17 Oct · <span class="sy-tag sy-tag--sm">01a1340c</span></span>
+                  <span class="sy-small">OC → no field · OC + AC → "Wartość pojazdu" required</span>
+                  <span class="sy-status" data-status="ok">Pass</span>
+                </div>
+              </td>
+              <td><a class="sy-small" href="v2-10-process-detail.html">Oblicz składkę OC/AC</a></td>
+              <td><span class="sy-small sy-muted">No change recorded</span></td>
+            </tr>
+            <tr>
+              <th scope="row">
+                <div class="sy-stack" style="--sy-gap: 6px; align-items: flex-start">
+                  <span class="sy-tag sy-tag--sm">BR-022</span>
+                  <a href="#">Zakres is required</a>
+                </div>
+              </th>
+              <td><div class="sy-stack" style="--sy-gap: 2px"><span>Kalkulator OC/AC — opcje</span><span class="sy-small sy-muted">button "Dalej"</span></div></td>
+              <td><div class="sy-stack" style="--sy-gap: 4px"><span class="sy-status" data-status="ok">Confirmed</span><span class="sy-small sy-muted">you · 15 Oct</span></div></td>
+              <td>
+                <div class="sy-stack" style="--sy-gap: 4px">
+                  <span class="sy-cluster sy-small" style="--sy-gap: 6px">17 Oct · <span class="sy-tag sy-tag--sm">01a1340c</span></span>
+                  <span class="sy-small">Empty → browser message "Zaznacz jedną z tych opcji."</span>
+                  <span class="sy-status" data-status="ok">Pass</span>
+                </div>
+              </td>
+              <td><a class="sy-small" href="v2-10-process-detail.html">Oblicz składkę OC/AC</a></td>
+              <td><span class="sy-small sy-muted">No change recorded</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- BR-024: the hidden-data case (UX-R61). No visible input decides the price, so every input reads "any". -->
+      <section id="br-024" class="sy-plate sy-plate--drawn" aria-labelledby="br24-h">
+        <div class="sy-plate__head">
+          <h2 id="br24-h" class="sy-plate__title">BR-024 decision table</h2>
+          <span class="sy-meta">Kalkulator OC/AC — wynik · the price shown</span>
+        </div>
+        <div class="sy-table-wrap sy-table-wrap--flush">
+          <table class="sy-table sy-table--decision" style="min-width: 600px" aria-labelledby="br24-h">
+            <caption class="mp-caption">
+              <span class="sy-stack" style="--sy-gap: 4px">
+                <span class="sy-cluster" style="--sy-gap: 6px 10px"><span class="sy-status" data-status="inferred">Proposed</span><span>Identical visible inputs gave <b>612 zł</b> and <b>688 zł</b> on Kalkulator OC/AC — wynik.</span></span>
+                <span class="sy-small sy-muted">No input on the screens explains the difference, so the one rule row reads "any" for each. Decided on data not visible from the UI.</span>
+              </span>
+            </caption>
+            <colgroup><col></colgroup>
+            <colgroup span="3"></colgroup>
+            <colgroup><col></colgroup>
+            <thead>
+              <tr class="sy-dt-group">
+                <td></td>
+                <th scope="colgroup" colspan="3">Inputs</th>
+                <th scope="colgroup" class="sy-dt-result">Result</th>
+              </tr>
+              <tr>
+                <th scope="col" class="sy-dt-n"><abbr title="Rule row">#</abbr></th>
+                <th scope="col">Zakres</th>
+                <th scope="col">Wiek kierowcy</th>
+                <th scope="col">Kod pocztowy</th>
+                <th scope="col" class="sy-dt-result">→ Price</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <th scope="row" class="sy-dt-n">1</th>
+                <td class="sy-dt-any">any</td>
+                <td class="sy-dt-any">any</td>
+                <td class="sy-dt-any">any</td>
+                <td class="sy-dt-result"><b>Price</b> · depends on data not visible from the UI</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- Replaced versions: kept, one click away -->
+      <details class="sy-disclosure">
+        <summary>
+          <h2 class="sy-plate__title">Replaced · 1</h2>
+          <span class="sy-meta" style="margin-right: auto">older tables are kept and browsable</span>
+        </summary>
+        <div class="sy-disclosure__body">
+          <div class="sy-split">
+            <span class="sy-cluster" style="--sy-gap: 8px"><span class="sy-tag sy-tag--sm">BR-021</span><span class="sy-diff--removed">Driver must be 18 or older</span><span class="sy-small sy-muted">&lt; 18 → exit · ≥ 18 → opcje · <span class="sy-case-normal">5f08</span></span></span>
+            <span class="sy-status" data-status="skipped"><span>Replaced · <span class="sy-case-normal">9c21</span></span></span>
+          </div>
+        </div>
+      </details>
+
+      <!-- Status key -->
+      <section class="sy-plate" aria-labelledby="key-h">
+        <div class="sy-plate__head"><h2 id="key-h" class="sy-plate__title">What the statuses mean</h2></div>
+        <div class="sy-plate__body mp-key sy-small">
+          <div><span class="sy-status" data-status="inferred">Proposed</span><span class="sy-muted">Found by the system from the portal's behaviour; not tested at its boundaries yet.</span></div>
+          <div><span class="sy-status" data-status="ok">Tested</span><span class="sy-muted">Boundary tests pass on the current release.</span></div>
+          <div><span class="sy-status" data-status="ok">Confirmed</span><span class="sy-muted">A person confirmed it, with its wording for the documentation.</span></div>
+          <div><span class="sy-status" data-status="needs">Changed</span><span class="sy-muted">Tests differed from the table; the system found the new table. Needs you.</span></div>
+          <div><span class="sy-status" data-status="failed">Broken</span><span class="sy-muted">A boundary test fails on the current release and no new table explains it.</span></div>
+          <div><span class="sy-status" data-status="skipped">Replaced</span><span class="sy-muted">An older table, kept with the release that replaced it.</span></div>
+        </div>
+      </section>
+    </main>
+  </div>
+</div>
+</body>
+</html>

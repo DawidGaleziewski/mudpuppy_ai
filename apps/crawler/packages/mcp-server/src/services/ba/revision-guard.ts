@@ -47,8 +47,8 @@ export function droppedLinks(
   const before = ctx.raw
     .prepare(
       `SELECT l.target_kind, l.target_id, l.run_id
-       FROM doc_evidence_links l JOIN doc_revisions rev ON rev.id = l.revision_id
-       WHERE rev.record_id = ? AND rev.rev_no = ? ORDER BY l.rowid`,
+       FROM doc_evidence l JOIN doc_revisions rev ON rev.id = l.revision_id
+       WHERE rev.record_id = ? AND rev.rev_no = ? ORDER BY l.id`,
     )
     .all(recordId, previousRev) as DroppedLink[];
   const seen = new Set<string>();

@@ -24,6 +24,13 @@ import {
 import { car, faq, glossary, home, house, notFound } from './pages/static.js';
 import { pln } from './html.js';
 import { typicalVehicleValue } from './rules.js';
+import {
+  applyScenarios,
+  failsUnder,
+  scenarioPage,
+  SERVER_ERROR_PAGE,
+  type ScenarioId,
+} from './scenarios.js';
 
 export const ROBOTS_TXT = 'User-agent: *\nDisallow: /__admin/\n';
 
@@ -44,6 +51,8 @@ export interface ReferencePortal {
   /** Every request received, in order (tests assert e.g. that no POST reached the portal). */
   requests: LoggedRequest[];
   state: PortalState;
+  /** The switchboard scenarios this instance injects. */
+  scenarios: readonly ScenarioId[];
   resetState(): void;
   close(): Promise<void>;
 }
@@ -53,6 +62,8 @@ export interface StartOptions {
   host: string;
   /** 0 picks a free port. */
   port: number;
+  /** Switchboard scenarios to inject (spec 039 design § 19.1); none by default. */
+  scenarios?: readonly ScenarioId[];
 }
 
 function freshState(): PortalState {
@@ -78,14 +89,20 @@ async function formBody(req: IncomingMessage): Promise<Params> {
   return out;
 }
 
+/** The page a response serves and the instance's scenarios (spec 039), set by the handler. */
+const pageOf = new WeakMap<ServerResponse, { path: string; scenarios: readonly ScenarioId[] }>();
+
 function send(
   res: ServerResponse,
   status: number,
   body: string,
   type = 'text/html; charset=utf-8',
 ) {
+  const page = pageOf.get(res);
+  const out =
+    page && type.startsWith('text/html') ? applyScenarios(page.path, body, page.scenarios) : body;
   res.writeHead(status, { 'content-type': type, 'cache-control': 'no-store' });
-  res.end(body);
+  res.end(out);
 }
 
 function sendPage(res: ServerResponse, r: PageResult) {
@@ -153,27 +170,56 @@ const ANALYTICS: Asset = {
   body: () => '{"ok":true}',
 };
 
-const assetFor = (path: string): Asset | undefined =>
-  ASSETS[path] ?? (path.startsWith('/analytics/') ? ANALYTICS : undefined);
+/** The release bundle every page loads (`/static/app.<build>.js`, spec 039): it does nothing. */
+const BUNDLE: Asset = {
+  status: 200,
+  type: 'text/javascript; charset=utf-8',
+  body: () => '/* reference portal release bundle */',
+};
+const BUNDLE_PATH = /^\/static\/app\.[0-9a-f]{8}\.js$/;
+
+const assetFor = (assets: Record<string, Asset>, path: string): Asset | undefined =>
+  assets[path] ??
+  (path.startsWith('/analytics/') ? ANALYTICS : undefined) ??
+  (BUNDLE_PATH.test(path) ? BUNDLE : undefined);
+
+/** The assets of one instance: the shared ones plus the switchboard's admin report. */
+const instanceAssets = (scenarios: readonly ScenarioId[]): Record<string, Asset> => ({
+  ...ASSETS,
+  '/__admin/scenarios': {
+    status: 200,
+    type: 'application/json; charset=utf-8',
+    body: () => JSON.stringify({ scenarios }),
+  },
+});
 
 export function startReferencePortal(opts: StartOptions): Promise<ReferencePortal> {
   const requests: LoggedRequest[] = [];
   const portal = { state: freshState() };
+  const scenarios = [...(opts.scenarios ?? [])];
+  const assets = instanceAssets(scenarios);
+
+  /** An asset, a page, or the error a scenario injects for this request. */
+  const serveGet = (res: ServerResponse, path: string, p: Params): void => {
+    const asset = assetFor(assets, path);
+    if (asset) return send(res, asset.status, asset.body(p), asset.type);
+    const extra = scenarioPage(path, p, scenarios);
+    if (extra !== null) return send(res, 200, extra);
+    const handler = GET_ROUTES[path];
+    if (!handler) return send(res, 404, notFound());
+    if (failsUnder(path, p, scenarios)) return send(res, 500, SERVER_ERROR_PAGE);
+    const out = handler(p);
+    return typeof out === 'string' ? send(res, 200, out) : sendPage(res, out);
+  };
 
   const handle = async (req: IncomingMessage, res: ServerResponse): Promise<void> => {
     const url = new URL(req.url ?? '/', 'http://portal.invalid');
     const method = req.method ?? 'GET';
     requests.push({ method, path: url.pathname, query: url.search });
     const path = url.pathname.length > 1 ? url.pathname.replace(/\/$/, '') : url.pathname;
+    pageOf.set(res, { path, scenarios });
 
-    if (method === 'GET' || method === 'HEAD') {
-      const asset = assetFor(path);
-      if (asset) return send(res, asset.status, asset.body(params(url)), asset.type);
-      const handler = GET_ROUTES[path];
-      if (!handler) return send(res, 404, notFound());
-      const out = handler(params(url));
-      return typeof out === 'string' ? send(res, 200, out) : sendPage(res, out);
-    }
+    if (method === 'GET' || method === 'HEAD') return serveGet(res, path, params(url));
 
     if (method === 'POST') {
       const body = await formBody(req);
@@ -215,6 +261,7 @@ export function startReferencePortal(opts: StartOptions): Promise<ReferencePorta
       resolve({
         url: `http://${host}:${port}`,
         requests,
+        scenarios,
         get state() {
           return portal.state;
         },

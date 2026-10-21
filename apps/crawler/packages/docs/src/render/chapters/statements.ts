@@ -158,7 +158,36 @@ export function dataDictionary(m: ExportModel): string {
           '```',
         ]
       : []),
+    ...apiEndpoints(m),
   ]);
+}
+
+/** The API endpoints section of chapter 7 (spec 038 FR-008): each captured call the BA documented. */
+function apiEndpoints(m: ExportModel): string[] {
+  const apis = byKind(m.records, 'api_endpoint');
+  if (apis.length === 0) return [];
+  const names = (v: unknown): string =>
+    Array.isArray(v) && v.length > 0 ? v.map((x) => `\`${String(x)}\``).join(', ') : '—';
+  return [
+    '',
+    '## API endpoints',
+    ...apis.flatMap((a) => {
+      const c = a.content;
+      return recordBlock(a, FILE_OF_KIND.api_endpoint, [
+        `**\`${String(c.method)} ${String(c.path)}\`**`,
+        '',
+        field('Purpose', c.purpose),
+        '',
+        field('Called from', Array.isArray(c.called_from) && c.called_from.length > 0 ? c.called_from.join('; ') : '—'),
+        '',
+        `**Request fields:** ${names(c.request_fields)}`,
+        '',
+        `**Response fields:** ${names(c.response_fields)}`,
+        '',
+        `**Statuses seen:** ${Array.isArray(c.statuses) && c.statuses.length > 0 ? c.statuses.join(', ') : '—'}`,
+      ]);
+    }),
+  ];
 }
 
 /** `08-glossary.md`: terms sorted by their verbatim form. */

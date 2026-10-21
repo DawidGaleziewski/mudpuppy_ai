@@ -15,6 +15,7 @@ afterAll(() => fx.close());
 it('opens PROC-001 as a PRC with A in walking order, then finds it again', async () => {
   const svc = createProcessService({ db: fx.db, raw: fx.raw });
   const first = await svc.fromRecord(fx.portalId, { record_key: 'PROC-001', author: 'Anna' });
+  // The record's own process gets its A (it had none yet).
   expect(first.existing).toBe(false);
   expect(first.process).toMatchObject({ key: 'PRC-001', record_key: 'PROC-001', stage: 'scoped' });
   const walked = resolveProcessSteps(fx.raw, fx.portalId, 'PROC-001')!
@@ -24,7 +25,8 @@ it('opens PROC-001 as a PRC with A in walking order, then finds it again', async
 
   const again = await svc.fromRecord(fx.portalId, { record_key: 'PROC-001', author: 'Anna' });
   expect(again).toMatchObject({ existing: true, process: { key: 'PRC-001' } });
-  expect(fx.raw.prepare('SELECT count(*) AS n FROM ba_processes').get()).toEqual({ n: 1 });
+  // One process per PROC record (spec 039 T070): the fixture's two records, nothing more.
+  expect(fx.raw.prepare('SELECT count(*) AS n FROM ba_processes').get()).toEqual({ n: 2 });
 
   await expect(
     svc.fromRecord(fx.portalId, { record_key: 'PROC-999', author: 'Anna' }),

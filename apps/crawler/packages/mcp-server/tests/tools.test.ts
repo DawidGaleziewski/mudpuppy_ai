@@ -21,7 +21,7 @@ function fakeRuntime(): Runtime & { openSession: ReturnType<typeof vi.fn> } {
       route_template: '/',
       forms: 0,
       actions: [],
-      edge_id: 'e',
+      transition_id: 'e',
     })),
     closeAll: vi.fn(async () => {}),
   };
@@ -153,7 +153,15 @@ describe('pathfinder tools', () => {
     });
     expect((await call('get_known_states', { run_id: run })).body.states).toHaveLength(1);
     expect(
-      (await call('add_rule_candidate', { run_id: run, text: 'x', about_ref: s.state_id })).isError,
+      (
+        await call('add_hypothesis', {
+          run_id: run,
+          kind: 'ambiguous',
+          claim: 'x',
+          about_ref: s.state_id,
+          test: { inputs: {}, refutes_if: { notIn: ['A'] } },
+        })
+      ).isError,
     ).toBe(false);
     // Every result names the server's environment (spec 030 FR-052).
     expect((await call('get_next_frontier_item', { run_id: run })).body).toEqual({

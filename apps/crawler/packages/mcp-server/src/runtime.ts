@@ -37,12 +37,14 @@ export interface PageResult {
     label?: string;
     /** An unnamed link's target path, so an icon link is worth a look (spec 038, bank S11). */
     link_to?: string;
+    /** Probe runs only: the model element key the headless driver matches (spec 039). */
+    element_key?: string;
   }[];
   /** How many issued actions a result without `actions` left out. */
   actions_omitted?: number;
   /** Map runs: the item `get_next_frontier_item` would return now; act on it next (spec 013 US3). */
   next?: NextFrontierItem;
-  edge_id?: string;
+  transition_id?: string;
   /** Trace runs: the step this call recorded. */
   step?: { ord: number; outcomes: string[] };
   /** The session had expired; the server logged in again and returned here (spec 009). */
@@ -76,6 +78,11 @@ export interface ActInput {
   value?: string;
   /** Trace runs (spec 032 suites): break the request this action sends, in the browser only. */
   fault?: ProbeFault;
+  /**
+   * Trace runs (spec 039 T081): this click enters the process, its trigger. Steps before it are how
+   * the trace reached the process; the BA and the export start the process here.
+   */
+  trigger?: boolean;
   /** Return the page's actions even when the run already knows the state. */
   include_actions?: boolean;
 }

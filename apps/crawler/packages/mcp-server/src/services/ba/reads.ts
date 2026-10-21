@@ -18,7 +18,7 @@ export const EVIDENCE_CONTENT_LIMIT = 60_000;
 type Row = Record<string, unknown>;
 
 // list_runs lives in `runs.ts`; get_run_evidence lives in `run-evidence.ts` (spec 019: it grew
-// page visits and parameters).
+// observations and parameters).
 
 // ---------------------------------------------------------------------------------------------------
 // get_evidence
@@ -26,11 +26,10 @@ type Row = Record<string, unknown>;
 /** Layer A kinds this tool reads; records and reviews are read with `get_record`. */
 export const EvidenceReadKind = z.enum([
   'state',
-  'edge',
+  'transition',
   'action',
   'form',
   'network_call',
-  'rule_candidate',
   'open_question',
   'decision',
 ]);
@@ -42,11 +41,10 @@ export const GetEvidenceInput = z
 
 const EVIDENCE_TABLE: Record<EvidenceReadKind, string> = {
   state: 'states',
-  edge: 'edges',
+  transition: 'transitions',
   action: 'actions',
   form: 'forms',
   network_call: 'network_calls',
-  rule_candidate: 'rule_candidates',
   open_question: 'open_questions',
   decision: 'decision_log',
 };
@@ -235,7 +233,7 @@ export function getRecord(ctx: BaContext, raw: unknown): Row {
     });
 
   const links = ctx.raw.prepare(
-    'SELECT target_kind, target_id, run_id, note, region FROM doc_evidence_links WHERE revision_id = ? ORDER BY id',
+    'SELECT target_kind, target_id, run_id, note, region FROM doc_evidence WHERE revision_id = ? ORDER BY id',
   );
   // `region` only on screen_region links (spec 008); other links read as before.
   const linksOf = (revisionId: unknown): Row[] =>
@@ -317,7 +315,7 @@ export function listProcesses(ctx: BaContext, raw: unknown): { processes: Row[] 
     .prepare(
       `SELECT p.id AS process_id, p.run_id, p.name, p.goal, p.persona_id, p.outcome,
               (SELECT COUNT(*) FROM process_steps s WHERE s.process_id = p.id) AS step_count,
-              p.boundary_action_id
+              p.boundary_action_id, p.trigger_ord
        FROM processes p WHERE p.portal_id = ? ORDER BY p.run_id`,
     )
     .all(input.portal_id) as Row[];
@@ -346,7 +344,7 @@ export function getProcess(ctx: BaContext, raw: unknown): Row {
     });
 
   const calls = ctx.raw.prepare(
-    `SELECT id, method, url_template, status FROM network_calls WHERE edge_id = ? ORDER BY id`,
+    `SELECT id, method, url_template, status FROM network_calls WHERE transition_id = ? ORDER BY id`,
   );
   const steps = (
     ctx.raw
@@ -365,8 +363,8 @@ export function getProcess(ctx: BaContext, raw: unknown): Row {
     value: s.value,
     state_before: stateRef(ctx, s.state_before),
     state_after: stateRef(ctx, s.state_after),
-    edge_id: s.edge_id,
-    network_calls: s.edge_id === null ? [] : calls.all(s.edge_id),
+    transition_id: s.transition_id,
+    network_calls: s.transition_id === null ? [] : calls.all(s.transition_id),
     outcomes: json<string[]>(s.outcomes_json as string),
     evidence_ref: s.evidence_ref,
     confidence: s.confidence,
@@ -401,6 +399,8 @@ export function getProcess(ctx: BaContext, raw: unknown): Row {
     observed_result: p.observed_result,
     boundary,
     followup_record_id: p.followup_record_id,
+    // spec 039 T081: the step that entered the process; the steps before it are its context.
+    trigger_ord: p.trigger_ord ?? null,
     steps,
   };
 }

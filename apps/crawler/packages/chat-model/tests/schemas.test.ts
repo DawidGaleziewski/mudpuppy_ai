@@ -21,7 +21,6 @@ import {
   ChatMessageRole,
   ChatProposal,
   ChatProposalStatus,
-  ChatProposalTargetKind,
   GroupingSuggestion,
   GroupingSuggestionStatus,
   ProcessDraft,
@@ -30,10 +29,10 @@ import {
   ProcessScope,
   ProcessScopeSource,
   ProcessStep,
-  ProcessVariant,
-  ProcessVariantChange,
-  ProcessVariantKind,
-  ProcessVariantRevision,
+  ProcessModel,
+  ProcessModelChange,
+  ProcessModelKind,
+  ProcessModelRevision,
   WorkflowStep,
   WorkflowStepName,
   WorkflowStepStatus,
@@ -224,8 +223,7 @@ describe('chat proposals (0017)', () => {
     id: 'p1',
     conversation_id: 'c1',
     portal_id: 'portal',
-    target_kind: 'amendment',
-    target_id: 'a1',
+    amendment_id: 'a1',
     base_rev: 1,
     payload: { text: 'x' },
     summary: 'Target: whole screen',
@@ -238,18 +236,15 @@ describe('chat proposals (0017)', () => {
   };
 
   it('Zod enums equal the CHECK lists in the migration', () => {
-    expect(ChatProposalTargetKind.options).toEqual(
-      inList('chat_proposals', 'target_kind', SQL_0017),
-    );
     expect(ChatProposalStatus.options).toEqual(inList('chat_proposals', 'status', SQL_0017));
   });
 
   it('mirrors the row CHECKs', () => {
     expect(ChatProposal.safeParse(base).success).toBe(true);
-    const created = { ...base, target_kind: 'new_amendment', target_id: null, base_rev: null };
+    const created = { ...base, amendment_id: null, base_rev: null };
     expect(ChatProposal.safeParse(created).success).toBe(true);
     expect(ChatProposal.safeParse({ ...base, base_rev: null }).success).toBe(false);
-    expect(ChatProposal.safeParse({ ...created, target_id: 'a1' }).success).toBe(false);
+    expect(ChatProposal.safeParse({ ...created, base_rev: 1 }).success).toBe(false);
     expect(ChatProposal.safeParse({ ...base, summary: '' }).success).toBe(false);
     expect(ChatProposal.safeParse({ ...base, status: 'applied', decided_at: ts }).success).toBe(
       false,
@@ -300,8 +295,8 @@ describe('BA processes (0018)', () => {
     expect(BaProcessSource.options).toEqual(inList('ba_processes', 'source', SQL_0018));
     // 0028 rebuilt both revision tables with longer lists (spec 027): archive, unarchive, edit.
     expect(BaProcessChange.options).toEqual(inList('ba_process_revisions_new', 'change', SQL_0028));
-    expect(ProcessVariantKind.options).toEqual(inList('process_variants', 'kind', SQL_0018));
-    expect(ProcessVariantChange.options).toEqual(
+    expect(ProcessModelKind.options).toEqual(inList('process_variants', 'kind', SQL_0018));
+    expect(ProcessModelChange.options).toEqual(
       inList('process_variant_revisions_new', 'change', SQL_0028),
     );
     // process_live.environment is a free name since 0021 (spec 030 R-61): a format, not a list.
@@ -316,7 +311,7 @@ describe('BA processes (0018)', () => {
 
   it('mirrors the row CHECKs', () => {
     const rev = {
-      variant_id: 'v1',
+      model_id: 'v1',
       rev: 1,
       base_rev: null,
       change: 'create',
@@ -327,10 +322,10 @@ describe('BA processes (0018)', () => {
       restored_from: null,
       created_at: ts,
     };
-    expect(ProcessVariantRevision.safeParse(rev).success).toBe(true);
-    expect(ProcessVariantRevision.safeParse({ ...rev, rev: 2 }).success).toBe(false);
-    expect(ProcessVariantRevision.safeParse({ ...rev, base_rev: 1 }).success).toBe(false);
-    expect(ProcessVariantRevision.safeParse({ ...rev, steps: {} }).success).toBe(false);
+    expect(ProcessModelRevision.safeParse(rev).success).toBe(true);
+    expect(ProcessModelRevision.safeParse({ ...rev, rev: 2 }).success).toBe(false);
+    expect(ProcessModelRevision.safeParse({ ...rev, base_rev: 1 }).success).toBe(false);
+    expect(ProcessModelRevision.safeParse({ ...rev, steps: {} }).success).toBe(false);
     expect(ProcessStep.safeParse({ ...step, from: ['s0'], annotations: [] }).success).toBe(true);
     expect(ProcessStep.safeParse({ ...step, observed: 'yes' }).success).toBe(false);
 
@@ -367,22 +362,22 @@ describe('BA processes (0018)', () => {
       }).success,
     ).toBe(true);
 
-    const variant = {
+    const model = {
       id: 'v1',
       process_id: 'p1',
       label: 'A',
       kind: 'as_is',
       rev: 1,
-      branched_from_variant_id: null,
+      branched_from_model_id: null,
       branched_from_rev: null,
       created_at: ts,
     };
-    expect(ProcessVariant.safeParse(variant).success).toBe(true);
-    expect(ProcessVariant.safeParse({ ...variant, branched_from_rev: 1 }).success).toBe(false);
+    expect(ProcessModel.safeParse(model).success).toBe(true);
+    expect(ProcessModel.safeParse({ ...model, branched_from_rev: 1 }).success).toBe(false);
 
     expect(
       ProcessDraft.safeParse({
-        variant_id: 'v1',
+        model_id: 'v1',
         author: 'BA',
         base_rev: 1,
         steps: [step],
@@ -394,8 +389,8 @@ describe('BA processes (0018)', () => {
         id: 'l1',
         process_id: 'p1',
         environment: 'staging',
-        variant_id: 'v1',
-        variant_rev: 1,
+        model_id: 'v1',
+        model_rev: 1,
         author: 'BA',
         reason: null,
         created_at: ts,
@@ -430,9 +425,9 @@ describe('BA processes (0018)', () => {
       process_id: 'p1',
       rev: 1,
       base_rev: null,
-      left_variant_id: 'v1',
+      left_model_id: 'v1',
       left_rev: 1,
-      right_variant_id: 'v2',
+      right_model_id: 'v2',
       right_rev: 1,
       sections: {
         scope: 's',

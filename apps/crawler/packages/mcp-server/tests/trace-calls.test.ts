@@ -105,7 +105,13 @@ describe('call spans for the agent tools (US1)', () => {
     // a guest persona: refused (LOGIN_NOT_CONFIGURED), still one call span
     await call('login', { run_id: run, rationale: 'log in as the persona' });
     await call('add_open_question', { run_id: run, text: 'why', about_ref: s.state_id });
-    await call('add_rule_candidate', { run_id: run, text: 'rule', about_ref: s.state_id });
+    await call('add_hypothesis', {
+      run_id: run,
+      kind: 'ambiguous',
+      claim: 'rule',
+      about_ref: s.state_id,
+      test: { inputs: {}, refutes_if: { notIn: ['A'] } },
+    });
     await call('finish_run', { run_id: run, rationale: 'frontier exhausted' });
     const rows = calls();
     expect(rows.map((r) => r.name)).toEqual([
@@ -118,7 +124,7 @@ describe('call spans for the agent tools (US1)', () => {
       'go_to_state',
       'login',
       'add_open_question',
-      'add_rule_candidate',
+      'add_hypothesis',
       'finish_run',
     ]);
     expect(new Set(rows.map((r) => r.name))).toEqual(new Set(AGENT_TOOL_NAMES));

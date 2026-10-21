@@ -157,6 +157,32 @@ Status key: **Accepted** (build it) · **Open** (needs a product decision, see e
 ### D-29 · In the UI a run is a "scan" — Accepted
 - **Decision.** Screens say scan ("Plan next scan", "Resume scan"). Specs and the API say run. The scan types are Full map, Continue frontier, Focused, Probe forms, Recheck and Retry path.
 
+## MudPuppy 2.0 (`12-v2-ux.md`)
+
+### D-30 · Grouped navigation; Changes and Rules are sections; Map moves under Screens — Proposed
+- **Decision.** Nav groups: Home · Changes · Review / Portal model: Processes · Screens (List · Map) · Rules · Docs / Machine: Scans · Settings.
+- **Why.** "What changed" is the BA's first job after a release and needs its own filters and timeline. Rules are read across processes by the migration team. In 2.0 the map is the model, not a scan.
+
+### D-31 · One time control: As of in the header, From on Changes — Proposed
+- **Decision.** The header's **As of** (Now · a release · a scan) sets the model every page shows; Changes adds a **From**. No other date pickers.
+- **Why.** Time is first-class but must not multiply controls. Every view stays linkable (`as_of`, `from` in the URL).
+
+### D-32 · Review opens on Needs you; Explained automatically is one tab away — Proposed
+- **Decision.** Review keeps its name (v1 D-17) with tabs Needs you · Explained automatically · Decided. Only the Needs you count is orange.
+- **Why.** "Reviewing should be an option" (owner, 18 Oct) and "nothing hidden" (brief §4) both hold.
+
+### D-33 · Overturned is manila — Proposed
+- **Decision.** `data-status="overturned"` draws a manila square, always next to the person's reason in a `.sy-note`.
+- **Why.** Manila already means "a person's hand" (tags, notes). An overturn is a person replacing the machine; it must look different from Confirmed (green) and from the system's own inference (blueprint).
+
+### D-34 · Explained automatically is blueprint (inferred) — Proposed
+- **Decision.** An automatic explanation uses `data-status="inferred"`; it turns green only when a person confirms it.
+- **Why.** It is the system's inference, like any other drawn/proposed content (D-07). Green would claim certainty nobody gave.
+
+### D-35 · Decision tables: inputs ║ result, tests under the table, same shape in the export — Proposed
+- **Decision.** `.sy-table--decision` with a double weld before the result columns, provenance and hit policy under the table, boundary tests and history below; the export is the same table in Markdown plus one sentence.
+- **Why.** BAs read the conditions; developers read the same rows as a spec; testers read the boundaries. One shape for all three.
+
 ---
 
 ## Open items (need a product decision)
@@ -166,4 +192,5 @@ Status key: **Accepted** (build it) · **Open** (needs a product decision, see e
 - **O-3 · Glossary entry point.** The wireframes had a "Glossary and BA wiki" nav link. The screens fold it into the header "?" button. Confirm this.
 - **O-5 … O-8 · Processes.** Who may mark live, what "Migrated" means per portal, export formats, auto-documenting accepted suggestions. See `10-processes.md` §14.
 - **O-M1 … O-M5 · Map runs.** Technical probes outside sandbox, captchas and one-time codes, where test data per persona lives, the probe budget, approval for rechecks on production. See `11-map-runs.md` §12.
+- **OV-1 … OV-5 · MudPuppy 2.0.** Who may overturn, A/B cookies into Settings automatically, retention of retired screens, Decided per portal or global, decision-table export formats. See `12-v2-ux.md` §12.
 - **O-4 · Run-id casing in the UI.** Ids are shown as stored (lowercase hex, e.g. `01a110d5`). Confirm that no uppercase display convention exists elsewhere (docs exports, CLI).

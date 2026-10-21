@@ -161,7 +161,7 @@ Order by traffic: Overview/Home → Run detail → Docs → Settings → State d
 ### Phase 4 · Redesign (Track 2), screen by screen
 For Processes, build from `10-processes.md`: data model and API (§9–10), then the scope migration (existing chat scopes → processes, FE-P12), then screens 04 → 05 → 06 → 07.
 
-Value order: **Home + assistant drawer (01–03)** → **Review (09)** → **Settings and credentials (11)** → **Scans (10)** → **Processes (04–07)** → **Screen detail (08)**. Each screen in `screens/` is the target; the requirements are in `07-requirements.md`. Processes needs backend work (variants, revisions, change spec), so start the API in parallel.
+Value order: **Home + assistant drawer (01–03)** → **Review (09)** → **Settings and credentials (11)** → **Scans (10)** → **Processes (04–07)** → **Screen detail (08)** → **Map runs (12–16)**, which also needs crawler work (checkpoints and replay, same-URL step detection, probing), so start that backend early. Each screen in `screens/` is the target; the requirements are in `07-requirements.md`. Processes needs backend work (variants, revisions, change spec), so start the API in parallel.
 
 ### Phase 5 · Clean up
 Remove the Console stylesheet, JetBrains Mono, scanlines and glow, and the old base template. Run `find-old-styles.sh` and expect 0. Remove the flag.

@@ -230,11 +230,11 @@ describe('amendment commands', () => {
         .run(T, created.id);
       t.opened.raw
         .prepare(
-          `INSERT INTO amendment_revisions (amendment_id, rev, base_rev, change, author, status, target_kind,
-             target_id, text, created_at) VALUES (?, 2, 1, 'needs_reanchor', 'scan:run-1', 'needs_reanchor',
-             'state', 's-offer', 'Make it green', ?)`,
+          `INSERT INTO amendment_revisions (amendment_id, rev, base_rev, change, author, status, ref_id,
+             text, created_at) VALUES (?, 2, 1, 'needs_reanchor', 'scan:run-1', 'needs_reanchor',
+             (SELECT ref_id FROM amendments WHERE id = ?), 'Make it green', ?)`,
         )
-        .run(created.id, T);
+        .run(created.id, created.id, T);
       return created.id;
     }
     const action = (

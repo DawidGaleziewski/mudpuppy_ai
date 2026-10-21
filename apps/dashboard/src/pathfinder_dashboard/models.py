@@ -64,14 +64,14 @@ DocKind = Literal[
     "assumption",
     "open_question",
     "followup",
+    "api_endpoint",
 ]
 EvidenceTargetKind = Literal[
     "state",
-    "edge",
+    "transition",
     "action",
     "form",
     "network_call",
-    "rule_candidate",
     "open_question",
     "decision",
     "process",
@@ -79,7 +79,8 @@ EvidenceTargetKind = Literal[
     "doc_record",
     "review",
     "screen_region",
-    "page_visit",
+    "observation",
+    "hypothesis",  # spec 039 owner answer 18: a hypothesis of the portal model (H-nnnn)
 ]
 RelationType = Literal[
     "contains",
@@ -175,7 +176,9 @@ class Action(Row):
     created_at: str
 
 
-class Edge(Row):
+class Transition(Row):
+    """v1's `edges`, renamed by 0032 (spec 039 T110)."""
+
     id: str
     run_id: str
     from_state: str
@@ -188,6 +191,450 @@ class Edge(Row):
     error: Json | None
     stabilization: Stabilization
     created_at: str
+    # 0029 (spec 039): journey position, element key, kind, result; NULL on v1 rows
+    journey_id: str | None = None
+    seq: int | None = None
+    from_observation_id: str | None = None
+    element_key: str | None = None
+    kind: TransitionKind | None = None
+    result: StepResult | None = None
+    driver: Literal["agent", "headless"] = "agent"
+
+
+StepResult = Literal["ok", "validation", "business_error", "technical_error", "timeout", "blocked"]
+TransitionKind = Literal["click", "fill", "select", "check", "submit", "navigate", "back"]
+
+
+class Build(Row):
+    """0029 (spec 039): one build of one scope of a portal."""
+
+    id: str
+    portal_id: str
+    scope: str
+    signature: str
+    source: Literal["assets", "marker", "unknown"]
+    assets_json: Json
+    first_seen: str
+
+
+class StateComponents(Row):
+    """0029 (spec 039): fingerprint v2 components of a state (MinHash kept as bytes)."""
+
+    state_id: str
+    structure_hash: str
+    content_hash: str
+    overlay_hash: str
+    calls_hash: str
+    mounts_hash: str
+    minhash: bytes
+    element_keys: Json
+    profile: str | None = None  # 0033 (T112): the fingerprint profile; NULL = rows-v2
+
+
+class Journey(Row):
+    """0029 (spec 039): one continuous path of a run."""
+
+    id: str
+    run_id: str
+    parent_journey_id: str | None
+    branch_seq: int | None
+    start_kind: Literal["entry_url", "checkpoint", "login", "backtrack", "resume", "fresh_session"]
+    checkpoint_id: str | None
+    end_reason: (
+        Literal["outcome", "backtrack", "reset", "logout", "error", "budget", "run_end"] | None
+    )
+    started_at: str
+    ended_at: str | None
+
+
+class AttributeWrite(Row):
+    """0029 (spec 039): a persona attribute, typed input or shown value at a journey position."""
+
+    id: str
+    journey_id: str
+    seq: int
+    name: str
+    source: Literal["persona", "input", "shown"]
+    value_type: Literal["number", "date", "enum", "bool", "text", "missing"]
+    value_num: float | None
+    value_text: str | None
+    element_key: str | None
+    created_at: str
+
+
+class ObservationBuild(Row):
+    """0029 (spec 039): a build that served a visit."""
+
+    observation_id: str
+    build_id: str
+
+
+CoverageStatus = Literal["active", "not_seen_since", "untested", "retired"]
+
+
+class ModelVersion(Row):
+    """0030 (spec 039): one reconcile of one portal."""
+
+    id: str
+    portal_id: str
+    seq: int
+    built_at: str
+    algorithm: str
+    threshold: float
+    observation_watermark: str | None
+    decision_watermark: str | None
+    stats_json: Json
+    fingerprint_profile: str | None = None  # 0033 (T112): the profile it was clustered under
+
+
+class ModelScreen(Row):
+    """0030 (spec 039): a screen of the portal model (abstract state) with a stable id."""
+
+    id: str
+    key: str
+    portal_id: str
+    route_key: str
+    title: str
+    status: Literal["active", "merged", "retired"]
+    first_model_version: str
+    created_at: str
+
+
+class ScreenMember(Row):
+    """0030: a page version's membership of a model screen, per model version."""
+
+    screen_id: str
+    state_id: str
+    ordinal: int
+    assigned_by: Literal["clustering", "constraint"]
+    from_model_version: str
+    to_model_version: str | None
+
+
+class ScreenLineage(Row):
+    """0030: a split, merge, retirement or revival of a model screen."""
+
+    id: str
+    model_version_id: str
+    kind: Literal["split", "merge", "retire", "revive"]
+    from_screen_id: str
+    to_screen_id: str | None
+    members_moved: int
+
+
+class StatePairLabel(Row):
+    """0030: a person's "same screen?" answer for two page versions."""
+
+    portal_id: str
+    state_a: str
+    state_b: str
+    label: Literal["clone", "near_duplicate", "distinct"]
+    nd_kind: Literal["cosmetic", "dynamic_data", "duplication"] | None
+    labelled_by: str
+    labelled_at: str
+    reason: str | None
+
+
+class StatePairLabelHistory(Row):
+    """0045: one row per "same screen?" answer, append-only; StatePairLabel is the current one."""
+
+    id: str
+    portal_id: str
+    state_a: str
+    state_b: str
+    label: Literal["clone", "near_duplicate", "distinct"]
+    nd_kind: Literal["cosmetic", "dynamic_data", "duplication"] | None
+    labelled_by: str
+    labelled_at: str
+    reason: str | None
+
+
+class ParameterRoleRow(Row):
+    """0030: what a parameter of a route template does."""
+
+    portal_id: str
+    route_template: str
+    param: str
+    role: Literal["identity", "data", "ignored"]
+    decided_by: Literal["reconciler", "person"]
+    decided_at: str
+
+
+class ActionClass(Row):
+    """0030: one element of a model screen, matched across runs, with its coverage."""
+
+    id: str
+    screen_id: str
+    element_key: str
+    kind: TransitionKind
+    is_global: bool
+    status: CoverageStatus
+    streak_json: Json
+    status_model_version: str
+
+
+class ModelTransition(Row):
+    """0030: screen → action → screen across runs."""
+
+    id: str
+    from_screen_id: str
+    action_class_id: str
+    to_screen_id: str | None
+    result: StepResult
+    internal: bool
+    support: int
+    first_seen_transition_id: str
+    last_seen_transition_id: str
+    status: CoverageStatus
+    status_model_version: str
+
+
+HypothesisStatus = Literal[
+    "proposed", "testing", "supported", "refuted", "confirmed", "rejected", "superseded"
+]
+
+
+class EntityRef(Row):
+    """0031 (spec 039): a typed reference, exactly one target."""
+
+    id: str
+    observation_id: str | None
+    transition_id: str | None
+    state_id: str | None
+    screen_id: str | None
+    action_class_id: str | None
+    model_transition_id: str | None
+    process_id: str | None
+    hypothesis_id: str | None
+    network_call_id: str | None
+    # 0040 (spec 039 § 15): the kinds the BA cites; trace processes and steps are v1's tables
+    action_id: str | None = None
+    form_id: str | None = None
+    open_question_id: str | None = None
+    decision_id: str | None = None
+    review_id: str | None = None
+    doc_record_id: str | None = None
+    trace_process_id: str | None = None
+    trace_step_id: str | None = None
+    form_step_id: str | None = None
+    evidence_file: str | None = None
+    element_key: str | None
+
+
+class Deviation(Row):
+    """0031: a place a new model version did not fit the previous one."""
+
+    id: str
+    portal_id: str
+    model_version_id: str
+    kind: Literal[
+        "new_screen",
+        "new_member",
+        "new_action",
+        "missing_action",
+        "target_mismatch",
+        "result_mismatch",
+        "rule_mismatch",
+    ]
+    subject_key: str
+    screen_id: str | None
+    state_id: str | None
+    action_class_id: str | None
+    before_json: Json | None
+    after_json: Json | None
+    changed_components: Json
+    context_diff: Json
+    status: Literal["open", "waiting_test", "explained"]
+    created_at: str
+
+
+class DeviationOccurrence(Row):
+    """0031: a later model version that showed the same deviation again."""
+
+    deviation_id: str
+    model_version_id: str
+
+
+class Hypothesis(Row):
+    """0031: a testable claim; its status comes from its events."""
+
+    id: str
+    key: str
+    portal_id: str
+    kind: Literal[
+        "same_as",
+        "different_from",
+        "parameter_role",
+        "structural_drift",
+        "backend_drift",
+        "decision_drift",
+        "context_variant",
+        "ab_test",
+        "flaky",
+        "nondeterministic",
+        "deterministic_error",
+        "removed",
+        "replaces",
+        "coverage_gap",
+        "business_error_template",
+        "decision_point",
+        "decision_rule",
+        "process_boundary",
+        "correlation_id",
+        "ambiguous",
+    ]
+    claim: str
+    claim_json: Json
+    claim_hash: str
+    origin: Literal["rule", "agent", "person"]
+    rule: str | None
+    derived: bool
+    confidence: Confidence
+    fitness: float | None
+    precision: float | None
+    support: int | None
+    counterexamples: int | None
+    deviation_id: str | None
+    superseded_by: str | None
+    model_version_id: str
+    created_at: str
+
+
+class HypothesisEvidence(Row):
+    hypothesis_id: str
+    ref_id: str
+    role: Literal["supports", "contradicts", "context"]
+
+
+class HypothesisTest(Row):
+    id: str
+    hypothesis_id: str
+    probe_suite_id: str | None
+    mark_id: str | None
+    inputs_json: Json
+    refutes_if_json: Json
+    result_json: Json | None
+    verdict: Literal["pass", "fail", "inconclusive"] | None
+    run_id: str | None
+    created_at: str
+
+
+class HypothesisEvent(Row):
+    """0031: a hypothesis status change, with its reason."""
+
+    id: str
+    hypothesis_id: str
+    from_status: HypothesisStatus | None
+    to_status: HypothesisStatus
+    actor: str
+    reason: str
+    at: str
+
+
+class FingerprintProfile(Row):
+    """0033 (spec 039 T111): a fingerprint profile a portal used, with its resolved rules."""
+
+    portal_id: str
+    id: str
+    name: str
+    rules_json: Json
+    first_seen: str
+
+
+class TauAcceptance(Row):
+    """0033 (spec 039 T115): a τ a person accepted for a portal and profile; the latest counts."""
+
+    id: str
+    portal_id: str
+    profile: str
+    tau: float
+    labels: int
+    f1: float | None
+    accepted_by: str
+    accepted_at: str
+
+
+class SimilarityClassifier(Row):
+    """0038 (spec 039 FR-050): a similarity classifier trained for a portal and profile."""
+
+    id: str
+    portal_id: str
+    profile: str
+    features: Json
+    weights: Json
+    intercept: float
+    labels: int
+    held_out: int
+    f1: float
+    tau: float
+    tau_f1: float
+    better: bool
+    trained_at: str
+    accepted_by: str | None  # 0039 (owner answer 14): set when a person puts it in force
+    accepted_at: str | None
+
+
+class CorrelationId(Row):
+    """0036 (spec 039 § 13.4): a value reused within a journey, stored hashed."""
+
+    id: str
+    journey_id: str
+    key_path: str
+    value_hash: str
+    endpoint_family: str
+    first_transition_id: str
+    last_transition_id: str
+
+
+class ProcessInstance(Row):
+    """0036: one journey through a process from its trigger, with the outcome. 0039: the trigger
+    is a transition or a deep link (a URL opened on the start screen)."""
+
+    id: str
+    process_id: str
+    journey_id: str
+    trigger_kind: Literal["transition", "deep_link"]
+    trigger_transition_id: str | None
+    trigger_observation_id: str | None
+    last_transition_id: str | None
+    outcome: Literal["completed", "exited", "error", "abandoned", "incomplete"]
+    outcome_screen_id: str | None
+    correlation_id: str | None
+    model_version_id: str
+    screens_json: str | None  # 0043: JSON array of the model screen ids walked, start first
+
+
+class ProcessTrigger(Row):
+    """0036: a model transition that starts a process."""
+
+    process_id: str
+    model_transition_id: str
+
+
+class ProcessExploration(Row):
+    """0036: one completed exploration of a process (the stopping rule)."""
+
+    id: str
+    process_id: str
+    epoch_set: Json
+    depth: int
+    random_walks: int
+    new_deviations: int
+    completed_at: str
+
+
+class BuildEpoch(Row):
+    """0030: the period a build of a scope served, per environment."""
+
+    id: str
+    portal_id: str
+    scope: str
+    environment: str
+    build_id: str
+    first_observation_id: str
+    last_observation_id: str
+    overlaps_previous: bool
+    model_version_id: str
 
 
 class Form(Row):
@@ -203,7 +650,7 @@ class Form(Row):
 class NetworkCall(Row):
     id: str
     run_id: str
-    edge_id: str | None
+    transition_id: str | None
     method: str
     url_template: str
     status: int
@@ -214,38 +661,40 @@ class NetworkCall(Row):
     url: str | None = None  # 0012: verbatim request URL; NULL before 0012
     req_sample: str | None = None  # 0027: masked sample body (<= 4096 chars), non-production only
     res_sample: str | None = None
+    schema_hash: str | None = None  # 0029: sha256 of the response shape; NULL for documents
 
 
-class PageVisit(Row):
-    """0012 (spec 019): one arrival on a page, its verbatim URL and the hops that led there."""
+class Observation(Row):
+    """0012 (spec 019): one arrival on a page, its verbatim URL and the hops that led there.
+
+    `page_visits` until 0032 renamed it (spec 039 T110).
+    """
 
     id: str
     run_id: str
     state_id: str
-    edge_id: str | None
+    transition_id: str | None
     via: Literal["navigate", "action", "relogin", "login"]
     url: str
     hops_json: Json
     created_at: str
+    # 0029 (spec 039): journey position, result, context, flags; NULL on v1 rows
+    journey_id: str | None = None
+    seq: int | None = None
+    result: StepResult | None = None
+    context_key: str | None = None
+    flags_json: Json = None
+    fingerprint_profile: str | None = None  # 0033 (T112): `name@hash`; NULL = rows-v2
 
 
 class OpenQuestion(Row):
     id: str
     run_id: str
     text: str
-    about_ref: str
+    ref_id: str  # 0040 (spec 039 § 15): the subject, a state, transition or form ref
     status: Literal["open", "addressed"]
     created_at: str
-
-
-class RuleCandidate(Row):
-    id: str
-    run_id: str
-    text: str
-    about_ref: str
-    evidence_ref: str
-    confidence: Literal["inferred"]
-    created_at: str
+    hypothesis_id: str | None = None  # 0031 (spec 039): the hypothesis it is about
 
 
 class State(Row):
@@ -303,7 +752,7 @@ class ProbeOutcome(Row):
     http_status: int | None
     reason: str | None
     evidence_ref: str
-    edge_id: str | None
+    transition_id: str | None
     created_at: str
 
 
@@ -330,29 +779,18 @@ class Mark(Row):
     id: str
     portal_id: str
     kind: Literal["start", "focus", "probe", "retry", "recheck", "skip"]
-    target_kind: Literal["form_step", "state", "edge"]
-    target_id: str
+    # 0041 (spec 039 § 15): the target in a typed column, exactly one
+    form_step_id: str | None = None
+    state_id: str | None = None
+    transition_id: str | None = None
     created_by: str
     created_at: str
     used_by_run_id: str | None
     used_at: str | None
-
-
-class Reconciliation(Row):
-    """The BA's proposed reading of a group of differing states, and its confirmation (0025)."""
-
-    id: str
-    portal_id: str
-    group_key: str
-    group_kind: Literal["action", "route", "replay"]
-    snapshot_json: str
-    proposal_json: str
-    proposed_by: str
-    proposed_at: str
-    status: Literal["proposed", "confirmed", "superseded"]
-    confirmed_json: str | None
-    confirmed_by: str | None
-    confirmed_at: str | None
+    # 0031 (spec 039): a person's mark or the planner's, the hypothesis it tests, its priority
+    origin: Literal["person", "planner"] = "person"
+    hypothesis_id: str | None = None
+    priority: int | None = None
 
 
 class Checkpoint(Row):
@@ -534,6 +972,7 @@ class DocRecord(Row):
     withdrawn: bool
     created_at: str
     updated_at: str
+    process_id: str | None = None  # 0036: the process a PROC record documents (one per process)
 
 
 class DocRevision(Row):
@@ -552,12 +991,25 @@ class DocRevision(Row):
 
 
 class DocEvidenceLink(Row):
+    """0040 (spec 039 § 15): what a link cites is an `entity_refs` row."""
+
     id: str
     revision_id: str
-    target_kind: EvidenceTargetKind
-    target_id: str
+    ref_id: str
     run_id: str | None
     note: str | None
+
+
+class DocEvidence(Row):
+    """A row of the view `doc_evidence` (0040): a link with the kind and id its ref names."""
+
+    id: str
+    revision_id: str
+    ref_id: str
+    run_id: str | None
+    note: str | None
+    target_kind: EvidenceTargetKind
+    target_id: str
     region: str | None = None  # element key; screen_region only (spec 008)
 
 
@@ -599,6 +1051,7 @@ class Process(Row):
     not_observable: str | None
     created_at: str
     ended_at: str | None
+    trigger_ord: int | None = None  # 0034 (T081): the step that enters the process
 
 
 class ProcessStep(Row):
@@ -608,7 +1061,7 @@ class ProcessStep(Row):
     intent: str
     kind: Literal["navigate", "click", "fill", "check", "select"]
     action_id: str | None
-    edge_id: str | None
+    transition_id: str | None
     value: str | None
     state_before: str | None
     state_after: str | None
@@ -691,8 +1144,7 @@ class Amendment(Row):
     key: str
     portal_id: str
     scope_id: str | None
-    target_kind: Literal["state", "evidence", "wireframe_element"]
-    target_id: str
+    ref_id: str  # 0041: what it is written on, an entity_refs row
     kind: Literal["note", "element_ref", "attachment"]
     text: str | None
     attachment_sha256: str | None
@@ -713,6 +1165,18 @@ class Amendment(Row):
     withdrawn_at: str | None
     rev: int  # 0016: the head's current revision number
     screen_id: str | None  # 0016: the screen the amendment belongs to
+    anchor_ref_id: str | None = None  # 0037 (0041 renamed): the model anchor, screen + element key
+
+
+#: What an amendment (head or revision) is written on, as the 0041 views name it.
+AmendmentTargetKind = Literal["state", "evidence", "wireframe_element"]
+
+
+class AmendmentWithTarget(Amendment):
+    """A row of the view `amendments_with_target` (0041)."""
+
+    target_kind: AmendmentTargetKind
+    target_id: str  # a state id, `<state id>#<element key>` or an evidence file
 
 
 class AmendmentRevision(Row):
@@ -733,8 +1197,7 @@ class AmendmentRevision(Row):
     ]
     author: str
     status: Literal["active", "needs_reanchor", "dismissed", "withdrawn"]
-    target_kind: Literal["state", "evidence", "wireframe_element"]
-    target_id: str
+    ref_id: str  # 0041: what this revision is written on, an entity_refs row
     text: str | None
     anchor_fingerprint: str | None
     anchor_route_template: str | None
@@ -744,14 +1207,20 @@ class AmendmentRevision(Row):
     created_at: str
 
 
+class AmendmentRevisionWithTarget(AmendmentRevision):
+    """A row of the view `amendment_revisions_with_target` (0041)."""
+
+    target_kind: AmendmentTargetKind
+    target_id: str
+
+
 class ChatProposal(Row):
     """A change the chat assistant proposes and a person applies or discards (0017)."""
 
     id: str
     conversation_id: str
     portal_id: str
-    target_kind: Literal["amendment", "new_amendment"]
-    target_id: str | None  # the amendment id; None for new_amendment
+    amendment_id: str | None  # 0041: the amendment it changes; None for a new amendment
     base_rev: int | None  # the amendment revision the proposal was made on
     payload: Json  # what to change; a JSON object
     summary: str
@@ -783,6 +1252,8 @@ class BaProcess(Row):
     updated_at: str
     archived_at: str | None = None  # 0028: set while archived (spec 027)
     record_key: str | None = None  # 0028: the PROC record it was opened from (spec 027 US6)
+    start_screen_id: str | None = None  # 0036: the screen its trigger opens
+    boundary_hypothesis_id: str | None = None  # 0036: the process_boundary hypothesis
 
 
 class BaProcessRevision(Row):
@@ -799,23 +1270,23 @@ class BaProcessRevision(Row):
     created_at: str
 
 
-class ProcessVariant(Row):
-    """Head of one variant (A, B, ...) of a BA process (0018)."""
+class ProcessModel(Row):
+    """Head of one process model (A, B, ...) of a BA process (0018; 0039 renamed from variant)."""
 
     id: str
     process_id: str
     label: str
     kind: Literal["as_is", "to_be"]
     rev: int
-    branched_from_variant_id: str | None
+    branched_from_model_id: str | None
     branched_from_rev: int | None
     created_at: str
 
 
-class ProcessVariantRevision(Row):
-    """One immutable revision of a variant (0018, append-only); `steps` is a JSON array."""
+class ProcessModelRevision(Row):
+    """One immutable revision of a process model (0018, append-only); `steps` is a JSON array."""
 
-    variant_id: str
+    model_id: str
     rev: int
     base_rev: int | None
     change: Literal["create", "branch", "save", "restore", "observe", "edit"]
@@ -828,9 +1299,9 @@ class ProcessVariantRevision(Row):
 
 
 class ProcessDraft(Row):
-    """One person's open draft over one to-be variant (0018, scratch)."""
+    """One person's open draft over one to-be process model (0018, scratch)."""
 
-    variant_id: str
+    model_id: str
     author: str
     base_rev: int
     steps: Json
@@ -838,13 +1309,13 @@ class ProcessDraft(Row):
 
 
 class ProcessLive(Row):
-    """A mark that a variant revision is live in an environment (0018, append-only)."""
+    """A mark that a process model revision is live in an environment (0018, append-only)."""
 
     id: str
     process_id: str
     environment: Literal["sandbox", "staging", "production"]
-    variant_id: str
-    variant_rev: int
+    model_id: str
+    model_rev: int
     author: str
     reason: str | None
     created_at: str
@@ -874,9 +1345,9 @@ class ChangeSpecRevision(Row):
     process_id: str
     rev: int
     base_rev: int | None
-    left_variant_id: str
+    left_model_id: str
     left_rev: int
-    right_variant_id: str
+    right_model_id: str
     right_rev: int
     sections: Json
     author: str
@@ -888,12 +1359,11 @@ TABLE_MODELS: dict[str, type[Row]] = {
     "runs": Run,
     "state_observations": StateObservation,
     "actions": Action,
-    "edges": Edge,
+    "transitions": Transition,
     "forms": Form,
     "network_calls": NetworkCall,
-    "page_visits": PageVisit,
+    "observations": Observation,
     "open_questions": OpenQuestion,
-    "rule_candidates": RuleCandidate,
     "screens": Screen,
     "states": State,
     "state_wireframes": StateWireframe,
@@ -925,8 +1395,8 @@ TABLE_MODELS: dict[str, type[Row]] = {
     "grouping_suggestions": GroupingSuggestion,
     "ba_processes": BaProcess,
     "ba_process_revisions": BaProcessRevision,
-    "process_variants": ProcessVariant,
-    "process_variant_revisions": ProcessVariantRevision,
+    "process_models": ProcessModel,
+    "process_model_revisions": ProcessModelRevision,
     "process_drafts": ProcessDraft,
     "process_live": ProcessLive,
     "change_spec_revisions": ChangeSpecRevision,
@@ -934,8 +1404,36 @@ TABLE_MODELS: dict[str, type[Row]] = {
     "probe_outcomes": ProbeOutcome,
     "probe_suites": ProbeSuite,
     "marks": Mark,
-    "reconciliations": Reconciliation,
     "checkpoints": Checkpoint,
+    "builds": Build,
+    "state_components": StateComponents,
+    "journeys": Journey,
+    "attribute_writes": AttributeWrite,
+    "observation_builds": ObservationBuild,
+    "model_versions": ModelVersion,
+    "model_screens": ModelScreen,
+    "screen_members": ScreenMember,
+    "screen_lineage": ScreenLineage,
+    "state_pair_labels": StatePairLabel,
+    "state_pair_label_history": StatePairLabelHistory,
+    "parameter_roles": ParameterRoleRow,
+    "action_classes": ActionClass,
+    "model_transitions": ModelTransition,
+    "build_epochs": BuildEpoch,
+    "entity_refs": EntityRef,
+    "deviations": Deviation,
+    "deviation_occurrences": DeviationOccurrence,
+    "hypotheses": Hypothesis,
+    "hypothesis_evidence": HypothesisEvidence,
+    "hypothesis_tests": HypothesisTest,
+    "hypothesis_events": HypothesisEvent,
+    "fingerprint_profiles": FingerprintProfile,
+    "tau_acceptances": TauAcceptance,
+    "correlation_ids": CorrelationId,
+    "process_instances": ProcessInstance,
+    "process_triggers": ProcessTrigger,
+    "process_explorations": ProcessExploration,
+    "similarity_classifiers": SimilarityClassifier,
 }
 
 
@@ -959,7 +1457,6 @@ class PortalSummary(BaseModel):
     forms: int
     network_calls: int
     open_questions_open: int
-    rule_candidates: int
 
     @property
     def runs(self) -> int:
@@ -985,9 +1482,8 @@ class RunSummary(BaseModel):
     robots_policies: int
     decisions: int
     decisions_by_kind: dict[DecisionKind, int]
-    edges: int
+    transitions: int
     open_questions: int
-    rule_candidates: int
 
 
 class PhaseStat(BaseModel):
@@ -1087,14 +1583,13 @@ class DocRecordRow(BaseModel):
 class ResolvedEvidence(BaseModel):
     """An evidence link with its target looked up in Layer A (or the Docs tables)."""
 
-    link: DocEvidenceLink
+    link: DocEvidence
     label: str | None
-    resolved: bool  # the target row was found
-    broken: bool  # the target's table exists but the row is gone
+    resolved: bool  # the target row was found (refs keep it in place since 0040)
     run_mode: str | None
     run_started_at: str | None
     tab: str | None  # run page tab holding the target, None for doc_record/review
-    doc_key: str | None = None  # for doc_record targets
+    doc_key: str | None = None  # a doc_record target's key, or a hypothesis target's H-nnnn
 
 
 class RelationRow(BaseModel):
@@ -1139,7 +1634,7 @@ class RunCitingRecord(BaseModel):
     """A record citing a run's evidence (FR-033): what it cites and from which revision."""
 
     row: DocRecordRow
-    cites: list[DocEvidenceLink]
+    cites: list[DocEvidence]
 
 
 class LiveEvent(BaseModel):

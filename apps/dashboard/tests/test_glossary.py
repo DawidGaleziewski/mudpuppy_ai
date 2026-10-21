@@ -268,14 +268,14 @@ EXPECTED_IDS = {
     "run", "mode", "environment", "persona", "state", "fingerprint", "cluster", "settled",
     "transition", "accessible-name", "role", "safety-class", "decision", "top-locator", "target",
     "click-signal", "signal-found-action",  # R-28
-    "screen-revision", "process-variant", "process-draft", "change-spec", "live-variant",
+    "screen-revision", "process-model", "process-draft", "change-spec", "live-process-model",
     "proposal", "review-inbox", "grouping-suggestion", "re-anchor",  # R-43
     "portal-hook",  # R-53
     "access-dependent",  # R-33
     "unexplained-difference",  # R-33 P2
     "frontier", "inferred-link", "next-item", "priority-depth", "budget", "portal-scope",
     "network-call-shape",
-    "crawler-open-question", "rule-candidate", "evidence", "trace-process", "process-step",
+    "crawler-open-question", "evidence", "trace-process", "process-step",
     "submit-boundary", "tool-call", "run-less-call", "percentiles", "follow-up-task", "layers",
     "analysis-session", "analysis-pass", "gaps", "record-key", "revision", "record-status",
     "status-codes", "reference-portal",
@@ -296,14 +296,13 @@ EXPECTED_IDS = {
     "portal-dropdown", "new-portal", "portal-settings", "scan-choices", "scan-focus",  # R-31
     "fast-tier", "slow-tier", "code-guidelines", "agent-notes",  # R-34
     "mutation-testing", "behaviour-lock",  # R-34
-    "export-fork", "field-issue",  # R-49
     # spec 030 (R-56..R-64): scars, fixes and the hardening around them
     "scar", "fix-plugin", "transient-error-page", "render-warning", "portal-network",
     "trace-catalogue",
     "form-step", "state-kind", "form-probe", "probe-suite", "test-data",  # R-69 (spec 032)
-    "probe-mark", "probe-scan",  # R-69 owner answer 3 (spec 032 US5)
-    "portal-map", "differing-states", "verdict",  # R-69 (4)-(5) (spec 033)
-    "page-visit", "navigation-hop", "parameter-inventory", "entry-url",  # R-37/R-38
+    "probe-mark", "form-probing-scan",  # R-69 owner answer 3 (spec 032 US5)
+    "portal-map",  # R-69 (4)-(5) (spec 033)
+    "observation", "navigation-hop", "parameter-inventory", "entry-url",  # R-37/R-38
     "checkpoint", "directed-scan", "scan-mark",  # R-66 (spec 034)
     "scan-graph",  # R-74 (spec 035)
     "as-is-sign-off", "archived-process",  # R-54 (spec 027)
@@ -312,6 +311,13 @@ EXPECTED_IDS = {
     "export-quality-score",  # R-68 (spec 034 phase 9)
     "transit-zone",  # R-62 (spec 037)
     "shared-button", "grouping-eval",  # R-58, R-78 (spec 038)
+    # R-81 (spec 039): the portal model
+    "portal-model", "model-screen", "journey", "step-result", "release", "deviation",
+    "hypothesis", "derived-fact", "model-element-key",
+    "headless-driver", "decision-rule", "boundary-test", "process-proposal",
+    "fingerprint-profile", "screen-threshold",  # T111, T115
+    "process-instance", "explored-process", "similarity-classifier",  # T073, T075, T090
+    "screen-variant", "model-link", "same-screen-label", "check-run", "portal-hints",  # T101
     # BA (23)
     "ears",  # R-68 (spec 034)
     "confidence", "documentation-record", "evidence-link", "relations", "traceability", "review",
@@ -325,7 +331,7 @@ EXPECTED_IDS = {
 def test_real_glossary_is_valid_and_complete() -> None:
     g = load_ok(REPO_DOCS)
     assert {e.id for e in g.entries} == EXPECTED_IDS
-    assert len(EXPECTED_IDS) == 173
+    assert len(EXPECTED_IDS) == 191
     assert sum(e.category == "ba" for e in g.entries) == 23
 
 

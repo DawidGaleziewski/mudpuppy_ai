@@ -1,0 +1,436 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MudPuppy 2.0 · Oblicz składkę OC/AC</title>
+<link rel="icon" href="../brand/logo/tag-icon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../design-system/css/tokens.css">
+<link rel="stylesheet" href="../design-system/css/fonts.css">
+<link rel="stylesheet" href="../design-system/css/salvage.css">
+<style>
+  /* Screen layout only.
+     .mp-glance: the five facts of a process in reading order (trigger → screens → outcomes → paths → explored).
+     .mp-lanes: steps top to bottom on the left, the outcome each step can branch to on the right. */
+  .mp-glance > .sy-card { flex: 1 1 0; }
+  .mp-lanes { display: grid; grid-template-columns: minmax(0, 1.15fr) 36px minmax(0, 1fr); gap: 6px 0; align-items: center; }
+  .mp-lanes > .sy-flow__arrow { justify-self: center; }
+  .mp-lanes > .mp-span { grid-column: 1 / -1; }
+  .mp-lanes > .sy-card { align-self: stretch; }
+</style>
+</head>
+<body class="sy-ground">
+<a class="sy-skip" href="#main">Skip to content</a>
+<div class="sy-app">
+  <header class="sy-header">
+    <a class="sy-wordmark" href="v2-01-home.html"><span class="sy-wordmark__paint">MUD</span>PUPPY</a>
+    <label class="sy-portal sy-portal--compact"><span class="sy-label">Portal</span>
+      <select class="sy-select"><option selected>reference-insurer</option><option>wikipedia</option><option>All portals</option><option>+ New portal</option></select></label>
+    <div class="sy-portal sy-portal--compact"><span class="sy-label" id="asof-l">As of</span>
+      <button class="sy-select" type="button" aria-haspopup="menu" aria-expanded="false" aria-labelledby="asof-l asof-v" aria-describedby="asof-help"><span id="asof-v">Now · 17 Oct</span></button></div>
+    <span id="asof-help" class="sy-sr-only">Shows the portal model as it was at a release or scan. Changes compares two points.</span>
+    <label class="sy-search sy-search--compact">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+      <input type="search" aria-label="Search screens, processes and rules" placeholder="Search"><span class="sy-kbd">Ctrl K</span></label>
+    <span class="sy-status" data-status="ok">Assistant up</span>
+    <a class="sy-btn" href="02-screen-with-assistant.html">Ask <span class="sy-kbd">Ctrl J</span></a>
+    <a class="sy-btn sy-btn--icon" href="#" aria-label="Help and glossary">?</a>
+  </header>
+  <div class="sy-app__body">
+    <nav class="sy-nav" aria-label="Portal sections">
+      <a class="sy-nav__item" href="v2-01-home.html">Home</a>
+      <a class="sy-nav__item" href="v2-02-changes.html">Changes <span class="sy-nav__count">41</span></a>
+      <a class="sy-nav__item" href="v2-04-review.html">Review <span class="sy-count">24</span></a>
+      <div class="sy-nav__group" aria-hidden="true">Portal model</div>
+      <a class="sy-nav__item" href="v2-09-processes.html" aria-current="page">Processes <span class="sy-nav__count">6</span></a>
+      <a class="sy-nav__item" href="v2-06-screens.html">Screens <span class="sy-nav__count">19</span></a>
+      <a class="sy-nav__item" href="v2-11-rules.html">Rules <span class="sy-nav__count">6</span></a>
+      <a class="sy-nav__item" href="#">Docs</a>
+      <div class="sy-nav__group" aria-hidden="true">Machine</div>
+      <a class="sy-nav__item" href="10-scans.html">Scans</a>
+      <a class="sy-nav__item" href="11-settings.html">Settings</a>
+      <div class="sy-nav__foot">store: sandbox · writes go through commands</div>
+    </nav>
+    <main id="main" class="sy-main">
+<!-- Page head -->
+      <div class="sy-pagehead">
+        <nav class="sy-crumbs" aria-label="Breadcrumb"><a href="v2-09-processes.html">Processes</a> / <span aria-current="page">Oblicz składkę OC/AC</span></nav>
+        <div class="sy-pagehead__row">
+          <div class="sy-stack" style="--sy-gap: 6px">
+            <h1 class="sy-h1">Oblicz składkę OC/AC</h1>
+            <p class="sy-cluster sy-meta" style="--sy-gap: 6px 12px">
+              <span class="sy-status" data-status="ok">Accepted · you · 6 Oct</span>
+              <span>edited 15 Oct</span>
+              <span class="sy-cluster" style="--sy-gap: 6px"><a class="sy-tag sy-tag--sm" href="#">PROC-001</a>rev 3</span>
+              <span>as of now</span>
+            </p>
+          </div>
+          <div class="sy-stack" style="--sy-gap: 6px; align-items: flex-end">
+            <div class="sy-actions">
+              <a class="sy-btn sy-btn--md" href="v2-08-map.html">Show on the map</a>
+              <button class="sy-btn sy-btn--md" type="button">Edit…</button>
+              <button class="sy-btn sy-btn--primary" type="button" aria-describedby="explore-what">Explore further · ≈ 12 min</button>
+            </div>
+            <span class="sy-field__help">Runs an AI scan on what is missing below.</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- At a glance: the five facts in reading order, each jumps to its section -->
+      <ol class="sy-flow mp-glance" aria-label="This process at a glance">
+        <li class="sy-card">
+          <span class="sy-label">1 · Trigger</span>
+          <a class="sy-card__title" href="#start">"Oblicz składkę OC/AC"</a>
+          <span class="sy-muted">on Ubezpieczenia dla Ciebie · menu</span>
+        </li>
+        <li class="sy-flow__arrow" aria-hidden="true">→</li>
+        <li class="sy-card">
+          <span class="sy-label">2 · Screens</span>
+          <a class="sy-card__title" href="#flow">3 steps</a>
+          <span class="sy-muted">dane kierowcy → opcje → wynik</span>
+        </li>
+        <li class="sy-flow__arrow" aria-hidden="true">→</li>
+        <li class="sy-card">
+          <span class="sy-label">3 · Outcomes</span>
+          <a class="sy-card__title" href="#flow">4 outcomes</a>
+          <span class="sy-muted">Completed · Exited · Error · Abandoned</span>
+        </li>
+        <li class="sy-flow__arrow" aria-hidden="true">→</li>
+        <li class="sy-card">
+          <span class="sy-label">4 · Paths</span>
+          <a class="sy-card__title" href="#paths">4 paths · 30 cases</a>
+          <span class="sy-muted">on release <span class="sy-case-normal">9c21</span></span>
+        </li>
+        <li class="sy-flow__arrow" aria-hidden="true">→</li>
+        <li class="sy-card">
+          <span class="sy-label">5 · Explored</span>
+          <a class="sy-card__title" href="#explored">Thorough on <span class="sy-case-normal">9c21</span></a>
+          <span class="sy-muted">2 things not tried</span>
+        </li>
+      </ol>
+
+      <div class="sy-columns">
+        <div class="sy-col-main sy-stack" style="--sy-gap: var(--sy-space-5)">
+
+          <!-- START -->
+          <section id="start" class="sy-plate" aria-labelledby="start-h">
+            <div class="sy-plate__head">
+              <h2 id="start-h" class="sy-plate__title">Start</h2>
+              <span class="sy-status" data-status="ok">Observed</span>
+            </div>
+            <div class="sy-plate__body sy-grid" style="--sy-min: 260px; --sy-gap: 16px 24px">
+              <dl class="sy-facts" style="align-content: start">
+                <dt>Trigger</dt>
+                <dd>Link "Oblicz składkę OC/AC" in "Na skróty" on <a href="v2-06-screens.html">Ubezpieczenia dla Ciebie</a></dd>
+                <dt>Also</dt>
+                <dd>"Oblicz składkę" in the menu, on every page</dd>
+                <dt>Preconditions</dt>
+                <dd>None · persona <span class="sy-mono">guest</span></dd>
+                <dt>Personas</dt>
+                <dd>Persona <span class="sy-mono">premium</span> sees an extra field, "Rabat dla stałych klientów" · <a class="sy-tag sy-tag--sm" href="v2-11-rules.html">BR-025</a></dd>
+                <dt>Evidence</dt>
+                <dd class="sy-cluster" style="--sy-gap: 6px">scans <span class="sy-tag sy-tag--sm">01a12f40</span><span class="sy-tag sy-tag--sm">01a1340c</span></dd>
+              </dl>
+              <figure class="sy-shot" aria-label="Recorded screen Ubezpieczenia dla Ciebie with the trigger link marked">
+                <span class="sy-shot__title">Ubezpieczenia dla Ciebie</span>
+                <div class="sy-stack" style="--sy-gap: 3px">
+                  <b>Na skróty</b>
+                  <mark class="sy-mark" style="margin-top: 14px"><span class="sy-mark__label">Trigger</span><span class="sy-shot__link">Oblicz składkę OC/AC</span></mark>
+                  <span class="sy-shot__link">Porównaj produkty</span>
+                  <span class="sy-shot__link">Przedłuż polisę</span>
+                  <span class="sy-shot__link">Napisz do nas</span>
+                </div>
+              </figure>
+            </div>
+          </section>
+
+          <!-- SCREENS AND OUTCOMES -->
+          <section id="flow" class="sy-plate" aria-labelledby="flow-h">
+            <div class="sy-plate__head">
+              <h2 id="flow-h" class="sy-plate__title">Screens and outcomes</h2>
+              <span class="sy-meta">3 steps · 4 outcomes · cases on <span class="sy-case-normal">9c21</span></span>
+            </div>
+            <div class="sy-plate__body">
+              <div class="mp-lanes" role="group" aria-label="Steps in order, with the outcome each one can lead to">
+                <span class="sy-label">Steps in order</span><span></span><span class="sy-label">Outcomes</span>
+
+                <div class="sy-card">
+                  <span class="sy-label">Start</span>
+                  <span>Link "Oblicz składkę OC/AC" on Ubezpieczenia dla Ciebie, or "Oblicz składkę" in the menu</span>
+                </div>
+                <span></span><span></span>
+                <span class="sy-flow__arrow" aria-hidden="true">↓</span><span></span><span></span>
+
+                <!-- Step 1 -->
+                <div class="sy-card">
+                  <div class="sy-split"><span class="sy-label">Step 1</span><span class="sy-status" data-status="needs">2 need you</span></div>
+                  <a class="sy-card__title" href="v2-07-screen-detail.html">Kalkulator OC/AC — dane kierowcy</a>
+                  <span class="sy-route">/kalkulator/kierowca · Kalkulator app</span>
+                  <div class="sy-meter">
+                    <div class="sy-meter__label"><span>actions checked on <span class="sy-case-normal">9c21</span></span><span>8 / 11</span></div>
+                    <div class="sy-meter__track" role="img" aria-label="8 of 11 actions checked on 9c21"><div class="sy-meter__fill" style="--value: 73%"></div></div>
+                  </div>
+                  <span class="sy-cluster" style="--sy-gap: 6px"><span class="sy-muted">Rules</span><a class="sy-tag sy-tag--sm" href="v2-12-rule-detail.html">BR-021</a><a class="sy-tag sy-tag--sm" href="v2-11-rules.html">BR-026</a><a class="sy-tag sy-tag--sm" href="v2-11-rules.html">BR-025</a></span>
+                </div>
+                <span class="sy-flow__arrow" aria-hidden="true">→</span>
+                <div class="sy-card">
+                  <div class="sy-split"><span class="sy-label">Exited</span><span class="sy-chip">exit page</span></div>
+                  <span class="sy-card__title">Nie możemy Cię ubezpieczyć</span>
+                  <span class="sy-route">/kalkulator/odmowa</span>
+                  <span class="sy-cluster" style="--sy-gap: 6px">Age under 21<a class="sy-tag sy-tag--sm" href="v2-12-rule-detail.html">BR-021</a></span>
+                  <span class="sy-muted">6 cases · path C</span>
+                </div>
+                <span class="sy-flow__arrow" aria-hidden="true">↓</span><span></span><span></span>
+
+                <!-- Step 2 -->
+                <div class="sy-card">
+                  <div class="sy-split"><span class="sy-label">Step 2</span><span class="sy-status" data-status="needs">1 needs you</span></div>
+                  <a class="sy-card__title" href="v2-06-screens.html">Kalkulator OC/AC — opcje</a>
+                  <span class="sy-route">/kalkulator/kierowca · same URL, step 2</span>
+                  <div class="sy-meter">
+                    <div class="sy-meter__label"><span>actions checked on <span class="sy-case-normal">9c21</span></span><span>7 / 7</span></div>
+                    <div class="sy-meter__track" role="img" aria-label="7 of 7 actions checked on 9c21"><div class="sy-meter__fill" style="--value: 100%"></div></div>
+                  </div>
+                  <span class="sy-cluster" style="--sy-gap: 6px"><span class="sy-muted">Rules</span><a class="sy-tag sy-tag--sm" href="v2-11-rules.html">BR-022</a><a class="sy-tag sy-tag--sm" href="v2-11-rules.html">BR-023</a></span>
+                </div>
+                <span class="sy-flow__arrow" aria-hidden="true">→</span>
+                <div class="sy-card">
+                  <div class="sy-split"><span class="sy-label">Error</span><span class="sy-chip">error</span></div>
+                  <span class="sy-card__title">Przepraszamy, wystąpił błąd</span>
+                  <span>wynik answered 503 once · 17 Oct 10:21Z</span>
+                  <span class="sy-status" data-status="inferred">Explained automatically · flaky</span>
+                  <span class="sy-cluster" style="--sy-gap: 6px 10px"><span class="sy-muted">1 case · path D</span><button class="sy-btn sy-btn--sm sy-btn--quiet" type="button" aria-haspopup="dialog" aria-describedby="ov-what">Overturn…<span class="sy-sr-only"> flaky error</span></button></span>
+                  <span id="ov-what" class="sy-sr-only">Asks for your reason, required. It is shown wherever this decision appears.</span>
+                </div>
+                <span class="sy-flow__arrow" aria-hidden="true">↓</span><span></span><span></span>
+
+                <!-- Step 3 -->
+                <div class="sy-card">
+                  <div class="sy-split"><span class="sy-label">Step 3</span><span class="sy-status" data-status="needs">1 needs you</span></div>
+                  <a class="sy-card__title" href="v2-06-screens.html">Kalkulator OC/AC — wynik</a>
+                  <span class="sy-route">/kalkulator/wynik</span>
+                  <div class="sy-meter">
+                    <div class="sy-meter__label"><span>actions checked on <span class="sy-case-normal">9c21</span></span><span>5 / 6</span></div>
+                    <div class="sy-meter__track" role="img" aria-label="5 of 6 actions checked on 9c21"><div class="sy-meter__fill" style="--value: 83%"></div></div>
+                  </div>
+                  <span class="sy-cluster" style="--sy-gap: 6px"><span class="sy-muted">Rules</span><a class="sy-tag sy-tag--sm" href="v2-11-rules.html">BR-024</a><span class="sy-chip sy-chip--tobe"><span><span class="sy-case-normal">r3</span> suggested</span></span></span>
+                </div>
+                <span class="sy-flow__arrow" aria-hidden="true">→</span>
+                <div class="sy-card">
+                  <span class="sy-label">Completed</span>
+                  <span class="sy-card__title">Kalkulator OC/AC — wynik</span>
+                  <span>Shows "Twoja składka"</span>
+                  <span class="sy-muted">23 cases · paths A, B</span>
+                </div>
+
+                <!-- Abandoned: from any step -->
+                <div class="sy-card sy-card--muted mp-span">
+                  <span class="sy-cluster" style="--sy-gap: 8px"><span class="sy-label">Abandoned</span><span>The person leaves at any step. No screen; not counted in cases.</span></span>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- PATHS -->
+          <section id="paths" class="sy-plate" aria-labelledby="paths-h">
+            <div class="sy-plate__head">
+              <h2 id="paths-h" class="sy-plate__title">Paths</h2>
+              <span class="sy-meta">4 paths · 30 cases on <span class="sy-case-normal">9c21</span></span>
+            </div>
+            <div class="sy-table-wrap sy-table-wrap--flush">
+              <table class="sy-table sy-table--middle" style="min-width: 560px" aria-labelledby="paths-h">
+                <thead>
+                  <tr>
+                    <th scope="col">Path</th>
+                    <th scope="col">Steps</th>
+                    <th scope="col" class="sy-num">Cases</th>
+                    <th scope="col" style="width: 110px"><span class="sy-sr-only">Share of cases</span></th>
+                    <th scope="col">Outcome</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <th scope="row">A</th>
+                    <td><ol class="sy-path"><li><span class="sy-path__step">dane kierowcy</span></li><li><span class="sy-path__step">opcje · OC</span></li><li><span class="sy-path__step">wynik</span></li></ol></td>
+                    <td class="sy-num">14</td>
+                    <td><div class="sy-meter__track" role="img" aria-label="47% of cases"><div class="sy-meter__fill" style="--value: 47%"></div></div></td>
+                    <td>Completed</td>
+                  </tr>
+                  <tr>
+                    <th scope="row">B</th>
+                    <td><ol class="sy-path"><li><span class="sy-path__step">dane kierowcy</span></li><li><span class="sy-path__step">opcje · OC + AC</span></li><li><span class="sy-path__step">wynik</span></li></ol></td>
+                    <td class="sy-num">9</td>
+                    <td><div class="sy-meter__track" role="img" aria-label="30% of cases"><div class="sy-meter__fill" style="--value: 30%"></div></div></td>
+                    <td>Completed</td>
+                  </tr>
+                  <tr aria-selected="true">
+                    <th scope="row">C</th>
+                    <td><ol class="sy-path"><li><span class="sy-path__step">dane kierowcy</span></li><li><span class="sy-path__step">Nie możemy Cię ubezpieczyć</span></li></ol></td>
+                    <td class="sy-num">6</td>
+                    <td><div class="sy-meter__track" role="img" aria-label="20% of cases"><div class="sy-meter__fill" style="--value: 20%"></div></div></td>
+                    <td>Exited</td>
+                  </tr>
+                  <tr>
+                    <th scope="row">D</th>
+                    <td><ol class="sy-path"><li><span class="sy-path__step">dane kierowcy</span></li><li><span class="sy-path__step">opcje</span></li><li><span class="sy-path__step">error page</span></li></ol></td>
+                    <td class="sy-num">1</td>
+                    <td><div class="sy-meter__track" role="img" aria-label="3% of cases"><div class="sy-meter__fill" style="--value: 3%"></div></div></td>
+                    <td><span class="sy-cluster" style="--sy-gap: 6px">Error<span class="sy-chip">error</span></span></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="sy-plate__body">
+              <div class="sy-callout" aria-labelledby="case-h">
+                <div class="sy-split" style="--sy-gap: 6px 12px">
+                  <span id="case-h" class="sy-callout__title">One case · path C</span>
+                  <span class="sy-cluster" style="--sy-gap: 6px 10px"><span class="sy-status" data-status="ok">Observed</span><span class="sy-small sy-muted">check run <span class="sy-tag sy-tag--sm">01a1340c</span> · case 7 · <span class="sy-case-normal">9c21</span></span></span>
+                </div>
+                <ol class="sy-path" aria-label="Steps of case 7">
+                  <li><span class="sy-path__step">Kalkulator OC/AC — dane kierowcy · age 20</span></li>
+                  <li><span class="sy-path__step sy-path__step--here">Nie możemy Cię ubezpieczyć</span></li>
+                </ol>
+                <span class="sy-cluster" style="--sy-gap: 6px">Because age 20 is under 21:<a class="sy-tag sy-tag--sm" href="v2-12-rule-detail.html">BR-021</a></span>
+                <span class="sy-actions" style="--sy-gap: 6px 14px"><a class="sy-small" href="10-scans.html">Open case 7</a><a class="sy-small" href="10-scans.html">All 6 cases on path C</a></span>
+              </div>
+            </div>
+          </section>
+
+          <!-- EXPLORED -->
+          <section id="explored" class="sy-plate" aria-labelledby="exp-h">
+            <div class="sy-plate__head">
+              <h2 id="exp-h" class="sy-plate__title">Explored</h2>
+              <span class="sy-status" data-status="ok"><span>Thorough · <span class="sy-case-normal">9c21</span></span></span>
+            </div>
+            <div class="sy-plate__body">
+              <p>Every action and every pair of actions tried · 50 random walks · nothing new after walk 31.</p>
+              <div class="sy-stack" style="--sy-gap: 6px">
+                <h3 class="sy-label" id="miss-h">Not tried yet · 2</h3>
+                <ul class="sy-stack sy-small" style="--sy-gap: 6px" aria-labelledby="miss-h">
+                  <li class="sy-cluster" style="--sy-gap: 8px"><span class="sy-status" data-status="todo">Not tried</span><span>Wartość pojazdu above 500 000 zł</span></li>
+                  <li class="sy-cluster" style="--sy-gap: 8px"><span class="sy-status" data-status="todo">Not explored</span><span>Persona <span class="sy-mono">premium</span> on <span class="sy-case-normal">9c21</span> · untested there:</span><a class="sy-tag sy-tag--sm" href="v2-11-rules.html">BR-025</a></li>
+                </ul>
+              </div>
+            </div>
+            <div class="sy-plate__foot">
+              <p id="explore-what" class="sy-small">Explore further tries both: an AI scan on sandbox, about 12 min. New findings arrive in Review; nothing here changes by itself.</p>
+              <a class="sy-small" href="14-plan-run.html">Plan it yourself</a>
+            </div>
+          </section>
+
+          <!-- RULES -->
+          <section id="rules" class="sy-plate" aria-labelledby="rules-h">
+            <div class="sy-plate__head">
+              <h2 id="rules-h" class="sy-plate__title">Rules in this process</h2>
+              <a class="sy-small" href="v2-11-rules.html">All rules</a>
+            </div>
+            <ul class="sy-rows">
+              <li class="sy-row">
+                <div class="sy-row__main">
+                  <span class="sy-cluster" style="--sy-gap: 8px"><span class="sy-tag sy-tag--sm">BR-026</span><a href="v2-11-rules.html">Postal code must be NN-NNN</a></span>
+                  <span class="sy-small sy-muted">dane kierowcy · "Kod pocztowy" · "00950" now accepted, was refused on <span class="sy-case-normal">5f08</span></span>
+                </div>
+                <span class="sy-status" data-status="failed"><span>Broken · <span class="sy-case-normal">9c21</span></span></span>
+              </li>
+              <li class="sy-row">
+                <div class="sy-row__main">
+                  <span class="sy-cluster" style="--sy-gap: 8px"><span class="sy-tag sy-tag--sm">BR-021</span><a href="v2-12-rule-detail.html">Driver must be 21 or older</a></span>
+                  <span class="sy-small sy-muted">dane kierowcy · "Dalej" · threshold moved from 18 to 21 with release <span class="sy-case-normal">9c21</span></span>
+                </div>
+                <span class="sy-status" data-status="needs">Changed · needs you</span>
+              </li>
+              <li class="sy-row">
+                <div class="sy-row__main">
+                  <span class="sy-cluster" style="--sy-gap: 8px"><span class="sy-tag sy-tag--sm">BR-024</span><a href="v2-11-rules.html">Price depends on data not visible from the UI</a></span>
+                  <span class="sy-small sy-muted">wynik · identical visible inputs gave 612 zł and 688 zł</span>
+                </div>
+                <span class="sy-status" data-status="inferred">Proposed</span>
+              </li>
+              <li class="sy-row">
+                <div class="sy-row__main">
+                  <span class="sy-cluster" style="--sy-gap: 8px"><span class="sy-tag sy-tag--sm">BR-025</span><a href="v2-11-rules.html">Premium customers get a discount field</a></span>
+                  <span class="sy-small sy-muted">dane kierowcy · "Rabat dla stałych klientów" · persona premium not explored on <span class="sy-case-normal">9c21</span></span>
+                </div>
+                <span class="sy-status" data-status="inferred">Proposed</span>
+              </li>
+              <li class="sy-row">
+                <div class="sy-row__main">
+                  <span class="sy-cluster" style="--sy-gap: 8px"><span class="sy-tag sy-tag--sm">BR-023</span><a href="v2-11-rules.html">OC + AC needs the vehicle value</a></span>
+                  <span class="sy-small sy-muted">opcje · Zakres · 17 Oct: OC → no field; OC + AC → "Wartość pojazdu" required: pass</span>
+                </div>
+                <span class="sy-status" data-status="ok">Tested · 17 Oct</span>
+              </li>
+              <li class="sy-row">
+                <div class="sy-row__main">
+                  <span class="sy-cluster" style="--sy-gap: 8px"><span class="sy-tag sy-tag--sm">BR-022</span><a href="v2-11-rules.html">Zakres is required</a></span>
+                  <span class="sy-small sy-muted">opcje · "Dalej" · 17 Oct: empty → "Zaznacz jedną z tych opcji.": pass</span>
+                </div>
+                <span class="sy-status" data-status="ok">Confirmed · you · 15 Oct</span>
+              </li>
+            </ul>
+          </section>
+        </div>
+
+        <!-- SIDE -->
+        <div class="sy-col-side">
+
+          <!-- Suggestion: the system would change an edited process, so it asks -->
+          <section class="sy-plate sy-plate--drawn" aria-labelledby="sg-h">
+            <div class="sy-plate__head">
+              <h2 id="sg-h" class="sy-plate__title">Suggestion</h2>
+              <span class="sy-status" data-status="inferred">Not applied</span>
+            </div>
+            <div class="sy-plate__body">
+              <p class="sy-small sy-muted">You edited this process on 15 Oct, so the system doesn't change it by itself.</p>
+              <p><b>Add variant <span class="sy-case-normal">r3</span> of Kalkulator OC/AC — wynik (banner "Oferta specjalna") as a variant of step 3?</b></p>
+              <div class="sy-grid" style="--sy-min: 100px; --sy-gap: 8px; max-width: 340px">
+                <figure class="sy-stack" style="--sy-gap: 4px"><div class="sy-thumb" role="img" aria-label="wynik variant r2, no banner"></div><figcaption class="sy-route">r2 · no banner</figcaption></figure>
+                <figure class="sy-stack" style="--sy-gap: 4px"><div class="sy-thumb" role="img" aria-label="wynik variant r3, banner Oferta specjalna"></div><figcaption class="sy-route">r3 · banner</figcaption></figure>
+              </div>
+              <p class="sy-small">Banner on 6 of 11 visits · check run <span class="sy-tag sy-tag--sm">01a1340c</span> · <a href="v2-03-change-detail.html">Before / after</a></p>
+              <p class="sy-small sy-muted">In Review: the "A/B test?" finding and a <a href="v2-14-same-screen.html">Same screen?</a> conflict (Marek labelled <span class="sy-case-normal">r3</span> a different screen on 17 Oct 11:20Z).</p>
+            </div>
+            <div class="sy-plate__foot">
+              <p class="sy-small"><b>Linked:</b> decided with the A/B test finding in Review. Confirming the A/B test there applies this suggestion and settles the Same screen? conflict.</p>
+              <a class="sy-btn sy-btn--sm" href="v2-04-review.html">Open in Review</a>
+            </div>
+          </section>
+
+          <!-- Documentation -->
+          <section class="sy-plate" aria-labelledby="doc-h">
+            <div class="sy-plate__head">
+              <h2 id="doc-h" class="sy-plate__title">Documentation</h2>
+            </div>
+            <div class="sy-plate__body">
+              <dl class="sy-facts">
+                <dt>Record</dt><dd><a class="sy-tag sy-tag--sm" href="#">PROC-001</a></dd>
+                <dt>Revision</dt><dd>rev 3</dd>
+                <dt>Holds</dt><dd>Trigger, steps, outcomes, paths and the 6 rules as decision tables</dd>
+              </dl>
+              <p class="sy-small sy-muted">One PROC record per process. It gets a new revision when you decide the changes that need you.</p>
+              <a class="sy-small" href="v2-12-rule-detail.html#export">See a rule as exported</a>
+            </div>
+          </section>
+
+          <!-- Changes since the previous release -->
+          <section class="sy-plate" aria-labelledby="chg-h">
+            <div class="sy-plate__head">
+              <h2 id="chg-h" class="sy-plate__title">Changes</h2>
+              <span class="sy-status" data-status="needs">4 need you</span>
+            </div>
+            <div class="sy-plate__body">
+              <p class="sy-small">11 changes since the previous release (<span class="sy-mono">1d77</span> / <span class="sy-mono">5f08</span>) · 7 explained automatically</p>
+            </div>
+            <ul class="sy-rows">
+              <li><a class="sy-row" href="v2-02-changes.html"><span>dane kierowcy</span><span class="sy-small sy-muted">6 · 2 need you</span></a></li>
+              <li><a class="sy-row" href="v2-02-changes.html"><span>opcje</span><span class="sy-small sy-muted">2 · 1 needs you</span></a></li>
+              <li><a class="sy-row" href="v2-02-changes.html"><span>wynik</span><span class="sy-small sy-muted">3 · 1 needs you</span></a></li>
+            </ul>
+          </section>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+</body>
+</html>
