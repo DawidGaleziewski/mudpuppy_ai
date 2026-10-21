@@ -1,7 +1,7 @@
 {#- What the portal model knows of the process (spec 039 T100, UX-R51–R54, designer screen v2-10):
     how journeys entered it, how they ended, how far it was explored and the rules on its screens.
-    Expects `v.model` (queries_process_model.ProcessModel). -#}
-{%- set m = v.model %}
+    Expects `v.facts` (queries_model_facts.ModelFacts). -#}
+{%- set m = v.facts %}
 {%- if m and m.model_seq is not none %}
 <section class="sy-plate" aria-labelledby="model-h">
   <div class="sy-plate__head">
@@ -11,8 +11,8 @@
   <div class="sy-plate__body sy-stack">
     <dl class="sy-facts">
       <dt>Triggers</dt>
-      <dd>{%- if m.triggers %}{% for t in m.triggers %}<div>{% if t.screen_key %}{{ sy.tag(t.screen_key, sm=true) }} <span class="sy-case-normal">{{ t.screen_title or "" }}</span>{% else %}<span class="sy-muted">outside the model</span>{% endif %} → <span class="sy-mono sy-mono--sm">{{ t.element }}</span> · <span class="sy-num">{{ t.count }}</span>×</div>{% endfor %}
-        {%- else %}<span class="sy-muted">No scan entered the process through a link or button yet.</span>{% endif %}</dd>
+      <dd>{%- if m.triggers %}{% for t in m.triggers %}<div>{% if t.deep_link %}<span class="sy-case-normal">A URL opened on the first screen</span> (deep link){% elif t.screen_key %}{{ sy.tag(t.screen_key, sm=true) }} <span class="sy-case-normal">{{ t.screen_title or "" }}</span>{% else %}<span class="sy-muted">outside the model</span>{% endif %}{% if not t.deep_link %} → <span class="sy-mono sy-mono--sm">{{ t.element }}</span>{% endif %} · <span class="sy-num">{{ t.count }}</span>×</div>{% endfor %}
+        {%- else %}<span class="sy-muted">No scan entered the process yet.</span>{% endif %}</dd>
       <dt>Outcomes</dt>
       <dd>{%- if m.outcomes %}{% for o, n in m.outcomes.items() %}<span class="sy-num">{{ n }}</span> {{ o }}{% if not loop.last %} · {% endif %}{% endfor %}
         {%- else %}<span class="sy-muted">—</span>{% endif %}</dd>

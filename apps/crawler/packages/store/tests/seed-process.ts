@@ -1,6 +1,7 @@
 // The threshold portal with a documented process (spec 039 T073, T075): a car page whose link
-// enters the calculator in journeys j3 and j6, and PRC-001 whose A walks the calculator form and
-// the price page. Shared by the process instance and exploration tests.
+// enters the calculator in journeys j3 and j6 (the others open the calculator by URL: deep links),
+// and PRC-001 whose A walks the calculator form and the price page. Shared by the process
+// instance, facts and exploration tests.
 import { join } from 'node:path';
 import { migrateUp, openDb, type OpenedDb } from '../src/index.js';
 import { seedThreshold, T } from './seed-threshold.js';
@@ -29,6 +30,11 @@ export function seedProcess(): OpenedDb {
          confidence, stabilization, created_at, journey_id, seq, element_key, kind, result)
        VALUES (?, 'run1', 'car', 'form', '{}', 'read', 'executed', ?, 'observed', 'settled', ?, ?, 1, 'link|Oblicz', 'click', 'ok')`,
     ).run(`in-${j}`, `${H('e')}.yaml`, T(5), j);
+  // j3 and j6 opened the car page by URL and clicked into the form; the other journeys opened
+  // the form itself by URL (deep links, owner answer 10).
+  r.prepare(
+    "UPDATE observations SET state_id = 'car', url = 'https://ins.test/samochod' WHERE id IN ('vf3', 'vf6')",
+  ).run();
   r.prepare(
     `INSERT INTO ba_processes (id, portal_id, key, name, persona, stage, rev, source, created_at, updated_at)
      VALUES ('prc', 'ins', 'PRC-001', 'Quote', 'guest', 'scoped', 1, 'new', ?, ?)`,
@@ -38,7 +44,7 @@ export function seedProcess(): OpenedDb {
      VALUES ('va', 'prc', 'A', 'as_is', 1, ?)`,
   ).run(T(1));
   r.prepare(
-    `INSERT INTO process_model_revisions (variant_id, rev, base_rev, change, author, steps, created_at)
+    `INSERT INTO process_model_revisions (model_id, rev, base_rev, change, author, steps, created_at)
      VALUES ('va', 1, NULL, 'create', 'BA', ?, ?)`,
   ).run(JSON.stringify([{ state_id: 'form' }, { state_id: 'price' }]), T(1));
   return o;

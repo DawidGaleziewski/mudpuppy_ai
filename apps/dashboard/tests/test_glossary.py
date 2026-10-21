@@ -268,7 +268,7 @@ EXPECTED_IDS = {
     "run", "mode", "environment", "persona", "state", "fingerprint", "cluster", "settled",
     "transition", "accessible-name", "role", "safety-class", "decision", "top-locator", "target",
     "click-signal", "signal-found-action",  # R-28
-    "screen-revision", "process-variant", "process-draft", "change-spec", "live-variant",
+    "screen-revision", "process-model", "process-draft", "change-spec", "live-process-model",
     "proposal", "review-inbox", "grouping-suggestion", "re-anchor",  # R-43
     "portal-hook",  # R-53
     "access-dependent",  # R-33

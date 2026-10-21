@@ -1,6 +1,7 @@
 /**
  * Process instances in the store (spec 039 design § 13.1, T073): each reconcile finds, for every
- * process of the portal, the journeys that entered it through a trigger and how they ended, and
+ * process of the portal, the journeys that entered it through a trigger (a transition, or a URL
+ * opened on its start screen: a deep link, owner answer 10) and how they ended, and
  * writes them for that model version. Trace variants are computed on read from the same walk.
  */
 import type BetterSqlite3 from 'better-sqlite3';
@@ -37,7 +38,7 @@ export function processShapes(
     .prepare(
       `SELECT p.id, p.start_screen_id, r.steps FROM ba_processes p
        JOIN process_models m ON m.process_id = p.id AND m.label = 'A'
-       JOIN process_model_revisions r ON r.variant_id = m.id AND r.rev = m.rev
+       JOIN process_model_revisions r ON r.model_id = m.id AND r.rev = m.rev
        WHERE p.portal_id = ? AND p.archived_at IS NULL ORDER BY p.key`,
     )
     .all(portal) as { id: string; start_screen_id: string | null; steps: string }[];
@@ -100,7 +101,7 @@ function journeySteps(raw: Raw, portal: string, screenOf: ReadonlyMap<string, st
     element_key: string | null;
     kind: string | null;
   }[];
-  return rows.map((t): JourneyStep => {
+  const transitions = rows.map((t): JourneyStep => {
     const from = screenOf.get(t.from_state) ?? null;
     return {
       transitionId: t.id,
@@ -112,6 +113,41 @@ function journeySteps(raw: Raw, portal: string, screenOf: ReadonlyMap<string, st
       global: from !== null && global.has(`${from}|${t.element_key}|${t.kind}`),
     };
   });
+  return [...transitions, ...openedUrls(raw, portal, screenOf)];
+}
+
+/**
+ * The URL typed at the start of each of the portal's `entry_url` journeys (its first `navigate`
+ * observation): a possible deep link. A typed URL always starts a new journey, so it comes before
+ * the journey's transitions (`seq` 0; observations are numbered per run, transitions per journey).
+ * A `go_to_state` replay starts a `checkpoint` journey and a login its own; those are the
+ * crawler's way back to a page, not a way in, so they never count.
+ */
+function openedUrls(raw: Raw, portal: string, screenOf: ReadonlyMap<string, string>) {
+  const rows = raw
+    .prepare(
+      `SELECT o.id, o.journey_id, o.state_id, o.result FROM observations o
+       JOIN runs r ON r.id = o.run_id
+       JOIN journeys j ON j.id = o.journey_id AND j.start_kind = 'entry_url'
+       WHERE r.portal_id = ? AND o.via = 'navigate' AND o.seq = (
+         SELECT min(f.seq) FROM observations f WHERE f.journey_id = o.journey_id)`,
+    )
+    .all(portal) as {
+    id: string;
+    journey_id: string;
+    state_id: string;
+    result: string | null;
+  }[];
+  return rows.map((o): JourneyStep => ({
+    transitionId: null,
+    observationId: o.id,
+    journeyId: o.journey_id,
+    seq: 0,
+    fromScreen: null,
+    toScreen: screenOf.get(o.state_id) ?? null,
+    result: o.result,
+    global: false,
+  }));
 }
 
 /** Every instance of the portal's processes in the current model. */
@@ -128,16 +164,19 @@ export function writeProcessInstances(raw: Raw, portal: string, versionId: strin
   const found = findProcessInstances(raw, portal);
   raw.prepare('DELETE FROM process_instances WHERE model_version_id = ?').run(versionId);
   const insert = raw.prepare(
-    `INSERT INTO process_instances (id, process_id, journey_id, trigger_transition_id,
-       last_transition_id, outcome, outcome_screen_id, correlation_id, model_version_id)
-     VALUES (?, ?, ?, ?, ?, ?, ?, NULL, ?)`,
+    `INSERT INTO process_instances (id, process_id, journey_id, trigger_kind,
+       trigger_transition_id, trigger_observation_id, last_transition_id, outcome,
+       outcome_screen_id, correlation_id, model_version_id)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NULL, ?)`,
   );
   for (const i of found)
     insert.run(
       newId(),
       i.processId,
       i.journeyId,
+      i.trigger,
       i.triggerTransitionId,
+      i.triggerObservationId,
       i.lastTransitionId,
       i.outcome,
       i.outcomeScreen,

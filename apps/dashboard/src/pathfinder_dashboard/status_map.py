@@ -245,7 +245,7 @@ VOCABULARIES: dict[str, dict[str, Status]] = {
         "added": _s("draft", "Added"),
         "removed": _s("skipped", "Removed"),
     },
-    "variant": {
+    "process_model": {
         "as_is": _s("ok", "Observed"),
         "to_be": _s("draft", "Drawn"),
         "draft": _s("draft", "Draft open"),

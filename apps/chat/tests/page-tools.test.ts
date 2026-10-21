@@ -172,7 +172,7 @@ describe('page tools', () => {
     expect(docs).toMatchObject({ isError: true, body: { error: { code: 'NOT_FOUND' } } });
   });
 
-  it('page_context reads a process: variants with steps and the live marker (spec 022 M5)', async () => {
+  it('page_context reads a process: models with steps and the live marker (spec 022 M5)', async () => {
     const svc = createProcessService({ db: opened.db });
     const made = await svc.create('p', {
       name: 'Buy',
@@ -190,14 +190,14 @@ describe('page tools', () => {
     expect(r.body).toMatchObject({
       type: 'process',
       process: { key: 'PRC-001', name: 'Buy' },
-      shown_variant: 'B',
-      variants: [
+      shown_model: 'B',
+      models: [
         { label: 'A', kind: 'as_is', rev: 1 },
         { label: 'B', kind: 'to_be', rev: 1 },
       ],
-      live: [{ environment: 'sandbox', label: 'B', variant_rev: 1 }],
+      live: [{ environment: 'sandbox', label: 'B', model_rev: 1 }],
     });
-    expect((r.body.variants as { steps: unknown[] }[])[0]!.steps).toHaveLength(2);
+    expect((r.body.models as { steps: unknown[] }[])[0]!.steps).toHaveLength(2);
     expect((await call('page_context', { type: 'process', id: 'nope:A' })).isError).toBe(true);
   });
 

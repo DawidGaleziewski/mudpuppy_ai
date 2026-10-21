@@ -543,6 +543,8 @@ class SimilarityClassifier(Row):
     tau_f1: float
     better: bool
     trained_at: str
+    accepted_by: str | None  # 0039 (owner answer 14): set when a person puts it in force
+    accepted_at: str | None
 
 
 class CorrelationId(Row):
@@ -558,13 +560,16 @@ class CorrelationId(Row):
 
 
 class ProcessInstance(Row):
-    """0036: one journey through a process from its trigger, with the outcome."""
+    """0036: one journey through a process from its trigger, with the outcome. 0039: the trigger
+    is a transition or a deep link (a URL opened on the start screen)."""
 
     id: str
     process_id: str
     journey_id: str
-    trigger_transition_id: str
-    last_transition_id: str
+    trigger_kind: Literal["transition", "deep_link"]
+    trigger_transition_id: str | None
+    trigger_observation_id: str | None
+    last_transition_id: str | None
     outcome: Literal["completed", "exited", "error", "abandoned", "incomplete"]
     outcome_screen_id: str | None
     correlation_id: str | None
@@ -1207,23 +1212,23 @@ class BaProcessRevision(Row):
     created_at: str
 
 
-class ProcessVariant(Row):
-    """Head of one variant (A, B, ...) of a BA process (0018)."""
+class ProcessModel(Row):
+    """Head of one process model (A, B, ...) of a BA process (0018; 0039 renamed from variant)."""
 
     id: str
     process_id: str
     label: str
     kind: Literal["as_is", "to_be"]
     rev: int
-    branched_from_variant_id: str | None
+    branched_from_model_id: str | None
     branched_from_rev: int | None
     created_at: str
 
 
-class ProcessVariantRevision(Row):
-    """One immutable revision of a variant (0018, append-only); `steps` is a JSON array."""
+class ProcessModelRevision(Row):
+    """One immutable revision of a process model (0018, append-only); `steps` is a JSON array."""
 
-    variant_id: str
+    model_id: str
     rev: int
     base_rev: int | None
     change: Literal["create", "branch", "save", "restore", "observe", "edit"]
@@ -1236,9 +1241,9 @@ class ProcessVariantRevision(Row):
 
 
 class ProcessDraft(Row):
-    """One person's open draft over one to-be variant (0018, scratch)."""
+    """One person's open draft over one to-be process model (0018, scratch)."""
 
-    variant_id: str
+    model_id: str
     author: str
     base_rev: int
     steps: Json
@@ -1246,13 +1251,13 @@ class ProcessDraft(Row):
 
 
 class ProcessLive(Row):
-    """A mark that a variant revision is live in an environment (0018, append-only)."""
+    """A mark that a process model revision is live in an environment (0018, append-only)."""
 
     id: str
     process_id: str
     environment: Literal["sandbox", "staging", "production"]
-    variant_id: str
-    variant_rev: int
+    model_id: str
+    model_rev: int
     author: str
     reason: str | None
     created_at: str
@@ -1282,9 +1287,9 @@ class ChangeSpecRevision(Row):
     process_id: str
     rev: int
     base_rev: int | None
-    left_variant_id: str
+    left_model_id: str
     left_rev: int
-    right_variant_id: str
+    right_model_id: str
     right_rev: int
     sections: Json
     author: str
@@ -1332,8 +1337,8 @@ TABLE_MODELS: dict[str, type[Row]] = {
     "grouping_suggestions": GroupingSuggestion,
     "ba_processes": BaProcess,
     "ba_process_revisions": BaProcessRevision,
-    "process_models": ProcessVariant,
-    "process_model_revisions": ProcessVariantRevision,
+    "process_models": ProcessModel,
+    "process_model_revisions": ProcessModelRevision,
     "process_drafts": ProcessDraft,
     "process_live": ProcessLive,
     "change_spec_revisions": ChangeSpecRevision,

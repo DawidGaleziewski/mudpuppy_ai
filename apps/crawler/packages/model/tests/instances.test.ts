@@ -39,7 +39,9 @@ describe('processInstances', () => {
     expect(i).toEqual({
       processId: 'prc',
       journeyId: 'j1',
+      trigger: 'transition',
       triggerTransitionId: 'j1-t2',
+      triggerObservationId: null,
       lastTransitionId: 'j1-t4',
       outcome: 'completed',
       outcomeScreen: 'RES',
@@ -75,6 +77,37 @@ describe('processInstances', () => {
       ['j-t1', 'exited'],
       ['j-t3', 'completed'],
     ]);
+  });
+
+  it('counts a deep link onto the start screen as an instance (owner answer 10)', () => {
+    const url = (seq: number, to: string): JourneyStep => ({
+      transitionId: null,
+      observationId: `j-o${seq}`,
+      journeyId: 'j',
+      seq,
+      fromScreen: null,
+      toScreen: to,
+      result: 'ok',
+      global: false,
+    });
+    const walk = journey('j', ['VEH', 'DRV', 'RES']).map((s) => ({ ...s, seq: s.seq + 1 }));
+    const [i] = processInstances([quote], [url(1, 'VEH'), ...walk]);
+    expect(i).toMatchObject({
+      trigger: 'deep_link',
+      triggerTransitionId: null,
+      triggerObservationId: 'j-o1',
+      lastTransitionId: 'j-t2',
+      outcome: 'completed',
+      screens: ['VEH', 'DRV', 'RES'],
+    });
+    // A deep link and nothing after it: one screen, no transition, not finished.
+    expect(processInstances([quote], [url(1, 'VEH')])[0]).toMatchObject({
+      lastTransitionId: null,
+      outcome: 'incomplete',
+    });
+    // A URL opened mid-walk away from the process abandons it.
+    const away = processInstances([quote], [url(1, 'VEH'), url(2, 'HOME')]);
+    expect(away.map((x) => [x.outcome, x.outcomeScreen])).toEqual([['abandoned', 'VEH']]);
   });
 });
 

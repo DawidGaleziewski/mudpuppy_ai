@@ -142,7 +142,7 @@ The assistant lives on **Home**, and on every other page in a drawer: press **As
 assistant** or **Ctrl J**. The drawer has two contexts:
 
 - **This page** sends what you are looking at: the screen and its revision, the process, its
-  variant and step, or the item selected in Review. You can say "this step" or "that
+  process model and step, or the item selected in Review. You can say "this step" or "that
   amendment".
 - **Whole yard** sends only the portal.
 
@@ -377,22 +377,23 @@ amendments to re-anchor).
   process again. Nothing is deleted: **Processes → Archived** lists it with **Restore**.
 - **Documentation** downloads the whole as-is (steps, requirements, contracts, gaps).
 
-### Variants: A and B
+### Process models: A and B
 
-Each process has **variants**:
+Each process has **process models**:
 
 - **A, as-is**: what the scans observed, fixed by hand where needed. It is the reference.
-- **B, to-be**: what you want. Start one with **Start a to-be design** (later **Variant from
-  A**) and draw it. From **to-be in design** on, the page opens on the to-be.
+- **B, to-be**: what you want. Start one with **Start a to-be design** (later **Process model
+  from A**) and draw it. From **to-be in design** on, the page opens on the to-be.
 
-A variant has revisions: **r1**, **r2**. Every save is a new revision with your name and the
-time. Nothing is overwritten or deleted.
+A process model has revisions: **r1**, **r2**. Every save is a new revision with your name and
+the time. Nothing is overwritten or deleted. ("Variant" means a screen variant only: one way a
+screen looked.)
 
 ### Draw the to-be
 
-Open variant B. Your work is a **draft** until you save it.
+Open process model B. Your work is a **draft** until you save it.
 
-![The to-be variant as a draft](how-to-use/21-process-to-be-draft.png)
+![The to-be process model as a draft](how-to-use/21-process-to-be-draft.png)
 
 - Each step is a plate: select it, move it up or down, **Merge** it with the next one, or add
   a **new step** with a name and a route.
@@ -406,7 +407,7 @@ Open variant B. Your work is a **draft** until you save it.
 
 ### Compare and the change spec
 
-**Compare A and B** puts the variants side by side.
+**Compare A and B** puts the two process models side by side.
 
 ![Compare A and B](how-to-use/22-process-compare.png)
 
@@ -416,10 +417,10 @@ as **Markdown** for the people who build the new portal.
 
 ### History and live
 
-**History** shows the variants and revisions, who saved what and when, and a scan-by-scan
+**History** shows the process models and revisions, who saved what and when, and a scan-by-scan
 timeline. **Restore** brings an older revision back as a new revision.
 
-**Mark live** says which variant runs in which environment (for example B r2 is live in
+**Mark live** says which process model runs in which environment (for example B r2 is live in
 sandbox). Each environment has its own marker. Until you mark one, the environment shows
 **Not marked**.
 

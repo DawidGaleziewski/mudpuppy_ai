@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  acceptClassifier,
   activeClassifier,
   activeProfile,
   classifierTrainingSet,
@@ -45,15 +46,22 @@ describe('similarity classifier (T090)', () => {
 
     expect(activeClassifier(r, 'ins', PROFILE)).toBeUndefined();
     recordClassifier(r, 'ins', PROFILE, trained(true), set.tau, T(800));
+    // Owner answer 14: a classifier that beat τ still waits for a person.
+    expect(activeClassifier(r, 'ins', PROFILE)).toBeUndefined();
+    expect(acceptClassifier(r, 'ins', { by: 'Anna', now: T(805) })).toMatchObject({
+      f1: 0.95,
+      tauF1: 0.8,
+    });
     expect(activeClassifier(r, 'ins', PROFILE)).toEqual({
       weights: [1, 2, 0, 0, 0, 0, 0.5],
       intercept: -1.5,
     });
-    // A training moves the decision watermark: the next reconcile writes a version with it.
+    // The acceptance moves the decision watermark: the next reconcile writes a version with it.
     expect(reconcilePortalModel(r, 'ins', { now: T(810) }).modelVersion).not.toBeNull();
-    // A newer training that does not beat τ takes the classifier out again.
+    // A newer training that does not beat τ cannot be accepted; the accepted one stays.
     recordClassifier(r, 'ins', PROFILE, trained(false), set.tau, T(900));
-    expect(activeClassifier(r, 'ins', PROFILE)).toBeUndefined();
+    expect(() => acceptClassifier(r, 'ins', { by: 'Anna' })).toThrow(/does not beat τ/);
+    expect(activeClassifier(r, 'ins', PROFILE)?.intercept).toBe(-1.5);
     expect(() =>
       recordClassifier(r, 'ins', PROFILE, { ...trained(true), names: ['minhash'] }, set.tau),
     ).toThrow(/not this version's/);

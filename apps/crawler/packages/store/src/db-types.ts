@@ -60,8 +60,8 @@ import type {
   GroupingSuggestionStatus,
   ProcessLiveEnvironment,
   ProcessScopeSource,
-  ProcessVariantChange,
-  ProcessVariantKind,
+  ProcessModelChange,
+  ProcessModelKind,
   WorkflowStepName,
   WorkflowStepStatus,
 } from '@pathfinder/chat-model';
@@ -411,19 +411,20 @@ export interface ProcessModelsTable {
   id: string;
   process_id: string;
   label: string;
-  kind: ProcessVariantKind;
+  kind: ProcessModelKind;
   rev: number;
-  branched_from_variant_id: string | null;
+  /** 0039: was `branched_from_variant_id`. */
+  branched_from_model_id: string | null;
   branched_from_rev: number | null;
   created_at: string;
 }
 
-/** 0036: renamed from `process_variant_revisions`. */
+/** 0036: renamed from `process_variant_revisions`; 0039: `variant_id` → `model_id`. */
 export interface ProcessModelRevisionsTable {
-  variant_id: string;
+  model_id: string;
   rev: number;
   base_rev: number | null;
-  change: ProcessVariantChange;
+  change: ProcessModelChange;
   author: string;
   steps: string;
   note: string | null;
@@ -433,7 +434,7 @@ export interface ProcessModelRevisionsTable {
 }
 
 export interface ProcessDraftsTable {
-  variant_id: string;
+  model_id: string;
   author: string;
   base_rev: number;
   steps: string;
@@ -444,8 +445,8 @@ export interface ProcessLiveTable {
   id: string;
   process_id: string;
   environment: ProcessLiveEnvironment;
-  variant_id: string;
-  variant_rev: number;
+  model_id: string;
+  model_rev: number;
   author: string;
   reason: string | null;
   created_at: string;
@@ -475,9 +476,9 @@ export interface ChangeSpecRevisionsTable {
   process_id: string;
   rev: number;
   base_rev: number | null;
-  left_variant_id: string;
+  left_model_id: string;
   left_rev: number;
-  right_variant_id: string;
+  right_model_id: string;
   right_rev: number;
   sections: string;
   author: string;
@@ -588,6 +589,9 @@ export interface SimilarityClassifiersTable {
   tau_f1: number;
   better: 0 | 1;
   trained_at: string;
+  /** 0039 (owner answer 14): who put it in force; null until a person accepts it. */
+  accepted_by: string | null;
+  accepted_at: string | null;
 }
 
 /** 0033 (spec 039 T115): a τ a person accepted for a portal and profile; the latest is in force. */
@@ -1068,13 +1072,18 @@ export interface CorrelationIdsTable {
   last_transition_id: string;
 }
 
-/** 0036: one journey through a process from its trigger, with the outcome. */
+/**
+ * 0036: one journey through a process from its trigger, with the outcome. 0039: the trigger is a
+ * transition or a deep link (an observation of a URL opened on the start screen).
+ */
 export interface ProcessInstancesTable {
   id: string;
   process_id: string;
   journey_id: string;
-  trigger_transition_id: string;
-  last_transition_id: string;
+  trigger_kind: 'transition' | 'deep_link';
+  trigger_transition_id: string | null;
+  trigger_observation_id: string | null;
+  last_transition_id: string | null;
   outcome: 'completed' | 'exited' | 'error' | 'abandoned' | 'incomplete';
   outcome_screen_id: string | null;
   correlation_id: string | null;

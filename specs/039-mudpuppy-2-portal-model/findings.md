@@ -699,3 +699,30 @@ Bugs, slips and design deviations found while building, each with a test or eval
   gets both targets, the kind is `nondeterministic`.
 - **Test**: the SC-20 gate. Eval idea: count the SC-20-like deviations the BA explains as
   nondeterministic rather than as a rule.
+
+## F-44 Owner answers 8, 10, 14 as built (migration 0039), 2026-10-21
+
+- **8 (process models everywhere)**: in 2.0 "variant" means a screen variant (designer
+  `12-v2-ux.md` § vocabulary). Under the naming rule, a process's A and B are **process models**
+  in the columns (`model_id`, `model_rev`, `branched_from_model_id`, `left_/right_model_id`), the
+  Zod and Pydantic models (`ProcessModel`, `ProcessModelRevision`), the chat API
+  (`…/processes/{id}/models/{label}/…`, JSON key `model`), the dashboard (`?model=B`, status
+  vocabulary `process_model`, the page words), the glossary (`process-model`,
+  `live-process-model`) and how-to-use. "Variant" keeps three other senses: a persona's screen
+  variant (Access), a probe-suite variant, and a process record's trace-run variants.
+- **10 (deep links)**: `process_instances.trigger_kind` is `transition` or `deep_link`. A deep
+  link is the first `navigate` observation of an `entry_url` journey (a typed URL starts a new
+  journey). `checkpoint` (a `go_to_state` replay), `login` and `fresh_session` journeys are the
+  crawler's way back to a page, so they never count. Observations are numbered per run and
+  transitions per journey, so the deep link is placed before the journey's transitions (seq 0).
+  A URL opened mid-walk away from the process ends it as `abandoned` (model; the store sends
+  only first URLs). The process page and the export name the trigger "deep link".
+- **14 (a person accepts the classifier)**: `similarity_classifiers.accepted_by/at`. The
+  reconciler uses the latest accepted one. `pnpm model:decide … accept-classifier` refuses a
+  training that did not beat τ, and a newer, worse training leaves the accepted one in force. The
+  decision watermark follows `accepted_at`.
+- **Test**: `instances.test.ts` (model, deep links), `process-instances.test.ts` and
+  `process-facts.test.ts` (store; the seed's j3/j6 now open the car page by URL),
+  `similarity-classifier.test.ts`, `test_model_facts.py`, the migration round-trips. Eval idea:
+  on a portal opened by URL, the grouping eval should count deep-link instances as entries, not
+  as missing triggers.

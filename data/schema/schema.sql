@@ -1,4 +1,4 @@
--- GENERATED from data/migrations/*.up.sql applied in order (currently through 0038_similarity_classifiers). Do not edit by hand.
+-- GENERATED from data/migrations/*.up.sql applied in order (currently through 0039_owner_answers). Do not edit by hand.
 -- Regenerate after every migration; see data/schema/README.md.
 
 CREATE TABLE runs (
@@ -807,23 +807,24 @@ CREATE TABLE ba_process_revisions (
 ) STRICT, WITHOUT ROWID;
 
 -- Renamed by 0036 from process_variants (spec 039 design § 13.4): a process's as-is and to-be models.
+-- 0039 renamed the variant columns of the process model tables to model columns (owner answer 8).
 CREATE TABLE process_models (
   id                       TEXT PRIMARY KEY,                         -- UUIDv7
   process_id               TEXT NOT NULL REFERENCES ba_processes(id),
   label                    TEXT NOT NULL CHECK (length(label) > 0),  -- A, B, C...
   kind                     TEXT NOT NULL CHECK (kind IN ('as_is','to_be')),  -- as_is = A, observed, rescans add revisions
   rev                      INTEGER NOT NULL CHECK (rev >= 1),        -- the head's current revision
-  branched_from_variant_id TEXT REFERENCES process_models(id),       -- NULL for A
+  branched_from_model_id   TEXT REFERENCES process_models(id),       -- NULL for A
   branched_from_rev        INTEGER CHECK (branched_from_rev IS NULL OR branched_from_rev >= 1),
   created_at               TEXT NOT NULL,
   UNIQUE (process_id, label),
-  CHECK ((branched_from_variant_id IS NULL) = (branched_from_rev IS NULL))
+  CHECK ((branched_from_model_id IS NULL) = (branched_from_rev IS NULL))
 ) STRICT;
 
 -- 0028 rebuilt it: 'edit' = a person changed A's steps (spec 027 FR-004). Renamed by 0036 from
 -- process_variant_revisions.
 CREATE TABLE process_model_revisions (
-  variant_id    TEXT NOT NULL REFERENCES process_models(id),
+  model_id      TEXT NOT NULL REFERENCES process_models(id),
   rev           INTEGER NOT NULL CHECK (rev >= 1),
   base_rev      INTEGER CHECK (base_rev IS NULL OR base_rev >= 1),   -- NULL for r1
   change        TEXT NOT NULL CHECK (change IN ('create','branch','save','restore','observe','edit')),
@@ -833,32 +834,32 @@ CREATE TABLE process_model_revisions (
   run_id        TEXT REFERENCES runs(id),                            -- for observe
   restored_from INTEGER CHECK (restored_from IS NULL OR restored_from >= 1),  -- for restore
   created_at    TEXT NOT NULL,
-  PRIMARY KEY (variant_id, rev),
+  PRIMARY KEY (model_id, rev),
   CHECK ((rev = 1) = (base_rev IS NULL))
 ) STRICT, WITHOUT ROWID;
 
--- Scratch: one open draft of one person over one to-be variant, updated in place, deleted on save/discard.
--- A base_rev older than the variant's head is an edit conflict (Review "Edit conflicts").
+-- Scratch: one open draft of one person over one to-be model, updated in place, deleted on save/discard.
+-- A base_rev older than the model's head is an edit conflict (Review "Edit conflicts").
 CREATE TABLE process_drafts (
-  variant_id TEXT NOT NULL REFERENCES process_models(id),
+  model_id   TEXT NOT NULL REFERENCES process_models(id),
   author     TEXT NOT NULL CHECK (length(author) > 0),
   base_rev   INTEGER NOT NULL CHECK (base_rev >= 1),
   steps      TEXT NOT NULL CHECK (json_valid(steps) AND json_type(steps) = 'array'),
   updated_at TEXT NOT NULL,
-  PRIMARY KEY (variant_id, author)
+  PRIMARY KEY (model_id, author)
 ) STRICT, WITHOUT ROWID;
 
--- The live variant per environment is the newest row for (process_id, environment).
+-- The live process model per environment is the newest row for (process_id, environment).
 CREATE TABLE process_live (
   id          TEXT PRIMARY KEY,                                      -- UUIDv7
   process_id  TEXT NOT NULL REFERENCES ba_processes(id),
   environment TEXT NOT NULL CHECK (environment GLOB '[a-z]*' AND length(environment) BETWEEN 1 AND 40 AND environment NOT GLOB '*[^a-z0-9-]*'),  -- free name per portal (0021, spec 030 R-61)
-  variant_id  TEXT NOT NULL,
-  variant_rev INTEGER NOT NULL CHECK (variant_rev >= 1),
+  model_id    TEXT NOT NULL,
+  model_rev   INTEGER NOT NULL CHECK (model_rev >= 1),
   author      TEXT NOT NULL CHECK (length(author) > 0),
   reason      TEXT,
   created_at  TEXT NOT NULL,
-  FOREIGN KEY (variant_id, variant_rev) REFERENCES process_model_revisions(variant_id, rev)
+  FOREIGN KEY (model_id, model_rev) REFERENCES process_model_revisions(model_id, rev)
 ) STRICT;
 
 CREATE INDEX ix_process_live_process_env ON process_live (process_id, environment, created_at);
@@ -867,9 +868,9 @@ CREATE TABLE change_spec_revisions (
   process_id       TEXT NOT NULL REFERENCES ba_processes(id),
   rev              INTEGER NOT NULL CHECK (rev >= 1),
   base_rev         INTEGER CHECK (base_rev IS NULL OR base_rev >= 1),  -- NULL for r1
-  left_variant_id  TEXT NOT NULL,                                    -- what was compared
+  left_model_id    TEXT NOT NULL,                                    -- what was compared
   left_rev         INTEGER NOT NULL CHECK (left_rev >= 1),
-  right_variant_id TEXT NOT NULL,
+  right_model_id   TEXT NOT NULL,
   right_rev        INTEGER NOT NULL CHECK (right_rev >= 1),
   sections         TEXT NOT NULL CHECK (json_valid(sections) AND json_type(sections) = 'object'),  -- scope, as_is, to_be, delta, records, migration_cut, open_questions
   author           TEXT NOT NULL CHECK (length(author) > 0),
@@ -877,8 +878,8 @@ CREATE TABLE change_spec_revisions (
   created_at       TEXT NOT NULL,
   PRIMARY KEY (process_id, rev),
   CHECK ((rev = 1) = (base_rev IS NULL)),
-  FOREIGN KEY (left_variant_id, left_rev) REFERENCES process_model_revisions(variant_id, rev),
-  FOREIGN KEY (right_variant_id, right_rev) REFERENCES process_model_revisions(variant_id, rev)
+  FOREIGN KEY (left_model_id, left_rev) REFERENCES process_model_revisions(model_id, rev),
+  FOREIGN KEY (right_model_id, right_rev) REFERENCES process_model_revisions(model_id, rev)
 ) STRICT, WITHOUT ROWID;
 
 -- 0022: one step of a form flow on a route template, numbered per (portal, route) in first-seen order.
@@ -1309,21 +1310,28 @@ CREATE TABLE correlation_ids (
 ) STRICT;
 CREATE INDEX ix_correlation_ids_journey ON correlation_ids (journey_id);
 
+-- Rebuilt by 0039 (owner answer 10): a journey enters by a transition or by a deep link (a URL
+-- opened on the start screen, `trigger_observation_id`).
 CREATE TABLE process_instances (
-  id                    TEXT PRIMARY KEY,
-  process_id            TEXT NOT NULL REFERENCES ba_processes(id),
-  journey_id            TEXT NOT NULL REFERENCES journeys(id),
-  trigger_transition_id TEXT NOT NULL REFERENCES transitions(id),
-  last_transition_id    TEXT NOT NULL REFERENCES transitions(id),
-  outcome               TEXT NOT NULL CHECK (outcome IN
-                          ('completed','exited','error','abandoned','incomplete')),
-  outcome_screen_id     TEXT REFERENCES model_screens(id),
-  correlation_id        TEXT REFERENCES correlation_ids(id),
-  model_version_id      TEXT NOT NULL REFERENCES model_versions(id)
+  id                     TEXT PRIMARY KEY,
+  process_id             TEXT NOT NULL REFERENCES ba_processes(id),
+  journey_id             TEXT NOT NULL REFERENCES journeys(id),
+  trigger_kind           TEXT NOT NULL CHECK (trigger_kind IN ('transition','deep_link')),
+  trigger_transition_id  TEXT REFERENCES transitions(id),
+  trigger_observation_id TEXT REFERENCES observations(id),
+  last_transition_id     TEXT REFERENCES transitions(id),   -- NULL: the deep link was the whole walk
+  outcome                TEXT NOT NULL CHECK (outcome IN
+                           ('completed','exited','error','abandoned','incomplete')),
+  outcome_screen_id      TEXT REFERENCES model_screens(id),
+  correlation_id         TEXT REFERENCES correlation_ids(id),
+  model_version_id       TEXT NOT NULL REFERENCES model_versions(id),
+  CHECK ((trigger_kind = 'transition') = (trigger_transition_id IS NOT NULL)),
+  CHECK ((trigger_kind = 'deep_link') = (trigger_observation_id IS NOT NULL)),
+  CHECK (trigger_kind = 'deep_link' OR last_transition_id IS NOT NULL)
 ) STRICT;
 CREATE INDEX ix_process_instances_process ON process_instances (process_id, model_version_id);
 CREATE UNIQUE INDEX ux_process_instances_trigger ON process_instances
-  (process_id, trigger_transition_id, model_version_id);
+  (process_id, coalesce(trigger_transition_id, trigger_observation_id), model_version_id);
 
 CREATE TABLE process_triggers (
   process_id          TEXT NOT NULL REFERENCES ba_processes(id),
@@ -1357,6 +1365,9 @@ CREATE TABLE similarity_classifiers (
   tau          REAL NOT NULL CHECK (tau > 0 AND tau <= 1),
   tau_f1       REAL NOT NULL CHECK (tau_f1 >= 0 AND tau_f1 <= 1),
   better       INTEGER NOT NULL CHECK (better IN (0,1)),
-  trained_at   TEXT NOT NULL
+  trained_at   TEXT NOT NULL,
+  -- 0039 (ALTER TABLE, owner answer 14): the person who put it in force; NULL = not accepted.
+  accepted_by  TEXT CHECK (accepted_by IS NULL OR length(accepted_by) > 0),
+  accepted_at  TEXT
 ) STRICT;
 CREATE INDEX ix_similarity_classifiers_portal ON similarity_classifiers (portal_id, profile, trained_at);

@@ -13,7 +13,8 @@ import {
   type SimilarityClassifier,
 } from '@pathfinder/model';
 import { z } from 'zod';
-import { LEGACY_PROFILE, tauInForce } from './fingerprint-profiles.js';
+import { LEGACY_PROFILE, activeProfile, tauInForce } from './fingerprint-profiles.js';
+import { ModelDecisionError } from './model-decide.js';
 
 type Raw = BetterSqlite3.Database;
 
@@ -138,7 +139,10 @@ export function recordClassifier(
   return id;
 }
 
-/** The classifier the reconciler uses for the portal and profile: the latest training's, if it beat τ. */
+/**
+ * The classifier the reconciler uses for the portal and profile: the latest one a person accepted
+ * (owner answer 14: like τ, a classifier is in force only once a person accepts it).
+ */
 export function activeClassifier(
   raw: Raw,
   portal: string,
@@ -146,10 +150,42 @@ export function activeClassifier(
 ): SimilarityClassifier | undefined {
   const row = raw
     .prepare(
-      `SELECT weights, intercept, better FROM similarity_classifiers
+      `SELECT weights, intercept FROM similarity_classifiers
+       WHERE portal_id = ? AND profile = ? AND accepted_at IS NOT NULL
+       ORDER BY accepted_at DESC, id DESC LIMIT 1`,
+    )
+    .get(portal, profile) as { weights: string; intercept: number } | undefined;
+  if (!row) return undefined;
+  return { weights: JSON.parse(row.weights) as number[], intercept: row.intercept };
+}
+
+/**
+ * A person puts the latest training of the portal and profile in force (`pnpm model:decide …
+ * accept-classifier`, or the τ page). Refused when there is none, or when it did not beat τ on the
+ * held-out labels.
+ */
+export function acceptClassifier(
+  raw: Raw,
+  portal: string,
+  opts: { by: string; profile?: string; now?: string },
+): { id: string; profile: string; f1: number; tauF1: number } {
+  const profile = activeProfile(raw, portal, opts.profile);
+  const row = raw
+    .prepare(
+      `SELECT id, f1, tau_f1, better FROM similarity_classifiers
        WHERE portal_id = ? AND profile = ? ORDER BY trained_at DESC, id DESC LIMIT 1`,
     )
-    .get(portal, profile) as { weights: string; intercept: number; better: number } | undefined;
-  if (!row || row.better !== 1) return undefined;
-  return { weights: JSON.parse(row.weights) as number[], intercept: row.intercept };
+    .get(portal, profile) as { id: string; f1: number; tau_f1: number; better: number } | undefined;
+  if (!row)
+    throw new ModelDecisionError(
+      `no classifier trained for ${portal} (${profile}) yet (pnpm model:classify)`,
+    );
+  if (row.better !== 1)
+    throw new ModelDecisionError(
+      `the latest classifier (F1 ${row.f1}) does not beat τ (F1 ${row.tau_f1}); τ stays in force`,
+    );
+  raw
+    .prepare('UPDATE similarity_classifiers SET accepted_by = ?, accepted_at = ? WHERE id = ?')
+    .run(opts.by, opts.now ?? nowIso(), row.id);
+  return { id: row.id, profile, f1: row.f1, tauF1: row.tau_f1 };
 }

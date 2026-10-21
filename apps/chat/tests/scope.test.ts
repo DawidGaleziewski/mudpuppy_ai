@@ -136,7 +136,7 @@ describe('setProcessScope and requestDocumentation', () => {
           (
             opened.raw
               .prepare(
-                `SELECT r.steps FROM process_model_revisions r JOIN process_models v ON v.id = r.variant_id
+                `SELECT r.steps FROM process_model_revisions r JOIN process_models v ON v.id = r.model_id
                  JOIN ba_processes p ON p.id = v.process_id WHERE p.name = ? AND v.label = 'A' AND r.rev = ?`,
               )
               .get(base.process_name, rev) as { steps: string }

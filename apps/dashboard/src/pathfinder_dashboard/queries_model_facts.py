@@ -18,6 +18,8 @@ class Trigger:
     screen_title: str | None
     element: str
     count: int
+    # A URL opened on the start screen (owner answer 10): no screen or element it came from.
+    deep_link: bool = False
 
 
 @dataclass(frozen=True)
@@ -29,7 +31,7 @@ class Exploration:
 
 
 @dataclass(frozen=True)
-class ProcessModel:
+class ModelFacts:
     model_seq: int | None
     triggers: list[Trigger] = field(default_factory=list)
     outcomes: dict[str, int] = field(default_factory=dict)
@@ -58,9 +60,9 @@ def _screen_keys(conn: sqlite3.Connection, states: list[str]) -> set[str]:
     return {r["key"] for r in rows}
 
 
-def process_model(
+def model_facts(
     conn: sqlite3.Connection, portal: str, process_id: str, as_is_steps: list[dict[str, Any]]
-) -> ProcessModel:
+) -> ModelFacts:
     """`as_is_steps`: A's latest steps, whose states give the process's screens."""
     version = _rows(
         conn,
@@ -68,19 +70,22 @@ def process_model(
         (portal,),
     )
     if not version:
-        return ProcessModel(None)
+        return ModelFacts(None)
     vid, seq = version[0]["id"], version[0]["seq"]
     triggers = [
-        Trigger(r["skey"], r["stitle"], r["element"] or "—", r["n"])
+        Trigger(
+            r["skey"], r["stitle"], r["element"] or "—", r["n"], r["kind"] == "deep_link"
+        )
         for r in _rows(
             conn,
-            "SELECT s.key AS skey, s.title AS stitle, t.element_key AS element, count(*) AS n"
-            " FROM process_instances i JOIN transitions t ON t.id = i.trigger_transition_id"
+            "SELECT i.trigger_kind AS kind, s.key AS skey, s.title AS stitle,"
+            " t.element_key AS element, count(*) AS n"
+            " FROM process_instances i LEFT JOIN transitions t ON t.id = i.trigger_transition_id"
             " LEFT JOIN screen_members m"
             "   ON m.state_id = t.from_state AND m.to_model_version IS NULL"
             " LEFT JOIN model_screens s ON s.id = m.screen_id"
             " WHERE i.process_id = ? AND i.model_version_id = ?"
-            " GROUP BY s.key, t.element_key ORDER BY n DESC, s.key",
+            " GROUP BY i.trigger_kind, s.key, t.element_key ORDER BY n DESC, s.key",
             (process_id, vid),
         )
     ]
@@ -102,4 +107,4 @@ def process_model(
     explored = Exploration(**dict(last[0])) if last else None
     keys = _screen_keys(conn, [s["state_id"] for s in as_is_steps if s.get("state_id")])
     rules = [r for r in rules_view(conn, portal, None).rules if r.screen_key in keys]
-    return ProcessModel(seq, triggers, outcomes, explored, rules)
+    return ModelFacts(seq, triggers, outcomes, explored, rules)

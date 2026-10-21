@@ -99,13 +99,13 @@ describe('scoreBaShapes (spec 019 F-09/F-13/F-14)', () => {
       .run(fx.portalId, T, T);
     fx.raw
       .prepare(
-        `INSERT INTO process_models (id, process_id, label, kind, rev, branched_from_variant_id,
+        `INSERT INTO process_models (id, process_id, label, kind, rev, branched_from_model_id,
            branched_from_rev, created_at) VALUES ('va-x', 'pr-x', 'A', 'as_is', 1, NULL, NULL, ?)`,
       )
       .run(T);
     fx.raw
       .prepare(
-        `INSERT INTO process_model_revisions (variant_id, rev, base_rev, change, author, steps,
+        `INSERT INTO process_model_revisions (model_id, rev, base_rev, change, author, steps,
            note, run_id, restored_from, created_at) VALUES ('va-x', 1, NULL, 'create', 'BA', ?,
            NULL, NULL, NULL, ?)`,
       )

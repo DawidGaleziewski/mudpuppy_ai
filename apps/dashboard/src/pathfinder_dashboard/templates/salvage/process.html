@@ -2,9 +2,9 @@
 {% import "salvage/macros.html" as sy %}
 {% set nav_current = "processes" %}
 {%- set view = v.view %}{% set p = view.process %}{% set vv = v.vv %}
-{#- One process (screen 05, FE-P02): the variant switch, and for a to-be variant the person's draft
+{#- One process (screen 05, FE-P02): the model switch, and for a to-be model the person's draft
     over its last revision (autosaved, Save as rN+1, Discard). The editor is a live region. -#}
-{% set page_ctx = {"type": "process", "id": p.id ~ ":" ~ vv.variant.label, "label": p.key ~ " " ~ p.name ~ " · " ~ vv.variant.label, "rev": vv.variant.rev} %}
+{% set page_ctx = {"type": "process", "id": p.id ~ ":" ~ vv.model.label, "label": p.key ~ " " ~ p.name ~ " · " ~ vv.model.label, "rev": vv.model.rev} %}
 {% block title %}{{ p.name }}{% endblock %}
 {% import "salvage/partials/picture.html" as pic with context %}
 {% block head_extra %}<script src="/static/js/processes.js" defer></script><script src="/static/js/pictures.js" defer></script>{% endblock %}
@@ -23,8 +23,8 @@
       </div>
     </div>
     <div class="sy-actions" data-actions>
-      {%- set to_be = view.variants | selectattr("variant.kind", "equalto", "to_be") | list %}
-      {%- if to_be %}<a class="sy-btn" href="{{ c.url('/processes/' ~ p.key ~ '/compare', left='A', right=(vv.variant.label if vv.variant.kind == 'to_be' else to_be[0].variant.label)) }}">Compare A and {{ vv.variant.label if vv.variant.kind == 'to_be' else to_be[0].variant.label }}</a>{% endif %}
+      {%- set to_be = view.models | selectattr("model.kind", "equalto", "to_be") | list %}
+      {%- if to_be %}<a class="sy-btn" href="{{ c.url('/processes/' ~ p.key ~ '/compare', left='A', right=(vv.model.label if vv.model.kind == 'to_be' else to_be[0].model.label)) }}">Compare A and {{ vv.model.label if vv.model.kind == 'to_be' else to_be[0].model.label }}</a>{% endif %}
       <a class="sy-btn" href="{{ c.url('/processes/' ~ p.key ~ '/history') }}">History</a>
       <a class="sy-btn" href="{{ c.url('/processes/' ~ p.key ~ '/export') }}">Documentation</a>
       {%- if c.settings.reviewer and not p.archived_at %}
@@ -46,19 +46,19 @@
 {%- endif %}
 
 <div class="sy-cluster" data-actions>
-  <nav class="sy-seg" aria-label="Variant">
-    {%- for x in view.variants %}
-    <a href="{{ c.url('/processes/' ~ p.key, variant=x.variant.label) }}"{% if x.variant.id == vv.variant.id %} aria-current="true"{% endif %}>{{ x.variant.label }} · {{ "As-is" if x.variant.kind == "as_is" else "To-be" }} r{{ x.variant.rev }}{% if x.drafts %} · draft open{% endif %}</a>
+  <nav class="sy-seg" aria-label="Process model">
+    {%- for x in view.models %}
+    <a href="{{ c.url('/processes/' ~ p.key, model=x.model.label) }}"{% if x.model.id == vv.model.id %} aria-current="true"{% endif %}>{{ x.model.label }} · {{ "As-is" if x.model.kind == "as_is" else "To-be" }} r{{ x.model.rev }}{% if x.drafts %} · draft open{% endif %}</a>
     {%- endfor %}
   </nav>
   {%- if c.settings.reviewer %}
   {#- US2.3: while the as-is is the work, the to-be is one quiet action. -#}
-  <button class="sy-btn sy-btn--md sy-btn--quiet" type="button" data-process="/chat/portals/{{ p.portal_id | urlencode }}/processes/{{ p.id | urlencode }}/variants" data-body='{"from": "{{ vv.variant.label }}"}' data-open="1">{% if to_be %}+ Variant from {{ vv.variant.label }} r{{ vv.variant.rev }}{% else %}Start a to-be design{% endif %}</button>
+  <button class="sy-btn sy-btn--md sy-btn--quiet" type="button" data-process="/chat/portals/{{ p.portal_id | urlencode }}/processes/{{ p.id | urlencode }}/models" data-body='{"from": "{{ vv.model.label }}"}' data-open="1">{% if to_be %}+ Process model from {{ vv.model.label }} r{{ vv.model.rev }}{% else %}Start a to-be design{% endif %}</button>
   {%- endif %}
   <p class="sy-small" role="status" data-result></p>
 </div>
 
-{% include "salvage/partials/process_model.html" %}
+{% include "salvage/partials/model_facts.html" %}
 {% include "salvage/partials/process_editor.html" %}
 {{ pic.dialog() }}
 {% endblock %}

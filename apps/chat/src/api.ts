@@ -39,7 +39,7 @@ export interface ApiOptions {
   amendments?: AmendmentService;
   /** The assistant's proposals (spec 022 R6). Without it the proposal routes answer 404. */
   proposals?: ProposalService;
-  /** BA processes, variants, drafts, suggestions (spec 022 M5). Without it the routes answer 404. */
+  /** BA processes, process models, drafts, suggestions (spec 022 M5). Without it the routes answer 404. */
   processes?: ProcessService;
   /** The owner's decision on a probe suite (spec 032 US3). Without it the routes answer 404. */
   probeSuites?: ProbeSuiteService;

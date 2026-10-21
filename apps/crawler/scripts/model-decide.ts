@@ -4,12 +4,15 @@
  *   pnpm model:decide <portal> --env <env> --by "<name>" label <state-a> <state-b> clone|near_duplicate|distinct [--reason "…"]
  *   pnpm model:decide <portal> --env <env> --by "<name>" role <route-template> <path:N|query:name> identity|data|ignored
  *   pnpm model:decide <portal> --env <env> --by "<name>" accept-tau [--profile <name@hash>]
+ *   pnpm model:decide <portal> --env <env> --by "<name>" accept-classifier [--profile <name@hash>]
  * The next `model:reconcile` (or the next run) applies labels and roles as constraints, and
- * clusters with the accepted τ (spec 039 T115; per portal and fingerprint profile).
+ * clusters with the accepted τ (spec 039 T115; per portal and fingerprint profile), or with the
+ * accepted similarity classifier (owner answer 14).
  */
 import { join, resolve } from 'node:path';
 import {
   ModelDecisionError,
+  acceptClassifier,
   acceptTau,
   dbPathFor,
   decideHypothesis,
@@ -22,7 +25,7 @@ import {
 const USAGE =
   'usage: pnpm model:decide <portal> --env <env> --by "<name>" ' +
   '(confirm|reject|overturn <key> --reason "…" | label <a> <b> <label> | role <template> <param> <role>' +
-  ' | accept-tau [--profile <name@hash>])';
+  ' | accept-tau | accept-classifier [--profile <name@hash>])';
 
 const flags = new Set(['env', 'by', 'reason', 'root', 'profile']);
 const arg = (name: string): string | undefined => {
@@ -74,6 +77,14 @@ try {
     });
     console.log(
       `${portal} (${a.profile}): τ ${a.tau} accepted (F1 ${a.f1}, ${a.labels} labels); the next reconcile clusters with it`,
+    );
+  } else if (verb === 'accept-classifier') {
+    const a = acceptClassifier(opened.raw, portal, {
+      by,
+      ...(arg('profile') ? { profile: arg('profile')! } : {}),
+    });
+    console.log(
+      `${portal} (${a.profile}): classifier accepted (F1 ${a.f1} against τ's ${a.tauF1}); the next reconcile clusters with it`,
     );
   } else {
     console.error(USAGE);

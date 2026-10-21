@@ -92,6 +92,7 @@ it('0027 runs and network_calls columns: NULL by default, CHECKs hold, down keep
   call('n2', null);
   expect(() => call('n3', 'a'.repeat(4097))).toThrow(/CHECK/);
 
+  expect(migrateDown(o.raw, MIGRATIONS)).toBe('0039');
   expect(migrateDown(o.raw, MIGRATIONS)).toBe('0038');
   expect(migrateDown(o.raw, MIGRATIONS)).toBe('0037');
   expect(migrateDown(o.raw, MIGRATIONS)).toBe('0036');
@@ -129,6 +130,7 @@ it('0027 runs and network_calls columns: NULL by default, CHECKs hold, down keep
     '0036',
     '0037',
     '0038',
+    '0039',
   ]);
   expect(get("SELECT run_type FROM runs WHERE id = 'r1'")).toEqual({ run_type: null });
 });

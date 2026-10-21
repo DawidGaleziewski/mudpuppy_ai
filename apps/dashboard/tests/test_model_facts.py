@@ -47,9 +47,25 @@ def seed_model(store: Store) -> None:
         result="ok",
     )
     conn.execute(
-        "INSERT INTO process_instances (id, process_id, journey_id, trigger_transition_id,"
-        " last_transition_id, outcome, outcome_screen_id, model_version_id)"
-        " VALUES ('i1', 'pr-1', 'j1', 't1', 't1', 'completed', 'M2', 'mv1')"
+        "INSERT INTO process_instances (id, process_id, journey_id, trigger_kind,"
+        " trigger_transition_id, last_transition_id, outcome, outcome_screen_id, model_version_id)"
+        " VALUES ('i1', 'pr-1', 'j1', 'transition', 't1', 't1', 'completed', 'M2', 'mv1')"
+    )
+    # A second journey opened the calculator by URL (a deep link, owner answer 10).
+    conn.execute(
+        "INSERT INTO journeys (id, run_id, start_kind, started_at) VALUES"
+        " ('j2', 'run-p1', 'entry_url', ?)",
+        (ts(3),),
+    )
+    conn.execute(
+        "INSERT INTO observations (id, run_id, state_id, via, url, created_at, journey_id, seq)"
+        " VALUES ('o2', 'run-p1', 'st-car', 'navigate', 'https://example.test/car', ?, 'j2', 9)",
+        (ts(3),),
+    )
+    conn.execute(
+        "INSERT INTO process_instances (id, process_id, journey_id, trigger_kind,"
+        " trigger_observation_id, outcome, outcome_screen_id, model_version_id)"
+        " VALUES ('i2', 'pr-1', 'j2', 'deep_link', 'o2', 'incomplete', 'M2', 'mv1')"
     )
     conn.execute(
         "INSERT INTO process_explorations (id, process_id, epoch_set, depth, random_walks,"
@@ -70,7 +86,8 @@ def test_the_process_page_shows_triggers_outcomes_and_how_far_it_was_explored(
     flat = text(body)
     assert "In the portal model" in flat
     assert ">SC-0001<" in body and "link|Samochód" in body
-    assert "1 completed" in flat
+    assert "1 completed" in flat and "1 incomplete" in flat
+    assert "A URL opened on the first screen (deep link)" in flat
     assert 'data-status="ok">Thorough' in body and "no counterexamples" in flat
 
 

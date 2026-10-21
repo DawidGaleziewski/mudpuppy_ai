@@ -1,5 +1,5 @@
 """The Processes workspace (spec 022 M5, screens 04–07): the list with the assistant's
-suggestions, one process with its variants and the to-be draft, Compare with the change spec, and
+suggestions, one process with its models and the to-be draft, Compare with the change spec, and
 the Markdown export. New pages: Salvage Yard only. The browser's writes reach the chat service
 through the forwarders here, signed with the reviewer name (the dashboard never writes)."""
 
@@ -18,8 +18,8 @@ from .. import (
     db,
     pager,
     process_diff,
+    queries_model_facts,
     queries_process_doc,
-    queries_process_model,
     queries_processes,
 )
 from .chat_forward import chat_refused, forward, invalid, read_json
@@ -29,7 +29,7 @@ router = APIRouter()
 
 # The chat routes the forwarder may reach (contracts/processes-api.md); anything else is refused.
 WRITE_PATH = re.compile(
-    r"^processes(/[^/]+(/variants(/[A-Z]{1,2}/(draft|save|rebase|restore|edit))?"
+    r"^processes(/[^/]+(/models(/[A-Z]{1,2}/(draft|save|rebase|restore|edit))?"
     r"|/live|/change-spec|/archive|/unarchive)?)?$"
     r"|^suggestions/[^/]+/(accept|dismiss)$"
 )
@@ -97,25 +97,25 @@ def processes_page(
 
 
 def _parent_steps(view: queries_processes.ProcessView, label: str) -> list[dict[str, Any]]:
-    """The steps of the revision variant `label` was branched from (what Compare diffs it to)."""
-    vv = view.variant(label)
-    if vv is None or vv.variant.branched_from_variant_id is None:
+    """The steps of the revision model `label` was branched from (what Compare diffs it to)."""
+    vv = view.model(label)
+    if vv is None or vv.model.branched_from_model_id is None:
         return []
     parent = next(
-        (p for p in view.variants if p.variant.id == vv.variant.branched_from_variant_id), None
+        (p for p in view.models if p.model.id == vv.model.branched_from_model_id), None
     )
-    rev = parent.revision(vv.variant.branched_from_rev or 0) if parent else None
+    rev = parent.revision(vv.model.branched_from_rev or 0) if parent else None
     return list(rev.steps) if rev else []
 
 
 AS_IS_STAGES = ("scoped", "as_is_documented")
 
 
-def default_variant(view: queries_processes.ProcessView) -> str:
+def default_model(view: queries_processes.ProcessView) -> str:
     """US2.3: the page leads with A until a to-be design starts, then with the first to-be."""
     if view.process.stage in AS_IS_STAGES:
         return "A"
-    return next((v.variant.label for v in view.variants if v.variant.kind == "to_be"), "A")
+    return next((v.model.label for v in view.models if v.model.kind == "to_be"), "A")
 
 
 def as_is_values(
@@ -139,13 +139,13 @@ def editor_values(
     label: str | None,
     step: str | None,
 ) -> dict[str, Any]:
-    """Screen 05: the variant shown, this reviewer's draft, and the rows against its parent;
+    """Screen 05: the model shown, this reviewer's draft, and the rows against its parent;
     on A its documentation (spec 027)."""
-    vv = view.variant(label or default_variant(view)) or view.as_is
+    vv = view.model(label or default_model(view)) or view.as_is
     assert vv is not None
-    draft = vv.draft_of(c.settings.reviewer) if vv.variant.kind == "to_be" else None
+    draft = vv.draft_of(c.settings.reviewer) if vv.model.kind == "to_be" else None
     steps = list(draft.steps) if draft else vv.steps
-    parent = _parent_steps(view, vv.variant.label)
+    parent = _parent_steps(view, vv.model.label)
     rows = process_diff.diff(parent, steps) if parent else []
     changes = {r.right["id"]: r.change for r in rows if r.right}
     head_steps = vv.steps
@@ -159,13 +159,13 @@ def editor_values(
         "parent": {s["id"]: s for s in parent},
         "pending": 0 if draft is None else _pending(head_steps, steps),
         "selected": next((s for s in steps if s["id"] == step), None),
-        "conflict": draft is not None and draft.base_rev != vv.variant.rev,
-        "self_url": c.url(f"/fragments/processes/{view.process.key}", variant=vv.variant.label),
+        "conflict": draft is not None and draft.base_rev != vv.model.rev,
+        "self_url": c.url(f"/fragments/processes/{view.process.key}", model=vv.model.label),
         "sign_off": queries_process_doc.sign_off(view),
         "stages": queries_processes.STAGES,
         **(as_is_values(conn, view, view.as_is.steps) if view.as_is else {}),
         # Spec 039 T100 (v2-10, UX-R51–R54): triggers, outcomes, explored, rules.
-        "model": queries_process_model.process_model(
+        "facts": queries_model_facts.model_facts(
             conn, view.process.portal_id, view.process.id, view.as_is.steps if view.as_is else []
         ),
     }
@@ -191,7 +191,7 @@ def process_page(
     request: Request,
     key: str,
     env: str | None = None,
-    variant: str | None = None,
+    model: str | None = None,
     step: str | None = None,
 ) -> HTMLResponse:
     web = web_of(request)
@@ -199,7 +199,7 @@ def process_page(
     try:
         with c.conn() as conn:
             view = _view_or_404(c, conn, key)
-            v = editor_values(c, conn, view, variant, step)
+            v = editor_values(c, conn, view, model, step)
     except db.StoreMissing as err:
         return web.missing(c, err)
     except LookupError:
@@ -212,14 +212,14 @@ def fragment_process(
     request: Request,
     key: str,
     env: str | None = None,
-    variant: str | None = None,
+    model: str | None = None,
     step: str | None = None,
 ) -> HTMLResponse:
     web = web_of(request)
     c = web.ctx(request, env)
     try:
         with c.conn() as conn:
-            v = editor_values(c, conn, _view_or_404(c, conn, key), variant, step)
+            v = editor_values(c, conn, _view_or_404(c, conn, key), model, step)
     except db.StoreMissing as err:
         return web.missing(c, err, fragment=True)
     except LookupError:
@@ -234,23 +234,23 @@ def compare_values(
     right: str,
     reviewer: str | None,
 ) -> dict[str, Any]:
-    """Screen 06: the step diff of two variants (a person's draft on the right when open) and the
+    """Screen 06: the step diff of two models (a person's draft on the right when open) and the
     change spec: the newest saved revision for this pair, else freshly generated."""
-    lv, rv = view.variant(left) or view.as_is, view.variant(right)
+    lv, rv = view.model(left) or view.as_is, view.model(right)
     if rv is None:
-        rv = next((v for v in view.variants if v.variant.kind == "to_be"), None)
+        rv = next((v for v in view.models if v.model.kind == "to_be"), None)
     assert lv is not None
     draft = rv.draft_of(reviewer) if rv else None
     right_steps = list(draft.steps) if draft else (rv.steps if rv else [])
     rows = process_diff.diff(lv.steps, right_steps)
     states = [s["state_id"] for s in lv.steps if s.get("state_id")]
-    right_label = f"{rv.variant.label} r{rv.variant.rev + (1 if draft else 0)}" if rv else "—"
+    right_label = f"{rv.model.label} r{rv.model.rev + (1 if draft else 0)}" if rv else "—"
     generated = change_spec.generate(
         change_spec.SpecInput(
             name=view.process.name,
             persona=view.process.persona,
             environment=None,
-            left_label=f"{lv.variant.label} r{lv.variant.rev}",
+            left_label=f"{lv.model.label} r{lv.model.rev}",
             right_label=right_label + (" draft" if draft else ""),
             left_steps=lv.steps,
             right_steps=right_steps,
@@ -263,7 +263,7 @@ def compare_values(
         (
             s
             for s in view.specs
-            if rv and s.left_variant_id == lv.variant.id and s.right_variant_id == rv.variant.id
+            if rv and s.left_model_id == lv.model.id and s.right_model_id == rv.model.id
         ),
         None,
     )
@@ -299,9 +299,9 @@ def compare_page(
 
 
 def history_values(view: queries_processes.ProcessView, reviewer: str | None) -> dict[str, Any]:
-    """Screen 07: which revision runs where, each variant's revisions newest first, the reviewer's
+    """Screen 07: which revision runs where, each model's revisions newest first, the reviewer's
     drafts that sit on an older revision (the conflict notice), and the process's own timeline."""
-    labels = {v.variant.id: v.variant.label for v in view.variants}
+    labels = {v.model.id: v.model.label for v in view.models}
     live_now = {
         (lv.label, lv.rev): [
             e.environment for e in view.live if (e.label, e.rev) == (lv.label, lv.rev)
@@ -310,9 +310,9 @@ def history_values(view: queries_processes.ProcessView, reviewer: str | None) ->
     }
     conflicts = [
         (v, d)
-        for v in view.variants
+        for v in view.models
         for d in [v.draft_of(reviewer)]
-        if d is not None and v.variant.kind == "to_be" and d.base_rev != v.variant.rev
+        if d is not None and v.model.kind == "to_be" and d.base_rev != v.model.rev
     ]
     return {
         "view": view,
@@ -320,7 +320,7 @@ def history_values(view: queries_processes.ProcessView, reviewer: str | None) ->
         "labels": labels,
         "live_now": live_now,
         "conflicts": conflicts,
-        "revision_count": sum(len(v.revisions) for v in view.variants),
+        "revision_count": sum(len(v.revisions) for v in view.models),
         "marked_in": [lv.environment for lv in view.live],
     }
 

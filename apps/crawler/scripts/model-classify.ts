@@ -3,7 +3,8 @@
  * Builds the labelled pairs of the portal's active fingerprint profile with their component
  * features, runs `pathfinder-miner classify` (apps/miner, Python: a logistic regression, every
  * fifth pair held out), and records the result after Zod validation. When it detects distinct
- * pairs better than τ on the held-out pairs, the next reconcile clusters with it instead of τ.
+ * pairs better than τ on the held-out pairs, a person can accept it (`pnpm model:decide …
+ * accept-classifier`); the next reconcile then clusters with it instead of τ.
  */
 import { execFileSync } from 'node:child_process';
 import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
@@ -52,7 +53,7 @@ try {
   } else {
     recordClassifier(opened.raw, portal, profile, out, set.tau);
     console.log(
-      `  held-out F1 of distinct pairs: classifier ${out.f1}, τ ${out.tau_f1} → ${out.better ? 'the classifier is used from the next reconcile' : 'τ stays'}`,
+      `  held-out F1 of distinct pairs: classifier ${out.f1}, τ ${out.tau_f1} → ${out.better ? `accept it with pnpm model:decide ${portal} --env ${env} --by "<name>" accept-classifier` : 'τ stays'}`,
     );
   }
 } finally {

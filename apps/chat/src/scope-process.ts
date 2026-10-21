@@ -31,20 +31,20 @@ export function syncScopeProcess(raw: BetterSqlite3.Database, scope: ProcessScop
   const at = scope.created_at;
   const existing = raw
     .prepare(
-      `SELECT p.id, p.key, v.id AS variant_id, v.rev FROM ba_processes p
+      `SELECT p.id, p.key, v.id AS model_id, v.rev FROM ba_processes p
        JOIN process_models v ON v.process_id = p.id AND v.label = 'A'
        WHERE p.portal_id = ? AND p.name = ?`,
     )
     .get(scope.portal_id, scope.process_name) as
-    { id: string; key: string; variant_id: string; rev: number } | undefined;
+    { id: string; key: string; model_id: string; rev: number } | undefined;
   const revision = raw.prepare(
-    `INSERT INTO process_model_revisions (variant_id, rev, base_rev, change, author, steps, note, run_id, restored_from, created_at)
+    `INSERT INTO process_model_revisions (model_id, rev, base_rev, change, author, steps, note, run_id, restored_from, created_at)
      VALUES (?, ?, ?, ?, 'BA', ?, ?, NULL, NULL, ?)`,
   );
   if (existing !== undefined) {
     const rev = existing.rev + 1;
-    raw.prepare('UPDATE process_models SET rev = ? WHERE id = ?').run(rev, existing.variant_id);
-    revision.run(existing.variant_id, rev, existing.rev, 'save', steps, 'Scope saved again', at);
+    raw.prepare('UPDATE process_models SET rev = ? WHERE id = ?').run(rev, existing.model_id);
+    revision.run(existing.model_id, rev, existing.rev, 'save', steps, 'Scope saved again', at);
     raw.prepare('UPDATE ba_processes SET updated_at = ? WHERE id = ?').run(at, existing.id);
     return existing.key;
   }
@@ -53,7 +53,7 @@ export function syncScopeProcess(raw: BetterSqlite3.Database, scope: ProcessScop
     .all(scope.portal_id) as { key: string }[];
   const key = nextProcessKey(keys.map((k) => k.key));
   const processId = newId();
-  const variantId = newId();
+  const modelId = newId();
   raw
     .prepare(
       `INSERT INTO ba_processes (id, portal_id, key, name, persona, stage, rev, source, scope_id, suggestion_id, created_at, updated_at)
@@ -68,10 +68,10 @@ export function syncScopeProcess(raw: BetterSqlite3.Database, scope: ProcessScop
     .run(processId, scope.process_name, at);
   raw
     .prepare(
-      `INSERT INTO process_models (id, process_id, label, kind, rev, branched_from_variant_id, branched_from_rev, created_at)
+      `INSERT INTO process_models (id, process_id, label, kind, rev, branched_from_model_id, branched_from_rev, created_at)
        VALUES (?, ?, 'A', 'as_is', 1, NULL, NULL, ?)`,
     )
-    .run(variantId, processId, at);
-  revision.run(variantId, 1, null, 'create', steps, 'From the saved process scope', at);
+    .run(modelId, processId, at);
+  revision.run(modelId, 1, null, 'create', steps, 'From the saved process scope', at);
   return key;
 }

@@ -96,7 +96,7 @@ export type PortalTable = (typeof PORTAL_TABLES)[number];
  * chat_conversations, and chat_messages are its children. `amendment_revisions` (`0016`) precede
  * amendments, and `screens` (`0015`) follow states (states and amendments reference them) and precede
  * runs (`first_seen_run`). The BA process tables (`0018`) go first of all: change specs, live records, drafts,
- * variant revisions and variants, process revisions, `ba_processes`, then `grouping_suggestions`; the cycle
+ * process model revisions and models, process revisions, `ba_processes`, then `grouping_suggestions`; the cycle
  * between `ba_processes.suggestion_id` and `grouping_suggestions.process_id` is cut by clearing the latter first
  * (see `deletePortal`). amendments' self-references
  * (`reapplied_as`, `reapplies`) are within one portal and go in one DELETE statement. Layer B
@@ -317,7 +317,7 @@ export function where(table: PortalTable, side: 'mine' | 'others'): string {
       return `process_id IN (${BA_PROCESSES_OF_PORTAL(op)})`;
     case 'process_model_revisions':
     case 'process_drafts':
-      return `variant_id IN (SELECT id FROM process_models WHERE process_id IN (${BA_PROCESSES_OF_PORTAL(op)}))`;
+      return `model_id IN (SELECT id FROM process_models WHERE process_id IN (${BA_PROCESSES_OF_PORTAL(op)}))`;
     case 'process_steps':
       return `process_id IN (SELECT id FROM processes WHERE portal_id ${op} ?)`;
     case 'state_wireframes':

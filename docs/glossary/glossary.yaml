@@ -1567,10 +1567,10 @@ entries:
       A kind that is not a state (a decision "merge", a trace "phase") has no shape and shows as
       a plain label. A run can be Completed, Running, Interrupted or Stopped; a record Draft,
       Confirmed, Rejected, Superseded or Withdrawn; a proposal Proposed, Applied, Discarded or
-      Out of date; a process variant Observed, Drawn, Draft open or Live.
+      Out of date; a process model Observed, Drawn, Draft open or Live.
     appears_in: [Every status column and badge]
     labels: [Status, "Live", "Draft", "Failed", "Interrupted"]
-    related: [record-status, run, frontier, submit-boundary, process-variant]
+    related: [record-status, run, frontier, submit-boundary, process-model]
     changed_in: R-43
     changed_on: 2026-10-14
 
@@ -2803,28 +2803,29 @@ entries:
     example: "Screen \"Kalkulator OC/AC\": r1 seen by scan 01a1083f, r2 seen by 01a110d5."
     appears_in: [Screens → a screen → Observed revision]
     labels: [r1, r2, Observed revision, latest]
-    related: [re-anchor, amendment, process-variant, run]
+    related: [re-anchor, amendment, process-model, run]
     changed_in: R-43
     changed_on: 2026-10-14
 
-  - id: process-variant
-    term: Variant (A as-is, B to-be)
+  - id: process-model
+    term: Process model (A as-is, B to-be)
     category: pathfinder
     group: Chat and workflow
     short: One version of a process, either A, the process as the scans observed it, or B and further letters, the process the business wants.
     explanation: |
-      A process always has variant A, the as-is flow built from what was observed. Rescans add
-      its revisions; a person can also reorder, remove or add its screens, each change a signed
-      revision of A (spec 027). You start variant B from A (or from another variant) and draw
-      the to-be: edit, reorder, merge and add steps. A variant has numbered revisions (A r1,
+      A process always has process model A, the as-is flow built from what was observed. Rescans
+      add its revisions; a person can also reorder, remove or add its screens, each change a
+      signed revision of A (spec 027). You start model B from A (or from another model) and draw
+      the to-be: edit, reorder, merge and add steps. A process model has numbered revisions (A r1,
       B r2); every save makes a new one, with the reviewer's name and the time. Compare puts two
-      variants side by side.
+      process models side by side. Called "variant" before 2.0; "variant" now means a screen
+      variant only.
     example: PRC-001 "Oblicz składkę OC/AC" has A r1 (4 observed steps) and B r1 (3 designed steps).
-    appears_in: [Processes → a process → variant tabs]
-    labels: [Variant, A, B, as-is, to-be]
-    related: [process-draft, change-spec, live-variant, screen-revision, amendment, as-is-sign-off]
-    changed_in: R-54
-    changed_on: 2026-10-18
+    appears_in: [Processes → a process → process model tabs]
+    labels: [Process model, A, B, as-is, to-be]
+    related: [process-draft, change-spec, live-process-model, screen-revision, amendment, as-is-sign-off]
+    changed_in: R-81
+    changed_on: 2026-10-21
 
   - id: as-is-sign-off
     term: As-is sign-off
@@ -2841,7 +2842,7 @@ entries:
     example: "PRC-001 signed off by Anna covering A r1; a rescan added A r2, so the page asks for a new sign-off."
     appears_in: [Processes → a process → As-is documentation]
     labels: [Mark as-is documented, Sign off, As-is changed since documented]
-    related: [process-variant, as-is-documentation, archived-process]
+    related: [process-model, as-is-documentation, archived-process]
     changed_in: R-54
     changed_on: 2026-10-18
 
@@ -2858,7 +2859,7 @@ entries:
     example: "PRC-004 was a duplicate of PRC-002: archived, its 3 screens are back under In no process."
     appears_in: [Processes → Archived, Processes → a process]
     labels: [Archive, Archived, Restore]
-    related: [process-variant, as-is-sign-off]
+    related: [process-model, as-is-sign-off]
     changed_in: R-54
     changed_on: 2026-10-18
 
@@ -2866,16 +2867,16 @@ entries:
     term: Draft (process draft)
     category: pathfinder
     group: Chat and workflow
-    short: Your unsaved work on a variant, which saves itself and which only you see, until you save it as the next revision or discard it.
+    short: Your unsaved work on a to-be process model, which saves itself and which only you see, until you save it as the next revision or discard it.
     explanation: |
-      Opening a variant to change it starts a draft of its latest revision. The page shows how
+      Opening a process model to change it starts a draft of its latest revision. The page shows how
       many changes it holds since that revision. Save as rN+1 turns the draft into a revision
       with your name and the time. Discard draft drops it and keeps the last revision. If
       someone saved a newer revision while you drew, saving shows "Someone saved first" and both
       versions go to the review inbox as an edit conflict, so you can compare them.
-    appears_in: [Processes → a variant → Draft open]
+    appears_in: [Processes → a process model → Draft open]
     labels: [Draft open, Save as, Discard draft, Someone saved first]
-    related: [process-variant, review-inbox, status-codes]
+    related: [process-model, review-inbox, status-codes]
     changed_in: R-43
     changed_on: 2026-10-14
 
@@ -2883,24 +2884,24 @@ entries:
     term: Change spec
     category: pathfinder
     group: Chat and workflow
-    short: The document built from the difference between a process's as-is and to-be variants, saying what must change and why, ready to hand to the builders.
+    short: The document built from the difference between a process's as-is and to-be process models, saying what must change and why, ready to hand to the builders.
     explanation: |
       Compare generates it. It has sections: scope, as-is, to-be, the delta step by step, the
       records it affects, the migration cut and open questions. You edit any section, and each
       save is a revision of the spec. Export it as Markdown, or save it as a documentation
-      record. It is generated from the variants, so it follows them when you save a new
+      record. It is generated from the process models, so it follows them when you save a new
       revision.
     appears_in: [Processes → Compare, Processes → spec.md]
     labels: [Change spec, Compare, spec.md]
-    related: [process-variant, amendment, srs-export]
+    related: [process-model, amendment, srs-export]
     changed_in: R-43
     changed_on: 2026-10-14
 
-  - id: live-variant
-    term: Live variant (per environment)
+  - id: live-process-model
+    term: Live process model (per environment)
     category: pathfinder
     group: Chat and workflow
-    short: The variant of a process the BA marked as the one that runs in an environment, such as sandbox or production; each environment has its own marker.
+    short: The process model the BA marked as the one that runs in an environment, such as sandbox or production; each environment has its own marker.
     explanation: |
       Mark live in a process's History says "B r2 is what runs in sandbox". The marker is a
       revision too: changing it keeps the old one in the history, so you can see what was live
@@ -2908,7 +2909,7 @@ entries:
       not deploy anything.
     appears_in: [Processes → History → Mark live, Home → Processes]
     labels: [Mark live, Live, Not marked]
-    related: [process-variant, environment, change-spec]
+    related: [process-model, environment, change-spec]
     changed_in: R-43
     changed_on: 2026-10-14
 
@@ -2952,7 +2953,7 @@ entries:
     explanation: |
       After a scan the assistant looks at the screens, the links between them and the forms, and
       suggests candidate processes. A suggestion has the Suggested status until you accept it.
-      Accepting it makes a process with variant A built from those screens. It never invents a
+      Accepting it makes a process with process model A built from those screens. It never invents a
       screen that was not recorded.
 
       `pnpm portal:trace` also suggests one per process it drove: the screens of its best run, and
@@ -2960,7 +2961,7 @@ entries:
       them as one process. A process record then shows one flowchart per cited variant run.
     appears_in: [Processes → Suggested, Home → Processes, Docs → process record]
     labels: [Suggested, grouping]
-    related: [process-scope, process-variant, proposal]
+    related: [process-scope, process-model, proposal]
     changed_in: R-67
     changed_on: 2026-10-16
 

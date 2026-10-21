@@ -218,7 +218,7 @@ function workspaceProcess(raw: RawDb, portal: string, key: string): ResolvedProc
     raw,
     `SELECT p.name, r.steps FROM ba_processes p
      JOIN process_models v ON v.process_id = p.id AND v.kind = 'as_is'
-     JOIN process_model_revisions r ON r.variant_id = v.id AND r.rev = v.rev
+     JOIN process_model_revisions r ON r.model_id = v.id AND r.rev = v.rev
      WHERE p.portal_id = ? AND p.key = ?`,
     portal,
     key,
@@ -229,7 +229,7 @@ function workspaceProcess(raw: RawDb, portal: string, key: string): ResolvedProc
     .filter((s): s is string => typeof s === 'string');
   const runs = rows<{ run_id: string }>(
     raw,
-    `SELECT DISTINCT r.run_id FROM process_model_revisions r JOIN process_models v ON v.id = r.variant_id
+    `SELECT DISTINCT r.run_id FROM process_model_revisions r JOIN process_models v ON v.id = r.model_id
      JOIN ba_processes p ON p.id = v.process_id WHERE p.portal_id = ? AND p.key = ? AND r.run_id IS NOT NULL`,
     portal,
     key,

@@ -100,7 +100,7 @@ def processes(conn: sqlite3.Connection, portal: str | None) -> list[ProcessItem]
         ba = conn.execute(
             "SELECT p.key, p.name, p.persona, p.stage, p.updated_at, r.steps FROM ba_processes p"
             " JOIN process_models v ON v.process_id = p.id AND v.label = 'A'"
-            " JOIN process_model_revisions r ON r.variant_id = v.id AND r.rev = v.rev"
+            " JOIN process_model_revisions r ON r.model_id = v.id AND r.rev = v.rev"
             " WHERE p.portal_id = ? ORDER BY p.key",
             (portal,),
         ).fetchall()

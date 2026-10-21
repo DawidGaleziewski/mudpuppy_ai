@@ -2217,13 +2217,13 @@ word mean the same thing on every page.
 A kind that is not a state (a decision "merge", a trace "phase") has no shape and shows as
 a plain label. A run can be Completed, Running, Interrupted or Stopped; a record Draft,
 Confirmed, Rejected, Superseded or Withdrawn; a proposal Proposed, Applied, Discarded or
-Out of date; a process variant Observed, Drawn, Draft open or Live.
+Out of date; a process model Observed, Drawn, Draft open or Live.
 
 *Seen in:* Every status column and badge
 
 *Labels:* `Status`, `Live`, `Draft`, `Failed`, `Interrupted`
 
-*Related:* [Record status](#record-status), [Run](#run), [Frontier](#frontier), [Submit boundary](#submit-boundary), [Variant (A as-is, B to-be)](#process-variant)
+*Related:* [Record status](#record-status), [Run](#run), [Frontier](#frontier), [Submit boundary](#submit-boundary), [Process model (A as-is, B to-be)](#process-model)
 
 <sub>Last changed in R-43, 2026-10-14.</sub>
 
@@ -3210,32 +3210,33 @@ new revision.
 
 *Labels:* `r1`, `r2`, `Observed revision`, `latest`
 
-*Related:* [Re-anchor](#re-anchor), [Amendment (to-be)](#amendment), [Variant (A as-is, B to-be)](#process-variant), [Run](#run)
+*Related:* [Re-anchor](#re-anchor), [Amendment (to-be)](#amendment), [Process model (A as-is, B to-be)](#process-model), [Run](#run)
 
 <sub>Last changed in R-43, 2026-10-14.</sub>
 
-<a id="process-variant"></a>
+<a id="process-model"></a>
 
-#### Variant (A as-is, B to-be)
+#### Process model (A as-is, B to-be)
 
 **One version of a process, either A, the process as the scans observed it, or B and further letters, the process the business wants.**
 
-A process always has variant A, the as-is flow built from what was observed. Rescans add
-its revisions; a person can also reorder, remove or add its screens, each change a signed
-revision of A (spec 027). You start variant B from A (or from another variant) and draw
-the to-be: edit, reorder, merge and add steps. A variant has numbered revisions (A r1,
+A process always has process model A, the as-is flow built from what was observed. Rescans
+add its revisions; a person can also reorder, remove or add its screens, each change a
+signed revision of A (spec 027). You start model B from A (or from another model) and draw
+the to-be: edit, reorder, merge and add steps. A process model has numbered revisions (A r1,
 B r2); every save makes a new one, with the reviewer's name and the time. Compare puts two
-variants side by side.
+process models side by side. Called "variant" before 2.0; "variant" now means a screen
+variant only.
 
 *Example:* PRC-001 "Oblicz składkę OC/AC" has A r1 (4 observed steps) and B r1 (3 designed steps).
 
-*Seen in:* Processes → a process → variant tabs
+*Seen in:* Processes → a process → process model tabs
 
-*Labels:* `Variant`, `A`, `B`, `as-is`, `to-be`
+*Labels:* `Process model`, `A`, `B`, `as-is`, `to-be`
 
-*Related:* [Draft (process draft)](#process-draft), [Change spec](#change-spec), [Live variant (per environment)](#live-variant), [Screen revision (observed)](#screen-revision), [Amendment (to-be)](#amendment), [As-is sign-off](#as-is-sign-off)
+*Related:* [Draft (process draft)](#process-draft), [Change spec](#change-spec), [Live process model (per environment)](#live-process-model), [Screen revision (observed)](#screen-revision), [Amendment (to-be)](#amendment), [As-is sign-off](#as-is-sign-off)
 
-<sub>Last changed in R-54, 2026-10-18.</sub>
+<sub>Last changed in R-81, 2026-10-21.</sub>
 
 <a id="as-is-sign-off"></a>
 
@@ -3256,7 +3257,7 @@ outside MudPuppy (from the downloaded documentation) before the sign-off.
 
 *Labels:* `Mark as-is documented`, `Sign off`, `As-is changed since documented`
 
-*Related:* [Variant (A as-is, B to-be)](#process-variant), [As-is documentation](#as-is-documentation), [Archived process](#archived-process)
+*Related:* [Process model (A as-is, B to-be)](#process-model), [As-is documentation](#as-is-documentation), [Archived process](#archived-process)
 
 <sub>Last changed in R-54, 2026-10-18.</sub>
 
@@ -3277,7 +3278,7 @@ processes with Restore. Archive and restore are signed revisions of the process.
 
 *Labels:* `Archive`, `Archived`, `Restore`
 
-*Related:* [Variant (A as-is, B to-be)](#process-variant), [As-is sign-off](#as-is-sign-off)
+*Related:* [Process model (A as-is, B to-be)](#process-model), [As-is sign-off](#as-is-sign-off)
 
 <sub>Last changed in R-54, 2026-10-18.</sub>
 
@@ -3285,19 +3286,19 @@ processes with Restore. Archive and restore are signed revisions of the process.
 
 #### Draft (process draft)
 
-**Your unsaved work on a variant, which saves itself and which only you see, until you save it as the next revision or discard it.**
+**Your unsaved work on a to-be process model, which saves itself and which only you see, until you save it as the next revision or discard it.**
 
-Opening a variant to change it starts a draft of its latest revision. The page shows how
+Opening a process model to change it starts a draft of its latest revision. The page shows how
 many changes it holds since that revision. Save as rN+1 turns the draft into a revision
 with your name and the time. Discard draft drops it and keeps the last revision. If
 someone saved a newer revision while you drew, saving shows "Someone saved first" and both
 versions go to the review inbox as an edit conflict, so you can compare them.
 
-*Seen in:* Processes → a variant → Draft open
+*Seen in:* Processes → a process model → Draft open
 
 *Labels:* `Draft open`, `Save as`, `Discard draft`, `Someone saved first`
 
-*Related:* [Variant (A as-is, B to-be)](#process-variant), [Review inbox](#review-inbox), [Status (shape and word)](#status-codes)
+*Related:* [Process model (A as-is, B to-be)](#process-model), [Review inbox](#review-inbox), [Status (shape and word)](#status-codes)
 
 <sub>Last changed in R-43, 2026-10-14.</sub>
 
@@ -3305,27 +3306,27 @@ versions go to the review inbox as an edit conflict, so you can compare them.
 
 #### Change spec
 
-**The document built from the difference between a process's as-is and to-be variants, saying what must change and why, ready to hand to the builders.**
+**The document built from the difference between a process's as-is and to-be process models, saying what must change and why, ready to hand to the builders.**
 
 Compare generates it. It has sections: scope, as-is, to-be, the delta step by step, the
 records it affects, the migration cut and open questions. You edit any section, and each
 save is a revision of the spec. Export it as Markdown, or save it as a documentation
-record. It is generated from the variants, so it follows them when you save a new
+record. It is generated from the process models, so it follows them when you save a new
 revision.
 
 *Seen in:* Processes → Compare; Processes → spec.md
 
 *Labels:* `Change spec`, `Compare`, `spec.md`
 
-*Related:* [Variant (A as-is, B to-be)](#process-variant), [Amendment (to-be)](#amendment), [SRS export](#srs-export)
+*Related:* [Process model (A as-is, B to-be)](#process-model), [Amendment (to-be)](#amendment), [SRS export](#srs-export)
 
 <sub>Last changed in R-43, 2026-10-14.</sub>
 
-<a id="live-variant"></a>
+<a id="live-process-model"></a>
 
-#### Live variant (per environment)
+#### Live process model (per environment)
 
-**The variant of a process the BA marked as the one that runs in an environment, such as sandbox or production; each environment has its own marker.**
+**The process model the BA marked as the one that runs in an environment, such as sandbox or production; each environment has its own marker.**
 
 Mark live in a process's History says "B r2 is what runs in sandbox". The marker is a
 revision too: changing it keeps the old one in the history, so you can see what was live
@@ -3336,7 +3337,7 @@ not deploy anything.
 
 *Labels:* `Mark live`, `Live`, `Not marked`
 
-*Related:* [Variant (A as-is, B to-be)](#process-variant), [Environment](#environment), [Change spec](#change-spec)
+*Related:* [Process model (A as-is, B to-be)](#process-model), [Environment](#environment), [Change spec](#change-spec)
 
 <sub>Last changed in R-43, 2026-10-14.</sub>
 
@@ -3386,7 +3387,7 @@ the inbox when decided; nothing is deleted without a decision.
 
 After a scan the assistant looks at the screens, the links between them and the forms, and
 suggests candidate processes. A suggestion has the Suggested status until you accept it.
-Accepting it makes a process with variant A built from those screens. It never invents a
+Accepting it makes a process with process model A built from those screens. It never invents a
 screen that was not recorded.
 
 `pnpm portal:trace` also suggests one per process it drove: the screens of its best run, and
@@ -3397,7 +3398,7 @@ them as one process. A process record then shows one flowchart per cited variant
 
 *Labels:* `Suggested`, `grouping`
 
-*Related:* [Process scope](#process-scope), [Variant (A as-is, B to-be)](#process-variant), [Proposal (assistant proposal)](#proposal)
+*Related:* [Process scope](#process-scope), [Process model (A as-is, B to-be)](#process-model), [Proposal (assistant proposal)](#proposal)
 
 <sub>Last changed in R-67, 2026-10-16.</sub>
 

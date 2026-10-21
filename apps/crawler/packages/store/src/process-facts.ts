@@ -25,6 +25,9 @@ export interface ProcessModelFacts {
   rules: { key: string; status: HypothesisStatus; dmn: string }[];
 }
 
+/** The trigger "screen" of instances entered by a URL (owner answer 10). */
+export const DEEP_LINK = 'deep link';
+
 /** The facts of the process with id `processId` (a PRC row). */
 export function processModelFacts(raw: Raw, portal: string, processId: string): ProcessModelFacts {
   const version = raw
@@ -46,9 +49,15 @@ export function processModelFacts(raw: Raw, portal: string, processId: string): 
   const outcomes: Record<string, number> = {};
   const variants = new Map<string, { screens: string[]; outcome: string; count: number }>();
   for (const i of instances) {
-    const t = triggerOf.get(i.triggerTransitionId) as
-      { from_state: string; element_key: string | null } | undefined;
-    const screen = keyOf.get(screenOf.get(t?.from_state ?? '') ?? '') ?? 'outside the model';
+    const t = i.triggerTransitionId
+      ? (triggerOf.get(i.triggerTransitionId) as
+          { from_state: string; element_key: string | null } | undefined)
+      : undefined;
+    // A deep link has no screen it came from: the URL is the trigger.
+    const screen =
+      i.trigger === 'deep_link'
+        ? DEEP_LINK
+        : (keyOf.get(screenOf.get(t?.from_state ?? '') ?? '') ?? 'outside the model');
     const element = t?.element_key ?? '—';
     const k = `${screen}|${element}`;
     triggers.set(k, { screen, element, count: (triggers.get(k)?.count ?? 0) + 1 });

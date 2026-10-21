@@ -69,7 +69,7 @@ function watermarks(raw: Raw, portal: string): Watermarks {
          SELECT max(labelled_at) AS w FROM state_pair_labels WHERE portal_id = ?
          UNION ALL SELECT max(decided_at) FROM parameter_roles WHERE portal_id = ? AND decided_by = 'person'
          UNION ALL SELECT max(accepted_at) FROM tau_acceptances WHERE portal_id = ?
-         UNION ALL SELECT max(trained_at) FROM similarity_classifiers WHERE portal_id = ?)`,
+         UNION ALL SELECT max(accepted_at) FROM similarity_classifiers WHERE portal_id = ?)`,
     )
     .get(portal, portal, portal, portal) as { w: string | null };
   return { observation: obs.w, decision: dec.w };

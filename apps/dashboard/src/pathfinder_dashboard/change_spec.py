@@ -33,7 +33,7 @@ class SpecInput(NamedTuple):
     left_steps: list[dict[str, Any]]
     right_steps: list[dict[str, Any]]
     rows: list[DiffRow]
-    scans: int  # scans that observed the left variant's screens
+    scans: int  # scans that observed the left model's screens
     records: list[str]  # "CAP-005 Product and help information"
 
 

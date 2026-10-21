@@ -13,10 +13,11 @@ describe('processModelFacts', () => {
     let f = processModelFacts(o.raw, 'ins', 'prc');
     expect(f.modelVersion).toBe(1);
     expect(f.triggers).toEqual([
+      { screen: 'deep link', element: '—', count: 9 }, // the calculator opened by URL
       { screen: expect.stringMatching(/^SC-\d{4}$/), element: 'link|Oblicz', count: 2 },
     ]);
-    expect(f.outcomes).toEqual({ completed: 1, exited: 1 });
-    expect(f.variants.map((v) => v.outcome)).toEqual(['exited', 'completed']);
+    expect(f.outcomes).toEqual({ completed: 6, exited: 5 });
+    expect(f.variants.map((v) => v.outcome)).toEqual(['completed', 'exited']);
     expect(f.explored).toBeNull();
     expect(f.rules).toEqual([]); // proposed: not exported yet
 

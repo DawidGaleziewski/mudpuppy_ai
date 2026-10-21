@@ -34,7 +34,8 @@ Layer: store (G-07; `apps/crawler/layers.json`)
   `unexploredProcesses` (`process-exploration.ts`: the stopping rule's replays, planner priority 6,
   T075), `anchorReviewsOf` (`anchors.ts`, T074), `processModelFacts` (`process-facts.ts`: what
   the model knows of a process, for its export, T078), `classifierTrainingSet`,
-  `recordClassifier`, `activeClassifier` (`similarity-classifier.ts`, T090),
+  `recordClassifier`, `activeClassifier`, `acceptClassifier` (`similarity-classifier.ts`, T090;
+  in force only once a person accepts it, owner answer 14),
   `decisionRules`, `dmnFiles` (`rule-export.ts`, `pnpm model:dmn`), `writeGuardConflicts`
   (`rule-guards.ts`: guards along a path that cannot all hold → `ambiguous`, after
   `pnpm model:mine`, T064), `queueRegressions`,

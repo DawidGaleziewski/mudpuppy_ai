@@ -791,3 +791,7 @@
   title: "Differing states removed; SC-20 proven on deviations (owner answer 3)"
   tier: not_testable
   reason: covered by gate SC-20 (scars-one-button-two-pages.test.ts)
+- id: F-44@039
+  title: "Owner answers 8, 10, 14 as built (migration 0039)"
+  tier: not_testable
+  reason: unit tests named in the finding (instances, process facts, the classifier, the dashboard page)

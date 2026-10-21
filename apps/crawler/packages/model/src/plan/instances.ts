@@ -1,13 +1,19 @@
 /**
  * Process instances (spec 039 design § 13.1, T073): a journey enters a process through a trigger
- * (a non-global transition from a screen outside the process into its start screen) and walks its
- * member screens until an outcome. The pages walked before the trigger are its entry path, never
- * steps (R-77). Trace variants are the distinct screen sequences of the instances. Pure.
+ * (a non-global transition from a screen outside the process into its start screen, or a deep
+ * link: a URL opened straight on the start screen) and walks its member screens until an outcome.
+ * The pages walked before the trigger are its entry path, never steps (R-77). Trace variants are
+ * the distinct screen sequences of the instances. Pure.
  */
 
-/** One executed transition of a journey, on model screens. */
+/**
+ * One step of a journey, on model screens: an executed transition, or a URL opened in the
+ * journey (`observationId` set, `transitionId` null, no `fromScreen`).
+ */
 export interface JourneyStep {
-  transitionId: string;
+  transitionId: string | null;
+  /** The observation of a URL opened in the journey (a deep link); absent for transitions. */
+  observationId?: string;
   journeyId: string;
   seq: number;
   fromScreen: string | null;
@@ -29,11 +35,17 @@ export interface ProcessShape {
 
 export type InstanceOutcome = 'completed' | 'exited' | 'error' | 'abandoned' | 'incomplete';
 
+export type InstanceTrigger = 'transition' | 'deep_link';
+
 export interface ProcessInstance {
   processId: string;
   journeyId: string;
-  triggerTransitionId: string;
-  lastTransitionId: string;
+  /** How the journey entered: a click (`triggerTransitionId`) or a URL (`triggerObservationId`). */
+  trigger: InstanceTrigger;
+  triggerTransitionId: string | null;
+  triggerObservationId: string | null;
+  /** The last transition walked; null when a deep link was the whole walk. */
+  lastTransitionId: string | null;
   outcome: InstanceOutcome;
   /** The screen the outcome was seen on (the error, the exit page, the last member). */
   outcomeScreen: string | null;
@@ -41,14 +53,18 @@ export interface ProcessInstance {
   screens: string[];
 }
 
-/** How one walk ends at `s` (null: it goes on). */
+/** How one walk, now on screen `at`, ends at `s` (null: it goes on). */
 function endAt(
   p: ProcessShape,
   s: JourneyStep,
+  at: string,
 ): { outcome: InstanceOutcome; screen: string | null } | null {
   if (s.result === 'business_error')
     return { outcome: 'error', screen: s.toScreen ?? s.fromScreen };
   if (s.global) return { outcome: 'abandoned', screen: s.fromScreen };
+  // A URL opened mid-walk leaves the process unless it lands on one of its screens.
+  if (s.observationId !== undefined && (s.toScreen === null || !p.members.has(s.toScreen)))
+    return { outcome: 'abandoned', screen: at };
   if (s.toScreen !== null && !p.members.has(s.toScreen))
     return { outcome: 'exited', screen: s.toScreen };
   return null;
@@ -69,13 +85,13 @@ function inJourney(p: ProcessShape, steps: readonly JourneyStep[]): ProcessInsta
       continue;
     }
     const screens = [p.startScreen];
-    let last = t;
+    let lastTransition = t.transitionId;
     let end: { outcome: InstanceOutcome; screen: string | null } | null = null;
     let j = i + 1;
     for (; j < steps.length && !end; j++) {
       const s = steps[j]!;
-      last = s;
-      end = endAt(p, s);
+      lastTransition = s.transitionId ?? lastTransition;
+      end = endAt(p, s, screens[screens.length - 1]!);
       if (!end && s.toScreen !== null && s.toScreen !== screens[screens.length - 1])
         screens.push(s.toScreen);
     }
@@ -86,8 +102,10 @@ function inJourney(p: ProcessShape, steps: readonly JourneyStep[]): ProcessInsta
     out.push({
       processId: p.id,
       journeyId: t.journeyId,
+      trigger: t.observationId === undefined ? 'transition' : 'deep_link',
       triggerTransitionId: t.transitionId,
-      lastTransitionId: last.transitionId,
+      triggerObservationId: t.observationId ?? null,
+      lastTransitionId: lastTransition,
       outcome: end.outcome,
       outcomeScreen: end.screen,
       screens,

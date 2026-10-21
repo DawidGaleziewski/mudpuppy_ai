@@ -1,4 +1,4 @@
-"""The step diff of two process variants (spec 022 screen 06, FE-P03)."""
+"""The step diff of two process models (spec 022 screen 06, FE-P03)."""
 
 from __future__ import annotations
 
@@ -63,6 +63,6 @@ def test_an_added_step_sits_where_it_is_on_the_right() -> None:
     ]
 
 
-def test_unknown_from_ids_count_as_added_and_empty_variants_diff_cleanly() -> None:
+def test_unknown_from_ids_count_as_added_and_empty_models_diff_cleanly() -> None:
     assert [r.change for r in diff(A[:1], [step("x", "X", frm=["gone"])])] == ["removed", "added"]
     assert diff([], []) == []

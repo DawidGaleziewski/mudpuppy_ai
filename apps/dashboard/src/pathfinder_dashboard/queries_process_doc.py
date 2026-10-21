@@ -215,7 +215,7 @@ def sign_off(view: ProcessView) -> SignOff | None:
     last = moves[-1]
     return SignOff(
         signed_rev=last.as_is_rev,
-        head_rev=view.as_is.variant.rev,
+        head_rev=view.as_is.model.rev,
         by=last.author,
         at=last.created_at,
     )

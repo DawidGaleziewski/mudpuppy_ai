@@ -1,5 +1,5 @@
 """The Processes workspace pages (spec 022 M5, screens 04–06): the list with suggestions and
-screens in no process, the variant editor with the reviewer's draft, the conflict notice, Compare
+screens in no process, the model editor with the reviewer's draft, the conflict notice, Compare
 with the generated change spec, the Markdown export, and the signed forwarder."""
 
 from __future__ import annotations
@@ -100,14 +100,14 @@ def seed(store: Store, *, draft_base: int = 1, b_rev: int = 1) -> Store:
         label="A",
         kind="as_is",
         rev=1,
-        branched_from_variant_id=None,
+        branched_from_model_id=None,
         branched_from_rev=None,
         created_at=ts(2),
     )
     insert(
         conn,
         "process_model_revisions",
-        variant_id="v-a",
+        model_id="v-a",
         rev=1,
         base_rev=None,
         change="create",
@@ -126,7 +126,7 @@ def seed(store: Store, *, draft_base: int = 1, b_rev: int = 1) -> Store:
         label="B",
         kind="to_be",
         rev=b_rev,
-        branched_from_variant_id="v-a",
+        branched_from_model_id="v-a",
         branched_from_rev=1,
         created_at=ts(3),
     )
@@ -134,7 +134,7 @@ def seed(store: Store, *, draft_base: int = 1, b_rev: int = 1) -> Store:
         insert(
             conn,
             "process_model_revisions",
-            variant_id="v-b",
+            model_id="v-b",
             rev=rev,
             base_rev=None if rev == 1 else rev - 1,
             change="branch" if rev == 1 else "save",
@@ -148,7 +148,7 @@ def seed(store: Store, *, draft_base: int = 1, b_rev: int = 1) -> Store:
     insert(
         conn,
         "process_drafts",
-        variant_id="v-b",
+        model_id="v-b",
         author="Anna",
         base_rev=draft_base,
         steps=json.dumps(DRAFT),
@@ -160,8 +160,8 @@ def seed(store: Store, *, draft_base: int = 1, b_rev: int = 1) -> Store:
         id="lv-1",
         process_id="pr-1",
         environment="sandbox",
-        variant_id="v-a",
-        variant_rev=1,
+        model_id="v-a",
+        model_rev=1,
         author="Anna",
         reason=None,
         created_at=ts(5),
@@ -224,7 +224,7 @@ def test_process_links_name_their_portal(empty_store: Store) -> None:
 
 def test_editor_shows_the_reviewers_draft_against_the_as_is(empty_store: Store) -> None:
     with client(seed(empty_store)) as c:
-        body = c.get(f"/processes/PRC-001?portal={P}&variant=B&step=m1").text
+        body = c.get(f"/processes/PRC-001?portal={P}&model=B&step=m1").text
     flat = text(body)
     assert "Save as B r2" in flat and "only you see this draft" in flat
     assert "One form" in flat and "merges 2 steps" in flat and "Designed, not observed" in flat
@@ -233,7 +233,7 @@ def test_editor_shows_the_reviewers_draft_against_the_as_is(empty_store: Store) 
     assert "Built from" in flat and "Car" in flat and "Driver" in flat
     assert (
         'data-step-op="annotate"' in body
-        and 'data-draft="/chat/portals/liveinsurer/processes/pr-1/variants/B/draft"' in body
+        and 'data-draft="/chat/portals/liveinsurer/processes/pr-1/models/B/draft"' in body
     )
     assert json.loads(body.split('id="process-steps">')[1].split("</script>")[0]) == DRAFT
     assert body.count("sy-btn--primary") == 1
@@ -241,13 +241,13 @@ def test_editor_shows_the_reviewers_draft_against_the_as_is(empty_store: Store) 
 
 def test_a_draft_on_an_old_base_shows_someone_saved_first(empty_store: Store) -> None:
     with client(seed(empty_store, draft_base=1, b_rev=2)) as c:
-        body = c.get(f"/processes/PRC-001?portal={P}&variant=B").text
+        body = c.get(f"/processes/PRC-001?portal={P}&model=B").text
     flat = text(body)
     assert (
         "Someone saved first" in flat
         and "B r2 was saved while your draft was based on B r1" in flat
     )
-    assert 'data-process="/chat/portals/liveinsurer/processes/pr-1/variants/B/rebase"' in body
+    assert 'data-process="/chat/portals/liveinsurer/processes/pr-1/models/B/rebase"' in body
     assert "Save as" not in flat
 
 
@@ -257,14 +257,14 @@ def test_the_as_is_is_edited_by_screen_and_drawing_needs_a_reviewer(empty_store:
     the page leads with the to-be (US2.3)."""
     store = seed(empty_store)
     with client(store) as c:
-        a = c.get(f"/processes/PRC-001?portal={P}&variant=A").text
+        a = c.get(f"/processes/PRC-001?portal={P}&model=A").text
         lead = c.get(f"/processes/PRC-001?portal={P}").text
     with client(store, reviewer=None) as c:
-        b = c.get(f"/processes/PRC-001?portal={P}&variant=B").text
-        a_unsigned = c.get(f"/processes/PRC-001?portal={P}&variant=A").text
+        b = c.get(f"/processes/PRC-001?portal={P}&model=B").text
+        a_unsigned = c.get(f"/processes/PRC-001?portal={P}&model=A").text
         missing = c.get(f"/processes/PRC-999?portal={P}")
     assert "data-step-op" not in a and 'data-a-op="remove"' in a and 'data-a-op="add"' in a
-    assert 'data-edit="/chat/portals/liveinsurer/processes/pr-1/variants/A/edit"' in a
+    assert 'data-edit="/chat/portals/liveinsurer/processes/pr-1/models/A/edit"' in a
     assert "Live in sandbox:" in text(a)
     assert "B · To-be r1" in text(lead)
     assert "Drawing is off" in text(b) and "data-step-op" not in b
@@ -287,16 +287,16 @@ def test_compare_diffs_the_draft_and_generates_the_change_spec(empty_store: Stor
 
 def test_the_forwarder_signs_and_only_reaches_process_routes(empty_store: Store) -> None:
     service = Service()
-    route = ("POST", "/portals/liveinsurer/processes/pr-1/variants/B/save")
-    service.routes[route] = httpx2.Response(201, json={"variant": {"rev": 2}})
+    route = ("POST", "/portals/liveinsurer/processes/pr-1/models/B/save")
+    service.routes[route] = httpx2.Response(201, json={"model": {"rev": 2}})
     with client(seed(empty_store), service) as c:
         ok = c.post(
-            "/chat/portals/liveinsurer/processes/pr-1/variants/B/save",
+            "/chat/portals/liveinsurer/processes/pr-1/models/B/save",
             json={"base_rev": 1},
             headers=ORIGIN,
         )
         odd = c.post("/chat/portals/liveinsurer/conversations/x", json={}, headers=ORIGIN)
-        foreign = c.post("/chat/portals/liveinsurer/processes/pr-1/variants/B/save", json={})
+        foreign = c.post("/chat/portals/liveinsurer/processes/pr-1/models/B/save", json={})
     assert ok.status_code == 201
     sent = [r for r in service.requests if r.url.path.endswith("/save")]
     assert json.loads(sent[0].content) == {"base_rev": 1, "author": "Anna"}

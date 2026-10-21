@@ -61,7 +61,7 @@ function lastChanged(ctx: BaContext, portal: string, key: string): string | null
           .prepare(
             `SELECT r.created_at AS at FROM ba_processes p
              JOIN process_models v ON v.process_id = p.id AND v.kind = 'as_is'
-             JOIN process_model_revisions r ON r.variant_id = v.id AND r.rev = v.rev
+             JOIN process_model_revisions r ON r.model_id = v.id AND r.rev = v.rev
              WHERE p.portal_id = ? AND p.key = ?`,
           )
           .get(portal, key)
