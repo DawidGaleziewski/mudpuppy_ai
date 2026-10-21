@@ -807,3 +807,7 @@
   title: "Records cite hypotheses, rules go by the BR key: owner answer 18 (b)"
   tier: not_testable
   reason: docs and dashboard unit tests named in the finding; the BA-trial eval idea is logged
+- id: F-48@039
+  title: "Changes and Before / after on today's read models (T100 step 5)"
+  tier: not_testable
+  reason: read-only dashboard pages; covered by test_changes.py and the UI check

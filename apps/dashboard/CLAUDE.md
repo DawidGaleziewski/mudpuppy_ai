@@ -65,7 +65,12 @@ Layer: app (Python, FastAPI + Jinja + htmx, uv; outside the TS layers)
   | Portal model: Processes · Screens · Rules · Docs | Machine: Scans · Settings);
   `queries_rules.py` + `web/rules.py` (Rules, v2-11 / v2-12: decision tables, boundary tests,
   history; read-only); `queries_model_facts.py` + `partials/model_facts.html` (a process page's
-  "In the portal model": triggers incl. deep links, outcomes, explored, rules). A process's A and
+  "In the portal model": triggers incl. deep links, outcomes, explored, rules).
+  `queries_changes.py` + `web/changes.py` (Changes, v2-02: a range of model versions, grouped by
+  process and screen, explanations in the UI's words) and `queries_change_detail.py` +
+  `change.html` (Before / after, v2-03; `static/js/change-keys.js`); `queries_releases.py` +
+  `partials/releases.html` (release lanes from the latest model version's build epochs, scans,
+  range bracket). A process's A and
   B are process models (`?model=B`, status vocabulary `process_model`; owner answer 8).
 - `servers.py`: live `pathfinder` servers read from `<data_dir>/servers/*.json`; the header names
   those on another environment or checkout (spec 031 R-61). Read-only, dead files are skipped.

@@ -493,18 +493,26 @@ Things leave the inbox when you decide. Nothing in it is deleted behind your bac
 
 After every scan MudPuppy rebuilds its **portal model**: one set of screens (`SC-0001` …) across
 all scans, with the actions on them and where they lead. It then compares the new model with the
-one before. **What changed** (Review section) lists every difference in three groups:
+one before. **Changes** (in the menu) lists the differences in a range: pick **From** and **To**
+(a model version is built after each scan; Now is the latest) and press **Show**. Above the list,
+each portal part's releases are drawn as lanes with the scans under them and the range as a
+bracket. The list is grouped by process, then screen; in each group what needs you comes first.
+Every change has a status:
 
-| Group | Meaning |
+| Status | Meaning |
 | --- | --- |
 | **Needs you** | No rule could explain it. Decide, or have the BA look at it. |
-| **Explained automatically** | A published rule explained it from the evidence, such as "the screen changed with a new release" or "the button was renamed". Each one names its rule (R1–R8); you can overturn it with a reason. |
+| **Explained automatically** | A published rule explained it from the evidence, such as "Release" (the screen changed with a new release) or "Part of a rename". Each one names its rule (R1–R8). |
 | **Waiting for a check** | MudPuppy will repeat the path itself to decide, such as an error that may or may not come back. |
 
-The same page lists **Decision rules**: where one button leads to different screens depending on
-what was typed, MudPuppy finds the rule ("drivers under 18 are refused") and tests it just below,
-at and above its threshold. **Supported** means those tests gave the predicted outcome; it becomes
-**Confirmed** when you say so.
+**Before / after** on a row opens the two recorded pages side by side, what differs between them
+(the release of each portal part, the persona, the scan), the explanation with its tests and
+where the change shows. `J` / `K` step through the changes that need you; `Esc` goes back.
+
+Business rules have their own page, **Rules**: where one button leads to different screens
+depending on what was typed, MudPuppy finds the rule ("drivers under 18 are refused") and tests it
+just below, at and above its threshold. Once a BA's business rule record cites it, the rule goes
+by that record's `BR-` key.
 
 Until the designed pages arrive, a developer runs these steps from `apps/crawler` (each takes the
 portal and `--env`):

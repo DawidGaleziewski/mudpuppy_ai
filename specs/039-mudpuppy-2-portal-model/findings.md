@@ -811,3 +811,39 @@ Bugs, slips and design deviations found while building, each with a test or eval
   `test_rules.py::test_a_documented_rule_goes_by_its_business_rule_key`. Eval idea: in a BA trial
   over a portal with confirmed mined rules, a business_rule record that restates a confirmed
   hypothesis without citing it counts as a miss (duplicate knowledge with no link).
+
+## F-48 Changes and Before / after on today's read models (T100 step 5), 2026-10-21
+
+- **Built** (owner answer 20: pages first): Changes as the designer's v2-02 and Before / after as
+  v2-03, read-only.
+  - **Range**: From / To pick model versions, not releases. Owner answer 17 rules out a release
+    watch, and a model version is built after each scan.
+  - **Release lanes** come from the latest model version's `build_epochs`: one lane per portal
+    part, a rollout span where an epoch overlaps the previous one, dashed when the part has no
+    marker, the scans under the lanes and the range as a bracket.
+  - **The list** is grouped by process (the A head's screens), then screen; needs you first.
+  - **Explanations** use the designer's words per hypothesis kind (Release, Flaky error,
+    A/B test?, Part of a rename, Unexplained…).
+  - **Before / after** compares the screen's variants, or its oldest and newest variant with the
+    target before and after. What differs shows each side's latest visit: the release per part,
+    the persona and the scan.
+- **Changed on the way**:
+  - The Decision rules and τ plates left Changes; they are on Rules and Settings ▸ Screen
+    identity. The accepted-τ test moved to `test_identity.py`.
+  - "Explained automatically" is now dashed `inferred`, not `ok`. The designer marks it as
+    something a person can still overturn.
+- **Seen on the way**:
+  - The UI check failed the shared `picture.html` thumbnail with no picture (axe contrast and
+    name mismatch). Before / after shows a plain line instead. The process pages still use the
+    thumbnail: worth checking there (not changed here).
+  - A segment group of three buttons overflowed at 390 px. `.mp-seg` now wraps.
+  - `context_diff` on deviations is never written by the reconciler, so What differs reads the
+    observations instead.
+- **Not done**: Overturn (R-87), the decision bar on Before / after (decisions stay in Review and
+  `pnpm model:decide`), Side by side / Overlay / Wireframe switch (one view: the recorded
+  pictures), linked decisions ("Also settles"), bundles of many changes (×12), pagination for 500+
+  changes.
+- **Test**: `test_changes.py` (statuses and explanations, filters and range, grouping by process,
+  release lanes with a rollout, Before / after with a differing release and Previous / Next, 404),
+  `test_identity.py`; `ui:check` on the three pages at 1280 and 390: ok. Eval idea: none (a
+  read-only page over the model).

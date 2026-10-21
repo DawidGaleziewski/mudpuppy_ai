@@ -161,7 +161,7 @@ VOCABULARIES: dict[str, dict[str, Status]] = {
     "deviation": {
         "open": _s("needs", "Needs you"),
         "waiting_test": _s("queued", "Waiting for a check"),
-        "explained": _s("ok", "Explained automatically"),
+        "explained": _s("inferred", "Explained automatically"),  # v2-02: overturnable, not ok
     },
     # spec 039 T100: a business rule in the UI's words (12-v2-ux.md § 4) and its boundary tests
     "rule": {

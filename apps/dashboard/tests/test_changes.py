@@ -1,7 +1,10 @@
-"""What changed (spec 039 M3): deviations of the portal model with their explanations."""
+"""What changed (spec 039 T100, designer screens v2-02 / v2-03): the portal model's changes in a
+range of model versions, grouped by process and screen, with explanations; one change's Before /
+after."""
 
 from __future__ import annotations
 
+import json
 import sqlite3
 
 from fastapi.testclient import TestClient
@@ -58,37 +61,6 @@ def seed(store: Store) -> None:
     conn.close()
 
 
-def view(store: Store) -> queries_changes.ChangesView:
-    conn = store.connect()
-    conn.row_factory = sqlite3.Row
-    try:
-        return queries_changes.changes_view(conn, P)
-    finally:
-        conn.close()
-
-
-def test_changes_are_split_by_who_has_to_act(empty_store: Store) -> None:
-    seed(empty_store)
-    v = view(empty_store)
-    assert v.latest_seq == 2
-    assert [c.kind for c in v.explained] == ["new_member"]
-    assert v.explained[0].hypothesis_key == "H-0001" and v.explained[0].rule == "R2"
-    assert [c.kind for c in v.needs_you] == ["new_action"]
-    assert [c.kind for c in v.waiting] == ["result_mismatch"]
-
-
-def test_the_page_lists_changes_with_plain_words_and_statuses(empty_store: Store) -> None:
-    seed(empty_store)
-    settings = Settings(data_dir=empty_store.data_dir, default_env=empty_store.env)
-    client = TestClient(create_app(settings))
-    html = client.get(f"/changes?portal={P}").text
-    assert '<h1 class="sy-h1">What changed</h1>' in html
-    assert "Screen looks different" in html and "Explained automatically" in html
-    assert 'data-status="needs">Needs you' in html
-    assert ">H-0001<" in html
-    assert html.count("sy-btn--primary") <= 1
-
-
 def seed_rule_and_rename(store: Store) -> None:
     """A rename's new button explained by another change, and a supported decision rule."""
     conn = store.connect()
@@ -125,52 +97,155 @@ def seed_rule_and_rename(store: Store) -> None:
     conn.close()
 
 
-def test_a_change_another_one_explains_is_not_for_a_person(empty_store: Store) -> None:
+def seed_process_and_releases(store: Store) -> None:
+    """SC-0001 is walked by PRC-001; the shell had two releases, the second overlapping."""
+    conn = store.connect()
+    insert(conn, "states", id="st-b", fingerprint="fp-b", route_template="/", title="Start (new)",
+           cluster_id="c", first_seen_run="r1", created_at=ts(1))  # fmt: skip
+    for state, n in (("st-a", 1), ("st-b", 2)):
+        conn.execute(
+            "INSERT INTO screen_members (screen_id, state_id, ordinal, assigned_by,"
+            " from_model_version) VALUES ('M1', ?, ?, 'clustering', 'mv1')",
+            (state, n),
+        )
+    conn.execute("UPDATE deviations SET state_id = 'st-b' WHERE id = 'd1'")
+    conn.execute(
+        "INSERT INTO ba_processes (id, portal_id, key, name, persona, stage, rev, source,"
+        " created_at, updated_at) VALUES ('p1', ?, 'PRC-001', 'Oblicz składkę', 'guest',"
+        " 'as_is_documented', 1, 'new', ?, ?)",
+        (P, ts(0), ts(0)),
+    )
+    conn.execute(
+        "INSERT INTO process_models (id, process_id, label, kind, rev, created_at)"
+        " VALUES ('pm1', 'p1', 'A', 'as_is', 1, ?)",
+        (ts(0),),
+    )
+    conn.execute(
+        "INSERT INTO process_model_revisions (model_id, rev, change, author, steps, created_at)"
+        " VALUES ('pm1', 1, 'create', 'Anna', ?, ?)",
+        (json.dumps([{"state_id": "st-a"}]), ts(0)),
+    )
+    for i, (state, at) in enumerate((("st-a", ts(0)), ("st-a", ts(5)), ("st-b", ts(6)),
+                                     ("st-b", ts(9)))):  # fmt: skip
+        conn.execute(
+            "INSERT INTO observations (id, run_id, state_id, via, url, created_at)"
+            " VALUES (?, 'r1', ?, 'navigate', 'https://example.test/', ?)",
+            (f"o{i}", state, at),
+        )
+    for bid, sig, first, last, overlaps in (
+        ("b1", "marker:1d77", "o0", "o1", 0),
+        ("b2", "marker:3e1a", "o2", "o3", 1),
+    ):
+        conn.execute(
+            "INSERT INTO builds (id, portal_id, scope, signature, source, assets_json, first_seen)"
+            " VALUES (?, ?, 'shell', ?, 'marker', '[]', ?)",
+            (bid, P, sig, ts(0)),
+        )
+        conn.execute(
+            "INSERT INTO build_epochs (id, portal_id, scope, environment, build_id,"
+            " first_observation_id, last_observation_id, overlaps_previous, model_version_id)"
+            " VALUES (?, ?, 'shell', 'production', ?, ?, ?, ?, 'mv2')",
+            (f"e{bid}", P, bid, first, last, overlaps),
+        )
+    conn.execute("INSERT INTO observation_builds VALUES ('o1', 'b1'), ('o3', 'b2')")
+    conn.commit()
+    conn.close()
+
+
+def view(store: Store, **kw: object) -> queries_changes.ChangesView:
+    conn = store.connect()
+    conn.row_factory = sqlite3.Row
+    try:
+        return queries_changes.changes_view(conn, P, **kw)  # type: ignore[arg-type]
+    finally:
+        conn.close()
+
+
+def client(store: Store) -> TestClient:
+    return TestClient(create_app(Settings(data_dir=store.data_dir, default_env=store.env)))
+
+
+def test_changes_are_split_by_who_has_to_act(empty_store: Store) -> None:
+    seed(empty_store)
+    v = view(empty_store)
+    assert v.latest_seq == 2
+    assert v.counts == {"all": 3, "needs": 2, "explained": 1, "waiting": 1}
+    by_kind = {c.kind: c for c in v.all_changes()}
+    assert by_kind["new_member"].status == "explained"
+    assert by_kind["new_member"].explanation.word == "Release"
+    assert by_kind["new_action"].status == "open"
+    assert by_kind["new_action"].explanation.word == "Unexplained"
+    assert by_kind["result_mismatch"].status == "waiting_test"
+    # Needs you comes first in its screen group.
+    assert [c.status for c in v.groups[0].screens[0].changes][-1] == "explained"
+
+
+def test_the_page_groups_changes_and_uses_plain_words(empty_store: Store) -> None:
+    seed(empty_store)
+    html = client(empty_store).get(f"/changes?portal={P}").text
+    assert '<h1 class="sy-h1">What changed</h1>' in html
+    assert "Not in a process" in html and ">Variant<" in html and ">Release<" in html
+    assert 'data-status="inferred">Explained automatically' in html
+    assert 'data-status="needs">Needs you' in html
+    assert ">H-0001<" in html and 'href="/changes/d2' in html
+    assert html.count("sy-btn--primary") <= 1
+
+
+def test_a_change_another_one_explains_is_part_of_a_rename(empty_store: Store) -> None:
     seed(empty_store)
     seed_rule_and_rename(empty_store)
     v = view(empty_store)
-    assert sorted(c.kind for c in v.explained) == ["new_action", "new_member"]
-    assert [c.kind for c in v.needs_you] == ["new_action"]
+    (d4,) = [c for c in v.all_changes() if c.id == "d4"]
+    assert d4.status == "explained" and d4.explanation.word == "Part of a rename"
 
 
-def test_decision_rules_show_their_status_and_boundary_verdicts(empty_store: Store) -> None:
+def test_filters_and_the_range_narrow_the_list(empty_store: Store) -> None:
     seed(empty_store)
-    seed_rule_and_rename(empty_store)
-    (rule,) = view(empty_store).rules
-    assert (rule.key, rule.status, rule.screen_key) == ("H-0002", "supported", "SC-0001")
-    assert (rule.passed, rule.failed, rule.inconclusive, rule.untested) == (2, 0, 0, 1)
-    assert rule.rows == 11
-    settings = Settings(data_dir=empty_store.data_dir, default_env=empty_store.env)
-    html = TestClient(create_app(settings)).get(f"/changes?portal={P}").text
-    assert "Decision rules" in html and ">H-0002<" in html
-    assert 'data-status="inferred">Supported' in html
-    assert "Part of another change that a rule explained" in html
+    assert [c.kind for c in view(empty_store, show="explained").all_changes()] == ["new_member"]
+    assert {c.kind for c in view(empty_store, show="needs").all_changes()} == {
+        "new_action", "result_mismatch"}  # fmt: skip
+    assert [c.id for c in view(empty_store, kind="new_action").all_changes()] == ["d2"]
+    assert view(empty_store, from_seq=2).all_changes() == []
+    assert len(view(empty_store, from_seq=1).all_changes()) == 3
+    html = client(empty_store).get(f"/changes?portal={P}&show=needs&from_seq=2").text
+    assert "No change in this range" in html
 
 
-def test_the_threshold_says_whether_a_person_accepted_it(empty_store: Store) -> None:
-    """T115: τ is the profile's default until a person accepts a calibrated one."""
+def test_changes_group_under_the_process_that_walks_the_screen(empty_store: Store) -> None:
     seed(empty_store)
-    t = view(empty_store).threshold
-    assert t is not None and t.tau == 0.9 and t.accepted_by is None and t.labels == 0
-    conn = empty_store.connect()
-    conn.execute(
-        "UPDATE model_versions SET fingerprint_profile = 'rows-v2@0123abcd', threshold = 0.93"
-    )
-    conn.execute(
-        "INSERT INTO tau_acceptances (id, portal_id, profile, tau, labels, f1, accepted_by,"
-        " accepted_at) VALUES ('t1', ?, 'rows-v2@0123abcd', 0.93, 60, 0.97, 'Owner', ?)",
-        (P, ts(3)),
-    )
-    conn.commit()
-    conn.close()
-    t = view(empty_store).threshold
-    assert t is not None and t.tau == 0.93 and t.accepted_by == "Owner"
-    settings = Settings(data_dir=empty_store.data_dir, default_env=empty_store.env)
-    html = TestClient(create_app(settings)).get(f"/changes?portal={P}").text
-    assert "accepted by Owner" in html and "rows-v2@0123abcd" in html
+    seed_process_and_releases(empty_store)
+    v = view(empty_store)
+    assert [g.key for g in v.groups] == ["PRC-001"]
+    assert v.processes == [("PRC-001", "Oblicz składkę", 3)]
+    assert view(empty_store, process="none").all_changes() == []
+    html = client(empty_store).get(f"/changes?portal={P}").text
+    assert "Oblicz składkę" in html and ">PRC-001<" in html
+
+
+def test_the_range_draws_release_lanes_and_scans(empty_store: Store) -> None:
+    seed(empty_store)
+    seed_process_and_releases(empty_store)
+    html = client(empty_store).get(f"/changes?portal={P}").text
+    assert "sy-releases__lane" in html and ">Shell<small>shell</small>" in html
+    assert ">1d77<" in html and ">3e1a<" in html
+    assert "sy-releases__span--rollout" in html and "sy-releases__span--current" in html
+    assert "this range · 3 changes" in html and 'class="sy-releases__scan"' in html
+
+
+def test_before_after_shows_both_variants_and_what_differs(empty_store: Store) -> None:
+    seed(empty_store)
+    seed_process_and_releases(empty_store)
+    html = client(empty_store).get(f"/changes/d1?portal={P}").text
+    assert '<h1 class="sy-h1">Before / after</h1>' in html
+    assert "Known variant" in html and "New variant" in html
+    assert "Release · Shell" in html and "sy-differs" in html  # 1d77 → 3e1a
+    assert "Oblicz składkę" in html  # the crumb and Where it shows
+    needs = client(empty_store).get(f"/changes/d2?portal={P}").text
+    assert "1 of 2 that need you" in needs and 'data-key="j"' in needs
+    missing = client(empty_store).get(f"/changes/nope?portal={P}")
+    assert missing.status_code == 404 and "Change not found" in missing.text
 
 
 def test_without_a_model_the_page_says_how_to_build_one(empty_store: Store) -> None:
-    settings = Settings(data_dir=empty_store.data_dir, default_env=empty_store.env)
-    html = TestClient(create_app(settings)).get(f"/changes?portal={P}").text
+    html = client(empty_store).get(f"/changes?portal={P}").text
     assert "has no portal model yet" in html

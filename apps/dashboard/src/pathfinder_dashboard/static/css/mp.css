@@ -7,6 +7,24 @@
   .mp-group > th { padding-top: var(--sy-space-4); }
   .mp-caption { caption-side: top; text-align: left; padding: var(--sy-space-3) 12px; display: table-caption; }
 
+  /* Spec 039 T100 (designer screens v2-02, v2-03): release lanes, the range bracket over the
+     tracks, process and screen group rows of the change list, segments sized to their label. */
+  .mp-releases { --sy-releases-name: 140px; margin-top: 22px; }
+  .mp-releases .sy-releases__lane--scans .sy-releases__track { height: 48px; }
+  .mp-range {
+    --mp-left: 0;   /* the range's start and width as fractions of the track, set inline */
+    --mp-width: 1;
+    --mp-track: calc(100% - var(--sy-releases-name) - var(--sy-space-3));
+    left: calc(var(--sy-releases-name) + var(--sy-space-3) + var(--mp-track) * var(--mp-left));
+    width: calc(var(--mp-track) * var(--mp-width));
+  }
+  .mp-process > th { background: var(--sy-bg-raised); }
+  .mp-screen > th { background: var(--sy-bg-well); padding-block: 8px; }
+  .mp-changes td, .mp-changes th[scope="row"] { vertical-align: top; }
+  .mp-seg { flex-wrap: wrap; max-width: 100%; }
+  .mp-seg > button { flex: none; }
+  .mp-shot-side { max-width: 100%; height: auto; }
+
   /* htmx request indicators (htmx's own indicator CSS is off, htmx-config). */
   .htmx-indicator { visibility: hidden; }
   .htmx-request .htmx-indicator, .htmx-request.htmx-indicator { visibility: visible; }
