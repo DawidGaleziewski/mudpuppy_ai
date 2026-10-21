@@ -27,7 +27,7 @@ export function traceability(m: ExportModel): string {
         rows.push([
           `${keyLink(r.key, FILE)} (${r.status}, ${r.confidence})`,
           rel,
-          `${e.target_kind}:\`${e.target_id}\`${e.broken ? ' (broken)' : ''}${e.note ? ` — ${inline(e.note)}` : ''}`,
+          `${e.target_kind}:\`${e.target_id}\`${e.note ? ` — ${inline(e.note)}` : ''}`,
           e.run_id
             ? `\`${e.run_id}\` (${[e.run_mode, e.run_date].filter(Boolean).join(', ')})`
             : '—',

@@ -183,7 +183,7 @@ def docs_perf_store(tmp_path_factory: pytest.TempPathFactory) -> Store:
                  "confirmed" if rev == 1 else "draft", None if rev == 1 else "n")
             )  # fmt: skip
             for j in range(3):
-                links.append((f"{vid}-e{j}", vid, "state", "perf-state", DOC_RUN, "note"))
+                links.append((f"{vid}-e{j}", vid, f"ref-{vid}-e{j}", DOC_RUN, "note"))
         # depends_on is allowed between records of one kind (the store refuses other triples, 0013)
         if i + len(DOC_KIND_PREFIX) < n:
             relations.append((f"{rid}-r3", f"rec-{i + len(DOC_KIND_PREFIX):05d}", "depends_on"))
@@ -204,9 +204,14 @@ def docs_perf_store(tmp_path_factory: pytest.TempPathFactory) -> Store:
         " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 't')",
         revisions,
     )
+    # 0040: each link cites through its own entity_refs row (spec 039 § 15).
     w.executemany(
-        "INSERT INTO doc_evidence_links (id, revision_id, target_kind, target_id, run_id, note)"
-        " VALUES (?, ?, ?, ?, ?, ?)",
+        "INSERT INTO entity_refs (id, state_id) VALUES (?, 'perf-state')",
+        [(ref,) for (_, _, ref, _, _) in links],
+    )
+    w.executemany(
+        "INSERT INTO doc_evidence_links (id, revision_id, ref_id, run_id, note)"
+        " VALUES (?, ?, ?, ?, ?)",
         links,
     )
     w.executemany("INSERT INTO doc_relations VALUES (?, ?, ?)", relations)

@@ -118,8 +118,7 @@ def _states(
         conn,
         "SELECT s.id, s.id AS state, s.screen_id, s.state_kind, s.form_step_id, f.step_index,"
         " f.label, EXISTS (SELECT 1 FROM marks m WHERE m.kind = 'probe'"
-        "   AND m.target_kind = 'form_step'"
-        "   AND m.target_id = s.form_step_id AND m.used_by_run_id IS NULL) AS marked"
+        "   AND m.form_step_id = s.form_step_id AND m.used_by_run_id IS NULL) AS marked"
         " FROM states s LEFT JOIN form_steps f ON f.id = s.form_step_id"
         " WHERE s.portal_id = ? ORDER BY s.created_at, s.id",
         (portal,),

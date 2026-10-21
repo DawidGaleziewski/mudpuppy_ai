@@ -88,7 +88,7 @@ export function evidenceLine(e: ExportEvidence, fromFile: string): string {
     e.target_kind === 'doc_record' && e.doc_key
       ? `record ${keyLink(e.doc_key, fromFile)}`
       : `${e.target_kind.replace(/_/g, ' ')} \`${e.target_id}\`${e.region ? ` \`${e.region}\`` : ''}`;
-  const what = e.broken ? '**broken: the target no longer exists**' : inline(e.label);
+  const what = inline(e.label);
   const run = e.run_id
     ? ` (run \`${e.run_id}\`${e.run_mode ? `, ${e.run_mode}` : ''}${e.run_date ? `, ${e.run_date}` : ''})`
     : '';

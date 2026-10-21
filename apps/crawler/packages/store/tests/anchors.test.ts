@@ -22,10 +22,11 @@ describe('anchorReviewsOf', () => {
         screenOf(state),
         element,
       );
+      r.prepare('INSERT INTO entity_refs (id, state_id) VALUES (?, ?)').run(`target${n}`, state);
       r.prepare(
-        `INSERT INTO amendments (id, key, portal_id, target_kind, target_id, kind, text, author, status,
-           created_at, ref_id) VALUES (?, ?, 'ins', 'state', ?, 'note', 'n', 'Anna', 'active', ?, ?)`,
-      ).run(`a${n}`, `AMD-00${n}`, state, T(700), `ref${n}`);
+        `INSERT INTO amendments (id, key, portal_id, ref_id, kind, text, author, status,
+           created_at, anchor_ref_id) VALUES (?, ?, 'ins', ?, 'note', 'n', 'Anna', 'active', ?, ?)`,
+      ).run(`a${n}`, `AMD-00${n}`, `target${n}`, T(700), `ref${n}`);
     };
     amend(1, 'form', SUBMIT); // the submit button
     amend(2, 'price', null); // the whole price page

@@ -1,4 +1,4 @@
--- GENERATED from data/migrations/*.up.sql applied in order (currently through 0039_owner_answers). Do not edit by hand.
+-- GENERATED from data/migrations/*.up.sql applied in order (currently through 0041_typed_targets). Do not edit by hand.
 -- Regenerate after every migration; see data/schema/README.md.
 
 CREATE TABLE runs (
@@ -114,15 +114,16 @@ CREATE TABLE network_calls (
   schema_hash    TEXT CHECK (schema_hash IS NULL OR length(schema_hash) = 64)
 ) STRICT;
 
+-- Rebuilt by 0040 (spec 039 § 15): the subject (a state, transition or form) is an `entity_refs` row,
+-- no longer the polymorphic `about_ref`.
 CREATE TABLE open_questions (
-  id         TEXT PRIMARY KEY,
-  run_id     TEXT NOT NULL REFERENCES runs(id),
-  text       TEXT NOT NULL,
-  about_ref  TEXT NOT NULL,  -- polymorphic (state/transition/form id), validated by the tool, no FK
-  status     TEXT NOT NULL DEFAULT 'open' CHECK (status IN ('open','addressed')),
-  created_at TEXT NOT NULL,
-  -- 0031 (ALTER TABLE, spec 039): the hypothesis the question is about.
-  hypothesis_id TEXT REFERENCES hypotheses(id)
+  id            TEXT PRIMARY KEY,
+  run_id        TEXT NOT NULL REFERENCES runs(id),
+  text          TEXT NOT NULL,
+  ref_id        TEXT NOT NULL REFERENCES entity_refs(id) DEFERRABLE INITIALLY DEFERRED,
+  status        TEXT NOT NULL DEFAULT 'open' CHECK (status IN ('open','addressed')),
+  created_at    TEXT NOT NULL,
+  hypothesis_id TEXT REFERENCES hypotheses(id)   -- 0031 (spec 039): the hypothesis it is about
 ) STRICT;
 
 -- Rebuilt by 0002_portal_workspaces: portal_id added, fingerprint uniqueness and the cluster index
@@ -373,30 +374,44 @@ CREATE TABLE doc_revisions (
   CHECK (change NOT IN ('revise','withdraw') OR change_note IS NOT NULL)
 ) STRICT;
 
--- Evidence for a revision. target_id is polymorphic (resolved by the tool; no FK). run_id is the run the
--- evidence came from, resolved at write time; NULL only for target_kind IN ('doc_record','review') since
--- a human answer or another doc is not run-bound (research.md §5). Rebuilt by 0006: 'screen_region'
--- (target_id = state id) carries the cited element key in region (spec 008). Rebuilt by 0035: no
--- 'rule_candidate' (the table is gone, spec 039 T076).
+-- Evidence for a revision. Rebuilt by 0040 (spec 039 § 15): what it cites is an `entity_refs` row with a
+-- real foreign key (a screen region: a state ref with an element key); the view `doc_evidence` reads it
+-- back as target_kind / target_id / region. run_id is the run the evidence came from, resolved at write
+-- time; NULL only for a doc record or a review, which are not run-bound (research.md §5).
 CREATE TABLE doc_evidence_links (
   id          TEXT PRIMARY KEY,
   revision_id TEXT NOT NULL REFERENCES doc_revisions(id),
-  target_kind TEXT NOT NULL CHECK (target_kind IN (
-                 'state','transition','action','form','network_call','open_question',
-                 'decision','process','process_step','doc_record','review','screen_region',
-                 'observation'
-               )),
-  target_id   TEXT NOT NULL,
+  ref_id      TEXT NOT NULL REFERENCES entity_refs(id) DEFERRABLE INITIALLY DEFERRED,
   run_id      TEXT REFERENCES runs(id),
-  note        TEXT,
-  region      TEXT CHECK (region IS NULL OR length(region) > 0),  -- element key; screen_region only
-  CHECK (run_id IS NOT NULL OR target_kind IN ('doc_record','review')),
-  CHECK ((target_kind = 'screen_region') = (region IS NOT NULL))
+  note        TEXT
 ) STRICT;
 -- run_id -> records reverse lookups (FR-033).
 CREATE INDEX ix_doc_evidence_links_run_id ON doc_evidence_links(run_id);
--- get_evidence(target_kind, target_id) and evidence resolution.
-CREATE INDEX ix_doc_evidence_links_target ON doc_evidence_links(target_kind, target_id);
+CREATE INDEX ix_doc_evidence_links_revision ON doc_evidence_links(revision_id);
+CREATE INDEX ix_doc_evidence_links_ref ON doc_evidence_links(ref_id);
+-- 0040: the kind and id a link cites, in the vocabulary the BA cites with.
+CREATE VIEW doc_evidence AS
+SELECT l.id, l.revision_id, l.ref_id, l.run_id, l.note,
+  CASE
+    WHEN r.state_id IS NOT NULL AND r.element_key IS NOT NULL THEN 'screen_region'
+    WHEN r.state_id IS NOT NULL THEN 'state'
+    WHEN r.transition_id IS NOT NULL THEN 'transition'
+    WHEN r.action_id IS NOT NULL THEN 'action'
+    WHEN r.form_id IS NOT NULL THEN 'form'
+    WHEN r.network_call_id IS NOT NULL THEN 'network_call'
+    WHEN r.open_question_id IS NOT NULL THEN 'open_question'
+    WHEN r.decision_id IS NOT NULL THEN 'decision'
+    WHEN r.trace_process_id IS NOT NULL THEN 'process'
+    WHEN r.trace_step_id IS NOT NULL THEN 'process_step'
+    WHEN r.doc_record_id IS NOT NULL THEN 'doc_record'
+    WHEN r.review_id IS NOT NULL THEN 'review'
+    WHEN r.observation_id IS NOT NULL THEN 'observation'
+  END AS target_kind,
+  coalesce(r.state_id, r.transition_id, r.action_id, r.form_id, r.network_call_id,
+    r.open_question_id, r.decision_id, r.trace_process_id, r.trace_step_id, r.doc_record_id,
+    r.review_id, r.observation_id) AS target_id,
+  CASE WHEN r.state_id IS NOT NULL THEN r.element_key END AS region
+FROM doc_evidence_links l JOIN entity_refs r ON r.id = l.ref_id;
 
 -- Typed record -> record relations, versioned with the revision that asserts them. Process steps and
 -- personas are not records: steps live in process_steps (0005), the persona in the process record's
@@ -619,8 +634,7 @@ CREATE TABLE amendments (
   key               TEXT NOT NULL CHECK (key GLOB 'AMD-[0-9][0-9][0-9]*'),  -- AMD-nnn, per portal
   portal_id         TEXT NOT NULL CHECK (length(portal_id) > 0),
   scope_id          TEXT REFERENCES process_scopes(id),
-  target_kind       TEXT NOT NULL CHECK (target_kind IN ('state','evidence','wireframe_element')),
-  target_id         TEXT NOT NULL CHECK (length(target_id) > 0),   -- polymorphic, no FK; the write tool resolves it
+  ref_id            TEXT NOT NULL REFERENCES entity_refs(id) DEFERRABLE INITIALLY DEFERRED,  -- 0041 (spec 039 § 15): what it is written on (a state, a state's element, an evidence file)
   kind              TEXT NOT NULL CHECK (kind IN ('note','element_ref','attachment')),
   text              TEXT,
   attachment_sha256 TEXT CHECK (attachment_sha256 IS NULL OR length(attachment_sha256) = 64),
@@ -641,15 +655,15 @@ CREATE TABLE amendments (
   withdrawn_at      TEXT,
   rev               INTEGER NOT NULL DEFAULT 1 CHECK (rev >= 1),  -- 0016: the head's current revision number
   screen_id         TEXT REFERENCES screens(id),                   -- 0016: the screen the amendment belongs to
-  ref_id            TEXT REFERENCES entity_refs(id),               -- 0037 (spec 039 § 15): the anchor, a model screen + element key
+  anchor_ref_id     TEXT REFERENCES entity_refs(id) DEFERRABLE INITIALLY DEFERRED,  -- 0037 (spec 039 § 15; 0041 renamed from ref_id): the anchor, a model screen + element key
   UNIQUE (portal_id, key),
   CHECK (kind <> 'note' OR text IS NOT NULL),
   CHECK (kind <> 'attachment' OR (attachment_sha256 IS NOT NULL AND attachment_name IS NOT NULL)),
   CHECK (status <> 'dismissed' OR dismissed_at IS NOT NULL),
   CHECK (status <> 'withdrawn' OR withdrawn_at IS NOT NULL)
 ) STRICT;
-CREATE INDEX idx_amendments_target ON amendments (portal_id, target_kind, target_id);
 CREATE INDEX idx_amendments_status ON amendments (portal_id, status);
+CREATE INDEX idx_amendments_ref ON amendments (ref_id);
 
 -- 0012_page_visits (spec 019): one row per arrival on a page, verbatim URL and the hops that led there.
 -- 0032 renamed it `observations` (the design's name, spec 039 T110).
@@ -698,8 +712,7 @@ CREATE TABLE amendment_revisions (
   change                TEXT NOT NULL CHECK (change IN ('create','edit','carry_forward','needs_reanchor','reanchor','withdraw','restore','dismiss')),
   author                TEXT NOT NULL CHECK (length(author) > 0),           -- reviewer, or 'scan:<run id>' for automatic carry-forward
   status                TEXT NOT NULL CHECK (status IN ('active','needs_reanchor','dismissed','withdrawn')),
-  target_kind           TEXT NOT NULL CHECK (target_kind IN ('state','evidence','wireframe_element')),
-  target_id             TEXT NOT NULL CHECK (length(target_id) > 0),
+  ref_id                TEXT NOT NULL REFERENCES entity_refs(id) DEFERRABLE INITIALLY DEFERRED,  -- 0041: what this revision is written on
   text                  TEXT,
   anchor_fingerprint    TEXT,
   anchor_route_template TEXT,
@@ -710,6 +723,26 @@ CREATE TABLE amendment_revisions (
   PRIMARY KEY (amendment_id, rev),
   CHECK ((rev = 1) = (base_rev IS NULL))
 ) STRICT, WITHOUT ROWID;
+-- 0041: an amendment (head and revisions) with what it is written on, as the chat and the dashboard
+-- name it: a state, a wireframe element (`<state id>#<element key>`) or an evidence file.
+CREATE VIEW amendments_with_target AS
+SELECT a.*,
+  CASE WHEN r.evidence_file IS NOT NULL THEN 'evidence'
+       WHEN r.element_key IS NOT NULL THEN 'wireframe_element'
+       ELSE 'state' END AS target_kind,
+  CASE WHEN r.evidence_file IS NOT NULL THEN r.evidence_file
+       WHEN r.element_key IS NOT NULL THEN r.state_id || '#' || r.element_key
+       ELSE r.state_id END AS target_id
+FROM amendments a JOIN entity_refs r ON r.id = a.ref_id;
+CREATE VIEW amendment_revisions_with_target AS
+SELECT v.*,
+  CASE WHEN r.evidence_file IS NOT NULL THEN 'evidence'
+       WHEN r.element_key IS NOT NULL THEN 'wireframe_element'
+       ELSE 'state' END AS target_kind,
+  CASE WHEN r.evidence_file IS NOT NULL THEN r.evidence_file
+       WHEN r.element_key IS NOT NULL THEN r.state_id || '#' || r.element_key
+       ELSE r.state_id END AS target_id
+FROM amendment_revisions v JOIN entity_refs r ON r.id = v.ref_id;
 
 -- 0017_chat_proposals (spec 022 R6): changes the chat assistant proposes and a person applies or discards.
 -- The assistant never writes amendments; applying runs the same revision write path as a BA edit.
@@ -717,9 +750,8 @@ CREATE TABLE chat_proposals (
   id                    TEXT PRIMARY KEY,                          -- UUIDv7
   conversation_id       TEXT NOT NULL REFERENCES chat_conversations(id),
   portal_id             TEXT NOT NULL CHECK (length(portal_id) > 0),
-  target_kind           TEXT NOT NULL CHECK (target_kind IN ('amendment','new_amendment')),  -- amendment = edit text / re-anchor; new_amendment = create
-  target_id             TEXT CHECK (target_id IS NULL OR length(target_id) > 0),  -- the amendment id; NULL for new_amendment (no FK, like amendments.target_id)
-  base_rev              INTEGER CHECK (base_rev IS NULL OR base_rev >= 1),         -- the amendment revision the proposal was made on; NULL for new_amendment
+  amendment_id          TEXT REFERENCES amendments(id),            -- 0041: the amendment it changes (text, re-anchor); NULL = a new amendment
+  base_rev              INTEGER CHECK (base_rev IS NULL OR base_rev >= 1),         -- the amendment revision the proposal was made on; NULL for a new one
   payload               TEXT NOT NULL CHECK (json_valid(payload) AND json_type(payload) = 'object'),  -- what to change, e.g. {"text": "..."}
   summary               TEXT NOT NULL CHECK (length(summary) > 0),  -- the one line the drawer shows
   status                TEXT NOT NULL DEFAULT 'open' CHECK (status IN ('open','applied','discarded','stale')),
@@ -728,8 +760,7 @@ CREATE TABLE chat_proposals (
   decided_by            TEXT,
   decided_at            TEXT,
   created_at            TEXT NOT NULL,
-  CHECK ((target_kind = 'amendment' AND target_id IS NOT NULL AND base_rev IS NOT NULL)
-      OR (target_kind = 'new_amendment' AND target_id IS NULL AND base_rev IS NULL)),
+  CHECK ((amendment_id IS NULL) = (base_rev IS NULL)),
   CHECK (status <> 'applied' OR (applied_amendment_id IS NOT NULL AND applied_rev IS NOT NULL AND decided_at IS NOT NULL)),
   CHECK (status NOT IN ('discarded','stale') OR decided_at IS NOT NULL)
 ) STRICT;
@@ -946,20 +977,24 @@ CREATE TABLE marks (
   id             TEXT PRIMARY KEY,                                   -- UUIDv7
   portal_id      TEXT NOT NULL CHECK (length(portal_id) > 0),
   kind           TEXT NOT NULL CHECK (kind IN ('start','focus','probe','retry','recheck','skip')),
-  target_kind    TEXT NOT NULL CHECK (target_kind IN ('form_step','state','transition')),
-  target_id      TEXT NOT NULL CHECK (length(target_id) > 0),
+  -- 0041 (spec 039 § 15): the target in a typed column, exactly one.
+  form_step_id   TEXT REFERENCES form_steps(id),
+  state_id       TEXT REFERENCES states(id),
+  transition_id  TEXT REFERENCES transitions(id),
   created_by     TEXT NOT NULL CHECK (length(created_by) > 0),       -- the person (reviewer name)
   created_at     TEXT NOT NULL,
   used_by_run_id TEXT REFERENCES runs(id),                           -- set when a scan used the mark
   used_at        TEXT,
-  CHECK ((used_by_run_id IS NULL) = (used_at IS NULL)),
-  -- 0031 (ALTER TABLE, spec 039): a person's mark or the planner's, the hypothesis it tests, its priority.
+  -- 0031 (spec 039): a person's mark or the planner's, the hypothesis it tests, its priority.
   origin         TEXT NOT NULL DEFAULT 'person' CHECK (origin IN ('person','planner')),
   hypothesis_id  TEXT REFERENCES hypotheses(id),
-  priority       INTEGER CHECK (priority IS NULL OR priority BETWEEN 1 AND 6)
+  priority       INTEGER CHECK (priority IS NULL OR priority BETWEEN 1 AND 6),
+  CHECK ((form_step_id IS NOT NULL) + (state_id IS NOT NULL) + (transition_id IS NOT NULL) = 1),
+  CHECK ((used_by_run_id IS NULL) = (used_at IS NULL))
 ) STRICT;
 
-CREATE UNIQUE INDEX ux_marks_open ON marks (portal_id, kind, target_kind, target_id) WHERE used_by_run_id IS NULL;
+CREATE UNIQUE INDEX ux_marks_open ON marks
+  (portal_id, kind, coalesce(form_step_id, state_id, transition_id)) WHERE used_by_run_id IS NULL;
 
 CREATE TABLE checkpoints (
   id         TEXT PRIMARY KEY,                                               -- UUIDv7
@@ -1159,6 +1194,9 @@ CREATE INDEX ix_build_epochs_portal ON build_epochs (portal_id, scope, environme
 
 -- 0031_interpretation (spec 039, design § 8, § 10, § 15): deviations, hypotheses with evidence, tests and events,
 -- and `entity_refs`, the typed reference with real foreign keys. `marks` and `open_questions` gained columns above.
+-- Rebuilt by 0040 (§ 15, owner answer 13): a column per kind the BA cites (trace processes and steps are
+-- v1's `processes` / `process_steps`; `process_id` is a BA process), an evidence store file, and an element
+-- key with a state (a screen region) as well as with a model screen (an anchor). Exactly one target.
 CREATE TABLE entity_refs (
   id                  TEXT PRIMARY KEY,
   observation_id      TEXT REFERENCES observations(id),
@@ -1170,12 +1208,26 @@ CREATE TABLE entity_refs (
   process_id          TEXT REFERENCES ba_processes(id),
   hypothesis_id       TEXT REFERENCES hypotheses(id),
   network_call_id     TEXT REFERENCES network_calls(id),
+  action_id           TEXT REFERENCES actions(id),
+  form_id             TEXT REFERENCES forms(id),
+  open_question_id    TEXT REFERENCES open_questions(id),
+  decision_id         TEXT REFERENCES decision_log(id),
+  review_id           TEXT REFERENCES doc_reviews(id),
+  doc_record_id       TEXT REFERENCES doc_records(id),
+  trace_process_id    TEXT REFERENCES processes(id),
+  trace_step_id       TEXT REFERENCES process_steps(id),
+  form_step_id        TEXT REFERENCES form_steps(id),
+  evidence_file       TEXT CHECK (evidence_file IS NULL OR length(evidence_file) > 0),
   element_key         TEXT CHECK (element_key IS NULL OR length(element_key) > 0),
   CHECK ((observation_id IS NOT NULL) + (transition_id IS NOT NULL) + (state_id IS NOT NULL)
        + (screen_id IS NOT NULL) + (action_class_id IS NOT NULL)
        + (model_transition_id IS NOT NULL) + (process_id IS NOT NULL)
-       + (hypothesis_id IS NOT NULL) + (network_call_id IS NOT NULL) = 1),
-  CHECK (element_key IS NULL OR screen_id IS NOT NULL)
+       + (hypothesis_id IS NOT NULL) + (network_call_id IS NOT NULL)
+       + (action_id IS NOT NULL) + (form_id IS NOT NULL) + (open_question_id IS NOT NULL)
+       + (decision_id IS NOT NULL) + (review_id IS NOT NULL) + (doc_record_id IS NOT NULL)
+       + (trace_process_id IS NOT NULL) + (trace_step_id IS NOT NULL)
+       + (form_step_id IS NOT NULL) + (evidence_file IS NOT NULL) = 1),
+  CHECK (element_key IS NULL OR screen_id IS NOT NULL OR state_id IS NOT NULL)
 ) STRICT;
 
 CREATE TABLE deviations (

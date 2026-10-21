@@ -97,7 +97,7 @@ function evidenceOf(ctx: BaContext, portalId: string): Evidence {
     .prepare(
       `SELECT r.key, r.kind, l.target_id, l.region FROM doc_records r
        JOIN doc_revisions v ON v.record_id = r.id AND v.rev_no = r.latest_rev
-       JOIN doc_evidence_links l ON l.revision_id = v.id
+       JOIN doc_evidence l ON l.revision_id = v.id
         AND l.target_kind IN ('state', 'screen_region')
        WHERE r.portal_id = ? AND r.withdrawn = 0
          AND r.kind IN ('business_rule', 'open_question')`,

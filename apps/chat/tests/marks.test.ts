@@ -22,7 +22,9 @@ describe('Probe marks on form steps', () => {
     }));
   const open = () =>
     t.opened.raw
-      .prepare('SELECT target_id, created_by FROM marks WHERE used_by_run_id IS NULL')
+      .prepare(
+        'SELECT form_step_id AS target_id, created_by FROM marks WHERE used_by_run_id IS NULL',
+      )
       .all();
 
   beforeEach(async () => {

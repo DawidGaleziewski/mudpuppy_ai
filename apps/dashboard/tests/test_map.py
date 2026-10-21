@@ -102,8 +102,8 @@ def seed(store: Store) -> None:
 def mark(store: Store) -> None:
     conn = store.connect()
     conn.execute(
-        "INSERT INTO marks (id, portal_id, kind, target_kind, target_id, created_by, created_at)"
-        " VALUES ('m-1', ?, 'probe', 'form_step', 'fs-1', 'Owner', ?)",
+        "INSERT INTO marks (id, portal_id, kind, form_step_id, created_by, created_at)"
+        " VALUES ('m-1', ?, 'probe', 'fs-1', 'Owner', ?)",
         (P, ts(20)),
     )
     conn.commit()

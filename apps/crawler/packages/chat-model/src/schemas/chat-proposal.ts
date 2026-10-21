@@ -1,10 +1,6 @@
 import { z } from 'zod';
 import { Id, Timestamp } from '@pathfinder/core';
 
-/** `amendment` edits an existing amendment (text / re-anchor); `new_amendment` creates one. */
-export const ChatProposalTargetKind = z.enum(['amendment', 'new_amendment']);
-export type ChatProposalTargetKind = z.infer<typeof ChatProposalTargetKind>;
-
 /** open -> applied | discarded | stale (the amendment head moved past `base_rev`). */
 export const ChatProposalStatus = z.enum(['open', 'applied', 'discarded', 'stale']);
 export type ChatProposalStatus = z.infer<typeof ChatProposalStatus>;
@@ -21,10 +17,9 @@ export const ChatProposal = z
     id: Id,
     conversation_id: Id,
     portal_id: z.string().min(1),
-    target_kind: ChatProposalTargetKind,
-    /** The amendment id for `amendment`; NULL for `new_amendment`. */
-    target_id: z.string().min(1).nullable(),
-    /** The amendment revision the proposal was made on; NULL for `new_amendment`. */
+    /** 0041: the amendment it changes (text, re-anchor); NULL for a new amendment. */
+    amendment_id: Id.nullable(),
+    /** The amendment revision the proposal was made on; NULL for a new amendment. */
     base_rev: z.number().int().min(1).nullable(),
     payload: z.record(z.string(), z.unknown()),
     /** The one line the drawer shows. */
@@ -42,13 +37,11 @@ export const ChatProposal = z
     const need = (ok: boolean, path: string, message: string) => {
       if (!ok) ctx.addIssue({ code: 'custom', path: [path], message });
     };
-    if (p.target_kind === 'amendment') {
-      need(p.target_id !== null, 'target_id', 'target_id is required for an amendment proposal');
-      need(p.base_rev !== null, 'base_rev', 'base_rev is required for an amendment proposal');
-    } else {
-      need(p.target_id === null, 'target_id', 'target_id must be null for a new amendment');
-      need(p.base_rev === null, 'base_rev', 'base_rev must be null for a new amendment');
-    }
+    need(
+      (p.amendment_id === null) === (p.base_rev === null),
+      'base_rev',
+      'base_rev is set exactly when the proposal changes an existing amendment',
+    );
     if (p.status === 'applied') {
       need(p.applied_amendment_id !== null, 'applied_amendment_id', 'required when applied');
       need(p.applied_rev !== null, 'applied_rev', 'required when applied');

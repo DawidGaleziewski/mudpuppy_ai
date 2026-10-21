@@ -7,7 +7,7 @@ import {
   type DocContent,
   type RevisionChange,
 } from '@pathfinder/docs-model';
-import type { DocRecordsTable, Selectable } from '@pathfinder/store';
+import { insertEvidenceRef, type DocRecordsTable, type Selectable } from '@pathfinder/store';
 import {
   applyStatusEvent,
   checkObserved,
@@ -298,23 +298,20 @@ function writeRevision(ctx: BaContext, w: RevisionWrite, ts: string): void {
       ts,
     );
 
-  const addLink = ctx.raw.prepare(
-    `INSERT INTO doc_evidence_links (id, revision_id, target_kind, target_id, run_id, note, region)
-     VALUES (?, ?, ?, ?, ?, ?, ?)`,
+  // What a link cites is a typed ref (spec 039 § 15, migration 0040).
+  const insertLink = ctx.raw.prepare(
+    'INSERT INTO doc_evidence_links (id, revision_id, ref_id, run_id, note) VALUES (?, ?, ?, ?, ?)',
   );
   w.targets.forEach((t, i) =>
-    addLink.run(
+    insertLink.run(
       newId(),
       revisionId,
-      t.target_kind,
-      t.target_id,
+      insertEvidenceRef(ctx.raw, t.target_kind, t.target_id, t.region),
       t.run_id,
       w.evidence[i]!.note ?? null,
-      t.region ?? null,
     ),
   );
-  for (const l of w.carried ?? [])
-    addLink.run(newId(), revisionId, l.target_kind, l.target_id, l.run_id, l.note, l.region);
+  for (const l of w.carried ?? []) insertLink.run(newId(), revisionId, l.ref_id, l.run_id, l.note);
 
   const addRelation = ctx.raw.prepare(
     'INSERT INTO doc_relations (from_revision_id, to_record_id, type) VALUES (?, ?, ?)',
@@ -646,7 +643,7 @@ export function addressCrawlerQuestion(
     const record = findRecord(ctx, session.portal_id, input.by_key);
     const cites = ctx.raw
       .prepare(
-        `SELECT 1 FROM doc_evidence_links l JOIN doc_revisions rev ON rev.id = l.revision_id
+        `SELECT 1 FROM doc_evidence l JOIN doc_revisions rev ON rev.id = l.revision_id
          WHERE rev.record_id = ? AND rev.rev_no = ? AND l.target_kind = 'open_question' AND l.target_id = ?`,
       )
       .get(record.id, record.latest_rev, question.id);

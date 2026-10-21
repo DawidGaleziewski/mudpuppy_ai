@@ -30,11 +30,13 @@ export const CHAT_TOOLS = [
   // Spec 022 M5: drafting process groupings (a person accepts them in Processes).
   'list_grouping_inputs',
   'suggest_grouping',
-  // Spec 039 (T077): the portal model's process proposals, a rebuild, the probe work waiting.
+  // Spec 039 (T077): the portal model's process proposals, a rebuild, the probe work waiting, and
+  // starting a check run once the owner said yes (owner answer 19).
   'list_process_proposals',
   'name_proposal',
   'reconcile_model',
   'model_actions',
+  'start_check_run',
 ].map((t) => CHAT + t);
 
 /** pathfinder-ba tools that only read; the orchestrator may use these itself. */

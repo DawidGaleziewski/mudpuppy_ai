@@ -18,7 +18,10 @@
         {%- else %}<span class="sy-muted">—</span>{% endif %}</dd>
       <dt>Explored</dt>
       <dd>{%- if m.explored %}{{ sy.status("explored", "thorough" if m.explored.new_deviations == 0 else "partial") }} to depth {{ m.explored.depth }} plus <span class="sy-num">{{ m.explored.random_walks }}</span> random walks, {{ m.explored.completed_at | when }}{% if m.explored.new_deviations %}: <span class="sy-num">{{ m.explored.new_deviations }}</span> new changes{% else %}: no counterexamples{% endif %}
-        {%- else %}{{ sy.status("explored", "not_explored") }} <span class="sy-small sy-muted">Check runs explore it: pnpm model:explore {{ p.portal_id }} {{ p.key }}</span>{% endif %}</dd>
+        {%- else %}{{ sy.status("explored", "not_explored") }}{% endif %}
+        {%- set run_portal, run_kind, run_key, run_label = p.portal_id, "explore", p.key, "Explore now" %}
+        {%- set run_back = c.url('/processes/' ~ p.key) %}
+        {% include "salvage/partials/check_run.html" %}</dd>
       <dt>Business rules</dt>
       <dd>{%- if m.rules %}{% for r in m.rules %}<div>{{ sy.tag(r.key, c.url('/rules/' ~ r.key), sm=true) }} <span class="sy-case-normal">{{ r.claim }}</span> {{ sy.status("rule", r.status) }}</div>{% endfor %}
         {%- else %}<span class="sy-muted">No rule decided on these screens.</span>{% endif %}</dd>

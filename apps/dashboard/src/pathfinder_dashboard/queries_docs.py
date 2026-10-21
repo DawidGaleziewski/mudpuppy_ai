@@ -16,7 +16,7 @@ from typing import Any, get_args
 
 from .models import (
     AnalysisSession,
-    DocEvidenceLink,
+    DocEvidence,
     DocKind,
     DocPortalSummary,
     DocRecord,
@@ -217,8 +217,8 @@ def _row(r: sqlite3.Row) -> DocRecordRow:
 _ROW_COLS = (
     f"{_RECORD_COLS}, v.rev_no, v.confidence, v.not_observable, v.content_json,"
     f" {_STATUS_SQL} AS display_status, f.status AS followup_status, f.blocked_reason,"
-    " (SELECT count(*) FROM doc_evidence_links e WHERE e.revision_id = v.id) AS evidence_count,"
-    " (SELECT count(DISTINCT e.run_id) FROM doc_evidence_links e WHERE e.revision_id = v.id)"
+    " (SELECT count(*) FROM doc_evidence e WHERE e.revision_id = v.id) AS evidence_count,"
+    " (SELECT count(DISTINCT e.run_id) FROM doc_evidence e WHERE e.revision_id = v.id)"
     " AS run_count"
 )
 _ROW_FROM = f"{_LATEST} LEFT JOIN followup_tasks f ON f.record_id = r.id"
@@ -230,7 +230,7 @@ _OQ_FLAG = (
     "  WHERE q.kind = 'open_question')"
     " OR v.id IN (SELECT x.from_revision_id FROM doc_relations x"
     "   JOIN doc_records q ON q.id = x.to_record_id WHERE q.kind = 'open_question')"
-    " OR v.id IN (SELECT e.revision_id FROM doc_evidence_links e"
+    " OR v.id IN (SELECT e.revision_id FROM doc_evidence e"
     "  WHERE e.target_kind = 'open_question'))"
 )
 
@@ -383,10 +383,10 @@ def record_detail(
     ):
         reviews.setdefault(r["revision_id"], []).append(DocReview.model_validate(dict(r)))
     links = [
-        DocEvidenceLink.model_validate(dict(r))
+        DocEvidence.model_validate(dict(r))
         for r in _rows(
             conn,
-            "SELECT * FROM doc_evidence_links WHERE revision_id = ? ORDER BY target_kind, id",
+            "SELECT * FROM doc_evidence WHERE revision_id = ? ORDER BY target_kind, id",
             (shown.id,),
         )
     ]
@@ -479,13 +479,10 @@ _TARGETS: dict[str, tuple[str, str, Callable[[sqlite3.Row], str]]] = {
 EVIDENCE_TABS: dict[str, str] = {kind: spec[1] for kind, spec in _TARGETS.items()}
 
 
-def resolve_evidence(
-    conn: sqlite3.Connection, links: list[DocEvidenceLink]
-) -> list[ResolvedEvidence]:
+def resolve_evidence(conn: sqlite3.Connection, links: list[DocEvidence]) -> list[ResolvedEvidence]:
     """Look every link's target up (one query per target kind) and attach its run's mode and date.
-
-    `broken`: the target's table exists but the row is gone (a portal delete, a bad id).
-    A kind this store has no table for stays unresolved without being called broken."""
+    A kind this store has no table for stays unresolved; a link cites through a foreign-keyed ref
+    (migration 0040), so its row is never gone."""
     found: dict[tuple[str, str], str] = {}
     doc_keys: dict[str, str] = {}
     for kind in {link.target_kind for link in links}:
@@ -521,16 +518,12 @@ def resolve_evidence(
     out = []
     for link in links:
         label = found.get((link.target_kind, link.target_id))
-        known_table = link.target_kind in ("doc_record", "review") or (
-            link.target_kind in _TARGETS and table_exists(conn, _TARGETS[link.target_kind][0])
-        )
         run = runs.get(link.run_id) if link.run_id else None
         out.append(
             ResolvedEvidence(
                 link=link,
                 label=label,
                 resolved=label is not None,
-                broken=known_table and label is None,
                 run_mode=run["mode"] if run else None,
                 run_started_at=run["started_at"] if run else None,
                 tab=_TARGETS[link.target_kind][1] if link.target_kind in _TARGETS else None,
@@ -548,7 +541,7 @@ def run_citing_count(conn: sqlite3.Connection, run_id: str) -> int:
         return 0
     return _count(
         conn,
-        "SELECT count(DISTINCT r.id) FROM doc_evidence_links e"
+        "SELECT count(DISTINCT r.id) FROM doc_evidence e"
         " JOIN doc_revisions v ON v.id = e.revision_id"
         " JOIN doc_records r ON r.id = v.record_id AND r.latest_rev = v.rev_no"
         " WHERE e.run_id = ?",
@@ -567,25 +560,25 @@ def run_citing_records(
     rows = _rows(
         conn,
         f"SELECT {_ROW_COLS} FROM {_ROW_FROM} WHERE r.id IN ("
-        " SELECT v2.record_id FROM doc_evidence_links e JOIN doc_revisions v2"
+        " SELECT v2.record_id FROM doc_evidence e JOIN doc_revisions v2"
         "  ON v2.id = e.revision_id WHERE e.run_id = ?)"
         f"{keyset} ORDER BY r.id LIMIT ?",
         (run_id, *((cursor,) if cursor else ()), limit + 1),
     )
     page_rows = rows[:limit]
-    cites: dict[str, list[DocEvidenceLink]] = {}
+    cites: dict[str, list[DocEvidence]] = {}
     if page_rows:
         marks = ",".join("?" for _ in page_rows)
         for r in _rows(
             conn,
-            "SELECT e.*, v.record_id AS rec FROM doc_evidence_links e"
+            "SELECT e.*, v.record_id AS rec FROM doc_evidence e"
             " JOIN doc_revisions v ON v.id = e.revision_id"
             f" WHERE e.run_id = ? AND v.record_id IN ({marks}) ORDER BY e.target_kind, e.id",
             (run_id, *[r["id"] for r in page_rows]),
         ):
             d = dict(r)
             rec = d.pop("rec")
-            cites.setdefault(rec, []).append(DocEvidenceLink.model_validate(d))
+            cites.setdefault(rec, []).append(DocEvidence.model_validate(d))
     items = [RunCitingRecord(row=_row(r), cites=cites.get(r["id"], [])) for r in page_rows]
     return Page[RunCitingRecord](
         items=items, total=total, next_cursor=page_rows[-1]["id"] if len(rows) > limit else None
@@ -781,7 +774,7 @@ def screen_diagram_input(conn: sqlite3.Connection, portal: str, limit: int = 200
         conn,
         "SELECT p.key, e.target_id FROM doc_records p"
         " JOIN doc_revisions v ON v.record_id = p.id AND v.rev_no = p.latest_rev"
-        " JOIN doc_evidence_links e ON e.revision_id = v.id AND e.target_kind = 'state'"
+        " JOIN doc_evidence e ON e.revision_id = v.id AND e.target_kind = 'state'"
         " WHERE p.portal_id = ? AND p.kind = 'screen' AND p.withdrawn = 0 ORDER BY p.seq",
         (portal,),
     ):

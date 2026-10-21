@@ -233,7 +233,7 @@ export function getRecord(ctx: BaContext, raw: unknown): Row {
     });
 
   const links = ctx.raw.prepare(
-    'SELECT target_kind, target_id, run_id, note, region FROM doc_evidence_links WHERE revision_id = ? ORDER BY id',
+    'SELECT target_kind, target_id, run_id, note, region FROM doc_evidence WHERE revision_id = ? ORDER BY id',
   );
   // `region` only on screen_region links (spec 008); other links read as before.
   const linksOf = (revisionId: unknown): Row[] =>

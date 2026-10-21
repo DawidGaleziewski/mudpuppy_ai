@@ -52,15 +52,13 @@ export interface ExportRevisionEntry {
 export interface ExportEvidence {
   target_kind: EvidenceTargetKind;
   target_id: string;
-  /** Short human label of the target (no evidence file content), null when broken. */
+  /** Short human label of the target (no evidence file content); null for a kind without one. */
   label: string | null;
   run_id: string | null;
   run_mode: string | null;
   /** `YYYY-MM-DD` of the run's start. */
   run_date: string | null;
   note: string | null;
-  /** The target row no longer exists. */
-  broken: boolean;
   /** For a `doc_record` target: its key, when that record is part of the export. */
   doc_key: string | null;
   /** For a `screen_region` target: the cited element key (spec 008). */
@@ -418,7 +416,7 @@ export function loadExportModel(
     links.push(
       ...(raw
         .prepare(
-          `SELECT revision_id, target_kind, target_id, run_id, note, region FROM doc_evidence_links
+          `SELECT revision_id, target_kind, target_id, run_id, note, region FROM doc_evidence
            WHERE revision_id = ? ORDER BY target_kind, target_id, region, id`,
         )
         .all(id) as LinkRow[]),
@@ -465,7 +463,6 @@ export function loadExportModel(
           run_mode: run?.mode ?? null,
           run_date: run ? run.started_at.slice(0, 10) : null,
           note: l.note,
-          broken: label === null,
           doc_key:
             docKey && (renderedIds.has(l.target_id) || changeLogKeys.has(docKey)) ? docKey : null,
           region: l.target_kind === 'screen_region' ? l.region : null,
@@ -524,7 +521,7 @@ export function loadExportModel(
     const screens: ExportScreen[] = [];
     const regions: ExportRegion[] = [];
     for (const e of evidence) {
-      if ((e.target_kind !== 'state' && e.target_kind !== 'screen_region') || e.broken) continue;
+      if (e.target_kind !== 'state' && e.target_kind !== 'screen_region') continue;
       const s = screenOf(e.target_id);
       if (!s) continue;
       if (!screens.some((x) => x.state_id === e.target_id)) screens.push(s.screen);
@@ -714,7 +711,7 @@ function screenNavInput(
     .sort((a, b) => a.record.seq - b.record.seq)) {
     const states = raw
       .prepare(
-        `SELECT target_id FROM doc_evidence_links WHERE revision_id = ? AND target_kind = 'state' ORDER BY id`,
+        `SELECT target_id FROM doc_evidence WHERE revision_id = ? AND target_kind = 'state' ORDER BY id`,
       )
       .all(s.shown.id) as { target_id: string }[];
     for (const { target_id } of states)

@@ -64,14 +64,14 @@ function screenContext(ctx: PageToolContext, stateId: string): Record<string, un
   const amendments = ctx.raw
     .prepare(
       `SELECT id, key, rev, status, target_kind, target_id, kind, text, superseded_detail
-       FROM amendments WHERE portal_id = ? AND (target_id = ? OR target_id LIKE ? ESCAPE '\\'
+       FROM amendments_with_target WHERE portal_id = ? AND (target_id = ? OR target_id LIKE ? ESCAPE '\\'
          OR (screen_id IS NOT NULL AND screen_id = ?))
        ORDER BY key`,
     )
     .all(state.portal_id, state.id, `${state.id.replace(/[%_\\]/g, '\\$&')}#%`, state.screen_id);
   const records = ctx.raw
     .prepare(
-      `SELECT DISTINCT r.key, r.kind, r.title FROM doc_evidence_links l
+      `SELECT DISTINCT r.key, r.kind, r.title FROM doc_evidence l
        JOIN doc_revisions v ON v.id = l.revision_id JOIN doc_records r ON r.id = v.record_id
        WHERE l.target_id = ? AND v.rev_no = r.latest_rev ORDER BY r.key`,
     )
@@ -108,7 +108,7 @@ function docsContext(ctx: PageToolContext, recordId: string): Record<string, unk
   const { revision_id, content_json, ...rest } = record;
   const evidence = ctx.raw
     .prepare(
-      'SELECT target_kind, target_id, run_id, region FROM doc_evidence_links WHERE revision_id = ?',
+      'SELECT target_kind, target_id, run_id, region FROM doc_evidence WHERE revision_id = ?',
     )
     .all(revision_id);
   return { type: 'docs', record: rest, content: JSON.parse(content_json) as unknown, evidence };

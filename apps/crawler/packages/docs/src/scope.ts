@@ -12,8 +12,7 @@ export interface ExportScope {
 
 /**
  * The states one evidence target sits on. `null` means the target has no state of its own
- * (another record, a review, a rule candidate): neutral, it neither keeps nor drops a record.
- * A broken target resolves to `[]` and counts as out of scope.
+ * (another record, a review): neutral, it neither keeps nor drops a record.
  */
 export function evidenceStates(raw: RawDb, e: ExportEvidence): string[] | null {
   const one = (sql: string): string[] =>

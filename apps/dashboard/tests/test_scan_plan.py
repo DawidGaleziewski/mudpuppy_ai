@@ -91,11 +91,10 @@ def seed(store: Store) -> None:
         ("m-2", "skip", "transition", "e-ok"),
         ("m-3", "recheck", "state", "st-home"),
     ):
-        conn.execute(
-            "INSERT INTO marks (id, portal_id, kind, target_kind, target_id, created_by,"
-            " created_at) VALUES (?, 'liveinsurer', ?, ?, ?, 'Owner', ?)",
-            (mid, kind, tk, tid, T),
-        )
+        insert(
+            conn, "marks", id=mid, portal_id="liveinsurer", kind=kind, target_kind=tk, target_id=tid,
+            created_by="Owner", created_at=T,
+        )  # fmt: skip
     conn.commit()
     conn.close()
 

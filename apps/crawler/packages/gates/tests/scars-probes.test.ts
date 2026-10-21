@@ -91,7 +91,7 @@ const probeRun = (persona: string) => {
 const openMarks = () =>
   rows<{ target_id: string }>(
     gs,
-    `SELECT target_id FROM marks WHERE portal_id = ? AND used_by_run_id IS NULL`,
+    `SELECT form_step_id AS target_id FROM marks WHERE portal_id = ? AND used_by_run_id IS NULL`,
     PORTAL,
   ).map((m) => m.target_id);
 
@@ -117,7 +117,7 @@ gate(
     expect(none.body).toMatchObject({ error: { code: 'NO_PROBE_MARKS' } });
 
     const [first, second] = markForProbing(gs, PORTAL, route);
-    gs.ctx.raw.prepare(`DELETE FROM marks WHERE target_id = ?`).run(second);
+    gs.ctx.raw.prepare(`DELETE FROM marks WHERE form_step_id = ?`).run(second);
     const started = await gs.call('start_run', {
       portal_id: PORTAL,
       persona_id: 'quote-tester',

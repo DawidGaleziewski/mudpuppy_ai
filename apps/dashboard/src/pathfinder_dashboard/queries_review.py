@@ -13,7 +13,7 @@ import sqlite3
 from typing import Any, NamedTuple
 
 from . import queries_access, queries_chat
-from .models import Amendment
+from .models import AmendmentWithTarget
 from .queries_proposals import ProposalView, views_of
 from .queries_suites import SuiteItem, open_suite_count, open_suites
 
@@ -48,7 +48,7 @@ class Inbox(NamedTuple):
     records: list[RecordItem]
     assumptions: list[RecordItem]
     differences: list[queries_access.Difference]
-    reanchor: list[Amendment]
+    reanchor: list[AmendmentWithTarget]
     proposals: list[ProposalView]
     suites: list[SuiteItem]
     conflicts: list[Any]
@@ -156,7 +156,7 @@ def cited_screens(conn: sqlite3.Connection, portal: str, key: str, rev: int) -> 
         conn,
         "SELECT DISTINCT s.id, s.title, s.route_template, s.screenshot_ref"
         " FROM doc_records r JOIN doc_revisions v ON v.record_id = r.id AND v.rev_no = ?"
-        " JOIN doc_evidence_links l ON l.revision_id = v.id"
+        " JOIN doc_evidence l ON l.revision_id = v.id"
         "  AND l.target_kind IN ('state', 'screen_region')"
         " JOIN states s ON s.id = l.target_id"
         " WHERE r.portal_id = ? AND r.key = ? ORDER BY s.route_template",

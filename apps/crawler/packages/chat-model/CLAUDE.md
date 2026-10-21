@@ -10,7 +10,7 @@ Layer: models (G-07; `apps/crawler/layers.json`)
 - `ChatConversation`, `ChatMessage` (+ status/role enums), `WorkflowStep` (+ `WorkflowStepName`,
   `WorkflowStepStatus`), `ProcessScope` (+ `ProcessScopeSource`), `Amendment` (+ kind, status,
   target kind, superseded reason, anchor element), `ChatProposal` (+ `ChatProposalStatus`,
-  `ChatProposalTargetKind`; 0017), the BA process tables of 0018 (`BaProcess`, `BaProcessRevision`,
+  0017; since 0041 it names its `amendment_id`), the BA process tables of 0018 (`BaProcess`, `BaProcessRevision`,
   `ProcessModel`, `ProcessModelRevision` (0039: were `ProcessVariant*`), `ProcessStep`, `ProcessDraft`, `ProcessLive`,
   `GroupingSuggestion`, `ChangeSpecRevision` + enums).
 - Used by: apps/chat, store (`db-types.ts` enums).

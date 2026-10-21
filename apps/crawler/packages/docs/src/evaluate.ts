@@ -726,7 +726,10 @@ export function loadEvalInput(
       }
       case 'open_question':
         return stateRoute(
-          one('SELECT about_ref FROM open_questions WHERE id = ?', id)?.about_ref ?? null,
+          one(
+            'SELECT r.state_id FROM open_questions q JOIN entity_refs r ON r.id = q.ref_id WHERE q.id = ?',
+            id,
+          )?.state_id ?? null,
         );
       case 'process': {
         const steps = raw
@@ -751,7 +754,7 @@ export function loadEvalInput(
   for (const row of latest.values()) {
     const links = raw
       .prepare(
-        'SELECT target_kind, target_id FROM doc_evidence_links WHERE revision_id = ? ORDER BY target_kind, target_id, id',
+        'SELECT target_kind, target_id FROM doc_evidence WHERE revision_id = ? ORDER BY target_kind, target_id, id',
       )
       .all(row.revision_id) as { target_kind: EvidenceTargetKind; target_id: string }[];
     let content: Record<string, unknown> = {};
@@ -787,7 +790,8 @@ export function loadEvalInput(
     raw
       .prepare(
         `SELECT DISTINCT s.route_template AS route FROM open_questions q
-         JOIN runs ru ON ru.id = q.run_id JOIN states s ON s.id = q.about_ref
+         JOIN runs ru ON ru.id = q.run_id JOIN entity_refs er ON er.id = q.ref_id
+         JOIN states s ON s.id = er.state_id
          WHERE ru.portal_id = ? AND q.text LIKE 'Human needed: CAPTCHA on %'
          ORDER BY route`,
       )

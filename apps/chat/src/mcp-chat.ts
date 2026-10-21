@@ -17,6 +17,7 @@ import { PersonaFile, portalEnvironments } from '@pathfinder/config';
 import { PersonaRefusal, savePersona } from './personas.js';
 import { SaveTestDataInput, saveTestData } from './test-data.js';
 import { ProposalRefusal, ProposeInput, proposeChange } from './proposals.js';
+import type { CheckRunDeps } from './check-runs.js';
 import { RunRefusal, runningRunOf, stopRun } from './runs.js';
 import { RequestScanInput, ScanRefusal, requestScan } from './scan.js';
 import {
@@ -43,6 +44,8 @@ export interface ChatMcpContext {
   evidence?: EvidenceStore | null;
   /** The typed store for suggest_grouping (spec 022 M5); without it the tool is not offered. */
   db?: PathfinderDb | null;
+  /** Check runs (spec 039 owner answer 19); without it start_check_run is not offered. */
+  checkRuns?: CheckRunDeps | null;
 }
 
 function ok(value: unknown): CallToolResult {
@@ -80,7 +83,7 @@ function fail(error: unknown): CallToolResult {
 export function createChatMcpServer(ctx: ChatMcpContext): McpServer {
   const server = new McpServer({ name: 'pathfinder-chat', version: '0.1.0' });
   registerPageTools(server, { raw: ctx.raw, evidence: ctx.evidence ?? null }, ok, refused);
-  registerModelTools(server, { raw: ctx.raw }, ok, refused);
+  registerModelTools(server, { raw: ctx.raw, checkRuns: ctx.checkRuns ?? null }, ok, refused);
   registerProcessTools(
     server,
     { raw: ctx.raw, db: ctx.db ?? null, conversationId: ctx.conversationId },
@@ -258,7 +261,8 @@ export function createChatMcpServer(ctx: ChatMcpContext): McpServer {
           .prepare(
             `SELECT id, key, rev, target_kind, target_id, kind, text, attachment_name, status,
                     superseded_reason, superseded_detail, superseded_by_run, superseded_at, created_at
-             FROM amendments WHERE portal_id = ? AND (? IS NULL OR status = ?) ORDER BY created_at`,
+             FROM amendments_with_target WHERE portal_id = ? AND (? IS NULL OR status = ?)
+             ORDER BY created_at`,
           )
           .all(portal, status ?? null, status ?? null);
         return ok({ portal, amendments: rows });

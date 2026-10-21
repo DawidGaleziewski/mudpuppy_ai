@@ -251,11 +251,14 @@ describe('get_run_evidence', () => {
 
   it('caps the page at 200 and refuses unknown kinds and runs', async () => {
     const h = await startBa();
+    h.fx.raw
+      .prepare(`INSERT INTO entity_refs (id, state_id) VALUES ('ref-home', ?)`)
+      .run(h.fx.states.home);
     const insert = h.fx.raw.prepare(
-      `INSERT INTO open_questions (id, run_id, text, about_ref, status, created_at)
-       VALUES (?, ?, 'q', ?, 'open', ?)`,
+      `INSERT INTO open_questions (id, run_id, text, ref_id, status, created_at)
+       VALUES (?, ?, 'q', 'ref-home', 'open', ?)`,
     );
-    for (let i = 0; i < 210; i++) insert.run(newId(), h.fx.runId, h.fx.states.home, FIXTURE_TS);
+    for (let i = 0; i < 210; i++) insert.run(newId(), h.fx.runId, FIXTURE_TS);
     const args = { run_id: h.fx.runId, kind: 'open_questions' };
 
     const full = await h.must('get_run_evidence', { ...args, limit: 200 });

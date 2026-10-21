@@ -4,6 +4,7 @@ rules, the data store, and no page context for the drawer. The chat service is m
 
 from __future__ import annotations
 
+import json
 from pathlib import Path
 
 import httpx2
@@ -14,7 +15,7 @@ from pathfinder_dashboard.app import create_app
 from pathfinder_dashboard.settings import Settings
 
 from .conftest import Store, insert, ts
-from .test_chat import Service, text
+from .test_chat import ORIGIN, Service, text
 from .test_portals import TWO_ENVS
 
 SECRET = "ciphertext-not-a-real-value"
@@ -168,3 +169,48 @@ def test_save_posts_through_the_existing_forwarder(world: tuple[Store, Path, Pat
         saved = c.get("/portals/shop/settings", params={"saved": "<i>sandbox</i>"})
     assert r.status_code == 303
     assert "&lt;i&gt;sandbox" in saved.text and "<i>sandbox" not in saved.text
+
+
+def test_screen_identity_shows_tau_labels_and_accepts_through_the_chat(
+    world: tuple[Store, Path, Path],
+) -> None:
+    """Spec 039 owner answers 5 and 14: τ and the classifier are in force once a person accepts."""
+    store, portals, personas = world
+    conn = store.connect()
+    insert(conn, "runs", id="r1", portal_id="shop")
+    for n in range(3):
+        insert(
+            conn, "states", id=f"s{n}", portal_id="shop", first_seen_run="r1", fingerprint=f"fp{n}"
+        )
+    for a, b, label in (("s0", "s1", "clone"), ("s0", "s2", "distinct"), ("s1", "s2", "distinct")):
+        conn.execute(
+            "INSERT INTO state_pair_labels (portal_id, state_a, state_b, label, labelled_by,"
+            " labelled_at) VALUES ('shop', ?, ?, ?, 'Anna', ?)",
+            (a, b, label, ts(3)),
+        )
+    conn.commit()
+    conn.close()
+    service = up()
+    service.routes[("POST", "/portals/shop/model/accept")] = httpx2.Response(
+        409, json={"message": "no calibrated τ for shop yet: 1 same / 2 distinct labels"}
+    )
+    settings = Settings(
+        data_dir=store.data_dir,
+        default_env=store.env,
+        ui_salvage="all",
+        portals_dir=portals,
+        personas_dir=personas,
+        reviewer="Anna",
+    )
+    with TestClient(create_app(settings, chat_transport=httpx2.MockTransport(service))) as c:
+        page = text(c.get("/portals/shop/settings").text)
+        assert "Screen identity" in page and "1 same screen · 2 different screens" in page
+        assert "the built-in default; none accepted yet" in page
+        refused = c.post(
+            "/portals/shop/model/accept",
+            content="what=tau",
+            headers={"Content-Type": "application/x-www-form-urlencoded", **ORIGIN},
+        )
+    assert "Not accepted: no calibrated τ for shop yet" in text(refused.text)
+    sent = [r for r in service.requests if r.url.path == "/portals/shop/model/accept"]
+    assert [json.loads(r.content) for r in sent] == [{"what": "tau", "by": "Anna"}]

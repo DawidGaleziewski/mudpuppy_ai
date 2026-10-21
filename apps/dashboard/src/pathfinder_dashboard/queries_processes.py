@@ -204,8 +204,7 @@ def portal_processes(
             ProcessRow(
                 process=view.process,
                 models=[
-                    (v.model.label, v.model.kind, v.model.rev, len(v.drafts))
-                    for v in view.models
+                    (v.model.label, v.model.kind, v.model.rev, len(v.drafts)) for v in view.models
                 ],
                 live={lv.environment: f"{lv.label} r{lv.rev}" for lv in view.live},
                 screens=len(steps),
@@ -324,7 +323,7 @@ def citing_records(conn: sqlite3.Connection, state_ids: list[str]) -> list[str]:
         conn,
         "SELECT DISTINCT r.key, r.title FROM doc_records r"
         " JOIN doc_revisions v ON v.record_id = r.id AND v.rev_no = r.latest_rev"
-        " JOIN doc_evidence_links l ON l.revision_id = v.id"
+        " JOIN doc_evidence l ON l.revision_id = v.id"
         f" WHERE r.withdrawn = 0 AND l.target_kind IN ('state', 'screen_region')"
         f" AND l.target_id IN ({marks}) ORDER BY r.kind, r.seq",
         tuple(state_ids),

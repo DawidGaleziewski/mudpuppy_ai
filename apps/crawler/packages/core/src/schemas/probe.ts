@@ -112,23 +112,27 @@ export type ProbeSuiteRow = z.infer<typeof ProbeSuiteRow>;
 export const MarkKind = z.enum(['start', 'focus', 'probe', 'retry', 'recheck', 'skip']);
 export type MarkKind = z.infer<typeof MarkKind>;
 
-/** `marks.target_kind` (0024): what `target_id` points at (no foreign key; polymorphic). */
+/** What a mark points at, as a person names it; since 0041 each kind is its own column. */
 export const MarkTargetKind = z.enum(['form_step', 'state', 'transition']);
 export type MarkTargetKind = z.infer<typeof MarkTargetKind>;
 
-/** `marks` (0024): a person's instruction on a map target for the next scan. */
+/** `marks` (0024; typed target columns since 0041): a person's instruction on a map target for the next scan. */
 export const MarkRow = z
   .object({
     id: Id,
     portal_id: z.string().min(1),
     kind: MarkKind,
-    target_kind: MarkTargetKind,
-    target_id: z.string().min(1),
+    form_step_id: Id.nullable(),
+    state_id: Id.nullable(),
+    transition_id: Id.nullable(),
     created_by: z.string().min(1),
     created_at: Timestamp,
     /** Set when a scan used the mark; an open mark has neither. */
     used_by_run_id: Id.nullable(),
     used_at: Timestamp.nullable(),
+  })
+  .refine((r) => [r.form_step_id, r.state_id, r.transition_id].filter(Boolean).length === 1, {
+    message: 'a mark has exactly one target',
   })
   .refine((r) => (r.used_by_run_id === null) === (r.used_at === null), {
     message: 'used_by_run_id and used_at are set together',

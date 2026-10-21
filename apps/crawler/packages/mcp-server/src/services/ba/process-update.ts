@@ -40,7 +40,7 @@ function recordScreens(ctx: BaContext, portal: string): ScreenRow[] {
       `WITH latest AS (
          SELECT r.key, l.target_kind, l.target_id FROM doc_records r
          JOIN doc_revisions v ON v.record_id = r.id AND v.rev_no = r.latest_rev
-         JOIN doc_evidence_links l ON l.revision_id = v.id
+         JOIN doc_evidence l ON l.revision_id = v.id
          WHERE r.portal_id = ? AND r.withdrawn = 0),
        cited AS (
          SELECT key, target_id AS state FROM latest WHERE target_kind IN ('state', 'screen_region')

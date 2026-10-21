@@ -84,7 +84,7 @@ function followupBody(f: ExportRecord): string[] {
 const keyLine = (r: ExportRecord, file: string): string =>
   `- ${keyLink(r.key, file)} ${inline(r.title)}`;
 
-/** `11-unknowns.md`: everything not observable, needing confirmation, still to trace, or broken. */
+/** `11-unknowns.md`: everything not observable, needing confirmation, or still to trace. */
 export function unknowns(m: ExportModel): string {
   const file = FILE_OF_KIND.followup;
   const notObservable = m.records.filter((r) => r.not_observable);
@@ -97,14 +97,11 @@ export function unknowns(m: ExportModel): string {
     (f) => f.followup?.status !== 'done' && f.followup?.status !== 'cancelled',
   );
   const closed = followups.filter((f) => !active.includes(f));
-  const broken = m.records.flatMap((r) =>
-    r.evidence.filter((e) => e.broken).map((e) => ({ r, e })),
-  );
   return doc([
     '# 11. Unknowns',
     '',
     'What the documentation does not know: behaviour a crawl cannot observe, statements a person must',
-    'confirm, processes cut off at a safety boundary, runs still to do, and evidence that is gone.',
+    'confirm, processes cut off at a safety boundary, and runs still to do.',
     '',
     '## 11.1 Not observable',
     '',
@@ -135,23 +132,7 @@ export function unknowns(m: ExportModel): string {
         ]
       : []),
     '',
-    '## 11.5 Broken evidence links',
-    '',
-    'Evidence a statement cites whose recorded item no longer exists (for example after a portal data',
-    'delete). The statement is kept and flagged for BA attention.',
-    '',
-    ...(broken.length === 0
-      ? ['_none_']
-      : table(
-          ['Record', 'Rev', 'Evidence'],
-          broken.map(({ r, e }) => [
-            keyLink(r.key, file),
-            r.rev,
-            `${e.target_kind.replace(/_/g, ' ')} \`${e.target_id}\``,
-          ]),
-        )),
-    '',
-    '## 11.6 Open questions',
+    '## 11.5 Open questions',
     '',
     `See [Assumptions and open questions](10-assumptions-and-questions.md): ${byKind(m.records, 'open_question').length} BA question(s), ${m.crawler_questions.length} open crawler question(s).`,
   ]);

@@ -6,7 +6,6 @@ import type {
   TransitionStatus,
   FrontierItemStatus,
   MarkKind,
-  MarkTargetKind,
   OutcomeKind,
   PortalDataLogAction,
   ProbeFault,
@@ -56,7 +55,6 @@ import type {
   ChatConversationStatus,
   ChatMessageRole,
   ChatProposalStatus,
-  ChatProposalTargetKind,
   GroupingSuggestionStatus,
   ProcessLiveEnvironment,
   ProcessScopeSource,
@@ -183,8 +181,10 @@ export interface MarksTable {
   id: string;
   portal_id: string;
   kind: MarkKind;
-  target_kind: MarkTargetKind;
-  target_id: string;
+  /** 0041 (spec 039 § 15): the target in a typed column, exactly one of the three. */
+  form_step_id: OptionalRef;
+  state_id: OptionalRef;
+  transition_id: OptionalRef;
   created_by: string;
   created_at: string;
   used_by_run_id: string | null;
@@ -305,8 +305,8 @@ export interface AmendmentsTable {
   key: string;
   portal_id: string;
   scope_id: string | null;
-  target_kind: AmendmentTargetKind;
-  target_id: string;
+  /** 0041 (spec 039 § 15): what it is written on, an `entity_refs` row (a state, a state's element, an evidence file). */
+  ref_id: string;
   kind: AmendmentKind;
   text: string | null;
   attachment_sha256: string | null;
@@ -329,8 +329,15 @@ export interface AmendmentsTable {
   rev: ColumnType<number, number | undefined, number>;
   /** 0016: the screen the amendment belongs to. */
   screen_id: string | null;
-  /** 0037 (spec 039 § 15): the anchor, an `entity_refs` row (model screen + element key). */
-  ref_id: ColumnType<string | null, string | null | undefined, string | null>;
+  /** 0037 (spec 039 § 15; 0041 renamed from `ref_id`): the anchor, a model screen + element key. */
+  anchor_ref_id: ColumnType<string | null, string | null | undefined, string | null>;
+}
+
+/** The target an amendment (head or revision) is written on, as the views of 0041 name it. */
+export interface AmendmentTarget {
+  target_kind: AmendmentTargetKind;
+  /** A state id, `<state id>#<element key>` or an evidence file. */
+  target_id: string;
 }
 
 /** 0016: append-only history of an amendment. */
@@ -341,8 +348,8 @@ export interface AmendmentRevisionsTable {
   change: AmendmentChange;
   author: string;
   status: AmendmentStatus;
-  target_kind: AmendmentTargetKind;
-  target_id: string;
+  /** 0041: what this revision is written on, an `entity_refs` row. */
+  ref_id: string;
   text: string | null;
   anchor_fingerprint: string | null;
   anchor_route_template: string | null;
@@ -357,8 +364,8 @@ export interface ChatProposalsTable {
   id: string;
   conversation_id: string;
   portal_id: string;
-  target_kind: ChatProposalTargetKind;
-  target_id: string | null;
+  /** 0041: the amendment the proposal changes; null for a new amendment. */
+  amendment_id: string | null;
   base_rev: number | null;
   payload: string;
   summary: string;
@@ -748,8 +755,24 @@ export interface EntityRefsTable {
   process_id: string | null;
   hypothesis_id: string | null;
   network_call_id: string | null;
+  /** 0040 (spec 039 § 15): the kinds the BA cites; trace processes and steps are v1's tables. */
+  action_id: OptionalRef;
+  form_id: OptionalRef;
+  open_question_id: OptionalRef;
+  decision_id: OptionalRef;
+  review_id: OptionalRef;
+  doc_record_id: OptionalRef;
+  trace_process_id: OptionalRef;
+  trace_step_id: OptionalRef;
+  form_step_id: OptionalRef;
+  /** 0040: an evidence store file (content-addressed; no row). */
+  evidence_file: OptionalRef;
+  /** With a model screen (an anchor) or, since 0040, a state (a screen region). */
   element_key: string | null;
 }
+
+/** A column 0040 added to `entity_refs`: null unless it is the ref's one target. */
+type OptionalRef = ColumnType<string | null, string | null | undefined, string | null>;
 
 export type DeviationKind =
   | 'new_screen'
@@ -921,7 +944,8 @@ export interface OpenQuestionsTable {
   id: string;
   run_id: string;
   text: string;
-  about_ref: string;
+  /** 0040 (spec 039 § 15): the subject, a state, transition or form ref (was `about_ref`). */
+  ref_id: string;
   status: 'open' | 'addressed';
   created_at: string;
   /** 0031 (spec 039): the hypothesis the question is about, when there is one. */
@@ -1122,15 +1146,26 @@ export interface DocRevisionsTable {
   created_at: string;
 }
 
+/** 0040 (spec 039 § 15): what a link cites is an `entity_refs` row. */
 export interface DocEvidenceLinksTable {
   id: string;
   revision_id: string;
-  target_kind: EvidenceTargetKind;
-  target_id: string;
+  ref_id: string;
   run_id: string | null;
   note: string | null;
-  /** 0006: element key; set iff `target_kind = 'screen_region'`. */
-  region: ColumnType<string | null, string | null | undefined, string | null>;
+}
+
+/** The view `doc_evidence` (0040): a link with the kind, id and region its ref names. Read only. */
+export interface DocEvidenceView {
+  id: string;
+  revision_id: string;
+  ref_id: string;
+  run_id: string | null;
+  note: string | null;
+  target_kind: EvidenceTargetKind;
+  target_id: string;
+  /** The element key of a `screen_region`. */
+  region: string | null;
 }
 
 export interface DocRelationsTable {
@@ -1240,6 +1275,7 @@ export interface Database {
   doc_records: DocRecordsTable;
   doc_revisions: DocRevisionsTable;
   doc_evidence_links: DocEvidenceLinksTable;
+  doc_evidence: DocEvidenceView;
   doc_relations: DocRelationsTable;
   doc_reviews: DocReviewsTable;
   followup_tasks: FollowupTasksTable;
@@ -1252,6 +1288,9 @@ export interface Database {
   process_scopes: ProcessScopesTable;
   amendments: AmendmentsTable;
   amendment_revisions: AmendmentRevisionsTable;
+  /** The views of 0041 (read only): each row with the target it is written on. */
+  amendments_with_target: AmendmentsTable & AmendmentTarget;
+  amendment_revisions_with_target: AmendmentRevisionsTable & AmendmentTarget;
   chat_proposals: ChatProposalsTable;
   grouping_suggestions: GroupingSuggestionsTable;
   ba_processes: BaProcessesTable;

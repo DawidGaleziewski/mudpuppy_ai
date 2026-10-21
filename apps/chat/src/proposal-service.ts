@@ -78,7 +78,7 @@ function write(
 ): Promise<Amendment> {
   const text = str(p.payload.text);
   const target = str(p.payload.target_id);
-  if (p.target_kind === 'new_amendment')
+  if (p.amendment_id === null)
     return amendments.create(portal, {
       kind: p.payload.kind === 'element_ref' ? 'element_ref' : 'note',
       target_kind: targetKind(p.payload.target_kind),
@@ -86,7 +86,7 @@ function write(
       text,
       author,
     });
-  const id = p.target_id!;
+  const id = p.amendment_id;
   const base_rev = p.base_rev!;
   if (target !== undefined)
     return amendments.reapply(portal, id, {
@@ -142,7 +142,7 @@ const undo: Decide = async (d, portal, id, author) => {
   const amendmentId = p.applied_amendment_id!;
   const base_rev = p.applied_rev!;
   const amendment =
-    p.target_kind === 'new_amendment'
+    p.amendment_id === null
       ? await d.amendments.withdraw(portal, amendmentId, { author, base_rev })
       : await d.amendments.restore(portal, amendmentId, { rev: p.base_rev!, author, base_rev });
   // Undone: kept as discarded with what applying created, so the history stays readable.

@@ -10,12 +10,7 @@ import {
   reportJson,
   type EvalRecord,
 } from '../src/evaluate.js';
-import {
-  makeFixtureStore,
-  seedDocRecords,
-  type FixtureStore,
-  type SeededDocs,
-} from '../src/testing/index.js';
+import { makeFixtureStore, seedDocRecords, type FixtureStore } from '../src/testing/index.js';
 
 /**
  * T077: the matching rules of research §16 and contracts/ground-truth.md on a small hand-built
@@ -390,10 +385,9 @@ describe('evaluate (research §16, contracts/ground-truth.md)', () => {
 
 describe('loadEvalInput (store → evaluator input)', () => {
   let fx: FixtureStore;
-  let seeded: SeededDocs;
   beforeAll(async () => {
     fx = await makeFixtureStore({ portalId: 'reference-insurer', deterministicIds: true });
-    seeded = seedDocRecords(fx);
+    seedDocRecords(fx);
   });
   afterAll(() => fx.close());
 
@@ -411,8 +405,6 @@ describe('loadEvalInput (store → evaluator input)', () => {
     const proc = input.records.find((r) => r.key === 'PROC-001')!;
     const viaProcess = proc.evidence.find((e) => e.target_kind === 'process')!;
     expect(viaProcess.routes).toEqual(['/kalkulator/pojazd', '/ubezpieczenia/samochod']);
-    const req = input.records.find((r) => r.key === 'REQ-002')!;
-    expect(req.evidence.find((e) => e.target_id === seeded.goneFormId)!.routes).toEqual([]);
     expect(input.records.find((r) => r.key === 'DI-001')!.evidence[0]!.routes).toEqual([
       '/kalkulator/pojazd',
     ]);

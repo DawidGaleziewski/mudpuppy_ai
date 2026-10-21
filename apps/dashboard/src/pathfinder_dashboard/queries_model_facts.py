@@ -73,9 +73,7 @@ def model_facts(
         return ModelFacts(None)
     vid, seq = version[0]["id"], version[0]["seq"]
     triggers = [
-        Trigger(
-            r["skey"], r["stitle"], r["element"] or "—", r["n"], r["kind"] == "deep_link"
-        )
+        Trigger(r["skey"], r["stitle"], r["element"] or "—", r["n"], r["kind"] == "deep_link")
         for r in _rows(
             conn,
             "SELECT i.trigger_kind AS kind, s.key AS skey, s.title AS stitle,"

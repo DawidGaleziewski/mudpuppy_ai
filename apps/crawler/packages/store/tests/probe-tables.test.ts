@@ -70,6 +70,8 @@ it('0022/0023 round-trip (up, down, up), CHECKs hold, and down restores the stat
   expect(() => suite('dismissed')).toThrow(/CHECK/);
   suite('approved', `, '{}', '${ts}'`);
 
+  expect(migrateDown(o.raw, MIGRATIONS)).toBe('0041');
+  expect(migrateDown(o.raw, MIGRATIONS)).toBe('0040');
   expect(migrateDown(o.raw, MIGRATIONS)).toBe('0039');
   expect(migrateDown(o.raw, MIGRATIONS)).toBe('0038');
   expect(migrateDown(o.raw, MIGRATIONS)).toBe('0037');
@@ -116,6 +118,8 @@ it('0022/0023 round-trip (up, down, up), CHECKs hold, and down restores the stat
     '0037',
     '0038',
     '0039',
+    '0040',
+    '0041',
   ]);
   expect(o.raw.prepare('SELECT state_kind FROM states').get()).toEqual({ state_kind: 'main' });
   expect(o.raw.pragma('foreign_key_check')).toEqual([]);
@@ -126,15 +130,20 @@ it('0024 marks: CHECKs hold, one open mark per target and kind, down drops the t
   migrateUp(o.raw, MIGRATIONS);
   seed(o);
   const run = (sql: string, ...p: unknown[]) => o!.raw.prepare(sql).run(...p);
-  const mark = (id: string, over: Record<string, string> = {}) => {
-    const v = { kind: 'probe', target_kind: 'form_step', target_id: 'fs1', by: 'Ola', ...over };
+  const step = `INSERT INTO form_steps (id, portal_id, route_template, step_index, controls_json, label, first_seen_run, created_at)
+                VALUES (?, 'shop', '/quote', ?, '[]', 'step', 'r1', ?)`;
+  run(step, 'fs1', 1, ts);
+  run(step, 'fs2', 2, ts);
+  // 0041: a mark names its target in a typed column (form step, state or transition).
+  const mark = (id: string, over: Record<string, string | null> = {}) => {
+    const v = { kind: 'probe', form_step_id: 'fs1', state_id: null, by: 'Ola', ...over };
     run(
-      `INSERT INTO marks (id, portal_id, kind, target_kind, target_id, created_by, created_at)
+      `INSERT INTO marks (id, portal_id, kind, form_step_id, state_id, created_by, created_at)
        VALUES (?, 'shop', ?, ?, ?, ?, ?)`,
       id,
       v.kind,
-      v.target_kind,
-      v.target_id,
+      v.form_step_id,
+      v.state_id,
       v.by,
       ts,
     );
@@ -142,14 +151,17 @@ it('0024 marks: CHECKs hold, one open mark per target and kind, down drops the t
   mark('m1');
   expect(() => mark('m2')).toThrow(/UNIQUE/);
   mark('m3', { kind: 'skip' });
-  mark('m4', { target_id: 'fs2' });
+  mark('m4', { form_step_id: 'fs2' });
   expect(() => mark('m5', { kind: 'other' })).toThrow(/CHECK/);
-  expect(() => mark('m6', { target_kind: 'run' })).toThrow(/CHECK/);
-  expect(() => mark('m7', { target_id: '' })).toThrow(/CHECK/);
+  expect(() => mark('m6', { form_step_id: null })).toThrow(/CHECK/); // no target
+  expect(() => mark('m6', { state_id: 's1' })).toThrow(/CHECK/); // two targets
+  expect(() => mark('m7', { form_step_id: 'gone' })).toThrow(/FOREIGN KEY/);
   expect(() => mark('m8', { by: '' })).toThrow(/CHECK/);
   expect(() => run(`UPDATE marks SET used_by_run_id = 'r1' WHERE id = 'm1'`)).toThrow(/CHECK/);
   run(`UPDATE marks SET used_by_run_id = 'r1', used_at = ? WHERE id = 'm1'`, ts);
   mark('m9'); // the used mark no longer blocks a new open one
+  expect(migrateDown(o.raw, MIGRATIONS)).toBe('0041');
+  expect(migrateDown(o.raw, MIGRATIONS)).toBe('0040');
   expect(migrateDown(o.raw, MIGRATIONS)).toBe('0039');
   expect(migrateDown(o.raw, MIGRATIONS)).toBe('0038');
   expect(migrateDown(o.raw, MIGRATIONS)).toBe('0037');

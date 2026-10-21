@@ -66,8 +66,8 @@ SCREEN_MARKS = (
 def _screen_marks(conn: sqlite3.Connection, screen_id: str) -> dict[str, str]:
     rows = _rows(
         conn,
-        "SELECT m.kind, m.target_id FROM marks m JOIN states s ON s.id = m.target_id"
-        f" WHERE m.target_kind = 'state' AND m.used_by_run_id IS NULL AND s.screen_id IN {MEMBERS}"
+        "SELECT m.kind, m.state_id AS target_id FROM marks m JOIN states s ON s.id = m.state_id"
+        f" WHERE m.used_by_run_id IS NULL AND s.screen_id IN {MEMBERS}"
         " ORDER BY m.created_at",
         (screen_id, screen_id),
     )
@@ -85,8 +85,8 @@ def _states(conn: sqlite3.Connection, screen_id: str) -> list[MapState]:
     rows = _rows(
         conn,
         "SELECT s.id, s.state_kind, s.form_step_id, f.step_index, f.label,"
-        " EXISTS (SELECT 1 FROM marks m WHERE m.kind = 'probe' AND m.target_kind = 'form_step'"
-        "   AND m.target_id = s.form_step_id AND m.used_by_run_id IS NULL) AS marked"
+        " EXISTS (SELECT 1 FROM marks m WHERE m.kind = 'probe'"
+        "   AND m.form_step_id = s.form_step_id AND m.used_by_run_id IS NULL) AS marked"
         " FROM states s LEFT JOIN form_steps f ON f.id = s.form_step_id"
         f" WHERE s.screen_id IN {MEMBERS} ORDER BY f.step_index, s.created_at, s.id",
         (screen_id, screen_id),

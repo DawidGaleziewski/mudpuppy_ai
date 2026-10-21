@@ -57,7 +57,10 @@ describe('Layer B schemas (R-13)', () => {
     expect(RevisionChange.options).toEqual(list('doc_revisions', 'change'));
     expect(Confidence.options).toEqual(list('doc_revisions', 'confidence'));
     expect(RevisionStatus.options).toEqual(list('doc_revisions', 'status'));
-    expect(EvidenceTargetKind.options).toEqual(list('doc_evidence_links', 'target_kind'));
+    // Since 0040 a link cites an `entity_refs` row; the view `doc_evidence` names its kind.
+    const view = SCHEMA_SQL.slice(SCHEMA_SQL.indexOf('CREATE VIEW doc_evidence'));
+    const viewKinds = [...view.slice(0, view.indexOf(';')).matchAll(/THEN '([a-z_]+)'/g)];
+    expect([...EvidenceTargetKind.options].sort()).toEqual(viewKinds.map((m) => m[1]).sort());
     expect(RelationType.options).toEqual(list('doc_relations', 'type'));
     expect(ReviewAction.options).toEqual(list('doc_reviews', 'action'));
     expect(FollowupStatus.options).toEqual(list('followup_tasks', 'status'));

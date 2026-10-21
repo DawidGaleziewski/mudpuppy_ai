@@ -101,9 +101,7 @@ def _parent_steps(view: queries_processes.ProcessView, label: str) -> list[dict[
     vv = view.model(label)
     if vv is None or vv.model.branched_from_model_id is None:
         return []
-    parent = next(
-        (p for p in view.models if p.model.id == vv.model.branched_from_model_id), None
-    )
+    parent = next((p for p in view.models if p.model.id == vv.model.branched_from_model_id), None)
     rev = parent.revision(vv.model.branched_from_rev or 0) if parent else None
     return list(rev.steps) if rev else []
 
@@ -193,6 +191,7 @@ def process_page(
     env: str | None = None,
     model: str | None = None,
     step: str | None = None,
+    check_note: str | None = None,
 ) -> HTMLResponse:
     web = web_of(request)
     c = web.ctx(request, env)
@@ -204,7 +203,9 @@ def process_page(
         return web.missing(c, err)
     except LookupError:
         return web.render(c, "salvage/process_missing.html", status_code=404, key=key)
-    return web.render(c, "salvage/process.html", nav_current="processes", v=v)
+    return web.render(
+        c, "salvage/process.html", nav_current="processes", v=v, check_note=check_note
+    )
 
 
 @router.get("/fragments/processes/{key}", response_class=HTMLResponse)

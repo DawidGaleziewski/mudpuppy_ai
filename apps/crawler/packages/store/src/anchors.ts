@@ -14,7 +14,7 @@ export function anchorReviewsOf(raw: Raw, portal: string): AnchorReview[] {
   const anchors = raw
     .prepare(
       `SELECT a.id, r.screen_id AS screenId, r.element_key AS elementKey
-       FROM amendments a JOIN entity_refs r ON r.id = a.ref_id
+       FROM amendments a JOIN entity_refs r ON r.id = a.anchor_ref_id
        WHERE a.portal_id = ? AND a.status = 'active' AND r.screen_id IS NOT NULL ORDER BY a.key`,
     )
     .all(portal) as { id: string; screenId: string; elementKey: string | null }[];

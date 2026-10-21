@@ -17,7 +17,7 @@ from typing import Any
 
 import yaml
 
-from .models import Amendment, ChatConversation, ChatMessage, State, WorkflowStep
+from .models import AmendmentWithTarget, ChatConversation, ChatMessage, State, WorkflowStep
 from .visuals import load_layout
 
 STEPS: tuple[tuple[str, str], ...] = (
@@ -406,30 +406,32 @@ SUPERSEDED_REASONS = {
 SHOW_FILTERS = ("superseded", "dismissed", "both")
 
 
-def _amendments(conn: sqlite3.Connection, sql: str, args: tuple[Any, ...]) -> list[Amendment]:
+def _amendments(
+    conn: sqlite3.Connection, sql: str, args: tuple[Any, ...]
+) -> list[AmendmentWithTarget]:
     try:
         rows = conn.execute(sql, args).fetchall()
     except sqlite3.OperationalError:  # a store made before migration 0008
         return []
-    return [Amendment.model_validate(dict(r)) for r in rows]
+    return [AmendmentWithTarget.model_validate(dict(r)) for r in rows]
 
 
-def amendments_for_state(conn: sqlite3.Connection, portal: str, state_id: str) -> list[Amendment]:
-    """Amendments on a state or on one of its wireframe elements (`<state id>#<element key>`),
-    by ranges on the existing (portal, target_kind, target_id) index."""
+def amendments_for_state(
+    conn: sqlite3.Connection, portal: str, state_id: str
+) -> list[AmendmentWithTarget]:
+    """Amendments on a state or on one of its wireframe elements: their target ref names the
+    state (0041, spec 039 § 15)."""
     return _amendments(
         conn,
-        "SELECT * FROM amendments WHERE portal_id = ? AND ("
-        " (target_kind = 'state' AND target_id = ?)"
-        " OR (target_kind = 'wireframe_element' AND target_id >= ? AND target_id < ?))"
-        " ORDER BY key",
-        (portal, state_id, state_id + "#", state_id + "$"),  # "$" is "#" + 1
+        "SELECT a.* FROM amendments_with_target a JOIN entity_refs r ON r.id = a.ref_id"
+        " WHERE a.portal_id = ? AND r.state_id = ? ORDER BY a.key",
+        (portal, state_id),
     )
 
 
 def amendments_for_screen(
     conn: sqlite3.Connection, portal: str, state_id: str, screen_id: str | None
-) -> list[Amendment]:
+) -> list[AmendmentWithTarget]:
     """Amendments of the screen a state is a revision of (spec 022 FE-S01): carried-forward ones
     point at the newest revision, so an older revision's page still lists them. Without a screen
     (a store before 0015, an old crawler's state): the state's own."""
@@ -437,7 +439,7 @@ def amendments_for_screen(
         return amendments_for_state(conn, portal, state_id)
     found = _amendments(
         conn,
-        "SELECT * FROM amendments WHERE portal_id = ? AND screen_id = ? ORDER BY key",
+        "SELECT * FROM amendments_with_target WHERE portal_id = ? AND screen_id = ? ORDER BY key",
         (portal, screen_id),
     )
     own = {a.id for a in found}
@@ -455,13 +457,13 @@ def state_elements(data_dir: Path, state: State) -> list[tuple[str, str]]:
 
 def superseded_amendments(
     conn: sqlite3.Connection, portal: str | None, show: str
-) -> list[Amendment]:
+) -> list[AmendmentWithTarget]:
     # The `superseded` filter key stays for old links; the status is `needs_reanchor` (spec 022).
     statuses = {"superseded": ("needs_reanchor",), "dismissed": ("dismissed",)}.get(
         show, ("needs_reanchor", "dismissed")
     )
     marks = ", ".join("?" for _ in statuses)
-    sql = f"SELECT * FROM amendments WHERE status IN ({marks})"
+    sql = f"SELECT * FROM amendments_with_target WHERE status IN ({marks})"
     args: tuple[Any, ...] = statuses
     if portal:
         sql += " AND portal_id = ?"
@@ -492,14 +494,14 @@ def amendment_portals(conn: sqlite3.Connection) -> list[str]:
     return [r["portal_id"] for r in rows]
 
 
-def element_key(amendment: Amendment) -> str | None:
+def element_key(amendment: AmendmentWithTarget) -> str | None:
     """The element key an amendment was anchored to, when it targeted a wireframe element."""
     anchor = amendment.anchor_element
     key = anchor.get("key") if isinstance(anchor, dict) else None
     return key if isinstance(key, str) else None
 
 
-def target_state_id(amendment: Amendment) -> str | None:
+def target_state_id(amendment: AmendmentWithTarget) -> str | None:
     """The state a state or element amendment points at (evidence targets have none)."""
     if amendment.target_kind == "state":
         return amendment.target_id

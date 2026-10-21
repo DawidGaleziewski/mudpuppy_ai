@@ -136,9 +136,7 @@ function recordProcesses(ctx: BaContext, portal: string): GroupProcess[] {
     .all(portal) as { key: string; title: string; rev_id: string }[];
   return records.map((rec) => {
     const links = ctx.raw
-      .prepare(
-        'SELECT target_kind, target_id, run_id FROM doc_evidence_links WHERE revision_id = ?',
-      )
+      .prepare('SELECT target_kind, target_id, run_id FROM doc_evidence WHERE revision_id = ?')
       .all(rec.rev_id) as LinkRow[];
     const runs = new Set(links.map((l) => l.run_id).filter((r): r is string => r !== null));
     for (const l of links.filter((x) => x.target_kind === 'process')) {

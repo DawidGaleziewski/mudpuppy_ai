@@ -85,6 +85,7 @@ def seed(store: Store) -> Store:
     seed_amendment(
         store,
         1,
+        target_id="st-home",  # a recorded state: the target is a foreign key since 0041
         status="needs_reanchor",
         superseded_by_run="run-mid",
         superseded_reason="element_removed",

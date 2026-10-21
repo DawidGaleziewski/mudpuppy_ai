@@ -15,8 +15,6 @@ import { recordColumns } from './status-engine.js';
 export const AUDIT_CHECKS = [
   /** A revision has no evidence link. */
   'missing_evidence',
-  /** A link points at a row that does not exist. */
-  'broken_link',
   /** A link points at a row of another portal. */
   'link_portal_mismatch',
   /** A link's `run_id` is not the run its target came from. */
@@ -119,7 +117,7 @@ export function audit(
      FROM doc_revisions WHERE record_id = ? ORDER BY rev_no`,
   );
   const linksOf = raw.prepare(
-    'SELECT target_kind, target_id, run_id, region FROM doc_evidence_links WHERE revision_id = ? ORDER BY id',
+    'SELECT target_kind, target_id, run_id, region FROM doc_evidence WHERE revision_id = ? ORDER BY id',
   );
   const reviewsOf = raw.prepare(
     `SELECT rev.rev_no, v.action FROM doc_reviews v JOIN doc_revisions rev ON rev.id = v.revision_id
@@ -160,10 +158,8 @@ export function audit(
           target_id: link.target_id,
           ...(link.run_id !== null ? { run_id: link.run_id } : {}),
         });
-        if (!target) {
-          add('broken_link', rev.rev_no, `${name} does not exist`);
-          continue;
-        }
+        // Links cite through foreign-keyed refs (migration 0040), so a target always exists.
+        if (!target) continue;
         if (target.portal_id !== record.portal_id) {
           add('link_portal_mismatch', rev.rev_no, `${name} belongs to portal ${target.portal_id}`);
           continue;

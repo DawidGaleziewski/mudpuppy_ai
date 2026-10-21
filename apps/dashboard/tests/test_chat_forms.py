@@ -154,7 +154,8 @@ def test_amendments_for_state_covers_state_and_its_elements_only(mapped: Store) 
         target_id='st-1#button "A#B"',
         kind="element_ref",
     )
-    seed_amendment(mapped, 3, target_id="st-10")  # another state with the same prefix
+    seed_state(mapped, "st-10", "Kontakt 10", "/kontakt-10")  # another state, same id prefix
+    seed_amendment(mapped, 3, target_id="st-10")
     seed_amendment(
         mapped, 4, target_kind="wireframe_element", target_id="st-10#x", kind="element_ref"
     )

@@ -391,6 +391,17 @@ class EntityRef(Row):
     process_id: str | None
     hypothesis_id: str | None
     network_call_id: str | None
+    # 0040 (spec 039 § 15): the kinds the BA cites; trace processes and steps are v1's tables
+    action_id: str | None = None
+    form_id: str | None = None
+    open_question_id: str | None = None
+    decision_id: str | None = None
+    review_id: str | None = None
+    doc_record_id: str | None = None
+    trace_process_id: str | None = None
+    trace_step_id: str | None = None
+    form_step_id: str | None = None
+    evidence_file: str | None = None
     element_key: str | None
 
 
@@ -663,7 +674,7 @@ class OpenQuestion(Row):
     id: str
     run_id: str
     text: str
-    about_ref: str
+    ref_id: str  # 0040 (spec 039 § 15): the subject, a state, transition or form ref
     status: Literal["open", "addressed"]
     created_at: str
     hypothesis_id: str | None = None  # 0031 (spec 039): the hypothesis it is about
@@ -751,8 +762,10 @@ class Mark(Row):
     id: str
     portal_id: str
     kind: Literal["start", "focus", "probe", "retry", "recheck", "skip"]
-    target_kind: Literal["form_step", "state", "transition"]
-    target_id: str
+    # 0041 (spec 039 § 15): the target in a typed column, exactly one
+    form_step_id: str | None = None
+    state_id: str | None = None
+    transition_id: str | None = None
     created_by: str
     created_at: str
     used_by_run_id: str | None
@@ -961,12 +974,25 @@ class DocRevision(Row):
 
 
 class DocEvidenceLink(Row):
+    """0040 (spec 039 § 15): what a link cites is an `entity_refs` row."""
+
     id: str
     revision_id: str
-    target_kind: EvidenceTargetKind
-    target_id: str
+    ref_id: str
     run_id: str | None
     note: str | None
+
+
+class DocEvidence(Row):
+    """A row of the view `doc_evidence` (0040): a link with the kind and id its ref names."""
+
+    id: str
+    revision_id: str
+    ref_id: str
+    run_id: str | None
+    note: str | None
+    target_kind: EvidenceTargetKind
+    target_id: str
     region: str | None = None  # element key; screen_region only (spec 008)
 
 
@@ -1101,8 +1127,7 @@ class Amendment(Row):
     key: str
     portal_id: str
     scope_id: str | None
-    target_kind: Literal["state", "evidence", "wireframe_element"]
-    target_id: str
+    ref_id: str  # 0041: what it is written on, an entity_refs row
     kind: Literal["note", "element_ref", "attachment"]
     text: str | None
     attachment_sha256: str | None
@@ -1123,7 +1148,18 @@ class Amendment(Row):
     withdrawn_at: str | None
     rev: int  # 0016: the head's current revision number
     screen_id: str | None  # 0016: the screen the amendment belongs to
-    ref_id: str | None = None  # 0037: the anchor, a model screen + element key (entity_refs)
+    anchor_ref_id: str | None = None  # 0037 (0041 renamed): the model anchor, screen + element key
+
+
+#: What an amendment (head or revision) is written on, as the 0041 views name it.
+AmendmentTargetKind = Literal["state", "evidence", "wireframe_element"]
+
+
+class AmendmentWithTarget(Amendment):
+    """A row of the view `amendments_with_target` (0041)."""
+
+    target_kind: AmendmentTargetKind
+    target_id: str  # a state id, `<state id>#<element key>` or an evidence file
 
 
 class AmendmentRevision(Row):
@@ -1144,8 +1180,7 @@ class AmendmentRevision(Row):
     ]
     author: str
     status: Literal["active", "needs_reanchor", "dismissed", "withdrawn"]
-    target_kind: Literal["state", "evidence", "wireframe_element"]
-    target_id: str
+    ref_id: str  # 0041: what this revision is written on, an entity_refs row
     text: str | None
     anchor_fingerprint: str | None
     anchor_route_template: str | None
@@ -1155,14 +1190,20 @@ class AmendmentRevision(Row):
     created_at: str
 
 
+class AmendmentRevisionWithTarget(AmendmentRevision):
+    """A row of the view `amendment_revisions_with_target` (0041)."""
+
+    target_kind: AmendmentTargetKind
+    target_id: str
+
+
 class ChatProposal(Row):
     """A change the chat assistant proposes and a person applies or discards (0017)."""
 
     id: str
     conversation_id: str
     portal_id: str
-    target_kind: Literal["amendment", "new_amendment"]
-    target_id: str | None  # the amendment id; None for new_amendment
+    amendment_id: str | None  # 0041: the amendment it changes; None for a new amendment
     base_rev: int | None  # the amendment revision the proposal was made on
     payload: Json  # what to change; a JSON object
     summary: str
@@ -1524,10 +1565,9 @@ class DocRecordRow(BaseModel):
 class ResolvedEvidence(BaseModel):
     """An evidence link with its target looked up in Layer A (or the Docs tables)."""
 
-    link: DocEvidenceLink
+    link: DocEvidence
     label: str | None
-    resolved: bool  # the target row was found
-    broken: bool  # the target's table exists but the row is gone
+    resolved: bool  # the target row was found (refs keep it in place since 0040)
     run_mode: str | None
     run_started_at: str | None
     tab: str | None  # run page tab holding the target, None for doc_record/review
@@ -1576,7 +1616,7 @@ class RunCitingRecord(BaseModel):
     """A record citing a run's evidence (FR-033): what it cites and from which revision."""
 
     row: DocRecordRow
-    cites: list[DocEvidenceLink]
+    cites: list[DocEvidence]
 
 
 class LiveEvent(BaseModel):

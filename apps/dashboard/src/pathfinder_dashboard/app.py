@@ -27,6 +27,7 @@ from .web import activity as activity_page
 from .web import amendments as amendments_page
 from .web import changes as changes_page
 from .web import chat as chat_page
+from .web import check_runs as check_runs_page
 from .web import docs as docs_page
 from .web import events as events_page
 from .web import evidence as evidence_page
@@ -143,6 +144,7 @@ def create_app(
     app.include_router(access_page.router)
     app.include_router(changes_page.router)
     app.include_router(rules_page.router)
+    app.include_router(check_runs_page.router)
     app.include_router(review_page.router)
     app.include_router(scans_page.router)
     app.include_router(run_groups_page.router)

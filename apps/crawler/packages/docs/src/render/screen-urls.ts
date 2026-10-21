@@ -21,9 +21,7 @@ export function screenUrls(
     if (screen.kind !== 'screen') continue;
     const states = new Set(
       screen.evidence
-        .filter(
-          (e) => (e.target_kind === 'state' || e.target_kind === 'screen_region') && !e.broken,
-        )
+        .filter((e) => e.target_kind === 'state' || e.target_kind === 'screen_region')
         .map((e) => e.target_id),
     );
     const visits: VisitRow[] = [];

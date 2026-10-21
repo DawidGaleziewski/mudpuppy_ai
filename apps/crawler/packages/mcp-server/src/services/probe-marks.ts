@@ -23,7 +23,7 @@ export async function openProbeMarks(
 ): Promise<ProbeMarkItem[]> {
   const rows = await ctx.db
     .selectFrom('marks as m')
-    .innerJoin('form_steps as f', 'f.id', 'm.target_id')
+    .innerJoin('form_steps as f', 'f.id', 'm.form_step_id')
     .select([
       'm.id as mark_id',
       'f.id as form_step_id',
@@ -33,7 +33,6 @@ export async function openProbeMarks(
     ])
     .where('m.portal_id', '=', portalId)
     .where('m.kind', '=', 'probe')
-    .where('m.target_kind', '=', 'form_step')
     .where('m.used_by_run_id', 'is', null)
     .orderBy('f.route_template')
     .orderBy('f.step_index')
@@ -71,8 +70,7 @@ export async function probeMarkOf(
     .select('id')
     .where('portal_id', '=', portalId)
     .where('kind', '=', 'probe')
-    .where('target_kind', '=', 'form_step')
-    .where('target_id', '=', formStepId)
+    .where('form_step_id', '=', formStepId)
     .where('used_by_run_id', 'is', null)
     .executeTakeFirst();
   return row?.id ?? null;

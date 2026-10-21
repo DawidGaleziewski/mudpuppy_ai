@@ -12,6 +12,11 @@
     {%- else %}<span class="sy-num">{{ v.rules | length }}</span> rules
       {%- for s, n in v.counts.items() %} · <span class="sy-num">{{ n }}</span> {{ s }}{% endfor %}{% endif %}</p>
   <p class="sy-small sy-muted sy-prose">Each rule is a decision table the system found from the portal's behaviour. Check runs test it at its boundaries.</p>
+  {%- if c.portal %}
+  {%- set run_portal, run_kind, run_key, run_label = c.portal, "replay", none, "Run the rule tests" %}
+  {%- set run_back = c.url('/rules', portal=c.portal) %}
+  {% include "salvage/partials/check_run.html" %}
+  {%- endif %}
 </div>
 {%- if c.portal %}
 {%- if not v.rules %}
@@ -36,8 +41,8 @@
       <tr>
         <th scope="row">
           <div class="sy-stack" style="--sy-gap: 6px; align-items: flex-start">
-            {{ sy.tag(r.key, c.url('/rules/' ~ r.key), sm=true) }}
-            <a class="sy-case-normal" href="{{ c.url('/rules/' ~ r.key) }}">{{ r.claim }}</a>
+            {{ sy.tag(r.shown_key, c.url('/rules/' ~ r.shown_key), sm=true) }}
+            <a class="sy-case-normal" href="{{ c.url('/rules/' ~ r.shown_key) }}">{{ r.claim }}</a>
           </div>
         </th>
         <td>{% if r.screen_key %}<div class="sy-stack" style="--sy-gap: 2px"><span class="sy-case-normal">{{ r.screen_title or r.screen_key }}</span><span class="sy-small sy-muted sy-mono sy-mono--sm">{{ r.action or "" }}</span></div>{% else %}<span class="sy-muted">—</span>{% endif %}</td>

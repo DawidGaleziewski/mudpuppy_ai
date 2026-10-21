@@ -306,12 +306,6 @@ def test_evidence_links_open_the_run_page_at_the_target(ba_client: TestClient) -
     assert 'id="st-calc"' in ba_client.get("/runs/run-map?tab=states").text
 
 
-def test_broken_evidence_link_is_flagged_in_text(ba_client: TestClient) -> None:
-    t = text(ba_client.get(f"/docs/{P}/REQ-001").text)
-    assert "Broken link" in t and "st-deleted" in t and "target removed by a portal delete" in t
-    assert 'data-status="unobserved">Broken link' in ba_client.get(f"/docs/{P}/REQ-001").text
-
-
 def test_relations_in_and_out(ba_client: TestClient) -> None:
     html = ba_client.get(f"/docs/{P}/REQ-001").text
     t = text(html)
@@ -489,21 +483,6 @@ def test_run_process_tab(ba_client: TestClient) -> None:
 def test_run_process_tab_empty_state_for_a_map_run(ba_client: TestClient) -> None:
     t = text(ba_client.get("/runs/run-map?tab=process").text)
     assert "No process recorded for this scan" in t
-
-
-def test_store_without_process_tables_still_renders(ba_fixture: Store) -> None:
-    w = ba_fixture.connect()
-    w.execute("DROP TABLE process_steps")
-    w.execute("DROP TABLE processes")
-    w.commit()
-    with make_client(ba_fixture) as c:
-        assert c.get("/runs/run-trace?tab=process").status_code == 200
-        assert "No process recorded for this scan" in text(
-            c.get("/runs/run-trace?tab=process").text
-        )
-        html = c.get(f"/docs/{P}/PROC-001").text
-        assert "Unresolved" in html and "Broken link" not in html
-        assert "mermaid" not in html.replace("diagrams.js", "")
 
 
 # --- review panel (rendering and guards; the integration with docs:review is T067) -------------

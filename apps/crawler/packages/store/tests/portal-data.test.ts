@@ -206,14 +206,16 @@ function seed() {
       .run(scope, conv, portal, s1, s2, ts);
     const orig = newId();
     const copy = newId();
-    const amd = (id: string, key: string, extra: string) =>
+    const amd = (id: string, key: string, extra: string) => {
+      raw.prepare('INSERT INTO entity_refs (id, state_id) VALUES (?, ?)').run(`ref-${id}`, s1);
       raw
         .prepare(
-          `INSERT INTO amendments (id, key, portal_id, scope_id, target_kind, target_id, kind, text, author, status,
+          `INSERT INTO amendments (id, key, portal_id, scope_id, ref_id, kind, text, author, status,
            superseded_by_run, superseded_reason, superseded_at, reapplied_as, reapplies, created_at)
-           VALUES (?, ?, ?, ?, 'state', ?, 'note', 'n', 'ba', ${extra}, ?)`,
+           VALUES (?, ?, ?, ?, ?, 'note', 'n', 'ba', ${extra}, ?)`,
         )
-        .run(id, key, portal, scope, s1, ts);
+        .run(id, key, portal, scope, `ref-${id}`, ts);
+    };
     amd(orig, 'AMD-001', `'needs_reanchor', '${runId}', 'state_replaced', '${ts}', NULL, NULL`);
     amd(copy, 'AMD-002', `'active', NULL, NULL, NULL, NULL, '${orig}'`);
     raw.prepare('UPDATE amendments SET reapplied_as = ? WHERE id = ?').run(copy, orig);
@@ -287,7 +289,7 @@ describe('portal export (spec 002 FR-028, contracts/operator-cli.md)', () => {
       environment: 'sandbox',
       counts: r.counts,
       evidence_files: 4,
-      schema_version: '0039',
+      schema_version: '0041',
     });
     expect(typeof manifest.exported_at).toBe('string');
     for (const t of PORTAL_TABLES) expect(existsSync(join(out, `${t}.ndjson`))).toBe(true);

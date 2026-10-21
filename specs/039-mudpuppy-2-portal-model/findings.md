@@ -721,8 +721,74 @@ Bugs, slips and design deviations found while building, each with a test or eval
   reconciler uses the latest accepted one. `pnpm model:decide … accept-classifier` refuses a
   training that did not beat τ, and a newer, worse training leaves the accepted one in force. The
   decision watermark follows `accepted_at`.
-- **Test**: `instances.test.ts` (model, deep links), `process-instances.test.ts` and
+- **Test (F-44)**: `instances.test.ts` (model, deep links), `process-instances.test.ts` and
   `process-facts.test.ts` (store; the seed's j3/j6 now open the car page by URL),
   `similarity-classifier.test.ts`, `test_model_facts.py`, the migration round-trips. Eval idea:
   on a portal opened by URL, the grouping eval should count deep-link instances as entries, not
   as missing triggers.
+
+## F-45 Typed references everywhere: owner answer 13 as built (migrations 0040–0041), 2026-10-21
+
+- **0040**: `entity_refs` gains a column for every kind the BA cites (actions, forms, open
+  questions, decisions, reviews, records, the trace's `processes` / `process_steps`, form steps),
+  plus an `evidence_file`. An element key may go with a state (a screen region) as well as with a
+  model screen (an anchor).
+  - `doc_evidence_links` and `open_questions` hold a `ref_id` instead of `target_kind` /
+    `target_id` / `region` and `about_ref`.
+  - The view `doc_evidence` reads a link back in the BA's vocabulary. The BA tools still cite by
+    kind and id, so their API is unchanged; `@pathfinder/store` `entity-refs.ts`
+    (`insertEvidenceRef`, `addEvidenceLink`) is the one write path.
+- **0041**:
+  - An amendment and each of its revisions hold `ref_id`: a state, a state's element, or an
+    evidence file. The 0037 model anchor is now `anchor_ref_id`. The views
+    `amendments_with_target` and `amendment_revisions_with_target` read the target as the chat and
+    the dashboard name it.
+  - A mark names its target in a typed column (`form_step_id`, `state_id` or `transition_id`), so
+    "one open mark per kind and target" stays a unique index.
+  - A chat proposal names its `amendment_id` (NULL is a new amendment).
+- **Deferred foreign keys**: the new `ref_id` foreign keys are `DEFERRABLE INITIALLY DEFERRED`.
+  An open question cites a state through a ref and a ref can cite an open question, so a portal
+  delete removes both inside its one transaction.
+- **Gone as a result**:
+  - The audit check `broken_link`, the export's "Broken evidence links" section (11.5; open
+    questions are now 11.5) and the dashboard's "Broken link" status: a link can no longer point
+    at nothing.
+  - The fixtures' deliberately dangling links (REQ-002's gone form, the dashboard's
+    `st-deleted`), and the two "store without process tables" tests: `entity_refs` references
+    those tables, so such a store cannot exist.
+  - Migrations 0040 and 0041 delete rows whose target was already gone, because v1 had no
+    foreign key there; 2.0 store data is disposable.
+- **Not moved**: `decision_log.subject_ref` and a few free-text references. They are log text, not
+  links, and design § 15 does not list them.
+- **Test**: the migration round-trips (db, probe-tables), `audit.test.ts` (a missing target is
+  refused), the goldens regenerated (ids shift by one, since the fixture writes one more id per
+  open question), the chat amendment, reanchor and proposal tests, and the dashboard fixtures (the
+  test `insert()` helper writes refs for rows stated as kind and id). Eval idea: none. This is a
+  storage change behind unchanged tool contracts, and the BA trials should score the same.
+
+## F-46 Check runs and accepting τ from the pages: owner answers 5, 12, 19 as built, 2026-10-21
+
+- **Check runs** (answers 12 and 19): the chat service's `check-runs.ts` starts
+  `pnpm --dir apps/crawler model:replay|model:explore <portal> [PRC-…] --env <env>` in the
+  background (detached, its output in `data/check-runs/<env>/<id>.log`). The lock file
+  `<portal>.json` allows one check run per portal; a second start is refused (409
+  `CHECK_RUN_BUSY`) while its process lives.
+  - Started two ways: the dashboard's button (`POST /portals/{p}/check-runs`, signed with the
+    reviewer; pressing it is the owner's yes), and the assistant's `start_check_run`. The tool
+    needs `confirmed_by`, the owner's words; the orchestrator asks first and calls it only after a
+    yes. `model_actions` now names the check runs waiting and the one running.
+  - Buttons: "Explore now" in a process's "In the portal model" panel, and "Run the rule tests" on
+    Rules. The check run's results reach the model on its next rebuild.
+- **Accepting τ and the classifier** (answers 5 and 14): Settings ▸ Screen identity shows the τ in
+  force (or the built-in default), the pair labels, and the latest classifier with its held-out
+  F1 against τ's. Its buttons post to the chat service's `POST /portals/{p}/model/accept`
+  (`acceptTau` / `acceptClassifier` in the store), which computes the calibration and refuses
+  plainly when it is not ready. The CLI (`pnpm model:decide … accept-tau | accept-classifier`)
+  does the same.
+- **Not done**: the designer's "Same screen?" labelling page (G15); pairs are labelled with
+  `pnpm model:pairs` / `model:decide … label` until it exists. A running check run is not shown
+  on the pages beyond its note; `GET /portals/{p}/check-runs` answers it.
+- **Test**: `check-runs.test.ts` (a fake spawn: the command and its environment, busy, a finished
+  run frees the portal, refusals; the MCP tool with `confirmed_by`), `model-accept.test.ts`,
+  `test_check_runs.py`, `test_settings_salvage.py`. Eval idea: in the orchestrator eval, an
+  assistant that calls `start_check_run` without a yes from the owner in the transcript fails.

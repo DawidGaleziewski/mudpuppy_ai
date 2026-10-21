@@ -512,13 +512,15 @@ export async function makeFixtureStore(opts: FixtureStoreOptions = {}): Promise<
     ),
   };
 
-  const question = (text: string, aboutRef: string): string => {
+  const question = (text: string, aboutState: string): string => {
     const id = nextId();
+    const ref = nextId();
+    insert('entity_refs', { id: ref, state_id: aboutState });
     insert('open_questions', {
       id,
       run_id: runId,
       text,
-      about_ref: aboutRef,
+      ref_id: ref,
       status: 'open',
       created_at: FIXTURE_TS,
     });

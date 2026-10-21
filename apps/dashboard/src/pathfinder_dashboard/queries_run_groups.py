@@ -128,15 +128,15 @@ def _record_processes(conn: sqlite3.Connection, portal: str) -> list[GroupProces
     ).fetchall()
     out = []
     for key, title, rev_id in records:
-        cte = "WITH links AS (SELECT * FROM doc_evidence_links WHERE revision_id = ?)"
+        cte = "WITH links AS (SELECT * FROM doc_evidence WHERE revision_id = ?)"
         states = [
             r[0] for r in conn.execute(f"{cte} {_STATES_OF_LINK}", (rev_id,)) if r[0] is not None
         ]
         runs = {
             r[0]
             for r in conn.execute(
-                "SELECT run_id FROM doc_evidence_links WHERE revision_id = ? AND run_id IS NOT NULL"
-                " UNION SELECT p.run_id FROM doc_evidence_links l JOIN processes p"
+                "SELECT run_id FROM doc_evidence WHERE revision_id = ? AND run_id IS NOT NULL"
+                " UNION SELECT p.run_id FROM doc_evidence l JOIN processes p"
                 " ON p.id = l.target_id WHERE l.revision_id = ? AND l.target_kind = 'process'",
                 (rev_id, rev_id),
             )

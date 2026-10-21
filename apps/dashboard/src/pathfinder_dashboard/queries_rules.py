@@ -33,7 +33,7 @@ GROUP_WORD = {
 
 @dataclass(frozen=True)
 class RuleRow:
-    key: str
+    key: str  # the hypothesis key, H-nnnn
     claim: str
     status: str  # UI status
     screen_key: str | None
@@ -45,6 +45,13 @@ class RuleRow:
     last_tested: str | None
     fitness: float | None
     rows: int | None
+    # The BA's business rule record (BR-nnn) that documents the rule, when one cites it.
+    br_key: str | None = None
+
+    @property
+    def shown_key(self) -> str:
+        """The key people use: BR-nnn once documented, else the hypothesis key."""
+        return self.br_key or self.key
 
 
 @dataclass(frozen=True)
@@ -108,7 +115,13 @@ _SELECT = (
     "  (SELECT count(*) FROM hypothesis_tests t WHERE t.hypothesis_id = h.id"
     "     AND t.verdict IS NULL) AS waiting,"
     "  (SELECT max(t.created_at) FROM hypothesis_tests t WHERE t.hypothesis_id = h.id"
-    "     AND t.verdict IS NOT NULL) AS last_tested"
+    "     AND t.verdict IS NOT NULL) AS last_tested,"
+    # Owner answer 18 (b): the BA's business rule record citing the hypothesis gives the rule its
+    # BR key, the same key everywhere; until one does, the rule is known by its H key.
+    "  (SELECT r.key FROM doc_evidence e JOIN doc_revisions v ON v.id = e.revision_id"
+    "     JOIN doc_records r ON r.id = v.record_id AND v.rev_no = r.latest_rev"
+    "     WHERE e.target_kind = 'hypothesis' AND e.target_id = h.id"
+    "       AND r.kind = 'business_rule' AND r.withdrawn = 0 ORDER BY r.seq LIMIT 1) AS br_key"
     " FROM hypotheses h WHERE h.portal_id = ? AND h.kind = 'decision_rule'"
 )
 
@@ -135,6 +148,7 @@ def _row(r: sqlite3.Row, titles: dict[str, str]) -> RuleRow:
         last_tested=r["last_tested"],
         fitness=r["fitness"],
         rows=claim.get("rows"),
+        br_key=r["br_key"],
     )
 
 
@@ -150,7 +164,8 @@ def rules_view(conn: sqlite3.Connection, portal: str | None, status: str | None)
 
 
 def rule_detail(conn: sqlite3.Connection, portal: str, key: str) -> RuleDetail | None:
-    found = _rows(conn, _SELECT + " AND h.key = ?", (portal, key))
+    """A rule by its hypothesis key (H-nnnn) or by the BR key of the record documenting it."""
+    found = _rows(conn, _SELECT + " AND (h.key = ? OR br_key = ?)", (portal, key, key))
     if not found:
         return None
     r = found[0]

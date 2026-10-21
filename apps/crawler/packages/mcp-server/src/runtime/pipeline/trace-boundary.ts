@@ -1,4 +1,5 @@
 import { maskText, newId, nowIso } from '@pathfinder/core';
+import { insertEvidenceRef } from '@pathfinder/store';
 import type { ServerContext } from '../../context.js';
 import { ToolError } from '../../errors.js';
 import { completeRun, type RunRow } from '../../services/index.js';
@@ -30,7 +31,7 @@ export async function traceBoundary(
       id: newId(),
       run_id: run.id,
       text: maskText(notObservable),
-      about_ref: action.state_id,
+      ref_id: insertEvidenceRef(ctx.raw, 'state', action.state_id),
       status: 'open',
       created_at: nowIso(),
     })

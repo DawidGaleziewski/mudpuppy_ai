@@ -34,14 +34,23 @@ type Mark = { id: string; kind: string; target_kind: string; target_id: string }
 type MarkKind = 'start' | 'focus' | 'probe' | 'retry' | 'recheck' | 'skip';
 
 async function openMarks(ctx: ServerContext, portal: string, kinds: MarkKind[]): Promise<Mark[]> {
-  return ctx.db
+  const rows = await ctx.db
     .selectFrom('marks')
-    .select(['id', 'kind', 'target_kind', 'target_id'])
+    .select(['id', 'kind', 'form_step_id', 'state_id', 'transition_id'])
     .where('portal_id', '=', portal)
     .where('kind', 'in', kinds)
     .where('used_by_run_id', 'is', null)
     .orderBy('created_at')
     .execute();
+  // The target is a typed column since 0041; the plan reads it as a kind and an id.
+  return rows.map((m) => {
+    const [target_kind, target_id] = m.form_step_id
+      ? ['form_step', m.form_step_id]
+      : m.state_id
+        ? ['state', m.state_id]
+        : ['transition', m.transition_id!];
+    return { id: m.id, kind: m.kind, target_kind, target_id };
+  });
 }
 
 interface TransitionRow {

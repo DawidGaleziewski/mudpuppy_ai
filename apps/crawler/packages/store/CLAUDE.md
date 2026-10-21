@@ -42,6 +42,11 @@ Layer: store (G-07; `apps/crawler/layers.json`)
   `recordRuleMismatches`, `pendingMismatchReplays`, `resolveRuleMismatch` (`regressions.ts`,
   decision drift by R8, `pnpm model:regress`), `pairsToLabel`, `tauCalibration`, `calibratedTau`
   (`model-calibration.ts`, the labelling queue and τ, `pnpm model:pairs`).
+- `EVIDENCE_COLUMN`, `insertRef`, `insertEvidenceRef`, `addEvidenceLink` (`entity-refs.ts`, spec
+  039 § 15, migrations 0040–0041): every evidence link, open question and amendment points at its
+  target through an `entity_refs` row; the views `doc_evidence`, `amendments_with_target` and
+  `amendment_revisions_with_target` read targets back as kind and id. Marks name their target in
+  typed columns.
 - Used by: mcp-server, crawler, docs, gates, vault, apps/chat, the crawler app scripts.
 
 ## Invariants

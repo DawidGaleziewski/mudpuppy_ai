@@ -180,7 +180,7 @@ def record_figures(
     regions: dict[str, list[tuple[str, str | None]]] = {}
     for e in evidence:
         link = e.link
-        if link.target_kind not in ("state", "screen_region") or e.broken:
+        if link.target_kind not in ("state", "screen_region"):
             continue
         if link.target_id not in regions:
             order.append(link.target_id)
@@ -213,13 +213,8 @@ def citing_records(conn: sqlite3.Connection, state_id: str) -> list[CitingRecord
     """Records whose latest revision cites this state or one of its regions."""
     if not _has_table(conn, "doc_evidence_links"):
         return []
-    has_region = any(
-        r[1] == "region" for r in conn.execute("PRAGMA table_info(doc_evidence_links)")
-    )
     rows = conn.execute(
-        "SELECT r.key, r.title, r.portal_id, "
-        + ("e.region" if has_region else "NULL AS region")
-        + " FROM doc_evidence_links e"
+        "SELECT r.key, r.title, r.portal_id, e.region FROM doc_evidence e"
         " JOIN doc_revisions v ON v.id = e.revision_id"
         " JOIN doc_records r ON r.id = v.record_id AND r.latest_rev = v.rev_no"
         " WHERE e.target_kind IN ('state', 'screen_region') AND e.target_id = ?"

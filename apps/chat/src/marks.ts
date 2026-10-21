@@ -41,6 +41,13 @@ export interface MarkService {
 
 const TARGET_NAMES = { form_step: 'form step', state: 'screen state', transition: 'action' } as const;
 
+/** The `marks` column each target kind is stored in (0041: typed columns, spec 039 § 15). */
+const TARGET_COLUMN = {
+  form_step: 'form_step_id',
+  state: 'state_id',
+  transition: 'transition_id',
+} as const;
+
 export function createMarkService(deps: { db: PathfinderDb }): MarkService {
   const { db } = deps;
   const openMark = (portal: string, b: MarkBody) =>
@@ -49,8 +56,7 @@ export function createMarkService(deps: { db: PathfinderDb }): MarkService {
       .select('id')
       .where('portal_id', '=', portal)
       .where('kind', '=', b.kind)
-      .where('target_kind', '=', b.target_kind)
-      .where('target_id', '=', b.target_id)
+      .where(TARGET_COLUMN[b.target_kind], '=', b.target_id)
       .where('used_by_run_id', 'is', null)
       .executeTakeFirst();
   /** The target exists on this portal: a form step, a state, or a transition from one of its states. */
@@ -97,8 +103,7 @@ export function createMarkService(deps: { db: PathfinderDb }): MarkService {
           id,
           portal_id: portal,
           kind: body.kind,
-          target_kind: body.target_kind,
-          target_id: body.target_id,
+          [TARGET_COLUMN[body.target_kind]]: body.target_id,
           created_by: body.author,
           created_at: nowIso(),
           used_by_run_id: null,
@@ -113,8 +118,7 @@ export function createMarkService(deps: { db: PathfinderDb }): MarkService {
         .deleteFrom('marks')
         .where('portal_id', '=', portal)
         .where('kind', '=', body.kind)
-        .where('target_kind', '=', body.target_kind)
-        .where('target_id', '=', body.target_id)
+        .where(TARGET_COLUMN[body.target_kind], '=', body.target_id)
         .where('used_by_run_id', 'is', null)
         .executeTakeFirst();
       return { removed: Number(r.numDeletedRows) };

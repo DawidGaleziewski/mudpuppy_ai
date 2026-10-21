@@ -15,7 +15,12 @@ router = APIRouter()
 
 
 @router.get("/rules", response_class=HTMLResponse)
-def rules_page(request: Request, env: str | None = None, status: str | None = None) -> HTMLResponse:
+def rules_page(
+    request: Request,
+    env: str | None = None,
+    status: str | None = None,
+    check_note: str | None = None,
+) -> HTMLResponse:
     web = web_of(request)
     c = web.ctx(request, env)
     try:
@@ -23,7 +28,7 @@ def rules_page(request: Request, env: str | None = None, status: str | None = No
             v = rules_view(conn, c.portal, status)
     except db.StoreMissing as err:
         return web.missing(c, err)
-    return web.render(c, "salvage/rules.html", nav_current="rules", v=v)
+    return web.render(c, "salvage/rules.html", nav_current="rules", v=v, check_note=check_note)
 
 
 @router.get("/rules/{key}", response_class=HTMLResponse)

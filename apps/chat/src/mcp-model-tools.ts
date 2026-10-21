@@ -1,7 +1,8 @@
 // The portal model in the chat (spec 039 design § 12, T077): the process proposals to name,
-// rebuilding the model, and the probe work waiting for the headless driver, which the owner starts
-// (it drives a browser and spends a replay budget). What changed and why (deviations and
-// hypotheses) the orchestrator reads through the BA server's tools.
+// rebuilding the model, and the probe work waiting for the headless driver. A check run drives a
+// browser and spends a replay budget, so the assistant starts one only after the owner says yes
+// (owner answer 19, 2026-10-21). What changed and why (deviations and hypotheses) the orchestrator
+// reads through the BA server's tools.
 
 import type { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
@@ -13,6 +14,8 @@ import {
   unexploredProcesses,
 } from '@pathfinder/store';
 import { z } from 'zod';
+import { runningCheckRun, startCheckRun, type CheckRunDeps } from './check-runs.js';
+import { HttpError } from './http-error.js';
 
 type RawDb = OpenedDb['raw'];
 type Ok = (body: Record<string, unknown>) => CallToolResult;
@@ -47,7 +50,7 @@ function openProposals(raw: RawDb, portal: string) {
 
 export function registerModelTools(
   server: McpServer,
-  ctx: { raw: RawDb },
+  ctx: { raw: RawDb; checkRuns?: CheckRunDeps | null },
   ok: Ok,
   refused: Refused,
 ): void {
@@ -117,7 +120,7 @@ export function registerModelTools(
     'model_actions',
     {
       description:
-        'Probe work waiting for the headless driver: error replays (rule R1), boundary and regression tests of rules, and processes not explored yet. These drive a browser and spend a replay budget, so the owner starts them: propose the command shown, never claim they ran. Read only.',
+        'Probe work waiting for the headless driver: error replays (rule R1), boundary and regression tests of rules, and processes not explored yet. These drive a browser and spend a replay budget: ask the owner, and start them with start_check_run only after the owner says yes in this chat. Never claim they ran. Read only.',
       inputSchema: { portal: z.string() },
     },
     ({ portal }) => {
@@ -129,12 +132,46 @@ export function registerModelTools(
           error_replays: errors,
           rule_tests: tests,
           unexplored_processes: unexplored,
-          commands: [
-            ...(errors + tests > 0 ? [`pnpm --dir apps/crawler model:replay ${portal} --env <env>`] : []),
-            ...(unexplored.length > 0 ? [`pnpm --dir apps/crawler model:explore ${portal} --env <env>`] : []),
+          check_runs: [
+            ...(errors + tests > 0 ? ['replay'] : []),
+            ...(unexplored.length > 0 ? ['explore'] : []),
           ],
+          running: ctx.checkRuns ? runningCheckRun(ctx.checkRuns, portal) : null,
         });
       } catch (error) {
+        return refusal(refused, error);
+      }
+    },
+  );
+
+  const checkRuns = ctx.checkRuns;
+  if (!checkRuns) return;
+  server.registerTool(
+    'start_check_run',
+    {
+      description:
+        'Start a check run on the headless driver in the background (no LLM): `replay` runs the error replays and the rule tests model_actions counts, `explore` explores unexplored processes (or the one process_key). Only after the owner said yes to exactly this in the chat, and say so in `confirmed_by`. One check run per portal at a time; the result comes into the model on its next rebuild.',
+      inputSchema: {
+        portal: z.string(),
+        kind: z.enum(['replay', 'explore']),
+        process_key: z.string().optional(),
+        /** The owner's name or words that confirmed it ("the owner said: yes, run it"). */
+        confirmed_by: z.string().trim().min(1).max(200),
+      },
+    },
+    ({ portal, kind, process_key, confirmed_by }) => {
+      try {
+        const run = startCheckRun(checkRuns, portal, {
+          kind,
+          ...(process_key === undefined ? {} : { process_key }),
+          author: `assistant (confirmed: ${confirmed_by})`,
+        });
+        return ok({ started: { id: run.id, kind: run.kind, command: run.command.join(' ') } });
+      } catch (error) {
+        if (error instanceof HttpError) {
+          const code = error.status === 409 ? 'CHECK_RUN_BUSY' : error.status === 404 ? 'NOT_FOUND' : 'INVALID';
+          return refused(code, error.message);
+        }
         return refusal(refused, error);
       }
     },

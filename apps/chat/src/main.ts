@@ -88,6 +88,8 @@ async function main(): Promise<void> {
     processes: createProcessService({ db: opened.db, raw: opened.raw }),
     probeSuites: createProbeSuiteService({ db: opened.db, repoRoot }),
     marks: createMarkService({ db: opened.db }),
+    checkRuns: { repoRoot, environment },
+    modelStore: opened.raw,
     // T041: tell every conversation following the run; the timer moves its step on.
     stopRun: (runId) => {
       const stopped = stopRun(opened.raw, runId, { byBa: true });

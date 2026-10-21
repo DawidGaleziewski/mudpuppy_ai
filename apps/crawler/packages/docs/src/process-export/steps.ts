@@ -156,7 +156,7 @@ function containedRoutes(raw: RawDb, revId: string): Set<string> {
       `SELECT DISTINCT s.route_template FROM doc_relations rel
        JOIN doc_records scr ON scr.id = rel.to_record_id AND scr.kind = 'screen'
        JOIN doc_revisions sv ON sv.record_id = scr.id AND sv.rev_no = scr.latest_rev
-       JOIN doc_evidence_links l ON l.revision_id = sv.id AND l.target_kind IN ('state', 'screen_region')
+       JOIN doc_evidence l ON l.revision_id = sv.id AND l.target_kind IN ('state', 'screen_region')
        JOIN states s ON s.id = l.target_id
        WHERE rel.from_revision_id = ? AND rel.type = 'contains'`,
       revId,
@@ -189,7 +189,7 @@ function recordProcess(raw: RawDb, portal: string, key: string): ResolvedProcess
   if (rec === undefined) return null;
   const links = rows<Link>(
     raw,
-    'SELECT target_kind, target_id, run_id FROM doc_evidence_links WHERE revision_id = ? ORDER BY rowid',
+    'SELECT target_kind, target_id, run_id FROM doc_evidence WHERE revision_id = ? ORDER BY id',
     rec.rev_id,
   );
   const of = (kind: string) => links.filter((l) => l.target_kind === kind).map((l) => l.target_id);

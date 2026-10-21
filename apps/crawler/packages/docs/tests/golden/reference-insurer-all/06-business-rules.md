@@ -36,4 +36,4 @@ Selecting "Kup polisę" issues a policy for the calculated premium.
 Evidence:
 
 - action `00000000-0000-7000-8000-00000000000a` — button "Kup polisę" (run `00000000-0000-7000-8000-000000000001`, map, 2026-01-15)
-- open question `00000000-0000-7000-8000-000000000013` — What happens after "Kup polisę"? It was refused as mutating. (run `00000000-0000-7000-8000-000000000001`, map, 2026-01-15)
+- open question `00000000-0000-7000-8000-000000000014` — What happens after "Kup polisę"? It was refused as mutating. (run `00000000-0000-7000-8000-000000000001`, map, 2026-01-15)

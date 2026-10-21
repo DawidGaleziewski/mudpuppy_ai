@@ -21,7 +21,6 @@ import {
   ChatMessageRole,
   ChatProposal,
   ChatProposalStatus,
-  ChatProposalTargetKind,
   GroupingSuggestion,
   GroupingSuggestionStatus,
   ProcessDraft,
@@ -224,8 +223,7 @@ describe('chat proposals (0017)', () => {
     id: 'p1',
     conversation_id: 'c1',
     portal_id: 'portal',
-    target_kind: 'amendment',
-    target_id: 'a1',
+    amendment_id: 'a1',
     base_rev: 1,
     payload: { text: 'x' },
     summary: 'Target: whole screen',
@@ -238,18 +236,15 @@ describe('chat proposals (0017)', () => {
   };
 
   it('Zod enums equal the CHECK lists in the migration', () => {
-    expect(ChatProposalTargetKind.options).toEqual(
-      inList('chat_proposals', 'target_kind', SQL_0017),
-    );
     expect(ChatProposalStatus.options).toEqual(inList('chat_proposals', 'status', SQL_0017));
   });
 
   it('mirrors the row CHECKs', () => {
     expect(ChatProposal.safeParse(base).success).toBe(true);
-    const created = { ...base, target_kind: 'new_amendment', target_id: null, base_rev: null };
+    const created = { ...base, amendment_id: null, base_rev: null };
     expect(ChatProposal.safeParse(created).success).toBe(true);
     expect(ChatProposal.safeParse({ ...base, base_rev: null }).success).toBe(false);
-    expect(ChatProposal.safeParse({ ...created, target_id: 'a1' }).success).toBe(false);
+    expect(ChatProposal.safeParse({ ...created, base_rev: 1 }).success).toBe(false);
     expect(ChatProposal.safeParse({ ...base, summary: '' }).success).toBe(false);
     expect(ChatProposal.safeParse({ ...base, status: 'applied', decided_at: ts }).success).toBe(
       false,

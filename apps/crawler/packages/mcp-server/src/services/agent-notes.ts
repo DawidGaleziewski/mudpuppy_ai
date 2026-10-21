@@ -3,6 +3,7 @@ import {
   CRAWLER_HYPOTHESIS_KINDS,
   HypothesisInputError,
   HypothesisTestInput,
+  insertEvidenceRef,
   proposeHypothesis,
   reconcilePortalModel,
 } from '@pathfinder/store';
@@ -45,7 +46,8 @@ export async function addOpenQuestion(
 ): Promise<{ open_question_id: string }> {
   const input = parseInput(NoteInput, raw);
   await assertRunActive(ctx, input.run_id);
-  if (!(await resolveRef(ctx, input.run_id, input.about_ref))) {
+  const about = await resolveRef(ctx, input.run_id, input.about_ref);
+  if (!about) {
     throw new ToolError(
       'UNKNOWN_REF',
       `about_ref ${input.about_ref} is not a state, transition or form of this run`,
@@ -58,7 +60,7 @@ export async function addOpenQuestion(
       id,
       run_id: input.run_id,
       text: maskText(input.text),
-      about_ref: input.about_ref,
+      ref_id: insertEvidenceRef(ctx.raw, about.kind, input.about_ref),
       status: 'open',
       created_at: nowIso(),
     })

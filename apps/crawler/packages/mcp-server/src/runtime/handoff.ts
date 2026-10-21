@@ -1,5 +1,6 @@
 import { newId, nowIso } from '@pathfinder/core';
 import { CAPTCHA_MARKERS } from '@pathfinder/safety';
+import { insertEvidenceRef } from '@pathfinder/store';
 import type { ServerContext } from '../context.js';
 import type { RunState } from './run-state.js';
 
@@ -53,7 +54,7 @@ export async function handoffIfCaptcha(
       id: newId(),
       run_id: rs.runId,
       text: handoffText(routeTemplate),
-      about_ref: stateId,
+      ref_id: insertEvidenceRef(ctx.raw, 'state', stateId),
       status: 'open',
       created_at: nowIso(),
     })

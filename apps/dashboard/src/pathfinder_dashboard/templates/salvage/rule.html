@@ -18,10 +18,11 @@
 {{ sy.empty("No rule " ~ key ~ (" in " ~ c.portal if c.portal else ""), "Pick the portal it belongs to in the header, or open the list of rules.") }}
   {%- else %}
   <div class="sy-pagehead__row">
-    <h1 class="sy-h1 sy-case-normal">{{ sy.tag(key) }} {{ r.row.claim }}</h1>
+    <h1 class="sy-h1 sy-case-normal">{{ sy.tag(r.row.shown_key) }} {{ r.row.claim }}</h1>
     {{ sy.status("rule", r.row.status) }}
   </div>
   <p class="sy-meta">
+    {%- if r.row.br_key %}Documented as {{ sy.tag(r.row.br_key, c.url('/docs/' ~ c.portal ~ '/' ~ r.row.br_key), sm=true) }} · found as {{ sy.tag(r.row.key, sm=true) }} · {% elif r.row.status == "confirmed" %}No business rule record cites {{ sy.tag(r.row.key, sm=true) }} yet · {% endif %}
     {%- if r.row.screen_key %}Decided on {{ sy.tag(r.row.screen_key, sm=true) }} <span class="sy-case-normal">{{ r.row.screen_title or "" }}</span>{% if r.row.action %} · <span class="sy-mono sy-mono--sm">{{ r.row.action }}</span>{% endif %}{% endif %}
     {%- if r.row.fitness is not none %} · fit {{ r.row.fitness }}{% if r.row.rows %} on <span class="sy-num">{{ r.row.rows }}</span> executions{% endif %}{% endif %}</p>
 </div>

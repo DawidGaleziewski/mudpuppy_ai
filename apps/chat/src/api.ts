@@ -8,7 +8,11 @@ import { type AmendmentService } from './amendments.js';
 import { processRoutes } from './api-processes.js';
 import { probeSuiteRoutes } from './api-probe-suites.js';
 import type { ProbeSuiteService } from './probe-suites.js';
+import type BetterSqlite3 from 'better-sqlite3';
+import { checkRunRoutes } from './api-check-runs.js';
+import { modelRoutes } from './api-model.js';
 import { markRoutes } from './api-marks.js';
+import type { CheckRunDeps } from './check-runs.js';
 import type { MarkService } from './marks.js';
 import { proposalRoutes } from './api-proposals.js';
 import { type ProcessService } from './process-service.js';
@@ -45,6 +49,10 @@ export interface ApiOptions {
   probeSuites?: ProbeSuiteService;
   /** The BA's Probe marks on form steps (spec 032 US5). Without it the route answers 404. */
   marks?: MarkService;
+  /** Check runs on the headless driver (spec 039 owner answer 12). Without it the route answers 404. */
+  checkRuns?: CheckRunDeps;
+  /** The store, for a person's acceptance of τ or the classifier (owner answers 5, 14). */
+  modelStore?: BetterSqlite3.Database;
   /** Save a process scope (T027); throws `ScopeRefusal`. Without it the route answers 404. */
   scope?: (conversationId: string, body: SetScopeInput) => ProcessScope;
   /** Stop a running run (T041); throws `RunRefusal`. Without it the route answers 404. */
@@ -264,6 +272,8 @@ export function createApi(opts: ApiOptions): Server {
     if (await processRoutes(req, res, method, path, opts.processes)) return;
     if (await probeSuiteRoutes(req, res, method, path, opts.probeSuites)) return;
     if (await markRoutes(req, res, method, path, opts.marks)) return;
+    if (await checkRunRoutes(req, res, method, path, opts.checkRuns)) return;
+    if (await modelRoutes(req, res, method, path, opts.modelStore)) return;
     // T050: the chat's [stop] button. Ends the assistant's turn and stops every run the
     // conversation follows (interrupted, so they can be resumed); answers what was stopped.
     const cancel = /^\/conversations\/([^/]+)\/cancel$/.exec(path);

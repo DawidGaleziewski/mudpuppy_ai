@@ -14,12 +14,15 @@ function amend(
   status: string,
   extra: Record<string, string | null> = {},
 ): void {
+  // 0041: the amendment cites its state through a ref.
+  fx.raw
+    .prepare('INSERT INTO entity_refs (id, state_id) VALUES (?, ?)')
+    .run(`ref-${id}`, fx.states.car);
   const row: Record<string, string | null> = {
     id,
     key,
     portal_id: fx.portalId,
-    target_kind: 'state',
-    target_id: fx.states.car,
+    ref_id: `ref-${id}`,
     kind: 'note',
     text: `note ${key}`,
     author: 'BA',

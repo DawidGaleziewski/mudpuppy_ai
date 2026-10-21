@@ -39,6 +39,26 @@ function seedRun(status: string, persona = 'guest', mode = 'map'): string {
   return id;
 }
 
+/** A recorded state `st-1` and form step `fs-1` for marks to point at (0041: real foreign keys). */
+function seedMarkTargets(): void {
+  const run = seedRun('completed');
+  opened.raw
+    .prepare(
+      `INSERT INTO states (id, portal_id, fingerprint, cluster_id, route_template, title,
+         evidence_ref, confidence, stabilization, first_seen_run, created_at)
+       VALUES ('st-1', 'reference-insurer', 'fp-1', 'c', '/', 'Home', 'e.yaml', 'observed',
+         'settled', ?, '2026-10-17T00:00:00Z')`,
+    )
+    .run(run);
+  opened.raw
+    .prepare(
+      `INSERT INTO form_steps (id, portal_id, route_template, step_index, controls_json, label,
+         first_seen_run, created_at)
+       VALUES ('fs-1', 'reference-insurer', '/', 1, '[]', 'step', ?, '2026-10-17T00:00:00Z')`,
+    )
+    .run(run);
+}
+
 async function call(name: string, args: Record<string, unknown>) {
   const result = await client.callTool({ name, arguments: args });
   return {
@@ -286,10 +306,11 @@ describe('pathfinder-chat MCP server', () => {
     const readOnly = await call('request_scan', { ...probe, allow_writes: false });
     expect(readOnly.body.error).toMatchObject({ code: 'INVALID' });
 
+    seedMarkTargets();
     opened.raw
       .prepare(
-        `INSERT INTO marks (id, portal_id, kind, target_kind, target_id, created_by, created_at)
-         VALUES ('m-1', 'reference-insurer', 'probe', 'form_step', 'fs-1', 'BA', '2026-10-17T00:00:00Z')`,
+        `INSERT INTO marks (id, portal_id, kind, form_step_id, created_by, created_at)
+         VALUES ('m-1', 'reference-insurer', 'probe', 'fs-1', 'BA', '2026-10-17T00:00:00Z')`,
       )
       .run();
     const { isError, body } = await call('request_scan', probe);
@@ -314,10 +335,11 @@ describe('pathfinder-chat MCP server', () => {
       await errorOf({ run_type: 'continue', plan: { parent_run_id: 'not-a-run' } }),
     ).toMatchObject({ code: 'INVALID' });
 
+    seedMarkTargets();
     opened.raw
       .prepare(
-        `INSERT INTO marks (id, portal_id, kind, target_kind, target_id, created_by, created_at)
-         VALUES ('m-2', 'reference-insurer', 'start', 'state', 'st-1', 'BA', '2026-10-17T00:00:00Z')`,
+        `INSERT INTO marks (id, portal_id, kind, state_id, created_by, created_at)
+         VALUES ('m-2', 'reference-insurer', 'start', 'st-1', 'BA', '2026-10-17T00:00:00Z')`,
       )
       .run();
     const { isError, body } = await call('request_scan', {
@@ -566,7 +588,8 @@ describe('pathfinder-chat MCP server', () => {
       error_replays: 0,
       rule_tests: 0,
       unexplored_processes: [],
-      commands: [],
+      check_runs: [],
+      running: null,
     });
     expect((await call('reconcile_model', { portal: P })).isError).toBe(false);
   });

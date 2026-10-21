@@ -121,8 +121,9 @@ const RUN_EVIDENCE: Record<Exclude<RunEvidenceKind, 'parameters'>, Source> = {
     summarise: ({ hops_json, ...r }) => ({ ...r, hops: json(hops_json as string) }),
   },
   open_questions: {
-    sql: `SELECT id, text, about_ref, status FROM open_questions
-          WHERE run_id = ? AND id > ? ORDER BY id LIMIT ?`,
+    sql: `SELECT q.id, q.text, coalesce(r.state_id, r.transition_id, r.form_id) AS about_ref,
+            q.status FROM open_questions q JOIN entity_refs r ON r.id = q.ref_id
+          WHERE q.run_id = ? AND q.id > ? ORDER BY q.id LIMIT ?`,
     summarise: (r) => r,
   },
   decisions: {

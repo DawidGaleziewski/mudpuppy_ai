@@ -7,7 +7,7 @@
 import { readFileSync } from 'node:fs';
 import type BetterSqlite3 from 'better-sqlite3';
 import { Layout, nowIso, type EvidenceStore } from '@pathfinder/core';
-import { anchorReviewsOf } from '@pathfinder/store';
+import { anchorReviewsOf, insertRef } from '@pathfinder/store';
 import {
   amendmentOutcomes,
   type AmendmentAnchor,
@@ -107,9 +107,11 @@ function nextHead(
 
 /** The three statements that move a head to its next revision and record it. */
 function headWriter(raw: BetterSqlite3.Database) {
-  const load = raw.prepare(`SELECT * FROM amendments WHERE id = ? AND status = 'active'`);
+  const load = raw.prepare(
+    `SELECT * FROM amendments_with_target WHERE id = ? AND status = 'active'`,
+  );
   const updateHead = raw.prepare(
-    `UPDATE amendments SET status = @status, target_id = @target_id,
+    `UPDATE amendments SET status = @status, ref_id = @ref_id,
        anchor_fingerprint = @anchor_fingerprint, anchor_route_template = @anchor_route_template,
        screen_id = @screen_id, superseded_by_run = @superseded_by_run,
        superseded_reason = @superseded_reason, superseded_detail = @superseded_detail,
@@ -118,9 +120,9 @@ function headWriter(raw: BetterSqlite3.Database) {
   );
   const insertRevision = raw.prepare(
     `INSERT INTO amendment_revisions (amendment_id, rev, base_rev, change, author, status,
-       target_kind, target_id, text, anchor_fingerprint, anchor_route_template, anchor_element,
+       ref_id, text, anchor_fingerprint, anchor_route_template, anchor_element,
        reason, run_id, created_at)
-     VALUES (@amendment_id, @rev, @base_rev, @change, @author, @status, @target_kind, @target_id,
+     VALUES (@amendment_id, @rev, @base_rev, @change, @author, @status, @ref_id,
        @text, @anchor_fingerprint, @anchor_route_template, @anchor_element, @reason, @run_id,
        @created_at)`,
   );
@@ -191,7 +193,7 @@ export function reanchorAfterRun(
     .prepare(
       `SELECT id, key, anchor_fingerprint, anchor_route_template, anchor_element, screen_id
        FROM amendments
-       WHERE portal_id = ? AND status = 'active' AND ref_id IS NULL
+       WHERE portal_id = ? AND status = 'active' AND anchor_ref_id IS NULL
          AND anchor_fingerprint IS NOT NULL AND anchor_route_template IS NOT NULL`,
     )
     .all(portalId) as AnchorRow[];
@@ -232,10 +234,17 @@ export function reanchorAfterRun(
           found.anchor_element === null ? null : JSON.parse(String(found.anchor_element)),
       });
       const next = nextHead(raw, head, o, runId, at);
-      write.updateHead.run({ ...next, base_rev: head.rev });
+      // Carried forward to the successor state: a new target ref (spec 039 § 15, migration 0041).
+      const [stateId, ...key] = next.target_id.split('#');
+      const ref_id =
+        next.target_id === head.target_id
+          ? String(found.ref_id)
+          : insertRef(raw, 'state_id', stateId!, key.length > 0 ? key.join('#') : null);
+      write.updateHead.run({ ...next, ref_id, base_rev: head.rev });
       const revision = revisionOf(next, head.rev, o, { author, runId, at });
       write.insertRevision.run({
         ...revision,
+        ref_id,
         anchor_element:
           revision.anchor_element === null ? null : JSON.stringify(revision.anchor_element),
       });

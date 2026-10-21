@@ -795,3 +795,11 @@
   title: "Owner answers 8, 10, 14 as built (migration 0039)"
   tier: not_testable
   reason: unit tests named in the finding (instances, process facts, the classifier, the dashboard page)
+- id: F-45@039
+  title: "Typed references everywhere: owner answer 13 as built (migrations 0040–0041)"
+  tier: not_testable
+  reason: migration round-trips and the store, docs, chat and dashboard tests named in the finding
+- id: F-46@039
+  title: "Check runs and accepting τ from the pages: owner answers 5, 12, 19 as built"
+  tier: not_testable
+  reason: chat and dashboard unit tests named in the finding; the orchestrator eval idea is logged

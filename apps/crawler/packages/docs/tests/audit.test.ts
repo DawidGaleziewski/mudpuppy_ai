@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { newId } from '@pathfinder/core';
 import type { DocKind } from '@pathfinder/docs-model';
+import { addEvidenceLink, type EvidenceLinkRow } from '@pathfinder/store';
 import { AUDIT_CHECKS, audit, type AuditCheck } from '../src/audit.js';
 import { elementKeysReader } from '../src/evidence.js';
 import { formatKey, nextSeq } from '../src/keys.js';
@@ -23,12 +24,7 @@ beforeEach(async () => {
 });
 afterEach(() => fx.close());
 
-interface Link {
-  target_kind: string;
-  target_id: string;
-  run_id: string | null;
-  region?: string;
-}
+type Link = EvidenceLinkRow;
 
 /** A consistent record written directly, the way the BA tools would leave it. */
 function record(kind: DocKind = 'business_rule', title = 'Postcode format') {
@@ -75,13 +71,7 @@ function record(kind: DocKind = 'business_rule', title = 'Postcode format') {
     const links = over.links ?? [
       { target_kind: 'form', target_id: fx.forms.vehicle, run_id: fx.runId },
     ];
-    for (const l of links)
-      fx.raw
-        .prepare(
-          `INSERT INTO doc_evidence_links (id, revision_id, target_kind, target_id, run_id, note, region)
-           VALUES (?, ?, ?, ?, ?, NULL, ?)`,
-        )
-        .run(newId(), revisionId, l.target_kind, l.target_id, l.run_id, l.region ?? null);
+    for (const l of links) addEvidenceLink(fx.raw, revisionId, l);
     fx.raw
       .prepare('UPDATE doc_records SET latest_rev = ?, title = ?, withdrawn = ? WHERE id = ?')
       .run(revNo, over.title ?? title, change === 'withdraw' ? 1 : 0, id);
@@ -135,7 +125,6 @@ describe('docs audit', () => {
   it('names every check it can report', () => {
     expect(AUDIT_CHECKS).toEqual([
       'missing_evidence',
-      'broken_link',
       'link_portal_mismatch',
       'link_run_mismatch',
       'observed_rule',
@@ -160,18 +149,21 @@ describe('docs audit', () => {
     ]);
   });
 
-  it('finds links that do not resolve, or resolve to another portal or run', () => {
+  it('finds links that resolve to another portal or run; the store refuses one to nothing', () => {
     const later = fx.addRun();
-    const broken = record();
-    broken.revise({
-      confidence: 'inferred',
-      links: [{ target_kind: 'form', target_id: 'gone', run_id: fx.runId }],
-    });
     const foreign = record();
-    foreign.revise({
+    const foreignRev = foreign.revise({
       confidence: 'inferred',
       links: [{ target_kind: 'state', target_id: fx.otherState, run_id: fx.otherRunId }],
     });
+    // Since migration 0040 a link cites through a foreign-keyed ref: a missing target is refused.
+    expect(() =>
+      addEvidenceLink(fx.raw, foreignRev, {
+        target_kind: 'form',
+        target_id: 'gone',
+        run_id: fx.runId,
+      }),
+    ).toThrow(/FOREIGN KEY/);
     const wrongRun = record();
     wrongRun.revise({
       confidence: 'inferred',
@@ -183,7 +175,6 @@ describe('docs audit', () => {
       links: [{ target_kind: 'state', target_id: fx.states.contact, run_id: later.runId }],
     });
     expect(audit(fx.raw).findings.map((f) => [f.key, f.check])).toEqual([
-      [broken.key, 'broken_link'],
       [foreign.key, 'link_portal_mismatch'],
       [wrongRun.key, 'link_run_mismatch'],
       [unseen.key, 'link_run_mismatch'],
@@ -212,10 +203,6 @@ describe('docs audit', () => {
       links: [{ target_kind: 'open_question', target_id: fx.openQuestions[0], run_id: fx.runId }],
     });
     expect(checks()).toEqual(['observed_rule']);
-    // A broken link does not count as observed evidence either.
-    const b = record();
-    b.revise({ links: [{ target_kind: 'form', target_id: 'gone', run_id: fx.runId }] });
-    expect(checks()).toEqual(['observed_rule', 'broken_link', 'observed_rule']);
   });
 
   it('explains statuses by reviews and later revisions', () => {

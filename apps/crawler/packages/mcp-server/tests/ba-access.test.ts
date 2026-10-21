@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
+import { addEvidenceLink, type EvidenceLinkRow } from '@pathfinder/store';
 import { startBa, type BaHarness } from './ba-harness.js';
 
 // The fixture the dashboard's queries_access.py is checked with too (spec 024 T004/T005).
@@ -33,6 +34,15 @@ function seed(h: BaHarness): Fixture {
   for (const table of TABLES)
     for (const row of fx.rows[table]) {
       const full = { ...fx.defaults[table], ...row };
+      if (table === 'doc_evidence_links') {
+        // The fixture states links as the BA cites them; the store writes a ref (migration 0040).
+        const { id, revision_id, ...link } = full as unknown as EvidenceLinkRow & {
+          id: string;
+          revision_id: string;
+        };
+        addEvidenceLink(h.fx.raw, revision_id, link, { link: id, ref: `ref-${id}` });
+        continue;
+      }
       const cols = Object.keys(full);
       h.fx.raw
         .prepare(

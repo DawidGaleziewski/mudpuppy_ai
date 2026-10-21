@@ -33,8 +33,8 @@ async function markForProbing(c: EvalConfig, ws: string, routes: readonly string
       )
       .all(c.portal, ...routes) as { id: string }[];
     const insert = opened.raw.prepare(
-      `INSERT INTO marks (id, portal_id, kind, target_kind, target_id, created_by, created_at)
-       VALUES (?, ?, 'probe', 'form_step', ?, 'eval', ?)`,
+      `INSERT INTO marks (id, portal_id, kind, form_step_id, created_by, created_at)
+       VALUES (?, ?, 'probe', ?, 'eval', ?)`,
     );
     for (const s of steps) insert.run(newId(), c.portal, s.id, nowIso());
     return steps.length;
