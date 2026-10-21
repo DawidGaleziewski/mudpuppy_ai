@@ -66,6 +66,7 @@ export const PORTAL_TABLES = [
   'screen_members',
   'screen_lineage',
   'state_pair_labels',
+  'state_pair_label_history',
   'parameter_roles',
   'action_classes',
   'model_transitions',
@@ -140,6 +141,7 @@ const DELETE_ORDER: readonly PortalTable[] = [
   'model_versions',
   'parameter_roles',
   'state_pair_labels',
+  'state_pair_label_history', // 0045: references states
   'checkpoints', // 0027: references runs and states (no portal_id: the default run_id partition)
   'marks', // 0024: references runs (used_by_run_id)
   'probe_suites', // 0023: reference runs and form_steps
@@ -261,6 +263,7 @@ export function where(table: PortalTable, side: 'mine' | 'others'): string {
     case 'model_versions':
     case 'model_screens':
     case 'state_pair_labels':
+    case 'state_pair_label_history':
     case 'parameter_roles':
     case 'build_epochs':
     case 'deviations':

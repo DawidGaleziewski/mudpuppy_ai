@@ -47,7 +47,7 @@
   <p><b>Automatic grouping says {{ words[p.model_answer] | lower }}</b>{% if p.similarity is not none %}: the two versions are {{ (p.similarity * 100) | round | int }}% alike{% endif %}.</p>
   <p><b>{{ p.label.by }} labelled them {{ words[p.label.answer] | lower }}</b> on {{ p.label.at | when }}{% if p.label.reason %}:{% else %}.{% endif %}</p>
   {%- if p.label.reason %}<p>{{ sy.note(p.label.reason, p.label.by, p.label.at) }}</p>{% endif %}
-  <p class="sy-small">Your answer settles it. The next model rebuild applies it.</p>
+  <p class="sy-small">Your answer settles it. The next model rebuild applies it. Every earlier answer stays in the screen's History.</p>
 </section>
 {%- endif %}
 
@@ -101,7 +101,7 @@
         <button class="sy-btn sy-btn--primary" type="submit" aria-keyshortcuts="Enter" aria-describedby="save-what">Save</button>
       </div>
     </div>
-    <p id="save-what" class="sy-small"><b>What happens:</b> your answer is saved as a label for these two page versions{% if p.label %} and replaces {{ p.label.by }}'s{% endif %}. The next model rebuild groups them by it{% if d.process %}; the process <a class="sy-case-normal" href="{{ c.url('/processes/' ~ d.process[0]) }}">{{ d.process[1] }}</a> walks this screen{% endif %}.</p>
+    <p id="save-what" class="sy-small"><b>What happens:</b> your answer is saved as a label for these two page versions{% if p.label %} and replaces {{ p.label.by }}'s; {{ p.label.by }}'s label and reason stay in History{% endif %}. The next model rebuild groups them by it{% if d.process %}; the process <a class="sy-case-normal" href="{{ c.url('/processes/' ~ d.process[0]) }}">{{ d.process[1] }}</a> walks this screen{% endif %}.</p>
     <p id="skip-what" class="sy-small sy-muted">Skip leaves this pair in the queue.</p>
   </div>
   <div class="sy-keybar" aria-label="Keyboard shortcuts">
@@ -112,6 +112,19 @@
     <span><span class="sy-kbd">Esc</span> back to Review</span>
   </div>
 </form>
+{%- if d.earlier %}
+<section class="sy-plate" aria-labelledby="earlier-h">
+  <div class="sy-plate__head"><h2 id="earlier-h" class="sy-plate__title">Earlier answers</h2><span class="sy-count sy-count--muted">{{ d.earlier | length }}</span></div>
+  <ul class="sy-rows">
+    {%- for e in d.earlier %}
+    <li class="sy-row sy-row--muted"><div class="sy-row__main">
+      <span><b>{{ e.by }}</b>: {{ words[e.answer] | lower }}</span>
+      {%- if e.reason %}{{ sy.note(e.reason, e.by, e.at, sm=true) }}{% endif %}
+    </div><span class="sy-mono sy-mono--sm sy-muted">{{ e.at | when }}</span></li>
+    {%- endfor %}
+  </ul>
+</section>
+{%- endif %}
 {{ pic.dialog() }}
 {%- endif %}
 {% endblock %}

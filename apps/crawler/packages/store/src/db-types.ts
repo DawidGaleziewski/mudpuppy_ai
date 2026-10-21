@@ -709,6 +709,19 @@ export interface StatePairLabelsTable {
   reason: string | null;
 }
 
+/** 0045: one row per "Same screen?" answer, append-only; state_pair_labels keeps the current one. */
+export interface StatePairLabelHistoryTable {
+  id: string;
+  portal_id: string;
+  state_a: string;
+  state_b: string;
+  label: 'clone' | 'near_duplicate' | 'distinct';
+  nd_kind: 'cosmetic' | 'dynamic_data' | 'duplication' | null;
+  labelled_by: string;
+  labelled_at: string;
+  reason: string | null;
+}
+
 export interface ParameterRolesTable {
   portal_id: string;
   route_template: string;
@@ -1250,6 +1263,7 @@ export interface Database {
   screen_members: ScreenMembersTable;
   screen_lineage: ScreenLineageTable;
   state_pair_labels: StatePairLabelsTable;
+  state_pair_label_history: StatePairLabelHistoryTable;
   parameter_roles: ParameterRolesTable;
   action_classes: ActionClassesTable;
   model_transitions: ModelTransitionsTable;

@@ -36,7 +36,7 @@
 <nav class="sy-tabs" aria-label="Screen sections">
   <a class="sy-tab" href="#variants">Variants <span class="sy-count sy-count--muted">{{ d.variants | length }}</span></a>
   <a class="sy-tab" href="#actions">Actions <span class="sy-count sy-count--muted">{{ d.actions | length }}</span></a>
-  <a class="sy-tab" href="#history">History <span class="sy-count sy-count--muted">{{ d.history | length }}</span></a>
+  <a class="sy-tab" href="#history">History <span class="sy-count sy-count--muted">{{ d.history | length + labels | length }}</span></a>
 </nav>
 
 {%- if d.needs %}
@@ -103,7 +103,7 @@
 </section>
 
 <section id="history" class="sy-stack" aria-labelledby="hist-h">
-  <h2 id="hist-h" class="sy-h2">History · {{ d.history | length }}</h2>
+  <h2 id="hist-h" class="sy-h2">History · {{ d.history | length + labels | length }}</h2>
   {%- if d.history %}
   <ol class="sy-timeline">
     {%- for ch in d.history %}
@@ -115,6 +115,18 @@
   </ol>
   {%- else %}
   <p class="sy-small sy-muted">No change since the screen was first seen.</p>
+  {%- endif %}
+  {%- if labels %}
+  <h3 class="sy-h3">Same screen? answers · {{ labels | length }}</h3>
+  <ol class="sy-timeline">
+    {%- for e in labels %}
+    <li data-status="ok">
+      <div class="sy-timeline__head"><b>{{ e.label.by }}</b>: {{ words[e.label.answer] | lower }} <span class="sy-mono sy-mono--sm sy-muted">{{ e.label.at | when }}</span></div>
+      <div class="sy-timeline__body sy-stack"><span><span class="sy-case-normal">{{ e.a }} and {{ e.b }}</span> · <a class="sy-small" href="{{ c.url('/same-screen', a=e.a_id, b=e.b_id) }}">Compare</a></span>
+        {%- if e.label.reason %}{{ sy.note(e.label.reason, e.label.by, e.label.at, sm=true) }}{% endif %}</div>
+    </li>
+    {%- endfor %}
+  </ol>
   {%- endif %}
 </section>
 {{ pic.dialog() }}

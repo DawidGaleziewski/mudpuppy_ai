@@ -21,7 +21,11 @@ type Raw = BetterSqlite3.Database;
 
 const K = (...parts: string[]): string => parts.join('\u0000');
 
-/** The portal's current model as `deviationsBetween` compares it. */
+/**
+ * The portal's current model as `deviationsBetween` compares it. A transition first seen as a
+ * form probe's refused input or injected fault is the probe's own doing, not a change of the
+ * portal: it stays out (F-58@039).
+ */
 export function modelSnapshot(raw: Raw, portal: string): ModelSnapshot {
   const screens = new Map<string, string[]>();
   for (const r of raw
@@ -44,7 +48,9 @@ export function modelSnapshot(raw: Raw, portal: string): ModelSnapshot {
     .prepare(
       `SELECT t.from_screen_id, a.element_key, a.kind, t.to_screen_id, t.result FROM model_transitions t
        JOIN action_classes a ON a.id = t.action_class_id JOIN model_screens s ON s.id = t.from_screen_id
-       WHERE s.portal_id = ?`,
+       WHERE s.portal_id = ? AND NOT EXISTS (SELECT 1 FROM probe_outcomes p
+         WHERE p.transition_id = t.first_seen_transition_id
+           AND (p.fault IS NOT NULL OR p.outcome_kind IN ('validation', 'technical')))`,
     )
     .all(portal) as {
     from_screen_id: string;
@@ -198,6 +204,21 @@ function contextOf(
     newActionSameScreens: replacement !== undefined,
   };
   return { context, replacement };
+}
+
+/**
+ * The deviation as a claim names it: the screen by its key and title, the action by its role and
+ * label (`button "Dalej"`), never by ids a reader cannot look up (F-58@039).
+ */
+function readable(raw: Raw, d: Deviation): Deviation {
+  const s = raw.prepare('SELECT key, title FROM model_screens WHERE id = ?').get(d.screen) as
+    { key: string; title: string | null } | undefined;
+  const [role, label] = d.elementKey?.split('|') ?? [];
+  return {
+    ...d,
+    screen: s ? `${s.key}${s.title ? ` "${s.title}"` : ''}` : d.screen,
+    elementKey: role && label ? `${role} "${label}"` : d.elementKey,
+  };
 }
 
 const CLAIMS: Record<string, (d: Deviation) => string> = {
@@ -357,7 +378,9 @@ export function writeHypothesis(
       key,
       portal,
       decision.kind,
-      (CLAIMS[decision.kind] ?? ((x: Deviation) => `${decision.kind} on screen ${x.screen}.`))(d),
+      (CLAIMS[decision.kind] ?? ((x: Deviation) => `${decision.kind} on screen ${x.screen}.`))(
+        readable(raw, d),
+      ),
       JSON.stringify(claimJson),
       claimHash(decision.kind, claimJson),
       decision.rule,

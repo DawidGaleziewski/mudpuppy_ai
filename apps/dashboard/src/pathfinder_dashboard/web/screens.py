@@ -6,7 +6,14 @@ from __future__ import annotations
 from fastapi import APIRouter, Request
 from fastapi.responses import HTMLResponse
 
-from .. import db, pager, queries_model_screens, queries_screens, queries_suites
+from .. import (
+    db,
+    pager,
+    queries_model_screens,
+    queries_same_screen,
+    queries_screens,
+    queries_suites,
+)
 from .deps import build_url, web_of
 
 router = APIRouter()
@@ -79,6 +86,7 @@ def screen_page(request: Request, key: str, env: str | None = None) -> HTMLRespo
     try:
         with c.conn() as conn:
             d = queries_model_screens.screen_detail(conn, c.portal, key) if c.portal else None
+            labels = queries_same_screen.screen_labels(conn, c.portal, key) if d else []
     except db.StoreMissing as err:
         return web.missing(c, err)
     return web.render(
@@ -88,6 +96,8 @@ def screen_page(request: Request, key: str, env: str | None = None) -> HTMLRespo
         nav_current="screens",
         d=d,
         key=key,
+        labels=labels,
+        words=queries_same_screen.WORDS,
     )
 
 

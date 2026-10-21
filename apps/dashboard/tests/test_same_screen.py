@@ -108,3 +108,43 @@ def test_an_answer_goes_to_the_chat_service_and_on_to_the_next_pair(empty_store:
     assert "Saved" in r.headers["location"]
     assert "a=st-a" in bad.headers["location"] and "Pick" in bad.headers["location"]
     assert foreign.status_code == 403
+
+
+def answered(store: Store, rows: list[tuple[str, str, str, str | None]]) -> None:
+    """Answers for st-f1 / st-f1v, oldest first: (by, label, at, reason); the last is the label."""
+    conn = store.connect()
+    for i, (by, label, at, reason) in enumerate(rows):
+        conn.execute(
+            "INSERT INTO state_pair_label_history (id, portal_id, state_a, state_b, label,"
+            " labelled_by, labelled_at, reason) VALUES (?, ?, 'st-f1', 'st-f1v', ?, ?, ?, ?)",
+            (f"h{i}", P, label, by, at, reason),
+        )
+    by, label, at, reason = rows[-1]
+    conn.execute(
+        "INSERT INTO state_pair_labels (portal_id, state_a, state_b, label, labelled_by,"
+        " labelled_at, reason) VALUES (?, 'st-f1', 'st-f1v', ?, ?, ?, ?)",
+        (P, label, by, at, reason),
+    )
+    conn.commit()
+    conn.close()
+
+
+def test_an_earlier_answer_stays_on_the_pair_and_in_the_screens_history(
+    empty_store: Store,
+) -> None:
+    seed(empty_store)
+    model(empty_store)
+    answered(
+        empty_store,
+        [
+            ("Marek", "distinct", ts(40), "The banner changes the purpose."),
+            ("Anna", "near_duplicate", ts(41), None),
+        ],
+    )
+    with client(empty_store) as c:
+        pair = text(c.get(f"/same-screen?portal={P}&a=st-f1&b=st-f1v").text)
+        screen = text(c.get(f"/screens/SC-0003?portal={P}").text)
+    assert "Earlier answers 1 Marek : different screens" in pair
+    assert "The banner changes the purpose." in pair and "Anna's label and reason stay" in pair
+    assert "History · 2" in screen and "Same screen? answers · 2" in screen
+    assert screen.index("Anna : same screen") < screen.index("Marek : different screens")

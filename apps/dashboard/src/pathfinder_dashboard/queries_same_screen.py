@@ -76,6 +76,50 @@ class PairDetail:
     position: int  # 1-based in the queue; 0 when not in it
     total: int
     next_pair: tuple[str, str] | None
+    earlier: list[Label]  # answers the current label replaced, newest first (owner, 2026-10-21)
+
+
+@dataclass(frozen=True)
+class LabelEvent:
+    """One answer for a pair of page versions, on a screen's History."""
+
+    a: str  # r1, r2… or a short id
+    b: str
+    a_id: str
+    b_id: str
+    label: Label
+
+
+HISTORY_SQL = (
+    "SELECT state_a, state_b, label, nd_kind, labelled_by, labelled_at, reason"
+    " FROM state_pair_label_history WHERE portal_id = ?"
+)
+
+
+def _label(r: sqlite3.Row) -> Label:
+    answer = answer_of(r["label"], r["nd_kind"])
+    return Label(answer, r["labelled_by"], r["labelled_at"], r["reason"])
+
+
+def _earlier(conn: sqlite3.Connection, portal: str, a: str, b: str) -> list[Label]:
+    rows = rows_of(
+        conn,
+        HISTORY_SQL + " AND state_a = ? AND state_b = ? ORDER BY labelled_at DESC, id DESC",
+        (portal, a, b),
+    )
+    return [_label(r) for r in rows[1:]]
+
+
+def screen_labels(conn: sqlite3.Connection, portal: str, screen_key: str) -> list[LabelEvent]:
+    """Every answer about a pair with a page version of this screen, newest first."""
+    versions = _versions(conn, portal)
+    rows = rows_of(conn, HISTORY_SQL + " ORDER BY labelled_at DESC, id DESC", (portal,))
+    return [
+        LabelEvent(_name(va), _name(vb), r["state_a"], r["state_b"], _label(r))
+        for r in rows
+        if (va := versions.get(r["state_a"])) and (vb := versions.get(r["state_b"]))
+        if screen_key in (va.screen_key, vb.screen_key)
+    ]
 
 
 VERSION_SQL = (
@@ -193,6 +237,7 @@ def pair_detail(
         position=pos,
         total=len(q),
         next_pair=rest[pos - 1] if pos and pos - 1 < len(rest) else (rest[0] if rest else None),
+        earlier=_earlier(conn, portal, a, b),
     )
 
 

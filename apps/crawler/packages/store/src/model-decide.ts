@@ -111,23 +111,48 @@ export function labelPair(
     const ok = raw.prepare('SELECT 1 FROM states WHERE id = ? AND portal_id = ?').get(s, l.portal);
     if (!ok) throw new ModelDecisionError(`page version ${s} is not on portal ${l.portal}`);
   }
-  raw
+  const row = [
+    l.portal,
+    a,
+    b,
+    l.label,
+    l.label === 'near_duplicate' ? (l.ndKind ?? null) : null,
+    l.actor,
+    l.now ?? nowIso(),
+    l.reason ?? null,
+  ];
+  raw.transaction(() => {
+    raw
+      .prepare(
+        `INSERT INTO state_pair_labels (portal_id, state_a, state_b, label, nd_kind, labelled_by, labelled_at, reason)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+         ON CONFLICT (state_a, state_b) DO UPDATE SET label = excluded.label, nd_kind = excluded.nd_kind,
+           labelled_by = excluded.labelled_by, labelled_at = excluded.labelled_at, reason = excluded.reason`,
+      )
+      .run(...row);
+    // Every answer stays: the latest is the label, the earlier ones are its history (owner, 2026-10-21).
+    raw
+      .prepare(
+        `INSERT INTO state_pair_label_history (id, portal_id, state_a, state_b, label, nd_kind, labelled_by,
+           labelled_at, reason) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      )
+      .run(newId(), ...row);
+  })();
+}
+
+/** Every answer given for a pair of page versions, oldest first. */
+export function pairLabelHistory(
+  raw: Raw,
+  a: string,
+  b: string,
+): { label: string; ndKind: string | null; by: string; at: string; reason: string | null }[] {
+  const [x, y] = a < b ? [a, b] : [b, a];
+  return raw
     .prepare(
-      `INSERT INTO state_pair_labels (portal_id, state_a, state_b, label, nd_kind, labelled_by, labelled_at, reason)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-       ON CONFLICT (state_a, state_b) DO UPDATE SET label = excluded.label, nd_kind = excluded.nd_kind,
-         labelled_by = excluded.labelled_by, labelled_at = excluded.labelled_at, reason = excluded.reason`,
+      `SELECT label, nd_kind AS ndKind, labelled_by AS "by", labelled_at AS "at", reason
+       FROM state_pair_label_history WHERE state_a = ? AND state_b = ? ORDER BY labelled_at, id`,
     )
-    .run(
-      l.portal,
-      a,
-      b,
-      l.label,
-      l.label === 'near_duplicate' ? (l.ndKind ?? null) : null,
-      l.actor,
-      l.now ?? nowIso(),
-      l.reason ?? null,
-    );
+    .all(x, y) as ReturnType<typeof pairLabelHistory>;
 }
 
 /** A person's role for a route parameter; it wins over the reconciler's from then on. */

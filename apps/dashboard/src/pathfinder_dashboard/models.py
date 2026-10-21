@@ -335,6 +335,20 @@ class StatePairLabel(Row):
     reason: str | None
 
 
+class StatePairLabelHistory(Row):
+    """0045: one row per "same screen?" answer, append-only; StatePairLabel is the current one."""
+
+    id: str
+    portal_id: str
+    state_a: str
+    state_b: str
+    label: Literal["clone", "near_duplicate", "distinct"]
+    nd_kind: Literal["cosmetic", "dynamic_data", "duplication"] | None
+    labelled_by: str
+    labelled_at: str
+    reason: str | None
+
+
 class ParameterRoleRow(Row):
     """0030: what a parameter of a route template does."""
 
@@ -1401,6 +1415,7 @@ TABLE_MODELS: dict[str, type[Row]] = {
     "screen_members": ScreenMember,
     "screen_lineage": ScreenLineage,
     "state_pair_labels": StatePairLabel,
+    "state_pair_label_history": StatePairLabelHistory,
     "parameter_roles": ParameterRoleRow,
     "action_classes": ActionClass,
     "model_transitions": ModelTransition,

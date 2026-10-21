@@ -1,0 +1,270 @@
+{
+  "portal_id": "reference-insurer",
+  "persona_id": "guest",
+  "started_at": "2026-10-21T19:07:34.124Z",
+  "git_sha": "e7ada23",
+  "runs": {
+    "crawler": "01a15fdc-a351-7000-ae08-929a90fdbad5",
+    "ba_session": "01a15fe6-22a3-7000-a0a3-208312e146ba",
+    "crawler_cli_session": "7eee3a4d-b5e6-4684-9846-a28df6802506",
+    "ba_cli_session": "07000eca-7265-45d2-b569-eea044103857",
+    "ba_traces_session": "01a15fed-eef1-7000-9678-66efb2a915d6",
+    "ba_traces_cli_session": "c38d04e5-10c8-4338-9409-2eb0261638d7",
+    "process_traces": [
+      {
+        "process_id": "P01",
+        "run": "01a15fe3-4c13-7000-9869-cffaf1200034",
+        "cli_session": "1cbb1984-2517-48c9-8871-3784b4e017f4"
+      },
+      {
+        "process_id": "P02",
+        "run": "01a15fe4-6511-7000-902f-9e200ee38cb4",
+        "cli_session": "cb1b5e17-b082-46ab-91e9-109cf2c9dba2"
+      },
+      {
+        "process_id": "P03",
+        "run": "01a15fe5-1538-7000-a706-5be7db200c53",
+        "cli_session": "194c8c72-c826-4293-9907-4b33a4b35c48"
+      },
+      {
+        "process_id": "P04",
+        "run": "01a15fe5-b107-7000-b7aa-35290580084a",
+        "cli_session": "df46cdb4-befc-45cf-abb4-1d1f5e07e6ef"
+      }
+    ],
+    "form_probing": {
+      "run": "01a15fdf-a22a-7000-841b-2628efa76bba",
+      "cli_session": "639251be-71cf-45c4-a602-78bfee8953ad"
+    }
+  },
+  "conditions": {
+    "process_traces": 4,
+    "form_probing": true
+  },
+  "outcomes": {
+    "crawler": "success",
+    "form_probing": "success",
+    "ba": "success",
+    "ba_traces": "success",
+    "process_traces": [
+      "success",
+      "success",
+      "success",
+      "success"
+    ]
+  },
+  "cost": {
+    "usd": 6.429933,
+    "input_tokens": 9178916,
+    "output_tokens": 109785,
+    "duration_ms": 1353264
+  },
+  "scores": {
+    "screens": {
+      "matched": 17,
+      "total": 17,
+      "pct": 100
+    },
+    "fields": {
+      "matched": 27,
+      "total": 27,
+      "pct": 100
+    },
+    "constraints": {
+      "matched": 50,
+      "total": 52,
+      "pct": 96.2
+    },
+    "rules": {
+      "matched": 6,
+      "total": 17,
+      "pct": 35.3
+    },
+    "processes": {
+      "matched": 4,
+      "total": 5,
+      "pct": 80
+    },
+    "terms": {
+      "matched": 10,
+      "total": 10,
+      "pct": 100
+    },
+    "processes_map": {
+      "matched": 4,
+      "total": 5,
+      "pct": 80
+    },
+    "crawl_screens": {
+      "matched": 17,
+      "total": 17,
+      "pct": 100
+    },
+    "process_trace_steps": {
+      "matched": 10,
+      "total": 11,
+      "pct": 90.9
+    },
+    "export_steps_pictured": {
+      "matched": 23,
+      "total": 23,
+      "pct": 100
+    },
+    "export_records_once": {
+      "matched": 14,
+      "total": 14,
+      "pct": 100
+    },
+    "export_ears": {
+      "matched": 10,
+      "total": 14,
+      "pct": 71.4
+    },
+    "export_fields_documented": {
+      "matched": 46,
+      "total": 46,
+      "pct": 100
+    },
+    "export_steps_distinct": {
+      "matched": 25,
+      "total": 25,
+      "pct": 100
+    },
+    "process_variants": {
+      "matched": 1,
+      "total": 1,
+      "pct": 100
+    },
+    "export_steps": {
+      "matched": 5,
+      "total": 5,
+      "pct": 100
+    },
+    "export_fields": {
+      "matched": 14,
+      "total": 14,
+      "pct": 100
+    },
+    "export_validation": {
+      "matched": 24,
+      "total": 24,
+      "pct": 100
+    },
+    "export_actions": {
+      "matched": 5,
+      "total": 5,
+      "pct": 100
+    },
+    "export_apis": {
+      "matched": 2,
+      "total": 2,
+      "pct": 100
+    }
+  },
+  "overclaims": 0,
+  "checks": {
+    "frontier_empty_at_finish": true,
+    "crawler_completed": true,
+    "crawler_steps": 49,
+    "frontier_pending": 0,
+    "ba_session_completed": true,
+    "handoffs": 0,
+    "ba_write_calls": 95,
+    "ba_write_refused": 16,
+    "ba_write_refused_pct": 17,
+    "ba_relation_refused": 7,
+    "route_templates_with_query": 0,
+    "data_items_joined": 0,
+    "rules_on_screens_pct": 100,
+    "data_items_code_names": 0,
+    "error_pages_as_steps": 0,
+    "process_traces_goal_reached": 4,
+    "export_extra_steps": 0,
+    "export_action_strays": 0,
+    "export_noise_leaked": 0,
+    "export_wrong_start": 0,
+    "export_wrong_end": 0,
+    "relogins": 0,
+    "logged_in": false,
+    "password_hits": 0,
+    "widget_actions": 0
+  },
+  "workspace": "/tmp/pf-eval-reference-insurer-PMp9t1",
+  "judges": [
+    {
+      "id": "glossary-terms",
+      "version": "130240170034",
+      "model": "claude-sonnet-5-5",
+      "claude_code_version": "2.1.288",
+      "calibrated": false,
+      "covered": 10,
+      "total": 10,
+      "pct": 100,
+      "counts": {
+        "pass": 10,
+        "fail": 0,
+        "unknown": 0,
+        "error": 0
+      },
+      "skipped_pairs": 0,
+      "cost": {
+        "usd": 0.042493,
+        "input_tokens": 12741,
+        "output_tokens": 1120,
+        "calls": 10
+      },
+      "verdicts": [
+        {
+          "pair_id": "T01~GL-001@1",
+          "verdict": "pass",
+          "reason": "The record's term is OC and its definition matches the portal's meaning word for word; the synonym \"Tylko OC\" does not change that meaning."
+        },
+        {
+          "pair_id": "T02~GL-002@1",
+          "verdict": "pass",
+          "reason": "The record's term is Autocasco (AC) and its definition is identical to the portal's meaning: voluntary vehicle insurance against damage and theft."
+        },
+        {
+          "pair_id": "T03~GL-003@1",
+          "verdict": "pass",
+          "reason": "The record's term is \"Assistance\" and its definition is identical to the portal's meaning (travel help: towing, replacement car, on-site repair)."
+        },
+        {
+          "pair_id": "T04~GL-004@1",
+          "verdict": "pass",
+          "reason": "The record's term and definition match the portal's term and meaning word for word."
+        },
+        {
+          "pair_id": "T05~GL-005@1",
+          "verdict": "pass",
+          "reason": "The record's term is \"Składka\" and its definition is word-for-word the portal's meaning: the amount paid for insurance coverage."
+        },
+        {
+          "pair_id": "T06~GL-006@1",
+          "verdict": "pass",
+          "reason": "The record's term and definition match the portal's term and meaning word for word."
+        },
+        {
+          "pair_id": "T07~GL-007@1",
+          "verdict": "pass",
+          "reason": "The record's term is OWU and its definition, \"Ogólne Warunki Ubezpieczenia\", matches the portal's meaning exactly."
+        },
+        {
+          "pair_id": "T08~GL-008@1",
+          "verdict": "pass",
+          "reason": "The record's term matches exactly and its definition is identical to the portal's meaning (person who concludes the contract and pays the premium)."
+        },
+        {
+          "pair_id": "T09~GL-009@1",
+          "verdict": "pass",
+          "reason": "The record's term is \"Ubezpieczony\" and its definition matches the portal's meaning exactly: a person covered by insurance protection."
+        },
+        {
+          "pair_id": "T10~GL-010@1",
+          "verdict": "pass",
+          "reason": "The record's term and definition match the portal's term and meaning exactly."
+        }
+      ]
+    }
+  ]
+}

@@ -1,4 +1,4 @@
--- GENERATED from data/migrations/*.up.sql applied in order (currently through 0044_api_endpoint_kind). Do not edit by hand.
+-- GENERATED from data/migrations/*.up.sql applied in order (currently through 0045_state_pair_label_history). Do not edit by hand.
 -- Regenerate after every migration; see data/schema/README.md.
 
 CREATE TABLE runs (
@@ -1142,6 +1142,24 @@ CREATE TABLE state_pair_labels (
   CHECK (nd_kind IS NULL OR label = 'near_duplicate'),
   PRIMARY KEY (state_a, state_b)
 ) STRICT, WITHOUT ROWID;
+
+-- 0045 (spec 039 R-81): every "Same screen?" answer stays; state_pair_labels above is the current label.
+-- Append-only by convention (the code only inserts).
+CREATE TABLE state_pair_label_history (
+  id          TEXT PRIMARY KEY,
+  portal_id   TEXT NOT NULL CHECK (length(portal_id) > 0),
+  state_a     TEXT NOT NULL REFERENCES states(id),
+  state_b     TEXT NOT NULL REFERENCES states(id),
+  label       TEXT NOT NULL CHECK (label IN ('clone','near_duplicate','distinct')),
+  nd_kind     TEXT CHECK (nd_kind IS NULL OR nd_kind IN ('cosmetic','dynamic_data','duplication')),
+  labelled_by TEXT NOT NULL CHECK (length(labelled_by) > 0),
+  labelled_at TEXT NOT NULL,
+  reason      TEXT,
+  CHECK (state_a < state_b),
+  CHECK (nd_kind IS NULL OR label = 'near_duplicate')
+) STRICT;
+CREATE INDEX idx_state_pair_label_history_pair ON state_pair_label_history (state_a, state_b, labelled_at);
+CREATE INDEX idx_state_pair_label_history_portal ON state_pair_label_history (portal_id);
 
 CREATE TABLE parameter_roles (
   portal_id      TEXT NOT NULL CHECK (length(portal_id) > 0),

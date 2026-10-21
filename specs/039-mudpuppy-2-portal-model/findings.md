@@ -1044,3 +1044,47 @@ Bugs, slips and design deviations found while building, each with a test or eval
 - **Not done**: the `feature/038b-api-endpoint-kind` branch is left as it was (delete at close-out).
 - **Test**: crawler fast tier (store, docs, docs-model, `api-endpoint-check.test.ts`,
   `record-kinds-doc.test.ts`), dashboard and chat suites: green.
+
+## F-58 Form probes read as changes of the portal; hypotheses named screens by id (T080, T103), 2026-10-21
+
+- **Bug (found by the paid trials)**: every reference-insurer trial had 12 `target_mismatch`
+  deviations, and all 12 were the form-probing scan's own outcomes: a refused submit stays on the
+  form (validation), an injected fault ends on the error page (technical). R7 turned them into six
+  `decision_point` hypotheses ("… leads to different screens depending on data"), and the BA spent
+  its rules pass on them ("H-0001..6 left proposed: their differing targets coincide with the
+  probe run's injected faults"). **Fix**: `modelSnapshot` leaves out a model transition first seen
+  as a probe outcome with a fault or of kind `validation` / `technical`; a `branch` or `next`
+  outcome still counts (it can be a real decision point).
+- **Bug**: rule hypotheses' claims named the screen by its internal id and the action by its
+  element key (`button|dalej|main>form …| on screen 01a15fdf-…`), which neither a person nor the BA
+  can look up. Claims now say `button "dalej" on screen SC-0004 "Kalkulator …"`.
+- **Test**: store `probe-deviations.test.ts` (the same refused submit: a mismatch without a probe
+  row, none with a validation or fault probe; the claim's wording). Eval idea: a check
+  `probe_deviations` = 0 (deviations whose transition is a probe outcome).
+
+## F-59 Eval results of 2.0 against v1 (T042, T080, T082, T103), 2026-10-21
+
+- **Reference-insurer, three trials at e7ada23** (map + 4 traces + form probing, $6.43 / $5.58 /
+  $7.15): no overclaims, every hard check 0, all agents completed. Against the v1 baseline
+  (3ce3314; scores in brackets): screens 100 / 64.7 / 100 (100), fields 100 (100), constraints
+  96.2 / 96.2 / 98.1 (100), **rules 35.3 / 41.2 / 47.1 (70.6)**, processes 80 (80), terms 100,
+  process trace steps 90.9 (90.9), export EARS 71.4 / 36.4 / 50 (23.1), export validation 100
+  (58.3), export fields documented 100 (92.3), `export_wrong_start` / `export_wrong_end` /
+  `export_extra_steps` 0 (T082). The v1 baseline was the best of its history: v1 trials ranged
+  7–12 of 17 rules (median 9); 2.0 got 6, 7, 8. The eval printed "No regression" because the v1
+  baseline had been moved to `history/v1/` and there was no baseline to compare with: compared by hand.
+- **Rules**: the eight ground-truth rules missed in every trial are the validation and format ones
+  (postcode format R02, production year R03, engine factor R05, code format R10, 90 days R12,
+  departure date R13, phone or e-mail R15, two products R16). The probe outcomes held their
+  messages (e.g. "Value must be greater than or equal to 1990"), and the BA saw them, but it wrote
+  them only as data item constraints, not as rules (the skill's pass 4 and 7 ask for both). Part
+  of the cause is F-58 (the rules pass went into probe noise). Trial 2's screens 64.7 is the BA
+  grouping the content pages into one record (variance; the crawl covered 17 of 17).
+- **Grouping eval** (T080, on trial 3's store): processes found 80, clean starts 75, why cites
+  100, checks identical: equal to the v1 baseline. **Bug**: the harness could not build its
+  workspace on a 2.0 store (FOREIGN KEY failed: `process_triggers`, `process_explorations`,
+  `process_instances` and PROC records point at `ba_processes`); it now clears those tables too
+  and drops the processes with foreign keys off in its throwaway copy (a PROC record must name
+  its process, T070). Test: `evals/tests/harness.test.ts` with a documented process.
+- **Eval idea**: when a portal's baseline is moved to history for a new major version, the runner
+  should compare with `history/<v>/baseline.json` and say so, instead of "No regression".

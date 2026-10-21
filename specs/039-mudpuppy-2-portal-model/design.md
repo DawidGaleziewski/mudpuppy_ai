@@ -544,6 +544,24 @@ CREATE TABLE state_pair_labels (
   PRIMARY KEY (state_a, state_b)
 ) STRICT, WITHOUT ROWID;
 
+-- 0045 (owner decision 2026-10-21): every answer stays. state_pair_labels is the current label (a new
+-- answer replaces it); this table gets one row per answer and is append-only, so the earlier person's
+-- label and reason stay in History (design v2-14). Backfilled with one row per existing label.
+CREATE TABLE state_pair_label_history (
+  id          TEXT PRIMARY KEY,                    -- UUIDv7
+  portal_id   TEXT NOT NULL,
+  state_a     TEXT NOT NULL REFERENCES states(id),
+  state_b     TEXT NOT NULL REFERENCES states(id),
+  label       TEXT NOT NULL CHECK (label IN ('clone','near_duplicate','distinct')),
+  nd_kind     TEXT CHECK (nd_kind IS NULL OR nd_kind IN ('cosmetic','dynamic_data','duplication')),
+  labelled_by TEXT NOT NULL,
+  labelled_at TEXT NOT NULL,
+  reason      TEXT,
+  CHECK (state_a < state_b),
+  CHECK (nd_kind IS NULL OR label = 'near_duplicate')
+) STRICT;
+-- indexes: (state_a, state_b, labelled_at) for one pair's history; (portal_id)
+
 CREATE TABLE parameter_roles (
   portal_id      TEXT NOT NULL,
   route_template TEXT NOT NULL,

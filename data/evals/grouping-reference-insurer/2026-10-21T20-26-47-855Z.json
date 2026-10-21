@@ -1,0 +1,94 @@
+{
+  "task": "reference-insurer",
+  "started_at": "2026-10-21T20:26:47.855Z",
+  "git_sha": "e7ada23",
+  "conditions": {
+    "model": null,
+    "budget_usd": "2",
+    "source_store": "/tmp/pf-eval-reference-insurer-ws26rS",
+    "env": "sandbox"
+  },
+  "workspace": "/tmp/pf-grouping-reference-insurer-XPFFLX",
+  "outcome": "success",
+  "cost_usd": 0.409194,
+  "duration_ms": 32376,
+  "turns": 9,
+  "scores": {
+    "processes_found": {
+      "matched": 4,
+      "total": 5,
+      "pct": 80
+    },
+    "clean_starts": {
+      "matched": 3,
+      "total": 4,
+      "pct": 75
+    },
+    "why_cites": {
+      "matched": 5,
+      "total": 5,
+      "pct": 100
+    }
+  },
+  "checks": {
+    "suggestions": 5,
+    "duplicates": 0,
+    "stubs": 0,
+    "error_screens_inside": 0,
+    "extra_screens": 1,
+    "unmatched": 1
+  },
+  "detail": {
+    "P01": "\"Car insurance (OC/AC) quote and purchase\"",
+    "P02": "\"Travel insurance quote\"",
+    "P03": "\"Product comparison\"",
+    "P04": "\"Contact form\"",
+    "P05": "no suggestion covers it"
+  },
+  "suggestions": [
+    {
+      "name": "Car insurance (OC/AC) quote and purchase",
+      "routes": [
+        "/ubezpieczenia/samochod",
+        "/kalkulator/pojazd",
+        "/kalkulator/kierowca",
+        "/kalkulator/opcje",
+        "/kalkulator/wynik",
+        "/kalkulator/zakup"
+      ],
+      "why": "The calculator steps under /kalkulator follow each other: \"Kalkulator OC/AC — dane pojazdu\" → \"dane kierowcy\" → \"opcje\", whose button leads to \"Twoja składka\" (/kalkulator/wynik), and the purchase button ends at \"Wniosek przyjęty\" (/kalkulator/zakup). It starts from the \"Ubezpieczenie samochodu\" product page."
+    },
+    {
+      "name": "Travel insurance quote",
+      "routes": [
+        "/ubezpieczenia/podroze",
+        "/ubezpieczenia/podroze/wynik"
+      ],
+      "why": "On \"Ubezpieczenie turystyczne\" (/ubezpieczenia/podroze) the form's button leads to \"Twoja składka podróżna\" (/ubezpieczenia/podroze/wynik)."
+    },
+    {
+      "name": "Product comparison",
+      "routes": [
+        "/porownanie",
+        "/porownanie/wynik"
+      ],
+      "why": "On \"Porównanie produktów\" (/porownanie) the button leads to \"Wynik porównania\" (/porownanie/wynik)."
+    },
+    {
+      "name": "Contact form",
+      "routes": [
+        "/kontakt",
+        "/kontakt/dziekujemy"
+      ],
+      "why": "On \"Kontakt\" (/kontakt) the send button leads to \"Dziękujemy za wiadomość\" (/kontakt/dziekujemy)."
+    },
+    {
+      "name": "Logging in",
+      "routes": [
+        "/logowanie",
+        "/logowanie"
+      ],
+      "why": "On \"Logowanie\" (/logowanie) the login button leads to the second \"Logowanie\" screen, the result of submitting the login form."
+    }
+  ]
+}

@@ -8,6 +8,7 @@ import {
   labelPair,
   migrateUp,
   openDb,
+  pairLabelHistory,
   pairsToLabel,
   tauCalibration,
   type OpenedDb,
@@ -66,6 +67,43 @@ describe('labelling queue and τ calibration (spec 039 T037)', () => {
     expect(q[0]!.route).toBe('/x');
     labelPair(o.raw, { portal: 'ins', a: 'b', b: 'a', label: 'distinct', actor: 'owner', now: T });
     expect(pairsToLabel(o.raw, 'ins')).toEqual([]);
+    await o.close();
+  });
+
+  it("a new answer replaces the label and keeps the earlier one in the pair's history", async () => {
+    const o = open();
+    const at = (s: string) => `2026-10-21T10:00:${s}.000Z`;
+    labelPair(o.raw, {
+      portal: 'ins',
+      a: 'b',
+      b: 'a',
+      label: 'distinct',
+      actor: 'marek',
+      reason: 'The banner changes the purpose.',
+      now: at('01'),
+    });
+    labelPair(o.raw, {
+      portal: 'ins',
+      a: 'a',
+      b: 'b',
+      label: 'near_duplicate',
+      ndKind: 'cosmetic',
+      actor: 'owner',
+      now: at('02'),
+    });
+    expect(o.raw.prepare('SELECT label, labelled_by FROM state_pair_labels').all()).toEqual([
+      { label: 'near_duplicate', labelled_by: 'owner' },
+    ]);
+    expect(pairLabelHistory(o.raw, 'b', 'a')).toEqual([
+      {
+        label: 'distinct',
+        ndKind: null,
+        by: 'marek',
+        at: at('01'),
+        reason: 'The banner changes the purpose.',
+      },
+      { label: 'near_duplicate', ndKind: 'cosmetic', by: 'owner', at: at('02'), reason: null },
+    ]);
     await o.close();
   });
 
