@@ -8,8 +8,8 @@ Layer: app (Python, uv; outside the TS layers; never on the crawler's runtime pa
 ## Run
 - `cd apps/miner && uv sync && uv run pathfinder-miner check`
 - `rules` (M4), `communities` (M5) and `classify` (M6: the similarity classifier over
-  fingerprint components, held-out F1 against τ; `pnpm --dir apps/crawler model:classify`) print JSON; `pnpm --dir apps/crawler model:import <file>`
-  validates it with Zod and writes it. This app opens the store read-only (`mode=ro`) and never
+  fingerprint components, held-out F1 against τ; `pnpm --dir apps/crawler model:classify`) print JSON; the crawler app's `model:mine`, `model:propose` and `model:classify` run them,
+  validate the JSON with Zod and write it (there is no separate `model:import`, T062). This app opens the store read-only (`mode=ro`) and never
   writes it (constitution, Technical Constraints ▸ Python).
 
 ## Tests

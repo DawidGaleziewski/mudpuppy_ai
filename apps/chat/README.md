@@ -29,6 +29,11 @@ The dashboard finds the service with `PATHFINDER_CHAT_URL` (default `http://127.
 - `src/mcp-chat.ts` (`pnpm --dir apps/chat mcp`): the orchestrator's own tools
   (`workflow_state`, `save_persona`, `request_scan`, `list_process_candidates`,
   `set_process_scope`, `request_documentation`, `list_amendments`).
+- MudPuppy 2.0 (spec 039): the dashboard's decisions on the portal model come here —
+  `POST /portals/{p}/model/decide` (confirm or reject findings from Review),
+  `…/model/label` (a Same screen? answer), `…/model/accept` (τ or the classifier), process
+  suggestions split and merge, check runs; `src/mcp-model-tools.ts` gives the orchestrator the
+  model's proposals, a rebuild and the probe work waiting for the owner.
 - `src/step-recorder.ts` moves workflow steps on from runs and analysis sessions, every 2 s and
   after each event; `src/supersede.ts` supersedes amendments after a chat-started run.
 - Errors get an `ERR-…` reference; details in `data/logs/chat/<date>.jsonl` (30 days, no secrets).

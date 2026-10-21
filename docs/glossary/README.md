@@ -1391,11 +1391,13 @@ next model rebuild groups pages with it.
 The Same screen? page shows two versions side by side, a disagreement between your earlier
 label and the automatic grouping first, then each screen's variants against its first one.
 Press 1, 2 or 3, optionally say why, and save. The labels group the screens on the next
-rebuild and calibrate the screen threshold τ and the similarity classifier.
+rebuild and calibrate the screen threshold τ and the similarity classifier. A new answer
+replaces the label; every earlier answer, with who gave it and why, stays under Earlier
+answers on the pair and in the screen's History.
 
 *Example:* r2 and r3 of Kalkulator — wynik: Same, different data · "the banner depends on the date".
 
-*Seen in:* Review → Same screen?; Screens → Map → inspector
+*Seen in:* Review → Same screen?; Screens → Map → inspector; Screens → screen → History
 
 *Labels:* `Same screen?`, `Same`, `different data`, `Different screens`, `pair label`
 

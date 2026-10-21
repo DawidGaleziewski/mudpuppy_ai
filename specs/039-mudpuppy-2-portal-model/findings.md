@@ -1088,3 +1088,17 @@ Bugs, slips and design deviations found while building, each with a test or eval
   its process, T070). Test: `evals/tests/harness.test.ts` with a documented process.
 - **Eval idea**: when a portal's baseline is moved to history for a new major version, the runner
   should compare with `history/<v>/baseline.json` and say so, instead of "No regression".
+
+## F-60 Same screen? keeps every answer (owner, 2026-10-21: "i definetly want to keep the history around"), 2026-10-21
+
+- **Built**: migration **0045** (`db-admin`): `state_pair_label_history`, one row per answer,
+  backfilled from `state_pair_labels`, which stays the current label. `labelPair` writes both in
+  one transaction; `pairLabelHistory` reads a pair's answers. Same screen? lists **Earlier
+  answers** under the form (who, which answer, the reason as a note) and says the replaced label
+  "stays in History"; a screen's History adds **Same screen? answers** for every pair with one of
+  its page versions, each with Compare. Portal export and delete include the table.
+- **Deviation**: append-only by convention, no triggers (no table in the repo guards it with
+  triggers; `amendment_revisions` is append-only the same way).
+- **Test**: store `model-calibration.test.ts` (a new answer replaces the label, the earlier one
+  stays), dashboard `test_same_screen.py` (Earlier answers, the screen's History), the up/down
+  round trip in `db.test.ts`.
