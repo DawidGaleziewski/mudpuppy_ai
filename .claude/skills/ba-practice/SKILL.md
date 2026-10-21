@@ -169,8 +169,9 @@ show a hypothesis's claim, evidence, tests and status.
   `process_boundary` need no test: a person's label or decision settles them.
 - **Decision rules and process boundaries.** A `confirmed` `decision_rule` (a result that follows
   input values, mined from the scans; the export writes it as a DMN table) is a `business_rule`:
-  write it in the portal's words, cite the hypothesis's evidence, and keep its conditions as the
-  hypothesis states them. A `confirmed` `process_boundary` says where a process starts or ends:
+  write it in the portal's words, cite the hypothesis itself (`target_kind: hypothesis`, its key
+  `H-nnnn`) and the hypothesis's evidence, and keep its conditions as the hypothesis states them.
+  Citing the hypothesis gives the rule your record's BR key everywhere (Rules, the export). A `confirmed` `process_boundary` says where a process starts or ends:
   use it for the process's first or last contained screen.
 - **A refused claim stays refused**: `CLAIM_REFUTED` means the same claim was tested and failed;
   look for another explanation. The rules of "Form steps and probe outcomes" apply: the main state

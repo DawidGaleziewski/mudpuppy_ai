@@ -1,4 +1,4 @@
--- GENERATED from data/migrations/*.up.sql applied in order (currently through 0041_typed_targets). Do not edit by hand.
+-- GENERATED from data/migrations/*.up.sql applied in order (currently through 0042_evidence_hypothesis). Do not edit by hand.
 -- Regenerate after every migration; see data/schema/README.md.
 
 CREATE TABLE runs (
@@ -406,10 +406,11 @@ SELECT l.id, l.revision_id, l.ref_id, l.run_id, l.note,
     WHEN r.doc_record_id IS NOT NULL THEN 'doc_record'
     WHEN r.review_id IS NOT NULL THEN 'review'
     WHEN r.observation_id IS NOT NULL THEN 'observation'
+    WHEN r.hypothesis_id IS NOT NULL THEN 'hypothesis'   -- 0042 (owner answer 18)
   END AS target_kind,
   coalesce(r.state_id, r.transition_id, r.action_id, r.form_id, r.network_call_id,
     r.open_question_id, r.decision_id, r.trace_process_id, r.trace_step_id, r.doc_record_id,
-    r.review_id, r.observation_id) AS target_id,
+    r.review_id, r.observation_id, r.hypothesis_id) AS target_id,
   CASE WHEN r.state_id IS NOT NULL THEN r.element_key END AS region
 FROM doc_evidence_links l JOIN entity_refs r ON r.id = l.ref_id;
 

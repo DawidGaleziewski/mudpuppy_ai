@@ -792,3 +792,22 @@ Bugs, slips and design deviations found while building, each with a test or eval
   run frees the portal, refusals; the MCP tool with `confirmed_by`), `model-accept.test.ts`,
   `test_check_runs.py`, `test_settings_salvage.py`. Eval idea: in the orchestrator eval, an
   assistant that calls `start_check_run` without a yes from the owner in the transcript fails.
+
+## F-47 Records cite hypotheses, rules go by the BR key: owner answer 18 (b), 2026-10-21
+
+- **Decision** (Claude's pick until the owner says otherwise): a rule is called by its hypothesis
+  key (H-nnnn) while it is only a hypothesis. Once a BA business rule record cites the hypothesis,
+  the Rules list shows that record's BR key, and both keys open the rule page. The page says
+  "Documented as BR-…", and the record's evidence links back to `/rules/<H-key>`.
+- **Built**: the evidence target kind `hypothesis` (docs-model; run-bound exempt, never
+  "observed"), with `lookupHypothesis` resolving by id or key within the portal. `entity_refs`
+  `hypothesis` maps to `hypothesis_id`. Migration 0042 recreates the `doc_evidence` view with the
+  hypothesis case. The ba-practice skill and the `target_id` description tell the BA to cite
+  H-nnnn.
+- **Seen on the way**: `rule-drift.e2e.test.ts` failed once under the full parallel mcp-server
+  project and passed alone (load-sensitive, like the `serial` dashboard tests). It is watched in
+  the close-out `pnpm test`, not changed here.
+- **Test**: `evidence.test.ts` (resolves by key with a null run; unknown key is `UNKNOWN_REF`),
+  `test_rules.py::test_a_documented_rule_goes_by_its_business_rule_key`. Eval idea: in a BA trial
+  over a portal with confirmed mined rules, a business_rule record that restates a confirmed
+  hypothesis without citing it counts as a miss (duplicate knowledge with no link).

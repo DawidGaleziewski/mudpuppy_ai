@@ -506,6 +506,12 @@ def resolve_evidence(conn: sqlite3.Connection, links: list[DocEvidence]) -> list
                 tuple(ids),
             ):
                 found[(kind, r["id"])] = f"review ({r['action']}) by {r['reviewer']}"
+        elif kind == "hypothesis":  # spec 039 owner answer 18: a mined rule the record documents
+            for r in _rows(
+                conn, f"SELECT id, key, claim FROM hypotheses WHERE id IN ({marks})", tuple(ids)
+            ):
+                found[(kind, r["id"])] = f"{r['key']}: {r['claim']}"
+                doc_keys[r["id"]] = r["key"]
     run_ids = sorted({link.run_id for link in links if link.run_id})
     runs = {
         r["id"]: r
@@ -527,7 +533,9 @@ def resolve_evidence(conn: sqlite3.Connection, links: list[DocEvidence]) -> list
                 run_mode=run["mode"] if run else None,
                 run_started_at=run["started_at"] if run else None,
                 tab=_TARGETS[link.target_kind][1] if link.target_kind in _TARGETS else None,
-                doc_key=doc_keys.get(link.target_id) if link.target_kind == "doc_record" else None,
+                doc_key=doc_keys.get(link.target_id)
+                if link.target_kind in ("doc_record", "hypothesis")
+                else None,
             )
         )
     return out

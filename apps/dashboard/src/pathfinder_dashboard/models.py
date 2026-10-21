@@ -79,6 +79,7 @@ EvidenceTargetKind = Literal[
     "review",
     "screen_region",
     "observation",
+    "hypothesis",  # spec 039 owner answer 18: a hypothesis of the portal model (H-nnnn)
 ]
 RelationType = Literal[
     "contains",
@@ -1571,7 +1572,7 @@ class ResolvedEvidence(BaseModel):
     run_mode: str | None
     run_started_at: str | None
     tab: str | None  # run page tab holding the target, None for doc_record/review
-    doc_key: str | None = None  # for doc_record targets
+    doc_key: str | None = None  # a doc_record target's key, or a hypothesis target's H-nnnn
 
 
 class RelationRow(BaseModel):

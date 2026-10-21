@@ -204,6 +204,34 @@ describe('resolveTargets', () => {
     expect(e.code).toBe('SCHEMA_INVALID');
   });
 
+  it('resolves a hypothesis of the portal model by its key, with a null run (owner answer 18)', () => {
+    fx.raw
+      .prepare(
+        `INSERT INTO model_versions (id, portal_id, seq, built_at, algorithm, threshold, stats_json)
+         VALUES ('mv-1', ?, 1, ?, 'minhash-avglink-v1', 0.8, '{}')`,
+      )
+      .run(fx.portalId, FIXTURE_TS);
+    fx.raw
+      .prepare(
+        `INSERT INTO hypotheses (id, key, portal_id, kind, claim, claim_json, claim_hash, origin,
+           rule, confidence, model_version_id, created_at)
+         VALUES ('h-1', 'H-0007', ?, 'decision_rule', 'Drivers under 18 are refused.', '{}', ?,
+           'rule', 'R7', 'needs_confirmation', 'mv-1', ?)`,
+      )
+      .run(fx.portalId, 'b'.repeat(64), FIXTURE_TS);
+    expect(resolve([{ target_kind: 'hypothesis', target_id: 'H-0007' }])).toEqual([
+      {
+        target_kind: 'hypothesis',
+        target_id: 'h-1',
+        run_id: null,
+        portal_id: fx.portalId,
+        confidence: null,
+      },
+    ]);
+    const e = failure(() => resolve([{ target_kind: 'hypothesis', target_id: 'H-9999' }]));
+    expect(e.code).toBe('UNKNOWN_REF');
+  });
+
   it('resolves doc_record (by key or id) and review targets with a null run', () => {
     const { recordId, reviewId } = seedRecord(fx.portalId);
     expect(

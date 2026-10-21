@@ -25,6 +25,7 @@ export const EVIDENCE_COLUMN = {
   doc_record: 'doc_record_id',
   review: 'review_id',
   observation: 'observation_id',
+  hypothesis: 'hypothesis_id',
 } as const satisfies Record<EvidenceTargetKind, string>;
 
 /** A column of `entity_refs` that names a target (every one but `id` and `element_key`). */

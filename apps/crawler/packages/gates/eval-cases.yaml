@@ -803,3 +803,7 @@
   title: "Check runs and accepting τ from the pages: owner answers 5, 12, 19 as built"
   tier: not_testable
   reason: chat and dashboard unit tests named in the finding; the orchestrator eval idea is logged
+- id: F-47@039
+  title: "Records cite hypotheses, rules go by the BR key: owner answer 18 (b)"
+  tier: not_testable
+  reason: docs and dashboard unit tests named in the finding; the BA-trial eval idea is logged

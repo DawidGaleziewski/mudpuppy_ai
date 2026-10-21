@@ -9,7 +9,7 @@ from fastapi.testclient import TestClient
 from pathfinder_dashboard.app import create_app
 from pathfinder_dashboard.settings import Settings
 
-from .conftest import Store, ts
+from .conftest import Store, add_record, add_session, ts
 from .test_changes import P, seed, seed_rule_and_rename
 
 
@@ -97,6 +97,32 @@ def test_a_rule_shows_its_decision_table_tests_and_history(empty_store: Store) -
     assert "Wrong threshold." in html and "sy-note" in html  # a person's reason
     missing = client(empty_store).get(f"/rules/H-0404?portal={P}")
     assert missing.status_code == 404 and "Rule not found" in missing.text
+
+
+def test_a_documented_rule_goes_by_its_business_rule_key(empty_store: Store) -> None:
+    """Owner answer 18 (b): the BA's business rule record citing the hypothesis gives the rule its
+    BR key; the H key still opens it, and the record links back to the rule."""
+    seed(empty_store)
+    seed_table_rule(empty_store)
+    conn = empty_store.connect()
+    add_session(conn, "sess-1", portal=P)
+    add_record(
+        conn,
+        "BR-009",
+        "Drivers under 18 cannot buy",
+        [{"evidence": [("hypothesis", "h3", None, "the mined rule")]}],
+        portal=P,
+    )
+    conn.commit()
+    conn.close()
+    listed = client(empty_store).get(f"/rules?portal={P}").text
+    assert ">BR-009<" in listed and ">H-0003<" not in listed
+    by_br = client(empty_store).get(f"/rules/BR-009?portal={P}").text
+    by_h = client(empty_store).get(f"/rules/H-0003?portal={P}").text
+    for page in (by_br, by_h):
+        assert "Documented as" in page and ">BR-009<" in page and ">H-0003<" in page
+    record = client(empty_store).get(f"/docs/{P}/BR-009").text
+    assert 'href="/rules/H-0003' in record
 
 
 def test_the_nav_is_grouped_and_has_changes_and_rules(empty_store: Store) -> None:

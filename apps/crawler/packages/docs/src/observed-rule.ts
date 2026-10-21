@@ -38,6 +38,9 @@ export const NOT_OBSERVABLE_KINDS: readonly EvidenceTargetKind[] = [
   'process',
   'doc_record',
   'review',
+  // spec 039: a hypothesis is the model's claim about behaviour, not the behaviour itself; the
+  // record still cites the states or transitions that show it
+  'hypothesis',
 ];
 
 export function qualifiesAsObserved(target: ResolvedTarget): boolean {

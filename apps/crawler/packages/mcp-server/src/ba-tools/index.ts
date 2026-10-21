@@ -91,7 +91,7 @@ const evidenceItem = z.looseObject({
   target_id: z
     .string()
     .describe(
-      'Id from get_run_evidence / get_record; a doc_record may be given by its key; a screen_region gives the state id',
+      'Id from get_run_evidence / get_record; a doc_record may be given by its key, a hypothesis by its H-nnnn key; a screen_region gives the state id',
     ),
   run_id: z
     .string()

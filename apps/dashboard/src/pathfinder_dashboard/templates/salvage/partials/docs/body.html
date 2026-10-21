@@ -39,6 +39,7 @@
                 {%- if e.link.run_id %} <a href="{{ c.url('/runs/' ~ e.link.run_id, tab='process' if e.link.target_kind in ('process', 'process_step') else none) }}">Open scan</a>{% endif %}
               {%- elif e.link.target_kind == "doc_record" %}{{ sy.tag(e.doc_key, c.url('/docs/' ~ portal ~ '/' ~ e.doc_key), sm=true, label=e.label) }}
               {%- elif e.link.target_kind == "review" %}<a href="#review-{{ e.link.target_id }}">{{ e.label }}</a>
+              {%- elif e.link.target_kind == "hypothesis" %}{{ sy.tag(e.doc_key, c.url('/rules/' ~ e.doc_key), sm=true) }} <span class="sy-case-normal">{{ e.label.split(": ", 1)[1] if e.label else "" }}</span>
               {%- elif e.link.target_kind in ("state", "screen_region") %}<a class="sy-case-normal" href="{{ c.url('/states/' ~ e.link.target_id) }}">{{ e.label }}</a>
                 {%- if e.link.region %} <span class="sy-mono sy-mono--sm">{{ e.link.region }}</span>{% endif %}
               {%- else %}<a href="{{ c.url('/runs/' ~ e.link.run_id, tab=e.tab) }}#{{ e.link.target_id }}">{{ e.label }}</a>{% endif %}

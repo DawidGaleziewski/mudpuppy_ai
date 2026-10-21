@@ -150,6 +150,21 @@ export function lookupTarget(raw: RawDb, link: EvidenceLinkInput): ResolvedTarge
     };
   }
 
+  // A hypothesis of the portal model (spec 039 owner answer 18): not run-bound, no confidence of its
+  // own (a person confirms it; the record says how sure it is).
+  if (kind === 'hypothesis') {
+    const row = raw.prepare('SELECT portal_id FROM hypotheses WHERE id = ?').get(id) as
+      { portal_id: string } | undefined;
+    if (!row) return null;
+    return {
+      target_kind: kind,
+      target_id: id,
+      run_id: null,
+      portal_id: row.portal_id,
+      confidence: null,
+    };
+  }
+
   if (kind === 'doc_record') {
     const row = raw.prepare('SELECT portal_id FROM doc_records WHERE id = ?').get(id) as
       { portal_id: string } | undefined;
@@ -196,6 +211,14 @@ export function lookupTarget(raw: RawDb, link: EvidenceLinkInput): ResolvedTarge
   }
 
   return null;
+}
+
+/** A `hypothesis` target, by key within the portal (`H-0042`) or by id anywhere. */
+function lookupHypothesis(raw: RawDb, portalId: string, idOrKey: string): ResolvedTarget | null {
+  const byKey = raw
+    .prepare('SELECT id FROM hypotheses WHERE portal_id = ? AND key = ?')
+    .get(portalId, idOrKey) as { id: string } | undefined;
+  return lookupTarget(raw, { target_kind: 'hypothesis', target_id: byKey?.id ?? idOrKey });
 }
 
 /** A `doc_record` target, by key within the portal or by id anywhere. */
@@ -247,7 +270,9 @@ export function resolveTargets(
     const found =
       link.target_kind === 'doc_record'
         ? lookupRecord(raw, portalId, link.target_id)
-        : lookupTarget(raw, link);
+        : link.target_kind === 'hypothesis'
+          ? lookupHypothesis(raw, portalId, link.target_id)
+          : lookupTarget(raw, link);
     if (!found)
       throw new DocsError(
         'UNKNOWN_REF',

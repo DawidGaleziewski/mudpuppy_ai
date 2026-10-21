@@ -230,6 +230,7 @@ EVIDENCE_COLUMN = {
     "doc_record": "doc_record_id",
     "review": "review_id",
     "observation": "observation_id",
+    "hypothesis": "hypothesis_id",
 }
 
 
