@@ -1,4 +1,5 @@
-"""The overview page (`/`) and the live regions it serves: portal cards and the runs table."""
+"""The overview page (`/`): a picked portal's Home (spec 039 T100, v2-01), or every portal with
+its live regions (portal cards and the runs table)."""
 
 from __future__ import annotations
 
@@ -6,9 +7,9 @@ import sqlite3
 from typing import Any
 
 from fastapi import APIRouter, Request
-from fastapi.responses import HTMLResponse, RedirectResponse, Response
+from fastapi.responses import HTMLResponse, Response
 
-from .. import db, queries, queries_chat
+from .. import db, queries, queries_chat, queries_portal_home, queries_review
 from ..models import RUN_STATUSES
 from .deps import Ctx, web_of
 
@@ -80,11 +81,19 @@ def overview(
     web = web_of(request)
     c = web.ctx(request, env)
     portal = portal if portal is not None else c.portal  # spec 011: the header's choice
-    # Spec 022 (D-13, FE-A01): Home for a picked portal is its assistant.
-    if portal:
-        return RedirectResponse(c.url("/chat"), status_code=303)
     try:
         with c.conn() as conn:
+            # Spec 039 T100 (v2-01): Home for a picked portal is its overview; the assistant is
+            # beside it (the drawer, Ctrl J) and on /chat.
+            if portal:
+                home = queries_portal_home.portal_home(conn, portal)
+                return web.render(
+                    c,
+                    "salvage/home.html",
+                    nav_current="home",
+                    h=home,
+                    queries_kinds=queries_review.KINDS,
+                )
             return web.render(
                 c,
                 "overview.html",

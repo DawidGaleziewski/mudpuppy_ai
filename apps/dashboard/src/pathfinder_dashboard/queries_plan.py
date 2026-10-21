@@ -102,14 +102,18 @@ def open_mark_count(conn: sqlite3.Connection, portal: str) -> int:
 
 
 def plan(conn: sqlite3.Connection, portal: str) -> Plan:
-    rows = conn.execute(
-        # 0041: the target is a typed column; the plan names it as a kind and an id.
-        "SELECT id, kind, CASE WHEN form_step_id IS NOT NULL THEN 'form_step'"
-        " WHEN state_id IS NOT NULL THEN 'state' ELSE 'transition' END AS target_kind,"
-        " coalesce(form_step_id, state_id, transition_id) AS target_id, created_by, created_at"
-        " FROM marks WHERE portal_id = ? AND used_by_run_id IS NULL ORDER BY created_at",
-        (portal,),
-    ).fetchall()
+    try:
+        rows = conn.execute(
+            # 0041: the target is a typed column; the plan names it as a kind and an id.
+            "SELECT id, kind, CASE WHEN form_step_id IS NOT NULL THEN 'form_step'"
+            " WHEN state_id IS NOT NULL THEN 'state' ELSE 'transition' END AS target_kind,"
+            " coalesce(form_step_id, state_id, transition_id) AS target_id, created_by,"
+            " created_at FROM marks WHERE portal_id = ? AND used_by_run_id IS NULL"
+            " ORDER BY created_at",
+            (portal,),
+        ).fetchall()
+    except sqlite3.OperationalError:
+        rows = []  # a store before 0041: the crawler migrates it on its next start
     marks: dict[str, list[MarkRow]] = {}
     for r in rows:
         title, route, state = _target(conn, r["target_kind"], r["target_id"])

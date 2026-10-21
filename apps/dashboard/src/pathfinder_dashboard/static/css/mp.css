@@ -22,6 +22,11 @@
   .mp-screen > th { background: var(--sy-bg-well); padding-block: 8px; }
   .mp-changes td, .mp-changes th[scope="row"] { vertical-align: top; }
   .mp-seg { flex-wrap: wrap; max-width: 100%; }
+  /* Home (v2-01): Needs you beside the counts; the releases grid. */
+  .mp-glance { display: grid; gap: var(--sy-space-4); grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr)); align-items: start; }
+  .mp-counts { display: grid; gap: var(--sy-space-4); grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr)); }
+  .mp-release-grid { --sy-min: 160px; }
+  .mp-top-label { margin: 0 var(--sy-space-4) var(--sy-space-2); }
   .mp-seg > button { flex: none; }
   .mp-shot-side { max-width: 100%; height: auto; }
 

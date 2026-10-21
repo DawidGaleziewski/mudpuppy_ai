@@ -59,7 +59,11 @@ def test_choice_is_kept_in_a_cookie_and_all_portals_clears_it(
         chosen = c.get("/", params={"portal": "wikipedia-org"}, follow_redirects=False)
         later = c.get("/scans")
         cleared = c.get("/", params={"portal": ""})
-    assert chosen.status_code == 303 and chosen.headers["location"] == "/chat"  # Home = assistant
+    # Spec 039 T100 (v2-01): Home of a picked portal is its overview, not the assistant.
+    assert (
+        chosen.status_code == 200
+        and '<h1 class="sy-h1 sy-case-normal">wikipedia-org' in chosen.text
+    )
     assert "pf_portal=wikipedia-org" in chosen.headers["set-cookie"]
     assert 'class="sy-mono">wikipedia-org</span>' in later.text  # the header shows the choice
     assert "run-w" in later.text and "run-u" not in later.text

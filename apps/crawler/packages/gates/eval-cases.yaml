@@ -815,3 +815,7 @@
   title: "Review's 2.0 queue and tabs (T100 step 6)"
   tier: not_testable
   reason: a person's decisions; covered by test_review_queue.py, model-accept.test.ts and the UI check
+- id: F-50@039
+  title: "Home of one portal (T100 step 7)"
+  tier: not_testable
+  reason: a read-only dashboard page; covered by test_portal_home.py and the UI check

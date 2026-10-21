@@ -879,3 +879,24 @@ Bugs, slips and design deviations found while building, each with a test or eval
   reject needs a reason, the tabs), `model-accept.test.ts` (decide: none decided when one key is
   unknown, reject two, empty reason and overturn refused); `ui:check` on the tabs at 1280 and 390:
   ok. Eval idea: none (a person's decisions).
+
+## F-50 Home of one portal (T100 step 7), 2026-10-21
+
+- **Built** (designer screen v2-01): Home of a picked portal is now its overview, no longer a
+  redirect to `/chat` (spec 022 D-13 is superseded by the 2.0 IA; the chat stays on `/chat` and in
+  the drawer). It shows:
+  - **Latest releases**: one entry per portal part, then the last scan, Next scan with Plan a
+    scan, and the release lanes.
+  - **Needs you**: the one intent plate, with the Review queue's count and kinds and the top five
+    (broken rules first), and Open Review as the one primary button.
+  - **Counts**: changes, processes and proposals, rules by status.
+  - **What changed, by process**, and the assistant beside it.
+  - "All portals" (`/` without a portal) is unchanged.
+- **Seen on the way**: the smoke test crawls every linked page on a copy of the real sandbox,
+  which is still at migration 0031. Home's new Plan a scan link reached `queries_plan.plan`, the
+  one read that did not tolerate an older store (no `marks.form_step_id`). It now reads nothing
+  on such a store, like the other reads.
+- **Not done**: the Portals plate and All portals v2-15 (the all-portals page stays as it was),
+  scheduled scans (nothing schedules one), the assistant's suggestion chips (it links to Chat).
+- **Test**: `test_portal_home.py`; `test_portals.py` now expects Home instead of the redirect;
+  `ui:check` at 1280 and 390: ok. Eval idea: none.

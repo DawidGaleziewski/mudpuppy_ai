@@ -34,7 +34,7 @@ chat is described in words.
 | --- | --- | --- |
 | Dashboard | The web app you use: home, processes, screens, docs, review, scans, settings, glossary. | http://127.0.0.1:8765 |
 | Chat service | Runs the assistant and saves your changes. | 127.0.0.1:4310 (no page of its own) |
-| Assistant | Guides you. It calls the **crawler** (scans the portal) and the **BA agent** (writes the documentation). | the Home page and the drawer |
+| Assistant | Guides you. It calls the **crawler** (scans the portal) and the **BA agent** (writes the documentation). | the Chat page and the drawer |
 | Reference portal | A fake Polish insurer for practice. | http://127.0.0.1:4010 |
 
 The assistant can not change the tool itself (agents, code, safety settings). If you ask, it
@@ -82,17 +82,19 @@ hold scans of that portal are listed; switching the portal moves to one that has
 search box (**Ctrl K**), the assistant status and **Ask the assistant** (**Ctrl J**). Long lists
 show 25 rows a page with **← Previous** / **Next →**; Screens has a filter that searches every
 screen. A screen or record opened from a list has **← Prev** / **Next →** at the top to walk the
-same list without going back. The **side menu** has seven places:
+same list without going back. The **side menu** has nine places in three groups:
 
 | Place | What you do there |
 | --- | --- |
-| **Home** | Talk to the assistant. Beside the chat: **Needs you** (what waits for a decision) and a short list of your processes. |
-| **Processes** | Group screens into business processes, draw the to-be, compare, see history. |
-| **Screens** | Every screen the scans saw, with its revisions and your amendments. |
-| **Docs** | The as-is documentation the BA agent wrote, by record kind. |
+| **Home** | The portal now: the latest release of each portal part and the last scan, **Needs you** with the top five, what changed by process, and the counts of processes and rules. |
+| **Changes** | What changed between scans, grouped by process and screen, with Before / after (section 13). |
 | **Review** | One inbox for every open decision (section 13). |
-| **Scans** | The live view of a running scan, the history of scans, and **Server activity**. |
-| **Settings** | Environments, credentials, personas, crawl rules and the data store of the chosen portal. |
+| *Portal model:* **Processes** | Group screens into business processes, draw the to-be, compare, see history. |
+| **Screens** | Every screen the scans saw, with its revisions and your amendments. |
+| **Rules** | Business rules found in the cases, as decision tables with their tests. |
+| **Docs** | The as-is documentation the BA agent wrote, by record kind. |
+| *Machine:* **Scans** | The live view of a running scan, the history of scans, and **Server activity**. |
+| **Settings** | Environments, credentials, personas, crawl rules, screen identity and the data store of the chosen portal. |
 
 Every status is a shape plus a word, never colour alone. Filled means it happened, hollow
 means it did not (yet), dashed corners mean unconfirmed, a cross means it broke.
@@ -138,8 +140,8 @@ through the chat service, so it has to be running.
 
 ## 6. The assistant
 
-The assistant lives on **Home**, and on every other page in a drawer: press **Ask the
-assistant** or **Ctrl J**. The drawer has two contexts:
+The assistant has its own page, **Chat** (Home's **Open the chat**), and sits beside every other
+page in a drawer: press **Ask the assistant** or **Ctrl J**. The drawer has two contexts:
 
 - **This page** sends what you are looking at: the screen and its revision, the process, its
   process model and step, or the item selected in Review. You can say "this step" or "that
@@ -278,7 +280,7 @@ process (kept, not forgotten) and groups of them that look like one process nobo
 
 - **Stop** next to **Send** stops everything this conversation started: the answer in progress
   and any scan. Use it when the assistant is stuck or busy with the wrong thing.
-- The scan's own **Stop scan** button (on Home and in Scans) stops only the scan. Confirm it.
+- The scan's own **Stop scan** button (on Chat and in Scans) stops only the scan. Confirm it.
 
 A stopped scan shows as **Interrupted**, not failed, and keeps everything it recorded. To
 continue, press **Resume with the assistant** on the scan in **Scans**, or say *"resume the

@@ -73,7 +73,9 @@ Layer: app (Python, FastAPI + Jinja + htmx, uv; outside the TS layers)
   range bracket). Review (v2-04 / v2-05 / v2-16): `queries_queue.py` (Findings, Rules, Removals,
   Processes ahead of `queries_review`'s kinds; Explained automatically and Decided tabs,
   `?tab=`), `partials/review_queue_item.html`; deciding posts `/review/hypotheses/{portal}` →
-  the chat service's `POST /portals/{p}/model/decide`. A process's A and
+  the chat service's `POST /portals/{p}/model/decide`. Home of a picked portal (v2-01):
+  `queries_portal_home.py` + `home.html` (no longer a redirect to `/chat`; the chat stays on
+  `/chat` and in the drawer). A process's A and
   B are process models (`?model=B`, status vocabulary `process_model`; owner answer 8).
 - `servers.py`: live `pathfinder` servers read from `<data_dir>/servers/*.json`; the header names
   those on another environment or checkout (spec 031 R-61). Read-only, dead files are skipped.
