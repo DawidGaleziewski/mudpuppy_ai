@@ -27,6 +27,7 @@
   .mp-counts { display: grid; gap: var(--sy-space-4); grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr)); }
   .mp-release-grid { --sy-min: 160px; }
   .mp-top-label { margin: 0 var(--sy-space-4) var(--sy-space-2); }
+  .mp-variants { --sy-min: 220px; }   /* a screen's variants side by side (v2-07) */
   .mp-seg > button { flex: none; }
   .mp-shot-side { max-width: 100%; height: auto; }
 

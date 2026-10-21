@@ -819,3 +819,7 @@
   title: "Home of one portal (T100 step 7)"
   tier: not_testable
   reason: a read-only dashboard page; covered by test_portal_home.py and the UI check
+- id: F-51@039
+  title: "Screens of the portal model (T100 step 8)"
+  tier: not_testable
+  reason: read-only dashboard pages; covered by test_model_screens.py and the UI check

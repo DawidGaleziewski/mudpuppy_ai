@@ -305,7 +305,17 @@ so far with their result.
 
 ## 9. Screens and their revisions
 
-**Screens** lists every screen the scans saw, per portal.
+**Screens** lists the portal model's screens (`SC-0001` …), what needs you first. Each row shows
+its status (**Active**, **Merged**, **Retired**: retired screens are kept), how many variants it
+has and why they differ (Release, Another persona, Flaky error…), when it was last seen, how many
+of its actions were checked, its portal part and its process. Filter by status or by text.
+
+A screen's page (`/screens/SC-0001`) starts with what needs you on it, then its **Variants** side
+by side (r1 is the baseline; each later one says why it differs), its **Actions** with where each
+leads, and its **History** of changes, each with Before / after.
+
+The pages the model is built from are on the **Recorded pages** tab, the list described below (and
+the only list for a portal without a model yet).
 
 ![Screens list](how-to-use/23-screens-list.png)
 

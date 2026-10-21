@@ -172,6 +172,18 @@ VOCABULARIES: dict[str, dict[str, Status]] = {
         "replaced": _s("skipped", "Replaced"),
         "rejected": _s("stopped", "Rejected"),
     },
+    # spec 039 T100 (v2-06 / v2-07): a screen of the portal model, and an action or link on it
+    "model_screen": {
+        "active": _s("live", "Active"),
+        "merged": _s("skipped", "Merged"),
+        "retired": _s("stopped", "Retired"),
+    },
+    "action": {
+        "active": _s("live", "Active"),
+        "not_seen_since": _s("unobserved", "Not seen lately"),
+        "untested": _s("todo", "Not checked"),
+        "retired": _s("skipped", "Retired"),
+    },
     "explored": {
         "thorough": _s("ok", "Thorough"),
         "partial": _s("needs", "Partial"),

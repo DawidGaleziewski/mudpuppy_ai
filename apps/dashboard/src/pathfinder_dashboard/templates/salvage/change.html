@@ -117,7 +117,7 @@
       <div class="sy-plate__head"><h2 id="where-h" class="sy-plate__title">Where it shows</h2></div>
       <div class="sy-rows">
         {%- if ch.status != "explained" %}<a class="sy-row" href="{{ c.url('/review') }}"><span class="sy-row__main"><span>Review · Needs you</span><span class="sy-small sy-muted">{{ ch.explanation.word }} · since {{ ch.created_at | when }}</span></span></a>{% endif %}
-        {%- if ch.screen_key %}<a class="sy-row" href="{{ c.url('/screens?q=' ~ ch.screen_key) }}"><span class="sy-row__main"><span class="sy-case-normal">{{ ch.screen_title }}</span><span class="sy-small sy-muted">the screen and its variants</span></span>{{ sy.tag(ch.screen_key, sm=true) }}</a>{% endif %}
+        {%- if ch.screen_key %}<a class="sy-row" href="{{ c.url('/screens/' ~ ch.screen_key) }}"><span class="sy-row__main"><span class="sy-case-normal">{{ ch.screen_title }}</span><span class="sy-small sy-muted">the screen and its variants</span></span>{{ sy.tag(ch.screen_key, sm=true) }}</a>{% endif %}
         {%- if d.process %}<a class="sy-row" href="{{ c.url('/processes/' ~ d.process[0]) }}"><span class="sy-row__main"><span class="sy-case-normal">{{ d.process[1] }}</span><span class="sy-small sy-muted">walks this screen</span></span>{{ sy.tag(d.process[0], sm=true) }}</a>{% endif %}
         {%- if d.hypothesis_kind in ("decision_point", "decision_drift") or ch.kind == "rule_mismatch" %}<a class="sy-row" href="{{ c.url('/rules') }}"><span class="sy-row__main"><span>Business rules</span><span class="sy-small sy-muted">the rule that decides it</span></span></a>{% endif %}
       </div>

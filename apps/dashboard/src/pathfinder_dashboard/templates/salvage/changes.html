@@ -111,7 +111,7 @@
           {%- for s in g.screens %}
           <tr class="mp-screen"><th scope="rowgroup" colspan="4">
             <span class="sy-split sy-case-normal">
-              <span class="sy-cluster">{% if s.key %}{{ sy.tag(s.key, c.url('/screens?q=' ~ s.key), sm=true) }} <span>{{ s.title }}</span>{% else %}<span>{{ s.title }}</span>{% endif %}{% if s.route %}<span class="sy-route">{{ s.route }}</span>{% endif %}</span>
+              <span class="sy-cluster">{% if s.key %}{{ sy.tag(s.key, c.url('/screens/' ~ s.key), sm=true) }} <span>{{ s.title }}</span>{% else %}<span>{{ s.title }}</span>{% endif %}{% if s.route %}<span class="sy-route">{{ s.route }}</span>{% endif %}</span>
               <span>{{ s.changes | length }} change{{ "" if s.changes | length == 1 else "s" }}{% if s.needs %} · {{ s.needs }} need{{ "s" if s.needs == 1 else "" }} you{% endif %}</span>
             </span>
           </th></tr>

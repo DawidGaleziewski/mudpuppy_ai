@@ -900,3 +900,22 @@ Bugs, slips and design deviations found while building, each with a test or eval
   scheduled scans (nothing schedules one), the assistant's suggestion chips (it links to Chat).
 - **Test**: `test_portal_home.py`; `test_portals.py` now expects Home instead of the redirect;
   `ui:check` at 1280 and 390: ok. Eval idea: none.
+
+## F-51 Screens of the portal model (T100 step 8), 2026-10-21
+
+- **Built**:
+  - **The list** (v2-06): for a portal with a model, Screens lists `model_screens`, needs you
+    first. Each row shows the status (retired ones kept, OV-3), the variants and the distinct
+    reasons they differ (from their `new_member` changes), last seen with its scan, checked
+    actions (active over not retired), the portal part (builds of its members' observations) and
+    the process.
+  - **A screen's page** (v2-07, `/screens/{SC-…}`): what needs a person on it, the variants side by
+    side (release, persona, visits, why), the actions with where they lead (`model_transitions`),
+    and its history of changes.
+  - **Recorded pages**: the v1 list of recorded pages stays as a tab (`?recorded=1`), and is the
+    list for a portal without a model and for all portals. Changes links to the screen page now.
+- **Not done**: Part and "has unknown variants" filters, Sort, per-release coverage ("on 9c21"),
+  Overturn on a variant (R-87), changed regions marked on variant pictures, the BA record (SCR-)
+  of a screen.
+- **Test**: `test_model_screens.py`; `ui:check` on the list, an active and a retired screen at
+  1280 and 390: ok. Eval idea: none.

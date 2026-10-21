@@ -75,7 +75,9 @@ Layer: app (Python, FastAPI + Jinja + htmx, uv; outside the TS layers)
   `?tab=`), `partials/review_queue_item.html`; deciding posts `/review/hypotheses/{portal}` →
   the chat service's `POST /portals/{p}/model/decide`. Home of a picked portal (v2-01):
   `queries_portal_home.py` + `home.html` (no longer a redirect to `/chat`; the chat stays on
-  `/chat` and in the drawer). A process's A and
+  `/chat` and in the drawer). Screens (v2-06 / v2-07): `queries_model_screens.py` +
+  `model_screens.html` / `model_screen.html` (`/screens` for a portal with a model; `/screens/{SC-…}`);
+  `?recorded=1` keeps the recorded-pages list. A process's A and
   B are process models (`?model=B`, status vocabulary `process_model`; owner answer 8).
 - `servers.py`: live `pathfinder` servers read from `<data_dir>/servers/*.json`; the header names
   those on another environment or checkout (spec 031 R-61). Read-only, dead files are skipped.
