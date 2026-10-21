@@ -982,3 +982,25 @@ Bugs, slips and design deviations found while building, each with a test or eval
 - **Not done**: editing hints from the page (the assistant changes the file), Budgets.
 - **Test**: chat `portals.test.ts` (added once, comments kept, loads), `model-accept.test.ts`
   (rule note and agent claim); dashboard `test_queries_settings.py`, `test_settings_salvage.py`.
+
+## F-55 Rules exported as DMN, Markdown and CSV (OV-5, G13), 2026-10-21
+
+- **Built**: one generator in `@pathfinder/store` (`ruleFiles`, text in `rule-export-text.ts`):
+  per rule a DMN table and a Markdown page laid out as v2-12's "In the export" (heading with the
+  BR key once documented, the sentence first — each table row said as "If age from
+  data_urodzenia < 18, "oblicz składkę" on … leads to …" — then where, inputs, hit policy, the
+  exact table, tests, mined cases and status), `rules.csv` (a line per table row) and a README.
+  `pnpm model:dmn` became `pnpm model:rules-export` (`--root` reads another store without
+  migrating it, `--status all`). The dashboard runs it into a cached temp folder: Rules has
+  "Export: all rules (zip) · rules.csv", a rule's page loads "In the export" with its Markdown
+  and Markdown / DMN / zip downloads. `db.store_stamp` is shared with the process export.
+- **Deviation**: the sentence names inputs by a plain label derived from the mined name
+  (`derived.input.X.age_years` → "age from X"); the design's wording ("the driver is under 21 on
+  the day of the quote") needs a person's Reword (G6), not built. Status words are the
+  dashboard's, written out ("tested, not confirmed yet (needs a person)").
+- **Not done**: Copy Markdown button, the "Changed:" and "Evidence:" lines of the design (the
+  rule's history and a case), the export inside each process's folder still has only the DMN
+  (T078).
+- **Test**: store `rule-export.test.ts` (files, Markdown order, CSV lines, sentence, statuses);
+  dashboard `test_rules_export.py` (zip, single files, names outside the export, the fragment);
+  the real command against a scratch store: README and CSV written.

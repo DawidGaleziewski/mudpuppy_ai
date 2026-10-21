@@ -16,6 +16,7 @@ export * from './process-proposals.js';
 export * from './replay-tests.js';
 export * from './error-replays.js';
 export * from './rule-export.js';
+export * from './rule-export-text.js';
 export * from './rule-guards.js';
 export * from './process-instances.js';
 export * from './anchors.js';

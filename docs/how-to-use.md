@@ -561,7 +561,7 @@ portal and `--env`):
 | `pnpm model:replay <portal>` | Repeat paths to decide what waits for a check and to test new rules (headless, no LLM; 20 runs at most). |
 | `pnpm model:regress <portal>` | Re-test every confirmed rule; a rule that no longer holds is replaced and mined again. |
 | `pnpm model:decide <portal> --by "Your Name" confirm H-0002 --reason "…"` | Confirm, reject or overturn a claim, with your reason. |
-| `pnpm model:dmn <portal>` | Write confirmed and supported rules as DMN files with an index. |
+| `pnpm model:rules-export <portal>` | Write confirmed and supported rules (`--status all`: every rule) as DMN tables and Markdown pages, `rules.csv` and an index. **Rules** has the same export as a zip, and each rule's page shows its Markdown under **In the export**. |
 | `pnpm model:propose <portal>` | Propose processes from the model; they appear in **Processes** for you to accept or dismiss. |
 
 ## 14. When something fails (error references)

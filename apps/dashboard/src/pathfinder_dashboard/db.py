@@ -25,6 +25,15 @@ def store_path(data_dir: Path, env: str) -> Path:
     return data_dir / "db" / f"{env}.sqlite"
 
 
+def store_stamp(data_dir: Path, env: str) -> tuple[str, float]:
+    """The store and when it was last written, for caches of what is built from it. A reader
+    creates an empty WAL file: only a WAL that holds pages means a write."""
+    store = store_path(data_dir, env)
+    wal = store.with_name(store.name + "-wal")
+    written = [p for p in (store, wal) if p.exists() and (p is store or p.stat().st_size > 0)]
+    return str(store), max((p.stat().st_mtime for p in written), default=0.0)
+
+
 def list_environments(data_dir: Path) -> list[str]:
     """Environments are the `data/db/*.sqlite` files, production first."""
     names = sorted(p.stem for p in (data_dir / "db").glob("*.sqlite"))

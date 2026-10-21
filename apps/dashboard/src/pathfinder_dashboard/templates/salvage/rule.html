@@ -92,7 +92,13 @@
     </li>
   {%- endfor %}
   </ol>
-  <div class="sy-plate__foot"><p class="sy-small sy-muted">Confirm or reject a rule in What changed, or with <span class="sy-mono">pnpm model:decide {{ c.portal }} {{ key }}</span>.</p></div>
+  <div class="sy-plate__foot"><p class="sy-small sy-muted">Confirm or reject a rule in <a href="{{ c.url('/review') }}">Review</a>, or with <span class="sy-mono">pnpm model:decide {{ c.portal }} {{ r.row.key }}</span>.</p></div>
+</section>
+{#- v2-12 "In the export" (OV-5): built by the export command, so it loads after the page. -#}
+<section id="export" class="sy-plate sy-plate--drawn" aria-labelledby="ex-h"
+         hx-get="{{ c.url('/fragments/rules/' ~ r.row.shown_key ~ '/export') }}" hx-trigger="load" hx-swap="innerHTML">
+  <div class="sy-plate__head"><h2 id="ex-h" class="sy-plate__title">In the export</h2></div>
+  <div class="sy-plate__body"><p class="sy-small sy-muted">Building the export<span class="sy-caret" aria-hidden="true"></span></p></div>
 </section>
   {%- endif %}
 {% endblock %}

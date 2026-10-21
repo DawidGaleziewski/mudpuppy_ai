@@ -31,7 +31,7 @@
     "model:regress": "tsx scripts/model-replay.ts --regress",
     "model:explore": "tsx scripts/model-explore.ts",
     "model:classify": "tsx scripts/model-classify.ts",
-    "model:dmn": "tsx scripts/model-dmn.ts",
+    "model:rules-export": "tsx scripts/model-rules-export.ts",
     "model:pairs": "tsx scripts/model-pairs.ts",
     "model:refingerprint": "tsx scripts/model-refingerprint.ts",
     "model:compare-fingerprints": "tsx scripts/model-compare-fingerprints.ts",

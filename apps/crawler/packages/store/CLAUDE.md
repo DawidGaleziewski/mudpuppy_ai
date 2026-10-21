@@ -36,7 +36,8 @@ Layer: store (G-07; `apps/crawler/layers.json`)
   the model knows of a process, for its export, T078), `classifierTrainingSet`,
   `recordClassifier`, `activeClassifier`, `acceptClassifier` (`similarity-classifier.ts`, T090;
   in force only once a person accepts it, owner answer 14),
-  `decisionRules`, `dmnFiles` (`rule-export.ts`, `pnpm model:dmn`), `writeGuardConflicts`
+  `decisionRules`, `ruleFiles` (`rule-export.ts`, `pnpm model:rules-export`: DMN, Markdown and
+  `rules.csv`; the text in `rule-export-text.ts`), `writeGuardConflicts`
   (`rule-guards.ts`: guards along a path that cannot all hold → `ambiguous`, after
   `pnpm model:mine`, T064), `queueRegressions`,
   `recordRuleMismatches`, `pendingMismatchReplays`, `resolveRuleMismatch` (`regressions.ts`,

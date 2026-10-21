@@ -64,7 +64,8 @@ Layer: app (Python, FastAPI + Jinja + htmx, uv; outside the TS layers)
 - Spec 039 (T100, the designer's 2.0 pages): `nav.py` groups the sections (Home · Changes · Review
   | Portal model: Processes · Screens · Rules · Docs | Machine: Scans · Settings);
   `queries_rules.py` + `web/rules.py` (Rules, v2-11 / v2-12: decision tables, boundary tests,
-  history; read-only); `queries_model_facts.py` + `partials/model_facts.html` (a process page's
+  history; read-only; `rules_export.py` runs `pnpm model:rules-export` into a cached temp folder
+  for the zip, single files and a rule's "In the export", OV-5); `queries_model_facts.py` + `partials/model_facts.html` (a process page's
   "In the portal model": triggers incl. deep links, outcomes, explored, rules).
   `queries_changes.py` + `web/changes.py` (Changes, v2-02: a range of model versions, grouped by
   process and screen, explanations in the UI's words) and `queries_change_detail.py` +

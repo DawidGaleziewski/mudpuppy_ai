@@ -1212,11 +1212,12 @@ the waiting checks within a budget (20 replays by default). Its runs have the mo
 When the same button sometimes leads to one screen and sometimes to another, the system
 compares the values typed before each press and finds the rule that separates the outcomes,
 such as "drivers under 18 are refused". The rule is a claim: its boundary tests check it,
-a person confirms it, and confirmed or supported rules export as DMN files (`pnpm model:dmn`).
+a person confirms it, and the rules export as DMN tables, Markdown pages (the sentence, then
+the table) and one CSV (Rules → Export, or `pnpm model:rules-export`).
 
 *Example:* H-0002 "Drivers under 18 are refused" on SC-0003, supported by 3 boundary tests.
 
-*Seen in:* Rules; What changed → Decision rules; process export rules/*.dmn
+*Seen in:* Rules; Rules → In the export; What changed → Decision rules; process export rules/*.dmn
 
 *Labels:* `decision rule`, `business rule`, `DMN`, `Broken`, `Tested`, `Replaced`
 
