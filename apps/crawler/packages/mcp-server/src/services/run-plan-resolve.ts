@@ -2,7 +2,7 @@
 // where the run starts (marks, the parent's frontier, the failed action), what it leaves out
 // (Skip marks), and how each start point is reached (the recorded recipe, or why there is none).
 
-import { nowIso } from '@pathfinder/core';
+import { nowIso } from '@mudpuppy/core';
 import type { ServerContext } from '../context.js';
 import { ToolError } from '../errors.js';
 import { resolveRecipe, type Recipe } from './checkpoints.js';

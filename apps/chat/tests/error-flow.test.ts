@@ -2,7 +2,7 @@ import { mkdtempSync, readdirSync, readFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { SECRETS } from '@pathfinder/core';
+import { SECRETS } from '@mudpuppy/core';
 import { findError, logError } from '../src/error-log.js';
 import type { ChatEvent } from '../src/events.js';
 import { ChatService } from '../src/service.js';
@@ -15,7 +15,7 @@ import { memoryStore, until } from './helpers.js';
  */
 let dir: string;
 beforeEach(() => {
-  dir = mkdtempSync(join(tmpdir(), 'pathfinder-errflow-'));
+  dir = mkdtempSync(join(tmpdir(), 'mudpuppy-errflow-'));
 });
 afterEach(() => {
   rmSync(dir, { recursive: true, force: true });

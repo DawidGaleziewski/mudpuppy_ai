@@ -6,8 +6,8 @@
  * deviation; `resolveErrorReplays` classifies with their results and writes the hypothesis.
  */
 import type BetterSqlite3 from 'better-sqlite3';
-import { nowIso } from '@pathfinder/core';
-import { classify, MODEL_DEFAULTS, type Deviation, type DeviationKind } from '@pathfinder/model';
+import { nowIso } from '@mudpuppy/core';
+import { classify, MODEL_DEFAULTS, type Deviation, type DeviationKind } from '@mudpuppy/model';
 import { hypothesisKeys, writeHypothesis } from './interpret-writer.js';
 import { journeyPath, referenceOf, type PendingReplay, type ReplayResult } from './replay-tests.js';
 

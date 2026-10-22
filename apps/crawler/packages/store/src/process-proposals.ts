@@ -7,8 +7,8 @@
  */
 import { createHash } from 'node:crypto';
 import type BetterSqlite3 from 'better-sqlite3';
-import { newId, nowIso } from '@pathfinder/core';
-import { GroupingSuggestion, observedSteps, screensKey } from '@pathfinder/chat-model';
+import { newId, nowIso } from '@mudpuppy/core';
+import { GroupingSuggestion, observedSteps, screensKey } from '@mudpuppy/chat-model';
 import { blockedBy, proposalConstraints } from './proposal-constraints.js';
 import {
   boundaryGraph,
@@ -17,7 +17,7 @@ import {
   endpointFamily,
   type ScreenSignals,
   type WeightedEdge,
-} from '@pathfinder/model';
+} from '@mudpuppy/model';
 
 type Raw = BetterSqlite3.Database;
 

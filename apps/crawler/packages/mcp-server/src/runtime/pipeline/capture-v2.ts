@@ -3,10 +3,10 @@
 // already observed; the writes happen in `record_observation` and `record_transition`.
 
 import { createHash } from 'node:crypto';
-import type { StepResult } from '@pathfinder/core';
-import { transientError, type NetworkObservation } from '@pathfinder/crawler';
-import { canonicalizeAria, errorSignals, hasErrors } from '@pathfinder/fingerprint';
-import { buildSignatures, stepResult, type AssetRef, type BuildSignature } from '@pathfinder/model';
+import type { StepResult } from '@mudpuppy/core';
+import { transientError, type NetworkObservation } from '@mudpuppy/crawler';
+import { canonicalizeAria, errorSignals, hasErrors } from '@mudpuppy/fingerprint';
+import { buildSignatures, stepResult, type AssetRef, type BuildSignature } from '@mudpuppy/model';
 import type { RunState } from '../run-state.js';
 import { isBrowserErrorPage } from './fingerprint-step.js';
 

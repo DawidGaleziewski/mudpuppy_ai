@@ -12,7 +12,7 @@ export interface ServerEntry {
   environment: string;
   /** The checkout the server's code runs from. */
   codeRoot: string;
-  server: 'pathfinder' | 'pathfinder-ba';
+  server: 'mudpuppy' | 'mudpuppy-ba';
   startedAt: string;
 }
 

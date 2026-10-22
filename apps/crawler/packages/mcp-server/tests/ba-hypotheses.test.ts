@@ -1,4 +1,4 @@
-import { reconcilePortalModel } from '@pathfinder/store';
+import { reconcilePortalModel } from '@mudpuppy/store';
 import { describe, expect, it } from 'vitest';
 import { startBa } from './ba-harness.js';
 

@@ -6,13 +6,13 @@
 // screens are the portal model's where it has one.
 
 import { readFileSync } from 'node:fs';
-import { maskText } from '@pathfinder/core';
+import { maskText } from '@mudpuppy/core';
 import {
   computeFingerprint,
   ROWS_V2_PROFILE,
   type FingerprintIndex,
   type FingerprintProfile,
-} from '@pathfinder/fingerprint';
+} from '@mudpuppy/fingerprint';
 import type { ServerContext } from '../context.js';
 
 interface StateRow {

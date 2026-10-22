@@ -2,7 +2,7 @@ import { mkdirSync, mkdtempSync, readFileSync, rmSync, utimesSync } from 'node:f
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, describe, expect, it } from 'vitest';
-import { migrateUp, openDb } from '@pathfinder/store';
+import { migrateUp, openDb } from '@mudpuppy/store';
 import { MIGRATIONS } from '../../tests/helpers.js';
 import { newestWorkspace, parseConfig, REPO_ROOT } from '../config.js';
 import { cliArgs, classifyOutcome, createWorkspace, GROUPING_TOOLS } from '../harness/index.js';
@@ -95,8 +95,8 @@ describe('createWorkspace', () => {
     const mcp = JSON.parse(readFileSync(join(ws.dir, '.mcp.json'), 'utf8')) as {
       mcpServers: Record<string, { env: Record<string, string> }>;
     };
-    expect(Object.keys(mcp.mcpServers)).toEqual(['pathfinder-chat']);
-    expect(mcp.mcpServers['pathfinder-chat']!.env.PATHFINDER_ROOT).toBe(ws.dir);
+    expect(Object.keys(mcp.mcpServers)).toEqual(['mudpuppy-chat']);
+    expect(mcp.mcpServers['mudpuppy-chat']!.env.MUDPUPPY_ROOT).toBe(ws.dir);
 
     // Only the two grouping tools, the orchestrator's own prompt, the chat's handover shape.
     const args = cliArgs(parsed.config, ws, regroupPrompt('reference-insurer'), 'sid');

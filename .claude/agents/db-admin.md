@@ -1,6 +1,6 @@
 ---
 name: db-admin
-description: Changes Pathfinder's SQLite schema — tables, columns, indexes, reversible migrations — and keeps the data/schema snapshot, data-model.md and Zod records in sync. Use proactively when a task adds or alters persisted structure or the evidence layout. Not for storage-engine advice.
+description: Changes MudPuppy's SQLite schema — tables, columns, indexes, reversible migrations — and keeps the data/schema snapshot, data-model.md and Zod records in sync. Use proactively when a task adds or alters persisted structure or the evidence layout. Not for storage-engine advice.
 tools: Read, Grep, Glob, Edit, Write, Bash, Skill
 model: sonnet
 ---

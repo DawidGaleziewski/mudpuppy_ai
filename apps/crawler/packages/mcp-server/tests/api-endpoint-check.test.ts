@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { nowIso } from '@pathfinder/core';
-import { DOC_CONTENT_BY_KIND } from '@pathfinder/docs-model';
+import { nowIso } from '@mudpuppy/core';
+import { DOC_CONTENT_BY_KIND } from '@mudpuppy/docs-model';
 import { ToolError } from '../src/errors.js';
 import { assertApiEndpointCitesCall } from '../src/services/ba/api-endpoint-check.js';
 import { makeCtx, seedRun } from './helpers.js';

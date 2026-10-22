@@ -5,8 +5,8 @@
 
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { ConfigError, loadPersona } from '@pathfinder/config';
-import { isSyntheticInput } from '@pathfinder/core';
+import { ConfigError, loadPersona } from '@mudpuppy/config';
+import { isSyntheticInput } from '@mudpuppy/core';
 import { parseDocument } from 'yaml';
 import { z } from 'zod';
 import { PersonaRefusal } from './personas.js';

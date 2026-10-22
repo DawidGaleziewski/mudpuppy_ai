@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { builtinRuleSet } from '@pathfinder/safety';
+import { builtinRuleSet } from '@mudpuppy/safety';
 import { decide, type GateContext } from '../src/action-gate.js';
 import type { RobotsCheck } from '../src/robots-registry.js';
 

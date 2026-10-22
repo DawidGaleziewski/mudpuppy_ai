@@ -1,4 +1,4 @@
-# @pathfinder/trace
+# @mudpuppy/trace
 
 The run-trace model: Zod schemas of trace boots, spans and imported agent turns, and the pure helpers
 that shape what goes into a trace (scrubbing, payload limits, URL shaping, transcript parsing and
@@ -17,8 +17,9 @@ Layer: models (G-07; `apps/crawler/layers.json`)
 
 ## Invariants
 
-- Pure: no DB, no browser, no LLM. The DB writer (`createTracer`) lives in `@pathfinder/store`.
-- Enums equal the CHECK lists of `data/migrations/0003_trace.up.sql` (`tests/schemas.test.ts`).
+- Pure: no DB, no browser, no LLM. The DB writer (`createTracer`) lives in `@mudpuppy/store`.
+- Enums equal the trace tables' CHECK lists in `data/schema/schema.sql` (from 0003, server renamed
+  by 0048; `tests/schemas.test.ts`).
 - Nothing unscrubbed or untruncated reaches a span: secrets and PII are masked here first.
 
 ## Where to add things

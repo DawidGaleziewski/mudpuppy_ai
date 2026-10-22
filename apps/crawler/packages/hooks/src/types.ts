@@ -2,10 +2,10 @@
 // owner writes in `portals/<id>/hooks.ts`; it runs with full power (spec 021), and every run is
 // traced. The browser parts are a narrow interface the MCP server fills from Playwright.
 
-import type { HookPoint, PortalConfig } from '@pathfinder/config';
+import type { HookPoint, PortalConfig } from '@mudpuppy/config';
 import { z } from 'zod';
 
-export type { HookPoint } from '@pathfinder/config';
+export type { HookPoint } from '@mudpuppy/config';
 
 /** A cookie as Playwright takes it (`url` or `domain` + `path`). */
 export interface HookCookie {

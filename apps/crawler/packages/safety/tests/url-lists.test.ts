@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { urlEntryKind as entryKind, urlEntryProblem as entryProblem } from '@pathfinder/config';
+import { urlEntryKind as entryKind, urlEntryProblem as entryProblem } from '@mudpuppy/config';
 import { checkUrlLists, matchUrlEntry } from '../src/url-lists.js';
 
 describe('URL list entries (spec 023 US3)', () => {

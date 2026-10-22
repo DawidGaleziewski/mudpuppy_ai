@@ -47,11 +47,11 @@ export function requireEnvironment(root: string, name: string | undefined): stri
   const declared = declaredEnvironments(root);
   const known = declared.length > 0 ? declared.join(', ') : 'none: declare one in a portal file';
   if (name === undefined || name.trim() === '')
-    throw new ConfigError('PATHFINDER_ENV', [
-      `no environment chosen and there is no default; set PATHFINDER_ENV to one of: ${known}`,
+    throw new ConfigError('MUDPUPPY_ENV', [
+      `no environment chosen and there is no default; set MUDPUPPY_ENV to one of: ${known}`,
     ]);
   if (declared.includes(name) || EVAL_ENVIRONMENT.test(name)) return name;
-  throw new ConfigError('PATHFINDER_ENV', [
+  throw new ConfigError('MUDPUPPY_ENV', [
     `environment "${name}" is not declared by any portal (declared: ${known}); a typo would open a separate, empty store`,
   ]);
 }

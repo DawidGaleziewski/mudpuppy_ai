@@ -10,7 +10,7 @@
  * day the portal counts ages from, when it is not today.
  */
 import { join, resolve } from 'node:path';
-import { createBrowserRuntime, openLocalClient, replayPortal } from '@pathfinder/mcp-server';
+import { createBrowserRuntime, openLocalClient, replayPortal } from '@mudpuppy/mcp-server';
 import { scriptEnvironment } from './script-env.js';
 
 const args = process.argv.slice(2);

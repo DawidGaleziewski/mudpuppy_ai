@@ -3,7 +3,7 @@
 // held, or the browser goes offline). Nothing malformed reaches the server. They run wherever the
 // action limit allows the submit, production included.
 
-import type { ProbeFault } from '@pathfinder/core';
+import type { ProbeFault } from '@mudpuppy/core';
 import { defineProbe, type ProbeTry } from '../define.js';
 
 const technical = (id: string, fault: ProbeFault, summary: string) =>

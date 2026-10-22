@@ -28,9 +28,9 @@ describes one: who takes part, what triggers it, the steps and decisions, and wh
 work after a change. Keeping them separate matters: an as-is model is a record of facts, and mixing
 in improvements makes it unreliable as a basis for rebuilding or comparing.
 
-## How Pathfinder uses it
+## How MudPuppy uses it
 
-Pathfinder only does as-is work. Trace runs record how a process runs on the live portal, step by
+MudPuppy only does as-is work. Trace runs record how a process runs on the live portal, step by
 step; in pass 3 the BA agent turns each trace into a `PROC` record (goal, persona, trigger, steps,
 outcome) and a [use case](use-case.md). It also states how much of the process was actually observed
 (`observed_extent`, for example "up to the submit boundary"), so nobody reads a partial trace as the

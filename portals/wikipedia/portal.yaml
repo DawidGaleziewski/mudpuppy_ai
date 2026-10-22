@@ -33,7 +33,7 @@ denylist:
 rate_limit:
   requests_per_second: 1
   max_concurrency: 1
-  user_agent: PathfinderAI-Crawler/0.1 (read-only learning eval, one trace at a time)
+  user_agent: MudPuppy-Crawler/0.1 (read-only learning eval, one trace at a time)
 environments:
   production:
     base_url: https://www.wikipedia.org/

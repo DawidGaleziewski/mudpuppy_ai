@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import type { Confidence } from '@pathfinder/core';
-import type { EvidenceTargetKind } from '@pathfinder/docs-model';
+import type { Confidence } from '@mudpuppy/core';
+import type { EvidenceTargetKind } from '@mudpuppy/docs-model';
 import { checkObserved, type ResolvedTarget } from '../src/observed-rule.js';
 
 const target = (

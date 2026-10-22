@@ -1,31 +1,31 @@
 {
   "mcpServers": {
-    "pathfinder": {
+    "mudpuppy": {
       "type": "stdio",
       "command": "pnpm",
       "args": [
         "--dir",
         "apps/crawler",
         "--filter",
-        "@pathfinder/mcp-server",
+        "@mudpuppy/mcp-server",
         "start"
       ],
       "env": {
-        "PATHFINDER_ENV": "sandbox"
+        "MUDPUPPY_ENV": "sandbox"
       }
     },
-    "pathfinder-ba": {
+    "mudpuppy-ba": {
       "type": "stdio",
       "command": "pnpm",
       "args": [
         "--dir",
         "apps/crawler",
         "--filter",
-        "@pathfinder/mcp-server",
+        "@mudpuppy/mcp-server",
         "start:ba"
       ],
       "env": {
-        "PATHFINDER_ENV": "sandbox"
+        "MUDPUPPY_ENV": "sandbox"
       }
     }
   }

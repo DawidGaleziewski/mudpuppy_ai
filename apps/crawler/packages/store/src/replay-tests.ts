@@ -7,14 +7,14 @@
  * a failed test refutes it, passing tests support it. A diverged replay is inconclusive.
  */
 import type BetterSqlite3 from 'better-sqlite3';
-import { newId, nowIso } from '@pathfinder/core';
+import { newId, nowIso } from '@mudpuppy/core';
 import {
   ageOf,
   MODEL_DEFAULTS,
   replayInputs,
   statusOf,
   type HypothesisStatus,
-} from '@pathfinder/model';
+} from '@mudpuppy/model';
 import { hypothesisEvents } from './model-decide.js';
 
 type Raw = BetterSqlite3.Database;

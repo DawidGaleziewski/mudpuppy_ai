@@ -1,13 +1,13 @@
-# pathfinder-dashboard
+# mudpuppy-dashboard
 
 Read-only operator dashboard over the crawler's SQLite store, showing portals, runs, states, actions, safety class, frontier, forms, network shapes, robots.txt, decision log. Docs tab shows BA agent's documentation (SRS view). Glossary tab explains MudPuppy terms.
 
 Layer: app (Python, FastAPI + Jinja + htmx, uv; outside the TS layers)
 
 ## Run
-- `cd apps/dashboard && uv sync && uv run pathfinder-dashboard` → http://127.0.0.1:8765.
-- Dev mode: `uv run pathfinder-dashboard --dev`.
-- Env: `PATHFINDER_DATA_DIR`, `PATHFINDER_DEFAULT_ENV`, `PATHFINDER_PORT`, `PATHFINDER_DEV`; chat service URL `PATHFINDER_CHAT_URL` (see README).
+- `cd apps/dashboard && uv sync && uv run mudpuppy-dashboard` → http://127.0.0.1:8765.
+- Dev mode: `uv run mudpuppy-dashboard --dev`.
+- Env: `MUDPUPPY_DATA_DIR`, `MUDPUPPY_DEFAULT_ENV`, `MUDPUPPY_PORT`, `MUDPUPPY_DEV`; chat service URL `MUDPUPPY_CHAT_URL` (see README).
 
 ## Layout
 - `app.py`: only builds the app (settings, templates and filters, the `Web` object, the portal
@@ -88,7 +88,7 @@ Layer: app (Python, FastAPI + Jinja + htmx, uv; outside the TS layers)
   `Ctx.conn` adds TEMP views named like the tables, cut at the version's `built_at`, so the read
   models run unchanged; posts with `as_of` are refused in `app.py`, `static/js/as-of.js` disables
   them; the header's As of menu and the banner in `base.html`).
-- `servers.py`: live `pathfinder` servers read from `<data_dir>/servers/*.json`; the header names
+- `servers.py`: live `mudpuppy` servers read from `<data_dir>/servers/*.json`; the header names
   those on another environment or checkout (spec 031 R-61). Read-only, dead files are skipped.
 - `models.py`: read-only models of SQLite schema; drift test vs. `data/schema/schema.sql`.
 - `templates/`, `static/`, `diagrams.py`, `glossary.py`, `live.py`, `chat_client.py`.
@@ -131,8 +131,8 @@ Layer: app (Python, FastAPI + Jinja + htmx, uv; outside the TS layers)
   `apps/dashboard/package.json` exists only for this check (Playwright, axe-core).
 
 ## Other commands
-- `uv run pathfinder-glossary --write`: glossary sync.
-- `pathfinder-dashboard-smoke`: smoke tests.
+- `uv run mudpuppy-glossary --write`: glossary sync.
+- `mudpuppy-dashboard-smoke`: smoke tests.
 
 ## See also
 - specs/003-dashboard-ui (R-12), specs/004-ba-documentation (R-15), specs/006-glossary-ba-wiki (R-22)

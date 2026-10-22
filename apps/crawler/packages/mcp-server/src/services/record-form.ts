@@ -1,4 +1,4 @@
-import { Confidence, FieldNameSource, newId, nowIso } from '@pathfinder/core';
+import { Confidence, FieldNameSource, newId, nowIso } from '@mudpuppy/core';
 import { z } from 'zod';
 import type { ServerContext } from '../context.js';
 import { ToolError, parseInput } from '../errors.js';

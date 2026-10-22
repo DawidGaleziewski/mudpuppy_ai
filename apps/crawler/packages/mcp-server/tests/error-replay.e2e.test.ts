@@ -1,10 +1,10 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { canLaunchBrowser } from '@pathfinder/crawler';
+import { canLaunchBrowser } from '@mudpuppy/crawler';
 import {
   FAILING_MODEL,
   startReferencePortal,
   type ReferencePortal,
-} from '@pathfinder/reference-portal';
+} from '@mudpuppy/reference-portal';
 import { replay, type ReplayPlan } from '../src/replay-driver.js';
 import { replayPortal } from '../src/replay-portal.js';
 import { startHarness } from './harness.js';
@@ -38,7 +38,7 @@ scope:
   max_steps: 10
 urls:
   disallowed: ["/__admin/*"]
-rate_limit: { requests_per_second: 20, max_concurrency: 1, user_agent: "PathfinderAI-Crawler/0.1 (local reference portal)" }
+rate_limit: { requests_per_second: 20, max_concurrency: 1, user_agent: "MudPuppy-Crawler/0.1 (local reference portal)" }
 `;
 
 let portal: ReferencePortal;

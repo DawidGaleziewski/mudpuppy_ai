@@ -2,14 +2,14 @@ import { readFile, readdir } from 'node:fs/promises';
 import { glob } from 'node:fs/promises';
 import { homedir } from 'node:os';
 import { join } from 'node:path';
-import { createEvidenceStore, newId, nowIso, type EvidenceStore } from '@pathfinder/core';
+import { createEvidenceStore, newId, nowIso, type EvidenceStore } from '@mudpuppy/core';
 import {
   fitText,
   joinTurns,
   parseTranscript,
   type CallSpanRef,
   type JoinedTurn,
-} from '@pathfinder/trace';
+} from '@mudpuppy/trace';
 import { dbPathFor, openDb } from './db.js';
 
 export interface ImportAgentOptions {

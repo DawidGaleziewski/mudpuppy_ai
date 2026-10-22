@@ -2,7 +2,7 @@
 // state, not by the model, so the BA sees where the work stands and the valid next moves the moment
 // the chat opens. The orchestrator gives the same proposals later through `workflow_state`.
 
-import type { Move, WorkflowState } from '@pathfinder/workflow';
+import type { Move, WorkflowState } from '@mudpuppy/workflow';
 
 const MOVE_TEXT: Record<Move, string> = {
   review_superseded: 're-anchor amendments in Review (a new scan changed their screens)',

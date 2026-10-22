@@ -10,7 +10,7 @@ own `CLAUDE.md`), the operator scripts under `scripts/`, and the test tiers.
 - `pnpm test:slow` — the `*.e2e.test.ts` browser files and the whole gate set (proving ground on
   4200/4201); before committing `mcp-server/src/runtime/**`, `crawler/src/**`, `gates/**` or
   proving-ground changes. `pnpm test` runs everything (close-out).
-- `pnpm test:perf` — wall-clock budget tests (`PATHFINDER_PERF=1`), alone; the end of `test:slow`
+- `pnpm test:perf` — wall-clock budget tests (`MUDPUPPY_PERF=1`), alone; the end of `test:slow`
   and `test` (spec 022 F-06).
 - `pnpm lint:report [dir…]` — warning counts per rule and package (`specs/012-maintainability/lint-baseline.md`).
 - `pnpm mutate [--package <name>]` — mutation testing on demand (G-32), mutates files in place

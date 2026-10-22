@@ -13,9 +13,9 @@ import httpx2
 import pytest
 from fastapi.testclient import TestClient
 
-from pathfinder_dashboard import db, queries_chat
-from pathfinder_dashboard.app import create_app
-from pathfinder_dashboard.settings import Settings
+from mudpuppy_dashboard import db, queries_chat
+from mudpuppy_dashboard.app import create_app
+from mudpuppy_dashboard.settings import Settings
 
 from .conftest import T0, Store, insert, ts
 from .test_chat import CONV, ORIGIN, Service, seed_conversation, seed_message, text
@@ -294,7 +294,7 @@ def test_credentials_cross_origin_and_service_down(mapped: Store) -> None:
     with make_client(mapped, Service(up=False)) as c:
         r = c.post(f"/chat/conversations/{CONV}/credentials", json=ok, headers=ORIGIN)
     assert r.status_code == 503 and "not running" in r.json()["message"]
-    assert "PATHFINDER_ENV=" in r.json()["message"]  # the start command names an environment
+    assert "MUDPUPPY_ENV=" in r.json()["message"]  # the start command names an environment
     assert FAKE_SECRET not in r.text
 
 
@@ -572,7 +572,7 @@ def test_amendment_create_errors(mapped: Store) -> None:
 
 
 def queries_cap() -> int:
-    from pathfinder_dashboard.app import MAX_ATTACHMENT_B64
+    from mudpuppy_dashboard.app import MAX_ATTACHMENT_B64
 
     return MAX_ATTACHMENT_B64
 
@@ -715,7 +715,7 @@ def test_reapply_service_refusals_pass_through(mapped: Store) -> None:
 
 
 def test_new_pages_are_in_the_smoke_start_set() -> None:
-    from pathfinder_dashboard import smoke
+    from mudpuppy_dashboard import smoke
 
     assert "/chat" in smoke.START_PAGES and "/amendments/superseded" in smoke.START_PAGES
 

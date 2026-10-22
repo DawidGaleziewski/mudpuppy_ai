@@ -5,7 +5,7 @@ import { z } from 'zod';
 
 /**
  * Schema of the portal's ground truth (specs/004-ba-documentation/contracts/ground-truth.md). The
- * evaluator in `@pathfinder/docs` declares its own compatible input type and never imports this.
+ * evaluator in `@mudpuppy/docs` declares its own compatible input type and never imports this.
  */
 
 const Id = z.string().regex(/^[A-Z]+\d{2}(\.\d+)?$/);

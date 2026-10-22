@@ -7,7 +7,7 @@ followed**, together with a record of what happened to each one. Back to the
 ## Where the word comes from
 
 "Frontier" (or "crawl frontier") is the standard term in web crawlers and graph search. It is not
-a business-analysis term and Pathfinder did not invent it. The image is a border between explored
+a business-analysis term and MudPuppy did not invent it. The image is a border between explored
 and unexplored land: everything behind the border has been visited, and the frontier is the line
 of places you can see from there but have not stepped into yet.
 
@@ -33,7 +33,7 @@ a larger budget would have explored.
 
 ## Why the table also keeps history
 
-A textbook frontier only holds what is still to do. Pathfinder keeps every item, done or
+A textbook frontier only holds what is still to do. MudPuppy keeps every item, done or
 skipped, in the same table, so the frontier also answers "what did the crawler decide not to do,
 and why?". That matters for documentation: a skipped `mutating` button is a known part of the
 portal that the map run deliberately did not press, not something that does not exist.

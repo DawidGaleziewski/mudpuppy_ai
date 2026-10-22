@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { workflowState, type WorkflowInput } from '@pathfinder/workflow';
+import { workflowState, type WorkflowInput } from '@mudpuppy/workflow';
 import { openingMessage } from '../src/opening.js';
 import { testService } from './helpers.js';
 

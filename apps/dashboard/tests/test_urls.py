@@ -6,7 +6,7 @@ from __future__ import annotations
 import json
 from dataclasses import asdict
 
-from pathfinder_dashboard import queries_urls
+from mudpuppy_dashboard import queries_urls
 
 from .conftest import Store, insert, make_client
 from .paths import REPO_ROOT

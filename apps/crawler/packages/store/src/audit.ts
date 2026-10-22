@@ -1,7 +1,7 @@
 import { readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import type { PathfinderDb } from './db.js';
-import { maskText } from '@pathfinder/core';
+import type { MudPuppyDb } from './db.js';
+import { maskText } from '@mudpuppy/core';
 
 export interface PiiFinding {
   where: string;
@@ -58,7 +58,7 @@ const SCANNED: Record<string, string[]> = {
  */
 export async function auditPii(opts: {
   evidenceDir?: string;
-  db?: PathfinderDb;
+  db?: MudPuppyDb;
 }): Promise<{ scanned: number; findings: PiiFinding[] }> {
   const findings: PiiFinding[] = [];
   let scanned = 0;
@@ -116,7 +116,7 @@ export interface StabilityReport {
  * template is stable when both runs saw the same set of level-1 fingerprints for it.
  */
 export async function compareRuns(
-  db: PathfinderDb,
+  db: MudPuppyDb,
   runA: string,
   runB: string,
 ): Promise<StabilityReport> {

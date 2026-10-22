@@ -1,6 +1,6 @@
 // A corporate CA the run trusts (spec 031 US4, R-63, field GC-12): behind a TLS-inspecting proxy
 // every certificate is re-signed by the company's CA, which neither Node nor the browser trusts.
-// The file is read by `readTrustedCa` (@pathfinder/config); applying it has two halves:
+// The file is read by `readTrustedCa` (@mudpuppy/config); applying it has two halves:
 // - Node (robots fetch, the request gate's `route.fetch` of navigations): the certificates are
 //   added to the process's default CA list (additive; the system roots stay).
 // - Chromium: the certificates' SPKI hashes go to `--ignore-certificate-errors-spki-list`, which
@@ -9,7 +9,7 @@
 //   the file should hold the issuing CA, and `pnpm portal:doctor` checks the presented chain.
 
 import tls from 'node:tls';
-import type { TrustedCa } from '@pathfinder/config';
+import type { TrustedCa } from '@mudpuppy/config';
 
 const added = new Set<string>();
 

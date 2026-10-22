@@ -1,10 +1,10 @@
-// Load the recorded facts `@pathfinder/workflow` needs for one portal (R-30 T015, research R4).
+// Load the recorded facts `@mudpuppy/workflow` needs for one portal (R-30 T015, research R4).
 // Read-only queries over the store plus the portal and persona folders; no writes.
 
 import { existsSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 import type BetterSqlite3 from 'better-sqlite3';
-import { loadEffectiveConfig, portalEnvironments, type Environment } from '@pathfinder/config';
+import { loadEffectiveConfig, portalEnvironments, type Environment } from '@mudpuppy/config';
 import type {
   ProcessFact,
   RecordedStep,
@@ -14,7 +14,7 @@ import type {
   Step,
   StepStatus,
   WorkflowInput,
-} from '@pathfinder/workflow';
+} from '@mudpuppy/workflow';
 
 export interface WorkspacePaths {
   repoRoot: string;

@@ -1,14 +1,14 @@
 // Reads and the revision write of BA processes (spec 022 M5), used inside the callers'
 // transactions. A write on a stale base answers 409 STALE_REVISION and overwrites nothing.
 
-import { newId, nowIso } from '@pathfinder/core';
+import { newId, nowIso } from '@mudpuppy/core';
 import {
   BaProcess,
   type BaProcessChange,
   ProcessModel,
   ProcessModelRevision,
-} from '@pathfinder/chat-model';
-import { type PathfinderDb } from '@pathfinder/store';
+} from '@mudpuppy/chat-model';
+import { type MudPuppyDb } from '@mudpuppy/store';
 import type { z } from 'zod';
 import { HttpError } from './http-error.js';
 import { nextProcessKey, observedSteps, type StateRow, type Steps } from './process-steps.js';
@@ -35,7 +35,7 @@ export function stale(what: string, had: number, now: number, latest: unknown): 
 }
 
 export async function loadProcess(
-  db: PathfinderDb,
+  db: MudPuppyDb,
   portal: string,
   id: string,
 ): Promise<BaProcess> {
@@ -50,7 +50,7 @@ export async function loadProcess(
 }
 
 export async function loadModel(
-  db: PathfinderDb,
+  db: MudPuppyDb,
   processId: string,
   label: string,
 ): Promise<ProcessModel> {
@@ -65,7 +65,7 @@ export async function loadModel(
 }
 
 export async function loadRevision(
-  db: PathfinderDb,
+  db: MudPuppyDb,
   modelId: string,
   rev: number,
 ): Promise<ProcessModelRevision> {
@@ -81,7 +81,7 @@ export async function loadRevision(
 
 /** Recorded states of the portal in the given order; 404 naming the unknown ones. */
 export async function statesOf(
-  db: PathfinderDb,
+  db: MudPuppyDb,
   portal: string,
   ids: readonly string[],
 ): Promise<StateRow[]> {
@@ -103,7 +103,7 @@ export async function statesOf(
 
 /** Which of the steps' states the portal has recorded. */
 export async function knownStates(
-  db: PathfinderDb,
+  db: MudPuppyDb,
   portal: string,
   steps: Steps,
 ): Promise<Set<string>> {
@@ -119,7 +119,7 @@ export async function knownStates(
 }
 
 /** Every step id any revision of a model used (a new step's id never repeats one). */
-export async function usedStepIds(db: PathfinderDb, modelId: string): Promise<string[]> {
+export async function usedStepIds(db: MudPuppyDb, modelId: string): Promise<string[]> {
   const rows = await db
     .selectFrom('process_model_revisions')
     .select('steps')
@@ -129,14 +129,14 @@ export async function usedStepIds(db: PathfinderDb, modelId: string): Promise<st
 }
 
 /** Step ids of the revision a model was branched from (what `from` may point at). */
-export async function parentStepIds(db: PathfinderDb, v: ProcessModel): Promise<Set<string>> {
+export async function parentStepIds(db: MudPuppyDb, v: ProcessModel): Promise<Set<string>> {
   if (v.branched_from_model_id === null || v.branched_from_rev === null) return new Set();
   const parent = await loadRevision(db, v.branched_from_model_id, v.branched_from_rev);
   return new Set(parent.steps.map((s) => s.id));
 }
 
 export async function insertModelRevision(
-  db: PathfinderDb,
+  db: MudPuppyDb,
   r: Omit<ProcessModelRevision, 'created_at'>,
 ): Promise<ProcessModelRevision> {
   const row = ProcessModelRevision.parse({ ...r, created_at: nowIso() });
@@ -157,7 +157,7 @@ export interface ModelWrite {
 
 /** Move a model head on to a new revision; refuses a stale base. */
 export async function writeModel(
-  db: PathfinderDb,
+  db: MudPuppyDb,
   head: ProcessModel,
   baseRev: number,
   w: ModelWrite,
@@ -203,7 +203,7 @@ function archivedAt(head: BaProcess, archived: boolean | undefined, now: string)
 
 /** Move a process head on to a new revision (rename, stage, archive); refuses a stale base. */
 export async function writeProcess(
-  db: PathfinderDb,
+  db: MudPuppyDb,
   head: BaProcess,
   baseRev: number,
   w: ProcessWrite,
@@ -267,7 +267,7 @@ export interface NewProcess {
 
 /** A new process with its revision r1 and its as-is A r1 built from recorded states. */
 export async function insertProcess(
-  db: PathfinderDb,
+  db: MudPuppyDb,
   portal: string,
   input: NewProcess,
 ): Promise<ProcessOutcome> {
@@ -315,7 +315,7 @@ export async function insertProcess(
  * the BA's process record opened without it (spec 039 T070).
  */
 export async function insertAsIs(
-  db: PathfinderDb,
+  db: MudPuppyDb,
   processId: string,
   input: Pick<NewProcess, 'states' | 'author' | 'source'>,
   now = nowIso(),

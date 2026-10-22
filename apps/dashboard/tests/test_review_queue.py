@@ -9,7 +9,7 @@ import sqlite3
 
 import httpx2
 
-from pathfinder_dashboard import queries_queue, queries_review
+from mudpuppy_dashboard import queries_queue, queries_review
 
 from .conftest import Store, ts
 from .test_changes import P, seed, seed_rule_and_rename

@@ -4,7 +4,7 @@
 // screen records for one route template ("one screen twice"). `docs:audit` prints them apart from
 // its integrity findings; they never make the audit fail.
 
-import type { DocKind } from '@pathfinder/docs-model';
+import type { DocKind } from '@mudpuppy/docs-model';
 
 export type QualityCheck = 'steps_uncited' | 'no_requirements' | 'duplicate_screen_route';
 

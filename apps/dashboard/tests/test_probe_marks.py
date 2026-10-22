@@ -9,8 +9,8 @@ import json
 import httpx2
 from fastapi.testclient import TestClient
 
-from pathfinder_dashboard.app import create_app
-from pathfinder_dashboard.settings import Settings
+from mudpuppy_dashboard.app import create_app
+from mudpuppy_dashboard.settings import Settings
 
 from .conftest import Store
 from .test_chat import ORIGIN, text
@@ -148,7 +148,7 @@ def test_no_reviewer_or_a_foreign_origin_marks_nothing(empty_store: Store) -> No
             headers=ORIGIN,
             follow_redirects=False,
         )
-        assert "PATHFINDER_REVIEWER" in r.headers["location"]
+        assert "MUDPUPPY_REVIEWER" in r.headers["location"]
         foreign = c.post(
             "/states/st-2/probe-mark",
             data={"action": "mark"},

@@ -11,7 +11,7 @@ from typing import Any
 import pytest
 import yaml
 
-from pathfinder_dashboard.glossary import (
+from mudpuppy_dashboard.glossary import (
     Glossary,
     GlossaryError,
     _split_front_matter,

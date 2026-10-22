@@ -4,7 +4,7 @@
  * truth those scans are checked against.
  */
 import { join } from 'node:path';
-import { readGroundTruth } from '@pathfinder/docs';
+import { readGroundTruth } from '@mudpuppy/docs';
 
 export interface EvalTask {
   /** The portal id; the task's results go to `data/evals/grouping-<portal>/`. */

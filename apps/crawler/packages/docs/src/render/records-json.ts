@@ -14,7 +14,7 @@ export function canonical(value: unknown): unknown {
   return value;
 }
 
-export const EXPORT_SCHEMA = 'pathfinder-srs-export/1';
+export const EXPORT_SCHEMA = 'mudpuppy-srs-export/1';
 
 /** The inventory without its internal state id (the record key already names the screen). */
 function urlsJson(inv: StateInventory) {

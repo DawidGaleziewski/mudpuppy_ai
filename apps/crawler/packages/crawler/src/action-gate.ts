@@ -1,4 +1,4 @@
-import { minSafetyClass, type SafetyClass } from '@pathfinder/core';
+import { minSafetyClass, type SafetyClass } from '@mudpuppy/core';
 import {
   checkBudgets,
   checkDenylist,
@@ -12,7 +12,7 @@ import {
   type Decision,
   type RuleSet,
   type RunScope,
-} from '@pathfinder/safety';
+} from '@mudpuppy/safety';
 import type { RobotsCheck } from './robots-registry.js';
 
 export type Proposal =

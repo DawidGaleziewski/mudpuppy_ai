@@ -20,7 +20,7 @@ import {
   migrateUp,
   openDb,
   setParameterRole,
-} from '@pathfinder/store';
+} from '@mudpuppy/store';
 
 const USAGE =
   'usage: pnpm model:decide <portal> --env <env> --by "<name>" ' +
@@ -36,7 +36,7 @@ const positional = process.argv
   .slice(2)
   .filter((a, i, all) => !a.startsWith('--') && !(i > 0 && flags.has(all[i - 1]!.slice(2))));
 const [portal, verb, ...rest] = positional;
-const env = arg('env') ?? process.env.PATHFINDER_ENV;
+const env = arg('env') ?? process.env.MUDPUPPY_ENV;
 const by = arg('by');
 if (!portal || !verb || !env || !by) {
   console.error(USAGE);

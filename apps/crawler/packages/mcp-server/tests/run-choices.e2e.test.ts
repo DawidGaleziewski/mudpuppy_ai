@@ -1,6 +1,6 @@
 import { createServer, type Server } from 'node:http';
 import type { AddressInfo } from 'node:net';
-import { canLaunchBrowser } from '@pathfinder/crawler';
+import { canLaunchBrowser } from '@mudpuppy/crawler';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { startHarness } from './harness.js';
 import { portalYaml } from './trace-run-harness.js';

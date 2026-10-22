@@ -1,1 +1,1 @@
-export const CHAT_SERVICE_NAME = 'pathfinder-chat';
+export const CHAT_SERVICE_NAME = 'mudpuppy-chat';

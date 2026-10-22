@@ -5,7 +5,7 @@ from pathlib import Path
 
 from fastapi.sse import ServerSentEvent
 
-from pathfinder_dashboard import live
+from mudpuppy_dashboard import live
 
 from .conftest import Store, insert, make_client, ts
 

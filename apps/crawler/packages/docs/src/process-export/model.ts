@@ -2,7 +2,7 @@
 // records of the process (the SRS export model scoped to its states, so records render exactly as
 // in the SRS export, spec 027 FR-006), each step's records and form fields, and the contracts.
 
-import { processModelFacts, type ProcessModelFacts } from '@pathfinder/store';
+import { processModelFacts, type ProcessModelFacts } from '@mudpuppy/store';
 import type { RawDb } from '../keys.js';
 import { loadExportModel, type ExportModel, type ExportRecord } from '../render/model.js';
 import { applyScope, evidenceStates } from '../scope.js';

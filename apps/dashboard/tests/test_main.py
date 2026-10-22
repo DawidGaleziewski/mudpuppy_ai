@@ -2,7 +2,7 @@
 
 import pytest
 
-from pathfinder_dashboard import __main__
+from mudpuppy_dashboard import __main__
 
 
 @pytest.fixture
@@ -11,7 +11,7 @@ def captured(monkeypatch: pytest.MonkeyPatch) -> dict:
     monkeypatch.setattr(__main__.uvicorn, "run", lambda *a, **kw: calls.update(kw))
     # setenv first so monkeypatch records the variable and removes what main() sets afterwards;
     # a bare delenv(raising=False) on an unset variable records nothing and leaks into later tests.
-    names = ("PATHFINDER_DEV", "PATHFINDER_PORT", "PATHFINDER_DEFAULT_ENV", "PATHFINDER_DATA_DIR")
+    names = ("MUDPUPPY_DEV", "MUDPUPPY_PORT", "MUDPUPPY_DEFAULT_ENV", "MUDPUPPY_DATA_DIR")
     for var in names:
         monkeypatch.setenv(var, "")
         monkeypatch.delenv(var)

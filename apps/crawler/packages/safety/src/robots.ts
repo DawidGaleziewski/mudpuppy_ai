@@ -3,7 +3,7 @@
  * Fetching, caching and enforcement live in `crawler` (`robots-registry.ts`, the gates).
  */
 
-export const DEFAULT_PRODUCT_TOKEN = 'PathfinderAI-Crawler';
+export const DEFAULT_PRODUCT_TOKEN = 'MudPuppy-Crawler';
 export const ROBOTS_MAX_BYTES = 512_000;
 
 export interface RobotsRule {

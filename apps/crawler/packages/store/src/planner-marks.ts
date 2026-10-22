@@ -6,8 +6,8 @@
  * person's marks filters on origin. The open planner marks are written anew each time: they are
  * derived, never edited.
  */
-import { newId, nowIso } from '@pathfinder/core';
-import { plan, type PlanItem, type PlannerInput } from '@pathfinder/model';
+import { newId, nowIso } from '@mudpuppy/core';
+import { plan, type PlanItem, type PlannerInput } from '@mudpuppy/model';
 import type BetterSqlite3 from 'better-sqlite3';
 import { unexploredProcesses } from './process-exploration.js';
 import { loadObservationTables } from './rule-mining.js';

@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import { fileURLToPath } from 'node:url';
-import { DocKind, RelationType } from '@pathfinder/docs-model';
-import { migrateDown, migrateUp, openDb, type OpenedDb } from '@pathfinder/store';
+import { DocKind, RelationType } from '@mudpuppy/docs-model';
+import { migrateDown, migrateUp, openDb, type OpenedDb } from '@mudpuppy/store';
 import { isAllowed } from '../src/relations.js';
 
 const MIGRATIONS = fileURLToPath(new URL('../../../../../data/migrations', import.meta.url));
@@ -119,6 +119,7 @@ describe('doc_relations triple triggers (0013_relation_triples) match RELATION_R
     insert(opened, rev('data_item'), rec('screen'), 'appears_on');
     insert(opened, rev('capability'), rec('screen'), 'contains');
     dropApiEndpoint(opened);
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0048');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0047');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0046');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0045');
@@ -173,6 +174,7 @@ describe('doc_relations triple triggers (0013_relation_triples) match RELATION_R
     insert(opened, rev('use_case'), rec('business_rule'), 'depends_on');
     insert(opened, rev('process'), rec('process'), 'depends_on');
     dropApiEndpoint(opened);
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0048');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0047');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0046');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0045');
@@ -233,6 +235,7 @@ describe('0044 api_endpoint kind (spec 038 FR-008)', () => {
     expect(() => insert(opened!, rev('api_endpoint'), rec('process'), 'depends_on')).toThrow(
       /RELATION_NOT_ALLOWED/,
     );
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0048');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0047');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0046');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0045');

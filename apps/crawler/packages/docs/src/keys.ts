@@ -1,5 +1,5 @@
-import { DocKind, KEY_PREFIX } from '@pathfinder/docs-model';
-import type { OpenedDb } from '@pathfinder/store';
+import { DocKind, KEY_PREFIX } from '@mudpuppy/docs-model';
+import type { OpenedDb } from '@mudpuppy/store';
 
 /** Raw synchronous connection: every Layer B write runs in one `raw.transaction`. */
 export type RawDb = OpenedDb['raw'];

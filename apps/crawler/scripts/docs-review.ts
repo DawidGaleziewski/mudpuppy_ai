@@ -8,8 +8,8 @@
  */
 import { existsSync, readFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
-import { DocsError, applyReview, cancelFollowup } from '@pathfinder/docs';
-import { dbPathFor, openDb } from '@pathfinder/store';
+import { DocsError, applyReview, cancelFollowup } from '@mudpuppy/docs';
+import { dbPathFor, openDb } from '@mudpuppy/store';
 import { scriptEnvironment } from './script-env.js';
 
 const argv = process.argv.slice(2);

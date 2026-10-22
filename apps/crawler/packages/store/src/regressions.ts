@@ -8,8 +8,8 @@
  * confirmation.
  */
 import type BetterSqlite3 from 'better-sqlite3';
-import { newId, nowIso } from '@pathfinder/core';
-import { classify, statusOf, type Deviation } from '@pathfinder/model';
+import { newId, nowIso } from '@mudpuppy/core';
+import { classify, statusOf, type Deviation } from '@mudpuppy/model';
 import { hypothesisKeys, writeHypothesis } from './interpret-writer.js';
 import { hypothesisEvents } from './model-decide.js';
 import { outcomeOf, planForTest, type PendingReplay } from './replay-tests.js';

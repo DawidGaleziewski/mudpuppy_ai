@@ -1,10 +1,10 @@
 // Proposals (spec 022 R6, FE-A04): the assistant proposes a change to the to-be, a person applies or
-// discards it (proposal-service.ts). `proposeChange` runs in the pathfinder-chat MCP process and
+// discards it (proposal-service.ts). `proposeChange` runs in the mudpuppy-chat MCP process and
 // only writes an `open` row in `chat_proposals`, made on the amendment's current revision.
 
 import type BetterSqlite3 from 'better-sqlite3';
-import { SECRETS, newId, nowIso } from '@pathfinder/core';
-import { ChatProposal, type Amendment } from '@pathfinder/chat-model';
+import { SECRETS, newId, nowIso } from '@mudpuppy/core';
+import { ChatProposal, type Amendment } from '@mudpuppy/chat-model';
 import { z } from 'zod';
 
 const Text = z.string().trim().min(1).max(50_000);

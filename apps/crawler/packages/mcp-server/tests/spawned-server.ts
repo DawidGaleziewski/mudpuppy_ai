@@ -5,7 +5,7 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 /**
- * The real `pathfinder` server as the chat starts it: `node --import tsx src/main.ts` over stdio,
+ * The real `mudpuppy` server as the chat starts it: `node --import tsx src/main.ts` over stdio,
  * on a throwaway root (spec 010 F-19 shutdown, spec 031 T005 hooks under tsx). Only what a
  * spawned server shows differently from the in-process one belongs in these tests.
  */
@@ -61,11 +61,11 @@ export interface SpawnedServer {
 export async function spawnServer(root: string, environment = 'sandbox'): Promise<SpawnedServer> {
   const child = spawn(process.execPath, ['--import', 'tsx', 'src/main.ts'], {
     cwd: PKG,
-    env: { ...process.env, PATHFINDER_ROOT: root, PATHFINDER_ENV: environment },
+    env: { ...process.env, MUDPUPPY_ROOT: root, MUDPUPPY_ENV: environment },
     stdio: ['pipe', 'pipe', 'pipe'],
   });
   const pid = child.pid;
-  if (pid === undefined) throw new Error('the pathfinder server did not start');
+  if (pid === undefined) throw new Error('the mudpuppy server did not start');
   child.stderr.resume();
   const pending = new Map<number, (v: Record<string, unknown>) => void>();
   let buf = '';

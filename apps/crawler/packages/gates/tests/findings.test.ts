@@ -5,10 +5,10 @@ import { join } from 'node:path';
 import { afterEach, expect } from 'vitest';
 import { chromium } from 'playwright';
 import { deflateSync } from 'node:zlib';
-import { elementKeys, maskText, parseAriaYaml, scrubJson } from '@pathfinder/core';
-import { evaluate, readGroundTruth, type EvalRecord } from '@pathfinder/docs';
-import { interruptStaleRuns } from '@pathfinder/mcp-server';
-import { startReferencePortal, type ReferencePortal } from '@pathfinder/reference-portal';
+import { elementKeys, maskText, parseAriaYaml, scrubJson } from '@mudpuppy/core';
+import { evaluate, readGroundTruth, type EvalRecord } from '@mudpuppy/docs';
+import { interruptStaleRuns } from '@mudpuppy/mcp-server';
+import { startReferencePortal, type ReferencePortal } from '@mudpuppy/reference-portal';
 // Not package exports: the gates pin internals of these packages directly.
 import { settleWithDiagnostics, trackNetworkActivity } from '../../crawler/src/stabilizer.js';
 import { highlightCrop } from '../../docs/src/render/images.js';
@@ -66,7 +66,7 @@ scope:
 denylist: [logout, delete, payment, bidding, buy_now, message_or_contact_seller, reveal_seller_contact]
 urls:
   disallowed: ["/__admin/*"]
-rate_limit: { requests_per_second: 20, max_concurrency: 1, user_agent: "PathfinderAI-Crawler/0.1 (gate)" }
+rate_limit: { requests_per_second: 20, max_concurrency: 1, user_agent: "MudPuppy-Crawler/0.1 (gate)" }
 ${o.extra ?? ''}
 `;
 
@@ -404,7 +404,7 @@ gate('F-10@008', 'a navigate settles the pending navigate item for its URL', asy
   const { gs, portal, run } = await mock();
   const home = await must(gs, 'navigate', { run_id: run, url: portal.origin + '/' });
   const url = portal.origin + '/oferty';
-  const { newId, nowIso } = await import('@pathfinder/core');
+  const { newId, nowIso } = await import('@mudpuppy/core');
   await gs.ctx.db
     .insertInto('frontier')
     .values({

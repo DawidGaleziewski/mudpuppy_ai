@@ -1,4 +1,4 @@
-import { maskText, newId, nowIso } from '@pathfinder/core';
+import { maskText, newId, nowIso } from '@mudpuppy/core';
 import type { ServerContext } from '../context.js';
 import { ToolError } from '../errors.js';
 

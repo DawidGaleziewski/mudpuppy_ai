@@ -1,9 +1,9 @@
 /**
  * Goal score of the BA: how much of the ground truth its documentation covers, per category,
  * and how many of its claims contradict the ground truth (overclaims). The scoring itself is
- * `evaluate()` in `@pathfinder/docs`, the same one `pnpm docs:evaluate` uses.
+ * `evaluate()` in `@mudpuppy/docs`, the same one `pnpm docs:evaluate` uses.
  */
-import { evaluate, loadEvalInput, type GroundTruth } from '@pathfinder/docs';
+import { evaluate, loadEvalInput, type GroundTruth } from '@mudpuppy/docs';
 import type { RawDb } from '../../queries.js';
 
 export interface Score {

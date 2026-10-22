@@ -1,4 +1,4 @@
-import { shapeUrl } from '@pathfinder/trace';
+import { shapeUrl } from '@mudpuppy/trace';
 import { ToolError } from '../../errors.js';
 import { loginPreconditions, performLogin } from '../login.js';
 import { decision, event, fail, orFail, reported, step, type StepContext } from './context.js';

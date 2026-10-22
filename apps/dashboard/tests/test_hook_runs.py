@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from pathfinder_dashboard import db, queries_hooks
+from mudpuppy_dashboard import db, queries_hooks
 
 from .conftest import Store, insert, make_client, ts
 from .test_chat import text

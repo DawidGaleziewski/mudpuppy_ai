@@ -2,7 +2,7 @@
 // as-is steps from recorded states, the next model label, the screens key of a grouping.
 // No database here; process-service.ts loads and writes.
 
-import { observedSteps, ProcessStep, type StateRow } from '@pathfinder/chat-model';
+import { observedSteps, ProcessStep, type StateRow } from '@mudpuppy/chat-model';
 import { z } from 'zod';
 import { HttpError } from './http-error.js';
 
@@ -10,7 +10,7 @@ export const Steps = z.array(ProcessStep).min(1).max(200);
 export type Steps = z.infer<typeof Steps>;
 
 // Shared with the trace driver's grouping suggestion (spec 031 US5).
-export { observedSteps, screensKey, type StateRow } from '@pathfinder/chat-model';
+export { observedSteps, screensKey, type StateRow } from '@mudpuppy/chat-model';
 
 /**
  * A's steps after a person's edit (spec 027 FR-004): `states` in their new order. A step whose

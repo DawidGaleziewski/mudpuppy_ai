@@ -2,7 +2,7 @@ import { writeFileSync } from 'node:fs';
 import { createServer, type Server } from 'node:https';
 import type { AddressInfo } from 'node:net';
 import { join } from 'node:path';
-import { ConfigError, readTrustedCa } from '@pathfinder/config';
+import { ConfigError, readTrustedCa } from '@mudpuppy/config';
 import { chromium } from 'playwright';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { chromiumCaArgs, trustInNode } from '../src/trusted-ca.js';

@@ -7,7 +7,7 @@ import sqlite3
 from dataclasses import asdict
 from typing import Any
 
-from pathfinder_dashboard import queries_access
+from mudpuppy_dashboard import queries_access
 
 from .conftest import Store, insert
 from .paths import REPO_ROOT

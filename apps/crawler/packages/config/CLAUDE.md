@@ -1,4 +1,4 @@
-# @pathfinder/config
+# @mudpuppy/config
 
 Loads and validates portal and persona YAML with Zod, resolves extends, computes the effective config.
 
@@ -18,7 +18,7 @@ Used by: mcp-server, crawler, safety, vault, gates, apps/chat (`src/index.ts` re
 
 - Spec 030: `Environment` (free lowercase names declared per portal, R-61) and `environments.ts`
   (`declaredEnvironments`, `requireEnvironment`: no default, eval names allowed); `FixSpec`
-  (`fixes:` of the portal, run by `@pathfinder/fix-plugins`); `Network` (`proxy`,
+  (`fixes:` of the portal, run by `@mudpuppy/fix-plugins`); `Network` (`proxy`,
   `ignore_https_errors`, R-63); `traces.ts` (`loadTraces`: the `traces.yaml` catalogue).
 - Spec 032: `probe-budget.ts` (portal `probes`: `per_step` 24, `per_run` 120 since spec 036); persona
   `test_data` (label → synthetic value for traces, autofill and probes; renamed from `trace_inputs`,
@@ -26,7 +26,7 @@ Used by: mcp-server, crawler, safety, vault, gates, apps/chat (`src/index.ts` re
   `fault` and `expect` `technical_error` / `branch` (`ProbeFault` comes from core).
 - Spec 039 T111: `fingerprint-profiles.ts` (portal `fingerprint: { use, profiles }`, validated by
   resolving every profile; `portalFingerprintProfile(portal, name?)`); depends on
-  `@pathfinder/fingerprint` (kernel) for the built-ins.
+  `@mudpuppy/fingerprint` (kernel) for the built-ins.
 - Spec 031: `network.ca_file` (resolved against the portal folder by `loadPortal`) and
   `ca-file.ts` (`readTrustedCa`, `spkiHash`: shared by preflight, the session and the doctor).
 

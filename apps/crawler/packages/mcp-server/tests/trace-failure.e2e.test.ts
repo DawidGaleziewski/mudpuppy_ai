@@ -1,9 +1,9 @@
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js';
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
-import { createLogger } from '@pathfinder/core';
-import { createTracer } from '@pathfinder/store';
-import { canLaunchBrowser } from '@pathfinder/crawler';
+import { createLogger } from '@mudpuppy/core';
+import { createTracer } from '@mudpuppy/store';
+import { canLaunchBrowser } from '@mudpuppy/crawler';
 import { createServer, type Runtime } from '../src/index.js';
 import { makeCtx, seedRun } from './helpers.js';
 import { startMockPortal, type MockPortal } from './mock-portal.js';
@@ -101,7 +101,7 @@ describe('a crashed server leaves its in-flight call unfinished', () => {
     });
     await next.start({
       environment: 'production',
-      server: 'pathfinder',
+      server: 'mudpuppy',
       version: 'test',
     });
     expect(await next.sweepUnfinished()).toBe(1);

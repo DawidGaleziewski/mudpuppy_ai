@@ -7,9 +7,9 @@
  */
 import { existsSync } from 'node:fs';
 import { join, resolve } from 'node:path';
-import { createEvidenceStore } from '@pathfinder/core';
-import { rebuildWireframes } from '@pathfinder/mcp-server';
-import { dbPathFor, migrateUp, openDb } from '@pathfinder/store';
+import { createEvidenceStore } from '@mudpuppy/core';
+import { rebuildWireframes } from '@mudpuppy/mcp-server';
+import { dbPathFor, migrateUp, openDb } from '@mudpuppy/store';
 import { scriptEnvironment } from './script-env.js';
 
 const arg = (name: string, fallback: string): string => {

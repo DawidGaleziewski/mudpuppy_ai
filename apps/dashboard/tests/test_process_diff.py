@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from pathfinder_dashboard.process_diff import counts, diff
+from mudpuppy_dashboard.process_diff import counts, diff
 
 
 def step(sid: str, title: str, *, state: str | None = None, frm: list[str] | None = None) -> dict:

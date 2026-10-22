@@ -19,7 +19,7 @@
  * `first_route` / `last_observable_route`: where a process starts and ends, R-77 (2), spec 039
  * T082).
  */
-import { exportProcess, processKeys, type GroundTruth } from '@pathfinder/docs';
+import { exportProcess, processKeys, type GroundTruth } from '@mudpuppy/docs';
 import type { RawDb } from '../../queries.js';
 import type { Score } from './export-completeness.js';
 

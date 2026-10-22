@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { Id, JsonValue, Timestamp } from '@pathfinder/core';
+import { Id, JsonValue, Timestamp } from '@mudpuppy/core';
 
 export const SpanKind = z.enum(['call', 'phase', 'event']);
 export type SpanKind = z.infer<typeof SpanKind>;

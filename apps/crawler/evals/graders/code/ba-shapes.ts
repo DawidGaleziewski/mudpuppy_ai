@@ -15,7 +15,7 @@
  *   `deterministic_error` hypothesis (spec 039, owner answer 4). An error page is never a step
  *   (spec 033 SC-007). Must be 0.
  */
-import type { GroundTruth } from '@pathfinder/docs';
+import type { GroundTruth } from '@mudpuppy/docs';
 import type { RawDb } from '../../queries.js';
 
 export interface BaShapes {

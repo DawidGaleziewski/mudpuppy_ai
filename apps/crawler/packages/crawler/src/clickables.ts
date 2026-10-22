@@ -1,5 +1,5 @@
 /// <reference lib="dom" />
-import type { FoundBy } from '@pathfinder/core';
+import type { FoundBy } from '@mudpuppy/core';
 import type { Frame, Locator, Page } from 'playwright';
 import { evalOnElement, evalWithHelpers } from './in-page.js';
 
@@ -109,7 +109,7 @@ function pfFramework(el: Element): boolean {
 function pfSignals(el: Element): FoundBy[] {
   const found: FoundBy[] = [];
   const seen = (window as unknown as Record<symbol, WeakSet<Element> | undefined>)[
-    Symbol.for('pathfinder.click-signals')
+    Symbol.for('mudpuppy.click-signals')
   ];
   if (seen?.has(el)) found.push('listener');
   const inline = [

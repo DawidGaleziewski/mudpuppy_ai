@@ -7,9 +7,9 @@
  * screens but never split one: a profile finer than the capture's needs a new scan (F-31@039).
  */
 import type BetterSqlite3 from 'better-sqlite3';
-import { maskText, nowIso } from '@pathfinder/core';
-import { computeComponents, minhashBlob, type FingerprintProfile } from '@pathfinder/fingerprint';
-import { clusterPortal, comparePartitions, type PartitionDifference } from '@pathfinder/model';
+import { maskText, nowIso } from '@mudpuppy/core';
+import { computeComponents, minhashBlob, type FingerprintProfile } from '@mudpuppy/fingerprint';
+import { clusterPortal, comparePartitions, type PartitionDifference } from '@mudpuppy/model';
 
 type Raw = BetterSqlite3.Database;
 

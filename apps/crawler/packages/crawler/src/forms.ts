@@ -1,5 +1,5 @@
 /// <reference lib="dom" />
-import type { FieldNameSource } from '@pathfinder/core';
+import type { FieldNameSource } from '@mudpuppy/core';
 import type { Frame, Page } from 'playwright';
 import { evalWithHelpers } from './in-page.js';
 
@@ -15,7 +15,7 @@ export interface DomFormField {
   constraints?: Record<string, string | number | boolean>;
   options?: string[];
   validation_messages?: string[];
-  /** Where `name` came from (spec 015); see `FieldNameSource` in @pathfinder/core. */
+  /** Where `name` came from (spec 015); see `FieldNameSource` in @mudpuppy/core. */
   name_source?: FieldNameSource;
   /** The human-readable text found for the control (label, aria, placeholder or nearby text). */
   label?: string;

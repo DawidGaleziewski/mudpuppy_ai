@@ -25,12 +25,12 @@ rule changes, you then know everything it affects. Some rules define or constrai
 allowed), others decide an outcome from several inputs; the latter are often written as a
 [decision table](decision-table.md).
 
-## How Pathfinder uses it
+## How MudPuppy uses it
 
 In pass 4 the BA agent writes `BR` records from what the crawler observed: required fields, input
 patterns and lengths, disabled controls, validation messages, refused actions, and the crawler's
 rule candidates. Each rule is linked to the data items and screens it affects (`enforces`,
-`appears_on`). From the outside, Pathfinder can see what a rule does but not why it exists, so the
+`appears_on`). From the outside, MudPuppy can see what a rule does but not why it exists, so the
 intent is marked `needs_confirmation`.
 
 Example: BR-012 "Contact form: required fields, lengths and formats".

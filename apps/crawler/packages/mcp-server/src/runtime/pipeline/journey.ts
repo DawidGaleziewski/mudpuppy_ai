@@ -4,7 +4,7 @@
 // (a parent and a branch seq) are for a browser back, which the crawler does not use yet. The
 // run's observations are numbered (`observations.seq`) and each journey's transitions (`transitions.seq`).
 
-import type { JourneyEndReason } from '@pathfinder/core';
+import type { JourneyEndReason } from '@mudpuppy/core';
 import type { ServerContext } from '../../context.js';
 import {
   closeJourney,

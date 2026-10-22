@@ -1,6 +1,6 @@
 /**
  * The kinds of URL list entry (spec 023 US3), shared by the config schema (which refuses an
- * unusable entry) and `@pathfinder/safety` (which matches): a regex in slashes, an absolute URL
+ * unusable entry) and `@mudpuppy/safety` (which matches): a regex in slashes, an absolute URL
  * glob or a path glob. A slash-wrapped entry is a regex only when its body has a regex character
  * (`\ ^ $ . + ? ( ) [ ] { } |`), so a path like `/konto/` stays a path.
  */

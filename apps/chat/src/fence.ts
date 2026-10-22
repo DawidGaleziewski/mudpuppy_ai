@@ -6,9 +6,9 @@
 import { isAbsolute, relative, resolve } from 'node:path';
 import type { PermissionDecision, PermissionPolicy, PermissionQuery } from './acp-client.js';
 
-const CHAT = 'mcp__pathfinder-chat__';
-const BA = 'mcp__pathfinder-ba__';
-const CRAWLER = 'mcp__pathfinder__';
+const CHAT = 'mcp__mudpuppy-chat__';
+const BA = 'mcp__mudpuppy-ba__';
+const CRAWLER = 'mcp__mudpuppy__';
 
 export const CHAT_TOOLS = [
   'workflow_state',
@@ -39,7 +39,7 @@ export const CHAT_TOOLS = [
   'start_check_run',
 ].map((t) => CHAT + t);
 
-/** pathfinder-ba tools that only read; the orchestrator may use these itself. */
+/** mudpuppy-ba tools that only read; the orchestrator may use these itself. */
 export const BA_READ_TOOLS = [
   'list_runs',
   'get_run_evidence',
@@ -152,7 +152,7 @@ function judgeSubagentCall(
   if (agent === 'crawler')
     return CRAWLER_TOOLS.includes(tool)
       ? ALLOW
-      : deny(REFUSAL.notAllowed, `the crawler may only use the pathfinder tools, not ${tool}`);
+      : deny(REFUSAL.notAllowed, `the crawler may only use the mudpuppy tools, not ${tool}`);
   if (BA_READ_TOOLS.includes(tool) || BA_WRITE_TOOLS.includes(tool)) return ALLOW;
   if (tool === 'Read') {
     const target = readTarget(q.rawInput);
@@ -163,7 +163,7 @@ function judgeSubagentCall(
       `the BA may only read its method references, not ${target ?? '?'}`,
     );
   }
-  return deny(REFUSAL.notAllowed, `the BA may only use the pathfinder-ba tools, not ${tool}`);
+  return deny(REFUSAL.notAllowed, `the BA may only use the mudpuppy-ba tools, not ${tool}`);
 }
 
 export function createFence(opts: FenceOptions): PermissionPolicy {

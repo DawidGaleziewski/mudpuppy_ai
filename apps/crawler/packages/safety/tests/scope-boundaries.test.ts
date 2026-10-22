@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { Scope } from '@pathfinder/config';
+import type { Scope } from '@mudpuppy/config';
 import {
   checkBudgets,
   checkScope,

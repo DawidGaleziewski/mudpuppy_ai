@@ -1,8 +1,8 @@
 {
-  "name": "@pathfinder/workflow",
+  "name": "@mudpuppy/workflow",
   "version": "0.0.0",
   "private": true,
-  "description": "Pure functions from recorded Pathfinder data to workflow step statuses, next moves and amendment impact (R-30)",
+  "description": "Pure functions from recorded MudPuppy data to workflow step statuses, next moves and amendment impact (R-30)",
   "type": "module",
   "exports": {
     ".": "./src/index.ts"

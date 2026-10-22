@@ -3,7 +3,7 @@
  * the session began.
  */
 import { join } from 'node:path';
-import { dbPathFor, openDb } from '@pathfinder/store';
+import { dbPathFor, openDb } from '@mudpuppy/store';
 import type { EvalConfig } from '../config.js';
 import { latestCrawlRun } from '../queries.js';
 

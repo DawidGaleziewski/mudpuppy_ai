@@ -49,7 +49,7 @@ I havew a bit hard time undesrstand purpose of this whole eval. Am I correct it 
 /**
  * Inputs of the eval's password sweep (spec 014 US1 AS1.3, D3): the persona's vault passwords
  * and every place an agent run can leave text. The counting itself is `passwordHits` in
- * `@pathfinder/gates`; nothing here prints a secret.
+ * `@mudpuppy/gates`; nothing here prints a secret.
  */
 ```
 
@@ -138,14 +138,14 @@ function runAgent(ws: string, agent: 'crawler' | 'ba', prompt: string, sessionId
     '--strict-mcp-config',
     // Only the agent's own server: every tool of it, nothing else.
     '--allowedTools',
-    agent === 'crawler' ? 'mcp__pathfinder' : 'mcp__pathfinder-ba',
+    agent === 'crawler' ? 'mcp__mudpuppy' : 'mcp__mudpuppy-ba',
     ...(model ? ['--model', model] : []),
   ];
   const r = spawnSync('claude', args, {
     cwd: root,
     encoding: 'utf8',
     maxBuffer: 64 * 1024 * 1024,
-    env: { ...process.env, PATHFINDER_ENV: env, PATHFINDER_ROOT: ws },
+    env: { ...process.env, MUDPUPPY_ENV: env, MUDPUPPY_ROOT: ws },
   });
 ```
 

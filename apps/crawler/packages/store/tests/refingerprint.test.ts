@@ -1,6 +1,6 @@
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { resolveProfile, ROWS_V2_PROFILE } from '@pathfinder/fingerprint';
+import { resolveProfile, ROWS_V2_PROFILE } from '@mudpuppy/fingerprint';
 import {
   compareProfiles,
   migrateUp,

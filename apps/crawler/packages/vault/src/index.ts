@@ -9,5 +9,5 @@ export {
   SECRET_MASK,
   SECRETS,
   type Redactor,
-} from '@pathfinder/core';
+} from '@mudpuppy/core';
 export * from './store.js';

@@ -6,7 +6,7 @@ import json
 
 import pytest
 
-from pathfinder_dashboard.diagrams import capability_map, label, node_id, process_map, screen_nav
+from mudpuppy_dashboard.diagrams import capability_map, label, node_id, process_map, screen_nav
 
 from .paths import REPO_ROOT
 

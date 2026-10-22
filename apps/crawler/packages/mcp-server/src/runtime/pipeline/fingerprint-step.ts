@@ -1,6 +1,6 @@
-import { maskText } from '@pathfinder/core';
-import type { observePage } from '@pathfinder/crawler';
-import { computeFingerprint } from '@pathfinder/fingerprint';
+import { maskText } from '@mudpuppy/core';
+import type { observePage } from '@mudpuppy/crawler';
+import { computeFingerprint } from '@mudpuppy/fingerprint';
 import { seedKnownClusters } from '../../services/known-clusters.js';
 import { decision, event, reported, step, type StepContext } from './context.js';
 

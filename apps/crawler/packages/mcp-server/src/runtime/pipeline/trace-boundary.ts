@@ -1,11 +1,11 @@
-import { maskText, newId, nowIso } from '@pathfinder/core';
-import { insertEvidenceRef } from '@pathfinder/store';
+import { maskText, newId, nowIso } from '@mudpuppy/core';
+import { insertEvidenceRef } from '@mudpuppy/store';
 import type { ServerContext } from '../../context.js';
 import { ToolError } from '../../errors.js';
 import { completeRun, type RunRow } from '../../services/index.js';
 import { closeProcess, stepCount } from '../../services/trace.js';
 import type { RunState } from '../run-state.js';
-import type { decide } from '@pathfinder/crawler';
+import type { decide } from '@mudpuppy/crawler';
 import type { ActionRow } from './actions.js';
 
 /**

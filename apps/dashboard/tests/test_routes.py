@@ -610,7 +610,7 @@ def seed_trace_with_events_and_agent(w: object) -> None:
         run_id=BIG_RUN,
         kind="tool_use",
         tool_use_id="tu-e1",
-        tool_name="mcp__pathfinder__act",
+        tool_name="mcp__mudpuppy__act",
         input_tokens=200,
         output_tokens=40,
         matched=1,
@@ -626,7 +626,7 @@ def seed_trace_with_events_and_agent(w: object) -> None:
         run_id=BIG_RUN,
         kind="tool_use",
         tool_use_id="tu-never",
-        tool_name="mcp__pathfinder__navigate",
+        tool_name="mcp__mudpuppy__navigate",
         matched=0,
         created_at="2026-09-25T19:51:00.000Z",
     )
@@ -659,7 +659,7 @@ def test_trace_tab_shows_agent_context_and_never_reached_server(liveinsurer_stor
     assert "Trying to buy the policy to see what happens" in t
     assert "200 in / 40 out" in t
     assert "Never reached the server" in t
-    assert "mcp__pathfinder__navigate" in t
+    assert "mcp__mudpuppy__navigate" in t
 
 
 def test_trace_tab_not_imported_state(liveinsurer_store: Store) -> None:

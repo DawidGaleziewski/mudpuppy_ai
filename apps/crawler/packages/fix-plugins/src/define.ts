@@ -2,8 +2,8 @@
 // tested, that takes the client-specific data it needs as validated parameters and returns ordinary
 // portal hooks (spec 023). The client's data lives in the portal file, never in the plugin.
 
-import type { HookPoint } from '@pathfinder/config';
-import type { Hook } from '@pathfinder/hooks';
+import type { HookPoint } from '@mudpuppy/config';
+import type { Hook } from '@mudpuppy/hooks';
 import type { z } from 'zod';
 
 export type FixHooks = Partial<Record<HookPoint, Hook>>;

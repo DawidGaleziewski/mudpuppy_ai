@@ -9,7 +9,7 @@ from typing import Any
 import pytest
 import yaml
 
-from pathfinder_dashboard.glossary import (
+from mudpuppy_dashboard.glossary import (
     Glossary,
     GlossaryError,
     dashboard_href,
@@ -81,7 +81,7 @@ def test_fixture_loads(docs: Path) -> None:
     assert g.page_title("alpha-long") == "Alpha in depth"
     assert g.wiki["beta-concept"].front.citations[0].edition == "v1 (2020)"
     assert [(c, grp) for c, grp, _ in g.groups()] == [
-        ("pathfinder", "Crawling"),
+        ("mudpuppy", "Crawling"),
         ("ba", "Statements"),
     ]
 
@@ -264,7 +264,7 @@ REPO_DOCS = REPO_ROOT / "docs"
 
 # The 59 terms rated Must or Nice in specs/006-glossary-ba-wiki/term-review.md (FR-003).
 EXPECTED_IDS = {
-    # Pathfinder (73)
+    # MudPuppy (73)
     "run", "mode", "environment", "persona", "state", "fingerprint", "cluster", "settled",
     "transition", "accessible-name", "role", "safety-class", "decision", "top-locator", "target",
     "click-signal", "signal-found-action",  # R-28
@@ -354,7 +354,7 @@ def test_real_glossary_scope_note() -> None:
 def test_committed_readme_is_up_to_date() -> None:
     g = load_ok(REPO_DOCS)
     committed = (REPO_DOCS / "glossary" / "README.md").read_text(encoding="utf-8")
-    assert committed == render_readme(g), "run `uv run pathfinder-glossary --write`"
+    assert committed == render_readme(g), "run `uv run mudpuppy-glossary --write`"
 
 
 # The 14 BA wiki pages of research R8 (FR-015).
@@ -376,7 +376,7 @@ def test_real_wiki_pages_and_links() -> None:
         for c in page.front.citations:
             assert c.url.startswith("https://") and c.checked_on and c.edition
         body = page.body
-        assert "## What it is" in body and "## How Pathfinder uses it" in body, page.slug
+        assert "## What it is" in body and "## How MudPuppy uses it" in body, page.slug
 
 
 def test_load_is_cached_until_a_file_changes(docs: Path) -> None:

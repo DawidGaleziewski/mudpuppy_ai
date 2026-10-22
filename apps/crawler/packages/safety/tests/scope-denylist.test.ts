@@ -11,7 +11,7 @@ import {
   builtinRuleSet,
   extendRuleSet,
 } from '../src/index.js';
-import { BUILTIN_RULE_CLASSES, resolveRuleId } from '@pathfinder/config';
+import { BUILTIN_RULE_CLASSES, resolveRuleId } from '@mudpuppy/config';
 
 const scope = {
   allowed_domains: ['marketsite.example'],

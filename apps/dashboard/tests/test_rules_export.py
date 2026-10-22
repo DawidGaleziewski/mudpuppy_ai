@@ -1,5 +1,5 @@
 """Spec 039 OV-5: the rules export (DMN, Markdown, CSV) from the Rules pages. The export command
-is replaced by a fake that writes a small folder (the real one is tested in @pathfinder/store)."""
+is replaced by a fake that writes a small folder (the real one is tested in @mudpuppy/store)."""
 
 from __future__ import annotations
 
@@ -9,7 +9,7 @@ from pathlib import Path
 
 import pytest
 
-from pathfinder_dashboard import rules_export
+from mudpuppy_dashboard import rules_export
 
 from .conftest import Store
 from .test_processes_pages import client

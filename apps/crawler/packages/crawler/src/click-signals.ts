@@ -7,7 +7,7 @@ import { NAME_SHIM } from './in-page.js';
  * a registered symbol on `window`, non-enumerable, so the page neither sees a new attribute nor a
  * new global name and its DOM (and fingerprint) stay as they were (spec 015 R1).
  */
-export const CLICK_SIGNALS_KEY = 'pathfinder.click-signals';
+export const CLICK_SIGNALS_KEY = 'mudpuppy.click-signals';
 
 /**
  * Runs in every document before the page's own scripts: wraps `addEventListener` to note elements

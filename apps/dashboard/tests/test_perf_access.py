@@ -8,7 +8,7 @@ import time
 
 import pytest
 
-from pathfinder_dashboard import queries_review
+from mudpuppy_dashboard import queries_review
 
 from .conftest import Store, insert, make_store
 

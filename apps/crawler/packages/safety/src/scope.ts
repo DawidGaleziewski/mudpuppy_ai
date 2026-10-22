@@ -1,4 +1,4 @@
-import { urlEntryProblem, type Budgets, type Scope } from '@pathfinder/config';
+import { urlEntryProblem, type Budgets, type Scope } from '@mudpuppy/config';
 import type { Refusal } from './types.js';
 import { checkUrlLists, type UrlLists } from './url-lists.js';
 

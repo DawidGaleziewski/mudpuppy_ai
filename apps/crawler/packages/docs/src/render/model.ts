@@ -1,6 +1,6 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { Layout, isEvidenceRef, type Confidence } from '@pathfinder/core';
+import { Layout, isEvidenceRef, type Confidence } from '@mudpuppy/core';
 import type {
   DocKind,
   EvidenceTargetKind,
@@ -8,7 +8,7 @@ import type {
   ReviewAction,
   RevisionChange,
   RevisionStatus,
-} from '@pathfinder/docs-model';
+} from '@mudpuppy/docs-model';
 import type { RawDb } from '../keys.js';
 import type { StateInventory } from '../param-inventory.js';
 import type { ProcessMapInput, ScreenNavInput } from './mermaid.js';

@@ -1,12 +1,12 @@
-// Browser actions the assistant can ask for (spec 022 R6): the pathfinder-chat tools
+// Browser actions the assistant can ask for (spec 022 R6): the mudpuppy-chat tools
 // `highlight_element`, `open_page` and `request_credential` do nothing server-side; when one
 // completes, the chat service turns its input into a `ui_action` event the dashboard performs
 // (a credential request is also kept in the history, credentialLine). Pure.
 
-import { Environment } from '@pathfinder/config';
+import { Environment } from '@mudpuppy/config';
 import type { UiAction } from './events.js';
 
-const PREFIX = 'mcp__pathfinder-chat__';
+const PREFIX = 'mcp__mudpuppy-chat__';
 
 /** Dashboard paths the assistant may open: the portal sections and record pages, nothing else. */
 const OPENABLE =

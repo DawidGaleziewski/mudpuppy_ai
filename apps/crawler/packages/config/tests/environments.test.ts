@@ -33,7 +33,7 @@ describe('declared environments (spec 030 R-61, D-1)', () => {
 
   it('has no default: an unset environment is refused, naming the declared ones', () => {
     expect(() => requireEnvironment(r, undefined)).toThrow(
-      /no environment chosen and there is no default; set PATHFINDER_ENV to one of: acceptance, dev, live/,
+      /no environment chosen and there is no default; set MUDPUPPY_ENV to one of: acceptance, dev, live/,
     );
   });
 
@@ -96,7 +96,7 @@ describe('the environment guard, edges', () => {
       requireEnvironment(r, name);
       expect.unreachable();
     } catch (e) {
-      expect((e as ConfigError).file).toBe('PATHFINDER_ENV');
+      expect((e as ConfigError).file).toBe('MUDPUPPY_ENV');
     }
   });
 });

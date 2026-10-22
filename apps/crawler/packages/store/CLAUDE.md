@@ -1,4 +1,4 @@
-# @pathfinder/store
+# @mudpuppy/store
 
 SQLite access through Kysely and the two DB writers every server shares: the decision log and the
 tracer.
@@ -7,7 +7,7 @@ Layer: store (G-07; `apps/crawler/layers.json`)
 
 ## Public API
 
-- `openDb`, `dbPathFor`, `applyPragmas`, `PathfinderDb`, `OpenedDb` (`db.ts`); `Database` and every
+- `openDb`, `dbPathFor`, `applyPragmas`, `MudPuppyDb`, `OpenedDb` (`db.ts`); `Database` and every
   `*Table` type (`db-types.ts`, mirrors `data/schema/schema.sql`); `Selectable`, `Insertable`.
 - `migrateUp`, `migrateDown`, `loadMigrations`, `appliedVersions` (`migrate.ts`; the SQL lives in
   `data/migrations/` at the repo root).
@@ -24,7 +24,7 @@ Layer: store (G-07; `apps/crawler/layers.json`)
   `loadObservationTables`, `importMinedRule` (`rule-mining.ts`, `pnpm model:mine`),
   `mineRules`, `uvMiner` (`rule-miner-run.ts`: the miner on every decision point after a new
   model version; the MCP server's run end and `pnpm model:reconcile` call it when apps/miner and
-  `uv` are there, `PATHFINDER_MINER=off` turns it off; spec 040 T030),
+  `uv` are there, `MUDPUPPY_MINER=off` turns it off; spec 040 T030),
   `plannerWork`, `writePlannerMarks`, `usePlannerMarks` (`planner-marks.ts`: the planner's work
   as `marks` of origin `planner`, kind `recheck`, with a priority; written after each rebuild and
   replay round, open ones replaced; every reader of a person's marks filters `origin = 'person'`;
@@ -61,7 +61,7 @@ Layer: store (G-07; `apps/crawler/layers.json`)
 
 ## Invariants
 
-- Depends only on `@pathfinder/core` and the model packages below it, never on features.
+- Depends only on `@mudpuppy/core` and the model packages below it, never on features.
 - Table types match `data/schema/schema.sql`; a new table or column goes through the `db-admin`
   agent (G-16); the dashboard's drift test compares its models with the schema.
 - Every write passes the secrets plugin (registered credentials never reach the DB, spec 009).

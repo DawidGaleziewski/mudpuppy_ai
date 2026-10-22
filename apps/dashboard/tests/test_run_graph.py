@@ -6,7 +6,7 @@ from __future__ import annotations
 import json
 import sqlite3
 
-from pathfinder_dashboard import queries_run_graph
+from mudpuppy_dashboard import queries_run_graph
 
 from .conftest import Store, insert
 from .test_chat import ORIGIN

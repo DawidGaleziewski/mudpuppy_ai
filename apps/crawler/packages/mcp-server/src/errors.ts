@@ -32,7 +32,7 @@ export const ERROR_CODES = [
   'STALE_REVISION',
   'RELATION_NOT_ALLOWED',
   'NOT_OBSERVABLE_NEEDS_QUESTION',
-  // Operator review command (shared with @pathfinder/docs DocsErrorCode).
+  // Operator review command (shared with @mudpuppy/docs DocsErrorCode).
   'NOT_CANCELLABLE',
   // Server-side login (specs/009-legacy-proving-ground/contracts/login-tool.md).
   'LOGIN_NOT_CONFIGURED',

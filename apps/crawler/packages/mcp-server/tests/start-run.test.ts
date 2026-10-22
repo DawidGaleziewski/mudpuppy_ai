@@ -22,7 +22,7 @@ scope:
   max_run_time_minutes: 60
   max_steps: 2000
 denylist: [logout]
-rate_limit: { requests_per_second: 1, max_concurrency: 1, user_agent: "${o.ua ?? 'PathfinderAI-Crawler/0.1 (+ops@corp.pl)'}" }
+rate_limit: { requests_per_second: 1, max_concurrency: 1, user_agent: "${o.ua ?? 'MudPuppy-Crawler/0.1 (+ops@corp.pl)'}" }
 `;
 const persona = `id: guest\nauth: none\nmax_action_class: read\nviewport: { width: 1366, height: 768 }\nlocale: pl-PL\nbudgets: { max_steps: 100 }\n`;
 
@@ -91,7 +91,7 @@ describe('start_run (database part)', () => {
   });
 
   it('starts a run whatever the environment label or User-Agent says (spec 021)', async () => {
-    for (const o of [{ env: 'sandbox' }, { ua: 'PathfinderAI (+contact@example.com)' }]) {
+    for (const o of [{ env: 'sandbox' }, { ua: 'MudPuppy (+contact@example.com)' }]) {
       const ctx = await repo(files(o));
       await startRunRecord(ctx, { portal_id: 'shop', persona_id: 'guest' });
       expect(await ctx.db.selectFrom('runs').selectAll().execute()).toHaveLength(1);
@@ -479,7 +479,7 @@ describe('start_run: robots.txt (FR-001, FR-004 to FR-006)', () => {
       host: 'shop.pl',
       outcome: 'no_rules',
       http_status: 404,
-      product_token: 'PathfinderAI-Crawler',
+      product_token: 'MudPuppy-Crawler',
       truncated: 0,
     });
     expect(JSON.parse(run!.config_snapshot).rule_set).toEqual(
@@ -489,7 +489,7 @@ describe('start_run: robots.txt (FR-001, FR-004 to FR-006)', () => {
       ]),
     );
     expect(snap.robots).toEqual({
-      product_token: 'PathfinderAI-Crawler',
+      product_token: 'MudPuppy-Crawler',
       page_requests: 'block',
       policies: [
         {

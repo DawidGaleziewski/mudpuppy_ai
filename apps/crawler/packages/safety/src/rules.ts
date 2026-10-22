@@ -1,4 +1,4 @@
-import type { SafetyClass } from '@pathfinder/core';
+import type { SafetyClass } from '@mudpuppy/core';
 
 /**
  * Keywords and path patterns are data, not special-cased logic. Text is matched after

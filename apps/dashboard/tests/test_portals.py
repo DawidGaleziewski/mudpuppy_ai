@@ -8,14 +8,14 @@ from pathlib import Path
 import httpx2
 from fastapi.testclient import TestClient
 
-from pathfinder_dashboard.settings import Settings
+from mudpuppy_dashboard.settings import Settings
 
 from .conftest import Store, insert, ts
 from .test_chat import CONV, ORIGIN, Service, seed_conversation, seed_step, text
 
 
 def client(store: Store, service: Service, portals: Path) -> TestClient:
-    from pathfinder_dashboard.app import create_app
+    from mudpuppy_dashboard.app import create_app
 
     settings = Settings(data_dir=store.data_dir, default_env=store.env, portals_dir=portals)
     return TestClient(create_app(settings, chat_transport=httpx2.MockTransport(service)))

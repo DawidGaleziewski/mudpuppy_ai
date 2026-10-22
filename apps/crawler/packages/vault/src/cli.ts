@@ -1,15 +1,15 @@
 import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from 'node:fs';
 import { dirname } from 'node:path';
-import { loadPersona } from '@pathfinder/config';
+import { loadPersona } from '@mudpuppy/config';
 import { djangoPbkdf2, generatePassword, loadKey } from './crypto.js';
 import { VaultError } from './errors.js';
 import { importPersonas } from './import-personas.js';
 import { asEnvironment, createVaultStore, personaRefs, type VaultStore } from './store.js';
-import type { PathfinderDb } from '@pathfinder/store';
+import type { MudPuppyDb } from '@mudpuppy/store';
 
 /** Everything the CLI touches, injected so tests run it without a TTY or the real key. */
 export interface CliIo {
-  db: PathfinderDb;
+  db: MudPuppyDb;
   keyPath?: string;
   /** Repo root, for `check` (personas/<portal>/<persona>.yaml). */
   root: string;

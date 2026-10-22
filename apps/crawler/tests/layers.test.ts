@@ -33,10 +33,10 @@ function workspacePackages(): Pkg[] {
       dependencies?: Record<string, string>;
       devDependencies?: Record<string, string>;
     };
-    const short = (n: string) => n.replace(/^@pathfinder\//, '');
+    const short = (n: string) => n.replace(/^@mudpuppy\//, '');
     const ws = (deps: Record<string, string> | undefined, dev: boolean) =>
       Object.keys(deps ?? {})
-        .filter((n) => n.startsWith('@pathfinder/'))
+        .filter((n) => n.startsWith('@mudpuppy/'))
         .map((n) => ({ name: short(n), dev }));
     return {
       name: short(j.name),

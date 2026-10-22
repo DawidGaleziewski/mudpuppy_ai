@@ -7,8 +7,8 @@ import { existsSync } from 'node:fs';
 import { join } from 'node:path';
 import type BetterSqlite3 from 'better-sqlite3';
 import { z } from 'zod';
-import { newId, nowIso } from '@pathfinder/core';
-import { ProcessScope } from '@pathfinder/chat-model';
+import { newId, nowIso } from '@mudpuppy/core';
+import { ProcessScope } from '@mudpuppy/chat-model';
 import { syncScopeProcess } from './scope-process.js';
 import { recordStep } from './steps.js';
 

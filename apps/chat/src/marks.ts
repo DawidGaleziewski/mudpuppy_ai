@@ -1,10 +1,10 @@
 // A person's marks for the next scan (spec 032 US5; spec 034 R-66; design 11-map-runs §6): Probe on a
 // form step, and Start here, Focus, Retry, Recheck and Skip on a screen's state or an action (transition).
-// A mark stays open until a scan uses it (the pathfinder server sets `used_by_run_id`) or the BA
+// A mark stays open until a scan uses it (the mudpuppy server sets `used_by_run_id`) or the BA
 // removes it here. The dashboard only reads.
 
-import { newId, nowIso } from '@pathfinder/core';
-import type { PathfinderDb } from '@pathfinder/store';
+import { newId, nowIso } from '@mudpuppy/core';
+import type { MudPuppyDb } from '@mudpuppy/store';
 import { z } from 'zod';
 import { HttpError } from './http-error.js';
 import { parseBody } from './http-io.js';
@@ -48,7 +48,7 @@ const TARGET_COLUMN = {
   transition: 'transition_id',
 } as const;
 
-export function createMarkService(deps: { db: PathfinderDb }): MarkService {
+export function createMarkService(deps: { db: MudPuppyDb }): MarkService {
   const { db } = deps;
   const openMark = (portal: string, b: MarkBody) =>
     db

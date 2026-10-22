@@ -4,7 +4,7 @@
 // way every time. Safety stays the server's: the persona's limit decides whether the submit is
 // pressed (a lower one ends the run at the boundary, honestly).
 
-import type { TraceSpecEntry, TraceVariant } from '@pathfinder/config';
+import type { TraceSpecEntry, TraceVariant } from '@mudpuppy/config';
 import type { ToolCall, ToolReply } from './local-client.js';
 
 export type DriveOutcome = 'goal_reached' | 'boundary_reached' | 'abandoned';

@@ -6,7 +6,7 @@ import time
 
 import pytest
 
-from pathfinder_dashboard.map_layout import (
+from mudpuppy_dashboard.map_layout import (
     COLLAPSE_OVER,
     GAP_X,
     GAP_Y,

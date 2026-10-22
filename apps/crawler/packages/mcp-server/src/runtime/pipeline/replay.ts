@@ -1,6 +1,6 @@
-import { maskText } from '@pathfinder/core';
-import { captureAria, decide } from '@pathfinder/crawler';
-import { canonicalizeAria, formControls } from '@pathfinder/fingerprint';
+import { maskText } from '@mudpuppy/core';
+import { captureAria, decide } from '@mudpuppy/crawler';
+import { canonicalizeAria, formControls } from '@mudpuppy/fingerprint';
 import type { ServerContext } from '../../context.js';
 import { ToolError } from '../../errors.js';
 import type { RunRow } from '../../services/index.js';

@@ -1,5 +1,5 @@
-import type { HopKind, NavigationHop, ObservationVia } from '@pathfinder/core';
-import { parseUrlParams, type UrlParamLocation } from '@pathfinder/fingerprint';
+import type { HopKind, NavigationHop, ObservationVia } from '@mudpuppy/core';
+import { parseUrlParams, type UrlParamLocation } from '@mudpuppy/fingerprint';
 
 /**
  * Per-screen parameter inventory and entry URLs (spec 019, R-37/R-38), derived from recorded visits

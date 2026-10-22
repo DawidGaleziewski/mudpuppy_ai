@@ -29,7 +29,7 @@ which prose hides.
 Decision tables are one form of decision modelling: describing how a repeatable business decision
 is made, separately from the process that uses it.
 
-## How Pathfinder uses it
+## How MudPuppy uses it
 
 A business rule record can include a decision table; the Docs tab shows its columns as "if …" and
 "then …". The BA agent uses one when the observed behaviour depends on more than one input, for

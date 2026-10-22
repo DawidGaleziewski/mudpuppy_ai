@@ -2,17 +2,17 @@
  * Guardrail: did an agent leak a portal password? (spec 014 US1 AS1.3, D3, SC-003). The agents
  * log in with real passwords, so after the run every place they can leave text (store, files,
  * export, transcripts) is searched for them. A plain string search, no tokens; it must stay 0
- * (`HARD_ZERO_CHECKS`). The counting itself is `passwordHits` in `@pathfinder/gates`; nothing
+ * (`HARD_ZERO_CHECKS`). The counting itself is `passwordHits` in `@mudpuppy/gates`; nothing
  * here prints a secret.
  */
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { join, relative } from 'node:path';
-import { unzip } from '@pathfinder/core';
-import { exportSrs, ExportError, writeExport } from '@pathfinder/docs';
-import { passwordHits, type SweepPlace } from '@pathfinder/gates';
-import { dbPathFor, openDb } from '@pathfinder/store';
-import { asEnvironment, createVaultStore, loadKey } from '@pathfinder/vault';
+import { unzip } from '@mudpuppy/core';
+import { exportSrs, ExportError, writeExport } from '@mudpuppy/docs';
+import { passwordHits, type SweepPlace } from '@mudpuppy/gates';
+import { dbPathFor, openDb } from '@mudpuppy/store';
+import { asEnvironment, createVaultStore, loadKey } from '@mudpuppy/vault';
 
 /** Ref names that hold a secret; the login name is not one (it may show in the docs). */
 const SECRET_REF = /pass|secret|pin|token/i;

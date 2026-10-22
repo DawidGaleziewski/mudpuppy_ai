@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { Id, Timestamp } from '@pathfinder/core';
+import { Id, Timestamp } from '@mudpuppy/core';
 
 /** open -> applied | discarded | stale (the amendment head moved past `base_rev`). */
 export const ChatProposalStatus = z.enum(['open', 'applied', 'discarded', 'stale']);

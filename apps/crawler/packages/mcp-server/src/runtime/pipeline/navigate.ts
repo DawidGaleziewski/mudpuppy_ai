@@ -1,5 +1,5 @@
-import { decide, pendingNavigateItems, settleFrontierItem } from '@pathfinder/crawler';
-import { pageTimeouts } from '@pathfinder/safety';
+import { decide, pendingNavigateItems, settleFrontierItem } from '@mudpuppy/crawler';
+import { pageTimeouts } from '@mudpuppy/safety';
 import type { ServerContext } from '../../context.js';
 import { ToolError } from '../../errors.js';
 import type { NavigateInput, PageResult } from '../../runtime.js';

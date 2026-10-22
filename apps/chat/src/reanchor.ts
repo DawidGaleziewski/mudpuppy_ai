@@ -6,16 +6,16 @@
 
 import { readFileSync } from 'node:fs';
 import type BetterSqlite3 from 'better-sqlite3';
-import { Layout, nowIso, type EvidenceStore } from '@pathfinder/core';
-import { anchorReviewsOf, insertRef } from '@pathfinder/store';
+import { Layout, nowIso, type EvidenceStore } from '@mudpuppy/core';
+import { anchorReviewsOf, insertRef } from '@mudpuppy/store';
 import {
   amendmentOutcomes,
   type AmendmentAnchor,
   type AmendmentOutcome,
   type NeedsReanchor,
   type ObservedState,
-} from '@pathfinder/workflow';
-import { Amendment, AmendmentRevision } from '@pathfinder/chat-model';
+} from '@mudpuppy/workflow';
+import { Amendment, AmendmentRevision } from '@mudpuppy/chat-model';
 
 interface AnchorRow {
   id: string;

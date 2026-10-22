@@ -9,8 +9,8 @@ import json
 import httpx2
 from fastapi.testclient import TestClient
 
-from pathfinder_dashboard.app import create_app
-from pathfinder_dashboard.settings import Settings
+from mudpuppy_dashboard.app import create_app
+from mudpuppy_dashboard.settings import Settings
 
 from .conftest import Store
 from .test_chat import ORIGIN, text
@@ -186,7 +186,7 @@ def test_no_reviewer_or_a_foreign_origin_decides_nothing(empty_store: Store) -> 
             headers=ORIGIN,
             follow_redirects=False,
         )
-        assert r.status_code == 303 and "PATHFINDER_REVIEWER" in r.headers["location"]
+        assert r.status_code == 303 and "MUDPUPPY_REVIEWER" in r.headers["location"]
         foreign = c.post(
             f"/review/suites/{P}/suite-1",
             data={"action": "dismiss"},

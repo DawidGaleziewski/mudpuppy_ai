@@ -5,7 +5,7 @@
  */
 import { userInfo } from 'node:os';
 import { join, resolve } from 'node:path';
-import { PortalDataError, dbPathFor, exportPortal, migrateUp, openDb } from '@pathfinder/store';
+import { PortalDataError, dbPathFor, exportPortal, migrateUp, openDb } from '@mudpuppy/store';
 import { scriptEnvironment } from './script-env.js';
 
 const arg = (name: string, fallback: string): string => {

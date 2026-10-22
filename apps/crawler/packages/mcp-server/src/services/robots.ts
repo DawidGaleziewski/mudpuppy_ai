@@ -1,5 +1,5 @@
-import { newId } from '@pathfinder/core';
-import type { PortalConfig } from '@pathfinder/config';
+import { newId } from '@mudpuppy/core';
+import type { PortalConfig } from '@mudpuppy/config';
 import {
   DEFAULT_RATE_LIMIT,
   createRateLimiter,
@@ -7,7 +7,7 @@ import {
   type RateLimiter,
   type RobotsFetchRecord,
   type RobotsRegistry,
-} from '@pathfinder/crawler';
+} from '@mudpuppy/crawler';
 import type { ServerContext } from '../context.js';
 
 /** The run's robots state, created by `start_run` and handed to the browser session. */

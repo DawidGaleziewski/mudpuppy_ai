@@ -1,11 +1,11 @@
 import { chromium, type Browser, type BrowserContext, type Page } from 'playwright';
-import { readTrustedCa, type EffectiveConfig } from '@pathfinder/config';
+import { readTrustedCa, type EffectiveConfig } from '@mudpuppy/config';
 import {
   registerObstacleHandlers,
   type ObstacleEvent,
   type ObstacleHandlers,
-} from '@pathfinder/obstacles';
-import type { Refusal } from '@pathfinder/safety';
+} from '@mudpuppy/obstacles';
+import type { Refusal } from '@mudpuppy/safety';
 import { installClickSignals } from './click-signals.js';
 import { NavigationRecorder } from './navigation-recorder.js';
 import { NetworkRecorder } from './network-recorder.js';
@@ -74,7 +74,7 @@ export const DEFAULT_STATIC_PER_SECOND = 20;
 export const DEFAULT_RATE_LIMIT = {
   requests_per_second: 2,
   max_concurrency: 2,
-  user_agent: 'PathfinderAI-Crawler/0.1',
+  user_agent: 'MudPuppy-Crawler/0.1',
 };
 
 /**

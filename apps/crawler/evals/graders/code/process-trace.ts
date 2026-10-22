@@ -3,7 +3,7 @@
  * order, and whether it reported the goal reached. For tasks with a `trace`, and summed over the
  * `processTraces` of a map task (tasks.ts).
  */
-import type { GroundTruth } from '@pathfinder/docs';
+import type { GroundTruth } from '@mudpuppy/docs';
 import { traceOutcome, traceStepRoutes, type RawDb } from '../../queries.js';
 
 export interface StepsScore {

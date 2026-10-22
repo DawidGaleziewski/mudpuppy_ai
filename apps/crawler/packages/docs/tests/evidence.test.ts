@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { newId } from '@pathfinder/core';
+import { newId } from '@mudpuppy/core';
 import { DocsError } from '../src/errors.js';
 import {
   closestKeys,

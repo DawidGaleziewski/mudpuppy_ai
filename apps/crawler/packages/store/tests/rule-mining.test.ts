@@ -37,7 +37,7 @@ describe.skipIf(!process.env.PF_MINER)('the real miner (PF_MINER=1)', () => {
     const miner = join(import.meta.dirname, '../../../../miner');
     const out = execFileSync(
       'uv',
-      ['run', '--project', miner, 'pathfinder-miner', 'rules', '--in', file],
+      ['run', '--project', miner, 'mudpuppy-miner', 'rules', '--in', file],
       {
         encoding: 'utf8',
       },

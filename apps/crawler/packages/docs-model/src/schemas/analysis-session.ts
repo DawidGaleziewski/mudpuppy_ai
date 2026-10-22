@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { Id, Timestamp } from '@pathfinder/core';
+import { Id, Timestamp } from '@mudpuppy/core';
 
 export const AnalysisSessionStatus = z.enum(['running', 'completed', 'interrupted']);
 export type AnalysisSessionStatus = z.infer<typeof AnalysisSessionStatus>;

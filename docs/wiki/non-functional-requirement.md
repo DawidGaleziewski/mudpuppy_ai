@@ -30,9 +30,9 @@ They are easy to forget because nobody asks for them until they fail, and hard t
 because "fast" or "easy to use" cannot be tested. A useful NFR names a measure: a response time,
 an accessibility standard, a number of broken links.
 
-## How Pathfinder uses it
+## How MudPuppy uses it
 
-Pathfinder can only measure what a browser sees from outside. The BA agent writes `NFR` records in
+MudPuppy can only measure what a browser sees from outside. The BA agent writes `NFR` records in
 pass 6 only for qualities it actually measured: status codes, console errors, labelled controls,
 robots.txt policy, broken internal links. Everything else (load, security, back-office reliability)
 goes to the session's gaps instead of being guessed.

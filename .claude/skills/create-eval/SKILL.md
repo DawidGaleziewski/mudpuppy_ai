@@ -1,6 +1,6 @@
 ---
 name: create-eval
-description: How to build or extend an eval in Pathfinder the same way everywhere — Anthropic's eval terms (G-33), the evals/ folder layout (tasks, prompts, harness, graders by kind, results), naming, kinds of task (map, trace, live site), writing ground truth in YAML (G-34), live-site safety, and the rules for graders, trials, conditions and baselines. Use when creating an eval for any app or agent (e.g. the chat agent), adding a task, a ground truth, a grader or an LLM judge, running or promoting trials, or restructuring eval code. Not for deterministic tests or gates (those are tests, not evals).
+description: How to build or extend an eval in MudPuppy the same way everywhere — Anthropic's eval terms (G-33), the evals/ folder layout (tasks, prompts, harness, graders by kind, results), naming, kinds of task (map, trace, live site), writing ground truth in YAML (G-34), live-site safety, and the rules for graders, trials, conditions and baselines. Use when creating an eval for any app or agent (e.g. the chat agent), adding a task, a ground truth, a grader or an LLM judge, running or promoting trials, or restructuring eval code. Not for deterministic tests or gates (those are tests, not evals).
 ---
 
 # Create an eval
@@ -95,7 +95,7 @@ A trace task's ground-truth process must list its `steps` (routes in order); a t
 ## 5. Ground truth (G-34)
 
 - **YAML, never JSON**, starting with a comment naming the portal and the source of the facts. Read
-  with `readGroundTruth()` (`@pathfinder/docs`), validated by the `GroundTruth` schema.
+  with `readGroundTruth()` (`@mudpuppy/docs`), validated by the `GroundTruth` schema.
 - **Where**: next to the system when we own it (its self-check tests read it there); in
   `evals/ground-truth/<task>.yaml` when we don't. `tasks.ts` names the path either way.
 - **Written by a person, not from agent output.** The person writes notes (fact, `how_i_know`,

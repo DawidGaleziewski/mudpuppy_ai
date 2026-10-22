@@ -1,7 +1,7 @@
-import { maskText } from '@pathfinder/core';
-import { shapeUrl } from '@pathfinder/trace';
-import type { Attrs, EventName, Tracer } from '@pathfinder/store';
-import type { RequestDecision, SessionOptions } from '@pathfinder/crawler';
+import { maskText } from '@mudpuppy/core';
+import { shapeUrl } from '@mudpuppy/trace';
+import type { Attrs, EventName, Tracer } from '@mudpuppy/store';
+import type { RequestDecision, SessionOptions } from '@mudpuppy/crawler';
 
 /** A limiter wait longer than this is always worth its own event (research §10). */
 const SLOW_WAIT_MS = 1000;

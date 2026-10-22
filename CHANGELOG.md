@@ -5,6 +5,19 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Changed
+- **R-83: the code is called MudPuppy too** (spec 041, v2.2.0, 2026-10-22). R-23 renamed the
+  brand only; now every name follows: packages `@mudpuppy/*`, Python packages
+  `mudpuppy_dashboard` and `mudpuppy_miner`, commands `mudpuppy-dashboard`, `mudpuppy-glossary`,
+  `mudpuppy-miner`, env vars `MUDPUPPY_*` (was `PATHFINDER_*`: update your shell and `.mcp.json`
+  copies), MCP servers `mudpuppy`, `mudpuppy-ba`, `mudpuppy-chat` (tools `mcp__mudpuppy__*`;
+  restart Claude Code), the crawler's user agent `MudPuppy-Crawler`, the self-scan portal
+  `mudpuppy-dashboard`, the key folder `~/.config/mudpuppy`. Migration 0048 records trace boots
+  as server `mudpuppy`. History (old specs, session dumps, past entries here) keeps the old name.
+  The README shows the design's grid-path mark; the dashboard keeps the Salvage Yard favicon and
+  wordmark. Fixed on the way: a dashboard query matched agent tool calls by the old prefix's
+  length (F-02). Findings F-01–F-05 in `specs/041-r83-mudpuppy-rename/findings.md`.
+
 ### Added
 - **MudPuppy 2.1: the designer's pages, second half (R-93), spec 039 leftovers (R-91) and the
   scar-maker baseline (R-75)** (spec 040, v2.1.0, 2026-10-22). **Review**: Undo of a decision

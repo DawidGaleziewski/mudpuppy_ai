@@ -6,8 +6,8 @@ import sqlite3
 
 import pytest
 
-from pathfinder_dashboard import db
-from pathfinder_dashboard import queries_docs as q
+from mudpuppy_dashboard import db
+from mudpuppy_dashboard import queries_docs as q
 
 from .conftest import EVIDENCE, Store, add_evidence_link, insert, make_client, ts
 

@@ -4,14 +4,14 @@
 // which every gap had a replay is recorded with the deviations the model found meanwhile; with
 // none, the process counts as explored on the current build epochs.
 
-import { explorationBound } from '@pathfinder/model';
+import { explorationBound } from '@mudpuppy/model';
 import {
   type OpenedDb,
   buildsOf,
   currentEpochs,
   explorationPlan,
   recordExploration,
-} from '@pathfinder/store';
+} from '@mudpuppy/store';
 import type { ToolCall } from './local-client.js';
 import { replay } from './replay-driver.js';
 

@@ -1,4 +1,4 @@
-import { newId, nowIso } from '@pathfinder/core';
+import { newId, nowIso } from '@mudpuppy/core';
 import type { ServerContext } from '../context.js';
 
 /** The executed, observed transition that already reached a link target. */

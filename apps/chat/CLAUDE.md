@@ -1,6 +1,6 @@
-# @pathfinder/chat
+# @mudpuppy/chat
 
-Chat orchestrator service (R-30): talks to an ACP agent (Claude Code login of the user) and exposes HTTP + SSE to the dashboard's Chat page; starts its own `pathfinder` MCP servers (with Chromium) per conversation.
+Chat orchestrator service (R-30): talks to an ACP agent (Claude Code login of the user) and exposes HTTP + SSE to the dashboard's Chat page; starts its own `mudpuppy` MCP servers (with Chromium) per conversation.
 
 Layer: servers (G-07; `apps/crawler/layers.json`). Depends on config, core, chat-model, docs, docs-model,
 store, vault, workflow.
@@ -69,7 +69,7 @@ store, vault, workflow.
 ## Invariants
 - No hardcoded secrets; vault manages credentials.
 - Errors get `ERR-…` references in logs.
-- Chat schemas will move to `@pathfinder/chat-model` (G-10).
+- Chat schemas will move to `@mudpuppy/chat-model` (G-10).
 
 ## Tests
 - `pnpm --dir apps/chat test` (typecheck, lint, test before commit); it leaves out `*.e2e.test.ts`.

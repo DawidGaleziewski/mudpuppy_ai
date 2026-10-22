@@ -5,7 +5,7 @@ import { fileURLToPath } from 'node:url';
 import pino from 'pino';
 import { afterEach, describe, expect, it } from 'vitest';
 import { openDb, type OpenedDb } from '../src/db.js';
-import { createEvidenceStore } from '@pathfinder/core';
+import { createEvidenceStore } from '@mudpuppy/core';
 import { migrateUp } from '../src/migrate.js';
 import { createTracer, type Tracer, type TracerDeps } from '../src/tracer.js';
 
@@ -13,7 +13,7 @@ const MIGRATIONS = fileURLToPath(new URL('../../../../../data/migrations', impor
 const RUN = 'run-1';
 const BOOT = {
   environment: 'sandbox',
-  server: 'pathfinder',
+  server: 'mudpuppy',
   version: '0.0.0-test',
 } as const;
 
@@ -99,7 +99,7 @@ describe('Tracer boot', () => {
     expect(boots[0]).toMatchObject({
       id: tracer.bootId,
       environment: 'sandbox',
-      server: 'pathfinder',
+      server: 'mudpuppy',
       pid: process.pid,
       version: '0.0.0-test',
       trace_level: 'standard',

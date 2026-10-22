@@ -33,9 +33,9 @@ Requirements are usually split into **functional** requirements (what the system
 behaviour) and [non-functional requirements](non-functional-requirement.md) (qualities and
 constraints).
 
-## How Pathfinder uses it
+## How MudPuppy uses it
 
-Pathfinder documents an existing system, so its requirements describe behaviour that was
+MudPuppy documents an existing system, so its requirements describe behaviour that was
 **observed** and that a rebuilt system must keep. The BA agent writes them as `REQ` records in
 pass 4, each citing the evidence it came from and carrying
 [acceptance criteria](acceptance-criteria.md). A requirement becomes `confirmed` only when a person

@@ -4,9 +4,9 @@
  * (`../human/labels.ts`). What the eval entry points use.
  */
 import { join } from 'node:path';
-import type { GroundTruth } from '@pathfinder/docs';
-import type { JudgeRunResult } from '@pathfinder/gates';
-import { dbPathFor } from '@pathfinder/store';
+import type { GroundTruth } from '@mudpuppy/docs';
+import type { JudgeRunResult } from '@mudpuppy/gates';
+import { dbPathFor } from '@mudpuppy/store';
 import type { EvalConfig } from '../../config.js';
 import { judgeLine, judgeStore } from './judge-step.js';
 import { JUDGES } from './judges/index.js';

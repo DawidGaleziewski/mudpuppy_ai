@@ -4,8 +4,8 @@
 // Synchronous, on the caller's connection, like setProcessScope.
 
 import type BetterSqlite3 from 'better-sqlite3';
-import { newId } from '@pathfinder/core';
-import type { ProcessScope } from '@pathfinder/chat-model';
+import { newId } from '@mudpuppy/core';
+import type { ProcessScope } from '@mudpuppy/chat-model';
 import { nextProcessKey, observedSteps, type StateRow } from './process-steps.js';
 
 function scopeSteps(raw: BetterSqlite3.Database, scope: ProcessScope) {

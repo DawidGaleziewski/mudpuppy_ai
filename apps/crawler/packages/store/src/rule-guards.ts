@@ -5,8 +5,8 @@
  * is not written again.
  */
 import type BetterSqlite3 from 'better-sqlite3';
-import { newId, nowIso } from '@pathfinder/core';
-import { claimHash, guardConflicts, type HypothesisStatus } from '@pathfinder/model';
+import { newId, nowIso } from '@mudpuppy/core';
+import { claimHash, guardConflicts, type HypothesisStatus } from '@mudpuppy/model';
 import { decisionRules } from './rule-export.js';
 
 type Raw = BetterSqlite3.Database;

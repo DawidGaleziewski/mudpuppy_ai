@@ -5,7 +5,7 @@
  * Exit 0 when valid, 1 with each problem named when not, 2 on bad usage.
  */
 import { join, resolve } from 'node:path';
-import { ConfigError, Environment, loadEffectiveConfig, loadPortal } from '@pathfinder/config';
+import { ConfigError, Environment, loadEffectiveConfig, loadPortal } from '@mudpuppy/config';
 
 const args = process.argv.slice(2);
 const envIdx = args.indexOf('--env');

@@ -5,7 +5,7 @@
  * rule is a `decision_rule` hypothesis waiting for a person, with its boundary tests.
  */
 import type BetterSqlite3 from 'better-sqlite3';
-import { newId, nowIso } from '@pathfinder/core';
+import { newId, nowIso } from '@mudpuppy/core';
 import {
   boundaryTests,
   claimHash,
@@ -15,12 +15,12 @@ import {
   type Execution,
   type JourneyLink,
   type ObservationTable,
-} from '@pathfinder/model';
+} from '@mudpuppy/model';
 import { z } from 'zod';
 
 type Raw = BetterSqlite3.Database;
 
-/** What `pathfinder-miner rules` prints: a decision table, or "needs data". */
+/** What `mudpuppy-miner rules` prints: a decision table, or "needs data". */
 export const MinedRule = z.union([
   z
     .object({

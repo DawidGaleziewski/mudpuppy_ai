@@ -6,7 +6,7 @@
 import { spawn as nodeSpawn } from 'node:child_process';
 import { existsSync, mkdirSync, openSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { newId, nowIso } from '@pathfinder/core';
+import { newId, nowIso } from '@mudpuppy/core';
 import { z } from 'zod';
 import { HttpError } from './http-error.js';
 
@@ -114,7 +114,7 @@ export function startCheckRun(deps: CheckRunDeps, portal: string, raw: unknown):
     cwd: deps.repoRoot,
     detached: true,
     stdio: ['ignore', fd, fd],
-    env: { ...process.env, PATHFINDER_ENV: deps.environment },
+    env: { ...process.env, MUDPUPPY_ENV: deps.environment },
   });
   if (child.pid === undefined) throw new HttpError(500, 'The check run did not start.');
   child.unref();

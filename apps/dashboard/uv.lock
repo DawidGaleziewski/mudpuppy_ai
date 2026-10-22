@@ -443,7 +443,7 @@ wheels = [
 ]
 
 [[package]]
-name = "pathfinder-dashboard"
+name = "mudpuppy-dashboard"
 version = "0.1.0"
 source = { editable = "." }
 dependencies = [

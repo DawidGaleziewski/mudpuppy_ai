@@ -3,7 +3,7 @@
  * a result: the agent finished, or used up the eval's own budget. An API error or the account's
  * usage limit measures the outage, not the agent.
  */
-import { ScoredOutcome as ScoredOutcomeSchema } from '@pathfinder/gates';
+import { ScoredOutcome as ScoredOutcomeSchema } from '@mudpuppy/gates';
 import type { z } from 'zod';
 
 export type AgentOutcome = 'success' | 'budget_end' | 'api_error' | 'usage_limit';

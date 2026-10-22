@@ -3,8 +3,8 @@
 // never becomes a screen in place of the real one and the BA documents the real screens. The page is
 // re-opened with a GET through the session's gates (never a reload: that could re-post a form).
 
-import { transientError, type SettleOutcome, type TransientKind } from '@pathfinder/crawler';
-import { shapeUrl } from '@pathfinder/trace';
+import { transientError, type SettleOutcome, type TransientKind } from '@mudpuppy/crawler';
+import { shapeUrl } from '@mudpuppy/trace';
 import type { RunState } from '../run-state.js';
 import { decision, event, type Report } from './context.js';
 

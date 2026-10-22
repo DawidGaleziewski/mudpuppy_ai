@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it } from 'vitest';
-import { newId, nowIso } from '@pathfinder/core';
-import { DocKind, KEY_PREFIX } from '@pathfinder/docs-model';
+import { newId, nowIso } from '@mudpuppy/core';
+import { DocKind, KEY_PREFIX } from '@mudpuppy/docs-model';
 import { formatKey, nextSeq, parseKey } from '../src/keys.js';
 import { makeFixtureStore, type FixtureStore } from '../src/testing/index.js';
 

@@ -46,7 +46,7 @@ describe.skipIf(!process.env.PF_MINER)('the real miner communities (PF_MINER=1)'
     const miner = join(import.meta.dirname, '../../../../miner');
     const out = execFileSync(
       'uv',
-      ['run', '--project', miner, 'pathfinder-miner', 'communities', '--in', file],
+      ['run', '--project', miner, 'mudpuppy-miner', 'communities', '--in', file],
       { encoding: 'utf8' },
     );
     const { communities } = JSON.parse(out) as { communities: string[][] };

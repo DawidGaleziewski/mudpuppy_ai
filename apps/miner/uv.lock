@@ -162,7 +162,7 @@ wheels = [
 ]
 
 [[package]]
-name = "pathfinder-miner"
+name = "mudpuppy-miner"
 version = "0.1.0"
 source = { editable = "." }
 dependencies = [

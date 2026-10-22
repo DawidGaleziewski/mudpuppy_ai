@@ -6,8 +6,8 @@
  */
 import { randomUUID } from 'node:crypto';
 import { join } from 'node:path';
-import { newId, nowIso } from '@pathfinder/core';
-import { dbPathFor, openDb } from '@pathfinder/store';
+import { newId, nowIso } from '@mudpuppy/core';
+import { dbPathFor, openDb } from '@mudpuppy/store';
 import type { EvalConfig } from '../config.js';
 import { abort } from '../failures.js';
 import { PROMPTS } from '../prompts.js';

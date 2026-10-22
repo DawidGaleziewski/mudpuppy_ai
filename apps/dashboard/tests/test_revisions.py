@@ -6,7 +6,7 @@ import html
 import json
 import re
 
-from pathfinder_dashboard import db, queries_revisions
+from mudpuppy_dashboard import db, queries_revisions
 
 from .conftest import Store, insert, make_client
 

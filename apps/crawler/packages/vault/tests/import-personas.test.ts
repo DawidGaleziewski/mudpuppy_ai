@@ -2,8 +2,8 @@ import { existsSync, mkdirSync, mkdtempSync, readFileSync, writeFileSync } from 
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { loadPersona } from '@pathfinder/config';
-import { migrateUp, openDb, type OpenedDb } from '@pathfinder/store';
+import { loadPersona } from '@mudpuppy/config';
+import { migrateUp, openDb, type OpenedDb } from '@mudpuppy/store';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { parseCsv } from '../src/csv.js';
 import { runVaultCli, type CliIo } from '../src/index.js';

@@ -2,14 +2,14 @@
 
 A living catalogue of things that make legacy portals hard to map and document: odd architecture,
 broken markup, unusual navigation, sessions, bot checks, network quirks and data rules. Each entry
-says where the legacy proving ground (spec 009, R-25) reproduces it and what Pathfinder is
+says where the legacy proving ground (spec 009, R-25) reproduces it and what MudPuppy is
 expected to do. The quality gates (R-27) hold one assertion set per entry.
 
 **Adding an entry**: when a real project shows a new obstacle, add a row with the next free id,
 the source (project or finding id), and leave "Proving ground" as `not yet` until a screen
 reproduces it. Ids are never reused; a dropped entry is marked `withdrawn`, not deleted.
 
-Status: `proposed` (not yet rated), `in scope`, `later`, `withdrawn`. Whether Pathfinder handles an
+Status: `proposed` (not yet rated), `in scope`, `later`, `withdrawn`. Whether MudPuppy handles an
 entry is shown by its gate (`gate()` handled, `gap()` known gap) in the gate report, not here.
 Handled by spec 015 (R-28): LO-02, LO-04, LO-10, LO-11, LO-18, LO-34, LO-43. The first set (LO-01..LO-51)
 was put in scope by an overnight default on 2026-10-05 (all but LO-36 and LO-46); the user may
@@ -23,7 +23,7 @@ Screen ids are per domain: `shop S03` is screen S03 in `shop.json`.
 
 ## Architecture
 
-| ID | Obstacle | Proving ground | Pathfinder should | Source | Status |
+| ID | Obstacle | Proving ground | MudPuppy should | Source | Status |
 |---|---|---|---|---|---|
 | LO-01 | Micro-frontends mounted by a shell, each its own bundle and release | Shell mounts one bundle per brand from `/mfe/import-map.json`: shop `/sklep…` (shop S01–S06), bank `/bank…` (bank S01, S03–S07), insurer `/ubezpieczenia…` (insurer S01, S03–S07) | Map one state graph across micro-frontends; a micro-frontend reload is not a new state | idea | in scope |
 | LO-02 | Legacy server-rendered app wrapped in an iframe inside the new shell | Bank `/bank/historia` (bank S07): iframe of the old app `/legacy/bank/historia.do` (bank S08) | Observe and act inside the iframe; record the wrapper and the inner page as one screen | idea | in scope |
@@ -38,7 +38,7 @@ Screen ids are per domain: `shop S03` is screen S03 in `shop.json`.
 
 ## Markup and accessibility
 
-| ID | Obstacle | Proving ground | Pathfinder should | Source | Status |
+| ID | Obstacle | Proving ground | MudPuppy should | Source | Status |
 |---|---|---|---|---|---|
 | LO-10 | `div`/`span` "buttons" with click handlers, no role, no tabindex | Shop `/sklep/produkt/:slug` "Dodaj do koszyka" (shop S02); bank `/bank/przelew` "Wykonaj" (bank S04) | Find clickable elements without ARIA roles and act on them | idea | in scope |
 | LO-11 | Inputs without a label (placeholder only, or label in the next table cell) | Bank `/bank/przelew` (bank S04) and bank login (bank S02), insurer login (insurer S02): placeholder only; legacy insurer `/legacy/insurer/szkoda-stara.do` (insurer S08): label in the next table cell | Name fields from nearby text; BA marks the name as inferred | idea | in scope |
@@ -54,7 +54,7 @@ Screen ids are per domain: `shop S03` is screen S03 in `shop.json`.
 
 ## Navigation and URLs
 
-| ID | Obstacle | Proving ground | Pathfinder should | Source | Status |
+| ID | Obstacle | Proving ground | MudPuppy should | Source | Status |
 |---|---|---|---|---|---|
 | LO-21 | Redirect chains (301 → 302 → page) | Shop `/shop/index.php?cat=:n` → `/old/kategoria/:n` → `/sklep?kategoria=:n` (shop S01, redirect D01); insurer `/polisa.php?id=:nr` → `/stare/polisa/:nr` → `/ubezpieczenia#/polisy/:nr` (insurer S04, redirect D01) | Record the final screen and the chain; no duplicate state | idea | in scope |
 | LO-22 | Meta refresh and JavaScript `location` redirects | Insurer `/polisa.php?id=:nr` "Proszę czekać…" (meta refresh after 1 s) then `/stare/polisa/:nr` (`location.replace`), ending on insurer S04 (redirect D01) | Follow them; record the waiting page as transient | idea | in scope |
@@ -69,7 +69,7 @@ Screen ids are per domain: `shop S03` is screen S03 in `shop.json`.
 
 ## Session, auth and state
 
-| ID | Obstacle | Proving ground | Pathfinder should | Source | Status |
+| ID | Obstacle | Proving ground | MudPuppy should | Source | Status |
 |---|---|---|---|---|---|
 | LO-30 | Login page with CSRF token | `/logowanie?marka=<brand>` (shop S07, bank S02, insurer S02) | Log in with vault credentials (R-26); never show the password to the agent | idea | in scope |
 | LO-31 | Account lockout after N failed logins | Login locks after 3 failures: shop S07, bank S02, insurer S02 | Stop after one failed login and report; never retry blindly | common | in scope |
@@ -81,7 +81,7 @@ Screen ids are per domain: `shop S03` is screen S03 in `shop.json`.
 
 ## Bot checks and overlays
 
-| ID | Obstacle | Proving ground | Pathfinder should | Source | Status |
+| ID | Obstacle | Proving ground | MudPuppy should | Source | Status |
 |---|---|---|---|---|---|
 | LO-37 | CAPTCHA-like widget (checkbox, then image challenge) | Shop `/sklep/zamowienie` before "Zamawiam i płacę" (shop S04); login after one failure: shop S07, bank S02, insurer S02 | Detect it, never solve it, hand it to a human | idea | in scope |
 | LO-38 | Cookie consent banner as its own micro-frontend overlay | Shell cookie app on first visit, any shell page; ground truth lists it at shop S01, bank S01, insurer S01 | Dismiss through portal config obstacles; never record it as a state | common | in scope |
@@ -91,7 +91,7 @@ Screen ids are per domain: `shop S03` is screen S03 in `shop.json`.
 
 ## Network and APIs
 
-| ID | Obstacle | Proving ground | Pathfinder should | Source | Status |
+| ID | Obstacle | Proving ground | MudPuppy should | Source | Status |
 |---|---|---|---|---|---|
 | LO-42 | One GraphQL endpoint for many operations | Shop `POST /api/shop/graphql` (operations `Catalog`, `Product`, `Cart`, `AddToCart`, `UpdateCart`, `PlaceOrder`) on shop S01–S04 | Record API shapes per operation name, not one `/graphql` | common | in scope |
 | LO-43 | Classic form POST + redirect (no XHR) | Insurer `/legacy/insurer/szkoda-stara.do` (insurer S08): POST then 302 to `?ok=1` | Record the POST shape (today only `xhr`/`fetch` are recorded, R-18) | F-R18 | in scope |
@@ -101,7 +101,7 @@ Screen ids are per domain: `shop S03` is screen S03 in `shop.json`.
 
 ## Forms and business data
 
-| ID | Obstacle | Proving ground | Pathfinder should | Source | Status |
+| ID | Obstacle | Proving ground | MudPuppy should | Source | Status |
 |---|---|---|---|---|---|
 | LO-47 | Client-side and server-side validation disagree | Insurer `/ubezpieczenia#/szkody/nowa` step 1 "Data zdarzenia" (insurer S06): client accepts any date, server rejects dates older than 30 days | Record both rules and the mismatch | common | in scope |
 | LO-48 | Cascading fields loaded from an API (choose A, then B loads) | Shop `/sklep/zamowienie` "Miasto" then "Wybierz paczkomat" via `/api/shop/lockers?miasto=` (shop S04) | Fill in order; record the dependency | common | in scope |

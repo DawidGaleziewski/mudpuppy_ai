@@ -1,7 +1,7 @@
 import { copyFileSync, existsSync, mkdirSync, rmSync, unlinkSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import type BetterSqlite3 from 'better-sqlite3';
-import { newId, nowIso } from '@pathfinder/core';
+import { newId, nowIso } from '@mudpuppy/core';
 
 /**
  * Export and delete everything one portal gathered (spec 002 FR-028, data-model.md "Partition

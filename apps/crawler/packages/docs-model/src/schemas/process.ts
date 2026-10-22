@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { Id, Timestamp } from '@pathfinder/core';
+import { Id, Timestamp } from '@mudpuppy/core';
 
 export const ProcessStatus = z.enum(['recorded', 'replay_verified', 'documented']);
 export type ProcessStatus = z.infer<typeof ProcessStatus>;

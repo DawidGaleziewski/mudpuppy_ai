@@ -1,4 +1,4 @@
-import type { PathfinderDb } from '@pathfinder/store';
+import type { MudPuppyDb } from '@mudpuppy/store';
 
 export interface Coverage {
   states: number;
@@ -15,7 +15,7 @@ const num = (v: number | string | bigint): number => Number(v);
 
 /** Count item pages: states this run saw whose route template is one of the portal's `item_route_templates`. */
 export async function countItemPagesVisited(
-  db: PathfinderDb,
+  db: MudPuppyDb,
   runId: string,
   itemRouteTemplates: readonly string[],
 ): Promise<number> {
@@ -32,7 +32,7 @@ export async function countItemPagesVisited(
 
 /** FR-021 coverage: states, actions executed, actions skipped by class, distinct API endpoints, item visits. */
 export async function computeCoverage(
-  db: PathfinderDb,
+  db: MudPuppyDb,
   runId: string,
   itemRouteTemplates: readonly string[] = [],
 ): Promise<Coverage> {
@@ -112,7 +112,7 @@ function describeAction(json: string): string {
 
 /** Worklist of everything deliberately not done, with class and reason, plus coverage (FR-010, FR-021, FR-024). */
 export async function buildFrontierReport(
-  db: PathfinderDb,
+  db: MudPuppyDb,
   runId: string,
   itemRouteTemplates: readonly string[] = [],
 ): Promise<FrontierReport> {

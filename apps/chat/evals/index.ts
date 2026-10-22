@@ -5,7 +5,7 @@
  * → (dry run stops here) → assistant → grade → result.
  */
 import { randomUUID } from 'node:crypto';
-import { openDb } from '@pathfinder/store';
+import { openDb } from '@mudpuppy/store';
 import { parseConfig } from './config.js';
 import { die, EvalAbort } from './failures.js';
 import { grade } from './graders/index.js';

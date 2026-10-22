@@ -1,7 +1,7 @@
 import { rmSync } from 'node:fs';
 import { createServer, type Server } from 'node:http';
 import type { AddressInfo } from 'node:net';
-import { canLaunchBrowser } from '@pathfinder/crawler';
+import { canLaunchBrowser } from '@mudpuppy/crawler';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { spawnServer, throwawayRoot } from './spawned-server.js';
 import { portalYaml } from './trace-run-harness.js';
@@ -41,7 +41,7 @@ afterAll(async () => new Promise((r) => site?.close(r)));
 
 describe.skipIf(!available)('hook bodies under tsx (spec 030 F-07)', () => {
   it('a named inner function in an inPage body runs in the page', async () => {
-    const root = throwawayRoot('pathfinder-hook-shim-', {
+    const root = throwawayRoot('mudpuppy-hook-shim-', {
       'portals/mock/portal.yaml':
         portalYaml(origin, 10) + 'robots: ignore\nhooks:\n  - point: onPageLoad\n    fn: retitle\n',
       'portals/mock/hooks.ts': HOOKS_TS,

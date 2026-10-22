@@ -42,13 +42,13 @@ this file wins over habits found in existing code.
      `chat`, `gates`, `reference-portal`
 
   The authoritative list is `apps/crawler/layers.json`. Checked by: `layers.test.ts`.
-- **G-08** The kernel has no `@pathfinder/*` dependency and no browser, LLM or DB code.
+- **G-08** The kernel has no `@mudpuppy/*` dependency and no browser, LLM or DB code.
   Checked by: `layers.test.ts`, reviewer.
 - **G-09** A feature's Zod schemas live in that feature's model package, not in `core`. A schema
   moves to `core` only when two or more unrelated features need it **and** it describes the crawl
   model itself. Checked by: reviewer.
 - **G-10** Chat schemas (conversation, workflow step, process scope, amendment) live in
-  `@pathfinder/chat-model`. Checked by: `layers.json`.
+  `@mudpuppy/chat-model`. Checked by: `layers.json`.
 - **G-11** No re-export shims that hide a dependency direction (e.g. `core` re-exporting `docs`
   types). Checked by: `layers.test.ts`, reviewer.
 - **G-12** Inside a package, other code imports a folder only through its `index.ts` (e.g. MCP
@@ -111,8 +111,8 @@ this file wins over habits found in existing code.
   from, and the agents that read both. New evals follow the `create-eval` skill (layout, naming).
   Checked by: reviewer.
 - **G-34** **Ground truth is written in YAML** (`.yaml`), never JSON: one file per portal, read
-  with `readGroundTruth()` (`@pathfinder/docs`) or `loadGroundTruth()`
-  (`@pathfinder/reference-portal`) and validated by the `GroundTruth` schema. A file starts with a
+  with `readGroundTruth()` (`@mudpuppy/docs`) or `loadGroundTruth()`
+  (`@mudpuppy/reference-portal`) and validated by the `GroundTruth` schema. A file starts with a
   comment naming the portal. *Why:* people write and review it by hand; YAML allows comments and is
   far easier to read than JSON (`learning/11-writing-ground-truth.md`). Checked by: the readers
   (paths in `apps/crawler/evals/tasks.ts` and the self-check tests), reviewer.

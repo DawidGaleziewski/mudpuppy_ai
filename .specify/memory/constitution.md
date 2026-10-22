@@ -1,5 +1,7 @@
 <!--
 SYNC IMPACT REPORT (amendment history, newest first)
+Version change: 6.0.0 → 6.0.1 (PATCH: wording only; the product's old name, Pathfinder AI, is
+MudPuppy in every name the constitution uses: packages, servers, env vars; R-83, spec 041)
 Version change: 5.0.0 → 6.0.0 (MAJOR: redefines the data model and Principle III's outputs;
 MudPuppy 2.0, spec 039, R-81)
 Modified principles: III. Strict Role Separation: the crawler emits flagged hypotheses instead of
@@ -26,7 +28,7 @@ environment or persona; classification and enforcement of a set limit stay in co
 production-address check, the required rate limit and identifiable User-Agent on production,
 stopping on CAPTCHA/anti-bot on production (a CAPTCHA is handed to a human on every
 environment, never solved by automation), Playwright traces only off production.
-Added sections: "Product rule" (Pathfinder records the as-is; people draw the to-be in it; the
+Added sections: "Product rule" (MudPuppy records the as-is; people draw the to-be in it; the
 assistant only proposes). Modified sections: Testing ("production targets are read-only" removed).
 User decisions 2026-10-13: "I don't care about production guard. We should not have it at all to
 begin with. REMOVE IT."; design open item O-1 answered "records as-is, people draw to-be".
@@ -71,14 +73,14 @@ Deferred items: none
 Previous change: 1.4.0 → 2.0.0 (MAJOR, spec 008: PII scrubbing optional, non-production runs may
 submit forms).
 -->
-# Pathfinder AI Constitution
+# MudPuppy Constitution
 
-Pathfinder AI is a tool used by business analysts (BAs) to document existing brownfield web
+MudPuppy is a tool used by business analysts (BAs) to document existing brownfield web
 applications so that they can be re-created, for example on a newer tech stack, from the
 documentation alone. It discovers processes with Playwright, records them as evidence-backed
 requirements, and generates static tests that verify them.
 
-**Product rule**: Pathfinder records the as-is; people draw the to-be in it; the assistant only
+**Product rule**: MudPuppy records the as-is; people draw the to-be in it; the assistant only
 proposes and changes nothing until a person applies it. Agents MAY save their proposals (for
 example process groupings) directly, marked as theirs, for people to accept, edit or reject; facts
 derived by a published rule follow Principle VI. Recorded evidence is never edited to look like
@@ -228,7 +230,7 @@ Markdown, Mermaid and Gherkin are rendered from it. Generated tests MUST be plai
   portal (rendering the graph to Mermaid) → QA helper library, spec generation and runner (whose
   runs verify processes) → downstream docs.
 - Pure-function packages MUST have Vitest unit tests before dependent packages build on them.
-- Pathfinder's own automated tests and gates MUST target a demo app, the proving ground or a
+- MudPuppy's own automated tests and gates MUST target a demo app, the proving ground or a
   local reference portal. Exploration MAY target any environment (Principle V).
 - Failures are triaged rules-first (brittleness, environment, defect, requirement drift), and
   only ambiguous cases go to a triager agent. A repeated failure pattern is fixed by extending
@@ -248,4 +250,4 @@ pull request review MUST verify compliance; any violation MUST be justified in w
 plan's complexity-tracking section or be corrected. Runtime guidance for agents lives in
 `user_input/raw_idea/agents/` until moved into the `agents/` and `skills/` packages.
 
-**Version**: 6.0.0 | **Ratified**: 2026-09-20 | **Last Amended**: 2026-10-19
+**Version**: 6.0.1 | **Ratified**: 2026-09-20 | **Last Amended**: 2026-10-22

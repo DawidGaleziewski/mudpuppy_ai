@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import type { NavigationHop } from '@pathfinder/core';
-import type { RunScope } from '@pathfinder/safety';
+import type { NavigationHop } from '@mudpuppy/core';
+import type { RunScope } from '@mudpuppy/safety';
 import type { RunState } from '../src/runtime/run-state.js';
 import {
   inTransit,

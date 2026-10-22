@@ -1,6 +1,6 @@
 # Evidence, explained
 
-Evidence is what the crawler saved as proof of what it saw. Pathfinder's first rule is that no
+Evidence is what the crawler saved as proof of what it saw. MudPuppy's first rule is that no
 documentation statement exists without it: every BA record cites at least one piece of evidence,
 and every piece of evidence belongs to a run. Back to the
 [glossary entry](../README.md#evidence).
@@ -33,7 +33,7 @@ name changing.
 
 ## What is never gathered, and why
 
-- **Personal data, when the portal asks for it.** Since constitution 2.0.0 Pathfinder runs almost
+- **Personal data, when the portal asks for it.** Since constitution 2.0.0 MudPuppy runs almost
   only against test portals with disposable data, so text evidence is stored as recorded. A
   portal config with `pii_scrub: true` turns the scrubber back on for snapshots, titles, form
   fields and network shapes (e-mail addresses, phone numbers, card numbers, tokens become

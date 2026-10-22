@@ -1,5 +1,5 @@
 {
-  "name": "@pathfinder/vault",
+  "name": "@mudpuppy/vault",
   "version": "0.0.0",
   "private": true,
   "description": "Encrypted test-user credentials per portal and environment, resolved from persona ref: names, plus the run-scoped secret redactor (spec 009 R-26)",
@@ -8,9 +8,9 @@
     ".": "./src/index.ts"
   },
   "dependencies": {
-    "@pathfinder/config": "workspace:*",
-    "@pathfinder/core": "workspace:*",
-    "@pathfinder/store": "workspace:*",
+    "@mudpuppy/config": "workspace:*",
+    "@mudpuppy/core": "workspace:*",
+    "@mudpuppy/store": "workspace:*",
     "kysely": "^0.29.6",
     "yaml": "^2.9.1"
   },

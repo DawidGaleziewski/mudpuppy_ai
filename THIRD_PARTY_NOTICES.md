@@ -4,11 +4,11 @@ The proprietary notice in `LICENSE` does not cover these files. They keep their 
 
 | Component | Where | Licence |
 | --- | --- | --- |
-| Mermaid 11.4.1 | `apps/dashboard/src/pathfinder_dashboard/static/vendor/mermaid.min.js` | MIT (below) |
-| htmx 4.0.0 | `apps/dashboard/src/pathfinder_dashboard/static/vendor/htmx.min.js`, `hx-sse.min.js` | BSD Zero Clause (no notice required) |
-| Archivo | `apps/dashboard/src/pathfinder_dashboard/static/salvage/fonts/` | SIL Open Font License 1.1 (`OFL-Archivo.txt`) |
-| IBM Plex Mono | `apps/dashboard/src/pathfinder_dashboard/static/salvage/fonts/` | SIL Open Font License 1.1 (`OFL-IBMPlexMono.txt`) |
-| Special Elite | `apps/dashboard/src/pathfinder_dashboard/static/salvage/fonts/` | Apache License 2.0 (`LICENSE-SpecialElite.txt`) |
+| Mermaid 11.4.1 | `apps/dashboard/src/mudpuppy_dashboard/static/vendor/mermaid.min.js` | MIT (below) |
+| htmx 4.0.0 | `apps/dashboard/src/mudpuppy_dashboard/static/vendor/htmx.min.js`, `hx-sse.min.js` | BSD Zero Clause (no notice required) |
+| Archivo | `apps/dashboard/src/mudpuppy_dashboard/static/salvage/fonts/` | SIL Open Font License 1.1 (`OFL-Archivo.txt`) |
+| IBM Plex Mono | `apps/dashboard/src/mudpuppy_dashboard/static/salvage/fonts/` | SIL Open Font License 1.1 (`OFL-IBMPlexMono.txt`) |
+| Special Elite | `apps/dashboard/src/mudpuppy_dashboard/static/salvage/fonts/` | Apache License 2.0 (`LICENSE-SpecialElite.txt`) |
 | GitHub Spec Kit | `.specify/`, `.claude/skills/speckit-*` | MIT (below) |
 
 Dependencies installed by pnpm and uv keep the licences stated in their own packages.

@@ -4,7 +4,7 @@
  * variants, the explored bound of the latest pass, and the decision rules on its screens as DMN.
  */
 import type BetterSqlite3 from 'better-sqlite3';
-import { explorationBound, toDmnXml, type HypothesisStatus } from '@pathfinder/model';
+import { explorationBound, toDmnXml, type HypothesisStatus } from '@mudpuppy/model';
 import { findProcessInstances, processShapes, screenOfState } from './process-instances.js';
 import { decisionRules, EXPORTED_RULE_STATUSES } from './rule-export.js';
 

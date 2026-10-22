@@ -5,8 +5,8 @@
  */
 import { existsSync } from 'node:fs';
 import { join, resolve } from 'node:path';
-import { audit, elementKeysReader, qualityFindings } from '@pathfinder/docs';
-import { dbPathFor, openDb } from '@pathfinder/store';
+import { audit, elementKeysReader, qualityFindings } from '@mudpuppy/docs';
+import { dbPathFor, openDb } from '@mudpuppy/store';
 import { scriptEnvironment } from './script-env.js';
 
 const arg = (name: string, fallback: string): string => {

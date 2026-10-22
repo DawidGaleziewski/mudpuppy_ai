@@ -1,4 +1,4 @@
-import type { SafetyClass } from '@pathfinder/core';
+import type { SafetyClass } from '@mudpuppy/core';
 
 /** What the server extracted about a control before deciding whether it may be executed. */
 export interface ActionDescriptor {

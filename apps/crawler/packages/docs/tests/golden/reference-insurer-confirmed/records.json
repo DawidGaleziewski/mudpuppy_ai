@@ -956,5 +956,5 @@
       "status": "completed"
     }
   ],
-  "schema": "pathfinder-srs-export/1"
+  "schema": "mudpuppy-srs-export/1"
 }

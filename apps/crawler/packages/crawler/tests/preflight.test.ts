@@ -30,7 +30,7 @@ denylist: [logout]
 rate_limit:
   requests_per_second: 1
   max_concurrency: 1
-  user_agent: "${over.ua ?? 'PathfinderAI-Crawler/0.1 (+ops@corp.pl)'}"
+  user_agent: "${over.ua ?? 'MudPuppy-Crawler/0.1 (+ops@corp.pl)'}"
 `;
 const PERSONA = `id: guest\nauth: none\nmax_action_class: read\nviewport: { width: 1366, height: 768 }\nlocale: pl-PL\n`;
 
@@ -121,7 +121,7 @@ describe('preflight', () => {
   it('allows production with a placeholder User-Agent (spec 021)', () => {
     const root = repo({
       'portals/shop/portal.yaml': PORTAL({
-        ua: 'PathfinderAI-Crawler/0.1 (+contact@example.com)',
+        ua: 'MudPuppy-Crawler/0.1 (+contact@example.com)',
       }),
       'personas/shop/guest.yaml': PERSONA,
     });

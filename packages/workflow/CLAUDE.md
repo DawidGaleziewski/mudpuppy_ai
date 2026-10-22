@@ -1,4 +1,4 @@
-# @pathfinder/workflow
+# @mudpuppy/workflow
 
 Pure functions from recorded data to workflow step statuses, next moves and amendment impact (R-30).
 
@@ -10,7 +10,7 @@ Layer: features (G-07; `apps/crawler/layers.json`)
 
 ## Invariants
 - Pure (no I/O, no browser, no LLM).
-- Works from recorded Pathfinder data (core records, runs, docs).
+- Works from recorded MudPuppy data (core records, runs, docs).
 
 ## Where to add things
 - New workflow logic: `src/state.ts` or `src/amendments.ts` following existing patterns.

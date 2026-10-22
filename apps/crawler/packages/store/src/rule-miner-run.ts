@@ -44,12 +44,12 @@ function hasUv(): boolean {
 }
 
 /**
- * The Python miner (`pathfinder-miner rules`) through `uv`, or null when apps/miner or `uv` is
- * missing (a crawler-only install) or `PATHFINDER_MINER=off`: then nothing is mined.
+ * The Python miner (`mudpuppy-miner rules`) through `uv`, or null when apps/miner or `uv` is
+ * missing (a crawler-only install) or `MUDPUPPY_MINER=off`: then nothing is mined.
  */
 export function uvMiner(repoRoot: string, env = process.env): MinerRun | null {
   const minerDir = join(repoRoot, 'apps', 'miner');
-  if (env.PATHFINDER_MINER === 'off' || !existsSync(join(minerDir, 'pyproject.toml'))) return null;
+  if (env.MUDPUPPY_MINER === 'off' || !existsSync(join(minerDir, 'pyproject.toml'))) return null;
   if (!hasUv()) return null;
   return (table) => {
     const work = mkdtempSync(join(tmpdir(), 'pf-mine-'));
@@ -58,7 +58,7 @@ export function uvMiner(repoRoot: string, env = process.env): MinerRun | null {
       writeFileSync(file, JSON.stringify(table));
       const out = execFileSync(
         'uv',
-        ['run', '--project', minerDir, 'pathfinder-miner', 'rules', '--in', file],
+        ['run', '--project', minerDir, 'mudpuppy-miner', 'rules', '--in', file],
         { encoding: 'utf8' },
       );
       return JSON.parse(out) as unknown;

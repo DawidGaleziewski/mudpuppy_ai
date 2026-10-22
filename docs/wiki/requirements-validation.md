@@ -29,12 +29,12 @@ decided.
 Validation is different from verification, which checks that the system (or a document) meets its
 requirements. Validation checks the requirements themselves.
 
-## How Pathfinder uses it
+## How MudPuppy uses it
 
 The BA agent writes everything as `draft`. Only a person can change that: in the Docs tab a
 reviewer confirms, rejects (with a reason) or comments on one specific revision. The record's
 status follows from those reviews by code; neither the agent nor the dashboard sets it directly.
-Rejections and comments go back to the BA agent as feedback in its next session. For Pathfinder,
+Rejections and comments go back to the BA agent as feedback in its next session. For MudPuppy,
 validation also has a second meaning: the reference portal's ground truth lets us measure how close
 the BA's documentation is to the known answer.
 

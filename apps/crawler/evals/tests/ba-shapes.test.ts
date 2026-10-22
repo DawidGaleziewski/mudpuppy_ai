@@ -1,6 +1,6 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { readGroundTruth } from '@pathfinder/docs';
-import { makeFixtureStore, seedDocRecords, type FixtureStore } from '@pathfinder/docs/testing';
+import { readGroundTruth } from '@mudpuppy/docs';
+import { makeFixtureStore, seedDocRecords, type FixtureStore } from '@mudpuppy/docs/testing';
 import { isCodeName, labelsIn, scoreBaShapes } from '../graders/code/ba-shapes.js';
 
 const GT = readGroundTruth(

@@ -1,4 +1,4 @@
-# @pathfinder/docs
+# @mudpuppy/docs
 
 Layer B documentation core for the BA agent: record keys, status engine, relations, observed
 rules, evidence resolution, audit, review, SRS rendering (Mermaid), export, process scope,
@@ -29,9 +29,9 @@ schemas) and store (record keys are allocated in the DB, `src/keys.ts`).
 
 ## Invariants
 
-- No browser, no LLM: functions over recorded data; DB access only through `@pathfinder/store`.
+- No browser, no LLM: functions over recorded data; DB access only through `@mudpuppy/store`.
 - Every documentation record cites evidence.
-- Record schemas live in `@pathfinder/docs-model`, not here (G-09).
+- Record schemas live in `@mudpuppy/docs-model`, not here (G-09).
 
 ## Where to add things
 

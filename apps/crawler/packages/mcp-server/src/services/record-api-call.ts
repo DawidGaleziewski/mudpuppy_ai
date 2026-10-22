@@ -1,5 +1,5 @@
-import { looksLikeRawPayload, newId, nowIso } from '@pathfinder/core';
-import { schemaHash } from '@pathfinder/model';
+import { looksLikeRawPayload, newId, nowIso } from '@mudpuppy/core';
+import { schemaHash } from '@mudpuppy/model';
 import { z } from 'zod';
 import type { ServerContext } from '../context.js';
 import { ToolError, parseInput } from '../errors.js';

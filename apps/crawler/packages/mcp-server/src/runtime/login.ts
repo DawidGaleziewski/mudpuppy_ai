@@ -1,6 +1,6 @@
-import type { LoginSpec } from '@pathfinder/config';
-import { shapeUrl } from '@pathfinder/trace';
-import { settle, waitForCondition, type ProgressSignals } from '@pathfinder/crawler';
+import type { LoginSpec } from '@mudpuppy/config';
+import { shapeUrl } from '@mudpuppy/trace';
+import { settle, waitForCondition, type ProgressSignals } from '@mudpuppy/crawler';
 import type { ServerContext } from '../context.js';
 import { ToolError } from '../errors.js';
 import { runSecrets } from '../services/credentials.js';

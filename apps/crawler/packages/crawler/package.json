@@ -1,5 +1,5 @@
 {
-  "name": "@pathfinder/crawler",
+  "name": "@mudpuppy/crawler",
   "version": "0.0.0",
   "private": true,
   "description": "Browser runtime library used in-process by mcp-server: gates, session, stabilizer, observer, frontier",
@@ -8,12 +8,12 @@
     ".": "./src/index.ts"
   },
   "dependencies": {
-    "@pathfinder/config": "workspace:*",
-    "@pathfinder/core": "workspace:*",
-    "@pathfinder/store": "workspace:*",
-    "@pathfinder/fingerprint": "workspace:*",
-    "@pathfinder/obstacles": "workspace:*",
-    "@pathfinder/safety": "workspace:*",
+    "@mudpuppy/config": "workspace:*",
+    "@mudpuppy/core": "workspace:*",
+    "@mudpuppy/store": "workspace:*",
+    "@mudpuppy/fingerprint": "workspace:*",
+    "@mudpuppy/obstacles": "workspace:*",
+    "@mudpuppy/safety": "workspace:*",
     "pino": "^10.3.1",
     "playwright": "^1.63.0"
   }

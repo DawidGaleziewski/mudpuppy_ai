@@ -5,9 +5,9 @@ from __future__ import annotations
 import re
 from pathlib import Path
 
-from pathfinder_dashboard.glossary import Glossary, load_glossary
+from mudpuppy_dashboard.glossary import Glossary, load_glossary
 
-TEMPLATES = Path(__file__).resolve().parents[1] / "src" / "pathfinder_dashboard" / "templates"
+TEMPLATES = Path(__file__).resolve().parents[1] / "src" / "mudpuppy_dashboard" / "templates"
 REPO_DOCS = Path(__file__).resolve().parents[3] / "docs"
 
 # m.term("id", ...), m.intro("id"), and the macro's own calls without the `m.` prefix.

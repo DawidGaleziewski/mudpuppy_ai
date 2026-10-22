@@ -2,9 +2,9 @@
 // a missing file or export refuses `start_run` with CONFIG_INVALID naming the problem.
 
 import { join } from 'node:path';
-import { ConfigError, type PortalConfig } from '@pathfinder/config';
-import { loadFixes } from '@pathfinder/fix-plugins';
-import { loadHooks, type LoadedHook } from '@pathfinder/hooks';
+import { ConfigError, type PortalConfig } from '@mudpuppy/config';
+import { loadFixes } from '@mudpuppy/fix-plugins';
+import { loadHooks, type LoadedHook } from '@mudpuppy/hooks';
 import { ToolError } from '../errors.js';
 
 export async function loadRunHooks(root: string, portal: PortalConfig): Promise<LoadedHook[]> {

@@ -23,7 +23,7 @@ scope:
 denylist: [logout, delete, payment, bidding, buy_now, message_or_contact_seller, reveal_seller_contact]
 obstacles:
   - { id: cookie_banner, selector: "#cookie button.accept" }
-rate_limit: { requests_per_second: 20, max_concurrency: 1, user_agent: "PathfinderAI-Crawler/0.1 (+ops@corp.pl)" }
+rate_limit: { requests_per_second: 20, max_concurrency: 1, user_agent: "MudPuppy-Crawler/0.1 (+ops@corp.pl)" }
 item_route_templates: ["/oferta/:id"]
 `;
 const PERSONA =

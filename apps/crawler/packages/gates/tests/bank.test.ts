@@ -1,5 +1,5 @@
 import { afterAll, beforeAll, expect } from 'vitest';
-import { parameterInventory } from '@pathfinder/docs';
+import { parameterInventory } from '@mudpuppy/docs';
 import {
   actionNamed,
   actOn,

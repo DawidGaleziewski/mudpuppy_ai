@@ -12,7 +12,7 @@ import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { afterEach, describe, expect, it } from 'vitest';
 import { openDb, type OpenedDb } from '../src/db.js';
-import { newId, nowIso } from '@pathfinder/core';
+import { newId, nowIso } from '@mudpuppy/core';
 import { migrateUp } from '../src/migrate.js';
 import {
   PortalDataError,
@@ -91,7 +91,7 @@ function seed() {
   raw
     .prepare(
       `INSERT INTO trace_boots (id, started_at, ended_at, environment, server, pid, version, trace_level, pw_trace)
-       VALUES (?, ?, NULL, 'sandbox', 'pathfinder', 1, '0.1.0', 'standard', 'non_production')`,
+       VALUES (?, ?, NULL, 'sandbox', 'mudpuppy', 1, '0.1.0', 'standard', 'non_production')`,
     )
     .run(bootId, ts);
   let seq = 0;
@@ -171,7 +171,7 @@ function seed() {
     .prepare(
       `INSERT INTO robots_policies (id, run_id, host, source_url, final_url, outcome, http_status, product_token,
        group_used, crawl_delay_s, ignored_lines, truncated, content_sha256, evidence_ref, fetched_at)
-       VALUES (?, ?, 'shop.pl', 'https://shop.pl/robots.txt', NULL, 'no_rules', 404, 'PathfinderAI-Crawler',
+       VALUES (?, ?, 'shop.pl', 'https://shop.pl/robots.txt', NULL, 'no_rules', 404, 'MudPuppy-Crawler',
        NULL, NULL, 0, 0, NULL, ?, ?)`,
     )
     .run(newId(), shopRun, SHOP_ROBOTS, ts);
@@ -289,7 +289,7 @@ describe('portal export (spec 002 FR-028, contracts/operator-cli.md)', () => {
       environment: 'sandbox',
       counts: r.counts,
       evidence_files: 4,
-      schema_version: '0047',
+      schema_version: '0048',
     });
     expect(typeof manifest.exported_at).toBe('string');
     for (const t of PORTAL_TABLES) expect(existsSync(join(out, `${t}.ndjson`))).toBe(true);

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { newId, nowIso } from '@pathfinder/core';
+import { newId, nowIso } from '@mudpuppy/core';
 import type { ServerContext } from '../src/context.js';
 import { inferSharedButton, sharedButtonKey } from '../src/services/shared-button.js';
 import { makeCtx, REF, seedRun } from './helpers.js';

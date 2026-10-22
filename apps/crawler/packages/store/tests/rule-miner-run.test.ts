@@ -61,6 +61,6 @@ describe('mining after a rebuild', () => {
     expect(uvMiner(root, {})).toBeNull();
     mkdirSync(join(root, 'apps', 'miner'), { recursive: true });
     writeFileSync(join(root, 'apps', 'miner', 'pyproject.toml'), '');
-    expect(uvMiner(root, { PATHFINDER_MINER: 'off' })).toBeNull();
+    expect(uvMiner(root, { MUDPUPPY_MINER: 'off' })).toBeNull();
   });
 });

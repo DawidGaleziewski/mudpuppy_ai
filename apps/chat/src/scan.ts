@@ -1,6 +1,6 @@
 // `request_scan` (R-30 T015, FR-004, FR-020): check that a scan has everything it needs, record
 // the step as pending and hand the work to the `crawler` subagent (research R2b). The checks here
-// only catch what is missing; every safety gate still runs in the pathfinder server when the
+// only catch what is missing; every safety gate still runs in the mudpuppy server when the
 // crawler starts the run, and its refusal reaches the BA unchanged.
 
 import { existsSync } from 'node:fs';
@@ -12,7 +12,7 @@ import {
   loadEffectiveConfig,
   portalEnvironments,
   Environment,
-} from '@pathfinder/config';
+} from '@mudpuppy/config';
 import { directedPrompt, directedScanCheck } from './scan-directed.js';
 import { recordStep } from './steps.js';
 import { portalFile, type WorkspacePaths } from './workflow-data.js';
@@ -22,7 +22,7 @@ const Paths = z
   .min(1)
   .max(50);
 
-/** Mirrors `start_run`'s focus; the pathfinder server refuses one that would widen the scope. */
+/** Mirrors `start_run`'s focus; the mudpuppy server refuses one that would widen the scope. */
 export const ScanFocus = z
   .object({
     start_url: z.url().optional(),
@@ -321,7 +321,7 @@ function briefFor(
 
 /**
  * A form-probing scan needs marks and a new run that may submit forms (probes type and submit,
- * O-M1). The pathfinder server checks the marks again when the run starts.
+ * O-M1). The mudpuppy server checks the marks again when the run starts.
  */
 function formProbingCheck(
   raw: BetterSqlite3.Database,
@@ -359,7 +359,7 @@ export function probePrompt(
   return (
     `Probe the marked forms of portal "${portal}" as persona "${persona}" in environment ` +
     `"${environment}" (a form-probing scan): call start_run with form_probing true and environment ` +
-    `"${environment}".${choiceArgs(choices)} Use only the pathfinder tools. Follow the "Probe forms" ` +
+    `"${environment}".${choiceArgs(choices)} Use only the mudpuppy tools. Follow the "Probe forms" ` +
     'procedure: for each of the probe_marks start_run returns, open its URL, press on with Next ' +
     'until the marked step shows, then call probe_form on that step\'s submit or Next until its ' +
     'result has no "more". Do not follow the frontier. Then finish_run. Stop early only on ' +
@@ -396,7 +396,7 @@ export function tracePrompt(
     `Trace the process ${JSON.stringify(process.name)} of portal "${portal}" as persona "${persona}" ` +
     `in environment "${environment}": call start_run with mode "trace", process ` +
     `${JSON.stringify(process)} and environment "${environment}".${choiceArgs(choices)} ` +
-    'Use only the pathfinder tools. Start at the base_url start_run returns, walk only this ' +
+    'Use only the mudpuppy tools. Start at the base_url start_run returns, walk only this ' +
     'process toward its goal and finish_run when the goal is reached or cannot be. Stop early only ' +
     'on RUN_STOPPED or a refusal to start, and report its message word for word. Finish with the ' +
     'run id, its status and how the process ended.'
@@ -420,7 +420,7 @@ export function scanPrompt(
       : `Resume the stopped map run ${resumeRunId} of portal "${portal}" as persona "${persona}" in environment "${environment}": call start_run with resume_run_id "${resumeRunId}" and environment "${environment}".`) +
     choiceArgs(choices);
   return (
-    `${start} Use only the pathfinder tools. Drain the frontier by acting on each result's next item ` +
+    `${start} Use only the mudpuppy tools. Drain the frontier by acting on each result's next item ` +
     '(or get_next_frontier_item when a result has none) until there is no next item. Only then call ' +
     'finish_run; if it answers FRONTIER_NOT_EMPTY, continue. Stop early only on RUN_STOPPED or a ' +
     'refusal to start, and report its message word for word. Finish with the run id, its status ' +

@@ -1,4 +1,4 @@
-import { maskText, newId, nowIso } from '@pathfinder/core';
+import { maskText, newId, nowIso } from '@mudpuppy/core';
 import {
   CRAWLER_HYPOTHESIS_KINDS,
   HypothesisInputError,
@@ -6,7 +6,7 @@ import {
   insertEvidenceRef,
   proposeHypothesis,
   reconcilePortalModel,
-} from '@pathfinder/store';
+} from '@mudpuppy/store';
 import { z } from 'zod';
 import type { ServerContext } from '../context.js';
 import { ToolError, parseInput } from '../errors.js';

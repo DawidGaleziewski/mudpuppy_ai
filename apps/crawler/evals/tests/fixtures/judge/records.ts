@@ -1,5 +1,5 @@
 /** Small documentation records and a ground truth for the judge selector tests. */
-import type { EvalRecord, GroundTruth } from '@pathfinder/docs';
+import type { EvalRecord, GroundTruth } from '@mudpuppy/docs';
 
 export function record(
   key: string,

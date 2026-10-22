@@ -5,14 +5,14 @@ describe('traceConfigFromEnv', () => {
   it('defaults to standard', () => {
     expect(traceConfigFromEnv({})).toEqual({ level: 'standard' });
   });
-  it('reads PATHFINDER_TRACE_LEVEL', () => {
-    expect(traceConfigFromEnv({ PATHFINDER_TRACE_LEVEL: 'Verbose' })).toEqual({
+  it('reads MUDPUPPY_TRACE_LEVEL', () => {
+    expect(traceConfigFromEnv({ MUDPUPPY_TRACE_LEVEL: 'Verbose' })).toEqual({
       level: 'verbose',
     });
-    expect(traceConfigFromEnv({ PATHFINDER_TRACE_LEVEL: 'off' })).toEqual({ level: 'off' });
+    expect(traceConfigFromEnv({ MUDPUPPY_TRACE_LEVEL: 'off' })).toEqual({ level: 'off' });
   });
   it('falls back to standard on an unknown level and reports it', () => {
-    expect(traceConfigFromEnv({ PATHFINDER_TRACE_LEVEL: 'debug' })).toEqual({
+    expect(traceConfigFromEnv({ MUDPUPPY_TRACE_LEVEL: 'debug' })).toEqual({
       level: 'standard',
       invalidLevel: 'debug',
     });

@@ -6,7 +6,7 @@
  * definition (`meaning` in the ground truth). The pattern to copy for a new judge
  * (contracts/judge-definition.md).
  */
-import type { EvalRecord, GroundTruth } from '@pathfinder/docs';
+import type { EvalRecord, GroundTruth } from '@mudpuppy/docs';
 import { defineJudge, type Pair } from '../definition.js';
 import { normalise, ofKind, toPair } from '../selectors.js';
 

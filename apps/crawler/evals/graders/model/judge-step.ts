@@ -3,8 +3,8 @@
  * `pnpm eval:judge` on an existing store. Each judge whose category has ground-truth items asks
  * about its pairs once; the result is reported beside the code scores, never inside them.
  */
-import type { GroundTruth } from '@pathfinder/docs';
-import type { JudgeRunResult } from '@pathfinder/gates';
+import type { GroundTruth } from '@mudpuppy/docs';
+import type { JudgeRunResult } from '@mudpuppy/gates';
 import { judgeVersion, type JudgeDefinition, type Pair } from './definition.js';
 import type { JudgeLogin } from './login.js';
 import { isCalibrated, judgeReportsDir } from './reports.js';

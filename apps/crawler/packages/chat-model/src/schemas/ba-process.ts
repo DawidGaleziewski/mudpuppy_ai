@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { Id, Timestamp } from '@pathfinder/core';
+import { Id, Timestamp } from '@mudpuppy/core';
 
 /**
  * The BA's cut of the portal (`ba_processes` and its tables, 0018, spec 022 data-model.md M5). Distinct from

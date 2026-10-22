@@ -5,7 +5,7 @@
  */
 import { readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { openDb } from '@pathfinder/store';
+import { openDb } from '@mudpuppy/store';
 import { REPO_ROOT } from './config.js';
 import { die } from './failures.js';
 import { grade } from './graders/index.js';

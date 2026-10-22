@@ -3,7 +3,7 @@ them, a banner with Back to now, links that stay in the past, and no writes."""
 
 from __future__ import annotations
 
-from pathfinder_dashboard import as_of, db
+from mudpuppy_dashboard import as_of, db
 
 from .conftest import Store, ts
 from .test_changes import P, seed

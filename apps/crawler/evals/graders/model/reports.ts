@@ -5,7 +5,7 @@
  */
 import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { JudgeCost } from '@pathfinder/gates';
+import { JudgeCost } from '@mudpuppy/gates';
 import { z } from 'zod';
 import { meetsBar } from './calibration.js';
 import { judgeVersion, type JudgeDefinition } from './definition.js';

@@ -1,8 +1,8 @@
 import { readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { PORTAL_TABLES, deletePortal, exportPortal, where, type OpenedDb } from '@pathfinder/store';
-import { canLaunchBrowser } from '@pathfinder/crawler';
+import { PORTAL_TABLES, deletePortal, exportPortal, where, type OpenedDb } from '@mudpuppy/store';
+import { canLaunchBrowser } from '@mudpuppy/crawler';
 import { interruptStaleRuns } from '../src/index.js';
 import { crawl, mapPortal, startHarness } from './harness.js';
 import { startMockInsurer } from './mock-insurer.js';
@@ -24,7 +24,7 @@ scope:
 denylist: [logout, delete, payment, purchase, submit_request, contact_or_message, reveal_contact]
 obstacles:
   - { id: consent, selector: "${obstacle}" }
-rate_limit: { requests_per_second: 20, max_concurrency: 1, user_agent: "PathfinderAI-Crawler/0.1 (+ops@corp.pl)" }
+rate_limit: { requests_per_second: 20, max_concurrency: 1, user_agent: "MudPuppy-Crawler/0.1 (+ops@corp.pl)" }
 `;
 const PERSONA =
   'id: guest\nauth: none\nmax_action_class: read\nviewport: { width: 1280, height: 800 }\nlocale: pl-PL\n';

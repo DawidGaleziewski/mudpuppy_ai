@@ -1,4 +1,4 @@
-import { resolveRuleId } from '@pathfinder/config';
+import { resolveRuleId } from '@mudpuppy/config';
 import { builtinRuleSet, type RuleSet } from './rule-set.js';
 import type { Classification, Refusal } from './types.js';
 

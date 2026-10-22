@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { Id, Timestamp } from '@pathfinder/core';
+import { Id, Timestamp } from '@mudpuppy/core';
 
 /** The 13 kinds of Layer B documentation record (data-model.md "Documentation Record"). */
 export const DocKind = z.enum([

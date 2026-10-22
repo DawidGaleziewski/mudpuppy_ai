@@ -22,8 +22,8 @@ import {
   labelPair,
   rewordHypothesis,
   undoDecision,
-} from '@pathfinder/store';
-import { newId } from '@pathfinder/core';
+} from '@mudpuppy/store';
+import { newId } from '@mudpuppy/core';
 import { z } from 'zod';
 import { HttpError } from './http-error.js';
 import { readJson, sendJson } from './http-io.js';

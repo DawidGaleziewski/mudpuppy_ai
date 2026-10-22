@@ -1,5 +1,5 @@
 {
-  "_source": "Links on https://www.liveinsurer.example/ (homepage incl. mega menu and footer), fetched 2026-09-24 with UA PathfinderAI-Crawler/0.1. Expected verdicts from a manual reading of robots/liveinsurer.example.txt (User-agent: * group; longest match wins, Allow wins ties). rule = the deciding line, null when no rule matches.",
+  "_source": "Links on https://www.liveinsurer.example/ (homepage incl. mega menu and footer), fetched 2026-09-24 with UA MudPuppy-Crawler/0.1. Expected verdicts from a manual reading of robots/liveinsurer.example.txt (User-agent: * group; longest match wins, Allow wins ties). rule = the deciding line, null when no rule matches.",
   "robots": "robots/liveinsurer.example.txt",
   "urls": [
     {

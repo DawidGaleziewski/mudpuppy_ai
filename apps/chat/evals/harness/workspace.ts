@@ -6,8 +6,8 @@
 import { cpSync, existsSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { newId, nowIso } from '@pathfinder/core';
-import { openDb } from '@pathfinder/store';
+import { newId, nowIso } from '@mudpuppy/core';
+import { openDb } from '@mudpuppy/store';
 import type { EvalConfig } from '../config.js';
 import { die } from '../failures.js';
 
@@ -79,13 +79,13 @@ export function createWorkspace(config: EvalConfig): Workspace {
 function mcpConfig(config: EvalConfig, dir: string, conversationId: string) {
   return {
     mcpServers: {
-      'pathfinder-chat': {
+      'mudpuppy-chat': {
         command: 'pnpm',
         args: ['--dir', join(config.root, 'apps', 'chat'), 'run', 'mcp'],
         env: {
-          PATHFINDER_ENV: config.env,
-          PATHFINDER_ROOT: dir,
-          PATHFINDER_CHAT_CONVERSATION: conversationId,
+          MUDPUPPY_ENV: config.env,
+          MUDPUPPY_ROOT: dir,
+          MUDPUPPY_CHAT_CONVERSATION: conversationId,
         },
       },
     },

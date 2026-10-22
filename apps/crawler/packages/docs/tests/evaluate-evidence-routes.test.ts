@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import type { EvidenceTargetKind } from '@pathfinder/docs-model';
-import { addEvidenceLink } from '@pathfinder/store';
+import type { EvidenceTargetKind } from '@mudpuppy/docs-model';
+import { addEvidenceLink } from '@mudpuppy/store';
 import { loadEvalInput } from '../src/evaluate.js';
 import { makeFixtureStore, seedDocRecords } from '../src/testing/index.js';
 

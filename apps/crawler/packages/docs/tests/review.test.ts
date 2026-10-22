@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { newId } from '@pathfinder/core';
-import type { DocKind } from '@pathfinder/docs-model';
-import { addEvidenceLink } from '@pathfinder/store';
+import { newId } from '@mudpuppy/core';
+import type { DocKind } from '@mudpuppy/docs-model';
+import { addEvidenceLink } from '@mudpuppy/store';
 import { audit } from '../src/audit.js';
 import { DocsError } from '../src/errors.js';
 import { formatKey, nextSeq } from '../src/keys.js';

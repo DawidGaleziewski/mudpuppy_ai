@@ -1,6 +1,6 @@
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
-import { Layout } from '@pathfinder/core';
-import { canLaunchBrowser, pngSize } from '@pathfinder/crawler';
+import { Layout } from '@mudpuppy/core';
+import { canLaunchBrowser, pngSize } from '@mudpuppy/crawler';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { crawl, startHarness, type Call } from './harness.js';
 import { startMockPortal, type MockPortal } from './mock-portal.js';

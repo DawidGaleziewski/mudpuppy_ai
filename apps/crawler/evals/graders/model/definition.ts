@@ -4,7 +4,7 @@
  * `JudgeDefinition` per judge; the runner, results and calibration never change for a new one.
  */
 import { createHash } from 'node:crypto';
-import type { EvalRecord, GroundTruth } from '@pathfinder/docs';
+import type { EvalRecord, GroundTruth } from '@mudpuppy/docs';
 
 /** A labelled example shown to the judge; taken from the owner's `dev` labels, never `test`. */
 export interface JudgeExample {

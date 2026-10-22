@@ -1,4 +1,4 @@
-# @pathfinder/obstacles
+# @mudpuppy/obstacles
 
 Dismiss cookie banners, pop-ups and chat widgets: `registerObstacleHandlers(page, obstacles, opts)` uses Playwright `addLocatorHandler` plus explicit `sweep()` before observation. Single file `src/index.ts`.
 

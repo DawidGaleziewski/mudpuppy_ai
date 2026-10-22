@@ -7,8 +7,8 @@ from __future__ import annotations
 import json
 import sqlite3
 
-from pathfinder_dashboard import queries_model_map
-from pathfinder_dashboard.queries_model_map import ModelFilters
+from mudpuppy_dashboard import queries_model_map
+from mudpuppy_dashboard.queries_model_map import ModelFilters
 
 from .conftest import Store
 from .test_chat import text

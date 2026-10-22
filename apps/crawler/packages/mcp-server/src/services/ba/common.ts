@@ -1,6 +1,6 @@
-import { maskText } from '@pathfinder/core';
-import type { AnalysisSessionsTable, Selectable } from '@pathfinder/store';
-import { DocsError } from '@pathfinder/docs';
+import { maskText } from '@mudpuppy/core';
+import type { AnalysisSessionsTable, Selectable } from '@mudpuppy/store';
+import { DocsError } from '@mudpuppy/docs';
 import type { BaContext } from '../../context.js';
 import { ToolError } from '../../errors.js';
 

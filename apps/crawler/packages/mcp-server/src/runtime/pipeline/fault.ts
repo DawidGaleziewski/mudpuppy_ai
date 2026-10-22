@@ -1,4 +1,4 @@
-import type { ProbeFault } from '@pathfinder/core';
+import type { ProbeFault } from '@mudpuppy/core';
 import type { RunState } from '../run-state.js';
 
 type Page = RunState['session']['page'];

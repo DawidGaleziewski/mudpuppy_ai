@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { Id, Timestamp } from '@pathfinder/core';
+import { Id, Timestamp } from '@mudpuppy/core';
 
 export const WorkflowStepName = z.enum(['scan', 'map', 'narrow', 'document', 'amend']);
 export type WorkflowStepName = z.infer<typeof WorkflowStepName>;

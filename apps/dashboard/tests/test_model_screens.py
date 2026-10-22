@@ -3,8 +3,8 @@ variants and why, last seen, checked actions, part and process; one screen's pag
 
 from __future__ import annotations
 
-from pathfinder_dashboard import queries_model_screens
-from pathfinder_dashboard.queries_changes import Explanation
+from mudpuppy_dashboard import queries_model_screens
+from mudpuppy_dashboard.queries_changes import Explanation
 
 from .conftest import Store, ts
 from .test_changes import P, seed_process_and_releases

@@ -13,16 +13,10 @@ import {
 import { tmpdir } from 'node:os';
 import pino from 'pino';
 import { join } from 'node:path';
-import { createEvidenceStore, createLogger, unzip } from '@pathfinder/core';
-import {
-  createDecisionLog,
-  createTracer,
-  linkDecisions,
-  migrateUp,
-  openDb,
-} from '@pathfinder/store';
-import { createBrowserRuntime, createServer, type ServerContext } from '@pathfinder/mcp-server';
-import { createVaultStore, loadKey } from '@pathfinder/vault';
+import { createEvidenceStore, createLogger, unzip } from '@mudpuppy/core';
+import { createDecisionLog, createTracer, linkDecisions, migrateUp, openDb } from '@mudpuppy/store';
+import { createBrowserRuntime, createServer, type ServerContext } from '@mudpuppy/mcp-server';
+import { createVaultStore, loadKey } from '@mudpuppy/vault';
 import {
   FIXTURE_PASSWORD,
   FIXTURE_USERS,
@@ -115,7 +109,7 @@ export async function gateServer(
   const tracer = createTracer({ db: opened.db, logger, evidence, level: 'standard' });
   await tracer.start({
     environment: 'sandbox',
-    server: 'pathfinder',
+    server: 'mudpuppy',
     version: 'gate',
   });
   const keyPath = join(dir, 'vault.key');

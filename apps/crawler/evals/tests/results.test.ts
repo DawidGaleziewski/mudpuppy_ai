@@ -1,7 +1,7 @@
 import { existsSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { EvalResult } from '@pathfinder/gates';
+import { EvalResult } from '@mudpuppy/gates';
 import { afterEach, beforeEach, expect, it, vi } from 'vitest';
 import { parseConfig, type EvalConfig } from '../config.js';
 import { buildResult, saveResult, type TrialRecord } from '../results.js';

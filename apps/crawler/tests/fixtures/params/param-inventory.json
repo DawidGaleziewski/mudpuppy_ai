@@ -1,5 +1,5 @@
 {
-  "comment": "Spec 019 T014/T026: one input, one expected inventory; the TS read model (@pathfinder/docs parameterInventory) and the dashboard's Python one (queries_urls.py) must both produce `expected` from `visits`.",
+  "comment": "Spec 019 T014/T026: one input, one expected inventory; the TS read model (@mudpuppy/docs parameterInventory) and the dashboard's Python one (queries_urls.py) must both produce `expected` from `visits`.",
   "visits": [
     {
       "id": "v1",

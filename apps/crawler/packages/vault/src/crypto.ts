@@ -33,9 +33,9 @@ export interface Sealed {
 
 const TAG_BYTES = 16;
 
-/** `PATHFINDER_VAULT_KEY_FILE`, else `~/.config/pathfinder/vault.key` (research §5). */
+/** `MUDPUPPY_VAULT_KEY_FILE`, else `~/.config/mudpuppy/vault.key` (research §5). */
 export function defaultKeyPath(env: NodeJS.ProcessEnv = process.env): string {
-  return env.PATHFINDER_VAULT_KEY_FILE ?? join(homedir(), '.config', 'pathfinder', 'vault.key');
+  return env.MUDPUPPY_VAULT_KEY_FILE ?? join(homedir(), '.config', 'mudpuppy', 'vault.key');
 }
 
 export const keyId = (bytes: Buffer): string =>
@@ -51,7 +51,7 @@ export function loadKey(opts: { path?: string; create?: boolean } = {}): VaultKe
     if (!opts.create)
       throw new VaultError(
         'KEY_MISSING',
-        `vault key not found at ${path}; set PATHFINDER_VAULT_KEY_FILE or run "pnpm vault set" to create it`,
+        `vault key not found at ${path}; set MUDPUPPY_VAULT_KEY_FILE or run "pnpm vault set" to create it`,
       );
     mkdirSync(dirname(path), { recursive: true, mode: 0o700 });
     writeFileSync(path, `${randomBytes(32).toString('base64')}\n`, { mode: 0o600, flag: 'wx' });

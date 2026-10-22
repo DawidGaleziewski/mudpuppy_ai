@@ -11,8 +11,8 @@ import { abort, EXIT_USAGE_LIMIT } from '../failures.js';
 import type { Workspace } from './workspace.js';
 
 export const GROUPING_TOOLS = [
-  'mcp__pathfinder-chat__list_grouping_inputs',
-  'mcp__pathfinder-chat__suggest_grouping',
+  'mcp__mudpuppy-chat__list_grouping_inputs',
+  'mcp__mudpuppy-chat__suggest_grouping',
 ] as const;
 
 /** Built-in tools the session must not use (the agent harness offers them by default). */

@@ -5,9 +5,9 @@
 // with a note naming the screen it expects. The suite is stored `open` like a BA's suite: it waits
 // in Review, and approving it writes it into `traces.yaml`, where it is the rule's regression suite.
 
-import { newId, nowIso } from '@pathfinder/core';
-import { TraceSpecEntry, type TraceStep } from '@pathfinder/config';
-import { planForTest, type OpenedDb } from '@pathfinder/store';
+import { newId, nowIso } from '@mudpuppy/core';
+import { TraceSpecEntry, type TraceStep } from '@mudpuppy/config';
+import { planForTest, type OpenedDb } from '@mudpuppy/store';
 
 type Raw = OpenedDb['raw'];
 

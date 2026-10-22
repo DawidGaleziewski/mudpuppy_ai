@@ -1,4 +1,4 @@
-import { migrateUp, openDb, type OpenedDb } from '@pathfinder/store';
+import { migrateUp, openDb, type OpenedDb } from '@mudpuppy/store';
 import { join } from 'node:path';
 import { ChatStore } from '../src/store.js';
 
@@ -35,7 +35,7 @@ export function testService(
   const service = new ChatService({
     store: mem.store,
     launch: agent.launch,
-    sessionRequest: () => ({ cwd: '/tmp/pathfinder-chat-runtime', mcpServers: [] }),
+    sessionRequest: () => ({ cwd: '/tmp/mudpuppy-chat-runtime', mcpServers: [] }),
     policy,
     logError: (input) => {
       errors.push(input);

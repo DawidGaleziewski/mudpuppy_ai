@@ -2,7 +2,7 @@
 // the client sets by hand in the browser console). Seed it at run start and again before any page
 // load that finds it missing: logging in or a portal's own logout can drop it.
 
-import type { HookContext } from '@pathfinder/hooks';
+import type { HookContext } from '@mudpuppy/hooks';
 import { z } from 'zod';
 import { defineFix } from '../define.js';
 

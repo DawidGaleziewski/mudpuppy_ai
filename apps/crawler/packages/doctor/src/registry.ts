@@ -2,7 +2,7 @@
 // needs first, how it probes and, when it fails, the cause and the fix in one line. A new check is a
 // file in `checks/` and a line in `CHECKS`; only its inputs come from the portal, never its logic.
 
-import type { PortalConfig } from '@pathfinder/config';
+import type { PortalConfig } from '@mudpuppy/config';
 
 export type CheckStatus = 'ok' | 'warn' | 'fail' | 'skip';
 

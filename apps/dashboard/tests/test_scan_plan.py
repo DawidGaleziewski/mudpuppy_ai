@@ -8,9 +8,9 @@ import json
 import httpx2
 from fastapi.testclient import TestClient
 
-from pathfinder_dashboard.app import create_app
-from pathfinder_dashboard.settings import Settings
-from pathfinder_dashboard.web.plan import scan_request_text
+from mudpuppy_dashboard.app import create_app
+from mudpuppy_dashboard.settings import Settings
+from mudpuppy_dashboard.web.plan import scan_request_text
 
 from .conftest import Store, insert
 from .test_chat import ORIGIN

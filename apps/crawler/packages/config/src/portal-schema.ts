@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { SafetyClass, maxSafetyClass } from '@pathfinder/core';
+import { SafetyClass, maxSafetyClass } from '@mudpuppy/core';
 import { ModelHooks } from './model-hooks.js';
 import { FingerprintConfig } from './fingerprint-profiles.js';
 import { DEFAULT_PROBE_BUDGET, ProbeBudget } from './probe-budget.js';
@@ -114,7 +114,7 @@ export type HookSpec = z.infer<typeof HookSpec>;
 
 /**
  * One fix-plugin turned on for the portal (spec 030 FR-031): `use` names it in
- * `@pathfinder/fix-plugins`, `with` is the client's data it needs (validated by the plugin when the
+ * `@mudpuppy/fix-plugins`, `with` is the client's data it needs (validated by the plugin when the
  * run starts), `match` and `timeout_ms` as for a hook.
  */
 export const FixSpec = z

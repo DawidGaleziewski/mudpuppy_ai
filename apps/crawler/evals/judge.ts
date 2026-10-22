@@ -8,8 +8,8 @@
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { join, relative, resolve } from 'node:path';
 import { parseArgs } from 'node:util';
-import { evaluate, loadEvalInput, type GroundTruth } from '@pathfinder/docs';
-import { openDb } from '@pathfinder/store';
+import { evaluate, loadEvalInput, type GroundTruth } from '@mudpuppy/docs';
+import { openDb } from '@mudpuppy/store';
 import { REPO_ROOT } from './config.js';
 import { die } from './failures.js';
 import {

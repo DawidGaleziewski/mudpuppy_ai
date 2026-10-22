@@ -1,0 +1,52 @@
+# Our own dashboard (apps/dashboard), scanned to document its processes for the UI redesign
+# (2026-10-11). Scan a throwaway copy on port 8790, never the live one: its data, portal configs
+# and personas copied to a temp folder, the chat service pointed at a dead port and no reviewer
+# name (see session_dump/2026-10-11-dashboard-scan.md), so forms may be submitted without
+# touching real data.
+id: mudpuppy-dashboard
+base_url: http://127.0.0.1:8790/
+environment: sandbox
+# external-side-effect: the Chat page's [send] calls the assistant (of a throwaway chat service).
+max_action_class: external-side-effect
+
+# Our own local app: nothing to review, filled so the config is complete.
+compliance:
+  robots_checked_on: 2026-10-11
+  terms_reviewed_on: 2026-10-11
+  terms_reviewed_by: our own dashboard, no terms
+robots: ignore
+
+scope:
+  allowed_domains: ["127.0.0.1"]
+  external_link_policy: record
+  max_depth: 10 # a page reached by direct navigation counted as depth 7 in the first run
+  max_states: 100
+  max_actions_per_state: 40
+  max_run_time_minutes: 45
+  max_steps: 400
+
+urls:
+  disallowed:
+    - /events # server-sent event streams never finish loading
+    - /chat/conversations/*/events
+    - /fragments/* # htmx partials, loaded by the pages themselves
+    - /evidence/* # screenshots and files, not screens
+    - /healthz
+
+denylist: []
+
+# The cap counts item pages across all templates together (the first run hit it after 2 run pages
+# and 1 state page), so it allows a few of each of the 6 templates.
+item_view_cap: 18
+item_route_templates:
+  - "/runs/:run_id"
+  - "/states/:state_id"
+  - "/docs/:portal/:key"
+  - "/docs/:portal/sessions/:session_id"
+  - "/glossary/pages/:slug"
+  - "/glossary/wiki/:slug"
+
+rate_limit:
+  requests_per_second: 5
+  max_concurrency: 2
+  user_agent: "MudPuppy-Crawler/0.1 (own dashboard)"

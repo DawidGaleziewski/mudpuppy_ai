@@ -18,13 +18,13 @@ Spec: [`specs/003-dashboard-ui/`](../../specs/003-dashboard-ui/) (R-12); Docs ta
 ```bash
 cd apps/dashboard
 uv sync
-uv run pathfinder-dashboard            # http://127.0.0.1:8765, environment "production"
-uv run pathfinder-dashboard --dev      # reloads the server and open pages on code/template edits
-uv run pathfinder-dashboard --env scratch --port 9000 --data-dir /path/to/data
+uv run mudpuppy-dashboard            # http://127.0.0.1:8765, environment "production"
+uv run mudpuppy-dashboard --dev      # reloads the server and open pages on code/template edits
+uv run mudpuppy-dashboard --env scratch --port 9000 --data-dir /path/to/data
 ```
 
-Settings can also come from the environment: `PATHFINDER_DATA_DIR`, `PATHFINDER_DEFAULT_ENV`,
-`PATHFINDER_PORT`, `PATHFINDER_DEV`. The data dir defaults to the repo's `data/` (the nearest
+Settings can also come from the environment: `MUDPUPPY_DATA_DIR`, `MUDPUPPY_DEFAULT_ENV`,
+`MUDPUPPY_PORT`, `MUDPUPPY_DEV`. The data dir defaults to the repo's `data/` (the nearest
 ancestor holding `data/migrations`). Every `data/db/*.sqlite` file is an environment; switch in
 the top bar (`?env=` on any URL).
 
@@ -38,7 +38,7 @@ History, and the Map with views Now, Since previous release and One scan's path)
 tables, boundary tests, the DMN / Markdown / CSV export) and Docs; under **Machine**: Scans and
 Settings (thresholds, the classifier, Hints). The pages read the store; every decision (confirm,
 reject, a Same screen? answer, split or merge of a proposal) goes through the chat service
-(`PATHFINDER_CHAT_URL`). The designer's reference screens are `docs/design/salvage-yard/screens/v2-*`.
+(`MUDPUPPY_CHAT_URL`). The designer's reference screens are `docs/design/salvage-yard/screens/v2-*`.
 
 ## Docs tab and review
 
@@ -50,12 +50,12 @@ from) and reviews. The run page's Docs tab lists the records citing that run.
 Review actions and process changes are signed "unknown" unless a reviewer name is set:
 
 ```bash
-PATHFINDER_REVIEWER="Your Name" uv run pathfinder-dashboard --env sandbox
+MUDPUPPY_REVIEWER="Your Name" uv run mudpuppy-dashboard --env sandbox
 ```
 
 Confirm, reject (a reason is required) and comment act on a record's latest revision. The
 dashboard does not write them itself: `POST /docs/<portal>/<key>/reviews` runs
-`pnpm --dir <crawler_dir> docs:review --env <env>` (`PATHFINDER_CRAWLER_DIR`, default
+`pnpm --dir <crawler_dir> docs:review --env <env>` (`MUDPUPPY_CRAWLER_DIR`, default
 `apps/crawler`) with the review as JSON on stdin, so the TypeScript status engine stays the only
 writer (constitution 1.4.0). A stale revision returns 409, a missing reason 422; requests from
 another origin are refused.
@@ -70,7 +70,7 @@ diagrams, a traceability matrix, `records.json` and `images/` to
 `/chat` is the guided chat with the orchestrator, with the five workflow steps (scan, map, narrow,
 document, amend) beside it. History and steps are read from the store (read-only) and update
 live; sending and streaming go through the local chat service (`pnpm --dir apps/chat start`,
-default `http://127.0.0.1:4310`, override with `PATHFINDER_CHAT_URL`). The browser never calls
+default `http://127.0.0.1:4310`, override with `MUDPUPPY_CHAT_URL`). The browser never calls
 that service: the dashboard proxies `POST /chat/conversations`, `POST /chat/conversations/<id>/messages`
 and the SSE stream `GET /chat/conversations/<id>/events` (forwarding `Last-Event-ID`). If the
 service is not running the page says so and shows the start command.
@@ -100,14 +100,14 @@ wrote and matches cited keys against the keys stored in each layout.
 ## Glossary and BA wiki
 
 The glossary source is `docs/glossary/glossary.yaml` (long pages in `docs/glossary/pages/`, BA wiki
-pages in `docs/wiki/`); `PATHFINDER_DOCS_DIR` points elsewhere. The dashboard serves it at
+pages in `docs/wiki/`); `MUDPUPPY_DOCS_DIR` points elsewhere. The dashboard serves it at
 `/glossary`, `/glossary/pages/<slug>`, `/glossary/wiki` and `/glossary/wiki/<slug>`, and templates
 mark labels with `{{ m.term("<id>", "Label") }}` (tooltip) or `{{ m.intro("<id>") }}` (one line
 under a heading). After editing the source:
 
 ```bash
-uv run pathfinder-glossary --write   # validate and regenerate docs/glossary/README.md
-uv run pathfinder-glossary           # validate only; fails if README.md is out of date
+uv run mudpuppy-glossary --write   # validate and regenerate docs/glossary/README.md
+uv run mudpuppy-glossary           # validate only; fails if README.md is out of date
 ```
 
 A broken source never breaks the dashboard: labels render without `[?]` and `/glossary` shows the
@@ -144,7 +144,7 @@ reloads the page. If the stream drops, a banner says the view may be stale until
 ## Layout
 
 ```text
-src/pathfinder_dashboard/
+src/mudpuppy_dashboard/
   settings.py   db.py (read-only connection)   models.py (read models)
   queries.py    (pure SQL → models, keyset pagination)
   live.py       (SSE watcher)   app.py (routes)   __main__.py (CLI)
@@ -158,7 +158,7 @@ tests/          fixture stores in conftest.py
 ## Changing the UI
 
 UI work follows the project design system: skill `revamp-dashboard`
-(`.claude/skills/revamp-dashboard/`), in particular `references/pathfinder-console.md` for this
+(`.claude/skills/revamp-dashboard/`), in particular `references/mudpuppy-console.md` for this
 product's status labels, accent mapping and the live-region pattern. The `frontend-dev` agent
 (`.claude/agents/frontend-dev.md`) owns UI changes. New colours, sizes or spacing go in
 `static/css/tokens.css` only; `tests/test_tokens.py` fails on literals in `app.css`.

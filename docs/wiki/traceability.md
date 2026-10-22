@@ -25,9 +25,9 @@ Traceability means you can follow the links around a requirement: **backward** t
 tests). With it you can answer "why is this here?", "what breaks if this changes?" and "is every
 requirement tested?". A traceability matrix shows these links as a table.
 
-## How Pathfinder uses it
+## How MudPuppy uses it
 
-Backward traceability is built into Pathfinder: every documentation record cites
+Backward traceability is built into MudPuppy: every documentation record cites
 [evidence](../glossary/README.md#evidence), and every piece of evidence belongs to a run, so any
 statement can be followed back to what the crawler recorded. Forward traceability runs through
 typed relations between records (a rule `enforces` a requirement, a data item `appears_on` a

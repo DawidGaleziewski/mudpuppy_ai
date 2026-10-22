@@ -13,8 +13,8 @@ import {
   findInlineSecrets,
   loadEffectiveConfig,
   portalEnvironments,
-} from '@pathfinder/config';
-import { maxSafetyClass, minSafetyClass, type SafetyClass } from '@pathfinder/core';
+} from '@mudpuppy/config';
+import { maxSafetyClass, minSafetyClass, type SafetyClass } from '@mudpuppy/core';
 import { portalFile, type WorkspacePaths } from './workflow-data.js';
 
 export const SavePersonaInput = z.object({

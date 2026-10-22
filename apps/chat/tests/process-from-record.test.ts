@@ -1,8 +1,8 @@
 // "Open in Processes" (spec 027 US6.2): a BA process record becomes a workspace process whose A
 // walks the record's screens in its export's order, linked by record_key; a second open finds it.
-import { makeFixtureStore, seedDocRecords, type FixtureStore } from '@pathfinder/docs/testing';
+import { makeFixtureStore, seedDocRecords, type FixtureStore } from '@mudpuppy/docs/testing';
 import { afterAll, beforeAll, expect, it } from 'vitest';
-import { resolveProcessSteps } from '@pathfinder/docs';
+import { resolveProcessSteps } from '@mudpuppy/docs';
 import { createProcessService } from '../src/process-service.js';
 
 let fx: FixtureStore;

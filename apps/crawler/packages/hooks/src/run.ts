@@ -3,7 +3,7 @@
 // recorded failure; the crawl goes on. For `onBeforePageLoad` / `onBeforeClickAction` the first
 // `skip` wins and stops the point; a `{ url }` rewrite is seen by the hooks after it.
 
-import type { HookPoint } from '@pathfinder/config';
+import type { HookPoint } from '@mudpuppy/config';
 import type { LoadedHook } from './load.js';
 import { HookResult, type HookAction, type HookBrowser, type HookContext } from './types.js';
 

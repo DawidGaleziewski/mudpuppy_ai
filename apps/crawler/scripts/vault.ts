@@ -4,9 +4,9 @@
  * Values are read from a hidden prompt or stdin, never from the command line.
  */
 import { join, resolve } from 'node:path';
-import { requireEnvironment } from '@pathfinder/config';
-import { runVaultCli } from '@pathfinder/vault';
-import { dbPathFor, migrateUp, openDb } from '@pathfinder/store';
+import { requireEnvironment } from '@mudpuppy/config';
+import { runVaultCli } from '@mudpuppy/vault';
+import { dbPathFor, migrateUp, openDb } from '@mudpuppy/store';
 
 const argv = process.argv.slice(2);
 const envIdx = argv.indexOf('--env');
@@ -15,7 +15,7 @@ const root = resolve(join(import.meta.dirname, '../../..'));
 // `sandbox` fallback stays for this operator CLI (its documented commands rely on it).
 const env = requireEnvironment(
   root,
-  (envIdx > -1 ? argv[envIdx + 1] : undefined) ?? process.env.PATHFINDER_ENV ?? 'sandbox',
+  (envIdx > -1 ? argv[envIdx + 1] : undefined) ?? process.env.MUDPUPPY_ENV ?? 'sandbox',
 );
 // pnpm runs this from apps/crawler; file arguments (`import <csv>`, `--seed`) are the caller's.
 if (process.env.INIT_CWD) process.chdir(process.env.INIT_CWD);

@@ -21,7 +21,7 @@ Tests ask "is it broken?". Evals ask "how good is it, and is it getting better?"
 
 ## The three tiers in this repo
 
-Pathfinder already has all three. Knowing which is which removes most of the confusion:
+MudPuppy already has all three. Knowing which is which removes most of the confusion:
 
 | Tier | Where | What it is |
 | --- | --- | --- |
@@ -39,7 +39,7 @@ These are the words Anthropic uses in
 [Demystifying evals for AI agents](https://anthropic.com/engineering/demystifying-evals-for-ai-agents),
 mapped onto this project:
 
-| Term | Meaning | In Pathfinder |
+| Term | Meaning | In MudPuppy |
 | --- | --- | --- |
 | **Task** | One problem with a known good answer | "Document `reference-insurer` as guest" |
 | **Trial** | One attempt at a task (one run) | One `pnpm eval` run → one JSON in `data/evals/reference-insurer/` |
@@ -58,7 +58,7 @@ mapped onto this project:
    for meaning. Must be checked against a human (section 5).
 3. **Human grader**: you. Slowest, but it is the reference the other two are calibrated against.
 
-Use the cheapest grader that measures the right thing. Pathfinder uses code graders for everything,
+Use the cheapest grader that measures the right thing. MudPuppy uses code graders for everything,
 including rules and processes, which are semantic. That's the mismatch.
 
 ### Capability evals vs regression evals

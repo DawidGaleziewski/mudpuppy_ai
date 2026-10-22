@@ -2,7 +2,7 @@
  * Helpers for a judge's `selectPairs` (spec 017 contracts/judge-definition.md): picking candidate
  * records and turning one into the text the judge reads. Pure.
  */
-import { normalise, type EvalRecord, type GroundTruth } from '@pathfinder/docs';
+import { normalise, type EvalRecord, type GroundTruth } from '@mudpuppy/docs';
 import { pairId, type Pair } from './definition.js';
 
 export { normalise };

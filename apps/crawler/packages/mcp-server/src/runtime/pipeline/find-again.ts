@@ -1,4 +1,4 @@
-import { frameByPath, locateClickable } from '@pathfinder/crawler';
+import { frameByPath, locateClickable } from '@mudpuppy/crawler';
 import type { autofillBeforeSubmit } from './autofill.js';
 import type { ActionRow } from './actions.js';
 

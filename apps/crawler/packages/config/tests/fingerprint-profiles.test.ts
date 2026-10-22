@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { ROWS_V2_PROFILE } from '@pathfinder/fingerprint';
+import { ROWS_V2_PROFILE } from '@mudpuppy/fingerprint';
 import { FingerprintConfig, portalFingerprintProfile } from '../src/index.js';
 
 describe('fingerprint profiles in portal.yaml (spec 039 T111)', () => {

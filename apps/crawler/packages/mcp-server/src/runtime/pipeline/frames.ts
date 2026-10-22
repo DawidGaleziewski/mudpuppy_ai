@@ -1,5 +1,5 @@
-import type { observePage } from '@pathfinder/crawler';
-import { shapeUrl } from '@pathfinder/trace';
+import type { observePage } from '@mudpuppy/crawler';
+import { shapeUrl } from '@mudpuppy/trace';
 import { event, type Report } from './context.js';
 
 type Observed = Awaited<ReturnType<typeof observePage>>;

@@ -6,7 +6,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from pathfinder_dashboard import queries_settings
+from mudpuppy_dashboard import queries_settings
 
 from .conftest import Store, insert, ts
 from .paths import REPO_ROOT

@@ -1,4 +1,4 @@
-import type { OpenedDb } from '@pathfinder/store';
+import type { OpenedDb } from '@mudpuppy/store';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import type { ChatStore } from '../src/store.js';
 import { recordStep } from '../src/steps.js';

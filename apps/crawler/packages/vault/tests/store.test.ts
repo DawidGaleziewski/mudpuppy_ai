@@ -2,7 +2,7 @@ import { mkdtempSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { migrateUp, openDb, type OpenedDb } from '@pathfinder/store';
+import { migrateUp, openDb, type OpenedDb } from '@mudpuppy/store';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import {
   asEnvironment,

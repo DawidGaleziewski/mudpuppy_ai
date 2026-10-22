@@ -9,7 +9,7 @@ import { testService } from './helpers.js';
 /**
  * R-30 T029 (US4, FR-008, FR-020): harness-change requests go through the whole chat path
  * (service → ACP client → fence → agent) and are refused, nothing changes on disk, and safety-gate
- * refusals from the pathfinder server reach the BA word for word.
+ * refusals from the mudpuppy server reach the BA word for word.
  */
 const repoRoot = resolve(import.meta.dirname, '../../..');
 const GUARDED = [
@@ -20,7 +20,7 @@ const GUARDED = [
   'personas',
   'apps/crawler/packages/safety',
 ];
-const scratch = mkdtempSync(join(tmpdir(), 'pathfinder-fence-'));
+const scratch = mkdtempSync(join(tmpdir(), 'mudpuppy-fence-'));
 let gitBefore: string;
 
 function gitStatus(): string {
@@ -92,18 +92,18 @@ describe('fence acceptance through the chat service', () => {
     await t.opened.close();
   });
 
-  it('lets the crawler reach the pathfinder server and passes a gate refusal through unchanged', async () => {
+  it('lets the crawler reach the mudpuppy server and passes a gate refusal through unchanged', async () => {
     const t = testService(createFence({ repoRoot }));
     const { conversation } = await t.service.createConversation({ portal: 'reference-insurer' });
     const refusal =
       'ACTION_REFUSED: classified mutating, above the effective ceiling read; "Kup polisę" was not executed.';
     await t.service.send(
       conversation.id,
-      `call ${JSON.stringify({ tool: 'mcp__pathfinder__start_run', agent: 'crawler', say: refusal })}`,
+      `call ${JSON.stringify({ tool: 'mcp__mudpuppy__start_run', agent: 'crawler', say: refusal })}`,
     );
     await t.service.drain(conversation.id);
     while (t.service.isBusy(conversation.id)) await new Promise((r) => setTimeout(r, 5));
-    expect(t.log.permissionOutcomes).toEqual(['mcp__pathfinder__start_run:allow']);
+    expect(t.log.permissionOutcomes).toEqual(['mcp__mudpuppy__start_run:allow']);
     const last = (await t.store.listMessages(conversation.id)).at(-1);
     expect(last).toMatchObject({ role: 'assistant', content: refusal });
     await t.opened.close();

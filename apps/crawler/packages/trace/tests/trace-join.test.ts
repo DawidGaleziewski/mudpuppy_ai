@@ -35,7 +35,7 @@ describe('joinTurns', () => {
     expect(matched).toEqual(['toolu_test_001', 'toolu_test_002', 'toolu_test_003']);
   });
 
-  it('flags pathfinder calls that never reached the server', () => {
+  it('flags mudpuppy calls that never reached the server', () => {
     expect(out.unmatchedAgentCalls.map((t) => t.tool_use_id)).toEqual(['toolu_test_004']);
   });
 
@@ -80,7 +80,7 @@ describe('joinTurns run assignment', () => {
     ...over,
   });
   const use = (uuid: string, id: string) =>
-    t(uuid, { kind: 'tool_use', tool_use_id: id, tool_name: 'mcp__pathfinder__navigate' });
+    t(uuid, { kind: 'tool_use', tool_use_id: id, tool_name: 'mcp__mudpuppy__navigate' });
 
   it('uses the nearest following matched call, else the nearest preceding', () => {
     const turns = [
@@ -106,7 +106,7 @@ describe('joinTurns run assignment', () => {
     ]);
   });
 
-  it('leaves run_id null when nothing matches, and ignores non-pathfinder tools', () => {
+  it('leaves run_id null when nothing matches, and ignores non-mudpuppy tools', () => {
     const out = joinTurns(
       [t('a'), t('b', { kind: 'tool_use', tool_use_id: 'toolu_x', tool_name: 'SubagentHandback' })],
       [],

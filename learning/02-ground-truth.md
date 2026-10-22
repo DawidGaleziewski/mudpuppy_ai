@@ -8,7 +8,7 @@ independently of the system you're grading.** The grader compares the agent's ou
 In a school exam, the exam is the task, the student's answers are the output, and the teacher's answer
 sheet is the ground truth. If the student wrote the answer sheet, the exam measures nothing.
 
-In Pathfinder, the "thing" is a portal, and the ground truth lists what a perfect BA would document:
+In MudPuppy, the "thing" is a portal, and the ground truth lists what a perfect BA would document:
 
 ```yaml
 # apps/crawler/packages/reference-portal/ground-truth.yaml (shortened)

@@ -5,7 +5,7 @@
 import { cpSync, existsSync, mkdtempSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { dbPathFor, migrateUp, openDb } from '@pathfinder/store';
+import { dbPathFor, migrateUp, openDb } from '@mudpuppy/store';
 
 /**
  * A fresh workspace with copies of portals/, personas/ and the migrations, so the developer's

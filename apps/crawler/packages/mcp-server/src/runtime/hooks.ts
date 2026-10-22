@@ -9,9 +9,9 @@ import {
   type HookRun,
   type HookRunner,
   type LoadedHook,
-} from '@pathfinder/hooks';
-import { NAME_SHIM } from '@pathfinder/crawler';
-import type { Attrs } from '@pathfinder/store';
+} from '@mudpuppy/hooks';
+import { NAME_SHIM } from '@mudpuppy/crawler';
+import type { Attrs } from '@mudpuppy/store';
 import type { ServerContext } from '../context.js';
 import type { RunState } from './run-state.js';
 

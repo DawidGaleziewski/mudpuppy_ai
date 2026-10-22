@@ -1,19 +1,19 @@
-// `pathfinder-chat` MCP server (R-30 T015, contracts/orchestrator-tools.md): the orchestrator's own
+// `mudpuppy-chat` MCP server (R-30 T015, contracts/orchestrator-tools.md): the orchestrator's own
 // tools. Every tool returns structured JSON or a coded error (`MISSING_INPUT`, `INVALID`, ...);
-// gate refusals happen later in the pathfinder server and are passed through by the crawler.
+// gate refusals happen later in the mudpuppy server and are passed through by the crawler.
 
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import type { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
 import type BetterSqlite3 from 'better-sqlite3';
 import { z } from 'zod';
-import { SECRETS, type EvidenceStore } from '@pathfinder/core';
-import { type PathfinderDb } from '@pathfinder/store';
+import { SECRETS, type EvidenceStore } from '@mudpuppy/core';
+import { type MudPuppyDb } from '@mudpuppy/store';
 import { registerModelTools } from './mcp-model-tools.js';
 import { registerPageTools } from './mcp-page-tools.js';
 import { registerProcessTools } from './mcp-process-tools.js';
-import { workflowState } from '@pathfinder/workflow';
+import { workflowState } from '@mudpuppy/workflow';
 import { existsSync } from 'node:fs';
-import { PersonaFile, portalEnvironments } from '@pathfinder/config';
+import { PersonaFile, portalEnvironments } from '@mudpuppy/config';
 import { PersonaRefusal, savePersona } from './personas.js';
 import { SaveTestDataInput, saveTestData } from './test-data.js';
 import { ProposalRefusal, ProposeInput, proposeChange } from './proposals.js';
@@ -43,7 +43,7 @@ export interface ChatMcpContext {
   /** Recorded layouts for page_context and highlight_element (spec 022); null in tests without. */
   evidence?: EvidenceStore | null;
   /** The typed store for suggest_grouping (spec 022 M5); without it the tool is not offered. */
-  db?: PathfinderDb | null;
+  db?: MudPuppyDb | null;
   /** Check runs (spec 039 owner answer 19); without it start_check_run is not offered. */
   checkRuns?: CheckRunDeps | null;
 }
@@ -77,11 +77,11 @@ function fail(error: unknown): CallToolResult {
       'the input is not valid',
       error.issues.map((i) => `${i.path.join('.')}: ${i.message}`),
     );
-  return refused('INTERNAL', 'internal error in pathfinder-chat; the chat service logs it');
+  return refused('INTERNAL', 'internal error in mudpuppy-chat; the chat service logs it');
 }
 
 export function createChatMcpServer(ctx: ChatMcpContext): McpServer {
-  const server = new McpServer({ name: 'pathfinder-chat', version: '0.1.0' });
+  const server = new McpServer({ name: 'mudpuppy-chat', version: '0.1.0' });
   registerPageTools(server, { raw: ctx.raw, evidence: ctx.evidence ?? null }, ok, refused);
   registerModelTools(server, { raw: ctx.raw, checkRuns: ctx.checkRuns ?? null }, ok, refused);
   registerProcessTools(

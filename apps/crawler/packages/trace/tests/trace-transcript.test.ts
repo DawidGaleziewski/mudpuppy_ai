@@ -70,7 +70,7 @@ describe('parseTranscript', () => {
   it('keeps tool ids, names, error flags and model', () => {
     const nav = turns.find((t) => t.tool_use_id === 'toolu_test_002' && t.kind === 'tool_use')!;
     expect(nav).toMatchObject({
-      tool_name: 'mcp__pathfinder__navigate',
+      tool_name: 'mcp__mudpuppy__navigate',
       model: 'claude-test-model',
     });
     const failed = turns.find(

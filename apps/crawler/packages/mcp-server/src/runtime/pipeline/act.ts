@@ -1,11 +1,11 @@
-import { maskText } from '@pathfinder/core';
+import { maskText } from '@mudpuppy/core';
 import {
   decide,
   pendingItemForAction,
   settleFrontierItem,
   type GateContext,
-} from '@pathfinder/crawler';
-import type { Refusal } from '@pathfinder/safety';
+} from '@mudpuppy/crawler';
+import type { Refusal } from '@mudpuppy/safety';
 import type { ServerContext } from '../../context.js';
 import { ToolError } from '../../errors.js';
 import { saveCheckpoint } from '../../services/checkpoints.js';

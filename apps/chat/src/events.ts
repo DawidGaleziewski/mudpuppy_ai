@@ -38,7 +38,7 @@ export type ChatEvent =
   | { type: 'notice'; text: string; tool?: string }
   /**
    * Something the assistant asked the browser to do (spec 022 R6): highlight an element on a
-   * recorded screen, open a page, or ask for a credential. Only from the pathfinder-chat tools
+   * recorded screen, open a page, or ask for a credential. Only from the mudpuppy-chat tools
    * `highlight_element` / `open_page` / `request_credential`, after they completed.
    */
   | UiAction

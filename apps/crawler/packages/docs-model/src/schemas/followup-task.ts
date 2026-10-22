@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { Id, Timestamp } from '@pathfinder/core';
+import { Id, Timestamp } from '@mudpuppy/core';
 
 export const FollowupStatus = z.enum(['open', 'in_progress', 'done', 'blocked', 'cancelled']);
 export type FollowupStatus = z.infer<typeof FollowupStatus>;

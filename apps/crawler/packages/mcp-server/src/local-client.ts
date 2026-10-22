@@ -23,7 +23,7 @@ export async function openLocalClient(opts: {
 }): Promise<{ call: ToolCall; ctx: ServerContext; close(): Promise<void> }> {
   const opened = await openServerContext(opts);
   const server = createServer(opened.ctx, opts.runtime);
-  const client = new Client({ name: 'pathfinder-cli', version: '0' });
+  const client = new Client({ name: 'mudpuppy-cli', version: '0' });
   const [a, b] = InMemoryTransport.createLinkedPair();
   await Promise.all([server.connect(a), client.connect(b)]);
   const call: ToolCall = async (name, args) => {

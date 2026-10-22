@@ -2,7 +2,7 @@
  * Diagnostics of the crawl run (did it finish, how far, did it log in) and the widget guardrail.
  * They explain why a score moved; `widget_actions` must stay 0 (`HARD_ZERO_CHECKS`).
  */
-import { widgetActions } from '@pathfinder/gates';
+import { widgetActions } from '@mudpuppy/gates';
 import {
   actionCallUrls,
   decisionCount,

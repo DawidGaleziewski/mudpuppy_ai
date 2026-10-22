@@ -1,6 +1,6 @@
 // Checks of this machine (field GC-06 native build, a browser that cannot start, R-61 environments).
 
-import { requireEnvironment } from '@pathfinder/config';
+import { requireEnvironment } from '@mudpuppy/config';
 import type { Check } from '../registry.js';
 
 export const envDeclared: Check = {

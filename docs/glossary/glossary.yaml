@@ -1,19 +1,19 @@
-# Pathfinder glossary: the single source for the dashboard Glossary page, its [?] tooltips and
+# MudPuppy glossary: the single source for the dashboard Glossary page, its [?] tooltips and
 # section intros, and the generated README.md next to this file (spec 006).
-# After editing, run `uv run pathfinder-glossary --write` in apps/dashboard to refresh README.md.
+# After editing, run `uv run mudpuppy-glossary --write` in apps/dashboard to refresh README.md.
 # Field rules: specs/006-glossary-ba-wiki/data-model.md.
 
 scope: >-
-  This glossary explains Pathfinder's own vocabulary: the words the dashboard, the specs and the
+  This glossary explains MudPuppy's own vocabulary: the words the dashboard, the specs and the
   agents use for runs, evidence and documentation. It is not the portal glossary the BA agent
   writes (GL records in the Docs tab), which explains the documented website's business terms,
   such as "Składka" or "OC".
 
 entries:
-  # ---- Pathfinder: runs and setup ---------------------------------------------------------------
+  # ---- MudPuppy: runs and setup ---------------------------------------------------------------
   - id: run
     term: Run
-    category: pathfinder
+    category: mudpuppy
     group: Runs and setup
     placement: intro
     short: One session of the crawler against one portal, as one persona, in one mode, and everything it recorded on the way.
@@ -34,7 +34,7 @@ entries:
 
   - id: mode
     term: Mode (map / trace)
-    category: pathfinder
+    category: mudpuppy
     group: Runs and setup
     short: What a run is for, either map mode, which explores the whole portal, or trace mode, which records one named process step by step.
     explanation: |
@@ -55,7 +55,7 @@ entries:
 
   - id: environment
     term: Environment
-    category: pathfinder
+    category: mudpuppy
     group: Runs and setup
     short: A copy of a site you declare per portal under a name of your choice (dev, acceptance, live, sandbox), with its own address, its own users and its own store.
     explanation: |
@@ -64,7 +64,7 @@ entries:
       test users and its own database file (`data/db/<name>.sqlite`), so scans and documentation
       of two environments never mix. Nothing opens a store for a name no portal declares (a typo
       used to create a stray, empty store), and there is no default: the servers and the chat need
-      `PATHFINDER_ENV` set to a declared name, and every crawler result says which environment
+      `MUDPUPPY_ENV` set to a declared name, and every crawler result says which environment
       answered. Without a limit the crawler may fill, submit and log in; the BA sets a limit per
       environment to restrict it. A CAPTCHA is handed to a human on every environment.
     example: "a portal with dev https://dev.portal.test/ and acceptance https://acc.portal.test/ (only look)"
@@ -76,7 +76,7 @@ entries:
 
   - id: persona
     term: Persona
-    category: pathfinder
+    category: mudpuppy
     group: Runs and setup
     short: Who the crawler acts as during a run, such as an anonymous guest, defined in a persona file that can only narrow what the portal config allows.
     explanation: |
@@ -85,7 +85,7 @@ entries:
       shared pieces (`personas/_mixins/`). The run's effective safety ceiling is the lower of the
       portal's and the persona's, so a persona can restrict but never widen. Secrets are referenced,
       never written in the file. Its `attributes` (tariff, contract, feature flags…) say what
-      decides that test user's access; Pathfinder shows them and never interprets them. Many
+      decides that test user's access; MudPuppy shows them and never interprets them. Many
       logged-in personas can be imported from a CSV of test users (`pnpm personas:import`).
     example: reference-insurer/guest extends the anonymous base mixin and the trace-input mixin.
     appears_in: [Runs table → Persona, Settings → Personas]
@@ -96,9 +96,9 @@ entries:
 
   - id: reference-portal
     term: Reference portal / ground truth
-    category: pathfinder
+    category: mudpuppy
     group: Runs and setup
-    short: A practice insurance website that Pathfinder runs locally, with a written answer key (the ground truth) used to measure how good the crawler's and the BA's results are.
+    short: A practice insurance website that MudPuppy runs locally, with a written answer key (the ground truth) used to measure how good the crawler's and the BA's results are.
     explanation: |
       The reference portal is a fake Polish insurer, "Towarzystwo Ubezpieczeń Wzorcowych",
       served on `http://127.0.0.1:4010` by `pnpm reference-portal` in `apps/crawler`. Because we
@@ -116,7 +116,7 @@ entries:
 
   - id: coverage-score
     term: Coverage score
-    category: pathfinder
+    category: mudpuppy
     group: Runs and setup
     short: The share of a ground-truth category (screens, fields, constraints, rules, processes, terms) that the BA's documentation covers, as scored by `docs:evaluate`.
     explanation: |
@@ -142,7 +142,7 @@ entries:
 
   - id: over-claim
     term: Over-claim
-    category: pathfinder
+    category: mudpuppy
     group: Runs and setup
     short: A documentation record that states a rule as observed although the ground truth says a guest cannot observe it.
     explanation: |
@@ -158,10 +158,10 @@ entries:
     changed_in: R-16
     changed_on: 2026-10-04
 
-  # ---- Pathfinder: crawling -----------------------------------------------------------------------
+  # ---- MudPuppy: crawling -----------------------------------------------------------------------
   - id: state
     term: State
-    category: pathfinder
+    category: mudpuppy
     group: Crawling
     placement: intro
     short: One distinct condition of a portal screen that the crawler recognised and recorded, identified by its fingerprint.
@@ -180,7 +180,7 @@ entries:
 
   - id: form-step
     term: Form step
-    category: pathfinder
+    category: mudpuppy
     group: Crawling
     short: One step of a form flow on one address, numbered in the order the crawler first saw it (step 1, step 2, ...).
     explanation: |
@@ -198,7 +198,7 @@ entries:
 
   - id: state-kind
     term: State kind
-    category: pathfinder
+    category: mudpuppy
     group: Crawling
     short: What a state of a form step is - main, validation (the form refused input and says why) or technical (what a user sees when a request fails).
     explanation: |
@@ -213,7 +213,7 @@ entries:
 
   - id: form-probe
     term: Form probe
-    category: pathfinder
+    category: mudpuppy
     group: Crawling
     short: A deliberate try on a form step beyond its happy path, defined once in a catalogue; every outcome is recorded as a state of the step.
     explanation: |
@@ -239,7 +239,7 @@ entries:
 
   - id: probe-mark
     term: Probe mark
-    category: pathfinder
+    category: mudpuppy
     group: Crawling
     short: Your instruction on a form step to have the next form-probing scan try it beyond the happy path; shown as an orange Probe tag.
     explanation: |
@@ -257,7 +257,7 @@ entries:
 
   - id: form-probing-scan
     term: Form-probing scan
-    category: pathfinder
+    category: mudpuppy
     group: Crawling
     short: A scan that only probes the marked form steps of a portal; it does not map.
     explanation: |
@@ -275,7 +275,7 @@ entries:
 
   - id: checkpoint
     term: Checkpoint
-    category: pathfinder
+    category: mudpuppy
     group: Crawling
     short: The recorded way back to a screen state, the shortest one a scan took, so a later scan can reach the state again by replaying it.
     explanation: |
@@ -293,7 +293,7 @@ entries:
 
   - id: directed-scan
     term: Directed scan
-    category: pathfinder
+    category: mudpuppy
     group: Crawling
     short: A scan that starts at recorded screens by replaying how they were reached, instead of mapping from the start page.
     explanation: |
@@ -313,7 +313,7 @@ entries:
 
   - id: scan-mark
     term: Scan mark
-    category: pathfinder
+    category: mudpuppy
     group: Crawling
     short: Your instruction on a screen or an action for the next scan, Start here, Focus, Recheck, Retry or Skip, set from the map's side panel.
     explanation: |
@@ -330,7 +330,7 @@ entries:
 
   - id: scan-graph
     term: Scan graph
-    category: pathfinder
+    category: mudpuppy
     group: Crawling
     short: One scan drawn as a graph, the screens it saw and the moves it made, with what failed where and the screen it stopped on.
     explanation: |
@@ -349,7 +349,7 @@ entries:
 
   - id: scans-by-process
     term: Scans by process
-    category: pathfinder
+    category: mudpuppy
     group: Documentation
     short: Which scans belong to which documented process, which belong to none, and which look like one process nobody documented yet.
     explanation: |
@@ -366,7 +366,7 @@ entries:
 
   - id: documentation-update
     term: Documentation update
-    category: pathfinder
+    category: mudpuppy
     group: Documentation
     short: The BA documents a process again by revising its records with what new scans show, never by rebuilding them from fewer scans.
     explanation: |
@@ -401,7 +401,7 @@ entries:
 
   - id: process-documentation
     term: Process documentation (export)
-    category: pathfinder
+    category: mudpuppy
     group: Documentation
     short: The documentation a team (or an agent) rebuilds a process from, a folder with its steps, business and functional requirements, EARS, contracts, gaps, pictures and process.json.
     explanation: |
@@ -422,7 +422,7 @@ entries:
 
   - id: portal-map
     term: Portal map
-    category: pathfinder
+    category: mudpuppy
     group: Crawling
     short: Every screen your scans recorded as a node, laid out by how far it is from the start page, under Scans → Map.
     explanation: |
@@ -442,7 +442,7 @@ entries:
 
   - id: probe-suite
     term: Probe suite
-    category: pathfinder
+    category: mudpuppy
     group: Crawling
     short: The form probes worth repeating every time, proposed by the BA agent per form and run only after the owner approves it in Review.
     explanation: |
@@ -459,7 +459,7 @@ entries:
 
   - id: test-data
     term: Test data
-    category: pathfinder
+    category: mudpuppy
     group: Crawling
     short: The persona's valid, synthetic values for form fields, by the field's label; probes and autofill use them first.
     explanation: |
@@ -475,7 +475,7 @@ entries:
 
   - id: fingerprint
     term: Fingerprint
-    category: pathfinder
+    category: mudpuppy
     group: Crawling
     short: A hash of a page's route template and its accessible structure, so two observations with the same fingerprint count as the same state.
     explanation: |
@@ -492,7 +492,7 @@ entries:
 
   - id: fingerprint-profile
     term: Fingerprint profile
-    category: pathfinder
+    category: mudpuppy
     group: Portal model
     short: The rules a portal's pages are fingerprinted with, set in its portal file, such as "a menu link more is the same page".
     explanation: |
@@ -513,7 +513,7 @@ entries:
 
   - id: screen-threshold
     term: Screen threshold (τ)
-    category: pathfinder
+    category: mudpuppy
     group: Portal model
     short: How similar two versions of a page must be to count as one screen; a person accepts the value the labelled pairs suggest.
     explanation: |
@@ -532,7 +532,7 @@ entries:
 
   - id: cluster
     term: Cluster
-    category: pathfinder
+    category: mudpuppy
     group: Crawling
     short: A group of states that look almost the same, so near-duplicate pages are kept together instead of being documented as unrelated screens.
     explanation: |
@@ -549,7 +549,7 @@ entries:
 
   - id: settled
     term: Settled / never stabilized
-    category: pathfinder
+    category: mudpuppy
     group: Crawling
     short: Whether the page had stopped changing when it was recorded, meaning network requests, DOM changes and animations had all gone quiet.
     explanation: |
@@ -573,7 +573,7 @@ entries:
 
   - id: transition
     term: Transition
-    category: pathfinder
+    category: mudpuppy
     group: Crawling
     short: An action that leads from one state to another, such as clicking a menu link, recorded with its safety class and locators.
     explanation: |
@@ -591,7 +591,7 @@ entries:
 
   - id: portal-scope
     term: Scope / denylist
-    category: pathfinder
+    category: mudpuppy
     group: Crawling
     short: The part of a site the crawler may visit (domains and paths in the portal config) and the URLs or actions it must never touch.
     explanation: |
@@ -609,7 +609,7 @@ entries:
 
   - id: transit-zone
     term: Transit zone
-    category: pathfinder
+    category: mudpuppy
     group: Crawling
     short: The hosts a login passes through on its way to the portal, such as an identity provider; learned on every login, not configured.
     explanation: |
@@ -630,7 +630,7 @@ entries:
 
   - id: portal-hook
     term: Portal hook
-    category: pathfinder
+    category: mudpuppy
     group: Crawling
     short: A small piece of the owner's code that fixes one portal's quirk at a set point of a scan, such as adding a cookie or patching a broken script.
     explanation: |
@@ -650,11 +650,11 @@ entries:
 
   - id: fix-plugin
     term: Fix-plugin
-    category: pathfinder
+    category: mudpuppy
     group: Crawling
     short: A tested, reusable solution to one kind of portal quirk, turned on per portal with that portal's own data instead of writing a hook.
     explanation: |
-      Fixes live in Pathfinder (`@pathfinder/fix-plugins`); a portal turns one on under `fixes:` in
+      Fixes live in MudPuppy (`@mudpuppy/fix-plugins`); a portal turns one on under `fixes:` in
       its portal file, with the data it needs (a cookie name, selectors, a URL pattern). Today:
       `seed-cookie` (content shown only with a feature-flag cookie), `expand-collapsed` (open
       accordions and "show more" before the page is read, never a real link or submit),
@@ -670,7 +670,7 @@ entries:
 
   - id: transient-error-page
     term: Transient error page
-    category: pathfinder
+    category: mudpuppy
     group: Crawling
     short: A page that only says a server error happened (a 5xx, or a short "technical error, try again later"); the crawler opens it again before recording anything.
     explanation: |
@@ -687,7 +687,7 @@ entries:
 
   - id: render-warning
     term: Render warning
-    category: pathfinder
+    category: mudpuppy
     group: Crawling
     short: A note on a screen that some of its stylesheets, scripts or fonts did not load, so its screenshot may show a broken look that is not the portal's design.
     explanation: |
@@ -704,7 +704,7 @@ entries:
 
   - id: portal-network
     term: Portal network (proxy)
-    category: pathfinder
+    category: mudpuppy
     group: Runs and setup
     short: How the browser reaches a portal behind a corporate network, through a forward proxy (with hosts that go direct) and a TLS-inspecting proxy's CA (trusted from a file, or errors ignored).
     explanation: |
@@ -725,7 +725,7 @@ entries:
 
   - id: trace-catalogue
     term: Trace catalogue
-    category: pathfinder
+    category: mudpuppy
     group: Crawling
     short: The list of a portal's processes to drive to their end, with the fields to fill by label and variants such as the happy path and each validation error.
     explanation: |
@@ -743,16 +743,16 @@ entries:
 
   - id: access-dependent
     term: Access-dependent content
-    category: pathfinder
+    category: mudpuppy
     group: Runs and setup
     short: A screen or element that some test users see and others do not, found by scanning the same portal as several personas.
     explanation: |
-      When personas differ by their attributes (tariff, contract, feature flags), Pathfinder
+      When personas differ by their attributes (tariff, contract, feature flags), MudPuppy
       compares what each one recorded. Per screen it lists who reached it, the variant each one
       saw, and the elements only some of them see ("seen by" / "not seen by"). Only personas whose
       scan finished count as "not seen": an interrupted scan shows nothing missing. A screen is
       also marked when a persona with a finished scan never reached it, which can mean access or
-      just a scan that ran out of budget. Pathfinder never reads the attributes itself; the BA
+      just a scan that ran out of budget. MudPuppy never reads the attributes itself; the BA
       documents the rule, citing one persona that sees the element and one that does not.
     example: "Premium and B2B users see an Export button on Home; a basic user does not."
     appears_in: [Screen page → Access, Access by persona]
@@ -763,7 +763,7 @@ entries:
 
   - id: unexplained-difference
     term: Unexplained difference
-    category: pathfinder
+    category: mudpuppy
     group: Runs and setup
     short: Something only some personas see that no documentation record explains yet; it waits in Review until one does.
     explanation: |
@@ -783,7 +783,7 @@ entries:
 
   - id: budget
     term: Budget
-    category: pathfinder
+    category: mudpuppy
     group: Crawling
     short: A limit a run must stay within, such as the number of states, click depth, actions per state, running time or steps.
     explanation: |
@@ -798,14 +798,14 @@ entries:
     changed_in: R-22
     changed_on: 2026-10-03
 
-  # ---- Pathfinder: actions and safety -------------------------------------------------------------
+  # ---- MudPuppy: actions and safety -------------------------------------------------------------
   - id: accessible-name
     term: Accessible name
-    category: pathfinder
+    category: mudpuppy
     group: Actions and safety
-    short: The text a screen reader announces for an element, such as a button's caption or a field's label, which Pathfinder uses to name elements.
+    short: The text a screen reader announces for an element, such as a button's caption or a field's label, which MudPuppy uses to name elements.
     explanation: |
-      Pathfinder identifies elements the way assistive technology does: by role plus accessible
+      MudPuppy identifies elements the way assistive technology does: by role plus accessible
       name. That keeps the documentation in the portal's own words and gives stable locators
       for tests. An empty accessible name (shown as "—") is itself a finding: the control has no
       label a screen reader could read.
@@ -818,7 +818,7 @@ entries:
 
   - id: role
     term: Role
-    category: pathfinder
+    category: mudpuppy
     group: Actions and safety
     short: What kind of element something is in accessibility terms, such as link, button, textbox or checkbox, not a user role.
     explanation: |
@@ -833,7 +833,7 @@ entries:
 
   - id: safety-class
     term: Safety class
-    category: pathfinder
+    category: mudpuppy
     group: Actions and safety
     short: How risky an action is, either read, mutating, destructive or external side effect, with unclear cases treated as unsafe.
     explanation: |
@@ -857,7 +857,7 @@ entries:
 
   - id: decision
     term: Decision (allowed / skipped)
-    category: pathfinder
+    category: mudpuppy
     group: Actions and safety
     short: Whether the crawler was permitted to perform an action and, if not, the rule that stopped it.
     explanation: |
@@ -873,7 +873,7 @@ entries:
 
   - id: top-locator
     term: Top locator
-    category: pathfinder
+    category: mudpuppy
     group: Actions and safety
     short: The best of the ranked ways the crawler found to point at an element, which QA can reuse when writing tests.
     explanation: |
@@ -890,7 +890,7 @@ entries:
 
   - id: click-signal
     term: Click signal
-    category: pathfinder
+    category: mudpuppy
     group: Actions and safety
     short: What makes an element without an ARIA role count as clickable, such as a click listener, inline handler, framework handler, pointer cursor or tabindex.
     explanation: |
@@ -906,7 +906,7 @@ entries:
 
   - id: signal-found-action
     term: Signal-found action
-    category: pathfinder
+    category: mudpuppy
     group: Actions and safety
     short: An action issued for an element without an ARIA role but with click signals; the BA labels its meaning inferred from context.
     explanation: |
@@ -920,10 +920,10 @@ entries:
     changed_in: R-28
     changed_on: 2026-10-09
 
-  # ---- Pathfinder: frontier -----------------------------------------------------------------------
+  # ---- MudPuppy: frontier -----------------------------------------------------------------------
   - id: frontier
     term: Frontier
-    category: pathfinder
+    category: mudpuppy
     group: Frontier
     page: frontier
     short: The edge of what the crawler has explored, every action it has seen but not yet followed, plus a record of what happened to each one.
@@ -933,7 +933,7 @@ entries:
       frontier. The crawler keeps taking the next item, following it and adding what it finds,
       until nothing is left or a budget stops it.
 
-      Pathfinder's Frontier table also keeps history: each item ends `done` (followed) or skipped
+      MudPuppy's Frontier table also keeps history: each item ends `done` (followed) or skipped
       with a reason (`skipped_unsafe`, `out_of_scope`, `denylisted`, `robots_disallowed`,
       `budget_reached`, `unreachable`). An empty list of `pending` items means the map is complete
       within the rules.
@@ -950,7 +950,7 @@ entries:
 
   - id: inferred-link
     term: Inferred link
-    category: pathfinder
+    category: mudpuppy
     group: Frontier
     short: A frontier item for a link with the same name and target address as a link the run already clicked, recorded as a transition with no additional click.
     explanation: |
@@ -970,7 +970,7 @@ entries:
 
   - id: shared-button
     term: Shared menu button
-    category: pathfinder
+    category: mudpuppy
     group: Frontier
     short: A button in the page header, menu or footer that every page repeats; once its clicks in a run all lead to the same page, its copies on other pages are recorded as inferred, not clicked again.
     explanation: |
@@ -989,7 +989,7 @@ entries:
 
   - id: next-item
     term: Next item
-    category: pathfinder
+    category: mudpuppy
     group: Frontier
     short: In a map run, the frontier item the crawler should work on next, returned by every navigate and act result so the crawler does not have to ask for it.
     explanation: |
@@ -1005,7 +1005,7 @@ entries:
 
   - id: priority-depth
     term: Priority / depth
-    category: pathfinder
+    category: mudpuppy
     group: Frontier
     short: Priority decides which frontier item is followed next (higher first, then oldest), after links to unvisited kinds of page; depth is how many clicks away from the start page it is.
     explanation: |
@@ -1022,15 +1022,15 @@ entries:
     changed_in: R-35
     changed_on: 2026-10-14
 
-  # ---- Pathfinder: recorded evidence -------------------------------------------------------------
+  # ---- MudPuppy: recorded evidence -------------------------------------------------------------
   - id: evidence
     term: Evidence
-    category: pathfinder
+    category: mudpuppy
     group: Recorded evidence
     page: evidence
     short: What the crawler saved as proof of what it saw, such as page snapshots, screenshots, form fields, locators and network shapes, which every documentation statement must cite.
     explanation: |
-      Pathfinder never asks you to trust a statement on its own: the crawler stores proof, and
+      MudPuppy never asks you to trust a statement on its own: the crawler stores proof, and
       every BA record points at it. Evidence includes an accessibility snapshot, a screenshot and
       a layout (element keys with their boxes) per new state, the fields of each form, the ranked
       locators and safety class of each action, the shape (not the content) of network calls,
@@ -1046,11 +1046,11 @@ entries:
 
   - id: network-call-shape
     term: Network call shape
-    category: pathfinder
+    category: mudpuppy
     group: Recorded evidence
     short: A request the portal's own page made, recorded as method, URL template, status and the structure of its request and response, without the actual values.
     explanation: |
-      Pathfinder records what the page asked its server for, not what it sent. The structure
+      MudPuppy records what the page asked its server for, not what it sent. The structure
       (field names and types) shows what data the screen exchanges, while the absence of values
       keeps personal data out. Only background `fetch`/XHR requests are captured; a classic form
       POST followed by a redirect is not. The crawler never calls a portal's API itself.
@@ -1062,7 +1062,7 @@ entries:
 
   - id: screenshot
     term: Screenshot
-    category: pathfinder
+    category: mudpuppy
     group: Recorded evidence
     short: A full-page picture of a state, taken once when the crawler first records it, with no masking.
     explanation: |
@@ -1082,9 +1082,9 @@ entries:
 
   - id: element-key
     term: Element key
-    category: pathfinder
+    category: mudpuppy
     group: Recorded evidence
-    short: The name Pathfinder gives one notable element of a recorded page, its role and accessible name plus a number when the same pair repeats, such as textbox "Pojemność silnika".
+    short: The name MudPuppy gives one notable element of a recorded page, its role and accessible name plus a number when the same pair repeats, such as textbox "Pojemność silnika".
     explanation: |
       Headings, fields, buttons, links, images, tables, lists, forms and landmarks each get a key
       in page order: `role "name"`, or just `role` when there is no name, with `#2`, `#3` for
@@ -1101,7 +1101,7 @@ entries:
 
   - id: screen-region
     term: Screen region
-    category: pathfinder
+    category: mudpuppy
     group: Recorded evidence
     short: Evidence that points at one element of a state's screenshot, so the dashboard and the export can outline exactly what a record talks about.
     explanation: |
@@ -1121,11 +1121,11 @@ entries:
 
   - id: wireframe
     term: Wireframe
-    category: pathfinder
+    category: mudpuppy
     group: Recorded evidence
     short: A plain sketch of a recorded page, drawn in one fixed style from its accessibility snapshot, shown where there is no screenshot and downloadable as an editable Excalidraw file.
     explanation: |
-      Pathfinder draws headings, labelled fields, buttons, links, tables, lists and landmarks in
+      MudPuppy draws headings, labelled fields, buttons, links, tables, lists and landmarks in
       page order, one under the other, and nothing that is not in the recorded snapshot: it does
       not guess the real layout (the screenshot shows that). The same snapshot always gives the
       same drawing. Each wireframe comes as an SVG image and as a `.excalidraw` file you can open
@@ -1139,7 +1139,7 @@ entries:
 
   - id: form-autofill
     term: Form autofill
-    category: pathfinder
+    category: mudpuppy
     group: Crawling
     short: In map mode, the crawler fills a form with test data just before it presses the form's submit button, so it can reach the page behind the form.
     explanation: |
@@ -1156,7 +1156,7 @@ entries:
 
   - id: page-composition
     term: Page composition
-    category: pathfinder
+    category: mudpuppy
     group: Crawling
     short: "Per observation, the page's structure: frames, micro-frontend mount points, module loaders, bundles and clickable element counts."
     explanation: |
@@ -1173,7 +1173,7 @@ entries:
 
   - id: mount-point
     term: Mount point
-    category: pathfinder
+    category: mudpuppy
     group: Crawling
     short: "An element a micro-frontend renders into, such as `#root` or `[data-mfe]`."
     explanation: |
@@ -1189,7 +1189,7 @@ entries:
 
   - id: div-form
     term: Div form
-    category: pathfinder
+    category: mudpuppy
     group: Crawling
     short: "Inputs outside any `<form>` element recorded as a form, one per container with a submit-like control."
     explanation: |
@@ -1205,12 +1205,12 @@ entries:
 
   - id: pii-scrubbing
     term: PII scrubbing
-    category: pathfinder
+    category: mudpuppy
     group: Recorded evidence
     short: Masking personal data such as e-mails and phone numbers in stored text evidence, off by default and turned on per portal with pii_scrub.
     explanation: |
       Until constitution 2.0.0 every snapshot, title, form field and network shape was masked
-      before it was stored. Pathfinder now runs almost only against test portals with disposable
+      before it was stored. MudPuppy now runs almost only against test portals with disposable
       data, so text evidence is stored as recorded unless the portal config sets
       `pii_scrub: true`. Screenshots are never masked. Developer logs and trace error messages
       stay masked either way.
@@ -1222,7 +1222,7 @@ entries:
 
   - id: crawler-open-question
     term: Open question (crawler)
-    category: pathfinder
+    category: mudpuppy
     group: Recorded evidence
     short: Something the crawler noticed but cannot explain from the screen, handed to the BA instead of guessed.
     explanation: |
@@ -1238,7 +1238,7 @@ entries:
 
   - id: observation
     term: Observation
-    category: pathfinder
+    category: mudpuppy
     group: Recorded evidence
     short: One arrival of the crawler on a page, with the full URL exactly as the browser had it, the hops that led there, and its place in the run.
     explanation: |
@@ -1259,7 +1259,7 @@ entries:
 
   - id: navigation-hop
     term: Navigation hop
-    category: pathfinder
+    category: mudpuppy
     group: Recorded evidence
     short: One step the browser took from one URL to the next while reaching a page (an HTTP redirect, a meta refresh, a script redirect, a history change or a reload).
     explanation: |
@@ -1280,7 +1280,7 @@ entries:
 
   - id: parameter-inventory
     term: Parameter inventory
-    category: pathfinder
+    category: mudpuppy
     group: Recorded evidence
     short: For each screen, every URL parameter its visits carried, the values seen and where each value was set.
     explanation: |
@@ -1299,7 +1299,7 @@ entries:
 
   - id: entry-url
     term: Entry URL
-    category: pathfinder
+    category: mudpuppy
     group: Recorded evidence
     short: A distinct URL a screen was observed under, with how it was reached; one screen often has several (old and new address schemes, links with different parameters).
     explanation: |
@@ -1313,14 +1313,14 @@ entries:
     changed_in: R-38
     changed_on: 2026-10-12
 
-  # ---- Pathfinder: traced processes ---------------------------------------------------------------
+  # ---- MudPuppy: traced processes ---------------------------------------------------------------
   - id: trace-process
     term: Process (trace mode)
-    category: pathfinder
+    category: mudpuppy
     group: Traced processes
     short: The ordered steps the crawler recorded while following one named process in trace mode, the raw material for the BA's process record.
     explanation: |
-      "Process" has two meanings in Pathfinder. Here it is what a trace run recorded: a name, the
+      "Process" has two meanings in MudPuppy. Here it is what a trace run recorded: a name, the
       persona, the ordered steps and an outcome. The BA turns it into a PROC documentation record
       (see Process (PROC)), which is the documented business process.
 
@@ -1335,7 +1335,7 @@ entries:
 
   - id: process-step
     term: Step / intent / outcome
-    category: pathfinder
+    category: mudpuppy
     group: Traced processes
     short: One move in a traced process, where intent is what the crawler meant to do and outcome is what the portal did in response.
     explanation: |
@@ -1351,7 +1351,7 @@ entries:
 
   - id: submit-boundary
     term: Submit boundary
-    category: pathfinder
+    category: mudpuppy
     group: Traced processes
     short: The point in a process where continuing would submit, buy or send something, where a trace on a portal with a read-only limit stops on purpose.
     explanation: |
@@ -1365,12 +1365,12 @@ entries:
     changed_in: R-42
     changed_on: 2026-10-13
 
-  # ---- Pathfinder: run trace (debugging) ---------------------------------------------------------
+  # ---- MudPuppy: run trace (debugging) ---------------------------------------------------------
   - id: tool-call
     term: Tool call / phase / span
-    category: pathfinder
+    category: mudpuppy
     group: Run trace
-    short: A tool call is one request the crawler agent made to Pathfinder's server, a phase is one stage inside it, and a span is one timed block in that tree.
+    short: A tool call is one request the crawler agent made to MudPuppy's server, a phase is one stage inside it, and a span is one timed block in that tree.
     explanation: |
       The crawler agent works only through tools such as `start_run`, `navigate`, `act`,
       `get_next_frontier_item` and `finish_run`. Inside each call the server runs phases, for
@@ -1386,7 +1386,7 @@ entries:
 
   - id: run-less-call
     term: Run-less calls
-    category: pathfinder
+    category: mudpuppy
     group: Run trace
     short: Tool calls that happened outside any run, such as a refused start_run, kept so that nothing the server did is invisible.
     explanation: |
@@ -1401,7 +1401,7 @@ entries:
 
   - id: percentiles
     term: p50 / p95
-    category: pathfinder
+    category: mudpuppy
     group: Run trace
     short: Timing percentiles, where half of the measured calls were faster than p50 and 95 in 100 were faster than p95.
     explanation: |
@@ -1415,10 +1415,10 @@ entries:
     changed_in: R-22
     changed_on: 2026-10-03
 
-  # ---- Pathfinder: BA workflow --------------------------------------------------------------------
+  # ---- MudPuppy: BA workflow --------------------------------------------------------------------
   - id: layers
     term: Layer A / Layer B
-    category: pathfinder
+    category: mudpuppy
     group: BA workflow
     short: Layer A is the mechanical map the crawler records (states, actions, forms), and Layer B is the BA's documentation built on top of it.
     explanation: |
@@ -1434,7 +1434,7 @@ entries:
 
   - id: follow-up-task
     term: Follow-up task (FUP)
-    category: pathfinder
+    category: mudpuppy
     group: BA workflow
     short: A request from the BA to the crawler to go and record something specific, because the BA never browses itself.
     explanation: |
@@ -1450,7 +1450,7 @@ entries:
 
   - id: analysis-session
     term: Analysis session
-    category: pathfinder
+    category: mudpuppy
     group: BA workflow
     placement: intro
     short: One sitting of the BA agent, showing which runs it read, which passes it made, which records it wrote and which gaps it left.
@@ -1466,7 +1466,7 @@ entries:
 
   - id: analysis-pass
     term: Pass
-    category: pathfinder
+    category: mudpuppy
     group: BA workflow
     short: One of the BA agent's seven read-throughs of the evidence, each looking for one kind of thing.
     explanation: |
@@ -1482,7 +1482,7 @@ entries:
 
   - id: gaps
     term: Gaps
-    category: pathfinder
+    category: mudpuppy
     group: BA workflow
     placement: intro
     short: What the BA could not document from the evidence it had, listed so nobody assumes it was covered.
@@ -1498,7 +1498,7 @@ entries:
 
   - id: record-key
     term: Record key
-    category: pathfinder
+    category: mudpuppy
     group: Records and review
     short: The stable id of a documentation record, a kind prefix plus a number such as REQ-007 or BR-012, never reused even after the record is withdrawn.
     explanation: |
@@ -1515,7 +1515,7 @@ entries:
 
   - id: revision
     term: Revision (Rev)
-    category: pathfinder
+    category: mudpuppy
     group: Records and review
     short: A numbered version of a record, created each time the BA changes it, with older revisions kept and reviews applying to one exact revision.
     explanation: |
@@ -1530,7 +1530,7 @@ entries:
 
   - id: record-status
     term: Record status
-    category: pathfinder
+    category: mudpuppy
     group: Records and review
     short: The state of a record's revision, either draft, confirmed, rejected, superseded or withdrawn, worked out by code from the revisions and reviews.
     explanation: |
@@ -1550,7 +1550,7 @@ entries:
 
   - id: status-codes
     term: Status (shape and word)
-    category: pathfinder
+    category: mudpuppy
     group: Reading the dashboard
     short: Every status in the dashboard is a small shape plus a word, such as Live, Draft or Failed, so it never relies on colour alone.
     explanation: |
@@ -1577,7 +1577,7 @@ entries:
 
   - id: target
     term: Target
-    category: pathfinder
+    category: mudpuppy
     group: Reading the dashboard
     short: In a record's evidence table, the piece of recorded data the record cites, such as a state, form, action, network call or process step.
     explanation: |
@@ -1597,7 +1597,7 @@ entries:
   - id: srs-export
     wiki: software-requirements-specification
     term: SRS export
-    category: pathfinder
+    category: mudpuppy
     group: Records and review
     short: A folder of Markdown files (with Mermaid diagrams) plus records.json that renders a portal's documentation as one SRS a team could rebuild the portal from.
     explanation: |
@@ -1617,7 +1617,7 @@ entries:
 
   - id: confirmed-only-mode
     term: Confirmed-only mode
-    category: pathfinder
+    category: mudpuppy
     group: Records and review
     short: The SRS export mode that renders only revisions a reviewer confirmed, leaving out drafts.
     explanation: |
@@ -1658,7 +1658,7 @@ entries:
     group: Statements and traceability
     short: One unit of the BA's documentation, such as a screen, requirement or rule, with a key, revisions, evidence links and a status.
     explanation: |
-      Pathfinder's documentation is a set of small linked records rather than one long document.
+      MudPuppy's documentation is a set of small linked records rather than one long document.
       There are twelve kinds (see Record key for the prefixes). The SRS export renders them into a
       readable document.
     appears_in: [Docs tab, SRS export]
@@ -1712,7 +1712,7 @@ entries:
     group: Statements and traceability
     short: Being able to follow a requirement back to where it came from and forward to what depends on or tests it.
     explanation: |
-      In Pathfinder, backward traceability is built in: every record cites evidence and the
+      In MudPuppy, backward traceability is built in: every record cites evidence and the
       evidence names its run. Forward traceability runs through relations (rule → requirement →
       use case) and, later, through test tags such as `@REQ-007`. The SRS export includes a
       traceability matrix.
@@ -1863,7 +1863,7 @@ entries:
     group: Record kinds
     short: A quality the system must have rather than a function it performs, such as speed, accessibility or reliable navigation.
     explanation: |
-      Pathfinder writes NFRs only for what it actually measured (status codes, console errors,
+      MudPuppy writes NFRs only for what it actually measured (status codes, console errors,
       labels, robots policy). Qualities it could not measure go to the gaps instead.
     example: NFR-004 "No broken internal navigation for a guest".
     appears_in: [Docs tab → NFRs]
@@ -1943,7 +1943,7 @@ entries:
     short: A business word the documented portal uses, kept verbatim with its meaning, such as "OC".
     explanation: |
       These are the portal's terms, written by the BA agent. They are a different thing from this
-      glossary, which explains Pathfinder's own words.
+      glossary, which explains MudPuppy's own words.
     example: GL-001 "OC".
     appears_in: [Docs tab → Glossary]
     labels: [Glossary term, GL]
@@ -1977,7 +1977,7 @@ entries:
     group: Record kinds
     short: Software Requirements Specification, the complete requirements document a team could rebuild the system from.
     explanation: |
-      Pathfinder keeps requirements as linked records; the SRS export (`pnpm docs:export`) renders
+      MudPuppy keeps requirements as linked records; the SRS export (`pnpm docs:export`) renders
       them into one document with chapters, diagrams, a traceability matrix and an Unknowns section.
     appears_in: [SRS export]
     labels: [SRS]
@@ -1992,7 +1992,7 @@ entries:
     group: Record kinds
     short: A description of how an existing system works today, as opposed to a to-be design of how it should work.
     explanation: |
-      Pathfinder only documents the as-is system, from the outside, so that it can be rebuilt. It
+      MudPuppy only documents the as-is system, from the outside, so that it can be rebuilt. It
       never proposes improvements in the documentation; those belong in a separate to-be design.
     appears_in: [Overall purpose of the Docs tab]
     labels: [As-is]
@@ -2000,12 +2000,12 @@ entries:
     changed_in: R-22
     changed_on: 2026-10-03
 
-  # ---- Pathfinder: the proving ground, login and gates (spec 009) -------------------------------
+  # ---- MudPuppy: the proving ground, login and gates (spec 009) -------------------------------
   - id: proving-ground
     term: Proving ground
-    category: pathfinder
+    category: mudpuppy
     group: Proving ground
-    short: A deliberately awkward legacy estate (shop, bank, insurer and old pages) that Pathfinder runs locally to prove it can cope with known legacy obstacles.
+    short: A deliberately awkward legacy estate (shop, bank, insurer and old pages) that MudPuppy runs locally to prove it can cope with known legacy obstacles.
     explanation: |
       The proving ground (`apps/proving-ground`) is a fictional Polish group, Grupa Mokradło, with
       three brands. A Django backend serves a React shell, micro-frontends, server-rendered legacy
@@ -2021,12 +2021,12 @@ entries:
 
   - id: legacy-obstacle
     term: Legacy obstacle (catalogue)
-    category: pathfinder
+    category: mudpuppy
     group: Proving ground
     short: A thing that makes a legacy portal hard to map or document, such as a frameset or a missing label, listed under a stable LO- id in the obstacle catalogue.
     explanation: |
       `docs/legacy-obstacles.md` is a living catalogue. Each entry has an id (LO-01, LO-02, …;
-      never reused), the place in the proving ground that reproduces it, what Pathfinder is
+      never reused), the place in the proving ground that reproduces it, what MudPuppy is
       expected to do, a source and a status (`proposed`, `in scope`, `later`, `withdrawn`). The
       quality gates hold one set of assertions per in-scope entry, and the evaluator scores an
       obstacles category: did the BA's records name the obstacles the portal contains.
@@ -2039,7 +2039,7 @@ entries:
 
   - id: credential-vault
     term: Credential vault
-    category: pathfinder
+    category: mudpuppy
     group: Login and credentials
     short: The encrypted store of test-user logins and passwords that the crawler server reads, so that no secret is ever written in a config file or shown to the agent.
     explanation: |
@@ -2057,23 +2057,23 @@ entries:
 
   - id: vault-key
     term: Vault key
-    category: pathfinder
+    category: mudpuppy
     group: Login and credentials
     short: The one local key file that seals and opens the vault, kept outside the repository and the database.
     explanation: |
-      The key is created on first use and read from `PATHFINDER_VAULT_KEY_FILE` (or the default
+      The key is created on first use and read from `MUDPUPPY_VAULT_KEY_FILE` (or the default
       path). Each row remembers a key id. If the key changes, old rows are refused with a message
       asking you to enter the value again. The key is not part of any export. Tests use a
       temporary key and fake values.
     appears_in: [pnpm vault errors]
-    labels: [key file, PATHFINDER_VAULT_KEY_FILE]
+    labels: [key file, MUDPUPPY_VAULT_KEY_FILE]
     related: [credential-vault]
     changed_in: R-26
     changed_on: 2026-10-05
 
   - id: credential-ref
     term: Credential reference (ref:NAME)
-    category: pathfinder
+    category: mudpuppy
     group: Login and credentials
     short: A placeholder such as `ref:PG_BANK_PASSWORD` in a persona file that stands for a vault value, so the file holds the name and never the secret.
     explanation: |
@@ -2091,7 +2091,7 @@ entries:
 
   - id: login-block
     term: Login block
-    category: pathfinder
+    category: mudpuppy
     group: Login and credentials
     short: The part of a portal config that tells the server how to log in, where the form is, how to find its controls and how to tell success, failure and an expired session.
     explanation: |
@@ -2107,7 +2107,7 @@ entries:
 
   - id: server-side-login
     term: Server-side login
-    category: pathfinder
+    category: mudpuppy
     group: Login and credentials
     short: The `login` tool lets the agent ask for a login, and the server types the vault values into the form itself, so the agent never handles a secret.
     explanation: |
@@ -2124,7 +2124,7 @@ entries:
 
   - id: re-login
     term: Re-login
-    category: pathfinder
+    category: mudpuppy
     group: Login and credentials
     short: When a session expires mid-run, the server logs in again by itself and returns to the page the agent was going to.
     explanation: |
@@ -2141,7 +2141,7 @@ entries:
 
   - id: captcha-handoff
     term: Hand-off (CAPTCHA)
-    category: pathfinder
+    category: mudpuppy
     group: Login and credentials
     short: A CAPTCHA does not stop the run; the crawler records it, asks for a human and carries on with the rest, on every environment.
     explanation: |
@@ -2158,7 +2158,7 @@ entries:
 
   - id: secret-redactor
     term: Secret redactor
-    category: pathfinder
+    category: mudpuppy
     group: Login and credentials
     short: A filter that replaces every resolved secret value with `[secret]` before text is logged, stored or returned.
     explanation: |
@@ -2174,14 +2174,14 @@ entries:
 
   - id: quality-gate
     term: Quality gate (tier 1)
-    category: pathfinder
+    category: mudpuppy
     group: Gates and evals
     short: A fast, deterministic test that runs the crawler against the proving ground and checks one legacy obstacle or one earlier finding, with no model and no cost.
     explanation: |
       Gates live in `apps/crawler/packages/gates` and run inside `pnpm test`. The setup starts the
       proving ground on ports 4200 and 4201 and the reference portal, then each gate drives the
       server tools directly and asserts what was recorded. A coverage test fails when an in-scope
-      catalogue entry has no gate. Gates test Pathfinder's mechanics; they say nothing about how
+      catalogue entry has no gate. Gates test MudPuppy's mechanics; they say nothing about how
       well the agents decide.
     appears_in: [pnpm test, data/gates/report.json]
     labels: [gate, tier 1]
@@ -2191,9 +2191,9 @@ entries:
 
   - id: known-gap
     term: Known gap
-    category: pathfinder
+    category: mudpuppy
     group: Gates and evals
-    short: A gate for an obstacle Pathfinder does not handle yet; it describes the wanted behaviour, is expected to fail and keeps the run green.
+    short: A gate for an obstacle MudPuppy does not handle yet; it describes the wanted behaviour, is expected to fail and keeps the run green.
     explanation: |
       The report lists known gaps apart from passes. The day the assertions pass, the case fails
       with "known gap is fixed", so it is turned into a normal gate and stays fixed.
@@ -2205,7 +2205,7 @@ entries:
 
   - id: gate-report
     term: Gate report
-    category: pathfinder
+    category: mudpuppy
     group: Gates and evals
     short: The file `data/gates/report.json` that every test run writes, listing each gate's result and the catalogue entries that have no gate.
     explanation: |
@@ -2219,7 +2219,7 @@ entries:
 
   - id: slow-gate
     term: Slow gate
-    category: pathfinder
+    category: mudpuppy
     group: Gates and evals
     short: A gate that has to wait in real time (a session expiry, several fresh browsers), so `pnpm test` skips it and `pnpm test:slow` runs it.
     explanation: |
@@ -2235,7 +2235,7 @@ entries:
 
   - id: eval
     term: Eval (tier 2)
-    category: pathfinder
+    category: mudpuppy
     group: Gates and evals
     short: A real, paid run of the crawler and BA agents on one portal, scored against its ground truth and compared with a saved baseline.
     explanation: |
@@ -2258,7 +2258,7 @@ entries:
 
   - id: eval-task
     term: Eval task / suite
-    category: pathfinder
+    category: mudpuppy
     group: Gates and evals
     short: One test the eval can run, a portal with its ground truth and success criteria; all tasks together are the evaluation suite.
     explanation: |
@@ -2284,7 +2284,7 @@ entries:
 
   - id: export-quality-score
     term: Export quality score
-    category: pathfinder
+    category: mudpuppy
     group: Gates and evals
     short: How closely a process export matches the ground truth of its portal - steps, fields, validation messages, actions and API calls.
     explanation: |
@@ -2304,7 +2304,7 @@ entries:
 
   - id: eval-trial
     term: Eval trial
-    category: pathfinder
+    category: mudpuppy
     group: Gates and evals
     short: One attempt at a task, one `pnpm eval` run; agents differ from run to run, so a task needs several trials before a score means much.
     explanation: |
@@ -2324,7 +2324,7 @@ entries:
 
   - id: grouping-eval
     term: Grouping eval
-    category: pathfinder
+    category: mudpuppy
     group: Gates and evals
     short: The eval of how well the assistant cuts a portal's recorded scans into processes, scored against the processes a person wrote down.
     explanation: |
@@ -2343,7 +2343,7 @@ entries:
 
   - id: grader
     term: Grader
-    category: pathfinder
+    category: mudpuppy
     group: Gates and evals
     short: The logic that turns a finished trial into one score or check; code-based, model-based (an LLM judge) or human.
     explanation: |
@@ -2360,7 +2360,7 @@ entries:
 
   - id: eval-baseline
     term: Eval baseline
-    category: pathfinder
+    category: mudpuppy
     group: Gates and evals
     short: The saved result an eval is compared with; a score may fall below it only by the portal's tolerance.
     explanation: |
@@ -2378,7 +2378,7 @@ entries:
 
   - id: crawl-coverage-score
     term: Crawl coverage score
-    category: pathfinder
+    category: mudpuppy
     group: Gates and evals
     short: How many of the portal's ground-truth screens the crawler itself reached in an eval, apart from what the BA documented.
     explanation: |
@@ -2395,7 +2395,7 @@ entries:
 
   - id: password-sweep
     term: Password sweep
-    category: pathfinder
+    category: mudpuppy
     group: Gates and evals
     short: The eval's search for the portal's test passwords in everything a run left behind; it must find none.
     explanation: |
@@ -2412,7 +2412,7 @@ entries:
 
   - id: eval-workspace
     term: Eval workspace
-    category: pathfinder
+    category: mudpuppy
     group: Gates and evals
     short: A fresh temporary root where an eval's agents record, so your own database and documentation are never touched.
     explanation: |
@@ -2423,14 +2423,14 @@ entries:
       ("eval · <portal> · <time>"), so an eval's runs and documentation open from the picker.
       A portal with no data in the current store names the stores that hold it.
     appears_in: [pnpm eval --in-place, Header → data store (eval workspaces)]
-    labels: [PATHFINDER_ROOT, in-place, eval workspaces]
+    labels: [MUDPUPPY_ROOT, in-place, eval workspaces]
     related: [eval, credential-vault]
     changed_in: R-45
     changed_on: 2026-10-12
 
   - id: judge
     term: Judge (LLM judge)
-    category: pathfinder
+    category: mudpuppy
     group: Gates and evals
     short: A model-based grader that asks Claude one narrow yes/no question about one ground-truth item and one documentation record.
     explanation: |
@@ -2451,7 +2451,7 @@ entries:
 
   - id: judge-labels
     term: Judge labels
-    category: pathfinder
+    category: mudpuppy
     group: Gates and evals
     short: The owner's own pass or fail, with one sentence why, for each pair a judge is asked about; what the judge is measured against.
     explanation: |
@@ -2467,7 +2467,7 @@ entries:
 
   - id: judge-calibration
     term: Judge calibration
-    category: pathfinder
+    category: mudpuppy
     group: Gates and evals
     short: Measuring how often a judge agrees with the owner's labels, as two rates (TPR and TNR) and a flip rate; a judge counts only once calibrated.
     explanation: |
@@ -2486,7 +2486,7 @@ entries:
 
   - id: judge-isolation-check
     term: Judge isolation check
-    category: pathfinder
+    category: mudpuppy
     group: Gates and evals
     short: One real judge call that proves nothing of your or the project's Claude setup reached the judge.
     explanation: |
@@ -2494,18 +2494,18 @@ entries:
       answer tool, no MCP servers, no plugins, skills or agents of yours or the project's (Claude
       Code's built-in ones are allowed), memory inside the judge's temporary config folder, and
       under 2 000 input tokens (a leaked CLAUDE.md would add thousands). The judge logs in with the
-      token in `~/.config/pathfinder/judge-token` (from `claude setup-token`) or, without it, with
+      token in `~/.config/mudpuppy/judge-token` (from `claude setup-token`) or, without it, with
       your own login.
     appears_in: [pnpm eval:judge-check]
-    labels: [isolation check, judge-token, PATHFINDER_JUDGE_TOKEN_FILE]
+    labels: [isolation check, judge-token, MUDPUPPY_JUDGE_TOKEN_FILE]
     related: [judge]
     changed_in: R-47
     changed_on: 2026-10-11
 
-  # ---- Pathfinder: chat and workflow (R-30) ------------------------------------------------------
+  # ---- MudPuppy: chat and workflow (R-30) ------------------------------------------------------
   - id: chat
     term: Chat
-    category: pathfinder
+    category: mudpuppy
     group: Chat and workflow
     short: The dashboard page where the BA talks to one assistant that knows where each portal stands and runs the next step for them.
     explanation: |
@@ -2523,9 +2523,9 @@ entries:
 
   - id: orchestrator
     term: Orchestrator (assistant)
-    category: pathfinder
+    category: mudpuppy
     group: Chat and workflow
-    short: The assistant behind the chat; it can scan, trace, narrow and document, but cannot change Pathfinder itself.
+    short: The assistant behind the chat; it can scan, trace, narrow and document, but cannot change MudPuppy itself.
     explanation: |
       The orchestrator calls the chat tools (`workflow_state`, `request_scan`, `save_persona`, …)
       and hands the work to the crawler and BA agents. It has no file, shell or web tools: a
@@ -2539,7 +2539,7 @@ entries:
 
   - id: workflow-step
     term: Workflow step
-    category: pathfinder
+    category: mudpuppy
     group: Chat and workflow
     short: One stage of the work on a portal (scan, map, narrow, document, amend), shown in the step tracker as to do, waiting to start, in progress, done, failed or stopped.
     explanation: |
@@ -2560,7 +2560,7 @@ entries:
 
   - id: scan-choices
     term: Scan choices (edits, images)
-    category: pathfinder
+    category: mudpuppy
     group: Chat and workflow
     short: The two questions the assistant asks before each scan, whether it may fill in and submit forms (default no, only look) and whether to skip images (default no).
     explanation: |
@@ -2579,7 +2579,7 @@ entries:
 
   - id: scan-focus
     term: Scan focus
-    category: pathfinder
+    category: mudpuppy
     group: Chat and workflow
     short: The part of a portal one scan or process trace keeps to, said in the chat; where it starts, which addresses and paths it stays within, which paths it leaves out.
     explanation: |
@@ -2597,7 +2597,7 @@ entries:
 
   - id: error-reference
     term: Error reference (ERR-…)
-    category: pathfinder
+    category: mudpuppy
     group: Chat and workflow
     short: The id shown with every error in the chat; a developer finds the technical detail under it in the local chat log.
     explanation: |
@@ -2613,7 +2613,7 @@ entries:
 
   - id: activity-feed
     term: Activity (scan progress)
-    category: pathfinder
+    category: mudpuppy
     group: Chat and workflow
     short: The list under the chat of what the conversation's scan did, newest first, with counters for pages found, links queued, steps and time.
     explanation: |
@@ -2631,7 +2631,7 @@ entries:
 
   - id: live-map
     term: Map (live)
-    category: pathfinder
+    category: mudpuppy
     group: Chat and workflow
     short: The pages of the conversation's scan drawn beside the chat as the crawler finds them, each hanging off the page it was reached from.
     explanation: |
@@ -2648,7 +2648,7 @@ entries:
 
   - id: portal-dropdown
     term: Portal (dropdown)
-    category: pathfinder
+    category: mudpuppy
     group: Chat and workflow
     short: The choice at the top of every page of which portal you work on; the pages follow it until you change it.
     explanation: |
@@ -2665,7 +2665,7 @@ entries:
 
   - id: new-portal
     term: New portal
-    category: pathfinder
+    category: mudpuppy
     group: Chat and workflow
     short: The form, opened with "+ new portal" in the portal dropdown, that adds a site to work on without editing files.
     explanation: |
@@ -2684,7 +2684,7 @@ entries:
 
   - id: portal-settings
     term: Portal settings (environments)
-    category: pathfinder
+    category: mudpuppy
     group: Chat and workflow
     short: The page, opened with [settings] next to the portal dropdown, that lists a portal's environments and adds, changes or revokes them.
     explanation: |
@@ -2702,7 +2702,7 @@ entries:
 
   - id: reset-assistant
     term: Reset assistant
-    category: pathfinder
+    category: mudpuppy
     group: Chat and workflow
     short: Gives the assistant a fresh context in the same conversation; the history stays on screen and the portal and steps are kept.
     explanation: |
@@ -2720,7 +2720,7 @@ entries:
 
   - id: process-scope
     term: Process scope
-    category: pathfinder
+    category: mudpuppy
     group: Chat and workflow
     short: The one process the BA wants documented, given by its start and end screens, the screens in between and a comment per screen.
     explanation: |
@@ -2736,7 +2736,7 @@ entries:
 
   - id: amendment
     term: Amendment (to-be)
-    category: pathfinder
+    category: mudpuppy
     group: Chat and workflow
     short: A BA note on a screen, a piece of evidence or a wireframe element that says what should change; kept apart from the recorded facts.
     explanation: |
@@ -2753,7 +2753,7 @@ entries:
 
   - id: superseded-amendment
     term: Superseded amendment
-    category: pathfinder
+    category: mudpuppy
     group: Chat and workflow
     short: The old name for an amendment whose element a new scan made out of date; the dashboard now calls it an amendment to re-anchor.
     explanation: |
@@ -2773,11 +2773,11 @@ entries:
 
   - id: re-anchor
     term: Re-anchor
-    category: pathfinder
+    category: mudpuppy
     group: Chat and workflow
     short: To point an amendment at the element or screen it belongs to now, after a new scan removed the element it was written on; the amendment waits in Review until you do.
     explanation: |
-      When a scan sees a new revision of a screen, Pathfinder checks every amendment on it. If
+      When a scan sees a new revision of a screen, MudPuppy checks every amendment on it. If
       the amendment's element is still there, it carries forward to the new revision. If the
       element was renamed or removed, or the address now shows a different screen, the
       amendment is flagged Re-anchor and listed in Review. You pick the current screen or
@@ -2792,7 +2792,7 @@ entries:
 
   - id: screen-revision
     term: Screen revision (observed)
-    category: pathfinder
+    category: mudpuppy
     group: Chat and workflow
     short: One version of a screen as a scan saw it, numbered r1, r2 and so on; a changed screen gets a new revision, not a new screen.
     explanation: |
@@ -2810,7 +2810,7 @@ entries:
 
   - id: process-model
     term: Process model (A as-is, B to-be)
-    category: pathfinder
+    category: mudpuppy
     group: Chat and workflow
     short: One version of a process, either A, the process as the scans observed it, or B and further letters, the process the business wants.
     explanation: |
@@ -2830,7 +2830,7 @@ entries:
 
   - id: as-is-sign-off
     term: As-is sign-off
-    category: pathfinder
+    category: mudpuppy
     group: Chat and workflow
     short: Marking a process's as-is as documented, which records the revision of A it covered so a later change to A shows.
     explanation: |
@@ -2849,7 +2849,7 @@ entries:
 
   - id: archived-process
     term: Archived process
-    category: pathfinder
+    category: mudpuppy
     group: Chat and workflow
     short: A process taken out of the list, for example one made by mistake; nothing of it is deleted and Restore brings it back.
     explanation: |
@@ -2866,7 +2866,7 @@ entries:
 
   - id: process-draft
     term: Draft (process draft)
-    category: pathfinder
+    category: mudpuppy
     group: Chat and workflow
     short: Your unsaved work on a to-be process model, which saves itself and which only you see, until you save it as the next revision or discard it.
     explanation: |
@@ -2883,7 +2883,7 @@ entries:
 
   - id: change-spec
     term: Change spec
-    category: pathfinder
+    category: mudpuppy
     group: Chat and workflow
     short: The document built from the difference between a process's as-is and to-be process models, saying what must change and why, ready to hand to the builders.
     explanation: |
@@ -2900,7 +2900,7 @@ entries:
 
   - id: live-process-model
     term: Live process model (per environment)
-    category: pathfinder
+    category: mudpuppy
     group: Chat and workflow
     short: The process model the BA marked as the one that runs in an environment, such as sandbox or production; each environment has its own marker.
     explanation: |
@@ -2916,7 +2916,7 @@ entries:
 
   - id: proposal
     term: Proposal (assistant proposal)
-    category: pathfinder
+    category: mudpuppy
     group: Chat and workflow
     short: A change the assistant suggests in the chat, such as a new amendment or an edited step, which changes nothing until you press Apply.
     explanation: |
@@ -2932,7 +2932,7 @@ entries:
 
   - id: review-inbox
     term: Review inbox
-    category: pathfinder
+    category: mudpuppy
     group: Chat and workflow
     short: The one page that lists every open decision, namely records to confirm, amendments to re-anchor, assistant proposals and edit conflicts.
     explanation: |
@@ -2948,7 +2948,7 @@ entries:
 
   - id: grouping-suggestion
     term: Grouping suggestion
-    category: pathfinder
+    category: mudpuppy
     group: Chat and workflow
     short: A set of screens the assistant proposes as one business process, with the reason they belong together, which you accept, change or ignore.
     explanation: |
@@ -2966,11 +2966,11 @@ entries:
     changed_in: R-67
     changed_on: 2026-10-16
 
-  # ---- Pathfinder: building Pathfinder (R-34) -----------------------------------------------------
+  # ---- MudPuppy: building MudPuppy (R-34) -----------------------------------------------------
   - id: fast-tier
     term: Fast tier
-    category: pathfinder
-    group: Building Pathfinder
+    category: mudpuppy
+    group: Building MudPuppy
     short: The crawler tests that run on every commit, in seconds — only the ones your uncommitted change can affect, without browser end-to-end files and gates.
     explanation: |
       `pnpm test:fast` in `apps/crawler` asks Vitest which test files import, directly or through
@@ -2986,8 +2986,8 @@ entries:
 
   - id: slow-tier
     term: Slow tier
-    category: pathfinder
-    group: Building Pathfinder
+    category: mudpuppy
+    group: Building MudPuppy
     short: The browser end-to-end test files (`*.e2e.test.ts`) and the whole gate set, run before committing runtime or gate changes and before a merge.
     explanation: |
       `pnpm test:slow` runs two things at once: the files that drive whole crawler runs through
@@ -3002,9 +3002,9 @@ entries:
 
   - id: code-guidelines
     term: Code guidelines
-    category: pathfinder
-    group: Building Pathfinder
-    short: The rated rules (G-01 to G-32) for how Pathfinder's code is shaped, layered, tested and reviewed, in `docs/code-guidelines.md`.
+    category: mudpuppy
+    group: Building MudPuppy
+    short: The rated rules (G-01 to G-32) for how MudPuppy's code is shaped, layered, tested and reviewed, in `docs/code-guidelines.md`.
     explanation: |
       Each guideline has an id, the rule, why it exists and what checks it (a lint rule, a test or
       the code reviewer). They were proposed as a list and rated by the project owner before any
@@ -3018,8 +3018,8 @@ entries:
 
   - id: agent-notes
     term: Agent notes
-    category: pathfinder
-    group: Building Pathfinder
+    category: mudpuppy
+    group: Building MudPuppy
     short: The short `CLAUDE.md` in every package and app that tells an AI agent (and a person) what the package is for, its layer, public API, rules and where to add things.
     explanation: |
       Claude Code reads a folder's `CLAUDE.md` when it works there, so these notes are the first
@@ -3033,8 +3033,8 @@ entries:
 
   - id: mutation-testing
     term: Mutation testing
-    category: pathfinder
-    group: Building Pathfinder
+    category: mudpuppy
+    group: Building MudPuppy
     short: A check of the tests themselves — the code is changed in small ways on purpose and every change the tests do not notice is a gap in the tests.
     explanation: |
       Each small change is a "mutant" (a `>` turned into `>=`, a condition forced true, a
@@ -3050,8 +3050,8 @@ entries:
 
   - id: behaviour-lock
     term: Behaviour lock
-    category: pathfinder
-    group: Building Pathfinder
+    category: mudpuppy
+    group: Building MudPuppy
     short: A test that records exactly what the code does today, so a refactor can prove it changed nothing.
     explanation: |
       Before code is moved or split, the lock captures its observable result; after every step
@@ -3064,10 +3064,10 @@ entries:
     changed_in: R-34
     changed_on: 2026-10-08
 
-  # ---- Pathfinder: the portal model (MudPuppy 2.0, spec 039) ----------------------------------
+  # ---- MudPuppy: the portal model (MudPuppy 2.0, spec 039) ----------------------------------
   - id: portal-model
     term: Portal model
-    category: pathfinder
+    category: mudpuppy
     group: Portal model
     short: One stored picture of the portal as it is now, rebuilt from every scan by deterministic code after each run, with screens and links that keep their ids.
     explanation: |
@@ -3085,7 +3085,7 @@ entries:
 
   - id: model-screen
     term: Screen of the model (SC-)
-    category: pathfinder
+    category: mudpuppy
     group: Portal model
     short: A screen as the portal model keeps it, a group of page versions that are the same page, with a key like SC-0012 that stays the same across scans.
     explanation: |
@@ -3103,7 +3103,7 @@ entries:
 
   - id: screen-variant
     term: Variant (r1, r2…)
-    category: pathfinder
+    category: mudpuppy
     group: Portal model
     short: One way a screen looked, a page version the model keeps in that screen, and why it differs from the first one.
     explanation: |
@@ -3120,7 +3120,7 @@ entries:
 
   - id: model-link
     term: Link and action (link states)
-    category: pathfinder
+    category: mudpuppy
     group: Portal model
     short: A link leads to another screen and is drawn on the Map; an action stays inside its screen (a dialog, a field) and is only counted on it.
     explanation: |
@@ -3137,7 +3137,7 @@ entries:
 
   - id: journey
     term: Journey
-    category: pathfinder
+    category: mudpuppy
     group: Portal model
     short: One continuous path of a scan, from where it started to where it stopped going on, so every step and every typed value has a position.
     explanation: |
@@ -3153,7 +3153,7 @@ entries:
 
   - id: step-result
     term: Step result
-    category: pathfinder
+    category: mudpuppy
     group: Portal model
     short: What a visit or a step came to, one of ok, validation, business error, technical error, timeout or blocked.
     explanation: |
@@ -3168,7 +3168,7 @@ entries:
 
   - id: release
     term: Release (build)
-    category: pathfinder
+    category: mudpuppy
     group: Portal model
     short: The version of the portal's code a page was served by, read from its content-hashed bundle names or from a version header or meta tag the portal names.
     explanation: |
@@ -3187,7 +3187,7 @@ entries:
 
   - id: deviation
     term: Change (deviation)
-    category: pathfinder
+    category: mudpuppy
     group: Portal model
     short: A place where a new model version does not fit the previous one, such as a new screen, a page that looks different, an action that is gone or leads elsewhere.
     explanation: |
@@ -3204,7 +3204,7 @@ entries:
 
   - id: hypothesis
     term: Finding and explanation (hypothesis, H-)
-    category: pathfinder
+    category: mudpuppy
     group: Portal model
     short: A finding is what the system noticed; its explanation is why it thinks it happened, such as "this screen changed with a new release", with the evidence and the test that would refute it.
     explanation: |
@@ -3221,7 +3221,7 @@ entries:
 
   - id: derived-fact
     term: Explained automatically (derived fact)
-    category: pathfinder
+    category: mudpuppy
     group: Portal model
     short: A claim the system confirmed by itself because a published rule decides it from the evidence, shown with its rule and reversible by a person.
     explanation: |
@@ -3237,7 +3237,7 @@ entries:
 
   - id: model-element-key
     term: Element key of the model
-    category: pathfinder
+    category: mudpuppy
     group: Portal model
     short: The name that matches one element across scans, its role, masked name, the containers it sits in and its position when it repeats, such as button|oblicz składkę|main>form "Dane pojazdu"|.
     explanation: |
@@ -3252,7 +3252,7 @@ entries:
 
   - id: headless-driver
     term: Headless driver (probe run)
-    category: pathfinder
+    category: mudpuppy
     group: Portal model
     short: Code that repeats a recorded path through the portal in a fresh browser session, without the LLM, to check a claim; each repeat (a replay) is one probe run.
     explanation: |
@@ -3271,7 +3271,7 @@ entries:
 
   - id: decision-rule
     term: Decision rule
-    category: pathfinder
+    category: mudpuppy
     group: Portal model
     short: A business rule found in the scans, where one action leads to different screens depending on the data typed, written as a decision table (DMN).
     explanation: |
@@ -3295,7 +3295,7 @@ entries:
 
   - id: boundary-test
     term: Boundary test
-    category: pathfinder
+    category: mudpuppy
     group: Portal model
     short: A replay just below, at and just above a rule's threshold (age 17, 18 and 19 for "under 18"), which supports the rule or refutes it.
     explanation: |
@@ -3313,7 +3313,7 @@ entries:
 
   - id: process-proposal
     term: Proposed process (from the model)
-    category: pathfinder
+    category: mudpuppy
     group: Portal model
     short: A group of screens the system proposes as one process, because they share ids in their requests, embedded apps, API families, a form or direct links.
     explanation: |
@@ -3329,7 +3329,7 @@ entries:
 
   - id: process-instance
     term: Process instance (trigger and outcome)
-    category: pathfinder
+    category: mudpuppy
     group: Portal model
     short: One walk through a process in a scan, from its trigger (the link or button that entered it) to its outcome (completed, exited, error, abandoned or not finished).
     explanation: |
@@ -3348,7 +3348,7 @@ entries:
 
   - id: explored-process
     term: Explored (process)
-    category: pathfinder
+    category: mudpuppy
     group: Portal model
     short: "How far a process was tried on the current releases: every action of its screens once per persona, every pair of consecutive actions once, then random walks inside it."
     explanation: |
@@ -3365,7 +3365,7 @@ entries:
 
   - id: similarity-classifier
     term: Similarity classifier
-    category: pathfinder
+    category: mudpuppy
     group: Portal model
     short: A model trained on the "same screen?" labels that weighs every part of two page fingerprints; used instead of the single threshold τ once it tells screens apart better.
     explanation: |
@@ -3382,7 +3382,7 @@ entries:
 
   - id: same-screen-label
     term: Same screen? (a pair label)
-    category: pathfinder
+    category: mudpuppy
     group: Portal model
     short: A person's answer for two recorded versions of a page, Same screen, Same with different data, or Different screens, which the next model rebuild follows.
     explanation: |
@@ -3401,7 +3401,7 @@ entries:
 
   - id: check-run
     term: Check run
-    category: pathfinder
+    category: mudpuppy
     group: Portal model
     short: A run of replays and tests on the headless driver, with no AI, that checks rules at their boundaries, replays errors and explores processes, as opposed to an AI scan.
     explanation: |
@@ -3419,7 +3419,7 @@ entries:
 
   - id: portal-hints
     term: Hints (Settings)
-    category: pathfinder
+    category: mudpuppy
     group: Portal model
     short: What the portal model is told about a portal, its release marker, the cookies that name an A/B test's arm and the texts that mean a business refusal, from the portal file.
     explanation: |
@@ -3438,7 +3438,7 @@ entries:
 
   - id: as-of
     term: As of (a past model version)
-    category: pathfinder
+    category: mudpuppy
     group: Portal model
     short: The header menu on Processes, Screens, Map and Rules that shows the portal model as it was when a past model version was built.
     explanation: |
@@ -3455,7 +3455,7 @@ entries:
 
   - id: review-undo
     term: Undo (a decision in Review)
-    category: pathfinder
+    category: mudpuppy
     group: Portal model
     short: Takes back the last Confirm or Reject in Review, the whole group at once when it was a group decision, with a new history entry, never by deleting.
     explanation: |
@@ -3472,7 +3472,7 @@ entries:
 
   - id: also-settles
     term: Also settles (linked decisions)
-    category: pathfinder
+    category: mudpuppy
     group: Portal model
     short: The items one decision settles together, such as the Same screen? pairs of the page version an A/B test finding is about.
     explanation: |
@@ -3488,7 +3488,7 @@ entries:
 
   - id: planner-mark
     term: Planner mark
-    category: pathfinder
+    category: mudpuppy
     group: Portal model
     short: A mark the portal model writes itself for what it does not know yet, with a priority, for the probe and exploration runs; never one of your own marks.
     explanation: |
@@ -3505,7 +3505,7 @@ entries:
 
   - id: response-contract
     term: Response contract (schema hash)
-    category: pathfinder
+    category: mudpuppy
     group: Documentation
     short: One shape of an API's answer, its key paths and their types; an endpoint whose answer changed shape has more than one, each with when it was seen.
     explanation: |
@@ -3522,8 +3522,8 @@ entries:
 
   - id: scar
     term: Scar (scar-maker)
-    category: pathfinder
-    group: Building Pathfinder
+    category: mudpuppy
+    group: Building MudPuppy
     short: A real obstacle met at a customer site, rebuilt as a page of the local scar-maker portal so the harness can be proven against it.
     explanation: |
       `apps/scar-maker` serves one route per scar (a page-wide POST form, a 403 background call,

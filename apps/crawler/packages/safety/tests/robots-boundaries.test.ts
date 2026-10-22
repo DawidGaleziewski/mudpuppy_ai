@@ -7,7 +7,7 @@ import { parseRobots, robotsTarget, robotsVerdict, selectGroup } from '../src/ro
  */
 
 const verdict = (robots: string, path: string) =>
-  robotsVerdict(parseRobots(robots), 'PathfinderAI-Crawler', `https://example.test${path}`);
+  robotsVerdict(parseRobots(robots), 'MudPuppy-Crawler', `https://example.test${path}`);
 
 describe('robotsVerdict: which rule wins', () => {
   it('on a tie in length, allow wins whatever the order', () => {

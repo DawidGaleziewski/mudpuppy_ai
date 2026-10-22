@@ -1,16 +1,11 @@
 // A trace's variant runs proposed as one process (spec 031 US5, R-64, field SQ-2/SQ-7): after
 // `pnpm portal:trace` drove the variants of one `traces.yaml` entry, the screens of its best run
 // become one open grouping suggestion naming every variant run. The BA accepts it in Processes
-// (the narrow step) or dismisses it; Pathfinder only proposes (constitution 5.0.0), so no process
+// (the narrow step) or dismisses it; MudPuppy only proposes (constitution 5.0.0), so no process
 // is created here. A set of screens already suggested, accepted or dismissed is not proposed again.
 
-import { newId, nowIso } from '@pathfinder/core';
-import {
-  GroupingSuggestion,
-  observedSteps,
-  screensKey,
-  type StateRow,
-} from '@pathfinder/chat-model';
+import { newId, nowIso } from '@mudpuppy/core';
+import { GroupingSuggestion, observedSteps, screensKey, type StateRow } from '@mudpuppy/chat-model';
 import type { ServerContext } from '../context.js';
 import type { DriveResult } from '../trace-driver.js';
 

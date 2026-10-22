@@ -8,7 +8,7 @@ import {
   selectGroup,
   type AppliedGroup,
   type ParsedRobots,
-} from '@pathfinder/safety';
+} from '@mudpuppy/safety';
 import type { RateLimiter } from './rate-limiter.js';
 
 export type RobotsOutcome = 'rules' | 'no_rules' | 'unreachable';

@@ -1,9 +1,9 @@
 import type { ServerContext } from './context.js';
 import type { StartRunOutput } from './services/start-run.js';
 import type { RunRow } from './services/common.js';
-import type { PreflightResult } from '@pathfinder/crawler';
-import type { ProbeFault } from '@pathfinder/core';
-import type { LoadedHook } from '@pathfinder/hooks';
+import type { PreflightResult } from '@mudpuppy/crawler';
+import type { ProbeFault } from '@mudpuppy/core';
+import type { LoadedHook } from '@mudpuppy/hooks';
 import type { RunRobots } from './services/robots.js';
 import type { NextFrontierItem } from './services/frontier.js';
 

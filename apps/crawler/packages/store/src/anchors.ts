@@ -5,7 +5,7 @@
  * `anchorReviewsOf` says which active anchored amendments need a person after a reconcile.
  */
 import type BetterSqlite3 from 'better-sqlite3';
-import { anchorReviews, type AnchorReview } from '@pathfinder/model';
+import { anchorReviews, type AnchorReview } from '@mudpuppy/model';
 
 type Raw = BetterSqlite3.Database;
 

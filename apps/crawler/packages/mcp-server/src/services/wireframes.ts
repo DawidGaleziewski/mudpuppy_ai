@@ -1,14 +1,14 @@
 import { readFile } from 'node:fs/promises';
-import { nowIso, type EvidenceStore } from '@pathfinder/core';
-import type { PathfinderDb } from '@pathfinder/store';
-import { GENERATOR_VERSION, renderWireframe } from '@pathfinder/wireframe';
+import { nowIso, type EvidenceStore } from '@mudpuppy/core';
+import type { MudPuppyDb } from '@mudpuppy/store';
+import { GENERATOR_VERSION, renderWireframe } from '@mudpuppy/wireframe';
 
 /**
  * Draw a state's wireframe from its stored snapshot and record it (spec 008 FR-014–FR-016).
  * Derived data: an existing row is replaced, so a newer generator can redraw every state.
  */
 export async function saveWireframe(
-  ctx: { db: PathfinderDb; evidence: EvidenceStore },
+  ctx: { db: MudPuppyDb; evidence: EvidenceStore },
   state: { id: string; title: string; ariaYaml: string },
 ): Promise<{ svg_ref: string; excalidraw_ref: string }> {
   const { svg, excalidraw } = renderWireframe(state.ariaYaml, { title: state.title });
@@ -41,7 +41,7 @@ export interface RebuildReport {
  * wireframe or one from an older generator, or every state with `all`. Never touches Layer A facts.
  */
 export async function rebuildWireframes(
-  ctx: { db: PathfinderDb; evidence: EvidenceStore },
+  ctx: { db: MudPuppyDb; evidence: EvidenceStore },
   portalId: string,
   opts: { all?: boolean } = {},
 ): Promise<RebuildReport> {

@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { afterEach, beforeEach, expect } from 'vitest';
-import { unzip } from '@pathfinder/core';
+import { unzip } from '@mudpuppy/core';
 import {
   everythingStored,
   traceFiles,
@@ -89,7 +89,7 @@ gate('LO-31', 'a rejected login is tried once per run (lockout guard)', async ()
     .where('ref_name', '=', 'PG_BANK_PASSWORD')
     .execute();
   // store a wrong password through the vault itself
-  const { createVaultStore, loadKey } = await import('@pathfinder/vault');
+  const { createVaultStore, loadKey } = await import('@mudpuppy/vault');
   await createVaultStore(gs.ctx.db, loadKey({ path: gs.ctx.vaultKeyPath! })).set(
     'proving-ground-bank',
     'sandbox',

@@ -1,4 +1,4 @@
-import { ConfigError, FixSpec } from '@pathfinder/config';
+import { ConfigError, FixSpec } from '@mudpuppy/config';
 import { describe, expect, it } from 'vitest';
 import { FIXES, loadFixes } from '../src/index.js';
 

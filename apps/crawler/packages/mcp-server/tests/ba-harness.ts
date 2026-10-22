@@ -1,7 +1,7 @@
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js';
-import { createLogger, newId, nowIso } from '@pathfinder/core';
-import { makeFixtureStore, type FixtureStore } from '@pathfinder/docs/testing';
+import { createLogger, newId, nowIso } from '@mudpuppy/core';
+import { makeFixtureStore, type FixtureStore } from '@mudpuppy/docs/testing';
 import { afterEach } from 'vitest';
 import { createBaServer, type BaContext } from '../src/index.js';
 import type { Body } from './harness.js';

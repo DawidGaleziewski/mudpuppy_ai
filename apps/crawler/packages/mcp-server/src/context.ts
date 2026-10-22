@@ -1,13 +1,13 @@
-import type { EvidenceStore, Logger } from '@pathfinder/core';
-import type { DecisionLog, MinerRun, OpenedDb, PathfinderDb, Tracer } from '@pathfinder/store';
-import type { captureVisuals } from '@pathfinder/crawler';
+import type { EvidenceStore, Logger } from '@mudpuppy/core';
+import type { DecisionLog, MinerRun, OpenedDb, MudPuppyDb, Tracer } from '@mudpuppy/store';
+import type { captureVisuals } from '@mudpuppy/crawler';
 
 /**
  * What the BA server's services need: the store and the evidence files, nothing that can reach a
  * portal. A `ServerContext` satisfies it, so tests may pass either.
  */
 export interface BaContext {
-  db: PathfinderDb;
+  db: MudPuppyDb;
   raw: OpenedDb['raw'];
   evidence: EvidenceStore;
   logger: Logger;
@@ -15,7 +15,7 @@ export interface BaContext {
   environment?: string;
 }
 
-/** One running pathfinder server: written on the runs it drives (spec 010 F-14). */
+/** One running mudpuppy server: written on the runs it drives (spec 010 F-14). */
 export interface RunOwner {
   /** UUIDv7, new on every server start. */
   id: string;
@@ -26,7 +26,7 @@ export interface RunOwner {
 export interface ServerContext {
   /** This server, when it shares the store with others; absent means "every running run is mine". */
   owner?: RunOwner;
-  db: PathfinderDb;
+  db: MudPuppyDb;
   raw: OpenedDb['raw'];
   evidence: EvidenceStore;
   decisions: DecisionLog;
@@ -41,7 +41,7 @@ export interface ServerContext {
   miner?: MinerRun | null;
   /** Used only for robots.txt (spec 002 FR-001); injectable so tests never reach the network. */
   fetch?: typeof fetch;
-  /** Vault key file (spec 009); default `PATHFINDER_VAULT_KEY_FILE` or `~/.config/pathfinder/vault.key`. */
+  /** Vault key file (spec 009); default `MUDPUPPY_VAULT_KEY_FILE` or `~/.config/mudpuppy/vault.key`. */
   vaultKeyPath?: string;
   /** Screenshot + layout of a new state (spec 008); injectable so tests can force a failure. */
   captureVisuals?: typeof captureVisuals;

@@ -2,7 +2,7 @@ import { randomBytes } from 'node:crypto';
 import { appendFile, mkdir, readdir, readFile, unlink } from 'node:fs/promises';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { SECRETS, createRedactor, maskText, scrubJson } from '@pathfinder/core';
+import { SECRETS, createRedactor, maskText, scrubJson } from '@mudpuppy/core';
 
 /** Files older than this many days are removed by {@link sweepErrorLogs}. */
 export const RETENTION_DAYS = 30;

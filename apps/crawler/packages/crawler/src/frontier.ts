@@ -1,6 +1,6 @@
-import { newId, nowIso, type SafetyClass } from '@pathfinder/core';
-import type { PathfinderDb } from '@pathfinder/store';
-import type { Refusal } from '@pathfinder/safety';
+import { newId, nowIso, type SafetyClass } from '@mudpuppy/core';
+import type { MudPuppyDb } from '@mudpuppy/store';
+import type { Refusal } from '@mudpuppy/safety';
 import type { ClassifiedAction } from './action-extractor.js';
 import { decide, type GateContext } from './action-gate.js';
 import { countItemPagesVisited } from './report.js';
@@ -102,7 +102,7 @@ export class FrontierPolicy {
 
   /** FR-024: refuse another item page once the cap is reached. */
   async checkItemCap(
-    db: PathfinderDb,
+    db: MudPuppyDb,
     runId: string,
     routeTemplate: string,
   ): Promise<Refusal | null> {
@@ -111,7 +111,7 @@ export class FrontierPolicy {
 
   /** The item-view cap check with its numbers; null when no cap applies to the template. */
   async itemCap(
-    db: PathfinderDb,
+    db: MudPuppyDb,
     runId: string,
     routeTemplate: string,
   ): Promise<{ count: number; cap: number; refusal: Refusal | null } | null> {
@@ -134,7 +134,7 @@ export class FrontierPolicy {
 }
 
 export interface EnqueueParams {
-  db: PathfinderDb;
+  db: MudPuppyDb;
   runId: string;
   stateId: string;
   depth: number;
@@ -201,7 +201,7 @@ export async function enqueueActions(p: EnqueueParams): Promise<EnqueueResult> {
 
 /** Move a queue row on once `act` handled it. */
 export async function settleFrontierItem(
-  db: PathfinderDb,
+  db: MudPuppyDb,
   frontierId: string,
   status:
     | 'done'
@@ -221,7 +221,7 @@ export async function settleFrontierItem(
 }
 
 /** The pending frontier row for an action id, if any. */
-export async function pendingItemForAction(db: PathfinderDb, runId: string, actionId: string) {
+export async function pendingItemForAction(db: MudPuppyDb, runId: string, actionId: string) {
   return db
     .selectFrom('frontier')
     .selectAll()
@@ -235,7 +235,7 @@ export async function pendingItemForAction(db: PathfinderDb, runId: string, acti
  * Pending `navigate` rows for a URL. A refused navigate is stored without an action id, and
  * `budget:max_depth` refusals can be reopened, so `navigate` must settle them by URL.
  */
-export async function pendingNavigateItems(db: PathfinderDb, runId: string, url: string) {
+export async function pendingNavigateItems(db: MudPuppyDb, runId: string, url: string) {
   return db
     .selectFrom('frontier')
     .selectAll()

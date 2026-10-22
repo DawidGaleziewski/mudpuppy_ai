@@ -1,12 +1,12 @@
 import { z } from 'zod';
-import { Id, Timestamp } from '@pathfinder/core';
+import { Id, Timestamp } from '@mudpuppy/core';
 
 export const ChatConversationStatus = z.enum(['active', 'closed']);
 export type ChatConversationStatus = z.infer<typeof ChatConversationStatus>;
 
 /**
  * One BA chat conversation (`chat_conversations`, 0008, spec 010 data-model.md). Written only by
- * `@pathfinder/chat`. `portal_id` is NULL until the BA chooses a portal. `persona_draft` is a JSON
+ * `@mudpuppy/chat`. `portal_id` is NULL until the BA chooses a portal. `persona_draft` is a JSON
  * object (stored as TEXT) and never holds secrets.
  */
 export const ChatConversation = z.object({

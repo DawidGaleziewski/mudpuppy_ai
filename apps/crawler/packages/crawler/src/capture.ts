@@ -1,5 +1,5 @@
 /// <reference lib="dom" />
-import { buildLayout, type AriaJsonNode, type Layout } from '@pathfinder/core';
+import { buildLayout, type AriaJsonNode, type Layout } from '@mudpuppy/core';
 import type { Page } from 'playwright';
 import { PAGE_ROOT } from './observer.js';
 import { evalInPage } from './in-page.js';

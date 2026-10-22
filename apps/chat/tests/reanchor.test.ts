@@ -2,8 +2,8 @@ import { mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { createEvidenceStore, type EvidenceStore } from '@pathfinder/core';
-import { type OpenedDb } from '@pathfinder/store';
+import { createEvidenceStore, type EvidenceStore } from '@mudpuppy/core';
+import { type OpenedDb } from '@mudpuppy/store';
 import { StepRecorder } from '../src/step-recorder.js';
 import { recordStep } from '../src/steps.js';
 import { reanchorAfterRun } from '../src/reanchor.js';
@@ -95,7 +95,7 @@ function revisions(id: string): Record<string, unknown>[] {
 
 beforeEach(async () => {
   ({ opened } = memoryStore());
-  dir = mkdtempSync(join(tmpdir(), 'pathfinder-supersede-'));
+  dir = mkdtempSync(join(tmpdir(), 'mudpuppy-supersede-'));
   evidence = createEvidenceStore(dir);
   run('run-1', 'completed', T0);
   state(

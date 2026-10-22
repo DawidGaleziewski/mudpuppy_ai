@@ -1,6 +1,6 @@
 # Portal configs
 
-One folder per portal with a `portal.yaml`, validated by `@pathfinder/config` (`portal-schema.ts`).
+One folder per portal with a `portal.yaml`, validated by `@mudpuppy/config` (`portal-schema.ts`).
 Personas live in `personas/<portal>/`.
 
 - `id`, `base_url`, `environment` (`production` | `staging` | `sandbox`; a label only, every environment behaves the same, spec 021), `max_action_class` (optional ceiling; omitted = no limit).
@@ -75,7 +75,7 @@ hooks:
 
 ```ts
 // portals/<id>/hooks.ts
-import type { Hook } from '@pathfinder/hooks';
+import type { Hook } from '@mudpuppy/hooks';
 
 export const acceptConsent: Hook<'onRunStart'> = async (ctx) => {
   await ctx.cookies.add([{ name: 'consent', value: '1', url: ctx.config.base_url }]);
@@ -114,7 +114,7 @@ In-page code may use named inner functions: `inPage` defines esbuild's `__name` 
 ## Fixes (`fixes`, spec 030 R-59)
 
 A **fix-plugin** is a tested solution to a class of real-world obstacle (a scar), written once in
-`@pathfinder/fix-plugins` and turned on per portal with the client's data. Prefer a fix over a
+`@mudpuppy/fix-plugins` and turned on per portal with the client's data. Prefer a fix over a
 hand-written hook when one exists; the client's selectors, cookie names and URLs stay in the portal
 file.
 
@@ -202,7 +202,7 @@ Before the first run at a new site, `pnpm --dir apps/crawler portal:doctor <port
 checks this machine (SQLite native module, Chromium), the environment, and the way to the portal:
 direct reachability, a WAF that refuses the crawler User-Agent, an IP allowlist that admits only the
 proxy, TLS inspection, DNS that resolves only through the proxy, robots behind a proxy. Every warning
-and failure names its cause and the setting that fixes it. Checks live in `@pathfinder/doctor`
+and failure names its cause and the setting that fixes it. Checks live in `@mudpuppy/doctor`
 (`src/checks/`, a registry: id, depends on, applies when, probe); a new check needs no core change.
 
 ## Traces (`portals/<id>/traces.yaml`, spec 030 R-64)

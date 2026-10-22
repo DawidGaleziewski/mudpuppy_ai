@@ -6,13 +6,13 @@
  * Exit 0 when every variant reached its goal or boundary, 1 when one was abandoned, 2 on bad usage.
  */
 import { join, resolve } from 'node:path';
-import { ConfigError, loadPortal, loadTraces } from '@pathfinder/config';
+import { ConfigError, loadPortal, loadTraces } from '@mudpuppy/config';
 import {
   createBrowserRuntime,
   driveTrace,
   openLocalClient,
   suggestTraceGrouping,
-} from '@pathfinder/mcp-server';
+} from '@mudpuppy/mcp-server';
 import { scriptEnvironment } from './script-env.js';
 
 const args = process.argv.slice(2);

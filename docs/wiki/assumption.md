@@ -23,7 +23,7 @@ every requirement that relied on it.
 ISO/IEC/IEEE 29148 lists assumptions and dependencies as part of a software requirements
 specification for this reason: the requirements are only valid as long as those assumptions hold.
 
-## How Pathfinder uses it
+## How MudPuppy uses it
 
 The BA agent writes `ASM` records in pass 7 (synthesis) for things it could not observe but needs to
 state to make the documentation coherent, typically about what happens after a form is sent or

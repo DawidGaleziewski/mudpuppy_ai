@@ -16,6 +16,6 @@ changed_on: 2026-10-03
 
 Beta in our own words.
 
-## How Pathfinder uses it
+## How MudPuppy uses it
 
 Beta is used in tests.

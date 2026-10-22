@@ -4,9 +4,9 @@ from pathlib import Path
 
 import pytest
 
-from pathfinder_miner.__main__ import main
-from pathfinder_miner.communities import communities
-from pathfinder_miner.rules import mine
+from mudpuppy_miner.__main__ import main
+from mudpuppy_miner.communities import communities
+from mudpuppy_miner.rules import mine
 
 DP = {"screen": "SC-0012", "action": "button|oblicz składkę|main|"}
 TYPES = {"derived.age_years": "number", "persona.segment": "enum", "input.marka": "enum"}

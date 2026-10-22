@@ -1,12 +1,12 @@
-import { newId, nowIso } from '@pathfinder/core';
-import { shapeUrl } from '@pathfinder/trace';
+import { newId, nowIso } from '@mudpuppy/core';
+import { shapeUrl } from '@mudpuppy/trace';
 import {
   decide,
   pendingItemForAction,
   settleFrontierItem,
   type GateContext,
-} from '@pathfinder/crawler';
-import type { Refusal } from '@pathfinder/safety';
+} from '@mudpuppy/crawler';
+import type { Refusal } from '@mudpuppy/safety';
 import type { ServerContext } from '../../context.js';
 import { ToolError } from '../../errors.js';
 import type { RunRow } from '../../services/index.js';

@@ -1,8 +1,8 @@
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { mkdirSync } from 'node:fs';
 import { join, resolve } from 'node:path';
-import { createEvidenceStore, createLogger } from '@pathfinder/core';
-import { dbPathFor, migrateUp, openDb } from '@pathfinder/store';
+import { createEvidenceStore, createLogger } from '@mudpuppy/core';
+import { dbPathFor, migrateUp, openDb } from '@mudpuppy/store';
 import { createBaServer } from './ba-tools/index.js';
 import type { BaContext } from './context.js';
 import { sweepStaleSessions } from './services/ba/sessions.js';

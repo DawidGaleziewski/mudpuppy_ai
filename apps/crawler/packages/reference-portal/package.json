@@ -1,5 +1,5 @@
 {
-  "name": "@pathfinder/reference-portal",
+  "name": "@mudpuppy/reference-portal",
   "version": "0.0.0",
   "private": true,
   "description": "Local Polish insurer reference portal with a ground-truth manifest (spec 004 D8)",

@@ -2,14 +2,14 @@
 // way in and out. Conversations and messages are written only here, workflow steps only in
 // `steps.ts`; the dashboard reads the same tables read-only.
 
-import { newId, nowIso } from '@pathfinder/core';
+import { newId, nowIso } from '@mudpuppy/core';
 import {
   ChatConversation,
   ChatMessage,
   WorkflowStep,
   type ChatMessageRole,
-} from '@pathfinder/chat-model';
-import { type PathfinderDb } from '@pathfinder/store';
+} from '@mudpuppy/chat-model';
+import { type MudPuppyDb } from '@mudpuppy/store';
 
 export interface NewConversation {
   portal?: string | null;
@@ -32,7 +32,7 @@ function parseConversation(row: ConversationRow): ChatConversation {
 }
 
 export class ChatStore {
-  constructor(private readonly db: PathfinderDb) {}
+  constructor(private readonly db: MudPuppyDb) {}
 
   /** Create a conversation, or resume the newest active one of the same portal. */
   async createOrResume(input: NewConversation = {}): Promise<ChatConversation> {

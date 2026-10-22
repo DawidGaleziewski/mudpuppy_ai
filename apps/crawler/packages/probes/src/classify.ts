@@ -2,7 +2,7 @@
 // deterministic: the same facts give the same kind, so a form-probing run and the suite built from it
 // agree. Rules in order: blocked, technical, validation, temporary, branch, next.
 
-import type { OutcomeKind, ProbeGroup } from '@pathfinder/core';
+import type { OutcomeKind, ProbeGroup } from '@mudpuppy/core';
 
 export interface FieldMessage {
   /** The field the message belongs to; null when the page did not tie it to one. */

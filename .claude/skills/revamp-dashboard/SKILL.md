@@ -6,7 +6,7 @@ description: How to implement a new IT/internal dashboard or revamp an old, date
 # Revamp Dashboard
 
 > **MudPuppy's own dashboard (`apps/dashboard`)**: use the `mudpuppy-salvage-ui` skill instead
-> (spec 022). The Console references here (`pathfinder-console.md`) are deprecated for it.
+> (spec 022). The Console references here (`mudpuppy-console.md`) are deprecated for it.
 
 Implementing a dashboard and inventing its look are different jobs. This skill assumes the hard creative decisions either already exist somewhere (a design system, a brandbook, a token file) or should come from the bundled default (see below) — and focuses on the part that most often goes wrong afterward: turning decisions into code that holds up, and touching an *existing* dashboard without breaking it.
 
@@ -53,4 +53,4 @@ Score the result against `references/good-practices-scorecard.md` and report the
 - `references/audit-and-migration-playbook.md` — the full step-by-step for revamping an existing codebase without breaking it.
 - `references/tokens-to-code.md` — concrete wiring patterns for CSS custom properties, Tailwind, and CSS-in-JS themes.
 - `references/good-practices-scorecard.md` — the checklist to score any dashboard output against before calling it done.
-- `references/pathfinder-console.md` — Pathfinder's product layer on Console (name, mark, status labels, accent mapping, htmx live-region pattern). Read it before any UI work in `apps/dashboard/`.
+- `references/mudpuppy-console.md` — MudPuppy's product layer on Console (name, mark, status labels, accent mapping, htmx live-region pattern). Read it before any UI work in `apps/dashboard/`.

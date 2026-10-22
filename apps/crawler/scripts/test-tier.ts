@@ -58,11 +58,11 @@ const FAST = ['--project=!gates', '--exclude=**/*.e2e.test.ts'];
 
 /**
  * Wall-clock budget tests, alone after everything else: under load they measured noise
- * (spec 022 F-06). They run only with `PATHFINDER_PERF=1`.
+ * (spec 022 F-06). They run only with `MUDPUPPY_PERF=1`.
  */
 function runPerf(): number {
   console.log('tier: perf (alone)');
-  return vitest(['--project=!gates', '.e2e.test.ts', '-t', 'SC-008'], { PATHFINDER_PERF: '1' });
+  return vitest(['--project=!gates', '.e2e.test.ts', '-t', 'SC-008'], { MUDPUPPY_PERF: '1' });
 }
 
 if (tier === 'fast') {
@@ -83,7 +83,7 @@ if (tier === 'fast') {
   const codes = await Promise.all([
     // Capped workers: under full CPU load the gates' timing-sensitive cases fail (findings F-03).
     vitestBuffered('e2e', ['--project=!gates', '--maxWorkers=4', '.e2e.test.ts']),
-    vitestBuffered('gates', ['--project=gates'], { PATHFINDER_SLOW_GATES: '1' }),
+    vitestBuffered('gates', ['--project=gates'], { MUDPUPPY_SLOW_GATES: '1' }),
   ]);
   process.exitCode = Math.max(...codes, runPerf());
 } else if (tier === 'perf') {

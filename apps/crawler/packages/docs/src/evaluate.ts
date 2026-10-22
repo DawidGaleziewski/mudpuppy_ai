@@ -1,5 +1,5 @@
-import type { Confidence } from '@pathfinder/core';
-import type { DocKind, EvidenceTargetKind } from '@pathfinder/docs-model';
+import type { Confidence } from '@mudpuppy/core';
+import type { DocKind, EvidenceTargetKind } from '@mudpuppy/docs-model';
 import { z } from 'zod';
 import type { RawDb } from './keys.js';
 import { canonical } from './render/records-json.js';
@@ -517,7 +517,7 @@ export function evaluate(input: EvaluateInput): EvaluationReport {
     scores.logged_in_screens = score([...m.keys()], m);
   }
 
-  // Obstacles: what documenting each one means depends on what Pathfinder should do with it.
+  // Obstacles: what documenting each one means depends on what MudPuppy should do with it.
   if (gt.obstacles && gt.obstacles.length > 0) {
     const handoffs = new Set(input.handoffs ?? []);
     const m = new Map<string, string[]>();

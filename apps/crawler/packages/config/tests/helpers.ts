@@ -45,7 +45,7 @@ obstacles:
 rate_limit:
   requests_per_second: 1
   max_concurrency: 1
-  user_agent: "PathfinderAI-Crawler/0.1 (+contact@example.com)"
+  user_agent: "MudPuppy-Crawler/0.1 (+contact@example.com)"
 item_view_cap: 25
 item_route_templates: ["/oferta/:id"]
 `;

@@ -13,7 +13,7 @@ import type { Server } from 'node:http';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { loadEffectiveConfig } from '@pathfinder/config';
+import { loadEffectiveConfig } from '@mudpuppy/config';
 import { createApi, listenLocal } from '../src/api.js';
 import {
   PortalRefusal,
@@ -34,7 +34,7 @@ const paths = () => ({ repoRoot: root });
 const fence = (id: string) => [join(root, 'personas', '_mixins'), join(root, 'personas', id)];
 
 beforeEach(() => {
-  root = mkdtempSync(join(tmpdir(), 'pathfinder-portals-'));
+  root = mkdtempSync(join(tmpdir(), 'mudpuppy-portals-'));
   cpSync(join(repo, 'personas', '_mixins'), join(root, 'personas', '_mixins'), { recursive: true });
 });
 afterEach(() => rmSync(root, { recursive: true, force: true }));

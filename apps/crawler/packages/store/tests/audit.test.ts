@@ -3,7 +3,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { afterEach, describe, expect, it } from 'vitest';
-import { newId, nowIso } from '@pathfinder/core';
+import { newId, nowIso } from '@mudpuppy/core';
 import { auditPii, compareRuns } from '../src/audit.js';
 import { openDb, type OpenedDb } from '../src/db.js';
 import { migrateUp } from '../src/migrate.js';
@@ -152,7 +152,7 @@ describe('auditPii', () => {
         started_at: ts,
         ended_at: null,
         environment: 'sandbox',
-        server: 'pathfinder',
+        server: 'mudpuppy',
         pid: 1,
         version: '0.1.0',
         trace_level: 'standard',

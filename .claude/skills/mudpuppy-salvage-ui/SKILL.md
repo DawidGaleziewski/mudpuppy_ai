@@ -10,7 +10,7 @@ rules are fixed. Your job is to **compose** from them, not to restyle.
 
 ## Paths (edit these two lines to match the repo)
 
-- **DS_PATH** = `apps/dashboard/src/pathfinder_dashboard/static/salvage` (served at `/static/salvage/`): the runtime design system served to browsers (`css/tokens.css`, `css/fonts.css`, `css/salvage.css`, `fonts/`, `tag-icon.svg`). Copied from the design package's `design-system/`.
+- **DS_PATH** = `apps/dashboard/src/mudpuppy_dashboard/static/salvage` (served at `/static/salvage/`): the runtime design system served to browsers (`css/tokens.css`, `css/fonts.css`, `css/salvage.css`, `fonts/`, `tag-icon.svg`). Copied from the design package's `design-system/`.
 - **DESIGN_PKG** = `docs/design/salvage-yard`: the whole design package committed to the repo (reference screens, screenshots, wireframes, docs). In the references below, paths like `screens/…`, `screenshots/…`, `migration/…`, `design-system/…` and `docs/…` are relative to DESIGN_PKG.
 
 If DESIGN_PKG is missing, the rules here and in `references/` still apply. Ask the user to commit the package before you rely on reference screens.

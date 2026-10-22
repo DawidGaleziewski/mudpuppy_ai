@@ -5,7 +5,7 @@
 
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { Layout, type Box } from '@pathfinder/core';
+import { Layout, type Box } from '@mudpuppy/core';
 import type { RawDb } from '../keys.js';
 import { withLabel } from '../render/label-box.js';
 import type { StepState } from './step-states.js';

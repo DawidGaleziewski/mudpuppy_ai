@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { Confidence, Id, Timestamp } from '@pathfinder/core';
+import { Confidence, Id, Timestamp } from '@mudpuppy/core';
 import { DocContent } from './doc-content.js';
 
 export const RevisionStatus = z.enum(['draft', 'confirmed', 'rejected', 'superseded']);

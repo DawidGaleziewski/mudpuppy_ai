@@ -1,4 +1,4 @@
-import type { SafetyClass } from '@pathfinder/core';
+import type { SafetyClass } from '@mudpuppy/core';
 
 /**
  * Built-in denylist rule ids and their safety classes (spec 002 FR-012). The keywords and path

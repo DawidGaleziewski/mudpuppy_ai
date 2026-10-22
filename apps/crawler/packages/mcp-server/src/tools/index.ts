@@ -1,7 +1,7 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
-import { ProbeFault } from '@pathfinder/core';
-import { shapeUrl } from '@pathfinder/trace';
-import type { CallStart, SpanHandle } from '@pathfinder/store';
+import { ProbeFault } from '@mudpuppy/core';
+import { shapeUrl } from '@mudpuppy/trace';
+import type { CallStart, SpanHandle } from '@mudpuppy/store';
 import { z } from 'zod';
 import type { ServerContext } from '../context.js';
 import { ToolError } from '../errors.js';
@@ -18,7 +18,7 @@ import {
 import { fail, ok } from './result.js';
 
 /**
- * The ONLY tools the crawler subagent may use (as `mcp__pathfinder__<name>`). Recording services and
+ * The ONLY tools the crawler subagent may use (as `mcp__mudpuppy__<name>`). Recording services and
  * `complete_run` are deliberately absent: the agent proposes, the server observes and records.
  */
 export const AGENT_TOOL_NAMES = [
@@ -279,7 +279,7 @@ export function registerTools(server: McpServer, ctx: ServerContext, runtime: Ru
 }
 
 export function createServer(ctx: ServerContext, runtime: Runtime): McpServer {
-  const server = new McpServer({ name: 'pathfinder', version: '0.0.0' });
+  const server = new McpServer({ name: 'mudpuppy', version: '0.0.0' });
   registerTools(server, ctx, runtime);
   return server;
 }

@@ -1,11 +1,11 @@
-import { maskText, newId, nowIso } from '@pathfinder/core';
+import { maskText, newId, nowIso } from '@mudpuppy/core';
 import {
   buildTree,
   canonicalizeAria,
   keysForActions,
   maskVolatile,
   modelElementKeys,
-} from '@pathfinder/fingerprint';
+} from '@mudpuppy/fingerprint';
 import {
   classifyCandidates,
   decide,
@@ -14,8 +14,8 @@ import {
   observePage,
   type ClassifiedAction,
   type GateContext,
-} from '@pathfinder/crawler';
-import type { Refusal } from '@pathfinder/safety';
+} from '@mudpuppy/crawler';
+import type { Refusal } from '@mudpuppy/safety';
 import type { ServerContext } from '../../context.js';
 import type { RunRow } from '../../services/index.js';
 import { mayQueue } from '../../services/run-plan.js';

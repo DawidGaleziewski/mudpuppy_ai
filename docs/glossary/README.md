@@ -1,8 +1,8 @@
 # MudPuppy glossary
 
-<!-- Generated from glossary.yaml by `uv run pathfinder-glossary --write` (apps/dashboard). Do not edit by hand. -->
+<!-- Generated from glossary.yaml by `uv run mudpuppy-glossary --write` (apps/dashboard). Do not edit by hand. -->
 
-This glossary explains Pathfinder's own vocabulary: the words the dashboard, the specs and the agents use for runs, evidence and documentation. It is not the portal glossary the BA agent writes (GL records in the Docs tab), which explains the documented website's business terms, such as "Składka" or "OC".
+This glossary explains MudPuppy's own vocabulary: the words the dashboard, the specs and the agents use for runs, evidence and documentation. It is not the portal glossary the BA agent writes (GL records in the Docs tab), which explains the documented website's business terms, such as "Składka" or "OC".
 
 ## MudPuppy terms
 
@@ -67,7 +67,7 @@ meaning of its own, "production" included (spec 030, R-61). Each environment has
 test users and its own database file (`data/db/<name>.sqlite`), so scans and documentation
 of two environments never mix. Nothing opens a store for a name no portal declares (a typo
 used to create a stray, empty store), and there is no default: the servers and the chat need
-`PATHFINDER_ENV` set to a declared name, and every crawler result says which environment
+`MUDPUPPY_ENV` set to a declared name, and every crawler result says which environment
 answered. Without a limit the crawler may fill, submit and log in; the BA sets a limit per
 environment to restrict it. A CAPTCHA is handed to a human on every environment.
 
@@ -92,7 +92,7 @@ which inputs to type in trace mode, its own budgets and safety ceiling. Personas
 shared pieces (`personas/_mixins/`). The run's effective safety ceiling is the lower of the
 portal's and the persona's, so a persona can restrict but never widen. Secrets are referenced,
 never written in the file. Its `attributes` (tariff, contract, feature flags…) say what
-decides that test user's access; Pathfinder shows them and never interprets them. Many
+decides that test user's access; MudPuppy shows them and never interprets them. Many
 logged-in personas can be imported from a CSV of test users (`pnpm personas:import`).
 
 *Example:* reference-insurer/guest extends the anonymous base mixin and the trace-input mixin.
@@ -109,7 +109,7 @@ logged-in personas can be imported from a CSV of test users (`pnpm personas:impo
 
 #### Reference portal / ground truth
 
-**A practice insurance website that Pathfinder runs locally, with a written answer key (the ground truth) used to measure how good the crawler's and the BA's results are.**
+**A practice insurance website that MudPuppy runs locally, with a written answer key (the ground truth) used to measure how good the crawler's and the BA's results are.**
 
 The reference portal is a fake Polish insurer, "Towarzystwo Ubezpieczeń Wzorcowych",
 served on `http://127.0.0.1:4010` by `pnpm reference-portal` in `apps/crawler`. Because we
@@ -211,12 +211,12 @@ and names the cause of each problem with its fix.
 
 **A screen or element that some test users see and others do not, found by scanning the same portal as several personas.**
 
-When personas differ by their attributes (tariff, contract, feature flags), Pathfinder
+When personas differ by their attributes (tariff, contract, feature flags), MudPuppy
 compares what each one recorded. Per screen it lists who reached it, the variant each one
 saw, and the elements only some of them see ("seen by" / "not seen by"). Only personas whose
 scan finished count as "not seen": an interrupted scan shows nothing missing. A screen is
 also marked when a persona with a finished scan never reached it, which can mean access or
-just a scan that ran out of budget. Pathfinder never reads the attributes itself; the BA
+just a scan that ran out of budget. MudPuppy never reads the attributes itself; the BA
 documents the rule, citing one persona that sees the element and one that does not.
 
 *Example:* Premium and B2B users see an Export button on Home; a basic user does not.
@@ -714,7 +714,7 @@ failing hook is recorded and the scan goes on. The crawler agent never writes ho
 
 **A tested, reusable solution to one kind of portal quirk, turned on per portal with that portal's own data instead of writing a hook.**
 
-Fixes live in Pathfinder (`@pathfinder/fix-plugins`); a portal turns one on under `fixes:` in
+Fixes live in MudPuppy (`@mudpuppy/fix-plugins`); a portal turns one on under `fixes:` in
 its portal file, with the data it needs (a cookie name, selectors, a URL pattern). Today:
 `seed-cookie` (content shown only with a feature-flag cookie), `expand-collapsed` (open
 accordions and "show more" before the page is read, never a real link or submit),
@@ -1566,9 +1566,9 @@ Recheck, Retry, Skip, Probe) are kept apart: scans and the plan tray read only t
 
 #### Accessible name
 
-**The text a screen reader announces for an element, such as a button's caption or a field's label, which Pathfinder uses to name elements.**
+**The text a screen reader announces for an element, such as a button's caption or a field's label, which MudPuppy uses to name elements.**
 
-Pathfinder identifies elements the way assistive technology does: by role plus accessible
+MudPuppy identifies elements the way assistive technology does: by role plus accessible
 name. That keeps the documentation in the portal's own words and gives stable locators
 for tests. An empty accessible name (shown as "—") is itself a finding: the control has no
 label a screen reader could read.
@@ -1721,7 +1721,7 @@ term. Picture fog of war: each visited page reveals new links and buttons, which
 frontier. The crawler keeps taking the next item, following it and adding what it finds,
 until nothing is left or a budget stops it.
 
-Pathfinder's Frontier table also keeps history: each item ends `done` (followed) or skipped
+MudPuppy's Frontier table also keeps history: each item ends `done` (followed) or skipped
 with a reason (`skipped_unsafe`, `out_of_scope`, `denylisted`, `robots_disallowed`,
 `budget_reached`, `unreachable`). An empty list of `pending` items means the map is complete
 within the rules.
@@ -1840,7 +1840,7 @@ start page and is limited by the `max_depth` budget.
 
 **What the crawler saved as proof of what it saw, such as page snapshots, screenshots, form fields, locators and network shapes, which every documentation statement must cite.**
 
-Pathfinder never asks you to trust a statement on its own: the crawler stores proof, and
+MudPuppy never asks you to trust a statement on its own: the crawler stores proof, and
 every BA record points at it. Evidence includes an accessibility snapshot, a screenshot and
 a layout (element keys with their boxes) per new state, the fields of each form, the ranked
 locators and safety class of each action, the shape (not the content) of network calls,
@@ -1865,7 +1865,7 @@ explains each kind, where it lives and how the BA uses it.
 
 **A request the portal's own page made, recorded as method, URL template, status and the structure of its request and response, without the actual values.**
 
-Pathfinder records what the page asked its server for, not what it sent. The structure
+MudPuppy records what the page asked its server for, not what it sent. The structure
 (field names and types) shows what data the screen exchanges, while the absence of values
 keeps personal data out. Only background `fetch`/XHR requests are captured; a classic form
 POST followed by a redirect is not. The crawler never calls a portal's API itself.
@@ -1906,7 +1906,7 @@ included, and are not masked (constitution 2.0.0).
 
 #### Element key
 
-**The name Pathfinder gives one notable element of a recorded page, its role and accessible name plus a number when the same pair repeats, such as textbox "Pojemność silnika".**
+**The name MudPuppy gives one notable element of a recorded page, its role and accessible name plus a number when the same pair repeats, such as textbox "Pojemność silnika".**
 
 Headings, fields, buttons, links, images, tables, lists, forms and landmarks each get a key
 in page order: `role "name"`, or just `role` when there is no name, with `#2`, `#3` for
@@ -1955,7 +1955,7 @@ every record that cites it.
 
 **A plain sketch of a recorded page, drawn in one fixed style from its accessibility snapshot, shown where there is no screenshot and downloadable as an editable Excalidraw file.**
 
-Pathfinder draws headings, labelled fields, buttons, links, tables, lists and landmarks in
+MudPuppy draws headings, labelled fields, buttons, links, tables, lists and landmarks in
 page order, one under the other, and nothing that is not in the recorded snapshot: it does
 not guess the real layout (the screenshot shows that). The same snapshot always gives the
 same drawing. Each wireframe comes as an SVG image and as a `.excalidraw` file you can open
@@ -1977,7 +1977,7 @@ redraws them when the style changes.
 **Masking personal data such as e-mails and phone numbers in stored text evidence, off by default and turned on per portal with pii_scrub.**
 
 Until constitution 2.0.0 every snapshot, title, form field and network shape was masked
-before it was stored. Pathfinder now runs almost only against test portals with disposable
+before it was stored. MudPuppy now runs almost only against test portals with disposable
 data, so text evidence is stored as recorded unless the portal config sets
 `pii_scrub: true`. Screenshots are never masked. Developer logs and trace error messages
 stay masked either way.
@@ -2109,7 +2109,7 @@ working.
 
 **The ordered steps the crawler recorded while following one named process in trace mode, the raw material for the BA's process record.**
 
-"Process" has two meanings in Pathfinder. Here it is what a trace run recorded: a name, the
+"Process" has two meanings in MudPuppy. Here it is what a trace run recorded: a name, the
 persona, the ordered steps and an outcome. The BA turns it into a PROC documentation record
 (see Process (PROC)), which is the documented business process.
 
@@ -2170,7 +2170,7 @@ boundary, on any environment (spec 021).
 
 #### Tool call / phase / span
 
-**A tool call is one request the crawler agent made to Pathfinder's server, a phase is one stage inside it, and a span is one timed block in that tree.**
+**A tool call is one request the crawler agent made to MudPuppy's server, a phase is one stage inside it, and a span is one timed block in that tree.**
 
 The crawler agent works only through tools such as `start_run`, `navigate`, `act`,
 `get_next_frontier_item` and `finish_run`. Inside each call the server runs phases, for
@@ -2490,7 +2490,7 @@ called "Links to", so "Target" has only this meaning.
 
 #### Proving ground
 
-**A deliberately awkward legacy estate (shop, bank, insurer and old pages) that Pathfinder runs locally to prove it can cope with known legacy obstacles.**
+**A deliberately awkward legacy estate (shop, bank, insurer and old pages) that MudPuppy runs locally to prove it can cope with known legacy obstacles.**
 
 The proving ground (`apps/proving-ground`) is a fictional Polish group, Grupa Mokradło, with
 three brands. A Django backend serves a React shell, micro-frontends, server-rendered legacy
@@ -2515,7 +2515,7 @@ one file per brand. Its data is disposable and may be changed, submitted and res
 **A thing that makes a legacy portal hard to map or document, such as a frameset or a missing label, listed under a stable LO- id in the obstacle catalogue.**
 
 `docs/legacy-obstacles.md` is a living catalogue. Each entry has an id (LO-01, LO-02, …;
-never reused), the place in the proving ground that reproduces it, what Pathfinder is
+never reused), the place in the proving ground that reproduces it, what MudPuppy is
 expected to do, a source and a status (`proposed`, `in scope`, `later`, `withdrawn`). The
 quality gates hold one set of assertions per in-scope entry, and the evaluator scores an
 obstacles category: did the BA's records name the obstacles the portal contains.
@@ -2560,14 +2560,14 @@ logged, exported or shown in the dashboard.
 
 **The one local key file that seals and opens the vault, kept outside the repository and the database.**
 
-The key is created on first use and read from `PATHFINDER_VAULT_KEY_FILE` (or the default
+The key is created on first use and read from `MUDPUPPY_VAULT_KEY_FILE` (or the default
 path). Each row remembers a key id. If the key changes, old rows are refused with a message
 asking you to enter the value again. The key is not part of any export. Tests use a
 temporary key and fake values.
 
 *Seen in:* pnpm vault errors
 
-*Labels:* `key file`, `PATHFINDER_VAULT_KEY_FILE`
+*Labels:* `key file`, `MUDPUPPY_VAULT_KEY_FILE`
 
 *Related:* [Credential vault](#credential-vault)
 
@@ -2705,7 +2705,7 @@ for the password after a login run and expects no hit.
 Gates live in `apps/crawler/packages/gates` and run inside `pnpm test`. The setup starts the
 proving ground on ports 4200 and 4201 and the reference portal, then each gate drives the
 server tools directly and asserts what was recorded. A coverage test fails when an in-scope
-catalogue entry has no gate. Gates test Pathfinder's mechanics; they say nothing about how
+catalogue entry has no gate. Gates test MudPuppy's mechanics; they say nothing about how
 well the agents decide.
 
 *Seen in:* pnpm test; data/gates/report.json
@@ -2720,7 +2720,7 @@ well the agents decide.
 
 #### Known gap
 
-**A gate for an obstacle Pathfinder does not handle yet; it describes the wanted behaviour, is expected to fail and keeps the run green.**
+**A gate for an obstacle MudPuppy does not handle yet; it describes the wanted behaviour, is expected to fail and keeps the run green.**
 
 The report lists known gaps apart from passes. The day the assertions pass, the case fails
 with "known gap is fixed", so it is turned into a normal gate and stays fixed.
@@ -2988,7 +2988,7 @@ A portal with no data in the current store names the stores that hold it.
 
 *Seen in:* pnpm eval --in-place; Header → data store (eval workspaces)
 
-*Labels:* `PATHFINDER_ROOT`, `in-place`, `eval workspaces`
+*Labels:* `MUDPUPPY_ROOT`, `in-place`, `eval workspaces`
 
 *Related:* [Eval (tier 2)](#eval), [Credential vault](#credential-vault)
 
@@ -3070,12 +3070,12 @@ more. Reports: `data/evals/judges/<judge>/`.
 answer tool, no MCP servers, no plugins, skills or agents of yours or the project's (Claude
 Code's built-in ones are allowed), memory inside the judge's temporary config folder, and
 under 2 000 input tokens (a leaked CLAUDE.md would add thousands). The judge logs in with the
-token in `~/.config/pathfinder/judge-token` (from `claude setup-token`) or, without it, with
+token in `~/.config/mudpuppy/judge-token` (from `claude setup-token`) or, without it, with
 your own login.
 
 *Seen in:* pnpm eval:judge-check
 
-*Labels:* `isolation check`, `judge-token`, `PATHFINDER_JUDGE_TOKEN_FILE`
+*Labels:* `isolation check`, `judge-token`, `MUDPUPPY_JUDGE_TOKEN_FILE`
 
 *Related:* [Judge (LLM judge)](#judge)
 
@@ -3109,7 +3109,7 @@ shows it. While work runs, the MudPuppy animation plays.
 
 #### Orchestrator (assistant)
 
-**The assistant behind the chat; it can scan, trace, narrow and document, but cannot change Pathfinder itself.**
+**The assistant behind the chat; it can scan, trace, narrow and document, but cannot change MudPuppy itself.**
 
 The orchestrator calls the chat tools (`workflow_state`, `request_scan`, `save_persona`, …)
 and hands the work to the crawler and BA agents. It has no file, shell or web tools: a
@@ -3410,7 +3410,7 @@ Exports still list these in `appendix-superseded-amendments.md`.
 
 **To point an amendment at the element or screen it belongs to now, after a new scan removed the element it was written on; the amendment waits in Review until you do.**
 
-When a scan sees a new revision of a screen, Pathfinder checks every amendment on it. If
+When a scan sees a new revision of a screen, MudPuppy checks every amendment on it. If
 the amendment's element is still there, it carries forward to the new revision. If the
 element was renamed or removed, or the address now shows a different screen, the
 amendment is flagged Re-anchor and listed in Review. You pick the current screen or
@@ -3637,7 +3637,7 @@ them as one process. A process record then shows one flowchart per cited variant
 
 <sub>Last changed in R-67, 2026-10-16.</sub>
 
-### Building Pathfinder
+### Building MudPuppy
 
 <a id="fast-tier"></a>
 
@@ -3683,7 +3683,7 @@ everything and is the check before a merge.
 
 #### Code guidelines
 
-**The rated rules (G-01 to G-32) for how Pathfinder's code is shaped, layered, tested and reviewed, in `docs/code-guidelines.md`.**
+**The rated rules (G-01 to G-32) for how MudPuppy's code is shaped, layered, tested and reviewed, in `docs/code-guidelines.md`.**
 
 Each guideline has an id, the rule, why it exists and what checks it (a lint rule, a test or
 the code reviewer). They were proposed as a list and rated by the project owner before any
@@ -3835,7 +3835,7 @@ documentation that reads as fact but is a guess.
 
 **One unit of the BA's documentation, such as a screen, requirement or rule, with a key, revisions, evidence links and a status.**
 
-Pathfinder's documentation is a set of small linked records rather than one long document.
+MudPuppy's documentation is a set of small linked records rather than one long document.
 There are twelve kinds (see Record key for the prefixes). The SRS export renders them into a
 readable document.
 
@@ -3900,7 +3900,7 @@ that states them, so they change with the record.
 
 **Being able to follow a requirement back to where it came from and forward to what depends on or tests it.**
 
-In Pathfinder, backward traceability is built in: every record cites evidence and the
+In MudPuppy, backward traceability is built in: every record cites evidence and the
 evidence names its run. Forward traceability runs through relations (rule → requirement →
 use case) and, later, through test tags such as `@REQ-007`. The SRS export includes a
 traceability matrix.
@@ -4093,7 +4093,7 @@ review.
 
 **A quality the system must have rather than a function it performs, such as speed, accessibility or reliable navigation.**
 
-Pathfinder writes NFRs only for what it actually measured (status codes, console errors,
+MudPuppy writes NFRs only for what it actually measured (status codes, console errors,
 labels, robots policy). Qualities it could not measure go to the gaps instead.
 
 *Example:* NFR-004 "No broken internal navigation for a guest".
@@ -4196,7 +4196,7 @@ it appears.
 **A business word the documented portal uses, kept verbatim with its meaning, such as "OC".**
 
 These are the portal's terms, written by the BA agent. They are a different thing from this
-glossary, which explains Pathfinder's own words.
+glossary, which explains MudPuppy's own words.
 
 *Example:* GL-001 "OC".
 
@@ -4240,7 +4240,7 @@ rest on a business rule (`depends_on`), and the rule's page and the SRS export m
 
 **Software Requirements Specification, the complete requirements document a team could rebuild the system from.**
 
-Pathfinder keeps requirements as linked records; the SRS export (`pnpm docs:export`) renders
+MudPuppy keeps requirements as linked records; the SRS export (`pnpm docs:export`) renders
 them into one document with chapters, diagrams, a traceability matrix and an Unknowns section.
 
 *Seen in:* SRS export
@@ -4259,7 +4259,7 @@ them into one document with chapters, diagrams, a traceability matrix and an Unk
 
 **A description of how an existing system works today, as opposed to a to-be design of how it should work.**
 
-Pathfinder only documents the as-is system, from the outside, so that it can be rebuilt. It
+MudPuppy only documents the as-is system, from the outside, so that it can be rebuilt. It
 never proposes improvements in the documentation; those belong in a separate to-be design.
 
 *Seen in:* Overall purpose of the Docs tab

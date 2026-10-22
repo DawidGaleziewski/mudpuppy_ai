@@ -1,5 +1,5 @@
 {
-  "name": "@pathfinder/config",
+  "name": "@mudpuppy/config",
   "version": "0.0.0",
   "private": true,
   "description": "Portal and persona YAML loaders, extends resolution, Zod validation",
@@ -8,8 +8,8 @@
     ".": "./src/index.ts"
   },
   "dependencies": {
-    "@pathfinder/core": "workspace:*",
-    "@pathfinder/fingerprint": "workspace:*",
+    "@mudpuppy/core": "workspace:*",
+    "@mudpuppy/fingerprint": "workspace:*",
     "yaml": "^2.9.1",
     "zod": "^4.6.5"
   }

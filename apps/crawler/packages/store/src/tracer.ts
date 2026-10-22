@@ -1,7 +1,7 @@
 import { AsyncLocalStorage } from 'node:async_hooks';
 import { performance } from 'node:perf_hooks';
 import type { Logger } from 'pino';
-import { maskText, newId as defaultNewId, type EvidenceStore } from '@pathfinder/core';
+import { maskText, newId as defaultNewId, type EvidenceStore } from '@mudpuppy/core';
 import {
   fitPayload,
   fitText,
@@ -9,8 +9,8 @@ import {
   type SpanStatus,
   type TraceLevel,
   type TraceServer,
-} from '@pathfinder/trace';
-import type { PathfinderDb } from './db.js';
+} from '@mudpuppy/trace';
+import type { MudPuppyDb } from './db.js';
 import type { TraceSpansTable } from './db-types.js';
 
 export const PHASE_NAMES = [
@@ -122,7 +122,7 @@ export const BROWSER_TOOLS: ReadonlySet<string> = new Set(['start_run', 'navigat
 export type Attrs = Record<string, unknown>;
 
 export interface TracerDeps {
-  db: PathfinderDb;
+  db: MudPuppyDb;
   logger: Logger;
   evidence: Pick<EvidenceStore, 'storeJson'>;
   level: TraceLevel;
@@ -506,7 +506,7 @@ export function createTracer(deps: TracerDeps): Tracer {
     };
   }
 
-  async function insertRows(rows: TraceSpansTable[], trx: PathfinderDb): Promise<void> {
+  async function insertRows(rows: TraceSpansTable[], trx: MudPuppyDb): Promise<void> {
     for (let i = 0; i < rows.length; i += INSERT_CHUNK)
       await trx
         .insertInto('trace_spans')

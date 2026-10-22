@@ -3,7 +3,7 @@ import { SECRETS } from './secrets.js';
 
 /**
  * Structured JSON logger. The MCP server speaks stdio, so logs go to stderr (fd 2) by default,
- * never stdout. (The decision-log writer lives in `@pathfinder/store`: it writes the DB.)
+ * never stdout. (The decision-log writer lives in `@mudpuppy/store`: it writes the DB.)
  */
 export function createLogger(
   opts: { level?: string; destination?: DestinationStream } = {},

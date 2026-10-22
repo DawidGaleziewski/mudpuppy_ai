@@ -1,4 +1,4 @@
-# @pathfinder/gates
+# @mudpuppy/gates
 
 Tier-1 quality gates (one case per legacy obstacle and logged finding) against the proving ground, and tier-2 eval tooling (spec 009 R-27). Exports: catalogue, gate, gap, harness, paths, steps, eval, eval-checks.
 
@@ -24,7 +24,7 @@ Layer: servers (G-07; `apps/crawler/layers.json`)
   (LO), gate findings and scars (`scars.yaml`) without a case as `uncovered`.
 - Case ids: `LO-nn`, `F-nn@spec`, `SC-nn`. Scar cases live in `tests/scars-*.test.ts` and use
   `scarNav` / `resetScars` (portal `scar-maker`, read-only guest).
-- Slow cases run only with `PATHFINDER_SLOW_GATES=1` (`pnpm test:slow`).
+- Slow cases run only with `MUDPUPPY_SLOW_GATES=1` (`pnpm test:slow`).
 
 ## Where to add things
 

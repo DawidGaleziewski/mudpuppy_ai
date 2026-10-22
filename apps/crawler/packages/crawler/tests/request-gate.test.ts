@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { createRateLimiter, type AcquireOptions } from '../src/rate-limiter.js';
-import type { Refusal } from '@pathfinder/safety';
+import type { Refusal } from '@mudpuppy/safety';
 import {
   createRequestGate,
   type RequestDecision,
@@ -77,7 +77,7 @@ describe('request gate', () => {
     const limiter = createRateLimiter({ requestsPerSecond: 1000, maxConcurrency: 4 });
     const gate = createRequestGate({
       limiter,
-      userAgent: 'PathfinderAI-Crawler/0.1 (+me@corp.pl)',
+      userAgent: 'MudPuppy-Crawler/0.1 (+me@corp.pl)',
       onStop: (e) => stops.push(e),
       onBlockVerdict: (v) => verdicts.push(v.kind),
     });
@@ -90,7 +90,7 @@ describe('request gate', () => {
     await gate.install(f.ctx as never);
     const route = await f.request();
     expect(route.continue).toHaveBeenCalledWith({
-      headers: { accept: '*/*', 'user-agent': 'PathfinderAI-Crawler/0.1 (+me@corp.pl)' },
+      headers: { accept: '*/*', 'user-agent': 'MudPuppy-Crawler/0.1 (+me@corp.pl)' },
     });
   });
 
@@ -202,7 +202,7 @@ describe('request gate', () => {
 
 describe('request gate: robots (FR-003, FR-009)', () => {
   type Reply = { status: number; location?: string; error?: string };
-  const UA = 'PathfinderAI-Crawler/0.1 (+me@corp.pl)';
+  const UA = 'MudPuppy-Crawler/0.1 (+me@corp.pl)';
 
   /** Registry stub: `*cHash*`, `/quote/` and `/api/` disallowed on in-scope hosts (x.pl). */
   function registry() {

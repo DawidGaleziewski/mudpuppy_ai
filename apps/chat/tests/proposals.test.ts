@@ -7,7 +7,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js';
-import { createEvidenceStore } from '@pathfinder/core';
+import { createEvidenceStore } from '@mudpuppy/core';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { createAmendmentService, type AmendmentService } from '../src/amendments.js';
 import { createApi, listenLocal } from '../src/api.js';

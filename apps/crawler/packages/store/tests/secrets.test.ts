@@ -11,7 +11,7 @@ import {
   nowIso,
   SECRET_MASK,
   SECRETS,
-} from '@pathfinder/core';
+} from '@mudpuppy/core';
 import { migrateUp } from '../src/migrate.js';
 import { openDb, type OpenedDb } from '../src/db.js';
 

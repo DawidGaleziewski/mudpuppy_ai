@@ -6,7 +6,7 @@
  * transaction.
  */
 import type BetterSqlite3 from 'better-sqlite3';
-import { newId } from '@pathfinder/core';
+import { newId } from '@mudpuppy/core';
 import {
   claimHash,
   classify,
@@ -15,7 +15,7 @@ import {
   type ModelSnapshot,
   type RuleContext,
   type RuleDecision,
-} from '@pathfinder/model';
+} from '@mudpuppy/model';
 
 type Raw = BetterSqlite3.Database;
 

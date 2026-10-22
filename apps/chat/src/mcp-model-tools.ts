@@ -12,7 +12,7 @@ import {
   pendingReplays,
   reconcilePortalModel,
   unexploredProcesses,
-} from '@pathfinder/store';
+} from '@mudpuppy/store';
 import { z } from 'zod';
 import { runningCheckRun, startCheckRun, type CheckRunDeps } from './check-runs.js';
 import { HttpError } from './http-error.js';
@@ -25,7 +25,7 @@ type Refused = (code: string, message: string, details?: string[]) => CallToolRe
 function refusal(refused: Refused, error: unknown): CallToolResult {
   const code = (error as { code?: unknown }).code;
   if (typeof code === 'string' && error instanceof Error) return refused(code, error.message);
-  return refused('INTERNAL', 'internal error in pathfinder-chat; the chat service logs it');
+  return refused('INTERNAL', 'internal error in mudpuppy-chat; the chat service logs it');
 }
 
 /** Open process proposals the model wrote (`pnpm model:propose`), for the assistant to name. */

@@ -1,10 +1,10 @@
 // Entry point of the chat service (R-30 T014): `pnpm start` in apps/chat.
-// Environment: PATHFINDER_ENV (required: a declared environment, spec 030 R-61),
-// PATHFINDER_CHAT_PORT (default 4310).
+// Environment: MUDPUPPY_ENV (required: a declared environment, spec 030 R-61),
+// MUDPUPPY_CHAT_PORT (default 4310).
 
-import { requireEnvironment } from '@pathfinder/config';
-import { createEvidenceStore } from '@pathfinder/core';
-import { dbPathFor, migrateUp, openDb } from '@pathfinder/store';
+import { requireEnvironment } from '@mudpuppy/config';
+import { createEvidenceStore } from '@mudpuppy/core';
+import { dbPathFor, migrateUp, openDb } from '@mudpuppy/store';
 import { mkdirSync, readFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -32,7 +32,7 @@ import { createProposalService } from './proposal-service.js';
 import { conversationsOfRun, runningRunsOfConversation, stopRun, stoppedNotice } from './runs.js';
 import { setProcessScope } from './scope.js';
 import { listPortals, loadWorkflowInput } from './workflow-data.js';
-import { workflowState } from '@pathfinder/workflow';
+import { workflowState } from '@mudpuppy/workflow';
 import { buildSessionRequest } from './session-config.js';
 import { ChatStore } from './store.js';
 
@@ -50,8 +50,8 @@ function packageVersion(): string {
 async function main(): Promise<void> {
   // No default (spec 030 R-61): the chat serves exactly the environment it is started on, and the
   // MCP servers it starts get the same one.
-  const environment = requireEnvironment(repoRoot, process.env['PATHFINDER_ENV']);
-  const port = Number(process.env['PATHFINDER_CHAT_PORT'] ?? '4310');
+  const environment = requireEnvironment(repoRoot, process.env['MUDPUPPY_ENV']);
+  const port = Number(process.env['MUDPUPPY_CHAT_PORT'] ?? '4310');
   mkdirSync(runtimeDir, { recursive: true });
   const opened = openDb(dbPathFor(join(repoRoot, 'data'), environment));
   migrateUp(opened.raw, join(repoRoot, 'data', 'migrations'));
@@ -129,7 +129,7 @@ async function main(): Promise<void> {
     );
   }, 2000);
   const bound = await listenLocal(server, port);
-  console.log(`pathfinder-chat (${environment}) listening on http://127.0.0.1:${String(bound)}`);
+  console.log(`mudpuppy-chat (${environment}) listening on http://127.0.0.1:${String(bound)}`);
 
   const stop = (): void => {
     clearInterval(timer);

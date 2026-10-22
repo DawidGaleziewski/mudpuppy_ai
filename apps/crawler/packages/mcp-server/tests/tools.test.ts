@@ -44,7 +44,7 @@ async function connect() {
   return { ctx, runtime, client, call };
 }
 
-describe('pathfinder tools', () => {
+describe('mudpuppy tools', () => {
   it('exposes exactly the agent-facing tools and no recording service or complete_run', async () => {
     const { client } = await connect();
     const names = (await client.listTools()).tools.map((t) => t.name).sort();

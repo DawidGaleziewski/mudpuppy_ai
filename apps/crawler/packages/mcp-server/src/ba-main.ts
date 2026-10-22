@@ -3,8 +3,7 @@ import { bootEnvironment } from './boot-environment.js';
 import { mainBa } from './ba-server.js';
 
 // packages/mcp-server/src -> repo root is five levels up.
-const root =
-  process.env.PATHFINDER_ROOT ?? fileURLToPath(new URL('../../../../..', import.meta.url));
+const root = process.env.MUDPUPPY_ROOT ?? fileURLToPath(new URL('../../../../..', import.meta.url));
 
 mainBa({
   root,

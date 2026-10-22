@@ -1,4 +1,4 @@
-// The assistant's page tools in the `pathfinder-chat` MCP server (spec 022 R6, FE-A03, FE-A07):
+// The assistant's page tools in the `mudpuppy-chat` MCP server (spec 022 R6, FE-A03, FE-A07):
 // read the page the BA is looking at, highlight an element on a recorded screen, open a page.
 // The two browser tools only validate and answer; the chat service turns their completed calls
 // into `ui_action` events (ui-actions.ts). Changes are proposed with propose_change
@@ -8,8 +8,8 @@ import { readFileSync } from 'node:fs';
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import type { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
 import type BetterSqlite3 from 'better-sqlite3';
-import { Environment } from '@pathfinder/config';
-import { Layout, type EvidenceStore } from '@pathfinder/core';
+import { Environment } from '@mudpuppy/config';
+import { Layout, type EvidenceStore } from '@mudpuppy/core';
 import { z } from 'zod';
 import { REF_NAME } from './ui-actions.js';
 
@@ -191,7 +191,7 @@ export function registerPageTools(
         const page = READERS[type](ctx, id);
         return page === null ? refused('NOT_FOUND', `no ${type} ${id}`) : ok(page);
       } catch {
-        return refused('INTERNAL', 'internal error in pathfinder-chat; the chat service logs it');
+        return refused('INTERNAL', 'internal error in mudpuppy-chat; the chat service logs it');
       }
     },
   );

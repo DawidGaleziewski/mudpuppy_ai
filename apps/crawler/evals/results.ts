@@ -13,7 +13,7 @@ import {
   HARD_ZERO_CHECKS,
   Tolerances,
   type JudgeRunResult,
-} from '@pathfinder/gates';
+} from '@mudpuppy/gates';
 import type { EvalConfig } from './config.js';
 import type { Cost, ScoredOutcome } from './harness/index.js';
 import type { Grades } from './graders/index.js';

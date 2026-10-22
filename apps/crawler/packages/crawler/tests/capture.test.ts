@@ -1,4 +1,4 @@
-import { Layout, elementKeys, parseAriaYaml } from '@pathfinder/core';
+import { Layout, elementKeys, parseAriaYaml } from '@mudpuppy/core';
 import type { Browser } from 'playwright';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { captureVisuals, pngSize } from '../src/capture.js';

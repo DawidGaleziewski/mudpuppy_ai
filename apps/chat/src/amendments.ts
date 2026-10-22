@@ -14,15 +14,15 @@ import {
   nowIso,
   isEvidenceRef,
   type EvidenceStore,
-} from '@pathfinder/core';
+} from '@mudpuppy/core';
 import {
   Amendment,
   AmendmentAnchorElement,
   AmendmentKind,
   AmendmentTargetKind,
   type AmendmentRevision,
-} from '@pathfinder/chat-model';
-import { type PathfinderDb } from '@pathfinder/store';
+} from '@mudpuppy/chat-model';
+import { type MudPuppyDb } from '@mudpuppy/store';
 import { z } from 'zod';
 import {
   checkBase,
@@ -119,7 +119,7 @@ interface Anchor {
 }
 
 export function createAmendmentService(opts: {
-  db: PathfinderDb;
+  db: MudPuppyDb;
   evidence: EvidenceStore;
 }): AmendmentService {
   const { db, evidence } = opts;
@@ -189,7 +189,7 @@ export function createAmendmentService(opts: {
     portal: string,
     id: string,
     baseRev: number | undefined,
-    apply: (head: Amendment, trx: PathfinderDb) => Promise<Amendment>,
+    apply: (head: Amendment, trx: MudPuppyDb) => Promise<Amendment>,
   ): Promise<Amendment> {
     return db.transaction().execute(async (trx) => {
       const head = await loadHead(trx, portal, id);

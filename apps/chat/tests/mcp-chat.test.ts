@@ -4,7 +4,7 @@ import { join, resolve } from 'node:path';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { migrateUp, openDb, type OpenedDb } from '@pathfinder/store';
+import { migrateUp, openDb, type OpenedDb } from '@mudpuppy/store';
 import { createChatMcpServer } from '../src/mcp-chat.js';
 import { createPortal } from '../src/portals.js';
 
@@ -70,7 +70,7 @@ async function call(name: string, args: Record<string, unknown>) {
 }
 
 beforeEach(async () => {
-  root = mkdtempSync(join(tmpdir(), 'pathfinder-chat-mcp-'));
+  root = mkdtempSync(join(tmpdir(), 'mudpuppy-chat-mcp-'));
   for (const dir of [
     'portals/reference-insurer',
     'portals/reference-insurer-readonly',
@@ -97,7 +97,7 @@ afterEach(async () => {
   rmSync(root, { recursive: true, force: true });
 });
 
-describe('pathfinder-chat MCP server', () => {
+describe('mudpuppy-chat MCP server', () => {
   it('lists exactly the contract tools', async () => {
     const { tools } = await client.listTools();
     expect(tools.map((t) => t.name).sort()).toEqual([

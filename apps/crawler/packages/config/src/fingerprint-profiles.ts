@@ -3,7 +3,7 @@ import {
   DEFAULT_PROFILE_NAME,
   resolveProfile,
   type FingerprintProfile,
-} from '@pathfinder/fingerprint';
+} from '@mudpuppy/fingerprint';
 
 /**
  * Fingerprint profiles in `portal.yaml` (spec 039 T111, owner answer 3 of 2026-10-20), like

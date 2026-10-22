@@ -1,5 +1,5 @@
 {
-  "name": "@pathfinder/safety",
+  "name": "@mudpuppy/safety",
   "version": "0.0.0",
   "private": true,
   "description": "Pure action classifier, denylist, scope checks, environment guard, block detector",
@@ -8,7 +8,7 @@
     ".": "./src/index.ts"
   },
   "dependencies": {
-    "@pathfinder/config": "workspace:*",
-    "@pathfinder/core": "workspace:*"
+    "@mudpuppy/config": "workspace:*",
+    "@mudpuppy/core": "workspace:*"
   }
 }

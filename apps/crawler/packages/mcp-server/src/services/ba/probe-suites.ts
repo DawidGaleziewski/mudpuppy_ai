@@ -4,8 +4,8 @@
 // the step, the try's values, its fault), so the suite repeats exactly what was observed. The
 // suite is stored `open`: it waits in Review for the owner and never runs before approval.
 
-import { newId, nowIso, type OutcomeKind } from '@pathfinder/core';
-import { TraceSpecEntry, type TraceStep, type TraceVariant } from '@pathfinder/config';
+import { newId, nowIso, type OutcomeKind } from '@mudpuppy/core';
+import { TraceSpecEntry, type TraceStep, type TraceVariant } from '@mudpuppy/config';
 import { z } from 'zod';
 import type { BaContext } from '../../context.js';
 import { ToolError, parseInput } from '../../errors.js';

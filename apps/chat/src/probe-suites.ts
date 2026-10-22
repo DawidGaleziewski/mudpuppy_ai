@@ -6,9 +6,9 @@
 
 import { existsSync, readFileSync, renameSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { TraceSpecEntry, TracesFile, type TraceVariant } from '@pathfinder/config';
-import { nowIso } from '@pathfinder/core';
-import type { PathfinderDb } from '@pathfinder/store';
+import { TraceSpecEntry, TracesFile, type TraceVariant } from '@mudpuppy/config';
+import { nowIso } from '@mudpuppy/core';
+import type { MudPuppyDb } from '@mudpuppy/store';
 import { parseDocument, YAMLSeq, type Document } from 'yaml';
 import { z } from 'zod';
 import { HttpError } from './http-error.js';
@@ -75,7 +75,7 @@ export function approvedTrace(proposed: unknown, body: z.infer<typeof ApproveBod
   return parsed.data;
 }
 
-export function createProbeSuiteService(deps: { db: PathfinderDb; repoRoot: string }): ProbeSuiteService {
+export function createProbeSuiteService(deps: { db: MudPuppyDb; repoRoot: string }): ProbeSuiteService {
   const open = async (portal: string, id: string) => {
     const row = await deps.db
       .selectFrom('probe_suites')

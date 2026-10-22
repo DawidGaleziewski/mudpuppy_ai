@@ -1,4 +1,4 @@
-import { observePage } from '@pathfinder/crawler';
+import { observePage } from '@mudpuppy/crawler';
 import type { PageResult } from '../../runtime.js';
 import { linkPath } from '../../services/link-path.js';
 import { handoffIfCaptcha } from '../handoff.js';

@@ -1,5 +1,5 @@
 [project]
-name = "pathfinder-miner"
+name = "mudpuppy-miner"
 version = "0.1.0"
 description = "MudPuppy 2.0 analysis worker (spec 039 R-81): decision mining and community detection over a read-only store; output is JSON written to the store only by `pnpm model:import`."
 readme = "README.md"
@@ -11,7 +11,7 @@ dependencies = [
 ]
 
 [project.scripts]
-pathfinder-miner = "pathfinder_miner.__main__:main"
+mudpuppy-miner = "mudpuppy_miner.__main__:main"
 
 [dependency-groups]
 dev = ["pytest>=8", "ruff>=0.6"]

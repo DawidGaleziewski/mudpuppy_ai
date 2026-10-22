@@ -1,6 +1,6 @@
 /**
  * Import a crawler subagent transcript into every environment store it matches
- * (contracts/agent-import.md). Thin: all logic is in `@pathfinder/core`'s `importAgent`.
+ * (contracts/agent-import.md). Thin: all logic is in `@mudpuppy/core`'s `importAgent`.
  *
  * Usage:
  *   pnpm trace:import-agent --hook                    # SubagentStop JSON on stdin
@@ -11,7 +11,7 @@
  * otherwise exit 1 on unreadable input.
  */
 import { join, resolve } from 'node:path';
-import { importAgent } from '@pathfinder/store';
+import { importAgent } from '@mudpuppy/store';
 
 const arg = (name: string): string | undefined => {
   const i = process.argv.indexOf(`--${name}`);

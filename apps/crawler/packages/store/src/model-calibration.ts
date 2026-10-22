@@ -5,14 +5,14 @@
  * enough labels the calibrated τ is proposed, and a person accepts it (`acceptTau`, T115).
  */
 import type BetterSqlite3 from 'better-sqlite3';
-import { newId, nowIso } from '@pathfinder/core';
+import { newId, nowIso } from '@mudpuppy/core';
 import {
   calibrateTau,
   labellingQueue,
   similarity,
   type Calibration,
   type CandidatePair,
-} from '@pathfinder/model';
+} from '@mudpuppy/model';
 import {
   activeProfile,
   LEGACY_PROFILE,

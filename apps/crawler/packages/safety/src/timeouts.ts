@@ -4,7 +4,7 @@
  * Pure.
  */
 
-import type { Scope, Timeouts } from '@pathfinder/config';
+import type { Scope, Timeouts } from '@mudpuppy/config';
 import { matchUrlEntry } from './url-lists.js';
 
 export interface PageTimeouts {

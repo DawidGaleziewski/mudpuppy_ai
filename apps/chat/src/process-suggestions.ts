@@ -3,9 +3,9 @@
 // first, dismisses it, splits it in two or merges it with another (spec 039 T079). A dismissed
 // set of screens is never suggested again; a split or merge dismisses what it replaced.
 
-import { newId, nowIso } from '@pathfinder/core';
-import { GroupingSuggestion } from '@pathfinder/chat-model';
-import { type PathfinderDb } from '@pathfinder/store';
+import { newId, nowIso } from '@mudpuppy/core';
+import { GroupingSuggestion } from '@mudpuppy/chat-model';
+import { type MudPuppyDb } from '@mudpuppy/store';
 import { AcceptBody, AuthorBody, MergeBody, SplitBody, SuggestBody } from './process-bodies.js';
 import { HttpError } from './http-error.js';
 import { parseBody } from './http-io.js';
@@ -14,7 +14,7 @@ import { insertProcess, parseRow, statesOf, type ProcessOutcome } from './proces
 
 /** Store the assistant's suggestion; refuses a dismissed or already suggested set of screens. */
 export async function suggestGrouping(
-  db: PathfinderDb,
+  db: MudPuppyDb,
   portal: string,
   conversationId: string | null,
   raw: unknown,
@@ -34,7 +34,7 @@ interface NewSuggestion {
 }
 
 async function insertSuggestion(
-  trx: PathfinderDb,
+  trx: MudPuppyDb,
   portal: string,
   body: NewSuggestion,
 ): Promise<GroupingSuggestion> {
@@ -82,7 +82,7 @@ async function insertSuggestion(
 }
 
 async function openSuggestion(
-  trx: PathfinderDb,
+  trx: MudPuppyDb,
   portal: string,
   id: string,
 ): Promise<GroupingSuggestion> {
@@ -101,7 +101,7 @@ async function openSuggestion(
 
 /** Accept: a saved process with A r1 from the suggestion's screens, in its order. */
 export async function acceptSuggestion(
-  db: PathfinderDb,
+  db: MudPuppyDb,
   portal: string,
   suggestionId: string,
   raw: unknown,
@@ -135,7 +135,7 @@ export async function acceptSuggestion(
 const stateIds = (s: GroupingSuggestion): string[] =>
   s.steps.flatMap((st) => (st.state_id === null ? [] : [st.state_id]));
 
-async function close(trx: PathfinderDb, s: GroupingSuggestion, author: string): Promise<void> {
+async function close(trx: MudPuppyDb, s: GroupingSuggestion, author: string): Promise<void> {
   await trx
     .updateTable('grouping_suggestions')
     .set({ status: 'dismissed', decided_by: author, decided_at: nowIso() })
@@ -148,7 +148,7 @@ async function close(trx: PathfinderDb, s: GroupingSuggestion, author: string): 
  * from `at` on; the original is dismissed, so its screens together are never suggested again.
  */
 export async function splitSuggestion(
-  db: PathfinderDb,
+  db: MudPuppyDb,
   portal: string,
   suggestionId: string,
   raw: unknown,
@@ -178,7 +178,7 @@ export async function splitSuggestion(
 
 /** Merge (v2-09 "Merge with…"): one open suggestion, the other's steps after this one's. */
 export async function mergeSuggestions(
-  db: PathfinderDb,
+  db: MudPuppyDb,
   portal: string,
   suggestionId: string,
   raw: unknown,
@@ -202,7 +202,7 @@ export async function mergeSuggestions(
 
 /** Dismiss: hidden, and never suggested again for the same screens. */
 export async function dismissSuggestion(
-  db: PathfinderDb,
+  db: MudPuppyDb,
   portal: string,
   suggestionId: string,
   raw: unknown,

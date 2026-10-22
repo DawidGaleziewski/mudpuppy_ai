@@ -5,7 +5,7 @@
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import type { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
 import type BetterSqlite3 from 'better-sqlite3';
-import { type PathfinderDb } from '@pathfinder/store';
+import { type MudPuppyDb } from '@mudpuppy/store';
 import { z } from 'zod';
 import { HttpError } from './http-error.js';
 import { suggestGrouping } from './process-suggestions.js';
@@ -13,7 +13,7 @@ import { suggestGrouping } from './process-suggestions.js';
 export interface ProcessToolsContext {
   raw: BetterSqlite3.Database;
   /** The typed store; without it suggest_grouping is not offered (tests of other tools). */
-  db: PathfinderDb | null;
+  db: MudPuppyDb | null;
   conversationId: string;
 }
 
@@ -85,7 +85,7 @@ export function registerProcessTools(
       try {
         return ok(groupingInputs(ctx.raw, portal));
       } catch {
-        return refused('INTERNAL', 'internal error in pathfinder-chat; the chat service logs it');
+        return refused('INTERNAL', 'internal error in mudpuppy-chat; the chat service logs it');
       }
     },
   );
@@ -116,7 +116,7 @@ export function registerProcessTools(
           const code = typeof error.extra['code'] === 'string' ? error.extra['code'] : 'REFUSED';
           return refused(code, error.message);
         }
-        return refused('INTERNAL', 'internal error in pathfinder-chat; the chat service logs it');
+        return refused('INTERNAL', 'internal error in mudpuppy-chat; the chat service logs it');
       }
     },
   );

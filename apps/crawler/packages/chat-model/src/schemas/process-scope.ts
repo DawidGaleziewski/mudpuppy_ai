@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { Id, Timestamp } from '@pathfinder/core';
+import { Id, Timestamp } from '@mudpuppy/core';
 
 export const ProcessScopeSource = z.enum(['agent_proposal', 'ba_description']);
 export type ProcessScopeSource = z.infer<typeof ProcessScopeSource>;

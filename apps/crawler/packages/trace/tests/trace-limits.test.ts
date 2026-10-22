@@ -2,7 +2,7 @@ import { mkdtempSync, readFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { createEvidenceStore, type EvidenceStore } from '@pathfinder/core';
+import { createEvidenceStore, type EvidenceStore } from '@mudpuppy/core';
 import { fitPayload, fitText } from '../src/limits.js';
 
 let dir: string;

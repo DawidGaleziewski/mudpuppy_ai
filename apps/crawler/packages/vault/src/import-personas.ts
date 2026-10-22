@@ -5,7 +5,7 @@
 import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { parse, stringify } from 'yaml';
-import { loadPersona, type PersonaAttributes } from '@pathfinder/config';
+import { loadPersona, type PersonaAttributes } from '@mudpuppy/config';
 import { parseCsv } from './csv.js';
 import { VaultError } from './errors.js';
 import type { VaultEnvironment, VaultStore } from './store.js';

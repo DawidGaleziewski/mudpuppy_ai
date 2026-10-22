@@ -48,7 +48,7 @@ for (const pkg of packages) {
   const run = spawnSync('pnpm', ['exec', 'stryker', 'run'], {
     cwd: app,
     stdio: 'inherit',
-    env: { ...process.env, PATHFINDER_MUTATE_PACKAGE: pkg },
+    env: { ...process.env, MUDPUPPY_MUTATE_PACKAGE: pkg },
   });
   const file = join(repo, 'data/mutation/stryker', pkg, 'report.json');
   if (run.status !== 0 || !existsSync(file)) {

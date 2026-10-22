@@ -1,9 +1,9 @@
-import { newId, nowIso } from '@pathfinder/core';
+import { newId, nowIso } from '@mudpuppy/core';
 import {
   AnalysisPass,
   type AnalysisSessionPassEntry,
   type AnalysisSessionStatus,
-} from '@pathfinder/docs-model';
+} from '@mudpuppy/docs-model';
 import { z } from 'zod';
 import type { BaContext } from '../../context.js';
 import { ToolError, parseInput } from '../../errors.js';

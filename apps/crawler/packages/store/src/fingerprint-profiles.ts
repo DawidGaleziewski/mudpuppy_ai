@@ -5,7 +5,7 @@
  * `cluster_threshold`. A calibrated τ is only a proposal until `pnpm model:decide accept-tau`.
  */
 import type BetterSqlite3 from 'better-sqlite3';
-import { ROWS_V2, ROWS_V2_PROFILE } from '@pathfinder/fingerprint';
+import { ROWS_V2, ROWS_V2_PROFILE } from '@mudpuppy/fingerprint';
 
 type Raw = BetterSqlite3.Database;
 

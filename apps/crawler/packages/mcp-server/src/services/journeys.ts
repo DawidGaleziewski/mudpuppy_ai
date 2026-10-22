@@ -7,8 +7,8 @@ import {
   nowIso,
   type JourneyEndReason,
   type JourneyStartKind,
-} from '@pathfinder/core';
-import { attributeName, typeValue } from '@pathfinder/model';
+} from '@mudpuppy/core';
+import { attributeName, typeValue } from '@mudpuppy/model';
 import type { ServerContext } from '../context.js';
 
 export interface JourneyStart {

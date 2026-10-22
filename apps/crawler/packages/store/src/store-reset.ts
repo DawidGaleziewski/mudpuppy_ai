@@ -2,7 +2,7 @@
  * The MudPuppy 2.0 data reset (spec 039 plan § 2, T002): delete every generated data artifact of
  * v1 and move the v1 eval trials into `history/v1/`, so v2 starts from an empty store. Planning is
  * separate from applying, so the script can print a dry run; applying refuses while anything still
- * holds a store file open or a Pathfinder port answers.
+ * holds a store file open or a MudPuppy port answers.
  */
 import {
   existsSync,

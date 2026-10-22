@@ -2,9 +2,9 @@ import { mkdtempSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { newId, nowIso, SECRET_MASK } from '@pathfinder/core';
-import type { PersonaConfig } from '@pathfinder/config';
-import { createVaultStore, loadKey } from '@pathfinder/vault';
+import { newId, nowIso, SECRET_MASK } from '@mudpuppy/core';
+import type { PersonaConfig } from '@mudpuppy/config';
+import { createVaultStore, loadKey } from '@mudpuppy/vault';
 import { resolveRunCredentials, secretValues } from '../src/services/credentials.js';
 import { makeCtx } from './helpers.js';
 

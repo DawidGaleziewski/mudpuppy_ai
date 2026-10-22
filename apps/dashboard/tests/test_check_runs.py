@@ -50,8 +50,8 @@ def test_a_busy_portal_and_a_missing_reviewer_are_said_plainly(empty_store: Stor
         assert "Not started: A check run of liveinsurer is still running" in text(busy.text)
     with client(empty_store, service, reviewer=None) as c:
         page = c.get(f"/rules?portal={P}").text
-        assert "Run the rule tests" in text(page) and "Set PATHFINDER_REVIEWER" in text(page)
+        assert "Run the rule tests" in text(page) and "Set MUDPUPPY_REVIEWER" in text(page)
         nobody = c.post(f"/portals/{P}/check-runs", content=body, headers=FORM)
-        assert "Set PATHFINDER_REVIEWER to your name" in text(nobody.text)
+        assert "Set MUDPUPPY_REVIEWER to your name" in text(nobody.text)
     foreign = client(empty_store, service).post(f"/portals/{P}/check-runs", content=body)
     assert foreign.status_code == 403

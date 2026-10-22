@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
-import { Confidence } from '@pathfinder/core';
+import { Confidence } from '@mudpuppy/core';
 import {
   AnalysisSessionStatus,
   DOC_CONTENT_BY_KIND,

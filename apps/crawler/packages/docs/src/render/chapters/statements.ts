@@ -1,4 +1,4 @@
-import { NfrCategory } from '@pathfinder/docs-model';
+import { NfrCategory } from '@mudpuppy/docs-model';
 import {
   backlinks,
   byKind,

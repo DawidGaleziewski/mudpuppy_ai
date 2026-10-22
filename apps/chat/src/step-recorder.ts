@@ -5,8 +5,8 @@
 // the tracker is right after a reload or a service restart without the chat being open.
 
 import type BetterSqlite3 from 'better-sqlite3';
-import type { EvidenceStore } from '@pathfinder/core';
-import type { WorkflowStepName, WorkflowStepStatus } from '@pathfinder/chat-model';
+import type { EvidenceStore } from '@mudpuppy/core';
+import type { WorkflowStepName, WorkflowStepStatus } from '@mudpuppy/chat-model';
 import { reanchorAfterRun, reanchorNotice } from './reanchor.js';
 import type { ErrorInput, LogResult } from './error-log.js';
 import type { ChatEvent } from './events.js';

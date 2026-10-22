@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { newId, nowIso } from '@pathfinder/core';
+import { newId, nowIso } from '@mudpuppy/core';
 import type { ServerContext } from '../src/context.js';
 import { getNextFrontierItem } from '../src/services/frontier.js';
 import { tiersOf } from '../src/services/frontier-order.js';

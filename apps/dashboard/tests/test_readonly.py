@@ -6,7 +6,7 @@ from pathlib import Path
 
 import pytest
 
-from pathfinder_dashboard import db
+from mudpuppy_dashboard import db
 
 from .conftest import BIG_RUN, Store, make_client
 

@@ -3,7 +3,7 @@ import type { Server } from 'node:http';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { randomBytes } from 'node:crypto';
-import { createVaultStore, loadKey, type VaultKey } from '@pathfinder/vault';
+import { createVaultStore, loadKey, type VaultKey } from '@mudpuppy/vault';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { createApi, listenLocal } from '../src/api.js';
 import { createCredentialsHandler } from '../src/credentials.js';
@@ -89,7 +89,7 @@ describe('credentials endpoint', () => {
     const res = await post({ portal: 'liveinsurer', values: { TEST_PASSWORD: SECRET } });
     expect(res.status).toBe(409);
     const body = (await res.json()) as { ref: string; message: string };
-    expect(body.message).toContain('PATHFINDER_VAULT_KEY_FILE');
+    expect(body.message).toContain('MUDPUPPY_VAULT_KEY_FILE');
     expect(body.ref).toMatch(/^ERR-/);
     expect(JSON.stringify(body)).not.toContain(SECRET);
   });

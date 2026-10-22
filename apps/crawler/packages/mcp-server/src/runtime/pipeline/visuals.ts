@@ -1,5 +1,5 @@
-import { maskText } from '@pathfinder/core';
-import { captureVisuals } from '@pathfinder/crawler';
+import { maskText } from '@mudpuppy/core';
+import { captureVisuals } from '@mudpuppy/crawler';
 import { saveWireframe, setStateVisuals } from '../../services/index.js';
 import { ANSI_STYLE, decision, event, reported, step, type StepContext } from './context.js';
 

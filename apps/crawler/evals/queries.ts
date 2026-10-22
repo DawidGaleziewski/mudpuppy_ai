@@ -2,7 +2,7 @@
  * The questions the eval asks the workspace store, one named function each. Read-only; the
  * graders turn the answers into scores.
  */
-import type { openDb } from '@pathfinder/store';
+import type { openDb } from '@mudpuppy/store';
 
 export type RawDb = ReturnType<typeof openDb>['raw'];
 

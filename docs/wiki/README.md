@@ -1,7 +1,7 @@
 # BA wiki
 
-Short explanations of the business-analysis concepts behind Pathfinder's documentation records, in
-our own words, with how Pathfinder applies each one and citations to recognised sources. Pages are
+Short explanations of the business-analysis concepts behind MudPuppy's documentation records, in
+our own words, with how MudPuppy applies each one and citations to recognised sources. Pages are
 local so they stay readable when a link breaks; follow a citation's link for the original.
 
 Sources used:
@@ -13,7 +13,7 @@ Sources used:
 - ISO/IEC/IEEE 29148:2018, *Systems and software engineering — Life cycle processes — Requirements
   engineering*. Paid standard; cited by topic, never quoted.
 
-| Page | Pathfinder records |
+| Page | MudPuppy records |
 |---|---|
 | [Requirement](requirement.md) | REQ |
 | [Non-functional requirement](non-functional-requirement.md) | NFR |
@@ -30,5 +30,5 @@ Sources used:
 | [Requirements review and validation](requirements-validation.md) | reviews |
 | [Software requirements specification (SRS)](software-requirements-specification.md) | SRS export (R-16) |
 
-Pathfinder's own vocabulary (run, frontier, evidence, …) is in the
-[Pathfinder glossary](../glossary/README.md).
+MudPuppy's own vocabulary (run, frontier, evidence, …) is in the
+[MudPuppy glossary](../glossary/README.md).

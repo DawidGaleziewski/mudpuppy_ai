@@ -2,8 +2,8 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { chromium, type Browser, type BrowserContext, type Page } from 'playwright';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { settle, trackNetworkActivity, type NetworkActivity } from '@pathfinder/crawler';
-import { loadGroundTruth, type GroundTruth } from '@pathfinder/reference-portal';
+import { settle, trackNetworkActivity, type NetworkActivity } from '@mudpuppy/crawler';
+import { loadGroundTruth, type GroundTruth } from '@mudpuppy/reference-portal';
 import { FIXTURE_PASSWORD, GATE_BASE, PROVING_GROUND, resetEstate } from '../src/index.js';
 
 /**

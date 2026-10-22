@@ -7,7 +7,7 @@ import { readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
-export const LOCK_PATH = join(tmpdir(), 'pathfinder-eval.lock');
+export const LOCK_PATH = join(tmpdir(), 'mudpuppy-eval.lock');
 
 const alive = (pid: number): boolean => {
   try {

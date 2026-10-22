@@ -5,14 +5,9 @@
  * Usage: pnpm tokens:ba <run_id> [--env sandbox] [--root <repo root>]
  */
 import { join, resolve } from 'node:path';
-import { createEvidenceStore, createLogger } from '@pathfinder/core';
-import {
-  RunEvidenceKind,
-  getEvidence,
-  getRunEvidence,
-  type BaContext,
-} from '@pathfinder/mcp-server';
-import { dbPathFor, openDb } from '@pathfinder/store';
+import { createEvidenceStore, createLogger } from '@mudpuppy/core';
+import { RunEvidenceKind, getEvidence, getRunEvidence, type BaContext } from '@mudpuppy/mcp-server';
+import { dbPathFor, openDb } from '@mudpuppy/store';
 
 const arg = (name: string): string | undefined => {
   const i = process.argv.indexOf(`--${name}`);

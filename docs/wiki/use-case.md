@@ -27,11 +27,11 @@ everything goes well, plus **extensions**: alternative paths and the ways it can
 one concrete path through it.
 
 Use cases are good at showing behaviour in context: not just "the form validates the phone number",
-but where in the journey that happens and what the user does next. The written style Pathfinder
+but where in the journey that happens and what the user does next. The written style MudPuppy
 follows (goal, actor, trigger, numbered steps, extensions) comes from Alistair Cockburn's work on
 use cases.
 
-## How Pathfinder uses it
+## How MudPuppy uses it
 
 In pass 3 the BA agent writes `UC` records from traced processes: the persona is the actor, the
 trace's steps become the main scenario, and validation messages or refused actions seen in other

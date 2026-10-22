@@ -7,8 +7,8 @@
  */
 import type BetterSqlite3 from 'better-sqlite3';
 import { z } from 'zod';
-import { newId, nowIso } from '@pathfinder/core';
-import { claimHash, NO_TEST_KINDS, statusOf, type HypothesisStatus } from '@pathfinder/model';
+import { newId, nowIso } from '@mudpuppy/core';
+import { claimHash, NO_TEST_KINDS, statusOf, type HypothesisStatus } from '@mudpuppy/model';
 import { hypothesisKeys } from './interpret-writer.js';
 import { hypothesisEvents } from './model-decide.js';
 

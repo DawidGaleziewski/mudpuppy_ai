@@ -1,6 +1,6 @@
 ---
 name: refactor-code
-description: How to refactor Pathfinder code to the rated code guidelines without changing behaviour — lock behaviour first, extract then move, one file per change, the right test tier after each step, and how to judge a finding small (fix now) or large (defer). Use when splitting a long function or file, moving code between packages or routers, or fixing a guideline finding. Not for bug hunting or new features.
+description: How to refactor MudPuppy code to the rated code guidelines without changing behaviour — lock behaviour first, extract then move, one file per change, the right test tier after each step, and how to judge a finding small (fix now) or large (defer). Use when splitting a long function or file, moving code between packages or routers, or fixing a guideline finding. Not for bug hunting or new features.
 ---
 
 # Refactor code (no behaviour change)

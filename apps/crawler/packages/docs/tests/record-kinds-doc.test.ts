@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { z } from 'zod';
-import { DOC_CONTENT_BY_KIND, DocKind } from '@pathfinder/docs-model';
+import { DOC_CONTENT_BY_KIND, DocKind } from '@mudpuppy/docs-model';
 
 /**
  * The BA reads `ba-practice/references/record-kinds.md`; a stale field name there makes the BA write

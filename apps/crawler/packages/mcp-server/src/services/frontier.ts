@@ -1,4 +1,4 @@
-import { FrontierItemStatus, SafetyClass, newId, nowIso } from '@pathfinder/core';
+import { FrontierItemStatus, SafetyClass, newId, nowIso } from '@mudpuppy/core';
 import { z } from 'zod';
 import type { ServerContext } from '../context.js';
 import { parseInput } from '../errors.js';

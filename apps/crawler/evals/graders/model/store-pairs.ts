@@ -3,8 +3,8 @@
  * one or a trial's workspace. Opened read-only; nothing is written.
  */
 import { existsSync } from 'node:fs';
-import { loadEvalInput, type GroundTruth } from '@pathfinder/docs';
-import { openDb } from '@pathfinder/store';
+import { loadEvalInput, type GroundTruth } from '@mudpuppy/docs';
+import { openDb } from '@mudpuppy/store';
 import type { JudgeDefinition, Pair } from './definition.js';
 
 export interface StorePairs {

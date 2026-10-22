@@ -1,4 +1,4 @@
--- GENERATED from data/migrations/*.up.sql applied in order (currently through 0045_state_pair_label_history). Do not edit by hand.
+-- GENERATED from data/migrations/*.up.sql applied in order (currently through 0048_trace_server_mudpuppy). Do not edit by hand.
 -- Regenerate after every migration; see data/schema/README.md.
 
 CREATE TABLE runs (
@@ -22,7 +22,7 @@ CREATE TABLE runs (
   started_at          TEXT NOT NULL,
   ended_at            TEXT,
   coverage            TEXT CHECK (coverage IS NULL OR json_valid(coverage)),
-  -- 0009 (ALTER TABLE): the pathfinder server process driving the run; NULL before 0009 (F-14).
+  -- 0009 (ALTER TABLE): the mudpuppy server process driving the run; NULL before 0009 (F-14).
   owner_id            TEXT CHECK (owner_id IS NULL OR length(owner_id) > 0),
   owner_pid           INTEGER CHECK (owner_pid IS NULL OR owner_pid > 0),
   -- 0027 (ALTER TABLE): the kind of directed run (NULL = a plain run: full map or trace by mode), the run it
@@ -230,11 +230,11 @@ CREATE TABLE trace_boots (
   started_at  TEXT NOT NULL,
   ended_at    TEXT,            -- set on clean shutdown; NULL = crashed or still running
   environment TEXT NOT NULL,   -- data/db/<env> this process writes
-  server      TEXT NOT NULL CHECK (server IN ('pathfinder')),  -- room for the BA server later
+  server      TEXT NOT NULL CHECK (server IN ('mudpuppy')),  -- room for the BA server later; 0048 renamed it from 'pathfinder'
   pid         INTEGER NOT NULL,
-  version     TEXT NOT NULL,   -- @pathfinder/mcp-server package version + git short SHA if available
+  version     TEXT NOT NULL,   -- @mudpuppy/mcp-server package version + git short SHA if available
   trace_level TEXT NOT NULL CHECK (trace_level IN ('off','standard','verbose')),
-  pw_trace    TEXT NOT NULL CHECK (pw_trace IN ('non_production','all'))  -- 'all' = PATHFINDER_PW_TRACE=1
+  pw_trace    TEXT NOT NULL CHECK (pw_trace IN ('non_production','all'))  -- 'all' = MUDPUPPY_PW_TRACE=1
 ) STRICT;
 
 -- Added by 0003_trace: one row per call/phase/event of a boot. Ordered by (boot_id, seq); a run's
@@ -294,7 +294,7 @@ CREATE TABLE agent_turns (
   output_tokens         INTEGER,        -- max over the message's entries (research §12)
   cache_read_tokens     INTEGER,
   cache_creation_tokens INTEGER,
-  matched               INTEGER NOT NULL DEFAULT 0 CHECK (matched IN (0,1)),  -- tool_use of mcp__pathfinder__* with a matching span
+  matched               INTEGER NOT NULL DEFAULT 0 CHECK (matched IN (0,1)),  -- tool_use of mcp__mudpuppy__* with a matching span
   created_at            TEXT NOT NULL,  -- transcript 'timestamp'
   imported_at           TEXT NOT NULL
 ) STRICT;
@@ -576,7 +576,7 @@ CREATE TABLE credentials (
 ) STRICT;
 
 -- Added by 0008_chat_orchestrator (spec 010, R-30): guided chat orchestrator state. Written only by
--- @pathfinder/chat. Not Layer B evidence records (no evidence_ref/confidence); amendments are never
+-- @mudpuppy/chat. Not Layer B evidence records (no evidence_ref/confidence); amendments are never
 -- joined into Layer B records. Only the four indexes listed in specs/010-acp-chat-orchestrator/data-model.md.
 CREATE TABLE chat_conversations (
   id             TEXT PRIMARY KEY,                                 -- UUIDv7

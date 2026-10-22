@@ -6,7 +6,7 @@ import {
   type RobotsRegistryOptions,
 } from '../src/robots-registry.js';
 
-const UA = 'PathfinderAI-Crawler/0.1 (+mailto:ops@example.com)';
+const UA = 'MudPuppy-Crawler/0.1 (+mailto:ops@example.com)';
 const HOUR = 3_600_000;
 
 type Reply = { status: number; body?: string; location?: string } | Error;
@@ -251,7 +251,7 @@ describe('robots registry: fetching (contracts/robots.md)', () => {
       source_url: ROBOTS,
       final_url: ROBOTS,
       redirects: [],
-      product_token: 'PathfinderAI-Crawler',
+      product_token: 'MudPuppy-Crawler',
       group_used: '*',
       sitemaps: ['https://www.example.pl/s.xml'],
       truncated: false,

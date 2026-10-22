@@ -2,7 +2,7 @@
 // with a replay buffer, and persistence of what the BA should see again after a reload.
 
 import type { NewSessionRequest } from '@agentclientprotocol/sdk';
-import type { ChatConversation, WorkflowStep } from '@pathfinder/chat-model';
+import type { ChatConversation, WorkflowStep } from '@mudpuppy/chat-model';
 import { AcpChat, type AgentLauncher, type PermissionPolicy } from './acp-client.js';
 import type { ErrorInput, LogResult } from './error-log.js';
 import type { ChatEvent } from './events.js';

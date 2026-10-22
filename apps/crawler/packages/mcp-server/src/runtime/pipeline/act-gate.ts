@@ -1,4 +1,4 @@
-import { decide, type GateContext } from '@pathfinder/crawler';
+import { decide, type GateContext } from '@mudpuppy/crawler';
 import type { ServerContext } from '../../context.js';
 import { recordTransition, type RunRow } from '../../services/index.js';
 import { ensureJourney } from './journey.js';

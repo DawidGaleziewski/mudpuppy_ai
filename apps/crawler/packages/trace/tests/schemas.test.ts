@@ -16,13 +16,14 @@ import {
 
 const ts = '2026-01-01T00:00:00.000Z';
 
-const MIGRATION_0003 = readFileSync(
-  fileURLToPath(new URL('../../../../../data/migrations/0003_trace.up.sql', import.meta.url)),
+// The schema snapshot: the trace tables of 0003 as later migrations left them (0048 renamed the server).
+const SCHEMA = readFileSync(
+  fileURLToPath(new URL('../../../../../data/schema/schema.sql', import.meta.url)),
   'utf-8',
 );
 
-/** Extracts one `CREATE TABLE <name> (...) STRICT` body from a SQL file (the trace migration by default). */
-function tableBody(table: string, sql = MIGRATION_0003): string {
+/** Extracts one `CREATE TABLE <name> (...) STRICT` body from a SQL file (the schema snapshot by default). */
+function tableBody(table: string, sql = SCHEMA): string {
   const re = new RegExp(`CREATE TABLE ${table} \\(([\\s\\S]+?)\\) STRICT`);
   const match = sql.match(re);
   if (!match) throw new Error(`table ${table} not found`);
@@ -30,7 +31,7 @@ function tableBody(table: string, sql = MIGRATION_0003): string {
 }
 
 /** Extracts the string list of a `CHECK (<column> IN (...))` clause for one column within a table body. */
-function checkList(table: string, column: string, sql = MIGRATION_0003): string[] {
+function checkList(table: string, column: string, sql = SCHEMA): string[] {
   const re = new RegExp(`\\b${column}\\s+TEXT[^\\n]*CHECK \\(${column} IN \\(([^)]+)\\)\\)`);
   const match = tableBody(table, sql).match(re);
   if (!match) throw new Error(`no CHECK IN clause for ${table}.${column}`);
@@ -38,7 +39,7 @@ function checkList(table: string, column: string, sql = MIGRATION_0003): string[
 }
 
 describe('trace schemas (R-17)', () => {
-  it('Zod enums equal the 0003_trace CHECK lists', () => {
+  it('Zod enums equal the trace tables CHECK lists', () => {
     expect(TraceServer.options).toEqual(checkList('trace_boots', 'server'));
     expect(TraceLevel.options).toEqual(checkList('trace_boots', 'trace_level'));
     expect(PwTraceMode.options).toEqual(checkList('trace_boots', 'pw_trace'));
@@ -53,7 +54,7 @@ describe('trace schemas (R-17)', () => {
     started_at: ts,
     ended_at: null,
     environment: 'sandbox',
-    server: 'pathfinder',
+    server: 'mudpuppy',
     pid: 123,
     version: '0.1.0',
     trace_level: 'standard',

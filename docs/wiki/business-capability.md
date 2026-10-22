@@ -20,7 +20,7 @@ how: "quote car insurance", "handle customer enquiries". Capabilities are stable
 screens and systems that deliver them change. Business capability analysis maps them to see what
 the business offers, where it is strong or weak, and which parts of a system serve which capability.
 
-## How Pathfinder uses it
+## How MudPuppy uses it
 
 In pass 2 the BA agent groups the screens it documented into `CAP` records: the things the portal
 lets its users do. Each capability is linked to the screens and processes that deliver it

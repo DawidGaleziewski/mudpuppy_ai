@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { looksLikeRawPayload } from '@pathfinder/core';
+import { looksLikeRawPayload } from '@mudpuppy/core';
 import { shapeOf, shapeOfBody } from '../src/shape.js';
 
 describe('shapeOf', () => {

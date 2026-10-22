@@ -175,28 +175,28 @@ importers:
       '@modelcontextprotocol/sdk':
         specifier: ^1.30.0
         version: 1.30.0(zod@4.6.5)
-      '@pathfinder/chat-model':
+      '@mudpuppy/chat-model':
         specifier: workspace:*
         version: link:../crawler/packages/chat-model
-      '@pathfinder/config':
+      '@mudpuppy/config':
         specifier: workspace:*
         version: link:../crawler/packages/config
-      '@pathfinder/core':
+      '@mudpuppy/core':
         specifier: workspace:*
         version: link:../crawler/packages/core
-      '@pathfinder/docs':
+      '@mudpuppy/docs':
         specifier: workspace:*
         version: link:../crawler/packages/docs
-      '@pathfinder/docs-model':
+      '@mudpuppy/docs-model':
         specifier: workspace:*
         version: link:../crawler/packages/docs-model
-      '@pathfinder/store':
+      '@mudpuppy/store':
         specifier: workspace:*
         version: link:../crawler/packages/store
-      '@pathfinder/vault':
+      '@mudpuppy/vault':
         specifier: workspace:*
         version: link:../crawler/packages/vault
-      '@pathfinder/workflow':
+      '@mudpuppy/workflow':
         specifier: workspace:*
         version: link:../../packages/workflow
       yaml:
@@ -239,28 +239,28 @@ importers:
       '@eslint/js':
         specifier: ^10.0.1
         version: 10.0.1(eslint@10.11.0)
-      '@pathfinder/config':
+      '@mudpuppy/config':
         specifier: workspace:*
         version: link:packages/config
-      '@pathfinder/core':
+      '@mudpuppy/core':
         specifier: workspace:*
         version: link:packages/core
-      '@pathfinder/docs':
+      '@mudpuppy/docs':
         specifier: workspace:*
         version: link:packages/docs
-      '@pathfinder/doctor':
+      '@mudpuppy/doctor':
         specifier: workspace:*
         version: link:packages/doctor
-      '@pathfinder/gates':
+      '@mudpuppy/gates':
         specifier: workspace:*
         version: link:packages/gates
-      '@pathfinder/mcp-server':
+      '@mudpuppy/mcp-server':
         specifier: workspace:*
         version: link:packages/mcp-server
-      '@pathfinder/store':
+      '@mudpuppy/store':
         specifier: workspace:*
         version: link:packages/store
-      '@pathfinder/vault':
+      '@mudpuppy/vault':
         specifier: workspace:*
         version: link:packages/vault
       '@stryker-mutator/core':
@@ -299,7 +299,7 @@ importers:
 
   apps/crawler/packages/chat-model:
     dependencies:
-      '@pathfinder/core':
+      '@mudpuppy/core':
         specifier: workspace:*
         version: link:../core
       zod:
@@ -308,10 +308,10 @@ importers:
 
   apps/crawler/packages/config:
     dependencies:
-      '@pathfinder/core':
+      '@mudpuppy/core':
         specifier: workspace:*
         version: link:../core
-      '@pathfinder/fingerprint':
+      '@mudpuppy/fingerprint':
         specifier: workspace:*
         version: link:../fingerprint
       yaml:
@@ -335,22 +335,22 @@ importers:
 
   apps/crawler/packages/crawler:
     dependencies:
-      '@pathfinder/config':
+      '@mudpuppy/config':
         specifier: workspace:*
         version: link:../config
-      '@pathfinder/core':
+      '@mudpuppy/core':
         specifier: workspace:*
         version: link:../core
-      '@pathfinder/fingerprint':
+      '@mudpuppy/fingerprint':
         specifier: workspace:*
         version: link:../fingerprint
-      '@pathfinder/obstacles':
+      '@mudpuppy/obstacles':
         specifier: workspace:*
         version: link:../obstacles
-      '@pathfinder/safety':
+      '@mudpuppy/safety':
         specifier: workspace:*
         version: link:../safety
-      '@pathfinder/store':
+      '@mudpuppy/store':
         specifier: workspace:*
         version: link:../store
       pino:
@@ -362,16 +362,16 @@ importers:
 
   apps/crawler/packages/docs:
     dependencies:
-      '@pathfinder/core':
+      '@mudpuppy/core':
         specifier: workspace:*
         version: link:../core
-      '@pathfinder/docs-model':
+      '@mudpuppy/docs-model':
         specifier: workspace:*
         version: link:../docs-model
-      '@pathfinder/fingerprint':
+      '@mudpuppy/fingerprint':
         specifier: workspace:*
         version: link:../fingerprint
-      '@pathfinder/store':
+      '@mudpuppy/store':
         specifier: workspace:*
         version: link:../store
       kysely:
@@ -393,7 +393,7 @@ importers:
 
   apps/crawler/packages/docs-model:
     dependencies:
-      '@pathfinder/core':
+      '@mudpuppy/core':
         specifier: workspace:*
         version: link:../core
       zod:
@@ -402,7 +402,7 @@ importers:
 
   apps/crawler/packages/doctor:
     dependencies:
-      '@pathfinder/config':
+      '@mudpuppy/config':
         specifier: workspace:*
         version: link:../config
       better-sqlite3:
@@ -420,13 +420,13 @@ importers:
 
   apps/crawler/packages/fix-plugins:
     dependencies:
-      '@pathfinder/config':
+      '@mudpuppy/config':
         specifier: workspace:*
         version: link:../config
-      '@pathfinder/hooks':
+      '@mudpuppy/hooks':
         specifier: workspace:*
         version: link:../hooks
-      '@pathfinder/safety':
+      '@mudpuppy/safety':
         specifier: workspace:*
         version: link:../safety
       zod:
@@ -438,28 +438,28 @@ importers:
       '@modelcontextprotocol/sdk':
         specifier: ^1.30.0
         version: 1.30.0(zod@4.6.5)
-      '@pathfinder/config':
+      '@mudpuppy/config':
         specifier: workspace:*
         version: link:../config
-      '@pathfinder/core':
+      '@mudpuppy/core':
         specifier: workspace:*
         version: link:../core
-      '@pathfinder/crawler':
+      '@mudpuppy/crawler':
         specifier: workspace:*
         version: link:../crawler
-      '@pathfinder/docs':
+      '@mudpuppy/docs':
         specifier: workspace:*
         version: link:../docs
-      '@pathfinder/mcp-server':
+      '@mudpuppy/mcp-server':
         specifier: workspace:*
         version: link:../mcp-server
-      '@pathfinder/reference-portal':
+      '@mudpuppy/reference-portal':
         specifier: workspace:*
         version: link:../reference-portal
-      '@pathfinder/store':
+      '@mudpuppy/store':
         specifier: workspace:*
         version: link:../store
-      '@pathfinder/vault':
+      '@mudpuppy/vault':
         specifier: workspace:*
         version: link:../vault
       pino:
@@ -481,10 +481,10 @@ importers:
 
   apps/crawler/packages/hooks:
     dependencies:
-      '@pathfinder/config':
+      '@mudpuppy/config':
         specifier: workspace:*
         version: link:../config
-      '@pathfinder/safety':
+      '@mudpuppy/safety':
         specifier: workspace:*
         version: link:../safety
       zod:
@@ -496,62 +496,62 @@ importers:
       '@modelcontextprotocol/sdk':
         specifier: ^1.30.0
         version: 1.30.0(zod@4.6.5)
-      '@pathfinder/chat-model':
+      '@mudpuppy/chat-model':
         specifier: workspace:*
         version: link:../chat-model
-      '@pathfinder/config':
+      '@mudpuppy/config':
         specifier: workspace:*
         version: link:../config
-      '@pathfinder/core':
+      '@mudpuppy/core':
         specifier: workspace:*
         version: link:../core
-      '@pathfinder/crawler':
+      '@mudpuppy/crawler':
         specifier: workspace:*
         version: link:../crawler
-      '@pathfinder/docs':
+      '@mudpuppy/docs':
         specifier: workspace:*
         version: link:../docs
-      '@pathfinder/docs-model':
+      '@mudpuppy/docs-model':
         specifier: workspace:*
         version: link:../docs-model
-      '@pathfinder/fingerprint':
+      '@mudpuppy/fingerprint':
         specifier: workspace:*
         version: link:../fingerprint
-      '@pathfinder/fix-plugins':
+      '@mudpuppy/fix-plugins':
         specifier: workspace:*
         version: link:../fix-plugins
-      '@pathfinder/hooks':
+      '@mudpuppy/hooks':
         specifier: workspace:*
         version: link:../hooks
-      '@pathfinder/model':
+      '@mudpuppy/model':
         specifier: workspace:*
         version: link:../model
-      '@pathfinder/obstacles':
+      '@mudpuppy/obstacles':
         specifier: workspace:*
         version: link:../obstacles
-      '@pathfinder/probes':
+      '@mudpuppy/probes':
         specifier: workspace:*
         version: link:../probes
-      '@pathfinder/safety':
+      '@mudpuppy/safety':
         specifier: workspace:*
         version: link:../safety
-      '@pathfinder/store':
+      '@mudpuppy/store':
         specifier: workspace:*
         version: link:../store
-      '@pathfinder/trace':
+      '@mudpuppy/trace':
         specifier: workspace:*
         version: link:../trace
-      '@pathfinder/vault':
+      '@mudpuppy/vault':
         specifier: workspace:*
         version: link:../vault
-      '@pathfinder/wireframe':
+      '@mudpuppy/wireframe':
         specifier: workspace:*
         version: link:../wireframe
       zod:
         specifier: ^4.6.5
         version: 4.6.5
     devDependencies:
-      '@pathfinder/reference-portal':
+      '@mudpuppy/reference-portal':
         specifier: workspace:*
         version: link:../reference-portal
       tsx:
@@ -560,7 +560,7 @@ importers:
 
   apps/crawler/packages/model:
     dependencies:
-      '@pathfinder/core':
+      '@mudpuppy/core':
         specifier: workspace:*
         version: link:../core
 
@@ -572,7 +572,7 @@ importers:
 
   apps/crawler/packages/probes:
     dependencies:
-      '@pathfinder/core':
+      '@mudpuppy/core':
         specifier: workspace:*
         version: link:../core
 
@@ -594,31 +594,31 @@ importers:
 
   apps/crawler/packages/safety:
     dependencies:
-      '@pathfinder/config':
+      '@mudpuppy/config':
         specifier: workspace:*
         version: link:../config
-      '@pathfinder/core':
+      '@mudpuppy/core':
         specifier: workspace:*
         version: link:../core
 
   apps/crawler/packages/store:
     dependencies:
-      '@pathfinder/chat-model':
+      '@mudpuppy/chat-model':
         specifier: workspace:*
         version: link:../chat-model
-      '@pathfinder/core':
+      '@mudpuppy/core':
         specifier: workspace:*
         version: link:../core
-      '@pathfinder/docs-model':
+      '@mudpuppy/docs-model':
         specifier: workspace:*
         version: link:../docs-model
-      '@pathfinder/fingerprint':
+      '@mudpuppy/fingerprint':
         specifier: workspace:*
         version: link:../fingerprint
-      '@pathfinder/model':
+      '@mudpuppy/model':
         specifier: workspace:*
         version: link:../model
-      '@pathfinder/trace':
+      '@mudpuppy/trace':
         specifier: workspace:*
         version: link:../trace
       better-sqlite3:
@@ -640,7 +640,7 @@ importers:
 
   apps/crawler/packages/trace:
     dependencies:
-      '@pathfinder/core':
+      '@mudpuppy/core':
         specifier: workspace:*
         version: link:../core
       zod:
@@ -649,13 +649,13 @@ importers:
 
   apps/crawler/packages/vault:
     dependencies:
-      '@pathfinder/config':
+      '@mudpuppy/config':
         specifier: workspace:*
         version: link:../config
-      '@pathfinder/core':
+      '@mudpuppy/core':
         specifier: workspace:*
         version: link:../core
-      '@pathfinder/store':
+      '@mudpuppy/store':
         specifier: workspace:*
         version: link:../store
       kysely:
@@ -671,7 +671,7 @@ importers:
 
   apps/crawler/packages/wireframe:
     dependencies:
-      '@pathfinder/core':
+      '@mudpuppy/core':
         specifier: workspace:*
         version: link:../core
 

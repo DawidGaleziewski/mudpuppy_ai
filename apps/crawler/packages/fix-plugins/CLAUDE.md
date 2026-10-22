@@ -1,4 +1,4 @@
-# @pathfinder/fix-plugins
+# @mudpuppy/fix-plugins
 
 Tested, reusable fixes for portal-specific scars (spec 030 R-59): each plugin is a function of the
 client's data (validated parameters from the portal file's `fixes:` list) that returns ordinary

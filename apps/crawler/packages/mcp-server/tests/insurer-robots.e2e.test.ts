@@ -50,7 +50,7 @@ describe.skipIf(!available)('insurer mock: robots.txt (spec 002 US1, SC-001, SC-
           .executeTakeFirstOrThrow();
         const snap = JSON.parse(run.config_snapshot) as Body;
         expect(snap.robots).toMatchObject({
-          product_token: 'PathfinderAI-Crawler',
+          product_token: 'MudPuppy-Crawler',
           page_requests: 'block',
           policies: [{ outcome: 'rules' }],
         });

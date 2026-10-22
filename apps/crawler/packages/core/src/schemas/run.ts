@@ -38,7 +38,7 @@ export const Run = z
     started_at: Timestamp,
     ended_at: Timestamp.nullable(),
     coverage: JsonValue.nullable(),
-    /** The pathfinder server instance driving the run and its process id (0009, F-14). */
+    /** The mudpuppy server instance driving the run and its process id (0009, F-14). */
     owner_id: z.string().min(1).nullable(),
     owner_pid: z.number().int().positive().nullable(),
     /** 0027 (spec 034): the kind of directed run; null = a plain run (full map or trace by `mode`). */

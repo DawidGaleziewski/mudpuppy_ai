@@ -1,5 +1,5 @@
 import { afterAll, beforeAll, expect } from 'vitest';
-import { reconcilePortalModel } from '@pathfinder/store';
+import { reconcilePortalModel } from '@mudpuppy/store';
 import {
   actOn,
   gate,

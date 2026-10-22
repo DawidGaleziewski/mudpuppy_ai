@@ -55,7 +55,7 @@ The assistant uses your Claude Code login, so be logged in to Claude Code on thi
 
 Portals are files in `portals/<portal>/portal.yaml` (see [portal-config.md](portal-config.md)).
 A portal that needs a logged-in user also needs the vault key; the first
-`pnpm --dir apps/crawler vault …` call creates it (`~/.config/pathfinder/vault.key`).
+`pnpm --dir apps/crawler vault …` call creates it (`~/.config/mudpuppy/vault.key`).
 
 ## 3. Start the tools
 
@@ -63,11 +63,11 @@ Use three terminals (the third only for practice), all from the repo root:
 
 ```bash
 # 1. dashboard: pick the environment whose data you want to see
-cd apps/dashboard && uv run pathfinder-dashboard --env sandbox
-#    changes you make are signed "unknown"; add PATHFINDER_REVIEWER="Your Name" in front to sign them
+cd apps/dashboard && uv run mudpuppy-dashboard --env sandbox
+#    changes you make are signed "unknown"; add MUDPUPPY_REVIEWER="Your Name" in front to sign them
 
 # 2. chat service (the assistant needs it)
-PATHFINDER_ENV=sandbox pnpm --dir apps/chat start   # required: the environment to work on
+MUDPUPPY_ENV=sandbox pnpm --dir apps/chat start   # required: the environment to work on
 
 # 3. only for practice: the reference portal
 pnpm --dir apps/crawler reference-portal    # http://127.0.0.1:4010
@@ -470,7 +470,7 @@ process from fewer scans: the server refuses a revision that silently drops evid
 
 Records start as drafts. You confirm or reject them in **Review** (section 13). A rejection,
 with its reason, goes back to the BA agent the next time it runs. Confirming and rejecting
-are signed with `PATHFINDER_REVIEWER` ("unknown" when it is not set).
+are signed with `MUDPUPPY_REVIEWER` ("unknown" when it is not set).
 
 ## 12. Write down the changes you want (amendments)
 
@@ -607,7 +607,7 @@ a process exports from its page as Markdown (section 10).
 ## 16. Stop everything
 
 Press **Ctrl+C** in each terminal. A scan the chat started ends with it and becomes
-*Interrupted*, so it can be resumed later. The chat's `pathfinder` servers stop with the chat
+*Interrupted*, so it can be resumed later. The chat's `mudpuppy` servers stop with the chat
 service, however it is stopped: each one closes its browser, marks its own running scan
 interrupted and exits. After a crash or a hard kill, check that nothing was left behind:
 
@@ -615,7 +615,7 @@ interrupted and exits. After a crash or a hard kill, check that nothing was left
 pgrep -af "mcp-server|chrome-headless-shell"
 ```
 
-A leftover `pathfinder` server from the chat (its parent is gone) can be stopped with
+A leftover `mudpuppy` server from the chat (its parent is gone) can be stopped with
 `kill <pid>`. Servers started by other Claude Code sessions belong to those sessions; leave
 them alone.
 
@@ -623,7 +623,7 @@ them alone.
 
 | You see | What to do |
 | --- | --- |
-| **Assistant down** in the header, or "Assistant not running" | Start `PATHFINDER_ENV=sandbox pnpm --dir apps/chat start` (your environment), reload the page. Read-only pages keep working. |
+| **Assistant down** in the header, or "Assistant not running" | Start `MUDPUPPY_ENV=sandbox pnpm --dir apps/chat start` (your environment), reload the page. Read-only pages keep working. |
 | "The assistant has used up its Claude usage limit. It resets …" | The Claude account behind the chat is out of usage. Wait until the time shown, then send again. |
 | Nothing recorded for 5 minutes | The assistant or the crawler may be stuck. Press **Stop**, then ask to resume the scan. |
 | The assistant seems confused | Press **Reset context**: fresh memory, same portal. |

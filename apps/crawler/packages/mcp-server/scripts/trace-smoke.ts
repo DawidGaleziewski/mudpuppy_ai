@@ -1,5 +1,5 @@
 /**
- * Scripted trace runs on the reference portal through the REAL `pathfinder` server entrypoint
+ * Scripted trace runs on the reference portal through the REAL `mudpuppy` server entrypoint
  * (stdio, the command `.mcp.json` uses), making the same tool calls the crawler agent makes in
  * trace mode. A check of R-14 end to end on a real store, without an LLM in the loop.
  *
@@ -27,7 +27,7 @@ await client.connect(
     args: ['--silent', '--dir', SERVER_DIR, 'start'],
     env: {
       ...(process.env as Record<string, string>),
-      PATHFINDER_ENV: production ? 'production' : 'sandbox',
+      MUDPUPPY_ENV: production ? 'production' : 'sandbox',
     },
     stderr: 'ignore',
   }),

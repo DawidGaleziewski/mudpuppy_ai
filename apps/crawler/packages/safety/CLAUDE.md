@@ -1,4 +1,4 @@
-# @pathfinder/safety
+# @mudpuppy/safety
 
 Pure action classifier, rule set (built-in + portal rules), robots.txt parsing, scope checks, denylist, block detector.
 

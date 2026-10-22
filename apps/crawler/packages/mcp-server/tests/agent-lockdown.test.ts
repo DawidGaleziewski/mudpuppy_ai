@@ -33,15 +33,15 @@ describe('crawler subagent lockdown', () => {
     expect((fm.tools as string).trim()).not.toBe('');
   });
 
-  it('lists exactly the agent-facing pathfinder tools of contracts/mcp-tools.md', () => {
+  it('lists exactly the agent-facing mudpuppy tools of contracts/mcp-tools.md', () => {
     const tools = (fm.tools as string).split(',').map((t) => t.trim());
-    expect(tools.sort()).toEqual(AGENT_TOOL_NAMES.map((n) => `mcp__pathfinder__${n}`).sort());
+    expect(tools.sort()).toEqual(AGENT_TOOL_NAMES.map((n) => `mcp__mudpuppy__${n}`).sort());
   });
 
   it('has no shell, file, web, other-MCP or wildcard tool', () => {
     for (const t of (fm.tools as string).split(',').map((s) => s.trim())) {
       expect(t).not.toMatch(FORBIDDEN);
-      expect(t.startsWith('mcp__pathfinder__')).toBe(true);
+      expect(t.startsWith('mcp__mudpuppy__')).toBe(true);
       expect(t).not.toContain('*');
     }
     expect(fm).not.toHaveProperty('disallowedTools');
@@ -118,12 +118,12 @@ describe('crawler subagent lockdown', () => {
     for (const args of seen) expect(args).not.toHaveProperty('rationale');
   });
 
-  it('.mcp.json registers only the pathfinder server for the crawler to reach', () => {
+  it('.mcp.json registers only the mudpuppy server for the crawler to reach', () => {
     const mcp = JSON.parse(readFileSync(repoFile('.mcp.json'), 'utf8')) as {
       mcpServers: Record<string, { type?: string; command: string }>;
     };
-    expect(Object.keys(mcp.mcpServers)).toContain('pathfinder');
-    expect(mcp.mcpServers.pathfinder!.type ?? 'stdio').toBe('stdio');
+    expect(Object.keys(mcp.mcpServers)).toContain('mudpuppy');
+    expect(mcp.mcpServers.mudpuppy!.type ?? 'stdio').toBe('stdio');
     // no other server may hand the crawler a browser or network path
     expect(
       Object.keys(mcp.mcpServers).filter((n) => /playwright|browser|puppeteer|fetch|http/i.test(n)),

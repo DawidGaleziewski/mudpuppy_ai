@@ -11,8 +11,8 @@ from pathlib import Path
 import pytest
 from fastapi.testclient import TestClient
 
-from pathfinder_dashboard.app import create_app
-from pathfinder_dashboard.settings import Settings
+from mudpuppy_dashboard.app import create_app
+from mudpuppy_dashboard.settings import Settings
 
 from .paths import REPO_ROOT
 
@@ -28,7 +28,7 @@ def _no_machine_eval_workspaces(
 ) -> None:
     """The store picker lists eval workspaces under the system temp dir (spec 019); tests see an
     empty one unless they build their own, so real `pnpm eval` leftovers never leak in."""
-    monkeypatch.setenv("PATHFINDER_EVAL_ROOT", str(tmp_path_factory.mktemp("no-evals")))
+    monkeypatch.setenv("MUDPUPPY_EVAL_ROOT", str(tmp_path_factory.mktemp("no-evals")))
 
 
 def ts(minute: int, second: int = 0) -> str:
@@ -151,7 +151,7 @@ DEFAULTS: dict[str, dict[str, object]] = {
         "final_url": "https://www.liveinsurer.example/robots.txt",
         "outcome": "rules",
         "http_status": 200,
-        "product_token": "pathfinder",
+        "product_token": "mudpuppy",
         "group_used": "*",
         "crawl_delay_s": None,
         "ignored_lines": 0,
@@ -164,7 +164,7 @@ DEFAULTS: dict[str, dict[str, object]] = {
         "started_at": T0,
         "ended_at": None,
         "environment": "production",
-        "server": "pathfinder",
+        "server": "mudpuppy",
         "pid": 1,
         "version": "0.0.0",
         "trace_level": "standard",

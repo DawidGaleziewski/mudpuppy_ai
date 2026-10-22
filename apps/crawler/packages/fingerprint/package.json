@@ -1,5 +1,5 @@
 {
-  "name": "@pathfinder/fingerprint",
+  "name": "@mudpuppy/fingerprint",
   "version": "0.0.0",
   "private": true,
   "description": "Pure state fingerprinting: route templates, ARIA canonicalization, two-level fingerprint",

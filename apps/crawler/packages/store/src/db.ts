@@ -5,11 +5,11 @@ import { dirname, join } from 'node:path';
 import type { Database } from './db-types.js';
 import { secretsPlugin } from './secrets-plugin.js';
 
-export type PathfinderDb = Kysely<Database>;
+export type MudPuppyDb = Kysely<Database>;
 
 export interface OpenedDb {
   /** Query builder for app code. */
-  db: PathfinderDb;
+  db: MudPuppyDb;
   /** Raw connection, used by the migration runner and for synchronous transactions. */
   raw: BetterSqlite3.Database;
   close(): Promise<void>;

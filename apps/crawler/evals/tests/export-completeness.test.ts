@@ -1,11 +1,11 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import type { GroundTruth } from '@pathfinder/docs';
+import type { GroundTruth } from '@mudpuppy/docs';
 import {
   addStepVariant,
   makeFixtureStore,
   seedDocRecords,
   type FixtureStore,
-} from '@pathfinder/docs/testing';
+} from '@mudpuppy/docs/testing';
 import { scoreExport } from '../graders/code/export-completeness.js';
 import { scoreVariants } from '../graders/code/process-variants.js';
 

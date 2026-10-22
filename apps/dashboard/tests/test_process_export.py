@@ -1,6 +1,6 @@
 """Spec 034 R-68: a process in the export's layout, one tab per file, its pictures and a zip. The
 export command is replaced by a fake that writes a small folder (the real one is tested in
-@pathfinder/docs)."""
+@mudpuppy/docs)."""
 
 from __future__ import annotations
 
@@ -10,7 +10,7 @@ from pathlib import Path
 
 import pytest
 
-from pathfinder_dashboard import process_export
+from mudpuppy_dashboard import process_export
 
 from .conftest import Store, make_client
 

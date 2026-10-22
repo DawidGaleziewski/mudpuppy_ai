@@ -1,7 +1,7 @@
 // Checks of the way to the portal (field GC-03/04/05 proxy and allowlist, GC-07 WAF User-Agent,
 // GC-12 TLS inspection). Each reports what it saw and the portal-file setting that fixes it.
 
-import { readTrustedCa } from '@pathfinder/config';
+import { readTrustedCa } from '@mudpuppy/config';
 import type { Check, DoctorContext } from '../registry.js';
 import { tlsChainProbe } from '../tls-chain.js';
 
@@ -12,7 +12,7 @@ const BROWSER_UA =
 const TLS_CODES = /CERT|SELF_SIGNED|UNABLE_TO_VERIFY|UNABLE_TO_GET_ISSUER/;
 
 const crawlerUa = (ctx: DoctorContext): string =>
-  ctx.portal.rate_limit?.user_agent ?? 'PathfinderAI-Crawler/0.1';
+  ctx.portal.rate_limit?.user_agent ?? 'MudPuppy-Crawler/0.1';
 
 const direct = (ctx: DoctorContext) =>
   ctx.facts.get('direct') as { status: number } | { error: string; code?: string } | undefined;

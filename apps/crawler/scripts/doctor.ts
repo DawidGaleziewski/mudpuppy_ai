@@ -6,8 +6,8 @@
  * Exit 0 when nothing failed, 1 when a check failed, 2 on bad usage or an unreadable portal file.
  */
 import { join, resolve } from 'node:path';
-import { ConfigError, loadPortal, portalEnvironments } from '@pathfinder/config';
-import { CHECKS, formatReport, httpProbe, runChecks } from '@pathfinder/doctor';
+import { ConfigError, loadPortal, portalEnvironments } from '@mudpuppy/config';
+import { CHECKS, formatReport, httpProbe, runChecks } from '@mudpuppy/doctor';
 
 const args = process.argv.slice(2);
 const envIdx = args.indexOf('--env');
@@ -26,7 +26,7 @@ const file = join(root, 'portals', portalId, 'portal.yaml');
 try {
   const declared = portalEnvironments(file).map((e) => e.environment);
   const environment =
-    envArg ?? process.env.PATHFINDER_ENV ?? (declared.length === 1 ? declared[0] : undefined);
+    envArg ?? process.env.MUDPUPPY_ENV ?? (declared.length === 1 ? declared[0] : undefined);
   if (environment === undefined) {
     console.error(`${portalId} has several environments (${declared.join(', ')}): pass --env`);
     process.exit(2);

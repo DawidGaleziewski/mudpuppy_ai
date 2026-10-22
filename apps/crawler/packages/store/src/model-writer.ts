@@ -1,12 +1,12 @@
 /**
  * The reconciler's writer (spec 039 design § 7): load a portal's Layer A evidence and recorded
- * decisions, run `reconcile` from `@pathfinder/model`, and write the difference as one new model
+ * decisions, run `reconcile` from `@mudpuppy/model`, and write the difference as one new model
  * version in one transaction. When nothing was recorded or decided since the last version, it
  * writes nothing (idempotence, design § 19.2). `rebuild` ignores that check and re-derives every
  * status; the registry (`model_screens`, `action_classes`, the `model_transitions` key) keeps ids.
  */
 import type BetterSqlite3 from 'better-sqlite3';
-import { newId, nowIso } from '@pathfinder/core';
+import { newId, nowIso } from '@mudpuppy/core';
 import {
   MODEL_DEFAULTS,
   compare,
@@ -16,7 +16,7 @@ import {
   type ReconcileInput,
   type ReconcileOutput,
   type SimilarityClassifier,
-} from '@pathfinder/model';
+} from '@mudpuppy/model';
 
 import { activeProfile, LEGACY_PROFILE, tauInForce } from './fingerprint-profiles.js';
 import { interpretVersion, modelSnapshot, type InterpretStats } from './interpret-writer.js';

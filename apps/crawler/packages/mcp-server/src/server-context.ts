@@ -1,11 +1,11 @@
-// What a running pathfinder server stands on: the environment's store (migrated), the evidence
+// What a running mudpuppy server stands on: the environment's store (migrated), the evidence
 // store, the tracer and the decision log, registered with the data directory's server registry.
 // Shared by the stdio server and the in-process client the trace driver uses (spec 030 R-64).
 
 import { mkdirSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { createEvidenceStore, createLogger, newId, type Logger } from '@pathfinder/core';
+import { createEvidenceStore, createLogger, newId, type Logger } from '@mudpuppy/core';
 import {
   createDecisionLog,
   createTracer,
@@ -14,7 +14,7 @@ import {
   migrateUp,
   openDb,
   uvMiner,
-} from '@pathfinder/store';
+} from '@mudpuppy/store';
 import type { ServerContext } from './context.js';
 import { interruptStaleRuns } from './services/index.js';
 import { registerServer } from './services/server-registry.js';
@@ -42,11 +42,11 @@ export async function openServerContext(opts: {
   const evidence = createEvidenceStore(join(dataDir, 'evidence'));
   const trace = traceConfigFromEnv(process.env);
   if (trace.invalidLevel)
-    logger.warn({ value: trace.invalidLevel }, 'unknown PATHFINDER_TRACE_LEVEL, using standard');
+    logger.warn({ value: trace.invalidLevel }, 'unknown MUDPUPPY_TRACE_LEVEL, using standard');
   const tracer = createTracer({ db: opened.db, logger, evidence, level: trace.level });
   await tracer.start({
     environment: opts.environment,
-    server: 'pathfinder',
+    server: 'mudpuppy',
     version: serverVersion(root),
   });
   const ctx: ServerContext = {
@@ -67,7 +67,7 @@ export async function openServerContext(opts: {
     pid: process.pid,
     environment: opts.environment,
     codeRoot: fileURLToPath(new URL('../../../../..', import.meta.url)),
-    server: 'pathfinder',
+    server: 'mudpuppy',
     startedAt: new Date().toISOString(),
   });
   for (const w of registered.warnings)

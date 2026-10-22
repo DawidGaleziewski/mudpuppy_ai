@@ -29,7 +29,7 @@ denylist: []
 rate_limit:
   requests_per_second: 5
   max_concurrency: 2
-  user_agent: "PathfinderAI-Crawler/0.1 (local scar-maker)"
+  user_agent: "MudPuppy-Crawler/0.1 (local scar-maker)"
 
 login:
   url: "/sc16/login"

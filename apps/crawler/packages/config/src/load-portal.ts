@@ -1,6 +1,6 @@
 import { dirname, isAbsolute, resolve } from 'node:path';
 import { z } from 'zod';
-import { SafetyClass } from '@pathfinder/core';
+import { SafetyClass } from '@mudpuppy/core';
 import { ConfigError, zodProblems } from './errors.js';
 import { Environment, PortalConfig } from './portal-schema.js';
 import { readYaml } from './read.js';

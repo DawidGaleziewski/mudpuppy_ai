@@ -5,9 +5,9 @@
  * process (PRC) per trace, named after it, its as-is A r1 the screens the run walked in order.
  */
 import { join } from 'node:path';
-import { newId, nowIso } from '@pathfinder/core';
-import { runStates } from '@pathfinder/mcp-server';
-import { dbPathFor, openDb } from '@pathfinder/store';
+import { newId, nowIso } from '@mudpuppy/core';
+import { runStates } from '@mudpuppy/mcp-server';
+import { dbPathFor, openDb } from '@mudpuppy/store';
 import type { EvalConfig } from '../config.js';
 
 /** What the grouping step needs of a trace: its name and its run. */

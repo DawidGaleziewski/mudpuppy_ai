@@ -490,7 +490,7 @@ def test_run_process_tab_empty_state_for_a_map_run(ba_client: TestClient) -> Non
 
 def test_review_panel_disabled_with_hint_when_no_reviewer(no_reviewer_client: TestClient) -> None:
     html = no_reviewer_client.get(f"/docs/{P}/REQ-001").text
-    assert "PATHFINDER_REVIEWER" in html and "no reviewer is set" in html
+    assert "MUDPUPPY_REVIEWER" in html and "no reviewer is set" in html
     panel = html[html.index('id="region-reviews"') :]
     assert panel.count("disabled") >= 5  # three buttons, two textareas (comment too)
 

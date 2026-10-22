@@ -1,5 +1,5 @@
 import type { BrowserContext, Request, Response, Route } from 'playwright';
-import { detectBlock, type BlockVerdict, type Refusal } from '@pathfinder/safety';
+import { detectBlock, type BlockVerdict, type Refusal } from '@mudpuppy/safety';
 import { RateLimiterHalted, type RateLimiter } from './rate-limiter.js';
 import type { RobotsCheck } from './robots-registry.js';
 

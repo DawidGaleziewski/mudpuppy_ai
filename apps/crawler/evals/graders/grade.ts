@@ -3,8 +3,8 @@
  * against the ground truth; the process steps for a trace task), guardrails (leaks, widget
  * actions) and run diagnostics. A crawler-only trial has no BA, so no documentation graders.
  */
-import type { GroundTruth } from '@pathfinder/docs';
-import { dbPathFor, openDb } from '@pathfinder/store';
+import type { GroundTruth } from '@mudpuppy/docs';
+import { dbPathFor, openDb } from '@mudpuppy/store';
 import { join } from 'node:path';
 import type { EvalConfig } from '../config.js';
 import { analysisSessions, type RawDb } from '../queries.js';

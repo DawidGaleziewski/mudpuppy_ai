@@ -1,5 +1,5 @@
-import { maskText } from '@pathfinder/core';
-import { emitForRun } from '@pathfinder/store';
+import { maskText } from '@mudpuppy/core';
+import { emitForRun } from '@mudpuppy/store';
 import type { ServerContext } from '../../context.js';
 import { ToolError } from '../../errors.js';
 import {

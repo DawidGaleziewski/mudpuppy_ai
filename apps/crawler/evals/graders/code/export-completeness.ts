@@ -15,7 +15,7 @@
  *   step of the same process has (owner review
  *   2026-10-17: a page shown twice is a variant or an error state the export failed to fold).
  */
-import { exportProcess, loadProcessExport, processKeys } from '@pathfinder/docs';
+import { exportProcess, loadProcessExport, processKeys } from '@mudpuppy/docs';
 import type { RawDb } from '../../queries.js';
 
 export interface Score {

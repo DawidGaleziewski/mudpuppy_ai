@@ -1,7 +1,7 @@
 import { mkdirSync, mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
-import { dbPathFor, migrateUp, openDb } from '@pathfinder/store';
+import { dbPathFor, migrateUp, openDb } from '@mudpuppy/store';
 import { afterAll, beforeAll, expect, it } from 'vitest';
 import type { EvalConfig } from '../config.js';
 import { groupTraceRuns } from '../harness/group-traces.js';

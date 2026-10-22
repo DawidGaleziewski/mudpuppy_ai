@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import type { OpenedDb } from '@pathfinder/store';
+import type { OpenedDb } from '@mudpuppy/store';
 import type { ErrorInput } from '../src/error-log.js';
 import type { ChatEvent } from '../src/events.js';
 import { StepRecorder } from '../src/step-recorder.js';
@@ -343,7 +343,7 @@ describe('StepRecorder.observe', () => {
     expect(
       await recorder.observe(CONV, {
         ...started,
-        tool: 'mcp__pathfinder-chat__workflow_state',
+        tool: 'mcp__mudpuppy-chat__workflow_state',
         agent: null,
       }),
     ).toEqual([]);

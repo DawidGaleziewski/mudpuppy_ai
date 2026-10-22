@@ -3,8 +3,8 @@ the Markdown export with as-is, to-be, delta, records and migration cut (FE-P03)
 
 from __future__ import annotations
 
-from pathfinder_dashboard.change_spec import SpecInput, generate, to_markdown
-from pathfinder_dashboard.process_diff import diff
+from mudpuppy_dashboard.change_spec import SpecInput, generate, to_markdown
+from mudpuppy_dashboard.process_diff import diff
 
 A = [
     {"id": "s1", "title": "Home", "route": "/", "state_id": "st-1", "observed": True, "from": []},

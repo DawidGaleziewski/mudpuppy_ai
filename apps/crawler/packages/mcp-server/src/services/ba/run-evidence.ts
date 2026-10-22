@@ -1,4 +1,4 @@
-import { parameterInventory, type VisitRow } from '@pathfinder/docs';
+import { parameterInventory, type VisitRow } from '@mudpuppy/docs';
 import { z } from 'zod';
 import type { BaContext } from '../../context.js';
 import { ToolError, parseInput } from '../../errors.js';

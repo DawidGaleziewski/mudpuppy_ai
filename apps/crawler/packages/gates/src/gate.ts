@@ -20,7 +20,7 @@ function record(id: string, title: string, result: CaseResult, ms: number, note?
 }
 
 /** `pnpm test:slow` sets this: cases marked `slow` run only then (spec 009 SC-006). */
-const SLOW = process.env.PATHFINDER_SLOW_GATES === '1';
+const SLOW = process.env.MUDPUPPY_SLOW_GATES === '1';
 
 interface CaseOpts {
   timeout?: number;
@@ -40,7 +40,7 @@ function skipped(id: string, title: string, opts: CaseOpts): boolean {
 }
 
 /**
- * One gate case: the behaviour Pathfinder must keep for a catalogued obstacle or a logged finding
+ * One gate case: the behaviour MudPuppy must keep for a catalogued obstacle or a logged finding
  * (spec 009 FR-024). Fails the test run when broken; the test name starts with the id.
  */
 export function gate(
@@ -67,7 +67,7 @@ export function gate(
 }
 
 /**
- * A known gap: Pathfinder does not handle this obstacle yet. The assertions describe the WANTED
+ * A known gap: MudPuppy does not handle this obstacle yet. The assertions describe the WANTED
  * behaviour and are expected to fail; the run stays green and the report lists the gap. The day
  * they pass, this case fails ("gap fixed") so it is promoted to `gate()` and kept from then on.
  */

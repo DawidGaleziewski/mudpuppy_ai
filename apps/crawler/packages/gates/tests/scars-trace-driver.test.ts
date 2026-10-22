@@ -1,6 +1,6 @@
 import { join } from 'node:path';
-import { loadTraces } from '@pathfinder/config';
-import { driveTrace, suggestTraceGrouping } from '@pathfinder/mcp-server';
+import { loadTraces } from '@mudpuppy/config';
+import { driveTrace, suggestTraceGrouping } from '@mudpuppy/mcp-server';
 import { afterAll, beforeAll, expect } from 'vitest';
 import {
   gate,

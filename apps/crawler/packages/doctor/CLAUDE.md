@@ -1,4 +1,4 @@
-# @pathfinder/doctor
+# @mudpuppy/doctor
 
 First-start diagnosis of a portal's environment (spec 030 R-63, field GC-02..GC-07, GC-12): a
 registry of checks, each with the cause and the one-line fix it prints.

@@ -4,7 +4,7 @@
  * readers who skip tables, then the exact table; and one CSV of every rule, a line per table row.
  * Screen names stay as the portal shows them; routes are in brackets. Pure over the rows given.
  */
-import type { HypothesisStatus } from '@pathfinder/model';
+import type { HypothesisStatus } from '@mudpuppy/model';
 import type { DecisionRuleRow } from './rule-export.js';
 
 /** A screen of the model by key: its title and route. */

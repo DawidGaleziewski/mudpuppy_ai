@@ -1,4 +1,4 @@
-# @pathfinder/probes
+# @mudpuppy/probes
 
 The form probe catalogue (spec 032, R-69 (2)): repeatable tries per control beyond the happy path,
 defined once and tested in the style of the fix plugins, and the deterministic outcome classifier.

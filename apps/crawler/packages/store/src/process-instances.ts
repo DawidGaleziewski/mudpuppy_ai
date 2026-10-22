@@ -5,14 +5,14 @@
  * writes them for that model version. Trace variants are computed on read from the same walk.
  */
 import type BetterSqlite3 from 'better-sqlite3';
-import { newId } from '@pathfinder/core';
+import { newId } from '@mudpuppy/core';
 import {
   processInstances,
   traceVariants,
   type JourneyStep,
   type ProcessInstance,
   type ProcessShape,
-} from '@pathfinder/model';
+} from '@mudpuppy/model';
 
 type Raw = BetterSqlite3.Database;
 

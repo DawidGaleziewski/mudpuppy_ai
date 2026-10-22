@@ -1,8 +1,8 @@
 import { existsSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
-import { ConfigError, loadEffectiveConfig, type EffectiveConfig } from '@pathfinder/config';
-import { narrowScope, type RunScope } from '@pathfinder/safety';
-import { readTrustedCa, type Environment } from '@pathfinder/config';
+import { ConfigError, loadEffectiveConfig, type EffectiveConfig } from '@mudpuppy/config';
+import { narrowScope, type RunScope } from '@mudpuppy/safety';
+import { readTrustedCa, type Environment } from '@mudpuppy/config';
 
 export type PreflightRefusalCode = 'CONFIG_INVALID';
 

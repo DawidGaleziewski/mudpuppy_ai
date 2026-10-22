@@ -1,5 +1,5 @@
-import type { MountWait, observePage } from '@pathfinder/crawler';
-import { PageComposition } from '@pathfinder/core';
+import type { MountWait, observePage } from '@mudpuppy/crawler';
+import { PageComposition } from '@mudpuppy/core';
 
 type Observed = Awaited<ReturnType<typeof observePage>>;
 

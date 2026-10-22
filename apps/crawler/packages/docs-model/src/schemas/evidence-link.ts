@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { Id } from '@pathfinder/core';
+import { Id } from '@mudpuppy/core';
 
 /** Polymorphic evidence target kind (data-model.md "Evidence Link"; `screen_region` spec 008). */
 export const EvidenceTargetKind = z.enum([

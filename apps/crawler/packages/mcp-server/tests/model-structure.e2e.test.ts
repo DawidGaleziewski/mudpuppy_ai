@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { canLaunchBrowser } from '@pathfinder/crawler';
-import { startReferencePortal, type ScenarioId } from '@pathfinder/reference-portal';
+import { canLaunchBrowser } from '@mudpuppy/crawler';
+import { startReferencePortal, type ScenarioId } from '@mudpuppy/reference-portal';
 import { startHarness } from './harness.js';
 
 /**
@@ -32,7 +32,7 @@ scope:
   max_steps: 10
 urls:
   disallowed: ["/__admin/*"]
-rate_limit: { requests_per_second: 20, max_concurrency: 1, user_agent: "PathfinderAI-Crawler/0.1 (local reference portal)" }
+rate_limit: { requests_per_second: 20, max_concurrency: 1, user_agent: "MudPuppy-Crawler/0.1 (local reference portal)" }
 `;
 
 async function setup(scenario: ScenarioId) {

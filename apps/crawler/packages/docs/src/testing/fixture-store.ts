@@ -10,8 +10,8 @@ import {
   type Box,
   type EvidenceStore,
   type Layout,
-} from '@pathfinder/core';
-import { migrateUp, openDb, type OpenedDb, type PathfinderDb } from '@pathfinder/store';
+} from '@mudpuppy/core';
+import { migrateUp, openDb, type OpenedDb, type MudPuppyDb } from '@mudpuppy/store';
 import { PNG } from 'pngjs';
 
 // packages/docs/src/testing -> repo root is six levels up.
@@ -37,7 +37,7 @@ export function fixedId(n: number): string {
 
 export interface FixtureStore {
   opened: OpenedDb;
-  db: PathfinderDb;
+  db: MudPuppyDb;
   raw: OpenedDb['raw'];
   /** Temp directory holding the evidence files the seeded rows point at. */
   evidenceDir: string;

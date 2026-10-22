@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import { DocKind, EvidenceTargetKind, RelationType } from '@pathfinder/docs-model';
+import { DocKind, EvidenceTargetKind, RelationType } from '@mudpuppy/docs-model';
 import { NOT_OBSERVABLE_KINDS, OBSERVABLE_KINDS } from '../src/observed-rule.js';
 import { describeRecordKinds, describeRelations } from '../src/record-kinds-text.js';
 import { RELATION_RULES, isAllowed } from '../src/relations.js';

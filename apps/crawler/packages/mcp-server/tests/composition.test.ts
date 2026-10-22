@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { observePage } from '@pathfinder/crawler';
+import type { observePage } from '@mudpuppy/crawler';
 import { compositionHints, pageComposition } from '../src/runtime/pipeline/composition.js';
 import { frameReports } from '../src/runtime/pipeline/frames.js';
 import { ActionInput } from '../src/services/record-transition.js';

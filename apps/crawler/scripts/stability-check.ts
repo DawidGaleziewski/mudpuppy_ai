@@ -3,7 +3,7 @@
  * Usage: pnpm stability <runA> <runB> [--env production] [--root <repo root>]
  */
 import { join, resolve } from 'node:path';
-import { compareRuns, dbPathFor, openDb } from '@pathfinder/store';
+import { compareRuns, dbPathFor, openDb } from '@mudpuppy/store';
 import { scriptEnvironment } from './script-env.js';
 
 const args = process.argv

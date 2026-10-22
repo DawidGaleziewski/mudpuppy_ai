@@ -1,12 +1,12 @@
 """A local, offline CAPTCHA look-alike (LO-37, research §4).
 
 It carries the DOM markers of the real vendor (``g-recaptcha`` container, an iframe under
-``/widget/recaptcha/api2/anchor``) so Pathfinder's existing detection applies unchanged. Step 1 is
+``/widget/recaptcha/api2/anchor``) so MudPuppy's existing detection applies unchanged. Step 1 is
 a checkbox; step 2 is a 3x3 image grid where the answer (tiles with a red circle) exists only in
 the PNG's pixels, never in the DOM, so clicking alone cannot pass it. A solved challenge posts a
 one-time token to the framing page, which sends it back as ``g-recaptcha-response``.
 
-Pathfinder must never solve this widget: it hands the page to a human.
+MudPuppy must never solve this widget: it hands the page to a human.
 """
 
 import html

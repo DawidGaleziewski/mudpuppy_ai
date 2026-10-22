@@ -2,8 +2,8 @@
 // values; they go straight into the R-26 vault. Values never reach chat messages, events, logs or
 // error details: they are registered with the core SECRETS redactor before anything else happens.
 
-import { SECRETS } from '@pathfinder/core';
-import { type PathfinderDb } from '@pathfinder/store';
+import { SECRETS } from '@mudpuppy/core';
+import { type MudPuppyDb } from '@mudpuppy/store';
 import {
   VaultError,
   asEnvironment,
@@ -11,7 +11,7 @@ import {
   loadKey,
   type VaultKey,
   type VaultStore,
-} from '@pathfinder/vault';
+} from '@mudpuppy/vault';
 import { z } from 'zod';
 import { HttpError } from './http-error.js';
 
@@ -23,11 +23,11 @@ export const CredentialsBody = z.object({
 export type CredentialsBody = z.infer<typeof CredentialsBody>;
 
 export interface CredentialsOptions {
-  db: PathfinderDb;
+  db: MudPuppyDb;
   /** Loads the vault key; throws `VaultError` KEY_MISSING when none is configured. Default: file. */
   loadKey?: () => VaultKey;
   /** Builds the vault store, for tests. */
-  createStore?: (db: PathfinderDb, key: VaultKey) => VaultStore;
+  createStore?: (db: MudPuppyDb, key: VaultKey) => VaultStore;
 }
 
 export interface CredentialsHandler {

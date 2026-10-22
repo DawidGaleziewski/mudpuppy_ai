@@ -2,7 +2,7 @@ import { mkdtemp, readFile, rm } from 'node:fs/promises';
 import type { Server } from 'node:http';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { createEvidenceStore, type EvidenceStore } from '@pathfinder/core';
+import { createEvidenceStore, type EvidenceStore } from '@mudpuppy/core';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { createAmendmentService } from '../src/amendments.js';
 import { createApi, listenLocal } from '../src/api.js';

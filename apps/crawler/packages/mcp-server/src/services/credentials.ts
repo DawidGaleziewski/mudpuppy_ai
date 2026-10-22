@@ -1,5 +1,5 @@
-import { SECRETS } from '@pathfinder/core';
-import type { PersonaConfig } from '@pathfinder/config';
+import { SECRETS } from '@mudpuppy/core';
+import type { PersonaConfig } from '@mudpuppy/config';
 import {
   asEnvironment,
   createVaultStore,
@@ -7,7 +7,7 @@ import {
   personaRefs,
   resolvePersonaRefs,
   VaultError,
-} from '@pathfinder/vault';
+} from '@mudpuppy/vault';
 import type { ServerContext } from '../context.js';
 import { ToolError } from '../errors.js';
 

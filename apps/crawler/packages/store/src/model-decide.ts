@@ -5,13 +5,13 @@
  * constraint (labels and roles feed clustering; a rejected claim is never written again).
  */
 import type BetterSqlite3 from 'better-sqlite3';
-import { newId, nowIso } from '@pathfinder/core';
+import { newId, nowIso } from '@mudpuppy/core';
 import {
   LifecycleError,
   statusOf,
   type HypothesisEvent,
   type HypothesisStatus,
-} from '@pathfinder/model';
+} from '@mudpuppy/model';
 
 type Raw = BetterSqlite3.Database;
 

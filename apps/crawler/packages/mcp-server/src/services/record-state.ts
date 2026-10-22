@@ -5,8 +5,8 @@ import {
   StateKind,
   newId,
   nowIso,
-} from '@pathfinder/core';
-import type { PathfinderDb } from '@pathfinder/store';
+} from '@mudpuppy/core';
+import type { MudPuppyDb } from '@mudpuppy/store';
 import { z } from 'zod';
 import type { ServerContext } from '../context.js';
 import { parseInput } from '../errors.js';
@@ -56,7 +56,7 @@ export async function setStateVisuals(
  * The screen's title follows its newest revision.
  */
 async function screenFor(
-  trx: PathfinderDb, // a transaction is a Kysely instance too
+  trx: MudPuppyDb, // a transaction is a Kysely instance too
   run: { id: string; portal_id: string },
   input: { route_template: string; cluster_id: string; title: string },
   ts: string,

@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
-import { addEvidenceLink, type EvidenceLinkRow } from '@pathfinder/store';
+import { addEvidenceLink, type EvidenceLinkRow } from '@mudpuppy/store';
 import { startBa, type BaHarness } from './ba-harness.js';
 
 // The fixture the dashboard's queries_access.py is checked with too (spec 024 T004/T005).

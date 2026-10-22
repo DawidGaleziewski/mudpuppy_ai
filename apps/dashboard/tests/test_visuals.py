@@ -9,7 +9,7 @@ from pathlib import Path
 
 import pytest
 
-from pathfinder_dashboard.visuals import Layout, highlights, load_layout
+from mudpuppy_dashboard.visuals import Layout, highlights, load_layout
 
 from .conftest import PORTAL, T0, Store, add_evidence_link, add_record, insert, make_client
 

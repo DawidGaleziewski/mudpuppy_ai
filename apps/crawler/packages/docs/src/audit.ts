@@ -1,11 +1,11 @@
-import type { Confidence } from '@pathfinder/core';
+import type { Confidence } from '@mudpuppy/core';
 import type {
   DocKind,
   EvidenceTargetKind,
   ReviewAction,
   RevisionChange,
   RevisionStatus,
-} from '@pathfinder/docs-model';
+} from '@mudpuppy/docs-model';
 import { lookupTarget, type ElementKeysOf } from './evidence.js';
 import type { RawDb } from './keys.js';
 import { checkObserved, type ResolvedTarget } from './observed-rule.js';

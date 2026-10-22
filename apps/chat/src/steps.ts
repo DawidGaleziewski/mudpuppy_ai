@@ -2,12 +2,12 @@
 // Used by the MCP tools (request accepted → pending) and by the step recorder (T022).
 
 import type BetterSqlite3 from 'better-sqlite3';
-import { newId, nowIso } from '@pathfinder/core';
+import { newId, nowIso } from '@mudpuppy/core';
 import {
   WorkflowStep,
   type WorkflowStepName,
   type WorkflowStepStatus,
-} from '@pathfinder/chat-model';
+} from '@mudpuppy/chat-model';
 
 export interface StepChange {
   conversationId: string;

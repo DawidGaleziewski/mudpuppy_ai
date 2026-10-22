@@ -1,6 +1,6 @@
 # Glossary
 
-Terms from this learning folder, explained simply, with an example from Pathfinder where possible.
+Terms from this learning folder, explained simply, with an example from MudPuppy where possible.
 Ask Claude to add any word you meet and don't know. Alphabetical.
 
 ---
@@ -29,7 +29,7 @@ confirms the system's own beliefs instead of testing them. *Example:* Claude bui
 wrote its ground truth and tuned the crawler on it.
 
 **Claim markers**
-Pathfinder's way of matching rules: a record must contain one of the listed phrases. *Example:* rule R01
+MudPuppy's way of matching rules: a record must contain one of the listed phrases. *Example:* rule R01
 matches records containing "18" and "75". Easy to fool (see metric validity).
 
 **Code grader**
@@ -94,7 +94,7 @@ Worked examples put in a prompt to show the model what you want. For judges: you
 your reasons.
 
 **Gate**
-In Pathfinder: a deterministic test that drives the real harness against the proving ground with a
+In MudPuppy: a deterministic test that drives the real harness against the proving ground with a
 scripted client (no LLM) and passes or fails. *Example:* "a `div` with an `onclick` becomes an action".
 A test of the harness, not an eval of the agent.
 
@@ -115,7 +115,7 @@ system being graded. *Example:* `apps/crawler/packages/reference-portal/ground-t
 
 **Harness**
 The code around a model that gives it tools, runs it, records what happens and (for evals) grades it.
-*Example:* the `pathfinder` MCP server is the crawler's harness; `apps/crawler/evals/` + `evaluate.ts` is the eval
+*Example:* the `mudpuppy` MCP server is the crawler's harness; `apps/crawler/evals/` + `evaluate.ts` is the eval
 harness.
 
 **Hold-out set**
@@ -143,7 +143,7 @@ The first step of error analysis: writing free-text notes about what went wrong 
 categories yet.
 
 **Overclaim**
-In Pathfinder: documentation stating as observed something a guest couldn't have observed. `evaluate.ts`
+In MudPuppy: documentation stating as observed something a guest couldn't have observed. `evaluate.ts`
 counts these.
 
 **Overfitting / teaching to the test**
@@ -158,7 +158,7 @@ it?").
 Judge biases: preferring the first answer shown, longer answers, or text in its own model's style.
 
 **Precision / recall**
-Recall: of all the true items, how many did the docs cover (what Pathfinder's category % mostly is).
+Recall: of all the true items, how many did the docs cover (what MudPuppy's category % mostly is).
 Precision: of all the items the docs claim, how many are true (related to overclaims). You want both.
 
 **Regression eval**
@@ -186,7 +186,7 @@ you failed, the share the judge failed. A judge that passes everything has TPR 1
 
 **Trace / transcript**
 The full record of one agent session: prompt, model messages, tool calls and results, in order. *Example:*
-`~/.claude/projects/-home-dawid-projects-pathfinder-ai/<session-id>.jsonl`. (In Pathfinder, "trace" also
+`~/.claude/projects/-home-dawid-projects-pathfinder-ai/<session-id>.jsonl`. (In MudPuppy, "trace" also
 means the crawler's trace mode and the R-17 run trace. Context tells which.)
 
 **Trial**

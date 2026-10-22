@@ -2,9 +2,9 @@
 // row to `amendment_revisions` and moves the `amendments` head to it, in the caller's transaction.
 // Nothing is deleted or overwritten without a revision; a write on a stale base is refused.
 
-import { newId, nowIso } from '@pathfinder/core';
-import { Amendment, AmendmentRevision, type AmendmentChange } from '@pathfinder/chat-model';
-import { type PathfinderDb } from '@pathfinder/store';
+import { newId, nowIso } from '@mudpuppy/core';
+import { Amendment, AmendmentRevision, type AmendmentChange } from '@mudpuppy/chat-model';
+import { type MudPuppyDb } from '@mudpuppy/store';
 import { HttpError } from './http-error.js';
 
 type Row = Omit<Amendment, 'anchor_element'> & { anchor_element: string | null };
@@ -32,7 +32,7 @@ const json = (a: Amendment['anchor_element']): string | null =>
  * state, a state's element (`<state id>#<element key>`) or an evidence store file. The views
  * `amendments_with_target` / `amendment_revisions_with_target` read it back as kind and id.
  */
-async function targetRef(trx: PathfinderDb, head: Amendment): Promise<string> {
+async function targetRef(trx: MudPuppyDb, head: Amendment): Promise<string> {
   const id = newId();
   const [stateId, ...key] = head.target_id.split('#');
   await trx
@@ -70,7 +70,7 @@ function stored(head: Amendment, refId: string) {
  * it is written on and its element key, as an `entity_refs` row. Null when the state is on no
  * model screen yet (the v1 fingerprint anchor then decides re-anchoring).
  */
-async function anchorRef(trx: PathfinderDb, head: Amendment): Promise<string | null> {
+async function anchorRef(trx: MudPuppyDb, head: Amendment): Promise<string | null> {
   if (head.target_kind === 'evidence') return null;
   const stateId = head.target_id.split('#')[0]!;
   const member = await trx
@@ -89,7 +89,7 @@ async function anchorRef(trx: PathfinderDb, head: Amendment): Promise<string | n
 }
 
 /** The head of an amendment of the portal, or 404. */
-export async function loadHead(db: PathfinderDb, portal: string, id: string): Promise<Amendment> {
+export async function loadHead(db: MudPuppyDb, portal: string, id: string): Promise<Amendment> {
   const found = await db
     .selectFrom('amendments_with_target')
     .selectAll()
@@ -139,7 +139,7 @@ function revisionOf(
 
 /** Revision 1 of a new amendment, written together with its head. */
 export async function insertCreated(
-  trx: PathfinderDb,
+  trx: MudPuppyDb,
   head: Amendment,
   author: string,
 ): Promise<void> {
@@ -152,7 +152,7 @@ export async function insertCreated(
 }
 
 /** A revision row as its table stores it: the target as the head's ref at that revision. */
-async function insertRevision(trx: PathfinderDb, r: AmendmentRevision, refId: string) {
+async function insertRevision(trx: MudPuppyDb, r: AmendmentRevision, refId: string) {
   await trx
     .insertInto('amendment_revisions')
     .values({ ...withoutTarget(r), anchor_element: json(r.anchor_element), ref_id: refId })
@@ -164,7 +164,7 @@ async function insertRevision(trx: PathfinderDb, r: AmendmentRevision, refId: st
  * one, and the revision row records who, why and on which base. Returns the new head.
  */
 export async function writeRevision(
-  trx: PathfinderDb,
+  trx: MudPuppyDb,
   head: Amendment,
   change: AmendmentChange,
   author: string,
@@ -198,7 +198,7 @@ export async function writeRevision(
 }
 
 /** Every revision of an amendment, oldest first. */
-export async function listRevisions(db: PathfinderDb, id: string): Promise<AmendmentRevision[]> {
+export async function listRevisions(db: MudPuppyDb, id: string): Promise<AmendmentRevision[]> {
   const rows = await db
     .selectFrom('amendment_revisions_with_target')
     .selectAll()

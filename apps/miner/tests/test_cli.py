@@ -4,8 +4,8 @@ from pathlib import Path
 
 import pytest
 
-from pathfinder_miner.__main__ import main
-from pathfinder_miner.store import open_read_only
+from mudpuppy_miner.__main__ import main
+from mudpuppy_miner.store import open_read_only
 
 
 def test_check_reports_every_library(capsys: pytest.CaptureFixture[str]) -> None:

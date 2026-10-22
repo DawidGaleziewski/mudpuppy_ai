@@ -7,15 +7,15 @@
  */
 import { readFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
-import { loadPortal, portalFingerprintProfile } from '@pathfinder/config';
-import { createEvidenceStore } from '@pathfinder/core';
+import { loadPortal, portalFingerprintProfile } from '@mudpuppy/config';
+import { createEvidenceStore } from '@mudpuppy/core';
 import {
   dbPathFor,
   migrateUp,
   openDb,
   reconcilePortalModel,
   refingerprintPortal,
-} from '@pathfinder/store';
+} from '@mudpuppy/store';
 
 const arg = (name: string): string | undefined => {
   const i = process.argv.indexOf(`--${name}`);
@@ -24,7 +24,7 @@ const arg = (name: string): string | undefined => {
     : undefined;
 };
 const portal = process.argv[2];
-const env = arg('env') ?? process.env.PATHFINDER_ENV;
+const env = arg('env') ?? process.env.MUDPUPPY_ENV;
 const name = arg('profile');
 if (!portal || portal.startsWith('--') || !env || !name) {
   console.error('usage: pnpm model:refingerprint <portal> --env <env> --profile <name>');

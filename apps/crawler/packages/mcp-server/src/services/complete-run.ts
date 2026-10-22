@@ -1,10 +1,10 @@
-import { RunStatus, nowIso } from '@pathfinder/core';
-import { emitForRun, mineRules, reconcilePortalModel, writePlannerMarks } from '@pathfinder/store';
+import { RunStatus, nowIso } from '@mudpuppy/core';
+import { emitForRun, mineRules, reconcilePortalModel, writePlannerMarks } from '@mudpuppy/store';
 import { z } from 'zod';
 import { proposeBoundarySuites } from '../boundary-suites.js';
 import type { ServerContext } from '../context.js';
 import { ToolError, parseInput } from '../errors.js';
-import { computeCoverage, type Coverage } from '@pathfinder/crawler';
+import { computeCoverage, type Coverage } from '@mudpuppy/crawler';
 import { getRun, type RunRow } from './common.js';
 import { endRunJourneys } from './journeys.js';
 import { isBudgetExhausted } from './run-budget.js';

@@ -1,4 +1,4 @@
-import { newId, nowIso, type StateKind } from '@pathfinder/core';
+import { newId, nowIso, type StateKind } from '@mudpuppy/core';
 import {
   canonicalizeAria,
   errorSignals,
@@ -7,7 +7,7 @@ import {
   hasErrors,
   type FormStep,
   type StepAssignment,
-} from '@pathfinder/fingerprint';
+} from '@mudpuppy/fingerprint';
 import type { ServerContext } from '../../context.js';
 import type { RunRow } from '../../services/index.js';
 import type { RunState } from '../run-state.js';

@@ -40,7 +40,7 @@ def test_no_conflict_without_an_older_draft_and_no_actions_without_a_reviewer(
     with client(store, reviewer=None) as c:
         anon = c.get(URL).text
     assert "Someone saved first" not in ok
-    assert "data-process" not in anon and "PATHFINDER_REVIEWER" in anon
+    assert "data-process" not in anon and "MUDPUPPY_REVIEWER" in anon
 
 
 def test_human_text_is_escaped_and_missing_is_404(empty_store: Store) -> None:

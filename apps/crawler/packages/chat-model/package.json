@@ -1,5 +1,5 @@
 {
-  "name": "@pathfinder/chat-model",
+  "name": "@mudpuppy/chat-model",
   "version": "0.0.0",
   "private": true,
   "description": "Chat model: Zod schemas of chat conversations, workflow steps, process scopes and amendments (G-10)",
@@ -8,7 +8,7 @@
     ".": "./src/index.ts"
   },
   "dependencies": {
-    "@pathfinder/core": "workspace:*",
+    "@mudpuppy/core": "workspace:*",
     "zod": "^4.6.5"
   }
 }

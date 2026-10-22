@@ -6,8 +6,8 @@ import { join, resolve } from 'node:path';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { workflowState } from '@pathfinder/workflow';
-import { loadKey } from '@pathfinder/vault';
+import { workflowState } from '@mudpuppy/workflow';
+import { loadKey } from '@mudpuppy/vault';
 import { createApi, listenLocal } from '../src/api.js';
 import { createCredentialsHandler } from '../src/credentials.js';
 import { createChatMcpServer } from '../src/mcp-chat.js';
@@ -19,7 +19,7 @@ import { memoryStore } from './helpers.js';
 
 /**
  * R-30 T021 (US1, SC-001): the deterministic half of "ask what I can do and scan a portal",
- * end to end over the HTTP API and the pathfinder-chat tools the orchestrator calls. The model's
+ * end to end over the HTTP API and the mudpuppy-chat tools the orchestrator calls. The model's
  * wording is not under test; the path is: an empty workspace opens with an offer to scan, each
  * missing input is named, nothing starts until all are present, and then the scan is requested.
  */
@@ -44,7 +44,7 @@ async function tool(name: string, args: Record<string, unknown>) {
 }
 
 beforeAll(async () => {
-  root = mkdtempSync(join(tmpdir(), 'pathfinder-e2e-us1-'));
+  root = mkdtempSync(join(tmpdir(), 'mudpuppy-e2e-us1-'));
   for (const dir of ['portals/proving-ground-bank', 'personas/_mixins'])
     cpSync(join(repo, dir), join(root, dir), { recursive: true });
   const keyPath = join(root, 'vault.key');

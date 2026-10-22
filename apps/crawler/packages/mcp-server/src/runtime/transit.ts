@@ -4,9 +4,9 @@
 // count there, and each page that settles on it is kept with evidence and marked transit on the
 // landing page's hops, never dropped (they matter for a migration) and never explored.
 
-import { maskText, SECRETS, type NavigationHop } from '@pathfinder/core';
-import { captureAria } from '@pathfinder/crawler';
-import type { RunScope } from '@pathfinder/safety';
+import { maskText, SECRETS, type NavigationHop } from '@mudpuppy/core';
+import { captureAria } from '@mudpuppy/crawler';
+import type { RunScope } from '@mudpuppy/safety';
 import type { ServerContext } from '../context.js';
 import type { RunState } from './run-state.js';
 

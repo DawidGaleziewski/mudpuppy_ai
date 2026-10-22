@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { Confidence, EvidenceRef, Id, Timestamp } from '@pathfinder/core';
+import { Confidence, EvidenceRef, Id, Timestamp } from '@mudpuppy/core';
 
 export const ProcessStepKind = z.enum(['navigate', 'click', 'fill', 'check', 'select']);
 export type ProcessStepKind = z.infer<typeof ProcessStepKind>;

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import type { Attrs, EventName, Tracer } from '@pathfinder/store';
-import type { RequestDecision } from '@pathfinder/crawler';
+import type { Attrs, EventName, Tracer } from '@mudpuppy/store';
+import type { RequestDecision } from '@mudpuppy/crawler';
 import { createRunTraceHooks } from '../src/runtime/trace-hooks.js';
 
 function stubTracer(level: Tracer['level'] = 'standard') {

@@ -1,5 +1,5 @@
 import type { Frame, Page, Request } from 'playwright';
-import type { NavigationHop } from '@pathfinder/core';
+import type { NavigationHop } from '@mudpuppy/core';
 
 /** A request the gate aborted shows this error text (`route.abort('blockedbyclient')`). */
 const BLOCKED = 'net::ERR_BLOCKED_BY_CLIENT';

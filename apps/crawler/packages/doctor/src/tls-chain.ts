@@ -6,7 +6,7 @@ import { X509Certificate } from 'node:crypto';
 import { request as httpRequest } from 'node:http';
 import type { Socket } from 'node:net';
 import { connect as tlsConnect, type DetailedPeerCertificate } from 'node:tls';
-import { spkiHash } from '@pathfinder/config';
+import { spkiHash } from '@mudpuppy/config';
 import type { PresentedCert, TlsChainProbe } from './registry.js';
 
 type Result = Awaited<ReturnType<TlsChainProbe>>;

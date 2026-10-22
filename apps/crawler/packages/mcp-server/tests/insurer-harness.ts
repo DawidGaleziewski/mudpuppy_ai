@@ -1,5 +1,5 @@
 import { afterEach } from 'vitest';
-import { canLaunchBrowser } from '@pathfinder/crawler';
+import { canLaunchBrowser } from '@mudpuppy/crawler';
 import { startHarness } from './harness.js';
 import { startMockInsurer, type MockInsurerOptions } from './mock-insurer.js';
 import type { MockPortal } from './mock-portal.js';
@@ -25,7 +25,7 @@ scope:
 denylist: ${o.denylist ?? '[logout, delete, payment, purchase, submit_request, contact_or_message, reveal_contact]'}
 obstacles:
   - { id: cookie_dialog, selector: "#CybotCookiebotDialogBodyButtonDecline" }
-rate_limit: { requests_per_second: 20, max_concurrency: 1, user_agent: "PathfinderAI-Crawler/0.1 (+ops@corp.pl)" }
+rate_limit: { requests_per_second: 20, max_concurrency: 1, user_agent: "MudPuppy-Crawler/0.1 (+ops@corp.pl)" }
 robots_page_requests: ${o.pageRequests ?? 'block'}
 ${o.extra ?? ''}`;
 export const PERSONA =

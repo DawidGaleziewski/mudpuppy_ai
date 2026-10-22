@@ -1,7 +1,7 @@
 """The similarity classifier (spec 039 FR-050, T090): trained on labelled pairs, compared with
 the single threshold on held-out pairs."""
 
-from pathfinder_miner.classify import classify
+from mudpuppy_miner.classify import classify
 
 NAMES = ["minhash", "structure", "elements"]
 

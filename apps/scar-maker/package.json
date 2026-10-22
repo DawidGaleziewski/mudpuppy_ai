@@ -1,5 +1,5 @@
 {
-  "name": "@pathfinder/scar-maker",
+  "name": "@mudpuppy/scar-maker",
   "version": "0.0.0",
   "private": true,
   "description": "A local portal of the hardest real-world obstacles (scars) the harness met at customer sites (R-56, spec 030)",

@@ -1,4 +1,4 @@
-# @pathfinder/fingerprint
+# @mudpuppy/fingerprint
 
 Pure state fingerprinting: route templates, ARIA canonicalisation, two-level fingerprint.
 

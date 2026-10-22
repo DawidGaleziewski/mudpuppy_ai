@@ -1,5 +1,5 @@
 {
-  "name": "@pathfinder/docs",
+  "name": "@mudpuppy/docs",
   "version": "0.0.0",
   "private": true,
   "description": "Layer B documentation core: keys, status engine, observed rule, relations, evidence resolution, audit, SRS rendering",
@@ -9,10 +9,10 @@
     "./testing": "./src/testing/index.ts"
   },
   "dependencies": {
-    "@pathfinder/core": "workspace:*",
-    "@pathfinder/docs-model": "workspace:*",
-    "@pathfinder/fingerprint": "workspace:*",
-    "@pathfinder/store": "workspace:*",
+    "@mudpuppy/core": "workspace:*",
+    "@mudpuppy/docs-model": "workspace:*",
+    "@mudpuppy/fingerprint": "workspace:*",
+    "@mudpuppy/store": "workspace:*",
     "kysely": "^0.29.6",
     "pngjs": "^7.0.0",
     "yaml": "^2.9.1",

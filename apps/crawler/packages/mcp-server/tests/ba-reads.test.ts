@@ -1,5 +1,5 @@
-import { newId } from '@pathfinder/core';
-import { FIXTURE_TS } from '@pathfinder/docs/testing';
+import { newId } from '@mudpuppy/core';
+import { FIXTURE_TS } from '@mudpuppy/docs/testing';
 import { describe, expect, it } from 'vitest';
 import { EVIDENCE_CONTENT_LIMIT } from '../src/index.js';
 import { CONTENT, seedReview, startBa, type BaHarness } from './ba-harness.js';

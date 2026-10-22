@@ -1,4 +1,4 @@
-import { parseAriaYaml, walkKeyed, type AriaNode } from '@pathfinder/core';
+import { parseAriaYaml, walkKeyed, type AriaNode } from '@mudpuppy/core';
 
 /**
  * Wireframe layout (spec 008 contracts/wireframe-format.md): a recorded ARIA snapshot turned into

@@ -3,7 +3,7 @@ accepts a calibrated one for the latest model version's fingerprint profile."""
 
 from __future__ import annotations
 
-from pathfinder_dashboard.queries_identity import screen_identity
+from mudpuppy_dashboard.queries_identity import screen_identity
 
 from .conftest import Store, ts
 

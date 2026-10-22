@@ -1,4 +1,4 @@
-import type { FollowupStatus, ReviewAction, RevisionStatus } from '@pathfinder/docs-model';
+import type { FollowupStatus, ReviewAction, RevisionStatus } from '@mudpuppy/docs-model';
 import { z } from 'zod';
 import type { BaContext } from '../../context.js';
 import { parseInput } from '../../errors.js';

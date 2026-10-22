@@ -1,7 +1,7 @@
 import { z } from 'zod';
-import { Id, Timestamp } from '@pathfinder/core';
+import { Id, Timestamp } from '@mudpuppy/core';
 
-export const TraceServer = z.enum(['pathfinder']);
+export const TraceServer = z.enum(['mudpuppy']);
 export type TraceServer = z.infer<typeof TraceServer>;
 
 export const TraceLevel = z.enum(['off', 'standard', 'verbose']);

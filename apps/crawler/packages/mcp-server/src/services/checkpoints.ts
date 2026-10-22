@@ -3,7 +3,7 @@
 // the last navigate and the acted steps with their values), so a later run can replay it. Runs from
 // before checkpoints existed fall back to a path rebuilt from their observations and transitions.
 
-import { newId, nowIso } from '@pathfinder/core';
+import { newId, nowIso } from '@mudpuppy/core';
 import type { ServerContext } from '../context.js';
 import { ToolError } from '../errors.js';
 

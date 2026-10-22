@@ -3,9 +3,9 @@
 // turns the proposal stale and nothing is overwritten. Undo is one more revision that puts back
 // what was there before (restore), or withdraws the amendment the proposal created.
 
-import { nowIso } from '@pathfinder/core';
-import { ChatProposal, type Amendment } from '@pathfinder/chat-model';
-import { type PathfinderDb } from '@pathfinder/store';
+import { nowIso } from '@mudpuppy/core';
+import { ChatProposal, type Amendment } from '@mudpuppy/chat-model';
+import { type MudPuppyDb } from '@mudpuppy/store';
 import { z } from 'zod';
 import { type AmendmentService } from './amendments.js';
 import { HttpError } from './http-error.js';
@@ -28,7 +28,7 @@ export interface ProposalService {
 }
 
 interface Deps {
-  db: PathfinderDb;
+  db: MudPuppyDb;
   amendments: AmendmentService;
 }
 
@@ -44,7 +44,7 @@ const str = (v: unknown): string | undefined => (typeof v === 'string' ? v : und
 
 const targetKind = (v: unknown) => (v === 'wireframe_element' ? 'wireframe_element' : 'state');
 
-async function load(db: PathfinderDb, portal: string, id: string): Promise<ChatProposal> {
+async function load(db: MudPuppyDb, portal: string, id: string): Promise<ChatProposal> {
   const row = await db
     .selectFrom('chat_proposals')
     .selectAll()
@@ -56,7 +56,7 @@ async function load(db: PathfinderDb, portal: string, id: string): Promise<ChatP
 }
 
 async function save(
-  db: PathfinderDb,
+  db: MudPuppyDb,
   p: ChatProposal,
   changes: Partial<ChatProposal>,
 ): Promise<ChatProposal> {

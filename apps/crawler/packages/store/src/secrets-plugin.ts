@@ -9,7 +9,7 @@ import {
   type UnknownRow,
   type ValueNode,
 } from 'kysely';
-import { SECRETS, type Redactor } from '@pathfinder/core';
+import { SECRETS, type Redactor } from '@mudpuppy/core';
 
 class RedactValues extends OperationNodeTransformer {
   constructor(private readonly r: Redactor) {

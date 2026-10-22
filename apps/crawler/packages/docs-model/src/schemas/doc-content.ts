@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { Confidence, Id } from '@pathfinder/core';
+import { Confidence, Id } from '@mudpuppy/core';
 import { DocKind } from './doc-record.js';
 
 /**

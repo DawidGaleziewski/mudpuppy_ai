@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { SafetyClass } from '@pathfinder/core';
+import { SafetyClass } from '@mudpuppy/core';
 import { Budgets, Scope, UrlLists } from './portal-schema.js';
 
 /** Credential fields are references by name (`ref:NAME`); the values themselves never live in a file (FR-017). */
@@ -27,7 +27,7 @@ const AttributeValue = z.union([z.string(), z.number(), z.boolean()]);
 
 /**
  * What decides this test user's access (spec 024 US1): tariff, contract, feature flags…, any keys.
- * Pathfinder stores and shows them and never interprets them (FR-008); `extends` merges per key.
+ * MudPuppy stores and shows them and never interprets them (FR-008); `extends` merges per key.
  */
 export const PersonaAttributes = z.record(
   z.string().min(1).max(100),

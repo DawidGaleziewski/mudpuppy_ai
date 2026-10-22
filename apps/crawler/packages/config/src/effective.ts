@@ -1,4 +1,4 @@
-import { minSafetyClass, type SafetyClass } from '@pathfinder/core';
+import { minSafetyClass, type SafetyClass } from '@mudpuppy/core';
 import { ConfigError } from './errors.js';
 import { loadPersona, type LoadPersonaOptions } from './load-persona.js';
 import { loadPortal } from './load-portal.js';

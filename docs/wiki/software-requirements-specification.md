@@ -27,9 +27,9 @@ ISO/IEC/IEEE 29148 describes what an SRS contains (purpose, scope, the requireme
 assumptions and dependencies, verification, supporting information) alongside related documents
 for the business and stakeholder level.
 
-## How Pathfinder uses it
+## How MudPuppy uses it
 
-Pathfinder's goal is documentation good enough to rebuild a portal from it alone, which is what an
+MudPuppy's goal is documentation good enough to rebuild a portal from it alone, which is what an
 SRS is for. The BA keeps requirements as small linked records rather than one long document, so they
 can be reviewed and revised one by one. The planned SRS export (R-16) renders them into a single
 document with chapters, diagrams, a traceability matrix and an Unknowns section, in a fixed and

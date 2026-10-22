@@ -6,7 +6,7 @@
 // rule mismatch, and R8 replays it in the same call while the budget lasts. Every finished replay
 // run reconciles the model (complete-run), so the verdicts read named screens.
 
-import { MODEL_DEFAULTS } from '@pathfinder/model';
+import { MODEL_DEFAULTS } from '@mudpuppy/model';
 import {
   type OpenedDb,
   judgeReplays,
@@ -21,7 +21,7 @@ import {
   resolveRuleMismatch,
   usePlannerMarks,
   writePlannerMarks,
-} from '@pathfinder/store';
+} from '@mudpuppy/store';
 import type { ToolCall } from './local-client.js';
 import { type PrefixCache, prefixCache, replay } from './replay-driver.js';
 

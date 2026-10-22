@@ -1,5 +1,5 @@
 import { readFileSync } from 'node:fs';
-import type { SafetyClass } from '@pathfinder/core';
+import type { SafetyClass } from '@mudpuppy/core';
 import type { ActionDescriptor, ResponseInfo } from '../src/index.js';
 
 const FIXTURES = new URL('../../../tests/fixtures/', import.meta.url);

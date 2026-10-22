@@ -1,9 +1,9 @@
 import { AsyncLocalStorage } from 'node:async_hooks';
 import { mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { redactZip, SECRETS, type Logger } from '@pathfinder/core';
-import type { Tracer } from '@pathfinder/store';
-import type { BrowserSession } from '@pathfinder/crawler';
+import { redactZip, SECRETS, type Logger } from '@mudpuppy/core';
+import type { Tracer } from '@mudpuppy/store';
+import type { BrowserSession } from '@mudpuppy/crawler';
 
 type BrowserContext = BrowserSession['context'];
 

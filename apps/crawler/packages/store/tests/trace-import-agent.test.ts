@@ -34,7 +34,7 @@ beforeEach(() => {
   opened.raw
     .prepare(
       `INSERT INTO trace_boots (id, started_at, environment, server, pid, version,
-       trace_level, pw_trace) VALUES ('boot-1', '2026-01-15T10:00:00.000Z', 'sandbox', 'pathfinder',
+       trace_level, pw_trace) VALUES ('boot-1', '2026-01-15T10:00:00.000Z', 'sandbox', 'mudpuppy',
        1, '0.0.0', 'standard', 'non_production')`,
     )
     .run();

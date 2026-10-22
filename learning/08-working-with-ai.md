@@ -81,7 +81,7 @@ For each piece of process, answer: *what failure has it prevented in the last tw
 | Changelog skill before merge | Manual step | **Keep** but generate the draft from the squash commit message |
 | `code-reviewer` agent at close-out | One agent run | **Keep**: it finds real issues |
 | `[opus]/[sonnet]/[haiku]` task tags | Small | **Keep only if** you still run tasks on different models |
-| Constitution (200 lines, several amendments) | Read by speckit steps | **Keep**, and do R-42 (rules that are wrong for how Pathfinder is used) |
+| Constitution (200 lines, several amendments) | Read by speckit steps | **Keep**, and do R-42 (rules that are wrong for how MudPuppy is used) |
 | Findings docs | Writing time | **Keep**, add an "error analysis" table per spec (section 4) |
 | Session dumps | Small | **Keep** |
 

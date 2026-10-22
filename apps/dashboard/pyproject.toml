@@ -1,7 +1,7 @@
 [project]
-name = "pathfinder-dashboard"
+name = "mudpuppy-dashboard"
 version = "0.1.0"
-description = "Read-only operator dashboard over Pathfinder's crawl store (FastAPI + htmx)."
+description = "Read-only operator dashboard over MudPuppy's crawl store (FastAPI + htmx)."
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
@@ -16,9 +16,9 @@ dependencies = [
 ]
 
 [project.scripts]
-pathfinder-dashboard = "pathfinder_dashboard.__main__:main"
-pathfinder-dashboard-smoke = "pathfinder_dashboard.smoke:main"
-pathfinder-glossary = "pathfinder_dashboard.glossary_cli:main"
+mudpuppy-dashboard = "mudpuppy_dashboard.__main__:main"
+mudpuppy-dashboard-smoke = "mudpuppy_dashboard.smoke:main"
+mudpuppy-glossary = "mudpuppy_dashboard.glossary_cli:main"
 
 [build-system]
 requires = ["uv_build>=0.12.10,<0.13.0"]
@@ -36,9 +36,9 @@ markers = [
 [tool.mutmut]
 source_paths = ["src/"]
 only_mutate = [
-    "src/pathfinder_dashboard/diagrams.py",
-    "src/pathfinder_dashboard/glossary.py",
-    "src/pathfinder_dashboard/visuals.py",
+    "src/mudpuppy_dashboard/diagrams.py",
+    "src/mudpuppy_dashboard/glossary.py",
+    "src/mudpuppy_dashboard/visuals.py",
 ]
 pytest_add_cli_args_test_selection = [
     "tests/test_diagrams.py",

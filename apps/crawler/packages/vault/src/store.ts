@@ -1,6 +1,6 @@
-import { Environment } from '@pathfinder/config';
-import { newId, nowIso } from '@pathfinder/core';
-import type { CredentialsTable, PathfinderDb } from '@pathfinder/store';
+import { Environment } from '@mudpuppy/config';
+import { newId, nowIso } from '@mudpuppy/core';
+import type { CredentialsTable, MudPuppyDb } from '@mudpuppy/store';
 import { decrypt, encrypt, type VaultKey } from './crypto.js';
 import { VaultError } from './errors.js';
 
@@ -51,7 +51,7 @@ export function asEnvironment(value: string): VaultEnvironment {
 }
 
 /** Credentials over the `credentials` table (migration 0007); the key never touches the DB. */
-export function createVaultStore(db: PathfinderDb, key: VaultKey): VaultStore {
+export function createVaultStore(db: MudPuppyDb, key: VaultKey): VaultStore {
   return {
     async set(portalId, environment, ref, value) {
       checkRef(ref);

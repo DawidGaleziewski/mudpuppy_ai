@@ -4,9 +4,9 @@
 // process instead of making another; so does an archived one (the person restores it). Since spec
 // 039 T070 every PROC record has its process from the start; the first open builds its A.
 
-import { BaProcess } from '@pathfinder/chat-model';
-import { resolveProcessSteps } from '@pathfinder/docs';
-import { type OpenedDb, type PathfinderDb } from '@pathfinder/store';
+import { BaProcess } from '@mudpuppy/chat-model';
+import { resolveProcessSteps } from '@mudpuppy/docs';
+import { type OpenedDb, type MudPuppyDb } from '@mudpuppy/store';
 import { FromRecordBody } from './process-bodies.js';
 import { HttpError } from './http-error.js';
 import { parseBody } from './http-io.js';
@@ -36,7 +36,7 @@ function recordHead(raw: RawDb, portal: string, key: string): { name: string; pe
 }
 
 export async function openFromRecord(
-  db: PathfinderDb,
+  db: MudPuppyDb,
   raw: RawDb,
   portal: string,
   body: unknown,

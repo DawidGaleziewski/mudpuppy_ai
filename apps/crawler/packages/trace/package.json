@@ -1,5 +1,5 @@
 {
-  "name": "@pathfinder/trace",
+  "name": "@mudpuppy/trace",
   "version": "0.0.0",
   "private": true,
   "description": "Trace model: trace span/boot and agent-turn schemas plus pure trace helpers (scrubbing, payload limits, URL shaping, transcript parsing and joining)",
@@ -8,7 +8,7 @@
     ".": "./src/index.ts"
   },
   "dependencies": {
-    "@pathfinder/core": "workspace:*",
+    "@mudpuppy/core": "workspace:*",
     "zod": "^4.6.5"
   }
 }

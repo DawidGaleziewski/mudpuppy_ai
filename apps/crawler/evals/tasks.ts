@@ -5,7 +5,7 @@
  * the one place that names them all.
  */
 import { join } from 'node:path';
-import { readGroundTruth, type GroundTruth } from '@pathfinder/docs';
+import { readGroundTruth, type GroundTruth } from '@mudpuppy/docs';
 
 export interface PortalServer {
   /** A URL that answers 2xx once the server is up. */

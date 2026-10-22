@@ -8,7 +8,7 @@ from pathlib import Path
 
 import pytest
 
-from pathfinder_dashboard import stores
+from mudpuppy_dashboard import stores
 
 from .conftest import Store, insert, make_client, make_store
 
@@ -35,7 +35,7 @@ def eval_root(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
     eval_workspace(root, "pf-eval-proving-ground-shop-XyZ789", "proving-ground-shop", "r-s", 1e9)
     (root / "pf-eval-not-a-workspace").mkdir()  # no random suffix: not listed
     (root / "unrelated").mkdir()
-    monkeypatch.setenv("PATHFINDER_EVAL_ROOT", str(root))
+    monkeypatch.setenv("MUDPUPPY_EVAL_ROOT", str(root))
     return root
 
 

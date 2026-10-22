@@ -1,6 +1,6 @@
 import { readFileSync, rmSync } from 'node:fs';
-import { makeFixtureStore } from '@pathfinder/docs/testing';
-import { GENERATOR_VERSION } from '@pathfinder/wireframe';
+import { makeFixtureStore } from '@mudpuppy/docs/testing';
+import { GENERATOR_VERSION } from '@mudpuppy/wireframe';
 import { describe, expect, it } from 'vitest';
 import { rebuildWireframes } from '../src/index.js';
 

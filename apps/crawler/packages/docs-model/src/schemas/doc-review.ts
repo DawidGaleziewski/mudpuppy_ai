@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { Id, Timestamp } from '@pathfinder/core';
+import { Id, Timestamp } from '@mudpuppy/core';
 
 export const ReviewAction = z.enum(['confirm', 'reject', 'comment']);
 export type ReviewAction = z.infer<typeof ReviewAction>;

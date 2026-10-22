@@ -161,7 +161,7 @@ describe('ba subagent lockdown', () => {
 
   it('lists exactly the BA tools plus Read', () => {
     expect([...tools].sort()).toEqual(
-      [...BA_TOOL_NAMES.map((n) => `mcp__pathfinder-ba__${n}`), 'Read'].sort(),
+      [...BA_TOOL_NAMES.map((n) => `mcp__mudpuppy-ba__${n}`), 'Read'].sort(),
     );
   });
 
@@ -171,18 +171,18 @@ describe('ba subagent lockdown', () => {
         /^(Bash|Edit|Write|MultiEdit|NotebookEdit|WebFetch|WebSearch|Task|Agent)\b/,
       );
       expect(t).not.toContain('*');
-      expect(t.startsWith('mcp__pathfinder__')).toBe(false);
+      expect(t.startsWith('mcp__mudpuppy__')).toBe(false);
     }
   });
 
-  it('.mcp.json registers the pathfinder-ba server on the BA entry point', () => {
+  it('.mcp.json registers the mudpuppy-ba server on the BA entry point', () => {
     const mcp = JSON.parse(readFileSync(repoFile('.mcp.json'), 'utf8')) as {
       mcpServers: Record<string, { type?: string; command: string; args: string[] }>;
     };
-    const ba = mcp.mcpServers['pathfinder-ba']!;
+    const ba = mcp.mcpServers['mudpuppy-ba']!;
     expect(ba).toBeDefined();
     expect(ba.type ?? 'stdio').toBe('stdio');
     expect(ba.args).toContain('start:ba');
-    expect(mcp.mcpServers.pathfinder!.args).not.toContain('start:ba');
+    expect(mcp.mcpServers.mudpuppy!.args).not.toContain('start:ba');
   });
 });

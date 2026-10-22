@@ -11,7 +11,7 @@
  * `*` matches any run of characters; matching is case-insensitive.
  */
 
-import { urlEntryKind as entryKind } from '@pathfinder/config';
+import { urlEntryKind as entryKind } from '@mudpuppy/config';
 import { globToRegExp } from './scope.js';
 import type { Refusal } from './types.js';
 

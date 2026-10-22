@@ -1,5 +1,5 @@
 import { join } from 'node:path';
-import { HookSpec, PortalConfig, type HookPoint } from '@pathfinder/config';
+import { HookSpec, PortalConfig, type HookPoint } from '@mudpuppy/config';
 import { describe, expect, it } from 'vitest';
 import {
   createHookRunner,

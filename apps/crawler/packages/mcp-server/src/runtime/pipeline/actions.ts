@@ -1,5 +1,5 @@
-import { isSyntheticInput, type FoundBy } from '@pathfinder/core';
-import type { ActionDescriptor } from '@pathfinder/safety';
+import { isSyntheticInput, type FoundBy } from '@mudpuppy/core';
+import type { ActionDescriptor } from '@mudpuppy/safety';
 import type { ServerContext } from '../../context.js';
 import { ToolError } from '../../errors.js';
 import type { RunState } from '../run-state.js';

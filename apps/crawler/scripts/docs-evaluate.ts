@@ -20,8 +20,8 @@ import {
   reportJson,
   type GroundTruth,
   type Thresholds,
-} from '@pathfinder/docs';
-import { dbPathFor, openDb } from '@pathfinder/store';
+} from '@mudpuppy/docs';
+import { dbPathFor, openDb } from '@mudpuppy/store';
 import { scriptEnvironment } from './script-env.js';
 
 const fail = (message: string): never => {

@@ -1,8 +1,8 @@
 import { readdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { auditPii } from '@pathfinder/store';
-import { buildFrontierReport, renderReport } from '@pathfinder/crawler';
+import { auditPii } from '@mudpuppy/store';
+import { buildFrontierReport, renderReport } from '@mudpuppy/crawler';
 import { interruptStaleRuns } from '../src/index.js';
 import { crawl, mapPortal, type Body } from './harness.js';
 import { available, insurer, useInsurerMocks } from './insurer-harness.js';

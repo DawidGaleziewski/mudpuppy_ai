@@ -16,7 +16,7 @@ import {
   migrateUp,
   openDb,
   ruleFiles,
-} from '@pathfinder/store';
+} from '@mudpuppy/store';
 
 const arg = (name: string): string | undefined => {
   const i = process.argv.indexOf(`--${name}`);
@@ -25,7 +25,7 @@ const arg = (name: string): string | undefined => {
     : undefined;
 };
 const portal = process.argv[2];
-const env = arg('env') ?? process.env.PATHFINDER_ENV;
+const env = arg('env') ?? process.env.MUDPUPPY_ENV;
 if (!portal || portal.startsWith('--') || !env) {
   console.error(
     'usage: pnpm model:rules-export <portal> --env <env> [--root <dir>] [--out <dir>] [--status confirmed,supported|all]',

@@ -18,7 +18,7 @@ export function preflight(config: EvalConfig): void {
     const stale = staleServers();
     if (stale.length > 0)
       die(
-        `stale pathfinder MCP server process(es) hold the store; stop them first:\n${stale.join('\n')}`,
+        `stale mudpuppy MCP server process(es) hold the store; stop them first:\n${stale.join('\n')}`,
       );
   }
   if (!existsSync(join(config.root, 'portals', config.portal, 'portal.yaml')))

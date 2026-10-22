@@ -1,7 +1,7 @@
 // Request bodies of the BA process routes (spec 022 M5, contracts/processes-api.md).
 
-import { ChangeSpecSections } from '@pathfinder/chat-model';
-import { Environment } from '@pathfinder/config';
+import { ChangeSpecSections } from '@mudpuppy/chat-model';
+import { Environment } from '@mudpuppy/config';
 import { z } from 'zod';
 import { Steps } from './process-steps.js';
 

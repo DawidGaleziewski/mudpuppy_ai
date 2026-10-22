@@ -1,8 +1,8 @@
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
-import { Environment } from '@pathfinder/config';
-import { minSafetyClass, newId, nowIso, SafetyClass } from '@pathfinder/core';
-import { preflight, type PreflightResult } from '@pathfinder/crawler';
+import { Environment } from '@mudpuppy/config';
+import { minSafetyClass, newId, nowIso, SafetyClass } from '@mudpuppy/core';
+import { preflight, type PreflightResult } from '@mudpuppy/crawler';
 import { z } from 'zod';
 import type { ServerContext } from '../context.js';
 import { ToolError, parseInput } from '../errors.js';
@@ -15,12 +15,12 @@ import {
   portalRuleSet,
   ruleSetSummary,
   type ScanFocus,
-} from '@pathfinder/safety';
+} from '@mudpuppy/safety';
 import { createRunRobots, robotsSnapshot, type RunRobots } from './robots.js';
 import { createProcess, openFollowup, processOfRun } from './trace.js';
 import { resolveRunCredentials, runSecrets } from './credentials.js';
-import { personaRefs } from '@pathfinder/vault';
-import type { LoadedHook } from '@pathfinder/hooks';
+import { personaRefs } from '@mudpuppy/vault';
+import type { LoadedHook } from '@mudpuppy/hooks';
 import { loadRunHooks } from './run-hooks.js';
 import { openProbeMarks, type ProbeMarkItem } from './probe-marks.js';
 import { DirectedType, PlanInput } from './run-plan.js';

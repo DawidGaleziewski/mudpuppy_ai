@@ -14,7 +14,7 @@ Saved inputs for the pure packages, so `fingerprint` and `safety` can be unit-te
 
 ## `robots/`
 
-Fetched 2026-09-24 with `curl -L -A "PathfinderAI-Crawler/0.1 (fixture capture)"`. Replace a file only
+Fetched 2026-09-24 with `curl -L -A "MudPuppy-Crawler/0.1 (fixture capture)"`. Replace a file only
 together with the tests that assert on it.
 
 | File                     | Source                                                 | Note                                                                   |

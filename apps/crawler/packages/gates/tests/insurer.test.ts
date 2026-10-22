@@ -2,8 +2,8 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { afterAll, beforeAll, expect } from 'vitest';
 import { parse } from 'yaml';
-import { AGENT_TOOL_NAMES } from '@pathfinder/mcp-server';
-import { captureInvariants } from '@pathfinder/store';
+import { AGENT_TOOL_NAMES } from '@mudpuppy/mcp-server';
+import { captureInvariants } from '@mudpuppy/store';
 import {
   actionNamed,
   actOn,

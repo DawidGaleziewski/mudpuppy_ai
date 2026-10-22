@@ -1,4 +1,4 @@
-# @pathfinder/chat-model
+# @mudpuppy/chat-model
 
 The chat model (G-10): Zod schemas of chat conversations and messages, workflow steps, the BA's
 process scope and amendments.

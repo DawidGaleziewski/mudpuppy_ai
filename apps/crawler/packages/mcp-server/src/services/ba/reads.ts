@@ -5,8 +5,8 @@ import {
   elementKeys,
   isEvidenceRef,
   parseAriaYaml,
-} from '@pathfinder/core';
-import { DocKind, RevisionStatus } from '@pathfinder/docs-model';
+} from '@mudpuppy/core';
+import { DocKind, RevisionStatus } from '@mudpuppy/docs-model';
 import { z } from 'zod';
 import type { BaContext } from '../../context.js';
 import { ToolError, parseInput } from '../../errors.js';

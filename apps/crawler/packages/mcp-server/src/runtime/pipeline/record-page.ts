@@ -1,8 +1,8 @@
-import { maskText } from '@pathfinder/core';
-import { stepOutcomes, type SettleOutcome } from '@pathfinder/crawler';
-import { classifyAction } from '@pathfinder/safety';
+import { maskText } from '@mudpuppy/core';
+import { stepOutcomes, type SettleOutcome } from '@mudpuppy/crawler';
+import { classifyAction } from '@mudpuppy/safety';
 import type { PageResult } from '../../runtime.js';
-import type { StepResult, TransitionKind } from '@pathfinder/core';
+import type { StepResult, TransitionKind } from '@mudpuppy/core';
 import { recordForm, recordTransition } from '../../services/index.js';
 import { writeAttributes, type AttributeInput } from '../../services/journeys.js';
 import { ensureJourney } from './journey.js';

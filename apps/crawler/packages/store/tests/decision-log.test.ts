@@ -2,12 +2,12 @@ import { afterEach, describe, expect, it } from 'vitest';
 import { fileURLToPath } from 'node:url';
 import { openDb, type OpenedDb } from '../src/db.js';
 import { migrateUp } from '../src/migrate.js';
-import { createEvidenceStore, createLogger } from '@pathfinder/core';
+import { createEvidenceStore, createLogger } from '@mudpuppy/core';
 import { createDecisionLog, linkDecisions } from '../src/decision-log.js';
 import { createTracer } from '../src/tracer.js';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { newId, nowIso } from '@pathfinder/core';
+import { newId, nowIso } from '@mudpuppy/core';
 
 const MIGRATIONS = fileURLToPath(new URL('../../../../../data/migrations', import.meta.url));
 let opened: OpenedDb | undefined;
@@ -119,7 +119,7 @@ describe('linkDecisions (research §2)', () => {
     });
     await tracer.start({
       environment: 'sandbox',
-      server: 'pathfinder',
+      server: 'mudpuppy',
       version: 't',
     });
     const spans = () =>

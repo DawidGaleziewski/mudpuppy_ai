@@ -9,9 +9,9 @@ from datetime import datetime
 import httpx2
 from fastapi.testclient import TestClient
 
-from pathfinder_dashboard import live_map, queries_chat
-from pathfinder_dashboard.models import ChatConversation
-from pathfinder_dashboard.settings import Settings
+from mudpuppy_dashboard import live_map, queries_chat
+from mudpuppy_dashboard.models import ChatConversation
+from mudpuppy_dashboard.settings import Settings
 
 from .conftest import T0, Store, insert, make_store, ts
 
@@ -136,7 +136,7 @@ class Service:
 
 
 def make_chat_client(store: Store, service: Service) -> TestClient:
-    from pathfinder_dashboard.app import create_app
+    from mudpuppy_dashboard.app import create_app
 
     settings = Settings(data_dir=store.data_dir, default_env=store.env)
     return TestClient(create_app(settings, chat_transport=httpx2.MockTransport(service)))
@@ -347,7 +347,7 @@ def test_tracker_without_conversation_portal_follows_newest_row(empty_store: Sto
     seed_step(empty_store, "scan", "pending", portal="b", updated=5)
     conn = empty_store.connect()
     conn.close()
-    from pathfinder_dashboard import db
+    from mudpuppy_dashboard import db
 
     ro = db.connect(empty_store.data_dir, empty_store.env)
     conv = queries_chat.get_conversation(ro, CONV)
@@ -360,7 +360,7 @@ def test_tracker_without_conversation_portal_follows_newest_row(empty_store: Sto
 def test_queries_on_a_store_without_chat_tables_say_nothing(tmp_path) -> None:  # type: ignore[no-untyped-def]
     import sqlite3
 
-    from pathfinder_dashboard import db
+    from mudpuppy_dashboard import db
 
     store = make_store(tmp_path / "data")
     raw = sqlite3.connect(store)
@@ -496,7 +496,7 @@ def test_sse_proxy_passes_a_404_from_the_service(empty_store: Store) -> None:
 
 def test_chat_url_comes_from_the_environment(monkeypatch) -> None:  # type: ignore[no-untyped-def]
     assert Settings().chat_url == "http://127.0.0.1:4310"
-    monkeypatch.setenv("PATHFINDER_CHAT_URL", "http://127.0.0.1:9999")
+    monkeypatch.setenv("MUDPUPPY_CHAT_URL", "http://127.0.0.1:9999")
     assert Settings().chat_url == "http://127.0.0.1:9999"
 
 

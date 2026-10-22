@@ -4,7 +4,7 @@
 // happy values, applies a try's changes and fault, presses the step's control and records what
 // happened.
 
-import type { ProbeFault, ProbeGroup } from '@pathfinder/core';
+import type { ProbeFault, ProbeGroup } from '@mudpuppy/core';
 
 /** One control of the step, as the form reader sees it (the shape of crawler's `AutofillField`). */
 export interface ProbeField {

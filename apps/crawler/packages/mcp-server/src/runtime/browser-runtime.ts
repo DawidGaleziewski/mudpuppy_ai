@@ -5,8 +5,8 @@ import {
   recordAssets,
   trackAssetHealth,
   type StabilizerOptions,
-} from '@pathfinder/crawler';
-import { computeFingerprint } from '@pathfinder/fingerprint';
+} from '@mudpuppy/crawler';
+import { computeFingerprint } from '@mudpuppy/fingerprint';
 import type { ServerContext } from '../context.js';
 import type { Runtime } from '../runtime.js';
 import {

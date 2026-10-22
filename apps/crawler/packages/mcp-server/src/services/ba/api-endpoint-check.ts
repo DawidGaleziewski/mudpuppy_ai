@@ -1,4 +1,4 @@
-import type { DocContent } from '@pathfinder/docs-model';
+import type { DocContent } from '@mudpuppy/docs-model';
 import type { BaContext } from '../../context.js';
 import { ToolError } from '../../errors.js';
 

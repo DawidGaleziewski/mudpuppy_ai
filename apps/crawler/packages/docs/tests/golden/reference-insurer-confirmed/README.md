@@ -1,7 +1,7 @@
 # Software requirements specification: reference-insurer
 
 As-is documentation of the portal `reference-insurer` (environment `sandbox`), rendered
-from the Pathfinder documentation store. The outline is adapted from ISO/IEC/IEEE 29148 (SRS).
+from the MudPuppy documentation store. The outline is adapted from ISO/IEC/IEEE 29148 (SRS).
 
 - **As of:** 2026-01-15T10:37:00.000Z
 - **Mode:** confirmed only

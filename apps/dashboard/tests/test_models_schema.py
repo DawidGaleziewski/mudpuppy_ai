@@ -9,7 +9,7 @@ import typing
 
 import pytest
 
-from pathfinder_dashboard.models import TABLE_MODELS
+from mudpuppy_dashboard.models import TABLE_MODELS
 
 from .conftest import Store
 
@@ -84,7 +84,7 @@ def test_model_literals_equal_table_checks(empty_store: Store, table: str) -> No
 
 def test_known_enums_are_complete() -> None:
     """The enums the UI maps to labels (contracts/ui-conventions.md)."""
-    from pathfinder_dashboard import models
+    from mudpuppy_dashboard import models
 
     assert set(typing.get_args(models.RunStatus)) == {
         "running",
@@ -116,7 +116,7 @@ def test_known_enums_are_complete() -> None:
 
 
 def test_invalid_json_is_kept_raw() -> None:
-    from pathfinder_dashboard.models import DecisionLogEntry
+    from mudpuppy_dashboard.models import DecisionLogEntry
 
     entry = DecisionLogEntry(
         id="d",

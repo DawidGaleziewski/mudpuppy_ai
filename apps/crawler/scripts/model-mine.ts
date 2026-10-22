@@ -1,14 +1,14 @@
 /**
  * Mine business rules (spec 039 design § 11): `pnpm model:mine <portal> --env <env>`.
  * Builds the observation table of every decision point of the portal model, runs
- * `pathfinder-miner rules` (apps/miner, Python) on each, and imports what comes back as
+ * `mudpuppy-miner rules` (apps/miner, Python) on each, and imports what comes back as
  * `decision_rule` hypotheses with their boundary tests, after Zod validation. Never runs on the
  * crawler's runtime path; needs `uv` (the miner's environment). The run's end and
  * `pnpm model:reconcile` do the same after a new model version (`mineRules`, spec 040 T030).
  */
 import { join, resolve } from 'node:path';
-import { proposeBoundarySuites } from '@pathfinder/mcp-server';
-import { dbPathFor, migrateUp, mineRules, openDb, uvMiner } from '@pathfinder/store';
+import { proposeBoundarySuites } from '@mudpuppy/mcp-server';
+import { dbPathFor, migrateUp, mineRules, openDb, uvMiner } from '@mudpuppy/store';
 
 const arg = (name: string): string | undefined => {
   const i = process.argv.indexOf(`--${name}`);
@@ -17,13 +17,13 @@ const arg = (name: string): string | undefined => {
     : undefined;
 };
 const portal = process.argv[2];
-const env = arg('env') ?? process.env.PATHFINDER_ENV;
+const env = arg('env') ?? process.env.MUDPUPPY_ENV;
 if (!portal || portal.startsWith('--') || !env) {
   console.error('usage: pnpm model:mine <portal> --env <env>');
   process.exit(2);
 }
 const root = resolve(arg('root') ?? join(import.meta.dirname, '../../..'));
-const miner = uvMiner(root, { ...process.env, PATHFINDER_MINER: 'on' });
+const miner = uvMiner(root, { ...process.env, MUDPUPPY_MINER: 'on' });
 if (miner === null) {
   console.error('the miner needs apps/miner and uv on the PATH');
   process.exit(2);

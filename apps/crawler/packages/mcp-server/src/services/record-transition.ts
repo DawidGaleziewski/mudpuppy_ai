@@ -9,9 +9,9 @@ import {
   TransitionKind,
   newId,
   nowIso,
-} from '@pathfinder/core';
-import { classifyAction, portalRuleSet, type ActionDescriptor } from '@pathfinder/safety';
-import type { PortalConfig } from '@pathfinder/config';
+} from '@mudpuppy/core';
+import { classifyAction, portalRuleSet, type ActionDescriptor } from '@mudpuppy/safety';
+import type { PortalConfig } from '@mudpuppy/config';
 import { z } from 'zod';
 import type { ServerContext } from '../context.js';
 import { ToolError, parseInput } from '../errors.js';

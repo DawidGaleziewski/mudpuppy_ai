@@ -17,7 +17,7 @@ import type {
   SafetyClass,
   Stabilization,
   StateKind,
-} from '@pathfinder/core';
+} from '@mudpuppy/core';
 // Trace model.
 import type {
   AgentTurnKind,
@@ -27,7 +27,7 @@ import type {
   SpanStatus,
   TraceLevel,
   TraceServer,
-} from '@pathfinder/trace';
+} from '@mudpuppy/trace';
 // Documentation model.
 import type {
   AnalysisSessionStatus,
@@ -41,7 +41,7 @@ import type {
   ReviewAction,
   RevisionChange,
   RevisionStatus,
-} from '@pathfinder/docs-model';
+} from '@mudpuppy/docs-model';
 // Chat model.
 import type {
   AmendmentChange,
@@ -62,7 +62,7 @@ import type {
   ProcessModelKind,
   WorkflowStepName,
   WorkflowStepStatus,
-} from '@pathfinder/chat-model';
+} from '@mudpuppy/chat-model';
 
 /** Kysely table types mirroring data/schema/schema.sql. JSON columns are TEXT (stringified JSON). */
 export interface RunsTable {
@@ -85,7 +85,7 @@ export interface RunsTable {
   started_at: string;
   ended_at: string | null;
   coverage: string | null;
-  /** 0009: the pathfinder server instance driving the run, and its process id (F-14). */
+  /** 0009: the mudpuppy server instance driving the run, and its process id (F-14). */
   owner_id: string | null;
   owner_pid: number | null;
   /** 0027: the kind of directed run; NULL = a plain run (full map or trace by `mode`). */

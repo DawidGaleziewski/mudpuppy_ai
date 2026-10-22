@@ -5,8 +5,8 @@
  * columns, and the view `doc_evidence` maps them back.
  */
 import type BetterSqlite3 from 'better-sqlite3';
-import { newId } from '@pathfinder/core';
-import type { EvidenceTargetKind } from '@pathfinder/docs-model';
+import { newId } from '@mudpuppy/core';
+import type { EvidenceTargetKind } from '@mudpuppy/docs-model';
 
 type Raw = BetterSqlite3.Database;
 

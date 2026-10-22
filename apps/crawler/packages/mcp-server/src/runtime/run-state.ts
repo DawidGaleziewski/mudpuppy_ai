@@ -2,19 +2,19 @@ import {
   FingerprintIndex,
   type FingerprintProfile,
   type FormStepIndex,
-} from '@pathfinder/fingerprint';
-import { inferRouteTemplates, type RouteTemplater } from '@pathfinder/fingerprint';
-import { portalFingerprintProfile, type EffectiveConfig } from '@pathfinder/config';
+} from '@mudpuppy/fingerprint';
+import { inferRouteTemplates, type RouteTemplater } from '@mudpuppy/fingerprint';
+import { portalFingerprintProfile, type EffectiveConfig } from '@mudpuppy/config';
 import {
   FrontierPolicy,
   type AssetHealth,
   type AssetRecorder,
   type BrowserSession,
   type MountWait,
-} from '@pathfinder/crawler';
-import { portalRuleSet, type RuleSet, type RunScope } from '@pathfinder/safety';
-import type { HookRunner } from '@pathfinder/hooks';
-import type { ProbeTry } from '@pathfinder/probes';
+} from '@mudpuppy/crawler';
+import { portalRuleSet, type RuleSet, type RunScope } from '@mudpuppy/safety';
+import type { HookRunner } from '@mudpuppy/hooks';
+import type { ProbeTry } from '@mudpuppy/probes';
 import type { RunRobots } from '../services/robots.js';
 import type { ResolvedPlan } from '../services/run-plan.js';
 import type { PwTrace } from './pw-trace.js';

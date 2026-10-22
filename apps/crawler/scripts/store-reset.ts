@@ -2,7 +2,7 @@
  * The MudPuppy 2.0 data reset (spec 039 plan § 2, T002).
  * Usage: pnpm store:reset [--confirm] [--root <repo root>]
  * Without --confirm it only prints what would be deleted and moved. Refuses (exit 1) while a
- * process holds a file under data/db open or a Pathfinder service port answers.
+ * process holds a file under data/db open or a MudPuppy service port answers.
  */
 import { execFileSync } from 'node:child_process';
 import { join, resolve } from 'node:path';
@@ -12,13 +12,13 @@ import {
   applyStoreReset,
   openHolders,
   planStoreReset,
-} from '@pathfinder/store';
+} from '@mudpuppy/store';
 
 const arg = (name: string): string | undefined => {
   const i = process.argv.indexOf(`--${name}`);
   return i > -1 ? process.argv[i + 1] : undefined;
 };
-/** Where the Pathfinder services listen (CLAUDE.md: proving ground, scar-maker, chat, dashboard). */
+/** Where the MudPuppy services listen (CLAUDE.md: proving ground, scar-maker, chat, dashboard). */
 const SERVICE_PORTS = [
   { host: '127.0.0.1', port: 4200 },
   { host: '127.0.0.1', port: 4201 },

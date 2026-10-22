@@ -1,4 +1,4 @@
-# @pathfinder/vault
+# @mudpuppy/vault
 
 Encrypted test-user credentials per portal and environment, resolved from persona `ref:` names. CLI behind `pnpm vault` (apps/crawler/scripts/vault.ts). Re-exports run-scoped secret redactor from core.
 

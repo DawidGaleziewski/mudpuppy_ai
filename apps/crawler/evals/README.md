@@ -41,7 +41,7 @@ guideline G-33 makes it the rule for new code. This folder is the reference layo
 | Transcript         | The full record of a trial: outputs, tool calls, reasoning          | The two `claude` session transcripts                            |
 | Outcome            | The final state of the environment after a trial                    | The workspace store and documentation                           |
 | Evaluation harness | Runs evals end to end                                               | This folder                                                     |
-| Agent harness      | What lets a model act as an agent                                   | The `pathfinder` MCP servers + Claude Code                      |
+| Agent harness      | What lets a model act as an agent                                   | The `mudpuppy` MCP servers + Claude Code                        |
 | Reference solution | A known working output that passes all graders                      | `reference-solutions/` (the approved export of PROC-001)        |
 | Ground truth       | (our term, kept) Facts about the portal the graders compare against | Next to each portal, see below                                  |
 
@@ -141,8 +141,8 @@ and are never compared with the baseline. A judge counts only once **calibrated*
 | `pnpm eval:judge <portal> --store <path> [--judge <id>]` | Judges an existing store; code matcher and judge side by side                  | 1 call per pair  |
 | `pnpm eval <portal>`                                     | Runs the judges after the code graders; `--no-judges` turns them off           | 1 call per pair  |
 
-- Login: the token from `claude setup-token` in `~/.config/pathfinder/judge-token` (one line,
-  no quotes, mode 600; or `PATHFINDER_JUDGE_TOKEN_FILE`), else your Claude login, linked. Never
+- Login: the token from `claude setup-token` in `~/.config/mudpuppy/judge-token` (one line,
+  no quotes, mode 600; or `MUDPUPPY_JUDGE_TOKEN_FILE`), else your Claude login, linked. Never
   export `CLAUDE_CODE_OAUTH_TOKEN` in your shell: it would replace every Claude session's login.
 - Adding a judge: its file in `graders/model/judges/` and one line in `judges/index.ts`
   (`specs/017-llm-judge/contracts/judge-definition.md`; the `create-eval` skill, section 7).
@@ -154,8 +154,8 @@ Where things live outside this folder:
   and `apps/proving-ground/ground-truth/*.yaml` (their self-check tests read them there). A site
   we don't own has its ground truth here, in `ground-truth/` (e.g. `wikipedia.yaml`).
 - Results, `baseline.json` and `tolerances.json`: `data/evals/<portal>/` (generated output).
-- The scoring functions shared with the gates: `@pathfinder/gates` (`eval.ts`, `eval-checks.ts`)
-  and `evaluate()` in `@pathfinder/docs`.
+- The scoring functions shared with the gates: `@mudpuppy/gates` (`eval.ts`, `eval-checks.ts`)
+  and `evaluate()` in `@mudpuppy/docs`.
 - How the agents behave: `.claude/agents/crawler.md`, `ba.md` and the `ba-practice` skill.
 
 To add a task: give the portal a ground truth, then add a line to `SUITE` in `tasks.ts`.

@@ -1,4 +1,4 @@
-import { Timeouts } from '@pathfinder/config';
+import { Timeouts } from '@mudpuppy/config';
 import { describe, expect, it } from 'vitest';
 import { DEFAULT_NAVIGATION_MS, DEFAULT_SETTLE_MS, pageTimeouts } from '../src/timeouts.js';
 

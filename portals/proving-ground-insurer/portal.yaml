@@ -32,7 +32,7 @@ denylist: []
 rate_limit:
   requests_per_second: 5
   max_concurrency: 2
-  user_agent: "PathfinderAI-Crawler/0.1 (local proving ground)"
+  user_agent: "MudPuppy-Crawler/0.1 (local proving ground)"
 
 obstacles:
   - id: cookie-banner

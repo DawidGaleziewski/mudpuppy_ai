@@ -1,13 +1,13 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
-import { Confidence } from '@pathfinder/core';
-import { describeRecordKinds } from '@pathfinder/docs';
+import { Confidence } from '@mudpuppy/core';
+import { describeRecordKinds } from '@mudpuppy/docs';
 import {
   AnalysisPass,
   DocKind,
   EvidenceTargetKind,
   RelationType,
   RevisionStatus,
-} from '@pathfinder/docs-model';
+} from '@mudpuppy/docs-model';
 import { z } from 'zod';
 import type { BaContext } from '../context.js';
 import { getAccessMatrix } from '../services/ba/access.js';
@@ -31,7 +31,7 @@ import {
   listHypothesesTool,
   proposeHypothesisTool,
 } from '../services/ba/hypotheses.js';
-import { AgentHypothesisKind } from '@pathfinder/store';
+import { AgentHypothesisKind } from '@mudpuppy/store';
 import {
   addressCrawlerQuestion,
   createRecord,
@@ -42,7 +42,7 @@ import { finishSession, recordPass, startSession } from '../services/ba/sessions
 import { fail, ok } from '../tools/result.js';
 
 /**
- * The ONLY tools the `ba` subagent may use (as `mcp__pathfinder-ba__<name>`): reads over recorded
+ * The ONLY tools the `ba` subagent may use (as `mcp__mudpuppy-ba__<name>`): reads over recorded
  * evidence and Layer B writes. No browser, no crawler tool, and nothing that sets a status, a key or
  * an id (contracts/ba-mcp-tools.md).
  */
@@ -399,7 +399,7 @@ export function registerBaTools(server: McpServer, ctx: BaContext): void {
 }
 
 export function createBaServer(ctx: BaContext): McpServer {
-  const server = new McpServer({ name: 'pathfinder-ba', version: '0.0.0' });
+  const server = new McpServer({ name: 'mudpuppy-ba', version: '0.0.0' });
   registerBaTools(server, ctx);
   return server;
 }

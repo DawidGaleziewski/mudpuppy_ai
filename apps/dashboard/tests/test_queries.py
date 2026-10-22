@@ -4,7 +4,7 @@ import sqlite3
 
 import pytest
 
-from pathfinder_dashboard import db, queries
+from mudpuppy_dashboard import db, queries
 
 from .conftest import BIG_RUN, CAPTCHA_1, DECISION_MIX, FRONTIER_MIX, Store, insert, ts
 
@@ -432,7 +432,7 @@ def seed_trace_with_agent(conn: sqlite3.Connection) -> None:
         run_id=BIG_RUN,
         kind="tool_use",
         tool_use_id="tu-1",
-        tool_name="mcp__pathfinder__navigate",
+        tool_name="mcp__mudpuppy__navigate",
         input_tokens=120,
         output_tokens=30,
         cache_read_tokens=10,
@@ -461,7 +461,7 @@ def seed_trace_with_agent(conn: sqlite3.Connection) -> None:
         run_id=BIG_RUN,
         kind="tool_use",
         tool_use_id="tu-3",
-        tool_name="mcp__pathfinder__act",
+        tool_name="mcp__mudpuppy__act",
         matched=0,
         created_at=ts(1),
     )

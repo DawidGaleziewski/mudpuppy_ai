@@ -1,6 +1,6 @@
 import type { Page, Request, Response } from 'playwright';
-import { inferRouteTemplates } from '@pathfinder/fingerprint';
-import { maskText } from '@pathfinder/core';
+import { inferRouteTemplates } from '@mudpuppy/fingerprint';
+import { maskText } from '@mudpuppy/core';
 import { formShape, shapeOfBody, shapeOfFormBody, type Shape } from './shape.js';
 
 /** `res_schema` of a form-submit call: no body is read; the redirect hops (URLs as templates) follow it. */

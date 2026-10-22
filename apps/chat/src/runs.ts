@@ -1,11 +1,11 @@
 // Stop a scan (R-30 T041, F-13): the BA can end a crawl run without restarting the chat service.
-// Stopping marks the run `interrupted`, the same state a pathfinder server leaves when it goes away:
+// Stopping marks the run `interrupted`, the same state a mudpuppy server leaves when it goes away:
 // the crawler's next call gets RUN_STOPPED, and `request_scan` with `resume_run_id` continues it
 // from the recorded frontier. Covered by the `docs:review` precedent like every chat write (T037).
 
 import type BetterSqlite3 from 'better-sqlite3';
-import { nowIso } from '@pathfinder/core';
-import type { WorkflowStepName } from '@pathfinder/chat-model';
+import { nowIso } from '@mudpuppy/core';
+import type { WorkflowStepName } from '@mudpuppy/chat-model';
 import { recordStep } from './steps.js';
 
 export class RunRefusal extends Error {

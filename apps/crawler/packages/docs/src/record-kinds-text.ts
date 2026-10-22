@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { DOC_CONTENT_BY_KIND, DocKind, RelationType } from '@pathfinder/docs-model';
+import { DOC_CONTENT_BY_KIND, DocKind, RelationType } from '@mudpuppy/docs-model';
 import { RELATION_RULES } from './relations.js';
 
 /**

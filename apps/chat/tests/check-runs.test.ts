@@ -5,7 +5,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js';
-import { migrateUp, openDb } from '@pathfinder/store';
+import { migrateUp, openDb } from '@mudpuppy/store';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { runningCheckRun, startCheckRun, type CheckRunDeps } from '../src/check-runs.js';
 import { HttpError } from '../src/http-error.js';
@@ -18,7 +18,7 @@ let alive: Set<number>;
 let deps: CheckRunDeps;
 
 beforeEach(() => {
-  root = mkdtempSync(join(tmpdir(), 'pathfinder-check-runs-'));
+  root = mkdtempSync(join(tmpdir(), 'mudpuppy-check-runs-'));
   mkdirSync(join(root, 'portals', 'shop'), { recursive: true });
   writeFileSync(join(root, 'portals', 'shop', 'portal.yaml'), 'id: shop\n');
   spawned = [];
@@ -28,7 +28,7 @@ beforeEach(() => {
     repoRoot: root,
     environment: 'sandbox',
     spawn: (command, args, options) => {
-      spawned.push({ command, args, env: options.env.PATHFINDER_ENV });
+      spawned.push({ command, args, env: options.env.MUDPUPPY_ENV });
       pid += 1;
       alive.add(pid);
       return { pid, unref: () => undefined };

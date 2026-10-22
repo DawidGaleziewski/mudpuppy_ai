@@ -108,7 +108,7 @@ export function toExcalidraw(m: WireframeModel): string {
   const scene = {
     type: 'excalidraw',
     version: 2,
-    source: 'pathfinder-wireframe',
+    source: 'mudpuppy-wireframe',
     elements: [...frames, ...rest].map(element),
     appState: { viewBackgroundColor: '#ffffff', gridSize: null },
     files: {},

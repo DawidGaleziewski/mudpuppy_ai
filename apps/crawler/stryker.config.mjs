@@ -2,10 +2,10 @@
 /* global process -- read by Stryker under Node */
 /**
  * Mutation testing of one crawler package (spec 012 US6, guideline G-32). Run through
- * `pnpm mutate [--package <name>]` (scripts/mutate.ts), which sets PATHFINDER_MUTATE_PACKAGE.
+ * `pnpm mutate [--package <name>]` (scripts/mutate.ts), which sets MUDPUPPY_MUTATE_PACKAGE.
  * Reports go to data/mutation/stryker/<package>/ (gitignored); never part of commit or merge checks.
  */
-const pkg = process.env.PATHFINDER_MUTATE_PACKAGE ?? 'fingerprint';
+const pkg = process.env.MUDPUPPY_MUTATE_PACKAGE ?? 'fingerprint';
 const out = `../../data/mutation/stryker/${pkg}`;
 
 /** @type {import('@stryker-mutator/api/core').PartialStrykerOptions} */

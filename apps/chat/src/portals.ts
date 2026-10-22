@@ -13,8 +13,8 @@ import {
   Environment,
   loadEffectiveConfig,
   portalEnvironments,
-} from '@pathfinder/config';
-import { SafetyClass } from '@pathfinder/core';
+} from '@mudpuppy/config';
+import { SafetyClass } from '@mudpuppy/core';
 import { portalFile, type WorkspacePaths } from './workflow-data.js';
 
 const SLUG = /^[a-z0-9][a-z0-9_-]*$/;
@@ -146,7 +146,7 @@ export function createPortal(paths: WorkspacePaths, input: NewPortalBody): Porta
     rate_limit: {
       requests_per_second: 2,
       max_concurrency: 1,
-      user_agent: 'PathfinderAI-Crawler/0.1 (portal added from the dashboard)',
+      user_agent: 'MudPuppy-Crawler/0.1 (portal added from the dashboard)',
     },
   };
   const persona = {

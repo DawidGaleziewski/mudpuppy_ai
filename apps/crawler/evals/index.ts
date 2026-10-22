@@ -8,7 +8,7 @@
  * regression, 2 on bad input, preflight or an agent's API error, 3 on the account's usage limit
  * (README "Running several"). Never part of `pnpm test`: it spends real tokens.
  *
- * By default the agents work in a fresh workspace (PATHFINDER_ROOT = a temp folder with copies of
+ * By default the agents work in a fresh workspace (MUDPUPPY_ROOT = a temp folder with copies of
  * portals/, personas/ and the migrations), so the developer's store and its documentation are
  * never touched and every eval starts from nothing. `--in-place` uses the real store instead.
  *
@@ -16,7 +16,7 @@
  * server, agents, cost), graders/ (what is scored, by kind), results.ts (save, compare, promote).
  */
 import { randomUUID } from 'node:crypto';
-import type { GroundTruth } from '@pathfinder/docs';
+import type { GroundTruth } from '@mudpuppy/docs';
 import { parseConfig, type EvalConfig } from './config.js';
 import { abort, die, EvalAbort } from './failures.js';
 import {

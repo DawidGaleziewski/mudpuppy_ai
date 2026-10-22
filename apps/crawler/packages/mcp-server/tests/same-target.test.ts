@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { newId, nowIso } from '@pathfinder/core';
+import { newId, nowIso } from '@mudpuppy/core';
 import type { ServerContext } from '../src/context.js';
 import { getNextFrontierItem } from '../src/services/frontier.js';
 import { inferSameTarget, linkNameKey, linkTarget } from '../src/services/same-target.js';

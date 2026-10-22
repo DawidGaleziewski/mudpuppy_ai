@@ -1,6 +1,6 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import { elementKeys, parseAriaYaml, type AriaNode } from '@pathfinder/core';
+import { elementKeys, parseAriaYaml, type AriaNode } from '@mudpuppy/core';
 import { describe, expect, it } from 'vitest';
 import { MAX_NODES, layoutWireframe, renderWireframe } from '../src/index.js';
 

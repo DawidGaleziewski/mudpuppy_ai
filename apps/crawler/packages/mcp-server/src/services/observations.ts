@@ -1,6 +1,6 @@
-import { NavigationHop, ObservationVia, StepResult, newId, nowIso } from '@pathfinder/core';
-import type { FingerprintProfile } from '@pathfinder/fingerprint';
-import type { BuildSignature } from '@pathfinder/model';
+import { NavigationHop, ObservationVia, StepResult, newId, nowIso } from '@mudpuppy/core';
+import type { FingerprintProfile } from '@mudpuppy/fingerprint';
+import type { BuildSignature } from '@mudpuppy/model';
 import { z } from 'zod';
 import type { ServerContext } from '../context.js';
 import { parseInput } from '../errors.js';

@@ -1,6 +1,6 @@
 // T051 (F-18, F-19): the context block the chat service puts before the BA's message.
 
-import type { ChatConversation, ChatMessage, WorkflowStep } from '@pathfinder/chat-model';
+import type { ChatConversation, ChatMessage, WorkflowStep } from '@mudpuppy/chat-model';
 import { describe, expect, it } from 'vitest';
 import { MAX_MESSAGE_CHARS, handover, promptWithHandover } from '../src/handover.js';
 

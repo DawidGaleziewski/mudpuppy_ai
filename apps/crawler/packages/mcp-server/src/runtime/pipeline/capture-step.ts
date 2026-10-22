@@ -1,4 +1,4 @@
-import type { NetworkObservation, SettleOutcome } from '@pathfinder/crawler';
+import type { NetworkObservation, SettleOutcome } from '@mudpuppy/crawler';
 import { capturePage, type PageCapture } from './capture-v2.js';
 import { event, reported, step, type StepContext } from './context.js';
 

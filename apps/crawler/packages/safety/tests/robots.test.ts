@@ -11,14 +11,14 @@ import {
 
 const FIXTURES = new URL('../../../tests/fixtures/', import.meta.url);
 const fixture = (name: string): string => readFileSync(new URL(name, FIXTURES), 'utf8');
-const TOKEN = 'PathfinderAI-Crawler';
+const TOKEN = 'MudPuppy-Crawler';
 
 const verdict = (text: string, url: string, token = TOKEN) =>
   robotsVerdict(parseRobots(text), token, url);
 
 describe('productToken (research §4)', () => {
   it('is the User-Agent text before the first "/" or space', () => {
-    expect(productToken('PathfinderAI-Crawler/0.1 (+mailto:ops@example.com)')).toBe(TOKEN);
+    expect(productToken('MudPuppy-Crawler/0.1 (+mailto:ops@example.com)')).toBe(TOKEN);
     expect(productToken('MyBot (+https://x.y)')).toBe('MyBot');
   });
 
@@ -78,7 +78,7 @@ describe('group selection', () => {
     'User-agent: *',
     'Disallow: /all-bots/',
     '',
-    'User-agent: pathfinderai-crawler',
+    'User-agent: mudpuppy-crawler',
     'Disallow: /only-us/',
     'Crawl-delay: 5',
   ].join('\n');
@@ -87,7 +87,7 @@ describe('group selection', () => {
     expect(verdict(text, 'https://h/only-us/x').allowed).toBe(false);
     expect(verdict(text, 'https://h/all-bots/x').allowed).toBe(true);
     const g = selectGroup(parseRobots(text), TOKEN);
-    expect(g.agent).toBe('pathfinderai-crawler');
+    expect(g.agent).toBe('mudpuppy-crawler');
     expect(g.crawlDelay).toBe(5);
   });
 

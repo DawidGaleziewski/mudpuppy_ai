@@ -1,4 +1,4 @@
-import { newId, nowIso, type ProbeFault } from '@pathfinder/core';
+import { newId, nowIso, type ProbeFault } from '@mudpuppy/core';
 import {
   nativeMessages,
   readFormFields,
@@ -6,8 +6,8 @@ import {
   transientError,
   writeFormFields,
   type AutofillField,
-} from '@pathfinder/crawler';
-import { canonicalizeAria, errorSignals } from '@pathfinder/fingerprint';
+} from '@mudpuppy/crawler';
+import { canonicalizeAria, errorSignals } from '@mudpuppy/fingerprint';
 import {
   classifyOutcome,
   type Classified,
@@ -15,7 +15,7 @@ import {
   type HappyNext,
   type ProbeTry,
   type ProbeValue,
-} from '@pathfinder/probes';
+} from '@mudpuppy/probes';
 import type { PageResult } from '../../runtime.js';
 import { captchaInDom } from '../handoff.js';
 import type { ActionRow } from './actions.js';

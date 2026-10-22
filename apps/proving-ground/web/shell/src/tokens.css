@@ -19,7 +19,7 @@
   --scrim: rgba(10, 10, 8, 0.8);
   --scanline: rgba(255, 176, 0, 0.04);
 
-  /* Pathfinder aliases: intent at the call site (tokens-to-code.md) */
+  /* MudPuppy aliases: intent at the call site (tokens-to-code.md) */
   --status-ok: var(--brand);
   --status-running: var(--accent-3);
   --status-failed: var(--signal-error);

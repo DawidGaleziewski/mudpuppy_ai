@@ -1,7 +1,7 @@
 import type BetterSqlite3 from 'better-sqlite3';
 import { readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { nowIso } from '@pathfinder/core';
+import { nowIso } from '@mudpuppy/core';
 
 const FILE = /^(\d{4})_([a-z0-9_]+)\.(up|down)\.sql$/;
 

@@ -29,7 +29,7 @@ scope:
 rate_limit:
   requests_per_second: 2
   max_concurrency: 1
-  user_agent: "PathfinderAI-Crawler/0.1 (test)"
+  user_agent: "MudPuppy-Crawler/0.1 (test)"
 `;
 
 const file = (yaml: string) => join(tmpTree({ 'portal.yaml': yaml }), 'portal.yaml');

@@ -15,20 +15,19 @@ export type JudgeLogin =
 
 const TOKEN = /^sk-ant-[A-Za-z0-9_-]+$/;
 
-export const defaultTokenFile = (home: string) =>
-  join(home, '.config', 'pathfinder', 'judge-token');
+export const defaultTokenFile = (home: string) => join(home, '.config', 'mudpuppy', 'judge-token');
 
-/** `PATHFINDER_JUDGE_TOKEN_FILE` → `~/.config/pathfinder/judge-token` → `~/.claude/.credentials.json`. */
+/** `MUDPUPPY_JUDGE_TOKEN_FILE` → `~/.config/mudpuppy/judge-token` → `~/.claude/.credentials.json`. */
 export function resolveJudgeLogin(
   env: NodeJS.ProcessEnv = process.env,
   home: string = homedir(),
 ): JudgeLogin {
-  const path = env.PATHFINDER_JUDGE_TOKEN_FILE ?? defaultTokenFile(home);
+  const path = env.MUDPUPPY_JUDGE_TOKEN_FILE ?? defaultTokenFile(home);
   if (existsSync(path)) return { source: 'token-file', path, token: readToken(path) };
-  if (env.PATHFINDER_JUDGE_TOKEN_FILE)
+  if (env.MUDPUPPY_JUDGE_TOKEN_FILE)
     throw new JudgeSetupError(
       'NO_LOGIN',
-      `PATHFINDER_JUDGE_TOKEN_FILE points to ${path}, which does not exist`,
+      `MUDPUPPY_JUDGE_TOKEN_FILE points to ${path}, which does not exist`,
     );
   const credentials = join(home, '.claude', '.credentials.json');
   if (existsSync(credentials)) return { source: 'linked-login', credentials };

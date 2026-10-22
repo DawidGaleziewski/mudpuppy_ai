@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it } from 'vitest';
-import { canLaunchBrowser } from '@pathfinder/crawler';
-import { startReferencePortal, type ReferencePortal } from '@pathfinder/reference-portal';
+import { canLaunchBrowser } from '@mudpuppy/crawler';
+import { startReferencePortal, type ReferencePortal } from '@mudpuppy/reference-portal';
 import { crawl, startHarness, type Body, type Call } from './harness.js';
 import { makeCtx } from './helpers.js';
 import { startMockPortal, type MockPortal } from './mock-portal.js';
@@ -116,7 +116,7 @@ scope:
   max_steps: 80
 urls:
   disallowed: ["/__admin/*"]
-rate_limit: { requests_per_second: 20, max_concurrency: 1, user_agent: "PathfinderAI-Crawler/0.1 (local reference portal)" }
+rate_limit: { requests_per_second: 20, max_concurrency: 1, user_agent: "MudPuppy-Crawler/0.1 (local reference portal)" }
 `;
 
 const STEPS: [kind: 'fill' | 'click', role: string, name: string, value?: string][] = [

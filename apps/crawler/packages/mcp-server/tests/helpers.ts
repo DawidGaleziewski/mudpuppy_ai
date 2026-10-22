@@ -3,7 +3,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { afterEach } from 'vitest';
-import { createEvidenceStore, createLogger, newId, nowIso } from '@pathfinder/core';
+import { createEvidenceStore, createLogger, newId, nowIso } from '@mudpuppy/core';
 import {
   createDecisionLog,
   createTracer,
@@ -12,7 +12,7 @@ import {
   openDb,
   type OpenedDb,
   type TracerDeps,
-} from '@pathfinder/store';
+} from '@mudpuppy/store';
 import type { ServerContext } from '../src/context.js';
 
 const MIGRATIONS = fileURLToPath(new URL('../../../../../data/migrations', import.meta.url));
@@ -36,7 +36,7 @@ export async function makeCtx(
   const tracer = createTracer({ db: opened.db, logger, evidence, level: 'standard', ...trace });
   await tracer.start({
     environment: 'sandbox',
-    server: 'pathfinder',
+    server: 'mudpuppy',
     version: 'test',
   });
   cleanups.push(async () => {

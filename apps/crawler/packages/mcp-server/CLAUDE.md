@@ -1,8 +1,8 @@
-# @pathfinder/mcp-server
+# @mudpuppy/mcp-server
 
-The `pathfinder` stdio MCP server (the crawler agent's only tools: start_run, navigate, act, probe_form, login,
+The `mudpuppy` stdio MCP server (the crawler agent's only tools: start_run, navigate, act, probe_form, login,
 get_known_states, get_next_frontier_item, add_open_question, add_hypothesis, finish_run) and the
-`pathfinder-ba` server (BA tools: `src/ba-server.ts`, `src/ba-tools/`, `src/services/ba/`).
+`mudpuppy-ba` server (BA tools: `src/ba-server.ts`, `src/ba-tools/`, `src/services/ba/`).
 
 Layer: servers (G-07; `apps/crawler/layers.json`)
 
@@ -38,7 +38,7 @@ Layer: servers (G-07; `apps/crawler/layers.json`)
   persona attributes), `access.ts` (`get_access_matrix`, spec 024: same model as the dashboard's
   `queries_access.py`, both checked against `tests/fixtures/access/three-personas.json`).
 - Spec 030: `server-context.ts` (`openServerContext`, shared by `server.ts` and `local-client.ts`) and
-  `boot-environment.ts` (`PATHFINDER_ENV` has no default); `services/server-registry.ts` (live
+  `boot-environment.ts` (`MUDPUPPY_ENV` has no default); `services/server-registry.ts` (live
   servers, stray warnings); `local-client.ts` + `trace-driver.ts` (`pnpm portal:trace`: drive a trace
   catalogue through the tools); `runtime/render-health.ts` (failed assets per page),
   `pipeline/transient.ts` (re-open a page showing a passing error); `login` can end `pending`.
@@ -61,7 +61,7 @@ Layer: servers (G-07; `apps/crawler/layers.json`)
   BA: `services/ba/probe-suites.ts` (`propose_probe_suite`, suites stored `open`) and the
   `get_run_evidence` kind `probe_outcomes`. Spec 039 (T055): `services/ba/hypotheses.ts` (`list_deviations`,
   `list_hypotheses`, `get_hypothesis`, `propose_hypothesis`, `add_hypothesis_test` over
-  `@pathfinder/store`'s `agent-hypotheses.ts`) and the crawler's `add_hypothesis`
+  `@mudpuppy/store`'s `agent-hypotheses.ts`) and the crawler's `add_hypothesis`
   (`services/agent-notes.ts`; builds the portal model first when a run's portal has none).
   `find-again.ts` holds `findAgain` (moved out of `act.ts`).
 - Spec 034 (R-70, documentation that grows): `services/ba/run-groups.ts` (runs grouped by the
@@ -96,7 +96,7 @@ Layer: servers (G-07; `apps/crawler/layers.json`)
   (`inferSharedButton`: a banner/navigation/footer button whose earlier clicks all went to one
   other page is settled without a turn, `shared_button: <edge>`; `same-target.ts` `settleInferred`
   is shared); `services/link-path.ts` (an unnamed link's `link_to` and frontier description);
-  unnamed fields carry `label` (from `@pathfinder/crawler` `withFieldLabels`) in results and
+  unnamed fields carry `label` (from `@mudpuppy/crawler` `withFieldLabels`) in results and
   `action_json`, and test data is looked up by it.
 - Spec 039 (MudPuppy 2.0): `replay-driver.ts` (the headless driver: `replay(call, plan)` walks a
   recorded prefix by model element keys in a probe run, no LLM) and `replay-portal.ts`
@@ -110,7 +110,7 @@ Layer: servers (G-07; `apps/crawler/layers.json`)
   `start_run` `mode: 'probe'` + `replay {inputs}` (`RunChoices.replay`, `RunState.headless`):
   element keys in results, autofill types the inputs first, transitions `driver = 'headless'`, no
   frontier drain. Not spec 032's form-probing runs (`form_probing`, T116@039).
-- Entry points: `pnpm --filter @pathfinder/mcp-server start` (`src/main.ts`), `start:ba`.
+- Entry points: `pnpm --filter @mudpuppy/mcp-server start` (`src/main.ts`), `start:ba`.
 
 ## Invariants
 

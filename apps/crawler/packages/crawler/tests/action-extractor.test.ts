@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import { builtinRuleSet } from '@pathfinder/safety';
+import { builtinRuleSet } from '@mudpuppy/safety';
 import { attachLocators, classifyCandidates, extractCandidates } from '../src/action-extractor.js';
 
 const aria = (n: string) =>

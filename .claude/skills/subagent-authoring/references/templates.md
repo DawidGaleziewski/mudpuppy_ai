@@ -38,7 +38,7 @@ Before (≈130 words, examples inside):
 > proactively whenever … Examples: "add a `processes` table", "the frontier table needs an index" …
 
 After (≈40 words):
-> Changes Pathfinder's SQLite schema: tables, columns, indexes, reversible migrations, and the matching
+> Changes MudPuppy's SQLite schema: tables, columns, indexes, reversible migrations, and the matching
 > `data/schema/` snapshot and `data-model.md`. Use proactively whenever a task adds or alters
 > persisted structure. Not for storage-engine advice or query-tuning discussion.
 

@@ -1,4 +1,4 @@
-import { DocKind, type RelationType } from '@pathfinder/docs-model';
+import { DocKind, type RelationType } from '@mudpuppy/docs-model';
 
 /** `any`: every kind may be the source. `same`: the target must be of the source's kind. */
 interface Rule {

@@ -1,4 +1,4 @@
-import { nowIso } from '@pathfinder/core';
+import { nowIso } from '@mudpuppy/core';
 import type { ServerContext } from '../context.js';
 
 /**

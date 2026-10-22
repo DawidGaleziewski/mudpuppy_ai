@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { buildFrontierReport, renderReport } from '@pathfinder/crawler';
+import { buildFrontierReport, renderReport } from '@mudpuppy/crawler';
 import { crawl, mapPortal, type Body } from './harness.js';
 import { available, insurer, useInsurerMocks } from './insurer-harness.js';
 

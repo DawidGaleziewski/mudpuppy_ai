@@ -12,7 +12,7 @@ import { uiActionOf } from './ui-actions.js';
 
 export interface PermissionQuery {
   toolCallId: string;
-  /** Claude tool name (`Agent`, `mcp__pathfinder-chat__workflow_state`, `Bash`, ...) when known. */
+  /** Claude tool name (`Agent`, `mcp__mudpuppy-chat__workflow_state`, `Bash`, ...) when known. */
   tool: string | null;
   title: string;
   /** Tool call of the `crawler`/`ba` subagent that made this call, if any. */
@@ -171,7 +171,7 @@ export class AcpChat {
   /** Connect, initialize and open the session. Returns the ACP session id. */
   async start(): Promise<string> {
     const app = acp
-      .client({ name: 'pathfinder-chat' })
+      .client({ name: 'mudpuppy-chat' })
       .onRequest(acp.methods.client.session.requestPermission, (ctx) =>
         this.onPermission(ctx.params),
       );
@@ -182,7 +182,7 @@ export class AcpChat {
       await link.connection.agent.request(acp.methods.agent.initialize, {
         protocolVersion: acp.PROTOCOL_VERSION,
         clientCapabilities: {},
-        clientInfo: { name: 'pathfinder-chat', version: '0.0.0' },
+        clientInfo: { name: 'mudpuppy-chat', version: '0.0.0' },
       });
       const session = await link.connection.agent.buildSession(this.opts.session).start();
       this.session = session;

@@ -13,8 +13,8 @@ import {
   listDeviations,
   listHypotheses,
   proposeHypothesis,
-} from '@pathfinder/store';
-import { HYPOTHESIS_STATUSES } from '@pathfinder/model';
+} from '@mudpuppy/store';
+import { HYPOTHESIS_STATUSES } from '@mudpuppy/model';
 import { z } from 'zod';
 import type { BaContext } from '../../context.js';
 import { ToolError, parseInput } from '../../errors.js';

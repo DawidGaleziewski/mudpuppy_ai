@@ -7,8 +7,8 @@ import { mkdirSync, mkdtempSync, rmSync } from 'node:fs';
 import { createServer, type Server } from 'node:http';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
-import { createEvidenceStore } from '@pathfinder/core';
-import { dbPathFor, migrateUp, openDb, type OpenedDb } from '@pathfinder/store';
+import { createEvidenceStore } from '@mudpuppy/core';
+import { dbPathFor, migrateUp, openDb, type OpenedDb } from '@mudpuppy/store';
 import { createAmendmentService, type AmendmentService } from '../src/amendments.js';
 import { createApi, listenLocal } from '../src/api.js';
 import { createProcessService } from '../src/process-service.js';
@@ -73,7 +73,7 @@ export function seedStates(
 }
 
 export async function startStack(name: string): Promise<Stack> {
-  const root = mkdtempSync(join(tmpdir(), `pathfinder-e2e-${name}-`));
+  const root = mkdtempSync(join(tmpdir(), `mudpuppy-e2e-${name}-`));
   mkdirSync(join(root, 'data', 'db'), { recursive: true });
   const opened = openDb(dbPathFor(join(root, 'data'), 'sandbox'));
   migrateUp(opened.raw, MIGRATIONS);
@@ -103,15 +103,15 @@ export async function startStack(name: string): Promise<Stack> {
 
   async function dashboard(reviewer: string, probePath: string): Promise<string> {
     const port = await freePort();
-    const child = spawn('uv', ['run', '--quiet', 'pathfinder-dashboard'], {
+    const child = spawn('uv', ['run', '--quiet', 'mudpuppy-dashboard'], {
       cwd: join(repo, 'apps', 'dashboard'),
       env: {
         ...process.env,
-        PATHFINDER_DATA_DIR: join(root, 'data'),
-        PATHFINDER_DEFAULT_ENV: 'sandbox',
-        PATHFINDER_PORT: String(port),
-        PATHFINDER_CHAT_URL: chatBase,
-        PATHFINDER_REVIEWER: reviewer,
+        MUDPUPPY_DATA_DIR: join(root, 'data'),
+        MUDPUPPY_DEFAULT_ENV: 'sandbox',
+        MUDPUPPY_PORT: String(port),
+        MUDPUPPY_CHAT_URL: chatBase,
+        MUDPUPPY_REVIEWER: reviewer,
       },
       stdio: 'ignore',
     });

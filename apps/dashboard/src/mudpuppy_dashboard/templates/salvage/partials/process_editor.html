@@ -1,0 +1,308 @@
+{% import "salvage/macros.html" as sy %}
+{% import "salvage/partials/picture.html" as pic with context %}
+{#- The editor of one model (screen 05): live region. A to-be model shows the reviewer's draft
+    (or the last revision until a first edit starts one); every step operation autosaves the draft
+    (processes.js). The as-is (A) reads as documentation, step by step (spec 027 US2): its picture
+    and the records citing its screen; a person can reorder, remove and add its screens, each a
+    signed A revision (US4.2). Above both: what the as-is still lacks and its sign-off (US3). -#}
+{%- set view = v.view %}{% set p = view.process %}{% set vv = v.vv %}
+{%- set label = vv.model.label %}{% set rev = vv.model.rev %}
+{%- set editable = vv.model.kind == "to_be" and c.settings.reviewer %}
+{%- set edit_a = vv.model.kind == "as_is" and c.settings.reviewer and not p.archived_at %}
+{%- set base = "/chat/portals/" ~ (p.portal_id | urlencode) ~ "/processes/" ~ (p.id | urlencode) ~ "/models/" ~ label ~ "/" %}
+{%- set head_url = "/chat/portals/" ~ (p.portal_id | urlencode) ~ "/processes/" ~ (p.id | urlencode) %}
+{%- set base_rev = v.draft.base_rev if v.draft else rev %}
+{%- set KINDS = {"requirement": "Requirements", "business_rule": "Business rules", "data_item": "Fields", "nfr": "NFRs", "glossary_term": "Terms", "open_question": "Open questions", "assumption": "Assumptions", "followup": "Follow-ups"} %}
+<section id="process-editor" class="sy-stack mp-region" aria-label="Process model {{ label }}"
+         data-self="{{ v.self_url }}" data-draft="{{ base }}draft" data-edit="{{ base }}edit" data-base-rev="{{ base_rev }}"
+         data-author="{{ c.settings.reviewer or '' }}"
+         hx-get="{{ v.self_url }}" hx-trigger="store-changed[!(window.formsDirty && window.formsDirty())] from:body" hx-swap="outerHTML">
+  <script type="application/json" id="process-steps">{{ v.steps | tojson }}</script>
+  <p class="sy-small" role="status" data-editor-result></p>
+
+  {%- if view.as_is %}
+  {%- set so = v.sign_off %}{% set open = v.open %}
+  <section class="sy-plate" aria-labelledby="asis-status-h">
+    <div class="sy-plate__head">
+      <h2 id="asis-status-h" class="sy-plate__title">As-is documentation</h2>
+      {{ sy.status("stage", p.stage) }}
+    </div>
+    <div class="sy-plate__body sy-stack" style="--sy-gap: 10px">
+      <p class="sy-small">
+        {%- if open.total %}Still open on these screens: <span class="sy-num">{{ open.questions }}</span> open question{{ "" if open.questions == 1 else "s" }} · <span class="sy-num">{{ open.unconfirmed }}</span> record{{ "" if open.unconfirmed == 1 else "s" }} to confirm · <span class="sy-num">{{ open.reanchor }}</span> amendment{{ "" if open.reanchor == 1 else "s" }} to re-anchor.
+        {%- else %}Nothing open on these screens: no open questions, no records to confirm, no amendments to re-anchor.{% endif %}
+        <a href="{{ c.url('/review') }}">Review</a></p>
+      {%- if so %}
+      <p class="sy-small">Signed off as documented by {{ so.by }} · <span class="sy-mono sy-mono--sm">{{ so.at | when }}</span>{% if so.signed_rev %}, covering {{ sy.tag("A r" ~ so.signed_rev, sm=true) }}{% endif %}.</p>
+      {%- if so.changed %}
+      <div class="sy-callout sy-callout--intent" role="status">
+        <p class="sy-callout__title">As-is changed since documented</p>
+        <p>A r{{ so.signed_rev }} → r{{ so.head_rev }}: a rescan or an edit changed the screens after the sign-off. <a href="{{ c.url('/processes/' ~ p.key ~ '/history') }}">See what changed in History</a>, then sign off again.</p>
+      </div>
+      {%- endif %}
+      {%- endif %}
+      {%- if c.settings.reviewer and not p.archived_at %}
+      <div class="sy-cluster" style="--sy-gap: 8px 12px; align-items: flex-end" data-actions>
+        {%- if p.stage == "scoped" or (so and so.changed) %}
+        <button class="sy-btn {{ 'sy-btn--primary' if vv.model.kind == 'as_is' else 'sy-btn--strong' }}" type="button" data-process="{{ head_url }}" data-body='{"stage": "as_is_documented", "base_rev": {{ p.rev }}}' data-reload="page">{% if p.stage == "scoped" %}Mark as-is documented{% else %}Sign off A r{{ view.as_is.model.rev }}{% endif %}</button>
+        {%- endif %}
+        <label class="sy-field"><span class="sy-field__label">Stage</span>
+          <select class="sy-select" id="stage-select" name="stage">
+            {%- for st in v.stages %}<option value="{{ st }}"{% if st == p.stage %} selected{% endif %}>{{ sy_status_of("stage", st).word }}</option>{% endfor %}
+          </select></label>
+        <button class="sy-btn sy-btn--sm" type="button" data-process="{{ head_url }}" data-body='{"base_rev": {{ p.rev }}}' data-from="#stage-select" data-reload="page">Set stage</button>
+        <p class="sy-small" role="status" data-result></p>
+      </div>
+      <p class="sy-small sy-muted">Every move is signed and shows in History; a process can move back at any time.</p>
+      {%- endif %}
+    </div>
+  </section>
+  {%- endif %}
+
+  {%- if vv.model.kind == "to_be" %}
+  {%- if not c.settings.reviewer %}
+  <div class="sy-callout"><p>Drawing is off: set <span class="sy-mono sy-mono--sm">MUDPUPPY_REVIEWER</span> to your name and restart the dashboard. Every revision is signed.</p></div>
+  {%- elif v.conflict %}
+  <div class="sy-callout sy-callout--failure" role="status" data-actions>
+    <p class="sy-callout__title">Someone saved first</p>
+    <p>{{ label }} r{{ rev }} was saved while your draft was based on {{ label }} r{{ v.draft.base_rev }}. Your draft is kept; nothing was overwritten.</p>
+    <div class="sy-actions">
+      <a class="sy-btn sy-btn--md" href="{{ c.url('/processes/' ~ p.key ~ '/compare', left=label, right=label) }}">Compare your draft with r{{ rev }}</a>
+      <button class="sy-btn sy-btn--md sy-btn--strong" type="button" data-process="{{ base }}rebase">Rebase your draft onto r{{ rev }}</button>
+    </div>
+    <p class="sy-small" role="status" data-result></p>
+  </div>
+  {%- elif v.draft %}
+  <div class="sy-plate sy-plate--drawn">
+    <div class="sy-plate__body">
+      <div class="sy-split" style="--sy-gap: 10px 16px" data-actions>
+        <p class="sy-cluster sy-small" style="--sy-gap: 6px 8px" role="status">
+          {{ sy.status("process_model","draft") }}
+          <span>of</span>{{ sy.tag(label ~ " r" ~ (rev + 1), sm=true) }}
+          <span>· {{ v.pending }} change{{ "" if v.pending == 1 else "s" }} since</span>{{ sy.tag(label ~ " r" ~ rev, sm=true) }}
+          <span>· autosaved <span class="sy-mono">{{ v.draft.updated_at | when }}</span> · only you see this draft</span>
+        </p>
+        <div class="sy-actions">
+          <button class="sy-btn sy-btn--md sy-btn--quiet" type="button" data-process="{{ base }}draft" data-method="DELETE" data-confirm="Discard your draft? {{ label }} r{{ rev }} stays as it is.">Discard draft</button>
+          <button class="sy-btn sy-btn--primary" type="button" data-process="{{ base }}save" data-body='{"base_rev": {{ rev }}}'>Save as {{ label }} r{{ rev + 1 }}</button>
+        </div>
+      </div>
+      <p class="sy-small" role="status" data-result></p>
+    </div>
+  </div>
+  {%- else %}
+  <p class="sy-small sy-muted">No draft open. Edit a step to start one; it is saved as you go and only you see it until you save {{ label }} r{{ rev + 1 }}.</p>
+  {%- endif %}
+  {%- endif %}
+
+  <div class="sy-columns">
+    <div class="sy-col-main sy-stack" style="--sy-gap: 14px">
+      {%- if vv.model.kind == "as_is" %}
+      <section class="sy-plate" aria-labelledby="var-h">
+        <div class="sy-plate__head">
+          <h2 id="var-h" class="sy-plate__title">A · As-is r{{ rev }}</h2>
+          <span class="sy-meta">{% if edit_a %}Observed screens; reorder, remove or add them{% else %}Observed screens, documented per step{% endif %}</span>
+        </div>
+        <div class="sy-plate__body sy-stack">
+          <ol class="sy-stack mp-plain-list" style="--sy-gap: 12px" aria-label="Steps in A">
+            {%- for d in v.docs %}{% set s = d.step %}
+            {%- set is_sel = v.selected and v.selected.id == s.id %}
+            <li class="sy-callout sy-stack" style="--sy-gap: 8px"{% if is_sel %} aria-current="true"{% endif %}>
+              <div class="sy-split">
+                <span class="sy-label">{{ d.n }}{% if loop.first %} · Start{% elif loop.last %} · End{% endif %}</span>
+                {%- if d.amendments %}<span class="sy-small">{{ d.amendments }} amendment{{ "" if d.amendments == 1 else "s" }}</span>{% endif %}
+              </div>
+              <div class="sy-cluster" style="--sy-gap: 12px; flex-wrap: nowrap; align-items: flex-start">
+                {%- if s.state_id %}{{ pic.thumb(s.state_id, d.picture, s.title, s.route) }}{% endif %}
+                <div class="sy-stack sy-grow" style="--sy-gap: 4px; min-width: 0">
+                  <span class="sy-case-normal">{% if s.state_id %}<a href="{{ c.url('/states/' ~ s.state_id) }}">{{ s.title or "(untitled)" }}</a>{% else %}{{ s.title or "(untitled)" }}{% endif %}</span>
+                  <span class="sy-route mp-break">{{ s.route or "—" }}</span>
+                  {%- for kind, name in KINDS.items() %}{% set rs = d.of_kind(kind) %}
+                  {%- if rs %}<span class="sy-cluster sy-small" style="--sy-gap: 4px 6px"><span class="sy-muted">{{ name }}</span>{% for r in rs %}{{ sy.tag(r.key, c.url('/docs/' ~ p.portal_id ~ '/' ~ r.key), sm=true) }}{% endfor %}</span>{% endif %}
+                  {%- endfor %}
+                  {%- if not d.records %}<span class="sy-small sy-muted">Nothing documented on this screen yet.</span>{% endif %}
+                </div>
+              </div>
+              <span class="sy-actions" style="--sy-gap: 4px" data-actions>
+                <a class="sy-btn sy-btn--sm sy-btn--quiet" href="{{ c.url('/processes/' ~ p.key, model=label, step=s.id) }}">{{ "Selected" if is_sel else "Select" }}</a>
+                {%- if edit_a %}
+                {%- if not loop.first %}<button class="sy-btn sy-btn--sm sy-btn--quiet" type="button" data-a-op="up" data-step="{{ s.id }}" aria-label="Move step {{ d.n }} up">↑</button>{% endif %}
+                {%- if not loop.last %}<button class="sy-btn sy-btn--sm sy-btn--quiet" type="button" data-a-op="down" data-step="{{ s.id }}" aria-label="Move step {{ d.n }} down">↓</button>{% endif %}
+                {%- if v.docs | length > 1 %}<button class="sy-btn sy-btn--sm sy-btn--quiet" type="button" data-a-op="remove" data-step="{{ s.id }}" data-confirm="Take {{ s.title or s.route }} out of A? The screen, its scans and its records stay; History can restore this revision." aria-label="Remove step {{ d.n }} from A">Remove</button>{% endif %}
+                {%- endif %}
+              </span>
+            </li>
+            {%- endfor %}
+          </ol>
+          {%- if edit_a and v.addable %}
+          <form class="sy-cluster" style="--sy-gap: 8px; align-items: flex-end" data-a-op="add" aria-label="Add a screen to A">
+            <label class="sy-field sy-grow"><span class="sy-field__label">Add a recorded screen at the end</span>
+              <select class="sy-select" name="state_id" required>
+                {%- for st in v.addable %}<option value="{{ st.id }}">{{ st.route_template }} · {{ st.title }}</option>{% endfor %}
+              </select></label>
+            <button class="sy-btn sy-btn--sm" type="submit">Add screen</button>
+          </form>
+          {%- endif %}
+          {%- if edit_a %}<p class="sy-small sy-muted">Each change is a signed revision of A; rescans keep adding theirs on top.</p>{% endif %}
+        </div>
+      </section>
+      {%- else %}
+      <section class="sy-plate" aria-labelledby="var-h">
+        <div class="sy-plate__head">
+          <h2 id="var-h" class="sy-plate__title">{{ label }} · To-be r{{ rev }}{% if v.draft %} (draft){% endif %}</h2>
+          <span class="sy-meta">{% if editable %}Steps you can edit, reorder or remove{% else %}Read only{% endif %}</span>
+        </div>
+        <div class="sy-plate__body sy-stack">
+          <ol class="mp-flow" aria-label="Steps in {{ label }}">
+            {%- for s in v.steps %}
+            {%- set change = v.changes.get(s.id) %}
+            {%- set is_sel = v.selected and v.selected.id == s.id %}
+            <li class="{{ 'sy-callout' if s.observed else 'sy-drawn' }} sy-stack" style="--sy-gap: 8px"{% if is_sel %} aria-current="true"{% endif %}>
+              <div class="sy-split">
+                <span class="sy-label">{{ loop.index }}{% if loop.first %} · Start{% elif loop.last %} · End{% endif %}</span>
+                {%- if change %}{{ sy.status("step_change", change) }}{% endif %}
+              </div>
+              {%- if not s.observed %}<div class="sy-drawn mp-frame"><span class="sy-small">Designed, not observed</span></div>{% endif %}
+              <span class="sy-case-normal">{% if s.state_id %}<a href="{{ c.url('/states/' ~ s.state_id) }}">{{ s.title or "(untitled)" }}</a>{% else %}{{ s.title or "(untitled)" }}{% endif %}</span>
+              <span class="sy-route mp-break">{{ s.route or "—" }}{% if s["from"] | length > 1 %} · merges {{ s["from"] | length }} steps{% endif %}</span>
+              {%- if s.annotations %}<span class="sy-small">{{ s.annotations | length }} annotation{{ "" if s.annotations | length == 1 else "s" }}</span>{% endif %}
+              <span class="sy-actions" style="--sy-gap: 4px">
+                <a class="sy-btn sy-btn--sm sy-btn--quiet" href="{{ c.url('/processes/' ~ p.key, model=label, step=s.id) }}">{{ "Selected" if is_sel else "Select" }}</a>
+                {%- if editable %}
+                {%- if not loop.first %}<button class="sy-btn sy-btn--sm sy-btn--quiet" type="button" data-step-op="up" data-step="{{ s.id }}" aria-label="Move step {{ loop.index }} up">↑</button>{% endif %}
+                {%- if not loop.last %}<button class="sy-btn sy-btn--sm sy-btn--quiet" type="button" data-step-op="down" data-step="{{ s.id }}" aria-label="Move step {{ loop.index }} down">↓</button>
+                <button class="sy-btn sy-btn--sm sy-btn--quiet" type="button" data-step-op="merge" data-step="{{ s.id }}" aria-label="Merge step {{ loop.index }} with the next">Merge →</button>{% endif %}
+                {%- endif %}
+              </span>
+            </li>
+            {%- endfor %}
+            {%- if editable %}
+            <li class="mp-flow__add">
+              <form class="sy-callout sy-stack" style="--sy-gap: 6px" data-step-op="add" aria-label="Add a step at the end">
+                <label class="sy-field"><span class="sy-field__label">New step</span><input class="sy-input" name="title" required maxlength="200" autocomplete="off"></label>
+                <label class="sy-field"><span class="sy-field__label">Route</span><input class="sy-input" name="route" maxlength="500" placeholder="/…" autocomplete="off" spellcheck="false"></label>
+                <button class="sy-btn sy-btn--sm" type="submit">+ Add step</button>
+              </form>
+            </li>
+            {%- endif %}
+          </ol>
+          {%- if v.removed %}
+          <p class="sy-cluster sy-small" style="--sy-gap: 6px 10px">
+            <span class="sy-label">Removed from {{ view.models[0].model.label }}</span>
+            {%- for r in v.removed %}{% set s = r.left[0] %}<del class="sy-diff--removed">{{ s.title }} · <span class="sy-mono sy-mono--sm">{{ s.route }}</span></del>{% endfor %}
+          </p>
+          {%- endif %}
+        </div>
+      </section>
+
+      {%- if view.as_is %}
+      <section class="sy-plate" aria-labelledby="ref-h">
+        <div class="sy-plate__head">
+          <h2 id="ref-h" class="sy-plate__title">A · As-is r{{ view.as_is.model.rev }}</h2>
+          <span class="sy-meta">For reference (ghosted)</span>
+        </div>
+        <div class="sy-plate__body">
+          <ol class="sy-stack sy-small sy-muted" style="--sy-gap: 4px">
+            {%- for s in view.as_is.steps %}<li>{{ loop.index }} · {{ s.title }} <span class="sy-route">{{ s.route }}</span></li>{% endfor %}
+          </ol>
+        </div>
+      </section>
+      {%- endif %}
+      {%- endif %}
+    </div>
+
+    <aside class="sy-col-side mp-process-side">
+      {%- set s = v.selected %}
+      {%- if not s %}
+      {%- if vv.model.kind == "as_is" %}
+      {{ sy.empty("No step selected", "Select a step to see everything documented on its screen.", level=2) }}
+      {%- else %}
+      {{ sy.empty("No step selected", "Select a step to see what it is built from and its annotations" ~ (", or to change it." if editable else "."), level=2) }}
+      {%- endif %}
+      {%- elif vv.model.kind == "as_is" %}
+      {%- set d = v.docs | selectattr("step.id", "equalto", s.id) | first %}
+      <div class="sy-plate">
+        <div class="sy-plate__head"><div class="sy-stack" style="--sy-gap: 6px">
+          <span class="sy-small">Step {{ d.n }} of A</span>
+          <h2 class="sy-plate__title sy-case-normal">{{ s.title or "(untitled)" }}</h2>
+        </div></div>
+        <div class="sy-plate__body sy-stack" style="--sy-gap: 10px">
+          {%- if s.state_id %}{{ pic.thumb(s.state_id, d.picture, s.title, s.route) }}{% endif %}
+          <span class="sy-route mp-break">{{ s.route or "—" }}</span>
+          <span class="sy-small">Seen by {{ d.picture.scans }} scan{{ "" if d.picture.scans == 1 else "s" }}{% if d.amendments %} · {{ d.amendments }} amendment{{ "" if d.amendments == 1 else "s" }}{% endif %}{% if d.reanchor %} · {{ d.reanchor }} to re-anchor{% endif %}</span>
+          {%- if s.state_id %}<a class="sy-small" href="{{ c.url('/states/' ~ s.state_id) }}">Open the screen page</a>{% endif %}
+        </div>
+        {%- for kind, name in KINDS.items() %}{% set rs = d.of_kind(kind) %}
+        {%- if rs %}
+        <hr>
+        <div class="sy-plate__body sy-stack" style="--sy-gap: 6px">
+          <h3 class="sy-label">{{ name }} · {{ rs | length }}</h3>
+          <ul class="sy-stack mp-plain-list sy-small" style="--sy-gap: 6px">
+            {%- for r in rs %}
+            <li class="sy-cluster" style="--sy-gap: 4px 8px">{{ sy.tag(r.key, c.url('/docs/' ~ p.portal_id ~ '/' ~ r.key), sm=true) }}<span class="sy-case-normal">{{ r.title }}</span>{% if r.status != "confirmed" %}{{ sy.status("doc", r.status) }}{% endif %}</li>
+            {%- endfor %}
+          </ul>
+        </div>
+        {%- endif %}
+        {%- endfor %}
+        {%- if not d.records %}
+        <hr>
+        <div class="sy-plate__body"><p class="sy-small sy-muted">Nothing is documented on this screen yet. Ask the assistant to document the process; its records then show here.</p></div>
+        {%- endif %}
+        {%- if s.annotations %}
+        <hr>
+        <div class="sy-plate__body sy-stack">
+          <h3 class="sy-label">Annotations on this step</h3>
+          {%- for a in s.annotations %}{{ sy.note(a.text, a.author, a.at, sm=true) }}{% endfor %}
+        </div>
+        {%- endif %}
+      </div>
+      {%- else %}
+      {%- set idx = (v.steps | map(attribute="id") | list).index(s.id) + 1 %}
+      <div class="sy-plate">
+        <div class="sy-plate__head"><div class="sy-stack" style="--sy-gap: 6px">
+          <span class="sy-cluster sy-small">Step {{ idx }} of {{ label }}{% if v.draft %} · {{ sy.status("process_model","draft") }}{% endif %}</span>
+          <h2 class="sy-plate__title sy-case-normal">{{ s.title }}</h2>
+        </div></div>
+        {%- if s["from"] %}
+        <div class="sy-plate__body">
+          <h3 class="sy-label">Built from</h3>
+          <ul class="sy-stack sy-small" style="--sy-gap: 6px">
+            {%- for f in s["from"] %}{% set src = v.parent.get(f) %}
+            <li class="sy-cluster" style="--sy-gap: 6px">
+              {%- if src and src.state_id %}<a class="sy-case-normal" href="{{ c.url('/states/' ~ src.state_id) }}">{{ src.title }}</a>{% elif src %}<span class="sy-case-normal">{{ src.title }}</span>{% else %}<span class="sy-mono sy-mono--sm">{{ f }}</span>{% endif %}
+              {%- if src %}<span class="sy-route">{{ src.route }}</span>{% endif %}</li>
+            {%- endfor %}
+          </ul>
+        </div>
+        <hr>
+        {%- endif %}
+        <div class="sy-plate__body sy-stack">
+          <h3 class="sy-label">Annotations on this step</h3>
+          {%- for a in s.annotations %}{{ sy.note(a.text, a.author, a.at, sm=true) }}{% else %}<p class="sy-small sy-muted">None yet.</p>{% endfor %}
+          {%- if editable %}
+          <form class="sy-stack" style="--sy-gap: 8px" data-step-op="annotate" data-step="{{ s.id }}" aria-label="Add an annotation">
+            <label class="sy-field"><span class="sy-field__label">New annotation</span>
+              <textarea class="sy-textarea" name="text" rows="3" maxlength="5000" placeholder="What should be different here, and why"></textarea></label>
+            <div><button class="sy-btn sy-btn--sm sy-btn--strong" type="submit">Add annotation</button></div>
+          </form>
+          {%- endif %}
+        </div>
+        {%- if editable %}
+        <hr>
+        <form class="sy-plate__body sy-stack" style="--sy-gap: 8px" data-step-op="edit" data-step="{{ s.id }}" aria-label="Change this step">
+          <label class="sy-field"><span class="sy-field__label">Title</span><input class="sy-input" name="title" value="{{ s.title }}" required maxlength="200" autocomplete="off"></label>
+          <label class="sy-field"><span class="sy-field__label">Route</span><input class="sy-input" name="route" value="{{ s.route or '' }}" maxlength="500" autocomplete="off" spellcheck="false"></label>
+          <p class="sy-small sy-muted">A changed observed step becomes a designed one.</p>
+          <div><button class="sy-btn sy-btn--sm" type="submit">Change step</button></div>
+        </form>
+        <hr>
+        <div class="sy-plate__body">
+          <button class="sy-btn sy-btn--md sy-btn--danger" type="button" data-step-op="remove" data-step="{{ s.id }}">Remove step from {{ label }}</button>
+        </div>
+        {%- endif %}
+      </div>
+      {%- endif %}
+    </aside>
+  </div>
+</section>

@@ -1,6 +1,6 @@
-import { maskText } from '@pathfinder/core';
-import { autofillForm } from '@pathfinder/crawler';
-import { attributeName } from '@pathfinder/model';
+import { maskText } from '@mudpuppy/core';
+import { autofillForm } from '@mudpuppy/crawler';
+import { attributeName } from '@mudpuppy/model';
 import type { RunState } from '../run-state.js';
 import type { ActionRow } from './actions.js';
 import { decision, event, reported, type Reported } from './context.js';

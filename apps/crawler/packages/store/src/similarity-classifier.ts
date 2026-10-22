@@ -1,24 +1,24 @@
 /**
  * The similarity classifier in the store (spec 039 FR-050, T090): the labelled pairs of a portal
- * and profile with their component features (what `pathfinder-miner classify` trains on), the
+ * and profile with their component features (what `mudpuppy-miner classify` trains on), the
  * record of a training with its held-out F1 against τ, and the classifier the reconciler uses: the
  * latest training's, when it beat τ.
  */
 import type BetterSqlite3 from 'better-sqlite3';
-import { newId, nowIso } from '@pathfinder/core';
+import { newId, nowIso } from '@mudpuppy/core';
 import {
   PAIR_FEATURES,
   pairFeatures,
   type PairComponents,
   type SimilarityClassifier,
-} from '@pathfinder/model';
+} from '@mudpuppy/model';
 import { z } from 'zod';
 import { LEGACY_PROFILE, activeProfile, tauInForce } from './fingerprint-profiles.js';
 import { ModelDecisionError } from './model-decide.js';
 
 type Raw = BetterSqlite3.Database;
 
-/** What `pathfinder-miner classify` prints, checked before it is written. */
+/** What `mudpuppy-miner classify` prints, checked before it is written. */
 export const TrainedClassifier = z.object({
   ok: z.literal(true),
   names: z.array(z.string()),

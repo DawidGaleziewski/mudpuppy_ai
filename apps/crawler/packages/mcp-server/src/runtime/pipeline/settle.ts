@@ -1,4 +1,4 @@
-import { shapeUrl } from '@pathfinder/trace';
+import { shapeUrl } from '@mudpuppy/trace';
 import {
   followClientRedirects,
   waitForMountsIn,
@@ -8,8 +8,8 @@ import {
   type MountWait,
   type PageMountWait,
   type SettleOutcome,
-} from '@pathfinder/crawler';
-import { DEFAULT_MFE_QUIET_MS, pageTimeouts } from '@pathfinder/safety';
+} from '@mudpuppy/crawler';
+import { DEFAULT_MFE_QUIET_MS, pageTimeouts } from '@mudpuppy/safety';
 import { navigationPolicy } from './gate.js';
 import { sessionExpired } from '../login.js';
 import type { RunState } from '../run-state.js';

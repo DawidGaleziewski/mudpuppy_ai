@@ -5,7 +5,7 @@ import type { Server } from 'node:http';
 import { mkdirSync, mkdtempSync, readFileSync, writeFileSync, existsSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { loadTraces } from '@pathfinder/config';
+import { loadTraces } from '@mudpuppy/config';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { createApi, listenLocal } from '../src/api.js';
 import { createProbeSuiteService } from '../src/probe-suites.js';

@@ -8,9 +8,9 @@
 import { existsSync } from 'node:fs';
 import { userInfo } from 'node:os';
 import { join, resolve } from 'node:path';
-import { newId, nowIso } from '@pathfinder/core';
-import { ExportError, exportSrs, writeExport, type ExportScope } from '@pathfinder/docs';
-import { dbPathFor, openDb } from '@pathfinder/store';
+import { newId, nowIso } from '@mudpuppy/core';
+import { ExportError, exportSrs, writeExport, type ExportScope } from '@mudpuppy/docs';
+import { dbPathFor, openDb } from '@mudpuppy/store';
 import { scriptEnvironment } from './script-env.js';
 
 const arg = (name: string, fallback: string): string => {

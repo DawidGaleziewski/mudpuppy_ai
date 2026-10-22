@@ -41,17 +41,17 @@ describe('buildSessionRequest', () => {
     expect(o.agents.ba?.prompt).toContain('seven');
   });
 
-  it('passes the three MCP servers and the conversation to pathfinder-chat', () => {
+  it('passes the three MCP servers and the conversation to mudpuppy-chat', () => {
     const req = buildSessionRequest({ repoRoot, conversationId: 'conv-1', environment: 'staging' });
     expect(req.cwd).toBe(resolve(repoRoot, 'apps/chat/runtime'));
     const servers = req.mcpServers as { name: string; env: { name: string; value: string }[] }[];
-    expect(servers.map((s) => s.name)).toEqual(['pathfinder', 'pathfinder-ba', 'pathfinder-chat']);
+    expect(servers.map((s) => s.name)).toEqual(['mudpuppy', 'mudpuppy-ba', 'mudpuppy-chat']);
     expect(servers[2]?.env).toContainEqual({
-      name: 'PATHFINDER_CHAT_CONVERSATION',
+      name: 'MUDPUPPY_CHAT_CONVERSATION',
       value: 'conv-1',
     });
     for (const s of servers)
-      expect(s.env).toContainEqual({ name: 'PATHFINDER_ENV', value: 'staging' });
+      expect(s.env).toContainEqual({ name: 'MUDPUPPY_ENV', value: 'staging' });
   });
 
   it('the orchestrator file lists exactly the fence allowlist', () => {

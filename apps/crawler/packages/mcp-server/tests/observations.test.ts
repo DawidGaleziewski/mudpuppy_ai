@@ -1,4 +1,4 @@
-import { newId, nowIso } from '@pathfinder/core';
+import { newId, nowIso } from '@mudpuppy/core';
 import { describe, expect, it } from 'vitest';
 import { recordObservation, recordState, upsertBuilds } from '../src/index.js';
 import type { ServerContext } from '../src/context.js';

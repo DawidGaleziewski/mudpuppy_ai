@@ -13,7 +13,7 @@ const entry = (over: Partial<ServerEntry>): ServerEntry => ({
   pid: process.pid,
   environment: 'sandbox',
   codeRoot: '/repo/a',
-  server: 'pathfinder',
+  server: 'mudpuppy',
   startedAt: '2026-10-16T00:00:00Z',
   ...over,
 });
@@ -23,7 +23,7 @@ describe('server registry (spec 030 R-61, field GC-22)', () => {
     const me = entry({ pid: 1 });
     expect(strayWarnings(me, [entry({ pid: 2 })])).toEqual([]);
     expect(strayWarnings(me, [entry({ pid: 3, environment: 'acceptance' })])).toEqual([
-      'pathfinder pid 3 serves environment "acceptance", this one "sandbox"',
+      'mudpuppy pid 3 serves environment "acceptance", this one "sandbox"',
     ]);
     expect(strayWarnings(me, [entry({ pid: 4, codeRoot: '/repo/b' })])[0]).toContain(
       'another checkout (/repo/b)',

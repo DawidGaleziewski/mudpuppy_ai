@@ -20,7 +20,7 @@ import { type ProposalService } from './proposal-service.js';
 import { parseBody, readJson, sendJson } from './http-io.js';
 import { PageContext, contextLine } from './page-context.js';
 import { CredentialsBody, type CredentialsHandler } from './credentials.js';
-import { Environment } from '@pathfinder/config';
+import { Environment } from '@mudpuppy/config';
 import {
   EnvironmentBody,
   HintsBody,
@@ -30,7 +30,7 @@ import {
 } from './portals.js';
 import { RunRefusal, type StoppedRun } from './runs.js';
 import { ScopeRefusal, SetScopeInput } from './scope.js';
-import type { ProcessScope } from '@pathfinder/chat-model';
+import type { ProcessScope } from '@mudpuppy/chat-model';
 import type { ErrorInput, ErrorRecord, LogResult } from './error-log.js';
 import { HttpError } from './http-error.js';
 import { ChatError, type ChatService, type SequencedEvent } from './service.js';

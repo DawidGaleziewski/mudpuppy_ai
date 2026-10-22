@@ -1,13 +1,13 @@
 // Page context and browser actions (spec 022 R6): the context line, the UI action mapping, and the
-// pathfinder-chat page tools against a migrated store with one screen in two revisions.
+// mudpuppy-chat page tools against a migrated store with one screen in two revisions.
 import { mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { createEvidenceStore, type EvidenceStore } from '@pathfinder/core';
-import { migrateUp, openDb, type OpenedDb } from '@pathfinder/store';
+import { createEvidenceStore, type EvidenceStore } from '@mudpuppy/core';
+import { migrateUp, openDb, type OpenedDb } from '@mudpuppy/store';
 import { createChatMcpServer } from '../src/mcp-chat.js';
 import { contextLine } from '../src/page-context.js';
 import { createProcessService } from '../src/process-service.js';
@@ -32,7 +32,7 @@ describe('contextLine', () => {
 
 describe('credential requests (FE-A05)', () => {
   it('map to a ui_action and one fixed history line, and refuse a bad reference name', () => {
-    const action = uiActionOf('mcp__pathfinder-chat__request_credential', {
+    const action = uiActionOf('mcp__mudpuppy-chat__request_credential', {
       portal: 'liveinsurer',
       environment: 'sandbox',
       persona: 'client',
@@ -53,10 +53,10 @@ describe('credential requests (FE-A05)', () => {
     );
     const base = { portal: 'liveinsurer', environment: 'sandbox', persona: 'client' };
     expect(
-      uiActionOf('mcp__pathfinder-chat__request_credential', { ...base, ref: 'lower' }),
+      uiActionOf('mcp__mudpuppy-chat__request_credential', { ...base, ref: 'lower' }),
     ).toBeNull();
     expect(
-      uiActionOf('mcp__pathfinder-chat__request_credential', {
+      uiActionOf('mcp__mudpuppy-chat__request_credential', {
         ...base,
         environment: 'Q A',
         ref: 'X',
@@ -68,7 +68,7 @@ describe('credential requests (FE-A05)', () => {
 describe('uiActionOf', () => {
   it('maps the browser tools and nothing else', () => {
     expect(
-      uiActionOf('mcp__pathfinder-chat__highlight_element', {
+      uiActionOf('mcp__mudpuppy-chat__highlight_element', {
         state_id: 's-1',
         element_key: 'button "Kup"',
       }),
@@ -79,16 +79,16 @@ describe('uiActionOf', () => {
       elementKey: 'button "Kup"',
       label: null,
     });
-    expect(uiActionOf('mcp__pathfinder-chat__open_page', { path: '/states/s-1' })).toEqual({
+    expect(uiActionOf('mcp__mudpuppy-chat__open_page', { path: '/states/s-1' })).toEqual({
       type: 'ui_action',
       action: 'open',
       path: '/states/s-1',
     });
     expect(
-      uiActionOf('mcp__pathfinder-chat__open_page', { path: 'https://evil.example/' }),
+      uiActionOf('mcp__mudpuppy-chat__open_page', { path: 'https://evil.example/' }),
     ).toBeNull();
-    expect(uiActionOf('mcp__pathfinder-chat__open_page', { path: '/chat/new' })).toBeNull();
-    expect(uiActionOf('mcp__pathfinder-chat__workflow_state', {})).toBeNull();
+    expect(uiActionOf('mcp__mudpuppy-chat__open_page', { path: '/chat/new' })).toBeNull();
+    expect(uiActionOf('mcp__mudpuppy-chat__workflow_state', {})).toBeNull();
     expect(uiActionOf(null, {})).toBeNull();
   });
 });
@@ -105,7 +105,7 @@ describe('page tools', () => {
   };
 
   beforeEach(async () => {
-    root = mkdtempSync(join(tmpdir(), 'pathfinder-page-tools-'));
+    root = mkdtempSync(join(tmpdir(), 'mudpuppy-page-tools-'));
     evidence = createEvidenceStore(join(root, 'evidence'));
     const layout = await evidence.storeJson({
       version: 1,

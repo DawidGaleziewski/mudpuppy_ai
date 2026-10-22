@@ -1,4 +1,4 @@
-# @pathfinder/docs-model
+# @mudpuppy/docs-model
 
 The documentation model: Zod schemas of everything the BA agent records (records, revisions and
 their content per kind, relations, reviews, evidence links, analysis sessions, follow-up tasks)
@@ -22,7 +22,7 @@ Layer: models (G-07; `apps/crawler/layers.json`)
 ## Where to add things
 
 - New record kind: `DocKind`, `KEY_PREFIX` and a content schema in `src/schemas/doc-content.ts`
-  (+ `DOC_CONTENT_BY_KIND`), the migration via `db-admin`, then the renderer in `@pathfinder/docs`.
+  (+ `DOC_CONTENT_BY_KIND`), the migration via `db-admin`, then the renderer in `@mudpuppy/docs`.
 
 ## Tests
 

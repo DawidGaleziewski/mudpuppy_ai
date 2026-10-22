@@ -1,7 +1,7 @@
 // A person accepts the screen threshold or the similarity classifier from the dashboard (spec 039
 // owner answers 5 and 14): `POST /portals/{p}/model/accept`, refused plainly when not ready.
 import type { Server } from 'node:http';
-import { activeClassifier, activeProfile, recordClassifier } from '@pathfinder/store';
+import { activeClassifier, activeProfile, recordClassifier } from '@mudpuppy/store';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { createApi, listenLocal } from '../src/api.js';
 import { testService } from './helpers.js';

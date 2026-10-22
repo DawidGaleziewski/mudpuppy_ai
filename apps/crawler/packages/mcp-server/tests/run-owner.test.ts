@@ -1,4 +1,4 @@
-// F-14 (spec 010, T040): several pathfinder servers share one store. A server start or shutdown may only
+// F-14 (spec 010, T040): several mudpuppy servers share one store. A server start or shutdown may only
 // interrupt runs whose server is gone (start) or that it drives itself (shutdown).
 
 import { describe, expect, it } from 'vitest';

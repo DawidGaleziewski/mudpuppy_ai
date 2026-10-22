@@ -5,7 +5,7 @@ from __future__ import annotations
 
 import sqlite3
 
-from pathfinder_dashboard import queries_all_portals
+from mudpuppy_dashboard import queries_all_portals
 
 from .conftest import Store
 from .test_changes import P

@@ -6,7 +6,7 @@ import json
 import os
 from pathlib import Path
 
-from pathfinder_dashboard import servers
+from mudpuppy_dashboard import servers
 
 from .conftest import Store, make_client
 
@@ -16,7 +16,7 @@ DEAD_PID = 2**22 + 12345  # above Linux's default pid_max: never a live process
 def register(data_dir: Path, pid: int, env: str, code_root: Path) -> None:
     folder = data_dir / "servers"
     folder.mkdir(parents=True, exist_ok=True)
-    entry = {"pid": pid, "environment": env, "codeRoot": f"{code_root}/", "server": "pathfinder"}
+    entry = {"pid": pid, "environment": env, "codeRoot": f"{code_root}/", "server": "mudpuppy"}
     (folder / f"{pid}.json").write_text(json.dumps(entry), encoding="utf-8")
 
 
@@ -32,13 +32,13 @@ def test_live_servers_skip_dead_and_broken_files_without_deleting_them(tmp_path:
 def test_stray_warnings_name_environment_and_checkout(tmp_path: Path) -> None:
     other = tmp_path / "other-checkout"
     entries = [
-        servers.ServerEntry(1, "sandbox", tmp_path.resolve(), "pathfinder"),
-        servers.ServerEntry(2, "production", tmp_path.resolve(), "pathfinder-ba"),
-        servers.ServerEntry(3, "sandbox", other.resolve(), "pathfinder"),
+        servers.ServerEntry(1, "sandbox", tmp_path.resolve(), "mudpuppy"),
+        servers.ServerEntry(2, "production", tmp_path.resolve(), "mudpuppy-ba"),
+        servers.ServerEntry(3, "sandbox", other.resolve(), "mudpuppy"),
     ]
     assert servers.stray_warnings(entries, "sandbox", tmp_path) == [
-        'pathfinder-ba pid 2 serves environment "production"; this page shows "sandbox".',
-        f"pathfinder pid 3 runs from another checkout ({other.resolve()}).",
+        'mudpuppy-ba pid 2 serves environment "production"; this page shows "sandbox".',
+        f"mudpuppy pid 3 runs from another checkout ({other.resolve()}).",
     ]
 
 

@@ -8,7 +8,7 @@ only (the TypeScript service validates every write with the core Zod schemas).
 import re
 from pathlib import Path
 
-PACKAGE = Path(__file__).resolve().parents[1] / "src" / "pathfinder_dashboard"
+PACKAGE = Path(__file__).resolve().parents[1] / "src" / "mudpuppy_dashboard"
 CHAT_TABLES = (
     "chat_conversations",
     "chat_messages",

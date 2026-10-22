@@ -4,7 +4,7 @@
 // A process known to exist but not mapped yet is a stub (`to_be_discovered: true`, no steps).
 
 import { existsSync } from 'node:fs';
-import { ProbeFault } from '@pathfinder/core';
+import { ProbeFault } from '@mudpuppy/core';
 import { z } from 'zod';
 import { ConfigError, zodProblems } from './errors.js';
 import { readYaml } from './read.js';

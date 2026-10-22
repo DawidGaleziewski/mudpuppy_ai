@@ -1,7 +1,7 @@
 import { mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
-import { migrateUp, openDb } from '@pathfinder/store';
+import { migrateUp, openDb } from '@mudpuppy/store';
 import { afterAll, beforeAll, expect, it } from 'vitest';
 import * as q from '../queries.js';
 

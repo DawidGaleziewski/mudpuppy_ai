@@ -21,18 +21,18 @@ const result = (id: string, body: unknown, isError?: boolean) =>
 describe('countBaWrites (spec 019 US4, spec 015 F-20/F-22)', () => {
   it('counts write calls and refusals by code from the results, not the calls', () => {
     const lines = [
-      use('a', 'mcp__pathfinder-ba__create_record'),
+      use('a', 'mcp__mudpuppy-ba__create_record'),
       result('a', { key: 'SCR-001', rev_no: 1 }),
-      use('b', 'mcp__pathfinder-ba__create_record'),
+      use('b', 'mcp__mudpuppy-ba__create_record'),
       result('b', { error: { code: 'SCHEMA_INVALID', message: 'content.elements.0' } }, true),
-      use('c', 'mcp__pathfinder-ba__create_record'),
+      use('c', 'mcp__mudpuppy-ba__create_record'),
       result('c', { error: { code: 'RELATION_NOT_ALLOWED' } }),
-      use('d', 'mcp__pathfinder-ba__revise_record'),
+      use('d', 'mcp__mudpuppy-ba__revise_record'),
       result('d', { error: { code: 'SCHEMA_INVALID' } }, true),
-      use('e', 'mcp__pathfinder-ba__get_run_evidence'),
+      use('e', 'mcp__mudpuppy-ba__get_run_evidence'),
       result('e', { error: { code: 'RUN_NOT_FOUND' } }, true),
       'not json',
-      use('f', 'mcp__pathfinder-ba__withdraw_record'),
+      use('f', 'mcp__mudpuppy-ba__withdraw_record'),
     ];
     expect(countBaWrites(lines)).toEqual({
       calls: 5,

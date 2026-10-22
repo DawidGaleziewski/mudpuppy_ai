@@ -36,10 +36,10 @@ describe('resolveJudgeLogin', () => {
     expect(resolveJudgeLogin({}, home)).toEqual({ source: 'token-file', path, token: FAKE });
   });
 
-  it('prefers PATHFINDER_JUDGE_TOKEN_FILE', () => {
+  it('prefers MUDPUPPY_JUDGE_TOKEN_FILE', () => {
     writeToken('sk-ant-other-not-real');
     const path = writeToken(FAKE, join(home, 'elsewhere', 'token'));
-    expect(resolveJudgeLogin({ PATHFINDER_JUDGE_TOKEN_FILE: path }, home)).toMatchObject({
+    expect(resolveJudgeLogin({ MUDPUPPY_JUDGE_TOKEN_FILE: path }, home)).toMatchObject({
       path,
       token: FAKE,
     });
@@ -74,7 +74,7 @@ describe('resolveJudgeLogin', () => {
   it('fails when an explicit token file is missing, or there is no login at all', () => {
     linkLogin();
     expect(
-      code(() => resolveJudgeLogin({ PATHFINDER_JUDGE_TOKEN_FILE: join(home, 'nope') }, home)),
+      code(() => resolveJudgeLogin({ MUDPUPPY_JUDGE_TOKEN_FILE: join(home, 'nope') }, home)),
     ).toBe('NO_LOGIN');
     expect(code(() => resolveJudgeLogin({}, mkdtempSync(join(tmpdir(), 'empty-'))))).toBe(
       'NO_LOGIN',

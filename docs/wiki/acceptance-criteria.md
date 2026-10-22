@@ -29,10 +29,10 @@ A common format is Given / When / Then: **given** a starting situation, **when**
 something, **then** the system responds in a stated way. Each criterion is one scenario, so the
 set covers the normal case and the important exceptions.
 
-## How Pathfinder uses it
+## How MudPuppy uses it
 
 Every `REQ` record carries acceptance criteria in Given / When / Then form, shown on the record page.
-Because Pathfinder documents an existing portal, each criterion describes behaviour the crawler
+Because MudPuppy documents an existing portal, each criterion describes behaviour the crawler
 actually recorded and cites it. Later, QA turns confirmed criteria into acceptance tests tagged with
 the requirement key (for example `@REQ-001`).
 

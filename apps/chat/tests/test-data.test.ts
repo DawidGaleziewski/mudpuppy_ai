@@ -4,7 +4,7 @@
 import { mkdirSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { loadPersona } from '@pathfinder/config';
+import { loadPersona } from '@mudpuppy/config';
 import { describe, expect, it } from 'vitest';
 import { PersonaRefusal } from '../src/personas.js';
 import { saveTestData } from '../src/test-data.js';

@@ -9,7 +9,7 @@ import struct
 
 import httpx2
 
-from pathfinder_dashboard import queries_same_screen
+from mudpuppy_dashboard import queries_same_screen
 
 from .conftest import Store, insert, ts
 from .test_chat import ORIGIN, Service, text

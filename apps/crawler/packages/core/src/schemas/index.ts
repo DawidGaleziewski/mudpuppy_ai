@@ -1,5 +1,5 @@
-// The crawl model only. Trace, documentation and chat schemas live in `@pathfinder/trace`,
-// `@pathfinder/docs-model` and `@pathfinder/chat-model` (guidelines G-09, G-10).
+// The crawl model only. Trace, documentation and chat schemas live in `@mudpuppy/trace`,
+// `@mudpuppy/docs-model` and `@mudpuppy/chat-model` (guidelines G-09, G-10).
 export * from './common.js';
 export * from './run.js';
 export * from './state.js';

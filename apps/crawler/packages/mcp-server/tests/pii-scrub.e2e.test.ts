@@ -1,5 +1,5 @@
 import { readFileSync } from 'node:fs';
-import { canLaunchBrowser } from '@pathfinder/crawler';
+import { canLaunchBrowser } from '@mudpuppy/crawler';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { startHarness } from './harness.js';
 import { startMockPortal, type MockPortal } from './mock-portal.js';

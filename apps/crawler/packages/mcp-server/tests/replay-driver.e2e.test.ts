@@ -1,14 +1,14 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { canLaunchBrowser } from '@pathfinder/crawler';
-import { birthDateFor } from '@pathfinder/model';
-import { startReferencePortal, TODAY, type ReferencePortal } from '@pathfinder/reference-portal';
+import { canLaunchBrowser } from '@mudpuppy/crawler';
+import { birthDateFor } from '@mudpuppy/model';
+import { startReferencePortal, TODAY, type ReferencePortal } from '@mudpuppy/reference-portal';
 import {
   importMinedRule,
   judgeReplays,
   loadObservationTables,
   pendingReplays,
   recordReplay,
-} from '@pathfinder/store';
+} from '@mudpuppy/store';
 import { replay, type ReplayPlan } from '../src/replay-driver.js';
 import { startHarness } from './harness.js';
 
@@ -42,7 +42,7 @@ scope:
   max_steps: 10
 urls:
   disallowed: ["/__admin/*"]
-rate_limit: { requests_per_second: 20, max_concurrency: 1, user_agent: "PathfinderAI-Crawler/0.1 (local reference portal)" }
+rate_limit: { requests_per_second: 20, max_concurrency: 1, user_agent: "MudPuppy-Crawler/0.1 (local reference portal)" }
 `;
 
 const DRIVER_PAGE =

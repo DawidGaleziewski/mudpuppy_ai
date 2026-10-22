@@ -1,9 +1,9 @@
-# @pathfinder/model
+# @mudpuppy/model
 
 The portal model of MudPuppy 2.0 (spec 039, R-81): pure functions that turn Layer A evidence plus
 recorded decisions into Layer M (screens, lineage, model transitions, coverage, build epochs),
 deviations, rules R1–R8, decision tables and the planner. No database, browser or LLM
-(Principle VII); `@pathfinder/store`'s `model-writer.ts` loads the inputs and writes the outputs.
+(Principle VII); `@mudpuppy/store`'s `model-writer.ts` loads the inputs and writes the outputs.
 
 Layer: models (G-07; `apps/crawler/layers.json`)
 
@@ -33,7 +33,7 @@ Layer: models (G-07; `apps/crawler/layers.json`)
 
 - Same inputs, same outputs, whatever the order (the order-independence, idempotence, rebuild and
   history-independence gates, design § 19.2; `tests/reconcile.test.ts`).
-- Depends only on `@pathfinder/core`; never on the store or features.
+- Depends only on `@mudpuppy/core`; never on the store or features.
 - Thresholds and budgets come from `MODEL_DEFAULTS` or the portal hook, never a literal.
 - Ties break on code-unit order (`compare`), never locale order.
 

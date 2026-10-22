@@ -1,4 +1,4 @@
-import type { ProbeField, ProbeValue } from '@pathfinder/probes';
+import type { ProbeField, ProbeValue } from '@mudpuppy/probes';
 import { getAction } from './actions.js';
 import type { ReplayScope } from './replay.js';
 

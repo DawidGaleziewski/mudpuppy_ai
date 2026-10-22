@@ -1,4 +1,4 @@
-# @pathfinder/hooks
+# @mudpuppy/hooks
 
 Per-portal crawl hooks (spec 023, R-53): load `portals/<id>/hooks.ts`, match pages, run each hook
 time-boxed with what it did recorded; a failing hook never stops the crawl.

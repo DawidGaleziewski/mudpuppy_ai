@@ -1,4 +1,4 @@
-import { maskText } from '@pathfinder/core';
+import { maskText } from '@mudpuppy/core';
 import type { ServerContext } from '../../context.js';
 import { ToolError } from '../../errors.js';
 import { recordApiCall, type RunRow } from '../../services/index.js';

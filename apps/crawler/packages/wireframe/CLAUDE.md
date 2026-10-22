@@ -1,4 +1,4 @@
-# @pathfinder/wireframe
+# @mudpuppy/wireframe
 
 Pure, deterministic low-fidelity wireframes (SVG + `.excalidraw`) from recorded ARIA snapshots: `renderWireframe`, `layoutWireframe`, `toSvg`, `toExcalidraw`, `GENERATOR_VERSION` (bump on any visual change).
 

@@ -1,5 +1,5 @@
-import { Confidence, isEvidenceRef } from '@pathfinder/core';
-import type { RunsTable, Selectable } from '@pathfinder/store';
+import { Confidence, isEvidenceRef } from '@mudpuppy/core';
+import type { RunsTable, Selectable } from '@mudpuppy/store';
 import { ToolError } from '../errors.js';
 import type { ServerContext } from '../context.js';
 

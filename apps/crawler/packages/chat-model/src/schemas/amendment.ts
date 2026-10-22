@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { Id, Timestamp } from '@pathfinder/core';
+import { Id, Timestamp } from '@mudpuppy/core';
 
 export const AmendmentTargetKind = z.enum(['state', 'evidence', 'wireframe_element']);
 export type AmendmentTargetKind = z.infer<typeof AmendmentTargetKind>;

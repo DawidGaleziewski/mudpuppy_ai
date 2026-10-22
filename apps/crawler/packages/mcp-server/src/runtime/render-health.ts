@@ -3,7 +3,7 @@
 // (in the field a corporate proxy refused the CDN and pages were recorded unstyled, GC-13). Written
 // beside the hook notes, after the state is recorded.
 
-import { shapeUrl } from '@pathfinder/trace';
+import { shapeUrl } from '@mudpuppy/trace';
 import type { ServerContext } from '../context.js';
 import type { RunState } from './run-state.js';
 

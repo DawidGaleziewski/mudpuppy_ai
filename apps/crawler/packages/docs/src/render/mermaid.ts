@@ -1,7 +1,7 @@
 /**
  * Mermaid source built from structured documentation (research §9): process map, screen
  * navigation, capability map. Never authored by an agent. The dashboard has a Python twin
- * (`apps/dashboard/src/pathfinder_dashboard/diagrams.py`); both must produce byte-identical text
+ * (`apps/dashboard/src/mudpuppy_dashboard/diagrams.py`); both must produce byte-identical text
  * for the shared goldens in `specs/004-ba-documentation/contracts/diagram-fixtures/`.
  *
  * Determinism: inputs are sorted here (by ord or key), labels are escaped the same way in both

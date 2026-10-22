@@ -1,6 +1,6 @@
 ---
 name: ba-practice
-description: How Pathfinder's BA documents an existing portal from recorded crawl evidence — the seven analysis passes, record kinds, confidence labels, evidence citing, verbatim portal terms, open questions vs crawler follow-ups. Use when writing or revising Layer B documentation records through the pathfinder-ba tools. Not for crawling, testing or dashboard work.
+description: How MudPuppy's BA documents an existing portal from recorded crawl evidence — the seven analysis passes, record kinds, confidence labels, evidence citing, verbatim portal terms, open questions vs crawler follow-ups. Use when writing or revising Layer B documentation records through the mudpuppy-ba tools. Not for crawling, testing or dashboard work.
 ---
 
 # BA practice: as-is documentation from evidence

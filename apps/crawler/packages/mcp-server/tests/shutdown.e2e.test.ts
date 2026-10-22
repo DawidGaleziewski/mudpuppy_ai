@@ -2,14 +2,14 @@ import { rmSync } from 'node:fs';
 import { createServer, type Server } from 'node:http';
 import type { AddressInfo } from 'node:net';
 import { join } from 'node:path';
-import { canLaunchBrowser } from '@pathfinder/crawler';
-import { dbPathFor, openDb } from '@pathfinder/store';
+import { canLaunchBrowser } from '@mudpuppy/crawler';
+import { dbPathFor, openDb } from '@mudpuppy/store';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { descendants, spawnServer, throwawayRoot } from './spawned-server.js';
 import { portalYaml } from './trace-run-harness.js';
 
 /**
- * Spec 010 F-19: the chat service going away closes the pathfinder server's stdin. With a browser
+ * Spec 010 F-19: the chat service going away closes the mudpuppy server's stdin. With a browser
  * open the server used to keep running, with Chromium, forever. It must shut down: close the
  * browser, mark its run interrupted (resumable) and exit.
  */
@@ -50,10 +50,10 @@ async function until(check: () => boolean, ms: number): Promise<boolean> {
 }
 
 describe.skipIf(!available || process.platform !== 'linux')(
-  'pathfinder server shutdown (spec 010 F-19)',
+  'mudpuppy server shutdown (spec 010 F-19)',
   () => {
     it('stdin closing with a browser open: browser closed, run interrupted, process gone', async () => {
-      const root = throwawayRoot('pathfinder-shutdown-', {
+      const root = throwawayRoot('mudpuppy-shutdown-', {
         'portals/mock/portal.yaml': portalYaml(origin, 10) + 'robots: ignore\n',
         'personas/mock/guest.yaml': PERSONA,
       });

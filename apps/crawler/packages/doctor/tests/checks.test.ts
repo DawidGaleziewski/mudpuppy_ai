@@ -1,7 +1,7 @@
 import { createServer, request, type Server } from 'node:http';
 import { createServer as createHttpsServer } from 'node:https';
 import { connect, type AddressInfo } from 'node:net';
-import { readTrustedCa, type PortalConfig } from '@pathfinder/config';
+import { readTrustedCa, type PortalConfig } from '@mudpuppy/config';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { makeCaFixture } from '../../../tests/fixtures/ca-fixture.js';
 import {
@@ -26,7 +26,7 @@ const portal = (over: Partial<PortalConfig> = {}): PortalConfig =>
     rate_limit: {
       requests_per_second: 2,
       max_concurrency: 2,
-      user_agent: 'PathfinderAI-Crawler/0.1',
+      user_agent: 'MudPuppy-Crawler/0.1',
     },
     ...over,
   }) as PortalConfig;

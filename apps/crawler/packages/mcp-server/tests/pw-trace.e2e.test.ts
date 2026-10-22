@@ -1,7 +1,7 @@
 import { existsSync, readdirSync, statSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { canLaunchBrowser } from '@pathfinder/crawler';
+import { canLaunchBrowser } from '@mudpuppy/crawler';
 import { startMockPortal, type MockPortal } from './mock-portal.js';
 import { portalYaml, scriptedTraceRun, setupTraceRun } from './trace-run-harness.js';
 

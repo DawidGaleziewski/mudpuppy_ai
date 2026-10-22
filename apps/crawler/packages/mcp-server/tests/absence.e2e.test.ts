@@ -1,12 +1,12 @@
 import { writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { canLaunchBrowser } from '@pathfinder/crawler';
+import { canLaunchBrowser } from '@mudpuppy/crawler';
 import {
   startReferencePortal,
   type ReferencePortal,
   type ScenarioId,
-} from '@pathfinder/reference-portal';
+} from '@mudpuppy/reference-portal';
 import { replay } from '../src/replay-driver.js';
 import { startHarness } from './harness.js';
 
@@ -39,7 +39,7 @@ scope:
   max_steps: 10
 urls:
   disallowed: ["/__admin/*"]
-rate_limit: { requests_per_second: 20, max_concurrency: 1, user_agent: "PathfinderAI-Crawler/0.1 (local reference portal)" }
+rate_limit: { requests_per_second: 20, max_concurrency: 1, user_agent: "MudPuppy-Crawler/0.1 (local reference portal)" }
 `;
 
 type Harness = Awaited<ReturnType<typeof startHarness>>;

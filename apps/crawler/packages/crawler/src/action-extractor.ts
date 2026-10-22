@@ -3,8 +3,8 @@ import {
   type ActionDescriptor,
   type ClassifyOptions,
   type RuleSet,
-} from '@pathfinder/safety';
-import type { SafetyClass } from '@pathfinder/core';
+} from '@mudpuppy/safety';
+import type { SafetyClass } from '@mudpuppy/core';
 import { buildLocators, type RankedLocator } from './locators.js';
 import type { DomClickable, FoundBy } from './clickables.js';
 import type { DomForm, DomTestId } from './observer.js';

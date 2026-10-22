@@ -4,15 +4,15 @@ import { mkdirSync, readdirSync, readFileSync, statSync, writeFileSync } from 'n
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { newId, nowIso } from '@pathfinder/core';
-import { canLaunchBrowser } from '@pathfinder/crawler';
+import { newId, nowIso } from '@mudpuppy/core';
+import { canLaunchBrowser } from '@mudpuppy/crawler';
 import { createBrowserRuntime, createServer, interruptStaleRuns } from '../src/index.js';
 import { makeCtx } from './helpers.js';
 import { startMockPortal, type MockPortal } from './mock-portal.js';
 
 const available = await canLaunchBrowser();
 
-const UA = 'PathfinderAI-Crawler/0.1 (+ops@corp.pl)';
+const UA = 'MudPuppy-Crawler/0.1 (+ops@corp.pl)';
 const RPS = 20;
 
 const portalYaml = (o: {

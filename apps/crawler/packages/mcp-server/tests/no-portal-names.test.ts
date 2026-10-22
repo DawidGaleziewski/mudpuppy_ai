@@ -2,7 +2,7 @@ import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
-import { loadPortal } from '@pathfinder/config';
+import { loadPortal } from '@mudpuppy/config';
 
 const REPO = fileURLToPath(new URL('../../../../../', import.meta.url));
 

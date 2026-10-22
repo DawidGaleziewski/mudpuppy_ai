@@ -1,5 +1,5 @@
-import { maxSafetyClass } from '@pathfinder/core';
-import { readFormFields, testValueFor, type AutofillField } from '@pathfinder/crawler';
+import { maxSafetyClass } from '@mudpuppy/core';
+import { readFormFields, testValueFor, type AutofillField } from '@mudpuppy/crawler';
 import {
   planTries,
   revealedTries,
@@ -7,7 +7,7 @@ import {
   type HappyNext,
   type ProbeTry,
   type ProbeValue,
-} from '@pathfinder/probes';
+} from '@mudpuppy/probes';
 import type { ServerContext } from '../../context.js';
 import { ToolError } from '../../errors.js';
 import type { ProbeFormInput, ProbeFormResult } from '../../runtime.js';

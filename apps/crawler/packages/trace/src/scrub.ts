@@ -1,4 +1,4 @@
-import { isSensitiveKey, maskText, scrubJson } from '@pathfinder/core';
+import { isSensitiveKey, maskText, scrubJson } from '@mudpuppy/core';
 
 /**
  * `scrubJson` masks every UUID and sha256 as `[token]`, which would erase the run, action, state and

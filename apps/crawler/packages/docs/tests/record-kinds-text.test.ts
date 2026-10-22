@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { DOC_CONTENT_BY_KIND, DocKind } from '@pathfinder/docs-model';
+import { DOC_CONTENT_BY_KIND, DocKind } from '@mudpuppy/docs-model';
 import {
   describeRecordKind,
   describeRecordKinds,

@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it } from 'vitest';
-import { newId, nowIso } from '@pathfinder/core';
-import { canLaunchBrowser } from '@pathfinder/crawler';
-import { startReferencePortal, type ReferencePortal } from '@pathfinder/reference-portal';
+import { newId, nowIso } from '@mudpuppy/core';
+import { canLaunchBrowser } from '@mudpuppy/crawler';
+import { startReferencePortal, type ReferencePortal } from '@mudpuppy/reference-portal';
 import { startHarness, type Body, type Call } from './harness.js';
 import { makeCtx } from './helpers.js';
 
@@ -26,7 +26,7 @@ scope:
   max_steps: 80
 urls:
   disallowed: ["/__admin/*"]
-rate_limit: { requests_per_second: 20, max_concurrency: 1, user_agent: "PathfinderAI-Crawler/0.1 (local reference portal)" }
+rate_limit: { requests_per_second: 20, max_concurrency: 1, user_agent: "MudPuppy-Crawler/0.1 (local reference portal)" }
 `;
 const PERSONA = `id: guest
 auth: none

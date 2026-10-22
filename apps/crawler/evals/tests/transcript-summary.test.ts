@@ -6,7 +6,7 @@ const use = (id: string, name: string, input: Record<string, unknown>) =>
     type: 'assistant',
     message: {
       usage: { input_tokens: 10, cache_read_input_tokens: 1000, cache_creation_input_tokens: 5 },
-      content: [{ type: 'tool_use', id, name: `mcp__pathfinder-ba__${name}`, input }],
+      content: [{ type: 'tool_use', id, name: `mcp__mudpuppy-ba__${name}`, input }],
     },
   });
 const result = (id: string, body: unknown, is_error = false) =>

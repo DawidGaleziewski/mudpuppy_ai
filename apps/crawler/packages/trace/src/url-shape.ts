@@ -1,4 +1,4 @@
-import { maskText } from '@pathfinder/core';
+import { maskText } from '@mudpuppy/core';
 
 /** A URL as the trace stores it: never the raw string, never query values (research §7). */
 export interface ShapedUrl {

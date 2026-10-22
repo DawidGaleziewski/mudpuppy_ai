@@ -8,7 +8,7 @@
  * - `process_variants`: ground-truth variants documented that way.
  * - `export_steps_distinct` (in `export-completeness.ts`) counts the repeats this would hide.
  */
-import { loadProcessExport, processKeys, type GroundTruth } from '@pathfinder/docs';
+import { loadProcessExport, processKeys, type GroundTruth } from '@mudpuppy/docs';
 import type { RawDb } from '../../queries.js';
 import type { Score } from './export-completeness.js';
 

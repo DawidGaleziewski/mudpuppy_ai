@@ -1,4 +1,4 @@
-import { newId } from '@pathfinder/core';
+import { newId } from '@mudpuppy/core';
 import { ToolError } from '../../errors.js';
 import type { BaContext } from '../../context.js';
 

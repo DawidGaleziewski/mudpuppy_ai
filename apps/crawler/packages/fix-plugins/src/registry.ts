@@ -2,9 +2,9 @@
 // (spec 030 FR-031). A fix's hooks run like the portal's own hooks: traced as `fix:<id>`, time-boxed,
 // never fatal; fixes run before the portal's hooks of the same point, in the order listed.
 
-import { ConfigError, type FixSpec, type HookPoint } from '@pathfinder/config';
-import type { Hook, LoadedHook } from '@pathfinder/hooks';
-import { matchUrlEntry } from '@pathfinder/safety';
+import { ConfigError, type FixSpec, type HookPoint } from '@mudpuppy/config';
+import type { Hook, LoadedHook } from '@mudpuppy/hooks';
+import { matchUrlEntry } from '@mudpuppy/safety';
 import type { FixPlugin } from './define.js';
 import { detectStack } from './fixes/detect-stack.js';
 import { expandCollapsed } from './fixes/expand-collapsed.js';

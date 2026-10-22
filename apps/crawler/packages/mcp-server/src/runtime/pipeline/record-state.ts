@@ -1,6 +1,6 @@
-import { StateComponents, maskText, nowIso } from '@pathfinder/core';
-import type { SettleOutcome } from '@pathfinder/crawler';
-import { computeComponents, minhashBlob, type FingerprintProfile } from '@pathfinder/fingerprint';
+import { StateComponents, maskText, nowIso } from '@mudpuppy/core';
+import type { SettleOutcome } from '@mudpuppy/crawler';
+import { computeComponents, minhashBlob, type FingerprintProfile } from '@mudpuppy/fingerprint';
 import type { PageCapture } from './capture-v2.js';
 import type { ServerContext } from '../../context.js';
 import { recordState } from '../../services/index.js';

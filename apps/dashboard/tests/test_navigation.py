@@ -9,7 +9,7 @@ from collections.abc import Iterator
 import pytest
 from fastapi.testclient import TestClient
 
-from pathfinder_dashboard import pager
+from mudpuppy_dashboard import pager
 
 from .conftest import Store, insert, make_client
 

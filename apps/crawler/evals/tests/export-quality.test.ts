@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import { readGroundTruth } from '@pathfinder/docs';
+import { readGroundTruth } from '@mudpuppy/docs';
 import { describe, expect, it } from 'vitest';
 import { scoreExportQuality, type ProcessJson } from '../graders/code/export-quality.js';
 

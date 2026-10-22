@@ -1,7 +1,7 @@
 import { mkdtempSync, readFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { addEvidenceLink } from '@pathfinder/store';
+import { addEvidenceLink } from '@mudpuppy/store';
 import { PNG } from 'pngjs';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { exportSrs, writeExport } from '../src/export.js';

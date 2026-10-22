@@ -6,13 +6,13 @@
  * a replay; it is "explored" when the pass found no new deviation.
  */
 import type BetterSqlite3 from 'better-sqlite3';
-import { newId, nowIso } from '@pathfinder/core';
+import { newId, nowIso } from '@mudpuppy/core';
 import {
   explorationGaps,
   MODEL_DEFAULTS,
   randomWalks,
   type ExplorationGaps,
-} from '@pathfinder/model';
+} from '@mudpuppy/model';
 import { processShapes, screenOfState } from './process-instances.js';
 import { journeyPath } from './replay-tests.js';
 

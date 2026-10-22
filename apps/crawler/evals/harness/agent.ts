@@ -25,8 +25,8 @@ export interface CliOut {
 }
 
 const AGENT_SERVER: Record<AgentName, string> = {
-  crawler: 'mcp__pathfinder',
-  ba: 'mcp__pathfinder-ba',
+  crawler: 'mcp__mudpuppy',
+  ba: 'mcp__mudpuppy-ba',
 };
 
 function cliArgs(config: EvalConfig, agent: AgentName, prompt: string, sessionId: string) {
@@ -58,7 +58,7 @@ export function runAgent(
     cwd: config.root,
     encoding: 'utf8',
     maxBuffer: 64 * 1024 * 1024,
-    env: { ...process.env, PATHFINDER_ENV: config.env, PATHFINDER_ROOT: ws },
+    env: { ...process.env, MUDPUPPY_ENV: config.env, MUDPUPPY_ROOT: ws },
   });
   let out: CliOut;
   try {

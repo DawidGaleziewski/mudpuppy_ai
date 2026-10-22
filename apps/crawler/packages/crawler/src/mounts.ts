@@ -1,5 +1,5 @@
 /// <reference lib="dom" />
-import type { CompositionLoader } from '@pathfinder/core';
+import type { CompositionLoader } from '@mudpuppy/core';
 import type { Frame, Page } from 'playwright';
 import { monotonicNow } from './clock.js';
 import { waitForCondition } from './condition-wait.js';

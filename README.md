@@ -1,6 +1,6 @@
 # MudPuppy
 
-<img src="apps/dashboard/src/pathfinder_dashboard/static/brand/mudpuppy-rust-256.png" width="256" height="207" alt="MudPuppy">
+<img src="docs/design/salvage-yard/brand/logo/mark-grid-path.svg" width="128" height="128" alt="The MudPuppy mark: a pixel mudpuppy crawling along a survey grid">
 
 MudPuppy maps a web portal the way a careful visitor would, records what it finds, and turns that
 into documentation good enough to re-create the portal. The **crawler** (`specs/001-crawler-map-mode/`)
@@ -13,7 +13,7 @@ answer key.
 ## How the crawler works
 
 The crawler is a Claude Code subagent (`.claude/agents/crawler.md`). It has **no shell, file, web or browser
-tools**: its only tools are the eight `mcp__pathfinder__*` tools exposed by the `pathfinder` MCP server
+tools**: its only tools are the eight `mcp__mudpuppy__*` tools exposed by the `mudpuppy` MCP server
 (`apps/crawler/packages/mcp-server`, registered in `.mcp.json`). The server owns the only browser, the
 database and the evidence store.
 
@@ -28,9 +28,9 @@ start_run  ->  navigate / act  <-  get_next_frontier_item   ...   finish_run
 
 1. Install: `pnpm install` at the repo root (one workspace for all apps), then a browser once: `pnpm --dir apps/crawler exec playwright install --with-deps chromium`.
 2. Ask the main Claude Code session: *"Use the crawler subagent to map `<portal>` as `<persona>`"*. There is no
-   crawler CLI. Approve the `pathfinder` MCP server when prompted.
+   crawler CLI. Approve the `mudpuppy` MCP server when prompted.
 3. Results land in `data/db/<environment>.sqlite` and `data/evidence/`; both are generated and git-ignored.
-   The `PATHFINDER_ENV` variable in `.mcp.json` picks the database (default `production`).
+   The `MUDPUPPY_ENV` variable in `.mcp.json` picks the database (default `production`).
 
 `specs/001-crawler-map-mode/quickstart.md` lists the checks that prove a run behaved.
 
@@ -42,7 +42,7 @@ safety class, the frontier, forms, network shapes, robots.txt policies and the d
 the crawler writes:
 
 ```bash
-cd apps/dashboard && uv sync && uv run pathfinder-dashboard   # http://127.0.0.1:8765
+cd apps/dashboard && uv sync && uv run mudpuppy-dashboard   # http://127.0.0.1:8765
 ```
 
 See [`apps/dashboard/README.md`](apps/dashboard/README.md) (spec `specs/003-dashboard-ui/`).
@@ -56,14 +56,14 @@ The whole flow, with the agents named in `.claude/agents/`:
 1. **Map.** *"Use the crawler agent to map `<portal>` as `<persona>`"* records the guest-visible
    portal (`map` mode).
 2. **Document.** *"Use the ba agent to document `<portal>` from run `<run_id>`"*: the `ba` agent
-   (skill `ba-practice`) has no browser; through the `pathfinder-ba` MCP server it writes screens,
+   (skill `ba-practice`) has no browser; through the `mudpuppy-ba` MCP server it writes screens,
    capabilities, requirements, business rules, data items, glossary terms, assumptions and open
    questions, each with a confidence label and evidence, and asks for **follow-up** traces of the
    processes it found.
 3. **Trace.** The crawler agent traces each open follow-up (`trace` mode); on production it stops
    at the first mutating action and records what could not be observed. Re-running the ba agent
    turns the traces into process and use-case records.
-4. **Review.** The dashboard's Docs tab shows the documentation; signed with `PATHFINDER_REVIEWER` ("unknown" by default), a
+4. **Review.** The dashboard's Docs tab shows the documentation; signed with `MUDPUPPY_REVIEWER` ("unknown" by default), a
    person confirms, rejects or comments (see `apps/dashboard/README.md`). Rejections come back to
    the BA as feedback in its next session.
 5. **Export.** `pnpm --dir apps/crawler docs:export <portal> --env <env> [--confirmed-only]` writes
@@ -88,7 +88,7 @@ migration 0006 have no screenshot; to get them, wipe the store and re-crawl
 The **reference portal** (`apps/crawler/packages/reference-portal`, portal `reference-insurer`) is a
 local fake Polish insurer whose full truth is written down in `ground-truth.yaml`. Start it with
 `pnpm --dir apps/crawler reference-portal` (http://127.0.0.1:4010) and run the flow above with the MCP
-servers on `PATHFINDER_ENV=sandbox`; step 6 then says how close the documentation gets.
+servers on `MUDPUPPY_ENV=sandbox`; step 6 then says how close the documentation gets.
 
 ## MudPuppy 2.0: the portal model
 

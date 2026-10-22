@@ -5,8 +5,8 @@
 
 import { existsSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';
-import { ConfigError, type HookSpec } from '@pathfinder/config';
-import { matchUrlEntry } from '@pathfinder/safety';
+import { ConfigError, type HookSpec } from '@mudpuppy/config';
+import { matchUrlEntry } from '@mudpuppy/safety';
 import type { Hook } from './types.js';
 
 export interface LoadedHook {

@@ -3,7 +3,7 @@
 // notices posted by the service (a stopped scan, a failed step) and, in a new session, the
 // conversation itself. The block is built from the store; it is never shown in the chat.
 
-import type { ChatConversation, ChatMessage, WorkflowStep } from '@pathfinder/chat-model';
+import type { ChatConversation, ChatMessage, WorkflowStep } from '@mudpuppy/chat-model';
 
 /**
  * How the assistant's session relates to the conversation:

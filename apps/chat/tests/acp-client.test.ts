@@ -20,7 +20,7 @@ function setup(
   const queries: PermissionQuery[] = [];
   const chat = new AcpChat({
     launch,
-    session: { cwd: '/tmp/pathfinder-chat-runtime', mcpServers: [] },
+    session: { cwd: '/tmp/mudpuppy-chat-runtime', mcpServers: [] },
     policy: (q) => {
       queries.push(q);
       return policy(q);
@@ -45,7 +45,7 @@ describe('AcpChat', () => {
     const { chat, log } = setup();
     const id = await chat.start();
     expect(id).toBe('fake-session-1');
-    expect(log.sessions[0]).toMatchObject({ cwd: '/tmp/pathfinder-chat-runtime' });
+    expect(log.sessions[0]).toMatchObject({ cwd: '/tmp/mudpuppy-chat-runtime' });
     chat.close();
   });
 
@@ -91,10 +91,10 @@ describe('AcpChat', () => {
     await settle();
     expect(queries[0]).toMatchObject({
       toolCallId: 't1',
-      tool: 'mcp__pathfinder-chat__workflow_state',
+      tool: 'mcp__mudpuppy-chat__workflow_state',
       parentToolCallId: null,
     });
-    expect(log.permissionOutcomes).toEqual(['mcp__pathfinder-chat__workflow_state:allow']);
+    expect(log.permissionOutcomes).toEqual(['mcp__mudpuppy-chat__workflow_state:allow']);
     expect(events).toContainEqual(
       expect.objectContaining({ type: 'tool_finished', toolCallId: 't1', status: 'completed' }),
     );
@@ -124,7 +124,7 @@ describe('AcpChat', () => {
     });
     await chat.start();
     await chat.prompt('workflow');
-    expect(log.permissionOutcomes).toEqual(['mcp__pathfinder-chat__workflow_state:reject']);
+    expect(log.permissionOutcomes).toEqual(['mcp__mudpuppy-chat__workflow_state:reject']);
     chat.close();
   });
 
@@ -134,7 +134,7 @@ describe('AcpChat', () => {
     await chat.prompt('subagent');
     expect(queries[0]).toMatchObject({
       toolCallId: 'c1',
-      tool: 'mcp__pathfinder__navigate',
+      tool: 'mcp__mudpuppy__navigate',
       parentToolCallId: 'a1',
       parentAgent: 'crawler',
     });

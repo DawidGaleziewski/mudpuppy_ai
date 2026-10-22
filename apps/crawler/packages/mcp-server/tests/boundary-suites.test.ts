@@ -1,6 +1,6 @@
 // Spec 040 T035 (design § 11.5): a mined rule's boundary tests become one open probe suite for
 // the owner: a valid trace, a variant per test, a note naming the expected screen; once only.
-import { TraceSpecEntry } from '@pathfinder/config';
+import { TraceSpecEntry } from '@mudpuppy/config';
 import { describe, expect, it } from 'vitest';
 import { proposeBoundarySuites } from '../src/boundary-suites.js';
 import { T, withRule } from '../../store/tests/seed-threshold.js';

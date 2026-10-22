@@ -31,7 +31,7 @@ BA's words, and wait for the answer.
 
 ## Save
 
-Call `mcp__pathfinder-chat__save_persona` with
+Call `mcp__mudpuppy-chat__save_persona` with
 `{ portal, persona: { id, extends?, auth?, max_action_class?, locale?, viewport? } }`.
 On success, name the file and list the `ref:` names the BA still has to store in the credentials form.
 

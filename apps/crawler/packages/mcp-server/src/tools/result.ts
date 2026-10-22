@@ -1,5 +1,5 @@
 import type { CallToolResult } from '@modelcontextprotocol/sdk/types.js';
-import { SECRETS, type Logger } from '@pathfinder/core';
+import { SECRETS, type Logger } from '@mudpuppy/core';
 import { ToolError } from '../errors.js';
 
 /**

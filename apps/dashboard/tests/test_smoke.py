@@ -1,6 +1,6 @@
 """Whole-app smoke: every page and fragment reachable from the nav answers 200.
 
-Runs the same breadth-first link crawl as `pathfinder-dashboard-smoke`, in process, on the BA
+Runs the same breadth-first link crawl as `mudpuppy-dashboard-smoke`, in process, on the BA
 fixture and on a copy of the real sandbox store (skipped when there is none). A route that is
 linked but missing, or a page that crashes on real data, fails here.
 """
@@ -16,9 +16,9 @@ from pathlib import Path
 import pytest
 from fastapi.testclient import TestClient
 
-from pathfinder_dashboard import smoke
-from pathfinder_dashboard.version import STARTUP_FINGERPRINT, code_fingerprint
-from pathfinder_dashboard.web.deps import PORTAL_COOKIE
+from mudpuppy_dashboard import smoke
+from mudpuppy_dashboard.version import STARTUP_FINGERPRINT, code_fingerprint
+from mudpuppy_dashboard.web.deps import PORTAL_COOKIE
 
 from .conftest import Store, make_client
 

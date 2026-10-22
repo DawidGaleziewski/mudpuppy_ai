@@ -9,7 +9,7 @@ import { callJudge, type CallRequest, type CallResult } from './call.js';
 import type { JudgeDefinition, Pair } from './definition.js';
 import type { JudgeLogin } from './login.js';
 import { systemPrompt, userMessage } from './prompt.js';
-import type { JudgeCost } from '@pathfinder/gates';
+import type { JudgeCost } from '@mudpuppy/gates';
 import type { Verdict } from './score.js';
 import { JudgeSetupError } from './setup-error.js';
 

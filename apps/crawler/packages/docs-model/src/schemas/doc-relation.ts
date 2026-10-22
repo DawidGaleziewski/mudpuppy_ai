@@ -1,7 +1,7 @@
 import { z } from 'zod';
-import { Id } from '@pathfinder/core';
+import { Id } from '@mudpuppy/core';
 
-/** (from kind, type, to kind) triples allowed for each value live in `@pathfinder/docs` (tasks.md T009). */
+/** (from kind, type, to kind) triples allowed for each value live in `@mudpuppy/docs` (tasks.md T009). */
 export const RelationType = z.enum([
   'contains',
   'describes',

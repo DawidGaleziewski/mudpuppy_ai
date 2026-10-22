@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
-import type { ObstacleEvent } from '@pathfinder/obstacles';
-import type { SettleOutcome } from '@pathfinder/crawler';
+import type { ObstacleEvent } from '@mudpuppy/obstacles';
+import type { SettleOutcome } from '@mudpuppy/crawler';
 import type { ServerContext } from '../src/context.js';
 import { ToolError } from '../src/errors.js';
 import type { RunState } from '../src/runtime/run-state.js';

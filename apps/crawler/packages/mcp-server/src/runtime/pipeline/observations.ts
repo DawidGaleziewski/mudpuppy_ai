@@ -1,6 +1,6 @@
-import { maskText, type NavigationHop, type ObservationVia } from '@pathfinder/core';
-import { parseUrlParams } from '@pathfinder/fingerprint';
-import { shownValues } from '@pathfinder/model';
+import { maskText, type NavigationHop, type ObservationVia } from '@mudpuppy/core';
+import { parseUrlParams } from '@mudpuppy/fingerprint';
+import { shownValues } from '@mudpuppy/model';
 import { recordObservation, upsertBuilds } from '../../services/observations.js';
 import { writeAttributes } from '../../services/journeys.js';
 import { ensureJourney, nextObservationSeq } from './journey.js';

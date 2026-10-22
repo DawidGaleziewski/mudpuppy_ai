@@ -1,6 +1,6 @@
 # /data
 
-All data-related files for Pathfinder AI live here. Owned by the `db-admin` subagent
+All data-related files for MudPuppy live here. Owned by the `db-admin` subagent
 (`.claude/agents/db-admin.md`) — route schema, migration and storage-layout changes through it
 rather than editing this folder ad hoc.
 
@@ -13,18 +13,18 @@ rather than editing this folder ad hoc.
   Each store holds two layers. **Layer A** is what the crawler recorded (runs, states, transitions, observations,
   actions, forms, network call shapes, frontier, decisions, crawler questions, trace spans, and
   for trace runs `processes` + `process_steps`). **Layer B** is the BA agent's documentation,
-  written only through the `pathfinder-ba` MCP tools and the `docs:review` command:
+  written only through the `mudpuppy-ba` MCP tools and the `docs:review` command:
   `analysis_sessions` (+ `analysis_session_runs`), `doc_records` (one per keyed record such as
   `REQ-007`), `doc_revisions` (immutable content, confidence, status), `doc_evidence_links`
   (each revision → Layer A rows and runs), `doc_relations`, `doc_reviews` and `followup_tasks`.
   Shapes: `specs/004-ba-documentation/data-model.md`.
   **Credentials** (since spec 009, `0007_credentials`): the `credentials` table holds encrypted
   test-user credentials per portal and environment (AES-256-GCM ciphertext, nonce, key id). It is
-  written only by the vault (`@pathfinder/vault`), never exported (`portal:export`), never shown in
+  written only by the vault (`@mudpuppy/vault`), never exported (`portal:export`), never shown in
   the dashboard and not removed by `portal:delete`. Values are never stored or logged in plaintext.
   **Chat orchestrator** (since spec 010, `0008_chat_orchestrator`): `chat_conversations`,
   `chat_messages`, `workflow_steps`, `process_scopes` and `amendments`. Written only by
-  `@pathfinder/chat`, read-only for the dashboard. They are not Layer A or B and not evidence
+  `@mudpuppy/chat`, read-only for the dashboard. They are not Layer A or B and not evidence
   records (no `evidence_ref`/`confidence`); amendments are never joined into Layer B records. All
   carry `portal_id` (`chat_messages` via its conversation), so `portal:export` and `portal:delete`
   include them. Chat error logs are files in `logs/chat/` (JSONL, 30-day retention), not tables.
@@ -35,11 +35,11 @@ rather than editing this folder ad hoc.
   head, `rev` and `screen_id`; status `superseded` became `needs_reanchor`). Shapes:
   `specs/022-salvage-redesign/data-model.md`.
   **Chat proposals** (since spec 022, `0017_chat_proposals`): `chat_proposals` — changes the chat assistant
-  proposes and a person applies or discards; written only by `@pathfinder/chat`, read-only for the dashboard,
+  proposes and a person applies or discards; written only by `@mudpuppy/chat`, read-only for the dashboard,
   in the portal export/delete partition.
   **BA processes** (since spec 022, `0018_ba_processes`): `ba_processes`, `ba_process_revisions`, `process_variants`,
   `process_variant_revisions`, `process_drafts`, `process_live`, `grouping_suggestions`, `change_spec_revisions` —
-  the BA's cut of the portal, written only by `@pathfinder/chat`; `process_scopes` were migrated in. In the
+  the BA's cut of the portal, written only by `@mudpuppy/chat`; `process_scopes` were migrated in. In the
   portal export/delete partition.
   **Form steps and probes** (since spec 032, `0022_form_steps`, `0023_probe_outcomes_and_suites`): `form_steps`
   (a step of a form flow per portal and route template; `states.form_step_id` and `states.state_kind` link

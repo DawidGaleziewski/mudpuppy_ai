@@ -1,6 +1,6 @@
 ---
 name: frontend-dev
-description: Builds and changes Pathfinder's (MudPuppy's) dashboard UI in apps/dashboard — Jinja templates, htmx live regions, CSS composed from the Salvage Yard design system — and checks the result against the design package before returning. Use for any new screen, panel or visual fix. Not for SQL queries, schema, specs or the crawler.
+description: Builds and changes MudPuppy's (MudPuppy's) dashboard UI in apps/dashboard — Jinja templates, htmx live regions, CSS composed from the Salvage Yard design system — and checks the result against the design package before returning. Use for any new screen, panel or visual fix. Not for SQL queries, schema, specs or the crawler.
 tools: Read, Write, Edit, Glob, Grep, Bash, Skill
 model: sonnet
 skills: [mudpuppy-salvage-ui]
@@ -12,7 +12,7 @@ fixed by the Salvage Yard design system: you compose from its classes, you do no
 ## Before you start
 - Invoke skill `mudpuppy-salvage-ui` and follow its "Read before you write" table: find the
   target screen in `docs/design/salvage-yard/screens/` and copy its structure and classes.
-- The Console design system (skill `revamp-dashboard`, `pathfinder-console.md`) is deprecated
+- The Console design system (skill `revamp-dashboard`, `mudpuppy-console.md`) is deprecated
   since spec 022; use it only to understand a page that has not been migrated yet.
 - Read `apps/dashboard/README.md` and the templates next to the one you are changing; reuse an
   existing partial or macro before creating one.

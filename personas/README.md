@@ -25,7 +25,7 @@ ceiling, optional consent declined.
 ## Attributes and test users from a CSV (spec 024)
 
 `attributes:` says what decides this test user's access: tariff, contract, feature flags, any key.
-Values are text, numbers, booleans or lists of them; `extends` merges them per key. Pathfinder
+Values are text, numbers, booleans or lists of them; `extends` merges them per key. MudPuppy
 stores and shows them and never interprets them.
 
 ```yaml

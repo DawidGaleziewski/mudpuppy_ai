@@ -1,6 +1,6 @@
-import { newId, nowIso } from '@pathfinder/core';
-import { CAPTCHA_MARKERS } from '@pathfinder/safety';
-import { insertEvidenceRef } from '@pathfinder/store';
+import { newId, nowIso } from '@mudpuppy/core';
+import { CAPTCHA_MARKERS } from '@mudpuppy/safety';
+import { insertEvidenceRef } from '@mudpuppy/store';
 import type { ServerContext } from '../context.js';
 import type { RunState } from './run-state.js';
 

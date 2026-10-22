@@ -1,4 +1,4 @@
-import type { Confidence } from '@pathfinder/core';
+import type { Confidence } from '@mudpuppy/core';
 import type {
   DocContent,
   DocKind,
@@ -7,8 +7,8 @@ import type {
   ReviewAction,
   RevisionChange,
   RevisionStatus,
-} from '@pathfinder/docs-model';
-import { EVIDENCE_COLUMN } from '@pathfinder/store';
+} from '@mudpuppy/docs-model';
+import { EVIDENCE_COLUMN } from '@mudpuppy/store';
 import { formatKey } from '../keys.js';
 import type { FixtureStore, TraceFixture } from './fixture-store.js';
 

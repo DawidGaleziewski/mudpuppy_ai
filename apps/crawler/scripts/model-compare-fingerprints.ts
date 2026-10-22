@@ -6,9 +6,9 @@
  */
 import { readFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
-import { loadPortal, portalFingerprintProfile } from '@pathfinder/config';
-import { createEvidenceStore } from '@pathfinder/core';
-import { compareProfiles, dbPathFor, migrateUp, openDb } from '@pathfinder/store';
+import { loadPortal, portalFingerprintProfile } from '@mudpuppy/config';
+import { createEvidenceStore } from '@mudpuppy/core';
+import { compareProfiles, dbPathFor, migrateUp, openDb } from '@mudpuppy/store';
 
 const arg = (name: string): string | undefined => {
   const i = process.argv.indexOf(`--${name}`);
@@ -20,7 +20,7 @@ const [portal, a, b] = process.argv.slice(2).filter((x, i, all) => {
   const prev = all[i - 1];
   return !x.startsWith('--') && !(prev?.startsWith('--') ?? false);
 });
-const env = arg('env') ?? process.env.PATHFINDER_ENV;
+const env = arg('env') ?? process.env.MUDPUPPY_ENV;
 if (!portal || !a || !b || !env) {
   console.error(
     'usage: pnpm model:compare-fingerprints <portal> <profile-a> <profile-b> --env <env>',

@@ -17,13 +17,13 @@ export interface JoinedTurn extends ParsedTurn {
 
 export interface JoinResult {
   turns: JoinedTurn[];
-  /** `mcp__pathfinder__*` calls the agent made that never reached the server. */
+  /** `mcp__mudpuppy__*` calls the agent made that never reached the server. */
   unmatchedAgentCalls: JoinedTurn[];
   /** This agent's calls in the matched runs with no `tool_use` in the transcript. */
   unmatchedServerCalls: CallSpanRef[];
 }
 
-const PATHFINDER_TOOL = /^mcp__pathfinder__/;
+const MUDPUPPY_TOOL = /^mcp__mudpuppy__/;
 
 /**
  * Join transcript rows to call spans by tool-use id (contracts/agent-import.md "Join"). Matched
@@ -60,7 +60,7 @@ export function joinTurns(
   }
 
   const unmatchedAgentCalls = out.filter(
-    (t) => t.kind === 'tool_use' && !t.matched && PATHFINDER_TOOL.test(t.tool_name ?? ''),
+    (t) => t.kind === 'tool_use' && !t.matched && MUDPUPPY_TOOL.test(t.tool_name ?? ''),
   );
   const seen = new Set(out.filter((t) => t.kind === 'tool_use').map((t) => t.tool_use_id));
   const runs = new Set(out.filter((t) => t.matched).map((t) => t.run_id));

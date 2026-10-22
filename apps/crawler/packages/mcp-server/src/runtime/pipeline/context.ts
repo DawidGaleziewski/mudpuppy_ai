@@ -1,4 +1,4 @@
-import type { Attrs, DecisionInput, EventName, PhaseName } from '@pathfinder/store';
+import type { Attrs, DecisionInput, EventName, PhaseName } from '@mudpuppy/store';
 import type { ServerContext } from '../../context.js';
 import type { RunRow } from '../../services/index.js';
 import type { StepKind } from '../../services/trace.js';

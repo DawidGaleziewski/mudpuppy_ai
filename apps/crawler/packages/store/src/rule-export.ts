@@ -12,7 +12,7 @@ import {
   type DecisionTable,
   type HypothesisEvent,
   type HypothesisStatus,
-} from '@pathfinder/model';
+} from '@mudpuppy/model';
 import { hypothesisEvents, ruleWording, type RuleWording } from './model-decide.js';
 import { type RuleTextContext, ruleMarkdown, rulesCsv, shownKey } from './rule-export-text.js';
 import { MinedRule } from './rule-mining.js';

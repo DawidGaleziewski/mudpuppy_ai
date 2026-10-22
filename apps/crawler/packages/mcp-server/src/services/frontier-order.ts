@@ -1,4 +1,4 @@
-import { inferRouteTemplates } from '@pathfinder/fingerprint';
+import { inferRouteTemplates } from '@mudpuppy/fingerprint';
 import type { ServerContext } from '../context.js';
 import { linkTarget } from './same-target.js';
 

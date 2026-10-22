@@ -1,7 +1,7 @@
 # Learning roadmap
 
 A personal study plan for getting better at evals, harness building and working with AI (Claude and
-others), tied to this project. Written 2026-10-09 from an honest review of Pathfinder / MudPuppy.
+others), tied to this project. Written 2026-10-09 from an honest review of MudPuppy.
 
 **How to use it**
 

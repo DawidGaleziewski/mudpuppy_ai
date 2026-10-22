@@ -1,4 +1,4 @@
-import { maskText, type EvidenceStore } from '@pathfinder/core';
+import { maskText, type EvidenceStore } from '@mudpuppy/core';
 import { scrubTraceJson } from './scrub.js';
 
 export interface FittedPayload {

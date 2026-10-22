@@ -1,4 +1,4 @@
-# @pathfinder/crawler
+# @mudpuppy/crawler
 
 Browser runtime library: action/request gates, rate limiter, robots registry, preflight, page stabilizer, network recorder, ARIA observer, screenshot capture, test values, autofill, action extractor, frontier, browser session, locators, step outcomes.
 
@@ -49,7 +49,7 @@ obstacles, safety, store.
 ## Where to add things
 - New browser capability: one file in `src/`, exported from `src/index.ts`, called from the
   mcp-server runtime (never from tools directly, G-12).
-- A gate case for a crawler fix goes in `@pathfinder/gates` (G-17), not here.
+- A gate case for a crawler fix goes in `@mudpuppy/gates` (G-17), not here.
 
 ## Tests
 - `pnpm exec vitest run --project crawler`; tier: fast (browser unit tests via `tests/browser.ts` stay fast).

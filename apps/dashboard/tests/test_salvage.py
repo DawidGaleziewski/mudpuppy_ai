@@ -11,14 +11,14 @@ from pathlib import Path
 import pytest
 from fastapi.testclient import TestClient
 
-from pathfinder_dashboard import nav, queries_docs, status_map
-from pathfinder_dashboard.models import DECISION_KINDS, FRONTIER_STATUSES, RUN_STATUSES
-from pathfinder_dashboard.web.deps import salvage_template
+from mudpuppy_dashboard import nav, queries_docs, status_map
+from mudpuppy_dashboard.models import DECISION_KINDS, FRONTIER_STATUSES, RUN_STATUSES
+from mudpuppy_dashboard.web.deps import salvage_template
 
 from .conftest import Store, make_client
 from .paths import REPO_ROOT
 
-PKG = REPO_ROOT / "apps/dashboard/src/pathfinder_dashboard"
+PKG = REPO_ROOT / "apps/dashboard/src/mudpuppy_dashboard"
 # The app's own copy of the design package's guard.
 GUARD = REPO_ROOT / "apps/dashboard/scripts/find-old-styles.sh"
 

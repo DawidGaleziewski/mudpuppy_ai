@@ -1,6 +1,6 @@
-import { newId, nowIso } from '@pathfinder/core';
-import { decide } from '@pathfinder/crawler';
-import { shapeUrl } from '@pathfinder/trace';
+import { newId, nowIso } from '@mudpuppy/core';
+import { decide } from '@mudpuppy/crawler';
+import { shapeUrl } from '@mudpuppy/trace';
 import type { ServerContext } from '../../context.js';
 import type { RunRow } from '../../services/index.js';
 import type { RunState } from '../run-state.js';

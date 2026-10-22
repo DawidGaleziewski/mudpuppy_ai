@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { Id, Timestamp } from '@pathfinder/core';
+import { Id, Timestamp } from '@mudpuppy/core';
 
 export const AgentTurnRole = z.enum(['assistant', 'user']);
 export type AgentTurnRole = z.infer<typeof AgentTurnRole>;

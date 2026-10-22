@@ -1,4 +1,4 @@
-import { Confidence, newId, nowIso } from '@pathfinder/core';
+import { Confidence, newId, nowIso } from '@mudpuppy/core';
 import {
   DOC_CONTENT_BY_KIND,
   DocKind,
@@ -6,8 +6,8 @@ import {
   RelationType,
   type DocContent,
   type RevisionChange,
-} from '@pathfinder/docs-model';
-import { insertEvidenceRef, type DocRecordsTable, type Selectable } from '@pathfinder/store';
+} from '@mudpuppy/docs-model';
+import { insertEvidenceRef, type DocRecordsTable, type Selectable } from '@mudpuppy/store';
 import {
   applyStatusEvent,
   checkObserved,
@@ -21,7 +21,7 @@ import {
   type ResolvedTarget,
   type RevisionState,
   type StatusResult,
-} from '@pathfinder/docs';
+} from '@mudpuppy/docs';
 import { z } from 'zod';
 import type { BaContext } from '../../context.js';
 import { ToolError, parseInput } from '../../errors.js';

@@ -23,7 +23,7 @@ number" means the same thing on every screen and in every rule.
 It complements a [glossary](glossary.md): the glossary explains business words, the data dictionary
 defines the data that carries them.
 
-## How Pathfinder uses it
+## How MudPuppy uses it
 
 In pass 5 the BA agent writes one `DI` record per form field or data element. The name is kept
 exactly as the portal shows it (`name_verbatim`), and the constraints are the observed ones:

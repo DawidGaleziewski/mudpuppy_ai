@@ -3,7 +3,7 @@ import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js';
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { canLaunchBrowser } from '@pathfinder/crawler';
+import { canLaunchBrowser } from '@mudpuppy/crawler';
 import { createBrowserRuntime, createServer } from '../src/index.js';
 import { makeCtx } from './helpers.js';
 import { startMockPortal, type MockPortal } from './mock-portal.js';
@@ -28,7 +28,7 @@ scope:
   max_run_time_minutes: 5
   max_steps: 80
 denylist: [logout, delete, payment, bidding, buy_now, message_or_contact_seller, reveal_seller_contact]
-rate_limit: { requests_per_second: 20, max_concurrency: 1, user_agent: "PathfinderAI-Crawler/0.1 (+ops@corp.pl)" }
+rate_limit: { requests_per_second: 20, max_concurrency: 1, user_agent: "MudPuppy-Crawler/0.1 (+ops@corp.pl)" }
 item_route_templates: ["/oferta/:id"]
 `;
 const PERSONA =

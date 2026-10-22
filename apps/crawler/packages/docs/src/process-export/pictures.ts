@@ -5,7 +5,7 @@
 // page's own error line would push the rest down, so a message never covers the next field. SVG
 // with the PNG inside as a data URI: an SVG shown as an image may not load a file next to it.
 
-import type { Box } from '@pathfinder/core';
+import type { Box } from '@mudpuppy/core';
 import type { PictureMark } from './elements.js';
 import type { ValidationRow } from './validation.js';
 

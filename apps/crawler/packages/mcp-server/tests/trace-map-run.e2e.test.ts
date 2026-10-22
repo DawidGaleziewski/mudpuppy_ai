@@ -1,8 +1,8 @@
 import { writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { PHASE_NAMES } from '@pathfinder/store';
-import { canLaunchBrowser } from '@pathfinder/crawler';
+import { PHASE_NAMES } from '@mudpuppy/store';
+import { canLaunchBrowser } from '@mudpuppy/crawler';
 import { startMockPortal, type MockPortal } from './mock-portal.js';
 import { normaliseRows } from './trace-normalise.js';
 import {
@@ -257,7 +257,7 @@ describe.skipIf(!available)('trace of a map run against the mock portal', () => 
   });
 
   // Wall-clock: only in `pnpm test:perf`, alone (spec 022 F-06).
-  it.runIf(process.env.PATHFINDER_PERF === '1' && process.env.CI !== '1')(
+  it.runIf(process.env.MUDPUPPY_PERF === '1' && process.env.CI !== '1')(
     'adds less than 10% to the median step time at standard vs off (SC-008)',
     async () => {
       // Both runs record the same Playwright trace (every environment is traced since spec 021),

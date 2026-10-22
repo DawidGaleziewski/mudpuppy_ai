@@ -1,4 +1,4 @@
-import { computeFingerprint, FingerprintIndex } from '@pathfinder/fingerprint';
+import { computeFingerprint, FingerprintIndex } from '@mudpuppy/fingerprint';
 import { describe, expect, it } from 'vitest';
 import { recordState } from '../src/index.js';
 import { seedKnownClusters } from '../src/services/known-clusters.js';

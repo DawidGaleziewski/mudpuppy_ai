@@ -1,5 +1,5 @@
-import { maxSafetyClass } from '@pathfinder/core';
-import type { ActionRuleConfig, PortalConfig } from '@pathfinder/config';
+import { maxSafetyClass } from '@mudpuppy/core';
+import type { ActionRuleConfig, PortalConfig } from '@mudpuppy/config';
 import { ACTION_RULES, normalize, type ActionRule } from './rules.js';
 import { globToRegExp } from './scope.js';
 

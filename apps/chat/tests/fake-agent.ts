@@ -118,7 +118,7 @@ export function fakeAgent(): { launch: AgentLauncher; log: FakeAgentLog } {
           await say(client, sessionId, 'Resuming it.');
           await toolCall(client, sessionId, log, {
             id: 't3',
-            tool: 'mcp__pathfinder-chat__workflow_state',
+            tool: 'mcp__mudpuppy-chat__workflow_state',
             title: 'workflow_state',
           });
           await say(client, sessionId, 'The scan is running.');
@@ -126,7 +126,7 @@ export function fakeAgent(): { launch: AgentLauncher; log: FakeAgentLog } {
         case 'workflow':
           await toolCall(client, sessionId, log, {
             id: 't1',
-            tool: 'mcp__pathfinder-chat__workflow_state',
+            tool: 'mcp__mudpuppy-chat__workflow_state',
             title: 'workflow_state',
           });
           return { stopReason: 'end_turn' };
@@ -152,7 +152,7 @@ export function fakeAgent(): { launch: AgentLauncher; log: FakeAgentLog } {
           });
           await toolCall(client, sessionId, log, {
             id: 'c1',
-            tool: 'mcp__pathfinder__navigate',
+            tool: 'mcp__mudpuppy__navigate',
             title: 'navigate',
             parent: 'a1',
           });

@@ -12,9 +12,9 @@ import httpx2
 import pytest
 from fastapi.testclient import TestClient
 
-from pathfinder_dashboard import queries_map, queries_map_node
-from pathfinder_dashboard.app import create_app
-from pathfinder_dashboard.settings import Settings
+from mudpuppy_dashboard import queries_map, queries_map_node
+from mudpuppy_dashboard.app import create_app
+from mudpuppy_dashboard.settings import Settings
 
 from .conftest import Store, insert, ts
 from .test_chat import ORIGIN, text

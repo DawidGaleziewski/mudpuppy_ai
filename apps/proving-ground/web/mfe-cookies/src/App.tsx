@@ -13,7 +13,7 @@ function read(): string | null {
 
 /**
  * The cookie banner, released as its own micro-frontend (LO-38): an overlay on first visit that
- * stays until a choice is stored. Pathfinder dismisses it through the portal's obstacles config.
+ * stays until a choice is stored. MudPuppy dismisses it through the portal's obstacles config.
  */
 export function App() {
   const [choice, setChoice] = useState<string | null>(read());

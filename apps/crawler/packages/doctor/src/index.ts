@@ -1,4 +1,4 @@
-// `@pathfinder/doctor` (spec 030 R-63): the checks in the order they run, and a plain-text report.
+// `@mudpuppy/doctor` (spec 030 R-63): the checks in the order they run, and a plain-text report.
 
 import { browserLaunch, envDeclared, toolchainSqlite } from './checks/local.js';
 import {

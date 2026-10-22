@@ -1,7 +1,7 @@
 /**
  * Train the similarity classifier (spec 039 FR-050, T090): `pnpm model:classify <portal> --env <env>`.
  * Builds the labelled pairs of the portal's active fingerprint profile with their component
- * features, runs `pathfinder-miner classify` (apps/miner, Python: a logistic regression, every
+ * features, runs `mudpuppy-miner classify` (apps/miner, Python: a logistic regression, every
  * fifth pair held out), and records the result after Zod validation. When it detects distinct
  * pairs better than τ on the held-out pairs, a person can accept it (`pnpm model:decide …
  * accept-classifier`); the next reconcile then clusters with it instead of τ.
@@ -17,7 +17,7 @@ import {
   migrateUp,
   openDb,
   recordClassifier,
-} from '@pathfinder/store';
+} from '@mudpuppy/store';
 
 const arg = (name: string): string | undefined => {
   const i = process.argv.indexOf(`--${name}`);
@@ -26,7 +26,7 @@ const arg = (name: string): string | undefined => {
     : undefined;
 };
 const portal = process.argv[2];
-const env = arg('env') ?? process.env.PATHFINDER_ENV;
+const env = arg('env') ?? process.env.MUDPUPPY_ENV;
 if (!portal || portal.startsWith('--') || !env) {
   console.error('usage: pnpm model:classify <portal> --env <env>');
   process.exit(2);
@@ -44,7 +44,7 @@ try {
   const out = JSON.parse(
     execFileSync(
       'uv',
-      ['run', '--project', join(root, 'apps/miner'), 'pathfinder-miner', 'classify', '--in', file],
+      ['run', '--project', join(root, 'apps/miner'), 'mudpuppy-miner', 'classify', '--in', file],
       { encoding: 'utf8' },
     ),
   ) as { ok: boolean; error?: string; f1?: number; tau_f1?: number; better?: boolean };

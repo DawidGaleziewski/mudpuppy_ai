@@ -1,4 +1,4 @@
-import { nowIso } from '@pathfinder/core';
+import { nowIso } from '@mudpuppy/core';
 import type { RunOwner, ServerContext } from '../context.js';
 
 /** Is the process with this id still alive? `EPERM` means it exists but belongs to someone else. */

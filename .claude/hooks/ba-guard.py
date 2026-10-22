@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """PreToolUse guard for the `ba` agent: `Read` only the ba-practice reference files.
 
-The BA reaches recorded evidence and the store only through the pathfinder-ba MCP server
+The BA reaches recorded evidence and the store only through the mudpuppy-ba MCP server
 (constitution: agents access the DB only through MCP); it must not open data/ or other files.
 """
 import json, os, sys
@@ -14,5 +14,5 @@ if call.get("tool_name") == "Read":
     if os.path.commonpath([allowed, target]) != allowed:
         print(json.dumps({"hookSpecificOutput": {"hookEventName": "PreToolUse",
             "permissionDecision": "deny",
-            "permissionDecisionReason": "ba may only Read .claude/skills/ba-practice/references/*; use the pathfinder-ba tools for evidence"}}))
+            "permissionDecisionReason": "ba may only Read .claude/skills/ba-practice/references/*; use the mudpuppy-ba tools for evidence"}}))
 sys.exit(0)

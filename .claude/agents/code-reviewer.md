@@ -1,6 +1,6 @@
 ---
 name: code-reviewer
-description: Reviews a feature branch's diff against master for conformance with Pathfinder's code guidelines (docs/code-guidelines.md), fixes behaviour-neutral small findings and returns the close-out review table. Use in the feature close-out, before the changelog. Not for bug hunting (/code-review) or new features.
+description: Reviews a feature branch's diff against master for conformance with MudPuppy's code guidelines (docs/code-guidelines.md), fixes behaviour-neutral small findings and returns the close-out review table. Use in the feature close-out, before the changelog. Not for bug hunting (/code-review) or new features.
 tools: Read, Grep, Glob, Bash, Edit, Skill
 model: sonnet
 ---

@@ -94,25 +94,25 @@ export function buildSessionRequest(opts: SessionConfigOptions): NewSessionReque
   const cwd = join(repoRoot, 'apps', 'chat', 'runtime');
   mkdirSync(cwd, { recursive: true });
   const crawlerDir = join(repoRoot, 'apps', 'crawler');
-  const env = { PATHFINDER_ENV: environment, PATHFINDER_ROOT: repoRoot };
+  const env = { MUDPUPPY_ENV: environment, MUDPUPPY_ROOT: repoRoot };
   return {
     cwd,
     mcpServers: [
       stdio(
-        'pathfinder',
+        'mudpuppy',
         'pnpm',
-        ['--dir', crawlerDir, '--filter', '@pathfinder/mcp-server', 'start'],
+        ['--dir', crawlerDir, '--filter', '@mudpuppy/mcp-server', 'start'],
         env,
       ),
       stdio(
-        'pathfinder-ba',
+        'mudpuppy-ba',
         'pnpm',
-        ['--dir', crawlerDir, '--filter', '@pathfinder/mcp-server', 'start:ba'],
+        ['--dir', crawlerDir, '--filter', '@mudpuppy/mcp-server', 'start:ba'],
         env,
       ),
-      stdio('pathfinder-chat', 'pnpm', ['--dir', join(repoRoot, 'apps', 'chat'), 'run', 'mcp'], {
+      stdio('mudpuppy-chat', 'pnpm', ['--dir', join(repoRoot, 'apps', 'chat'), 'run', 'mcp'], {
         ...env,
-        PATHFINDER_CHAT_CONVERSATION: conversationId,
+        MUDPUPPY_CHAT_CONVERSATION: conversationId,
       }),
     ],
     _meta: {

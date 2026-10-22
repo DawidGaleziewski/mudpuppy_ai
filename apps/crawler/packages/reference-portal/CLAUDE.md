@@ -1,4 +1,4 @@
-# @pathfinder/reference-portal
+# @mudpuppy/reference-portal
 
 Local Polish insurer reference portal with ground-truth manifest (spec 004 D8), used to measure the BA goal. Exports: server (start), ground-truth, `TODAY`.
 

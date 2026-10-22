@@ -1,13 +1,6 @@
 import type { Logger } from 'pino';
-import {
-  DecisionKind,
-  DecisionLogEntry,
-  maskText,
-  newId,
-  nowIso,
-  scrubJson,
-} from '@pathfinder/core';
-import type { PathfinderDb } from './db.js';
+import { DecisionKind, DecisionLogEntry, maskText, newId, nowIso, scrubJson } from '@mudpuppy/core';
+import type { MudPuppyDb } from './db.js';
 import { emitForRun, type Tracer } from './tracer.js';
 
 export interface DecisionInput {
@@ -27,7 +20,7 @@ export interface DecisionLog {
 }
 
 /** Decision-log writer: `decision_log` table is authoritative; pino mirrors each entry (T014 decision). */
-export function createDecisionLog(db: PathfinderDb, logger: Logger): DecisionLog {
+export function createDecisionLog(db: MudPuppyDb, logger: Logger): DecisionLog {
   return {
     async record(input) {
       const detail = input.detail === undefined ? null : scrubJson(input.detail);

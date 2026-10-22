@@ -7,8 +7,8 @@
  * priority 6). Each replay is one probe run through the gated tools, no LLM; `--limit` caps them.
  */
 import { join, resolve } from 'node:path';
-import { createBrowserRuntime, exploreProcess, openLocalClient } from '@pathfinder/mcp-server';
-import { unexploredProcesses } from '@pathfinder/store';
+import { createBrowserRuntime, exploreProcess, openLocalClient } from '@mudpuppy/mcp-server';
+import { unexploredProcesses } from '@mudpuppy/store';
 import { scriptEnvironment } from './script-env.js';
 
 const args = process.argv.slice(2);

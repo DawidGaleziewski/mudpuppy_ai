@@ -1,5 +1,5 @@
 {
-  "name": "@pathfinder/core",
+  "name": "@mudpuppy/core",
   "version": "0.0.0",
   "private": true,
   "description": "Kernel: crawl-model Zod schemas, ids, PII scrubber, evidence store, element keys, secrets redactor, logger (no DB, no browser)",

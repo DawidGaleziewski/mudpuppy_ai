@@ -1,4 +1,4 @@
-import { maxSafetyClass, type SafetyClass } from '@pathfinder/core';
+import { maxSafetyClass, type SafetyClass } from '@mudpuppy/core';
 import { LINK_ROLES, PAGER_KEYWORDS, READ_KEYWORDS, READ_ROLES, normalize } from './rules.js';
 import { builtinRuleSet, type RuleSet } from './rule-set.js';
 import type { ActionDescriptor, Classification } from './types.js';

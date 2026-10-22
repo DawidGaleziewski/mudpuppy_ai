@@ -4,16 +4,16 @@
 - One root pnpm workspace with one root `pnpm-lock.yaml` (constitution 2.1.0): run `pnpm install` at the repo root, never inside an app. Only `apps/proving-ground` keeps its own workspace.
 
 ## Running the apps
-- Dashboard: `cd apps/dashboard && uv sync && uv run pathfinder-dashboard` → http://127.0.0.1:8765.
-- Chat service (the dashboard's Chat page needs it): `PATHFINDER_ENV=sandbox pnpm --dir apps/chat start` → 127.0.0.1:4310. Env: `PATHFINDER_ENV` (required, no default: an environment a portal declares, spec 030 R-61), `PATHFINDER_CHAT_PORT`. It uses the user's Claude Code login and starts its own `pathfinder` MCP servers (with Chromium) per conversation.
-- After running the real chat service, stop it and check for orphaned `pathfinder` servers and Chromium processes.
+- Dashboard: `cd apps/dashboard && uv sync && uv run mudpuppy-dashboard` → http://127.0.0.1:8765.
+- Chat service (the dashboard's Chat page needs it): `MUDPUPPY_ENV=sandbox pnpm --dir apps/chat start` → 127.0.0.1:4310. Env: `MUDPUPPY_ENV` (required, no default: an environment a portal declares, spec 030 R-61), `MUDPUPPY_CHAT_PORT`. It uses the user's Claude Code login and starts its own `mudpuppy` MCP servers (with Chromium) per conversation.
+- After running the real chat service, stop it and check for orphaned `mudpuppy` servers and Chromium processes.
 - BA-facing walkthrough: `docs/how-to-use.md`.
 
 ## Feature Workflow (SDD)
 1. Every roadmap item (R-xx) gets a feature branch named per the saved branch naming convention.
 2. Spec → plan → tasks (speckit/po agent) before implementation. Clarify open questions first.
 3. Commit per completed task group with the task IDs (e.g. T007–T011) in the message.
-4. Before merging: run the `code-reviewer` agent on the branch (guideline conformance, G-31) and fix or defer its findings; tick the validation checkboxes, update roadmap/spec/ledger docs, glossary sync (add or update `docs/glossary/glossary.yaml` entries for terms the item added or changed, then `uv run pathfinder-glossary --write` in `apps/dashboard`), run the changelog skill (changelog BEFORE merge), merge to master, delete the branch.
+4. Before merging: run the `code-reviewer` agent on the branch (guideline conformance, G-31) and fix or defer its findings; tick the validation checkboxes, update roadmap/spec/ledger docs, glossary sync (add or update `docs/glossary/glossary.yaml` entries for terms the item added or changed, then `uv run mudpuppy-glossary --write` in `apps/dashboard`), run the changelog skill (changelog BEFORE merge), merge to master, delete the branch.
 5. When stopping mid-work, write a session dump listing done/uncommitted/blocked tasks.
 
 

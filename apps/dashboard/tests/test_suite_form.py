@@ -3,7 +3,7 @@ and dropped steps, an added step, a copied variant, and a fault only on a techni
 
 from __future__ import annotations
 
-from pathfinder_dashboard.suite_form import edited_trace
+from mudpuppy_dashboard.suite_form import edited_trace
 
 TRACE = {
     "id": "quote",

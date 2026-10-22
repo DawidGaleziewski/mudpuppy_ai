@@ -1,6 +1,6 @@
 import { realpathSync } from 'node:fs';
 import { dirname, relative, resolve, isAbsolute } from 'node:path';
-import { isSyntheticInput } from '@pathfinder/core';
+import { isSyntheticInput } from '@mudpuppy/core';
 import { ConfigError, zodProblems } from './errors.js';
 import { PersonaConfig, PersonaFile } from './persona-schema.js';
 import { readYaml } from './read.js';

@@ -1,4 +1,4 @@
-import type { DocKind } from '@pathfinder/docs-model';
+import type { DocKind } from '@mudpuppy/docs-model';
 import { doc, inline, list, modeLabel, table } from '../format.js';
 import { KIND_ORDER, type ExportModel } from '../model.js';
 
@@ -46,7 +46,7 @@ export function readme(m: ExportModel): string {
     `# Software requirements specification: ${m.portal_id}`,
     '',
     `As-is documentation of the portal \`${m.portal_id}\` (environment \`${m.environment}\`), rendered`,
-    'from the Pathfinder documentation store. The outline is adapted from ISO/IEC/IEEE 29148 (SRS).',
+    'from the MudPuppy documentation store. The outline is adapted from ISO/IEC/IEEE 29148 (SRS).',
     '',
     `- **As of:** ${m.as_of || 'no revisions'}`,
     `- **Mode:** ${modeLabel(m.mode)}`,

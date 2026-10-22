@@ -4,7 +4,7 @@ tokens (static/salvage/css/tokens.css); the design package's CSS is not edited."
 import re
 from pathlib import Path
 
-STATIC = Path(__file__).resolve().parents[1] / "src" / "pathfinder_dashboard" / "static"
+STATIC = Path(__file__).resolve().parents[1] / "src" / "mudpuppy_dashboard" / "static"
 APP = (STATIC / "css" / "mp.css").read_text()
 SALVAGE = (STATIC / "salvage" / "css" / "salvage.css").read_text()
 TOKENS = (STATIC / "salvage" / "css" / "tokens.css").read_text()

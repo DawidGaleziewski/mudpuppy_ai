@@ -1,6 +1,6 @@
 // Directed scans (spec 034 R-66, design 11-map-runs §4–§5): a new run that reaches recorded
 // screens by replaying the recorded path (`go_to_state`) instead of mapping from the start page.
-// The pathfinder server resolves the plan (marks, the parent's frontier, the failed action) and
+// The mudpuppy server resolves the plan (marks, the parent's frontier, the failed action) and
 // refuses what it cannot replay; the checks here only catch what is missing before the hand-off.
 
 import type BetterSqlite3 from 'better-sqlite3';
@@ -87,7 +87,7 @@ export function directedPrompt(
   return (
     `${WHAT[type]} of portal "${s.portal}" as persona "${s.persona}" in environment ` +
     `"${s.environment}" (a ${type} scan): call start_run with environment "${s.environment}", ` +
-    `run_type "${type}" and plan ${JSON.stringify(plan)}.${choiceArgs} Use only the pathfinder ` +
+    `run_type "${type}" and plan ${JSON.stringify(plan)}.${choiceArgs} Use only the mudpuppy ` +
     'tools. If the persona logs in, log in first as a normal scan does. start_run returns ' +
     '`start_points`: reach each, in order, with go_to_state (it replays the recorded path; never ' +
     `navigate to a start point yourself). ${after} When go_to_state answers REPLAY_DIVERGED or ` +

@@ -49,7 +49,7 @@ export function toDmnXml(table: DecisionTable, name: string): string {
     .join('\n');
   return [
     '<?xml version="1.0" encoding="UTF-8"?>',
-    `<definitions xmlns="https://www.omg.org/spec/DMN/20191111/MODEL/" id="defs_${decision}" name="${esc(name)}" namespace="https://pathfinder.local/dmn">`,
+    `<definitions xmlns="https://www.omg.org/spec/DMN/20191111/MODEL/" id="defs_${decision}" name="${esc(name)}" namespace="https://mudpuppy.local/dmn">`,
     `  <decision id="${decision}" name="${esc(name)}">`,
     `    <!-- decided on ${esc(table.decisionPoint.screen)} by ${esc(table.decisionPoint.action)}; fitness ${table.fitness}, precision ${table.precision}, ${table.rows} rows -->`,
     `    <decisionTable id="${decision}_table" hitPolicy="${table.hitPolicy === 'U' ? 'UNIQUE' : 'COLLECT'}">`,

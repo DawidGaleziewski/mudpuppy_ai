@@ -2,7 +2,7 @@ scope: Test glossary of made-up terms.
 entries:
   - id: alpha
     term: Alpha
-    category: pathfinder
+    category: mudpuppy
     group: Crawling
     short: The first test term.
     explanation: Alpha is explained at length, see [the long page](pages/alpha-long.md).
@@ -23,7 +23,7 @@ entries:
     wiki: beta-concept
   - id: gamma
     term: Gamma
-    category: pathfinder
+    category: mudpuppy
     group: Crawling
     short: A retired test term.
     explanation: Gamma was replaced by alpha.
