@@ -1109,6 +1109,7 @@ class ChatConversation(Row):
     status: Literal["active", "closed"]
     created_at: str
     updated_at: str
+    kind: Literal["chat", "workbench"]  # 0049 (spec 043)
 
 
 class ChatMessage(Row):
@@ -1243,6 +1244,70 @@ class ChatProposal(Row):
     decided_by: str | None
     decided_at: str | None
     created_at: str
+
+
+WorkbenchPath = Literal["chat", "mapping", "troubleshoot", "explain"]
+
+
+class WorkbenchConversation(Row):
+    """Workbench state of a conversation (0049, spec 043); written only by @mudpuppy/chat."""
+
+    conversation_id: str
+    path: WorkbenchPath
+    path_source: Literal["assistant", "you"]
+    title: str | None
+    updated_at: str
+
+
+class WorkbenchView(Row):
+    """One view spec the assistant produced, at most one per turn (0049)."""
+
+    id: str
+    conversation_id: str
+    turn: int
+    path: WorkbenchPath
+    why: str
+    spec_json: Json
+    received_json: Json
+    dropped_json: Json
+    repaired_json: Json
+    fallback: bool
+    created_at: str
+
+
+class WorkbenchCommand(Row):
+    """A command proposal and, once confirmed, its audit record (0049)."""
+
+    id: str
+    conversation_id: str
+    turn: int
+    command: Literal["scan.start", "scan.resume", "scan.stop", "path.attempt", "mark.add"]
+    args_json: Json
+    reason: str
+    source: Literal["assistant", "button"]
+    state: Literal["proposed", "running", "done", "failed", "cancelled", "expired", "undone"]
+    token_hash: str
+    precondition_hash: str
+    idempotency_key: str
+    expires_at: str
+    confirmed_by: str | None
+    confirmed_at: str | None
+    result_json: Json | None
+    error_ref: str | None
+    created_at: str
+    updated_at: str
+
+
+class WorkbenchFeedback(Row):
+    """A person's "Right view?" answer for one view (0049)."""
+
+    view_id: str
+    by: str
+    value: Literal["yes", "no"]
+    reasons_json: Json
+    text: str | None
+    created_at: str
+    updated_at: str
 
 
 BaProcessStage = Literal["scoped", "as_is_documented", "to_be_design", "migrating", "migrated"]
@@ -1405,6 +1470,10 @@ TABLE_MODELS: dict[str, type[Row]] = {
     "amendments": Amendment,
     "amendment_revisions": AmendmentRevision,
     "chat_proposals": ChatProposal,
+    "workbench_conversations": WorkbenchConversation,
+    "workbench_views": WorkbenchView,
+    "workbench_commands": WorkbenchCommand,
+    "workbench_feedback": WorkbenchFeedback,
     "grouping_suggestions": GroupingSuggestion,
     "ba_processes": BaProcess,
     "ba_process_revisions": BaProcessRevision,

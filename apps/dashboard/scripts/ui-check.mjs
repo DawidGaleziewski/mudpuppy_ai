@@ -3,7 +3,8 @@
 // with reduced motion: a full-page screenshot, no page-level horizontal scroll, one h1, at most
 // one primary button and one intent plate, and axe-core with no serious or critical issue.
 //
-//   pnpm --dir apps/dashboard ui:check [--base http://127.0.0.1:8765] [--out dir] [path ...]
+//   pnpm --dir apps/dashboard ui:check [--base http://127.0.0.1:8765] [--out dir]
+//     [--widths 1280,390] [path ...]
 //
 // Exit 1 when any page fails; the report lists each problem.
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
@@ -23,8 +24,9 @@ const flag = (name, fallback) => {
 };
 const base = flag('--base', 'http://127.0.0.1:8765');
 const out = flag('--out', 'ui-check');
+// Desktop-first pages (2.0, the Workbench) are checked at their own widths: `--widths 1280,1024`.
+const WIDTHS = flag('--widths', '1280,390').split(',').map(Number);
 const paths = args.length ? args : ['/', '/screens', '/docs', '/activity', '/glossary', '/search?q=a'];
-const WIDTHS = [1280, 390];
 
 const slug = (p) => p.replace(/[^a-z0-9]+/gi, '-').replace(/^-|-$/g, '') || 'home';
 

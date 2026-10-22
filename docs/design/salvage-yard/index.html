@@ -23,7 +23,7 @@
     <div class="sy-stack" style="--sy-gap: 12px">
       <span class="sy-wordmark sy-wordmark--lg"><span class="sy-wordmark__paint">MUD</span>PUPPY</span>
       <h1 class="sy-h1">Salvage Yard · design package</h1>
-      <p class="sy-meta sy-prose">Brand book, design system, CSS library, 16 detailed screens (12–16: map runs), 16 MudPuppy 2.0 screens, the original wireframes, screenshots, the frontend skill for the harness, and the Console → Salvage migration guide. Everything works offline (the original wireframes fall back to system fonts).</p>
+      <p class="sy-meta sy-prose">Brand book, design system, CSS library, 16 detailed screens (12–16: map runs), 16 MudPuppy 2.0 screens, 10 Workbench (gen UI beta) screens with a runnable reference app, the original wireframes, screenshots, the frontend skill for the harness, and the Console → Salvage migration guide. Everything works offline (the original wireframes fall back to system fonts).</p>
     </div>
     <img src="brand/logo/mark-grid-path.svg" width="128" height="128" alt="MudPuppy mark" style="image-rendering: pixelated">
   </header>
@@ -49,12 +49,18 @@
         <a class="sy-row" href="docs/11-map-runs.md">11 · Map runs: graph, probing, resume, reconciliation (spec)</a>
         <a class="sy-row" href="docs/12-v2-ux.md">12 · MudPuppy 2.0: UX design (IA, time, words, review, rules)</a>
         <a class="sy-row" href="docs/13-v2-fixtures.md">13 · MudPuppy 2.0: the data on the screens</a>
+        <a class="sy-row" href="docs/14-workbench.md">14 · Workbench: feature spec and the plan, step by step</a>
+        <a class="sy-row" href="docs/15-genui-guidelines.md">15 · Gen UI guidelines and good practices</a>
+        <a class="sy-row" href="docs/16-genui-components.md">16 · Gen UI components</a>
+        <a class="sy-row" href="docs/17-genui-architecture.md">17 · Gen UI architecture: htmx vs React, pipeline, tickets</a>
       </div></div>
       <div class="sy-plate"><div class="sy-plate__head"><h3 class="sy-plate__title">For the harness and devs</h3></div><div class="sy-rows">
         <a class="sy-row" href="skill/mudpuppy-salvage-ui/SKILL.md">Frontend skill · SKILL.md</a>
         <a class="sy-row" href="AGENTS.md">AGENTS.md · drop-in agent rules</a>
         <a class="sy-row" href="design-system/css/salvage.css">salvage.css · component library</a>
         <a class="sy-row" href="design-system/css/tokens.css">tokens.css · source of truth</a>
+        <a class="sy-row" href="design-system/css/genui.css">genui.css · gen UI layer (Workbench)</a>
+        <a class="sy-row" href="workbench/README.md">workbench/ · schemas, examples, reference app</a>
         <a class="sy-row" href="design-system/tokens/tokens.json">tokens.json · design-system format</a>
         <a class="sy-row" href="design-system/tokens/tokens.dtcg.json">tokens.dtcg.json · W3C DTCG</a>
         <a class="sy-row" href="migration/token-map.csv">token-map.csv · Console → Salvage</a>
@@ -85,6 +91,23 @@
       <a class="pk-card" href="screens/v2-11-rules.html"><img src="screenshots/screens/v2-11-rules.png" alt=""><div><b>Business rules</b><span class="sy-meta">Where decided, status, last tested</span></div></a>
       <a class="pk-card" href="screens/v2-12-rule-detail.html"><img src="screenshots/screens/v2-12-rule-detail.png" alt=""><div><b>Rule detail</b><span class="sy-meta">Decision table, boundary tests, export</span></div></a>
       <a class="pk-card" href="screens/v2-13-states.html"><img src="screenshots/screens/v2-13-states.png" alt=""><div><b>States</b><span class="sy-meta">Empty, running, rebuilding, 500+, conflict, failed write</span></div></a>
+    </div>
+  </section>
+
+  <section class="sy-stack" aria-labelledby="pk-wb">
+    <div class="sy-split"><h2 id="pk-wb" class="sy-h2">Workbench · generative UI beta</h2><span class="sy-meta">The assistant composes the screen from a catalogue · htmx + server templates + SSE · docs 14–17 · workbench/</span></div>
+    <div class="sy-grid" style="--sy-min: 280px">
+      <a class="pk-card" href="design-system/genui-components.html"><img src="screenshots/system/genui-components.png" alt=""><div><b>Gen UI components</b><span class="sy-meta">The gen UI layer, live, with markup</span></div></a>
+      <a class="pk-card" href="screens/wb-01-inline-live.html"><img src="screenshots/screens/wb-01-inline-live.png" alt=""><div><b>Phase 1 · Inline, live</b><span class="sy-meta">Live card, narration, side sheet</span></div></a>
+      <a class="pk-card" href="screens/wb-02-inline-stopped.html"><img src="screenshots/screens/wb-02-inline-stopped.png" alt=""><div><b>Phase 1 · Stopped</b><span class="sy-meta">ErrorCard, Resume as a command card</span></div></a>
+      <a class="pk-card" href="screens/wb-03-split-live.html"><img src="screenshots/screens/wb-03-split-live.png" alt=""><div><b>Phase 2 · Split</b><span class="sy-meta">Live map, point and ask, Why this view?</span></div></a>
+      <a class="pk-card" href="screens/wb-04-split-troubleshoot.html"><img src="screenshots/screens/wb-04-split-troubleshoot.png" alt=""><div><b>Phase 2 · Troubleshoot</b><span class="sy-meta">Step shot, events, fixes, attempts</span></div></a>
+      <a class="pk-card" href="screens/wb-05-focus.html"><img src="screenshots/screens/wb-05-focus.png" alt=""><div><b>Phase 3 · Focus mode</b><span class="sy-meta">Big map, event strip, command bar</span></div></a>
+      <a class="pk-card" href="screens/wb-06-chat.html"><img src="screenshots/screens/wb-06-chat.png" alt=""><div><b>Chat path</b><span class="sy-meta">Plain answers, at most two cards</span></div></a>
+      <a class="pk-card" href="screens/wb-07-explain.html"><img src="screenshots/screens/wb-07-explain.png" alt=""><div><b>Explain path</b><span class="sy-meta">Finding, before / after, Open in Review</span></div></a>
+      <a class="pk-card" href="screens/wb-08-states.html"><img src="screenshots/screens/wb-08-states.png" alt=""><div><b>States</b><span class="sy-meta">Composing, stale, fallback, commands, feedback</span></div></a>
+      <a class="pk-card" href="screens/wb-09-paths.html"><img src="screenshots/screens/wb-09-paths.png" alt=""><div><b>Paths</b><span class="sy-meta">One tab, four paths, rules</span></div></a>
+      <a class="pk-card" href="screens/wb-10-architecture.html"><img src="screenshots/screens/wb-10-architecture.png" alt=""><div><b>Under the hood</b><span class="sy-meta">Two lanes, catalogue, view spec, stack</span></div></a>
     </div>
   </section>
 

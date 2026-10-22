@@ -1,0 +1,14 @@
+{
+  "version": "1",
+  "path": "explain",
+  "why": "You asked to see BR-021.",
+  "components": [
+    {
+      "id": "rule",
+      "type": "DecisionTable",
+      "bind": {
+        "rule": "BR-021"
+      }
+    }
+  ]
+}

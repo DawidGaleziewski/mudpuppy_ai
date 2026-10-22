@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import re
 import shutil
+import sqlite3
 from collections import deque
 from collections.abc import Iterator
 from pathlib import Path
@@ -20,7 +21,7 @@ from mudpuppy_dashboard import smoke
 from mudpuppy_dashboard.version import STARTUP_FINGERPRINT, code_fingerprint
 from mudpuppy_dashboard.web.deps import PORTAL_COOKIE
 
-from .conftest import Store, make_client
+from .conftest import MIGRATIONS, Store, make_client
 
 BASE = "http://testserver/"
 REAL_SANDBOX = Path(__file__).resolve().parents[3] / "data" / "db" / "sandbox.sqlite"
@@ -107,8 +108,28 @@ def real_sandbox(tmp_path: Path) -> Iterator[TestClient]:
     if evidence.exists():
         shutil.copytree(evidence, data / "evidence")
     store = Store(data, "sandbox", data / "db" / "sandbox.sqlite")
+    migrate_copy(store.path)
     with make_client(store) as c:
         yield c
+
+
+def migrate_copy(path: Path) -> None:
+    """Apply the up-migrations the copy lacks (a branch's new one; the real store is never
+    migrated by a test, and never before its migration is merged, R-54)."""
+    conn = sqlite3.connect(path)
+    applied = {row[0] for row in conn.execute("SELECT version FROM schema_migrations")}
+    for migration in MIGRATIONS:
+        version, _, name = migration.stem.removesuffix(".up").partition("_")
+        if version in applied:
+            continue
+        conn.execute("PRAGMA foreign_keys = OFF")
+        conn.executescript(migration.read_text())
+        conn.execute(
+            "INSERT INTO schema_migrations VALUES (?, ?, ?)",
+            (version, name, "1970-01-01T00:00:00Z"),
+        )
+    conn.commit()
+    conn.close()
 
 
 def test_every_linked_page_renders_on_a_copy_of_the_real_sandbox(real_sandbox: TestClient):

@@ -14,6 +14,7 @@ const conversation: ChatConversation = {
   status: 'active',
   created_at: T,
   updated_at: T,
+  kind: 'chat',
 };
 
 let seq = 0;

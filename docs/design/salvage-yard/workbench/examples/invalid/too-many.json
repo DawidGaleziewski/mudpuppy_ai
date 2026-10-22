@@ -1,0 +1,28 @@
+{
+  "version": "1",
+  "path": "chat",
+  "why": "Too much.",
+  "components": [
+    {
+      "id": "a",
+      "type": "RecordCard",
+      "bind": {
+        "record": "PROC-001"
+      }
+    },
+    {
+      "id": "b",
+      "type": "RecordCard",
+      "bind": {
+        "record": "PROC-002"
+      }
+    },
+    {
+      "id": "c",
+      "type": "RecordCard",
+      "bind": {
+        "record": "BR-021"
+      }
+    }
+  ]
+}

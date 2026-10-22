@@ -18,6 +18,7 @@ class Section(NamedTuple):
     href: Callable[[str | None], str | None]  # portal → path, None when it needs a portal
     pages: frozenset[str]
     group: str | None = None  # 2.0 nav groups (12-v2-ux.md § 1.1): label shown above the first item
+    beta: bool = False  # shown only with the beta switched on, with the `beta` chip (spec 043)
 
 
 def _settings(portal: str | None) -> str | None:
@@ -26,6 +27,8 @@ def _settings(portal: str | None) -> str | None:
 
 SECTIONS: tuple[Section, ...] = (
     Section("home", "Home", lambda p: "/", frozenset({"home", "overview", "chat"})),
+    # Spec 043 (designer 14-workbench.md § 2.1): after Home, only with MUDPUPPY_WORKBENCH on.
+    Section("workbench", "Workbench", lambda p: "/workbench", frozenset({"workbench"}), beta=True),
     Section("changes", "Changes", lambda p: "/changes", frozenset({"changes"})),
     Section("review", "Review", lambda p: "/review", frozenset({"review", "amendments"})),
     Section(

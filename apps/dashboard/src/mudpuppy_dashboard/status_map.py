@@ -265,6 +265,21 @@ VOCABULARIES: dict[str, dict[str, Status]] = {
         "live": _s("live", "Live"),
         "conflict": _s("stopped", "Someone saved first"),
     },
+    # Workbench (spec 043, designer 16-genui-components.md § 4.2, § 5.3, § 5.12). A stopped scan is
+    # ash (the failure is the ErrorCard's job); a dropped stream is "Not live", never "Stopped".
+    "wb_scan": {
+        "running": _s("running", "Running"),
+        "stopped": _s("stopped", "Stopped"),
+        "finished": _s("ok", "Finished"),
+        "stale": _s("unobserved", "Not live"),
+    },
+    "wb_cmd": {
+        "proposed": _s("draft", "Proposed"),
+        "running": _s("running", "Running"),
+        "done": _s("ok", "Done"),
+        "failed": _s("failed", "Failed"),
+        "undone": _s("stopped", "Undone"),
+    },
 }
 
 

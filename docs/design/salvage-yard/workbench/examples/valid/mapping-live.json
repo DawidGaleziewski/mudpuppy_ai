@@ -1,0 +1,44 @@
+{
+  "version": "1",
+  "path": "mapping",
+  "why": "You asked to map the OC/AC calculator.",
+  "select": {
+    "route": "/kalkulator/kierowca",
+    "state": 2
+  },
+  "components": [
+    {
+      "id": "map",
+      "type": "LiveMap",
+      "bind": {
+        "scan": "01a110d5"
+      },
+      "props": {
+        "follow": true,
+        "view": "graph"
+      }
+    },
+    {
+      "id": "detail",
+      "type": "PageDetail",
+      "bind": {
+        "scan": "01a110d5",
+        "page": "@selected"
+      }
+    },
+    {
+      "id": "story",
+      "type": "Narration",
+      "bind": {
+        "scan": "01a110d5"
+      },
+      "props": {
+        "every": "page"
+      }
+    }
+  ],
+  "suggestions": [
+    "Where does it go next?",
+    "Stop after the calculator"
+  ]
+}

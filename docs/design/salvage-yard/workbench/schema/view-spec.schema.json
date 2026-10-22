@@ -1,0 +1,914 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://mudpuppy.local/schema/workbench/view-spec.schema.json",
+  "title": "Workbench view spec v1",
+  "description": "What the assistant returns to compose the Workbench. It picks components from the catalogue and binds them to data by id. It never sends HTML, CSS, numbers or page content: the server renders templates and fills them from the data lane. The server decides placement from the path and the rollout phase.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "version",
+    "path",
+    "why",
+    "components"
+  ],
+  "properties": {
+    "version": {
+      "const": "1"
+    },
+    "path": {
+      "enum": [
+        "chat",
+        "mapping",
+        "troubleshoot",
+        "explain"
+      ],
+      "description": "chat (default) · mapping · troubleshoot · explain. The person can switch it; their switch wins."
+    },
+    "why": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/plainText"
+        }
+      ],
+      "minLength": 3,
+      "maxLength": 140,
+      "description": "One plain sentence shown next to the Path switch and in 'Why this view?'. Says what the person asked, not what the model is."
+    },
+    "select": {
+      "$ref": "#/$defs/pageRef",
+      "description": "Optional page to select first (fills PageDetail)."
+    },
+    "components": {
+      "type": "array",
+      "minItems": 0,
+      "maxItems": 4,
+      "items": {
+        "oneOf": [
+          {
+            "$ref": "#/$defs/LiveMap"
+          },
+          {
+            "$ref": "#/$defs/ScanMeter"
+          },
+          {
+            "$ref": "#/$defs/PageMiniature"
+          },
+          {
+            "$ref": "#/$defs/PageDetail"
+          },
+          {
+            "$ref": "#/$defs/Narration"
+          },
+          {
+            "$ref": "#/$defs/ErrorCard"
+          },
+          {
+            "$ref": "#/$defs/StepShot"
+          },
+          {
+            "$ref": "#/$defs/EventTail"
+          },
+          {
+            "$ref": "#/$defs/FixChoices"
+          },
+          {
+            "$ref": "#/$defs/AttemptList"
+          },
+          {
+            "$ref": "#/$defs/Compare"
+          },
+          {
+            "$ref": "#/$defs/DecisionTable"
+          },
+          {
+            "$ref": "#/$defs/FindingCard"
+          },
+          {
+            "$ref": "#/$defs/RecordCard"
+          },
+          {
+            "$ref": "#/$defs/RecordList"
+          }
+        ]
+      },
+      "description": "Empty list = plain chat. Order = reading order within a placement."
+    },
+    "suggestions": {
+      "type": "array",
+      "maxItems": 3,
+      "items": {
+        "allOf": [
+          {
+            "$ref": "#/$defs/plainText"
+          }
+        ],
+        "minLength": 3,
+        "maxLength": 60
+      },
+      "description": "Follow-up questions the person can send with one click."
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "path": {
+            "const": "chat"
+          }
+        },
+        "required": [
+          "path"
+        ]
+      },
+      "then": {
+        "properties": {
+          "components": {
+            "maxItems": 2,
+            "items": {
+              "properties": {
+                "type": {
+                  "enum": [
+                    "PageMiniature",
+                    "Compare",
+                    "DecisionTable",
+                    "RecordCard",
+                    "RecordList"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "path": {
+            "const": "mapping"
+          }
+        },
+        "required": [
+          "path"
+        ]
+      },
+      "then": {
+        "properties": {
+          "components": {
+            "maxItems": 4,
+            "items": {
+              "properties": {
+                "type": {
+                  "enum": [
+                    "LiveMap",
+                    "ScanMeter",
+                    "PageMiniature",
+                    "PageDetail",
+                    "Narration",
+                    "ErrorCard"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "path": {
+            "const": "troubleshoot"
+          }
+        },
+        "required": [
+          "path"
+        ]
+      },
+      "then": {
+        "properties": {
+          "components": {
+            "maxItems": 4,
+            "items": {
+              "properties": {
+                "type": {
+                  "enum": [
+                    "ScanMeter",
+                    "PageDetail",
+                    "ErrorCard",
+                    "StepShot",
+                    "EventTail",
+                    "FixChoices",
+                    "AttemptList"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "path": {
+            "const": "explain"
+          }
+        },
+        "required": [
+          "path"
+        ]
+      },
+      "then": {
+        "properties": {
+          "components": {
+            "maxItems": 3,
+            "items": {
+              "properties": {
+                "type": {
+                  "enum": [
+                    "PageMiniature",
+                    "StepShot",
+                    "Compare",
+                    "DecisionTable",
+                    "FindingCard",
+                    "RecordCard"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "scanId": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{8}$",
+      "description": "Scan id as stored (lowercase hex), e.g. 01a110d5."
+    },
+    "step": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 100000,
+      "description": "Step number within the scan."
+    },
+    "eventRef": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{8}#[0-9]{1,6}$",
+      "description": "scan#step, e.g. 01a110d5#171."
+    },
+    "route": {
+      "type": "string",
+      "pattern": "^/[^\\s<>\"']{0,200}$",
+      "description": "A route as recorded, e.g. /kalkulator/kierowca."
+    },
+    "pageRef": {
+      "description": "A page (screen state) in a scan: the current selection, or a route with an optional same-URL step.",
+      "oneOf": [
+        {
+          "const": "@selected"
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "route"
+          ],
+          "properties": {
+            "route": {
+              "$ref": "#/$defs/route"
+            },
+            "state": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 50,
+              "description": "Same-URL step (step 2 of /kalkulator/kierowca)."
+            }
+          }
+        }
+      ]
+    },
+    "recordId": {
+      "type": "string",
+      "pattern": "^(SCR|PROC|BR|CAP|NFR)-[0-9]{3}$",
+      "description": "A documentation record, process or rule: SCR-001 (record of a console screen), PROC-001, BR-021, CAP-005, NFR-001. Portal pages are pageRefs, not records."
+    },
+    "changeId": {
+      "type": "string",
+      "pattern": "^CHG-[0-9]{3}$"
+    },
+    "findingId": {
+      "type": "string",
+      "pattern": "^FND-[0-9]{3}$"
+    },
+    "ruleId": {
+      "type": "string",
+      "pattern": "^BR-[0-9]{3}$"
+    },
+    "plainText": {
+      "type": "string",
+      "pattern": "^[^<>{}]*$",
+      "description": "Plain words. No markup, no template syntax."
+    },
+    "LiveMap": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "type",
+        "bind"
+      ],
+      "properties": {
+        "type": {
+          "const": "LiveMap"
+        },
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9-]{0,23}$",
+          "description": "Stable id within the view; keep it when you update the view."
+        },
+        "bind": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "scan"
+          ],
+          "properties": {
+            "scan": {
+              "$ref": "#/$defs/scanId"
+            }
+          }
+        },
+        "props": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "follow": {
+              "type": "boolean",
+              "default": true,
+              "description": "Keep the crawler's position in view."
+            },
+            "view": {
+              "enum": [
+                "graph",
+                "filmstrip"
+              ],
+              "default": "graph",
+              "description": "Inline cards always use filmstrip."
+            },
+            "highlight": {
+              "$ref": "#/$defs/pageRef"
+            }
+          }
+        }
+      },
+      "description": "Pages the crawler visited, in visit order, with miniatures, edges, its current position and the queue, with the scan meter in its body. Side trips fold into a '+N side pages' chip on the page they came from."
+    },
+    "ScanMeter": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "type",
+        "bind"
+      ],
+      "properties": {
+        "type": {
+          "const": "ScanMeter"
+        },
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9-]{0,23}$",
+          "description": "Stable id within the view; keep it when you update the view."
+        },
+        "bind": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "scan"
+          ],
+          "properties": {
+            "scan": {
+              "$ref": "#/$defs/scanId"
+            }
+          }
+        }
+      },
+      "description": "Steps of the limit, pages, queued links, where the crawler is now. For views without a LiveMap (it has its own meter)."
+    },
+    "PageMiniature": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "type",
+        "bind"
+      ],
+      "properties": {
+        "type": {
+          "const": "PageMiniature"
+        },
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9-]{0,23}$",
+          "description": "Stable id within the view; keep it when you update the view."
+        },
+        "bind": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "scan",
+            "page"
+          ],
+          "properties": {
+            "scan": {
+              "$ref": "#/$defs/scanId"
+            },
+            "page": {
+              "$ref": "#/$defs/pageRef"
+            }
+          }
+        },
+        "props": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "size": {
+              "enum": [
+                "sm",
+                "md"
+              ],
+              "default": "md"
+            }
+          }
+        }
+      },
+      "description": "One page's thumbnail with its route and status."
+    },
+    "PageDetail": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "type",
+        "bind"
+      ],
+      "properties": {
+        "type": {
+          "const": "PageDetail"
+        },
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9-]{0,23}$",
+          "description": "Stable id within the view; keep it when you update the view."
+        },
+        "bind": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "scan",
+            "page"
+          ],
+          "properties": {
+            "scan": {
+              "$ref": "#/$defs/scanId"
+            },
+            "page": {
+              "$ref": "#/$defs/pageRef"
+            }
+          }
+        }
+      },
+      "description": "What happened on a page, when, its status, a link to the screen in the model."
+    },
+    "Narration": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "type",
+        "bind"
+      ],
+      "properties": {
+        "type": {
+          "const": "Narration"
+        },
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9-]{0,23}$",
+          "description": "Stable id within the view; keep it when you update the view."
+        },
+        "bind": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "scan"
+          ],
+          "properties": {
+            "scan": {
+              "$ref": "#/$defs/scanId"
+            }
+          }
+        },
+        "props": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "every": {
+              "enum": [
+                "page",
+                "milestone"
+              ],
+              "default": "page",
+              "description": "How often a line is written."
+            }
+          }
+        }
+      },
+      "description": "What the crawler did, in plain words, one line per page or milestone."
+    },
+    "ErrorCard": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "type",
+        "bind"
+      ],
+      "properties": {
+        "type": {
+          "const": "ErrorCard"
+        },
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9-]{0,23}$",
+          "description": "Stable id within the view; keep it when you update the view."
+        },
+        "bind": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "scan"
+          ],
+          "properties": {
+            "scan": {
+              "$ref": "#/$defs/scanId"
+            }
+          }
+        }
+      },
+      "description": "Why the scan stopped, where, the error reference, what is kept."
+    },
+    "StepShot": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "type",
+        "bind"
+      ],
+      "properties": {
+        "type": {
+          "const": "StepShot"
+        },
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9-]{0,23}$",
+          "description": "Stable id within the view; keep it when you update the view."
+        },
+        "bind": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "scan",
+            "step"
+          ],
+          "properties": {
+            "scan": {
+              "$ref": "#/$defs/scanId"
+            },
+            "step": {
+              "$ref": "#/$defs/step"
+            }
+          }
+        },
+        "props": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "mark": {
+              "enum": [
+                "target",
+                "none"
+              ],
+              "default": "target",
+              "description": "Outline the element the action aimed at."
+            }
+          }
+        }
+      },
+      "description": "The page at a step, with the target region marked."
+    },
+    "EventTail": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "type",
+        "bind"
+      ],
+      "properties": {
+        "type": {
+          "const": "EventTail"
+        },
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9-]{0,23}$",
+          "description": "Stable id within the view; keep it when you update the view."
+        },
+        "bind": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "scan"
+          ],
+          "properties": {
+            "scan": {
+              "$ref": "#/$defs/scanId"
+            },
+            "step": {
+              "$ref": "#/$defs/step"
+            }
+          }
+        },
+        "props": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "count": {
+              "type": "integer",
+              "minimum": 5,
+              "maximum": 50,
+              "default": 10
+            }
+          }
+        }
+      },
+      "description": "The last raw events up to a step."
+    },
+    "FixChoices": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "type",
+        "bind"
+      ],
+      "properties": {
+        "type": {
+          "const": "FixChoices"
+        },
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9-]{0,23}$",
+          "description": "Stable id within the view; keep it when you update the view."
+        },
+        "bind": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "scan",
+            "step"
+          ],
+          "properties": {
+            "scan": {
+              "$ref": "#/$defs/scanId"
+            },
+            "step": {
+              "$ref": "#/$defs/step"
+            }
+          }
+        }
+      },
+      "description": "Variations for the next attempt at a failing step."
+    },
+    "AttemptList": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "type",
+        "bind"
+      ],
+      "properties": {
+        "type": {
+          "const": "AttemptList"
+        },
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9-]{0,23}$",
+          "description": "Stable id within the view; keep it when you update the view."
+        },
+        "bind": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "scan",
+            "step"
+          ],
+          "properties": {
+            "scan": {
+              "$ref": "#/$defs/scanId"
+            },
+            "step": {
+              "$ref": "#/$defs/step"
+            }
+          }
+        }
+      },
+      "description": "Attempts so far at a step, with results."
+    },
+    "Compare": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "type",
+        "bind"
+      ],
+      "properties": {
+        "type": {
+          "const": "Compare"
+        },
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9-]{0,23}$",
+          "description": "Stable id within the view; keep it when you update the view."
+        },
+        "bind": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "change"
+          ],
+          "properties": {
+            "change": {
+              "$ref": "#/$defs/changeId"
+            }
+          }
+        }
+      },
+      "description": "Before / after of one change, the difference marked."
+    },
+    "DecisionTable": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "type",
+        "bind"
+      ],
+      "properties": {
+        "type": {
+          "const": "DecisionTable"
+        },
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9-]{0,23}$",
+          "description": "Stable id within the view; keep it when you update the view."
+        },
+        "bind": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "rule"
+          ],
+          "properties": {
+            "rule": {
+              "$ref": "#/$defs/ruleId"
+            }
+          }
+        }
+      },
+      "description": "A rule as inputs ║ result with its boundary tests."
+    },
+    "FindingCard": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "type",
+        "bind"
+      ],
+      "properties": {
+        "type": {
+          "const": "FindingCard"
+        },
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9-]{0,23}$",
+          "description": "Stable id within the view; keep it when you update the view."
+        },
+        "bind": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "finding"
+          ],
+          "properties": {
+            "finding": {
+              "$ref": "#/$defs/findingId"
+            }
+          }
+        }
+      },
+      "description": "A finding with its proposed explanation and evidence."
+    },
+    "RecordCard": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "type",
+        "bind"
+      ],
+      "properties": {
+        "type": {
+          "const": "RecordCard"
+        },
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9-]{0,23}$",
+          "description": "Stable id within the view; keep it when you update the view."
+        },
+        "bind": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "record"
+          ],
+          "properties": {
+            "record": {
+              "$ref": "#/$defs/recordId"
+            }
+          }
+        }
+      },
+      "description": "One screen, process or rule as a small card with its status and link."
+    },
+    "RecordList": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "type",
+        "bind"
+      ],
+      "properties": {
+        "type": {
+          "const": "RecordList"
+        },
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9-]{0,23}$",
+          "description": "Stable id within the view; keep it when you update the view."
+        },
+        "bind": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "records"
+          ],
+          "properties": {
+            "records": {
+              "type": "array",
+              "minItems": 1,
+              "maxItems": 12,
+              "uniqueItems": true,
+              "items": {
+                "$ref": "#/$defs/recordId"
+              }
+            }
+          }
+        },
+        "props": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "title": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/plainText"
+                }
+              ],
+              "maxLength": 60
+            }
+          }
+        }
+      },
+      "description": "Up to 12 records in a compact table, in the order given."
+    }
+  }
+}

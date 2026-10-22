@@ -24,6 +24,10 @@
       </div>
       <div class="sy-actions">
         {%- if m.running %}
+        {%- if workbench_beta %}
+        {#- Spec 043 T040 (D-10): a new Workbench conversation with the ask filled in. #}
+        <a class="sy-btn sy-btn--quiet" href="{{ c.url('/workbench', new=1, ask='Watch scan ' ~ r.id[:8] ~ '.') }}">Watch in Workbench</a>
+        {%- endif %}
         <button class="sy-btn sy-btn--danger" type="button" data-stop-run="/chat/runs/{{ r.id | urlencode }}/stop" data-label="the scan (run {{ r.id }})">Stop scan</button>
         {%- elif r.status in ("interrupted", "stopped_warning") %}
         <a class="sy-btn" href="{{ c.url('/chat') }}">Resume with the assistant</a>

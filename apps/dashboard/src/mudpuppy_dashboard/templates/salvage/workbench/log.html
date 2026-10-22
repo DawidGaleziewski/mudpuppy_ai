@@ -1,0 +1,86 @@
+{#- One turn of the Workbench conversation (spec 043 T030; designer screens wb-01, wb-02, wb-06):
+    the person's message (or the event a confirm started), the assistant's words, its view as
+    cards, suggestions, command cards, narration. Ids `turn-t{n}…` are what the stream swaps. -#}
+{% import "salvage/workbench/components.html" as wbc with context %}
+{% from "salvage/workbench/command.html" import command_card %}
+
+{% macro suggestions(items) -%}
+{%- if items %}
+<div class="sy-suggest" role="group" aria-label="Suggested follow-ups">
+  {%- for s in items %}<button type="button" data-wb-suggest="{{ s }}">{{ s }}</button>{% endfor %}
+</div>
+{%- endif %}
+{%- endmacro %}
+
+{% macro views(rt, portal, sel, stale=false) -%}
+{%- for card in rt.cards %}{{ wbc.card_of(card, portal, sel, stale) }}{% endfor %}
+{{ suggestions(rt.suggestions) }}
+{%- endmacro %}
+
+{% macro commands(rt) -%}
+{%- for cmd in rt.commands %}{{ command_card(cmd) }}{% endfor %}
+{%- endmacro %}
+
+{% macro turn(rt, portal, sel, stale=false) -%}
+{%- set n = rt.turn.n -%}
+{%- if rt.turn.is_event %}
+<p class="sy-small sy-muted" id="turn-t{{ n }}-asked">You confirmed a command; the assistant starts it.</p>
+{%- else %}
+<div class="sy-msg sy-msg--user" id="turn-t{{ n }}-asked">{{ rt.turn.asked }}</div>
+{%- endif %}
+<div class="sy-msg" id="turn-t{{ n }}">
+  <span class="sy-msg__who">Assistant</span>
+  <div id="turn-t{{ n }}-text">{% for a in rt.turn.answer %}<p>{{ a }}</p>{% endfor %}</div>
+  {%- for note in rt.turn.notices %}<p class="sy-small sy-muted">{{ note }}</p>{% endfor %}
+  <div id="turn-t{{ n }}-views">{{ views(rt, portal, sel, stale) }}</div>
+  <div id="turn-t{{ n }}-cmds">{{ commands(rt) }}</div>
+</div>
+<div id="turn-t{{ n }}-story">{{ story(rt) }}</div>
+{%- endmacro %}
+
+{% macro story(rt) -%}
+{%- if rt.narration %}
+<div class="sy-msg"><span class="sy-msg__who">Assistant · narrating</span>{{ wbc.narration(rt.narration) }}</div>
+{%- endif %}
+{%- endmacro %}
+
+{#- The Path switch (WB-UI-02): the path and its reason, marked as the assistant's or the person's. -#}
+{% macro path_switch(conv, why) -%}
+<div class="sy-pathswitch">
+  <span class="sy-label" id="path-l">Path</span>
+  <form class="sy-seg" role="group" aria-labelledby="path-l" method="post" action="{{ c.url('/workbench/path') }}">
+    <input type="hidden" name="c" value="{{ conv.id }}">
+    {%- for key in ("chat", "mapping") %}
+    <button type="submit" name="path" value="{{ key }}" aria-pressed="{{ 'true' if conv.path == key else 'false' }}">{{ PATH_WORDS[key] }}</button>
+    {%- endfor %}
+  </form>
+  {%- if conv.path_source == "you" %}
+  <span class="sy-pathswitch__why" data-source="you">You switched to {{ PATH_WORDS[conv.path] }}.</span>
+  {%- elif why %}
+  <span class="sy-pathswitch__why" data-source="assistant">Picked by the assistant: {{ why }}</span>
+  {%- endif %}
+</div>
+{%- endmacro %}
+
+{#- The live bar (WB-UI-16): pinned while the live card is scrolled away; not a live region. -#}
+{% macro livebar(scan, card_id) -%}
+{%- if scan %}
+<div class="sy-livebar" data-wb-livebar="{{ card_id }}" hidden>
+  <span class="sy-livebar__main"><span class="sy-label">Pinned</span><span class="sy-status" data-status="running">Running</span>
+    <span>Scan {{ scan.short }} · {{ scan.steps }} steps · now at <span class="sy-route">{{ scan.here.route if scan.here else "—" }}</span></span></span>
+  <a class="sy-small" href="#{{ card_id }}">Jump to the live card</a>
+</div>
+{%- endif %}
+{%- endmacro %}
+
+{#- What a Send answers (WB-UI-30): the person's message and the assistant's empty message. -#}
+{% macro pending(n, text) -%}
+<div class="sy-msg sy-msg--user" id="turn-t{{ n }}-asked">{{ text }}</div>
+<div class="sy-msg" id="turn-t{{ n }}" data-wb-pending>
+  <span class="sy-msg__who">Assistant</span>
+  <div id="turn-t{{ n }}-text"></div>
+  <div id="turn-t{{ n }}-views"></div>
+  <div id="turn-t{{ n }}-cmds"></div>
+</div>
+<div id="turn-t{{ n }}-story"></div>
+{%- endmacro %}

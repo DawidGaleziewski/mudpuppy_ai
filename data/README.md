@@ -37,6 +37,9 @@ rather than editing this folder ad hoc.
   **Chat proposals** (since spec 022, `0017_chat_proposals`): `chat_proposals` — changes the chat assistant
   proposes and a person applies or discards; written only by `@mudpuppy/chat`, read-only for the dashboard,
   in the portal export/delete partition.
+  **Workbench** (since spec 043, `0049_workbench`): `chat_conversations.kind` plus `workbench_conversations`,
+  `workbench_views`, `workbench_commands` (proposals and their audit record) and `workbench_feedback`; written
+  only by `@mudpuppy/chat`, in the portal export/delete partition. Shapes: `specs/043-r92-workbench-genui/data-model.md`.
   **BA processes** (since spec 022, `0018_ba_processes`): `ba_processes`, `ba_process_revisions`, `process_variants`,
   `process_variant_revisions`, `process_drafts`, `process_live`, `grouping_suggestions`, `change_spec_revisions` —
   the BA's cut of the portal, written only by `@mudpuppy/chat`; `process_scopes` were migrated in. In the

@@ -35,6 +35,14 @@ import { listPortals, loadWorkflowInput } from './workflow-data.js';
 import { workflowState } from '@mudpuppy/workflow';
 import { buildSessionRequest } from './session-config.js';
 import { ChatStore } from './store.js';
+import { isWorkbench, observeWorkbench } from './workbench-events.js';
+import { createWorkbenchService, type WorkbenchService } from './workbench-service.js';
+import {
+  buildWorkbenchSessionRequest,
+  createWorkbenchFence,
+  Launches,
+} from './workbench-session.js';
+import { telemetryLog } from './workbench-telemetry.js';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const repoRoot = resolve(here, '..', '..', '..');
@@ -55,11 +63,13 @@ function buildApi({
   service,
   evidence,
   environment,
+  workbench,
 }: {
   opened: Opened;
   service: ChatService;
   evidence: ReturnType<typeof createEvidenceStore>;
   environment: string;
+  workbench: WorkbenchService;
 }) {
   const amendments = createAmendmentService({ db: opened.db, evidence });
   return createApi({
@@ -85,6 +95,7 @@ function buildApi({
       return stopped;
     },
     runsOfConversation: (conversationId) => runningRunsOfConversation(opened.raw, conversationId),
+    workbench,
     portals: {
       create: (body) => createPortal({ repoRoot }, body),
       describe: (id) => describePortal({ repoRoot }, id),
@@ -95,11 +106,19 @@ function buildApi({
   });
 }
 
-/** T022: steps follow the recorded work now and every 2 s; returns the timer. */
-async function followSteps(recorder: StepRecorder, service: ChatService): Promise<NodeJS.Timeout> {
+/**
+ * T022: steps follow the recorded work now and every 2 s; spec 043: so do the Workbench's
+ * command cards (expiry, a confirmed scan's run). Returns the timer.
+ */
+async function followSteps(
+  recorder: StepRecorder,
+  service: ChatService,
+  workbench: WorkbenchService,
+): Promise<NodeJS.Timeout> {
   const reconcile = async (): Promise<void> => {
     for (const [conversationId, events] of await recorder.reconcile())
       service.inject(conversationId, events);
+    workbench.settle();
   };
   await reconcile();
   return setInterval(() => {
@@ -131,8 +150,15 @@ async function main(): Promise<void> {
     logError: (input) => logError(input),
     evidence,
   });
+  // Spec 043: a Workbench conversation gets its own prompt, tools and fence, and its words-lane
+  // events; the crawler starts only with a confirmed command's prompt (F-10).
+  const launches = new Launches();
+  const workbenchOf = (conversationId: string): boolean => isWorkbench(opened.raw, conversationId);
   const service = new ChatService({
-    observe: (conversationId, event) => recorder.observe(conversationId, event),
+    observe: async (conversationId, event) => [
+      ...(await recorder.observe(conversationId, event)),
+      ...(workbenchOf(conversationId) ? observeWorkbench(opened.raw, conversationId, event) : []),
+    ],
     opening: (portal, conversationId) =>
       openingMessage(
         workflowState(loadWorkflowInput(opened.raw, { repoRoot }, portal, conversationId)),
@@ -144,12 +170,31 @@ async function main(): Promise<void> {
       onStderr: (text) => process.stderr.write(`[agent] ${text}`),
     }),
     sessionRequest: (conversationId) =>
-      buildSessionRequest({ repoRoot, conversationId, environment }),
+      workbenchOf(conversationId)
+        ? buildWorkbenchSessionRequest({ repoRoot, conversationId, environment })
+        : buildSessionRequest({ repoRoot, conversationId, environment }),
     policy: createFence({ repoRoot }),
+    policyFor: (conversationId) =>
+      workbenchOf(conversationId)
+        ? createWorkbenchFence({ repoRoot }, conversationId, launches)
+        : null,
     logError: (input) => logError(input),
   });
-  const server = buildApi({ opened, service, evidence, environment });
-  const timer = await followSteps(recorder, service);
+  const workbench = createWorkbenchService({
+    raw: opened.raw,
+    service,
+    paths: { repoRoot },
+    launches,
+    telemetry: telemetryLog(join(repoRoot, 'data', 'logs', 'workbench')),
+    stopped: (runId) => {
+      for (const conversationId of conversationsOfRun(opened.raw, runId))
+        service.inject(conversationId, [
+          { type: 'notice', text: `Scan ${runId.slice(0, 8)} was stopped.` },
+        ]);
+    },
+  });
+  const server = buildApi({ opened, service, evidence, environment, workbench });
+  const timer = await followSteps(recorder, service, workbench);
   const bound = await listenLocal(server, port);
   console.log(`mudpuppy-chat (${environment}) listening on http://127.0.0.1:${String(bound)}`);
 

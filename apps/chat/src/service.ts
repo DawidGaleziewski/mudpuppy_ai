@@ -11,6 +11,8 @@ import { credentialLine } from './ui-actions.js';
 import type { ChatStore } from './store.js';
 
 export const REPLAY_BUFFER_SIZE = 500;
+/** `chat_messages.tool_name` of a Workbench event turn (spec 043): it counts as a turn. */
+export const WORKBENCH_EVENT = 'workbench_event';
 
 /** An error with an HTTP status and a plain-language message for the BA. */
 export class ChatError extends Error {
@@ -27,6 +29,8 @@ export interface ChatServiceOptions {
   launch: AgentLauncher;
   sessionRequest: (conversationId: string) => NewSessionRequest;
   policy: PermissionPolicy;
+  /** A conversation's own fence (spec 043: a Workbench conversation's); `policy` otherwise. */
+  policyFor?: (conversationId: string) => PermissionPolicy | null;
   logError: (input: ErrorInput) => Promise<LogResult>;
   /** Passed to every AcpChat. */
   turnTimeoutMs?: number;
@@ -112,6 +116,30 @@ export class ChatService {
       });
       void this.runTurn(conversationId, rt, forAgent, message.seq);
       return { messageId: message.id };
+    } catch (error) {
+      rt.busy = false;
+      throw error;
+    }
+  }
+
+  /**
+   * An event turn (spec 043: a confirmed command's outcome): stored as a system message marked
+   * `workbench_event`, then given to the assistant as a turn of its own. Waits, up to `waitMs`,
+   * for a running turn to end first.
+   */
+  async sendEvent(conversationId: string, text: string, waitMs = 30_000): Promise<void> {
+    const rt = this.runtime(conversationId);
+    const until = Date.now() + waitMs;
+    while (rt.busy && Date.now() < until) await new Promise((r) => setTimeout(r, 250));
+    if (rt.busy) throw new ChatError(409, 'The assistant is still answering.');
+    rt.busy = true;
+    try {
+      const message = await this.opts.store.appendMessage(conversationId, {
+        role: 'system',
+        content: text,
+        toolName: WORKBENCH_EVENT,
+      });
+      void this.runTurn(conversationId, rt, text, message.seq);
     } catch (error) {
       rt.busy = false;
       throw error;
@@ -320,7 +348,7 @@ export class ChatService {
     return new AcpChat({
       launch: this.opts.launch,
       session: this.opts.sessionRequest(conversationId),
-      policy: this.opts.policy,
+      policy: this.opts.policyFor?.(conversationId) ?? this.opts.policy,
       onEvent: (event) => this.handle(conversationId, rt, event),
       logError: this.opts.logError,
       conversationId,

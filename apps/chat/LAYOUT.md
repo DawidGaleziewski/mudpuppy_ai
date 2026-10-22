@@ -59,3 +59,16 @@ keeps the map (spec 042 T050, G-30).
   messages, events, credentials, scope; stop, reset, a run's stop, errors) beside the other
   `api-*` files, wired in order by `api`; `scan-prompts` (the crawler briefs of
   `request_scan`); `mcp-workflow-tools` (workflow state, personas, scans, scope, amendments).
+
+- Spec 043 (Workbench, generative UI beta): `agents/workbench.md` (the assistant's prompt and
+  tools); `workbench-session` (its session: Workbench prompt, crawler subagent only, the chat MCP
+  server in Workbench mode; its fence: read and compose, the crawler only with a confirmed
+  command's prompt, `Launches`); `mcp-workbench-tools` (`render_view`, `propose_command`: the
+  designer's schemas, checked with `@mudpuppy/workbench-contract`, one view per turn);
+  `workbench-commands` (proposals, one-time tokens, Confirm, expiry, settle; the audit row);
+  `workbench-cards` (the card actions the dashboard drives); `workbench-service` (conversations,
+  turns with their context, Path switch, feedback, the day's cap); `workbench-context` (the
+  context before each message, portal text in `<scan_data>`); `workbench-events` (`wb_*` events
+  off the agent's tool events); `workbench-turn` (the turn counter); `workbench-telemetry` (JSON lines in `data/logs/workbench/`);
+  `api-workbench` (routes). `ChatService.sendEvent` (an event turn) and `policyFor` (a fence per
+  conversation). Evals: `evals/workbench/` (`pnpm eval:workbench`).

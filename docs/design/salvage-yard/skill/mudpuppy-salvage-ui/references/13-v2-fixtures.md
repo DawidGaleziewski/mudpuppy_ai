@@ -154,3 +154,43 @@ Ubezpieczenia dla Ciebie ("Old title of the home page") · 15 Oct you edited Obl
 Overturned example: Kontakt +48 → "Overturned · you · 17 Oct 10:41Z · Not flaky: it happens every time with +48." —
 shown as overturned in Changes, on the Kontakt screen and in the Napisz do nas process.
 
+
+---
+
+## Workbench (gen UI beta) fixture
+
+Used by `screens/wb-*`, `design-system/genui-components.html`, `workbench/examples/` and the reference app (`workbench/reference/`).
+
+- **Replay of scan 01a110d5** on reference-insurer, sandbox, persona guest, 6 Oct, limit 400 steps. One event per step;
+  event refs are `scan#step` (`01a110d5#171`). The six **route pages** below are the crawler's path; "Pages" counts every page
+  recorded so far, including 11 **side trips** (pages opened from a menu, recorded and left at once). The live map folds side
+  trips into a chip "+N side pages" on the page they came from: +2, +2, +2, +1, +2, +2. Route pages in visit order (Step and
+  Time = when the page was opened; Pages and Queued = counts at that moment):
+
+| # | Route | Screen | Time | Step | Pages | Queued |
+|---|---|---|---|---|---|---|
+| 1 | `/` | Ubezpieczenia dla Ciebie | 10:49:31Z | 12 | 3 | 15 |
+| 2 | `/ubezpieczenia/samochod` | Samochód | 10:51:02Z | 38 | 6 | 31 |
+| 3 | `/kalkulator/kierowca` · step 1 | Kalkulator OC/AC — dane kierowcy | 10:53:40Z | 77 | 9 | 52 |
+| 4 | `/kalkulator/kierowca` · step 2 | Kalkulator OC/AC — opcje | 10:55:12Z | 102 | 11 | 66 |
+| 5 | `/porownanie` | Porównanie | 10:57:05Z | 140 | 14 | 97 |
+| 6 | `/kontakt` | Kontakt | 10:58:31Z | 167 | 17 | 113 |
+
+- **Steps on /kontakt:** #167 GET /kontakt 200 (10:58:31Z) · #168 page settled, 4 fields, 1 form (10:58:33Z) · #169 next action:
+  press "Wyślij" (10:58:34Z) · #170 element not found after 10 s (10:58:44Z) · #171 scan stopped (10:58:44Z).
+- **The stop:** at step 171 the scan stopped because the next action (press "Wyślij") failed: the element wasn't there after the
+  page settled (waited 10 s).
+  ERR-01M48DVAT5E1GS5K42CTCTTDTJ. Scan status **Stopped** (ash); the stop reason and the /kontakt page are **failed** (red).
+  Last good checkpoint: /porownanie, step 140. Kept: 17 pages, 113 queued links.
+- **Attempts at step 171** (as on screen 15): #1 original, failed 10:58:44Z · #2 "Wait longer", failed: same error, the element
+  isn't there, not a timing problem · #3 "Record the form, don't submit", **passed** 11:04:10Z: the form and its 4 fields are
+  recorded, nothing is submitted. Variations come from the recovery API: `wait_longer` "Wait longer" · `record_only` "Record the
+  form, don't submit" · `skip_action` "Skip this action".
+- **Resume (demo):** a new scan **01a110e7** "continues 01a110d5" from /porownanie step 140, on sandbox; 17 pages and the 113
+  queued links are kept. Resumed straight from the ErrorCard (wb-02), /kontakt gets one more try with the original action;
+  resumed after troubleshooting (wb-04), /kontakt is recorded without submitting (attempt 3's variation).
+- **Explain:** **FND-007** = the finding "Banner 'Oferta specjalna' on 6 of 11 visits" (above, proposed explanation A/B test, linked
+  decisions). **CHG-019** = Kalkulator OC/AC — wynik r2 → r3, visits 01a1340c#14 (ab_calc = A) and #15 (ab_calc = B).
+  **BR-021** decision table as above.
+- **Chat:** PROC-001 Oblicz składkę OC/AC and rules BR-021…BR-026 with the statuses above. "How many processes are accepted?" →
+  three (Oblicz składkę OC/AC, Porównaj produkty, Test process); two proposed; one rejected.

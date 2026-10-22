@@ -38,6 +38,10 @@ export const PORTAL_TABLES = [
   'amendments',
   'amendment_revisions',
   'chat_proposals',
+  'workbench_conversations',
+  'workbench_views',
+  'workbench_commands',
+  'workbench_feedback',
   'screens',
   'grouping_suggestions',
   'ba_processes',
@@ -108,6 +112,11 @@ export type PortalTable = (typeof PORTAL_TABLES)[number];
  * `decision_log` and `runs`.
  */
 export const DELETE_ORDER: readonly PortalTable[] = [
+  // 0049 (spec 043): the Workbench tables reference chat_conversations (feedback references views)
+  'workbench_feedback',
+  'workbench_views',
+  'workbench_commands',
+  'workbench_conversations',
   // 0036 (spec 039): processes' instances, triggers and explorations reference the model, journeys
   // and ba_processes; instances reference correlation ids
   'process_explorations',
@@ -288,6 +297,11 @@ const PORTAL_CLAUSE: Partial<Record<PortalTable, Clause>> = {
   observation_builds: (op) =>
     `observation_id IN (SELECT id FROM observations WHERE run_id IN (SELECT id FROM runs WHERE portal_id ${op} ?))`,
   chat_messages: through('conversation_id', 'chat_conversations'),
+  workbench_conversations: through('conversation_id', 'chat_conversations'),
+  workbench_views: through('conversation_id', 'chat_conversations'),
+  workbench_commands: through('conversation_id', 'chat_conversations'),
+  workbench_feedback: (op) =>
+    `view_id IN (SELECT id FROM workbench_views WHERE conversation_id IN (SELECT id FROM chat_conversations WHERE portal_id ${op} ?))`,
   analysis_session_runs: through('session_id', 'analysis_sessions'),
   doc_revisions: ofRecords,
   doc_evidence_links: ofRevisions,

@@ -91,3 +91,16 @@ rules; this file keeps the map (spec 042 T050, G-30).
 - Spec 042: a page's query is one Pydantic model (`Annotated[Model, Query()]`: `ChangesQuery`,
   `ReviewQuery`, `ScreensQuery`, `RunsQuery`, `SameScreenQuery`) in its router;
   `changes_view` takes a `ChangeFilter`, `chat_client.model_call` a `ModelCall`.
+
+- Spec 043 (Workbench, generative UI beta, behind `settings.workbench`): `queries_wb_scan.py`
+  (a scan's events from the store, one per step, `scan#step`; route pages with side trips folded;
+  short scan ids), `queries_wb.py` (a Workbench conversation as turns: message, answer, view,
+  command cards; feedback; records), `wb_render.py` (a stored view placed for phase 1, data from
+  the store; standing ErrorCard; templated narration; command card facts), `wb_frames.py` (frame,
+  Why, feedback and command card view models). Routes: `web/workbench.py` (page, Send, Path
+  switch, a turn as stored), `web/workbench_actions.py` (button cards, Confirm, Cancel,
+  feedback), `web/workbench_stream.py` (one SSE per tab: the chat's words relayed as out-of-band
+  fragments, the data lane from the store), `web/views_workbench.py` (their shared page model and
+  chat calls). Templates `templates/salvage/workbench*.html` and `workbench/` (frame, components,
+  command card, scan meter, log, sheet, `f_*` fragments); `static/js/workbench.js`;
+  `static/salvage/css/genui.css` (the designer's, copied unchanged).

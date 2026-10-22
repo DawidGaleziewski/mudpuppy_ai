@@ -120,7 +120,7 @@ def test_header_order_and_nav_sections(salvage: TestClient) -> None:
     positions = [header.index(k) for k in order]
     assert positions == sorted(positions)
     navs = re.findall(r'class="sy-nav__item[^"]*"[^>]*>([A-Za-z]+)', html)
-    assert navs == [s.label for s in nav.SECTIONS]
+    assert navs == [s.label for s in nav.SECTIONS if not s.beta]  # the Workbench beta is off
     assert re.search(r'class="sy-nav__item" href="/"[^>]*aria-current="page"', html)
 
 

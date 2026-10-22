@@ -11,6 +11,7 @@ import { type MudPuppyDb } from '@mudpuppy/store';
 import { registerModelTools } from './mcp-model-tools.js';
 import { registerPageTools } from './mcp-page-tools.js';
 import { registerProcessTools } from './mcp-process-tools.js';
+import { registerWorkbenchTools } from './mcp-workbench-tools.js';
 import {
   registerAmendmentTools,
   registerScanTools,
@@ -36,6 +37,11 @@ export interface ChatMcpContext {
   db?: MudPuppyDb | null;
   /** Check runs (spec 039 owner answer 19); without it start_check_run is not offered. */
   checkRuns?: CheckRunDeps | null;
+  /**
+   * A Workbench session (spec 043): only `render_view` and `propose_command` are offered; the
+   * chat's write tools never are (every Workbench write is a command card a person confirms).
+   */
+  workbench?: { phase: number } | null;
 }
 
 function ok(value: unknown): CallToolResult {
@@ -72,6 +78,15 @@ function fail(error: unknown): CallToolResult {
 
 export function createChatMcpServer(ctx: ChatMcpContext): McpServer {
   const server = new McpServer({ name: 'mudpuppy-chat', version: '0.1.0' });
+  if (ctx.workbench != null) {
+    registerWorkbenchTools(
+      server,
+      { raw: ctx.raw, conversationId: ctx.conversationId, phase: ctx.workbench.phase },
+      ok,
+      refused,
+    );
+    return server;
+  }
   registerPageTools(server, { raw: ctx.raw, evidence: ctx.evidence ?? null }, ok, refused);
   registerModelTools(server, { raw: ctx.raw, checkRuns: ctx.checkRuns ?? null }, ok, refused);
   registerProcessTools(

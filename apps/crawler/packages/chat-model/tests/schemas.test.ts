@@ -16,6 +16,7 @@ import {
   BaProcessStage,
   ChangeSpecRevision,
   ChatConversation,
+  ChatConversationKind,
   ChatConversationStatus,
   ChatMessage,
   ChatMessageRole,
@@ -33,6 +34,13 @@ import {
   ProcessModelChange,
   ProcessModelKind,
   ProcessModelRevision,
+  WorkbenchCommand,
+  WorkbenchCommandName,
+  WorkbenchCommandSource,
+  WorkbenchCommandState,
+  WorkbenchFeedbackValue,
+  WorkbenchPath,
+  WorkbenchPathSource,
   WorkflowStep,
   WorkflowStepName,
   WorkflowStepStatus,
@@ -94,8 +102,10 @@ describe('chat orchestrator schemas (0008)', () => {
       status: 'active',
       created_at: ts,
       updated_at: ts,
+      kind: 'chat',
     };
     expect(ChatConversation.safeParse(conv).success).toBe(true);
+    expect(ChatConversation.safeParse({ ...conv, kind: 'other' }).success).toBe(false);
     expect(ChatConversation.safeParse({ ...conv, status: 'open' }).success).toBe(false);
     const msg = {
       id: 'm1',
@@ -445,5 +455,65 @@ describe('BA processes (0018)', () => {
     expect(ChangeSpecRevision.safeParse(spec).success).toBe(true);
     expect(ChangeSpecRevision.safeParse({ ...spec, sections: [] }).success).toBe(false);
     expect(ChangeSpecRevision.safeParse({ ...spec, rev: 2 }).success).toBe(false);
+  });
+});
+
+/** 0049 (spec 043): the Workbench tables. */
+const SQL_0049 = readFileSync(
+  fileURLToPath(new URL('../../../../../data/migrations/0049_workbench.up.sql', import.meta.url)),
+  'utf-8',
+);
+
+describe('Workbench schemas (0049)', () => {
+  it('Zod enums equal the CHECK lists in the migration', () => {
+    const kindList = SQL_0049.match(/ADD COLUMN kind TEXT[^(]*\(kind IN \(([^)]+)\)/)![1]!;
+    expect(ChatConversationKind.options).toEqual(
+      kindList.split(',').map((v) => v.trim().replace(/^'|'$/g, '')),
+    );
+    expect(WorkbenchPath.options).toEqual(inList('workbench_conversations', 'path', SQL_0049));
+    expect(WorkbenchPath.options).toEqual(inList('workbench_views', 'path', SQL_0049));
+    expect(WorkbenchPathSource.options).toEqual(
+      inList('workbench_conversations', 'path_source', SQL_0049),
+    );
+    expect(WorkbenchCommandName.options).toEqual(inList('workbench_commands', 'command', SQL_0049));
+    expect(WorkbenchCommandSource.options).toEqual(
+      inList('workbench_commands', 'source', SQL_0049),
+    );
+    expect(WorkbenchCommandState.options).toEqual(inList('workbench_commands', 'state', SQL_0049));
+    expect(WorkbenchFeedbackValue.options).toEqual(inList('workbench_feedback', 'value', SQL_0049));
+  });
+
+  it('a command past proposed needs its confirmation, done a result, failed an error', () => {
+    const cmd = {
+      id: 'k1',
+      conversation_id: 'c1',
+      turn: 1,
+      command: 'scan.start',
+      args_json: {},
+      reason: 'r',
+      source: 'button',
+      state: 'proposed',
+      token_hash: 'a'.repeat(64),
+      precondition_hash: 'p',
+      idempotency_key: 'i',
+      expires_at: ts,
+      confirmed_by: null,
+      confirmed_at: null,
+      result_json: null,
+      error_ref: null,
+      created_at: ts,
+      updated_at: ts,
+    };
+    const confirmed = { confirmed_by: 'BA', confirmed_at: ts };
+    expect(WorkbenchCommand.safeParse(cmd).success).toBe(true);
+    expect(WorkbenchCommand.safeParse({ ...cmd, state: 'running' }).success).toBe(false);
+    expect(WorkbenchCommand.safeParse({ ...cmd, ...confirmed, state: 'running' }).success).toBe(
+      true,
+    );
+    expect(WorkbenchCommand.safeParse({ ...cmd, ...confirmed, state: 'done' }).success).toBe(false);
+    expect(WorkbenchCommand.safeParse({ ...cmd, ...confirmed, state: 'failed' }).success).toBe(
+      false,
+    );
+    expect(WorkbenchCommand.safeParse({ ...cmd, token_hash: 'short' }).success).toBe(false);
   });
 });

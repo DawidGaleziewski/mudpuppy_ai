@@ -1,0 +1,74 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://mudpuppy.local/schema/workbench/narration.schema.json",
+  "title": "Narration lines v1",
+  "description": "Plain-words account of what the crawler did. Every line cites at least one event. Any number in a line must appear in a cited event (the server checks; failing lines are dropped and replaced by the templated line).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "scan",
+    "lines"
+  ],
+  "properties": {
+    "scan": {
+      "$ref": "#/$defs/scanId"
+    },
+    "lines": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 6,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "text",
+          "cites"
+        ],
+        "properties": {
+          "text": {
+            "allOf": [
+              {
+                "$ref": "#/$defs/plainText"
+              }
+            ],
+            "minLength": 3,
+            "maxLength": 160
+          },
+          "cites": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 5,
+            "items": {
+              "$ref": "#/$defs/eventRef"
+            }
+          },
+          "kind": {
+            "enum": [
+              "visit",
+              "milestone",
+              "stop"
+            ],
+            "default": "visit"
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "scanId": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{8}$",
+      "description": "Scan id as stored (lowercase hex), e.g. 01a110d5."
+    },
+    "eventRef": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{8}#[0-9]{1,6}$",
+      "description": "scan#step, e.g. 01a110d5#171."
+    },
+    "plainText": {
+      "type": "string",
+      "pattern": "^[^<>{}]*$",
+      "description": "Plain words. No markup, no template syntax."
+    }
+  }
+}

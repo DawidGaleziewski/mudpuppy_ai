@@ -78,7 +78,7 @@ Controls: **44px** default · 40px secondary in plates · 36px dense in cards. U
 
 ### 2.6 Motion
 
-Two loops only: the **running** status square pulses (opacity 1 → 0.35, 1.3s) and the **loading caret** blinks (1s, step). Hover changes background only (120ms linear). Nothing slides, fades or bounces. `prefers-reduced-motion: reduce` stops everything.
+Two loops only: the **running** status square pulses (opacity 1 → 0.35, 1.3s) and the **loading caret** blinks (1s, step). Gen UI adds none: composing views use the caret, live views the pulse. Hover changes background only (120ms linear). Nothing slides, fades or bounces. `prefers-reduced-motion: reduce` stops everything.
 
 ---
 
@@ -193,6 +193,22 @@ Links are underlined text (chalk with a marker underline); buttons are boxes. Ne
 | Review queue | `ol.sy-queue` > `li.sy-queue__group` / `li.sy-queue__item[aria-current]` > `input.sy-queue__check` + `a.sy-queue__main` (`.sy-queue__claim`) + `.sy-queue__meta` | One line per finding; groups carry the bulk action |
 | Key bar | `.sy-keybar` (`--sticky` in the app) > `span` (`.sy-kbd` + label) | Rides the bottom of the queue column in the app (`--sticky`); static in previews; five keys max |
 | Map 2.0 | `.sy-edge--unseen` `--unchecked` `--retired` `--process` `--changed` · `.sy-node--process` · `.sy-node--dim` · `.sy-node[data-state="retired"]` · `.sy-bundle` | Internal actions are a chip on the node, never a line; the menu on every page is one bundle |
+
+### Generative UI layer (`genui.css`, Workbench beta)
+The assistant composes the Workbench from a catalogue; these parts make that safe to read. Full reference: `16-genui-components.md`,
+rules: `15-genui-guidelines.md`, gallery: `design-system/genui-components.html`.
+| Part | Classes | Rules |
+|---|---|---|
+| Layouts | `.sy-wb` + `--inline` (`--nosheet`) / `--split` / `--focus` > `.sy-wb__conv` (a `.sy-plate.sy-chat`), `__stage`, `__aside`; `.sy-wb__head` | Chosen by the server from path + phase, never by the model. Chat path is always inline |
+| Path switch | `.sy-pathswitch` > `.sy-seg` + `.sy-pathswitch__why[data-source=assistant\|you]` | The assistant proposes and says why; your switch wins |
+| Generated frame | `.sy-genview` (`--card`, `--failure`, `[data-gen-state=composing\|ready\|stale]`) > `__head` (`__title` + `.sy-genmark` + status, `__tools` + `__why`) · `__notice` · `.sy-genwhy` · `__body` · `__foot` (`__source` + `.sy-genfeedback`) | Solid frame (facts are observed) + "generated" mark + source on every frame; Why and Right view? once per view, on the lead frame. DOM id `t{turn}-{id}` |
+| Composing | `.sy-genskel` > `__block` (`--sy-skel-h`) · `.sy-genstatus` (`--done`) | Reserve the final size; only the caret moves |
+| Narration | `ol.sy-narration` > `li[data-kind=milestone\|live\|stop]` (+ `time`) · `a.sy-cite` | The assistant's words: dashed blueprint rule; every line cites events |
+| Events | `ol.sy-evtail` (`li[data-status]`, `.sy-evtail__id`) · `ol.sy-evstrip` | Observed data: solid |
+| Context | `.sy-ctxbar` > `.sy-ctxchip` (`__at`, `__remove`) · `.sy-suggest` · `.sy-askable` + `.sy-ask` (`--show`) | Context travels as ids. Suggestions max 3 |
+| Pages | `.sy-mini` (`--mock`, `--locked`, `__img`) · `.sy-order` · `.sy-film` > `.sy-film__item[aria-pressed][data-state=here\|failed\|frontier]` · `.sy-node[data-state="here"]` | Cyan = crawler here; the route is always in text |
+| Live bar, sheet, command bar | `.sy-livebar` (`__main`) · `.sy-sheet` (`__head`, `__body`, `__close`) · `.sy-cmdbar` (`__main`, `__reply`) | Live bar is not a live region; Esc closes the sheet |
+| Command card | `.sy-cmd[data-cmd-state=proposed\|running\|done\|failed\|undone\|cancelled\|expired]` > `__head` (`__title`) + `__body` + `__foot` | Every write. Confirm is the one marker button; Send is never marker in the Workbench |
 
 ### Assistant
 | Part | Classes |

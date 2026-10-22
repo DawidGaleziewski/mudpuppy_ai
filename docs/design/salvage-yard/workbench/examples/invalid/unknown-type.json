@@ -1,0 +1,14 @@
+{
+  "version": "1",
+  "path": "mapping",
+  "why": "You asked to map.",
+  "components": [
+    {
+      "id": "x",
+      "type": "HtmlBlock",
+      "bind": {
+        "html": "<b>hi</b>"
+      }
+    }
+  ]
+}

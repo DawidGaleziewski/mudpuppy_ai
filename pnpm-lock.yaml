@@ -196,6 +196,9 @@ importers:
       '@mudpuppy/vault':
         specifier: workspace:*
         version: link:../crawler/packages/vault
+      '@mudpuppy/workbench-contract':
+        specifier: workspace:*
+        version: link:../../packages/workbench-contract
       '@mudpuppy/workflow':
         specifier: workspace:*
         version: link:../../packages/workflow
@@ -705,6 +708,31 @@ importers:
       tsx:
         specifier: ^4.23.15
         version: 4.23.15
+      typescript:
+        specifier: ^6.0.3
+        version: 6.0.3
+      typescript-eslint:
+        specifier: ^8.70.1
+        version: 8.70.1(eslint@10.11.0)(typescript@6.0.3)
+      vitest:
+        specifier: ^5.0.1
+        version: 5.0.1(@types/node@22.20.4)(vite@8.3.0(@types/node@22.20.4)(esbuild@0.28.2)(tsx@4.23.15)(yaml@2.9.1))
+
+  packages/workbench-contract:
+    dependencies:
+      ajv:
+        specifier: ^8.20.0
+        version: 8.20.0
+    devDependencies:
+      '@eslint/js':
+        specifier: ^10.0.1
+        version: 10.0.1(eslint@10.11.0)
+      '@types/node':
+        specifier: ^22.20.4
+        version: 22.20.4
+      eslint:
+        specifier: ^10.11.0
+        version: 10.11.0
       typescript:
         specifier: ^6.0.3
         version: 6.0.3

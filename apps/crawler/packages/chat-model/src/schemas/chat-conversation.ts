@@ -4,6 +4,10 @@ import { Id, Timestamp } from '@mudpuppy/core';
 export const ChatConversationStatus = z.enum(['active', 'closed']);
 export type ChatConversationStatus = z.infer<typeof ChatConversationStatus>;
 
+/** 0049 (spec 043): 'chat' = the Chat page, 'workbench' = a Workbench conversation. */
+export const ChatConversationKind = z.enum(['chat', 'workbench']);
+export type ChatConversationKind = z.infer<typeof ChatConversationKind>;
+
 /**
  * One BA chat conversation (`chat_conversations`, 0008, spec 010 data-model.md). Written only by
  * `@mudpuppy/chat`. `portal_id` is NULL until the BA chooses a portal. `persona_draft` is a JSON
@@ -18,6 +22,7 @@ export const ChatConversation = z.object({
   status: ChatConversationStatus,
   created_at: Timestamp,
   updated_at: Timestamp,
+  kind: ChatConversationKind,
 });
 export type ChatConversation = z.infer<typeof ChatConversation>;
 

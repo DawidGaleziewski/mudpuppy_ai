@@ -57,6 +57,7 @@ export class ChatStore {
       status: 'active',
       created_at: now,
       updated_at: now,
+      kind: 'chat',
     });
     await this.db
       .insertInto('chat_conversations')

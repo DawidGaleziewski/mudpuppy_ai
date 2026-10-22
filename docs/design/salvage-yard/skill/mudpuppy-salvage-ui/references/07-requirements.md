@@ -129,6 +129,39 @@ The brief's `UX-R` ids are the requirements; this table maps each to its screen 
 | UX-R90 | P2 | v2-01 (assistant chips), §1.1 | Assistant proposals marked "from the assistant" in the same queues. |
 | §6 states | P1 | v2-13 | Every P1 page handles the eight states as in the matrix. |
 
+## G. Workbench · generative UI beta (spec `14-workbench.md`; engineering `17-genui-architecture.md`)
+
+Screens `wb-01`…`wb-10`; rules `15-genui-guidelines.md`; parts `16-genui-components.md`; contract `workbench/schema/`.
+Behaviour rules WB-UI-01…42 are in `14-workbench.md` §5; tickets WB-01… in `17-genui-architecture.md` §9.
+
+| ID | P | Requirement | Acceptance |
+|---|---|---|---|
+| FE-W01 | M | The Workbench tab exists behind `workbench_beta`, with a `beta` chip in the nav; the kill switch hides it and redirects without breaking other pages | Flag off → no tab, `/workbench` → Home with toast |
+| FE-W02 | M | The model's output is a view spec validated against `view-spec.schema.json`; no model-written HTML, CSS or style reaches the page | Contract tests over `workbench/examples/invalid` |
+| FE-W03 | M | The server places components by path and phase (Chat always inline); invalid components are dropped and logged; nothing left → plain chat | Drop reasons logged; fallback test |
+| FE-W04 | M | Every generated view has the solid frame, "generated" mark, Why this view?, source line and feedback | Snapshot of every component |
+| FE-W05 | M | Paths Chat and Mapping (phase 1), Troubleshoot (2), Explain (3); the person's switch wins; the path is in the URL | WB-UI-01…04; Back / Forward |
+| FE-W06 | M | Live data reaches the screen over SSE without the model; p95 event → screen < 1 s; reconnects resume from the last id | Load test; drop / replay e2e |
+| FE-W07 | M | Narration cites events; numbers must appear in a cited event; failing lines are replaced by templated lines | Grounding tests |
+| FE-W08 | M | Every write is a command card; nothing runs before Confirm; states proposed, running, done, failed, undone | Audit: each run has a confirm |
+| FE-W09 | M | Point and ask: Ask button, `A`, `@` picker (phase 2); chips sent as structured context, max 3 | Network payload has `ctx[]` objects |
+| FE-W10 | M | The text answer never waits for the view (4 s); composing reserves the layout; the view is dropped after 15 s | Timing tests with a slowed model |
+| FE-W11 | M | With the model down, live views keep updating and the composer says so | Model off e2e |
+| FE-W12 | M | Focus never moves on its own; one announcement per stage change and milestone; single-letter keys follow the shortcuts setting | Keyboard and live-region scripts |
+| FE-W13 | M | The Workbench works on Now; As of ≠ Now shows the banner and disables commands | e2e with `as_of=release:9c21` |
+| FE-W14 | M | Commands run only for people with `scan:write` on environments allowed for the beta; CSRF, one-time tokens, idempotency | Security tests |
+| FE-W15 | M | Scanned page content is passed as untrusted data; vault values and input values never reach the model, logs or telemetry | Injection evals; log scan for secrets |
+| FE-W16 | S | PageDetail opens in a non-modal side sheet; Esc closes it and returns focus | WB-UI-38 |
+| FE-W17 | S | Inline layout: the live bar pins while the live card is out of view; a stopped or finished card folds to one line (Expand) under a newer card | wb-01 scroll test; fold test |
+| FE-W18 | S | Entries: drawer "Continue in Workbench", Scans "Watch in Workbench" (1) and "Troubleshoot in Workbench" (2) | Links land with context |
+| FE-W19 | M | Phase 2: LiveMap graph with nodes as buttons in visit order, arrows along edges, follow mode that never turns itself back on | Keyboard-only fixture run |
+| FE-W20 | M | Phase 2: Troubleshoot with StepShot, EventTail, FixChoices (variations from the recovery API), AttemptList and `path.attempt` | e2e attempt 3 passes → resume |
+| FE-W21 | S | Phase 2: `mark.add` with Undo until a scan uses the mark | Undo test |
+| FE-W22 | S | Phase 3: focus mode (`F`), command bar with the latest reply, event strip | wb-05 |
+| FE-W23 | S | Phase 3: Explain reuses the 2.0 Compare, DecisionTable and finding layouts; decisions only through "Open in Review" | No decision action reachable |
+| FE-W24 | M | Telemetry events and the beta dashboard exist; evals run in CI with the thresholds in §7 | Dashboard; CI job |
+| FE-W25 | M | p95 spec → first paint < 300 ms; model calls per scan and per person are capped and shown in Settings ▸ Assistant | Load test; Settings shows use |
+
 ## E. Non-functional
 
 | ID | P | Requirement | Acceptance |

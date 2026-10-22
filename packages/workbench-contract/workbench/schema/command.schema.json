@@ -1,0 +1,267 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://mudpuppy.local/schema/workbench/command.schema.json",
+  "title": "Command proposal v1",
+  "description": "A write the assistant proposes. The person confirms it in a command card; nothing runs before that.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "command",
+    "args",
+    "reason"
+  ],
+  "properties": {
+    "command": {
+      "enum": [
+        "scan.start",
+        "scan.resume",
+        "scan.stop",
+        "path.attempt",
+        "mark.add"
+      ]
+    },
+    "args": {
+      "type": "object"
+    },
+    "reason": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/plainText"
+        }
+      ],
+      "minLength": 3,
+      "maxLength": 140
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "command": {
+            "const": "scan.start"
+          }
+        },
+        "required": [
+          "command"
+        ]
+      },
+      "then": {
+        "properties": {
+          "args": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "type"
+            ],
+            "properties": {
+              "type": {
+                "enum": [
+                  "full_map",
+                  "continue_frontier",
+                  "focused"
+                ]
+              },
+              "start": {
+                "$ref": "#/$defs/route"
+              },
+              "persona": {
+                "enum": [
+                  "guest"
+                ]
+              },
+              "limit_steps": {
+                "type": "integer",
+                "minimum": 10,
+                "maximum": 2000
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "command": {
+            "const": "scan.resume"
+          }
+        },
+        "required": [
+          "command"
+        ]
+      },
+      "then": {
+        "properties": {
+          "args": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "scan"
+            ],
+            "properties": {
+              "scan": {
+                "$ref": "#/$defs/scanId"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "command": {
+            "const": "scan.stop"
+          }
+        },
+        "required": [
+          "command"
+        ]
+      },
+      "then": {
+        "properties": {
+          "args": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "scan"
+            ],
+            "properties": {
+              "scan": {
+                "$ref": "#/$defs/scanId"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "command": {
+            "const": "path.attempt"
+          }
+        },
+        "required": [
+          "command"
+        ]
+      },
+      "then": {
+        "properties": {
+          "args": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "scan",
+              "step",
+              "variation"
+            ],
+            "properties": {
+              "scan": {
+                "$ref": "#/$defs/scanId"
+              },
+              "step": {
+                "$ref": "#/$defs/step"
+              },
+              "variation": {
+                "enum": [
+                  "wait_longer",
+                  "record_only",
+                  "skip_action"
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "command": {
+            "const": "mark.add"
+          }
+        },
+        "required": [
+          "command"
+        ]
+      },
+      "then": {
+        "properties": {
+          "args": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "target",
+              "kind"
+            ],
+            "properties": {
+              "target": {
+                "$ref": "#/$defs/pageRef"
+              },
+              "kind": {
+                "enum": [
+                  "start_here",
+                  "focus",
+                  "probe",
+                  "retry",
+                  "recheck",
+                  "skip"
+                ]
+              }
+            }
+          }
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "scanId": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{8}$",
+      "description": "Scan id as stored (lowercase hex), e.g. 01a110d5."
+    },
+    "step": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 100000,
+      "description": "Step number within the scan."
+    },
+    "route": {
+      "type": "string",
+      "pattern": "^/[^\\s<>\"']{0,200}$",
+      "description": "A route as recorded, e.g. /kalkulator/kierowca."
+    },
+    "pageRef": {
+      "description": "A page (screen state) in a scan: the current selection, or a route with an optional same-URL step.",
+      "oneOf": [
+        {
+          "const": "@selected"
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "route"
+          ],
+          "properties": {
+            "route": {
+              "$ref": "#/$defs/route"
+            },
+            "state": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 50,
+              "description": "Same-URL step (step 2 of /kalkulator/kierowca)."
+            }
+          }
+        }
+      ]
+    },
+    "plainText": {
+      "type": "string",
+      "pattern": "^[^<>{}]*$",
+      "description": "Plain words. No markup, no template syntax."
+    }
+  }
+}

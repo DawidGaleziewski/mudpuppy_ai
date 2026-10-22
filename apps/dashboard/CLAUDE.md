@@ -8,6 +8,8 @@ Layer: app (Python, FastAPI + Jinja + htmx, uv; outside the TS layers)
 - `cd apps/dashboard && uv sync && uv run mudpuppy-dashboard` → http://127.0.0.1:8765.
 - Dev mode: `uv run mudpuppy-dashboard --dev`.
 - Env: `MUDPUPPY_DATA_DIR`, `MUDPUPPY_DEFAULT_ENV`, `MUDPUPPY_PORT`, `MUDPUPPY_DEV`; chat service URL `MUDPUPPY_CHAT_URL` (see README).
+- Workbench beta (spec 043): `MUDPUPPY_WORKBENCH=1` shows it; `MUDPUPPY_WORKBENCH_MODEL=0`
+  turns the assistant off (live views stay), `MUDPUPPY_WORKBENCH_COMMANDS=0` pauses the cards.
 
 ## Layout
 - `app.py` only builds the app; `web/deps.py` holds `Ctx` and `Web` (`web_of(request)`);

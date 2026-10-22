@@ -1,0 +1,5 @@
+{
+  "command": "portal.delete",
+  "args": {},
+  "reason": "Clean up."
+}

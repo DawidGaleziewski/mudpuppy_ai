@@ -43,6 +43,12 @@ class Settings(BaseSettings):
     # The local chat service (apps/chat, spec 010), called server-side only.
     chat_url: str = "http://127.0.0.1:4310"
     chat_timeout_s: float = 10.0
+    # The Workbench beta (spec 043 D-4, designer 14-workbench.md § 9.3): off hides the tab and
+    # sends /workbench Home ("The Workbench is paused"); `workbench_model` off keeps the live views
+    # and disables the composer; `workbench_commands` off pauses the command cards.
+    workbench: bool = False
+    workbench_model: bool = True
+    workbench_commands: bool = True
     # Persona YAML files, read to list the `ref:NAME` credentials a persona needs (spec 010 T020).
     personas_dir: Path = Field(default_factory=lambda: find_data_dir().parent / "personas")
     # Portal configs (`<id>/portal.yaml`), listed in the header's portal dropdown (spec 011).

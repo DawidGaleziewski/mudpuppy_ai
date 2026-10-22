@@ -256,6 +256,7 @@ class Web:
                 "c": c,
                 "env": c.env,
                 "dev": settings.dev,
+                "workbench_beta": settings.workbench,
                 "store": db.store_info(c.data_dir, c.env),
                 # Spec 011: called by the header only, so fragment polls do not pay for it.
                 "header_portals": lambda: self.header_portals(c),

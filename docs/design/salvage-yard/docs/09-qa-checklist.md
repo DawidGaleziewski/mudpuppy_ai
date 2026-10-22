@@ -66,6 +66,21 @@ Copy this into the PR template for any UI change.
 - [ ] The eight states of `v2-13-states.html` exist on every P1 page as in its matrix.
 - [ ] 1024 px: no page-level horizontal scroll; the header may wrap to two rows.
 
+## Workbench · gen UI (screens wb-*)
+- [ ] The model never sends markup: every view comes from a valid view spec (`workbench/schema/`), rendered by server templates with autoescape; no `|safe` on model strings.
+- [ ] Every generated frame has the solid frame, the "generated" mark and a source line, and its accessible name ends in ", generated"; each view has Why this view? and Right view? once, on its lead frame.
+- [ ] Numbers, routes and statuses inside views come from events or the portal model store, never from the model's text. Every narration line cites at least one event; lines with ungrounded numbers are replaced by the templated line.
+- [ ] Invalid components are dropped (and logged), not the whole view; an empty view falls back to plain chat with no red.
+- [ ] Writes only through command cards: nothing runs before Confirm; running/done/failed/undone/cancelled/expired states show; Undo works for marks; commands run on sandbox only.
+- [ ] Data lane works with the assistant down: the live map keeps updating; the composer says so.
+- [ ] SSE drop → stale notice with the last event time; reconnect with Last-Event-ID catches up without duplicates.
+- [ ] Composing reserves the final size (no layout shift > 0.1 CLS); text is never held for the view; "Still working" after 4 s with nothing; the view is dropped after 15 s.
+- [ ] Focus never moves on its own; Esc closes picker → Why → sheet and returns focus; A, @ and F work; exactly one polite live region, narration and live cards inside the log are `aria-live="off"`; one announcement per stage change or milestone, never per event.
+- [ ] The path switch shows who chose the path; your switch wins until a new request; the path is in the URL and reloads to the same view.
+- [ ] As of ≠ Now shows the "works on now" banner and disables writes.
+- [ ] Golden-prompt evals pass (path accuracy, required components, no forbidden components) before any prompt or catalogue change merges.
+- [ ] 1280 and 1024: no page-level horizontal scroll; the graph and filmstrip scroll inside their frames.
+
 ## Visual regression setup (Playwright)
 
 ```js

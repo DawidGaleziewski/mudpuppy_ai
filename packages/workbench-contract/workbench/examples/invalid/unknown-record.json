@@ -1,0 +1,14 @@
+{
+  "version": "1",
+  "path": "chat",
+  "why": "You asked about a process.",
+  "components": [
+    {
+      "id": "proc",
+      "type": "RecordCard",
+      "bind": {
+        "record": "PROC-999"
+      }
+    }
+  ]
+}

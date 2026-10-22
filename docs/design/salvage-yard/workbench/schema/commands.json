@@ -1,0 +1,68 @@
+{
+  "description": "Commands the Workbench can run. Every write asks first in a command card (.sy-cmd). The model can only propose them.",
+  "commands": [
+    {
+      "name": "scan.start",
+      "label": "Start a map scan",
+      "write": true,
+      "undo": null,
+      "api": "POST /portals/{portal}/runs",
+      "required": [
+        "type"
+      ],
+      "effects": "Starts a new scan on sandbox. Nothing in the portal model changes until the scan records pages.",
+      "stop": "Stop the scan at any time; pages recorded so far are kept."
+    },
+    {
+      "name": "scan.resume",
+      "label": "Resume from last checkpoint",
+      "write": true,
+      "undo": null,
+      "api": "POST /runs/{scan}:resume",
+      "required": [
+        "scan"
+      ],
+      "effects": "Starts a new scan that continues {scan} from the last good checkpoint. Its queued links carry over.",
+      "stop": "Not undoable; you can stop the new scan."
+    },
+    {
+      "name": "scan.stop",
+      "label": "Stop the scan",
+      "write": true,
+      "undo": null,
+      "api": "POST /runs/{scan}:stop",
+      "required": [
+        "scan"
+      ],
+      "effects": "Stops {scan}. Recorded pages and the queue are kept; you can resume later.",
+      "stop": "Not undoable; Resume continues from the last checkpoint."
+    },
+    {
+      "name": "path.attempt",
+      "label": "Run an attempt",
+      "write": true,
+      "undo": null,
+      "api": "POST /paths/{path}/attempts (the server finds the path from scan + step)",
+      "required": [
+        "scan",
+        "step",
+        "variation"
+      ],
+      "effects": "Replays to the checkpoint before step {step} and tries the action again with: {variation}.",
+      "stop": "Not undoable; attempts are listed and never overwrite each other."
+    },
+    {
+      "name": "mark.add",
+      "label": "Add a mark",
+      "write": true,
+      "undo": "DELETE /portals/{portal}/marks/{mark}",
+      "api": "POST /portals/{portal}/marks",
+      "required": [
+        "target",
+        "kind"
+      ],
+      "effects": "Marks the page for the next scan plan.",
+      "stop": "Undo removes the mark."
+    }
+  ]
+}

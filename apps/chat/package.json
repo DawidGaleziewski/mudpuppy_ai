@@ -12,7 +12,8 @@
     "start": "tsx src/main.ts",
     "mcp": "tsx src/mcp-main.ts",
     "eval": "tsx evals/index.ts",
-    "eval:regrade": "tsx evals/regrade.ts"
+    "eval:regrade": "tsx evals/regrade.ts",
+    "eval:workbench": "tsx evals/workbench/run.ts"
   },
   "dependencies": {
     "@agentclientprotocol/claude-agent-acp": "^0.85.1",
@@ -26,6 +27,7 @@
     "@mudpuppy/docs-model": "workspace:*",
     "@mudpuppy/vault": "workspace:*",
     "@mudpuppy/workflow": "workspace:*",
+    "@mudpuppy/workbench-contract": "workspace:*",
     "yaml": "^2.9.1",
     "zod": "^4.6.5"
   },

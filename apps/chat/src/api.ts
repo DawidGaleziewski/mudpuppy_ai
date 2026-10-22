@@ -13,6 +13,7 @@ import { portalRoutes, type PortalCommands } from './api-portals.js';
 import { probeSuiteRoutes } from './api-probe-suites.js';
 import { processRoutes } from './api-processes.js';
 import { proposalRoutes } from './api-proposals.js';
+import { workbenchRoutes } from './api-workbench.js';
 import type { CheckRunDeps } from './check-runs.js';
 import type { ErrorInput, LogResult } from './error-log.js';
 import { HttpError } from './http-error.js';
@@ -22,6 +23,7 @@ import type { ProbeSuiteService } from './probe-suites.js';
 import { type ProcessService } from './process-service.js';
 import { type ProposalService } from './proposal-service.js';
 import { ChatError } from './service.js';
+import type { WorkbenchService } from './workbench-service.js';
 
 export interface ApiOptions extends ConversationDeps {
   logError: (input: ErrorInput) => Promise<LogResult>;
@@ -44,6 +46,8 @@ export interface ApiOptions extends ConversationDeps {
   addExperimentFlag?: AddFlag;
   /** Portals from the dashboard (spec 011); each throws `PortalRefusal`. Without it: 404. */
   portals?: PortalCommands;
+  /** The Workbench (spec 043). Without it the Workbench routes answer 404. */
+  workbench?: WorkbenchService;
 }
 
 type Route = (
@@ -68,6 +72,7 @@ function routesOf(opts: ApiOptions): Route[] {
     (req, res, method, path) => markRoutes(req, res, method, path, opts.marks),
     (req, res, method, path) => checkRunRoutes(req, res, method, path, opts.checkRuns),
     (req, res, method, path) => modelRoutes(req, res, method, path, modelDeps),
+    (req, res, method, path) => workbenchRoutes(req, res, method, path, opts.workbench),
     (_req, res, method, path) => controlRoutes(res, method, path, opts),
   ];
 }

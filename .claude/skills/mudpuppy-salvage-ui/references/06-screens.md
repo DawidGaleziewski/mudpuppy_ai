@@ -168,6 +168,29 @@ Phones are out of scope for 2.0; acceptance criterion 2 below (390 px) applies t
 | Review · Decided | `v2-16-review-decided.html` |
 | Home, All portals | `v2-15-all-portals.html` |
 
+## Workbench (gen UI beta) · `screens/wb-*`
+
+A beta tab where the assistant composes the screen from a fixed catalogue of components (spec: `14-workbench.md`;
+rules: `15-genui-guidelines.md`; parts: `16-genui-components.md`; engineering: `17-genui-architecture.md`).
+Behind the `workbench_beta` flag; the nav item "Workbench" carries a dashed ash "beta" chip (`.sy-chip--dashed`). Pages load `genui.css` after
+`salvage.css`. Same widths as 2.0: 1280 px reference, 1024 px floor, phones out of scope. Data: the replay of scan 01a110d5
+(fixture in `13-v2-fixtures.md` §Workbench).
+
+| Screen | File | Phase |
+|---|---|---|
+| Mapping, inline live card, live bar, narration, side sheet | `wb-01-inline-live.html` | 1 |
+| Scan stopped: ErrorCard, Resume as a command card | `wb-02-inline-stopped.html` | 1 |
+| Split: live map graph, page detail, point-and-ask, Why this view? open | `wb-03-split-live.html` | 2 |
+| Troubleshoot: step shot, last events, fixes, attempts | `wb-04-split-troubleshoot.html` | 2 |
+| Focus mode: big map, event strip, command bar | `wb-05-focus.html` | 3 |
+| Chat path: plain answers, at most two cards | `wb-06-chat.html` | 1 |
+| Explain path: finding + before / after, Open in Review | `wb-07-explain.html` | 3 |
+| States: composing, stale, fallback, assistant down, path override, As of ≠ now, command states, feedback, first visit, point and ask | `wb-08-states.html` | all |
+| One tab, four paths | `wb-09-paths.html` | all |
+| Under the hood: two lanes, catalogue, view spec, stack | `wb-10-architecture.html` | all |
+
+Component gallery with markup: `design-system/genui-components.html`. Runnable reference: `workbench/reference/`.
+
 ---
 
 ## Screen-level acceptance criteria (all screens)

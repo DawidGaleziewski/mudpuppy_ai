@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MudPuppy 2.0 · Workbench beta · Under the hood</title>
+<link rel="icon" href="../brand/logo/tag-icon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../design-system/css/tokens.css">
+<link rel="stylesheet" href="../design-system/css/fonts.css">
+<link rel="stylesheet" href="../design-system/css/salvage.css">
+<link rel="stylesheet" href="../design-system/css/genui.css">
+<style>
+  /* Under-the-hood board. Tokens only. */
+  .mp-flow { display: flex; flex-wrap: wrap; align-items: stretch; gap: 8px; }
+  .mp-flow > .sy-card { flex: 1 1 150px; }
+  .mp-flow > .sy-flow__arrow { align-self: center; }
+</style>
+</head>
+<body class="sy-ground">
+<a class="sy-skip" href="#main">Skip to content</a>
+<div class="sy-app">
+  <header class="sy-header">
+    <a class="sy-wordmark" href="v2-01-home.html"><span class="sy-wordmark__paint">MUD</span>PUPPY</a>
+    <label class="sy-portal sy-portal--compact"><span class="sy-label">Portal</span>
+      <select class="sy-select"><option selected>reference-insurer</option><option>wikipedia</option><option>All portals</option><option>+ New portal</option></select></label>
+    <div class="sy-portal sy-portal--compact"><span class="sy-label" id="asof-l">As of</span>
+      <button class="sy-select" type="button" aria-haspopup="menu" aria-expanded="false" aria-labelledby="asof-l asof-v" aria-describedby="asof-help"><span id="asof-v">Now · 17 Oct</span></button></div>
+    <span id="asof-help" class="sy-sr-only">Shows the portal model as it was at a release or scan. Changes compares two points.</span>
+    <label class="sy-search sy-search--compact">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+      <input type="search" aria-label="Search screens, processes and rules" placeholder="Search"><span class="sy-kbd">Ctrl K</span></label>
+    <span class="sy-status" data-status="ok">Assistant up</span>
+    <a class="sy-btn" href="02-screen-with-assistant.html">Ask <span class="sy-kbd">Ctrl J</span></a>
+    <a class="sy-btn sy-btn--icon" href="#" aria-label="Help and glossary">?</a>
+  </header>
+  <div class="sy-app__body">
+    <nav class="sy-nav" aria-label="Portal sections">
+      <a class="sy-nav__item" href="v2-01-home.html">Home</a>
+      <a class="sy-nav__item" href="wb-01-inline-live.html" aria-current="page">Workbench <span class="sy-chip sy-chip--dashed">beta</span></a>
+      <a class="sy-nav__item" href="v2-02-changes.html">Changes <span class="sy-nav__count">41</span></a>
+      <a class="sy-nav__item" href="v2-04-review.html">Review <span class="sy-count">24</span></a>
+      <div class="sy-nav__group" aria-hidden="true">Portal model</div>
+      <a class="sy-nav__item" href="v2-09-processes.html">Processes <span class="sy-nav__count">6</span></a>
+      <a class="sy-nav__item" href="v2-06-screens.html">Screens <span class="sy-nav__count">19</span></a>
+      <a class="sy-nav__item" href="v2-11-rules.html">Rules <span class="sy-nav__count">6</span></a>
+      <a class="sy-nav__item" href="#">Docs</a>
+      <div class="sy-nav__group" aria-hidden="true">Machine</div>
+      <a class="sy-nav__item" href="10-scans.html">Scans</a>
+      <a class="sy-nav__item" href="11-settings.html">Settings</a>
+      <div class="sy-nav__foot">store: sandbox · writes go through commands</div>
+    </nav>
+    <main id="main" class="sy-main">
+<div class="sy-pagehead">
+        <div class="sy-stack" style="--sy-gap: 4px">
+          <h1 class="sy-h1">Under the hood</h1>
+          <p class="sy-meta">How the Workbench stays generative without becoming unpredictable: the assistant picks and fills components from a fixed catalogue; live data never passes through the model.</p>
+        </div>
+      </div>
+
+      <section class="sy-stack" aria-labelledby="flow-h" style="--sy-gap: var(--sy-space-3)">
+        <h2 id="flow-h" class="sy-h2">Two lanes: data and words</h2>
+        <div class="mp-flow" role="list" aria-label="Data lane">
+          <div class="sy-card" role="listitem"><span class="sy-card__title">Scan engine</span><span>Every step is one event with an id (<span class="sy-case-normal">01a110d5</span>#171).</span></div>
+          <span class="sy-flow__arrow" aria-hidden="true">→</span>
+          <div class="sy-card" role="listitem"><span class="sy-card__title">Event stream (SSE)</span><span>Server-sent events: one stream per Workbench tab, keyed by the conversation.</span></div>
+          <span class="sy-flow__arrow" aria-hidden="true">→</span>
+          <div class="sy-card" role="listitem"><span class="sy-card__title">Components</span><span>Live map, meter, miniatures update themselves (htmx <span class="sy-mono">sse</span> swap). No model in this lane.</span><span class="sy-status" data-status="ok">Fast · exact</span></div>
+        </div>
+        <div class="mp-flow" role="list" aria-label="Words lane">
+          <div class="sy-card" role="listitem"><span class="sy-card__title">You</span><span>Message + context chips (page, step, scan).</span></div>
+          <span class="sy-flow__arrow" aria-hidden="true">→</span>
+          <div class="sy-card sy-card--drawn" role="listitem"><span class="sy-card__title">Assistant</span><span>Picks the path and returns a view spec + narration that cites event ids.</span><span class="sy-status" data-status="inferred">Generated</span></div>
+          <span class="sy-flow__arrow" aria-hidden="true">→</span>
+          <div class="sy-card" role="listitem"><span class="sy-card__title">Server</span><span>Validates the spec against the catalogue, renders the templates, binds them to the data lane.</span></div>
+          <span class="sy-flow__arrow" aria-hidden="true">→</span>
+          <div class="sy-card" role="listitem"><span class="sy-card__title">Actions</span><span>Writes (resume, attempt, mark) become command cards. Nothing runs before Confirm; the result updates the card and the narration.</span></div>
+        </div>
+      </section>
+
+      <div class="sy-stack" style="--sy-gap: var(--sy-space-5)">
+        <section class="sy-stack" aria-labelledby="cat-h" style="--sy-gap: var(--sy-space-3)">
+          <h2 id="cat-h" class="sy-h2">The catalogue (all the assistant may render)</h2>
+          <div class="sy-table-wrap">
+            <table class="sy-table sy-table--dense" style="min-width: 760px" aria-labelledby="cat-h">
+              <thead><tr><th scope="col">Component</th><th scope="col">Shows</th><th scope="col">Paths</th><th scope="col">Phase</th><th scope="col">Actions</th></tr></thead>
+              <tbody><tr><th scope="row">LiveMap</th><td>Pages the crawler visited, in visit order, with miniatures, edges, its current position and the queue, with the scan meter in its body. Side trips fold into a '+N side pages' chip on the page they came from.</td><td>mapping</td><td>1</td><td>select page · ask about page · follow on/off · open full map</td></tr><tr><th scope="row">ScanMeter</th><td>Steps of the limit, pages, queued links, where the crawler is now. For views without a LiveMap (it has its own meter).</td><td>mapping · troubleshoot</td><td>1</td><td>stop scan (command, asks first)</td></tr><tr><th scope="row">PageMiniature</th><td>One page's thumbnail with its route and status.</td><td>chat · mapping · explain</td><td>1</td><td>open detail · ask about page</td></tr><tr><th scope="row">PageDetail</th><td>What happened on a page, when, its status, a link to the screen in the model.</td><td>mapping · troubleshoot</td><td>1</td><td>ask about page · troubleshoot (if failed, phase 2) · add a mark (command, phase 2) · open the screen</td></tr><tr><th scope="row">Narration</th><td>What the crawler did, in plain words, one line per page or milestone.</td><td>mapping</td><td>1</td><td>ask about a line · open the cited event</td></tr><tr><th scope="row">ErrorCard</th><td>Why the scan stopped, where, the error reference, what is kept.</td><td>mapping · troubleshoot</td><td>1</td><td>resume (command) · troubleshoot (path switch) · ask why</td></tr><tr><th scope="row">StepShot</th><td>The page at a step, with the target region marked.</td><td>troubleshoot · explain</td><td>2</td><td>ask about the marked region</td></tr><tr><th scope="row">EventTail</th><td>The last raw events up to a step.</td><td>troubleshoot</td><td>2</td><td>copy · open in Scans</td></tr><tr><th scope="row">FixChoices</th><td>Variations for the next attempt at a failing step.</td><td>troubleshoot</td><td>2</td><td>run attempt (command, asks first)</td></tr><tr><th scope="row">AttemptList</th><td>Attempts so far at a step, with results.</td><td>troubleshoot</td><td>2</td><td>open attempt</td></tr><tr><th scope="row">Compare</th><td>Before / after of one change, the difference marked.</td><td>chat · explain</td><td>3</td><td>open in Changes</td></tr><tr><th scope="row">DecisionTable</th><td>A rule as inputs ║ result with its boundary tests.</td><td>chat · explain</td><td>3</td><td>open in Rules</td></tr><tr><th scope="row">FindingCard</th><td>A finding with its proposed explanation and evidence.</td><td>explain</td><td>3</td><td>open in Review (decisions stay in Review)</td></tr><tr><th scope="row">RecordCard</th><td>One screen, process or rule as a small card with its status and link.</td><td>chat · explain</td><td>1</td><td>open record</td></tr><tr><th scope="row">RecordList</th><td>Up to 12 records in a compact table, in the order given.</td><td>chat</td><td>1</td><td>open record</td></tr></tbody>
+            </table>
+          </div>
+        </section>
+        <div>
+          <section class="sy-plate sy-plate--drawn" aria-labelledby="spec-h">
+            <div class="sy-plate__head"><h2 id="spec-h" class="sy-plate__title">A view spec</h2><span class="sy-status" data-status="inferred">From the assistant</span></div>
+            <div class="sy-plate__body">
+              <pre class="sy-code"><code>{ "version": "1", "path": "mapping",
+  "why": "You asked to map the OC/AC calculator.",
+  "components": [
+    {"id": "map", "type": "LiveMap", "bind": {"scan": "01a110d5"}, "props": {"follow": true, "view": "graph"}},
+    {"id": "detail", "type": "PageDetail", "bind": {"scan": "01a110d5", "page": "@selected"}},
+    {"id": "story", "type": "Narration", "bind": {"scan": "01a110d5"}, "props": {"every": "page"}}
+  ] }</code></pre>
+              <span class="sy-small sy-muted">Checked against workbench/schema/view-spec.schema.json, then ids are resolved. Bad components are dropped, not the view; an empty list means plain chat.</span>
+            </div>
+          </section>
+        </div>
+      </div>
+
+      <div class="sy-grid" style="--sy-min: 220px">
+        <section class="sy-plate" aria-labelledby="st-h"><div class="sy-plate__head"><h2 id="st-h" class="sy-plate__title">Stack</h2><span class="sy-status" data-status="inferred">Proposed</span></div><ul class="sy-rows"><li class="sy-row"><span>Server templates (Jinja) render every component; htmx swaps them in</span></li><li class="sy-row"><span>Live data over SSE (htmx sse extension), resumable with Last-Event-ID</span></li><li class="sy-row"><span>Small Web Components only where the client must think: map keyboard and follow</span></li><li class="sy-row"><span>No React for the beta: no second rendering path, no build step, one CSS source (ADR-WB-1 says when to revisit)</span></li></ul></section>
+        <section class="sy-plate" aria-labelledby="g-h">
+          <div class="sy-plate__head"><h2 id="g-h" class="sy-plate__title">Guardrails</h2></div>
+          <ul class="sy-rows">
+            <li class="sy-row"><span>Catalogue only: the model never writes HTML or CSS</span></li>
+            <li class="sy-row"><span>Numbers and pages come from events, never from the model; narration cites event ids</span></li>
+            <li class="sy-row"><span>Every generated panel says so ("generated") and answers "Why this view?"</span></li>
+            <li class="sy-row"><span>Writes go through commands and ask first; Undo where possible</span></li>
+            <li class="sy-row"><span>Focus never jumps; changes are announced once; reduced motion respected</span></li>
+          </ul>
+        </section>
+        <section class="sy-plate" aria-labelledby="b-h">
+          <div class="sy-plate__head"><h2 id="b-h" class="sy-plate__title">Budgets</h2></div>
+          <ul class="sy-rows">
+            <li class="sy-row"><span>View spec → first paint</span><span class="sy-mono sy-mono--sm">&lt; 300 ms</span></li>
+            <li class="sy-row"><span>Live event → on screen</span><span class="sy-mono sy-mono--sm">&lt; 1 s</span></li>
+            <li class="sy-row"><span>Narration (model)</span><span class="sy-mono sy-mono--sm">batched per page</span></li>
+            <li class="sy-row"><span>Model calls per scan</span><span class="sy-mono sy-mono--sm">capped, shown in Settings</span></li>
+          </ul>
+        </section>
+        <section class="sy-plate" aria-labelledby="m-h">
+          <div class="sy-plate__head"><h2 id="m-h" class="sy-plate__title">How the beta proves itself</h2></div>
+          <ul class="sy-rows">
+            <li class="sy-row"><span>Time to answer "where is the crawler and is it stuck?"</span></li>
+            <li class="sy-row"><span>Stops resumed or fixed without leaving the Workbench</span></li>
+            <li class="sy-row"><span>Point-and-ask use per session</span></li>
+            <li class="sy-row"><span>Path overrides (the assistant picked wrong) and fallbacks to chat</span></li>
+            <li class="sy-row"><span>"Was this the right view?" on every generated panel</span></li>
+          </ul>
+        </section>
+      </div>
+    </main>
+  </div>
+</div>
+</body>
+</html>

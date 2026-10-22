@@ -1,0 +1,13 @@
+{
+  "version": "1",
+  "path": "mapping",
+  "why": "You asked to map.",
+  "components": [
+    {
+      "type": "LiveMap",
+      "bind": {
+        "scan": "01a110d5"
+      }
+    }
+  ]
+}

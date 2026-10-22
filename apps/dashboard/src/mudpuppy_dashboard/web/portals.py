@@ -186,6 +186,7 @@ async def settings_page(
             if error is None:
                 error = str(body.get("message") if isinstance(body, dict) else "unreadable")
     missing = [e for e in PORTAL_ENVS if e not in {x["environment"] for x in environments}]
+    wb_usage = await workbench_usage(web) if up and web.settings.workbench else None
     return web.render(
         c,
         "portal_settings.html",
@@ -199,7 +200,19 @@ async def settings_page(
         error=error,
         saved=c.request.query_params.get("saved"),
         service_up=up,
+        wb_usage=wb_usage,
     )
+
+
+async def workbench_usage(web: Web) -> dict[str, Any] | None:
+    """The Workbench's turns today against the day's cap (spec 043 T039, FE-W25)."""
+    try:
+        code, body = await chat_client.call(
+            web.settings, "GET", "/workbench/usage", None, web.chat_transport
+        )
+    except chat_client.ChatUnavailable:
+        return None
+    return body if code == 200 and isinstance(body, dict) else None
 
 
 @router.get("/portals/{portal}/settings", response_class=HTMLResponse)

@@ -1,0 +1,31 @@
+{
+  "version": "1",
+  "path": "chat",
+  "why": "You asked what Oblicz składkę OC/AC looks like.",
+  "components": [
+    {
+      "id": "proc",
+      "type": "RecordCard",
+      "bind": {
+        "record": "PROC-001"
+      }
+    },
+    {
+      "id": "rules",
+      "type": "RecordList",
+      "bind": {
+        "records": [
+          "BR-021",
+          "BR-022",
+          "BR-023",
+          "BR-024",
+          "BR-025",
+          "BR-026"
+        ]
+      },
+      "props": {
+        "title": "Rules in this process"
+      }
+    }
+  ]
+}

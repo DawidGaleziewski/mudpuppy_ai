@@ -1,0 +1,26 @@
+{
+  "name": "@mudpuppy/workbench-contract",
+  "version": "0.0.0",
+  "private": true,
+  "description": "The Workbench contract (spec 043, R-92): the designer's view spec, command and narration schemas, the component catalogue, the tool definitions, and the validator that drops what fails",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint .",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "ajv": "^8.20.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@types/node": "^22.20.4",
+    "eslint": "^10.11.0",
+    "typescript": "^6.0.3",
+    "typescript-eslint": "^8.70.1",
+    "vitest": "^5.0.1"
+  }
+}

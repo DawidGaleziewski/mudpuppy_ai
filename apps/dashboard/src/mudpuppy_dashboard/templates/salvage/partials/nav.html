@@ -3,14 +3,15 @@
     data store picker is in the header (R-71). -#}
 {%- set section = nav_section(nav_current | default(none)) %}
 <nav class="sy-nav{% if nav_compact | default(false) %} sy-nav--compact{% endif %}" aria-label="Portal sections">
-  {%- for s in NAV_SECTIONS %}
+  {%- for s in NAV_SECTIONS if not s.beta or workbench_beta %}
   {%- if s.group %}<div class="sy-nav__group" aria-hidden="true">{{ s.group }}</div>{% endif %}
   {%- set href = section_href(s.key, c.portal) %}
   {#- A portal that was only scanned has no portal file, so nothing to set (spec 011). #}
   {%- if s.key == "settings" and not portal_configured(c.portal) %}{% set href = none %}{% endif %}
   {%- if href %}
   <a class="sy-nav__item" href="{{ c.url(href) }}"{% if s.key == section %} aria-current="page"{% endif %}>{{ s.label }}
-    {%- if s.key == "review" and review_count is defined %}{% set n = review_count() %}{% if n %} <span class="sy-count">{{ n }}</span>{% endif %}{% endif %}</a>
+    {%- if s.key == "review" and review_count is defined %}{% set n = review_count() %}{% if n %} <span class="sy-count">{{ n }}</span>{% endif %}{% endif %}
+    {%- if s.beta %} <span class="sy-chip sy-chip--dashed">beta</span>{% endif %}</a>
   {%- else %}
   <span class="sy-nav__item sy-muted" aria-disabled="true" title="{{ 'This portal was only scanned and has no portal file' if c.portal else 'Pick a portal first' }}">{{ s.label }}</span>
   {%- endif %}

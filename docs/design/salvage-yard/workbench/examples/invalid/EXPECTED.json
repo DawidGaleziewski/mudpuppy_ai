@@ -1,0 +1,74 @@
+{
+  "description": "Expected outcome per invalid example. Contract tests assert the server logs exactly this code.",
+  "codes": [
+    "repaired_why",
+    "repaired_suggestions",
+    "repaired_path",
+    "unknown_type",
+    "bad_bind_or_props",
+    "not_on_path",
+    "not_in_phase",
+    "id_not_found",
+    "duplicate",
+    "duplicate_id",
+    "missing_id",
+    "too_many"
+  ],
+  "examples": {
+    "unknown-type.json": {
+      "outcome": "dropped",
+      "component": 0,
+      "code": "unknown_type",
+      "caught_by": "schema"
+    },
+    "wrong-path.json": {
+      "outcome": "dropped",
+      "component": 0,
+      "code": "not_on_path",
+      "caught_by": "schema"
+    },
+    "too-many.json": {
+      "outcome": "dropped",
+      "component": 2,
+      "code": "too_many",
+      "caught_by": "schema"
+    },
+    "markup-in-why.json": {
+      "outcome": "repaired",
+      "field": "why",
+      "code": "repaired_why",
+      "caught_by": "schema",
+      "result": "why becomes 'Composed for your request.'"
+    },
+    "bad-scan-id.json": {
+      "outcome": "dropped",
+      "component": 0,
+      "code": "bad_bind_or_props",
+      "caught_by": "schema"
+    },
+    "extra-prop.json": {
+      "outcome": "dropped",
+      "component": 0,
+      "code": "bad_bind_or_props",
+      "caught_by": "schema"
+    },
+    "missing-id.json": {
+      "outcome": "dropped",
+      "component": 0,
+      "code": "missing_id",
+      "caught_by": "schema"
+    },
+    "duplicate-id.json": {
+      "outcome": "dropped",
+      "component": 1,
+      "code": "duplicate_id",
+      "caught_by": "server"
+    },
+    "unknown-record.json": {
+      "outcome": "dropped",
+      "component": 0,
+      "code": "id_not_found",
+      "caught_by": "server"
+    }
+  }
+}

@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MudPuppy 2.0 · Workbench beta · Paths</title>
+<link rel="icon" href="../brand/logo/tag-icon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../design-system/css/tokens.css">
+<link rel="stylesheet" href="../design-system/css/fonts.css">
+<link rel="stylesheet" href="../design-system/css/salvage.css">
+<link rel="stylesheet" href="../design-system/css/genui.css">
+<style>
+  /* Paths board: four small layout frames, then the rules. Tokens only. */
+  .mp-paths { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(235px, 100%), 1fr)); gap: var(--sy-space-4); align-items: stretch; }
+  .mp-frame { display: grid; gap: 4px; height: 170px; padding: 6px; background: var(--sy-bg-ground); border: var(--sy-weld) solid var(--sy-border-control); }
+  .mp-frame > span { display: flex; align-items: flex-end; padding: 4px 6px; background: var(--sy-bg-plate); border: var(--sy-weld) solid var(--sy-border-weld);
+    font-family: var(--sy-font-mono); font-size: var(--sy-fs-micro); color: var(--sy-text-muted); }
+  .mp-frame > span { position: relative; min-width: 0; overflow-wrap: anywhere; }
+  .mp-frame.mp-f-trouble { height: 230px; }
+  .mp-frame > span.mp-gen { border-color: var(--sy-text-muted); color: var(--sy-text); }
+  .mp-frame > span.mp-gen::after { content: "generated"; position: absolute; top: 4px; right: 4px; padding: 0 4px; border: var(--sy-weld) dashed var(--sy-tobe); color: var(--sy-tobe); }
+  .mp-frame > span.mp-cmp { background: var(--sy-bg-well); }
+  .mp-f-chat { grid-template-columns: 1fr; grid-template-rows: 1fr 1fr 34px; }
+  .mp-f-map { grid-template-columns: 38% 1fr; grid-template-rows: 1fr 52px 34px; }
+  .mp-f-map > :nth-child(1) { grid-row: 1 / 3; } .mp-f-map > :nth-child(4) { grid-column: 1; }
+  .mp-f-map > :nth-child(2) { grid-column: 2; grid-row: 1; } .mp-f-map > :nth-child(3) { grid-column: 2; grid-row: 2 / 4; }
+  .mp-f-trouble { grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr 1fr 30px; }
+  .mp-f-trouble > :nth-child(1) { grid-column: 1; grid-row: 1 / 4; } .mp-f-trouble > :nth-child(2) { grid-column: 2; grid-row: 1; }
+  .mp-f-trouble > :nth-child(3) { grid-column: 2; grid-row: 2; } .mp-f-trouble > :nth-child(4) { grid-column: 2; grid-row: 3; }
+  .mp-f-trouble > :nth-child(5) { grid-column: 1 / 3; grid-row: 4; }
+  .mp-f-explain { grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 52px 34px; }
+  .mp-f-explain > :nth-child(3) { grid-column: 1 / 3; } .mp-f-explain > :nth-child(4) { grid-column: 1 / 3; }
+</style>
+</head>
+<body class="sy-ground">
+<a class="sy-skip" href="#main">Skip to content</a>
+<div class="sy-app">
+  <header class="sy-header">
+    <a class="sy-wordmark" href="v2-01-home.html"><span class="sy-wordmark__paint">MUD</span>PUPPY</a>
+    <label class="sy-portal sy-portal--compact"><span class="sy-label">Portal</span>
+      <select class="sy-select"><option selected>reference-insurer</option><option>wikipedia</option><option>All portals</option><option>+ New portal</option></select></label>
+    <div class="sy-portal sy-portal--compact"><span class="sy-label" id="asof-l">As of</span>
+      <button class="sy-select" type="button" aria-haspopup="menu" aria-expanded="false" aria-labelledby="asof-l asof-v" aria-describedby="asof-help"><span id="asof-v">Now · 17 Oct</span></button></div>
+    <span id="asof-help" class="sy-sr-only">Shows the portal model as it was at a release or scan. Changes compares two points.</span>
+    <label class="sy-search sy-search--compact">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+      <input type="search" aria-label="Search screens, processes and rules" placeholder="Search"><span class="sy-kbd">Ctrl K</span></label>
+    <span class="sy-status" data-status="ok">Assistant up</span>
+    <a class="sy-btn" href="02-screen-with-assistant.html">Ask <span class="sy-kbd">Ctrl J</span></a>
+    <a class="sy-btn sy-btn--icon" href="#" aria-label="Help and glossary">?</a>
+  </header>
+  <div class="sy-app__body">
+    <nav class="sy-nav" aria-label="Portal sections">
+      <a class="sy-nav__item" href="v2-01-home.html">Home</a>
+      <a class="sy-nav__item" href="wb-01-inline-live.html" aria-current="page">Workbench <span class="sy-chip sy-chip--dashed">beta</span></a>
+      <a class="sy-nav__item" href="v2-02-changes.html">Changes <span class="sy-nav__count">41</span></a>
+      <a class="sy-nav__item" href="v2-04-review.html">Review <span class="sy-count">24</span></a>
+      <div class="sy-nav__group" aria-hidden="true">Portal model</div>
+      <a class="sy-nav__item" href="v2-09-processes.html">Processes <span class="sy-nav__count">6</span></a>
+      <a class="sy-nav__item" href="v2-06-screens.html">Screens <span class="sy-nav__count">19</span></a>
+      <a class="sy-nav__item" href="v2-11-rules.html">Rules <span class="sy-nav__count">6</span></a>
+      <a class="sy-nav__item" href="#">Docs</a>
+      <div class="sy-nav__group" aria-hidden="true">Machine</div>
+      <a class="sy-nav__item" href="10-scans.html">Scans</a>
+      <a class="sy-nav__item" href="11-settings.html">Settings</a>
+      <div class="sy-nav__foot">store: sandbox · writes go through commands</div>
+    </nav>
+    <main id="main" class="sy-main">
+<div class="sy-pagehead">
+        <div class="sy-stack" style="--sy-gap: 4px">
+          <h1 class="sy-h1">One tab, four paths</h1>
+          <p class="sy-meta">The assistant picks a path from what you ask; the path decides which components it composes and where they sit. You can always switch it. Areas marked “generated” are composed by the assistant from the catalogue; their frames are solid because what they show is observed. The rest is fixed.</p>
+        </div>
+      </div>
+
+      <div class="mp-paths">
+        <section class="sy-plate" aria-labelledby="p1">
+          <div class="sy-plate__head"><h2 id="p1" class="sy-plate__title">Chat</h2><span class="sy-meta">default</span></div>
+          <div class="sy-plate__body">
+            <div class="mp-frame mp-f-chat" aria-hidden="true"><span>conversation</span><span class="mp-gen">inline card</span><span class="mp-cmp">composer</span></div>
+            <dl class="sy-facts"><dt>When</dt><dd>Questions, "what's in…", "how many…"</dd><dt>Composes</dt><dd>Plain words first. At most two cards, always inside the conversation: RecordCard, RecordList, PageMiniature; from phase 3 also DecisionTable and Compare</dd><dt>Leaves</dt><dd>When you ask it to do something long-running</dd></dl>
+          </div>
+        </section>
+        <section class="sy-plate" aria-labelledby="p2">
+          <div class="sy-plate__head"><h2 id="p2" class="sy-plate__title">Mapping</h2><span class="sy-meta">phase 1 → 3</span></div>
+          <div class="sy-plate__body">
+            <div class="mp-frame mp-f-map" aria-hidden="true"><span>chat</span><span class="mp-gen">live map</span><span class="mp-gen">page detail</span><span class="mp-cmp">composer</span></div>
+            <dl class="sy-facts"><dt>When</dt><dd>"Map…", "continue the scan", "explore Przedłuż polisę"</dd><dt>Composes</dt><dd>LiveMap (with its meter), PageDetail, Narration, ErrorCard, PageMiniature (max 4)</dd><dt>Leaves</dt><dd>Scan finishes (summary card) or stops (→ Troubleshoot offered)</dd></dl>
+          </div>
+        </section>
+        <section class="sy-plate" aria-labelledby="p3">
+          <div class="sy-plate__head"><h2 id="p3" class="sy-plate__title">Troubleshoot</h2><span class="sy-meta">phase 2</span></div>
+          <div class="sy-plate__body">
+            <div class="mp-frame mp-f-trouble" aria-hidden="true"><span>conversation</span><span class="mp-gen">page at step</span><span class="mp-gen">event tail</span><span class="mp-gen">fixes</span><span class="mp-cmp">composer</span></div>
+            <dl class="sy-facts"><dt>When</dt><dd>"Troubleshoot with me", "why did it stop?"</dd><dt>Composes</dt><dd>StepShot, EventTail, FixChoices, AttemptList (+ ErrorCard, PageDetail, ScanMeter; max 4). Attempts go through command cards</dd><dt>Leaves</dt><dd>An attempt passes → back to Mapping, resumed</dd></dl>
+          </div>
+        </section>
+        <section class="sy-plate" aria-labelledby="p4">
+          <div class="sy-plate__head"><h2 id="p4" class="sy-plate__title">Explain</h2><span class="sy-meta">phase 3</span></div>
+          <div class="sy-plate__body">
+            <div class="mp-frame mp-f-explain" aria-hidden="true"><span class="mp-gen">before</span><span class="mp-gen">after</span><span class="mp-gen">finding · tests · decision</span><span class="mp-cmp">composer</span></div>
+            <dl class="sy-facts"><dt>When</dt><dd>"Explain the banner on wynik", "show BR-021"</dd><dt>Composes</dt><dd>FindingCard, Compare, DecisionTable, RecordCard, StepShot, PageMiniature (max 3). Decisions still go through Review, with a reason</dd><dt>Leaves</dt><dd>"Open in Review" or a new question</dd></dl>
+          </div>
+        </section>
+      </div>
+
+      <div class="sy-columns">
+        <section class="sy-col-main sy-plate" aria-labelledby="rules-h">
+          <div class="sy-plate__head"><h2 id="rules-h" class="sy-plate__title">Path rules</h2></div>
+          <ol class="sy-steps">
+            <li><span>1 · The assistant proposes the path and says why, next to the Path switch ("you asked to map").</span><span class="sy-status" data-status="inferred">Proposed</span></li>
+            <li><span>2 · You can switch at any time; your switch wins until you ask for something new.</span><span class="sy-status" data-status="ok">You decide</span></li>
+            <li><span>3 · Changing path never clears the conversation; the stage swaps, the stream stays.</span><span class="sy-status" data-status="ok">Kept</span></li>
+            <li><span>4 · The path is in the URL (<span class="sy-mono">?path=mapping&amp;scan=01a110d5</span>), so a view can be linked and reloaded.</span><span class="sy-status" data-status="ok">Linkable</span></li>
+            <li><span>5 · A stage that changes announces it once ("Live map opened") and never steals focus.</span><span class="sy-status" data-status="ok">Calm</span></li>
+            <li><span>6 · If the assistant can't build a view, it answers in plain chat. Nothing breaks.</span><span class="sy-status" data-status="ok">Fallback</span></li><li><span>7 · The assistant picks what to show; the server decides where (placement comes from the path and the phase).</span><span class="sy-status" data-status="ok">Placement</span></li>
+          </ol>
+        </section>
+        <aside class="sy-col-side sy-stack" aria-label="Point and ask">
+          <section class="sy-plate" aria-labelledby="pa-h">
+            <div class="sy-plate__head"><h2 id="pa-h" class="sy-plate__title">Point and ask</h2></div>
+            <div class="sy-plate__body">
+              <span class="sy-small">Everything on the stage can become context: click a page and "Ask about this", type <span class="sy-kbd">@</span> to point at a page, step or event, or press <span class="sy-kbd">A</span> on a focused item.</span>
+              <span class="sy-cluster" style="--sy-gap: 6px"><span class="sy-label">Asking about</span><span class="sy-ctxchip"><span class="sy-ctxchip__at" aria-hidden="true">@</span><span>/kontakt · step 171</span><button class="sy-ctxchip__remove" type="button" aria-label="Stop asking about /kontakt · step 171">×</button></span></span>
+              <span class="sy-small sy-muted">The chip travels with the message as structured context (page id, step, scan), not as pasted text.</span>
+            </div>
+          </section>
+        </aside>
+      </div>
+    </main>
+  </div>
+</div>
+</body>
+</html>

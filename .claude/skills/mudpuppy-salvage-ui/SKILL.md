@@ -1,6 +1,6 @@
 ---
 name: mudpuppy-salvage-ui
-description: Use for ANY MudPuppy console UI work (pages, templates, components, CSS, statuses, UI copy, migrating a Console-era page) so it follows the Salvage Yard design system. Replaces the old Console design-system rules (JetBrains Mono, amber, scanlines, bracket statuses).
+description: Use for ANY MudPuppy console UI work (pages, templates, components, CSS, statuses, UI copy, migrating a Console-era page, and the generative UI Workbench beta) so it follows the Salvage Yard design system. Replaces the old Console design-system rules (JetBrains Mono, amber, scanlines, bracket statuses).
 ---
 
 # MudPuppy · Salvage Yard UI
@@ -10,7 +10,7 @@ rules are fixed. Your job is to **compose** from them, not to restyle.
 
 ## Paths (edit these two lines to match the repo)
 
-- **DS_PATH** = `apps/dashboard/src/mudpuppy_dashboard/static/salvage` (served at `/static/salvage/`): the runtime design system served to browsers (`css/tokens.css`, `css/fonts.css`, `css/salvage.css`, `fonts/`, `tag-icon.svg`). Copied from the design package's `design-system/`.
+- **DS_PATH** = `apps/dashboard/src/mudpuppy_dashboard/static/salvage` (served at `/static/salvage/`): the runtime design system served to browsers (`css/tokens.css`, `css/fonts.css`, `css/salvage.css`, `css/genui.css` for Workbench pages, `fonts/`, `tag-icon.svg`). Copied from the design package's `design-system/`.
 - **DESIGN_PKG** = `docs/design/salvage-yard`: the whole design package committed to the repo (reference screens, screenshots, wireframes, docs). In the references below, paths like `screens/…`, `screenshots/…`, `migration/…`, `design-system/…` and `docs/…` are relative to DESIGN_PKG.
 
 If DESIGN_PKG is missing, the rules here and in `references/` still apply. Ask the user to commit the package before you rely on reference screens.
@@ -28,7 +28,11 @@ If DESIGN_PKG is missing, the rules here and in `references/` still apply. Ask t
 | `10-processes.md` | Anything about processes: lifecycle, variants A/B, revisions, drafts, conflicts, compare and change spec, live per environment, data model, API, rules PR-01–PR-17 |
 | `11-map-runs.md` | Anything about the map, marks, probing form states, checkpoints and replay, resume or retry of a stopped scan, scan types, reconciliation of differing states; requirements FE-M01–M13 |
 | `12-v2-ux.md` | Anything for MudPuppy 2.0: IA and grouped nav, the As of / From time model, UI vocabulary, review flow and keys, overturn, before/after, decision tables, states; screens `v2-*` |
-| `13-v2-fixtures.md` | The 2.0 demo/test data (releases, changes, findings, rules, processes) the v2 screens use |
+| `13-v2-fixtures.md` | The 2.0 demo/test data (releases, changes, findings, rules, processes) the v2 screens use, and the Workbench fixture (replay of scan 01a110d5) |
+| `14-workbench.md` | Anything in the Workbench (gen UI beta): paths, layouts per phase, behaviour rules WB-UI-01…42, states, the phased plan; screens `wb-*` |
+| `15-genui-guidelines.md` | Before designing or reviewing any generated view, narration, suggestion or command card: provenance, writing, stability, trust, a11y |
+| `16-genui-components.md` | Using or adding a gen UI component: catalogue components (the model may place them) and frame components (server-owned), props, states, markup |
+| `17-genui-architecture.md` | Wiring the Workbench: htmx vs React decision, view-spec pipeline, validation, SSE, commands, security, tests and evals, tickets WB-xx |
 | `02-design-decisions.md` | Before "fixing" something that looks odd: it is probably intentional |
 | `01-brand-book.md` | Wordmark, mark, voice |
 | `09-qa-checklist.md` | Before saying done |
@@ -89,10 +93,11 @@ Copy the exact header and nav markup from any `DESIGN_PKG/screens/*.html`.
 
 ### 2.0 skeleton differences
 For MudPuppy 2.0 pages (`screens/v2-*`): the header has two compact pickers and a compact search, and the nav is grouped.
+As of is a **menu button** (a menu of links, newest first), never a select that navigates on change.
 ```html
 <label class="sy-portal sy-portal--compact"><span class="sy-label">Portal</span><select class="sy-select">…</select></label>
-<label class="sy-portal sy-portal--compact"><span class="sy-label">As of</span><select class="sy-select" aria-describedby="asof-help">
-  <option selected>Now · 17 Oct</option><option>9c21 · kalkulator · 16 Oct</option>…</select></label>
+<div class="sy-portal sy-portal--compact"><span class="sy-label" id="asof-l">As of</span>
+  <button class="sy-select" type="button" aria-haspopup="menu" aria-expanded="false" aria-labelledby="asof-l asof-v" aria-describedby="asof-help"><span id="asof-v">Now · 17 Oct</span></button></div>
 <label class="sy-search sy-search--compact">…<input type="search" aria-label="Search screens, processes and rules" placeholder="Search">…</label>
 …
 <nav class="sy-nav" aria-label="Portal sections">
@@ -102,6 +107,38 @@ For MudPuppy 2.0 pages (`screens/v2-*`): the header has two compact pickers and 
 </nav>
 ```
 Model pages read `as_of` from the URL; when it isn't Now they open with the "As of release …" banner and disable writes.
+
+### Workbench (generative UI beta) skeleton
+`screens/wb-*`: the 2.0 skeleton + `<link rel="stylesheet" href="/{DS_PATH}/css/genui.css">` after `salvage.css`, a "Workbench" nav
+item with `<span class="sy-chip sy-chip--dashed">beta</span>`, and one layout in `<main>`:
+```html
+<div class="sy-wb__head">…<h1 class="sy-h1">Workbench</h1>… <div class="sy-pathswitch">…</div></div>
+<div class="sy-wb sy-wb--split">   <!-- --inline (+ --nosheet) in phase 1 and for Chat; --focus as a toggle in phase 3 -->
+  <section class="sy-plate sy-chat sy-wb__conv" aria-label="Conversation">…log… …composer…</section>
+  <div class="sy-wb__stage" role="region" aria-label="Stage">…<section class="sy-genview">…</section>…</div>
+</div>
+```
+
+## Generative UI rules (Workbench)
+
+1. **The model never writes markup.** It returns a view spec (`workbench/schema/view-spec.schema.json`); the server validates it,
+   resolves ids and renders Jinja partials. Never `|safe` a model string. Unknown or invalid components are dropped, not the view.
+2. **The model picks what; the server decides where.** Placement comes from the path and the phase. Chat is always inline.
+3. **Every generated frame** is a `.sy-genview` (solid) with `.sy-genmark` "generated", a status if it has one and a source line;
+   its heading has an sr-only ", generated". "Why this view?" and "Right view?" appear once per view, on its lead frame.
+   DOM id `t{turn}-{id}`. A side sheet the person opened is not generated.
+4. **Dashed blueprint only for the assistant's own words and choices:** narration (`.sy-narration`), Why (`.sy-genwhy`),
+   suggestions (`.sy-suggest`), a proposed command (`.sy-cmd[data-cmd-state=proposed]`). Observed data stays solid.
+5. **Numbers come from events,** never from the model. Narration lines cite events (`.sy-cite`, `scan#step`).
+6. **Every write is a command card** (`.sy-cmd`): what changes, what doesn't, undo or not. Confirm is the one marker button;
+   the Workbench Send button is `.sy-btn--strong`.
+7. **Live data goes over SSE,** never through the model; a dropped stream sets `data-gen-state="stale"` and keeps the data readable.
+8. **Calm:** at most 4 components per view (Chat 2, Explain 3); reserve the final size while composing (`.sy-genskel`); focus never
+   moves on its own; one polite announcement per stage change or milestone; no new animation.
+9. **Point and ask:** context travels as ids in `.sy-ctxchip`s, never as pasted text; `A` asks about the focused item, `@` picks one.
+10. **Answer first:** the words never wait for the view; with no view the answer is plain chat, and nothing turns red.
+11. **Adding a component** = CSS in `genui.css` + Jinja partial + entry in `workbench/tools/gen_wb_schema.py` (regenerate, never edit
+    the JSON) + evals + `16-genui-components.md`. Changing a prompt or the catalogue = run the golden-prompt evals.
 
 ## Class reference (complete list of what you may use)
 
@@ -133,6 +170,7 @@ Model pages read `as_of` from the URL; when it isn't Now they open with the "As 
 | Type | `.sy-h1` `.sy-h2` `.sy-h3` `.sy-label` `.sy-meta` `.sy-small` `.sy-muted` `.sy-prose` `.sy-mono` (`--sm`) `.sy-route` `.sy-num` `.sy-case-normal` `.sy-truncate` `.sy-sr-only` |
 | Layout | `.sy-stack` `.sy-cluster` `.sy-split` `.sy-grid` (`--sy-gap`, `--sy-min`) `.sy-grow` |
 
+| Gen UI (Workbench, `genui.css`) | `.sy-wb` (`--inline` `--nosheet` `--split` `--focus`; `__conv` `__stage` `__aside` `__head`) · `.sy-pathswitch` (`__why[data-source=assistant\|you]`) · `.sy-genmark` · `.sy-genview` (`--card` `--failure`; `[data-gen-state=composing\|ready\|stale]`; `__head` `__title` `__tools` `__why` `__notice` `__body` `__foot` `__source`) · `.sy-genwhy` (`__switch`) · `.sy-genfeedback` (`__btn[aria-pressed]` `__why`) · `.sy-genskel` (`__label` `__block`) · `.sy-genstatus` (`--done`) · `ol.sy-narration` (`li[data-kind=milestone\|live\|stop]`) · `a.sy-cite` · `ol.sy-evtail` (`__id`) · `ol.sy-evstrip` · `.sy-ctxbar` · `.sy-ctxchip` (`__at` `__remove`) · `.sy-suggest` · `.sy-askable` + `.sy-ask` (`--show`) · `.sy-mini` (`--mock` `--locked` `__img`) · `.sy-order` · `.sy-film` (`__item[aria-pressed][data-state=here\|failed\|frontier]` `__route`) · `.sy-node[data-state=here]` · `.sy-livebar` (`__main`) · `.sy-sheet` (`__head` `__body` `__close`) · `.sy-cmdbar` (`__main` `__reply`) · `.sy-cmd[data-cmd-state=proposed\|running\|done\|failed\|undone\|cancelled\|expired]` (`__head` `__title` `__body` `__foot`) |
 | 2.0 | `.sy-nav__group` · `.sy-portal--compact` · `.sy-search--compact` · `.sy-status[data-status=overturned]` · `.sy-releases` (`__lane` `--scans`, `__name`, `__track`, `__span` `--current` `--rollout` `--unknown`, `__scan` `--check`, `__axis`, `__range`) · `.sy-compare` (`__side`, `__head`) · `.sy-differs` · `table.sy-table--decision` (`.sy-dt-group` `.sy-dt-n` `.sy-dt-cond` `.sy-dt-any` `.sy-dt-result`) · `ol.sy-queue` (`__group`, `__item[aria-current]`, `__check`, `__main`, `__claim`, `__meta`) · `.sy-keybar` (`--sticky`) · `.sy-edge--unseen` `--unchecked` `--retired` `--process` `--changed` · `.sy-node--process` `.sy-node--dim` `[data-state=retired]` · `.sy-bundle` |
 
 Anything not in this table is not a library class. Product-only layout classes use the `mp-` prefix and live in `@layer app`.
@@ -168,7 +206,8 @@ next move and what still works. No emoji, no exclamation marks, no "oops".
 
 1. `SY_DS_PATH={DS_PATH} bash .claude/skills/mudpuppy-salvage-ui/scripts/find-old-styles.sh <changed paths>` → TOTAL 0.
 2. stylelint (rules in `references/05-css-guide.md` §4) → 0.
-3. Screenshot the page at **1280** and **390** (v1 pages) or **1280** and **1024** (2.0 pages, desktop-first) with reduced motion: no page-level horizontal scroll; compare by eye with `DESIGN_PKG/screenshots/screens/NN-*.png` if a reference exists.
+3. Screenshot the page at **1280** and **390** (v1 pages) or **1280** and **1024** (2.0 and Workbench pages, desktop-first) with reduced motion: no page-level horizontal scroll; compare by eye with `DESIGN_PKG/screenshots/screens/NN-*.png` if a reference exists.
 4. axe-core → 0 serious or critical; keyboard pass (focus visible, Esc closes drawer and dialogs, Ctrl/⌘ K and J).
 5. Count: one `h1`, at most one `.sy-btn--primary`, at most one `.sy-plate--intent`.
 6. In the PR description, list the FE-IDs covered and attach the two screenshots.
+7. Workbench changes: contract tests pass (`workbench/examples/`), golden-prompt evals pass, and the QA list in `references/09-qa-checklist.md` §Workbench is ticked.

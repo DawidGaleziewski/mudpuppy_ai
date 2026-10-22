@@ -1,0 +1,39 @@
+{
+  "version": "1",
+  "path": "mapping",
+  "why": "The scan stopped at /kontakt.",
+  "select": {
+    "route": "/kontakt"
+  },
+  "components": [
+    {
+      "id": "map",
+      "type": "LiveMap",
+      "bind": {
+        "scan": "01a110d5"
+      },
+      "props": {
+        "follow": false
+      }
+    },
+    {
+      "id": "err",
+      "type": "ErrorCard",
+      "bind": {
+        "scan": "01a110d5"
+      }
+    },
+    {
+      "id": "detail",
+      "type": "PageDetail",
+      "bind": {
+        "scan": "01a110d5",
+        "page": "@selected"
+      }
+    }
+  ],
+  "suggestions": [
+    "Why did it stop here?",
+    "Troubleshoot with me"
+  ]
+}

@@ -9,6 +9,7 @@ import type {
   BaProcessChange,
   BaProcessSource,
   BaProcessStage,
+  ChatConversationKind,
   ChatConversationStatus,
   ChatMessageRole,
   ChatProposalStatus,
@@ -17,6 +18,12 @@ import type {
   ProcessScopeSource,
   ProcessModelChange,
   ProcessModelKind,
+  WorkbenchCommandName,
+  WorkbenchCommandSource,
+  WorkbenchCommandState,
+  WorkbenchFeedbackValue,
+  WorkbenchPath,
+  WorkbenchPathSource,
   WorkflowStepName,
   WorkflowStepStatus,
 } from '@mudpuppy/chat-model';
@@ -35,6 +42,8 @@ export interface ChatConversationsTable {
   >;
   created_at: string;
   updated_at: string;
+  /** 0049 (spec 043): 'chat' (default) or 'workbench'. */
+  kind: ColumnType<ChatConversationKind, ChatConversationKind | undefined, ChatConversationKind>;
 }
 
 export interface ChatMessagesTable {
@@ -151,6 +160,71 @@ export interface ChatProposalsTable {
   decided_by: string | null;
   decided_at: string | null;
   created_at: string;
+}
+
+/** 0049: Workbench state of a conversation (spec 043). */
+export interface WorkbenchConversationsTable {
+  conversation_id: string;
+  path: ColumnType<WorkbenchPath, WorkbenchPath | undefined, WorkbenchPath>;
+  path_source: ColumnType<
+    WorkbenchPathSource,
+    WorkbenchPathSource | undefined,
+    WorkbenchPathSource
+  >;
+  title: string | null;
+  updated_at: string;
+}
+
+/** 0049: one view spec per assistant turn; JSON columns are stringified JSON. */
+export interface WorkbenchViewsTable {
+  id: string;
+  conversation_id: string;
+  turn: number;
+  path: WorkbenchPath;
+  why: string;
+  spec_json: string;
+  received_json: string;
+  dropped_json: ColumnType<string, string | undefined, string>;
+  repaired_json: ColumnType<string, string | undefined, string>;
+  fallback: ColumnType<number, number | undefined, number>;
+  created_at: string;
+}
+
+/** 0049: command proposals and their audit record; `token_hash` is a sha256 hex, never the token. */
+export interface WorkbenchCommandsTable {
+  id: string;
+  conversation_id: string;
+  turn: number;
+  command: WorkbenchCommandName;
+  args_json: string;
+  reason: string;
+  source: WorkbenchCommandSource;
+  state: ColumnType<
+    WorkbenchCommandState,
+    WorkbenchCommandState | undefined,
+    WorkbenchCommandState
+  >;
+  token_hash: string;
+  precondition_hash: string;
+  idempotency_key: string;
+  expires_at: string;
+  confirmed_by: string | null;
+  confirmed_at: string | null;
+  result_json: string | null;
+  error_ref: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+/** 0049: "Right view?" answers; primary key (view_id, by). */
+export interface WorkbenchFeedbackTable {
+  view_id: string;
+  by: string;
+  value: WorkbenchFeedbackValue;
+  reasons_json: ColumnType<string, string | undefined, string>;
+  text: string | null;
+  created_at: string;
+  updated_at: string;
 }
 
 /** 0018: the BA's cut of the portal (spec 022 M5). Head rows; `steps`/`sections` are stringified JSON. */

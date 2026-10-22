@@ -1,0 +1,45 @@
+{
+  "version": "1",
+  "path": "troubleshoot",
+  "why": "You asked why the scan stopped at /kontakt.",
+  "components": [
+    {
+      "id": "shot",
+      "type": "StepShot",
+      "bind": {
+        "scan": "01a110d5",
+        "step": 171
+      },
+      "props": {
+        "mark": "target"
+      }
+    },
+    {
+      "id": "tail",
+      "type": "EventTail",
+      "bind": {
+        "scan": "01a110d5",
+        "step": 171
+      },
+      "props": {
+        "count": 5
+      }
+    },
+    {
+      "id": "fixes",
+      "type": "FixChoices",
+      "bind": {
+        "scan": "01a110d5",
+        "step": 171
+      }
+    },
+    {
+      "id": "tries",
+      "type": "AttemptList",
+      "bind": {
+        "scan": "01a110d5",
+        "step": 171
+      }
+    }
+  ]
+}

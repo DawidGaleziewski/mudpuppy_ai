@@ -1,0 +1,14 @@
+{
+  "version": "1",
+  "path": "chat",
+  "why": "You asked to map.",
+  "components": [
+    {
+      "id": "map",
+      "type": "LiveMap",
+      "bind": {
+        "scan": "01a110d5"
+      }
+    }
+  ]
+}

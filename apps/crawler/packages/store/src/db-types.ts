@@ -18,6 +18,10 @@ import type {
   ProcessModelRevisionsTable,
   ProcessModelsTable,
   ProcessScopesTable,
+  WorkbenchCommandsTable,
+  WorkbenchConversationsTable,
+  WorkbenchFeedbackTable,
+  WorkbenchViewsTable,
   WorkflowStepsTable,
 } from './db-types-chat.js';
 import type {
@@ -166,6 +170,10 @@ export interface Database {
   amendments_with_target: AmendmentsTable & AmendmentTarget;
   amendment_revisions_with_target: AmendmentRevisionsTable & AmendmentTarget;
   chat_proposals: ChatProposalsTable;
+  workbench_conversations: WorkbenchConversationsTable;
+  workbench_views: WorkbenchViewsTable;
+  workbench_commands: WorkbenchCommandsTable;
+  workbench_feedback: WorkbenchFeedbackTable;
   grouping_suggestions: GroupingSuggestionsTable;
   ba_processes: BaProcessesTable;
   ba_process_revisions: BaProcessRevisionsTable;

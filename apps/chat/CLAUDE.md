@@ -22,12 +22,16 @@ store, vault, workflow.
   assistant cuts a crawler-eval store's scans into processes (orchestrator prompt, only the two
   grouping tools), graded against the ground truth; results in `data/evals/grouping-<portal>/`.
   Its unit tests (`evals/tests/`) run with `pnpm test`. See `evals/README.md`.
+- `evals/workbench/` (spec 043): 40 golden Workbench prompts, `pnpm eval:workbench --replay
+  <outcomes.json>` (no model) or `--live` (paid: only when the owner asks).
 
 ## Invariants
 - No hardcoded secrets; vault manages credentials.
 - Errors get `ERR-…` references in logs.
 - Chat schemas will move to `@mudpuppy/chat-model` (G-10).
 - `fence` is the agent's permission control: only the tools a session lists.
+- A Workbench conversation (spec 043) writes only through command cards a person confirms; its
+  fence starts the crawler only with a confirmed command's prompt (`workbench-session`).
 
 ## Where to add things
 - New HTTP route: a `<resource>Routes(req, res, method, path, deps)` in its `api-*` file, listed

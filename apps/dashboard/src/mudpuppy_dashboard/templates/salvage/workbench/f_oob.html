@@ -1,0 +1,19 @@
+{#- Out-of-band fragments the Workbench stream sends (spec 043 T014; doc 17 § 5.3): each replaces
+    the children of one stable container of the page. `what` picks the fragment. -#}
+{% import "salvage/workbench/log.html" as wblog with context %}
+{% from "salvage/workbench/frame.html" import composing %}
+{%- if what == "text" -%}
+<div id="turn-t{{ n }}-text" hx-swap-oob="innerHTML">{% for para in paras %}<p>{{ para }}</p>{% endfor %}</div>
+{%- elif what == "composing" -%}
+<div id="turn-t{{ n }}-views" hx-swap-oob="innerHTML">{{ composing("t" ~ n ~ "-composing", "Composing", blocks) }}</div>
+{%- elif what == "no_view" -%}
+<div id="turn-t{{ n }}-views" hx-swap-oob="innerHTML"><p class="sy-small sy-muted">No view this time; the answer is above.</p></div>
+{%- elif what == "turn" -%}
+<div id="turn-t{{ rt.turn.n }}-views" hx-swap-oob="innerHTML">{{ wblog.views(rt, portal, sel, stale) }}</div>
+<div id="turn-t{{ rt.turn.n }}-story" hx-swap-oob="innerHTML">{{ wblog.story(rt) }}</div>
+<div id="turn-t{{ rt.turn.n }}-cmds" hx-swap-oob="innerHTML">{{ wblog.commands(rt) }}</div>
+{%- elif what == "pathswitch" -%}
+<div id="wb-path" hx-swap-oob="innerHTML">{{ wblog.path_switch(conv, why) }}</div>
+{%- elif what == "livebar" -%}
+<div id="wb-livebar" hx-swap-oob="innerHTML">{{ wblog.livebar(live, live_card) }}</div>
+{%- endif -%}

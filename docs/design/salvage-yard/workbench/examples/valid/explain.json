@@ -1,0 +1,25 @@
+{
+  "version": "1",
+  "path": "explain",
+  "why": "You asked about the banner on wynik.",
+  "components": [
+    {
+      "id": "finding",
+      "type": "FindingCard",
+      "bind": {
+        "finding": "FND-007"
+      }
+    },
+    {
+      "id": "compare",
+      "type": "Compare",
+      "bind": {
+        "change": "CHG-019"
+      }
+    }
+  ],
+  "suggestions": [
+    "Which visits had the banner?",
+    "Open it in Review"
+  ]
+}

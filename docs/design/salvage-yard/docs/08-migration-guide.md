@@ -166,6 +166,11 @@ Value order: **Home + assistant drawer (01–03)** → **Review (09)** → **Set
 ### Phase 5 · Clean up
 Remove the Console stylesheet, JetBrains Mono, scanlines and glow, and the old base template. Run `find-old-styles.sh` and expect 0. Remove the flag.
 
+### Not a migration: the Workbench (gen UI beta)
+The Workbench has no Console counterpart, so nothing migrates. It needs the Salvage base template (Phase 2) and ships behind
+its own flag `workbench_beta`, following its own plan (`14-workbench.md` §7). Copy `css/genui.css` with the rest of the design
+system and load it only on Workbench pages.
+
 ### Rollback
 Until Phase 5 the flag switches any route back to Console instantly. Keep the old base template until two releases after the last route moves.
 

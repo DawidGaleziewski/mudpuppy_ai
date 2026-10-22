@@ -74,6 +74,9 @@ class _Watcher:
         self.conn = None
 
 
+StoreWatcher = _Watcher  # the Workbench stream's data lane watches the store the same way
+
+
 async def watch(
     data_dir: Path,
     env: str,

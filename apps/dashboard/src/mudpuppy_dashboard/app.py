@@ -19,7 +19,17 @@ from fastapi.responses import PlainTextResponse, RedirectResponse, Response
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
-from . import as_of, chat_client, glossary, live, nav, queries_docs, queries_map_node, status_map
+from . import (
+    as_of,
+    chat_client,
+    glossary,
+    live,
+    nav,
+    queries_docs,
+    queries_map_node,
+    status_map,
+    wb_frames,
+)
 from .models import DECISION_KINDS, FRONTIER_STATUSES, RUN_STATUSES, SAFETY_CLASSES
 from .settings import Settings
 from .web import access as access_page
@@ -48,6 +58,9 @@ from .web import same_screen as same_screen_page
 from .web import scans as scans_page
 from .web import screens as screens_page
 from .web import states as states_page
+from .web import workbench as workbench_page
+from .web import workbench_actions as workbench_actions_page
+from .web import workbench_stream as workbench_stream_page
 from .web.amendments import MAX_ATTACHMENT_B64
 from .web.deps import PORTAL_COOKIE, PORTAL_ID, Web, build_url
 from .web.runs import SECTIONS
@@ -97,6 +110,9 @@ def create_app(
     templates.env.globals["section_href"] = nav.href_of
     templates.env.globals["chat_start_hint"] = chat_client.start_hint
     templates.env.globals["AS_OF_SECTIONS"] = as_of.SECTIONS
+    templates.env.globals["PATH_WORDS"] = wb_frames.PATH_WORDS
+    templates.env.globals["WB_REASONS"] = wb_frames.REASONS
+    templates.env.filters["wb_clock"] = wb_frames.clock
 
     # Shared page helpers (web/deps.py); the page routers get them with `web_of(request)`.
     web = Web(settings, templates, chat_transport)
@@ -160,6 +176,9 @@ def create_app(
     app.include_router(map_page.router)
     app.include_router(same_screen_page.router)
     app.include_router(hints_page.router)
+    app.include_router(workbench_page.router)
+    app.include_router(workbench_actions_page.router)
+    app.include_router(workbench_stream_page.router)
     # Last: its /chat/portals/{portal}/{rest} forwarder must not shadow the routes above.
     app.include_router(processes_page.router)
     return app

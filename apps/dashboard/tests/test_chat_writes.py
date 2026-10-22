@@ -17,6 +17,11 @@ CHAT_TABLES = (
     "amendments",
     "amendment_revisions",  # spec 022: revisions and proposals go through the chat service too
     "chat_proposals",
+    # spec 043: the Workbench's rows are the chat service's too
+    "workbench_conversations",
+    "workbench_views",
+    "workbench_commands",
+    "workbench_feedback",
 )
 WRITE = re.compile(
     r"\b(INSERT\s+(OR\s+\w+\s+)?INTO|UPDATE|DELETE\s+FROM|REPLACE\s+INTO)\s+[\"`]?("

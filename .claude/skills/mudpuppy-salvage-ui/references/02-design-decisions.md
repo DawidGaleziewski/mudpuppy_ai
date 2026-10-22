@@ -147,7 +147,7 @@ Status key: **Accepted** (build it) · **Open** (needs a product decision, see e
 - **Why.** Clickable nodes are the point (they steer the crawler), so they must work with a keyboard and a screen reader. A canvas or SVG-only graph would not.
 
 ### D-27 · Red means the crawler failed, not that the portal showed an error — Accepted
-- **Decision.** An error page, toast or timeout that probing provoked or recorded is a **state** with a neutral chip ("technical"). Failure red is kept for our own failures: a stopped scan, a failed action, replay divergence.
+- **Decision.** An error page, toast or timeout that probing provoked or recorded is a **state** with a neutral chip ("technical"). Failure red is kept for our own failures: a failed action (the reason a scan stopped), replay divergence. The scan's own status word stays Stopped in ash (`03-colour-guide.md` §4 rule 5).
 - **Why.** One paint, one job (D-05). Probing produces many error states on purpose; painting them red would make a healthy probe run look broken.
 
 ### D-28 · Marks are a person's intent, the replay path is a drawing — Accepted
@@ -182,6 +182,40 @@ Status key: **Accepted** (build it) · **Open** (needs a product decision, see e
 ### D-35 · Decision tables: inputs ║ result, tests under the table, same shape in the export — Proposed
 - **Decision.** `.sy-table--decision` with a double weld before the result columns, provenance and hit policy under the table, boundary tests and history below; the export is the same table in Markdown plus one sentence.
 - **Why.** BAs read the conditions; developers read the same rows as a spec; testers read the boundaries. One shape for all three.
+
+## Workbench · generative UI beta (`14-workbench.md`, `17-genui-architecture.md`)
+
+### D-36 · A separate beta tab, not a mode of the assistant drawer — Proposed
+- **Decision.** "Workbench" is its own nav item behind `workbench_beta`, with a dashed ash "beta" chip (`.sy-chip--dashed`; blueprint would mean "drawn"). The drawer stays as it is and offers "Continue in Workbench".
+- **Why.** A composed screen needs the width of the page, and a beta must be easy to switch off without touching pages people rely on.
+
+### D-37 · htmx + server templates + SSE, small Web Components where needed; React only on named triggers — Proposed
+- **Decision.** Keep the console's stack. The model returns a JSON view spec; the server validates it and renders Jinja partials with `sy-` classes; htmx swaps them in; live data arrives over SSE (htmx `sse` extension); the map's keyboard and follow mode are one small Web Component. Revisit React only on the triggers in ADR-WB-1 (`17-genui-architecture.md` §1).
+- **Why.** Gen UI here is "pick and fill from a catalogue", which is server rendering. One rendering path, one CSS source, no build step, and the model's output never reaches the browser as code.
+
+### D-38 · Catalogue only; the server decides placement — Proposed
+- **Decision.** The model picks components from a fixed catalogue (`workbench/schema/catalogue.json`) and binds them to ids. It never writes HTML, CSS, numbers or page content, and never chooses the layout: placement follows the path and the rollout phase. Bad components are dropped, not the view.
+- **Why.** Predictable screens, testable output, no injection surface, and a design system that stays the single source of the look.
+
+### D-39 · Two lanes: live data never passes through the model — Proposed
+- **Decision.** Scan events update components directly (data lane). The model only writes the view spec, narration and command proposals (words lane), and every narration line cites events.
+- **Why.** Exact numbers at under a second, and the live view keeps working when the model is slow or down.
+
+### D-40 · Generated views have a solid frame and a "generated" mark; dashed blueprint is only for the assistant's own words and choices — Proposed
+- **Decision.** `.sy-genview` is solid with `.sy-genmark` and a source line; Why this view? and Right view? feedback appear once per view, on its lead frame. Narration, Why, suggestions and drafted commands are dashed blueprint (D-07).
+- **Why.** The arrangement is generated; the facts in it are observed. Dashing the whole view would claim the data is uncertain.
+
+### D-41 · Writes only through command cards; Send is never the marker button — Proposed
+- **Decision.** Every write (start, resume, stop, attempt, mark) is a `.sy-cmd` the person confirms; Confirm is the one marker button. In the Workbench the composer's Send is `.sy-btn--strong`. Beta commands run on sandbox only (OW-1 asks about later).
+- **Why.** The person stays in charge, and orange keeps pointing at the one decision on screen (D-05).
+
+### D-42 · Roll out Inline → Split → Focus + Explain — Proposed
+- **Decision.** Phase 1 ships generated cards inside the conversation (Chat + Mapping); phase 2 adds the split stage, the graph and Troubleshoot; phase 3 adds focus mode and Explain. Each phase has exit numbers (`14-workbench.md` §7).
+- **Why.** Inline cards need no new layout and prove the pipeline; the split stage is worth building once the live map earns its place.
+
+### D-43 · Answer first; fall back quietly — Proposed
+- **Decision.** The text answer never waits for a view (4 s); a view that can't be built falls back to plain chat with no red; a dropped stream shows "Live updates paused" and catches up.
+- **Why.** The assistant is useful without the view; red stays for real failures in the scan or the portal (D-05).
 
 ---
 

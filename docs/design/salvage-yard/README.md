@@ -10,6 +10,8 @@ exception is the original wireframes, which ask Google Fonts for IBM Plex Sans a
 
 **Open `index.html` in a browser to browse it all.** New: **MudPuppy 2.0** (`docs/12-v2-ux.md`, screens `v2-*`), the design answer
 to spec 039 · R-81: one living model of the portal, What changed, Needs you, business rules.
+Newest: the **Workbench** (generative UI beta, `docs/14`–`17`, screens `wb-*`, `workbench/`): one tab where the assistant composes
+the screen from a catalogue of components, with a runnable reference built on htmx + server templates + SSE.
 
 ## What's inside
 
@@ -23,10 +25,11 @@ mudpuppy-salvage-yard/
 │   └── logo/                   mark-grid-path.svg · mark-creature.svg · mark-mono.svg · tag-icon.svg (favicon)
 ├── design-system/
 │   ├── components.html         every component, live, with markup
-│   ├── css/                    tokens.css → fonts.css → salvage.css (load in this order)
+│   ├── genui-components.html   the gen UI layer (Workbench), live, with markup
+│   ├── css/                    tokens.css → fonts.css → salvage.css (→ genui.css on Workbench pages)
 │   ├── fonts/                  Archivo (variable), IBM Plex Mono, Special Elite (WOFF2, subset, licences)
 │   └── tokens/                 tokens.json (Console design-system list format) · tokens.dtcg.json (W3C DTCG)
-├── screens/                    16 v1 screens (12–16: map runs) + 16 MudPuppy 2.0 screens (v2-01 … v2-16)
+├── screens/                    16 v1 screens (12–16: map runs) + 16 MudPuppy 2.0 screens (v2-01 … v2-16) + 10 Workbench screens (wb-01 … wb-10)
 ├── wireframes/                 the 12 redesign wireframes (.dc.html, open offline via support.js)
 ├── screenshots/
 │   ├── screens/                1280px PNG of every detailed screen (visual-regression baselines)
@@ -46,7 +49,16 @@ mudpuppy-salvage-yard/
 │   ├── 10-processes-flow.html  visual overview of how processes work now
 │   ├── 11-map-runs.md          map runs: graph and marks, form probing, checkpoints and resume, directed scans, BA reconciliation
 │   ├── 12-v2-ux.md             MudPuppy 2.0 UX: IA, time, vocabulary, review flow, overturn, before/after, decision tables, states, answers
-│   └── 13-v2-fixtures.md       the 2.0 data story every v2 screen uses (seed for tests)
+│   ├── 13-v2-fixtures.md       the 2.0 data story every v2 screen uses (seed for tests) + the Workbench fixture
+│   ├── 14-workbench.md         Workbench feature spec: paths, layouts, behaviour rules, states, the phased plan step by step
+│   ├── 15-genui-guidelines.md  gen UI style guide and good practices: provenance, writing, stability, trust, accessibility
+│   ├── 16-genui-components.md  the gen UI component catalogue and frame components, props, states, markup
+│   └── 17-genui-architecture.md htmx vs React decision, view-spec pipeline, SSE, validation, security, evals, tickets
+├── workbench/
+│   ├── schema/                 view-spec, narration and command JSON Schemas, catalogue, commands, model tool definitions
+│   ├── examples/               valid and invalid view specs, narration, commands (the contract tests use them)
+│   ├── tools/gen_wb_schema.py  the single source of the contract (regenerates schema/ and examples/)
+│   └── reference/              runnable reference app (Starlette + Jinja + htmx + SSE): ships in the next update
 ├── skill/mudpuppy-salvage-ui/  the frontend skill: SKILL.md + references/ + scripts/ (copy to .claude/skills/)
 └── migration/
     ├── token-map.csv           Console (and never-shipped rust) tokens → Salvage roles
@@ -63,6 +75,9 @@ mudpuppy-salvage-yard/
 1. Copy `design-system/css`, `design-system/fonts` and `design-system/tag-icon.svg` to the console's static folder (for example `static/salvage/`).
 2. Load `tokens.css`, `fonts.css`, `salvage.css` in a new base template (`docs/05-css-guide.md`).
 3. Follow `docs/08-migration-guide.md`: re-skin first, then the redesign, page by page behind a flag.
+
+**Workbench (gen UI beta):** read `docs/14-workbench.md` §7 (the plan) and open `screens/wb-01…wb-10`
+(the runnable reference app in `workbench/reference/` follows in the next update). Stack decision and reasons: `docs/17-genui-architecture.md` §1.
 
 **Harness (Claude Code or similar):**
 1. Commit this package to the repo (for example `docs/design/salvage-yard/`), then copy `skill/mudpuppy-salvage-ui/` to `<repo>/.claude/skills/mudpuppy-salvage-ui/` and set `DS_PATH` / `DESIGN_PKG` at the top of its SKILL.md.
@@ -85,7 +100,8 @@ mudpuppy-salvage-yard/
 
 - Every text pair meets WCAG 2.2 AA (`docs/03-colour-guide.md` §5); status colours checked under deuteranopia and protanopia simulation.
 - All three fonts cover Polish (checked glyph by glyph).
-- Every v1 screen renders offline at 1280 and 390, and every 2.0 screen at 1280 and 1024 (desktop-first, per the brief), with no page-level horizontal scroll and no console errors.
+- Every v1 screen renders offline at 1280 and 390, and every 2.0 and Workbench screen at 1280 and 1024 (desktop-first, per the brief), with no page-level horizontal scroll and no console errors.
+- The Workbench contract validates: valid examples pass, invalid ones fail for the expected reason.
 
 ## Open items
 

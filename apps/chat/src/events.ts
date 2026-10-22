@@ -63,6 +63,14 @@ export type UiAction =
       persona: string;
       ref: string;
       reason: string | null;
-    };
+    }
+  /** Workbench words lane (spec 043, contracts/workbench-http.md): the model opened render_view. */
+  | { type: 'wb_composing'; turn: number }
+  /** A checked view was stored for the turn; `fallback`: nothing valid was left. */
+  | { type: 'wb_view'; turn: number; viewId: string; fallback: boolean }
+  /** render_view ended without a stored view. */
+  | { type: 'wb_no_view'; turn: number }
+  /** A command card changed state (proposed, running, done, failed, cancelled, expired). */
+  | { type: 'wb_command'; id: string; state: string };
 
 export type ChatEventListener = (event: ChatEvent) => void;

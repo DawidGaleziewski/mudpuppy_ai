@@ -10,6 +10,10 @@
   <div class="sy-drawer__head">
     <h2 class="sy-plate__title">Assistant</h2>
     <div class="sy-actions" style="--sy-gap: 6px">
+      {%- if workbench_beta %}
+      {#- Spec 043 T040 (D-10): a Workbench conversation of its own; the chat stays here. #}
+      <a class="sy-small" href="{{ c.url('/workbench', new=1) }}">Continue in Workbench</a>
+      {%- endif %}
       <a class="sy-btn sy-btn--icon sy-btn--md" href="{{ c.url('/chat') }}" aria-label="Open this conversation full page"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square" aria-hidden="true"><path d="M14 4h6v6M10 20H4v-6M20 4l-7 7M4 20l7-7"/></svg></a>
       <button class="sy-btn sy-btn--icon sy-btn--md" type="button" data-assistant-close aria-label="Close assistant"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="square" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
     </div>

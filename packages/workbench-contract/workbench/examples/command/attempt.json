@@ -1,0 +1,9 @@
+{
+  "command": "path.attempt",
+  "args": {
+    "scan": "01a110d5",
+    "step": 171,
+    "variation": "wait_longer"
+  },
+  "reason": "The form may need more than 10 s to appear."
+}

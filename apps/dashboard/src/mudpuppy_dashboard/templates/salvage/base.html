@@ -57,5 +57,8 @@
 <div id="stale" class="sy-toast sy-toast--fixed" role="status" hidden>
   <span class="sy-status" data-status="failed">Stale</span> Live connection lost. The view may be stale; reconnecting.
 </div>
+{%- if c.request.query_params.get("notice") == "workbench-paused" %}
+<div class="sy-toast sy-toast--fixed" role="status">The Workbench is paused.</div>
+{%- endif %}
 </body>
 </html>

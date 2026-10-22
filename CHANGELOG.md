@@ -36,6 +36,29 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   length (F-02). Findings F-01–F-05 in `specs/041-r83-mudpuppy-rename/findings.md`.
 
 ### Added
+- **R-92: the Workbench, a beta where the assistant composes the screen** (spec 043, v2.3.0,
+  2026-10-22; phases 0 and 1 of the designer's plan, `docs/design/salvage-yard/docs/14`–`17`).
+  Off by default: `MUDPUPPY_WORKBENCH=1` shows the tab (with a `beta` chip); off again hides it
+  and `/workbench` goes Home ("The Workbench is paused"). **What you see**: ask in the composer
+  and the assistant answers in words, then, when a view says it better, puts cards in the
+  conversation from a fixed catalogue: a live filmstrip of a scan with its meter (updated from
+  the store, no model in between), the ErrorCard when a scan stopped on a failure, a page
+  miniature, a record or a list of records, templated narration citing `scan#step`. Every
+  generated view says so (a "generated" mark, Why this view?, Right view? Yes / No). Paths Chat
+  and Mapping, the person's switch wins. **Writes ask first**: starting, resuming or stopping a
+  scan is a command card with one Confirm (one-time token, expires after 10 minutes or when the
+  scan changed); the assistant can start the crawler only with the prompt a confirmed card
+  handed over, and each confirm is an audit row. Entries: Scans' running scan ("Watch in
+  Workbench"), the assistant drawer; Settings shows the day's turns (cap 200). **How**: the
+  designer's contract in `packages/workbench-contract` (generated JSON, drift test; a check that
+  drops a bad component instead of failing the view); migration 0049 (Workbench conversations,
+  views, commands, feedback); the chat service gives a Workbench conversation its own prompt,
+  two tools (`render_view`, `propose_command`), fence and events; the dashboard renders the
+  views (htmx, as the designer decided, not React) and runs one stream per tab. Evals: 40
+  golden prompts with code graders, `pnpm --dir apps/chat eval:workbench` (replay free, live
+  paid). Adaptations to MudPuppy D-1…D-10 and findings F-01…F-16 in
+  `specs/043-r92-workbench-genui/` (open for the owner: D-1…D-10, the record id pattern F-06,
+  the beta chip's contrast F-15, the old wordmark in the old-styles check F-14).
 - **MudPuppy 2.1: the designer's pages, second half (R-93), spec 039 leftovers (R-91) and the
   scar-maker baseline (R-75)** (spec 040, v2.1.0, 2026-10-22). **Review**: Undo of a decision
   (one Undo takes back a whole group; migration 0046 `decision_id`, `undoes`,

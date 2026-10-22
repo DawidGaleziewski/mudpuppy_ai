@@ -1,0 +1,416 @@
+{
+  "description": "The component catalogue: everything the assistant may place on the Workbench. Generated with view-spec.schema.json.",
+  "limits_per_path": {
+    "chat": 2,
+    "mapping": 4,
+    "troubleshoot": 4,
+    "explain": 3
+  },
+  "components": [
+    {
+      "type": "LiveMap",
+      "phase": 1,
+      "paths": [
+        "mapping"
+      ],
+      "placement": {
+        "inline": "card",
+        "split": "stage",
+        "focus": "stage"
+      },
+      "required_bind": [
+        "scan"
+      ],
+      "data": "events (SSE, data lane)",
+      "actions": [
+        "select page",
+        "ask about page",
+        "follow on/off",
+        "open full map"
+      ],
+      "shows": "Pages the crawler visited, in visit order, with miniatures, edges, its current position and the queue, with the scan meter in its body. Side trips fold into a '+N side pages' chip on the page they came from.",
+      "bind": [
+        "scan"
+      ],
+      "props": [
+        "follow",
+        "view",
+        "highlight"
+      ]
+    },
+    {
+      "type": "ScanMeter",
+      "phase": 1,
+      "paths": [
+        "mapping",
+        "troubleshoot"
+      ],
+      "placement": {
+        "inline": "card",
+        "split": "stage",
+        "focus": "stage"
+      },
+      "required_bind": [
+        "scan"
+      ],
+      "data": "events",
+      "actions": [
+        "stop scan (command, asks first)"
+      ],
+      "shows": "Steps of the limit, pages, queued links, where the crawler is now. For views without a LiveMap (it has its own meter).",
+      "bind": [
+        "scan"
+      ],
+      "props": []
+    },
+    {
+      "type": "PageMiniature",
+      "phase": 1,
+      "paths": [
+        "chat",
+        "mapping",
+        "explain"
+      ],
+      "placement": {
+        "inline": "card",
+        "split": "stage",
+        "focus": "stage"
+      },
+      "required_bind": [
+        "scan",
+        "page"
+      ],
+      "data": "screenshots",
+      "actions": [
+        "open detail",
+        "ask about page"
+      ],
+      "shows": "One page's thumbnail with its route and status.",
+      "bind": [
+        "scan",
+        "page"
+      ],
+      "props": [
+        "size"
+      ]
+    },
+    {
+      "type": "PageDetail",
+      "phase": 1,
+      "paths": [
+        "mapping",
+        "troubleshoot"
+      ],
+      "placement": {
+        "inline": "aside",
+        "split": "stage",
+        "focus": "aside"
+      },
+      "required_bind": [
+        "scan",
+        "page"
+      ],
+      "data": "model + events",
+      "actions": [
+        "ask about page",
+        "troubleshoot (if failed, phase 2)",
+        "add a mark (command, phase 2)",
+        "open the screen"
+      ],
+      "shows": "What happened on a page, when, its status, a link to the screen in the model.",
+      "bind": [
+        "scan",
+        "page"
+      ],
+      "props": []
+    },
+    {
+      "type": "Narration",
+      "phase": 1,
+      "paths": [
+        "mapping"
+      ],
+      "placement": {
+        "inline": "conv",
+        "split": "conv",
+        "focus": "aside"
+      },
+      "required_bind": [
+        "scan"
+      ],
+      "data": "events → words (each line cites events)",
+      "actions": [
+        "ask about a line",
+        "open the cited event"
+      ],
+      "shows": "What the crawler did, in plain words, one line per page or milestone.",
+      "bind": [
+        "scan"
+      ],
+      "props": [
+        "every"
+      ]
+    },
+    {
+      "type": "ErrorCard",
+      "phase": 1,
+      "paths": [
+        "mapping",
+        "troubleshoot"
+      ],
+      "placement": {
+        "inline": "card",
+        "split": "conv",
+        "focus": "aside"
+      },
+      "required_bind": [
+        "scan"
+      ],
+      "data": "events (scan.stopped)",
+      "actions": [
+        "resume (command)",
+        "troubleshoot (path switch)",
+        "ask why"
+      ],
+      "shows": "Why the scan stopped, where, the error reference, what is kept.",
+      "bind": [
+        "scan"
+      ],
+      "props": []
+    },
+    {
+      "type": "StepShot",
+      "phase": 2,
+      "paths": [
+        "troubleshoot",
+        "explain"
+      ],
+      "placement": {
+        "inline": "card",
+        "split": "stage",
+        "focus": "stage"
+      },
+      "required_bind": [
+        "scan",
+        "step"
+      ],
+      "data": "screenshot + DOM snapshot",
+      "actions": [
+        "ask about the marked region"
+      ],
+      "shows": "The page at a step, with the target region marked.",
+      "bind": [
+        "scan",
+        "step"
+      ],
+      "props": [
+        "mark"
+      ]
+    },
+    {
+      "type": "EventTail",
+      "phase": 2,
+      "paths": [
+        "troubleshoot"
+      ],
+      "placement": {
+        "inline": "card",
+        "split": "stage",
+        "focus": "stage"
+      },
+      "required_bind": [
+        "scan"
+      ],
+      "data": "events (raw)",
+      "actions": [
+        "copy",
+        "open in Scans"
+      ],
+      "shows": "The last raw events up to a step.",
+      "bind": [
+        "scan",
+        "step"
+      ],
+      "props": [
+        "count"
+      ]
+    },
+    {
+      "type": "FixChoices",
+      "phase": 2,
+      "paths": [
+        "troubleshoot"
+      ],
+      "placement": {
+        "inline": "card",
+        "split": "stage",
+        "focus": "stage"
+      },
+      "required_bind": [
+        "scan",
+        "step"
+      ],
+      "data": "recovery API (variations are not written by the model)",
+      "actions": [
+        "run attempt (command, asks first)"
+      ],
+      "shows": "Variations for the next attempt at a failing step.",
+      "bind": [
+        "scan",
+        "step"
+      ],
+      "props": []
+    },
+    {
+      "type": "AttemptList",
+      "phase": 2,
+      "paths": [
+        "troubleshoot"
+      ],
+      "placement": {
+        "inline": "card",
+        "split": "stage",
+        "focus": "aside"
+      },
+      "required_bind": [
+        "scan",
+        "step"
+      ],
+      "data": "attempts",
+      "actions": [
+        "open attempt"
+      ],
+      "shows": "Attempts so far at a step, with results.",
+      "bind": [
+        "scan",
+        "step"
+      ],
+      "props": []
+    },
+    {
+      "type": "Compare",
+      "phase": 3,
+      "paths": [
+        "chat",
+        "explain"
+      ],
+      "placement": {
+        "inline": "card",
+        "split": "stage",
+        "focus": "stage"
+      },
+      "required_bind": [
+        "change"
+      ],
+      "data": "model (2.0 Changes)",
+      "actions": [
+        "open in Changes"
+      ],
+      "shows": "Before / after of one change, the difference marked.",
+      "bind": [
+        "change"
+      ],
+      "props": []
+    },
+    {
+      "type": "DecisionTable",
+      "phase": 3,
+      "paths": [
+        "chat",
+        "explain"
+      ],
+      "placement": {
+        "inline": "card",
+        "split": "stage",
+        "focus": "stage"
+      },
+      "required_bind": [
+        "rule"
+      ],
+      "data": "model (2.0 Rules)",
+      "actions": [
+        "open in Rules"
+      ],
+      "shows": "A rule as inputs ║ result with its boundary tests.",
+      "bind": [
+        "rule"
+      ],
+      "props": []
+    },
+    {
+      "type": "FindingCard",
+      "phase": 3,
+      "paths": [
+        "explain"
+      ],
+      "placement": {
+        "inline": "card",
+        "split": "stage",
+        "focus": "stage"
+      },
+      "required_bind": [
+        "finding"
+      ],
+      "data": "model (2.0 Review)",
+      "actions": [
+        "open in Review (decisions stay in Review)"
+      ],
+      "shows": "A finding with its proposed explanation and evidence.",
+      "bind": [
+        "finding"
+      ],
+      "props": []
+    },
+    {
+      "type": "RecordCard",
+      "phase": 1,
+      "paths": [
+        "chat",
+        "explain"
+      ],
+      "placement": {
+        "inline": "card",
+        "split": "stage",
+        "focus": "aside"
+      },
+      "required_bind": [
+        "record"
+      ],
+      "data": "model",
+      "actions": [
+        "open record"
+      ],
+      "shows": "One screen, process or rule as a small card with its status and link.",
+      "bind": [
+        "record"
+      ],
+      "props": []
+    },
+    {
+      "type": "RecordList",
+      "phase": 1,
+      "paths": [
+        "chat"
+      ],
+      "placement": {
+        "inline": "card",
+        "split": "stage",
+        "focus": "stage"
+      },
+      "required_bind": [
+        "records"
+      ],
+      "data": "model",
+      "actions": [
+        "open record"
+      ],
+      "shows": "Up to 12 records in a compact table, in the order given.",
+      "bind": [
+        "records"
+      ],
+      "props": [
+        "title"
+      ]
+    }
+  ]
+}

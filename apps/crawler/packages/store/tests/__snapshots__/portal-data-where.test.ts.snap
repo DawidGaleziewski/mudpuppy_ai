@@ -302,6 +302,22 @@ exports[`where > names the same rows for every portal table 1`] = `
     "mine": "run_id IN (SELECT id FROM runs WHERE portal_id = ?)",
     "others": "run_id IN (SELECT id FROM runs WHERE portal_id <> ?)",
   },
+  "workbench_commands": {
+    "mine": "conversation_id IN (SELECT id FROM chat_conversations WHERE portal_id = ?)",
+    "others": "conversation_id IN (SELECT id FROM chat_conversations WHERE portal_id <> ?)",
+  },
+  "workbench_conversations": {
+    "mine": "conversation_id IN (SELECT id FROM chat_conversations WHERE portal_id = ?)",
+    "others": "conversation_id IN (SELECT id FROM chat_conversations WHERE portal_id <> ?)",
+  },
+  "workbench_feedback": {
+    "mine": "view_id IN (SELECT id FROM workbench_views WHERE conversation_id IN (SELECT id FROM chat_conversations WHERE portal_id = ?))",
+    "others": "view_id IN (SELECT id FROM workbench_views WHERE conversation_id IN (SELECT id FROM chat_conversations WHERE portal_id <> ?))",
+  },
+  "workbench_views": {
+    "mine": "conversation_id IN (SELECT id FROM chat_conversations WHERE portal_id = ?)",
+    "others": "conversation_id IN (SELECT id FROM chat_conversations WHERE portal_id <> ?)",
+  },
   "workflow_steps": {
     "mine": "portal_id = ?",
     "others": "portal_id <> ?",

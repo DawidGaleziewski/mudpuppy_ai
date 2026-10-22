@@ -10,11 +10,13 @@ console's server-rendered templates today and in any component framework later.
 | `design-system/css/tokens.css` | 7 KB | Custom properties: raw palette + **roles** + type, space, sizes, motion, z-index |
 | `design-system/css/fonts.css` | 2 KB | `@font-face` for the self-hosted WOFF2 files |
 | `design-system/css/salvage.css` | 47 KB (9.5 KB gzip) | Reset, base, layout, ~178 component classes, utilities, motion, responsive, forced-colours |
+| `design-system/css/genui.css` | 20 KB | The generative UI layer (Workbench): layouts, generated frame, Why, feedback, narration, context chips, miniatures, sheet, command bar, command card. Load it only on pages that compose views (`16-genui-components.md`) |
 | `design-system/fonts/*.woff2` | 250 KB | Archivo (variable wght 100–900 × wdth 62–125), IBM Plex Mono 400/500/600, Special Elite 400 + licences |
 | `design-system/tokens/tokens.json` | | Generated from `tokens.css`: raw paint + role tokens (as aliases), type styles, space, sizes, radius, borders, durations, z-index, breakpoints, in the Console design-system list format with a usage note on every token |
 | `design-system/tokens/tokens.dtcg.json` | | Generated from `tokens.css` in W3C DTCG format; token `sy.<name>` = CSS `--sy-<name>`, so a kebab-case name transform reproduces the CSS names |
 
-**Load order matters:** `tokens.css` → `fonts.css` → `salvage.css` → your app CSS.
+**Load order matters:** `tokens.css` → `fonts.css` → `salvage.css` → (`genui.css` on Workbench pages) → your app CSS.
+`genui.css` adds no layer of its own: its rules live in `sy.components`, so utilities still win.
 
 ```html
 <link rel="preload" href="/static/salvage/fonts/Archivo-Variable.woff2" as="font" type="font/woff2" crossorigin>
@@ -100,6 +102,7 @@ Put the mapping in **one** place in the backend or view layer, for example a tem
 **Allowed inline styles:** layout only (`display`, `flex*`, `grid*`, `gap`, `width`/`min-`/`max-width`,
 `margin`, `align-*`, `justify-*`, image `height`) and the hooks `--sy-gap`, `--sy-min` (for `.sy-grid`) and `--value` (for `.sy-meter`).
 Graph and timeline layout are the exceptions: `.sy-node`, `.sy-node-group` and `.sy-graph__canvas` take `left`, `top`, `width`, `height` and `--sy-node-w` from the server's layout, and `path.sy-edge` takes its `d`; `.sy-releases__span`, `__scan` and `__range` take `left`/`width` in %, `.sy-releases` takes `--sy-releases-name`.
+Gen UI hooks (`genui.css`): `.sy-wb` takes `--sy-wb-h` (conversation height), `--sy-wb-conv` and `--sy-wb-aside` (column widths); `.sy-mini` takes `--sy-mini-h`; `.sy-film__item` `--sy-film-w`; `.sy-genskel__block` `--sy-skel-h` (reserve the final size); `.sy-evstrip` `--sy-evstrip-n`.
 
 **Forbidden everywhere outside `tokens.css`:**
 - hex, `rgb()` or named colours (use roles)
