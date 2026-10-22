@@ -372,6 +372,10 @@ rules:
     claim_markers:
       - "18"
       - "75"
+    # F-13@004 (spec 045): both ends of the range, not one number.
+    claim_markers_all:
+      - ["18"]
+      - ["75"]
   - id: R02
     statement: The postcode must have the format NN-NNN.
     type: format
@@ -404,6 +408,9 @@ rules:
       - "800"
       - "1200"
       - 1 200
+    claim_markers_all:
+      - ["800"]
+      - ["1200", "1 200"]
   - id: R05
     statement: The engine factor is 0.9 up to 1400 cm3, 1.0 for 1401-2000 cm3 and 1.25 above 2000 cm3.
     type: computation
@@ -418,6 +425,11 @@ rules:
       - 1 400
       - "1.25"
       - 1,25
+    # every band (F-13@004: two of three bands matched on 1,25 alone)
+    claim_markers_all:
+      - ["0.9", "0,9"]
+      - ["1400", "1 400"]
+      - ["1.25", "1,25"]
   - id: R06
     statement: Drivers with at least 5 years without claims get a 10% discount on the premium.
     type: computation
@@ -488,6 +500,10 @@ rules:
     guest_observable: true
     claim_markers:
       - WIOSNA10
+    # the code and its effect (F-13@004: the hint's example alone matched)
+    claim_markers_all:
+      - [WIOSNA10]
+      - ["10%", "10 %"]
   - id: R12
     statement: Travel insurance covers at most 90 days including the departure and return days.
     type: validation
@@ -521,6 +537,9 @@ rules:
     claim_markers:
       - "12"
       - "25"
+    claim_markers_all:
+      - ["12"]
+      - ["25"]
   - id: R15
     statement: A contact request needs a phone number or an e-mail address.
     type: validation

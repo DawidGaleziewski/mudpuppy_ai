@@ -1,15 +1,15 @@
 {
   "portal_id": "reference-insurer",
   "persona_id": "guest",
-  "started_at": "2026-10-21T20:40:15.252Z",
-  "git_sha": "993bfa3",
+  "started_at": "2026-10-22T22:20:37.662Z",
+  "git_sha": "e8f725d",
   "runs": {
     "crawler": "01a16031-7d54-7000-ad1c-598ec8675dfe",
-    "ba_session": "01a1603d-9b1e-7000-a1b1-d8c2a02a0f78",
+    "ba_session": "01a165b3-cab8-7000-806d-c0a63e5ca534",
     "crawler_cli_session": "8fe4fa1b-9e6b-47ab-a100-ddb7663336d6",
-    "ba_cli_session": "1a054b41-71aa-4e8c-be1e-35a8f1819eaa",
-    "ba_traces_session": "01a16047-d812-7000-abec-f79560eacb79",
-    "ba_traces_cli_session": "ea918ad7-6869-4d7a-93ec-bd46538e07d3",
+    "ba_cli_session": "a68ed49a-c826-43db-8c12-9b18c626272b",
+    "ba_traces_session": "01a165bd-2451-7000-a83f-52ce3bf80470",
+    "ba_traces_cli_session": "e250b7dd-3c97-44a4-81e7-64728681487e",
     "process_traces": [
       {
         "process_id": "P01",
@@ -39,7 +39,8 @@
   },
   "conditions": {
     "process_traces": 4,
-    "form_probing": true
+    "form_probing": true,
+    "ba_replay_of": "2026-10-21T20-40-15-252Z.json"
   },
   "outcomes": {
     "crawler": "success",
@@ -54,10 +55,10 @@
     ]
   },
   "cost": {
-    "usd": 7.0551532,
-    "input_tokens": 10800136,
-    "output_tokens": 117576,
-    "duration_ms": 1700735
+    "usd": 5.2922688,
+    "input_tokens": 6761564,
+    "output_tokens": 93673,
+    "duration_ms": 840396
   },
   "scores": {
     "screens": {
@@ -76,9 +77,9 @@
       "pct": 98.1
     },
     "rules": {
-      "matched": 7,
+      "matched": 13,
       "total": 17,
-      "pct": 41.2
+      "pct": 76.5
     },
     "processes": {
       "matched": 4,
@@ -111,14 +112,14 @@
       "pct": 100
     },
     "export_records_once": {
-      "matched": 10,
-      "total": 10,
+      "matched": 36,
+      "total": 36,
       "pct": 100
     },
     "export_ears": {
-      "matched": 10,
-      "total": 10,
-      "pct": 100
+      "matched": 26,
+      "total": 36,
+      "pct": 72.2
     },
     "export_fields_documented": {
       "matched": 46,
@@ -169,15 +170,16 @@
     "frontier_pending": 0,
     "ba_session_completed": true,
     "handoffs": 0,
-    "ba_write_calls": 103,
+    "ba_write_calls": 107,
     "ba_write_refused": 10,
-    "ba_write_refused_pct": 10,
-    "ba_relation_refused": 6,
+    "ba_write_refused_pct": 9,
+    "ba_relation_refused": 7,
     "route_templates_with_query": 0,
     "data_items_joined": 0,
     "rules_on_screens_pct": 100,
     "data_items_code_names": 0,
     "error_pages_as_steps": 0,
+    "rules_constraint_only": 1,
     "process_traces_goal_reached": 4,
     "export_extra_steps": 0,
     "export_action_strays": 0,
@@ -189,87 +191,5 @@
     "password_hits": 0,
     "widget_actions": 0
   },
-  "workspace": "/tmp/pf-eval-reference-insurer-x5Aawm",
-  "judges": [
-    {
-      "id": "glossary-terms",
-      "version": "130240170034",
-      "model": "claude-sonnet-5-5",
-      "claude_code_version": "2.1.288",
-      "calibrated": false,
-      "covered": 10,
-      "total": 10,
-      "pct": 100,
-      "counts": {
-        "pass": 10,
-        "fail": 1,
-        "unknown": 0,
-        "error": 0
-      },
-      "skipped_pairs": 0,
-      "cost": {
-        "usd": 0.030327,
-        "input_tokens": 14057,
-        "output_tokens": 1242,
-        "calls": 11
-      },
-      "verdicts": [
-        {
-          "pair_id": "T01~GL-001@1",
-          "verdict": "pass",
-          "reason": "The record's term is OC and its definition is identical to the portal's meaning (mandatory third-party liability insurance for vehicle owners); the synonym \"Tylko OC\" does not change it."
-        },
-        {
-          "pair_id": "T02~GL-002@1",
-          "verdict": "pass",
-          "reason": "The record's term is Autocasco (AC) and its definition is identical to the portal's meaning: voluntary vehicle insurance against damage and theft."
-        },
-        {
-          "pair_id": "T03~GL-003@1",
-          "verdict": "pass",
-          "reason": "The record's term is \"Assistance\" and its definition matches the portal's meaning word for word."
-        },
-        {
-          "pair_id": "T04~GL-004@1",
-          "verdict": "pass",
-          "reason": "The record's term and definition match the portal's term and meaning word for word."
-        },
-        {
-          "pair_id": "T05~GL-005@1",
-          "verdict": "pass",
-          "reason": "The record's term and definition match the portal's meaning exactly (amount paid for insurance coverage)."
-        },
-        {
-          "pair_id": "T06~GL-006@1",
-          "verdict": "pass",
-          "reason": "The record's term and definition match the portal's term and meaning word for word."
-        },
-        {
-          "pair_id": "T06~GL-007@1",
-          "verdict": "fail",
-          "reason": "The record defines \"OWU\" (General Terms of Insurance), a different term from \"Suma ubezpieczenia\" (the maximum amount the insurer pays), so it does not match."
-        },
-        {
-          "pair_id": "T07~GL-007@1",
-          "verdict": "pass",
-          "reason": "The record defines OWU as \"Ogólne Warunki Ubezpieczenia\", the same as the portal's meaning, and the term matches."
-        },
-        {
-          "pair_id": "T08~GL-008@1",
-          "verdict": "pass",
-          "reason": "The record's term and definition match the portal's meaning exactly (person concluding the contract and paying the premium)."
-        },
-        {
-          "pair_id": "T09~GL-009@1",
-          "verdict": "pass",
-          "reason": "The record's term is \"Ubezpieczony\" and its definition is word-for-word the portal's meaning: a person covered by insurance protection."
-        },
-        {
-          "pair_id": "T10~GL-010@1",
-          "verdict": "pass",
-          "reason": "The record's term and definition match the portal's meaning exactly (promo code reducing the premium)."
-        }
-      ]
-    }
-  ]
+  "workspace": "/tmp/pf-eval-reference-insurer-replay-AljF3F"
 }

@@ -71,6 +71,10 @@ rules; this file keeps the map (spec 042 T050, G-30).
 - Spec 034 (F-21, data pass): `services/ba/data-pass-check.ts` (`record_pass` for `data` returns
   `warnings`: form fields no data item names, terms the pages define that no glossary term names);
   `data-item-fields.ts` also refuses a data item named by a field's technical name.
+- Spec 045 (R-89, rules pass): `services/ba/rule-pass-check.ts` (`record_pass` for `rules` and
+  `synthesis` returns `warnings`: probe validation messages, validation screens' alerts and hints
+  next to form fields that no business rule states); `runtime/pipeline/probe.ts` `textMessages`
+  (plain text a press made appear, `source: 'dom-text'`, R-80 (1)).
 - Spec 034 (R-66, map from a known screen): `services/checkpoints.ts` (every run stores its shortest
   path per state from `navigate`/`act` bookkeeping; `resolveRecipe`: a recorded direct visit, else
   the shortest checkpoint of the persona, else a path rebuilt from page visits; `NO_PATH`),

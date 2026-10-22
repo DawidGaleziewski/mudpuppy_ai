@@ -314,6 +314,25 @@ describe('evaluate (research §16, contracts/ground-truth.md)', () => {
     expect(missing('"Rok produkcji" accepts 1990–2026.')).toEqual([]);
   });
 
+  it('claim_markers_all: every group must be met, by one of its spellings (F-13@004, spec 045)', () => {
+    const strict = GroundTruth.parse({
+      ...gt,
+      rules: gt.rules.map((r) =>
+        r.id === 'R01' ? { ...r, claim_markers_all: [['1990'], ['2026', 'current year']] } : r,
+      ),
+    });
+    const swap = (statement: string) =>
+      records().map((x) =>
+        x.kind === 'business_rule' ? { ...x, content: { ...x.content, statement } } : x,
+      );
+    const missing = (statement: string) =>
+      evaluate({ ...base, groundTruth: strict, records: swap(statement) }).scores.rules.missing;
+    // one end of the range is no longer enough
+    expect(missing('"Rok produkcji" from 1990.')).toEqual(['R01']);
+    expect(missing('"Rok produkcji" accepts 1990 to the current year.')).toEqual([]);
+    expect(missing('"Rok produkcji" accepts 1990–2026.')).toEqual([]);
+  });
+
   it('a login-wall process claimed as fully observed is an over-claim', () => {
     const full = records().map((x) =>
       x.content.title === 'Renew'

@@ -124,6 +124,11 @@ and the condition `form_probing` (`probe_scan` in trials before spec 039 T116, r
 name); `--no-form-probing` skips it. The P01 trace chooses "OC + Autocasco (AC)", so the
 options step's variant 4b is recorded (the map's happy path records 4a).
 
+`--ba-replay <result.json>` (spec 045) runs only the two BA sessions again, on a copy of that
+kept trial's workspace with its documentation and groupings taken out: the same crawl evidence,
+so a BA change is measured alone. Recorded as the condition `ba_replay_of`; it costs about as
+much as the BA part of a full trial.
+
 ### Judges (model-based graders, spec 017)
 
 A judge asks headless Claude one narrow question per (ground-truth item, record) pair and gets

@@ -15,15 +15,7 @@ import { highlightCrop } from '../../docs/src/render/images.js';
 import { withLabel } from '../../docs/src/render/label-box.js';
 import { startMockPortal, type MockPortal } from '../../mcp-server/tests/mock-portal.js';
 import { CONTENT, startBa } from '../../mcp-server/tests/ba-harness.js';
-import {
-  gap,
-  gate,
-  GATE_BASE,
-  gateServer,
-  REPO,
-  type Body,
-  type GateServer,
-} from '../src/index.js';
+import { gate, GATE_BASE, gateServer, REPO, type Body, type GateServer } from '../src/index.js';
 
 /**
  * One case per logged finding mapped `tier: gate` in eval-cases.yaml (spec 009 FR-024, FR-025):
@@ -546,37 +538,33 @@ gate('F-12@008', 'a highlight crop of a radio includes the label to its right', 
   expect(width).toBeGreaterThanOrEqual(16 + 8 + label.length * 8);
 });
 
-gap(
-  'F-13@004',
-  'a record quoting only the hint example does not earn R11',
-  'open: one claim marker is enough to match a rule (spec 004 F-13)',
-  async () => {
-    const gt = readGroundTruth(
-      join(REPO, 'apps/crawler/packages/reference-portal/ground-truth.yaml'),
-    );
-    const route = gt.screens.find((s) => s.id === 'S11')!.route_template;
-    const record: EvalRecord = {
-      key: 'BR-029',
-      kind: 'business_rule',
-      rev: 1,
-      confidence: 'observed',
-      not_observable: false,
-      content: {
-        title: 'Discount code',
-        statement:
-          'The field "Kod rabatowy" accepts a code (hint: np. WIOSNA10); the effect of a code was not observed.',
-      },
-      evidence: [{ target_kind: 'state', target_id: 'x', routes: [route] }],
-    };
-    const report = evaluate({
-      portal_id: gt.portal_id,
-      as_of: '2026-10-05',
-      records: [record],
-      groundTruth: gt,
-    });
-    expect(report.scores.rules.matches.R11 ?? []).toEqual([]);
-  },
-);
+// Fixed by spec 045: R11's `claim_markers_all` needs the code and its 10 %.
+gate('F-13@004', 'a record quoting only the hint example does not earn R11', async () => {
+  const gt = readGroundTruth(
+    join(REPO, 'apps/crawler/packages/reference-portal/ground-truth.yaml'),
+  );
+  const route = gt.screens.find((s) => s.id === 'S11')!.route_template;
+  const record: EvalRecord = {
+    key: 'BR-029',
+    kind: 'business_rule',
+    rev: 1,
+    confidence: 'observed',
+    not_observable: false,
+    content: {
+      title: 'Discount code',
+      statement:
+        'The field "Kod rabatowy" accepts a code (hint: np. WIOSNA10); the effect of a code was not observed.',
+    },
+    evidence: [{ target_kind: 'state', target_id: 'x', routes: [route] }],
+  };
+  const report = evaluate({
+    portal_id: gt.portal_id,
+    as_of: '2026-10-05',
+    records: [record],
+    groundTruth: gt,
+  });
+  expect(report.scores.rules.matches.R11 ?? []).toEqual([]);
+});
 
 gate('F-16@004', 'a revision keeps citations from runs outside the current session', async () => {
   const h = await startBa();

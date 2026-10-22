@@ -36,6 +36,7 @@ import {
   type ScoredOutcome,
   type StartedServer,
 } from './harness/index.js';
+import { replaySource, replayWorkspace } from './harness/ba-replay.js';
 import { groupTraceRuns, type TraceToGroup } from './harness/group-traces.js';
 import { acquireEvalLock } from './harness/lock.js';
 import { PROMPTS } from './prompts.js';
@@ -61,7 +62,11 @@ const task =
 const groundTruth = loadGroundTruth(config.root, task);
 process.exitCode = config.dryRun
   ? await dryRun(config, task, groundTruth)
-  : await oneAtATime(() => runTrial(config, task, groundTruth));
+  : await oneAtATime(() =>
+      config.baReplay
+        ? runReplay(config, task, groundTruth, config.baReplay)
+        : runTrial(config, task, groundTruth),
+    );
 
 /** Evals share the account's usage quota: a second one at the same time is refused (spec 020 T004). */
 async function oneAtATime(trial: () => Promise<number>): Promise<number> {
@@ -158,6 +163,76 @@ async function runTrial(c: EvalConfig, task: EvalTask, gt: GroundTruth): Promise
     return e.code;
   } finally {
     await stopServer(server);
+  }
+}
+
+/**
+ * A BA-only trial (spec 045, `--ba-replay`): the kept trial's crawl, map and traces as they were,
+ * the two BA sessions again on a copy without the documentation, graded like a full trial. No
+ * portal server: the BA never browses. Costs only the BA.
+ */
+async function runReplay(
+  c: EvalConfig,
+  task: EvalTask,
+  gt: GroundTruth,
+  file: string,
+): Promise<number> {
+  const startedAt = new Date().toISOString();
+  try {
+    const source = replaySource(file);
+    const ws = replayWorkspace(source.workspace, c.portal, c.env);
+    console.log(`workspace: ${ws} (BA replay of the trial ${source.startedAt})`);
+    const names = new Map(
+      processTracesFor(task, c.persona, true).map((t) => [t.processId, t.name]),
+    );
+    const kept = source.processTraces;
+    const traces = kept.map((t) => ({
+      name: names.get(t.process_id) ?? t.process_id,
+      runId: t.run,
+    }));
+    const sessions = { ba: randomUUID(), baTraces: traces.length > 0 ? randomUUID() : null };
+    const crawlRunId = source.crawlRunId;
+    const runs = { crawlRunId, probeRunId: source.formProbing?.run, traces };
+    const { ba, baTraces } = await runBaSessions(c, ws, runs, sessions);
+    const ran = [ba, baTraces].filter((x) => x !== null);
+    const grades = await grade({
+      config: c,
+      task,
+      ws,
+      startedAt,
+      groundTruth: gt,
+      crawlRunId,
+      processTraces: kept.map((t) => ({ processId: t.process_id, runId: t.run })),
+      sessionIds: [sessions.ba, ...(baTraces && sessions.baTraces ? [sessions.baTraces] : [])],
+    });
+    const judges = await judgeTrial(c, ws, gt);
+    return saveResult(
+      c,
+      buildResult(c, {
+        startedAt,
+        crawlRunId,
+        sessions: {
+          crawler: source.crawlerSession,
+          ba: sessions.ba,
+          baTraces: baTraces ? sessions.baTraces : null,
+        },
+        processTraces: kept,
+        formProbing: source.formProbing,
+        outcomes: {
+          ...source.outcomes,
+          ...(ba && { ba: ba.outcome }),
+          ...(baTraces && { ba_traces: baTraces.outcome }),
+        },
+        cost: ran.reduce((sum, x) => addCost(sum, x.out), emptyCost()),
+        grades,
+        workspace: ws,
+        judges,
+      }),
+    );
+  } catch (e) {
+    if (!(e instanceof EvalAbort)) throw e;
+    console.error(e.message);
+    return e.code;
   }
 }
 

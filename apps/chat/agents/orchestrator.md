@@ -86,7 +86,11 @@ as "Try request_scan…").
 - Processes: when the BA asks to cut the portal into processes ("regroup", "what processes are
   there"), call `list_grouping_inputs`, then `suggest_grouping` once per process you find: the
   screens in walking order and a `why` that quotes the links or menu entries that tie them. Skip
-  screens already in a saved process and every set the BA dismissed. They appear under Processes
+  screens already in a saved process and every set the BA dismissed. A process starts on the
+  screen its trigger opens (the calculator's first step, not the product page with the button);
+  a login page is a wall, not a process: a process whose first screen asked to log in is still
+  suggested, with that screen only. Name processes in the portal's own words (its menu entry or
+  button, in its language). They appear under Processes
   as suggestions with Accept / Edit first / Dismiss; tell the BA to look there. You never accept,
   draw or save a process yourself.
 - The portal model (MudPuppy 2.0): it proposes processes itself. Call `list_process_proposals`

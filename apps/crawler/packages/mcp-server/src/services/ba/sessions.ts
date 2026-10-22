@@ -16,6 +16,7 @@ import {
   type SessionRow,
 } from './common.js';
 import { dataPassWarnings } from './data-pass-check.js';
+import { rulePassWarnings } from './rule-pass-check.js';
 import { feedbackSummary, pendingFeedback } from './feedback.js';
 
 /** A `running` session with no write for this long is taken to be abandoned (data-model.md). */
@@ -168,6 +169,18 @@ export function startSession(ctx: BaContext, raw: unknown): SessionOutput {
   });
 }
 
+/** The server's coverage checks after a pass: fields and terms after `data`, limits after `rules` and `synthesis`. */
+function passWarnings(
+  ctx: BaContext,
+  pass: AnalysisPass,
+  sessionId: string,
+  portalId: string,
+): string[] {
+  if (pass === 'data') return dataPassWarnings(ctx, sessionId, portalId);
+  if (pass === 'rules' || pass === 'synthesis') return rulePassWarnings(ctx, sessionId, portalId);
+  return [];
+}
+
 /** Append one finished analysis pass to the session. A pass redone after a resume is appended again. */
 export function recordPass(
   ctx: BaContext,
@@ -182,8 +195,7 @@ export function recordPass(
     ctx.raw
       .prepare('UPDATE analysis_sessions SET passes_json = ? WHERE id = ?')
       .run(JSON.stringify(passes), session.id);
-    const warnings =
-      input.pass === 'data' ? dataPassWarnings(ctx, session.id, session.portal_id) : [];
+    const warnings = passWarnings(ctx, input.pass, session.id, session.portal_id);
     return {
       session_id: session.id,
       passes: passes.map((p) => p.pass),

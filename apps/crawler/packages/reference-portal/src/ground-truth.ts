@@ -87,6 +87,14 @@ export const GtRule = z
      * appear on a guest page (tested).
      */
     claim_markers: z.array(z.string().min(1)).min(1).optional(),
+    /**
+     * F-13@004, spec 045: groups that must all be met, each by one of its spellings (every band of
+     * the engine factor, the code and its 10 %), so one number of a several-part rule is not enough.
+     */
+    claim_markers_all: z
+      .array(z.array(z.string().min(1)).min(1))
+      .min(1)
+      .optional(),
   })
   .strict();
 

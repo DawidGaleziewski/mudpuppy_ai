@@ -198,7 +198,11 @@ export async function grade(m: GradeInput) {
       crawler_completed: run.crawler_completed,
       crawler_steps: run.crawler_steps,
       frontier_pending: run.frontier_pending,
-      ...(docs && baChecks(sessions, docs.handoffs, writes, shapes)),
+      ...(docs && {
+        ...baChecks(sessions, docs.handoffs, writes, shapes),
+        // spec 045 (R-89 B, diagnostic): missed rules written only as a data item's constraint
+        rules_constraint_only: docs.rulesConstraintOnly,
+      }),
       ...(trace && { trace_goal_reached: trace.goalReached }),
       ...processTraces.checks,
       ...quality.checks,

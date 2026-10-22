@@ -166,6 +166,83 @@ describe('record_pass and finish_session', () => {
     expect(other.warnings).toBeUndefined();
   });
 
+  it('lists the limits the pages state that no business rule states, after rules and synthesis (spec 045)', async () => {
+    const h = await startBa();
+    const id = await h.session();
+    const form = h.fx.raw
+      .prepare('SELECT state_id, evidence_ref FROM forms WHERE id = ?')
+      .get(h.fx.forms.vehicle) as { state_id: string; evidence_ref: string };
+    h.fx.raw
+      .prepare('UPDATE forms SET fields_json = ? WHERE id = ?')
+      .run(
+        JSON.stringify([{ name: 'rok', type: 'number', label: 'Rok produkcji' }]),
+        h.fx.forms.vehicle,
+      );
+    writeFileSync(
+      h.fx.evidence.resolve(form.evidence_ref),
+      [
+        '- banner:',
+        '  - paragraph: Not in main.',
+        '- main:',
+        '  - form "Pojazd":',
+        '    - paragraph:',
+        '      - text: Rok produkcji',
+        '      - spinbutton "Rok produkcji"',
+        '      - text: Od 1990 do bieżącego roku.',
+        '  - paragraph: Wybierz dwa różne produkty.',
+      ].join('\n'),
+    );
+    const probe = (text: string) =>
+      h.fx.raw
+        .prepare(
+          `INSERT INTO probe_outcomes (id, run_id, from_state_id, probe_id, probe_group, target,
+             inputs_json, path_json, outcome_kind, messages_json, evidence_ref, created_at)
+           VALUES (?, ?, ?, 'range-below', 'validation', 'Rok produkcji', '[]', '{}', 'validation', ?, ?, ?)`,
+        )
+        .run(
+          `po-${text.length}`,
+          h.fx.runId,
+          form.state_id,
+          JSON.stringify([{ field: 'Rok produkcji', text, source: 'native' }]),
+          form.evidence_ref,
+          '2026-10-22T00:00:00.000Z',
+        );
+    probe('Value must be greater than or equal to 1990.');
+    probe('Please fill out this field.'); // required only: the data item says it
+    const pass = async (p: string) => {
+      const out = await h.must('record_pass', { session_id: id, pass: p, summary: 'x' });
+      return (out.warnings as string[] | undefined)?.find((w) => w.includes('business_rule'));
+    };
+    const first = await pass('rules');
+    expect(first).toContain('4 limit(s)');
+    expect(first).toContain('give its ears form');
+    expect(first).toContain('"Podaj telefon lub e-mail." (E-mail) on /kontakt'); // the fixture's contact form
+    expect(first).toContain('"Value must be greater than or equal to 1990." (Rok produkcji)');
+    expect(first).toContain('"Od 1990 do bieżącego roku." (Rok produkcji)');
+    expect(first).toContain('"Wybierz dwa różne produkty."');
+    expect(first).not.toContain('fill out');
+    expect(first).not.toContain('Not in main');
+    const rule = (statement: string) =>
+      h.must('create_record', {
+        session_id: id,
+        kind: 'business_rule',
+        confidence: 'observed',
+        content: { title: 'Rule', statement, rule_type: 'constraint' },
+        evidence: [{ target_kind: 'form', target_id: h.fx.forms.vehicle }],
+      });
+    // the field and every number of both texts: both are stated
+    await rule('"Rok produkcji" must be 1990 or later.');
+    const left = await pass('synthesis');
+    expect(left).toContain('2 limit(s)');
+    // a hint tied to no control needs the text and one of the form's controls
+    await rule('Wybierz dwa różne produkty: the two products must differ.');
+    expect(await pass('synthesis')).toContain('(about one of: "Rok produkcji")');
+    await rule('"Rok produkcji" page: "Wybierz dwa różne produkty."');
+    await rule('A contact request needs one of them: "Podaj telefon lub e-mail."');
+    expect(await pass('synthesis')).toBeUndefined();
+    expect(await pass('nfr')).toBeUndefined();
+  });
+
   it('lists the terms the pages define that no glossary term names (F-21@034)', async () => {
     const h = await startBa();
     const id = await h.session();

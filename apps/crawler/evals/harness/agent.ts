@@ -2,6 +2,8 @@
  * One headless agent session: `claude -p --agent <crawler|ba>` with only that agent's MCP server.
  */
 import { spawnSync } from 'node:child_process';
+import { readFileSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import type { EvalConfig } from '../config.js';
 import { abort, EXIT_USAGE_LIMIT } from '../failures.js';
@@ -29,11 +31,40 @@ const AGENT_SERVER: Record<AgentName, string> = {
   ba: 'mcp__mudpuppy-ba',
 };
 
-function cliArgs(config: EvalConfig, agent: AgentName, prompt: string, sessionId: string) {
+interface McpConfig {
+  mcpServers: Record<string, { env?: Record<string, string> } & Record<string, unknown>>;
+}
+
+/**
+ * The repo's `.mcp.json` with every server on the eval's environment (spec 045 F-02): since spec
+ * 044 it names `local-dev`, and a server's own `env` wins over the process's, so the servers
+ * opened the developer's store kind instead of the workspace's and closed.
+ */
+export function evalMcpConfig(root: string, ws: string, env: string): string {
+  const repo = JSON.parse(readFileSync(join(root, '.mcp.json'), 'utf8')) as McpConfig;
+  const servers = Object.fromEntries(
+    Object.entries(repo.mcpServers).map(([name, s]) => [
+      name,
+      { ...s, env: { ...s.env, MUDPUPPY_ENV: env, MUDPUPPY_ROOT: ws } },
+    ]),
+  );
+  // Not in `ws`: with `--in-place` that is the repo root.
+  const path = join(tmpdir(), `pf-eval-mcp-${String(process.pid)}.json`);
+  writeFileSync(path, JSON.stringify({ mcpServers: servers }, null, 2));
+  return path;
+}
+
+function cliArgs(
+  config: EvalConfig,
+  ws: string,
+  agent: AgentName,
+  prompt: string,
+  sessionId: string,
+) {
   return [
     ...['-p', prompt, '--agent', agent, '--session-id', sessionId],
     ...['--output-format', 'json', '--max-budget-usd', config.budgetUsd],
-    ...['--mcp-config', join(config.root, '.mcp.json'), '--strict-mcp-config'],
+    ...['--mcp-config', evalMcpConfig(config.root, ws, config.env), '--strict-mcp-config'],
     // Only the agent's own server: every tool of it, nothing else.
     ...['--allowedTools', AGENT_SERVER[agent]],
     ...(config.model ? ['--model', config.model] : []),
@@ -54,7 +85,7 @@ export function runAgent(
   prompt: string,
   sessionId: string,
 ): AgentRun {
-  const r = spawnSync('claude', cliArgs(config, agent, prompt, sessionId), {
+  const r = spawnSync('claude', cliArgs(config, ws, agent, prompt, sessionId), {
     cwd: config.root,
     encoding: 'utf8',
     maxBuffer: 64 * 1024 * 1024,

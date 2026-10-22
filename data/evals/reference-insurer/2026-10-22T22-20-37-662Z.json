@@ -1,0 +1,195 @@
+{
+  "portal_id": "reference-insurer",
+  "persona_id": "guest",
+  "started_at": "2026-10-22T22:20:37.662Z",
+  "git_sha": "e8f725d",
+  "runs": {
+    "crawler": "01a16031-7d54-7000-ad1c-598ec8675dfe",
+    "ba_session": "01a165b3-cab8-7000-806d-c0a63e5ca534",
+    "crawler_cli_session": "8fe4fa1b-9e6b-47ab-a100-ddb7663336d6",
+    "ba_cli_session": "a68ed49a-c826-43db-8c12-9b18c626272b",
+    "ba_traces_session": "01a165bd-2451-7000-a83f-52ce3bf80470",
+    "ba_traces_cli_session": "e250b7dd-3c97-44a4-81e7-64728681487e",
+    "process_traces": [
+      {
+        "process_id": "P01",
+        "run": "01a1603a-4855-7000-af16-5e3ccfff6160",
+        "cli_session": "f2c5b5e8-6e06-476c-9ece-a86f4b5fcf65"
+      },
+      {
+        "process_id": "P02",
+        "run": "01a1603b-ebe5-7000-b520-81bb1183669c",
+        "cli_session": "a8c9a7b5-8922-4460-ab18-154a26d150bd"
+      },
+      {
+        "process_id": "P03",
+        "run": "01a1603c-7d0f-7000-8745-7694f4d91c55",
+        "cli_session": "475e384a-c238-4ace-be69-a42cd7e6dfea"
+      },
+      {
+        "process_id": "P04",
+        "run": "01a1603c-c67a-7000-961b-aadfffeef334",
+        "cli_session": "858a5440-8c93-4628-813d-6bb3798456a7"
+      }
+    ],
+    "form_probing": {
+      "run": "01a16036-61dd-7000-aca2-901677fbf609",
+      "cli_session": "aa1e7fba-8f9b-4d01-aad9-01be68fe1fcd"
+    }
+  },
+  "conditions": {
+    "process_traces": 4,
+    "form_probing": true,
+    "ba_replay_of": "2026-10-21T20-40-15-252Z.json"
+  },
+  "outcomes": {
+    "crawler": "success",
+    "form_probing": "success",
+    "ba": "success",
+    "ba_traces": "success",
+    "process_traces": [
+      "success",
+      "success",
+      "success",
+      "success"
+    ]
+  },
+  "cost": {
+    "usd": 5.2922688,
+    "input_tokens": 6761564,
+    "output_tokens": 93673,
+    "duration_ms": 840396
+  },
+  "scores": {
+    "screens": {
+      "matched": 17,
+      "total": 17,
+      "pct": 100
+    },
+    "fields": {
+      "matched": 27,
+      "total": 27,
+      "pct": 100
+    },
+    "constraints": {
+      "matched": 51,
+      "total": 52,
+      "pct": 98.1
+    },
+    "rules": {
+      "matched": 13,
+      "total": 17,
+      "pct": 76.5
+    },
+    "processes": {
+      "matched": 4,
+      "total": 5,
+      "pct": 80
+    },
+    "terms": {
+      "matched": 10,
+      "total": 10,
+      "pct": 100
+    },
+    "processes_map": {
+      "matched": 4,
+      "total": 5,
+      "pct": 80
+    },
+    "crawl_screens": {
+      "matched": 17,
+      "total": 17,
+      "pct": 100
+    },
+    "process_trace_steps": {
+      "matched": 10,
+      "total": 11,
+      "pct": 90.9
+    },
+    "export_steps_pictured": {
+      "matched": 23,
+      "total": 23,
+      "pct": 100
+    },
+    "export_records_once": {
+      "matched": 36,
+      "total": 36,
+      "pct": 100
+    },
+    "export_ears": {
+      "matched": 26,
+      "total": 36,
+      "pct": 72.2
+    },
+    "export_fields_documented": {
+      "matched": 46,
+      "total": 46,
+      "pct": 100
+    },
+    "export_steps_distinct": {
+      "matched": 25,
+      "total": 25,
+      "pct": 100
+    },
+    "process_variants": {
+      "matched": 1,
+      "total": 1,
+      "pct": 100
+    },
+    "export_steps": {
+      "matched": 5,
+      "total": 5,
+      "pct": 100
+    },
+    "export_fields": {
+      "matched": 14,
+      "total": 14,
+      "pct": 100
+    },
+    "export_validation": {
+      "matched": 24,
+      "total": 24,
+      "pct": 100
+    },
+    "export_actions": {
+      "matched": 5,
+      "total": 5,
+      "pct": 100
+    },
+    "export_apis": {
+      "matched": 2,
+      "total": 2,
+      "pct": 100
+    }
+  },
+  "overclaims": 0,
+  "checks": {
+    "frontier_empty_at_finish": true,
+    "crawler_completed": true,
+    "crawler_steps": 49,
+    "frontier_pending": 0,
+    "ba_session_completed": true,
+    "handoffs": 0,
+    "ba_write_calls": 107,
+    "ba_write_refused": 10,
+    "ba_write_refused_pct": 9,
+    "ba_relation_refused": 7,
+    "route_templates_with_query": 0,
+    "data_items_joined": 0,
+    "rules_on_screens_pct": 100,
+    "data_items_code_names": 0,
+    "error_pages_as_steps": 0,
+    "rules_constraint_only": 1,
+    "process_traces_goal_reached": 4,
+    "export_extra_steps": 0,
+    "export_action_strays": 0,
+    "export_noise_leaked": 0,
+    "export_wrong_start": 0,
+    "export_wrong_end": 0,
+    "relogins": 0,
+    "logged_in": false,
+    "password_hits": 0,
+    "widget_actions": 0
+  },
+  "workspace": "/tmp/pf-eval-reference-insurer-replay-AljF3F"
+}

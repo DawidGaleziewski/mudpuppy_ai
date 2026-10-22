@@ -1,0 +1,49 @@
+{
+  "task": "reference-insurer",
+  "started_at": "2026-10-22T22:18:16.584Z",
+  "git_sha": "e8f725d",
+  "conditions": {
+    "model": null,
+    "budget_usd": "2",
+    "source_store": "/tmp/pf-eval-reference-insurer-wiiGif",
+    "env": "sandbox"
+  },
+  "workspace": "/tmp/pf-grouping-reference-insurer-eR4ccJ",
+  "outcome": "success",
+  "cost_usd": 0.3089496,
+  "duration_ms": 23169,
+  "turns": 5,
+  "scores": {
+    "processes_found": {
+      "matched": 0,
+      "total": 5,
+      "pct": 0
+    },
+    "clean_starts": {
+      "matched": 0,
+      "total": 0,
+      "pct": 0
+    },
+    "why_cites": {
+      "matched": 0,
+      "total": 0,
+      "pct": 0
+    }
+  },
+  "checks": {
+    "suggestions": 0,
+    "duplicates": 0,
+    "stubs": 0,
+    "error_screens_inside": 0,
+    "extra_screens": 0,
+    "unmatched": 0
+  },
+  "detail": {
+    "P01": "no suggestion covers it",
+    "P02": "no suggestion covers it",
+    "P03": "no suggestion covers it",
+    "P04": "no suggestion covers it",
+    "P05": "no suggestion covers it"
+  },
+  "suggestions": []
+}

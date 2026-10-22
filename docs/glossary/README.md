@@ -965,6 +965,27 @@ or run `pnpm docs:process-export`.
 
 <sub>Last changed in R-68, 2026-10-17.</sub>
 
+<a id="rule-candidate"></a>
+
+#### Limit without a rule
+
+**Something a page says about a limit (a validation message, a hint next to a field) that no business rule states yet.**
+
+When the BA records the rules pass or the synthesis pass, the server lists them as a warning:
+the validation messages of the form probes (not the browser's "fill this in" wording), the
+alerts of validation screens, and the hint texts next to form fields, each with its screen and
+the field it is about. The BA writes one business rule per limit, quoting the text and the
+control's label, or says in the session gaps why one is not a rule. A data item's constraint
+does not count as the rule.
+
+*Example:* "Maksymalnie 90 dni." (Data powrotu) on /ubezpieczenia/podroze has no business_rule yet.
+
+*Seen in:* record_pass warnings
+
+*Related:* [Business rule (BR)](#business-rule), [Data item (DI)](#data-item)
+
+<sub>Last changed in R-89, 2026-10-23.</sub>
+
 <a id="response-contract"></a>
 
 #### Response contract (schema hash)
@@ -2891,6 +2912,28 @@ reason that cites the links between the screens. Results go to
 *Related:* [Eval (tier 2)](#eval), [Eval trial](#eval-trial), [Grader](#grader)
 
 <sub>Last changed in R-78, 2026-10-18.</sub>
+
+<a id="ba-replay"></a>
+
+#### BA replay
+
+**An eval trial in which only the BA runs again, on the crawl evidence of an earlier trial, so a change to the BA is measured alone.**
+
+`pnpm eval <portal> --ba-replay <result.json>` copies the kept trial's workspace, takes its
+documentation and process groupings out, and runs the two BA sessions again on the same map,
+traces and form probes. The result names the trial it replays in its conditions
+(`ba_replay_of`). It is not cheaper than a full trial by much (the BA is most of the cost); it
+makes trials comparable.
+
+*Example:* Replaying the 2026-10-21 baseline trial gave 13 of 17 rules where that trial's BA had found 7.
+
+*Seen in:* data/evals/<portal>/<timestamp>.json
+
+*Labels:* `ba_replay_of`
+
+*Related:* [Eval trial](#eval-trial), [Grader](#grader)
+
+<sub>Last changed in R-89, 2026-10-23.</sub>
 
 <a id="grader"></a>
 

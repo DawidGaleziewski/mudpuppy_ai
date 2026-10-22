@@ -46,6 +46,7 @@ export function elementsSection(sm: StepModel): string[] {
 function shownAs(r: StepModel['validation'][number]): string {
   if (r.source === 'native') return 'browser bubble';
   if (r.source === 'dom') return 'text on the page';
+  if (r.source === 'dom-text') return 'plain text on the page (no alert role)';
   return r.accepted ? '_accepted: the form went on_' : '_refused, no message recorded_';
 }
 

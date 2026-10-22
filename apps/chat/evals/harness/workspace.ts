@@ -7,7 +7,7 @@ import { cpSync, existsSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } fro
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { newId, nowIso } from '@mudpuppy/core';
-import { openDb } from '@mudpuppy/store';
+import { migrateUp, openDb } from '@mudpuppy/store';
 import type { EvalConfig } from '../config.js';
 import { die } from '../failures.js';
 
@@ -58,6 +58,9 @@ export function createWorkspace(config: EvalConfig): Workspace {
   from.raw.close();
   const conversationId = newId();
   const { raw } = openDb(storePath);
+  // Migrated first, while its keys are whole: a migration newer than the source store refuses to
+  // run over the dangling keys the cut below leaves (spec 045 F-03).
+  migrateUp(raw, join(dir, 'data', 'migrations'));
   // A PROC record must name its process (spec 039 T070) and the grouping tools never read records:
   // in this throwaway copy the BA's PROC records keep the id of a process taken out.
   raw.pragma('foreign_keys = OFF');

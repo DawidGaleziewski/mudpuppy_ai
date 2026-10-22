@@ -78,6 +78,8 @@ export const GroundTruth = z.object({
       guest_observable: z.boolean(),
       /** When present, a matching record must also contain one of these phrases. */
       claim_markers: z.array(z.string().min(1)).optional(),
+      /** Spec 045 (F-13@004): every group must be met too, each by one of its spellings. */
+      claim_markers_all: z.array(z.array(z.string().min(1)).min(1)).optional(),
     }),
   ),
   processes: z.array(

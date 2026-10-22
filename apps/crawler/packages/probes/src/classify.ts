@@ -8,8 +8,11 @@ export interface FieldMessage {
   /** The field the message belongs to; null when the page did not tie it to one. */
   field: string | null;
   text: string;
-  /** `dom`: rendered by the page; `native`: the browser's own constraint message. */
-  source: 'dom' | 'native';
+  /**
+   * `dom`: rendered by the page as an alert; `dom-text`: plain text that appeared after the press
+   * (no alert role, F-07@038); `native`: the browser's own constraint message.
+   */
+  source: 'dom' | 'dom-text' | 'native';
 }
 
 /** Where the happy path went from this step, the reference a branch is measured against. */

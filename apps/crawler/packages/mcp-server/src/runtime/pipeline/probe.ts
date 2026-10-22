@@ -1,5 +1,7 @@
+import { readFile } from 'node:fs/promises';
 import { newId, nowIso, type ProbeFault } from '@mudpuppy/core';
 import {
+  captureAria,
   nativeMessages,
   readFormFields,
   testValueFor,
@@ -42,6 +44,8 @@ export interface Pressed {
   /** What was typed and pressed, by label, in order: the suite repeats it (US3). */
   steps: LabelStep[];
   native: FieldMessage[];
+  /** The page's ARIA snapshot just before the press: new text after it can be a message. */
+  before: string;
   fault: FaultResult | null;
   captcha: string | null;
   /** The fields the try's choices added to the form (none for most tries). */
@@ -119,6 +123,7 @@ export async function press(
     ...filled.steps,
     { name: target.action.accessible_name ?? target.action.role, kind: 'click' as const },
   ];
+  const before = await captureAria(rs.session.page).catch(() => '');
   const armed = opts.fault ? await armFault(rs, opts.fault) : null;
   rs.keepErrorPages = armed !== null;
   let fault: FaultResult | null = null;
@@ -139,7 +144,7 @@ export async function press(
     );
     fault = armed ? await armed.disarm() : null;
     const captcha = await captchaInDom(rs.session.page);
-    return { result, steps, native, fault, captcha, revealed: filled.revealed };
+    return { result, steps, native, before, fault, captcha, revealed: filled.revealed };
   } finally {
     rs.keepErrorPages = false;
     if (armed && fault === null) await armed.disarm().catch(() => undefined);
@@ -156,6 +161,42 @@ export function domMessages(snapshot: string): FieldMessage[] {
   }));
 }
 
+const PAGE_CHROME = new Set(['banner', 'navigation', 'contentinfo', 'complementary']);
+const TEXT_ROLES = new Set(['text', 'paragraph', 'status', 'note']);
+const TEXT_CAP = 3;
+
+/**
+ * Text the press made appear, outside the page's header, menu and footer (F-07@038, R-80 (1)): a
+ * page that writes its error as a plain paragraph, with no alert role, still says what was wrong.
+ * Used only when the page rendered no alert and the browser stayed on the step.
+ */
+export function textMessages(before: string, after: string): FieldMessage[] {
+  const texts = (s: string) =>
+    canonicalizeAria(s)
+      .nodes.filter(
+        (n) => n.name && TEXT_ROLES.has(n.role) && !n.path.some((r) => PAGE_CHROME.has(r)),
+      )
+      .map((n) => ({ key: n.name, text: n.shown ?? n.name }));
+  const seen = new Set(texts(before).map((t) => t.key));
+  const fresh = new Map<string, string>();
+  for (const t of texts(after))
+    if (!seen.has(t.key) && t.text.length >= 3 && t.text.length <= 200) fresh.set(t.key, t.text);
+  return [...fresh.values()]
+    .slice(0, TEXT_CAP)
+    .map((text) => ({ field: null, text, source: 'dom-text' }));
+}
+
+/** The step's snapshot as recorded when its state was first seen; null when it cannot be read. */
+async function cleanStep(sc: ReplayScope, stateId: string): Promise<string | null> {
+  const row = await sc.ctx.db
+    .selectFrom('states')
+    .select('evidence_ref')
+    .where('id', '=', stateId)
+    .executeTakeFirst();
+  if (!row) return null;
+  return readFile(sc.ctx.evidence.resolve(row.evidence_ref), 'utf8').catch(() => null);
+}
+
 /** The facts of a press, classified (plan decision 7). */
 export async function classifyPress(
   sc: ReplayScope,
@@ -166,7 +207,12 @@ export async function classifyPress(
   const { ctx, rs } = sc;
   const stepAfter = rs.stepOfState.get(p.result.state_id) ?? null;
   const sameStep = p.result.route_template === target.route && stepAfter === target.stepId;
-  const messages = [...domMessages(rs.lastObserved?.snapshot ?? ''), ...p.native];
+  const after = rs.lastObserved?.snapshot ?? '';
+  const messages = [...domMessages(after), ...p.native];
+  // Only for a validation try (a filter's happy press also shows new text, F-18@032), and against
+  // the step as first recorded: an earlier try's message can still be on the page.
+  if (messages.length === 0 && sameStep && t.group === 'validation')
+    messages.push(...textMessages((await cleanStep(sc, target.stateId)) ?? p.before, after));
   const calls = p.result.transition_id
     ? await ctx.db
         .selectFrom('network_calls')

@@ -102,6 +102,8 @@ export const EvalResult = z
           process_traces: z.number().int().positive().optional(),
           /** A form-probing scan ran after the map; absent means none (spec 034 phase 9). */
           form_probing: z.boolean().optional(),
+          /** Spec 045: only the BA ran, again, on the kept trial with this result file's crawl. */
+          ba_replay_of: z.string().optional(),
         })
         .strict()
         .optional(),

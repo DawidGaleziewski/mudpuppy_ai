@@ -299,12 +299,15 @@ function ruleRecords(m: Matching, rule: GtRule): EvalRecord[] {
   const route = m.screenRoute.get(rule.anchor.screen);
   const label = normalise(rule.anchor.label);
   const markers = (rule.claim_markers ?? []).map(normalise);
+  const groups = (rule.claim_markers_all ?? []).map((g) => g.map(normalise));
   return m.ofKind('business_rule', 'requirement').filter((r) => {
     if (route === undefined || !routesOf(r).has(route)) return false;
     const text = textOf(r.content).map(normalise);
+    const has = (mk: string) => text.some((t) => hasMarker(t, mk));
     return (
       text.some((t) => t.includes(label)) &&
-      (markers.length === 0 || markers.some((mk) => text.some((t) => hasMarker(t, mk))))
+      (markers.length === 0 || markers.some(has)) &&
+      groups.every((g) => g.some(has))
     );
   });
 }

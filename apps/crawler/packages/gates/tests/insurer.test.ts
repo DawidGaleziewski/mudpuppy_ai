@@ -184,17 +184,23 @@ gate(
       if (!r.body.more) break;
     }
     expect(skipped.filter((s) => /diverged/.test(s))).toEqual([]);
-    const tries = rows<{ outcome_kind: string; to_state_id: string }>(
+    const tries = rows<{ outcome_kind: string; to_state_id: string; messages_json: string }>(
       gs,
-      `SELECT outcome_kind, to_state_id FROM probe_outcomes
+      `SELECT outcome_kind, to_state_id, messages_json FROM probe_outcomes
        WHERE run_id = ? AND probe_id = 'date-range' ORDER BY created_at`,
       own,
     );
     expect(tries).toHaveLength(2);
     for (const t of tries) {
       expect(t.outcome_kind).toBe('validation');
-      // The message is a plain <p>, no alert role, so the outcome's messages miss it (F-07@038).
       expect(snapshot(gs, t.to_state_id)).toContain('Szkodę można zgłosić do 30 dni od zdarzenia.');
+      // The message is a plain <p>, no alert role: kept as text that appeared after the press
+      // (F-07@038, R-80 (1), spec 045).
+      expect(JSON.parse(t.messages_json)).toContainEqual({
+        field: null,
+        text: 'Szkodę można zgłosić do 30 dni od zdarzenia.',
+        source: 'dom-text',
+      });
     }
     const fresh = rows<{ n: number }>(
       gs,

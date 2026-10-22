@@ -2341,6 +2341,42 @@ entries:
     changed_in: R-78
     changed_on: 2026-10-18
 
+  - id: ba-replay
+    term: BA replay
+    category: mudpuppy
+    group: Gates and evals
+    short: An eval trial in which only the BA runs again, on the crawl evidence of an earlier trial, so a change to the BA is measured alone.
+    explanation: |
+      `pnpm eval <portal> --ba-replay <result.json>` copies the kept trial's workspace, takes its
+      documentation and process groupings out, and runs the two BA sessions again on the same map,
+      traces and form probes. The result names the trial it replays in its conditions
+      (`ba_replay_of`). It is not cheaper than a full trial by much (the BA is most of the cost); it
+      makes trials comparable.
+    example: Replaying the 2026-10-21 baseline trial gave 13 of 17 rules where that trial's BA had found 7.
+    appears_in: [data/evals/<portal>/<timestamp>.json]
+    labels: [ba_replay_of]
+    related: [eval-trial, grader]
+    changed_in: R-89
+    changed_on: 2026-10-23
+
+  - id: rule-candidate
+    term: Limit without a rule
+    category: mudpuppy
+    group: Documentation
+    short: Something a page says about a limit (a validation message, a hint next to a field) that no business rule states yet.
+    explanation: |
+      When the BA records the rules pass or the synthesis pass, the server lists them as a warning:
+      the validation messages of the form probes (not the browser's "fill this in" wording), the
+      alerts of validation screens, and the hint texts next to form fields, each with its screen and
+      the field it is about. The BA writes one business rule per limit, quoting the text and the
+      control's label, or says in the session gaps why one is not a rule. A data item's constraint
+      does not count as the rule.
+    example: '"Maksymalnie 90 dni." (Data powrotu) on /ubezpieczenia/podroze has no business_rule yet.'
+    appears_in: [record_pass warnings]
+    related: [business-rule, data-item]
+    changed_in: R-89
+    changed_on: 2026-10-23
+
   - id: grader
     term: Grader
     category: mudpuppy

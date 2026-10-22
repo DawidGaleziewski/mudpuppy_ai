@@ -6,6 +6,21 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Changed
+- **R-89: the BA writes the rules the pages state** (spec 045, v2.4.0, 2026-10-23). Owner's
+  approach A: when the BA records the rules or synthesis pass, the BA server lists the limits
+  the pages state that no business rule states yet: probe validation messages, validation
+  screens' alerts and the hints next to form fields, each with its screen and control. BA and
+  grouping guidance: a hint is a rule, one per limit; a process behind a login wall is still a
+  process; groupings start on the screen the trigger opens, in the portal's words (R-78's
+  fixes). Measured by BA replays on the same crawl evidence: rules 13/17 on two crawls (v2
+  baseline 7), no overclaims; grouping 5/5 processes in two of three trials. R-80 (1): plain
+  text after a validation press is kept as a `dom-text` message. R-36 F-13: the ground truth's
+  `claim_markers_all` (every band, both ends of a range); new baselines. Eval tooling:
+  `pnpm eval --ba-replay <result.json>`, the `rules_constraint_only` diagnostic (approach B,
+  not scored). Fixed: every eval since v2.3.1 started its MCP servers on `local-dev` (F-02); the
+  eval workspaces failed to migrate an older store (F-03). Not reached: P05 (login wall) as a
+  BA process, R07, R13, R05 (R-97). Trials $18.71 of the owner's $20. Findings in
+  `specs/045-r89-ba-rules-recall/findings.md`.
 - **R-90: the size and complexity follow-ups of 2.0 and 2.1** (spec 042, v2.2.1, 2026-10-22).
   No behaviour changes; each step locked by tests (byte-stable export goldens, a new snapshot of
   every portal table's delete clause). Model: `reconcile` per phase, `clusterPartition`,

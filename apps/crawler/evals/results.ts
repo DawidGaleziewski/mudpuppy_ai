@@ -5,7 +5,7 @@
  */
 import { execFileSync } from 'node:child_process';
 import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from 'node:fs';
-import { join } from 'node:path';
+import { basename, join } from 'node:path';
 import {
   compareEval,
   comparisonMarkdown,
@@ -51,6 +51,7 @@ function conditionsOf(config: EvalConfig, processTraces: number, formProbing: bo
     ...(config.crawlerOnly && { crawler_only: true }),
     ...(processTraces > 0 && { process_traces: processTraces }),
     ...(formProbing && { form_probing: true }),
+    ...(config.baReplay && { ba_replay_of: basename(config.baReplay) }),
   };
   return Object.keys(c).length > 0 ? { conditions: c } : {};
 }

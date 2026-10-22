@@ -49,7 +49,7 @@ const ProbeMessage = z.object({
   /** Null when the page did not tie the message to a field. */
   field: z.string().nullable(),
   text: z.string(),
-  source: z.enum(['dom', 'native']),
+  source: z.enum(['dom', 'dom-text', 'native']),
 });
 
 const ProbePathStep = z.object({

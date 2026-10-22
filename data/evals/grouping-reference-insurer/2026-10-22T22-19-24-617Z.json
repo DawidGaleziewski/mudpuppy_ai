@@ -1,0 +1,92 @@
+{
+  "task": "reference-insurer",
+  "started_at": "2026-10-22T22:19:24.617Z",
+  "git_sha": "e8f725d",
+  "conditions": {
+    "model": null,
+    "budget_usd": "2",
+    "source_store": "/tmp/pf-eval-reference-insurer-wiiGif",
+    "env": "sandbox"
+  },
+  "workspace": "/tmp/pf-grouping-reference-insurer-Udeo8w",
+  "outcome": "success",
+  "cost_usd": 0.35302659999999997,
+  "duration_ms": 32761,
+  "turns": 9,
+  "scores": {
+    "processes_found": {
+      "matched": 5,
+      "total": 5,
+      "pct": 100
+    },
+    "clean_starts": {
+      "matched": 5,
+      "total": 5,
+      "pct": 100
+    },
+    "why_cites": {
+      "matched": 5,
+      "total": 5,
+      "pct": 100
+    }
+  },
+  "checks": {
+    "suggestions": 5,
+    "duplicates": 0,
+    "stubs": 1,
+    "error_screens_inside": 0,
+    "extra_screens": 0,
+    "unmatched": 0
+  },
+  "detail": {
+    "P01": "\"Kalkulator OC/AC\"",
+    "P02": "\"Ubezpieczenie turystyczne\"",
+    "P03": "\"Porównanie produktów\"",
+    "P04": "\"Kontakt\"",
+    "P05": "\"Przedłuż polisę\""
+  },
+  "suggestions": [
+    {
+      "name": "Kalkulator OC/AC",
+      "routes": [
+        "/kalkulator/pojazd",
+        "/kalkulator/kierowca",
+        "/kalkulator/opcje",
+        "/kalkulator/wynik",
+        "/kalkulator/zakup"
+      ],
+      "why": "The calculator's own steps \"Kalkulator OC/AC — dane pojazdu\" (/kalkulator/pojazd) → \"dane kierowcy\" (/kalkulator/kierowca) → \"opcje\" (/kalkulator/opcje) are joined by the form's next buttons; the \"opcje\" button leads to \"Twoja składka\" (/kalkulator/wynik), and from the price the buy button leads to \"Wniosek przyjęty\" (/kalkulator/zakup)."
+    },
+    {
+      "name": "Ubezpieczenie turystyczne",
+      "routes": [
+        "/ubezpieczenia/podroze",
+        "/ubezpieczenia/podroze/wynik"
+      ],
+      "why": "The form on \"Ubezpieczenie turystyczne\" (/ubezpieczenia/podroze) is filled in and its button opens \"Twoja składka podróżna\" (/ubezpieczenia/podroze/wynik)."
+    },
+    {
+      "name": "Porównanie produktów",
+      "routes": [
+        "/porownanie",
+        "/porownanie/wynik"
+      ],
+      "why": "\"Porównanie produktów\" (/porownanie) is opened from the menu on every page; its button opens \"Wynik porównania\" (/porownanie/wynik)."
+    },
+    {
+      "name": "Kontakt",
+      "routes": [
+        "/kontakt",
+        "/kontakt/dziekujemy"
+      ],
+      "why": "The contact form on \"Kontakt\" (/kontakt), reached from the menu on every page, is sent with its button and leads to \"Dziękujemy za wiadomość\" (/kontakt/dziekujemy)."
+    },
+    {
+      "name": "Przedłuż polisę",
+      "routes": [
+        "/moje-polisy/przedluz"
+      ],
+      "why": "\"Przedłuż polisę\" (/moje-polisy/przedluz) is linked from the home page; as a guest the scan got no further than this screen, which points to \"Logowanie\" (/logowanie), so the rest of the renewal sits behind the login."
+    }
+  ]
+}
