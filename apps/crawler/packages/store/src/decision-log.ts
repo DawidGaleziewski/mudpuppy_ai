@@ -1,7 +1,8 @@
 import type { Logger } from 'pino';
 import { DecisionKind, DecisionLogEntry, maskText, newId, nowIso, scrubJson } from '@mudpuppy/core';
 import type { MudPuppyDb } from './db.js';
-import { emitForRun, type Tracer } from './tracer.js';
+import { emitForRun } from './tracer.js';
+import type { Tracer } from './tracer-types.js';
 
 export interface DecisionInput {
   run_id: string;

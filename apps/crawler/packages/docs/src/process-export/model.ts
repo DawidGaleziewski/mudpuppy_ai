@@ -4,7 +4,8 @@
 
 import { processModelFacts, type ProcessModelFacts } from '@mudpuppy/store';
 import type { RawDb } from '../keys.js';
-import { loadExportModel, type ExportModel, type ExportRecord } from '../render/model.js';
+import { loadExportModel } from '../render/export-load.js';
+import type { ExportModel, ExportRecord } from '../render/model.js';
 import { applyScope, evidenceStates } from '../scope.js';
 import { processContracts, type Contracts } from './contracts.js';
 import { elementsOfStep, type StepElements } from './elements.js';

@@ -17,7 +17,7 @@ from fastapi.responses import (
     Response,
 )
 
-from .. import chat_client, db, rules_export
+from .. import as_of, chat_client, db, rules_export
 from ..queries_rules import rule_detail, rules_view
 from .deps import same_origin, web_of
 
@@ -121,7 +121,7 @@ async def rule_reword(request: Request, key: str, env: str | None = None) -> Res
             **({"reason": reason} if reason else {}),
         }
         refused, _ = await chat_client.model_call(
-            web.settings, web.chat_transport, c.env, c.portal, "reword", body
+            web.settings, web.chat_transport, chat_client.ModelCall(c.env, c.portal, "reword", body)
         )
         note = f"Not recorded: {refused}." if refused else "Reworded. The export uses it now."
     return RedirectResponse(c.url(f"/rules/{key}", note=note), 303)
@@ -136,11 +136,20 @@ def rule_page(
     try:
         with c.conn() as conn:
             r = rule_detail(conn, c.portal, key) if c.portal else None
+        # The As of menu offers only versions the rule is in (spec 042 F-09).
+        with c.conn(now=True) as conn:
+            since = as_of.first_seq(conn, c.portal, "rule", key)
     except db.StoreMissing as err:
         return web.missing(c, err)
     if r is None:
         return web.render(
-            c, "salvage/rule.html", status_code=404, nav_current="rules", r=None, key=key
+            c,
+            "salvage/rule.html",
+            status_code=404,
+            nav_current="rules",
+            r=None,
+            key=key,
+            as_of_since=since,
         )
     can_reword = bool(web.settings.reviewer)
     return web.render(
@@ -151,4 +160,5 @@ def rule_page(
         key=key,
         note=note,
         can_reword=can_reword,
+        as_of_since=since,
     )

@@ -1,6 +1,7 @@
 export * from './common.js';
 export * from './sessions.js';
 export * from './records.js';
+export * from './record-inputs.js';
 export * from './reads.js';
 export * from './runs.js';
 export * from './feedback.js';

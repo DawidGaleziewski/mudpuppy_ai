@@ -51,7 +51,7 @@ describe.skipIf(!process.env.PF_MINER)('the real miner communities (PF_MINER=1)'
     );
     const { communities } = JSON.parse(out) as { communities: string[][] };
     expect(communities).toEqual([[...g.nodes].sort()]);
-    expect(writeProposals(o.raw, 'ins', communities, g, NOW)).toEqual(['form']);
+    expect(writeProposals(o.raw, 'ins', { communities, graph: g, now: NOW })).toEqual(['form']);
     await o.close();
   }, 60_000);
 });
@@ -70,7 +70,9 @@ describe('process proposals from the portal model (spec 039 design § 13)', () =
   it('writes one open suggestion in flow order, once, and never a dismissed set again', async () => {
     const o = open();
     const g = processGraph(o.raw, 'ins');
-    expect(writeProposals(o.raw, 'ins', [g.nodes], g, NOW)).toEqual(['form']);
+    expect(writeProposals(o.raw, 'ins', { communities: [g.nodes], graph: g, now: NOW })).toEqual([
+      'form',
+    ]);
     const row = o.raw
       .prepare('SELECT name, persona, steps, status FROM grouping_suggestions')
       .get() as {
@@ -84,21 +86,24 @@ describe('process proposals from the portal model (spec 039 design § 13)', () =
     // The start first; its next screens in screen order.
     expect(steps[0]!.state_id).toBe('form');
     expect(steps.map((s) => s.state_id).sort()).toEqual(['exit', 'form', 'price']);
-    expect(writeProposals(o.raw, 'ins', [g.nodes], g, NOW)).toEqual([]); // already suggested
+    const all = { communities: [g.nodes], graph: g, now: NOW };
+    expect(writeProposals(o.raw, 'ins', all)).toEqual([]); // already suggested
     o.raw.prepare("UPDATE grouping_suggestions SET status = 'dismissed', decided_at = ?").run(NOW);
-    expect(writeProposals(o.raw, 'ins', [g.nodes], g, NOW)).toEqual([]); // dismissed before
-    expect(writeProposals(o.raw, 'ins', [[g.nodes[0]!]], g, NOW)).toEqual([]); // one screen is no process
+    expect(writeProposals(o.raw, 'ins', all)).toEqual([]); // dismissed before
+    // One screen is no process.
+    expect(writeProposals(o.raw, 'ins', { ...all, communities: [[g.nodes[0]!]] })).toEqual([]);
     await o.close();
   });
 
   it("a person's dismissal and kept process constrain the next proposals (spec 040 T034)", async () => {
     const o = open();
     const g = processGraph(o.raw, 'ins');
-    writeProposals(o.raw, 'ins', [g.nodes], g, NOW);
+    writeProposals(o.raw, 'ins', { communities: [g.nodes], graph: g, now: NOW });
     o.raw.prepare("UPDATE grouping_suggestions SET status = 'dismissed', decided_at = ?").run(NOW);
     const skipped: { screens: readonly string[]; reason: string }[] = [];
     // One screen less than the dismissed set is the same process to the person.
-    expect(writeProposals(o.raw, 'ins', [g.nodes.slice(0, 2)], g, NOW, skipped)).toEqual([]);
+    const fewer = { communities: [g.nodes.slice(0, 2)], graph: g, now: NOW, skipped };
+    expect(writeProposals(o.raw, 'ins', fewer)).toEqual([]);
     expect(skipped[0]!.reason).toBe('like the dismissed proposal "form"');
     const c = proposalConstraints(o.raw, 'ins');
     expect(c.dismissed[0]!.screens.size).toBe(3);

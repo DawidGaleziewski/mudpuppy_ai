@@ -22,7 +22,7 @@ import { RunState } from './run-state.js';
 import { processOfRun } from '../services/trace.js';
 import { upsertFingerprintProfile } from '../services/observations.js';
 import { parsePlan } from '../services/run-plan.js';
-import { runChoices } from '../services/start-run.js';
+import { runChoices } from '../services/start-run-input.js';
 import { startPwTrace } from './pw-trace.js';
 import { runSecrets } from '../services/credentials.js';
 import { createRunTraceHooks } from './trace-hooks.js';

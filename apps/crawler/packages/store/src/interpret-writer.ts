@@ -251,10 +251,12 @@ export interface InterpretStats {
 export function interpretVersion(
   raw: Raw,
   portal: string,
-  versionId: string,
-  prev: ModelSnapshot,
-  next: ModelSnapshot,
-  now: string,
+  {
+    versionId,
+    prev,
+    next,
+    now,
+  }: { versionId: string; prev: ModelSnapshot; next: ModelSnapshot; now: string },
 ): InterpretStats {
   const stats: InterpretStats = { deviations: 0, derived: 0, forPerson: 0, replays: 0, open: 0 };
   if (prev.screens.size === 0) return stats; // the first version: everything is new, nothing deviates

@@ -1,9 +1,8 @@
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
-import { Environment } from '@mudpuppy/config';
-import { minSafetyClass, newId, nowIso, SafetyClass } from '@mudpuppy/core';
+import { minSafetyClass, newId, nowIso, type SafetyClass } from '@mudpuppy/core';
 import { preflight, type PreflightResult } from '@mudpuppy/crawler';
-import { z } from 'zod';
+import type { z } from 'zod';
 import type { ServerContext } from '../context.js';
 import { ToolError, parseInput } from '../errors.js';
 import { getRun, type RunRow } from './common.js';
@@ -23,128 +22,9 @@ import { personaRefs } from '@mudpuppy/vault';
 import type { LoadedHook } from '@mudpuppy/hooks';
 import { loadRunHooks } from './run-hooks.js';
 import { openProbeMarks, type ProbeMarkItem } from './probe-marks.js';
-import { DirectedType, PlanInput } from './run-plan.js';
+import type { DirectedType } from './run-plan.js';
 import { resolveDirected, useMarks, type StartPoint } from './run-plan-resolve.js';
-
-const Globs = z
-  .array(z.string().trim().regex(/^\//, 'a path starting with /; * matches anything'))
-  .max(50);
-
-const ScanFocusInput = z
-  .object({
-    start_url: z.url().optional(),
-    only_domains: z
-      .array(
-        z
-          .string()
-          .trim()
-          .toLowerCase()
-          .regex(/^[a-z0-9.-]+$/, 'a host name such as en.example.org'),
-      )
-      .max(20)
-      .optional(),
-    only_paths: Globs.optional(),
-    exclude_paths: Globs.optional(),
-  })
-  .strict();
-
-/** Run kinds that are a new run of their own, and the choices each refuses beside it. */
-const NEW_RUN_ONLY: Record<string, { run: string; excludes: string[] }> = {
-  form_probing: { run: 'a form-probing run', excludes: ['resume_run_id', 'mode trace'] },
-  run_type: { run: 'a directed run', excludes: ['resume_run_id', 'mode trace', 'form_probing'] },
-  replay: {
-    run: 'a probe run',
-    excludes: ['resume_run_id', 'mode trace', 'form_probing', 'run_type'],
-  },
-};
-
-const StartRunInput = z
-  .object({
-    portal_id: z.string().min(1),
-    persona_id: z.string().min(1),
-    resume_run_id: z.string().min(1).optional(),
-    /** `probe`: a run of the headless driver (spec 039 design § 9), always with `replay`. */
-    mode: z.enum(['map', 'trace', 'probe']).default('map'),
-    process: z
-      .object({ name: z.string().trim().min(1).max(200), goal: z.string().trim().min(1).max(500) })
-      .strict()
-      .optional(),
-    followup_key: z.string().min(1).optional(),
-    /** Which of the portal's environments (spec 011); a resumed run keeps its own. */
-    environment: Environment.optional(),
-    /**
-     * The BA's choice for this run (spec 011 FR-013): lowers the run's limit below the portal's
-     * and persona's, never raises it. A resumed run keeps its own unless given again.
-     */
-    max_action_class: SafetyClass.optional(),
-    /** Answer image requests with a placeholder (spec 011 FR-014); a resumed run keeps its own. */
-    skip_images: z.boolean().optional(),
-    /**
-     * The BA's focus for this run (spec 011 FR-017): start page, hosts and paths to stay within,
-     * paths to leave out. Only narrows the scope; a resumed run keeps its own unless given again.
-     */
-    focus: ScanFocusInput.optional(),
-    /**
-     * A form-probing run (spec 032 US5): probe only the form steps a person marked for probing.
-     * A new map run only; a plain run never probes.
-     */
-    form_probing: z.boolean().optional(),
-    /**
-     * The replay of a probe run (`mode: 'probe'`, spec 039 design § 9): the headless driver re-runs
-     * a recorded journey prefix; `inputs` (`input.<attribute>` → value) replace the persona's test
-     * data when a form is filled before its submit. A new run only; its transitions carry
-     * `driver = 'headless'`.
-     */
-    replay: z
-      .object({ inputs: z.record(z.string().regex(/^input\./), z.string().max(500)) })
-      .strict()
-      .optional(),
-    /**
-     * A directed run (spec 034 R-66): `continue` a stopped run, `focused` from marked screens,
-     * `recheck` marked screens, `retry` a failed action. Start points come back in `start_points`;
-     * reach each with `go_to_state`. A new map run only.
-     */
-    run_type: DirectedType.optional(),
-    plan: PlanInput.optional(),
-  })
-  .strict()
-  .superRefine((v, c) => {
-    const set: Record<string, boolean> = {
-      resume_run_id: v.resume_run_id !== undefined,
-      'mode trace': v.mode === 'trace',
-      form_probing: v.form_probing === true,
-      run_type: v.run_type !== undefined,
-      replay: v.replay !== undefined,
-    };
-    for (const [choice, { run, excludes }] of Object.entries(NEW_RUN_ONLY)) {
-      if (!set[choice] || !excludes.some((x) => set[x])) continue;
-      const list = `${excludes.slice(0, -1).join(', ')} or ${excludes.at(-1)!}`;
-      c.addIssue({
-        code: 'custom',
-        path: [choice],
-        message: `${run} is a new run; not with ${list}`,
-      });
-    }
-    // A probe run is the headless driver's, and the driver's runs are probe runs.
-    if ((v.mode === 'probe') !== (v.replay !== undefined))
-      c.addIssue({
-        code: 'custom',
-        path: ['replay'],
-        message: 'replay is given exactly when mode is probe',
-      });
-    // A resumed run keeps its own mode and process.
-    if (v.resume_run_id !== undefined) return;
-    if (v.mode === 'trace' && v.process === undefined)
-      c.addIssue({ code: 'custom', path: ['process'], message: 'required when mode is trace' });
-    if (v.mode !== 'trace' && v.process !== undefined)
-      c.addIssue({ code: 'custom', path: ['process'], message: 'only allowed when mode is trace' });
-    if (v.mode !== 'trace' && v.followup_key !== undefined)
-      c.addIssue({
-        code: 'custom',
-        path: ['followup_key'],
-        message: 'only allowed when mode is trace',
-      });
-  });
+import { newRunChoices, runChoices, StartRunInput, type RunChoices } from './start-run-input.js';
 
 export interface StartRunOutput {
   run_id: string;
@@ -168,6 +48,9 @@ export interface StartRunOutput {
 }
 
 type Approved = Extract<PreflightResult, { ok: true }> & { hooks: readonly LoadedHook[] };
+type Input = z.infer<typeof StartRunInput>;
+type Started = { output: StartRunOutput; run: RunRow; approved: Approved; robots: RunRobots };
+type Secrets = Awaited<ReturnType<typeof resolveRunCredentials>> | Record<string, never>;
 
 function remainingBudgets(run: RunRow): StartRunOutput['budgets'] {
   const s = scopeOf(run);
@@ -194,16 +77,28 @@ async function loadBaseRobots(robots: RunRobots, baseUrl: string): Promise<void>
   }
 }
 
-/**
- * Database part of `start_run`, done AFTER `preflight` and BEFORE any browser is launched. Creates the
- * run row with the resolved `config_snapshot`, or resumes an interrupted run from persisted state
- * (FR-020) without re-recording anything. Returns what the browser session needs.
- */
-export async function startRunRecord(
+async function fetchRobots(
+  ctx: ServerContext,
+  runId: string,
+  {
+    portal,
+    startUrl,
+    buffer,
+  }: { portal: Approved['effective']['portal']; startUrl: string; buffer: boolean },
+): Promise<RunRobots> {
+  return ctx.tracer.phase('robots_fetch', async () => {
+    const robots = createRunRobots(ctx, runId, portal, { buffer });
+    await loadBaseRobots(robots, startUrl);
+    return robots;
+  });
+}
+
+/** The input, the portal and persona preflight and the portal's hooks; nothing written yet. */
+async function preflightRun(
   ctx: ServerContext,
   raw: unknown,
-): Promise<{ output: StartRunOutput; run: RunRow; approved: Approved; robots: RunRobots }> {
-  const { input, pre } = await ctx.tracer.phase('preflight', async () => {
+): Promise<{ input: Input; pre: Approved }> {
+  return ctx.tracer.phase('preflight', async () => {
     const input = parseInput(StartRunInput, raw);
     if (
       !existsSync(join(ctx.root, 'portals', input.portal_id, 'portal.yaml')) &&
@@ -232,110 +127,107 @@ export async function startRunRecord(
     const hooks = await loadRunHooks(ctx.root, pre.effective.portal);
     return { input, pre: { ...pre, hooks } };
   });
-  const { portal, persona } = pre.effective;
-  // The run's limit and scope: the portal's and persona's, lowered and narrowed by the BA's choices
-  // for this run. A focus that would widen the scope is refused before anything is written.
-  const limited = (
-    choices: RunChoices,
-  ): {
-    effectiveMaxActionClass: SafetyClass;
-    approved: Approved;
-    startUrl: string;
-  } => {
-    const effectiveMaxActionClass =
-      choices.max_action_class === null
-        ? pre.effective.effectiveMaxActionClass
-        : minSafetyClass(pre.effective.effectiveMaxActionClass, choices.max_action_class);
-    let scope = pre.scope;
-    if (choices.focus !== null) {
-      try {
-        scope = focusScope(pre.scope, choices.focus, portal.base_url);
-      } catch (e) {
-        if (!(e instanceof FocusError)) throw e;
-        throw new ToolError('SCHEMA_INVALID', `focus: ${e.message}`, { field: 'focus' });
-      }
+}
+
+/**
+ * The run's limit and scope: the portal's and persona's, lowered and narrowed by the BA's choices
+ * for this run. A focus that would widen the scope is refused before anything is written.
+ */
+function limited(
+  pre: Approved,
+  choices: RunChoices,
+): { effectiveMaxActionClass: SafetyClass; approved: Approved; startUrl: string } {
+  const { portal } = pre.effective;
+  const effectiveMaxActionClass =
+    choices.max_action_class === null
+      ? pre.effective.effectiveMaxActionClass
+      : minSafetyClass(pre.effective.effectiveMaxActionClass, choices.max_action_class);
+  let scope = pre.scope;
+  if (choices.focus !== null) {
+    try {
+      scope = focusScope(pre.scope, choices.focus, portal.base_url);
+    } catch (e) {
+      if (!(e instanceof FocusError)) throw e;
+      throw new ToolError('SCHEMA_INVALID', `focus: ${e.message}`, { field: 'focus' });
     }
-    return {
-      effectiveMaxActionClass,
-      approved: { ...pre, scope, effective: { ...pre.effective, effectiveMaxActionClass } },
-      startUrl: choices.focus?.start_url ?? portal.base_url,
-    };
-  };
-  // Credentials before anything else is written or launched: a missing ref refuses the run.
-  // Guests have nothing to resolve, and their traces stay as they were.
-  const secrets =
-    Object.keys(personaRefs(persona.auth)).length === 0
-      ? {}
-      : await ctx.tracer.phase('resolve_credentials', () =>
-          resolveRunCredentials(ctx, portal.id, persona, portal.environment),
-        );
-
-  if (input.resume_run_id !== undefined) {
-    const resumeId = input.resume_run_id;
-    const run = await ctx.tracer.phase('resume_check', () =>
-      resumableRun(ctx, resumeId, portal.id, persona.id),
-    );
-    // A resumed run keeps its choices unless the BA gave new ones.
-    const prior = runChoices(run);
-    const choices: RunChoices = {
-      max_action_class: input.max_action_class ?? prior.max_action_class,
-      skip_images: input.skip_images ?? prior.skip_images,
-      focus: input.focus ?? prior.focus,
-      form_probing: prior.form_probing,
-      replay: prior.replay,
-    };
-    const { effectiveMaxActionClass, approved, startUrl } = limited(choices);
-    // A resumed run reads robots.txt again; a change is logged by the policy writer (FR-006).
-    const robots = await ctx.tracer.phase('robots_fetch', async () => {
-      const robots = createRunRobots(ctx, run.id, portal, { buffer: false });
-      await loadBaseRobots(robots, startUrl);
-      return robots;
-    });
-    const snapshot = JSON.parse(run.config_snapshot) as Record<string, unknown>;
-    const resumed = await ctx.tracer.phase('insert_run', async () => {
-      await ctx.db
-        .updateTable('runs')
-        // The resuming server drives the run from now on (F-14).
-        .set({
-          status: 'running',
-          ended_at: null,
-          config_snapshot: JSON.stringify({
-            ...snapshot,
-            effective_max_action_class: effectiveMaxActionClass,
-            choices,
-            scope: approved.scope,
-          }),
-          ...ownerColumns(ctx),
-        })
-        .where('id', '=', run.id)
-        .execute();
-      return getRun(ctx, run.id);
-    });
-    const resumedProcess = await processOfRun(ctx, run.id);
-    runSecrets.set(run.id, secrets);
-    return {
-      output: {
-        run_id: run.id,
-        mode: resumedProcess ? 'trace' : 'map',
-        ...(resumedProcess ? { process_id: resumedProcess.id } : {}),
-        base_url: startUrl,
-        ...(choices.focus ? { focus: choices.focus } : {}),
-        resumed: true,
-        effective_max_action_class: effectiveMaxActionClass,
-        skip_images: choices.skip_images,
-        budgets: remainingBudgets(resumed),
-      },
-      run: resumed,
-      approved,
-      robots,
-    };
   }
+  return {
+    effectiveMaxActionClass,
+    approved: { ...pre, scope, effective: { ...pre.effective, effectiveMaxActionClass } },
+    startUrl: choices.focus?.start_url ?? portal.base_url,
+  };
+}
 
+/** Resume an interrupted run from persisted state (FR-020) without re-recording anything. */
+async function resumeRun(
+  ctx: ServerContext,
+  { input, pre, secrets }: { input: Input; pre: Approved; secrets: Secrets },
+): Promise<Started> {
+  const { portal, persona } = pre.effective;
+  const resumeId = input.resume_run_id!;
+  const run = await ctx.tracer.phase('resume_check', () =>
+    resumableRun(ctx, resumeId, portal.id, persona.id),
+  );
+  // A resumed run keeps its choices unless the BA gave new ones.
+  const prior = runChoices(run);
+  const choices: RunChoices = {
+    max_action_class: input.max_action_class ?? prior.max_action_class,
+    skip_images: input.skip_images ?? prior.skip_images,
+    focus: input.focus ?? prior.focus,
+    form_probing: prior.form_probing,
+    replay: prior.replay,
+  };
+  const { effectiveMaxActionClass, approved, startUrl } = limited(pre, choices);
+  // A resumed run reads robots.txt again; a change is logged by the policy writer (FR-006).
+  const robots = await fetchRobots(ctx, run.id, { portal, startUrl, buffer: false });
+  const snapshot = JSON.parse(run.config_snapshot) as Record<string, unknown>;
+  const resumed = await ctx.tracer.phase('insert_run', async () => {
+    await ctx.db
+      .updateTable('runs')
+      // The resuming server drives the run from now on (F-14).
+      .set({
+        status: 'running',
+        ended_at: null,
+        config_snapshot: JSON.stringify({
+          ...snapshot,
+          effective_max_action_class: effectiveMaxActionClass,
+          choices,
+          scope: approved.scope,
+        }),
+        ...ownerColumns(ctx),
+      })
+      .where('id', '=', run.id)
+      .execute();
+    return getRun(ctx, run.id);
+  });
+  const resumedProcess = await processOfRun(ctx, run.id);
+  runSecrets.set(run.id, secrets);
+  return {
+    output: {
+      run_id: run.id,
+      mode: resumedProcess ? 'trace' : 'map',
+      ...(resumedProcess ? { process_id: resumedProcess.id } : {}),
+      base_url: startUrl,
+      ...(choices.focus ? { focus: choices.focus } : {}),
+      resumed: true,
+      effective_max_action_class: effectiveMaxActionClass,
+      skip_images: choices.skip_images,
+      budgets: remainingBudgets(resumed),
+    },
+    run: resumed,
+    approved,
+    robots,
+  };
+}
+
+/**
+ * A new run's directed plan and probe marks, before any row is written: nothing to start from or
+ * nothing to probe refuses it. Depth counts from a directed run's start points (spec 034 A-4).
+ */
+async function planNewRun(ctx: ServerContext, input: Input, pre: Approved) {
+  const { portal, persona } = pre.effective;
   const choices = newRunChoices(input);
-  const limits = limited(choices);
-  const { effectiveMaxActionClass, startUrl } = limits;
-  // A directed run's plan, before any row is written: nothing to start from refuses it. Depth
-  // counts from its start points (spec 034 A-4).
+  const limits = limited(pre, choices);
   const directed =
     input.run_type === undefined
       ? null
@@ -357,18 +249,19 @@ export async function startRunRecord(
       'NO_PROBE_MARKS',
       `no form step of ${portal.id} is marked for probing; a person marks one on its screen page first`,
     );
+  return { choices, limits, directed, approved, probeMarks };
+}
 
-  const followupRecordId =
-    input.followup_key === undefined
-      ? null
-      : await openFollowup(ctx, portal.id, input.followup_key);
-  const id = newId();
-  const robots = await ctx.tracer.phase('robots_fetch', async () => {
-    const robots = createRunRobots(ctx, id, portal, { buffer: true });
-    await loadBaseRobots(robots, startUrl);
-    return robots;
-  });
-  const run = await ctx.tracer.phase('insert_run', async () => {
+type Plan = Awaited<ReturnType<typeof planNewRun>>;
+
+/** The new run's row with its resolved `config_snapshot`; directed runs use their marks. */
+async function insertRunRow(
+  ctx: ServerContext,
+  { id, input, plan, robots }: { id: string; input: Input; plan: Plan; robots: RunRobots },
+): Promise<RunRow> {
+  const { portal, persona } = plan.approved.effective;
+  const { directed } = plan;
+  return ctx.tracer.phase('insert_run', async () => {
     await ctx.db
       .insertInto('runs')
       .values({
@@ -385,9 +278,9 @@ export async function startRunRecord(
         config_snapshot: JSON.stringify({
           portal,
           persona,
-          effective_max_action_class: effectiveMaxActionClass,
-          choices,
-          scope: approved.scope,
+          effective_max_action_class: plan.limits.effectiveMaxActionClass,
+          choices: plan.choices,
+          scope: plan.approved.scope,
           robots: robotsSnapshot(robots),
           rule_set: ruleSetSummary(portalRuleSet(portal)),
         }),
@@ -413,6 +306,23 @@ export async function startRunRecord(
     if (directed) await useMarks(ctx, directed.plan.mark_ids, id);
     return getRun(ctx, id);
   });
+}
+
+async function newRun(
+  ctx: ServerContext,
+  { input, pre, secrets }: { input: Input; pre: Approved; secrets: Secrets },
+): Promise<Started> {
+  const { portal, persona } = pre.effective;
+  const plan = await planNewRun(ctx, input, pre);
+  const { choices, directed, approved, probeMarks } = plan;
+  const { effectiveMaxActionClass, startUrl } = plan.limits;
+  const followupRecordId =
+    input.followup_key === undefined
+      ? null
+      : await openFollowup(ctx, portal.id, input.followup_key);
+  const id = newId();
+  const robots = await fetchRobots(ctx, id, { portal, startUrl, buffer: true });
+  const run = await insertRunRow(ctx, { id, input, plan, robots });
   const processId =
     input.mode === 'trace' && input.process
       ? await createProcess(ctx, {
@@ -445,51 +355,25 @@ export async function startRunRecord(
   };
 }
 
-/** The BA's choices for one run (spec 011 FR-013, FR-014), kept in `config_snapshot.choices`. */
-export interface RunChoices {
-  /** Lowers the run's limit; null = the portal's and persona's limit. */
-  max_action_class: SafetyClass | null;
-  skip_images: boolean;
-  /** Narrows the run's scope and start page (spec 011 FR-017); null = the whole portal. */
-  focus: ScanFocus | null;
-  /** A form-probing run (spec 032 US5): only marked form steps are probed; plain runs never probe. */
-  form_probing: boolean;
-  /** A probe run's replay (the headless driver, spec 039 design § 9) and the inputs it types. */
-  replay: { inputs: Record<string, string> } | null;
-}
-
-/** A new run's choices: what the BA gave, else the portal's and persona's defaults. */
-function newRunChoices(input: z.infer<typeof StartRunInput>): RunChoices {
-  return {
-    max_action_class: input.max_action_class ?? null,
-    skip_images: input.skip_images ?? false,
-    focus: input.focus ?? null,
-    form_probing: input.form_probing === true,
-    replay: input.replay ?? null,
-  };
-}
-
-const ReplayChoice = StartRunInput.shape.replay.unwrap();
-
-export function runChoices(run: Pick<RunRow, 'config_snapshot'>): RunChoices {
-  try {
-    const c = (JSON.parse(run.config_snapshot) as { choices?: Record<string, unknown> }).choices;
-    return {
-      max_action_class: SafetyClass.safeParse(c?.max_action_class).data ?? null,
-      skip_images: c?.skip_images === true,
-      focus: ScanFocusInput.safeParse(c?.focus).data ?? null,
-      form_probing: c?.form_probing === true,
-      replay: ReplayChoice.safeParse(c?.replay).data ?? null,
-    };
-  } catch {
-    return {
-      max_action_class: null,
-      skip_images: false,
-      focus: null,
-      form_probing: false,
-      replay: null,
-    };
-  }
+/**
+ * Database part of `start_run`, done AFTER `preflight` and BEFORE any browser is launched. Creates the
+ * run row with the resolved `config_snapshot`, or resumes an interrupted run from persisted state
+ * (FR-020) without re-recording anything. Returns what the browser session needs.
+ */
+export async function startRunRecord(ctx: ServerContext, raw: unknown): Promise<Started> {
+  const { input, pre } = await preflightRun(ctx, raw);
+  const { portal, persona } = pre.effective;
+  // Credentials before anything else is written or launched: a missing ref refuses the run.
+  // Guests have nothing to resolve, and their traces stay as they were.
+  const secrets =
+    Object.keys(personaRefs(persona.auth)).length === 0
+      ? {}
+      : await ctx.tracer.phase('resolve_credentials', () =>
+          resolveRunCredentials(ctx, portal.id, persona, portal.environment),
+        );
+  return input.resume_run_id !== undefined
+    ? resumeRun(ctx, { input, pre, secrets })
+    : newRun(ctx, { input, pre, secrets });
 }
 
 /** The interrupted run of the same portal and persona that `resume_run_id` names. */

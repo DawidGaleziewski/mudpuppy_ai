@@ -106,27 +106,7 @@ export function clusterPartition(
       .map(([a, b]) => pairKey(a, b)),
   );
 
-  // Must-link groups first; a group holding a cannot-link pair is a label conflict and stays apart.
-  const uf = new UnionFind(n);
-  for (const [a, b] of constraints.mustLink) {
-    const [ia, ib] = [index.get(a), index.get(b)];
-    if (ia !== undefined && ib !== undefined) uf.union(ia, ib);
-  }
-  const groups = new Map<number, number[]>();
-  for (let i = 0; i < n; i++) {
-    const r = uf.find(i);
-    groups.set(r, [...(groups.get(r) ?? []), i]);
-  }
-  const conflicts: string[][] = [];
-  let clusters: number[][] = [];
-  for (const members of [...groups.values()].sort((a, b) => a[0]! - b[0]!)) {
-    const ids = members.map((i) => states[i]!.id);
-    const conflicted = ids.some((a, x) => ids.slice(x + 1).some((b) => cannot.has(pairKey(a, b))));
-    if (conflicted && members.length > 1) {
-      conflicts.push([...ids].sort());
-      clusters.push(...members.map((i) => [i]));
-    } else clusters.push(members);
-  }
+  const { clusters: groups, conflicts } = mustLinkGroups(states, index, constraints, cannot);
 
   // Pairwise distances: LSH candidates in large partitions, every pair otherwise (others count 1).
   const candidates = n > MODEL_DEFAULTS.lshAbove ? lshCandidates(states) : null;
@@ -146,8 +126,54 @@ export function clusterPartition(
     for (const i of a) for (const j of b) sum += dist(i, j);
     return sum / (a.length * b.length);
   };
-  // Clusters keep their members sorted, so a cluster's first member holds its smallest fingerprint.
   const limit = 1 - (classifier ? CLASSIFIER_THRESHOLD : tau) + 1e-12;
+  const clusters = agglomerate(groups, { average, blocked, limit });
+  return {
+    clusters: clusters.map((c) => c.map((i) => states[i]!.id).sort()),
+    conflicts,
+  };
+}
+
+/** Must-link groups first; a group holding a cannot-link pair is a label conflict and stays apart. */
+function mustLinkGroups(
+  states: readonly ClusterState[],
+  index: ReadonlyMap<string, number>,
+  constraints: ClusterConstraints,
+  cannot: ReadonlySet<string>,
+): { clusters: number[][]; conflicts: string[][] } {
+  const uf = new UnionFind(states.length);
+  for (const [a, b] of constraints.mustLink) {
+    const [ia, ib] = [index.get(a), index.get(b)];
+    if (ia !== undefined && ib !== undefined) uf.union(ia, ib);
+  }
+  const groups = new Map<number, number[]>();
+  for (let i = 0; i < states.length; i++) {
+    const r = uf.find(i);
+    groups.set(r, [...(groups.get(r) ?? []), i]);
+  }
+  const conflicts: string[][] = [];
+  const clusters: number[][] = [];
+  for (const members of [...groups.values()].sort((a, b) => a[0]! - b[0]!)) {
+    const ids = members.map((i) => states[i]!.id);
+    const conflicted = ids.some((a, x) => ids.slice(x + 1).some((b) => cannot.has(pairKey(a, b))));
+    if (conflicted && members.length > 1) {
+      conflicts.push([...ids].sort());
+      clusters.push(...members.map((i) => [i]));
+    } else clusters.push(members);
+  }
+  return { clusters, conflicts };
+}
+
+interface Linkage {
+  average: (a: number[], b: number[]) => number;
+  blocked: (a: number[], b: number[]) => boolean;
+  limit: number;
+}
+
+/** Average-linkage merging until no pair is close enough (members as state indexes). */
+function agglomerate(start: number[][], { average, blocked, limit }: Linkage): number[][] {
+  let clusters = start;
+  // Clusters keep their members sorted, so a cluster's first member holds its smallest fingerprint.
   for (;;) {
     let best: { a: number; b: number; d: number } | null = null;
     for (let a = 0; a < clusters.length; a++)
@@ -164,10 +190,7 @@ export function clusterPartition(
     clusters.push(merged);
     clusters.sort((x, y) => x[0]! - y[0]!);
   }
-  return {
-    clusters: clusters.map((c) => c.map((i) => states[i]!.id).sort()),
-    conflicts,
-  };
+  return clusters;
 }
 
 /** Cluster every route partition of a portal; clusters never cross route keys. */

@@ -289,17 +289,25 @@ def range_from(
     return (int(seq) - 1, "release") if seq else (0, "first")
 
 
+@dataclass(frozen=True)
+class ChangeFilter:
+    """Which changes Changes lists: the version range and the show / kind / process filters."""
+
+    from_seq: int = 0
+    to_seq: int | None = None
+    show: str = "all"
+    kind: str | None = None
+    process: str | None = None
+
+
+ALL_CHANGES = ChangeFilter()
+
+
 def changes_view(
-    conn: sqlite3.Connection,
-    portal: str | None,
-    *,
-    from_seq: int = 0,
-    to_seq: int | None = None,
-    show: str = "all",
-    kind: str | None = None,
-    process: str | None = None,
+    conn: sqlite3.Connection, portal: str | None, f: ChangeFilter = ALL_CHANGES
 ) -> ChangesView:
     """Changes first seen in model versions `from_seq` < seq ≤ `to_seq` (default: all)."""
+    from_seq, to_seq, show, kind, process = f.from_seq, f.to_seq, f.show, f.kind, f.process
     if not portal:
         return ChangesView(None, None)
     versions = [

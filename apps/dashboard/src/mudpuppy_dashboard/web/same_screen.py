@@ -5,10 +5,12 @@ never writes), then on to the next pair."""
 
 from __future__ import annotations
 
+from typing import Annotated
 from urllib.parse import parse_qs, quote
 
-from fastapi import APIRouter, Request
+from fastapi import APIRouter, Query, Request
 from fastapi.responses import HTMLResponse, PlainTextResponse, RedirectResponse, Response
+from pydantic import BaseModel
 
 from .. import chat_client, db, queries_same_screen
 from .deps import Web, same_origin, web_of
@@ -16,18 +18,22 @@ from .deps import Web, same_origin, web_of
 router = APIRouter()
 
 
+class SameScreenQuery(BaseModel):
+    """The pair to show (`a`, `b`), the screen whose queue to walk, the last answer's note."""
+
+    env: str | None = None
+    screen: str | None = None
+    a: str | None = None
+    b: str | None = None
+    note: str | None = None
+
+
 @router.get("/same-screen", response_class=HTMLResponse)
-def same_screen_page(
-    request: Request,
-    env: str | None = None,
-    screen: str | None = None,
-    a: str | None = None,
-    b: str | None = None,
-    note: str | None = None,
-) -> HTMLResponse:
+def same_screen_page(request: Request, q: Annotated[SameScreenQuery, Query()]) -> HTMLResponse:
     """The pair `a`/`b`, or the first in the queue (of one screen with `screen=SC-…`)."""
     web = web_of(request)
-    c = web.ctx(request, env)
+    c = web.ctx(request, q.env)
+    screen, a, b, note = q.screen, q.a, q.b, q.note
     d, tau = None, None
     try:
         with c.conn() as conn:
@@ -68,7 +74,8 @@ async def label_pair(request: Request, portal: str, env: str | None = None) -> R
     elif answer not in queries_same_screen.ANSWERS or not (a and b):
         note = "Pick an answer: 1, 2 or 3."
     else:
-        note = await _label(web, c.env, portal, a, b, answer, form.get("why", "").strip())
+        why = form.get("why", "").strip()
+        note = await _label(web, c.env, portal, {"a": a, "b": b, "answer": answer}, why)
     stay = note.startswith(("Not", "Pick", "Set"))
     nxt = (form.get("next_a"), form.get("next_b")) if not stay else (a, b)
     return RedirectResponse(
@@ -76,8 +83,10 @@ async def label_pair(request: Request, portal: str, env: str | None = None) -> R
     )
 
 
-async def _label(web: Web, env: str, portal: str, a: str, b: str, answer: str, why: str) -> str:
-    body = {"a": a, "b": b, "answer": answer, "by": web.settings.reviewer}
+async def _label(web: Web, env: str, portal: str, pair: dict[str, str], why: str) -> str:
+    """`pair`: the two page versions (`a`, `b`) and the person's `answer`."""
+    answer = pair["answer"]
+    body = {"a": pair["a"], "b": pair["b"], "answer": answer, "by": web.settings.reviewer}
     if why:
         body["reason"] = why
     try:

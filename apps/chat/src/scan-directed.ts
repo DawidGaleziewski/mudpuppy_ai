@@ -22,6 +22,30 @@ function openMarks(raw: BetterSqlite3.Database, portal: string, kinds: string[])
   return row.n;
 }
 
+/** What each directed type starts from: a parent run, a failed action, or open marks. */
+function requireStart(
+  raw: BetterSqlite3.Database,
+  portal: string,
+  runType: DirectedType,
+  plan: ScanPlan,
+): void {
+  if (runType === 'continue' && plan.parent_run_id === undefined)
+    throw new ScanRefusal('MISSING_INPUT', 'continuing a scan needs the scan to continue', [
+      'plan.parent_run_id: the stopped scan',
+    ]);
+  if (runType === 'retry' && plan.target_transition_id === undefined)
+    throw new ScanRefusal('MISSING_INPUT', 'retrying a path needs the action that failed', [
+      'plan.target_transition_id: the failed action (Scans > the stopped scan > Retry this path)',
+    ]);
+  const kinds = MARKS_FOR[runType];
+  if (kinds !== undefined && plan.start_state_ids === undefined && openMarks(raw, portal, kinds) === 0)
+    throw new ScanRefusal('MISSING_INPUT', `no screen of ${portal} is marked for this scan`, [
+      runType === 'focused'
+        ? 'Start here or Focus marks: the BA marks screens on Scans > Map'
+        : 'Recheck marks: the BA marks screens on Scans > Map',
+    ]);
+}
+
 /** A directed scan needs what its type starts from: marks, a parent run, or a failed action. */
 export function directedScanCheck(
   raw: BetterSqlite3.Database,
@@ -40,21 +64,7 @@ export function directedScanCheck(
       'a directed scan is a new run of its own; it does not resume a scan, trace a process or probe',
     );
   const plan = s.plan ?? {};
-  if (s.run_type === 'continue' && plan.parent_run_id === undefined)
-    throw new ScanRefusal('MISSING_INPUT', 'continuing a scan needs the scan to continue', [
-      'plan.parent_run_id: the stopped scan',
-    ]);
-  if (s.run_type === 'retry' && plan.target_transition_id === undefined)
-    throw new ScanRefusal('MISSING_INPUT', 'retrying a path needs the action that failed', [
-      'plan.target_transition_id: the failed action (Scans > the stopped scan > Retry this path)',
-    ]);
-  const kinds = MARKS_FOR[s.run_type];
-  if (kinds !== undefined && plan.start_state_ids === undefined && openMarks(raw, portal, kinds) === 0)
-    throw new ScanRefusal('MISSING_INPUT', `no screen of ${portal} is marked for this scan`, [
-      s.run_type === 'focused'
-        ? 'Start here or Focus marks: the BA marks screens on Scans > Map'
-        : 'Recheck marks: the BA marks screens on Scans > Map',
-    ]);
+  requireStart(raw, portal, s.run_type, plan);
   if (plan.parent_run_id !== undefined) {
     const parent = raw.prepare('SELECT portal_id FROM runs WHERE id = ?').get(plan.parent_run_id) as
       | { portal_id: string }
@@ -71,6 +81,17 @@ const WHAT: Record<DirectedType, string> = {
   retry: 'Retry the failed action',
 };
 
+const DRAIN =
+  "Then drain the frontier by acting on each result's next item (or get_next_frontier_item when a result has none) until there is no next item; if finish_run answers FRONTIER_NOT_EMPTY, continue.";
+
+/** What the crawler does once a start point is reached. */
+const AFTER_START: Record<DirectedType, string> = {
+  continue: DRAIN,
+  focused: DRAIN,
+  recheck: 'Do not act on anything after reaching a start point.',
+  retry: 'Then act on the next item the result gives (the failed action, with the variation), once.',
+};
+
 /** The crawler brief for a directed scan: start the typed run, reach each start point, go on. */
 export function directedPrompt(
   s: { portal: string; persona: string; environment: string },
@@ -78,12 +99,7 @@ export function directedPrompt(
   plan: ScanPlan,
   choiceArgs: string,
 ): string {
-  const after =
-    type === 'recheck'
-      ? 'Do not act on anything after reaching a start point.'
-      : type === 'retry'
-        ? 'Then act on the next item the result gives (the failed action, with the variation), once.'
-        : 'Then drain the frontier by acting on each result\'s next item (or get_next_frontier_item when a result has none) until there is no next item; if finish_run answers FRONTIER_NOT_EMPTY, continue.';
+  const after = AFTER_START[type];
   return (
     `${WHAT[type]} of portal "${s.portal}" as persona "${s.persona}" in environment ` +
     `"${s.environment}" (a ${type} scan): call start_run with environment "${s.environment}", ` +

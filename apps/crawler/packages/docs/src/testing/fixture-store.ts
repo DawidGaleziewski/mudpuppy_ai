@@ -7,18 +7,39 @@ import {
   elementKeys,
   newId,
   parseAriaYaml,
-  type Box,
   type EvidenceStore,
   type Layout,
 } from '@mudpuppy/core';
 import { migrateUp, openDb, type OpenedDb, type MudPuppyDb } from '@mudpuppy/store';
-import { PNG } from 'pngjs';
+import {
+  CONTACT_FIELDS,
+  SNAPSHOTS,
+  VEHICLE_BOXES,
+  VEHICLE_FIELDS,
+  VEHICLE_PNG,
+  fixturePng,
+} from './fixture/data.js';
+import {
+  action,
+  button,
+  FIXTURE_TS,
+  form,
+  insert,
+  link,
+  networkCall,
+  observe,
+  question,
+  run,
+  state,
+  transition,
+  type Builder,
+} from './fixture/rows.js';
+import { addBoundaryTrace, addTraceRun, type MapRun } from './fixture/traces.js';
+
+export { FIXTURE_TS } from './fixture/rows.js';
 
 // packages/docs/src/testing -> repo root is six levels up.
 const MIGRATIONS = fileURLToPath(new URL('../../../../../../data/migrations', import.meta.url));
-
-/** Fixed clock: nothing in the fixture depends on when the test runs. */
-export const FIXTURE_TS = '2026-01-15T10:00:00.000Z';
 
 export interface FixtureStoreOptions {
   /** Portal the map run belongs to. Tests pass the reference portal's id; the default is neutral. */
@@ -97,306 +118,43 @@ export interface TraceFixture {
   boundaryActionId: string | null;
 }
 
-const page = (heading: string, body: string): string =>
-  [
-    '- banner:',
-    '  - navigation "Menu główne":',
-    '    - link "Start":',
-    '      - /url: /',
-    '    - link "Samochód":',
-    '      - /url: /ubezpieczenia/samochod',
-    '    - link "Oblicz składkę":',
-    '      - /url: /kalkulator/pojazd',
-    '    - link "Kontakt":',
-    '      - /url: /kontakt',
-    '- main:',
-    `  - heading "${heading}" [level=1]`,
-    body,
-  ].join('\n');
+type Refs = MapRun['refs'];
+type States = MapRun['states'];
 
-const SNAPSHOTS = {
-  home: page(
-    'Ubezpieczenia na każdą drogę',
-    '  - paragraph: Porównaj oferty OC, Autocasco (AC) i Assistance.',
-  ),
-  car: page(
-    'Ubezpieczenie samochodu',
-    [
-      '  - paragraph: OC jest obowiązkowe. Autocasco (AC) tylko dla pojazdów do 15 lat.',
-      '  - link "Oblicz składkę":',
-      '    - /url: /kalkulator/pojazd',
-      '  - button "Kup polisę"',
-    ].join('\n'),
-  ),
-  vehicle: page(
-    'Kalkulator OC/AC — dane pojazdu',
-    [
-      '  - form "Dane pojazdu":',
-      '    - combobox "Marka"',
-      '    - textbox "Model"',
-      '    - spinbutton "Rok produkcji"',
-      '    - spinbutton "Pojemność silnika (cm³)"',
-      '    - textbox "Kod pocztowy"',
-      '    - text: Format NN-NNN',
-      '    - button "Dalej"',
-    ].join('\n'),
-  ),
-  contact: page(
-    'Kontakt',
-    [
-      '  - form "Formularz kontaktowy":',
-      '    - textbox "Imię"',
-      '    - combobox "Temat"',
-      '    - textbox "Wiadomość"',
-      '    - textbox "Telefon"',
-      '    - textbox "E-mail"',
-      '    - text: Podaj telefon lub e-mail.',
-      '    - button "Wyślij"',
-    ].join('\n'),
-  ),
-  other: '- main:\n  - heading "Start" [level=1]',
-} as const;
-
-/** Size and element boxes of the calculator page's fixture screenshot (keys from its snapshot). */
-const VEHICLE_PNG = { width: 400, height: 300 };
-const VEHICLE_BOXES: Record<string, Box> = {
-  'heading "Kalkulator OC/AC — dane pojazdu"': { x: 20, y: 60, width: 300, height: 24 },
-  'combobox "Marka"': { x: 20, y: 100, width: 160, height: 20 },
-  'textbox "Model"': { x: 200, y: 100, width: 160, height: 20 },
-  'spinbutton "Rok produkcji"': { x: 20, y: 140, width: 160, height: 20 },
-  'spinbutton "Pojemność silnika (cm³)"': { x: 200, y: 140, width: 160, height: 20 },
-  'textbox "Kod pocztowy"': { x: 20, y: 180, width: 160, height: 20 },
-  'button "Dalej"': { x: 20, y: 240, width: 80, height: 28 },
-};
-
-/** A deterministic PNG: white page, grey boxes where the layout says the elements are. */
-function fixturePng(width: number, height: number, boxes: Record<string, Box>): Uint8Array {
-  const png = new PNG({ width, height });
-  png.data.fill(255);
-  for (const b of Object.values(boxes))
-    for (let y = b.y; y < b.y + b.height; y++)
-      for (let x = b.x; x < b.x + b.width; x++) {
-        const i = (y * width + x) * 4;
-        png.data[i] = png.data[i + 1] = png.data[i + 2] = 210;
-      }
-  return new Uint8Array(PNG.sync.write(png, { deflateLevel: 9, filterType: 4 }));
-}
-
-const VEHICLE_FIELDS = [
-  {
-    name: 'marka',
-    type: 'select',
-    required: true,
-    options: ['— wybierz —', 'Toyota', 'Skoda', 'Inna'],
-  },
-  { name: 'model', type: 'text', required: true, constraints: { maxlength: 40 } },
-  { name: 'rok_produkcji', type: 'number', required: true, constraints: { min: 1990, max: 2026 } },
-  { name: 'pojemnosc', type: 'number', required: true, constraints: { min: 50, max: 8000 } },
-  {
-    name: 'kod_pocztowy',
-    type: 'text',
-    required: true,
-    constraints: { pattern: '[0-9]{2}-[0-9]{3}' },
-    validation_messages: ['Please fill out this field.'],
-  },
-];
-
-const CONTACT_FIELDS = [
-  { name: 'imie', type: 'text', required: true, constraints: { maxlength: 60 } },
-  {
-    name: 'temat',
-    type: 'select',
-    required: true,
-    options: ['— wybierz —', 'Oferta', 'Szkoda', 'Inne'],
-  },
-  { name: 'wiadomosc', type: 'textarea', required: true, constraints: { maxlength: 1000 } },
-  { name: 'telefon', type: 'tel', required: false, constraints: { pattern: '\\+?[0-9 ]{9,15}' } },
-  { name: 'email', type: 'email', required: false },
-];
-
-/**
- * An in-memory store, migrated, holding one completed map run shaped like the reference portal
- * (four screens, two forms, network calls, a refused mutating action, crawler notes) and a second
- * portal with one run. Layer B is empty: tests write it through the code under test.
- */
-export async function makeFixtureStore(opts: FixtureStoreOptions = {}): Promise<FixtureStore> {
-  const portalId = opts.portalId ?? 'fixture-insurer';
-  const otherPortalId = 'other';
-  let idCount = 0;
-  const nextId = opts.deterministicIds ? () => fixedId(++idCount) : () => newId();
-  const opened = openDb(':memory:');
-  migrateUp(opened.raw, MIGRATIONS);
-  const { raw } = opened;
-  const evidenceDir = mkdtempSync(join(tmpdir(), 'pf-docs-fixture-'));
-  const evidence = createEvidenceStore(evidenceDir);
-
-  const insert = (table: string, row: Record<string, unknown>): void => {
-    const cols = Object.keys(row);
-    raw
-      .prepare(
-        `INSERT INTO ${table} (${cols.join(', ')}) VALUES (${cols.map(() => '?').join(', ')})`,
-      )
-      .run(...cols.map((c) => row[c]));
-  };
-
-  const run = (portal: string, over: { mode?: string; environment?: string } = {}): string => {
-    const id = nextId();
-    insert('runs', {
-      id,
-      portal_id: portal,
-      persona_id: 'guest',
-      mode: over.mode ?? 'map',
-      environment: over.environment ?? 'sandbox',
-      env_version_or_date: '2026-01-15',
-      seed_id: null,
-      viewport: '1366x768',
-      locale: 'pl-PL',
-      browser: 'chromium',
-      config_snapshot: '{}',
-      status: 'completed',
-      warning: null,
-      steps_used: 12,
-      elapsed_ms: 4200,
-      max_depth_reached: 2,
-      started_at: FIXTURE_TS,
-      ended_at: FIXTURE_TS,
-      coverage: null,
-    });
-    return id;
-  };
-
-  const observe = (runId: string, stateId: string, ref: string): void =>
-    insert('state_observations', {
-      run_id: runId,
-      state_id: stateId,
-      persona_id: 'guest',
-      evidence_ref: ref,
-      observed_at: FIXTURE_TS,
-    });
-
-  let fingerprints = 0;
-  const state = (
-    portal: string,
-    runId: string,
-    route: string,
-    title: string,
-    ref: string,
-  ): string => {
-    const id = nextId();
-    fingerprints += 1;
-    insert('states', {
-      id,
-      portal_id: portal,
-      fingerprint: fingerprints.toString(16).padStart(64, '0'),
-      cluster_id: `cluster-${fingerprints}`,
-      route_template: route,
-      title,
-      evidence_ref: ref,
-      confidence: 'observed',
-      stabilization: 'settled',
-      first_seen_run: runId,
-      created_at: FIXTURE_TS,
-    });
-    observe(runId, id, ref);
-    return id;
-  };
-
-  const link = (name: string, href: string, snapshotRef: string) => ({
-    role: 'link',
-    accessible_name: name,
-    locators: [{ kind: 'role', value: `role=link[name="${name}"]`, rank: 0 }],
-    snapshot_ref: snapshotRef,
-    nth: 0,
-    href,
-  });
-  const button = (name: string, method: string, action: string, snapshotRef: string) => ({
-    role: 'button',
-    accessible_name: name,
-    locators: [{ kind: 'role', value: `role=button[name="${name}"]`, rank: 0 }],
-    snapshot_ref: snapshotRef,
-    nth: 0,
-    form: { method, action, hasPassword: false, purpose: 'other' },
-  });
-
-  const transition = (
-    runId: string,
-    from: string,
-    to: string | null,
-    action: object,
-    ref: string,
-    over: { safety_class?: string; status?: string } = {},
-  ): string => {
-    const id = nextId();
-    insert('transitions', {
-      id,
-      run_id: runId,
-      from_state: from,
-      to_state: to,
-      action_json: JSON.stringify(action),
-      safety_class: over.safety_class ?? 'read',
-      status: over.status ?? 'executed',
-      evidence_ref: ref,
-      confidence: 'observed',
-      error: null,
-      stabilization: 'settled',
-      created_at: FIXTURE_TS,
-    });
-    return id;
-  };
-
-  const action = (
-    runId: string,
-    stateId: string,
-    descriptor: { role: string; accessible_name: string },
-    safetyClass: string,
-    skipReason: string | null,
-  ): string => {
-    const id = nextId();
-    insert('actions', {
-      id,
-      run_id: runId,
-      state_id: stateId,
-      role: descriptor.role,
-      accessible_name: descriptor.accessible_name,
-      action_json: JSON.stringify(descriptor),
-      safety_class: safetyClass,
-      allowed: skipReason === null ? 1 : 0,
-      skip_reason: skipReason,
-      created_at: FIXTURE_TS,
-    });
-    return id;
-  };
-
-  const refs = {
+async function storeSnapshots(evidence: EvidenceStore): Promise<Refs> {
+  return {
     home: await evidence.storeText(SNAPSHOTS.home, 'yaml'),
     car: await evidence.storeText(SNAPSHOTS.car, 'yaml'),
     vehicle: await evidence.storeText(SNAPSHOTS.vehicle, 'yaml'),
     contact: await evidence.storeText(SNAPSHOTS.contact, 'yaml'),
     other: await evidence.storeText(SNAPSHOTS.other, 'yaml'),
   };
+}
 
-  const runId = run(portalId);
+function seedStates(b: Builder, at: { portal: string; runId: string }, refs: Refs): States {
   const suffix = ' | Towarzystwo Ubezpieczeń Wzorcowych';
-  const states = {
-    home: state(portalId, runId, '/', `Start${suffix}`, refs.home),
-    car: state(
-      portalId,
-      runId,
-      '/ubezpieczenia/samochod',
-      `Ubezpieczenie samochodu${suffix}`,
-      refs.car,
-    ),
-    vehicle: state(
-      portalId,
-      runId,
-      '/kalkulator/pojazd',
-      `Kalkulator OC/AC — dane pojazdu${suffix}`,
-      refs.vehicle,
-    ),
-    contact: state(portalId, runId, '/kontakt', `Kontakt${suffix}`, refs.contact),
+  return {
+    home: state(b, at, { route: '/', title: `Start${suffix}`, ref: refs.home }),
+    car: state(b, at, {
+      route: '/ubezpieczenia/samochod',
+      title: `Ubezpieczenie samochodu${suffix}`,
+      ref: refs.car,
+    }),
+    vehicle: state(b, at, {
+      route: '/kalkulator/pojazd',
+      title: `Kalkulator OC/AC — dane pojazdu${suffix}`,
+      ref: refs.vehicle,
+    }),
+    contact: state(b, at, { route: '/kontakt', title: `Kontakt${suffix}`, ref: refs.contact }),
   };
+}
 
-  // The calculator page has a screenshot and a layout (spec 008); the other states predate them.
+/** The calculator page has a screenshot and a layout (spec 008); the other states predate them. */
+async function storeVisuals(
+  b: Builder,
+  evidence: EvidenceStore,
+  vehicleState: string,
+): Promise<FixtureStore['visuals']> {
   const vehiclePng = fixturePng(VEHICLE_PNG.width, VEHICLE_PNG.height, VEHICLE_BOXES);
   const vehicleLayout: Layout = {
     version: 1,
@@ -417,216 +175,155 @@ export async function makeFixtureStore(opts: FixtureStoreOptions = {}): Promise<
       layout: vehicleLayout,
     },
   };
-  raw
+  b.raw
     .prepare('UPDATE states SET screenshot_ref = ?, layout_ref = ? WHERE id = ?')
-    .run(visuals.vehicle.screenshot_ref, visuals.vehicle.layout_ref, states.vehicle);
+    .run(visuals.vehicle.screenshot_ref, visuals.vehicle.layout_ref, vehicleState);
+  return visuals;
+}
 
-  const form = (stateId: string, fields: object, ref: string): string => {
-    const id = nextId();
-    insert('forms', {
-      id,
-      run_id: runId,
-      state_id: stateId,
-      fields_json: JSON.stringify(fields),
-      evidence_ref: ref,
-      confidence: 'observed',
-      created_at: FIXTURE_TS,
-    });
-    return id;
+/** The map run's pressable elements: two links, two refused mutating buttons. */
+function descriptors(refs: Refs) {
+  return {
+    calculate: link('Oblicz składkę', '/kalkulator/pojazd', refs.car),
+    next: button('Dalej', { method: 'GET', action: '/kalkulator/kierowca' }, refs.vehicle),
+    buy: button('Kup polisę', { method: 'POST', action: '/kalkulator/kup' }, refs.car),
+    send: button('Wyślij', { method: 'POST', action: '/kontakt' }, refs.contact),
+    ceiling: 'ceiling:read: classified mutating, above the effective ceiling read',
   };
-  const forms = {
-    vehicle: form(states.vehicle, VEHICLE_FIELDS, refs.vehicle),
-    contact: form(states.contact, CONTACT_FIELDS, refs.contact),
-  };
+}
 
-  const calculate = link('Oblicz składkę', '/kalkulator/pojazd', refs.car);
-  const next = button('Dalej', 'GET', '/kalkulator/kierowca', refs.vehicle);
-  const buy = button('Kup polisę', 'POST', '/kalkulator/kup', refs.car);
-  const send = button('Wyślij', 'POST', '/kontakt', refs.contact);
-  const ceiling = 'ceiling:read: classified mutating, above the effective ceiling read';
-  const actions = {
-    calculate: action(runId, states.car, calculate, 'read', null),
-    next: action(runId, states.vehicle, next, 'mutating', ceiling),
-    buy: action(runId, states.car, buy, 'mutating', ceiling),
-    send: action(runId, states.contact, send, 'mutating', ceiling),
-  };
+type Descriptors = ReturnType<typeof descriptors>;
 
-  const transitions = {
-    homeToCar: transition(
-      runId,
-      states.home,
-      states.car,
-      link('Samochód', '/ubezpieczenia/samochod', refs.home),
-      refs.car,
-    ),
-    carToVehicle: transition(runId, states.car, states.vehicle, calculate, refs.vehicle),
-    homeToContact: transition(
-      runId,
-      states.home,
-      states.contact,
-      link('Kontakt', '/kontakt', refs.home),
-      refs.contact,
-    ),
-    buySkipped: transition(runId, states.car, null, buy, refs.car, {
-      safety_class: 'mutating',
-      status: 'skipped',
+function seedActions(b: Builder, runId: string, states: States, d: Descriptors) {
+  const refused = { safetyClass: 'mutating', skipReason: d.ceiling };
+  return {
+    calculate: action(b, { runId, stateId: states.car }, d.calculate, {
+      safetyClass: 'read',
+      skipReason: null,
     }),
+    next: action(b, { runId, stateId: states.vehicle }, d.next, refused),
+    buy: action(b, { runId, stateId: states.car }, d.buy, refused),
+    send: action(b, { runId, stateId: states.contact }, d.send, refused),
   };
+}
 
-  const networkCall = (
-    transitionId: string,
-    method: string,
-    urlTemplate: string,
-    req: object,
-    res: object,
-  ): string => {
-    const id = nextId();
-    insert('network_calls', {
-      id,
-      run_id: runId,
-      transition_id: transitionId,
-      method,
-      url_template: urlTemplate,
-      status: 200,
-      req_schema: JSON.stringify(req),
-      res_schema: JSON.stringify(res),
-      console_errors: '[]',
-      created_at: FIXTURE_TS,
-    });
-    return id;
+function seedTransitions(b: Builder, runId: string, m: MapRun, d: Descriptors) {
+  const { states, refs } = m;
+  return {
+    homeToCar: transition(
+      b,
+      { runId, from: states.home, to: states.car },
+      { action: link('Samochód', '/ubezpieczenia/samochod', refs.home), ref: refs.car },
+    ),
+    carToVehicle: transition(
+      b,
+      { runId, from: states.car, to: states.vehicle },
+      { action: d.calculate, ref: refs.vehicle },
+    ),
+    homeToContact: transition(
+      b,
+      { runId, from: states.home, to: states.contact },
+      { action: link('Kontakt', '/kontakt', refs.home), ref: refs.contact },
+    ),
+    buySkipped: transition(
+      b,
+      { runId, from: states.car, to: null },
+      { action: d.buy, ref: refs.car },
+      { safety_class: 'mutating', status: 'skipped' },
+    ),
   };
+}
+
+/** The calls, the crawler's two questions and its refusal of "Kup polisę". */
+function seedNotes(
+  b: Builder,
+  runId: string,
+  {
+    states,
+    transitions,
+    buy,
+  }: { states: States; transitions: FixtureStore['transitions']; buy: string },
+) {
   const networkCalls = {
     quote: networkCall(
-      transitions.carToVehicle,
-      'GET',
-      '/api/kalkulator/marki',
-      {},
-      { marki: 'array<string>' },
+      b,
+      { runId, transitionId: transitions.carToVehicle },
+      {
+        method: 'GET',
+        urlTemplate: '/api/kalkulator/marki',
+        req: {},
+        res: { marki: 'array<string>' },
+      },
     ),
     contact: networkCall(
-      transitions.homeToContact,
-      'GET',
-      '/api/kontakt/tematy',
-      {},
-      { tematy: 'array<string>' },
+      b,
+      { runId, transitionId: transitions.homeToContact },
+      {
+        method: 'GET',
+        urlTemplate: '/api/kontakt/tematy',
+        req: {},
+        res: { tematy: 'array<string>' },
+      },
     ),
-  };
-
-  const question = (text: string, aboutState: string): string => {
-    const id = nextId();
-    const ref = nextId();
-    insert('entity_refs', { id: ref, state_id: aboutState });
-    insert('open_questions', {
-      id,
-      run_id: runId,
-      text,
-      ref_id: ref,
-      status: 'open',
-      created_at: FIXTURE_TS,
-    });
-    return id;
   };
   const openQuestions: [string, string] = [
     question(
+      b,
+      runId,
       '"Dalej" is classified mutating and blocked at the read ceiling. How many calculator steps follow?',
       states.vehicle,
     ),
-    question('What happens after "Kup polisę"? It was refused as mutating.', states.car),
+    question(b, runId, 'What happens after "Kup polisę"? It was refused as mutating.', states.car),
   ];
-
-  const decision = nextId();
-  insert('decision_log', {
+  const decision = b.nextId();
+  insert(b, 'decision_log', {
     id: decision,
     run_id: runId,
     kind: 'skip',
     rule: 'ceiling:read',
     reason: 'classified mutating, above the effective ceiling read',
-    subject_ref: actions.buy,
+    subject_ref: buy,
     detail_json: null,
     created_at: FIXTURE_TS,
   });
+  return { networkCalls, openQuestions, decision };
+}
 
-  const otherRunId = run(otherPortalId);
-  const otherState = state(otherPortalId, otherRunId, '/', 'Start', refs.other);
-
-  interface StepSpec {
-    intent: string;
-    kind: 'navigate' | 'click' | 'fill' | 'check' | 'select';
-    actionId: string | null;
-    transitionId: string | null;
-    value: string | null;
-    before: string | null;
-    after: string | null;
-    outcomes: string[];
-    ref: string;
-  }
-  /** A trace run, its process row and ordered steps, written the way the crawler server writes them. */
-  const trace = (
-    environment: string,
-    name: string,
-    goal: string,
-    build: (runId: string) => {
-      steps: StepSpec[];
-      outcome: 'goal_reached' | 'boundary_reached';
-      boundaryActionId: string | null;
-      observedResult: string;
-      notObservable: string | null;
-    },
-  ): TraceFixture => {
-    const traceRun = run(portalId, { mode: 'trace', environment });
-    for (const [s, ref] of [
-      [states.home, refs.home],
-      [states.car, refs.car],
-      [states.vehicle, refs.vehicle],
-    ] as const)
-      observe(traceRun, s, ref);
-    const built = build(traceRun);
-    const processId = nextId();
-    insert('processes', {
-      id: processId,
-      run_id: traceRun,
-      portal_id: portalId,
-      persona_id: 'guest',
-      name,
-      goal,
-      followup_record_id: null,
-      status: 'recorded',
-      outcome: built.outcome,
-      boundary_action_id: built.boundaryActionId,
-      observed_result: built.observedResult,
-      not_observable: built.notObservable,
-      created_at: FIXTURE_TS,
-      ended_at: FIXTURE_TS,
-    });
-    const stepIds = built.steps.map((s, i) => {
-      const id = nextId();
-      insert('process_steps', {
-        id,
-        process_id: processId,
-        ord: i + 1,
-        intent: s.intent,
-        kind: s.kind,
-        action_id: s.actionId,
-        transition_id: s.transitionId,
-        value: s.value,
-        state_before: s.before,
-        state_after: s.after,
-        outcomes_json: JSON.stringify(s.outcomes),
-        evidence_ref: s.ref,
-        confidence: 'observed',
-        created_at: FIXTURE_TS,
-      });
-      return id;
-    });
-    return {
-      runId: traceRun,
-      processId,
-      stepIds,
-      transitionIds: built.steps.map((s) => s.transitionId ?? undefined),
-      boundaryActionId: built.boundaryActionId,
-    };
+/**
+ * An in-memory store, migrated, holding one completed map run shaped like the reference portal
+ * (four screens, two forms, network calls, a refused mutating action, crawler notes) and a second
+ * portal with one run. Layer B is empty: tests write it through the code under test.
+ */
+export async function makeFixtureStore(opts: FixtureStoreOptions = {}): Promise<FixtureStore> {
+  const portalId = opts.portalId ?? 'fixture-insurer';
+  const otherPortalId = 'other';
+  let idCount = 0;
+  const nextId = opts.deterministicIds ? () => fixedId(++idCount) : () => newId();
+  const opened = openDb(':memory:');
+  migrateUp(opened.raw, MIGRATIONS);
+  const { raw } = opened;
+  const b: Builder = { raw, nextId, fingerprints: 0 };
+  const evidenceDir = mkdtempSync(join(tmpdir(), 'pf-docs-fixture-'));
+  const evidence = createEvidenceStore(evidenceDir);
+  const refs = await storeSnapshots(evidence);
+  const runId = run(b, portalId);
+  const states = seedStates(b, { portal: portalId, runId }, refs);
+  const visuals = await storeVisuals(b, evidence, states.vehicle);
+  const forms = {
+    vehicle: form(b, { runId, stateId: states.vehicle }, VEHICLE_FIELDS, refs.vehicle),
+    contact: form(b, { runId, stateId: states.contact }, CONTACT_FIELDS, refs.contact),
   };
-
+  const d = descriptors(refs);
+  const m: MapRun = { portalId, states, refs, ...d };
+  const actions = seedActions(b, runId, states, d);
+  const transitions = seedTransitions(b, runId, m, d);
+  const notes = seedNotes(b, runId, { states, transitions, buy: actions.buy });
+  const otherRunId = run(b, otherPortalId);
+  const otherState = state(
+    b,
+    { portal: otherPortalId, runId: otherRunId },
+    { route: '/', title: 'Start', ref: refs.other },
+  );
   return {
     opened,
     db: opened.db,
@@ -640,114 +337,26 @@ export async function makeFixtureStore(opts: FixtureStoreOptions = {}): Promise<
     forms,
     transitions,
     actions,
-    networkCalls,
-    openQuestions,
-    decision,
+    ...notes,
     otherPortalId,
     otherRunId,
     otherState,
     visuals,
     addRun(portal = portalId) {
-      const id = run(portal);
+      const id = run(b, portal);
       const home = portal === portalId ? states.home : otherState;
-      observe(id, home, portal === portalId ? refs.home : refs.other);
+      observe(b, id, home, portal === portalId ? refs.home : refs.other);
       return {
         runId: id,
-        transitionId: transition(id, home, home, link('Start', '/', refs.home), refs.home),
+        transitionId: transition(
+          b,
+          { runId: id, from: home, to: home },
+          { action: link('Start', '/', refs.home), ref: refs.home },
+        ),
       };
     },
-    addTraceRun() {
-      return trace('sandbox', 'Calculate a car premium', 'See an OC/AC premium for a car', (r) => {
-        const calc = action(r, states.car, calculate, 'read', null);
-        const model = action(
-          r,
-          states.vehicle,
-          { role: 'textbox', accessible_name: 'Model' },
-          'read',
-          null,
-        );
-        const toVehicle = transition(r, states.car, states.vehicle, calculate, refs.vehicle);
-        return {
-          outcome: 'goal_reached',
-          boundaryActionId: null,
-          notObservable: null,
-          observedResult:
-            'The calculator form "Dane pojazdu" is shown; no premium is displayed yet.',
-          steps: [
-            {
-              intent: 'Open the car insurance page',
-              kind: 'navigate',
-              actionId: null,
-              transitionId: null,
-              value: null,
-              before: null,
-              after: states.car,
-              outcomes: ['page "Ubezpieczenie samochodu" opened'],
-              ref: refs.car,
-            },
-            {
-              intent: 'Open the premium calculator',
-              kind: 'click',
-              actionId: calc,
-              transitionId: toVehicle,
-              value: null,
-              before: states.car,
-              after: states.vehicle,
-              outcomes: ['navigated to /kalkulator/pojazd'],
-              ref: refs.vehicle,
-            },
-            {
-              intent: 'Enter the vehicle model',
-              kind: 'fill',
-              actionId: model,
-              transitionId: null,
-              value: 'Test Model',
-              before: states.vehicle,
-              after: null,
-              outcomes: ['field "Model" accepted the value'],
-              ref: refs.vehicle,
-            },
-          ],
-        };
-      });
-    },
-    addBoundaryTrace() {
-      return trace('production', 'Buy a car policy', 'Reach the purchase confirmation', (r) => {
-        const calc = action(r, states.car, calculate, 'read', null);
-        const dalej = action(r, states.vehicle, next, 'mutating', ceiling);
-        const toVehicle = transition(r, states.car, states.vehicle, calculate, refs.vehicle);
-        return {
-          outcome: 'boundary_reached',
-          boundaryActionId: dalej,
-          notObservable: 'What follows "Dalej": the next calculator step and the premium.',
-          observedResult: 'The calculator form is shown; the next step needs a mutating action.',
-          steps: [
-            {
-              intent: 'Open the car insurance page',
-              kind: 'navigate',
-              actionId: null,
-              transitionId: null,
-              value: null,
-              before: null,
-              after: states.car,
-              outcomes: ['page "Ubezpieczenie samochodu" opened'],
-              ref: refs.car,
-            },
-            {
-              intent: 'Open the premium calculator',
-              kind: 'click',
-              actionId: calc,
-              transitionId: toVehicle,
-              value: null,
-              before: states.car,
-              after: states.vehicle,
-              outcomes: ['navigated to /kalkulator/pojazd'],
-              ref: refs.vehicle,
-            },
-          ],
-        };
-      });
-    },
+    addTraceRun: () => addTraceRun(b, m),
+    addBoundaryTrace: () => addBoundaryTrace(b, m),
     async close() {
       await opened.close();
       rmSync(evidenceDir, { recursive: true, force: true });

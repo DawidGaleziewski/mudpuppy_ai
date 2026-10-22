@@ -4,44 +4,53 @@ Before / after."""
 
 from __future__ import annotations
 
-from fastapi import APIRouter, Request
+from typing import Annotated
+
+from fastapi import APIRouter, Query, Request
 from fastapi.responses import HTMLResponse
+from pydantic import BaseModel
 
 from .. import db, visuals
 from ..queries_change_detail import change_detail
-from ..queries_changes import KIND_WORDS, changes_view, range_from
+from ..queries_changes import KIND_WORDS, ChangeFilter, changes_view, range_from
 from ..queries_releases import timeline
 from .deps import web_of
 
 router = APIRouter()
 
 
+class ChangesQuery(BaseModel):
+    """The Changes page's query: the range (from a version, a date or a scan) and the filters."""
+
+    env: str | None = None
+    from_seq: str | None = None
+    to_seq: int | None = None
+    from_date: str | None = None
+    from_scan: str | None = None
+    show: str = "all"
+    kind: str | None = None
+    process: str | None = None
+
+
 @router.get("/changes", response_class=HTMLResponse)
-def changes_page(
-    request: Request,
-    env: str | None = None,
-    from_seq: str | None = None,
-    to_seq: int | None = None,
-    from_date: str | None = None,
-    from_scan: str | None = None,
-    show: str = "all",
-    kind: str | None = None,
-    process: str | None = None,
-) -> HTMLResponse:
+def changes_page(request: Request, q: Annotated[ChangesQuery, Query()]) -> HTMLResponse:
     web = web_of(request)
-    c = web.ctx(request, env)
-    seq = int(from_seq) if from_seq and from_seq.isdigit() else None  # "": the previous release
+    c = web.ctx(request, q.env)
+    from_date, from_scan = q.from_date, q.from_scan
+    seq = int(q.from_seq) if q.from_seq and q.from_seq.isdigit() else None  # "": previous release
     try:
         with c.conn() as conn:
             start, how = range_from(conn, c.portal, seq, from_date or None, from_scan or None)
             v = changes_view(
                 conn,
                 c.portal,
-                from_seq=start,
-                to_seq=to_seq,
-                show=show,
-                kind=kind or None,
-                process=process or None,
+                ChangeFilter(
+                    from_seq=start,
+                    to_seq=q.to_seq,
+                    show=q.show,
+                    kind=q.kind or None,
+                    process=q.process or None,
+                ),
             )
             built = {x.seq: x.built_at for x in v.versions}
             tl = None
@@ -65,19 +74,24 @@ def changes_page(
 MODES = {"side": "Side by side", "overlay": "Overlay", "wire": "Wireframe"}
 
 
+class ChangeQuery(BaseModel):
+    """Before / after's query: the view mode and the notice of the decision just taken."""
+
+    env: str | None = None
+    mode: str = "side"
+    note: str | None = None
+    undo: str | None = None
+
+
 @router.get("/changes/{deviation_id}", response_class=HTMLResponse)
 def change_page(
-    request: Request,
-    deviation_id: str,
-    env: str | None = None,
-    mode: str = "side",
-    note: str | None = None,
-    undo: str | None = None,
+    request: Request, deviation_id: str, q: Annotated[ChangeQuery, Query()]
 ) -> HTMLResponse:
     """Before / after (v2-03, 12-v2-ux § 6): `mode` Side by side · Overlay · Wireframe; the
     changed element outlined on the side that has it; the decision bar posts through Review."""
     web = web_of(request)
-    c = web.ctx(request, env)
+    c = web.ctx(request, q.env)
+    mode, note, undo = q.mode, q.note, q.undo
     try:
         with c.conn() as conn:
             d = change_detail(conn, c.portal, deviation_id) if c.portal else None

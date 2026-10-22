@@ -166,10 +166,17 @@ async function insertRevision(trx: MudPuppyDb, r: AmendmentRevision, refId: stri
 export async function writeRevision(
   trx: MudPuppyDb,
   head: Amendment,
-  change: AmendmentChange,
-  author: string,
-  changes: Partial<Amendment>,
-  meta: { reason?: string | null; run_id?: string | null } = {},
+  {
+    change,
+    author,
+    changes,
+    meta = {},
+  }: {
+    change: AmendmentChange;
+    author: string;
+    changes: Partial<Amendment>;
+    meta?: { reason?: string | null; run_id?: string | null };
+  },
 ): Promise<Amendment> {
   const next = Amendment.parse({ ...head, ...changes, rev: head.rev + 1 });
   const moved = next.target_kind !== head.target_kind || next.target_id !== head.target_id;

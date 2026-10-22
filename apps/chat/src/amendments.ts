@@ -268,9 +268,10 @@ export function createAmendmentService(opts: {
     async withdraw(portal, id, body = { author: 'BA' }) {
       return change(portal, id, body.base_rev, async (head, trx) => {
         mustBe(head, 'active', 'an active amendment can be withdrawn');
-        return writeRevision(trx, head, 'withdraw', body.author, {
-          status: 'withdrawn',
-          withdrawn_at: nowIso(),
+        return writeRevision(trx, head, {
+          change: 'withdraw',
+          author: body.author,
+          changes: { status: 'withdrawn', withdrawn_at: nowIso() },
         });
       });
     },
@@ -285,15 +286,19 @@ export function createAmendmentService(opts: {
       const anchor = await resolveAnchor(portal, body);
       return change(portal, id, body.base_rev, async (head, trx) => {
         mustBe(head, 'needs_reanchor', 'an amendment that needs re-anchoring can be re-anchored');
-        return writeRevision(trx, head, 'reanchor', body.author, {
-          status: 'active',
-          target_kind: body.target_kind,
-          target_id: body.target_id,
-          text: body.text === undefined ? head.text : SECRETS.redact(body.text),
-          anchor_fingerprint: anchor.fingerprint,
-          anchor_route_template: anchor.routeTemplate,
-          anchor_element: anchor.element,
-          screen_id: anchor.screenId ?? head.screen_id,
+        return writeRevision(trx, head, {
+          change: 'reanchor',
+          author: body.author,
+          changes: {
+            status: 'active',
+            target_kind: body.target_kind,
+            target_id: body.target_id,
+            text: body.text === undefined ? head.text : SECRETS.redact(body.text),
+            anchor_fingerprint: anchor.fingerprint,
+            anchor_route_template: anchor.routeTemplate,
+            anchor_element: anchor.element,
+            screen_id: anchor.screenId ?? head.screen_id,
+          },
         });
       });
     },
@@ -301,9 +306,10 @@ export function createAmendmentService(opts: {
     async dismiss(portal, id, body = { author: 'BA' }) {
       return change(portal, id, body.base_rev, async (head, trx) => {
         mustBe(head, 'needs_reanchor', 'an amendment that needs re-anchoring can be dismissed');
-        return writeRevision(trx, head, 'dismiss', body.author, {
-          status: 'dismissed',
-          dismissed_at: nowIso(),
+        return writeRevision(trx, head, {
+          change: 'dismiss',
+          author: body.author,
+          changes: { status: 'dismissed', dismissed_at: nowIso() },
         });
       });
     },
@@ -311,7 +317,11 @@ export function createAmendmentService(opts: {
     async edit(portal, id, body) {
       return change(portal, id, body.base_rev, async (head, trx) => {
         mustBe(head, 'active', 'an active amendment can be edited');
-        return writeRevision(trx, head, 'edit', body.author, { text: SECRETS.redact(body.text) });
+        return writeRevision(trx, head, {
+          change: 'edit',
+          author: body.author,
+          changes: { text: SECRETS.redact(body.text) },
+        });
       });
     },
 
@@ -321,12 +331,10 @@ export function createAmendmentService(opts: {
         if (old === undefined)
           throw new HttpError(404, `${head.key} has no revision ${String(body.rev)}.`);
         const now = nowIso();
-        return writeRevision(
-          trx,
-          head,
-          'restore',
-          body.author,
-          {
+        return writeRevision(trx, head, {
+          change: 'restore',
+          author: body.author,
+          changes: {
             status: old.status,
             target_kind: old.target_kind,
             target_id: old.target_id,
@@ -337,8 +345,8 @@ export function createAmendmentService(opts: {
             withdrawn_at: old.status === 'withdrawn' ? (head.withdrawn_at ?? now) : null,
             dismissed_at: old.status === 'dismissed' ? (head.dismissed_at ?? now) : null,
           },
-          { reason: `restored revision ${String(body.rev)}` },
-        );
+          meta: { reason: `restored revision ${String(body.rev)}` },
+        });
       });
     },
 

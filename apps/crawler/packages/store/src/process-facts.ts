@@ -4,7 +4,13 @@
  * variants, the explored bound of the latest pass, and the decision rules on its screens as DMN.
  */
 import type BetterSqlite3 from 'better-sqlite3';
-import { explorationBound, toDmnXml, type HypothesisStatus } from '@mudpuppy/model';
+import {
+  compare,
+  explorationBound,
+  toDmnXml,
+  type HypothesisStatus,
+  type ProcessInstance,
+} from '@mudpuppy/model';
 import { findProcessInstances, processShapes, screenOfState } from './process-instances.js';
 import { decisionRules, EXPORTED_RULE_STATUSES } from './rule-export.js';
 
@@ -44,6 +50,33 @@ export function processModelFacts(raw: Raw, portal: string, processId: string): 
   const screenOf = screenOfState(raw, portal);
   const shape = processShapes(raw, portal, screenOf).find((p) => p.id === processId);
   const instances = findProcessInstances(raw, portal).filter((i) => i.processId === processId);
+  const { triggers, outcomes, variants } = tallyInstances(raw, instances, keyOf, screenOf);
+  const members = new Set([...(shape?.members ?? [])].map((s) => keyOf.get(s) ?? s));
+  return {
+    modelVersion: version?.seq ?? null,
+    triggers,
+    outcomes,
+    variants,
+    explored: exploredBound(raw, processId),
+    rules: decisionRules(raw, portal)
+      .filter(
+        (r) =>
+          EXPORTED_RULE_STATUSES.includes(r.status) && members.has(r.table.decisionPoint.screen),
+      )
+      .map((r) => ({ key: r.key, status: r.status, dmn: toDmnXml(r.table, r.key) })),
+  };
+}
+
+const byCount = <T extends { count: number }>(a: T, b: T, ka: string, kb: string) =>
+  b.count - a.count || compare(ka, kb);
+
+/** Triggers, outcomes and trace variants of a process's instances, the most frequent first. */
+function tallyInstances(
+  raw: Raw,
+  instances: readonly ProcessInstance[],
+  keyOf: ReadonlyMap<string, string>,
+  screenOf: ReadonlyMap<string, string>,
+): Pick<ProcessModelFacts, 'triggers' | 'outcomes' | 'variants'> {
   const triggerOf = raw.prepare('SELECT from_state, element_key FROM transitions WHERE id = ?');
   const triggers = new Map<string, { screen: string; element: string; count: number }>();
   const outcomes: Record<string, number> = {};
@@ -66,19 +99,7 @@ export function processModelFacts(raw: Raw, portal: string, processId: string): 
     const v = `${screens.join('>')}|${i.outcome}`;
     variants.set(v, { screens, outcome: i.outcome, count: (variants.get(v)?.count ?? 0) + 1 });
   }
-  const members = new Set([...(shape?.members ?? [])].map((s) => keyOf.get(s) ?? s));
-  const pass = raw
-    .prepare(
-      `SELECT epoch_set, depth, random_walks, new_deviations FROM process_explorations
-       WHERE process_id = ? ORDER BY completed_at DESC LIMIT 1`,
-    )
-    .get(processId) as
-    { epoch_set: string; depth: number; random_walks: number; new_deviations: number } | undefined;
-  const byKey = (ka: string, kb: string) => (ka < kb ? -1 : ka > kb ? 1 : 0);
-  const byCount = <T extends { count: number }>(a: T, b: T, ka: string, kb: string) =>
-    b.count - a.count || byKey(ka, kb);
   return {
-    modelVersion: version?.seq ?? null,
     triggers: [...triggers.values()].sort((a, b) =>
       byCount(a, b, `${a.screen}|${a.element}`, `${b.screen}|${b.element}`),
     ),
@@ -86,21 +107,26 @@ export function processModelFacts(raw: Raw, portal: string, processId: string): 
     variants: [...variants.values()].sort((a, b) =>
       byCount(a, b, a.screens.join('>'), b.screens.join('>')),
     ),
-    explored: pass
-      ? explorationBound({
-          depth: pass.depth,
-          randomWalks: pass.random_walks,
-          builds: buildsOf(raw, JSON.parse(pass.epoch_set) as string[]),
-          newDeviations: pass.new_deviations,
-        })
-      : null,
-    rules: decisionRules(raw, portal)
-      .filter(
-        (r) =>
-          EXPORTED_RULE_STATUSES.includes(r.status) && members.has(r.table.decisionPoint.screen),
-      )
-      .map((r) => ({ key: r.key, status: r.status, dmn: toDmnXml(r.table, r.key) })),
   };
+}
+
+/** The latest exploration pass's bound sentence, or null when the process was never explored. */
+function exploredBound(raw: Raw, processId: string): string | null {
+  const pass = raw
+    .prepare(
+      `SELECT epoch_set, depth, random_walks, new_deviations FROM process_explorations
+       WHERE process_id = ? ORDER BY completed_at DESC LIMIT 1`,
+    )
+    .get(processId) as
+    { epoch_set: string; depth: number; random_walks: number; new_deviations: number } | undefined;
+  return pass
+    ? explorationBound({
+        depth: pass.depth,
+        randomWalks: pass.random_walks,
+        builds: buildsOf(raw, JSON.parse(pass.epoch_set) as string[]),
+        newDeviations: pass.new_deviations,
+      })
+    : null;
 }
 
 /** `scope build` per epoch, as the bound names them ("shell 3e1a"). */

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { EvidenceTargetKind } from '@mudpuppy/docs-model';
 import { addEvidenceLink } from '@mudpuppy/store';
-import { loadEvalInput } from '../src/evaluate.js';
+import { loadEvalInput } from '../src/evaluate-load.js';
 import { makeFixtureStore, seedDocRecords } from '../src/testing/index.js';
 
 // Spec 025 F-01: before R-39 a screen region and a page visit resolved to no route, so a rule

@@ -12,7 +12,7 @@ from dataclasses import dataclass
 from datetime import datetime
 from typing import Any
 
-from .queries_changes import Change, Explanation, changes_view, rows_of
+from .queries_changes import Change, ChangeFilter, Explanation, changes_view, rows_of
 from .queries_releases import part_name
 
 RULE_HYPOTHESES = ("decision_point", "decision_drift")
@@ -165,7 +165,7 @@ def findings_rules_removals(
     conn: sqlite3.Connection, portal: str
 ) -> tuple[list[QueueItem], list[QueueItem], list[QueueItem]]:
     """Every change that needs a person, newest first, cut into the three groups."""
-    needs = changes_view(conn, portal, show="needs").all_changes()
+    needs = changes_view(conn, portal, ChangeFilter(show="needs")).all_changes()
     needs.sort(key=lambda c: c.created_at, reverse=True)
     parts = screen_parts(conn, portal)
     removals = [_finding(c, parts) for c in needs if c.kind == "missing_action"]
@@ -233,7 +233,7 @@ def process_proposals(conn: sqlite3.Connection, portal: str) -> list[QueueItem]:
 
 def explained(conn: sqlite3.Connection, portal: str) -> list[Change]:
     """Changes a rule explained, newest first (Overturn waits for R-87)."""
-    items = changes_view(conn, portal, show="explained").all_changes()
+    items = changes_view(conn, portal, ChangeFilter(show="explained")).all_changes()
     return sorted(items, key=lambda c: c.created_at, reverse=True)
 
 

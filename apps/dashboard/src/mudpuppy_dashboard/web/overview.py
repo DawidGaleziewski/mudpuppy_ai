@@ -4,10 +4,11 @@ its live regions (portal cards and the runs table)."""
 from __future__ import annotations
 
 import sqlite3
-from typing import Any
+from typing import Annotated, Any
 
-from fastapi import APIRouter, Request
+from fastapi import APIRouter, Query, Request
 from fastapi.responses import HTMLResponse, Response
+from pydantic import BaseModel
 
 from .. import (
     db,
@@ -35,18 +36,28 @@ def summary_values(c: Ctx, conn: sqlite3.Connection, portal: str | None) -> dict
     }
 
 
-def runs_values(
-    c: Ctx,
-    conn: sqlite3.Connection,
-    portal: str | None,
-    status: str | None,
-    cursor: str | None,
-    page: int,
-) -> dict[str, Any]:
+class RunsQuery(BaseModel):
+    """The scans list's query: portal and status filters, the keyset cursor and its page."""
+
+    env: str | None = None
+    portal: str | None = None
+    status: str | None = None
+    cursor: str | None = None
+    page: int = 1
+
+
+class RunsFragmentQuery(RunsQuery):
+    """The fragment also says whether to push its URL into the history."""
+
+    push: bool = False
+
+
+def runs_values(c: Ctx, conn: sqlite3.Connection, q: RunsQuery) -> dict[str, Any]:
     limit = c.settings.page_size
-    portal = portal or None  # a form's "any" option submits an empty string
-    status = status if status in RUN_STATUSES else None
-    cursor = cursor or None
+    portal = q.portal or None  # a form's "any" option submits an empty string
+    status = q.status if q.status in RUN_STATUSES else None
+    cursor = q.cursor or None
+    page = q.page
     result = queries.list_runs(conn, portal=portal, status=status, cursor=cursor, limit=limit)
     filters = {"portal": portal, "status": status}
     page = max(page, 1)
@@ -77,17 +88,10 @@ def runs_values(
 
 
 @router.get("/", response_class=HTMLResponse, response_model=None)
-def overview(
-    request: Request,
-    env: str | None = None,
-    portal: str | None = None,
-    status: str | None = None,
-    cursor: str | None = None,
-    page: int = 1,
-) -> Response:
+def overview(request: Request, q: Annotated[RunsQuery, Query()]) -> Response:
     web = web_of(request)
-    c = web.ctx(request, env)
-    portal = portal if portal is not None else c.portal  # spec 011: the header's choice
+    c = web.ctx(request, q.env)
+    portal = q.portal if q.portal is not None else c.portal  # spec 011: the header's choice
     try:
         with c.conn() as conn:
             # Spec 039 T100 (v2-01): Home for a picked portal is its overview; the assistant is
@@ -110,7 +114,7 @@ def overview(
                 c,
                 "overview.html",
                 summary=summary_values(c, conn, portal),
-                runs=runs_values(c, conn, portal, status, cursor, page),
+                runs=runs_values(c, conn, q.model_copy(update={"portal": portal})),
                 every=every,
             )
     except db.StoreMissing as err:
@@ -133,25 +137,17 @@ def fragment_summary(
 
 
 @router.get("/fragments/runs", response_class=HTMLResponse)
-def fragment_runs(
-    request: Request,
-    env: str | None = None,
-    portal: str | None = None,
-    status: str | None = None,
-    cursor: str | None = None,
-    page: int = 1,
-    push: bool = False,
-) -> HTMLResponse:
+def fragment_runs(request: Request, q: Annotated[RunsFragmentQuery, Query()]) -> HTMLResponse:
     web = web_of(request)
-    c = web.ctx(request, env)
+    c = web.ctx(request, q.env)
     try:
         with c.conn() as conn:
-            values = runs_values(c, conn, portal, status, cursor, page)
+            values = runs_values(c, conn, q)
             return web.render(
                 c,
                 "partials/runs_table.html",
                 runs=values,
-                push=values["page_url"] if push else None,
+                push=values["page_url"] if q.push else None,
             )
     except db.StoreMissing as err:
         return web.missing(c, err, fragment=True)

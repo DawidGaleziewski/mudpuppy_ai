@@ -115,11 +115,18 @@ const epochOfVisit = (v: ReconcileVisit): string =>
     .sort(compare)
     .join('&');
 
-export function reconcile(input: ReconcileInput): ReconcileOutput {
-  const tau = input.tau ?? MODEL_DEFAULTS.tau;
-  const stateById = new Map(input.states.map((s) => [s.id, s]));
+type StateById = ReadonlyMap<string, ReconcileState>;
 
-  // 1. Parameter roles and route keys (design § 6.4, § 6.1 step 1).
+interface LayerATransition extends ReconcileTransition {
+  fromScreen: string;
+  toScreen: string | null;
+}
+
+/** 1. Parameter roles and route keys (design § 6.4, § 6.1 step 1). */
+function routeKeysOf(
+  input: ReconcileInput,
+  stateById: StateById,
+): Pick<ReconcileOutput, 'roles' | 'routeKeys'> {
   const roles = parameterRoles(
     input.visits.flatMap((v) => {
       const s = stateById.get(v.stateId);
@@ -142,8 +149,14 @@ export function reconcile(input: ReconcileInput): ReconcileOutput {
       s.id,
       keysOfState.has(s.id) ? dominantRouteKey(keysOfState.get(s.id)!) : s.routeTemplate,
     );
+  return { roles, routeKeys };
+}
 
-  // 2. Canonical clustering and stable ids (design § 6.1–6.2).
+/** 2. Canonical clustering and stable ids (design § 6.1–6.2). */
+function screensOf(
+  input: ReconcileInput,
+  routeKeys: ReadonlyMap<string, string>,
+): Pick<ReconcileOutput, 'screens' | 'lineage' | 'conflicts'> {
   const clustering = clusterPortal(
     input.states.map((s) => ({
       id: s.id,
@@ -158,7 +171,7 @@ export function reconcile(input: ReconcileInput): ReconcileOutput {
       },
     })),
     input.constraints,
-    tau,
+    input.tau ?? MODEL_DEFAULTS.tau,
     input.classifier,
   );
   const assigned = assignScreens(clustering.clusters, input.screens);
@@ -170,29 +183,98 @@ export function reconcile(input: ReconcileInput): ReconcileOutput {
     members: [...members],
     routeKey: routeKeys.get(members[0]!)!,
   }));
-  const screenOfState = new Map<string, string>();
-  for (const s of screens) for (const m of s.members) screenOfState.set(m, s.id);
+  return { screens, lineage, conflicts: clustering.conflicts };
+}
 
-  // 3. Action classes: every element key a member shows, plus every executed one (design § 6.5).
+/** Layer A transitions lifted to the screens of their states. */
+function layerATransitions(
+  transitions: readonly ReconcileTransition[],
+  screenOfState: ReadonlyMap<string, string>,
+): LayerATransition[] {
+  return transitions.flatMap((t) => {
+    const from = screenOfState.get(t.fromState);
+    if (!from) return [];
+    const to = t.toState === null ? null : (screenOfState.get(t.toState) ?? null);
+    return [{ ...t, fromScreen: from, toScreen: to }];
+  });
+}
+
+/**
+ * A release is in force on every screen its portal part serves, visited since or not (spec 040
+ * T036, F-10): a screen's current epoch is its parts' newest builds anywhere in the portal, so
+ * a screen nobody looked at on the new release is untested there, not still active.
+ */
+function currentEpochs(
+  visits: readonly ReconcileVisit[],
+  screens: readonly ModelScreen[],
+  screenOfState: ReadonlyMap<string, string>,
+): Map<string, string> {
+  const newest = new Map<string, { at: string; build: string }>();
+  for (const v of visits)
+    for (const b of v.builds) {
+      const seen = newest.get(b.scope);
+      if (!seen || compare(v.at, seen.at) > 0) newest.set(b.scope, { at: v.at, build: b.build });
+    }
+  const currentEpoch = new Map<string, string>();
+  for (const s of screens) {
+    const latest = visits
+      .filter((v) => screenOfState.get(v.stateId) === s.id)
+      .sort((a, b) => compare(b.at, a.at) || compare(b.id, a.id))[0];
+    const now = latest?.builds.map((b) => ({ scope: b.scope, build: newest.get(b.scope)!.build }));
+    currentEpoch.set(s.id, latest ? epochOfVisit({ ...latest, builds: now! }) : '');
+  }
+  return currentEpoch;
+}
+
+/** What coverage reads about the screens: visits per run and screen, executed keys. */
+interface CoverageContext {
+  stateById: StateById;
+  visitsByRunScreen: ReadonlyMap<string, ReconcileVisit[]>;
+  executed: ReadonlySet<string>;
+}
+
+/** Each run's look at one element key of a screen, per audience (design § 6.6). */
+function looksAt(ctx: CoverageContext, screenId: string, key: string): RunLook[] {
+  const looks: RunLook[] = [];
+  for (const [rk, visits] of ctx.visitsByRunScreen) {
+    const [runId, screen] = rk.split('\u0000') as [string, string];
+    if (screen !== screenId) continue;
+    for (const audience of new Set(visits.map((v) => v.audience))) {
+      const mine = visits.filter((v) => v.audience === audience);
+      const last = [...mine].sort((a, b) => compare(b.at, a.at))[0]!;
+      looks.push({
+        runId,
+        runAt: [...mine].sort((a, b) => compare(a.at, b.at))[0]!.at,
+        audience,
+        epoch: epochOfVisit(last),
+        present: mine.some((v) => ctx.stateById.get(v.stateId)?.elementKeys.includes(key)),
+        executed: ctx.executed.has(`${runId}\u0000${screenId}\u0000${key}`),
+      });
+    }
+  }
+  return looks;
+}
+
+/** 3–4. Action classes and their coverage per audience (design § 6.5–6.6). */
+function actionClassesOf(
+  input: ReconcileInput,
+  stateById: StateById,
+  screens: readonly ModelScreen[],
+  screenOfState: ReadonlyMap<string, string>,
+  layerA: readonly LayerATransition[],
+): ActionClassRow[] {
+  // Every element key a member shows, plus every executed one (design § 6.5).
   const keysByScreen = new Map<string, string[]>();
   for (const s of screens)
     keysByScreen.set(s.id, [
       ...new Set(s.members.flatMap((m) => [...(stateById.get(m)?.elementKeys ?? [])])),
     ]);
   const global = globalKeys(keysByScreen, input.globalNavShare ?? MODEL_DEFAULTS.globalNavShare);
-  const layerA = input.transitions.flatMap((t) => {
-    const from = screenOfState.get(t.fromState);
-    if (!from) return [];
-    const to = t.toState === null ? null : (screenOfState.get(t.toState) ?? null);
-    return [{ ...t, fromScreen: from, toScreen: to }];
-  });
   const kindsByKey = new Map<string, Set<string>>();
   for (const t of layerA) {
     const k = `${t.fromScreen}\u0000${t.elementKey}`;
     kindsByKey.set(k, new Set([...(kindsByKey.get(k) ?? []), t.kind]));
   }
-
-  // 4. Coverage per action class and audience (design § 6.6).
   const visitsByRunScreen = new Map<string, ReconcileVisit[]>();
   for (const v of input.visits) {
     const screen = screenOfState.get(v.stateId);
@@ -200,26 +282,12 @@ export function reconcile(input: ReconcileInput): ReconcileOutput {
     const k = `${v.runId}\u0000${screen}`;
     visitsByRunScreen.set(k, [...(visitsByRunScreen.get(k) ?? []), v]);
   }
-  const executed = new Set(
-    layerA.map((t) => `${t.runId}\u0000${t.fromScreen}\u0000${t.elementKey}`),
-  );
-  // A release is in force on every screen its portal part serves, visited since or not (spec 040
-  // T036, F-10): a screen's current epoch is its parts' newest builds anywhere in the portal, so
-  // a screen nobody looked at on the new release is untested there, not still active.
-  const newest = new Map<string, { at: string; build: string }>();
-  for (const v of input.visits)
-    for (const b of v.builds) {
-      const seen = newest.get(b.scope);
-      if (!seen || compare(v.at, seen.at) > 0) newest.set(b.scope, { at: v.at, build: b.build });
-    }
-  const currentEpoch = new Map<string, string>();
-  for (const s of screens) {
-    const latest = input.visits
-      .filter((v) => screenOfState.get(v.stateId) === s.id)
-      .sort((a, b) => compare(b.at, a.at) || compare(b.id, a.id))[0];
-    const now = latest?.builds.map((b) => ({ scope: b.scope, build: newest.get(b.scope)!.build }));
-    currentEpoch.set(s.id, latest ? epochOfVisit({ ...latest, builds: now! }) : '');
-  }
+  const ctx: CoverageContext = {
+    stateById,
+    visitsByRunScreen,
+    executed: new Set(layerA.map((t) => `${t.runId}\u0000${t.fromScreen}\u0000${t.elementKey}`)),
+  };
+  const currentEpoch = currentEpochs(input.visits, screens, screenOfState);
   const actionClasses: ActionClassRow[] = [];
   for (const s of [...screens].sort((a, b) => compare(a.id, b.id))) {
     for (const key of [...(keysByScreen.get(s.id) ?? [])].sort(compare)) {
@@ -227,25 +295,8 @@ export function reconcile(input: ReconcileInput): ReconcileOutput {
         compare,
       );
       for (const kind of kinds) {
-        const looks: RunLook[] = [];
-        for (const [rk, visits] of visitsByRunScreen) {
-          const [runId, screen] = rk.split('\u0000') as [string, string];
-          if (screen !== s.id) continue;
-          for (const audience of new Set(visits.map((v) => v.audience))) {
-            const mine = visits.filter((v) => v.audience === audience);
-            const last = [...mine].sort((a, b) => compare(b.at, a.at))[0]!;
-            looks.push({
-              runId,
-              runAt: [...mine].sort((a, b) => compare(a.at, b.at))[0]!.at,
-              audience,
-              epoch: epochOfVisit(last),
-              present: mine.some((v) => stateById.get(v.stateId)?.elementKeys.includes(key)),
-              executed: executed.has(`${runId}\u0000${s.id}\u0000${key}`),
-            });
-          }
-        }
         const cov = coverageOf(
-          looks,
+          looksAt(ctx, s.id, key),
           currentEpoch.get(s.id)!,
           input.retired.has(classKey(s.id, key, kind)),
         );
@@ -260,19 +311,13 @@ export function reconcile(input: ReconcileInput): ReconcileOutput {
       }
     }
   }
-  const statusOf = new Map(
-    actionClasses.map((a) => [classKey(a.screen, a.elementKey, a.kind), a.status]),
-  );
+  return actionClasses;
+}
 
-  // 5. Model transitions; their status follows their action class (design § 6.5–6.6).
-  const transitions = foldTransitions(layerA).map((t) => ({
-    ...t,
-    status: statusOf.get(classKey(t.fromScreen, t.elementKey, t.kind)) ?? 'active',
-  }));
-
-  // 6. Build epochs per scope and environment (design § 6.7).
-  const epochs = buildEpochs(
-    input.visits.flatMap((v) =>
+/** 6. Build epochs per scope and environment (design § 6.7). */
+const epochsOf = (visits: readonly ReconcileVisit[]): BuildEpoch[] =>
+  buildEpochs(
+    visits.flatMap((v) =>
       v.builds.map((b) => ({
         id: v.id,
         at: v.at,
@@ -283,14 +328,32 @@ export function reconcile(input: ReconcileInput): ReconcileOutput {
     ),
   );
 
+export function reconcile(input: ReconcileInput): ReconcileOutput {
+  const stateById = new Map(input.states.map((s) => [s.id, s]));
+  const { roles, routeKeys } = routeKeysOf(input, stateById);
+  const { screens, lineage, conflicts } = screensOf(input, routeKeys);
+  const screenOfState = new Map<string, string>();
+  for (const s of screens) for (const m of s.members) screenOfState.set(m, s.id);
+  const layerA = layerATransitions(input.transitions, screenOfState);
+  const actionClasses = actionClassesOf(input, stateById, screens, screenOfState, layerA);
+  const statusOf = new Map(
+    actionClasses.map((a) => [classKey(a.screen, a.elementKey, a.kind), a.status]),
+  );
+
+  // 5. Model transitions; their status follows their action class (design § 6.5–6.6).
+  const transitions = foldTransitions(layerA).map((t) => ({
+    ...t,
+    status: statusOf.get(classKey(t.fromScreen, t.elementKey, t.kind)) ?? 'active',
+  }));
+
   return {
     routeKeys,
     roles,
     screens,
     lineage,
-    conflicts: clustering.conflicts,
+    conflicts,
     actionClasses,
     transitions,
-    epochs,
+    epochs: epochsOf(input.visits),
   };
 }

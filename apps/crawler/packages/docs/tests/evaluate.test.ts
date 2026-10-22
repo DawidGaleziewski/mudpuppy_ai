@@ -1,15 +1,10 @@
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import {
-  DEFAULT_THRESHOLDS,
-  GroundTruth,
-  evaluate,
-  evaluationMarkdown,
-  loadEvalInput,
-  reportJson,
-  type EvalRecord,
-} from '../src/evaluate.js';
+import { DEFAULT_THRESHOLDS, evaluate, type EvalRecord } from '../src/evaluate.js';
+import { loadEvalInput } from '../src/evaluate-load.js';
+import { evaluationMarkdown, reportJson } from '../src/evaluate-report.js';
+import { GroundTruth } from '../src/ground-truth.js';
 import { makeFixtureStore, seedDocRecords, type FixtureStore } from '../src/testing/index.js';
 
 /**

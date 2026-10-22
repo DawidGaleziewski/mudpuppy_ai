@@ -47,6 +47,72 @@ function packageVersion(): string {
   return pkg.version;
 }
 
+type Opened = ReturnType<typeof openDb>;
+
+/** The HTTP API over the store, with every service the dashboard calls. */
+function buildApi({
+  opened,
+  service,
+  evidence,
+  environment,
+}: {
+  opened: Opened;
+  service: ChatService;
+  evidence: ReturnType<typeof createEvidenceStore>;
+  environment: string;
+}) {
+  const amendments = createAmendmentService({ db: opened.db, evidence });
+  return createApi({
+    service,
+    logError: (input) => logError(input),
+    findError: (ref) => findError(ref),
+    version: packageVersion(),
+    credentials: createCredentialsHandler({ db: opened.db }),
+    scope: (conversationId, body) => setProcessScope(opened.raw, repoRoot, conversationId, body),
+    amendments,
+    proposals: createProposalService({ db: opened.db, amendments }),
+    processes: createProcessService({ db: opened.db, raw: opened.raw }),
+    probeSuites: createProbeSuiteService({ db: opened.db, repoRoot }),
+    marks: createMarkService({ db: opened.db }),
+    checkRuns: { repoRoot, environment },
+    modelStore: opened.raw,
+    addExperimentFlag: (id, flag) => addExperimentFlag({ repoRoot }, id, flag),
+    // T041: tell every conversation following the run; the timer moves its step on.
+    stopRun: (runId) => {
+      const stopped = stopRun(opened.raw, runId, { byBa: true });
+      for (const conversationId of conversationsOfRun(opened.raw, runId))
+        service.inject(conversationId, [{ type: 'notice', text: stoppedNotice(stopped) }]);
+      return stopped;
+    },
+    runsOfConversation: (conversationId) => runningRunsOfConversation(opened.raw, conversationId),
+    portals: {
+      create: (body) => createPortal({ repoRoot }, body),
+      describe: (id) => describePortal({ repoRoot }, id),
+      setEnvironment: (id, env, body) => setEnvironment({ repoRoot }, id, env, body),
+      removeEnvironment: (id, env) => removeEnvironment({ repoRoot }, id, env),
+      setHints: (id, body) => setHints({ repoRoot }, id, body),
+    },
+  });
+}
+
+/** T022: steps follow the recorded work now and every 2 s; returns the timer. */
+async function followSteps(recorder: StepRecorder, service: ChatService): Promise<NodeJS.Timeout> {
+  const reconcile = async (): Promise<void> => {
+    for (const [conversationId, events] of await recorder.reconcile())
+      service.inject(conversationId, events);
+  };
+  await reconcile();
+  return setInterval(() => {
+    reconcile().catch((error: unknown) =>
+      logError({
+        where: 'step-recorder timer',
+        message: 'Step status update failed.',
+        detail: error,
+      }),
+    );
+  }, 2000);
+}
+
 async function main(): Promise<void> {
   // No default (spec 030 R-61): the chat serves exactly the environment it is started on, and the
   // MCP servers it starts get the same one.
@@ -82,52 +148,8 @@ async function main(): Promise<void> {
     policy: createFence({ repoRoot }),
     logError: (input) => logError(input),
   });
-  const amendments = createAmendmentService({ db: opened.db, evidence });
-  const server = createApi({
-    service,
-    logError: (input) => logError(input),
-    findError: (ref) => findError(ref),
-    version: packageVersion(),
-    credentials: createCredentialsHandler({ db: opened.db }),
-    scope: (conversationId, body) => setProcessScope(opened.raw, repoRoot, conversationId, body),
-    amendments,
-    proposals: createProposalService({ db: opened.db, amendments }),
-    processes: createProcessService({ db: opened.db, raw: opened.raw }),
-    probeSuites: createProbeSuiteService({ db: opened.db, repoRoot }),
-    marks: createMarkService({ db: opened.db }),
-    checkRuns: { repoRoot, environment },
-    modelStore: opened.raw,
-    addExperimentFlag: (id, flag) => addExperimentFlag({ repoRoot }, id, flag),
-    // T041: tell every conversation following the run; the timer moves its step on.
-    stopRun: (runId) => {
-      const stopped = stopRun(opened.raw, runId, { byBa: true });
-      for (const conversationId of conversationsOfRun(opened.raw, runId))
-        service.inject(conversationId, [{ type: 'notice', text: stoppedNotice(stopped) }]);
-      return stopped;
-    },
-    runsOfConversation: (conversationId) => runningRunsOfConversation(opened.raw, conversationId),
-    portals: {
-      create: (body) => createPortal({ repoRoot }, body),
-      describe: (id) => describePortal({ repoRoot }, id),
-      setEnvironment: (id, env, body) => setEnvironment({ repoRoot }, id, env, body),
-      removeEnvironment: (id, env) => removeEnvironment({ repoRoot }, id, env),
-      setHints: (id, body) => setHints({ repoRoot }, id, body),
-    },
-  });
-  const reconcile = async (): Promise<void> => {
-    for (const [conversationId, events] of await recorder.reconcile())
-      service.inject(conversationId, events);
-  };
-  await reconcile();
-  const timer = setInterval(() => {
-    reconcile().catch((error: unknown) =>
-      logError({
-        where: 'step-recorder timer',
-        message: 'Step status update failed.',
-        detail: error,
-      }),
-    );
-  }, 2000);
+  const server = buildApi({ opened, service, evidence, environment });
+  const timer = await followSteps(recorder, service);
   const bound = await listenLocal(server, port);
   console.log(`mudpuppy-chat (${environment}) listening on http://127.0.0.1:${String(bound)}`);
 

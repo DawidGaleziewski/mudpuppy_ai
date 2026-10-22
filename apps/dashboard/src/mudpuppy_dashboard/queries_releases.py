@@ -103,17 +103,19 @@ def _lanes(epochs: list[sqlite3.Row], pos: Any) -> list[Lane]:
             start = e["start"]
             if e["overlaps_previous"] and i:
                 prev_end = rows[i - 1]["end"]
-                spans.append(_span("both", start, prev_end, pos, current=False, rollout=True))
+                spans.append(_span("both", (start, prev_end), pos, current=False, rollout=True))
                 start = max(start, prev_end)
             last = i == len(rows) - 1
-            spans.append(_span(release_name(e["signature"]), start, e["end"], pos, last, False))
+            name = release_name(e["signature"])
+            spans.append(_span(name, (start, e["end"]), pos, current=last, rollout=False))
         lanes.append(
             Lane(part_name(scope), scope, spans, any(r["source"] == "marker" for r in rows))
         )
     return lanes
 
 
-def _span(name: str, start: str, end: str, pos: Any, current: bool, rollout: bool) -> Span:
+def _span(name: str, period: tuple[str, str], pos: Any, *, current: bool, rollout: bool) -> Span:
+    start, end = period
     left = pos(start)
     return Span(name, left, max(pos(end) - left, 0.8), start, end, current, rollout)
 

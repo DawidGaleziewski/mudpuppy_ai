@@ -17,7 +17,7 @@ from itertools import pairwise
 
 from . import map_layout
 from .map_layout import NODE_H, NODE_W
-from .queries_changes import Change, changes_view, rows_of
+from .queries_changes import Change, ChangeFilter, changes_view, rows_of
 
 VIEWS = ("now", "since", "path")
 LAYERS = ("retired", "unseen", "unchecked")
@@ -251,7 +251,7 @@ def _since(conn: sqlite3.Connection, portal: str) -> tuple[int | None, list[Chan
     latest = changes_view(conn, portal).latest_seq
     if latest is None:
         return None, []
-    return latest - 1, changes_view(conn, portal, from_seq=latest - 1).all_changes()
+    return latest - 1, changes_view(conn, portal, ChangeFilter(from_seq=latest - 1)).all_changes()
 
 
 def _chips(changes: list[Change]) -> dict[str, list[tuple[str, str]]]:

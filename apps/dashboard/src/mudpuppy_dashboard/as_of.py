@@ -172,3 +172,30 @@ def find(conn: sqlite3.Connection, portal: str | None, seq: Any) -> Version | No
     if not every or every[0].seq == int(seq):
         return None
     return next((v for v in every if v.seq == int(seq)), None)
+
+
+# The first model version each kind of page has something to show in (spec 042 F-09): a thing
+# the views hide until then would open a 404, so the As of menu leaves those versions out.
+FIRST_SEQ: dict[str, str] = {
+    "screen": "SELECT v.seq FROM main.model_screens s"
+    " JOIN main.model_versions v ON v.id = s.first_model_version"
+    " WHERE s.portal_id = :p AND s.key = :k",
+    "rule": "SELECT min(v.seq) FROM main.hypotheses h"
+    " JOIN main.model_versions m ON m.id = h.model_version_id"
+    " JOIN main.model_versions v ON v.portal_id = h.portal_id AND v.seq >= m.seq"
+    " AND v.built_at >= h.created_at WHERE h.portal_id = :p AND h.key = :k",
+    "process": "SELECT min(v.seq) FROM main.ba_processes b"
+    " JOIN main.model_versions v ON v.portal_id = b.portal_id AND v.built_at >= b.created_at"
+    " WHERE b.portal_id = :p AND b.key = :k",
+}
+
+
+def first_seq(conn: sqlite3.Connection, portal: str | None, kind: str, key: str) -> int | None:
+    """The first model version a screen, rule or process is in; None when unknown."""
+    if not portal:
+        return None
+    try:
+        row = conn.execute(FIRST_SEQ[kind], {"p": portal, "k": key}).fetchone()
+    except sqlite3.OperationalError:
+        return None  # a store before the portal model
+    return int(row[0]) if row and row[0] is not None else None

@@ -6,6 +6,23 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Changed
+- **R-90: the size and complexity follow-ups of 2.0 and 2.1** (spec 042, v2.2.1, 2026-10-22).
+  No behaviour changes; each step locked by tests (byte-stable export goldens, a new snapshot of
+  every portal table's delete clause). Model: `reconcile` per phase, `clusterPartition`,
+  `inJourney`. Store: `loadReconcileInput` in `model-input.ts`, the table types one file per
+  family, `portal-data`'s `where` as a clause table, the tracer's closure as one `TraceCore`
+  record, options objects for `interpretVersion`, `recordClassifier`, `writeProposals`. Docs: the
+  evaluator, the SRS export's store read and the test fixtures split by role. MCP server: the
+  record tools' inputs and checks, `start_run` in steps. Chat: HTTP routes per resource,
+  `request_scan` one check per function, the workflow MCP tools grouped, `writeRevision` options.
+  Dashboard: one query model per page, `ChangeFilter`, `ModelCall`. Agent notes of the dashboard,
+  chat, MCP server and store down to about 60 lines, their file maps in a `LAYOUT.md` beside each
+  (R-80 (5)). Crawler size/complexity warnings 112 → 70; dashboard hits 40 → 23 (the rest predate
+  2.0). R-80 (3): fingerprints of two trace rounds 100 % stable, mutation score of the
+  fingerprint package 74.7 %. Fixed: `pnpm portal:trace` dropped its portal argument without
+  `--variant` (F-06); the As of menu on a screen, rule or process page offered versions before
+  that thing existed, which opened a 404 (2.1, F-09). Findings in
+  `specs/042-r90-size-complexity/findings.md`.
 - **R-83: the code is called MudPuppy too** (spec 041, v2.2.0, 2026-10-22). R-23 renamed the
   brand only; now every name follows: packages `@mudpuppy/*`, Python packages
   `mudpuppy_dashboard` and `mudpuppy_miner`, commands `mudpuppy-dashboard`, `mudpuppy-glossary`,

@@ -107,10 +107,12 @@ export function classifierTrainingSet(raw: Raw, portal: string, profile: string)
 export function recordClassifier(
   raw: Raw,
   portal: string,
-  profile: string,
-  trainedRaw: unknown,
-  tau: number,
-  now = nowIso(),
+  {
+    profile,
+    trained: trainedRaw,
+    tau,
+    now = nowIso(),
+  }: { profile: string; trained: unknown; tau: number; now?: string },
 ): string {
   const t = TrainedClassifier.parse(trainedRaw);
   if (t.names.join(',') !== PAIR_FEATURES.join(','))

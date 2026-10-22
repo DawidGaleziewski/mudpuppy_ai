@@ -20,8 +20,12 @@ const flag = (name: string): string | undefined => {
   const i = args.indexOf(`--${name}`);
   return i > -1 ? args[i + 1] : undefined;
 };
+// A flag that is not given must not mark position 0 (indexOf -1 + 1): spec 042 F-06.
 const flagged = new Set(
-  ['--env', '--variant'].flatMap((f) => [args.indexOf(f), args.indexOf(f) + 1]),
+  ['--env', '--variant']
+    .map((f) => args.indexOf(f))
+    .filter((i) => i > -1)
+    .flatMap((i) => [i, i + 1]),
 );
 const [portal, traceId, persona] = args.filter((a, i) => !a.startsWith('--') && !flagged.has(i));
 const root = resolve(join(import.meta.dirname, '../../..'));

@@ -8,6 +8,7 @@ the chat service and come back here. Read-only."""
 from __future__ import annotations
 
 import sqlite3
+from dataclasses import dataclass
 
 from fastapi import APIRouter, Request
 from fastapi.responses import HTMLResponse
@@ -122,24 +123,29 @@ def map_page(
         return web.render(c, "salvage/map.html", nav_current="screens", m=None, f=f, show=show)
     try:
         with c.conn() as conn:
+            page = MapPage(web, c, conn, c.portal, show, node)
             if view != "path" and queries_model_map.has_model(conn, c.portal):
-                mf = _model_filters(view, given, process, open)
-                return _model_page(web, c, conn, c.portal, mf, show, node)
-            f = _filters(scan, persona, given, open)
-            return _recorded_page(web, c, conn, c.portal, f, show, node, probe_note)
+                return _model_page(page, _model_filters(view, given, process, open))
+            return _recorded_page(page, _filters(scan, persona, given, open), probe_note)
     except db.StoreMissing as err:
         return web.missing(c, err)
 
 
-def _model_page(
-    web: Web,
-    c: Ctx,
-    conn: sqlite3.Connection,
-    portal: str,
-    f: queries_model_map.ModelFilters,
-    show: str,
-    node: str | None,
-) -> HTMLResponse:
+@dataclass(frozen=True)
+class MapPage:
+    """What both maps render with: the request's context, the store, the portal, the view
+    (graph or list) and the selected node."""
+
+    web: Web
+    c: Ctx
+    conn: sqlite3.Connection
+    portal: str
+    show: str
+    node: str | None
+
+
+def _model_page(p: MapPage, f: queries_model_map.ModelFilters) -> HTMLResponse:
+    web, c, conn, portal, show, node = p.web, p.c, p.conn, p.portal, p.show, p.node
     m = queries_model_map.model_map(conn, portal, f)
     detail = queries_model_screens.screen_detail(conn, portal, node) if node else None
     return web.render(
@@ -158,16 +164,8 @@ def _model_page(
     )
 
 
-def _recorded_page(
-    web: Web,
-    c: Ctx,
-    conn: sqlite3.Connection,
-    portal: str,
-    f: queries_map.MapFilters,
-    show: str,
-    node: str | None,
-    probe_note: str | None,
-) -> HTMLResponse:
+def _recorded_page(p: MapPage, f: queries_map.MapFilters, probe_note: str | None) -> HTMLResponse:
+    web, c, conn, portal, show, node = p.web, p.c, p.conn, p.portal, p.show, p.node
     m = queries_map.map_view(conn, portal, f)
     detail = queries_map_node.node_detail(conn, portal, node) if node else None
     return web.render(

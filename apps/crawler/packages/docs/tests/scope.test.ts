@@ -1,7 +1,7 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { exportSrs } from '../src/export.js';
 import { evidenceStates } from '../src/scope.js';
-import { loadExportModel } from '../src/render/model.js';
+import { loadExportModel } from '../src/render/export-load.js';
 import { makeFixtureStore, seedDocRecords, type FixtureStore } from '../src/testing/index.js';
 
 /** R-30 T028 (spec 010 FR-016, SC-005): a process-scoped export cites only in-scope evidence. */

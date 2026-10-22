@@ -51,7 +51,7 @@ try {
   if (!out.ok) {
     console.log(`  not trained: ${out.error}`);
   } else {
-    recordClassifier(opened.raw, portal, profile, out, set.tau);
+    recordClassifier(opened.raw, portal, { profile, trained: out, tau: set.tau });
     console.log(
       `  held-out F1 of distinct pairs: classifier ${out.f1}, τ ${out.tau_f1} → ${out.better ? `accept it with pnpm model:decide ${portal} --env ${env} --by "<name>" accept-classifier` : 'τ stays'}`,
     );

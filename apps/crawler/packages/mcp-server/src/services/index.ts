@@ -9,6 +9,7 @@ export * from './complete-run.js';
 export * from './run-budget.js';
 export * from './refs.js';
 export * from './start-run.js';
+export { runChoices, type RunChoices } from './start-run-input.js';
 export * from './run-lifecycle.js';
 export * from './robots.js';
 export * from './wireframes.js';

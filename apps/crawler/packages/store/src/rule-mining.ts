@@ -66,6 +66,31 @@ export function loadObservationTables(raw: Raw, portal: string): MinerTable[] {
     )
     .all(portal) as { state_id: string; id: string; key: string }[])
     screenOf.set(r.state_id, { id: r.id, key: r.key });
+  const executions = loadExecutions(raw, portal, screenOf);
+  const writes = loadAttributeWrites(raw, portal);
+  const journeys = loadJourneyLinks(raw, portal);
+  const keyOfScreen = new Map([...screenOf.values()].map((s) => [s.id, s.key]));
+  return observationTables(executions, writes, journeys).map((t) => {
+    const [screen, action] = t.decisionPoint.actionClass.split('\u0000') as [string, string];
+    return {
+      decision_point: {
+        screen: keyOfScreen.get(screen) ?? screen,
+        action,
+        actionClass: t.decisionPoint.actionClass,
+        epoch: t.decisionPoint.epoch,
+      },
+      types: t.types,
+      rows: t.rows,
+    };
+  });
+}
+
+/** Executed presses of the portal's journeys, by action class of the current model. */
+function loadExecutions(
+  raw: Raw,
+  portal: string,
+  screenOf: ReadonlyMap<string, { id: string; key: string }>,
+): Execution[] {
   const executions: Execution[] = [];
   for (const e of raw
     .prepare(
@@ -101,7 +126,11 @@ export function loadObservationTables(raw: Raw, portal: string): MinerTable[] {
       at: e.created_at,
     });
   }
-  const writes: AttributeWrite[] = (
+  return executions;
+}
+
+function loadAttributeWrites(raw: Raw, portal: string): AttributeWrite[] {
+  return (
     raw
       .prepare(
         `SELECT w.journey_id, w.seq, w.name, w.source, w.value_type, w.value_num, w.value_text
@@ -126,7 +155,10 @@ export function loadObservationTables(raw: Raw, portal: string): MinerTable[] {
     valueNum: w.value_num,
     valueText: w.value_text,
   }));
-  const journeys = new Map<string, JourneyLink>(
+}
+
+function loadJourneyLinks(raw: Raw, portal: string): Map<string, JourneyLink> {
+  return new Map<string, JourneyLink>(
     (
       raw
         .prepare(
@@ -140,20 +172,6 @@ export function loadObservationTables(raw: Raw, portal: string): MinerTable[] {
       }[]
     ).map((j) => [j.id, { id: j.id, parentId: j.parent_journey_id, branchSeq: j.branch_seq }]),
   );
-  const keyOfScreen = new Map([...screenOf.values()].map((s) => [s.id, s.key]));
-  return observationTables(executions, writes, journeys).map((t) => {
-    const [screen, action] = t.decisionPoint.actionClass.split('\u0000') as [string, string];
-    return {
-      decision_point: {
-        screen: keyOfScreen.get(screen) ?? screen,
-        action,
-        actionClass: t.decisionPoint.actionClass,
-        epoch: t.decisionPoint.epoch,
-      },
-      types: t.types,
-      rows: t.rows,
-    };
-  });
 }
 
 /**

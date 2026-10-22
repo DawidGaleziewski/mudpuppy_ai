@@ -41,7 +41,7 @@ try {
   );
   const { communities } = Communities.parse(JSON.parse(out));
   const skipped: { screens: readonly string[]; reason: string }[] = [];
-  const written = writeProposals(opened.raw, portal, communities, graph, undefined, skipped);
+  const written = writeProposals(opened.raw, portal, { communities, graph, skipped });
   console.log(
     `${portal} (${env}): ${graph.nodes.length} screens, ${graph.edges.length} weighted links, ` +
       `${communities.length} communities, ${written.length} new suggestion(s)`,

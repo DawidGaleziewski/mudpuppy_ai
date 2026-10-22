@@ -25,7 +25,14 @@ schemas) and store (record keys are allocated in the DB, `src/keys.ts`).
   `render-records.ts`, `render-contracts.ts`) and `index.ts` (`exportProcess`, `exportPortal`);
   used by `pnpm docs:process-export` and the dashboard's process tabs. Layout = the owner-rated
   mocks in `specs/034-…/mocks/`.
-- Test helpers in `src/testing/` (a migrated scratch store, record fixtures).
+- Test helpers in `src/testing/`: `makeFixtureStore` (a migrated scratch store; its pages in
+  `fixture/data.ts`, row writers in `fixture/rows.ts`, trace runs in `fixture/traces.ts`) and
+  `seedDocRecords` (the writer; the records as data in `seeds/`). Ids follow the call order, so
+  keep the order when adding rows (the export goldens are byte-stable).
+- Spec 042: the evaluator is `evaluate.ts` (matching), `ground-truth.ts` (the schema),
+  `evaluate-load.ts`, `evaluate-report.ts`; the SRS export's store read is
+  `render/export-load.ts` (with `export-labels.ts`, `export-pictures.ts`), its types
+  `render/model.ts`.
 
 ## Invariants
 

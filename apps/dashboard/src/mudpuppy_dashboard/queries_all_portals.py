@@ -10,7 +10,7 @@ import sqlite3
 from dataclasses import dataclass
 
 from . import queries_review
-from .queries_changes import changes_view, range_from, rows_of
+from .queries_changes import ChangeFilter, changes_view, range_from, rows_of
 from .queries_portal_home import LastScan, last_scan
 from .queries_queue import QueueItem
 from .queries_releases import timeline
@@ -70,7 +70,7 @@ def _count(conn: sqlite3.Connection, sql: str, portal: str) -> int:
 
 def portal_row(conn: sqlite3.Connection, portal: str) -> tuple[PortalRow, queries_review.Inbox]:
     start, _ = range_from(conn, portal)
-    v = changes_view(conn, portal, from_seq=start)
+    v = changes_view(conn, portal, ChangeFilter(from_seq=start))
     inbox = queries_review.inbox(conn, portal)
     return (
         PortalRow(

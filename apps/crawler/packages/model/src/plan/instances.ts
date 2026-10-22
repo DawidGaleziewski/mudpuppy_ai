@@ -84,35 +84,47 @@ function inJourney(p: ProcessShape, steps: readonly JourneyStep[]): ProcessInsta
       i += 1;
       continue;
     }
-    const screens = [p.startScreen];
-    let lastTransition = t.transitionId;
-    let end: { outcome: InstanceOutcome; screen: string | null } | null = null;
-    let j = i + 1;
-    for (; j < steps.length && !end; j++) {
-      const s = steps[j]!;
-      lastTransition = s.transitionId ?? lastTransition;
-      end = endAt(p, s, screens[screens.length - 1]!);
-      if (!end && s.toScreen !== null && s.toScreen !== screens[screens.length - 1])
-        screens.push(s.toScreen);
-    }
-    const at = screens[screens.length - 1]!;
-    end ??= p.terminals.has(at)
-      ? { outcome: 'completed', screen: at }
-      : { outcome: 'incomplete', screen: at };
-    out.push({
-      processId: p.id,
-      journeyId: t.journeyId,
-      trigger: t.observationId === undefined ? 'transition' : 'deep_link',
-      triggerTransitionId: t.transitionId,
-      triggerObservationId: t.observationId ?? null,
-      lastTransitionId: lastTransition,
-      outcome: end.outcome,
-      outcomeScreen: end.screen,
-      screens,
-    });
-    i = j;
+    const walked = walkFrom(p, steps, i);
+    out.push(walked.instance);
+    i = walked.next;
   }
   return out;
+}
+
+/** One instance walked from the trigger at `steps[i]` to its end; `next` is the step after it. */
+function walkFrom(
+  p: ProcessShape,
+  steps: readonly JourneyStep[],
+  i: number,
+): { instance: ProcessInstance; next: number } {
+  const t = steps[i]!;
+  const screens = [p.startScreen];
+  let lastTransition = t.transitionId;
+  let end: { outcome: InstanceOutcome; screen: string | null } | null = null;
+  let j = i + 1;
+  for (; j < steps.length && !end; j++) {
+    const s = steps[j]!;
+    lastTransition = s.transitionId ?? lastTransition;
+    end = endAt(p, s, screens[screens.length - 1]!);
+    if (!end && s.toScreen !== null && s.toScreen !== screens[screens.length - 1])
+      screens.push(s.toScreen);
+  }
+  const at = screens[screens.length - 1]!;
+  end ??= p.terminals.has(at)
+    ? { outcome: 'completed', screen: at }
+    : { outcome: 'incomplete', screen: at };
+  const instance: ProcessInstance = {
+    processId: p.id,
+    journeyId: t.journeyId,
+    trigger: t.observationId === undefined ? 'transition' : 'deep_link',
+    triggerTransitionId: t.transitionId,
+    triggerObservationId: t.observationId ?? null,
+    lastTransitionId: lastTransition,
+    outcome: end.outcome,
+    outcomeScreen: end.screen,
+    screens,
+  };
+  return { instance, next: j };
 }
 
 /** Every instance of every process over the journeys (steps in any order). */

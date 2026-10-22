@@ -14,6 +14,7 @@ from fastapi import APIRouter, Request
 from fastapi.responses import HTMLResponse, JSONResponse, PlainTextResponse, Response
 
 from .. import (
+    as_of,
     change_spec,
     db,
     pager,
@@ -196,15 +197,25 @@ def process_page(
     web = web_of(request)
     c = web.ctx(request, env)
     try:
+        # The As of menu offers only versions the process is in (spec 042 F-09).
+        with c.conn(now=True) as conn:
+            since = as_of.first_seq(conn, c.portal, "process", key)
         with c.conn() as conn:
             view = _view_or_404(c, conn, key)
             v = editor_values(c, conn, view, model, step)
     except db.StoreMissing as err:
         return web.missing(c, err)
     except LookupError:
-        return web.render(c, "salvage/process_missing.html", status_code=404, key=key)
+        return web.render(
+            c, "salvage/process_missing.html", status_code=404, key=key, as_of_since=since
+        )
     return web.render(
-        c, "salvage/process.html", nav_current="processes", v=v, check_note=check_note
+        c,
+        "salvage/process.html",
+        nav_current="processes",
+        v=v,
+        check_note=check_note,
+        as_of_since=since,
     )
 
 

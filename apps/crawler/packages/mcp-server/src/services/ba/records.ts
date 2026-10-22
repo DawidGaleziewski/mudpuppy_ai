@@ -1,28 +1,16 @@
-import { Confidence, newId, nowIso } from '@mudpuppy/core';
-import {
-  DOC_CONTENT_BY_KIND,
-  DocKind,
-  EvidenceTargetKind,
-  RelationType,
-  type DocContent,
-  type RevisionChange,
-} from '@mudpuppy/docs-model';
-import { insertEvidenceRef, type DocRecordsTable, type Selectable } from '@mudpuppy/store';
+import { newId, nowIso, type Confidence } from '@mudpuppy/core';
+import type { DocContent, DocKind, RevisionChange } from '@mudpuppy/docs-model';
+import { insertEvidenceRef } from '@mudpuppy/store';
 import {
   applyStatusEvent,
-  checkObserved,
-  describeRecordKind,
-  describeRelations,
   elementKeysReader,
   formatKey,
-  isAllowed,
   nextSeq,
   resolveTargets,
   type ResolvedTarget,
-  type RevisionState,
   type StatusResult,
 } from '@mudpuppy/docs';
-import { z } from 'zod';
+import type { z } from 'zod';
 import type { BaContext } from '../../context.js';
 import { ToolError, parseInput } from '../../errors.js';
 import {
@@ -32,6 +20,24 @@ import {
   sessionRunIds,
   type SessionRow,
 } from './common.js';
+import {
+  currentRecord,
+  findRecord,
+  isIdPath,
+  parseContent,
+  requireEvidence,
+  revisionStates,
+  validateWrite,
+  type ResolvedRelation,
+} from './record-checks.js';
+import {
+  AddressCrawlerQuestionInput,
+  CreateRecordInput,
+  ReviseRecordInput,
+  WithdrawRecordInput,
+  type EvidenceInput,
+  type WriteOutput,
+} from './record-inputs.js';
 import { outsideSessionLinks, type CarriedLink } from './carry-over.js';
 import { assertApiEndpointCitesCall } from './api-endpoint-check.js';
 import { assertOneFieldPerDataItem } from './data-item-fields.js';
@@ -44,214 +50,11 @@ import {
   revisionContent,
 } from './revision-guard.js';
 
-type RecordRow = Selectable<DocRecordsTable>;
-
 /** The persona a process record names (its schema requires one). */
 const personaOf = (content: unknown): string => {
   const p = (content as { persona?: unknown }).persona;
   return typeof p === 'string' && p ? p : 'guest';
 };
-
-const EvidenceInput = z
-  .object({
-    target_kind: EvidenceTargetKind,
-    target_id: z.string().min(1),
-    /** Only on a `state` or `screen_region` link: the run whose observation was read. */
-    run_id: z.string().min(1).optional(),
-    /** Only on a `screen_region` link: the cited element key (spec 008). */
-    region: z.string().trim().min(1).max(200).optional(),
-    note: z.string().trim().min(1).max(1000).optional(),
-  })
-  .strict();
-type EvidenceInput = z.infer<typeof EvidenceInput>;
-
-const RelationInput = z.object({ type: RelationType, to_key: z.string().min(1) }).strict();
-type RelationInput = z.infer<typeof RelationInput>;
-
-const Content = z.record(z.string(), z.unknown());
-
-export const CreateRecordInput = z
-  .object({
-    session_id: z.string().min(1),
-    kind: DocKind,
-    content: Content,
-    confidence: Confidence,
-    not_observable: z.boolean().default(false),
-    evidence: z.array(EvidenceInput),
-    relations: z.array(RelationInput).default([]),
-    /** `process` only: the process (PRC-nnn) the record documents; without it one is opened. */
-    process_key: z
-      .string()
-      .regex(/^PRC-\d{3,}$/)
-      .optional(),
-  })
-  .strict();
-
-export const ReviseRecordInput = z
-  .object({
-    session_id: z.string().min(1),
-    key: z.string().min(1),
-    base_rev: z.number().int().positive(),
-    content: Content,
-    confidence: Confidence,
-    not_observable: z.boolean().default(false),
-    evidence: z.array(EvidenceInput),
-    relations: z.array(RelationInput).default([]),
-    change_note: z.string().trim().min(1).max(2000),
-    responds_to_review: z.string().min(1).optional(),
-    /**
-     * What this revision leaves out of the previous one on purpose (spec 034 R-70 (3)): evidence
-     * links and use-case flow steps it drops must be listed here with a reason, or it is refused.
-     */
-    dropped: z
-      .object({
-        reason: z.string().trim().min(1).max(1000),
-        evidence: z
-          .array(z.object({ target_kind: z.string().min(1), target_id: z.string().min(1) }))
-          .optional(),
-        steps: z.number().int().positive().optional(),
-      })
-      .strict()
-      .optional(),
-  })
-  .strict();
-
-export const WithdrawRecordInput = z
-  .object({
-    session_id: z.string().min(1),
-    key: z.string().min(1),
-    base_rev: z.number().int().positive(),
-    change_note: z.string().trim().min(1).max(2000),
-    evidence: z.array(EvidenceInput),
-  })
-  .strict();
-
-export const AddressCrawlerQuestionInput = z
-  .object({
-    session_id: z.string().min(1),
-    open_question_id: z.string().min(1),
-    by_key: z.string().min(1),
-  })
-  .strict();
-
-export interface WriteOutput {
-  key: string;
-  rev_no: number;
-}
-
-/**
- * The evidence gate comes before schema validation so the caller gets the specific code (Principle II):
- * a write with no evidence is MISSING_EVIDENCE, whatever else is wrong with it.
- */
-function requireEvidence(raw: unknown): void {
-  const evidence = (raw as { evidence?: unknown } | null)?.evidence;
-  if (!Array.isArray(evidence) || evidence.length === 0)
-    throw new ToolError(
-      'MISSING_EVIDENCE',
-      'evidence is required: cite at least one state, edge, action, form, network call, crawler question, record or review',
-    );
-}
-
-/** Validate `content` against the kind's schema; unknown fields are refused so a typo is not silently dropped. */
-function parseContent(kind: DocKind, content: Record<string, unknown>): DocContent {
-  if ('kind' in content && content.kind !== kind)
-    throw new ToolError(
-      'SCHEMA_INVALID',
-      `content.kind is ${JSON.stringify(content.kind)} but the record is a ${kind}`,
-    );
-  const r = DOC_CONTENT_BY_KIND[kind].strict().safeParse({ ...content, kind });
-  if (r.success) return r.data;
-  throw new ToolError(
-    'SCHEMA_INVALID',
-    r.error.issues
-      .map((i) => `content${i.path.length ? `.${i.path.join('.')}` : ''}: ${i.message}`)
-      .join('; '),
-    // The whole expected shape, so one retry fixes every field (spec 015 F-20, spec 019 US4).
-    { kind, expected: describeRecordKind(kind) },
-  );
-}
-
-/** `seen_in[].target_id` of a data item holds a server id, which the scrubber would read as a token. */
-const isIdPath = (path: string): boolean => /^content\.seen_in\[\d+\]\.target_id$/.test(path);
-
-function findRecord(ctx: BaContext, portalId: string, key: string): RecordRow {
-  const record = ctx.raw
-    .prepare('SELECT * FROM doc_records WHERE portal_id = ? AND key = ?')
-    .get(portalId, key) as RecordRow | undefined;
-  if (!record)
-    throw new ToolError('RECORD_NOT_FOUND', `no record ${key} in portal ${portalId}`, { key });
-  return record;
-}
-
-function revisionStates(ctx: BaContext, recordId: string): RevisionState[] {
-  return ctx.raw
-    .prepare(
-      `SELECT rev_no, status, change, json_extract(content_json, '$.title') AS title
-       FROM doc_revisions WHERE record_id = ? ORDER BY rev_no`,
-    )
-    .all(recordId) as RevisionState[];
-}
-
-interface ResolvedRelation {
-  type: RelationType;
-  to: RecordRow;
-}
-
-/** Every relation must point at a record of the portal and be an allowed (from kind, type, to kind) triple. */
-function resolveRelations(
-  ctx: BaContext,
-  portalId: string,
-  fromKind: DocKind,
-  fromKey: string | null,
-  relations: readonly RelationInput[],
-): ResolvedRelation[] {
-  const out = new Map<string, ResolvedRelation>();
-  for (const rel of relations) {
-    const to = findRecord(ctx, portalId, rel.to_key);
-    if (to.key === fromKey)
-      throw new ToolError('RELATION_NOT_ALLOWED', `a record cannot relate to itself (${to.key})`, {
-        type: rel.type,
-        to_key: to.key,
-      });
-    const check = isAllowed(fromKind, rel.type, to.kind);
-    if (!check.ok)
-      throw new ToolError(check.code, check.message, {
-        ...check.details,
-        to_key: to.key,
-        // Every relation this kind may assert, not only those of the type it tried (spec 019 US4).
-        allowed_from_kind: describeRelations(fromKind),
-      });
-    out.set(`${rel.type} ${to.id}`, { type: rel.type, to });
-  }
-  return [...out.values()];
-}
-
-/**
- * Not-observable behaviour must come with a question someone can answer: a crawler open question or
- * an `open_question` record in the evidence, a relation to an `open_question` record, or the record
- * being that question itself.
- */
-function assertQuestionLinked(
-  ctx: BaContext,
-  kind: DocKind,
-  targets: readonly ResolvedTarget[],
-  relations: readonly ResolvedRelation[],
-): void {
-  if (kind === 'open_question') return;
-  if (targets.some((t) => t.target_kind === 'open_question')) return;
-  if (relations.some((r) => r.to.kind === 'open_question')) return;
-  const kindOf = ctx.raw.prepare('SELECT kind FROM doc_records WHERE id = ?');
-  const citesQuestion = targets.some(
-    (t) =>
-      t.target_kind === 'doc_record' &&
-      (kindOf.get(t.target_id) as { kind: DocKind }).kind === 'open_question',
-  );
-  if (citesQuestion) return;
-  throw new ToolError(
-    'NOT_OBSERVABLE_NEEDS_QUESTION',
-    'not_observable needs a question: cite a crawler open question or an open_question record in evidence, or relate the record to an open_question record (create the question first)',
-  );
-}
 
 interface RevisionWrite {
   session: SessionRow;
@@ -328,38 +131,42 @@ function writeRevision(ctx: BaContext, w: RevisionWrite, ts: string): void {
     .run(title, latest_rev, confirmed_rev, withdrawn, ts, w.record.id);
 }
 
-/** The checks every content-bearing write shares; returns what the revision will cite and relate to. */
-function validateWrite(
+/** A new record's row with the next key of its kind (a process record opens or links its process). */
+function insertRecord(
   ctx: BaContext,
   session: SessionRow,
-  args: {
-    kind: DocKind;
-    key: string | null;
-    confidence: Confidence;
-    notObservable: boolean;
-    evidence: readonly EvidenceInput[];
-    relations: readonly RelationInput[];
-  },
-): { targets: ResolvedTarget[]; relations: ResolvedRelation[] } {
-  const targets = resolveTargets(
-    ctx.raw,
-    session.portal_id,
-    sessionRunIds(ctx, session.id),
-    args.evidence,
-    { elementKeysOf: elementKeysReader(ctx.raw, ctx.evidence.root) },
-  );
-  if (args.confidence === 'observed') {
-    const check = checkObserved(targets);
-    if (!check.ok)
-      throw new ToolError(
-        'INVALID_CONFIDENCE',
-        'observed needs evidence that was itself observed: a state, screen region, edge, form, action, network call, process step or page visit. Rule candidates, questions, decisions, records and reviews do not count; use inferred or needs_confirmation',
-        { checked: check.checked },
-      );
-  }
-  const relations = resolveRelations(ctx, session.portal_id, args.kind, args.key, args.relations);
-  if (args.notObservable) assertQuestionLinked(ctx, args.kind, targets, relations);
-  return { targets, relations };
+  {
+    input,
+    content,
+    ts,
+  }: { input: z.infer<typeof CreateRecordInput>; content: DocContent; ts: string },
+): { recordId: string; key: string } {
+  const seq = nextSeq(ctx.raw, session.portal_id, input.kind);
+  const key = formatKey(input.kind, seq);
+  const recordId = newId();
+  if (input.process_key !== undefined && input.kind !== 'process')
+    throw new ToolError('SCHEMA_INVALID', 'process_key goes with a process record only');
+  const processId =
+    input.kind === 'process'
+      ? processForRecord(
+          ctx,
+          session.portal_id,
+          {
+            key,
+            title: content.title,
+            persona: personaOf(content),
+            processKey: input.process_key,
+          },
+          ts,
+        )
+      : null;
+  ctx.raw
+    .prepare(
+      `INSERT INTO doc_records (id, portal_id, kind, key, seq, title, latest_rev, confirmed_rev, withdrawn,
+       created_at, updated_at, process_id) VALUES (?, ?, ?, ?, ?, ?, 1, NULL, 0, ?, ?, ?)`,
+    )
+    .run(recordId, session.portal_id, input.kind, key, seq, content.title, ts, ts, processId);
+  return { recordId, key };
 }
 
 /** Allocate a key and write revision 1 as a draft. */
@@ -388,37 +195,13 @@ export function createRecord(ctx: BaContext, raw: unknown): WriteOutput {
     });
 
     const ts = nowIso();
-    const seq = nextSeq(ctx.raw, session.portal_id, input.kind);
-    const key = formatKey(input.kind, seq);
-    const recordId = newId();
     const status = applyStatusEvent([], {
       type: 'revision',
       rev_no: 1,
       change: 'create',
       title: content.title,
     });
-    if (input.process_key !== undefined && input.kind !== 'process')
-      throw new ToolError('SCHEMA_INVALID', 'process_key goes with a process record only');
-    const processId =
-      input.kind === 'process'
-        ? processForRecord(
-            ctx,
-            session.portal_id,
-            {
-              key,
-              title: content.title,
-              persona: personaOf(content),
-              processKey: input.process_key,
-            },
-            ts,
-          )
-        : null;
-    ctx.raw
-      .prepare(
-        `INSERT INTO doc_records (id, portal_id, kind, key, seq, title, latest_rev, confirmed_rev, withdrawn,
-         created_at, updated_at, process_id) VALUES (?, ?, ?, ?, ?, ?, 1, NULL, 0, ?, ?, ?)`,
-      )
-      .run(recordId, session.portal_id, input.kind, key, seq, content.title, ts, ts, processId);
+    const { recordId, key } = insertRecord(ctx, session, { input, content, ts });
     writeRevision(
       ctx,
       {
@@ -447,23 +230,6 @@ export function createRecord(ctx: BaContext, raw: unknown): WriteOutput {
         .run(recordId, ts);
     return { key, rev_no: 1 };
   });
-}
-
-/** The record a revise/withdraw targets, refused unless `base_rev` is still the latest revision. */
-function currentRecord(
-  ctx: BaContext,
-  session: SessionRow,
-  key: string,
-  baseRev: number,
-): RecordRow {
-  const record = findRecord(ctx, session.portal_id, key);
-  if (record.latest_rev !== baseRev)
-    throw new ToolError(
-      'STALE_REVISION',
-      `${key} is at revision ${record.latest_rev}, not ${baseRev}; read it again with get_record and retry on the latest`,
-      { key, latest_rev: record.latest_rev },
-    );
-  return record;
 }
 
 /** A new draft revision of an existing record; its statuses are decided by the status engine. */

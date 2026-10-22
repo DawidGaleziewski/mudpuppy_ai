@@ -4,7 +4,7 @@
  */
 import { readFileSync } from 'node:fs';
 import { parse } from 'yaml';
-import { GroundTruth } from './evaluate.js';
+import { GroundTruth } from './ground-truth.js';
 
 export function readGroundTruth(path: string): GroundTruth {
   return GroundTruth.parse(parse(readFileSync(path, 'utf8')));

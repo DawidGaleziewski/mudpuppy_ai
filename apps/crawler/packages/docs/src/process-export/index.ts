@@ -6,7 +6,7 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import type { RawDb } from '../keys.js';
 import { cell, doc, inline, table } from '../render/format.js';
-import { loadExportModel } from '../render/model.js';
+import { loadExportModel } from '../render/export-load.js';
 import { openApi } from './contracts.js';
 import { loadProcessExport, type ProcessExportModel, type StepModel } from './model.js';
 import { elementsSvg, validationNotes, validationSvg } from './pictures.js';

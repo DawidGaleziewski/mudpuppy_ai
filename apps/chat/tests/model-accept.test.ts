@@ -46,11 +46,9 @@ describe('model accept route', () => {
     const none = await accept({ what: 'classifier', by: 'Anna' });
     expect(none.status).toBe(409);
     const profile = activeProfile(t.opened.raw, P);
-    recordClassifier(
-      t.opened.raw,
-      P,
+    recordClassifier(t.opened.raw, P, {
       profile,
-      {
+      trained: {
         ok: true,
         names: ['minhash', 'structure', 'content', 'overlay', 'calls', 'mounts', 'elements'],
         weights: [1, 1, 0, 0, 0, 0, 0],
@@ -61,8 +59,8 @@ describe('model accept route', () => {
         tau_f1: 0.7,
         better: true,
       },
-      0.8,
-    );
+      tau: 0.8,
+    });
     const ok = await accept({ what: 'classifier', by: 'Anna' });
     expect(ok).toMatchObject({ status: 201, body: { classifier: { f1: 0.9, tauF1: 0.7 } } });
     expect(activeClassifier(t.opened.raw, P, profile)?.intercept).toBe(-1);

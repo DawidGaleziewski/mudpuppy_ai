@@ -181,10 +181,18 @@ export function processGraph(raw: Raw, portal: string): ProcessGraph {
 export function writeProposals(
   raw: Raw,
   portal: string,
-  communities: readonly (readonly string[])[],
-  graph: ProcessGraph,
-  now = nowIso(),
-  skipped: { screens: readonly string[]; reason: string }[] = [],
+  {
+    communities,
+    graph,
+    now = nowIso(),
+    skipped = [],
+  }: {
+    communities: readonly (readonly string[])[];
+    graph: ProcessGraph;
+    now?: string;
+    /** Filled with the communities a person's decisions kept out, and why. */
+    skipped?: { screens: readonly string[]; reason: string }[];
+  },
 ): string[] {
   const written: string[] = [];
   // A person's dismissals and kept processes (spec 040 T034); `skipped` says which and why.
@@ -222,44 +230,65 @@ export function writeProposals(
       .prepare('SELECT 1 FROM grouping_suggestions WHERE portal_id = ? AND screens_key = ?')
       .get(portal, key);
     if (earlier) continue;
-    const weights = graph.edges.filter((e) => members.has(e.a) && members.has(e.b));
-    const why =
-      `Grouped by the portal model (Leiden over ${weights.length} weighted links: shared ids, ` +
-      `embedded apps, API families, forms and direct links). Starts at ${states[0]!.route_template}.`;
-    const suggestion = GroupingSuggestion.parse({
-      id: newId(),
-      portal_id: portal,
-      name: states[0]!.title,
-      persona: persona ?? 'unknown',
-      steps: observedSteps(states.map((s) => ({ ...s, screen_id: null }))),
-      why,
-      screens_key: key,
-      status: 'open',
-      conversation_id: null,
-      process_id: null,
-      decided_by: null,
-      decided_at: null,
-      created_at: now,
-    });
-    raw
-      .prepare(
-        `INSERT INTO grouping_suggestions (id, portal_id, name, persona, steps, why, screens_key, status,
-           conversation_id, process_id, decided_by, decided_at, created_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?, 'open', NULL, NULL, NULL, NULL, ?)`,
-      )
-      .run(
-        suggestion.id,
-        portal,
-        suggestion.name,
-        suggestion.persona,
-        JSON.stringify(suggestion.steps),
-        why,
-        key,
-        now,
-      );
-    written.push(suggestion.name);
+    const links = graph.edges.filter((e) => members.has(e.a) && members.has(e.b)).length;
+    written.push(insertSuggestion(raw, portal, { states, links, persona, key, now }));
   }
   return written;
+}
+
+/** One open grouping suggestion row; returns its name. */
+function insertSuggestion(
+  raw: Raw,
+  portal: string,
+  {
+    states,
+    links,
+    persona,
+    key,
+    now,
+  }: {
+    states: readonly { id: string; title: string; route_template: string }[];
+    links: number;
+    persona: string | undefined;
+    key: string;
+    now: string;
+  },
+): string {
+  const why =
+    `Grouped by the portal model (Leiden over ${links} weighted links: shared ids, ` +
+    `embedded apps, API families, forms and direct links). Starts at ${states[0]!.route_template}.`;
+  const suggestion = GroupingSuggestion.parse({
+    id: newId(),
+    portal_id: portal,
+    name: states[0]!.title,
+    persona: persona ?? 'unknown',
+    steps: observedSteps(states.map((s) => ({ ...s, screen_id: null }))),
+    why,
+    screens_key: key,
+    status: 'open',
+    conversation_id: null,
+    process_id: null,
+    decided_by: null,
+    decided_at: null,
+    created_at: now,
+  });
+  raw
+    .prepare(
+      `INSERT INTO grouping_suggestions (id, portal_id, name, persona, steps, why, screens_key, status,
+         conversation_id, process_id, decided_by, decided_at, created_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, 'open', NULL, NULL, NULL, NULL, ?)`,
+    )
+    .run(
+      suggestion.id,
+      portal,
+      suggestion.name,
+      suggestion.persona,
+      JSON.stringify(suggestion.steps),
+      why,
+      key,
+      now,
+    );
+  return suggestion.name;
 }
 
 /**

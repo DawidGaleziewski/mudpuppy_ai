@@ -10,7 +10,7 @@ import { endRunJourneys } from './journeys.js';
 import { isBudgetExhausted } from './run-budget.js';
 import { robotsCoverage } from './robots.js';
 import { closeProcess, processOfRun } from './trace.js';
-import { runChoices } from './start-run.js';
+import { runChoices } from './start-run-input.js';
 
 /** Live robots counters of the request gate, when the session is still open. */
 export type LiveRobotsStats = { pageRequestsBlocked: number; pageRequestsAllowed: number };

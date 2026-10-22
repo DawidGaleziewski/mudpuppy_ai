@@ -7,7 +7,8 @@ import { afterEach, describe, expect, it } from 'vitest';
 import { openDb, type OpenedDb } from '../src/db.js';
 import { createEvidenceStore } from '@mudpuppy/core';
 import { migrateUp } from '../src/migrate.js';
-import { createTracer, type Tracer, type TracerDeps } from '../src/tracer.js';
+import { createTracer } from '../src/tracer.js';
+import type { Tracer, TracerDeps } from '../src/tracer-types.js';
 
 const MIGRATIONS = fileURLToPath(new URL('../../../../../data/migrations', import.meta.url));
 const RUN = 'run-1';

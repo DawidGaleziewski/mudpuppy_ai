@@ -22,7 +22,8 @@
     <summary><span class="sy-label">As of</span> <span class="sy-mono">{% if c.as_of %}version {{ c.as_of.seq }}{% else %}Now{% endif %}</span></summary>
     <ul class="mp-menu" aria-label="Show the model as of">
       <li><a href="{{ c.as_of_url(none) }}"{% if not c.as_of %} aria-current="true"{% endif %}>Now <span class="sy-small sy-muted">version {{ versions[0].seq }}</span></a></li>
-      {%- for v in versions[1:] %}
+      {#- A page of one thing (a screen) lists only the versions it is in (spec 042 F-09). #}
+      {%- for v in versions[1:] if as_of_since is not defined or as_of_since is none or v.seq >= as_of_since %}
       <li><a href="{{ c.as_of_url(v.seq) }}"{% if c.as_of and c.as_of.seq == v.seq %} aria-current="true"{% endif %}>Version {{ v.seq }} · {{ v.built_at | when }}
         {%- if v.releases %} <span class="sy-small sy-muted">{{ v.releases | join(", ") }}</span>{% endif %}
         {%- if v.scan %} <span class="sy-small sy-muted">scan {{ v.scan[:8] }}</span>{% endif %}</a></li>

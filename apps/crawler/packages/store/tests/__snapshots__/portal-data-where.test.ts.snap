@@ -1,0 +1,310 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`where > names the same rows for every portal table 1`] = `
+{
+  "action_classes": {
+    "mine": "screen_id IN (SELECT id FROM model_screens WHERE portal_id = ?)",
+    "others": "screen_id IN (SELECT id FROM model_screens WHERE portal_id <> ?)",
+  },
+  "actions": {
+    "mine": "run_id IN (SELECT id FROM runs WHERE portal_id = ?)",
+    "others": "run_id IN (SELECT id FROM runs WHERE portal_id <> ?)",
+  },
+  "agent_turns": {
+    "mine": "run_id IN (SELECT id FROM runs WHERE portal_id = ?)",
+    "others": "run_id IN (SELECT id FROM runs WHERE portal_id <> ?)",
+  },
+  "amendment_revisions": {
+    "mine": "amendment_id IN (SELECT id FROM amendments WHERE portal_id = ?)",
+    "others": "amendment_id IN (SELECT id FROM amendments WHERE portal_id <> ?)",
+  },
+  "amendments": {
+    "mine": "portal_id = ?",
+    "others": "portal_id <> ?",
+  },
+  "analysis_session_runs": {
+    "mine": "session_id IN (SELECT id FROM analysis_sessions WHERE portal_id = ?)",
+    "others": "session_id IN (SELECT id FROM analysis_sessions WHERE portal_id <> ?)",
+  },
+  "analysis_sessions": {
+    "mine": "portal_id = ?",
+    "others": "portal_id <> ?",
+  },
+  "attribute_writes": {
+    "mine": "journey_id IN (SELECT id FROM journeys WHERE run_id IN (SELECT id FROM runs WHERE portal_id = ?))",
+    "others": "journey_id IN (SELECT id FROM journeys WHERE run_id IN (SELECT id FROM runs WHERE portal_id <> ?))",
+  },
+  "ba_process_revisions": {
+    "mine": "process_id IN (SELECT id FROM ba_processes WHERE portal_id = ?)",
+    "others": "process_id IN (SELECT id FROM ba_processes WHERE portal_id <> ?)",
+  },
+  "ba_processes": {
+    "mine": "portal_id = ?",
+    "others": "portal_id <> ?",
+  },
+  "build_epochs": {
+    "mine": "portal_id = ?",
+    "others": "portal_id <> ?",
+  },
+  "builds": {
+    "mine": "portal_id = ?",
+    "others": "portal_id <> ?",
+  },
+  "change_spec_revisions": {
+    "mine": "process_id IN (SELECT id FROM ba_processes WHERE portal_id = ?)",
+    "others": "process_id IN (SELECT id FROM ba_processes WHERE portal_id <> ?)",
+  },
+  "chat_conversations": {
+    "mine": "portal_id = ?",
+    "others": "portal_id <> ?",
+  },
+  "chat_messages": {
+    "mine": "conversation_id IN (SELECT id FROM chat_conversations WHERE portal_id = ?)",
+    "others": "conversation_id IN (SELECT id FROM chat_conversations WHERE portal_id <> ?)",
+  },
+  "chat_proposals": {
+    "mine": "portal_id = ?",
+    "others": "portal_id <> ?",
+  },
+  "checkpoints": {
+    "mine": "run_id IN (SELECT id FROM runs WHERE portal_id = ?)",
+    "others": "run_id IN (SELECT id FROM runs WHERE portal_id <> ?)",
+  },
+  "correlation_ids": {
+    "mine": "journey_id IN (SELECT id FROM journeys WHERE run_id IN (SELECT id FROM runs WHERE portal_id = ?))",
+    "others": "journey_id IN (SELECT id FROM journeys WHERE run_id IN (SELECT id FROM runs WHERE portal_id <> ?))",
+  },
+  "decision_log": {
+    "mine": "run_id IN (SELECT id FROM runs WHERE portal_id = ?)",
+    "others": "run_id IN (SELECT id FROM runs WHERE portal_id <> ?)",
+  },
+  "deviation_occurrences": {
+    "mine": "deviation_id IN (SELECT id FROM deviations WHERE portal_id = ?)",
+    "others": "deviation_id IN (SELECT id FROM deviations WHERE portal_id <> ?)",
+  },
+  "deviations": {
+    "mine": "portal_id = ?",
+    "others": "portal_id <> ?",
+  },
+  "doc_evidence_links": {
+    "mine": "revision_id IN (SELECT id FROM doc_revisions WHERE record_id IN (SELECT id FROM doc_records WHERE portal_id = ?))",
+    "others": "revision_id IN (SELECT id FROM doc_revisions WHERE record_id IN (SELECT id FROM doc_records WHERE portal_id <> ?))",
+  },
+  "doc_records": {
+    "mine": "portal_id = ?",
+    "others": "portal_id <> ?",
+  },
+  "doc_relations": {
+    "mine": "from_revision_id IN (SELECT id FROM doc_revisions WHERE record_id IN (SELECT id FROM doc_records WHERE portal_id = ?))",
+    "others": "from_revision_id IN (SELECT id FROM doc_revisions WHERE record_id IN (SELECT id FROM doc_records WHERE portal_id <> ?))",
+  },
+  "doc_reviews": {
+    "mine": "revision_id IN (SELECT id FROM doc_revisions WHERE record_id IN (SELECT id FROM doc_records WHERE portal_id = ?))",
+    "others": "revision_id IN (SELECT id FROM doc_revisions WHERE record_id IN (SELECT id FROM doc_records WHERE portal_id <> ?))",
+  },
+  "doc_revisions": {
+    "mine": "record_id IN (SELECT id FROM doc_records WHERE portal_id = ?)",
+    "others": "record_id IN (SELECT id FROM doc_records WHERE portal_id <> ?)",
+  },
+  "entity_refs": {
+    "mine": "EXISTS (SELECT 1 FROM (SELECT ? AS p) x WHERE screen_id IN (SELECT id FROM model_screens WHERE portal_id = x.p) OR state_id IN (SELECT id FROM states WHERE portal_id = x.p) OR observation_id IN (SELECT id FROM observations WHERE run_id IN (SELECT id FROM runs WHERE portal_id = x.p)) OR transition_id IN (SELECT id FROM transitions WHERE run_id IN (SELECT id FROM runs WHERE portal_id = x.p)) OR network_call_id IN (SELECT id FROM network_calls WHERE run_id IN (SELECT id FROM runs WHERE portal_id = x.p)) OR action_class_id IN (SELECT a.id FROM action_classes a JOIN model_screens s ON s.id = a.screen_id WHERE s.portal_id = x.p) OR model_transition_id IN (SELECT t.id FROM model_transitions t JOIN model_screens s ON s.id = t.from_screen_id WHERE s.portal_id = x.p) OR hypothesis_id IN (SELECT id FROM hypotheses WHERE portal_id = x.p) OR process_id IN (SELECT id FROM ba_processes WHERE portal_id = x.p))",
+    "others": "EXISTS (SELECT 1 FROM (SELECT ? AS p) x WHERE screen_id IN (SELECT id FROM model_screens WHERE portal_id <> x.p) OR state_id IN (SELECT id FROM states WHERE portal_id <> x.p) OR observation_id IN (SELECT id FROM observations WHERE run_id IN (SELECT id FROM runs WHERE portal_id <> x.p)) OR transition_id IN (SELECT id FROM transitions WHERE run_id IN (SELECT id FROM runs WHERE portal_id <> x.p)) OR network_call_id IN (SELECT id FROM network_calls WHERE run_id IN (SELECT id FROM runs WHERE portal_id <> x.p)) OR action_class_id IN (SELECT a.id FROM action_classes a JOIN model_screens s ON s.id = a.screen_id WHERE s.portal_id <> x.p) OR model_transition_id IN (SELECT t.id FROM model_transitions t JOIN model_screens s ON s.id = t.from_screen_id WHERE s.portal_id <> x.p) OR hypothesis_id IN (SELECT id FROM hypotheses WHERE portal_id <> x.p) OR process_id IN (SELECT id FROM ba_processes WHERE portal_id <> x.p))",
+  },
+  "fingerprint_profiles": {
+    "mine": "portal_id = ?",
+    "others": "portal_id <> ?",
+  },
+  "followup_tasks": {
+    "mine": "record_id IN (SELECT id FROM doc_records WHERE portal_id = ?)",
+    "others": "record_id IN (SELECT id FROM doc_records WHERE portal_id <> ?)",
+  },
+  "form_steps": {
+    "mine": "portal_id = ?",
+    "others": "portal_id <> ?",
+  },
+  "forms": {
+    "mine": "run_id IN (SELECT id FROM runs WHERE portal_id = ?)",
+    "others": "run_id IN (SELECT id FROM runs WHERE portal_id <> ?)",
+  },
+  "frontier": {
+    "mine": "run_id IN (SELECT id FROM runs WHERE portal_id = ?)",
+    "others": "run_id IN (SELECT id FROM runs WHERE portal_id <> ?)",
+  },
+  "grouping_suggestions": {
+    "mine": "portal_id = ?",
+    "others": "portal_id <> ?",
+  },
+  "hypotheses": {
+    "mine": "portal_id = ?",
+    "others": "portal_id <> ?",
+  },
+  "hypothesis_events": {
+    "mine": "hypothesis_id IN (SELECT id FROM hypotheses WHERE portal_id = ?)",
+    "others": "hypothesis_id IN (SELECT id FROM hypotheses WHERE portal_id <> ?)",
+  },
+  "hypothesis_evidence": {
+    "mine": "hypothesis_id IN (SELECT id FROM hypotheses WHERE portal_id = ?)",
+    "others": "hypothesis_id IN (SELECT id FROM hypotheses WHERE portal_id <> ?)",
+  },
+  "hypothesis_tests": {
+    "mine": "hypothesis_id IN (SELECT id FROM hypotheses WHERE portal_id = ?)",
+    "others": "hypothesis_id IN (SELECT id FROM hypotheses WHERE portal_id <> ?)",
+  },
+  "hypothesis_wordings": {
+    "mine": "hypothesis_id IN (SELECT id FROM hypotheses WHERE portal_id = ?)",
+    "others": "hypothesis_id IN (SELECT id FROM hypotheses WHERE portal_id <> ?)",
+  },
+  "journeys": {
+    "mine": "run_id IN (SELECT id FROM runs WHERE portal_id = ?)",
+    "others": "run_id IN (SELECT id FROM runs WHERE portal_id <> ?)",
+  },
+  "marks": {
+    "mine": "portal_id = ?",
+    "others": "portal_id <> ?",
+  },
+  "model_screens": {
+    "mine": "portal_id = ?",
+    "others": "portal_id <> ?",
+  },
+  "model_transitions": {
+    "mine": "from_screen_id IN (SELECT id FROM model_screens WHERE portal_id = ?)",
+    "others": "from_screen_id IN (SELECT id FROM model_screens WHERE portal_id <> ?)",
+  },
+  "model_versions": {
+    "mine": "portal_id = ?",
+    "others": "portal_id <> ?",
+  },
+  "network_calls": {
+    "mine": "run_id IN (SELECT id FROM runs WHERE portal_id = ?)",
+    "others": "run_id IN (SELECT id FROM runs WHERE portal_id <> ?)",
+  },
+  "observation_builds": {
+    "mine": "observation_id IN (SELECT id FROM observations WHERE run_id IN (SELECT id FROM runs WHERE portal_id = ?))",
+    "others": "observation_id IN (SELECT id FROM observations WHERE run_id IN (SELECT id FROM runs WHERE portal_id <> ?))",
+  },
+  "observations": {
+    "mine": "run_id IN (SELECT id FROM runs WHERE portal_id = ?)",
+    "others": "run_id IN (SELECT id FROM runs WHERE portal_id <> ?)",
+  },
+  "open_questions": {
+    "mine": "run_id IN (SELECT id FROM runs WHERE portal_id = ?)",
+    "others": "run_id IN (SELECT id FROM runs WHERE portal_id <> ?)",
+  },
+  "parameter_roles": {
+    "mine": "portal_id = ?",
+    "others": "portal_id <> ?",
+  },
+  "probe_outcomes": {
+    "mine": "run_id IN (SELECT id FROM runs WHERE portal_id = ?)",
+    "others": "run_id IN (SELECT id FROM runs WHERE portal_id <> ?)",
+  },
+  "probe_suites": {
+    "mine": "portal_id = ?",
+    "others": "portal_id <> ?",
+  },
+  "process_drafts": {
+    "mine": "model_id IN (SELECT id FROM process_models WHERE process_id IN (SELECT id FROM ba_processes WHERE portal_id = ?))",
+    "others": "model_id IN (SELECT id FROM process_models WHERE process_id IN (SELECT id FROM ba_processes WHERE portal_id <> ?))",
+  },
+  "process_explorations": {
+    "mine": "process_id IN (SELECT id FROM ba_processes WHERE portal_id = ?)",
+    "others": "process_id IN (SELECT id FROM ba_processes WHERE portal_id <> ?)",
+  },
+  "process_instances": {
+    "mine": "process_id IN (SELECT id FROM ba_processes WHERE portal_id = ?)",
+    "others": "process_id IN (SELECT id FROM ba_processes WHERE portal_id <> ?)",
+  },
+  "process_live": {
+    "mine": "process_id IN (SELECT id FROM ba_processes WHERE portal_id = ?)",
+    "others": "process_id IN (SELECT id FROM ba_processes WHERE portal_id <> ?)",
+  },
+  "process_model_revisions": {
+    "mine": "model_id IN (SELECT id FROM process_models WHERE process_id IN (SELECT id FROM ba_processes WHERE portal_id = ?))",
+    "others": "model_id IN (SELECT id FROM process_models WHERE process_id IN (SELECT id FROM ba_processes WHERE portal_id <> ?))",
+  },
+  "process_models": {
+    "mine": "process_id IN (SELECT id FROM ba_processes WHERE portal_id = ?)",
+    "others": "process_id IN (SELECT id FROM ba_processes WHERE portal_id <> ?)",
+  },
+  "process_scopes": {
+    "mine": "portal_id = ?",
+    "others": "portal_id <> ?",
+  },
+  "process_steps": {
+    "mine": "process_id IN (SELECT id FROM processes WHERE portal_id = ?)",
+    "others": "process_id IN (SELECT id FROM processes WHERE portal_id <> ?)",
+  },
+  "process_triggers": {
+    "mine": "process_id IN (SELECT id FROM ba_processes WHERE portal_id = ?)",
+    "others": "process_id IN (SELECT id FROM ba_processes WHERE portal_id <> ?)",
+  },
+  "processes": {
+    "mine": "portal_id = ?",
+    "others": "portal_id <> ?",
+  },
+  "robots_policies": {
+    "mine": "run_id IN (SELECT id FROM runs WHERE portal_id = ?)",
+    "others": "run_id IN (SELECT id FROM runs WHERE portal_id <> ?)",
+  },
+  "runs": {
+    "mine": "portal_id = ?",
+    "others": "portal_id <> ?",
+  },
+  "screen_lineage": {
+    "mine": "model_version_id IN (SELECT id FROM model_versions WHERE portal_id = ?)",
+    "others": "model_version_id IN (SELECT id FROM model_versions WHERE portal_id <> ?)",
+  },
+  "screen_members": {
+    "mine": "screen_id IN (SELECT id FROM model_screens WHERE portal_id = ?)",
+    "others": "screen_id IN (SELECT id FROM model_screens WHERE portal_id <> ?)",
+  },
+  "screens": {
+    "mine": "portal_id = ?",
+    "others": "portal_id <> ?",
+  },
+  "similarity_classifiers": {
+    "mine": "portal_id = ?",
+    "others": "portal_id <> ?",
+  },
+  "state_components": {
+    "mine": "state_id IN (SELECT id FROM states WHERE portal_id = ?)",
+    "others": "state_id IN (SELECT id FROM states WHERE portal_id <> ?)",
+  },
+  "state_observations": {
+    "mine": "run_id IN (SELECT id FROM runs WHERE portal_id = ?)",
+    "others": "run_id IN (SELECT id FROM runs WHERE portal_id <> ?)",
+  },
+  "state_pair_label_history": {
+    "mine": "portal_id = ?",
+    "others": "portal_id <> ?",
+  },
+  "state_pair_labels": {
+    "mine": "portal_id = ?",
+    "others": "portal_id <> ?",
+  },
+  "state_wireframes": {
+    "mine": "state_id IN (SELECT id FROM states WHERE portal_id = ?)",
+    "others": "state_id IN (SELECT id FROM states WHERE portal_id <> ?)",
+  },
+  "states": {
+    "mine": "portal_id = ?",
+    "others": "portal_id <> ?",
+  },
+  "tau_acceptances": {
+    "mine": "portal_id = ?",
+    "others": "portal_id <> ?",
+  },
+  "trace_spans": {
+    "mine": "run_id IN (SELECT id FROM runs WHERE portal_id = ?)",
+    "others": "run_id IN (SELECT id FROM runs WHERE portal_id <> ?)",
+  },
+  "transitions": {
+    "mine": "run_id IN (SELECT id FROM runs WHERE portal_id = ?)",
+    "others": "run_id IN (SELECT id FROM runs WHERE portal_id <> ?)",
+  },
+  "workflow_steps": {
+    "mine": "portal_id = ?",
+    "others": "portal_id <> ?",
+  },
+}
+`;

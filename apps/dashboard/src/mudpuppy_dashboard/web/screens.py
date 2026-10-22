@@ -4,11 +4,14 @@ Salvage Yard only, no Console version."""
 from __future__ import annotations
 
 from dataclasses import replace
+from typing import Annotated
 
-from fastapi import APIRouter, Request
+from fastapi import APIRouter, Query, Request
 from fastapi.responses import HTMLResponse
+from pydantic import BaseModel
 
 from .. import (
+    as_of,
     db,
     pager,
     queries_model_screens,
@@ -21,25 +24,38 @@ from .deps import build_url, web_of
 router = APIRouter()
 
 
+class ScreensQuery(BaseModel):
+    """Screens' query: the text filter and page, the model list's status, process, part, why and
+    sort, and `recorded` for the recorded pages."""
+
+    env: str | None = None
+    q: str = ""
+    page: str | None = None
+    status: str | None = None
+    process: str | None = None
+    part: str | None = None
+    why: str | None = None
+    sort: str = "needs"
+    recorded: bool = False
+
+
 @router.get("/screens", response_class=HTMLResponse)
-def screens_page(
-    request: Request,
-    env: str | None = None,
-    q: str = "",
-    page: str | None = None,
-    status: str | None = None,
-    process: str | None = None,
-    part: str | None = None,
-    why: str | None = None,
-    sort: str = "needs",
-    recorded: bool = False,
-) -> HTMLResponse:
+def screens_page(request: Request, s: Annotated[ScreensQuery, Query()]) -> HTMLResponse:
     """A portal with a model lists the model's screens (spec 039 T100, v2-06); `recorded=1`, a
     portal without a model, or all portals list the recorded pages, 25 a page (R-71). `q`
     filters by key, title or route; `part`, `why` and `sort` (spec 040 T017) the model list."""
     web = web_of(request)
-    c = web.ctx(request, env)
-    q = q.strip()
+    c = web.ctx(request, s.env)
+    q, page, status, process, part, why, sort = (
+        s.q.strip(),
+        s.page,
+        s.status,
+        s.process,
+        s.part,
+        s.why,
+        s.sort,
+    )
+    recorded = s.recorded
     try:
         with c.conn() as conn:
             counts = queries_model_screens.status_counts(conn, c.portal) if c.portal else {}
@@ -104,6 +120,9 @@ def screen_page(request: Request, key: str, env: str | None = None) -> HTMLRespo
         with c.conn() as conn:
             d = queries_model_screens.screen_detail(conn, c.portal, key) if c.portal else None
             labels = queries_same_screen.screen_labels(conn, c.portal, key) if d else []
+        # The As of menu offers only versions the screen is in (spec 042 F-09).
+        with c.conn(now=True) as conn:
+            since = as_of.first_seq(conn, c.portal, "screen", key)
     except db.StoreMissing as err:
         return web.missing(c, err)
     return web.render(
@@ -115,6 +134,7 @@ def screen_page(request: Request, key: str, env: str | None = None) -> HTMLRespo
         key=key,
         labels=labels,
         words=queries_same_screen.WORDS,
+        as_of_since=since,
     )
 
 

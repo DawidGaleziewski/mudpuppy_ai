@@ -161,7 +161,7 @@ def view(store: Store, **kw: object) -> queries_changes.ChangesView:
     conn = store.connect()
     conn.row_factory = sqlite3.Row
     try:
-        return queries_changes.changes_view(conn, P, **kw)  # type: ignore[arg-type]
+        return queries_changes.changes_view(conn, P, queries_changes.ChangeFilter(**kw))  # type: ignore[arg-type]
     finally:
         conn.close()
 

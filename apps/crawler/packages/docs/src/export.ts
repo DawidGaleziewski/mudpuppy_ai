@@ -12,7 +12,8 @@ import {
   requirements,
 } from './render/chapters/statements.js';
 import { capabilities, processes, screens } from './render/chapters/structure.js';
-import { loadExportModel, type ExportModel } from './render/model.js';
+import { loadExportModel } from './render/export-load.js';
+import type { ExportModel } from './render/model.js';
 import { recordsJson } from './render/records-json.js';
 import { traceability } from './render/traceability.js';
 import { applyScope, type ExportScope } from './scope.js';

@@ -16,12 +16,11 @@ import { newId, nowIso } from '@mudpuppy/core';
 import { migrateUp } from '../src/migrate.js';
 import {
   PortalDataError,
-  PORTAL_TABLES,
   deletePortal,
   exportPortal,
   planPortalDelete,
-  where,
 } from '../src/portal-data.js';
+import { PORTAL_TABLES, where } from '../src/portal-tables.js';
 
 const MIGRATIONS = fileURLToPath(new URL('../../../../../data/migrations', import.meta.url));
 let opened: OpenedDb | undefined;

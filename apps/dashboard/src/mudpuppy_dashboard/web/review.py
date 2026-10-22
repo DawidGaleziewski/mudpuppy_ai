@@ -9,12 +9,13 @@ from __future__ import annotations
 import re
 import sqlite3
 from datetime import UTC, datetime
-from typing import Any
+from typing import Annotated, Any
 from urllib.parse import parse_qs, quote
 
-from fastapi import APIRouter, Request
+from fastapi import APIRouter, Query, Request
 from fastapi.concurrency import run_in_threadpool
 from fastapi.responses import HTMLResponse, PlainTextResponse, RedirectResponse, Response
+from pydantic import BaseModel
 
 from .. import (
     chat_client,
@@ -32,7 +33,7 @@ from .. import (
 )
 from . import views_access
 from .deps import Ctx, same_origin, web_of
-from .views_review import also_settle, model_call
+from .views_review import Confirmed, also_settle, model_call
 
 router = APIRouter()
 
@@ -95,18 +96,29 @@ def _review_neighbours(
     )
 
 
-def review_values(
-    c: Ctx,
-    conn: sqlite3.Connection,
-    select: str | None,
-    show: str | None,
-    note: str | None,
-    page: str | None = None,
-    part: str | None = None,
-    age: str | None = None,
-) -> dict[str, Any]:
+class ReviewQuery(BaseModel):
+    """The inbox's query: the selected item, a group's tab and page, the part and age filters."""
+
+    env: str | None = None
+    select: str | None = None
+    show: str | None = None
+    note: str | None = None
+    page: str | None = None
+    part: str | None = None
+    age: str | None = None
+
+
+class ReviewPageQuery(ReviewQuery):
+    """Review's page adds its tab and the decision the toast can undo."""
+
+    tab: str = "needs"
+    undo: str | None = None
+
+
+def review_values(c: Ctx, conn: sqlite3.Connection, q: ReviewQuery) -> dict[str, Any]:
     portal = c.portal
-    show = show if show in KIND_KEYS else None
+    select, note, page, part, age = q.select, q.note, q.page, q.part, q.age
+    show = q.show if q.show in KIND_KEYS else None
     inbox = queries_review.inbox(conn, portal)
     # Designer § 5.1: part and age filters with counts over the model groups.
     now = datetime.now(UTC)
@@ -161,26 +173,16 @@ TABS = ("needs", "explained", "decided")
 
 
 @router.get("/review", response_class=HTMLResponse)
-def review_page(
-    request: Request,
-    env: str | None = None,
-    select: str | None = None,
-    show: str | None = None,
-    note: str | None = None,
-    page: str | None = None,
-    tab: str = "needs",
-    undo: str | None = None,
-    part: str | None = None,
-    age: str | None = None,
-) -> HTMLResponse:
+def review_page(request: Request, q: Annotated[ReviewPageQuery, Query()]) -> HTMLResponse:
     """Three tabs (v2-04 / v2-05 / v2-16): Needs you is the inbox; Explained automatically and
     Decided list the portal model's changes a rule explained and a person's decisions."""
     web = web_of(request)
-    c = web.ctx(request, env)
-    tab = tab if tab in TABS else "needs"
+    c = web.ctx(request, q.env)
+    tab = q.tab if q.tab in TABS else "needs"
+    undo = q.undo
     try:
         with c.conn() as conn:
-            v = review_values(c, conn, select, show, note, page, part, age)
+            v = review_values(c, conn, q)
             other: dict[str, Any] = {"explained": [], "decided": [], "pairs": []}
             if c.portal:
                 other["explained"] = queries_queue.explained(conn, c.portal)
@@ -228,7 +230,8 @@ async def review_hypotheses(request: Request, portal: str, env: str | None = Non
         if not refused and answer.get("decision"):
             undo = str(answer["decision"])
         if not refused and action == "confirm":
-            note += await also_settle(web, c.env, portal, form.get("also", []), keys, reason)
+            confirmed = Confirmed(keys, reason, form.get("also", []))
+            note += await also_settle(web, c.env, portal, confirmed)
     keep = select if note.startswith(("Not", "A reject", "Unknown")) else None
     # Before / after's decision bar (spec 040 T018) comes back to the change it decided.
     back = (form.get("back") or [""])[0]
@@ -260,20 +263,13 @@ async def review_undo(request: Request, portal: str, env: str | None = None) -> 
 
 
 @router.get("/fragments/review", response_class=HTMLResponse)
-def fragment_review(
-    request: Request,
-    env: str | None = None,
-    select: str | None = None,
-    show: str | None = None,
-    page: str | None = None,
-    part: str | None = None,
-    age: str | None = None,
-) -> HTMLResponse:
+def fragment_review(request: Request, q: Annotated[ReviewQuery, Query()]) -> HTMLResponse:
     web = web_of(request)
-    c = web.ctx(request, env)
+    c = web.ctx(request, q.env)
     try:
         with c.conn() as conn:
-            v = review_values(c, conn, select, show, None, page, part, age)
+            # The fragment never shows a note: notes come back with a full page.
+            v = review_values(c, conn, q.model_copy(update={"note": None}))
     except db.StoreMissing as err:
         return web.missing(c, err, fragment=True)
     return web.render(c, "salvage/partials/review_inbox.html", v=v)
