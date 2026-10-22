@@ -67,6 +67,7 @@ class OutLink:
     to_title: str
     state: str  # the link's model status
     label: str  # the action's element key
+    rule: str = ""  # the decision rule's condition for taking it ("age ≥ 18"), if one decides it
 
 
 @dataclass(frozen=True)
@@ -172,6 +173,79 @@ def processes(conn: sqlite3.Connection, portal: str) -> list[tuple[str, str, lis
     return out
 
 
+def _input_word(name: str) -> str:
+    """`derived.input.data_urodzenia.age_years` → "age"; `input.kod` → "kod"."""
+    if name.endswith(".age_years"):
+        return "age"
+    return name.removeprefix("derived.").removeprefix("input.")
+
+
+def _condition(when: dict[str, str]) -> str:
+    parts = [
+        f"{_input_word(n)} {c.strip().replace('>=', '≥').replace('<=', '≤')}"
+        for n, c in when.items()
+        if c.strip() not in ("", "-", "any")
+    ]
+    return " and ".join(parts) or "otherwise"
+
+
+def rule_labels(conn: sqlite3.Connection, portal: str) -> dict[tuple[str, str], str]:
+    """(from SC key, to SC key) → the condition a decision rule takes that link on (spec 039
+    F-52: "age ≥ 21" on the edge). Rules a person rejected or a release replaced are left out."""
+    out: dict[tuple[str, str], list[str]] = {}
+    for r in rows_of(
+        conn,
+        "SELECT h.claim_json FROM hypotheses h WHERE h.portal_id = ? AND h.kind = 'decision_rule'"
+        " AND coalesce((SELECT e.to_status FROM hypothesis_events e WHERE e.hypothesis_id = h.id"
+        "   ORDER BY e.at DESC, e.id DESC LIMIT 1), 'proposed')"
+        "   NOT IN ('rejected', 'refuted', 'superseded')",
+        (portal,),
+    ):
+        claim = json.loads(r["claim_json"])
+        screen = (claim.get("decisionPoint") or {}).get("screen")
+        for row in claim.get("rules", []):
+            target = str(row.get("then", "")).split(" ")[0]
+            if screen and target:
+                out.setdefault((screen, target), []).append(_condition(row.get("when", {})))
+    return {k: " or ".join(dict.fromkeys(v)) for k, v in out.items()}
+
+
+@dataclass(frozen=True)
+class ProcessEnds:
+    """How journeys entered and left the overlaid process (spec 039 F-52), per drawn screen."""
+
+    triggers: dict[str, list[str]]  # screen id → the actions that started it there
+    outcomes: dict[str, dict[str, int]]  # screen id → outcome → journeys
+
+
+def process_ends(conn: sqlite3.Connection, portal: str, key: str) -> ProcessEnds:
+    """Of the latest model version's journeys through process `key`."""
+    rows = rows_of(
+        conn,
+        "SELECT i.trigger_kind, i.outcome, i.outcome_screen_id, t.element_key,"
+        "  (SELECT m.screen_id FROM screen_members m WHERE m.state_id = coalesce(t.from_state,"
+        "     (SELECT o.state_id FROM observations o WHERE o.id = i.trigger_observation_id))"
+        "     AND m.to_model_version IS NULL) AS trigger_screen"
+        " FROM process_instances i JOIN ba_processes p ON p.id = i.process_id"
+        " LEFT JOIN transitions t ON t.id = i.trigger_transition_id"
+        " WHERE p.portal_id = ? AND p.key = ? AND i.model_version_id ="
+        "   (SELECT id FROM model_versions WHERE portal_id = ? ORDER BY seq DESC LIMIT 1)",
+        (portal, key, portal),
+    )
+    triggers: dict[str, list[str]] = {}
+    outcomes: dict[str, dict[str, int]] = {}
+    for r in rows:
+        if r["trigger_screen"]:
+            how = "deep link" if r["trigger_kind"] == "deep_link" else (r["element_key"] or "")
+            seen = triggers.setdefault(r["trigger_screen"], [])
+            if how not in seen:
+                seen.append(how)
+        if r["outcome_screen_id"]:
+            ends = outcomes.setdefault(r["outcome_screen_id"], {})
+            ends[r["outcome"]] = ends.get(r["outcome"], 0) + 1
+    return ProcessEnds(triggers, outcomes)
+
+
 def _since(conn: sqlite3.Connection, portal: str) -> tuple[int | None, list[Change]]:
     """The changes of the latest model version (Since previous release)."""
     latest = changes_view(conn, portal).latest_seq
@@ -227,7 +301,12 @@ class _Sorted:
     out_links: dict[str, list[OutLink]] = field(default_factory=dict)
 
 
-def _sort_links(links: list[sqlite3.Row], drawn: dict[str, str], layers: frozenset[str]) -> _Sorted:
+def _sort_links(
+    links: list[sqlite3.Row],
+    drawn: dict[str, str],
+    layers: frozenset[str],
+    rules: dict[tuple[str, str], str],
+) -> _Sorted:
     """A link off its layer is left out; one on every page is bundled unless its state changed."""
     out = _Sorted()
     for r in links:
@@ -242,7 +321,13 @@ def _sort_links(links: list[sqlite3.Row], drawn: dict[str, str], layers: frozens
         a, b = drawn.get(r["a"]), drawn.get(r["b"] or "")
         if a is not None:
             out.out_links.setdefault(a, []).append(
-                OutLink(r["b_key"], r["b_title"] or "no page", r["status"], r["element_key"])
+                OutLink(
+                    r["b_key"],
+                    r["b_title"] or "no page",
+                    r["status"],
+                    r["element_key"],
+                    rules.get((r["a_key"], r["b_key"]), ""),
+                )
             )
         if a is not None and b is not None and a != b:
             out.pairs.setdefault((a, b), []).append(r)
@@ -256,7 +341,8 @@ def model_map(conn: sqlite3.Connection, portal: str, f: ModelFilters | None = No
     nodes, drawn = _nodes(rows, f.open_family)
     since, changes = _since(conn, portal) if f.view == "since" else (None, [])
     changed_keys = {(c.screen_key, c.element_key) for c in changes if c.element_key}
-    s = _sort_links(_links(conn, portal), drawn, f.layers)
+    rules = rule_labels(conn, portal)
+    s = _sort_links(_links(conn, portal), drawn, f.layers, rules)
     pairs = s.pairs
     starts = [drawn[x] for x in _starts(conn, portal) if x in drawn]
     lay = map_layout.layout(list(nodes), list(pairs), list(dict.fromkeys(starts)))
@@ -271,16 +357,19 @@ def model_map(conn: sqlite3.Connection, portal: str, f: ModelFilters | None = No
         state = _pair_state(rs, failed)
         if any((r["a_key"], r["element_key"]) in changed_keys for r in rs):
             state = "changed"
-        edges.append(ModelEdge(state, _curve(nodes[a], nodes[b])))
+        label = rules.get((nodes[a].key, nodes[b].key), "")
+        edges.append(_edge(state, nodes[a], nodes[b], label))
     every = processes(conn, portal)
     overlay = next((p for p in every if p[0] == f.process), None)
     if overlay:
-        edges += _overlay(nodes, drawn, overlay[2])
+        ends = process_ends(conn, portal, overlay[0])
+        edges += _overlay(nodes, drawn, overlay[2], ends)
     if f.view == "since":
         chips = _chips(changes)
         for n in nodes.values():
-            n.chips = chips.get(n.key, [])
-            n.dim = not n.chips
+            own = chips.get(n.key, [])
+            n.chips = [*own, *n.chips]  # the overlay's trigger and outcomes stay
+            n.dim = not own
     return ModelMap(
         nodes=list(nodes.values()),
         edges=edges,
@@ -298,16 +387,44 @@ def model_map(conn: sqlite3.Connection, portal: str, f: ModelFilters | None = No
     )
 
 
+FAILED_OUTCOMES = ("error", "exited", "abandoned")
+
+
 def _overlay(
-    nodes: dict[str, ModelNode], drawn: dict[str, str], steps: list[str]
+    nodes: dict[str, ModelNode], drawn: dict[str, str], steps: list[str], ends: ProcessEnds
 ) -> list[ModelEdge]:
-    """The overlaid process: its screens numbered and bold, the rest faint, its steps joined."""
+    """The overlaid process: its screens numbered and bold, its trigger and outcomes chipped (the
+    trigger joined to step 1 when it is outside the steps), the rest faint, its steps joined."""
     walked = [drawn[s] for s in steps if s in drawn]
     for i, nid in enumerate(dict.fromkeys(walked), start=1):
         nodes[nid].role = f"Step {i}"
+    edges = []
+    for sid, hows in ends.triggers.items():
+        nid = drawn.get(sid)
+        if nid is None:
+            continue
+        nodes[nid].chips.append((f"Trigger · {', '.join(hows)}", ""))
+        nodes[nid].role = nodes[nid].role or "Trigger"
+        if walked and nid not in walked:
+            edges.append(ModelEdge("process", _curve(nodes[nid], nodes[walked[0]])))
+    for sid, outs in ends.outcomes.items():
+        nid = drawn.get(sid)
+        for outcome, n in sorted(outs.items()) if nid else []:
+            chip = "fail" if outcome in FAILED_OUTCOMES else ""
+            nodes[nid].chips.append((f"Ends {outcome} · {n}", chip))
     for n in nodes.values():
         n.dim = n.dim or n.role is None
-    return [ModelEdge("process", _curve(nodes[a], nodes[b])) for a, b in pairwise(walked) if a != b]
+    return edges + [
+        ModelEdge("process", _curve(nodes[a], nodes[b])) for a, b in pairwise(walked) if a != b
+    ]
+
+
+def _edge(state: str, a: ModelNode, b: ModelNode, label: str) -> ModelEdge:
+    """An edge with its label (a rule's condition) at the middle of the curve."""
+    x = (a.x + b.x + NODE_W) // 2
+    y = (a.y + NODE_H + b.y) // 2
+    short = label if len(label) <= 28 else label[:27] + "…"
+    return ModelEdge(state, _curve(a, b), short, x, y)
 
 
 def _curve(a: ModelNode, b: ModelNode) -> str:

@@ -67,7 +67,7 @@ def _screen_marks(conn: sqlite3.Connection, screen_id: str) -> dict[str, str]:
     rows = _rows(
         conn,
         "SELECT m.kind, m.state_id AS target_id FROM marks m JOIN states s ON s.id = m.state_id"
-        f" WHERE m.used_by_run_id IS NULL AND s.screen_id IN {MEMBERS}"
+        f" WHERE m.used_by_run_id IS NULL AND m.origin = 'person' AND s.screen_id IN {MEMBERS}"
         " ORDER BY m.created_at",
         (screen_id, screen_id),
     )

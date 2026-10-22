@@ -51,7 +51,7 @@ def _top(inbox: queries_review.Inbox, n: int = 5) -> list[tuple[str, QueueItem]]
     return (broken + rest)[:n]
 
 
-def _last_scan(conn: sqlite3.Connection, portal: str) -> LastScan | None:
+def last_scan(conn: sqlite3.Connection, portal: str) -> LastScan | None:
     rows = rows_of(
         conn,
         "SELECT id, started_at, status, mode, steps_used FROM runs WHERE portal_id = ?"
@@ -81,7 +81,7 @@ def portal_home(conn: sqlite3.Connection, portal: str) -> PortalHome:
         model_seq=version[0]["seq"] if version else None,
         model_built_at=version[0]["built_at"] if version else None,
         timeline=timeline(conn, portal) if version else None,
-        last_scan=_last_scan(conn, portal),
+        last_scan=last_scan(conn, portal),
         inbox=inbox,
         top=_top(inbox),
         changes=changes_view(conn, portal),

@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import sqlite3
 from dataclasses import dataclass, field
+from typing import Any
 
 from .queries_changes import CHANGE_SQL, Change, Explanation, change_of, process_of_screens, rows_of
 from .queries_process_doc import Picture, pictures
@@ -15,6 +16,30 @@ from .queries_releases import part_name, release_name
 
 BASELINE = Explanation("Baseline", "", "The first way the screen was seen.")
 STATUS_ORDER = {"active": 0, "merged": 1, "retired": 2}
+# A variant's why in the designer's six words (spec 040 FR-008, 12-v2-ux § 3) from the
+# explanation of the change that brought it; anything else is Unknown.
+WHY = ("Release", "Persona", "Error", "A/B test", "Data", "Unknown")
+WHY_OF = {
+    "Release": "Release",
+    "Backend changed": "Release",
+    "Another persona": "Persona",
+    "A/B test?": "A/B test",
+    "Flaky error": "Error",
+    "Error for one input": "Error",
+    "Rule decides": "Data",
+    "Rule changed": "Data",
+}
+SORTS = {
+    "needs": "Needs you first",
+    "key": "Key",
+    "seen": "Last seen",
+    "variants": "Most variants",
+    "checked": "Least checked",
+}
+
+
+def why_of(e: Explanation) -> str:
+    return WHY_OF.get(e.word, "Unknown")
 
 
 @dataclass(frozen=True)
@@ -24,7 +49,7 @@ class ScreenRow:
     route: str
     status: str
     variants: int
-    why: list[Explanation]  # the distinct reasons its variants differ, baseline left out
+    why: list[str]  # the distinct whys of its variants (WHY), baseline left out
     last_seen: str | None
     last_run: str | None
     checked: int  # actions seen working
@@ -32,6 +57,7 @@ class ScreenRow:
     parts: list[str]
     process: tuple[str, str] | None
     needs: int  # changes on it that need a person
+    release: str | None = None  # the release it was last seen on ("checked 8 / 11 on 9c21")
 
 
 @dataclass(frozen=True)
@@ -47,6 +73,15 @@ class Variant:
     visits: int
     personas: list[str]
     releases: list[str]
+
+    @property
+    def reason(self) -> str:
+        """The why with what it names (designer: "r3 · Persona premium")."""
+        if self.why is BASELINE:
+            return "Baseline"
+        word = why_of(self.why)
+        detail = {"Release": self.releases[-1:], "Persona": self.personas}.get(word, [])
+        return " ".join([word, ", ".join(detail)]).strip()
 
 
 @dataclass(frozen=True)
@@ -121,12 +156,22 @@ def _changes_by_screen(conn: sqlite3.Connection, portal: str) -> dict[str, list[
     return out
 
 
-def _why(changes: list[Change]) -> list[Explanation]:
-    seen: dict[str, Explanation] = {}
-    for c in changes:
-        if c.kind == "new_member":
-            seen.setdefault(c.explanation.word, c.explanation)
-    return list(seen.values())
+def _why(changes: list[Change]) -> list[str]:
+    seen = {why_of(c.explanation) for c in changes if c.kind == "new_member"}
+    return [w for w in WHY if w in seen]
+
+
+def _release(conn: sqlite3.Connection, screen_id: str) -> str | None:
+    """The release of the last observation of the screen that names one."""
+    rows = rows_of(
+        conn,
+        "SELECT b.signature FROM screen_members m JOIN observations o ON o.state_id = m.state_id"
+        " JOIN observation_builds ob ON ob.observation_id = o.id"
+        " JOIN builds b ON b.id = ob.build_id WHERE m.screen_id = ?"
+        " ORDER BY o.created_at DESC, b.scope <> 'shell' DESC LIMIT 1",
+        (screen_id,),
+    )
+    return release_name(rows[0]["signature"]) if rows else None
 
 
 def _row(
@@ -149,30 +194,88 @@ def _row(
         parts=_parts(conn, r["id"]),
         process=owners.get(r["key"]),
         needs=sum(c.status != "explained" for c in changes),
+        release=_release(conn, r["id"]),
     )
 
 
+@dataclass(frozen=True)
+class Coverage:
+    """ "Checked 8 / 11 on 9c21" (spec 040 FR-009): actions seen working over actions not
+    retired, on the release the screens were last seen on."""
+
+    checked: int
+    actions: int
+    release: str | None
+
+
+def coverage(conn: sqlite3.Connection, portal: str, keys: set[str]) -> Coverage:
+    """The coverage of the model screens `keys` together (a process's screens)."""
+    if not keys:
+        return Coverage(0, 0, None)
+    marks = ",".join("?" * len(keys))
+    rows = rows_of(
+        conn,
+        "SELECT s.id, (SELECT count(*) FROM action_classes a WHERE a.screen_id = s.id"
+        "  AND a.status = 'active') AS checked, (SELECT count(*) FROM action_classes a"
+        "  WHERE a.screen_id = s.id AND a.status <> 'retired') AS actions,"
+        "  (SELECT max(o.created_at) FROM screen_members m JOIN observations o"
+        "   ON o.state_id = m.state_id WHERE m.screen_id = s.id) AS seen"
+        f" FROM model_screens s WHERE s.portal_id = ? AND s.key IN ({marks})",
+        (portal, *sorted(keys)),
+    )
+    latest = max(rows, key=lambda r: r["seen"] or "", default=None)
+    return Coverage(
+        sum(r["checked"] for r in rows),
+        sum(r["actions"] for r in rows),
+        _release(conn, latest["id"]) if latest else None,
+    )
+
+
+@dataclass(frozen=True)
+class ScreenFilter:
+    """The list's filters (spec 039 F-51): status, text, process, portal part, a why, the sort."""
+
+    status: str | None = None
+    q: str = ""
+    process: str | None = None
+    part: str | None = None
+    why: str | None = None  # one of WHY: screens with a variant of that why
+    sort: str = "needs"
+
+    def keeps(self, r: ScreenRow) -> bool:
+        return (
+            (not self.process or (r.process[0] if r.process else "none") == self.process)
+            and (not self.part or self.part in r.parts)
+            and (not self.why or self.why in r.why)
+        )
+
+
+def _sort_key(sort: str) -> Any:
+    return {
+        "key": lambda r: r.key,
+        "seen": lambda r: ("" if r.last_seen is None else r.last_seen, r.key),
+        "variants": lambda r: (-r.variants, r.key),
+        "checked": lambda r: (r.checked / r.actions if r.actions else 2.0, r.key),
+    }.get(sort, lambda r: (r.needs == 0, STATUS_ORDER.get(r.status, 3), r.key))
+
+
 def model_screens(
-    conn: sqlite3.Connection,
-    portal: str,
-    status: str | None = None,
-    q: str = "",
-    process: str | None = None,
+    conn: sqlite3.Connection, portal: str, f: ScreenFilter | None = None
 ) -> list[ScreenRow]:
-    """Needs you first, then active, merged and retired; by key within each. `q` matches the
-    key, title or route."""
+    """Needs you first, then active, merged and retired; by key within each (or `f.sort`).
+    `f.q` matches the key, title or route."""
+    f = f or ScreenFilter()
     owners = process_of_screens(conn, portal)
     by_screen = _changes_by_screen(conn, portal)
-    needle = q.lower()
+    needle = f.q.lower()
     rows = [
         _row(conn, r, by_screen.get(r["key"], []), owners)
         for r in rows_of(conn, SCREEN_SQL + " ORDER BY s.key", (portal,))
-        if (status is None or r["status"] == status)
+        if (f.status is None or r["status"] == f.status)
         and needle in f"{r['key']} {r['title']} {r['route_key']}".lower()
     ]
-    if process:
-        rows = [r for r in rows if (r.process[0] if r.process else "none") == process]
-    return sorted(rows, key=lambda r: (r.needs == 0, STATUS_ORDER.get(r.status, 3), r.key))
+    rows = [r for r in rows if f.keeps(r)]
+    return sorted(rows, key=_sort_key(f.sort), reverse=f.sort == "seen")
 
 
 def status_counts(conn: sqlite3.Connection, portal: str) -> dict[str, int]:

@@ -17,12 +17,15 @@ RULE_STATUS = {
     "confirmed": "confirmed",
     "refuted": "broken",
     "rejected": "rejected",
-    "superseded": "replaced",
+    # Superseded without a newer rule in its place: the rule changed on a release (decision drift,
+    # R8) and waits to be re-mined; with one (`superseded_by`), it is replaced.
+    "superseded": "changed",
 }
 # Shown first: what needs a person.
-ORDER = ("broken", "proposed", "tested", "confirmed", "replaced", "rejected")
+ORDER = ("broken", "changed", "proposed", "tested", "confirmed", "replaced", "rejected")
 GROUP_WORD = {
     "broken": "Broken",
+    "changed": "Changed",
     "proposed": "Proposed",
     "tested": "Tested",
     "confirmed": "Confirmed",
@@ -84,6 +87,17 @@ class RuleEvent:
     actor: str
     reason: str
     at: str
+    undo: bool = False  # a person took back the decision before it (spec 040 T010)
+
+
+@dataclass(frozen=True)
+class Wording:
+    """A person's sentence for the rule (Reword, FR-007): the documentation and export use it."""
+
+    wording: str
+    actor: str
+    reason: str | None
+    at: str
 
 
 @dataclass(frozen=True)
@@ -95,6 +109,11 @@ class RuleDetail:
     tests: list[BoundaryTest] = field(default_factory=list)
     history: list[RuleEvent] = field(default_factory=list)
     needs_data: bool = False
+    wordings: list[Wording] = field(default_factory=list)  # newest first; the first is in force
+
+    @property
+    def wording(self) -> Wording | None:
+        return self.wordings[0] if self.wordings else None
 
 
 def _rows(conn: sqlite3.Connection, sql: str, args: tuple[Any, ...]) -> list[sqlite3.Row]:
@@ -105,7 +124,7 @@ def _rows(conn: sqlite3.Connection, sql: str, args: tuple[Any, ...]) -> list[sql
 
 
 _SELECT = (
-    "SELECT h.id, h.key, h.claim, h.claim_json, h.fitness,"
+    "SELECT h.id, h.key, h.claim, h.claim_json, h.fitness, h.superseded_by,"
     "  (SELECT e.to_status FROM hypothesis_events e WHERE e.hypothesis_id = h.id"
     "     ORDER BY e.at DESC, e.id DESC LIMIT 1) AS hstatus,"
     "  (SELECT count(*) FROM hypothesis_tests t WHERE t.hypothesis_id = h.id"
@@ -135,10 +154,13 @@ def _row(r: sqlite3.Row, titles: dict[str, str]) -> RuleRow:
     claim = json.loads(r["claim_json"])
     point = claim.get("decisionPoint") or claim.get("table", {}).get("decision_point") or {}
     screen = point.get("screen")
+    status = RULE_STATUS.get(r["hstatus"] or "proposed", "proposed")
+    if status == "changed" and r["superseded_by"]:
+        status = "replaced"
     return RuleRow(
         key=r["key"],
         claim=r["claim"],
-        status=RULE_STATUS.get(r["hstatus"] or "proposed", "proposed"),
+        status=status,
         screen_key=screen,
         screen_title=titles.get(screen) if screen else None,
         action=point.get("action"),
@@ -192,10 +214,25 @@ def rule_detail(conn: sqlite3.Connection, portal: str, key: str) -> RuleDetail |
         )
     ]
     history = [
-        RuleEvent(status=e["to_status"], actor=e["actor"], reason=e["reason"], at=e["at"])
+        RuleEvent(
+            status=e["to_status"],
+            actor=e["actor"],
+            reason=e["reason"],
+            at=e["at"],
+            undo=e["undoes"] is not None,
+        )
         for e in _rows(
             conn,
-            "SELECT to_status, actor, reason, at FROM hypothesis_events WHERE hypothesis_id = ?"
+            "SELECT to_status, actor, reason, at, undoes FROM hypothesis_events"
+            " WHERE hypothesis_id = ? ORDER BY at DESC, id DESC",
+            (r["id"],),
+        )
+    ]
+    wordings = [
+        Wording(**dict(w))
+        for w in _rows(
+            conn,
+            "SELECT wording, actor, reason, at FROM hypothesis_wordings WHERE hypothesis_id = ?"
             " ORDER BY at DESC, id DESC",
             (r["id"],),
         )
@@ -208,4 +245,5 @@ def rule_detail(conn: sqlite3.Connection, portal: str, key: str) -> RuleDetail |
         tests=tests,
         history=history,
         needs_data=bool(claim.get("needs_data")),
+        wordings=wordings,
     )

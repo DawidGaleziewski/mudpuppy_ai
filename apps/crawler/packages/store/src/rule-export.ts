@@ -6,8 +6,14 @@
  * script writes the files.
  */
 import type BetterSqlite3 from 'better-sqlite3';
-import { statusOf, toDmnXml, type DecisionTable, type HypothesisStatus } from '@pathfinder/model';
-import { hypothesisEvents } from './model-decide.js';
+import {
+  statusOf,
+  toDmnXml,
+  type DecisionTable,
+  type HypothesisEvent,
+  type HypothesisStatus,
+} from '@pathfinder/model';
+import { hypothesisEvents, ruleWording, type RuleWording } from './model-decide.js';
 import { type RuleTextContext, ruleMarkdown, rulesCsv, shownKey } from './rule-export-text.js';
 import { MinedRule } from './rule-mining.js';
 
@@ -19,15 +25,27 @@ export interface DecisionRuleRow {
   claim: string;
   table: DecisionTable;
   tests: { pass: number; fail: number; inconclusive: number; waiting: number };
+  /** A person's Reword (spec 040 FR-007): said in place of the mined sentence. */
+  wording?: RuleWording | null;
+  /** Superseded by a newer rule (`superseded_by`); superseded without one: the rule changed. */
+  replaced?: boolean;
+  /** The lifecycle, oldest first (the export's "Changed:" and "Decided:" lines). */
+  history?: HypothesisEvent[];
 }
 
 /** Every decision rule of the portal with a table, in key order. */
 export function decisionRules(raw: Raw, portal: string): DecisionRuleRow[] {
   const rows = raw
     .prepare(
-      "SELECT id, key, claim, claim_json FROM hypotheses WHERE portal_id = ? AND kind = 'decision_rule' ORDER BY key",
+      "SELECT id, key, claim, claim_json, superseded_by FROM hypotheses WHERE portal_id = ? AND kind = 'decision_rule' ORDER BY key",
     )
-    .all(portal) as { id: string; key: string; claim: string; claim_json: string }[];
+    .all(portal) as {
+    id: string;
+    key: string;
+    claim: string;
+    claim_json: string;
+    superseded_by: string | null;
+  }[];
   const verdicts = raw.prepare(
     'SELECT verdict, count(*) AS n FROM hypothesis_tests WHERE hypothesis_id = ? GROUP BY verdict',
   );
@@ -38,12 +56,16 @@ export function decisionRules(raw: Raw, portal: string): DecisionRuleRow[] {
     const tests = { pass: 0, fail: 0, inconclusive: 0, waiting: 0 };
     for (const v of verdicts.all(r.id) as { verdict: string | null; n: number }[])
       tests[(v.verdict ?? 'waiting') as keyof typeof tests] += v.n;
+    const history = hypothesisEvents(raw, r.id);
     out.push({
       key: r.key,
-      status: statusOf(hypothesisEvents(raw, r.id)),
+      status: statusOf(history),
       claim: r.claim,
       table: parsed.data,
       tests,
+      wording: ruleWording(raw, r.id),
+      replaced: r.superseded_by !== null,
+      history,
     });
   }
   return out;

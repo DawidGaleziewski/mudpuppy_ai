@@ -30,6 +30,7 @@
     <div class="sy-stack" style="--sy-gap: 4px">
       <h1 class="sy-h1">Same screen?</h1>
       {%- if d %}<p class="sy-meta">{% if d.position %}{{ d.position }} of {{ d.total }}{% else %}not in the queue{% endif %}{% if screen %} · screen {{ screen }}{% endif %}{% if d.pair.conflict %} · conflict{% endif %}</p>{% endif %}
+      {%- if tau is not none %}<p class="sy-small sy-muted">Conflicts first, then the pairs nearest the threshold τ {{ "%.2f" | format(tau) }} (within ±{{ window }}): those answers move τ most. Then each screen's variants against its first.</p>{% endif %}
     </div>
     <a class="sy-btn sy-btn--md" href="{{ c.url('/review') }}">Back to Review <span class="sy-kbd">Esc</span></a>
   </div>

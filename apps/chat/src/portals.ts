@@ -247,6 +247,63 @@ export function addExperimentFlag(
   return added;
 }
 
+/**
+ * Settings ▸ Hints and Budgets from the dashboard (spec 040 T021, 12-v2-ux § 10, UX-R80–R81):
+ * each key given replaces that part of the portal file; a key left out stays as it is. An empty
+ * release marker removes it. The portal schema checks the result (the file is put back if not).
+ */
+export const HintsBody = z
+  .object({
+    release_marker: z
+      .object({
+        header: z.string().trim().max(200).optional(),
+        meta: z.string().trim().max(200).optional(),
+      })
+      .strict()
+      .optional(),
+    experiment_flags: z
+      .array(z.object({ kind: z.enum(['cookie', 'storage']), name: z.string().trim().min(1).max(200) }))
+      .max(50)
+      .optional(),
+    business_errors: z.array(z.string().trim().min(1).max(500)).max(50).optional(),
+    replay_budget: z.number().int().min(0).max(1000).optional(),
+    probes: z
+      .object({
+        per_step: z.number().int().min(0).max(1000),
+        per_run: z.number().int().min(0).max(10000),
+      })
+      .strict()
+      .optional(),
+  })
+  .strict();
+export type HintsBody = z.input<typeof HintsBody>;
+
+export function setHints(paths: WorkspacePaths, id: string, body: HintsBody): PortalSummary {
+  const h = HintsBody.parse(body);
+  return editPortal(paths, id, (doc) => {
+    if (h.release_marker !== undefined) {
+      const marker = Object.fromEntries(
+        Object.entries(h.release_marker).filter(([, v]) => v !== undefined && v !== ''),
+      );
+      if (Object.keys(marker).length > 0)
+        doc.setIn(['model', 'build_marker'], doc.createNode(marker));
+      else if (doc.hasIn(['model', 'build_marker'])) doc.deleteIn(['model', 'build_marker']);
+    }
+    if (h.experiment_flags !== undefined)
+      doc.setIn(
+        ['model', 'experiment_flags'],
+        doc.createNode(h.experiment_flags.map((f) => ({ [f.kind]: f.name }))),
+      );
+    if (h.business_errors !== undefined)
+      doc.setIn(
+        ['model', 'business_errors'],
+        doc.createNode(h.business_errors.map((text) => ({ text }))),
+      );
+    if (h.replay_budget !== undefined) doc.setIn(['model', 'replay_budget'], h.replay_budget);
+    if (h.probes !== undefined) doc.setIn(['probes'], doc.createNode(h.probes));
+  });
+}
+
 /** Revoke an environment; the last one stays (FR-012). Runs already recorded are kept. */
 export function removeEnvironment(
   paths: WorkspacePaths,

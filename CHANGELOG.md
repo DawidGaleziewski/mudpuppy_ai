@@ -6,6 +6,32 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Added
+- **MudPuppy 2.1: the designer's pages, second half (R-93), spec 039 leftovers (R-91) and the
+  scar-maker baseline (R-75)** (spec 040, v2.1.0, 2026-10-22). **Review**: Undo of a decision
+  (one Undo takes back a whole group; migration 0046 `decision_id`, `undoes`,
+  `hypothesis_wordings`), groups of alike items with one action, rows you pick and decide
+  together, keyboard (J, K, X, C, R, U, /, ?) with a key bar, your last reasons suggested, Part
+  and Age filters with counts, and **Also settles** (a variant finding answers its Same screen?
+  pairs). **Rules**: statuses Proposed, Tested, Confirmed, Broken, **Changed**, Replaced;
+  **Reword** (your sentence in place of the mined one, in the export too); Copy Markdown; the
+  export's Changed, Decided and Undone lines. **As of** a past model version on Processes,
+  Screens, Map and Rules (read-only, Back to now). **Changes** from the previous release by
+  default, from a date or a scan, a release on the lane starts the range. **Before / after**:
+  Side by side, Overlay and Wireframe, the changed element outlined, a decision bar. **Screens**:
+  a variant's why in six words (Release, Persona, Error, A/B test, Data, Unknown), Part and why
+  filters, sort, "checked 8 / 11 on 9c21" (processes too). **Map**: rule conditions on links,
+  the overlaid process's trigger and outcomes. **All portals** (v2-15) with the Portals plate
+  and Review's preview across portals. **Settings**: edit Hints, and **Budgets** (checks per
+  scan, probes per step and per scan; chat `PUT /portals/{p}/hints`). **Same screen?** asks the
+  pairs nearest τ first. Backend: the rebuild **mines rules** when the miner is installed
+  (`mineRules`, `uvMiner`; the MCP server's run end and `pnpm model:reconcile`), a mined rule's
+  **boundary tests wait in Review as a probe suite**, the **planner writes its marks** (origin
+  `planner`; migration 0047 keys open marks by origin), your dismissals and kept processes
+  **constrain `model:propose`**, the headless driver's **prefix cache**, **response contracts by
+  schema hash** in the process export, reference-portal scenarios `flaky-page` and
+  `threshold-rule` with e2e tests (and `not-visited`). Evals: the **scar-maker baseline**
+  (crawler only, 54.3 %, R-50 check passes) and a reference-insurer trial (rules 70.6 %).
+  Glossary: As of, Undo, Also settles, planner mark, response contract.
 - **MudPuppy 2.0, the portal model, R-81** (spec 039, v2.0.0, 2026-10-21, last work commit
   3201e7b; **breaking, see below**). MudPuppy no longer keeps the latest scan as the truth. It
   keeps one **portal model**: **screens with variants**, **actions and links with states**, and
@@ -93,6 +119,11 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   only the graph region (htmx, URL pushed), and the graph keeps its scroll, zoom and focus.
 
 ### Fixed
+- **A release reaches screens nobody visited since** (spec 040 F-10, v2.1.0): a screen's current
+  epoch came from its own latest visit, so its links stayed Active after a release instead of
+  Not checked; it now uses the newest build of each portal part. Planner marks no longer collide
+  with a person's mark on the same page (migration 0047), and every reader of a person's marks
+  ignores the planner's.
 - **The reviewer name defaults to "unknown"** (v1.0.44, 2026-10-18; owner: "let this value be
   unknown by default so we don't have to set it each time"). Review actions and process changes
   no longer fail with "Set PATHFINDER_REVIEWER to your name"; they are signed "unknown" unless

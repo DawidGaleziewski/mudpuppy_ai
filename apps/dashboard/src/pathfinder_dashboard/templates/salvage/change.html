@@ -1,13 +1,27 @@
 {% extends "salvage/base.html" %}
 {% import "salvage/macros.html" as sy %}
-{% import "salvage/partials/picture.html" as pic with context %}
 {% set nav_current = "changes" %}
 {% block title %}Before / after{% if d %} · {{ d.change.finding }}{% endif %}{% endblock %}
-{% block head_extra %}<script src="/static/js/pictures.js" defer></script><script src="/static/js/change-keys.js" defer></script>{% endblock %}
+{% block head_extra %}<script src="/static/js/change-keys.js" defer></script>{% endblock %}
 {#- Spec 039 T100, designer screen v2-03 (UX-R13): one change's two recorded pages side by side,
     what differs between their contexts, the explanation with its tests, and where it shows.
-    Read-only: a person decides in Review (the decision bar and Overturn come with R-87). -#}
-{%- macro side(s, id) -%}
+    Spec 040 T018: Side by side · Overlay · Wireframe, the changed region marked, and the decision
+    bar (through Review's route). Overturn comes with R-87. -#}
+{#- One side's picture (12-v2-ux § 6): the screenshot, or the wireframe in Wireframe mode or when
+    no screenshot was taken. On a screenshot the changed element is outlined where this side has
+    it ("Changed") and drawn dashed at the same place where it does not ("Not here"). -#}
+{%- macro picture(s, has) -%}
+  {%- set shot = s.picture.shot if mode != "wire" else none %}
+  {%- set img = shot or s.picture.wire %}
+  <figure class="mp-markable">
+    <img src="/evidence/{{ img }}" alt="{{ s.label }}: {{ s.title or s.route or 'recorded screen' }}{% if not shot %} (wireframe){% endif %}">
+    {%- if mark and shot %}
+    <mark class="sy-mark sy-mark--overlay{% if not has %} mp-mark--gone{% endif %}" style="left: {{ mark.left }}%; top: {{ mark.top }}%; width: {{ mark.width }}%; height: {{ mark.height }}%"><span class="sy-mark__label">{{ "Changed" if has else "Not here" }}</span></mark>
+    {%- endif %}
+  </figure>
+  <p class="sy-small"><a href="{{ c.url('/states/' ~ s.state_id) }}">Open the recorded screen</a></p>
+{%- endmacro -%}
+{%- macro side(s, id, has) -%}
 <section class="sy-compare__side" aria-labelledby="{{ id }}">
   <header class="sy-compare__head">
     <span id="{{ id }}">{{ s.label }}</span>
@@ -18,7 +32,7 @@
   <p class="sy-cluster sy-mono sy-mono--sm sy-muted"><span class="sy-status" data-status="ok">Observed</span>
     {%- if s.run_id %}<span>scan {{ s.run_id[:8] }} · {{ s.at | when }}</span>{% endif %}</p>
   {%- if s.picture and (s.picture.shot or s.picture.wire) %}
-  {{ pic.thumb(s.state_id, s.picture, s.title, s.route) }}
+  {{ picture(s, has) }}
   {%- else %}
   <p class="sy-small">No picture was recorded. <a href="{{ c.url('/states/' ~ s.state_id) }}">Open the recorded screen</a></p>
   {%- endif %}
@@ -58,15 +72,40 @@
   </div>
 </div>
 
+{%- if note and undo %}
+<form class="sy-toast sy-toast--fixed" role="status" method="post" action="{{ c.url('/review/undo/' ~ (c.portal | urlencode)) }}" aria-label="Last decision">
+  <span>{{ note }}</span>
+  <input type="hidden" name="decision" value="{{ undo }}">
+  <button class="sy-btn sy-btn--sm sy-btn--quiet" type="submit">Undo</button>
+</form>
+{%- elif note %}
+<p class="sy-small" role="status">{{ note }}</p>
+{%- endif %}
 <section class="sy-stack" aria-labelledby="finding-h">
   <div class="sy-stack">
     <h2 id="finding-h" class="sy-h2 sy-case-normal">{{ ch.finding }}</h2>
     <p class="sy-meta"><span class="sy-chip{% if ch.kind == 'rule_mismatch' %} sy-chip--fail{% endif %}">{{ ch.word }}</span> · first seen in model version {{ ch.model_seq }} · {{ ch.created_at | when }}{% if ch.element_key %} · <span class="sy-mono sy-mono--sm">{{ ch.element_key }}</span>{% endif %}</p>
   </div>
+  {#- 12-v2-ux § 6: three modes; links, so each mode has its own address. -#}
+  <nav class="sy-seg mp-seg" aria-label="Compare as">
+    {%- for k, label in modes.items() %}
+    <a class="sy-btn sy-btn--sm{% if mode == k %} sy-selected{% endif %}" href="{{ c.url('/changes/' ~ ch.id, mode=k if k != 'side' else none) }}"{% if mode == k %} aria-current="true"{% endif %}>{{ label }}</a>
+    {%- endfor %}
+  </nav>
+  {%- set both = d.before.picture and d.before.picture.shot and d.after.picture and d.after.picture.shot %}
+  {%- if mode == "overlay" and both %}
+  <figure class="mp-markable mp-overlay" aria-label="{{ d.after.label }} drawn over {{ d.before.label }} at half opacity">
+    <img src="/evidence/{{ d.before.picture.shot }}" alt="{{ d.before.label }}">
+    <img src="/evidence/{{ d.after.picture.shot }}" alt="{{ d.after.label }}, half transparent">
+  </figure>
+  <p class="sy-small sy-muted">{{ d.after.label }} over {{ d.before.label }} at 50%: small shifts show as a double edge.</p>
+  {%- else %}
+  {%- if mode == "overlay" %}<p class="sy-small sy-muted">Overlay needs a screenshot on both sides; shown side by side.</p>{% endif %}
   <div class="sy-compare">
-    {{ side(d.before, "before-h") }}
-    {{ side(d.after, "after-h") }}
+    {{ side(d.before, "before-h", d.marked_side == "before") }}
+    {{ side(d.after, "after-h", d.marked_side == "after") }}
   </div>
+  {%- endif %}
 </section>
 
 <div class="sy-columns">
@@ -110,8 +149,21 @@
           {%- endfor %}
         </ul>
         {%- endif %}
-        {%- if ch.status != "explained" %}<p class="sy-small sy-muted">Not decided until a person confirms it in Review.</p>{% endif %}
+        {%- if ch.status != "explained" and not d.decidable %}<p class="sy-small sy-muted">Not decided until a person confirms it in Review.</p>{% endif %}
       </div>
+      {#- v2-03 decision bar (spec 040 T018): through Review's route, back to this change. -#}
+      {%- if d.decidable and c.portal %}
+      <form class="sy-plate__foot sy-stack" method="post" action="{{ c.url('/review/hypotheses/' ~ (c.portal | urlencode)) }}" aria-label="Decide {{ ch.hypothesis_key }}">
+        <input type="hidden" name="keys" value="{{ ch.hypothesis_key }}">
+        <input type="hidden" name="back" value="/changes/{{ ch.id }}">
+        <label class="sy-field"><span class="sy-field__label">Reason</span>
+          <input class="sy-input" name="reason" maxlength="200" placeholder="Needed to reject; optional to confirm"></label>
+        <div class="sy-actions">
+          <button class="sy-btn sy-btn--primary" type="submit" name="action" value="confirm">Confirm</button>
+          <button class="sy-btn" type="submit" name="action" value="reject">Reject</button>
+        </div>
+      </form>
+      {%- endif %}
     </section>
     <section class="sy-plate" aria-labelledby="where-h">
       <div class="sy-plate__head"><h2 id="where-h" class="sy-plate__title">Where it shows</h2></div>
@@ -128,6 +180,5 @@
   <span><span class="sy-kbd">J</span> / <span class="sy-kbd">K</span> next / previous change</span>
   <span><span class="sy-kbd">Esc</span> back to What changed</span>
 </div>
-{{ pic.dialog() }}
 {%- endif %}
 {% endblock %}

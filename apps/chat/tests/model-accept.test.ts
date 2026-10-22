@@ -150,6 +150,28 @@ describe('model accept route', () => {
       .run();
     await decide({ keys: ['H-0004'], decision: 'confirm', by: 'Anna', reason: 'yes' });
     expect(flags).toEqual([`${P} cookie:ab_calc`, `${P} storage:exp.hero`]);
+
+    // Undo (spec 040 T010): the command's id comes back; one Undo reverts both keys of it.
+    const post = (route: string, body: unknown) =>
+      fetch(`${base}/portals/${P}/model/${route}`, { method: 'POST', body: JSON.stringify(body) }).then(
+        async (r) => ({ status: r.status, body: (await r.json()) as Record<string, unknown> }),
+      );
+    const decision = ok.body['decision'] as string;
+    expect(decision).toMatch(/^[0-9a-f-]{36}$/);
+    const undone = await post('undo', { decision, by: 'Anna' });
+    expect(undone).toMatchObject({
+      status: 201,
+      body: { undone: [{ key: 'H-0001', status: 'proposed' }, { key: 'H-0002', status: 'proposed' }] },
+    });
+    expect((await post('undo', { decision, by: 'Anna' })).status).toBe(409);
+    expect((await post('undo', { decision: 'x', by: '' })).status).toBe(400);
+
+    // Reword (T014): the sentence a person wants in the documentation.
+    expect(await post('reword', { key: 'H-0003', wording: 'Banner A/B test', by: 'Anna' })).toMatchObject({
+      status: 201,
+      body: { reworded: { key: 'H-0003', wording: 'Banner A/B test' } },
+    });
+    expect((await post('reword', { key: 'H-0404', wording: 'x', by: 'Anna' })).status).toBe(409);
   });
 
   it('labels a pair of page versions from Same screen? (v2-14)', async () => {

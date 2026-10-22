@@ -12,6 +12,26 @@
   <a class="sy-tab" href="{{ c.url('/review', show=kind) }}"{% if v.show == kind %} aria-current="page"{% endif %}>{{ label }} <span class="sy-count sy-count--muted">{{ inbox.count(kind) }}</span></a>
   {%- endfor %}
 </nav>
+{%- set f = v.facets %}
+{%- if f and (f.parts or f.active or (inbox.findings or inbox.rules or inbox.removals)) %}
+{#- Designer § 5.1: filters with counts on the portal model's groups; counts follow the filters. -#}
+<form class="sy-cluster" method="get" action="{{ c.url('/review') }}" aria-label="Filter the findings, rules and removals">
+  {%- if v.show %}<input type="hidden" name="show" value="{{ v.show }}">{% endif %}
+  {%- if c.store_param %}<input type="hidden" name="store" value="{{ c.store_param }}">{% endif %}
+  <label class="sy-field"><span class="sy-field__label">Part</span>
+    <select class="sy-select" name="part" data-review-filter>
+      <option value="">Every part</option>
+      {%- for p, n in f.parts %}<option value="{{ p }}"{% if f.part == p %} selected{% endif %}>{{ p }} ({{ n }})</option>{% endfor %}
+    </select></label>
+  <label class="sy-field"><span class="sy-field__label">Age</span>
+    <select class="sy-select" name="age">
+      <option value="">Any age</option>
+      {%- for k, label, n in f.ages %}<option value="{{ k }}"{% if f.age == k %} selected{% endif %}>{{ label }} ({{ n }})</option>{% endfor %}
+    </select></label>
+  <button class="sy-btn sy-btn--md" type="submit">Filter</button>
+  {%- if f.active %}<a class="sy-small" href="{{ c.url('/review', show=v.show) }}">Clear filters</a>{% endif %}
+</form>
+{%- endif %}
 <div class="sy-columns">
   <div class="sy-col-main sy-stack" id="review-panel">
     {%- set ns = namespace(intent=false) %}
@@ -22,22 +42,38 @@
       {%- set ns.intent = true %}
       <div class="sy-plate__head">
         <h2 id="h-{{ kind }}" class="sy-plate__title">{{ label }}</h2>
-        {%- set keys = items | map(attribute="keys") | sum(start=()) if kind == "removals" else () %}
-        {%- if keys | length > 1 and c.settings.reviewer %}
-        <form class="sy-cluster" method="post" action="{{ c.url('/review/hypotheses/' ~ (c.portal | urlencode)) }}" aria-label="Confirm every removal">
-          {%- for k in keys %}<input type="hidden" name="keys" value="{{ k }}">{% endfor %}
-          <span class="sy-small sy-muted">Similar items, one decision: they stay in the model as removed.</span>
-          <button class="sy-btn sy-btn--sm sy-btn--strong" type="submit" name="action" value="confirm">Confirm {{ keys | length }}</button>
-        </form>
-        {%- endif %}
         <span class="sy-count">{{ items | length }}</span>
       </div>
+      {#- Designer § 5.4 (spec 040 T011): the system's groups of alike items, one action each; a
+          bulk reject takes one reason for all, and one Undo reverts the group. -#}
+      {%- set decides = c.settings.reviewer and kind in ("findings", "rules", "removals") %}
+      {%- for g in (inbox.similar(kind) if decides else []) %}
+      <form class="sy-plate__body sy-cluster mp-bulk" method="post" action="{{ c.url('/review/hypotheses/' ~ (c.portal | urlencode)) }}" aria-label="{{ g.ids | length }} alike: {{ g.label }}">
+        {%- for k in g.keys %}<input type="hidden" name="keys" value="{{ k }}">{% endfor %}
+        <span class="sy-small sy-case-normal sy-grow"><span class="sy-num">{{ g.ids | length }}</span> alike · {{ g.label }}</span>
+        <input class="sy-input" type="text" name="reason" maxlength="200" placeholder="One reason for all" aria-label="Reason for all {{ g.ids | length }}" list="reasons-{{ kind }}">
+        <button class="sy-btn sy-btn--sm sy-btn--strong" type="submit" name="action" value="confirm">Confirm {{ g.keys | length }}</button>
+        <button class="sy-btn sy-btn--sm" type="submit" name="action" value="reject">Reject {{ g.keys | length }}</button>
+      </form>
+      {%- endfor %}
+      {%- if decides %}
+      {#- Your own selection (X on the keyboard, or the boxes): decided like a group. -#}
+      <form id="pick-{{ kind }}" class="sy-plate__body sy-cluster mp-bulk" method="post" action="{{ c.url('/review/hypotheses/' ~ (c.portal | urlencode)) }}" aria-label="Decide the selected {{ label | lower }}" data-pick>
+        <span class="sy-small sy-muted sy-grow"><span class="sy-num" data-pick-count>0</span> selected</span>
+        <input class="sy-input" type="text" name="reason" maxlength="200" placeholder="One reason for all" aria-label="Reason for the selected {{ label | lower }}" list="reasons-{{ kind }}">
+        <button class="sy-btn sy-btn--sm" type="submit" name="action" value="confirm">Confirm selected</button>
+        <button class="sy-btn sy-btn--sm" type="submit" name="action" value="reject">Reject selected</button>
+      </form>
+      {%- endif %}
       <div class="sy-rows">
         {#- "All" shows the first rows of each group; its tab lists every row. #}
         {%- for it in (v.group.items if v.show else items[:10]) %}
         {%- if kind in ("findings", "rules", "removals", "processes") %}
         {%- set current = sel_kind == kind and sel.id == it.id %}
-        <a class="sy-row{% if current %} sy-row--current{% endif %}" href="{{ c.url('/review', show=v.show, select=kind ~ ':' ~ it.id) }}"{% if current %} aria-current="true"{% endif %}>
+        {%- set pickable = decides and it.keys %}
+        {%- if pickable %}<div class="mp-pick">
+          <label class="sy-check"><input type="checkbox" name="keys" value="{{ it.keys | join(',') }}" form="pick-{{ kind }}" data-pick-item><span class="sy-sr-only">Select {{ it.claim }}</span></label>{% endif %}
+        <a class="sy-row{% if current %} sy-row--current{% endif %}" href="{{ c.url('/review', show=v.show, select=kind ~ ':' ~ it.id) }}"{% if current %} aria-current="true"{% endif %} data-queue-item>
           <span class="sy-row__main">
             <span class="sy-cluster"><span class="sy-chip{% if it.chip.chip %} sy-chip--{{ it.chip.chip }}{% endif %}">{{ it.chip.word }}</span>{% if it.status %}{{ sy.status("rule", it.status) }}{% endif %}{% if it.where %}<span class="sy-meta sy-case-normal">{{ it.where }}</span>{% endif %}</span>
             <span class="sy-case-normal">{{ it.claim }}</span>
@@ -45,6 +81,7 @@
           </span>
           <span class="sy-mono sy-mono--sm sy-muted">{{ it.at | when }}</span>
         </a>
+        {%- if pickable %}</div>{% endif %}
         {%- elif kind in ("records", "assumptions") %}
         {%- set ident, current = it.key, sel_kind == kind and sel.key == it.key %}
         <a class="sy-row{% if current %} sy-row--current{% endif %}" href="{{ c.url('/review', show=v.show, select=kind ~ ':' ~ ident) }}"{% if current %} aria-current="true"{% endif %}>
@@ -144,4 +181,40 @@
     {%- endif %}
   </div>
 </div>
+{#- Designer § 5.3: the reason field suggests your last three reasons for the same kind. -#}
+{%- for kind, reasons in (v.reasons or {}).items() if reasons %}
+<datalist id="reasons-{{ kind }}">{% for r in reasons %}<option value="{{ r }}"></option>{% endfor %}</datalist>
+{%- endfor %}
+{%- if c.settings.reviewer and (inbox.findings or inbox.rules or inbox.removals) %}
+{#- Designer § 5.2: at most five keys in the bar, `?` lists the rest. Keys work only while focus is
+    in the queue or the detail, never while typing (static/js/review-keys.js). -#}
+<div class="sy-cluster sy-small sy-muted mp-keybar" data-review-keybar>
+  <span><kbd class="sy-kbd">J</kbd> <kbd class="sy-kbd">K</kbd> next · previous</span>
+  <span><kbd class="sy-kbd">X</kbd> select</span>
+  <span><kbd class="sy-kbd">C</kbd> confirm</span>
+  <span><kbd class="sy-kbd">R</kbd> reject</span>
+  <span><kbd class="sy-kbd">U</kbd> undo</span>
+  <button class="sy-btn sy-btn--sm sy-btn--quiet" type="button" data-review-help>? All shortcuts</button>
+</div>
+<dialog class="sy-dialog" id="review-keys" aria-labelledby="review-keys-h">
+  <div class="sy-dialog__head"><h2 id="review-keys-h" class="sy-plate__title">Review shortcuts</h2></div>
+  <div class="sy-dialog__body">
+    <table class="sy-table sy-table--dense">
+      <tbody>
+        <tr><th scope="row"><kbd class="sy-kbd">J</kbd> / <kbd class="sy-kbd">K</kbd></th><td>Next / previous item</td></tr>
+        <tr><th scope="row"><kbd class="sy-kbd">Enter</kbd></th><td>Open the item's detail</td></tr>
+        <tr><th scope="row"><kbd class="sy-kbd">X</kbd></th><td>Select the item for a bulk decision</td></tr>
+        <tr><th scope="row"><kbd class="sy-kbd">C</kbd></th><td>Confirm: the reason field (optional), then <kbd class="sy-kbd">Enter</kbd> saves, <kbd class="sy-kbd">Esc</kbd> cancels</td></tr>
+        <tr><th scope="row"><kbd class="sy-kbd">R</kbd></th><td>Reject: the reason field (required), then <kbd class="sy-kbd">Enter</kbd> saves</td></tr>
+        <tr><th scope="row"><kbd class="sy-kbd">Shift</kbd> <kbd class="sy-kbd">C</kbd></th><td>Confirm the selection</td></tr>
+        <tr><th scope="row"><kbd class="sy-kbd">U</kbd></th><td>Undo the last decision</td></tr>
+        <tr><th scope="row"><kbd class="sy-kbd">/</kbd></th><td>Filter</td></tr>
+        <tr><th scope="row"><kbd class="sy-kbd">?</kbd></th><td>This list</td></tr>
+      </tbody>
+    </table>
+    <label class="sy-check"><input type="checkbox" id="review-keys-off" data-review-keys-off> Turn single-key shortcuts off in this browser</label>
+  </div>
+  <div class="sy-dialog__foot"><button class="sy-btn sy-btn--md" type="button" data-review-help-close>Close</button></div>
+</dialog>
+{%- endif %}
 {% endcall %}

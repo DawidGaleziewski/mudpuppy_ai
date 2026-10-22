@@ -965,6 +965,27 @@ or run `pnpm docs:process-export`.
 
 <sub>Last changed in R-68, 2026-10-17.</sub>
 
+<a id="response-contract"></a>
+
+#### Response contract (schema hash)
+
+**One shape of an API's answer, its key paths and their types; an endpoint whose answer changed shape has more than one, each with when it was seen.**
+
+Every recorded API call gets a schema hash of its response's shape (values ignored). The
+process export's CONTRACTS.md groups an endpoint's calls by it: one contract means the shape
+never changed while recorded, more say when it changed and show each shape; openapi.yaml
+notes how many there were and gives the latest.
+
+*Example:* GET /api/quote · Response contracts · 2: price only (15 Oct), price and currency (16–17 Oct).
+
+*Seen in:* process export CONTRACTS.md; openapi.yaml
+
+*Labels:* `response contract`, `schema hash`, `contract`
+
+*Related:* [Release (build)](#release)
+
+<sub>Last changed in R-91, 2026-10-22.</sub>
+
 ### Portal model
 
 <a id="fingerprint-profile"></a>
@@ -1271,15 +1292,21 @@ such as "drivers under 18 are refused". The rule is a claim: its boundary tests 
 a person confirms it, and the rules export as DMN tables, Markdown pages (the sentence, then
 the table) and one CSV (Rules → Export, or `pnpm model:rules-export`).
 
+Statuses: Proposed (mined, not tested), Tested (its boundary tests passed, a person has not
+confirmed it), Confirmed, Broken (a boundary test failed), Changed (it no longer holds on a
+newer release: mine it again), Replaced (a newer rule took its place) and Rejected. A person
+can Reword the rule: the sentence the documentation and the export use instead of the mined
+one. Copy Markdown on a rule's page copies it as the export has it.
+
 *Example:* H-0002 "Drivers under 18 are refused" on SC-0003, supported by 3 boundary tests.
 
 *Seen in:* Rules; Rules → In the export; What changed → Decision rules; process export rules/*.dmn
 
-*Labels:* `decision rule`, `business rule`, `DMN`, `Broken`, `Tested`, `Replaced`
+*Labels:* `decision rule`, `business rule`, `DMN`, `Proposed`, `Tested`, `Broken`, `Changed`, `Replaced`, `Reword`
 
 *Related:* [Boundary test](#boundary-test), [Finding and explanation (hypothesis, H-)](#hypothesis)
 
-<sub>Last changed in R-81, 2026-10-19.</sub>
+<sub>Last changed in R-93, 2026-10-22.</sub>
 
 <a id="boundary-test"></a>
 
@@ -1290,15 +1317,17 @@ the table) and one CSV (Rules → Export, or `pnpm model:rules-export`).
 Scans rarely type values right at a threshold, so a mined rule may say "under 22" when the
 portal means "under 18". Boundary tests replay a recorded execution with the threshold's
 neighbours. All give the predicted outcome: the rule is supported (a person still confirms).
-One does not: the rule is refuted and is mined again with the new rows.
+One does not: the rule is refuted and is mined again with the new rows. A mined rule's tests
+also wait in Review as a probe suite (one variant per test); approving it writes it into
+the portal's traces.yaml, where it is the rule's regression suite.
 
-*Seen in:* Rules → rule page; What changed → Decision rules
+*Seen in:* Rules → rule page; What changed → Decision rules; Review → Probe suites to approve
 
 *Labels:* `boundary test`, `supported`, `refuted`, `Pass`, `Fail`
 
 *Related:* [Decision rule](#decision-rule), [Headless driver (probe run)](#headless-driver)
 
-<sub>Last changed in R-81, 2026-10-19.</sub>
+<sub>Last changed in R-91, 2026-10-22.</sub>
 
 <a id="process-proposal"></a>
 
@@ -1435,17 +1464,101 @@ results on its next rebuild.
 
 Hints live in `model:` of portal.yaml. When you confirm an A/B test in Review, its cookie is
 added to the A/B cookies, so later scans record which arm each visit saw and the variants say
-A/B test instead of Unknown. The rest changes through the assistant.
+A/B test instead of Unknown. Change the hints on the page (Change the hints) or through the
+assistant; the file is checked and put back if it would not load. Beside them, Budgets set
+the checks per scan (replays on the headless driver) and the probes per form step and per
+scan (0 turns form probing off).
 
 *Example:* Release marker: header x-app-version · A/B cookies: cookie ab_calc.
 
-*Seen in:* Settings → Hints
+*Seen in:* Settings → Hints; Settings → Budgets
 
-*Labels:* `Hints`, `release marker`, `A/B cookie`, `business refusal`
+*Labels:* `Hints`, `release marker`, `A/B cookie`, `business refusal`, `Budgets`, `checks per scan`
 
-*Related:* [Release (build)](#release), [Variant (r1, r2…)](#screen-variant)
+*Related:* [Release (build)](#release), [Variant (r1, r2…)](#screen-variant), [Headless driver (probe run)](#headless-driver)
 
-<sub>Last changed in R-81, 2026-10-21.</sub>
+<sub>Last changed in R-93, 2026-10-22.</sub>
+
+<a id="as-of"></a>
+
+#### As of (a past model version)
+
+**The header menu on Processes, Screens, Map and Rules that shows the portal model as it was when a past model version was built.**
+
+Pick a version in As of and the model pages show only what existed then: the screens,
+variants, links, rules and their statuses, processes and proposals. A banner says which
+version you are looking at, with Back to now. Nothing can be changed while you look at the
+past, and downloads and exports always show now. A model version is built after each scan.
+
+*Example:* As of version 4 · 16 Oct (9c21 · App kalkulator).
+
+*Seen in:* Processes; Screens; Screens → Map; Rules
+
+*Labels:* `As of`, `Back to now`, `model version`
+
+*Related:* [Portal model](#portal-model), [Release (build)](#release)
+
+<sub>Last changed in R-93, 2026-10-22.</sub>
+
+<a id="review-undo"></a>
+
+#### Undo (a decision in Review)
+
+**Takes back the last Confirm or Reject in Review, the whole group at once when it was a group decision, with a new history entry, never by deleting.**
+
+After a decision a toast says what was done, with Undo. Undo returns every item the decision
+settled to where it was, and the history keeps both the decision and its undo; Decided marks
+the decision Undone. Undo is refused when something changed the item since (a rebuild, or a
+later decision). Answers given with it to linked Same screen? pairs stay.
+
+*Example:* Rejected: H-0005, H-0006. · Undo
+
+*Seen in:* Review; Changes → Before / after; Review → Decided
+
+*Labels:* `Undo`, `Undone`
+
+*Related:* [Finding and explanation (hypothesis, H-)](#hypothesis), [Also settles (linked decisions)](#also-settles)
+
+<sub>Last changed in R-93, 2026-10-22.</sub>
+
+<a id="also-settles"></a>
+
+#### Also settles (linked decisions)
+
+**The items one decision settles together, such as the Same screen? pairs of the page version an A/B test finding is about.**
+
+Some items are one thing seen in two places. A finding that says a new page version is a
+variant of its screen (a release, another persona, an A/B test) lists that version's Same
+screen? pairs under Also settles. Confirming the finding answers them "Same screen" with your
+reason and the finding's key.
+
+*Seen in:* Review → selected finding
+
+*Labels:* `Also settles`, `linked decisions`
+
+*Related:* [Same screen? (a pair label)](#same-screen-label), [Finding and explanation (hypothesis, H-)](#hypothesis)
+
+<sub>Last changed in R-93, 2026-10-22.</sub>
+
+<a id="planner-mark"></a>
+
+#### Planner mark
+
+**A mark the portal model writes itself for what it does not know yet, with a priority, for the probe and exploration runs; never one of your own marks.**
+
+After each rebuild and each round of replays the planner lists what to check next: deviations
+waiting for a replay, rules with tests not run, links not checked on documented screens,
+decision points with too few cases, processes not explored. Each becomes a Recheck mark of
+origin planner on its screen or link, highest priority first. Your marks (Start here, Focus,
+Recheck, Retry, Skip, Probe) are kept apart: scans and the plan tray read only those.
+
+*Seen in:* store marks (origin planner)
+
+*Labels:* `planner mark`, `planner`, `priority`
+
+*Related:* [Headless driver (probe run)](#headless-driver), [Explored (process)](#explored-process)
+
+<sub>Last changed in R-91, 2026-10-22.</sub>
 
 ### Actions and safety
 

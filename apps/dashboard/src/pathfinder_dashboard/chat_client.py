@@ -9,6 +9,8 @@ so every failure becomes a `ChatUnavailable` with a plain-language message, neve
 
 from __future__ import annotations
 
+from urllib.parse import quote
+
 import httpx2
 
 from .settings import Settings
@@ -73,3 +75,24 @@ async def call(
     except ValueError:
         body = {}
     return r.status_code, body
+
+
+async def model_call(
+    settings: Settings,
+    transport: httpx2.AsyncBaseTransport | None,
+    env: str,
+    portal: str,
+    verb: str,
+    body: dict[str, object],
+) -> tuple[str | None, dict[str, object]]:
+    """One `/portals/{p}/model/{verb}` call (a person's decision on the portal model): the
+    refusal's message (None when it went through) and the answer."""
+    path = f"/portals/{quote(portal, safe='')}/model/{verb}"
+    try:
+        status, answer = await call(settings, "POST", path, body, transport)
+    except ChatUnavailable:
+        return not_running(env), {}
+    answer = answer if isinstance(answer, dict) else {}
+    if status == 201:
+        return None, answer
+    return str(answer.get("message") or status), answer

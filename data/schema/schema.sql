@@ -995,8 +995,9 @@ CREATE TABLE marks (
   CHECK ((used_by_run_id IS NULL) = (used_at IS NULL))
 ) STRICT;
 
+-- 0047 (spec 040 T033): one open mark per target and per origin, so a person's and the planner's open mark can share a target.
 CREATE UNIQUE INDEX ux_marks_open ON marks
-  (portal_id, kind, coalesce(form_step_id, state_id, transition_id)) WHERE used_by_run_id IS NULL;
+  (portal_id, origin, kind, coalesce(form_step_id, state_id, transition_id)) WHERE used_by_run_id IS NULL;
 
 CREATE TABLE checkpoints (
   id         TEXT PRIMARY KEY,                                               -- UUIDv7
@@ -1338,9 +1339,13 @@ CREATE TABLE hypothesis_events (
                   ('proposed','testing','supported','refuted','confirmed','rejected','superseded')),
   actor         TEXT NOT NULL CHECK (length(actor) > 0),    -- 'reconciler', 'ba-agent', 'crawler' or a reviewer
   reason        TEXT NOT NULL CHECK (length(reason) > 0),
-  at            TEXT NOT NULL
+  at            TEXT NOT NULL,
+  -- 0046 (ALTER TABLE, spec 040): the person's command (one Undo per command) and the event an undo reverts.
+  decision_id   TEXT CHECK (decision_id IS NULL OR length(decision_id) > 0),
+  undoes        TEXT CHECK (undoes IS NULL OR length(undoes) > 0)
 ) STRICT;
 CREATE INDEX ix_hypothesis_events_hypothesis ON hypothesis_events (hypothesis_id, at);
+CREATE INDEX ix_hypothesis_events_decision ON hypothesis_events (decision_id) WHERE decision_id IS NOT NULL;
 
 -- 0033_fingerprint_profiles (spec 039 T111–T115): the profiles a portal was fingerprinted with (per portal,
 -- `name@<8 hex of the rules hash>`), and the τ a person accepted per portal and profile (latest in force).
@@ -1445,3 +1450,14 @@ CREATE TABLE similarity_classifiers (
   accepted_at  TEXT
 ) STRICT;
 CREATE INDEX ix_similarity_classifiers_portal ON similarity_classifiers (portal_id, profile, trained_at);
+
+-- 0046_review_decisions (spec 040 T014, designer § 7.1): a person's Reword of a rule; the latest row is in force.
+CREATE TABLE hypothesis_wordings (
+  id            TEXT PRIMARY KEY,                                   -- UUIDv7
+  hypothesis_id TEXT NOT NULL REFERENCES hypotheses(id),
+  wording       TEXT NOT NULL CHECK (length(wording) > 0 AND length(wording) <= 2000),
+  actor         TEXT NOT NULL CHECK (length(actor) > 0),
+  reason        TEXT,
+  at            TEXT NOT NULL
+) STRICT;
+CREATE INDEX ix_hypothesis_wordings_hypothesis ON hypothesis_wordings (hypothesis_id, at);

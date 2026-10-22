@@ -27,8 +27,28 @@ export const RULE_STATUS_WORDS: Record<HypothesisStatus, string> = {
   confirmed: 'confirmed',
   refuted: 'broken: a boundary test failed',
   rejected: 'rejected by a person',
-  superseded: 'replaced by a newer rule',
+  superseded: 'changed: it no longer holds on a newer release (re-mine it; needs a person)',
 };
+
+/** A superseded rule with a newer rule in its place is replaced; without one, it changed. */
+export const ruleStatusText = (r: DecisionRuleRow): string =>
+  r.status === 'superseded' && r.replaced
+    ? 'replaced by a newer rule'
+    : RULE_STATUS_WORDS[r.status];
+
+// Who writes lifecycle events without a person (the dashboard's MACHINE_ACTORS).
+const MACHINE_ACTORS = new Set(['reconciler', 'miner', 'replay', 'crawler', 'ba-agent']);
+
+/** The history lines of the export (v2-12 "In the export"): changes, then a person's decisions. */
+export function historyLines(r: DecisionRuleRow): string[] {
+  const day = (at: string) => at.slice(0, 10);
+  return (r.history ?? []).flatMap((e) => {
+    if (e.to === 'superseded') return [`- Changed: ${day(e.at)}: ${e.reason}`];
+    if (MACHINE_ACTORS.has(e.actor)) return [];
+    if (e.undo) return [`- Undone: ${day(e.at)} · ${e.actor}: back to ${e.to}`];
+    return [`- Decided: ${day(e.at)} · ${e.actor}: ${e.to}, "${e.reason}"`];
+  });
+}
 
 const RESULT_WORDS: Record<string, string> = {
   ok: '',
@@ -102,8 +122,14 @@ export function ruleMarkdown(r: DecisionRuleRow, ctx: RuleTextContext): string {
   const lines = [
     `## ${key} · ${r.claim}`,
     '',
-    ruleSentence(r, ctx),
+    r.wording?.wording ?? ruleSentence(r, ctx),
     '',
+    ...(r.wording
+      ? [
+          `- Reworded: ${r.wording.at.slice(0, 10)} · ${r.wording.actor}`,
+          `- As mined: ${ruleSentence(r, ctx)}`,
+        ]
+      : []),
     `- Where: ${screenText(t.decisionPoint.screen, ctx)}, action ${actionText(t.decisionPoint.action)} (\`${t.decisionPoint.action}\`)`,
     `- Inputs: ${names.map((n) => `${inputText(n)} (\`${n}\`)`).join(', ') || '(none)'}`,
     `- Hit policy: ${t.hitPolicy === 'U' ? 'first match (rows are checked in order; the first that matches decides)' : 'any match (every matching row applies)'}`,
@@ -117,7 +143,8 @@ export function ruleMarkdown(r: DecisionRuleRow, ctx: RuleTextContext): string {
     '',
     `- Tested: ${r.tests.pass} pass, ${r.tests.fail} fail, ${r.tests.inconclusive} inconclusive, ${r.tests.waiting} waiting`,
     `- Mined from: ${t.rows} cases · fitness ${t.fitness} · precision ${t.precision}`,
-    `- Status: ${RULE_STATUS_WORDS[r.status]}`,
+    ...historyLines(r),
+    `- Status: ${ruleStatusText(r)}`,
     ...(key !== r.key ? [`- Finding: ${r.key}`] : []),
   ];
   return `${lines.join('\n')}\n`;

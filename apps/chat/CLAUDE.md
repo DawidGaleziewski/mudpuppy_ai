@@ -52,7 +52,11 @@ store, vault, workflow.
 - Spec 039: `api-model` (`POST /portals/{p}/model/accept`: τ or the classifier, Settings;
   `…/model/decide`: confirm or reject hypotheses from Review, all keys in one transaction;
   `…/model/label`: a Same screen? answer for two page versions; a confirmed A/B test adds its
-  cookie to `portal.yaml` `model.experiment_flags` through `portals.addExperimentFlag`),
+  cookie to `portal.yaml` `model.experiment_flags` through `portals.addExperimentFlag`;
+  spec 040: `…/model/undo` takes back one decide command, `…/model/reword` rewords a hypothesis),
+  `PUT /portals/{p}/hints` (`portals.setHints`: Settings ▸ Hints and Budgets write release
+  marker, experiment flags, business errors, replay budget and probe limits into `portal.yaml`,
+  spec 040 T021),
   `check-runs` + `api-check-runs` (headless check runs, one per portal).
 - `fence`: permission control.
 

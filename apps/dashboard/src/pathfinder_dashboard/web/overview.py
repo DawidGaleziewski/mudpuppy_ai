@@ -9,7 +9,14 @@ from typing import Any
 from fastapi import APIRouter, Request
 from fastapi.responses import HTMLResponse, Response
 
-from .. import db, queries, queries_chat, queries_portal_home, queries_review
+from .. import (
+    db,
+    queries,
+    queries_all_portals,
+    queries_chat,
+    queries_portal_home,
+    queries_review,
+)
 from ..models import RUN_STATUSES
 from .deps import Ctx, web_of
 
@@ -94,11 +101,17 @@ def overview(
                     h=home,
                     queries_kinds=queries_review.KINDS,
                 )
+            # Spec 040 T020 (v2-15): All portals leads with the portals plate and Review's
+            # preview across portals; the machine's cards and the scans stay below.
+            every = queries_all_portals.all_portals(
+                conn, queries_chat.known_portals(conn, web.settings.portals_dir)
+            )
             return web.render(
                 c,
                 "overview.html",
                 summary=summary_values(c, conn, portal),
                 runs=runs_values(c, conn, portal, status, cursor, page),
+                every=every,
             )
     except db.StoreMissing as err:
         return web.missing(c, err)

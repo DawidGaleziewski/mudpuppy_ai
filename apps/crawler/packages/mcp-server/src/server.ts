@@ -13,7 +13,7 @@ export interface BootOptions {
 
 /** Open the DB (migrated), evidence store and logger, then serve the tools over stdio. */
 export async function main(opts: BootOptions): Promise<void> {
-  const opened = await openServerContext(opts);
+  const opened = await openServerContext({ ...opts, mine: true });
   const server = createServer(opened.ctx, opts.runtime);
   await server.connect(new StdioServerTransport());
   let closing: Promise<void> | null = null;

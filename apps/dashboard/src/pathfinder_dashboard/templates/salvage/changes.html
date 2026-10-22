@@ -34,11 +34,14 @@
     <input type="hidden" name="portal" value="{{ c.portal }}">
     <div class="sy-cluster">
       <label class="sy-field"><span class="sy-field__label">From</span>
+        {%- set by_version = from_how in ("version", "first") %}
         <select name="from_seq" class="sy-select sy-select--md" aria-describedby="from-help">
-          <option value="0"{% if v.from_seq == 0 %} selected{% endif %}>The first scan</option>
-          {%- for x in v.versions[:-1] %}<option value="{{ x.seq }}"{% if v.from_seq == x.seq %} selected{% endif %}>{{ version_label(x) }}</option>{% endfor %}
+          <option value=""{% if from_how == "release" %} selected{% endif %}>Since the previous release</option>
+          {%- if from_how in ("date", "scan") %}<option value="{{ v.from_seq }}" selected>{{ "Scan " ~ from_scan[:8] if from_how == "scan" else "Date " ~ from_date }} · after version {{ v.from_seq }}</option>{% endif %}
+          <option value="0"{% if by_version and v.from_seq == 0 %} selected{% endif %}>The first scan</option>
+          {%- for x in v.versions[:-1] %}<option value="{{ x.seq }}"{% if by_version and v.from_seq == x.seq %} selected{% endif %}>{{ version_label(x) }}</option>{% endfor %}
         </select>
-        <span id="from-help" class="sy-field__help">Changes first seen after this model version. A model version is built after each scan.</span></label>
+        <span id="from-help" class="sy-field__help">Changes first seen after this point. A model version is built after each scan.</span></label>
       <span class="sy-flow__arrow" aria-hidden="true">→</span>
       <label class="sy-field"><span class="sy-field__label">To</span>
         <select name="to_seq" class="sy-select sy-select--md">
@@ -47,10 +50,31 @@
       <button class="sy-btn sy-btn--md" type="submit">Show</button>
     </div>
   </form>
+  {#- 12-v2-ux § 2: From can also be a date or a scan (each its own form, so one choice wins). #}
+  <div class="sy-plate__body sy-cluster">
+    <form class="sy-cluster" method="get" action="/changes" aria-label="From a date">
+      <input type="hidden" name="portal" value="{{ c.portal }}">
+      <input type="hidden" name="to_seq" value="{{ v.to_seq }}">
+      <label class="sy-field"><span class="sy-field__label">Or from a date</span>
+        <input class="sy-input" type="date" name="from_date" value="{{ from_date[:10] }}" required></label>
+      <button class="sy-btn sy-btn--md" type="submit">From this date</button>
+    </form>
+    {%- if tl and tl.scans %}
+    <form class="sy-cluster" method="get" action="/changes" aria-label="From a scan">
+      <input type="hidden" name="portal" value="{{ c.portal }}">
+      <input type="hidden" name="to_seq" value="{{ v.to_seq }}">
+      <label class="sy-field"><span class="sy-field__label">Or from a scan</span>
+        <select name="from_scan" class="sy-select sy-select--md">
+          {%- for s in tl.scans | reverse %}<option value="{{ s.id }}"{% if s.id == from_scan %} selected{% endif %}>{{ s.id[:8] }} · {{ s.started_at | when }}{% if s.check %} · check run{% endif %}</option>{% endfor %}
+        </select></label>
+      <button class="sy-btn sy-btn--md" type="submit">From this scan</button>
+    </form>
+    {%- endif %}
+  </div>
   {%- if tl %}
   <hr>
   <div class="sy-plate__body">
-    {{ rel.lanes(tl, "this range · " ~ v.counts.all ~ " changes") }}
+    {{ rel.lanes(tl, "this range · " ~ v.counts.all ~ " changes", from_link=true) }}
     {%- if not tl.lanes %}
     <p class="sy-small sy-muted">No release was told apart yet: without a release marker, changes are found by comparing pages. Ask the assistant to add the marker; <a href="{{ c.url('/portals/' ~ c.portal ~ '/settings') }}#hints">Settings ▸ Hints</a> shows it.</p>
     {%- endif %}

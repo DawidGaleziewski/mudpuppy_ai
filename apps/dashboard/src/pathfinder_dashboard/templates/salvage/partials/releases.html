@@ -2,7 +2,8 @@
     queries_releases.Timeline. One lane per portal part, then the scans (■ AI scan, ◇ check run),
     the date axis and, with `range_label`, the chosen range as a bracket. Releases come from
     scans only (owner answer 17); a part without a release marker says so (12-v2-ux.md § 8). -#}
-{% macro lanes(tl, range_label=none) -%}
+{#- `from_link`: a release is a link that starts Changes' range at it (12-v2-ux § 2). #}
+{% macro lanes(tl, range_label=none, from_link=false) -%}
 <p id="tl-sum" class="sy-sr-only">Release timeline, {{ tl.start | when }} to {{ tl.end | when }}.
   {%- for lane in tl.lanes %} {{ lane.name }}: {% for s in lane.spans %}{{ s.name }}{% if s.rollout %} (rollout){% endif %} {{ s.start | when }} to {{ s.end | when }}{% if not loop.last %}; {% endif %}{% endfor %}.{% endfor %}
   {%- if tl.scans %} Scans: {% for s in tl.scans %}{{ s.id[:8] }} {{ s.started_at | when }}{% if not loop.last %}, {% endif %}{% endfor %}.{% endif %}</p>
@@ -12,8 +13,10 @@
     <span class="sy-releases__name">{{ lane.name }}<small>{{ lane.scope }}</small></span>
     <div class="sy-releases__track">
       {%- for s in lane.spans %}
-      <span class="sy-releases__span{% if s.current %} sy-releases__span--current{% endif %}{% if s.rollout %} sy-releases__span--rollout{% elif not lane.marker %} sy-releases__span--unknown{% endif %}"
-            style="left: {{ s.left }}%; width: {{ s.width }}%" title="{{ s.name }} · {{ s.start | when }} – {{ s.end | when }}"><span class="sy-case-normal sy-truncate">{{ s.name }}</span></span>
+      {%- set tag = "a" if from_link else "span" %}
+      <{{ tag }} class="sy-releases__span{% if s.current %} sy-releases__span--current{% endif %}{% if s.rollout %} sy-releases__span--rollout{% elif not lane.marker %} sy-releases__span--unknown{% endif %}"
+            {%- if from_link %} href="{{ c.url('/changes', from_date=s.start) }}" aria-label="Changes from release {{ s.name }} of {{ lane.name }}"{% endif %}
+            style="left: {{ s.left }}%; width: {{ s.width }}%" title="{{ s.name }} · {{ s.start | when }} – {{ s.end | when }}"><span class="sy-case-normal sy-truncate">{{ s.name }}</span></{{ tag }}>
       {%- endfor %}
     </div>
   </div>
@@ -36,7 +39,7 @@
     {%- for left, label in tl.axis %}<span style="left: {{ left }}%">{{ label }}</span>{% endfor %}
   </div>
   {%- if range_label and tl.range_left is not none %}
-  <div class="sy-releases__range mp-range" style="--mp-left: {{ tl.range_left / 100 }}; --mp-width: {{ tl.range_width / 100 }}"><span>{{ range_label }}</span></div>
+  <div class="sy-releases__range mp-range{% if tl.range_left > 50 %} mp-range--end{% endif %}" style="--mp-left: {{ tl.range_left / 100 }}; --mp-width: {{ tl.range_width / 100 }}"><span>{{ range_label }}</span></div>
   {%- endif %}
 </div>
 <p class="sy-legend" aria-hidden="true"><span>▭ release served</span><span>┄ rollout or no marker</span><span>■ AI scan</span><span>◇ check run</span>{% if range_label %}<span>[ ] this range</span>{% endif %}</p>

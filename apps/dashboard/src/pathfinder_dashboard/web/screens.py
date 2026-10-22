@@ -3,6 +3,8 @@ Salvage Yard only, no Console version."""
 
 from __future__ import annotations
 
+from dataclasses import replace
+
 from fastapi import APIRouter, Request
 from fastapi.responses import HTMLResponse
 
@@ -27,11 +29,14 @@ def screens_page(
     page: str | None = None,
     status: str | None = None,
     process: str | None = None,
+    part: str | None = None,
+    why: str | None = None,
+    sort: str = "needs",
     recorded: bool = False,
 ) -> HTMLResponse:
     """A portal with a model lists the model's screens (spec 039 T100, v2-06); `recorded=1`, a
     portal without a model, or all portals list the recorded pages, 25 a page (R-71). `q`
-    filters by key, title or route."""
+    filters by key, title or route; `part`, `why` and `sort` (spec 040 T017) the model list."""
     web = web_of(request)
     c = web.ctx(request, env)
     q = q.strip()
@@ -39,18 +44,30 @@ def screens_page(
         with c.conn() as conn:
             counts = queries_model_screens.status_counts(conn, c.portal) if c.portal else {}
             if counts and not recorded:
-                rows = queries_model_screens.model_screens(
-                    conn, c.portal, status or None, q, process or None
+                f = queries_model_screens.ScreenFilter(
+                    status=status or None,
+                    q=q,
+                    process=process or None,
+                    part=part or None,
+                    why=why if why in queries_model_screens.WHY else None,
+                    sort=sort if sort in queries_model_screens.SORTS else "needs",
+                )
+                every = queries_model_screens.model_screens(
+                    conn, c.portal, replace(f, part=None, why=None)
                 )
                 return web.render(
                     c,
                     "salvage/model_screens.html",
                     nav_current="screens",
-                    rows=rows,
+                    rows=[r for r in every if f.keeps(r)],
                     counts=counts,
                     status=status,
                     q=q,
                     process=process,
+                    f=f,
+                    parts=sorted({p for r in every for p in r.parts}),
+                    whys=queries_model_screens.WHY,
+                    sorts=queries_model_screens.SORTS,
                 )
             paged = pager.paged_from_count(
                 queries_screens.count_screens(conn, c.portal, q),

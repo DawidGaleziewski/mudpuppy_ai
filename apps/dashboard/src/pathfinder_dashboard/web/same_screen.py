@@ -28,9 +28,10 @@ def same_screen_page(
     """The pair `a`/`b`, or the first in the queue (of one screen with `screen=SC-…`)."""
     web = web_of(request)
     c = web.ctx(request, env)
-    d = None
+    d, tau = None, None
     try:
         with c.conn() as conn:
+            tau = queries_same_screen.tau_in_force(conn, c.portal) if c.portal else None
             if c.portal and not (a and b):
                 first = queries_same_screen.queue(conn, c.portal, screen or None)[:1]
                 a, b = (first[0].a.state_id, first[0].b.state_id) if first else (None, None)
@@ -47,6 +48,8 @@ def same_screen_page(
         screen=screen or None,
         note=note,
         words=queries_same_screen.WORDS,
+        tau=tau,
+        window=queries_same_screen.LABEL_WINDOW,
     )
 
 

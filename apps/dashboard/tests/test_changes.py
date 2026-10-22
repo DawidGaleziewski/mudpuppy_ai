@@ -7,6 +7,7 @@ from __future__ import annotations
 import json
 import sqlite3
 
+import httpx2
 from fastapi.testclient import TestClient
 
 from pathfinder_dashboard import queries_changes
@@ -14,6 +15,10 @@ from pathfinder_dashboard.app import create_app
 from pathfinder_dashboard.settings import Settings
 
 from .conftest import Store, insert, ts
+from .test_chat import ORIGIN, Service, text
+from .test_processes_pages import client as chat_client
+
+FORM = {"Content-Type": "application/x-www-form-urlencoded", **ORIGIN}
 
 P = "liveinsurer"
 
@@ -232,6 +237,31 @@ def test_the_range_draws_release_lanes_and_scans(empty_store: Store) -> None:
     assert "this range · 3 changes" in html and 'class="sy-releases__scan"' in html
 
 
+def test_from_is_the_previous_release_a_date_or_a_scan(empty_store: Store) -> None:
+    """Spec 040 FR-002 (12-v2-ux § 2): by default since the previous release; From can be a
+    date or a scan; a release on the lane is a link that starts the range at it."""
+    seed(empty_store)
+    conn = empty_store.connect()
+    conn.row_factory = sqlite3.Row
+    assert queries_changes.range_from(conn, P) == (0, "first")  # no release told apart yet
+    conn.close()
+    seed_process_and_releases(empty_store)
+    conn = empty_store.connect()
+    conn.row_factory = sqlite3.Row
+    assert queries_changes.range_from(conn, P) == (1, "release")  # version 2 brought them
+    assert queries_changes.range_from(conn, P, from_date=ts(3)) == (2, "date")
+    assert queries_changes.range_from(conn, P, from_scan="r1") == (0, "scan")
+    assert queries_changes.range_from(conn, P, from_seq=2) == (2, "version")
+    conn.close()
+    c = client(empty_store)
+    html = c.get(f"/changes?portal={P}").text
+    assert '<option value="" selected>Since the previous release' in html
+    assert 'name="from_date"' in html and 'name="from_scan"' in html
+    assert "/changes?from_date=" in html and "Changes from release 3e1a of Shell" in html
+    later = c.get(f"/changes?portal={P}&from_date={ts(3)}").text
+    assert "No change in this range" in later and "after version 2</option>" in later
+
+
 def test_before_after_shows_both_variants_and_what_differs(empty_store: Store) -> None:
     seed(empty_store)
     seed_process_and_releases(empty_store)
@@ -244,6 +274,104 @@ def test_before_after_shows_both_variants_and_what_differs(empty_store: Store) -
     assert "1 of 2 that need you" in needs and 'data-key="j"' in needs
     missing = client(empty_store).get(f"/changes/nope?portal={P}")
     assert missing.status_code == 404 and "Change not found" in missing.text
+
+
+SHOT_A, SHOT_B, LAYOUT = "a" * 64 + ".png", "b" * 64 + ".png", "c" * 64 + ".json"
+
+
+def seed_new_button(store: Store) -> None:
+    """d7: a new button on SC-0001, waiting for a person (H-0007); both variants have a
+    screenshot, the new one a layout with the button's box."""
+    seed(store)
+    seed_process_and_releases(store)
+    evidence = store.data_dir / "evidence"
+    evidence.mkdir(parents=True, exist_ok=True)
+    layout = {
+        "version": 1,
+        "viewport": {"width": 1000, "height": 500},
+        "page": {"width": 1000, "height": 500},
+        "cut": False,
+        "elements": [
+            {"key": "button|dalej||", "role": "button", "name": "Dalej",
+             "box": {"x": 100, "y": 50, "width": 200, "height": 25}}
+        ],
+    }  # fmt: skip
+    (evidence / LAYOUT).write_text(json.dumps(layout), encoding="utf-8")
+    conn = store.connect()
+    conn.execute("UPDATE states SET screenshot_ref = ? WHERE id = 'st-a'", (SHOT_A,))
+    conn.execute(
+        "UPDATE states SET screenshot_ref = ?, layout_ref = ? WHERE id = 'st-b'", (SHOT_B, LAYOUT)
+    )
+    conn.execute(
+        "INSERT INTO action_classes (id, screen_id, element_key, kind, status,"
+        " status_model_version) VALUES ('a7', 'M1', 'button|dalej||', 'click', 'untested', 'mv2')"
+    )
+    conn.execute(
+        "INSERT INTO deviations (id, portal_id, model_version_id, kind, subject_key, screen_id,"
+        " action_class_id, status, created_at) VALUES ('d7', ?, 'mv2', 'new_action',"
+        " 'new_action:dalej', 'M1', 'a7', 'open', ?)",
+        (P, ts(2)),
+    )
+    conn.execute(
+        "INSERT INTO hypotheses (id, key, portal_id, kind, claim, claim_json, claim_hash, origin,"
+        " rule, derived, confidence, deviation_id, model_version_id, created_at)"
+        " VALUES ('h7', 'H-0007', ?, 'nondeterministic', 'Dalej appeared without a release.',"
+        " '{}', ?, 'rule', 'R5', 0, 'needs_confirmation', 'd7', 'mv2', ?)",
+        (P, "7" * 64, ts(2)),
+    )
+    conn.execute(
+        "INSERT INTO hypothesis_events (id, hypothesis_id, from_status, to_status, actor, reason,"
+        " at) VALUES ('he7', 'h7', NULL, 'proposed', 'reconciler', 'R5', ?)",
+        (ts(2),),
+    )
+    conn.commit()
+    conn.close()
+
+
+def test_before_after_marks_the_change_and_has_three_modes(empty_store: Store) -> None:
+    """Spec 040 T018 (12-v2-ux § 6): the new button outlined on the after side, a dashed box at
+    the same place before; Overlay draws one over the other; Wireframe has no marks."""
+    seed_new_button(empty_store)
+    c = client(empty_store)
+    side = c.get(f"/changes/d7?portal={P}").text
+    assert ">Changed</span></mark>" in side and ">Not here</span></mark>" in side
+    assert "left: 10.0%; top: 10.0%; width: 20.0%; height: 5.0%" in side
+    assert side.index("Not here") < side.index(">Changed</span>")  # before, then after
+    overlay = c.get(f"/changes/d7?portal={P}&mode=overlay").text
+    assert "mp-overlay" in overlay and overlay.count("sy-mark--overlay") == 0
+    wire = c.get(f"/changes/d7?portal={P}&mode=wire").text
+    assert 'aria-current="true">Wireframe<' in wire and "sy-mark--overlay" not in wire
+
+
+def test_the_decision_bar_decides_and_comes_back(empty_store: Store) -> None:
+    """Spec 040 T018 (v2-03): Confirm / Reject on Before / after go through Review's route to
+    the chat service and come back to the change with Undo."""
+    seed_new_button(empty_store)
+    service = Service()
+    service.routes[("POST", f"/portals/{P}/model/decide")] = httpx2.Response(
+        201, json={"decision": "cmd-7", "decided": [{"key": "H-0007", "status": "rejected"}]}
+    )
+    with chat_client(empty_store, service) as c:
+        page = c.get(f"/changes/d7?portal={P}").text
+        assert 'name="back" value="/changes/d7"' in page and page.count("sy-btn--primary") == 1
+        r = c.post(
+            f"/review/hypotheses/{P}",
+            content="keys=H-0007&action=reject&reason=a+real+button&back=%2Fchanges%2Fd7",
+            headers=FORM,
+            follow_redirects=False,
+        )
+        assert r.headers["location"].startswith("/changes/d7?")
+        back = c.get(r.headers["location"]).text
+        evil = c.post(
+            f"/review/hypotheses/{P}",
+            content="keys=H-0007&action=reject&reason=x&back=%2F%2Fevil.test",
+            headers=FORM,
+            follow_redirects=False,
+        )
+    assert "Rejected: H-0007." in text(back) and 'value="cmd-7"' in back
+    assert evil.headers["location"].startswith("/review")
+    no_bar = client(empty_store).get(f"/changes/d2?portal={P}").text  # no hypothesis yet
+    assert 'name="back"' not in no_bar
 
 
 def test_without_a_model_the_page_says_how_to_build_one(empty_store: Store) -> None:

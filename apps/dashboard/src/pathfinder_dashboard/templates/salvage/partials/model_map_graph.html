@@ -12,6 +12,10 @@
       {%- for e in m.edges %}
       <path class="sy-edge{% if e.state %} sy-edge--{{ e.state }}{% endif %}" d="{{ e.d }}"/>
       {%- endfor %}
+      {#- Spec 039 F-52: a rule's condition on the link it decides (the list says it too). -#}
+      {%- for e in m.edges if e.label %}
+      <text class="sy-edge-label{% if e.state == 'failed' %} sy-edge-label--failed{% endif %}" x="{{ e.label_x }}" y="{{ e.label_y }}" text-anchor="middle">{{ e.label }}</text>
+      {%- endfor %}
     </svg>
     {%- for n in m.nodes %}
     {%- if n.kind == "family" %}

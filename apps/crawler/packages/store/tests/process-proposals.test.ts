@@ -4,9 +4,11 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import {
+  blockedBy,
   migrateUp,
   openDb,
   processGraph,
+  proposalConstraints,
   reconcilePortalModel,
   writeProposals,
   type OpenedDb,
@@ -86,6 +88,28 @@ describe('process proposals from the portal model (spec 039 design § 13)', () =
     o.raw.prepare("UPDATE grouping_suggestions SET status = 'dismissed', decided_at = ?").run(NOW);
     expect(writeProposals(o.raw, 'ins', [g.nodes], g, NOW)).toEqual([]); // dismissed before
     expect(writeProposals(o.raw, 'ins', [[g.nodes[0]!]], g, NOW)).toEqual([]); // one screen is no process
+    await o.close();
+  });
+
+  it("a person's dismissal and kept process constrain the next proposals (spec 040 T034)", async () => {
+    const o = open();
+    const g = processGraph(o.raw, 'ins');
+    writeProposals(o.raw, 'ins', [g.nodes], g, NOW);
+    o.raw.prepare("UPDATE grouping_suggestions SET status = 'dismissed', decided_at = ?").run(NOW);
+    const skipped: { screens: readonly string[]; reason: string }[] = [];
+    // One screen less than the dismissed set is the same process to the person.
+    expect(writeProposals(o.raw, 'ins', [g.nodes.slice(0, 2)], g, NOW, skipped)).toEqual([]);
+    expect(skipped[0]!.reason).toBe('like the dismissed proposal "form"');
+    const c = proposalConstraints(o.raw, 'ins');
+    expect(c.dismissed[0]!.screens.size).toBe(3);
+    const kept = {
+      dismissed: [],
+      processes: [{ key: 'PRC-001', name: 'Quote', screens: new Set(g.nodes) }],
+    };
+    expect(blockedBy(kept, g.nodes.slice(0, 2))).toBe(
+      'inside PRC-001 "Quote", a process a person keeps',
+    );
+    expect(blockedBy(kept, ['other-1', 'other-2'])).toBeNull();
     await o.close();
   });
 });

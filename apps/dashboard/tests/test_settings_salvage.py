@@ -215,3 +215,50 @@ def test_screen_identity_shows_tau_labels_and_accepts_through_the_chat(
     assert "Not accepted: no calibrated τ for shop yet" in text(refused.text)
     sent = [r for r in service.requests if r.url.path == "/portals/shop/model/accept"]
     assert [json.loads(r.content) for r in sent] == [{"what": "tau", "by": "Anna"}]
+
+
+def test_hints_and_budgets_are_saved_through_the_chat_service(
+    world: tuple[Store, Path, Path],
+) -> None:
+    """Spec 040 T021 (12-v2-ux § 10): the forms send the portal file's hints and budgets."""
+    service = up()
+    service.routes[("PUT", "/portals/shop/hints")] = httpx2.Response(200, json=TWO_ENVS)
+    form = {"Content-Type": "application/x-www-form-urlencoded", **ORIGIN}
+    with client(world, service) as c:
+        page = c.get("/portals/shop/settings").text
+        assert (
+            'id="budgets"' in page
+            and 'name="checks_per_scan" min="0" max="1000" value="20"' in page
+        )
+        r = c.post(
+            "/portals/shop/hints/hints",
+            content="marker_header=x-app-version&marker_meta=&ab_flags=cookie+ab_calc%0Aexp.hero"
+            "&refusals=Nie+mo%C5%BCemy%0A",
+            headers=form,
+            follow_redirects=False,
+        )
+        saved = c.get(r.headers["location"]).text
+        c.post(
+            "/portals/shop/hints/budgets",
+            content="checks_per_scan=5&probes_per_step=12&probes_per_scan=60",
+            headers=form,
+        )
+        bad = c.post(
+            "/portals/shop/hints/budgets",
+            content="checks_per_scan=-1&probes_per_step=12&probes_per_scan=60",
+            headers=form,
+        )
+    assert r.headers["location"].endswith("#hints") and "Hints saved." in text(saved)
+    assert "each budget is a whole number" in text(bad.text)
+    sent = [json.loads(q.content) for q in service.requests if q.url.path == "/portals/shop/hints"]
+    assert sent == [
+        {
+            "release_marker": {"header": "x-app-version", "meta": ""},
+            "experiment_flags": [
+                {"kind": "cookie", "name": "ab_calc"},
+                {"kind": "cookie", "name": "exp.hero"},
+            ],
+            "business_errors": ["Nie możemy"],
+        },
+        {"replay_budget": 5, "probes": {"per_step": 12, "per_run": 60}},
+    ]

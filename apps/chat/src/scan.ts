@@ -340,7 +340,7 @@ function formProbingCheck(
     );
   const open = raw
     .prepare(
-      `SELECT COUNT(*) AS n FROM marks WHERE portal_id = ? AND kind = 'probe' AND used_by_run_id IS NULL`,
+      `SELECT COUNT(*) AS n FROM marks WHERE portal_id = ? AND kind = 'probe' AND origin = 'person' AND used_by_run_id IS NULL`,
     )
     .get(portal) as { n: number };
   if (open.n === 0)

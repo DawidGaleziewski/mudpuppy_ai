@@ -182,12 +182,58 @@ def _open_pairs(versions: dict[str, Version], screen: str | None) -> list[tuple[
     return out  # type: ignore[return-value]
 
 
+LABEL_WINDOW = 0.05  # the crawler's MODEL_DEFAULTS.labelWindow (`pnpm model:pairs`)
+NEAR_LIMIT = 20  # pairs near τ asked per page load, as `pnpm model:pairs` lists them
+
+
+def tau_in_force(conn: sqlite3.Connection, portal: str) -> float | None:
+    """The accepted τ of the latest fingerprint profile, else the latest model version's."""
+    rows = rows_of(
+        conn,
+        "SELECT v.threshold, (SELECT a.tau FROM tau_acceptances a WHERE a.portal_id = v.portal_id"
+        "   AND a.profile IS v.fingerprint_profile ORDER BY a.accepted_at DESC, a.id DESC LIMIT 1)"
+        " AS accepted FROM model_versions v WHERE v.portal_id = ? ORDER BY v.seq DESC LIMIT 1",
+        (portal,),
+    )
+    if not rows:
+        return None
+    return float(rows[0]["accepted"] if rows[0]["accepted"] is not None else rows[0]["threshold"])
+
+
+def _near_tau(
+    conn: sqlite3.Connection,
+    portal: str,
+    tau: float,
+    versions: dict[str, Version],
+    screen: str | None,
+) -> list[tuple[str, str]]:
+    """Spec 040 T022 (F-53): pairs of page versions on one route whose similarity is within the
+    window around τ, nearest first: the answers that move τ most."""
+    routes: dict[str, list[str]] = {}
+    for r in rows_of(conn, "SELECT id, route_template FROM states WHERE portal_id = ?", (portal,)):
+        routes.setdefault(r["route_template"], []).append(r["id"])
+    sig = _signatures(conn, set(versions))
+    near = []
+    for ids in routes.values():
+        ids = sorted(i for i in ids if i in sig)
+        for i, a in enumerate(ids):
+            for b in ids[i + 1 :]:
+                s = _similarity(sig, a, b)
+                keys = (versions[a].screen_key, versions[b].screen_key)
+                if s is not None and abs(s - tau) <= LABEL_WINDOW and screen in (None, *keys):
+                    near.append((abs(s - tau), a, b))
+    return [(a, b) for _, a, b in sorted(near)[:NEAR_LIMIT]]
+
+
 def queue(conn: sqlite3.Connection, portal: str, screen: str | None = None) -> list[Pair]:
-    """Conflicts first, then the unlabelled pairs, least similar first. `screen` (SC-…) keeps the
+    """Conflicts first, then the unlabelled pairs nearest τ (the window `pnpm model:pairs` uses),
+    then each screen's variants against its first, least similar first. `screen` (SC-…) keeps the
     pairs with a version on that screen."""
     versions = _versions(conn, portal)
     labels = _labels(conn, portal)
-    ids = [p for p in _open_pairs(versions, screen) if p not in labels]
+    tau = tau_in_force(conn, portal)
+    near = _near_tau(conn, portal, tau, versions, screen) if tau is not None else []
+    ids = [p for p in dict.fromkeys([*near, *_open_pairs(versions, screen)]) if p not in labels]
     conflicts = [
         p
         for p, lab in labels.items()
@@ -201,7 +247,33 @@ def queue(conn: sqlite3.Connection, portal: str, screen: str | None = None) -> l
         for a, b in [*conflicts, *ids]
     ]
     shown = [p for p in pairs if p.conflict or p.label is None]
-    return sorted(shown, key=lambda p: (not p.conflict, p.similarity is None, p.similarity or 0))
+    rank = {pair: i for i, pair in enumerate(near)}
+
+    def order(p: Pair) -> tuple[bool, int, bool, float]:
+        at = rank.get((p.a.state_id, p.b.state_id), len(rank))
+        return (not p.conflict, at, p.similarity is None, p.similarity or 0)
+
+    return sorted(shown, key=order)
+
+
+# Findings that say a new page version is a variant of its screen (12-v2-ux § 5.5): confirming
+# one also answers the version's open Same screen? pairs as "Same screen".
+VARIANT_KINDS = ("structural_drift", "context_variant", "ab_test")
+
+
+def linked(conn: sqlite3.Connection, portal: str, deviation_id: str) -> list[Pair]:
+    """Spec 040 T023, Also settles: the Same screen? pairs (conflicts and open ones) of the page
+    version a variant finding is about; none for other findings."""
+    rows = rows_of(
+        conn,
+        "SELECT d.state_id FROM deviations d JOIN hypotheses h ON h.deviation_id = d.id"
+        f" WHERE d.portal_id = ? AND d.id = ? AND h.kind IN ({','.join('?' * len(VARIANT_KINDS))})",
+        (portal, deviation_id, *VARIANT_KINDS),
+    )
+    state = rows[0]["state_id"] if rows else None
+    if not state:
+        return []
+    return [p for p in queue(conn, portal) if state in (p.a.state_id, p.b.state_id)]
 
 
 def pair_detail(

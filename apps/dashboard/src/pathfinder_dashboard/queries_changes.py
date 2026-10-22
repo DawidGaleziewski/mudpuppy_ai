@@ -257,6 +257,38 @@ def group(changes: list[Change], owners: dict[str, tuple[str, str]]) -> list[Pro
     return sorted(procs.values(), key=lambda g: (g.key is None, g.key or ""))
 
 
+def range_from(
+    conn: sqlite3.Connection,
+    portal: str | None,
+    from_seq: int | None = None,
+    from_date: str | None = None,
+    from_scan: str | None = None,
+) -> tuple[int, str]:
+    """Changes' *from* (spec 040 FR-002, 12-v2-ux § 2) as the model version changes are counted
+    after, and how it was chosen: a scan (the versions built before it started), a date or
+    timestamp (built before it), a version, else the previous release (the newest version that
+    brought a release, so its changes are in the range; none: from the first scan)."""
+    if not portal:
+        return 0, "first"
+    before = "SELECT coalesce(max(seq), 0) FROM model_versions WHERE portal_id = ? AND built_at < ?"
+    if from_scan:
+        found = rows_of(conn, "SELECT started_at FROM runs WHERE id = ?", (from_scan,))
+        if found:
+            return int(rows_of(conn, before, (portal, found[0][0]))[0][0]), "scan"
+    if from_date:
+        return int(rows_of(conn, before, (portal, from_date))[0][0]), "date"
+    if from_seq is not None:
+        return max(from_seq, 0), "version"
+    latest = rows_of(
+        conn,
+        "SELECT max(v.seq) FROM model_versions v WHERE v.portal_id = ?"
+        " AND EXISTS (SELECT 1 FROM build_epochs e WHERE e.model_version_id = v.id)",
+        (portal,),
+    )
+    seq = latest[0][0] if latest else None
+    return (int(seq) - 1, "release") if seq else (0, "first")
+
+
 def changes_view(
     conn: sqlite3.Connection,
     portal: str | None,

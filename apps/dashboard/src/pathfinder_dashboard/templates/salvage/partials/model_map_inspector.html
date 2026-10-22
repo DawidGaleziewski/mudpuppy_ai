@@ -31,7 +31,7 @@
   <ul class="sy-rows mp-inset">
     {%- for v in d.variants %}
     <li class="sy-row"><span class="sy-row__main">
-      <span class="sy-cluster" style="--sy-gap: 6px"><b class="sy-case-normal">r{{ v.ordinal }}</b><span class="sy-chip{% if v.why.chip %} sy-chip--{{ v.why.chip }}{% endif %}">{{ v.why.word }}</span></span>
+      <span class="sy-cluster" style="--sy-gap: 6px"><b class="sy-case-normal">r{{ v.ordinal }}</b><span class="sy-chip{% if v.reason == 'Unknown' %} sy-chip--dashed{% endif %}">{{ v.reason }}</span></span>
       <span class="sy-small sy-muted sy-case-normal">{% if v.releases %}{{ v.releases | join(", ") }} · {% endif %}{{ v.personas | join(", ") or "—" }}{% if v.first_seen %} · {{ v.first_seen | when }}{% endif %}</span>
       {%- if v.status %}{{ sy.status("deviation", v.status) }}{% else %}<span class="sy-status" data-status="ok">Observed</span>{% endif %}
     </span></li>

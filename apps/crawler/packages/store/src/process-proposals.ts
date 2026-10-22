@@ -9,6 +9,7 @@ import { createHash } from 'node:crypto';
 import type BetterSqlite3 from 'better-sqlite3';
 import { newId, nowIso } from '@pathfinder/core';
 import { GroupingSuggestion, observedSteps, screensKey } from '@pathfinder/chat-model';
+import { blockedBy, proposalConstraints } from './proposal-constraints.js';
 import {
   boundaryGraph,
   compare,
@@ -183,8 +184,11 @@ export function writeProposals(
   communities: readonly (readonly string[])[],
   graph: ProcessGraph,
   now = nowIso(),
+  skipped: { screens: readonly string[]; reason: string }[] = [],
 ): string[] {
   const written: string[] = [];
+  // A person's dismissals and kept processes (spec 040 T034); `skipped` says which and why.
+  const constraints = proposalConstraints(raw, portal);
   const first = raw.prepare(
     `SELECT s.id, s.title, s.route_template FROM screen_members m JOIN states s ON s.id = m.state_id
      WHERE m.screen_id = ? AND m.to_model_version IS NULL ORDER BY m.ordinal LIMIT 1`,
@@ -202,6 +206,11 @@ export function writeProposals(
   )?.persona_id;
   for (const community of communities) {
     if (community.length < 2) continue;
+    const reason = blockedBy(constraints, community);
+    if (reason) {
+      skipped.push({ screens: community, reason });
+      continue;
+    }
     const members = new Set(community);
     const order = flowOrder(raw, community, members, inbound);
     const states = order

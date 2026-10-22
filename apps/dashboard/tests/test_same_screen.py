@@ -5,12 +5,13 @@ from __future__ import annotations
 
 import json
 import sqlite3
+import struct
 
 import httpx2
 
 from pathfinder_dashboard import queries_same_screen
 
-from .conftest import Store, ts
+from .conftest import Store, insert, ts
 from .test_chat import ORIGIN, Service, text
 from .test_map import P, model, seed
 from .test_processes_pages import client
@@ -42,6 +43,45 @@ def test_each_screens_variants_are_asked_against_its_first_one(empty_store: Stor
     model(empty_store)
     assert sorted(pairs(empty_store)) == [("st-a", "st-ab", False), ("st-f1", "st-f1v", False)]
     assert pairs(empty_store, "SC-0003") == [("st-f1", "st-f1v", False)]
+
+
+def with_minhash(store: Store, state: str, changed: int) -> None:
+    """A MinHash signature equal to the base one but for `changed` of its 128 positions."""
+    base = list(range(1, 129))
+    sig = [v + 1000 if i < changed else v for i, v in enumerate(base)]
+    conn = store.connect()
+    conn.execute(
+        "INSERT INTO state_components (state_id, structure_hash, content_hash, overlay_hash,"
+        " calls_hash, mounts_hash, minhash, element_keys) VALUES (?, ?, ?, ?, ?, ?, ?, '[]')",
+        (state, *(["0" * 64] * 5), struct.pack(">128I", *sig)),
+    )
+    conn.commit()
+    conn.close()
+
+
+def test_pairs_nearest_tau_come_before_the_variants(empty_store: Store) -> None:
+    """Spec 040 T022 (F-53): the labelling queue of `pnpm model:pairs`: same route, similarity
+    within 0.05 of τ (0.9 here), nearest first; then each screen's variants."""
+    seed(empty_store)
+    model(empty_store)
+    conn = empty_store.connect()
+    insert(
+        conn, "states", id="st-f2", fingerprint="fp-st-f2", route_template="/form", title="Apply",
+        cluster_id="cl-x", first_seen_run="r2", created_at=ts(14),
+    )  # fmt: skip
+    conn.commit()
+    conn.close()
+    with_minhash(empty_store, "st-f1", 0)
+    with_minhash(empty_store, "st-f2", 13)  # 115 of 128 equal: 0.898, next to τ
+    with_minhash(empty_store, "st-f1v", 64)  # 0.5 from st-f1: far from τ
+    assert [p[:2] for p in pairs(empty_store)] == [
+        ("st-f1", "st-f2"),
+        ("st-f1", "st-f1v"),
+        ("st-a", "st-ab"),
+    ]
+    with client(empty_store) as c:
+        page = text(c.get(f"/same-screen?portal={P}").text)
+    assert "nearest the threshold τ 0.90" in page
 
 
 def test_a_label_the_model_disagrees_with_comes_first_and_an_agreeing_one_drops(
@@ -148,3 +188,54 @@ def test_an_earlier_answer_stays_on_the_pair_and_in_the_screens_history(
     assert "The banner changes the purpose." in pair and "Anna's label and reason stay" in pair
     assert "History · 2" in screen and "Same screen? answers · 2" in screen
     assert screen.index("Anna : same screen") < screen.index("Marek : different screens")
+
+
+def test_confirming_a_variant_finding_also_settles_its_pairs(empty_store: Store) -> None:
+    """Spec 040 T023 (designer § 5.5): the A/B finding about st-f1v lists its Same screen? pair
+    under Also settles; confirming it answers the pair "Same screen" with the reason."""
+    seed(empty_store)
+    model(empty_store)
+    conn = empty_store.connect()
+    conn.execute(
+        "INSERT INTO deviations (id, portal_id, model_version_id, kind, subject_key, screen_id,"
+        " state_id, status, created_at) VALUES ('dv', ?, 'mv1', 'new_member', 'new_member:f1v',"
+        " (SELECT id FROM model_screens WHERE key = 'SC-0003'), 'st-f1v', 'open', ?)",
+        (P, ts(40)),
+    )
+    conn.execute(
+        "INSERT INTO hypotheses (id, key, portal_id, kind, claim, claim_json, claim_hash, origin,"
+        " rule, derived, confidence, deviation_id, model_version_id, created_at) VALUES ('hv',"
+        " 'H-0009', ?, 'ab_test', 'A cookie splits the form.', '{}', ?, 'rule', 'R5', 0,"
+        " 'needs_confirmation', 'dv', 'mv1', ?)",
+        (P, "9" * 64, ts(40)),
+    )
+    conn.execute(
+        "INSERT INTO hypothesis_events (id, hypothesis_id, from_status, to_status, actor, reason,"
+        " at) VALUES ('hev', 'hv', NULL, 'proposed', 'reconciler', 'R5', ?)",
+        (ts(40),),
+    )
+    conn.commit()
+    conn.close()
+    service = Service()
+    service.routes[("POST", f"/portals/{P}/model/decide")] = httpx2.Response(
+        201, json={"decision": "cmd-9", "decided": [{"key": "H-0009", "status": "confirmed"}]}
+    )
+    service.routes[("POST", f"/portals/{P}/model/label")] = httpx2.Response(201, json={})
+    form = {"Content-Type": "application/x-www-form-urlencoded", **ORIGIN}
+    with client(empty_store, service) as c:
+        page = c.get(f"/review?portal={P}&select=findings:dv").text
+        assert "Also settles · 1" in page and 'name="also" value="st-f1:st-f1v"' in page
+        r = c.post(
+            f"/review/hypotheses/{P}",
+            content="keys=H-0009&action=confirm&reason=arms+of+one+form&also=st-f1%3Ast-f1v",
+            headers=form,
+        )
+    assert "Also settled 1 of 1 Same screen? pairs." in text(r.text)
+    (label,) = [json.loads(q.content) for q in service.requests if q.url.path.endswith("/label")]
+    assert label == {
+        "a": "st-f1",
+        "b": "st-f1v",
+        "answer": "same",
+        "by": "Anna",
+        "reason": "arms of one form (with H-0009)",
+    }

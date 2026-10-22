@@ -341,7 +341,7 @@
     "started_at": "<ts:28>",
     "ended_at": null,
     "duration_ms": null,
-    "attrs_json": "{\"seq\":1,\"states\":0,\"screens\":0,\"newScreens\":0,\"lineage\":0,\"actionClasses\":0,\"transitions\":0,\"conflicts\":0}",
+    "attrs_json": "{\"seq\":1,\"states\":0,\"screens\":0,\"newScreens\":0,\"lineage\":0,\"actionClasses\":0,\"transitions\":0,\"conflicts\":0,\"planned\":0}",
     "payload_ref": null,
     "summary": "model_reconciled",
     "decision_id": null,

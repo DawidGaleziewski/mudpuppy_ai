@@ -22,6 +22,8 @@
 {% include "salvage/partials/screens_tabs.html" %}
 <form class="sy-cluster" method="get" action="/screens" aria-label="Filter screens">
   <input type="hidden" name="portal" value="{{ c.portal }}">
+  {#- Apply keeps the status; a status button's value comes later and wins (the last value). #}
+  {%- if status %}<input type="hidden" name="status" value="{{ status }}">{% endif %}
   <div class="sy-field"><span class="sy-field__label" id="st-l">Status</span>
     <div class="sy-seg mp-seg" role="group" aria-labelledby="st-l">
       {%- for s, label in (("active", "Active"), ("merged", "Merged"), ("retired", "Retired")) %}
@@ -32,6 +34,20 @@
   <label class="sy-field"><span class="sy-field__label">Key, title or route contains</span>
     <input class="sy-input" type="search" name="q" value="{{ q }}"></label>
   {%- if process %}<input type="hidden" name="process" value="{{ process }}">{% endif %}
+  {#- Spec 039 F-51 / spec 040 T017: portal part, a variant's why, and the sort. #}
+  {%- if parts %}
+  <label class="sy-field"><span class="sy-field__label">Part</span>
+    <select class="sy-select sy-select--md" name="part"><option value="">Every part</option>
+      {%- for p in parts %}<option value="{{ p }}"{% if f.part == p %} selected{% endif %}>{{ p }}</option>{% endfor %}</select></label>
+  {%- endif %}
+  <label class="sy-field"><span class="sy-field__label">Has a variant of why</span>
+    <select class="sy-select sy-select--md" name="why"><option value="">Any</option>
+      {%- for w in whys %}<option value="{{ w }}"{% if f.why == w %} selected{% endif %}>{{ w }}</option>{% endfor %}</select></label>
+  <label class="sy-field"><span class="sy-field__label">Sort</span>
+    <select class="sy-select sy-select--md" name="sort">
+      {%- for k, label in sorts.items() %}<option value="{{ k }}"{% if f.sort == k %} selected{% endif %}>{{ label }}</option>{% endfor %}</select></label>
+  <button class="sy-btn sy-btn--md" type="submit">Apply</button>
+  {%- if f.part or f.why or f.q %}<a class="sy-btn sy-btn--md sy-btn--quiet" href="{{ c.url('/screens', status=status) }}">Clear filters</a>{% endif %}
 </form>
 <section class="sy-stack" aria-labelledby="list-h">
   <h2 id="list-h" class="sy-h2">{% if status %}{{ status | capitalize }}{% else %}All{% endif %} screens · {{ rows | length }}</h2>
@@ -50,9 +66,9 @@
         <tr>
           <th scope="row"><span class="sy-stack">{{ sy.tag(r.key, c.url('/screens/' ~ r.key), sm=true) }}<a class="sy-case-normal" href="{{ c.url('/screens/' ~ r.key) }}">{{ r.title or "(untitled page)" }}</a><span class="sy-route mp-break">{{ r.route }}</span></span></th>
           <td><span class="sy-stack">{{ sy.status("model_screen", r.status) }}{% if r.needs %}<a href="{{ c.url('/screens/' ~ r.key) }}#needs-h"><span class="sy-status" data-status="needs">Needs you · {{ r.needs }}</span></a>{% endif %}</span></td>
-          <td><span class="sy-stack"><span class="sy-num">{{ r.variants }}</span>{% if r.why %}<span class="sy-cluster">{% for e in r.why %}<span class="sy-chip{% if e.chip %} sy-chip--{{ e.chip }}{% endif %}">{{ e.word }}</span>{% endfor %}</span>{% endif %}</span></td>
+          <td><span class="sy-stack"><span class="sy-num">{{ r.variants }}</span>{% if r.why %}<span class="sy-cluster">{% for w in r.why %}<span class="sy-chip{% if w == 'Unknown' %} sy-chip--dashed{% endif %}">{{ w }}</span>{% endfor %}</span>{% endif %}</span></td>
           <td><span class="sy-stack">{% if r.last_seen %}<span class="sy-mono sy-mono--sm">{{ r.last_seen | when }}</span>{% if r.last_run %}{{ sy.tag(r.last_run[:8], c.url('/runs/' ~ r.last_run), sm=true) }}{% endif %}{% else %}<span class="sy-muted">—</span>{% endif %}</span></td>
-          <td>{% if r.actions %}<div class="sy-meter" data-status="{{ 'ok' if r.checked == r.actions else 'running' }}" style="--value: {{ (100 * r.checked / r.actions) | round | int }}%"><div class="sy-meter__label"><span>{{ r.checked }} / {{ r.actions }}</span></div><div class="sy-meter__track" role="progressbar" aria-label="Actions checked on {{ r.title }}" aria-valuemin="0" aria-valuemax="{{ r.actions }}" aria-valuenow="{{ r.checked }}"><div class="sy-meter__fill"></div></div></div>{% else %}<span class="sy-small sy-muted">no actions</span>{% endif %}</td>
+          <td>{% if r.actions %}<div class="sy-meter" data-status="{{ 'ok' if r.checked == r.actions else 'running' }}" style="--value: {{ (100 * r.checked / r.actions) | round | int }}%"><div class="sy-meter__label"><span>{{ r.checked }} / {{ r.actions }}{% if r.release %} on <span class="sy-mono sy-mono--sm">{{ r.release }}</span>{% endif %}</span></div><div class="sy-meter__track" role="progressbar" aria-label="Actions checked on {{ r.title }}" aria-valuemin="0" aria-valuemax="{{ r.actions }}" aria-valuenow="{{ r.checked }}"><div class="sy-meter__fill"></div></div></div>{% else %}<span class="sy-small sy-muted">no actions</span>{% endif %}</td>
           <td class="sy-small">{{ r.parts | join(", ") or "—" }}</td>
           <td>{% if r.process %}<a class="sy-case-normal" href="{{ c.url('/processes/' ~ r.process[0]) }}">{{ r.process[1] }}</a>{% else %}<span class="sy-muted">—</span>{% endif %}</td>
         </tr>

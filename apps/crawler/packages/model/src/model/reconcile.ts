@@ -203,12 +203,22 @@ export function reconcile(input: ReconcileInput): ReconcileOutput {
   const executed = new Set(
     layerA.map((t) => `${t.runId}\u0000${t.fromScreen}\u0000${t.elementKey}`),
   );
+  // A release is in force on every screen its portal part serves, visited since or not (spec 040
+  // T036, F-10): a screen's current epoch is its parts' newest builds anywhere in the portal, so
+  // a screen nobody looked at on the new release is untested there, not still active.
+  const newest = new Map<string, { at: string; build: string }>();
+  for (const v of input.visits)
+    for (const b of v.builds) {
+      const seen = newest.get(b.scope);
+      if (!seen || compare(v.at, seen.at) > 0) newest.set(b.scope, { at: v.at, build: b.build });
+    }
   const currentEpoch = new Map<string, string>();
   for (const s of screens) {
     const latest = input.visits
       .filter((v) => screenOfState.get(v.stateId) === s.id)
       .sort((a, b) => compare(b.at, a.at) || compare(b.id, a.id))[0];
-    currentEpoch.set(s.id, latest ? epochOfVisit(latest) : '');
+    const now = latest?.builds.map((b) => ({ scope: b.scope, build: newest.get(b.scope)!.build }));
+    currentEpoch.set(s.id, latest ? epochOfVisit({ ...latest, builds: now! }) : '');
   }
   const actionClasses: ActionClassRow[] = [];
   for (const s of [...screens].sort((a, b) => compare(a.id, b.id))) {

@@ -19,9 +19,11 @@ import {
   replayStepResult,
   resolveErrorReplays,
   resolveRuleMismatch,
+  usePlannerMarks,
+  writePlannerMarks,
 } from '@pathfinder/store';
 import type { ToolCall } from './local-client.js';
-import { replay } from './replay-driver.js';
+import { type PrefixCache, prefixCache, replay } from './replay-driver.js';
 
 type Raw = OpenedDb['raw'];
 
@@ -37,6 +39,18 @@ export interface ReplayPortalReport {
   /** Boundary and regression tests replayed, and the rules that moved. */
   tests: number;
   moves: { hypothesis: string; to: string }[];
+  /** Steps not replayed: a later plan started where an earlier one with its prefix got to. */
+  stepsSaved: number;
+}
+
+/** The address a run observed a state under (the latest visit). */
+function observedUrl(raw: Raw, runId: string, stateId: string): string | null {
+  const row = raw
+    .prepare(
+      'SELECT url FROM observations WHERE run_id = ? AND state_id = ? ORDER BY created_at DESC, id DESC LIMIT 1',
+    )
+    .get(runId, stateId) as { url: string | null } | undefined;
+  return row?.url ?? null;
 }
 
 export interface ReplayPortalOptions {
@@ -69,7 +83,7 @@ async function runMismatches(
   raw: Raw,
   portal: string,
   r: ReplayPortalReport,
-  opts: { budget: number; today?: string },
+  opts: { budget: number; today?: string; cache: PrefixCache },
 ) {
   const left = opts.budget - r.replays;
   if (left <= 0) return;
@@ -78,7 +92,7 @@ async function runMismatches(
     ...(opts.today ? { today: opts.today } : {}),
   });
   for (const m of plans) {
-    const outcome = await replay(call, m.plan);
+    const outcome = await replay(call, m.plan, opts.cache);
     r.replays += 1;
     const seen =
       outcome.status === 'reached'
@@ -106,19 +120,28 @@ export async function replayPortal(
     mismatches: [],
     tests: 0,
     moves: [],
+    stepsSaved: 0,
   };
+  // Cheap starts for tests and mismatches (spec 040 T032); R1's error replays keep their whole
+  // path, since they ask whether the error comes back on the same way.
+  const cache = prefixCache((runId, stateId) => observedUrl(raw, runId, stateId));
   await runErrors(call, raw, portal, r, budget);
-  await runMismatches(call, raw, portal, r, { budget, ...today });
+  await runMismatches(call, raw, portal, r, { budget, cache, ...today });
   r.regressions = queueRegressions(raw, portal, { all: opts.regress === true });
   const left = budget - r.replays;
-  if (left <= 0) return r;
-  for (const plan of pendingReplays(raw, portal, { limit: left, ...today })) {
-    recordReplay(raw, plan.testId, await replay(call, plan));
-    r.replays += 1;
-    r.tests += 1;
+  if (left > 0) {
+    for (const plan of pendingReplays(raw, portal, { limit: left, ...today })) {
+      const outcome = await replay(call, plan, cache);
+      recordReplay(raw, plan.testId, outcome);
+      if (outcome.runId) usePlannerMarks(raw, portal, plan.hypothesis, outcome.runId);
+      r.replays += 1;
+      r.tests += 1;
+    }
+    r.moves = judgeReplays(raw, portal);
+    recordRuleMismatches(raw, portal);
+    await runMismatches(call, raw, portal, r, { budget, cache, ...today });
   }
-  r.moves = judgeReplays(raw, portal);
-  recordRuleMismatches(raw, portal);
-  await runMismatches(call, raw, portal, r, { budget, ...today });
+  r.stepsSaved = cache.saved;
+  writePlannerMarks(raw, portal); // what is still open after these replays
   return r;
 }

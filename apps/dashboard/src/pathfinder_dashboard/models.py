@@ -529,6 +529,19 @@ class HypothesisEvent(Row):
     actor: str
     reason: str
     at: str
+    decision_id: str | None
+    undoes: str | None
+
+
+class HypothesisWording(Row):
+    """0046: a person's Reword of a rule; append-only, the latest row is the wording in force."""
+
+    id: str
+    hypothesis_id: str
+    wording: str
+    actor: str
+    reason: str | None
+    at: str
 
 
 class FingerprintProfile(Row):
@@ -1427,6 +1440,7 @@ TABLE_MODELS: dict[str, type[Row]] = {
     "hypothesis_evidence": HypothesisEvidence,
     "hypothesis_tests": HypothesisTest,
     "hypothesis_events": HypothesisEvent,
+    "hypothesis_wordings": HypothesisWording,
     "fingerprint_profiles": FingerprintProfile,
     "tau_acceptances": TauAcceptance,
     "correlation_ids": CorrelationId,

@@ -3,6 +3,9 @@ variants and why, last seen, checked actions, part and process; one screen's pag
 
 from __future__ import annotations
 
+from pathfinder_dashboard import queries_model_screens
+from pathfinder_dashboard.queries_changes import Explanation
+
 from .conftest import Store, ts
 from .test_changes import P, seed_process_and_releases
 from .test_chat import text
@@ -60,3 +63,34 @@ def test_a_screen_page_shows_needs_variants_actions_and_history(empty_store: Sto
     assert "button|dalej||" in flat and "Not checked" in flat and "not tried yet" in flat
     assert "History · 6" in flat and 'href="/changes/d1' in html
     assert missing.status_code == 404 and "Screen not found" in missing.text
+
+
+def test_variants_say_why_in_six_words_and_coverage_names_the_release(
+    empty_store: Store,
+) -> None:
+    """Spec 040 FR-008 (Release · Persona · Error · A/B test · Data · Unknown) and FR-009
+    ("checked 1 / 2 on 3e1a")."""
+    seed_screens(empty_store)
+    with client(empty_store) as c:
+        page = c.get(f"/screens/SC-0001?portal={P}").text
+        listing = text(c.get(f"/screens?portal={P}").text)
+    assert ">Release 3e1a<" in page  # r2 came with release 3e1a
+    assert "1 / 2 on 3e1a" in listing
+    assert queries_model_screens.why_of(Explanation("Another persona", "", "")) == "Persona"
+    assert queries_model_screens.why_of(Explanation("Something new", "", "")) == "Unknown"
+
+
+def test_the_list_filters_by_part_and_why_and_sorts(empty_store: Store) -> None:
+    """Spec 039 F-51: Part, a variant's why, and the sort."""
+    seed_screens(empty_store)
+    with client(empty_store) as c:
+        html = c.get(f"/screens?portal={P}").text
+        shell = c.get(f"/screens?portal={P}&part=Shell").text
+        release = c.get(f"/screens?portal={P}&why=Release").text
+        persona = text(c.get(f"/screens?portal={P}&why=Persona").text)
+        by_key = c.get(f"/screens?portal={P}&sort=key&status=").text
+    assert '<option value="Shell">Shell</option>' in html and 'name="sort"' in html
+    assert ">SC-0001<" in shell and ">SC-0002<" not in shell  # SC-0002 was never seen
+    assert ">SC-0001<" in release and ">SC-0002<" not in release
+    assert "No screen matches" in persona and "Clear filters" in persona
+    assert by_key.index(">SC-0001<") < by_key.index(">SC-0002<")

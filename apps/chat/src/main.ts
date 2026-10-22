@@ -23,6 +23,7 @@ import {
   describePortal,
   removeEnvironment,
   setEnvironment,
+  setHints,
 } from './portals.js';
 import { createProcessService } from './process-service.js';
 import { createProbeSuiteService } from './probe-suites.js';
@@ -110,6 +111,7 @@ async function main(): Promise<void> {
       describe: (id) => describePortal({ repoRoot }, id),
       setEnvironment: (id, env, body) => setEnvironment({ repoRoot }, id, env, body),
       removeEnvironment: (id, env) => removeEnvironment({ repoRoot }, id, env),
+      setHints: (id, body) => setHints({ repoRoot }, id, body),
     },
   });
   const reconcile = async (): Promise<void> => {

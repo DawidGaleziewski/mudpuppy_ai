@@ -180,7 +180,9 @@ describe('reconcile (spec 039 design § 7)', () => {
       visits: [...b.visits, visit('v4', 'r3', 'home1', '2026-10-20T01:00:00.000Z', 'B2')],
     });
     const send = out.actionClasses.find((a) => a.elementKey === 'button|wyślij|main|');
-    expect(send?.status).toBe('active'); // its screen's latest visit is still on B1
+    // B2 is the release in force for the shell (design § 6.7; F-13@039 kept B1, spec 040 F-10):
+    // nobody looked at this screen on B2, so it is not checked there.
+    expect(send?.status).toBe('untested');
     expect(out.actionClasses.every((a) => a.status !== 'retired')).toBe(true);
   });
 });

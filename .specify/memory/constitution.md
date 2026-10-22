@@ -195,7 +195,7 @@ Markdown, Mermaid and Gherkin are rendered from it. Generated tests MUST be plai
   (`docs:review`), which validates with Zod and writes through the same schemas; the dashboard
   process itself opens the store read-only. A Python analysis worker (decision mining, community
   detection) MAY compute from a read-only store connection; its output is written only through a
-  TypeScript command that validates it with Zod (`model:import`).
+  TypeScript command that validates it with Zod (`model:mine`).
 - **Storage**: SQLite (better-sqlite3 with Kysely or Drizzle) including a `jobs` table for the
   queue; evidence on the filesystem under content-addressed (sha256) names. Postgres or a graph
   DB requires a documented justification.

@@ -15,11 +15,11 @@ from typing import Any
 
 import httpx2
 from fastapi import FastAPI, Request
-from fastapi.responses import RedirectResponse, Response
+from fastapi.responses import PlainTextResponse, RedirectResponse, Response
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
-from . import chat_client, glossary, live, nav, queries_docs, queries_map_node, status_map
+from . import as_of, chat_client, glossary, live, nav, queries_docs, queries_map_node, status_map
 from .models import DECISION_KINDS, FRONTIER_STATUSES, RUN_STATUSES, SAFETY_CLASSES
 from .settings import Settings
 from .web import access as access_page
@@ -33,6 +33,7 @@ from .web import events as events_page
 from .web import evidence as evidence_page
 from .web import glossary as glossary_page
 from .web import health as health_page
+from .web import hints as hints_page
 from .web import map as map_page
 from .web import overview as overview_page
 from .web import plan as plan_page
@@ -95,6 +96,7 @@ def create_app(
     templates.env.globals["nav_section"] = nav.current_section
     templates.env.globals["section_href"] = nav.href_of
     templates.env.globals["chat_start_hint"] = chat_client.start_hint
+    templates.env.globals["AS_OF_SECTIONS"] = as_of.SECTIONS
 
     # Shared page helpers (web/deps.py); the page routers get them with `web_of(request)`.
     web = Web(settings, templates, chat_transport)
@@ -118,6 +120,10 @@ def create_app(
         """The header's portal dropdown (spec 011 FR-002): `?portal=` is kept in a cookie;
         "+ new portal" opens the form."""
         chosen = request.query_params.get("portal")
+        if request.method == "POST" and request.query_params.get("as_of"):
+            # As of a past version nothing is changed (spec 040 FR-001): forms built on such a
+            # page carry `as_of`, so the refusal holds without the page's script.
+            return PlainTextResponse("Back to now to change anything.", status_code=409)
         if chosen == NEW_PORTAL:
             return RedirectResponse(build_url("/portals/new", env=request.query_params.get("env")))
         response: Response = await call_next(request)
@@ -153,6 +159,7 @@ def create_app(
     app.include_router(process_export_page.router)
     app.include_router(map_page.router)
     app.include_router(same_screen_page.router)
+    app.include_router(hints_page.router)
     # Last: its /chat/portals/{portal}/{rest} forwarder must not shadow the routes above.
     app.include_router(processes_page.router)
     return app

@@ -9,6 +9,8 @@
 // - `POST /portals/{p}/model/label`: a person's answer to "Same screen?" for two page versions
 //   (designer screen v2-14): same screen, same with different data, or different screens. A
 //   constraint for the next rebuild. Same effect as `pnpm model:decide … label`.
+// - `POST /portals/{p}/model/undo`: Undo one decide command (all its keys), spec 040 T010.
+// - `POST /portals/{p}/model/reword`: a person's sentence for a rule in the documentation (T014).
 
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import type BetterSqlite3 from 'better-sqlite3';
@@ -18,13 +20,16 @@ import {
   acceptTau,
   decideHypothesis,
   labelPair,
+  rewordHypothesis,
+  undoDecision,
 } from '@pathfinder/store';
+import { newId } from '@pathfinder/core';
 import { z } from 'zod';
 import { HttpError } from './http-error.js';
 import { readJson, sendJson } from './http-io.js';
 import type { ExperimentFlag } from './portals.js';
 
-const ROUTE = /^\/portals\/([^/]+)\/model\/(accept|decide|label)$/;
+const ROUTE = /^\/portals\/([^/]+)\/model\/(accept|decide|label|undo|reword)$/;
 
 /** Who decides (the dashboard's reviewer). */
 const By = z.string().trim().min(1).max(200);
@@ -53,6 +58,17 @@ const LabelBody = z
     a: z.string().min(1).max(200),
     b: z.string().min(1).max(200),
     answer: z.enum(['same', 'same_data', 'different']),
+    by: By,
+    reason: z.string().trim().max(2000).optional(),
+  })
+  .strict();
+
+const UndoBody = z.object({ decision: z.string().min(1).max(200), by: By }).strict();
+
+const RewordBody = z
+  .object({
+    key: z.string().regex(/^H-\d{4,}$/),
+    wording: z.string().trim().min(1).max(2000),
     by: By,
     reason: z.string().trim().max(2000).optional(),
   })
@@ -100,18 +116,31 @@ function decide(
   addFlag?: AddFlag,
 ): unknown {
   const { keys, decision, by, reason } = parse(DecideBody, body);
+  const decisionId = newId(); // one command, one Undo (designer § 5.4)
   const decided = raw.transaction(() =>
     keys.map((key) => ({
       key,
-      status: decideHypothesis(raw, { portal, key, decision, actor: by, reason }),
+      status: decideHypothesis(raw, { portal, key, decision, actor: by, reason, decisionId }),
     })),
   )();
-  if (decision !== 'confirm' || addFlag === undefined) return { decided };
+  if (decision !== 'confirm' || addFlag === undefined) return { decision: decisionId, decided };
   const hints = keys.flatMap((key) => {
     const flag = abFlagOf(raw, portal, key);
     return flag !== null && addFlag(portal, flag) ? [`${flag.kind} ${flag.name}`] : [];
   });
-  return { decided, hints };
+  return { decision: decisionId, decided, hints };
+}
+
+/** Undo one decide command. A hint a confirmed A/B test added stays (Settings ▸ Hints edits it). */
+function undo(raw: BetterSqlite3.Database, portal: string, body: unknown): unknown {
+  const { decision, by } = parse(UndoBody, body);
+  return { undone: undoDecision(raw, { portal, decisionId: decision, actor: by }) };
+}
+
+function reword(raw: BetterSqlite3.Database, portal: string, body: unknown): unknown {
+  const { key, wording, by, reason } = parse(RewordBody, body);
+  rewordHypothesis(raw, { portal, key, wording, actor: by, ...(reason ? { reason } : {}) });
+  return { reworded: { key, wording } };
 }
 
 /**
@@ -150,7 +179,7 @@ function label(raw: BetterSqlite3.Database, portal: string, body: unknown): unkn
   return { labelled: { a, b, answer } };
 }
 
-const HANDLERS = { accept, decide, label } as const;
+const HANDLERS = { accept, decide, label, undo, reword } as const;
 
 /** Handles the request when it is a model route; returns false otherwise. */
 export async function modelRoutes(

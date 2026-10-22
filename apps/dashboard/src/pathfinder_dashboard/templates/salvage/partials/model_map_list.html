@@ -14,7 +14,7 @@
             {%- for word, chip in n.chips %} <span class="sy-chip{% if chip %} sy-chip--{{ chip }}{% endif %}">{{ word }}</span>{% endfor %}{% endif %}</th>
           <td>{%- set links = m.out_links.get(n.id, []) %}
             {%- if links %}<span class="sy-stack" style="--sy-gap: 2px">
-            {%- for l in links %}<span class="sy-cluster" style="--sy-gap: 6px"><span class="sy-case-normal">{{ l.to_title }}</span>{% if l.state != "active" %}{{ sy.status("action", l.state) }}{% endif %}</span>{% endfor %}</span>
+            {%- for l in links %}<span class="sy-cluster" style="--sy-gap: 6px"><span class="sy-case-normal">{{ l.to_title }}</span>{% if l.rule %}<span class="sy-mono sy-mono--sm">if {{ l.rule }}</span>{% endif %}{% if l.state != "active" %}{{ sy.status("action", l.state) }}{% endif %}</span>{% endfor %}</span>
             {%- else %}<span class="sy-muted">—</span>{% endif %}</td>
           <td class="sy-num">{{ n.actions if n.kind == "screen" else "" }}</td>
           <td>{{ n.role | lower if n.role else "" }}</td>

@@ -102,7 +102,11 @@ Layer: servers (G-07; `apps/crawler/layers.json`)
   recorded prefix by model element keys in a probe run, no LLM) and `replay-portal.ts`
   (`replayPortal`: R1 error replays, R8 rule mismatches, then boundary and regression tests, one
   budget; `pnpm model:replay`, `model:regress`) and `explore-process.ts` (`exploreProcess`: one
-  pass of the stopping rule over a process, `pnpm model:explore`, T075). Probe runs (`runs.mode = 'probe'`, design § 9):
+  pass of the stopping rule over a process, `pnpm model:explore`, T075).
+  Spec 040: `boundary-suites.ts` (`proposeBoundarySuites`: a mined rule's boundary tests as one
+  open probe suite for Review, a variant per test; after mining at a run's end and in
+  `pnpm model:mine`); the replay driver's prefix cache (`PrefixCache`, `replay-driver.ts`);
+  `ServerContext.miner` (the MCP server mines after a run's rebuild, local clients do not). Probe runs (`runs.mode = 'probe'`, design § 9):
   `start_run` `mode: 'probe'` + `replay {inputs}` (`RunChoices.replay`, `RunState.headless`):
   element keys in results, autofill types the inputs first, transitions `driver = 'headless'`, no
   frontier drain. Not spec 032's form-probing runs (`form_probing`, T116@039).

@@ -11,6 +11,7 @@ import sqlite3
 from collections.abc import Iterator
 from contextlib import contextmanager
 from dataclasses import dataclass, field
+from functools import cached_property
 from pathlib import Path
 from typing import Any
 from urllib.parse import urlencode, urlsplit
@@ -20,6 +21,7 @@ from fastapi import Request
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 
+from .. import as_of as asof
 from .. import db, glossary, queries_chat, queries_review, servers, stores
 from ..settings import Settings
 
@@ -142,11 +144,43 @@ class Ctx:
         (owner 2026-10-15, spec 029; spec 028 F-01)."""
         if self.portal and "portal" not in params and _portal_keyed(path, params):
             params["portal"] = self.portal
+        if self.as_of and "as_of" not in params and asof.follows(path):
+            params["as_of"] = self.as_of.seq
         return build_url(path, store=self.store_param, **params)
 
+    @cached_property
+    def as_of(self) -> asof.Version | None:
+        """The past model version `?as_of=` names on a model page (spec 040 FR-001); None: Now."""
+        seq = self.request.query_params.get("as_of")
+        if not seq or not asof.follows(self.request.url.path):
+            return None
+        try:
+            with self.conn(now=True) as conn:
+                return asof.find(conn, self.portal, seq)
+        except db.StoreMissing:
+            return None
+
+    def as_of_versions(self) -> list[asof.Version]:
+        """The header's As of menu: the portal's model versions, newest first."""
+        if not self.portal:
+            return []
+        try:
+            with self.conn(now=True) as conn:
+                return asof.versions(conn, self.portal)
+        except db.StoreMissing:
+            return []
+
+    def as_of_url(self, seq: int | None) -> str:
+        """This page as of version `seq` (None: Now), its other query parameters kept."""
+        params = {k: v for k, v in self.request.query_params.items() if k != "as_of"}
+        return build_url(self.request.url.path, **params, as_of=seq)
+
     @contextmanager
-    def conn(self) -> Iterator[sqlite3.Connection]:
-        conn = db.connect(self.data_dir, self.env)
+    def conn(self, now: bool = False) -> Iterator[sqlite3.Connection]:
+        """The store; on a model page As of a past version, only what existed then (`now`: all)."""
+        past = None if now else self.as_of
+        shadow = (lambda c: asof.shadow(c, past.built_at)) if past else None
+        conn = db.connect(self.data_dir, self.env, shadow)
         try:
             yield conn
         finally:
@@ -206,7 +240,7 @@ class Web:
     def review_count(self, c: Ctx) -> int:
         """The nav's Review marker (FE-N04) for the chosen portal."""
         try:
-            with c.conn() as conn:
+            with c.conn(now=True) as conn:
                 return queries_review.count(conn, c.portal)
         except db.StoreMissing:
             return 0

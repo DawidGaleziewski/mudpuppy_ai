@@ -5,7 +5,7 @@ import {
   processKeys,
   resolveProcessSteps,
 } from '../src/process-export/index.js';
-import { noiseKind, schemaOfShape } from '../src/process-export/contracts.js';
+import { noiseKind, responseVersions, schemaOfShape } from '../src/process-export/contracts.js';
 import {
   makeFixtureStore,
   seedDocRecords,
@@ -146,6 +146,45 @@ describe('contracts helpers', () => {
       noiseKind({ url_template: '/g/collect', url: 'https://www.google-analytics.com/g/collect' }),
     ).toBe('analytics');
     expect(noiseKind({ url_template: '/api/quotes', url: 'https://x.test/api/quotes' })).toBeNull();
+  });
+
+  it("groups an endpoint's responses by schema hash, first seen first (spec 040 T031)", () => {
+    const call = (id: string, at: string, hash: string | null, res: string) => ({
+      id,
+      run_id: 'r1',
+      method: 'GET',
+      url_template: '/api/quote',
+      url: null,
+      status: 200,
+      req_schema: '{}',
+      res_schema: res,
+      req_sample: null,
+      res_sample: null,
+      created_at: at,
+      trigger: null,
+      schema_hash: hash,
+    });
+    const versions = responseVersions({
+      calls: [
+        call(
+          'c2',
+          '2026-10-16T10:00:00Z',
+          'b'.repeat(64),
+          '{"price":"number","currency":"string"}',
+        ),
+        call('c1', '2026-10-15T10:00:00Z', 'a'.repeat(64), '{"price":"number"}'),
+        call(
+          'c3',
+          '2026-10-17T10:00:00Z',
+          'b'.repeat(64),
+          '{"price":"number","currency":"string"}',
+        ),
+      ],
+    });
+    expect(versions.map((v) => [v.hash?.[0], v.calls.length, v.first, v.last])).toEqual([
+      ['a', 1, '2026-10-15T10:00:00Z', '2026-10-15T10:00:00Z'],
+      ['b', 2, '2026-10-16T10:00:00Z', '2026-10-17T10:00:00Z'],
+    ]);
   });
 
   it('turns a recorded shape into a JSON schema', () => {

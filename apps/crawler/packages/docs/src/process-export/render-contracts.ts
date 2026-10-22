@@ -3,7 +3,7 @@
 // and pseudo-code of what the page checks before it calls them (from the recorded form fields).
 
 import { doc, inline, table } from '../render/format.js';
-import type { Endpoint } from './contracts.js';
+import { responseVersions, type Endpoint } from './contracts.js';
 import type { ProcessExportModel, StepModel } from './model.js';
 import { navLine } from './render-steps.js';
 
@@ -17,6 +17,37 @@ const shape = (json: string): string => {
     return '';
   }
 };
+
+/**
+ * The response contracts by schema hash (spec 039 § 16, spec 040 T031): shown when the endpoint
+ * answered in more than one shape, oldest first, each with when it was seen and its shape.
+ */
+function versionsBlock(ep: Endpoint): string[] {
+  const versions = responseVersions(ep);
+  if (versions.length < 2) return [];
+  return [
+    '',
+    `### Response contracts · ${versions.length}`,
+    '',
+    'The response changed shape while it was recorded (grouped by schema hash: the key paths and their types).',
+    '',
+    ...table(
+      ['#', 'Schema', 'First seen', 'Last seen', 'Calls', 'Statuses'],
+      versions.map((v, i) => [
+        i + 1,
+        v.hash ? `\`${v.hash.slice(0, 12)}\`` : 'not JSON',
+        v.first.slice(0, 19),
+        v.last.slice(0, 19),
+        v.calls.length,
+        [...new Set(v.calls.map((c) => c.status))].join(', '),
+      ]),
+    ),
+    ...versions.flatMap((v, i) => {
+      const res = shape(v.calls[v.calls.length - 1]!.res_schema);
+      return res ? ['', `Contract ${i + 1}:`, '', '```json', res, '```'] : [];
+    }),
+  ];
+}
 
 function endpointBlock(ep: Endpoint): string[] {
   const latest = ep.calls[ep.calls.length - 1]!;
@@ -33,6 +64,7 @@ function endpointBlock(ep: Endpoint): string[] {
     `${ep.host ? `Host \`${ep.host}\` · ` : ''}called from step ${ep.steps.join(', ')} · ${statuses}`,
     ...(req ? ['', '**Request** (shape)', '', '```json', req, '```'] : []),
     ...(res ? ['', '**Response** (shape)', '', '```json', res, '```'] : []),
+    ...versionsBlock(ep),
     '',
     '### Attempts',
     '',

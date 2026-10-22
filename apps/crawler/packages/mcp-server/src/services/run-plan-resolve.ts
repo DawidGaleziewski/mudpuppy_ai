@@ -39,6 +39,7 @@ async function openMarks(ctx: ServerContext, portal: string, kinds: MarkKind[]):
     .select(['id', 'kind', 'form_step_id', 'state_id', 'transition_id'])
     .where('portal_id', '=', portal)
     .where('kind', 'in', kinds)
+    .where('origin', '=', 'person') // the planner's marks are for probe runs (spec 040 T033)
     .where('used_by_run_id', 'is', null)
     .orderBy('created_at')
     .execute();

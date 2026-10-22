@@ -1,5 +1,5 @@
 import type { EvidenceStore, Logger } from '@pathfinder/core';
-import type { DecisionLog, OpenedDb, PathfinderDb, Tracer } from '@pathfinder/store';
+import type { DecisionLog, MinerRun, OpenedDb, PathfinderDb, Tracer } from '@pathfinder/store';
 import type { captureVisuals } from '@pathfinder/crawler';
 
 /**
@@ -37,6 +37,8 @@ export interface ServerContext {
   root: string;
   /** Environment whose database file this server records into (`data/db/<env>.sqlite`). */
   dbEnvironment: string;
+  /** Mines business rules after a run's rebuild (spec 040 T030); absent: no mining. */
+  miner?: MinerRun | null;
   /** Used only for robots.txt (spec 002 FR-001); injectable so tests never reach the network. */
   fetch?: typeof fetch;
   /** Vault key file (spec 009); default `PATHFINDER_VAULT_KEY_FILE` or `~/.config/pathfinder/vault.key`. */

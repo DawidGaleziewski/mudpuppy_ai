@@ -35,25 +35,40 @@ export interface HypothesisEvent {
   /** Required: so owner reasons are kept (design § 10.1, R-78 (1)). */
   reason: string;
   at: string;
+  /** An Undo (spec 040 T010): reverts the move before it, back to the status that move left. */
+  undo?: boolean;
 }
 
 export class LifecycleError extends Error {}
 
-/** The status after `events` (in order), refusing a move the lifecycle does not allow. */
+/**
+ * The status after `events` (in order), refusing a move the lifecycle does not allow. An undo
+ * event reverts the latest move not yet undone, so its `to` must be the status before that move;
+ * the first event cannot be undone.
+ */
 export function statusOf(events: readonly HypothesisEvent[]): HypothesisStatus {
   const first = events[0];
   if (!first) throw new LifecycleError('a hypothesis has at least one event');
   if (first.to !== 'proposed' && first.to !== 'confirmed' && first.to !== 'testing')
     throw new LifecycleError(`a hypothesis starts proposed, testing or confirmed, not ${first.to}`);
-  let status: HypothesisStatus = first.to;
+  if (first.undo) throw new LifecycleError('the first event cannot be an undo');
+  const history: HypothesisStatus[] = [first.to];
   for (const e of events) {
     if (!e.reason.trim()) throw new LifecycleError('every hypothesis event needs a reason');
     if (e === first) continue;
+    const status = history[history.length - 1]!;
+    if (e.undo) {
+      const before = history[history.length - 2];
+      if (before === undefined) throw new LifecycleError('nothing to undo');
+      if (e.to !== before) throw new LifecycleError(`undo returns to ${before}, not ${e.to}`);
+      history.pop();
+      continue;
+    }
     if (!NEXT[status].includes(e.to))
       throw new LifecycleError(`${status} → ${e.to} is not a lifecycle move`);
-    status = e.to;
+    history.push(e.to);
   }
-  return status;
+  return history[history.length - 1]!;
 }
 
 /** Kinds the reconciler confirms itself, as derived facts (design § 10.3, constitution 6.0.0). */

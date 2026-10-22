@@ -199,6 +199,16 @@ export function startReferencePortal(opts: StartOptions): Promise<ReferencePorta
   const scenarios = [...(opts.scenarios ?? [])];
   const assets = instanceAssets(scenarios);
 
+  /** Earlier GETs of this very address (path and query) on this instance (flaky-page, spec 040). */
+  const loadsBefore = (path: string, p: Params): number => {
+    const query = new URLSearchParams(p as Record<string, string>).toString();
+    const same = (r: LoggedRequest) =>
+      r.method === 'GET' &&
+      (r.path.length > 1 ? r.path.replace(/\/$/, '') : r.path) === path &&
+      new URLSearchParams(r.query).toString() === query;
+    return requests.filter(same).length - 1; // this request is already logged
+  };
+
   /** An asset, a page, or the error a scenario injects for this request. */
   const serveGet = (res: ServerResponse, path: string, p: Params): void => {
     const asset = assetFor(assets, path);
@@ -207,7 +217,8 @@ export function startReferencePortal(opts: StartOptions): Promise<ReferencePorta
     if (extra !== null) return send(res, 200, extra);
     const handler = GET_ROUTES[path];
     if (!handler) return send(res, 404, notFound());
-    if (failsUnder(path, p, scenarios)) return send(res, 500, SERVER_ERROR_PAGE);
+    if (failsUnder(path, p, scenarios, loadsBefore(path, p)))
+      return send(res, 500, SERVER_ERROR_PAGE);
     const out = handler(p);
     return typeof out === 'string' ? send(res, 200, out) : sendPage(res, out);
   };

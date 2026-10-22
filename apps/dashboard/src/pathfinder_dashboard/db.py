@@ -8,6 +8,7 @@ guard. WAL readers never block the writer.
 from __future__ import annotations
 
 import sqlite3
+from collections.abc import Callable
 from pathlib import Path
 
 from .models import StoreInfo
@@ -49,13 +50,18 @@ def resolve_env(data_dir: Path, requested: str | None, default: str) -> str:
     return envs[0]
 
 
-def connect(data_dir: Path, env: str) -> sqlite3.Connection:
-    """Open the store read-only. Never creates the file (unlike a default `connect`)."""
+def connect(
+    data_dir: Path, env: str, shadow: Callable[[sqlite3.Connection], None] | None = None
+) -> sqlite3.Connection:
+    """Open the store read-only. Never creates the file (unlike a default `connect`). `shadow`
+    adds TEMP views first (As of, spec 040 FR-001), the only thing written, and not to the file."""
     path = store_path(data_dir, env)
     if not path.is_file():
         raise StoreMissing(path)
     conn = sqlite3.connect(f"{path.resolve().as_uri()}?mode=ro", uri=True, check_same_thread=False)
     conn.row_factory = sqlite3.Row
+    if shadow:
+        shadow(conn)
     conn.execute("PRAGMA query_only = ON")
     conn.execute("PRAGMA busy_timeout = 2000")
     return conn

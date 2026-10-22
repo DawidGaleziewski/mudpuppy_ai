@@ -22,9 +22,10 @@
 <script src="/static/js/forms.js" defer></script>
 <script src="/static/js/shell.js" defer></script>
 <script src="/static/js/assistant.js" defer></script>
+{%- if c.as_of %}<script src="/static/js/as-of.js" defer></script>{% endif %}
 {% block head_extra %}{% endblock %}
 </head>
-<body class="sy-ground"{% if dev %} data-dev="1"{% endif %} data-boot="{{ BOOT_ID }}" data-chat-start="{{ chat_start_hint(env) }}">
+<body class="sy-ground"{% if dev %} data-dev="1"{% endif %}{% if c.as_of %} data-as-of="{{ c.as_of.seq }}"{% endif %} data-boot="{{ BOOT_ID }}" data-chat-start="{{ chat_start_hint(env) }}">
 <a class="sy-skip" href="#main">Skip to content</a>
 <div class="sy-app">
   {% include "salvage/partials/header.html" %}
@@ -35,6 +36,11 @@
       <div class="sy-callout sy-callout--failure" role="status"><p class="sy-callout__title">Store gone</p><p>{{ c.store_note }}</p></div>
       {%- elif c.store.kind == "eval" %}
       <div class="sy-callout" role="status"><p>Reading the eval workspace <span class="sy-mono">{{ c.store.data_dir.parent.name }}</span> ({{ c.store.label }}), read-only.</p></div>
+      {%- endif %}
+      {%- if c.as_of %}
+      <div class="sy-callout" role="status" id="as-of"><p class="sy-callout__title">As of version {{ c.as_of.seq }}</p>
+        <p>You are looking at the portal model as it was on {{ c.as_of.built_at | when }}{% if c.as_of.releases %} ({{ c.as_of.releases | join(", ") }}){% endif %}. Nothing can be changed here; downloads and exports show now.</p>
+        <p><a class="sy-btn sy-btn--sm" href="{{ c.as_of_url(none) }}">Back to now</a></p></div>
       {%- endif %}
       {%- set strays = stray_servers() if stray_servers is defined else [] %}
       {%- if strays %}

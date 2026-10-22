@@ -93,7 +93,9 @@ def open_mark_count(conn: sqlite3.Connection, portal: str) -> int:
     """The Next scan plan tray's count on the map (design §6)."""
     try:
         row = conn.execute(
-            "SELECT count(*) FROM marks WHERE portal_id = ? AND used_by_run_id IS NULL",
+            # A person's marks; the planner's are for probe runs (spec 040 T033).
+            "SELECT count(*) FROM marks WHERE portal_id = ? AND used_by_run_id IS NULL"
+            " AND origin = 'person'",
             (portal,),
         ).fetchone()
     except sqlite3.OperationalError:
@@ -109,7 +111,7 @@ def plan(conn: sqlite3.Connection, portal: str) -> Plan:
             " WHEN state_id IS NOT NULL THEN 'state' ELSE 'transition' END AS target_kind,"
             " coalesce(form_step_id, state_id, transition_id) AS target_id, created_by,"
             " created_at FROM marks WHERE portal_id = ? AND used_by_run_id IS NULL"
-            " ORDER BY created_at",
+            " AND origin = 'person' ORDER BY created_at",
             (portal,),
         ).fetchall()
     except sqlite3.OperationalError:

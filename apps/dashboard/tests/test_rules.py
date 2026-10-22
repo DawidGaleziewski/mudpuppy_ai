@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 
+import httpx2
 from fastapi.testclient import TestClient
 
 from pathfinder_dashboard.app import create_app
@@ -11,6 +12,10 @@ from pathfinder_dashboard.settings import Settings
 
 from .conftest import Store, add_record, add_session, ts
 from .test_changes import P, seed, seed_rule_and_rename
+from .test_chat import ORIGIN, Service, text
+from .test_processes_pages import client as chat_client
+
+FORM = {"Content-Type": "application/x-www-form-urlencoded", **ORIGIN}
 
 
 def seed_table_rule(store: Store) -> None:
@@ -131,3 +136,64 @@ def test_the_nav_is_grouped_and_has_changes_and_rules(empty_store: Store) -> Non
     assert 'class="sy-nav__group" aria-hidden="true">Portal model' in html
     assert 'class="sy-nav__group" aria-hidden="true">Machine' in html
     assert 'href="/changes' in html and 'aria-current="page">Rules' in html
+
+
+def test_a_rule_is_reworded_through_the_chat_service(empty_store: Store) -> None:
+    """Spec 040 FR-007 (v2-12 Decision · Reword): the sentence goes to the chat service, signed
+    with the reviewer; a stored wording is shown in place of the mined sentence, newest first."""
+    seed(empty_store)
+    seed_table_rule(empty_store)
+    service = Service()
+    service.routes[("POST", f"/portals/{P}/model/reword")] = httpx2.Response(
+        201, json={"reworded": "H-0003"}
+    )
+    with chat_client(empty_store, service) as c:
+        page = c.get(f"/rules/H-0003?portal={P}").text
+        assert "/rules/H-0003/reword" in page and "No one has reworded it yet" in page
+        r = c.post(
+            f"/rules/H-0003/reword?portal={P}",
+            content="key=H-0003&wording=Drivers+under+18+are+refused.&reason=",
+            headers=FORM,
+            follow_redirects=False,
+        )
+        assert r.status_code == 303 and "Reworded" in text(c.get(r.headers["location"]).text)
+        empty = c.post(
+            f"/rules/H-0003/reword?portal={P}", content="key=H-0003&wording=+", headers=FORM
+        )
+        assert "A wording needs a sentence." in text(empty.text)
+    (sent,) = [json.loads(q.content) for q in service.requests if q.url.path.endswith("/reword")]
+    assert sent == {"key": "H-0003", "wording": "Drivers under 18 are refused.", "by": "Anna"}
+    conn = empty_store.connect()
+    for i, words in enumerate(("First try.", "Drivers under 18 are refused.")):
+        conn.execute(
+            "INSERT INTO hypothesis_wordings (id, hypothesis_id, wording, actor, at)"
+            " VALUES (?, 'h3', ?, 'Anna', ?)",
+            (f"w{i}", words, ts(5 + i)),
+        )
+    conn.commit()
+    conn.close()
+    with chat_client(empty_store) as c:
+        shown = text(c.get(f"/rules/H-0003?portal={P}").text)
+    assert "reworded by Anna" in shown and "2 wordings so far" in shown
+    assert shown.index("Drivers under 18 are refused.") < shown.index("First try.")
+
+
+def test_a_superseded_rule_is_changed_until_a_newer_one_replaces_it(empty_store: Store) -> None:
+    """Spec 040 FR-007: decision drift supersedes a rule; with no newer rule it is Changed (it
+    needs mining again), with one it is Replaced."""
+    seed(empty_store)
+    seed_table_rule(empty_store)
+    conn = empty_store.connect()
+    conn.execute(
+        "INSERT INTO hypothesis_events (id, hypothesis_id, from_status, to_status, actor, reason,"
+        " at) VALUES ('he33', 'h3', 'refuted', 'superseded', 'reconciler', 'decision drift', ?)",
+        (ts(6),),
+    )
+    conn.commit()
+    listing = client(empty_store).get(f"/rules?portal={P}").text
+    page = text(client(empty_store).get(f"/rules/H-0003?portal={P}").text)
+    assert "Changed · 1" in listing and "pnpm model:mine" in page
+    conn.execute("UPDATE hypotheses SET superseded_by = 'h3' WHERE id = 'h3'")
+    conn.commit()
+    conn.close()
+    assert "Replaced · 1" in client(empty_store).get(f"/rules?portal={P}").text

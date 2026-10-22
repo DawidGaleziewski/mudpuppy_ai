@@ -6,7 +6,9 @@ amendments and proposals through the chat service (forms.js posts to the `/chat/
 
 from __future__ import annotations
 
+import re
 import sqlite3
+from datetime import UTC, datetime
 from typing import Any
 from urllib.parse import parse_qs, quote
 
@@ -30,11 +32,13 @@ from .. import (
 )
 from . import views_access
 from .deps import Ctx, same_origin, web_of
+from .views_review import also_settle, model_call
 
 router = APIRouter()
 
 
 KIND_KEYS = tuple(k for k, _ in queries_review.KINDS)
+CHANGE_PAGE = re.compile(r"^/changes/[A-Za-z0-9_-]{1,64}$")  # where a decision bar may return
 
 
 def _selected(
@@ -98,10 +102,20 @@ def review_values(
     show: str | None,
     note: str | None,
     page: str | None = None,
+    part: str | None = None,
+    age: str | None = None,
 ) -> dict[str, Any]:
     portal = c.portal
     show = show if show in KIND_KEYS else None
     inbox = queries_review.inbox(conn, portal)
+    # Designer § 5.1: part and age filters with counts over the model groups.
+    now = datetime.now(UTC)
+    model = ("findings", "rules", "removals")
+    facets = queries_queue.facets([getattr(inbox, k) for k in model], part, age, now)
+    if facets.active:
+        inbox = inbox._replace(
+            **{k: queries_queue.keep(getattr(inbox, k), facets, now) for k in model}
+        )
     selected = _selected(inbox, select, show)
     # A group's own tab lists every item, 25 a page (R-71); "All" keeps the first 10 of each.
     group = pager.paginate(getattr(inbox, show), pager.page_number(page)) if show else None
@@ -112,7 +126,11 @@ def review_values(
     attrs: dict[str, str] = {}
     if portal and selected and selected[0] == "differences":
         attrs = views_access.attributes_by_persona(c.settings.personas_dir, portal)
+    also = []  # Also settles (designer § 5.5, spec 040 T023)
+    if portal and selected and selected[0] == "findings" and selected[1].keys:
+        also = queries_same_screen.linked(conn, portal, selected[1].id)
     return {
+        "also": also,
         "attrs": attrs,
         "inbox": inbox,
         "kinds": queries_review.KINDS,
@@ -126,7 +144,16 @@ def review_values(
         if group
         else None,
         "nb": _review_neighbours(c, inbox, selected, show),
-        "self_url": c.url("/fragments/review", select=select, show=show, page=shown_page),
+        "reasons": queries_queue.recent_reasons(conn, portal) if portal else {},
+        "facets": facets,
+        "self_url": c.url(
+            "/fragments/review",
+            select=select,
+            show=show,
+            page=shown_page,
+            part=facets.part,
+            age=facets.age,
+        ),
     }
 
 
@@ -142,6 +169,9 @@ def review_page(
     note: str | None = None,
     page: str | None = None,
     tab: str = "needs",
+    undo: str | None = None,
+    part: str | None = None,
+    age: str | None = None,
 ) -> HTMLResponse:
     """Three tabs (v2-04 / v2-05 / v2-16): Needs you is the inbox; Explained automatically and
     Decided list the portal model's changes a rule explained and a person's decisions."""
@@ -150,7 +180,7 @@ def review_page(
     tab = tab if tab in TABS else "needs"
     try:
         with c.conn() as conn:
-            v = review_values(c, conn, select, show, note, page)
+            v = review_values(c, conn, select, show, note, page, part, age)
             other: dict[str, Any] = {"explained": [], "decided": [], "pairs": []}
             if c.portal:
                 other["explained"] = queries_queue.explained(conn, c.portal)
@@ -158,7 +188,9 @@ def review_page(
                 other["pairs"] = queries_same_screen.queue(conn, c.portal)
     except db.StoreMissing as err:
         return web.missing(c, err)
-    return web.render(c, "salvage/review.html", nav_current="review", v=v, tab=tab, **other)
+    return web.render(
+        c, "salvage/review.html", nav_current="review", v=v, tab=tab, undo=undo, **other
+    )
 
 
 @router.post("/review/hypotheses/{portal}", response_model=None)
@@ -170,11 +202,13 @@ async def review_hypotheses(request: Request, portal: str, env: str | None = Non
     web = web_of(request)
     c = web.ctx(request, env)
     form = parse_qs((await request.body()).decode("utf-8", "replace"), keep_blank_values=True)
-    keys = [k for k in form.get("keys", []) if k]
+    # A selected row sends its keys comma-joined (a removal row may settle several).
+    keys = [k for v in form.get("keys", []) for k in v.split(",") if k]
     action = (form.get("action") or [""])[0]
     reason = (form.get("reason") or [""])[0].strip()
     select = (form.get("select") or [""])[0] or None
     author = web.settings.reviewer
+    undo: str | None = None  # the command's id, for the toast's Undo
     if not author:
         note = "Set PATHFINDER_REVIEWER to your name to decide."
     elif action not in ("confirm", "reject") or not keys:
@@ -188,13 +222,41 @@ async def review_hypotheses(request: Request, portal: str, env: str | None = Non
             "by": author,
             "reason": reason or "Confirmed in Review.",
         }
-        refused = await _suite_call(
-            web, c.env, f"/portals/{quote(portal, safe='')}/model/decide", body, ok=201
-        )
+        refused, answer = await model_call(web, c.env, portal, "decide", body)
         done = "Confirmed" if action == "confirm" else "Rejected"
         note = f"Not recorded: {refused}." if refused else f"{done}: {', '.join(keys)}."
+        if not refused and answer.get("decision"):
+            undo = str(answer["decision"])
+        if not refused and action == "confirm":
+            note += await also_settle(web, c.env, portal, form.get("also", []), keys, reason)
     keep = select if note.startswith(("Not", "A reject", "Unknown")) else None
-    return RedirectResponse(c.url("/review", portal=portal, select=keep, note=note), 303)
+    # Before / after's decision bar (spec 040 T018) comes back to the change it decided.
+    back = (form.get("back") or [""])[0]
+    if CHANGE_PAGE.match(back):
+        return RedirectResponse(c.url(back, portal=portal, note=note, undo=undo), 303)
+    target = c.url("/review", portal=portal, select=keep, note=note, undo=undo)
+    return RedirectResponse(target, 303)
+
+
+@router.post("/review/undo/{portal}", response_model=None)
+async def review_undo(request: Request, portal: str, env: str | None = None) -> Response:
+    """Undo one decision command from the toast (designer § 5.4, § 5.8): every item it decided
+    goes back to the queue. The chat service refuses when anything changed since."""
+    if not same_origin(request):
+        return PlainTextResponse("Cross-origin request refused.", status_code=403)
+    web = web_of(request)
+    c = web.ctx(request, env)
+    form = parse_qs((await request.body()).decode("utf-8", "replace"), keep_blank_values=True)
+    decision = (form.get("decision") or [""])[0]
+    author = web.settings.reviewer
+    if not author or not decision:
+        note = "Nothing to undo."
+    else:
+        body = {"decision": decision, "by": author}
+        refused, answer = await model_call(web, c.env, portal, "undo", body)
+        keys = [str(u.get("key")) for u in answer.get("undone", []) if isinstance(u, dict)]
+        note = f"Not undone: {refused}." if refused else f"Undone: {', '.join(keys)}."
+    return RedirectResponse(c.url("/review", portal=portal, note=note), 303)
 
 
 @router.get("/fragments/review", response_class=HTMLResponse)
@@ -204,12 +266,14 @@ def fragment_review(
     select: str | None = None,
     show: str | None = None,
     page: str | None = None,
+    part: str | None = None,
+    age: str | None = None,
 ) -> HTMLResponse:
     web = web_of(request)
     c = web.ctx(request, env)
     try:
         with c.conn() as conn:
-            v = review_values(c, conn, select, show, None, page)
+            v = review_values(c, conn, select, show, None, page, part, age)
     except db.StoreMissing as err:
         return web.missing(c, err, fragment=True)
     return web.render(c, "salvage/partials/review_inbox.html", v=v)

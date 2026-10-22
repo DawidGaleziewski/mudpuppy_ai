@@ -84,6 +84,10 @@ Layer: app (Python, FastAPI + Jinja + htmx, uv; outside the TS layers)
   recorded map. Same screen? (v2-14): `queries_same_screen.py` + `web/same_screen.py`
   (`/same-screen`, conflicts first; answers post to the chat service's `…/model/label`). A process's A and
   B are process models (`?model=B`, status vocabulary `process_model`; owner answer 8).
+- Spec 040: `as_of.py` (As of, FR-001: `?as_of=<seq>` on Processes, Screens, Map and Rules;
+  `Ctx.conn` adds TEMP views named like the tables, cut at the version's `built_at`, so the read
+  models run unchanged; posts with `as_of` are refused in `app.py`, `static/js/as-of.js` disables
+  them; the header's As of menu and the banner in `base.html`).
 - `servers.py`: live `pathfinder` servers read from `<data_dir>/servers/*.json`; the header names
   those on another environment or checkout (spec 031 R-61). Read-only, dead files are skipped.
 - `models.py`: read-only models of SQLite schema; drift test vs. `data/schema/schema.sql`.

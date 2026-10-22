@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { layout } from './html.js';
-import { CURRENT_YEAR, MIN_DRIVER_AGE } from './rules.js';
+import { ageOn, CURRENT_YEAR, MIN_DRIVER_AGE } from './rules.js';
 
 /**
  * The scenario switchboard (spec 039 design § 19.1, T005): flags that each inject one known change
@@ -25,7 +25,8 @@ export const SCENARIOS = {
     milestone: 'M3',
   },
   'flaky-page': {
-    injects: 'HTTP 500 on 20% of loads of one page',
+    injects:
+      "HTTP 500 on 3 of every 5 loads of one page (in a row, past the crawler's two re-opens)",
     expects: 'flaky, derived',
     milestone: 'M3',
   },
@@ -103,7 +104,8 @@ const RENEW_SHORTCUT = '<li><a href="/moje-polisy/przedluz">Przedłuż polisę</
 interface ScenarioEffect {
   build?: string;
   html?: (path: string, html: string) => string;
-  fails?: (path: string, params: Readonly<Record<string, string>>) => boolean;
+  /** `before`: how many times this very address was loaded before on this instance. */
+  fails?: (path: string, params: Readonly<Record<string, string>>, before: number) => boolean;
   /** A page only this scenario serves (null: not one of its paths). Not in the ground truth. */
   page?: (path: string, params: Readonly<Record<string, string>>) => string | null;
 }
@@ -145,6 +147,18 @@ function sectionPage(path: string): string | null {
   return layout(
     `Wniosek: sekcja ${m[1]}`,
     `<form aria-label="Sekcja ${m[1]}" method="get" action="${path}">\n${inputs}\n<p><button type="submit">Zapisz</button></p></form>`,
+  );
+}
+
+/** The exit page of threshold-rule: a driver under the minimum age is refused on a page of its own. */
+function refusalPage(path: string, params: Readonly<Record<string, string>>): string | null {
+  const birth = params.data_urodzenia ?? '';
+  if (path !== '/kalkulator/kierowca' || params.krok !== '2' || !/^\d{4}-\d{2}-\d{2}$/.test(birth))
+    return null;
+  if (ageOn(birth) >= MIN_DRIVER_AGE) return null;
+  return layout(
+    'Nie możemy Cię ubezpieczyć',
+    `<p>Kierowca musi mieć co najmniej ${MIN_DRIVER_AGE} lat, aby zawrzeć umowę OC/AC.</p>\n<p><a href="/">Wróć na stronę główną</a></p>`,
   );
 }
 
@@ -220,6 +234,22 @@ const EFFECTS: Partial<Record<ScenarioId, ScenarioEffect>> = {
     fails: (path, params) =>
       path === '/kalkulator/pojazd' && params.krok === '1' && params.model === FAILING_MODEL,
   },
+  // M4 (spec 040 T036): a driver under 18 is sent to an exit page instead of a message on the form
+  // (the date field's `max` is gone, so the browser submits) → a decision rule with t = 18.
+  'threshold-rule': {
+    html: (path, html) =>
+      path === '/kalkulator/kierowca'
+        ? html.replace(` max="${CURRENT_YEAR - MIN_DRIVER_AGE}-01-15"`, '')
+        : html,
+    page: refusalPage,
+  },
+  // M3 (spec 040 T036): the vehicle form's submit answers HTTP 500 on the 2nd to 4th of every five
+  // loads of the same address (deterministic, so a test knows which; three in a row, since the
+  // crawler re-opens a page twice after a passing error, TRANSIENT_RETRIES) → flaky, derived (R1).
+  'flaky-page': {
+    fails: (path, params, before) =>
+      path === '/kalkulator/pojazd' && params.krok === '1' && [1, 2, 3].includes(before % 5),
+  },
 };
 
 /** The page a built scenario serves at this path, if one does. */
@@ -240,8 +270,9 @@ export function failsUnder(
   path: string,
   params: Readonly<Record<string, string>>,
   scenarios: readonly ScenarioId[],
+  before = 0,
 ): boolean {
-  return scenarios.some((s) => EFFECTS[s]?.fails?.(path, params) === true);
+  return scenarios.some((s) => EFFECTS[s]?.fails?.(path, params, before) === true);
 }
 
 /** The server error page: short, so the crawler reads it as a technical error, not a screen. */

@@ -23,6 +23,7 @@ import {
   proposeId,
   removeEnvironment,
   setEnvironment,
+  setHints,
 } from '../src/portals.js';
 import { listPersonas, listPortals } from '../src/workflow-data.js';
 import { testService } from './helpers.js';
@@ -190,6 +191,30 @@ describe('portal settings: add and revoke environments', () => {
     ]);
   });
 
+  it('sets Hints and Budgets from the dashboard; a key left out stays (spec 040 T021)', () => {
+    const made = createPortal(paths(), WIKI);
+    addExperimentFlag(paths(), 'wikipedia-org', { kind: 'cookie', name: 'ab_calc' });
+    setHints(paths(), 'wikipedia-org', {
+      release_marker: { header: 'x-app-version' },
+      business_errors: ['Nie możemy Cię ubezpieczyć'],
+      replay_budget: 30,
+      probes: { per_step: 12, per_run: 60 },
+    });
+    const load = () =>
+      loadEffectiveConfig(made.files[0]!, made.files[1]!, { fence: fence('wikipedia-org') });
+    let e = load();
+    expect(e.portal.model.build_marker).toEqual({ header: 'x-app-version' });
+    expect(e.portal.model.experiment_flags).toEqual([{ cookie: 'ab_calc' }]); // left out: kept
+    expect(e.portal.model.business_errors).toEqual([{ text: 'Nie możemy Cię ubezpieczyć' }]);
+    expect(e.portal.model.replay_budget).toBe(30);
+    expect(e.portal.probes).toEqual({ per_step: 12, per_run: 60 });
+    setHints(paths(), 'wikipedia-org', { release_marker: { header: '' }, experiment_flags: [] });
+    e = load();
+    expect(e.portal.model.build_marker).toBeUndefined();
+    expect(e.portal.model.experiment_flags).toEqual([]);
+    expect(() => setHints(paths(), 'wikipedia-org', { replay_budget: -1 })).toThrow();
+  });
+
   it('puts the file back when the change does not load, and knows unknown portals', () => {
     createPortal(paths(), WIKI);
     const file = join(root, 'portals', 'wikipedia-org', 'portal.yaml');
@@ -222,6 +247,7 @@ describe('portal routes', () => {
         describe: (id) => describePortal(paths(), id),
         setEnvironment: (id, env, body) => setEnvironment(paths(), id, env, body),
         removeEnvironment: (id, env) => removeEnvironment(paths(), id, env),
+        setHints: (id, body) => setHints(paths(), id, body),
       },
     });
     base = `http://127.0.0.1:${String(await listenLocal(server, 0))}`;
@@ -266,5 +292,15 @@ describe('portal routes', () => {
     expect((await send('DELETE', '/portals/wikipedia-org/environments/production')).status).toBe(
       409,
     );
+  });
+
+  it('sets Hints and Budgets (200), refuses a bad body (400) and an unknown portal (404)', async () => {
+    expect((await send('POST', '/portals', WIKI)).status).toBe(201);
+    const ok = await send('PUT', '/portals/wikipedia-org/hints', { replay_budget: 5 });
+    expect(ok.status).toBe(200);
+    expect((await send('PUT', '/portals/wikipedia-org/hints', { replay_budget: 'x' })).status).toBe(
+      400,
+    );
+    expect((await send('PUT', '/portals/nope/hints', { replay_budget: 5 })).status).toBe(404);
   });
 });

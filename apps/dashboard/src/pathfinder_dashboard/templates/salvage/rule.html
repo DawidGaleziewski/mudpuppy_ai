@@ -2,6 +2,7 @@
 {% import "salvage/macros.html" as sy %}
 {% set nav_current = "rules" %}
 {% block title %}{{ key }}{% if r %} · {{ r.row.claim }}{% endif %}{% endblock %}
+{% block head_extra %}<script src="/static/js/copy-text.js" defer></script>{% endblock %}
 {#- Spec 039 T100, UX-R61–R63, designer screen v2-12: one rule as a decision table (inputs left,
     result right), its boundary tests and its history. A person decides it in What changed. -#}
 {%- macro outcome(then) -%}
@@ -25,7 +26,49 @@
     {%- if r.row.br_key %}Documented as {{ sy.tag(r.row.br_key, c.url('/docs/' ~ c.portal ~ '/' ~ r.row.br_key), sm=true) }} · found as {{ sy.tag(r.row.key, sm=true) }} · {% elif r.row.status == "confirmed" %}No business rule record cites {{ sy.tag(r.row.key, sm=true) }} yet · {% endif %}
     {%- if r.row.screen_key %}Decided on {{ sy.tag(r.row.screen_key, sm=true) }} <span class="sy-case-normal">{{ r.row.screen_title or "" }}</span>{% if r.row.action %} · <span class="sy-mono sy-mono--sm">{{ r.row.action }}</span>{% endif %}{% endif %}
     {%- if r.row.fitness is not none %} · fit {{ r.row.fitness }}{% if r.row.rows %} on <span class="sy-num">{{ r.row.rows }}</span> executions{% endif %}{% endif %}</p>
+  {%- if r.row.status == "changed" %}
+  <p class="sy-small sy-prose">It no longer holds on a newer release (see History). Mine it again on the new release: <span class="sy-mono">pnpm model:mine {{ c.portal }}</span>.</p>
+  {%- endif %}
+  {%- if note %}<p class="sy-small" role="status">{{ note }}</p>{% endif %}
 </div>
+{#- v2-12 Decision: Reword, the sentence that goes into the documentation and the export. -#}
+<section class="sy-plate" aria-labelledby="words-h">
+  <div class="sy-plate__head">
+    <h2 class="sy-plate__title" id="words-h">In the documentation</h2>
+    {%- if r.wording %}<span class="sy-meta">reworded by {{ r.wording.actor }} · {{ r.wording.at | when }}</span>{% else %}<span class="sy-meta">the mined sentence, in the export</span>{% endif %}
+  </div>
+  <div class="sy-plate__body sy-stack">
+    {%- if r.wording %}
+    <p class="sy-prose sy-case-normal">{{ r.wording.wording }}</p>
+    {%- else %}
+    <p class="sy-small sy-muted">No one has reworded it yet: the export says each table row as a sentence ("If … leads to …"). Reword it when the business says it differently.</p>
+    {%- endif %}
+    <details class="sy-disclosure">
+      <summary><span>Reword</span>{% if r.wordings | length > 1 %}<span class="sy-meta">{{ r.wordings | length }} wordings so far</span>{% endif %}</summary>
+      <div class="sy-disclosure__body">
+        {%- if can_reword %}
+        <form class="sy-stack" method="post" action="{{ c.url('/rules/' ~ key ~ '/reword') }}">
+          <input type="hidden" name="key" value="{{ r.row.key }}">
+          <label class="sy-field">
+            <span class="sy-field__label">Sentence</span>
+            <textarea class="sy-textarea" name="wording" rows="3" maxlength="2000" required placeholder="The driver must be 21 or older on the day of the quote.">{{ r.wording.wording if r.wording else "" }}</textarea>
+          </label>
+          <label class="sy-field">
+            <span class="sy-field__label">Why</span>
+            <input class="sy-input" name="reason" maxlength="200" placeholder="Optional: the terms say it this way">
+          </label>
+          <div><button class="sy-btn" type="submit">Save the wording</button></div>
+        </form>
+        {%- else %}
+        <p class="sy-small sy-muted">Set PATHFINDER_REVIEWER to your name to reword rules.</p>
+        {%- endif %}
+        {%- for w in r.wordings[1:] %}
+        {{ sy.note(w.wording, by=w.actor, at=w.at, sm=true) }}
+        {%- endfor %}
+      </div>
+    </details>
+  </div>
+</section>
 <section class="sy-plate" aria-labelledby="table-h">
   <div class="sy-plate__head"><h2 class="sy-plate__title" id="table-h">Decision table</h2></div>
   {%- if r.needs_data or not r.table %}
@@ -87,7 +130,7 @@
   <ol class="sy-timeline">
   {%- for e in r.history %}
     <li data-status="{{ 'ok' if e.status == 'confirmed' else ('failed' if e.status == 'refuted' else 'draft') }}">
-      <div class="sy-timeline__head">{{ sy.status("hypothesis", e.status) }} <span class="sy-meta">{{ e.at | when }} · {{ e.actor }}</span></div>
+      <div class="sy-timeline__head">{{ sy.status("hypothesis", e.status) }} <span class="sy-meta">{% if e.undo %}Undone · {% endif %}{{ e.at | when }} · {{ e.actor }}</span></div>
       <div class="sy-timeline__body">{% if e.actor in ("miner", "reconciler", "crawler", "ba-agent") %}<p class="sy-small">{{ e.reason }}</p>{% else %}{{ sy.note(e.reason, by=e.actor, at=e.at, sm=true) }}{% endif %}</div>
     </li>
   {%- endfor %}

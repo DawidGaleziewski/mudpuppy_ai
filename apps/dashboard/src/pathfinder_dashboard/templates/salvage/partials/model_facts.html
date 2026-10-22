@@ -22,6 +22,9 @@
         {%- set run_portal, run_kind, run_key, run_label = p.portal_id, "explore", p.key, "Explore now" %}
         {%- set run_back = c.url('/processes/' ~ p.key) %}
         {% include "salvage/partials/check_run.html" %}</dd>
+      <dt>Checked</dt>
+      <dd>{%- if m.checked and m.checked.actions %}<span class="sy-num">{{ m.checked.checked }}</span> / <span class="sy-num">{{ m.checked.actions }}</span> actions on its screens{% if m.checked.release %} on <span class="sy-mono sy-mono--sm">{{ m.checked.release }}</span>{% endif %}
+        {%- else %}<span class="sy-muted">No action on its screens yet.</span>{% endif %}</dd>
       <dt>Business rules</dt>
       <dd>{%- if m.rules %}{% for r in m.rules %}<div>{{ sy.tag(r.shown_key, c.url('/rules/' ~ r.shown_key), sm=true) }} <span class="sy-case-normal">{{ r.claim }}</span> {{ sy.status("rule", r.status) }}</div>{% endfor %}
         {%- else %}<span class="sy-muted">No rule decided on these screens.</span>{% endif %}</dd>

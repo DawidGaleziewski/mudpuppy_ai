@@ -132,6 +132,13 @@ def highlights(layout: Layout | None, regions: list[tuple[str, str | None]]) -> 
     return out
 
 
+def region(data_dir: Path, layout_ref: str | None, key: str) -> Highlight | None:
+    """Where element `key` is on a state's screenshot (Before / after's changed region, spec 040
+    T018), or None when the layout or the box is missing."""
+    (mark,) = highlights(load_layout(data_dir, layout_ref), [(key, None)])
+    return mark if mark.visible else None
+
+
 def _state(conn: sqlite3.Connection, state_id: str) -> State | None:
     row = conn.execute("SELECT * FROM states WHERE id = ?", (state_id,)).fetchone()
     return State.model_validate(dict(row)) if row else None

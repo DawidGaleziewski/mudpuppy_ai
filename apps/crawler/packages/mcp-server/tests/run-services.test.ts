@@ -302,6 +302,29 @@ describe('complete_run / finish_run', () => {
     expect(JSON.parse(row.coverage!)).toEqual(out.coverage);
   });
 
+  it('finish_run mines rules on the new model version when the server has a miner (spec 040 T030)', async () => {
+    const ctx = await makeCtx();
+    const asked: unknown[] = [];
+    ctx.miner = (table) => {
+      asked.push(table);
+      return {};
+    };
+    const run = await seedRun(ctx);
+    await recordState(ctx, st(run, 'a'));
+    await finishRun(ctx, { run_id: run, summary: 'done' });
+    await ctx.tracer.flush();
+    const event = ctx.raw
+      .prepare("SELECT attrs_json FROM trace_spans WHERE name = 'model_reconciled'")
+      .get() as { attrs_json: string };
+    // No decision point in one state: the miner is not asked, and the count says so.
+    expect(asked).toEqual([]);
+    expect(JSON.parse(event.attrs_json)).toMatchObject({
+      seq: 1,
+      rules_mined: 0,
+      rules_ambiguous: 0,
+    });
+  });
+
   it('finish_run is allowed when a budget is exhausted even with pending items', async () => {
     const ctx = await makeCtx();
     const run = await seedRun(ctx, { scope: { max_steps: 2 } });

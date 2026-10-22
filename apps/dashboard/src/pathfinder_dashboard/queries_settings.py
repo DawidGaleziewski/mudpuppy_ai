@@ -128,6 +128,12 @@ class Hints:
     release_marker: str | None  # "header x-app-version" · "meta app-version"
     ab_flags: list[str]  # "cookie ab_calc" · "storage exp.hero"; confirmed A/B tests add theirs
     refusals: list[str]  # texts that make a page a business error
+    # Spec 040 T021: the form's fields, and Budgets (the portal schema's defaults when unset).
+    marker_header: str = ""
+    marker_meta: str = ""
+    checks_per_scan: int = 20  # model.replay_budget: deterministic replays per run
+    probes_per_step: int = 24  # probes.per_step
+    probes_per_scan: int = 120  # probes.per_run
 
 
 def _section(doc: dict[str, Any], key: str) -> dict[str, Any]:
@@ -148,7 +154,18 @@ def hints(portals_dir: Path, portal: str) -> Hints | None:
     where = [f"{k} {marker[k]}" for k in ("header", "meta") if isinstance(marker.get(k), str)]
     flags = model.get("experiment_flags")
     errors = model.get("business_errors")
+    probes = _section(doc, "probes")
+
+    def number(section: dict[str, Any], key: str, default: int) -> int:
+        value = section.get(key)
+        return value if isinstance(value, int) and not isinstance(value, bool) else default
+
     return Hints(
+        marker_header=str(marker.get("header") or ""),
+        marker_meta=str(marker.get("meta") or ""),
+        checks_per_scan=number(model, "replay_budget", 20),
+        probes_per_step=number(probes, "per_step", 24),
+        probes_per_scan=number(probes, "per_run", 120),
         release_marker=" · ".join(where) or None,
         ab_flags=[
             f"{k} {f[k]}"

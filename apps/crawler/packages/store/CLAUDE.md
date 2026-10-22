@@ -22,7 +22,16 @@ Layer: store (G-07; `apps/crawler/layers.json`)
 - Spec 039 portal model: `reconcilePortalModel` (`model-writer.ts`), `interpretVersion`
   (`interpret-writer.ts`), `decideHypothesis`, `labelPair`, `setParameterRole` (`model-decide.ts`),
   `loadObservationTables`, `importMinedRule` (`rule-mining.ts`, `pnpm model:mine`),
-  `processGraph`, `writeProposals` (`process-proposals.ts`, `pnpm model:propose`),
+  `mineRules`, `uvMiner` (`rule-miner-run.ts`: the miner on every decision point after a new
+  model version; the MCP server's run end and `pnpm model:reconcile` call it when apps/miner and
+  `uv` are there, `PATHFINDER_MINER=off` turns it off; spec 040 T030),
+  `plannerWork`, `writePlannerMarks`, `usePlannerMarks` (`planner-marks.ts`: the planner's work
+  as `marks` of origin `planner`, kind `recheck`, with a priority; written after each rebuild and
+  replay round, open ones replaced; every reader of a person's marks filters `origin = 'person'`;
+  spec 040 T033),
+  `processGraph`, `writeProposals` (`process-proposals.ts`, `pnpm model:propose`; it skips what
+  `proposalConstraints` / `blockedBy` (`proposal-constraints.ts`) say a person dismissed or kept,
+  spec 040 T034),
   `pendingReplays`, `recordReplay`, `judgeReplays` (`replay-tests.ts`, `pnpm model:replay`),
   `pendingErrorReplays`, `resolveErrorReplays` (`error-replays.ts`, rule R1 on the driver),
   `activeProfile`, `tauInForce`, `acceptedTau` (`fingerprint-profiles.ts`: one fingerprint profile

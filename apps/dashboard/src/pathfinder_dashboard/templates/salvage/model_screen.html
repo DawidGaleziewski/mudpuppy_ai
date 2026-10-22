@@ -62,7 +62,7 @@
   <div class="sy-compare mp-variants">
     {%- for v in d.variants %}
     <section class="sy-compare__side" aria-labelledby="r{{ v.ordinal }}-h">
-      <header class="sy-compare__head"><h3 id="r{{ v.ordinal }}-h" class="sy-h3"><span class="sy-case-normal">r{{ v.ordinal }}</span></h3><span class="sy-chip{% if v.why.chip %} sy-chip--{{ v.why.chip }}{% endif %}">{{ v.why.word }}</span></header>
+      <header class="sy-compare__head"><h3 id="r{{ v.ordinal }}-h" class="sy-h3"><span class="sy-case-normal">r{{ v.ordinal }}</span></h3><span class="sy-chip{% if v.reason == 'Unknown' %} sy-chip--dashed{% endif %}">{{ v.reason }}</span></header>
       {%- if v.picture and (v.picture.shot or v.picture.wire) %}
       {{ pic.thumb(v.state_id, v.picture, v.title, r.route) }}
       {%- else %}

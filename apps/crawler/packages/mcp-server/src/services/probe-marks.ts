@@ -70,6 +70,7 @@ export async function probeMarkOf(
     .select('id')
     .where('portal_id', '=', portalId)
     .where('kind', '=', 'probe')
+    .where('origin', '=', 'person')
     .where('form_step_id', '=', formStepId)
     .where('used_by_run_id', 'is', null)
     .executeTakeFirst();

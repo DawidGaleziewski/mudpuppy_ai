@@ -78,6 +78,7 @@ export const PORTAL_TABLES = [
   'hypothesis_evidence',
   'hypothesis_tests',
   'hypothesis_events',
+  'hypothesis_wordings',
   'fingerprint_profiles',
   'tau_acceptances',
   'correlation_ids',
@@ -125,6 +126,7 @@ const DELETE_ORDER: readonly PortalTable[] = [
   // 0031 (spec 039): interpretation references the model; marks' and open questions' hypothesis
   // links are cleared first (see `deletePortal`)
   'hypothesis_events',
+  'hypothesis_wordings', // 0046: references hypotheses
   'hypothesis_tests',
   'hypothesis_evidence',
   'entity_refs',
@@ -277,6 +279,7 @@ export function where(table: PortalTable, side: 'mine' | 'others'): string {
     case 'hypothesis_evidence':
     case 'hypothesis_tests':
     case 'hypothesis_events':
+    case 'hypothesis_wordings':
       return `hypothesis_id IN (SELECT id FROM hypotheses WHERE portal_id ${op} ?)`;
     case 'entity_refs':
       return ENTITY_REFS_OF_PORTAL(op);

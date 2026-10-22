@@ -56,6 +56,7 @@ export function createMarkService(deps: { db: PathfinderDb }): MarkService {
       .select('id')
       .where('portal_id', '=', portal)
       .where('kind', '=', b.kind)
+      .where('origin', '=', 'person') // the planner's marks are its own (spec 040 T033)
       .where(TARGET_COLUMN[b.target_kind], '=', b.target_id)
       .where('used_by_run_id', 'is', null)
       .executeTakeFirst();

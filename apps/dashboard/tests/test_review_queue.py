@@ -112,6 +112,102 @@ def test_a_rule_is_decided_through_the_chat_service(empty_store: Store) -> None:
     assert "Confirmed: H-0002." in after
 
 
+def test_a_decision_can_be_undone_from_the_toast(empty_store: Store) -> None:
+    """Spec 040 T010 (designer § 5.4, § 5.8): the decide command's id comes back; the toast's
+    Undo posts it, and the chat service reverts the whole command."""
+    service = Service()
+    service.routes[("POST", f"/portals/{P}/model/decide")] = httpx2.Response(
+        201,
+        json={
+            "decision": "cmd-1",
+            "decided": [
+                {"key": "H-0005", "status": "rejected"},
+                {"key": "H-0006", "status": "rejected"},
+            ],
+        },
+    )
+    service.routes[("POST", f"/portals/{P}/model/undo")] = httpx2.Response(
+        201,
+        json={
+            "undone": [
+                {"key": "H-0005", "status": "proposed"},
+                {"key": "H-0006", "status": "proposed"},
+            ]
+        },
+    )
+    seed_queue(empty_store)
+    with client(empty_store, service) as c:
+        r = c.post(
+            f"/review/hypotheses/{P}",
+            content="keys=H-0005&keys=H-0006&action=reject&reason=still+there",
+            headers=FORM,
+            follow_redirects=False,
+        )
+        assert "undo=cmd-1" in r.headers["location"]
+        toast = c.get(r.headers["location"]).text
+        assert 'class="sy-toast sy-toast--fixed"' in toast and 'value="cmd-1"' in toast
+        assert "Rejected: H-0005, H-0006." in text(toast)
+        undone = c.post(f"/review/undo/{P}", content="decision=cmd-1", headers=FORM)
+    sent = [json.loads(q.content) for q in service.requests if q.url.path.endswith("/undo")]
+    assert sent == [{"decision": "cmd-1", "by": "Anna"}]
+    assert "Undone: H-0005, H-0006." in text(undone.text)
+    assert "/review/undo/" not in undone.text  # an undo is not undone again from a toast
+
+
+def test_alike_items_form_groups_and_rows_can_be_picked(empty_store: Store) -> None:
+    """Spec 040 T011 (designer § 5.4): alike items get one line with one action; every decidable
+    row has a box for your own selection, and a selected row sends its keys comma-joined."""
+    seed_queue(empty_store)
+    conn = empty_store.connect()
+    conn.row_factory = sqlite3.Row
+    inbox = queries_review.inbox(conn, P)
+    (g,) = inbox.similar("removals")
+    assert g.keys == ("H-0006", "H-0005") and g.label.endswith("model version 2")
+    assert inbox.similar("records") == []
+    conn.close()
+    service = Service()
+    service.routes[("POST", f"/portals/{P}/model/decide")] = httpx2.Response(
+        201, json={"decision": "cmd-2", "decided": []}
+    )
+    with client(empty_store, service) as c:
+        page = c.get(f"/review?portal={P}").text
+        assert "2</span> alike" in page and "Reject 2" in page
+        assert 'form="pick-removals"' in page and 'id="pick-removals"' in page
+        assert "/static/js/review-keys.js" in page and 'id="review-keys"' in page
+        c.post(
+            f"/review/hypotheses/{P}",
+            content="keys=H-0005,H-0006&action=reject&reason=gone+for+good",
+            headers=FORM,
+        )
+    (sent,) = [json.loads(q.content) for q in service.requests if q.url.path.endswith("/decide")]
+    assert sent["keys"] == ["H-0005", "H-0006"] and sent["reason"] == "gone for good"
+
+
+def test_filters_count_and_keep_the_model_groups(empty_store: Store) -> None:
+    """Spec 040 T013 (designer § 5.1): age buckets with counts; a filter keeps only its items."""
+    seed_queue(empty_store)
+    with client(empty_store) as c:
+        page = c.get(f"/review?portal={P}").text
+        older = c.get(f"/review?portal={P}&age=older").text
+        today = c.get(f"/review?portal={P}&age=today&show=removals").text
+    assert 'name="age"' in page and "Older (" in page
+    assert "Clear filters" in older and "Link 5 gone" in older  # the seed is from 2026
+    assert "Link 5 gone" not in today
+
+
+def test_reasons_are_suggested_per_kind(empty_store: Store) -> None:
+    """Spec 040 T012 (designer § 5.3): your last reasons for the same kind, without repeats."""
+    seed_queue(empty_store)
+    conn = empty_store.connect()
+    conn.row_factory = sqlite3.Row
+    reasons = queries_queue.recent_reasons(conn, P)
+    conn.close()
+    assert reasons["findings"] == ["Seen the release."] and reasons["removals"] == []
+    with client(empty_store) as c:
+        page = c.get(f"/review?portal={P}&select=findings:d2").text
+    assert '<datalist id="reasons-findings"><option value="Seen the release.">' in page
+
+
 def test_explained_and_decided_tabs(empty_store: Store) -> None:
     seed_queue(empty_store)
     with client(empty_store) as c:

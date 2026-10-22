@@ -1,6 +1,7 @@
 import { RunStatus, nowIso } from '@pathfinder/core';
-import { emitForRun, reconcilePortalModel } from '@pathfinder/store';
+import { emitForRun, mineRules, reconcilePortalModel, writePlannerMarks } from '@pathfinder/store';
 import { z } from 'zod';
+import { proposeBoundarySuites } from '../boundary-suites.js';
 import type { ServerContext } from '../context.js';
 import { ToolError, parseInput } from '../errors.js';
 import { computeCoverage, type Coverage } from '@pathfinder/crawler';
@@ -42,8 +43,23 @@ const CompleteRunInput = z
 async function reconcileAfterRun(ctx: ServerContext, run: RunRow): Promise<void> {
   try {
     const r = reconcilePortalModel(ctx.raw, run.portal_id);
-    if (r.modelVersion !== null)
-      emitForRun(ctx.tracer, run.id, 'model_reconciled', { seq: r.seq, ...r.stats });
+    if (r.modelVersion === null) return;
+    // Design § 7 step 10 (spec 040 T030): the miner runs on the new version when installed.
+    const mined = ctx.miner ? mineRules(ctx.raw, run.portal_id, ctx.miner) : null;
+    // § 11.5 (spec 040 T035): the new rules' boundary tests wait in Review as probe suites.
+    const suites = mined ? proposeBoundarySuites(ctx.raw, run.portal_id).length : 0;
+    // Design § 14.1 (spec 040 T033): what the new version does not know, as planner marks.
+    const planned = writePlannerMarks(ctx.raw, run.portal_id).length;
+    emitForRun(ctx.tracer, run.id, 'model_reconciled', {
+      seq: r.seq,
+      ...r.stats,
+      planned,
+      ...(mined && {
+        rules_mined: mined.points.filter((p) => p.key !== null).length,
+        rules_ambiguous: mined.ambiguous.length,
+        suites_proposed: suites,
+      }),
+    });
   } catch (e) {
     await ctx.decisions.record({
       run_id: run.id,

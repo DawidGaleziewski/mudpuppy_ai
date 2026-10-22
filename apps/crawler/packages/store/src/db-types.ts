@@ -872,6 +872,20 @@ export interface HypothesisEventsTable {
   actor: string;
   reason: string;
   at: string;
+  /** 0046: the one command a person's decision came in (a bulk decision is one command); null for machine events. */
+  decision_id: string | null;
+  /** 0046: the event this one reverts (Undo appends, never deletes). */
+  undoes: string | null;
+}
+
+/** 0046: a person's Reword of a rule; append-only, the latest row is the wording in force. */
+export interface HypothesisWordingsTable {
+  id: string;
+  hypothesis_id: string;
+  wording: string;
+  actor: string;
+  reason: string | null;
+  at: string;
 }
 
 export interface BuildEpochsTable {
@@ -1275,6 +1289,7 @@ export interface Database {
   hypothesis_evidence: HypothesisEvidenceTable;
   hypothesis_tests: HypothesisTestsTable;
   hypothesis_events: HypothesisEventsTable;
+  hypothesis_wordings: HypothesisWordingsTable;
   fingerprint_profiles: FingerprintProfilesTable;
   tau_acceptances: TauAcceptancesTable;
   similarity_classifiers: SimilarityClassifiersTable;

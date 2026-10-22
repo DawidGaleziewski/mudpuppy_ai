@@ -22,6 +22,33 @@ export interface CallRow {
   created_at: string;
   /** The action that sent it, when one did. */
   trigger: string | null;
+  /** sha256 of the response's key paths and types (spec 039 § 5.3); null: not JSON, or older. */
+  schema_hash?: string | null;
+}
+
+/** One response contract of an endpoint: the calls whose response had the same schema hash. */
+export interface ResponseVersion {
+  hash: string | null;
+  calls: CallRow[];
+  first: string;
+  last: string;
+}
+
+/**
+ * The endpoint's response contracts by schema hash (spec 039 § 16, T078; spec 040 T031), first
+ * seen first: one version means the contract never changed while recorded; more show when and
+ * where it changed. Calls without a hash (not JSON) form their own version.
+ */
+export function responseVersions(ep: Pick<Endpoint, 'calls'>): ResponseVersion[] {
+  const by = new Map<string | null, CallRow[]>();
+  for (const c of ep.calls)
+    by.set(c.schema_hash ?? null, [...(by.get(c.schema_hash ?? null) ?? []), c]);
+  return [...by.entries()]
+    .map(([hash, calls]) => {
+      const at = calls.map((c) => c.created_at).sort();
+      return { hash, calls, first: at[0]!, last: at[at.length - 1]! };
+    })
+    .sort((a, b) => a.first.localeCompare(b.first));
 }
 
 export interface Endpoint {
@@ -69,8 +96,9 @@ function selectOf(raw: RawDb): string {
   const samples = cols.some((c) => c.name === 'req_sample')
     ? 'n.req_sample, n.res_sample'
     : 'NULL AS req_sample, NULL AS res_sample';
+  const hash = cols.some((c) => c.name === 'schema_hash') ? 'n.schema_hash' : 'NULL AS schema_hash';
   return `SELECT n.id, n.run_id, n.method, n.url_template, n.url, n.status, n.req_schema,
-  n.res_schema, ${samples}, n.created_at`;
+  n.res_schema, ${samples}, ${hash}, n.created_at`;
 }
 
 function callsOfStep(raw: RawDb, step: ProcessStep): CallRow[] {
@@ -188,8 +216,12 @@ export function openApi(title: string, contracts: Contracts, servers: readonly s
   for (const ep of contracts.endpoints) {
     const latest = ep.calls[ep.calls.length - 1]!;
     const req = parsed(latest.req_schema);
+    const versions = responseVersions(ep).filter((v) => v.hash !== null).length;
     const op: Record<string, unknown> = {
       summary: `Called from step ${ep.steps.join(', ')}`,
+      ...(versions > 1 && {
+        description: `${versions} response contracts were recorded (by schema hash); the schemas below are the latest. See CONTRACTS.md.`,
+      }),
       responses: Object.fromEntries(
         Object.entries(ep.statuses).map(([status, n]) => {
           const call = ep.calls.find((c) => String(c.status) === status)!;

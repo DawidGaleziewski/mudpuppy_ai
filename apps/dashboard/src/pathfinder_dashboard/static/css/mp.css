@@ -18,6 +18,8 @@
     left: calc(var(--sy-releases-name) + var(--sy-space-3) + var(--mp-track) * var(--mp-left));
     width: calc(var(--mp-track) * var(--mp-width));
   }
+  /* A range in the right half: its label ends at the bracket's end, inside the track. */
+  .mp-range--end > span { left: auto; right: 0; transform: none; }
   .mp-process > th { background: var(--sy-bg-raised); }
   .mp-screen > th { background: var(--sy-bg-well); padding-block: 8px; }
   .mp-changes td, .mp-changes th[scope="row"] { vertical-align: top; }
@@ -34,6 +36,17 @@
   .mp-answers { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr)); gap: var(--sy-space-3); }
   .mp-answer-foot { display: flex; flex-wrap: wrap; align-items: flex-end; gap: var(--sy-space-3) var(--sy-space-4); }
   .mp-answer-foot .sy-field { flex: 1 1 320px; }
+
+  /* Review groups and bulk (spec 040 T011, designer § 5.4): one line per group of alike items,
+     the selection bar, and a box in front of each decidable row. */
+  .mp-bulk { border-bottom: var(--sy-weld) solid var(--sy-border-weld); }
+  .mp-bulk .sy-input { flex: 1 1 200px; width: auto; min-width: 0; }
+  .mp-pick { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center;
+    border-bottom: var(--sy-weld) solid var(--sy-border-weld); }
+  .mp-pick:last-child { border-bottom: 0; }
+  .mp-pick > .sy-check { padding-left: var(--sy-space-4); }
+  .mp-pick > .sy-row { border-bottom: 0; }
+  .mp-keybar { position: sticky; bottom: 0; }
 
   /* htmx request indicators (htmx's own indicator CSS is off, htmx-config). */
   .htmx-indicator { visibility: hidden; }
@@ -161,4 +174,9 @@
   .mp-export { overflow-wrap: anywhere; }  /* recorded URLs are long and have no spaces */
   .mp-export > * { min-width: 0; max-width: 100%; }
   .mp-export img { max-width: 100%; height: auto; }
+  /* Spec 040 T018 (12-v2-ux § 6): a picture with the changed region marked, and Overlay. */
+  .mp-markable { position: relative; margin: 0; }
+  .mp-markable > img { display: block; width: 100%; height: auto; }
+  .mp-mark--gone { background: transparent; outline-style: dashed; }
+  .mp-overlay > img + img { position: absolute; inset: 0; opacity: 0.5; }
 }

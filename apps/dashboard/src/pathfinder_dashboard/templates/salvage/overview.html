@@ -1,12 +1,72 @@
 {% extends "salvage/base.html" %}
+{% import "salvage/macros.html" as sy %}
 {% set nav_current = "overview" %}
 {% block title %}{{ c.portal or "All portals" }}{% endblock %}
+{#- All portals (designer screen v2-15, spec 040 T020): the Portals plate, Review's preview across
+    portals (Review stays per portal), then the machine's cards per portal and the scans. -#}
 {% block main %}
 <div class="sy-pagehead">
-  <h1 class="sy-h1">{{ c.portal or "All portals" }}</h1>
-  <p class="sy-meta">Store <span class="sy-mono sy-mono--sm">{{ store.path }}</span> · {{ store.size_bytes | kb }} · read-only</p>
+  <div class="sy-pagehead__row">
+    <div class="sy-stack">
+      <h1 class="sy-h1">{{ c.portal or "All portals" }}</h1>
+      <p class="sy-meta"><span class="sy-num">{{ every.rows | length }}</span> portal{{ "s" if every.rows | length != 1 }} · <span class="sy-num">{{ every.changes }}</span> changes since the previous release · <span class="sy-num">{{ every.review }}</span> items need you</p>
+    </div>
+    <a class="sy-btn" href="{{ c.url('/portals/new') }}">+ New portal</a>
+  </div>
 </div>
 <div class="sy-stack">
+  {%- if every.rows %}
+  <section class="sy-plate" aria-labelledby="portals-h">
+    <div class="sy-plate__head">
+      <h2 id="portals-h" class="sy-plate__title">Portals</h2>
+      <span class="sy-meta">release per portal part · changes since each part's previous release · processes explored</span>
+    </div>
+    <div class="sy-table-wrap sy-table-wrap--flush">
+      <table class="sy-table sy-table--middle" aria-labelledby="portals-h">
+        <thead><tr><th scope="col">Portal</th><th scope="col">Latest release</th><th scope="col">Last scan</th><th scope="col">Changes</th><th scope="col" class="sy-num">Needs you</th><th scope="col">Processes</th></tr></thead>
+        <tbody>
+        {%- for r in every.rows %}
+          <tr>
+            <th scope="row"><a class="sy-case-normal" href="{{ c.portal_url('/', r.portal) }}">{{ r.portal }}</a></th>
+            <td>{%- if r.releases %}<span class="sy-stack" style="--sy-gap: 2px">{% for x in r.releases %}<span>{{ x.part }} {% if x.name %}<span class="sy-mono sy-mono--sm">{{ x.name }}</span> <span class="sy-small sy-muted">{{ x.since | when }}</span>{% else %}<span class="sy-small sy-muted">no release marker</span>{% endif %}</span>{% endfor %}</span>
+              {%- elif r.has_model %}<span class="sy-small sy-muted">No release marker: changes are found by comparing pages.</span>
+              {%- else %}<span class="sy-small sy-muted">No portal model yet</span>{% endif %}</td>
+            <td>{%- if r.last_scan %}<span class="sy-stack" style="--sy-gap: 2px"><span class="sy-small">{{ "Check run" if r.last_scan.check else "AI scan" }} {{ sy.tag(r.last_scan.id[:8], c.url('/runs/' ~ r.last_scan.id), sm=true) }}</span><span class="sy-small sy-muted">{{ r.last_scan.started_at | when }}</span></span>{% else %}<span class="sy-muted">—</span>{% endif %}</td>
+            <td>{%- if r.has_model %}<a href="{{ c.portal_url('/changes', r.portal) }}"><span class="sy-num">{{ r.changes }}</span> changes</a> <span class="sy-small sy-muted">· {{ r.needs }} need you · {{ r.explained }} explained automatically</span>{% else %}<span class="sy-muted">—</span>{% endif %}</td>
+            <td class="sy-num">{% if r.review %}<a href="{{ c.portal_url('/review', r.portal) }}">{{ r.review }}</a>{% else %}0{% endif %}</td>
+            <td class="sy-small">{% if r.processes %}<span class="sy-num">{{ r.explored }}</span> explored / <span class="sy-num">{{ r.processes - r.explored }}</span> not{% else %}<span class="sy-muted">no processes yet</span>{% endif %}</td>
+          </tr>
+        {%- endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+  <section class="sy-plate" aria-labelledby="across-h">
+    <div class="sy-plate__head">
+      <h2 id="across-h" class="sy-plate__title">Review across portals</h2>
+      <span class="sy-meta">preview · {{ every.preview | length }} of {{ every.review }} · newest first</span>
+    </div>
+    <div class="sy-plate__body sy-stack">
+      <p class="sy-small sy-muted">Review shows one portal at a time, so each item keeps its releases, screens and processes around it. Pick a portal to review its items.</p>
+      {%- if every.preview %}
+      <div class="sy-table-wrap sy-table-wrap--flush">
+        <table class="sy-table sy-table--dense" aria-labelledby="across-h">
+          <thead><tr><th scope="col">Portal</th><th scope="col">Kind</th><th scope="col">Finding</th><th scope="col">Age</th></tr></thead>
+          <tbody>
+          {%- for portal, kind, it in every.preview %}
+            <tr><td class="sy-case-normal">{{ portal }}</td><td>{{ kind }}</td>
+              <td class="sy-case-normal">{% if it.href %}<a href="{{ it.href }}{{ '&' if '?' in it.href else '?' }}portal={{ portal | urlencode }}">{{ it.claim }}</a>{% else %}{{ it.claim }}{% endif %}</td>
+              <td class="sy-small">{{ it.at | when }}</td></tr>
+          {%- endfor %}
+          </tbody>
+        </table>
+      </div>
+      {%- else %}
+      <p class="sy-small">Nothing needs you in any portal.</p>
+      {%- endif %}
+    </div>
+  </section>
+  {%- endif %}
   {% include "salvage/partials/portal_cards.html" %}
   {% include "salvage/partials/runs_table.html" %}
 </div>

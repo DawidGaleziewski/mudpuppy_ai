@@ -166,6 +166,7 @@ VOCABULARIES: dict[str, dict[str, Status]] = {
     # spec 039 T100: a business rule in the UI's words (12-v2-ux.md § 4) and its boundary tests
     "rule": {
         "broken": _s("failed", "Broken"),
+        "changed": _s("needs", "Changed"),  # spec 040 FR-007: drifted on a release, re-mine it
         "proposed": _s("inferred", "Proposed"),
         "tested": _s("inferred", "Tested"),
         "confirmed": _s("ok", "Confirmed"),

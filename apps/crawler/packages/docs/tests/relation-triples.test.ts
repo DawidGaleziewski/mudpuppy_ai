@@ -119,6 +119,8 @@ describe('doc_relations triple triggers (0013_relation_triples) match RELATION_R
     insert(opened, rev('data_item'), rec('screen'), 'appears_on');
     insert(opened, rev('capability'), rec('screen'), 'contains');
     dropApiEndpoint(opened);
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0047');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0046');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0045');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0044');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0043');
@@ -171,6 +173,8 @@ describe('doc_relations triple triggers (0013_relation_triples) match RELATION_R
     insert(opened, rev('use_case'), rec('business_rule'), 'depends_on');
     insert(opened, rev('process'), rec('process'), 'depends_on');
     dropApiEndpoint(opened);
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0047');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0046');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0045');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0044');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0043');
@@ -229,6 +233,8 @@ describe('0044 api_endpoint kind (spec 038 FR-008)', () => {
     expect(() => insert(opened!, rev('api_endpoint'), rec('process'), 'depends_on')).toThrow(
       /RELATION_NOT_ALLOWED/,
     );
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0047');
+    expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0046');
     expect(migrateDown(opened.raw, MIGRATIONS)).toBe('0045');
     // Refused: the old CHECK cannot hold the kind, the transaction rolls back and the head stays 0044.
     expect(() => migrateDown(opened!.raw, MIGRATIONS)).toThrow(/CHECK constraint failed/);

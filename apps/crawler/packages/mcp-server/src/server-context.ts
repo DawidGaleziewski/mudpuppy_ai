@@ -13,6 +13,7 @@ import {
   linkDecisions,
   migrateUp,
   openDb,
+  uvMiner,
 } from '@pathfinder/store';
 import type { ServerContext } from './context.js';
 import { interruptStaleRuns } from './services/index.js';
@@ -29,6 +30,8 @@ export async function openServerContext(opts: {
   root: string;
   environment: string;
   logger?: Logger;
+  /** Mine business rules after each run's rebuild when the miner is installed (the MCP server). */
+  mine?: boolean;
 }): Promise<OpenedServerContext> {
   const root = resolve(opts.root);
   const dataDir = join(root, 'data');
@@ -56,6 +59,7 @@ export async function openServerContext(opts: {
     tracer,
     root,
     dbEnvironment: opts.environment,
+    miner: opts.mine ? uvMiner(root) : null,
   };
   // Stray servers on this data directory (another environment, another checkout) are named at
   // start (spec 030 R-61, field GC-22).

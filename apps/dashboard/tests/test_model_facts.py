@@ -51,7 +51,7 @@ def seed_model(store: Store) -> None:
         " trigger_transition_id, last_transition_id, outcome, outcome_screen_id, model_version_id,"
         " screens_json)"
         " VALUES ('i1', 'pr-1', 'j1', 'transition', 't1', 't1', 'completed', 'M2', 'mv1',"
-        " '[\"M1\",\"M2\"]')"
+        ' \'["M1","M2"]\')'
     )
     # A second journey opened the calculator by URL (a deep link, owner answer 10).
     conn.execute(

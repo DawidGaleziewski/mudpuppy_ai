@@ -27,6 +27,7 @@ class Side:
     at: str | None = None
     persona: str | None = None
     releases: dict[str, str] = field(default_factory=dict)  # portal part → release
+    layout_ref: str | None = None  # element boxes of the screenshot (the changed region)
 
 
 @dataclass(frozen=True)
@@ -62,6 +63,19 @@ class ChangeDetail:
     def position(self) -> int | None:
         ids = self.needs_ids
         return ids.index(self.change.id) + 1 if self.change.id in ids else None
+
+    @property
+    def marked_side(self) -> str | None:
+        """The side whose page has the changed element (12-v2-ux § 6): the after side for a new
+        or changed action, the before side for one that is gone; None without an element."""
+        if not self.change.element_key:
+            return None
+        return "before" if self.change.kind == "missing_action" else "after"
+
+    @property
+    def decidable(self) -> bool:
+        """The decision bar (v2-03): a hypothesis waiting for a person."""
+        return bool(self.change.hypothesis_key) and self.change.status == "open"
 
     def neighbour(self, step: int) -> str | None:
         p = self.position
@@ -123,6 +137,7 @@ def side_of(conn: sqlite3.Connection, label: str, note: str, state: sqlite3.Row 
     if state is None:
         return Side(label, note)
     pic = pictures(conn, [state["id"]]).get(state["id"])
+    layout = rows_of(conn, "SELECT layout_ref FROM states WHERE id = ?", (state["id"],))
     return Side(
         label,
         note,
@@ -131,6 +146,7 @@ def side_of(conn: sqlite3.Connection, label: str, note: str, state: sqlite3.Row 
         state["route_template"],
         pic,
         **_context(conn, state["id"]),
+        layout_ref=layout[0]["layout_ref"] if layout else None,
     )
 
 

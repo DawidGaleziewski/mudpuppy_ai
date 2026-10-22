@@ -11,6 +11,7 @@ import sqlite3
 from dataclasses import dataclass, field
 from typing import Any
 
+from .queries_model_screens import Coverage, coverage
 from .queries_rules import RuleRow, rules_view
 
 
@@ -51,6 +52,7 @@ class ModelFacts:
     explored: Exploration | None = None
     rules: list[RuleRow] = field(default_factory=list)
     paths: list[Path] = field(default_factory=list)
+    checked: Coverage | None = None  # its screens' actions, on a release (spec 040 FR-009)
 
 
 def _paths(conn: sqlite3.Connection, portal: str, process_id: str, version: str) -> list[Path]:
@@ -147,5 +149,11 @@ def model_facts(
     keys = _screen_keys(conn, [s["state_id"] for s in as_is_steps if s.get("state_id")])
     rules = [r for r in rules_view(conn, portal, None).rules if r.screen_key in keys]
     return ModelFacts(
-        seq, triggers, outcomes, explored, rules, _paths(conn, portal, process_id, vid)
+        seq,
+        triggers,
+        outcomes,
+        explored,
+        rules,
+        _paths(conn, portal, process_id, vid),
+        coverage(conn, portal, keys),
     )

@@ -12,7 +12,7 @@ from __future__ import annotations
 import sqlite3
 from typing import Any, NamedTuple
 
-from . import queries_access, queries_chat
+from . import queries_access, queries_chat, queries_queue
 from .models import AmendmentWithTarget
 from .queries_proposals import ProposalView, views_of
 from .queries_queue import QueueItem, findings_rules_removals, process_proposals
@@ -65,6 +65,12 @@ class Inbox(NamedTuple):
 
     def count(self, kind: str) -> int:
         return len(getattr(self, kind))
+
+    def similar(self, kind: str) -> list[queries_queue.Similar]:
+        """Groups of alike items decided with one action (designer § 5.4); model kinds only."""
+        if kind not in ("findings", "rules", "removals"):
+            return []
+        return queries_queue.similar(getattr(self, kind))
 
     @property
     def total(self) -> int:

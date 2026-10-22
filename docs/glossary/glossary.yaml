@@ -3280,12 +3280,18 @@ entries:
       such as "drivers under 18 are refused". The rule is a claim: its boundary tests check it,
       a person confirms it, and the rules export as DMN tables, Markdown pages (the sentence, then
       the table) and one CSV (Rules → Export, or `pnpm model:rules-export`).
+
+      Statuses: Proposed (mined, not tested), Tested (its boundary tests passed, a person has not
+      confirmed it), Confirmed, Broken (a boundary test failed), Changed (it no longer holds on a
+      newer release: mine it again), Replaced (a newer rule took its place) and Rejected. A person
+      can Reword the rule: the sentence the documentation and the export use instead of the mined
+      one. Copy Markdown on a rule's page copies it as the export has it.
     example: H-0002 "Drivers under 18 are refused" on SC-0003, supported by 3 boundary tests.
     appears_in: [Rules, Rules → In the export, What changed → Decision rules, process export rules/*.dmn]
-    labels: [decision rule, business rule, DMN, Broken, Tested, Replaced]
+    labels: [decision rule, business rule, DMN, Proposed, Tested, Broken, Changed, Replaced, Reword]
     related: [boundary-test, hypothesis]
-    changed_in: R-81
-    changed_on: 2026-10-19
+    changed_in: R-93
+    changed_on: 2026-10-22
 
   - id: boundary-test
     term: Boundary test
@@ -3296,12 +3302,14 @@ entries:
       Scans rarely type values right at a threshold, so a mined rule may say "under 22" when the
       portal means "under 18". Boundary tests replay a recorded execution with the threshold's
       neighbours. All give the predicted outcome: the rule is supported (a person still confirms).
-      One does not: the rule is refuted and is mined again with the new rows.
-    appears_in: [Rules → rule page, What changed → Decision rules]
+      One does not: the rule is refuted and is mined again with the new rows. A mined rule's tests
+      also wait in Review as a probe suite (one variant per test); approving it writes it into
+      the portal's traces.yaml, where it is the rule's regression suite.
+    appears_in: [Rules → rule page, What changed → Decision rules, Review → Probe suites to approve]
     labels: [boundary test, supported, refuted, Pass, Fail]
     related: [decision-rule, headless-driver]
-    changed_in: R-81
-    changed_on: 2026-10-19
+    changed_in: R-91
+    changed_on: 2026-10-22
 
   - id: process-proposal
     term: Proposed process (from the model)
@@ -3417,13 +3425,100 @@ entries:
     explanation: |
       Hints live in `model:` of portal.yaml. When you confirm an A/B test in Review, its cookie is
       added to the A/B cookies, so later scans record which arm each visit saw and the variants say
-      A/B test instead of Unknown. The rest changes through the assistant.
+      A/B test instead of Unknown. Change the hints on the page (Change the hints) or through the
+      assistant; the file is checked and put back if it would not load. Beside them, Budgets set
+      the checks per scan (replays on the headless driver) and the probes per form step and per
+      scan (0 turns form probing off).
     example: "Release marker: header x-app-version · A/B cookies: cookie ab_calc."
-    appears_in: [Settings → Hints]
-    labels: [Hints, release marker, A/B cookie, business refusal]
-    related: [release, screen-variant]
-    changed_in: R-81
-    changed_on: 2026-10-21
+    appears_in: [Settings → Hints, Settings → Budgets]
+    labels: [Hints, release marker, A/B cookie, business refusal, Budgets, checks per scan]
+    related: [release, screen-variant, headless-driver]
+    changed_in: R-93
+    changed_on: 2026-10-22
+
+  - id: as-of
+    term: As of (a past model version)
+    category: pathfinder
+    group: Portal model
+    short: The header menu on Processes, Screens, Map and Rules that shows the portal model as it was when a past model version was built.
+    explanation: |
+      Pick a version in As of and the model pages show only what existed then: the screens,
+      variants, links, rules and their statuses, processes and proposals. A banner says which
+      version you are looking at, with Back to now. Nothing can be changed while you look at the
+      past, and downloads and exports always show now. A model version is built after each scan.
+    example: "As of version 4 · 16 Oct (9c21 · App kalkulator)."
+    appears_in: [Processes, Screens, Screens → Map, Rules]
+    labels: [As of, Back to now, model version]
+    related: [portal-model, release]
+    changed_in: R-93
+    changed_on: 2026-10-22
+
+  - id: review-undo
+    term: Undo (a decision in Review)
+    category: pathfinder
+    group: Portal model
+    short: Takes back the last Confirm or Reject in Review, the whole group at once when it was a group decision, with a new history entry, never by deleting.
+    explanation: |
+      After a decision a toast says what was done, with Undo. Undo returns every item the decision
+      settled to where it was, and the history keeps both the decision and its undo; Decided marks
+      the decision Undone. Undo is refused when something changed the item since (a rebuild, or a
+      later decision). Answers given with it to linked Same screen? pairs stay.
+    example: "Rejected: H-0005, H-0006. · Undo"
+    appears_in: [Review, Changes → Before / after, Review → Decided]
+    labels: [Undo, Undone]
+    related: [hypothesis, also-settles]
+    changed_in: R-93
+    changed_on: 2026-10-22
+
+  - id: also-settles
+    term: Also settles (linked decisions)
+    category: pathfinder
+    group: Portal model
+    short: The items one decision settles together, such as the Same screen? pairs of the page version an A/B test finding is about.
+    explanation: |
+      Some items are one thing seen in two places. A finding that says a new page version is a
+      variant of its screen (a release, another persona, an A/B test) lists that version's Same
+      screen? pairs under Also settles. Confirming the finding answers them "Same screen" with your
+      reason and the finding's key.
+    appears_in: [Review → selected finding]
+    labels: [Also settles, linked decisions]
+    related: [same-screen-label, hypothesis]
+    changed_in: R-93
+    changed_on: 2026-10-22
+
+  - id: planner-mark
+    term: Planner mark
+    category: pathfinder
+    group: Portal model
+    short: A mark the portal model writes itself for what it does not know yet, with a priority, for the probe and exploration runs; never one of your own marks.
+    explanation: |
+      After each rebuild and each round of replays the planner lists what to check next: deviations
+      waiting for a replay, rules with tests not run, links not checked on documented screens,
+      decision points with too few cases, processes not explored. Each becomes a Recheck mark of
+      origin planner on its screen or link, highest priority first. Your marks (Start here, Focus,
+      Recheck, Retry, Skip, Probe) are kept apart: scans and the plan tray read only those.
+    appears_in: [store marks (origin planner)]
+    labels: [planner mark, planner, priority]
+    related: [headless-driver, explored-process]
+    changed_in: R-91
+    changed_on: 2026-10-22
+
+  - id: response-contract
+    term: Response contract (schema hash)
+    category: pathfinder
+    group: Documentation
+    short: One shape of an API's answer, its key paths and their types; an endpoint whose answer changed shape has more than one, each with when it was seen.
+    explanation: |
+      Every recorded API call gets a schema hash of its response's shape (values ignored). The
+      process export's CONTRACTS.md groups an endpoint's calls by it: one contract means the shape
+      never changed while recorded, more say when it changed and show each shape; openapi.yaml
+      notes how many there were and gives the latest.
+    example: "GET /api/quote · Response contracts · 2: price only (15 Oct), price and currency (16–17 Oct)."
+    appears_in: [process export CONTRACTS.md, openapi.yaml]
+    labels: [response contract, schema hash, contract]
+    related: [release]
+    changed_in: R-91
+    changed_on: 2026-10-22
 
   - id: scar
     term: Scar (scar-maker)

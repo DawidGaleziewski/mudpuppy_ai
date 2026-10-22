@@ -33,6 +33,26 @@ describe('hypothesis lifecycle (design § 10.2)', () => {
     expect(() => statusOf([ev('superseded')])).toThrow(/starts/);
   });
 
+  it('an undo returns to the status before the move it reverts, never past the first event', () => {
+    const undo = (to: HypothesisEvent['to']): HypothesisEvent => ({ ...ev(to), undo: true });
+    expect(statusOf([ev('proposed'), ev('rejected'), undo('proposed')])).toBe('proposed');
+    expect(statusOf([ev('proposed'), ev('supported'), ev('confirmed'), undo('supported')])).toBe(
+      'supported',
+    );
+    // A rejection undone can be decided again; two undos walk back two moves.
+    expect(statusOf([ev('proposed'), ev('rejected'), undo('proposed'), ev('confirmed')])).toBe(
+      'confirmed',
+    );
+    expect(
+      statusOf([ev('proposed'), ev('testing'), ev('supported'), undo('testing'), undo('proposed')]),
+    ).toBe('proposed');
+    expect(() => statusOf([ev('proposed'), ev('rejected'), undo('testing')])).toThrow(
+      /returns to proposed/,
+    );
+    expect(() => statusOf([ev('proposed'), undo('proposed')])).toThrow(/nothing to undo/);
+    expect(() => statusOf([undo('proposed')])).toThrow(/first event/);
+  });
+
   it('the reconciler confirms derived kinds only; agents never confirm; people always may', () => {
     expect(mayConfirm('structural_drift', 'reconciler', true)).toBe(true);
     expect(mayConfirm('ab_test', 'reconciler', true)).toBe(false);

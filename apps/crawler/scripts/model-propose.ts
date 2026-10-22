@@ -40,12 +40,15 @@ try {
     { encoding: 'utf8' },
   );
   const { communities } = Communities.parse(JSON.parse(out));
-  const written = writeProposals(opened.raw, portal, communities, graph);
+  const skipped: { screens: readonly string[]; reason: string }[] = [];
+  const written = writeProposals(opened.raw, portal, communities, graph, undefined, skipped);
   console.log(
     `${portal} (${env}): ${graph.nodes.length} screens, ${graph.edges.length} weighted links, ` +
       `${communities.length} communities, ${written.length} new suggestion(s)`,
   );
   for (const name of written) console.log(`  ${name}`);
+  // A person's dismissals and kept processes are constraints (spec 040 T034).
+  for (const s of skipped) console.log(`  not proposed (${s.screens.length} screens): ${s.reason}`);
 } finally {
   await opened.close();
   rmSync(work, { recursive: true, force: true });

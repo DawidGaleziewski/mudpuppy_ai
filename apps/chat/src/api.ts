@@ -21,7 +21,13 @@ import { parseBody, readJson, sendJson } from './http-io.js';
 import { PageContext, contextLine } from './page-context.js';
 import { CredentialsBody, type CredentialsHandler } from './credentials.js';
 import { Environment } from '@pathfinder/config';
-import { EnvironmentBody, NewPortalBody, PortalRefusal, type PortalSummary } from './portals.js';
+import {
+  EnvironmentBody,
+  HintsBody,
+  NewPortalBody,
+  PortalRefusal,
+  type PortalSummary,
+} from './portals.js';
 import { RunRefusal, type StoppedRun } from './runs.js';
 import { ScopeRefusal, SetScopeInput } from './scope.js';
 import type { ProcessScope } from '@pathfinder/chat-model';
@@ -70,6 +76,8 @@ export interface PortalCommands {
   describe: (id: string) => PortalSummary;
   setEnvironment: (id: string, env: Environment, body: EnvironmentBody) => PortalSummary;
   removeEnvironment: (id: string, env: Environment) => PortalSummary;
+  /** Settings ▸ Hints and Budgets (spec 040 T021). */
+  setHints?: (id: string, body: HintsBody) => PortalSummary;
 }
 
 const PORTAL_STATUS: Record<PortalRefusal['code'], number> = {
@@ -177,6 +185,19 @@ export function createApi(opts: ApiOptions): Server {
         res,
         200,
         portalCall(() => portals.describe(id)),
+      );
+      return;
+    }
+    const portalHints = /^\/portals\/([^/]+)\/hints$/.exec(path);
+    if (method === 'PUT' && portalHints !== null) {
+      if (portals?.setHints === undefined) throw new HttpError(404, 'This address does not exist.');
+      const setHints = portals.setHints;
+      const body = parseBody(HintsBody, await readJson(req));
+      const id = decodeURIComponent(portalHints[1]!);
+      sendJson(
+        res,
+        200,
+        portalCall(() => setHints(id, body)),
       );
       return;
     }

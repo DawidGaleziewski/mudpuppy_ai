@@ -16,7 +16,7 @@ function openMarks(raw: BetterSqlite3.Database, portal: string, kinds: string[])
   const row = raw
     .prepare(
       `SELECT COUNT(*) AS n FROM marks WHERE portal_id = ? AND used_by_run_id IS NULL
-       AND kind IN (${kinds.map(() => '?').join(',')})`,
+       AND origin = 'person' AND kind IN (${kinds.map(() => '?').join(',')})`,
     )
     .get(portal, ...kinds) as { n: number };
   return row.n;

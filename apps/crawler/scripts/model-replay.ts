@@ -48,6 +48,8 @@ try {
   for (const m of r.mismatches)
     console.log(`  R8 ${m.deviationId} → ${m.hypothesis ?? 'still waiting'}`);
   console.log(`  ${r.tests} boundary or regression test(s) replayed`);
+  if (r.stepsSaved > 0)
+    console.log(`  ${r.stepsSaved} step(s) skipped by starting where a replay got to`);
   for (const m of r.moves) console.log(`  ${m.hypothesis} → ${m.to}`);
 } finally {
   await local.close();

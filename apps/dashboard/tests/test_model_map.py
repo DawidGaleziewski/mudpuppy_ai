@@ -4,6 +4,7 @@ inspector; One scan's path draws the recorded map."""
 
 from __future__ import annotations
 
+import json
 import sqlite3
 
 from pathfinder_dashboard import queries_model_map
@@ -100,6 +101,52 @@ def test_a_process_overlay_numbers_its_steps_and_fades_the_rest(empty_store: Sto
     m = mapped(empty_store, process=key)
     roles = {n.key: n.role for n in m.nodes}
     assert m.overlay and m.overlay[0] == key and roles["SC-0001"] == "Step 1"
+
+
+def test_a_rule_labels_the_link_it_decides(empty_store: Store) -> None:
+    """Spec 039 F-52: the rule's condition on the edge ("age ≥ 18"), and in the list."""
+    seed(empty_store)
+    model(empty_store)
+    claim = {
+        "decisionPoint": {"screen": "SC-0001", "action": "link|form|main|"},
+        "rules": [
+            {"when": {"derived.input.data_urodzenia.age_years": ">= 18"}, "then": "SC-0003 ok"},
+            {"when": {"derived.input.data_urodzenia.age_years": "< 18"}, "then": "SC-0002 ok"},
+        ],
+    }
+    conn = empty_store.connect()
+    conn.execute(
+        "INSERT INTO hypotheses (id, key, portal_id, kind, claim, claim_json, claim_hash, origin,"
+        " rule, derived, confidence, model_version_id, created_at) VALUES ('h8', 'H-0008', ?,"
+        " 'decision_rule', 'Adults go on.', ?, ?, 'rule', 'R7', 0, 'needs_confirmation', 'mv1',"
+        " '2026-09-25T20:00:00.000Z')",
+        (P, json.dumps(claim), "8" * 64),
+    )
+    conn.commit()
+    conn.close()
+    m = mapped(empty_store)
+    assert sorted(e.label for e in m.edges if e.label) == ["age < 18", "age ≥ 18"]
+    with client(empty_store) as c:
+        page = c.get(f"/map?portal={P}").text
+    assert 'class="sy-edge-label"' in page and ">age ≥ 18</text>" in page
+    assert "if age ≥ 18" in page  # the list says it too
+
+
+def test_the_overlay_shows_the_trigger_and_how_journeys_ended(empty_store: Store) -> None:
+    """Spec 039 F-52: the overlaid process's trigger and outcomes chipped on their screens."""
+    seed_screens(empty_store)
+    conn = empty_store.connect()
+    conn.execute("PRAGMA foreign_keys = OFF")  # no journey row: only the instance matters here
+    conn.execute(
+        "INSERT INTO process_instances (id, process_id, journey_id, trigger_kind,"
+        " trigger_observation_id, outcome, outcome_screen_id, model_version_id)"
+        " VALUES ('pi1', 'p1', 'j1', 'deep_link', 'o0', 'completed', 'M1', 'mv2')"
+    )
+    conn.commit()
+    conn.close()
+    key = mapped(empty_store).processes[0][0]
+    (home,) = [n for n in mapped(empty_store, process=key).nodes if n.key == "SC-0001"]
+    assert ("Trigger · deep link", "") in home.chips and ("Ends completed · 1", "") in home.chips
 
 
 def test_the_map_page_is_the_models_with_views_and_an_inspector(empty_store: Store) -> None:

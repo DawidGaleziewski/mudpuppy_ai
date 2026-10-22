@@ -4,8 +4,11 @@ import {
   CSV_HEADER,
   decideHypothesis,
   decisionRules,
+  rewordHypothesis,
   ruleFiles,
+  ruleMarkdown,
   ruleSentence,
+  ruleStatusText,
 } from '../src/index.js';
 import { replayAll, T, withRule } from './seed-threshold.js';
 
@@ -79,6 +82,51 @@ describe('decision rules exported as DMN, Markdown and CSV (design § 11.4, OV-5
       'rules.csv',
       'README.md',
     ]);
+    await o.close();
+  });
+
+  it('says a reworded rule in the person words, with its decisions and changes (spec 040 FR-007)', async () => {
+    const o = withRule(18);
+    replayAll(o);
+    rewordHypothesis(o.raw, {
+      portal: 'ins',
+      key: 'H-0001',
+      wording: 'A driver under 18 on the day of the quote is refused.',
+      actor: 'owner',
+      now: T(940),
+    });
+    decideHypothesis(o.raw, {
+      portal: 'ins',
+      key: 'H-0001',
+      decision: 'confirm',
+      actor: 'owner',
+      reason: 'as the terms say',
+      now: T(950),
+    });
+    const md = ruleFiles(o.raw, 'ins').find((f) => f.path === 'H-0001.md')!.content;
+    expect(md.split('\n')[2]).toBe('A driver under 18 on the day of the quote is refused.');
+    expect(md).toMatch(/- Reworded: \d{4}-\d{2}-\d{2} · owner\n- As mined: If age from/);
+    expect(md).toMatch(/- Decided: \d{4}-\d{2}-\d{2} · owner: confirmed, "as the terms say"/);
+    expect(md).not.toContain('· replay:'); // the machine's steps are not a person's decisions
+    await o.close();
+  });
+
+  it('a superseded rule without a newer one is changed; with one it is replaced', async () => {
+    const o = withRule(18);
+    const rule = { ...decisionRules(o.raw, 'ins')[0]!, status: 'superseded' as const };
+    const drift = {
+      to: 'superseded' as const,
+      actor: 'reconciler',
+      reason: 'decision drift (H-0002, rule R8)',
+      at: T(990),
+    };
+    const changed = ruleMarkdown(
+      { ...rule, history: [drift] },
+      { brKey: () => null, screen: () => null },
+    );
+    expect(changed).toMatch(/- Changed: \d{4}-\d{2}-\d{2}: decision drift \(H-0002, rule R8\)/);
+    expect(changed).toContain('- Status: changed: it no longer holds');
+    expect(ruleStatusText({ ...rule, replaced: true })).toBe('replaced by a newer rule');
     await o.close();
   });
 });

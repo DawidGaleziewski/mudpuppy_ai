@@ -5,7 +5,15 @@
  * same writer after `finish_run`.
  */
 import { join, resolve } from 'node:path';
-import { dbPathFor, migrateUp, openDb, reconcilePortalModel } from '@pathfinder/store';
+import {
+  dbPathFor,
+  migrateUp,
+  mineRules,
+  openDb,
+  reconcilePortalModel,
+  uvMiner,
+  writePlannerMarks,
+} from '@pathfinder/store';
 
 const arg = (name: string): string | undefined => {
   const i = process.argv.indexOf(`--${name}`);
@@ -32,6 +40,16 @@ try {
       : `${portal} (${env}): model version ${r.seq} written`,
   );
   for (const [k, v] of Object.entries(r.stats)) console.log(`  ${k}: ${v}`);
+  // Design § 7 step 10 (spec 040 T030): mine the new version's rules when the miner is installed.
+  const miner = r.modelVersion === null ? null : uvMiner(root);
+  if (miner) {
+    const mined = mineRules(opened.raw, portal, miner);
+    const written = mined.points.filter((p) => p.key !== null).length;
+    console.log(`  rules mined: ${written} new of ${mined.points.length} decision point(s)`);
+  }
+  // Design § 14.1 (spec 040 T033): the planner's marks for the probe and exploration runs.
+  const planned = writePlannerMarks(opened.raw, portal);
+  console.log(`  planner: ${planned.length} item(s) for probe and exploration runs`);
 } finally {
   await opened.close();
 }

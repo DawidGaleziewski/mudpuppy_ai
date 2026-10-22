@@ -14,6 +14,23 @@
       <li><a href="{{ c.url('/portals/new') }}">+ New portal</a></li>
     </ul>
   </details>
+  {#- As of (spec 040 FR-001, 12-v2-ux § 2): the model pages as a past model version had them. #}
+  {%- if c.portal and section in AS_OF_SECTIONS %}
+  {%- set versions = c.as_of_versions() %}
+  {%- if versions | length > 1 %}
+  <details class="sy-portal mp-portal-menu" id="header-as-of">
+    <summary><span class="sy-label">As of</span> <span class="sy-mono">{% if c.as_of %}version {{ c.as_of.seq }}{% else %}Now{% endif %}</span></summary>
+    <ul class="mp-menu" aria-label="Show the model as of">
+      <li><a href="{{ c.as_of_url(none) }}"{% if not c.as_of %} aria-current="true"{% endif %}>Now <span class="sy-small sy-muted">version {{ versions[0].seq }}</span></a></li>
+      {%- for v in versions[1:] %}
+      <li><a href="{{ c.as_of_url(v.seq) }}"{% if c.as_of and c.as_of.seq == v.seq %} aria-current="true"{% endif %}>Version {{ v.seq }} · {{ v.built_at | when }}
+        {%- if v.releases %} <span class="sy-small sy-muted">{{ v.releases | join(", ") }}</span>{% endif %}
+        {%- if v.scan %} <span class="sy-small sy-muted">scan {{ v.scan[:8] }}</span>{% endif %}</a></li>
+      {%- endfor %}
+    </ul>
+  </details>
+  {%- endif %}
+  {%- endif %}
   {#- The open data store (spec 031 US2, R-61; moved up from the nav footer by R-71): every page
       says which data it shows. The menu lists the stores holding the chosen portal's scans. #}
   <details class="sy-portal mp-portal-menu" id="header-env">
