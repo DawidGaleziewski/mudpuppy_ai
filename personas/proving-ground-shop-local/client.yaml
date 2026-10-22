@@ -1,0 +1,6 @@
+id: client
+extends: ["../_mixins/anonymous-base.yaml", "../_mixins/proving-ground-test-data.yaml"]
+max_action_class: external-side-effect
+auth:
+  login: ref:PG_SHOP_LOGIN
+  password: ref:PG_SHOP_PASSWORD

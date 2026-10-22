@@ -11,7 +11,7 @@
         "start"
       ],
       "env": {
-        "MUDPUPPY_ENV": "sandbox"
+        "MUDPUPPY_ENV": "local-dev"
       }
     },
     "mudpuppy-ba": {
@@ -25,7 +25,7 @@
         "start:ba"
       ],
       "env": {
-        "MUDPUPPY_ENV": "sandbox"
+        "MUDPUPPY_ENV": "local-dev"
       }
     }
   }

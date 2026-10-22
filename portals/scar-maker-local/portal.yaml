@@ -1,0 +1,35 @@
+# Scar-maker (apps/scar-maker, spec 030): the hardest real-world obstacles, one route per scar.
+# Two loopback hosts: 127.0.0.1 is the portal, 127.0.0.2 the identity provider / CDN.
+# Start it with `pnpm --dir apps/scar-maker start` (port 4300); the gates run it on 4400.
+id: scar-maker-local
+base_url: http://127.0.0.1:4300/
+# Local-dev copy of scar-maker (owner 2026-10-22): its own store, data/db/local-dev.sqlite.
+environment: local-dev
+# Our own local estate: forms may be sent (SC-18's applicant). The guest persona is read-only on
+# purpose: several scars are about what a read-only run must not click (SC-01, SC-05).
+max_action_class: external-side-effect
+
+compliance:
+  robots_checked_on: 2026-10-15
+  terms_reviewed_on: 2026-10-15
+  terms_reviewed_by: local test estate, no terms
+
+scope:
+  allowed_domains: ["127.0.0.1", "127.0.0.2"]
+  external_link_policy: record
+  max_depth: 6
+  max_states: 80
+  max_actions_per_state: 40
+  max_run_time_minutes: 20
+  max_steps: 300
+
+urls:
+  disallowed:
+    - /__admin/* # scar memory and reset
+
+denylist: []
+
+rate_limit:
+  requests_per_second: 5
+  max_concurrency: 2
+  user_agent: "MudPuppy-Crawler/0.1 (local scar-maker)"

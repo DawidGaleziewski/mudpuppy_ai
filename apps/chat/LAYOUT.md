@@ -65,7 +65,9 @@ keeps the map (spec 042 T050, G-30).
   server in Workbench mode; its fence: read and compose, the crawler only with a confirmed
   command's prompt, `Launches`); `mcp-workbench-tools` (`render_view`, `propose_command`: the
   designer's schemas, checked with `@mudpuppy/workbench-contract`, one view per turn);
-  `workbench-commands` (proposals, one-time tokens, Confirm, expiry, settle; the audit row);
+  `workbench-commands` (proposals, one-time tokens, Confirm, expiry, settle; the audit row; spec
+  044: a Start card's chosen persona, else the newest scan's); `workbench-persona` (spec 044: the
+  persona name check and the `guest`-else-first fallback);
   `workbench-cards` (the card actions the dashboard drives); `workbench-service` (conversations,
   turns with their context, Path switch, feedback, the day's cap); `workbench-context` (the
   context before each message, portal text in `<scan_data>`); `workbench-events` (`wb_*` events

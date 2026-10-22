@@ -1,0 +1,39 @@
+# Scar-maker SC-13 (spec 030 R-63): a portal reachable only through the corporate proxy
+# (scar-maker's own forward proxy on port 4302; the gates run it on 4402).
+id: scar-maker-proxy-local
+base_url: http://127.0.0.1:4300/sc13/
+# Local-dev copy of scar-maker-proxy (owner 2026-10-22): its own store, data/db/local-dev.sqlite.
+environment: local-dev
+max_action_class: read
+
+compliance:
+  robots_checked_on: 2026-10-16
+  terms_reviewed_on: 2026-10-16
+  terms_reviewed_by: local test estate, no terms
+
+scope:
+  allowed_domains: ["127.0.0.1"]
+  external_link_policy: record
+  max_depth: 4
+  max_states: 20
+  max_actions_per_state: 20
+  max_run_time_minutes: 10
+  max_steps: 60
+
+urls:
+  disallowed:
+    - /__admin/*
+
+# Robots.txt is fetched by the server, not through the browser's proxy.
+robots: ignore
+
+network:
+  proxy:
+    server: http://127.0.0.1:4302
+    # Chromium never proxies loopback addresses unless told to (only needed on loopback).
+    bypass: ["<-loopback>"]
+
+rate_limit:
+  requests_per_second: 5
+  max_concurrency: 2
+  user_agent: "MudPuppy-Crawler/0.1 (local scar-maker)"

@@ -36,6 +36,22 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   length (F-02). Findings F-01–F-05 in `specs/041-r83-mudpuppy-rename/findings.md`.
 
 ### Added
+- **R-94: pick the persona on the Workbench's Start card, and a local-dev store** (spec 044,
+  v2.3.1, 2026-10-22). Found by the owner's first hand try: a portal's first scan could not start
+  from the Workbench ("the scan needs more information"), because Start took the persona only
+  from the portal's newest scan. The Start card now asks **As** (the portal's personas; the
+  newest scan's selected, else `guest`, else the first); Confirm sends the choice and the chat
+  checks it. A portal with no persona gets a link to Settings and no Confirm; a refused scan now
+  names what it misses ("the scan needs more information: persona"). **local-dev**: copies of the
+  11 local test portals (`portals/*-local`, with their personas) declare a new environment
+  `local-dev`, the owner's own test store (`data/db/local-dev.sqlite`); Claude Code's `mudpuppy`
+  servers (`.mcp.json`) and the documented chat start use it, while the originals, gates and
+  tests stay on `sandbox`. Also on the roadmap from this branch: the owner's review of D-1…D-10
+  (spec 043), R-95 (add a persona from the Workbench), R-96 (Workbench 2: React, A2UI drawn by
+  `@a2ui/react` with our own components, live shared state over WebSockets, the agent behind ACP
+  and agent-neutral, crawler and BA in the background). Known, for R-96: no live card follows a
+  confirmed Start, because the assistant waits for the whole scan (F-19); the crawler stopped
+  once with 180 links queued (F-20). Findings in `specs/043-r92-workbench-genui/findings.md`.
 - **R-92: the Workbench, a beta where the assistant composes the screen** (spec 043, v2.3.0,
   2026-10-22; phases 0 and 1 of the designer's plan, `docs/design/salvage-yard/docs/14`–`17`).
   Off by default: `MUDPUPPY_WORKBENCH=1` shows the tab (with a `beta` chip); off again hides it

@@ -89,7 +89,15 @@ export function cardActions(deps: WorkbenchDeps) {
     token: (id: string): { token: string } => ({ token: refusing(() => issueToken(raw, id)) }),
 
     confirm(id: string, body: Body): { state: string } {
-      const input = { id, token: asText(body.token, 'token', 200), by: asText(body.by, 'by', 100) };
+      const input = {
+        id,
+        token: asText(body.token, 'token', 200),
+        by: asText(body.by, 'by', 100),
+        // The persona the person picked on a Start card (spec 044); checked when the scan starts.
+        ...(typeof body.persona === 'string' && body.persona !== ''
+          ? { persona: asText(body.persona, 'persona', 64) }
+          : {}),
+      };
       const confirmDeps = {
         raw,
         paths: deps.paths,

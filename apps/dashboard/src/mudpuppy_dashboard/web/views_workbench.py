@@ -10,6 +10,7 @@ from typing import Any
 from urllib.parse import quote
 
 from .. import chat_client, queries_wb, wb_render
+from ..queries_chat import list_personas
 from ..queries_wb import WbConversation
 from ..queries_wb_scan import PageVisit, ScanLive, resolve_scan
 from ..wb_render import RenderedTurn
@@ -79,6 +80,7 @@ def render_ctx(
         viewer=c.settings.reviewer,
         url=c.url,
         tokens=tokens,
+        personas=tuple(p.id for p in list_personas(c.settings.personas_dir, conv.portal)),
     )
     rc.bound = [r for s in bound if (r := resolve_scan(conn, conv.portal, s))]
     return rc

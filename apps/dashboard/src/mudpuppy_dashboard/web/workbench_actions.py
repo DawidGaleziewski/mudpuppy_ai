@@ -94,6 +94,8 @@ async def card_action(
     if action == "confirm" and (paused := _paused(web, c)):
         return _note(paused)
     body = {"token": form.get("token", ""), "by": web.settings.reviewer}
+    if form.get("persona"):  # a Start card's "As" choice (spec 044 FR-004); the chat checks it
+        body["persona"] = form["persona"]
     try:
         await chat(web, "POST", cmd_path(command_id, action), body)
     except chat_client.ChatUnavailable:

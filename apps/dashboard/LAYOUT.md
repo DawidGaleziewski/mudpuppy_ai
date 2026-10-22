@@ -96,7 +96,8 @@ rules; this file keeps the map (spec 042 T050, G-30).
   (a scan's events from the store, one per step, `scan#step`; route pages with side trips folded;
   short scan ids), `queries_wb.py` (a Workbench conversation as turns: message, answer, view,
   command cards; feedback; records), `wb_render.py` (a stored view placed for phase 1, data from
-  the store; standing ErrorCard; templated narration; command card facts), `wb_frames.py` (frame,
+  the store; standing ErrorCard; templated narration; command card facts; spec 044: the Start
+card's "As" persona choice), `wb_frames.py` (frame,
   Why, feedback and command card view models). Routes: `web/workbench.py` (page, Send, Path
   switch, a turn as stored), `web/workbench_actions.py` (button cards, Confirm, Cancel,
   feedback), `web/workbench_stream.py` (one SSE per tab: the chat's words relayed as out-of-band

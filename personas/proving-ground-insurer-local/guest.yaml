@@ -1,0 +1,3 @@
+id: guest
+extends: ["../_mixins/anonymous-base.yaml", "../_mixins/proving-ground-test-data.yaml"]
+max_action_class: external-side-effect

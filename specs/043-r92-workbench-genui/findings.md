@@ -145,6 +145,51 @@ changes nothing in mcp-server or model. Load-sensitive like the dashboard's `ser
 idea: mark it serial or give its replay a monotonic wait (see wsl-clock-jumps), and log each
 recurrence here.
 
+## F-18 A portal's first scan cannot start from the Workbench (fixed by spec 044; (b) open in R-94)
+
+2026-10-22, store `local-dev` (empty), commands `WB-edbf581a` and `WB-099af97d` (the second on
+`proving-ground-shop-local`, the right portal, same cause): "Start a map scan" → the assistant
+proposed `scan.start {type: full_map}` on proving-ground-shop; Confirm failed with "the scan needs
+more information". Cause: `prepareStart` (`apps/chat/src/workbench-commands.ts`) takes the persona
+only from the portal's newest run, so a portal with no runs has none and `requireFiles` refuses
+(`MISSING_INPUT: persona`). Two more problems in the same try: (a) the card shows only the
+message, not the missing item ("persona"), so the person cannot tell what to add; (b) the
+conversation's portal is the header's choice, which offers every portal, also ones that do not
+declare the store's environment (proving-ground-shop declares only sandbox; its `-local` copy is
+the local-dev one). Fix idea: fall back to the portal's `guest` persona (the default
+`portals.ts check` already loads), show the refusal's reasons on the card. Test idea: a fake-agent
+case "Start a map scan" on an empty store must reach `scan.started`; an eval prompt for a first
+scan of a portal with no runs.
+
+## F-19 No live card after a confirmed Start: the assistant waits on the crawler (open, owner's hand try)
+
+2026-10-22, store `local-dev`, scan `01a16518` (proving-ground-shop-local as guest): Confirm →
+the card says "Done · Started scan 01a16518 · Open in Scans", the scan runs, but no LiveMap or
+narration appears. Cause (D-5): the hand-off is an event turn in which the assistant calls the
+crawler subagent; that call returns only when the crawler finishes, so the assistant cannot place
+a view during the scan, and phase 1 shows a view only from a turn (D-10). The live stream already
+binds the new run (`bound_scans` includes started runs), but there is no card to update. The
+design expects the live card while mapping (`14-workbench.md` § 5, wb-01; "Scan … started"
+announcement). Not caught: the browser test's fake agent never waits on a real crawler. Fix
+ideas: (a) the chat service adds a server-composed view (LiveMap filmstrip + Narration bound to the
+new run) to the command's turn when a start or resume is done; (b) the assistant starts the
+crawler in the background and places the view itself. Test idea: a fake agent whose crawler call
+blocks must still show the live card once the run exists; eval: "Start a map scan" ends with a
+LiveMap of the started scan.
+
+## F-20 The Workbench's crawler stopped with 180 links queued (open, owner's hand try)
+
+2026-10-22, scan `01a16518` (proving-ground-shop-local as guest, local-dev), started 19:30:44
+from a confirmed Start card: after 94 steps (about 8.7 min of work) the crawler subagent returned
+without `finish_run`; the assistant reported "It ran out of links it could follow … 180 links are
+still waiting to be visited", and the run was later marked `interrupted`. The brief says to drain
+the frontier and call `finish_run` only when it is empty. Its only reply came at 19:46:06, when
+the crawler call returned, which confirms F-19 (no live card, nothing to read for 15 minutes). Not
+diagnosed yet: whether the subagent hit its own turn or context limit, or misread the frontier.
+Test idea: a long map scan through the Workbench must end `finished` or say why; eval: compare
+queued links at the stop with the run's frontier. Belongs with R-96's background runner, which
+owns the crawler's lifecycle.
+
 ## Close-out review (code-reviewer, 2026-10-22)
 
 | # | File | Guideline | Finding | Outcome |

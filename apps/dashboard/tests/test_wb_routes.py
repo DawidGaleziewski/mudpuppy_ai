@@ -219,6 +219,47 @@ def test_confirm_forwards_the_token_signed(client: TestClient, chat: Chat) -> No
     assert f'id="cmd-{CMD}"' in r.text
 
 
+def test_confirm_forwards_the_persona_picked_on_a_start_card(
+    client: TestClient, chat: Chat
+) -> None:
+    client.post(
+        f"/workbench/commands/{CMD}/confirm",
+        data={"token": "test-token-not-real", "persona": "guest"},
+        headers=ORIGIN,
+    )
+    *_, body = next(c for c in chat.calls if c[1].endswith("/confirm"))
+    assert body == {"token": "test-token-not-real", "by": "dawid", "persona": "guest"}
+
+
+def test_a_start_card_lists_the_portals_personas(empty_store: Store, client: TestClient) -> None:
+    conn = empty_store.connect()
+    at = "2026-10-06T10:47:00.000Z"
+    insert(
+        conn,
+        "workbench_commands",
+        id="cmd-0002",
+        conversation_id=CONV,
+        turn=1,
+        command="scan.start",
+        args_json=json.dumps({"type": "full_map"}),
+        reason="you asked for a map scan.",
+        source="assistant",
+        state="proposed",
+        token_hash="0" * 64,
+        precondition_hash="y",
+        idempotency_key="k2",
+        expires_at="2999-01-01T00:00:00Z",
+        created_at=at,
+        updated_at=at,
+    )
+    conn.commit()
+    conn.close()
+    html = page(client)
+    assert 'name="persona" form="cmd-cmd-0002-confirm"' in html
+    assert '<option value="guest" selected>guest</option>' in html  # reference-insurer's one
+    assert 'name="persona" form="cmd-cmd-0001-confirm"' not in html  # a resume keeps its own
+
+
 def test_cross_origin_posts_are_refused(client: TestClient, chat: Chat) -> None:
     r = client.post(f"/workbench/commands/{CMD}/confirm", data={"token": "x"})
     assert r.status_code == 403

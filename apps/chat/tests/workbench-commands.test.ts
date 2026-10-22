@@ -62,6 +62,10 @@ const propose = (command: string, args: Record<string, unknown>): CommandRow =>
     },
   });
 
+/** A failed command's message, as the card shows it. */
+const messageOf = (row: CommandRow): string | undefined =>
+  (JSON.parse(row.result_json ?? '{}') as { message?: string }).message;
+
 beforeEach(() => {
   root = mkdtempSync(join(tmpdir(), 'wb-commands-'));
   for (const dir of ['portals/reference-insurer', 'personas/_mixins', 'personas/reference-insurer'])
@@ -181,6 +185,38 @@ describe('workbench commands', () => {
     const row = propose('scan.stop', { scan: '01a110d5' });
     expect(cancelCommand(raw(), row.id).state).toBe('cancelled');
     expect(() => issueToken(raw(), row.id)).toThrow('cancelled');
+  });
+
+  it("a portal's first scan starts as guest when the card picked no persona (spec 044 FR-002)", () => {
+    const row = propose('scan.start', { type: 'full_map' });
+    const done = confirmCommand(deps(), { id: row.id, token: issueToken(raw(), row.id), by: 'dawid' });
+    expect(done.state).toBe('running');
+    expect(launches).toHaveLength(1);
+    expect(launches[0]?.prompt).toContain('guest');
+  });
+
+  it('a Start card starts as the persona the person picked (FR-004)', () => {
+    cpSync(join(root, 'personas', P, 'guest.yaml'), join(root, 'personas', P, 'tester.yaml'));
+    const row = propose('scan.start', { type: 'full_map' });
+    const token = issueToken(raw(), row.id);
+    confirmCommand(deps(), { id: row.id, token, by: 'dawid', persona: 'tester' });
+    expect(launches[0]?.prompt).toContain('tester');
+  });
+
+  it('a picked persona the portal does not have fails and names what is missing (FR-004, FR-005)', () => {
+    const row = propose('scan.start', { type: 'full_map' });
+    const token = issueToken(raw(), row.id);
+    const failed = confirmCommand(deps(), { id: row.id, token, by: 'dawid', persona: 'nobody' });
+    expect(failed.state).toBe('failed');
+    expect(messageOf(failed)).toBe('the scan needs more information: persona');
+    expect(launches).toHaveLength(0);
+  });
+
+  it('a picked persona that is not a persona name fails without reading a file (FR-004)', () => {
+    const row = propose('scan.start', { type: 'full_map' });
+    const token = issueToken(raw(), row.id);
+    const failed = confirmCommand(deps(), { id: row.id, token, by: 'dawid', persona: '../x' });
+    expect(messageOf(failed)).toBe('"../x" is not a persona name');
   });
 
   it('proposals expire after 10 minutes', () => {

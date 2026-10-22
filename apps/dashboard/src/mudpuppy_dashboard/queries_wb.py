@@ -251,3 +251,12 @@ def bound_scans(conn: sqlite3.Connection, conversation_id: str) -> list[str]:
         if isinstance(c.result.get("run_id"), str)
     ]
     return list(dict.fromkeys([*shorts, *[r[:8] for r in started]]))
+
+
+def newest_persona(conn: sqlite3.Connection, portal: str) -> str | None:
+    """The persona of the portal's newest scan: a Start card's default (spec 044 FR-002)."""
+    row = conn.execute(
+        "SELECT persona_id FROM runs WHERE portal_id = ? ORDER BY started_at DESC LIMIT 1",
+        (portal,),
+    ).fetchone()
+    return str(row[0]) if row else None

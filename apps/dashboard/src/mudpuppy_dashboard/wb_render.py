@@ -6,7 +6,7 @@ side sheet). The model's words reach the templates as plain strings only (FR-003
 from __future__ import annotations
 
 import sqlite3
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from typing import Any
 
 from . import queries_wb, queries_wb_scan
@@ -81,6 +81,7 @@ class Ctx:
     tokens: dict[str, str] = field(default_factory=dict)  # proposed command id -> its token
     scans: dict[str, ScanLive | None] = field(default_factory=dict)  # short id -> scan (cache)
     bound: list[str] = field(default_factory=list)  # run ids the conversation binds (F-05)
+    personas: tuple[str, ...] = ()  # the portal's persona ids, for a Start card (spec 044)
 
     def scan(self, short: str) -> ScanLive | None:
         if short not in self.scans:
@@ -295,7 +296,19 @@ def command_card(rc: Ctx, cmd: WbCommand) -> CommandCard:
             ("Where", rc.env),
             ("Undo", "Not undoable. You can stop it."),
         )
+        if not continues:
+            return replace(_card_of(rc, cmd, facts), **_persona_choice(rc))
     return _card_of(rc, cmd, facts)
+
+
+def _persona_choice(rc: Ctx) -> dict[str, Any]:
+    """A Start card's "As" choice (spec 044 FR-001…FR-003): the portal's personas, the newest
+    scan's selected first, else `guest`, else the first; none → a link to add one instead."""
+    if not rc.personas:
+        return {"ask_persona": True, "no_persona_url": rc.url(f"/portals/{rc.portal}/settings")}
+    newest = queries_wb.newest_persona(rc.conn, rc.portal)
+    first = next((p for p in (newest, "guest") if p in rc.personas), rc.personas[0])
+    return {"ask_persona": True, "personas": rc.personas, "persona": first}
 
 
 LABELS = {

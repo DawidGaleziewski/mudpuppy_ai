@@ -11,6 +11,7 @@ import { newId, nowIso } from '@mudpuppy/core';
 import type { CommandProposal } from '@mudpuppy/workbench-contract';
 import { stopRun } from './runs.js';
 import { requestScan, ScanRefusal, type RequestScanInput } from './scan.js';
+import { fallbackPersona, isPersonaName } from './workbench-persona.js';
 import type { WorkspacePaths } from './workflow-data.js';
 
 export const PROPOSAL_TTL_MS = 10 * 60 * 1000;
@@ -114,6 +115,27 @@ const newestRun = (raw: BetterSqlite3.Database, portal: string): Run | undefined
        ORDER BY started_at DESC LIMIT 1`,
     )
     .get(portal) as Run | undefined;
+
+/**
+ * The persona a new scan starts as (spec 044 FR-002, FR-004): the person's choice on the card,
+ * else the newest scan's (already in `scan`), else `guest`, else the first persona by name. A
+ * continued run keeps its own persona.
+ */
+function startAs(
+  paths: WorkspacePaths,
+  scan: RequestScanInput,
+  chosen: string | undefined,
+): RequestScanInput {
+  if (scan.run_type === 'continue') return scan;
+  if (chosen !== undefined) {
+    if (!isPersonaName(chosen))
+      throw new CommandRefusal('PRECONDITION', `"${chosen}" is not a persona name`);
+    return { ...scan, persona: chosen };
+  }
+  if (scan.persona !== undefined) return scan;
+  const persona = fallbackPersona(paths, scan.portal);
+  return persona === undefined ? scan : { ...scan, persona };
+}
 
 /** The preconditions of each command (doc 17 § 4.3); a refusal is one plain line for the chat. */
 export function prepare(
@@ -299,7 +321,8 @@ function tokenMatches(row: CommandRow, token: string): boolean {
 /** Confirm (WB-UI-21, -23): nothing reaches a scan before this, and only with the card's token. */
 export function confirmCommand(
   deps: ConfirmDeps,
-  input: { id: string; token: string; by: string },
+  /** `persona`: the person's choice on a Start card (spec 044); ignored by stop and resume. */
+  input: { id: string; token: string; by: string; persona?: string },
 ): CommandRow {
   const { raw } = deps;
   if (deps.commandsOn === false) throw new CommandRefusal('PAUSED', 'commands are paused');
@@ -320,7 +343,7 @@ export function confirmCommand(
   }
   const prepared = prepare(raw, portalOf(raw, row.conversation_id), proposal);
   setState(raw, row.id, 'running', { confirmed_by: input.by, confirmed_at: nowIso() });
-  run(deps, getCommand(raw, row.id), prepared);
+  run(deps, getCommand(raw, row.id), prepared, input.persona);
   return getCommand(raw, row.id);
 }
 
@@ -340,7 +363,12 @@ function expiryReason(
   }
 }
 
-function run(deps: ConfirmDeps, row: CommandRow, prepared: Prepared): void {
+function run(
+  deps: ConfirmDeps,
+  row: CommandRow,
+  prepared: Prepared,
+  persona: string | undefined,
+): void {
   const { raw } = deps;
   try {
     if (row.command === 'scan.stop' && prepared.runId !== null) {
@@ -350,18 +378,24 @@ function run(deps: ConfirmDeps, row: CommandRow, prepared: Prepared): void {
       return;
     }
     if (prepared.scan === null) throw new CommandRefusal('PRECONDITION', 'nothing to run');
-    const handoff = requestScan(raw, deps.paths, row.conversation_id, prepared.scan);
+    const scan = startAs(deps.paths, prepared.scan, persona);
+    const handoff = requestScan(raw, deps.paths, row.conversation_id, scan);
     deps.launch(row.conversation_id, handoff.handoff.prompt, row);
   } catch (error) {
-    const message =
-      error instanceof ScanRefusal || error instanceof CommandRefusal
-        ? error.message
-        : 'the command failed';
     setState(raw, row.id, 'failed', {
       error_ref: `WB-${row.id.slice(-8)}`,
-      result_json: JSON.stringify({ message }),
+      result_json: JSON.stringify({ message: failure(error) }),
     });
   }
+}
+
+/** The card's line for a failed command; a refused scan names what it misses (spec 044 FR-005). */
+function failure(error: unknown): string {
+  if (error instanceof ScanRefusal && error.missing.length > 0)
+    return `${error.message}: ${error.missing.join(', ')}`;
+  return error instanceof ScanRefusal || error instanceof CommandRefusal
+    ? error.message
+    : 'the command failed';
 }
 
 export function cancelCommand(raw: BetterSqlite3.Database, id: string): CommandRow {

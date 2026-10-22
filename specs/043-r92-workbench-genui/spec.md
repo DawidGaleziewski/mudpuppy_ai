@@ -70,6 +70,21 @@ below keeps the designer's behaviour rule and replaces only the mechanism.
 | D-10 | Entries land with the conversation or scan in context: "Continue in Workbench" keeps the drawer's conversation, "Watch in Workbench" opens `path=mapping&scan=…` | Both open a new Workbench conversation; Watch fills in "Watch scan 01a110d5." for the person to send, so the assistant composes the live view | A Workbench conversation is its own kind, and a view comes only from a turn; the dashboard writes nothing itself |
 | D-9 | Scan ids like `01a110d5` (the schema allows exactly 8 hex) | Binds carry the first 8 characters of our UUIDv7 run id; the server resolves the prefix, first among the scans the conversation binds, then the portal's newest; the context tells the model only prefixes that are unique (F-05) | The schema is the designer's; UUIDv7 prefixes collide for runs started within about a minute |
 
+### Owner review of D-1…D-10 (2026-10-22, questionnaire page)
+
+| # | Answer | Follow-up |
+|---|---|---|
+| D-1 | Accepted, with a constraint: "I cant use api key in work env. For now it has to be in the cli when i log in to claud. And best if at least for some time it would be easy for me to switch to something like kiro. So it is mainly agent driven/subagent. We dont own the agent loop for now" | R-96 keeps the agent behind ACP on the CLI login and stays agent-neutral: no Claude Agent SDK adapter, the shared-state bridge reads ACP events |
+| D-2 | Accepted | — |
+| D-3 | Accepted | — |
+| D-4 | Accepted | — |
+| D-5 | Replace as planned in R-96 (background crawler runner; the agent never blocks and never starts the crawler) | R-96 |
+| D-6 | Only environments the owner switches on (a per-environment setting, e.g. on for local-dev and sandbox, off elsewhere) | To build (R-94 (8)) |
+| D-7 | Accepted | — |
+| D-8 | The paid live run after R-96, on the new format | R-96 |
+| D-9 | Switch to full scan ids now (changes the designer's schema) | To build (R-94 (8)); tell the designer |
+| D-10 | In R-96: Watch opens the live view at once; Continue keeps the conversation | R-96 |
+
 ## Requirements
 
 Each cites the designer's ids (WB-UI rules in `14-workbench.md` § 5, FE-W in `17-…` § 10).

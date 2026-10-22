@@ -158,6 +158,26 @@ def test_a_proposed_card_has_the_one_marker_button(env: Environment) -> None:
     assert "<dt>Starts</dt><dd>a new scan that continues 01a110d5</dd>" in html
 
 
+def test_a_start_card_asks_the_persona_inside_the_confirm_form(env: Environment) -> None:
+    c = card(ask_persona=True, personas=("client", "guest"), persona="guest")
+    html = render(env, CARD, c=c)
+    assert 'id="cmd1-confirm"' in html
+    assert 'name="persona" form="cmd1-confirm"' in html
+    assert '<option value="guest" selected>guest</option>' in html
+    assert '<option value="client">client</option>' in html
+    assert html.count("sy-btn--primary") == 1
+
+
+def test_a_start_card_without_personas_points_to_settings_and_has_no_confirm(
+    env: Environment,
+) -> None:
+    html = render(env, CARD, c=card(ask_persona=True, no_persona_url="/portals/p/settings"))
+    assert "This portal has no persona yet." in html
+    assert 'href="/portals/p/settings"' in html
+    assert "Confirm" not in html and "sy-btn--primary" not in html
+    assert "Cancel" in html
+
+
 @pytest.mark.parametrize(
     ("state", "words"),
     [

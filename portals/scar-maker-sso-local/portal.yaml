@@ -1,0 +1,40 @@
+# Scar-maker SC-16 (spec 030): login through an identity provider on 127.0.0.2, slow multi-hop chain.
+id: scar-maker-sso-local
+base_url: http://127.0.0.1:4300/
+# Local-dev copy of scar-maker-sso (owner 2026-10-22): its own store, data/db/local-dev.sqlite.
+environment: local-dev
+max_action_class: read
+
+compliance:
+  robots_checked_on: 2026-10-15
+  terms_reviewed_on: 2026-10-15
+  terms_reviewed_by: local test estate, no terms
+
+scope:
+  allowed_domains: ["127.0.0.1", "127.0.0.2"]
+  external_link_policy: record
+  max_depth: 6
+  max_states: 40
+  max_actions_per_state: 40
+  max_run_time_minutes: 20
+  max_steps: 200
+
+urls:
+  disallowed:
+    - /__admin/*
+
+denylist: []
+
+rate_limit:
+  requests_per_second: 5
+  max_concurrency: 2
+  user_agent: "MudPuppy-Crawler/0.1 (local scar-maker)"
+
+login:
+  url: "/sc16/login"
+  username: { label: "User name" }
+  password: { label: "Password" }
+  submit: { role: button, name: "Continue" }
+  success: { url_not_matching: "/sc16/idp", text: "Welcome back" }
+  failure: { text: ["The sign-in failed."] }
+  fields: { username: login, password: password }

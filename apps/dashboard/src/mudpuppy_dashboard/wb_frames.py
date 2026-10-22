@@ -90,3 +90,9 @@ class CommandCard:
     error_ref: str | None = None
     retry_url: str | None = None
     running_word: str = "Running"  # "Resuming…", "Stopping…"
+    # A Start card's persona choice (spec 044): asked only when `personas` is set; `persona` is
+    # the one selected first; `no_persona_url` when the portal has none (no Confirm then).
+    ask_persona: bool = False
+    personas: tuple[str, ...] = ()
+    persona: str | None = None
+    no_persona_url: str | None = None
