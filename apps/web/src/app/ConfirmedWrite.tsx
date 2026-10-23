@@ -1,6 +1,6 @@
 import { useState, type ReactNode } from 'react';
 import type { QueryKey } from '@tanstack/react-query';
-import { Callout, Confirm, Text } from '../design-system';
+import { Button, Callout, Confirm, Text } from '../design-system';
 import { useWrite, type Write, type WriteResult } from './api-write';
 
 /** A write the page offers: the question, what will happen, the confirming word and the call. */
@@ -13,6 +13,8 @@ export interface Ask {
   follow?: string;
   /** Run after a write that was recorded (Edit first: open the new process at once). */
   onDone?: (result: WriteResult) => void;
+  /** A decision that can be taken back: the ask its answer's Undo opens (Review, D-1@062). */
+  undo?: (decision: string) => Ask;
 }
 
 /**
@@ -24,8 +26,10 @@ export interface Ask {
 export function useConfirmedWrite(refresh: QueryKey) {
   const [pending, setPending] = useState<Ask | null>(null);
   const [follow, setFollow] = useState('Open the conversation');
+  const [undoAsk, setUndoAsk] = useState<Ask['undo']>(undefined);
   const write = useWrite(refresh);
   const result = write.data;
+  const undo = result?.ok && result.undo && undoAsk ? undoAsk(result.undo) : null;
   const view = (
     <>
       <Confirm
@@ -37,6 +41,7 @@ export function useConfirmedWrite(refresh: QueryKey) {
         onConfirm={() => {
           if (!pending) return;
           setFollow(pending.follow ?? 'Open the conversation');
+          setUndoAsk(() => pending.undo);
           const { onDone } = pending;
           write.mutate(pending.write, {
             onSettled: () => setPending(null),
@@ -55,6 +60,14 @@ export function useConfirmedWrite(refresh: QueryKey) {
             <>
               {' '}
               <Text href={result.href}>{follow}</Text>
+            </>
+          )}
+          {undo && (
+            <>
+              {' '}
+              <Button size="sm" variant="quiet" onClick={() => setPending(undo)}>
+                Undo
+              </Button>
             </>
           )}
         </Callout>

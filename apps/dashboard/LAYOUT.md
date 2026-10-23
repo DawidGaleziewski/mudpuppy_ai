@@ -153,3 +153,9 @@ card's "As" persona choice), `wb_frames.py` (frame,
   shared by `web/processes.py` and the API) under `queries_app_process_compare.py`;
   `GET /api/portals/{p}/processes/{key}/compare` and `…/history` in `web/api_process.py`; the
   writes `…/change-spec`, `…/live` and `…/models/{L}/restore` in `web/api_processes.py`.
+- Spec 062 (R-96, Review): `web/api_review.py` (`GET /api/portals/{p}/review`; the writes
+  `…/review/decide`, `…/undo` and `…/records/{key}`, a decision answering `{ok, message, href, undo}`)
+  over `queries_app_review.py` (the three tabs, the groups, filters, the selected item and its
+  neighbours) and `queries_app_review_rows.py` (one `ReviewRow` per kind, each group's empty
+  state), built on the htmx Review's `queries_review` and `queries_queue`; findings, rules,
+  removals, processes, records and assumptions are decided in React, the other kinds open the htmx Review.

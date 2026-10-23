@@ -27,7 +27,10 @@ never style (lint refuses `className` and `style` in `src/pages` and `src/app`).
   is `stepOps.ts` (pure step operations) and `useDraft.ts` (each one autosaved, no ask first; Save,
   Discard and Rebase ask); `api-process-compare.ts` is the process's Compare and History data
   (`ProcessCompare.tsx`: step diff and change spec; `ProcessHistory.tsx`: which model runs where,
-  every revision, Mark live and Restore)),
+  every revision, Mark live and Restore); `api-review.ts` is the Review page's data and writes
+  (`Review.tsx`: tabs, kinds and filters; `ReviewRows.tsx`: a group's rows, alike sets and the
+  selection decided at once; `ReviewDetail.tsx`: the selected item, its decision or a record's
+  review; an `Ask` may carry `undo`, the ask a decision's Undo opens)),
   `api-write.ts` (`postJson`, the one mutation hook and every write), `ConfirmedWrite.tsx` (ask
   first, post, show the answer: every write goes through it; an `Ask` may carry `follow`, the
   link's word, and `onDone`, run after a recorded write), `ShownStatus.tsx` (a status as the

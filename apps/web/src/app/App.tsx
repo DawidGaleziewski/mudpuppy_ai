@@ -8,6 +8,7 @@ import { ProcessCompare } from '../pages/ProcessCompare';
 import { ProcessHistory } from '../pages/ProcessHistory';
 import { Processes } from '../pages/Processes';
 import { RecordedPages } from '../pages/RecordedPages';
+import { Review } from '../pages/Review';
 import { Scan } from '../pages/Scan';
 import { Scans } from '../pages/Scans';
 import { Screen } from '../pages/Screen';
@@ -22,6 +23,7 @@ export const routes = [
   { path: '/app/portals/:portal/processes/:key', element: <Process /> },
   { path: '/app/portals/:portal/processes/:key/compare', element: <ProcessCompare /> },
   { path: '/app/portals/:portal/processes/:key/history', element: <ProcessHistory /> },
+  { path: '/app/portals/:portal/review', element: <Review /> },
   { path: '/app/portals/:portal/scans', element: <Scans /> },
   { path: '/app/portals/:portal/screens', element: <Screens /> },
   { path: '/app/portals/:portal/screens/map', element: <ScreensMap /> },

@@ -6,6 +6,14 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Added
+- **R-96 step 13: Review in React** (spec 062, v2.6.12, 2026-10-23). `/app/portals/{p}/review`:
+  what needs you, with a tab per kind and its count, part and age filters, and a group's pages.
+  Findings, rules and removals are confirmed or rejected one at a time, as an alike set or as your
+  own selection, with one reason (a reject needs one); the answer offers Undo. Records and
+  assumptions show the screens they cite and are confirmed, rejected or commented. The selected
+  item sits beside the list with Previous and Next; Explained automatically and Decided have their
+  own tabs. Every decision asks first. Differences, amendments to re-anchor, the assistant's
+  proposals and probe suites still open on the htmx Review. Review is in the console's menu.
 - **R-96 step 12: the designer's answers in the console** (spec 061, v2.6.11, 2026-10-23).
   A picture opens larger from a corner badge ("Enlarge") into a wide dialog: fit to width (it
   scrolls inside) or the whole page, screenshot or wireframe, ← / → through a screen's variants,

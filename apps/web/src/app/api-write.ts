@@ -8,6 +8,8 @@ export interface WriteResult {
   ok: boolean;
   message: string;
   href: string | null;
+  /** A decision's command, which Undo takes back (Review). */
+  undo?: string;
 }
 
 /** A write the page asks for: the API path and its JSON body. */
@@ -29,6 +31,7 @@ export async function postJson(w: Write): Promise<WriteResult> {
     ok: r.ok && answer?.ok === true,
     message: answer?.message ?? detail ?? `${String(r.status)} ${r.statusText}: the dashboard did not answer.`,
     href: answer?.href ?? null,
+    ...(typeof answer?.undo === 'string' ? { undo: answer.undo } : {}),
   };
 }
 

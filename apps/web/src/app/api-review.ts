@@ -1,0 +1,171 @@
+// The Review page (`web/api_review.py` over `queries_app_review.py`), typed as the pydantic models
+// declare them, and its writes: decide (confirm or reject), undo, a record's review.
+import { keepPreviousData, useQuery } from '@tanstack/react-query';
+import { getJson, type ChipOut as Chip, type StatusOut } from './api';
+import type { Write } from './api-write';
+import type { Ask } from './ConfirmedWrite';
+
+export interface ReviewRow {
+  kind: string;
+  id: string;
+  tags: string[];
+  chip: Chip | null;
+  status: StatusOut | null;
+  meta: string | null;
+  title: string;
+  hint: string | null;
+  route: string | null;
+  at: string | null;
+  /** What a decision on it settles; empty: nothing to decide here. */
+  keys: string[];
+}
+
+export interface Option {
+  value: string;
+  label: string;
+}
+
+export interface ReviewGroup {
+  kind: string;
+  label: string;
+  count: number;
+  rows: ReviewRow[];
+  empty: string;
+  alike: { label: string; keys: string[]; count: number }[];
+  page: number;
+  pages: number;
+  /** Its items are confirmed or rejected here (alone, alike or selected) by the named reviewer. */
+  decides: boolean;
+}
+
+export interface ReviewFilters {
+  parts: Option[];
+  ages: Option[];
+  part: string | null;
+  age: string | null;
+  active: boolean;
+}
+
+export interface AlsoPair {
+  a: string;
+  b: string;
+  label: string;
+  conflict: boolean;
+  answered_by: string | null;
+}
+
+export interface ReviewDetail {
+  row: ReviewRow;
+  /** Its detail and writes are in React; otherwise `htmx` opens the htmx Review on it. */
+  in_react: boolean;
+  htmx: string;
+  text: string | null;
+  link: Option | null;
+  also: AlsoPair[];
+  rev: number | null;
+  revs: number | null;
+  cited: { state: string; title: string; route: string; picture: string | null }[];
+}
+
+export interface ExplainedRow {
+  id: string;
+  word: string;
+  screen: string | null;
+  finding: string;
+  explanation: Chip;
+  explanation_text: string;
+  rule: string | null;
+  at: string;
+}
+
+export interface DecidedRow {
+  key: string;
+  kind: string;
+  claim: string;
+  status: StatusOut;
+  undone: boolean;
+  actor: string;
+  reason: string | null;
+  at: string;
+  is_rule: boolean;
+}
+
+export interface ReviewPage {
+  portal: string;
+  decides: boolean;
+  tab: 'needs' | 'explained' | 'decided';
+  total: number;
+  explained_count: number;
+  decided_count: number;
+  same_screen_pairs: number;
+  kinds: Option[];
+  counts: Record<string, number>;
+  show: string | null;
+  groups: ReviewGroup[];
+  empty_kinds: Option[];
+  filters: ReviewFilters | null;
+  reasons: Record<string, string[]>;
+  selected: ReviewDetail | null;
+  neighbours: { index: number; total: number; label: string; prev: string | null; next: string | null } | null;
+  explained: ExplainedRow[];
+  decided: DecidedRow[];
+}
+
+/** The page's address: its tab, a group's tab and page, the selection, the filters. */
+export interface ReviewView {
+  tab?: string | undefined;
+  show?: string | undefined;
+  select?: string | undefined;
+  page?: number | undefined;
+  part?: string | undefined;
+  age?: string | undefined;
+}
+
+export const reviewQuery = (v: ReviewView): string => {
+  const p = new URLSearchParams();
+  if (v.tab && v.tab !== 'needs') p.set('tab', v.tab);
+  if (v.show) p.set('show', v.show);
+  if (v.select) p.set('select', v.select);
+  if (v.page && v.page > 1) p.set('page', String(v.page));
+  if (v.part) p.set('part', v.part);
+  if (v.age) p.set('age', v.age);
+  const qs = p.toString();
+  return qs ? `?${qs}` : '';
+};
+
+export const reviewHref = (portal: string, v: ReviewView = {}) =>
+  `/app/portals/${encodeURIComponent(portal)}/review${reviewQuery(v)}`;
+
+export const reviewKey = (portal: string) => ['portals', portal, 'review'] as const;
+
+export const useReview = (portal: string, v: ReviewView) =>
+  useQuery({
+    queryKey: [...reviewKey(portal), v],
+    queryFn: () => getJson<ReviewPage>(`/api/portals/${encodeURIComponent(portal)}/review${reviewQuery(v)}`),
+    placeholderData: keepPreviousData,
+  });
+
+const api = (portal: string) => `/api/portals/${encodeURIComponent(portal)}/review`;
+
+/** Review's writes, by what they do. */
+export const reviewWrites = {
+  decide: (portal: string, keys: readonly string[], action: 'confirm' | 'reject', reason: string, also: readonly string[] = []): Write => ({
+    path: `${api(portal)}/decide`,
+    body: { keys, action, reason, also },
+  }),
+  undo: (portal: string, decision: string): Write => ({ path: `${api(portal)}/undo`, body: { decision } }),
+  record: (portal: string, key: string, rev: number, action: 'confirm' | 'reject' | 'comment', text = ''): Write => ({
+    path: `${api(portal)}/records/${encodeURIComponent(key)}`,
+    body: { action, rev, text },
+  }),
+};
+
+/** The ask that takes a decision back: every item it decided goes back to the queue. */
+export const undoAsk =
+  (portal: string) =>
+  (decision: string): Ask => ({
+    title: 'Undo this decision?',
+    text: 'Every item it decided goes back to Review. The chat service refuses when anything changed since.',
+    confirm: 'Undo',
+    write: reviewWrites.undo(portal, decision),
+  });
