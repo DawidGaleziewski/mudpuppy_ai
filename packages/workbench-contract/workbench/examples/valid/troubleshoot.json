@@ -7,7 +7,7 @@
       "id": "shot",
       "type": "StepShot",
       "bind": {
-        "scan": "01a110d5",
+        "scan": "01a110d5-2028-7000-8f3e-5c1a9b27d460",
         "step": 171
       },
       "props": {
@@ -18,7 +18,7 @@
       "id": "tail",
       "type": "EventTail",
       "bind": {
-        "scan": "01a110d5",
+        "scan": "01a110d5-2028-7000-8f3e-5c1a9b27d460",
         "step": 171
       },
       "props": {
@@ -29,7 +29,7 @@
       "id": "fixes",
       "type": "FixChoices",
       "bind": {
-        "scan": "01a110d5",
+        "scan": "01a110d5-2028-7000-8f3e-5c1a9b27d460",
         "step": 171
       }
     },
@@ -37,7 +37,7 @@
       "id": "tries",
       "type": "AttemptList",
       "bind": {
-        "scan": "01a110d5",
+        "scan": "01a110d5-2028-7000-8f3e-5c1a9b27d460",
         "step": 171
       }
     }

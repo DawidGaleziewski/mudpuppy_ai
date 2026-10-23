@@ -66,12 +66,48 @@ describe('Picture', () => {
     const showModal = vi.fn();
     HTMLDialogElement.prototype.showModal = showModal;
     render(<Picture shot="/evidence/s.png" wire="/evidence/w.svg" title="Kontakt" route="/kontakt" scans={2} href="/x" />);
-    fireEvent.click(screen.getByRole('button', { name: 'Picture of Kontakt' }));
+    const thumb = screen.getByRole('button', { name: 'Picture of Kontakt, enlarge' });
+    expect(thumb.className).toBe('sy-thumb-btn');
+    expect(thumb.getAttribute('aria-haspopup')).toBe('dialog');
+    fireEvent.click(thumb);
     expect(showModal).toHaveBeenCalled();
-    const large = () => screen.getAllByRole('img', { hidden: true }).find((i) => i.getAttribute('alt'))!;
+    const large = () => screen.getByRole('img', { name: /^(Screenshot|Wireframe) of Kontakt$/, hidden: true });
     expect(large().getAttribute('src')).toBe('/evidence/s.png');
     fireEvent.click(screen.getByRole('button', { name: 'Wireframe', hidden: true }));
     expect(large().getAttribute('src')).toBe('/evidence/w.svg');
+    expect(screen.getByRole('link', { name: 'Open full size in a new tab', hidden: true }).getAttribute('href')).toBe('/evidence/w.svg');
+  });
+
+  it('fits the width by default, keeps Whole page for the session and says when the picture fails', () => {
+    HTMLDialogElement.prototype.showModal = vi.fn();
+    const { container } = render(<Picture shot="/evidence/s.png" title="Kontakt" />);
+    const figure = () => container.querySelector('figure')!;
+    expect(figure().dataset.fit).toBe('width');
+    fireEvent.click(screen.getByRole('button', { name: 'Whole page', hidden: true }));
+    expect(figure().dataset.fit).toBe('page');
+    expect(sessionStorage.getItem('mudpuppy.picture.fit')).toBe('page');
+    fireEvent.error(screen.getByRole('img', { name: 'Screenshot of Kontakt', hidden: true }));
+    expect(screen.getByText('Picture not available')).toBeTruthy();
+    sessionStorage.clear();
+  });
+
+  it('steps through its set with the arrow keys and Previous / Next', () => {
+    HTMLDialogElement.prototype.showModal = vi.fn();
+    const items = [
+      { label: 'r1', shot: '/r1.png' },
+      { label: 'r2', shot: '/r2.png' },
+    ];
+    const { container } = render(<Picture shot="/r1.png" title="Kontakt" alt="Variant r1 of Kontakt" set={{ items, at: 0 }} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Variant r1 of Kontakt, enlarge' }));
+    // a dialog that never opened (showModal is a stub) has no accessible name: read its label
+    const dialog = container.querySelector('dialog')!;
+    expect(dialog.getAttribute('aria-label')).toBe('Kontakt · variant r1');
+    expect(screen.getByRole('button', { name: '← Previous', hidden: true }).hasAttribute('disabled')).toBe(true);
+    fireEvent.keyDown(dialog, { key: 'ArrowRight' });
+    expect(screen.getByRole('img', { name: 'Screenshot of Kontakt · variant r2', hidden: true }).getAttribute('src')).toBe('/r2.png');
+    expect(screen.getByText('2 of 2 variants')).toBeTruthy();
+    fireEvent.click(screen.getByRole('button', { name: '← r1', hidden: true }));
+    expect(dialog.getAttribute('aria-label')).toBe('Kontakt · variant r1');
   });
 
   it('says so when nothing was recorded', () => {

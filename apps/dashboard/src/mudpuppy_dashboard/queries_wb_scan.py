@@ -8,13 +8,15 @@ folded onto the route page before it (the filmstrip's "+N side pages"). Read-onl
 from __future__ import annotations
 
 import json
+import re
 import sqlite3
 from collections.abc import Sequence
 from dataclasses import dataclass, field
 
 from .queries_changes import rows_of
 
-SHORT = 8  # the designer's scan id: the first 8 characters of the run id (D-9)
+# A full scan id (D-9, the contract's `scanId`): the model binds it, links and events carry it.
+SCAN_ID = re.compile(r"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}")
 
 EVENT_TYPES = (
     "scan.started",
@@ -35,7 +37,8 @@ STATUS_WORDS = {
 
 
 def short_id(run_id: str) -> str:
-    return run_id[:SHORT]
+    """A scan id as people read it (design answer Q6): the first two groups, its start time."""
+    return "-".join(run_id.split("-")[:2])
 
 
 @dataclass(frozen=True)
@@ -52,7 +55,7 @@ class ScanEvent:
     action_id: str | None = None  # the action an `act` step took (its page is where the crawler is)
 
     def ref(self, run_id: str) -> str:
-        return f"{short_id(run_id)}#{self.step}"
+        return f"{run_id}#{self.step}"  # the contract's eventRef: on the full id
 
 
 @dataclass
@@ -300,22 +303,12 @@ def scan_live(conn: sqlite3.Connection, run_id: str) -> ScanLive | None:
     return live
 
 
-RESOLVE_SQL = "SELECT id FROM runs WHERE portal_id = ? AND id LIKE ? ORDER BY started_at DESC"
+RESOLVE_SQL = "SELECT id FROM runs WHERE portal_id = ? AND id = ?"
 
 
-def resolve_scan(
-    conn: sqlite3.Connection, portal: str, short: str, prefer: Sequence[str] = ()
-) -> str | None:
-    """The run a short id names (F-05): a run the conversation binds first, then the newest."""
-    if len(short) != SHORT or not all(ch in "0123456789abcdef" for ch in short):
+def resolve_scan(conn: sqlite3.Connection, portal: str, scan_id: str) -> str | None:
+    """The run a full scan id names in the portal (D-9); a prefix or anything else names none."""
+    if not SCAN_ID.fullmatch(scan_id):
         return None
-    ids = [r[0] for r in conn.execute(RESOLVE_SQL, (portal, f"{short}%"))]
-    return next((i for i in ids if i in prefer), ids[0] if ids else None)
-
-
-def unique_shorts(run_ids: Sequence[str]) -> list[str]:
-    """Run ids whose short form names only them among `run_ids` (what the model may be told)."""
-    counts: dict[str, int] = {}
-    for r in run_ids:
-        counts[short_id(r)] = counts.get(short_id(r), 0) + 1
-    return [r for r in run_ids if counts[short_id(r)] == 1]
+    row = conn.execute(RESOLVE_SQL, (portal, scan_id)).fetchone()
+    return row[0] if row else None

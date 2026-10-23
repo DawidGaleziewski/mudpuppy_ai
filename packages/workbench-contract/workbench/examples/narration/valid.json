@@ -1,16 +1,16 @@
 {
-  "scan": "01a110d5",
+  "scan": "01a110d5-2028-7000-8f3e-5c1a9b27d460",
   "lines": [
     {
       "text": "Followed 'Samochód' in the menu to /ubezpieczenia/samochod.",
       "cites": [
-        "01a110d5#38"
+        "01a110d5-2028-7000-8f3e-5c1a9b27d460#38"
       ]
     },
     {
       "text": "Same URL, new screen: recorded /kalkulator/kierowca as step 2.",
       "cites": [
-        "01a110d5#102"
+        "01a110d5-2028-7000-8f3e-5c1a9b27d460#102"
       ],
       "kind": "milestone"
     }

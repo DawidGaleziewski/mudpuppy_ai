@@ -1,6 +1,11 @@
-import { screen } from '@testing-library/react';
+import { screen, within } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { at } from './render-at';
+
+// Two scans started in the same millisecond share the short form (D-9, Q6).
+const RUN_2 = '01a16391-7c00-7000-8f3e-5c1a9b27d460';
+const RUN_1 = '01a16388-1f2c-7000-8f3e-5c1a9b27d461';
+const RUN_0 = '01a16388-1f2c-7001-8f3e-5c1a9b27d462';
 
 afterEach(() => {
   vi.unstubAllGlobals();
@@ -42,14 +47,20 @@ describe('Scans page', () => {
         portal: 'shop',
         total: 2,
         scans: [
-          { id: 'run-2', persona: 'guest', mode: 'map', status: { shape: 'running', word: 'Running' }, steps_used: 10, max_steps: 40, started_at: '2026-10-23T01:00:00Z', ended_at: null, warning: null },
-          { id: 'run-1', persona: 'guest', mode: 'map', status: { shape: 'ok', word: 'Completed' }, steps_used: 49, max_steps: 400, started_at: '2026-10-22T23:00:00Z', ended_at: '2026-10-22T23:20:00Z', warning: null },
+          { id: RUN_2, persona: 'guest', mode: 'map', status: { shape: 'running', word: 'Running' }, steps_used: 10, max_steps: 40, started_at: '2026-10-23T01:00:00Z', ended_at: null, warning: null },
+          { id: RUN_1, persona: 'guest', mode: 'map', status: { shape: 'ok', word: 'Completed' }, steps_used: 49, max_steps: 400, started_at: '2026-10-22T23:00:00Z', ended_at: '2026-10-22T23:20:00Z', warning: null },
+          { id: RUN_0, persona: 'guest', mode: 'map', status: { shape: 'ok', word: 'Completed' }, steps_used: 9, max_steps: 400, started_at: '2026-10-22T22:00:00Z', ended_at: '2026-10-22T22:20:00Z', warning: null },
         ],
       },
     });
-    expect((await screen.findByRole('progressbar')).getAttribute('aria-valuenow')).toBe('10');
-    expect(screen.getByRole('rowheader', { name: 'run-1' })).toBeTruthy();
-    expect(screen.getByText('Completed')).toBeTruthy();
+    expect((await screen.findByRole('progressbar', { name: 'Scan 01a16391-7c00' })).getAttribute('aria-valuenow')).toBe('10');
+    // the 13-character short form, linking with the full id; two that share it show the third group (Q6)
+    const row = screen.getByRole('rowheader', { name: /^01a16388-1f2c-7000/ });
+    expect(within(row).getByRole('link').getAttribute('href')).toBe(`/app/scans/${RUN_1}`);
+    expect(within(row).getByRole('link').getAttribute('title')).toBe(RUN_1);
+    expect(screen.getByRole('rowheader', { name: /^01a16388-1f2c-7001/ })).toBeTruthy();
+    expect(within(row).getByRole('button', { name: `Copy the full scan id ${RUN_1}` })).toBeTruthy();
+    expect(screen.getAllByText('Completed')).toHaveLength(2);
     expect(screen.getByText('2 scans · 1 running')).toBeTruthy();
   });
 

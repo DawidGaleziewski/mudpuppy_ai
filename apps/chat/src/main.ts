@@ -38,6 +38,7 @@ import { ChatStore } from './store.js';
 import { isWorkbench, observeWorkbench } from './workbench-events.js';
 import { createWorkbenchService, type WorkbenchService } from './workbench-service.js';
 import { commandsAllowedOn, commandsOffReason } from './workbench-envs.js';
+import { shortScan } from './workbench-commands.js';
 import {
   buildWorkbenchSessionRequest,
   createWorkbenchFence,
@@ -193,7 +194,7 @@ async function main(): Promise<void> {
     stopped: (runId) => {
       for (const conversationId of conversationsOfRun(opened.raw, runId))
         service.inject(conversationId, [
-          { type: 'notice', text: `Scan ${runId.slice(0, 8)} was stopped.` },
+          { type: 'notice', text: `Scan ${shortScan(runId)} was stopped.` },
         ]);
     },
   });

@@ -7,14 +7,14 @@
       "id": "map",
       "type": "LiveMap",
       "bind": {
-        "scan": "01a110d5"
+        "scan": "01a110d5-2028-7000-8f3e-5c1a9b27d460"
       }
     },
     {
       "id": "map",
       "type": "PageDetail",
       "bind": {
-        "scan": "01a110d5",
+        "scan": "01a110d5-2028-7000-8f3e-5c1a9b27d460",
         "page": "@selected"
       }
     }

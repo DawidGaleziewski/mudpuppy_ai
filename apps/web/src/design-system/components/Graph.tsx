@@ -1,4 +1,5 @@
 import {
+  useId,
   useLayoutEffect,
   useRef,
   useState,
@@ -29,12 +30,18 @@ export interface GraphProps {
   edges: readonly GraphEdge[];
   /** `GraphNode`s. */
   children: ReactNode;
+  /** Inside another page (a scan's graph, the recorded map): at most 520 px tall. By default the
+   * graph is a page's map, as tall as the screen below the header. */
+  embedded?: boolean;
 }
 
-const MIN = 0.3;
-const MAX = 1.6;
-const STEP = 1.25;
+/** The zoom steps (design answer Q4); Fit may go below the first. */
+const STEPS = [0.5, 0.67, 0.8, 1, 1.25, 1.5] as const;
+const [MIN, MAX] = [0.3, 1.5];
 const clamp = (s: number) => Math.min(MAX, Math.max(MIN, s));
+const stepIn = (s: number) => STEPS.find((z) => z > s + 0.001) ?? s;
+const stepOut = (s: number) => [...STEPS].reverse().find((z) => z < s - 0.001) ?? s;
+const pct = (s: number) => `${String(Math.round(s * 100))}%`;
 
 /** The arrow keys' directions. */
 const DIRS: Record<string, readonly [number, number]> = {
@@ -66,55 +73,125 @@ function neighbour(canvas: HTMLElement, node: HTMLElement, dir: readonly [number
   return best;
 }
 
+/** The selected node, else the top row's first: what the graph opens on and keeps in view. */
+function focusNode(el: HTMLElement) {
+  const nodes = [...el.querySelectorAll<HTMLElement>('[data-node]')];
+  return (
+    el.querySelector<HTMLElement>('[data-node][aria-pressed="true"]') ??
+    nodes.reduce<HTMLElement | undefined>((a, b) => (a === undefined || b.offsetTop < a.offsetTop ? b : a), undefined)
+  );
+}
+
+/** Scroll the box so the selected node is in view (after a zoom). */
+function keepInView(el: HTMLElement) {
+  const node = el.querySelector<HTMLElement>('[data-node][aria-pressed="true"]');
+  if (!node) return;
+  const [b, n] = [el.getBoundingClientRect(), node.getBoundingClientRect()];
+  if (n.left < b.left || n.right > b.right) el.scrollLeft += n.left + n.width / 2 - (b.left + b.width / 2);
+  if (n.top < b.top || n.bottom > b.bottom) el.scrollTop += n.top + n.height / 2 - (b.top + b.height / 2);
+}
+
+/** The graph's keys: + / − zoom, 0 back to 100 %, an arrow moves to the neighbour that way. */
+const graphKeys = (scale: number, zoom: (s: number) => void) => (e: KeyboardEvent<HTMLDivElement>) => {
+  const to = { '+': stepIn(scale), '=': stepIn(scale), '-': stepOut(scale), '0': 1 }[e.key];
+  if (to !== undefined) {
+    e.preventDefault();
+    zoom(to);
+    return;
+  }
+  const dir = DIRS[e.key];
+  const node = e.target instanceof HTMLElement ? e.target.closest<HTMLElement>('[data-node]') : null;
+  if (!dir || !node) return;
+  const next = neighbour(e.currentTarget, node, dir);
+  if (!next) return;
+  e.preventDefault();
+  next.focus();
+};
+
+interface ZoomBarProps {
+  controls: string;
+  scale: number;
+  fitted: boolean;
+  zoom: (s: number) => void;
+  fit: () => void;
+}
+
+/** The floating, sticky zoom bar (`.sy-graph__zoom`): −, the level (resets to 100 %), +, Fit. */
+function ZoomBar({ controls, scale, fitted, zoom, fit }: ZoomBarProps) {
+  const quiet = 'sy-btn sy-btn--sm sy-btn--quiet';
+  return (
+    <div className="sy-graph__zoom" role="toolbar" aria-label="Zoom the map" aria-controls={controls}>
+      <button className={quiet} type="button" aria-label="Zoom out" onClick={() => zoom(stepOut(scale))}>
+        −
+      </button>
+      <button className={`${quiet} sy-graph__zoom-level`} type="button" aria-label={`Zoom ${pct(scale)}, reset to 100%`} onClick={() => zoom(1)}>
+        {pct(scale)}
+      </button>
+      <button className={quiet} type="button" aria-label="Zoom in" onClick={() => zoom(stepIn(scale))}>
+        +
+      </button>
+      <button className={quiet} type="button" aria-pressed={fitted} onClick={fit}>
+        Fit
+      </button>
+    </div>
+  );
+}
+
 /**
  * A graph whose layout the API made (the portal map): edges as SVG paths in their state, nodes as
- * `GraphNode` buttons at their place. Zoom out, fit and in; arrow keys move from a node to the
- * neighbour that way. It opens on the selected node or the top row. The text version (a table) is
- * the caller's: a graph is never the only way to the facts.
+ * `GraphNode` buttons at their place, in a `.sy-graphview` frame (design answer Q4): as tall as
+ * the graph, at most the screen below the header (520 px when `embedded`), with a zoom bar that
+ * stays in view while the graph does. It opens fitted when wider than its box, else at 100 %,
+ * on the selected node or the top row. Keys in the graph: + / − zoom, 0 back to 100 %, arrows
+ * move to the neighbour that way. The text version (a table) is the caller's: a graph is never
+ * the only way to the facts.
  */
-export function Graph({ label, width, height, edges, children }: GraphProps) {
+export function Graph({ label, width, height, edges, children, embedded = false }: GraphProps) {
+  const id = useId();
   const box = useRef<HTMLElement>(null);
   const [scale, setScale] = useState(1);
+  const [fitted, setFitted] = useState(false);
+  const [said, setSaid] = useState('');
+  const fitScale = () => {
+    const el = box.current;
+    return el && width > 0 && el.clientWidth > 0 ? clamp((el.clientWidth - 32) / width) : 1;
+  };
   useLayoutEffect(() => {
     const el = box.current;
     if (!el) return;
-    const nodes = [...el.querySelectorAll<HTMLElement>('[data-node]')];
-    const target =
-      el.querySelector<HTMLElement>('[data-node][aria-pressed="true"]') ??
-      nodes.reduce<HTMLElement | undefined>((a, b) => (a === undefined || b.offsetTop < a.offsetTop ? b : a), undefined);
+    if (el.clientWidth > 0 && width > el.clientWidth) {
+      setScale(fitScale());
+      setFitted(true);
+    }
+    const target = focusNode(el);
     if (target) el.scrollLeft = target.offsetLeft + target.offsetWidth / 2 - el.clientWidth / 2;
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- only on open: later the person zooms and pans
   }, []);
+  useLayoutEffect(() => {
+    if (box.current) keepInView(box.current);
+  }, [scale]);
+  const zoom = (s: number) => {
+    setScale(s);
+    setFitted(false);
+    setSaid(`Zoom ${pct(s)}`);
+  };
   const fit = () => {
-    const el = box.current;
-    if (el && width > 0) setScale(clamp((el.clientWidth - 32) / width));
+    const s = fitScale();
+    setScale(s);
+    setFitted(true);
+    setSaid(`Zoom ${pct(s)}, fitted`);
   };
-  const move = (e: KeyboardEvent<HTMLDivElement>) => {
-    const dir = DIRS[e.key];
-    const node = e.target instanceof HTMLElement ? e.target.closest<HTMLElement>('[data-node]') : null;
-    if (!dir || !node) return;
-    const to = neighbour(e.currentTarget, node, dir);
-    if (!to) return;
-    e.preventDefault();
-    to.focus();
-  };
-  // layout only: the canvas size and the zoom (the designer's markup puts the size inline)
+  const keys = graphKeys(scale, zoom);
+  // layout only: the canvas size and the zoom (the designer's markup puts the size and scale inline)
   const canvas: CSSProperties = { width, height, zoom: scale };
   return (
-    <div className="sy-stack">
-      <div className="sy-cluster" role="group" aria-label="Zoom">
-        <button className="sy-btn sy-btn--sm" type="button" aria-label="Zoom out" onClick={() => setScale((s) => clamp(s / STEP))}>
-          −
-        </button>
-        <button className="sy-btn sy-btn--sm" type="button" onClick={fit}>
-          Fit
-        </button>
-        <button className="sy-btn sy-btn--sm" type="button" aria-label="Zoom in" onClick={() => setScale((s) => clamp(s * STEP))}>
-          +
-        </button>
-      </div>
-      {/* layout only: a tall graph scrolls inside its box (the htmx map's 75vh) */}
-      <section className="sy-graph" aria-label={label} ref={box} style={{ maxBlockSize: '75vh' }}>
-        <div className="sy-graph__canvas" style={canvas} onKeyDown={move}>
+    <div className={cx('sy-graphview', embedded && 'sy-graphview--embedded')}>
+      <ZoomBar controls={id} scale={scale} fitted={fitted} zoom={zoom} fit={fit} />
+      <span className="sy-sr-only" aria-live="polite">
+        {said}
+      </span>
+      <section id={id} className="sy-graph" aria-label={label} ref={box}>
+        <div className="sy-graph__canvas" style={canvas} onKeyDown={keys}>
           <svg className="sy-graph__edges" aria-hidden="true" focusable="false">
             {edges.map((e, i) => (
               <path key={i} className={cx('sy-edge', e.state && `sy-edge--${e.state}`)} d={e.d} />

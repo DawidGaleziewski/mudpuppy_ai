@@ -12,6 +12,7 @@ from jinja2 import Environment
 
 from mudpuppy_dashboard import queries_wb_scan
 from mudpuppy_dashboard.app import create_app
+from mudpuppy_dashboard.queries_wb import RecordRow
 from mudpuppy_dashboard.settings import Settings
 from mudpuppy_dashboard.wb_frames import CommandCard, Feedback, Frame, WhyFacts, clock
 
@@ -216,11 +217,26 @@ def test_the_meter_of_the_fixture_scan(env: Environment, tmp_path: Path) -> None
         "{{ scan_meter(s, stale=stale) }}"
     )
     html = render(env, meter, s=live, stale=False)
-    assert 'id="meter-01a110d5" data-status="stopped"' in html
-    assert "Scan 01a110d5 · ended at" in html and "/kontakt" in html
+    assert 'id="meter-01a110d5-0000-7000-8000-000000000001" data-status="stopped"' in html
+    assert "Scan 01a110d5-0000 · ended at" in html and "/kontakt" in html  # the short form, Q6
     assert "171 steps · 17 pages · 113 queued" in html
     assert 'aria-valuenow="171"' in html
     assert "data-status" not in render(env, meter, s=live, stale=True)
+
+
+@pytest.mark.parametrize(
+    ("key", "word"),
+    [
+        ("REQ-004", "Requirement"),
+        ("BR-1001", "Business rule"),
+        ("SCR-001", "Screen record"),
+        ("FUP-012", "Follow-up"),
+        ("XYZ-001", None),
+    ],
+)
+def test_a_record_card_names_its_type(key: str, word: str | None) -> None:
+    """Design answer Q5: every record type the contract accepts has its word on the card."""
+    assert RecordRow(key=key, title="t", kind="k", confirmed=False).type_word == word
 
 
 def test_clock() -> None:

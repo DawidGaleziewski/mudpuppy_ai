@@ -20,7 +20,7 @@ const meta = {
     docs: {
       description: {
         component:
-          'A recorded screen: a thumbnail that opens a dialog with the large picture, a Screenshot / Wireframe switch and the way to the recorded page. It never ticks or selects anything. Without a picture it says so.',
+          'A recorded screen: a thumbnail button (`.sy-thumb-btn`) whose corner badge says it opens larger ("Enlarge" on hover, focus and touch), and a wide dialog (`.sy-dialog--wide`, full screen under 640 px) with the large picture fitted to the width (it scrolls inside) or the whole page, a Screenshot / Wireframe switch, Previous / Next (← / →) through its set, a link to the full size and the way to the recorded page. It never ticks or selects anything. Without a picture it says so, and there is no button (design answers Q1, Q2).',
       },
     },
   },
@@ -34,3 +34,17 @@ export const WireframeOnly: Story = { args: { shot: null, wire: shot } };
 export const NoPicture: Story = { args: { shot: null, wire: null } };
 /** In a row or a table cell (a list of screens): a 96 px thumbnail. */
 export const Small: Story = { args: { size: 'sm' } };
+/** One of a screen's variants: the dialog steps through the set with ← / → and Previous / Next. */
+export const InASet: Story = {
+  args: {
+    alt: 'Variant r2 of Kalkulator OC/AC — dane pojazdu',
+    set: {
+      items: [
+        { label: 'r1', shot },
+        { label: 'r2', shot },
+        { label: 'r3', wire: shot },
+      ],
+      at: 1,
+    },
+  },
+};

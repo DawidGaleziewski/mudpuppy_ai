@@ -1,7 +1,8 @@
 /**
  * A fresh workspace per Workbench task (spec 043 T020): the portal's config, the migrations and a
- * small store the golden prompts talk about: scan 01a110d5 stopped at /kontakt on a failure, scan
- * 01a2bbbb running, rules BR-021…BR-026, one Workbench conversation. A task's page text goes where
+ * small store the golden prompts talk about: scan 01a110d5-0000 stopped at /kontakt on a failure,
+ * scan 01a2bbbb-0000 running (the short forms people see, Q6), rules BR-021…BR-026, one Workbench
+ * conversation. A task's page text goes where
  * portal text reaches the assistant (the stop reason, inside <scan_data>).
  */
 import { cpSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';

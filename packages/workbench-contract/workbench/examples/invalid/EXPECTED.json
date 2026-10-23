@@ -46,6 +46,13 @@
       "code": "bad_bind_or_props",
       "caught_by": "schema"
     },
+    "short-scan-id.json": {
+      "outcome": "dropped",
+      "component": 0,
+      "code": "bad_bind_or_props",
+      "caught_by": "schema",
+      "note": "8-character scan ids collide (UUIDv7 prefix = 65 s window); send the full id"
+    },
     "extra-prop.json": {
       "outcome": "dropped",
       "component": 0,

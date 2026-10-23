@@ -11,6 +11,7 @@ import { newId, nowIso } from '@mudpuppy/core';
 import type { CommandProposal } from '@mudpuppy/workbench-contract';
 import { stopRun } from './runs.js';
 import { requestScan, ScanRefusal, type RequestScanInput } from './scan.js';
+import { SCAN_ID } from './workbench-context.js';
 import { fallbackPersona, isPersonaName } from './workbench-persona.js';
 import type { WorkspacePaths } from './workflow-data.js';
 
@@ -62,21 +63,17 @@ export interface CommandRow {
 const sha256 = (text: string): string => createHash('sha256').update(text).digest('hex');
 const newToken = (): string => randomBytes(24).toString('base64url');
 
-/** A short scan id (8 hex, D-9) as the run it names in the portal; bound runs first (F-05). */
-export function resolveScan(
-  raw: BetterSqlite3.Database,
-  portal: string,
-  short: string,
-  prefer: readonly string[] = [],
-): string | null {
-  if (!/^[0-9a-f]{8}$/.test(short)) return null;
-  const ids = (
-    raw
-      .prepare(`SELECT id FROM runs WHERE portal_id = ? AND id LIKE ? ORDER BY started_at DESC`)
-      .all(portal, `${short}%`) as { id: string }[]
-  ).map((r) => r.id);
-  return ids.find((id) => prefer.includes(id)) ?? ids[0] ?? null;
+/** A full scan id (D-9) when it names a run of the portal; anything else is null. */
+export function resolveScan(raw: BetterSqlite3.Database, portal: string, id: string): string | null {
+  if (!SCAN_ID.test(id)) return null;
+  const row = raw.prepare(`SELECT id FROM runs WHERE portal_id = ? AND id = ?`).get(portal, id) as
+    | { id: string }
+    | undefined;
+  return row?.id ?? null;
 }
+
+/** A scan id as people read it (design answer Q6): the first two groups, the start time. */
+export const shortScan = (id: string): string => id.split('-').slice(0, 2).join('-');
 
 interface Run {
   id: string;
@@ -99,11 +96,11 @@ export interface Prepared {
   preconditionHash: string;
 }
 
-function needRun(raw: BetterSqlite3.Database, portal: string, short: unknown): Run {
-  const id = typeof short === 'string' ? resolveScan(raw, portal, short) : null;
+function needRun(raw: BetterSqlite3.Database, portal: string, scan: unknown): Run {
+  const id = typeof scan === 'string' ? resolveScan(raw, portal, scan) : null;
   const run = id === null ? undefined : runOf(raw, id);
   if (run === undefined)
-    throw new CommandRefusal('PRECONDITION', `there is no scan ${String(short)} on ${portal}`);
+    throw new CommandRefusal('PRECONDITION', `there is no scan ${String(scan)} on ${portal}`);
   return run;
 }
 
@@ -148,13 +145,13 @@ export function prepare(
     case 'scan.stop': {
       const run = needRun(raw, portal, args.scan);
       if (run.status !== 'running')
-        throw new CommandRefusal('PRECONDITION', `scan ${run.id.slice(0, 8)} is not running`);
+        throw new CommandRefusal('PRECONDITION', `scan ${shortScan(run.id)} is not running`);
       return { runId: run.id, scan: null, preconditionHash: sha256(`stop ${run.id} running`) };
     }
     case 'scan.resume': {
       const run = needRun(raw, portal, args.scan);
       if (run.status === 'running')
-        throw new CommandRefusal('PRECONDITION', `scan ${run.id.slice(0, 8)} is running`);
+        throw new CommandRefusal('PRECONDITION', `scan ${shortScan(run.id)} is running`);
       return {
         runId: run.id,
         scan: { portal, run_type: 'continue', plan: { parent_run_id: run.id } },
@@ -182,7 +179,7 @@ function prepareStart(
     .prepare(`SELECT id FROM runs WHERE portal_id = ? AND status = 'running' LIMIT 1`)
     .get(portal) as { id: string } | undefined;
   if (running !== undefined)
-    throw new CommandRefusal('PRECONDITION', `scan ${running.id.slice(0, 8)} is running`);
+    throw new CommandRefusal('PRECONDITION', `scan ${shortScan(running.id)} is running`);
   const last = newestRun(raw, portal);
   if (args.type === 'continue_frontier') {
     if (last === undefined)

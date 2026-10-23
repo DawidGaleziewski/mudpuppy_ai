@@ -220,6 +220,29 @@ class RecordRow:
     kind: str
     confirmed: bool
 
+    @property
+    def type_word(self) -> str | None:
+        """What the record is, by its key's prefix (design answer Q5); None for another key."""
+        return RECORD_TYPE_WORDS.get(self.key.split("-")[0])
+
+
+# The record kinds a RecordCard names (designer 18-design-answers/05-record-ids.md).
+RECORD_TYPE_WORDS = {
+    "SCR": "Screen record",
+    "PROC": "Process",
+    "BR": "Business rule",
+    "CAP": "Capability",
+    "NFR": "Non-functional requirement",
+    "REQ": "Requirement",
+    "UC": "Use case",
+    "DI": "Data item",
+    "GL": "Glossary term",
+    "ASM": "Assumption",
+    "OQ": "Open question",
+    "FUP": "Follow-up",
+    "API": "API endpoint",
+}
+
 
 RECORDS_SQL = (
     "SELECT key, title, kind, confirmed_rev FROM doc_records WHERE portal_id = ? AND key IN ({})"

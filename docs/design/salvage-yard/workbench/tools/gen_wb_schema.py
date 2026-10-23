@@ -21,11 +21,20 @@ BASE = "https://mudpuppy.local/schema/workbench/"
 
 PATHS = ["chat", "mapping", "troubleshoot", "explain"]
 
+# Documentation record types the Workbench can show as cards. Add a prefix here when the documentation gains a
+# record type. The pattern only guards the shape: the server still resolves every id (unknown → id_not_found).
+RECORD_PREFIXES = ["SCR", "PROC", "BR", "CAP", "NFR", "REQ", "UC", "DI", "GL", "ASM", "OQ", "FUP", "API"]
+# Scans have full UUIDs (D-9; ours are UUIDv7). The UI shows the 13-character short form (first two groups =
+# the start time in ms); JSON always carries the full id.
+UUID = "[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}"
+SCAN = "01a110d5-2028-7000-8f3e-5c1a9b27d460"   # fixture scan (short form 01a110d5-2028)
+
 # ---------------------------------------------------------------- shared defs
 DEFS = {
-    "scanId": {"type": "string", "pattern": "^[0-9a-f]{8}$", "description": "Scan id as stored (lowercase hex), e.g. 01a110d5."},
+    "scanId": {"type": "string", "pattern": f"^{UUID}$",
+               "description": f"Full scan id: a canonical lowercase UUID (UUIDv7), e.g. {SCAN}. Never the short form."},
     "step": {"type": "integer", "minimum": 1, "maximum": 100000, "description": "Step number within the scan."},
-    "eventRef": {"type": "string", "pattern": "^[0-9a-f]{8}#[0-9]{1,6}$", "description": "scan#step, e.g. 01a110d5#171."},
+    "eventRef": {"type": "string", "pattern": f"^{UUID}#[0-9]{{1,6}}$", "description": f"Full scan id # step, e.g. {SCAN}#171."},
     "route": {"type": "string", "pattern": "^/[^\\s<>\"']{0,200}$", "description": "A route as recorded, e.g. /kalkulator/kierowca."},
     "pageRef": {
         "description": "A page (screen state) in a scan: the current selection, or a route with an optional same-URL step.",
@@ -36,10 +45,12 @@ DEFS = {
                             "description": "Same-URL step (step 2 of /kalkulator/kierowca)."}}},
         ],
     },
-    "recordId": {"type": "string", "pattern": "^(SCR|PROC|BR|CAP|NFR)-[0-9]{3}$", "description": "A documentation record, process or rule: SCR-001 (record of a console screen), PROC-001, BR-021, CAP-005, NFR-001. Portal pages are pageRefs, not records."},
-    "changeId": {"type": "string", "pattern": "^CHG-[0-9]{3}$"},
-    "findingId": {"type": "string", "pattern": "^FND-[0-9]{3}$"},
-    "ruleId": {"type": "string", "pattern": "^BR-[0-9]{3}$"},
+    "recordId": {"type": "string", "pattern": "^(" + "|".join(RECORD_PREFIXES) + ")-[0-9]{3,}$",
+                 "description": ("A documentation record, process or rule, three or more digits: SCR-001, PROC-001, BR-021, BR-1001, "
+                                 "REQ-004, UC-012, CAP-005, NFR-001 … Portal pages are pageRefs, not records.")},
+    "changeId": {"type": "string", "pattern": "^CHG-[0-9]{3,}$"},
+    "findingId": {"type": "string", "pattern": "^FND-[0-9]{3,}$"},
+    "ruleId": {"type": "string", "pattern": "^BR-[0-9]{3,}$"},
     "plainText": {"type": "string", "pattern": "^[^<>{}]*$", "description": "Plain words. No markup, no template syntax."},
 }
 
@@ -281,25 +292,25 @@ EX = {
         "version": "1", "path": "mapping", "why": "You asked to map the OC/AC calculator.",
         "select": {"route": "/kalkulator/kierowca", "state": 2},
         "components": [
-            {"id": "map", "type": "LiveMap", "bind": {"scan": "01a110d5"}, "props": {"follow": True, "view": "graph"}},
-            {"id": "detail", "type": "PageDetail", "bind": {"scan": "01a110d5", "page": "@selected"}},
-            {"id": "story", "type": "Narration", "bind": {"scan": "01a110d5"}, "props": {"every": "page"}}],
+            {"id": "map", "type": "LiveMap", "bind": {"scan": SCAN}, "props": {"follow": True, "view": "graph"}},
+            {"id": "detail", "type": "PageDetail", "bind": {"scan": SCAN, "page": "@selected"}},
+            {"id": "story", "type": "Narration", "bind": {"scan": SCAN}, "props": {"every": "page"}}],
         "suggestions": ["Where does it go next?", "Stop after the calculator"]},
     "valid/mapping-stopped.json": {
         "version": "1", "path": "mapping", "why": "The scan stopped at /kontakt.",
         "select": {"route": "/kontakt"},
         "components": [
-            {"id": "map", "type": "LiveMap", "bind": {"scan": "01a110d5"}, "props": {"follow": False}},
-            {"id": "err", "type": "ErrorCard", "bind": {"scan": "01a110d5"}},
-            {"id": "detail", "type": "PageDetail", "bind": {"scan": "01a110d5", "page": "@selected"}}],
+            {"id": "map", "type": "LiveMap", "bind": {"scan": SCAN}, "props": {"follow": False}},
+            {"id": "err", "type": "ErrorCard", "bind": {"scan": SCAN}},
+            {"id": "detail", "type": "PageDetail", "bind": {"scan": SCAN, "page": "@selected"}}],
         "suggestions": ["Why did it stop here?", "Troubleshoot with me"]},
     "valid/troubleshoot.json": {
         "version": "1", "path": "troubleshoot", "why": "You asked why the scan stopped at /kontakt.",
         "components": [
-            {"id": "shot", "type": "StepShot", "bind": {"scan": "01a110d5", "step": 171}, "props": {"mark": "target"}},
-            {"id": "tail", "type": "EventTail", "bind": {"scan": "01a110d5", "step": 171}, "props": {"count": 5}},
-            {"id": "fixes", "type": "FixChoices", "bind": {"scan": "01a110d5", "step": 171}},
-            {"id": "tries", "type": "AttemptList", "bind": {"scan": "01a110d5", "step": 171}}]},
+            {"id": "shot", "type": "StepShot", "bind": {"scan": SCAN, "step": 171}, "props": {"mark": "target"}},
+            {"id": "tail", "type": "EventTail", "bind": {"scan": SCAN, "step": 171}, "props": {"count": 5}},
+            {"id": "fixes", "type": "FixChoices", "bind": {"scan": SCAN, "step": 171}},
+            {"id": "tries", "type": "AttemptList", "bind": {"scan": SCAN, "step": 171}}]},
     "valid/explain.json": {
         "version": "1", "path": "explain", "why": "You asked about the banner on wynik.",
         "components": [
@@ -315,33 +326,40 @@ EX = {
             {"id": "proc", "type": "RecordCard", "bind": {"record": "PROC-001"}},
             {"id": "rules", "type": "RecordList", "bind": {"records": ["BR-021", "BR-022", "BR-023", "BR-024", "BR-025", "BR-026"]},
              "props": {"title": "Rules in this process"}}]},
+    "valid/chat-records-long-ids.json": {
+        "version": "1", "path": "chat", "why": "You asked which requirements the calculator rules cover.",
+        "components": [
+            {"id": "req", "type": "RecordCard", "bind": {"record": "REQ-004"}},
+            {"id": "rules", "type": "RecordList", "bind": {"records": ["BR-021", "BR-1001"]}, "props": {"title": "Rules behind REQ-004"}}]},
     "valid/chat-plain.json": {"version": "1", "path": "chat", "why": "A short answer is enough.", "components": []},
     "invalid/unknown-type.json": {"version": "1", "path": "mapping", "why": "You asked to map.", "components": [
         {"id": "x", "type": "HtmlBlock", "bind": {"html": "<b>hi</b>"}}]},
     "invalid/wrong-path.json": {"version": "1", "path": "chat", "why": "You asked to map.", "components": [
-        {"id": "map", "type": "LiveMap", "bind": {"scan": "01a110d5"}}]},
+        {"id": "map", "type": "LiveMap", "bind": {"scan": SCAN}}]},
     "invalid/too-many.json": {"version": "1", "path": "chat", "why": "Too much.", "components": [
         {"id": "a", "type": "RecordCard", "bind": {"record": "PROC-001"}}, {"id": "b", "type": "RecordCard", "bind": {"record": "PROC-002"}},
         {"id": "c", "type": "RecordCard", "bind": {"record": "BR-021"}}]},
     "invalid/markup-in-why.json": {"version": "1", "path": "chat", "why": "<img src=x onerror=alert(1)>", "components": []},
     "invalid/bad-scan-id.json": {"version": "1", "path": "mapping", "why": "You asked to map.", "components": [
         {"id": "map", "type": "LiveMap", "bind": {"scan": "../../etc"}}]},
+    "invalid/short-scan-id.json": {"version": "1", "path": "mapping", "why": "You asked to map.", "components": [
+        {"id": "map", "type": "LiveMap", "bind": {"scan": "01a110d5"}}]},
     "invalid/extra-prop.json": {"version": "1", "path": "mapping", "why": "You asked to map.", "components": [
-        {"id": "map", "type": "LiveMap", "bind": {"scan": "01a110d5"}, "props": {"style": "color:red"}}]},
+        {"id": "map", "type": "LiveMap", "bind": {"scan": SCAN}, "props": {"style": "color:red"}}]},
     "invalid/missing-id.json": {"version": "1", "path": "mapping", "why": "You asked to map.", "components": [
-        {"type": "LiveMap", "bind": {"scan": "01a110d5"}}]},
+        {"type": "LiveMap", "bind": {"scan": SCAN}}]},
     "invalid/duplicate-id.json": {"version": "1", "path": "mapping", "why": "You asked to map.", "components": [
-        {"id": "map", "type": "LiveMap", "bind": {"scan": "01a110d5"}},
-        {"id": "map", "type": "PageDetail", "bind": {"scan": "01a110d5", "page": "@selected"}}]},
+        {"id": "map", "type": "LiveMap", "bind": {"scan": SCAN}},
+        {"id": "map", "type": "PageDetail", "bind": {"scan": SCAN, "page": "@selected"}}]},
     "invalid/unknown-record.json": {"version": "1", "path": "chat", "why": "You asked about a process.", "components": [
         {"id": "proc", "type": "RecordCard", "bind": {"record": "PROC-999"}}]},
-    "narration/valid.json": {"scan": "01a110d5", "lines": [
-        {"text": "Followed 'Samochód' in the menu to /ubezpieczenia/samochod.", "cites": ["01a110d5#38"]},
-        {"text": "Same URL, new screen: recorded /kalkulator/kierowca as step 2.", "cites": ["01a110d5#102"], "kind": "milestone"}]},
-    "narration/ungrounded-number.json": {"scan": "01a110d5", "lines": [
-        {"text": "Found 40 forms on /porownanie.", "cites": ["01a110d5#140"]}]},
-    "command/resume.json": {"command": "scan.resume", "args": {"scan": "01a110d5"}, "reason": "The page loaded but the form button never appeared; resuming keeps the 113 queued links."},
-    "command/attempt.json": {"command": "path.attempt", "args": {"scan": "01a110d5", "step": 171, "variation": "wait_longer"}, "reason": "The form may need more than 10 s to appear."},
+    "narration/valid.json": {"scan": SCAN, "lines": [
+        {"text": "Followed 'Samochód' in the menu to /ubezpieczenia/samochod.", "cites": [SCAN + "#38"]},
+        {"text": "Same URL, new screen: recorded /kalkulator/kierowca as step 2.", "cites": [SCAN + "#102"], "kind": "milestone"}]},
+    "narration/ungrounded-number.json": {"scan": SCAN, "lines": [
+        {"text": "Found 40 forms on /porownanie.", "cites": [SCAN + "#140"]}]},
+    "command/resume.json": {"command": "scan.resume", "args": {"scan": SCAN}, "reason": "The page loaded but the form button never appeared; resuming keeps the 113 queued links."},
+    "command/attempt.json": {"command": "path.attempt", "args": {"scan": SCAN, "step": 171, "variation": "wait_longer"}, "reason": "The form may need more than 10 s to appear."},
     "command/invalid-unknown.json": {"command": "portal.delete", "args": {}, "reason": "Clean up."},
 }
 
@@ -359,6 +377,8 @@ EXPECTED = {
         "markup-in-why.json": {"outcome": "repaired", "field": "why", "code": "repaired_why", "caught_by": "schema",
                                "result": "why becomes 'Composed for your request.'"},
         "bad-scan-id.json": {"outcome": "dropped", "component": 0, "code": "bad_bind_or_props", "caught_by": "schema"},
+        "short-scan-id.json": {"outcome": "dropped", "component": 0, "code": "bad_bind_or_props", "caught_by": "schema",
+                               "note": "8-character scan ids collide (UUIDv7 prefix = 65 s window); send the full id"},
         "extra-prop.json": {"outcome": "dropped", "component": 0, "code": "bad_bind_or_props", "caught_by": "schema"},
         "missing-id.json": {"outcome": "dropped", "component": 0, "code": "missing_id", "caught_by": "schema"},
         "duplicate-id.json": {"outcome": "dropped", "component": 1, "code": "duplicate_id", "caught_by": "server"},

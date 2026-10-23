@@ -101,7 +101,7 @@ describe('envelope repairs', () => {
   });
 
   it('the same type bound to the same data twice is a duplicate', () => {
-    const map = { type: 'LiveMap', bind: { scan: '01a110d5' } };
+    const map = { type: 'LiveMap', bind: { scan: '01a110d5-2028-7000-8f3e-5c1a9b27d460' } };
     const result = check(
       {
         version: '1',

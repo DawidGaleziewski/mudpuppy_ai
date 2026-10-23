@@ -1,0 +1,27 @@
+{
+  "version": "1",
+  "path": "chat",
+  "why": "You asked which requirements the calculator rules cover.",
+  "components": [
+    {
+      "id": "req",
+      "type": "RecordCard",
+      "bind": {
+        "record": "REQ-004"
+      }
+    },
+    {
+      "id": "rules",
+      "type": "RecordList",
+      "bind": {
+        "records": [
+          "BR-021",
+          "BR-1001"
+        ]
+      },
+      "props": {
+        "title": "Rules behind REQ-004"
+      }
+    }
+  ]
+}

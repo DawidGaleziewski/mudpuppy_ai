@@ -202,8 +202,8 @@ def _moved_turns(tab: Tab) -> set[int]:
             return moved
         for n, view in queries_wb.views(conn, conv.id).items():
             for comp in view.spec.get("components", []):
-                short = comp.get("bind", {}).get("scan")
-                run = resolve_scan(conn, conv.portal, short) if isinstance(short, str) else None
+                scan_id = comp.get("bind", {}).get("scan")
+                run = resolve_scan(conn, conv.portal, scan_id) if isinstance(scan_id, str) else None
                 if run is None:
                     continue
                 now = scan_progress(conn, run)

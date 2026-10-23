@@ -482,6 +482,28 @@ of the portal at once; the scan graph is one.
 
 <sub>Last changed in R-74, 2026-10-18.</sub>
 
+<a id="scan-id"></a>
+
+#### Scan id
+
+**A scan's name, shown as its first 13 characters (the time it started), with the whole id on hover, behind Copy and on the scan's own page.**
+
+Every scan has a long id (36 characters). Lists, tags and the assistant's cards show the
+first two groups, for example 01a110d5-2028: they are the scan's start time to the
+millisecond, so they are unique and sort by time. When two scans in one list share them,
+both show one more group. Links, exports and what Copy puts on the clipboard always use the
+whole id. The old 8-character form is gone: two scans a minute apart could share it.
+
+*Example:* Scans list: 01a16624-db89 · guest · map · Completed; the scan's page writes out 01a16624-db89-7000-8efa-9236e91ec188 with Copy.
+
+*Seen in:* Scans; A scan's page (/app/scans/…); Portal home (Last scan); Workbench cards
+
+*Labels:* `Copy`, `Copied`, `Copy the full scan id`
+
+*Related:* [Run](#run), [Scan graph](#scan-graph)
+
+<sub>Last changed in R-96, 2026-10-23.</sub>
+
 <a id="portal-map"></a>
 
 #### Portal map

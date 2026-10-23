@@ -33,13 +33,38 @@ describe('Graph', () => {
     expect(screen.getByRole('link', { name: /14 screens/ }).className).toContain('sy-node--deck');
   });
 
-  it('zooms in and out within its limits', () => {
+  it('zooms by the designer steps from its floating bar and its keys (Q4)', () => {
     twoNodes();
-    const canvas = screen.getByRole('button', { name: /Home/ }).parentElement!;
+    const home = screen.getByRole('button', { name: /Home/ });
+    const canvas = home.parentElement!;
+    const bar = screen.getByRole('toolbar', { name: 'Zoom the map' });
+    expect(bar.className).toBe('sy-graph__zoom');
+    expect(bar.parentElement!.className).toBe('sy-graphview');
+    expect(bar.getAttribute('aria-controls')).toBe(screen.getByRole('region', { name: 'Map of shop now' }).id);
     fireEvent.click(screen.getByRole('button', { name: 'Zoom in' }));
     expect(canvas.style.zoom).toBe('1.25');
     for (let i = 0; i < 10; i++) fireEvent.click(screen.getByRole('button', { name: 'Zoom out' }));
-    expect(canvas.style.zoom).toBe('0.3');
+    expect(canvas.style.zoom).toBe('0.5');
+    expect(screen.getByText('Zoom 50%')).toBeTruthy(); // said once, in the live region
+    fireEvent.keyDown(home, { key: '0' });
+    expect(canvas.style.zoom).toBe('1');
+    fireEvent.keyDown(home, { key: '+' });
+    expect(screen.getByRole('button', { name: 'Zoom 125%, reset to 100%' })).toBeTruthy();
+    const fit = screen.getByRole('button', { name: 'Fit' });
+    expect(fit.getAttribute('aria-pressed')).toBe('false');
+    fireEvent.click(fit);
+    expect(fit.getAttribute('aria-pressed')).toBe('true');
+    fireEvent.click(screen.getByRole('button', { name: 'Zoom in' }));
+    expect(fit.getAttribute('aria-pressed')).toBe('false');
+  });
+
+  it('is capped at 520 px inside another page', () => {
+    render(
+      <Graph label="Scan graph" width={100} height={100} edges={[]} embedded>
+        <GraphNode id="a" x={0} y={0} route="/" title="Home" />
+      </Graph>,
+    );
+    expect(screen.getByRole('toolbar').parentElement!.className).toBe('sy-graphview sy-graphview--embedded');
   });
 
   it('moves the focus to the neighbour an arrow key points at', () => {

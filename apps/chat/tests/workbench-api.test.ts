@@ -77,14 +77,14 @@ describe('Workbench routes', () => {
     const c = String(body.conversation_id);
     const turn = await post(`/workbench/conversations/${c}/turns`, {
       text: 'Where is the crawler?',
-      ctx: [{ kind: 'page', scan: '01a110d5', route: '/kontakt' }],
+      ctx: [{ kind: 'page', scan: RUN, route: '/kontakt' }],
       by: 'dawid',
     });
     expect(turn).toMatchObject({ status: 202, body: { turn: 1 } });
     await until(() => t.log.rawPrompts.length === 1);
     const prompt = t.log.rawPrompts[0] ?? '';
     expect(prompt).toContain('<workbench_context>');
-    expect(prompt).toContain('- 01a110d5 · running');
+    expect(prompt).toContain(`- ${RUN} · running`);
     expect(prompt).toContain('"route":"/kontakt"');
     expect(prompt.endsWith('Where is the crawler?')).toBe(true);
     const message = raw()
@@ -113,7 +113,7 @@ describe('Workbench routes', () => {
       conversation_id: c,
       turn: 1,
       command: 'scan.stop',
-      args: { scan: '01a110d5' },
+      args: { scan: RUN },
     });
     expect(card.status).toBe(201);
     const id = String(card.body.id);

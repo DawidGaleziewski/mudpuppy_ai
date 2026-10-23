@@ -6,6 +6,16 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Added
+- **R-96 step 12: the designer's answers in the console** (spec 061, v2.6.11, 2026-10-23).
+  A picture opens larger from a corner badge ("Enlarge") into a wide dialog: fit to width (it
+  scrolls inside) or the whole page, screenshot or wireframe, ← / → through a screen's variants,
+  a link to the full size. A screen's variants are a list; a screen with one variant shows it
+  beside its facts and says a second one appears when a scan sees it differently. The maps keep
+  their zoom bar in view (−, the level, +, Fit; + / − / 0 keys) and are as tall as the screen,
+  520 px inside a scan's page. Scan ids show their first 13 characters (the start time), the whole
+  id on hover, Copy, and written out on the scan's page; the Workbench and its assistant use whole
+  scan ids, accept every record prefix (REQ, UC, DI, GL, …) and name a record's type on its card.
+  The beta chip on the selected menu item is readable.
 - **R-96 step 11: a process's Compare and History in React** (spec 060, v2.6.10, 2026-10-23).
   `/app/portals/{p}/processes/{key}/compare`: pick the left and right models (your draft stands
   in for its model), see each step unchanged, changed, merged, added or removed, and edit the

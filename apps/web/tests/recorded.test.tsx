@@ -32,7 +32,8 @@ describe('Recorded map', () => {
     expect(within(graph).getByRole('link', { name: /14 pages/ }).getAttribute('href')).toBe('?open=%2Foferta&view=path');
     expect(screen.getByText(/16 screens · 3 transitions · 2 queued · 1 mark for the next scan/)).toBeTruthy();
     // whole scan ids (D-9)
-    expect(screen.getByRole('option', { name: /01a0da64-3bf1-7000-8000-000000000001 · guest/ })).toBeTruthy();
+    // two scans that share every group but the last: the list shows each id whole (Q6)
+    expect(screen.getByRole('option', { name: /^01a0da64-3bf1-7000-8000-000000000001 · guest/ })).toBeTruthy();
     expect(screen.getByRole('button', { name: "One scan's path" }).getAttribute('aria-pressed')).toBe('true');
   });
 
@@ -54,7 +55,7 @@ describe('Recorded map', () => {
     });
     fireEvent.click(await screen.findByRole('button', { name: /Wniosek/ }));
     expect(await screen.findByRole('heading', { name: 'Moves out · 1' })).toBeTruthy();
-    expect(screen.getByRole('link', { name: '01a0da64-3bf1-7000-8000-000000000002' }).getAttribute('href')).toBe(
+    expect(screen.getByRole('link', { name: '01a0da64-3bf1' }).getAttribute('href')).toBe(
       '/app/scans/01a0da64-3bf1-7000-8000-000000000002',
     );
     expect(screen.getByRole('button', { name: '✓ Skip' }).getAttribute('aria-pressed')).toBe('true');
@@ -99,7 +100,7 @@ describe('Recorded pages', () => {
     const table = await screen.findByRole('table', { name: 'Recorded pages of shop' });
     expect(within(table).getByRole('link', { name: 'Wniosek' }).getAttribute('href')).toBe('/states/st-f1');
     expect(within(table).getByText('Probe')).toBeTruthy();
-    expect(within(table).getByRole('button', { name: 'Picture of Strona główna' })).toBeTruthy();
+    expect(within(table).getByRole('button', { name: 'Picture of Strona główna, enlarge' })).toBeTruthy();
     expect(screen.getByText('30 recorded pages · 1 form step: 1 marked for probing, 0 not probed')).toBeTruthy();
     expect(screen.getByRole('link', { name: 'Next' }).getAttribute('href')).toBe('?page=2');
     expect(screen.getByRole('link', { name: 'Recorded pages' }).getAttribute('aria-current')).toBe('page');

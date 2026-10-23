@@ -15,7 +15,7 @@ from mudpuppy_dashboard.app import create_app
 from mudpuppy_dashboard.settings import Settings
 
 from .conftest import Store, insert
-from .wb_fixture import PORTAL, seed_wb_scan
+from .wb_fixture import PORTAL, RUN, seed_wb_scan
 
 CONV = "0199a000-0000-7000-8000-0000000000c1"
 CMD = "cmd-0001"
@@ -25,8 +25,8 @@ SPEC = {
     "path": "mapping",
     "why": "You asked to map the OC/AC calculator.",
     "components": [
-        {"id": "map", "type": "LiveMap", "bind": {"scan": "01a110d5"}},
-        {"id": "story", "type": "Narration", "bind": {"scan": "01a110d5"}},
+        {"id": "map", "type": "LiveMap", "bind": {"scan": RUN}},
+        {"id": "story", "type": "Narration", "bind": {"scan": RUN}},
     ],
     "suggestions": ["Why did it stop here?"],
 }
@@ -82,7 +82,7 @@ def seed_conversation(store: Store) -> None:
         conversation_id=CONV,
         turn=1,
         command="scan.resume",
-        args_json=json.dumps({"scan": "01a110d5"}),
+        args_json=json.dumps({"scan": RUN}),
         reason="the form's button never appeared.",
         source="assistant",
         state="proposed",
@@ -174,7 +174,7 @@ def test_a_stopped_scan_gets_its_error_card(client: TestClient) -> None:
 def test_narration_cites_its_events(client: TestClient) -> None:
     html = page(client)
     assert 'class="sy-narration"' in html
-    assert 'title="Event 01a110d5#12">step 12</a>' in html
+    assert f'title="Event {RUN}#12">step 12</a>' in html
     assert "The scan stopped at /kontakt." in html
 
 
@@ -185,7 +185,7 @@ def test_the_command_card_has_a_fresh_token_and_the_one_marker(
     assert ("POST", f"/workbench/commands/{CMD}/token", {}) in chat.calls
     assert 'name="token" value="test-token-not-real"' in html
     assert html.count("sy-btn--primary") == 1
-    assert "<dt>Starts</dt><dd>a new scan that continues 01a110d5</dd>" in html
+    assert "<dt>Starts</dt><dd>a new scan that continues 01a110d5-0000</dd>" in html
     assert "<dt>From</dt><dd>/porownanie (last good checkpoint)</dd>" in html
     assert "<dt>Kept</dt><dd>17 pages, 113 queued links</dd>" in html
 

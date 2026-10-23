@@ -12,6 +12,7 @@ import {
   Plate,
   Segmented,
   Select,
+  shortScanId,
   Split,
   Stack,
   Table,
@@ -55,7 +56,7 @@ function Tools({ m, v, set }: { m: RecordedMap; v: View; set: SetView }) {
           <option value="">{`All ${String(m.scans.length)} scans (merged)`}</option>
           {m.scans.map((s) => (
             <option key={s.id} value={s.id}>
-              {`${s.id} · ${s.persona} · ${s.status.word}`}
+              {`${shortScanId(s.id, m.scans.map((o) => o.id))} · ${s.persona} · ${s.status.word}`}
             </option>
           ))}
         </Select>
@@ -114,10 +115,10 @@ function Meta({ n }: { n: RecordedNode }) {
 }
 
 function RecordedGraph({ m, v, set }: { m: RecordedMap; v: View; set: SetView }) {
-  const which = m.filter.scan ? `scan ${m.filter.scan}` : 'every scan';
+  const which = m.filter.scan ? `scan ${shortScanId(m.filter.scan, m.scans.map((s) => s.id))}` : 'every scan';
   return (
     <Stack>
-      <Graph label={`Map of ${m.portal} as ${which} recorded it, from the start page`} width={m.width} height={m.height} edges={m.edges}>
+      <Graph label={`Map of ${m.portal} as ${which} recorded it, from the start page`} width={m.width} height={m.height} edges={m.edges} embedded>
         {m.nodes.map((n) =>
           n.kind === 'family' ? (
             <GraphNode

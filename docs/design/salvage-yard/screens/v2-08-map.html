@@ -80,7 +80,7 @@
           </div>
           <label class="sy-stack" style="--sy-gap: 4px"><span class="sy-label">Scan for the path</span>
             <select class="sy-select sy-select--md" aria-describedby="scan-help" style="min-width: 210px">
-              <option>01a1340c · check run · 17 Oct</option><option>01a12f40 · AI scan · 15 Oct</option><option>01a110d5 · AI scan · 6 Oct</option><option>01a10eb9 · AI scan · 6 Oct</option><option>01a1083f · AI scan · 4 Oct</option>
+              <option>01a1340c-3b97 · check run · 17 Oct</option><option>01a12f40-8c1e · AI scan · 15 Oct</option><option>01a110d5-2028 · AI scan · 6 Oct</option><option>01a10eb9-70f2 · AI scan · 6 Oct</option><option>01a1083f-5472 · AI scan · 4 Oct</option>
             </select></label>
           <span id="scan-help" class="sy-sr-only">Used by the view One scan's path: draws the steps that scan took, for debugging.</span>
           <div class="sy-seg" role="group" aria-label="Show as" style="margin-left: auto">
@@ -117,6 +117,8 @@
           </div>
 
           <!-- The graph. Nodes are buttons; edges are decoration (the List view carries the same facts). -->
+          <div class="sy-graphview">
+          <div class="sy-graph__zoom" role="toolbar" aria-label="Zoom the map" aria-controls="map-graph"><button class="sy-btn sy-btn--sm sy-btn--quiet" type="button" aria-label="Zoom out">−</button><button class="sy-btn sy-btn--sm sy-btn--quiet sy-graph__zoom-level" type="button" aria-label="Zoom 100%, reset">100%</button><button class="sy-btn sy-btn--sm sy-btn--quiet" type="button" aria-label="Zoom in">+</button><button class="sy-btn sy-btn--sm sy-btn--quiet" type="button" aria-pressed="false">Fit</button></div>
           <section id="map-graph" class="sy-graph" aria-label="Map of reference-insurer now, layered from Ubezpieczenia dla Ciebie, with the process Oblicz składkę OC/AC highlighted">
             <div class="sy-graph__canvas" style="width: 680px; height: 696px">
               <svg class="sy-graph__edges" aria-hidden="true" focusable="false">
@@ -229,6 +231,7 @@
               </button>
             </div>
           </section>
+          </div>
 
           <!-- List view: the same nodes and links as text. Shown by the Graph / List toggle. -->
           <section id="map-list" class="sy-table-wrap" aria-label="Map of reference-insurer as a list" hidden>
@@ -278,7 +281,9 @@
               <span class="sy-small sy-muted">Shell <span class="sy-case-normal">1d77</span> → <span class="sy-case-normal">3e1a</span> · Kalkulator app <span class="sy-case-normal">5f08</span> → <span class="sy-case-normal">9c21</span></span>
             </div>
             <p class="sy-small sy-muted">An excerpt around Ubezpieczenia dla Ciebie, with the Retired links layer on. Changed links are dashed and labelled; each changed screen names the release that changed it.</p>
-            <div class="sy-graph" role="group" aria-label="Excerpt of the map since the previous release: links and screens around Ubezpieczenia dla Ciebie that changed with 3e1a or 9c21, or without a release">
+            <div class="sy-graphview sy-graphview--embedded">
+<div class="sy-graph__zoom" role="toolbar" aria-label="Zoom the excerpt" aria-controls="map-excerpt"><button class="sy-btn sy-btn--sm sy-btn--quiet" type="button" aria-label="Zoom out">−</button><button class="sy-btn sy-btn--sm sy-btn--quiet sy-graph__zoom-level" type="button" aria-label="Zoom 100%, reset">100%</button><button class="sy-btn sy-btn--sm sy-btn--quiet" type="button" aria-label="Zoom in">+</button><button class="sy-btn sy-btn--sm sy-btn--quiet" type="button" aria-pressed="false">Fit</button></div>
+<div id="map-excerpt" class="sy-graph" role="group" aria-label="Excerpt of the map since the previous release: links and screens around Ubezpieczenia dla Ciebie that changed with 3e1a or 9c21, or without a release">
               <div class="sy-graph__canvas" style="width: 680px; height: 404px">
                 <svg class="sy-graph__edges" aria-hidden="true" focusable="false">
                   <!-- / → Porównanie produktów: new link (replaced) and the old one (retired, layer on) -->
@@ -329,6 +334,7 @@
                 </button>
               </div>
             </div>
+</div>
             <ul class="sy-legend mp-legend" aria-label="Link states in this view">
               <li><svg width="28" height="10" aria-hidden="true"><path class="sy-edge sy-edge--changed" d="M0 5H28"/></svg>Changed link</li>
               <li><svg width="28" height="10" aria-hidden="true"><path class="sy-edge sy-edge--retired" d="M0 5H28"/></svg>Retired (layer on)</li>
@@ -350,7 +356,7 @@
                 <dt>Status</dt><dd><span class="sy-status" data-status="live">Active</span></dd>
                 <dt>Part</dt><dd>Kalkulator app · <span class="sy-mono">9c21</span></dd>
                 <dt>Process</dt><dd><a href="v2-10-process-detail.html">Oblicz składkę OC/AC</a> · step 3 · outcome Completed (23 cases)</dd>
-                <dt>Last seen</dt><dd><span class="sy-cluster" style="--sy-gap: 6px">17 Oct <span class="sy-tag sy-tag--sm">01a1340c</span></span></dd>
+                <dt>Last seen</dt><dd><span class="sy-cluster" style="--sy-gap: 6px">17 Oct <span class="sy-tag sy-tag--sm">01a1340c-3b97</span></span></dd>
               </dl>
               <div class="sy-meter" style="--value: 83%">
                 <div class="sy-meter__label"><span>Actions checked on <span class="sy-case-normal">9c21</span></span><span>5 / 6</span></div>

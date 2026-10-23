@@ -112,8 +112,8 @@
       "$defs": {
         "scanId": {
           "type": "string",
-          "pattern": "^[0-9a-f]{8}$",
-          "description": "Scan id as stored (lowercase hex), e.g. 01a110d5."
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "description": "Full scan id: a canonical lowercase UUID (UUIDv7), e.g. 01a110d5-2028-7000-8f3e-5c1a9b27d460. Never the short form."
         },
         "step": {
           "type": "integer",
@@ -123,8 +123,8 @@
         },
         "eventRef": {
           "type": "string",
-          "pattern": "^[0-9a-f]{8}#[0-9]{1,6}$",
-          "description": "scan#step, e.g. 01a110d5#171."
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}#[0-9]{1,6}$",
+          "description": "Full scan id # step, e.g. 01a110d5-2028-7000-8f3e-5c1a9b27d460#171."
         },
         "route": {
           "type": "string",
@@ -159,20 +159,20 @@
         },
         "recordId": {
           "type": "string",
-          "pattern": "^(SCR|PROC|BR|CAP|NFR)-[0-9]{3}$",
-          "description": "A documentation record, process or rule: SCR-001 (record of a console screen), PROC-001, BR-021, CAP-005, NFR-001. Portal pages are pageRefs, not records."
+          "pattern": "^(SCR|PROC|BR|CAP|NFR|REQ|UC|DI|GL|ASM|OQ|FUP|API)-[0-9]{3,}$",
+          "description": "A documentation record, process or rule, three or more digits: SCR-001, PROC-001, BR-021, BR-1001, REQ-004, UC-012, CAP-005, NFR-001 … Portal pages are pageRefs, not records."
         },
         "changeId": {
           "type": "string",
-          "pattern": "^CHG-[0-9]{3}$"
+          "pattern": "^CHG-[0-9]{3,}$"
         },
         "findingId": {
           "type": "string",
-          "pattern": "^FND-[0-9]{3}$"
+          "pattern": "^FND-[0-9]{3,}$"
         },
         "ruleId": {
           "type": "string",
-          "pattern": "^BR-[0-9]{3}$"
+          "pattern": "^BR-[0-9]{3,}$"
         },
         "plainText": {
           "type": "string",
@@ -839,13 +839,13 @@
       "$defs": {
         "scanId": {
           "type": "string",
-          "pattern": "^[0-9a-f]{8}$",
-          "description": "Scan id as stored (lowercase hex), e.g. 01a110d5."
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "description": "Full scan id: a canonical lowercase UUID (UUIDv7), e.g. 01a110d5-2028-7000-8f3e-5c1a9b27d460. Never the short form."
         },
         "eventRef": {
           "type": "string",
-          "pattern": "^[0-9a-f]{8}#[0-9]{1,6}$",
-          "description": "scan#step, e.g. 01a110d5#171."
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}#[0-9]{1,6}$",
+          "description": "Full scan id # step, e.g. 01a110d5-2028-7000-8f3e-5c1a9b27d460#171."
         },
         "plainText": {
           "type": "string",
@@ -893,8 +893,8 @@
       "$defs": {
         "scanId": {
           "type": "string",
-          "pattern": "^[0-9a-f]{8}$",
-          "description": "Scan id as stored (lowercase hex), e.g. 01a110d5."
+          "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+          "description": "Full scan id: a canonical lowercase UUID (UUIDv7), e.g. 01a110d5-2028-7000-8f3e-5c1a9b27d460. Never the short form."
         },
         "step": {
           "type": "integer",

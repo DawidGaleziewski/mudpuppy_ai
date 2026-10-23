@@ -217,6 +217,40 @@ Status key: **Accepted** (build it) · **Open** (needs a product decision, see e
 - **Decision.** The text answer never waits for a view (4 s); a view that can't be built falls back to plain chat with no red; a dropped stream shows "Live updates paused" and catches up.
 - **Why.** The assistant is useful without the view; red stays for real failures in the scan or the portal (D-05).
 
+## 2.1 · Design answers, 23 Oct (`18-design-answers/`)
+
+### D-44 · A picture that opens larger is a naked button with a corner icon — Accepted
+- **Decision.** `.sy-thumb-btn`: no border or paint, `cursor: zoom-in`, an always-visible expand icon in the corner, "Enlarge" on hover, focus and touch. Focus is the marker ring with a 2px steel gap.
+- **Why.** The picture is the target. The icon makes the feature findable without hover; the steel gap keeps the ring visible on light screenshots (marker on paper is only 2.0:1).
+
+### D-45 · Pictures open in a wide dialog that fits width and scrolls — Accepted
+- **Decision.** `.sy-dialog--wide` at `min(1280px, 100vw − 32px)`; the picture fits the width and scrolls inside; "Whole page" shrinks it to the visible height; full screen under 640px.
+- **Why.** Captures are 1280px wide, so this is about 1:1. Shrinking a tall page to fit by default makes it unreadable.
+
+### D-46 · A screen's variants are a list, not a comparison — Accepted
+- **Decision.** `.sy-variants` (auto-fill columns) and `.sy-variant`; a lone variant gets a picture-left layout. `.sy-compare` is kept for before / after pairs.
+- **Why.** Most screens have one variant; stretching it across the page compares nothing and distorts the picture.
+
+### D-47 · The graph sits in a frame with a sticky, floating zoom bar — Accepted
+- **Decision.** `.sy-graphview` + `.sy-graph__zoom`: the bar floats top-right and sticks under the header while the graph is on screen; the graph's height is natural, capped at the viewport below the header (520px when embedded). Phones open the map as a list; the graph opens full screen.
+- **Why.** One scroll surface at a time, and the zoom controls stay where the eyes are. 75vh was inherited, not designed.
+
+### D-48 · Record ids: thirteen named prefixes, three or more digits — Accepted
+- **Decision.** `recordId` accepts SCR, PROC, BR, CAP, NFR, REQ, UC, DI, GL, ASM, OQ, FUP and API with `[0-9]{3,}`; rule, change and finding ids also take three or more digits.
+- **Why.** The documentation uses them. A named list keeps the card's type word right and catches typos; the server still resolves every id.
+
+### D-49 · Full scan ids in data, a 13-character short form on screen — Accepted
+- **Decision.** JSON, URLs, the contract and exports carry the full UUID (D-9). People see the first two groups (`01a110d5-2028`), with the full id in the title, behind Copy and on the scan's own page; a third group only when two scans share the short form. On a time axis, scans are labelled by start time.
+- **Why.** The first two groups are the start time in milliseconds: unique in practice, sortable, and close to the ids people know.
+
+### D-50 · Chips on a selected nav item take the item's ink — Accepted
+- **Decision.** `.sy-nav__item[aria-current="page"] .sy-chip` uses `--sy-text-on-paint` (14.7:1 on chalk).
+- **Why.** Ash on chalk is 1.9:1. The chip keeps its dashed edge and meaning.
+
+### D-51 · Buttons that show their content are named by it — Accepted
+- **Decision.** Filmstrip items, map nodes and picture buttons carry no `aria-label`; words that aren't visible go in sr-only spans after the visible text.
+- **Why.** WCAG 2.5.3 (label in name): people using speech input say what they see.
+
 ---
 
 ## Open items (need a product decision)
@@ -227,4 +261,4 @@ Status key: **Accepted** (build it) · **Open** (needs a product decision, see e
 - **O-5 … O-8 · Processes.** Who may mark live, what "Migrated" means per portal, export formats, auto-documenting accepted suggestions. See `10-processes.md` §14.
 - **O-M1 … O-M5 · Map runs.** Technical probes outside sandbox, captchas and one-time codes, where test data per persona lives, the probe budget, approval for rechecks on production. See `11-map-runs.md` §12.
 - **OV-1 … OV-5 · MudPuppy 2.0.** Who may overturn, A/B cookies into Settings automatically, retention of retired screens, Decided per portal or global, decision-table export formats. See `12-v2-ux.md` §12.
-- **O-4 · Run-id casing in the UI.** Ids are shown as stored (lowercase hex, e.g. `01a110d5`). Confirm that no uppercase display convention exists elsewhere (docs exports, CLI).
+- **O-4 · Run-id casing in the UI.** Ids are shown as stored (lowercase hex, e.g. `01a110d5-2028`). Confirm that no uppercase display convention exists elsewhere (docs exports, CLI).

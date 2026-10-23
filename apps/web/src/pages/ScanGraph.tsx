@@ -251,7 +251,7 @@ function Body({ g }: { g: Data }) {
       <Columns
         main={
           <Stack>
-            <Graph label="Graph of this scan, from its first screen" width={g.width} height={g.height} edges={g.edges}>
+            <Graph label="Graph of this scan, from its first screen" width={g.width} height={g.height} edges={g.edges} embedded>
               {g.nodes.map((n) => (
                 <GraphNode
                   key={n.id}

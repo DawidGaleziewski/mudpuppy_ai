@@ -135,6 +135,8 @@ describe('Screen', () => {
     expect(screen.getByText('H-0003')).toBeTruthy();
     expect(screen.getByRole('region', { name: 'r1' })).toBeTruthy();
     expect(screen.getByText('No picture was recorded.')).toBeTruthy();
+    expect(screen.getByText(/^One variant so far\./)).toBeTruthy(); // a lone variant, not a stretched card
+    expect(screen.getByRole('region', { name: 'r1' }).className).toBe('sy-variant');
     fireEvent.click(screen.getByRole('tab', { name: 'Actions 1' }));
     await waitFor(() => expect(screen.getByRole('link', { name: 'SC-0008' })).toBeTruthy());
     expect(screen.getByText('on every page')).toBeTruthy();

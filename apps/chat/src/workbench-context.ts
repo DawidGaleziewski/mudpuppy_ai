@@ -8,6 +8,10 @@ import type BetterSqlite3 from 'better-sqlite3';
 
 export const SCAN_DATA_LIMIT = 4000;
 
+/** A full scan id (D-9, the contract's `scanId`) and an event reference on it (`eventRef`). */
+export const SCAN_ID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
+const EVENT_REF = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}#[0-9]{1,6}$/;
+
 export type Chip =
   | { kind: 'page'; scan: string; route: string; state?: number }
   | { kind: 'step'; scan: string; step: number }
@@ -17,16 +21,14 @@ export type Chip =
 /** At most 3 chips, each of a known shape (WB-UI-11); anything else is left out. */
 export function chipsOf(value: unknown): Chip[] {
   if (!Array.isArray(value)) return [];
-  const hex8 = /^[0-9a-f]{8}$/;
   const ok = (c: unknown): c is Chip => {
     if (typeof c !== 'object' || c === null) return false;
     const o = c as Record<string, unknown>;
     if (o.kind === 'page')
-      return typeof o.scan === 'string' && hex8.test(o.scan) && typeof o.route === 'string';
+      return typeof o.scan === 'string' && SCAN_ID.test(o.scan) && typeof o.route === 'string';
     if (o.kind === 'step')
-      return typeof o.scan === 'string' && hex8.test(o.scan) && Number.isInteger(o.step);
-    if (o.kind === 'event')
-      return typeof o.ref === 'string' && /^[0-9a-f]{8}#[0-9]{1,6}$/.test(o.ref);
+      return typeof o.scan === 'string' && SCAN_ID.test(o.scan) && Number.isInteger(o.step);
+    if (o.kind === 'event') return typeof o.ref === 'string' && EVENT_REF.test(o.ref);
     return o.kind === 'view' && typeof o.id === 'string';
   };
   return value.filter(ok).slice(-3);
@@ -43,7 +45,8 @@ interface ScanRow {
 }
 
 interface ScanSummary {
-  short: string;
+  /** The full id: what the model binds (D-9). */
+  id: string;
   status: string;
   steps: number;
   pages: number;
@@ -79,7 +82,7 @@ function summaryOf(raw: BetterSqlite3.Database, run: ScanRow): ScanSummary {
     )
     .get(run.id) as { route_template: string } | undefined;
   return {
-    short: run.id.slice(0, 8),
+    id: run.id,
     status: WORDS[run.status] ?? run.status,
     steps,
     pages,
@@ -88,16 +91,14 @@ function summaryOf(raw: BetterSqlite3.Database, run: ScanRow): ScanSummary {
   };
 }
 
-/** The portal's newest runs whose short id is unique in the portal (F-05): what the model may bind. */
+/** The portal's newest runs, by their full ids (D-9): what the model may bind. */
 function scansOf(raw: BetterSqlite3.Database, portal: string, limit = 5): ScanRow[] {
-  const rows = raw
+  return raw
     .prepare(
-      `SELECT id, status, started_at, warning FROM runs WHERE portal_id = ? ORDER BY started_at DESC`,
+      `SELECT id, status, started_at, warning FROM runs WHERE portal_id = ?
+       ORDER BY started_at DESC LIMIT ?`,
     )
-    .all(portal) as ScanRow[];
-  const counts = new Map<string, number>();
-  for (const r of rows) counts.set(r.id.slice(0, 8), (counts.get(r.id.slice(0, 8)) ?? 0) + 1);
-  return rows.filter((r) => counts.get(r.id.slice(0, 8)) === 1).slice(0, limit);
+    .all(portal, limit) as ScanRow[];
 }
 
 export interface TurnContextInput {
@@ -128,13 +129,13 @@ export function turnContext(raw: BetterSqlite3.Database, input: TurnContextInput
     `current view: ${view?.spec_json ?? 'none'}`,
     'scans (newest first; bind these ids):',
     ...scans.map(
-      (s) => `- ${s.short} · ${s.status} · ${String(s.steps)} steps · ${String(s.pages)} pages`,
+      (s) => `- ${s.id} · ${s.status} · ${String(s.steps)} steps · ${String(s.pages)} pages`,
     ),
     '</workbench_context>',
   ];
   const data = scans
     .filter((s) => s.at !== null || s.error !== null)
-    .map((s) => `${s.short}: at ${s.at ?? '—'}${s.error === null ? '' : ` · stop: ${s.error}`}`)
+    .map((s) => `${s.id}: at ${s.at ?? '—'}${s.error === null ? '' : ` · stop: ${s.error}`}`)
     .join('\n');
   const portalText = escapeData(data).slice(0, SCAN_DATA_LIMIT);
   return portalText === ''

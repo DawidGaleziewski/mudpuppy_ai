@@ -5,7 +5,7 @@ import { ActionsSection, DecisionsSection, FrontierSection } from './ScanFiltere
 import { DocsSection, FormsSection, NetworkSection, RobotsSection, StatesSection } from './ScanLists';
 import { ProcessSection } from './ScanProcess';
 import { TraceSection } from './ScanTrace';
-import { Callout, Facts, PageHead, Plate, Stack, Text, ViewNav } from '../design-system';
+import { Callout, Facts, PageHead, Plate, ScanId, Stack, Text, ViewNav } from '../design-system';
 import { useScanHead, type ScanHead } from '../app/api-scan';
 import { QueryState } from '../app/QueryState';
 import { Shell } from '../app/Shell';
@@ -37,6 +37,8 @@ function Head({ h, tab }: { h: ScanHead; tab: string }) {
       <Plate title="Summary" actions={<ShownStatus status={h.status} />}>
         <Stack>
           {h.warning && <Callout tone="failure">{h.warning}</Callout>}
+          {/* the scan's own page: the whole id written out once, with Copy (D-9, Q6) */}
+          <ScanId id={h.id} full copy />
           <Facts
             items={[
               ['Portal', h.portal],
@@ -80,7 +82,7 @@ export function Scan() {
         ]}
         title={
           <>
-            Scan <Text mono>{scan}</Text>
+            Scan <ScanId id={scan} />
           </>
         }
         meta={q.data ? `${q.data.persona} · read-only` : undefined}

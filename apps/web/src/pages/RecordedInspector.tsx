@@ -1,4 +1,4 @@
-import { Button, Cluster, Facts, Plate, Row, Rows, Stack, SubHead, Tag, Tags, Text } from '../design-system';
+import { Button, Cluster, Facts, Plate, Row, Rows, ScanId, Stack, SubHead, Tag, Tags, Text } from '../design-system';
 import { recordedMapKey, useRecordedNode, type RecordedNodeDetail } from '../app/api-recorded';
 import { writes } from '../app/api-write';
 import { useConfirmedWrite, type Ask } from '../app/ConfirmedWrite';
@@ -14,7 +14,7 @@ export const stateHref = (state: string) => `/states/${encodeURIComponent(state)
 export const scanHref = (scan: string) => `/app/scans/${encodeURIComponent(scan)}`;
 
 function About({ d }: { d: RecordedNodeDetail }) {
-  // Seen in has the plate's whole width: whole scan ids (D-9) do not fit beside a label.
+  const ids = d.scans.map((s) => s.id);
   return (
     <Stack>
       <Facts items={[['Route', <Text route>{d.route}</Text>]]} />
@@ -23,9 +23,7 @@ function About({ d }: { d: RecordedNodeDetail }) {
         <Stack>
           <Tags>
             {d.scans.map((s) => (
-              <Tag key={s.id} size="sm" href={scanHref(s.id)}>
-                {s.id}
-              </Tag>
+              <ScanId key={s.id} id={s.id} siblings={ids} href={scanHref(s.id)} />
             ))}
           </Tags>
           <Text small muted>

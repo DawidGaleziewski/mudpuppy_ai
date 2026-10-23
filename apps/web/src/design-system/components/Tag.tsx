@@ -9,17 +9,21 @@ export interface TagProps {
   /** Orange: the record needs a person (rule 2). */
   intent?: boolean;
   size?: 'sm';
+  /** The whole id on hover when the tag shows a short form (a scan id). */
+  title?: string;
 }
 
 /** A record id as a tagged part (rule 1): every id shown as data is a Tag. */
-export function Tag({ children, href, intent = false, size }: TagProps) {
+export function Tag({ children, href, intent = false, size, title }: TagProps) {
   const className = cx('sy-tag', intent && 'sy-tag--intent', size === 'sm' && 'sy-tag--sm');
   return href ? (
-    <a className={className} href={href}>
+    <a className={className} href={href} title={title}>
       {children}
     </a>
   ) : (
-    <span className={className}>{children}</span>
+    <span className={className} title={title}>
+      {children}
+    </span>
   );
 }
 

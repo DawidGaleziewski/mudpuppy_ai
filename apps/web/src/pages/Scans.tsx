@@ -1,18 +1,14 @@
 import { useParams } from 'react-router';
-import { Meter, PageHead, Plate, Stack, Table, Tag, Text } from '../design-system';
+import { Meter, PageHead, Plate, ScanId, shortScanId, Stack, Table, Text } from '../design-system';
 import { useScans, type ScanSummary } from '../app/api';
 import { QueryState } from '../app/QueryState';
 import { Shell } from '../app/Shell';
 import { ShownStatus } from '../app/ShownStatus';
 
-const columns = [
+const columns = (ids: readonly string[]) => [
   {
     header: 'Scan',
-    cell: (s: ScanSummary) => (
-      <Tag size="sm" href={`/app/scans/${encodeURIComponent(s.id)}`}>
-        {s.id}
-      </Tag>
-    ),
+    cell: (s: ScanSummary) => <ScanId id={s.id} siblings={ids} href={`/app/scans/${encodeURIComponent(s.id)}`} copy />,
     rowHeader: true,
   },
   { header: 'Persona', cell: (s: ScanSummary) => s.persona },
@@ -27,6 +23,7 @@ export function Scans() {
   const portal = useParams().portal ?? '';
   const q = useScans(portal);
   const running = q.data?.scans.filter((s) => s.status.shape === 'running') ?? [];
+  const ids = q.data?.scans.map((s) => s.id) ?? [];
   return (
     <Shell current="scans">
       <PageHead
@@ -42,9 +39,9 @@ export function Scans() {
         {(list) => (
           <Stack>
             {running.map((s) => (
-              <Plate key={s.id} title="Running now" label={`Scan ${s.id}`}>
+              <Plate key={s.id} title="Running now" label={`Scan ${shortScanId(s.id, ids)}`}>
                 <Meter
-                  label={`Scan ${s.id}`}
+                  label={`Scan ${shortScanId(s.id, ids)}`}
                   value={s.steps_used}
                   max={s.max_steps ?? Math.max(s.steps_used, 1)}
                   detail={`${String(s.steps_used)} / ${String(s.max_steps ?? '?')} steps`}
@@ -54,7 +51,7 @@ export function Scans() {
             <Plate title="Newest scans" flush>
               <Table
                 caption={`Scans of ${portal}`}
-                columns={columns}
+                columns={columns(ids)}
                 rows={list.scans}
                 rowKey={(s) => s.id}
                 flush

@@ -16,6 +16,7 @@ import {
   proposeCommand,
   resolveScan,
   settleCommands,
+  shortScan,
   type CommandRow,
   type ConfirmDeps,
 } from '../src/workbench-commands.js';
@@ -87,26 +88,29 @@ afterEach(async () => {
 });
 
 describe('workbench commands', () => {
-  it('a short scan id names the bound run first (F-05)', () => {
+  it('names a run only by its full id, never a prefix (D-9, design answer Q6)', () => {
     const twin = '01a110d5-ffff-7000-8000-000000000002';
     addRun(STOPPED, 'interrupted');
     addRun(twin, 'completed', '2026-10-07T00:00:00.000Z');
-    expect(resolveScan(raw(), P, '01a110d5')).toBe(twin);
-    expect(resolveScan(raw(), P, '01a110d5', [STOPPED])).toBe(STOPPED);
+    expect(resolveScan(raw(), P, STOPPED)).toBe(STOPPED);
+    expect(resolveScan(raw(), P, twin)).toBe(twin);
+    expect(resolveScan(raw(), P, '01a110d5')).toBeNull();
+    expect(resolveScan(raw(), P, '01a110d5-0000-7000-8000-000000000009')).toBeNull();
     expect(resolveScan(raw(), P, '../etc')).toBeNull();
+    expect(shortScan(STOPPED)).toBe('01a110d5-0000');
   });
 
   it('a proposal whose precondition fails is refused with one plain line', () => {
     addRun(STOPPED, 'interrupted');
-    expect(() => propose('scan.stop', { scan: '01a110d5' })).toThrow('is not running');
+    expect(() => propose('scan.stop', { scan: STOPPED})).toThrow('is not running');
     expect(() =>
-      propose('path.attempt', { scan: '01a110d5', step: 171, variation: 'wait_longer' }),
+      propose('path.attempt', { scan: STOPPED, step: 171, variation: 'wait_longer' }),
     ).toThrow(CommandRefusal);
   });
 
   it('nothing runs without the card token, and an old token stops working', () => {
     addRun(STOPPED, 'running');
-    const row = propose('scan.stop', { scan: '01a110d5' });
+    const row = propose('scan.stop', { scan: STOPPED});
     expect(row.state).toBe('proposed');
     expect(() =>
       confirmCommand(deps(), { id: row.id, token: 'test-token-not-real', by: 'dawid' }),
@@ -130,7 +134,7 @@ describe('workbench commands', () => {
 
   it('commands paused refuse the confirm', () => {
     addRun(STOPPED, 'running');
-    const row = propose('scan.stop', { scan: '01a110d5' });
+    const row = propose('scan.stop', { scan: STOPPED});
     const token = issueToken(raw(), row.id);
     expect(() =>
       confirmCommand(deps({ commandsOn: false }), { id: row.id, token, by: 'dawid' }),
@@ -139,7 +143,7 @@ describe('workbench commands', () => {
 
   it('a changed precondition expires the proposal instead of running it', () => {
     addRun(STOPPED, 'interrupted');
-    const row = propose('scan.resume', { scan: '01a110d5' });
+    const row = propose('scan.resume', { scan: STOPPED});
     raw().prepare(`UPDATE runs SET status = 'completed' WHERE id = ?`).run(STOPPED);
     const token = issueToken(raw(), row.id);
     const after = confirmCommand(deps(), { id: row.id, token, by: 'dawid' });
@@ -150,7 +154,7 @@ describe('workbench commands', () => {
 
   it('a resume hands the crawler prompt to the assistant, then is done when the run starts', () => {
     addRun(STOPPED, 'interrupted');
-    const row = propose('scan.resume', { scan: '01a110d5' });
+    const row = propose('scan.resume', { scan: STOPPED});
     const token = issueToken(raw(), row.id);
     const running = confirmCommand(deps(), { id: row.id, token, by: 'dawid' });
     expect(running.state).toBe('running');
@@ -182,7 +186,7 @@ describe('workbench commands', () => {
   it('a focused scan waits for phase 2; cancel folds a proposal', () => {
     expect(() => propose('scan.start', { type: 'focused' })).toThrow('Plan a run');
     addRun(STOPPED, 'running');
-    const row = propose('scan.stop', { scan: '01a110d5' });
+    const row = propose('scan.stop', { scan: STOPPED});
     expect(cancelCommand(raw(), row.id).state).toBe('cancelled');
     expect(() => issueToken(raw(), row.id)).toThrow('cancelled');
   });
@@ -221,7 +225,7 @@ describe('workbench commands', () => {
 
   it('proposals expire after 10 minutes', () => {
     addRun(STOPPED, 'running');
-    const row = propose('scan.stop', { scan: '01a110d5' });
+    const row = propose('scan.stop', { scan: STOPPED});
     const [expired] = settleCommands(raw(), Date.now() + 11 * 60 * 1000);
     expect(expired).toMatchObject({ id: row.id, state: 'expired' });
     expect(getCommand(raw(), row.id).confirmed_at).toBeNull();

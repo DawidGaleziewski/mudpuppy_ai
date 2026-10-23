@@ -79,15 +79,15 @@ class Ctx:
     viewer: str | None
     url: Any  # Ctx.url of the dashboard: (path, **params) -> str
     tokens: dict[str, str] = field(default_factory=dict)  # proposed command id -> its token
-    scans: dict[str, ScanLive | None] = field(default_factory=dict)  # short id -> scan (cache)
-    bound: list[str] = field(default_factory=list)  # run ids the conversation binds (F-05)
+    scans: dict[str, ScanLive | None] = field(default_factory=dict)  # full scan id -> scan (cache)
+    bound: list[str] = field(default_factory=list)  # run ids the conversation binds
     personas: tuple[str, ...] = ()  # the portal's persona ids, for a Start card (spec 044)
 
-    def scan(self, short: str) -> ScanLive | None:
-        if short not in self.scans:
-            run = queries_wb_scan.resolve_scan(self.conn, self.portal, short, self.bound)
-            self.scans[short] = queries_wb_scan.scan_live(self.conn, run) if run else None
-        return self.scans[short]
+    def scan(self, scan_id: str) -> ScanLive | None:
+        if scan_id not in self.scans:
+            run = queries_wb_scan.resolve_scan(self.conn, self.portal, scan_id)
+            self.scans[scan_id] = queries_wb_scan.scan_live(self.conn, run) if run else None
+        return self.scans[scan_id]
 
 
 def _source(card_type: str, scan: ScanLive | None) -> str:
@@ -257,21 +257,22 @@ def _standing_reaction(
     for card in cards:
         scan = card.scan
         if card.type in LIVE_TYPES and scan is not None and scan.failed_at is not None:
-            err = _card(rc, {"type": "ErrorCard", "bind": {"scan": scan.short}}, f"t{n}-err")
+            err = _card(rc, {"type": "ErrorCard", "bind": {"scan": scan.run_id}}, f"t{n}-err")
             return [*cards, _with_status(err)]
     return cards
 
 
-def _scan_facts(rc: Ctx, short: str) -> tuple[ScanLive | None, str]:
-    scan = rc.scan(short) if short else None
+def _scan_facts(rc: Ctx, scan_id: str) -> tuple[ScanLive | None, str]:
+    scan = rc.scan(scan_id) if scan_id else None
     kept = f"{scan.pages} pages, {scan.queued} queued links" if scan else "—"
     return scan, kept
 
 
 def command_card(rc: Ctx, cmd: WbCommand) -> CommandCard:
     """A command card with its facts in the designer's order (§ 5.12) and its state's words."""
-    short = str(cmd.args.get("scan", ""))
-    scan, kept = _scan_facts(rc, short)
+    scan_id = str(cmd.args.get("scan", ""))
+    scan, kept = _scan_facts(rc, scan_id)
+    short = queries_wb_scan.short_id(scan_id)
     facts: tuple[tuple[str, str], ...]
     if cmd.command == "scan.resume":
         start = f"{scan.checkpoint} (last good checkpoint)" if scan and scan.checkpoint else "—"
@@ -326,8 +327,8 @@ def _result(cmd: WbCommand) -> tuple[str, tuple[tuple[str, str], ...]]:
     if cmd.state != "done" or not isinstance(run, str):
         return "", ()
     if cmd.command == "scan.stop":
-        return f"Stopped scan {run[:8]}.", ()
-    return f"Started scan {run[:8]}.", (("Open in Scans", f"/runs/{run}"),)
+        return f"Stopped scan {queries_wb_scan.short_id(run)}.", ()
+    return f"Started scan {queries_wb_scan.short_id(run)}.", (("Open in Scans", f"/runs/{run}"),)
 
 
 def _card_of(rc: Ctx, cmd: WbCommand, facts: tuple[tuple[str, str], ...]) -> CommandCard:

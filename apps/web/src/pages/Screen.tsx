@@ -3,8 +3,6 @@ import { useParams, useSearchParams } from 'react-router';
 import {
   Chip,
   Cluster,
-  Compare,
-  CompareSide,
   Count,
   Note,
   PageHead,
@@ -20,6 +18,8 @@ import {
   Text,
   Timeline,
   TimelineItem,
+  Variant,
+  Variants,
 } from '../design-system';
 import { useScreen, type ActionOut, type ScreenDetailData, type VariantOut } from '../app/api-screens';
 import { QueryState } from '../app/QueryState';
@@ -63,35 +63,49 @@ function seen(v: VariantOut) {
   return `${releases}${v.personas.join(', ') || '—'} · ${String(v.visits)} visit${v.visits === 1 ? '' : 's'}${when}`;
 }
 
-function Variants({ d }: { d: ScreenDetailData }) {
+const variantLabel = (v: VariantOut) => `r${String(v.ordinal)}`;
+
+function VariantList({ d }: { d: ScreenDetailData }) {
+  // the dialog steps through the variants that have a picture (← / →)
+  const pictured = d.variants.filter((v) => v.picture?.shot ?? v.picture?.wire);
+  const items = pictured.map((v) => ({ label: variantLabel(v), shot: v.picture?.shot, wire: v.picture?.wire }));
   return (
     <Plate label="Variants">
-      <Compare min="220px">
+      <Variants>
         {d.variants.map((v) => (
-          <CompareSide
+          <Variant
             key={v.state_id}
-            title={<Text asIs>{`r${String(v.ordinal)}`}</Text>}
+            id={`variant-${v.state_id}`}
+            label={<Text asIs>{variantLabel(v)}</Text>}
             aside={<ShownChip chip={{ word: v.reason, variant: v.reason_chip }} />}
+            picture={
+              <Picture
+                shot={v.picture?.shot}
+                wire={v.picture?.wire}
+                title={v.title || d.screen.title}
+                alt={`Variant ${variantLabel(v)} of ${v.title || d.screen.title}`}
+                route={d.screen.route}
+                set={{ items, at: Math.max(0, pictured.indexOf(v)) }}
+                {...(v.picture ? { scans: v.picture.scans } : {})}
+              />
+            }
           >
-            <Picture
-              shot={v.picture?.shot}
-              wire={v.picture?.wire}
-              title={v.title || d.screen.title}
-              route={d.screen.route}
-              {...(v.picture ? { scans: v.picture.scans } : {})}
-            />
             <Text small muted block>
               {seen(v)}
             </Text>
-            <Cluster>
-              <ShownStatus status={v.status} />
-            </Cluster>
+            <ShownStatus status={v.status} />
             <Text small block>
               {v.explanation}
             </Text>
-          </CompareSide>
+            {d.variants.length === 1 && (
+              <Text small block>
+                One variant so far. A second one appears here when a scan sees this screen differently (another release,
+                persona or state).
+              </Text>
+            )}
+          </Variant>
         ))}
-      </Compare>
+      </Variants>
     </Plate>
   );
 }
@@ -216,7 +230,7 @@ function History({ d }: { d: ScreenDetailData }) {
 
 function Detail({ d, tab, setTab }: { d: ScreenDetailData; tab: Tab; setTab: (t: Tab) => void }) {
   const panels: Record<Tab, () => ReactNode> = {
-    variants: () => <Variants d={d} />,
+    variants: () => <VariantList d={d} />,
     actions: () => <Actions d={d} />,
     history: () => <History d={d} />,
   };

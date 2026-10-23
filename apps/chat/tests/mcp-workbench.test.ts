@@ -93,7 +93,9 @@ describe('Workbench tools', () => {
     const schema = view?.inputSchema as { required?: string[]; $defs?: Record<string, unknown> };
     expect(schema.required).toEqual(['version', 'path', 'why', 'components']);
     expect(JSON.stringify(schema.$defs?.LiveMap)).toContain('"const":"LiveMap"');
-    expect(JSON.stringify(schema.$defs?.scanId)).toContain('^[0-9a-f]{8}$');
+    expect(JSON.stringify(schema.$defs?.scanId)).toContain(
+      '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$',
+    );
   });
 
   it('a view keeps what is valid and drops the rest with its code', async () => {
@@ -102,9 +104,9 @@ describe('Workbench tools', () => {
       path: 'mapping',
       why: 'You asked to map the calculator.',
       components: [
-        { id: 'map', type: 'LiveMap', bind: { scan: '01a110d5' } },
+        { id: 'map', type: 'LiveMap', bind: { scan: RUN } },
         { id: 'x', type: 'HtmlBlock', bind: { html: '<b>hi</b>' } },
-        { id: 'shot', type: 'StepShot', bind: { scan: '01a110d5', step: 3 } },
+        { id: 'shot', type: 'StepShot', bind: { scan: RUN, step: 3 } },
       ],
     });
     expect(isError).toBe(false);
@@ -148,7 +150,7 @@ describe('Workbench tools', () => {
   it('a command is stored as a proposal, never run', async () => {
     const { body } = await call('propose_command', {
       command: 'scan.stop',
-      args: { scan: '01a110d5' },
+      args: { scan: RUN },
       reason: 'You asked to stop it.',
     });
     expect(body).toMatchObject({
@@ -167,7 +169,7 @@ describe('Workbench tools', () => {
     expect(bad).toMatchObject({ isError: true, body: { error: { code: 'UNKNOWN_COMMAND' } } });
     const refused = await call('propose_command', {
       command: 'scan.resume',
-      args: { scan: '01a110d5' },
+      args: { scan: RUN },
       reason: 'Go on.',
     });
     expect(refused).toMatchObject({ isError: true, body: { error: { code: 'PRECONDITION' } } });
@@ -186,7 +188,7 @@ describe('Workbench tools', () => {
     await Promise.all([server.connect(a), client.connect(b)]);
     const off = await call('propose_command', {
       command: 'scan.stop',
-      args: { scan: '01a110d5' },
+      args: { scan: RUN },
       reason: 'You asked to stop it.',
     });
     expect(off).toMatchObject({ isError: true, body: { error: { code: 'PAUSED' } } });

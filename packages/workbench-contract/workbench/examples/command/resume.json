@@ -1,7 +1,7 @@
 {
   "command": "scan.resume",
   "args": {
-    "scan": "01a110d5"
+    "scan": "01a110d5-2028-7000-8f3e-5c1a9b27d460"
   },
   "reason": "The page loaded but the form button never appeared; resuming keeps the 113 queued links."
 }

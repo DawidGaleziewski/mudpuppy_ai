@@ -21,7 +21,7 @@
 {%- set label = p.route ~ (" · step " ~ p.state if p.state > 1 else "") -%}
 <button class="sy-film__item sy-askable" type="button"{% if state %} data-state="{{ state }}"{% endif %}
   aria-pressed="{{ 'true' if sel == p.route ~ ':' ~ p.state else 'false' }}"
-  data-wb-select="{{ p.route }}:{{ p.state }}" data-wb-ask='{"kind": "page", "scan": "{{ s.short }}", "route": {{ p.route | tojson }}, "state": {{ p.state }}}'>
+  data-wb-select="{{ p.route }}:{{ p.state }}" data-wb-ask='{"kind": "page", "scan": "{{ s.run_id }}", "route": {{ p.route | tojson }}, "state": {{ p.state }}}'>
   <span class="sy-order">{{ p.order }}</span>{{ mini(p.state_id, p.screenshot_ref) }}
   <span class="sy-film__route">{{ label }}</span>
   {%- if state == "failed" %}<span class="sy-status" data-status="failed">{{ word }}</span>
@@ -33,7 +33,7 @@
 
 {% macro live_map(card, sel, stale) -%}
 {%- set s = card.scan -%}
-<div id="{{ card.frame.dom_id }}-live" data-wb-live="{{ s.short }}">
+<div id="{{ card.frame.dom_id }}-live" data-wb-live="{{ s.run_id }}">
 {{ scan_meter(s, stale=stale) }}
 <div class="sy-film" role="group" aria-label="Pages visited, in order">
   {%- for p in s.route_pages %}{{ film_item(s, p, sel) }}{% endfor %}
@@ -54,7 +54,7 @@
   hx-post="{{ c.url('/workbench/commands') }}" hx-target="#turn-t{{ card.turn }}-cmds" hx-swap="beforeend">
   <input type="hidden" name="c" value="{{ page.conversation.id if page and page.conversation else '' }}">
   <input type="hidden" name="turn" value="{{ card.turn }}"><input type="hidden" name="command" value="scan.resume">
-  <input type="hidden" name="scan" value="{{ s.short }}">
+  <input type="hidden" name="scan" value="{{ s.run_id }}">
   <button class="sy-btn sy-btn--sm sy-btn--strong" type="submit">Resume from last checkpoint</button>
   <button class="sy-btn sy-btn--sm sy-btn--quiet" type="button" data-wb-suggest="Why did it stop here?">Ask why</button>
 </form>
@@ -67,7 +67,7 @@
 {% macro record_card(card, portal) -%}
 {%- set r = card.record -%}
 {%- if r -%}
-<div class="sy-cluster" style="--sy-gap: 6px 10px">{{ tag(r.key, c.url('/docs/' ~ portal ~ '/' ~ r.key), sm=true) }}<b class="sy-case-normal">{{ r.title }}</b>{{ record_status(r) }}</div>
+<div class="sy-cluster" style="--sy-gap: 6px 10px">{{ tag(r.key, c.url('/docs/' ~ portal ~ '/' ~ r.key), sm=true) }}{% if r.type_word %}<span class="sy-label">{{ r.type_word }}</span>{% endif %}<b class="sy-case-normal">{{ r.title }}</b>{{ record_status(r) }}</div>
 <a class="sy-small" href="{{ c.url('/docs/' ~ portal ~ '/' ~ r.key) }}">Open the record</a>
 {%- else -%}<span class="sy-small sy-muted">This record is not in the portal model any more.</span>{%- endif -%}
 {%- endmacro %}
@@ -110,7 +110,7 @@
   {%- if card.scan is none and card.type in ("LiveMap", "ScanMeter", "ErrorCard", "PageMiniature") -%}
   <span class="sy-small sy-muted">This scan is not in the store.</span>
   {%- elif card.type == "LiveMap" -%}{{ live_map(card, sel, stale) }}
-  {%- elif card.type == "ScanMeter" -%}<div data-wb-live="{{ card.scan.short }}">{{ scan_meter(card.scan, stale=stale) }}</div>
+  {%- elif card.type == "ScanMeter" -%}<div data-wb-live="{{ card.scan.run_id }}">{{ scan_meter(card.scan, stale=stale) }}</div>
   {%- elif card.type == "ErrorCard" -%}{{ error_card(card) }}
   {%- elif card.type == "PageMiniature" -%}{{ page_miniature(card) }}
   {%- elif card.type == "RecordCard" -%}{{ record_card(card, portal) }}

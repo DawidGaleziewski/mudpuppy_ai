@@ -9,6 +9,7 @@ import {
   Plate,
   Row,
   Rows,
+  ScanId,
   Stack,
   Table,
   Tag,
@@ -54,8 +55,7 @@ function LastScan({ scan }: { scan: PortalHomeData['last_scan'] }) {
     <Plate title="Last scan">
       {scan ? (
         <Stack>
-          {/* the full scan id on its own line: beside a fact name it is wider than a phone (D-9) */}
-          <Tag size="sm">{scan.id}</Tag>
+          <ScanId id={scan.id} href={`/app/scans/${encodeURIComponent(scan.id)}`} copy />
           <Facts
             items={[
               ['Status', <ShownStatus status={scan.status} />],

@@ -28,7 +28,7 @@ const meta = {
     docs: {
       description: {
         component:
-          'A graph the API laid out (the portal map): edges are SVG paths in their state (`sy-edge--<state>`), nodes are `GraphNode` buttons at their place, with `aria-pressed` for the selected one; a folded route family is a link drawn as a deck. Zoom out, fit and in above the box; arrow keys move to the neighbour that way (`near`). A graph is never the only way to its facts: the page also has the list. `Legend` names the edge states, `Bundle` says the links it does not draw (the menu on every page).',
+          'A graph the API laid out (the portal map): edges are SVG paths in their state (`sy-edge--<state>`), nodes are `GraphNode` buttons at their place, with `aria-pressed` for the selected one; a folded route family is a link drawn as a deck. It sits in a `.sy-graphview` frame (design answer Q4): as tall as the graph, at most the screen below the header, or 520 px with `embedded` (a scan\'s graph, the recorded map). The zoom bar floats top right and stays in view while the graph does: −, the level (resets to 100 %), +, Fit (pressed while fitted); steps 50 · 67 · 80 · 100 · 125 · 150 %. It opens fitted when wider than its box. Keys in the graph: + / − zoom, 0 back to 100 %, arrow keys move to the neighbour that way (`near`). A graph is never the only way to its facts: the page also has the list. `Legend` names the edge states, `Bundle` says the links it does not draw (the menu on every page).',
       },
     },
   },
@@ -81,6 +81,9 @@ export const Map: Story = {
     );
   },
 };
+
+/** Inside another page (a scan's graph, the recorded map): at most 520 px tall. */
+export const Embedded: Story = { ...Map, args: { embedded: true } };
 
 /** A recorded screen with several states (a deck), a mark for the next scan, and a failed one. */
 export const RecordedNodes: Story = {

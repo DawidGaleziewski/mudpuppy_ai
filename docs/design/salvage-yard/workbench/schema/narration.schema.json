@@ -57,13 +57,13 @@
   "$defs": {
     "scanId": {
       "type": "string",
-      "pattern": "^[0-9a-f]{8}$",
-      "description": "Scan id as stored (lowercase hex), e.g. 01a110d5."
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+      "description": "Full scan id: a canonical lowercase UUID (UUIDv7), e.g. 01a110d5-2028-7000-8f3e-5c1a9b27d460. Never the short form."
     },
     "eventRef": {
       "type": "string",
-      "pattern": "^[0-9a-f]{8}#[0-9]{1,6}$",
-      "description": "scan#step, e.g. 01a110d5#171."
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}#[0-9]{1,6}$",
+      "description": "Full scan id # step, e.g. 01a110d5-2028-7000-8f3e-5c1a9b27d460#171."
     },
     "plainText": {
       "type": "string",

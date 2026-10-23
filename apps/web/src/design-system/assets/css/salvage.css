@@ -832,6 +832,110 @@
   .sy-facts { display: grid; grid-template-columns: max-content 1fr; gap: 6px var(--sy-space-4); font-size: var(--sy-fs-sm); }
   .sy-facts dt { color: var(--sy-text-muted); }
   .sy-facts dd { margin: 0; min-width: 0; overflow-wrap: anywhere; }
+
+  /* ===== 2.1 · Picture that opens larger (thumbnail button) ============== */
+  /* A recorded screenshot you can enlarge. The button is "naked": the picture is the target.
+     <button class="sy-thumb-btn" type="button" aria-haspopup="dialog">
+       <img class="sy-thumb" src="…" alt="Variant r3 of Kalkulator OC/AC — wynik">
+       <span class="sy-thumb-btn__hint" aria-hidden="true"><svg …expand icon…/><span class="sy-thumb-btn__word">Enlarge</span></span>
+       <span class="sy-sr-only">, enlarge</span></button>
+     The icon is always shown; the word joins it on hover and keyboard focus (always on touch).
+     Focus: the marker ring with a steel gap, so it reads on light paper, manila and steel alike. */
+  .sy-thumb-btn { position: relative; display: block; width: 100%; margin: 0; padding: 0; border: 0; background: none;
+    color: inherit; text-align: left; cursor: zoom-in; }
+  .sy-thumb-btn > .sy-thumb, .sy-thumb-btn > .sy-shot { transition: border-color var(--sy-dur-hover) linear; }
+  .sy-thumb-btn:hover > .sy-thumb, .sy-thumb-btn:hover > .sy-shot { border-color: var(--sy-text); }
+  .sy-thumb-btn:focus-visible { outline: var(--sy-weld-strong) solid var(--sy-focus); outline-offset: 2px;
+    box-shadow: 0 0 0 2px var(--sy-bg-ground); }
+  .sy-thumb-btn__hint { position: absolute; right: 6px; bottom: 6px; display: inline-flex; align-items: center; gap: 6px;
+    height: 24px; padding: 0 6px; background: var(--sy-bg-plate); color: var(--sy-text);
+    border: var(--sy-weld) solid var(--sy-border-control); font-size: var(--sy-fs-micro); font-weight: 700;
+    letter-spacing: var(--sy-track-caps); text-transform: uppercase; pointer-events: none; }
+  .sy-thumb-btn__hint > svg { width: 12px; height: 12px; flex: none; }
+  .sy-thumb-btn__word { display: none; }
+  .sy-thumb-btn:hover .sy-thumb-btn__word, .sy-thumb-btn:focus-visible .sy-thumb-btn__word { display: inline; }
+  .sy-thumb-btn:hover .sy-thumb-btn__hint, .sy-thumb-btn:focus-visible .sy-thumb-btn__hint { border-color: var(--sy-text); }
+
+  /* ===== 2.1 · Wide dialog for a picture ================================= */
+  /* <dialog class="sy-dialog sy-dialog--wide" aria-labelledby="pic-h">
+       <header class="sy-dialog__head">title · facts · fit switch · close</header>
+       <figure class="sy-dialog__figure" data-fit="width"><img src="…" alt="…"></figure>
+       <footer class="sy-dialog__foot">previous / next variant · open in a new tab</footer></dialog>
+     Width ≈ the captured page (1280px) so a screenshot shows at about 1:1. The picture scrolls inside;
+     head and foot stay. data-fit="page" shrinks the whole page to the visible height (overview).
+     Under 640px the dialog is full screen. */
+  .sy-dialog--wide { width: min(var(--sy-dialog-wide, 1280px), calc(100vw - 32px)); max-width: none;
+    max-height: calc(100dvh - 32px); }
+  .sy-dialog--wide[open], .sy-dialog--wide.sy-dialog--static { display: flex; flex-direction: column; }
+  .sy-dialog--wide.sy-dialog--static { width: 100%; max-height: var(--sy-dialog-static-h, 640px); }
+  .sy-dialog__head .sy-split { --sy-gap: var(--sy-space-2) var(--sy-space-4); }
+  .sy-dialog__close { flex: none; }
+  .sy-dialog__figure { flex: 1; min-height: 0; margin: 0; overflow: auto; overscroll-behavior: contain;
+    background: var(--sy-bg-well); touch-action: pan-x pan-y pinch-zoom; }
+  .sy-dialog__figure > img, .sy-dialog__figure > .sy-shot { display: block; width: 100%; height: auto; }
+  .sy-dialog__figure[data-fit="page"] { overflow: hidden; display: flex; justify-content: center; padding: var(--sy-space-3); }
+  .sy-dialog__figure[data-fit="page"] > img { width: auto; max-width: 100%; max-height: calc(100dvh - 200px); }
+
+  /* ===== 2.1 · Variants of one screen (not a before/after) ================ */
+  /* .sy-compare is a before/after PAIR. A screen's variants are a list: .sy-variants.
+     auto-fill keeps every card one column wide however many there are; a lone variant switches to a
+     media layout (picture left, facts right) because there is nothing to compare.
+     <div class="sy-variants" style="--sy-min: 240px">
+       <section class="sy-variant" aria-labelledby="r1-h">
+         <header class="sy-variant__head">…</header>
+         <div class="sy-variant__pic"><button class="sy-thumb-btn">…</button></div>
+         <div class="sy-variant__body">meta, why it differs, status</div></section></div> */
+  .sy-variants { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(var(--sy-min, 240px), 100%), 1fr));
+    gap: var(--sy-space-4); align-items: start; }
+  .sy-variant { display: grid; grid-template-areas: "head" "pic" "body"; grid-template-columns: minmax(0, 1fr);
+    gap: var(--sy-space-2); min-width: 0; }
+  .sy-variant__head { grid-area: head; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 4px 10px; }
+  .sy-variant__pic { grid-area: pic; min-width: 0; }
+  .sy-variant__body { grid-area: body; display: flex; flex-direction: column; align-items: flex-start; gap: var(--sy-space-2); min-width: 0; }
+  .sy-variant:only-child { grid-column: 1 / -1; grid-template-areas: "pic head" "pic body";
+    grid-template-columns: minmax(0, var(--sy-variant-pic, 360px)) minmax(0, 1fr); grid-template-rows: auto 1fr;
+    column-gap: var(--sy-space-5); max-width: 960px; }
+
+  /* ===== 2.1 · Graph view: the frame around a map, with its zoom bar ===== */
+  /* <div class="sy-graphview">                                (Map page; --embedded inside other pages)
+       <div class="sy-graph__zoom" role="toolbar" aria-label="Zoom" aria-controls="map-graph">
+         <button class="sy-btn sy-btn--sm sy-btn--quiet" aria-label="Zoom out">−</button>
+         <button class="sy-btn sy-btn--sm sy-btn--quiet" aria-label="Reset zoom to 100%">80%</button>
+         <button class="sy-btn sy-btn--sm sy-btn--quiet" aria-label="Zoom in">+</button>
+         <button class="sy-btn sy-btn--sm sy-btn--quiet">Fit</button></div>
+       <section id="map-graph" class="sy-graph" …>…canvas…</section></div>
+     Height: the graph's natural height, capped so the whole box fits under the sticky header
+     (Map page) or at 520px (embedded). The graph pans inside; the page never needs to scroll to reach
+     the zoom bar, and the bar is sticky under the header anyway. Phones: list first (docs/18-design-answers/04-graph-zoom-bar-and-height.md). */
+  .sy-graphview { position: relative; display: flex; flex-direction: column;
+    max-height: calc(100dvh - var(--sy-graph-top, 96px)); scroll-margin-top: var(--sy-graph-top, 96px); }
+  .sy-graphview--embedded { max-height: var(--sy-graph-max, 520px); }
+  .sy-graphview > .sy-graph { flex: 1 1 auto; min-height: 0; }
+  .sy-graph__zoom { position: sticky; top: var(--sy-graph-sticky, 72px); z-index: 2; align-self: flex-end;
+    display: flex; align-items: center; gap: 2px; height: 40px; margin: 8px 8px -48px 0; padding: 2px;
+    background: var(--sy-bg-plate); border: var(--sy-weld) solid var(--sy-border-control); }
+  .sy-graph__zoom > .sy-btn { min-width: 36px; border-color: transparent; }
+  .sy-graph__zoom > .sy-btn:hover { border-color: var(--sy-border-control); }
+  .sy-graph__zoom > .sy-btn[aria-pressed="true"] { background: var(--sy-bg-inverse); color: var(--sy-text-on-paint); }
+  .sy-graph__zoom-level { min-width: 52px; font-family: var(--sy-font-mono); font-size: var(--sy-fs-mono-sm); }
+
+  /* ===== 2.1 · Long ids (full scan ids) ================================== */
+  /* Scans have UUIDv7 ids (D-9). Show the 13-character short form: the first two groups, which are the
+     scan's start time in milliseconds, so they stay unique and sortable. The full id is in the title,
+     on the scan's own page, and in what Copy puts on the clipboard.
+     <span class="sy-id" title="01a110d5-2028-7000-8f3e-5c1a9b27d460">01a110d5-2028</span>
+     <button class="sy-id__copy" type="button" aria-label="Copy the full scan id 01a110d5-2028-7000-8f3e-5c1a9b27d460">Copy</button>
+     In a manila tag: <a class="sy-tag sy-tag--sm" href="/scans/…full…" title="…full…">01a110d5-2028</a> */
+  .sy-id { font-family: var(--sy-font-mono); font-size: var(--sy-fs-mono); text-transform: none; font-stretch: 100%;
+    white-space: nowrap; letter-spacing: 0; }
+  .sy-id--full { white-space: normal; overflow-wrap: anywhere; }
+  .sy-id__copy { min-height: 24px; margin-left: 6px; padding: 0 6px; vertical-align: 1px; background: transparent;
+    border: var(--sy-weld) solid var(--sy-border-weld); color: var(--sy-text-muted); font-size: var(--sy-fs-micro); }
+  .sy-id__copy:hover { color: var(--sy-text); border-color: var(--sy-border-control); }
+
+  /* ===== 2.1 · Chips on the selected nav item ============================ */
+  /* The selected item is chalk; muted text on it fails contrast. Chips there take the item's ink. */
+  .sy-nav__item[aria-current="page"] .sy-chip { color: var(--sy-text-on-paint); border-color: currentColor; }
 }
 
 /* -------------------------------------------------------------------------- */
@@ -857,6 +961,11 @@
 
 /* -------------------------------------------------------------------------- */
 /* RESPONSIVE — reference width 1280; tablet < 1024; mobile < 640              */
+/* The header is one row from 1200px, two rows below (three on phones): the graph's sticky zoom bar and
+   height cap follow it. */
+@media (max-width: 1199px) {
+  .sy-graphview { --sy-graph-sticky: 128px; --sy-graph-top: 152px; }
+}
 @media (max-width: 1023px) {
   .sy-app__body { flex-wrap: wrap; }
   .sy-nav, .sy-nav--compact { flex: 1 1 100%; flex-direction: row; overflow-x: auto; gap: 2px; padding: 6px var(--sy-space-3);
@@ -866,6 +975,11 @@
   .sy-drawer { flex: 1 1 100%; max-width: none; border-left: 0; border-top: var(--sy-weld) solid var(--sy-border-plate); }
 }
 @media (max-width: 639px) {
+  .sy-dialog--wide:not(.sy-dialog--static) { width: 100vw; max-width: 100vw; height: 100dvh; max-height: 100dvh; margin: 0; border: 0; }
+  .sy-variant:only-child { grid-template-areas: "head" "pic" "body"; grid-template-columns: minmax(0, 1fr); }
+  /* Phones: the map opens as a list; the graph opens full screen in a wide dialog, zoom bar at thumb height. */
+  .sy-dialog .sy-graphview { flex: 1; min-height: 0; max-height: none; }
+  .sy-dialog .sy-graph__zoom { position: absolute; top: auto; right: 12px; bottom: 12px; margin: 0; }
   .sy-header { padding: var(--sy-space-2) var(--sy-space-3); }
   .sy-portal .sy-select { min-width: 0; }
   .sy-main, .sy-main--narrow { padding: var(--sy-space-4); }
@@ -877,6 +991,10 @@
   .sy-btn--sm, .sy-btn--md, .sy-seg > button, .sy-seg > a,
   .sy-select--md, .sy-input--md, .sy-check { min-height: var(--sy-control); }
   .sy-btn--icon.sy-btn--md { width: var(--sy-control); }
+  .sy-thumb-btn__word { display: inline; }
+  .sy-graph__zoom { height: 52px; margin-bottom: -60px; }
+  .sy-graph__zoom > .sy-btn { min-width: var(--sy-control); }
+  .sy-id__copy { min-height: var(--sy-control); }
   .sy-node { min-height: 72px; }
   a.sy-tag { min-height: var(--sy-control); }
   a.sy-tag::before { inset: 10px 0; }
@@ -905,4 +1023,6 @@
   .sy-releases__scan::before { forced-color-adjust: none; background-color: CanvasText; }
   .sy-queue__item[aria-current="true"] { outline-color: Highlight; }
   .sy-differs { box-shadow: none; border-left: 3px solid CanvasText; }
+  .sy-thumb-btn:focus-visible { outline-color: Highlight; box-shadow: none; }
+  .sy-thumb-btn__hint, .sy-graph__zoom { border-color: CanvasText; }
 }

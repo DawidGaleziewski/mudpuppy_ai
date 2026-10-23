@@ -100,7 +100,7 @@ def sheet_of(rc: wb_render.Ctx, sel: str | None) -> tuple[ScanLive, PageVisit] |
         return None
     route, _, state = sel.rpartition(":")
     for run_id in rc.bound:
-        scan = rc.scan(run_id[:8])
+        scan = rc.scan(run_id)
         page = (
             next((p for p in scan.route_pages if p.route == route and str(p.state) == state), None)
             if scan

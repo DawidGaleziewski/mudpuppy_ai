@@ -12,12 +12,19 @@ Screens referenced are in `screens/`; behaviour comes from the redesign wirefram
 | FE-V02 | M | Components use **role** tokens only; no hex, rgb or named colours in templates or app CSS. | `migration/find-old-styles.sh` and stylelint report 0 violations. |
 | FE-V03 | M | Typography follows the three voices: Archivo (UI and prose), IBM Plex Mono (IDs, routes, timestamps, statuses), Special Elite (human-written text only). | Spot-check: no machine-generated text in `.sy-note`; every record ID in mono. |
 | FE-V04 | M | No text under 11px; prose ≤ 68ch line length (chat paragraphs included). | Computed font-size ≥ 11px across all screens, excluding the recorded-page mock inside `.sy-shot` (in production that is an image). |
-| FE-V05 | M | Radius 0 and no box-shadows, except the assistant highlight's steel ring. | stylelint rule passes. |
+| FE-V05 | M | Radius 0 and no box-shadows, except the steel rings that separate a marker outline from light content (the assistant highlight, focus on a picture button) and the hard plate offsets of a collapsed node deck. | stylelint rule passes. |
 | FE-V06 | M | The page ground shows the 24px yard grid; plates are solid. | Visual check against screenshots. |
 | FE-V07 | M | At most one `.sy-btn--primary` and at most one `.sy-plate--intent` per view. | Automated DOM check in e2e tests. |
 | FE-V08 | M | Every status renders as `.sy-status[data-status]` with a word, from a single backend→enum mapping. | Unit test for the mapping (`migration/status-map.csv`). |
-| FE-V09 | M | Every record ID (SCR-, AMD-, CAP-, NFR-, BR-, run ids, revision labels) shown as data renders as `.sy-tag` linked to the record, in its stored case. Exempt: IDs inside free text a person typed (chat messages, notes), inside `.sy-mark__label`, `.sy-note__by`, and error references (ERR-…). | DOM check: ID patterns outside `.sy-tag` and the exempt containers = 0. |
+| FE-V09 | M | Every record ID (SCR-, PROC-, BR-, CAP-, NFR-, REQ-, UC-, DI-, GL-, ASM-, OQ-, FUP-, API-, AMD-, scan ids in their 13-character short form, revision labels) shown as data renders as `.sy-tag` linked to the record, in its stored case. Exempt: IDs inside free text a person typed (chat messages, notes), inside `.sy-mark__label`, `.sy-note__by`, and error references (ERR-…). | DOM check: ID patterns outside `.sy-tag` and the exempt containers = 0. |
 | FE-V10 | M | Designed, drafted, inferred and proposed content is dashed blueprint; applied content turns solid. | Visual check against screens 01, 02, 04–06. |
+| FE-V11 | M | A picture that opens larger is a `.sy-thumb-btn` (name = alt + ", enlarge"; icon always visible; "Enlarge" on hover, focus and touch); a picture with nothing larger is not a button. | `18-design-answers/01` acceptance. |
+| FE-V12 | M | Pictures open in `.sy-dialog--wide`: fit width with scrolling by default, "Whole page" on request, full screen under 640px, Esc returns focus to the thumbnail. | `18-design-answers/02` acceptance. |
+| FE-V13 | M | A screen's variants use `.sy-variants`; one variant uses the picture-left layout; `.sy-compare` only for before / after pairs. | One-variant and four-variant screens at 1280, 1024, 390. |
+| FE-V14 | M | Graphs sit in `.sy-graphview` with the `.sy-graph__zoom` bar; height capped at the viewport below the header (520px embedded); phones open the map as a list. | `18-design-answers/04` acceptance. |
+| FE-V15 | M | Scan ids: full UUID in data, URLs and exports; the 13-character short form on screen with the full id in the title and Copy where people act on it; third group only on a clash. | No 8-character scan ids on screen; Copy test. |
+| FE-V16 | M | Chips on a selected nav item meet 4.5:1. | axe `color-contrast` 0 on wb-01…wb-10. |
+| FE-V17 | M | Filmstrip items, map nodes and picture buttons have no `aria-label`; their visible text names them. | axe `label-content-name-mismatch` 0. |
 
 ## B. Shell and navigation
 
