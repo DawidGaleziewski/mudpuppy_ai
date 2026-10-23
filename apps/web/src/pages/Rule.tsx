@@ -233,7 +233,7 @@ function ExportBody({ shown, x }: { shown: string; x: RuleExport }) {
     return (
       <Stack>
         <Text small>{`The migration team reads ${shown} like this: plain Markdown, the sentence first for readers who skip tables, then the exact table.`}</Text>
-        <Code>{x.markdown}</Code>
+        <Code label={`${shown} as Markdown`}>{x.markdown}</Code>
       </Stack>
     );
   }

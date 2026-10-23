@@ -301,7 +301,9 @@ def _detail(n: Needs, portal: str, kind: str, it: Any) -> Detail:
             htmx=htmx,
             rev=it.rev,
             revs=it.total,
-            link=Option(value=f"/docs/{portal}/{it.key}", label="Open the full record in Docs"),
+            link=Option(
+                value=f"/app/portals/{portal}/docs/{it.key}", label="Open the full record in Docs"
+            ),
             cited=[_cited(s) for s in cited],
         )
     if isinstance(it, QueueItem):

@@ -1,5 +1,6 @@
 import { Cluster, Code, Disclosure, Picture, Plate, Stack, Table, Tag, Text } from '../design-system';
 import { useSection, type DocRow, type FormRow, type NetworkRow, type RobotsRow, type StateRow } from '../app/api-scan-tabs';
+import { docHref } from '../app/api-process';
 import { EvidenceRef } from '../app/EvidenceRef';
 import { QueryState } from '../app/QueryState';
 import { scanTabHref } from '../app/scanLinks';
@@ -241,7 +242,7 @@ function docColumns(scan: string) {
       cell: (r: DocRow) => (
         <Stack>
           <Cluster>
-            <Tag size="sm" href={`/docs/${encodeURIComponent(r.portal)}/${encodeURIComponent(r.key)}`}>
+            <Tag size="sm" href={docHref(r.portal, r.key)}>
               {r.key}
             </Tag>
             <Text asIs>{r.title}</Text>

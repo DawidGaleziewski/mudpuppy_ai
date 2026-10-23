@@ -107,7 +107,7 @@ class RulePage(BaseModel):
     portal: str
     row: RuleRow
     br_key: str | None
-    #: The documented business rule record, on the htmx Docs.
+    #: The documented business rule record's page.
     doc_href: str | None
     fitness: float | None
     executions: int | None
@@ -227,7 +227,7 @@ def rule_page(conn: sqlite3.Connection, portal: str, key: str, writes: bool) -> 
         br_key=br,
         changed=d.row.status == "changed",
         uncited=br is None and d.row.status == "confirmed",
-        doc_href=f"/docs/{quote(portal, safe='')}/{quote(br, safe='')}" if br else None,
+        doc_href=f"/app/portals/{quote(portal, safe='')}/docs/{quote(br, safe='')}" if br else None,
         fitness=d.row.fitness,
         executions=d.row.rows,
         table=_table(d),

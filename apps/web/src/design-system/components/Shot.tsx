@@ -21,6 +21,8 @@ export interface ShotProps {
   mark?: 'here' | 'gone';
   /** Overlay: a second page drawn over this one at 50 %, for small shifts (no region then). */
   over?: { src: string; alt: string } | null;
+  /** Several regions, each outlined and labelled (a record's cited elements, numbered). */
+  marks?: readonly { region: ShotRegion; label: string; title?: string }[];
 }
 
 // Layout only: the picture at full width, the mark and the overlay placed on it.
@@ -36,11 +38,16 @@ const at = (r: ShotRegion): CSSProperties => ({ left: `${String(r.left)}%`, top:
  * A recorded page at full width (Before / after): the changed region marked on it, or a second page
  * drawn over it. The mark is the system pointing (`.sy-mark--overlay`), never a decoration.
  */
-export function Shot({ src, alt, region, mark, over }: ShotProps) {
+export function Shot({ src, alt, region, mark, over, marks = [] }: ShotProps) {
   return (
     <figure style={FIGURE}>
       <img src={src} alt={alt} style={IMAGE} />
       {over && <img src={over.src} alt={over.alt} style={OVER} />}
+      {marks.map((m) => (
+        <mark key={m.label} className="sy-mark sy-mark--overlay" style={at(m.region)} title={m.title}>
+          <span className="sy-mark__label">{m.label}</span>
+        </mark>
+      ))}
       {region && mark && !over && (
         <mark className="sy-mark sy-mark--overlay" style={{ ...at(region), ...(mark === 'gone' ? GONE : {}) }}>
           <span className="sy-mark__label">{mark === 'here' ? 'Changed' : 'Not here'}</span>

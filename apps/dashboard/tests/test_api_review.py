@@ -135,7 +135,10 @@ def test_a_record_review_runs_docs_review(
         missing = c.post(
             f"{api}/records/NOPE-001", json={"action": "confirm", "rev": 1}, headers=ORIGIN
         )
-    assert record["in_react"] is True and record["link"]["value"] == f"/docs/{PORTAL}/{key}"
+    assert (
+        record["in_react"] is True
+        and record["link"]["value"] == f"/app/portals/{PORTAL}/docs/{key}"
+    )
     assert ok.json()["message"] == f"Recorded confirm on {key} revision {rev}."
     assert calls == [
         {"portal_id": PORTAL, "key": key, "rev_no": rev, "action": "confirm", "text": None}

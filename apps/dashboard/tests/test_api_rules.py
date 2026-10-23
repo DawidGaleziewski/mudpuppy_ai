@@ -74,7 +74,7 @@ def test_a_documented_rule_goes_by_its_business_rule_key(empty_store: Store) -> 
     listed = c.get(API).json()["groups"][0]["rules"][0]
     assert listed["shown_key"] == "BR-009" and listed["key"] == "H-0003"
     by_br = c.get(f"{API}/BR-009").json()
-    assert by_br["br_key"] == "BR-009" and by_br["doc_href"] == f"/docs/{P}/BR-009"
+    assert by_br["br_key"] == "BR-009" and by_br["doc_href"] == f"/app/portals/{P}/docs/BR-009"
 
 
 def test_the_export_gives_the_rules_markdown_or_why_not(

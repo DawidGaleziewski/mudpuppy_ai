@@ -93,13 +93,13 @@ describe('Process', () => {
   it('shows the head, the facts, the paths and A as documentation', async () => {
     at('/app/portals/shop/processes/PRC-001', { [API]: page });
     expect(await screen.findByRole('heading', { level: 1, name: 'Kup polisę' })).toBeTruthy();
-    expect(screen.getByRole('link', { name: 'PROC-001' }).getAttribute('href')).toBe('/docs/shop/PROC-001');
+    expect(screen.getByRole('link', { name: 'PROC-001' }).getAttribute('href')).toBe('/app/portals/shop/docs/PROC-001');
     expect(screen.getByRole('link', { name: 'History' }).getAttribute('href')).toBe('/app/portals/shop/processes/PRC-001/history');
     expect(screen.getByText('Strona główna → link "Kalkulator"')).toBeTruthy();
     expect(within(screen.getByRole('table', { name: /Paths through the process/ })).getByRole('link', { name: 'Wynik' })).toBeTruthy();
     expect(screen.getByText(/Still open on these screens: 1 open question · 2 records to confirm/)).toBeTruthy();
     const steps = screen.getByRole('list', { name: 'Steps in A' });
-    expect(within(steps).getByRole('link', { name: 'REQ-001' }).getAttribute('href')).toBe('/docs/shop/REQ-001');
+    expect(within(steps).getByRole('link', { name: 'REQ-001' }).getAttribute('href')).toBe('/app/portals/shop/docs/REQ-001');
     expect(within(steps).getByText('Nothing documented on this screen yet.')).toBeTruthy();
   });
 

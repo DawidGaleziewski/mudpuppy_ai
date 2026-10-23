@@ -28,6 +28,16 @@ type Story = StoryObj<typeof meta>;
 export const Changed: Story = {};
 export const NotHere: Story = { args: { src: page(false), alt: 'Before: Start', mark: 'gone' } };
 export const Overlay: Story = { args: { src: page(false), alt: 'Before', region: null, over: { src: page(true), alt: 'After, half transparent' } } };
+/** A record's cited elements on one screen, numbered (Docs). */
+export const Numbered: Story = {
+  args: {
+    region: null,
+    marks: [
+      { region, label: '1', title: 'button|dalej||' },
+      { region: { left: 4, top: 24, width: 90, height: 3.2 }, label: '2', title: 'text|model||' },
+    ],
+  },
+};
 /** Both sides, as Before / after shows them. */
 export const SideBySide: Story = {
   render: () => (

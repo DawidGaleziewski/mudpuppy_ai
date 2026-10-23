@@ -2,7 +2,9 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { createBrowserRouter, RouterProvider } from 'react-router';
 import { Change } from '../pages/Change';
 import { Changes } from '../pages/Changes';
+import { DocRecord } from '../pages/DocRecord';
 import { Docs } from '../pages/Docs';
+import { DocSession } from '../pages/DocSession';
 import { NotFound } from '../pages/NotFound';
 import { PortalHome } from '../pages/PortalHome';
 import { Portals } from '../pages/Portals';
@@ -27,6 +29,8 @@ export const routes = [
   { path: '/app/portals/:portal/changes', element: <Changes /> },
   { path: '/app/portals/:portal/changes/:id', element: <Change /> },
   { path: '/app/portals/:portal/docs', element: <Docs /> },
+  { path: '/app/portals/:portal/docs/sessions/:session', element: <DocSession /> },
+  { path: '/app/portals/:portal/docs/:key', element: <DocRecord /> },
   { path: '/app/portals/:portal/processes', element: <Processes /> },
   { path: '/app/portals/:portal/processes/:key', element: <Process /> },
   { path: '/app/portals/:portal/processes/:key/compare', element: <ProcessCompare /> },

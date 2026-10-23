@@ -6,6 +6,16 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Added
+- **R-96 step 18: Docs in React, part 2** (spec 067, v2.6.17, 2026-10-23). One record:
+  its status, confidence and revision with the session that wrote it; the content of the
+  revision shown as each kind is written (a requirement's acceptance criteria, a use case's
+  flows, a rule's decision table, a data item's constraints; the raw JSON for an unknown shape);
+  a process's map per traced variant; the screens it cites with its regions numbered; the
+  evidence, each opening the scan section at its target; relations in and out; every revision
+  with its reviews; Confirm, Reject with a reason and Comment (each asks first); Previous and
+  Next in the list it was opened from; Open in Processes for a process record. One analysis
+  session: the scans it read, its passes, the records it wrote and the gaps it reported. Every
+  link to a record in the console now opens here.
 - **R-96 step 17: Docs in React, part 1** (spec 066, v2.6.16, 2026-10-23).
   `/app/portals/{p}/docs`: the portal's documentation as an SRS, its sections with their record
   counts beside the one shown. The overview gives the status mix, the records per section and the

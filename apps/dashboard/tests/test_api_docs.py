@@ -22,7 +22,7 @@ def test_the_overview_has_the_sections_statuses_and_sessions(ba_client: TestClie
     assert body["statuses"] and all(s["status"]["word"] for s in body["statuses"])
     sess = next(s for s in body["sessions"] if s["id"] == "sess-2")
     assert sess["summary"] == "summary of sess-2" and sess["status"]["word"]
-    assert sess["href"] == f"/docs/{P}/sessions/sess-2"
+    assert sess["href"] == f"/app/portals/{P}/docs/sessions/sess-2"
     assert ba_client.get(f"{API}?section=nope").json()["section"]["id"] == "overview"
 
 
@@ -33,7 +33,7 @@ def test_a_section_lists_its_records_with_filters(ba_client: TestClient) -> None
     assert {o["value"] for o in r["filters"]["kinds"]} == {"process", "use_case"}
     uc = r["items"][0]
     assert uc["kind"] == "use case" and uc["status"]["word"] and uc["confidence"]["word"]
-    assert uc["href"].startswith(f"/docs/{P}/UC-001?list=")
+    assert uc["href"].startswith(f"/app/portals/{P}/docs/UC-001?list=%2Fdocs%2F{P}")
     assert "section%3Dprocesses" in uc["href"] and "kind%3Duse_case" in uc["href"]
     flagged = ba_client.get(f"{API}?section=processes&flag=not_observable").json()["records"]
     keys = [x["key"] for x in flagged["items"]]

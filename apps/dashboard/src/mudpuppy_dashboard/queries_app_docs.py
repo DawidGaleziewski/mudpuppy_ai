@@ -47,7 +47,7 @@ class SessionRow(BaseModel):
     status: StatusOut
     started_at: str
     summary: str | None
-    #: The session's page, on the htmx Docs until spec 067.
+    #: The session's page.
     href: str
 
 
@@ -67,7 +67,7 @@ class RecordRow(BaseModel):
     evidence: int
     scans: int
     related: list[str]  # traceability: the keys its latest revision points to
-    #: The record's page (htmx until spec 067), with this list for its Prev / Next.
+    #: The record's page, with this list for its Prev / Next.
     href: str
 
 
@@ -113,7 +113,22 @@ VIEWS = ("overview", "traceability")
 
 
 def _base(portal: str) -> str:
+    """The htmx Docs list's address: the `list` value `neighbours` rebuilds for Prev / Next."""
     return f"/docs/{quote(portal, safe='')}"
+
+
+def docs_base(portal: str) -> str:
+    return f"/app/portals/{quote(portal, safe='')}/docs"
+
+
+def record_href(portal: str, key: str, list_url: str | None = None) -> str:
+    """A record's page in the console; `list_url` (an htmx list address) gives it Prev / Next."""
+    tail = f"?{urlencode({'list': list_url})}" if list_url else ""
+    return f"{docs_base(portal)}/{quote(key, safe='')}{tail}"
+
+
+def session_href(portal: str, session: str) -> str:
+    return f"{docs_base(portal)}/sessions/{quote(session, safe='')}"
 
 
 def _row(portal: str, r: qd.DocRecordRow, listed: str) -> RecordRow:
@@ -133,7 +148,7 @@ def _row(portal: str, r: qd.DocRecordRow, listed: str) -> RecordRow:
         evidence=r.evidence_count,
         scans=r.run_count,
         related=r.related,
-        href=f"{_base(portal)}/{quote(r.record.key, safe='')}?{urlencode({'list': listed})}",
+        href=record_href(portal, r.record.key, listed),
     )
 
 
@@ -212,7 +227,7 @@ def _sessions(conn: sqlite3.Connection, portal: str) -> list[SessionRow]:
             status=status_out("run", s.status),
             started_at=s.started_at,
             summary=s.summary,
-            href=f"{_base(portal)}/sessions/{quote(s.id, safe='')}",
+            href=session_href(portal, s.id),
         )
         for s in qd.portal_sessions(conn, portal, limit=5)
     ]

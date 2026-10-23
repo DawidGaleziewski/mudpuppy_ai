@@ -36,22 +36,34 @@ export interface TextProps {
   strong?: boolean;
   /** A link to another page, in this face (a process name, a route family). */
   href?: string;
+  /** The language of a stored value in the portal's words ("pl"), for screen readers. */
+  lang?: string | null | undefined;
 }
 
 /** Inline text in one of the system's faces and tones: pages never set a face or a size themselves. */
-export function Text({ children, block, strong, href, ...looks }: TextProps) {
+export function Text({ children, block, strong, href, lang, ...looks }: TextProps) {
   const className =
     cx(...(Object.keys(LOOKS) as (keyof typeof LOOKS)[]).map((k) => looks[k] === true && LOOKS[k])) ||
     undefined;
-  if (block) return <p className={className}>{children}</p>;
+  const language = lang ?? undefined;
+  if (block)
+    return (
+      <p className={className} lang={language}>
+        {children}
+      </p>
+    );
   if (href !== undefined)
     return (
-      <a className={className} href={href}>
+      <a className={className} href={href} lang={language}>
         {children}
       </a>
     );
   const Inline = strong ? 'strong' : 'span';
-  return <Inline className={className}>{children}</Inline>;
+  return (
+    <Inline className={className} lang={language}>
+      {children}
+    </Inline>
+  );
 }
 
 /**

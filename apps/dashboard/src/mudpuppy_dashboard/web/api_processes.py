@@ -112,6 +112,20 @@ async def new_process(request: Request, portal: str) -> JSONResponse:
     return await _send(request, portal, "processes", body, f"Made {name}.")
 
 
+@router.post("/processes/from-record", response_model=WriteResult)
+async def from_record(request: Request, portal: str) -> JSONResponse:
+    """A BA process record (`record_key`) opened as a workspace process with its screens in
+    walking order (spec 027 US6.2); one already opened answers its page."""
+    key = str((await read_json(request)).get("record_key", "")).strip()
+    if not key:
+        if (no := write_refused(request, "change processes")) is not None:
+            return no
+        return write_answer(422, "Name the process record to open.")
+    body = {"record_key": key}
+    done = f"{key} is in Processes now."
+    return await _send(request, portal, "processes/from-record", body, done)
+
+
 @router.post("/processes/{process}/unarchive", response_model=WriteResult)
 async def unarchive(request: Request, portal: str, process: str) -> JSONResponse:
     """Restore an archived process to the list (`base_rev`)."""

@@ -182,3 +182,8 @@ card's "As" persona choice), `wb_frames.py` (frame,
   its filters and the cursor) over `queries_app_docs.py` (the SRS sections with counts, the
   overview's statuses and sessions, a section's records, traceability, the capability and screen
   diagrams), built on the htmx Docs' `queries_docs` and `diagrams`.
+- Spec 067 (R-96, Docs part 2): `web/api_docs.py` also serves `…/docs/{key}?rev=&list=` over
+  `queries_app_doc.py` (one record; Prev / Next from `neighbours.ordered_list`) with
+  `queries_app_doc_content.py` (a revision's content as blocks per record kind) and
+  `…/docs/sessions/{id}` over `queries_app_doc_session.py`; `web/api_processes.py` adds
+  `…/processes/from-record` (Open in Processes). Every console link to a record opens React.
