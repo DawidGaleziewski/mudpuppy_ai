@@ -13,7 +13,7 @@ export interface WriteResult {
 /** A write the page asks for: the API path and its JSON body. */
 export interface Write {
   path: string;
-  body: Record<string, string | number | string[]>;
+  body: Record<string, unknown>;
 }
 
 export async function postJson(w: Write): Promise<WriteResult> {
@@ -87,6 +87,11 @@ export const writes = {
   editAsIs: (portal: string, process: string, baseRev: number, states: string[]): Write => ({
     path: `/api/portals/${encodeURIComponent(portal)}/processes/${encodeURIComponent(process)}/models/A/edit`,
     body: { base_rev: baseRev, state_ids: states },
+  }),
+  /** The person's draft of a to-be model: autosave its steps, discard it, save it, rebase it. */
+  draft: (portal: string, process: string, label: string, op: 'draft' | 'discard' | 'save' | 'rebase', body: Write['body'] = {}): Write => ({
+    path: `/api/portals/${encodeURIComponent(portal)}/processes/${encodeURIComponent(process)}/models/${encodeURIComponent(label)}/${op}`,
+    body,
   }),
   explore: (portal: string, processKey: string): Write => ({
     path: `/api/portals/${encodeURIComponent(portal)}/check-runs`,

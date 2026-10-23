@@ -5,7 +5,8 @@ the reviewer, and answers `{ok, message, href}`. No SQL here (G-15)."""
 
 from __future__ import annotations
 
-from typing import Any
+import re
+from typing import Any, NamedTuple
 from urllib.parse import quote
 
 from fastapi import APIRouter, Request
@@ -44,19 +45,33 @@ def processes(
         return queries_app_processes.process_list(conn, portal, archived, page)
 
 
+class Target(NamedTuple):
+    """Where a process write goes on the chat service: the portal, the path under it, the method."""
+
+    portal: str
+    rest: str
+    method: str = "POST"
+
+
 async def _send(
     request: Request, portal: str, rest: str, body: dict[str, Any], done: str
 ) -> JSONResponse:
-    """One process write, signed; a process it made or changed answers its page."""
+    """One process write (POST), signed; a process it made or changed answers its page."""
+    return await _send_to(request, Target(portal, rest), body, done)
+
+
+async def _send_to(
+    request: Request, target: Target, body: dict[str, Any], done: str
+) -> JSONResponse:
     if (no := write_refused(request, "change processes")) is not None:
         return no
     web = web_of(request)
     c = web.ctx(request, None)
     signed = {**body, "author": web.settings.reviewer}
-    path = f"/portals/{quote(portal, safe='')}/{rest}"
-    status, answer = await chat_write(web, c.env, "POST", path, signed)
+    path = f"/portals/{quote(target.portal, safe='')}/{target.rest}"
+    status, answer = await chat_write(web, c.env, target.method, path, signed)
     if status in (200, 201):
-        return write_answer(200, done, _page_of(portal, answer))
+        return write_answer(200, done, _page_of(target.portal, answer))
     message = answer.get("message") or f"the chat service answered {status}"
     return write_answer(502, f"Not done: {message}.")
 
@@ -151,6 +166,34 @@ async def edit_as_is(request: Request, portal: str, process: str) -> JSONRespons
     rest = f"processes/{quote(process, safe='')}/models/A/edit"
     body = {"base_rev": form.get("base_rev"), "state_ids": states}
     return await _send(request, portal, rest, body, "A changed: a new signed revision.")
+
+
+#: A to-be model's label (the as-is is A and is never drawn in a draft).
+TO_BE = re.compile(r"^(?!A$)[A-Z]{1,2}$")
+
+DRAFT_OPS: dict[str, tuple[str, str, str]] = {
+    # op → (method, path under the model, what the person reads after it)
+    "draft": ("PUT", "draft", "Draft saved; only you see it until you save."),
+    "discard": ("DELETE", "draft", "Draft discarded; the last revision stays."),
+    "save": ("POST", "save", "Saved as a new revision."),
+    "rebase": ("POST", "rebase", "Your draft now sits on the latest revision, its steps kept."),
+}
+
+
+@router.post("/processes/{process}/models/{label}/{op}", response_model=WriteResult)
+async def draft_op(
+    request: Request, portal: str, process: str, label: str, op: str
+) -> JSONResponse:
+    """The person's draft of to-be model `label`: autosave its steps (`draft`: `base_rev`,
+    `steps`), `discard` it, `save` it as the next revision (`base_rev`, `note`), or `rebase` it
+    onto the latest revision. A draft is the person's own until saved."""
+    if op not in DRAFT_OPS or not TO_BE.match(label):
+        return write_answer(404, "This address does not exist.")
+    form = await read_json(request)
+    method, sub, done = DRAFT_OPS[op]
+    body = {k: form[k] for k in ("base_rev", "steps", "note") if k in form}
+    rest = f"processes/{quote(process, safe='')}/models/{label}/{sub}"
+    return await _send_to(request, Target(portal, rest, method), body, done)
 
 
 @router.post("/check-runs", response_model=WriteResult)

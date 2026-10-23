@@ -6,6 +6,13 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Added
+- **R-96 step 10: the to-be draft editor in React** (spec 059, v2.6.9, 2026-10-23). On a to-be
+  model of `/app/portals/{p}/processes/{key}`, a person draws in their own draft: move steps up
+  and down, merge a step with the next, add a designed step, change a step's title or route, add
+  an annotation, remove a step; each change is saved at once and only they see it. The draft bar
+  shows how far it is from the last revision with Discard and Save as the next revision (both ask
+  first); when someone saved first it offers Compare and Rebase. Each step shows how it changed
+  against the model it was drawn from, with the removed steps and A beside it for reference.
 - **R-96 step 9: one process in React** (spec 058, v2.6.8, 2026-10-23).
   `/app/portals/{p}/processes/{key}`: the process's stage, persona, what is live and its PROC
   record; the model switch and Start a to-be design / + Process model from …; what the portal model

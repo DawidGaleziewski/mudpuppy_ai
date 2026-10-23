@@ -145,3 +145,7 @@ card's "As" persona choice), `wb_frames.py` (frame,
   `queries_app_process.py`; its writes join `web/api_processes.py` (`…/archive`, `…/stage`,
   `…/models`, `…/models/A/edit`, `/api/portals/{p}/check-runs`; `CHECK_RUNS` in `chat_writes.py`
   for `web/check_runs.py` too); `queries_processes.default_model` is the model a process opens on.
+- Spec 059 (R-96, the to-be editor): `queries_app_process_editor.py` (the person's draft, each
+  step's change, what it removed; `queries_processes.parent_steps` and `pending_changes` shared
+  with `web/processes.py`); the draft writes in `web/api_processes.py`
+  (`…/models/{L}/draft|discard|save|rebase`).

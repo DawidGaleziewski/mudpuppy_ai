@@ -32,7 +32,8 @@ def process_page(
     c = web.ctx(request, q.env)
     known_portal(web, c, portal)
     with store(c) as conn:
-        page = queries_app_process.process_page(conn, portal, key, q.model, q.step)
+        shown = queries_app_process.Shown(q.model, q.step, web.settings.reviewer)
+        page = queries_app_process.process_page(conn, portal, key, shown)
     if page is None:
         raise HTTPException(404, f"There is no process {key} in {portal}.")
     return page

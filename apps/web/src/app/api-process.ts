@@ -4,6 +4,7 @@ import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import { getJson, type StatusOut } from './api';
 import type { Option } from './api-map';
 import type { ProcessRow } from './api-processes';
+import type { RawStep } from './stepOps';
 
 export interface ProcessStep {
   id: string;
@@ -66,6 +67,19 @@ export interface ProcessPage {
   selected: ProcessStep | null;
   as_is: AsIsDoc | null;
   facts: ModelFacts | null;
+  /** The to-be editor; null on A. */
+  editor: Editor | null;
+}
+
+export interface Editor {
+  editable: boolean;
+  author: string | null;
+  draft: { base_rev: number; updated_at: string; pending: number; conflict: boolean } | null;
+  /** The steps exactly as stored (the draft's when there is one): what the page edits and autosaves. */
+  steps: RawStep[];
+  changes: Record<string, StatusOut>;
+  removed: string[];
+  as_is: string[];
 }
 
 /** A documentation record's page (htmx Docs until it moves). */

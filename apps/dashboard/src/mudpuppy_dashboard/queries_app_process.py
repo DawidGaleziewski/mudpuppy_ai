@@ -6,11 +6,16 @@ Read-only."""
 from __future__ import annotations
 
 import sqlite3
-from typing import Any
+from typing import Any, NamedTuple
 
 from pydantic import BaseModel
 
-from . import queries_model_facts, queries_process_doc, queries_processes
+from . import (
+    queries_app_process_editor,
+    queries_model_facts,
+    queries_process_doc,
+    queries_processes,
+)
 from .queries_app import StatusOut, status_out
 from .queries_app_processes import LiveOut, ModelOut
 from .queries_app_screens import Option
@@ -142,6 +147,8 @@ class ProcessPage(BaseModel):
     selected: StepOut | None
     as_is: AsIsDoc | None
     facts: FactsOut | None
+    #: The to-be editor (None on A): the person's draft, each step's change, what it removed.
+    editor: queries_app_process_editor.EditorOut | None
 
 
 def _records(d: queries_process_doc.StepDoc) -> list[RecordGroup]:
@@ -296,31 +303,35 @@ def _models(view: queries_processes.ProcessView) -> list[ModelOut]:
     ]
 
 
-def _parent(view: queries_processes.ProcessView, mv: queries_processes.ModelView) -> dict:
-    """The steps of the revision a to-be model was branched from, by id (its "built from")."""
-    m = mv.model
-    parent = next((p for p in view.models if p.model.id == m.branched_from_model_id), None)
-    rev = parent.revision(m.branched_from_rev or 0) if parent else None
-    return {s["id"]: s for s in rev.steps} if rev else {}
+class Shown(NamedTuple):
+    """Which process page: the model asked for (its default when None), the step selected, and
+    who looks (a to-be model shows their own draft)."""
+
+    model: str | None
+    step: str | None
+    reviewer: str | None
 
 
 def process_page(
-    conn: sqlite3.Connection, portal: str, key: str, model: str | None, step: str | None
+    conn: sqlite3.Connection, portal: str, key: str, shown: Shown
 ) -> ProcessPage | None:
     """One process with the model asked for (or the default), None when there is none."""
     view = queries_processes.process_view(conn, portal, key)
     if view is None or view.as_is is None:
         return None
-    mv = view.model(model or queries_processes.default_model(view)) or view.as_is
+    mv = view.model(shown.model or queries_processes.default_model(view)) or view.as_is
     p = view.process
     as_is, docs = _as_is(conn, view)
     by_step = {d.step["id"]: d for d in docs}
     is_a = mv.model.kind == "as_is"
-    parent = {} if is_a else _parent(view, mv)
+    edit = None if is_a else queries_app_process_editor.editor(view, mv, shown.reviewer)
+    parent = {s["id"]: s for s in queries_processes.parent_steps(view, mv.model.label)}
+    raw = edit.steps if edit else mv.steps
     steps = [
-        _step(s, n, by_step.get(s["id"]) if is_a else None, parent)
-        for n, s in enumerate(mv.steps, start=1)
+        _step(s, n, by_step.get(s["id"]) if is_a else None, {} if is_a else parent)
+        for n, s in enumerate(raw, start=1)
     ]
+    step = shown.step
     models = _models(view)
     return ProcessPage(
         portal=portal,
@@ -349,4 +360,5 @@ def process_page(
         selected=next((s for s in steps if s.id == step), None),
         as_is=as_is,
         facts=_facts(conn, view),
+        editor=edit,
     )

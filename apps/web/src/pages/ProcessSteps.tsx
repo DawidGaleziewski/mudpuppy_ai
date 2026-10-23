@@ -1,105 +1,12 @@
 import { useState, type FormEvent } from 'react';
-import {
-  Button,
-  Callout,
-  Cluster,
-  Field,
-  Note,
-  Picture,
-  Plate,
-  Row,
-  Rows,
-  Select,
-  Stack,
-  SubHead,
-  Tag,
-  Text,
-} from '../design-system';
-import { docHref, type AsIsDoc, type ProcessPage, type ProcessStep } from '../app/api-process';
+import { Button, Cluster, Field, Input, Picture, Plate, Row, Rows, Select, Stack, Tag, Text } from '../design-system';
+import { docHref, type ProcessPage, type ProcessStep } from '../app/api-process';
 import { writes } from '../app/api-write';
 import type { Ask } from '../app/ConfirmedWrite';
 import { ShownStatus } from '../app/ShownStatus';
+import { stepOps } from '../app/stepOps';
+import type { Draft } from '../app/useDraft';
 import { stateHref } from './RecordedInspector';
-
-function plural(n: number, w: string) {
-  return `${String(n)} ${w}${n === 1 ? '' : 's'}`;
-}
-
-/** Spec 027 US2–US3: what the as-is still lacks, its sign-off, and the stage moves. */
-export function AsIsDocumentation({ d, a, ask }: { d: ProcessPage; a: AsIsDoc; ask: (x: Ask) => void }) {
-  const [stage, setStage] = useState(d.stage_value);
-  const open = a.questions + a.unconfirmed + a.reanchor;
-  const so = a.sign_off;
-  const writable = !d.archived_at;
-  return (
-    <Plate title="As-is documentation" actions={<ShownStatus status={d.stage} />}>
-      <Stack>
-        <Text small block>
-          {open
-            ? `Still open on these screens: ${plural(a.questions, 'open question')} · ${plural(a.unconfirmed, 'record')} to confirm · ${plural(a.reanchor, 'amendment')} to re-anchor.`
-            : 'Nothing open on these screens: no open questions, no records to confirm, no amendments to re-anchor.'}{' '}
-          <Text href="/review">Review</Text>
-        </Text>
-        {so && (
-          <Text small block>
-            {`Signed off as documented by ${so.by} · `}
-            <Text mono small>
-              {so.at}
-            </Text>
-            {so.signed_rev !== null ? ` · covering A r${String(so.signed_rev)}` : ''}
-          </Text>
-        )}
-        {so?.changed && (
-          <Callout tone="intent" title="As-is changed since documented">
-            {`A r${String(so.signed_rev)} → r${String(so.head_rev)}: a rescan or an edit changed the screens after the sign-off. See what changed in History, then sign off again.`}
-          </Callout>
-        )}
-        {writable && (
-          <Cluster>
-            {a.sign_off_action && (
-              <Button
-                variant={d.model.kind === 'as-is' ? 'primary' : 'strong'}
-                onClick={() =>
-                  ask({
-                    title: `${a.sign_off_action ?? ''}?`,
-                    text: `${d.name} moves to As-is documented, signed with your name; the sign-off covers A as it is now.`,
-                    confirm: a.sign_off_action ?? 'Sign off',
-                    write: writes.stage(d.portal, d.id, 'as_is_documented', d.rev),
-                  })
-                }
-              >
-                {a.sign_off_action}
-              </Button>
-            )}
-            <Field label="Stage">
-              <Select value={stage} onChange={(e) => setStage(e.target.value)}>
-                {a.stages.map((o) => (
-                  <option key={o.value} value={o.value}>
-                    {o.label}
-                  </option>
-                ))}
-              </Select>
-            </Field>
-            <Button
-              size="sm"
-              disabled={stage === d.stage_value}
-              onClick={() =>
-                ask({
-                  title: `Move ${d.name} to ${a.stages.find((o) => o.value === stage)?.label ?? stage}?`,
-                  text: 'Every move is signed and shows in History; a process can move back at any time.',
-                  confirm: 'Set stage',
-                  write: writes.stage(d.portal, d.id, stage, d.rev),
-                })
-              }
-            >
-              Set stage
-            </Button>
-          </Cluster>
-        )}
-      </Stack>
-    </Plate>
-  );
-}
 
 function Records({ portal, s }: { portal: string; s: ProcessStep }) {
   if (!s.documented)
@@ -130,6 +37,7 @@ interface StepsProps {
   d: ProcessPage;
   ask: (x: Ask) => void;
   select: (step: string) => void;
+  draft: Draft;
 }
 
 /** A's screens in a new order: a signed revision of A (spec 027 US4.2). */
@@ -137,8 +45,9 @@ function editA(d: ProcessPage, states: string[], title: string, text: string): A
   return { title, text, confirm: 'Change A', write: writes.editAsIs(d.portal, d.id, d.model.rev, states) };
 }
 
-function StepActions({ d, s, i, ask, select }: StepsProps & { s: ProcessStep; i: number }) {
-  const editable = d.model.kind === 'as-is' && !d.archived_at;
+/** On A: reorder or remove its screens, each a signed revision after a confirm. */
+function AsIsActions({ d, s, i, ask }: StepsProps & { s: ProcessStep; i: number }) {
+  if (d.archived_at) return null;
   const states = d.steps.map((x) => x.state ?? '');
   const move = (by: number) => {
     const next = [...states];
@@ -146,22 +55,20 @@ function StepActions({ d, s, i, ask, select }: StepsProps & { s: ProcessStep; i:
     if (it !== undefined) next.splice(i + by, 0, it);
     return next;
   };
+  const text = 'A gets a new signed revision with the screens in this order.';
   return (
-    <Cluster>
-      <Button size="sm" variant="quiet" aria-pressed={d.selected?.id === s.id} onClick={() => select(s.id)}>
-        {d.selected?.id === s.id ? 'Selected' : 'Select'}
-      </Button>
-      {editable && i > 0 && (
-        <Button size="sm" variant="quiet" aria-label={`Move step ${String(s.n)} up`} onClick={() => ask(editA(d, move(-1), `Move ${s.title} up?`, 'A gets a new signed revision with the screens in this order.'))}>
+    <>
+      {i > 0 && (
+        <Button size="sm" variant="quiet" aria-label={`Move step ${String(s.n)} up`} onClick={() => ask(editA(d, move(-1), `Move ${s.title} up?`, text))}>
           ↑
         </Button>
       )}
-      {editable && i < d.steps.length - 1 && (
-        <Button size="sm" variant="quiet" aria-label={`Move step ${String(s.n)} down`} onClick={() => ask(editA(d, move(1), `Move ${s.title} down?`, 'A gets a new signed revision with the screens in this order.'))}>
+      {i < d.steps.length - 1 && (
+        <Button size="sm" variant="quiet" aria-label={`Move step ${String(s.n)} down`} onClick={() => ask(editA(d, move(1), `Move ${s.title} down?`, text))}>
           ↓
         </Button>
       )}
-      {editable && d.steps.length > 1 && (
+      {d.steps.length > 1 && (
         <Button
           size="sm"
           variant="quiet"
@@ -173,6 +80,42 @@ function StepActions({ d, s, i, ask, select }: StepsProps & { s: ProcessStep; i:
           Remove
         </Button>
       )}
+    </>
+  );
+}
+
+/** On a to-be model: reorder or merge in the person's draft (autosaved, spec 059 D-1). */
+function ToBeActions({ d, s, i, draft }: StepsProps & { s: ProcessStep; i: number }) {
+  if (!draft.editable) return null;
+  return (
+    <>
+      {i > 0 && (
+        <Button size="sm" variant="quiet" aria-label={`Move step ${String(s.n)} up`} onClick={() => draft.apply((st) => stepOps.up(st, s.id))}>
+          ↑
+        </Button>
+      )}
+      {i < d.steps.length - 1 && (
+        <>
+          <Button size="sm" variant="quiet" aria-label={`Move step ${String(s.n)} down`} onClick={() => draft.apply((st) => stepOps.down(st, s.id))}>
+            ↓
+          </Button>
+          <Button size="sm" variant="quiet" aria-label={`Merge step ${String(s.n)} with the next`} onClick={() => draft.apply((st) => stepOps.merge(st, s.id))}>
+            Merge →
+          </Button>
+        </>
+      )}
+    </>
+  );
+}
+
+function StepActions(p: StepsProps & { s: ProcessStep; i: number }) {
+  const { d, s, select } = p;
+  return (
+    <Cluster>
+      <Button size="sm" variant="quiet" aria-pressed={d.selected?.id === s.id} onClick={() => select(s.id)}>
+        {d.selected?.id === s.id ? 'Selected' : 'Select'}
+      </Button>
+      {d.model.kind === 'as-is' ? <AsIsActions {...p} /> : <ToBeActions {...p} />}
     </Cluster>
   );
 }
@@ -206,100 +149,111 @@ function AddScreen({ d, ask }: { d: ProcessPage; ask: (x: Ask) => void }) {
   );
 }
 
-/** The model's steps: A as documentation with its pictures and records, a to-be model as drawn steps. */
-export function ProcessSteps({ d, ask, select }: StepsProps) {
-  const isA = d.model.kind === 'as-is';
-  const title = `${d.model.label} · ${isA ? 'As-is' : 'To-be'} r${String(d.model.rev)}`;
+/** + Add step: a designed step at the end of the person's draft. */
+function AddStep({ draft }: { draft: Draft }) {
+  const [title, setTitle] = useState('');
+  const [route, setRoute] = useState('');
+  if (!draft.editable) return null;
+  const submit = (e: FormEvent) => {
+    e.preventDefault();
+    if (!title.trim()) return;
+    draft.apply((st) => stepOps.add(st, { title: title.trim(), route: route.trim() }));
+    setTitle('');
+    setRoute('');
+  };
   return (
-    <Plate title={title} actions={<Text small muted>{isA ? 'Observed screens, documented per step' : 'Read only here; draw it on the htmx page'}</Text>}>
+    <form onSubmit={submit} aria-label="Add a step at the end">
+      <Cluster>
+        <Field label="New step">
+          <Input value={title} onChange={(e) => setTitle(e.target.value)} required maxLength={200} autoComplete="off" />
+        </Field>
+        <Field label="Route">
+          <Input value={route} onChange={(e) => setRoute(e.target.value)} maxLength={500} placeholder="/…" autoComplete="off" spellCheck={false} />
+        </Field>
+        <Button size="sm" type="submit">
+          + Add step
+        </Button>
+      </Cluster>
+    </form>
+  );
+}
+
+function StepBody({ d, s, i }: { d: ProcessPage; s: ProcessStep; i: number }) {
+  const isA = d.model.kind === 'as-is';
+  const change = d.editor?.changes[s.id];
+  return (
+    <Cluster>
+      {isA && s.state && <Picture size="sm" shot={s.shot} wire={s.wire} title={s.title} route={s.route} scans={s.scans} />}
+      <Stack>
+        <Cluster>
+          <Text small muted>{`${String(s.n)}${i === 0 ? ' · Start' : ''}${i === d.steps.length - 1 && i > 0 ? ' · End' : ''}`}</Text>
+          {change && <ShownStatus status={change} />}
+        </Cluster>
+        {s.state ? (
+          <Text asIs href={stateHref(s.state)}>
+            {s.title}
+          </Text>
+        ) : (
+          <Text asIs>{s.title}</Text>
+        )}
+        <Text route>{`${s.route ?? '—'}${s.built_from.length > 1 ? ` · merges ${String(s.built_from.length)} steps` : ''}`}</Text>
+        {!s.observed && <Text small>Designed, not observed</Text>}
+        {s.annotations.length > 0 && <Text small>{`${String(s.annotations.length)} annotation${s.annotations.length === 1 ? '' : 's'}`}</Text>}
+        {isA && <Records portal={d.portal} s={s} />}
+      </Stack>
+    </Cluster>
+  );
+}
+
+/** The model's steps: A as documentation with its pictures and records, a to-be model as the person's draft. */
+export function ProcessSteps(p: StepsProps) {
+  const { d } = p;
+  const isA = d.model.kind === 'as-is';
+  const draftNote = d.editor?.draft ? ' (draft)' : '';
+  const title = `${d.model.label} · ${isA ? 'As-is' : 'To-be'} r${String(d.model.rev)}${draftNote}`;
+  let hint = 'Observed screens, documented per step';
+  if (!isA) hint = p.draft.editable ? 'Steps you can edit, reorder or remove' : 'Read only';
+  return (
+    <Plate title={title} actions={<Text small muted>{hint}</Text>}>
       <Stack>
         <Rows label={`Steps in ${d.model.label}`}>
           {d.steps.map((s, i) => (
-            <Row key={s.id} current={d.selected?.id === s.id} {...(s.observed ? {} : { tone: 'dashed' as const })} aside={<StepActions d={d} s={s} i={i} ask={ask} select={select} />}>
-              <Cluster>
-                {isA && s.state && <Picture size="sm" shot={s.shot} wire={s.wire} title={s.title} route={s.route} scans={s.scans} />}
-                <Stack>
-                  <Text small muted>{`${String(s.n)}${i === 0 ? ' · Start' : ''}${i === d.steps.length - 1 && i > 0 ? ' · End' : ''}`}</Text>
-                  {s.state ? (
-                    <Text asIs href={stateHref(s.state)}>
-                      {s.title}
-                    </Text>
-                  ) : (
-                    <Text asIs>{s.title}</Text>
-                  )}
-                  <Text route>{s.route ?? '—'}</Text>
-                  {!s.observed && <Text small>Designed, not observed</Text>}
-                  {isA && <Records portal={d.portal} s={s} />}
-                </Stack>
-              </Cluster>
+            <Row key={s.id} current={d.selected?.id === s.id} {...(s.observed ? {} : { tone: 'dashed' as const })} aside={<StepActions {...p} s={s} i={i} />}>
+              <StepBody d={d} s={s} i={i} />
             </Row>
           ))}
         </Rows>
-        <AddScreen d={d} ask={ask} />
+        {d.editor && d.editor.removed.length > 0 && (
+          <Cluster>
+            <Text small muted>
+              Removed from the model it was drawn from
+            </Text>
+            {d.editor.removed.map((r) => (
+              <Text key={r} small mono>
+                {r}
+              </Text>
+            ))}
+          </Cluster>
+        )}
+        <AddScreen d={d} ask={p.ask} />
+        {!isA && <AddStep draft={p.draft} />}
       </Stack>
     </Plate>
   );
 }
 
-/** The side column: the selected step's documentation (A) or what it is built from and its notes (to-be). */
-export function SelectedStep({ d }: { d: ProcessPage }) {
-  const s = d.selected;
-  if (!s)
-    return (
-      <Plate title="No step selected">
-        <Text small muted block>
-          {d.model.kind === 'as-is'
-            ? 'Select a step to see everything documented on its screen.'
-            : 'Select a step to see what it is built from and its annotations.'}
-        </Text>
-      </Plate>
-    );
+/** A's steps beside a to-be model, for reference. */
+export function AsIsReference({ d }: { d: ProcessPage }) {
+  if (!d.editor) return null;
+  const a = d.models.find((m) => m.kind === 'as-is');
   return (
-    <Plate title={<Text asIs>{s.title}</Text>} actions={<Text small muted>{`Step ${String(s.n)} of ${d.model.label}`}</Text>}>
+    <Plate title={`A · As-is r${String(a?.rev ?? 1)}`} actions={<Text small muted>For reference</Text>}>
       <Stack>
-        {s.state && <Picture shot={s.shot} wire={s.wire} title={s.title} route={s.route} scans={s.scans} href={stateHref(s.state)} />}
-        <Text route>{s.route ?? '—'}</Text>
-        {d.model.kind === 'as-is' && (
-          <Text small>{`Seen by ${plural(s.scans, 'scan')}${s.amendments ? ` · ${plural(s.amendments, 'amendment')}` : ''}${s.reanchor ? ` · ${String(s.reanchor)} to re-anchor` : ''}`}</Text>
-        )}
-        {s.built_from.length > 0 && (
-          <Stack>
-            <SubHead>Built from</SubHead>
-            {s.built_from.map((b) => (
-              <Text key={b} small asIs>
-                {b}
-              </Text>
-            ))}
-          </Stack>
-        )}
-        {s.records.map((g) => (
-          <Stack key={g.kind}>
-            <SubHead>{`${g.label} · ${String(g.records.length)}`}</SubHead>
-            {g.records.map((r) => (
-              <Cluster key={r.key}>
-                <Tag size="sm" href={docHref(d.portal, r.key)}>
-                  {r.key}
-                </Tag>
-                <Text asIs>{r.title}</Text>
-                {r.status && <ShownStatus status={r.status} />}
-              </Cluster>
-            ))}
-          </Stack>
+        {d.editor.as_is.map((line) => (
+          <Text key={line} small muted>
+            {line}
+          </Text>
         ))}
-        <Stack>
-          <SubHead>Annotations on this step</SubHead>
-          {s.annotations.length === 0 ? (
-            <Text small muted>
-              None yet.
-            </Text>
-          ) : (
-            s.annotations.map((a, i) => (
-              <Note key={i} size="sm" by={`${a.author} · ${a.at}`}>
-                {a.text}
-              </Note>
-            ))
-          )}
-        </Stack>
       </Stack>
     </Plate>
   );

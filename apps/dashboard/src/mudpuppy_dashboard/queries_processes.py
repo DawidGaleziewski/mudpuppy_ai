@@ -150,6 +150,24 @@ def default_model(view: ProcessView) -> str:
     return next((v.model.label for v in view.models if v.model.kind == "to_be"), "A")
 
 
+def parent_steps(view: ProcessView, label: str) -> list[dict[str, Any]]:
+    """The steps of the revision model `label` was branched from (what Compare diffs it to)."""
+    vv = view.model(label)
+    if vv is None or vv.model.branched_from_model_id is None:
+        return []
+    parent = next((p for p in view.models if p.model.id == vv.model.branched_from_model_id), None)
+    rev = parent.revision(vv.model.branched_from_rev or 0) if parent else None
+    return list(rev.steps) if rev else []
+
+
+def pending_changes(head: list[dict[str, Any]], draft: list[dict[str, Any]]) -> int:
+    """How many steps a draft adds, removes or changes against the revision it edits."""
+    by_id = {s["id"]: s for s in head}
+    changed = sum(1 for s in draft if by_id.get(s["id"]) != s)
+    removed = len(set(by_id) - {s["id"] for s in draft})
+    return changed + removed
+
+
 def process_view(conn: sqlite3.Connection, portal: str, key: str) -> ProcessView | None:
     """One process with every model, revision, draft, live marker and change spec."""
     found = _rows(conn, "SELECT * FROM ba_processes WHERE portal_id = ? AND key = ?", (portal, key))

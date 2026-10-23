@@ -22,7 +22,10 @@ never style (lint refuses `className` and `style` in `src/pages` and `src/app`).
   `assets/` (the designer's CSS and fonts, a copy: never edit), `index.ts` (the one import).
 - `src/app/`: `App.tsx` (routes under `/app/`, the query client), `api.ts` (typed endpoints and
   TanStack Query hooks; one `api-<page>.ts` per page group, e.g. `api-recorded.ts`, `api-scan.ts`, `api-processes.ts`, `api-process.ts` for one process, whose page is
-  `Process.tsx` with `ProcessFacts.tsx` and `ProcessSteps.tsx`),
+  `Process.tsx` with `ProcessFacts.tsx`, `ProcessAsIs.tsx` (A's sign-off and stage),
+  `ProcessSteps.tsx`, `SelectedStep.tsx` and `ProcessEditor.tsx` (the to-be draft bar); the draft
+  is `stepOps.ts` (pure step operations) and `useDraft.ts` (each one autosaved, no ask first; Save,
+  Discard and Rebase ask)),
   `api-write.ts` (`postJson`, the one mutation hook and every write), `ConfirmedWrite.tsx` (ask
   first, post, show the answer: every write goes through it; an `Ask` may carry `follow`, the
   link's word, and `onDone`, run after a recorded write), `ShownStatus.tsx` (a status as the

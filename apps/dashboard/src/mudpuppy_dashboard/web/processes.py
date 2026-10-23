@@ -97,16 +97,6 @@ def processes_page(
     return web.render(c, "salvage/processes.html", nav_current="processes", v=v)
 
 
-def _parent_steps(view: queries_processes.ProcessView, label: str) -> list[dict[str, Any]]:
-    """The steps of the revision model `label` was branched from (what Compare diffs it to)."""
-    vv = view.model(label)
-    if vv is None or vv.model.branched_from_model_id is None:
-        return []
-    parent = next((p for p in view.models if p.model.id == vv.model.branched_from_model_id), None)
-    rev = parent.revision(vv.model.branched_from_rev or 0) if parent else None
-    return list(rev.steps) if rev else []
-
-
 def as_is_values(
     conn: sqlite3.Connection, view: queries_processes.ProcessView, steps: list[dict[str, Any]]
 ) -> dict[str, Any]:
@@ -134,7 +124,7 @@ def editor_values(
     assert vv is not None
     draft = vv.draft_of(c.settings.reviewer) if vv.model.kind == "to_be" else None
     steps = list(draft.steps) if draft else vv.steps
-    parent = _parent_steps(view, vv.model.label)
+    parent = queries_processes.parent_steps(view, vv.model.label)
     rows = process_diff.diff(parent, steps) if parent else []
     changes = {r.right["id"]: r.change for r in rows if r.right}
     head_steps = vv.steps
@@ -146,7 +136,7 @@ def editor_values(
         "changes": changes,
         "removed": [r for r in rows if r.change == "removed"],
         "parent": {s["id"]: s for s in parent},
-        "pending": 0 if draft is None else _pending(head_steps, steps),
+        "pending": 0 if draft is None else queries_processes.pending_changes(head_steps, steps),
         "selected": next((s for s in steps if s["id"] == step), None),
         "conflict": draft is not None and draft.base_rev != vv.model.rev,
         "self_url": c.url(f"/fragments/processes/{view.process.key}", model=vv.model.label),
@@ -158,14 +148,6 @@ def editor_values(
             conn, view.process.portal_id, view.process.id, view.as_is.steps if view.as_is else []
         ),
     }
-
-
-def _pending(head: list[dict[str, Any]], draft: list[dict[str, Any]]) -> int:
-    """How many steps the draft adds, removes or changes against the revision it edits."""
-    by_id = {s["id"]: s for s in head}
-    changed = sum(1 for s in draft if by_id.get(s["id"]) != s)
-    removed = len(set(by_id) - {s["id"] for s in draft})
-    return changed + removed
 
 
 def _view_or_404(c: Ctx, conn: sqlite3.Connection, key: str) -> queries_processes.ProcessView:

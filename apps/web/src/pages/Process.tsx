@@ -7,8 +7,12 @@ import { useConfirmedWrite, type Ask } from '../app/ConfirmedWrite';
 import { QueryState } from '../app/QueryState';
 import { Shell } from '../app/Shell';
 import { ShownStatus } from '../app/ShownStatus';
+import { useDraft } from '../app/useDraft';
+import { AsIsDocumentation } from './ProcessAsIs';
+import { DraftBar } from './ProcessEditor';
 import { ProcessFacts } from './ProcessFacts';
-import { AsIsDocumentation, ProcessSteps, SelectedStep } from './ProcessSteps';
+import { AsIsReference, ProcessSteps } from './ProcessSteps';
+import { SelectedStep } from './SelectedStep';
 
 function Meta({ d }: { d: ProcessPage }) {
   return (
@@ -103,6 +107,7 @@ function ModelSwitch({ d, ask, setModel }: { d: ProcessPage; ask: (a: Ask) => vo
 function Body({ d, setView }: { d: ProcessPage; setView: (next: { model?: string; step?: string }) => void }) {
   // the process's own query sits under the list's key: one refresh covers both
   const { ask, view } = useConfirmedWrite(processesKey(d.portal));
+  const draft = useDraft(d);
   return (
     <Stack>
       <Actions d={d} ask={ask} />
@@ -129,9 +134,15 @@ function Body({ d, setView }: { d: ProcessPage; setView: (next: { model?: string
       <ModelSwitch d={d} ask={ask} setModel={(model) => setView({ model })} />
       <ProcessFacts d={d} ask={ask} />
       {d.as_is && <AsIsDocumentation d={d} a={d.as_is} ask={ask} />}
+      <DraftBar d={d} ask={ask} failed={draft.failed} />
       <Columns
-        main={<ProcessSteps d={d} ask={ask} select={(step) => setView({ model: d.model.label, step })} />}
-        side={<SelectedStep d={d} />}
+        main={
+          <Stack>
+            <ProcessSteps d={d} ask={ask} draft={draft} select={(step) => setView({ model: d.model.label, step })} />
+            <AsIsReference d={d} />
+          </Stack>
+        }
+        side={<SelectedStep d={d} draft={draft} />}
       />
     </Stack>
   );
