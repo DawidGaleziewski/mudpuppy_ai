@@ -134,6 +134,6 @@ describe('To-be editor', () => {
     });
     expect(await screen.findByText('Someone saved first')).toBeTruthy();
     expect(screen.getByRole('button', { name: 'Rebase your draft onto r2' })).toBeTruthy();
-    expect(screen.getByRole('link', { name: 'Compare your draft with r2' }).getAttribute('href')).toBe('/processes/PRC-001/compare?left=B&right=B');
+    expect(screen.getByRole('link', { name: 'Compare your draft with r2' }).getAttribute('href')).toBe('/app/portals/shop/processes/PRC-001/compare?left=B&right=B');
   });
 });

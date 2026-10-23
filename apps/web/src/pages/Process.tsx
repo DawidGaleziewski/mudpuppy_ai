@@ -1,7 +1,8 @@
 import { useParams, useSearchParams } from 'react-router';
 import { Button, Callout, Cluster, Columns, LinkButton, PageHead, Segmented, Stack, Tag, Text } from '../design-system';
 import { docHref, useProcessPage, type ProcessPage } from '../app/api-process';
-import { htmxProcessHref, processesKey } from '../app/api-processes';
+import { htmxExportHref, processesKey } from '../app/api-processes';
+import { processPageHref } from '../app/api-process-compare';
 import { writes } from '../app/api-write';
 import { useConfirmedWrite, type Ask } from '../app/ConfirmedWrite';
 import { QueryState } from '../app/QueryState';
@@ -45,9 +46,9 @@ function Actions({ d, ask }: { d: ProcessPage; ask: (a: Ask) => void }) {
   const right = d.model.kind === 'to-be' ? d.model.label : d.to_be_first;
   return (
     <Cluster>
-      {right && <LinkButton href={htmxProcessHref(d.key, 'compare', `?left=A&right=${right}`)}>{`Compare A and ${right}`}</LinkButton>}
-      <LinkButton href={htmxProcessHref(d.key, 'history')}>History</LinkButton>
-      <LinkButton href={htmxProcessHref(d.key, 'export')}>Documentation</LinkButton>
+      {right && <LinkButton href={processPageHref(d.portal, d.key, 'compare', `?left=A&right=${right}`)}>{`Compare A and ${right}`}</LinkButton>}
+      <LinkButton href={processPageHref(d.portal, d.key, 'history')}>History</LinkButton>
+      <LinkButton href={htmxExportHref(d.key)}>Documentation</LinkButton>
       {!d.archived_at && (
         <Button
           variant="quiet"

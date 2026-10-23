@@ -149,3 +149,7 @@ card's "As" persona choice), `wb_frames.py` (frame,
   step's change, what it removed; `queries_processes.parent_steps` and `pending_changes` shared
   with `web/processes.py`); the draft writes in `web/api_processes.py`
   (`…/models/{L}/draft|discard|save|rebase`).
+- Spec 060 (R-96, Compare and History): `process_views.py` (`compare_values`, `history_values`,
+  shared by `web/processes.py` and the API) under `queries_app_process_compare.py`;
+  `GET /api/portals/{p}/processes/{key}/compare` and `…/history` in `web/api_process.py`; the
+  writes `…/change-spec`, `…/live` and `…/models/{L}/restore` in `web/api_processes.py`.

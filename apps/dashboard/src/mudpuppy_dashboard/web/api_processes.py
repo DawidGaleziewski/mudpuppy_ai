@@ -13,7 +13,7 @@ from fastapi import APIRouter, Request
 from fastapi.responses import JSONResponse
 
 from .. import queries_app_processes
-from ..queries_processes import STAGES
+from ..queries_processes import ENVIRONMENTS, STAGES
 from .api_common import known_portal, store
 from .chat_forward import read_json
 from .chat_writes import CHECK_RUNS, WriteResult, chat_write, write_answer, write_refused
@@ -177,6 +177,7 @@ DRAFT_OPS: dict[str, tuple[str, str, str]] = {
     "discard": ("DELETE", "draft", "Draft discarded; the last revision stays."),
     "save": ("POST", "save", "Saved as a new revision."),
     "rebase": ("POST", "rebase", "Your draft now sits on the latest revision, its steps kept."),
+    "restore": ("POST", "restore", "Restored as a new revision; nothing was deleted."),
 }
 
 
@@ -191,9 +192,38 @@ async def draft_op(
         return write_answer(404, "This address does not exist.")
     form = await read_json(request)
     method, sub, done = DRAFT_OPS[op]
-    body = {k: form[k] for k in ("base_rev", "steps", "note") if k in form}
+    body = {k: form[k] for k in ("base_rev", "steps", "note", "rev") if k in form}
     rest = f"processes/{quote(process, safe='')}/models/{label}/{sub}"
     return await _send_to(request, Target(portal, rest, method), body, done)
+
+
+@router.post("/processes/{process}/live", response_model=WriteResult)
+async def mark_live(request: Request, portal: str, process: str) -> JSONResponse:
+    """Record which model revision runs in an environment (`environment`, `label`, `reason`).
+    It deploys nothing; the newest mark wins and earlier ones stay."""
+    form = await read_json(request)
+    env = str(form.get("environment", ""))
+    if env not in ENVIRONMENTS or not str(form.get("label", "")):
+        if (no := write_refused(request, "change processes")) is not None:
+            return no
+        return write_answer(422, "Pick an environment and a process model.")
+    body = {k: form[k] for k in ("environment", "label", "rev", "reason") if form.get(k)}
+    rest = f"processes/{quote(process, safe='')}/live"
+    return await _send(request, portal, rest, body, f"Marked live in {env}.")
+
+
+@router.post("/processes/{process}/change-spec", response_model=WriteResult)
+async def change_spec(request: Request, portal: str, process: str) -> JSONResponse:
+    """Save the change spec of a pair of models as its next revision (`left` and `right` as
+    `{label, rev}`, every section, `base_rev` when one is saved already)."""
+    form = await read_json(request)
+    if not isinstance(form.get("sections"), dict):
+        if (no := write_refused(request, "change processes")) is not None:
+            return no
+        return write_answer(422, "Send every section of the change spec.")
+    body = {k: form[k] for k in ("left", "right", "sections", "base_rev") if k in form}
+    rest = f"processes/{quote(process, safe='')}/change-spec"
+    return await _send(request, portal, rest, body, "Change spec saved as a new revision.")
 
 
 @router.post("/check-runs", response_model=WriteResult)

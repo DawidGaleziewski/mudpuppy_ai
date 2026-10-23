@@ -89,9 +89,18 @@ export const writes = {
     body: { base_rev: baseRev, state_ids: states },
   }),
   /** The person's draft of a to-be model: autosave its steps, discard it, save it, rebase it. */
-  draft: (portal: string, process: string, label: string, op: 'draft' | 'discard' | 'save' | 'rebase', body: Write['body'] = {}): Write => ({
+  draft: (portal: string, process: string, label: string, op: 'draft' | 'discard' | 'save' | 'rebase' | 'restore', body: Write['body'] = {}): Write => ({
     path: `/api/portals/${encodeURIComponent(portal)}/processes/${encodeURIComponent(process)}/models/${encodeURIComponent(label)}/${op}`,
     body,
+  }),
+  /** Save a pair's change spec as its next revision (lists are one item per line in the form). */
+  changeSpec: (portal: string, process: string, body: Write['body']): Write => ({
+    path: `/api/portals/${encodeURIComponent(portal)}/processes/${encodeURIComponent(process)}/change-spec`,
+    body,
+  }),
+  markLive: (portal: string, process: string, environment: string, label: string, reason: string): Write => ({
+    path: `/api/portals/${encodeURIComponent(portal)}/processes/${encodeURIComponent(process)}/live`,
+    body: { environment, label, ...(reason ? { reason } : {}) },
   }),
   explore: (portal: string, processKey: string): Write => ({
     path: `/api/portals/${encodeURIComponent(portal)}/check-runs`,

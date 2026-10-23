@@ -6,6 +6,13 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Added
+- **R-96 step 11: a process's Compare and History in React** (spec 060, v2.6.10, 2026-10-23).
+  `/app/portals/{p}/processes/{key}/compare`: pick the left and right models (your draft stands
+  in for its model), see each step unchanged, changed, merged, added or removed, and edit the
+  change spec section by section, save it as a revision or export it as Markdown.
+  `…/history`: which model revision runs in each environment and who marked it (Mark live with a
+  reason), every revision of every model newest first with Restore as a new revision, the
+  process's own revisions and the saved change specs. Each write asks first.
 - **R-96 step 10: the to-be draft editor in React** (spec 059, v2.6.9, 2026-10-23). On a to-be
   model of `/app/portals/{p}/processes/{key}`, a person draws in their own draft: move steps up
   and down, merge a step with the next, add a designed step, change a step's title or route, add

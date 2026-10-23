@@ -1,6 +1,6 @@
 import { Button, Callout, Cluster, LinkButton, Plate, Stack, Tag, Text } from '../design-system';
 import type { ProcessPage } from '../app/api-process';
-import { htmxProcessHref } from '../app/api-processes';
+import { processPageHref } from '../app/api-process-compare';
 import { writes } from '../app/api-write';
 import type { Ask } from '../app/ConfirmedWrite';
 import { ShownStatus } from '../app/ShownStatus';
@@ -17,7 +17,7 @@ function Conflict({ d, ask, base }: BarProps & { base: number }) {
     <Callout tone="failure" title="Someone saved first">
       {`${label} r${String(rev)} was saved while your draft was based on ${label} r${String(base)}. Your draft is kept; nothing was overwritten.`}
       <Cluster>
-        <LinkButton size="md" href={htmxProcessHref(d.key, 'compare', `?left=${label}&right=${label}`)}>{`Compare your draft with r${String(rev)}`}</LinkButton>
+        <LinkButton size="md" href={processPageHref(d.portal, d.key, 'compare', `?left=${label}&right=${label}`)}>{`Compare your draft with r${String(rev)}`}</LinkButton>
         <Button
           size="md"
           variant="strong"

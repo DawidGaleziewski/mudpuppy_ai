@@ -72,6 +72,5 @@ export const useProcesses = (portal: string, archived: boolean, page: number) =>
 export const processHref = (portal: string, key: string, model?: string) =>
   `/app/portals/${encodeURIComponent(portal)}/processes/${encodeURIComponent(key)}${model ? `?model=${encodeURIComponent(model)}` : ''}`;
 
-/** The process's htmx pages that have not moved yet: Compare, History, the documentation export. */
-export const htmxProcessHref = (key: string, page: 'compare' | 'history' | 'export', query = '') =>
-  `/processes/${encodeURIComponent(key)}/${page}${query}`;
+/** A process's documentation export (an htmx page with downloads, not moved to the console). */
+export const htmxExportHref = (key: string) => `/processes/${encodeURIComponent(key)}/export`;
