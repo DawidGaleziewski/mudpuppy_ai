@@ -120,6 +120,32 @@ export function launchedInBackground(update: { content?: unknown; rawOutput?: un
   return text.includes('Async agent launched');
 }
 
+/** Every string inside an ACP tool result (its content blocks and raw output), in order. */
+function textsOf(value: unknown, out: string[] = []): string[] {
+  if (typeof value === 'string') out.push(value);
+  else if (Array.isArray(value)) for (const v of value) textsOf(v, out);
+  else if (typeof value === 'object' && value !== null)
+    for (const v of Object.values(value as Record<string, unknown>)) textsOf(v, out);
+  return out;
+}
+
+/**
+ * The message of a failed tool call (spec 073 FR-001): an MCP tool's `{"error": {"message"}}`
+ * body when there is one (a refused `start_run`), else its first text; null when it has none.
+ */
+export function toolError(update: { content?: unknown; rawOutput?: unknown }): string | null {
+  const texts = textsOf([update.content ?? null, update.rawOutput ?? null]).filter((t) => t.trim() !== '');
+  for (const text of texts) {
+    try {
+      const message = (JSON.parse(text) as { error?: { message?: unknown } }).error?.message;
+      if (typeof message === 'string' && message !== '') return message;
+    } catch {
+      // not a JSON body: the plain text below
+    }
+  }
+  return texts[0]?.trim().slice(0, 500) ?? null;
+}
+
 function subagentOf(rawInput: unknown): string | null {
   if (typeof rawInput !== 'object' || rawInput === null) return null;
   const type = (rawInput as { subagent_type?: unknown }).subagent_type;
@@ -306,8 +332,28 @@ export class AcpChat {
     return info;
   }
 
-  /** A completed call of the assistant's browser tools becomes a `ui_action` (spec 022 R6). */
-  private finished(info: ToolInfo, status: string | null | undefined): void {
+  /**
+   * A call that ended: `tool_finished` (a failed one with its error, spec 073), and a completed
+   * call of the assistant's browser tools becomes a `ui_action` (spec 022 R6).
+   */
+  private finished(
+    toolCallId: string,
+    info: ToolInfo,
+    update: { status?: string | null; content?: unknown; rawOutput?: unknown },
+  ): void {
+    const { status } = update;
+    if (status !== 'completed' && status !== 'failed') return;
+    const error = status === 'failed' ? toolError(update) : null;
+    this.emit({
+      type: 'tool_finished',
+      toolCallId,
+      tool: info.tool,
+      status,
+      parentToolCallId: info.parentToolCallId,
+      agent: info.subagent,
+      ...(launchedInBackground(update) ? { background: true } : {}),
+      ...(error === null ? {} : { error }),
+    });
     if (status !== 'completed') return;
     const action = uiActionOf(info.tool, info.input);
     if (action !== null) this.emit(action);
@@ -341,32 +387,12 @@ export class AcpChat {
           parentToolCallId: info.parentToolCallId,
           agent: info.subagent,
         });
-        if (update.status === 'completed' || update.status === 'failed')
-          this.emit({
-            type: 'tool_finished',
-            toolCallId: update.toolCallId,
-            tool: info.tool,
-            status: update.status,
-            parentToolCallId: info.parentToolCallId,
-            agent: info.subagent,
-            ...(launchedInBackground(update) ? { background: true } : {}),
-          });
-        this.finished(info, update.status);
+        this.finished(update.toolCallId, info, update);
         return;
       }
       case 'tool_call_update': {
         const info = this.remember(update.toolCallId, update._meta, update.rawInput, null);
-        if (update.status === 'completed' || update.status === 'failed')
-          this.emit({
-            type: 'tool_finished',
-            toolCallId: update.toolCallId,
-            tool: info.tool,
-            status: update.status,
-            parentToolCallId: info.parentToolCallId,
-            agent: info.subagent,
-            ...(launchedInBackground(update) ? { background: true } : {}),
-          });
-        this.finished(info, update.status);
+        this.finished(update.toolCallId, info, update);
         return;
       }
       case 'plan':

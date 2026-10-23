@@ -20,7 +20,7 @@ import {
   type CommandRow,
   type ConfirmDeps,
 } from '../src/workbench-commands.js';
-import { settleCommands } from '../src/workbench-settle.js';
+import { failStarts, settleCommands } from '../src/workbench-settle.js';
 
 const repo = join(import.meta.dirname, '..', '..', '..');
 const P = 'reference-insurer';
@@ -63,6 +63,15 @@ const propose = (command: string, args: Record<string, unknown>): CommandRow =>
       reason: 'The form never appeared.',
     },
   });
+
+/** What the step recorder does when the scan's run shows up: the conversation's step follows it. */
+function linkStep(runId: string, status = 'in_progress'): void {
+  raw()
+    .prepare(
+      `UPDATE workflow_steps SET run_id = ?, status = ?, updated_at = ? WHERE conversation_id = ? AND step = 'scan'`,
+    )
+    .run(runId, status, new Date(Date.now() + 2000).toISOString(), CONV);
+}
 
 /** A failed command's message, as the card shows it. */
 const messageOf = (row: CommandRow): string | undefined =>
@@ -167,6 +176,9 @@ describe('workbench commands', () => {
       'running',
       new Date(Date.now() + 1000).toISOString(),
     );
+    // a run nobody's step follows is not the command's (spec 073 FR-001)
+    expect(settleCommands(raw())).toEqual([]);
+    linkStep('01a110e7-0000-7000-8000-000000000003');
     const [settled] = settleCommands(raw());
     expect(settled).toMatchObject({ id: row.id, state: 'done' });
     expect(JSON.parse(settled?.result_json ?? '{}')).toEqual({
@@ -184,6 +196,46 @@ describe('workbench commands', () => {
     expect(failed?.error_ref).toMatch(/^WB-/);
   });
 
+  it('a start refused with the portal down fails with the crawler’s words; the next start alone gets the run (spec 073 FR-001)', () => {
+    const first = propose('scan.start', { type: 'full_map' });
+    confirmCommand(deps(), { id: first.id, token: issueToken(raw(), first.id), by: 'dawid' });
+    // the crawler's start_run refused (robots.txt unreadable): the step recorder fails the step
+    raw()
+      .prepare(`UPDATE workflow_steps SET status = 'failed', error_ref = 'ERR-DOWN', updated_at = ? WHERE conversation_id = ?`)
+      .run(new Date(Date.now() + 1000).toISOString(), CONV);
+    const why = 'The crawler could not start the scan: robots.txt could not be read';
+    const [failed] = failStarts(raw(), CONV, [
+      { type: 'step_changed', step: 'scan', status: 'failed', errorRef: 'ERR-DOWN', message: why },
+    ]);
+    expect(failed).toMatchObject({ id: first.id, state: 'failed', error_ref: 'ERR-DOWN' });
+    expect(failed && messageOf(failed)).toBe(why);
+    expect(raw().prepare(`SELECT count(*) AS n FROM runs`).get()).toEqual({ n: 0 });
+
+    const second = propose('scan.start', { type: 'full_map' });
+    confirmCommand(deps(), { id: second.id, token: issueToken(raw(), second.id), by: 'dawid' });
+    const RUN = '01a16add-1e29-7000-8000-000000000001';
+    addRun(RUN, 'running', new Date(Date.now() + 3000).toISOString());
+    linkStep(RUN);
+    const settled = settleCommands(raw());
+    expect(settled.map((r) => [r.id, r.state])).toEqual([[second.id, 'done']]);
+    expect(JSON.parse(settled[0]?.result_json ?? '{}')).toEqual({ run_id: RUN });
+    expect(getCommand(raw(), first.id).result_json).not.toContain(RUN);
+  });
+
+  it('a start still open when the next one is confirmed fails instead of taking its run', () => {
+    const first = propose('scan.start', { type: 'full_map' });
+    confirmCommand(deps(), { id: first.id, token: issueToken(raw(), first.id), by: 'dawid' });
+    // the first card's crawler never ended; the person starts again (the portal is idle)
+    raw().prepare(`UPDATE workbench_commands SET confirmed_at = ? WHERE id = ?`).run(new Date(Date.now() - 60_000).toISOString(), first.id);
+    const second = propose('scan.start', { type: 'full_map' });
+    confirmCommand(deps(), { id: second.id, token: issueToken(raw(), second.id), by: 'dawid' });
+    const RUN = '01a16add-1e29-7000-8000-000000000002';
+    addRun(RUN, 'running', new Date(Date.now() + 3000).toISOString());
+    linkStep(RUN);
+    const states = Object.fromEntries(settleCommands(raw()).map((r) => [r.id, r.state]));
+    expect(states).toEqual({ [first.id]: 'failed', [second.id]: 'done' });
+  });
+
   it('a focused scan waits for phase 2; cancel folds a proposal', () => {
     expect(() => propose('scan.start', { type: 'focused' })).toThrow('Plan a run');
     addRun(STOPPED, 'running');
@@ -198,6 +250,14 @@ describe('workbench commands', () => {
     expect(done.state).toBe('running');
     expect(launches).toHaveLength(1);
     expect(launches[0]?.prompt).toContain('guest');
+  });
+
+  it('a start the assistant proposed as a persona starts as that persona, not the last scan’s (spec 073 FR-002)', () => {
+    cpSync(join(root, 'personas', P, 'guest.yaml'), join(root, 'personas', P, 'tester.yaml'));
+    addRun(STOPPED, 'completed'); // the last scan was guest
+    const row = propose('scan.start', { type: 'full_map', persona: 'tester' });
+    confirmCommand(deps(), { id: row.id, token: issueToken(raw(), row.id), by: 'dawid' });
+    expect(launches[0]?.prompt).toContain('as persona "tester"');
   });
 
   it('a Start card starts as the persona the person picked (FR-004)', () => {

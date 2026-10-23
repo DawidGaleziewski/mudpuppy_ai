@@ -115,7 +115,7 @@ describe('StepRecorder.reconcile', () => {
     addRun('run-1', 'map', 'stopped_warning', '2026-10-06T01:01:00.000Z', 'CAPTCHA');
     const changes = await recorder.reconcile();
     expect(changes.get(CONV)).toEqual([
-      { type: 'step_changed', step: 'scan', status: 'failed', errorRef: 'ERR-T1' },
+      { type: 'step_changed', step: 'scan', status: 'failed', errorRef: 'ERR-T1', message: expect.stringContaining('CAPTCHA') },
     ]);
     expect(step('scan')).toMatchObject({ status: 'failed', error_ref: 'ERR-T1', run_id: 'run-1' });
     expect(errors[0]?.message).toContain('CAPTCHA');
@@ -201,6 +201,7 @@ describe('StepRecorder.observe', () => {
       step: 'scan',
       status: 'failed',
       errorRef: expect.stringMatching(/^ERR-T/),
+      message: expect.stringContaining('so the run was stopped'),
     });
     expect(errors.at(-1)?.message).toContain('so the run was stopped');
     expect(errors.at(-1)?.message).toContain('resume');
@@ -292,9 +293,27 @@ describe('StepRecorder.observe', () => {
     await recorder.observe(CONV, started);
     const events = await recorder.observe(CONV, finished);
     expect(events).toEqual([
-      { type: 'step_changed', step: 'scan', status: 'failed', errorRef: 'ERR-T1' },
+      { type: 'step_changed', step: 'scan', status: 'failed', errorRef: 'ERR-T1', message: expect.stringContaining('without starting the scan') },
     ]);
     expect(errors[0]?.message).toContain('without starting the scan');
+  });
+
+  it("a refused start_run's message is the failed scan's (spec 073 FR-001: portal down)", async () => {
+    await recorder.observe(CONV, started);
+    const refusal = 'http://127.0.0.1:4100/robots.txt could not be read (network error: fetch failed); no page is opened until it can';
+    await recorder.observe(CONV, {
+      type: 'tool_finished',
+      toolCallId: 'call-start',
+      tool: 'mcp__mudpuppy__start_run',
+      status: 'failed',
+      parentToolCallId: 'a1',
+      agent: null,
+      error: refusal,
+    });
+    const events = await recorder.observe(CONV, finished);
+    expect(events).toEqual([
+      { type: 'step_changed', step: 'scan', status: 'failed', errorRef: 'ERR-T1', message: `The crawler could not start the scan: ${refusal}` },
+    ]);
   });
 
   it('the crawler finishing after a completed run marks the scan done', async () => {
@@ -334,7 +353,7 @@ describe('StepRecorder.observe', () => {
     });
     await recorder.observe(CONV, started);
     expect(await recorder.observe(CONV, finished)).toEqual([
-      { type: 'step_changed', step: 'map', status: 'failed', errorRef: 'ERR-T1' },
+      { type: 'step_changed', step: 'map', status: 'failed', errorRef: 'ERR-T1', message: expect.stringContaining('without starting the process trace') },
     ]);
     expect(errors[0]?.message).toContain('without starting the process trace');
   });

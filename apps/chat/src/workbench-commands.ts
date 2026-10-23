@@ -199,7 +199,8 @@ function prepareStart(
       preconditionHash: sha256(`continue ${last.id} ${last.status}`),
     };
   }
-  const persona = last?.persona_id;
+  // the persona the assistant proposed, else the last scan's (spec 073 FR-002)
+  const persona = typeof args.persona === 'string' ? args.persona : last?.persona_id;
   return {
     runId: null,
     scan: { portal, ...(persona === undefined ? {} : { persona }) },

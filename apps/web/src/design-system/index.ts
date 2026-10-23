@@ -43,7 +43,7 @@ export { Confirm, type ConfirmProps } from './components/Confirm.js';
 export { Count } from './components/Count.js';
 export { Code } from './components/Code.js';
 export { DecisionTable, type DecisionRow, type DecisionTableProps } from './components/DecisionTable.js';
-export { Diagram, type DiagramProps } from './components/Diagram.js';
+export { Diagram, drawable, type DiagramProps } from './components/Diagram.js';
 export { Disclosure, type DisclosureProps } from './components/Disclosure.js';
 export { Facts } from './components/Facts.js';
 export {
@@ -60,6 +60,7 @@ export { Check, Field, Fieldset, Input, Select, Textarea, type CheckProps, type 
 export { Cluster, Columns, Grid, Split, Stack } from './components/Layout.js';
 export { Meter, type MeterProps } from './components/Meter.js';
 export { Note, type NoteProps } from './components/Note.js';
+export { State, type StateProps } from './components/State.js';
 export { PageHead, type Crumb, type PageHeadProps } from './components/PageHead.js';
 export { Path, type PathStep } from './components/Path.js';
 export { Picture, type PictureItem, type PictureProps } from './components/Picture.js';

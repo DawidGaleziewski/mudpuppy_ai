@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { Callout, Text } from '../design-system';
+import { Callout, State } from '../design-system';
 import { ApiError } from './api';
 
 /**
@@ -17,14 +17,8 @@ export function QueryState<T>({
   children: (data: T) => ReactNode;
 }) {
   const { data, isPending: loading, error } = query;
-  if (loading)
-    return (
-      <div role="status">
-        <Text block muted>
-          Loading {what}…
-        </Text>
-      </div>
-    );
+  // the designer's caret state, in the page's body only: the head and the frame stay (R-103 (5))
+  if (loading) return <State loading title={`Reading ${what}`} />;
   if (error || data === undefined) {
     const message =
       error instanceof ApiError || error instanceof Error ? error.message : 'The request failed.';

@@ -25,7 +25,14 @@ export function PageHead({ title, crumbs, meta, actions }: PageHeadProps) {
           {crumbs.map((c, i) => (
             <Fragment key={i}>
               {i > 0 && ' / '}
-              {c.href ? <Anchor href={c.href}>{c.label}</Anchor> : c.label}
+              {/* rel=up: a crumb goes up the section tree; the app returns it to the list as it was left */}
+              {c.href ? (
+                <Anchor href={c.href} rel="up">
+                  {c.label}
+                </Anchor>
+              ) : (
+                c.label
+              )}
             </Fragment>
           ))}
         </nav>

@@ -20,7 +20,8 @@ describe('Portals page', () => {
         other_environments: ['reference-insurer'],
       },
     });
-    expect(await screen.findByRole('link', { name: 'reference-insurer-local' })).toBeTruthy();
+    const main = await screen.findByRole('main');
+    expect(await within(main).findByRole('link', { name: 'reference-insurer-local' })).toBeTruthy();
     expect(screen.getByText('1 running')).toBeTruthy();
     expect(screen.getByText('1 portals · environment local-dev')).toBeTruthy();
     expect(screen.getByRole('heading', { level: 1, name: 'Portals' })).toBeTruthy();

@@ -1,6 +1,6 @@
 // The components added for the portal map (spec 053): Graph, GraphNode, Legend, Bundle, ViewNav,
 // Fieldset, SubHead and Text's link.
-import { fireEvent, render, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import { Bundle, Check, Fieldset, Graph, GraphNode, Legend, SubHead, Text, ViewNav } from '../src/design-system';
 
@@ -58,7 +58,35 @@ describe('Graph', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Zoom in' }));
     expect(fit.getAttribute('aria-pressed')).toBe('false');
   });
+});
 
+describe('Graph, the pointer (R-103 (8))', () => {
+  it('zooms at the pointer with Ctrl + wheel, keeps the plain wheel for scrolling, never selects on a drag', () => {
+    twoNodes();
+    const map = screen.getByRole('region', { name: 'Map of shop now' });
+    const level = () => screen.getByRole('button', { name: /reset to 100%/ }).textContent;
+    expect(level()).toBe('100%');
+    const plain = new WheelEvent('wheel', { deltaY: -100, bubbles: true, cancelable: true });
+    map.dispatchEvent(plain);
+    expect(plain.defaultPrevented).toBe(false); // the box or the page scrolls
+    expect(level()).toBe('100%');
+    const zoomIn = new WheelEvent('wheel', { deltaY: -100, ctrlKey: true, clientX: 50, clientY: 50, bubbles: true, cancelable: true });
+    act(() => {
+      map.dispatchEvent(zoomIn);
+    });
+    expect(zoomIn.defaultPrevented).toBe(true);
+    expect(level()).toBe('128%'); // smooth, not a step; Fit is off
+    expect(screen.getByRole('button', { name: 'Fit' }).getAttribute('aria-pressed')).toBe('false');
+    const onWords = new MouseEvent('mousedown', { button: 0, bubbles: true, cancelable: true });
+    map.querySelector('text')?.dispatchEvent(onWords);
+    expect(onWords.defaultPrevented).toBe(true);
+    const onNode = new MouseEvent('mousedown', { button: 0, bubbles: true, cancelable: true });
+    screen.getByRole('button', { name: /Home/ }).dispatchEvent(onNode);
+    expect(onNode.defaultPrevented).toBe(false); // a node still takes focus and its click
+  });
+});
+
+describe('Graph, more', () => {
   it('is capped at 520 px inside another page', () => {
     render(
       <Graph label="Scan graph" width={100} height={100} edges={[]} embedded>

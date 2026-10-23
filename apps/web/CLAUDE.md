@@ -46,7 +46,11 @@ never style (lint refuses `className` and `style` in `src/pages` and `src/app`).
   link's word, and `onDone`, run after a recorded write), `ShownStatus.tsx` (a status as the
   API maps it), `SectionPaging.tsx` (a scan section's filters and cursor pager, kept in the page
   address; `api-scan-tabs.ts` and `api-scan-trace.ts` are its data), `scanLinks.ts` (every scan
-  section's address), `Shell.tsx`, `QueryState.tsx`.
+  section's address), `Shell.tsx` (one frame around every page, spec 073), `PortalMenu.tsx` (the
+  header's portal picker), `listAddress.ts` (the query a list last had, for Back and crumbs),
+  `ScreenNeighbours.tsx` (Prev / Next between screens over the list they came from),
+  `QueryState.tsx`. The design system's `State` is a region's loading, empty or failed state;
+  `components/zoom.tsx` is the zoom bar and pointer zoom that `Graph` and `Diagram` share.
 - The design system's `Diagram` draws Mermaid from the vendored copy in `public/vendor/`
   (served at `/app/vendor/mermaid.min.js`); without it, the source shows as text.
 - Every link inside the app moves through React Router (`RouterAnchor.tsx`: `routerLink` for the

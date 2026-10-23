@@ -49,6 +49,9 @@ export interface StepRecorderOptions {
   now?: () => number;
 }
 
+/** The crawler's `start_run`, by its bare or MCP-prefixed name (`mcp__mudpuppy__start_run`). */
+const START_RUN = /(^|__)start_run$/;
+
 /** How long a step in progress may wait for its run or session to appear (F-17). */
 export const START_TIMEOUT_MS = 10 * 60_000;
 
@@ -57,6 +60,8 @@ export class StepRecorder {
   private readonly agentCalls = new Map<string, Map<string, string>>();
   /** Subagents launched in the background in the running turn, per conversation (F-17, F-20). */
   private readonly backgroundCalls = new Map<string, { agent: string; toolCallId: string }[]>();
+  /** The last refused `start_run`'s message, per conversation, until a step fails with it. */
+  private readonly startErrors = new Map<string, string>();
 
   constructor(private readonly opts: StepRecorderOptions) {}
 
@@ -106,7 +111,8 @@ export class StepRecorder {
       message,
       detail,
     });
-    return this.change(row, 'failed', { errorRef: ref });
+    const e = this.change(row, 'failed', { errorRef: ref });
+    return e === null ? null : { ...e, message };
   }
 
   /** Newest run or session of the step's kind that started at or after the request. */
@@ -237,6 +243,7 @@ export class StepRecorder {
    * agent finished failed to start (for example a safety gate refused the run).
    */
   async observe(conversationId: string, event: ChatEvent): Promise<ChatEvent[]> {
+    this.noteStartError(conversationId, event);
     const calls = this.agentCalls.get(conversationId) ?? new Map<string, string>();
     this.agentCalls.set(conversationId, calls);
     if (event.type === 'tool_started' && event.tool === 'Agent' && event.agent !== null) {
@@ -290,6 +297,29 @@ export class StepRecorder {
     }
   }
 
+  /** Why the subagent's start_run refused (spec 073 FR-001): the step's failure says it. */
+  private noteStartError(conversationId: string, event: ChatEvent): void {
+    if (event.type !== 'tool_finished' || event.status !== 'failed' || event.error === undefined) return;
+    if (START_RUN.test(event.tool ?? '')) this.startErrors.set(conversationId, event.error);
+  }
+
+  /** Why a step its agent left is failed, or null when it is not (its work went on or ended). */
+  private endMessage(e: { agent: string; row: StepRow; work: Work | null; stopped: boolean; refused: string | undefined }): string | null {
+    const { agent, row, work } = e;
+    const what = row.step === 'map' ? 'process trace' : row.step;
+    if (work === null) {
+      if (e.refused !== undefined) return `The crawler could not start the ${what}: ${e.refused}`;
+      return `The ${agent} agent finished without starting the ${what}; its last message in the chat says why.`;
+    }
+    if (e.stopped)
+      return `The ${agent} agent stopped before finishing run ${work.id}, so the run was stopped. Pages already recorded are kept; ask the assistant to resume it to continue from the pages still queued.`;
+    if (work.status === 'running')
+      return `The ${agent} agent stopped while its ${work.kind} ${work.id} is still marked running; its last message in the chat says why.`;
+    if (this.awaitingResume(row, work))
+      return `The ${agent} agent finished without resuming ${work.kind} ${work.id}; its last message in the chat says why.`;
+    return null;
+  }
+
   /**
    * After a crawler/ba subagent ended: reconcile, then fail a step still waiting for work (for
    * example a safety gate refused the run) or left with its run marked running.
@@ -309,16 +339,7 @@ export class StepRecorder {
       // finish_run was refused and the run stayed "running" with nobody on it, shown as live for
       // hours. The run is stopped here, the same way as "Stop scan", so it can be resumed.
       const stopped = work?.status === 'running' && work.kind === 'run' && this.interrupt(work.id);
-      const message =
-        work === null
-          ? `The ${agent} agent finished without starting the ${row.step === 'map' ? 'process trace' : row.step}; its last message in the chat says why.`
-          : stopped
-            ? `The ${agent} agent stopped before finishing run ${work.id}, so the run was stopped. Pages already recorded are kept; ask the assistant to resume it to continue from the pages still queued.`
-            : work.status === 'running'
-              ? `The ${agent} agent stopped while its ${work.kind} ${work.id} is still marked running; its last message in the chat says why.`
-              : this.awaitingResume(row, work)
-                ? `The ${agent} agent finished without resuming ${work.kind} ${work.id}; its last message in the chat says why.`
-                : null;
+      const message = this.endMessage({ agent, row, work, stopped, refused: this.startErrors.get(conversationId) });
       if (message === null) continue;
       const e = await this.fail(row, message, {
         agent,
@@ -328,6 +349,7 @@ export class StepRecorder {
       });
       if (e !== null) events.push(e);
     }
+    this.startErrors.delete(conversationId);
     return events;
   }
 }

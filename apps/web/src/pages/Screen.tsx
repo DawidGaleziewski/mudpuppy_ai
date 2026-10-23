@@ -22,6 +22,7 @@ import {
   Variants,
 } from '../design-system';
 import { sameScreenHref } from '../app/api-same-screen';
+import { ScreenNeighbours } from '../app/ScreenNeighbours';
 import { useScreen, type ActionOut, type ScreenDetailData, type VariantOut } from '../app/api-screens';
 import { useScreenRecordings, type ScreenRecordings } from '../app/api-state';
 import { useConfirmedWrite, type Ask } from '../app/ConfirmedWrite';
@@ -342,7 +343,8 @@ export function Screen() {
         crumbs={[
           { label: 'Portals', href: '/app/' },
           { label: portal, href: `/app/portals/${encodeURIComponent(portal)}` },
-          { label: 'Screens', href: `/app/portals/${encodeURIComponent(portal)}/screens` },
+          // back to the list it was opened from (`list=`), else the list as it was left
+          { label: 'Screens', href: `/app/portals/${encodeURIComponent(portal)}/screens${params.get('list') ? `?${params.get('list') ?? ''}` : ''}` },
           { label: <Text asIs>{screenKey}</Text> },
         ]}
         title={
@@ -351,6 +353,7 @@ export function Screen() {
           </>
         }
         meta={q.data ? meta(q.data, rec) : undefined}
+        actions={<ScreenNeighbours portal={portal} screenKey={screenKey} list={params.get('list')} />}
       />
       {view}
       <QueryState query={q} what="the screen">

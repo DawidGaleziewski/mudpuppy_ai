@@ -29,9 +29,18 @@ export type ChatEvent =
        * ("Async agent launched"): its end is not the subagent's end (F-17).
        */
       background?: boolean;
+      /** A failed call's message (an MCP tool's error), e.g. why `start_run` refused (spec 073). */
+      error?: string;
     }
   | { type: 'plan'; entries: { content: string; status: string }[] }
-  | { type: 'step_changed'; step: string; status: string; errorRef: string | null }
+  | {
+      type: 'step_changed';
+      step: string;
+      status: string;
+      errorRef: string | null;
+      /** Why a failed step failed (spec 073): its command card and the chat line say it. */
+      message?: string;
+    }
   | { type: 'refused'; tool: string | null; title: string; reason: string }
   | { type: 'error'; ref: string; message: string; logged: boolean }
   /** `tool` tags a notice the dashboard renders specially (e.g. `credential_stored`). */

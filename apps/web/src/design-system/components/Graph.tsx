@@ -1,4 +1,5 @@
 import {
+  useCallback,
   useId,
   useLayoutEffect,
   useRef,
@@ -9,6 +10,7 @@ import {
 } from 'react';
 import { cx } from '../cx.js';
 import { Anchor } from './Anchor.js';
+import { clamp, OVERVIEW, pct, READABLE, stepIn, stepOut, usePointerZoom, ZoomBar } from './zoom.js';
 
 /** One edge, drawn by the caller's data (the dashboard lays the graph out, never the app). */
 export interface GraphEdge {
@@ -78,18 +80,6 @@ export interface GraphProps {
    * graph is a page's map, as tall as the screen below the header. */
   embedded?: boolean;
 }
-
-/** The zoom steps (design answers Q4, round-3 Q3); Fit may go below the first. */
-const STEPS = [0.25, 0.33, 0.5, 0.67, 0.8, 1, 1.25, 1.5] as const;
-const [MIN, MAX] = [0.1, 1.5];
-/** A map opens no smaller than this (round-3 Q3): the route and title stay readable. */
-const READABLE = 0.8;
-/** Below this the map is an overview: boxes keep shape and state, their words fade. */
-const OVERVIEW = 0.5;
-const clamp = (s: number) => Math.min(MAX, Math.max(MIN, s));
-const stepIn = (s: number) => STEPS.find((z) => z > s + 0.001) ?? s;
-const stepOut = (s: number) => [...STEPS].reverse().find((z) => z < s - 0.001) ?? s;
-const pct = (s: number) => `${String(Math.round(s * 100))}%`;
 
 /** The arrow keys' directions. */
 const DIRS: Record<string, readonly [number, number]> = {
@@ -161,35 +151,6 @@ const graphKeys = (scale: number, zoom: (s: number) => void) => (e: KeyboardEven
   next.focus();
 };
 
-interface ZoomBarProps {
-  controls: string;
-  scale: number;
-  fitted: boolean;
-  zoom: (s: number) => void;
-  fit: () => void;
-}
-
-/** The floating, sticky zoom bar (`.sy-graph__zoom`): −, the level (resets to 100 %), +, Fit. */
-function ZoomBar({ controls, scale, fitted, zoom, fit }: ZoomBarProps) {
-  const quiet = 'sy-btn sy-btn--sm sy-btn--quiet';
-  return (
-    <div className="sy-graph__zoom" role="toolbar" aria-label="Zoom the map" aria-controls={controls}>
-      <button className={quiet} type="button" aria-label="Zoom out" onClick={() => zoom(stepOut(scale))}>
-        −
-      </button>
-      <button className={`${quiet} sy-graph__zoom-level`} type="button" aria-label={`Zoom ${pct(scale)}${scale < OVERVIEW ? ', overview' : ''}, reset to 100%`} onClick={() => zoom(1)}>
-        {pct(scale)}
-      </button>
-      <button className={quiet} type="button" aria-label="Zoom in" onClick={() => zoom(stepIn(scale))}>
-        +
-      </button>
-      <button className={quiet} type="button" aria-pressed={fitted} onClick={fit}>
-        Fit
-      </button>
-    </div>
-  );
-}
-
 /**
  * A graph whose layout the API made (the portal map): edges as SVG paths in their state, nodes as
  * `GraphNode` buttons at their place, in a `.sy-graphview` frame (design answer Q4): as tall as
@@ -227,13 +188,19 @@ export function Graph({ label, width, height, edges, children, embedded = false 
     bringIntoView(el, target, true);
     // eslint-disable-next-line react-hooks/exhaustive-deps -- only on open: later the person zooms and pans
   }, []);
-  useLayoutEffect(() => {
-    const el = box.current;
-    if (!el) return;
+  const zoom = useCallback((s: number) => {
+    setScale(s);
+    setFitted(false);
+    setSaid(`Zoom ${pct(s)}`);
+  }, []);
+  // after a zoom from the bar or the keys: the node to centre, else keep the selected one in view
+  // (a wheel or pinch zoom keeps the point under the pointer instead)
+  const afterZoom = useCallback((el: HTMLElement) => {
     if (centreOn.current) bringIntoView(el, centreOn.current, true);
     else bringIntoView(el, el.querySelector<HTMLElement>('[data-node][aria-pressed="true"]'));
     centreOn.current = null;
-  }, [scale]);
+  }, []);
+  usePointerZoom(box, scale, zoom, afterZoom);
   const overview = scale < OVERVIEW;
   // In overview a click on a node also zooms to 100 % centred on it (the node's own click selects it).
   const onClickCapture = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -242,11 +209,6 @@ export function Graph({ label, width, height, edges, children, embedded = false 
     if (!node) return;
     centreOn.current = node;
     zoom(1);
-  };
-  const zoom = (s: number) => {
-    setScale(s);
-    setFitted(false);
-    setSaid(`Zoom ${pct(s)}`);
   };
   const fit = () => {
     const s = fitScale();

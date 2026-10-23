@@ -14,7 +14,7 @@ import {
   undoCommand,
   type CommandRow,
 } from './workbench-commands.js';
-import { settleCommands } from './workbench-settle.js';
+import { failStarts, settleCommands } from './workbench-settle.js';
 import { asText, workbenchPortal, type Body, type WorkbenchDeps } from './workbench-service.js';
 import { currentTurn } from './workbench-turn.js';
 
@@ -132,6 +132,11 @@ export function cardActions(deps: WorkbenchDeps) {
     /** The timer's pass: expired proposals, confirmed scans whose run started or never did. */
     settle(): void {
       for (const row of settleCommands(raw)) tell(row);
+    },
+
+    /** The step recorder's events: a scan step that failed before its run fails its start. */
+    stepEvents(conversationId: string, events: readonly ChatEvent[]): void {
+      for (const row of failStarts(raw, conversationId, events)) tell(row);
     },
   };
 }

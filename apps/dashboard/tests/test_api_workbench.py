@@ -83,6 +83,59 @@ def test_a_start_card_asks_as_which_persona_and_sends_it(
     assert body == {"token": "test-token-not-real", "by": "dawid", "persona": "guest"}
 
 
+def test_a_start_card_preselects_the_persona_the_assistant_proposed(
+    empty_store: Store,
+    client: TestClient,  # noqa: F811
+) -> None:
+    """Spec 073 FR-002: the assistant said "starting as X"; the card must not send `guest`."""
+    proposed = "klient-premium"  # personas/reference-insurer/, the owner's case on 2026-10-24
+    conn = empty_store.connect()
+    at = "2026-10-06T10:47:00.000Z"
+    insert(
+        conn, "workbench_commands", id="cmd-0003", conversation_id=CONV, turn=1,
+        command="scan.start", args_json=json.dumps({"type": "full_map", "persona": proposed}),
+        reason="you asked for a map scan.", source="assistant", state="proposed",
+        token_hash="0" * 64, precondition_hash="y", idempotency_key="k3",
+        expires_at="2999-01-01T00:00:00Z", created_at=at, updated_at=at,
+    )  # fmt: skip
+    conn.commit()
+    conn.close()
+    cards = {
+        c["dom_id"]: c for c in client.get(API, params={"c": CONV}).json()["turns"][0]["commands"]
+    }
+    assert cards["cmd-cmd-0003"]["persona"] == proposed
+
+
+def test_a_done_start_shows_its_live_map_before_the_assistant_composes(
+    empty_store: Store,
+    client: TestClient,  # noqa: F811
+) -> None:
+    """R-103 (10), F-19: the live card comes from the run (data lane), not the model's turn."""
+    conn = empty_store.connect()
+    at = "2026-10-06T10:48:00.000Z"
+    insert(
+        conn, "chat_messages", id="m2", conversation_id=CONV, seq=2, role="user",
+        content="Start a map scan.", created_at=at,
+    )  # fmt: skip
+    insert(
+        conn, "workbench_commands", id="cmd-0004", conversation_id=CONV, turn=2,
+        command="scan.start", args_json=json.dumps({"type": "full_map"}),
+        reason="you asked for a map scan.", source="button", state="done",
+        token_hash="0" * 64, precondition_hash="z", idempotency_key="k4",
+        expires_at="2999-01-01T00:00:00Z", confirmed_by="dawid", confirmed_at=at,
+        result_json=json.dumps({"run_id": RUN}), created_at=at, updated_at=at,
+    )  # fmt: skip
+    conn.commit()
+    conn.close()
+    turns = client.get(API, params={"c": CONV}).json()["turns"]
+    first, second = turns[0], turns[1]
+    assert [c["type"] for c in second["cards"]] == ["LiveMap"]
+    assert second["cards"][0]["scan"]["run_id"] == RUN
+    assert second["narration"]  # the run's own lines, cited
+    # the view of turn 1 already binds the scan: no second live card there
+    assert [c["type"] for c in first["cards"]].count("LiveMap") == 1
+
+
 def test_the_page_gives_the_turn_with_its_cards_and_a_fresh_token(client: TestClient) -> None:  # noqa: F811
     p = client.get(API, params={"c": CONV}).json()
     assert p["conversation"]["id"] == CONV and p["portal"] == PORTAL

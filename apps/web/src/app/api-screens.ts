@@ -87,12 +87,20 @@ export interface ScreenDetailData {
 
 const base = (portal: string) => `/api/portals/${encodeURIComponent(portal)}/screens`;
 
-export const useScreens = (portal: string, f: ScreenFilter) =>
+/** The list's filter as an address carries it (the Screens page's own, or a screen's `list=`). */
+export function screenFilter(params: URLSearchParams): ScreenFilter {
+  const get = (k: keyof ScreenFilter) => params.get(k) ?? '';
+  return { status: get('status'), q: get('q'), process: get('process'), part: get('part'), why: get('why'), sort: get('sort') };
+}
+
+/** `enabled` false: not asked (a screen opened from elsewhere has no list to walk). */
+export const useScreens = (portal: string, f: ScreenFilter, enabled = true) =>
   useQuery({
     queryKey: ['portals', portal, 'screens', f],
     queryFn: () => getJson<ScreensData>(`${base(portal)}?${new URLSearchParams({ ...f }).toString()}`),
     // A new filter keeps the old rows on screen until its rows arrive (no flash of the loader).
     placeholderData: keepPreviousData,
+    enabled,
   });
 
 export const useScreen = (portal: string, key: string) =>

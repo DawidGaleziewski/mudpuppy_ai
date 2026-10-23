@@ -1,4 +1,4 @@
-import { Cluster, Code, Count, Diagram, Disclosure, Facts, Grid, Note, Plate, Shot, Stack, SubHead, Table, Tag, Text } from '../design-system';
+import { Cluster, Code, Count, Diagram, Disclosure, Facts, Grid, Note, Plate, Shot, Stack, SubHead, Table, Tag, Tags, Text } from '../design-system';
 import type { ContentBlock, ContentFact, DocFigure, DocRecordPage, DocReview } from '../app/api-doc';
 import { ShownStatus } from '../app/ShownStatus';
 import { stateHref } from './RecordedInspector';
@@ -86,7 +86,7 @@ export function VariantMaps({ d }: { d: DocRecordPage }) {
               }
             : { label: 'Process map' })}
         >
-          <Diagram source={m.source} caption={`Process map from the recorded trace steps${many ? ` of ${m.variant}` : ''}`} />
+          <Diagram embedded source={m.source} caption={`Process map from the recorded trace steps${many ? ` of ${m.variant}` : ''}`} />
         </Plate>
       ))}
     </>
@@ -179,9 +179,11 @@ export function Evidence({ d }: { d: DocRecordPage }) {
               cell: (e) =>
                 e.scan ? (
                   <Stack>
-                    <Tag size="sm" href={e.scan.href} {...(e.scan.title ? { title: e.scan.title } : {})}>
-                      {e.scan.label}
-                    </Tag>
+                    <Tags>
+                      <Tag size="sm" href={e.scan.href} {...(e.scan.title ? { title: e.scan.title } : {})}>
+                        {e.scan.label}
+                      </Tag>
+                    </Tags>
                     <Text small muted>{e.scan_note ?? ''}</Text>
                   </Stack>
                 ) : (

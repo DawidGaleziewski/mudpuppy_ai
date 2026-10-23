@@ -69,7 +69,8 @@ keeps the map (spec 042 T050, G-30).
   designer's schemas, checked with `@mudpuppy/workbench-contract`, one view per turn);
   `workbench-commands` (proposals, one-time tokens, Confirm, expiry; the audit row; spec
   044: a Start card's chosen persona, else the newest scan's; spec 072: `persona.add`, its edited
-  args on Confirm and Undo); `workbench-settle` (the timer's pass); `workbench-persona` (spec 044: the
+  args on Confirm and Undo); `workbench-settle` (the timer's pass; a start follows its own scan step's run, and a step that
+  failed before its run fails the start, spec 073); `workbench-persona` (spec 044: the
   persona name check and the `guest`-else-first fallback); `workbench-envs` (spec 048, D-6: the
   environments where commands may run, `MUDPUPPY_WORKBENCH_COMMAND_ENVS`, default local-dev and
   sandbox; a proposal and a confirm elsewhere are refused `PAUSED`);

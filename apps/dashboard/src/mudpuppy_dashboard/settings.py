@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import getpass
 import tempfile
 from pathlib import Path
 
@@ -19,6 +20,14 @@ def find_data_dir(start: Path | None = None) -> Path:
     return Path.cwd() / "data"
 
 
+def _login_name() -> str:
+    """The computer's login name, or "unknown" where there is none (a container, a service)."""
+    try:
+        return getpass.getuser() or "unknown"
+    except (OSError, KeyError):
+        return "unknown"
+
+
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_prefix="MUDPUPPY_", extra="ignore")
 
@@ -29,9 +38,11 @@ class Settings(BaseSettings):
     dev: bool = False
     # Items per page on every paged list (R-71: 25, owner 2026-10-17).
     page_size: int = 25
-    # The name signed on review actions and process changes (spec 004 US3). "unknown" by default
-    # so nobody has to set it each start (owner 2026-10-18); None turns those actions off.
-    reviewer: str | None = "unknown"
+    # The name signed on review actions, process changes and confirmed commands (spec 004 US3).
+    # Nobody has to set it each start (owner 2026-10-18): the computer's login name by default
+    # (spec 073 D-1, R-103 (2): "confirmed_by = unknown" on every command), "unknown" without one;
+    # None turns those actions off.
+    reviewer: str | None = Field(default_factory=_login_name)
     # Where `pnpm docs:review` runs; the dashboard never writes the store (constitution 1.4.0).
     crawler_dir: Path = Field(default_factory=lambda: find_data_dir().parent / "apps" / "crawler")
     review_timeout_s: float = 10.0

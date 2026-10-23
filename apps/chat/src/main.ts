@@ -121,8 +121,10 @@ async function followSteps(
   workbench: WorkbenchService,
 ): Promise<NodeJS.Timeout> {
   const reconcile = async (): Promise<void> => {
-    for (const [conversationId, events] of await recorder.reconcile())
+    for (const [conversationId, events] of await recorder.reconcile()) {
       service.inject(conversationId, events);
+      workbench.stepEvents(conversationId, events);
+    }
     workbench.settle();
   };
   await reconcile();
@@ -160,10 +162,13 @@ async function main(): Promise<void> {
   const launches = new Launches();
   const workbenchOf = (conversationId: string): boolean => isWorkbench(opened.raw, conversationId);
   const service = new ChatService({
-    observe: async (conversationId, event) => [
-      ...(await recorder.observe(conversationId, event)),
-      ...(workbenchOf(conversationId) ? observeWorkbench(opened.raw, conversationId, event) : []),
-    ],
+    observe: async (conversationId, event) => {
+      const steps = await recorder.observe(conversationId, event);
+      if (!workbenchOf(conversationId)) return steps;
+      // spec 073 FR-001: a scan step that failed before its run fails its start card at once
+      workbench.stepEvents(conversationId, steps);
+      return [...steps, ...observeWorkbench(opened.raw, conversationId, event)];
+    },
     opening: (portal, conversationId) =>
       openingMessage(
         workflowState(loadWorkflowInput(opened.raw, { repoRoot }, portal, conversationId)),

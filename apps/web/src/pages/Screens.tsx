@@ -17,7 +17,7 @@ import {
   Tag,
   Text,
 } from '../design-system';
-import { useScreens, type ScreenFilter, type ScreenOut, type ScreensData } from '../app/api-screens';
+import { screenFilter, useScreens, type ScreenFilter, type ScreenOut, type ScreensData } from '../app/api-screens';
 import { QueryState } from '../app/QueryState';
 import { ScreensViews } from '../app/ScreensViews';
 import { Shell } from '../app/Shell';
@@ -30,10 +30,11 @@ const STATUSES = [
   ['retired', 'Retired'],
 ] as const;
 
-const screenHref = (portal: string, key: string) =>
-  `/app/portals/${encodeURIComponent(portal)}/screens/${encodeURIComponent(key)}`;
+/** A screen, with the list it is opened from (`list=`: this list's filter), so it has Prev / Next. */
+const screenHref = (portal: string, key: string, list: string) =>
+  `/app/portals/${encodeURIComponent(portal)}/screens/${encodeURIComponent(key)}?list=${encodeURIComponent(list)}`;
 
-function columns(portal: string) {
+function columns(portal: string, list: string) {
   return [
     {
       header: 'Screen',
@@ -41,7 +42,7 @@ function columns(portal: string) {
       cell: (s: ScreenOut) => (
         <Stack>
           <Cluster>
-            <Tag size="sm" href={screenHref(portal, s.key)}>
+            <Tag size="sm" href={screenHref(portal, s.key, list)}>
               {s.key}
             </Tag>
           </Cluster>
@@ -168,13 +169,14 @@ function List({ portal, data, f, set }: { portal: string; data: ScreensData; f: 
     return <Callout>No model yet: the first scan builds it. Start one from the chat.</Callout>;
   }
   const label = STATUSES.find(([v]) => v === f.status)?.[1] ?? 'All';
+  const list = new URLSearchParams(Object.entries(f).filter(([, v]) => v)).toString();
   return (
     <Stack>
       <Filters data={data} f={f} set={set} />
       <Plate title={`${label} screens · ${String(data.screens.length)}`} flush>
         <Table
           caption={`${label} screens of ${portal}`}
-          columns={columns(portal)}
+          columns={columns(portal, list)}
           rows={data.screens}
           rowKey={(s) => s.key}
           dense
@@ -190,15 +192,7 @@ function List({ portal, data, f, set }: { portal: string; data: ScreensData; f: 
 export function Screens() {
   const portal = useParams().portal ?? '';
   const [params, setParams] = useSearchParams();
-  const get = (k: keyof ScreenFilter) => params.get(k) ?? '';
-  const f: ScreenFilter = {
-    status: get('status'),
-    q: get('q'),
-    process: get('process'),
-    part: get('part'),
-    why: get('why'),
-    sort: get('sort'),
-  };
+  const f = screenFilter(params);
   const set = (next: Partial<ScreenFilter>) => {
     const merged = { ...f, ...next };
     setParams(Object.fromEntries(Object.entries(merged).filter(([, v]) => v)), { replace: true });

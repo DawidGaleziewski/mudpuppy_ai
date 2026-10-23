@@ -1,7 +1,7 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useEffect, useRef } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { createBrowserRouter, Outlet, RouterProvider, useLocation } from 'react-router';
+import { createBrowserRouter, NavigationType, Outlet, RouterProvider, useLocation, useNavigationType } from 'react-router';
 import { LinkProvider } from '../design-system';
 import { Access } from '../pages/Access';
 import { Activity } from '../pages/Activity';
@@ -40,23 +40,60 @@ import { Screens } from '../pages/Screens';
 import { ScreensMap } from '../pages/ScreensMap';
 import { currentAsOf } from './asOf';
 import { currentStore } from './store';
+import { rememberAddress } from './listAddress';
 import { routerLink } from './RouterAnchor';
+import { ShellLayout } from './Shell';
+
+/** Where each visited entry of the history was scrolled to, by its location key (this tab only). */
+const scrolled = new Map<string, number>();
+/** Its data may arrive a moment later: try again while the page grows. */
+const TRIES_MS = [0, 100, 300, 800, 1500];
+
+function later(each: () => boolean | void): () => void {
+  const timers: number[] = [];
+  let done = false;
+  for (const ms of TRIES_MS)
+    timers.push(
+      window.setTimeout(() => {
+        if (!done) done = each() === true;
+      }, ms),
+    );
+  return () => timers.forEach((t) => window.clearTimeout(t));
+}
 
 /**
- * A move inside the app scrolls as a page load would: to the top of a new page, or to the
- * `#anchor` it names once the page has drawn it (its data may arrive a moment later).
+ * A move inside the app scrolls as a browser would (R-103 (7)): Back and Forward return to where
+ * that page was left; a new page opens at the top, or at the `#anchor` it names once drawn. A
+ * change of the query alone (a filter) keeps the scroll.
  */
 function useScrollOnMove() {
-  const { pathname, hash } = useLocation();
+  const { pathname, search, hash, key } = useLocation();
+  const type = useNavigationType();
+  const shown = useRef<string | null>(null);
   useEffect(() => {
+    const keep = () => scrolled.set(key, window.scrollY);
+    window.addEventListener('scroll', keep, { passive: true });
+    return () => window.removeEventListener('scroll', keep);
+  }, [key]);
+  useEffect(() => {
+    rememberAddress(pathname, search);
+    const page = `${pathname}${hash}`;
+    const moved = shown.current !== page;
+    shown.current = page;
+    const back = type === NavigationType.Pop ? scrolled.get(key) : undefined;
+    if (back !== undefined)
+      return later(() => {
+        window.scrollTo?.(0, back);
+        return Math.abs(window.scrollY - back) < 2;
+      });
+    if (!moved) return;
     if (!hash) {
       window.scrollTo?.(0, 0);
       return;
     }
     const id = decodeURIComponent(hash.slice(1));
-    const tries = [0, 200, 600, 1500].map((ms) => window.setTimeout(() => document.getElementById(id)?.scrollIntoView?.(), ms));
-    return () => tries.forEach((t) => window.clearTimeout(t));
-  }, [pathname, hash]);
+    return later(() => document.getElementById(id)?.scrollIntoView?.());
+  }, [pathname, search, hash, key, type]);
 }
 
 /**
@@ -79,13 +116,18 @@ function useAsOfReset() {
   }, [asOf, store, client]);
 }
 
-/** Every page under it draws its links through React Router (no page load between pages). */
+/**
+ * Every page under it draws its links through React Router (no page load between pages), inside
+ * the one frame (R-103 (5)).
+ */
 function Routed() {
   useScrollOnMove();
   useAsOfReset();
   return (
     <LinkProvider draw={routerLink}>
-      <Outlet />
+      <ShellLayout>
+        <Outlet />
+      </ShellLayout>
     </LinkProvider>
   );
 }

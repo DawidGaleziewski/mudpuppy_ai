@@ -244,8 +244,33 @@ def render_turn(rc: Ctx, turn: WbTurn, newer_cards: bool) -> RenderedTurn:
             card.folded = card.type in LIVE_TYPES and done and newer_cards
         _lead(cards, view, turn, rc)
         suggestions = list(view.spec.get("suggestions", []))
+    cards = _started_live(rc, turn, cards)
+    if narr_scan is None and cards and cards[0].scan is not None and cards[0].type == "LiveMap":
+        narr, narr_scan = narration(cards[0].scan), cards[0].scan.short
     commands = [command_card(rc, c) for c in turn.commands]
     return RenderedTurn(turn, cards, narr, narr_scan, suggestions, commands)
+
+
+def _started_live(rc: Ctx, turn: WbTurn, cards: list[Card]) -> list[Card]:
+    """R-103 (10), F-19: a start confirmed in this turn shows its scan's live map at once, from
+    the run (data lane, no model), before the assistant's view arrives; a view that already
+    binds the scan keeps its own card."""
+    shown = {c.scan.run_id for c in cards if c.type in LIVE_TYPES and c.scan is not None}
+    live: list[Card] = []
+    for cmd in turn.commands:
+        run = cmd.result.get("run_id")
+        if cmd.command not in ("scan.start", "scan.resume") or cmd.state != "done":
+            continue
+        if not isinstance(run, str) or run in shown:
+            continue
+        comp = {"type": "LiveMap", "bind": {"scan": run}}
+        card = _with_status(_card(rc, comp, f"t{turn.n}-live-{run[-8:]}"))
+        if card.scan is None:
+            continue
+        card.turn = turn.n
+        live.append(card)
+        shown.add(run)
+    return [*live, *cards]
 
 
 def _standing_reaction(
@@ -319,17 +344,19 @@ def command_card(rc: Ctx, cmd: WbCommand) -> CommandCard:
             ("Undo", "Not undoable. You can stop it."),
         )
         if not continues:
-            return replace(_card_of(rc, cmd, facts), **_persona_choice(rc))
+            return replace(_card_of(rc, cmd, facts), **_persona_choice(rc, cmd.args.get("persona")))
     return _card_of(rc, cmd, facts)
 
 
-def _persona_choice(rc: Ctx) -> dict[str, Any]:
-    """A Start card's "As" choice (spec 044 FR-001…FR-003): the portal's personas, the newest
-    scan's selected first, else `guest`, else the first; none → a link to add one instead."""
+def _persona_choice(rc: Ctx, proposed: object = None) -> dict[str, Any]:
+    """A Start card's "As" choice (spec 044 FR-001…FR-003): the portal's personas, the one the
+    assistant proposed selected first (spec 073 FR-002: it said "as klient-premium", the card
+    must not send another), else the newest scan's, else `guest`, else the first; none → a link
+    to add one instead."""
     if not rc.personas:
         return {"ask_persona": True, "no_persona_url": f"/app/portals/{rc.portal}/settings"}
     newest = queries_wb.newest_persona(rc.conn, rc.portal)
-    first = next((p for p in (newest, "guest") if p in rc.personas), rc.personas[0])
+    first = next((p for p in (proposed, newest, "guest") if p in rc.personas), rc.personas[0])
     return {"ask_persona": True, "personas": rc.personas, "persona": first}
 
 

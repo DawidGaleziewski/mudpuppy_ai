@@ -2,7 +2,7 @@
 // phases and events as facts, the filters asked of the API; the process with its diagram source.
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { Diagram } from '../src/design-system';
+import { Diagram, drawable } from '../src/design-system';
 import { SCAN, scanHead } from './fixtures-scan-views';
 import { at } from './render-at';
 
@@ -208,10 +208,27 @@ describe('Process', () => {
 
 describe('Diagram', () => {
   it('draws the picture once Mermaid renders it, the source until then', async () => {
-    window.mermaid = { initialize: vi.fn(), render: vi.fn(() => Promise.resolve({ svg: '<svg data-drawn="yes"></svg>' })) };
+    window.mermaid = { initialize: vi.fn(), render: vi.fn(() => Promise.resolve({ svg: '<svg data-drawn="yes" viewBox="0 0 900 300"></svg>' })) };
     render(<Diagram source="flowchart TD" caption="Process map" />);
     await waitFor(() => expect(document.querySelector('svg[data-drawn="yes"]')).toBeTruthy());
     expect(screen.getByRole('img', { name: 'Process map' })).toBeTruthy();
     delete window.mermaid;
+  });
+
+  it("sits in the map's frame with its zoom bar, and Mermaid gets step labels it can draw (R-103 (9))", async () => {
+    const render_ = vi.fn<(id: string, src: string) => Promise<{ svg: string }>>(() => Promise.resolve({ svg: '<svg viewBox="0 0 900 300"></svg>' }));
+    window.mermaid = { initialize: vi.fn(), render: render_ };
+    const source = 'flowchart TD\n  s1["1. navigate: Open the calculator"] --> s2["2. fill: Enter the car model"]';
+    render(<Diagram embedded source={source} caption="Process map" />);
+    const bar = await screen.findByRole('toolbar', { name: 'Zoom the diagram' });
+    expect(bar.parentElement?.className).toBe('sy-graphview sy-graphview--embedded');
+    expect(render_.mock.calls[0]?.[1]).toContain('s1["1\\. navigate: Open the calculator"]');
+    fireEvent.click(screen.getByRole('button', { name: 'Zoom in' }));
+    expect(screen.getByRole('button', { name: /reset to 100%/ }).textContent).toBe('125%');
+    delete window.mermaid;
+  });
+
+  it('leaves a source without numbered labels as it is', () => {
+    expect(drawable('flowchart TD\n  a["Buy"] --> b(["2 policies"])')).toBe('flowchart TD\n  a["Buy"] --> b(["2 policies"])');
   });
 });

@@ -1,4 +1,6 @@
-import { useEffect, useId, useState } from 'react';
+import { useCallback, useEffect, useId, useLayoutEffect, useRef, useState, type CSSProperties, type KeyboardEvent } from 'react';
+import { cx } from '../cx.js';
+import { clamp, pct, READABLE, stepIn, stepOut, usePointerZoom, ZoomBar } from './zoom.js';
 
 /** The part of Mermaid this component uses. */
 interface Mermaid {
@@ -58,6 +60,19 @@ function theme(m: Mermaid): Mermaid {
   return m;
 }
 
+/**
+ * The source as Mermaid should read it: a label that starts "1. kind: intent" (a process map's
+ * step) is read as a Markdown list, which Mermaid draws as "Unsupported markdown: list" (spec 056
+ * finding), so its number's dot is escaped. Only what is drawn changes; the stored source does not.
+ */
+export const drawable = (source: string) => source.replace(/(["[({]\s*)(\d+)\. /g, '$1$2\\. ');
+
+/** The drawing's own size, from its viewBox (Mermaid sizes the SVG to its box otherwise). */
+function sizeOf(svg: string): { width: number; height: number } | null {
+  const m = /viewBox="[\d.-]+ [\d.-]+ ([\d.]+) ([\d.]+)"/.exec(svg);
+  return m ? { width: Number(m[1]), height: Number(m[2]) } : null;
+}
+
 export interface DiagramProps {
   /** The Mermaid source: also the text alternative, shown until the picture is drawn. */
   source: string;
@@ -65,19 +80,25 @@ export interface DiagramProps {
   caption: string;
   /** Where Mermaid is served (the console's vendored copy, `public/vendor/`). */
   script?: string;
+  /** Inside another page (a record, a scan's Process tab): at most 520 px tall. */
+  embedded?: boolean;
 }
 
 /**
- * A Mermaid diagram (a process map) drawn in the Salvage Yard tokens. Mermaid loads only when a
- * diagram is shown; until it is drawn, and if it cannot be, the source is shown as text.
+ * A Mermaid diagram (a process map, the capability map) drawn in the Salvage Yard tokens, in the
+ * map's frame (R-103 (9)): the graph view with its zoom bar (−, level, +, Fit) and the same zoom
+ * as the map (Ctrl / ⌘ + wheel or a pinch at the pointer, + / − / 0 keys). It opens readable: its
+ * own size when that fits, else fitted when that is 80 % or more, else 80 % from its top-left.
+ * Mermaid loads only when a diagram is shown; until it is drawn, and if it cannot be, the source
+ * is shown as text.
  */
-export function Diagram({ source, caption, script = '/app/vendor/mermaid.min.js' }: DiagramProps) {
+export function Diagram({ source, caption, script = '/app/vendor/mermaid.min.js', embedded = false }: DiagramProps) {
   const id = `diagram-${useId().replace(/[^a-zA-Z0-9]/g, '')}`;
   const [svg, setSvg] = useState<string | null>(null);
   useEffect(() => {
     let live = true;
     loadMermaid(script)
-      .then((m) => m.render(id, source))
+      .then((m) => m.render(id, drawable(source)))
       .then((r) => {
         if (live) setSvg(r.svg);
       })
@@ -88,15 +109,69 @@ export function Diagram({ source, caption, script = '/app/vendor/mermaid.min.js'
       live = false;
     };
   }, [id, source, script]);
+  const size = svg === null ? null : sizeOf(svg);
   return (
     <figure className="sy-stack">
       <figcaption className="sy-label">{caption}</figcaption>
-      {svg === null ? (
+      {svg === null || size === null ? (
         <pre className="sy-code">{source}</pre>
       ) : (
-        // Mermaid's own SVG, rendered with securityLevel strict (no scripts, no HTML labels)
-        <div role="img" aria-label={caption} dangerouslySetInnerHTML={{ __html: svg }} />
+        <DiagramView id={`${id}-view`} svg={svg} size={size} caption={caption} embedded={embedded} />
       )}
     </figure>
   );
 }
+
+function DiagramView({ id, svg, size, caption, embedded }: { id: string; svg: string; size: { width: number; height: number }; caption: string; embedded: boolean }) {
+  const box = useRef<HTMLElement>(null);
+  const [scale, setScale] = useState(1);
+  const [fitted, setFitted] = useState(false);
+  const [said, setSaid] = useState('');
+  const fitScale = useCallback(() => {
+    const el = box.current;
+    return el && el.clientWidth > 0 ? clamp((el.clientWidth - 32) / size.width) : 1;
+  }, [size.width]);
+  useLayoutEffect(() => {
+    const el = box.current;
+    if (!el || el.clientWidth === 0 || size.width <= el.clientWidth) return;
+    const fit = fitScale();
+    setScale(fit >= READABLE ? Math.min(fit, 1) : READABLE);
+    setFitted(fit >= READABLE);
+  }, [fitScale, size.width]);
+  const zoom = useCallback((s: number) => {
+    setScale(s);
+    setFitted(false);
+    setSaid(`Zoom ${pct(s)}`);
+  }, []);
+  usePointerZoom(box, scale, zoom, keepTopLeft);
+  const fit = () => {
+    const s = fitScale();
+    setScale(s);
+    setFitted(true);
+    setSaid(`Zoom ${pct(s)}, fitted`);
+  };
+  const keys = (e: KeyboardEvent<HTMLElement>) => {
+    const to = { '+': stepIn(scale), '=': stepIn(scale), '-': stepOut(scale), '0': 1 }[e.key];
+    if (to === undefined) return;
+    e.preventDefault();
+    zoom(to);
+  };
+  // layout only: the drawing's size and the zoom (the graph canvas's inline exception)
+  const canvas: CSSProperties = { width: size.width, height: size.height, zoom: scale };
+  return (
+    <div className={cx('sy-graphview', embedded && 'sy-graphview--embedded')}>
+      <ZoomBar controls={id} label="Zoom the diagram" scale={scale} fitted={fitted} zoom={zoom} fit={fit} />
+      <span className="sy-sr-only" aria-live="polite">
+        {said}
+      </span>
+      {/* focusable, so its keys work; the diagram is a picture, its source is the text version */}
+      <section id={id} className="sy-graph" aria-label={caption} ref={box} tabIndex={0} onKeyDown={keys}>
+        {/* Mermaid's own SVG, rendered with securityLevel strict (no scripts, no HTML labels) */}
+        <div className="sy-graph__canvas" style={canvas} role="img" aria-label={caption} dangerouslySetInnerHTML={{ __html: svg }} />
+      </section>
+    </div>
+  );
+}
+
+/** A diagram zoomed from the bar or the keys keeps its scroll (it has no node to keep in view). */
+const keepTopLeft = () => undefined;

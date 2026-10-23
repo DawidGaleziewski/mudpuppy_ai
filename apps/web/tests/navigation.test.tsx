@@ -1,6 +1,7 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, within } from '@testing-library/react';
 import { MemoryRouter } from 'react-router';
 import { afterEach, describe, expect, it, vi } from 'vitest';
+import { switchHref } from '../src/app/PortalMenu';
 import { routerLink } from '../src/app/RouterAnchor';
 import { at } from './render-at';
 
@@ -15,7 +16,7 @@ describe('Navigation', () => {
       '/api/portals': { environment: 'local-dev', portals: [{ id: 'shop', scans: 1, running: 0, last_scan_at: null }], other_environments: [] },
       '/api/portals/shop/scans': { portal: 'shop', total: 0, scans: [] },
     });
-    const link = await screen.findByRole('link', { name: 'shop' });
+    const link = await within(screen.getByRole('main')).findByRole('link', { name: 'shop' });
     // a router link: the click is taken by the app, so the browser does not load the address
     const event = new MouseEvent('click', { bubbles: true, cancelable: true, button: 0 });
     fireEvent(link, event);
@@ -25,6 +26,53 @@ describe('Navigation', () => {
     expect(await screen.findByRole('heading', { level: 1, name: /Scans/ })).toBeTruthy();
     // the portals list was fetched once, not again on every page
     expect(fetch.mock.calls.filter(([url]) => url === '/api/portals').length).toBe(1);
+  });
+
+  it('keeps the frame on a nav click: the header and nav are not drawn again (R-103 (5))', async () => {
+    at('/app/portals/shop/scans', {
+      '/api/portals': { environment: 'local-dev', portals: [{ id: 'shop', scans: 1, running: 0, last_scan_at: null }], other_environments: [] },
+      '/api/portals/shop/scans': { portal: 'shop', total: 0, scans: [] },
+    });
+    expect(await screen.findByRole('heading', { level: 1, name: /Scans/ })).toBeTruthy();
+    const header = screen.getByRole('banner');
+    const nav = screen.getByRole('navigation', { name: 'Portal sections' });
+    fireEvent.click(screen.getByRole('link', { name: 'Processes' }));
+    expect(await screen.findByRole('heading', { level: 1, name: /Processes/ })).toBeTruthy();
+    expect(screen.getByRole('banner')).toBe(header);
+    expect(screen.getByRole('navigation', { name: 'Portal sections' })).toBe(nav);
+    expect(screen.getByRole('link', { name: 'Processes' }).getAttribute('aria-current')).toBe('page');
+  });
+
+  it('switches portal from the header and stays on Processes (FE-N02, R-103 (3))', async () => {
+    const list = { environment: 'local-dev', portals: [{ id: 'shop', scans: 1, running: 0, last_scan_at: null }, { id: 'bank', scans: 0, running: 0, last_scan_at: null }], other_environments: [] };
+    at('/app/portals/shop/processes?store=main:local-dev', { '/api/portals': list });
+    expect(await screen.findByRole('heading', { level: 1, name: /Processes/ })).toBeTruthy();
+    const picker = within(screen.getByRole('banner')).getByRole('list', { name: 'Switch portal' });
+    fireEvent.click(await within(picker).findByRole('link', { name: 'bank' }));
+    // the same section in the other portal, the data store kept
+    await screen.findByText('Portal: bank');
+    expect(within(screen.getByRole('banner')).getByRole('link', { name: 'bank' }).getAttribute('href')).toBe('/app/portals/bank/processes?store=main%3Alocal-dev');
+    expect(screen.getByRole('link', { name: 'Processes' }).getAttribute('aria-current')).toBe('page');
+    expect(screen.getByRole('link', { name: 'Processes' }).getAttribute('href')).toContain('/app/portals/bank/processes');
+  });
+
+  it('opens a detail page’s list in the other portal, and a past version at Now', () => {
+    expect(switchHref('/app/portals/shop/processes/PROC-001', '', 'bank')).toBe('/app/portals/bank/processes');
+    expect(switchHref('/app/portals/shop/screens/map', '', 'bank')).toBe('/app/portals/bank/screens/map');
+    expect(switchHref('/app/scans/01a110d5-2028/trace', '', 'bank')).toBe('/app/portals/bank/scans');
+    expect(switchHref('/app/portals/shop/rules/BR-021', '?as_of=4', 'bank')).toBe('/app/portals/bank/rules?as_of=now');
+    expect(switchHref('/app/glossary', '', 'bank')).toBe('/app/portals/bank');
+    expect(switchHref('/app/', '', 'bank')).toBe('/app/portals/bank');
+  });
+
+  it('keeps the whole nav on All portals, for the portal used last (designer v2-15)', async () => {
+    const list = { environment: 'local-dev', portals: [{ id: 'shop', scans: 1, running: 0, last_scan_at: null }], other_environments: [] };
+    at('/app/portals/shop/scans', { '/api/portals': list, '/api/portals/shop/scans': { portal: 'shop', total: 0, scans: [] } });
+    expect(await screen.findByRole('heading', { level: 1, name: /Scans/ })).toBeTruthy();
+    fireEvent.click(within(screen.getByRole('navigation', { name: 'Portal sections' })).getByRole('link', { name: 'Portals' }));
+    expect(await screen.findByRole('heading', { level: 1, name: 'Portals' })).toBeTruthy();
+    const nav = screen.getByRole('navigation', { name: 'Portal sections' });
+    expect(within(nav).getByRole('link', { name: 'Processes' }).getAttribute('href')).toContain('/app/portals/shop/processes');
   });
 
   it('keeps files, downloads and new tabs plain links', () => {

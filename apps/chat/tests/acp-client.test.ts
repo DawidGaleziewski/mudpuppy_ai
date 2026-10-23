@@ -3,6 +3,7 @@ import {
   AcpChat,
   launchedInBackground,
   promptFailureMessage,
+  toolError,
   type PermissionPolicy,
   type PermissionQuery,
 } from '../src/acp-client.js';
@@ -228,5 +229,16 @@ describe('launchedInBackground (F-17)', () => {
       }),
     ).toBe(false);
     expect(launchedInBackground({})).toBe(false);
+  });
+});
+
+describe('toolError (spec 073 FR-001)', () => {
+  it("takes an MCP tool's error message, else the first text", () => {
+    const body = JSON.stringify({ error: { code: 'ROBOTS_UNAVAILABLE', message: 'robots.txt could not be read' } });
+    expect(toolError({ content: [{ type: 'content', content: { type: 'text', text: body } }] })).toBe(
+      'robots.txt could not be read',
+    );
+    expect(toolError({ rawOutput: 'Permission denied: not allowed' })).toBe('Permission denied: not allowed');
+    expect(toolError({})).toBeNull();
   });
 });

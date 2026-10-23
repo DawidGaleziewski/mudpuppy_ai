@@ -3314,6 +3314,23 @@ entries:
     changed_in: R-100
     changed_on: 2026-10-23
 
+  - id: portal-picker
+    term: Portal picker
+    category: mudpuppy
+    group: Dashboard
+    short: The header's menu of portals, which switches portal and keeps the section you are in.
+    explanation: |
+      "Portal: X" in the header lists the environment's portals, then All portals and + New
+      portal. Switching on Processes opens the other portal's Processes; a detail page (one
+      record, screen, process or scan) opens its section's list, and a past model version opens
+      at Now. The data store stays. All portals keeps the whole nav, for the portal used last.
+    example: "Portal: reference-insurer-local → proving-ground-shop-local: /processes stays /processes."
+    appears_in: [Header]
+    labels: [Portal, All portals, + New portal]
+    related: [react-console]
+    changed_in: R-103
+    changed_on: 2026-10-24
+
   - id: phase-bar
     term: Phase bar
     category: mudpuppy
@@ -3783,13 +3800,18 @@ entries:
       it or you pressed a button. Confirm uses a one-time token; a card expires after 10 minutes or
       when what it assumed changed (the scan was resumed from Scans meanwhile). States: Proposed,
       Running, Done, Failed, Cancelled, Expired. The assistant can start the crawler only with the
-      prompt a confirmed card handed over. Each confirm is kept as an audit row.
+      prompt a confirmed card handed over. Each confirm is kept as an audit row, signed with the
+      reviewer's name (the computer's login name unless set).
+
+      A start is Done only with the run its own scan step followed, and its live map shows at
+      once; a start the crawler refused (the portal down) ends Failed with the crawler's own
+      sentence and a reference. A Start card is set to the persona the assistant proposed.
     example: "Resume from last checkpoint · Starts a new scan that continues 01a110d5 · From /porownanie · Confirm."
     appears_in: [Workbench, workbench_commands]
     labels: [command card, Confirm, propose_command]
     related: [workbench, view-spec]
-    changed_in: R-92
-    changed_on: 2026-10-22
+    changed_in: R-103
+    changed_on: 2026-10-24
 
   - id: data-lane
     term: Data lane and words lane

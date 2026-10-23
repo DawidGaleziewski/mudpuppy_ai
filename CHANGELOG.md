@@ -5,6 +5,22 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Fixed
+- **R-103: console bugs from the owner's UI review** (spec 073, v2.8.1, 2026-10-24). A scan start
+  the crawler refused (the portal down) now ends Failed with the crawler's own sentence and a
+  reference, and a start never takes another start's scan; a start the assistant proposed as a
+  persona scans as that persona; confirms are signed with the computer's login name. A started
+  scan's live map shows at once, before the assistant's view. The header has the portal picker
+  again (the section kept, the data store kept), and All portals keeps the nav. The header, nav
+  and assistant drawer stay put on a nav click (no blink), and a page loads with the designer's
+  caret state in its body. Back returns to where you were on the page, and a crumb opens the list
+  as you left it. A screen opened from Screens has ← Prev · n of N · Next → (J / K). Maps and
+  diagrams zoom with Ctrl / ⌘ + wheel or a pinch at the pointer, and a drag no longer selects
+  their words; diagrams (the capability map, process maps) sit in the map's frame with its zoom
+  bar, and process-map steps no longer read "Unsupported markdown: list". Tag lists no longer
+  stretch full width. Adding loose screens to an existing process waits for the designer
+  (round 4 Q2).
+
 ### Changed
 - **R-100: the console is a 100% React single-page app** (spec 071, v2.7.0, 2026-10-23). Moving
   between pages no longer reloads the app: every link goes through React Router (30–120 ms a

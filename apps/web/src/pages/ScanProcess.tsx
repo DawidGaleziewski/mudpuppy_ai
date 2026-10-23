@@ -70,7 +70,7 @@ function Body({ d }: { d: ProcessTab }) {
       </Plate>
       {d.diagram && (
         <Plate label="Process map">
-          <Diagram source={d.diagram} caption="Process map from the recorded steps" />
+          <Diagram embedded source={d.diagram} caption="Process map from the recorded steps" />
         </Plate>
       )}
       <Plate title={`Steps · ${String(d.steps.length)}`} flush>

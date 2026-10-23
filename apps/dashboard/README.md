@@ -38,7 +38,8 @@ address, kept on every link and API call).
 
 Decisions (confirm, reject, a Same screen? answer, a process edit, a mark, a scan to start) are
 sent to the local chat service (`pnpm --dir apps/chat start`, default `http://127.0.0.1:4310`,
-override with `MUDPUPPY_CHAT_URL`), signed with the reviewer's name:
+override with `MUDPUPPY_CHAT_URL`), signed with the reviewer's name (the computer's login name
+unless set):
 
 ```bash
 MUDPUPPY_REVIEWER="Your Name" uv run mudpuppy-dashboard --env sandbox

@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { Callout, Count, LinkButton, PageHead, Plate, Row, Rows, ScanId, Stack, Status, Table, Tag, Text } from '../design-system';
+import { Callout, Count, LinkButton, PageHead, Plate, Row, Rows, ScanId, Stack, Status, Table, Tag, Tags, Text } from '../design-system';
 import { getJson, usePortals, type NeedsItem, type PortalList, type StatusOut } from '../app/api';
 import { QueryState } from '../app/QueryState';
 import { Shell } from '../app/Shell';
@@ -88,11 +88,14 @@ function Environment({ list }: { list: PortalList }) {
   if (list.other_environments.length === 0) return null;
   return (
     <Plate title="Other environments">
-      {list.other_environments.map((p) => (
-        <Tag key={p} size="sm">
-          {p}
-        </Tag>
-      ))}
+      {/* a row of tags, not one full-width bar each (R-103 (11)) */}
+      <Tags>
+        {list.other_environments.map((p) => (
+          <Tag key={p} size="sm">
+            {p}
+          </Tag>
+        ))}
+      </Tags>
     </Plate>
   );
 }

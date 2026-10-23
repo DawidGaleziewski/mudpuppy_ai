@@ -44,7 +44,8 @@ describe('Screens list', () => {
   it('lists the model screens with their status, why, checked meter and process', async () => {
     at('/app/portals/shop/screens', { [LIST]: list });
     expect(await screen.findByText('Kalkulator OC/AC')).toBeTruthy();
-    expect(screen.getByRole('link', { name: 'SC-0001' }).getAttribute('href')).toBe('/app/portals/shop/screens/SC-0001');
+    // the screen opens with the list it came from, for its Prev / Next (R-103 (4))
+    expect(screen.getByRole('link', { name: 'SC-0001' }).getAttribute('href')).toBe('/app/portals/shop/screens/SC-0001?list=');
     expect(screen.getByText('Needs you · 2')).toBeTruthy();
     expect(screen.getByRole('progressbar', { name: 'Actions checked on Kalkulator OC/AC' })).toBeTruthy();
     expect(screen.getByText('Buy a policy')).toBeTruthy();
@@ -144,6 +145,27 @@ describe('Screen', () => {
     fireEvent.click(screen.getByRole('tab', { name: 'History 1' }));
     expect(await screen.findByRole('list', { name: 'Changes on this screen' })).toBeTruthy();
     expect(screen.queryByRole('link', { name: /^Compare with/ })).toBeNull(); // one variant: nothing to compare
+  });
+
+  it('steps to the neighbours of the list it was opened from, with J / K (R-103 (4))', async () => {
+    const sorted = '/api/portals/shop/screens?status=&q=&process=&part=&why=&sort=route';
+    const three = { ...list, screens: [{ ...row, key: 'SC-0000' }, row, { ...row, key: 'SC-0002' }] };
+    at('/app/portals/shop/screens/SC-0001?list=sort%3Droute', {
+      '/api/portals/shop/screens/SC-0001': detail,
+      [sorted]: three,
+      '/api/portals/shop/screens/SC-0002': { ...detail, screen: { ...detail.screen, key: 'SC-0002' } },
+    });
+    expect(await screen.findByText('2 of 3')).toBeTruthy();
+    expect(screen.getByRole('link', { name: '← Prev' }).getAttribute('href')).toBe('/app/portals/shop/screens/SC-0000?list=sort%3Droute');
+    fireEvent.keyDown(document, { key: 'j' });
+    expect(await screen.findByText('3 of 3')).toBeTruthy();
+    expect(screen.queryByRole('link', { name: 'Next →' })).toBeNull();
+  });
+
+  it('has no Prev / Next when opened from elsewhere', async () => {
+    at('/app/portals/shop/screens/SC-0001', { '/api/portals/shop/screens/SC-0001': detail });
+    expect(await screen.findByRole('region', { name: /Needs you on this screen/ })).toBeTruthy();
+    expect(screen.queryByText(/of \d+$/)).toBeNull();
   });
 
   it('compares a persona variant with the first one side by side (designer Q10)', async () => {

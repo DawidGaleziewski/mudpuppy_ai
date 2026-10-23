@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
+import { createContext, useCallback, useContext, useEffect, useLayoutEffect, useMemo, useState, type ReactNode } from 'react';
 import { useParams, useSearchParams } from 'react-router';
 import { AppShell, Button, Callout, Cluster, LinkButton, SearchBox, Stack, Text, type NavGroup } from '../design-system';
 import type { PageContext } from './api-assistant';
@@ -9,8 +9,35 @@ import { StoreBanner, StoreMenu } from './StoreMenu';
 import { useGo } from './RouterAnchor';
 import { AssistantContext, keepSay } from './assistant-context';
 import { AssistantDrawer } from './AssistantDrawer';
+import { PortalMenu } from './PortalMenu';
 
 const OPEN_KEY = 'mudpuppy.assistant.open';
+const LAST_PORTAL_KEY = 'mudpuppy.portal.last';
+
+function storedPortal(): string | undefined {
+  try {
+    return localStorage.getItem(LAST_PORTAL_KEY) ?? undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+/**
+ * The portal used last in this browser (a per-viewer convenience): the nav on All portals points
+ * at it. One the store no longer lists is forgotten.
+ */
+function useLastPortal(portal: string | undefined, known: string[] | undefined): string | undefined {
+  const last = portal ?? storedPortal();
+  useEffect(() => {
+    if (portal === undefined) return;
+    try {
+      localStorage.setItem(LAST_PORTAL_KEY, portal);
+    } catch {
+      // nothing to keep it in: All portals shows only Portals
+    }
+  }, [portal]);
+  return last !== undefined && known?.includes(last) ? last : undefined;
+}
 
 // Whether the drawer is open is a per-viewer convenience for the session; storage may be missing.
 function storedOpen(): boolean {
@@ -39,13 +66,19 @@ function useAssistantOpen() {
   const [params, setParams] = useSearchParams();
   const asked = params.get('assistant') === 'open';
   const [open, setOpen] = useState(() => asked || storedOpen());
+  // the frame stays mounted (R-103 (5)): an address that asks later opens the drawer too
+  const [wasAsked, setWasAsked] = useState(asked);
+  if (asked !== wasAsked) {
+    setWasAsked(asked);
+    if (asked) setOpen(true);
+  }
   const turn = useCallback((next: boolean) => {
     setOpen(next);
     keepOpen(next);
   }, []);
   useEffect(() => {
     if (!asked) return;
-    // the drawer opened with the address (the state's first value); keep it open on the next pages
+    // the drawer opened with the address; keep it open on the next pages
     keepOpen(true);
     setParams(
       (p) => {
@@ -156,20 +189,47 @@ function HeaderEnd({ portal, model, open, turn }: { portal: string | undefined; 
   );
 }
 
-/** The console frame: the portal's sections in the 2.0 grouping, the current one marked, and the assistant. */
-export function Shell({
-  current,
-  portal: given,
-  context = null,
-  children,
-}: {
+/** What a page tells the frame: its section, its portal when the address lacks it, its context. */
+interface FrameOf {
   current: Section;
   /** The portal when the address does not name it (a scan's page). */
   portal?: string | undefined;
   /** What "This page" means for the assistant (spec 022 R6); none: the whole yard only. */
   context?: PageContext | null;
-  children: ReactNode;
-}) {
+}
+
+const FrameContext = createContext<(frame: FrameOf) => void>(() => undefined);
+
+const sameFrame = (a: FrameOf, b: FrameOf) =>
+  a.current === b.current && a.portal === b.portal && JSON.stringify(a.context ?? null) === JSON.stringify(b.context ?? null);
+
+/**
+ * The console frame, drawn once around every page (R-103 (5)): a nav click swaps only the page,
+ * so the header, the nav and the assistant drawer stay as they are (no blink, the drawer keeps its
+ * conversation). Each page hands up its section, portal and context with `Shell`.
+ */
+export function ShellLayout({ children }: { children: ReactNode }) {
+  const [frame, setFrame] = useState<FrameOf>({ current: 'portals' });
+  const hand = useCallback((next: FrameOf) => setFrame((prev) => (sameFrame(prev, next) ? prev : next)), []);
+  return (
+    <FrameContext.Provider value={hand}>
+      <Frame {...frame}>{children}</Frame>
+    </FrameContext.Provider>
+  );
+}
+
+/**
+ * A page's part of the frame: its section marked in the nav, its portal and what "This page" means
+ * for the assistant; the frame itself is `ShellLayout`'s, drawn once.
+ */
+export function Shell({ current, portal, context = null, children }: FrameOf & { children: ReactNode }) {
+  const hand = useContext(FrameContext);
+  // before paint, so the nav marks the new section in the same frame the page appears
+  useLayoutEffect(() => hand({ current, portal, context }), [hand, current, portal, context]);
+  return <>{children}</>;
+}
+
+function Frame({ current, portal: given, context = null, children }: FrameOf & { children: ReactNode }) {
   const params = useParams();
   const portal = given ?? params.portal;
   const { open, turn } = useAssistantOpen();
@@ -180,7 +240,9 @@ export function Shell({
   const searched = current === 'search' ? (query.get('q') ?? '') : '';
   const portals = usePortals().data;
   const workbench = portals?.workbench === true;
-  const nav = navOf(portal, current, workbench);
+  const last = useLastPortal(portal, portals?.portals.map((p) => p.id));
+  // All portals keeps the whole nav, for the portal used last (designer v2-15, R-103 (3))
+  const nav = navOf(portal ?? last, current, workbench);
   // the model pages follow As of (spec 040 FR-001)
   const model = current === 'processes' || current === 'screens' || current === 'rules';
   return (
@@ -189,7 +251,7 @@ export function Shell({
         nav={nav}
         header={
           <>
-            {portal && <Text mono>{portal}</Text>}
+            <PortalMenu portal={portal} />
             <SearchBox key={searched} value={searched} onSearch={(q) => go(searchHref(q, portal))} />
           </>
         }

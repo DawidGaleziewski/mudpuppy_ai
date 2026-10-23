@@ -3802,7 +3802,12 @@ Starting, resuming or stopping a scan is always a card first, whether the assist
 it or you pressed a button. Confirm uses a one-time token; a card expires after 10 minutes or
 when what it assumed changed (the scan was resumed from Scans meanwhile). States: Proposed,
 Running, Done, Failed, Cancelled, Expired. The assistant can start the crawler only with the
-prompt a confirmed card handed over. Each confirm is kept as an audit row.
+prompt a confirmed card handed over. Each confirm is kept as an audit row, signed with the
+reviewer's name (the computer's login name unless set).
+
+A start is Done only with the run its own scan step followed, and its live map shows at
+once; a start the crawler refused (the portal down) ends Failed with the crawler's own
+sentence and a reference. A Start card is set to the persona the assistant proposed.
 
 *Example:* Resume from last checkpoint · Starts a new scan that continues 01a110d5 · From /porownanie · Confirm.
 
@@ -3812,7 +3817,7 @@ prompt a confirmed card handed over. Each confirm is kept as an audit row.
 
 *Related:* [Workbench (beta)](#workbench), [View spec](#view-spec)
 
-<sub>Last changed in R-92, 2026-10-22.</sub>
+<sub>Last changed in R-103, 2026-10-24.</sub>
 
 <a id="data-lane"></a>
 
@@ -4001,6 +4006,27 @@ the skill `mudpuppy-react-ui`.
 *Related:* [Persona sample](#persona-sample)
 
 <sub>Last changed in R-100, 2026-10-23.</sub>
+
+<a id="portal-picker"></a>
+
+#### Portal picker
+
+**The header's menu of portals, which switches portal and keeps the section you are in.**
+
+"Portal: X" in the header lists the environment's portals, then All portals and + New
+portal. Switching on Processes opens the other portal's Processes; a detail page (one
+record, screen, process or scan) opens its section's list, and a past model version opens
+at Now. The data store stays. All portals keeps the whole nav, for the portal used last.
+
+*Example:* Portal: reference-insurer-local → proving-ground-shop-local: /processes stays /processes.
+
+*Seen in:* Header
+
+*Labels:* `Portal`, `All portals`, `+ New portal`
+
+*Related:* [React console](#react-console)
+
+<sub>Last changed in R-103, 2026-10-24.</sub>
 
 <a id="phase-bar"></a>
 

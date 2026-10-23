@@ -332,7 +332,7 @@ export class ChatService {
         if (event.status === 'failed')
           await store.appendMessage(conversationId, {
             role: 'system',
-            content: `The ${event.step} step failed. Ask the assistant what to do next, or give the reference to a developer.`,
+            content: `The ${event.step} step failed${event.message === undefined ? '' : `: ${event.message.replace(/\.$/, '')}`}. Ask the assistant what to do next, or give the reference to a developer.`,
             errorRef: event.errorRef,
           });
         return;

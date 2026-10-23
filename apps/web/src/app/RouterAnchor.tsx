@@ -2,6 +2,7 @@ import { useCallback } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router';
 import type { AnchorProps, DrawLink } from '../design-system';
 import { currentAsOf, withAsOf } from './asOf';
+import { asLeft } from './listAddress';
 import { currentStore, withStore } from './store';
 
 /** An address the app's router draws: a page under `/app/`, or a change of query or hash on this page. */
@@ -12,7 +13,9 @@ export function inApp(href: string): boolean {
 /** A router link that keeps the data store, and As of between model pages (spec 040 FR-001). */
 function AppLink({ href, ...rest }: AnchorProps) {
   const { search } = useLocation();
-  return <Link to={withStore(withAsOf(href, currentAsOf(search)), currentStore(search))} {...rest} />;
+  // a crumb up the section tree returns to the list as it was left (R-103 (7))
+  const to = rest.rel === 'up' ? asLeft(href) : href;
+  return <Link to={withStore(withAsOf(to, currentAsOf(search)), currentStore(search))} {...rest} />;
 }
 
 /**
