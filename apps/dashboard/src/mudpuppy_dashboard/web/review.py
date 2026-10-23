@@ -323,26 +323,6 @@ async def review_record(
     return RedirectResponse(target, status_code=303)
 
 
-SUITE_DONE = {
-    "save": "Changes saved; the suite waits for approval.",
-    "approve": "Suite approved: written into traces.yaml.",
-    "dismiss": "Suite dismissed.",
-}
-
-
-def suite_calls(
-    action: str, trace: dict[str, Any] | None, form: dict[str, list[str]], author: str
-) -> list[tuple[str, dict[str, Any]]] | None:
-    """The chat service calls for a probe suite form (spec 032 US3): Save keeps the edited suite
-    open; Approve saves the edit first, then approves it; Dismiss. None for an unknown action."""
-    if action == "dismiss":
-        return [("dismiss", {"author": author})]
-    if action not in ("save", "approve") or trace is None:
-        return None
-    calls = [("edit", {"author": author, "trace": suite_form.edited_trace(trace, form)})]
-    return calls + ([("approve", {"author": author})] if action == "approve" else [])
-
-
 async def _suite_call(
     web: Any, env: str, path: str, body: dict[str, Any], ok: int = 200
 ) -> str | None:
@@ -377,7 +357,8 @@ async def review_suite(
             suite = queries_suites.suite_by_id(conn, portal, suite_id)
     except db.StoreMissing as err:
         return web.missing(c, err)
-    calls = suite_calls(action, suite.trace if suite else None, form, author) if author else None
+    trace = suite.trace if suite else None
+    calls = suite_form.suite_calls(action, trace, form, author) if author else None
     if not author:
         note = "Set MUDPUPPY_REVIEWER to your name to decide on suites."
     elif calls is None:
@@ -389,7 +370,7 @@ async def review_suite(
             refused = await _suite_call(web, c.env, base + verb, body)
             if refused:
                 break
-        note = f"Not recorded: {refused}." if refused else SUITE_DONE[action]
+        note = f"Not recorded: {refused}." if refused else suite_form.SUITE_DONE[action]
     select = f"suites:{suite_id}" if action == "save" else None
     target = c.url("/review", portal=portal, show="suites", select=select, note=note)
     return RedirectResponse(target, status_code=303)

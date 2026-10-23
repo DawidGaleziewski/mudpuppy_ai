@@ -2,7 +2,9 @@ import { useState } from 'react';
 import { Button, Callout, Cluster, Field, Input, Plate, Split, Stack, SubHead, Table, Text, Textarea } from '../design-system';
 import { reviewHref, reviewWrites, undoAsk, type ReviewDetail as Detail, type ReviewPage } from '../app/api-review';
 import type { Ask } from '../app/ConfirmedWrite';
+import { Difference, Proposal, Reanchor } from './ReviewItems';
 import { RowFacts } from './ReviewRows';
+import { Suite } from './ReviewSuite';
 
 function Off() {
   return (
@@ -49,7 +51,7 @@ function Decide({ portal, d, reasons, ask }: { portal: string; d: Detail; reason
   return (
     <Stack>
       <Field label="Reason · one line" help="Required to reject, optional to confirm. Shown wherever this decision appears.">
-        <Input value={reason} maxLength={200} placeholder="Why?" list={listId} onChange={(e) => setReason(e.target.value)} />
+        <Input data-review-key="r" value={reason} maxLength={200} placeholder="Why?" list={listId} onChange={(e) => setReason(e.target.value)} />
       </Field>
       <datalist id={listId}>
         {reasons.map((r) => (
@@ -57,7 +59,7 @@ function Decide({ portal, d, reasons, ask }: { portal: string; d: Detail; reason
         ))}
       </datalist>
       <Cluster>
-        <Button variant="primary" onClick={() => decide('confirm')}>
+        <Button data-review-key="c" variant="primary" onClick={() => decide('confirm')}>
           Confirm
         </Button>
         <Button size="md" disabled={!reason.trim()} onClick={() => decide('reject')}>
@@ -112,10 +114,10 @@ function RecordDecide({ portal, d, ask }: { portal: string; d: Detail; ask: (a: 
   return (
     <Stack>
       <Cluster>
-        <Button variant="primary" onClick={() => send('confirm', '')}>{`Confirm rev ${String(rev)}`}</Button>
+        <Button data-review-key="c" variant="primary" onClick={() => send('confirm', '')}>{`Confirm rev ${String(rev)}`}</Button>
       </Cluster>
       <Field label="Reason (required to reject)">
-        <Textarea rows={2} value={reject} onChange={(e) => setReject(e.target.value)} />
+        <Textarea data-review-key="r" rows={2} value={reject} onChange={(e) => setReject(e.target.value)} />
       </Field>
       <Cluster>
         <Button size="md" disabled={!reject.trim()} onClick={() => send('reject', reject.trim())}>{`Reject rev ${String(rev)}`}</Button>
@@ -178,21 +180,41 @@ export function ReviewDetail({ page, ask }: { page: ReviewPage; ask: (a: Ask) =>
   if (!d) {
     return <Callout>Nothing waits for you. Decisions land here as scans, the BA agent and the assistant work.</Callout>;
   }
-  const record = d.row.kind === 'records' || d.row.kind === 'assumptions';
   return (
     <Stack>
       <Neighbours page={page} />
-      <Plate title={<Text asIs>{d.row.title}</Text>}>
+      {/* a suite is the BA's proposal until approved: drawn (rule 3) */}
+      <Plate title={<Text asIs>{d.row.title}</Text>} {...(d.suite ? { variant: 'drawn' as const } : {})}>
         <Stack>
           <RowFacts row={d.row} />
-          {!d.in_react && (
-            <Callout>
-              Its detail and decision are on the htmx Review for now. <Text href={d.htmx}>Open it there</Text>
-            </Callout>
-          )}
-          {d.in_react && (record ? <RecordDetail page={page} d={d} ask={ask} /> : <QueueDetail page={page} d={d} ask={ask} />)}
+          <Body page={page} d={d} ask={ask} />
         </Stack>
       </Plate>
     </Stack>
   );
+}
+
+/** The selected item's own part: by its kind, else the way to the htmx Review. */
+function Body({ page, d, ask }: { page: ReviewPage; d: Detail; ask: (a: Ask) => void }) {
+  const writes = { portal: page.portal, decides: page.decides, ask };
+  if (!d.in_react) {
+    return (
+      <Callout>
+        Its detail and decision are on the htmx Review for now. <Text href={d.htmx}>Open it there</Text>
+      </Callout>
+    );
+  }
+  if (d.difference) return <Difference d={d.difference} />;
+  const own = ownPart(d, writes);
+  if (own) return page.decides ? own : <Stack>{own}<Off /></Stack>;
+  const record = d.row.kind === 'records' || d.row.kind === 'assumptions';
+  return record ? <RecordDetail page={page} d={d} ask={ask} /> : <QueueDetail page={page} d={d} ask={ask} />;
+}
+
+/** A re-anchor, a proposal or a suite with its form; none for the other kinds. */
+function ownPart(d: Detail, writes: { portal: string; decides: boolean; ask: (a: Ask) => void }) {
+  if (d.reanchor) return <Reanchor d={d.reanchor} {...writes} />;
+  if (d.proposal) return <Proposal d={d.proposal} {...writes} />;
+  if (d.suite) return <Suite d={d.suite} {...writes} />;
+  return null;
 }

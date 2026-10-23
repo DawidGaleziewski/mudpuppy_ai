@@ -13,7 +13,9 @@ from typing import Any, NamedTuple
 from pydantic import BaseModel
 
 from . import pager, queries_queue, queries_review, queries_same_screen
+from . import queries_app_review_detail as review_detail
 from .queries_app import Chip, StatusOut, status_out
+from .queries_app_review_detail import Option
 from .queries_app_review_rows import EMPTY, ReviewRow, row_of
 from .queries_queue import QueueItem
 
@@ -45,11 +47,6 @@ class Group(BaseModel):
     pages: int = 1
     #: Its items are confirmed or rejected here (alone, alike or selected) by the named reviewer.
     decides: bool = False
-
-
-class Option(BaseModel):
-    value: str
-    label: str
 
 
 class Filters(BaseModel):
@@ -93,6 +90,11 @@ class Detail(BaseModel):
     rev: int | None = None
     revs: int | None = None
     cited: list[Cited] = []
+    #: The kind's own facts (spec 063): at most one is set.
+    difference: review_detail.DifferenceDetail | None = None
+    reanchor: review_detail.ReanchorDetail | None = None
+    proposal: review_detail.ProposalDetail | None = None
+    suite: review_detail.SuiteDetail | None = None
 
 
 class Neighbours(BaseModel):
@@ -268,9 +270,26 @@ def _cited(s: queries_review.CitedScreen) -> Cited:
     return Cited(state=s.id, title=s.title or "(untitled page)", route=s.route, picture=picture)
 
 
-def _detail(conn: sqlite3.Connection, portal: str, kind: str, it: Any) -> Detail:
+def _own_detail(n: Needs, portal: str, kind: str, it: Any) -> dict[str, Any]:
+    """The facts of a difference, an amendment to re-anchor, a proposal or a suite."""
+    if kind == "differences":
+        return {"difference": review_detail.difference(it, n.attrs)}
+    if kind == "reanchor":
+        return {"reanchor": review_detail.reanchor(n.conn, it)}
+    if kind == "proposals":
+        return {"proposal": review_detail.proposal(it)}
+    if kind == "suites":
+        return {"suite": review_detail.suite(it, portal)}
+    return {}
+
+
+def _detail(n: Needs, portal: str, kind: str, it: Any) -> Detail:
+    conn = n.conn
     row = row_of(kind, it)
     htmx = f"/review?portal={portal}&select={kind}:{row.id}"
+    own = _own_detail(n, portal, kind, it)
+    if own:
+        return Detail(row=row, in_react=True, htmx=htmx, **own)
     if kind in ("records", "assumptions"):
         cited = queries_review.cited_screens(conn, portal, it.key, it.rev)
         return Detail(
@@ -334,6 +353,15 @@ class Needs(NamedTuple):
     conn: sqlite3.Connection
     inbox: queries_review.Inbox
     q: ReviewQuery
+    #: Each persona's attributes, for a difference ("age 17, no licence").
+    attrs: dict[str, str]
+
+
+class Viewer(NamedTuple):
+    """Who looks and what the store does not hold: decisions on, the personas' attributes."""
+
+    decides: bool
+    attrs: dict[str, str]
 
 
 def _needs(n: Needs, page: ReviewPage) -> None:
@@ -355,18 +383,18 @@ def _needs(n: Needs, page: ReviewPage) -> None:
     picked = _selected(inbox, q, show)
     if picked:
         kind, it = picked
-        page.selected = _detail(conn, portal, kind, it)
+        page.selected = _detail(n, portal, kind, it)
         page.neighbours = _neighbours(inbox, kind, page.selected.row.id)
 
 
-def review_page(conn: sqlite3.Connection, portal: str, q: ReviewQuery, decides: bool) -> ReviewPage:
+def review_page(conn: sqlite3.Connection, portal: str, q: ReviewQuery, who: Viewer) -> ReviewPage:
     inbox = queries_review.inbox(conn, portal)
     explained = _explained(conn, portal)
     decided = _decided(conn, portal)
     tab = q.tab if q.tab in TABS else "needs"
     page = ReviewPage(
         portal=portal,
-        decides=decides,
+        decides=who.decides,
         tab=tab,
         total=inbox.total,
         explained_count=len(explained),
@@ -381,5 +409,5 @@ def review_page(conn: sqlite3.Connection, portal: str, q: ReviewQuery, decides: 
     elif tab == "decided":
         page.decided = decided
     else:
-        _needs(Needs(conn, inbox, q), page)
+        _needs(Needs(conn, inbox, q, who.attrs), page)
     return page

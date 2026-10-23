@@ -30,7 +30,10 @@ never style (lint refuses `className` and `style` in `src/pages` and `src/app`).
   every revision, Mark live and Restore); `api-review.ts` is the Review page's data and writes
   (`Review.tsx`: tabs, kinds and filters; `ReviewRows.tsx`: a group's rows, alike sets and the
   selection decided at once; `ReviewDetail.tsx`: the selected item, its decision or a record's
-  review; an `Ask` may carry `undo`, the ask a decision's Undo opens)),
+  review; an `Ask` may carry `undo`, the ask a decision's Undo opens; spec 063 adds
+  `ReviewItems.tsx`: a difference, an amendment to re-anchor, a proposal (before → after);
+  `ReviewSuite.tsx`: a probe suite edited and approved; `useReviewKeys.ts`: the single keys
+  J/K/C/R/U/? and the switch that turns them off)),
   `api-write.ts` (`postJson`, the one mutation hook and every write), `ConfirmedWrite.tsx` (ask
   first, post, show the answer: every write goes through it; an `Ask` may carry `follow`, the
   link's word, and `onDone`, run after a recorded write), `ShownStatus.tsx` (a status as the

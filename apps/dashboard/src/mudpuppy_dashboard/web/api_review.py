@@ -14,6 +14,7 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
 from .. import queries_app_review, queries_docs, review
+from . import views_access
 from .api_common import known_portal, store
 from .chat_forward import read_json
 from .chat_writes import WriteResult, write_answer, write_refused
@@ -49,8 +50,10 @@ def review_page(
     c = web.ctx(request, q.env)
     known_portal(web, c, portal)
     asked = queries_app_review.ReviewQuery(q.tab, q.show, q.select, q.page, q.part, q.age)
+    attrs = views_access.attributes_by_persona(web.settings.personas_dir, portal)
+    who = queries_app_review.Viewer(bool(web.settings.reviewer), attrs)
     with store(c) as conn:
-        return queries_app_review.review_page(conn, portal, asked, bool(web.settings.reviewer))
+        return queries_app_review.review_page(conn, portal, asked, who)
 
 
 def _decision(status: int, message: str, undo: str | None = None) -> JSONResponse:

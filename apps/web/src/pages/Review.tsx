@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router';
-import { Button, Cluster, Columns, Field, Note, PageHead, Plate, Row, Rows, Select, Stack, Table, Tag, Text, ViewNav } from '../design-system';
+import { Button, Check, Cluster, Columns, Disclosure, Field, Note, PageHead, Plate, Row, Rows, Select, Stack, Table, Tag, Text, ViewNav } from '../design-system';
+import { useReviewKeys } from '../app/useReviewKeys';
 import { reviewHref, reviewKey, useReview, type ReviewPage, type ReviewView } from '../app/api-review';
 import { useConfirmedWrite, type Ask } from '../app/ConfirmedWrite';
 import { QueryState } from '../app/QueryState';
@@ -65,6 +66,38 @@ function Filters({ page, view }: { page: ReviewPage; view: ReviewView }) {
   );
 }
 
+const KEYS = [
+  ['J / K', 'Next / previous item'],
+  ['C', 'Confirm the selected item (it asks first)'],
+  ['R', 'Reject: to the reason, which a reject needs'],
+  ['U', 'Undo the last decision'],
+  ['?', 'This list'],
+] as const;
+
+/** The keys of the inbox (designer § 5.2) and the switch that turns them off in this browser. */
+function KeysHelp({ page }: { page: ReviewPage }) {
+  const navigate = useNavigate();
+  const [shown, setShown] = useState(0);
+  const nb = page.neighbours;
+  const move = useCallback(
+    (step: 1 | -1) => {
+      const to = step === 1 ? nb?.next : nb?.prev;
+      if (to) void navigate(reviewHref(page.portal, { show: page.show ?? undefined, select: to }));
+    },
+    [navigate, nb, page.portal, page.show],
+  );
+  const help = useCallback(() => setShown((n) => n + 1), []);
+  const { on, turn } = useReviewKeys({ move, help });
+  return (
+    <Disclosure key={shown} open={shown > 0} summary={on ? 'Keys: J K next · previous · C confirm · R reject · U undo · ? all' : 'Single-key shortcuts are off'}>
+      <Stack>
+        <Table caption="Review shortcuts" columns={[{ header: 'Key', cell: (k) => <Text mono>{k[0]}</Text>, rowHeader: true }, { header: 'Does', cell: (k) => k[1] }]} rows={[...KEYS]} rowKey={(k) => k[0]} dense />
+        <Check label="Single-key shortcuts in this browser" checked={on} onChange={(e) => turn(e.target.checked)} />
+      </Stack>
+    </Disclosure>
+  );
+}
+
 function Inbox({ page, view, ask }: { page: ReviewPage; view: ReviewView; ask: (a: Ask) => void }) {
   const kinds = [
     { href: reviewHref(page.portal), label: 'All', count: page.total, current: !page.show },
@@ -75,6 +108,7 @@ function Inbox({ page, view, ask }: { page: ReviewPage; view: ReviewView; ask: (
     <Stack>
       <ViewNav label="Kinds of decision" items={kinds} />
       <Filters page={page} view={view} />
+      <KeysHelp page={page} />
       <Columns
         main={
           <Stack>

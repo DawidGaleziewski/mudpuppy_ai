@@ -65,7 +65,7 @@ export function useConfirmedWrite(refresh: QueryKey) {
           {undo && (
             <>
               {' '}
-              <Button size="sm" variant="quiet" onClick={() => setPending(undo)}>
+              <Button data-review-key="u" size="sm" variant="quiet" onClick={() => setPending(undo)}>
                 Undo
               </Button>
             </>

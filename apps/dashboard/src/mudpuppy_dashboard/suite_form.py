@@ -51,6 +51,50 @@ def _steps(form: Form, i: int, old: list[dict[str, Any]]) -> list[dict[str, Any]
     return out
 
 
+SUITE_DONE = {
+    "save": "Changes saved; the suite waits for approval.",
+    "approve": "Suite approved: written into traces.yaml.",
+    "dismiss": "Suite dismissed.",
+}
+
+
+def suite_calls(
+    action: str, trace: dict[str, Any] | None, form: Form, author: str
+) -> list[tuple[str, dict[str, Any]]] | None:
+    """The chat service calls for a probe suite form (spec 032 US3): Save keeps the edited suite
+    open; Approve saves the edit first, then approves it; Dismiss. None for an unknown action."""
+    if action == "dismiss":
+        return [("dismiss", {"author": author})]
+    if action not in ("save", "approve") or trace is None:
+        return None
+    calls = [("edit", {"author": author, "trace": edited_trace(trace, form)})]
+    return calls + ([("approve", {"author": author})] if action == "approve" else [])
+
+
+def form_of(body: dict[str, Any]) -> Form:
+    """The React console's suite edit (JSON: `variants` with `keep`, `expect` and `steps`, and
+    `new`) as the htmx form's fields, so both go through `edited_trace` the same way."""
+    form: Form = {}
+    variants = [v for v in body.get("variants", []) if isinstance(v, dict)]
+    form["variants"] = [str(len(variants))]
+    for i, v in enumerate(variants):
+        steps = [s for s in v.get("steps", []) if isinstance(s, dict)]
+        form[f"v{i}.id"] = [str(v.get("id", ""))]
+        form[f"v{i}.expect"] = [str(v.get("expect", ""))]
+        form[f"v{i}.steps"] = [str(len(steps))]
+        if v.get("keep"):
+            form[f"v{i}.keep"] = ["1"]
+        for j, s in enumerate(steps):
+            for field in ("kind", "name", "value"):
+                form[f"v{i}.s{j}.{field}"] = [str(s.get(field, ""))]
+            if s.get("drop"):
+                form[f"v{i}.s{j}.drop"] = ["1"]
+    new = body.get("new") if isinstance(body.get("new"), dict) else {}
+    for field in ("id", "from", "expect"):
+        form[f"new.{field}"] = [str(new.get(field, ""))]
+    return form
+
+
 def edited_trace(trace: dict[str, Any], form: Form) -> dict[str, Any]:
     """The suite as the owner left it: kept variants with their edited steps, plus a new one."""
     old = {v["id"]: v for v in trace.get("variants", [])}

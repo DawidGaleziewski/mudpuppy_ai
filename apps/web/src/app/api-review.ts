@@ -65,6 +65,86 @@ export interface ReviewDetail {
   rev: number | null;
   revs: number | null;
   cited: { state: string; title: string; route: string; picture: string | null }[];
+  /** The kind's own facts (spec 063): at most one is set. */
+  difference?: DifferenceDetail | null;
+  reanchor?: ReanchorDetail | null;
+  proposal?: ProposalDetail | null;
+  suite?: SuiteDetail | null;
+}
+
+export interface DifferenceDetail {
+  element: string | null;
+  /** Each side: "Seen by", "Not seen by" (or reached), personas with their attributes as `label`. */
+  sides: { label: string; personas: Option[] }[];
+  compare: Option | null;
+  advice: string;
+}
+
+export interface ReanchorDetail {
+  amendment: string;
+  key: string;
+  rev: number;
+  text: string | null;
+  author: string;
+  at: string;
+  attachment: string | null;
+  why: string;
+  why_detail: string | null;
+  was_on: Option | null;
+  element: string | null;
+  changed_by_scan: string | null;
+  state_id: string;
+  element_key: string;
+  states: Option[];
+}
+
+export interface ProposalDetail {
+  id: string;
+  key: string | null;
+  is_new: boolean;
+  base_rev: number | null;
+  next_rev: number;
+  status: StatusOut;
+  stale: boolean;
+  head_rev: number | null;
+  target: { before: string | null; after: string } | null;
+  text: { before: string | null; after: string } | null;
+  screen: string | null;
+}
+
+export interface SuiteStep {
+  kind: string;
+  name: string;
+  value: string;
+}
+
+export interface SuiteVariant {
+  id: string;
+  expect: string;
+  probe: string | null;
+  fault: string | null;
+  why: string;
+  steps: SuiteStep[];
+}
+
+export interface SuiteDetail {
+  id: string;
+  trace_id: string;
+  run_id: string;
+  goal: string;
+  start_url: string;
+  step_label: string | null;
+  variants: SuiteVariant[];
+  expects: Option[];
+  kinds: Option[];
+  traces_file: string;
+  run_command: string;
+}
+
+/** A suite as the person edits it: each variant kept or not, its steps with a drop mark. */
+export interface SuiteEdit {
+  variants: { id: string; keep: boolean; expect: string; steps: (SuiteStep & { drop?: boolean })[] }[];
+  new: { id: string; from: string; expect: string };
 }
 
 export interface ExplainedRow {
@@ -157,6 +237,22 @@ export const reviewWrites = {
   record: (portal: string, key: string, rev: number, action: 'confirm' | 'reject' | 'comment', text = ''): Write => ({
     path: `${api(portal)}/records/${encodeURIComponent(key)}`,
     body: { action, rev, text },
+  }),
+  reanchor: (portal: string, amendment: string, stateId: string, element: string, text: string): Write => ({
+    path: `${api(portal)}/amendments/${encodeURIComponent(amendment)}/reanchor`,
+    body: { state_id: stateId, element, text },
+  }),
+  dismiss: (portal: string, amendment: string): Write => ({
+    path: `${api(portal)}/amendments/${encodeURIComponent(amendment)}/dismiss`,
+    body: {},
+  }),
+  proposal: (portal: string, id: string, verb: 'apply' | 'discard'): Write => ({
+    path: `${api(portal)}/proposals/${encodeURIComponent(id)}/${verb}`,
+    body: {},
+  }),
+  suite: (portal: string, id: string, action: 'save' | 'approve' | 'dismiss', edit: SuiteEdit): Write => ({
+    path: `${api(portal)}/suites/${encodeURIComponent(id)}`,
+    body: { action, ...edit },
   }),
 };
 

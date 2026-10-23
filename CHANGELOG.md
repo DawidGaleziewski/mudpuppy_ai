@@ -6,6 +6,14 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Added
+- **R-96 step 14: the rest of Review in React** (spec 063, v2.6.13, 2026-10-23). An unexplained
+  difference says who sees it and who does not, with each persona's attributes and the side-by-side
+  link. An amendment that lost its place shows why and where it was, and is re-anchored on a screen
+  (with new wording if wanted) or dismissed. An assistant proposal shows its change before → after
+  and is applied or discarded; a stale one cannot be applied. A probe suite is edited in place (keep
+  or drop variants, change what each expects, edit, drop or add steps, add a variant) and approved,
+  saved or dismissed. Keys: J and K move through the list, C confirms, R goes to the reason, U undoes,
+  ? lists them; a switch turns them off in this browser. Every write asks first.
 - **R-96 step 13: Review in React** (spec 062, v2.6.12, 2026-10-23). `/app/portals/{p}/review`:
   what needs you, with a tab per kind and its count, part and age filters, and a group's pages.
   Findings, rules and removals are confirmed or rejected one at a time, as an alike set or as your

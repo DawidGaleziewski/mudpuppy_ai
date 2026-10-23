@@ -150,12 +150,12 @@ describe('Review decisions', () => {
     expect(JSON.parse(post[1].body)).toEqual({ action: 'confirm', rev: 2, text: '' });
   });
 
-  it('an item whose detail is not in React yet opens the htmx Review on it', async () => {
-    const suite = row({ kind: 'suites', id: 'su-1', title: 'Kalkulator form', status: status('needs', 'Proposed'), meta: '4 variants' });
-    const page = { ...base, selected: { row: suite, in_react: false, htmx: '/review?portal=shop&select=suites:su-1', text: null, link: null, also: [], rev: null, revs: null, cited: [] } };
+  it('an item whose detail is not in React (an edit conflict) opens the htmx Review on it', async () => {
+    const conflict = row({ kind: 'conflicts', id: 'c-1', title: 'Two saves of AMD-001' });
+    const page = { ...base, selected: { row: conflict, in_react: false, htmx: '/review?portal=shop&select=conflicts:c-1', text: null, link: null, also: [], rev: null, revs: null, cited: [] } };
     at('/app/portals/shop/review', { [API]: page });
-    const detail = await screen.findByRole('region', { name: 'Kalkulator form' });
-    expect(within(detail).getByRole('link', { name: 'Open it there' }).getAttribute('href')).toBe('/review?portal=shop&select=suites:su-1');
+    const detail = await screen.findByRole('region', { name: 'Two saves of AMD-001' });
+    expect(within(detail).getByRole('link', { name: 'Open it there' }).getAttribute('href')).toBe('/review?portal=shop&select=conflicts:c-1');
     expect(within(detail).queryByRole('button', { name: 'Confirm' })).toBeNull();
   });
 

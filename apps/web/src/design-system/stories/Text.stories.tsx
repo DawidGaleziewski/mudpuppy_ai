@@ -41,6 +41,14 @@ export const Variants: Story = {
     </Stack>
   ),
 };
+/** A change before → after: the replaced value struck through (`removed`), the proposed one drawn (`drawn`, rule 3). */
+export const BeforeAfter: Story = {
+  render: () => (
+    <Text>
+      <Text removed>Podaj wiek kierowcy</Text> → <Text drawn>Podaj wiek głównego kierowcy</Text>
+    </Text>
+  ),
+};
 /** `SubHead`: the heading of a part inside a plate. */
 export const Heading: Story = {
   render: () => (

@@ -42,6 +42,7 @@ from .web import (
     api_processes,
     api_recorded,
     api_review,
+    api_review_items,
     api_scan,
     api_scan_tabs,
     api_scan_trace,
@@ -202,6 +203,7 @@ def create_app(
     app.include_router(api_processes.router)
     app.include_router(api_process.router)
     app.include_router(api_review.router)
+    app.include_router(api_review_items.router)
     app.include_router(api_scan.router)
     app.include_router(api_scan_tabs.router)
     app.include_router(api_scan_trace.router)

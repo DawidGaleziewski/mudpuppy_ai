@@ -58,9 +58,12 @@ export function Input({ className, ...rest }: InputHTMLAttributes<HTMLInputEleme
   return <input {...rest} className={cx('sy-input', className)} />;
 }
 
-/** A select. Never one that navigates on change (WCAG 3.2.2): use a menu of links instead. */
-export function Select({ className, ...rest }: SelectHTMLAttributes<HTMLSelectElement>) {
-  return <select {...rest} className={cx('sy-select', className)} />;
+/**
+ * A select. Never one that navigates on change (WCAG 3.2.2): use a menu of links instead.
+ * `drawn`: a proposed value the person may change before approving it (a suite's expectation).
+ */
+export function Select({ className, drawn = false, ...rest }: SelectHTMLAttributes<HTMLSelectElement> & { drawn?: boolean }) {
+  return <select {...rest} className={cx('sy-select', drawn && 'sy-select--drawn', className)} />;
 }
 
 export function Textarea({ className, ...rest }: TextareaHTMLAttributes<HTMLTextAreaElement>) {

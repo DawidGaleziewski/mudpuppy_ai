@@ -8,6 +8,8 @@ const LOOKS = {
   muted: 'sy-muted',
   small: 'sy-small',
   asIs: 'sy-case-normal',
+  drawn: 'sy-drawn-text',
+  removed: 'sy-diff--removed',
 } as const;
 
 export interface TextProps {
@@ -24,6 +26,10 @@ export interface TextProps {
    * screen title, a process name (rule 5, show stored values exactly).
    */
   asIs?: boolean;
+  /** A proposed value, not yet applied (rule 3, to-be is drawn): an assistant's new wording. */
+  drawn?: boolean;
+  /** A value a change replaces, struck through: the "before" of a before → after. */
+  removed?: boolean;
   /** A paragraph instead of a run of text inside a line. */
   block?: boolean;
   /** Important within its line: who answered, the name a sentence is about (`<strong>`). */

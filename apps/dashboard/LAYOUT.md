@@ -158,4 +158,11 @@ card's "As" persona choice), `wb_frames.py` (frame,
   over `queries_app_review.py` (the three tabs, the groups, filters, the selected item and its
   neighbours) and `queries_app_review_rows.py` (one `ReviewRow` per kind, each group's empty
   state), built on the htmx Review's `queries_review` and `queries_queue`; findings, rules,
-  removals, processes, records and assumptions are decided in React, the other kinds open the htmx Review.
+  removals, processes, records and assumptions are decided in React.
+- Spec 063 (R-96, Review part 2): `web/api_review_items.py` (the writes
+  `…/review/amendments/{a}/reanchor|dismiss`, `…/proposals/{p}/apply|discard` and
+  `…/suites/{s}` save, approve or dismiss, each answering `{ok, message, href}`) and
+  `queries_app_review_detail.py` (the detail of a difference, an amendment to re-anchor, a
+  proposal and a probe suite; `Option` lives there); `suite_form.py` now also holds `suite_calls`,
+  `SUITE_DONE` and `form_of` (the console's JSON suite edit as the htmx form's fields), shared by
+  `web/review.py` and the API; the Review query takes a `Viewer` (reviewer and persona attributes).
