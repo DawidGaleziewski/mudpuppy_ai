@@ -3,6 +3,19 @@
 export { AppShell, type AppShellProps, type NavGroup, type NavItem } from './components/AppShell.js';
 export { Button, LinkButton, type ButtonProps, type ButtonVariant, type LinkButtonProps } from './components/Button.js';
 export { Callout, type CalloutProps } from './components/Callout.js';
+export {
+  ChatDivider,
+  ChatLog,
+  Chips,
+  Composer,
+  Drawer,
+  Message,
+  ProposalCard,
+  Vault,
+  type DrawerProps,
+  type MessageProps,
+  type ProposalCardProps,
+} from './components/Chat.js';
 export { Chip, type ChipProps } from './components/Chip.js';
 export { Compare, CompareSide, type CompareSideProps } from './components/Compare.js';
 export { Confirm, type ConfirmProps } from './components/Confirm.js';

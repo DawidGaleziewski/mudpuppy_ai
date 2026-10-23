@@ -206,7 +206,7 @@ export function DocRecord() {
     key
   );
   return (
-    <Shell current="docs">
+    <Shell current="docs" context={d ? { type: 'docs', id: d.id, rev: d.latest_rev, label: d.title, ids: [d.key] } : null}>
       <PageHead crumbs={[{ label: 'Portals', href: '/app/' }, { label: portal, href: `/app/portals/${encodeURIComponent(portal)}` }, { label: 'Docs', href: docsHref(portal) }, { label: key }]} title={title} actions={d && <Neighbours d={d} />} />
       {view}
       <QueryState query={q} what="the record">

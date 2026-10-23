@@ -6,6 +6,15 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Added
+- **R-96 step 20: the assistant drawer in React** (spec 069, v2.6.19, 2026-10-23). Every
+  portal page has "Ask the assistant" (and Ctrl+J): the drawer stays open from page to page and in
+  view beside a long page. It shows the portal's conversation (your messages, the assistant's,
+  system lines, failures with their reference, credential requests, the assistant's proposals with
+  a way to Review) and sends with what you are looking at, This page (a process, a record, a scan)
+  or the whole yard. The reply streams in live with what the assistant is doing; Stop ends the
+  turn and its scans; Reset asks first. A credential the assistant asks for goes to the vault
+  after you confirm and is never shown again. Without the chat service the drawer says how to
+  start it.
 - **R-96 step 19: Settings in React** (spec 068, v2.6.18, 2026-10-23).
   `/app/portals/{p}/settings`: the portal's environments with their address, how far the crawler
   may go and robots.txt, saved or revoked (the last one stays); stored credentials by name only;

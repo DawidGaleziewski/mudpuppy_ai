@@ -139,6 +139,8 @@ class ProcessLink(BaseModel):
 
 class RecordPage(BaseModel):
     portal: str
+    #: The record's id: what the assistant's "This page" names (spec 022 R6).
+    id: str
     key: str
     title: str
     kind: str
@@ -349,6 +351,7 @@ def record_page(
     figures = visuals.record_figures(conn, data_dir, d.evidence)
     return RecordPage(
         portal=portal,
+        id=rec.id,
         key=rec.key,
         title=rec.title,
         kind=rec.kind.replace("_", " "),

@@ -1,20 +1,70 @@
-import type { ReactNode } from 'react';
+import { useCallback, useEffect, useState, type ReactNode } from 'react';
 import { useParams } from 'react-router';
-import { AppShell, Chip, Text, type NavGroup } from '../design-system';
+import { AppShell, Button, Chip, Cluster, Text, type NavGroup } from '../design-system';
+import type { PageContext } from './api-assistant';
+import { AssistantDrawer } from './AssistantDrawer';
 
-/** The console frame: the portal's sections in the 2.0 grouping, the current one marked. */
+const OPEN_KEY = 'mudpuppy.assistant.open';
+
+// Whether the drawer is open is a per-viewer convenience for the session; storage may be missing.
+function storedOpen(): boolean {
+  try {
+    return sessionStorage.getItem(OPEN_KEY) === '1';
+  } catch {
+    return false;
+  }
+}
+
+function keepOpen(open: boolean) {
+  try {
+    if (open) sessionStorage.setItem(OPEN_KEY, '1');
+    else sessionStorage.removeItem(OPEN_KEY);
+  } catch {
+    // nothing to keep it in: the drawer stays as it is until the page changes
+  }
+}
+
+/** The assistant drawer's state: open across pages in this session; Ctrl+J opens and closes it. */
+function useAssistantOpen() {
+  const [open, setOpen] = useState(storedOpen);
+  const turn = useCallback((next: boolean) => {
+    setOpen(next);
+    keepOpen(next);
+  }, []);
+  useEffect(() => {
+    const key = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'j') {
+        e.preventDefault();
+        setOpen((o) => {
+          keepOpen(!o);
+          return !o;
+        });
+      }
+    };
+    document.addEventListener('keydown', key);
+    return () => document.removeEventListener('keydown', key);
+  }, []);
+  return { open, turn };
+}
+
+/** The console frame: the portal's sections in the 2.0 grouping, the current one marked, and the assistant. */
 export function Shell({
   current,
   portal: given,
+  context = null,
   children,
 }: {
   current: 'portals' | 'home' | 'changes' | 'review' | 'processes' | 'screens' | 'rules' | 'docs' | 'scans' | 'settings';
   /** The portal when the address does not name it (a scan's page). */
   portal?: string | undefined;
+  /** What "This page" means for the assistant (spec 022 R6); none: the whole yard only. */
+  context?: PageContext | null;
   children: ReactNode;
 }) {
   const params = useParams();
   const portal = given ?? params.portal;
+  const { open, turn } = useAssistantOpen();
+  const close = useCallback(() => turn(false), [turn]);
   const base = portal ? `/app/portals/${encodeURIComponent(portal)}` : null;
   const nav: NavGroup[] = [
     { items: [{ href: '/app/', label: 'Portals', current: current === 'portals' }] },
@@ -50,7 +100,17 @@ export function Shell({
     <AppShell
       nav={nav}
       header={portal ? <Text mono>{portal}</Text> : null}
-      headerEnd={<Chip variant="dashed">React preview</Chip>}
+      headerEnd={
+        <Cluster>
+          {portal && (
+            <Button size="sm" variant={open ? 'default' : 'quiet'} aria-expanded={open} onClick={() => turn(!open)}>
+              Ask the assistant
+            </Button>
+          )}
+          <Chip variant="dashed">React preview</Chip>
+        </Cluster>
+      }
+      drawer={portal && open ? <AssistantDrawer portal={portal} context={context} onClose={close} /> : undefined}
     >
       {children}
     </AppShell>

@@ -163,8 +163,9 @@ export function Process() {
   };
   const q = useProcessPage(portal, key, model, step);
   const d = q.data;
+  const context = d ? { type: 'process' as const, id: `${d.id}:${d.model.label}`, label: `${d.key} ${d.name} · ${d.model.label}`, rev: d.model.rev } : null;
   return (
-    <Shell current="processes">
+    <Shell current="processes" context={context}>
       <PageHead
         crumbs={[
           { label: 'Portals', href: '/app/' },

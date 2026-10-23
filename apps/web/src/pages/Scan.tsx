@@ -68,7 +68,7 @@ export function Scan() {
   const q = useScanHead(scan);
   const portal = q.data?.portal;
   return (
-    <Shell current="scans" portal={portal}>
+    <Shell current="scans" portal={portal} context={q.data ? { type: 'scan', id: scan, label: `Scan of ${q.data.portal} as ${q.data.persona}` } : null}>
       <PageHead
         crumbs={[
           { label: 'Portals', href: '/app/' },

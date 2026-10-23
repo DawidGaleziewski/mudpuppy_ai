@@ -192,3 +192,7 @@ card's "As" persona choice), `wb_frames.py` (frame,
   `…/environments/{e}/revoke`, `…/hints/{hints|budgets}`, `…/model/accept`, each through the chat
   service) over `queries_app_settings.py`; `settings_forms.py` holds `hints_body`, shared with
   `web/hints.py` (G-13).
+- Spec 069 (R-96, the assistant drawer): `web/api_assistant.py` (`GET /api/portals/{p}/assistant`,
+  the conversation as a timeline from `views_chat.timeline`) over `queries_app_assistant.py`; the
+  drawer sends, streams, stops, resets and stores credentials through the `/chat/…` forwarders in
+  `web/chat.py`, unchanged.

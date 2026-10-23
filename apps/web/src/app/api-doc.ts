@@ -88,6 +88,8 @@ export interface DocRevision {
 
 export interface DocRecordPage {
   portal: string;
+  /** The record's id: what the assistant's "This page" names. */
+  id: string;
   key: string;
   title: string;
   kind: string;
