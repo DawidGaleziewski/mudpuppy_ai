@@ -71,6 +71,27 @@ export const writes = {
     path: `/api/portals/${encodeURIComponent(portal)}/processes/${encodeURIComponent(process)}/unarchive`,
     body: { base_rev: baseRev },
   }),
+  archive: (portal: string, process: string, baseRev: number): Write => ({
+    path: `/api/portals/${encodeURIComponent(portal)}/processes/${encodeURIComponent(process)}/archive`,
+    body: { base_rev: baseRev },
+  }),
+  stage: (portal: string, process: string, stage: string, baseRev: number): Write => ({
+    path: `/api/portals/${encodeURIComponent(portal)}/processes/${encodeURIComponent(process)}/stage`,
+    body: { stage, base_rev: baseRev },
+  }),
+  newModel: (portal: string, process: string, from: string): Write => ({
+    path: `/api/portals/${encodeURIComponent(portal)}/processes/${encodeURIComponent(process)}/models`,
+    body: { from },
+  }),
+  /** A's screens in their new order (one more, one less, or moved): a signed revision of A. */
+  editAsIs: (portal: string, process: string, baseRev: number, states: string[]): Write => ({
+    path: `/api/portals/${encodeURIComponent(portal)}/processes/${encodeURIComponent(process)}/models/A/edit`,
+    body: { base_rev: baseRev, state_ids: states },
+  }),
+  explore: (portal: string, processKey: string): Write => ({
+    path: `/api/portals/${encodeURIComponent(portal)}/check-runs`,
+    body: { kind: 'explore', process_key: processKey },
+  }),
   /** Accept, dismiss, split (`at`: the step the second half starts at) or merge (`with`). */
   suggestion: (portal: string, id: string, action: 'accept' | 'dismiss' | 'split' | 'merge', body: Record<string, string | number> = {}): Write => ({
     path: `/api/portals/${encodeURIComponent(portal)}/suggestions/${encodeURIComponent(id)}/${action}`,

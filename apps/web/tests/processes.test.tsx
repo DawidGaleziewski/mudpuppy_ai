@@ -66,11 +66,11 @@ const confirmIn = (name: string, button: string) => {
 };
 
 describe('Processes', () => {
-  it('lists the processes with their models, live marks and the htmx process page', async () => {
+  it('lists the processes with their models, live marks and their pages', async () => {
     at('/app/portals/shop/processes', { [API]: list });
     const table = await screen.findByRole('table', { name: "The BA's processes of shop" });
-    expect(within(table).getByRole('link', { name: 'Kup polisę' }).getAttribute('href')).toBe('/processes/PRC-001');
-    expect(within(table).getByRole('link', { name: 'B r2' }).getAttribute('href')).toBe('/processes/PRC-001?model=B');
+    expect(within(table).getByRole('link', { name: 'Kup polisę' }).getAttribute('href')).toBe('/app/portals/shop/processes/PRC-001');
+    expect(within(table).getByRole('link', { name: 'B r2' }).getAttribute('href')).toBe('/app/portals/shop/processes/PRC-001?model=B');
     expect(within(table).getByText('Draft open')).toBeTruthy();
     expect(within(table).getAllByText('A r1')).toHaveLength(2); // the model's tag and what is live
     expect(screen.getByText('Inferred · not saved')).toBeTruthy();

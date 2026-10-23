@@ -12,9 +12,10 @@ from fastapi import APIRouter, Request
 from fastapi.responses import JSONResponse
 
 from .. import queries_app_processes
+from ..queries_processes import STAGES
 from .api_common import known_portal, store
 from .chat_forward import read_json
-from .chat_writes import WriteResult, chat_write, write_answer, write_refused
+from .chat_writes import CHECK_RUNS, WriteResult, chat_write, write_answer, write_refused
 from .deps import web_of
 
 router = APIRouter(prefix="/api/portals/{portal}")
@@ -55,12 +56,27 @@ async def _send(
     path = f"/portals/{quote(portal, safe='')}/{rest}"
     status, answer = await chat_write(web, c.env, "POST", path, signed)
     if status in (200, 201):
-        process = answer.get("process")
-        key = process.get("key") if isinstance(process, dict) else None
-        href = f"/processes/{quote(key, safe='')}?model=A" if isinstance(key, str) else None
-        return write_answer(200, done, href)
+        return write_answer(200, done, _page_of(portal, answer))
     message = answer.get("message") or f"the chat service answered {status}"
     return write_answer(502, f"Not done: {message}.")
+
+
+def _page_of(portal: str, answer: dict[str, Any]) -> str | None:
+    """The React page of the process an answer names, on the model it made (A otherwise)."""
+    process = answer.get("process")
+    key = process.get("key") if isinstance(process, dict) else None
+    if not isinstance(key, str):
+        return None
+    made = answer.get("variant") or answer.get("model")
+    label = made.get("label") if isinstance(made, dict) else None
+    model = label if isinstance(label, str) else "A"
+    return f"/app/portals/{quote(portal, safe='')}/processes/{quote(key, safe='')}?model={model}"
+
+
+async def _stage(request: Request, portal: str, process: str, stage: str, base: object):
+    rest = f"processes/{quote(process, safe='')}"
+    body = {"stage": stage, "base_rev": base}
+    return await _send(request, portal, rest, body, "Stage set; it shows in History.")
 
 
 def _ids(value: object) -> list[str]:
@@ -89,6 +105,70 @@ async def unarchive(request: Request, portal: str, process: str) -> JSONResponse
     rest = f"processes/{quote(process, safe='')}/unarchive"
     done = "Restored: it is back in the list."
     return await _send(request, portal, rest, {"base_rev": base}, done)
+
+
+@router.post("/processes/{process}/archive", response_model=WriteResult)
+async def archive(request: Request, portal: str, process: str) -> JSONResponse:
+    """Archive a process (`base_rev`): out of the list, nothing deleted."""
+    form = await read_json(request)
+    rest = f"processes/{quote(process, safe='')}/archive"
+    done = "Archived: it left the list; Restore puts it back."
+    return await _send(request, portal, rest, {"base_rev": form.get("base_rev")}, done)
+
+
+@router.post("/processes/{process}/stage", response_model=WriteResult)
+async def stage(request: Request, portal: str, process: str) -> JSONResponse:
+    """Move the process to a stage (`stage`, `base_rev`); as-is documented signs A off."""
+    form = await read_json(request)
+    value = str(form.get("stage", ""))
+    if value not in STAGES:
+        if (no := write_refused(request, "change processes")) is not None:
+            return no
+        return write_answer(422, "Pick one of the stages.")
+    return await _stage(request, portal, process, value, form.get("base_rev"))
+
+
+@router.post("/processes/{process}/models", response_model=WriteResult)
+async def new_model(request: Request, portal: str, process: str) -> JSONResponse:
+    """A new to-be model copied from model `from` (A by default); answers its page."""
+    form = await read_json(request)
+    source = str(form.get("from") or "A")
+    rest = f"processes/{quote(process, safe='')}/models"
+    done = f"A new process model, copied from {source}."
+    return await _send(request, portal, rest, {"from": source}, done)
+
+
+@router.post("/processes/{process}/models/A/edit", response_model=WriteResult)
+async def edit_as_is(request: Request, portal: str, process: str) -> JSONResponse:
+    """A's screens in a new order, without one, or with one more (`base_rev`, `state_ids`): one
+    signed revision of A."""
+    form = await read_json(request)
+    states = _ids(form.get("state_ids"))
+    if not states:
+        if (no := write_refused(request, "change processes")) is not None:
+            return no
+        return write_answer(422, "A keeps at least one screen.")
+    rest = f"processes/{quote(process, safe='')}/models/A/edit"
+    body = {"base_rev": form.get("base_rev"), "state_ids": states}
+    return await _send(request, portal, rest, body, "A changed: a new signed revision.")
+
+
+@router.post("/check-runs", response_model=WriteResult)
+async def check_run(request: Request, portal: str) -> JSONResponse:
+    """Start the exploration of a process on the headless driver (`kind` explore or replay,
+    `process_key`); pressing it is the owner's yes (spec 039 owner answer 12)."""
+    form = await read_json(request)
+    kind = str(form.get("kind", ""))
+    if kind not in CHECK_RUNS:
+        if (no := write_refused(request, "start check runs")) is not None:
+            return no
+        return write_answer(422, "Unknown check run.")
+    body = {
+        "kind": kind,
+        **({"process_key": form["process_key"]} if form.get("process_key") else {}),
+    }
+    done = f"{CHECK_RUNS[kind]} started; the model takes the results on its next rebuild."
+    return await _send(request, portal, "check-runs", body, done)
 
 
 @router.post("/suggestions/{suggestion}/{action}", response_model=WriteResult)

@@ -16,7 +16,7 @@ function columns(d: ProcessList, ask: (a: Ask) => void) {
       rowHeader: true,
       cell: (r: ProcessRow) => (
         <Stack>
-          <Text asIs href={processHref(r.key)}>
+          <Text asIs href={processHref(d.portal, r.key)}>
             {r.name}
           </Text>
           <Cluster>
@@ -33,7 +33,7 @@ function columns(d: ProcessList, ask: (a: Ask) => void) {
         <Stack>
           {r.models.map((m) => (
             <Cluster key={m.label}>
-              <Tag size="sm" href={processHref(r.key, m.label)}>{`${m.label} r${String(m.rev)}`}</Tag>
+              <Tag size="sm" href={processHref(d.portal, r.key, m.label)}>{`${m.label} r${String(m.rev)}`}</Tag>
               <Text small muted>
                 {m.kind}
               </Text>

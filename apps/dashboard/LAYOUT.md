@@ -141,3 +141,7 @@ card's "As" persona choice), `wb_frames.py` (frame,
   `POST …/processes`, `…/processes/{id}/unarchive`, `…/suggestions/{id}/{accept|dismiss|split|merge}`)
   over `queries_app_processes.py`; every console write's answer and checks (`WriteResult`,
   `write_answer`, `write_refused`, `chat_write`) live in `web/chat_writes.py`.
+- Spec 058 (R-96, one process): `web/api_process.py` (`GET /api/portals/{p}/processes/{key}`) over
+  `queries_app_process.py`; its writes join `web/api_processes.py` (`…/archive`, `…/stage`,
+  `…/models`, `…/models/A/edit`, `/api/portals/{p}/check-runs`; `CHECK_RUNS` in `chat_writes.py`
+  for `web/check_runs.py` too); `queries_processes.default_model` is the model a process opens on.

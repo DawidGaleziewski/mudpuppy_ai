@@ -70,6 +70,8 @@ PROBE_MARK_DONE = {
     "mark": "Marked for probing. Ask the assistant to probe the marked forms.",
     "remove": "Probe mark removed.",
 }
+#: The portal model's check runs a person starts (spec 039 owner answer 12), with their names.
+CHECK_RUNS = {"replay": "The rule tests and error replays", "explore": "The exploration"}
 
 
 async def mark_call(

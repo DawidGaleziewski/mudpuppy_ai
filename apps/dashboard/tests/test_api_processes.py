@@ -58,7 +58,7 @@ def test_accepting_a_suggestion_is_signed_and_answers_the_new_process(empty_stor
     assert r.json() == {
         "ok": True,
         "message": "Accepted: it is a process now.",
-        "href": "/processes/PRC-002?model=A",
+        "href": f"/app/portals/{P}/processes/PRC-002?model=A",
     }
     sent = service.requests[-1]
     assert json.loads(sent.content) == {"author": "Anna"}
@@ -79,7 +79,7 @@ def test_a_new_process_split_and_a_refusal(empty_store: Store) -> None:
         split = c.post(f"/api/portals/{P}/suggestions/sg-1/split", json={"at": 2}, headers=ORIGIN)
         bogus = c.post(f"/api/portals/{P}/suggestions/sg-1/explode", json={}, headers=ORIGIN)
         foreign = c.post(f"/api/portals/{P}/suggestions/sg-1/dismiss", json={})
-    assert made.json()["href"] == "/processes/PRC-002?model=A"
+    assert made.json()["href"] == f"/app/portals/{P}/processes/PRC-002?model=A"
     body = json.loads(service.requests[0].content)
     assert body == {"name": "Help", "persona": "guest", "state_ids": ["st-faq"], "author": "Anna"}
     assert empty.status_code == 422

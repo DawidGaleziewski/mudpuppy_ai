@@ -107,16 +107,6 @@ def _parent_steps(view: queries_processes.ProcessView, label: str) -> list[dict[
     return list(rev.steps) if rev else []
 
 
-AS_IS_STAGES = ("scoped", "as_is_documented")
-
-
-def default_model(view: queries_processes.ProcessView) -> str:
-    """US2.3: the page leads with A until a to-be design starts, then with the first to-be."""
-    if view.process.stage in AS_IS_STAGES:
-        return "A"
-    return next((v.model.label for v in view.models if v.model.kind == "to_be"), "A")
-
-
 def as_is_values(
     conn: sqlite3.Connection, view: queries_processes.ProcessView, steps: list[dict[str, Any]]
 ) -> dict[str, Any]:
@@ -140,7 +130,7 @@ def editor_values(
 ) -> dict[str, Any]:
     """Screen 05: the model shown, this reviewer's draft, and the rows against its parent;
     on A its documentation (spec 027)."""
-    vv = view.model(label or default_model(view)) or view.as_is
+    vv = view.model(label or queries_processes.default_model(view)) or view.as_is
     assert vv is not None
     draft = vv.draft_of(c.settings.reviewer) if vv.model.kind == "to_be" else None
     steps = list(draft.steps) if draft else vv.steps

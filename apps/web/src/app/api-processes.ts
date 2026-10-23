@@ -68,6 +68,10 @@ export const useProcesses = (portal: string, archived: boolean, page: number) =>
     placeholderData: keepPreviousData,
   });
 
-/** The htmx page of one process until it moves to React (the next step of R-96). */
-export const processHref = (key: string, model?: string) =>
-  `/processes/${encodeURIComponent(key)}${model ? `?model=${encodeURIComponent(model)}` : ''}`;
+/** One process's page, on a model (its default when left out). */
+export const processHref = (portal: string, key: string, model?: string) =>
+  `/app/portals/${encodeURIComponent(portal)}/processes/${encodeURIComponent(key)}${model ? `?model=${encodeURIComponent(model)}` : ''}`;
+
+/** The process's htmx pages that have not moved yet: Compare, History, the documentation export. */
+export const htmxProcessHref = (key: string, page: 'compare' | 'history' | 'export', query = '') =>
+  `/processes/${encodeURIComponent(key)}/${page}${query}`;

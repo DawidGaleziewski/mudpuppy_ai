@@ -139,6 +139,17 @@ def _live(conn: sqlite3.Connection, process_id: str, labels: dict[str, str]) -> 
     return out
 
 
+AS_IS_STAGES = ("scoped", "as_is_documented")
+
+
+def default_model(view: ProcessView) -> str:
+    """US2.3: a process page leads with A until a to-be design starts, then with the first
+    to-be (the htmx page and the React console's API alike)."""
+    if view.process.stage in AS_IS_STAGES:
+        return "A"
+    return next((v.model.label for v in view.models if v.model.kind == "to_be"), "A")
+
+
 def process_view(conn: sqlite3.Connection, portal: str, key: str) -> ProcessView | None:
     """One process with every model, revision, draft, live marker and change spec."""
     found = _rows(conn, "SELECT * FROM ba_processes WHERE portal_id = ? AND key = ?", (portal, key))

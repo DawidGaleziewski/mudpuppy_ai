@@ -3,6 +3,7 @@ import { createBrowserRouter, RouterProvider } from 'react-router';
 import { NotFound } from '../pages/NotFound';
 import { PortalHome } from '../pages/PortalHome';
 import { Portals } from '../pages/Portals';
+import { Process } from '../pages/Process';
 import { Processes } from '../pages/Processes';
 import { RecordedPages } from '../pages/RecordedPages';
 import { Scan } from '../pages/Scan';
@@ -16,6 +17,7 @@ export const routes = [
   { path: '/app/', element: <Portals /> },
   { path: '/app/portals/:portal', element: <PortalHome /> },
   { path: '/app/portals/:portal/processes', element: <Processes /> },
+  { path: '/app/portals/:portal/processes/:key', element: <Process /> },
   { path: '/app/portals/:portal/scans', element: <Scans /> },
   { path: '/app/portals/:portal/screens', element: <Screens /> },
   { path: '/app/portals/:portal/screens/map', element: <ScreensMap /> },

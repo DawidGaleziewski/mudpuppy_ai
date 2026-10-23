@@ -12,11 +12,10 @@ from fastapi import APIRouter, Request
 from fastapi.responses import PlainTextResponse, RedirectResponse, Response
 
 from .. import chat_client
+from .chat_writes import CHECK_RUNS as KINDS
 from .deps import same_origin, web_of
 
 router = APIRouter()
-
-KINDS = {"replay": "The rule tests and error replays", "explore": "The exploration"}
 
 
 def _back(target: str, note: str) -> str:

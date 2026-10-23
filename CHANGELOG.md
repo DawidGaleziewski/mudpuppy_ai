@@ -6,6 +6,15 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Added
+- **R-96 step 9: one process in React** (spec 058, v2.6.8, 2026-10-23).
+  `/app/portals/{p}/processes/{key}`: the process's stage, persona, what is live and its PROC
+  record; the model switch and Start a to-be design / + Process model from …; what the portal model
+  knows (triggers, outcomes, how far it was explored with Explore now, actions checked, business
+  rules) and its paths; the as-is documentation (what is still open, the sign-off, Mark as-is
+  documented and Set stage); A step by step with each screen's picture and the records citing it,
+  reordered, removed or added as signed revisions; a selected step's documentation beside it;
+  Archive and Restore. A to-be model shows read only; drawing it, Compare and History still open
+  the htmx pages. The Processes list links here.
 - **R-96 step 8: the Processes list in React** (spec 057, v2.6.7, 2026-10-23).
   `/app/portals/{p}/processes`: the BA's processes with their stage, models (with an open draft),
   what is live where, screens and amendments, and the archived ones with Restore; the assistant's
